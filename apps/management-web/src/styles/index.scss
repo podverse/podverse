@@ -1,23 +1,15 @@
-// Root styles for management-web. Tokens, themes, mixins, and font-faces all
-// come from @podverse/ui so management-web stays in sync with apps/web.
+// Root styles for management-web. Tokens, themes, mixins, font-faces, and
+// shared element resets come from @podverse/ui (same as apps/web).
 @use '../../../../packages/ui/src/styles/font-faces';
 @use '../../../../packages/ui/src/styles/variables-root';
 @use '../../../../packages/ui/src/styles/variables' as *;
 @use '../../../../packages/ui/src/styles/themes';
+@use '../../../../packages/ui/src/styles/globals';
 
-// Global Reset
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-}
-
-body {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  line-height: var(--text-line-height);
-  color: var(--text-color-primary);
-  background-color: var(--background-color-secondary);
 }
 
 #root {

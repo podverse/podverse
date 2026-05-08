@@ -11,14 +11,14 @@ import styles from './ManagementSettingsGeneralFields.module.scss';
 
 /**
  * Language + theme controls aligned with web `SettingsGeneral`
- * (order: language, divider, theme; `FormDropdown` `label` prop; constrained width).
+ * (order: language, divider, theme; `FormDropdown` `eyebrow` prop; constrained width).
  */
 export function ManagementSettingsGeneralFields() {
   const t = useTranslations('settings');
 
   return (
     <div className={styles.content}>
-      <ManagementLocaleSelector id="settings-locale" label={t('language.label')} />
+      <ManagementLocaleSelector id="settings-locale" eyebrow={t('language.label')} />
       <Divider withSpacing />
       <ManagementThemeSwitcher id="settings-ui-theme" />
     </div>

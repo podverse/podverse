@@ -67,7 +67,7 @@ export function DashboardPageClient({ initialUser }: DashboardPageClientProps) {
     ...(isFeedFlagStatusToolVisible
       ? [
           {
-            href: '/feed-operations/flag-status',
+            href: '/feeds/flag-status',
             title: t('feedFlagStatus.title'),
             description: t('feedFlagStatus.description'),
           },

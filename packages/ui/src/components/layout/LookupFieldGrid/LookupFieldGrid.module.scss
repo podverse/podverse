@@ -9,6 +9,15 @@
   align-items: center;
 }
 
+/** Single row: controls use in-field `eyebrow` labels; action column aligns to input baseline. */
+.gridInlineEyebrow {
+  display: grid;
+  grid-template-columns: minmax(9rem, 1fr) minmax(6rem, 1fr) auto;
+  column-gap: var(--spacing-lg);
+  width: 100%;
+  align-items: end;
+}
+
 .actionLabelCell {
   display: block;
   margin: 0 0 var(--spacing-md);
@@ -33,7 +42,7 @@
   min-width: 7rem;
 }
 
-/* Outer chrome matches TextInput (formInputWrapper); use with a native select (not ui Select, which applies primitive styles). */
+/* Outer chrome matches TextInput (formInputWrapper); use with a native `<select>` beside grid inputs. */
 .nativeSelectFormChrome {
   @include formInputWrapper;
   box-sizing: border-box;

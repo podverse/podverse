@@ -3,16 +3,12 @@ import { authenticate, ensureAuthenticated, logout } from '@mgmt-api/lib/auth/in
 import express from 'express';
 
 const router = express.Router();
-const baseUrl = `${config.api.prefix}${config.api.version}`;
 
-// Login
-router.post(`${baseUrl}/auth/login`, authenticate);
+router.post('/login', authenticate);
 
-// Logout
-router.post(`${baseUrl}/auth/logout`, logout);
+router.post('/logout', logout);
 
-// Get current user
-router.get(`${baseUrl}/auth/me`, ensureAuthenticated, (req, res) => {
+router.get('/me', ensureAuthenticated, (req, res) => {
   const admin = req.user;
   if (!admin) {
     res.status(401).json({ message: 'Unauthorized' });
@@ -28,4 +24,6 @@ router.get(`${baseUrl}/auth/me`, ensureAuthenticated, (req, res) => {
   });
 });
 
-export const authRouter = router;
+const authRoot = express.Router();
+authRoot.use(`${config.api.prefix}${config.api.version}/auth`, router);
+export const authRouter = authRoot;

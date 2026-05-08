@@ -1,0 +1,10 @@
+/* Resets default pill sizing on `Button` so `variant="link"` reads as inline text (see CopyToClipboardButton). */
+.root {
+  display: inline-block;
+  min-width: auto;
+  padding: var(--spacing-none);
+  height: auto;
+  border-radius: 0;
+  font-weight: var(--font-weight-normal);
+  vertical-align: baseline;
+}

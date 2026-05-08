@@ -1,8 +1,53 @@
 import type { CurrentUser } from './requests/auth';
 
+const CRUD_CREATE = 1;
 const CRUD_READ = 2;
 const CRUD_UPDATE = 4;
 const CRUD_DELETE = 8;
+
+export function canReadAdmins(user: CurrentUser): boolean {
+  if (user.role === 'superuser') {
+    return true;
+  }
+  return (
+    user.permissions !== null &&
+    user.permissions !== undefined &&
+    (user.permissions.admins_crud & CRUD_READ) !== 0
+  );
+}
+
+export function canCreateAdmins(user: CurrentUser): boolean {
+  if (user.role === 'superuser') {
+    return true;
+  }
+  return (
+    user.permissions !== null &&
+    user.permissions !== undefined &&
+    (user.permissions.admins_crud & CRUD_CREATE) !== 0
+  );
+}
+
+export function canUpdateAdmins(user: CurrentUser): boolean {
+  if (user.role === 'superuser') {
+    return true;
+  }
+  return (
+    user.permissions !== null &&
+    user.permissions !== undefined &&
+    (user.permissions.admins_crud & CRUD_UPDATE) !== 0
+  );
+}
+
+export function canDeleteAdmins(user: CurrentUser): boolean {
+  if (user.role === 'superuser') {
+    return true;
+  }
+  return (
+    user.permissions !== null &&
+    user.permissions !== undefined &&
+    (user.permissions.admins_crud & CRUD_DELETE) !== 0
+  );
+}
 
 export function canReadFeeds(user: CurrentUser): boolean {
   if (user.role === 'superuser') {
@@ -53,7 +98,7 @@ export function canDeleteStorage(user: CurrentUser): boolean {
   return user.permissions !== null && user.permissions !== undefined && (crud & CRUD_DELETE) !== 0;
 }
 
-/** Matches feed lifecycle `takedown` from management feed-operations API. */
+/** Matches feed lifecycle `takedown` from management feeds API. */
 export const LIFECYCLE_TAKEDOWN_KEY = 'takedown';
 
 export function feedOperationsRequireConfirm(params: {

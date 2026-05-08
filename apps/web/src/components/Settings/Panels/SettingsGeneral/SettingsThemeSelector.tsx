@@ -32,7 +32,7 @@ export const SettingsThemeSelector: React.FC = () => {
   return (
     <FormDropdown
       id="settings_theme_selector"
-      label={tSettings('ui_theme.theme')}
+      eyebrow={tSettings('ui_theme.theme')}
       options={options}
       value={uiTheme}
       onChange={handleChange}

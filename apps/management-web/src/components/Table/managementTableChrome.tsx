@@ -11,6 +11,8 @@ export function useManagementTableChrome() {
       selectAll: t('bulk.selectAllAria'),
       selectRow: t('bulk.selectRowAria'),
     },
+    /** Use with {@link resolveManagementTableEmptyState} when the resource has no rows in the DB yet. */
+    systemEmptyMessage: t('systemEmptyMessage'),
     deleteConfirmLabels: {
       cancelLabel: tc('cancel'),
       closeButtonAriaLabel: tc('closeModalAria'),

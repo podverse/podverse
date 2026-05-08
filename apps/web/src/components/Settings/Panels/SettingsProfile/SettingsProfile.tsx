@@ -75,9 +75,9 @@ export function SettingsProfile() {
   return (
     <StackForm onSubmit={handleSubmit}>
       <SettingsSection noVerticalMargin>
-        <h3>{tSettings('profile.sharable_status')}</h3>
         <FormDropdown
           id="sharable_status"
+          eyebrow={tSettings('profile.sharable_status')}
           options={sharableStatusMenuItems.map(({ value, label }) => ({ value, label }))}
           value={sharableStatus}
           onChange={(value) => {

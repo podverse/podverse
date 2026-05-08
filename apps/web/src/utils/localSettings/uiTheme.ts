@@ -1,8 +1,9 @@
+import type { UITheme } from '@podverse/ui';
+import { ALL_POSSIBLE_THEMES } from '@podverse/ui';
+
 import { getConfig } from '../../config';
 
-export type UITheme = 'dark' | 'light' | 'dracula' | 'violet';
-
-const ALL_POSSIBLE_THEMES: UITheme[] = ['dark', 'light', 'dracula', 'violet'];
+export type { UITheme };
 
 /**
  * Get the list of valid themes from config, or all themes if config is blank
@@ -14,23 +15,24 @@ export function getValidThemes(): UITheme[] {
   const validThemesConfig = config.public.theme.valid?.trim();
 
   if (!validThemesConfig) {
-    return ALL_POSSIBLE_THEMES;
+    return [...ALL_POSSIBLE_THEMES];
   }
 
   if (validThemesConfig.toLowerCase() === ALL_AVAILABLE_VALUE) {
-    return ALL_POSSIBLE_THEMES;
+    return [...ALL_POSSIBLE_THEMES];
   }
 
   const themes = validThemesConfig
     .split(',')
     .map((t) => t.trim().toLowerCase())
-    .filter(Boolean) as UITheme[];
+    .filter(Boolean);
 
   // Validate themes and log warnings for invalid ones
   const validThemes: UITheme[] = [];
   themes.forEach((theme) => {
-    if (ALL_POSSIBLE_THEMES.includes(theme)) {
-      validThemes.push(theme);
+    const match = ALL_POSSIBLE_THEMES.find((t) => t === theme);
+    if (match !== undefined) {
+      validThemes.push(match);
     } else {
       if (typeof window !== 'undefined') {
         console.warn(
@@ -47,7 +49,7 @@ export function getValidThemes(): UITheme[] {
         `[Theme Config] No valid themes found in NEXT_PUBLIC_SUPPORTED_THEMES. Using all themes: ${ALL_POSSIBLE_THEMES.join(', ')}`
       );
     }
-    return ALL_POSSIBLE_THEMES;
+    return [...ALL_POSSIBLE_THEMES];
   }
 
   return validThemes;
@@ -69,13 +71,11 @@ export function getDefaultTheme(): UITheme {
     return validThemes[0] || 'dark';
   }
 
-  const defaultTheme = defaultThemeConfig as UITheme;
-
-  // Validate default theme
-  if (!ALL_POSSIBLE_THEMES.includes(defaultTheme)) {
+  const defaultThemeMatch = ALL_POSSIBLE_THEMES.find((t) => t === defaultThemeConfig);
+  if (defaultThemeMatch === undefined) {
     if (typeof window !== 'undefined') {
       console.warn(
-        `[Theme Config] Invalid default theme "${defaultTheme}" in NEXT_PUBLIC_DEFAULT_THEME. Valid themes are: ${ALL_POSSIBLE_THEMES.join(', ')}. Using fallback.`
+        `[Theme Config] Invalid default theme "${defaultThemeConfig}" in NEXT_PUBLIC_DEFAULT_THEME. Valid themes are: ${ALL_POSSIBLE_THEMES.join(', ')}. Using fallback.`
       );
     }
     // Use "dark" if valid, otherwise first valid theme
@@ -86,10 +86,10 @@ export function getDefaultTheme(): UITheme {
   }
 
   // Check if default theme is in the list of valid themes
-  if (!validThemes.includes(defaultTheme)) {
+  if (!validThemes.includes(defaultThemeMatch)) {
     if (typeof window !== 'undefined') {
       console.warn(
-        `[Theme Config] Default theme "${defaultTheme}" is not in the list of valid themes. Using fallback.`
+        `[Theme Config] Default theme "${defaultThemeMatch}" is not in the list of valid themes. Using fallback.`
       );
     }
     // Use "dark" if valid, otherwise first valid theme
@@ -99,7 +99,7 @@ export function getDefaultTheme(): UITheme {
     return validThemes[0] || 'dark';
   }
 
-  return defaultTheme;
+  return defaultThemeMatch;
 }
 
 export function toUITheme(value?: string | null): UITheme {
@@ -110,8 +110,9 @@ export function toUITheme(value?: string | null): UITheme {
     return defaultTheme;
   }
 
-  const theme = value.toLowerCase() as UITheme;
-  return validUIThemes.includes(theme) ? theme : defaultTheme;
+  const themeLower = value.toLowerCase();
+  const match = validUIThemes.find((t) => t === themeLower);
+  return match !== undefined ? match : defaultTheme;
 }
 
 export const getCurrentUITheme = (): string | undefined => {

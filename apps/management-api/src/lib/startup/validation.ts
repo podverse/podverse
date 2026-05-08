@@ -92,9 +92,11 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateRequired('COOKIE_DOMAIN', 'API'));
   results.push(validateRequired('API_ALLOWED_CORS_ORIGINS', 'API'));
 
-  // Web
-  results.push(validateRequired('WEB_PROTOCOL', 'Web'));
-  results.push(validateRequired('WEB_DOMAIN', 'Web'));
+  // Web origins (public web vs management web — different invite-link bases)
+  results.push(validateRequired('APP_WEB_PROTOCOL', 'Web (main app)'));
+  results.push(validateRequired('APP_WEB_DOMAIN', 'Web (main app)'));
+  results.push(validateRequired('MANAGEMENT_WEB_PROTOCOL', 'Web (management app)'));
+  results.push(validateRequired('MANAGEMENT_WEB_DOMAIN', 'Web (management app)'));
 
   // User Management
   results.push(

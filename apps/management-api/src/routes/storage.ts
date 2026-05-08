@@ -19,7 +19,6 @@ import {
 } from '@podverse/external-services-object-storage';
 
 const router = express.Router();
-const baseUrl = `${config.api.prefix}${config.api.version}`;
 
 const DEFAULT_LIST_MAX_KEYS = 100;
 const MAX_LIST_MAX_KEYS = 1000;
@@ -88,27 +87,22 @@ function parseContinuationToken(raw: unknown): string | undefined {
   return trimmed === '' ? undefined : trimmed;
 }
 
-router.get(
-  `${baseUrl}/storage`,
-  ensureAuthenticated,
-  requireCrud('bucket', 'read'),
-  (_req, res) => {
-    if (!isBucketStorageEnabled()) {
-      res.json({ enabled: false });
-      return;
-    }
-    const runtime = readBucketRuntimeConfig();
-    const storage = readBucketStorageConfig();
-    res.json({
-      enabled: true,
-      provider: runtime.provider,
-      bucketName: storage.bucket,
-    });
+router.get('/', ensureAuthenticated, requireCrud('bucket', 'read'), (_req, res) => {
+  if (!isBucketStorageEnabled()) {
+    res.json({ enabled: false });
+    return;
   }
-);
+  const runtime = readBucketRuntimeConfig();
+  const storage = readBucketStorageConfig();
+  res.json({
+    enabled: true,
+    provider: runtime.provider,
+    bucketName: storage.bucket,
+  });
+});
 
 router.get(
-  `${baseUrl}/storage/objects`,
+  '/objects',
   ensureAuthenticated,
   requireCrud('bucket', 'read'),
   async (req, res, next) => {
@@ -146,7 +140,7 @@ router.get(
 );
 
 router.get(
-  `${baseUrl}/storage/objects/count`,
+  '/objects/count',
   ensureAuthenticated,
   requireCrud('bucket', 'read'),
   async (req, res, next) => {
@@ -171,7 +165,7 @@ router.get(
 );
 
 router.get(
-  `${baseUrl}/storage/objects/metadata`,
+  '/objects/metadata',
   ensureAuthenticated,
   requireCrud('bucket', 'read'),
   async (req, res, next) => {
@@ -206,7 +200,7 @@ router.get(
 );
 
 router.get(
-  `${baseUrl}/storage/objects/download`,
+  '/objects/download',
   ensureAuthenticated,
   requireCrud('bucket', 'read'),
   async (req, res, next) => {
@@ -259,7 +253,7 @@ router.get(
 );
 
 router.delete(
-  `${baseUrl}/storage/objects`,
+  '/objects',
   ensureAuthenticated,
   requireCrud('bucket', 'delete'),
   async (req, res, next) => {
@@ -288,7 +282,7 @@ router.delete(
 );
 
 router.post(
-  `${baseUrl}/storage/objects/bulk-delete`,
+  '/objects/bulk-delete',
   ensureAuthenticated,
   requireCrud('bucket', 'delete'),
   async (req, res, next) => {
@@ -321,7 +315,7 @@ router.post(
 );
 
 router.post(
-  `${baseUrl}/storage/objects/delete-all-by-prefix`,
+  '/objects/delete-all-by-prefix',
   ensureAuthenticated,
   requireCrud('bucket', 'delete'),
   async (req, res, next) => {
@@ -351,4 +345,6 @@ router.post(
   }
 );
 
-export const storageRouter = router;
+const storageRoot = express.Router();
+storageRoot.use(`${config.api.prefix}${config.api.version}/storage`, router);
+export const storageRouter = storageRoot;

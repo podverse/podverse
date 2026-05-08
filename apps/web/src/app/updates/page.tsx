@@ -1,15 +1,17 @@
-import fs from 'fs';
-import dynamic from 'next/dynamic';
-import path from 'path';
+import { getTranslations } from 'next-intl/server';
 
-const UpdatesClient = dynamic(
-  () => import('./UpdatesPageClient').then((mod) => ({ default: mod.UpdatesPageClient })),
-  { ssr: true }
-);
+import { PODVERSE_GITHUB_RELEASES_URL } from '../../constants/githubReleases';
+import { UpdatesPageClient } from './UpdatesPageClient';
 
-export default function UpdatesPage() {
-  const changelogPath = path.join(process.cwd(), 'CHANGELOG.md');
-  const changelogContent = fs.readFileSync(changelogPath, 'utf8');
+export default async function UpdatesPage() {
+  const t = await getTranslations('updates_page');
 
-  return <UpdatesClient markdownContent={changelogContent} />;
+  return (
+    <UpdatesPageClient
+      intro={t('intro')}
+      linkLabel={t('view_releases')}
+      releasesUrl={PODVERSE_GITHUB_RELEASES_URL}
+      title={t('title')}
+    />
+  );
 }

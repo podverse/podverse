@@ -6,8 +6,12 @@ export type ResolvedProductMembershipResponse = {
   data: ResolvedProductMembership;
 };
 
-export type UpdateProductMembershipTrialRequest = {
-  freeTrialExpirationSeconds: number;
+export type UpdateProductMembershipSettingsRequest = {
+  freeTrialExpirationSeconds?: number;
+  trialMaxAddByRSSFeeds?: number;
+  trialMaxManualRefreshesPerHour?: number;
+  premiumMaxAddByRSSFeeds?: number;
+  premiumMaxManualRefreshesPerHour?: number;
 };
 
 export async function getResolvedProductMembership(
@@ -15,17 +19,17 @@ export async function getResolvedProductMembership(
 ): Promise<ResolvedProductMembershipResponse> {
   const service = new ManagementApiRequestService(jwt);
   return service.apiRequest<ResolvedProductMembershipResponse>({
-    path: '/product/membership',
+    path: '/products/membership',
   });
 }
 
-export async function updateProductMembershipTrial(
-  payload: UpdateProductMembershipTrialRequest,
+export async function updateProductMembershipSettings(
+  payload: UpdateProductMembershipSettingsRequest,
   jwt?: string
 ): Promise<ResolvedProductMembershipResponse> {
   const service = new ManagementApiRequestService(jwt);
   return service.apiRequest<ResolvedProductMembershipResponse>({
-    path: '/product/membership',
+    path: '/products/membership',
     method: 'PATCH',
     data: payload,
   });

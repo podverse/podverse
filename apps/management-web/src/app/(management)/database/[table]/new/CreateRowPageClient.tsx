@@ -107,7 +107,7 @@ export function CreateRowPageClient({ tableName }: CreateRowPageClientProps) {
   return (
     <ManagementPageShell
       title={t('createRowTitle', { table: tableSingularLabel })}
-      headerChildren={
+      headerBreadcrumbs={
         <Breadcrumbs
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}

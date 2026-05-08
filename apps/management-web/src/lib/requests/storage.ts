@@ -51,6 +51,12 @@ export async function getStorageFeature(jwt?: string): Promise<StorageFeatureRes
   });
 }
 
+/** Whether the bucket lists at least one object at the root prefix (no continuation scan). */
+export async function probeStorageBucketHasObjects(jwt?: string): Promise<boolean> {
+  const res = await listStorageObjects({ maxKeys: 1 }, jwt);
+  return res.objects.length > 0 || res.isTruncated;
+}
+
 export async function listStorageObjects(
   params: {
     prefix?: string;

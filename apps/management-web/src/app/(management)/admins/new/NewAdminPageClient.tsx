@@ -10,7 +10,10 @@ import {
   Breadcrumbs,
   Button,
   Checkbox,
+  CopyToClipboardButton,
   Fieldset,
+  FormGroup,
+  FormHintText,
   FormMaxWidth,
   FormPrimaryActions,
   ManagementPageShell,
@@ -19,7 +22,7 @@ import {
   TextInput,
 } from '@podverse/ui';
 
-import { createAdmin } from '../../../../lib/requests/admins';
+import { createAdmin, type CreateAdminResponse } from '../../../../lib/requests/admins';
 
 const RESOURCE_KEYS = [
   'feeds_crud',
@@ -65,10 +68,12 @@ export function NewAdminPageClient() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [inviteUrl, setInviteUrl] = useState<string | null>(null);
   const t = useTranslations('admins');
   const tc = useTranslations('common');
   const ta = useTranslations('auth');
+  const tu = useTranslations('users');
   const tp = useTranslations('admins.permissions');
 
   const toggleCrudBit = (resource: keyof PermissionState, bit: number) => {
@@ -82,11 +87,33 @@ export function NewAdminPageClient() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setSuccess(false);
+    setSuccessMessage(null);
+    setInviteUrl(null);
+
+    const trimmedPassword = password.trim();
+    if (trimmedPassword.length > 0 && trimmedPassword.length < 8) {
+      setError(tu('passwordMinLength'));
+      setLoading(false);
+      return;
+    }
 
     try {
-      await createAdmin({ email, password, permissions });
-      setSuccess(true);
+      const payload: {
+        email: string;
+        permissions: PermissionState;
+        password?: string;
+      } = { email, permissions };
+      if (trimmedPassword.length > 0) {
+        payload.password = trimmedPassword;
+      }
+
+      const result: CreateAdminResponse = await createAdmin(payload);
+      if (result.set_password_url !== undefined && result.set_password_url.length > 0) {
+        setInviteUrl(result.set_password_url);
+        setSuccessMessage(t('createdWithLink'));
+      } else {
+        setSuccessMessage(t('createdSuccessfully'));
+      }
       setEmail('');
       setPassword('');
       setPermissions({
@@ -111,7 +138,7 @@ export function NewAdminPageClient() {
   return (
     <ManagementPageShell
       title={t('createAdmin')}
-      headerChildren={
+      headerBreadcrumbs={
         <Breadcrumbs
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
@@ -131,13 +158,12 @@ export function NewAdminPageClient() {
           />
           <TextInput
             id="password"
-            eyebrow={ta('password')}
-            minLength={8}
+            eyebrow={t('passwordOptional')}
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
           />
+          <FormHintText>{t('passwordInviteHint')}</FormHintText>
           <Fieldset legend={tp('legend')}>
             <Table.ScrollContainer>
               <Table>
@@ -171,7 +197,32 @@ export function NewAdminPageClient() {
             </Table.ScrollContainer>
           </Fieldset>
           <Alert>{error}</Alert>
-          {success && <Alert variant="success">{t('createdSuccessfully')}</Alert>}
+          {successMessage !== null ? <Alert variant="success">{successMessage}</Alert> : null}
+          {inviteUrl !== null ? (
+            <FormGroup layout="inStack">
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 'var(--spacing-base)',
+                  alignItems: 'flex-end',
+                }}
+              >
+                <TextInput
+                  eyebrow={tu('inviteLinkLabel')}
+                  id="admin-invite-link"
+                  readOnly
+                  style={{ flex: 1, minWidth: 0 }}
+                  type="text"
+                  value={inviteUrl}
+                />
+                <CopyToClipboardButton
+                  copiedLabel={tu('linkCopied')}
+                  idleLabel={tu('copyLink')}
+                  textToCopy={inviteUrl}
+                />
+              </div>
+            </FormGroup>
+          ) : null}
           <FormPrimaryActions>
             <Button type="button" variant="secondary" onClick={() => router.push('/admins')}>
               {tc('cancel')}

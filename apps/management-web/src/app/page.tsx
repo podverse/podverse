@@ -15,7 +15,7 @@ import {
   TextInput,
 } from '@podverse/ui';
 
-import { ManagementLoadingSpinnerFull } from '../components/LoadingSpinner/ManagementLoadingSpinnerFull';
+import { ManagementLoadingSpinnerOverlay } from '../components/LoadingSpinner/ManagementLoadingSpinnerOverlay';
 import { getConfig } from '../config';
 import { getCurrentUser, login } from '../lib/requests/auth';
 
@@ -76,7 +76,7 @@ export default function HomePage() {
   if (checkingAuth) {
     return (
       <CenterContainer>
-        <ManagementLoadingSpinnerFull />
+        <ManagementLoadingSpinnerOverlay isLoading />
       </CenterContainer>
     );
   }

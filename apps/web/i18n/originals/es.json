@@ -262,6 +262,11 @@
       "audio_with_ext_bitrate_mbps": "Audio {ext} {bitrate}Mbps"
     }
   },
+  "updates_page": {
+    "intro": "Las notas de versión de la aplicación de código abierto se publican en GitHub. Use el enlace siguiente para ver los lanzamientos etiquetados.",
+    "title": "Actualizaciones",
+    "view_releases": "Ver lanzamientos en GitHub"
+  },
   "value": {
     "boost": "Aumentar",
     "recipient": {
@@ -616,7 +621,10 @@
     "feature_premium_only_explanation": "Esta es una función Premium. Para evitar spam, las cuentas de prueba tienen acceso limitado. Obtén Premium para usarla.",
     "manual_refresh_hourly_limit_reached": "Has alcanzado tu límite de actualización manual por esta hora.",
     "add_by_rss_feed_limit_reached": "Has alcanzado tu límite de Agregar por RSS.",
-    "directory_add_by_rss_trial_blocked": "Para evitar spam, las cuentas de prueba no pueden añadir feeds al directorio público. Obtén Premium para añadir feeds tú mismo, o escribe a <mail>{contactEmail}</mail> para pedir que añadamos este feed.",
+    "directory_add_by_rss_trial_blocked": "Para evitar spam, las cuentas de prueba no pueden añadir feeds al directorio público. Necesitarás una cuenta Premium para añadir feeds, o escribe a <mail>{contactEmail}</mail> para pedir que añadamos este feed.",
+    "trial_limitations_summary": "Algunas funciones no están disponibles durante el periodo de prueba para ayudar a reducir el spam y el abuso.",
+    "trial_limitations_show_less": "Mostrar menos",
+    "trial_limitations_show_more": "Mostrar más",
     "trial_limitations_title": "Limitaciones del periodo de prueba",
     "trial_limitations_directory_add_by_rss": "Agregar feeds al directorio público desde la búsqueda está bloqueado para el estado de Prueba.",
     "trial_limitations_add_by_rss_feed_limit": "El tamaño de la biblioteca de Agregar por RSS utiliza un límite inferior en Prueba que en Premium.",

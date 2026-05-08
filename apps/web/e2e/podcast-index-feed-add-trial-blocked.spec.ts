@@ -1,23 +1,6 @@
 import { expect, test } from '@playwright/test';
-import type { Page } from '@playwright/test';
 
-async function dismissBlockingDevModal(page: Page) {
-  const devDialog = page.getByRole('dialog', { name: /Local Development/i });
-  if ((await devDialog.count()) > 0 && (await devDialog.first().isVisible())) {
-    await page.keyboard.press('Escape');
-    await devDialog
-      .first()
-      .waitFor({ state: 'hidden', timeout: 3000 })
-      .catch(() => {});
-
-    if (await devDialog.first().isVisible()) {
-      const closeButton = devDialog.first().getByRole('button').first();
-      if ((await closeButton.count()) > 0) {
-        await closeButton.click({ force: true });
-      }
-    }
-  }
-}
+import { dismissLocalDevelopmentModal } from './helpers/dismissLocalDevelopmentModal';
 
 test.describe('Podcast Index add feed when directory add is blocked for Trial', () => {
   test.beforeEach(async ({ page }) => {
@@ -42,13 +25,19 @@ test.describe('Podcast Index add feed when directory add is blocked for Trial', 
   test('the modal explains Trial directory limits, shows a mailto link, and Get Premium navigates to membership', async ({
     page,
   }) => {
+    test.setTimeout(30_000);
     const loginResponse = await page.request.post('http://localhost:4030/api/v2/auth/login', {
       data: { email: 'e2e-user@example.com', password: 'Test!1Aa' },
     });
     expect(loginResponse.ok(), await loginResponse.text()).toBeTruthy();
 
-    await page.goto('/podcast-index/feed/6594066');
-    await dismissBlockingDevModal(page);
+    // Use Podcast Index mock-feed id range (see packages/external-services-podcast-index TEST_PODCAST_INDEX_ID_MIN).
+    // E2E runs the API with NODE_ENV=test (not production), so real PI ids hit live Podcast Index and SSR fails without credentials.
+    await page.goto('/podcast-index/feed/2147483640');
+    await expect(page.getByRole('dialog', { name: /Local Development/i })).toBeVisible({
+      timeout: 15_000,
+    });
+    await dismissLocalDevelopmentModal(page);
 
     await test.step('The Add Feed button is available after login', async () => {
       await expect(page.getByRole('button', { name: /add feed/i })).toBeVisible();

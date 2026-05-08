@@ -92,6 +92,7 @@ export function TableFilterBar({
           ariaLabel={funnelAriaLabel}
           body={funnelBody}
           icon={<FaFilter aria-hidden />}
+          interaction="click"
         />
       </div>
     </div>

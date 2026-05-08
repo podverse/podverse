@@ -20,6 +20,38 @@ export type ProductPricingActiveResponse = {
 export async function getActiveProductPricing(jwt?: string): Promise<ProductPricingActiveResponse> {
   const service = new ManagementApiRequestService(jwt);
   return service.apiRequest<ProductPricingActiveResponse>({
-    path: '/product/pricing/active',
+    path: '/products/pricing/active',
+  });
+}
+
+export type ScheduleProductPricingRequest = {
+  productCode?: string;
+  currencyCode?: string;
+  cadence: BillingCadence;
+  amountCents: number;
+  effectiveFrom?: string;
+  changeReason?: string | null;
+};
+
+export type ScheduleProductPricingResponse = {
+  data: { id: number };
+};
+
+export async function scheduleProductPricing(
+  payload: ScheduleProductPricingRequest,
+  jwt?: string
+): Promise<ScheduleProductPricingResponse> {
+  const service = new ManagementApiRequestService(jwt);
+  return service.apiRequest<ScheduleProductPricingResponse>({
+    path: '/products/pricing/schedule',
+    method: 'POST',
+    data: {
+      productCode: payload.productCode ?? 'membership_premium',
+      currencyCode: payload.currencyCode ?? 'USD',
+      cadence: payload.cadence,
+      amountCents: payload.amountCents,
+      effectiveFrom: payload.effectiveFrom,
+      changeReason: payload.changeReason,
+    },
   });
 }

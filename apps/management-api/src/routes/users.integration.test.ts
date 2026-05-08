@@ -74,10 +74,16 @@ const {
       freeTrialExpirationSeconds: 86400,
       premiumMembershipCostMonthly: 3,
       premiumMembershipCostAnnually: 30,
+      trialAllowDirectoryAddByRSS: false,
       trialMaxAddByRSSFeeds: 10,
       trialMaxManualRefreshesPerHour: 5,
+      trialTrackStats: false,
+      trialAllowNotifications: false,
+      premiumAllowDirectoryAddByRSS: true,
       premiumMaxAddByRSSFeeds: 100,
       premiumMaxManualRefreshesPerHour: 20,
+      premiumTrackStats: true,
+      premiumAllowNotifications: true,
     })),
     getWithRoleAndPermissionsMock: vi.fn<Promise<MockAdmin | null>, [number]>(
       async (id: number) => {
@@ -148,10 +154,16 @@ beforeEach(() => {
     freeTrialExpirationSeconds: 86400,
     premiumMembershipCostMonthly: 3,
     premiumMembershipCostAnnually: 30,
+    trialAllowDirectoryAddByRSS: false,
     trialMaxAddByRSSFeeds: 10,
     trialMaxManualRefreshesPerHour: 5,
+    trialTrackStats: false,
+    trialAllowNotifications: false,
+    premiumAllowDirectoryAddByRSS: true,
     premiumMaxAddByRSSFeeds: 100,
     premiumMaxManualRefreshesPerHour: 20,
+    premiumTrackStats: true,
+    premiumAllowNotifications: true,
   }));
   hashPasswordSpy.mockImplementation((p: string) => hashPasswordMock(p));
   generateRandomIdTextSpy.mockImplementation(() => generateRandomIdTextMock());
@@ -327,15 +339,15 @@ describe('DELETE /users/:id', () => {
   });
 });
 
-describe('POST /users/:id/change-password', () => {
-  it('changes user password', async () => {
+describe('POST /users/:id/password', () => {
+  it('sets user password', async () => {
     readQueryMock.mockResolvedValueOnce([{ id: 1 }]);
     hashPasswordMock.mockResolvedValueOnce('hashed_newpass');
     readWriteQueryMock.mockResolvedValueOnce(undefined); // update credentials
     readWriteQueryMock.mockResolvedValueOnce(undefined); // delete set-password
 
     const res = await request(app)
-      .post(`${usersBase}/1/change-password`)
+      .post(`${usersBase}/1/password`)
       .set(superuserAuthHeaders())
       .send({ password: 'newpassword123' });
 
@@ -345,7 +357,7 @@ describe('POST /users/:id/change-password', () => {
 
   it('returns 400 for invalid password', async () => {
     const res = await request(app)
-      .post(`${usersBase}/1/change-password`)
+      .post(`${usersBase}/1/password`)
       .set(superuserAuthHeaders())
       .send({ password: 'short' });
 
@@ -546,10 +558,16 @@ describe('POST /users', () => {
       freeTrialExpirationSeconds: 120,
       premiumMembershipCostMonthly: 3,
       premiumMembershipCostAnnually: 30,
+      trialAllowDirectoryAddByRSS: false,
       trialMaxAddByRSSFeeds: 10,
       trialMaxManualRefreshesPerHour: 5,
+      trialTrackStats: false,
+      trialAllowNotifications: false,
+      premiumAllowDirectoryAddByRSS: true,
       premiumMaxAddByRSSFeeds: 100,
       premiumMaxManualRefreshesPerHour: 20,
+      premiumTrackStats: true,
+      premiumAllowNotifications: true,
     });
     mockCreateUserSqlSequence({ withSetPassword: true });
     const before = Date.now();

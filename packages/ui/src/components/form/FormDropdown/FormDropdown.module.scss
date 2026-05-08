@@ -12,68 +12,80 @@
   @include flexItemAllowShrink;
 }
 
-.headerRow {
-  @include formHeaderRow;
-  @include flexItemAllowShrink;
-}
-
-.label {
-  @include formHeaderLabel;
-}
-
 .dropdownWrapper {
   @include formInputWrapper;
+  position: relative;
   flex: 0 1 auto;
   width: 100%;
   min-height: 0;
   @include flexItemAllowShrink;
 }
 
-.dropdownInnerWrapper {
-  display: flex;
-  flex: 0 1 auto;
-  flex-direction: column;
-  justify-content: flex-start;
-  width: 100%;
-  min-height: 0;
-  @include flexItemAllowShrink;
+.dropdownWrapperDisabled {
+  background-color: color-mix(
+    in srgb,
+    var(--background-color-tertiary) 55%,
+    var(--background-color-primary)
+  );
+  cursor: not-allowed;
+
+  .eyebrow {
+    color: var(--text-color-secondary);
+  }
+
+  .dropdownButton {
+    color: var(--text-color-secondary);
+  }
 }
 
 .eyebrow {
   color: var(--text-color-link);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
-  margin: 0 0 var(--spacing-form-label-bottom);
+  margin: 0;
 }
 
 .dropdownButton {
   all: unset;
+  align-items: center;
   box-sizing: border-box;
-  display: block;
-  min-height: min-content;
-  font-size: var(--font-size-md);
-  width: 100%;
-  padding: var(--spacing-form-input-inner);
   cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  font-size: var(--font-size-md);
+  gap: var(--spacing-md);
+  min-height: min-content;
+  padding: var(--spacing-form-input-inner);
+  width: 100%;
+  @include flexItemAllowShrink;
 
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+  &:focus,
+  &:focus-visible {
+    outline: none;
+    box-shadow: none;
   }
 }
 
-.dropdown {
-  align-items: center;
+.dropdownMain {
   display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-form-label-bottom);
+  min-width: 0;
   @include flexItemAllowShrink;
 }
 
 .dropdownSelectedItemText {
-  flex: 1;
+  flex: 0 1 auto;
   @include flexItemAllowShrink;
+  font-size: var(--font-size-md);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.chevron {
+  flex-shrink: 0;
 }
 
 .dropdownMenu {

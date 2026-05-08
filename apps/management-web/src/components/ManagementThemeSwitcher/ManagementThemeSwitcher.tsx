@@ -14,8 +14,8 @@ const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 export type ManagementThemeSwitcherProps = {
   className?: string;
   id?: string;
-  /** Visible field label; defaults to web-aligned `settings.ui_theme.theme`. */
-  label?: string;
+  /** Visible field title inside the control chrome; defaults to web-aligned `settings.ui_theme.theme`. */
+  eyebrow?: string;
   /** Override option labels; defaults to `settings.ui_theme.{dark|light|...}`. */
   optionLabel?: (theme: UITheme) => string;
 };
@@ -23,7 +23,7 @@ export type ManagementThemeSwitcherProps = {
 export const ManagementThemeSwitcher = ({
   id,
   className,
-  label,
+  eyebrow,
   optionLabel,
 }: ManagementThemeSwitcherProps) => {
   const t = useTranslations('settings');
@@ -53,8 +53,8 @@ export const ManagementThemeSwitcher = ({
   return (
     <FormDropdown
       className={className}
+      eyebrow={eyebrow ?? t('ui_theme.theme')}
       id={id ?? 'management-theme-switcher'}
-      label={label ?? t('ui_theme.theme')}
       options={options}
       value={theme}
       onChange={handleChange}

@@ -10,6 +10,8 @@ export type CallToActionMessageProps = {
   buttonLabel: ReactNode;
   onButtonClick: () => void;
   className?: string;
+  /** Tighter outer margins and more space between message and action when embedded in a modal. */
+  layout?: 'default' | 'modal';
 };
 
 /** Centered message with a single primary button; no default strings — apps pass localized content. */
@@ -18,9 +20,10 @@ export function CallToActionMessage({
   buttonLabel,
   onButtonClick,
   className,
+  layout = 'default',
 }: CallToActionMessageProps) {
   return (
-    <div className={classNames(styles.root, className)}>
+    <div className={classNames(styles.root, layout === 'modal' && styles.rootModal, className)}>
       <div className={styles.message}>
         <p>{message}</p>
       </div>

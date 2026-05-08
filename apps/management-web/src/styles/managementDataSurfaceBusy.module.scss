@@ -1,0 +1,4 @@
+/* Stale-while-loading: fullscreen overlay is the primary block; this marks surfaces as inert under busy roots. */
+.dataSurfaceBusy {
+  pointer-events: none;
+}

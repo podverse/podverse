@@ -114,7 +114,7 @@ Triggers on push to the `staging` branch or manual `workflow_dispatch`:
    - `401/403` on listing indicates auth/permission issues and can fail the job
 3. Builds Docker images from source (packages included in build context)
 4. Pushes Docker images to GHCR with the version tag and floating **`staging`**
-5. Creates a prerelease GitHub Release and opens the changelog PR to `develop` when applicable
+5. Creates a prerelease GitHub Release when applicable
 
 **Note**: npm packages are NOT published to npm registry. Docker images contain packages built from source.
 

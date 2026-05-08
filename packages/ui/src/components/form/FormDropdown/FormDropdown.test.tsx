@@ -15,11 +15,12 @@ afterEach(() => {
 describe('FormDropdown', () => {
   it('renders options and shows the selected label', () => {
     render(
-      <FormDropdown id="lang" label="Language" options={OPTIONS} value="es" onChange={() => {}} />
+      <FormDropdown id="lang" eyebrow="Language" options={OPTIONS} value="es" onChange={() => {}} />
     );
 
-    expect(screen.getByLabelText('Language').textContent).toContain('Español');
-    fireEvent.click(screen.getByRole('button', { name: 'Language' }));
+    const trigger = screen.getByRole('button', { name: 'Language Español' });
+    expect(trigger.textContent).toContain('Español');
+    fireEvent.click(trigger);
     expect(screen.getByRole('menuitem', { name: 'English' })).toBeTruthy();
     expect(screen.getByRole('menuitem', { name: 'Español' })).toBeTruthy();
   });
@@ -76,6 +77,31 @@ describe('FormDropdown', () => {
     expect(screen.getByRole('button', { name: 'Status' }).getAttribute('aria-describedby')).toBe(
       'status-info'
     );
+  });
+
+  it('anchors the open menu to the trigger box, not below the info description', () => {
+    render(
+      <FormDropdown
+        id="status"
+        ariaLabel="Status"
+        info="More detail here."
+        options={OPTIONS}
+        value="en-US"
+        onChange={() => {}}
+      />
+    );
+
+    const trigger = screen.getByRole('button', { name: 'Status' });
+    fireEvent.click(trigger);
+
+    const menu = screen.getByRole('menu');
+    const triggerWrapper = trigger.parentElement;
+    const infoElement = screen.getByText('More detail here.');
+
+    expect(triggerWrapper).not.toBeNull();
+    expect(triggerWrapper?.contains(menu)).toBe(true);
+    expect(infoElement.contains(menu)).toBe(false);
+    expect(triggerWrapper?.contains(infoElement)).toBe(false);
   });
 
   it('does not open when disabled', () => {

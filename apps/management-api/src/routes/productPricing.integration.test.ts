@@ -5,7 +5,7 @@ import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const JWT_SECRET = process.env.AUTH_JWT_SECRET ?? '';
-const canonicalBasePath = `${config.api.prefix}${config.api.version}/product/pricing`;
+const canonicalBasePath = `${config.api.prefix}${config.api.version}/products/pricing`;
 
 const superuser = {
   id: 1,

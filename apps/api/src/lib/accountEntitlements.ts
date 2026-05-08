@@ -1,9 +1,12 @@
+import type {
+  AccountEntitlementCapability,
+  AccountTrustEntitlements,
+  AccountTrustOverrides,
+  ProductMembershipCapDefaults,
+} from '@podverse/helpers';
 import {
   ACCOUNT_ENTITLEMENT_CAPABILITY,
-  type AccountEntitlementCapability,
   AccountMembershipEnum,
-  type AccountTrustEntitlements,
-  type AccountTrustOverrides,
   resolveAccountEntitlements,
 } from '@podverse/helpers';
 import type { AccountMembershipStatus } from '@podverse/orm';
@@ -19,60 +22,32 @@ export type MembershipStatusForEntitlements = Pick<
   | 'allow_notifications'
 >;
 
-const parseBooleanEnv = (name: string, fallback: boolean): boolean => {
-  const raw = process.env[name];
-  if (raw === undefined || raw === '') {
-    return fallback;
-  }
-
-  return raw === 'true';
-};
-
-const parsePositiveIntegerEnv = (name: string, fallback: number): number => {
-  const raw = process.env[name];
-  if (raw === undefined || raw === '') {
-    return fallback;
-  }
-
-  const parsed = Number(raw);
-  if (!Number.isInteger(parsed) || parsed < 0) {
-    return fallback;
-  }
-
-  return parsed;
-};
-
-const getMembershipDefaults = (membershipId: AccountMembershipEnum): AccountTrustEntitlements => {
+const getMembershipDefaults = (
+  membershipId: AccountMembershipEnum,
+  capDefaults: ProductMembershipCapDefaults
+): AccountTrustEntitlements => {
   if (membershipId === AccountMembershipEnum.Premium) {
     return {
-      allowDirectoryAddByRSS: parseBooleanEnv(
-        'MEMBERSHIP_PREMIUM_ALLOW_DIRECTORY_ADD_BY_RSS',
-        true
-      ),
-      maxAddByRSSFeeds: parsePositiveIntegerEnv('MEMBERSHIP_PREMIUM_MAX_ADD_BY_RSS_FEEDS', 100),
-      maxManualRefreshesPerHour: parsePositiveIntegerEnv(
-        'MEMBERSHIP_PREMIUM_MAX_MANUAL_REFRESHES_PER_HOUR',
-        20
-      ),
-      trackStats: parseBooleanEnv('MEMBERSHIP_PREMIUM_TRACK_STATS', true),
-      allowNotifications: parseBooleanEnv('MEMBERSHIP_PREMIUM_ALLOW_NOTIFICATIONS', true),
+      allowDirectoryAddByRSS: capDefaults.premiumAllowDirectoryAddByRSS,
+      maxAddByRSSFeeds: capDefaults.premiumMaxAddByRSSFeeds,
+      maxManualRefreshesPerHour: capDefaults.premiumMaxManualRefreshesPerHour,
+      trackStats: capDefaults.premiumTrackStats,
+      allowNotifications: capDefaults.premiumAllowNotifications,
     };
   }
 
   return {
-    allowDirectoryAddByRSS: parseBooleanEnv('MEMBERSHIP_TRIAL_ALLOW_DIRECTORY_ADD_BY_RSS', false),
-    maxAddByRSSFeeds: parsePositiveIntegerEnv('MEMBERSHIP_TRIAL_MAX_ADD_BY_RSS_FEEDS', 10),
-    maxManualRefreshesPerHour: parsePositiveIntegerEnv(
-      'MEMBERSHIP_TRIAL_MAX_MANUAL_REFRESHES_PER_HOUR',
-      5
-    ),
-    trackStats: parseBooleanEnv('MEMBERSHIP_TRIAL_TRACK_STATS', false),
-    allowNotifications: parseBooleanEnv('MEMBERSHIP_TRIAL_ALLOW_NOTIFICATIONS', false),
+    allowDirectoryAddByRSS: capDefaults.trialAllowDirectoryAddByRSS,
+    maxAddByRSSFeeds: capDefaults.trialMaxAddByRSSFeeds,
+    maxManualRefreshesPerHour: capDefaults.trialMaxManualRefreshesPerHour,
+    trackStats: capDefaults.trialTrackStats,
+    allowNotifications: capDefaults.trialAllowNotifications,
   };
 };
 
 export const getAccountEntitlements = (
-  membershipStatus: MembershipStatusForEntitlements
+  membershipStatus: MembershipStatusForEntitlements,
+  capDefaults: ProductMembershipCapDefaults
 ): AccountTrustEntitlements => {
   const membershipId =
     membershipStatus.account_membership?.id === AccountMembershipEnum.Premium
@@ -87,7 +62,11 @@ export const getAccountEntitlements = (
     allow_notifications: membershipStatus.allow_notifications,
   };
 
-  return resolveAccountEntitlements(membershipId, overrides, getMembershipDefaults(membershipId));
+  return resolveAccountEntitlements(
+    membershipId,
+    overrides,
+    getMembershipDefaults(membershipId, capDefaults)
+  );
 };
 
 export const accountHasCapability = (

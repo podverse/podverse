@@ -8,6 +8,11 @@
   margin: var(--spacing-4xl) var(--spacing-none);
 }
 
+.rootModal {
+  margin: var(--spacing-none);
+  gap: var(--spacing-2xl);
+}
+
 .message {
   font-size: var(--font-size-lg);
 }

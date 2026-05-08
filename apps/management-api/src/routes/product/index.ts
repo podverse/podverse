@@ -11,4 +11,4 @@ productSegmentRouter.use('/pricing', productPricingRouter);
 
 export const productRouter = express.Router();
 
-productRouter.use(`${config.api.prefix}${config.api.version}/product`, productSegmentRouter);
+productRouter.use(`${config.api.prefix}${config.api.version}/products`, productSegmentRouter);

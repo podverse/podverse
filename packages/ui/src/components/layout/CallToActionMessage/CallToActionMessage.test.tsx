@@ -16,4 +16,14 @@ describe('CallToActionMessage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Go' }));
     expect(onClick).toHaveBeenCalledTimes(1);
   });
+
+  it('applies modal layout classes when layout is modal', () => {
+    const onClick = vi.fn();
+    const { container } = render(
+      <CallToActionMessage layout="modal" message="Hi" buttonLabel="Go" onButtonClick={onClick} />
+    );
+
+    const root = container.firstChild as HTMLElement;
+    expect(root.className).toMatch(/rootModal/);
+  });
 });

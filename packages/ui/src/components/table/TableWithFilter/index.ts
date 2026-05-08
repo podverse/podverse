@@ -3,6 +3,7 @@ export type {
   TableWithFilterBodyRenderArgs,
   TableWithFilterBulkSelect,
   TableWithFilterColumn,
+  TableWithFilterEmptyState,
   TableWithFilterFilterBag,
   TableWithFilterPaginationLabels,
   TableWithFilterProps,

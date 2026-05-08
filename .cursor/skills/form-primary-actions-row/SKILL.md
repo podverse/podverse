@@ -38,4 +38,4 @@ matches Playwright expectations (Cancel then submit in tree order).
 - Primary button last in DOM among footer buttons?
 - Checkbox + label spacing inconsistent? → Prefer `CheckboxField` from `@podverse/ui`.
 - Form controls duplicated (`.label`, `.input`, `.formGroup`) across pages? → Prefer `Label`, `Input`,
-  `Select`, `FormGroup` from `@podverse/ui`.
+  `FormDropdown`, `FormGroup` from `@podverse/ui`.

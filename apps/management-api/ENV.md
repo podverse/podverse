@@ -59,10 +59,15 @@ The main API, workers, and management-api all use shared `DB_HOST` and `DB_PORT`
 - **`COOKIE_DOMAIN`** (Required) - Domain for cookies
 - **`API_ALLOWED_CORS_ORIGINS`** (Required) - Comma-separated list of allowed CORS origins (must contain at least one origin)
 
-### Web
+### Web (two origins)
 
-- **`WEB_PROTOCOL`** (Required) - Web protocol (`http` or `https`)
-- **`WEB_DOMAIN`** (Required) - Web domain (e.g., `localhost:3999` or `management.podverse.fm`)
+Management-api builds absolute URLs for invite links. **Regular users** open the main app web (`/set-password`); **admin invite links** open the management web app (`/admins/redeem-invite-link`). Use **four** variables so each base matches [apps/web](../web/ENV.md) vs [apps/management-web](../management-web/ENV.md) as deployed.
+
+- **`APP_WEB_PROTOCOL`** (Required) - Protocol for the **main app web** site (`http` or `https`). Align with main API **`WEB_PROTOCOL`**.
+- **`APP_WEB_DOMAIN`** (Required) - Host (and port in dev) for apps/web, e.g. `localhost:3002` or `podverse.fm`. User invite and password-reset links use `${APP_WEB_PROTOCOL}://${APP_WEB_DOMAIN}/set-password?...`.
+
+- **`MANAGEMENT_WEB_PROTOCOL`** (Required) - Protocol for the **management web** app.
+- **`MANAGEMENT_WEB_DOMAIN`** (Required) - Host for management-web, e.g. `localhost:3102` or `management.example.com`. Admin invite links use `${MANAGEMENT_WEB_PROTOCOL}://${MANAGEMENT_WEB_DOMAIN}/admins/redeem-invite-link?...`.
 
 ## Optional Variables
 

@@ -43,11 +43,15 @@ function getLanguageLabel(t: (key: string) => string, code: string): string {
 type ManagementLocaleSelectorProps = {
   className?: string;
   id?: string;
-  /** Visible field label; same pattern as web `FormDropdown` on Settings General. */
-  label?: string;
+  /** Visible field title inside the control chrome (same pattern as web Settings General). */
+  eyebrow?: string;
 };
 
-export function ManagementLocaleSelector({ id, className, label }: ManagementLocaleSelectorProps) {
+export function ManagementLocaleSelector({
+  id,
+  className,
+  eyebrow,
+}: ManagementLocaleSelectorProps) {
   const t = useTranslations('language');
   const router = useRouter();
   const intlLocale = useLocale();
@@ -83,8 +87,8 @@ export function ManagementLocaleSelector({ id, className, label }: ManagementLoc
   return (
     <FormDropdown
       className={className}
+      eyebrow={eyebrow}
       id={id ?? 'management-locale-selector'}
-      label={label}
       options={options}
       value={value}
       onChange={onChange}

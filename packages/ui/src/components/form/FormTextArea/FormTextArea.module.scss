@@ -79,6 +79,11 @@
   padding: var(--spacing-md) var(--spacing-none);
   box-sizing: border-box;
   resize: vertical;
+
+  &:focus,
+  &:focus-visible {
+    outline: none;
+  }
 }
 
 .textAreaInfoRow {

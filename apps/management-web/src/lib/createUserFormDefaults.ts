@@ -1,9 +1,15 @@
-import type { PremiumBillingCadence, ResolvedProductMembership } from '@podverse/helpers';
+import type {
+  AccountTrustEntitlements,
+  AccountTrustOverrides,
+  PremiumBillingCadence,
+  ResolvedProductMembership,
+} from '@podverse/helpers';
 import {
   AccountMembershipEnum,
   DEFAULT_FREE_TRIAL_EXPIRATION,
   extendMembershipPeriodByCadence,
-  getDefaultEntitlementsForMembershipTier,
+  hasValidMembership,
+  resolveAccountEntitlements,
   toDatetimeLocalInputValue,
 } from '@podverse/helpers';
 
@@ -19,10 +25,16 @@ export function fallbackProductMembershipFromEnv(): ResolvedProductMembership {
     freeTrialExpirationSeconds: DEFAULT_FREE_TRIAL_EXPIRATION,
     premiumMembershipCostMonthly: 3,
     premiumMembershipCostAnnually: 30,
+    trialAllowDirectoryAddByRSS: false,
     trialMaxAddByRSSFeeds: 10,
     trialMaxManualRefreshesPerHour: 5,
+    trialTrackStats: false,
+    trialAllowNotifications: false,
+    premiumAllowDirectoryAddByRSS: true,
     premiumMaxAddByRSSFeeds: 100,
     premiumMaxManualRefreshesPerHour: 20,
+    premiumTrackStats: true,
+    premiumAllowNotifications: true,
   };
 }
 
@@ -47,26 +59,75 @@ export function computeDefaultExpiryInput(params: {
   return toDatetimeLocalInputValue(new Date(now.getTime() + sec * 1000));
 }
 
-export function tierLimitPlaceholders(
+function normalizedMembershipTier(membershipId: number): AccountMembershipEnum {
+  return membershipId === AccountMembershipEnum.Premium
+    ? AccountMembershipEnum.Premium
+    : AccountMembershipEnum.Trial;
+}
+
+const BLOCKED_ACCOUNT_ENTITLEMENTS: AccountTrustEntitlements = {
+  allowDirectoryAddByRSS: false,
+  maxAddByRSSFeeds: 0,
+  maxManualRefreshesPerHour: 0,
+  trackStats: false,
+  allowNotifications: false,
+};
+
+export function resolvedTierEntitlements(
   product: ResolvedProductMembership,
   membershipId: number
-): { rss: number; refresh: number } {
-  if (membershipId === AccountMembershipEnum.Premium) {
+): AccountTrustEntitlements {
+  const tier = normalizedMembershipTier(membershipId);
+  if (tier === AccountMembershipEnum.Premium) {
     return {
-      rss: product.premiumMaxAddByRSSFeeds,
-      refresh: product.premiumMaxManualRefreshesPerHour,
+      allowDirectoryAddByRSS: product.premiumAllowDirectoryAddByRSS,
+      maxAddByRSSFeeds: product.premiumMaxAddByRSSFeeds,
+      maxManualRefreshesPerHour: product.premiumMaxManualRefreshesPerHour,
+      trackStats: product.premiumTrackStats,
+      allowNotifications: product.premiumAllowNotifications,
     };
   }
+
   return {
-    rss: product.trialMaxAddByRSSFeeds,
-    refresh: product.trialMaxManualRefreshesPerHour,
+    allowDirectoryAddByRSS: product.trialAllowDirectoryAddByRSS,
+    maxAddByRSSFeeds: product.trialMaxAddByRSSFeeds,
+    maxManualRefreshesPerHour: product.trialMaxManualRefreshesPerHour,
+    trackStats: product.trialTrackStats,
+    allowNotifications: product.trialAllowNotifications,
   };
 }
 
-export function resolvedTierEntitlements(membershipId: number) {
-  const tier =
-    membershipId === AccountMembershipEnum.Premium
-      ? AccountMembershipEnum.Premium
-      : AccountMembershipEnum.Trial;
-  return getDefaultEntitlementsForMembershipTier(tier);
+export function resolveAdvancedOverrideDefaults(params: {
+  product: ResolvedProductMembership;
+  membershipId: number;
+  membershipExpiresAt: string | null;
+  overrides?: AccountTrustOverrides | null;
+}): AccountTrustEntitlements {
+  if (!hasValidMembership({ membership_expires_at: params.membershipExpiresAt })) {
+    return BLOCKED_ACCOUNT_ENTITLEMENTS;
+  }
+
+  const tier = normalizedMembershipTier(params.membershipId);
+  return resolveAccountEntitlements(
+    tier,
+    params.overrides,
+    resolvedTierEntitlements(params.product, tier)
+  );
+}
+
+export function tierLimitPlaceholders(params: {
+  product: ResolvedProductMembership;
+  membershipId: number;
+  membershipExpiresAt: string | null;
+}): { rss: number; refresh: number } {
+  const defaults = resolveAdvancedOverrideDefaults({
+    product: params.product,
+    membershipId: params.membershipId,
+    membershipExpiresAt: params.membershipExpiresAt,
+  });
+
+  return {
+    rss: defaults.maxAddByRSSFeeds,
+    refresh: defaults.maxManualRefreshesPerHour,
+  };
 }

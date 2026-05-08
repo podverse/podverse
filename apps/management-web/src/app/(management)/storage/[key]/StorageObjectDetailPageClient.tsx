@@ -15,13 +15,13 @@ import {
   DescriptionList,
   DescriptionListRow,
   Divider,
-  LoadingSpinner,
   ManagementPageShell,
   Modal,
   ModalActions,
   PageHeaderActions,
 } from '@podverse/ui';
 
+import { ManagementLoadingSpinnerOverlayStatus } from '../../../../components/LoadingSpinner/ManagementLoadingSpinnerOverlay';
 import { canDeleteStorage } from '../../../../lib/managementPermissions';
 import type { CurrentUser } from '../../../../lib/requests/auth';
 import { getCurrentUser } from '../../../../lib/requests/auth';
@@ -125,15 +125,13 @@ export function StorageObjectDetailPageClient({ objectKey }: StorageObjectDetail
       <Breadcrumbs
         items={[{ href: '/storage', label: t('title') }, { label: shortKeyLabel(objectKey) }]}
         LinkComponent={Link}
-        marginBottom="lg"
         navAriaLabel={navAria}
       />
 
       {loadError !== null ? <Alert variant="error">{loadError}</Alert> : null}
 
-      {loading ? (
-        <LoadingSpinner ariaLabel={t('loading')} />
-      ) : meta !== null ? (
+      <ManagementLoadingSpinnerOverlayStatus isLoading={loading} message={t('loading')} />
+      {!loading && meta !== null ? (
         <>
           <DescriptionList variant="rows">
             <DescriptionListRow detail={meta.key} term={t('detail.fields.key')} />

@@ -1,3 +1,4 @@
+import { config } from '@mgmt-api/config/index.js';
 import { AppDataSourceRead, AppDataSourceReadWrite } from '@mgmt-api/orm/db/index.js';
 import { AdminAccount } from '@mgmt-api/orm/entities/adminAccount.js';
 import { AdminAccountCredentials } from '@mgmt-api/orm/entities/adminAccountCredentials.js';
@@ -5,6 +6,7 @@ import { AdminAccountPermissions } from '@mgmt-api/orm/entities/adminAccountPerm
 import { AdminAccountRoleEnum } from '@mgmt-api/orm/entities/adminAccountRole.js';
 import bcrypt from 'bcrypt';
 import type { FindOneOptions, Repository } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
 
 type CrudPermissions = {
   feeds_crud?: number;
@@ -17,7 +19,7 @@ type CrudPermissions = {
 
 type CreateAdminAccountDto = {
   email: string;
-  password: string;
+  password?: string;
   permissions?: CrudPermissions;
 };
 
@@ -110,7 +112,8 @@ export class AdminAccountService {
 
     const saltRounds = 10;
     const salt = await bcrypt.genSalt(saltRounds);
-    const hashedPassword = await bcrypt.hash(dto.password, salt);
+    const passwordPlain = dto.password ?? uuidv4();
+    const hashedPassword = await bcrypt.hash(passwordPlain, salt);
 
     const credentials = this.credentialsRepositoryReadWrite.create({
       admin_account_id: savedAccount.id,
@@ -163,6 +166,7 @@ export class AdminAccountService {
         const saltRounds = 10;
         const salt = await bcrypt.genSalt(saltRounds);
         credentials.password = await bcrypt.hash(dto.password, salt);
+        await this.clearSetPasswordToken(id);
       }
       await this.credentialsRepositoryReadWrite.save(credentials);
     }
@@ -239,5 +243,94 @@ export class AdminAccountService {
     }
 
     return credentials.admin_account;
+  }
+
+  /** Removes invite/set-password token rows after the password is set explicitly. */
+  async clearSetPasswordToken(adminAccountId: number): Promise<void> {
+    await AppDataSourceReadWrite.query(
+      `DELETE FROM admin_account_set_password WHERE admin_account_id = $1`,
+      [adminAccountId]
+    );
+  }
+
+  /**
+   * Applies a new password from a valid invite/set-password token and clears the token row.
+   */
+  async completeSetPasswordFromToken(token: string, plainPassword: string): Promise<void> {
+    const rows = (await AppDataSourceRead.query(
+      `SELECT admin_account_id, set_password_token_expires_at
+       FROM admin_account_set_password
+       WHERE set_password_token = $1`,
+      [token]
+    )) as { admin_account_id: number; set_password_token_expires_at: Date }[];
+
+    const [first] = rows;
+    if (first === undefined) {
+      throw new Error('Invalid or expired set-password token');
+    }
+
+    if (new Date(first.set_password_token_expires_at) < new Date()) {
+      throw new Error('Invalid or expired set-password token');
+    }
+
+    const adminAccountId = first.admin_account_id;
+    const credentials = await this.credentialsRepositoryReadWrite.findOne({
+      where: { admin_account_id: adminAccountId },
+    });
+    if (!credentials) {
+      throw new Error('Admin credentials not found');
+    }
+
+    const saltRounds = 10;
+    const salt = await bcrypt.genSalt(saltRounds);
+    credentials.password = await bcrypt.hash(plainPassword, salt);
+    await this.credentialsRepositoryReadWrite.save(credentials);
+    await this.clearSetPasswordToken(adminAccountId);
+  }
+
+  private getInviteTtlMs(): number {
+    return config.setUserPasswordExpiration * 1000;
+  }
+
+  /** Returns active invite token row if present and not expired. */
+  async getActiveInviteToken(adminAccountId: number): Promise<{
+    token: string;
+    expires_at: Date;
+  } | null> {
+    const rows = (await AppDataSourceRead.query(
+      `SELECT set_password_token, set_password_token_expires_at
+       FROM admin_account_set_password
+       WHERE admin_account_id = $1`,
+      [adminAccountId]
+    )) as { set_password_token: string; set_password_token_expires_at: Date }[];
+
+    const [first] = rows;
+    if (first === undefined) {
+      return null;
+    }
+
+    const expiresAt = new Date(first.set_password_token_expires_at);
+    if (expiresAt < new Date()) {
+      return null;
+    }
+
+    return { token: first.set_password_token, expires_at: expiresAt };
+  }
+
+  /** Creates or replaces the invite/set-password token for an admin account. */
+  async upsertInviteToken(adminAccountId: number): Promise<{ token: string; expires_at: Date }> {
+    const token = uuidv4();
+    const expiresAt = new Date(Date.now() + this.getInviteTtlMs());
+
+    await AppDataSourceReadWrite.query(
+      `INSERT INTO admin_account_set_password (admin_account_id, set_password_token, set_password_token_expires_at)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (admin_account_id) DO UPDATE SET
+         set_password_token = EXCLUDED.set_password_token,
+         set_password_token_expires_at = EXCLUDED.set_password_token_expires_at`,
+      [adminAccountId, token, expiresAt]
+    );
+
+    return { token, expires_at: expiresAt };
   }
 }

@@ -13,7 +13,6 @@ import {
   ButtonTabs,
   Card,
   FlexBetween,
-  LoadingSpinner,
   ManagementPageShell,
   SectionBlock,
   SectionHeading,
@@ -25,7 +24,8 @@ import {
   useTableFilterState,
 } from '@podverse/ui';
 
-import { ManagementLoadingSpinnerSmall } from '../../../components/LoadingSpinner/ManagementLoadingSpinnerSmall';
+import { ManagementLoadingSpinnerOverlayStatus } from '../../../components/LoadingSpinner/ManagementLoadingSpinnerOverlay';
+import { ManagementProbeChromeGate } from '../../../components/ManagementProbeChromeGate/ManagementProbeChromeGate';
 import { useManagementTableChrome } from '../../../components/Table/managementTableChrome';
 import { managementSearchParamsObject } from '../../../lib/managementTableUrl';
 import { type CurrentUser, getCurrentUser } from '../../../lib/requests/auth';
@@ -37,6 +37,7 @@ import {
   type StatsRange,
   type StatsRow,
 } from '../../../lib/requests/stats';
+import { resolveManagementTableEmptyState } from '../../../lib/tableEmptyState';
 
 function entityTypeLabel(t: (key: string) => string, et: EntityType): string {
   if (et === 'channel') {
@@ -136,6 +137,7 @@ export type StatsPageClientProps = {
 export function StatsPageClient({ initialUser }: StatsPageClientProps) {
   const tc = useTranslations('common');
   const ts = useTranslations('statsPage');
+  const tsTable = useTranslations('tableShared');
   const chrome = useManagementTableChrome();
   const router = useRouter();
   const pathname = usePathname();
@@ -151,10 +153,14 @@ export function StatsPageClient({ initialUser }: StatsPageClientProps) {
   const [user, setUser] = useState<CurrentUser>(initialUser);
   const [rows, setRows] = useState<StatsRow[]>([]);
   const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
+  /** Start true so first paint does not treat total 0 / empty rows as definitive system-empty before reqStatsTop runs. */
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [detail, setDetail] = useState<DetailData | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [probeStatsUnscopedExist, setProbeStatsUnscopedExist] = useState<boolean | undefined>(
+    undefined
+  );
 
   const [sortBy, setSortBy] = useState<string>('range_count');
   const [sortOrder, setSortOrder] = useState<SortDirection>('desc');
@@ -263,6 +269,30 @@ export function StatsPageClient({ initialUser }: StatsPageClientProps) {
       cancelled = true;
     };
   }, [pageSize, searchParams, searchParamsKey, ts]);
+
+  useEffect(() => {
+    if (loading || error !== null) {
+      return;
+    }
+    const search = urlSearch.trim();
+    if (search === '') {
+      setProbeStatsUnscopedExist(undefined);
+      return;
+    }
+    if (rows.length > 0) {
+      setProbeStatsUnscopedExist(true);
+      return;
+    }
+    let cancelled = false;
+    void reqStatsTop(entityType, range, 1, 1).then((r) => {
+      if (!cancelled) {
+        setProbeStatsUnscopedExist(r.total > 0);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, error, entityType, range, urlSearch, rows.length]);
 
   const handleEntityTypeChange = useCallback(
     (newType: EntityType) => {
@@ -381,6 +411,32 @@ export function StatsPageClient({ initialUser }: StatsPageClientProps) {
     [rows, sortBy, sortOrder]
   );
 
+  const hasStatsDataInSystem =
+    loading || error !== null
+      ? undefined
+      : urlSearch.trim() === ''
+        ? total > 0
+        : probeStatsUnscopedExist === undefined
+          ? undefined
+          : probeStatsUnscopedExist;
+
+  const statsSystemEmpty =
+    !loading && error === null && sortedRows.length === 0 && hasStatsDataInSystem === false;
+
+  const probingStatsExistence =
+    !loading &&
+    error === null &&
+    urlSearch.trim() !== '' &&
+    rows.length === 0 &&
+    probeStatsUnscopedExist === undefined;
+
+  const statsTableEmptyState = resolveManagementTableEmptyState({
+    filteredEmptyMessage: tsTable('noResults'),
+    hasDataInSystem: hasStatsDataInSystem,
+    hasVisibleRows: sortedRows.length > 0,
+    systemEmptyMessage: chrome.systemEmptyMessage,
+  });
+
   const columns = useMemo(
     () => [
       {
@@ -423,117 +479,129 @@ export function StatsPageClient({ initialUser }: StatsPageClientProps) {
   return (
     <ManagementPageShell
       title={ts('title')}
-      headerChildren={
+      headerBreadcrumbs={
         <Breadcrumbs
           LinkComponent={Link}
-          marginBottom="lg"
           navAriaLabel={tc('breadcrumbNav')}
           items={[{ href: '/dashboard', label: ts('breadcrumbDashboard') }, { label: ts('title') }]}
         />
       }
     >
-      <SectionBlock>
-        <ButtonTabs buttonTabs={entityButtonTabs} selectedKey={entityType} />
-      </SectionBlock>
-
-      <SectionBlock>
-        <ButtonTabs buttonTabs={rangeButtonTabs} selectedKey={range} />
-      </SectionBlock>
-
-      <SectionBlock>
-        <SectionHeading level={3}>
-          {ts('topChartHeading', { entity: selectedEntityLabel, range: rangeLabelResolved })}
-        </SectionHeading>
-        <StatsBarChart
-          data={chartData}
-          emptyMessage={error ?? ts('noStatsDataForRange')}
+      {statsSystemEmpty ? (
+        <p role="status">{chrome.systemEmptyMessage}</p>
+      ) : (
+        <ManagementProbeChromeGate
+          bypassWhileError={error !== null}
           loading={loading}
-          loadingLabel={ts('loadingChart')}
-          valueLabel={ts('views')}
-        />
-      </SectionBlock>
+          probingExistence={probingStatsExistence}
+        >
+          <>
+            <SectionBlock>
+              <ButtonTabs buttonTabs={entityButtonTabs} selectedKey={entityType} />
+            </SectionBlock>
 
-      {loading && <ManagementLoadingSpinnerSmall />}
-      {error && !loading && <Alert>{error}</Alert>}
-      {!loading && !error && (
-        <TableWithFilter<StatsRow>
-          columns={columns}
-          emptyMessage={rows.length === 0 ? tc('noDataFound') : undefined}
-          filter={filter}
-          filterableColumnIds={[...STATS_COLUMN_IDS]}
-          getRowKey={(row) => String(row.id)}
-          labels={chrome.filterLabels}
-          pagination={{
-            currentPage: pageNum,
-            nextLabel: tc('paginationNextButton'),
-            onPageChange: (newPage) => {
-              replaceUrlParams({ page: String(newPage) });
-            },
-            pageIndicatorLabel: tc('paginationPageOf', {
-              currentPage: pageNum,
-              totalPages,
-            }),
-            prevLabel: tc('paginationPrevButton'),
-            totalPages,
-          }}
-          paginationMode="page"
-          renderCells={(row, index) => (
-            <>
-              <Table.Cell>{(pageNum - 1) * pageSize + index + 1}</Table.Cell>
-              <Table.Cell>{row.title ?? ts('idValue', { id: row.id })}</Table.Cell>
-              <Table.Cell>{row.range_count.toLocaleString()}</Table.Cell>
-              <Table.Cell>{row.all_time_count.toLocaleString()}</Table.Cell>
-            </>
-          )}
-          rows={sortedRows}
-          selectedRowKey={detail !== null ? String(detail.id) : undefined}
-          sortBy={sortBy}
-          sortOrder={sortOrder}
-          sortableColumnIds={[...STATS_COLUMN_IDS]}
-          onRowClick={(row) => {
-            void handleRowClick(row);
-          }}
-          onSortChange={(key, order) => {
-            setSortBy(key);
-            setSortOrder(order);
-          }}
-        />
-      )}
+            <SectionBlock>
+              <ButtonTabs buttonTabs={rangeButtonTabs} selectedKey={range} />
+            </SectionBlock>
 
-      {detailLoading && <LoadingSpinner ariaLabel={ts('loadingDetail')} size="small" />}
-      {detail && !detailLoading && (
-        <div style={{ marginTop: 'var(--spacing-2xl)' }}>
-          <Card variant="bordered">
-            <FlexBetween>
+            <SectionBlock>
               <SectionHeading level={3}>
-                {detail.title ?? ts('idValue', { id: detail.id })}
+                {ts('topChartHeading', { entity: selectedEntityLabel, range: rangeLabelResolved })}
               </SectionHeading>
-              <Button type="button" variant="mini" onClick={() => setDetail(null)}>
-                {ts('close')}
-              </Button>
-            </FlexBetween>
+              <StatsBarChart
+                data={chartData}
+                emptyMessage={error ?? ts('noStatsDataForRange')}
+                loading={loading}
+                loadingLabel={ts('loadingChart')}
+                valueLabel={ts('views')}
+              />
+            </SectionBlock>
 
-            <StatSummaryGrid items={detailSummaryItems} />
-
-            <SectionHeading level={4}>{ts('detail.dailyBreakdown')}</SectionHeading>
-            <StatsBarChart
-              data={detail.dayBuckets}
-              emptyMessage={ts('noStatsDataForRange')}
-              loadingLabel={ts('loadingChart')}
-              valueLabel={ts('views')}
+            <ManagementLoadingSpinnerOverlayStatus
+              isLoading={detailLoading}
+              message={ts('loadingDetail')}
             />
+            {error !== null && <Alert>{error}</Alert>}
+            {error === null && (
+              <TableWithFilter<StatsRow>
+                columns={columns}
+                emptyState={statsTableEmptyState}
+                filter={filter}
+                filterableColumnIds={[...STATS_COLUMN_IDS]}
+                getRowKey={(row) => String(row.id)}
+                labels={chrome.filterLabels}
+                pagination={{
+                  currentPage: pageNum,
+                  nextLabel: tc('paginationNextButton'),
+                  onPageChange: (newPage) => {
+                    replaceUrlParams({ page: String(newPage) });
+                  },
+                  pageIndicatorLabel: tc('paginationPageOf', {
+                    currentPage: pageNum,
+                    totalPages,
+                  }),
+                  prevLabel: tc('paginationPrevButton'),
+                  totalPages,
+                }}
+                paginationMode="page"
+                renderCells={(row, index) => (
+                  <>
+                    <Table.Cell>{(pageNum - 1) * pageSize + index + 1}</Table.Cell>
+                    <Table.Cell>{row.title ?? ts('idValue', { id: row.id })}</Table.Cell>
+                    <Table.Cell>{row.range_count.toLocaleString()}</Table.Cell>
+                    <Table.Cell>{row.all_time_count.toLocaleString()}</Table.Cell>
+                  </>
+                )}
+                rows={sortedRows}
+                selectedRowKey={detail !== null ? String(detail.id) : undefined}
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                sortableColumnIds={[...STATS_COLUMN_IDS]}
+                onRowClick={(row) => {
+                  void handleRowClick(row);
+                }}
+                onSortChange={(key, order) => {
+                  setSortBy(key);
+                  setSortOrder(order);
+                }}
+              />
+            )}
+            {detail !== null && !detailLoading ? (
+              <div style={{ marginTop: 'var(--spacing-2xl)' }}>
+                <Card variant="bordered">
+                  <FlexBetween>
+                    <SectionHeading level={3}>
+                      {detail.title ?? ts('idValue', { id: detail.id })}
+                    </SectionHeading>
+                    <Button type="button" variant="mini" onClick={() => setDetail(null)}>
+                      {ts('close')}
+                    </Button>
+                  </FlexBetween>
 
-            <SectionHeading level={4} spacedTop>
-              {ts('detail.weeklyBreakdown')}
-            </SectionHeading>
-            <StatsBarChart
-              data={detail.weekBuckets}
-              emptyMessage={ts('noStatsDataForRange')}
-              loadingLabel={ts('loadingChart')}
-              valueLabel={ts('views')}
-            />
-          </Card>
-        </div>
+                  <StatSummaryGrid items={detailSummaryItems} />
+
+                  <SectionHeading level={4}>{ts('detail.dailyBreakdown')}</SectionHeading>
+                  <StatsBarChart
+                    data={detail.dayBuckets}
+                    emptyMessage={ts('noStatsDataForRange')}
+                    loadingLabel={ts('loadingChart')}
+                    valueLabel={ts('views')}
+                  />
+
+                  <SectionHeading level={4} spacedTop>
+                    {ts('detail.weeklyBreakdown')}
+                  </SectionHeading>
+                  <StatsBarChart
+                    data={detail.weekBuckets}
+                    emptyMessage={ts('noStatsDataForRange')}
+                    loadingLabel={ts('loadingChart')}
+                    valueLabel={ts('views')}
+                  />
+                </Card>
+              </div>
+            ) : null}
+          </>
+        </ManagementProbeChromeGate>
       )}
     </ManagementPageShell>
   );

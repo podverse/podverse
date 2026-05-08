@@ -17,7 +17,7 @@ export type WorkerCommandListResponse = {
 export async function listWorkerCommands(): Promise<WorkerCommandListResponse> {
   const service = new ManagementApiRequestService();
   return service.apiRequest<WorkerCommandListResponse>({
-    path: '/worker-commands',
+    path: '/workers/commands',
     method: 'GET',
   });
 }

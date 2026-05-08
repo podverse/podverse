@@ -3,6 +3,8 @@ import '../styles/index.scss';
 
 import { cookies } from 'next/headers';
 
+import { FontPreloads } from '@podverse/ui';
+
 import Providers from '../providers/Providers';
 import { getLocale } from 'next-intl/server';
 import RuntimeConfigScript from '../components/Head/RuntimeConfigScript';
@@ -38,6 +40,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>{brandName}</title>
+        <FontPreloads />
         <FavIcons />
       </head>
       <body>

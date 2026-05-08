@@ -73,6 +73,12 @@ export async function createUser(
   });
 }
 
+/** Cheap existence check: whether any account rows exist (same criteria as list, no search). */
+export async function probeUsersExist(jwt?: string): Promise<boolean> {
+  const result = await listUsers({ page: 1, limit: 1, jwt });
+  return result.pagination.total > 0;
+}
+
 export async function listUsers(params?: {
   page?: number;
   limit?: number;
@@ -119,14 +125,14 @@ export async function deleteUser(id: number, jwt?: string): Promise<{ message: s
   });
 }
 
-export async function changeUserPassword(
+export async function setUserPassword(
   id: number,
   password: string,
   jwt?: string
 ): Promise<{ message: string }> {
   const service = new ManagementApiRequestService(jwt);
   return service.apiRequest<{ message: string }>({
-    path: `/users/${id}/change-password`,
+    path: `/users/${id}/password`,
     method: 'POST',
     data: { password },
   });

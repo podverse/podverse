@@ -42,7 +42,7 @@ const isProductsReadable = (user: CurrentUser): boolean => user.role === 'superu
 const ROUTES: ManagementNavRoute[] = [
   {
     section: 'feedFlagStatus',
-    href: '/feed-operations/flag-status',
+    href: '/feeds/flag-status',
     visible: (user) => canReadFeeds(user),
   },
   { section: 'stats', href: '/stats', visible: (user) => canReadStats(user) },

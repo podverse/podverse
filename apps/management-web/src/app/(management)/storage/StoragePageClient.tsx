@@ -10,7 +10,6 @@ import {
   Alert,
   Button,
   EllipsisText,
-  LoadingSpinner,
   ManagementPageShell,
   Modal,
   ModalActions,
@@ -20,7 +19,8 @@ import {
   useCursorPagination,
 } from '@podverse/ui';
 
-import { ManagementLoadingSpinnerInlineDecorative } from '../../../components/LoadingSpinner/ManagementLoadingSpinnerInlineDecorative';
+import { ManagementLoadingSpinnerOverlayStatus } from '../../../components/LoadingSpinner/ManagementLoadingSpinnerOverlay';
+import { ManagementProbeChromeGate } from '../../../components/ManagementProbeChromeGate/ManagementProbeChromeGate';
 import { useManagementTableChrome } from '../../../components/Table/managementTableChrome';
 import { useManagementClientSessionGuard } from '../../../hooks/useManagementClientSessionGuard';
 import { ManagementIconButtonLink } from '../../../lib/ManagementIconButtonLink';
@@ -34,10 +34,10 @@ import {
   deleteAllStorageObjectsByPrefix,
   deleteStorageObject,
   listStorageObjects,
+  probeStorageBucketHasObjects,
 } from '../../../lib/requests/storage';
 import { encodeStorageObjectKeyForPathSegment } from '../../../lib/storageObjectPath';
-
-import styles from './StoragePageClient.module.scss';
+import { resolveManagementTableEmptyState } from '../../../lib/tableEmptyState';
 
 const LIST_MAX_KEYS = 50;
 
@@ -108,9 +108,17 @@ export function StoragePageClient({ initialUser }: StoragePageClientProps) {
 
   const pagination = useCursorPagination({ fetchPage });
 
+  const [bucketHasObjectsProbe, setBucketHasObjectsProbe] = useState<boolean | undefined>(
+    undefined
+  );
+
   useEffect(() => {
     void pagination.reset();
   }, [prefixForFetch, pagination.reset]);
+
+  useEffect(() => {
+    setBucketHasObjectsProbe(undefined);
+  }, [prefixForFetch]);
 
   useEffect(() => {
     setSelectedKeys([]);
@@ -227,137 +235,178 @@ export function StoragePageClient({ initialUser }: StoragePageClientProps) {
 
   const showInitialSpinner = pagination.isLoading && pagination.items.length === 0;
 
+  useEffect(() => {
+    if (showInitialSpinner) {
+      return;
+    }
+    if (pagination.items.length > 0) {
+      setBucketHasObjectsProbe(true);
+      return;
+    }
+    let cancelled = false;
+    void probeStorageBucketHasObjects().then((has) => {
+      if (!cancelled) {
+        setBucketHasObjectsProbe(has);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [prefixForFetch, pagination.items.length, showInitialSpinner]);
+
+  const probingBucketExistence =
+    !showInitialSpinner && pagination.items.length === 0 && bucketHasObjectsProbe === undefined;
+
+  const storageTableEmptyState = resolveManagementTableEmptyState({
+    filteredEmptyMessage: t('empty'),
+    hasDataInSystem: bucketHasObjectsProbe,
+    hasVisibleRows: pagination.items.length > 0,
+    systemEmptyMessage: chrome.systemEmptyMessage,
+  });
+
+  const deleteAllOverlayMessage = deleteAllBusy ? t('deleteAllInProgress') : t('deleteAllCounting');
+
   return (
     <ManagementPageShell subtitle={t('subtitle')} title={t('title')}>
+      <ManagementLoadingSpinnerOverlayStatus
+        isLoading={deleteAllCounting || deleteAllBusy}
+        message={deleteAllOverlayMessage}
+      />
       <Alert>{listError}</Alert>
 
-      {showInitialSpinner ? (
-        <div className={styles.listLoadingRegion}>
-          <LoadingSpinner ariaLabel={t('loading')} />
-        </div>
-      ) : (
-        <ResourceTableWithFilter<StorageObjectListItem>
-          actions={
-            canDelete
-              ? {
-                  LinkComponent: ManagementIconButtonLink,
-                  labels: {
-                    delete: tc('delete'),
-                    edit: tc('edit'),
-                    view: t('view'),
-                  },
-                  onDelete: async (row) => {
-                    await deleteStorageObject(row.key);
-                    await pagination.refetch();
-                  },
-                  viewHref: (row) => `/storage/${encodeStorageObjectKeyForPathSegment(row.key)}`,
-                }
-              : {
-                  LinkComponent: ManagementIconButtonLink,
-                  labels: {
-                    delete: tc('delete'),
-                    edit: tc('edit'),
-                    view: t('view'),
-                  },
-                  viewHref: (row) => `/storage/${encodeStorageObjectKeyForPathSegment(row.key)}`,
-                }
-          }
-          allColumnIds={[...STORAGE_COLUMN_IDS]}
-          basePath={basePath}
-          bulkSelect={
-            canDelete
-              ? {
-                  ariaLabels: chrome.bulkAria,
-                  onSelectionChange: setSelectedKeys,
-                  selectedKeys,
-                  toolbarActions: [
+      {!listError && (
+        <ManagementProbeChromeGate
+          bypassWhileError={false}
+          loading={showInitialSpinner}
+          probingExistence={probingBucketExistence}
+        >
+          <ResourceTableWithFilter<StorageObjectListItem>
+            actions={
+              canDelete
+                ? {
+                    LinkComponent: ManagementIconButtonLink,
+                    labels: {
+                      delete: tc('delete'),
+                      edit: tc('edit'),
+                      view: t('view'),
+                    },
+                    onDelete: async (row) => {
+                      await deleteStorageObject(row.key);
+                      await pagination.refetch();
+                    },
+                    viewHref: (row) => `/storage/${encodeStorageObjectKeyForPathSegment(row.key)}`,
+                  }
+                : {
+                    LinkComponent: ManagementIconButtonLink,
+                    labels: {
+                      delete: tc('delete'),
+                      edit: tc('edit'),
+                      view: t('view'),
+                    },
+                    viewHref: (row) => `/storage/${encodeStorageObjectKeyForPathSegment(row.key)}`,
+                  }
+            }
+            allColumnIds={[...STORAGE_COLUMN_IDS]}
+            basePath={basePath}
+            bulkSelect={
+              canDelete
+                ? {
+                    ariaLabels: chrome.bulkAria,
+                    onSelectionChange: setSelectedKeys,
+                    selectedKeys,
+                    toolbarActions: [
+                      {
+                        label: t('bulkDelete'),
+                        onClick: () => {
+                          setBulkConfirmOpen(true);
+                        },
+                        variant: 'danger',
+                      },
+                    ],
+                    toolbarClearLabel: tsTable('bulk.clearSelection'),
+                    toolbarSelectedSummary: t('selectedCount', { count: selectedKeys.length }),
+                  }
+                : undefined
+            }
+            columns={columns}
+            currentQueryParams={currentQueryParams}
+            cursorPagination={{
+              hasNext: pagination.hasNext,
+              hasPrev: pagination.hasPrev,
+              isLoading: pagination.isLoading,
+              nextLabel: t('paginationNext'),
+              onNext: pagination.goNext,
+              onPrev: pagination.goPrev,
+              pageLabel: t('paginationPage', { page: pagination.pageNumber }),
+              prevLabel: t('paginationPrev'),
+            }}
+            deleteConfirm={{
+              ...chrome.deleteConfirmLabels,
+              message: (row) => t('deleteConfirmBody', { key: row.key }),
+              modalAriaLabel: t('deleteConfirmAria'),
+            }}
+            emptyState={storageTableEmptyState}
+            filterableColumnIds={[...STORAGE_COLUMN_IDS]}
+            getRowActions={
+              canDelete
+                ? undefined
+                : () => ({
+                    delete: 'hidden',
+                    edit: 'hidden',
+                    view: 'enabled',
+                  })
+            }
+            getRowKey={(row) => row.key}
+            initialColumns={[...STORAGE_COLUMN_IDS]}
+            initialSearch={initialSearch}
+            labels={{
+              ...chrome.filterLabels,
+              actionsColumn: t('table.actions'),
+              searchPlaceholder: t('prefixPlaceholder'),
+            }}
+            paginationMode="cursor"
+            renderCells={(row) => (
+              <>
+                <Table.Cell style={{ minWidth: 0, maxWidth: '28rem' }}>
+                  <EllipsisText maxWidth="28rem" title={row.key}>
+                    {row.key}
+                  </EllipsisText>
+                </Table.Cell>
+                <Table.Cell>
+                  {formatFileSize(row.size, { zeroLabel: '0 B' }) ?? STORAGE_DISPLAY_FALLBACK}
+                </Table.Cell>
+                <Table.Cell>
+                  {formatDateTimeAbbrevOrFallback(
+                    row.lastModified,
+                    locale,
+                    STORAGE_DISPLAY_FALLBACK
+                  )}
+                </Table.Cell>
+              </>
+            )}
+            rows={pagination.items}
+            sortBy="key"
+            sortOrder="asc"
+            sortableColumnIds={[]}
+            onSortChange={noopSort}
+            trailingToolbar={
+              canDelete ? (
+                <MoreButton
+                  ariaLabel={t('moreAria')}
+                  moreButtonMenuItems={[
                     {
-                      label: t('bulkDelete'),
+                      label: t('deleteAll'),
                       onClick: () => {
-                        setBulkConfirmOpen(true);
+                        setDeleteAllConfirmOpen(true);
                       },
                       variant: 'danger',
                     },
-                  ],
-                  toolbarClearLabel: tsTable('bulk.clearSelection'),
-                  toolbarSelectedSummary: t('selectedCount', { count: selectedKeys.length }),
-                }
-              : undefined
-          }
-          columns={columns}
-          currentQueryParams={currentQueryParams}
-          cursorPagination={{
-            hasNext: pagination.hasNext,
-            hasPrev: pagination.hasPrev,
-            isLoading: pagination.isLoading,
-            nextLabel: t('paginationNext'),
-            onNext: pagination.goNext,
-            onPrev: pagination.goPrev,
-            pageLabel: t('paginationPage', { page: pagination.pageNumber }),
-            prevLabel: t('paginationPrev'),
-          }}
-          deleteConfirm={{
-            ...chrome.deleteConfirmLabels,
-            message: (row) => t('deleteConfirmBody', { key: row.key }),
-            modalAriaLabel: t('deleteConfirmAria'),
-          }}
-          emptyMessage={t('empty')}
-          filterableColumnIds={[...STORAGE_COLUMN_IDS]}
-          getRowActions={
-            canDelete
-              ? undefined
-              : () => ({
-                  delete: 'hidden',
-                  edit: 'hidden',
-                  view: 'enabled',
-                })
-          }
-          getRowKey={(row) => row.key}
-          initialColumns={[...STORAGE_COLUMN_IDS]}
-          initialSearch={initialSearch}
-          labels={{
-            ...chrome.filterLabels,
-            actionsColumn: t('table.actions'),
-            searchPlaceholder: t('prefixPlaceholder'),
-          }}
-          paginationMode="cursor"
-          renderCells={(row) => (
-            <>
-              <Table.Cell style={{ minWidth: 0, maxWidth: '28rem' }}>
-                <EllipsisText maxWidth="28rem" title={row.key}>
-                  {row.key}
-                </EllipsisText>
-              </Table.Cell>
-              <Table.Cell>
-                {formatFileSize(row.size, { zeroLabel: '0 B' }) ?? STORAGE_DISPLAY_FALLBACK}
-              </Table.Cell>
-              <Table.Cell>
-                {formatDateTimeAbbrevOrFallback(row.lastModified, locale, STORAGE_DISPLAY_FALLBACK)}
-              </Table.Cell>
-            </>
-          )}
-          rows={pagination.items}
-          sortBy="key"
-          sortOrder="asc"
-          sortableColumnIds={[]}
-          onSortChange={noopSort}
-          trailingToolbar={
-            canDelete ? (
-              <MoreButton
-                ariaLabel={t('moreAria')}
-                moreButtonMenuItems={[
-                  {
-                    label: t('deleteAll'),
-                    onClick: () => {
-                      setDeleteAllConfirmOpen(true);
-                    },
-                    variant: 'danger',
-                  },
-                ]}
-              />
-            ) : null
-          }
-        />
+                  ]}
+                />
+              ) : null
+            }
+          />
+        </ManagementProbeChromeGate>
       )}
 
       <Modal
@@ -404,21 +453,12 @@ export function StoragePageClient({ initialUser }: StoragePageClientProps) {
         </p>
         <p>{t('deleteAllIrreversible')}</p>
         <p>
-          {deleteAllCounting ? (
-            <>
-              <ManagementLoadingSpinnerInlineDecorative /> {t('deleteAllCounting')}
-            </>
-          ) : deleteAllCount !== null && deleteAllCount.exact ? (
-            t('deleteAllCount', { count: deleteAllCount.count })
-          ) : deleteAllCount !== null && !deleteAllCount.exact ? (
-            t('deleteAllCountTruncated', { count: deleteAllCount.count })
-          ) : null}
+          {!deleteAllCounting && !deleteAllBusy && deleteAllCount !== null
+            ? deleteAllCount.exact
+              ? t('deleteAllCount', { count: deleteAllCount.count })
+              : t('deleteAllCountTruncated', { count: deleteAllCount.count })
+            : null}
         </p>
-        {deleteAllBusy ? (
-          <p>
-            <ManagementLoadingSpinnerInlineDecorative /> {t('deleteAllInProgress')}
-          </p>
-        ) : null}
         <ModalActions>
           <Button
             disabled={deleteAllBusy}

@@ -5,16 +5,15 @@ import 'reflect-metadata';
 import { config } from '@mgmt-api/config/index.js';
 import { initializePassport } from '@mgmt-api/lib/auth/index.js';
 import { registerHealthRoutes } from '@mgmt-api/lib/health/registerHealthRoutes.js';
-import { adminAccountRouter } from '@mgmt-api/routes/adminAccount.js';
 import { adminsRouter } from '@mgmt-api/routes/admins.js';
 import { authRouter } from '@mgmt-api/routes/auth.js';
 import { databaseRouter } from '@mgmt-api/routes/database.js';
-import { feedFlagStatusRouter } from '@mgmt-api/routes/feedFlagStatus.js';
+import { feedsRouter } from '@mgmt-api/routes/feeds.js';
 import { productRouter } from '@mgmt-api/routes/product/index.js';
 import { statsRouter } from '@mgmt-api/routes/stats.js';
 import { storageRouter } from '@mgmt-api/routes/storage.js';
-import { workerCommandsRouter } from '@mgmt-api/routes/workerCommands.js';
 import { usersRouter } from '@mgmt-api/routes/users.js';
+import { workersRouter } from '@mgmt-api/routes/workers.js';
 import { isLogLevelDebug } from '@podverse/helpers';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
@@ -71,15 +70,14 @@ app.get(`${baseUrl}/`, (_req: Request, res: Response) => {
 
 // --- Feature routers
 app.use(authRouter);
-app.use(adminAccountRouter);
 app.use(adminsRouter);
 app.use(databaseRouter);
-app.use(feedFlagStatusRouter);
+app.use(feedsRouter);
 app.use(productRouter);
 app.use(statsRouter);
 app.use(storageRouter);
-app.use(workerCommandsRouter);
 app.use(usersRouter);
+app.use(workersRouter);
 
 // --- Error handler
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {

@@ -1,37 +1,123 @@
 @use '../../../styles/mixins/flexShrink' as *;
+@use '../../../styles/mixins/media-queries' as *;
 
 .shell {
   box-sizing: border-box;
   width: 100%;
   @include flexItemAllowShrink;
   /* Horizontal inset matches management `NavBar` (`.navBar` uses `$spacing-lg` → `--spacing-2xl`). */
-  padding: var(--spacing-lg) var(--spacing-2xl);
+  padding-top: var(--spacing-lg);
+  padding-inline: var(--spacing-2xl);
+  /* Extra bottom inset so scroll-end content (e.g. form actions) is not flush with the viewport. */
+  padding-bottom: var(--spacing-3xl);
 }
 
 .header {
-  margin-bottom: var(--spacing-4xl);
+  margin-bottom: var(--spacing-2xl);
   padding-bottom: var(--spacing-lg);
   border-bottom: 1px solid var(--border-color-opaque);
+}
+
+.headerGrid {
+  display: grid;
+  gap: var(--spacing-md);
+  width: 100%;
+  margin-bottom: var(--spacing-md);
+  align-items: center;
+}
+
+.gridTitle {
+  grid-area: shellTitle;
+}
+
+.gridCrumbs {
+  grid-area: shellCrumbs;
+}
+
+.gridActions {
+  grid-area: shellActions;
+}
+
+.headerGrid_titleOnly {
+  grid-template-columns: 1fr;
+  grid-template-areas: 'shellTitle';
+}
+
+.headerGrid_crumbsOnly {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    'shellTitle'
+    'shellCrumbs';
+}
+
+.headerGrid_actionsOnly {
+  grid-template-columns: 1fr auto;
+  grid-template-areas: 'shellTitle shellActions';
+}
+
+.headerGrid_crumbsAndActions {
+  grid-template-columns: 1fr auto;
+  /* Actions share column 2 with both title + breadcrumbs so headerChildren vertically centers vs the full left stack on wide layouts. */
+  grid-template-areas:
+    'shellTitle shellActions'
+    'shellCrumbs shellActions';
+
+  .gridActions {
+    align-self: center;
+  }
+
+  @include mobile(md-max) {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'shellTitle'
+      'shellCrumbs'
+      'shellActions';
+
+    .gridActions {
+      align-self: stretch;
+      justify-self: stretch;
+    }
+  }
+}
+
+.headerBreadcrumbsSlot {
+  width: 100%;
+  min-width: 0;
+}
+
+.headerActionsSlot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-lg);
+  justify-content: flex-end;
+  justify-self: end;
 }
 
 .title {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
-  margin: 0 0 var(--spacing-md);
+  margin: 0;
+}
+
+.headerGrid .title {
+  min-width: 0;
 }
 
 .subtitle {
-  margin: 0 0 var(--spacing-xl);
+  margin: 0 0 var(--spacing-md);
   color: var(--text-color-secondary);
   font-size: var(--font-size-base);
 }
 
 .lead {
-  margin: 0 0 var(--spacing-xl);
+  margin: 0 0 var(--spacing-md);
   color: var(--text-color-secondary);
   font-size: var(--font-size-base);
 }
 
 .main {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
 }

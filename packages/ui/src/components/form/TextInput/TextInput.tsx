@@ -11,11 +11,16 @@ import type {
   WheelEvent,
 } from 'react';
 import { useRef } from 'react';
+import { FaCalendarDays, FaClock } from 'react-icons/fa6';
 
 import { Button } from '../../button/Button/Button';
 import { TextInputNumberIncrement } from '../TextInputNumberIncrement/TextInputNumberIncrement';
 
 import styles from './TextInput.module.scss';
+
+function isNativePickerInputType(t: string): boolean {
+  return t === 'date' || t === 'datetime-local' || t === 'time';
+}
 
 export type TextInputButton = {
   disabled?: boolean;
@@ -51,6 +56,12 @@ export type TextInputProps = {
   min?: number;
   minLength?: number;
   name?: string;
+  /**
+   * Accessible name for the trailing calendar/clock control when `eyebrow` is set with `type` `date`,
+   * `datetime-local`, or `time` (same vertical alignment pattern as FormDropdown’s caret). Falls back to
+   * `aria-label` on this control when omitted.
+   */
+  nativePickerAffixAriaLabel?: string;
   /** When `type` is `number`, localized labels for the vertical stepper buttons (required for stepper UI). */
   numberStepperAriaLabels?: { decrement: string; increment: string };
   onBlur?: (event: FocusEvent<HTMLInputElement>) => void;
@@ -101,6 +112,7 @@ export function TextInput({
   suffix,
   prefix,
   numberStepperAriaLabels,
+  nativePickerAffixAriaLabel,
   ...rest
 }: TextInputProps) {
   const inputId = id ?? name ?? undefined;
@@ -112,6 +124,39 @@ export function TextInput({
   const hasPrefix = prefix !== undefined && prefix !== '';
   const hasAffixes = hasPrefix || hasSuffix;
   const suffixInputWidthCh = hasSuffix ? Math.max(2, (value === '' ? '0' : value).length) : null;
+
+  const pickerAffixAriaLabel = nativePickerAffixAriaLabel ?? ariaLabel;
+  const useEyebrowNativePickerRow =
+    eyebrow !== undefined &&
+    eyebrow !== '' &&
+    isNativePickerInputType(type) &&
+    !hasAffixes &&
+    pickerAffixAriaLabel !== undefined &&
+    pickerAffixAriaLabel !== '';
+
+  const openNativePicker = () => {
+    const el = inputRef.current;
+    if (!el) {
+      return;
+    }
+    if (typeof el.showPicker === 'function') {
+      try {
+        void el.showPicker();
+      } catch {
+        el.focus();
+      }
+    } else {
+      el.focus();
+    }
+  };
+
+  const sharedInputClassName = classNames(
+    styles.input,
+    useEyebrowNativePickerRow && styles.inputNativePickerIndicatorHidden,
+    hasSuffix && styles.inputWithSuffix,
+    type === 'number' && styles.numberInput,
+    type === 'number' && Boolean(suffix) && styles.numberInputWithSuffix
+  );
 
   return (
     <div className={classNames(styles.textInput, className)} style={style}>
@@ -128,98 +173,146 @@ export function TextInput({
           </button>
         ) : null}
         <div className={styles.textInnerInputWrapper}>
-          {eyebrow ? (
-            <label htmlFor={inputId} className={styles.eyebrow}>
-              {eyebrow}
-            </label>
-          ) : null}
-          {hasAffixes ? (
-            <div
-              className={styles.inputWithAffixesRow}
-              role="presentation"
-              onClick={() => inputRef.current?.focus()}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  inputRef.current?.focus();
-                }
-              }}
-            >
-              {hasPrefix ? (
-                <>
-                  <span aria-hidden="true" className={styles.prefix}>
-                    {prefix}
-                  </span>
-                  <span aria-hidden="true" className={styles.prefixSpacer} />
-                </>
-              ) : null}
-              <input
-                ref={inputRef}
-                aria-describedby={info ? infoId : ariaDescribedBy}
-                aria-invalid={ariaInvalid}
-                aria-label={ariaLabel}
-                aria-required={ariaRequired}
-                autoFocus={autoFocus}
-                className={classNames(
-                  styles.input,
-                  hasSuffix && styles.inputWithSuffix,
-                  type === 'number' && styles.numberInput,
-                  type === 'number' && Boolean(suffix) && styles.numberInputWithSuffix
+          {useEyebrowNativePickerRow ? (
+            <div className={styles.textInnerEyebrowPickerRow}>
+              <div className={styles.textInputMain}>
+                <label htmlFor={inputId} className={styles.eyebrow}>
+                  {eyebrow}
+                </label>
+                <input
+                  ref={inputRef}
+                  aria-describedby={info ? infoId : ariaDescribedBy}
+                  aria-invalid={ariaInvalid}
+                  aria-label={ariaLabel}
+                  aria-required={ariaRequired}
+                  autoFocus={autoFocus}
+                  className={sharedInputClassName}
+                  disabled={disabled}
+                  id={inputId}
+                  max={max}
+                  min={min}
+                  name={name}
+                  placeholder={placeholder}
+                  readOnly={readOnly}
+                  step={step}
+                  tabIndex={tabIndex}
+                  type={type}
+                  value={value}
+                  onBlur={onBlur}
+                  onChange={onChange}
+                  onWheel={onWheel}
+                  {...rest}
+                />
+              </div>
+              <button
+                aria-label={pickerAffixAriaLabel}
+                className={styles.nativePickerAffix}
+                disabled={disabled || readOnly}
+                type="button"
+                onClick={() => {
+                  if (!disabled && !readOnly) {
+                    openNativePicker();
+                  }
+                }}
+              >
+                {type === 'time' ? (
+                  <FaClock aria-hidden className={styles.nativePickerAffixIcon} />
+                ) : (
+                  <FaCalendarDays aria-hidden className={styles.nativePickerAffixIcon} />
                 )}
-                disabled={disabled}
-                id={inputId}
-                max={max}
-                min={min}
-                name={name}
-                placeholder={placeholder}
-                readOnly={readOnly}
-                step={step}
-                style={
-                  suffixInputWidthCh !== null
-                    ? { minWidth: '2ch', width: `${suffixInputWidthCh}ch` }
-                    : undefined
-                }
-                tabIndex={tabIndex}
-                type={type}
-                value={value}
-                onBlur={onBlur}
-                onChange={onChange}
-                onWheel={onWheel}
-                {...rest}
-              />
-              {hasSuffix ? (
-                <>
-                  <span aria-hidden="true" className={styles.suffixSpacer} />
-                  <span aria-hidden="true" className={styles.suffix}>
-                    {suffix}
-                  </span>
-                </>
-              ) : null}
+              </button>
             </div>
           ) : (
-            <input
-              aria-describedby={info ? infoId : ariaDescribedBy}
-              aria-invalid={ariaInvalid}
-              aria-label={ariaLabel}
-              aria-required={ariaRequired}
-              autoFocus={autoFocus}
-              className={classNames(styles.input, type === 'number' && styles.numberInput)}
-              disabled={disabled}
-              id={inputId}
-              max={max}
-              min={min}
-              name={name}
-              placeholder={placeholder}
-              readOnly={readOnly}
-              step={step}
-              tabIndex={tabIndex}
-              type={type}
-              value={value}
-              onBlur={onBlur}
-              onChange={onChange}
-              onWheel={onWheel}
-              {...rest}
-            />
+            <>
+              {eyebrow ? (
+                <label htmlFor={inputId} className={styles.eyebrow}>
+                  {eyebrow}
+                </label>
+              ) : null}
+              {hasAffixes ? (
+                <div
+                  className={styles.inputWithAffixesRow}
+                  role="presentation"
+                  onClick={() => inputRef.current?.focus()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      inputRef.current?.focus();
+                    }
+                  }}
+                >
+                  {hasPrefix ? (
+                    <>
+                      <span aria-hidden="true" className={styles.prefix}>
+                        {prefix}
+                      </span>
+                      <span aria-hidden="true" className={styles.prefixSpacer} />
+                    </>
+                  ) : null}
+                  <input
+                    ref={inputRef}
+                    aria-describedby={info ? infoId : ariaDescribedBy}
+                    aria-invalid={ariaInvalid}
+                    aria-label={ariaLabel}
+                    aria-required={ariaRequired}
+                    autoFocus={autoFocus}
+                    className={sharedInputClassName}
+                    disabled={disabled}
+                    id={inputId}
+                    max={max}
+                    min={min}
+                    name={name}
+                    placeholder={placeholder}
+                    readOnly={readOnly}
+                    step={step}
+                    style={
+                      suffixInputWidthCh !== null
+                        ? { minWidth: '2ch', width: `${suffixInputWidthCh}ch` }
+                        : undefined
+                    }
+                    tabIndex={tabIndex}
+                    type={type}
+                    value={value}
+                    onBlur={onBlur}
+                    onChange={onChange}
+                    onWheel={onWheel}
+                    {...rest}
+                  />
+                  {hasSuffix ? (
+                    <>
+                      <span aria-hidden="true" className={styles.suffixSpacer} />
+                      <span aria-hidden="true" className={styles.suffix}>
+                        {suffix}
+                      </span>
+                    </>
+                  ) : null}
+                </div>
+              ) : (
+                <input
+                  aria-describedby={info ? infoId : ariaDescribedBy}
+                  aria-invalid={ariaInvalid}
+                  aria-label={ariaLabel}
+                  aria-required={ariaRequired}
+                  autoFocus={autoFocus}
+                  className={classNames(styles.input, type === 'number' && styles.numberInput)}
+                  disabled={disabled}
+                  id={inputId}
+                  max={max}
+                  min={min}
+                  name={name}
+                  placeholder={placeholder}
+                  readOnly={readOnly}
+                  step={step}
+                  tabIndex={tabIndex}
+                  type={type}
+                  value={value}
+                  onBlur={onBlur}
+                  onChange={onChange}
+                  onWheel={onWheel}
+                  {...rest}
+                />
+              )}
+            </>
           )}
         </div>
         {type === 'number' && numberStepperAriaLabels !== undefined ? (

@@ -362,15 +362,10 @@ jobs:
         with:
           script: |
             const version = "${{ needs.reserve-version.outputs.version }}";
-            const baseVersion = version.replace(/-(staging|alpha|beta)\.\d+$/, "");
-            const path = "docs/development/CHANGELOGS/" + baseVersion + ".md";
-            const fs = require("fs");
-            let body;
-            if (fs.existsSync(path)) {
-              body = fs.readFileSync(path, "utf8");
-            } else {
-              body = "Prerelease build; no " + path + " at this commit. Bump version on develop at the start of work and write notes continuously in that file.";
-            }
+            const body =
+              "Prerelease " +
+              version +
+              ". Add or edit release notes on GitHub if needed.";
             const tag = version;
             const owner = context.repo.owner;
             const repo = context.repo.repo;

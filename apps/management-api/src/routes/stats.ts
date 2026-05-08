@@ -7,7 +7,6 @@ import express from 'express';
 import Joi from 'joi';
 
 const router = express.Router();
-const baseUrl = `${config.api.prefix}${config.api.version}`;
 
 const VALID_ENTITY_TYPES = ['channel', 'item', 'clip', 'playlist', 'account'] as const;
 type EntityType = (typeof VALID_ENTITY_TYPES)[number];
@@ -78,9 +77,8 @@ function validateEntityType(entityType: string): EntityType | null {
   return null;
 }
 
-// GET /stats/top/:entityType - Top N entities sorted by range count
 router.get(
-  `${baseUrl}/stats/top/:entityType`,
+  '/:entityType/top',
   ensureAuthenticated,
   requireCrud('stats', 'read'),
   async (req, res) => {
@@ -141,82 +139,14 @@ router.get(
 
       res.json({ rows, total, page: value.page, pageSize: value.limit });
     } catch (err) {
-      console.error('[stats/top]', err);
+      console.error('[stats/:entityType/top]', err);
       res.status(500).json({ message: 'Internal server error' });
     }
   }
 );
 
-// GET /stats/detail/:entityType/:id - Single entity detail with all count columns
 router.get(
-  `${baseUrl}/stats/detail/:entityType/:id`,
-  ensureAuthenticated,
-  requireCrud('stats', 'read'),
-  async (req, res) => {
-    try {
-      const entityTypeParam = getParamRequired(req, 'entityType');
-      const entityType = validateEntityType(entityTypeParam);
-      if (!entityType) {
-        res.status(400).json({
-          message: `Invalid entity type. Must be one of: ${VALID_ENTITY_TYPES.join(', ')}`,
-        });
-        return;
-      }
-
-      const idParam = getParamRequired(req, 'id');
-      const id = parseInt(idParam, 10);
-      if (Number.isNaN(id) || id <= 0) {
-        res.status(400).json({ message: 'Invalid id' });
-        return;
-      }
-
-      const ec = ENTITY_CONFIG[entityType];
-
-      const rows = await AppDbDataSourceRead.query(
-        `SELECT
-          sa.id,
-          sa.${ec.fkColumn},
-          ${ec.titleColumn} AS title,
-          sa.day_current_count,
-          sa.day_1_count,
-          sa.day_2_count,
-          sa.day_3_count,
-          sa.day_4_count,
-          sa.day_5_count,
-          sa.day_6_count,
-          sa.day_7_count,
-          sa.day_8_count,
-          sa.week_current_count,
-          sa.week_1_count,
-          sa.week_2_count,
-          sa.week_3_count,
-          sa.week_4_count,
-          sa.month_current_count,
-          sa.month_1_count,
-          sa.all_time_count
-        FROM stats_aggregated_${entityType} sa
-        LEFT JOIN ${ec.titleTable}
-        WHERE sa.id = $1
-        LIMIT 1`,
-        [id]
-      );
-
-      if (rows.length === 0) {
-        res.status(404).json({ message: 'Stats record not found' });
-        return;
-      }
-
-      res.json(rows[0]);
-    } catch (err) {
-      console.error('[stats/detail]', err);
-      res.status(500).json({ message: 'Internal server error' });
-    }
-  }
-);
-
-// GET /stats/search/:entityType - Search entities by title
-router.get(
-  `${baseUrl}/stats/search/:entityType`,
+  '/:entityType/search',
   ensureAuthenticated,
   requireCrud('stats', 'read'),
   async (req, res) => {
@@ -284,10 +214,78 @@ router.get(
 
       res.json({ rows, total, page: value.page, pageSize: value.limit });
     } catch (err) {
-      console.error('[stats/search]', err);
+      console.error('[stats/:entityType/search]', err);
       res.status(500).json({ message: 'Internal server error' });
     }
   }
 );
 
-export const statsRouter = router;
+router.get(
+  '/:entityType/:id',
+  ensureAuthenticated,
+  requireCrud('stats', 'read'),
+  async (req, res) => {
+    try {
+      const entityTypeParam = getParamRequired(req, 'entityType');
+      const entityType = validateEntityType(entityTypeParam);
+      if (!entityType) {
+        res.status(400).json({
+          message: `Invalid entity type. Must be one of: ${VALID_ENTITY_TYPES.join(', ')}`,
+        });
+        return;
+      }
+
+      const idParam = getParamRequired(req, 'id');
+      const id = parseInt(idParam, 10);
+      if (Number.isNaN(id) || id <= 0) {
+        res.status(400).json({ message: 'Invalid id' });
+        return;
+      }
+
+      const ec = ENTITY_CONFIG[entityType];
+
+      const rows = await AppDbDataSourceRead.query(
+        `SELECT
+          sa.id,
+          sa.${ec.fkColumn},
+          ${ec.titleColumn} AS title,
+          sa.day_current_count,
+          sa.day_1_count,
+          sa.day_2_count,
+          sa.day_3_count,
+          sa.day_4_count,
+          sa.day_5_count,
+          sa.day_6_count,
+          sa.day_7_count,
+          sa.day_8_count,
+          sa.week_current_count,
+          sa.week_1_count,
+          sa.week_2_count,
+          sa.week_3_count,
+          sa.week_4_count,
+          sa.month_current_count,
+          sa.month_1_count,
+          sa.all_time_count
+        FROM stats_aggregated_${entityType} sa
+        LEFT JOIN ${ec.titleTable}
+        WHERE sa.id = $1
+        LIMIT 1`,
+        [id]
+      );
+
+      if (rows.length === 0) {
+        res.status(404).json({ message: 'Stats record not found' });
+        return;
+      }
+
+      res.json(rows[0]);
+    } catch (err) {
+      console.error('[stats/:entityType/:id]', err);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+);
+
+const statsRoot = express.Router();
+statsRoot.use(`${config.api.prefix}${config.api.version}/stats`, router);
+export const statsRouter = statsRoot;

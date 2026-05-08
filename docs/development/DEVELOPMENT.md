@@ -6,7 +6,6 @@ Use this page as a quick map for development documentation.
 
 - [CONTRIBUTING.md](./CONTRIBUTING.md)
 - [IDE-SETUP.md](./IDE-SETUP.md)
-- [CHANGELOGS](./CHANGELOGS/)
 
 ## White-label / rebranding
 

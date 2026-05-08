@@ -1,3 +1,5 @@
+@use '../../../styles/mixins/flexbox' as *;
+
 .actionLink {
   text-decoration: none;
   font-size: var(--font-size-base);
@@ -23,15 +25,22 @@
 }
 
 .actionLink.primary {
-  display: inline-block;
-  padding: var(--spacing-md) var(--spacing-lg);
-  background-color: var(--border-color-primary);
-  color: var(--text-color-tertiary);
-  border-radius: var(--border-radius);
+  @include flexCenter;
+  flex: 0 0 auto;
+  position: relative;
+  border-radius: 36px;
+  font-weight: var(--font-weight-bold);
+  height: 44px;
+  min-width: 9rem;
+  width: auto;
+  padding: 0 var(--spacing-lg);
+  overflow: hidden;
+  background: var(--button-primary-bg);
+  color: var(--button-primary-color);
 }
 
 .actionLink.primary:hover,
 .actionLink.primary:focus {
   text-decoration: none;
-  opacity: 0.95;
+  background: var(--button-primary-bg-hover);
 }

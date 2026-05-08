@@ -146,6 +146,8 @@ export { Disclosure } from './components/layout/Disclosure';
 export type { DisclosureProps } from './components/layout/Disclosure';
 export { FavIcons } from './components/head/FavIcons/FavIcons';
 export type { FavIconsProps } from './components/head/FavIcons/FavIcons';
+export { FontPreloads } from './components/head/FontPreloads/FontPreloads';
+export type { FontPreloadsProps } from './components/head/FontPreloads/FontPreloads';
 export { RuntimeConfigScript } from './components/head/RuntimeConfigScript/RuntimeConfigScript';
 export type { RuntimeConfigScriptProps } from './components/head/RuntimeConfigScript/RuntimeConfigScript';
 export { NavBar } from './components/navigation/NavBar';
@@ -176,6 +178,8 @@ export {
 export type { PaginatedSectionProps } from './components/navigation/PaginatedSection/PaginatedSection';
 export { PaginationStrip } from './components/navigation/PaginationStrip';
 export type { PaginationStripProps } from './components/navigation/PaginationStrip';
+export type { UITheme } from './lib/uiTheme/uiTheme';
+export { ALL_POSSIBLE_THEMES } from './lib/uiTheme/uiTheme';
 export {
   mergeSortPrefsCookie,
   readSortPrefsMap,
@@ -260,8 +264,6 @@ export { Input } from './components/form/fieldPrimitives/Input';
 export type { InputProps } from './components/form/fieldPrimitives/Input';
 export { Label } from './components/form/fieldPrimitives/Label';
 export type { LabelProps } from './components/form/fieldPrimitives/Label';
-export { Select } from './components/form/fieldPrimitives/Select';
-export type { SelectProps } from './components/form/fieldPrimitives/Select';
 export { TextArea } from './components/form/fieldPrimitives/TextArea';
 export type { TextAreaProps } from './components/form/fieldPrimitives/TextArea';
 export { Fieldset } from './components/form/Fieldset/Fieldset';
@@ -319,6 +321,8 @@ export { TextInputNumber } from './components/form/TextInputNumber/TextInputNumb
 export type { TextInputNumberProps } from './components/form/TextInputNumber/TextInputNumber';
 export { TextInputNumberIncrement } from './components/form/TextInputNumberIncrement/TextInputNumberIncrement';
 export type { TextInputNumberIncrementProps } from './components/form/TextInputNumberIncrement/TextInputNumberIncrement';
+export { EditValueModal } from './components/feedback/EditValueModal/EditValueModal';
+export type { EditValueModalProps } from './components/feedback/EditValueModal/EditValueModal';
 export { PopoverIcon } from './components/feedback/PopoverIcon';
 export type { PopoverIconProps } from './components/feedback/PopoverIcon';
 export {
@@ -386,6 +390,7 @@ export type {
   TableWithFilterBodyRenderArgs,
   TableWithFilterBulkSelect,
   TableWithFilterColumn,
+  TableWithFilterEmptyState,
   TableWithFilterFilterBag,
   TableWithFilterPaginationLabels,
   TableWithFilterProps,

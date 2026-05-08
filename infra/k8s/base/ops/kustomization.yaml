@@ -60,6 +60,7 @@ configMapGenerator:
       - source/database/linear-migrations/app/0028_billing_pricing_catalog.sql
       - source/database/linear-migrations/app/0029_billing_events_and_retry_metadata.sql
       - source/database/linear-migrations/app/0030_product_membership_settings.sql
+      - source/database/linear-migrations/app/0031_product_membership_settings_caps.sql
   - name: podverse-ops-management-linear-migrations
     files:
       - source/database/linear-migrations/management/0000_init_helpers.sql

@@ -15,14 +15,17 @@ export type FormDropdownOption = {
 };
 
 export type FormDropdownProps = {
-  /** Accessible name when there is no visible `label` (e.g. external `<Label>`). */
+  /** Accessible name when there is no `eyebrow` (e.g. toolbar control with only `ariaLabel`). */
   ariaLabel?: string;
   className?: string;
   disabled?: boolean;
+  /**
+   * Optional field title inside the bordered control (same pattern as {@link TextInput} `eyebrow`).
+   * Rendered inside the trigger button above the selected value so the caret aligns to full height.
+   */
   eyebrow?: string;
   id: string;
   info?: string;
-  label?: string;
   onChange: (value: string) => void;
   options: FormDropdownOption[];
   /** Menu horizontal alignment relative to the control. */
@@ -113,7 +116,6 @@ export function FormDropdown({
   eyebrow,
   id,
   info,
-  label,
   onChange,
   options,
   position = 'left',
@@ -123,6 +125,8 @@ export function FormDropdown({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLUListElement>(null);
   const infoId = info ? `${id}-info` : undefined;
+  const eyebrowId = `${id}-eyebrow`;
+  const valueDisplayId = `${id}-value`;
 
   const currentSelectedItem = useMemo(() => {
     return options.find((item) => item.value === value) ?? options[0];
@@ -153,55 +157,55 @@ export function FormDropdown({
 
   return (
     <div className={classNames(styles.wrapper, className)}>
-      {label ? (
-        <div className={styles.headerRow}>
-          <label className={styles.label} htmlFor={id}>
-            {label}
-          </label>
-        </div>
-      ) : null}
-      <div className={styles.dropdownWrapper}>
-        <div className={styles.dropdownInnerWrapper}>
-          {eyebrow ? <div className={styles.eyebrow}>{eyebrow}</div> : null}
-          <button
-            ref={buttonRef}
-            aria-describedby={info ? infoId : undefined}
-            aria-expanded={open}
-            aria-haspopup="menu"
-            aria-label={label ? undefined : ariaLabel}
-            className={styles.dropdownButton}
-            disabled={disabled}
-            id={id}
-            type="button"
-            onClick={() => {
-              if (!disabled) {
-                setOpen((v) => !v);
-              }
-            }}
-            onKeyDown={(e) => {
-              if (!disabled) {
-                handleButtonKeyDown(e);
-              }
-            }}
-          >
-            <div className={styles.dropdown}>
-              <span className={styles.dropdownSelectedItemText}>{currentSelectedItem?.label}</span>
-              <FaChevronDown aria-hidden />
-            </div>
-          </button>
-        </div>
+      <div
+        className={classNames(styles.dropdownWrapper, disabled && styles.dropdownWrapperDisabled)}
+      >
+        <button
+          ref={buttonRef}
+          aria-describedby={info ? infoId : undefined}
+          aria-expanded={open}
+          aria-haspopup="menu"
+          aria-label={eyebrow ? undefined : ariaLabel}
+          aria-labelledby={eyebrow ? `${eyebrowId} ${valueDisplayId}` : undefined}
+          className={styles.dropdownButton}
+          disabled={disabled}
+          id={id}
+          type="button"
+          onClick={() => {
+            if (!disabled) {
+              setOpen((v) => !v);
+            }
+          }}
+          onKeyDown={(e) => {
+            if (!disabled) {
+              handleButtonKeyDown(e);
+            }
+          }}
+        >
+          <span className={styles.dropdownMain}>
+            {eyebrow ? (
+              <span className={styles.eyebrow} id={eyebrowId}>
+                {eyebrow}
+              </span>
+            ) : null}
+            <span className={styles.dropdownSelectedItemText} id={valueDisplayId}>
+              {currentSelectedItem?.label}
+            </span>
+          </span>
+          <FaChevronDown aria-hidden className={styles.chevron} />
+        </button>
+        <FormDropdownMenu
+          focusedIndex={focusedIndex}
+          fullWidth={fullWidth}
+          handleMenuKeyDown={handleMenuKeyDown}
+          menuItems={menuItemsWithHandlers}
+          menuRef={menuRef}
+          open={open}
+          position={position}
+          setFocusedIndex={setFocusedIndex}
+          setOpen={setOpen}
+        />
       </div>
-      <FormDropdownMenu
-        focusedIndex={focusedIndex}
-        fullWidth={fullWidth}
-        handleMenuKeyDown={handleMenuKeyDown}
-        menuItems={menuItemsWithHandlers}
-        menuRef={menuRef}
-        open={open}
-        position={position}
-        setFocusedIndex={setFocusedIndex}
-        setOpen={setOpen}
-      />
       {info ? (
         <div className={styles.formDropdownInfo} id={infoId}>
           {info}

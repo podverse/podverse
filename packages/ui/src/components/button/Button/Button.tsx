@@ -15,6 +15,7 @@ export type ButtonVariant =
   | 'danger'
   | 'outline'
   | 'link'
+  | 'linkInline'
   | 'mini'
   | 'miniSelected'
   | 'miniGlow'

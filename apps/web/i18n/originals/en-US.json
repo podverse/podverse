@@ -262,6 +262,11 @@
       "audio_with_ext_bitrate_mbps": "Audio {ext} {bitrate}Mbps"
     }
   },
+  "updates_page": {
+    "intro": "Release notes for the open-source app are published on GitHub. Use the link below for tagged releases.",
+    "title": "Updates",
+    "view_releases": "View releases on GitHub"
+  },
   "value": {
     "boost": "Boost",
     "recipient": {
@@ -616,7 +621,10 @@
     "feature_premium_only_explanation": "This is a Premium feature. To prevent spam, Trial accounts have limited access. Get Premium to use it.",
     "manual_refresh_hourly_limit_reached": "You have reached your manual refresh limit for this hour.",
     "add_by_rss_feed_limit_reached": "You have reached your Add by RSS feed limit.",
-    "directory_add_by_rss_trial_blocked": "To prevent spam, Trial accounts can't add feeds to the public directory. Get Premium to add feeds yourself, or email <mail>{contactEmail}</mail> to request that we add this feed.",
+    "directory_add_by_rss_trial_blocked": "To prevent spam, Trial accounts can't add feeds to the public directory. You will need a Premium account to add feeds, or email <mail>{contactEmail}</mail> to request that we add this feed.",
+    "trial_limitations_summary": "Some features are unavailable during Trial to help reduce spam and abuse.",
+    "trial_limitations_show_less": "Show less",
+    "trial_limitations_show_more": "Show more",
     "trial_limitations_title": "Trial limitations",
     "trial_limitations_directory_add_by_rss": "Adding feeds to the public directory from search is blocked for Trial status.",
     "trial_limitations_add_by_rss_feed_limit": "Add by RSS library size uses a lower Trial limit than Premium.",

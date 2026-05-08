@@ -50,7 +50,13 @@ type Config = {
     database: string;
     ssl_connection: boolean;
   };
-  web: {
+  /** Main app web origin: user invite / set-password links */
+  appWeb: {
+    protocol: string;
+    domain: string;
+  };
+  /** Management web app origin: admin redeem-invite links */
+  managementWeb: {
     protocol: string;
     domain: string;
   };
@@ -108,9 +114,13 @@ export const config: Config = {
     database: process.env.DB_APP_NAME!,
     ssl_connection: process.env.DB_SSL_CONNECTION === 'true',
   },
-  web: {
-    protocol: process.env.WEB_PROTOCOL!,
-    domain: process.env.WEB_DOMAIN!,
+  appWeb: {
+    protocol: process.env.APP_WEB_PROTOCOL!,
+    domain: process.env.APP_WEB_DOMAIN!,
+  },
+  managementWeb: {
+    protocol: process.env.MANAGEMENT_WEB_PROTOCOL!,
+    domain: process.env.MANAGEMENT_WEB_DOMAIN!,
   },
   setUserPasswordExpiration: readOptionalPositiveExpirationEnv(
     'MANAGEMENT_API_SET_PASSWORD_EXPIRATION',

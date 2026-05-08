@@ -102,13 +102,23 @@
   margin-bottom: var(--spacing-2xl);
 }
 
-.trialLimitationsSection {
-  margin-bottom: var(--spacing-4xl);
+.trialLimitationsSubtle {
+  margin-top: var(--spacing-4xl);
+  padding-top: var(--spacing-2xl);
+  border-top: 1px solid var(--border-color-opaque);
 }
 
-.trialLimitationsList {
+.trialLimitationsSummary {
+  font-size: var(--font-size-base);
+  color: var(--text-color-secondary);
+  margin: var(--spacing-none);
+}
+
+.trialLimitationsListExpanded {
   display: grid;
   gap: var(--spacing-base);
-  margin: var(--spacing-none);
+  margin: var(--spacing-lg) var(--spacing-none) var(--spacing-none);
   padding-left: var(--spacing-2xl);
+  font-size: var(--font-size-base);
+  color: var(--text-color-secondary);
 }

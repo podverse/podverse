@@ -141,6 +141,23 @@
   color: var(--text-color-link-hover);
 }
 
+/* Text-like control: no horizontal padding (inherits base .button padding unless reset here). */
+.linkInline {
+  border-radius: var(--border-radius);
+  color: var(--text-color-link);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  height: auto;
+  min-width: auto;
+  padding: 0;
+  text-decoration: none;
+}
+
+.linkInline:hover,
+.linkInline:focus {
+  color: var(--text-color-link-hover);
+}
+
 .highlight {
   background: var(--button-highlight-bg);
   color: var(--button-primary-color);

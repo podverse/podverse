@@ -262,6 +262,11 @@
       "audio_with_ext_bitrate_mbps": ""
     }
   },
+  "updates_page": {
+    "intro": "",
+    "title": "",
+    "view_releases": ""
+  },
   "value": {
     "boost": "",
     "recipient": {
@@ -617,6 +622,9 @@
     "manual_refresh_hourly_limit_reached": "",
     "add_by_rss_feed_limit_reached": "",
     "directory_add_by_rss_trial_blocked": "",
+    "trial_limitations_summary": "",
+    "trial_limitations_show_less": "",
+    "trial_limitations_show_more": "",
     "trial_limitations_title": "",
     "trial_limitations_directory_add_by_rss": "",
     "trial_limitations_add_by_rss_feed_limit": "",

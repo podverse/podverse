@@ -19,7 +19,6 @@ export type BreadcrumbsProps = {
   LinkComponent?: ComponentType<BreadcrumbsLinkProps>;
   variant?: 'default' | 'compact';
   className?: string;
-  marginBottom?: 'none' | 'lg';
   /** Landmark label for `<nav>` — localize in the app (e.g. `useTranslations('common')`). */
   navAriaLabel: string;
 };
@@ -39,7 +38,6 @@ export function Breadcrumbs({
   LinkComponent = DefaultLink,
   variant = 'default',
   className = '',
-  marginBottom = 'none',
   navAriaLabel,
 }: BreadcrumbsProps) {
   if (items.length === 0) {
@@ -47,13 +45,10 @@ export function Breadcrumbs({
   }
 
   const LinkTag = LinkComponent;
-  const navClassName = [marginBottom === 'lg' ? styles.marginBottomLg : '', className]
-    .filter(Boolean)
-    .join(' ');
 
   if (variant === 'compact') {
     return (
-      <nav aria-label={navAriaLabel} className={navClassName}>
+      <nav aria-label={navAriaLabel} className={className || undefined}>
         <p className={styles.compactTrack}>
           {items.map((item, index) => (
             <Fragment key={`crumb-${index}`}>
@@ -79,7 +74,7 @@ export function Breadcrumbs({
   }
 
   return (
-    <nav aria-label={navAriaLabel} className={navClassName}>
+    <nav aria-label={navAriaLabel} className={className || undefined}>
       <div className={styles.track}>
         {items.map((item, index) => (
           <Fragment key={`crumb-${index}`}>

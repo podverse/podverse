@@ -2,12 +2,11 @@ import { cookies } from 'next/headers';
 
 import type { QueueResourcesAbridgedIndex } from '@podverse/helpers';
 import { generateQueueResourceAbridgedIndex } from '@podverse/helpers';
-import { AppWrapper, PageWrapper } from '@podverse/ui';
+import { AppWrapper, FontPreloads, PageWrapper } from '@podverse/ui';
 
 import { AuthSessionChecker } from '../components/Auth/AuthSessionChecker';
 import { MembershipExpiredBanner } from '../components/Banner/MembershipExpiredBanner';
 import { FavIcons } from '../components/Head/FavIcons';
-import { FontPreloads } from '../components/Head/FontPreloads';
 import { RuntimeConfigScript } from '../components/Head/RuntimeConfigScript';
 import { LazyLoadedComponents } from '../components/LazyLoadedComponents/LazyLoadedComponents';
 import { MediaPlayerController } from '../components/MediaPlayer/Controller/MediaPlayerController';

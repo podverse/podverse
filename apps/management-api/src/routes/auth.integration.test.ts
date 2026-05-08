@@ -65,7 +65,7 @@ vi.mock('@mgmt-api/orm/services/adminAccount.js', () => {
   return { AdminAccountService };
 });
 
-// Avoid loading management orm/entities (auditLog imports orm DataSource; see feedFlagStatus test).
+// Avoid loading management orm/entities (auditLog imports orm DataSource; see feeds test).
 vi.mock('@mgmt-api/lib/database/auditLog.js', () => {
   class AuditLogService {
     async record() {

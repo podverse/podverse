@@ -56,6 +56,7 @@ export const ModalLoginRequired: React.FC = () => {
       ariaLabel={header}
     >
       <CallToActionMessage
+        layout="modal"
         message={messageBody}
         buttonLabel={modalLoginRequired.actionLabel ?? tAuthentication('login')}
         onButtonClick={modalLoginRequired.actionHref ? handleActionOnClick : showLoginOnClick}

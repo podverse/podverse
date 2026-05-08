@@ -11,7 +11,9 @@ Shared UI components for Podverse applications (see `package.json` for the publi
 - `@podverse/ui/styles/themes` — `dark` / `light` / `dracula` / `violet` theme blocks
 - `@podverse/ui/styles/mixins` — shared SCSS mixins (media queries, layout, form, headers, buttons, **`flexItemAllowShrink`** / **`flexItemClampToParent`** in [`mixins/_flexShrink.scss`](src/styles/mixins/_flexShrink.scss), etc.)
 - `@podverse/ui/styles/font-faces` — Roboto `@font-face` declarations + `body { font-family }`
-- `@podverse/ui/styles` — full bundle (font-faces + variables + themes + mixins) for app `globals.scss`
+- `@podverse/ui/styles/globals` — shared HTML element resets (`button`, `a`, headings, `p`, etc.) aligned with `apps/web`; both apps should `@use` this after themes so `@podverse/ui` controls inherit typography on controls.
+- `@podverse/ui/styles` — full bundle (font-faces + variables + themes + **globals** + mixins)
+- **`FontPreloads`** (`@podverse/ui`) — preload links for Roboto TTFs under each app’s `public/fonts/Roboto/`; include in the document `<head>` next to favicons.
 
 See [`.cursor/skills/styles-source-of-truth/SKILL.md`](../../.cursor/skills/styles-source-of-truth/SKILL.md) (repo root).
 
@@ -57,9 +59,10 @@ policy stays in the app.
 with wrap, **`align-items: center`**, and spacing for filter and action bars so siblings (native
 selects, **`TextInput`**, **`Button`**, etc.) stay vertically centered as a row. Avoid imposing a much
 larger **`min-height`** on one slot than others (e.g. **`LookupFieldGrid`** **`inlineControl`**) next
-to compact **`Button`** **`mini`** controls unless every slot matches. If one slot uses a separate
-**`Label`** above only one control while siblings are single-line, alignment suffers — prefer
-**`aria-label`** / placeholders instead, unless every column uses the same label pattern.
+to compact **`Button`** **`mini`** controls unless every slot matches. For lookup rows where each control
+uses an in-field **`eyebrow`** on **`TextInput`** / **`FormDropdown`**, use **`LookupFieldGrid`**
+**`variant="inlineEyebrow"`** so the action column **`align-items: end`** lines up with the control
+chrome (see [`LookupFieldGrid.tsx`](src/components/layout/LookupFieldGrid/LookupFieldGrid.tsx)).
 
 ## Forms — vertical rhythm
 
@@ -78,6 +81,8 @@ to compact **`Button`** **`mini`** controls unless every slot matches. If one sl
   **`StackForm`** / **`FormStack`** / **`Modal.Body`** **`gap`**, not from extra margin on the actions row.
 - **`FormGroup`** — optional **`layout="inStack"`** when the group is a direct child of **`StackForm`** /
   **`FormStack`** so internal margins do not stack with the parent **`gap`**.
+- **`CheckboxFieldList`** — optional **`eyebrow`** for the same small title line as **`TextInput`** /
+  **`FormDropdown`** ([`CheckboxFieldList.tsx`](src/components/form/CheckboxFieldList/CheckboxFieldList.tsx)).
 
 ## Feedback — Toast
 
@@ -120,11 +125,14 @@ Primitives and composites for admin-style list pages. Apps pass **localized stri
 
 - **`TableFilterBar`** — search field + funnel (**`PopoverIcon`**) with per-column “search here” toggles from **`columns`**.
 - **`TableWithSort`** — renders **`<thead>`** from typed **`columns`**; sortable headers use **`Table.SortableHeaderCell`**; optional **`sortPrefsCookieName`** / **`sortPrefsListKey`** merge sort into the browser cookie; body is **`children`** (caller supplies **`<tbody>`**).
-- **`TableWithFilter`** — **`TableFilterBar`** + **`TableWithSort`** + optional **`Pagination`**; **`paginationMode`** **`'page'`** | **`'none'`**; **`renderCells`**; optional **`bulkSelect`** (prepends select header/cells only). State sync **`'url'`** | **`'cookie'`**.
+- **`TableWithFilter`** — **`TableFilterBar`** + **`TableWithSort`** + optional **`Pagination`**; **`paginationMode`**
+  **`'page'`** | **`'none'`**; **`renderCells`**; optional **`bulkSelect`** (prepends select header/cells only). When
+  **`rows`** is empty, the sortable table is not rendered; optional **`emptyMessage`** is shown below the filter row
+  inside **`role="status"`**. State sync **`'url'`** | **`'cookie'`**.
 - **`BulkActionBar`** — summary + action buttons + clear; used by **`ResourceTableWithFilter`** when **`bulkSelect.toolbarActions`** is set and the selection is non-empty.
 - **`ResourceTableWithFilter`** — wraps **`TableWithFilter`** with fixed **`RowActions`** (view / edit / delete icons from **`actions`** + **`getRowActions`** policy), **`DeleteConfirmModalShell`** + **`useDeleteModal`**, **`paginationMode`** **`'page'`** | **`'cursor'`** | **`'none'`** (cursor uses **`CursorPagination`** below the table), optional **`bulkSelect`** (select columns + **`BulkActionBar`**), optional **`groupedSections`** (shared filter row, one **`Disclosure`** per section with its own table body; bulk selection is not used for grouped mode).
 - **`FilterTablePageLayout`** — page chrome: **`title`**, optional **`subtitle`**, **`breadcrumbs`**, **`headerActions`**, **`error`** with **`role="alert"`**, **`children`**. Does not include **`ManagementPageShell`**; management-web composes shell + layout at the call site.
 
 ### Pagination helpers
 
-- **`Pagination`**, **`PaginationStrip`**, **`GoToPageModal`**, **`CursorPagination`**, **`PaginatedSection`** — see barrel exports in [`index.ts`](src/index.ts) for props types.
+- **`Pagination`**, **`PaginationStrip`**, **`GoToPageModal`**, **`EditValueModal`**, **`CursorPagination`**, **`PaginatedSection`** — see barrel exports in [`index.ts`](src/index.ts) for props types.

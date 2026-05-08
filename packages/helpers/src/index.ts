@@ -49,7 +49,9 @@ export * from './lib/mq/getDedupeTTLSeconds.js';
 export * from './lib/onDemandParserEvent.js';
 export {
   resolveProductMembershipDefaultsFromEnv,
+  type ProductMembershipCapDefaults,
   type ProductMembershipDefaultsFromEnv,
+  type ProductMembershipEntitlementDefaults,
   type ResolvedProductMembership,
 } from './lib/productMembershipDefaultsFromEnv.js';
 export * from './lib/parseEnvExpiration.js';

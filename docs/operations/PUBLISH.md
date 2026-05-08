@@ -10,7 +10,7 @@ Two separate workflows build or promote release artifacts:
 | `staging`  | Full build + push | `X.Y.Z-staging.N` (N via Git ref API)   | `staging`         |
 | `main`     | Promote only      | `X.Y.Z` (from root `package.json` base) | `latest`          |
 
-**Changelog:** Both **staging** prereleases (`X.Y.Z-staging.N`) and **main** RTM releases (`X.Y.Z`) read release notes from [`docs/development/CHANGELOGS/X.Y.Z.md`](../development/CHANGELOGS/). Bump the base version at the start of work with `scripts/publish/bump-version.sh` so the semver changelog file exists immediately, then update that file continuously as work lands.
+**GitHub Releases:** Staging prereleases and main production releases get a short auto-generated description. Maintain richer notes on GitHub when needed.
 
 **Promotion scripts** (under `scripts/publish/`): `sync-develop-to-staging.sh`, then (after a green staging build, when you want RTM) `sync-staging-to-main.sh`. There is no separate `beta` publish line; use **`staging`** for preprod builds and **`main`** to ship.
 

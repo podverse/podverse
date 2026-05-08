@@ -166,7 +166,7 @@ export function RowDetailPageClient({ tableName, rowId, initialRow }: RowDetailP
   return (
     <ManagementPageShell
       title={t('rowDetailTitle', { table: tableSingularLabel, id: rowId })}
-      headerChildren={
+      headerBreadcrumbs={
         <Breadcrumbs
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}

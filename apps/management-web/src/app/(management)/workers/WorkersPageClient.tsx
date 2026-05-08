@@ -13,7 +13,6 @@ import {
   Disclosure,
   FormHintText,
   LeadParagraph,
-  LoadingSpinner,
   ManagementPageShell,
   RestrictedNotice,
   StatusBadge,
@@ -23,6 +22,7 @@ import {
   useTableFilterState,
 } from '@podverse/ui';
 
+import { ManagementLoadingSpinnerOverlayStatus } from '../../../components/LoadingSpinner/ManagementLoadingSpinnerOverlay';
 import { useManagementTableChrome } from '../../../components/Table/managementTableChrome';
 import { ManagementIconButtonLink } from '../../../lib/ManagementIconButtonLink';
 import { managementSearchParamsObject } from '../../../lib/managementTableUrl';
@@ -30,6 +30,7 @@ import type { CurrentUser } from '../../../lib/requests/auth';
 import { getCurrentUser } from '../../../lib/requests/auth';
 import { listWorkerCommands, type WorkerCommandRow } from '../../../lib/requests/workerCommands';
 
+import dataSurfaceBusyStyles from '../../../styles/managementDataSurfaceBusy.module.scss';
 import styles from './WorkersPageClient.module.scss';
 
 const CATEGORY_KEY: Record<string, string> = {
@@ -254,14 +255,20 @@ export function WorkersPageClient({ initialUser }: WorkersPageClientProps) {
   }, []);
 
   const groupedEmpty = filteredRows.length === 0;
+  const systemWorkersEmpty = commands !== null && commands.length === 0;
+
+  const showWorkersIntro =
+    !isSuperuser || loading || loadError !== null || commands === null || !systemWorkersEmpty;
 
   return (
     <ManagementPageShell title={t('title')}>
-      <LeadParagraph>
-        {t.rich('intro', {
-          code: (chunks) => <code>{chunks}</code>,
-        })}
-      </LeadParagraph>
+      {showWorkersIntro && (
+        <LeadParagraph>
+          {t.rich('intro', {
+            code: (chunks) => <code>{chunks}</code>,
+          })}
+        </LeadParagraph>
+      )}
       {!isSuperuser && (
         <RestrictedNotice title={t('superuserOnly')}>
           <p>
@@ -272,32 +279,46 @@ export function WorkersPageClient({ initialUser }: WorkersPageClientProps) {
         </RestrictedNotice>
       )}
 
-      {isSuperuser && loading && <LoadingSpinner ariaLabel={t('loadingCommands')} size="small" />}
-      {isSuperuser && !loading && loadError && <Alert>{loadError}</Alert>}
+      <ManagementLoadingSpinnerOverlayStatus
+        isLoading={isSuperuser && loading}
+        message={t('loadingCommands')}
+      />
+      {isSuperuser && loadError && !loading && <Alert>{loadError}</Alert>}
 
-      {isSuperuser && !loading && !loadError && commands && (
-        <div className={styles.root}>
-          <div className={styles.filterRow}>
-            <div className={styles.filterBar}>
-              <TableFilterBar
-                columns={filterBarColumns}
-                filterColumnsLabel={chrome.filterLabels.filterColumnsLabel}
-                funnelAriaLabel={chrome.filterLabels.funnelAriaLabel}
-                searchPlaceholder={t('searchPlaceholder')}
-                searchValue={filter.search}
-                selectedColumnIds={filter.selectedColumnIds}
-                onSearchChange={filter.setSearch}
-                onSelectedColumnIdsChange={filter.handleColumnSelectionChange}
-              />
-            </div>
-          </div>
+      {isSuperuser && !loadError && commands !== null && (
+        <div
+          aria-busy={loading ? true : undefined}
+          className={
+            loading ? `${styles.root} ${dataSurfaceBusyStyles.dataSurfaceBusy}` : styles.root
+          }
+        >
+          {!systemWorkersEmpty ? (
+            <>
+              <div className={styles.filterRow}>
+                <div className={styles.filterBar}>
+                  <TableFilterBar
+                    columns={filterBarColumns}
+                    filterColumnsLabel={chrome.filterLabels.filterColumnsLabel}
+                    funnelAriaLabel={chrome.filterLabels.funnelAriaLabel}
+                    searchPlaceholder={t('searchPlaceholder')}
+                    searchValue={filter.search}
+                    selectedColumnIds={filter.selectedColumnIds}
+                    onSearchChange={filter.setSearch}
+                    onSelectedColumnIdsChange={filter.handleColumnSelectionChange}
+                  />
+                </div>
+              </div>
 
-          <FormHintText variant="block">
-            {t('commandCount', { shown: filteredRows.length, total: commands.length })}
-          </FormHintText>
+              <FormHintText variant="block">
+                {t('commandCount', { shown: filteredRows.length, total: commands.length })}
+              </FormHintText>
+            </>
+          ) : null}
 
           {groupedEmpty ? (
-            <p className={styles.emptyMessage}>{t('noMatchingCommands')}</p>
+            <p className={styles.emptyMessage} role="status">
+              {systemWorkersEmpty ? chrome.systemEmptyMessage : t('noMatchingCommands')}
+            </p>
           ) : (
             commandGroups.map(({ category, rows: groupRows }) => (
               <Disclosure key={category} title={getCategoryLabel(category)}>

@@ -22,7 +22,6 @@ import express from 'express';
 import Joi from 'joi';
 
 const router = express.Router();
-const baseUrl = `${config.api.prefix}${config.api.version}`;
 
 const queryEngine = new DatabaseQueryEngine();
 const auditLog = new AuditLogService();
@@ -145,14 +144,14 @@ function getRequestId(req: express.Request): string {
 // --- Routes ---
 
 // List all allowlisted tables
-router.get(`${baseUrl}/database/tables`, ensureAuthenticated, (_req, res) => {
+router.get('/tables', ensureAuthenticated, (_req, res) => {
   res.json({
     tables: TABLE_POLICIES.map(tablePolicyToMeta),
   });
 });
 
 // Get table metadata
-router.get(`${baseUrl}/database/:table/meta`, ensureAuthenticated, (req, res) => {
+router.get('/:table/meta', ensureAuthenticated, (req, res) => {
   const tableName = getParamRequired(req, 'table');
   if (!isTableAllowlisted(tableName)) {
     res.status(404).json({ message: `Table "${tableName}" is not available` });
@@ -170,7 +169,7 @@ router.get(`${baseUrl}/database/:table/meta`, ensureAuthenticated, (req, res) =>
 
 // Query rows (list with filters/sorts/pagination)
 router.post(
-  `${baseUrl}/database/:table/query`,
+  '/:table/query',
   ensureAuthenticated,
   requireCrud(getPermissionResourceForTable('__dynamic__'), 'read'),
   async (req, res) => {
@@ -209,7 +208,7 @@ router.post(
 );
 
 // Get single row by id
-router.get(`${baseUrl}/database/:table/:id`, ensureAuthenticated, async (req, res) => {
+router.get('/:table/:id', ensureAuthenticated, async (req, res) => {
   try {
     const tableName = getParamRequired(req, 'table');
     if (!isTableAllowlisted(tableName)) {
@@ -243,7 +242,7 @@ router.get(`${baseUrl}/database/:table/:id`, ensureAuthenticated, async (req, re
 });
 
 // Create row
-router.post(`${baseUrl}/database/:table`, ensureAuthenticated, async (req, res) => {
+router.post('/:table', ensureAuthenticated, async (req, res) => {
   try {
     const tableName = getParamRequired(req, 'table');
     if (!isTableAllowlisted(tableName)) {
@@ -292,7 +291,7 @@ router.post(`${baseUrl}/database/:table`, ensureAuthenticated, async (req, res) 
 });
 
 // Update row
-router.patch(`${baseUrl}/database/:table/:id`, ensureAuthenticated, async (req, res) => {
+router.patch('/:table/:id', ensureAuthenticated, async (req, res) => {
   try {
     const tableName = getParamRequired(req, 'table');
     if (!isTableAllowlisted(tableName)) {
@@ -359,7 +358,7 @@ router.patch(`${baseUrl}/database/:table/:id`, ensureAuthenticated, async (req, 
 });
 
 // Delete row
-router.delete(`${baseUrl}/database/:table/:id`, ensureAuthenticated, async (req, res) => {
+router.delete('/:table/:id', ensureAuthenticated, async (req, res) => {
   try {
     const tableName = getParamRequired(req, 'table');
     if (!isTableAllowlisted(tableName)) {
@@ -438,4 +437,6 @@ function getCrudForResource(
   }
 }
 
-export const databaseRouter = router;
+const databaseRoot = express.Router();
+databaseRoot.use(`${config.api.prefix}${config.api.version}/database`, router);
+export const databaseRouter = databaseRoot;

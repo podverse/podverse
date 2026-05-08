@@ -10,6 +10,28 @@ import { expect, test } from '@playwright/test';
 
 const STORAGE_EXPIRY_KEY = 'podverse-mgmt-create-user-membership-expires-at';
 
+function productMembershipData(trialSeconds = 86400) {
+  return {
+    freeTrialExpirationSeconds: trialSeconds,
+    premiumMembershipCostMonthly: 3,
+    premiumMembershipCostAnnually: 30,
+    trialAllowDirectoryAddByRSS: false,
+    trialMaxAddByRSSFeeds: 7,
+    trialMaxManualRefreshesPerHour: 4,
+    trialTrackStats: false,
+    trialAllowNotifications: false,
+    premiumAllowDirectoryAddByRSS: true,
+    premiumMaxAddByRSSFeeds: 100,
+    premiumMaxManualRefreshesPerHour: 20,
+    premiumTrackStats: true,
+    premiumAllowNotifications: true,
+  };
+}
+
+function productMembershipBody(trialSeconds = 86400): string {
+  return JSON.stringify({ data: productMembershipData(trialSeconds) });
+}
+
 test.describe('Management-web create user (username-only)', () => {
   test('a superuser can create a user with username only and receives an invite link', async ({
     page,
@@ -75,6 +97,18 @@ test.describe('Management-web create user (username-only)', () => {
   }) => {
     test.setTimeout(45_000);
 
+    await page.route('**/products/membership', async (route) => {
+      if (route.request().method() !== 'GET') {
+        await route.continue();
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: productMembershipBody(),
+      });
+    });
+
     await page.goto('/');
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
@@ -89,6 +123,20 @@ test.describe('Management-web create user (username-only)', () => {
     await expect(
       page.getByRole('checkbox', { name: 'Configure advanced feature overrides' })
     ).toBeVisible();
+    await page.getByRole('checkbox', { name: 'Configure advanced feature overrides' }).check();
+    await expect(page.locator('#allow-directory-add-value')).toHaveText('Default (Block)');
+    await expect(page.locator('#track-stats-value')).toHaveText('Default (Do not track stats)');
+    await expect(page.locator('#allow-notifications-value')).toHaveText(
+      'Default (Block notifications)'
+    );
+    await expect(page.locator('#max-add-by-rss-feeds')).toHaveAttribute(
+      'placeholder',
+      'Default: 7'
+    );
+    await expect(page.locator('#max-manual-refreshes')).toHaveAttribute(
+      'placeholder',
+      'Default: 4'
+    );
   });
 
   test('default membership expiry reflects product GET freeTrialExpirationSeconds', async ({
@@ -98,7 +146,7 @@ test.describe('Management-web create user (username-only)', () => {
 
     const trialSeconds = 7200;
 
-    await page.route('**/product/membership', async (route) => {
+    await page.route('**/products/membership', async (route) => {
       if (route.request().method() !== 'GET') {
         await route.continue();
         return;
@@ -107,15 +155,7 @@ test.describe('Management-web create user (username-only)', () => {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          data: {
-            freeTrialExpirationSeconds: trialSeconds,
-            premiumMembershipCostMonthly: 3,
-            premiumMembershipCostAnnually: 30,
-            trialMaxAddByRSSFeeds: 10,
-            trialMaxManualRefreshesPerHour: 5,
-            premiumMaxAddByRSSFeeds: 100,
-            premiumMaxManualRefreshesPerHour: 20,
-          },
+          data: productMembershipData(trialSeconds),
         }),
       });
     });

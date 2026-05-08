@@ -80,6 +80,101 @@ test.describe('Management-web users list', () => {
     await userRow.getByRole('button', { name: 'Delete' }).click();
     await page.getByRole('button', { name: 'Confirm' }).click();
 
-    await expect(page.getByText('No users found.')).toBeVisible();
+    await expect(
+      page.getByText('No data found yet. This page will be enabled when there is data to display.')
+    ).toBeVisible();
+  });
+
+  test('when the users API reports zero users, table tools are hidden and the system empty message is shown', async ({
+    page,
+  }) => {
+    test.setTimeout(45_000);
+
+    await page.route('**/api/v2/users**', async (route) => {
+      if (route.request().method() !== 'GET') {
+        await route.continue();
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          users: [],
+          pagination: {
+            page: 1,
+            limit: 25,
+            total: 0,
+            totalPages: 1,
+          },
+        }),
+      });
+    });
+
+    await page.goto('/');
+    await page.locator('#email').fill('e2e-superadmin@example.com');
+    await page.locator('#password').fill('Test!1Aa');
+    await page.getByRole('button', { name: 'Sign In' }).click();
+    await page.waitForURL('**/dashboard');
+
+    await page.goto('/users');
+    await expect(page.getByRole('heading', { name: 'Users', level: 1 })).toBeVisible();
+
+    await expect(page.getByPlaceholder('Search')).not.toBeVisible();
+    await expect(page.getByRole('link', { name: 'Create New' })).not.toBeVisible();
+    await expect(
+      page.getByText('No data found yet. This page will be enabled when there is data to display.')
+    ).toBeVisible();
+  });
+
+  test('when the users list refetches, the sortable header stays mounted', async ({ page }) => {
+    test.setTimeout(45_000);
+
+    let listCalls = 0;
+
+    await page.route('**/api/v2/users**', async (route) => {
+      if (route.request().method() !== 'GET') {
+        await route.continue();
+        return;
+      }
+      listCalls += 1;
+      if (listCalls >= 2) {
+        await new Promise<void>((resolve) => {
+          setTimeout(resolve, 900);
+        });
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          users: [MOCK_USER],
+          pagination: {
+            page: 1,
+            limit: 25,
+            total: 1,
+            totalPages: 1,
+          },
+        }),
+      });
+    });
+
+    await page.goto('/');
+    await page.locator('#email').fill('e2e-superadmin@example.com');
+    await page.locator('#password').fill('Test!1Aa');
+    await page.getByRole('button', { name: 'Sign In' }).click();
+    await page.waitForURL('**/dashboard');
+
+    await page.goto('/users');
+    await expect(page.getByRole('button', { name: 'Sort by Email' })).toBeVisible();
+
+    await page.getByPlaceholder('Search').fill('refetch-trigger');
+
+    await expect(page.getByRole('button', { name: 'Sort by Email' })).toBeVisible();
+
+    await expect.poll(async () => listCalls >= 2).toBeTruthy();
+
+    await expect(page.getByRole('button', { name: 'Sort by Email' })).toBeVisible();
+    await expect(
+      page.getByRole('cell', { name: 'e2e-list-user@example.com', exact: true })
+    ).toBeVisible();
   });
 });

@@ -31,8 +31,10 @@ const MANAGEMENT_API_ENV_LINES_COMMON = [
   `DB_MANAGEMENT_READ_PASSWORD=test`,
   `DB_MANAGEMENT_READ_WRITE_USER=podverse_management_read_write`,
   `DB_MANAGEMENT_READ_WRITE_PASSWORD=test`,
-  `WEB_PROTOCOL=http`,
-  `WEB_DOMAIN=localhost`,
+  `APP_WEB_PROTOCOL=http`,
+  `APP_WEB_DOMAIN=localhost`,
+  `MANAGEMENT_WEB_PROTOCOL=http`,
+  `MANAGEMENT_WEB_DOMAIN=localhost`,
 ] as const;
 
 /** Default Playwright run: no inherited bucket creds; GET /storage reports disabled. */

@@ -3,34 +3,34 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { PremiumBillingCadence, ResolvedProductMembership } from '@podverse/helpers';
 import { AccountMembershipEnum } from '@podverse/helpers';
+import type { FormDropdownOption } from '@podverse/ui';
 import {
   Alert,
   Breadcrumbs,
   Button,
   CheckboxField,
   CopyToClipboardButton,
-  fieldPrimitiveClasses,
+  FormDropdown,
   FormGroup,
   FormHintText,
   FormMaxWidth,
   FormPrimaryActions,
   FormStack,
-  Input,
-  Label,
   ManagementPageShell,
-  Select,
   StackForm,
   TextInput,
 } from '@podverse/ui';
 
-import { ManagementLoadingSpinnerFull } from '../../../../components/LoadingSpinner/ManagementLoadingSpinnerFull';
+import { ManagementLoadingSpinnerOverlay } from '../../../../components/LoadingSpinner/ManagementLoadingSpinnerOverlay';
+import { MembershipAdvancedOverridesGroup } from '../../../../components/MembershipAdvancedOverridesGroup/MembershipAdvancedOverridesGroup';
 import {
   computeDefaultExpiryInput,
   fallbackProductMembershipFromEnv,
+  resolveAdvancedOverrideDefaults,
   resolvedTierEntitlements,
   STORAGE_CADENCE_KEY,
   STORAGE_EXPIRY_KEY,
@@ -143,13 +143,92 @@ export function NewUserPageClient() {
     window.localStorage.setItem(STORAGE_CADENCE_KEY, premiumCadence);
   }, [premiumCadence, hydrated]);
 
-  const trialEnt = resolvedTierEntitlements(AccountMembershipEnum.Trial);
-  const premiumEnt = resolvedTierEntitlements(AccountMembershipEnum.Premium);
-  const selectedEnt = resolvedTierEntitlements(membershipId);
+  const productMembershipForDisplay =
+    resolvedProductMembership ?? fallbackProductMembershipFromEnv();
+  const currentMembershipExpiresAt = membershipExpiresAt.trim() === '' ? null : membershipExpiresAt;
+  const trialEnt = resolvedTierEntitlements(
+    productMembershipForDisplay,
+    AccountMembershipEnum.Trial
+  );
+  const premiumEnt = resolvedTierEntitlements(
+    productMembershipForDisplay,
+    AccountMembershipEnum.Premium
+  );
+  const selectedEnt = resolveAdvancedOverrideDefaults({
+    product: productMembershipForDisplay,
+    membershipId,
+    membershipExpiresAt: currentMembershipExpiresAt,
+  });
 
-  const { rss: rssPlaceholder, refresh: refreshPlaceholder } = resolvedProductMembership
-    ? tierLimitPlaceholders(resolvedProductMembership, membershipId)
-    : { rss: 0, refresh: 0 };
+  const { rss: rssPlaceholder, refresh: refreshPlaceholder } = tierLimitPlaceholders({
+    product: productMembershipForDisplay,
+    membershipId,
+    membershipExpiresAt: currentMembershipExpiresAt,
+  });
+
+  const membershipTierOptions = useMemo<FormDropdownOption[]>(
+    () => [
+      { value: String(AccountMembershipEnum.Trial), label: t('membershipForm.trial') },
+      { value: String(AccountMembershipEnum.Premium), label: t('membershipForm.premium') },
+    ],
+    [t]
+  );
+
+  const premiumCadenceOptions = useMemo<FormDropdownOption[]>(
+    () => [
+      { value: 'monthly', label: t('membershipForm.billingMonthly') },
+      { value: 'annual', label: t('membershipForm.billingAnnual') },
+    ],
+    [t]
+  );
+
+  const addByRssTriOptions = useMemo<FormDropdownOption[]>(
+    () => [
+      {
+        value: '',
+        label: t('advancedOverrides.useTrustTierDefault', {
+          value: selectedEnt.allowDirectoryAddByRSS
+            ? t('advancedOverrides.allow')
+            : t('advancedOverrides.block'),
+        }),
+      },
+      { value: 'true', label: t('advancedOverrides.allow') },
+      { value: 'false', label: t('advancedOverrides.block') },
+    ],
+    [selectedEnt.allowDirectoryAddByRSS, t]
+  );
+
+  const trackStatsTriOptions = useMemo<FormDropdownOption[]>(
+    () => [
+      {
+        value: '',
+        label: t('advancedOverrides.useTrustTierDefault', {
+          value: selectedEnt.trackStats
+            ? t('advancedOverrides.trackStatsOn')
+            : t('advancedOverrides.trackStatsOff'),
+        }),
+      },
+      { value: 'true', label: t('advancedOverrides.trackStatsOn') },
+      { value: 'false', label: t('advancedOverrides.trackStatsOff') },
+    ],
+    [selectedEnt.trackStats, t]
+  );
+
+  const notificationsTriOptions = useMemo<FormDropdownOption[]>(
+    () => [
+      {
+        value: '',
+        label: t('advancedOverrides.useTrustTierDefault', {
+          value: selectedEnt.allowNotifications
+            ? t('advancedOverrides.allowNotificationsOn')
+            : t('advancedOverrides.allowNotificationsOff'),
+        }),
+      },
+      { value: 'true', label: t('advancedOverrides.allowNotificationsOn') },
+      { value: 'false', label: t('advancedOverrides.allowNotificationsOff') },
+    ],
+    [selectedEnt.allowNotifications, t]
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -241,35 +320,34 @@ export function NewUserPageClient() {
     />
   );
 
-  if (!resolvedProductMembership) {
+  if (!resolvedProductMembership || !hydrated) {
     return (
-      <ManagementPageShell headerChildren={createUserBreadcrumbs} title={t('createUser')}>
-        <ManagementLoadingSpinnerFull />
+      <ManagementPageShell headerBreadcrumbs={createUserBreadcrumbs} title={t('createUser')}>
+        <ManagementLoadingSpinnerOverlay isLoading />
       </ManagementPageShell>
     );
   }
 
   if (inviteLink !== null) {
     return (
-      <ManagementPageShell headerChildren={createUserBreadcrumbs} title={t('createUser')}>
+      <ManagementPageShell headerBreadcrumbs={createUserBreadcrumbs} title={t('createUser')}>
         <FormMaxWidth>
           <FormStack>
             <Alert variant="success">{t('createdWithLink')}</Alert>
             <FormGroup layout="inStack">
-              <Label htmlFor="invite-link">{t('inviteLinkLabel')}</Label>
               <div
                 style={{
                   display: 'flex',
                   gap: 'var(--spacing-base)',
-                  alignItems: 'center',
+                  alignItems: 'flex-end',
                 }}
               >
-                <Input
+                <TextInput
+                  eyebrow={t('inviteLinkLabel')}
                   id="invite-link"
                   readOnly
-                  type="text"
-                  className={fieldPrimitiveClasses.input}
                   style={{ flex: 1, minWidth: 0 }}
+                  type="text"
                   value={inviteLink}
                 />
                 <CopyToClipboardButton
@@ -291,7 +369,7 @@ export function NewUserPageClient() {
   }
 
   return (
-    <ManagementPageShell headerChildren={createUserBreadcrumbs} title={t('createUser')}>
+    <ManagementPageShell headerBreadcrumbs={createUserBreadcrumbs} title={t('createUser')}>
       <FormMaxWidth>
         <StackForm onSubmit={(e) => void handleSubmit(e)}>
           <TextInput
@@ -321,191 +399,175 @@ export function NewUserPageClient() {
             onChange={(e) => setPassword(e.target.value)}
           />
           <FormGroup layout="inStack">
-            <Label htmlFor="membership-id">{t('membershipForm.membershipStatus')}</Label>
-            <Select
+            <FormDropdown
               id="membership-id"
-              className={fieldPrimitiveClasses.select}
+              info={
+                membershipId === AccountMembershipEnum.Trial
+                  ? t('membershipForm.hintTrialNew')
+                  : t('membershipForm.hintPremiumNew')
+              }
+              eyebrow={t('membershipForm.membershipStatus')}
+              options={membershipTierOptions}
               value={String(membershipId)}
-              onChange={(e) => {
-                const v = Number.parseInt(e.target.value, 10);
-                if (v === AccountMembershipEnum.Trial || v === AccountMembershipEnum.Premium) {
-                  setMembershipId(v);
+              onChange={(v) => {
+                const parsed = Number.parseInt(v, 10);
+                if (
+                  parsed === AccountMembershipEnum.Trial ||
+                  parsed === AccountMembershipEnum.Premium
+                ) {
+                  setMembershipId(parsed);
                 }
               }}
-            >
-              <option value={String(AccountMembershipEnum.Trial)}>
-                {t('membershipForm.trial')}
-              </option>
-              <option value={String(AccountMembershipEnum.Premium)}>
-                {t('membershipForm.premium')}
-              </option>
-            </Select>
-            <FormHintText>
-              {membershipId === AccountMembershipEnum.Trial
-                ? t('membershipForm.hintTrialNew')
-                : t('membershipForm.hintPremiumNew')}
-            </FormHintText>
+            />
           </FormGroup>
           {membershipId === AccountMembershipEnum.Premium && (
             <FormGroup layout="inStack">
-              <Label htmlFor="premium-cadence">{t('membershipForm.premiumBillingCadence')}</Label>
-              <Select
+              <FormDropdown
                 id="premium-cadence"
-                className={fieldPrimitiveClasses.select}
+                info={t('membershipForm.premiumBillingCadenceHint')}
+                eyebrow={t('membershipForm.premiumBillingCadence')}
+                options={premiumCadenceOptions}
                 value={premiumCadence}
-                onChange={(e) => {
-                  setPremiumCadence(e.target.value === 'monthly' ? 'monthly' : 'annual');
+                onChange={(v) => {
+                  setPremiumCadence(v === 'monthly' ? 'monthly' : 'annual');
                 }}
-              >
-                <option value="monthly">{t('membershipForm.billingMonthly')}</option>
-                <option value="annual">{t('membershipForm.billingAnnual')}</option>
-              </Select>
-              <FormHintText>{t('membershipForm.premiumBillingCadenceHint')}</FormHintText>
+              />
             </FormGroup>
           )}
           <TextInput
             id="membership-expires-at"
             eyebrow={t('membershipForm.membershipExpiresAt')}
+            nativePickerAffixAriaLabel={t('membershipForm.membershipExpiresAtPickerAffix')}
             type="datetime-local"
             value={membershipExpiresAt}
             onChange={(e) => setMembershipExpiresAt(e.target.value)}
           />
-          <FormGroup layout="inStack">
-            <CheckboxField
-              label={t('membershipForm.configureAdvancedOverrides')}
-              checked={showAdvanced}
-              onChange={setShowAdvanced}
-            />
-          </FormGroup>
-          {showAdvanced && (
-            <>
-              <FormGroup layout="inStack">
-                <Label htmlFor="allow-directory-add">
-                  {t('advancedOverrides.allowDirectoryAddByRss')}
-                </Label>
-                <Select
-                  id="allow-directory-add"
-                  className={fieldPrimitiveClasses.select}
-                  value={
-                    allowDirectoryAddByRSS === null ? '' : allowDirectoryAddByRSS ? 'true' : 'false'
-                  }
-                  onChange={(e) => {
-                    if (e.target.value === '') {
-                      setAllowDirectoryAddByRSS(null);
-                    } else {
-                      setAllowDirectoryAddByRSS(e.target.value === 'true');
-                    }
-                  }}
-                >
-                  <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
-                  <option value="true">{t('advancedOverrides.allow')}</option>
-                  <option value="false">{t('advancedOverrides.block')}</option>
-                </Select>
-                <FormHintText>
-                  {t('advancedOverrides.allowDirectoryAddByRssHelp', {
-                    trialDefault: trialEnt.allowDirectoryAddByRSS
-                      ? t('advancedOverrides.on')
-                      : t('advancedOverrides.off'),
-                    premiumDefault: premiumEnt.allowDirectoryAddByRSS
-                      ? t('advancedOverrides.on')
-                      : t('advancedOverrides.off'),
-                  })}
-                </FormHintText>
-              </FormGroup>
-              <TextInput
-                id="max-add-by-rss-feeds"
-                eyebrow={t('advancedOverrides.addByRssFeedLimit')}
-                info={t('advancedOverrides.addByRssFeedLimitHelp', {
-                  trialDefault: trialEnt.maxAddByRSSFeeds,
-                  premiumDefault: premiumEnt.maxAddByRSSFeeds,
-                  selectedDefault: selectedEnt.maxAddByRSSFeeds,
-                })}
-                min={0}
-                placeholder={t('advancedOverrides.placeholderTierDefault', {
-                  count: rssPlaceholder,
-                })}
-                type="number"
-                value={maxAddByRSSFeeds}
-                onChange={(e) => setMaxAddByRSSFeeds(e.target.value)}
+          <MembershipAdvancedOverridesGroup>
+            <FormGroup layout="inStack">
+              <CheckboxField
+                label={t('membershipForm.configureAdvancedOverrides')}
+                checked={showAdvanced}
+                onChange={setShowAdvanced}
               />
-              <TextInput
-                id="max-manual-refreshes"
-                eyebrow={t('advancedOverrides.manualRefreshPerHour')}
-                info={t('advancedOverrides.manualRefreshPerHourHelp', {
-                  trialDefault: trialEnt.maxManualRefreshesPerHour,
-                  premiumDefault: premiumEnt.maxManualRefreshesPerHour,
-                  selectedDefault: selectedEnt.maxManualRefreshesPerHour,
-                })}
-                min={0}
-                placeholder={t('advancedOverrides.placeholderTierDefault', {
-                  count: refreshPlaceholder,
-                })}
-                type="number"
-                value={maxManualRefreshesPerHour}
-                onChange={(e) => setMaxManualRefreshesPerHour(e.target.value)}
-              />
-              <FormGroup layout="inStack">
-                <Label htmlFor="track-stats">{t('advancedOverrides.trackStats')}</Label>
-                <Select
-                  id="track-stats"
-                  className={fieldPrimitiveClasses.select}
-                  value={trackStats === null ? '' : trackStats ? 'true' : 'false'}
-                  onChange={(e) => {
-                    if (e.target.value === '') {
-                      setTrackStats(null);
-                    } else {
-                      setTrackStats(e.target.value === 'true');
+            </FormGroup>
+            {showAdvanced && (
+              <>
+                <FormGroup layout="inStack">
+                  <FormDropdown
+                    id="allow-directory-add"
+                    eyebrow={t('advancedOverrides.allowDirectoryAddByRss')}
+                    options={addByRssTriOptions}
+                    value={
+                      allowDirectoryAddByRSS === null
+                        ? ''
+                        : allowDirectoryAddByRSS
+                          ? 'true'
+                          : 'false'
                     }
-                  }}
-                >
-                  <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
-                  <option value="true">{t('advancedOverrides.trackStatsOn')}</option>
-                  <option value="false">{t('advancedOverrides.trackStatsOff')}</option>
-                </Select>
-                <FormHintText>
-                  {t('advancedOverrides.trackStatsHelp', {
-                    trialDefault: trialEnt.trackStats
-                      ? t('advancedOverrides.on')
-                      : t('advancedOverrides.off'),
-                    premiumDefault: premiumEnt.trackStats
-                      ? t('advancedOverrides.on')
-                      : t('advancedOverrides.off'),
+                    onChange={(v) => {
+                      if (v === '') {
+                        setAllowDirectoryAddByRSS(null);
+                      } else {
+                        setAllowDirectoryAddByRSS(v === 'true');
+                      }
+                    }}
+                  />
+                  <FormHintText>
+                    {t('advancedOverrides.allowDirectoryAddByRssHelp', {
+                      trialDefault: trialEnt.allowDirectoryAddByRSS
+                        ? t('advancedOverrides.on')
+                        : t('advancedOverrides.off'),
+                      premiumDefault: premiumEnt.allowDirectoryAddByRSS
+                        ? t('advancedOverrides.on')
+                        : t('advancedOverrides.off'),
+                    })}
+                  </FormHintText>
+                </FormGroup>
+                <TextInput
+                  id="max-add-by-rss-feeds"
+                  eyebrow={t('advancedOverrides.addByRssFeedLimit')}
+                  info={t('advancedOverrides.addByRssFeedLimitHelp', {
+                    trialDefault: trialEnt.maxAddByRSSFeeds,
+                    premiumDefault: premiumEnt.maxAddByRSSFeeds,
+                    selectedDefault: selectedEnt.maxAddByRSSFeeds,
                   })}
-                </FormHintText>
-              </FormGroup>
-              <FormGroup layout="inStack">
-                <Label htmlFor="allow-notifications">
-                  {t('advancedOverrides.allowNotifications')}
-                </Label>
-                <Select
-                  id="allow-notifications"
-                  className={fieldPrimitiveClasses.select}
-                  value={allowNotifications === null ? '' : allowNotifications ? 'true' : 'false'}
-                  onChange={(e) => {
-                    if (e.target.value === '') {
-                      setAllowNotifications(null);
-                    } else {
-                      setAllowNotifications(e.target.value === 'true');
-                    }
-                  }}
-                >
-                  <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
-                  <option value="true">{t('advancedOverrides.allowNotificationsOn')}</option>
-                  <option value="false">{t('advancedOverrides.allowNotificationsOff')}</option>
-                </Select>
-                <FormHintText>
-                  {t('advancedOverrides.allowNotificationsHelp', {
-                    trialDefault: trialEnt.allowNotifications
-                      ? t('advancedOverrides.on')
-                      : t('advancedOverrides.off'),
-                    premiumDefault: premiumEnt.allowNotifications
-                      ? t('advancedOverrides.on')
-                      : t('advancedOverrides.off'),
+                  min={0}
+                  placeholder={t('advancedOverrides.placeholderTierDefault', {
+                    count: rssPlaceholder,
                   })}
-                </FormHintText>
-              </FormGroup>
-            </>
-          )}
+                  type="number"
+                  value={maxAddByRSSFeeds}
+                  onChange={(e) => setMaxAddByRSSFeeds(e.target.value)}
+                />
+                <TextInput
+                  id="max-manual-refreshes"
+                  eyebrow={t('advancedOverrides.manualRefreshPerHour')}
+                  info={t('advancedOverrides.manualRefreshPerHourHelp', {
+                    trialDefault: trialEnt.maxManualRefreshesPerHour,
+                    premiumDefault: premiumEnt.maxManualRefreshesPerHour,
+                    selectedDefault: selectedEnt.maxManualRefreshesPerHour,
+                  })}
+                  min={0}
+                  placeholder={t('advancedOverrides.placeholderTierDefault', {
+                    count: refreshPlaceholder,
+                  })}
+                  type="number"
+                  value={maxManualRefreshesPerHour}
+                  onChange={(e) => setMaxManualRefreshesPerHour(e.target.value)}
+                />
+                <FormGroup layout="inStack">
+                  <FormDropdown
+                    id="track-stats"
+                    eyebrow={t('advancedOverrides.trackStats')}
+                    options={trackStatsTriOptions}
+                    value={trackStats === null ? '' : trackStats ? 'true' : 'false'}
+                    onChange={(v) => {
+                      if (v === '') {
+                        setTrackStats(null);
+                      } else {
+                        setTrackStats(v === 'true');
+                      }
+                    }}
+                  />
+                  <FormHintText>
+                    {t('advancedOverrides.trackStatsHelp', {
+                      trialDefault: trialEnt.trackStats
+                        ? t('advancedOverrides.on')
+                        : t('advancedOverrides.off'),
+                      premiumDefault: premiumEnt.trackStats
+                        ? t('advancedOverrides.on')
+                        : t('advancedOverrides.off'),
+                    })}
+                  </FormHintText>
+                </FormGroup>
+                <FormGroup layout="inStack">
+                  <FormDropdown
+                    id="allow-notifications"
+                    eyebrow={t('advancedOverrides.allowNotifications')}
+                    options={notificationsTriOptions}
+                    value={allowNotifications === null ? '' : allowNotifications ? 'true' : 'false'}
+                    onChange={(v) => {
+                      if (v === '') {
+                        setAllowNotifications(null);
+                      } else {
+                        setAllowNotifications(v === 'true');
+                      }
+                    }}
+                  />
+                  <FormHintText>
+                    {t('advancedOverrides.allowNotificationsHelp', {
+                      trialDefault: trialEnt.allowNotifications
+                        ? t('advancedOverrides.on')
+                        : t('advancedOverrides.off'),
+                      premiumDefault: premiumEnt.allowNotifications
+                        ? t('advancedOverrides.on')
+                        : t('advancedOverrides.off'),
+                    })}
+                  </FormHintText>
+                </FormGroup>
+              </>
+            )}
+          </MembershipAdvancedOverridesGroup>
           <Alert>{error}</Alert>
           {successMessage && <Alert variant="success">{successMessage}</Alert>}
           <FormPrimaryActions>

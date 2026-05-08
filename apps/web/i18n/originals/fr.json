@@ -262,6 +262,11 @@
       "audio_with_ext_bitrate_mbps": "Audio {ext} {bitrate}Mbps"
     }
   },
+  "updates_page": {
+    "intro": "Les notes de version de l’application open source sont publiées sur GitHub. Utilisez le lien ci-dessous pour les versions étiquetées.",
+    "title": "Mises à jour",
+    "view_releases": "Voir les versions sur GitHub"
+  },
   "value": {
     "boost": "Amplifier",
     "recipient": {
@@ -616,7 +621,10 @@
     "feature_premium_only_explanation": "Il s'agit d'une fonctionnalité Premium. Pour limiter le spam, les comptes d'essai ont un accès restreint. Passez à Premium pour l'utiliser.",
     "manual_refresh_hourly_limit_reached": "Vous avez atteint votre limite de rafraîchissement manuel pour cette heure.",
     "add_by_rss_feed_limit_reached": "Vous avez atteint votre limite d'ajout par flux RSS.",
-    "directory_add_by_rss_trial_blocked": "Pour limiter le spam, les comptes d'essai ne peuvent pas ajouter de flux au répertoire public. Passez à Premium pour les ajouter vous-même, ou écrivez à <mail>{contactEmail}</mail> pour nous demander d'ajouter ce flux.",
+    "directory_add_by_rss_trial_blocked": "Pour limiter le spam, les comptes d'essai ne peuvent pas ajouter de flux au répertoire public. Un compte Premium est nécessaire pour ajouter des flux, ou écrivez à <mail>{contactEmail}</mail> pour nous demander d'ajouter ce flux.",
+    "trial_limitations_summary": "Certaines fonctionnalités ne sont pas disponibles pendant l'essai afin de limiter le spam et les abus.",
+    "trial_limitations_show_less": "Afficher moins",
+    "trial_limitations_show_more": "Afficher plus",
     "trial_limitations_title": "Limitations de l'essai",
     "trial_limitations_directory_add_by_rss": "L'ajout de flux au répertoire public à partir de la recherche est bloqué pour le statut d'essai.",
     "trial_limitations_add_by_rss_feed_limit": "La taille de la bibliothèque d'ajout par RSS utilise une limite d'essai inférieure à celle de Premium.",

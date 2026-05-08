@@ -12,7 +12,7 @@ import {
   ERROR_MESSAGES,
   hasValidMembership,
 } from '@podverse/helpers';
-import { AccountService, isValidNanoIdV2IdText } from '@podverse/orm';
+import { AccountService, BillingPriceCatalogService, isValidNanoIdV2IdText } from '@podverse/orm';
 
 import { accountHasCapability, getAccountEntitlements } from '../accountEntitlements.js';
 import { verifyPassword } from './password.js';
@@ -23,6 +23,22 @@ import { verifyPassword } from './password.js';
  */
 const isProduction = config.nodeEnv === 'production';
 const MEMBERSHIP_EXPIRED_I18N_KEY = 'membership.membership_expired';
+
+let accountServiceSingleton: AccountService | undefined;
+function getAccountService(): AccountService {
+  if (accountServiceSingleton === undefined) {
+    accountServiceSingleton = new AccountService();
+  }
+  return accountServiceSingleton;
+}
+
+let billingPriceCatalogServiceSingleton: BillingPriceCatalogService | undefined;
+function getBillingPriceCatalogService(): BillingPriceCatalogService {
+  if (billingPriceCatalogServiceSingleton === undefined) {
+    billingPriceCatalogServiceSingleton = new BillingPriceCatalogService();
+  }
+  return billingPriceCatalogServiceSingleton;
+}
 
 const setAuthCookie = (res: Response, token: string) => {
   const maxAge = config.auth.sessionCookieMaxAgeMs;
@@ -47,8 +63,6 @@ const setAuthCookie = (res: Response, token: string) => {
   }
 };
 
-const accountService = new AccountService();
-
 passport.use(
   new LocalStrategy(
     {
@@ -63,11 +77,11 @@ passport.use(
 
         let account;
         if (identifier.includes('@')) {
-          account = await accountService.getByEmail(identifier, {
+          account = await getAccountService().getByEmail(identifier, {
             relations: ['account_credentials'],
           });
         } else {
-          account = await accountService.getByUsername(identifier, {
+          account = await getAccountService().getByUsername(identifier, {
             relations: ['account_credentials'],
           });
         }
@@ -112,7 +126,7 @@ passport.use(
         if (!isValidNanoIdV2IdText(jwtPayload.id_text)) {
           return done(null, false);
         }
-        const account = await accountService.get(jwtPayload.id, {
+        const account = await getAccountService().get(jwtPayload.id, {
           relations: ['account_credentials'],
         });
         if (!account) {
@@ -139,7 +153,7 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id: number, done) => {
   try {
-    const account = await accountService.get(id);
+    const account = await getAccountService().get(id);
     done(null, account);
   } catch (error) {
     done(error);
@@ -250,7 +264,7 @@ const verifyTokenAndMembership = (
         relations.push('account_membership_status');
         relations.push('account_membership_status.account_membership');
       }
-      const account = await accountService.get(payload.id, { relations });
+      const account = await getAccountService().get(payload.id, { relations });
       if (!account) {
         console.error('[verifyTokenAndMembership] No account found for user id:', payload.id);
         res.status(401).json({ message: 'Unauthorized' });
@@ -288,7 +302,9 @@ const verifyTokenAndMembership = (
           return;
         }
 
-        const entitlements = getAccountEntitlements(membershipStatus);
+        const capDefaults =
+          await getBillingPriceCatalogService().resolveProductMembershipCapDefaults();
+        const entitlements = getAccountEntitlements(membershipStatus, capDefaults);
         req.user.entitlements = entitlements;
 
         if (

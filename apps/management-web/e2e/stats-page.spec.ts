@@ -34,7 +34,7 @@ test.describe('Management-web stats page', () => {
   }) => {
     test.setTimeout(45_000);
 
-    await page.route('**/stats/top/**', async (route) => {
+    await page.route(/\/stats\/[a-z]+\/top(?:\?.*)?$/, async (route) => {
       if (route.request().method() !== 'GET') {
         await route.continue();
         return;
@@ -51,7 +51,7 @@ test.describe('Management-web stats page', () => {
       });
     });
 
-    await page.route('**/stats/detail/**', async (route) => {
+    await page.route(/\/stats\/[a-z]+\/\d+(?:\?.*)?$/, async (route) => {
       if (route.request().method() !== 'GET') {
         await route.continue();
         return;

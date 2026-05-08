@@ -3,15 +3,30 @@ import type { HTMLAttributes } from 'react';
 
 import styles from './LookupFieldGrid.module.scss';
 
-export type LookupFieldGridProps = HTMLAttributes<HTMLDivElement>;
+export type LookupFieldGridProps = HTMLAttributes<HTMLDivElement> & {
+  /**
+   * `default` — optional top row of external {@link Label}s plus control row (legacy).
+   * `inlineEyebrow` — one row; use {@link TextInput} / {@link FormDropdown} `eyebrow` for titles;
+   * action column aligns to the bottom of each control so primary buttons line up with inputs.
+   */
+  variant?: 'default' | 'inlineEyebrow';
+};
 
-export function LookupFieldGrid({ className, ...rest }: LookupFieldGridProps) {
-  return <div className={classNames(styles.grid, className)} {...rest} />;
+export function LookupFieldGrid({ className, variant = 'default', ...rest }: LookupFieldGridProps) {
+  return (
+    <div
+      className={classNames(
+        variant === 'inlineEyebrow' ? styles.gridInlineEyebrow : styles.grid,
+        className
+      )}
+      {...rest}
+    />
+  );
 }
 
 export type LookupFieldSpacerLabelProps = HTMLAttributes<HTMLDivElement>;
 
-/** Invisible third-column label aligned with {@link Label} row for grid alignment */
+/** Invisible third-column slot for **`LookupFieldGrid`** **`variant="default"`** label-row alignment */
 export function LookupFieldSpacerLabel({ className, ...rest }: LookupFieldSpacerLabelProps) {
   return <div className={classNames(styles.actionLabelCell, className)} {...rest} />;
 }
@@ -20,5 +35,5 @@ export function LookupFieldSpacerLabel({ className, ...rest }: LookupFieldSpacer
 export const lookupFieldGridControlClass = styles.inlineControl;
 export const lookupFieldGridButtonClass = styles.inlineControlButton;
 export const lookupFieldGridFormBlockClass = styles.formBlock;
-/** Wrap a native `<select>` when it sits beside {@link TextInput} so heights match shared form chrome. */
+/** Wrap a native `<select>` beside {@link TextInput} so heights match shared form chrome. */
 export const lookupFieldGridNativeSelectWrapClass = styles.nativeSelectFormChrome;

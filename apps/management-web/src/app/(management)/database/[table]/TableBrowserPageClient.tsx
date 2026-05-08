@@ -18,11 +18,14 @@ import {
   useTableFilterState,
 } from '@podverse/ui';
 
-import { ManagementLoadingSpinnerSmall } from '../../../../components/LoadingSpinner/ManagementLoadingSpinnerSmall';
+import { ManagementLoadingSpinnerOverlay } from '../../../../components/LoadingSpinner/ManagementLoadingSpinnerOverlay';
 import { useManagementTableChrome } from '../../../../components/Table/managementTableChrome';
 import { ManagementIconButtonLink } from '../../../../lib/ManagementIconButtonLink';
 import { managementSearchParamsObject } from '../../../../lib/managementTableUrl';
 import { getTableMeta, queryTable, type TableMeta } from '../../../../lib/requests/database';
+import { resolveManagementTableEmptyState } from '../../../../lib/tableEmptyState';
+
+import dataSurfaceBusyStyles from '../../../../styles/managementDataSurfaceBusy.module.scss';
 
 const TABLE_LABEL_KEYS: Record<string, string> = {
   feed: 'tables.feed.label',
@@ -53,6 +56,7 @@ export function TableBrowserPageClient({ tableName }: TableBrowserPageClientProp
   const [error, setError] = useState<string | null>(null);
   const t = useTranslations('database');
   const tc = useTranslations('common');
+  const tsTable = useTranslations('tableShared');
   const chrome = useManagementTableChrome();
 
   const pathname = usePathname();
@@ -196,21 +200,27 @@ export function TableBrowserPageClient({ tableName }: TableBrowserPageClientProp
 
   const tableLabel = TABLE_LABEL_KEYS[tableName] ? t(TABLE_LABEL_KEYS[tableName]) : tableName;
 
+  const browserTableEmptyState = resolveManagementTableEmptyState({
+    filteredEmptyMessage: tsTable('noResults'),
+    hasDataInSystem: loading ? undefined : total > 0,
+    hasVisibleRows: displayedRows.length > 0,
+    systemEmptyMessage: chrome.systemEmptyMessage,
+  });
+
+  const systemBrowserEmpty = browserTableEmptyState?.mode === 'system-empty';
+
   return (
     <ManagementPageShell
       title={tableLabel}
-      headerChildren={
+      headerBreadcrumbs={
         <Breadcrumbs
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
           items={[{ href: '/database', label: t('title') }, { label: tableName }]}
         />
       }
-    >
-      {loading && !meta && <ManagementLoadingSpinnerSmall />}
-      <Alert>{error}</Alert>
-      {meta && (
-        <>
+      headerChildren={
+        meta !== null && !systemBrowserEmpty ? (
           <PageHeaderActions>
             {!meta.readOnly && (
               <ActionLink href={`/database/${tableName}/new`} variant="inline" LinkComponent={Link}>
@@ -219,9 +229,19 @@ export function TableBrowserPageClient({ tableName }: TableBrowserPageClientProp
             )}
             {meta.readOnly && <StatusBadge variant="warning">{tc('readOnlyTable')}</StatusBadge>}
           </PageHeaderActions>
+        ) : undefined
+      }
+    >
+      <ManagementLoadingSpinnerOverlay isLoading={loading} />
+      <Alert>{error}</Alert>
+      {meta && (
+        <div
+          aria-busy={loading ? true : undefined}
+          className={loading ? dataSurfaceBusyStyles.dataSurfaceBusy : undefined}
+        >
           <TableWithFilter
             columns={columns}
-            emptyMessage={displayedRows.length === 0 ? tc('noDataFound') : undefined}
+            emptyState={browserTableEmptyState}
             filter={filter}
             filterableColumnIds={meta.fields.map((f) => f.name)}
             getRowKey={(row) => String(row[meta.primaryKeyField] ?? '')}
@@ -260,7 +280,7 @@ export function TableBrowserPageClient({ tableName }: TableBrowserPageClientProp
             sortableColumnIds={meta.fields.map((f) => f.name)}
             onSortChange={handleSortChange}
           />
-        </>
+        </div>
       )}
     </ManagementPageShell>
   );

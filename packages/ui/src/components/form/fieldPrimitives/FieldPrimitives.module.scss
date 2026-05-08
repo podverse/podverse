@@ -17,29 +17,6 @@
   }
 }
 
-.select {
-  width: 100%;
-  min-width: 10rem;
-  max-width: 100%;
-  padding: var(--spacing-base);
-  font-size: var(--font-size-base);
-  border: 1px solid var(--border-color-tertiary);
-  border-radius: var(--border-radius);
-  background-color: var(--background-color-secondary);
-  color: var(--text-color-primary);
-  box-sizing: border-box;
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  &:focus {
-    outline: none;
-    border-color: var(--border-color-primary);
-  }
-}
-
 .textarea {
   display: block;
   width: 100%;

@@ -16,6 +16,7 @@ import { Table } from '../Table/Table';
 import { tableWithFilterColumnsToSortColumns } from '../Table/tableWithFilterColumnHelpers';
 import type {
   TableWithFilterColumn,
+  TableWithFilterEmptyState,
   TableWithFilterPaginationLabels,
   TableWithFilterProps,
 } from '../TableWithFilter/TableWithFilter';
@@ -91,6 +92,7 @@ export type ResourceTableWithFilterProps<TRow> = {
   cursorPagination?: ResourceTableCursorPagination;
   deleteConfirm: ResourceTableDeleteConfirm<TRow>;
   emptyMessage?: ReactNode;
+  emptyState?: TableWithFilterEmptyState;
   filterableColumnIds?: string[];
   getRowActions?: (row: TRow) => ResourceRowActionsPolicy | undefined;
   getRowKey: (row: TRow) => string;
@@ -142,6 +144,7 @@ export function ResourceTableWithFilter<TRow>({
   cursorPagination,
   deleteConfirm,
   emptyMessage,
+  emptyState,
   filterableColumnIds,
   getRowActions,
   getRowKey,
@@ -166,6 +169,12 @@ export function ResourceTableWithFilter<TRow>({
   tableListStateListKey,
   trailingToolbar,
 }: ResourceTableWithFilterProps<TRow>) {
+  const mergedEmptyState: TableWithFilterEmptyState | undefined =
+    emptyState ??
+    (emptyMessage !== undefined && emptyMessage !== null
+      ? { mode: 'filtered-empty', message: emptyMessage }
+      : undefined);
+
   const allIds = useMemo(() => {
     if (allColumnIds !== undefined && allColumnIds.length > 0) {
       return allColumnIds;
@@ -387,13 +396,24 @@ export function ResourceTableWithFilter<TRow>({
     const totalRows = groupedSections.reduce((acc, s) => acc + s.rows.length, 0);
     const groupedEmpty = totalRows === 0;
 
+    const suppressGroupedChrome =
+      groupedEmpty &&
+      mergedEmptyState !== undefined &&
+      mergedEmptyState.mode === 'system-empty' &&
+      mergedEmptyState.hideTools !== false;
+
     return (
       <>
         <TableWithFilter
           bodyRender={() => (
             <>
-              {groupedEmpty && emptyMessage !== undefined && emptyMessage !== null ? (
-                <p className={styles.emptyMessage}>{emptyMessage}</p>
+              {groupedEmpty &&
+              mergedEmptyState !== undefined &&
+              mergedEmptyState.message !== undefined &&
+              mergedEmptyState.message !== null ? (
+                <div className={styles.emptyState} role="status">
+                  <p className={styles.emptyMessage}>{mergedEmptyState.message}</p>
+                </div>
               ) : null}
               {!groupedEmpty
                 ? groupedSections.map((section) => (
@@ -431,6 +451,7 @@ export function ResourceTableWithFilter<TRow>({
           sortPrefsCookieName={sortPrefsCookieName}
           sortPrefsListKey={sortPrefsListKey}
           sortableColumnIds={sortableColumnIds}
+          suppressToolbar={suppressGroupedChrome}
           trailingToolbar={trailingToolbar}
         />
         {paginationMode === 'cursor' && cursorPagination !== undefined ? (
@@ -447,7 +468,7 @@ export function ResourceTableWithFilter<TRow>({
       <TableWithFilter
         bulkSelect={bulkForTable}
         columns={mergedColumns}
-        emptyMessage={emptyMessage}
+        emptyState={mergedEmptyState}
         filter={filter}
         filterableColumnIds={filterableColumnIds}
         getRowKey={getRowKey}

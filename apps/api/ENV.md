@@ -137,7 +137,7 @@ These variables are optional but will still be validated if set:
 
 - **`MEMBERSHIP_PREMIUM_COST_MONTHLY`** (Optional) - Monthly premium membership cost (default: 3)
 - **`MEMBERSHIP_PREMIUM_COST_ANNUALLY`** (Optional) - Annual premium membership cost (default: 30)
-- **`MEMBERSHIP_FREE_TRIAL_EXPIRATION`** (Optional) - Free trial length in seconds (default: 2678400, 31×86400). **Bootstrap / fallback:** after linear migration `0030_product_membership_settings.sql` applies, the canonical trial length for new signups and resolved membership APIs is `product_membership_settings.free_trial_expiration_seconds` in the app database (seeded from env when missing). Env remains required for startup validation and seeds fresh installs; changing env alone does not override an existing DB row until you update the row (management Products → Memberships) or adjust env and re-seed.
+- **`MEMBERSHIP_FREE_TRIAL_EXPIRATION`** (Optional) - Free trial length in seconds (default: 2678400, 31×86400). **Bootstrap / fallback:** after linear migrations `0030_product_membership_settings.sql` and `0031_product_membership_settings_caps.sql` apply, the canonical trial length and RSS/refresh caps for new signups and resolved membership APIs live in `product_membership_settings` in the app database (seeded from env when missing). Env remains required for startup validation and seeds fresh installs; changing env alone does not override an existing DB row until you update the row (management Products → Memberships) or adjust env and re-seed.
 
 ### Social Media
 

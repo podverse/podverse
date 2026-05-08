@@ -216,6 +216,7 @@ export const ModalPlaylistAddTo: React.FC = () => {
     >
       {!loggedInAccount && (
         <CallToActionMessage
+          layout="modal"
           message={tInstructions('login_to_create_playlists')}
           buttonLabel={tAuthentication('login')}
           onButtonClick={() => {
@@ -250,6 +251,7 @@ export const ModalPlaylistAddTo: React.FC = () => {
           />
           {hasNoPlaylists ? (
             <CallToActionMessage
+              layout="modal"
               message={tInstructions('no_playlists_created')}
               buttonLabel={tFeatures('playlist.create_playlist')}
               onButtonClick={onCreatePlaylist}

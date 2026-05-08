@@ -128,7 +128,7 @@ export function EditAdminPageClient({ admin }: EditAdminPageClientProps) {
   return (
     <ManagementPageShell
       title={t('editAdmin')}
-      headerChildren={
+      headerBreadcrumbs={
         <Breadcrumbs
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}

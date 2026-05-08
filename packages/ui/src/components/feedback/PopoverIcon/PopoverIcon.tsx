@@ -16,6 +16,11 @@ export type PopoverIconProps = {
   ariaLabel: string;
   /** Optional trigger icon; defaults to an info circle. */
   icon?: ReactNode;
+  /**
+   * `'hover'` opens on hover and can be pinned open with click (default).
+   * `'click'` opens only on click and closes on outside click or trigger toggle.
+   */
+  interaction?: 'hover' | 'click';
 };
 
 type PopoverPosition = {
@@ -25,10 +30,13 @@ type PopoverPosition = {
   arrowLeft: number;
 };
 
-export function PopoverIcon({ body, ariaLabel, icon }: PopoverIconProps) {
+export function PopoverIcon({ body, ariaLabel, icon, interaction = 'hover' }: PopoverIconProps) {
   const triggerIcon = icon ?? <FaInfoCircle className={styles.icon} />;
   const [isOpen, setIsOpen] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
+
+  const repositionWhileOpen = interaction === 'click' ? isOpen : isPinned;
+  const pointerEventsInteractive = interaction === 'click' ? isOpen : isPinned;
   const [position, setPosition] = useState<PopoverPosition | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -105,7 +113,7 @@ export function PopoverIcon({ body, ariaLabel, icon }: PopoverIconProps) {
 
     calculatePosition();
 
-    if (isPinned) {
+    if (repositionWhileOpen) {
       const handleScroll = () => {
         calculatePosition();
       };
@@ -121,10 +129,11 @@ export function PopoverIcon({ body, ariaLabel, icon }: PopoverIconProps) {
     }
 
     return undefined;
-  }, [isOpen, isPinned]);
+  }, [isOpen, repositionWhileOpen]);
 
   useEffect(() => {
-    if (!isOpen || !isPinned) {
+    const outsideClickActive = interaction === 'click' ? isOpen : isPinned;
+    if (!isOpen || !outsideClickActive) {
       return;
     }
 
@@ -146,21 +155,31 @@ export function PopoverIcon({ body, ariaLabel, icon }: PopoverIconProps) {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpen, isPinned]);
+  }, [interaction, isOpen, isPinned]);
 
   const handleClick = () => {
+    if (interaction === 'click') {
+      setIsOpen((prev) => !prev);
+      return;
+    }
     const newState = !isOpen;
     setIsOpen(newState);
     setIsPinned(newState);
   };
 
   const handleMouseEnter = () => {
+    if (interaction === 'click') {
+      return;
+    }
     if (!isPinned) {
       setIsOpen(true);
     }
   };
 
   const handleMouseLeave = () => {
+    if (interaction === 'click') {
+      return;
+    }
     if (!isPinned) {
       setIsOpen(false);
     }
@@ -190,7 +209,7 @@ export function PopoverIcon({ body, ariaLabel, icon }: PopoverIconProps) {
           ref={popoverRef}
           showArrow
           arrowLeft={position.arrowLeft}
-          pointerEvents={isPinned ? 'auto' : 'none'}
+          pointerEvents={pointerEventsInteractive ? 'auto' : 'none'}
           style={{
             top: position.top,
             left: position.left,
