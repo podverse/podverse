@@ -27,8 +27,8 @@ export const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(function Tooltip
     pointerEvents,
   };
 
-  if (arrowLeft !== undefined) {
-    tooltipStyle['--arrow-left'] = `${arrowLeft}px`;
+  if (showArrow) {
+    tooltipStyle['--arrow-left'] = arrowLeft !== undefined ? `${arrowLeft}px` : '50%';
   }
 
   return (

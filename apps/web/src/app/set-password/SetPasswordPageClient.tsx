@@ -9,13 +9,16 @@ import {
   getPasswordErrorKey,
   getPasswordRequirementsInfoKey,
 } from '@podverse/helpers-validation/client';
-import { Button, FormInfoMessageText } from '@podverse/ui';
+import {
+  Button,
+  FormInfoMessageText,
+  MainColumnStack,
+  MainHeader,
+  MainSidebarLayout,
+  StackForm,
+  TextInput,
+} from '@podverse/ui';
 
-import Form from '../../components/Form/Form';
-import { TextInput } from '../../components/Form/TextInput';
-import { MainHeader } from '../../components/Main/MainHeader';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
@@ -140,11 +143,11 @@ export function SetPasswordPageClient({ token }: SetPasswordPageClientProps) {
     <>
       <MainHeader title={tAuthentication('set_password')} />
       <MainWrapper>
-        <MainInnerWrapper>
-          <MainInnerContentWrapper>
+        <MainSidebarLayout>
+          <MainColumnStack>
             <div className={styles.authResetPasswordForm}>
               {!isComplete && (
-                <Form onSubmit={handleSubmit}>
+                <StackForm onSubmit={handleSubmit}>
                   <TextInput
                     type="email"
                     name="email"
@@ -189,7 +192,7 @@ export function SetPasswordPageClient({ token }: SetPasswordPageClientProps) {
                       {tMisc('submit')}
                     </Button>
                   </div>
-                </Form>
+                </StackForm>
               )}
               {isComplete && (
                 <>
@@ -202,8 +205,8 @@ export function SetPasswordPageClient({ token }: SetPasswordPageClientProps) {
                 </>
               )}
             </div>
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </>
   );

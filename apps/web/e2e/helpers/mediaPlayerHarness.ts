@@ -1,30 +1,18 @@
+import { expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
-async function dismissBlockingDevModal(page: Page) {
-  const devDialog = page.getByRole('dialog', { name: /Local Development/i });
-  if ((await devDialog.count()) > 0 && (await devDialog.first().isVisible())) {
-    await page.keyboard.press('Escape');
-    await devDialog
-      .first()
-      .waitFor({ state: 'hidden', timeout: 3000 })
-      .catch(() => {});
-
-    if (await devDialog.first().isVisible()) {
-      const closeButton = devDialog.first().getByRole('button').first();
-      if ((await closeButton.count()) > 0) {
-        await closeButton.click({ force: true });
-      }
-    }
-  }
-}
+import { dismissLocalDevelopmentModal } from './dismissLocalDevelopmentModal';
 
 export async function openMediaPlayerHarness(page: Page) {
   await page.goto('/e2e/media-player-foundation');
-  await dismissBlockingDevModal(page);
+  await expect(page.getByRole('dialog', { name: /Local Development/i })).toBeVisible({
+    timeout: 15_000,
+  });
+  await dismissLocalDevelopmentModal(page);
 }
 
 export async function selectScenario(page: Page, scenarioId: string) {
-  await dismissBlockingDevModal(page);
+  await dismissLocalDevelopmentModal(page);
   await page.evaluate((nextScenarioId) => {
     window.dispatchEvent(
       new CustomEvent('media_player_set_scenario', { detail: { scenarioId: nextScenarioId } })

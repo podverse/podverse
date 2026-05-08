@@ -4,7 +4,7 @@ import React from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 
-import HeaderButtons from '../../../Media/Header/HeaderButtons';
+import { HeaderButtons } from '../../../Media/Header/HeaderButtons';
 
 type CoreAlbumHeaderButtonsProps = {
   channel: DTOChannel;

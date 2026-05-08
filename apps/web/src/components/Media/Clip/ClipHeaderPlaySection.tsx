@@ -6,6 +6,7 @@ import React from 'react';
 import type { DTOChannel, DTOClip, DTOItem } from '@podverse/helpers';
 import { getQueueForMedium } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
+import { MoreButton } from '@podverse/ui';
 
 import { useAccount } from '../../../contexts/Account';
 import { useAutoQueue } from '../../../contexts/AutoQueue';
@@ -18,7 +19,6 @@ import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResou
 import { downloadEpisodeWithModal } from '../../../utils/downloadModal/downloadEpisodeWithModal';
 import { downloadAndSaveFile } from '../../../utils/fileDownloader';
 import { PlayButtonLarge } from '../../MediaPlayer/Buttons/PlayButtonLarge';
-import { MoreButton } from '../../MoreButton/MoreButton';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableTimeRange } from '../../Time/ReadableTimeRange';
 import { showToastPromise, showToastPromiseWithLoading } from '../../Toast/Toast';
@@ -38,6 +38,7 @@ export const ClipHeaderPlaySection: React.FC<ClipHeaderPlaySectionProps> = ({
 }) => {
   const apiRequestService = getApiRequestService();
   const tFeatures = useTranslations('features');
+  const tMedia = useTranslations('media');
   const tMediaPlayer = useTranslations('media_player');
   const tInstructions = useTranslations('instructions');
   const { queues } = useQueues();
@@ -217,7 +218,11 @@ export const ClipHeaderPlaySection: React.FC<ClipHeaderPlaySectionProps> = ({
         </div>
       </div>
       <div className={styles.sectionEnd}>
-        <MoreButton moreButtonMenuItems={moreButtonMenuItems} isLarge />
+        <MoreButton
+          ariaLabel={tMedia('more_options')}
+          moreButtonMenuItems={moreButtonMenuItems}
+          isLarge
+        />
       </div>
     </div>
   );

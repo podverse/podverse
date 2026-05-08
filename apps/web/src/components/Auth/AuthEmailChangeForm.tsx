@@ -5,12 +5,10 @@ import { useLocale, useTranslations } from 'next-intl';
 import React, { useState } from 'react';
 
 import { getEmailErrorKey } from '@podverse/helpers-validation/client';
-import { Button, FormInfoMessageText } from '@podverse/ui';
+import { Button, FormInfoMessageText, StackForm, TextInput } from '@podverse/ui';
 
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
-import Form from '../Form/Form';
-import { TextInput } from '../Form/TextInput';
 
 import styles from '../../styles/components/Auth/AuthEmailChangeForm.module.scss';
 
@@ -68,7 +66,7 @@ export const AuthEmailChangeForm: React.FC = () => {
   return (
     <div className={styles.authEmailChangeForm}>
       {!isEmailSent && (
-        <Form onSubmit={handleSubmit}>
+        <StackForm onSubmit={handleSubmit}>
           <TextInput
             type="email"
             name="email"
@@ -93,7 +91,7 @@ export const AuthEmailChangeForm: React.FC = () => {
               {tMisc('submit')}
             </Button>
           </div>
-        </Form>
+        </StackForm>
       )}
       {isEmailSent && (
         <FormInfoMessageText message={tAuthentication('change_email_address_email_sent')} />

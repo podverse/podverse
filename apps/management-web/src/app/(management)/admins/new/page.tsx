@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 
 import { getManagementSessionUser } from '../../../../lib/auth/serverManagementSession';
+import { canCreateAdmins } from '../../../../lib/managementPermissions';
 import { NewAdminPageClient } from './NewAdminPageClient';
 
 export default async function NewAdminPage() {
@@ -9,7 +10,7 @@ export default async function NewAdminPage() {
     redirect('/');
   }
 
-  if (user.role !== 'superuser') {
+  if (!canCreateAdmins(user)) {
     redirect('/admins');
   }
 

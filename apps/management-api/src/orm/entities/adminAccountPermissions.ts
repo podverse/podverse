@@ -37,6 +37,9 @@ export class AdminAccountPermissions {
   @Column({ name: 'billing_prices_crud', type: 'integer', default: 0 })
   billingPricesCrud!: number;
 
+  @Column({ name: 'bucket_crud', type: 'integer', default: 0 })
+  bucketCrud!: number;
+
   @CreateDateColumn({ type: 'timestamp', default: () => 'NOW()' })
   created_at!: Date;
 

@@ -59,6 +59,8 @@ export const WEB_APP_ENV = {
   NEXT_PUBLIC_SERVER_ENV: 'local',
 
   // Proxy
+  NEXT_PUBLIC_IMAGE_PROXY_ENABLED: 'false',
+  NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED: 'false',
   NEXT_PUBLIC_PROXY_USER_AGENT: 'Example Bot/Bundle-Analyzer/1',
 
   // Web Push (optional, can be empty)

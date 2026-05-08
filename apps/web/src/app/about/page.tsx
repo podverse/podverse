@@ -1,12 +1,9 @@
-import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 
+import { Image, MainColumnStack, MainHeader, MainSidebarLayout, SideContent } from '@podverse/ui';
+
 import { FeatureComparison } from '../../components/FeatureComparison/FeatureComparison';
-import { MainHeader } from '../../components/Main/MainHeader';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { SideContent } from '../../components/SideContent/SideContent';
 import { getConfig } from '../../config';
 import { FEATURES } from '../../constants/features';
 import { IMAGES } from '../../constants/images';
@@ -21,9 +18,9 @@ export default async function AboutPage() {
     <>
       <MainHeader title={t('title')} />
       <MainWrapper>
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             <section className={styles.intro}>
               <p>{t('intro_text', { brand_name: config.public.brand.name })}</p>
             </section>
@@ -31,56 +28,56 @@ export default async function AboutPage() {
             <section className={styles.downloadButtons}>
               <a href="#" className={styles.downloadButton} aria-label={t('download_app_store')}>
                 <Image
-                  src={IMAGES.MOBILE.APP_STORES.DESKTOP.APP_STORE}
                   alt=""
-                  width={IMAGES.MOBILE.APP_STORES.DESKTOP.WIDTH}
-                  height={IMAGES.MOBILE.APP_STORES.DESKTOP.HEIGHT}
                   className={styles.downloadButtonImageDesktop}
-                  aria-hidden="true"
+                  height={IMAGES.MOBILE.APP_STORES.DESKTOP.HEIGHT}
+                  skipProxy
+                  src={IMAGES.MOBILE.APP_STORES.DESKTOP.APP_STORE}
+                  width={IMAGES.MOBILE.APP_STORES.DESKTOP.WIDTH}
                 />
                 <Image
-                  src={IMAGES.MOBILE.APP_STORES.MOBILE.APP_STORE}
                   alt=""
-                  width={IMAGES.MOBILE.APP_STORES.MOBILE.WIDTH}
-                  height={IMAGES.MOBILE.APP_STORES.MOBILE.HEIGHT}
                   className={styles.downloadButtonImageMobile}
-                  aria-hidden="true"
+                  height={IMAGES.MOBILE.APP_STORES.MOBILE.HEIGHT}
+                  skipProxy
+                  src={IMAGES.MOBILE.APP_STORES.MOBILE.APP_STORE}
+                  width={IMAGES.MOBILE.APP_STORES.MOBILE.WIDTH}
                 />
               </a>
               <a href="#" className={styles.downloadButton} aria-label={t('download_google_play')}>
                 <Image
-                  src={IMAGES.MOBILE.APP_STORES.DESKTOP.GOOGLE_PLAY}
                   alt=""
-                  width={IMAGES.MOBILE.APP_STORES.DESKTOP.WIDTH}
-                  height={IMAGES.MOBILE.APP_STORES.DESKTOP.HEIGHT}
                   className={styles.downloadButtonImageDesktop}
-                  aria-hidden="true"
+                  height={IMAGES.MOBILE.APP_STORES.DESKTOP.HEIGHT}
+                  skipProxy
+                  src={IMAGES.MOBILE.APP_STORES.DESKTOP.GOOGLE_PLAY}
+                  width={IMAGES.MOBILE.APP_STORES.DESKTOP.WIDTH}
                 />
                 <Image
-                  src={IMAGES.MOBILE.APP_STORES.MOBILE.GOOGLE_PLAY}
                   alt=""
-                  width={IMAGES.MOBILE.APP_STORES.MOBILE.WIDTH}
-                  height={IMAGES.MOBILE.APP_STORES.MOBILE.HEIGHT}
                   className={styles.downloadButtonImageMobile}
-                  aria-hidden="true"
+                  height={IMAGES.MOBILE.APP_STORES.MOBILE.HEIGHT}
+                  skipProxy
+                  src={IMAGES.MOBILE.APP_STORES.MOBILE.GOOGLE_PLAY}
+                  width={IMAGES.MOBILE.APP_STORES.MOBILE.WIDTH}
                 />
               </a>
               <a href="#" className={styles.downloadButton} aria-label={t('download_f_droid')}>
                 <Image
-                  src={IMAGES.MOBILE.APP_STORES.DESKTOP.F_DROID}
                   alt=""
-                  width={IMAGES.MOBILE.APP_STORES.DESKTOP.WIDTH}
-                  height={IMAGES.MOBILE.APP_STORES.DESKTOP.HEIGHT}
                   className={styles.downloadButtonImageDesktop}
-                  aria-hidden="true"
+                  height={IMAGES.MOBILE.APP_STORES.DESKTOP.HEIGHT}
+                  skipProxy
+                  src={IMAGES.MOBILE.APP_STORES.DESKTOP.F_DROID}
+                  width={IMAGES.MOBILE.APP_STORES.DESKTOP.WIDTH}
                 />
                 <Image
-                  src={IMAGES.MOBILE.APP_STORES.MOBILE.F_DROID}
                   alt=""
-                  width={IMAGES.MOBILE.APP_STORES.MOBILE.WIDTH}
-                  height={IMAGES.MOBILE.APP_STORES.MOBILE.HEIGHT}
                   className={styles.downloadButtonImageMobile}
-                  aria-hidden="true"
+                  height={IMAGES.MOBILE.APP_STORES.MOBILE.HEIGHT}
+                  skipProxy
+                  src={IMAGES.MOBILE.APP_STORES.MOBILE.F_DROID}
+                  width={IMAGES.MOBILE.APP_STORES.MOBILE.WIDTH}
                 />
               </a>
             </section>
@@ -93,8 +90,8 @@ export default async function AboutPage() {
               <h2 className={styles.comparisonTitle}>{t('features_title')}</h2>
               <FeatureComparison features={FEATURES} />
             </section>
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </>
   );

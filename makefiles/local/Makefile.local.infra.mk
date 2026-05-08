@@ -51,9 +51,9 @@ local_db_init: infra/config/local/db.env
 	@echo "Syncing app read roles and grants (bootstrap 0001)..."
 	@set -a; . infra/config/local/db.env; set +a; \
 	bash scripts/database/run-postgres-bootstrap-in-container.sh podverse_local_db infra/config/local/db.env 1
-	@echo "Seeding local dev account..."
+	@echo "Seeding local dev accounts..."
 	@set -a; . infra/config/local/db.env; set +a; \
-	docker exec -i podverse_local_db psql -U "$$DB_APP_OWNER_USER" -d "$${DB_APP_NAME:-podverse_app}" -f /opt/database/seed-scripts/local-dev-account.sql
+	docker exec -i podverse_local_db psql -U "$$DB_APP_OWNER_USER" -d "$${DB_APP_NAME:-podverse_app}" -f /opt/database/seed-scripts/local-dev-accounts.sql
 	@echo "Applying management linear migrations..."
 	@$(MAKE) local_management_db_init
 	@echo "Ensuring uuid-ossp extension exists in app and management DBs..."

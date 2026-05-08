@@ -4,9 +4,10 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import { SkeletonFlashImage } from '@podverse/ui';
+
 import { IMAGES } from '../../../../constants/images';
 import { listItemImageCandidates } from '../../../../utils/image/listItemImageCandidates';
-import { Image } from '../../../Image/Image';
 import type { AlbumListItem } from './types';
 
 import styles from '../../../../styles/components/Common/List/Podcasts/ListPodcastRow.module.scss';
@@ -23,7 +24,7 @@ export const CommonAlbumListRow: React.FC<CommonAlbumListRowProps> = ({ item }) 
   return (
     <Link href={item.href} className={styles.link}>
       <div className={styles.listItem}>
-        <Image
+        <SkeletonFlashImage
           candidates={listItemImageCandidates(item)}
           alt={item.title || tMedia('music.album_image')}
           width={IMAGES.LIST.ALBUMS.SIZE}

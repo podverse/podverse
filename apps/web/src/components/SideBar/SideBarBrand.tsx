@@ -3,14 +3,15 @@
 import Link from 'next/link';
 import React from 'react';
 
+import { Image } from '@podverse/ui';
+
 import { useConfig } from '../../contexts/Config';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { getBrandLogoSrc } from '../../utils/brandLogo';
-import { Image } from '../Image/Image';
 
 import styles from '../../styles/components/SideBar/SideBarBrand.module.scss';
 
-const SideBarBrand: React.FC = () => {
+export const SideBarBrand: React.FC = () => {
   const config = useConfig();
   const { uiTheme } = useLocalSettings();
 
@@ -27,5 +28,3 @@ const SideBarBrand: React.FC = () => {
     </Link>
   );
 };
-
-export default SideBarBrand;

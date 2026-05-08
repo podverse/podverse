@@ -6,7 +6,7 @@ import { CorePodcasts } from '../../../components/Core/Podcast/CorePodcasts';
 import { ListClips } from '../../../components/List/Clips/ListClips';
 import { ListAlbums } from '../../../components/List/Music/Albums/ListAlbums';
 import { ListPlaylists } from '../../../components/List/Playlists/ListPlaylists';
-import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { WebLoadingSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { NoResults } from '../../../components/NoResults/NoResults';
 import { useProfilePageContentContext } from './ProfilePageContentContext';
 
@@ -41,7 +41,7 @@ export const ProfilePageContentList: React.FC = () => {
   if (selectedTab === 'podcasts') {
     // Show loading spinner if currently loading and data hasn't been loaded yet
     if (isLoading && !podcastsLoaded) {
-      return <LoadingSpinnerOverlay isLoading={true} />;
+      return <WebLoadingSpinnerOverlay isLoading />;
     }
 
     // Show no results only if data has been loaded and there are no results
@@ -64,7 +64,7 @@ export const ProfilePageContentList: React.FC = () => {
           category={null}
           viewSelected="rows"
         />
-        <LoadingSpinnerOverlay isLoading={isLoading && podcastsLoaded} />
+        <WebLoadingSpinnerOverlay isLoading={isLoading && podcastsLoaded} />
       </>
     );
   }
@@ -72,7 +72,7 @@ export const ProfilePageContentList: React.FC = () => {
   if (selectedTab === 'albums') {
     // Show loading spinner if currently loading and data hasn't been loaded yet
     if (isLoading && !albumsLoaded) {
-      return <LoadingSpinnerOverlay isLoading={true} />;
+      return <WebLoadingSpinnerOverlay isLoading />;
     }
 
     // Show no results only if data has been loaded and there are no results
@@ -93,7 +93,7 @@ export const ProfilePageContentList: React.FC = () => {
           type="global"
           viewSelected="rows"
         />
-        <LoadingSpinnerOverlay isLoading={isLoading && albumsLoaded} />
+        <WebLoadingSpinnerOverlay isLoading={isLoading && albumsLoaded} />
       </>
     );
   }
@@ -101,7 +101,7 @@ export const ProfilePageContentList: React.FC = () => {
   if (selectedTab === 'playlists') {
     // Show loading spinner if currently loading and data hasn't been loaded yet
     if (isLoading && !playlistsLoaded) {
-      return <LoadingSpinnerOverlay isLoading={true} />;
+      return <WebLoadingSpinnerOverlay isLoading />;
     }
 
     // Show no results only if data has been loaded and there are no results
@@ -122,7 +122,7 @@ export const ProfilePageContentList: React.FC = () => {
           showLoginMessage={false}
           showCreator={false}
         />
-        <LoadingSpinnerOverlay isLoading={isLoading && playlistsLoaded} />
+        <WebLoadingSpinnerOverlay isLoading={isLoading && playlistsLoaded} />
       </>
     );
   }
@@ -130,7 +130,7 @@ export const ProfilePageContentList: React.FC = () => {
   if (selectedTab === 'clips') {
     // Show loading spinner if currently loading and data hasn't been loaded yet
     if (isLoading && !clipsLoaded) {
-      return <LoadingSpinnerOverlay isLoading={true} />;
+      return <WebLoadingSpinnerOverlay isLoading />;
     }
 
     // Show no results only if data has been loaded and there are no results
@@ -152,7 +152,7 @@ export const ProfilePageContentList: React.FC = () => {
             showItemInfo={true}
           />
         </div>
-        <LoadingSpinnerOverlay isLoading={isLoading && clipsLoaded} />
+        <WebLoadingSpinnerOverlay isLoading={isLoading && clipsLoaded} />
       </>
     );
   }

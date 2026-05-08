@@ -10,7 +10,7 @@ import { buildListLikeRow } from '../../../../utils/likes/buildListLikeRow';
 import type { ViewSelectedOption } from '../../../ViewSelector/ViewSelector';
 import { ListLiveItemRow } from '../../LiveItem/ListLiveItemRow';
 import { ListEpisodeGridNode } from './ListEpisodeGridNode';
-import ListEpisodeRow from './ListEpisodeRow';
+import { ListEpisodeRow } from './ListEpisodeRow';
 
 import styles from '../../../../styles/components/Common/List/ListNodes.module.scss';
 

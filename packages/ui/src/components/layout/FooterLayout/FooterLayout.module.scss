@@ -1,0 +1,62 @@
+@use '../../../styles/breakpoints';
+
+.footer {
+  margin: var(--header-padding);
+}
+
+.footerTop {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-base) var(--spacing-none);
+}
+
+.footerBottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.footerBottom a {
+  color: var(--text-color-primary);
+}
+
+.footerLinks {
+  display: flex;
+  align-items: flex-start;
+  margin-right: var(--spacing-4xl);
+  gap: 0 var(--spacing-xl);
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.footerLinks a,
+.footerLinks span {
+  padding: var(--spacing-base) var(--spacing-none);
+}
+
+.footerSocialLinks {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0 var(--spacing-xl);
+  align-items: flex-start;
+}
+
+.footerSocialLinks a {
+  font-size: var(--font-size-lg);
+  padding: var(--spacing-base) var(--spacing-none);
+  flex: 0 0 auto;
+  line-height: 1;
+  height: auto;
+}
+
+@media (max-width: breakpoints.$breakpoint-md-max) {
+  .footerBottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .footerLinks {
+    margin-right: 0;
+    margin-bottom: var(--spacing-lg);
+  }
+}

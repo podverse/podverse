@@ -5,10 +5,10 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { PodcastBatchByFeedGuidResponse } from '@podverse/helpers';
+import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../../constants/images';
 import { ROUTES } from '../../../../constants/routes';
-import { Image } from '../../../Image/Image';
 
 import styles from '../../../../styles/components/Common/List/Podcasts/ListPodcastRow.module.scss';
 
@@ -24,7 +24,7 @@ export const ListAlbumRowRemoteItemUnadded: React.FC<Props> = ({ channelUnadded 
   return (
     <Link href={url} className={styles.link}>
       <div className={styles.listItem}>
-        <Image
+        <SkeletonFlashImage
           src={channelUnadded.image}
           alt={channelUnadded.title || tMedia('music.album_image')}
           width={IMAGES.LIST.ALBUMS.SIZE}

@@ -1,0 +1,34 @@
+@use '../../../styles/mixins/flexbox' as *;
+
+// Shell offset for layouts with a fixed desktop sidebar. Define `--sidebar-desktop-width`
+// in the consumer app (e.g. web); otherwise `calc()` may not resolve as intended.
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: transparent;
+  z-index: 100000;
+  @include flexCenter;
+  pointer-events: none;
+}
+
+.overlayShell {
+  left: calc(var(--sidebar-desktop-width) / 2);
+  width: 100vw;
+}
+
+.content {
+  @include flexColumn;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.message {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-light);
+  color: var(--text-color-secondary);
+}
+
+.spinnerWrapper {
+  @include flexCenter;
+}

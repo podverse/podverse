@@ -51,6 +51,21 @@ export const formatDateTimeAbbrev = (
   return formatter.format(d);
 };
 
+export function formatDateTimeAbbrevOrFallback(
+  value: string | null | undefined,
+  localeString: string,
+  fallback: string
+): string {
+  if (value === null || value === undefined || value.trim() === '') {
+    return fallback;
+  }
+  const parsed = Date.parse(value);
+  if (Number.isNaN(parsed)) {
+    return fallback;
+  }
+  return formatDateTimeAbbrev(value, localeString);
+}
+
 export const convertExpirationToDaysText = (expiration: string) => {
   const totalDays = Math.round(parseInt(expiration, 10) / 86400);
   return `${totalDays > 1 ? `${totalDays} days` : '24 hours'}`;

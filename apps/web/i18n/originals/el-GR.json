@@ -42,7 +42,8 @@
       "no_livestreams_found": "Δεν βρέθηκαν ζωντανές μεταδόσεις."
     },
     "updated_with_date": "Ενημερώθηκε: {date}",
-    "image": "Εικόνα"
+    "image": "Εικόνα",
+    "more_options": "Περισσότερες επιλογές"
   },
   "features": {
     "search": {
@@ -261,6 +262,11 @@
       "audio_with_ext_bitrate_mbps": "Ήχος {ext} {bitrate}Mbps"
     }
   },
+  "updates_page": {
+    "intro": "Οι σημειώσεις έκδοσης για την εφαρμογή ανοιχτού κώδικα δημοσιεύονται στο GitHub. Χρησιμοποιήστε τον παρακάτω σύνδεσμο για εκδόσεις με ετικέτες.",
+    "title": "Ενημερώσεις",
+    "view_releases": "Προβολή εκδόσεων στο GitHub"
+  },
   "value": {
     "boost": "Ενίσχυση",
     "recipient": {
@@ -437,6 +443,12 @@
     "terms": "Όροι",
     "mobile": "Κινητό",
     "donate": "Δωρεά",
+    "open_source": "Ανοικτός κώδικας",
+    "browser_back": "Πίσω",
+    "browser_forward": "Εμπρός",
+    "navbar_menu_open": "Άνοιγμα μενού",
+    "navbar_menu_close": "Κλείσιμο μενού",
+    "close_modal": "Κλείσιμο παραθύρου διαλόγου",
     "updates": "Ενημερώσεις",
     "sharable_status": {
       "sharable_status": "Κατάσταση Μοιράσματος",
@@ -599,13 +611,20 @@
     "membership_expired_danger": "Η {type} σας έχει λήξει. Ανανεώστε τώρα για να συνεχίσετε να απολαμβάνετε τις Premium δυνατότητες.",
     "membership_link_text": "Μεταβείτε στη Σελίδα Συνδρομής",
     "free_trial": "δωρεάν δοκιμή",
-    "premium_membership": "Ακριβής συνδρομή",
     "free_trial_not_allowed": "Αυτή η δυνατότητα είναι διαθέσιμη μόνο για premium λογαριασμούς και δεν είναι διαθέσιμη σε δωρεάν δοκιμές",
+    "get_premium": "Απόκτηση Premium",
+    "premium_membership": "Ακριβής συνδρομή",
+    "premium_required": "Απαιτείται Premium",
     "renew_membership": "Ανανέωση Συνδρομής",
     "membership_expired": "Η συνδρομή σας έχει λήξει. Ανανέωστε για να χρησιμοποιήσετε αυτή τη δυνατότητα.",
     "feature_not_available_for_account_type": "Ο λογαριασμός σας δεν έχει πρόσβαση σε αυτή τη δυνατότητα.",
+    "feature_premium_only_explanation": "Αυτή είναι μια δυνατότητα Premium. Για την αποφυγή spam, οι λογαριασμοί δοκιμής έχουν περιορισμένη πρόσβαση. Αποκτήστε Premium για να τη χρησιμοποιήσετε.",
     "manual_refresh_hourly_limit_reached": "Έχετε φτάσει το όριο χειροκίνητης ανανέωσης για αυτή την ώρα.",
     "add_by_rss_feed_limit_reached": "Έχετε φτάσει το όριο Προσθήκης μέσω RSS.",
+    "directory_add_by_rss_trial_blocked": "Για την αποφυγή spam, οι λογαριασμοί δοκιμής δεν μπορούν να προσθέσουν ροές στον δημόσιο κατάλογο. Θα χρειαστεί λογαριασμός Premium για να προσθέσετε ροές, ή στείλτε email στο <mail>{contactEmail}</mail> για να ζητήσετε να προσθέσουμε αυτή τη ροή.",
+    "trial_limitations_summary": "Ορισμένες δυνατότητες δεν είναι διαθέσιμες κατά τη Δοκιμή για να περιοριστεί το spam και η κατάχρηση.",
+    "trial_limitations_show_less": "Λιγότερα",
+    "trial_limitations_show_more": "Περισσότερα",
     "trial_limitations_title": "Περιορισμοί Δοκιμής",
     "trial_limitations_directory_add_by_rss": "Η προσθήκη ροών στο δημόσιο κατάλογο από αναζητήσεις είναι μπλοκαρισμένη για κατάσταση Δοκιμής.",
     "trial_limitations_add_by_rss_feed_limit": "Το μέγεθος της βιβλιοθήκης Προσθήκης μέσω RSS χρησιμοποιεί χαμηλότερο όριο Δοκιμής από το Premium.",
@@ -642,10 +661,10 @@
     "settings": "Ρυθμίσεις",
     "ui_theme": {
       "theme": "Θέμα",
-      "light": "☀️ Φωτεινό",
-      "dark": "🌙 Σκοτεινό",
-      "dracula": "🧛 Δράκουλας",
-      "violet": "💜 Βιολέ"
+      "light": "Φωτεινό",
+      "dark": "Σκοτεινό",
+      "dracula": "Δράκουλας",
+      "violet": "Βιολέ"
     },
     "feed": {
       "check_feed_for_updates": "Έλεγχος Ροής για Ενημερώσεις",
@@ -870,6 +889,10 @@
     "filminterviews": "Συνεντεύξεις Ταινιών",
     "filmreviews": "Κριτικές Ταινιών",
     "tvreviews": "Κριτικές Τηλεόρασης"
+  },
+  "pagination": {
+    "ariaPreviousPage": "Προηγούμενη σελίδα",
+    "ariaNextPage": "Επόμενη σελίδα"
   },
   "language": {
     "language": "Γλώσσα",

@@ -22,9 +22,10 @@
 
 .row {
   display: grid;
+  align-items: center;
   grid-template-columns: minmax(12rem, 1fr) minmax(8rem, 2fr);
   gap: var(--spacing-lg);
-  padding: var(--spacing-md) 0;
+  padding: var(--spacing-lg) 0;
   border-bottom: 1px solid var(--border-color-tertiary);
   font-size: var(--font-size-base);
 }

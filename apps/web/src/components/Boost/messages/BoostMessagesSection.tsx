@@ -6,8 +6,8 @@ import { useMemo, useRef } from 'react';
 
 import { formatDateTimeAbbrev } from '@podverse/helpers';
 
-import LoadingSpinner from '../../LoadingSpinner/LoadingSpinner';
-import Pagination from '../../Pagination/Pagination';
+import { WebLoadingSpinnerDecorativeSmall } from '../../LoadingSpinner/WebLoadingSpinnerDecorative';
+import { Pagination } from '../../Pagination/Pagination';
 import { formatPublicBoostAmountLine } from './formatPublicBoostAmountLine';
 import { getPublicBoostMessageLinkKey } from './getPublicBoostMessageLinkKey';
 import type { BoostBreadcrumbLinkResolver, BoostMessagesPageFetcher } from './types';
@@ -86,7 +86,7 @@ export const BoostMessagesSection: React.FC<BoostMessagesSectionProps> = ({
 
       {status === 'loading' && (
         <div className={styles.loadingContainer}>
-          <LoadingSpinner size="small" />
+          <WebLoadingSpinnerDecorativeSmall />
           <span>{loadingLabel}</span>
         </div>
       )}

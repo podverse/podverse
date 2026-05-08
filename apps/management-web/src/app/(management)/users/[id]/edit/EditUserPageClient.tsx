@@ -5,31 +5,34 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 
-import { toDatetimeLocalInputValue } from '@podverse/helpers';
+import type { ResolvedProductMembership } from '@podverse/helpers';
+import { AccountMembershipEnum, toDatetimeLocalInputValue } from '@podverse/helpers';
+import type { FormDropdownOption } from '@podverse/ui';
 import {
-  ActionLink,
   Alert,
+  Breadcrumbs,
   Button,
   CheckboxField,
-  fieldPrimitiveClasses,
-  FormContainer,
+  FormDropdown,
   FormGroup,
-  FormHintText,
+  FormMaxWidth,
   FormPrimaryActions,
-  Input,
-  Label,
-  LoadingText,
   ManagementPageShell,
-  Select,
+  StackForm,
   Tabs,
+  TextInput,
 } from '@podverse/ui';
 
+import { ManagementLoadingSpinnerOverlay } from '../../../../../components/LoadingSpinner/ManagementLoadingSpinnerOverlay';
+import { MembershipAdvancedOverridesGroup } from '../../../../../components/MembershipAdvancedOverridesGroup/MembershipAdvancedOverridesGroup';
 import {
-  changeUserPassword,
-  getUser,
-  updateUser,
-  type User,
-} from '../../../../../lib/requests/users';
+  fallbackProductMembershipFromEnv,
+  resolveAdvancedOverrideDefaults,
+  resolvedTierEntitlements,
+  tierLimitPlaceholders,
+} from '../../../../../lib/createUserFormDefaults';
+import { getResolvedProductMembership } from '../../../../../lib/requests/productMembership';
+import { getUser, setUserPassword, updateUser, type User } from '../../../../../lib/requests/users';
 
 type Props = {
   userId: number;
@@ -59,12 +62,35 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
   const [maxManualRefreshesPerHour, setMaxManualRefreshesPerHour] = useState<string>('');
   const [trackStats, setTrackStats] = useState<boolean | null>(null);
   const [allowNotifications, setAllowNotifications] = useState<boolean | null>(null);
+  const [resolvedProductMembership, setResolvedProductMembership] =
+    useState<ResolvedProductMembership | null>(null);
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const activeTab = initialTab === 'password' ? 'password' : 'profile';
+  const productMembershipForDisplay =
+    resolvedProductMembership ?? fallbackProductMembershipFromEnv();
+  const currentMembershipExpiresAt = membershipExpiresAt.trim() === '' ? null : membershipExpiresAt;
+  const trialEnt = resolvedTierEntitlements(
+    productMembershipForDisplay,
+    AccountMembershipEnum.Trial
+  );
+  const premiumEnt = resolvedTierEntitlements(
+    productMembershipForDisplay,
+    AccountMembershipEnum.Premium
+  );
+  const selectedEnt = resolveAdvancedOverrideDefaults({
+    product: productMembershipForDisplay,
+    membershipId,
+    membershipExpiresAt: currentMembershipExpiresAt,
+  });
+  const { rss: rssPlaceholder, refresh: refreshPlaceholder } = tierLimitPlaceholders({
+    product: productMembershipForDisplay,
+    membershipId,
+    membershipExpiresAt: currentMembershipExpiresAt,
+  });
 
   const tabData = useMemo(
     () => [
@@ -88,13 +114,75 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
     [router, t, userId]
   );
 
+  const membershipTierOptions = useMemo<FormDropdownOption[]>(
+    () => [
+      { value: String(AccountMembershipEnum.Trial), label: t('membershipForm.trial') },
+      { value: String(AccountMembershipEnum.Premium), label: t('membershipForm.premium') },
+    ],
+    [t]
+  );
+
+  const addByRssTriOptions = useMemo<FormDropdownOption[]>(
+    () => [
+      {
+        value: '',
+        label: t('advancedOverrides.useTrustTierDefault', {
+          value: selectedEnt.allowDirectoryAddByRSS
+            ? t('advancedOverrides.allow')
+            : t('advancedOverrides.block'),
+        }),
+      },
+      { value: 'true', label: t('advancedOverrides.allow') },
+      { value: 'false', label: t('advancedOverrides.block') },
+    ],
+    [selectedEnt.allowDirectoryAddByRSS, t]
+  );
+
+  const trackStatsTriOptions = useMemo<FormDropdownOption[]>(
+    () => [
+      {
+        value: '',
+        label: t('advancedOverrides.useTrustTierDefault', {
+          value: selectedEnt.trackStats
+            ? t('advancedOverrides.trackStatsOn')
+            : t('advancedOverrides.trackStatsOff'),
+        }),
+      },
+      { value: 'true', label: t('advancedOverrides.trackStatsOn') },
+      { value: 'false', label: t('advancedOverrides.trackStatsOff') },
+    ],
+    [selectedEnt.trackStats, t]
+  );
+
+  const notificationsTriOptions = useMemo<FormDropdownOption[]>(
+    () => [
+      {
+        value: '',
+        label: t('advancedOverrides.useTrustTierDefault', {
+          value: selectedEnt.allowNotifications
+            ? t('advancedOverrides.allowNotificationsOn')
+            : t('advancedOverrides.allowNotificationsOff'),
+        }),
+      },
+      { value: 'true', label: t('advancedOverrides.allowNotificationsOn') },
+      { value: 'false', label: t('advancedOverrides.allowNotificationsOff') },
+    ],
+    [selectedEnt.allowNotifications, t]
+  );
+
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
-        const result = await getUser(userId);
+        const [result, productResult] = await Promise.all([
+          getUser(userId),
+          getResolvedProductMembership().catch(() => ({
+            data: fallbackProductMembershipFromEnv(),
+          })),
+        ]);
         if (!cancelled) {
           setUser(result.user);
+          setResolvedProductMembership(productResult.data);
           setEmail(result.user.email ?? '');
           setUsername(result.user.username ?? '');
           setVerified(result.user.verified);
@@ -178,7 +266,7 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
 
     setSaving(true);
     try {
-      await changeUserPassword(userId, newPassword);
+      await setUserPassword(userId, newPassword);
       setNewPassword('');
       setConfirmPassword('');
       setSuccess(t('passwordChanged'));
@@ -189,224 +277,238 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
     }
   };
 
-  if (loading) return <LoadingText>{tc('loading')}</LoadingText>;
-  if (error && !user) return <Alert>{error}</Alert>;
-  if (!user) return null;
-
   return (
-    <ManagementPageShell title={t('editUser')}>
-      <ActionLink href={`/users/${userId}`} variant="inline" LinkComponent={Link}>
-        &larr; {t('userDetail')}
-      </ActionLink>
-
-      <Tabs selectedKey={activeTab} tabData={tabData} />
-
-      {error && <Alert>{error}</Alert>}
-      {success && <Alert variant="success">{success}</Alert>}
-
-      {activeTab === 'profile' ? (
-        <FormContainer onSubmit={(e) => void handleProfileSubmit(e)}>
-          <FormGroup>
-            <Label htmlFor="edit-user-email">{t('tableHeaders.email')}</Label>
-            <Input
-              id="edit-user-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+    <>
+      <ManagementLoadingSpinnerOverlay isLoading={loading} />
+      {!loading && error && !user ? (
+        <Alert>{error}</Alert>
+      ) : !loading && !user ? null : !loading && user ? (
+        <ManagementPageShell
+          headerBreadcrumbs={
+            <Breadcrumbs
+              LinkComponent={Link}
+              navAriaLabel={tc('breadcrumbNav')}
+              items={[
+                { href: '/users', label: t('title') },
+                { href: `/users/${userId}`, label: user.id_text },
+                { label: tc('edit') },
+              ]}
             />
-          </FormGroup>
+          }
+          title={t('editUser')}
+        >
+          <Tabs selectedKey={activeTab} tabData={tabData} />
 
-          <FormGroup>
-            <Label htmlFor="edit-user-username">{t('tableHeaders.username')}</Label>
-            <Input
-              id="edit-user-username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-          </FormGroup>
+          <Alert>{error}</Alert>
+          {success && <Alert variant="success">{success}</Alert>}
 
-          <FormGroup>
-            <CheckboxField
-              checked={verified}
-              label={t('verified')}
-              onChange={(checked) => setVerified(checked)}
-            />
-          </FormGroup>
-
-          <FormGroup>
-            <Label htmlFor="edit-user-membership">{t('membershipForm.membershipStatus')}</Label>
-            <Select
-              id="edit-user-membership"
-              className={fieldPrimitiveClasses.select}
-              value={String(membershipId)}
-              onChange={(e) => setMembershipId(Number(e.target.value))}
-            >
-              <option value={1}>{t('membershipForm.trial')}</option>
-              <option value={2}>{t('membershipForm.premium')}</option>
-            </Select>
-            <FormHintText>
-              {membershipId === 1
-                ? t('membershipForm.hintTrialEdit')
-                : t('membershipForm.hintPremiumEdit')}
-            </FormHintText>
-          </FormGroup>
-
-          <FormGroup>
-            <Label htmlFor="edit-user-expires">{t('membershipForm.membershipExpiresAt')}</Label>
-            <Input
-              id="edit-user-expires"
-              type="datetime-local"
-              value={membershipExpiresAt}
-              onChange={(e) => setMembershipExpiresAt(e.target.value)}
-            />
-          </FormGroup>
-
-          <FormGroup>
-            <CheckboxField
-              checked={showAdvanced}
-              label={t('membershipForm.configureAdvancedOverrides')}
-              onChange={(checked) => setShowAdvanced(checked)}
-            />
-          </FormGroup>
-
-          {showAdvanced && (
-            <>
-              <FormGroup>
-                <Label htmlFor="edit-user-add-by-rss">
-                  {t('advancedOverrides.allowDirectoryAddByRss')}
-                </Label>
-                <Select
-                  id="edit-user-add-by-rss"
-                  className={fieldPrimitiveClasses.select}
-                  value={
-                    allowDirectoryAddByRSS === null ? '' : allowDirectoryAddByRSS ? 'true' : 'false'
-                  }
-                  onChange={(e) => {
-                    if (e.target.value === '') {
-                      setAllowDirectoryAddByRSS(null);
-                    } else {
-                      setAllowDirectoryAddByRSS(e.target.value === 'true');
-                    }
-                  }}
-                >
-                  <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
-                  <option value="true">{t('advancedOverrides.allow')}</option>
-                  <option value="false">{t('advancedOverrides.block')}</option>
-                </Select>
-              </FormGroup>
-              <FormGroup>
-                <Label htmlFor="edit-user-rss-limit">
-                  {t('advancedOverrides.addByRssFeedLimit')}
-                </Label>
-                <Input
-                  id="edit-user-rss-limit"
-                  type="number"
-                  min={0}
-                  value={maxAddByRSSFeeds}
-                  onChange={(e) => setMaxAddByRSSFeeds(e.target.value)}
+          {activeTab === 'profile' ? (
+            <FormMaxWidth>
+              <StackForm onSubmit={(e) => void handleProfileSubmit(e)}>
+                <TextInput
+                  id="edit-user-email"
+                  eyebrow={t('tableHeaders.email')}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
-              </FormGroup>
-              <FormGroup>
-                <Label htmlFor="edit-user-refresh-limit">
-                  {t('advancedOverrides.manualRefreshPerHour')}
-                </Label>
-                <Input
-                  id="edit-user-refresh-limit"
-                  type="number"
-                  min={0}
-                  value={maxManualRefreshesPerHour}
-                  onChange={(e) => setMaxManualRefreshesPerHour(e.target.value)}
+
+                <TextInput
+                  id="edit-user-username"
+                  eyebrow={t('tableHeaders.username')}
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                 />
-              </FormGroup>
-              <FormGroup>
-                <Label htmlFor="edit-user-track-stats">{t('advancedOverrides.trackStats')}</Label>
-                <Select
-                  id="edit-user-track-stats"
-                  className={fieldPrimitiveClasses.select}
-                  value={trackStats === null ? '' : trackStats ? 'true' : 'false'}
-                  onChange={(e) => {
-                    if (e.target.value === '') {
-                      setTrackStats(null);
-                    } else {
-                      setTrackStats(e.target.value === 'true');
+
+                <FormGroup layout="inStack">
+                  <CheckboxField
+                    checked={verified}
+                    label={t('verified')}
+                    onChange={(checked) => setVerified(checked)}
+                  />
+                </FormGroup>
+
+                <FormGroup layout="inStack">
+                  <FormDropdown
+                    id="edit-user-membership"
+                    info={
+                      membershipId === 1
+                        ? t('membershipForm.hintTrialEdit')
+                        : t('membershipForm.hintPremiumEdit')
                     }
-                  }}
-                >
-                  <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
-                  <option value="true">{t('advancedOverrides.trackStatsOn')}</option>
-                  <option value="false">{t('advancedOverrides.trackStatsOff')}</option>
-                </Select>
-              </FormGroup>
-              <FormGroup>
-                <Label htmlFor="edit-user-notifications">
-                  {t('advancedOverrides.allowNotifications')}
-                </Label>
-                <Select
-                  id="edit-user-notifications"
-                  className={fieldPrimitiveClasses.select}
-                  value={allowNotifications === null ? '' : allowNotifications ? 'true' : 'false'}
-                  onChange={(e) => {
-                    if (e.target.value === '') {
-                      setAllowNotifications(null);
-                    } else {
-                      setAllowNotifications(e.target.value === 'true');
-                    }
-                  }}
-                >
-                  <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
-                  <option value="true">{t('advancedOverrides.allowNotificationsOn')}</option>
-                  <option value="false">{t('advancedOverrides.allowNotificationsOff')}</option>
-                </Select>
-              </FormGroup>
-            </>
+                    eyebrow={t('membershipForm.membershipStatus')}
+                    options={membershipTierOptions}
+                    value={String(membershipId)}
+                    onChange={(v) => {
+                      setMembershipId(Number(v));
+                    }}
+                  />
+                </FormGroup>
+
+                <TextInput
+                  id="edit-user-expires"
+                  eyebrow={t('membershipForm.membershipExpiresAt')}
+                  nativePickerAffixAriaLabel={t('membershipForm.membershipExpiresAtPickerAffix')}
+                  type="datetime-local"
+                  value={membershipExpiresAt}
+                  onChange={(e) => setMembershipExpiresAt(e.target.value)}
+                />
+
+                <MembershipAdvancedOverridesGroup>
+                  <FormGroup layout="inStack">
+                    <CheckboxField
+                      checked={showAdvanced}
+                      label={t('membershipForm.configureAdvancedOverrides')}
+                      onChange={(checked) => setShowAdvanced(checked)}
+                    />
+                  </FormGroup>
+
+                  {showAdvanced && (
+                    <>
+                      <FormGroup layout="inStack">
+                        <FormDropdown
+                          id="edit-user-add-by-rss"
+                          eyebrow={t('advancedOverrides.allowDirectoryAddByRss')}
+                          options={addByRssTriOptions}
+                          value={
+                            allowDirectoryAddByRSS === null
+                              ? ''
+                              : allowDirectoryAddByRSS
+                                ? 'true'
+                                : 'false'
+                          }
+                          onChange={(v) => {
+                            if (v === '') {
+                              setAllowDirectoryAddByRSS(null);
+                            } else {
+                              setAllowDirectoryAddByRSS(v === 'true');
+                            }
+                          }}
+                        />
+                      </FormGroup>
+                      <TextInput
+                        id="edit-user-rss-limit"
+                        eyebrow={t('advancedOverrides.addByRssFeedLimit')}
+                        info={t('advancedOverrides.addByRssFeedLimitHelp', {
+                          trialDefault: trialEnt.maxAddByRSSFeeds,
+                          premiumDefault: premiumEnt.maxAddByRSSFeeds,
+                          selectedDefault: selectedEnt.maxAddByRSSFeeds,
+                        })}
+                        min={0}
+                        placeholder={t('advancedOverrides.placeholderTierDefault', {
+                          count: rssPlaceholder,
+                        })}
+                        type="number"
+                        value={maxAddByRSSFeeds}
+                        onChange={(e) => setMaxAddByRSSFeeds(e.target.value)}
+                      />
+                      <TextInput
+                        id="edit-user-refresh-limit"
+                        eyebrow={t('advancedOverrides.manualRefreshPerHour')}
+                        info={t('advancedOverrides.manualRefreshPerHourHelp', {
+                          trialDefault: trialEnt.maxManualRefreshesPerHour,
+                          premiumDefault: premiumEnt.maxManualRefreshesPerHour,
+                          selectedDefault: selectedEnt.maxManualRefreshesPerHour,
+                        })}
+                        min={0}
+                        placeholder={t('advancedOverrides.placeholderTierDefault', {
+                          count: refreshPlaceholder,
+                        })}
+                        type="number"
+                        value={maxManualRefreshesPerHour}
+                        onChange={(e) => setMaxManualRefreshesPerHour(e.target.value)}
+                      />
+                      <FormGroup layout="inStack">
+                        <FormDropdown
+                          id="edit-user-track-stats"
+                          eyebrow={t('advancedOverrides.trackStats')}
+                          options={trackStatsTriOptions}
+                          value={trackStats === null ? '' : trackStats ? 'true' : 'false'}
+                          onChange={(v) => {
+                            if (v === '') {
+                              setTrackStats(null);
+                            } else {
+                              setTrackStats(v === 'true');
+                            }
+                          }}
+                        />
+                      </FormGroup>
+                      <FormGroup layout="inStack">
+                        <FormDropdown
+                          id="edit-user-notifications"
+                          eyebrow={t('advancedOverrides.allowNotifications')}
+                          options={notificationsTriOptions}
+                          value={
+                            allowNotifications === null ? '' : allowNotifications ? 'true' : 'false'
+                          }
+                          onChange={(v) => {
+                            if (v === '') {
+                              setAllowNotifications(null);
+                            } else {
+                              setAllowNotifications(v === 'true');
+                            }
+                          }}
+                        />
+                      </FormGroup>
+                    </>
+                  )}
+                </MembershipAdvancedOverridesGroup>
+
+                <FormPrimaryActions>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => router.push(`/users/${userId}`)}
+                  >
+                    {tc('cancel')}
+                  </Button>
+                  <Button type="submit" disabled={saving}>
+                    {saving ? tc('saving') : tc('saveChanges')}
+                  </Button>
+                </FormPrimaryActions>
+              </StackForm>
+            </FormMaxWidth>
+          ) : (
+            <FormMaxWidth>
+              <StackForm onSubmit={(e) => void handlePasswordSubmit(e)}>
+                {passwordError && <Alert>{passwordError}</Alert>}
+
+                <TextInput
+                  autoComplete="new-password"
+                  id="edit-user-new-password"
+                  eyebrow={ta('newPassword')}
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+
+                <TextInput
+                  autoComplete="new-password"
+                  id="edit-user-confirm-password"
+                  eyebrow={ta('confirmPassword')}
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+
+                <FormPrimaryActions>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => router.push(`/users/${userId}`)}
+                  >
+                    {tc('cancel')}
+                  </Button>
+                  <Button type="submit" disabled={saving}>
+                    {saving ? tc('saving') : tc('saveChanges')}
+                  </Button>
+                </FormPrimaryActions>
+              </StackForm>
+            </FormMaxWidth>
           )}
-
-          <FormPrimaryActions>
-            <ActionLink href={`/users/${userId}`} variant="subtle" LinkComponent={Link}>
-              {tc('cancel')}
-            </ActionLink>
-            <Button type="submit" disabled={saving}>
-              {saving ? tc('saving') : tc('saveChanges')}
-            </Button>
-          </FormPrimaryActions>
-        </FormContainer>
-      ) : (
-        <FormContainer onSubmit={(e) => void handlePasswordSubmit(e)}>
-          {passwordError && <Alert>{passwordError}</Alert>}
-
-          <FormGroup>
-            <Label htmlFor="edit-user-new-password">{ta('newPassword')}</Label>
-            <Input
-              autoComplete="new-password"
-              id="edit-user-new-password"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-          </FormGroup>
-
-          <FormGroup>
-            <Label htmlFor="edit-user-confirm-password">{ta('confirmPassword')}</Label>
-            <Input
-              autoComplete="new-password"
-              id="edit-user-confirm-password"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-          </FormGroup>
-
-          <FormPrimaryActions>
-            <ActionLink href={`/users/${userId}`} variant="subtle" LinkComponent={Link}>
-              {tc('cancel')}
-            </ActionLink>
-            <Button type="submit" disabled={saving}>
-              {saving ? tc('saving') : tc('saveChanges')}
-            </Button>
-          </FormPrimaryActions>
-        </FormContainer>
-      )}
-    </ManagementPageShell>
+        </ManagementPageShell>
+      ) : null}
+    </>
   );
 }

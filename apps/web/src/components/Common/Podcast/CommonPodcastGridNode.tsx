@@ -5,10 +5,10 @@ import { useLocale, useTranslations } from 'next-intl';
 import React from 'react';
 
 import { formatDateAbbrev } from '@podverse/helpers';
+import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import { listItemImageCandidates } from '../../../utils/image/listItemImageCandidates';
-import { Image } from '../../Image/Image';
 import type { PodcastListItem } from './types';
 
 import styles from '../../../styles/components/Common/List/ListGridNode.module.scss';
@@ -24,7 +24,7 @@ export const CommonPodcastListGridNode: React.FC<CommonPodcastListGridNodeProps>
   return (
     <Link href={item.href} className={styles.link}>
       <div className={styles.gridNode}>
-        <Image
+        <SkeletonFlashImage
           candidates={listItemImageCandidates(item)}
           alt={item.title || tMedia('podcast.podcast_image')}
           width={IMAGES.LIST.GRID.SIZE}

@@ -1,0 +1,14 @@
+.actionsCell {
+  white-space: nowrap;
+}
+
+.emptyState {
+  text-align: center;
+  padding: var(--spacing-xl) var(--spacing-md);
+}
+
+.emptyMessage {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+}

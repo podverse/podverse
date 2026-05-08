@@ -7,6 +7,7 @@ import React from 'react';
 import { getQueueForMedium } from '@podverse/helpers';
 import { stripAndDecodeHtml } from '@podverse/helpers';
 import { buildAddByRSSResourceData, getAddByRSSHashId } from '@podverse/parser-mapping';
+import { MoreButton } from '@podverse/ui';
 
 import { useAccount } from '../../../../../contexts/Account';
 import type { AddByRSSListContextState } from '../../../../../contexts/AddByRSSListContext';
@@ -24,7 +25,6 @@ import type {
 import { downloadAddByRSSMediaWithModal } from '../../../../../utils/downloadModal/downloadAddByRSSMediaWithModal';
 import { downloadAndSaveFile } from '../../../../../utils/fileDownloader';
 import { CommonTrackRow } from '../../../../Common/Artist/Album/Track/CommonTrackRow';
-import { MoreButton } from '../../../../MoreButton/MoreButton';
 import { showToastPromise, showToastPromiseWithLoading } from '../../../../Toast/Toast';
 
 const alertPlaceholder = (label: string) => () => {
@@ -216,7 +216,9 @@ export const AddByRSSTrackRow: React.FC<AddByRSSTrackRowProps> = ({
       title={title}
       subtitle={description}
       imageUrl={imageUrl}
-      rightMetaNode={<MoreButton moreButtonMenuItems={moreButtonMenuItems} />}
+      rightMetaNode={
+        <MoreButton ariaLabel={tMedia('more_options')} moreButtonMenuItems={moreButtonMenuItems} />
+      }
     />
   );
 };

@@ -4,9 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 import type { DTOAccount } from '@podverse/helpers';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { ProfileHeader } from '../../../components/Media/Profile/ProfileHeader';
 import { useAccount } from '../../../contexts/Account';
@@ -46,12 +45,12 @@ export function ProfilePageClient(props: ProfilePageClientProps) {
     <ProfilePageContentContextProvider account={ssrAccount}>
       <MainWrapper>
         <ProfileHeader account={ssrAccount} isOwnProfile={isOwnProfile} />
-        <MainInnerWrapper>
-          <MainInnerContentWrapper>
+        <MainSidebarLayout>
+          <MainColumnStack>
             <ProfilePageContentListHeader />
             <ProfilePageContentList />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </ProfilePageContentContextProvider>
   );

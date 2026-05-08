@@ -1,5 +1,3 @@
-@use '../../mixins/flexbox' as *;
-
 .content {
   display: flex;
   flex-direction: column;
@@ -8,11 +6,4 @@
 .message {
   margin-bottom: var(--spacing-2xl);
   color: var(--text-color-secondary);
-}
-
-.buttons {
-  display: flex;
-  gap: var(--spacing-lg);
-  @include flexEnd;
-  margin-top: var(--spacing-lg);
 }

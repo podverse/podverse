@@ -1,11 +1,9 @@
+@use '../../../styles/mixins/form' as *;
+
 .hint {
-  margin: var(--spacing-base) 0 0;
-  color: var(--text-color-secondary);
-  font-size: var(--font-size-xs);
+  @include formInfoText(var(--spacing-base) 0 0);
 }
 
 .hintBlock {
-  margin: var(--spacing-lg) 0 0;
-  color: var(--text-color-secondary);
-  font-size: var(--font-size-xs);
+  @include formInfoText(var(--spacing-lg) 0 0);
 }

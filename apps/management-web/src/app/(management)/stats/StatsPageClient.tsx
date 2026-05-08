@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -12,20 +13,21 @@ import {
   ButtonTabs,
   Card,
   FlexBetween,
-  Input,
-  LoadingText,
   ManagementPageShell,
-  Pagination,
-  PaginationSummaryLine,
   SectionBlock,
   SectionHeading,
+  type SortDirection,
   StatsBarChart,
   StatSummaryGrid,
   Table,
-  TableEmptyCell,
-  ToolbarCluster,
+  TableWithFilter,
+  useTableFilterState,
 } from '@podverse/ui';
 
+import { ManagementLoadingSpinnerOverlayStatus } from '../../../components/LoadingSpinner/ManagementLoadingSpinnerOverlay';
+import { ManagementProbeChromeGate } from '../../../components/ManagementProbeChromeGate/ManagementProbeChromeGate';
+import { useManagementTableChrome } from '../../../components/Table/managementTableChrome';
+import { managementSearchParamsObject } from '../../../lib/managementTableUrl';
 import { type CurrentUser, getCurrentUser } from '../../../lib/requests/auth';
 import {
   type EntityType,
@@ -35,6 +37,7 @@ import {
   type StatsRange,
   type StatsRow,
 } from '../../../lib/requests/stats';
+import { resolveManagementTableEmptyState } from '../../../lib/tableEmptyState';
 
 function entityTypeLabel(t: (key: string) => string, et: EntityType): string {
   if (et === 'channel') {
@@ -68,9 +71,56 @@ function rangeLabel(t: (key: string) => string, r: StatsRange): string {
   return t('ranges.allTime');
 }
 
+function parseEntityParam(value: string | null): EntityType {
+  if (
+    value === 'channel' ||
+    value === 'item' ||
+    value === 'clip' ||
+    value === 'playlist' ||
+    value === 'account'
+  ) {
+    return value;
+  }
+  return 'channel';
+}
+
+function parseRangeParam(value: string | null): StatsRange {
+  if (
+    value === 'day' ||
+    value === '7day' ||
+    value === '30day' ||
+    value === '1year' ||
+    value === 'all-time'
+  ) {
+    return value;
+  }
+  return 'all-time';
+}
+
 const ENTITY_TYPES: EntityType[] = ['channel', 'item', 'clip', 'playlist', 'account'];
 
 const RANGES: StatsRange[] = ['day', '7day', '30day', '1year', 'all-time'];
+
+const STATS_COLUMN_IDS = ['title', 'range_count', 'all_time_count'] as const;
+
+function sortStatsRows(rows: StatsRow[], sortKey: string, order: SortDirection): StatsRow[] {
+  const dir = order === 'asc' ? 1 : -1;
+  return [...rows].sort((a, b) => {
+    if (sortKey === 'range_count') {
+      const va = a.range_count;
+      const vb = b.range_count;
+      return va > vb ? dir : va < vb ? -dir : 0;
+    }
+    if (sortKey === 'all_time_count') {
+      const va = a.all_time_count;
+      const vb = b.all_time_count;
+      return va > vb ? dir : va < vb ? -dir : 0;
+    }
+    const av = a.title ?? '';
+    const bv = b.title ?? '';
+    return av.localeCompare(bv) * dir;
+  });
+}
 
 type DetailData = {
   id: number;
@@ -87,20 +137,80 @@ export type StatsPageClientProps = {
 export function StatsPageClient({ initialUser }: StatsPageClientProps) {
   const tc = useTranslations('common');
   const ts = useTranslations('statsPage');
+  const tsTable = useTranslations('tableShared');
+  const chrome = useManagementTableChrome();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const basePath = pathname !== null && pathname !== '' ? pathname : '/stats';
+
+  const entityType = parseEntityParam(searchParams.get('entity'));
+  const range = parseRangeParam(searchParams.get('range'));
+  const pageNum = Math.max(1, Number.parseInt(searchParams.get('page') ?? '1', 10));
+  const urlSearch = searchParams.get('search') ?? '';
+
   const [user, setUser] = useState<CurrentUser>(initialUser);
-  const [entityType, setEntityType] = useState<EntityType>('channel');
-  const [range, setRange] = useState<StatsRange>('all-time');
   const [rows, setRows] = useState<StatsRow[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  /** Start true so first paint does not treat total 0 / empty rows as definitive system-empty before reqStatsTop runs. */
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
   const [detail, setDetail] = useState<DetailData | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [probeStatsUnscopedExist, setProbeStatsUnscopedExist] = useState<boolean | undefined>(
+    undefined
+  );
+
+  const [sortBy, setSortBy] = useState<string>('range_count');
+  const [sortOrder, setSortOrder] = useState<SortDirection>('desc');
 
   const pageSize = 25;
+
+  const currentQueryParams = useMemo(
+    () => managementSearchParamsObject(searchParams),
+    [searchParams]
+  );
+
+  const filter = useTableFilterState({
+    allColumnIds: [...STATS_COLUMN_IDS],
+    basePath,
+    currentQueryParams,
+    initialColumns: [...STATS_COLUMN_IDS],
+    initialSearch: urlSearch,
+    searchSyncParams: { page: '1' },
+  });
+
+  const replaceUrlParams = useCallback(
+    (patch: Record<string, string | undefined>) => {
+      const p = new URLSearchParams(searchParams.toString());
+      for (const [k, v] of Object.entries(patch)) {
+        if (v === undefined || v === '') {
+          p.delete(k);
+        } else {
+          p.set(k, v);
+        }
+      }
+      const qs = p.toString();
+      router.push(qs !== '' ? `${basePath}?${qs}` : basePath);
+    },
+    [basePath, router, searchParams]
+  );
+
+  useEffect(() => {
+    const needsEntity = searchParams.get('entity') === null;
+    const needsRange = searchParams.get('range') === null;
+    if (needsEntity || needsRange) {
+      const p = new URLSearchParams(searchParams.toString());
+      if (needsEntity) {
+        p.set('entity', 'channel');
+      }
+      if (needsRange) {
+        p.set('range', 'all-time');
+      }
+      router.replace(`${basePath}?${p.toString()}`);
+    }
+  }, [basePath, router, searchParams]);
 
   useEffect(() => {
     let cancelled = false;
@@ -120,56 +230,83 @@ export function StatsPageClient({ initialUser }: StatsPageClientProps) {
     };
   }, []);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    setDetail(null);
-    try {
-      const result = isSearching
-        ? await reqStatsSearch(entityType, searchQuery, range, page, pageSize)
-        : await reqStatsTop(entityType, range, page, pageSize);
-      setRows(result.rows);
-      setTotal(result.total);
-    } catch {
-      setError(ts('failedToLoad'));
-    } finally {
-      setLoading(false);
-    }
-  }, [entityType, isSearching, page, range, searchQuery, ts]);
+  const searchParamsKey = searchParams.toString();
 
   useEffect(() => {
-    void fetchData();
-  }, [fetchData]);
+    let cancelled = false;
+    const entity = parseEntityParam(searchParams.get('entity'));
+    const rangeResolved = parseRangeParam(searchParams.get('range'));
+    const page = Math.max(1, Number.parseInt(searchParams.get('page') ?? '1', 10));
+    const search = searchParams.get('search') ?? '';
+    const searching = search.trim() !== '';
 
-  const handleEntityTypeChange = useCallback((newType: EntityType) => {
-    setEntityType(newType);
-    setPage(1);
-    setDetail(null);
-    setSearchQuery('');
-    setIsSearching(false);
-  }, []);
+    const run = async () => {
+      setLoading(true);
+      setError(null);
+      setDetail(null);
+      try {
+        const result = searching
+          ? await reqStatsSearch(entity, search.trim(), rangeResolved, page, pageSize)
+          : await reqStatsTop(entity, rangeResolved, page, pageSize);
+        if (!cancelled) {
+          setRows(result.rows);
+          setTotal(result.total);
+        }
+      } catch {
+        if (!cancelled) {
+          setError(ts('failedToLoad'));
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
 
-  const handleRangeChange = useCallback((newRange: StatsRange) => {
-    setRange(newRange);
-    setPage(1);
-  }, []);
+    void run();
 
-  const handleSearch = useCallback(() => {
-    const trimmed = searchQuery.trim();
-    if (trimmed.length === 0) {
-      setIsSearching(false);
-      setPage(1);
+    return () => {
+      cancelled = true;
+    };
+  }, [pageSize, searchParams, searchParamsKey, ts]);
+
+  useEffect(() => {
+    if (loading || error !== null) {
       return;
     }
-    setIsSearching(true);
-    setPage(1);
-  }, [searchQuery]);
+    const search = urlSearch.trim();
+    if (search === '') {
+      setProbeStatsUnscopedExist(undefined);
+      return;
+    }
+    if (rows.length > 0) {
+      setProbeStatsUnscopedExist(true);
+      return;
+    }
+    let cancelled = false;
+    void reqStatsTop(entityType, range, 1, 1).then((r) => {
+      if (!cancelled) {
+        setProbeStatsUnscopedExist(r.total > 0);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, error, entityType, range, urlSearch, rows.length]);
 
-  const handleClearSearch = useCallback(() => {
-    setSearchQuery('');
-    setIsSearching(false);
-    setPage(1);
-  }, []);
+  const handleEntityTypeChange = useCallback(
+    (newType: EntityType) => {
+      replaceUrlParams({ entity: newType, page: '1' });
+    },
+    [replaceUrlParams]
+  );
+
+  const handleRangeChange = useCallback(
+    (newRange: StatsRange) => {
+      replaceUrlParams({ range: newRange, page: '1' });
+    },
+    [replaceUrlParams]
+  );
 
   const handleRowClick = async (row: StatsRow) => {
     setDetailLoading(true);
@@ -249,7 +386,7 @@ export function StatsPageClient({ initialUser }: StatsPageClientProps) {
     [handleRangeChange, ts]
   );
 
-  const totalPages = Math.ceil(total / pageSize);
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   const chartData: StatsBarChartDatum[] = rows.slice(0, 10).map((row) => ({
     label: truncateTitle(row.title ?? ts('idValue', { id: row.id }), 20),
@@ -269,6 +406,72 @@ export function StatsPageClient({ initialUser }: StatsPageClientProps) {
     }));
   }, [detail]);
 
+  const sortedRows = useMemo(
+    () => sortStatsRows(rows, sortBy, sortOrder),
+    [rows, sortBy, sortOrder]
+  );
+
+  const hasStatsDataInSystem =
+    loading || error !== null
+      ? undefined
+      : urlSearch.trim() === ''
+        ? total > 0
+        : probeStatsUnscopedExist === undefined
+          ? undefined
+          : probeStatsUnscopedExist;
+
+  const statsSystemEmpty =
+    !loading && error === null && sortedRows.length === 0 && hasStatsDataInSystem === false;
+
+  const probingStatsExistence =
+    !loading &&
+    error === null &&
+    urlSearch.trim() !== '' &&
+    rows.length === 0 &&
+    probeStatsUnscopedExist === undefined;
+
+  const statsTableEmptyState = resolveManagementTableEmptyState({
+    filteredEmptyMessage: tsTable('noResults'),
+    hasDataInSystem: hasStatsDataInSystem,
+    hasVisibleRows: sortedRows.length > 0,
+    systemEmptyMessage: chrome.systemEmptyMessage,
+  });
+
+  const columns = useMemo(
+    () => [
+      {
+        header: '#',
+        id: 'rank',
+        label: '#',
+        sortable: false,
+      },
+      {
+        header: ts('table.title'),
+        id: 'title',
+        label: ts('table.title'),
+        sortAriaLabel: chrome.sortAriaForColumn(String(ts('table.title'))),
+        sortKey: 'title',
+      },
+      {
+        header: ts('table.rangeViews', { range: rangeLabelResolved }),
+        id: 'range_count',
+        label: ts('table.rangeViews', { range: rangeLabelResolved }),
+        sortAriaLabel: chrome.sortAriaForColumn(
+          String(ts('table.rangeViews', { range: rangeLabelResolved }))
+        ),
+        sortKey: 'range_count',
+      },
+      {
+        header: ts('ranges.allTime'),
+        id: 'all_time_count',
+        label: ts('ranges.allTime'),
+        sortAriaLabel: chrome.sortAriaForColumn(String(ts('ranges.allTime'))),
+        sortKey: 'all_time_count',
+      },
+    ],
+    [chrome, rangeLabelResolved, ts]
+  );
+
   if (!user) {
     return null;
   }
@@ -276,132 +479,129 @@ export function StatsPageClient({ initialUser }: StatsPageClientProps) {
   return (
     <ManagementPageShell
       title={ts('title')}
-      headerChildren={
+      headerBreadcrumbs={
         <Breadcrumbs
           LinkComponent={Link}
-          marginBottom="lg"
           navAriaLabel={tc('breadcrumbNav')}
           items={[{ href: '/dashboard', label: ts('breadcrumbDashboard') }, { label: ts('title') }]}
         />
       }
     >
-      <SectionBlock>
-        <ButtonTabs buttonTabs={entityButtonTabs} selectedKey={entityType} />
-      </SectionBlock>
-
-      <ToolbarCluster>
-        <ButtonTabs buttonTabs={rangeButtonTabs} selectedKey={range} />
-        <div style={{ flex: '1 1 200px', minWidth: '200px' }}>
-          <Input
-            type="text"
-            placeholder={ts('searchPlaceholder', { entity: selectedEntityLabel })}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleSearch();
-              }
-            }}
-            style={{ width: '100%' }}
-          />
-        </div>
-        <Button type="button" variant="mini" onClick={handleSearch}>
-          {tc('search')}
-        </Button>
-        {isSearching && (
-          <Button type="button" variant="mini" onClick={handleClearSearch}>
-            {ts('clear')}
-          </Button>
-        )}
-      </ToolbarCluster>
-
-      <SectionBlock>
-        <SectionHeading level={3}>
-          {ts('topChartHeading', { entity: selectedEntityLabel, range: rangeLabelResolved })}
-        </SectionHeading>
-        <StatsBarChart
-          data={chartData}
+      {statsSystemEmpty ? (
+        <p role="status">{chrome.systemEmptyMessage}</p>
+      ) : (
+        <ManagementProbeChromeGate
+          bypassWhileError={error !== null}
           loading={loading}
-          emptyMessage={error ?? ts('noStatsDataForRange')}
-          valueLabel={ts('views')}
-        />
-      </SectionBlock>
+          probingExistence={probingStatsExistence}
+        >
+          <>
+            <SectionBlock>
+              <ButtonTabs buttonTabs={entityButtonTabs} selectedKey={entityType} />
+            </SectionBlock>
 
-      {loading && <LoadingText>{tc('loading')}</LoadingText>}
-      {error && !loading && <Alert>{error}</Alert>}
-      {!loading && !error && (
-        <>
-          <Table.ScrollContainer>
-            <Table>
-              <Table.Head>
-                <Table.Row>
-                  <Table.HeaderCell>#</Table.HeaderCell>
-                  <Table.HeaderCell>{ts('table.title')}</Table.HeaderCell>
-                  <Table.HeaderCell>
-                    {ts('table.rangeViews', { range: rangeLabelResolved })}
-                  </Table.HeaderCell>
-                  <Table.HeaderCell>{ts('ranges.allTime')}</Table.HeaderCell>
-                </Table.Row>
-              </Table.Head>
-              <Table.Body>
-                {rows.length === 0 && (
-                  <Table.Row>
-                    <TableEmptyCell colSpan={4}>{tc('noDataFound')}</TableEmptyCell>
-                  </Table.Row>
-                )}
-                {rows.map((row, idx) => (
-                  <Table.Row
-                    key={row.id}
-                    selected={detail?.id === row.id}
-                    onClick={() => void handleRowClick(row)}
-                  >
-                    <Table.Cell>{(page - 1) * pageSize + idx + 1}</Table.Cell>
+            <SectionBlock>
+              <ButtonTabs buttonTabs={rangeButtonTabs} selectedKey={range} />
+            </SectionBlock>
+
+            <SectionBlock>
+              <SectionHeading level={3}>
+                {ts('topChartHeading', { entity: selectedEntityLabel, range: rangeLabelResolved })}
+              </SectionHeading>
+              <StatsBarChart
+                data={chartData}
+                emptyMessage={error ?? ts('noStatsDataForRange')}
+                loading={loading}
+                loadingLabel={ts('loadingChart')}
+                valueLabel={ts('views')}
+              />
+            </SectionBlock>
+
+            <ManagementLoadingSpinnerOverlayStatus
+              isLoading={detailLoading}
+              message={ts('loadingDetail')}
+            />
+            {error !== null && <Alert>{error}</Alert>}
+            {error === null && (
+              <TableWithFilter<StatsRow>
+                columns={columns}
+                emptyState={statsTableEmptyState}
+                filter={filter}
+                filterableColumnIds={[...STATS_COLUMN_IDS]}
+                getRowKey={(row) => String(row.id)}
+                labels={chrome.filterLabels}
+                pagination={{
+                  currentPage: pageNum,
+                  nextLabel: tc('paginationNextButton'),
+                  onPageChange: (newPage) => {
+                    replaceUrlParams({ page: String(newPage) });
+                  },
+                  pageIndicatorLabel: tc('paginationPageOf', {
+                    currentPage: pageNum,
+                    totalPages,
+                  }),
+                  prevLabel: tc('paginationPrevButton'),
+                  totalPages,
+                }}
+                paginationMode="page"
+                renderCells={(row, index) => (
+                  <>
+                    <Table.Cell>{(pageNum - 1) * pageSize + index + 1}</Table.Cell>
                     <Table.Cell>{row.title ?? ts('idValue', { id: row.id })}</Table.Cell>
                     <Table.Cell>{row.range_count.toLocaleString()}</Table.Cell>
                     <Table.Cell>{row.all_time_count.toLocaleString()}</Table.Cell>
-                  </Table.Row>
-                ))}
-              </Table.Body>
-            </Table>
-          </Table.ScrollContainer>
+                  </>
+                )}
+                rows={sortedRows}
+                selectedRowKey={detail !== null ? String(detail.id) : undefined}
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                sortableColumnIds={[...STATS_COLUMN_IDS]}
+                onRowClick={(row) => {
+                  void handleRowClick(row);
+                }}
+                onSortChange={(key, order) => {
+                  setSortBy(key);
+                  setSortOrder(order);
+                }}
+              />
+            )}
+            {detail !== null && !detailLoading ? (
+              <div style={{ marginTop: 'var(--spacing-2xl)' }}>
+                <Card variant="bordered">
+                  <FlexBetween>
+                    <SectionHeading level={3}>
+                      {detail.title ?? ts('idValue', { id: detail.id })}
+                    </SectionHeading>
+                    <Button type="button" variant="mini" onClick={() => setDetail(null)}>
+                      {ts('close')}
+                    </Button>
+                  </FlexBetween>
 
-          {totalPages > 1 && (
-            <>
-              <PaginationSummaryLine>
-                {total === 1
-                  ? ts('paginationSummarySingular', { total, page, totalPages })
-                  : ts('paginationSummary', { total, page, totalPages })}
-              </PaginationSummaryLine>
-              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
-            </>
-          )}
-        </>
-      )}
+                  <StatSummaryGrid items={detailSummaryItems} />
 
-      {detailLoading && <LoadingText>{ts('loadingDetail')}</LoadingText>}
-      {detail && !detailLoading && (
-        <div style={{ marginTop: 'var(--spacing-2xl)' }}>
-          <Card variant="bordered">
-            <FlexBetween>
-              <SectionHeading level={3}>
-                {detail.title ?? ts('idValue', { id: detail.id })}
-              </SectionHeading>
-              <Button type="button" variant="mini" onClick={() => setDetail(null)}>
-                {ts('close')}
-              </Button>
-            </FlexBetween>
+                  <SectionHeading level={4}>{ts('detail.dailyBreakdown')}</SectionHeading>
+                  <StatsBarChart
+                    data={detail.dayBuckets}
+                    emptyMessage={ts('noStatsDataForRange')}
+                    loadingLabel={ts('loadingChart')}
+                    valueLabel={ts('views')}
+                  />
 
-            <StatSummaryGrid items={detailSummaryItems} />
-
-            <SectionHeading level={4}>{ts('detail.dailyBreakdown')}</SectionHeading>
-            <StatsBarChart data={detail.dayBuckets} valueLabel={ts('views')} />
-
-            <SectionHeading level={4} spacedTop>
-              {ts('detail.weeklyBreakdown')}
-            </SectionHeading>
-            <StatsBarChart data={detail.weekBuckets} valueLabel={ts('views')} />
-          </Card>
-        </div>
+                  <SectionHeading level={4} spacedTop>
+                    {ts('detail.weeklyBreakdown')}
+                  </SectionHeading>
+                  <StatsBarChart
+                    data={detail.weekBuckets}
+                    emptyMessage={ts('noStatsDataForRange')}
+                    loadingLabel={ts('loadingChart')}
+                    valueLabel={ts('views')}
+                  />
+                </Card>
+              </div>
+            ) : null}
+          </>
+        </ManagementProbeChromeGate>
       )}
     </ManagementPageShell>
   );

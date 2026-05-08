@@ -6,10 +6,9 @@ import type {
   RemoteItemsResponse,
 } from '@podverse/helpers';
 import type { QueryParamsChannel } from '@podverse/helpers-requests';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
 import { PodcastPageContextProvider } from './PodcastPageContext';
@@ -57,9 +56,9 @@ export function PodcastPageClient(props: PodcastPageClientProps) {
     >
       <MainWrapper>
         <CorePodcastHeader channel={ssrChannel} />
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <PodcastPageSideContent channel={ssrChannel} podroll={ssrPodroll} />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             <PodcastPageListHeader
               ssrHasPodroll={!!ssrPodroll}
               ssrHasItemSoundbites={ssrHasItemSoundbites}
@@ -70,8 +69,8 @@ export function PodcastPageClient(props: PodcastPageClientProps) {
               podroll={ssrPodroll}
               ssrCanShowBoosts={ssrCanShowBoosts}
             />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </PodcastPageContextProvider>
   );

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { addUtcMonthsClamped, laterOfDates } from './date.js';
+import { addUtcMonthsClamped, formatDateTimeAbbrevOrFallback, laterOfDates } from './date.js';
 
 describe('addUtcMonthsClamped', () => {
   it('adds whole calendar months in UTC', () => {
@@ -37,6 +37,21 @@ describe('addUtcMonthsClamped', () => {
     const base = new Date('2026-08-31T23:59:59.999Z');
     const result = addUtcMonthsClamped(base, 1);
     expect(result.toISOString()).toBe('2026-09-30T23:59:59.999Z');
+  });
+});
+
+describe('formatDateTimeAbbrevOrFallback', () => {
+  it('returns fallback for null, undefined, blank, or invalid strings', () => {
+    expect(formatDateTimeAbbrevOrFallback(null, 'en-US', '—')).toBe('—');
+    expect(formatDateTimeAbbrevOrFallback(undefined, 'en-US', '—')).toBe('—');
+    expect(formatDateTimeAbbrevOrFallback('   ', 'en-US', '—')).toBe('—');
+    expect(formatDateTimeAbbrevOrFallback('not-a-date', 'en-US', '—')).toBe('—');
+  });
+
+  it('delegates to formatDateTimeAbbrev for valid ISO strings', () => {
+    const out = formatDateTimeAbbrevOrFallback('2026-01-15T12:00:00.000Z', 'en-US', '—');
+    expect(out).not.toBe('—');
+    expect(out.length).toBeGreaterThan(0);
   });
 });
 

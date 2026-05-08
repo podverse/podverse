@@ -9,7 +9,7 @@ import { BoostMessagesSection } from '../../../../components/Boost/messages/Boos
 import { useBoostMessagesView } from '../../../../components/Boost/messages/useBoostMessagesView';
 import { CoreEpisodeSummary } from '../../../../components/Core/Podcast/Episodes/CoreEpisodeSummary';
 import { DetailListWrapper } from '../../../../components/List/DetailListWrapper';
-import LoadingSpinnerOverlay from '../../../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { WebLoadingSpinnerOverlay } from '../../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { useLivestreamPageContext } from './LivestreamPageContext';
 
 type LivestreamPageListProps = {
@@ -51,7 +51,7 @@ export const LivestreamPageList: React.FC<LivestreamPageListProps> = ({
           refreshTrigger={refreshTrigger}
         />
       )}
-      <LoadingSpinnerOverlay isLoading={isLoading} />
+      <WebLoadingSpinnerOverlay isLoading={isLoading} />
     </DetailListWrapper>
   );
 };

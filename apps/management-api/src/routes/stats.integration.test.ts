@@ -132,19 +132,19 @@ describe('Stats Routes', () => {
     vi.clearAllMocks();
   });
 
-  describe('GET /stats/top/:entityType', () => {
+  describe('GET /stats/:entityType/top', () => {
     it('returns 401 without auth', async () => {
-      const res = await request(app).get(`${statsBase}/top/channel`);
+      const res = await request(app).get(`${statsBase}/channel/top`);
       expect(res.status).toBe(401);
     });
 
     it('returns 403 for admin without stats permission', async () => {
-      const res = await request(app).get(`${statsBase}/top/channel`).set(authHeaders(3));
+      const res = await request(app).get(`${statsBase}/channel/top`).set(authHeaders(3));
       expect(res.status).toBe(403);
     });
 
     it('returns 400 for invalid entity type', async () => {
-      const res = await request(app).get(`${statsBase}/top/invalid`).set(authHeaders(1));
+      const res = await request(app).get(`${statsBase}/invalid/top`).set(authHeaders(1));
       expect(res.status).toBe(400);
       expect(res.body.message).toContain('Invalid entity type');
     });
@@ -154,7 +154,7 @@ describe('Stats Routes', () => {
       queryMock.mockResolvedValueOnce([]);
 
       const res = await request(app)
-        .get(`${statsBase}/top/channel?range=all-time&limit=10`)
+        .get(`${statsBase}/channel/top?range=all-time&limit=10`)
         .set(authHeaders(1));
       expect(res.status).toBe(200);
       expect(res.body).toMatchObject({ rows: [], total: 0 });
@@ -164,33 +164,31 @@ describe('Stats Routes', () => {
       queryMock.mockResolvedValueOnce([{ total: 0 }]);
       queryMock.mockResolvedValueOnce([]);
 
-      const res = await request(app).get(`${statsBase}/top/channel`).set(authHeaders(2));
+      const res = await request(app).get(`${statsBase}/channel/top`).set(authHeaders(2));
       expect(res.status).toBe(200);
     });
   });
 
-  describe('GET /stats/detail/:entityType/:id', () => {
+  describe('GET /stats/:entityType/:id', () => {
     it('returns 401 without auth', async () => {
-      const res = await request(app).get(`${statsBase}/detail/channel/1`);
+      const res = await request(app).get(`${statsBase}/channel/1`);
       expect(res.status).toBe(401);
     });
 
     it('returns 400 for invalid entity type', async () => {
-      const res = await request(app).get(`${statsBase}/detail/invalid/1`).set(authHeaders(1));
+      const res = await request(app).get(`${statsBase}/invalid/1`).set(authHeaders(1));
       expect(res.status).toBe(400);
     });
 
     it('returns 400 for invalid id', async () => {
-      const res = await request(app)
-        .get(`${statsBase}/detail/channel/notanumber`)
-        .set(authHeaders(1));
+      const res = await request(app).get(`${statsBase}/channel/notanumber`).set(authHeaders(1));
       expect(res.status).toBe(400);
     });
 
     it('returns 404 when stats record not found', async () => {
       queryMock.mockResolvedValueOnce([]);
 
-      const res = await request(app).get(`${statsBase}/detail/channel/999`).set(authHeaders(1));
+      const res = await request(app).get(`${statsBase}/channel/999`).set(authHeaders(1));
       expect(res.status).toBe(404);
     });
 
@@ -220,21 +218,21 @@ describe('Stats Routes', () => {
         },
       ]);
 
-      const res = await request(app).get(`${statsBase}/detail/channel/1`).set(authHeaders(1));
+      const res = await request(app).get(`${statsBase}/channel/1`).set(authHeaders(1));
       expect(res.status).toBe(200);
       expect(res.body.title).toBe('Test Podcast');
       expect(res.body.all_time_count).toBe(100);
     });
   });
 
-  describe('GET /stats/search/:entityType', () => {
+  describe('GET /stats/:entityType/search', () => {
     it('returns 401 without auth', async () => {
-      const res = await request(app).get(`${statsBase}/search/channel?q=test`);
+      const res = await request(app).get(`${statsBase}/channel/search?q=test`);
       expect(res.status).toBe(401);
     });
 
     it('returns 400 without query param', async () => {
-      const res = await request(app).get(`${statsBase}/search/channel`).set(authHeaders(1));
+      const res = await request(app).get(`${statsBase}/channel/search`).set(authHeaders(1));
       expect(res.status).toBe(400);
     });
 
@@ -266,7 +264,7 @@ describe('Stats Routes', () => {
       ]);
       queryMock.mockResolvedValueOnce([{ total: 1 }]);
 
-      const res = await request(app).get(`${statsBase}/search/channel?q=Test`).set(authHeaders(1));
+      const res = await request(app).get(`${statsBase}/channel/search?q=Test`).set(authHeaders(1));
       expect(res.status).toBe(200);
       expect(res.body.rows).toHaveLength(1);
       expect(res.body.total).toBe(1);

@@ -1,9 +1,8 @@
 'use client';
 
 import type { DTOAccount } from '@podverse/helpers';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { ProfileHeader } from '../../components/Media/Profile/ProfileHeader';
 import { MyProfilePageContentContextProvider } from './MyProfilePageContentContext';
@@ -21,12 +20,12 @@ export function MyProfilePageClient(props: MyProfilePageClientProps) {
     <MyProfilePageContentContextProvider account={ssrAccount}>
       <MainWrapper>
         <ProfileHeader account={ssrAccount} isOwnProfile={true} />
-        <MainInnerWrapper>
-          <MainInnerContentWrapper>
+        <MainSidebarLayout>
+          <MainColumnStack>
             <MyProfilePageContentListHeader />
             <MyProfilePageContentList />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </MyProfilePageContentContextProvider>
   );

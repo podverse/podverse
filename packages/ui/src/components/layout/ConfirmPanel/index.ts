@@ -1,2 +1,2 @@
-export { ConfirmPanel, ConfirmPanelActions } from './ConfirmPanel';
-export type { ConfirmPanelActionsProps, ConfirmPanelProps } from './ConfirmPanel';
+export { ConfirmPanel } from './ConfirmPanel';
+export type { ConfirmPanelProps } from './ConfirmPanel';

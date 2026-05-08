@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { FaCircleDollarToSlot, FaCommentDollar, FaGlobe, FaRss } from 'react-icons/fa6';
 
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
-import { Button } from '@podverse/ui';
+import { Button, SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../../constants/images';
 import { useAccount } from '../../../../contexts/Account';
@@ -21,7 +21,6 @@ import { getBoostEligibilityForContent } from '../../../../utils/value/boostElig
 import { CommonAlbumHeader } from '../../../Common/Artist/Album/CommonAlbumHeader';
 import { CommonAlbumHeaderViewDesktop } from '../../../Common/Artist/Album/CommonAlbumHeaderViewDesktop';
 import { CommonAlbumHeaderViewTablet } from '../../../Common/Artist/Album/CommonAlbumHeaderViewTablet';
-import { Image } from '../../../Image/Image';
 import { IconButton } from '../../../Media/Header/IconButton';
 
 import headerButtonsStyles from '../../../../styles/components/Common/Media/Header/HeaderButtons.module.scss';
@@ -170,21 +169,21 @@ export const AddByRSSAlbumHeader: React.FC<AddByRSSAlbumHeaderProps> = ({ feed }
 
   const headerImage = (
     <div className={imageStyles.headerImageWrapper}>
-      <Image
+      <SkeletonFlashImage
         candidates={candidatesMobile}
         alt={title || tMedia('music.album_image')}
         width={IMAGES.HEADER.MOBILE.SQUARE.SIZE}
         height={IMAGES.HEADER.MOBILE.SQUARE.SIZE}
         className={imageStyles.mobile}
       />
-      <Image
+      <SkeletonFlashImage
         candidates={candidatesTablet}
         alt={title || tMedia('music.album_image')}
         width={IMAGES.HEADER.TABLET.SQUARE.SIZE}
         height={IMAGES.HEADER.TABLET.SQUARE.SIZE}
         className={imageStyles.tablet}
       />
-      <Image
+      <SkeletonFlashImage
         candidates={candidatesDesktop}
         alt={title || tMedia('music.album_image')}
         width={IMAGES.HEADER.DESKTOP.SQUARE.SIZE}

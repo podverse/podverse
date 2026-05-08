@@ -4,7 +4,6 @@
     "description": "Interfaz de gestión administrativa para {brand_name}"
   },
   "common": {
-    "loading": "Cargando...",
     "error": "Ocurrió un error",
     "save": "Guardar",
     "saveChanges": "Guardar cambios",
@@ -30,7 +29,53 @@
     "readOnlyTable": "Tabla de solo lectura",
     "noDataFound": "No se encontró ningún dato.",
     "previous": "Anterior",
-    "next": "Siguiente"
+    "next": "Siguiente",
+    "paginationPrevButton": "« Anterior",
+    "paginationNextButton": "Siguiente »",
+    "paginationPageOf": "Página {currentPage} de {totalPages}",
+    "closeModalAria": "Cerrar modal"
+  },
+  "tableShared": {
+    "searchPlaceholder": "Buscar",
+    "searchSubmitLabel": "Buscar",
+    "searchClearLabel": "Borrar búsqueda",
+    "filterColumnsLabel": "Buscar en columnas",
+    "filterColumnsAriaLabel": "Filtrar en qué columnas se incluye la búsqueda",
+    "sortAscLabel": "Orden ascendente",
+    "sortDescLabel": "Orden descendente",
+    "sortClearLabel": "Quitar orden",
+    "sortAriaTemplate": "Ordenar por {column}",
+    "noResults": "Ninguna fila coincide con los filtros.",
+    "systemEmptyMessage": "Aún no hay datos. Esta página se habilitará cuando haya datos para mostrar.",
+    "noData": "No hay datos.",
+    "loading": "Cargando lista…",
+    "errorRetry": "Reintentar",
+    "bulk": {
+      "selectAllAria": "Seleccionar todas las filas de esta página",
+      "selectRowAria": "Seleccionar esta fila",
+      "selectedCount": "{count, plural, one {# fila seleccionada} other {# filas seleccionadas}}",
+      "clearSelection": "Borrar selección",
+      "actionsLabel": "Acciones en bloque"
+    },
+    "cursor": {
+      "prev": "Anterior",
+      "next": "Siguiente"
+    },
+    "confirmDelete": {
+      "title": "Eliminar",
+      "message": "Esta acción no se puede deshacer.",
+      "cancel": "Cancelar",
+      "confirm": "Confirmar",
+      "aria": "Confirmar eliminación"
+    },
+    "pagination": {
+      "pageOf": "Página {currentPage} de {totalPages}",
+      "prev": "Anterior",
+      "next": "Siguiente",
+      "goToPageLabel": "Ir a la página",
+      "goToPageAria": "Abrir diálogo para ir a la página",
+      "goToPageSubmit": "Ir"
+    }
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -86,6 +131,86 @@
     "users": {
       "title": "Usuarios",
       "description": "Crear y gestionar cuentas de usuario de la aplicación"
+    },
+    "storage": {
+      "title": "Almacenamiento de objetos",
+      "description": "Examinar, descargar y eliminar objetos del depósito configurado"
+    }
+  },
+  "errors": {
+    "boundary_title": "Algo salió mal",
+    "boundary_message": "Ocurrió un error inesperado. Por favor, intenta de nuevo.",
+    "global_title": "Error de Aplicación",
+    "global_message": "Ocurrió un error crítico. Por favor, actualiza la página.",
+    "details_development_only": "Detalles del error (solo para desarrollo)"
+  },
+  "misc": {
+    "loading": "Cargando…",
+    "reload_page": "Recargar página",
+    "return_to_home_page": "Ir a Inicio",
+    "try_again": "Intenta de nuevo"
+  },
+  "storage": {
+    "title": "Almacenamiento de objetos",
+    "subtitle": "Listar objetos del depósito configurado",
+    "detailTitle": "Detalles del objeto",
+    "detailSubtitle": "Metadatos y descarga",
+    "loading": "Cargando…",
+    "empty": "No hay objetos que coincidan con este prefijo.",
+    "prefixFilter": "Filtro de prefijo",
+    "prefixPlaceholder": "Filtrar por prefijo de clave",
+    "featureDisabled": "El almacenamiento en depósito está desactivado o no está disponible.",
+    "listLoadError": "No se pudieron cargar los objetos.",
+    "detailLoadError": "No se pudieron cargar los metadatos del objeto.",
+    "notFound": "No se encontró el objeto.",
+    "deleteError": "Error al eliminar.",
+    "bulkDeleteError": "Error en la eliminación masiva.",
+    "table": {
+      "key": "Clave",
+      "size": "Tamaño",
+      "lastModified": "Última modificación",
+      "actions": "Acciones"
+    },
+    "view": "Ver",
+    "delete": "Eliminar",
+    "bulkDelete": "Eliminación masiva",
+    "selectedCount": "{count, plural, one {# objeto seleccionado} other {# objetos seleccionados}}",
+    "bulkConfirmAria": "Confirmar eliminación masiva",
+    "bulkConfirmBody": "¿Eliminar {count, plural, one {# objeto} other {# objetos}}? Esta acción no se puede deshacer.",
+    "deleteConfirmAria": "Confirmar eliminación",
+    "deleteConfirmBody": "¿Eliminar «{key}»? Esta acción no se puede deshacer.",
+    "deleting": "Eliminando…",
+    "selectAllAria": "Seleccionar todos los objetos de esta página",
+    "selectRowAria": "Seleccionar objeto {key}",
+    "viewAria": "Ver objeto {key}",
+    "deleteAria": "Eliminar objeto {key}",
+    "more": "Más",
+    "moreAria": "Más acciones",
+    "deleteAll": "Eliminar todo",
+    "deleteAllConfirmAria": "Confirmar eliminar todos los objetos coincidentes",
+    "deleteAllConfirmTitle": "Eliminar todos los objetos coincidentes",
+    "deleteAllConfirmBodyWithPrefix": "Eliminar todos los objetos cuya clave empiece por “{prefix}”.",
+    "deleteAllConfirmBodyEmptyPrefix": "Eliminar todos los objetos del bucket. No hay filtro de prefijo aplicado.",
+    "deleteAllIrreversible": "Esta acción no se puede deshacer.",
+    "deleteAllCounting": "Contando objetos coincidentes…",
+    "deleteAllCount": "{count, plural, one {# objeto} other {# objetos}} se eliminarán.",
+    "deleteAllCountTruncated": "Se eliminarán más de {count} objetos.",
+    "deleteAllInProgress": "Eliminando todos los objetos coincidentes…",
+    "deleteAllError": "Error al eliminar todo.",
+    "deleteAllPartialError": "{deleted}/{requested} eliminados; {failed} fallidos.",
+    "download": "Descargar",
+    "backToList": "Volver a la lista de objetos",
+    "paginationPrev": "« Anterior",
+    "paginationNext": "Siguiente »",
+    "paginationPage": "Página {page}",
+    "detail": {
+      "fields": {
+        "key": "Clave",
+        "contentType": "Tipo de contenido",
+        "contentLength": "Tamaño",
+        "lastModified": "Última modificación",
+        "etag": "ETag"
+      }
     }
   },
   "statsPage": {
@@ -95,6 +220,7 @@
     "clear": "Limpiar",
     "views": "Vistas",
     "loadingDetail": "Cargando detalle...",
+    "loadingChart": "Cargando gráfico...",
     "close": "Cerrar",
     "idValue": "ID {id}",
     "searchPlaceholder": "Buscar {entity} por título...",
@@ -143,9 +269,15 @@
     "breadcrumbDashboard": "Panel",
     "breadcrumbProducts": "Productos",
     "loadError": "No se pudo cargar la configuración del producto de membresía.",
-    "editableTrialHeading": "Duración de la prueba gratuita",
-    "saveSuccess": "Duración de la prueba actualizada correctamente.",
-    "saveError": "No se pudo actualizar la duración de la prueba.",
+    "saveSuccess": "Configuración actualizada correctamente.",
+    "saveError": "No se pudo guardar este ajuste.",
+    "editFieldAria": "Editar {fieldLabel}",
+    "editValueModalAria": "Editar ajuste de membresía",
+    "editModalTitle": "Editar {label}",
+    "numberStepDecrement": "Disminuir valor",
+    "numberStepIncrement": "Aumentar valor",
+    "pricingScheduleHint": "Al cambiar el importe mensual o anual premium se crea una nueva fila de precio activa (la fila abierta anterior se cierra en el momento efectivo).",
+    "pricingChangeReason": "página de membresías de management-web",
     "fieldLabels": {
       "freeTrialExpirationSeconds": "Duración de la prueba gratuita (segundos)",
       "premiumMembershipCostMonthly": "Coste mensual premium",
@@ -164,7 +296,10 @@
       "source": "Origen"
     },
     "validation": {
-      "invalidFreeTrialSeconds": "La duración de la prueba gratuita debe ser un entero positivo."
+      "emptyValue": "Introduzca un valor.",
+      "invalidFreeTrialSeconds": "La duración de la prueba debe ser un número entero de segundos entre 60 y 31536000.",
+      "invalidNonNegativeInteger": "Introduzca un número entero mayor o igual que 0.",
+      "invalidPriceUsd": "Introduzca un importe en USD mayor que 0 y como máximo 999999.99."
     }
   },
   "feedFlagStatus": {
@@ -172,6 +307,20 @@
     "pageSubtitle": "Busque un feed por ID de Podcast Index (predeterminado), id interno del feed o URL. Actualice el ciclo de vida, condiciones activas, límites y notas. Esto es independiente del navegador de tablas de la base de datos.",
     "breadcrumbParent": "Operaciones de feed",
     "breadcrumbCurrent": "Estado de la bandera",
+    "directoryHeading": "Feeds",
+    "directoryLoadError": "No se pudo cargar la lista de feeds.",
+    "directoryEmpty": "Ningún feed coincide con los filtros actuales.",
+    "filterLifecycleLabel": "Ciclo de vida",
+    "filterLifecycleAll": "Todos los ciclos de vida",
+    "directorySearchPlaceholder": "Filtrar por título, URL o id…",
+    "directorySearchButton": "Aplicar filtro",
+    "tableFeedId": "ID",
+    "tableChannelTitle": "Título",
+    "tablePodcastIndexId": "ID de Podcast Index",
+    "tableLifecycle": "Ciclo de vida",
+    "tableUrl": "URL",
+    "openFeedRow": "Abrir",
+    "sectionDirectoryAria": "Directorio de feeds",
     "sectionFindAria": "Buscar",
     "findFeedHeading": "Buscar un feed",
     "searchByLabel": "Buscar por",
@@ -240,23 +389,44 @@
   },
   "admins": {
     "title": "Administradores",
+    "adminDetail": "Detalle del administrador",
     "createAdmin": "Crear administrador",
     "editAdmin": "Editar administrador",
     "editAdminItem": "Editar {email}",
     "failedToLoad": "No se pudo cargar las cuentas de administrador",
     "failedToCreate": "No se pudo crear el administrador",
     "failedToUpdate": "No se pudo actualizar el administrador",
+    "failedToDeleteAdmin": "No se pudo eliminar el administrador",
+    "confirmDeleteAdmin": "¿Seguro que quieres eliminar este administrador? Esto no se puede deshacer.",
+    "deleteConfirmAria": "Confirmar eliminación del administrador",
     "createdSuccessfully": "Administrador creado con éxito.",
+    "createdWithLink": "Administrador creado. Comparte el enlace de invitación para que puedan establecer su contraseña.",
+    "passwordOptional": "Contraseña (opcional)",
+    "passwordInviteHint": "Si lo dejas en blanco, se genera un enlace de invitación que puedes enviar para que establezcan su contraseña.",
     "updatedSuccessfully": "Administrador actualizado con éxito.",
     "tableHeaders": {
       "id": "ID",
       "email": "Correo electrónico",
       "role": "Rol",
+      "createdAt": "Creado",
       "feeds": "Feeds",
       "takedownReasons": "Motivos de retirada",
       "admins": "Administradores",
       "stats": "Estadísticas",
+      "bucket": "Bucket",
       "actions": "Acciones"
+    },
+    "setAdminPassword": {
+      "title": "Establecer contraseña de administrador",
+      "subtitle": "Elige una contraseña para esta cuenta de administración.",
+      "passwordLabel": "Nueva contraseña",
+      "confirmLabel": "Confirmar contraseña",
+      "submit": "Guardar contraseña",
+      "success": "Contraseña guardada. Ya puedes iniciar sesión.",
+      "backToSignIn": "Volver al inicio de sesión",
+      "passwordsDoNotMatch": "Las contraseñas no coinciden.",
+      "failed": "No se pudo establecer la contraseña. El enlace puede ser inválido o haber caducado.",
+      "missingToken": "Falta el token en este enlace. Solicita una nueva invitación a un administrador."
     },
     "permissions": {
       "legend": "Permisos",
@@ -268,7 +438,8 @@
       "feeds": "Fuentes",
       "takedownReasons": "Motivos de retirada",
       "admins": "Administradores",
-      "stats": "Estadísticas"
+      "stats": "Estadísticas",
+      "bucket": "Almacenamiento de objetos"
     }
   },
   "users": {
@@ -299,6 +470,7 @@
     "noResults": "No hay usuarios que coincidan con tu búsqueda.",
     "noUsers": "No se encontraron usuarios.",
     "confirmDelete": "¿Estás seguro de que deseas eliminar este usuario? Esto no se puede deshacer.",
+    "deleteConfirmAria": "Confirmar eliminación de usuario",
     "userDetail": "Detalle del Usuario",
     "editUser": "Editar Usuario",
     "verified": "Verificado",
@@ -307,11 +479,14 @@
     "changePassword": "Cambiar Contraseña",
     "passwordChanged": "Contraseña cambiada exitosamente.",
     "inviteLinks": "Enlaces de Invitación",
-    "noActiveInviteLinks": "No hay enlaces de invitación activos.",
     "activeInviteLink": "Enlace de Invitación Activo",
     "expiresAt": "Expira: {date}",
     "revokeLink": "Revocar Enlace",
     "generateInviteLink": "Generar Enlace de Invitación",
+    "passwordResetLinkSection": "Enlace de restablecimiento de contraseña",
+    "activePasswordResetLink": "Enlace activo de restablecimiento de contraseña",
+    "generatePasswordResetLink": "Generar enlace de restablecimiento de contraseña",
+    "passwordResetLinkAdminHint": "Este enlace permite al usuario elegir una nueva contraseña sin la anterior. Compártelo solo con el usuario; revócalo cuando termines.",
     "passwordsDoNotMatch": "Las contraseñas no coinciden.",
     "membershipForm": {
       "membershipStatus": "Estado de membresía",
@@ -322,6 +497,7 @@
       "hintTrialNew": "La prueba inicia a los usuarios en el nivel no confiable con límites por defecto más estrictos.",
       "hintPremiumNew": "Premium inicia a los usuarios en el nivel confiable con un acceso por defecto más amplio.",
       "membershipExpiresAt": "La membresía expira el",
+      "membershipExpiresAtPickerAffix": "Abrir selector de fecha y hora",
       "premiumBillingCadence": "Periodo de facturación Premium",
       "billingMonthly": "Mensual",
       "billingAnnual": "Anual",
@@ -340,12 +516,12 @@
       "addByRssFeedLimitHelp": "Máximo de fuentes Añadir por RSS para esta cuenta. Valor por defecto del nivel prueba: {trialDefault}. Valor por defecto del nivel Premium: {premiumDefault}. Valor por defecto del nivel seleccionado para anulaciones: {selectedDefault}.",
       "manualRefreshPerHour": "Sobreescritura del límite de actualización manual por hora",
       "manualRefreshPerHourHelp": "Máximo de actualizaciones manuales por hora. Valor por defecto del nivel prueba: {trialDefault}. Valor por defecto del nivel Premium: {premiumDefault}. Valor por defecto del nivel seleccionado para anulaciones: {selectedDefault}.",
-      "placeholderTierDefault": "Valor por defecto del nivel: {count}",
+      "placeholderTierDefault": "Valor predeterminado: {count}",
       "trackStatsHelp": "Si se registran las estadísticas de escucha. Valor por defecto en prueba: {trialDefault}. Valor por defecto en Premium: {premiumDefault}.",
       "allowNotificationsHelp": "Si se permiten notificaciones push o por correo. Valor por defecto en prueba: {trialDefault}. Valor por defecto en Premium: {premiumDefault}.",
       "trackStats": "Sobreescritura de seguimiento de estadísticas",
       "allowNotifications": "Sobreescritura de permitir notificaciones",
-      "useTrustTierDefault": "Usar valor predeterminado del nivel de membresía",
+      "useTrustTierDefault": "Predeterminado ({value})",
       "allow": "Permitir",
       "block": "Bloquear",
       "trackStatsOn": "Rastrear estadísticas",
@@ -379,6 +555,7 @@
     "paginationSummary": "{total} filas en total | Página {page} de {totalPages}",
     "paginationSummarySingular": "{total} fila en total | Página {page} de {totalPages}",
     "deleteConfirm": "¿Está seguro de que desea eliminar esta fila? Esto no se puede deshacer.",
+    "deleteConfirmAria": "Confirmar eliminación de fila",
     "tables": {
       "feed": {
         "label": "Feeds",
@@ -445,14 +622,12 @@
   "settings": {
     "title": "Configuraciones",
     "subtitle": "Elige tu idioma y tema",
-    "theme": {
-      "label": "Tema",
-      "options": {
-        "dark": "Oscuro",
-        "light": "Claro",
-        "dracula": "Drácula",
-        "violet": "Violeta"
-      }
+    "ui_theme": {
+      "theme": "Tema",
+      "light": "Claro",
+      "dark": "Oscuro",
+      "dracula": "Drácula",
+      "violet": "Violeta"
     },
     "language": {
       "label": "Idioma"

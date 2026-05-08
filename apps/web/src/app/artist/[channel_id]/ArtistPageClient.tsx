@@ -6,10 +6,9 @@ import type {
   RemoteItemsResponse,
 } from '@podverse/helpers';
 import type { QueryParamsChannelMusicArtist } from '@podverse/helpers-requests';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { CoreArtistHeader } from '../../../components/Core/Artist/CoreArtistHeader';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
 import { ArtistPageContextProvider } from './ArtistPageContext';
@@ -50,9 +49,9 @@ export function ArtistPageClient(props: ArtistPageClientProps) {
     <ArtistPageContextProvider initialQueryParams={initialQueryParams}>
       <MainWrapper>
         <CoreArtistHeader channel={ssrChannel} />
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <ArtistPageSideContent channel={ssrChannel} podroll={ssrPodroll} />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             <ArtistPageListHeader
               ssrHasAlbums={ssrHasAlbums}
               ssrHasTracks={ssrHasTracks}
@@ -69,8 +68,8 @@ export function ArtistPageClient(props: ArtistPageClientProps) {
               podroll={ssrPodroll}
               ssrCanShowBoosts={ssrCanShowBoosts}
             />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </ArtistPageContextProvider>
   );

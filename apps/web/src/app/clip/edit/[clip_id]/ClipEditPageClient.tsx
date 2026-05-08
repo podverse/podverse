@@ -1,9 +1,8 @@
 'use client';
 
 import type { DTOClip } from '@podverse/helpers';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
-import { MainInnerContentWrapper } from '../../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../../components/Main/MainWrapper';
 import { ClipEditPageContextProvider } from './ClipEditPageContext';
 import { ClipEditPageForm } from './ClipEditPageForm';
@@ -28,11 +27,11 @@ export function ClipEditPageClient({
     >
       <ClipEditPageHeader />
       <MainWrapper>
-        <MainInnerWrapper>
-          <MainInnerContentWrapper>
+        <MainSidebarLayout>
+          <MainColumnStack>
             <ClipEditPageForm ssrClip={ssrClip} />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </ClipEditPageContextProvider>
   );

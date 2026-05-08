@@ -4,9 +4,9 @@ import React from 'react';
 
 import type { DTOChannel } from '@podverse/helpers';
 import { buildDTOChannelImageLoadCandidates } from '@podverse/helpers';
+import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
-import { Image } from '../../Image/Image';
 
 import styles from '../../../styles/components/Common/Media/Podcast/PodcastHeaderImage.module.scss';
 
@@ -37,21 +37,21 @@ export const CommonChannelHeaderImage: React.FC<CommonChannelHeaderImageProps> =
 
   return (
     <div className={styles.headerImageWrapper}>
-      <Image
+      <SkeletonFlashImage
         candidates={candidatesMobile}
         alt={alt}
         width={IMAGES.HEADER.MOBILE.SQUARE.SIZE}
         height={IMAGES.HEADER.MOBILE.SQUARE.SIZE}
         className={styles.mobile}
       />
-      <Image
+      <SkeletonFlashImage
         candidates={candidatesTablet}
         alt={alt}
         width={IMAGES.HEADER.TABLET.SQUARE.SIZE}
         height={IMAGES.HEADER.TABLET.SQUARE.SIZE}
         className={styles.tablet}
       />
-      <Image
+      <SkeletonFlashImage
         candidates={candidatesDesktop}
         alt={alt}
         width={IMAGES.HEADER.DESKTOP.SQUARE.SIZE}

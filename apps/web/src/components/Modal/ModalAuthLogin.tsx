@@ -5,15 +5,20 @@ import { useLocale, useTranslations } from 'next-intl';
 import React, { useState } from 'react';
 
 import { ERROR_MESSAGES, getAccountSignupModeCapabilities } from '@podverse/helpers';
-import { Button, FormErrorMessageText, FormInfoMessageText } from '@podverse/ui';
+import {
+  Button,
+  FormErrorMessageText,
+  FormInfoMessageText,
+  Modal,
+  ModalActions,
+  StackForm,
+  TextInput,
+} from '@podverse/ui';
 
 import { getConfig } from '../../config';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
-import Form from '../Form/Form';
-import { TextInput } from '../Form/TextInput';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 
 import styles from '../../styles/components/Modal/ModalAuthLogin.module.scss';
 
@@ -83,10 +88,10 @@ export const ModalAuthLogin: React.FC = () => {
       header={tAuthentication('login')}
       isOpen={modalAuthLogin.isOpen}
       onClose={() => setModalAuthLogin({ isOpen: false })}
+      closeButtonAriaLabel={tMisc('close_modal')}
       ariaLabel={tAuthentication('login')}
-      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
-      <Form onSubmit={handleSubmit}>
+      <StackForm onSubmit={handleSubmit}>
         <TextInput
           type="text"
           name="email"
@@ -121,7 +126,7 @@ export const ModalAuthLogin: React.FC = () => {
         {!accountNotVerified && showErrorMessage && (
           <FormErrorMessageText message={tAuthentication('invalid_email_or_password')} />
         )}
-        <div className={styles.buttons}>
+        <ModalActions>
           <Button
             type="button"
             onClick={() => setModalAuthLogin({ isOpen: false })}
@@ -132,7 +137,7 @@ export const ModalAuthLogin: React.FC = () => {
           <Button type="submit" variant="primary" disabled={isSubmitting}>
             {tMisc('submit')}
           </Button>
-        </div>
+        </ModalActions>
         <div className={styles.links}>
           {capabilities.canUseEmailVerificationFlows && (
             <Button
@@ -149,7 +154,7 @@ export const ModalAuthLogin: React.FC = () => {
             </Button>
           )}
         </div>
-      </Form>
+      </StackForm>
     </Modal>
   );
 };

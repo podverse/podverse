@@ -4,14 +4,15 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import { hhmmssToSecondsNumeric, SharableStatusEnum } from '@podverse/helpers';
+import { Modal } from '@podverse/ui';
 
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { ClipForm } from '../Clip/ClipForm';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 
 export const ModalClip: React.FC = () => {
   const tFeatures = useTranslations('features');
+  const tMisc = useTranslations('misc');
   const header = tFeatures('clip.create_clip');
   const { modalClip, setModalClip, setModalClipCreated } = useModals();
 
@@ -65,9 +66,9 @@ export const ModalClip: React.FC = () => {
     <Modal
       isOpen={!!modalClip.item}
       onClose={clearModalClip}
+      closeButtonAriaLabel={tMisc('close_modal')}
       header={header}
       ariaLabel={header}
-      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <ClipForm
         channel={modalClip.channel}

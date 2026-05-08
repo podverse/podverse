@@ -1,0 +1,53 @@
+@use '../../../styles/mixins/flexbox' as *;
+@use '../../../styles/mixins/flexShrink' as *;
+@use '../../../styles/mixins/form' as *;
+
+.hhmmss {
+  display: flex;
+  flex: 1;
+  margin-bottom: var(--spacing-2xl);
+  @include flexItemAllowShrink;
+  position: relative;
+}
+
+.hhmmssInputWrapper {
+  @include formInputWrapper;
+  flex: 1;
+  justify-content: space-between;
+  @include flexItemAllowShrink;
+}
+
+.hhmmssInnerInputWrapper {
+  display: flex;
+  flex: 1 1;
+  flex-direction: column;
+  justify-content: center;
+  @include flexItemAllowShrink;
+}
+
+.eyebrow {
+  color: var(--text-color-link);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  margin: 0 0 var(--spacing-form-label-bottom);
+}
+
+.input {
+  all: unset;
+  font-size: var(--font-size-md);
+  @include flexItemAllowShrink;
+  padding: var(--spacing-form-input-inner);
+  width: 100%;
+}
+
+.buttonWrapper {
+  border-radius: var(--border-radius-round);
+  height: 2rem;
+  width: 2rem;
+  @include flexCenter;
+}
+
+.playIcon {
+  font-size: var(--font-size-lg);
+  @include flexCenter;
+}

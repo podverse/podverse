@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at build time in scripts/validate-env.ts */
 
 import type { AccountSignupMode } from '@podverse/helpers';
+import { parseSidebarGroupOrder } from '@podverse/helpers-config';
 
 import { ASSETS } from '../constants/assets';
 import { getRuntimeConfig } from './runtime-config-store';
@@ -87,10 +88,19 @@ const buildConfig = () => {
         contactEmail: env.NEXT_PUBLIC_CONTACT_EMAIL!,
       },
       server_env: env.NEXT_PUBLIC_SERVER_ENV!,
+      imageProxy: {
+        enabled: env.NEXT_PUBLIC_IMAGE_PROXY_ENABLED === 'true',
+      },
+      nextImageOptimization: {
+        enabled: env.NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED === 'true',
+      },
+      sidebar: {
+        groupOrder: parseSidebarGroupOrder(opt(env.NEXT_PUBLIC_SIDEBAR_GROUP_ORDER)),
+      },
     },
     proxy: {
       responseCacheMaxAgeSeconds: Number(env.NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS!),
-      userAgent: env.NEXT_PUBLIC_PROXY_USER_AGENT!,
+      userAgent: env.NEXT_PUBLIC_PROXY_USER_AGENT ?? '',
     },
   };
 };

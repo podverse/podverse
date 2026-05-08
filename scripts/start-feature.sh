@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Podverse Start Feature Script
-# Creates a properly named branch with aligned LLM history file
+# Creates a properly named git branch (optional LLM history scaffold disabled; see docs/development/llm/LLM-HISTORY-WORKFLOW-ARCHIVE.md)
 
 CYAN='\033[0;36m'
 GREEN='\033[0;32m'
@@ -83,67 +83,15 @@ fi
 
 git checkout -b "$BRANCH"
 
-# 6. Create history directory and file
-# Note: Always use -part-01 suffix to support the 10-session limit rule
-# (see .cursor/rules/llm-history-tracking.mdc)
-HISTORY_DIR=".llm/history/active/$NAME"
-HISTORY_FILE="$HISTORY_DIR/$NAME-part-01.md"
-DATE=$(date +%Y-%m-%d)
-AUTHOR=$(git config user.name || echo "Unknown")
-
-# Create feature-specific directory
-mkdir -p "$HISTORY_DIR"
-
-cat > "$HISTORY_FILE" << EOF
-# Feature: $NAME (Part 1)
-
-> **Note**: This LLM history file is optional. If you're not using LLM assistance for development, you can delete this file and the containing directory. The history tracking system helps document LLM-assisted decisions but is not required for contributing.
-> 
-> **10-Session Limit**: Each part file is limited to 10 sessions. When adding Session 11, create \`$NAME-part-02.md\`.
-
-## Metadata
-- Started: $DATE
-- Completed: In Progress
-- Author: $AUTHOR
-- LLM(s): Cursor, Claude, etc.
-- GitHub Issues: ${ISSUE_URLS:-None}
-- Branch: $BRANCH
-- Origin: $ORIGIN
-- Is Fork: $IS_FORK
-
-## Context
-
-[What problem does this solve? What's the goal?]
-
-## Sessions
-
-### Session 1 - $DATE
-
-#### Prompt (Developer)
-[First prompt will go here]
-
-#### Key Decisions
-- [Decision and rationale]
-
-#### Files Changed
-- [List of files]
-
----
-
-## Related Resources
-
-- [Link to PR]
-- [Link to related issues]
-EOF
+# Optional LLM history scaffold disabled (previously wrote .llm/history/active/$NAME/$NAME-part-01.md).
+# See docs/development/llm/LLM-HISTORY-WORKFLOW-ARCHIVE.md if you maintain notes manually.
 
 echo ""
 echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}✓ Branch created: $BRANCH${NC}"
-echo -e "${GREEN}✓ History file created: $HISTORY_FILE${NC}"
 echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
 echo ""
 echo -e "${CYAN}Next steps:${NC}"
-echo "  1. Edit $HISTORY_FILE to add Context"
-echo "  2. Start working with your LLM"
-echo "  3. Push and open a PR when done (history is auto-completed on merge)"
+echo "  1. Start working on your branch"
+echo "  2. Push and open a PR when done"
 echo ""

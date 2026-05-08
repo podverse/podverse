@@ -4,7 +4,6 @@
     "description": "Διαχειριστικό περιβάλλον για το {brand_name}"
   },
   "common": {
-    "loading": "Φόρτωση...",
     "error": "Παρουσιάστηκε σφάλμα",
     "save": "Αποθήκευση",
     "saveChanges": "Αποθήκευση Αλλαγών",
@@ -30,7 +29,53 @@
     "readOnlyTable": "Πίνακας μόνο για ανάγνωση",
     "noDataFound": "Δεν βρέθηκαν δεδομένα",
     "previous": "Προηγούμενο",
-    "next": "Επόμενο"
+    "next": "Επόμενο",
+    "paginationPrevButton": "« Προηγούμενο",
+    "paginationNextButton": "Επόμενο »",
+    "paginationPageOf": "Σελίδα {currentPage} από {totalPages}",
+    "closeModalAria": "Κλείσιμο παραθύρου διαλόγου"
+  },
+  "tableShared": {
+    "searchPlaceholder": "Αναζήτηση",
+    "searchSubmitLabel": "Αναζήτηση",
+    "searchClearLabel": "Εκκαθάριση αναζήτησης",
+    "filterColumnsLabel": "Αναζήτηση στις στήλες",
+    "filterColumnsAriaLabel": "Φιλτράρισμα στηλών που περιλαμβάνει η αναζήτηση",
+    "sortAscLabel": "Αύξουσα ταξινόμηση",
+    "sortDescLabel": "Φθίνουσα ταξινόμηση",
+    "sortClearLabel": "Εκκαθάριση ταξινόμησης",
+    "sortAriaTemplate": "Ταξινόμηση κατά {column}",
+    "noResults": "Καμία γραμμή δεν ταιριάζει στα τρέχοντα φίλτρα.",
+    "systemEmptyMessage": "Δεν βρέθηκαν δεδομένα ακόμη. Αυτή η σελίδα θα ενεργοποιηθεί όταν υπάρχουν δεδομένα για εμφάνιση.",
+    "noData": "Δεν υπάρχουν δεδομένα προς εμφάνιση.",
+    "loading": "Φόρτωση λίστας…",
+    "errorRetry": "Προσπαθήστε ξανά",
+    "bulk": {
+      "selectAllAria": "Επιλογή όλων των γραμμών αυτής της σελίδας",
+      "selectRowAria": "Επιλογή αυτής της γραμμής",
+      "selectedCount": "{count, plural, one {# επιλεγμένη γραμμή} other {# επιλεγμένες γραμμές}}",
+      "clearSelection": "Εκκαθάριση επιλογής",
+      "actionsLabel": "Μαζικές ενέργειες"
+    },
+    "cursor": {
+      "prev": "Προηγούμενο",
+      "next": "Επόμενο"
+    },
+    "confirmDelete": {
+      "title": "Διαγραφή",
+      "message": "Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+      "cancel": "Ακύρωση",
+      "confirm": "Επιβεβαίωση",
+      "aria": "Επιβεβαίωση διαγραφής"
+    },
+    "pagination": {
+      "pageOf": "Σελίδα {currentPage} από {totalPages}",
+      "prev": "Προηγούμενο",
+      "next": "Επόμενο",
+      "goToPageLabel": "Μετάβαση στη σελίδα",
+      "goToPageAria": "Άνοιγμα διαλόγου μετάβασης σε σελίδα",
+      "goToPageSubmit": "Μετάβαση"
+    }
   },
   "auth": {
     "login": "Σύνδεση",
@@ -86,6 +131,86 @@
     "users": {
       "title": "Χρήστες",
       "description": "Δημιουργία και διαχείριση λογαριασμών χρηστών εφαρμογής"
+    },
+    "storage": {
+      "title": "Αποθήκευση αντικειμένων",
+      "description": "Περιήγηση, λήψη και διαγραφή αντικειμένων στο ρυθμισμένο bucket"
+    }
+  },
+  "errors": {
+    "boundary_title": "Κάτι πήγε στραβά",
+    "boundary_message": "Ένα απρόβλεπτο σφάλμα συνέβη. Παρακαλώ δοκιμάστε ξανά.",
+    "global_title": "Σφάλμα Εφαρμογής",
+    "global_message": "Ένα κρίσιμο σφάλμα συνέβη. Παρακαλώ ανανεώστε τη σελίδα.",
+    "details_development_only": "Λεπτομέρειες σφάλματος (μόνο για προγραμματιστές)"
+  },
+  "misc": {
+    "loading": "Φόρτωμα…",
+    "reload_page": "Αναφόρτωση σελίδας",
+    "return_to_home_page": "Μετάβαση στην Αρχική",
+    "try_again": "Δοκιμάστε ξανά"
+  },
+  "storage": {
+    "title": "Αποθήκευση αντικειμένων",
+    "subtitle": "Λίστα αντικειμένων στο ρυθμισμένο bucket",
+    "detailTitle": "Λεπτομέρειες αντικειμένου",
+    "detailSubtitle": "Μεταδεδομένα και λήψη",
+    "loading": "Φόρτωση…",
+    "empty": "Δεν υπάρχουν αντικείμενα για αυτό το πρόθεμα.",
+    "prefixFilter": "Φίλτρο προθέματος",
+    "prefixPlaceholder": "Φιλτράρισμα κατά πρόθεμα κλειδιού",
+    "featureDisabled": "Η αποθήκευση bucket είναι απενεργοποιημένη ή μη διαθέσιμη.",
+    "listLoadError": "Αποτυχία φόρτωσης αντικειμένων.",
+    "detailLoadError": "Αποτυχία φόρτωσης μεταδεδομένων αντικειμένου.",
+    "notFound": "Το αντικείμενο δεν βρέθηκε.",
+    "deleteError": "Η διαγραφή απέτυχε.",
+    "bulkDeleteError": "Η μαζική διαγραφή απέτυχε.",
+    "table": {
+      "key": "Κλειδί",
+      "size": "Μέγεθος",
+      "lastModified": "Τελευταία τροποποίηση",
+      "actions": "Ενέργειες"
+    },
+    "view": "Προβολή",
+    "delete": "Διαγραφή",
+    "bulkDelete": "Μαζική διαγραφή",
+    "selectedCount": "{count, plural, one {# επιλεγμένο αντικείμενο} other {# επιλεγμένα αντικείμενα}}",
+    "bulkConfirmAria": "Επιβεβαίωση μαζικής διαγραφής",
+    "bulkConfirmBody": "Διαγραφή {count, plural, one {# αντικειμένου} other {# αντικειμένων}}; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+    "deleteConfirmAria": "Επιβεβαίωση διαγραφής",
+    "deleteConfirmBody": "Διαγραφή «{key}»; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+    "deleting": "Διαγραφή…",
+    "selectAllAria": "Επιλογή όλων των αντικειμένων σε αυτή τη σελίδα",
+    "selectRowAria": "Επιλογή αντικειμένου {key}",
+    "viewAria": "Προβολή αντικειμένου {key}",
+    "deleteAria": "Διαγραφή αντικειμένου {key}",
+    "more": "Περισσότερα",
+    "moreAria": "Περισσότερες ενέργειες",
+    "deleteAll": "Διαγραφή όλων",
+    "deleteAllConfirmAria": "Επιβεβαίωση διαγραφής όλων των αντιστοιχισμένων αντικειμένων",
+    "deleteAllConfirmTitle": "Διαγραφή όλων των αντιστοιχισμένων αντικειμένων",
+    "deleteAllConfirmBodyWithPrefix": "Διαγραφή κάθε αντικειμένου του οποίου το κλειδί ξεκινά με «{prefix}».",
+    "deleteAllConfirmBodyEmptyPrefix": "Διαγραφή κάθε αντικειμένου στον κάδο. Δεν εφαρμόζεται φίλτρο προθέματος.",
+    "deleteAllIrreversible": "Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+    "deleteAllCounting": "Καταμέτρηση αντιστοιχισμένων αντικειμένων…",
+    "deleteAllCount": "{count, plural, one {# αντικείμενο} other {# αντικείμενα}} θα διαγραφούν.",
+    "deleteAllCountTruncated": "Θα διαγραφούν περισσότερα από {count} αντικείμενα.",
+    "deleteAllInProgress": "Διαγραφή όλων των αντιστοιχισμένων αντικειμένων…",
+    "deleteAllError": "Η διαγραφή όλων απέτυχε.",
+    "deleteAllPartialError": "{deleted}/{requested} διαγράφηκαν· {failed} απέτυχαν.",
+    "download": "Λήψη",
+    "backToList": "Πίσω στη λίστα αντικειμένων",
+    "paginationPrev": "« Προηγούμενο",
+    "paginationNext": "Επόμενο »",
+    "paginationPage": "Σελίδα {page}",
+    "detail": {
+      "fields": {
+        "key": "Κλειδί",
+        "contentType": "Τύπος περιεχομένου",
+        "contentLength": "Μέγεθος",
+        "lastModified": "Τελευταία τροποποίηση",
+        "etag": "ETag"
+      }
     }
   },
   "statsPage": {
@@ -95,6 +220,7 @@
     "clear": "Καθαρισμός",
     "views": "Προβολές",
     "loadingDetail": "Φόρτωση λεπτομερειών...",
+    "loadingChart": "Φόρτωση διαγράμματος...",
     "close": "Κλείσιμο",
     "idValue": "ID {id}",
     "searchPlaceholder": "Αναζήτηση {entity} με βάση τον τίτλο...",
@@ -143,9 +269,15 @@
     "breadcrumbDashboard": "Πίνακας ελέγχου",
     "breadcrumbProducts": "Προϊόντα",
     "loadError": "Δεν ήταν δυνατή η φόρτωση των ρυθμίσεων προϊόντος συνδρομής.",
-    "editableTrialHeading": "Διάρκεια δοκιμαστικής περιόδου",
-    "saveSuccess": "Η διάρκεια δοκιμής ενημερώθηκε επιτυχώς.",
-    "saveError": "Δεν ήταν δυνατή η ενημέρωση της διάρκειας δοκιμής.",
+    "saveSuccess": "Οι ρυθμίσεις ενημερώθηκαν επιτυχώς.",
+    "saveError": "Δεν ήταν δυνατή η αποθήκευση αυτής της ρύθμισης.",
+    "editFieldAria": "Επεξεργασία {fieldLabel}",
+    "editValueModalAria": "Επεξεργασία ρύθμισης συνδρομής",
+    "editModalTitle": "Επεξεργασία {label}",
+    "numberStepDecrement": "Μείωση τιμής",
+    "numberStepIncrement": "Αύξηση τιμής",
+    "pricingScheduleHint": "Η αλλαγή του μηνιαίου ή ετήσιου premium ποσού δημιουργεί νέα ενεργή γραμμή τιμής (η προηγούμενη ανοιχτή γραμμή κλείνει κατά τον χρόνο ισχύος).",
+    "pricingChangeReason": "σελίδα συνδρομών management-web",
     "fieldLabels": {
       "freeTrialExpirationSeconds": "Διάρκεια δοκιμής (δευτερόλεπτα)",
       "premiumMembershipCostMonthly": "Μηνιαίο κόστος premium",
@@ -164,7 +296,10 @@
       "source": "Πηγή"
     },
     "validation": {
-      "invalidFreeTrialSeconds": "Η διάρκεια δοκιμής πρέπει να είναι θετικός ακέραιος αριθμός."
+      "emptyValue": "Εισαγάγετε μια τιμή.",
+      "invalidFreeTrialSeconds": "Η διάρκεια δοκιμής πρέπει να είναι ακέραιος δευτερόλεπτα μεταξύ 60 και 31536000.",
+      "invalidNonNegativeInteger": "Εισαγάγετε ακέραιο μεγαλύτερο ή ίσο του 0.",
+      "invalidPriceUsd": "Εισαγάγετε ποσό USD μεγαλύτερο από 0 και το πολύ 999999.99."
     }
   },
   "feedFlagStatus": {
@@ -172,6 +307,20 @@
     "pageSubtitle": "Βρείτε μια τροφοδοσία με ID Podcast Index (προεπιλογή), εσωτερικό id τροφοδοσίας ή URL. Ενημερώστε κύκλο ζωής, ενεργές συνθήκες, όρια και σημειώσεις. Αυτό είναι ξεχωριστό από το πρόγραμμα περιήγησης πινάκων της βάσης.",
     "breadcrumbParent": "Λειτουργίες τροφοδοσίας",
     "breadcrumbCurrent": "Κατάσταση σημαίας",
+    "directoryHeading": "Τροφοδοσίες",
+    "directoryLoadError": "Δεν ήταν δυνατή η φόρτωση της λίστας τροφοδοσιών.",
+    "directoryEmpty": "Καμία τροφοδοσία δεν ταιριάζει με τα τρέχοντα φίλτρα.",
+    "filterLifecycleLabel": "Κύκλος ζωής",
+    "filterLifecycleAll": "Όλοι οι κύκλοι ζωής",
+    "directorySearchPlaceholder": "Φιλτράρισμα κατά τίτλο, URL ή id…",
+    "directorySearchButton": "Εφαρμογή φίλτρου",
+    "tableFeedId": "ID",
+    "tableChannelTitle": "Τίτλος",
+    "tablePodcastIndexId": "Podcast Index ID",
+    "tableLifecycle": "Κύκλος ζωής",
+    "tableUrl": "URL",
+    "openFeedRow": "Άνοιγμα",
+    "sectionDirectoryAria": "Κατάλογος τροφοδοσιών",
     "sectionFindAria": "Αναζήτηση",
     "findFeedHeading": "Εύρεση τροφοδοσίας",
     "searchByLabel": "Αναζήτηση κατά",
@@ -240,23 +389,44 @@
   },
   "admins": {
     "title": "Διαχειριστές",
+    "adminDetail": "Λεπτομέρειες διαχειριστή",
     "createAdmin": "Δημιουργία Διαχειριστή",
     "editAdmin": "Επεξεργασία Διαχειριστή",
     "editAdminItem": "Επεξεργασία {email}",
     "failedToLoad": "Αποτυχία φόρτωσης λογαριασμών διαχειριστών",
     "failedToCreate": "Αποτυχία δημιουργίας διαχειριστή",
     "failedToUpdate": "Αποτυχία ενημέρωσης διαχειριστή",
+    "failedToDeleteAdmin": "Αποτυχία διαγραφής διαχειριστή",
+    "confirmDeleteAdmin": "Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτόν τον διαχειριστή; Δεν μπορεί να αναιρεθεί.",
+    "deleteConfirmAria": "Επιβεβαίωση διαγραφής διαχειριστή",
     "createdSuccessfully": "Διαχειριστής δημιουργήθηκε με επιτυχία.",
+    "createdWithLink": "Δημιουργήθηκε διαχειριστής. Μοιραστείτε τον παρακάτω σύνδεσμο πρόσκλησης για να ορίσουν τον κωδικό τους.",
+    "passwordOptional": "Κωδικός (προαιρετικό)",
+    "passwordInviteHint": "Αν το αφήσετε κενό, δημιουργείται σύνδεσμος πρόσκλησης που μπορείτε να στείλετε για να ορίσουν τον κωδικό τους.",
     "updatedSuccessfully": "Διαχειριστής ενημερώθηκε με επιτυχία.",
     "tableHeaders": {
       "id": "ID",
       "email": "Email",
       "role": "Ρόλος",
+      "createdAt": "Δημιουργήθηκε",
       "feeds": "Τροφοδοσίες",
       "takedownReasons": "Λόγοι αποδέσμευσης",
       "admins": "Διαχειριστές",
       "stats": "Στατιστικά",
+      "bucket": "Bucket",
       "actions": "Ενέργειες"
+    },
+    "setAdminPassword": {
+      "title": "Ορισμός κωδικού διαχειριστή",
+      "subtitle": "Επιλέξτε κωδικό για αυτόν τον λογαριασμό διαχείρισης.",
+      "passwordLabel": "Νέος κωδικός",
+      "confirmLabel": "Επιβεβαίωση κωδικού",
+      "submit": "Αποθήκευση κωδικού",
+      "success": "Ο κωδικός αποθηκεύτηκε. Μπορείτε να συνδεθείτε.",
+      "backToSignIn": "Πίσω στη σύνδεση",
+      "passwordsDoNotMatch": "Οι κωδικοί δεν ταιριάζουν.",
+      "failed": "Δεν ήταν δυνατός ο ορισμός κωδικού. Ο σύνδεσμος μπορεί να είναι άκυρος ή να έχει λήξει.",
+      "missingToken": "Λείπει το token από αυτόν τον σύνδεσμο. Ζητήστε νέα πρόσκληση από διαχειριστή."
     },
     "permissions": {
       "legend": "Δικαιώματα",
@@ -268,7 +438,8 @@
       "feeds": "Ροές",
       "takedownReasons": "Λόγοι αποδέσμευσης",
       "admins": "Διαχειριστές",
-      "stats": "Στατιστικά"
+      "stats": "Στατιστικά",
+      "bucket": "Αποθήκευση αντικειμένων"
     }
   },
   "users": {
@@ -299,6 +470,7 @@
     "noResults": "Δεν βρέθηκαν χρήστες που να ταιριάζουν στην αναζήτηση σας.",
     "noUsers": "Δεν βρέθηκαν χρήστες.",
     "confirmDelete": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτόν τον χρήστη; Αυτό δεν μπορεί να αναιρεθεί.",
+    "deleteConfirmAria": "Επιβεβαίωση διαγραφής χρήστη",
     "userDetail": "Λεπτομέρειες Χρήστη",
     "editUser": "Επεξεργασία Χρήστη",
     "verified": "Επαληθευμένο",
@@ -307,11 +479,14 @@
     "changePassword": "Αλλαγή Κωδικού Πρόσβασης",
     "passwordChanged": "Ο κωδικός πρόσβασης άλλαξε με επιτυχία",
     "inviteLinks": "Σύνδεσμοι Πρόσκλησης",
-    "noActiveInviteLinks": "Δεν υπάρχουν ενεργοί σύνδεσμοι πρόσκλησης.",
     "activeInviteLink": "Ενεργός Σύνδεσμος Πρόσκλησης",
     "expiresAt": "Λήγει: {date}",
     "revokeLink": "Αναίρεση Συνδέσμου",
     "generateInviteLink": "Δημιουργία Συνδέσμου Πρόσκλησης",
+    "passwordResetLinkSection": "Σύνδεσμος επαναφοράς κωδικού",
+    "activePasswordResetLink": "Ενεργός σύνδεσμος επαναφοράς κωδικού",
+    "generatePasswordResetLink": "Δημιουργία συνδέσμου επαναφοράς κωδικού",
+    "passwordResetLinkAdminHint": "Αυτός ο σύνδεσμος επιτρέπει στον χρήστη να ορίσει νέο κωδικό χωρίς τον παλιό. Μοιραστείτε τον μόνο με τον χρήστη· ανακαλέστε τον όταν τελειώσετε.",
     "passwordsDoNotMatch": "Οι κωδικοί δεν ταιριάζουν.",
     "membershipForm": {
       "membershipStatus": "Κατάσταση Μέλους",
@@ -322,6 +497,7 @@
       "hintTrialNew": "Η δοκιμαστική ξεκινά τους χρήστες στην κατηγορία ανεπίσημων με αυστηρότερους προεπιλεγμένους περιορισμούς.",
       "hintPremiumNew": "Το Premium ξεκινά τους χρήστες στην κατηγορία επίσημων με ευρύτερη προεπιλεγμένη πρόσβαση.",
       "membershipExpiresAt": "Η Συνδρομή Λήγει Στις",
+      "membershipExpiresAtPickerAffix": "Άνοιγμα επιλογής ημερομηνίας και ώρας",
       "premiumBillingCadence": "Περίοδος χρέωσης Premium",
       "billingMonthly": "Μηνιαία",
       "billingAnnual": "Ετήσια",
@@ -340,12 +516,12 @@
       "addByRssFeedLimitHelp": "Μέγιστος αριθμός ροών Προσθήκη μέσω RSS για αυτόν τον λογαριασμό. Προεπιλογή επιπέδου δοκιμής: {trialDefault}. Προεπιλογή επιπέδου Premium: {premiumDefault}. Προεπιλογή επιλεγμένου επιπέδου για παρακάμψεις: {selectedDefault}.",
       "manualRefreshPerHour": "Περιορισμός χειροκίνητης ανανέωσης/ώρα",
       "manualRefreshPerHourHelp": "Μέγιστος αριθμός χειροκίνητων ανανεώσεων ανά ώρα. Προεπιλογή επιπέδου δοκιμής: {trialDefault}. Προεπιλογή επιπέδου Premium: {premiumDefault}. Προεπιλογή επιλεγμένου επιπέδου για παρακάμψεις: {selectedDefault}.",
-      "placeholderTierDefault": "Προεπιλογή επιπέδου: {count}",
+      "placeholderTierDefault": "Προεπιλογή: {count}",
       "trackStatsHelp": "Εάν καταγράφονται στατιστικά ακρόασης. Προεπιλογή δοκιμής: {trialDefault}. Προεπιλογή Premium: {premiumDefault}.",
       "allowNotificationsHelp": "Εάν επιτρέπονται ειδοποιήσεις push/email. Προεπιλογή δοκιμής: {trialDefault}. Προεπιλογή Premium: {premiumDefault}.",
       "trackStats": "Υπέρβαση παρακολούθησης στατιστικών",
       "allowNotifications": "Επιτρέψτε τις ειδοποιήσεις",
-      "useTrustTierDefault": "Χρήση προεπιλεγμένου επιπέδου συνδρομής",
+      "useTrustTierDefault": "Προεπιλογή ({value})",
       "allow": "Επιτρέπω",
       "block": "Αποκλεισμός",
       "trackStatsOn": "Παρακολούθηση στατιστικών",
@@ -379,6 +555,7 @@
     "paginationSummary": "{total} σειρές συνολικά | Σελίδα {page} από {totalPages}",
     "paginationSummarySingular": "{total} σειρά συνολικά | Σελίδα {page} από {totalPages}",
     "deleteConfirm": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτή τη σειρά; Αυτό δεν μπορεί να αναιρεθεί.",
+    "deleteConfirmAria": "Επιβεβαίωση διαγραφής γραμμής",
     "tables": {
       "feed": {
         "label": "Ροές",
@@ -445,14 +622,12 @@
   "settings": {
     "title": "Ρυθμίσεις",
     "subtitle": "Επιλέξτε τη γλώσσα και το θέμα σας",
-    "theme": {
-      "label": "Θέμα",
-      "options": {
-        "dark": "Σκοτεινό",
-        "light": "Φωτεινό",
-        "dracula": "Dracula",
-        "violet": "Βιολέ"
-      }
+    "ui_theme": {
+      "theme": "Θέμα",
+      "light": "Φωτεινό",
+      "dark": "Σκοτεινό",
+      "dracula": "Dracula",
+      "violet": "Βιολέ"
     },
     "language": {
       "label": "Γλώσσα"

@@ -1,21 +1,36 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
   ActionLink,
   Alert,
-  LoadingText,
   ManagementPageShell,
   PageHeaderActions,
+  ResourceTableWithFilter,
+  type SortDirection,
   StatusBadge,
   Table,
 } from '@podverse/ui';
 
+import { ManagementLoadingSpinnerOverlay } from '../../../components/LoadingSpinner/ManagementLoadingSpinnerOverlay';
+import { useManagementTableChrome } from '../../../components/Table/managementTableChrome';
+import { ManagementIconButtonLink } from '../../../lib/ManagementIconButtonLink';
+import {
+  canCreateAdmins,
+  canDeleteAdmins,
+  canReadAdmins,
+  canUpdateAdmins,
+} from '../../../lib/managementPermissions';
+import { managementSearchParamsObject } from '../../../lib/managementTableUrl';
 import { type AdminAccount, listAdmins } from '../../../lib/requests/admins';
-import { type CurrentUser } from '../../../lib/requests/auth';
+import type { CurrentUser } from '../../../lib/requests/auth';
+import { resolveManagementTableEmptyState } from '../../../lib/tableEmptyState';
+
+import dataSurfaceBusyStyles from '../../../styles/managementDataSurfaceBusy.module.scss';
 
 const CRUD_LABELS: Record<number, string> = {
   0: 'None',
@@ -40,6 +55,51 @@ function crudLabel(value: number): string {
   return CRUD_LABELS[value] ?? String(value);
 }
 
+const ADMIN_COLUMN_IDS = [
+  'id_text',
+  'email',
+  'role',
+  'feeds',
+  'takedownReasons',
+  'admins_perm',
+  'stats_perm',
+  'bucket',
+] as const;
+
+function sortAdmins(rows: AdminAccount[], sortKey: string, order: SortDirection): AdminAccount[] {
+  const dir = order === 'asc' ? 1 : -1;
+  return [...rows].sort((a, b) => {
+    if (sortKey === 'feeds') {
+      const va = a.permissions?.feeds_crud ?? 0;
+      const vb = b.permissions?.feeds_crud ?? 0;
+      return (va - vb) * dir;
+    }
+    if (sortKey === 'takedownReasons') {
+      const va = a.permissions?.feed_takedown_reasons_crud ?? 0;
+      const vb = b.permissions?.feed_takedown_reasons_crud ?? 0;
+      return (va - vb) * dir;
+    }
+    if (sortKey === 'admins_perm') {
+      const va = a.permissions?.admins_crud ?? 0;
+      const vb = b.permissions?.admins_crud ?? 0;
+      return (va - vb) * dir;
+    }
+    if (sortKey === 'stats_perm') {
+      const va = a.permissions?.stats_crud ?? 0;
+      const vb = b.permissions?.stats_crud ?? 0;
+      return (va - vb) * dir;
+    }
+    if (sortKey === 'bucket') {
+      const va = a.permissions?.bucket_crud ?? 0;
+      const vb = b.permissions?.bucket_crud ?? 0;
+      return (va - vb) * dir;
+    }
+    const av = a[sortKey as keyof AdminAccount];
+    const bv = b[sortKey as keyof AdminAccount];
+    return String(av ?? '').localeCompare(String(bv ?? '')) * dir;
+  });
+}
+
 export type AdminsListPageClientProps = {
   initialUser: CurrentUser;
 };
@@ -51,9 +111,22 @@ export function AdminsListPageClient({ initialUser }: AdminsListPageClientProps)
   const [error, setError] = useState<string | null>(null);
   const t = useTranslations('admins');
   const tc = useTranslations('common');
+  const tsTable = useTranslations('tableShared');
+  const chrome = useManagementTableChrome();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  const isSuperuser = user.role === 'superuser';
-  const canCreate = isSuperuser;
+  const basePath = pathname !== null && pathname !== '' ? pathname : '/admins';
+  const currentQueryParams = useMemo(
+    () => managementSearchParamsObject(searchParams),
+    [searchParams]
+  );
+  const urlSearch = searchParams.get('search') ?? '';
+
+  const [sortBy, setSortBy] = useState<string>('id_text');
+  const [sortOrder, setSortOrder] = useState<SortDirection>('asc');
+
+  const canCreate = canCreateAdmins(user);
 
   useEffect(() => {
     let cancelled = false;
@@ -83,68 +156,191 @@ export function AdminsListPageClient({ initialUser }: AdminsListPageClientProps)
     };
   }, [t]);
 
+  const sortedAdmins = useMemo(
+    () => sortAdmins(admins, sortBy, sortOrder),
+    [admins, sortBy, sortOrder]
+  );
+
+  const filteredAdmins = useMemo(() => {
+    const q = urlSearch.trim().toLowerCase();
+    if (q === '') {
+      return sortedAdmins;
+    }
+    return sortedAdmins.filter(
+      (a) =>
+        (a.email ?? '').toLowerCase().includes(q) ||
+        (a.id_text ?? '').toLowerCase().includes(q) ||
+        (a.role ?? '').toLowerCase().includes(q)
+    );
+  }, [sortedAdmins, urlSearch]);
+
+  const columns = useMemo(
+    () => [
+      {
+        header: t('tableHeaders.id'),
+        id: 'id_text',
+        label: t('tableHeaders.id'),
+        sortAriaLabel: chrome.sortAriaForColumn(String(t('tableHeaders.id'))),
+        sortKey: 'id_text',
+      },
+      {
+        header: t('tableHeaders.email'),
+        id: 'email',
+        label: t('tableHeaders.email'),
+        sortAriaLabel: chrome.sortAriaForColumn(String(t('tableHeaders.email'))),
+        sortKey: 'email',
+      },
+      {
+        header: t('tableHeaders.role'),
+        id: 'role',
+        label: t('tableHeaders.role'),
+        sortAriaLabel: chrome.sortAriaForColumn(String(t('tableHeaders.role'))),
+        sortKey: 'role',
+      },
+      {
+        header: t('tableHeaders.feeds'),
+        id: 'feeds',
+        label: t('tableHeaders.feeds'),
+        sortAriaLabel: chrome.sortAriaForColumn(String(t('tableHeaders.feeds'))),
+        sortKey: 'feeds',
+      },
+      {
+        header: t('tableHeaders.takedownReasons'),
+        id: 'takedownReasons',
+        label: t('tableHeaders.takedownReasons'),
+        sortAriaLabel: chrome.sortAriaForColumn(String(t('tableHeaders.takedownReasons'))),
+        sortKey: 'takedownReasons',
+      },
+      {
+        header: t('tableHeaders.admins'),
+        id: 'admins_perm',
+        label: t('tableHeaders.admins'),
+        sortAriaLabel: chrome.sortAriaForColumn(String(t('tableHeaders.admins'))),
+        sortKey: 'admins_perm',
+      },
+      {
+        header: t('tableHeaders.stats'),
+        id: 'stats_perm',
+        label: t('tableHeaders.stats'),
+        sortAriaLabel: chrome.sortAriaForColumn(String(t('tableHeaders.stats'))),
+        sortKey: 'stats_perm',
+      },
+      {
+        header: t('tableHeaders.bucket'),
+        id: 'bucket',
+        label: t('tableHeaders.bucket'),
+        sortAriaLabel: chrome.sortAriaForColumn(String(t('tableHeaders.bucket'))),
+        sortKey: 'bucket',
+      },
+    ],
+    [chrome, t]
+  );
+
+  const adminsTableEmptyState = resolveManagementTableEmptyState({
+    filteredEmptyMessage: tsTable('noResults'),
+    hasDataInSystem: loading ? undefined : admins.length > 0,
+    hasVisibleRows: filteredAdmins.length > 0,
+    systemEmptyMessage: chrome.systemEmptyMessage,
+  });
+
+  const systemAdminsEmpty = adminsTableEmptyState?.mode === 'system-empty';
+
   return (
     <ManagementPageShell
       title={t('title')}
       headerChildren={
-        <PageHeaderActions>
-          {canCreate && (
-            <ActionLink href="/admins/new" variant="primary" LinkComponent={Link}>
-              {t('createAdmin')}
-            </ActionLink>
-          )}
-        </PageHeaderActions>
+        !systemAdminsEmpty ? (
+          <PageHeaderActions>
+            {canCreate && (
+              <ActionLink href="/admins/new" variant="primary" LinkComponent={Link}>
+                {t('createAdmin')}
+              </ActionLink>
+            )}
+          </PageHeaderActions>
+        ) : null
       }
     >
-      {loading && <LoadingText>{tc('loading')}</LoadingText>}
-      {error && <Alert>{error}</Alert>}
-      {!loading && !error && (
-        <Table.ScrollContainer>
-          <Table>
-            <Table.Head>
-              <Table.Row>
-                <Table.HeaderCell>{t('tableHeaders.id')}</Table.HeaderCell>
-                <Table.HeaderCell>{t('tableHeaders.email')}</Table.HeaderCell>
-                <Table.HeaderCell>{t('tableHeaders.role')}</Table.HeaderCell>
-                <Table.HeaderCell>{t('tableHeaders.feeds')}</Table.HeaderCell>
-                <Table.HeaderCell>{t('tableHeaders.takedownReasons')}</Table.HeaderCell>
-                <Table.HeaderCell>{t('tableHeaders.admins')}</Table.HeaderCell>
-                <Table.HeaderCell>{t('tableHeaders.stats')}</Table.HeaderCell>
-                <Table.HeaderCell>{tc('actions')}</Table.HeaderCell>
-              </Table.Row>
-            </Table.Head>
-            <Table.Body>
-              {admins.map((admin) => (
-                <Table.Row key={admin.id}>
-                  <Table.Cell>{admin.id_text}</Table.Cell>
-                  <Table.Cell>{admin.email ?? '-'}</Table.Cell>
-                  <Table.Cell>
-                    <StatusBadge variant={admin.role === 'superuser' ? 'success' : 'neutral'}>
-                      {admin.role}
-                    </StatusBadge>
-                  </Table.Cell>
-                  <Table.Cell>{crudLabel(admin.permissions?.feeds_crud ?? 0)}</Table.Cell>
-                  <Table.Cell>
-                    {crudLabel(admin.permissions?.feed_takedown_reasons_crud ?? 0)}
-                  </Table.Cell>
-                  <Table.Cell>{crudLabel(admin.permissions?.admins_crud ?? 0)}</Table.Cell>
-                  <Table.Cell>{crudLabel(admin.permissions?.stats_crud ?? 0)}</Table.Cell>
-                  <Table.Cell>
-                    {admin.role !== 'superuser' && isSuperuser && (
-                      <ActionLink
-                        href={`/admins/${admin.id}/edit`}
-                        variant="inline"
-                        LinkComponent={Link}
-                      >
-                        {tc('edit')}
-                      </ActionLink>
-                    )}
-                  </Table.Cell>
-                </Table.Row>
-              ))}
-            </Table.Body>
-          </Table>
-        </Table.ScrollContainer>
+      <ManagementLoadingSpinnerOverlay isLoading={loading} />
+      <Alert>{error}</Alert>
+      {!error && (
+        <div
+          aria-busy={loading ? true : undefined}
+          className={loading ? dataSurfaceBusyStyles.dataSurfaceBusy : undefined}
+        >
+          <ResourceTableWithFilter<AdminAccount>
+            actions={{
+              LinkComponent: ManagementIconButtonLink,
+              editHref: (adminRow) => `/admins/${adminRow.id}/edit`,
+              viewHref: (adminRow) => `/admins/${adminRow.id}`,
+              labels: {
+                delete: tc('delete'),
+                edit: tc('edit'),
+                view: tc('view'),
+              },
+            }}
+            allColumnIds={[...ADMIN_COLUMN_IDS]}
+            basePath={basePath}
+            columns={columns}
+            currentQueryParams={currentQueryParams}
+            deleteConfirm={{
+              ...chrome.deleteConfirmLabels,
+              message: () => '',
+              modalAriaLabel: chrome.deleteConfirmLabels.modalAriaLabel,
+            }}
+            emptyState={adminsTableEmptyState}
+            filterableColumnIds={[...ADMIN_COLUMN_IDS]}
+            getRowActions={(adminRow) => {
+              const isTargetSuperuser = adminRow.role === 'superuser';
+              const canViewRow = canReadAdmins(user);
+              const canEditRow =
+                canUpdateAdmins(user) &&
+                (user.role === 'superuser' || !isTargetSuperuser) &&
+                !isTargetSuperuser;
+              const canDeleteRow =
+                canDeleteAdmins(user) && adminRow.id !== user.id && !isTargetSuperuser;
+              return {
+                delete: canDeleteRow ? 'enabled' : 'hidden',
+                edit: canEditRow ? 'enabled' : 'hidden',
+                view: canViewRow ? 'enabled' : 'hidden',
+              };
+            }}
+            getRowKey={(adminRow) => adminRow.id_text}
+            initialColumns={[...ADMIN_COLUMN_IDS]}
+            initialSearch={urlSearch}
+            labels={{
+              ...chrome.filterLabels,
+              actionsColumn: tc('actions'),
+            }}
+            paginationMode="page"
+            renderCells={(adminRow) => (
+              <>
+                <Table.Cell>{adminRow.id_text}</Table.Cell>
+                <Table.Cell>{adminRow.email ?? '-'}</Table.Cell>
+                <Table.Cell>
+                  <StatusBadge variant={adminRow.role === 'superuser' ? 'success' : 'neutral'}>
+                    {adminRow.role}
+                  </StatusBadge>
+                </Table.Cell>
+                <Table.Cell>{crudLabel(adminRow.permissions?.feeds_crud ?? 0)}</Table.Cell>
+                <Table.Cell>
+                  {crudLabel(adminRow.permissions?.feed_takedown_reasons_crud ?? 0)}
+                </Table.Cell>
+                <Table.Cell>{crudLabel(adminRow.permissions?.admins_crud ?? 0)}</Table.Cell>
+                <Table.Cell>{crudLabel(adminRow.permissions?.stats_crud ?? 0)}</Table.Cell>
+                <Table.Cell>{crudLabel(adminRow.permissions?.bucket_crud ?? 0)}</Table.Cell>
+              </>
+            )}
+            rows={filteredAdmins}
+            searchSyncParams={{ page: '1' }}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            sortableColumnIds={[...ADMIN_COLUMN_IDS]}
+            onSortChange={(key, order) => {
+              setSortBy(key);
+              setSortOrder(order);
+            }}
+          />
+        </div>
       )}
     </ManagementPageShell>
   );

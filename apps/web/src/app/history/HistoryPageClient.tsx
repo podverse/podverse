@@ -2,11 +2,9 @@
 
 import type { DTOQueue } from '@podverse/helpers';
 import type { QueryParamsHistory } from '@podverse/helpers-requests';
+import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
 
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { SideContent } from '../../components/SideContent/SideContent';
 import { HistoryPageContextProvider } from './HistoryPageContext';
 import { HistoryPageHeader } from './HistoryPageHeader';
 import { HistoryPageList } from './HistoryPageList';
@@ -24,13 +22,13 @@ export function HistoryPageClient(props: HistoryPageClientProps) {
     <HistoryPageContextProvider initialQueryParams={initialQueryParams} ssrQueues={ssrQueues}>
       <HistoryPageHeader />
       <MainWrapper>
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             <HistoryPageListHeader />
             <HistoryPageList />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </HistoryPageContextProvider>
   );

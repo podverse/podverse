@@ -1,11 +1,9 @@
 'use client';
 
 import type { DTOPlaylist } from '@podverse/helpers';
+import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
 
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { SideContent } from '../../../components/SideContent/SideContent';
 import { StatsPlaylistPageView } from '../../../components/StatsTracking/StatsPageViewTrackers';
 import { PlaylistPageContextProvider } from './PlaylistPageContext';
 import { PlaylistPageHeader } from './PlaylistPageHeader';
@@ -21,12 +19,12 @@ export function PlaylistPageClient({ ssrPlaylist }: PlaylistPageClientProps) {
       <StatsPlaylistPageView playlistIdText={ssrPlaylist.id_text} />
       <PlaylistPageHeader playlist={ssrPlaylist} />
       <MainWrapper>
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             <PlaylistPageList ssrPlaylist={ssrPlaylist} />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </PlaylistPageContextProvider>
   );

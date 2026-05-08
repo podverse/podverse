@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { SUPPORTED_LOCALES } from '@podverse/helpers';
+import { FormDropdown } from '@podverse/ui';
 
 import { getConfig } from '../../config';
 
@@ -40,11 +41,17 @@ function getLanguageLabel(t: (key: string) => string, code: string): string {
 }
 
 type ManagementLocaleSelectorProps = {
-  id?: string;
   className?: string;
+  id?: string;
+  /** Visible field title inside the control chrome (same pattern as web Settings General). */
+  eyebrow?: string;
 };
 
-export function ManagementLocaleSelector({ id, className }: ManagementLocaleSelectorProps) {
+export function ManagementLocaleSelector({
+  id,
+  className,
+  eyebrow,
+}: ManagementLocaleSelectorProps) {
   const t = useTranslations('language');
   const router = useRouter();
   const intlLocale = useLocale();
@@ -66,8 +73,7 @@ export function ManagementLocaleSelector({ id, className }: ManagementLocaleSele
   }, [t]);
 
   const onChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const next = e.target.value;
+    (next: string) => {
       if (next === intlLocale) {
         return;
       }
@@ -79,18 +85,13 @@ export function ManagementLocaleSelector({ id, className }: ManagementLocaleSele
   );
 
   return (
-    <select
-      id={id}
+    <FormDropdown
       className={className}
-      aria-label={t('language')}
+      eyebrow={eyebrow}
+      id={id ?? 'management-locale-selector'}
+      options={options}
       value={value}
       onChange={onChange}
-    >
-      {options.map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
-      ))}
-    </select>
+    />
   );
 }

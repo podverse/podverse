@@ -7,9 +7,8 @@ import type { QueryParamsMedium } from '@podverse/helpers';
 import { QUERY_PARAMS_MEDIUMS } from '@podverse/helpers';
 import type { QueryParamsHomeSort } from '@podverse/helpers-requests';
 import { QUERY_PARAMS_HOME_SORT_VALUES } from '@podverse/helpers-requests';
+import { Dropdown, MainHeader } from '@podverse/ui';
 
-import { CommonListPageHeader } from '../components/Common/List/CommonListPageHeader';
-import Dropdown from '../components/Dropdown/Dropdown';
 import { ViewSelector } from '../components/ViewSelector/ViewSelector';
 import { useLocalSettings } from '../contexts/LocalSettings';
 import { useHomePageContext } from './HomePageContext';
@@ -66,5 +65,5 @@ export const HomePageHeader: React.FC = () => {
     </>
   );
 
-  return <CommonListPageHeader title={tSubscriptions('subscriptions')} buttonsNode={buttonsNode} />;
+  return <MainHeader title={tSubscriptions('subscriptions')} buttonsNode={buttonsNode} />;
 };

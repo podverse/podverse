@@ -1,12 +1,18 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOPlaylist } from '@podverse/helpers';
+import { LazyLoadPlaceholder } from '@podverse/ui';
 
-import { LazyLoadPlaceholder } from '../../../../components/LazyLoadPlaceholder/LazyLoadPlaceholder';
 import { usePlaylistEditPageContext } from './PlaylistEditPageContext';
+
+function PlaylistEditListPlaylistResourcesLoading() {
+  const tMisc = useTranslations('misc');
+  return <LazyLoadPlaceholder ariaLabel={tMisc('loading')} />;
+}
 
 const ListPlaylistResources = dynamic(
   () =>
@@ -15,7 +21,7 @@ const ListPlaylistResources = dynamic(
     })),
   {
     ssr: false,
-    loading: () => <LazyLoadPlaceholder />,
+    loading: () => <PlaylistEditListPlaylistResourcesLoading />,
   }
 );
 

@@ -24,7 +24,7 @@ services:
       - podverse_local_db_data:/var/lib/postgresql/data
       - ../../../k8s/base/db/source/bootstrap/0001_create_app_db_users.sh:/docker-entrypoint-initdb.d/0001_create_app_db_users.sh:ro
       - ../../../k8s/base/db/source/bootstrap/0002_create_management_db_users.sh:/docker-entrypoint-initdb.d/0002_create_management_db_users.sh:ro
-      - ../../../development/seeds/local-dev-account.sql:/opt/database/seed-scripts/local-dev-account.sql
+      - ../../../development/seeds/local-dev-accounts.sql:/opt/database/seed-scripts/local-dev-accounts.sql
     command: >
       postgres -c max_connections=200
                -c superuser_reserved_connections=20

@@ -1,12 +1,10 @@
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import type { QueryParamsItem } from '@podverse/helpers-requests';
+import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
 
 import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
 import { CoreEpisodeHeader } from '../../../components/Core/Podcast/Episodes/CoreEpisodeHeader';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { SideContent } from '../../../components/SideContent/SideContent';
 import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
 import { EpisodePageContextProvider } from './EpisodePageContext';
 import { EpisodePageList } from './EpisodePageList';
@@ -39,9 +37,9 @@ export function EpisodePageClient(props: EpisodePageClientProps) {
     <EpisodePageContextProvider initialQueryParams={initialQueryParams}>
       <MainWrapper>
         <CorePodcastHeader channel={ssrChannel} item={ssrItem} />
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             <CoreEpisodeHeader channel={ssrChannel} item={ssrItem} />
             <EpisodePageListHeader
               ssrHasChapters={ssrHasChapters}
@@ -54,8 +52,8 @@ export function EpisodePageClient(props: EpisodePageClientProps) {
               ssrItem={ssrItem}
               ssrCanShowBoosts={ssrCanShowBoosts}
             />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </EpisodePageContextProvider>
   );

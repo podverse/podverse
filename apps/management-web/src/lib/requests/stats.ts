@@ -47,7 +47,7 @@ export async function reqStatsTop(
     limit: String(limit),
   });
   return service.apiRequest<StatsTopResponse>({
-    path: `/stats/top/${entityType}?${params.toString()}`,
+    path: `/stats/${entityType}/top?${params.toString()}`,
     method: 'GET',
   });
 }
@@ -55,7 +55,7 @@ export async function reqStatsTop(
 export async function reqStatsDetail(entityType: EntityType, id: number): Promise<StatsRow> {
   const service = new ManagementApiRequestService();
   return service.apiRequest<StatsRow>({
-    path: `/stats/detail/${entityType}/${id}`,
+    path: `/stats/${entityType}/${id}`,
     method: 'GET',
   });
 }
@@ -75,7 +75,7 @@ export async function reqStatsSearch(
     limit: String(limit),
   });
   return service.apiRequest<StatsTopResponse>({
-    path: `/stats/search/${entityType}?${params.toString()}`,
+    path: `/stats/${entityType}/search?${params.toString()}`,
     method: 'GET',
   });
 }

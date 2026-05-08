@@ -12,6 +12,8 @@ import {
   stripAndDecodeHtml,
 } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
+import type { MoreButtonMenuItem } from '@podverse/ui';
+import { ImagesPerView, MoreButton } from '@podverse/ui';
 
 import { IMAGES } from '../../../../constants/images';
 import { ROUTES } from '../../../../constants/routes';
@@ -25,10 +27,7 @@ import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { useMediaPlayerResourceUpdate } from '../../../../hooks/useMediaPlayerResourceUpdate';
 import { downloadEpisodeWithModal } from '../../../../utils/downloadModal/downloadEpisodeWithModal';
 import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
-import { ImagesPerView } from '../../../Image/ImagesPerView';
 import { PlayButtonRow } from '../../../MediaPlayer/Buttons/PlayButtonRow';
-import type { MoreButtonMenuItem } from '../../../MoreButton/MoreButton';
-import { MoreButton } from '../../../MoreButton/MoreButton';
 import { ReadableDate } from '../../../Time/ReadableDate';
 import { getDurationAndPositionStr, ReadableDuration } from '../../../Time/ReadableDuration';
 import { showToastPromise, showToastPromiseWithLoading } from '../../../Toast/Toast';
@@ -54,7 +53,7 @@ interface Props {
   likeRow?: ListEpisodeRowLike;
 }
 
-const ListEpisodeRow: React.FC<Props> = ({
+export const ListEpisodeRow: React.FC<Props> = ({
   channel,
   isEditModeQueue,
   item,
@@ -350,12 +349,13 @@ const ListEpisodeRow: React.FC<Props> = ({
             </div>
           </div>
           <div className={styles.bottomSectionEnd}>
-            <MoreButton moreButtonMenuItems={moreButtonMenuItems} />
+            <MoreButton
+              ariaLabel={tMedia('more_options')}
+              moreButtonMenuItems={moreButtonMenuItems}
+            />
           </div>
         </div>
       </div>
     </div>
   );
 };
-
-export default ListEpisodeRow;

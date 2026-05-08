@@ -174,6 +174,105 @@ export async function findFeedByUrl(url: string): Promise<FeedOperationsLookupRo
   return row ? mapLookupRow(row) : null;
 }
 
+export type FeedOperationsListSortKey =
+  | 'id'
+  | 'podcast_index_id'
+  | 'channel_title'
+  | 'lifecycle_state_key'
+  | 'url';
+
+export type ListFeedOperationsForTableParams = {
+  page: number;
+  limit: number;
+  sort: FeedOperationsListSortKey;
+  order: 'asc' | 'desc';
+  q: string | null;
+  lifecycle: string | null;
+};
+
+export type ListFeedOperationsForTableResult = {
+  feeds: FeedOperationsLookupRow[];
+  total: number;
+};
+
+const LIST_SORT_SQL: Record<FeedOperationsListSortKey, string> = {
+  id: 'f.id',
+  podcast_index_id: 'f.podcast_index_id',
+  channel_title: "LOWER(COALESCE(c.title, ''))",
+  lifecycle_state_key: "LOWER(COALESCE(flst.state_key::text, ''))",
+  url: 'LOWER(f.url)',
+};
+
+function buildListWhereClause(params: { q: string | null; lifecycle: string | null }): {
+  sql: string;
+  values: unknown[];
+} {
+  const values: unknown[] = [];
+  let i = 1;
+  const parts: string[] = ['TRUE'];
+
+  if (params.lifecycle !== null && params.lifecycle.trim() !== '') {
+    parts.push(`flst.state_key::text = $${i}`);
+    values.push(params.lifecycle.trim());
+    i += 1;
+  }
+
+  const qt = params.q !== null ? params.q.trim() : '';
+  if (qt !== '') {
+    parts.push(
+      `(c.title ILIKE $${i} OR f.url ILIKE $${i} OR f.id::text = $${i + 1} OR f.podcast_index_id::text = $${i + 1})`
+    );
+    values.push(`%${qt}%`, qt);
+  }
+
+  return {
+    sql: parts.join(' AND '),
+    values,
+  };
+}
+
+export async function listFeedOperationsForTable(
+  args: ListFeedOperationsForTableParams
+): Promise<ListFeedOperationsForTableResult> {
+  const sortCol = LIST_SORT_SQL[args.sort];
+  if (sortCol === undefined) {
+    throw new Error('Invalid sort key');
+  }
+  const orderDir = args.order === 'asc' ? 'ASC' : 'DESC';
+  const whereBuilt = buildListWhereClause({ q: args.q, lifecycle: args.lifecycle });
+  const offset = (args.page - 1) * args.limit;
+
+  const countRows = (await AppDbDataSourceRead.query(
+    `SELECT COUNT(*)::bigint AS c
+     FROM feed f
+     LEFT JOIN feed_lifecycle_state fls ON fls.feed_id = f.id
+     LEFT JOIN feed_lifecycle_state_type flst ON flst.id = fls.feed_lifecycle_state_type_id
+     LEFT JOIN feed_policy fp ON fp.feed_id = f.id
+     LEFT JOIN feed_policy_override fpo ON fpo.feed_id = f.id
+     LEFT JOIN channel c ON c.feed_id = f.id
+     WHERE ${whereBuilt.sql}`,
+    whereBuilt.values
+  )) as { c: bigint }[];
+  const total = Number(countRows[0]?.c ?? 0);
+
+  const dataValues = [...whereBuilt.values, args.limit, offset];
+  const limitPos = whereBuilt.values.length + 1;
+  const offsetPos = whereBuilt.values.length + 2;
+
+  const rows = (await AppDbDataSourceRead.query(
+    `SELECT ${LOOKUP_SQL_BODY}
+     WHERE ${whereBuilt.sql}
+     ORDER BY ${sortCol} ${orderDir} NULLS LAST
+     LIMIT $${limitPos} OFFSET $${offsetPos}`,
+    dataValues
+  )) as Record<string, unknown>[];
+
+  return {
+    feeds: rows.map((r) => mapLookupRow(r)),
+    total,
+  };
+}
+
 export type LifecycleStateOption = { state_key: string };
 export type ConditionTypeOption = { condition_key: string };
 export type TakedownReasonOption = { reason: string };

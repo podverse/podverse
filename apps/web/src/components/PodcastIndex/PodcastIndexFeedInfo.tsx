@@ -7,17 +7,21 @@ import { FaPlus, FaRss } from 'react-icons/fa6';
 
 import type { PodcastByIdFeed } from '@podverse/helpers';
 import { formatDateAbbrev } from '@podverse/helpers';
-import { Button } from '@podverse/ui';
+import { Button, SkeletonFlashImage } from '@podverse/ui';
 
+import { getContactEmail } from '../../constants/contact';
 import { IMAGES } from '../../constants/images';
 import { useAccount } from '../../contexts/Account';
 import { useConfig } from '../../contexts/Config';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { dedupedTrimmedUrlCandidates } from '../../utils/image/dedupedTrimmedUrlCandidates';
+import {
+  getLegacyMembership403ModalProps,
+  getMembership403ModalProps,
+} from '../../utils/membership/modalForMembership403';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 import { redirectToChannelPageByMediumClient } from '../../utils/redirect/redirectToChannelPageByMedium';
-import { Image } from '../Image/Image';
 
 import styles from '../../styles/components/PodcastIndex/PodcastIndexFeedInfo.module.scss';
 
@@ -103,33 +107,15 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
       } catch (error: unknown) {
         const rateLimitErrorHandled = await handleRateLimitAlert(error, locale, tMisc);
         if (!rateLimitErrorHandled) {
-          type ErrorWithResponse = {
-            response?: {
-              status?: number;
-              data?: { i18nKey?: string; message?: string; renewPath?: string };
-            };
-          };
-          const errorWithResponse = error as ErrorWithResponse;
-          const errorStatus = errorWithResponse?.response?.status;
-          const errorData = errorWithResponse?.response?.data;
-          const i18nKey = errorData?.i18nKey;
-          const renewPath = errorData?.renewPath;
-          const apiMessage = errorData?.message;
-
-          if (errorStatus === 403 && i18nKey) {
-            // Extract namespace and key from i18nKey (e.g., "membership.free_trial_not_allowed")
-            const [namespace, key] = i18nKey.split('.');
-            if (namespace === 'membership' && key) {
-              setModalLoginRequired({
-                title: null,
-                message: apiMessage || tMembership(key),
-                actionLabel: renewPath ? tMembership('renew_membership') : null,
-                actionHref: renewPath ?? null,
-              });
-            } else {
-              console.error(error);
-              alert('Error performing action.');
-            }
+          const membershipModal =
+            getMembership403ModalProps({
+              error,
+              contactEmail: getContactEmail(),
+              featureContext: 'directory_add_by_rss',
+              tMembership,
+            }) ?? getLegacyMembership403ModalProps({ error, tMembership });
+          if (membershipModal !== null) {
+            setModalLoginRequired(membershipModal);
           } else {
             console.error(error);
             alert('Error performing action.');
@@ -155,21 +141,20 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
             <FaPlus className={styles.buttonIcon} />
             {tFeatures('add_feed.add_feed')}
           </Button>
-          <a
+          <Button
+            variant="secondary"
             href={podcastIndexFeed.url}
             target="_blank"
             rel="noopener noreferrer"
             className={styles.rssLinkButton}
           >
-            <Button variant="secondary" className={styles.rssLinkButtonInner}>
-              <FaRss className={styles.buttonIcon} />
-              {tFeatures('add_feed.rss_link')}
-            </Button>
-          </a>
+            <FaRss className={styles.buttonIcon} />
+            {tFeatures('add_feed.rss_link')}
+          </Button>
         </div>
       </div>
       {feedImageCandidates.length > 0 && (
-        <Image
+        <SkeletonFlashImage
           candidates={feedImageCandidates}
           alt={podcastIndexFeed.title || tMedia('podcast.podcast_image')}
           width={IMAGES.ADD_FEED.SQUARE.SIZE}

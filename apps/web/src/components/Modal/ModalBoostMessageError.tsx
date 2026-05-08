@@ -3,12 +3,9 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
-import { Button } from '@podverse/ui';
+import { Button, Modal, ModalActions } from '@podverse/ui';
 
 import { useModals } from '../../contexts/Modals';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
-
-import styles from '../../styles/components/Modal/ModalBoostMessageError.module.scss';
 
 export const ModalBoostMessageError: React.FC = () => {
   const tValue = useTranslations('value');
@@ -51,19 +48,19 @@ export const ModalBoostMessageError: React.FC = () => {
     <Modal
       isOpen={!!modalBoostMessageError.message}
       onClose={handleCancel}
+      closeButtonAriaLabel={tMisc('close_modal')}
       header={header}
       ariaLabel={header}
-      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <p>{modalBoostMessageError.message}</p>
-      <div className={styles.actions}>
+      <ModalActions>
         <Button variant="secondary" onClick={handleCancel}>
           {tMisc('cancel')}
         </Button>
         <Button onClick={handleSendAnyway}>
           {tValue(modalBoostMessageError.primaryActionI18nKey ?? 'boost_messages.pay_anyway')}
         </Button>
-      </div>
+      </ModalActions>
     </Modal>
   );
 };

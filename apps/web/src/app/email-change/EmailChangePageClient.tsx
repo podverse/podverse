@@ -1,9 +1,8 @@
 import { useTranslations } from 'next-intl';
 
+import { MainColumnStack, MainHeader, MainSidebarLayout } from '@podverse/ui';
+
 import { AuthEmailChangeForm } from '../../components/Auth/AuthEmailChangeForm';
-import { MainHeader } from '../../components/Main/MainHeader';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 
 export function EmailChangePageClient() {
@@ -13,11 +12,11 @@ export function EmailChangePageClient() {
     <>
       <MainHeader title={tAuthentication('change_email_address_email')} />
       <MainWrapper>
-        <MainInnerWrapper>
-          <MainInnerContentWrapper>
+        <MainSidebarLayout>
+          <MainColumnStack>
             <AuthEmailChangeForm />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </>
   );

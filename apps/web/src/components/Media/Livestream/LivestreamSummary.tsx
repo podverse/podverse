@@ -5,7 +5,7 @@ import React from 'react';
 
 const DescriptionRenderer = dynamic(
   () =>
-    import('../../Description/DescriptionRenderer').then((mod) => ({
+    import('@podverse/ui').then((mod) => ({
       default: mod.DescriptionRenderer,
     })),
   { loading: () => <div /> }

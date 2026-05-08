@@ -3,12 +3,15 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
-import { FormErrorMessageText, FormInfoMessageText } from '@podverse/ui';
+import {
+  FormErrorMessageText,
+  FormInfoMessageText,
+  MainColumnStack,
+  MainHeader,
+  MainSidebarLayout,
+} from '@podverse/ui';
 
-import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
-import { MainHeader } from '../../components/Main/MainHeader';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
+import { WebLoadingSpinnerDecorativeMedium } from '../../components/LoadingSpinner/WebLoadingSpinnerDecorative';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
@@ -67,13 +70,13 @@ export function EmailChangeVerifyingPageClient({ token }: EmailChangeVerifyingPa
     <>
       <MainHeader title={tAuthentication('change_email_verification')} />
       <MainWrapper>
-        <MainInnerWrapper>
-          <MainInnerContentWrapper>
+        <MainSidebarLayout>
+          <MainColumnStack>
             <div className={styles.contentWrapper}>
               {isVerifying && (
                 <div className={styles.messageSection}>
                   <FormInfoMessageText message={tAuthentication('changing_email_address')} />
-                  <LoadingSpinner size="medium" />
+                  <WebLoadingSpinnerDecorativeMedium />
                 </div>
               )}
               {!isVerifying && isSuccess && (
@@ -92,8 +95,8 @@ export function EmailChangeVerifyingPageClient({ token }: EmailChangeVerifyingPa
                 </div>
               )}
             </div>
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </>
   );

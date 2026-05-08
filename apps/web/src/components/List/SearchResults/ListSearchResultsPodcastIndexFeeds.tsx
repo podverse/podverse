@@ -4,7 +4,7 @@ import React from 'react';
 
 import type { SearchPodcastsFeed } from '@podverse/helpers';
 
-import ListSearchResultPodcastIndexFeedRow from './ListSearchResultPodcastIndexFeedRow';
+import { ListSearchResultPodcastIndexFeedRow } from './ListSearchResultPodcastIndexFeedRow';
 
 type ListSearchResultsPodcastIndexFeedsProps = {
   searchResultPodcastIndexFeeds: SearchPodcastsFeed[];

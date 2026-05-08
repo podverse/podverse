@@ -7,19 +7,21 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   ActionLink,
   Alert,
+  Breadcrumbs,
   Button,
   CopyToClipboardButton,
   DescriptionList,
   DescriptionListRow,
   Divider,
-  FormHintText,
-  LoadingText,
   ManagementPageShell,
+  Modal,
+  ModalActions,
   PageHeaderActions,
   SectionHeading,
   StatusBadge,
 } from '@podverse/ui';
 
+import { ManagementLoadingSpinnerOverlay } from '../../../../components/LoadingSpinner/ManagementLoadingSpinnerOverlay';
 import {
   deleteUser,
   generateInviteLink,
@@ -29,6 +31,8 @@ import {
   revokeInviteLink,
   type User,
 } from '../../../../lib/requests/users';
+
+import styles from './UserDetailPageClient.module.scss';
 
 type Props = {
   userId: number;
@@ -42,6 +46,18 @@ export function UserDetailPageClient({ userId }: Props) {
   const [inviteLink, setInviteLink] = useState<InviteLink | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const userLinkSection =
+    user !== null
+      ? {
+          activeLinkLabel: user.verified ? t('activePasswordResetLink') : t('activeInviteLink'),
+          generateLabel: user.verified ? t('generatePasswordResetLink') : t('generateInviteLink'),
+          sectionTitle: user.verified ? t('passwordResetLinkSection') : t('inviteLinks'),
+          showAdminHint: user.verified,
+        }
+      : null;
 
   const loadInviteLink = useCallback(async () => {
     try {
@@ -74,12 +90,16 @@ export function UserDetailPageClient({ userId }: Props) {
   }, [userId, t, loadInviteLink]);
 
   const handleDelete = async () => {
-    if (!window.confirm(t('confirmDelete'))) return;
+    setDeleteLoading(true);
+    setError(null);
     try {
       await deleteUser(userId);
       window.location.href = '/users';
     } catch {
       setError(t('failedToDelete'));
+      setDeleteConfirmOpen(false);
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -101,80 +121,138 @@ export function UserDetailPageClient({ userId }: Props) {
     }
   };
 
-  if (loading) return <LoadingText>{tc('loading')}</LoadingText>;
-  if (error) return <Alert>{error}</Alert>;
-  if (!user) return <Alert>{t('failedToLoad')}</Alert>;
-
   return (
-    <ManagementPageShell title={t('userDetail')}>
-      <ActionLink href="/users" variant="inline" LinkComponent={Link}>
-        &larr; {t('backToList')}
-      </ActionLink>
-
-      <DescriptionList variant="rows">
-        <DescriptionListRow detail={user.id_text} term="ID" />
-        <DescriptionListRow detail={user.email ?? '-'} term={t('tableHeaders.email')} />
-        <DescriptionListRow detail={user.username ?? '-'} term={t('tableHeaders.username')} />
-        <DescriptionListRow
-          detail={
-            <StatusBadge variant={user.verified ? 'success' : 'warning'}>
-              {user.verified ? tc('yes') : tc('no')}
-            </StatusBadge>
-          }
-          term={t('tableHeaders.verified')}
-        />
-        <DescriptionListRow
-          detail={user.created_at ? new Date(user.created_at).toLocaleString() : '-'}
-          term={t('tableHeaders.createdAt')}
-        />
-      </DescriptionList>
-
-      <PageHeaderActions>
-        <ActionLink href={`/users/${userId}/edit`} variant="primary" LinkComponent={Link}>
-          {tc('edit')}
-        </ActionLink>
-        <Button onClick={() => void handleDelete()} type="button" variant="danger">
-          {tc('delete')}
-        </Button>
-      </PageHeaderActions>
-
-      <Divider />
-
-      <SectionHeading level={2}>{t('inviteLinks')}</SectionHeading>
-      {inviteLink ? (
-        <div>
-          <p>
-            <strong>{t('activeInviteLink')}</strong>
-          </p>
-          <p style={{ wordBreak: 'break-all', margin: 'var(--spacing-md) 0' }}>
-            <a href={inviteLink.url} target="_blank" rel="noopener noreferrer">
-              {inviteLink.url}
-            </a>
-          </p>
-          <FormHintText variant="block">
-            {t('expiresAt', {
-              date: new Date(inviteLink.expires_at).toLocaleString(),
-            })}
-          </FormHintText>
-          <PageHeaderActions>
-            <CopyToClipboardButton
-              textToCopy={inviteLink.url}
-              idleLabel={t('copyLink')}
-              copiedLabel={t('linkCopied')}
+    <>
+      <ManagementLoadingSpinnerOverlay isLoading={loading} />
+      {!loading && error ? (
+        <Alert>{error}</Alert>
+      ) : !loading && !user ? (
+        <Alert>{t('failedToLoad')}</Alert>
+      ) : !loading && user !== null && userLinkSection !== null ? (
+        <ManagementPageShell
+          headerBreadcrumbs={
+            <Breadcrumbs
+              LinkComponent={Link}
+              navAriaLabel={tc('breadcrumbNav')}
+              items={[{ href: '/users', label: t('title') }, { label: user.id_text }]}
             />
-            <Button onClick={() => void handleRevokeLink()} type="button" variant="link">
-              {t('revokeLink')}
+          }
+          title={t('userDetail')}
+        >
+          <DescriptionList variant="rows">
+            <DescriptionListRow detail={user.id_text} term="ID" />
+            <DescriptionListRow detail={user.email ?? '-'} term={t('tableHeaders.email')} />
+            <DescriptionListRow detail={user.username ?? '-'} term={t('tableHeaders.username')} />
+            <DescriptionListRow
+              detail={
+                <StatusBadge variant={user.verified ? 'success' : 'warning'}>
+                  {user.verified ? tc('yes') : tc('no')}
+                </StatusBadge>
+              }
+              term={t('tableHeaders.verified')}
+            />
+            <DescriptionListRow
+              detail={user.created_at ? new Date(user.created_at).toLocaleString() : '-'}
+              term={t('tableHeaders.createdAt')}
+            />
+          </DescriptionList>
+
+          <PageHeaderActions>
+            <ActionLink href={`/users/${userId}/edit`} variant="primary" LinkComponent={Link}>
+              {tc('edit')}
+            </ActionLink>
+            <Button
+              onClick={() => {
+                setDeleteConfirmOpen(true);
+              }}
+              type="button"
+              variant="danger"
+            >
+              {tc('delete')}
             </Button>
           </PageHeaderActions>
-        </div>
-      ) : (
-        <div>
-          <FormHintText variant="block">{t('noActiveInviteLinks')}</FormHintText>
-          <Button onClick={() => void handleGenerateLink()} type="button" variant="link">
-            {t('generateInviteLink')}
-          </Button>
-        </div>
-      )}
-    </ManagementPageShell>
+
+          <Divider />
+
+          <div className={styles.linkSectionStack}>
+            <SectionHeading level={2}>{userLinkSection.sectionTitle}</SectionHeading>
+            {userLinkSection.showAdminHint ? (
+              <p className={styles.linkSectionSecondaryText}>{t('passwordResetLinkAdminHint')}</p>
+            ) : null}
+            {inviteLink ? (
+              <>
+                <p>
+                  <strong>{userLinkSection.activeLinkLabel}</strong>
+                </p>
+                <p className={styles.linkSectionUrl}>
+                  <a href={inviteLink.url} target="_blank" rel="noopener noreferrer">
+                    {inviteLink.url}
+                  </a>
+                </p>
+                <p className={styles.linkSectionSecondaryText}>
+                  {t('expiresAt', {
+                    date: new Date(inviteLink.expires_at).toLocaleString(),
+                  })}
+                </p>
+                <PageHeaderActions>
+                  <CopyToClipboardButton
+                    textToCopy={inviteLink.url}
+                    idleLabel={t('copyLink')}
+                    copiedLabel={t('linkCopied')}
+                  />
+                  <Button
+                    onClick={() => void handleRevokeLink()}
+                    type="button"
+                    variant="linkInline"
+                  >
+                    {t('revokeLink')}
+                  </Button>
+                </PageHeaderActions>
+              </>
+            ) : (
+              <Button
+                className={styles.linkSectionGenerateAction}
+                onClick={() => void handleGenerateLink()}
+                type="button"
+                variant="linkInline"
+              >
+                {userLinkSection.generateLabel}
+              </Button>
+            )}
+          </div>
+
+          <Modal
+            ariaLabel={t('deleteConfirmAria')}
+            closeButtonAriaLabel={tc('closeModalAria')}
+            isOpen={deleteConfirmOpen}
+            onClose={() => {
+              setDeleteConfirmOpen(false);
+            }}
+          >
+            <p>{t('confirmDelete')}</p>
+            <ModalActions>
+              <Button
+                disabled={deleteLoading}
+                onClick={() => {
+                  setDeleteConfirmOpen(false);
+                }}
+                type="button"
+                variant="secondary"
+              >
+                {tc('cancel')}
+              </Button>
+              <Button
+                isLoading={deleteLoading}
+                onClick={() => void handleDelete()}
+                type="button"
+                variant="primary"
+              >
+                {tc('confirm')}
+              </Button>
+            </ModalActions>
+          </Modal>
+        </ManagementPageShell>
+      ) : null}
+    </>
   );
 }

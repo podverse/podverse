@@ -5,7 +5,16 @@ import { useTranslations } from 'next-intl';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { hhmmssToSecondsNumber } from '@podverse/helpers';
-import { Button, Divider } from '@podverse/ui';
+import {
+  Button,
+  CallToActionMessage,
+  Divider,
+  FormDropdown,
+  ModalActions,
+  StackForm,
+  TextInput,
+  TextInputHHMMSS,
+} from '@podverse/ui';
 
 import { EVENTS } from '../../constants/events';
 import { SHARABLE_STATUS } from '../../constants/sharableStatus';
@@ -13,11 +22,6 @@ import { useAccount } from '../../contexts/Account';
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
-import { CallToActionMessage } from '../CallToActionMessage/CallToActionMessage';
-import Form from '../Form/Form';
-import { FormDropdown } from '../Form/FormDropdown';
-import { TextInput } from '../Form/TextInput';
-import { TextInputHHMMSS } from '../Form/TextInputHHMMSS';
 import { MediaHeaderMini } from '../MediaHeaderMini/MediaHeaderMini';
 import { ClipEditorPlayer } from './ClipEditorPlayer';
 
@@ -107,7 +111,7 @@ export const ClipForm: React.FC<ClipFormProps> = ({
   };
 
   return (
-    <Form className={styles.form} onSubmit={onSubmit}>
+    <StackForm className={styles.form} onSubmit={onSubmit}>
       {!loggedInAccount && (
         <CallToActionMessage
           message={tInstructions('login_to_create_clips')}
@@ -125,8 +129,8 @@ export const ClipForm: React.FC<ClipFormProps> = ({
             key="sharable_status"
             id="sharable_status"
             eyebrow={tMisc('sharable_status.sharable_status')}
+            options={sharableStatusDropdownMenuItems.map(({ value, label }) => ({ value, label }))}
             value={`${sharableStatus}`}
-            menuItems={sharableStatusDropdownMenuItems}
             onChange={setSharableStatus}
           />
           <TextInput
@@ -164,7 +168,7 @@ export const ClipForm: React.FC<ClipFormProps> = ({
             startTime={startTimeString ? hhmmssToSecondsNumber(startTimeString) : null}
             endTime={endTimeString ? hhmmssToSecondsNumber(endTimeString) : null}
           />
-          <div className={styles.buttons}>
+          <ModalActions>
             <Button variant="secondary" type="button" onClick={onCancel}>
               {tMisc('cancel')}
             </Button>
@@ -177,7 +181,7 @@ export const ClipForm: React.FC<ClipFormProps> = ({
             >
               {tMisc('submit')}
             </Button>
-          </div>
+          </ModalActions>
           {edit_clip_id_text && (
             <div className={styles.bottomSection}>
               <Divider />
@@ -190,6 +194,6 @@ export const ClipForm: React.FC<ClipFormProps> = ({
           )}
         </>
       )}
-    </Form>
+    </StackForm>
   );
 };

@@ -8,7 +8,7 @@ interface AuthSessionCheckerProps {
   ssrShouldLogout: boolean;
 }
 
-const AuthSessionChecker = ({ ssrShouldLogout }: AuthSessionCheckerProps) => {
+export const AuthSessionChecker = ({ ssrShouldLogout }: AuthSessionCheckerProps) => {
   useEffect(() => {
     if (ssrShouldLogout) {
       (async () => {
@@ -25,5 +25,3 @@ const AuthSessionChecker = ({ ssrShouldLogout }: AuthSessionCheckerProps) => {
 
   return null;
 };
-
-export default AuthSessionChecker;

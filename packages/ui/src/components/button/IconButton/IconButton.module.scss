@@ -1,0 +1,112 @@
+@use '../../../styles/mixins/flexbox' as *;
+@use '../../../styles/mixins/layout' as *;
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.base {
+  @include flexCenter;
+  position: relative;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  margin: 0;
+  font: inherit;
+  color: var(--text-color-primary);
+  cursor: pointer;
+  text-decoration: none;
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-color-primary);
+    outline-offset: 2px;
+  }
+}
+
+.appearanceControl {
+  min-width: 2rem;
+  min-height: 2rem;
+  padding: var(--spacing-button-default);
+  background: transparent;
+  border: 1px solid var(--border-color-primary);
+  border-radius: var(--border-radius);
+}
+
+.appearanceControl:hover:not(:disabled),
+.appearanceControl:focus-visible:not(:disabled) {
+  background-color: var(--button-secondary-bg-hover);
+}
+
+.appearanceGhost {
+  min-width: auto;
+  min-height: auto;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.appearanceGhost:hover:not(:disabled),
+.appearanceGhost:focus-visible:not(:disabled) {
+  background-color: transparent;
+}
+
+.variantDanger {
+  color: var(--text-color-danger);
+  border-color: var(--button-opaque-danger-border);
+}
+
+.variantDanger:hover:not(:disabled),
+.variantDanger:focus-visible:not(:disabled) {
+  background-color: var(--button-opaque-danger-bg);
+}
+
+.variantDangerGhost {
+  color: var(--text-color-danger);
+}
+
+.variantDangerGhost:hover:not(:disabled),
+.variantDangerGhost:focus-visible:not(:disabled) {
+  background-color: transparent;
+}
+
+.accentGold {
+  color: var(--button-highlight-bg);
+}
+
+.accentGold:hover:not(:disabled),
+.accentGold:focus-visible:not(:disabled) {
+  color: var(--button-highlight-bg);
+}
+
+button.base:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.iconWrap {
+  @include flexCenter;
+  line-height: 0;
+}
+
+.iconWrapInvisible {
+  visibility: hidden;
+}
+
+.spinnerWrapper {
+  position: absolute;
+  @include absoluteCenter;
+  @include flexCenter;
+  pointer-events: none;
+}
+
+.spinner {
+  font-size: var(--font-size-lg);
+  color: inherit;
+  animation: spin 1s linear infinite;
+}

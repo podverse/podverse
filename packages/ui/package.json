@@ -17,7 +17,12 @@
     "./styles/mixins": "./src/styles/_mixins.scss",
     "./styles/themes": "./src/styles/_themes.scss",
     "./styles/font-faces": "./src/styles/_font-faces.scss",
-    "./styles": "./src/styles/index.scss"
+    "./styles": "./src/styles/index.scss",
+    "./toast": {
+      "types": "./src/components/feedback/Toast/index.ts",
+      "import": "./src/components/feedback/Toast/index.ts",
+      "default": "./src/components/feedback/Toast/index.ts"
+    }
   },
   "scripts": {
     "lint": "eslint ./src --max-warnings 0",
@@ -27,7 +32,9 @@
   },
   "license": "AGPL-3.0",
   "peerDependencies": {
-    "react": "^19.2.4"
+    "next": "^16.1.6",
+    "react": "^19.2.4",
+    "react-virtuoso": "^4.18.3"
   },
   "devDependencies": {
     "@testing-library/react": "^16.3.0",
@@ -35,14 +42,19 @@
     "@types/react-dom": "^19.2.2",
     "@vitejs/plugin-react": "^5.1.1",
     "jsdom": "^26.1.0",
+    "next": "^16.1.6",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "react-virtuoso": "^4.18.3",
     "sass": "^1.98.0",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   },
   "dependencies": {
+    "@podverse/helpers": "*",
     "classnames": "^2.5.1",
+    "react-hot-toast": "^2.6.0",
+    "isomorphic-dompurify": "^3.0.0",
     "react-icons": "^5.6.0",
     "recharts": "^3.8.1"
   }

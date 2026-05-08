@@ -8,6 +8,8 @@ import { FaGripLines } from 'react-icons/fa6';
 import type { DTOChannel, DTOClip, DTOItem } from '@podverse/helpers';
 import { getQueueForMedium, mergeDTOItemThenChannelImageCandidates } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
+import type { MoreButtonMenuItem } from '@podverse/ui';
+import { ImagesPerView, MoreButton } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import { ROUTES } from '../../../constants/routes';
@@ -18,10 +20,7 @@ import { useModals } from '../../../contexts/Modals';
 import { useQueues } from '../../../contexts/Queue';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
-import { ImagesPerView } from '../../Image/ImagesPerView';
 import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
-import type { MoreButtonMenuItem } from '../../MoreButton/MoreButton';
-import { MoreButton } from '../../MoreButton/MoreButton';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableTimeRange } from '../../Time/ReadableTimeRange';
 import { showToastPromise } from '../../Toast/Toast';
@@ -346,7 +345,10 @@ export const ListClipRow: React.FC<Props> = ({
             </div>
           </div>
           <div className={styles.bottomSectionEnd}>
-            <MoreButton moreButtonMenuItems={moreButtonMenuItems} />
+            <MoreButton
+              ariaLabel={tMedia('more_options')}
+              moreButtonMenuItems={moreButtonMenuItems}
+            />
           </div>
         </div>
       </div>

@@ -6,7 +6,7 @@ import { getRuntimeConfig } from '../../config/runtime-config-store';
  * Tab / browser chrome icons. Optional env overrides (absolute or path-absolute) allow
  * white-label without replacing files baked into the image; unset uses /favicon/* in public/.
  */
-export default function FavIcons() {
+export function FavIcons() {
   const { env } = getRuntimeConfig();
   return (
     <SharedFavIcons

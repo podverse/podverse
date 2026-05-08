@@ -5,11 +5,9 @@ import { useTranslations } from 'next-intl';
 import { useEffect } from 'react';
 
 import { getAccountSignupModeCapabilities } from '@podverse/helpers';
+import { MainColumnStack, MainHeader, MainSidebarLayout } from '@podverse/ui';
 
 import { AuthResetPasswordForm } from '../../components/Auth/AuthResetPasswordForm';
-import { MainHeader } from '../../components/Main/MainHeader';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { getConfig } from '../../config';
 
@@ -39,11 +37,11 @@ export function ResetPasswordPageClient({ token }: ResetPasswordPageClientProps)
     <>
       <MainHeader title={tAuthentication('reset_password')} />
       <MainWrapper>
-        <MainInnerWrapper>
-          <MainInnerContentWrapper>
+        <MainSidebarLayout>
+          <MainColumnStack>
             <AuthResetPasswordForm token={token} />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </>
   );

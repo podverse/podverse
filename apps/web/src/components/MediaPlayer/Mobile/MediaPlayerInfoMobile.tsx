@@ -2,6 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 
+import { ImageNonReact } from '@podverse/ui';
+
 import { IMAGES } from '../../../constants/images';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
@@ -11,7 +13,6 @@ import {
   shouldUseChapterArtwork,
 } from '../../../utils/mediaPlayer/mediaPlayerArtwork';
 import { getMediaPlayerInfoResolution } from '../../../utils/mediaPlayer/mediaPlayerInfoResolution';
-import { ImageNonReact } from '../../Image/ImageNonReact';
 
 import styles from '../../../styles/components/MediaPlayer/Mobile/MediaPlayerInfoMobile.module.scss';
 

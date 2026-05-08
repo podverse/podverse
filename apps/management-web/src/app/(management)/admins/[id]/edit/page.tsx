@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 
 import { getManagementSessionUser } from '../../../../../lib/auth/serverManagementSession';
-import { getAdminAccountById } from '../../../../../lib/requests/adminAccount';
+import { canUpdateAdmins } from '../../../../../lib/managementPermissions';
+import { getAdminAccountById } from '../../../../../lib/requests/admins';
 import { EditAdminPageClient } from './EditAdminPageClient';
 
 export default async function EditAdminPage({ params }: { params: Promise<{ id: string }> }) {
@@ -10,7 +11,7 @@ export default async function EditAdminPage({ params }: { params: Promise<{ id: 
     redirect('/');
   }
 
-  if (user.role !== 'superuser') {
+  if (!canUpdateAdmins(user)) {
     redirect('/admins');
   }
 

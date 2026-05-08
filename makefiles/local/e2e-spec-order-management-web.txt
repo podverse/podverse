@@ -1,5 +1,14 @@
 apps/management-web/e2e/smoke.spec.ts
-apps/management-web/e2e/feed-operations-flag-status.spec.ts
+apps/management-web/e2e/navbar-chrome.spec.ts
+apps/management-web/e2e/feeds-flag-status.spec.ts
 apps/management-web/e2e/workers-page.spec.ts
 apps/management-web/e2e/settings-page.spec.ts
 apps/management-web/e2e/users-new-create-username-only.spec.ts
+apps/management-web/e2e/users-edit-advanced-overrides.spec.ts
+apps/management-web/e2e/users-list.spec.ts
+apps/management-web/e2e/admins-list.spec.ts
+apps/management-web/e2e/admins-detail-invite.spec.ts
+apps/management-web/e2e/database-table-browser.spec.ts
+apps/management-web/e2e/storage-disabled.spec.ts
+apps/management-web/e2e/storage-permissions.spec.ts
+apps/management-web/e2e/storage-superuser-crud-enabled.spec.ts

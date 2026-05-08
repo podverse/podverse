@@ -1,7 +1,7 @@
 'use client';
 
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
+
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { PlaylistCreatePageContextProvider } from './PlaylistCreatePageContext';
 import { PlaylistCreatePageForm } from './PlaylistCreatePageForm';
@@ -12,11 +12,11 @@ export function PlaylistCreatePageClient() {
     <PlaylistCreatePageContextProvider>
       <PlaylistCreatePageHeader />
       <MainWrapper>
-        <MainInnerWrapper>
-          <MainInnerContentWrapper>
+        <MainSidebarLayout>
+          <MainColumnStack>
             <PlaylistCreatePageForm />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </PlaylistCreatePageContextProvider>
   );

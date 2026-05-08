@@ -107,14 +107,10 @@ jobs:
             const sha = context.sha;
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            const fs = require("fs");
-            const path = "docs/development/CHANGELOGS/" + base + ".md";
-            let body;
-            if (fs.existsSync(path)) {
-              body = fs.readFileSync(path, "utf8");
-            } else {
-              body = "Production build; no " + path + " at this commit. Bump version on develop at the start of work and write notes continuously in that file.";
-            }
+            const body =
+              "Production release " +
+              base +
+              ". Add or edit release notes on GitHub if needed.";
             try {
               await github.rest.git.createRef({
                 owner, repo, ref: "refs/tags/" + base, sha

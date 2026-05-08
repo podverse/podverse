@@ -12,24 +12,26 @@ import {
 } from '@podverse/helpers';
 import { getStatusCodeFromError } from '@podverse/helpers-requests';
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
-import { Divider } from '@podverse/ui';
+import {
+  CallToActionMessage,
+  DescriptionRenderer,
+  Divider,
+  Dropdown,
+  MainColumnStack,
+  MainSidebarLayout,
+  SideContent,
+} from '@podverse/ui';
 
 import { AddByRSSAlbumHeader } from '../../../components/AddByRSS/Artist/Album/AddByRSSAlbumHeader';
 import { AddByRSSAlbumTrackNodes } from '../../../components/AddByRSS/Artist/Album/Track/AddByRSSAlbumTrackNodes';
 import { AddByRSSLivestreamNodes } from '../../../components/AddByRSS/Livestream/AddByRSSLivestreamNodes';
 import { BoostMessagesSection } from '../../../components/Boost/messages/BoostMessagesSection';
 import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
-import { CallToActionMessage } from '../../../components/CallToActionMessage/CallToActionMessage';
-import { DescriptionRenderer } from '../../../components/Description/DescriptionRenderer';
-import Dropdown from '../../../components/Dropdown/Dropdown';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
-import Pagination from '../../../components/Pagination/Pagination';
+import { Pagination } from '../../../components/Pagination/Pagination';
 import { RSSFeedSettingsSection } from '../../../components/Settings/RSSFeedSettingsSection';
 import { SettingsWrapper } from '../../../components/Settings/SettingsWrapper';
-import { SideContent } from '../../../components/SideContent/SideContent';
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
 import { applyAddByRSSParseStatus, pollAddByRSSParseStatus } from '../../../utils/addByRSS/actions';
@@ -359,9 +361,9 @@ export const AddByRSSAlbumPageClient: React.FC<AddByRSSAlbumPageClientProps> = (
   return (
     <MainWrapper>
       <AddByRSSAlbumHeader feed={localFeed} />
-      <MainInnerWrapper>
+      <MainSidebarLayout>
         <SideContent />
-        <MainInnerContentWrapper>
+        <MainColumnStack>
           <AddByRSSAlbumPageListHeader
             selectedKey={activeTab}
             onSelect={handleTabSelect}
@@ -426,8 +428,8 @@ export const AddByRSSAlbumPageClient: React.FC<AddByRSSAlbumPageClientProps> = (
               </SettingsWrapper>
             )}
           </DetailListWrapper>
-        </MainInnerContentWrapper>
-      </MainInnerWrapper>
+        </MainColumnStack>
+      </MainSidebarLayout>
     </MainWrapper>
   );
 };

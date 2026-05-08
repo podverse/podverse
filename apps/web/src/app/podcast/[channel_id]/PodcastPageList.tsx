@@ -14,7 +14,7 @@ import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { ListItemSoundbites } from '../../../components/List/ItemSoundbites/ListItemSoundbites';
 import { ListChannelSettings } from '../../../components/List/ListChannelSettings';
 import { ListEpisodes } from '../../../components/List/Podcasts/Episodes/ListEpisodes';
-import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { WebLoadingSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { usePodcastPageContext } from './PodcastPageContext';
 
 type PodcastPageListProps = {
@@ -90,7 +90,7 @@ export const PodcastPageList: React.FC<PodcastPageListProps> = ({
       )}
       {type === 'podroll' && <ContentPodroll remoteItemsResponse={podroll} />}
       {type === 'settings' && <ListChannelSettings channel={ssrChannel} />}
-      <LoadingSpinnerOverlay isLoading={isLoading} />
+      <WebLoadingSpinnerOverlay isLoading={isLoading} />
     </DetailListWrapper>
   );
 };

@@ -20,7 +20,6 @@ import { validateEmail, validatePassword, validateUsername } from '@podverse/hel
 import { BillingPriceCatalogService, generateRandomIdText, hashPassword } from '@podverse/orm';
 
 const router = express.Router();
-const baseUrl = `${config.api.prefix}${config.api.version}`;
 const billingPriceCatalogService = new BillingPriceCatalogService({
   dataSourceRead: AppDbDataSourceRead,
   dataSourceReadWrite: AppDbDataSourceReadWrite,
@@ -59,7 +58,7 @@ function userRowToJson(row: Record<string, unknown>) {
 }
 
 // List users (paginated)
-router.get(`${baseUrl}/users`, ensureAuthenticated, requireSuperuser, async (req, res, next) => {
+router.get('/', ensureAuthenticated, requireSuperuser, async (req, res, next) => {
   try {
     const page = Math.max(1, parseInt(String(req.query.page ?? '1'), 10) || 1);
     const limit = Math.min(
@@ -117,20 +116,16 @@ router.get(`${baseUrl}/users`, ensureAuthenticated, requireSuperuser, async (req
 });
 
 // Get user by id
-router.get(
-  `${baseUrl}/users/:id`,
-  ensureAuthenticated,
-  requireSuperuser,
-  async (req, res, next) => {
-    try {
-      const id = parseIdParam(req.params.id);
-      if (id === null) {
-        res.status(400).json({ message: 'Invalid id' });
-        return;
-      }
+router.get('/:id', ensureAuthenticated, requireSuperuser, async (req, res, next) => {
+  try {
+    const id = parseIdParam(req.params.id);
+    if (id === null) {
+      res.status(400).json({ message: 'Invalid id' });
+      return;
+    }
 
-      const rows = await AppDbDataSourceRead.query(
-        `SELECT a.id, a.id_text, a.verified, a.sharable_status_id, a.created_at,
+    const rows = await AppDbDataSourceRead.query(
+      `SELECT a.id, a.id_text, a.verified, a.sharable_status_id, a.created_at,
                 ac.email, ac.username,
                 ams.account_membership_id, ams.membership_expires_at,
                 ams.allow_directory_add_by_rss, ams.max_add_by_rss_feeds,
@@ -139,23 +134,22 @@ router.get(
          LEFT JOIN account_credentials ac ON ac.account_id = a.id
          LEFT JOIN account_membership_status ams ON ams.account_id = a.id
          WHERE a.id = $1`,
-        [id]
-      );
+      [id]
+    );
 
-      if (rows.length === 0) {
-        res.status(404).json({ message: 'User not found' });
-        return;
-      }
-
-      res.json({ user: userRowToJson(rows[0]) });
-    } catch (error) {
-      next(error);
+    if (rows.length === 0) {
+      res.status(404).json({ message: 'User not found' });
+      return;
     }
+
+    res.json({ user: userRowToJson(rows[0]) });
+  } catch (error) {
+    next(error);
   }
-);
+});
 
 // Create user
-router.post(`${baseUrl}/users`, ensureAuthenticated, requireSuperuser, async (req, res, next) => {
+router.post('/', ensureAuthenticated, requireSuperuser, async (req, res, next) => {
   try {
     const {
       username,
@@ -358,7 +352,7 @@ router.post(`${baseUrl}/users`, ensureAuthenticated, requireSuperuser, async (re
       [accountId, token, expiresAt]
     );
 
-    const setPasswordUrl = `${config.web.protocol}://${config.web.domain}/set-password?token=${token}`;
+    const setPasswordUrl = `${config.appWeb.protocol}://${config.appWeb.domain}/set-password?token=${token}`;
 
     res.status(201).json({
       message: 'User created. Invite link generated.',
@@ -370,193 +364,188 @@ router.post(`${baseUrl}/users`, ensureAuthenticated, requireSuperuser, async (re
 });
 
 // Update user
-router.patch(
-  `${baseUrl}/users/:id`,
-  ensureAuthenticated,
-  requireSuperuser,
-  async (req, res, next) => {
-    try {
-      const id = parseIdParam(req.params.id);
-      if (id === null) {
-        res.status(400).json({ message: 'Invalid id' });
+router.patch('/:id', ensureAuthenticated, requireSuperuser, async (req, res, next) => {
+  try {
+    const id = parseIdParam(req.params.id);
+    if (id === null) {
+      res.status(400).json({ message: 'Invalid id' });
+      return;
+    }
+
+    const {
+      email,
+      username,
+      verified,
+      account_membership_id,
+      membership_expires_at,
+      allow_directory_add_by_rss,
+      max_add_by_rss_feeds,
+      max_manual_refreshes_per_hour,
+      track_stats,
+      allow_notifications,
+    } = req.body as {
+      email?: string;
+      username?: string;
+      verified?: boolean;
+      account_membership_id?: number;
+      membership_expires_at?: string | null;
+      allow_directory_add_by_rss?: boolean | null;
+      max_add_by_rss_feeds?: number | null;
+      max_manual_refreshes_per_hour?: number | null;
+      track_stats?: boolean | null;
+      allow_notifications?: boolean | null;
+    };
+
+    if (email !== undefined && !validateEmail(email)) {
+      res.status(400).json({ message: 'Invalid email' });
+      return;
+    }
+
+    if (username !== undefined && !validateUsername(username)) {
+      res
+        .status(400)
+        .json({ message: 'Invalid username (3-32 chars, alphanumeric, underscore, dash)' });
+      return;
+    }
+
+    if (
+      account_membership_id !== undefined &&
+      account_membership_id !== AccountMembershipEnum.Trial &&
+      account_membership_id !== AccountMembershipEnum.Premium
+    ) {
+      res.status(400).json({ message: 'Invalid account_membership_id' });
+      return;
+    }
+
+    if (membership_expires_at !== undefined && membership_expires_at !== null) {
+      const parsedMembershipExpiresAt = new Date(membership_expires_at);
+      if (Number.isNaN(parsedMembershipExpiresAt.getTime())) {
+        res.status(400).json({ message: 'Invalid membership_expires_at' });
         return;
       }
+    }
 
-      const {
-        email,
-        username,
-        verified,
-        account_membership_id,
-        membership_expires_at,
-        allow_directory_add_by_rss,
-        max_add_by_rss_feeds,
-        max_manual_refreshes_per_hour,
-        track_stats,
-        allow_notifications,
-      } = req.body as {
-        email?: string;
-        username?: string;
-        verified?: boolean;
-        account_membership_id?: number;
-        membership_expires_at?: string | null;
-        allow_directory_add_by_rss?: boolean | null;
-        max_add_by_rss_feeds?: number | null;
-        max_manual_refreshes_per_hour?: number | null;
-        track_stats?: boolean | null;
-        allow_notifications?: boolean | null;
-      };
+    if (
+      max_add_by_rss_feeds !== undefined &&
+      max_add_by_rss_feeds !== null &&
+      (!Number.isInteger(max_add_by_rss_feeds) || max_add_by_rss_feeds < 0)
+    ) {
+      res.status(400).json({ message: 'max_add_by_rss_feeds must be a non-negative integer' });
+      return;
+    }
 
-      if (email !== undefined && !validateEmail(email)) {
-        res.status(400).json({ message: 'Invalid email' });
-        return;
-      }
+    if (
+      max_manual_refreshes_per_hour !== undefined &&
+      max_manual_refreshes_per_hour !== null &&
+      (!Number.isInteger(max_manual_refreshes_per_hour) || max_manual_refreshes_per_hour < 0)
+    ) {
+      res
+        .status(400)
+        .json({ message: 'max_manual_refreshes_per_hour must be a non-negative integer' });
+      return;
+    }
 
-      if (username !== undefined && !validateUsername(username)) {
-        res
-          .status(400)
-          .json({ message: 'Invalid username (3-32 chars, alphanumeric, underscore, dash)' });
-        return;
-      }
+    // Check user exists
+    const existing = await AppDbDataSourceRead.query(`SELECT a.id FROM account a WHERE a.id = $1`, [
+      id,
+    ]);
+    if (existing.length === 0) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
 
-      if (
-        account_membership_id !== undefined &&
-        account_membership_id !== AccountMembershipEnum.Trial &&
-        account_membership_id !== AccountMembershipEnum.Premium
-      ) {
-        res.status(400).json({ message: 'Invalid account_membership_id' });
-        return;
-      }
-
-      if (membership_expires_at !== undefined && membership_expires_at !== null) {
-        const parsedMembershipExpiresAt = new Date(membership_expires_at);
-        if (Number.isNaN(parsedMembershipExpiresAt.getTime())) {
-          res.status(400).json({ message: 'Invalid membership_expires_at' });
-          return;
-        }
-      }
-
-      if (
-        max_add_by_rss_feeds !== undefined &&
-        max_add_by_rss_feeds !== null &&
-        (!Number.isInteger(max_add_by_rss_feeds) || max_add_by_rss_feeds < 0)
-      ) {
-        res.status(400).json({ message: 'max_add_by_rss_feeds must be a non-negative integer' });
-        return;
-      }
-
-      if (
-        max_manual_refreshes_per_hour !== undefined &&
-        max_manual_refreshes_per_hour !== null &&
-        (!Number.isInteger(max_manual_refreshes_per_hour) || max_manual_refreshes_per_hour < 0)
-      ) {
-        res
-          .status(400)
-          .json({ message: 'max_manual_refreshes_per_hour must be a non-negative integer' });
-        return;
-      }
-
-      // Check user exists
-      const existing = await AppDbDataSourceRead.query(
-        `SELECT a.id FROM account a WHERE a.id = $1`,
-        [id]
+    // Check for duplicate email/username if being changed
+    if (email !== undefined || username !== undefined) {
+      const dupCheck = await AppDbDataSourceRead.query(
+        `SELECT id FROM account_credentials WHERE (email = $1 OR username = $2) AND account_id != $3`,
+        [email ?? null, username ?? null, id]
       );
-      if (existing.length === 0) {
-        res.status(404).json({ message: 'User not found' });
+      if (dupCheck.length > 0) {
+        res.status(409).json({ message: 'Email or username already in use' });
         return;
       }
+    }
 
-      // Check for duplicate email/username if being changed
-      if (email !== undefined || username !== undefined) {
-        const dupCheck = await AppDbDataSourceRead.query(
-          `SELECT id FROM account_credentials WHERE (email = $1 OR username = $2) AND account_id != $3`,
-          [email ?? null, username ?? null, id]
+    if (
+      account_membership_id !== undefined ||
+      membership_expires_at !== undefined ||
+      allow_directory_add_by_rss !== undefined ||
+      max_add_by_rss_feeds !== undefined ||
+      max_manual_refreshes_per_hour !== undefined ||
+      track_stats !== undefined ||
+      allow_notifications !== undefined
+    ) {
+      const membershipSets: string[] = [];
+      const membershipParams: unknown[] = [];
+
+      if (account_membership_id !== undefined) {
+        membershipParams.push(account_membership_id);
+        membershipSets.push(`account_membership_id = $${membershipParams.length}`);
+      }
+      if (membership_expires_at !== undefined) {
+        membershipParams.push(
+          membership_expires_at === null ? null : new Date(membership_expires_at)
         );
-        if (dupCheck.length > 0) {
-          res.status(409).json({ message: 'Email or username already in use' });
-          return;
-        }
+        membershipSets.push(`membership_expires_at = $${membershipParams.length}`);
+      }
+      if (allow_directory_add_by_rss !== undefined) {
+        membershipParams.push(allow_directory_add_by_rss);
+        membershipSets.push(`allow_directory_add_by_rss = $${membershipParams.length}`);
+      }
+      if (max_add_by_rss_feeds !== undefined) {
+        membershipParams.push(max_add_by_rss_feeds);
+        membershipSets.push(`max_add_by_rss_feeds = $${membershipParams.length}`);
+      }
+      if (max_manual_refreshes_per_hour !== undefined) {
+        membershipParams.push(max_manual_refreshes_per_hour);
+        membershipSets.push(`max_manual_refreshes_per_hour = $${membershipParams.length}`);
+      }
+      if (track_stats !== undefined) {
+        membershipParams.push(track_stats);
+        membershipSets.push(`track_stats = $${membershipParams.length}`);
+      }
+      if (allow_notifications !== undefined) {
+        membershipParams.push(allow_notifications);
+        membershipSets.push(`allow_notifications = $${membershipParams.length}`);
       }
 
-      if (
-        account_membership_id !== undefined ||
-        membership_expires_at !== undefined ||
-        allow_directory_add_by_rss !== undefined ||
-        max_add_by_rss_feeds !== undefined ||
-        max_manual_refreshes_per_hour !== undefined ||
-        track_stats !== undefined ||
-        allow_notifications !== undefined
-      ) {
-        const membershipSets: string[] = [];
-        const membershipParams: unknown[] = [];
+      membershipParams.push(id);
+      await AppDbDataSourceReadWrite.query(
+        `UPDATE account_membership_status SET ${membershipSets.join(', ')} WHERE account_id = $${membershipParams.length}`,
+        membershipParams
+      );
+    }
 
-        if (account_membership_id !== undefined) {
-          membershipParams.push(account_membership_id);
-          membershipSets.push(`account_membership_id = $${membershipParams.length}`);
-        }
-        if (membership_expires_at !== undefined) {
-          membershipParams.push(
-            membership_expires_at === null ? null : new Date(membership_expires_at)
-          );
-          membershipSets.push(`membership_expires_at = $${membershipParams.length}`);
-        }
-        if (allow_directory_add_by_rss !== undefined) {
-          membershipParams.push(allow_directory_add_by_rss);
-          membershipSets.push(`allow_directory_add_by_rss = $${membershipParams.length}`);
-        }
-        if (max_add_by_rss_feeds !== undefined) {
-          membershipParams.push(max_add_by_rss_feeds);
-          membershipSets.push(`max_add_by_rss_feeds = $${membershipParams.length}`);
-        }
-        if (max_manual_refreshes_per_hour !== undefined) {
-          membershipParams.push(max_manual_refreshes_per_hour);
-          membershipSets.push(`max_manual_refreshes_per_hour = $${membershipParams.length}`);
-        }
-        if (track_stats !== undefined) {
-          membershipParams.push(track_stats);
-          membershipSets.push(`track_stats = $${membershipParams.length}`);
-        }
-        if (allow_notifications !== undefined) {
-          membershipParams.push(allow_notifications);
-          membershipSets.push(`allow_notifications = $${membershipParams.length}`);
-        }
+    // Update account table
+    if (verified !== undefined) {
+      await AppDbDataSourceReadWrite.query(`UPDATE account SET verified = $1 WHERE id = $2`, [
+        verified,
+        id,
+      ]);
+    }
 
-        membershipParams.push(id);
-        await AppDbDataSourceReadWrite.query(
-          `UPDATE account_membership_status SET ${membershipSets.join(', ')} WHERE account_id = $${membershipParams.length}`,
-          membershipParams
-        );
+    // Update credentials
+    if (email !== undefined || username !== undefined) {
+      const sets: string[] = [];
+      const params: unknown[] = [];
+      if (email !== undefined) {
+        params.push(email);
+        sets.push(`email = $${params.length}`);
       }
-
-      // Update account table
-      if (verified !== undefined) {
-        await AppDbDataSourceReadWrite.query(`UPDATE account SET verified = $1 WHERE id = $2`, [
-          verified,
-          id,
-        ]);
+      if (username !== undefined) {
+        params.push(username);
+        sets.push(`username = $${params.length}`);
       }
+      params.push(id);
+      await AppDbDataSourceReadWrite.query(
+        `UPDATE account_credentials SET ${sets.join(', ')} WHERE account_id = $${params.length}`,
+        params
+      );
+    }
 
-      // Update credentials
-      if (email !== undefined || username !== undefined) {
-        const sets: string[] = [];
-        const params: unknown[] = [];
-        if (email !== undefined) {
-          params.push(email);
-          sets.push(`email = $${params.length}`);
-        }
-        if (username !== undefined) {
-          params.push(username);
-          sets.push(`username = $${params.length}`);
-        }
-        params.push(id);
-        await AppDbDataSourceReadWrite.query(
-          `UPDATE account_credentials SET ${sets.join(', ')} WHERE account_id = $${params.length}`,
-          params
-        );
-      }
-
-      // Fetch updated user
-      const rows = await AppDbDataSourceRead.query(
-        `SELECT a.id, a.id_text, a.verified, a.sharable_status_id, a.created_at,
+    // Fetch updated user
+    const rows = await AppDbDataSourceRead.query(
+      `SELECT a.id, a.id_text, a.verified, a.sharable_status_id, a.created_at,
                 ac.email, ac.username,
                 ams.account_membership_id, ams.membership_expires_at,
                 ams.allow_directory_add_by_rss, ams.max_add_by_rss_feeds,
@@ -565,206 +554,175 @@ router.patch(
          LEFT JOIN account_credentials ac ON ac.account_id = a.id
          LEFT JOIN account_membership_status ams ON ams.account_id = a.id
          WHERE a.id = $1`,
-        [id]
-      );
+      [id]
+    );
 
-      res.json({ user: userRowToJson(rows[0]) });
-    } catch (error) {
-      next(error);
-    }
+    res.json({ user: userRowToJson(rows[0]) });
+  } catch (error) {
+    next(error);
   }
-);
+});
 
 // Delete user
-router.delete(
-  `${baseUrl}/users/:id`,
-  ensureAuthenticated,
-  requireSuperuser,
-  async (req, res, next) => {
-    try {
-      const id = parseIdParam(req.params.id);
-      if (id === null) {
-        res.status(400).json({ message: 'Invalid id' });
-        return;
-      }
-
-      const existing = await AppDbDataSourceRead.query(`SELECT id FROM account WHERE id = $1`, [
-        id,
-      ]);
-      if (existing.length === 0) {
-        res.status(404).json({ message: 'User not found' });
-        return;
-      }
-
-      // Cascading deletes will handle account_credentials, account_profile, etc.
-      await AppDbDataSourceReadWrite.query(`DELETE FROM account WHERE id = $1`, [id]);
-
-      res.json({ message: 'User deleted' });
-    } catch (error) {
-      next(error);
+router.delete('/:id', ensureAuthenticated, requireSuperuser, async (req, res, next) => {
+  try {
+    const id = parseIdParam(req.params.id);
+    if (id === null) {
+      res.status(400).json({ message: 'Invalid id' });
+      return;
     }
-  }
-);
 
-// Change user password
-router.post(
-  `${baseUrl}/users/:id/change-password`,
-  ensureAuthenticated,
-  requireSuperuser,
-  async (req, res, next) => {
-    try {
-      const id = parseIdParam(req.params.id);
-      if (id === null) {
-        res.status(400).json({ message: 'Invalid id' });
-        return;
-      }
-
-      const { password } = req.body as { password?: string };
-      if (!password || !validatePassword(password)) {
-        res.status(400).json({ message: 'Invalid password (min 8 chars)' });
-        return;
-      }
-
-      const existing = await AppDbDataSourceRead.query(`SELECT id FROM account WHERE id = $1`, [
-        id,
-      ]);
-      if (existing.length === 0) {
-        res.status(404).json({ message: 'User not found' });
-        return;
-      }
-
-      const saltedPassword = await hashPassword(password);
-      await AppDbDataSourceReadWrite.query(
-        `UPDATE account_credentials SET password = $1 WHERE account_id = $2`,
-        [saltedPassword, id]
-      );
-
-      // Remove any set-password token
-      await AppDbDataSourceReadWrite.query(
-        `DELETE FROM account_set_password WHERE account_id = $1`,
-        [id]
-      );
-
-      res.json({ message: 'Password updated' });
-    } catch (error) {
-      next(error);
+    const existing = await AppDbDataSourceRead.query(`SELECT id FROM account WHERE id = $1`, [id]);
+    if (existing.length === 0) {
+      res.status(404).json({ message: 'User not found' });
+      return;
     }
+
+    // Cascading deletes will handle account_credentials, account_profile, etc.
+    await AppDbDataSourceReadWrite.query(`DELETE FROM account WHERE id = $1`, [id]);
+
+    res.json({ message: 'User deleted' });
+  } catch (error) {
+    next(error);
   }
-);
+});
+
+// Set user password (admin-initiated)
+router.post('/:id/password', ensureAuthenticated, requireSuperuser, async (req, res, next) => {
+  try {
+    const id = parseIdParam(req.params.id);
+    if (id === null) {
+      res.status(400).json({ message: 'Invalid id' });
+      return;
+    }
+
+    const { password } = req.body as { password?: string };
+    if (!password || !validatePassword(password)) {
+      res.status(400).json({ message: 'Invalid password (min 8 chars)' });
+      return;
+    }
+
+    const existing = await AppDbDataSourceRead.query(`SELECT id FROM account WHERE id = $1`, [id]);
+    if (existing.length === 0) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
+    const saltedPassword = await hashPassword(password);
+    await AppDbDataSourceReadWrite.query(
+      `UPDATE account_credentials SET password = $1 WHERE account_id = $2`,
+      [saltedPassword, id]
+    );
+
+    // Remove any set-password token
+    await AppDbDataSourceReadWrite.query(`DELETE FROM account_set_password WHERE account_id = $1`, [
+      id,
+    ]);
+
+    res.json({ message: 'Password updated' });
+  } catch (error) {
+    next(error);
+  }
+});
 
 // Get active invite link for user
-router.get(
-  `${baseUrl}/users/:id/invite-link`,
-  ensureAuthenticated,
-  requireSuperuser,
-  async (req, res, next) => {
-    try {
-      const id = parseIdParam(req.params.id);
-      if (id === null) {
-        res.status(400).json({ message: 'Invalid id' });
-        return;
-      }
+router.get('/:id/invite-link', ensureAuthenticated, requireSuperuser, async (req, res, next) => {
+  try {
+    const id = parseIdParam(req.params.id);
+    if (id === null) {
+      res.status(400).json({ message: 'Invalid id' });
+      return;
+    }
 
-      const rows = await AppDbDataSourceRead.query(
-        `SELECT set_password_token, set_password_token_expires_at
+    const rows = await AppDbDataSourceRead.query(
+      `SELECT set_password_token, set_password_token_expires_at
          FROM account_set_password
          WHERE account_id = $1`,
-        [id]
-      );
+      [id]
+    );
 
-      if (rows.length === 0) {
-        res.json({ invite_link: null });
-        return;
-      }
-
-      const row = rows[0];
-      const expiresAt = new Date(row.set_password_token_expires_at);
-      const isExpired = expiresAt < new Date();
-
-      res.json({
-        invite_link: isExpired
-          ? null
-          : {
-              url: `${config.web.protocol}://${config.web.domain}/set-password?token=${row.set_password_token}`,
-              expires_at: row.set_password_token_expires_at,
-              is_expired: isExpired,
-            },
-      });
-    } catch (error) {
-      next(error);
+    if (rows.length === 0) {
+      res.json({ invite_link: null });
+      return;
     }
+
+    const row = rows[0];
+    const expiresAt = new Date(row.set_password_token_expires_at);
+    const isExpired = expiresAt < new Date();
+
+    res.json({
+      invite_link: isExpired
+        ? null
+        : {
+            url: `${config.appWeb.protocol}://${config.appWeb.domain}/set-password?token=${row.set_password_token}`,
+            expires_at: row.set_password_token_expires_at,
+            is_expired: isExpired,
+          },
+    });
+  } catch (error) {
+    next(error);
   }
-);
+});
 
 // Generate or regenerate invite link for user
-router.post(
-  `${baseUrl}/users/:id/invite-link`,
-  ensureAuthenticated,
-  requireSuperuser,
-  async (req, res, next) => {
-    try {
-      const id = parseIdParam(req.params.id);
-      if (id === null) {
-        res.status(400).json({ message: 'Invalid id' });
-        return;
-      }
+router.post('/:id/invite-link', ensureAuthenticated, requireSuperuser, async (req, res, next) => {
+  try {
+    const id = parseIdParam(req.params.id);
+    if (id === null) {
+      res.status(400).json({ message: 'Invalid id' });
+      return;
+    }
 
-      const existing = await AppDbDataSourceRead.query(`SELECT id FROM account WHERE id = $1`, [
-        id,
-      ]);
-      if (existing.length === 0) {
-        res.status(404).json({ message: 'User not found' });
-        return;
-      }
+    const existing = await AppDbDataSourceRead.query(`SELECT id FROM account WHERE id = $1`, [id]);
+    if (existing.length === 0) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
 
-      const token = uuidv4();
-      const expiresAt = new Date(Date.now() + getSetPasswordTtlMs());
+    const token = uuidv4();
+    const expiresAt = new Date(Date.now() + getSetPasswordTtlMs());
 
-      await AppDbDataSourceReadWrite.query(
-        `INSERT INTO account_set_password (account_id, set_password_token, set_password_token_expires_at)
+    await AppDbDataSourceReadWrite.query(
+      `INSERT INTO account_set_password (account_id, set_password_token, set_password_token_expires_at)
          VALUES ($1, $2, $3)
          ON CONFLICT (account_id) DO UPDATE SET set_password_token = $2, set_password_token_expires_at = $3`,
-        [id, token, expiresAt]
-      );
+      [id, token, expiresAt]
+    );
 
-      const inviteUrl = `${config.web.protocol}://${config.web.domain}/set-password?token=${token}`;
+    const inviteUrl = `${config.appWeb.protocol}://${config.appWeb.domain}/set-password?token=${token}`;
 
-      res.status(201).json({
-        invite_link: {
-          url: inviteUrl,
-          expires_at: expiresAt.toISOString(),
-          is_expired: false,
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
+    res.status(201).json({
+      invite_link: {
+        url: inviteUrl,
+        expires_at: expiresAt.toISOString(),
+        is_expired: false,
+      },
+    });
+  } catch (error) {
+    next(error);
   }
-);
+});
 
 // Revoke invite link for user
-router.delete(
-  `${baseUrl}/users/:id/invite-link`,
-  ensureAuthenticated,
-  requireSuperuser,
-  async (req, res, next) => {
-    try {
-      const id = parseIdParam(req.params.id);
-      if (id === null) {
-        res.status(400).json({ message: 'Invalid id' });
-        return;
-      }
-
-      await AppDbDataSourceReadWrite.query(
-        `DELETE FROM account_set_password WHERE account_id = $1`,
-        [id]
-      );
-
-      res.json({ message: 'Invite link revoked' });
-    } catch (error) {
-      next(error);
+router.delete('/:id/invite-link', ensureAuthenticated, requireSuperuser, async (req, res, next) => {
+  try {
+    const id = parseIdParam(req.params.id);
+    if (id === null) {
+      res.status(400).json({ message: 'Invalid id' });
+      return;
     }
-  }
-);
 
-export const usersRouter = router;
+    await AppDbDataSourceReadWrite.query(`DELETE FROM account_set_password WHERE account_id = $1`, [
+      id,
+    ]);
+
+    res.json({ message: 'Invite link revoked' });
+  } catch (error) {
+    next(error);
+  }
+});
+
+const usersRoot = express.Router();
+usersRoot.use(`${config.api.prefix}${config.api.version}/users`, router);
+
+export const usersRouter = usersRoot;

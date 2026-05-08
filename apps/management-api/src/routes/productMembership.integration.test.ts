@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ResolvedProductMembership } from '@podverse/helpers';
 
 const JWT_SECRET = process.env.AUTH_JWT_SECRET ?? '';
-const canonicalPath = `${config.api.prefix}${config.api.version}/product/membership`;
+const canonicalPath = `${config.api.prefix}${config.api.version}/products/membership`;
 
 const superuser = {
   id: 1,
@@ -58,15 +58,21 @@ const { resolveProductMembershipMock } = vi.hoisted(() => ({
     freeTrialExpirationSeconds: 86400,
     premiumMembershipCostMonthly: 3,
     premiumMembershipCostAnnually: 30,
+    trialAllowDirectoryAddByRSS: false,
     trialMaxAddByRSSFeeds: 10,
     trialMaxManualRefreshesPerHour: 5,
+    trialTrackStats: false,
+    trialAllowNotifications: false,
+    premiumAllowDirectoryAddByRSS: true,
     premiumMaxAddByRSSFeeds: 100,
     premiumMaxManualRefreshesPerHour: 20,
+    premiumTrackStats: true,
+    premiumAllowNotifications: true,
   })),
 }));
 
-const { updateProductMembershipTrialMock, auditRecordMock } = vi.hoisted(() => ({
-  updateProductMembershipTrialMock: vi.fn(async () => undefined),
+const { updateProductMembershipSettingsMock, auditRecordMock } = vi.hoisted(() => ({
+  updateProductMembershipSettingsMock: vi.fn(async () => undefined),
   auditRecordMock: vi.fn(async () => undefined),
 }));
 
@@ -87,8 +93,14 @@ vi.mock('@podverse/orm', async (importOriginal) => {
       return resolveProductMembershipMock();
     }
 
-    async updateProductMembershipTrial(params: { freeTrialExpirationSeconds: number }) {
-      return updateProductMembershipTrialMock(params);
+    async updateProductMembershipSettings(params: {
+      freeTrialExpirationSeconds?: number;
+      trialMaxAddByRSSFeeds?: number;
+      trialMaxManualRefreshesPerHour?: number;
+      premiumMaxAddByRSSFeeds?: number;
+      premiumMaxManualRefreshesPerHour?: number;
+    }) {
+      return updateProductMembershipSettingsMock(params);
     }
   }
 
@@ -112,7 +124,7 @@ const adminAuthHeaders = (): { Authorization: string } => ({
   Authorization: `Bearer ${jwt.sign({ id: 2, id_text: 'pvMgtAd002' }, JWT_SECRET, { expiresIn: '1h' })}`,
 });
 
-describe('/product/membership', () => {
+describe('/products/membership', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -134,10 +146,16 @@ describe('/product/membership', () => {
       freeTrialExpirationSeconds: expect.any(Number),
       premiumMembershipCostMonthly: expect.any(Number),
       premiumMembershipCostAnnually: expect.any(Number),
+      trialAllowDirectoryAddByRSS: expect.any(Boolean),
       trialMaxAddByRSSFeeds: expect.any(Number),
       trialMaxManualRefreshesPerHour: expect.any(Number),
+      trialTrackStats: expect.any(Boolean),
+      trialAllowNotifications: expect.any(Boolean),
+      premiumAllowDirectoryAddByRSS: expect.any(Boolean),
       premiumMaxAddByRSSFeeds: expect.any(Number),
       premiumMaxManualRefreshesPerHour: expect.any(Number),
+      premiumTrackStats: expect.any(Boolean),
+      premiumAllowNotifications: expect.any(Boolean),
     });
     expect(body.data.freeTrialExpirationSeconds).toBeGreaterThan(0);
   });
@@ -149,6 +167,15 @@ describe('/product/membership', () => {
       .send({ freeTrialExpirationSeconds: 0 })
       .expect(400);
     expect(res.body.message).toMatch(/freeTrialExpirationSeconds/);
+  });
+
+  it('returns 400 when PATCH body has no recognized fields', async () => {
+    const res = await request(app)
+      .patch(canonicalPath)
+      .set(superuserAuthHeaders())
+      .send({})
+      .expect(400);
+    expect(typeof res.body.message).toBe('string');
   });
 
   it('returns 403 for non-superuser on PATCH', async () => {
@@ -165,10 +192,16 @@ describe('/product/membership', () => {
       freeTrialExpirationSeconds: 7776000,
       premiumMembershipCostMonthly: 3,
       premiumMembershipCostAnnually: 30,
+      trialAllowDirectoryAddByRSS: false,
       trialMaxAddByRSSFeeds: 10,
       trialMaxManualRefreshesPerHour: 5,
+      trialTrackStats: false,
+      trialAllowNotifications: false,
+      premiumAllowDirectoryAddByRSS: true,
       premiumMaxAddByRSSFeeds: 100,
       premiumMaxManualRefreshesPerHour: 20,
+      premiumTrackStats: true,
+      premiumAllowNotifications: true,
     });
     const res = await request(app)
       .patch(canonicalPath)
@@ -176,10 +209,38 @@ describe('/product/membership', () => {
       .send({ freeTrialExpirationSeconds: 7776000 })
       .expect(200);
 
-    expect(updateProductMembershipTrialMock).toHaveBeenCalledWith({
+    expect(updateProductMembershipSettingsMock).toHaveBeenCalledWith({
       freeTrialExpirationSeconds: 7776000,
     });
     expect(auditRecordMock).toHaveBeenCalledTimes(1);
     expect(res.body.data.freeTrialExpirationSeconds).toBe(7776000);
+  });
+
+  it('updates a cap field only on PATCH', async () => {
+    resolveProductMembershipMock.mockResolvedValueOnce({
+      freeTrialExpirationSeconds: 86400,
+      premiumMembershipCostMonthly: 3,
+      premiumMembershipCostAnnually: 30,
+      trialAllowDirectoryAddByRSS: false,
+      trialMaxAddByRSSFeeds: 12,
+      trialMaxManualRefreshesPerHour: 5,
+      trialTrackStats: false,
+      trialAllowNotifications: false,
+      premiumAllowDirectoryAddByRSS: true,
+      premiumMaxAddByRSSFeeds: 100,
+      premiumMaxManualRefreshesPerHour: 20,
+      premiumTrackStats: true,
+      premiumAllowNotifications: true,
+    });
+    const res = await request(app)
+      .patch(canonicalPath)
+      .set(superuserAuthHeaders())
+      .send({ trialMaxAddByRSSFeeds: 12 })
+      .expect(200);
+
+    expect(updateProductMembershipSettingsMock).toHaveBeenCalledWith({
+      trialMaxAddByRSSFeeds: 12,
+    });
+    expect(res.body.data.trialMaxAddByRSSFeeds).toBe(12);
   });
 });

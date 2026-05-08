@@ -2,13 +2,15 @@
 
 import React, { useEffect, useState } from 'react';
 
-export type { CustomToastProps, ToastOptions } from './ToastImpl';
+import type { CustomToastProps, ToastOptions } from '@podverse/ui/toast';
 
-let implPromise: Promise<typeof import('./ToastImpl')> | null = null;
+export type { CustomToastProps, ToastLinkComponentProps, ToastOptions } from '@podverse/ui/toast';
 
-function getImpl(): Promise<typeof import('./ToastImpl')> {
+let implPromise: Promise<typeof import('@podverse/ui/toast')> | null = null;
+
+function getImpl(): Promise<typeof import('@podverse/ui/toast')> {
   if (!implPromise) {
-    implPromise = import('./ToastImpl');
+    implPromise = import('@podverse/ui/toast');
   }
   return implPromise;
 }
@@ -18,9 +20,9 @@ export function showToast(message: string, type: 'success' | 'error' | 'warning'
 }
 
 export function showToastCustom(
-  props: import('./ToastImpl').CustomToastProps,
+  props: CustomToastProps,
   type: 'warning' | 'danger',
-  options?: import('./ToastImpl').ToastOptions
+  options?: ToastOptions
 ): Promise<string> {
   return getImpl().then((m) => m.showToastCustom(props, type, options));
 }
@@ -28,7 +30,7 @@ export function showToastCustom(
 export function showToastPromiseWithLoading<T>(
   promise: Promise<T> | (() => Promise<T>),
   msgs: { loading: string; success: string; error: string },
-  options?: import('./ToastImpl').ToastOptions
+  options?: ToastOptions
 ): Promise<T> {
   return getImpl().then(async (m) => await m.showToastPromiseWithLoading(promise, msgs, options));
 }
@@ -36,15 +38,12 @@ export function showToastPromiseWithLoading<T>(
 export function showToastPromise<T>(
   promise: Promise<T> | (() => Promise<T>),
   msgs: { success: string; error: string },
-  options?: import('./ToastImpl').ToastOptions
+  options?: ToastOptions
 ): Promise<T> {
   return getImpl().then(async (m) => await m.showToastPromise(promise, msgs, options));
 }
 
-export function showToastLoading(
-  message: string,
-  options?: import('./ToastImpl').ToastOptions
-): Promise<string> {
+export function showToastLoading(message: string, options?: ToastOptions): Promise<string> {
   return getImpl().then((m) => m.showToastLoading(message, options));
 }
 
@@ -56,8 +55,8 @@ export function dismissToast(toastId: string | Promise<string>): void {
 }
 
 /**
- * Lazy-loaded Toaster. Renders the real Toaster from ToastImpl after dynamic import.
- * Keeps react-hot-toast out of the main bundle.
+ * Lazy-loaded Toaster. Renders the real Toaster after dynamic import of `@podverse/ui/toast`
+ * so react-hot-toast stays out of the main bundle.
  */
 export function Toast(): React.ReactElement | null {
   const [ToastImplComponent, setToastImplComponent] = useState<React.FC | null>(null);

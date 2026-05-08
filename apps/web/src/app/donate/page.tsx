@@ -4,15 +4,12 @@ import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import { FaCommentDollar } from 'react-icons/fa6';
 
-import { Divider } from '@podverse/ui';
+import { Divider, MainColumnStack, MainHeader, MainSidebarLayout } from '@podverse/ui';
 
 import { BoostAppDonateForm } from '../../components/Boost/BoostAppDonateForm';
 import { useMbrssV1BoostCapability } from '../../components/Boost/hooks/useMbrssV1BoostCapability';
 import { BoostMessagesSection } from '../../components/Boost/messages/BoostMessagesSection';
 import { createBoostMessagesPageFetcher } from '../../components/Boost/messages/fetchPublicBoostMessages';
-import { MainHeader } from '../../components/Main/MainHeader';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { useConfig } from '../../contexts/Config';
 import { getAppValueMetaBoost } from '../../utils/value/metaBoost';
@@ -47,8 +44,8 @@ export default function DonatePage() {
     <>
       <MainHeader title={tDonate('title')} />
       <MainWrapper>
-        <MainInnerWrapper>
-          <MainInnerContentWrapper>
+        <MainSidebarLayout>
+          <MainColumnStack>
             <div>
               {!donationSucceeded && (
                 <div className={styles.intro}>
@@ -80,8 +77,8 @@ export default function DonatePage() {
                 </div>
               )}
             </div>
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </>
   );

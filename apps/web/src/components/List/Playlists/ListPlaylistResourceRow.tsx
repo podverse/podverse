@@ -11,7 +11,8 @@ import {
   getQueueMediumIdForChannelMediumId,
   MediumEnum,
 } from '@podverse/helpers';
-import { Button } from '@podverse/ui';
+import type { MoreButtonMenuItem } from '@podverse/ui';
+import { Button, ImagesPerView, MoreButton } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import { useAccount } from '../../../contexts/Account';
@@ -23,16 +24,13 @@ import { loadAddByRSSIndexItemFromResourceData } from '../../../utils/addByRSS/p
 import { downloadAddByRSSMediaWithModal } from '../../../utils/downloadModal/downloadAddByRSSMediaWithModal';
 import { downloadAndSaveFile } from '../../../utils/fileDownloader';
 import { addByRSSResourceMergedArtworkCandidates } from '../../../utils/image/addByRSSResourceArtworkCandidates';
-import { ImagesPerView } from '../../Image/ImagesPerView';
-import type { MoreButtonMenuItem } from '../../MoreButton/MoreButton';
-import { MoreButton } from '../../MoreButton/MoreButton';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableDuration } from '../../Time/ReadableDuration';
 import { showToastPromise, showToastPromiseWithLoading } from '../../Toast/Toast';
 import { ListClipRow } from '../Clips/ListClipRow';
 import { ListItemSoundbiteRow } from '../ItemSoundbites/ListItemSoundbiteRow';
 import { ListTrackRow } from '../Music/Albums/Tracks/ListTrackRow';
-import ListEpisodeRow from '../Podcasts/Episodes/ListEpisodeRow';
+import { ListEpisodeRow } from '../Podcasts/Episodes/ListEpisodeRow';
 
 import styles from '../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 
@@ -281,7 +279,10 @@ export const ListPlaylistResourceRow: React.FC<Props> = ({
               </div>
             </div>
           </Button>
-          <MoreButton moreButtonMenuItems={moreButtonMenuItems} />
+          <MoreButton
+            ariaLabel={tMedia('more_options')}
+            moreButtonMenuItems={moreButtonMenuItems}
+          />
         </div>
       );
     }
@@ -322,7 +323,10 @@ export const ListPlaylistResourceRow: React.FC<Props> = ({
               </div>
             </div>
             <div className={styles.bottomSectionEnd}>
-              <MoreButton moreButtonMenuItems={moreButtonMenuItems} />
+              <MoreButton
+                ariaLabel={tMedia('more_options')}
+                moreButtonMenuItems={moreButtonMenuItems}
+              />
             </div>
           </div>
         </div>

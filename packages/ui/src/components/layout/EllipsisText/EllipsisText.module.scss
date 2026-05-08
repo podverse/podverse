@@ -1,0 +1,7 @@
+@use '../../../styles/mixins/ellipsis' as ellipsis-mixin;
+
+.root {
+  @include ellipsis-mixin.ellipsisSingleLineChild;
+  display: inline-block;
+  vertical-align: bottom;
+}

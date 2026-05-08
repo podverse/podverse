@@ -60,6 +60,7 @@ configMapGenerator:
       - source/database/linear-migrations/app/0028_billing_pricing_catalog.sql
       - source/database/linear-migrations/app/0029_billing_events_and_retry_metadata.sql
       - source/database/linear-migrations/app/0030_product_membership_settings.sql
+      - source/database/linear-migrations/app/0031_product_membership_settings_caps.sql
   - name: podverse-ops-management-linear-migrations
     files:
       - source/database/linear-migrations/management/0000_init_helpers.sql
@@ -68,6 +69,8 @@ configMapGenerator:
       - source/database/linear-migrations/management/0003_database_audit_log.sql
       - source/database/linear-migrations/management/0004_feed_takedown_reason_permissions.sql
       - source/database/linear-migrations/management/0005_billing_prices_permissions.sql
+      - source/database/linear-migrations/management/0006_bucket_permissions.sql
+      - source/database/linear-migrations/management/0007_admin_account_set_password.sql
   - name: podverse-ops-management-superuser-scripts
     files:
       - source/database/management-superuser/package.json

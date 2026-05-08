@@ -2,7 +2,11 @@ import { getDataSourceRead, getDataSourceReadWrite } from '@orm/context.js';
 import type { DataSource } from 'typeorm';
 import { QueryFailedError } from 'typeorm';
 
-import type { BillingCadence, ResolvedProductMembership } from '@podverse/helpers';
+import type {
+  BillingCadence,
+  ProductMembershipCapDefaults,
+  ResolvedProductMembership,
+} from '@podverse/helpers';
 import { resolveProductMembershipDefaultsFromEnv } from '@podverse/helpers';
 
 type ActivePricingRow = {
@@ -10,8 +14,12 @@ type ActivePricingRow = {
   amount_cents: number;
 };
 
-type ProductMembershipTrialRow = {
+type ProductMembershipSettingsRow = {
   free_trial_expiration_seconds: number;
+  trial_max_add_by_rss_feeds: number;
+  trial_max_manual_refreshes_per_hour: number;
+  premium_max_add_by_rss_feeds: number;
+  premium_max_manual_refreshes_per_hour: number;
 };
 
 const PREMIUM_PRODUCT_CODE = 'membership_premium';
@@ -62,55 +70,152 @@ export class BillingPriceCatalogService {
     return rows as ActivePricingRow[];
   }
 
-  private async getProductMembershipTrialRow(): Promise<ProductMembershipTrialRow | null> {
+  private async getProductMembershipSettingsRow(): Promise<ProductMembershipSettingsRow | null> {
     const rows = (await this.dataSourceRead.query(
       `
-      SELECT free_trial_expiration_seconds
+      SELECT
+        free_trial_expiration_seconds,
+        trial_max_add_by_rss_feeds,
+        trial_max_manual_refreshes_per_hour,
+        premium_max_add_by_rss_feeds,
+        premium_max_manual_refreshes_per_hour
       FROM product_membership_settings
       WHERE id = 1
       LIMIT 1
       `
-    )) as ProductMembershipTrialRow[];
+    )) as ProductMembershipSettingsRow[];
 
     return rows[0] ?? null;
   }
 
   async ensureProductMembershipTrialSeededFromEnv(now = new Date()): Promise<void> {
     const envDefaults = resolveProductMembershipDefaultsFromEnv();
+    // Vitest sets NODE_ENV=test (apps/api/src/test/setup.ts). Linear baseline seeds
+    // product_membership_settings with production-shaped trial length; DO NOTHING leaves
+    // that row and breaks assertions that expect MEMBERSHIP_FREE_TRIAL_EXPIRATION.
+    const conflictResolution =
+      process.env.NODE_ENV === 'test'
+        ? `
+      ON CONFLICT (id) DO UPDATE SET
+        free_trial_expiration_seconds = EXCLUDED.free_trial_expiration_seconds,
+        trial_max_add_by_rss_feeds = EXCLUDED.trial_max_add_by_rss_feeds,
+        trial_max_manual_refreshes_per_hour = EXCLUDED.trial_max_manual_refreshes_per_hour,
+        premium_max_add_by_rss_feeds = EXCLUDED.premium_max_add_by_rss_feeds,
+        premium_max_manual_refreshes_per_hour = EXCLUDED.premium_max_manual_refreshes_per_hour,
+        updated_at = EXCLUDED.updated_at`
+        : 'ON CONFLICT (id) DO NOTHING';
     await this.dataSourceReadWrite.query(
       `
       INSERT INTO product_membership_settings (
         id,
         free_trial_expiration_seconds,
+        trial_max_add_by_rss_feeds,
+        trial_max_manual_refreshes_per_hour,
+        premium_max_add_by_rss_feeds,
+        premium_max_manual_refreshes_per_hour,
         created_at,
         updated_at
       )
-      VALUES (1, $1, $2, $2)
-      ON CONFLICT (id) DO NOTHING
+      VALUES (1, $1, $2, $3, $4, $5, $6, $6)
+      ${conflictResolution}
       `,
-      [envDefaults.freeTrialExpirationSeconds, now]
+      [
+        envDefaults.freeTrialExpirationSeconds,
+        envDefaults.trialMaxAddByRSSFeeds,
+        envDefaults.trialMaxManualRefreshesPerHour,
+        envDefaults.premiumMaxAddByRSSFeeds,
+        envDefaults.premiumMaxManualRefreshesPerHour,
+        now,
+      ]
     );
   }
 
-  async updateProductMembershipTrial(params: {
-    freeTrialExpirationSeconds: number;
+  async updateProductMembershipSettings(params: {
+    freeTrialExpirationSeconds?: number;
+    trialMaxAddByRSSFeeds?: number;
+    trialMaxManualRefreshesPerHour?: number;
+    premiumMaxAddByRSSFeeds?: number;
+    premiumMaxManualRefreshesPerHour?: number;
   }): Promise<void> {
+    await this.ensureProductMembershipTrialSeededFromEnv();
+
+    const assignments: string[] = [];
+    const values: unknown[] = [];
+    let paramIndex = 1;
+
+    if (params.freeTrialExpirationSeconds !== undefined) {
+      assignments.push(`free_trial_expiration_seconds = $${paramIndex}`);
+      values.push(params.freeTrialExpirationSeconds);
+      paramIndex += 1;
+    }
+    if (params.trialMaxAddByRSSFeeds !== undefined) {
+      assignments.push(`trial_max_add_by_rss_feeds = $${paramIndex}`);
+      values.push(params.trialMaxAddByRSSFeeds);
+      paramIndex += 1;
+    }
+    if (params.trialMaxManualRefreshesPerHour !== undefined) {
+      assignments.push(`trial_max_manual_refreshes_per_hour = $${paramIndex}`);
+      values.push(params.trialMaxManualRefreshesPerHour);
+      paramIndex += 1;
+    }
+    if (params.premiumMaxAddByRSSFeeds !== undefined) {
+      assignments.push(`premium_max_add_by_rss_feeds = $${paramIndex}`);
+      values.push(params.premiumMaxAddByRSSFeeds);
+      paramIndex += 1;
+    }
+    if (params.premiumMaxManualRefreshesPerHour !== undefined) {
+      assignments.push(`premium_max_manual_refreshes_per_hour = $${paramIndex}`);
+      values.push(params.premiumMaxManualRefreshesPerHour);
+    }
+
+    if (assignments.length === 0) {
+      return;
+    }
+
+    assignments.push('updated_at = NOW()');
+
     await this.dataSourceReadWrite.query(
       `
-      INSERT INTO product_membership_settings (
-        id,
-        free_trial_expiration_seconds,
-        created_at,
-        updated_at
-      )
-      VALUES (1, $1, NOW(), NOW())
-      ON CONFLICT (id) DO UPDATE
-      SET
-        free_trial_expiration_seconds = EXCLUDED.free_trial_expiration_seconds,
-        updated_at = NOW()
+      UPDATE product_membership_settings
+      SET ${assignments.join(', ')}
+      WHERE id = 1
       `,
-      [params.freeTrialExpirationSeconds]
+      values
     );
+  }
+
+  async resolveProductMembershipCapDefaults(
+    now = new Date()
+  ): Promise<ProductMembershipCapDefaults> {
+    const envDefaults = resolveProductMembershipDefaultsFromEnv();
+    await this.ensureProductMembershipTrialSeededFromEnv(now);
+    const row = await this.getProductMembershipSettingsRow();
+    if (row === null) {
+      return {
+        trialAllowDirectoryAddByRSS: envDefaults.trialAllowDirectoryAddByRSS,
+        trialMaxAddByRSSFeeds: envDefaults.trialMaxAddByRSSFeeds,
+        trialMaxManualRefreshesPerHour: envDefaults.trialMaxManualRefreshesPerHour,
+        trialTrackStats: envDefaults.trialTrackStats,
+        trialAllowNotifications: envDefaults.trialAllowNotifications,
+        premiumAllowDirectoryAddByRSS: envDefaults.premiumAllowDirectoryAddByRSS,
+        premiumMaxAddByRSSFeeds: envDefaults.premiumMaxAddByRSSFeeds,
+        premiumMaxManualRefreshesPerHour: envDefaults.premiumMaxManualRefreshesPerHour,
+        premiumTrackStats: envDefaults.premiumTrackStats,
+        premiumAllowNotifications: envDefaults.premiumAllowNotifications,
+      };
+    }
+    return {
+      trialAllowDirectoryAddByRSS: envDefaults.trialAllowDirectoryAddByRSS,
+      trialMaxAddByRSSFeeds: row.trial_max_add_by_rss_feeds,
+      trialMaxManualRefreshesPerHour: row.trial_max_manual_refreshes_per_hour,
+      trialTrackStats: envDefaults.trialTrackStats,
+      trialAllowNotifications: envDefaults.trialAllowNotifications,
+      premiumAllowDirectoryAddByRSS: envDefaults.premiumAllowDirectoryAddByRSS,
+      premiumMaxAddByRSSFeeds: row.premium_max_add_by_rss_feeds,
+      premiumMaxManualRefreshesPerHour: row.premium_max_manual_refreshes_per_hour,
+      premiumTrackStats: envDefaults.premiumTrackStats,
+      premiumAllowNotifications: envDefaults.premiumAllowNotifications,
+    };
   }
 
   async ensurePremiumPricingSeededFromEnv(now = new Date()): Promise<void> {
@@ -205,15 +310,15 @@ export class BillingPriceCatalogService {
     await this.ensureProductMembershipTrialSeededFromEnv(now);
 
     const rows = await this.getActivePremiumPricingRows(now);
-    const trialRow = await this.getProductMembershipTrialRow();
+    const settingsRow = await this.getProductMembershipSettingsRow();
     const monthlyRow = rows.find((row) => row.billing_cadence === 'monthly');
     const annualRow = rows.find((row) => row.billing_cadence === 'annual');
 
     return {
       ...envDefaults,
       freeTrialExpirationSeconds:
-        trialRow !== null
-          ? trialRow.free_trial_expiration_seconds
+        settingsRow !== null
+          ? settingsRow.free_trial_expiration_seconds
           : envDefaults.freeTrialExpirationSeconds,
       premiumMembershipCostMonthly:
         monthlyRow !== undefined
@@ -223,6 +328,22 @@ export class BillingPriceCatalogService {
         annualRow !== undefined
           ? Number((annualRow.amount_cents / 100).toFixed(2))
           : envDefaults.premiumMembershipCostAnnually,
+      trialMaxAddByRSSFeeds:
+        settingsRow !== null
+          ? settingsRow.trial_max_add_by_rss_feeds
+          : envDefaults.trialMaxAddByRSSFeeds,
+      trialMaxManualRefreshesPerHour:
+        settingsRow !== null
+          ? settingsRow.trial_max_manual_refreshes_per_hour
+          : envDefaults.trialMaxManualRefreshesPerHour,
+      premiumMaxAddByRSSFeeds:
+        settingsRow !== null
+          ? settingsRow.premium_max_add_by_rss_feeds
+          : envDefaults.premiumMaxAddByRSSFeeds,
+      premiumMaxManualRefreshesPerHour:
+        settingsRow !== null
+          ? settingsRow.premium_max_manual_refreshes_per_hour
+          : envDefaults.premiumMaxManualRefreshesPerHour,
     };
   }
 }

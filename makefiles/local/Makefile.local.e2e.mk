@@ -4,6 +4,7 @@
 
 .PHONY: e2e_deps e2e_seed e2e_seed_web e2e_seed_management_web
 .PHONY: e2e_test e2e_test_playwright e2e_test_api e2e_test_web e2e_test_management_web
+.PHONY: e2e_test_management_web_storage_enabled
 .PHONY: e2e_test_report e2e_test_web_report_spec e2e_test_management_web_report_spec e2e_test_report_scoped
 .PHONY: e2e_teardown
 
@@ -58,6 +59,11 @@ e2e_test_management_web: e2e_deps e2e_seed_management_web
 	@echo "Running management-web E2E tests..."
 	@npm run test:e2e -w @podverse/management-web -- --reporter=list
 
+# Management-web storage list chrome (requires fake bucket env; see playwright.storage-enabled.config.ts)
+e2e_test_management_web_storage_enabled: e2e_deps e2e_seed_management_web
+	@echo "Running management-web storage-enabled E2E..."
+	@npm run test:e2e:storage-enabled -w @podverse/management-web -- --reporter=list
+
 # Full E2E: API Vitest (apps/api + management-api) + both Playwright apps. For local `npm test`, prefer `test:e2e:api` + `e2e_test_playwright` instead; this target remains for a single all-in-one run.
 e2e_test: e2e_deps e2e_seed
 	@echo "=== Full E2E suite ==="
@@ -108,7 +114,7 @@ e2e_test_web_report_spec: e2e_deps e2e_seed_web
 	PLAYWRIGHT_HTML_OUTPUT_DIR="$(E2E_REPORT_BASE)/web" \
 	E2E_STEP_SCREENSHOTS=true \
 	PLAYWRIGHT_HTML_OPEN=never \
-	npm run test:e2e -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts "$(SPEC)"
+	npm run test:e2e -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$(echo "$(SPEC)" | tr ',' ' ')
 
 # Scoped management-web report for one spec (SPEC=apps/management-web/e2e/foo.spec.ts)
 e2e_test_management_web_report_spec: e2e_deps e2e_seed_management_web
@@ -117,7 +123,7 @@ e2e_test_management_web_report_spec: e2e_deps e2e_seed_management_web
 	PLAYWRIGHT_HTML_OUTPUT_DIR="$(E2E_REPORT_BASE)/management-web" \
 	E2E_STEP_SCREENSHOTS=true \
 	PLAYWRIGHT_HTML_OPEN=never \
-	npm run test:e2e -w @podverse/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts "$(SPEC)"
+	npm run test:e2e -w @podverse/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$(echo "$(SPEC)" | tr ',' ' ')
 
 # Scoped both apps (WEB_SPEC=... MGMT_SPEC=...)
 e2e_test_report_scoped: e2e_deps e2e_seed
@@ -127,12 +133,12 @@ e2e_test_report_scoped: e2e_deps e2e_seed
 	PLAYWRIGHT_HTML_OUTPUT_DIR="$(E2E_REPORT_BASE)/web" \
 	E2E_STEP_SCREENSHOTS=true \
 	PLAYWRIGHT_HTML_OPEN=never \
-	npm run test:e2e -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts "$(WEB_SPEC)" || exit_code=$$?; \
+	npm run test:e2e -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$(echo "$(WEB_SPEC)" | tr ',' ' ') || exit_code=$$?; \
 	if [ -n "$(MGMT_SPEC)" ]; then \
 		PLAYWRIGHT_HTML_OUTPUT_DIR="$(E2E_REPORT_BASE)/management-web" \
 		E2E_STEP_SCREENSHOTS=true \
 		PLAYWRIGHT_HTML_OPEN=never \
-		npm run test:e2e -w @podverse/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts "$(MGMT_SPEC)" || exit_code=$$?; \
+		npm run test:e2e -w @podverse/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$(echo "$(MGMT_SPEC)" | tr ',' ' ') || exit_code=$$?; \
 	fi; \
 	exit $$exit_code
 

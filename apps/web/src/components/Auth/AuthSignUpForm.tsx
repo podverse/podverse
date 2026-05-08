@@ -10,12 +10,10 @@ import {
   getPasswordErrorKey,
   getPasswordRequirementsInfoKey,
 } from '@podverse/helpers-validation/client';
-import { Button, FormInfoMessageText } from '@podverse/ui';
+import { Button, FormInfoMessageText, StackForm, TextInput } from '@podverse/ui';
 
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
-import Form from '../Form/Form';
-import { TextInput } from '../Form/TextInput';
 
 import styles from '../../styles/components/Auth/AuthSignUpForm.module.scss';
 
@@ -142,7 +140,7 @@ export const AuthSignUpForm: React.FC = () => {
   return (
     <div className={styles.authSignUpForm}>
       {!isAccountCreated && (
-        <Form onSubmit={handleSubmit}>
+        <StackForm onSubmit={handleSubmit}>
           <TextInput
             type="email"
             name="email"
@@ -190,7 +188,7 @@ export const AuthSignUpForm: React.FC = () => {
               {tMisc('submit')}
             </Button>
           </div>
-        </Form>
+        </StackForm>
       )}
       {isAccountCreated && (
         <FormInfoMessageText message={tAuthentication('account_created_message')} />

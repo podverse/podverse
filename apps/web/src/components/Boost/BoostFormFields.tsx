@@ -1,7 +1,7 @@
 import { useLocale } from 'next-intl';
 import { useEffect, useId, useRef, useState } from 'react';
 
-import { Button } from '@podverse/ui';
+import { Button, FormTextArea, StackForm, TextInput, TextInputNumber } from '@podverse/ui';
 import type { MetaBoost } from '@podverse/v4v-metaboost';
 import {
   getBoostCurrencyInputFormatMetadata,
@@ -9,10 +9,6 @@ import {
   type ParseMajorUnitToMinorResult,
 } from '@podverse/v4v-metaboost';
 
-import Form from '../Form/Form';
-import { TextArea } from '../Form/TextArea';
-import { TextInput } from '../Form/TextInput';
-import TextInputNumber from '../Form/TextInputNumber';
 import { useBoostBaselineEstimate } from './hooks/useBoostBaselineEstimate';
 
 import styles from '../../styles/components/Boost/BoostForm.module.scss';
@@ -236,7 +232,7 @@ export const BoostFormFields = ({
   };
 
   return (
-    <Form
+    <StackForm
       onSubmit={(e) => {
         e.preventDefault();
       }}
@@ -247,6 +243,10 @@ export const BoostFormFields = ({
             <div className={styles.boostAmountInputControl}>
               <TextInputNumber
                 eyebrow={tValue('send_to.creator')}
+                stepperAriaLabels={{
+                  decrement: tMisc('decrement'),
+                  increment: tMisc('increment'),
+                }}
                 value={totalAmountToCreator}
                 min={0}
                 step={
@@ -312,6 +312,10 @@ export const BoostFormFields = ({
             <div className={styles.boostAmountInputControl}>
               <TextInputNumber
                 eyebrow={tValue('send_to.app', { brand_name: brandName })}
+                stepperAriaLabels={{
+                  decrement: tMisc('decrement'),
+                  increment: tMisc('increment'),
+                }}
                 value={totalAmountToApp}
                 min={0}
                 step={
@@ -393,7 +397,7 @@ export const BoostFormFields = ({
             onChange={(e) => setYourName(e.target.value)}
             disabled={nameMessageFieldsDisabled}
           />
-          <TextArea
+          <FormTextArea
             eyebrow={tValue('message')}
             value={message}
             placeholder={tMisc('optional')}
@@ -418,6 +422,6 @@ export const BoostFormFields = ({
           />
         </>
       )}
-    </Form>
+    </StackForm>
   );
 };

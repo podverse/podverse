@@ -1,11 +1,9 @@
 import type { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
+import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
 
 import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { ItemChapterHeader } from '../../../components/Media/ItemChapter/ItemChapterHeader';
-import { SideContent } from '../../../components/SideContent/SideContent';
 
 interface ChapterClientProps {
   ssrChannel: DTOChannel;
@@ -19,12 +17,12 @@ export function ChapterClient(props: ChapterClientProps) {
   return (
     <MainWrapper>
       <CorePodcastHeader channel={ssrChannel} item={ssrItem} item_chapter={ssrItemChapter} />
-      <MainInnerWrapper>
+      <MainSidebarLayout>
         <SideContent />
-        <MainInnerContentWrapper>
+        <MainColumnStack>
           <ItemChapterHeader channel={ssrChannel} item={ssrItem} item_chapter={ssrItemChapter} />
-        </MainInnerContentWrapper>
-      </MainInnerWrapper>
+        </MainColumnStack>
+      </MainSidebarLayout>
     </MainWrapper>
   );
 }

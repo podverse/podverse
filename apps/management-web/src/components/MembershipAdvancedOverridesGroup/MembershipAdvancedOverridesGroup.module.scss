@@ -1,0 +1,9 @@
+.inset {
+  background-color: var(--background-color-secondary);
+  border: 1px solid var(--border-color-tertiary);
+  border-radius: var(--border-radius);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+}

@@ -1,31 +1,35 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import {
-  ActionLink,
   Alert,
   Breadcrumbs,
   Button,
+  Checkbox,
+  CopyToClipboardButton,
   Fieldset,
-  FormContainer,
   FormGroup,
+  FormHintText,
+  FormMaxWidth,
   FormPrimaryActions,
-  Input,
-  Label,
   ManagementPageShell,
+  StackForm,
   Table,
+  TextInput,
 } from '@podverse/ui';
 
-import { createAdmin } from '../../../../lib/requests/admins';
+import { createAdmin, type CreateAdminResponse } from '../../../../lib/requests/admins';
 
 const RESOURCE_KEYS = [
   'feeds_crud',
   'feed_takedown_reasons_crud',
   'admins_crud',
   'stats_crud',
+  'bucket_crud',
 ] as const;
 
 const CRUD_BITS = [
@@ -40,6 +44,7 @@ type PermissionState = {
   feed_takedown_reasons_crud: number;
   admins_crud: number;
   stats_crud: number;
+  bucket_crud: number;
 };
 
 const RESOURCE_LABEL_KEYS: Record<(typeof RESOURCE_KEYS)[number], string> = {
@@ -47,9 +52,11 @@ const RESOURCE_LABEL_KEYS: Record<(typeof RESOURCE_KEYS)[number], string> = {
   feed_takedown_reasons_crud: 'takedownReasons',
   admins_crud: 'admins',
   stats_crud: 'stats',
+  bucket_crud: 'bucket',
 };
 
 export function NewAdminPageClient() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [permissions, setPermissions] = useState<PermissionState>({
@@ -57,13 +64,16 @@ export function NewAdminPageClient() {
     feed_takedown_reasons_crud: 0,
     admins_crud: 0,
     stats_crud: 0,
+    bucket_crud: 0,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [inviteUrl, setInviteUrl] = useState<string | null>(null);
   const t = useTranslations('admins');
   const tc = useTranslations('common');
   const ta = useTranslations('auth');
+  const tu = useTranslations('users');
   const tp = useTranslations('admins.permissions');
 
   const toggleCrudBit = (resource: keyof PermissionState, bit: number) => {
@@ -77,11 +87,33 @@ export function NewAdminPageClient() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setSuccess(false);
+    setSuccessMessage(null);
+    setInviteUrl(null);
+
+    const trimmedPassword = password.trim();
+    if (trimmedPassword.length > 0 && trimmedPassword.length < 8) {
+      setError(tu('passwordMinLength'));
+      setLoading(false);
+      return;
+    }
 
     try {
-      await createAdmin({ email, password, permissions });
-      setSuccess(true);
+      const payload: {
+        email: string;
+        permissions: PermissionState;
+        password?: string;
+      } = { email, permissions };
+      if (trimmedPassword.length > 0) {
+        payload.password = trimmedPassword;
+      }
+
+      const result: CreateAdminResponse = await createAdmin(payload);
+      if (result.set_password_url !== undefined && result.set_password_url.length > 0) {
+        setInviteUrl(result.set_password_url);
+        setSuccessMessage(t('createdWithLink'));
+      } else {
+        setSuccessMessage(t('createdSuccessfully'));
+      }
       setEmail('');
       setPassword('');
       setPermissions({
@@ -89,6 +121,7 @@ export function NewAdminPageClient() {
         feed_takedown_reasons_crud: 0,
         admins_crud: 0,
         stats_crud: 0,
+        bucket_crud: 0,
       });
     } catch (err) {
       const raw =
@@ -105,7 +138,7 @@ export function NewAdminPageClient() {
   return (
     <ManagementPageShell
       title={t('createAdmin')}
-      headerChildren={
+      headerBreadcrumbs={
         <Breadcrumbs
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
@@ -113,69 +146,93 @@ export function NewAdminPageClient() {
         />
       }
     >
-      <FormContainer onSubmit={(e) => void handleSubmit(e)}>
-        <FormGroup>
-          <Label htmlFor="email">{ta('email')}</Label>
-          <Input
+      <FormMaxWidth>
+        <StackForm onSubmit={(e) => void handleSubmit(e)}>
+          <TextInput
             id="email"
+            eyebrow={ta('email')}
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-        </FormGroup>
-        <FormGroup>
-          <Label htmlFor="password">{ta('password')}</Label>
-          <Input
+          <TextInput
             id="password"
+            eyebrow={t('passwordOptional')}
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={8}
           />
-        </FormGroup>
-        <Fieldset legend={tp('legend')}>
-          <Table.ScrollContainer>
-            <Table>
-              <Table.Head>
-                <Table.Row>
-                  <Table.HeaderCell>{tp('resource')}</Table.HeaderCell>
-                  {CRUD_BITS.map((check) => (
-                    <Table.HeaderCell key={check.bit}>{tp(check.labelKey)}</Table.HeaderCell>
-                  ))}
-                </Table.Row>
-              </Table.Head>
-              <Table.Body>
-                {RESOURCE_KEYS.map((key) => (
-                  <Table.Row key={key}>
-                    <Table.Cell>{tp(RESOURCE_LABEL_KEYS[key])}</Table.Cell>
+          <FormHintText>{t('passwordInviteHint')}</FormHintText>
+          <Fieldset legend={tp('legend')}>
+            <Table.ScrollContainer>
+              <Table>
+                <Table.Head>
+                  <Table.Row>
+                    <Table.HeaderCell>{tp('resource')}</Table.HeaderCell>
                     {CRUD_BITS.map((check) => (
-                      <Table.Cell key={check.bit}>
-                        <input
-                          type="checkbox"
-                          checked={(permissions[key] & check.bit) !== 0}
-                          onChange={() => toggleCrudBit(key, check.bit)}
-                        />
-                      </Table.Cell>
+                      <Table.HeaderCell key={check.bit}>{tp(check.labelKey)}</Table.HeaderCell>
                     ))}
                   </Table.Row>
-                ))}
-              </Table.Body>
-            </Table>
-          </Table.ScrollContainer>
-        </Fieldset>
-        {error && <Alert>{error}</Alert>}
-        {success && <Alert variant="success">{t('createdSuccessfully')}</Alert>}
-        <FormPrimaryActions>
-          <ActionLink href="/admins" variant="subtle" LinkComponent={Link}>
-            {tc('cancel')}
-          </ActionLink>
-          <Button type="submit" disabled={loading}>
-            {loading ? tc('creating') : t('createAdmin')}
-          </Button>
-        </FormPrimaryActions>
-      </FormContainer>
+                </Table.Head>
+                <Table.Body>
+                  {RESOURCE_KEYS.map((key) => (
+                    <Table.Row key={key}>
+                      <Table.Cell>{tp(RESOURCE_LABEL_KEYS[key])}</Table.Cell>
+                      {CRUD_BITS.map((check) => (
+                        <Table.Cell key={check.bit}>
+                          <Checkbox
+                            aria-label={`${tp(RESOURCE_LABEL_KEYS[key])}, ${tp(check.labelKey)}`}
+                            checked={(permissions[key] & check.bit) !== 0}
+                            onChange={() => {
+                              toggleCrudBit(key, check.bit);
+                            }}
+                          />
+                        </Table.Cell>
+                      ))}
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table>
+            </Table.ScrollContainer>
+          </Fieldset>
+          <Alert>{error}</Alert>
+          {successMessage !== null ? <Alert variant="success">{successMessage}</Alert> : null}
+          {inviteUrl !== null ? (
+            <FormGroup layout="inStack">
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 'var(--spacing-base)',
+                  alignItems: 'flex-end',
+                }}
+              >
+                <TextInput
+                  eyebrow={tu('inviteLinkLabel')}
+                  id="admin-invite-link"
+                  readOnly
+                  style={{ flex: 1, minWidth: 0 }}
+                  type="text"
+                  value={inviteUrl}
+                />
+                <CopyToClipboardButton
+                  copiedLabel={tu('linkCopied')}
+                  idleLabel={tu('copyLink')}
+                  textToCopy={inviteUrl}
+                />
+              </div>
+            </FormGroup>
+          ) : null}
+          <FormPrimaryActions>
+            <Button type="button" variant="secondary" onClick={() => router.push('/admins')}>
+              {tc('cancel')}
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? tc('creating') : t('createAdmin')}
+            </Button>
+          </FormPrimaryActions>
+        </StackForm>
+      </FormMaxWidth>
     </ManagementPageShell>
   );
 }

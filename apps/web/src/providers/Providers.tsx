@@ -3,8 +3,11 @@
 import { NextIntlClientProvider } from 'next-intl';
 
 import type { DTOAccount, DTOCategory, QueueResourcesAbridgedIndex } from '@podverse/helpers';
+import { ImageRuntimeProvider } from '@podverse/ui';
 
 import type { WebConfig } from '../config';
+import { IMAGES } from '../constants/images';
+import { PROXY } from '../constants/proxy';
 import { AccountProvider } from '../contexts/Account';
 import { AddByRSSListContextProvider } from '../contexts/AddByRSSListContext';
 import { AutoQueueProvider } from '../contexts/AutoQueue';
@@ -43,39 +46,47 @@ export default function Providers({
 }) {
   return (
     <ConfigProvider config={config}>
-      <NextIntlClientProvider locale={locale} messages={messages} timeZone="America/Chicago">
-        <NavigationProvider>
-          <LocalSettingsProvider ssrLocalSettings={ssrLocalSettings}>
-            <AccountProvider ssrLoggedInAccount={ssrLoggedInAccount}>
-              <NotificationsProvider>
-                <QueuesProvider>
-                  <QueueResourcesAbridgedIndexProvider
-                    ssrQueueResourcesAbridgedIndex={ssrQueueResourcesAbridgedIndex}
-                  >
-                    <PlaylistsLikesProvider>
-                      <MediaPlayerCurrentTimeProvider>
-                        <MediaPlayerProvider>
-                          <MediaPlayerVideoProvider>
-                            <AddByRSSListContextProvider>
-                              <AutoQueueProvider ssrLocalSettings={ssrLocalSettings}>
-                                <ModalsProvider>
-                                  <CategoriesProvider ssrCategories={categories}>
-                                    {children}
-                                  </CategoriesProvider>
-                                </ModalsProvider>
-                              </AutoQueueProvider>
-                            </AddByRSSListContextProvider>
-                          </MediaPlayerVideoProvider>
-                        </MediaPlayerProvider>
-                      </MediaPlayerCurrentTimeProvider>
-                    </PlaylistsLikesProvider>
-                  </QueueResourcesAbridgedIndexProvider>
-                </QueuesProvider>
-              </NotificationsProvider>
-            </AccountProvider>
-          </LocalSettingsProvider>
-        </NavigationProvider>
-      </NextIntlClientProvider>
+      <ImageRuntimeProvider
+        imageProxyEnabled={config.public.imageProxy.enabled}
+        listGridSlotSize={IMAGES.LIST.GRID.SIZE}
+        nextImageOptimizationEnabled={config.public.nextImageOptimization.enabled}
+        placeholderSrc={IMAGES.SRC.PLACEHOLDER}
+        proxyPathPrefix={PROXY.PATH}
+      >
+        <NextIntlClientProvider locale={locale} messages={messages} timeZone="America/Chicago">
+          <NavigationProvider>
+            <LocalSettingsProvider ssrLocalSettings={ssrLocalSettings}>
+              <AccountProvider ssrLoggedInAccount={ssrLoggedInAccount}>
+                <NotificationsProvider>
+                  <QueuesProvider>
+                    <QueueResourcesAbridgedIndexProvider
+                      ssrQueueResourcesAbridgedIndex={ssrQueueResourcesAbridgedIndex}
+                    >
+                      <PlaylistsLikesProvider>
+                        <MediaPlayerCurrentTimeProvider>
+                          <MediaPlayerProvider>
+                            <MediaPlayerVideoProvider>
+                              <AddByRSSListContextProvider>
+                                <AutoQueueProvider ssrLocalSettings={ssrLocalSettings}>
+                                  <ModalsProvider>
+                                    <CategoriesProvider ssrCategories={categories}>
+                                      {children}
+                                    </CategoriesProvider>
+                                  </ModalsProvider>
+                                </AutoQueueProvider>
+                              </AddByRSSListContextProvider>
+                            </MediaPlayerVideoProvider>
+                          </MediaPlayerProvider>
+                        </MediaPlayerCurrentTimeProvider>
+                      </PlaylistsLikesProvider>
+                    </QueueResourcesAbridgedIndexProvider>
+                  </QueuesProvider>
+                </NotificationsProvider>
+              </AccountProvider>
+            </LocalSettingsProvider>
+          </NavigationProvider>
+        </NextIntlClientProvider>
+      </ImageRuntimeProvider>
     </ConfigProvider>
   );
 }

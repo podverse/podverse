@@ -2,14 +2,10 @@
 
 import { useTranslations } from 'next-intl';
 
-import { Divider } from '@podverse/ui';
+import { Divider, MainColumnStack, MainHeader, MainSidebarLayout, SideContent } from '@podverse/ui';
 
 import { Link } from '../../components/Link/Link';
-import { MainHeader } from '../../components/Main/MainHeader';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { SideContent } from '../../components/SideContent/SideContent';
 import { CONTACT_EMAIL_LINKS } from '../../constants/contact';
 import { SOCIALS } from '../../constants/socials';
 
@@ -22,9 +18,9 @@ export default function ContactPage() {
     <>
       <MainHeader title={tContact('contact')} />
       <MainWrapper>
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             <section className={styles.section}>
               <h2>{tContact('email')}</h2>
               <ul>
@@ -81,8 +77,8 @@ export default function ContactPage() {
                 </li>
               </ul>
             </section>
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </>
   );

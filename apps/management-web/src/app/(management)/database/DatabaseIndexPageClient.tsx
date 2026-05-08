@@ -5,9 +5,12 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import type { NavCard } from '@podverse/ui';
-import { Alert, LoadingText, ManagementPageShell, NavCardGrid } from '@podverse/ui';
+import { Alert, ManagementPageShell, NavCardGrid } from '@podverse/ui';
 
+import { ManagementLoadingSpinnerOverlayStatus } from '../../../components/LoadingSpinner/ManagementLoadingSpinnerOverlay';
 import { getDatabaseTables, type TableMeta } from '../../../lib/requests/database';
+
+import dataSurfaceBusyStyles from '../../../styles/managementDataSurfaceBusy.module.scss';
 
 const TABLE_DESCRIPTION_KEYS: Record<string, string> = {
   feed: 'tables.feed.description',
@@ -70,9 +73,16 @@ export function DatabaseIndexPageClient() {
 
   return (
     <ManagementPageShell title={t('title')}>
-      {loading && <LoadingText>{t('loadingTables')}</LoadingText>}
-      {error && <Alert>{error}</Alert>}
-      {!loading && !error && <NavCardGrid cards={cards} LinkComponent={Link} />}
+      <ManagementLoadingSpinnerOverlayStatus isLoading={loading} message={t('loadingTables')} />
+      <Alert>{error}</Alert>
+      {!error && (
+        <div
+          aria-busy={loading ? true : undefined}
+          className={loading ? dataSurfaceBusyStyles.dataSurfaceBusy : undefined}
+        >
+          <NavCardGrid cards={cards} LinkComponent={Link} />
+        </div>
+      )}
     </ManagementPageShell>
   );
 }

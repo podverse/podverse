@@ -1,5 +1,7 @@
+@use 'flexShrink' as *;
+
 @mixin ellipsisSingleLineParent {
-  min-width: 0;
+  @include flexItemAllowShrink;
 }
 
 @mixin ellipsisSingleLineChild {

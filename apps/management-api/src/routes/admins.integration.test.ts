@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const JWT_SECRET = process.env.AUTH_JWT_SECRET ?? '';
 const adminsBase = `${config.api.prefix}${config.api.version}/admins`;
+const redeemInviteLinkUrl = `${adminsBase}/invite-link/redeem`;
 
 type MockAdmin = {
   id: number;
@@ -18,6 +19,8 @@ type MockAdmin = {
     feedTakedownReasonsCrud: number;
     adminsCrud: number;
     statsCrud: number;
+    billingPricesCrud: number;
+    bucketCrud: number;
   } | null;
   created_at: Date;
 };
@@ -34,10 +37,12 @@ const superuserAdmin: MockAdmin = {
     adminsCrud: 15,
     statsCrud: 15,
     billingPricesCrud: 15,
+    bucketCrud: 15,
   },
   created_at: new Date('2020-01-01T00:00:00.000Z'),
 };
 
+/** read (2) + update (4) — enough for PATCH tests */
 const adminWithAdminsRead: MockAdmin = {
   id: 2,
   id_text: 'pvMgtAd002',
@@ -47,9 +52,10 @@ const adminWithAdminsRead: MockAdmin = {
   permissions: {
     feedsCrud: 0,
     feedTakedownReasonsCrud: 0,
-    adminsCrud: 2,
+    adminsCrud: 6,
     statsCrud: 0,
     billingPricesCrud: 0,
+    bucketCrud: 0,
   },
   created_at: new Date('2020-01-01T00:00:00.000Z'),
 };
@@ -66,6 +72,25 @@ const adminWithNoPermissions: MockAdmin = {
     adminsCrud: 0,
     statsCrud: 0,
     billingPricesCrud: 0,
+    bucketCrud: 0,
+  },
+  created_at: new Date('2020-01-01T00:00:00.000Z'),
+};
+
+/** create (1) + read (2) */
+const adminWithAdminsCreate: MockAdmin = {
+  id: 4,
+  id_text: 'pvMgtCr004',
+  admin_account_role_id: 2,
+  admin_account_role: { role: 'admin' },
+  admin_account_credentials: { email: 'creator@example.com' },
+  permissions: {
+    feedsCrud: 0,
+    feedTakedownReasonsCrud: 0,
+    adminsCrud: 3,
+    statsCrud: 0,
+    billingPricesCrud: 0,
+    bucketCrud: 0,
   },
   created_at: new Date('2020-01-01T00:00:00.000Z'),
 };
@@ -77,6 +102,7 @@ const { getWithRoleAndPermissionsMock, listMock, createMock, updateMock, deleteM
         if (id === 1) return superuserAdmin;
         if (id === 2) return adminWithAdminsRead;
         if (id === 3) return adminWithNoPermissions;
+        if (id === 4) return adminWithAdminsCreate;
         return null;
       }
     ),
@@ -84,6 +110,7 @@ const { getWithRoleAndPermissionsMock, listMock, createMock, updateMock, deleteM
       superuserAdmin,
       adminWithAdminsRead,
       adminWithNoPermissions,
+      adminWithAdminsCreate,
     ]),
     createMock: vi.fn<Promise<MockAdmin>, [unknown]>(),
     updateMock: vi.fn<Promise<MockAdmin>, [number, unknown]>(),
@@ -111,6 +138,27 @@ vi.mock('@mgmt-api/orm/services/adminAccount.js', () => {
     async delete(id: number) {
       return deleteMock(id);
     }
+    async upsertInviteToken(_adminAccountId: number) {
+      return {
+        token: 'invite-token-test',
+        expires_at: new Date('2030-01-01T00:00:00.000Z'),
+      };
+    }
+    async getActiveInviteToken(adminAccountId: number) {
+      if (adminAccountId === 2) {
+        return {
+          token: 'active-invite-token',
+          expires_at: new Date('2030-06-01T00:00:00.000Z'),
+        };
+      }
+      return null;
+    }
+    async clearSetPasswordToken(_adminAccountId: number) {
+      return;
+    }
+    async completeSetPasswordFromToken(_token: string, _plainPassword: string) {
+      return;
+    }
   }
   return { AdminAccountService };
 });
@@ -128,6 +176,7 @@ const adminIdTextByUserId: Record<number, string> = {
   1: 'pvMgtSu001',
   2: 'pvMgtAd002',
   3: 'pvMgtAd003',
+  4: 'pvMgtCr004',
 };
 
 const adminAuthHeaders = (userId: number = 1): { Authorization: string } => ({
@@ -153,7 +202,7 @@ describe('management-api admins routes', () => {
 
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
-      expect(res.body).toHaveLength(3);
+      expect(res.body).toHaveLength(4);
     });
 
     it('returns 200 for admin with admins:read permission', async () => {
@@ -187,6 +236,12 @@ describe('management-api admins routes', () => {
       });
     });
 
+    it('returns 404 when non-superuser reads a superuser admin', async () => {
+      const res = await request(app).get(`${adminsBase}/1`).set(adminAuthHeaders(2));
+
+      expect(res.status).toBe(404);
+    });
+
     it('returns 403 for admin without admins:read permission', async () => {
       const res = await request(app).get(`${adminsBase}/2`).set(adminAuthHeaders(3));
 
@@ -197,7 +252,7 @@ describe('management-api admins routes', () => {
   describe('POST /admins', () => {
     it('returns 201 for superuser creating an admin', async () => {
       createMock.mockResolvedValueOnce({
-        id: 4,
+        id: 5,
         id_text: 'pvMgtNw001',
         admin_account_role_id: 2,
         admin_account_role: { role: 'admin' },
@@ -208,6 +263,7 @@ describe('management-api admins routes', () => {
           adminsCrud: 0,
           statsCrud: 0,
           billingPricesCrud: 0,
+          bucketCrud: 0,
         },
         created_at: new Date('2024-01-01T00:00:00.000Z'),
       });
@@ -225,7 +281,64 @@ describe('management-api admins routes', () => {
       expect(res.body).toMatchObject({ email: 'new@example.com' });
     });
 
-    it('returns 403 for non-superuser', async () => {
+    it('returns 201 with set_password_url when password omitted', async () => {
+      createMock.mockResolvedValueOnce({
+        id: 5,
+        id_text: 'pvMgtNw002',
+        admin_account_role_id: 2,
+        admin_account_role: { role: 'admin' },
+        admin_account_credentials: { email: 'invite@example.com' },
+        permissions: {
+          feedsCrud: 0,
+          feedTakedownReasonsCrud: 0,
+          adminsCrud: 0,
+          statsCrud: 0,
+          billingPricesCrud: 0,
+          bucketCrud: 0,
+        },
+        created_at: new Date('2024-01-01T00:00:00.000Z'),
+      });
+
+      const res = await request(app)
+        .post(`${adminsBase}`)
+        .set(adminAuthHeaders(1))
+        .send({
+          email: 'invite@example.com',
+          permissions: { feeds_crud: 0 },
+        });
+
+      expect(res.status).toBe(201);
+      expect(typeof res.body.set_password_url).toBe('string');
+      expect(res.body.set_password_url).toContain('/admins/redeem-invite-link?token=');
+    });
+
+    it('returns 201 for admin with admins:create permission', async () => {
+      createMock.mockResolvedValueOnce({
+        id: 6,
+        id_text: 'pvMgtNw003',
+        admin_account_role_id: 2,
+        admin_account_role: { role: 'admin' },
+        admin_account_credentials: { email: 'bycreator@example.com' },
+        permissions: {
+          feedsCrud: 0,
+          feedTakedownReasonsCrud: 0,
+          adminsCrud: 0,
+          statsCrud: 0,
+          billingPricesCrud: 0,
+          bucketCrud: 0,
+        },
+        created_at: new Date('2024-01-01T00:00:00.000Z'),
+      });
+
+      const res = await request(app).post(`${adminsBase}`).set(adminAuthHeaders(4)).send({
+        email: 'bycreator@example.com',
+        password: 'test-password',
+      });
+
+      expect(res.status).toBe(201);
+    });
+
+    it('returns 403 for admin without admins:create permission', async () => {
       const res = await request(app)
         .post(`${adminsBase}`)
         .set(adminAuthHeaders(2))
@@ -252,9 +365,10 @@ describe('management-api admins routes', () => {
         permissions: {
           feedsCrud: 15,
           feedTakedownReasonsCrud: 0,
-          adminsCrud: 2,
+          adminsCrud: 6,
           statsCrud: 0,
           billingPricesCrud: 0,
+          bucketCrud: 0,
         },
         created_at: new Date('2020-01-01T00:00:00.000Z'),
       });
@@ -296,14 +410,13 @@ describe('management-api admins routes', () => {
       expect(res.status).toBe(404);
     });
 
-    it('returns 403 when admin without admins:create/update tries to change permissions', async () => {
+    it('returns 403 when admin lacks admins:update for PATCH', async () => {
       const res = await request(app)
         .patch(`${adminsBase}/2`)
         .set(adminAuthHeaders(3))
         .send({ permissions: { feeds_crud: 2 } });
 
       expect(res.status).toBe(403);
-      expect(res.body.message).toContain('Create or update permission');
     });
 
     it('returns 400 with invalid permissions value', async () => {
@@ -332,10 +445,63 @@ describe('management-api admins routes', () => {
       expect(res.body.message).toBe('Cannot delete your own account');
     });
 
-    it('returns 403 for non-superuser', async () => {
+    it('returns 403 for admin without admins:delete permission', async () => {
       const res = await request(app).delete(`${adminsBase}/3`).set(adminAuthHeaders(2));
 
       expect(res.status).toBe(403);
+    });
+  });
+
+  describe('GET /admins/:id/invite-link', () => {
+    it('returns invite_link for superuser when token exists', async () => {
+      const res = await request(app).get(`${adminsBase}/2/invite-link`).set(adminAuthHeaders(1));
+
+      expect(res.status).toBe(200);
+      expect(res.body.invite_link.url).toContain('/admins/redeem-invite-link?token=');
+    });
+
+    it('returns 404 for non-superuser targeting superuser account', async () => {
+      const res = await request(app).get(`${adminsBase}/1/invite-link`).set(adminAuthHeaders(2));
+
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe('POST /admins/:id/invite-link', () => {
+    it('returns 201 with invite URL for superuser', async () => {
+      const res = await request(app).post(`${adminsBase}/2/invite-link`).set(adminAuthHeaders(1));
+
+      expect(res.status).toBe(201);
+      expect(res.body.invite_link.url).toContain('/admins/redeem-invite-link?token=');
+    });
+  });
+
+  describe('DELETE /admins/:id/invite-link', () => {
+    it('returns 200 for superuser', async () => {
+      const res = await request(app).delete(`${adminsBase}/2/invite-link`).set(adminAuthHeaders(1));
+
+      expect(res.status).toBe(200);
+    });
+  });
+
+  describe('POST /admins/invite-link/redeem (public)', () => {
+    it('returns 200 with valid token and password', async () => {
+      const res = await request(app).post(redeemInviteLinkUrl).send({
+        token: 'valid-token',
+        password: 'new-password-123',
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.message).toBe('Password updated');
+    });
+
+    it('returns 400 with invalid password length', async () => {
+      const res = await request(app).post(redeemInviteLinkUrl).send({
+        token: 'valid-token',
+        password: 'short',
+      });
+
+      expect(res.status).toBe(400);
     });
   });
 });

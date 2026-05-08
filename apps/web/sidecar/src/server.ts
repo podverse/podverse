@@ -12,6 +12,7 @@ import {
   validateProxyUserAgent,
   validateRequired,
   validateServerEnv,
+  validateSidebarGroupOrderOptionalEnv,
   validateSignupMode,
   validateSupportedLocalesList,
   validateSupportedThemesList,
@@ -31,7 +32,6 @@ const requiredKeys = [
   'NEXT_PUBLIC_DEFAULT_THEME',
   'NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE',
   'NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES',
-  'NEXT_PUBLIC_PROXY_USER_AGENT',
   'NEXT_PUBLIC_SSR_API_HOST',
   'NEXT_PUBLIC_SSR_API_PROTOCOL',
   'NEXT_PUBLIC_SUPPORTED_THEMES',
@@ -61,9 +61,13 @@ const optionalKeys = [
   'NEXT_PUBLIC_BRAND_NAME',
   'NEXT_PUBLIC_BRAND_THEME_COLOR',
   'NEXT_PUBLIC_CONTACT_EMAIL',
+  'NEXT_PUBLIC_IMAGE_PROXY_ENABLED',
+  'NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED',
   'NEXT_PUBLIC_POLLING_INTERVAL_MS',
   'NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS',
+  'NEXT_PUBLIC_PROXY_USER_AGENT',
   'NEXT_PUBLIC_SERVER_ENV',
+  'NEXT_PUBLIC_SIDEBAR_GROUP_ORDER',
   'NEXT_PUBLIC_SOCIAL_ACTIVITY_PUB',
   'NEXT_PUBLIC_SOCIAL_DISCORD',
   'NEXT_PUBLIC_SOCIAL_GITHUB',
@@ -112,6 +116,9 @@ function validatePort(): ValidationResult {
 
 function validateOne(key: string, isRequired: boolean): ValidationResult {
   const category = getCategory(key);
+  if (key === 'NEXT_PUBLIC_SIDEBAR_GROUP_ORDER') {
+    return validateSidebarGroupOrderOptionalEnv(key, category);
+  }
   if (
     key === 'NEXT_PUBLIC_SSR_API_PROTOCOL' ||
     key === 'NEXT_PUBLIC_API_PROTOCOL' ||
@@ -126,7 +133,52 @@ function validateOne(key: string, isRequired: boolean): ValidationResult {
     return validateServerEnv(key, category);
   }
   if (key === 'NEXT_PUBLIC_PROXY_USER_AGENT') {
+    const value = process.env[key] ?? '';
+    if (value.trim() === '') {
+      return {
+        name: key,
+        isSet: false,
+        isValid: true,
+        isRequired: false,
+        message: 'Blank',
+        category: 'Proxy',
+      };
+    }
     return validateProxyUserAgent(key, category);
+  }
+  if (
+    key === 'NEXT_PUBLIC_IMAGE_PROXY_ENABLED' ||
+    key === 'NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED'
+  ) {
+    const value = process.env[key] ?? '';
+    if (value.trim() === '') {
+      return {
+        name: key,
+        isSet: false,
+        isValid: true,
+        isRequired: false,
+        message: 'Use Default (disabled)',
+        category: 'Proxy',
+      };
+    }
+    if (value !== 'true' && value !== 'false') {
+      return {
+        name: key,
+        isSet: true,
+        isValid: false,
+        isRequired: false,
+        message: `Invalid value: "${value}" - must be "true" or "false"`,
+        category: 'Proxy',
+      };
+    }
+    return {
+      name: key,
+      isSet: true,
+      isValid: true,
+      isRequired: false,
+      message: `Set to ${value}`,
+      category: 'Proxy',
+    };
   }
   if (key === 'NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS') {
     const value = process.env[key] ?? '';
@@ -178,6 +230,8 @@ function getCategory(key: string): string {
     NEXT_PUBLIC_DEFAULT_THEME: 'Themes',
     NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE: 'Features',
     NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES: 'Features',
+    NEXT_PUBLIC_IMAGE_PROXY_ENABLED: 'Proxy',
+    NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED: 'Proxy',
     NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS: 'Proxy',
     NEXT_PUBLIC_PROXY_USER_AGENT: 'Proxy',
     NEXT_PUBLIC_BRAND_APPLE_TOUCH_ICON_URL: 'Brand',
@@ -189,6 +243,7 @@ function getCategory(key: string): string {
     NEXT_PUBLIC_BRAND_FAVICON_SVG_URL: 'Brand',
     NEXT_PUBLIC_BRAND_THEME_COLOR: 'Brand',
     NEXT_PUBLIC_SERVER_ENV: 'General',
+    NEXT_PUBLIC_SIDEBAR_GROUP_ORDER: 'Navigation',
     NEXT_PUBLIC_SSR_API_HOST: 'API (SSR)',
     NEXT_PUBLIC_SSR_API_PROTOCOL: 'API (SSR)',
     NEXT_PUBLIC_SSR_API_PORT: 'API (SSR)',
@@ -247,6 +302,21 @@ function buildValidationResults(): ValidationResult[] {
       category: 'Lightning',
     });
   }
+  const imageProxyRaw = process.env.NEXT_PUBLIC_IMAGE_PROXY_ENABLED ?? '';
+  const imageProxyEnabled = imageProxyRaw.trim() === 'true';
+  if (imageProxyEnabled) {
+    const ua = process.env.NEXT_PUBLIC_PROXY_USER_AGENT ?? '';
+    if (ua.trim() === '') {
+      results.push({
+        name: 'NEXT_PUBLIC_PROXY_USER_AGENT',
+        isSet: false,
+        isValid: false,
+        isRequired: true,
+        message: 'Required when NEXT_PUBLIC_IMAGE_PROXY_ENABLED is true',
+        category: 'Proxy',
+      });
+    }
+  }
   return results;
 }
 
@@ -284,7 +354,13 @@ function buildRuntimeConfig(): { env: Record<string, string | undefined> } {
 function findMissingRequiredKeys(runtimeConfig: {
   env: Record<string, string | undefined>;
 }): string[] {
-  return requiredKeys.filter((key) => runtimeConfig.env[key] === undefined);
+  const missing: string[] = requiredKeys.filter((key) => runtimeConfig.env[key] === undefined);
+  const imageProxyEnabled = runtimeConfig.env.NEXT_PUBLIC_IMAGE_PROXY_ENABLED === 'true';
+  const ua = runtimeConfig.env.NEXT_PUBLIC_PROXY_USER_AGENT;
+  if (imageProxyEnabled && (ua === undefined || ua.trim() === '')) {
+    missing.push('NEXT_PUBLIC_PROXY_USER_AGENT');
+  }
+  return missing;
 }
 
 function getPort(): number {

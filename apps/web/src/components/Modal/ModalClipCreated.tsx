@@ -4,14 +4,14 @@ import { useTranslations } from 'next-intl';
 import React, { useRef, useState } from 'react';
 
 import { copyToClipboard } from '@podverse/helpers-browser';
+import { Modal, TextInput } from '@podverse/ui';
 
 import { WEB } from '../../constants/web';
 import { useModals } from '../../contexts/Modals';
-import { TextInput } from '../Form/TextInput';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 
 export const ModalClipCreated: React.FC = () => {
   const tFeatures = useTranslations('features');
+  const tMisc = useTranslations('misc');
   const [isCopied, setIsCopied] = useState<boolean>(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { modalClipCreated, setModalClipCreated } = useModals();
@@ -47,9 +47,9 @@ export const ModalClipCreated: React.FC = () => {
     <Modal
       isOpen={!!modalClipCreated.clip}
       onClose={clearModalClipCreated}
+      closeButtonAriaLabel={tMisc('close_modal')}
       header={header}
       ariaLabel={header}
-      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <TextInput
         key="clip_url"

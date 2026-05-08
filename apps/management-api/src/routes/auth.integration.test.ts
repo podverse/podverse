@@ -26,6 +26,7 @@ const mockSuperuserAdmin = {
     adminsCrud: 15,
     statsCrud: 15,
     billingPricesCrud: 15,
+    bucketCrud: 15,
     created_at: new Date('2020-01-01T00:00:00.000Z'),
     updated_at: new Date('2020-01-01T00:00:00.000Z'),
   },
@@ -64,7 +65,7 @@ vi.mock('@mgmt-api/orm/services/adminAccount.js', () => {
   return { AdminAccountService };
 });
 
-// Avoid loading management orm/entities (auditLog imports orm DataSource; see feedFlagStatus test).
+// Avoid loading management orm/entities (auditLog imports orm DataSource; see feeds test).
 vi.mock('@mgmt-api/lib/database/auditLog.js', () => {
   class AuditLogService {
     async record() {

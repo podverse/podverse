@@ -1,5 +1,5 @@
 /**
- * Frozen HTTP contract for feed-operations (management-api).
+ * HTTP contract for feeds (management-api).
  * Source: `.llm/plans/active/feed-status-table-replacement/05b-management-api-contract-lock.md`
  *
  * Additional operational fields (not listed in 05b prose but required by workflows):
@@ -31,10 +31,10 @@ export const feedOperationsPolicyOverridesSchema = Joi.object({
 }).optional();
 
 /**
- * POST `/feed-operations/update-policy-state` body.
+ * PATCH `/feeds/:id/policy-state` body. The feed id lives in the path; the body
+ * carries only the mutation fields.
  */
 export const feedOperationsUpdatePolicyStateBodySchema = Joi.object({
-  feed_id: Joi.number().integer().positive().required(),
   lifecycle_state_key: Joi.string()
     .valid(...FEED_OPERATIONS_LIFECYCLE_STATE_KEYS)
     .optional(),

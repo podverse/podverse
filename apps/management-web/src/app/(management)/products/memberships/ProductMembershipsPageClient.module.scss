@@ -1,0 +1,11 @@
+.detailWithAction {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+}
+
+.detailValue {
+  font-variant-numeric: tabular-nums;
+}

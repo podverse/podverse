@@ -5,13 +5,13 @@ import React, { useRef } from 'react';
 
 import type { DTOPlaylist } from '@podverse/helpers';
 import type { QueryParamsPlaylistsType } from '@podverse/helpers-requests';
+import { CallToActionMessage } from '@podverse/ui';
 
 import { useModals } from '../../../contexts/Modals';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { scrollMainToTop } from '../../../utils/scroll';
-import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';
-import Pagination from '../../Pagination/Pagination';
+import { Pagination } from '../../Pagination/Pagination';
 import { ListPlaylistRow } from './ListPlaylistRow';
 
 import styles from '../../../styles/components/List/Playlists/ListPlaylists.module.scss';

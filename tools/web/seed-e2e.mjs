@@ -47,7 +47,7 @@ async function main() {
 
   const accountResult = await client.query(
     `INSERT INTO "account" (id_text, verified, sharable_status_id)
-     VALUES ($1, false, 1)
+     VALUES ($1, true, 1)
      RETURNING id`,
     [idText]
   );
@@ -58,6 +58,15 @@ async function main() {
     `INSERT INTO "account_credentials" (account_id, email, password)
      VALUES ($1, $2, $3)`,
     [accountId, 'e2e-user@example.com', passwordHash]
+  );
+
+  const membershipExpiresAt = new Date();
+  membershipExpiresAt.setUTCDate(membershipExpiresAt.getUTCDate() + 30);
+
+  await client.query(
+    `INSERT INTO "account_membership_status" (account_id, account_membership_id, membership_expires_at)
+     VALUES ($1, 1, $2)`,
+    [accountId, membershipExpiresAt.toISOString()]
   );
 
   console.log(`Seeded 1 test user: e2e-user@example.com`);

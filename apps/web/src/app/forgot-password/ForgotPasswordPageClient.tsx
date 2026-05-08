@@ -5,11 +5,9 @@ import { useTranslations } from 'next-intl';
 import { useEffect } from 'react';
 
 import { getAccountSignupModeCapabilities } from '@podverse/helpers';
+import { MainColumnStack, MainHeader, MainSidebarLayout } from '@podverse/ui';
 
 import { AuthForgotPasswordForm } from '../../components/Auth/AuthForgotPasswordForm';
-import { MainHeader } from '../../components/Main/MainHeader';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { getConfig } from '../../config';
 
@@ -35,11 +33,11 @@ export function ForgotPasswordPageClient() {
     <>
       <MainHeader title={tAuthentication('forgot_password')} />
       <MainWrapper>
-        <MainInnerWrapper>
-          <MainInnerContentWrapper>
+        <MainSidebarLayout>
+          <MainColumnStack>
             <AuthForgotPasswordForm />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </>
   );

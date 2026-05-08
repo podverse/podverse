@@ -4,9 +4,18 @@
  * This module validates environment variables before the application starts.
  */
 
+import {
+  hasAnyBucketProviderEnvSet,
+  isBucketProvider,
+  SUPPORTED_BUCKET_PROVIDERS,
+} from '@podverse/external-services-object-storage';
 import { isValidUUID } from '@podverse/helpers';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
-import { validateOptional, validateRequired } from '@podverse/helpers-config';
+import {
+  validateOptional,
+  validateOptionalAbsoluteHttpUrlIfSet,
+  validateRequired,
+} from '@podverse/helpers-config';
 
 /**
  * Validates critical environment variables and configuration at application startup.
@@ -83,9 +92,11 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateRequired('COOKIE_DOMAIN', 'API'));
   results.push(validateRequired('API_ALLOWED_CORS_ORIGINS', 'API'));
 
-  // Web
-  results.push(validateRequired('WEB_PROTOCOL', 'Web'));
-  results.push(validateRequired('WEB_DOMAIN', 'Web'));
+  // Web origins (public web vs management web — different invite-link bases)
+  results.push(validateRequired('APP_WEB_PROTOCOL', 'Web (main app)'));
+  results.push(validateRequired('APP_WEB_DOMAIN', 'Web (main app)'));
+  results.push(validateRequired('MANAGEMENT_WEB_PROTOCOL', 'Web (management app)'));
+  results.push(validateRequired('MANAGEMENT_WEB_DOMAIN', 'Web (management app)'));
 
   // User Management
   results.push(
@@ -116,6 +127,8 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
       'Optional; aligns with main API pricing env'
     )
   );
+
+  results.push(...validateObjectStorageBucket());
 
   // General
   results.push(validateRequired('NODE_ENV', 'General'));
@@ -234,6 +247,98 @@ const validateUserAgent = (): ValidationResult => {
     category: 'Auth & Security',
   };
 };
+
+const OBJECT_STORAGE_CATEGORY = 'Object Storage';
+
+function validateManagementBucketForcePathStyle(): ValidationResult {
+  const raw = (process.env.BUCKET_FORCE_PATH_STYLE ?? '').trim();
+  if (raw === '') {
+    return {
+      name: 'BUCKET_FORCE_PATH_STYLE',
+      isSet: false,
+      isValid: true,
+      isRequired: false,
+      message: 'Use Default (provider-specific)',
+      category: OBJECT_STORAGE_CATEGORY,
+    };
+  }
+  if (raw === 'true' || raw === 'false') {
+    return {
+      name: 'BUCKET_FORCE_PATH_STYLE',
+      isSet: true,
+      isValid: true,
+      isRequired: false,
+      message: `Set (${raw})`,
+      category: OBJECT_STORAGE_CATEGORY,
+    };
+  }
+  return {
+    name: 'BUCKET_FORCE_PATH_STYLE',
+    isSet: true,
+    isValid: false,
+    isRequired: false,
+    message: `Invalid value: "${raw}" (expected true, false, or unset)`,
+    category: OBJECT_STORAGE_CATEGORY,
+  };
+}
+
+/**
+ * When `BUCKET_PROVIDER` is unset, object storage management routes stay disabled.
+ * When set, validate the same bucket env contract as workers (including `BUCKET_CDN_BASE_URL`).
+ */
+function validateObjectStorageBucket(): ValidationResult[] {
+  const results: ValidationResult[] = [];
+  if (!hasAnyBucketProviderEnvSet()) {
+    results.push(
+      validateOptional(
+        'BUCKET_PROVIDER',
+        OBJECT_STORAGE_CATEGORY,
+        'Disabled - BUCKET_PROVIDER not set'
+      )
+    );
+    return results;
+  }
+
+  const bucketProvider = process.env.BUCKET_PROVIDER?.trim() ?? '';
+  const isBucketProviderValid = isBucketProvider(bucketProvider);
+  const providerList = SUPPORTED_BUCKET_PROVIDERS.join(', ');
+  results.push({
+    name: 'BUCKET_PROVIDER',
+    isSet: true,
+    isValid: isBucketProviderValid,
+    isRequired: true,
+    message: isBucketProviderValid
+      ? 'Set'
+      : `Invalid value: "${bucketProvider}" (expected one of: ${providerList})`,
+    category: OBJECT_STORAGE_CATEGORY,
+  });
+
+  results.push(validateRequired('BUCKET_ACCESS_KEY', OBJECT_STORAGE_CATEGORY));
+  results.push(validateRequired('BUCKET_SECRET_KEY', OBJECT_STORAGE_CATEGORY));
+  results.push(validateRequired('BUCKET_REGION', OBJECT_STORAGE_CATEGORY));
+  results.push(validateRequired('BUCKET_NAME', OBJECT_STORAGE_CATEGORY));
+  results.push(validateRequired('BUCKET_CDN_BASE_URL', OBJECT_STORAGE_CATEGORY));
+
+  if (isBucketProviderValid) {
+    if (bucketProvider === 'garage' || bucketProvider === 's3-compatible') {
+      results.push(validateRequired('BUCKET_ENDPOINT', OBJECT_STORAGE_CATEGORY));
+    } else {
+      results.push(
+        validateOptional(
+          'BUCKET_ENDPOINT',
+          OBJECT_STORAGE_CATEGORY,
+          'Optional override for S3 API base URL (see docs/image-shrinking/BUCKET-PROVIDERS.md)'
+        )
+      );
+    }
+    results.push(
+      validateOptionalAbsoluteHttpUrlIfSet('BUCKET_ENDPOINT', OBJECT_STORAGE_CATEGORY, 'Skipped')
+    );
+  }
+
+  results.push(validateManagementBucketForcePathStyle());
+  return results;
+}
 
 /**
  * Displays validation results in a formatted table

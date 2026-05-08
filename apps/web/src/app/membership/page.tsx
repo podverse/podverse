@@ -7,18 +7,16 @@ import {
   calculateTimeRemaining,
   isMembershipExpiredAt,
 } from '@podverse/helpers';
+import { MainColumnStack, MainHeader, MainSidebarLayout, SideContent } from '@podverse/ui';
 
 import { FeatureComparison } from '../../components/FeatureComparison/FeatureComparison';
-import { MainHeader } from '../../components/Main/MainHeader';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { SideContent } from '../../components/SideContent/SideContent';
 import { getConfig } from '../../config';
 import { FEATURES } from '../../constants/features';
 import { getSSRApiRequestService } from '../../factories/apiRequestService';
 import { getSSRLoggedInAccount } from '../../utils/auth/ssrAuth';
 import { MembershipCTA } from './MembershipCTA';
+import { TrialLimitationsCollapsible } from './TrialLimitationsCollapsible';
 
 import styles from '../../styles/app/membership/Membership.module.scss';
 
@@ -102,9 +100,9 @@ export default async function MembershipPage() {
     <>
       <MainHeader title={t('membership')} />
       <MainWrapper>
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             {!isContactOnlyMode && errorMessage && (
               <section className={styles.errorSection}>
                 <p>{errorMessage}</p>
@@ -167,23 +165,14 @@ export default async function MembershipPage() {
               />
             )}
 
-            <section className={styles.trialLimitationsSection}>
-              <h2 className={styles.comparisonTitle}>{t('trial_limitations_title')}</h2>
-              <ul className={styles.trialLimitationsList}>
-                <li>{t('trial_limitations_directory_add_by_rss')}</li>
-                <li>{t('trial_limitations_add_by_rss_feed_limit')}</li>
-                <li>{t('trial_limitations_manual_refresh_limit')}</li>
-                <li>{t('trial_limitations_stats_tracking')}</li>
-                <li>{t('trial_limitations_notifications')}</li>
-              </ul>
-            </section>
-
             <section>
               <h2 className={styles.comparisonTitle}>{t('features')}</h2>
               <FeatureComparison features={FEATURES} />
             </section>
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+
+            <TrialLimitationsCollapsible />
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </>
   );

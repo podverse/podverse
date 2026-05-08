@@ -1,0 +1,39 @@
+@use '../../../styles/mixins/flexShrink' as *;
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.headerRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.titleBlock {
+  flex: 1;
+  @include flexItemAllowShrink;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-xl);
+}
+
+.subtitle {
+  margin: var(--spacing-xs) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-color-secondary);
+}
+
+.errorMuted {
+  color: var(--text-color-secondary);
+}
+
+.errorStrong {
+  color: var(--text-color-danger);
+}

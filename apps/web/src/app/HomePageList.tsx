@@ -3,8 +3,8 @@
 import React from 'react';
 
 import { CoreCombinedChannels } from '../components/Core/CombinedChannels/CoreCombinedChannels';
-import { HowToStartInfo } from '../components/InfoWrapper/HowToStartInfo';
-import LoadingSpinnerOverlay from '../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { HowToStartInfo } from '../components/HowToStartInfo/HowToStartInfo';
+import { WebLoadingSpinnerOverlay } from '../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { useAccount } from '../contexts/Account';
 import { useLocalSettings } from '../contexts/LocalSettings';
 import { useHomePageContext } from './HomePageContext';
@@ -28,7 +28,7 @@ export const HomePageList: React.FC = () => {
           viewSelected={viewSelected}
         />
       )}
-      <LoadingSpinnerOverlay isLoading={isLoading} />
+      <WebLoadingSpinnerOverlay isLoading={isLoading} />
     </>
   );
 };

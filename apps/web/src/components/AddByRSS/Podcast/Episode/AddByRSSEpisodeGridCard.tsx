@@ -9,11 +9,11 @@ import {
   buildDTOItemImageLoadCandidates,
   formatDateAbbrev,
 } from '@podverse/helpers';
+import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../../constants/images';
 import { getAddByRSSItemPath } from '../../../../utils/addByRSS/itemPath';
 import type { AddByRSSItemIndexItem } from '../../../../utils/addByRSS/types';
-import { Image } from '../../../Image/Image';
 
 import styles from '../../../../styles/components/Common/List/ListGridNode.module.scss';
 
@@ -42,7 +42,7 @@ export const AddByRSSEpisodeGridCard: React.FC<AddByRSSEpisodeGridCardProps> = (
   return (
     <Link href={getAddByRSSItemPath(item.idText)} className={styles.link}>
       <div className={styles.gridNode}>
-        <Image
+        <SkeletonFlashImage
           candidates={imageCandidates}
           alt={title}
           width={IMAGES.LIST.GRID.SIZE}

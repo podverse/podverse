@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
-import { Tabs } from '@podverse/ui';
+import { MainColumnStack, MainSidebarLayout, SideContent, Tabs } from '@podverse/ui';
 
 import { AddByRSSArtistHeader } from '../../../components/AddByRSS/Artist/AddByRSSArtistHeader';
 import { AddByRSSAlbumHeader } from '../../../components/AddByRSS/Artist/Album/AddByRSSAlbumHeader';
@@ -16,12 +16,9 @@ import { useBoostMessagesView } from '../../../components/Boost/messages/useBoos
 import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 import { CoreEpisodeSummary } from '../../../components/Core/Podcast/Episodes/CoreEpisodeSummary';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
-import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
+import { WebLoadingYourContentSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { NoResults } from '../../../components/NoResults/NoResults';
-import { SideContent } from '../../../components/SideContent/SideContent';
 import { useAccount } from '../../../contexts/Account';
 import {
   getAddByRSSFeedByIdText,
@@ -46,7 +43,6 @@ export const AddByRSSLivestreamItemPageClient: React.FC<AddByRSSLivestreamItemPa
 }) => {
   const tFeatures = useTranslations('features');
   const tInfo = useTranslations('info');
-  const tMisc = useTranslations('misc');
   const tValue = useTranslations('value');
   const tV4VBoostMessages = useTranslations('v4v.boost_messages');
   const pathname = usePathname();
@@ -178,18 +174,18 @@ export const AddByRSSLivestreamItemPageClient: React.FC<AddByRSSLivestreamItemPa
   }, [itemIdText, loggedInAccount]);
 
   if (isLoading) {
-    return <LoadingSpinnerOverlay isLoading message={tMisc('loading_your_content')} />;
+    return <WebLoadingYourContentSpinnerOverlay isLoading />;
   }
 
   if (!livestream || !feed) {
     return (
       <MainWrapper>
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             <NoResults message={tFeatures('add_by_rss.feed_not_found_local')} />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     );
   }
@@ -226,9 +222,9 @@ export const AddByRSSLivestreamItemPageClient: React.FC<AddByRSSLivestreamItemPa
   return (
     <MainWrapper>
       {headerNode}
-      <MainInnerWrapper>
+      <MainSidebarLayout>
         <SideContent />
-        <MainInnerContentWrapper>
+        <MainColumnStack>
           <AddByRSSLivestreamDetailHeader
             itemIdText={livestream.idText}
             title={title}
@@ -248,8 +244,8 @@ export const AddByRSSLivestreamItemPageClient: React.FC<AddByRSSLivestreamItemPa
               />
             )}
           </DetailListWrapper>
-        </MainInnerContentWrapper>
-      </MainInnerWrapper>
+        </MainColumnStack>
+      </MainSidebarLayout>
     </MainWrapper>
   );
 };

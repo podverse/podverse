@@ -235,7 +235,58 @@ function validateImageShrink(): ValidationResult[] {
 
   results.push(validateBucketForcePathStyle());
 
-  results.push(validateRequired('IMAGE_SHRINK_WIDTH_PX', 'Image Shrink'));
+  {
+    const varName = 'IMAGE_SHRINK_WIDTH_PX';
+    const category = 'Image Shrink';
+    const raw = process.env[varName];
+    if (raw === undefined || raw.trim() === '') {
+      results.push({
+        name: varName,
+        isSet: false,
+        isValid: true,
+        isRequired: false,
+        message: 'Use Default (400)',
+        category,
+      });
+    } else {
+      const n = Number(raw);
+      const ok = Number.isInteger(n) && n > 0;
+      results.push({
+        name: varName,
+        isSet: true,
+        isValid: ok,
+        isRequired: false,
+        message: ok ? 'Set' : 'Must be a positive integer',
+        category,
+      });
+    }
+  }
+  {
+    const varName = 'IMAGE_SHRINK_WEBP_QUALITY';
+    const category = 'Image Shrink';
+    const raw = process.env[varName];
+    if (raw === undefined || raw.trim() === '') {
+      results.push({
+        name: varName,
+        isSet: false,
+        isValid: true,
+        isRequired: false,
+        message: 'Use Default (92)',
+        category,
+      });
+    } else {
+      const n = Number(raw);
+      const ok = Number.isInteger(n) && n >= 1 && n <= 100;
+      results.push({
+        name: varName,
+        isSet: true,
+        isValid: ok,
+        isRequired: false,
+        message: ok ? 'Set' : 'Must be an integer from 1 to 100',
+        category,
+      });
+    }
+  }
   results.push(validateRequired('IMAGE_SHRINK_BATCH_SIZE', 'Image Shrink'));
   results.push(validateRequired('IMAGE_SHRINK_CONCURRENCY', 'Image Shrink'));
   results.push(validateRequired('IMAGE_SHRINK_RPS', 'Image Shrink'));

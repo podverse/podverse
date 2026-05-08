@@ -1,15 +1,41 @@
-import classNames from 'classnames';
+'use client';
+
 import NextLink from 'next/link';
-import React from 'react';
+import type { ComponentType, FC, MouseEvent, ReactNode } from 'react';
 
 import { getSafeLinkHref } from '@podverse/helpers';
+import type { LinkRenderProps } from '@podverse/ui';
+import { Link as SharedLink } from '@podverse/ui';
 
-import styles from '../../styles/components/Link/Link.module.scss';
+const NextLinkComponent: ComponentType<LinkRenderProps> = ({
+  href,
+  children,
+  className,
+  tabIndex,
+  'aria-label': ariaLabel,
+  title,
+  style,
+  target,
+  rel,
+}) => (
+  <NextLink
+    href={href}
+    className={className}
+    tabIndex={tabIndex}
+    aria-label={ariaLabel}
+    title={title}
+    style={style}
+    target={target}
+    rel={rel}
+  >
+    {children}
+  </NextLink>
+);
 
-type CustomLinkProps = {
+type LinkProps = {
   href?: string;
-  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
-  children: React.ReactNode;
+  onClick?: (e: MouseEvent<HTMLButtonElement>) => void;
+  children: ReactNode;
   className?: string;
   type?: 'button' | 'submit' | 'reset';
   tabIndex?: number;
@@ -23,98 +49,15 @@ type CustomLinkProps = {
   fullPageLoad?: boolean;
 };
 
-export const Link: React.FC<CustomLinkProps> = ({
-  href,
-  onClick,
-  children,
-  className,
-  type = 'button',
-  tabIndex,
-  'aria-label': ariaLabel,
-  disabled = false,
-  style,
-  color = 'primary',
-  target,
-  rel,
-  title,
-  fullPageLoad = false,
-}) => {
-  const linkClassName = color === 'primary' ? styles.link : styles.linkSecondary;
-
+export const Link: FC<LinkProps> = ({ href, disabled, ...rest }) => {
   const safeHref = href !== undefined ? getSafeLinkHref(href) : undefined;
-  const hrefBlocked = Boolean(href) && safeHref === undefined;
+  const hrefBlocked = href !== undefined && safeHref === undefined;
 
   if (hrefBlocked) {
-    return (
-      <span
-        className={classNames(linkClassName, className, styles.disabled)}
-        aria-disabled="true"
-        style={style}
-        title={title}
-      >
-        {children}
-      </span>
-    );
+    return <SharedLink {...rest} href={href} disabled LinkComponent={NextLinkComponent} />;
   }
 
-  if (safeHref) {
-    if (disabled) {
-      return (
-        <span
-          className={classNames(linkClassName, className, styles.disabled)}
-          aria-disabled="true"
-          style={style}
-          title={title}
-        >
-          {children}
-        </span>
-      );
-    }
-
-    if (fullPageLoad) {
-      return (
-        <a
-          href={safeHref}
-          className={classNames(linkClassName, className)}
-          tabIndex={tabIndex}
-          aria-label={ariaLabel}
-          title={title}
-          style={style}
-          target={target}
-          rel={rel}
-        >
-          {children}
-        </a>
-      );
-    }
-
-    return (
-      <NextLink
-        href={safeHref}
-        className={classNames(linkClassName, className)}
-        tabIndex={tabIndex}
-        aria-label={ariaLabel}
-        title={title}
-        style={style}
-        target={target}
-        rel={rel}
-      >
-        {children}
-      </NextLink>
-    );
-  }
   return (
-    <button
-      type={type}
-      onClick={onClick}
-      className={classNames(linkClassName, className)}
-      tabIndex={tabIndex}
-      aria-label={ariaLabel}
-      title={title}
-      disabled={disabled}
-      style={style}
-    >
-      {children}
-    </button>
+    <SharedLink {...rest} href={safeHref} disabled={disabled} LinkComponent={NextLinkComponent} />
   );
 };

@@ -20,7 +20,7 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 
 - Rewrote ~105 `apps/web` files to import values/types from `@podverse/ui` (separate `import type` lines); removed shim
   files and empty `Button/`, `Divider/`, `Tooltip/`, `Tabs/` dirs.
-- Fixed [`HowToStartInfo.tsx`](apps/web/src/components/InfoWrapper/HowToStartInfo.tsx) to import `InfoWrapper` from
+- Fixed [`HowToStartInfo.tsx`](apps/web/src/components/HowToStartInfo/HowToStartInfo.tsx) to import `InfoWrapper` from
   `@podverse/ui` after deleting `./InfoWrapper`.
 - Next.js typecheck surfaced CSS-module computed keys in `@podverse/ui`: adjusted
   [`Divider.tsx`](packages/ui/src/components/layout/Divider/Divider.tsx) and
@@ -33,6 +33,34 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 #### Files Created/Modified
 
 - apps/web: broad import updates; deleted shim TSX files; `apps/web/AGENTS.md`;
-  `apps/web/src/components/InfoWrapper/HowToStartInfo.tsx`
+  `apps/web/src/components/HowToStartInfo/HowToStartInfo.tsx`
 - packages/ui: `packages/ui/src/components/layout/Divider/Divider.tsx`,
   `packages/ui/src/components/navigation/Tab/Tab.tsx`
+
+### Session 2 — 2026-05-06
+
+#### Prompt (Developer)
+
+the "HowToStartInfo" component is in a folder named InfoWrapper but it should be in a folder named after itself in podverse web
+
+#### Key Decisions
+
+- Moved **`HowToStartInfo.tsx`** from **`apps/web/src/components/InfoWrapper/`** to
+  **`apps/web/src/components/HowToStartInfo/HowToStartInfo.tsx`** (relative imports unchanged).
+- Updated **nine** list page imports to **`../../components/HowToStartInfo/HowToStartInfo`** (or equivalent depth).
+- Removed empty **`InfoWrapper/`** directory.
+
+#### Files Created/Modified
+
+- `apps/web/src/components/HowToStartInfo/HowToStartInfo.tsx`
+- Deleted: `apps/web/src/components/InfoWrapper/HowToStartInfo.tsx`
+- `apps/web/src/app/HomePageList.tsx`
+- `apps/web/src/app/albums/AlbumsPageList.tsx`
+- `apps/web/src/app/artists/ArtistsPageList.tsx`
+- `apps/web/src/app/clips/ClipsPageList.tsx`
+- `apps/web/src/app/episodes/EpisodesPageList.tsx`
+- `apps/web/src/app/podcasts/PodcastsPageList.tsx`
+- `apps/web/src/app/podcasts/livestreams/LivestreamsPageList.tsx`
+- `apps/web/src/app/profiles/ProfilesPageList.tsx`
+- `apps/web/src/app/tracks/TracksPageList.tsx`
+- `.llm/history/active/web-ui-direct-imports/web-ui-direct-imports-part-01.md`

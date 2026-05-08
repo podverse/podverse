@@ -3,13 +3,11 @@
 import { useTranslations } from 'next-intl';
 import React, { useEffect, useState } from 'react';
 
-import { Button } from '@podverse/ui';
+import { Button, Modal, TextCheckboxes } from '@podverse/ui';
 
 import { useConfig } from '../../contexts/Config';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useModals } from '../../contexts/Modals';
-import { TextCheckboxes } from '../Form/TextCheckboxes';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 
 import styles from '../../styles/components/Modal/ModalDisclaimer.module.scss';
 
@@ -47,7 +45,6 @@ export const ModalDisclaimer: React.FC<ModalDisclaimerProps> = ({ isOpen }) => {
       isOpen={modalDisclaimer.isOpen}
       header={tDisclaimers(`environment_warning.${server_env}.header`)}
       ariaLabel={tDisclaimers(`environment_warning.${server_env}.header`)}
-      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <div>
         <p className={styles.message}>

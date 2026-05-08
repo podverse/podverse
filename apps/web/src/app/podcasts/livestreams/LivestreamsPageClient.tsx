@@ -2,9 +2,8 @@
 
 import type { DTOItem } from '@podverse/helpers';
 import type { QueryParamsGetManyLivestreams } from '@podverse/helpers-requests';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { LivestreamsPageContextProvider } from './LivestreamsPageContext';
 import { LivestreamsPageHeader } from './LivestreamsPageHeader';
@@ -29,11 +28,11 @@ export function LivestreamsPageClient(props: LivestreamsPageClientProps) {
     >
       <LivestreamsPageHeader medium={medium} />
       <MainWrapper>
-        <MainInnerWrapper>
-          <MainInnerContentWrapper>
+        <MainSidebarLayout>
+          <MainColumnStack>
             <LivestreamsPageList medium={medium} />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </LivestreamsPageContextProvider>
   );

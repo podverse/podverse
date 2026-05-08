@@ -6,8 +6,8 @@ import React from 'react';
 import type { DTOCategory } from '@podverse/helpers';
 
 import { CoreEpisodes } from '../../components/Core/Podcast/Episodes/CoreEpisodes';
-import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
-import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { HowToStartInfo } from '../../components/HowToStartInfo/HowToStartInfo';
+import { WebLoadingSpinnerOverlay } from '../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { ModalCategoriesSelect } from '../../components/Modal/ModalCategoriesSelect';
 import { ROUTES } from '../../constants/routes';
 import { useLocalSettings } from '../../contexts/LocalSettings';
@@ -53,7 +53,7 @@ export const EpisodesPageList: React.FC = () => {
         viewSelected={viewSelected}
         showChannelInfo
       />
-      <LoadingSpinnerOverlay isLoading={isLoading} />
+      <WebLoadingSpinnerOverlay isLoading={isLoading} />
       <ModalCategoriesSelect
         isOpen={showCategoriesModal}
         onCategoryClick={handleOnClickCategory}

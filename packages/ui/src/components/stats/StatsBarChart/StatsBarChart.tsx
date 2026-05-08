@@ -11,24 +11,42 @@ export type StatsBarChartDatum = {
 
 export type StatsBarChartProps = {
   data: StatsBarChartDatum[];
-  valueLabel?: string;
+  /** Localized Y-axis / tooltip series name (Recharts tooltip formatter). */
+  valueLabel: string;
   loading?: boolean;
-  emptyMessage?: string;
+  emptyMessage: string;
+  /** Shown while `loading` is true. */
+  loadingLabel: string;
 };
 
 export function StatsBarChart({
   data,
-  valueLabel = 'Count',
+  emptyMessage,
   loading = false,
-  emptyMessage = 'No data available.',
+  loadingLabel,
+  valueLabel,
 }: StatsBarChartProps) {
   if (loading) {
-    return <div className={styles.loading}>Loading chart...</div>;
+    return <div className={styles.loading}>{loadingLabel}</div>;
   }
 
   if (data.length === 0) {
     return <div className={styles.empty}>{emptyMessage}</div>;
   }
+
+  const formatTooltipValue = (value: unknown): number => {
+    if (typeof value === 'number') {
+      return value;
+    }
+    if (typeof value === 'string') {
+      return Number(value);
+    }
+    if (Array.isArray(value) && value.length > 0) {
+      const first = value[0];
+      return typeof first === 'number' ? first : Number(first);
+    }
+    return Number.NaN;
+  };
 
   return (
     <div className={styles.chartContainer}>
@@ -45,11 +63,12 @@ export function StatsBarChart({
           />
           <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
           <Tooltip
-            formatter={
-              ((value: number | string) => [Number(value).toLocaleString(), valueLabel]) as never
-            }
+            formatter={(value: unknown) => {
+              const numeric = formatTooltipValue(value);
+              return [numeric.toLocaleString(), valueLabel];
+            }}
           />
-          <Bar dataKey="value" fill="var(--pv-color-primary, #6c5ce7)" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="value" fill="var(--border-color-primary)" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

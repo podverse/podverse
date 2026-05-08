@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { ListHistoryResources } from '../../components/List/Queues/ListHistoryResources';
-import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { WebLoadingSpinnerOverlay } from '../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { useHistoryPageContext } from './HistoryPageContext';
 
 export const HistoryPageList: React.FC = () => {
@@ -18,7 +18,7 @@ export const HistoryPageList: React.FC = () => {
         queueResources={queueResources}
         showLoginMessage={showLoginMessage}
       />
-      <LoadingSpinnerOverlay isLoading={isLoading} />
+      <WebLoadingSpinnerOverlay isLoading={isLoading} />
     </>
   );
 };

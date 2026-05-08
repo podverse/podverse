@@ -231,6 +231,7 @@ import {
   reqQueueResourceItemSoundbiteAddNowPlaying,
   reqQueueResourceItemSoundbiteDelete,
 } from './queue/queueResource/queueResourceItemSoundbite.js';
+import { skipApiRequestErrorLogForMembershipGate } from './skipApiRequestErrorLogForMembershipGate.js';
 import {
   reqStatsTrackAccount,
   reqStatsTrackChannel,
@@ -372,10 +373,12 @@ export class ApiRequestService {
         errorInfo.message = 'Unknown error occurred';
       }
 
-      console.error('API request error:', {
-        ...errorInfo,
-        path: `${method} ${path}`,
-      });
+      if (!skipApiRequestErrorLogForMembershipGate(errorInfo)) {
+        console.error('API request error:', {
+          ...errorInfo,
+          path: `${method} ${path}`,
+        });
+      }
 
       throw error;
     }

@@ -42,7 +42,8 @@
       "no_livestreams_found": "Aucune diffusion en direct trouvée."
     },
     "updated_with_date": "Mis à jour : {date}",
-    "image": "Image"
+    "image": "Image",
+    "more_options": "Plus d'options"
   },
   "features": {
     "search": {
@@ -261,6 +262,11 @@
       "audio_with_ext_bitrate_mbps": "Audio {ext} {bitrate}Mbps"
     }
   },
+  "updates_page": {
+    "intro": "Les notes de version de l’application open source sont publiées sur GitHub. Utilisez le lien ci-dessous pour les versions étiquetées.",
+    "title": "Mises à jour",
+    "view_releases": "Voir les versions sur GitHub"
+  },
   "value": {
     "boost": "Amplifier",
     "recipient": {
@@ -437,6 +443,12 @@
     "terms": "Conditions",
     "mobile": "Mobile",
     "donate": "Faire un don",
+    "open_source": "Open source",
+    "browser_back": "Retour",
+    "browser_forward": "Avancer",
+    "navbar_menu_open": "Ouvrir le menu",
+    "navbar_menu_close": "Fermer le menu",
+    "close_modal": "Fermer la fenêtre modale",
     "updates": "Mises à jour",
     "sharable_status": {
       "sharable_status": "État partageable",
@@ -599,13 +611,20 @@
     "membership_expired_danger": "Votre {type} a expiré. Renouvelez maintenant pour continuer à profiter des fonctionnalités Premium.",
     "membership_link_text": "Aller à la page d'abonnement",
     "free_trial": "essai gratuit",
-    "premium_membership": "abonnement Premium",
     "free_trial_not_allowed": "Cette fonctionnalité est uniquement disponible pour les comptes premium et n'est pas disponible pour les essais gratuits",
+    "get_premium": "Passer à Premium",
+    "premium_membership": "abonnement Premium",
+    "premium_required": "Premium requis",
     "renew_membership": "Renouveler l'adhésion",
     "membership_expired": "Votre adhésion a expiré. Renouvelez pour utiliser cette fonctionnalité.",
     "feature_not_available_for_account_type": "Votre compte n'a actuellement pas accès à cette fonctionnalité.",
+    "feature_premium_only_explanation": "Il s'agit d'une fonctionnalité Premium. Pour limiter le spam, les comptes d'essai ont un accès restreint. Passez à Premium pour l'utiliser.",
     "manual_refresh_hourly_limit_reached": "Vous avez atteint votre limite de rafraîchissement manuel pour cette heure.",
     "add_by_rss_feed_limit_reached": "Vous avez atteint votre limite d'ajout par flux RSS.",
+    "directory_add_by_rss_trial_blocked": "Pour limiter le spam, les comptes d'essai ne peuvent pas ajouter de flux au répertoire public. Un compte Premium est nécessaire pour ajouter des flux, ou écrivez à <mail>{contactEmail}</mail> pour nous demander d'ajouter ce flux.",
+    "trial_limitations_summary": "Certaines fonctionnalités ne sont pas disponibles pendant l'essai afin de limiter le spam et les abus.",
+    "trial_limitations_show_less": "Afficher moins",
+    "trial_limitations_show_more": "Afficher plus",
     "trial_limitations_title": "Limitations de l'essai",
     "trial_limitations_directory_add_by_rss": "L'ajout de flux au répertoire public à partir de la recherche est bloqué pour le statut d'essai.",
     "trial_limitations_add_by_rss_feed_limit": "La taille de la bibliothèque d'ajout par RSS utilise une limite d'essai inférieure à celle de Premium.",
@@ -642,10 +661,10 @@
     "settings": "Paramètres",
     "ui_theme": {
       "theme": "Thème",
-      "light": "☀️ Clair",
-      "dark": "🌙 Sombre",
-      "dracula": "🧛 Dracula",
-      "violet": "💜 Violet"
+      "light": "Clair",
+      "dark": "Sombre",
+      "dracula": "Dracula",
+      "violet": "Violet"
     },
     "feed": {
       "check_feed_for_updates": "Vérifier le flux pour les mises à jour",
@@ -870,6 +889,10 @@
     "filminterviews": "Interviews de films",
     "filmreviews": "Critiques de films",
     "tvreviews": "Critiques de séries"
+  },
+  "pagination": {
+    "ariaPreviousPage": "Page précédente",
+    "ariaNextPage": "Page suivante"
   },
   "language": {
     "language": "Langue",

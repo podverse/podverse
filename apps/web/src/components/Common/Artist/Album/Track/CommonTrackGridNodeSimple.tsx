@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import React from 'react';
 
+import { SkeletonFlashImage } from '@podverse/ui';
+
 import { IMAGES } from '../../../../../constants/images';
-import { Image } from '../../../../Image/Image';
 
 import styles from '../../../../../styles/components/Common/List/ListGridNode.module.scss';
 
@@ -33,7 +34,7 @@ export const CommonTrackGridNodeSimple: React.FC<CommonTrackGridNodeSimpleProps>
   return (
     <Link href={href} className={styles.link}>
       <div className={styles.gridNode}>
-        <Image
+        <SkeletonFlashImage
           candidates={resolvedCandidates}
           alt={title}
           width={IMAGES.LIST.GRID.SIZE}

@@ -11,12 +11,3 @@ export type ConfirmPanelProps = {
 export function ConfirmPanel({ children, className }: ConfirmPanelProps) {
   return <div className={classNames(styles.root, className)}>{children}</div>;
 }
-
-export type ConfirmPanelActionsProps = {
-  children: ReactNode;
-  className?: string;
-};
-
-export function ConfirmPanelActions({ children, className }: ConfirmPanelActionsProps) {
-  return <div className={classNames(styles.row, className)}>{children}</div>;
-}

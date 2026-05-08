@@ -6,16 +6,14 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import {
-  ActionLink,
   Alert,
   Breadcrumbs,
   Button,
-  FormContainer,
-  FormGroup,
+  FormMaxWidth,
   FormPrimaryActions,
-  Input,
-  Label,
   ManagementPageShell,
+  StackForm,
+  TextInput,
 } from '@podverse/ui';
 
 import {
@@ -109,7 +107,7 @@ export function CreateRowPageClient({ tableName }: CreateRowPageClientProps) {
   return (
     <ManagementPageShell
       title={t('createRowTitle', { table: tableSingularLabel })}
-      headerChildren={
+      headerBreadcrumbs={
         <Breadcrumbs
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
@@ -122,33 +120,35 @@ export function CreateRowPageClient({ tableName }: CreateRowPageClientProps) {
       }
     >
       {meta && (
-        <FormContainer onSubmit={(e) => void handleSubmit(e)}>
-          {settableFields.map((field: TableFieldMeta) => (
-            <FormGroup key={field.name}>
-              <Label htmlFor={field.name}>
-                {field.name}
-                {!field.nullable ? <span aria-hidden="true"> *</span> : null}
-              </Label>
-              <Input
+        <FormMaxWidth>
+          <StackForm onSubmit={(e) => void handleSubmit(e)}>
+            {settableFields.map((field: TableFieldMeta) => (
+              <TextInput
+                key={field.name}
                 id={field.name}
+                eyebrow={`${field.name}${!field.nullable ? ' *' : ''}`}
                 type="text"
                 value={String(formData[field.name] ?? '')}
                 onChange={(e) => handleFieldChange(field.name, e.target.value)}
                 required={!field.nullable}
                 placeholder={field.type}
               />
-            </FormGroup>
-          ))}
-          {error && <Alert>{error}</Alert>}
-          <FormPrimaryActions>
-            <ActionLink href={`/database/${tableName}`} variant="subtle" LinkComponent={Link}>
-              {tc('cancel')}
-            </ActionLink>
-            <Button type="submit" disabled={loading}>
-              {loading ? tc('creating') : tc('create')}
-            </Button>
-          </FormPrimaryActions>
-        </FormContainer>
+            ))}
+            <Alert>{error}</Alert>
+            <FormPrimaryActions>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => router.push(`/database/${tableName}`)}
+              >
+                {tc('cancel')}
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? tc('creating') : tc('create')}
+              </Button>
+            </FormPrimaryActions>
+          </StackForm>
+        </FormMaxWidth>
       )}
     </ManagementPageShell>
   );

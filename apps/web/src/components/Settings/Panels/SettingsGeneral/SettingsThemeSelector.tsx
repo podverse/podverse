@@ -3,20 +3,18 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import { FormDropdown } from '@podverse/ui';
+
 import { useLocalSettings } from '../../../../contexts/LocalSettings';
-import type { UITheme } from '../../../../utils/localSettings/uiTheme';
 import { getValidThemes } from '../../../../utils/localSettings/uiTheme';
-import type { DropdownMenuItem } from '../../../Dropdown/Dropdown';
-import { FormDropdown } from '../../../Form/FormDropdown';
 
 export const SettingsThemeSelector: React.FC = () => {
   const tSettings = useTranslations('settings');
   const { uiTheme, setUITheme } = useLocalSettings();
   const validThemes = getValidThemes();
 
-  const menuItems: DropdownMenuItem[] = validThemes.map((theme) => ({
+  const options = validThemes.map((theme) => ({
     label: tSettings(`ui_theme.${theme}`),
-    param: theme,
     value: theme,
   }));
 
@@ -24,14 +22,18 @@ export const SettingsThemeSelector: React.FC = () => {
     if (!value || value === uiTheme) {
       return;
     }
-    setUITheme(value as UITheme);
+    const next = validThemes.find((t) => t === value);
+    if (next === undefined) {
+      return;
+    }
+    setUITheme(next);
   };
 
   return (
     <FormDropdown
-      label={tSettings('ui_theme.theme')}
       id="settings_theme_selector"
-      menuItems={menuItems}
+      eyebrow={tSettings('ui_theme.theme')}
+      options={options}
       value={uiTheme}
       onChange={handleChange}
     />

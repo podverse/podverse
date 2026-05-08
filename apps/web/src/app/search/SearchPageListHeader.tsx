@@ -2,7 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 
-import { SearchInput } from '../../components/Form/SearchInput';
+import { SearchInput } from '@podverse/ui';
+
 import { useSearchPageContext } from './SearchPageContext';
 
 import styles from './SearchPageListHeader.module.scss';

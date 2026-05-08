@@ -1,1 +1,0 @@
-export const PAGINATION_MAX_BUTTONS = 5;

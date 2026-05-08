@@ -6,21 +6,19 @@ import { FaGripLines } from 'react-icons/fa6';
 
 import type { DTOQueueResource } from '@podverse/helpers';
 import { MediumEnum } from '@podverse/helpers';
-import { Button } from '@podverse/ui';
+import { Button, ImagesPerView, MoreButton } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import { useQueues } from '../../../contexts/Queue';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import { addByRSSResourceMergedArtworkCandidates } from '../../../utils/image/addByRSSResourceArtworkCandidates';
-import { ImagesPerView } from '../../Image/ImagesPerView';
-import { MoreButton } from '../../MoreButton/MoreButton';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableDuration } from '../../Time/ReadableDuration';
 import { showToastPromise } from '../../Toast/Toast';
 import { ListClipRow } from '../Clips/ListClipRow';
 import { ListItemSoundbiteRow } from '../ItemSoundbites/ListItemSoundbiteRow';
 import { ListTrackRow } from '../Music/Albums/Tracks/ListTrackRow';
-import ListEpisodeRow from '../Podcasts/Episodes/ListEpisodeRow';
+import { ListEpisodeRow } from '../Podcasts/Episodes/ListEpisodeRow';
 
 import styles from '../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 
@@ -39,6 +37,7 @@ export const ListQueueResourceRow: React.FC<Props> = ({
 }) => {
   const apiRequestService = getApiRequestService();
   const tFeatures = useTranslations('features');
+  const tMedia = useTranslations('media');
   const { activeQueue } = useQueues();
   const item = queueResource.item;
   const clip = queueResource.clip;
@@ -129,7 +128,10 @@ export const ListQueueResourceRow: React.FC<Props> = ({
               </div>
             </div>
           </Button>
-          <MoreButton moreButtonMenuItems={moreButtonMenuItems} />
+          <MoreButton
+            ariaLabel={tMedia('more_options')}
+            moreButtonMenuItems={moreButtonMenuItems}
+          />
         </div>
       );
     }
@@ -171,7 +173,10 @@ export const ListQueueResourceRow: React.FC<Props> = ({
               </div>
             </div>
             <div className={styles.bottomSectionEnd}>
-              <MoreButton moreButtonMenuItems={moreButtonMenuItems} />
+              <MoreButton
+                ariaLabel={tMedia('more_options')}
+                moreButtonMenuItems={moreButtonMenuItems}
+              />
             </div>
           </div>
         </div>

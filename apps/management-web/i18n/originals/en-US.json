@@ -4,7 +4,6 @@
     "description": "Administrative management interface for {brand_name}"
   },
   "common": {
-    "loading": "Loading...",
     "error": "An error occurred",
     "save": "Save",
     "saveChanges": "Save Changes",
@@ -30,7 +29,53 @@
     "readOnlyTable": "Read-only table",
     "noDataFound": "No data found.",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "paginationPrevButton": "« Previous",
+    "paginationNextButton": "Next »",
+    "paginationPageOf": "Page {currentPage} of {totalPages}",
+    "closeModalAria": "Close modal"
+  },
+  "tableShared": {
+    "searchPlaceholder": "Search",
+    "searchSubmitLabel": "Search",
+    "searchClearLabel": "Clear search",
+    "filterColumnsLabel": "Search in columns",
+    "filterColumnsAriaLabel": "Filter which columns the search includes",
+    "sortAscLabel": "Sort ascending",
+    "sortDescLabel": "Sort descending",
+    "sortClearLabel": "Clear sort",
+    "sortAriaTemplate": "Sort by {column}",
+    "noResults": "No rows match the current filters.",
+    "systemEmptyMessage": "No data found yet. This page will be enabled when there is data to display.",
+    "noData": "No data to show.",
+    "loading": "Loading list…",
+    "errorRetry": "Retry",
+    "bulk": {
+      "selectAllAria": "Select all rows on this page",
+      "selectRowAria": "Select this row",
+      "selectedCount": "{count, plural, one {# row selected} other {# rows selected}}",
+      "clearSelection": "Clear selection",
+      "actionsLabel": "Bulk actions"
+    },
+    "cursor": {
+      "prev": "Previous",
+      "next": "Next"
+    },
+    "confirmDelete": {
+      "title": "Delete",
+      "message": "This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "aria": "Confirm delete"
+    },
+    "pagination": {
+      "pageOf": "Page {currentPage} of {totalPages}",
+      "prev": "Previous",
+      "next": "Next",
+      "goToPageLabel": "Go to page",
+      "goToPageAria": "Open go-to-page dialog",
+      "goToPageSubmit": "Go"
+    }
   },
   "auth": {
     "login": "Login",
@@ -86,6 +131,86 @@
     "users": {
       "title": "Users",
       "description": "Create and manage app user accounts"
+    },
+    "storage": {
+      "title": "Object storage",
+      "description": "Browse, download, and delete objects in the configured bucket"
+    }
+  },
+  "errors": {
+    "boundary_title": "Something went wrong",
+    "boundary_message": "An unexpected error occurred. Please try again.",
+    "global_title": "Application Error",
+    "global_message": "A critical error occurred. Please refresh the page.",
+    "details_development_only": "Error details (development only)"
+  },
+  "misc": {
+    "loading": "Loading…",
+    "reload_page": "Reload page",
+    "return_to_home_page": "Return to home page",
+    "try_again": "Try again"
+  },
+  "storage": {
+    "title": "Object storage",
+    "subtitle": "List objects in the configured bucket",
+    "detailTitle": "Object details",
+    "detailSubtitle": "Metadata and download",
+    "loading": "Loading…",
+    "empty": "No objects match this prefix.",
+    "prefixFilter": "Prefix filter",
+    "prefixPlaceholder": "Filter by key prefix",
+    "featureDisabled": "Bucket storage is disabled or unavailable.",
+    "listLoadError": "Failed to load objects.",
+    "detailLoadError": "Failed to load object metadata.",
+    "notFound": "Object was not found.",
+    "deleteError": "Delete failed.",
+    "bulkDeleteError": "Bulk delete failed.",
+    "table": {
+      "key": "Key",
+      "size": "Size",
+      "lastModified": "Last modified",
+      "actions": "Actions"
+    },
+    "view": "View",
+    "delete": "Delete",
+    "bulkDelete": "Bulk delete",
+    "selectedCount": "{count, plural, one {# object selected} other {# objects selected}}",
+    "bulkConfirmAria": "Confirm bulk delete",
+    "bulkConfirmBody": "Delete {count, plural, one {# object} other {# objects}}? This cannot be undone.",
+    "deleteConfirmAria": "Confirm delete",
+    "deleteConfirmBody": "Delete “{key}”? This cannot be undone.",
+    "deleting": "Deleting…",
+    "selectAllAria": "Select all objects on this page",
+    "selectRowAria": "Select object {key}",
+    "viewAria": "View object {key}",
+    "deleteAria": "Delete object {key}",
+    "more": "More",
+    "moreAria": "More actions",
+    "deleteAll": "Delete all",
+    "deleteAllConfirmAria": "Confirm delete all matching objects",
+    "deleteAllConfirmTitle": "Delete all matching objects",
+    "deleteAllConfirmBodyWithPrefix": "Delete every object whose key starts with “{prefix}”.",
+    "deleteAllConfirmBodyEmptyPrefix": "Delete every object in the bucket. There is no prefix filter applied.",
+    "deleteAllIrreversible": "This cannot be undone.",
+    "deleteAllCounting": "Counting matching objects…",
+    "deleteAllCount": "{count, plural, one {# object} other {# objects}} will be deleted.",
+    "deleteAllCountTruncated": "More than {count} objects will be deleted.",
+    "deleteAllInProgress": "Deleting all matching objects…",
+    "deleteAllError": "Delete all failed.",
+    "deleteAllPartialError": "{deleted}/{requested} deleted; {failed} failed.",
+    "download": "Download",
+    "backToList": "Back to object list",
+    "paginationPrev": "« Previous",
+    "paginationNext": "Next »",
+    "paginationPage": "Page {page}",
+    "detail": {
+      "fields": {
+        "key": "Key",
+        "contentType": "Content type",
+        "contentLength": "Size",
+        "lastModified": "Last modified",
+        "etag": "ETag"
+      }
     }
   },
   "statsPage": {
@@ -95,6 +220,7 @@
     "clear": "Clear",
     "views": "Views",
     "loadingDetail": "Loading detail...",
+    "loadingChart": "Loading chart...",
     "close": "Close",
     "idValue": "ID {id}",
     "searchPlaceholder": "Search {entity} by title...",
@@ -143,9 +269,15 @@
     "breadcrumbDashboard": "Dashboard",
     "breadcrumbProducts": "Products",
     "loadError": "Could not load membership product settings.",
-    "editableTrialHeading": "Free trial duration",
-    "saveSuccess": "Trial duration updated successfully.",
-    "saveError": "Could not update trial duration.",
+    "saveSuccess": "Settings updated successfully.",
+    "saveError": "Could not save this setting.",
+    "editFieldAria": "Edit {fieldLabel}",
+    "editValueModalAria": "Edit membership setting",
+    "editModalTitle": "Edit {label}",
+    "numberStepDecrement": "Decrease value",
+    "numberStepIncrement": "Increase value",
+    "pricingScheduleHint": "Changing premium monthly or annual amounts creates a new active billing price row (previous open row is closed at the effective time).",
+    "pricingChangeReason": "management-web memberships page",
     "fieldLabels": {
       "freeTrialExpirationSeconds": "Free trial duration (seconds)",
       "premiumMembershipCostMonthly": "Premium monthly cost",
@@ -164,7 +296,10 @@
       "source": "Source"
     },
     "validation": {
-      "invalidFreeTrialSeconds": "Free trial duration must be a positive whole number."
+      "emptyValue": "Enter a value.",
+      "invalidFreeTrialSeconds": "Free trial duration must be a whole number of seconds between 60 and 31536000.",
+      "invalidNonNegativeInteger": "Enter a whole number zero or greater.",
+      "invalidPriceUsd": "Enter a USD amount greater than 0 and at most 999999.99."
     }
   },
   "feedFlagStatus": {
@@ -172,6 +307,20 @@
     "pageSubtitle": "Find a feed by Podcast Index ID (default), internal feed id, or URL. Update lifecycle state, active conditions, limits, and notes. This is separate from the database table browser.",
     "breadcrumbParent": "Feed operations",
     "breadcrumbCurrent": "Flag status",
+    "directoryHeading": "Feeds",
+    "directoryLoadError": "Could not load feeds list.",
+    "directoryEmpty": "No feeds match the current filters.",
+    "filterLifecycleLabel": "Lifecycle",
+    "filterLifecycleAll": "All lifecycles",
+    "directorySearchPlaceholder": "Filter by title, URL, or id…",
+    "directorySearchButton": "Apply filter",
+    "tableFeedId": "ID",
+    "tableChannelTitle": "Title",
+    "tablePodcastIndexId": "Podcast Index ID",
+    "tableLifecycle": "Lifecycle",
+    "tableUrl": "URL",
+    "openFeedRow": "Open",
+    "sectionDirectoryAria": "Feed directory",
     "sectionFindAria": "Search",
     "findFeedHeading": "Find a feed",
     "searchByLabel": "Search by",
@@ -183,7 +332,7 @@
     "placeholderUrl": "https://…",
     "placeholderNumber": "e.g. 12345",
     "lookupLoading": "Looking up…",
-    "lookupButton": "Look up",
+    "lookupButton": "Search",
     "optionsLoadError": "Could not load feed operations options.",
     "lookupErrorEnterUrl": "Enter a feed URL",
     "lookupErrorPositiveNumber": "Enter a positive number",
@@ -240,23 +389,44 @@
   },
   "admins": {
     "title": "Admins",
+    "adminDetail": "Admin detail",
     "createAdmin": "Create Admin",
     "editAdmin": "Edit Admin",
     "editAdminItem": "Edit {email}",
     "failedToLoad": "Failed to load admin accounts",
     "failedToCreate": "Failed to create admin",
     "failedToUpdate": "Failed to update admin",
+    "failedToDeleteAdmin": "Failed to delete admin",
+    "confirmDeleteAdmin": "Are you sure you want to delete this admin? This cannot be undone.",
+    "deleteConfirmAria": "Confirm delete admin",
     "createdSuccessfully": "Admin created successfully.",
+    "createdWithLink": "Admin created. Share the invite link below so they can set their password.",
+    "passwordOptional": "Password (optional)",
+    "passwordInviteHint": "If you leave this blank, an invitation link is generated that you can send so they can set their password.",
     "updatedSuccessfully": "Admin updated successfully.",
     "tableHeaders": {
       "id": "ID",
       "email": "Email",
       "role": "Role",
+      "createdAt": "Created",
       "feeds": "Feeds",
       "takedownReasons": "Takedown reasons",
       "admins": "Admins",
       "stats": "Stats",
+      "bucket": "Bucket",
       "actions": "Actions"
+    },
+    "setAdminPassword": {
+      "title": "Set admin password",
+      "subtitle": "Choose a password for this management account.",
+      "passwordLabel": "New password",
+      "confirmLabel": "Confirm password",
+      "submit": "Save password",
+      "success": "Password saved. You can sign in now.",
+      "backToSignIn": "Back to sign in",
+      "passwordsDoNotMatch": "Passwords do not match.",
+      "failed": "Could not set password. The link may be invalid or expired.",
+      "missingToken": "This link is missing a token. Request a new invite from an administrator."
     },
     "permissions": {
       "legend": "Permissions",
@@ -268,7 +438,8 @@
       "feeds": "Feeds",
       "takedownReasons": "Takedown reasons",
       "admins": "Admins",
-      "stats": "Stats"
+      "stats": "Stats",
+      "bucket": "Object storage"
     }
   },
   "users": {
@@ -299,6 +470,7 @@
     "noResults": "No users match your search.",
     "noUsers": "No users found.",
     "confirmDelete": "Are you sure you want to delete this user? This cannot be undone.",
+    "deleteConfirmAria": "Confirm delete user",
     "userDetail": "User Detail",
     "editUser": "Edit User",
     "verified": "Verified",
@@ -307,11 +479,14 @@
     "changePassword": "Change Password",
     "passwordChanged": "Password changed successfully.",
     "inviteLinks": "Invite Links",
-    "noActiveInviteLinks": "No active invite links.",
     "activeInviteLink": "Active Invite Link",
     "expiresAt": "Expires: {date}",
     "revokeLink": "Revoke Link",
     "generateInviteLink": "Generate Invite Link",
+    "passwordResetLinkSection": "Password reset link",
+    "activePasswordResetLink": "Active password reset link",
+    "generatePasswordResetLink": "Generate password reset link",
+    "passwordResetLinkAdminHint": "This link lets the user choose a new password without their old password. Share only with the user; revoke when done.",
     "passwordsDoNotMatch": "Passwords do not match.",
     "membershipForm": {
       "membershipStatus": "Membership Status",
@@ -322,6 +497,7 @@
       "hintTrialNew": "Trial starts users in the untrusted tier with tighter default limits.",
       "hintPremiumNew": "Premium starts users in the trusted tier with broader default access.",
       "membershipExpiresAt": "Membership Expires At",
+      "membershipExpiresAtPickerAffix": "Open date and time picker",
       "premiumBillingCadence": "Premium billing period",
       "billingMonthly": "Monthly",
       "billingAnnual": "Annual",
@@ -340,12 +516,12 @@
       "addByRssFeedLimitHelp": "Maximum Add by RSS feeds for this account. Trial tier default: {trialDefault}. Premium tier default: {premiumDefault}. Selected tier default for overrides: {selectedDefault}.",
       "manualRefreshPerHour": "Manual refresh/hour limit override",
       "manualRefreshPerHourHelp": "Maximum manual refreshes per hour. Trial tier default: {trialDefault}. Premium tier default: {premiumDefault}. Selected tier default for overrides: {selectedDefault}.",
-      "placeholderTierDefault": "Tier default: {count}",
+      "placeholderTierDefault": "Default: {count}",
       "trackStatsHelp": "Whether listening statistics are recorded. Trial default: {trialDefault}. Premium default: {premiumDefault}.",
       "allowNotificationsHelp": "Whether push/email notifications are allowed. Trial default: {trialDefault}. Premium default: {premiumDefault}.",
       "trackStats": "Track stats override",
       "allowNotifications": "Allow notifications override",
-      "useTrustTierDefault": "Use membership-tier default",
+      "useTrustTierDefault": "Default ({value})",
       "allow": "Allow",
       "block": "Block",
       "trackStatsOn": "Track stats",
@@ -379,6 +555,7 @@
     "paginationSummary": "{total} rows total | Page {page} of {totalPages}",
     "paginationSummarySingular": "{total} row total | Page {page} of {totalPages}",
     "deleteConfirm": "Are you sure you want to delete this row? This cannot be undone.",
+    "deleteConfirmAria": "Confirm delete row",
     "tables": {
       "feed": {
         "label": "Feeds",
@@ -445,14 +622,12 @@
   "settings": {
     "title": "Settings",
     "subtitle": "Choose your language and theme",
-    "theme": {
-      "label": "Theme",
-      "options": {
-        "dark": "Dark",
-        "light": "Light",
-        "dracula": "Dracula",
-        "violet": "Violet"
-      }
+    "ui_theme": {
+      "theme": "Theme",
+      "light": "Light",
+      "dark": "Dark",
+      "dracula": "Dracula",
+      "violet": "Violet"
     },
     "language": {
       "label": "Language"

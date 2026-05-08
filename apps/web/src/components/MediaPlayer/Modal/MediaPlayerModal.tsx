@@ -3,8 +3,9 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import { Modal } from '@podverse/ui';
+
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
-import { Modal } from '../../Modal/Modal';
 import { MediaPlayerButtonsModal } from './MediaPlayerButtonsModal';
 import { MediaPlayerControlsModal } from './MediaPlayerControlsModal';
 import { MediaPlayerInfoModal } from './MediaPlayerInfoModal';
@@ -13,12 +14,14 @@ import styles from '../../../styles/components/MediaPlayer/Modal/MediaPlayerModa
 
 export const MediaPlayerModal: React.FC = () => {
   const tMediaPlayer = useTranslations('media_player');
+  const tMisc = useTranslations('misc');
   const { playerModalIsOpen, setPlayerModalIsOpen } = useMediaPlayer();
 
   return (
     <Modal
       isOpen={playerModalIsOpen}
       onClose={() => setPlayerModalIsOpen(false)}
+      closeButtonAriaLabel={tMisc('close_modal')}
       ariaLabel={tMediaPlayer('fullscreen_media_player')}
       contentTransparent
     >

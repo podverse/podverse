@@ -1,0 +1,131 @@
+@use '../../../styles/mixins/flexShrink' as *;
+@use '../../../styles/mixins/form' as *;
+
+.wrapper {
+  position: relative;
+  display: flex;
+  flex: 0 1 auto;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+  margin-bottom: 0;
+  @include flexItemAllowShrink;
+}
+
+.dropdownWrapper {
+  @include formInputWrapper;
+  position: relative;
+  flex: 0 1 auto;
+  width: 100%;
+  min-height: 0;
+  @include flexItemAllowShrink;
+}
+
+.dropdownWrapperDisabled {
+  background-color: color-mix(
+    in srgb,
+    var(--background-color-tertiary) 55%,
+    var(--background-color-primary)
+  );
+  cursor: not-allowed;
+
+  .eyebrow {
+    color: var(--text-color-secondary);
+  }
+
+  .dropdownButton {
+    color: var(--text-color-secondary);
+  }
+}
+
+.eyebrow {
+  color: var(--text-color-link);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  margin: 0;
+}
+
+.dropdownButton {
+  all: unset;
+  align-items: center;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  font-size: var(--font-size-md);
+  gap: var(--spacing-md);
+  min-height: min-content;
+  padding: var(--spacing-form-input-inner);
+  width: 100%;
+  @include flexItemAllowShrink;
+
+  &:focus,
+  &:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+}
+
+.dropdownMain {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-form-label-bottom);
+  min-width: 0;
+  @include flexItemAllowShrink;
+}
+
+.dropdownSelectedItemText {
+  flex: 0 1 auto;
+  @include flexItemAllowShrink;
+  font-size: var(--font-size-md);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  flex-shrink: 0;
+}
+
+.dropdownMenu {
+  background: var(--background-color-primary);
+  border: 1px solid var(--border-color-opaque);
+  border-radius: var(--border-radius);
+  list-style: none;
+  margin-bottom: 0;
+  margin-top: 0.25rem;
+  max-width: 100%;
+  min-width: 160px;
+  padding: var(--spacing-form-input-vertical);
+  position: absolute;
+  top: 100%;
+  width: max-content;
+  z-index: 1000000;
+}
+
+.dropdownMenuFullWidth {
+  width: 100%;
+}
+
+.menuItem {
+  background: none;
+  border: none;
+  border-radius: var(--border-radius);
+  color: var(--text-color-primary);
+  cursor: pointer;
+  margin: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-xl);
+  text-align: left;
+
+  &:hover,
+  &[aria-selected='true'],
+  &:focus {
+    background: var(--background-color-opaque);
+    outline: none;
+  }
+}
+
+.formDropdownInfo {
+  @include formInfoText;
+}

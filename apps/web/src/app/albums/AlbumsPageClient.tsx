@@ -2,9 +2,8 @@
 
 import type { DTOChannel } from '@podverse/helpers';
 import type { QueryParamsGetManyMusic } from '@podverse/helpers-requests';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { AlbumsPageContextProvider } from './AlbumsPageContext';
 import { AlbumsPageHeader } from './AlbumsPageHeader';
@@ -27,11 +26,11 @@ export function AlbumsPageClient(props: AlbumsPageClientProps) {
     >
       <AlbumsPageHeader />
       <MainWrapper>
-        <MainInnerWrapper>
-          <MainInnerContentWrapper>
+        <MainSidebarLayout>
+          <MainColumnStack>
             <AlbumsPageList />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </AlbumsPageContextProvider>
   );

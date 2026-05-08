@@ -1,0 +1,236 @@
+@use '../../../styles/mixins/flexbox' as *;
+@use '../../../styles/mixins/flexShrink' as *;
+@use '../../../styles/mixins/form' as *;
+
+/* Align trailing picker control like FormDropdown chevron (full-height vertical center). */
+
+.textInput {
+  flex: 0 1 auto;
+  position: relative;
+  width: 100%;
+  @include flexItemAllowShrink;
+  @include flexColumn;
+}
+
+.textInputWrapper {
+  @include formInputWrapper;
+  flex: 0 1 auto;
+  width: 100%;
+  min-height: 0;
+  @include flexItemAllowShrink;
+}
+
+.textInputWrapperDisabled {
+  background-color: color-mix(
+    in srgb,
+    var(--background-color-tertiary) 55%,
+    var(--background-color-primary)
+  );
+  cursor: not-allowed;
+
+  .eyebrow {
+    color: var(--text-color-secondary);
+  }
+
+  .input {
+    color: var(--text-color-secondary);
+    cursor: not-allowed;
+  }
+
+  .suffix {
+    color: var(--text-color-secondary);
+  }
+
+  .nativePickerAffix {
+    color: var(--text-color-secondary);
+  }
+
+  .nativePickerAffix:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.textInnerInputWrapper {
+  flex: 0 1 auto;
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 0;
+  @include flexItemAllowShrink;
+  @include flexColumn;
+}
+
+.textInnerEyebrowPickerRow {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-md);
+  width: 100%;
+  @include flexItemAllowShrink;
+}
+
+.textInputMain {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-form-label-bottom);
+  min-width: 0;
+  @include flexItemAllowShrink;
+}
+
+.textInputMain .eyebrow {
+  margin-bottom: 0;
+}
+
+.eyebrow {
+  @include formFieldEyebrow;
+}
+
+.input {
+  all: unset;
+  box-sizing: border-box;
+  font-size: var(--font-size-md);
+  @include flexItemAllowShrink;
+  padding: var(--spacing-form-input-inner);
+  width: 100%;
+
+  &:focus,
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+.inputNativePickerIndicatorHidden {
+  /* Native glyph replaced by trailing button calling showPicker(); field stays keyboard-editable.
+     WebKit often still paints the indicator if only `display: none` is used (duplicate vs Fa icon). */
+  &::-webkit-calendar-picker-indicator {
+    -webkit-appearance: none;
+    appearance: none;
+    background: none;
+    block-size: 0;
+    cursor: inherit;
+    display: none;
+    inline-size: 0;
+    margin: 0;
+    opacity: 0;
+    overflow: hidden;
+    padding: 0;
+    pointer-events: none;
+    visibility: hidden;
+  }
+
+  /* Firefox (supported types); harmless where unsupported */
+  &::-moz-calendar-picker-indicator {
+    display: none;
+  }
+}
+
+.nativePickerAffix {
+  all: unset;
+  align-items: center;
+  box-sizing: border-box;
+  color: var(--text-color-primary);
+  cursor: pointer;
+  display: flex;
+  flex-shrink: 0;
+  line-height: 1;
+
+  &:disabled {
+    color: var(--text-color-secondary);
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    border-radius: var(--border-radius);
+    box-shadow: inset 0 0 0 2px var(--border-color-primary);
+    outline: none;
+  }
+}
+
+.nativePickerAffixIcon {
+  display: block;
+  flex-shrink: 0;
+  font-size: var(--font-size-md);
+}
+
+.inputWithAffixesRow {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  gap: 0;
+  @include flexItemAllowShrink;
+}
+
+.prefix {
+  color: var(--text-color-primary);
+  cursor: default;
+  flex-shrink: 0;
+  font-size: var(--font-size-md);
+  font-weight: inherit;
+}
+
+.prefixSpacer {
+  cursor: default;
+  flex-shrink: 0;
+  width: 0.5ch;
+}
+
+.inputWithSuffix {
+  flex: 0 0 auto;
+  padding-right: 0;
+}
+
+.suffixSpacer {
+  cursor: default;
+  flex-shrink: 0;
+  width: 0.75ch;
+}
+
+.suffix {
+  color: var(--text-color-primary);
+  cursor: default;
+  flex-shrink: 0;
+  font-size: var(--font-size-md);
+  font-weight: inherit;
+}
+
+.numberInput {
+  -moz-appearance: textfield;
+}
+
+.numberInputWithSuffix {
+  -moz-appearance: textfield;
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+.textInputInfo {
+  @include formInfoText;
+}
+
+.textInputInfoError {
+  @include formInfoTextError;
+}
+
+.button {
+  margin-left: var(--spacing-lg);
+}
+
+.buttonIcon {
+  border-radius: 100%;
+  height: 28px;
+  width: 28px;
+  @include flexCenter;
+}
+
+.buttonIconStart {
+  margin-right: var(--spacing-md);
+}
+
+.buttonIconEnd {
+  margin-left: var(--spacing-md);
+}

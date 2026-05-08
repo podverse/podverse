@@ -43,3 +43,14 @@
 .cell {
   vertical-align: middle;
 }
+
+.selectCell {
+  width: 2.5rem;
+}
+
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm);
+}

@@ -1,12 +1,10 @@
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import type { QueryParamsItemMusic } from '@podverse/helpers-requests';
+import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
 
 import { CoreAlbumHeader } from '../../../components/Core/Artist/Album/CoreAlbumHeader';
 import { CoreTrackHeader } from '../../../components/Core/Artist/Album/Track/CoreTrackHeader';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { SideContent } from '../../../components/SideContent/SideContent';
 import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
 import { TrackPageContextProvider } from './TrackPageContext';
 import { TrackPageList } from './TrackPageList';
@@ -30,9 +28,9 @@ export function TrackPageClient(props: TrackPageClientProps) {
     <TrackPageContextProvider initialQueryParams={initialQueryParams}>
       <MainWrapper>
         <CoreAlbumHeader channel={ssrChannel} item={ssrItem} />
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             <CoreTrackHeader channel={ssrChannel} item={ssrItem} />
             <TrackPageListHeader
               ssrHasTranscripts={ssrHasTranscripts}
@@ -43,8 +41,8 @@ export function TrackPageClient(props: TrackPageClientProps) {
               ssrItem={ssrItem}
               ssrCanShowBoosts={ssrCanShowBoosts}
             />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </TrackPageContextProvider>
   );

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { createAddByRSSId, createAddByRSSIdText } from '@podverse/helpers';
+import { CallToActionMessage, Dropdown, MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { useAccount } from '../../../contexts/Account';
 import { useLocalSettings } from '../../../contexts/LocalSettings';
@@ -31,11 +32,7 @@ import type {
   AddByRSSParsedFeed,
   AddByRSSResourceType,
 } from '../../../utils/addByRSS/types';
-import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';
-import Dropdown from '../../Dropdown/Dropdown';
-import LoadingSpinnerOverlay from '../../LoadingSpinner/LoadingSpinnerOverlay';
-import { MainInnerContentWrapper } from '../../Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../Main/MainInnerWrapper';
+import { WebLoadingSpinnerOverlay } from '../../LoadingSpinner/WebLoadingSpinnerOverlay';
 import { MainWrapper } from '../../Main/MainWrapper';
 import { NoResults } from '../../NoResults/NoResults';
 import { dismissToast, showToast, showToastLoading } from '../../Toast/Toast';
@@ -399,8 +396,8 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
         extraButtons={extraButtons}
       />
       <MainWrapper>
-        <MainInnerWrapper>
-          <MainInnerContentWrapper>
+        <MainSidebarLayout>
+          <MainColumnStack>
             {!loggedInAccount && (
               <CallToActionMessage
                 message={tInstructions('login_for_subscriptions')}
@@ -410,7 +407,7 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
             )}
 
             {isLoading && !isUpdating ? (
-              <LoadingSpinnerOverlay isLoading />
+              <WebLoadingSpinnerOverlay isLoading />
             ) : feeds.length === 0 ? (
               <NoResults
                 message={tFeatures(
@@ -424,8 +421,8 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
             ) : (
               renderFeeds()
             )}
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </>
   );

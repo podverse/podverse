@@ -9,10 +9,10 @@ import {
   getQueryParamFromQueueMediumId,
   mergeDTOItemThenChannelImageCandidates,
 } from '@podverse/helpers';
+import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import { ROUTES } from '../../../constants/routes';
-import { Image } from '../../Image/Image';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableTime } from '../../Time/ReadableTime';
 
@@ -47,7 +47,7 @@ export const ListLiveItemGridNode: React.FC<Props> = ({
   return (
     <Link href={url} className={styles.link}>
       <div className={styles.gridNode}>
-        <Image
+        <SkeletonFlashImage
           candidates={liveArtworkCandidates}
           alt={item.title || tMedia('livestream.livestream_image')}
           width={IMAGES.LIST.GRID.SIZE}

@@ -5,13 +5,12 @@ import { useLocale, useTranslations } from 'next-intl';
 import React from 'react';
 
 import { SharableStatusEnum } from '@podverse/helpers';
+import { FormDropdown } from '@podverse/ui';
 
 import { useAccount } from '../../../../contexts/Account';
 import { useConfig } from '../../../../contexts/Config';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { writeCookie } from '../../../../utils/cookie';
-import type { DropdownMenuItem } from '../../../Dropdown/Dropdown';
-import { FormDropdown } from '../../../Form/FormDropdown';
 
 export const SettingsLocaleSelector: React.FC = () => {
   const config = useConfig();
@@ -40,9 +39,8 @@ export const SettingsLocaleSelector: React.FC = () => {
     languages = allLanguages.filter((l) => supportedLocales.includes(l.value));
   }
 
-  const menuItems: DropdownMenuItem[] = languages.map((l) => ({
+  const options = languages.map((l) => ({
     label: l.label,
-    param: l.value,
     value: l.value,
   }));
 
@@ -82,9 +80,9 @@ export const SettingsLocaleSelector: React.FC = () => {
 
   return (
     <FormDropdown
-      label={tLanguage('language')}
       id="settings_language_selector"
-      menuItems={menuItems}
+      eyebrow={tLanguage('language')}
+      options={options}
       value={locale}
       onChange={handleChange}
     />

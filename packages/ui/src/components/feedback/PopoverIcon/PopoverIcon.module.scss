@@ -1,0 +1,27 @@
+@use '../../../styles/mixins/flexbox' as *;
+
+.container {
+  position: relative;
+  display: inline-flex;
+  @include flexCenter;
+}
+
+.iconButton {
+  display: inline-flex;
+  @include flexCenter;
+  cursor: pointer;
+  color: var(--text-color-secondary);
+  transition: color 150ms ease;
+
+  &:hover,
+  &:focus {
+    color: var(--text-color-primary);
+    outline: none;
+  }
+}
+
+.icon {
+  font-size: var(--font-size-sm);
+  width: 1em;
+  height: 1em;
+}

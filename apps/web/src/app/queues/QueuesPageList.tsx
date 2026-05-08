@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import React from 'react';
 
-import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { WebLoadingSpinnerOverlay } from '../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { useQueuesPageContext } from './QueuesPageContext';
 
 const ListQueueResources = dynamic(
@@ -27,7 +27,7 @@ export const QueuesPageList: React.FC = () => {
         queueResources={queueResources}
         showLoginMessage={showLoginMessage}
       />
-      <LoadingSpinnerOverlay isLoading={isLoading} />
+      <WebLoadingSpinnerOverlay isLoading={isLoading} />
     </>
   );
 };

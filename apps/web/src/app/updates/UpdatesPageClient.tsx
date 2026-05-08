@@ -1,25 +1,34 @@
-import ReactMarkdown from 'react-markdown';
+import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
 
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { SideContent } from '../../components/SideContent/SideContent';
 
-type UpdatesPageClientProps = {
-  markdownContent: string;
+export type UpdatesPageClientProps = {
+  intro: string;
+  linkLabel: string;
+  releasesUrl: string;
+  title: string;
 };
 
-export function UpdatesPageClient({ markdownContent }: UpdatesPageClientProps) {
+export function UpdatesPageClient({
+  intro,
+  linkLabel,
+  releasesUrl,
+  title,
+}: UpdatesPageClientProps) {
   return (
     <MainWrapper>
-      <MainInnerWrapper>
+      <MainSidebarLayout>
         <SideContent />
-        <MainInnerContentWrapper>
-          <div className="markdown">
-            <ReactMarkdown>{markdownContent}</ReactMarkdown>
-          </div>
-        </MainInnerContentWrapper>
-      </MainInnerWrapper>
+        <MainColumnStack>
+          <h1>{title}</h1>
+          <p>{intro}</p>
+          <p>
+            <a href={releasesUrl} rel="noreferrer" target="_blank">
+              {linkLabel}
+            </a>
+          </p>
+        </MainColumnStack>
+      </MainSidebarLayout>
     </MainWrapper>
   );
 }

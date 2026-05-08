@@ -18,7 +18,7 @@
     content: '';
     position: absolute;
     top: 100%;
-    left: var(--arrow-left, 50%);
+    left: var(--arrow-left);
     transform: translateX(-50%);
     border: 6px solid transparent;
     border-top-color: var(--background-color-primary);
@@ -29,7 +29,7 @@
     content: '';
     position: absolute;
     top: 100%;
-    left: var(--arrow-left, 50%);
+    left: var(--arrow-left);
     transform: translateX(-50%);
     border: 7px solid transparent;
     border-top-color: var(--border-color-opaque);

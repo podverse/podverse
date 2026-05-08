@@ -20,10 +20,9 @@ export function ProductsPageClient() {
 
   return (
     <ManagementPageShell
-      headerChildren={
+      headerBreadcrumbs={
         <Breadcrumbs
           LinkComponent={Link}
-          marginBottom="lg"
           navAriaLabel={tc('breadcrumbNav')}
           items={[
             { href: '/dashboard', label: t('breadcrumbDashboard') },

@@ -1,0 +1,17 @@
+@keyframes spinner-rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.root {
+  animation: spinner-rotate 1s linear infinite;
+  display: inline-block;
+  color: var(--text-color-secondary);
+}
+
+.inline {
+  display: inline-flex;
+  vertical-align: middle;
+  font-size: var(--font-size-base);
+}

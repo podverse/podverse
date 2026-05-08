@@ -2,9 +2,8 @@
 
 import React from 'react';
 
-import { Button } from '@podverse/ui';
+import { Button, MainHeader } from '@podverse/ui';
 
-import { CommonListPageHeader } from '../../Common/List/CommonListPageHeader';
 import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
 import { ViewSelector } from '../../ViewSelector/ViewSelector';
 
@@ -37,5 +36,5 @@ export const AddByRSSListHeader: React.FC<AddByRSSListHeaderProps> = ({
     </>
   );
 
-  return <CommonListPageHeader title={title} buttonsNode={buttonsNode} />;
+  return <MainHeader title={title} buttonsNode={buttonsNode} />;
 };

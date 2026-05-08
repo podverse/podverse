@@ -59,10 +59,15 @@ The main API, workers, and management-api all use shared `DB_HOST` and `DB_PORT`
 - **`COOKIE_DOMAIN`** (Required) - Domain for cookies
 - **`API_ALLOWED_CORS_ORIGINS`** (Required) - Comma-separated list of allowed CORS origins (must contain at least one origin)
 
-### Web
+### Web (two origins)
 
-- **`WEB_PROTOCOL`** (Required) - Web protocol (`http` or `https`)
-- **`WEB_DOMAIN`** (Required) - Web domain (e.g., `localhost:3999` or `management.podverse.fm`)
+Management-api builds absolute URLs for invite links. **Regular users** open the main app web (`/set-password`); **admin invite links** open the management web app (`/admins/redeem-invite-link`). Use **four** variables so each base matches [apps/web](../web/ENV.md) vs [apps/management-web](../management-web/ENV.md) as deployed.
+
+- **`APP_WEB_PROTOCOL`** (Required) - Protocol for the **main app web** site (`http` or `https`). Align with main API **`WEB_PROTOCOL`**.
+- **`APP_WEB_DOMAIN`** (Required) - Host (and port in dev) for apps/web, e.g. `localhost:3002` or `podverse.fm`. User invite and password-reset links use `${APP_WEB_PROTOCOL}://${APP_WEB_DOMAIN}/set-password?...`.
+
+- **`MANAGEMENT_WEB_PROTOCOL`** (Required) - Protocol for the **management web** app.
+- **`MANAGEMENT_WEB_DOMAIN`** (Required) - Host for management-web, e.g. `localhost:3102` or `management.example.com`. Admin invite links use `${MANAGEMENT_WEB_PROTOCOL}://${MANAGEMENT_WEB_DOMAIN}/admins/redeem-invite-link?...`.
 
 ## Optional Variables
 
@@ -80,6 +85,12 @@ The main API, workers, and management-api all use shared `DB_HOST` and `DB_PORT`
 ### Product / membership marketing defaults
 
 Optional **`MEMBERSHIP_*`** keys (trial length, premium USD prices, RSS/refresh caps) match [apps/api/ENV.md](../../apps/api/ENV.md) and bootstrap `product_membership_settings` in the app database. When that row exists, **`free_trial_expiration_seconds`** (and related merged fields from the pricing catalog path) take precedence for resolution APIs; env still validates at startup and seeds empty databases.
+
+### Object storage (optional)
+
+When **`BUCKET_PROVIDER`** is unset, the management storage browser stays **disabled** (`GET /v2/storage` returns `{ enabled: false }`; other storage routes respond **404**).
+
+When **`BUCKET_PROVIDER`** is set, startup validates the same **`BUCKET_*`** contract as workers (including **`BUCKET_CDN_BASE_URL`**). See [apps/workers/ENV.md](../../apps/workers/ENV.md) and [docs/image-shrinking/BUCKET-PROVIDERS.md](../../docs/image-shrinking/BUCKET-PROVIDERS.md).
 
 ## Validation Rules
 

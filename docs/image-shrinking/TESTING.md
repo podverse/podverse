@@ -30,9 +30,10 @@ Ensure the database has some channel and/or item images (from normal RSS parsing
    - `BUCKET_PROVIDER` (`digitalocean`)
    - `BUCKET_ACCESS_KEY`, `BUCKET_SECRET_KEY`
    - `BUCKET_REGION`, `BUCKET_NAME`, `BUCKET_CDN_BASE_URL`
-   - `IMAGE_SHRINK_WIDTH_PX`, `IMAGE_SHRINK_BATCH_SIZE`, `IMAGE_SHRINK_CONCURRENCY`, `IMAGE_SHRINK_RPS`
+   - `IMAGE_SHRINK_BATCH_SIZE`, `IMAGE_SHRINK_CONCURRENCY`, `IMAGE_SHRINK_RPS`
+   - Optional tuning: `IMAGE_SHRINK_WIDTH_PX` (default **400**), `IMAGE_SHRINK_WEBP_QUALITY` (default **92**)
 
-   If `BUCKET_PROVIDER` is set, **all** of the above are required (all-or-nothing). Optional: `IMAGE_SHRINK_RECHECK_EXPIRATION`, `IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION`.
+   If `BUCKET_PROVIDER` is set, the bucket variables and throughput settings above are required. Optional: `IMAGE_SHRINK_RECHECK_EXPIRATION`, `IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION`.
 
 4. **Confirm the queue exists**. The consumer expects the queue name defined in `MQ_IMAGE_SHRINK_HINTS_CONFIG` (see `@podverse/helpers`). Ensure ActiveMQ has that queue created (or use default queue creation if your broker creates queues on demand).
 
@@ -92,7 +93,7 @@ node ./dist/index.js imageShrinkRunConsumer
 Leave it running. It will:
 
 - Consume messages from the image-shrinking-hints queue
-- For each hint: check change detection (ETag/Last-Modified/etc.), skip if unchanged; otherwise download, resize to `IMAGE_SHRINK_WIDTH_PX`, upload WebP to the CDN, and update `channel_image` or `item_image` with the CDN URL and `is_resized = true`
+- For each hint: check change detection (ETag/Last-Modified/etc.), skip if unchanged; otherwise download, resize to the configured width (default **400** px), encode WebP at the configured quality (default **92**), upload to the CDN, and update `channel_image` or `item_image` with the CDN URL and `is_resized = true`
 
 Use a small batch for local testing (e.g. `IMAGE_SHRINK_BATCH_SIZE=10`) so the backfill does not enqueue too many messages. Stop the consumer with Ctrl+C when done.
 

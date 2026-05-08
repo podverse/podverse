@@ -4,10 +4,10 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { EpisodeByGuidResponse } from '@podverse/helpers';
+import { ImagesPerView } from '@podverse/ui';
 
 import { IMAGES } from '../../../../../constants/images';
 import { ROUTES } from '../../../../../constants/routes';
-import { ImagesPerView } from '../../../../Image/ImagesPerView';
 import { Link } from '../../../../Link/Link';
 
 import styles from '../../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';

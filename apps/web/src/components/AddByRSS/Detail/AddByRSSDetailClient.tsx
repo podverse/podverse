@@ -9,6 +9,14 @@ import {
   formatDateAbbrev,
   prependDistinctImageCandidate,
 } from '@podverse/helpers';
+import {
+  DescriptionRenderer,
+  MainColumnStack,
+  MainHeader,
+  MainSidebarLayout,
+  SideContent,
+  SkeletonFlashImage,
+} from '@podverse/ui';
 
 import { AddByRSSAlbumPageClient } from '../../../app/add-by-rss/album/AddByRSSAlbumPageClient';
 import { AddByRSSPodcastPageDetailClient } from '../../../app/add-by-rss/podcast/AddByRSSPodcastPageDetailClient';
@@ -21,16 +29,10 @@ import type {
   AddByRSSMappedFeed,
   AddByRSSResourceType,
 } from '../../../utils/addByRSS/types';
-import { DescriptionRenderer } from '../../Description/DescriptionRenderer';
-import { Image } from '../../Image/Image';
 import { DetailListWrapper } from '../../List/DetailListWrapper';
-import LoadingSpinnerOverlay from '../../LoadingSpinner/LoadingSpinnerOverlay';
-import { MainHeader } from '../../Main/MainHeader';
-import { MainInnerContentWrapper } from '../../Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../Main/MainInnerWrapper';
+import { WebLoadingYourContentSpinnerOverlay } from '../../LoadingSpinner/WebLoadingSpinnerOverlay';
 import { MainWrapper } from '../../Main/MainWrapper';
 import { NoResults } from '../../NoResults/NoResults';
-import { SideContent } from '../../SideContent/SideContent';
 import { AddByRSSArtistHeader } from '../Artist/AddByRSSArtistHeader';
 import { AddByRSSTrackHeader } from '../Artist/Album/Track/AddByRSSTrackHeader';
 import { AddByRSSLivestreamHeader } from '../Livestream/AddByRSSLivestreamHeader';
@@ -47,7 +49,6 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
   idText,
 }) => {
   const tFeatures = useTranslations('features');
-  const tMisc = useTranslations('misc');
   const tMedia = useTranslations('media');
   const locale = useLocale();
   const router = useRouter();
@@ -81,7 +82,7 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
   }, [isEpisodesDetail, feed, router]);
 
   if (isLoading) {
-    return <LoadingSpinnerOverlay isLoading message={tMisc('loading_your_content')} />;
+    return <WebLoadingYourContentSpinnerOverlay isLoading />;
   }
 
   if (!feed) {
@@ -89,12 +90,12 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
       <>
         <MainHeader title={tFeatures('add_by_rss.label')} />
         <MainWrapper>
-          <MainInnerWrapper>
+          <MainSidebarLayout>
             <SideContent />
-            <MainInnerContentWrapper>
+            <MainColumnStack>
               <NoResults message={tFeatures('add_by_rss.feed_not_found_local')} />
-            </MainInnerContentWrapper>
-          </MainInnerWrapper>
+            </MainColumnStack>
+          </MainSidebarLayout>
         </MainWrapper>
       </>
     );
@@ -107,7 +108,7 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
     return <AddByRSSAlbumPageClient feed={feed} />;
   }
   if (resourceType === 'episodes') {
-    return <LoadingSpinnerOverlay isLoading message={tMisc('loading_your_content')} />;
+    return <WebLoadingYourContentSpinnerOverlay isLoading />;
   }
 
   const mappedFeed = feed.mappedFeed;
@@ -150,12 +151,12 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
     <>
       <MainHeader title={`${tFeatures('add_by_rss.label')} · ${feedTitle}`} />
       <MainWrapper>
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             {headerNode ?? (
               <section className={styles.feedHeader}>
-                <Image
+                <SkeletonFlashImage
                   candidates={feedImageCandidates}
                   alt={feedTitle || tMedia('podcast.podcast_image')}
                   width={IMAGES.LIST.PODCASTS.SIZE}
@@ -207,8 +208,8 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
                 )}
               </section>
             </DetailListWrapper>
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </>
   );

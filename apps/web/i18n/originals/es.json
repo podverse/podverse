@@ -42,7 +42,8 @@
       "no_livestreams_found": "No se encontraron transmisiones en vivo."
     },
     "updated_with_date": "Actualizado: {date}",
-    "image": "Imagen"
+    "image": "Imagen",
+    "more_options": "Más opciones"
   },
   "features": {
     "search": {
@@ -261,6 +262,11 @@
       "audio_with_ext_bitrate_mbps": "Audio {ext} {bitrate}Mbps"
     }
   },
+  "updates_page": {
+    "intro": "Las notas de versión de la aplicación de código abierto se publican en GitHub. Use el enlace siguiente para ver los lanzamientos etiquetados.",
+    "title": "Actualizaciones",
+    "view_releases": "Ver lanzamientos en GitHub"
+  },
   "value": {
     "boost": "Aumentar",
     "recipient": {
@@ -437,6 +443,12 @@
     "terms": "Términos",
     "mobile": "Móvil",
     "donate": "Donar",
+    "open_source": "Código abierto",
+    "browser_back": "Atrás",
+    "browser_forward": "Adelante",
+    "navbar_menu_open": "Abrir menú",
+    "navbar_menu_close": "Cerrar menú",
+    "close_modal": "Cerrar modal",
     "updates": "Actualizaciones",
     "sharable_status": {
       "sharable_status": "Estado Compartible",
@@ -599,13 +611,20 @@
     "membership_expired_danger": "Tu {type} ha expirado. Renueva ahora para seguir disfrutando de las funciones Premium.",
     "membership_link_text": "Ir a la Página de Membresía",
     "free_trial": "prueba gratuita",
-    "premium_membership": "membresía Premium",
     "free_trial_not_allowed": "Esta función solo está disponible para cuentas premium y no está disponible para pruebas gratuitas",
+    "get_premium": "Obtener Premium",
+    "premium_membership": "membresía Premium",
+    "premium_required": "Se requiere Premium",
     "renew_membership": "Renovar Membresía",
     "membership_expired": "Tu membresía ha expirado. Renueva para usar esta función.",
     "feature_not_available_for_account_type": "Tu cuenta no tiene acceso a esta función en este momento.",
+    "feature_premium_only_explanation": "Esta es una función Premium. Para evitar spam, las cuentas de prueba tienen acceso limitado. Obtén Premium para usarla.",
     "manual_refresh_hourly_limit_reached": "Has alcanzado tu límite de actualización manual por esta hora.",
     "add_by_rss_feed_limit_reached": "Has alcanzado tu límite de Agregar por RSS.",
+    "directory_add_by_rss_trial_blocked": "Para evitar spam, las cuentas de prueba no pueden añadir feeds al directorio público. Necesitarás una cuenta Premium para añadir feeds, o escribe a <mail>{contactEmail}</mail> para pedir que añadamos este feed.",
+    "trial_limitations_summary": "Algunas funciones no están disponibles durante el periodo de prueba para ayudar a reducir el spam y el abuso.",
+    "trial_limitations_show_less": "Mostrar menos",
+    "trial_limitations_show_more": "Mostrar más",
     "trial_limitations_title": "Limitaciones del periodo de prueba",
     "trial_limitations_directory_add_by_rss": "Agregar feeds al directorio público desde la búsqueda está bloqueado para el estado de Prueba.",
     "trial_limitations_add_by_rss_feed_limit": "El tamaño de la biblioteca de Agregar por RSS utiliza un límite inferior en Prueba que en Premium.",
@@ -642,10 +661,10 @@
     "settings": "Configuraciones",
     "ui_theme": {
       "theme": "Tema",
-      "light": "☀️ Claro",
-      "dark": "🌙 Oscuro",
-      "dracula": "🧛 Dracula",
-      "violet": "💜 Violeta"
+      "light": "Claro",
+      "dark": "Oscuro",
+      "dracula": "Dracula",
+      "violet": "Violeta"
     },
     "feed": {
       "check_feed_for_updates": "Buscar Actualizaciones en la Fuente",
@@ -870,6 +889,10 @@
     "filminterviews": "Entrevistas de Cine",
     "filmreviews": "Críticas de Cine",
     "tvreviews": "Críticas de TV"
+  },
+  "pagination": {
+    "ariaPreviousPage": "Página anterior",
+    "ariaNextPage": "Página siguiente"
   },
   "language": {
     "language": "Idioma",

@@ -4,21 +4,23 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import { CallToActionMessage, Modal } from '@podverse/ui';
+
 import { useModals } from '../../contexts/Modals';
-import { CallToActionMessage } from '../CallToActionMessage/CallToActionMessage';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 
 export const ModalLoginRequired: React.FC = () => {
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
-  const header = tInstructions('login_required');
+  const tMisc = useTranslations('misc');
   const { modalLoginRequired, setModalLoginRequired, setModalAuthLogin } = useModals();
+  const header = modalLoginRequired.title ?? tInstructions('login_required');
   const router = useRouter();
 
   const clearModalLoginRequired = () => {
     setModalLoginRequired({
       title: null,
       message: null,
+      messageNode: null,
       actionLabel: null,
       actionHref: null,
     });
@@ -37,16 +39,25 @@ export const ModalLoginRequired: React.FC = () => {
     }
   };
 
+  const messageBody =
+    modalLoginRequired.messageNode !== null && modalLoginRequired.messageNode !== undefined
+      ? modalLoginRequired.messageNode
+      : (modalLoginRequired.message ?? '');
+
   return (
     <Modal
-      isOpen={!!modalLoginRequired.message}
+      isOpen={
+        (modalLoginRequired.message !== null && modalLoginRequired.message !== '') ||
+        (modalLoginRequired.messageNode !== null && modalLoginRequired.messageNode !== undefined)
+      }
       onClose={clearModalLoginRequired}
+      closeButtonAriaLabel={tMisc('close_modal')}
       header={header}
       ariaLabel={header}
-      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <CallToActionMessage
-        message={modalLoginRequired.message || ''}
+        layout="modal"
+        message={messageBody}
         buttonLabel={modalLoginRequired.actionLabel ?? tAuthentication('login')}
         onButtonClick={modalLoginRequired.actionHref ? handleActionOnClick : showLoginOnClick}
       />

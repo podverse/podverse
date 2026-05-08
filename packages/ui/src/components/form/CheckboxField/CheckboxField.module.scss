@@ -1,3 +1,5 @@
+@use '../../../styles/mixins/flexbox' as *;
+@use '../../../styles/mixins/flexShrink' as *;
 @use '../../../styles/variables' as *;
 
 .label {
@@ -5,7 +7,7 @@
   cursor: pointer;
   display: flex;
   gap: $spacing-md;
-  min-width: 0;
+  @include flexItemAllowShrink;
 }
 
 .input {
@@ -16,5 +18,34 @@
 .labelText {
   flex: 1 1 auto;
   font-size: $font-size-base;
-  min-width: 0;
+  @include flexItemAllowShrink;
+}
+
+.wrapRoot {
+  flex: 1;
+  margin-bottom: var(--spacing-2xl);
+  @include flexItemAllowShrink;
+  position: relative;
+  @include flexColumn;
+}
+
+.wrapOption {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  @include flexItemAllowShrink;
+}
+
+.wrapInput {
+  cursor: pointer;
+  flex-shrink: 0;
+  height: 1.25rem;
+  margin-right: var(--spacing-md);
+  width: 1.25rem;
+}
+
+.wrapLabelText {
+  flex: 1;
+  font-size: var(--font-size-base);
+  @include flexItemAllowShrink;
 }

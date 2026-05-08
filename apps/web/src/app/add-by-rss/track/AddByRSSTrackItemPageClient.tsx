@@ -7,7 +7,7 @@ import React from 'react';
 
 import type { TranscriptRow } from '@podverse/helpers';
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
-import { Tabs } from '@podverse/ui';
+import { MainColumnStack, MainSidebarLayout, SideContent, Tabs } from '@podverse/ui';
 
 import { AddByRSSAlbumHeader } from '../../../components/AddByRSS/Artist/Album/AddByRSSAlbumHeader';
 import { AddByRSSTrackDetailHeader } from '../../../components/AddByRSS/Artist/Album/Track/AddByRSSTrackDetailHeader';
@@ -16,12 +16,12 @@ import { useBoostMessagesView } from '../../../components/Boost/messages/useBoos
 import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 import { CoreEpisodeSummary } from '../../../components/Core/Podcast/Episodes/CoreEpisodeSummary';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
-import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
+import {
+  WebLoadingSpinnerOverlay,
+  WebLoadingYourContentSpinnerOverlay,
+} from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { NoResults } from '../../../components/NoResults/NoResults';
-import { SideContent } from '../../../components/SideContent/SideContent';
 import { useAccount } from '../../../contexts/Account';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import {
@@ -288,18 +288,18 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
   }, [canShowBoostTab, handleTabSelect, tInfo, tValue, transcriptUrl]);
 
   if (isLoading) {
-    return <LoadingSpinnerOverlay isLoading message={tMisc('loading_your_content')} />;
+    return <WebLoadingYourContentSpinnerOverlay isLoading />;
   }
 
   if (!track || !feed) {
     return (
       <MainWrapper>
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             <NoResults message={tFeatures('add_by_rss.feed_not_found_local')} />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     );
   }
@@ -310,9 +310,9 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
   return (
     <MainWrapper>
       <AddByRSSAlbumHeader feed={feed} />
-      <MainInnerWrapper>
+      <MainSidebarLayout>
         <SideContent />
-        <MainInnerContentWrapper>
+        <MainColumnStack>
           <AddByRSSTrackDetailHeader itemIdText={track.idText} title={title} indexItem={track} />
           <CommonDetailListHeader tabs={<Tabs tabData={tabData} selectedKey={selectedTab} />} />
           <DetailListWrapper>
@@ -333,12 +333,12 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
                 ) : (
                   <ItemTranscript autoScrollOn={false} rows={transcriptRows} />
                 )}
-                <LoadingSpinnerOverlay isLoading={transcriptLoading} />
+                <WebLoadingSpinnerOverlay isLoading={transcriptLoading} />
               </>
             )}
           </DetailListWrapper>
-        </MainInnerContentWrapper>
-      </MainInnerWrapper>
+        </MainColumnStack>
+      </MainSidebarLayout>
     </MainWrapper>
   );
 };

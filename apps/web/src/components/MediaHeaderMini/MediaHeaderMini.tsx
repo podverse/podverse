@@ -6,9 +6,9 @@ import {
   buildDTOChannelImageLoadCandidates,
   mergeDTOItemThenChannelImageCandidates,
 } from '@podverse/helpers';
+import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../constants/images';
-import { Image } from '../Image/Image';
 
 import styles from '../../styles/components/MediaHeaderMini/MediaHeaderMini.module.scss';
 
@@ -51,7 +51,7 @@ export const MediaHeaderMini: React.FC<MediaHeaderMiniProps> = ({
 
   return (
     <header className={styles.header}>
-      <Image
+      <SkeletonFlashImage
         className={styles.image}
         candidates={imageCandidates}
         alt={subtitle ? `${title} - ${subtitle}` : title}

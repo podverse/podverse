@@ -1,4 +1,5 @@
 @use '../../../styles/mixins/flexbox' as *;
+@use '../../../styles/mixins/flexShrink' as *;
 @use '../../../styles/mixins/layout' as *;
 
 @keyframes spin {
@@ -18,11 +19,21 @@
   width: auto;
   padding: 0 var(--spacing-lg);
   overflow: hidden;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+a.button {
+  text-decoration: none;
+  color: inherit;
+  box-sizing: border-box;
 }
 
 .block {
   width: 100%;
-  min-width: 0;
+  @include flexItemAllowShrink;
 }
 
 .button.unstyled {
@@ -140,6 +151,23 @@
   color: var(--text-color-link-hover);
 }
 
+/* Text-like control: no horizontal padding (inherits base .button padding unless reset here). */
+.linkInline {
+  border-radius: var(--border-radius);
+  color: var(--text-color-link);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  height: auto;
+  min-width: auto;
+  padding: 0;
+  text-decoration: none;
+}
+
+.linkInline:hover,
+.linkInline:focus {
+  color: var(--text-color-link-hover);
+}
+
 .highlight {
   background: var(--button-highlight-bg);
   color: var(--button-primary-color);
@@ -150,7 +178,9 @@
   background: var(--button-highlight-bg-hover);
 }
 
+/* Explicit background: unset UA `button` face (often light) which breaks dark-theme contrast. */
 .mini {
+  background-color: var(--background-color-secondary);
   color: var(--button-secondary-color);
   border: var(--button-border-size) solid var(--border-color-primary);
   height: 2rem;
@@ -158,6 +188,10 @@
   padding: var(--spacing-button-default);
   min-width: auto;
   font-weight: var(--font-weight-normal);
+}
+
+.mini:hover:not(:disabled) {
+  background-color: var(--background-color-tertiary);
 }
 
 .miniSelected {

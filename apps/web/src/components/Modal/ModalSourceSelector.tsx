@@ -1,11 +1,13 @@
 import { useTranslations } from 'next-intl';
 
+import { Modal } from '@podverse/ui';
+
 import { useModals } from '../../contexts/Modals';
 import { SourceSelectors } from '../SourceSelectors/SourceSelectors';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 
 export const ModalSourceSelector: React.FC = () => {
   const tMediaPlayer = useTranslations('media_player');
+  const tMisc = useTranslations('misc');
   const { modalSourceSelector, setModalSourceSelector } = useModals();
 
   const isOpen = modalSourceSelector.labeledItemEnclosures.length > 0;
@@ -21,8 +23,8 @@ export const ModalSourceSelector: React.FC = () => {
           itemTitle: null,
         })
       }
+      closeButtonAriaLabel={tMisc('close_modal')}
       ariaLabel={tMediaPlayer('source.select_source')}
-      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <SourceSelectors
         labeledItemEnclosures={modalSourceSelector.labeledItemEnclosures}

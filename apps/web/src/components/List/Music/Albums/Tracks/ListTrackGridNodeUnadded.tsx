@@ -5,10 +5,10 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { EpisodeByGuidResponse } from '@podverse/helpers';
+import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../../../constants/images';
 import { ROUTES } from '../../../../../constants/routes';
-import { Image } from '../../../../Image/Image';
 
 import styles from '../../../../../styles/components/Common/List/ListGridNode.module.scss';
 
@@ -25,7 +25,7 @@ export const ListTrackGridNodeUnadded: React.FC<Props> = ({ itemUnadded, showCha
   return (
     <Link href={url} className={styles.link}>
       <div className={styles.gridNode}>
-        <Image
+        <SkeletonFlashImage
           src={itemUnadded.image}
           alt={itemUnadded.title || tMedia('music.track_image')}
           width={IMAGES.LIST.GRID.SIZE}

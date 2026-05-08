@@ -4,8 +4,8 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import { Tabs } from '@podverse/ui';
+import { Dropdown } from '@podverse/ui';
 
-import Dropdown from '../../components/Dropdown/Dropdown';
 import { ListHeader } from '../../components/List/ListHeader';
 import type { MyProfilePageContentTab } from './MyProfilePageContentContext';
 import { useMyProfilePageContentContext } from './MyProfilePageContentContext';

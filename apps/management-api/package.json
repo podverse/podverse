@@ -7,6 +7,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "npm run lint && tsc && tsc-alias",
+    "build:dev": "tsc && tsc-alias",
     "build:prod": "tsc -p tsconfig.prod.json && tsc-alias -p tsconfig.prod.json",
     "dev": "tsc && tsc-alias && node ./dist/index.js",
     "dev:watch": "tsc --build --watch --preserveWatchOutput & tsc-alias --watch & nodemon --delay 1000ms --watch dist --watch ../../packages/helpers/dist --watch ../../packages/orm/dist --watch ../../packages/notifications/dist --watch ../../packages/parser/dist --watch ../../packages/mq/dist dist/index.js",
@@ -19,6 +20,7 @@
   },
   "license": "AGPL-3.0",
   "dependencies": {
+    "@podverse/external-services-object-storage": "*",
     "@podverse/helpers": "*",
     "@podverse/helpers-backend": "*",
     "@podverse/helpers-config": "*",

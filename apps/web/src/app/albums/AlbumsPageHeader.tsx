@@ -13,9 +13,8 @@ import {
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
   QUERY_PARAMS_SUBSCRIBED_MUSIC_TYPE,
 } from '@podverse/helpers-requests';
+import { Dropdown, MainHeader } from '@podverse/ui';
 
-import { CommonListPageHeader } from '../../components/Common/List/CommonListPageHeader';
-import Dropdown from '../../components/Dropdown/Dropdown';
 import { ViewSelector } from '../../components/ViewSelector/ViewSelector';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useAlbumsPageContext } from './AlbumsPageContext';
@@ -116,5 +115,5 @@ export const AlbumsPageHeader: React.FC = () => {
 
   const headerTitle = tMedia('music.albums');
 
-  return <CommonListPageHeader title={headerTitle} buttonsNode={buttonsNode} />;
+  return <MainHeader title={headerTitle} buttonsNode={buttonsNode} />;
 };

@@ -34,10 +34,25 @@ function buildRuntimeConfigFromProcessEnv(): WebRuntimeConfig {
 }
 
 function applyWebRuntimeEnvDefaults(env: WebRuntimeConfig['env']): WebRuntimeConfig['env'] {
-  const raw = env.NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS;
-  const resolved =
-    raw !== undefined && raw !== '' ? raw : String(DEFAULT_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS);
-  return { ...env, NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS: resolved };
+  const rawCache = env.NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS;
+  const resolvedCache =
+    rawCache !== undefined && rawCache !== ''
+      ? rawCache
+      : String(DEFAULT_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS);
+  const rawImageProxy = env.NEXT_PUBLIC_IMAGE_PROXY_ENABLED;
+  const resolvedImageProxy =
+    rawImageProxy !== undefined && rawImageProxy !== '' ? rawImageProxy : 'false';
+  const rawNextImageOptimization = env.NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED;
+  const resolvedNextImageOptimization =
+    rawNextImageOptimization !== undefined && rawNextImageOptimization !== ''
+      ? rawNextImageOptimization
+      : 'false';
+  return {
+    ...env,
+    NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS: resolvedCache,
+    NEXT_PUBLIC_IMAGE_PROXY_ENABLED: resolvedImageProxy,
+    NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED: resolvedNextImageOptimization,
+  };
 }
 
 let hasLoggedFallback = false;

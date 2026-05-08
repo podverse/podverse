@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
-import { MainHeader } from '../../../../components/Main/MainHeader';
+import { MainHeader } from '@podverse/ui';
 
 export const ClipEditPageHeader: React.FC = () => {
   const tFeatures = useTranslations('features');
