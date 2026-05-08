@@ -588,14 +588,12 @@
   "settings": {
     "title": "Ρυθμίσεις",
     "subtitle": "Επιλέξτε τη γλώσσα και το θέμα σας",
-    "theme": {
-      "label": "Θέμα",
-      "options": {
-        "dark": "Σκοτεινό",
-        "light": "Φωτεινό",
-        "dracula": "Dracula",
-        "violet": "Βιολέ"
-      }
+    "ui_theme": {
+      "theme": "Θέμα",
+      "light": "Φωτεινό",
+      "dark": "Σκοτεινό",
+      "dracula": "Dracula",
+      "violet": "Βιολέ"
     },
     "language": {
       "label": "Γλώσσα"

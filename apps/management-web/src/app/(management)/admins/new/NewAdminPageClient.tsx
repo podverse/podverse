@@ -1,19 +1,20 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import {
-  ActionLink,
   Alert,
   Breadcrumbs,
   Button,
   Checkbox,
   Fieldset,
-  FormContainer,
+  FormMaxWidth,
   FormPrimaryActions,
   ManagementPageShell,
+  StackForm,
   Table,
   TextInput,
 } from '@podverse/ui';
@@ -52,6 +53,7 @@ const RESOURCE_LABEL_KEYS: Record<(typeof RESOURCE_KEYS)[number], string> = {
 };
 
 export function NewAdminPageClient() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [permissions, setPermissions] = useState<PermissionState>({
@@ -117,67 +119,69 @@ export function NewAdminPageClient() {
         />
       }
     >
-      <FormContainer onSubmit={(e) => void handleSubmit(e)}>
-        <TextInput
-          id="email"
-          eyebrow={ta('email')}
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <TextInput
-          id="password"
-          eyebrow={ta('password')}
-          minLength={8}
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <Fieldset legend={tp('legend')}>
-          <Table.ScrollContainer>
-            <Table>
-              <Table.Head>
-                <Table.Row>
-                  <Table.HeaderCell>{tp('resource')}</Table.HeaderCell>
-                  {CRUD_BITS.map((check) => (
-                    <Table.HeaderCell key={check.bit}>{tp(check.labelKey)}</Table.HeaderCell>
-                  ))}
-                </Table.Row>
-              </Table.Head>
-              <Table.Body>
-                {RESOURCE_KEYS.map((key) => (
-                  <Table.Row key={key}>
-                    <Table.Cell>{tp(RESOURCE_LABEL_KEYS[key])}</Table.Cell>
+      <FormMaxWidth>
+        <StackForm onSubmit={(e) => void handleSubmit(e)}>
+          <TextInput
+            id="email"
+            eyebrow={ta('email')}
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <TextInput
+            id="password"
+            eyebrow={ta('password')}
+            minLength={8}
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <Fieldset legend={tp('legend')}>
+            <Table.ScrollContainer>
+              <Table>
+                <Table.Head>
+                  <Table.Row>
+                    <Table.HeaderCell>{tp('resource')}</Table.HeaderCell>
                     {CRUD_BITS.map((check) => (
-                      <Table.Cell key={check.bit}>
-                        <Checkbox
-                          aria-label={`${tp(RESOURCE_LABEL_KEYS[key])}, ${tp(check.labelKey)}`}
-                          checked={(permissions[key] & check.bit) !== 0}
-                          onChange={() => {
-                            toggleCrudBit(key, check.bit);
-                          }}
-                        />
-                      </Table.Cell>
+                      <Table.HeaderCell key={check.bit}>{tp(check.labelKey)}</Table.HeaderCell>
                     ))}
                   </Table.Row>
-                ))}
-              </Table.Body>
-            </Table>
-          </Table.ScrollContainer>
-        </Fieldset>
-        <Alert>{error}</Alert>
-        {success && <Alert variant="success">{t('createdSuccessfully')}</Alert>}
-        <FormPrimaryActions>
-          <ActionLink href="/admins" variant="subtle" LinkComponent={Link}>
-            {tc('cancel')}
-          </ActionLink>
-          <Button type="submit" disabled={loading}>
-            {loading ? tc('creating') : t('createAdmin')}
-          </Button>
-        </FormPrimaryActions>
-      </FormContainer>
+                </Table.Head>
+                <Table.Body>
+                  {RESOURCE_KEYS.map((key) => (
+                    <Table.Row key={key}>
+                      <Table.Cell>{tp(RESOURCE_LABEL_KEYS[key])}</Table.Cell>
+                      {CRUD_BITS.map((check) => (
+                        <Table.Cell key={check.bit}>
+                          <Checkbox
+                            aria-label={`${tp(RESOURCE_LABEL_KEYS[key])}, ${tp(check.labelKey)}`}
+                            checked={(permissions[key] & check.bit) !== 0}
+                            onChange={() => {
+                              toggleCrudBit(key, check.bit);
+                            }}
+                          />
+                        </Table.Cell>
+                      ))}
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table>
+            </Table.ScrollContainer>
+          </Fieldset>
+          <Alert>{error}</Alert>
+          {success && <Alert variant="success">{t('createdSuccessfully')}</Alert>}
+          <FormPrimaryActions>
+            <Button type="button" variant="secondary" onClick={() => router.push('/admins')}>
+              {tc('cancel')}
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? tc('creating') : t('createAdmin')}
+            </Button>
+          </FormPrimaryActions>
+        </StackForm>
+      </FormMaxWidth>
     </ManagementPageShell>
   );
 }

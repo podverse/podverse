@@ -13,10 +13,11 @@ import {
   Button,
   DescriptionList,
   DescriptionListRow,
-  FormContainer,
+  FormMaxWidth,
   FormPrimaryActions,
   ManagementPageShell,
   SectionHeading,
+  StackForm,
   Table,
   TableWithFilter,
   TextInput,
@@ -257,21 +258,23 @@ export function ProductMembershipsPageClient() {
       {!loading && !loadError && data !== null && (
         <>
           <SectionHeading level={2}>{t('editableTrialHeading')}</SectionHeading>
-          <FormContainer onSubmit={(event) => void handleTrialSubmit(event)}>
-            <TextInput
-              id="free-trial-expiration-seconds-input"
-              eyebrow={t('fieldLabels.freeTrialExpirationSeconds')}
-              min={1}
-              type="number"
-              value={trialSecondsInput}
-              onChange={(event) => setTrialSecondsInput(event.target.value)}
-            />
-            <FormPrimaryActions>
-              <Button type="submit" disabled={saving}>
-                {saving ? tc('saving') : tc('saveChanges')}
-              </Button>
-            </FormPrimaryActions>
-          </FormContainer>
+          <FormMaxWidth>
+            <StackForm onSubmit={(event) => void handleTrialSubmit(event)}>
+              <TextInput
+                id="free-trial-expiration-seconds-input"
+                eyebrow={t('fieldLabels.freeTrialExpirationSeconds')}
+                min={1}
+                type="number"
+                value={trialSecondsInput}
+                onChange={(event) => setTrialSecondsInput(event.target.value)}
+              />
+              <FormPrimaryActions>
+                <Button type="submit" disabled={saving}>
+                  {saving ? tc('saving') : tc('saveChanges')}
+                </Button>
+              </FormPrimaryActions>
+            </StackForm>
+          </FormMaxWidth>
           {saveError !== null && <Alert>{saveError}</Alert>}
           {saveSuccess !== null && <Alert variant="success">{saveSuccess}</Alert>}
           <DescriptionList variant="rows">

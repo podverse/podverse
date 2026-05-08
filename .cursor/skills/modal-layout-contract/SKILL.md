@@ -23,8 +23,9 @@ inside modals in **apps/web**, **apps/management-web**, or **`packages/ui`** she
   footers — use **`Modal.Actions`** (or **`DeleteConfirmModalShell`** / **`GoToPageModal`** which already compose it).
 - **Do not** add **`overflow-x: hidden`** on the modal to mask overflow — fix the child (`min-width: 0` on flex
   items, **`Modal.Actions`** wrap, break long unbreakable strings).
-- **`Modal`** panel uses **`scrollbar-gutter: stable`** so when vertical scrolling appears, the scrollbar does not
-  steal horizontal space and trigger spurious horizontal overflow.
+- **`Modal`** applies **`scrollbar-gutter: stable`** on **`.modalChildren`** (the vertical scroll region), not on the
+  padded panel wrapper, so when vertical scrolling appears the scrollbar does not steal horizontal space from body
+  content and the header row is not narrowed by the gutter.
 - **`.modalChildren > *`** and **`Modal.Body > *`** apply **`max-width: 100%`** and **`min-width: 0`** as a safety
   net; shared **`@podverse/ui`** form components should still declare **`min-width: 0`** on their own flex rows/columns
   ( **`FormStack`**, **`TextInput`** wrappers, **`FormDropdown`**, etc.) so content cannot widen the dialog.
@@ -36,7 +37,7 @@ inside modals in **apps/web**, **apps/management-web**, or **`packages/ui`** she
 - Horizontal scrollbar on the modal panel or the page when the modal is open → often **`Modal.Actions`** missing
   **`flex-wrap`** (use **`Modal.Actions`**, not a custom row), or a child with fixed width / **`min-width: auto`**
   in a flex context; also check nested flex rows without **`min-width: 0`** and vertical scrollbar appearing without
-  **`scrollbar-gutter: stable`** on the panel.
+  **`scrollbar-gutter: stable`** on **`.modalChildren`**.
 
 ## Removed API
 

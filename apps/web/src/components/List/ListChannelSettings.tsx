@@ -5,10 +5,15 @@ import { DEDUPE_WINDOW_RSS_ON_DEMAND_MS, formatDateTimeAbbrev } from '@podverse/
 import { getStatusCodeFromError } from '@podverse/helpers-requests';
 import { Divider, SwitchButton } from '@podverse/ui';
 
+import { getContactEmail } from '../../constants/contact';
 import { useAccount } from '../../contexts/Account';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { useLoadingMap } from '../../hooks/useLoadingMap';
+import {
+  getLegacyMembership403ModalProps,
+  getMembership403ModalProps,
+} from '../../utils/membership/modalForMembership403';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 import { RSSFeedSettingsSection } from '../Settings/RSSFeedSettingsSection';
 import { SettingsSection } from '../Settings/SettingsSection';
@@ -66,33 +71,15 @@ export const ListChannelSettings = ({ channel }: ListChannelSettingsProps) => {
         }
         const rateLimitErrorHandled = await handleRateLimitAlert(error, locale, tMisc);
         if (!rateLimitErrorHandled) {
-          type ErrorWithResponse = {
-            response?: {
-              status?: number;
-              data?: { i18nKey?: string; message?: string; renewPath?: string };
-            };
-          };
-          const errorWithResponse = error as ErrorWithResponse;
-          const errorStatus = errorWithResponse?.response?.status;
-          const errorData = errorWithResponse?.response?.data;
-          const i18nKey = errorData?.i18nKey;
-          const renewPath = errorData?.renewPath;
-          const apiMessage = errorData?.message;
-
-          if (errorStatus === 403 && i18nKey) {
-            // Extract namespace and key from i18nKey (e.g., "membership.free_trial_not_allowed")
-            const [namespace, key] = i18nKey.split('.');
-            if (namespace === 'membership' && key) {
-              setModalLoginRequired({
-                title: null,
-                message: apiMessage || tMembership(key),
-                actionLabel: renewPath ? tMembership('renew_membership') : null,
-                actionHref: renewPath ?? null,
-              });
-            } else {
-              console.error(error);
-              alert('Error performing action.');
-            }
+          const membershipModal =
+            getMembership403ModalProps({
+              error,
+              contactEmail: getContactEmail(),
+              featureContext: 'manual_refresh',
+              tMembership,
+            }) ?? getLegacyMembership403ModalProps({ error, tMembership });
+          if (membershipModal !== null) {
+            setModalLoginRequired(membershipModal);
           } else {
             console.error(error);
             alert('Error performing action.');

@@ -12,13 +12,14 @@ import {
   Button,
   DescriptionList,
   DescriptionListRow,
-  FormContainer,
+  FormMaxWidth,
   FormPrimaryActions,
   FormStack,
   ManagementPageShell,
   Modal,
   ModalActions,
   PageHeaderActions,
+  StackForm,
   StatusBadge,
   TextInput,
 } from '@podverse/ui';
@@ -216,28 +217,30 @@ export function RowDetailPageClient({ tableName, rowId, initialRow }: RowDetailP
             </PageHeaderActions>
           </>
         ) : (
-          <FormContainer onSubmit={(e) => void handleUpdate(e)}>
-            {updatableFields.map((field: TableFieldMeta) => (
-              <TextInput
-                key={field.name}
-                id={`edit-${field.name}`}
-                eyebrow={`${field.name}${!field.nullable ? ' *' : ''}`}
-                type="text"
-                value={String(formData[field.name] ?? '')}
-                onChange={(e) => handleFieldChange(field.name, e.target.value)}
-                required={!field.nullable}
-                placeholder={field.type}
-              />
-            ))}
-            <FormPrimaryActions>
-              <Button type="button" onClick={cancelEditing} variant="link">
-                {tc('cancel')}
-              </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? tc('saving') : tc('saveChanges')}
-              </Button>
-            </FormPrimaryActions>
-          </FormContainer>
+          <FormMaxWidth>
+            <StackForm onSubmit={(e) => void handleUpdate(e)}>
+              {updatableFields.map((field: TableFieldMeta) => (
+                <TextInput
+                  key={field.name}
+                  id={`edit-${field.name}`}
+                  eyebrow={`${field.name}${!field.nullable ? ' *' : ''}`}
+                  type="text"
+                  value={String(formData[field.name] ?? '')}
+                  onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                  required={!field.nullable}
+                  placeholder={field.type}
+                />
+              ))}
+              <FormPrimaryActions>
+                <Button type="button" onClick={cancelEditing} variant="secondary">
+                  {tc('cancel')}
+                </Button>
+                <Button type="submit" disabled={loading}>
+                  {loading ? tc('saving') : tc('saveChanges')}
+                </Button>
+              </FormPrimaryActions>
+            </StackForm>
+          </FormMaxWidth>
         )}
       </FormStack>
 

@@ -19,9 +19,10 @@ type ModalBasic = {
   isOpen: boolean;
 };
 
-type ModalMessage = {
+export type ModalMessage = {
   title: string | null;
   message: string | null;
+  messageNode?: ReactNode | null;
   actionLabel?: string | null;
   actionHref?: string | null;
 };
@@ -158,9 +159,10 @@ const defaultModalShare = {
   item_soundbite: null,
 };
 
-const defaultModalLoginRequired = {
+const defaultModalLoginRequired: ModalMessage = {
   title: null,
   message: null,
+  messageNode: null,
   actionLabel: null,
   actionHref: null,
 };

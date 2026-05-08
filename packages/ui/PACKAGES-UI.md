@@ -61,6 +61,24 @@ to compact **`Button`** **`mini`** controls unless every slot matches. If one sl
 **`Label`** above only one control while siblings are single-line, alignment suffers — prefer
 **`aria-label`** / placeholders instead, unless every column uses the same label pattern.
 
+## Forms — vertical rhythm
+
+- **`StackForm`** ([`StackForm.tsx`](src/components/form/StackForm/StackForm.tsx)) — native `<form>` with
+  **`flex`** column **`gap: var(--spacing-3xl)`** (same stack class as **`FormStack`**). Prefer this for
+  submit handlers when fields and sections share one vertical rhythm (**`Modal.Body`** uses the same gap
+  token).
+- **`FormStack`** — same spacing as **`StackForm`** for stacked content that is not a `<form>` (filters,
+  modal sections, layout between blocks).
+- **`FormContainer`** ([`FormContainer.tsx`](src/components/form/FormContainer/FormContainer.tsx)) —
+  `<form>` with **`max-width: var(--form-max-width-md)`** only (no root **`gap`**). For stacked fields with
+  shared rhythm, use **`StackForm`** and **`FormMaxWidth`** when you need the same width cap, or apply the
+  width rule via **`className`** on **`StackForm`**.
+- **`FormPrimaryActions`** ([`FormPrimaryActions.tsx`](src/components/form/FormPrimaryActions/FormPrimaryActions.tsx))
+  — right-aligned Cancel + Primary submit row. Vertical space before this row comes from the parent
+  **`StackForm`** / **`FormStack`** / **`Modal.Body`** **`gap`**, not from extra margin on the actions row.
+- **`FormGroup`** — optional **`layout="inStack"`** when the group is a direct child of **`StackForm`** /
+  **`FormStack`** so internal margins do not stack with the parent **`gap`**.
+
 ## Feedback — Toast
 
 [`Toast`](src/components/feedback/Toast/ToastImpl.tsx) integrates **react-hot-toast**: imperative helpers (**`showToast`**, **`showToastPromise`**, **`showToastCustom`**, etc.) and a **`Toast`** renderer (**`<Toaster />`**). Styling uses theme tokens (`--background-color-contrast`, `--button-warning-*`, `--button-danger-*`). Custom membership-style toasts require localized **`dismissButtonAriaLabel`** and optionally **`LinkComponent`** (e.g. Next.js `Link`). Apps may lazy-load via **`import('@podverse/ui/toast')`** (`package.json` **`exports`** entry **`./toast`**) to keep the toast bundle split.
@@ -77,7 +95,7 @@ for primary/secondary controls: **right-aligned**, **`flex-wrap: wrap`**, gap **
 and management-web standard). Do not use **`formButtonsWrapper`** or a left-aligned action row inside
 modals.
 
-The panel uses **`scrollbar-gutter: stable`** so vertical scroll does not compress content horizontally.
+The **`.modalChildren`** scroll host uses **`scrollbar-gutter: stable`** so vertical scroll does not compress body content horizontally; the header row stays full width inside the padded panel.
 **`.modalChildren > *`** enforces **`min-width: 0`** / **`max-width: 100%`** on direct children; shared form
 components (**`FormStack`**, **`TextInput`**, **`FormDropdown`**, etc.) also use **`min-width: 0`** on flex
 containers so fields stay within the max width.

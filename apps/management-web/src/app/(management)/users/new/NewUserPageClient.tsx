@@ -1,28 +1,29 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
 import type { PremiumBillingCadence, ResolvedProductMembership } from '@podverse/helpers';
 import { AccountMembershipEnum } from '@podverse/helpers';
 import {
-  ActionLink,
   Alert,
   Breadcrumbs,
   Button,
   CheckboxField,
   CopyToClipboardButton,
   fieldPrimitiveClasses,
-  FormContainer,
   FormGroup,
   FormHintText,
   FormMaxWidth,
   FormPrimaryActions,
+  FormStack,
   Input,
   Label,
   ManagementPageShell,
   Select,
+  StackForm,
   TextInput,
 } from '@podverse/ui';
 
@@ -45,6 +46,7 @@ function isValidEmail(value: string): boolean {
 }
 
 export function NewUserPageClient() {
+  const router = useRouter();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -251,36 +253,38 @@ export function NewUserPageClient() {
     return (
       <ManagementPageShell headerChildren={createUserBreadcrumbs} title={t('createUser')}>
         <FormMaxWidth>
-          <Alert variant="success">{t('createdWithLink')}</Alert>
-          <FormGroup>
-            <Label htmlFor="invite-link">{t('inviteLinkLabel')}</Label>
-            <div
-              style={{
-                display: 'flex',
-                gap: 'var(--spacing-base)',
-                alignItems: 'center',
-              }}
-            >
-              <Input
-                id="invite-link"
-                readOnly
-                type="text"
-                className={fieldPrimitiveClasses.input}
-                style={{ flex: 1, minWidth: 0 }}
-                value={inviteLink}
-              />
-              <CopyToClipboardButton
-                textToCopy={inviteLink}
-                idleLabel={t('copyLink')}
-                copiedLabel={t('linkCopied')}
-              />
-            </div>
-          </FormGroup>
-          <FormPrimaryActions>
-            <ActionLink href="/users" variant="subtle" LinkComponent={Link}>
-              {t('backToList')}
-            </ActionLink>
-          </FormPrimaryActions>
+          <FormStack>
+            <Alert variant="success">{t('createdWithLink')}</Alert>
+            <FormGroup layout="inStack">
+              <Label htmlFor="invite-link">{t('inviteLinkLabel')}</Label>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 'var(--spacing-base)',
+                  alignItems: 'center',
+                }}
+              >
+                <Input
+                  id="invite-link"
+                  readOnly
+                  type="text"
+                  className={fieldPrimitiveClasses.input}
+                  style={{ flex: 1, minWidth: 0 }}
+                  value={inviteLink}
+                />
+                <CopyToClipboardButton
+                  textToCopy={inviteLink}
+                  idleLabel={t('copyLink')}
+                  copiedLabel={t('linkCopied')}
+                />
+              </div>
+            </FormGroup>
+            <FormPrimaryActions>
+              <Button type="button" variant="secondary" onClick={() => router.push('/users')}>
+                {t('backToList')}
+              </Button>
+            </FormPrimaryActions>
+          </FormStack>
         </FormMaxWidth>
       </ManagementPageShell>
     );
@@ -288,228 +292,232 @@ export function NewUserPageClient() {
 
   return (
     <ManagementPageShell headerChildren={createUserBreadcrumbs} title={t('createUser')}>
-      <FormContainer onSubmit={(e) => void handleSubmit(e)}>
-        <TextInput
-          id="username"
-          autoComplete="off"
-          eyebrow={t('usernameOptional')}
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <TextInput
-          id="email"
-          autoComplete="off"
-          eyebrow={t('emailOptional')}
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <FormHintText variant="block">{t('emailOrUsernameHint')}</FormHintText>
-        <TextInput
-          id="password"
-          autoComplete="new-password"
-          eyebrow={t('passwordOptional')}
-          info={t('passwordInviteHint')}
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <FormGroup>
-          <Label htmlFor="membership-id">{t('membershipForm.membershipStatus')}</Label>
-          <Select
-            id="membership-id"
-            className={fieldPrimitiveClasses.select}
-            value={String(membershipId)}
-            onChange={(e) => {
-              const v = Number.parseInt(e.target.value, 10);
-              if (v === AccountMembershipEnum.Trial || v === AccountMembershipEnum.Premium) {
-                setMembershipId(v);
-              }
-            }}
-          >
-            <option value={String(AccountMembershipEnum.Trial)}>{t('membershipForm.trial')}</option>
-            <option value={String(AccountMembershipEnum.Premium)}>
-              {t('membershipForm.premium')}
-            </option>
-          </Select>
-          <FormHintText>
-            {membershipId === AccountMembershipEnum.Trial
-              ? t('membershipForm.hintTrialNew')
-              : t('membershipForm.hintPremiumNew')}
-          </FormHintText>
-        </FormGroup>
-        {membershipId === AccountMembershipEnum.Premium && (
-          <FormGroup>
-            <Label htmlFor="premium-cadence">{t('membershipForm.premiumBillingCadence')}</Label>
+      <FormMaxWidth>
+        <StackForm onSubmit={(e) => void handleSubmit(e)}>
+          <TextInput
+            id="username"
+            autoComplete="off"
+            eyebrow={t('usernameOptional')}
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <TextInput
+            id="email"
+            autoComplete="off"
+            eyebrow={t('emailOptional')}
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <FormHintText variant="block">{t('emailOrUsernameHint')}</FormHintText>
+          <TextInput
+            id="password"
+            autoComplete="new-password"
+            eyebrow={t('passwordOptional')}
+            info={t('passwordInviteHint')}
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <FormGroup layout="inStack">
+            <Label htmlFor="membership-id">{t('membershipForm.membershipStatus')}</Label>
             <Select
-              id="premium-cadence"
+              id="membership-id"
               className={fieldPrimitiveClasses.select}
-              value={premiumCadence}
+              value={String(membershipId)}
               onChange={(e) => {
-                setPremiumCadence(e.target.value === 'monthly' ? 'monthly' : 'annual');
+                const v = Number.parseInt(e.target.value, 10);
+                if (v === AccountMembershipEnum.Trial || v === AccountMembershipEnum.Premium) {
+                  setMembershipId(v);
+                }
               }}
             >
-              <option value="monthly">{t('membershipForm.billingMonthly')}</option>
-              <option value="annual">{t('membershipForm.billingAnnual')}</option>
+              <option value={String(AccountMembershipEnum.Trial)}>
+                {t('membershipForm.trial')}
+              </option>
+              <option value={String(AccountMembershipEnum.Premium)}>
+                {t('membershipForm.premium')}
+              </option>
             </Select>
-            <FormHintText>{t('membershipForm.premiumBillingCadenceHint')}</FormHintText>
+            <FormHintText>
+              {membershipId === AccountMembershipEnum.Trial
+                ? t('membershipForm.hintTrialNew')
+                : t('membershipForm.hintPremiumNew')}
+            </FormHintText>
           </FormGroup>
-        )}
-        <TextInput
-          id="membership-expires-at"
-          eyebrow={t('membershipForm.membershipExpiresAt')}
-          type="datetime-local"
-          value={membershipExpiresAt}
-          onChange={(e) => setMembershipExpiresAt(e.target.value)}
-        />
-        <FormGroup>
-          <CheckboxField
-            label={t('membershipForm.configureAdvancedOverrides')}
-            checked={showAdvanced}
-            onChange={setShowAdvanced}
+          {membershipId === AccountMembershipEnum.Premium && (
+            <FormGroup layout="inStack">
+              <Label htmlFor="premium-cadence">{t('membershipForm.premiumBillingCadence')}</Label>
+              <Select
+                id="premium-cadence"
+                className={fieldPrimitiveClasses.select}
+                value={premiumCadence}
+                onChange={(e) => {
+                  setPremiumCadence(e.target.value === 'monthly' ? 'monthly' : 'annual');
+                }}
+              >
+                <option value="monthly">{t('membershipForm.billingMonthly')}</option>
+                <option value="annual">{t('membershipForm.billingAnnual')}</option>
+              </Select>
+              <FormHintText>{t('membershipForm.premiumBillingCadenceHint')}</FormHintText>
+            </FormGroup>
+          )}
+          <TextInput
+            id="membership-expires-at"
+            eyebrow={t('membershipForm.membershipExpiresAt')}
+            type="datetime-local"
+            value={membershipExpiresAt}
+            onChange={(e) => setMembershipExpiresAt(e.target.value)}
           />
-        </FormGroup>
-        {showAdvanced && (
-          <>
-            <FormGroup>
-              <Label htmlFor="allow-directory-add">
-                {t('advancedOverrides.allowDirectoryAddByRss')}
-              </Label>
-              <Select
-                id="allow-directory-add"
-                className={fieldPrimitiveClasses.select}
-                value={
-                  allowDirectoryAddByRSS === null ? '' : allowDirectoryAddByRSS ? 'true' : 'false'
-                }
-                onChange={(e) => {
-                  if (e.target.value === '') {
-                    setAllowDirectoryAddByRSS(null);
-                  } else {
-                    setAllowDirectoryAddByRSS(e.target.value === 'true');
-                  }
-                }}
-              >
-                <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
-                <option value="true">{t('advancedOverrides.allow')}</option>
-                <option value="false">{t('advancedOverrides.block')}</option>
-              </Select>
-              <FormHintText>
-                {t('advancedOverrides.allowDirectoryAddByRssHelp', {
-                  trialDefault: trialEnt.allowDirectoryAddByRSS
-                    ? t('advancedOverrides.on')
-                    : t('advancedOverrides.off'),
-                  premiumDefault: premiumEnt.allowDirectoryAddByRSS
-                    ? t('advancedOverrides.on')
-                    : t('advancedOverrides.off'),
-                })}
-              </FormHintText>
-            </FormGroup>
-            <TextInput
-              id="max-add-by-rss-feeds"
-              eyebrow={t('advancedOverrides.addByRssFeedLimit')}
-              info={t('advancedOverrides.addByRssFeedLimitHelp', {
-                trialDefault: trialEnt.maxAddByRSSFeeds,
-                premiumDefault: premiumEnt.maxAddByRSSFeeds,
-                selectedDefault: selectedEnt.maxAddByRSSFeeds,
-              })}
-              min={0}
-              placeholder={t('advancedOverrides.placeholderTierDefault', {
-                count: rssPlaceholder,
-              })}
-              type="number"
-              value={maxAddByRSSFeeds}
-              onChange={(e) => setMaxAddByRSSFeeds(e.target.value)}
+          <FormGroup layout="inStack">
+            <CheckboxField
+              label={t('membershipForm.configureAdvancedOverrides')}
+              checked={showAdvanced}
+              onChange={setShowAdvanced}
             />
-            <TextInput
-              id="max-manual-refreshes"
-              eyebrow={t('advancedOverrides.manualRefreshPerHour')}
-              info={t('advancedOverrides.manualRefreshPerHourHelp', {
-                trialDefault: trialEnt.maxManualRefreshesPerHour,
-                premiumDefault: premiumEnt.maxManualRefreshesPerHour,
-                selectedDefault: selectedEnt.maxManualRefreshesPerHour,
-              })}
-              min={0}
-              placeholder={t('advancedOverrides.placeholderTierDefault', {
-                count: refreshPlaceholder,
-              })}
-              type="number"
-              value={maxManualRefreshesPerHour}
-              onChange={(e) => setMaxManualRefreshesPerHour(e.target.value)}
-            />
-            <FormGroup>
-              <Label htmlFor="track-stats">{t('advancedOverrides.trackStats')}</Label>
-              <Select
-                id="track-stats"
-                className={fieldPrimitiveClasses.select}
-                value={trackStats === null ? '' : trackStats ? 'true' : 'false'}
-                onChange={(e) => {
-                  if (e.target.value === '') {
-                    setTrackStats(null);
-                  } else {
-                    setTrackStats(e.target.value === 'true');
+          </FormGroup>
+          {showAdvanced && (
+            <>
+              <FormGroup layout="inStack">
+                <Label htmlFor="allow-directory-add">
+                  {t('advancedOverrides.allowDirectoryAddByRss')}
+                </Label>
+                <Select
+                  id="allow-directory-add"
+                  className={fieldPrimitiveClasses.select}
+                  value={
+                    allowDirectoryAddByRSS === null ? '' : allowDirectoryAddByRSS ? 'true' : 'false'
                   }
-                }}
-              >
-                <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
-                <option value="true">{t('advancedOverrides.trackStatsOn')}</option>
-                <option value="false">{t('advancedOverrides.trackStatsOff')}</option>
-              </Select>
-              <FormHintText>
-                {t('advancedOverrides.trackStatsHelp', {
-                  trialDefault: trialEnt.trackStats
-                    ? t('advancedOverrides.on')
-                    : t('advancedOverrides.off'),
-                  premiumDefault: premiumEnt.trackStats
-                    ? t('advancedOverrides.on')
-                    : t('advancedOverrides.off'),
+                  onChange={(e) => {
+                    if (e.target.value === '') {
+                      setAllowDirectoryAddByRSS(null);
+                    } else {
+                      setAllowDirectoryAddByRSS(e.target.value === 'true');
+                    }
+                  }}
+                >
+                  <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
+                  <option value="true">{t('advancedOverrides.allow')}</option>
+                  <option value="false">{t('advancedOverrides.block')}</option>
+                </Select>
+                <FormHintText>
+                  {t('advancedOverrides.allowDirectoryAddByRssHelp', {
+                    trialDefault: trialEnt.allowDirectoryAddByRSS
+                      ? t('advancedOverrides.on')
+                      : t('advancedOverrides.off'),
+                    premiumDefault: premiumEnt.allowDirectoryAddByRSS
+                      ? t('advancedOverrides.on')
+                      : t('advancedOverrides.off'),
+                  })}
+                </FormHintText>
+              </FormGroup>
+              <TextInput
+                id="max-add-by-rss-feeds"
+                eyebrow={t('advancedOverrides.addByRssFeedLimit')}
+                info={t('advancedOverrides.addByRssFeedLimitHelp', {
+                  trialDefault: trialEnt.maxAddByRSSFeeds,
+                  premiumDefault: premiumEnt.maxAddByRSSFeeds,
+                  selectedDefault: selectedEnt.maxAddByRSSFeeds,
                 })}
-              </FormHintText>
-            </FormGroup>
-            <FormGroup>
-              <Label htmlFor="allow-notifications">
-                {t('advancedOverrides.allowNotifications')}
-              </Label>
-              <Select
-                id="allow-notifications"
-                className={fieldPrimitiveClasses.select}
-                value={allowNotifications === null ? '' : allowNotifications ? 'true' : 'false'}
-                onChange={(e) => {
-                  if (e.target.value === '') {
-                    setAllowNotifications(null);
-                  } else {
-                    setAllowNotifications(e.target.value === 'true');
-                  }
-                }}
-              >
-                <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
-                <option value="true">{t('advancedOverrides.allowNotificationsOn')}</option>
-                <option value="false">{t('advancedOverrides.allowNotificationsOff')}</option>
-              </Select>
-              <FormHintText>
-                {t('advancedOverrides.allowNotificationsHelp', {
-                  trialDefault: trialEnt.allowNotifications
-                    ? t('advancedOverrides.on')
-                    : t('advancedOverrides.off'),
-                  premiumDefault: premiumEnt.allowNotifications
-                    ? t('advancedOverrides.on')
-                    : t('advancedOverrides.off'),
+                min={0}
+                placeholder={t('advancedOverrides.placeholderTierDefault', {
+                  count: rssPlaceholder,
                 })}
-              </FormHintText>
-            </FormGroup>
-          </>
-        )}
-        <Alert>{error}</Alert>
-        {successMessage && <Alert variant="success">{successMessage}</Alert>}
-        <FormPrimaryActions>
-          <ActionLink href="/users" variant="subtle" LinkComponent={Link}>
-            {tc('cancel')}
-          </ActionLink>
-          <Button type="submit" disabled={loading}>
-            {loading ? tc('creating') : t('createUser')}
-          </Button>
-        </FormPrimaryActions>
-      </FormContainer>
+                type="number"
+                value={maxAddByRSSFeeds}
+                onChange={(e) => setMaxAddByRSSFeeds(e.target.value)}
+              />
+              <TextInput
+                id="max-manual-refreshes"
+                eyebrow={t('advancedOverrides.manualRefreshPerHour')}
+                info={t('advancedOverrides.manualRefreshPerHourHelp', {
+                  trialDefault: trialEnt.maxManualRefreshesPerHour,
+                  premiumDefault: premiumEnt.maxManualRefreshesPerHour,
+                  selectedDefault: selectedEnt.maxManualRefreshesPerHour,
+                })}
+                min={0}
+                placeholder={t('advancedOverrides.placeholderTierDefault', {
+                  count: refreshPlaceholder,
+                })}
+                type="number"
+                value={maxManualRefreshesPerHour}
+                onChange={(e) => setMaxManualRefreshesPerHour(e.target.value)}
+              />
+              <FormGroup layout="inStack">
+                <Label htmlFor="track-stats">{t('advancedOverrides.trackStats')}</Label>
+                <Select
+                  id="track-stats"
+                  className={fieldPrimitiveClasses.select}
+                  value={trackStats === null ? '' : trackStats ? 'true' : 'false'}
+                  onChange={(e) => {
+                    if (e.target.value === '') {
+                      setTrackStats(null);
+                    } else {
+                      setTrackStats(e.target.value === 'true');
+                    }
+                  }}
+                >
+                  <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
+                  <option value="true">{t('advancedOverrides.trackStatsOn')}</option>
+                  <option value="false">{t('advancedOverrides.trackStatsOff')}</option>
+                </Select>
+                <FormHintText>
+                  {t('advancedOverrides.trackStatsHelp', {
+                    trialDefault: trialEnt.trackStats
+                      ? t('advancedOverrides.on')
+                      : t('advancedOverrides.off'),
+                    premiumDefault: premiumEnt.trackStats
+                      ? t('advancedOverrides.on')
+                      : t('advancedOverrides.off'),
+                  })}
+                </FormHintText>
+              </FormGroup>
+              <FormGroup layout="inStack">
+                <Label htmlFor="allow-notifications">
+                  {t('advancedOverrides.allowNotifications')}
+                </Label>
+                <Select
+                  id="allow-notifications"
+                  className={fieldPrimitiveClasses.select}
+                  value={allowNotifications === null ? '' : allowNotifications ? 'true' : 'false'}
+                  onChange={(e) => {
+                    if (e.target.value === '') {
+                      setAllowNotifications(null);
+                    } else {
+                      setAllowNotifications(e.target.value === 'true');
+                    }
+                  }}
+                >
+                  <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
+                  <option value="true">{t('advancedOverrides.allowNotificationsOn')}</option>
+                  <option value="false">{t('advancedOverrides.allowNotificationsOff')}</option>
+                </Select>
+                <FormHintText>
+                  {t('advancedOverrides.allowNotificationsHelp', {
+                    trialDefault: trialEnt.allowNotifications
+                      ? t('advancedOverrides.on')
+                      : t('advancedOverrides.off'),
+                    premiumDefault: premiumEnt.allowNotifications
+                      ? t('advancedOverrides.on')
+                      : t('advancedOverrides.off'),
+                  })}
+                </FormHintText>
+              </FormGroup>
+            </>
+          )}
+          <Alert>{error}</Alert>
+          {successMessage && <Alert variant="success">{successMessage}</Alert>}
+          <FormPrimaryActions>
+            <Button type="button" variant="secondary" onClick={() => router.push('/users')}>
+              {tc('cancel')}
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? tc('creating') : t('createUser')}
+            </Button>
+          </FormPrimaryActions>
+        </StackForm>
+      </FormMaxWidth>
     </ManagementPageShell>
   );
 }

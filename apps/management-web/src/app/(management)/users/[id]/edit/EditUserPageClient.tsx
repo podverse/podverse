@@ -12,13 +12,14 @@ import {
   Button,
   CheckboxField,
   fieldPrimitiveClasses,
-  FormContainer,
   FormGroup,
   FormHintText,
+  FormMaxWidth,
   FormPrimaryActions,
   Label,
   ManagementPageShell,
   Select,
+  StackForm,
   Tabs,
   TextInput,
 } from '@podverse/ui';
@@ -205,189 +206,205 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
       {success && <Alert variant="success">{success}</Alert>}
 
       {activeTab === 'profile' ? (
-        <FormContainer onSubmit={(e) => void handleProfileSubmit(e)}>
-          <TextInput
-            id="edit-user-email"
-            eyebrow={t('tableHeaders.email')}
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-
-          <TextInput
-            id="edit-user-username"
-            eyebrow={t('tableHeaders.username')}
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-
-          <FormGroup>
-            <CheckboxField
-              checked={verified}
-              label={t('verified')}
-              onChange={(checked) => setVerified(checked)}
+        <FormMaxWidth>
+          <StackForm onSubmit={(e) => void handleProfileSubmit(e)}>
+            <TextInput
+              id="edit-user-email"
+              eyebrow={t('tableHeaders.email')}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
-          </FormGroup>
 
-          <FormGroup>
-            <Label htmlFor="edit-user-membership">{t('membershipForm.membershipStatus')}</Label>
-            <Select
-              id="edit-user-membership"
-              className={fieldPrimitiveClasses.select}
-              value={String(membershipId)}
-              onChange={(e) => setMembershipId(Number(e.target.value))}
-            >
-              <option value={1}>{t('membershipForm.trial')}</option>
-              <option value={2}>{t('membershipForm.premium')}</option>
-            </Select>
-            <FormHintText>
-              {membershipId === 1
-                ? t('membershipForm.hintTrialEdit')
-                : t('membershipForm.hintPremiumEdit')}
-            </FormHintText>
-          </FormGroup>
-
-          <TextInput
-            id="edit-user-expires"
-            eyebrow={t('membershipForm.membershipExpiresAt')}
-            type="datetime-local"
-            value={membershipExpiresAt}
-            onChange={(e) => setMembershipExpiresAt(e.target.value)}
-          />
-
-          <FormGroup>
-            <CheckboxField
-              checked={showAdvanced}
-              label={t('membershipForm.configureAdvancedOverrides')}
-              onChange={(checked) => setShowAdvanced(checked)}
+            <TextInput
+              id="edit-user-username"
+              eyebrow={t('tableHeaders.username')}
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
             />
-          </FormGroup>
 
-          {showAdvanced && (
-            <>
-              <FormGroup>
-                <Label htmlFor="edit-user-add-by-rss">
-                  {t('advancedOverrides.allowDirectoryAddByRss')}
-                </Label>
-                <Select
-                  id="edit-user-add-by-rss"
-                  className={fieldPrimitiveClasses.select}
-                  value={
-                    allowDirectoryAddByRSS === null ? '' : allowDirectoryAddByRSS ? 'true' : 'false'
-                  }
-                  onChange={(e) => {
-                    if (e.target.value === '') {
-                      setAllowDirectoryAddByRSS(null);
-                    } else {
-                      setAllowDirectoryAddByRSS(e.target.value === 'true');
-                    }
-                  }}
-                >
-                  <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
-                  <option value="true">{t('advancedOverrides.allow')}</option>
-                  <option value="false">{t('advancedOverrides.block')}</option>
-                </Select>
-              </FormGroup>
-              <TextInput
-                id="edit-user-rss-limit"
-                eyebrow={t('advancedOverrides.addByRssFeedLimit')}
-                min={0}
-                type="number"
-                value={maxAddByRSSFeeds}
-                onChange={(e) => setMaxAddByRSSFeeds(e.target.value)}
+            <FormGroup layout="inStack">
+              <CheckboxField
+                checked={verified}
+                label={t('verified')}
+                onChange={(checked) => setVerified(checked)}
               />
-              <TextInput
-                id="edit-user-refresh-limit"
-                eyebrow={t('advancedOverrides.manualRefreshPerHour')}
-                min={0}
-                type="number"
-                value={maxManualRefreshesPerHour}
-                onChange={(e) => setMaxManualRefreshesPerHour(e.target.value)}
-              />
-              <FormGroup>
-                <Label htmlFor="edit-user-track-stats">{t('advancedOverrides.trackStats')}</Label>
-                <Select
-                  id="edit-user-track-stats"
-                  className={fieldPrimitiveClasses.select}
-                  value={trackStats === null ? '' : trackStats ? 'true' : 'false'}
-                  onChange={(e) => {
-                    if (e.target.value === '') {
-                      setTrackStats(null);
-                    } else {
-                      setTrackStats(e.target.value === 'true');
-                    }
-                  }}
-                >
-                  <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
-                  <option value="true">{t('advancedOverrides.trackStatsOn')}</option>
-                  <option value="false">{t('advancedOverrides.trackStatsOff')}</option>
-                </Select>
-              </FormGroup>
-              <FormGroup>
-                <Label htmlFor="edit-user-notifications">
-                  {t('advancedOverrides.allowNotifications')}
-                </Label>
-                <Select
-                  id="edit-user-notifications"
-                  className={fieldPrimitiveClasses.select}
-                  value={allowNotifications === null ? '' : allowNotifications ? 'true' : 'false'}
-                  onChange={(e) => {
-                    if (e.target.value === '') {
-                      setAllowNotifications(null);
-                    } else {
-                      setAllowNotifications(e.target.value === 'true');
-                    }
-                  }}
-                >
-                  <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
-                  <option value="true">{t('advancedOverrides.allowNotificationsOn')}</option>
-                  <option value="false">{t('advancedOverrides.allowNotificationsOff')}</option>
-                </Select>
-              </FormGroup>
-            </>
-          )}
+            </FormGroup>
 
-          <FormPrimaryActions>
-            <ActionLink href={`/users/${userId}`} variant="subtle" LinkComponent={Link}>
-              {tc('cancel')}
-            </ActionLink>
-            <Button type="submit" disabled={saving}>
-              {saving ? tc('saving') : tc('saveChanges')}
-            </Button>
-          </FormPrimaryActions>
-        </FormContainer>
+            <FormGroup layout="inStack">
+              <Label htmlFor="edit-user-membership">{t('membershipForm.membershipStatus')}</Label>
+              <Select
+                id="edit-user-membership"
+                className={fieldPrimitiveClasses.select}
+                value={String(membershipId)}
+                onChange={(e) => setMembershipId(Number(e.target.value))}
+              >
+                <option value={1}>{t('membershipForm.trial')}</option>
+                <option value={2}>{t('membershipForm.premium')}</option>
+              </Select>
+              <FormHintText>
+                {membershipId === 1
+                  ? t('membershipForm.hintTrialEdit')
+                  : t('membershipForm.hintPremiumEdit')}
+              </FormHintText>
+            </FormGroup>
+
+            <TextInput
+              id="edit-user-expires"
+              eyebrow={t('membershipForm.membershipExpiresAt')}
+              type="datetime-local"
+              value={membershipExpiresAt}
+              onChange={(e) => setMembershipExpiresAt(e.target.value)}
+            />
+
+            <FormGroup layout="inStack">
+              <CheckboxField
+                checked={showAdvanced}
+                label={t('membershipForm.configureAdvancedOverrides')}
+                onChange={(checked) => setShowAdvanced(checked)}
+              />
+            </FormGroup>
+
+            {showAdvanced && (
+              <>
+                <FormGroup layout="inStack">
+                  <Label htmlFor="edit-user-add-by-rss">
+                    {t('advancedOverrides.allowDirectoryAddByRss')}
+                  </Label>
+                  <Select
+                    id="edit-user-add-by-rss"
+                    className={fieldPrimitiveClasses.select}
+                    value={
+                      allowDirectoryAddByRSS === null
+                        ? ''
+                        : allowDirectoryAddByRSS
+                          ? 'true'
+                          : 'false'
+                    }
+                    onChange={(e) => {
+                      if (e.target.value === '') {
+                        setAllowDirectoryAddByRSS(null);
+                      } else {
+                        setAllowDirectoryAddByRSS(e.target.value === 'true');
+                      }
+                    }}
+                  >
+                    <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
+                    <option value="true">{t('advancedOverrides.allow')}</option>
+                    <option value="false">{t('advancedOverrides.block')}</option>
+                  </Select>
+                </FormGroup>
+                <TextInput
+                  id="edit-user-rss-limit"
+                  eyebrow={t('advancedOverrides.addByRssFeedLimit')}
+                  min={0}
+                  type="number"
+                  value={maxAddByRSSFeeds}
+                  onChange={(e) => setMaxAddByRSSFeeds(e.target.value)}
+                />
+                <TextInput
+                  id="edit-user-refresh-limit"
+                  eyebrow={t('advancedOverrides.manualRefreshPerHour')}
+                  min={0}
+                  type="number"
+                  value={maxManualRefreshesPerHour}
+                  onChange={(e) => setMaxManualRefreshesPerHour(e.target.value)}
+                />
+                <FormGroup layout="inStack">
+                  <Label htmlFor="edit-user-track-stats">{t('advancedOverrides.trackStats')}</Label>
+                  <Select
+                    id="edit-user-track-stats"
+                    className={fieldPrimitiveClasses.select}
+                    value={trackStats === null ? '' : trackStats ? 'true' : 'false'}
+                    onChange={(e) => {
+                      if (e.target.value === '') {
+                        setTrackStats(null);
+                      } else {
+                        setTrackStats(e.target.value === 'true');
+                      }
+                    }}
+                  >
+                    <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
+                    <option value="true">{t('advancedOverrides.trackStatsOn')}</option>
+                    <option value="false">{t('advancedOverrides.trackStatsOff')}</option>
+                  </Select>
+                </FormGroup>
+                <FormGroup layout="inStack">
+                  <Label htmlFor="edit-user-notifications">
+                    {t('advancedOverrides.allowNotifications')}
+                  </Label>
+                  <Select
+                    id="edit-user-notifications"
+                    className={fieldPrimitiveClasses.select}
+                    value={allowNotifications === null ? '' : allowNotifications ? 'true' : 'false'}
+                    onChange={(e) => {
+                      if (e.target.value === '') {
+                        setAllowNotifications(null);
+                      } else {
+                        setAllowNotifications(e.target.value === 'true');
+                      }
+                    }}
+                  >
+                    <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
+                    <option value="true">{t('advancedOverrides.allowNotificationsOn')}</option>
+                    <option value="false">{t('advancedOverrides.allowNotificationsOff')}</option>
+                  </Select>
+                </FormGroup>
+              </>
+            )}
+
+            <FormPrimaryActions>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => router.push(`/users/${userId}`)}
+              >
+                {tc('cancel')}
+              </Button>
+              <Button type="submit" disabled={saving}>
+                {saving ? tc('saving') : tc('saveChanges')}
+              </Button>
+            </FormPrimaryActions>
+          </StackForm>
+        </FormMaxWidth>
       ) : (
-        <FormContainer onSubmit={(e) => void handlePasswordSubmit(e)}>
-          {passwordError && <Alert>{passwordError}</Alert>}
+        <FormMaxWidth>
+          <StackForm onSubmit={(e) => void handlePasswordSubmit(e)}>
+            {passwordError && <Alert>{passwordError}</Alert>}
 
-          <TextInput
-            autoComplete="new-password"
-            id="edit-user-new-password"
-            eyebrow={ta('newPassword')}
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-          />
+            <TextInput
+              autoComplete="new-password"
+              id="edit-user-new-password"
+              eyebrow={ta('newPassword')}
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
 
-          <TextInput
-            autoComplete="new-password"
-            id="edit-user-confirm-password"
-            eyebrow={ta('confirmPassword')}
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
+            <TextInput
+              autoComplete="new-password"
+              id="edit-user-confirm-password"
+              eyebrow={ta('confirmPassword')}
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
 
-          <FormPrimaryActions>
-            <ActionLink href={`/users/${userId}`} variant="subtle" LinkComponent={Link}>
-              {tc('cancel')}
-            </ActionLink>
-            <Button type="submit" disabled={saving}>
-              {saving ? tc('saving') : tc('saveChanges')}
-            </Button>
-          </FormPrimaryActions>
-        </FormContainer>
+            <FormPrimaryActions>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => router.push(`/users/${userId}`)}
+              >
+                {tc('cancel')}
+              </Button>
+              <Button type="submit" disabled={saving}>
+                {saving ? tc('saving') : tc('saveChanges')}
+              </Button>
+            </FormPrimaryActions>
+          </StackForm>
+        </FormMaxWidth>
       )}
     </ManagementPageShell>
   );

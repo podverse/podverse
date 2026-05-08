@@ -1,4 +1,1 @@
-export {
-  ManagementSettingsGeneralFields,
-  type ManagementSettingsGeneralFieldsProps,
-} from './ManagementSettingsGeneralFields';
+export { ManagementSettingsGeneralFields } from './ManagementSettingsGeneralFields';

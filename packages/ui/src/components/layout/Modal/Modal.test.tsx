@@ -69,18 +69,18 @@ describe('Modal', () => {
     expect(actions.classList.contains(modalActionsClass)).toBe(true);
   });
 
-  it('applies scrollbar-gutter stable on the content panel in supporting environments', () => {
+  it('applies scrollbar-gutter stable on modalChildren in supporting environments', () => {
     const { container } = render(
       <Modal ariaLabel="Gutter" closeButtonAriaLabel="Close" isOpen onClose={() => {}}>
         <p>x</p>
       </Modal>
     );
 
-    const contentPanel = container.querySelector(
-      `.${modalStyles.modalContent}`
+    const childrenHost = container.querySelector(
+      `.${modalStyles.modalChildren}`
     ) as HTMLElement | null;
-    expect(contentPanel).not.toBeNull();
-    const gutter = window.getComputedStyle(contentPanel as HTMLElement).scrollbarGutter;
+    expect(childrenHost).not.toBeNull();
+    const gutter = window.getComputedStyle(childrenHost as HTMLElement).scrollbarGutter;
     if (gutter === '') {
       return;
     }

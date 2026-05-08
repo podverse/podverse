@@ -11,7 +11,7 @@ import {
   AuthCardHeader,
   Button,
   CenterContainer,
-  FormContainer,
+  StackForm,
   TextInput,
 } from '@podverse/ui';
 
@@ -89,7 +89,7 @@ export default function HomePage() {
           subtitle={t('signInSubtitle')}
         />
 
-        <FormContainer onSubmit={handleSubmit}>
+        <StackForm onSubmit={handleSubmit}>
           <Alert>{error}</Alert>
 
           <TextInput
@@ -115,7 +115,7 @@ export default function HomePage() {
           <Button block type="submit" disabled={loading}>
             {loading ? t('signingIn') : t('signIn')}
           </Button>
-        </FormContainer>
+        </StackForm>
       </AuthCard>
     </CenterContainer>
   );

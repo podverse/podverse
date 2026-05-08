@@ -588,14 +588,12 @@
   "settings": {
     "title": "Configuraciones",
     "subtitle": "Elige tu idioma y tema",
-    "theme": {
-      "label": "Tema",
-      "options": {
-        "dark": "Oscuro",
-        "light": "Claro",
-        "dracula": "Drácula",
-        "violet": "Violeta"
-      }
+    "ui_theme": {
+      "theme": "Tema",
+      "light": "Claro",
+      "dark": "Oscuro",
+      "dracula": "Drácula",
+      "violet": "Violeta"
     },
     "language": {
       "label": "Idioma"

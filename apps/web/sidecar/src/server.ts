@@ -12,6 +12,7 @@ import {
   validateProxyUserAgent,
   validateRequired,
   validateServerEnv,
+  validateSidebarGroupOrderOptionalEnv,
   validateSignupMode,
   validateSupportedLocalesList,
   validateSupportedThemesList,
@@ -66,6 +67,7 @@ const optionalKeys = [
   'NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS',
   'NEXT_PUBLIC_PROXY_USER_AGENT',
   'NEXT_PUBLIC_SERVER_ENV',
+  'NEXT_PUBLIC_SIDEBAR_GROUP_ORDER',
   'NEXT_PUBLIC_SOCIAL_ACTIVITY_PUB',
   'NEXT_PUBLIC_SOCIAL_DISCORD',
   'NEXT_PUBLIC_SOCIAL_GITHUB',
@@ -114,6 +116,9 @@ function validatePort(): ValidationResult {
 
 function validateOne(key: string, isRequired: boolean): ValidationResult {
   const category = getCategory(key);
+  if (key === 'NEXT_PUBLIC_SIDEBAR_GROUP_ORDER') {
+    return validateSidebarGroupOrderOptionalEnv(key, category);
+  }
   if (
     key === 'NEXT_PUBLIC_SSR_API_PROTOCOL' ||
     key === 'NEXT_PUBLIC_API_PROTOCOL' ||
@@ -238,6 +243,7 @@ function getCategory(key: string): string {
     NEXT_PUBLIC_BRAND_FAVICON_SVG_URL: 'Brand',
     NEXT_PUBLIC_BRAND_THEME_COLOR: 'Brand',
     NEXT_PUBLIC_SERVER_ENV: 'General',
+    NEXT_PUBLIC_SIDEBAR_GROUP_ORDER: 'Navigation',
     NEXT_PUBLIC_SSR_API_HOST: 'API (SSR)',
     NEXT_PUBLIC_SSR_API_PROTOCOL: 'API (SSR)',
     NEXT_PUBLIC_SSR_API_PORT: 'API (SSR)',

@@ -60,6 +60,7 @@
   margin-top: var(--spacing-lg);
   @include flexItemClampToParent;
   min-height: 0;
+  overflow-y: auto;
 }
 
 .modalChildren > * {
@@ -100,9 +101,8 @@
   max-height: calc(100vh - 3rem);
   max-width: min(var(--modal-content-max-width), calc(100vw - 1.5rem));
   @include flexItemAllowShrink;
-  overflow-y: auto;
+  overflow: hidden;
   padding: var(--spacing-modal-padding);
-  scrollbar-gutter: stable;
   width: 100%;
   z-index: 1;
 }
