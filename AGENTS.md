@@ -327,30 +327,6 @@ When implementing features or executing plans that touch **api** or **management
 - **response-ending-make-verify** (skill + rule) — end responses with verification commands
 - **e2e-run-with-make-only** (rule) — always use make targets for E2E
 
-## LLM History Tracking
-
-When making changes, update `.llm/history/active/[feature]/[feature].md` (or the latest part file):
-
-- **Before file-modifying work:** If the current branch matches an existing `.llm/history/active/[feature]/` (e.g. branch `chore/first-test-issue` → `first-test-issue`), update that history file; no exception for small changes.
-
-```markdown
-### Session N - YYYY-MM-DD
-
-#### Prompt (Developer)
-
-[What was requested]
-
-#### Key Decisions
-
-- Decision 1
-
-#### Files Modified
-
-- path/to/file.ts
-```
-
-See `.llm/LLM.md` for full guidelines.
-
 ## References
 
 - [Quick Start Guide](docs/QUICKSTART.md) - Setup and running locally

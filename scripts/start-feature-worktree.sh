@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Podverse Start Feature Worktree Script
-# Creates a new branch in a new work tree with symlinked env overrides and LLM history,
+# Creates a new branch in a new work tree with symlinked env overrides (optional LLM history scaffold disabled; see docs/development/llm/LLM-HISTORY-WORKFLOW-ARCHIVE.md),
 # so you can start working immediately without re-entering override values.
 #
 # Optional: set PODVERSE_NIX_DEV_SHELL (e.g. .#fish) to use a non-default Nix dev shell
@@ -144,61 +144,13 @@ else
   echo -e "${YELLOW}Nix not in PATH; used system npm. For flake tools, run 'direnv allow' and use the Nix shell.${NC}"
 fi
 
-# 10. Create LLM history file in work tree (same template as start-feature.sh)
-HISTORY_DIR="$WORKTREE_PATH/.llm/history/active/$NAME"
-HISTORY_FILE="$HISTORY_DIR/$NAME-part-01.md"
-DATE=$(date +%Y-%m-%d)
-AUTHOR=$(git config user.name || echo "Unknown")
-
-mkdir -p "$HISTORY_DIR"
-
-cat > "$HISTORY_FILE" << EOF
-# Feature: $NAME (Part 1)
-
-> **Note**: This LLM history file is optional. If you're not using LLM assistance for development, you can delete this file and the containing directory. The history tracking system helps document LLM-assisted decisions but is not required for contributing.
->
-> **10-Session Limit**: Each part file is limited to 10 sessions. When adding Session 11, create \`$NAME-part-02.md\`.
-
-## Metadata
-- Started: $DATE
-- Completed: In Progress
-- Author: $AUTHOR
-- LLM(s): Cursor, Claude, etc.
-- GitHub Issues: ${ISSUE_URLS:-None}
-- Branch: $BRANCH
-- Origin: $ORIGIN
-- Is Fork: $IS_FORK
-
-## Context
-
-[What problem does this solve? What's the goal?]
-
-## Sessions
-
-### Session 1 - $DATE
-
-#### Prompt (Developer)
-[First prompt will go here]
-
-#### Key Decisions
-- [Decision and rationale]
-
-#### Files Changed
-- [List of files]
-
----
-
-## Related Resources
-
-- [Link to PR]
-- [Link to related issues]
-EOF
+# Optional LLM history file in work tree disabled (same template as start-feature.sh used to write).
+# See docs/development/llm/LLM-HISTORY-WORKFLOW-ARCHIVE.md if you maintain notes manually.
 
 echo ""
 echo -e "${GREEN}Work tree ready.${NC}"
 echo -e "  Branch:    $BRANCH"
 echo -e "  Path:      $WORKTREE_PATH"
-echo -e "  History:   $HISTORY_FILE"
 echo ""
 
 # Optionally open the work tree in a new Cursor/VS Code window
@@ -220,6 +172,5 @@ echo -e "${CYAN}Next steps:${NC}"
 echo "  cd $WORKTREE_PATH"
 echo "  npm run dev:all   (runs build:packages and app builds on first run)"
 echo "  Or to build only: npm run build:packages"
-echo "  Edit $HISTORY_FILE to add Context, then start working."
 echo "  For a custom Nix shell (e.g. fish): nix develop .#fish"
 echo ""

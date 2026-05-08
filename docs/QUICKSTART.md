@@ -100,14 +100,16 @@ The web app starts at **http://localhost:3002**
 
 Open http://localhost:3002 in your browser - you should see the Podverse homepage.
 
-### Local Dev Account
+### Local Dev Accounts
 
-A test account is automatically created during setup:
+Two test accounts are automatically created during setup (same password):
 
-- **Email:** `localdev@example.com`
-- **Password:** `Test!1Aa`
+- **Trial:** `local-trial@example.com` — trial membership (expires in 1 year from seed time)
+- **Premium:** `local-premium@example.com` — premium membership (expires in 1 year from seed time)
 
-This account is pre-verified with a trial membership (expires in 1 year).
+**Password for both:** `Test!1Aa`
+
+Both accounts are pre-verified.
 
 ## Verification Checklist
 

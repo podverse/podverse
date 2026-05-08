@@ -112,7 +112,7 @@ The `00-` prefix ensures index files sort first in directory listings.
 5. **Plan index/overview?** → Use `00-master-plan.md` or `00-overview.md`
 6. **Plan execution guide?** → Use `EXECUTION.md` (for parallel/agent instructions)
 7. **Plan files?** → Must go in `.llm/plans/` (NOT `.cursor/plans/`)
-8. **History files?** → Must go in `.llm/history/` (NOT `.cursor/history/`)
+8. **Optional human LLM notes under `.llm/history/`?** → Use `.llm/history/` (NOT `.cursor/history/`); see `.llm/LLM.md`
 
 ### Plan and History Location
 
