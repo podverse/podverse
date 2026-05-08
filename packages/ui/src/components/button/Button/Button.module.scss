@@ -19,6 +19,16 @@
   width: auto;
   padding: 0 var(--spacing-lg);
   overflow: hidden;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+a.button {
+  text-decoration: none;
+  color: inherit;
+  box-sizing: border-box;
 }
 
 .block {

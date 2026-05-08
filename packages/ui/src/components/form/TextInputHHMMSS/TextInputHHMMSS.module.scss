@@ -1,5 +1,6 @@
 @use '../../../styles/mixins/flexbox' as *;
 @use '../../../styles/mixins/flexShrink' as *;
+@use '../../../styles/mixins/form' as *;
 
 .hhmmss {
   display: flex;
@@ -10,16 +11,10 @@
 }
 
 .hhmmssInputWrapper {
-  align-items: center;
-  background-color: var(--background-color-tertiary);
-  border: var(--button-border-size) solid transparent;
-  border-radius: var(--border-radius);
-  display: flex;
+  @include formInputWrapper;
   flex: 1;
-  flex-direction: row;
   justify-content: space-between;
   @include flexItemAllowShrink;
-  padding: var(--spacing-form-input);
 }
 
 .hhmmssInnerInputWrapper {

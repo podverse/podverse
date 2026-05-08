@@ -141,17 +141,16 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
             <FaPlus className={styles.buttonIcon} />
             {tFeatures('add_feed.add_feed')}
           </Button>
-          <a
+          <Button
+            variant="secondary"
             href={podcastIndexFeed.url}
             target="_blank"
             rel="noopener noreferrer"
             className={styles.rssLinkButton}
           >
-            <Button variant="secondary" className={styles.rssLinkButtonInner}>
-              <FaRss className={styles.buttonIcon} />
-              {tFeatures('add_feed.rss_link')}
-            </Button>
-          </a>
+            <FaRss className={styles.buttonIcon} />
+            {tFeatures('add_feed.rss_link')}
+          </Button>
         </div>
       </div>
       {feedImageCandidates.length > 0 && (

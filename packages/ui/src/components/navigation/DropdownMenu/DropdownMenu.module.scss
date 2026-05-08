@@ -20,18 +20,10 @@
   border: 1px solid var(--border-color-primary);
   border-radius: var(--border-radius);
   cursor: pointer;
-
-  &:focus {
-    outline: none;
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--border-color-primary);
-    outline-offset: 2px;
-  }
 }
 
-.trigger:hover {
+.trigger:hover,
+.trigger:focus-visible {
   background-color: var(--button-secondary-bg-hover);
 }
 
@@ -93,17 +85,14 @@
   text-overflow: ellipsis;
 
   &:hover,
-  &:focus {
+  &:focus-visible {
     background-color: var(--button-secondary-bg-hover);
   }
 
-  &:focus {
-    outline: none;
-  }
-
+  &:focus,
   &:focus-visible {
-    outline: 2px solid var(--border-color-primary);
-    outline-offset: -2px;
+    outline: none;
+    box-shadow: none;
   }
 }
 
@@ -112,7 +101,7 @@
 }
 
 .itemWarning:hover,
-.itemWarning:focus {
+.itemWarning:focus-visible {
   background-color: var(--button-secondary-bg-hover);
 }
 
@@ -121,7 +110,7 @@
 }
 
 .itemDanger:hover,
-.itemDanger:focus {
+.itemDanger:focus-visible {
   background-color: var(--button-opaque-danger-bg);
 }
 
@@ -143,16 +132,13 @@
   text-overflow: ellipsis;
 
   &:hover,
-  &:focus {
+  &:focus-visible {
     background-color: var(--button-secondary-bg-hover);
   }
 
-  &:focus {
-    outline: none;
-  }
-
+  &:focus,
   &:focus-visible {
-    outline: 2px solid var(--border-color-primary);
-    outline-offset: -2px;
+    outline: none;
+    box-shadow: none;
   }
 }
