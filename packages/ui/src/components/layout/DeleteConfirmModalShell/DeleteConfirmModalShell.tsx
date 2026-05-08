@@ -3,8 +3,7 @@
 import type { ReactNode } from 'react';
 
 import { Button } from '../../button/Button/Button';
-import { ConfirmPanelActions } from '../ConfirmPanel/ConfirmPanel';
-import { Modal } from '../Modal/Modal';
+import { Modal, ModalActions } from '../Modal/Modal';
 
 export type DeleteConfirmModalShellProps = {
   cancelLabel: string;
@@ -19,7 +18,7 @@ export type DeleteConfirmModalShellProps = {
 };
 
 /**
- * Presentational delete confirmation using shared `Modal` + `ConfirmPanelActions` + `Button`.
+ * Presentational delete confirmation using shared `Modal` + `Modal.Actions` + `Button`.
  * Apps pass localized strings (see shared-ui-i18n).
  */
 export function DeleteConfirmModalShell({
@@ -41,7 +40,7 @@ export function DeleteConfirmModalShell({
       onClose={onCancel}
     >
       <div>{message}</div>
-      <ConfirmPanelActions>
+      <ModalActions>
         <Button disabled={isPending} onClick={onCancel} type="button" variant="secondary">
           {cancelLabel}
         </Button>
@@ -53,7 +52,7 @@ export function DeleteConfirmModalShell({
         >
           {confirmLabel}
         </Button>
-      </ConfirmPanelActions>
+      </ModalActions>
     </Modal>
   );
 }

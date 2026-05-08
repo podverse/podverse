@@ -1,3 +1,5 @@
+@use '../../../styles/mixins/flexShrink' as *;
+
 .wrapper {
   position: relative;
   display: inline-flex;
@@ -135,7 +137,7 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  min-width: 0;
+  @include flexItemAllowShrink;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

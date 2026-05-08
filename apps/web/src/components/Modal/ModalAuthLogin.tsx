@@ -10,7 +10,7 @@ import {
   FormErrorMessageText,
   FormInfoMessageText,
   Modal,
-  MODAL_CONTENT_MAX_WIDTH,
+  ModalActions,
   StackForm,
   TextInput,
 } from '@podverse/ui';
@@ -90,7 +90,6 @@ export const ModalAuthLogin: React.FC = () => {
       onClose={() => setModalAuthLogin({ isOpen: false })}
       closeButtonAriaLabel={tMisc('close_modal')}
       ariaLabel={tAuthentication('login')}
-      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <StackForm onSubmit={handleSubmit}>
         <TextInput
@@ -127,7 +126,7 @@ export const ModalAuthLogin: React.FC = () => {
         {!accountNotVerified && showErrorMessage && (
           <FormErrorMessageText message={tAuthentication('invalid_email_or_password')} />
         )}
-        <div className={styles.buttons}>
+        <ModalActions>
           <Button
             type="button"
             onClick={() => setModalAuthLogin({ isOpen: false })}
@@ -138,7 +137,7 @@ export const ModalAuthLogin: React.FC = () => {
           <Button type="submit" variant="primary" disabled={isSubmitting}>
             {tMisc('submit')}
           </Button>
-        </div>
+        </ModalActions>
         <div className={styles.links}>
           {capabilities.canUseEmailVerificationFlows && (
             <Button

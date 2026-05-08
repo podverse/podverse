@@ -1,0 +1,13 @@
+// Flex/grid items default to min-width: auto, which prevents shrinking below intrinsic
+// content width inside flex or grid layouts.
+//
+// Do not add display: flex / flex-direction here — layout mode belongs on the parent.
+
+@mixin flexItemAllowShrink {
+  min-width: 0;
+}
+
+@mixin flexItemClampToParent {
+  min-width: 0;
+  max-width: 100%;
+}

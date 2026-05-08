@@ -1,6 +1,6 @@
 import { useTranslations } from 'next-intl';
 
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from '@podverse/ui';
+import { Modal } from '@podverse/ui';
 
 import { useModals } from '../../contexts/Modals';
 import { SourceSelectors } from '../SourceSelectors/SourceSelectors';
@@ -25,7 +25,6 @@ export const ModalSourceSelector: React.FC = () => {
       }
       closeButtonAriaLabel={tMisc('close_modal')}
       ariaLabel={tMediaPlayer('source.select_source')}
-      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <SourceSelectors
         labeledItemEnclosures={modalSourceSelector.labeledItemEnclosures}

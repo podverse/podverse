@@ -1,14 +1,16 @@
+@use '../../../styles/mixins/flexShrink' as *;
+
 .root {
   display: flex;
   align-items: flex-start;
   gap: var(--spacing-sm);
   flex: 1;
-  min-width: 0;
+  @include flexItemAllowShrink;
 }
 
 .searchWrap {
   flex: 1;
-  min-width: 0;
+  @include flexItemAllowShrink;
 }
 
 .funnelWrap {

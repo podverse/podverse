@@ -1,4 +1,5 @@
 @use '../../../styles/mixins/flexbox' as *;
+@use '../../../styles/mixins/flexShrink' as *;
 @use '../../../styles/mixins/media-queries' as *;
 @use '../../../styles/variables' as *;
 
@@ -34,7 +35,7 @@
 .brandRegion {
   display: flex;
   align-items: center;
-  min-width: 0;
+  @include flexItemAllowShrink;
 }
 
 .brandAlways {
@@ -59,7 +60,7 @@
 .brandLink {
   display: flex;
   align-items: center;
-  min-width: 0;
+  @include flexItemAllowShrink;
   text-decoration: none;
   color: inherit;
 }
@@ -69,7 +70,7 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-base);
-  min-width: 0;
+  @include flexItemAllowShrink;
 
   @include mobile {
     display: none;
@@ -83,7 +84,7 @@
   justify-content: flex-end;
   align-items: center;
   gap: $spacing-md;
-  min-width: 0;
+  @include flexItemAllowShrink;
 }
 
 // Absorbed from NavBarSearchButton — icon search visible only on mobile/collapsed chrome.

@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
-import { FormStack, Modal, MODAL_CONTENT_MAX_WIDTH } from '@podverse/ui';
+import { FormStack, Modal } from '@podverse/ui';
 
 import { useModals } from '../../contexts/Modals';
 import { Link } from '../Link/Link';
@@ -27,7 +27,6 @@ export const ModalFunding: React.FC = () => {
       closeButtonAriaLabel={tMisc('close_modal')}
       header={header}
       ariaLabel={header}
-      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <FormStack>
         <ul className={styles.fundingLinksList}>

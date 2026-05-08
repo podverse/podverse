@@ -9,11 +9,11 @@ import { formatDateTimeAbbrevOrFallback, formatFileSize } from '@podverse/helper
 import {
   Alert,
   Button,
-  ConfirmPanelActions,
   EllipsisText,
   LoadingSpinner,
   ManagementPageShell,
   Modal,
+  ModalActions,
   MoreButton,
   ResourceTableWithFilter,
   Table,
@@ -369,7 +369,7 @@ export function StoragePageClient({ initialUser }: StoragePageClientProps) {
         }}
       >
         <p>{t('bulkConfirmBody', { count: selectedKeys.length })}</p>
-        <ConfirmPanelActions>
+        <ModalActions>
           <Button
             onClick={() => {
               setBulkConfirmOpen(false);
@@ -387,7 +387,7 @@ export function StoragePageClient({ initialUser }: StoragePageClientProps) {
           >
             {tc('confirm')}
           </Button>
-        </ConfirmPanelActions>
+        </ModalActions>
       </Modal>
 
       <Modal
@@ -419,7 +419,7 @@ export function StoragePageClient({ initialUser }: StoragePageClientProps) {
             <ManagementLoadingSpinnerInlineDecorative /> {t('deleteAllInProgress')}
           </p>
         ) : null}
-        <ConfirmPanelActions>
+        <ModalActions>
           <Button
             disabled={deleteAllBusy}
             onClick={closeDeleteAllModal}
@@ -442,7 +442,7 @@ export function StoragePageClient({ initialUser }: StoragePageClientProps) {
           >
             {tc('confirm')}
           </Button>
-        </ConfirmPanelActions>
+        </ModalActions>
       </Modal>
     </ManagementPageShell>
   );

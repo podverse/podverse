@@ -1,7 +1,9 @@
+@use '../../../styles/mixins/flexShrink' as *;
 @use '../../../styles/variables' as *;
 
 .root {
   display: flex;
   flex-direction: column;
   gap: $spacing-sm;
+  @include flexItemAllowShrink;
 }

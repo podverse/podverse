@@ -319,6 +319,8 @@ When implementing features or executing plans that touch **api** or **management
 - **api-testing** — how to write API integration tests
 - **e2e-page-tests** — how to write E2E Playwright specs
 - **ui-component-promotion** — promote shared UI across web and management-web via `packages/ui`
+- **modal-layout-contract** — `Modal`, `Modal.Body`, `Modal.Actions`; no overflow masking; modal footers match web (right-aligned, wrap)
+- **css-custom-properties-no-var-fallbacks** — never `var(--token, fallback)` in SCSS/CSS or inline styles; fix tokens or set vars at source
 - **unit-test-priority-confident** — prioritize unit tests by risk
 - **unit-test-design-no-overgranularity** — avoid over-testing
 - **unit-test-new-code-gate** — require tests for new critical logic

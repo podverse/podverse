@@ -26,6 +26,11 @@ matches Playwright expectations (Cancel then submit in tree order).
 - Use **`CheckboxField`** from `@podverse/ui` for labeled checkboxes (row layout, gap token) instead
   of a raw `<input type="checkbox">` plus ad hoc label spacing.
 
+## Modals (Podverse web + management-web)
+
+- Footer buttons **inside `Modal`** → use **`Modal.Actions`** from **`@podverse/ui`** (right-aligned, wrapping),
+  not **`FormPrimaryActions`** (that’s for page-level forms). See **`modal-layout-contract`**.
+
 ## Checklist
 
 - Footer actions on a management form? → Use `FormPrimaryActions` / `FormActions`, not a loose flex

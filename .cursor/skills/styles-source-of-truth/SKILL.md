@@ -11,7 +11,7 @@ description: Design tokens, themes, mixins, and font-faces live in @podverse/ui.
 
 - Design tokens (CSS custom properties + SCSS-mirror variables): `_variables.scss`, `_breakpoints.scss`
 - Themes (dark/light/dracula on `[data-ui-theme]`): `_themes.scss`
-- Shared SCSS mixins: `_mixins.scss`
+- Shared SCSS mixins: `_mixins.scss` (includes **`flexItemAllowShrink`** / **`flexItemClampToParent`** in `mixins/_flexShrink.scss` for flex/grid shrink-safe items — use instead of repeating bare `min-width: 0`). **`ellipsisSingleLineParent`** delegates to **`flexItemAllowShrink`**.
 - Roboto font-faces: `_font-faces.scss`
 
 ## Usage in apps
@@ -37,7 +37,7 @@ If `@use '@podverse/ui/styles/...'` does not resolve in a given app (e.g. some N
 
 ## Rules
 
-- **No `var()` fallbacks:** Do not use `var(--token, fallback)` in SCSS/CSS (see **.cursor/rules/css-custom-properties-no-var-fallbacks.mdc**). Missing tokens should be fixed in `_variables-root.scss` / `_themes.scss`, not masked with hex or `inherit` defaults.
+- **No `var()` fallbacks:** Do not use `var(--token, fallback)` in SCSS/CSS (see **`css-custom-properties-no-var-fallbacks`** skill and **.cursor/rules/css-custom-properties-no-var-fallbacks.mdc**). Missing tokens should be fixed in `_variables-root.scss` / `_themes.scss`, or set on the owning element (e.g. inline **`--modal-content-max-width`** from **`Modal`**), not masked with a second `var()` argument.
 - **Buttons and tab-like controls:** Never rely on the browser’s default `<button>` background (e.g. light system “buttonface”). Always set `background-color` (and `color`) using theme tokens so inactive/outline variants stay readable on **every** `[data-ui-theme]` (dark, light, dracula, violet). If text uses `--text-color-primary` / `--button-secondary-color`, the surface must come from `--background-color-*` or another tokenized surface — verify contrast in both dark and light themes.
 - Do NOT add new tokens to `apps/web/src/styles/...` or `apps/management-web/src/styles/...` except **forwarder shims** in `apps/web` (one-line `@forward` to `packages/ui`). Add tokens in `packages/ui/src/styles/_variables.scss` (and `_themes.scss` if theme-dependent), and they become available to both apps.
 - If page/module styles repeat across multiple pages (forms, table wrappers, badges, header action rows), prefer a reusable React component in `@podverse/ui` rather than adding more duplicated SCSS blocks.

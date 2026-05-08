@@ -3,11 +3,9 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
-import { Button, Modal, MODAL_CONTENT_MAX_WIDTH } from '@podverse/ui';
+import { Button, Modal, ModalActions } from '@podverse/ui';
 
 import { useModals } from '../../contexts/Modals';
-
-import styles from '../../styles/components/Modal/ModalBoostMintRateLimit.module.scss';
 
 export const ModalBoostMintRateLimit: React.FC = () => {
   const tValue = useTranslations('value');
@@ -31,12 +29,11 @@ export const ModalBoostMintRateLimit: React.FC = () => {
       closeButtonAriaLabel={tMisc('close_modal')}
       header={header}
       ariaLabel={header}
-      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <p>{modalBoostMintRateLimit.message}</p>
-      <div className={styles.actions}>
+      <ModalActions>
         <Button onClick={clearModal}>{tMisc('close')}</Button>
-      </div>
+      </ModalActions>
     </Modal>
   );
 };

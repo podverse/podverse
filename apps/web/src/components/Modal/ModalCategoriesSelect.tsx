@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOCategory } from '@podverse/helpers';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from '@podverse/ui';
+import { Modal } from '@podverse/ui';
 
 import { CategoriesList } from '../Category/CategoriesList';
 
@@ -33,7 +33,6 @@ export const ModalCategoriesSelect: React.FC<ModalCategoriesSelectProps> = ({
       closeButtonAriaLabel={tMisc('close_modal')}
       header={tCategories('categories')}
       ariaLabel={tCategories('categories')}
-      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <CategoriesList onCategoryClick={onCategoryClick} />
     </Modal>

@@ -10,6 +10,7 @@ import {
   CallToActionMessage,
   Divider,
   FormDropdown,
+  ModalActions,
   StackForm,
   TextInput,
   TextInputHHMMSS,
@@ -167,7 +168,7 @@ export const ClipForm: React.FC<ClipFormProps> = ({
             startTime={startTimeString ? hhmmssToSecondsNumber(startTimeString) : null}
             endTime={endTimeString ? hhmmssToSecondsNumber(endTimeString) : null}
           />
-          <div className={styles.buttons}>
+          <ModalActions>
             <Button variant="secondary" type="button" onClick={onCancel}>
               {tMisc('cancel')}
             </Button>
@@ -180,7 +181,7 @@ export const ClipForm: React.FC<ClipFormProps> = ({
             >
               {tMisc('submit')}
             </Button>
-          </div>
+          </ModalActions>
           {edit_clip_id_text && (
             <div className={styles.bottomSection}>
               <Divider />

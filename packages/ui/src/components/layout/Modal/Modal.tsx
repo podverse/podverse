@@ -8,6 +8,10 @@ import styles from './Modal.module.scss';
 
 export const MODAL_CONTENT_MAX_WIDTH = 580;
 
+type ModalContentInlineStyle = CSSProperties & {
+  '--modal-content-max-width'?: string;
+};
+
 type ModalSharedProps = {
   ariaLabel: string;
   children: ReactNode;
@@ -29,6 +33,24 @@ export type ModalPropsWithoutDismiss = ModalSharedProps & {
 
 export type ModalProps = ModalPropsWithDismiss | ModalPropsWithoutDismiss;
 
+export type ModalBodyProps = {
+  children: ReactNode;
+  className?: string;
+};
+
+export function ModalBody({ children, className }: ModalBodyProps) {
+  return <div className={classNames(styles.modalBody, className)}>{children}</div>;
+}
+
+export type ModalActionsProps = {
+  children: ReactNode;
+  className?: string;
+};
+
+export function ModalActions({ children, className }: ModalActionsProps) {
+  return <div className={classNames(styles.modalActions, className)}>{children}</div>;
+}
+
 function isDismissible(props: ModalProps): props is ModalPropsWithDismiss {
   if (!('onClose' in props)) {
     return false;
@@ -37,7 +59,7 @@ function isDismissible(props: ModalProps): props is ModalPropsWithDismiss {
   return typeof onClose === 'function';
 }
 
-export function Modal(props: ModalProps) {
+function ModalImpl(props: ModalProps) {
   const { ariaLabel, children, contentTransparent, header, isOpen, modalContentMaxWidth } = props;
 
   if (!isOpen) {
@@ -48,20 +70,9 @@ export function Modal(props: ModalProps) {
   const onClose = dismiss ? props.onClose : undefined;
   const closeButtonAriaLabel = dismiss ? props.closeButtonAriaLabel : undefined;
 
-  const modalContentStyle: CSSProperties = {
-    ...(modalContentMaxWidth !== undefined ? { maxWidth: modalContentMaxWidth } : {}),
-    ...(contentTransparent
-      ? {
-          background: 'transparent',
-          height: '100%',
-          minHeight: '100%',
-          justifyContent: 'center',
-        }
-      : {}),
-  };
-
-  const modalChildrenStyle: CSSProperties = {
-    ...(contentTransparent ? { marginTop: 0 } : {}),
+  const resolvedMaxWidth = modalContentMaxWidth ?? MODAL_CONTENT_MAX_WIDTH;
+  const modalContentStyle: ModalContentInlineStyle = {
+    '--modal-content-max-width': `${resolvedMaxWidth}px`,
   };
 
   const showHeaderRow = header !== undefined && (header || header === '');
@@ -76,7 +87,13 @@ export function Modal(props: ModalProps) {
       tabIndex={-1}
     >
       <div aria-hidden="true" className={styles.modalBackdrop} onClick={onClose} />
-      <div className={styles.modalContent} style={modalContentStyle}>
+      <div
+        className={classNames(
+          styles.modalContent,
+          contentTransparent ? styles.modalContentTransparent : undefined
+        )}
+        style={modalContentStyle}
+      >
         {showHeaderRow ? (
           <div className={styles.modalHeader}>
             <span className={styles.modalHeaderText} title={header}>
@@ -104,10 +121,20 @@ export function Modal(props: ModalProps) {
             <FaTimes />
           </button>
         ) : null}
-        <div className={styles.modalChildren} style={modalChildrenStyle}>
+        <div
+          className={classNames(
+            styles.modalChildren,
+            contentTransparent ? styles.modalChildrenTransparent : undefined
+          )}
+        >
           {children}
         </div>
       </div>
     </div>
   );
 }
+
+export const Modal = Object.assign(ModalImpl, {
+  Actions: ModalActions,
+  Body: ModalBody,
+});

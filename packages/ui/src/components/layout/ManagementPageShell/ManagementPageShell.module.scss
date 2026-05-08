@@ -1,7 +1,9 @@
+@use '../../../styles/mixins/flexShrink' as *;
+
 .shell {
   box-sizing: border-box;
   width: 100%;
-  min-width: 0;
+  @include flexItemAllowShrink;
   /* Horizontal inset matches management `NavBar` (`.navBar` uses `$spacing-lg` → `--spacing-2xl`). */
   padding: var(--spacing-lg) var(--spacing-2xl);
 }

@@ -1,11 +1,12 @@
 @use '../../../styles/mixins/flexbox' as *;
+@use '../../../styles/mixins/flexShrink' as *;
 @use '../../../styles/mixins/form' as *;
 
 .textInput {
   flex: 0 1 auto;
   position: relative;
   width: 100%;
-  min-width: 0;
+  @include flexItemAllowShrink;
   @include flexColumn;
 }
 
@@ -14,6 +15,7 @@
   flex: 0 1 auto;
   width: 100%;
   min-height: 0;
+  @include flexItemAllowShrink;
 }
 
 .textInputWrapperDisabled {
@@ -43,6 +45,7 @@
   justify-content: flex-start;
   width: 100%;
   min-height: 0;
+  @include flexItemAllowShrink;
   @include flexColumn;
 }
 
@@ -55,7 +58,9 @@
 
 .input {
   all: unset;
+  box-sizing: border-box;
   font-size: var(--font-size-md);
+  @include flexItemAllowShrink;
   padding: var(--spacing-form-input-inner);
   width: 100%;
 }
@@ -65,7 +70,7 @@
   display: flex;
   flex: 1;
   gap: 0;
-  min-width: 0;
+  @include flexItemAllowShrink;
 }
 
 .prefix {

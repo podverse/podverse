@@ -5,13 +5,7 @@ import { useLocale } from 'next-intl';
 import React, { useState } from 'react';
 
 import { getEmailErrorKey } from '@podverse/helpers-validation/client';
-import {
-  Button,
-  FormInfoMessageText,
-  Modal,
-  MODAL_CONTENT_MAX_WIDTH,
-  TextInput,
-} from '@podverse/ui';
+import { Button, FormInfoMessageText, Modal, ModalActions, TextInput } from '@podverse/ui';
 
 import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../../../utils/rateLimit/rateLimitAlert';
@@ -119,7 +113,6 @@ export const ModalChangeEmail: React.FC<ModalChangeEmailProps> = ({ isOpen, onCl
       closeButtonAriaLabel={tMisc('close_modal')}
       header={tSettings('account.change_email_modal.title')}
       ariaLabel={tSettings('account.change_email_modal.title')}
-      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <div className={styles.content}>
         {!isEmailSent && (
@@ -137,7 +130,7 @@ export const ModalChangeEmail: React.FC<ModalChangeEmailProps> = ({ isOpen, onCl
               aria-invalid={!!errorMessageToShow}
               autoFocus
             />
-            <div className={styles.buttons}>
+            <ModalActions>
               <Button type="button" onClick={handleClose} variant="secondary" disabled={isLoading}>
                 {tMisc('cancel')}
               </Button>
@@ -150,7 +143,7 @@ export const ModalChangeEmail: React.FC<ModalChangeEmailProps> = ({ isOpen, onCl
               >
                 {tSettings('account.change_email')}
               </Button>
-            </div>
+            </ModalActions>
           </>
         )}
         {isEmailSent && (

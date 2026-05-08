@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
-import { Button, ButtonTabs, Callout, FormStack } from '@podverse/ui';
+import { Button, ButtonTabs, Callout, FormStack, ModalActions } from '@podverse/ui';
 import { isLnaddressRecipient } from '@podverse/v4v-btc-ln';
 import type { MetaBoost } from '@podverse/v4v-metaboost';
 
@@ -442,7 +442,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
             <DonateSuccessConfetti />
           </div>
         )}
-        <div className={styles.buttons}>
+        <ModalActions>
           {hasResults ? (
             allFailed ? (
               <>
@@ -480,7 +480,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
               </Button>
             </>
           )}
-        </div>
+        </ModalActions>
       </FormStack>
     </div>
   );

@@ -12,13 +12,13 @@ import {
   Alert,
   Breadcrumbs,
   Button,
-  ConfirmPanelActions,
   DescriptionList,
   DescriptionListRow,
   Divider,
   LoadingSpinner,
   ManagementPageShell,
   Modal,
+  ModalActions,
   PageHeaderActions,
 } from '@podverse/ui';
 
@@ -189,7 +189,7 @@ export function StorageObjectDetailPageClient({ objectKey }: StorageObjectDetail
               }}
             >
               <p>{t('deleteConfirmBody', { key: objectKey })}</p>
-              <ConfirmPanelActions>
+              <ModalActions>
                 <Button
                   disabled={deleteBusy}
                   onClick={() => {
@@ -210,7 +210,7 @@ export function StorageObjectDetailPageClient({ objectKey }: StorageObjectDetail
                 >
                   {tc('confirm')}
                 </Button>
-              </ConfirmPanelActions>
+              </ModalActions>
             </Modal>
           ) : null}
         </>

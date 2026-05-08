@@ -12,7 +12,6 @@ import {
   Button,
   CheckboxField,
   CheckboxFieldList,
-  ConfirmPanelActions,
   DescriptionList,
   fieldPrimitiveClasses,
   FormContinuationSection,
@@ -29,6 +28,7 @@ import {
   LookupFieldSpacerLabel,
   ManagementPageShell,
   Modal,
+  ModalActions,
   MutedBreakableText,
   PageSection,
   ResourceTableWithFilter,
@@ -881,7 +881,7 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
                   }}
                 >
                   <p>{t('confirmDialogBody')}</p>
-                  <ConfirmPanelActions>
+                  <ModalActions>
                     <Button
                       type="button"
                       onClick={() => {
@@ -901,7 +901,7 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
                     >
                       {applyLoading ? t('confirmApplying') : tc('confirm')}
                     </Button>
-                  </ConfirmPanelActions>
+                  </ModalActions>
                 </Modal>
 
                 {!confirmOpen && (

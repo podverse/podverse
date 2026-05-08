@@ -1,3 +1,5 @@
+@use '../../../styles/mixins/flexShrink' as *;
+
 .mainSidebarLayout {
   display: flex;
   flex-direction: row-reverse;
@@ -10,5 +12,5 @@
 
 .mainSidebarLayout > :nth-child(2) {
   flex: 3;
-  min-width: 0;
+  @include flexItemAllowShrink;
 }

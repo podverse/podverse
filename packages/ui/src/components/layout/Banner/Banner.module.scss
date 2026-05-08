@@ -1,3 +1,5 @@
+@use '../../../styles/mixins/flexShrink' as *;
+
 .root {
   align-items: center;
   display: flex;
@@ -13,7 +15,7 @@
 }
 
 .message {
-  min-width: 0;
+  @include flexItemAllowShrink;
 }
 
 .action {

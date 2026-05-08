@@ -1,3 +1,5 @@
+@use '../../../styles/mixins/flexShrink' as *;
+
 .root {
   display: flex;
   flex-direction: column;
@@ -14,7 +16,7 @@
 
 .titleBlock {
   flex: 1;
-  min-width: 0;
+  @include flexItemAllowShrink;
 }
 
 .title {

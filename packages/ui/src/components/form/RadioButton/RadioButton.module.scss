@@ -1,8 +1,10 @@
 @use '../../../styles/mixins/flexbox' as *;
+@use '../../../styles/mixins/flexShrink' as *;
 
 .root {
   flex: 1;
   margin-bottom: var(--spacing-2xl);
+  @include flexItemAllowShrink;
   position: relative;
   @include flexColumn;
 }
@@ -22,6 +24,7 @@
   align-items: center;
   cursor: pointer;
   display: flex;
+  @include flexItemAllowShrink;
 }
 
 .radio {
@@ -31,5 +34,7 @@
 }
 
 .label {
+  flex: 1;
   font-size: var(--font-size-base);
+  @include flexItemAllowShrink;
 }

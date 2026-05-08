@@ -120,8 +120,15 @@ export { MainColumnStack } from './components/layout/MainColumnStack/MainColumnS
 export type { MainColumnStackProps } from './components/layout/MainColumnStack/MainColumnStack';
 export { MainSidebarLayout } from './components/layout/MainSidebarLayout/MainSidebarLayout';
 export type { MainSidebarLayoutProps } from './components/layout/MainSidebarLayout/MainSidebarLayout';
-export { Modal, MODAL_CONTENT_MAX_WIDTH } from './components/layout/Modal/Modal';
+export {
+  Modal,
+  ModalActions,
+  ModalBody,
+  MODAL_CONTENT_MAX_WIDTH,
+} from './components/layout/Modal/Modal';
 export type {
+  ModalActionsProps,
+  ModalBodyProps,
   ModalProps,
   ModalPropsWithDismiss,
   ModalPropsWithoutDismiss,
@@ -389,8 +396,8 @@ export { TableEmptyCell } from './components/table/TableEmptyCell';
 export type { TableEmptyCellProps } from './components/table/TableEmptyCell';
 export { CodeText } from './components/layout/CodeText';
 export type { CodeTextProps } from './components/layout/CodeText';
-export { ConfirmPanel, ConfirmPanelActions } from './components/layout/ConfirmPanel';
-export type { ConfirmPanelActionsProps, ConfirmPanelProps } from './components/layout/ConfirmPanel';
+export { ConfirmPanel } from './components/layout/ConfirmPanel';
+export type { ConfirmPanelProps } from './components/layout/ConfirmPanel';
 export { DeleteConfirmModalShell } from './components/layout/DeleteConfirmModalShell/DeleteConfirmModalShell';
 export type { DeleteConfirmModalShellProps } from './components/layout/DeleteConfirmModalShell/DeleteConfirmModalShell';
 export { EmptyStateText } from './components/layout/EmptyStateText';

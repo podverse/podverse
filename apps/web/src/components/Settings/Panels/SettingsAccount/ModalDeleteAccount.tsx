@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
 import React, { useState } from 'react';
 
-import { Button, Modal, MODAL_CONTENT_MAX_WIDTH, TextInput } from '@podverse/ui';
+import { Button, Modal, ModalActions, TextInput } from '@podverse/ui';
 
 import { useAccount } from '../../../../contexts/Account';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
@@ -106,7 +106,6 @@ export const ModalDeleteAccount: React.FC<ModalDeleteAccountProps> = ({
       closeButtonAriaLabel={tMisc('close_modal')}
       header={tSettings('account.delete_account_modal.title')}
       ariaLabel={tSettings('account.delete_account_modal.title')}
-      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <div className={styles.content}>
         <p className={styles.message}>{tSettings('account.delete_account_modal.message')}</p>
@@ -122,7 +121,7 @@ export const ModalDeleteAccount: React.FC<ModalDeleteAccountProps> = ({
           aria-invalid={!!errorMessageToShow}
           autoFocus
         />
-        <div className={styles.buttons}>
+        <ModalActions>
           <Button type="button" onClick={handleClose} variant="secondary" disabled={isSubmitting}>
             {tMisc('cancel')}
           </Button>
@@ -134,7 +133,7 @@ export const ModalDeleteAccount: React.FC<ModalDeleteAccountProps> = ({
           >
             {tSettings('account.delete_account')}
           </Button>
-        </div>
+        </ModalActions>
       </div>
     </Modal>
   );

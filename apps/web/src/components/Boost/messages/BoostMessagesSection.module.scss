@@ -1,3 +1,5 @@
+@use '../../../styles/mixins/flexShrink' as *;
+
 .section {
   display: flex;
   flex-direction: column;
@@ -32,7 +34,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
-  min-width: 0;
+  @include flexItemAllowShrink;
   padding: var(--spacing-lg);
 }
 
@@ -62,7 +64,7 @@
   display: flex;
   gap: var(--spacing-md);
   justify-content: space-between;
-  min-width: 0;
+  @include flexItemAllowShrink;
 }
 
 .senderName {
@@ -70,7 +72,7 @@
   flex: 1;
   font-weight: var(--font-weight-bold);
   font-size: var(--font-size-md);
-  min-width: 0;
+  @include flexItemAllowShrink;
 }
 
 .dateAt {
@@ -84,7 +86,7 @@
   display: flex;
   gap: var(--spacing-md);
   justify-content: space-between;
-  min-width: 0;
+  @include flexItemAllowShrink;
 }
 
 .amountLinePrimary {
@@ -92,7 +94,7 @@
   flex: 1;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  min-width: 0;
+  @include flexItemAllowShrink;
 }
 
 .amountLineApp {

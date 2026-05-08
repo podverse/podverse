@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react';
 
 import { Button } from '../../button/Button/Button';
 import { TextInput } from '../../form/TextInput/TextInput';
-import { ConfirmPanelActions } from '../../layout/ConfirmPanel/ConfirmPanel';
-import { Modal } from '../../layout/Modal/Modal';
+import { Modal, ModalActions } from '../../layout/Modal/Modal';
 
 export type GoToPageModalProps = {
   cancelLabel: string;
@@ -84,14 +83,14 @@ export function GoToPageModal({
           {error}
         </p>
       ) : null}
-      <ConfirmPanelActions>
+      <ModalActions>
         <Button onClick={onClose} type="button" variant="secondary">
           {cancelLabel}
         </Button>
         <Button onClick={() => handleSubmit()} type="button" variant="primary">
           {submitLabel}
         </Button>
-      </ConfirmPanelActions>
+      </ModalActions>
     </Modal>
   );
 }

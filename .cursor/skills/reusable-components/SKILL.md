@@ -34,7 +34,7 @@ When **web** (`apps/web`) and **management-web** both have a similar generic con
 
 ## Prefer this order
 
-1. Reuse existing exports from `@podverse/ui` (`Button`, `ActionLink`, `CopyToClipboardButton`, `RestrictedNotice`, `Table`, `Pagination`, `FormPrimaryActions`, field primitives, `Alert`, `LoadingSpinner`, `StatusBadge`, `IconButton`, `DropdownMenu`, etc.).
+1. Reuse existing exports from `@podverse/ui` (`Button`, `ActionLink`, `CopyToClipboardButton`, `RestrictedNotice`, `Table`, `Pagination`, `FormPrimaryActions`, **`Modal`** / **`Modal.Actions`** / **`Modal.Body`** (see **`modal-layout-contract`**), field primitives, `Alert`, `LoadingSpinner`, `StatusBadge`, `IconButton`, `DropdownMenu`, etc.).
 2. If missing but generic, add a reusable component in `packages/ui/src/components/**` (or a shared hook in `packages/ui/src/hooks/**`) and export it from `packages/ui/src/index.ts`.
 3. Use app-local components only for app shell or domain-specific behavior.
 

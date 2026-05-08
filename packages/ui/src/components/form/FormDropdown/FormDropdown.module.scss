@@ -1,3 +1,4 @@
+@use '../../../styles/mixins/flexShrink' as *;
 @use '../../../styles/mixins/form' as *;
 
 .wrapper {
@@ -8,10 +9,12 @@
   width: 100%;
   min-height: 0;
   margin-bottom: 0;
+  @include flexItemAllowShrink;
 }
 
 .headerRow {
   @include formHeaderRow;
+  @include flexItemAllowShrink;
 }
 
 .label {
@@ -23,6 +26,7 @@
   flex: 0 1 auto;
   width: 100%;
   min-height: 0;
+  @include flexItemAllowShrink;
 }
 
 .dropdownInnerWrapper {
@@ -32,6 +36,7 @@
   justify-content: flex-start;
   width: 100%;
   min-height: 0;
+  @include flexItemAllowShrink;
 }
 
 .eyebrow {
@@ -60,10 +65,15 @@
 .dropdown {
   align-items: center;
   display: flex;
+  @include flexItemAllowShrink;
 }
 
 .dropdownSelectedItemText {
   flex: 1;
+  @include flexItemAllowShrink;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dropdownMenu {

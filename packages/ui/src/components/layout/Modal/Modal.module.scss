@@ -1,5 +1,5 @@
-@use '../../../styles/breakpoints';
 @use '../../../styles/mixins/flexbox' as *;
+@use '../../../styles/mixins/flexShrink' as *;
 @use '../../../styles/mixins/layout' as *;
 
 .modalRoot {
@@ -7,6 +7,9 @@
   inset: 0;
   z-index: 10000;
   @include flexCenter;
+  padding: 0.75rem;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .modalBackdrop {
@@ -25,7 +28,7 @@
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-medium);
   flex: 1;
-  min-width: 0;
+  @include flexItemAllowShrink;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -53,7 +56,37 @@
 }
 
 .modalChildren {
+  flex: 1 1 auto;
   margin-top: var(--spacing-lg);
+  @include flexItemClampToParent;
+  min-height: 0;
+}
+
+.modalChildren > * {
+  @include flexItemClampToParent;
+}
+
+.modalChildrenTransparent {
+  margin-top: 0;
+}
+
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3xl);
+  @include flexItemClampToParent;
+}
+
+.modalBody > * {
+  @include flexItemClampToParent;
+}
+
+.modalActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2xl);
+  justify-content: flex-end;
+  @include flexItemAllowShrink;
 }
 
 .modalContent {
@@ -62,18 +95,23 @@
   background: var(--background-color-primary);
   border-radius: var(--border-radius);
   box-shadow: var(--shadow-modal);
-  z-index: 1;
-  padding: var(--spacing-modal-padding);
   display: flex;
   flex-direction: column;
-  min-width: 360px;
-  width: 100%;
   max-height: calc(100vh - 3rem);
+  max-width: min(var(--modal-content-max-width), calc(100vw - 1.5rem));
+  @include flexItemAllowShrink;
   overflow-y: auto;
+  padding: var(--spacing-modal-padding);
+  scrollbar-gutter: stable;
+  width: 100%;
+  z-index: 1;
 }
 
-@media (max-width: breakpoints.$breakpoint-md-max) {
-  .modalContent {
-    min-width: 320px;
-  }
+.modalContentTransparent {
+  background: transparent;
+  height: 100%;
+  justify-content: center;
+  max-height: none;
+  max-width: none;
+  min-height: 100%;
 }

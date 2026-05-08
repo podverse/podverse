@@ -1,9 +1,11 @@
 @use '../../../styles/mixins/flexbox' as *;
+@use '../../../styles/mixins/flexShrink' as *;
 
 .hhmmss {
   display: flex;
   flex: 1;
   margin-bottom: var(--spacing-2xl);
+  @include flexItemAllowShrink;
   position: relative;
 }
 
@@ -16,6 +18,7 @@
   flex: 1;
   flex-direction: row;
   justify-content: space-between;
+  @include flexItemAllowShrink;
   padding: var(--spacing-form-input);
 }
 
@@ -24,6 +27,7 @@
   flex: 1 1;
   flex-direction: column;
   justify-content: center;
+  @include flexItemAllowShrink;
 }
 
 .eyebrow {
@@ -36,6 +40,7 @@
 .input {
   all: unset;
   font-size: var(--font-size-md);
+  @include flexItemAllowShrink;
   padding: var(--spacing-form-input-inner);
   width: 100%;
 }

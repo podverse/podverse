@@ -1,4 +1,5 @@
 @use '../../../styles/mixins/flexbox' as *;
+@use '../../../styles/mixins/flexShrink' as *;
 @use '../../../styles/mixins/layout' as *;
 
 @keyframes spin {
@@ -22,7 +23,7 @@
 
 .block {
   width: 100%;
-  min-width: 0;
+  @include flexItemAllowShrink;
 }
 
 .button.unstyled {

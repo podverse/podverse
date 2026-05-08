@@ -1,9 +1,3 @@
-@use '../../mixins/form' as *;
-
-.buttons {
-  @include formButtonsWrapper;
-}
-
 .verificationSection {
   text-align: center;
   display: flex;

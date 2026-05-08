@@ -12,13 +12,7 @@ import {
   MediumEnum,
 } from '@podverse/helpers';
 import { getTotalPages } from '@podverse/helpers';
-import {
-  ButtonTabs,
-  CallToActionMessage,
-  FormStack,
-  Modal,
-  MODAL_CONTENT_MAX_WIDTH,
-} from '@podverse/ui';
+import { ButtonTabs, CallToActionMessage, FormStack, Modal } from '@podverse/ui';
 
 import { MEDIUM } from '../../constants/medium';
 import { ROUTES } from '../../constants/routes';
@@ -219,7 +213,6 @@ export const ModalPlaylistAddTo: React.FC = () => {
       closeButtonAriaLabel={tMisc('close_modal')}
       header={header}
       ariaLabel={header}
-      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       {!loggedInAccount && (
         <CallToActionMessage

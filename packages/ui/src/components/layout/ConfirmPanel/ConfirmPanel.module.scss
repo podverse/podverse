@@ -5,10 +5,3 @@
   border-radius: var(--border-radius);
   background-color: var(--background-color-tertiary);
 }
-
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-base);
-  margin-top: var(--spacing-base);
-}

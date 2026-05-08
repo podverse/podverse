@@ -8,7 +8,6 @@ import {
   ActionLink,
   Alert,
   Button,
-  ConfirmPanelActions,
   CopyToClipboardButton,
   DescriptionList,
   DescriptionListRow,
@@ -16,6 +15,7 @@ import {
   FormHintText,
   ManagementPageShell,
   Modal,
+  ModalActions,
   PageHeaderActions,
   SectionHeading,
   StatusBadge,
@@ -199,7 +199,7 @@ export function UserDetailPageClient({ userId }: Props) {
         }}
       >
         <p>{t('confirmDelete')}</p>
-        <ConfirmPanelActions>
+        <ModalActions>
           <Button
             disabled={deleteLoading}
             onClick={() => {
@@ -218,7 +218,7 @@ export function UserDetailPageClient({ userId }: Props) {
           >
             {tc('confirm')}
           </Button>
-        </ConfirmPanelActions>
+        </ModalActions>
       </Modal>
     </ManagementPageShell>
   );

@@ -10,7 +10,6 @@ import {
   Alert,
   Breadcrumbs,
   Button,
-  ConfirmPanelActions,
   DescriptionList,
   DescriptionListRow,
   FormContainer,
@@ -18,6 +17,7 @@ import {
   FormStack,
   ManagementPageShell,
   Modal,
+  ModalActions,
   PageHeaderActions,
   StatusBadge,
   TextInput,
@@ -250,7 +250,7 @@ export function RowDetailPageClient({ tableName, rowId, initialRow }: RowDetailP
         }}
       >
         <p>{t('deleteConfirm')}</p>
-        <ConfirmPanelActions>
+        <ModalActions>
           <Button
             disabled={deleteLoading}
             onClick={() => {
@@ -269,7 +269,7 @@ export function RowDetailPageClient({ tableName, rowId, initialRow }: RowDetailP
           >
             {tc('confirm')}
           </Button>
-        </ConfirmPanelActions>
+        </ModalActions>
       </Modal>
     </ManagementPageShell>
   );

@@ -9,7 +9,7 @@ Shared UI components for Podverse applications (see `package.json` for the publi
 - `@podverse/ui/styles/variables` — design tokens (CSS custom properties + SCSS-mirror variables) and breakpoints
 - `@podverse/ui/styles/breakpoints` — breakpoint SCSS variables only
 - `@podverse/ui/styles/themes` — `dark` / `light` / `dracula` / `violet` theme blocks
-- `@podverse/ui/styles/mixins` — shared SCSS mixins (media queries, layout, form, headers, buttons, etc.)
+- `@podverse/ui/styles/mixins` — shared SCSS mixins (media queries, layout, form, headers, buttons, **`flexItemAllowShrink`** / **`flexItemClampToParent`** in [`mixins/_flexShrink.scss`](src/styles/mixins/_flexShrink.scss), etc.)
 - `@podverse/ui/styles/font-faces` — Roboto `@font-face` declarations + `body { font-family }`
 - `@podverse/ui/styles` — full bundle (font-faces + variables + themes + mixins) for app `globals.scss`
 
@@ -70,8 +70,17 @@ to compact **`Button`** **`mini`** controls unless every slot matches. If one sl
 [`Modal`](src/components/layout/Modal/Modal.tsx) is a fixed overlay dialog with optional header row,
 optional absolute close when there is no header title, and theme tokens (`--shadow-modal`,
 `--spacing-modal-padding`). Pass **`ariaLabel`** for the dialog; when **`onClose`** is provided,
-**`closeButtonAriaLabel`** is required for the dismiss control(s). Export **`MODAL_CONTENT_MAX_WIDTH`**
-(580) for use with **`modalContentMaxWidth`** at call sites.
+**`closeButtonAriaLabel`** is required for the dismiss control(s). The content panel receives **`--modal-content-max-width`** from **`Modal`** (default **580px** via **`MODAL_CONTENT_MAX_WIDTH`**); override with **`modalContentMaxWidth`** only when needed. SCSS references **`var(--modal-content-max-width)`** without a fallback — the component always sets the variable when open.
+
+Use **`Modal.Body`** for stacked modal content (column gap **`--spacing-3xl`**) and **`Modal.Actions`**
+for primary/secondary controls: **right-aligned**, **`flex-wrap: wrap`**, gap **`--spacing-2xl`** (web
+and management-web standard). Do not use **`formButtonsWrapper`** or a left-aligned action row inside
+modals.
+
+The panel uses **`scrollbar-gutter: stable`** so vertical scroll does not compress content horizontally.
+**`.modalChildren > *`** enforces **`min-width: 0`** / **`max-width: 100%`** on direct children; shared form
+components (**`FormStack`**, **`TextInput`**, **`FormDropdown`**, etc.) also use **`min-width: 0`** on flex
+containers so fields stay within the max width.
 
 ## Table family (list / filter / CRUD)
 

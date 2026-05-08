@@ -5,7 +5,7 @@ import React, { useRef, useState } from 'react';
 
 import { MediumEnum } from '@podverse/helpers';
 import { copyToClipboard } from '@podverse/helpers-browser';
-import { FormStack, Modal, MODAL_CONTENT_MAX_WIDTH, TextInput } from '@podverse/ui';
+import { FormStack, Modal, TextInput } from '@podverse/ui';
 
 import { WEB } from '../../constants/web';
 import { useModals } from '../../contexts/Modals';
@@ -132,7 +132,6 @@ export const ModalShare: React.FC = () => {
       }
       closeButtonAriaLabel={tMisc('close_modal')}
       ariaLabel={tFeatures('share')}
-      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <FormStack>
         {shareInputs.map((input, idx) => (

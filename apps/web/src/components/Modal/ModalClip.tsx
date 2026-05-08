@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import { hhmmssToSecondsNumeric, SharableStatusEnum } from '@podverse/helpers';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from '@podverse/ui';
+import { Modal } from '@podverse/ui';
 
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
@@ -69,7 +69,6 @@ export const ModalClip: React.FC = () => {
       closeButtonAriaLabel={tMisc('close_modal')}
       header={header}
       ariaLabel={header}
-      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <ClipForm
         channel={modalClip.channel}
