@@ -70,6 +70,7 @@ configMapGenerator:
       - source/database/linear-migrations/management/0004_feed_takedown_reason_permissions.sql
       - source/database/linear-migrations/management/0005_billing_prices_permissions.sql
       - source/database/linear-migrations/management/0006_bucket_permissions.sql
+      - source/database/linear-migrations/management/0007_admin_account_set_password.sql
   - name: podverse-ops-management-superuser-scripts
     files:
       - source/database/management-superuser/package.json
