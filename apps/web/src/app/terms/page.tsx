@@ -1,10 +1,8 @@
 import { getTranslations } from 'next-intl/server';
 
-import { MainHeader } from '../../components/Main/MainHeader';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
+import { MainColumnStack, MainHeader, MainSidebarLayout, SideContent } from '@podverse/ui';
+
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { SideContent } from '../../components/SideContent/SideContent';
 import { getConfig } from '../../config';
 
 export default async function TermsPage() {
@@ -15,9 +13,9 @@ export default async function TermsPage() {
     <>
       <MainHeader title={t('terms')} />
       <MainWrapper>
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             <section>
               <p>{t('never_sell_data', { brand_name: config.public.brand.name })}</p>
               <br />
@@ -33,8 +31,8 @@ export default async function TermsPage() {
               <br />
               <p>{t('reduced_size_images')}</p>
             </section>
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </>
   );

@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+
+import { FormDropdown } from '@podverse/ui';
 
 import type { UITheme } from '../../utils/uiTheme';
 import { getValidThemes, toUITheme, UI_THEME_COOKIE } from '../../utils/uiTheme';
@@ -8,9 +10,10 @@ import { getValidThemes, toUITheme, UI_THEME_COOKIE } from '../../utils/uiTheme'
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 export type ManagementThemeSwitcherProps = {
-  id?: string;
   className?: string;
-  ariaLabel?: string;
+  id?: string;
+  /** Visible field label; same pattern as web `FormDropdown` on Settings General. */
+  label?: string;
   /** When set, option text uses this; otherwise the raw theme id is shown. */
   optionLabel?: (theme: UITheme) => string;
 };
@@ -18,7 +21,7 @@ export type ManagementThemeSwitcherProps = {
 export const ManagementThemeSwitcher = ({
   id,
   className,
-  ariaLabel = 'UI theme',
+  label,
   optionLabel,
 }: ManagementThemeSwitcherProps) => {
   const [theme, setTheme] = useState<UITheme>('dark');
@@ -28,25 +31,30 @@ export const ManagementThemeSwitcher = ({
     setTheme(toUITheme(current));
   }, []);
 
-  const handleChange = (next: UITheme) => {
-    document.documentElement.setAttribute('data-ui-theme', next);
-    document.cookie = `${UI_THEME_COOKIE}=${next}; path=/; max-age=${COOKIE_MAX_AGE}; samesite=lax`;
-    setTheme(next);
+  const options = useMemo(
+    () =>
+      getValidThemes().map((t) => ({
+        value: t,
+        label: optionLabel ? optionLabel(t) : t,
+      })),
+    [optionLabel]
+  );
+
+  const handleChange = (next: string) => {
+    const uiTheme = toUITheme(next);
+    document.documentElement.setAttribute('data-ui-theme', uiTheme);
+    document.cookie = `${UI_THEME_COOKIE}=${uiTheme}; path=/; max-age=${COOKIE_MAX_AGE}; samesite=lax`;
+    setTheme(uiTheme);
   };
 
   return (
-    <select
-      id={id}
+    <FormDropdown
       className={className}
-      aria-label={ariaLabel}
+      id={id ?? 'management-theme-switcher'}
+      label={label}
+      options={options}
       value={theme}
-      onChange={(e) => handleChange(toUITheme(e.target.value))}
-    >
-      {getValidThemes().map((t) => (
-        <option key={t} value={t}>
-          {optionLabel ? optionLabel(t) : t}
-        </option>
-      ))}
-    </select>
+      onChange={handleChange}
+    />
   );
 };

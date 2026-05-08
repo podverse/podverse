@@ -1,12 +1,10 @@
 import type { DTOChannel, DTOItem, QueryParamsQueueMedium } from '@podverse/helpers';
 import type { QueryParamsLiveItem } from '@podverse/helpers-requests';
+import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
 
 import { CorePodcastHeader } from '../../../../components/Core/Podcast/CorePodcastHeader';
-import { MainInnerContentWrapper } from '../../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../../components/Main/MainWrapper';
 import { LivestreamHeader } from '../../../../components/Media/Livestream/LivestreamHeader';
-import { SideContent } from '../../../../components/SideContent/SideContent';
 import { getBoostEligibilityForContent } from '../../../../utils/value/boostEligibility';
 import { LivestreamPageContextProvider } from './LivestreamPageContext';
 import { LivestreamPageList } from './LivestreamPageList';
@@ -30,9 +28,9 @@ export function LivestreamPageClient(props: LivestreamPageClientProps) {
     <LivestreamPageContextProvider initialQueryParams={initialQueryParams}>
       <MainWrapper>
         <CorePodcastHeader channel={ssrChannel} item={ssrItem} />
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             <LivestreamHeader channel={ssrChannel} item={ssrItem} medium={medium} />
             <LivestreamPageListHeader ssrCanShowBoosts={ssrCanShowBoosts} />
             <LivestreamPageList
@@ -41,8 +39,8 @@ export function LivestreamPageClient(props: LivestreamPageClientProps) {
               medium={medium}
               ssrCanShowBoosts={ssrCanShowBoosts}
             />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </LivestreamPageContextProvider>
   );

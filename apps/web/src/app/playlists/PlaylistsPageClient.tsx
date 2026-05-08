@@ -2,9 +2,8 @@
 
 import type { DTOPlaylist } from '@podverse/helpers';
 import type { QueryParamsPlaylists } from '@podverse/helpers-requests';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { PlaylistsPageContextProvider } from './PlaylistsPageContext';
 import { PlaylistsPageHeader } from './PlaylistsPageHeader';
@@ -28,12 +27,12 @@ export function PlaylistsPageClient(props: PlaylistsPageClientProps) {
     >
       <PlaylistsPageHeader />
       <MainWrapper>
-        <MainInnerWrapper>
-          <MainInnerContentWrapper>
+        <MainSidebarLayout>
+          <MainColumnStack>
             <PlaylistsPageListHeader />
             <PlaylistsPageList />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </PlaylistsPageContextProvider>
   );

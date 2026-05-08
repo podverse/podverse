@@ -133,6 +133,16 @@ import { config } from './config'; // 4. Relative imports
 
 Enforced by ESLint; fix with `npm run lint:fix`. Styles (CSS/SCSS) go last in components/pages.
 
+### Shared UI (`@podverse/ui`)
+
+- Use **`@podverse/ui` first** for generic controls and layout primitives in **web** and **management-web**.
+- If both apps need the same behavior, add or extend **one** component (or hook) in `packages/ui` and export it from `packages/ui/src/index.ts`.
+- When styles differ between apps, **converge on the web app’s existing baseline** unless there is a documented accessibility or product reason; express app differences with props (`variant`, `appearance`, etc.).
+- When deduplicating or promoting UI from one app to shared code, follow [`ui-component-promotion`](.cursor/skills/ui-component-promotion/SKILL.md) (inventory → api → `packages/ui` → export → thin app wrappers → tests).
+- Rule reference: [`.cursor/rules/prefer-shared-ui-web-management.mdc`](.cursor/rules/prefer-shared-ui-web-management.mdc). Skills: [`reusable-components`](.cursor/skills/reusable-components/SKILL.md), [`ui-component-promotion`](.cursor/skills/ui-component-promotion/SKILL.md).
+- **i18n:** Do not embed user-facing copy in `@podverse/ui`; apps localize and pass strings (see [`shared-ui-i18n`](.cursor/rules/shared-ui-i18n.mdc)).
+- **Repeated identical wiring:** If the same `@podverse/ui` + localization pattern appears twice or more in one app, use a thin app-local wrapper (see [`reusable-components`](.cursor/skills/reusable-components/SKILL.md)).
+
 ### ESM and import type
 
 - **ESM**: Relative imports use `.js` extensions. Packages and apps use ESM (NodeNext in `tsconfig.base.json`).
@@ -308,6 +318,7 @@ When implementing features or executing plans that touch **api** or **management
 - **feature-implementation-testing** — tests are required when touching api/management-api/web/management-web
 - **api-testing** — how to write API integration tests
 - **e2e-page-tests** — how to write E2E Playwright specs
+- **ui-component-promotion** — promote shared UI across web and management-web via `packages/ui`
 - **unit-test-priority-confident** — prioritize unit tests by risk
 - **unit-test-design-no-overgranularity** — avoid over-testing
 - **unit-test-new-code-gate** — require tests for new critical logic

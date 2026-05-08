@@ -42,7 +42,8 @@
       "no_livestreams_found": ""
     },
     "updated_with_date": "",
-    "image": ""
+    "image": "",
+    "more_options": ""
   },
   "features": {
     "search": {
@@ -437,6 +438,12 @@
     "terms": "",
     "mobile": "",
     "donate": "",
+    "open_source": "",
+    "browser_back": "",
+    "browser_forward": "",
+    "navbar_menu_open": "",
+    "navbar_menu_close": "",
+    "close_modal": "",
     "updates": "",
     "sharable_status": {
       "sharable_status": "",
@@ -870,6 +877,10 @@
     "filminterviews": "",
     "filmreviews": "",
     "tvreviews": ""
+  },
+  "pagination": {
+    "ariaPreviousPage": "",
+    "ariaNextPage": ""
   },
   "language": {
     "language": "",

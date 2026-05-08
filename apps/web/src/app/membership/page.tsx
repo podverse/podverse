@@ -7,13 +7,10 @@ import {
   calculateTimeRemaining,
   isMembershipExpiredAt,
 } from '@podverse/helpers';
+import { MainColumnStack, MainHeader, MainSidebarLayout, SideContent } from '@podverse/ui';
 
 import { FeatureComparison } from '../../components/FeatureComparison/FeatureComparison';
-import { MainHeader } from '../../components/Main/MainHeader';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { SideContent } from '../../components/SideContent/SideContent';
 import { getConfig } from '../../config';
 import { FEATURES } from '../../constants/features';
 import { getSSRApiRequestService } from '../../factories/apiRequestService';
@@ -102,9 +99,9 @@ export default async function MembershipPage() {
     <>
       <MainHeader title={t('membership')} />
       <MainWrapper>
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             {!isContactOnlyMode && errorMessage && (
               <section className={styles.errorSection}>
                 <p>{errorMessage}</p>
@@ -182,8 +179,8 @@ export default async function MembershipPage() {
               <h2 className={styles.comparisonTitle}>{t('features')}</h2>
               <FeatureComparison features={FEATURES} />
             </section>
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </>
   );

@@ -16,7 +16,7 @@ import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { loadAddByRSSIndexItemFromResourceData } from '../../../utils/addByRSS/playFromQueueResource';
 import { scrollMainToTop } from '../../../utils/scroll';
-import Pagination from '../../Pagination/Pagination';
+import { Pagination } from '../../Pagination/Pagination';
 import { ListPlaylistResourceRow } from './ListPlaylistResourceRow';
 
 import styles from '../../../styles/components/List/Playlists/ListPlaylistResources.module.scss';

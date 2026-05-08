@@ -37,6 +37,8 @@ If `@use '@podverse/ui/styles/...'` does not resolve in a given app (e.g. some N
 
 ## Rules
 
+- **No `var()` fallbacks:** Do not use `var(--token, fallback)` in SCSS/CSS (see **.cursor/rules/css-custom-properties-no-var-fallbacks.mdc**). Missing tokens should be fixed in `_variables-root.scss` / `_themes.scss`, not masked with hex or `inherit` defaults.
+- **Buttons and tab-like controls:** Never rely on the browser’s default `<button>` background (e.g. light system “buttonface”). Always set `background-color` (and `color`) using theme tokens so inactive/outline variants stay readable on **every** `[data-ui-theme]` (dark, light, dracula, violet). If text uses `--text-color-primary` / `--button-secondary-color`, the surface must come from `--background-color-*` or another tokenized surface — verify contrast in both dark and light themes.
 - Do NOT add new tokens to `apps/web/src/styles/...` or `apps/management-web/src/styles/...` except **forwarder shims** in `apps/web` (one-line `@forward` to `packages/ui`). Add tokens in `packages/ui/src/styles/_variables.scss` (and `_themes.scss` if theme-dependent), and they become available to both apps.
 - If page/module styles repeat across multiple pages (forms, table wrappers, badges, header action rows), prefer a reusable React component in `@podverse/ui` rather than adding more duplicated SCSS blocks.
 - Theme-dependent values (any color, any gradient, button states) MUST be defined in all three theme blocks (`dark` / `light` / `dracula`) in `packages/ui/src/styles/_themes.scss`.

@@ -16,14 +16,14 @@ import {
   FormGroup,
   FormHintText,
   FormPrimaryActions,
-  Input,
   Label,
-  LoadingText,
   ManagementPageShell,
   Select,
   Tabs,
+  TextInput,
 } from '@podverse/ui';
 
+import { ManagementLoadingSpinnerFull } from '../../../../../components/LoadingSpinner/ManagementLoadingSpinnerFull';
 import {
   changeUserPassword,
   getUser,
@@ -189,7 +189,7 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
     }
   };
 
-  if (loading) return <LoadingText>{tc('loading')}</LoadingText>;
+  if (loading) return <ManagementLoadingSpinnerFull />;
   if (error && !user) return <Alert>{error}</Alert>;
   if (!user) return null;
 
@@ -201,30 +201,26 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
 
       <Tabs selectedKey={activeTab} tabData={tabData} />
 
-      {error && <Alert>{error}</Alert>}
+      <Alert>{error}</Alert>
       {success && <Alert variant="success">{success}</Alert>}
 
       {activeTab === 'profile' ? (
         <FormContainer onSubmit={(e) => void handleProfileSubmit(e)}>
-          <FormGroup>
-            <Label htmlFor="edit-user-email">{t('tableHeaders.email')}</Label>
-            <Input
-              id="edit-user-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </FormGroup>
+          <TextInput
+            id="edit-user-email"
+            eyebrow={t('tableHeaders.email')}
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-          <FormGroup>
-            <Label htmlFor="edit-user-username">{t('tableHeaders.username')}</Label>
-            <Input
-              id="edit-user-username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-          </FormGroup>
+          <TextInput
+            id="edit-user-username"
+            eyebrow={t('tableHeaders.username')}
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
 
           <FormGroup>
             <CheckboxField
@@ -252,15 +248,13 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
             </FormHintText>
           </FormGroup>
 
-          <FormGroup>
-            <Label htmlFor="edit-user-expires">{t('membershipForm.membershipExpiresAt')}</Label>
-            <Input
-              id="edit-user-expires"
-              type="datetime-local"
-              value={membershipExpiresAt}
-              onChange={(e) => setMembershipExpiresAt(e.target.value)}
-            />
-          </FormGroup>
+          <TextInput
+            id="edit-user-expires"
+            eyebrow={t('membershipForm.membershipExpiresAt')}
+            type="datetime-local"
+            value={membershipExpiresAt}
+            onChange={(e) => setMembershipExpiresAt(e.target.value)}
+          />
 
           <FormGroup>
             <CheckboxField
@@ -295,30 +289,22 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
                   <option value="false">{t('advancedOverrides.block')}</option>
                 </Select>
               </FormGroup>
-              <FormGroup>
-                <Label htmlFor="edit-user-rss-limit">
-                  {t('advancedOverrides.addByRssFeedLimit')}
-                </Label>
-                <Input
-                  id="edit-user-rss-limit"
-                  type="number"
-                  min={0}
-                  value={maxAddByRSSFeeds}
-                  onChange={(e) => setMaxAddByRSSFeeds(e.target.value)}
-                />
-              </FormGroup>
-              <FormGroup>
-                <Label htmlFor="edit-user-refresh-limit">
-                  {t('advancedOverrides.manualRefreshPerHour')}
-                </Label>
-                <Input
-                  id="edit-user-refresh-limit"
-                  type="number"
-                  min={0}
-                  value={maxManualRefreshesPerHour}
-                  onChange={(e) => setMaxManualRefreshesPerHour(e.target.value)}
-                />
-              </FormGroup>
+              <TextInput
+                id="edit-user-rss-limit"
+                eyebrow={t('advancedOverrides.addByRssFeedLimit')}
+                min={0}
+                type="number"
+                value={maxAddByRSSFeeds}
+                onChange={(e) => setMaxAddByRSSFeeds(e.target.value)}
+              />
+              <TextInput
+                id="edit-user-refresh-limit"
+                eyebrow={t('advancedOverrides.manualRefreshPerHour')}
+                min={0}
+                type="number"
+                value={maxManualRefreshesPerHour}
+                onChange={(e) => setMaxManualRefreshesPerHour(e.target.value)}
+              />
               <FormGroup>
                 <Label htmlFor="edit-user-track-stats">{t('advancedOverrides.trackStats')}</Label>
                 <Select
@@ -375,27 +361,23 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
         <FormContainer onSubmit={(e) => void handlePasswordSubmit(e)}>
           {passwordError && <Alert>{passwordError}</Alert>}
 
-          <FormGroup>
-            <Label htmlFor="edit-user-new-password">{ta('newPassword')}</Label>
-            <Input
-              autoComplete="new-password"
-              id="edit-user-new-password"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-          </FormGroup>
+          <TextInput
+            autoComplete="new-password"
+            id="edit-user-new-password"
+            eyebrow={ta('newPassword')}
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+          />
 
-          <FormGroup>
-            <Label htmlFor="edit-user-confirm-password">{ta('confirmPassword')}</Label>
-            <Input
-              autoComplete="new-password"
-              id="edit-user-confirm-password"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-          </FormGroup>
+          <TextInput
+            autoComplete="new-password"
+            id="edit-user-confirm-password"
+            eyebrow={ta('confirmPassword')}
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+          />
 
           <FormPrimaryActions>
             <ActionLink href={`/users/${userId}`} variant="subtle" LinkComponent={Link}>

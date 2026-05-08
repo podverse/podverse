@@ -30,6 +30,32 @@ export type FeedOperationsOptionsResponse = {
 
 export type LookupResponse = { feed: FeedOperationsLookup };
 
+export type FeedOperationsListSortKey =
+  | 'id'
+  | 'podcast_index_id'
+  | 'channel_title'
+  | 'lifecycle_state_key'
+  | 'url';
+
+export type ListFeedOperationsParams = {
+  page?: number;
+  limit?: number;
+  sort?: FeedOperationsListSortKey;
+  order?: 'asc' | 'desc';
+  q?: string;
+  lifecycle?: string;
+};
+
+export type ListFeedOperationsResponse = {
+  feeds: FeedOperationsLookup[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
 export type ApplyFeedOperationsPolicyStateBody = {
   feed_id: number;
   lifecycle_state_key?: string;
@@ -56,6 +82,36 @@ export async function getFeedOperationOptions(): Promise<FeedOperationsOptionsRe
   const service = new ManagementApiRequestService();
   return service.apiRequest<FeedOperationsOptionsResponse>({
     path: '/feed-operations/options',
+    method: 'GET',
+  });
+}
+
+export async function listFeedOperations(
+  params: ListFeedOperationsParams
+): Promise<ListFeedOperationsResponse> {
+  const service = new ManagementApiRequestService();
+  const q = new URLSearchParams();
+  if (params.page !== undefined) {
+    q.set('page', String(params.page));
+  }
+  if (params.limit !== undefined) {
+    q.set('limit', String(params.limit));
+  }
+  if (params.sort !== undefined) {
+    q.set('sort', params.sort);
+  }
+  if (params.order !== undefined) {
+    q.set('order', params.order);
+  }
+  if (params.q !== undefined && params.q.trim() !== '') {
+    q.set('q', params.q.trim());
+  }
+  if (params.lifecycle !== undefined && params.lifecycle.trim() !== '') {
+    q.set('lifecycle', params.lifecycle.trim());
+  }
+  const qs = q.toString();
+  return service.apiRequest<ListFeedOperationsResponse>({
+    path: `/feed-operations/list${qs ? `?${qs}` : ''}`,
     method: 'GET',
   });
 }

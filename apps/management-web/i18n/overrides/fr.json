@@ -4,7 +4,6 @@
     "description": ""
   },
   "common": {
-    "loading": "",
     "error": "",
     "save": "",
     "saveChanges": "",
@@ -30,7 +29,52 @@
     "readOnlyTable": "",
     "noDataFound": "",
     "previous": "",
-    "next": ""
+    "next": "",
+    "paginationPrevButton": "",
+    "paginationNextButton": "",
+    "paginationPageOf": "",
+    "closeModalAria": ""
+  },
+  "tableShared": {
+    "searchPlaceholder": "",
+    "searchSubmitLabel": "",
+    "searchClearLabel": "",
+    "filterColumnsLabel": "",
+    "filterColumnsAriaLabel": "",
+    "sortAscLabel": "",
+    "sortDescLabel": "",
+    "sortClearLabel": "",
+    "sortAriaTemplate": "",
+    "noResults": "",
+    "noData": "",
+    "loading": "",
+    "errorRetry": "",
+    "bulk": {
+      "selectAllAria": "",
+      "selectRowAria": "",
+      "selectedCount": "",
+      "clearSelection": "",
+      "actionsLabel": ""
+    },
+    "cursor": {
+      "prev": "",
+      "next": ""
+    },
+    "confirmDelete": {
+      "title": "",
+      "message": "",
+      "cancel": "",
+      "confirm": "",
+      "aria": ""
+    },
+    "pagination": {
+      "pageOf": "",
+      "prev": "",
+      "next": "",
+      "goToPageLabel": "",
+      "goToPageAria": "",
+      "goToPageSubmit": ""
+    }
   },
   "auth": {
     "login": "",
@@ -92,6 +136,19 @@
       "description": ""
     }
   },
+  "errors": {
+    "boundary_title": "",
+    "boundary_message": "",
+    "global_title": "",
+    "global_message": "",
+    "details_development_only": ""
+  },
+  "misc": {
+    "loading": "",
+    "reload_page": "",
+    "return_to_home_page": "",
+    "try_again": ""
+  },
   "storage": {
     "title": "",
     "subtitle": "",
@@ -124,6 +181,22 @@
     "deleting": "",
     "selectAllAria": "",
     "selectRowAria": "",
+    "viewAria": "",
+    "deleteAria": "",
+    "more": "",
+    "moreAria": "",
+    "deleteAll": "",
+    "deleteAllConfirmAria": "",
+    "deleteAllConfirmTitle": "",
+    "deleteAllConfirmBodyWithPrefix": "",
+    "deleteAllConfirmBodyEmptyPrefix": "",
+    "deleteAllIrreversible": "",
+    "deleteAllCounting": "",
+    "deleteAllCount": "",
+    "deleteAllCountTruncated": "",
+    "deleteAllInProgress": "",
+    "deleteAllError": "",
+    "deleteAllPartialError": "",
     "download": "",
     "backToList": "",
     "paginationPrev": "",
@@ -146,6 +219,7 @@
     "clear": "",
     "views": "",
     "loadingDetail": "",
+    "loadingChart": "",
     "close": "",
     "idValue": "",
     "searchPlaceholder": "",
@@ -223,6 +297,20 @@
     "pageSubtitle": "",
     "breadcrumbParent": "",
     "breadcrumbCurrent": "",
+    "directoryHeading": "",
+    "directoryLoadError": "",
+    "directoryEmpty": "",
+    "filterLifecycleLabel": "",
+    "filterLifecycleAll": "",
+    "directorySearchPlaceholder": "",
+    "directorySearchButton": "",
+    "tableFeedId": "",
+    "tableChannelTitle": "",
+    "tablePodcastIndexId": "",
+    "tableLifecycle": "",
+    "tableUrl": "",
+    "openFeedRow": "",
+    "sectionDirectoryAria": "",
     "sectionFindAria": "",
     "findFeedHeading": "",
     "searchByLabel": "",
@@ -352,6 +440,7 @@
     "noResults": "",
     "noUsers": "",
     "confirmDelete": "",
+    "deleteConfirmAria": "",
     "userDetail": "",
     "editUser": "",
     "verified": "",
@@ -432,6 +521,7 @@
     "paginationSummary": "",
     "paginationSummarySingular": "",
     "deleteConfirm": "",
+    "deleteConfirmAria": "",
     "tables": {
       "feed": {
         "label": "",

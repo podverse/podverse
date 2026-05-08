@@ -1,0 +1,17 @@
+@use '../../../styles/breakpoints';
+
+.sideContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  margin: calc(var(--spacing-xs) * -1) calc(var(--spacing-sm) * -1) var(--spacing-none)
+    var(--spacing-3xl);
+  overflow: hidden;
+  padding: var(--spacing-sm);
+}
+
+@media (max-width: breakpoints.$breakpoint-lg-max) {
+  .sideContent {
+    display: none;
+  }
+}

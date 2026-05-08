@@ -10,6 +10,7 @@ import {
   findFeedByUrl,
   getFeedAuditSnapshotById,
   listConditionTypeOptions,
+  listFeedOperationsForTable,
   listLifecycleStateOptions,
   listTakedownReasonOptions,
   updateFeedOperationsPolicyState,
@@ -18,6 +19,10 @@ import {
   toConditionTypeEnums,
   toLifecycleStateEnum,
 } from '@mgmt-api/lib/feed/feedOperationsEnums.js';
+import {
+  feedOperationsListQuerySchema,
+  type FeedOperationsListQueryValidated,
+} from '@mgmt-api/schemas/feedOperationsListQuery.js';
 import { feedOperationsUpdatePolicyStateBodySchema } from '@mgmt-api/schemas/feedOperationsPolicy.js';
 import express from 'express';
 
@@ -55,6 +60,51 @@ router.get(
       res.json({ lifecycle_states, condition_types, takedown_reasons });
     } catch (err) {
       console.error('[feed-operations/options]', err);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+);
+
+router.get(
+  `${baseUrl}/feed-operations/list`,
+  ensureAuthenticated,
+  requireCrud('feeds', 'read'),
+  async (req, res) => {
+    const { error, value } = feedOperationsListQuerySchema.validate(req.query, {
+      stripUnknown: true,
+      convert: true,
+    });
+    if (error) {
+      res.status(400).json({ message: error.message });
+      return;
+    }
+
+    const q = value as FeedOperationsListQueryValidated;
+    const qTrimmed = q.q !== undefined && q.q.length > 0 ? q.q : null;
+    const lifecycleTrimmed =
+      q.lifecycle !== undefined && q.lifecycle.length > 0 ? q.lifecycle : null;
+
+    try {
+      const { feeds, total } = await listFeedOperationsForTable({
+        page: q.page,
+        limit: q.limit,
+        sort: q.sort,
+        order: q.order,
+        q: qTrimmed,
+        lifecycle: lifecycleTrimmed,
+      });
+      const totalPages = Math.max(1, Math.ceil(total / q.limit));
+      res.json({
+        feeds,
+        pagination: {
+          page: q.page,
+          limit: q.limit,
+          total,
+          totalPages,
+        },
+      });
+    } catch (err) {
+      console.error('[feed-operations/list]', err);
       res.status(500).json({ message: 'Internal server error' });
     }
   }

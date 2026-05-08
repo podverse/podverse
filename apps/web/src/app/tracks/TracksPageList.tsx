@@ -1,8 +1,8 @@
 import React from 'react';
 
 import { CoreTracks } from '../../components/Core/Artist/Album/Track/CoreTracks';
-import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
-import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { HowToStartInfo } from '../../components/HowToStartInfo/HowToStartInfo';
+import { WebLoadingSpinnerOverlay } from '../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useTracksPageContext } from './TracksPageContext';
 
@@ -25,7 +25,7 @@ export const TracksPageList: React.FC = () => {
         viewSelected={viewSelected}
         showChannelInfo
       />
-      <LoadingSpinnerOverlay isLoading={isLoading} />
+      <WebLoadingSpinnerOverlay isLoading={isLoading} />
     </>
   );
 };

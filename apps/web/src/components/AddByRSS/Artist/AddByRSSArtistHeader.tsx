@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { FaCircleDollarToSlot, FaCommentDollar, FaGlobe, FaRss } from 'react-icons/fa6';
 
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
-import { Button } from '@podverse/ui';
+import { Button, SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import { useAccount } from '../../../contexts/Account';
@@ -21,7 +21,6 @@ import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibi
 import { CommonArtistHeader } from '../../Common/Artist/CommonArtistHeader';
 import { CommonArtistHeaderViewDesktop } from '../../Common/Artist/CommonArtistHeaderViewDesktop';
 import { CommonArtistHeaderViewTablet } from '../../Common/Artist/CommonArtistHeaderViewTablet';
-import { SkeletonFlashImage } from '../../Image/SkeletonFlashImage';
 import { IconButton } from '../../Media/Header/IconButton';
 
 import headerButtonsStyles from '../../../styles/components/Common/Media/Header/HeaderButtons.module.scss';

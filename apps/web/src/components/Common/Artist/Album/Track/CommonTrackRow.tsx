@@ -3,10 +3,9 @@
 import Link from 'next/link';
 import React from 'react';
 
-import { Button } from '@podverse/ui';
+import { Button, ImagesPerView } from '@podverse/ui';
 
 import { IMAGES } from '../../../../../constants/images';
-import { ImagesPerView } from '../../../../Image/ImagesPerView';
 
 import styles from '../../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 

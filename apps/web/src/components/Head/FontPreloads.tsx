@@ -1,4 +1,4 @@
-export default function FontPreloads() {
+export function FontPreloads() {
   return (
     <>
       <link

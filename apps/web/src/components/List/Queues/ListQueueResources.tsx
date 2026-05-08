@@ -8,6 +8,7 @@ import React from 'react';
 import type { DTOQueueResource, QueryParamsQueueMedium } from '@podverse/helpers';
 import { getQueueMediumIdFromType, MediumEnum } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
+import { CallToActionMessage } from '@podverse/ui';
 
 import { useAutoQueue } from '../../../contexts/AutoQueue';
 import { useModals } from '../../../contexts/Modals';
@@ -17,7 +18,6 @@ import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResou
 import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
 import { useQueueResourcesLoadActive } from '../../../hooks/useQueueResourcesLoadActive';
 import { loadAddByRSSIndexItemFromResourceData } from '../../../utils/addByRSS/playFromQueueResource';
-import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';
 import { ListQueueResourceRow } from './ListQueueResourceRow';
 
 import styles from '../../../styles/components/List/Queues/ListQueueResources.module.scss';

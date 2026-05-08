@@ -4,13 +4,13 @@ import { useTranslations } from 'next-intl';
 import React, { useRef } from 'react';
 
 import type { DTOQueueResource } from '@podverse/helpers';
+import { CallToActionMessage } from '@podverse/ui';
 
 import { useModals } from '../../../contexts/Modals';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { scrollMainToTop } from '../../../utils/scroll';
-import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';
-import Pagination from '../../Pagination/Pagination';
+import { Pagination } from '../../Pagination/Pagination';
 import { ListQueueResourceRow } from './ListQueueResourceRow';
 
 import styles from '../../../styles/components/List/Queues/ListQueueResources.module.scss';

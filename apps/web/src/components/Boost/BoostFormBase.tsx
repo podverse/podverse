@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
-import { Button, ButtonTabs, FormStack } from '@podverse/ui';
+import { Button, ButtonTabs, Callout, FormStack } from '@podverse/ui';
 import { isLnaddressRecipient } from '@podverse/v4v-btc-ln';
 import type { MetaBoost } from '@podverse/v4v-metaboost';
 
@@ -13,7 +13,6 @@ import { useAccount } from '../../contexts/Account';
 import { useConfig } from '../../contexts/Config';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useModals } from '../../contexts/Modals';
-import { Callout } from '../Callout/Callout';
 import { MediaHeaderMini } from '../MediaHeaderMini/MediaHeaderMini';
 import { BoostFormFields } from './BoostFormFields';
 import { BoostMessageNotice } from './BoostMessageNotice';

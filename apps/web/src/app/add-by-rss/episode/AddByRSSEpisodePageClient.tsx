@@ -8,7 +8,7 @@ import React from 'react';
 import type { DTOItemChapter } from '@podverse/helpers';
 import type { TranscriptRow } from '@podverse/helpers';
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
-import { Tabs } from '@podverse/ui';
+import { MainColumnStack, MainSidebarLayout, SideContent, Tabs } from '@podverse/ui';
 
 import { AddByRSSPodcastHeader } from '../../../components/AddByRSS/Podcast/AddByRSSPodcastHeader';
 import { AddByRSSEpisodeDetailHeader } from '../../../components/AddByRSS/Podcast/Episode/AddByRSSEpisodeDetailHeader';
@@ -18,12 +18,12 @@ import { CommonDetailListHeader } from '../../../components/Common/List/CommonDe
 import { CoreEpisodeSummary } from '../../../components/Core/Podcast/Episodes/CoreEpisodeSummary';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { ListItemChapters } from '../../../components/List/ItemChapters/ListItemChapters';
-import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
+import {
+  WebLoadingSpinnerOverlay,
+  WebLoadingYourContentSpinnerOverlay,
+} from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { NoResults } from '../../../components/NoResults/NoResults';
-import { SideContent } from '../../../components/SideContent/SideContent';
 import { EVENTS } from '../../../constants/events';
 import { useAccount } from '../../../contexts/Account';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
@@ -352,18 +352,18 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
   );
 
   if (isLoading) {
-    return <LoadingSpinnerOverlay isLoading message={tMisc('loading_your_content')} />;
+    return <WebLoadingYourContentSpinnerOverlay isLoading />;
   }
 
   if (!episode || !feed) {
     return (
       <MainWrapper>
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             <NoResults message={tFeatures('add_by_rss.feed_not_found_local')} />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     );
   }
@@ -375,9 +375,9 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
   return (
     <MainWrapper>
       <AddByRSSPodcastHeader feed={feed} />
-      <MainInnerWrapper>
+      <MainSidebarLayout>
         <SideContent />
-        <MainInnerContentWrapper>
+        <MainColumnStack>
           <AddByRSSEpisodeDetailHeader
             itemIdText={episode.idText}
             title={title}
@@ -411,7 +411,7 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
                     getChapterHref={() => '#'}
                   />
                 )}
-                <LoadingSpinnerOverlay isLoading={chaptersTranscriptLoading} />
+                <WebLoadingSpinnerOverlay isLoading={chaptersTranscriptLoading} />
               </>
             )}
             {selectedTab === 'transcript' && (
@@ -421,12 +421,12 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
                 ) : (
                   <ItemTranscript autoScrollOn={false} rows={transcriptRows} />
                 )}
-                <LoadingSpinnerOverlay isLoading={chaptersTranscriptLoading} />
+                <WebLoadingSpinnerOverlay isLoading={chaptersTranscriptLoading} />
               </>
             )}
           </DetailListWrapper>
-        </MainInnerContentWrapper>
-      </MainInnerWrapper>
+        </MainColumnStack>
+      </MainSidebarLayout>
     </MainWrapper>
   );
 };

@@ -5,10 +5,10 @@ import { useLocale, useTranslations } from 'next-intl';
 import React from 'react';
 
 import { formatDateAbbrev, mergeDTOItemThenChannelImageCandidates } from '@podverse/helpers';
+import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../../constants/images';
 import { ROUTES } from '../../../../constants/routes';
-import { SkeletonFlashImage } from '../../../Image/SkeletonFlashImage';
 import type { EpisodeListGridNodeProps } from './types';
 
 import styles from '../../../../styles/components/Common/List/ListGridNode.module.scss';

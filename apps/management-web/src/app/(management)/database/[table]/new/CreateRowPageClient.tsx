@@ -11,11 +11,9 @@ import {
   Breadcrumbs,
   Button,
   FormContainer,
-  FormGroup,
   FormPrimaryActions,
-  Input,
-  Label,
   ManagementPageShell,
+  TextInput,
 } from '@podverse/ui';
 
 import {
@@ -124,22 +122,18 @@ export function CreateRowPageClient({ tableName }: CreateRowPageClientProps) {
       {meta && (
         <FormContainer onSubmit={(e) => void handleSubmit(e)}>
           {settableFields.map((field: TableFieldMeta) => (
-            <FormGroup key={field.name}>
-              <Label htmlFor={field.name}>
-                {field.name}
-                {!field.nullable ? <span aria-hidden="true"> *</span> : null}
-              </Label>
-              <Input
-                id={field.name}
-                type="text"
-                value={String(formData[field.name] ?? '')}
-                onChange={(e) => handleFieldChange(field.name, e.target.value)}
-                required={!field.nullable}
-                placeholder={field.type}
-              />
-            </FormGroup>
+            <TextInput
+              key={field.name}
+              id={field.name}
+              eyebrow={`${field.name}${!field.nullable ? ' *' : ''}`}
+              type="text"
+              value={String(formData[field.name] ?? '')}
+              onChange={(e) => handleFieldChange(field.name, e.target.value)}
+              required={!field.nullable}
+              placeholder={field.type}
+            />
           ))}
-          {error && <Alert>{error}</Alert>}
+          <Alert>{error}</Alert>
           <FormPrimaryActions>
             <ActionLink href={`/database/${tableName}`} variant="subtle" LinkComponent={Link}>
               {tc('cancel')}

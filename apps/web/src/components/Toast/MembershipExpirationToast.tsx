@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
@@ -17,6 +18,7 @@ import { dismissToast, showToastCustom } from './Toast';
 export function MembershipExpirationToast() {
   const { loggedInAccount } = useAccount();
   const t = useTranslations('membership');
+  const tMisc = useTranslations('misc');
   const router = useRouter();
   const toastIdRef = useRef<string | null>(null);
 
@@ -120,11 +122,13 @@ export function MembershipExpirationToast() {
 
       showToastCustom(
         {
-          message: expiredMessage,
-          linkText,
+          LinkComponent: Link,
+          dismissButtonAriaLabel: tMisc('dismiss'),
           linkHref: ROUTES.MEMBERSHIP,
-          onLinkClick: handleLinkClickDanger,
+          linkText,
+          message: expiredMessage,
           onDismiss: handleDismissDanger,
+          onLinkClick: handleLinkClickDanger,
         },
         'danger'
       ).then((id) => {
@@ -146,11 +150,13 @@ export function MembershipExpirationToast() {
 
       showToastCustom(
         {
-          message: warningMessage,
-          linkText,
+          LinkComponent: Link,
+          dismissButtonAriaLabel: tMisc('dismiss'),
           linkHref: ROUTES.MEMBERSHIP,
-          onLinkClick: handleLinkClickWarning,
+          linkText,
+          message: warningMessage,
           onDismiss: handleDismissWarning,
+          onLinkClick: handleLinkClickWarning,
         },
         'warning'
       ).then((id) => {
@@ -164,7 +170,7 @@ export function MembershipExpirationToast() {
       dismissToast(toastIdRef.current);
       toastIdRef.current = null;
     }
-  }, [loggedInAccount, t, router]);
+  }, [loggedInAccount, router, t, tMisc]);
 
   return null;
 }

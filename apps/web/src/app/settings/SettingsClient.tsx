@@ -2,12 +2,10 @@
 
 import { useTranslations } from 'next-intl';
 
-import { MainHeader } from '../../components/Main/MainHeader';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
+import { MainColumnStack, MainHeader, MainSidebarLayout, SideContent } from '@podverse/ui';
+
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { Settings } from '../../components/Settings/Settings';
-import { SideContent } from '../../components/SideContent/SideContent';
 
 export function SettingsClient() {
   const tSettings = useTranslations('settings');
@@ -16,12 +14,12 @@ export function SettingsClient() {
     <>
       <MainHeader title={tSettings('settings')} />
       <MainWrapper>
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             <Settings />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </>
   );

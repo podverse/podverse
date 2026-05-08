@@ -42,7 +42,8 @@
       "no_livestreams_found": "No livestreams found."
     },
     "updated_with_date": "Updated: {date}",
-    "image": "Image"
+    "image": "Image",
+    "more_options": "More options"
   },
   "features": {
     "search": {
@@ -437,6 +438,12 @@
     "terms": "Terms",
     "mobile": "Mobile",
     "donate": "Donate",
+    "open_source": "Open Source",
+    "browser_back": "Back",
+    "browser_forward": "Forward",
+    "navbar_menu_open": "Open menu",
+    "navbar_menu_close": "Close menu",
+    "close_modal": "Close modal",
     "updates": "Updates",
     "sharable_status": {
       "sharable_status": "Sharable Status",
@@ -642,10 +649,10 @@
     "settings": "Settings",
     "ui_theme": {
       "theme": "Theme",
-      "light": "☀️ Light",
-      "dark": "🌙 Dark",
-      "dracula": "🧛 Dracula",
-      "violet": "💜 Violet"
+      "light": "Light",
+      "dark": "Dark",
+      "dracula": "Dracula",
+      "violet": "Violet"
     },
     "feed": {
       "check_feed_for_updates": "Check Feed for Updates",
@@ -870,6 +877,10 @@
     "filminterviews": "Film Interviews",
     "filmreviews": "Film Reviews",
     "tvreviews": "TV Reviews"
+  },
+  "pagination": {
+    "ariaPreviousPage": "Previous page",
+    "ariaNextPage": "Next page"
   },
   "language": {
     "language": "Language",

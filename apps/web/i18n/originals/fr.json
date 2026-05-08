@@ -42,7 +42,8 @@
       "no_livestreams_found": "Aucune diffusion en direct trouvée."
     },
     "updated_with_date": "Mis à jour : {date}",
-    "image": "Image"
+    "image": "Image",
+    "more_options": "Plus d'options"
   },
   "features": {
     "search": {
@@ -437,6 +438,12 @@
     "terms": "Conditions",
     "mobile": "Mobile",
     "donate": "Faire un don",
+    "open_source": "Open source",
+    "browser_back": "Retour",
+    "browser_forward": "Avancer",
+    "navbar_menu_open": "Ouvrir le menu",
+    "navbar_menu_close": "Fermer le menu",
+    "close_modal": "Fermer la fenêtre modale",
     "updates": "Mises à jour",
     "sharable_status": {
       "sharable_status": "État partageable",
@@ -642,10 +649,10 @@
     "settings": "Paramètres",
     "ui_theme": {
       "theme": "Thème",
-      "light": "☀️ Clair",
-      "dark": "🌙 Sombre",
-      "dracula": "🧛 Dracula",
-      "violet": "💜 Violet"
+      "light": "Clair",
+      "dark": "Sombre",
+      "dracula": "Dracula",
+      "violet": "Violet"
     },
     "feed": {
       "check_feed_for_updates": "Vérifier le flux pour les mises à jour",
@@ -870,6 +877,10 @@
     "filminterviews": "Interviews de films",
     "filmreviews": "Critiques de films",
     "tvreviews": "Critiques de séries"
+  },
+  "pagination": {
+    "ariaPreviousPage": "Page précédente",
+    "ariaNextPage": "Page suivante"
   },
   "language": {
     "language": "Langue",

@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import type { NavCard } from '@podverse/ui';
-import { Alert, LoadingText, ManagementPageShell, NavCardGrid } from '@podverse/ui';
+import { Alert, LoadingSpinner, ManagementPageShell, NavCardGrid } from '@podverse/ui';
 
 import { getDatabaseTables, type TableMeta } from '../../../lib/requests/database';
 
@@ -70,8 +70,8 @@ export function DatabaseIndexPageClient() {
 
   return (
     <ManagementPageShell title={t('title')}>
-      {loading && <LoadingText>{t('loadingTables')}</LoadingText>}
-      {error && <Alert>{error}</Alert>}
+      {loading && <LoadingSpinner ariaLabel={t('loadingTables')} size="small" />}
+      <Alert>{error}</Alert>
       {!loading && !error && <NavCardGrid cards={cards} LinkComponent={Link} />}
     </ManagementPageShell>
   );

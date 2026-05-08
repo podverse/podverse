@@ -6,16 +6,14 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { PAGINATION } from '@podverse/helpers';
 import { isMusicMediumId, parseMediumId } from '@podverse/helpers';
+import { Dropdown, MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { AddByRSSArtistNodes } from '../../../components/AddByRSS/Artist/AddByRSSArtistNodes';
 import { AddByRSSListHeader } from '../../../components/AddByRSS/List/AddByRSSListHeader';
-import Dropdown from '../../../components/Dropdown/Dropdown';
-import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
+import { WebLoadingSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { NoResults } from '../../../components/NoResults/NoResults';
-import Pagination from '../../../components/Pagination/Pagination';
+import { Pagination } from '../../../components/Pagination/Pagination';
 import { dismissToast, showToast, showToastLoading } from '../../../components/Toast/Toast';
 import { useAccount } from '../../../contexts/Account';
 import { useLocalSettings } from '../../../contexts/LocalSettings';
@@ -243,8 +241,8 @@ export const AddByRSSArtistsPageClient: React.FC = () => {
         }
       />
       <MainWrapper>
-        <MainInnerWrapper>
-          <MainInnerContentWrapper>
+        <MainSidebarLayout>
+          <MainColumnStack>
             {totalPages > 1 ? (
               <Pagination
                 currentPage={page}
@@ -261,9 +259,9 @@ export const AddByRSSArtistsPageClient: React.FC = () => {
             ) : isLoading ? null : (
               <NoResults message={tFeatures('add_by_rss.no_feeds_music')} />
             )}
-            <LoadingSpinnerOverlay isLoading={isLoading} />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+            <WebLoadingSpinnerOverlay isLoading={isLoading} />
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </>
   );

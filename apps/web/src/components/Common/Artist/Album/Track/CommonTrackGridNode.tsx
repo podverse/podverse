@@ -6,10 +6,10 @@ import React from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { mergeDTOItemThenChannelImageCandidates } from '@podverse/helpers';
+import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../../../constants/images';
 import { ROUTES } from '../../../../../constants/routes';
-import { SkeletonFlashImage } from '../../../../Image/SkeletonFlashImage';
 
 import styles from '../../../../../styles/components/Common/List/ListGridNode.module.scss';
 

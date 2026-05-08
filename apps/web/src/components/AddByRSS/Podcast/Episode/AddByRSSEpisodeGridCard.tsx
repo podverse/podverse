@@ -9,11 +9,11 @@ import {
   buildDTOItemImageLoadCandidates,
   formatDateAbbrev,
 } from '@podverse/helpers';
+import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../../constants/images';
 import { getAddByRSSItemPath } from '../../../../utils/addByRSS/itemPath';
 import type { AddByRSSItemIndexItem } from '../../../../utils/addByRSS/types';
-import { SkeletonFlashImage } from '../../../Image/SkeletonFlashImage';
 
 import styles from '../../../../styles/components/Common/List/ListGridNode.module.scss';
 

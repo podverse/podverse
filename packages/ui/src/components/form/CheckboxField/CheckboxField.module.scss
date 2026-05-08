@@ -1,3 +1,4 @@
+@use '../../../styles/mixins/flexbox' as *;
 @use '../../../styles/variables' as *;
 
 .label {
@@ -17,4 +18,29 @@
   flex: 1 1 auto;
   font-size: $font-size-base;
   min-width: 0;
+}
+
+.wrapRoot {
+  flex: 1;
+  margin-bottom: var(--spacing-2xl);
+  position: relative;
+  @include flexColumn;
+}
+
+.wrapOption {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+}
+
+.wrapInput {
+  cursor: pointer;
+  flex-shrink: 0;
+  height: 1.25rem;
+  margin-right: var(--spacing-md);
+  width: 1.25rem;
+}
+
+.wrapLabelText {
+  font-size: var(--font-size-base);
 }

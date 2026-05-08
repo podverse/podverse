@@ -1,11 +1,9 @@
 'use client';
 
 import type { DTOAccount } from '@podverse/helpers';
+import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
 
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { SideContent } from '../../components/SideContent/SideContent';
 import type { ProfilesPageQueryParams } from './ProfilesPageContext';
 import { ProfilesPageContextProvider } from './ProfilesPageContext';
 import { ProfilesPageHeader } from './ProfilesPageHeader';
@@ -28,12 +26,12 @@ export function ProfilesPageClient(props: ProfilesPageClientProps) {
     >
       <ProfilesPageHeader />
       <MainWrapper>
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             <ProfilesPageList />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </ProfilesPageContextProvider>
   );

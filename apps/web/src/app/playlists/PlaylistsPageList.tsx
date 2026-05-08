@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { ListPlaylists } from '../../components/List/Playlists/ListPlaylists';
-import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { WebLoadingSpinnerOverlay } from '../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { usePlaylistsPageContext } from './PlaylistsPageContext';
 
 export const PlaylistsPageList: React.FC = () => {
@@ -22,7 +22,7 @@ export const PlaylistsPageList: React.FC = () => {
         type={type}
         showCreator={showCreator}
       />
-      <LoadingSpinnerOverlay isLoading={isLoading} />
+      <WebLoadingSpinnerOverlay isLoading={isLoading} />
     </>
   );
 };

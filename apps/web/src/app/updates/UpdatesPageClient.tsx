@@ -1,9 +1,8 @@
 import ReactMarkdown from 'react-markdown';
 
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
+import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
+
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { SideContent } from '../../components/SideContent/SideContent';
 
 type UpdatesPageClientProps = {
   markdownContent: string;
@@ -12,14 +11,14 @@ type UpdatesPageClientProps = {
 export function UpdatesPageClient({ markdownContent }: UpdatesPageClientProps) {
   return (
     <MainWrapper>
-      <MainInnerWrapper>
+      <MainSidebarLayout>
         <SideContent />
-        <MainInnerContentWrapper>
+        <MainColumnStack>
           <div className="markdown">
             <ReactMarkdown>{markdownContent}</ReactMarkdown>
           </div>
-        </MainInnerContentWrapper>
-      </MainInnerWrapper>
+        </MainColumnStack>
+      </MainSidebarLayout>
     </MainWrapper>
   );
 }

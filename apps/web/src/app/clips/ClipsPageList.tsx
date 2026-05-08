@@ -3,9 +3,9 @@ import React from 'react';
 
 import type { DTOCategory } from '@podverse/helpers';
 
-import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
+import { HowToStartInfo } from '../../components/HowToStartInfo/HowToStartInfo';
 import { ListClips } from '../../components/List/Clips/ListClips';
-import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { WebLoadingSpinnerOverlay } from '../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { ModalCategoriesSelect } from '../../components/Modal/ModalCategoriesSelect';
 import { ROUTES } from '../../constants/routes';
 import { onClickCategory } from '../../utils/categories';
@@ -51,7 +51,7 @@ export const ClipsPageList: React.FC = () => {
         category={category}
         showItemInfo
       />
-      <LoadingSpinnerOverlay isLoading={isLoading} />
+      <WebLoadingSpinnerOverlay isLoading={isLoading} />
       <ModalCategoriesSelect
         isOpen={showCategoriesModal}
         onCategoryClick={handleOnClickCategory}

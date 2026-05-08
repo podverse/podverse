@@ -12,24 +12,26 @@ import {
 } from '@podverse/helpers';
 import { getStatusCodeFromError } from '@podverse/helpers-requests';
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
-import { Divider } from '@podverse/ui';
+import {
+  CallToActionMessage,
+  DescriptionRenderer,
+  Divider,
+  Dropdown,
+  MainColumnStack,
+  MainSidebarLayout,
+  SideContent,
+} from '@podverse/ui';
 
 import { AddByRSSLivestreamNodes } from '../../../components/AddByRSS/Livestream/AddByRSSLivestreamNodes';
 import { AddByRSSPodcastHeader } from '../../../components/AddByRSS/Podcast/AddByRSSPodcastHeader';
 import { AddByRSSEpisodeNodes } from '../../../components/AddByRSS/Podcast/Episode/AddByRSSEpisodeNodes';
 import { BoostMessagesSection } from '../../../components/Boost/messages/BoostMessagesSection';
 import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
-import { CallToActionMessage } from '../../../components/CallToActionMessage/CallToActionMessage';
-import { DescriptionRenderer } from '../../../components/Description/DescriptionRenderer';
-import Dropdown from '../../../components/Dropdown/Dropdown';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
-import Pagination from '../../../components/Pagination/Pagination';
+import { Pagination } from '../../../components/Pagination/Pagination';
 import { RSSFeedSettingsSection } from '../../../components/Settings/RSSFeedSettingsSection';
 import { SettingsWrapper } from '../../../components/Settings/SettingsWrapper';
-import { SideContent } from '../../../components/SideContent/SideContent';
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
 import { applyAddByRSSParseStatus, pollAddByRSSParseStatus } from '../../../utils/addByRSS/actions';
@@ -353,9 +355,9 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
   return (
     <MainWrapper>
       <AddByRSSPodcastHeader feed={localFeed} />
-      <MainInnerWrapper>
+      <MainSidebarLayout>
         <SideContent />
-        <MainInnerContentWrapper>
+        <MainColumnStack>
           <AddByRSSPodcastPageListHeader
             selectedKey={activeTab}
             onSelect={handleTabSelect}
@@ -422,8 +424,8 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
               </SettingsWrapper>
             )}
           </DetailListWrapper>
-        </MainInnerContentWrapper>
-      </MainInnerWrapper>
+        </MainColumnStack>
+      </MainSidebarLayout>
     </MainWrapper>
   );
 };

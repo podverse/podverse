@@ -12,12 +12,14 @@ import {
   Alert,
   Breadcrumbs,
   Button,
-  ConfirmPanel,
   ConfirmPanelActions,
   DescriptionList,
   DescriptionListRow,
-  LoadingText,
+  Divider,
+  LoadingSpinner,
   ManagementPageShell,
+  Modal,
+  PageHeaderActions,
 } from '@podverse/ui';
 
 import { canDeleteStorage } from '../../../../lib/managementPermissions';
@@ -130,7 +132,7 @@ export function StorageObjectDetailPageClient({ objectKey }: StorageObjectDetail
       {loadError !== null ? <Alert variant="error">{loadError}</Alert> : null}
 
       {loading ? (
-        <LoadingText>{t('loading')}</LoadingText>
+        <LoadingSpinner ariaLabel={t('loading')} />
       ) : meta !== null ? (
         <>
           <DescriptionList variant="rows">
@@ -153,54 +155,64 @@ export function StorageObjectDetailPageClient({ objectKey }: StorageObjectDetail
             <DescriptionListRow detail={meta.etag ?? '—'} term={t('detail.fields.etag')} />
           </DescriptionList>
 
-          <p>
+          <Divider withSpacing />
+
+          <PageHeaderActions>
             <a download href={getStorageObjectDownloadUrl(objectKey)}>
               {t('download')}
             </a>
-          </p>
 
-          {canDelete ? (
-            <>
-              <Button onClick={() => setConfirmOpen(true)} type="button" variant="secondary">
+            {canDelete ? (
+              <Button
+                onClick={() => {
+                  setConfirmOpen(true);
+                }}
+                type="button"
+                variant="danger"
+              >
                 {t('delete')}
               </Button>
+            ) : null}
 
-              {confirmOpen ? (
-                <div role="dialog" aria-label={t('deleteConfirmAria')}>
-                  <ConfirmPanel>
-                    <p>{t('deleteConfirmBody', { key: objectKey })}</p>
-                    <ConfirmPanelActions>
-                      <Button
-                        onClick={() => {
-                          setConfirmOpen(false);
-                        }}
-                        type="button"
-                        variant="secondary"
-                      >
-                        {tc('cancel')}
-                      </Button>
-                      <Button
-                        disabled={deleteBusy}
-                        onClick={() => {
-                          void runDelete();
-                        }}
-                        type="button"
-                        variant="primary"
-                      >
-                        {deleteBusy ? t('deleting') : tc('confirm')}
-                      </Button>
-                    </ConfirmPanelActions>
-                  </ConfirmPanel>
-                </div>
-              ) : null}
-            </>
-          ) : null}
-
-          <p>
             <ActionLink href="/storage" LinkComponent={Link} variant="subtle">
               {t('backToList')}
             </ActionLink>
-          </p>
+          </PageHeaderActions>
+
+          {canDelete ? (
+            <Modal
+              ariaLabel={t('deleteConfirmAria')}
+              closeButtonAriaLabel={tc('closeModalAria')}
+              isOpen={confirmOpen}
+              onClose={() => {
+                setConfirmOpen(false);
+              }}
+            >
+              <p>{t('deleteConfirmBody', { key: objectKey })}</p>
+              <ConfirmPanelActions>
+                <Button
+                  disabled={deleteBusy}
+                  onClick={() => {
+                    setConfirmOpen(false);
+                  }}
+                  type="button"
+                  variant="secondary"
+                >
+                  {tc('cancel')}
+                </Button>
+                <Button
+                  isLoading={deleteBusy}
+                  onClick={() => {
+                    void runDelete();
+                  }}
+                  type="button"
+                  variant="danger"
+                >
+                  {tc('confirm')}
+                </Button>
+              </ConfirmPanelActions>
+            </Modal>
+          ) : null}
         </>
       ) : null}
     </ManagementPageShell>

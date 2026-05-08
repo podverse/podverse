@@ -13,7 +13,7 @@ import { ListClips } from '../../../components/List/Clips/ListClips';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { ListItemChapters } from '../../../components/List/ItemChapters/ListItemChapters';
 import { ListItemSoundbites } from '../../../components/List/ItemSoundbites/ListItemSoundbites';
-import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { WebLoadingSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { useEpisodePageContext } from './EpisodePageContext';
 
 const ItemTranscript = dynamic(
@@ -105,7 +105,7 @@ export const EpisodePageList: React.FC<EpisodePageListProps> = ({
       {type === 'transcript' && (
         <ItemTranscript autoScrollOn={autoScrollOn} rows={transcriptRows} />
       )}
-      <LoadingSpinnerOverlay isLoading={isLoading} />
+      <WebLoadingSpinnerOverlay isLoading={isLoading} />
     </DetailListWrapper>
   );
 };

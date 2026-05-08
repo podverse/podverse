@@ -6,9 +6,9 @@ import {
   buildDTOChannelImageLoadCandidates,
   mergeDTOItemThenChannelImageCandidates,
 } from '@podverse/helpers';
+import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../constants/images';
-import { SkeletonFlashImage } from '../Image/SkeletonFlashImage';
 
 import styles from '../../styles/components/MediaHeaderMini/MediaHeaderMini.module.scss';
 

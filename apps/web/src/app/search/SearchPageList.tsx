@@ -3,7 +3,7 @@
 import React from 'react';
 
 import { ListSearchResultsPodcastIndexFeeds } from '../../components/List/SearchResults/ListSearchResultsPodcastIndexFeeds';
-import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { WebLoadingSpinnerOverlay } from '../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { useSearchPageContext } from './SearchPageContext';
 
 export const SearchPageList: React.FC = () => {
@@ -12,7 +12,7 @@ export const SearchPageList: React.FC = () => {
   return (
     <>
       <ListSearchResultsPodcastIndexFeeds searchResultPodcastIndexFeeds={searchResultFeeds} />
-      <LoadingSpinnerOverlay isLoading={isLoading} />
+      <WebLoadingSpinnerOverlay isLoading={isLoading} />
     </>
   );
 };

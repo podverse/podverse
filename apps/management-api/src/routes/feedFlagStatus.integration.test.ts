@@ -131,6 +131,7 @@ const {
   findByPi,
   findById,
   findByUrl,
+  listForTable,
   listLs,
   listCt,
   listTk,
@@ -142,6 +143,7 @@ const {
   findByPi: vi.fn(),
   findById: vi.fn(),
   findByUrl: vi.fn(),
+  listForTable: vi.fn(),
   listLs: vi.fn(async () => [{ state_key: 'active' }]),
   listCt: vi.fn(async () => [{ condition_key: 'spam_detected' }]),
   listTk: vi.fn(async () => [{ reason: 'copyright' }]),
@@ -167,6 +169,7 @@ vi.mock('@mgmt-api/lib/feed/feedFlagStatusAppDb.js', () => ({
   findFeedByPodcastIndexId: (id: number) => findByPi(id),
   findFeedByInternalId: (id: number) => findById(id),
   findFeedByUrl: (u: string) => findByUrl(u),
+  listFeedOperationsForTable: (args: unknown) => listForTable(args),
   listLifecycleStateOptions: () => listLs(),
   listConditionTypeOptions: () => listCt(),
   listTakedownReasonOptions: () => listTk(),
@@ -209,6 +212,8 @@ describe('feed-operations routes', () => {
     findByPi.mockReset();
     findById.mockReset();
     findByUrl.mockReset();
+    listForTable.mockReset();
+    listForTable.mockResolvedValue({ feeds: [sampleFeed], total: 1 });
     listLs.mockClear();
     listCt.mockClear();
     listTk.mockClear();
@@ -226,6 +231,44 @@ describe('feed-operations routes', () => {
           }
         : null
     );
+  });
+
+  it('GET /list returns feeds and pagination for superuser', async () => {
+    const res = await request(app).get(`${opBase}/list`).set(adminAuthHeaders(1));
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body.feeds)).toBe(true);
+    expect(res.body.feeds.length).toBe(1);
+    expect(res.body.pagination.total).toBe(1);
+    expect(res.body.pagination.page).toBe(1);
+    expect(listForTable).toHaveBeenCalled();
+  });
+
+  it('GET /list returns 403 without feed read permission', async () => {
+    const res = await request(app).get(`${opBase}/list`).set(adminAuthHeaders(3));
+    expect(res.status).toBe(403);
+  });
+
+  it('GET /list passes sort and order to listFeedOperationsForTable', async () => {
+    await request(app)
+      .get(`${opBase}/list`)
+      .query({ sort: 'podcast_index_id', order: 'asc', limit: 10, page: 2 })
+      .set(adminAuthHeaders(1));
+    expect(listForTable).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sort: 'podcast_index_id',
+        order: 'asc',
+        limit: 10,
+        page: 2,
+      })
+    );
+  });
+
+  it('GET /list returns 400 for invalid sort key', async () => {
+    const res = await request(app)
+      .get(`${opBase}/list`)
+      .query({ sort: 'not_a_column' })
+      .set(adminAuthHeaders(1));
+    expect(res.status).toBe(400);
   });
 
   it('GET /options returns lifecycle, condition, and takedown reason options for superuser', async () => {

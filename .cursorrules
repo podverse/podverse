@@ -11,6 +11,7 @@ See `.llm/context/architecture.md`. Lower tiers cannot depend on higher.
 ## Code Quality
 
 - No `any` types
+- **Shared UI:** Prefer `@podverse/ui` for reusable primitives in web and management-web. When both apps overlap, implement once in `packages/ui` and **prefer the web app’s existing visual baseline** when merging styles unless a11y/product docs say otherwise (see `.cursor/rules/prefer-shared-ui-web-management.mdc`, **`reusable-components`**, and **`ui-component-promotion`** when extracting between apps).
 - DTOs from `@podverse/helpers`
 - Follow `tsconfig.base.json`
 - Use ESM formatting (`.js` extensions in relative imports; `"type": "module"` where applicable)
@@ -18,6 +19,7 @@ See `.llm/context/architecture.md`. Lower tiers cannot depend on higher.
 - **Strict equality**: Use `===` and `!==` only (no `==` or `!=`). For "not null or undefined" use `x !== null && x !== undefined` (or optional chaining / truthiness where appropriate).
 - **Avoid type assertions (`as`)**: Prefer proper types, optional chaining, type guards, or narrowing so the type system enforces correctness. Use `as` only when there is no better way (e.g. necessary escape hatch); keep such use minimal and documented.
 - **Named exports**: Prefer named `export` in TypeScript modules; avoid `export default` when a named export works. Framework-required defaults (e.g. Next.js `page.tsx`) are the exception. See `.cursor/skills/prefer-named-exports/SKILL.md`.
+- **CSS `var()`:** Do not use fallback arguments in SCSS/CSS (`var(--token, …)`); see `.cursor/rules/css-custom-properties-no-var-fallbacks.mdc`.
 
 ## Commands / Terminal
 

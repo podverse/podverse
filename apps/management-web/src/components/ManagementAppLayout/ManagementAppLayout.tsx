@@ -1,11 +1,11 @@
 import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
 
-import { NavBar } from '@podverse/ui';
+import { AppWrapper } from '@podverse/ui';
 
-import { DashboardNavRight } from '../../app/(management)/dashboard/DashboardNavRight';
 import { getConfig } from '../../config';
 import { getManagementSessionUser } from '../../lib/auth/serverManagementSession';
+import { ManagementNavBar } from '../ManagementNavBar/ManagementNavBar';
 
 import styles from './managementAppLayout.module.scss';
 
@@ -23,16 +23,9 @@ export async function ManagementAppLayout({ children }: ManagementAppLayoutProps
   const brandName = config.public.brand.name ?? 'Management';
 
   return (
-    <>
-      <NavBar
-        brand={
-          <a href="/dashboard" className={styles.brandLink}>
-            {brandName}
-          </a>
-        }
-        right={<DashboardNavRight user={user} />}
-      />
-      {children}
-    </>
+    <div className={styles.shell}>
+      <ManagementNavBar brandName={brandName} user={user} />
+      <AppWrapper direction="column">{children}</AppWrapper>
+    </div>
   );
 }

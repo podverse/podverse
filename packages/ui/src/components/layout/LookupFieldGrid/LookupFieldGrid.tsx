@@ -20,3 +20,5 @@ export function LookupFieldSpacerLabel({ className, ...rest }: LookupFieldSpacer
 export const lookupFieldGridControlClass = styles.inlineControl;
 export const lookupFieldGridButtonClass = styles.inlineControlButton;
 export const lookupFieldGridFormBlockClass = styles.formBlock;
+/** Wrap a native `<select>` when it sits beside {@link TextInput} so heights match shared form chrome. */
+export const lookupFieldGridNativeSelectWrapClass = styles.nativeSelectFormChrome;

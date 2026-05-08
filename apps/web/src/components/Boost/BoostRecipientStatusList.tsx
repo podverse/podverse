@@ -1,4 +1,4 @@
-import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
+import { WebLoadingSpinnerDecorativeSmall } from '../LoadingSpinner/WebLoadingSpinnerDecorative';
 import type { RecipientStatus } from './types.js';
 
 import styles from '../../styles/components/Boost/BoostForm.module.scss';
@@ -40,7 +40,7 @@ export const BoostRecipientStatusList = ({
             {recipient.status === 'paying' && (
               <span className={styles.statusPayingRow}>
                 {tValue('boost_messages.status_paying')}
-                <LoadingSpinner size="small" />
+                <WebLoadingSpinnerDecorativeSmall />
               </span>
             )}
             {recipient.status === 'success' && tValue('boost_messages.status_success')}

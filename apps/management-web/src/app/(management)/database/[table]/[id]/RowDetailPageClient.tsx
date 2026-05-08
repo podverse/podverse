@@ -10,17 +10,17 @@ import {
   Alert,
   Breadcrumbs,
   Button,
+  ConfirmPanelActions,
   DescriptionList,
   DescriptionListRow,
   FormContainer,
-  FormGroup,
   FormPrimaryActions,
   FormStack,
-  Input,
-  Label,
   ManagementPageShell,
+  Modal,
   PageHeaderActions,
   StatusBadge,
+  TextInput,
 } from '@podverse/ui';
 
 import {
@@ -49,6 +49,8 @@ export function RowDetailPageClient({ tableName, rowId, initialRow }: RowDetailP
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState<Record<string, unknown>>({});
   const [loading, setLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const t = useTranslations('database');
@@ -121,11 +123,8 @@ export function RowDetailPageClient({ tableName, rowId, initialRow }: RowDetailP
     }
   };
 
-  const handleDelete = async () => {
-    if (!confirm(t('deleteConfirm'))) {
-      return;
-    }
-    setLoading(true);
+  const runConfirmedRowDelete = async () => {
+    setDeleteLoading(true);
     setError(null);
 
     try {
@@ -137,7 +136,9 @@ export function RowDetailPageClient({ tableName, rowId, initialRow }: RowDetailP
           ? (err as { response?: { data?: { message?: unknown } } }).response?.data?.message
           : undefined;
       setError(typeof raw === 'string' && raw.length > 0 ? raw : t('failedToDeleteRow'));
-      setLoading(false);
+      setDeleteConfirmOpen(false);
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -177,7 +178,7 @@ export function RowDetailPageClient({ tableName, rowId, initialRow }: RowDetailP
       }
     >
       <FormStack>
-        {error && <Alert>{error}</Alert>}
+        <Alert>{error}</Alert>
         {success && <Alert variant="success">{t('rowUpdatedSuccessfully')}</Alert>}
 
         {!editing ? (
@@ -193,17 +194,17 @@ export function RowDetailPageClient({ tableName, rowId, initialRow }: RowDetailP
             </DescriptionList>
             <PageHeaderActions>
               {!meta?.readOnly && updatableFields.length > 0 && (
-                <Button onClick={startEditing} disabled={loading}>
+                <Button disabled={loading || deleteLoading} onClick={startEditing}>
                   {tc('edit')}
                 </Button>
               )}
               {!meta?.readOnly && (
                 <Button
+                  disabled={loading || deleteLoading}
                   onClick={() => {
-                    void handleDelete();
+                    setDeleteConfirmOpen(true);
                   }}
                   variant="danger"
-                  disabled={loading}
                 >
                   {tc('delete')}
                 </Button>
@@ -217,20 +218,16 @@ export function RowDetailPageClient({ tableName, rowId, initialRow }: RowDetailP
         ) : (
           <FormContainer onSubmit={(e) => void handleUpdate(e)}>
             {updatableFields.map((field: TableFieldMeta) => (
-              <FormGroup key={field.name}>
-                <Label htmlFor={`edit-${field.name}`}>
-                  {field.name}
-                  {!field.nullable ? <span aria-hidden="true"> *</span> : null}
-                </Label>
-                <Input
-                  id={`edit-${field.name}`}
-                  type="text"
-                  value={String(formData[field.name] ?? '')}
-                  onChange={(e) => handleFieldChange(field.name, e.target.value)}
-                  required={!field.nullable}
-                  placeholder={field.type}
-                />
-              </FormGroup>
+              <TextInput
+                key={field.name}
+                id={`edit-${field.name}`}
+                eyebrow={`${field.name}${!field.nullable ? ' *' : ''}`}
+                type="text"
+                value={String(formData[field.name] ?? '')}
+                onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                required={!field.nullable}
+                placeholder={field.type}
+              />
             ))}
             <FormPrimaryActions>
               <Button type="button" onClick={cancelEditing} variant="link">
@@ -243,6 +240,37 @@ export function RowDetailPageClient({ tableName, rowId, initialRow }: RowDetailP
           </FormContainer>
         )}
       </FormStack>
+
+      <Modal
+        ariaLabel={t('deleteConfirmAria')}
+        closeButtonAriaLabel={tc('closeModalAria')}
+        isOpen={deleteConfirmOpen}
+        onClose={() => {
+          setDeleteConfirmOpen(false);
+        }}
+      >
+        <p>{t('deleteConfirm')}</p>
+        <ConfirmPanelActions>
+          <Button
+            disabled={deleteLoading}
+            onClick={() => {
+              setDeleteConfirmOpen(false);
+            }}
+            type="button"
+            variant="secondary"
+          >
+            {tc('cancel')}
+          </Button>
+          <Button
+            isLoading={deleteLoading}
+            onClick={() => void runConfirmedRowDelete()}
+            type="button"
+            variant="primary"
+          >
+            {tc('confirm')}
+          </Button>
+        </ConfirmPanelActions>
+      </Modal>
     </ManagementPageShell>
   );
 }

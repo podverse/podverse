@@ -4,9 +4,9 @@ import React from 'react';
 
 import type { DTOChannel } from '@podverse/helpers';
 import { buildDTOChannelImageLoadCandidates } from '@podverse/helpers';
+import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
-import { SkeletonFlashImage } from '../../Image/SkeletonFlashImage';
 
 import styles from '../../../styles/components/Common/Media/Podcast/PodcastHeaderImage.module.scss';
 

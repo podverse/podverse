@@ -2,21 +2,20 @@ import { cookies } from 'next/headers';
 
 import type { QueueResourcesAbridgedIndex } from '@podverse/helpers';
 import { generateQueueResourceAbridgedIndex } from '@podverse/helpers';
+import { AppWrapper, PageWrapper } from '@podverse/ui';
 
-import { AppWrapper } from '../components/App/AppWrapper';
-import AuthSessionChecker from '../components/Auth/AuthSessionChecker';
+import { AuthSessionChecker } from '../components/Auth/AuthSessionChecker';
 import { MembershipExpiredBanner } from '../components/Banner/MembershipExpiredBanner';
-import FavIcons from '../components/Head/FavIcons';
-import FontPreloads from '../components/Head/FontPreloads';
-import RuntimeConfigScript from '../components/Head/RuntimeConfigScript';
+import { FavIcons } from '../components/Head/FavIcons';
+import { FontPreloads } from '../components/Head/FontPreloads';
+import { RuntimeConfigScript } from '../components/Head/RuntimeConfigScript';
 import { LazyLoadedComponents } from '../components/LazyLoadedComponents/LazyLoadedComponents';
 import { MediaPlayerController } from '../components/MediaPlayer/Controller/MediaPlayerController';
-import NavBar from '../components/NavBar/NavBar';
-import PageWrapper from '../components/PageWrapper/PageWrapper';
+import { NavBar } from '../components/NavBar/NavBar';
 import { QueueController } from '../components/Queue/QueueController';
 import { QueueResourcesAbridgedController } from '../components/Queue/QueueResourcesAbridgedController';
 import { SideBar } from '../components/SideBar/SideBar';
-import WindowWrapper from '../components/Window/WindowWrapper';
+import { WindowWrapper } from '../components/Window/WindowWrapper';
 import { getConfig } from '../config';
 import { fetchWebRuntimeConfigFromSidecar } from '../config/runtime-config.server';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime-config-store';

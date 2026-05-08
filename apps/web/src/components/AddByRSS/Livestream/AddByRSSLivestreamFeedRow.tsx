@@ -10,10 +10,10 @@ import {
   getQueryParamFromQueueMediumId,
   prependDistinctImageCandidate,
 } from '@podverse/helpers';
+import { ImagesPerView } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
-import { ImagesPerView } from '../../Image/ImagesPerView';
 
 import styles from '../../../styles/components/Common/List/LiveItem/ListLiveItemRow.module.scss';
 

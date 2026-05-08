@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 
-import { MainHeader } from '../../components/Main/MainHeader';
+import { MainHeader } from '@podverse/ui';
 
 export function SearchPageHeader() {
   const tFeatures = useTranslations('features');

@@ -21,11 +21,12 @@ import {
   FormPrimaryActions,
   Input,
   Label,
-  LoadingText,
   ManagementPageShell,
   Select,
+  TextInput,
 } from '@podverse/ui';
 
+import { ManagementLoadingSpinnerFull } from '../../../../components/LoadingSpinner/ManagementLoadingSpinnerFull';
 import {
   computeDefaultExpiryInput,
   fallbackProductMembershipFromEnv,
@@ -241,7 +242,7 @@ export function NewUserPageClient() {
   if (!resolvedProductMembership) {
     return (
       <ManagementPageShell headerChildren={createUserBreadcrumbs} title={t('createUser')}>
-        <LoadingText>{tc('loading')}</LoadingText>
+        <ManagementLoadingSpinnerFull />
       </ManagementPageShell>
     );
   }
@@ -288,41 +289,32 @@ export function NewUserPageClient() {
   return (
     <ManagementPageShell headerChildren={createUserBreadcrumbs} title={t('createUser')}>
       <FormContainer onSubmit={(e) => void handleSubmit(e)}>
-        <FormGroup>
-          <Label htmlFor="username">{t('usernameOptional')}</Label>
-          <Input
-            id="username"
-            autoComplete="off"
-            className={fieldPrimitiveClasses.input}
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-        </FormGroup>
-        <FormGroup>
-          <Label htmlFor="email">{t('emailOptional')}</Label>
-          <Input
-            id="email"
-            autoComplete="off"
-            className={fieldPrimitiveClasses.input}
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </FormGroup>
+        <TextInput
+          id="username"
+          autoComplete="off"
+          eyebrow={t('usernameOptional')}
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <TextInput
+          id="email"
+          autoComplete="off"
+          eyebrow={t('emailOptional')}
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
         <FormHintText variant="block">{t('emailOrUsernameHint')}</FormHintText>
-        <FormGroup>
-          <Label htmlFor="password">{t('passwordOptional')}</Label>
-          <Input
-            id="password"
-            autoComplete="new-password"
-            className={fieldPrimitiveClasses.input}
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <FormHintText>{t('passwordInviteHint')}</FormHintText>
-        </FormGroup>
+        <TextInput
+          id="password"
+          autoComplete="new-password"
+          eyebrow={t('passwordOptional')}
+          info={t('passwordInviteHint')}
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
         <FormGroup>
           <Label htmlFor="membership-id">{t('membershipForm.membershipStatus')}</Label>
           <Select
@@ -364,16 +356,13 @@ export function NewUserPageClient() {
             <FormHintText>{t('membershipForm.premiumBillingCadenceHint')}</FormHintText>
           </FormGroup>
         )}
-        <FormGroup>
-          <Label htmlFor="membership-expires-at">{t('membershipForm.membershipExpiresAt')}</Label>
-          <Input
-            id="membership-expires-at"
-            className={fieldPrimitiveClasses.input}
-            type="datetime-local"
-            value={membershipExpiresAt}
-            onChange={(e) => setMembershipExpiresAt(e.target.value)}
-          />
-        </FormGroup>
+        <TextInput
+          id="membership-expires-at"
+          eyebrow={t('membershipForm.membershipExpiresAt')}
+          type="datetime-local"
+          value={membershipExpiresAt}
+          onChange={(e) => setMembershipExpiresAt(e.target.value)}
+        />
         <FormGroup>
           <CheckboxField
             label={t('membershipForm.configureAdvancedOverrides')}
@@ -416,52 +405,38 @@ export function NewUserPageClient() {
                 })}
               </FormHintText>
             </FormGroup>
-            <FormGroup>
-              <Label htmlFor="max-add-by-rss-feeds">
-                {t('advancedOverrides.addByRssFeedLimit')}
-              </Label>
-              <Input
-                id="max-add-by-rss-feeds"
-                className={fieldPrimitiveClasses.input}
-                min={0}
-                type="number"
-                value={maxAddByRSSFeeds}
-                onChange={(e) => setMaxAddByRSSFeeds(e.target.value)}
-                placeholder={t('advancedOverrides.placeholderTierDefault', {
-                  count: rssPlaceholder,
-                })}
-              />
-              <FormHintText>
-                {t('advancedOverrides.addByRssFeedLimitHelp', {
-                  trialDefault: trialEnt.maxAddByRSSFeeds,
-                  premiumDefault: premiumEnt.maxAddByRSSFeeds,
-                  selectedDefault: selectedEnt.maxAddByRSSFeeds,
-                })}
-              </FormHintText>
-            </FormGroup>
-            <FormGroup>
-              <Label htmlFor="max-manual-refreshes">
-                {t('advancedOverrides.manualRefreshPerHour')}
-              </Label>
-              <Input
-                id="max-manual-refreshes"
-                className={fieldPrimitiveClasses.input}
-                min={0}
-                type="number"
-                value={maxManualRefreshesPerHour}
-                onChange={(e) => setMaxManualRefreshesPerHour(e.target.value)}
-                placeholder={t('advancedOverrides.placeholderTierDefault', {
-                  count: refreshPlaceholder,
-                })}
-              />
-              <FormHintText>
-                {t('advancedOverrides.manualRefreshPerHourHelp', {
-                  trialDefault: trialEnt.maxManualRefreshesPerHour,
-                  premiumDefault: premiumEnt.maxManualRefreshesPerHour,
-                  selectedDefault: selectedEnt.maxManualRefreshesPerHour,
-                })}
-              </FormHintText>
-            </FormGroup>
+            <TextInput
+              id="max-add-by-rss-feeds"
+              eyebrow={t('advancedOverrides.addByRssFeedLimit')}
+              info={t('advancedOverrides.addByRssFeedLimitHelp', {
+                trialDefault: trialEnt.maxAddByRSSFeeds,
+                premiumDefault: premiumEnt.maxAddByRSSFeeds,
+                selectedDefault: selectedEnt.maxAddByRSSFeeds,
+              })}
+              min={0}
+              placeholder={t('advancedOverrides.placeholderTierDefault', {
+                count: rssPlaceholder,
+              })}
+              type="number"
+              value={maxAddByRSSFeeds}
+              onChange={(e) => setMaxAddByRSSFeeds(e.target.value)}
+            />
+            <TextInput
+              id="max-manual-refreshes"
+              eyebrow={t('advancedOverrides.manualRefreshPerHour')}
+              info={t('advancedOverrides.manualRefreshPerHourHelp', {
+                trialDefault: trialEnt.maxManualRefreshesPerHour,
+                premiumDefault: premiumEnt.maxManualRefreshesPerHour,
+                selectedDefault: selectedEnt.maxManualRefreshesPerHour,
+              })}
+              min={0}
+              placeholder={t('advancedOverrides.placeholderTierDefault', {
+                count: refreshPlaceholder,
+              })}
+              type="number"
+              value={maxManualRefreshesPerHour}
+              onChange={(e) => setMaxManualRefreshesPerHour(e.target.value)}
+            />
             <FormGroup>
               <Label htmlFor="track-stats">{t('advancedOverrides.trackStats')}</Label>
               <Select
@@ -524,7 +499,7 @@ export function NewUserPageClient() {
             </FormGroup>
           </>
         )}
-        {error && <Alert>{error}</Alert>}
+        <Alert>{error}</Alert>
         {successMessage && <Alert variant="success">{successMessage}</Alert>}
         <FormPrimaryActions>
           <ActionLink href="/users" variant="subtle" LinkComponent={Link}>

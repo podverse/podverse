@@ -4,13 +4,14 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import { CallToActionMessage, Modal, MODAL_CONTENT_MAX_WIDTH } from '@podverse/ui';
+
 import { useModals } from '../../contexts/Modals';
-import { CallToActionMessage } from '../CallToActionMessage/CallToActionMessage';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 
 export const ModalLoginRequired: React.FC = () => {
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
+  const tMisc = useTranslations('misc');
   const header = tInstructions('login_required');
   const { modalLoginRequired, setModalLoginRequired, setModalAuthLogin } = useModals();
   const router = useRouter();
@@ -41,6 +42,7 @@ export const ModalLoginRequired: React.FC = () => {
     <Modal
       isOpen={!!modalLoginRequired.message}
       onClose={clearModalLoginRequired}
+      closeButtonAriaLabel={tMisc('close_modal')}
       header={header}
       ariaLabel={header}
       modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}

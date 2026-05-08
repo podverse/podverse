@@ -5,9 +5,7 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 import { FaPlus } from 'react-icons/fa6';
 
-import { Button } from '@podverse/ui';
-
-import { MainHeader } from '../../components/Main/MainHeader';
+import { Button, MainHeader } from '@podverse/ui';
 
 import styles from '../../styles/app/playlists/PlaylistsHeader.module.scss';
 

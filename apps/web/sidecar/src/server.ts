@@ -61,6 +61,7 @@ const optionalKeys = [
   'NEXT_PUBLIC_BRAND_THEME_COLOR',
   'NEXT_PUBLIC_CONTACT_EMAIL',
   'NEXT_PUBLIC_IMAGE_PROXY_ENABLED',
+  'NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED',
   'NEXT_PUBLIC_POLLING_INTERVAL_MS',
   'NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS',
   'NEXT_PUBLIC_PROXY_USER_AGENT',
@@ -140,7 +141,10 @@ function validateOne(key: string, isRequired: boolean): ValidationResult {
     }
     return validateProxyUserAgent(key, category);
   }
-  if (key === 'NEXT_PUBLIC_IMAGE_PROXY_ENABLED') {
+  if (
+    key === 'NEXT_PUBLIC_IMAGE_PROXY_ENABLED' ||
+    key === 'NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED'
+  ) {
     const value = process.env[key] ?? '';
     if (value.trim() === '') {
       return {
@@ -222,6 +226,7 @@ function getCategory(key: string): string {
     NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE: 'Features',
     NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES: 'Features',
     NEXT_PUBLIC_IMAGE_PROXY_ENABLED: 'Proxy',
+    NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED: 'Proxy',
     NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS: 'Proxy',
     NEXT_PUBLIC_PROXY_USER_AGENT: 'Proxy',
     NEXT_PUBLIC_BRAND_APPLE_TOUCH_ICON_URL: 'Brand',

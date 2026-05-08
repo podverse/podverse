@@ -7,16 +7,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { isAlbumMediumId, parseMediumId } from '@podverse/helpers';
 import { createAddByRSSIdText } from '@podverse/helpers';
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
+import { Dropdown, MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
 
 import { AddByRSSArtistHeader } from '../../../components/AddByRSS/Artist/AddByRSSArtistHeader';
 import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
-import Dropdown from '../../../components/Dropdown/Dropdown';
-import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
+import { WebLoadingYourContentSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { NoResults } from '../../../components/NoResults/NoResults';
-import { SideContent } from '../../../components/SideContent/SideContent';
 import { useLocalSettings } from '../../../contexts/LocalSettings';
 import {
   buildAddByRSSItemsIndex,
@@ -83,7 +80,6 @@ type AddByRSSArtistPageClientProps = {
 export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> = ({ idText }) => {
   const tFeatures = useTranslations('features');
   const tFilters = useTranslations('filters');
-  const tMisc = useTranslations('misc');
   const tV4VBoostMessages = useTranslations('v4v.boost_messages');
   const pathname = usePathname();
   const router = useRouter();
@@ -298,18 +294,18 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
   }, [activeTab, canShowBoostTab, handleTabSelect, hasAlbums, hasDescription, hasTracks]);
 
   if (isLoading) {
-    return <LoadingSpinnerOverlay isLoading message={tMisc('loading_your_content')} />;
+    return <WebLoadingYourContentSpinnerOverlay isLoading />;
   }
 
   if (!feed) {
     return (
       <MainWrapper>
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             <NoResults message={tFeatures('add_by_rss.feed_not_found_local')} />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     );
   }
@@ -337,9 +333,9 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
   return (
     <MainWrapper>
       <AddByRSSArtistHeader feed={feed} />
-      <MainInnerWrapper>
+      <MainSidebarLayout>
         <SideContent />
-        <MainInnerContentWrapper>
+        <MainColumnStack>
           <AddByRSSArtistPageListHeader
             selectedKey={activeTab}
             onSelect={handleTabSelect}
@@ -365,8 +361,8 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
               boostsHeading={tV4VBoostMessages('title')}
             />
           )}
-        </MainInnerContentWrapper>
-      </MainInnerWrapper>
+        </MainColumnStack>
+      </MainSidebarLayout>
     </MainWrapper>
   );
 };

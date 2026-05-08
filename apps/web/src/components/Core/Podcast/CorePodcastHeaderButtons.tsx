@@ -10,7 +10,7 @@ import type {
   DTOItemSoundbite,
 } from '@podverse/helpers';
 
-import HeaderButtons from '../../Media/Header/HeaderButtons';
+import { HeaderButtons } from '../../Media/Header/HeaderButtons';
 
 type CorePodcastHeaderButtonsProps = {
   channel: DTOChannel;

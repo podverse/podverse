@@ -1,6 +1,14 @@
 import classNames from 'classnames';
 import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } from 'react';
 
+import {
+  TableIconActionLink,
+  TableIconDeleteButton,
+  TableIconEditLink,
+  TableIconViewLink,
+} from './TableIconActions';
+import { TableSortableHeaderCell } from './TableSortableHeaderCell';
+
 import styles from './Table.module.scss';
 
 type TableProps = {
@@ -103,11 +111,16 @@ export const Table = Object.assign(TableComponent, {
   Body,
   Row,
   HeaderCell,
+  SortableHeaderCell: TableSortableHeaderCell,
   SelectHeaderCell,
   Cell,
   SelectCell,
   RowActions,
   ScrollContainer,
+  IconActionLink: TableIconActionLink,
+  IconViewLink: TableIconViewLink,
+  IconEditLink: TableIconEditLink,
+  IconDeleteButton: TableIconDeleteButton,
 });
 
 export type {
@@ -118,3 +131,7 @@ export type {
   SelectHeaderCellProps,
   TableProps,
 };
+export type {
+  TableSortableHeaderCellProps,
+  TableSortableHeaderSortDirection,
+} from './TableSortableHeaderCell';

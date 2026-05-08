@@ -1,0 +1,30 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.filterRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+}
+
+.filterBar {
+  flex: 1;
+  min-width: min(100%, 280px);
+}
+
+.trailing {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.emptyMessage {
+  margin: 0;
+  padding: var(--spacing-sm) 0;
+}

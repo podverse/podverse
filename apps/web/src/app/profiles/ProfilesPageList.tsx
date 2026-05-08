@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
+import { HowToStartInfo } from '../../components/HowToStartInfo/HowToStartInfo';
 import { ListProfiles } from '../../components/List/Profiles/ListProfiles';
-import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { WebLoadingSpinnerOverlay } from '../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { useProfilesPageContext } from './ProfilesPageContext';
 
 export const ProfilesPageList: React.FC = () => {
@@ -23,7 +23,7 @@ export const ProfilesPageList: React.FC = () => {
         showSubscribeMessage={showSubscribeMessage}
         type={type}
       />
-      <LoadingSpinnerOverlay isLoading={isLoading} />
+      <WebLoadingSpinnerOverlay isLoading={isLoading} />
     </>
   );
 };

@@ -3,12 +3,10 @@
 import { useTranslations } from 'next-intl';
 
 import type { FeedPolicyPrimaryBlockReasonForUi, PodcastByIdFeed } from '@podverse/helpers';
+import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
 
-import { MainInnerContentWrapper } from '../../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../../components/Main/MainWrapper';
 import { PodcastIndexFeedInfo } from '../../../../components/PodcastIndex/PodcastIndexFeedInfo';
-import { SideContent } from '../../../../components/SideContent/SideContent';
 import { getContactEmail } from '../../../../constants/contact';
 import { PodcastIndexFeedHeader } from './PodcastIndexFeedHeader';
 
@@ -47,9 +45,9 @@ export function PodcastIndexFeedClient({
   return (
     <MainWrapper>
       <PodcastIndexFeedHeader />
-      <MainInnerWrapper>
+      <MainSidebarLayout>
         <SideContent />
-        <MainInnerContentWrapper>
+        <MainColumnStack>
           {showBlockedBanner ? (
             <p>
               {t('blocked_feed_banner', {
@@ -59,8 +57,8 @@ export function PodcastIndexFeedClient({
             </p>
           ) : null}
           <PodcastIndexFeedInfo podcastIndexFeed={ssrFeed} />
-        </MainInnerContentWrapper>
-      </MainInnerWrapper>
+        </MainColumnStack>
+      </MainSidebarLayout>
     </MainWrapper>
   );
 }

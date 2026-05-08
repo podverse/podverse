@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -9,44 +10,54 @@ import {
   Alert,
   Breadcrumbs,
   Button,
-  Card,
   CheckboxField,
   CheckboxFieldList,
-  ConfirmPanel,
   ConfirmPanelActions,
   DescriptionList,
   fieldPrimitiveClasses,
   FormContinuationSection,
   FormGroup,
   FormHintText,
-  Input,
+  FormTextArea,
   Label,
-  LoadingText,
+  LeadParagraph,
   LookupFieldGrid,
   lookupFieldGridButtonClass,
   lookupFieldGridControlClass,
   lookupFieldGridFormBlockClass,
+  lookupFieldGridNativeSelectWrapClass,
   LookupFieldSpacerLabel,
   ManagementPageShell,
+  Modal,
   MutedBreakableText,
   PageSection,
+  ResourceTableWithFilter,
   RestrictedNotice,
   SectionHeading,
   Select,
-  TextArea,
+  StatusBadge,
+  Table,
+  TextInput,
 } from '@podverse/ui';
 
+import { ManagementLoadingSpinnerFull } from '../../../../components/LoadingSpinner/ManagementLoadingSpinnerFull';
+import { ManagementLoadingSpinnerSmall } from '../../../../components/LoadingSpinner/ManagementLoadingSpinnerSmall';
+import { useManagementTableChrome } from '../../../../components/Table/managementTableChrome';
+import { ManagementIconButtonLink } from '../../../../lib/ManagementIconButtonLink';
 import {
   canUpdateFeeds,
   feedOperationsRequireConfirm,
   LIFECYCLE_TAKEDOWN_KEY,
 } from '../../../../lib/managementPermissions';
+import { managementSearchParamsObject } from '../../../../lib/managementTableUrl';
 import type { CurrentUser } from '../../../../lib/requests/auth';
 import {
   applyFeedOperationsPolicyState,
+  type FeedOperationsListSortKey,
   type FeedOperationsLookup,
   type FeedOperationsOptionsResponse,
   getFeedOperationOptions,
+  listFeedOperations,
   lookupFeed,
 } from '../../../../lib/requests/feedFlagStatus';
 
@@ -55,6 +66,20 @@ type FlagStatusPageClientProps = {
 };
 
 type SearchMode = 'podcast_index_id' | 'feed_id' | 'url';
+
+const DIRECTORY_PAGE_SIZE = 25;
+
+function directoryLifecycleBadgeVariant(
+  lifecycleKey: string
+): 'danger' | 'neutral' | 'success' | 'warning' {
+  if (lifecycleKey === 'active') {
+    return 'success';
+  }
+  if (lifecycleKey.includes('takedown')) {
+    return 'danger';
+  }
+  return 'neutral';
+}
 
 function buildConditionChecked(
   types: { condition_key: string }[],
@@ -71,6 +96,8 @@ function buildConditionChecked(
 export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
   const t = useTranslations('feedFlagStatus');
   const tc = useTranslations('common');
+  const td = useTranslations('database');
+  const tNav = useTranslations('nav');
   const canUpdate = canUpdateFeeds(user);
   const [options, setOptions] = useState<FeedOperationsOptionsResponse | null>(null);
   const [searchMode, setSearchMode] = useState<SearchMode>('podcast_index_id');
@@ -91,6 +118,25 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
   const [applyMessage, setApplyMessage] = useState<string | null>(null);
   const [applyError, setApplyError] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const [directoryFeeds, setDirectoryFeeds] = useState<FeedOperationsLookup[]>([]);
+  const [directoryTotal, setDirectoryTotal] = useState(0);
+  const [directoryPage, setDirectoryPage] = useState(1);
+  const [directorySortField, setDirectorySortField] = useState<FeedOperationsListSortKey>('id');
+  const [directorySortDir, setDirectorySortDir] = useState<'ASC' | 'DESC'>('DESC');
+  const [directoryLifecycleFilter, setDirectoryLifecycleFilter] = useState('');
+  const [directoryLoading, setDirectoryLoading] = useState(false);
+  const [directoryError, setDirectoryError] = useState<string | null>(null);
+  const [directoryRefresh, setDirectoryRefresh] = useState(0);
+
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const chrome = useManagementTableChrome();
+  const basePath = pathname !== null && pathname !== '' ? pathname : '/feed-operations/flag-status';
+  const currentQueryParams = useMemo(
+    () => managementSearchParamsObject(searchParams),
+    [searchParams]
+  );
 
   useEffect(() => {
     let c = false;
@@ -116,6 +162,54 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
     };
   }, [t]);
 
+  useEffect(() => {
+    if (optionsLoading) {
+      return;
+    }
+    let cancelled = false;
+    const loadDirectory = async () => {
+      setDirectoryLoading(true);
+      setDirectoryError(null);
+      try {
+        const qRaw = searchParams.get('search') ?? '';
+        const res = await listFeedOperations({
+          page: directoryPage,
+          limit: DIRECTORY_PAGE_SIZE,
+          sort: directorySortField,
+          order: directorySortDir === 'ASC' ? 'asc' : 'desc',
+          q: qRaw.trim() !== '' ? qRaw.trim() : undefined,
+          lifecycle:
+            directoryLifecycleFilter.trim() !== '' ? directoryLifecycleFilter.trim() : undefined,
+        });
+        if (!cancelled) {
+          setDirectoryFeeds(res.feeds);
+          setDirectoryTotal(res.pagination.total);
+        }
+      } catch {
+        if (!cancelled) {
+          setDirectoryError(t('directoryLoadError'));
+        }
+      } finally {
+        if (!cancelled) {
+          setDirectoryLoading(false);
+        }
+      }
+    };
+    void loadDirectory();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    optionsLoading,
+    directoryPage,
+    directorySortField,
+    directorySortDir,
+    directoryLifecycleFilter,
+    directoryRefresh,
+    searchParams,
+    t,
+  ]);
+
   const setFeedStateFromLookup = useCallback(
     (nextFeed: FeedOperationsLookup, conditionTypes: { condition_key: string }[]) => {
       setFeed(nextFeed);
@@ -140,6 +234,16 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
       );
     },
     []
+  );
+
+  const openFeedFromDirectoryRow = useCallback(
+    (row: FeedOperationsLookup) => {
+      setLoadError(null);
+      setApplyMessage(null);
+      setApplyError(null);
+      setFeedStateFromLookup(row, options?.condition_types ?? []);
+    },
+    [options?.condition_types, setFeedStateFromLookup]
   );
 
   const performLookup = useCallback(async () => {
@@ -274,6 +378,7 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
             }
           : null
       );
+      setDirectoryRefresh((n) => n + 1);
     } catch (e) {
       const message =
         e && typeof e === 'object' && 'response' in e
@@ -329,10 +434,86 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
     t,
   ]);
 
+  const directoryTotalPages = useMemo(
+    () => Math.max(1, Math.ceil(directoryTotal / DIRECTORY_PAGE_SIZE)),
+    [directoryTotal]
+  );
+
+  const directoryPaginationText = useMemo(() => {
+    if (directoryTotal === 1) {
+      return td('paginationSummarySingular', {
+        total: directoryTotal,
+        page: directoryPage,
+        totalPages: directoryTotalPages,
+      });
+    }
+    return td('paginationSummary', {
+      total: directoryTotal,
+      page: directoryPage,
+      totalPages: directoryTotalPages,
+    });
+  }, [directoryPage, directoryTotal, directoryTotalPages, td]);
+
+  const directoryColumns = useMemo(
+    () => [
+      {
+        header: t('tableFeedId'),
+        id: 'id',
+        label: t('tableFeedId'),
+        sortAriaLabel: chrome.sortAriaForColumn(String(t('tableFeedId'))),
+        sortKey: 'id',
+      },
+      {
+        header: t('tableChannelTitle'),
+        id: 'channel_title',
+        label: t('tableChannelTitle'),
+        sortAriaLabel: chrome.sortAriaForColumn(String(t('tableChannelTitle'))),
+        sortKey: 'channel_title',
+      },
+      {
+        header: t('tablePodcastIndexId'),
+        id: 'podcast_index_id',
+        label: t('tablePodcastIndexId'),
+        sortAriaLabel: chrome.sortAriaForColumn(String(t('tablePodcastIndexId'))),
+        sortKey: 'podcast_index_id',
+      },
+      {
+        header: t('tableLifecycle'),
+        id: 'lifecycle_state_key',
+        label: t('tableLifecycle'),
+        sortAriaLabel: chrome.sortAriaForColumn(String(t('tableLifecycle'))),
+        sortKey: 'lifecycle_state_key',
+      },
+      {
+        header: t('tableUrl'),
+        id: 'url',
+        label: t('tableUrl'),
+        sortAriaLabel: chrome.sortAriaForColumn(String(t('tableUrl'))),
+        sortKey: 'url',
+      },
+    ],
+    [chrome, t]
+  );
+
+  useEffect(() => {
+    const raw = searchParams.get('openFeedId');
+    if (raw === null || raw === '' || options === null) {
+      return;
+    }
+    const id = Number.parseInt(raw, 10);
+    if (Number.isNaN(id)) {
+      return;
+    }
+    const row = directoryFeeds.find((f) => f.id === id);
+    if (row !== undefined) {
+      openFeedFromDirectoryRow(row);
+    }
+  }, [directoryFeeds, openFeedFromDirectoryRow, options, searchParams]);
+
   if (optionsLoading) {
     return (
       <ManagementPageShell title={t('pageTitle')}>
-        <LoadingText>{tc('loading')}</LoadingText>
+        <ManagementLoadingSpinnerFull />
       </ManagementPageShell>
     );
   }
@@ -342,31 +523,158 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
       headerChildren={
         <Breadcrumbs
           LinkComponent={Link}
-          variant="compact"
+          marginBottom="lg"
           navAriaLabel={tc('breadcrumbNav')}
           items={[
-            { href: '/feed-operations/flag-status', label: t('breadcrumbParent') },
+            { href: '/dashboard', label: tNav('dashboard') },
+            { label: t('breadcrumbParent') },
             { label: t('breadcrumbCurrent') },
           ]}
         />
       }
-      subtitle={t('pageSubtitle')}
       title={t('pageTitle')}
     >
+      <LeadParagraph>{t('pageSubtitle')}</LeadParagraph>
+
       {optionsError && <Alert variant="error">{optionsError}</Alert>}
 
+      <PageSection aria-label={t('sectionDirectoryAria')}>
+        <SectionHeading level={2}>{t('directoryHeading')}</SectionHeading>
+        {directoryLoading && <ManagementLoadingSpinnerSmall />}
+        {directoryError && <Alert variant="error">{directoryError}</Alert>}
+        {!directoryLoading && !directoryError && (
+          <ResourceTableWithFilter<FeedOperationsLookup>
+            actions={{
+              LinkComponent: ManagementIconButtonLink,
+              labels: {
+                delete: tc('delete'),
+                edit: tc('edit'),
+                view: t('openFeedRow'),
+              },
+              viewHref: (row) => {
+                const p = new URLSearchParams(searchParams.toString());
+                p.set('openFeedId', String(row.id));
+                const qs = p.toString();
+                return qs !== '' ? `${basePath}?${qs}` : `${basePath}?openFeedId=${String(row.id)}`;
+              },
+            }}
+            allColumnIds={['id', 'channel_title', 'podcast_index_id', 'lifecycle_state_key', 'url']}
+            basePath={basePath}
+            columns={directoryColumns}
+            currentQueryParams={currentQueryParams}
+            deleteConfirm={{
+              cancelLabel: chrome.deleteConfirmLabels.cancelLabel,
+              closeButtonAriaLabel: chrome.deleteConfirmLabels.closeButtonAriaLabel,
+              confirmLabel: chrome.deleteConfirmLabels.confirmLabel,
+              message: () => '',
+              modalAriaLabel: chrome.deleteConfirmLabels.modalAriaLabel,
+            }}
+            emptyMessage={directoryFeeds.length === 0 ? t('directoryEmpty') : undefined}
+            filterableColumnIds={[
+              'id',
+              'channel_title',
+              'podcast_index_id',
+              'lifecycle_state_key',
+              'url',
+            ]}
+            getRowActions={() => ({
+              delete: 'hidden',
+              edit: 'hidden',
+              view: 'enabled',
+            })}
+            getRowKey={(row) => String(row.id)}
+            initialColumns={[
+              'id',
+              'channel_title',
+              'podcast_index_id',
+              'lifecycle_state_key',
+              'url',
+            ]}
+            initialSearch={searchParams.get('search') ?? ''}
+            labels={{
+              ...chrome.filterLabels,
+              actionsColumn: tc('actions'),
+            }}
+            pagination={{
+              currentPage: directoryPage,
+              nextLabel: tc('paginationNextButton'),
+              onPageChange: () => {},
+              pageIndicatorLabel: directoryPaginationText,
+              prevLabel: tc('paginationPrevButton'),
+              refreshOnPage: (newPage) => {
+                setDirectoryPage(newPage);
+              },
+              totalPages: directoryTotalPages,
+            }}
+            paginationMode="page"
+            renderCells={(row) => (
+              <>
+                <Table.Cell>{row.id}</Table.Cell>
+                <Table.Cell>{row.channel_title ?? t('emptyValue')}</Table.Cell>
+                <Table.Cell>{row.podcast_index_id}</Table.Cell>
+                <Table.Cell>
+                  <StatusBadge variant={directoryLifecycleBadgeVariant(row.lifecycle_state_key)}>
+                    {t('lifecycleDisplay', { state: row.lifecycle_state_key })}
+                  </StatusBadge>
+                </Table.Cell>
+                <Table.Cell>
+                  <MutedBreakableText>{row.url}</MutedBreakableText>
+                </Table.Cell>
+              </>
+            )}
+            rows={directoryFeeds}
+            searchSyncParams={{ page: '1' }}
+            sortBy={directorySortField}
+            sortOrder={directorySortDir === 'ASC' ? 'asc' : 'desc'}
+            sortableColumnIds={[
+              'id',
+              'channel_title',
+              'podcast_index_id',
+              'lifecycle_state_key',
+              'url',
+            ]}
+            trailingToolbar={
+              <div style={{ minWidth: 'min(100%, 220px)' }}>
+                <div className={lookupFieldGridNativeSelectWrapClass}>
+                  <select
+                    aria-label={t('filterLifecycleLabel')}
+                    id="feed-directory-lifecycle"
+                    value={directoryLifecycleFilter}
+                    onChange={(e) => {
+                      setDirectoryLifecycleFilter(e.target.value);
+                      setDirectoryPage(1);
+                    }}
+                  >
+                    <option value="">{t('filterLifecycleAll')}</option>
+                    {(options?.lifecycle_states ?? []).map((s) => (
+                      <option key={s.state_key} value={s.state_key}>
+                        {t('selectOptionLifecycle', { state: s.state_key })}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            }
+            onSortChange={(sortKey, order) => {
+              setDirectorySortField(sortKey as FeedOperationsListSortKey);
+              setDirectorySortDir(order === 'asc' ? 'ASC' : 'DESC');
+              setDirectoryPage(1);
+            }}
+          />
+        )}
+      </PageSection>
+
       <PageSection aria-label={t('sectionFindAria')}>
-        <Card>
-          <SectionHeading level={2}>{t('findFeedHeading')}</SectionHeading>
-          <LookupFieldGrid>
-            <Label htmlFor="feed-flag-lookup-mode">{t('searchByLabel')}</Label>
-            <Label htmlFor="feed-flag-lookup-value">
-              {searchMode === 'url' ? t('searchValueLabelUrl') : t('searchValueLabel')}
-            </Label>
-            <LookupFieldSpacerLabel aria-hidden>{'\u00A0'}</LookupFieldSpacerLabel>
-            <Select
+        <SectionHeading level={2}>{t('findFeedHeading')}</SectionHeading>
+        <LookupFieldGrid>
+          <Label htmlFor="feed-flag-lookup-mode">{t('searchByLabel')}</Label>
+          <Label htmlFor="feed-flag-lookup-value">
+            {searchMode === 'url' ? t('searchValueLabelUrl') : t('searchValueLabel')}
+          </Label>
+          <LookupFieldSpacerLabel aria-hidden>{'\u00A0'}</LookupFieldSpacerLabel>
+          <div className={`${lookupFieldGridNativeSelectWrapClass} ${lookupFieldGridControlClass}`}>
+            <select
               id="feed-flag-lookup-mode"
-              className={`${fieldPrimitiveClasses.select} ${lookupFieldGridControlClass}`}
               value={searchMode}
               onChange={(e) => {
                 const v = e.target.value;
@@ -378,263 +686,256 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
               <option value="podcast_index_id">{t('searchModePodcastIndexId')}</option>
               <option value="feed_id">{t('searchModeFeedId')}</option>
               <option value="url">{t('searchModeUrl')}</option>
-            </Select>
-            <Input
-              id="feed-flag-lookup-value"
-              className={lookupFieldGridControlClass}
-              type={searchMode === 'url' ? 'text' : 'number'}
-              name="q"
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              placeholder={searchMode === 'url' ? t('placeholderUrl') : t('placeholderNumber')}
-              autoComplete="off"
-            />
-            <Button
-              className={lookupFieldGridButtonClass}
-              disabled={lookupLoading}
-              onClick={() => {
-                void performLookup();
-              }}
-              type="button"
-              variant="primary"
-            >
-              {lookupLoading ? t('lookupLoading') : t('lookupButton')}
-            </Button>
-          </LookupFieldGrid>
-        </Card>
+            </select>
+          </div>
+          <TextInput
+            autoComplete="off"
+            className={lookupFieldGridControlClass}
+            id="feed-flag-lookup-value"
+            name="q"
+            placeholder={searchMode === 'url' ? t('placeholderUrl') : t('placeholderNumber')}
+            type={searchMode === 'url' ? 'text' : 'number'}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+          />
+          <Button
+            className={lookupFieldGridButtonClass}
+            disabled={lookupLoading}
+            onClick={() => {
+              void performLookup();
+            }}
+            type="button"
+            variant="primary"
+          >
+            {lookupLoading ? t('lookupLoading') : t('lookupButton')}
+          </Button>
+        </LookupFieldGrid>
         {loadError && <Alert variant="error">{loadError}</Alert>}
       </PageSection>
 
       {feed && (
         <PageSection aria-label={t('sectionFeedAria')}>
-          <Card>
-            <SectionHeading level={2}>{t('thisFeedHeading')}</SectionHeading>
-            <SectionHeading level={4}>{t('onRecordHeading')}</SectionHeading>
-            <DescriptionList variant="flat">
-              {feed.channel_title && (
-                <>
-                  <dt>{t('dtChannelTitle')}</dt>
-                  <dd>{feed.channel_title}</dd>
-                </>
-              )}
-              <dt>{t('dtUrl')}</dt>
-              <dd>
-                <MutedBreakableText>{feed.url}</MutedBreakableText>
-              </dd>
-              <dt>{t('dtInternalFeedId')}</dt>
-              <dd>{feed.id}</dd>
-              <dt>{t('dtPodcastIndexId')}</dt>
-              <dd>{feed.podcast_index_id}</dd>
-              <dt>{t('dtLifecycle')}</dt>
-              <dd>{t('lifecycleDisplay', { state: feed.lifecycle_state_key })}</dd>
-              <dt>{t('dtActiveConditions')}</dt>
-              <dd>
-                {feed.active_condition_keys?.length
-                  ? feed.active_condition_keys.join(', ')
-                  : t('emptyValue')}
-              </dd>
-              <dt>{t('dtEffectivePolicy')}</dt>
-              <dd>
-                {t('effectivePolicyDisplay', {
-                  parse: feed.parse_allowed ? t('boolYes') : t('boolNo'),
-                  public: feed.public_visible ? t('boolYes') : t('boolNo'),
-                  add: feed.add_allowed ? t('boolYes') : t('boolNo'),
-                  reason: feed.primary_block_reason ?? t('emptyValue'),
-                })}
-              </dd>
-              <dt>{t('dtSpamOverride')}</dt>
-              <dd>{feed.spam_item_limit_override ?? t('emptyValue')}</dd>
-              <dt>{t('dtMaxResponseBytesOverride')}</dt>
-              <dd>{feed.max_response_body_bytes_override ?? t('emptyValue')}</dd>
-              <dt>{t('dtLifecycleReason')}</dt>
-              <dd>{feed.lifecycle_reason ?? t('emptyValue')}</dd>
-              <dt>{t('dtUpdatedSource')}</dt>
-              <dd>{feed.updated_source}</dd>
-            </DescriptionList>
-            <p>
-              <ActionLink
-                href={`/database/feed/${String(feed.id)}`}
-                LinkComponent={Link}
-                variant="inline"
-              >
-                {t('openInDatabase')}
-              </ActionLink>
-            </p>
+          <SectionHeading level={2}>{t('thisFeedHeading')}</SectionHeading>
+          <SectionHeading level={4}>{t('onRecordHeading')}</SectionHeading>
+          <DescriptionList variant="flat">
+            {feed.channel_title && (
+              <>
+                <dt>{t('dtChannelTitle')}</dt>
+                <dd>{feed.channel_title}</dd>
+              </>
+            )}
+            <dt>{t('dtUrl')}</dt>
+            <dd>
+              <MutedBreakableText>{feed.url}</MutedBreakableText>
+            </dd>
+            <dt>{t('dtInternalFeedId')}</dt>
+            <dd>{feed.id}</dd>
+            <dt>{t('dtPodcastIndexId')}</dt>
+            <dd>{feed.podcast_index_id}</dd>
+            <dt>{t('dtLifecycle')}</dt>
+            <dd>{t('lifecycleDisplay', { state: feed.lifecycle_state_key })}</dd>
+            <dt>{t('dtActiveConditions')}</dt>
+            <dd>
+              {feed.active_condition_keys?.length
+                ? feed.active_condition_keys.join(', ')
+                : t('emptyValue')}
+            </dd>
+            <dt>{t('dtEffectivePolicy')}</dt>
+            <dd>
+              {t('effectivePolicyDisplay', {
+                parse: feed.parse_allowed ? t('boolYes') : t('boolNo'),
+                public: feed.public_visible ? t('boolYes') : t('boolNo'),
+                add: feed.add_allowed ? t('boolYes') : t('boolNo'),
+                reason: feed.primary_block_reason ?? t('emptyValue'),
+              })}
+            </dd>
+            <dt>{t('dtSpamOverride')}</dt>
+            <dd>{feed.spam_item_limit_override ?? t('emptyValue')}</dd>
+            <dt>{t('dtMaxResponseBytesOverride')}</dt>
+            <dd>{feed.max_response_body_bytes_override ?? t('emptyValue')}</dd>
+            <dt>{t('dtLifecycleReason')}</dt>
+            <dd>{feed.lifecycle_reason ?? t('emptyValue')}</dd>
+            <dt>{t('dtUpdatedSource')}</dt>
+            <dd>{feed.updated_source}</dd>
+          </DescriptionList>
+          <p>
+            <ActionLink
+              href={`/database/feed/${String(feed.id)}`}
+              LinkComponent={Link}
+              variant="inline"
+            >
+              {t('openInDatabase')}
+            </ActionLink>
+          </p>
 
-            {canUpdate && options && (
-              <FormContinuationSection>
-                <SectionHeading level={4}>{t('newValuesHeading')}</SectionHeading>
-                <div className={lookupFieldGridFormBlockClass}>
+          {canUpdate && options && (
+            <FormContinuationSection>
+              <SectionHeading level={4}>{t('newValuesHeading')}</SectionHeading>
+              <div className={lookupFieldGridFormBlockClass}>
+                <FormGroup>
+                  <Label>{t('labelLifecycleRequired')}</Label>
+                  <Select
+                    className={fieldPrimitiveClasses.select}
+                    value={lifecycleStateKey}
+                    onChange={(e) => setLifecycleStateKey(e.target.value)}
+                    required
+                  >
+                    <option value="" disabled>
+                      {t('selectLifecyclePlaceholder')}
+                    </option>
+                    {options.lifecycle_states.map((s) => (
+                      <option key={s.state_key} value={s.state_key}>
+                        {t('selectOptionLifecycle', { state: s.state_key })}
+                      </option>
+                    ))}
+                  </Select>
+                </FormGroup>
+
+                <FormGroup>
+                  <Label>{t('labelActiveConditions')}</Label>
+                  <CheckboxFieldList>
+                    {options.condition_types.map((c) => (
+                      <CheckboxField
+                        key={c.condition_key}
+                        label={c.condition_key}
+                        checked={conditionChecked[c.condition_key] === true}
+                        onChange={(checked) => {
+                          setConditionChecked((prev) => ({
+                            ...prev,
+                            [c.condition_key]: checked,
+                          }));
+                        }}
+                      />
+                    ))}
+                  </CheckboxFieldList>
+                </FormGroup>
+
+                {lifecycleStateKey === LIFECYCLE_TAKEDOWN_KEY && (
                   <FormGroup>
-                    <Label>{t('labelLifecycleRequired')}</Label>
+                    <Label>{t('labelTakedownReasonOptional')}</Label>
                     <Select
                       className={fieldPrimitiveClasses.select}
-                      value={lifecycleStateKey}
-                      onChange={(e) => setLifecycleStateKey(e.target.value)}
-                      required
+                      value={takedownReasonKey}
+                      onChange={(e) => setTakedownReasonKey(e.target.value)}
                     >
-                      <option value="" disabled>
-                        {t('selectLifecyclePlaceholder')}
-                      </option>
-                      {options.lifecycle_states.map((s) => (
-                        <option key={s.state_key} value={s.state_key}>
-                          {t('selectOptionLifecycle', { state: s.state_key })}
+                      <option value="">{t('takedownReasonPlaceholder')}</option>
+                      {options.takedown_reasons.map((r) => (
+                        <option key={r.reason} value={r.reason}>
+                          {r.reason}
                         </option>
                       ))}
                     </Select>
                   </FormGroup>
+                )}
 
-                  <FormGroup>
-                    <Label>{t('labelActiveConditions')}</Label>
-                    <CheckboxFieldList>
-                      {options.condition_types.map((c) => (
-                        <CheckboxField
-                          key={c.condition_key}
-                          label={c.condition_key}
-                          checked={conditionChecked[c.condition_key] === true}
-                          onChange={(checked) => {
-                            setConditionChecked((prev) => ({
-                              ...prev,
-                              [c.condition_key]: checked,
-                            }));
-                          }}
-                        />
-                      ))}
-                    </CheckboxFieldList>
-                  </FormGroup>
+                <FormTextArea
+                  eyebrow={t('labelTransitionNote')}
+                  maxLength={10000}
+                  name="transition-note"
+                  placeholder={t('transitionNotePlaceholder')}
+                  rows={3}
+                  value={transitionNote}
+                  onChange={(e) => setTransitionNote(e.target.value)}
+                />
 
-                  {lifecycleStateKey === LIFECYCLE_TAKEDOWN_KEY && (
-                    <FormGroup>
-                      <Label>{t('labelTakedownReasonOptional')}</Label>
-                      <Select
-                        className={fieldPrimitiveClasses.select}
-                        value={takedownReasonKey}
-                        onChange={(e) => setTakedownReasonKey(e.target.value)}
-                      >
-                        <option value="">{t('takedownReasonPlaceholder')}</option>
-                        {options.takedown_reasons.map((r) => (
-                          <option key={r.reason} value={r.reason}>
-                            {r.reason}
-                          </option>
-                        ))}
-                      </Select>
-                    </FormGroup>
-                  )}
+                <FormTextArea
+                  eyebrow={t('labelConditionNote')}
+                  maxLength={10000}
+                  name="condition-note"
+                  placeholder={t('conditionNotePlaceholder')}
+                  rows={3}
+                  value={conditionNote}
+                  onChange={(e) => setConditionNote(e.target.value)}
+                />
 
-                  <FormGroup>
-                    <Label>{t('labelTransitionNote')}</Label>
-                    <TextArea
-                      name="transition-note"
-                      value={transitionNote}
-                      onChange={(e) => setTransitionNote(e.target.value)}
-                      rows={3}
-                      maxLength={10000}
-                      placeholder={t('transitionNotePlaceholder')}
-                    />
-                  </FormGroup>
+                <TextInput
+                  eyebrow={t('labelSpamOverride')}
+                  info={t('spamOverrideHint')}
+                  min={1}
+                  name="spam-item-limit-override"
+                  placeholder={t('spamOverridePlaceholder')}
+                  step={1}
+                  type="number"
+                  value={spamItemLimitOverrideInput}
+                  onChange={(e) => setSpamItemLimitOverrideInput(e.target.value)}
+                />
+                <TextInput
+                  eyebrow={t('labelMaxResponseBytesOverride')}
+                  min={1}
+                  name="max-response-body-bytes-override"
+                  placeholder={t('maxResponseBytesOverridePlaceholder')}
+                  step={1}
+                  type="number"
+                  value={maxResponseBodyBytesOverrideInput}
+                  onChange={(e) => setMaxResponseBodyBytesOverrideInput(e.target.value)}
+                />
+                {applyError && <Alert variant="error">{applyError}</Alert>}
+                {applyMessage && <Alert variant="default">{applyMessage}</Alert>}
 
-                  <FormGroup>
-                    <Label>{t('labelConditionNote')}</Label>
-                    <TextArea
-                      name="condition-note"
-                      value={conditionNote}
-                      onChange={(e) => setConditionNote(e.target.value)}
-                      rows={3}
-                      maxLength={10000}
-                      placeholder={t('conditionNotePlaceholder')}
-                    />
-                  </FormGroup>
+                <Modal
+                  ariaLabel={t('confirmDialogAria')}
+                  closeButtonAriaLabel={tc('closeModalAria')}
+                  isOpen={confirmOpen}
+                  onClose={() => {
+                    setConfirmOpen(false);
+                  }}
+                >
+                  <p>{t('confirmDialogBody')}</p>
+                  <ConfirmPanelActions>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        setConfirmOpen(false);
+                      }}
+                      variant="secondary"
+                    >
+                      {tc('cancel')}
+                    </Button>
+                    <Button
+                      type="button"
+                      disabled={applyLoading}
+                      onClick={() => {
+                        void runApply();
+                      }}
+                      variant="primary"
+                    >
+                      {applyLoading ? t('confirmApplying') : tc('confirm')}
+                    </Button>
+                  </ConfirmPanelActions>
+                </Modal>
 
-                  <FormGroup>
-                    <Label>{t('labelSpamOverride')}</Label>
-                    <Input
-                      type="number"
-                      name="spam-item-limit-override"
-                      value={spamItemLimitOverrideInput}
-                      onChange={(e) => setSpamItemLimitOverrideInput(e.target.value)}
-                      min={1}
-                      step={1}
-                      placeholder={t('spamOverridePlaceholder')}
-                    />
-                  </FormGroup>
-                  <FormHintText variant="block">{t('spamOverrideHint')}</FormHintText>
-                  <FormGroup>
-                    <Label>{t('labelMaxResponseBytesOverride')}</Label>
-                    <Input
-                      type="number"
-                      name="max-response-body-bytes-override"
-                      value={maxResponseBodyBytesOverrideInput}
-                      onChange={(e) => setMaxResponseBodyBytesOverrideInput(e.target.value)}
-                      min={1}
-                      step={1}
-                      placeholder={t('maxResponseBytesOverridePlaceholder')}
-                    />
-                  </FormGroup>
-                  {applyError && <Alert variant="error">{applyError}</Alert>}
-                  {applyMessage && <Alert variant="default">{applyMessage}</Alert>}
+                {!confirmOpen && (
+                  <>
+                    <Button
+                      disabled={applyLoading}
+                      onClick={handleClickApply}
+                      type="button"
+                      variant="primary"
+                    >
+                      {applyLoading
+                        ? t('confirmApplying')
+                        : needsConfirm
+                          ? t('continueToConfirm')
+                          : t('applyButton')}
+                    </Button>
+                    {needsConfirm && (
+                      <FormHintText variant="block">{t('confirmHint')}</FormHintText>
+                    )}
+                  </>
+                )}
+              </div>
+            </FormContinuationSection>
+          )}
 
-                  {confirmOpen && (
-                    <div role="dialog" aria-label={t('confirmDialogAria')}>
-                      <ConfirmPanel>
-                        <p>{t('confirmDialogBody')}</p>
-                        <ConfirmPanelActions>
-                          <Button
-                            type="button"
-                            onClick={() => {
-                              setConfirmOpen(false);
-                            }}
-                            variant="secondary"
-                          >
-                            {tc('cancel')}
-                          </Button>
-                          <Button
-                            type="button"
-                            disabled={applyLoading}
-                            onClick={() => {
-                              void runApply();
-                            }}
-                            variant="primary"
-                          >
-                            {applyLoading ? t('confirmApplying') : tc('confirm')}
-                          </Button>
-                        </ConfirmPanelActions>
-                      </ConfirmPanel>
-                    </div>
-                  )}
-
-                  {!confirmOpen && (
-                    <>
-                      <Button
-                        disabled={applyLoading}
-                        onClick={handleClickApply}
-                        type="button"
-                        variant="primary"
-                      >
-                        {applyLoading
-                          ? t('confirmApplying')
-                          : needsConfirm
-                            ? t('continueToConfirm')
-                            : t('applyButton')}
-                      </Button>
-                      {needsConfirm && (
-                        <FormHintText variant="block">{t('confirmHint')}</FormHintText>
-                      )}
-                    </>
-                  )}
-                </div>
-              </FormContinuationSection>
-            )}
-
-            {!canUpdate && (
-              <RestrictedNotice>
-                <FormHintText variant="block">
-                  {t.rich('readonlyHint', {
-                    feedsCode: (chunks) => <code>{chunks}</code>,
-                  })}
-                </FormHintText>
-              </RestrictedNotice>
-            )}
-          </Card>
+          {!canUpdate && (
+            <RestrictedNotice>
+              <FormHintText variant="block">
+                {t.rich('readonlyHint', {
+                  feedsCode: (chunks) => <code>{chunks}</code>,
+                })}
+              </FormHintText>
+            </RestrictedNotice>
+          )}
         </PageSection>
       )}
     </ManagementPageShell>

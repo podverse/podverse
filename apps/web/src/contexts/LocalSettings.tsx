@@ -21,6 +21,9 @@ type LocalSettingsContextType = {
   setServerEnvironmentDisclaimerAccepted: (accepted: boolean) => void;
   lsAutoQueueConfig: LocalSettingsState['aqc'];
   setLSAutoQueueConfig: React.Dispatch<React.SetStateAction<LocalSettingsState['aqc']>>;
+  /** Mobile overlay sidebar open (session-only; not persisted). */
+  mobileSidebarOpen: boolean;
+  setMobileSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
   sidebarAccordion: LocalSettingsState['sba'];
   setSidebarAccordion: React.Dispatch<React.SetStateAction<LocalSettingsState['sba']>>;
   boostFormDefaults: BoostFormDefaultsByValueKey;
@@ -48,6 +51,7 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
   const [sidebarAccordion, setSidebarAccordion] = useState(
     ssrLocalSettings.sba || { podcasts: true, music: true, addByRSS: true, library: true }
   );
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [boostFormDefaults, setBoostFormDefaults] = useState<BoostFormDefaultsByValueKey>(
     ssrLocalSettings.bfd ?? {}
   );
@@ -86,6 +90,8 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
         setServerEnvironmentDisclaimerAccepted,
         lsAutoQueueConfig,
         setLSAutoQueueConfig,
+        mobileSidebarOpen,
+        setMobileSidebarOpen,
         sidebarAccordion,
         setSidebarAccordion,
         boostFormDefaults,

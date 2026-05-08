@@ -1,5 +1,11 @@
 @use '../../../../../packages/ui/src/styles/variables' as *;
 
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 .brandLink {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);

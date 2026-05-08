@@ -1,8 +1,7 @@
 import type { DTOChannel } from '@podverse/helpers';
 import type { QueryParamsHome } from '@podverse/helpers-requests';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
-import { MainInnerContentWrapper } from '../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../components/Main/MainWrapper';
 import { HomePageContextProvider } from './HomePageContext';
 import { HomePageHeader } from './HomePageHeader';
@@ -28,11 +27,11 @@ export function HomePageClient({
     >
       <HomePageHeader />
       <MainWrapper>
-        <MainInnerWrapper>
-          <MainInnerContentWrapper>
+        <MainSidebarLayout>
+          <MainColumnStack>
             <HomePageList />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </HomePageContextProvider>
   );

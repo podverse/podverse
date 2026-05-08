@@ -6,13 +6,14 @@ import type {
   QueryParamsSubscribedType,
 } from '@podverse/helpers-requests';
 import {
-  getValidQueryParam,
   QUERY_PARAMS_GLOBAL_SORT_VALUES,
   QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
 } from '@podverse/helpers-requests';
 
-import type { DropdownMenuItem } from '../../../components/Dropdown/Dropdown';
-import { getRangeDropdownItems } from '../../../utils/dropdownMenuItems';
+import {
+  buildSubscribedListDropdownConfig,
+  buildSubscribedListFilterParams,
+} from '../../../utils/dropdownMenuItems';
 
 export function getLivestreamsPageDropdownConfig({
   type,
@@ -23,42 +24,29 @@ export function getLivestreamsPageDropdownConfig({
   type: QueryParamsSubscribedType;
   tFilters: (key: string) => string;
 }) {
-  const typeDropdownMenuItems: DropdownMenuItem[] = [
-    { label: tFilters('type.global'), param: 'type', value: 'global' },
-    { label: tFilters('type.subscribed'), param: 'type', value: 'subscribed' },
-    { label: tFilters('type.category'), param: 'type', value: 'category' },
-  ];
-  let sortDropdownMenuItems: DropdownMenuItem[] = [];
-  const rangeDropdownMenuItems = getRangeDropdownItems(tFilters);
-  let showRangeDropdown = false;
-
-  if (type === 'global') {
-    sortDropdownMenuItems = [
-      { label: tFilters('sort.recent'), param: 'sort', value: 'recent' },
-      { label: tFilters('sort.top'), param: 'sort', value: 'top' },
-    ];
-  } else if (type === 'subscribed') {
-    sortDropdownMenuItems = [
-      { label: tFilters('sort.recent'), param: 'sort', value: 'recent' },
-      { label: tFilters('sort.top'), param: 'sort', value: 'top' },
-    ];
-  } else if (type === 'category') {
-    sortDropdownMenuItems = [
-      { label: tFilters('sort.recent'), param: 'sort', value: 'recent' },
-      { label: tFilters('sort.top'), param: 'sort', value: 'top' },
-    ];
-  }
-
-  if (sort === 'top') {
-    showRangeDropdown = true;
-  }
-
-  return {
-    typeMenuItems: typeDropdownMenuItems,
-    sortMenuItems: sortDropdownMenuItems,
-    rangeMenuItems: rangeDropdownMenuItems,
-    showRangeDropdown,
-  };
+  return buildSubscribedListDropdownConfig({
+    categorySorts: [
+      { label: tFilters('sort.recent'), value: 'recent' },
+      { label: tFilters('sort.top'), value: 'top' },
+    ],
+    globalSorts: [
+      { label: tFilters('sort.recent'), value: 'recent' },
+      { label: tFilters('sort.top'), value: 'top' },
+    ],
+    showRangeWhenSort: 'top',
+    sort,
+    subscribedSorts: [
+      { label: tFilters('sort.recent'), value: 'recent' },
+      { label: tFilters('sort.top'), value: 'top' },
+    ],
+    tFilters,
+    type,
+    typeOptions: [
+      { label: tFilters('type.global'), value: 'global' },
+      { label: tFilters('type.subscribed'), value: 'subscribed' },
+      { label: tFilters('type.category'), value: 'category' },
+    ],
+  });
 }
 
 type LivestreamsPageDropdownConfigParams = {
@@ -80,47 +68,20 @@ export type LivestreamsPageDropdownConfigCurrentParams = {
 };
 
 export function getLivestreamsPageFilterParams(
-  { type, sort, range, category, page, liveItemType }: LivestreamsPageDropdownConfigParams,
+  params: LivestreamsPageDropdownConfigParams,
   isValidAuthSession: boolean
 ): LivestreamsPageDropdownConfigCurrentParams {
-  let currentType: QueryParamsSubscribedType;
-  let currentSort = sort;
-  let currentRange = range;
-  let currentCategory = category;
-  let currentPage = page;
-  const currentLiveItemType = liveItemType;
-
-  if (category) {
-    currentType = 'category';
-    currentSort = getValidQueryParam(QUERY_PARAMS_GLOBAL_SORT_VALUES, currentSort, 'recent');
-  } else if (type === 'global') {
-    currentType = 'global';
-    currentSort = getValidQueryParam(QUERY_PARAMS_GLOBAL_SORT_VALUES, currentSort, 'recent');
-  } else if (type === 'subscribed') {
-    currentType = 'subscribed';
-    currentSort = getValidQueryParam(QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT, currentSort, 'recent');
-  } else {
-    if (isValidAuthSession) {
-      currentType = 'subscribed';
-      currentSort = getValidQueryParam(QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT, currentSort, 'recent');
-      currentRange = null;
-      currentCategory = null;
-      currentPage = 1;
-    } else {
-      currentType = 'global';
-      currentSort = getValidQueryParam(QUERY_PARAMS_GLOBAL_SORT_VALUES, currentSort, 'recent');
-      currentRange = null;
-      currentCategory = null;
-      currentPage = 1;
-    }
-  }
-
+  const { liveItemType, ...filterArgs } = params;
   return {
-    currentType,
-    currentSort,
-    currentRange,
-    currentCategory,
-    currentPage,
-    currentLiveItemType,
+    ...buildSubscribedListFilterParams({
+      ...filterArgs,
+      defaultGlobalSort: 'recent',
+      defaultSubscribedSort: 'recent',
+      globalSortValues: QUERY_PARAMS_GLOBAL_SORT_VALUES,
+      isValidAuthSession,
+      subscribedSortValues: QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
+      supportsCategory: true,
+    }),
+    currentLiveItemType: liveItemType,
   };
 }

@@ -11,18 +11,16 @@ import {
   AuthCardHeader,
   Button,
   CenterContainer,
-  FormGroup,
-  Input,
-  Label,
-  LoadingText,
+  FormContainer,
+  TextInput,
 } from '@podverse/ui';
 
+import { ManagementLoadingSpinnerFull } from '../components/LoadingSpinner/ManagementLoadingSpinnerFull';
 import { getConfig } from '../config';
 import { getCurrentUser, login } from '../lib/requests/auth';
 
 export default function HomePage() {
   const t = useTranslations('auth');
-  const tc = useTranslations('common');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -78,7 +76,7 @@ export default function HomePage() {
   if (checkingAuth) {
     return (
       <CenterContainer>
-        <LoadingText>{tc('loading')}</LoadingText>
+        <ManagementLoadingSpinnerFull />
       </CenterContainer>
     );
   }
@@ -91,37 +89,33 @@ export default function HomePage() {
           subtitle={t('signInSubtitle')}
         />
 
-        <form onSubmit={handleSubmit}>
-          {error && <Alert variant="error">{error}</Alert>}
+        <FormContainer onSubmit={handleSubmit}>
+          <Alert>{error}</Alert>
 
-          <FormGroup>
-            <Label htmlFor="email">{t('usernameOrEmail')}</Label>
-            <Input
-              id="email"
-              type="text"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </FormGroup>
+          <TextInput
+            id="email"
+            eyebrow={t('usernameOrEmail')}
+            type="text"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={loading}
+          />
 
-          <FormGroup>
-            <Label htmlFor="password">{t('password')}</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </FormGroup>
+          <TextInput
+            id="password"
+            eyebrow={t('password')}
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            disabled={loading}
+          />
 
           <Button block type="submit" disabled={loading}>
             {loading ? t('signingIn') : t('signIn')}
           </Button>
-        </form>
+        </FormContainer>
       </AuthCard>
     </CenterContainer>
   );

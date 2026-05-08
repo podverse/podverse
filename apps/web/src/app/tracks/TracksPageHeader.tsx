@@ -13,9 +13,8 @@ import {
   QUERY_PARAMS_SUBSCRIBED_MUSIC_TYPE,
   QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
 } from '@podverse/helpers-requests';
+import { Dropdown, MainHeader } from '@podverse/ui';
 
-import { CommonListPageHeader } from '../../components/Common/List/CommonListPageHeader';
-import Dropdown from '../../components/Dropdown/Dropdown';
 import { ViewSelector } from '../../components/ViewSelector/ViewSelector';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useTracksPageContext } from './TracksPageContext';
@@ -115,5 +114,5 @@ export const TracksPageHeader: React.FC = () => {
 
   const headerTitle = tMedia('music.tracks');
 
-  return <CommonListPageHeader title={headerTitle} buttonsNode={buttonsNode} />;
+  return <MainHeader title={headerTitle} buttonsNode={buttonsNode} />;
 };

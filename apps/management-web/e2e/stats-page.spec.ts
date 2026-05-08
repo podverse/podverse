@@ -74,6 +74,8 @@ test.describe('Management-web stats page', () => {
 
     await expect(page.getByRole('heading', { name: 'Stats', level: 1 })).toBeVisible();
 
+    await expect(page.getByRole('button', { name: 'Sort by Title' })).toBeVisible();
+
     await page.getByRole('button', { name: 'Items' }).click();
     await expect(page.getByText(/Top 10 Items/)).toBeVisible();
 

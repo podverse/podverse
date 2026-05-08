@@ -3,24 +3,20 @@
 import { useRouter } from 'next/navigation';
 import React from 'react';
 
-import { Button, Divider } from '@podverse/ui';
+import type { FormDropdownOption } from '@podverse/ui';
+import { Button, Divider, FormDropdown, FormTextArea, StackForm, TextInput } from '@podverse/ui';
 
-import Form from '../../components/Form/Form';
-import { FormDropdown } from '../../components/Form/FormDropdown';
-import { TextArea } from '../../components/Form/TextArea';
-import { TextInput } from '../../components/Form/TextInput';
 import { getApiRequestService } from '../../factories/apiRequestService';
-import type { DropdownMenuItem } from '../Dropdown/Dropdown';
 
 import styles from '../../styles/components/Playlist/PlaylistForm.module.scss';
 
 export type PlaylistFormProps = {
   medium: string;
   setMedium: (val: string) => void;
-  mediumDropdownMenuItems: DropdownMenuItem[];
+  mediumDropdownMenuItems: FormDropdownOption[];
   sharableStatus: string;
   setSharableStatus: (val: string) => void;
-  sharableStatusDropdownMenuItems: DropdownMenuItem[];
+  sharableStatusDropdownMenuItems: FormDropdownOption[];
   title: string;
   setTitle: (val: string) => void;
   description: string;
@@ -66,7 +62,7 @@ export const PlaylistForm: React.FC<PlaylistFormProps> = ({
   };
 
   return (
-    <Form className={styles.form} onSubmit={onSubmit}>
+    <StackForm className={styles.form} onSubmit={onSubmit}>
       {edit_playlist_id_text && (
         <TextInput
           type="text"
@@ -89,8 +85,8 @@ export const PlaylistForm: React.FC<PlaylistFormProps> = ({
           key="medium"
           id="medium"
           eyebrow={tFeatures('playlist.playlist_type')}
+          options={mediumDropdownMenuItems}
           value={`${medium}`}
-          menuItems={mediumDropdownMenuItems}
           onChange={setMedium}
         />
       )}
@@ -98,8 +94,8 @@ export const PlaylistForm: React.FC<PlaylistFormProps> = ({
         key="sharable_status"
         id="sharable_status"
         eyebrow={tMisc('sharable_status.sharable_status')}
+        options={sharableStatusDropdownMenuItems}
         value={`${sharableStatus}`}
-        menuItems={sharableStatusDropdownMenuItems}
         onChange={setSharableStatus}
       />
       <TextInput
@@ -111,7 +107,7 @@ export const PlaylistForm: React.FC<PlaylistFormProps> = ({
         placeholder={tMisc('required')}
         eyebrow={tMisc('title')}
       />
-      <TextArea
+      <FormTextArea
         eyebrow={tMisc('description')}
         name="description"
         value={description}
@@ -143,6 +139,6 @@ export const PlaylistForm: React.FC<PlaylistFormProps> = ({
           </div>
         </div>
       )}
-    </Form>
+    </StackForm>
   );
 };

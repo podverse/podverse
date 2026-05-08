@@ -6,8 +6,6 @@ interface Props {
   children: React.ReactNode;
 }
 
-const SideBarHeader: React.FC<Props> = ({ children }) => (
+export const SideBarHeader: React.FC<Props> = ({ children }) => (
   <div className={styles.header}>{children}</div>
 );
-
-export default SideBarHeader;

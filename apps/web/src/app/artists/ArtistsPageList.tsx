@@ -3,8 +3,8 @@
 import React from 'react';
 
 import { CoreArtists } from '../../components/Core/Artist/CoreArtists';
-import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
-import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { HowToStartInfo } from '../../components/HowToStartInfo/HowToStartInfo';
+import { WebLoadingSpinnerOverlay } from '../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useArtistsPageContext } from './ArtistsPageContext';
 
@@ -28,7 +28,7 @@ export const ArtistsPageList: React.FC = () => {
         type={type}
         viewSelected={viewSelected}
       />
-      <LoadingSpinnerOverlay isLoading={isLoading} />
+      <WebLoadingSpinnerOverlay isLoading={isLoading} />
     </>
   );
 };

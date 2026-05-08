@@ -2,9 +2,8 @@
 
 import type { DTOItem } from '@podverse/helpers';
 import type { QueryParamsGetManyPartialMusic } from '@podverse/helpers-requests';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { TracksPageContextProvider } from './TracksPageContext';
 import { TracksPageHeader } from './TracksPageHeader';
@@ -27,11 +26,11 @@ export function TracksPageClient(props: TracksPageClientProps) {
     >
       <TracksPageHeader />
       <MainWrapper>
-        <MainInnerWrapper>
-          <MainInnerContentWrapper>
+        <MainSidebarLayout>
+          <MainColumnStack>
             <TracksPageList />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </TracksPageContextProvider>
   );

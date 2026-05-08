@@ -11,6 +11,7 @@ import {
 } from '@podverse/helpers';
 import { stripAndDecodeHtml } from '@podverse/helpers';
 import { buildAddByRSSResourceData, getAddByRSSHashId } from '@podverse/parser-mapping';
+import { ImagesPerView, MoreButton } from '@podverse/ui';
 
 import { IMAGES } from '../../../../constants/images';
 import { useAccount } from '../../../../contexts/Account';
@@ -25,10 +26,8 @@ import { getAddByRSSItemPath } from '../../../../utils/addByRSS/itemPath';
 import type { AddByRSSItemIndexItem, AddByRSSMappedFeed } from '../../../../utils/addByRSS/types';
 import { downloadAddByRSSMediaWithModal } from '../../../../utils/downloadModal/downloadAddByRSSMediaWithModal';
 import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
-import { ImagesPerView } from '../../../Image/ImagesPerView';
 import type { ListEpisodeRowLike } from '../../../List/Podcasts/Episodes/ListEpisodeRow';
 import { PlayButtonRow } from '../../../MediaPlayer/Buttons/PlayButtonRow';
-import { MoreButton } from '../../../MoreButton/MoreButton';
 import { ReadableDate } from '../../../Time/ReadableDate';
 import { showToastPromise, showToastPromiseWithLoading } from '../../../Toast/Toast';
 
@@ -272,7 +271,10 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
             </div>
           </div>
           <div className={styles.bottomSectionEnd}>
-            <MoreButton moreButtonMenuItems={moreButtonMenuItems} />
+            <MoreButton
+              ariaLabel={tMedia('more_options')}
+              moreButtonMenuItems={moreButtonMenuItems}
+            />
           </div>
         </div>
       </div>

@@ -9,10 +9,10 @@ import {
   getQueryParamFromQueueMediumId,
   mergeDTOItemThenChannelImageCandidates,
 } from '@podverse/helpers';
+import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import { ROUTES } from '../../../constants/routes';
-import { SkeletonFlashImage } from '../../Image/SkeletonFlashImage';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableTime } from '../../Time/ReadableTime';
 

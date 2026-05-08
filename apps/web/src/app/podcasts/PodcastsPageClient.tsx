@@ -2,9 +2,8 @@
 
 import type { DTOChannel } from '@podverse/helpers';
 import type { QueryParamsGetMany } from '@podverse/helpers-requests';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { PodcastsPageContextProvider } from './PodcastsPageContext';
 import { PodcastsPageHeader } from './PodcastsPageHeader';
@@ -27,11 +26,11 @@ export function PodcastsPageClient(props: PodcastsPageClientProps) {
     >
       <PodcastsPageHeader />
       <MainWrapper>
-        <MainInnerWrapper>
-          <MainInnerContentWrapper>
+        <MainSidebarLayout>
+          <MainColumnStack>
             <PodcastsPageList />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </PodcastsPageContextProvider>
   );

@@ -8,7 +8,8 @@ import { FaGripLines } from 'react-icons/fa6';
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { getQueueForMedium, mergeDTOItemThenChannelImageCandidates } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
-import { Button } from '@podverse/ui';
+import type { MoreButtonMenuItem } from '@podverse/ui';
+import { Button, ImagesPerView, MoreButton } from '@podverse/ui';
 
 import { IMAGES } from '../../../../../constants/images';
 import { ROUTES } from '../../../../../constants/routes';
@@ -21,9 +22,6 @@ import { getApiRequestService } from '../../../../../factories/apiRequestService
 import { useMediaPlayerResourceUpdate } from '../../../../../hooks/useMediaPlayerResourceUpdate';
 import { downloadTrackWithModal } from '../../../../../utils/downloadModal/downloadTrackWithModal';
 import { downloadAndSaveFile } from '../../../../../utils/fileDownloader';
-import { ImagesPerView } from '../../../../Image/ImagesPerView';
-import type { MoreButtonMenuItem } from '../../../../MoreButton/MoreButton';
-import { MoreButton } from '../../../../MoreButton/MoreButton';
 import { showToastPromise, showToastPromiseWithLoading } from '../../../../Toast/Toast';
 import type { ListEpisodeRowLike } from '../../../Podcasts/Episodes/ListEpisodeRow';
 
@@ -299,7 +297,7 @@ export const ListTrackRow: React.FC<Props> = ({
           </div>
         </div>
       </Button>
-      <MoreButton moreButtonMenuItems={moreButtonMenuItems} />
+      <MoreButton ariaLabel={tMedia('more_options')} moreButtonMenuItems={moreButtonMenuItems} />
     </div>
   );
 };

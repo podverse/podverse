@@ -4,7 +4,6 @@
     "description": "Interface de gestion administrative pour {brand_name}"
   },
   "common": {
-    "loading": "Chargement...",
     "error": "Une erreur est survenue",
     "save": "Enregistrer",
     "saveChanges": "Enregistrer les modifications",
@@ -30,7 +29,52 @@
     "readOnlyTable": "Tableau en lecture seule",
     "noDataFound": "Aucune donnée trouvée",
     "previous": "Précédent",
-    "next": "Suivant"
+    "next": "Suivant",
+    "paginationPrevButton": "« Précédent",
+    "paginationNextButton": "Suivant »",
+    "paginationPageOf": "Page {currentPage} sur {totalPages}",
+    "closeModalAria": "Fermer la fenêtre modale"
+  },
+  "tableShared": {
+    "searchPlaceholder": "Rechercher",
+    "searchSubmitLabel": "Rechercher",
+    "searchClearLabel": "Effacer la recherche",
+    "filterColumnsLabel": "Rechercher dans les colonnes",
+    "filterColumnsAriaLabel": "Filtrer les colonnes incluses dans la recherche",
+    "sortAscLabel": "Tri croissant",
+    "sortDescLabel": "Tri décroissant",
+    "sortClearLabel": "Effacer le tri",
+    "sortAriaTemplate": "Trier par {column}",
+    "noResults": "Aucune ligne ne correspond aux filtres actuels.",
+    "noData": "Aucune donnée à afficher.",
+    "loading": "Chargement de la liste…",
+    "errorRetry": "Réessayer",
+    "bulk": {
+      "selectAllAria": "Sélectionner toutes les lignes de cette page",
+      "selectRowAria": "Sélectionner cette ligne",
+      "selectedCount": "{count, plural, one {# ligne sélectionnée} other {# lignes sélectionnées}}",
+      "clearSelection": "Effacer la sélection",
+      "actionsLabel": "Actions groupées"
+    },
+    "cursor": {
+      "prev": "Précédent",
+      "next": "Suivant"
+    },
+    "confirmDelete": {
+      "title": "Supprimer",
+      "message": "Cette action est irréversible.",
+      "cancel": "Annuler",
+      "confirm": "Confirmer",
+      "aria": "Confirmer la suppression"
+    },
+    "pagination": {
+      "pageOf": "Page {currentPage} sur {totalPages}",
+      "prev": "Précédent",
+      "next": "Suivant",
+      "goToPageLabel": "Aller à la page",
+      "goToPageAria": "Ouvrir la boîte de dialogue d'accès à la page",
+      "goToPageSubmit": "Aller"
+    }
   },
   "auth": {
     "login": "Se connecter",
@@ -92,6 +136,19 @@
       "description": "Parcourir, télécharger et supprimer des objets dans le compartiment configuré"
     }
   },
+  "errors": {
+    "boundary_title": "Quelque chose a mal tourné",
+    "boundary_message": "Une erreur inattendue est survenue. Veuillez réessayer.",
+    "global_title": "Erreur d'application",
+    "global_message": "Une erreur critique est survenue. Veuillez actualiser la page.",
+    "details_development_only": "Détails de l'erreur (développement uniquement)"
+  },
+  "misc": {
+    "loading": "Chargement…",
+    "reload_page": "Recharger la page",
+    "return_to_home_page": "Aller à l'accueil",
+    "try_again": "Réessayez"
+  },
   "storage": {
     "title": "Stockage d'objets",
     "subtitle": "Lister les objets du compartiment configuré",
@@ -124,6 +181,22 @@
     "deleting": "Suppression…",
     "selectAllAria": "Sélectionner tous les objets de cette page",
     "selectRowAria": "Sélectionner l'objet {key}",
+    "viewAria": "Voir l'objet {key}",
+    "deleteAria": "Supprimer l'objet {key}",
+    "more": "Plus",
+    "moreAria": "Autres actions",
+    "deleteAll": "Tout supprimer",
+    "deleteAllConfirmAria": "Confirmer la suppression de tous les objets correspondants",
+    "deleteAllConfirmTitle": "Supprimer tous les objets correspondants",
+    "deleteAllConfirmBodyWithPrefix": "Supprimer tous les objets dont la clé commence par « {prefix} ».",
+    "deleteAllConfirmBodyEmptyPrefix": "Supprimer tous les objets du compartiment. Aucun filtre de préfixe n'est appliqué.",
+    "deleteAllIrreversible": "Cette action est irréversible.",
+    "deleteAllCounting": "Comptage des objets correspondants…",
+    "deleteAllCount": "{count, plural, one {# objet} other {# objets}} seront supprimés.",
+    "deleteAllCountTruncated": "Plus de {count} objets seront supprimés.",
+    "deleteAllInProgress": "Suppression de tous les objets correspondants…",
+    "deleteAllError": "Échec de la suppression totale.",
+    "deleteAllPartialError": "{deleted}/{requested} supprimés ; {failed} échecs.",
     "download": "Télécharger",
     "backToList": "Retour à la liste des objets",
     "paginationPrev": "« Précédent",
@@ -146,6 +219,7 @@
     "clear": "Effacer",
     "views": "Vues",
     "loadingDetail": "Chargement du détail...",
+    "loadingChart": "Chargement du graphique...",
     "close": "Fermer",
     "idValue": "ID {id}",
     "searchPlaceholder": "Rechercher {entity} par titre...",
@@ -223,6 +297,20 @@
     "pageSubtitle": "Trouvez un flux par ID Podcast Index (par défaut), id interne du flux ou URL. Mettez à jour le cycle de vie, les conditions actives, les limites et les notes. Ceci est distinct du navigateur de tables de la base de données.",
     "breadcrumbParent": "Opérations sur les flux",
     "breadcrumbCurrent": "État du drapeau",
+    "directoryHeading": "Flux",
+    "directoryLoadError": "Impossible de charger la liste des flux.",
+    "directoryEmpty": "Aucun flux ne correspond aux filtres actuels.",
+    "filterLifecycleLabel": "Cycle de vie",
+    "filterLifecycleAll": "Tous les cycles de vie",
+    "directorySearchPlaceholder": "Filtrer par titre, URL ou id…",
+    "directorySearchButton": "Appliquer le filtre",
+    "tableFeedId": "ID",
+    "tableChannelTitle": "Titre",
+    "tablePodcastIndexId": "ID Podcast Index",
+    "tableLifecycle": "Cycle de vie",
+    "tableUrl": "URL",
+    "openFeedRow": "Ouvrir",
+    "sectionDirectoryAria": "Répertoire des flux",
     "sectionFindAria": "Recherche",
     "findFeedHeading": "Trouver un flux",
     "searchByLabel": "Rechercher par",
@@ -352,6 +440,7 @@
     "noResults": "Aucun utilisateur ne correspond à votre recherche.",
     "noUsers": "Aucun utilisateur trouvé.",
     "confirmDelete": "Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action ne peut pas être annulée.",
+    "deleteConfirmAria": "Confirmer la suppression de l'utilisateur",
     "userDetail": "Détails de l'utilisateur",
     "editUser": "Modifier l'utilisateur",
     "verified": "Vérifié",
@@ -432,6 +521,7 @@
     "paginationSummary": "{total} lignes au total | Page {page} sur {totalPages}",
     "paginationSummarySingular": "{total} ligne au total | Page {page} sur {totalPages}",
     "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette ligne ? Cette action est irréversible.",
+    "deleteConfirmAria": "Confirmer la suppression de la ligne",
     "tables": {
       "feed": {
         "label": "Flux",

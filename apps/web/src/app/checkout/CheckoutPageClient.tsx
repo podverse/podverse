@@ -3,15 +3,17 @@
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
-import { Button } from '@podverse/ui';
+import {
+  Button,
+  CheckboxField,
+  MainColumnStack,
+  MainHeader,
+  MainSidebarLayout,
+  RadioButton,
+  SideContent,
+} from '@podverse/ui';
 
-import { Checkbox } from '../../components/Form/Checkbox';
-import { RadioButton } from '../../components/Form/RadioButton';
-import { MainHeader } from '../../components/Main/MainHeader';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { SideContent } from '../../components/SideContent/SideContent';
 
 import styles from '../../styles/app/checkout/Checkout.module.scss';
 
@@ -58,9 +60,9 @@ export function CheckoutPageClient({ pricingData, isContactOnlyMode }: CheckoutP
     <>
       <MainHeader title={t('checkout')} />
       <MainWrapper>
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             {isContactOnlyMode && (
               <section className={styles.disabledSection}>
                 <p>{t('disabled_message')}</p>
@@ -105,7 +107,8 @@ export function CheckoutPageClient({ pricingData, isContactOnlyMode }: CheckoutP
                     onChange={setPaymentPlan}
                   />
 
-                  <Checkbox
+                  <CheckboxField
+                    wrapInDiv
                     id="auto-renew"
                     name="auto-renew"
                     label={t('auto_renew')}
@@ -129,8 +132,8 @@ export function CheckoutPageClient({ pricingData, isContactOnlyMode }: CheckoutP
                 </section>
               </>
             )}
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </>
   );

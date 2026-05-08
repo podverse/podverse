@@ -150,7 +150,9 @@
   background: var(--button-highlight-bg-hover);
 }
 
+/* Explicit background: unset UA `button` face (often light) which breaks dark-theme contrast. */
 .mini {
+  background-color: var(--background-color-secondary);
   color: var(--button-secondary-color);
   border: var(--button-border-size) solid var(--border-color-primary);
   height: 2rem;
@@ -158,6 +160,10 @@
   padding: var(--spacing-button-default);
   min-width: auto;
   font-weight: var(--font-weight-normal);
+}
+
+.mini:hover:not(:disabled) {
+  background-color: var(--background-color-tertiary);
 }
 
 .miniSelected {

@@ -1,0 +1,25 @@
+.root {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-top: var(--spacing-md);
+  background: var(--background-color-secondary);
+  border-top: 1px solid var(--border-color-tertiary);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.meta {
+  font-size: var(--font-size-sm);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}

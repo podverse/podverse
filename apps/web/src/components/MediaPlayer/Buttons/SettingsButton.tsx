@@ -9,12 +9,11 @@ import {
   getPlaybackTranslationKey,
   getSelectedLabeledItemEnclosureAndSource,
 } from '@podverse/helpers';
+import { DropdownMenuPanel, useDropdownKeyboardNavigation } from '@podverse/ui';
 
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useModals } from '../../../contexts/Modals';
-import { useDropdownKeyboardNavigation } from '../../../hooks/useDropdownKeyboardNavigation';
 import { useEnclosureLabel } from '../../../utils/itemEnclosure';
-import { DropdownMenu } from '../../Dropdown/DropdownMenu';
 
 import styles from '../../../styles/components/MediaPlayer/Buttons/SettingsButton.module.scss';
 
@@ -88,7 +87,7 @@ export const SettingsButton = () => {
       >
         <FaGear />
       </button>
-      <DropdownMenu
+      <DropdownMenuPanel
         menuItems={menuItems}
         open={open}
         menuRef={menuRef}

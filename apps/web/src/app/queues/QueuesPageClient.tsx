@@ -2,11 +2,9 @@
 
 import type { DTOQueue } from '@podverse/helpers';
 import type { QueryParamsQueues } from '@podverse/helpers-requests';
+import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
 
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { SideContent } from '../../components/SideContent/SideContent';
 import { QueuesPageContextProvider } from './QueuesPageContext';
 import { QueuesPageHeader } from './QueuesPageHeader';
 import { QueuesPageList } from './QueuesPageList';
@@ -24,13 +22,13 @@ export function QueuesPageClient(props: QueuesPageClientProps) {
     <QueuesPageContextProvider initialQueryParams={initialQueryParams} ssrQueues={ssrQueues}>
       <QueuesPageHeader />
       <MainWrapper>
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             <QueuesPageListHeader />
             <QueuesPageList />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </QueuesPageContextProvider>
   );

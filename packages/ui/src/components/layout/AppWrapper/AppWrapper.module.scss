@@ -1,0 +1,13 @@
+.appWrapper {
+  display: flex;
+  flex: 1;
+}
+
+.directionRow {
+  flex-direction: row;
+}
+
+.directionColumn {
+  flex-direction: column;
+  min-height: 0;
+}

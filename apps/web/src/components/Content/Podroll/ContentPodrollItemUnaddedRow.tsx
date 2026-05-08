@@ -1,10 +1,10 @@
 import { useTranslations } from 'next-intl';
 
 import type { EpisodeByGuidResponse } from '@podverse/helpers';
+import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import { WEB } from '../../../constants/web';
-import { SkeletonFlashImage } from '../../Image/SkeletonFlashImage';
 import { Link } from '../../Link/Link';
 
 import styles from '../../../styles/components/Content/Podroll/ContentPodrollItemRow.module.scss';

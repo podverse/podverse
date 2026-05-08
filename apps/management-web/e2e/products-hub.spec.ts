@@ -108,6 +108,7 @@ test.describe('Management-web products hub', () => {
     await expect(
       page.getByRole('heading', { name: 'Active pricing rows', level: 2 })
     ).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Sort by Cadence' })).toBeVisible();
     await expect(page.getByRole('cell', { name: 'monthly', exact: true })).toBeVisible();
     await expect(page.getByRole('cell', { name: 'annual', exact: true })).toBeVisible();
     await page.locator('#free-trial-expiration-seconds-input').fill('172800');

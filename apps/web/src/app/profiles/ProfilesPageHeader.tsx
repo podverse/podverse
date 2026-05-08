@@ -13,9 +13,8 @@ import {
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
   QUERY_PARAMS_SUBSCRIBED_TYPE,
 } from '@podverse/helpers-requests';
+import { Dropdown, MainHeader } from '@podverse/ui';
 
-import Dropdown from '../../components/Dropdown/Dropdown';
-import { MainHeader } from '../../components/Main/MainHeader';
 import { useProfilesPageContext } from './ProfilesPageContext';
 import { getProfilesPageDropdownConfig } from './ProfilesPageDropdownConfig';
 

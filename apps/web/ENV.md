@@ -32,6 +32,11 @@ The sidecar uses the same validation helpers as the rest of the monorepo (`@podv
   - Default: **`false`** when unset — artwork URLs load **directly** in the browser (Next/image with remote patterns); the `/api/proxy` route returns **403**
   - Set to **`true`** to route remote artwork through `/api/proxy` (server fetch with SSRF checks, size limits, configurable User-Agent, and `Cache-Control`)
 
+- **`NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED`** (Optional)
+  - Must be `"true"` or `"false"` if set
+  - Default: **optimization off** when unset — Next serves images **`unoptimized`** (no `/_next/image`), avoiding the optimizer’s SSRF/DNS checks on remote URLs (for example CGNAT ranges when the image proxy is off)
+  - **Distinct from** **`NEXT_PUBLIC_IMAGE_PROXY_ENABLED`**: this controls Next.js **built-in Image Optimization**; the image proxy flag routes requests through **`/api/proxy`** on your origin
+
 - **`NEXT_PUBLIC_PROXY_USER_AGENT`** (Conditional)
   - **Required** when **`NEXT_PUBLIC_IMAGE_PROXY_ENABLED`** is **`true`**
   - **Optional** when the image proxy is disabled (may be left blank)

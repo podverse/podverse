@@ -1,6 +1,6 @@
 import type { RemoteItemsResponse } from '@podverse/helpers';
+import { Accordion } from '@podverse/ui';
 
-import Accordion from '../../Accordian/Accordian';
 import { ContentPodrollHeader } from './ContentPodrollHeader';
 import { ContentPodrollRows } from './ContentPodrollRows';
 
@@ -17,10 +17,11 @@ export const ContentPodrollAccordion: React.FC<ContentPodrollAccordionProps> = (
 }) => {
   return (
     <Accordion
-      contentClass={styles.accordion}
+      contentClassName={styles.accordion}
       header={<ContentPodrollHeader />}
-      content={<ContentPodrollRows remoteItemsResponse={remoteItemsResponse} />}
       open={defaultOpen}
-    />
+    >
+      <ContentPodrollRows remoteItemsResponse={remoteItemsResponse} />
+    </Accordion>
   );
 };

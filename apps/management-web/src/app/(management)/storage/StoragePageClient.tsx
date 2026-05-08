@@ -1,106 +1,92 @@
 'use client';
 
 import { isAxiosError } from 'axios';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { formatDateTimeAbbrevOrFallback, formatFileSize } from '@podverse/helpers';
 import {
-  ActionLink,
   Alert,
   Button,
-  Checkbox,
-  ConfirmPanel,
   ConfirmPanelActions,
-  CursorPagination,
   EllipsisText,
-  FormGroup,
-  Input,
-  Label,
-  LoadingText,
+  LoadingSpinner,
   ManagementPageShell,
-  StickyBulkActionBar,
+  Modal,
+  MoreButton,
+  ResourceTableWithFilter,
   Table,
   useCursorPagination,
 } from '@podverse/ui';
 
+import { ManagementLoadingSpinnerInlineDecorative } from '../../../components/LoadingSpinner/ManagementLoadingSpinnerInlineDecorative';
+import { useManagementTableChrome } from '../../../components/Table/managementTableChrome';
+import { useManagementClientSessionGuard } from '../../../hooks/useManagementClientSessionGuard';
+import { ManagementIconButtonLink } from '../../../lib/ManagementIconButtonLink';
 import { canDeleteStorage } from '../../../lib/managementPermissions';
+import { managementSearchParamsObject } from '../../../lib/managementTableUrl';
 import type { CurrentUser } from '../../../lib/requests/auth';
-import { getCurrentUser } from '../../../lib/requests/auth';
 import type { StorageObjectListItem } from '../../../lib/requests/storage';
 import {
   bulkDeleteStorageObjects,
+  countStorageObjectsByPrefix,
+  deleteAllStorageObjectsByPrefix,
   deleteStorageObject,
   listStorageObjects,
 } from '../../../lib/requests/storage';
 import { encodeStorageObjectKeyForPathSegment } from '../../../lib/storageObjectPath';
 
+import styles from './StoragePageClient.module.scss';
+
 const LIST_MAX_KEYS = 50;
 
 const STORAGE_DISPLAY_FALLBACK = '—';
+
+const STORAGE_COLUMN_IDS = ['key', 'size', 'lastModified'] as const;
 
 export type StoragePageClientProps = {
   initialUser: CurrentUser;
 };
 
 export function StoragePageClient({ initialUser }: StoragePageClientProps) {
-  const [user, setUser] = useState<CurrentUser>(initialUser);
-  const [prefixInput, setPrefixInput] = useState('');
-  const [debouncedPrefix, setDebouncedPrefix] = useState('');
-  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(() => new Set());
-  const [listError, setListError] = useState<string | null>(null);
-  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
-  const [deleteKey, setDeleteKey] = useState<string | null>(null);
-  const [actionLoading, setActionLoading] = useState(false);
-  const router = useRouter();
+  const user = useManagementClientSessionGuard(initialUser);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const locale = useLocale();
   const t = useTranslations('storage');
   const tc = useTranslations('common');
+  const tsTable = useTranslations('tableShared');
+  const chrome = useManagementTableChrome();
+
+  const basePath = pathname !== null && pathname !== '' ? pathname : '/storage';
+  const currentQueryParams = useMemo(
+    () => managementSearchParamsObject(searchParams),
+    [searchParams]
+  );
+  const initialSearch = searchParams.get('search') ?? '';
+  const prefixForFetch = initialSearch;
+
+  const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+  const [listError, setListError] = useState<string | null>(null);
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [deleteAllConfirmOpen, setDeleteAllConfirmOpen] = useState(false);
+  const [deleteAllCount, setDeleteAllCount] = useState<{ count: number; exact: boolean } | null>(
+    null
+  );
+  const [deleteAllCounting, setDeleteAllCounting] = useState(false);
+  const [deleteAllBusy, setDeleteAllBusy] = useState(false);
 
   const canDelete = useMemo(() => canDeleteStorage(user), [user]);
-
-  useEffect(() => {
-    const handle = setTimeout(() => {
-      setDebouncedPrefix(prefixInput);
-    }, 300);
-    return () => {
-      clearTimeout(handle);
-    };
-  }, [prefixInput]);
-
-  useEffect(() => {
-    let cancelled = false;
-    const verify = async () => {
-      try {
-        const current = await getCurrentUser();
-        if (cancelled) {
-          return;
-        }
-        if (!current) {
-          router.replace('/');
-          return;
-        }
-        setUser(current);
-      } catch {
-        if (!cancelled) {
-          router.replace('/');
-        }
-      }
-    };
-    void verify();
-    return () => {
-      cancelled = true;
-    };
-  }, [router]);
 
   const fetchPage = useCallback(
     async (continuationToken: string | undefined) => {
       setListError(null);
       try {
+        const trimmed = prefixForFetch.trim();
         const res = await listStorageObjects({
-          prefix: debouncedPrefix.trim() === '' ? undefined : debouncedPrefix,
+          prefix: trimmed === '' ? undefined : trimmed,
           continuationToken,
           maxKeys: LIST_MAX_KEYS,
         });
@@ -117,67 +103,58 @@ export function StoragePageClient({ initialUser }: StoragePageClientProps) {
         return { items: [] as StorageObjectListItem[], nextContinuationToken: undefined };
       }
     },
-    [debouncedPrefix, t]
+    [prefixForFetch, t]
   );
 
   const pagination = useCursorPagination({ fetchPage });
 
   useEffect(() => {
     void pagination.reset();
-  }, [debouncedPrefix, pagination.reset]);
+  }, [prefixForFetch, pagination.reset]);
 
   useEffect(() => {
-    setSelectedKeys(new Set());
-  }, [debouncedPrefix]);
+    setSelectedKeys([]);
+  }, [pagination.pageNumber]);
 
-  const allOnPageSelected =
-    pagination.items.length > 0 && pagination.items.every((row) => selectedKeys.has(row.key));
-
-  const toggleSelectAllOnPage = () => {
-    if (pagination.items.length === 0) {
+  useEffect(() => {
+    if (!deleteAllConfirmOpen) {
       return;
     }
-    if (allOnPageSelected) {
-      setSelectedKeys((prev) => {
-        const next = new Set(prev);
-        for (const row of pagination.items) {
-          next.delete(row.key);
+    let cancelled = false;
+    setDeleteAllCount(null);
+    setDeleteAllCounting(true);
+    const prefix = prefixForFetch.trim();
+    void (async () => {
+      try {
+        const res = await countStorageObjectsByPrefix(prefix);
+        if (!cancelled) {
+          setDeleteAllCount(res);
         }
-        return next;
-      });
-      return;
-    }
-    setSelectedKeys((prev) => {
-      const next = new Set(prev);
-      for (const row of pagination.items) {
-        next.add(row.key);
+      } catch {
+        if (!cancelled) {
+          setListError(t('deleteAllError'));
+          setDeleteAllConfirmOpen(false);
+        }
+      } finally {
+        if (!cancelled) {
+          setDeleteAllCounting(false);
+        }
       }
-      return next;
-    });
-  };
-
-  const toggleRow = (key: string) => {
-    setSelectedKeys((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) {
-        next.delete(key);
-      } else {
-        next.add(key);
-      }
-      return next;
-    });
-  };
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [deleteAllConfirmOpen, prefixForFetch, t]);
 
   const runBulkDelete = async () => {
-    const keys = [...selectedKeys];
-    if (keys.length === 0) {
+    if (selectedKeys.length === 0) {
       return;
     }
     setActionLoading(true);
     try {
-      await bulkDeleteStorageObjects(keys);
+      await bulkDeleteStorageObjects(selectedKeys);
       setBulkConfirmOpen(false);
-      setSelectedKeys(new Set());
+      setSelectedKeys([]);
       await pagination.reset();
     } catch {
       setListError(t('bulkDeleteError'));
@@ -186,207 +163,287 @@ export function StoragePageClient({ initialUser }: StoragePageClientProps) {
     }
   };
 
-  const runSingleDelete = async (key: string) => {
-    setActionLoading(true);
+  const runDeleteAllByPrefix = async () => {
+    setDeleteAllBusy(true);
     try {
-      await deleteStorageObject(key);
-      setDeleteKey(null);
-      await pagination.refetch();
+      const prefix = prefixForFetch.trim();
+      const outcome = await deleteAllStorageObjectsByPrefix(prefix);
+      if (outcome.failed.length > 0) {
+        setListError(
+          t('deleteAllPartialError', {
+            deleted: outcome.deleted,
+            requested: outcome.requested,
+            failed: outcome.failed.length,
+          })
+        );
+      }
+      setDeleteAllConfirmOpen(false);
+      setDeleteAllCount(null);
+      setSelectedKeys([]);
+      await pagination.reset();
     } catch {
-      setListError(t('deleteError'));
+      setListError(t('deleteAllError'));
     } finally {
-      setActionLoading(false);
+      setDeleteAllBusy(false);
     }
   };
 
+  const closeDeleteAllModal = () => {
+    setDeleteAllConfirmOpen(false);
+    setDeleteAllCount(null);
+  };
+
+  const debouncedPrefixTrimmed = prefixForFetch.trim();
+  const deleteAllCountValue = deleteAllCount?.count ?? 0;
+
+  const columns = useMemo(
+    () => [
+      {
+        header: t('table.key'),
+        id: 'key',
+        label: t('table.key'),
+        sortable: false,
+        sortKey: 'key',
+      },
+      {
+        header: t('table.size'),
+        id: 'size',
+        label: t('table.size'),
+        sortable: false,
+        sortKey: 'size',
+      },
+      {
+        header: t('table.lastModified'),
+        id: 'lastModified',
+        label: t('table.lastModified'),
+        sortable: false,
+        sortKey: 'lastModified',
+      },
+    ],
+    [t]
+  );
+
+  const noopSort = useCallback(() => {}, []);
+
+  const showInitialSpinner = pagination.isLoading && pagination.items.length === 0;
+
   return (
     <ManagementPageShell subtitle={t('subtitle')} title={t('title')}>
-      {listError !== null ? <Alert variant="error">{listError}</Alert> : null}
+      <Alert>{listError}</Alert>
 
-      <FormGroup>
-        <Label htmlFor="storage-prefix-filter">{t('prefixFilter')}</Label>
-        <Input
-          id="storage-prefix-filter"
-          name="storage-prefix-filter"
-          value={prefixInput}
-          onChange={(e) => {
-            setPrefixInput(e.target.value);
-          }}
-          placeholder={t('prefixPlaceholder')}
-          type="text"
-        />
-      </FormGroup>
-
-      {pagination.isLoading && pagination.items.length === 0 ? (
-        <LoadingText>{t('loading')}</LoadingText>
-      ) : pagination.items.length === 0 ? (
-        <p>{t('empty')}</p>
+      {showInitialSpinner ? (
+        <div className={styles.listLoadingRegion}>
+          <LoadingSpinner ariaLabel={t('loading')} />
+        </div>
       ) : (
-        <>
-          <Table.ScrollContainer>
-            <Table>
-              <Table.Head>
-                <Table.Row>
-                  {canDelete ? (
-                    <Table.SelectHeaderCell>
-                      <Checkbox
-                        aria-label={t('selectAllAria')}
-                        checked={allOnPageSelected}
-                        onChange={toggleSelectAllOnPage}
-                      />
-                    </Table.SelectHeaderCell>
-                  ) : (
-                    <Table.SelectHeaderCell> </Table.SelectHeaderCell>
-                  )}
-                  <Table.HeaderCell>{t('table.key')}</Table.HeaderCell>
-                  <Table.HeaderCell>{t('table.size')}</Table.HeaderCell>
-                  <Table.HeaderCell>{t('table.lastModified')}</Table.HeaderCell>
-                  <Table.HeaderCell>{t('table.actions')}</Table.HeaderCell>
-                </Table.Row>
-              </Table.Head>
-              <Table.Body>
-                {pagination.items.map((row) => (
-                  <Table.Row key={row.key}>
-                    {canDelete ? (
-                      <Table.SelectCell>
-                        <Checkbox
-                          aria-label={t('selectRowAria', { key: row.key })}
-                          checked={selectedKeys.has(row.key)}
-                          onChange={() => {
-                            toggleRow(row.key);
-                          }}
-                        />
-                      </Table.SelectCell>
-                    ) : (
-                      <Table.SelectCell />
-                    )}
-                    <Table.Cell style={{ minWidth: 0, maxWidth: '28rem' }}>
-                      <EllipsisText maxWidth="28rem" title={row.key}>
-                        {row.key}
-                      </EllipsisText>
-                    </Table.Cell>
-                    <Table.Cell>
-                      {formatFileSize(row.size, { zeroLabel: '0 B' }) ?? STORAGE_DISPLAY_FALLBACK}
-                    </Table.Cell>
-                    <Table.Cell>
-                      {formatDateTimeAbbrevOrFallback(
-                        row.lastModified,
-                        locale,
-                        STORAGE_DISPLAY_FALLBACK
-                      )}
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Table.RowActions>
-                        <ActionLink
-                          href={`/storage/${encodeStorageObjectKeyForPathSegment(row.key)}`}
-                          LinkComponent={Link}
-                          variant="subtle"
-                        >
-                          {t('view')}
-                        </ActionLink>
-                        {canDelete ? (
-                          <Button
-                            onClick={() => {
-                              setDeleteKey(row.key);
-                            }}
-                            type="button"
-                            variant="secondary"
-                          >
-                            {t('delete')}
-                          </Button>
-                        ) : null}
-                      </Table.RowActions>
-                    </Table.Cell>
-                  </Table.Row>
-                ))}
-              </Table.Body>
-            </Table>
-          </Table.ScrollContainer>
-
-          {canDelete && selectedKeys.size > 0 ? (
-            <StickyBulkActionBar>
-              <span>{t('selectedCount', { count: selectedKeys.size })}</span>
-              <Button
-                disabled={actionLoading}
-                onClick={() => {
-                  setBulkConfirmOpen(true);
-                }}
-                type="button"
-                variant="primary"
-              >
-                {t('bulkDelete')}
-              </Button>
-            </StickyBulkActionBar>
-          ) : null}
-        </>
+        <ResourceTableWithFilter<StorageObjectListItem>
+          actions={
+            canDelete
+              ? {
+                  LinkComponent: ManagementIconButtonLink,
+                  labels: {
+                    delete: tc('delete'),
+                    edit: tc('edit'),
+                    view: t('view'),
+                  },
+                  onDelete: async (row) => {
+                    await deleteStorageObject(row.key);
+                    await pagination.refetch();
+                  },
+                  viewHref: (row) => `/storage/${encodeStorageObjectKeyForPathSegment(row.key)}`,
+                }
+              : {
+                  LinkComponent: ManagementIconButtonLink,
+                  labels: {
+                    delete: tc('delete'),
+                    edit: tc('edit'),
+                    view: t('view'),
+                  },
+                  viewHref: (row) => `/storage/${encodeStorageObjectKeyForPathSegment(row.key)}`,
+                }
+          }
+          allColumnIds={[...STORAGE_COLUMN_IDS]}
+          basePath={basePath}
+          bulkSelect={
+            canDelete
+              ? {
+                  ariaLabels: chrome.bulkAria,
+                  onSelectionChange: setSelectedKeys,
+                  selectedKeys,
+                  toolbarActions: [
+                    {
+                      label: t('bulkDelete'),
+                      onClick: () => {
+                        setBulkConfirmOpen(true);
+                      },
+                      variant: 'danger',
+                    },
+                  ],
+                  toolbarClearLabel: tsTable('bulk.clearSelection'),
+                  toolbarSelectedSummary: t('selectedCount', { count: selectedKeys.length }),
+                }
+              : undefined
+          }
+          columns={columns}
+          currentQueryParams={currentQueryParams}
+          cursorPagination={{
+            hasNext: pagination.hasNext,
+            hasPrev: pagination.hasPrev,
+            isLoading: pagination.isLoading,
+            nextLabel: t('paginationNext'),
+            onNext: pagination.goNext,
+            onPrev: pagination.goPrev,
+            pageLabel: t('paginationPage', { page: pagination.pageNumber }),
+            prevLabel: t('paginationPrev'),
+          }}
+          deleteConfirm={{
+            ...chrome.deleteConfirmLabels,
+            message: (row) => t('deleteConfirmBody', { key: row.key }),
+            modalAriaLabel: t('deleteConfirmAria'),
+          }}
+          emptyMessage={t('empty')}
+          filterableColumnIds={[...STORAGE_COLUMN_IDS]}
+          getRowActions={
+            canDelete
+              ? undefined
+              : () => ({
+                  delete: 'hidden',
+                  edit: 'hidden',
+                  view: 'enabled',
+                })
+          }
+          getRowKey={(row) => row.key}
+          initialColumns={[...STORAGE_COLUMN_IDS]}
+          initialSearch={initialSearch}
+          labels={{
+            ...chrome.filterLabels,
+            actionsColumn: t('table.actions'),
+            searchPlaceholder: t('prefixPlaceholder'),
+          }}
+          paginationMode="cursor"
+          renderCells={(row) => (
+            <>
+              <Table.Cell style={{ minWidth: 0, maxWidth: '28rem' }}>
+                <EllipsisText maxWidth="28rem" title={row.key}>
+                  {row.key}
+                </EllipsisText>
+              </Table.Cell>
+              <Table.Cell>
+                {formatFileSize(row.size, { zeroLabel: '0 B' }) ?? STORAGE_DISPLAY_FALLBACK}
+              </Table.Cell>
+              <Table.Cell>
+                {formatDateTimeAbbrevOrFallback(row.lastModified, locale, STORAGE_DISPLAY_FALLBACK)}
+              </Table.Cell>
+            </>
+          )}
+          rows={pagination.items}
+          sortBy="key"
+          sortOrder="asc"
+          sortableColumnIds={[]}
+          onSortChange={noopSort}
+          trailingToolbar={
+            canDelete ? (
+              <MoreButton
+                ariaLabel={t('moreAria')}
+                moreButtonMenuItems={[
+                  {
+                    label: t('deleteAll'),
+                    onClick: () => {
+                      setDeleteAllConfirmOpen(true);
+                    },
+                    variant: 'danger',
+                  },
+                ]}
+              />
+            ) : null
+          }
+        />
       )}
 
-      <CursorPagination
-        hasNext={pagination.hasNext}
-        hasPrev={pagination.hasPrev}
-        isLoading={pagination.isLoading}
-        nextLabel={t('paginationNext')}
-        onNext={pagination.goNext}
-        onPrev={pagination.goPrev}
-        pageLabel={t('paginationPage', { page: pagination.pageNumber })}
-        prevLabel={t('paginationPrev')}
-      />
+      <Modal
+        ariaLabel={t('bulkConfirmAria')}
+        closeButtonAriaLabel={tc('closeModalAria')}
+        isOpen={bulkConfirmOpen}
+        onClose={() => {
+          setBulkConfirmOpen(false);
+        }}
+      >
+        <p>{t('bulkConfirmBody', { count: selectedKeys.length })}</p>
+        <ConfirmPanelActions>
+          <Button
+            onClick={() => {
+              setBulkConfirmOpen(false);
+            }}
+            type="button"
+            variant="secondary"
+          >
+            {tc('cancel')}
+          </Button>
+          <Button
+            isLoading={actionLoading}
+            onClick={() => void runBulkDelete()}
+            type="button"
+            variant="primary"
+          >
+            {tc('confirm')}
+          </Button>
+        </ConfirmPanelActions>
+      </Modal>
 
-      {bulkConfirmOpen ? (
-        <div role="dialog" aria-label={t('bulkConfirmAria')}>
-          <ConfirmPanel>
-            <p>{t('bulkConfirmBody', { count: selectedKeys.size })}</p>
-            <ConfirmPanelActions>
-              <Button
-                onClick={() => {
-                  setBulkConfirmOpen(false);
-                }}
-                type="button"
-                variant="secondary"
-              >
-                {tc('cancel')}
-              </Button>
-              <Button
-                disabled={actionLoading}
-                onClick={() => void runBulkDelete()}
-                type="button"
-                variant="primary"
-              >
-                {actionLoading ? t('deleting') : tc('confirm')}
-              </Button>
-            </ConfirmPanelActions>
-          </ConfirmPanel>
-        </div>
-      ) : null}
-
-      {deleteKey !== null ? (
-        <div role="dialog" aria-label={t('deleteConfirmAria')}>
-          <ConfirmPanel>
-            <p>{t('deleteConfirmBody', { key: deleteKey })}</p>
-            <ConfirmPanelActions>
-              <Button
-                onClick={() => {
-                  setDeleteKey(null);
-                }}
-                type="button"
-                variant="secondary"
-              >
-                {tc('cancel')}
-              </Button>
-              <Button
-                disabled={actionLoading}
-                onClick={() => {
-                  void runSingleDelete(deleteKey);
-                }}
-                type="button"
-                variant="primary"
-              >
-                {actionLoading ? t('deleting') : tc('confirm')}
-              </Button>
-            </ConfirmPanelActions>
-          </ConfirmPanel>
-        </div>
-      ) : null}
+      <Modal
+        ariaLabel={t('deleteAllConfirmAria')}
+        closeButtonAriaLabel={tc('closeModalAria')}
+        isOpen={deleteAllConfirmOpen}
+        onClose={closeDeleteAllModal}
+      >
+        <h2>{t('deleteAllConfirmTitle')}</h2>
+        <p>
+          {debouncedPrefixTrimmed === ''
+            ? t('deleteAllConfirmBodyEmptyPrefix')
+            : t('deleteAllConfirmBodyWithPrefix', { prefix: debouncedPrefixTrimmed })}
+        </p>
+        <p>{t('deleteAllIrreversible')}</p>
+        <p>
+          {deleteAllCounting ? (
+            <>
+              <ManagementLoadingSpinnerInlineDecorative /> {t('deleteAllCounting')}
+            </>
+          ) : deleteAllCount !== null && deleteAllCount.exact ? (
+            t('deleteAllCount', { count: deleteAllCount.count })
+          ) : deleteAllCount !== null && !deleteAllCount.exact ? (
+            t('deleteAllCountTruncated', { count: deleteAllCount.count })
+          ) : null}
+        </p>
+        {deleteAllBusy ? (
+          <p>
+            <ManagementLoadingSpinnerInlineDecorative /> {t('deleteAllInProgress')}
+          </p>
+        ) : null}
+        <ConfirmPanelActions>
+          <Button
+            disabled={deleteAllBusy}
+            onClick={closeDeleteAllModal}
+            type="button"
+            variant="secondary"
+          >
+            {tc('cancel')}
+          </Button>
+          <Button
+            disabled={
+              deleteAllCounting ||
+              deleteAllBusy ||
+              deleteAllCount === null ||
+              deleteAllCountValue === 0
+            }
+            isLoading={deleteAllBusy}
+            onClick={() => void runDeleteAllByPrefix()}
+            type="button"
+            variant="primary"
+          >
+            {tc('confirm')}
+          </Button>
+        </ConfirmPanelActions>
+      </Modal>
     </ManagementPageShell>
   );
 }

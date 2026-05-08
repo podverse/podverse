@@ -13,12 +13,10 @@ import {
   Checkbox,
   Fieldset,
   FormContainer,
-  FormGroup,
   FormPrimaryActions,
-  Input,
-  Label,
   ManagementPageShell,
   Table,
+  TextInput,
 } from '@podverse/ui';
 
 import { type AdminAccount, updateAdmin } from '../../../../../lib/requests/admins';
@@ -142,27 +140,23 @@ export function EditAdminPageClient({ admin }: EditAdminPageClientProps) {
       }
     >
       <FormContainer onSubmit={(e) => void handleSubmit(e)}>
-        <FormGroup>
-          <Label htmlFor="email">{ta('email')}</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </FormGroup>
-        <FormGroup>
-          <Label htmlFor="password">{ta('newPassword')}</Label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder={ta('leaveBlankToKeepCurrent')}
-            minLength={8}
-          />
-        </FormGroup>
+        <TextInput
+          id="email"
+          eyebrow={ta('email')}
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <TextInput
+          id="password"
+          eyebrow={ta('newPassword')}
+          minLength={8}
+          placeholder={ta('leaveBlankToKeepCurrent')}
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
         <Fieldset legend={tp('legend')}>
           <Table.ScrollContainer>
             <Table>
@@ -195,7 +189,7 @@ export function EditAdminPageClient({ admin }: EditAdminPageClientProps) {
             </Table>
           </Table.ScrollContainer>
         </Fieldset>
-        {error && <Alert>{error}</Alert>}
+        <Alert>{error}</Alert>
         {success && <Alert variant="success">{t('updatedSuccessfully')}</Alert>}
         <FormPrimaryActions>
           <ActionLink href="/admins" variant="subtle" LinkComponent={Link}>

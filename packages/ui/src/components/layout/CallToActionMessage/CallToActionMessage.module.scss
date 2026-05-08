@@ -1,0 +1,20 @@
+@use '../../../styles/mixins/flexbox' as *;
+
+.root {
+  @include flexColumn(var(--spacing-lg));
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  margin: var(--spacing-4xl) var(--spacing-none);
+}
+
+.message {
+  font-size: var(--font-size-lg);
+}
+
+.action {
+  button {
+    color: var(--text-color-link);
+    font-size: var(--font-size-lg);
+  }
+}

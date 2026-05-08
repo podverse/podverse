@@ -1,10 +1,9 @@
 import { useTranslations } from 'next-intl';
 
+import { MainColumnStack, MainHeader, MainSidebarLayout } from '@podverse/ui';
+
 import { AuthContactOnlyMessage } from '../../components/Auth/AuthContactOnlyMessage';
 import { AuthSignUpForm } from '../../components/Auth/AuthSignUpForm';
-import { MainHeader } from '../../components/Main/MainHeader';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { getConfig } from '../../config';
 
@@ -18,15 +17,15 @@ export function SignUpClient() {
     <>
       <MainHeader title={tAuthentication('sign_up')} />
       <MainWrapper>
-        <MainInnerWrapper>
-          <MainInnerContentWrapper>
+        <MainSidebarLayout>
+          <MainColumnStack>
             {signupMode !== 'user_signup_email' && contactEmail ? (
               <AuthContactOnlyMessage contactEmail={contactEmail} />
             ) : (
               <AuthSignUpForm />
             )}
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </>
   );

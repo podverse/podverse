@@ -1,10 +1,10 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import React from 'react';
-import { FaCircleCheck } from 'react-icons/fa6';
+import type { FC } from 'react';
 
-import styles from '../../styles/components/FeatureComparison/FeatureComparison.module.scss';
+import type { FeatureComparisonRow } from '@podverse/ui';
+import { FeatureComparison as SharedFeatureComparison } from '@podverse/ui';
 
 type Feature = {
   name: string;
@@ -16,38 +16,25 @@ type FeatureComparisonProps = {
   features: Feature[];
 };
 
-export const FeatureComparison: React.FC<FeatureComparisonProps> = ({ features }) => {
+export const FeatureComparison: FC<FeatureComparisonProps> = ({ features }) => {
   const t = useTranslations('membership');
   const tMisc = useTranslations('misc');
 
+  const tiers = [
+    { id: 'free', name: t('free') },
+    { id: 'premium', name: t('premium') },
+  ];
+
+  const rows: FeatureComparisonRow[] = features.map((f) => ({
+    name: f.name,
+    available: { free: f.free, premium: f.premium },
+  }));
+
   return (
-    <div className={styles.comparison}>
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th className={styles.featureHeader}>{t('feature')}</th>
-            <th className={styles.tierHeader}>{t('free')}</th>
-            <th className={styles.tierHeader}>{t('premium')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {features.map((feature, index) => (
-            <tr key={index} className={styles.row}>
-              <td className={styles.featureCell}>{feature.name}</td>
-              <td className={styles.tierCell}>
-                {feature.free && (
-                  <FaCircleCheck className={styles.checkmark} aria-label={tMisc('available')} />
-                )}
-              </td>
-              <td className={styles.tierCell}>
-                {feature.premium && (
-                  <FaCircleCheck className={styles.checkmark} aria-label={tMisc('available')} />
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <SharedFeatureComparison
+      tiers={tiers}
+      features={rows}
+      labels={{ feature: t('feature'), available: tMisc('available') }}
+    />
   );
 };

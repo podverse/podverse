@@ -10,7 +10,7 @@ import { BoostMessagesSection } from '../../../components/Boost/messages/BoostMe
 import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
 import { CoreEpisodeSummary } from '../../../components/Core/Podcast/Episodes/CoreEpisodeSummary';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
-import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { WebLoadingSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { useTrackPageContext } from './TrackPageContext';
 
 const ItemTranscript = dynamic(
@@ -62,7 +62,7 @@ export const TrackPageList: React.FC<TrackPageListProps> = ({
       {type === 'transcript' && (
         <ItemTranscript autoScrollOn={autoScrollOn} rows={transcriptRows} />
       )}
-      <LoadingSpinnerOverlay isLoading={isLoading} />
+      <WebLoadingSpinnerOverlay isLoading={isLoading} />
     </DetailListWrapper>
   );
 };

@@ -2,11 +2,10 @@ import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 
 import type { TranscriptRow } from '@podverse/helpers';
+import { SearchInput, VirtualizedList } from '@podverse/ui';
 
 import { EVENTS } from '../../constants/events';
 import { useMediaPlayerCurrentTime } from '../../contexts/MediaPlayerCurrentTime';
-import { SearchInput } from '../Form/SearchInput';
-import { VirtualizedList } from '../VirtualizedList/VirtualizedList';
 import { ItemTranscriptRow } from './ItemTranscriptRow';
 
 import styles from '../../styles/components/ItemTranscript/ItemTranscript.module.scss';

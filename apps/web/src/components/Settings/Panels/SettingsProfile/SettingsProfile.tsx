@@ -4,15 +4,11 @@ import { useLocale, useTranslations } from 'next-intl';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { DATABASE_CONSTANTS, SharableStatusEnum } from '@podverse/helpers';
-import { Button } from '@podverse/ui';
+import { Button, FormDropdown, FormTextArea, StackForm, TextInput } from '@podverse/ui';
 
 import { SHARABLE_STATUS } from '../../../../constants/sharableStatus';
 import { useAccount } from '../../../../contexts/Account';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
-import Form from '../../../Form/Form';
-import { FormDropdown } from '../../../Form/FormDropdown';
-import { TextArea } from '../../../Form/TextArea';
-import { TextInput } from '../../../Form/TextInput';
 import { showToast } from '../../../Toast/Toast';
 import { SettingsSection } from '../../SettingsSection';
 
@@ -77,14 +73,16 @@ export function SettingsProfile() {
   };
 
   return (
-    <Form onSubmit={handleSubmit}>
+    <StackForm onSubmit={handleSubmit}>
       <SettingsSection noVerticalMargin>
         <h3>{tSettings('profile.sharable_status')}</h3>
         <FormDropdown
           id="sharable_status"
-          menuItems={sharableStatusMenuItems}
+          options={sharableStatusMenuItems.map(({ value, label }) => ({ value, label }))}
           value={sharableStatus}
-          onChange={(value) => setSharableStatus(value)}
+          onChange={(value) => {
+            setSharableStatus(value);
+          }}
           info={sharableStatusInfo}
         />
       </SettingsSection>
@@ -99,7 +97,7 @@ export function SettingsProfile() {
       </SettingsSection>
       <SettingsSection noVerticalMargin>
         <h3>{tSettings('profile.bio')}</h3>
-        <TextArea
+        <FormTextArea
           value={bio}
           onChange={(e) => setBio(e.target.value)}
           placeholder={tSettings('profile.bio_placeholder')}
@@ -113,6 +111,6 @@ export function SettingsProfile() {
           {isSaving ? tMisc('saving') : tMisc('save')}
         </Button>
       </SettingsSection>
-    </Form>
+    </StackForm>
   );
 }

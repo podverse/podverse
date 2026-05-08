@@ -5,7 +5,7 @@ import React from 'react';
 
 import type { DTOPlaylist } from '@podverse/helpers';
 
-import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { WebLoadingSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { usePlaylistPageContext } from './PlaylistPageContext';
 
 const ListPlaylistResources = dynamic(
@@ -38,7 +38,7 @@ export const PlaylistPageList: React.FC<PlaylistPageListProps> = ({ ssrPlaylist 
         totalPages={totalPages}
         setIsLoading={setIsLoading}
       />
-      <LoadingSpinnerOverlay isLoading={isLoading} />
+      <WebLoadingSpinnerOverlay isLoading={isLoading} />
     </>
   );
 };

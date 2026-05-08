@@ -8,18 +8,20 @@ import {
   ActionLink,
   Alert,
   Button,
+  ConfirmPanelActions,
   CopyToClipboardButton,
   DescriptionList,
   DescriptionListRow,
   Divider,
   FormHintText,
-  LoadingText,
   ManagementPageShell,
+  Modal,
   PageHeaderActions,
   SectionHeading,
   StatusBadge,
 } from '@podverse/ui';
 
+import { ManagementLoadingSpinnerFull } from '../../../../components/LoadingSpinner/ManagementLoadingSpinnerFull';
 import {
   deleteUser,
   generateInviteLink,
@@ -42,6 +44,8 @@ export function UserDetailPageClient({ userId }: Props) {
   const [inviteLink, setInviteLink] = useState<InviteLink | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const loadInviteLink = useCallback(async () => {
     try {
@@ -74,12 +78,16 @@ export function UserDetailPageClient({ userId }: Props) {
   }, [userId, t, loadInviteLink]);
 
   const handleDelete = async () => {
-    if (!window.confirm(t('confirmDelete'))) return;
+    setDeleteLoading(true);
+    setError(null);
     try {
       await deleteUser(userId);
       window.location.href = '/users';
     } catch {
       setError(t('failedToDelete'));
+      setDeleteConfirmOpen(false);
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -101,7 +109,7 @@ export function UserDetailPageClient({ userId }: Props) {
     }
   };
 
-  if (loading) return <LoadingText>{tc('loading')}</LoadingText>;
+  if (loading) return <ManagementLoadingSpinnerFull />;
   if (error) return <Alert>{error}</Alert>;
   if (!user) return <Alert>{t('failedToLoad')}</Alert>;
 
@@ -133,7 +141,13 @@ export function UserDetailPageClient({ userId }: Props) {
         <ActionLink href={`/users/${userId}/edit`} variant="primary" LinkComponent={Link}>
           {tc('edit')}
         </ActionLink>
-        <Button onClick={() => void handleDelete()} type="button" variant="danger">
+        <Button
+          onClick={() => {
+            setDeleteConfirmOpen(true);
+          }}
+          type="button"
+          variant="danger"
+        >
           {tc('delete')}
         </Button>
       </PageHeaderActions>
@@ -175,6 +189,37 @@ export function UserDetailPageClient({ userId }: Props) {
           </Button>
         </div>
       )}
+
+      <Modal
+        ariaLabel={t('deleteConfirmAria')}
+        closeButtonAriaLabel={tc('closeModalAria')}
+        isOpen={deleteConfirmOpen}
+        onClose={() => {
+          setDeleteConfirmOpen(false);
+        }}
+      >
+        <p>{t('confirmDelete')}</p>
+        <ConfirmPanelActions>
+          <Button
+            disabled={deleteLoading}
+            onClick={() => {
+              setDeleteConfirmOpen(false);
+            }}
+            type="button"
+            variant="secondary"
+          >
+            {tc('cancel')}
+          </Button>
+          <Button
+            isLoading={deleteLoading}
+            onClick={() => void handleDelete()}
+            type="button"
+            variant="primary"
+          >
+            {tc('confirm')}
+          </Button>
+        </ConfirmPanelActions>
+      </Modal>
     </ManagementPageShell>
   );
 }

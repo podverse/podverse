@@ -3,8 +3,8 @@
 import React from 'react';
 
 import { CoreAlbums } from '../../components/Core/Artist/Album/CoreAlbums';
-import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
-import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { HowToStartInfo } from '../../components/HowToStartInfo/HowToStartInfo';
+import { WebLoadingSpinnerOverlay } from '../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useAlbumsPageContext } from './AlbumsPageContext';
 
@@ -28,7 +28,7 @@ export const AlbumsPageList: React.FC = () => {
         type={type}
         viewSelected={viewSelected}
       />
-      <LoadingSpinnerOverlay isLoading={isLoading} />
+      <WebLoadingSpinnerOverlay isLoading={isLoading} />
     </>
   );
 };

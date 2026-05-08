@@ -32,6 +32,17 @@ export type StorageBulkDeleteResponse = {
   failed: { key: string; error: string }[];
 };
 
+export type StorageCountResponse = {
+  count: number;
+  exact: boolean;
+};
+
+export type StorageDeleteAllByPrefixResponse = {
+  deleted: number;
+  failed: { key: string; error: string }[];
+  requested: number;
+};
+
 export async function getStorageFeature(jwt?: string): Promise<StorageFeatureResponse> {
   const service = new ManagementApiRequestService(jwt);
   return service.apiRequest<StorageFeatureResponse>({
@@ -104,5 +115,32 @@ export async function bulkDeleteStorageObjects(
     path: '/storage/objects/bulk-delete',
     method: 'POST',
     data: { keys },
+  });
+}
+
+export async function countStorageObjectsByPrefix(
+  prefix: string,
+  jwt?: string
+): Promise<StorageCountResponse> {
+  const service = new ManagementApiRequestService(jwt);
+  const trimmed = prefix.trim();
+  return service.apiRequest<StorageCountResponse>({
+    path: '/storage/objects/count',
+    method: 'GET',
+    config: {
+      params: trimmed === '' ? {} : { prefix: trimmed },
+    },
+  });
+}
+
+export async function deleteAllStorageObjectsByPrefix(
+  prefix: string,
+  jwt?: string
+): Promise<StorageDeleteAllByPrefixResponse> {
+  const service = new ManagementApiRequestService(jwt);
+  return service.apiRequest<StorageDeleteAllByPrefixResponse>({
+    path: '/storage/objects/delete-all-by-prefix',
+    method: 'POST',
+    data: { prefix },
   });
 }

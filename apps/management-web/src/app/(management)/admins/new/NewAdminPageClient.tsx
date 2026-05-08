@@ -12,12 +12,10 @@ import {
   Checkbox,
   Fieldset,
   FormContainer,
-  FormGroup,
   FormPrimaryActions,
-  Input,
-  Label,
   ManagementPageShell,
   Table,
+  TextInput,
 } from '@podverse/ui';
 
 import { createAdmin } from '../../../../lib/requests/admins';
@@ -120,27 +118,23 @@ export function NewAdminPageClient() {
       }
     >
       <FormContainer onSubmit={(e) => void handleSubmit(e)}>
-        <FormGroup>
-          <Label htmlFor="email">{ta('email')}</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </FormGroup>
-        <FormGroup>
-          <Label htmlFor="password">{ta('password')}</Label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={8}
-          />
-        </FormGroup>
+        <TextInput
+          id="email"
+          eyebrow={ta('email')}
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <TextInput
+          id="password"
+          eyebrow={ta('password')}
+          minLength={8}
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
         <Fieldset legend={tp('legend')}>
           <Table.ScrollContainer>
             <Table>
@@ -173,7 +167,7 @@ export function NewAdminPageClient() {
             </Table>
           </Table.ScrollContainer>
         </Fieldset>
-        {error && <Alert>{error}</Alert>}
+        <Alert>{error}</Alert>
         {success && <Alert variant="success">{t('createdSuccessfully')}</Alert>}
         <FormPrimaryActions>
           <ActionLink href="/admins" variant="subtle" LinkComponent={Link}>

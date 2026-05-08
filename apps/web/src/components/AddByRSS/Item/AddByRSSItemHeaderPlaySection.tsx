@@ -1,10 +1,12 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import type { MoreButtonMenuItem } from '@podverse/ui';
+import { MoreButton } from '@podverse/ui';
+
 import { PlayButtonLarge } from '../../MediaPlayer/Buttons/PlayButtonLarge';
-import type { MoreButtonMenuItem } from '../../MoreButton/MoreButton';
-import { MoreButton } from '../../MoreButton/MoreButton';
 
 import styles from '../../../styles/components/Common/Media/Podcast/Episode/EpisodeHeaderPlaySection.module.scss';
 
@@ -21,6 +23,8 @@ export const AddByRSSItemHeaderPlaySection: React.FC<AddByRSSItemHeaderPlaySecti
   addByRSSIdText,
   moreButtonMenuItems = [],
 }) => {
+  const tMedia = useTranslations('media');
+
   return (
     <div className={styles.playSection}>
       <div className={styles.sectionStart}>
@@ -29,7 +33,11 @@ export const AddByRSSItemHeaderPlaySection: React.FC<AddByRSSItemHeaderPlaySecti
       </div>
       {moreButtonMenuItems.length > 0 && (
         <div className={styles.sectionEnd}>
-          <MoreButton moreButtonMenuItems={moreButtonMenuItems} isLarge />
+          <MoreButton
+            ariaLabel={tMedia('more_options')}
+            moreButtonMenuItems={moreButtonMenuItems}
+            isLarge
+          />
         </div>
       )}
     </div>

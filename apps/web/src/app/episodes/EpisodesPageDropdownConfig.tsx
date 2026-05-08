@@ -6,13 +6,14 @@ import type {
   QueryParamsSubscribedType,
 } from '@podverse/helpers-requests';
 import {
-  getValidQueryParam,
   QUERY_PARAMS_GLOBAL_SORT_VALUES,
   QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
 } from '@podverse/helpers-requests';
 
-import type { DropdownMenuItem } from '../../components/Dropdown/Dropdown';
-import { getRangeDropdownItems } from '../../utils/dropdownMenuItems';
+import {
+  buildSubscribedListDropdownConfig,
+  buildSubscribedListFilterParams,
+} from '../../utils/dropdownMenuItems';
 
 export function getEpisodesPageDropdownConfig({
   type,
@@ -25,50 +26,39 @@ export function getEpisodesPageDropdownConfig({
   tFilters: (key: string) => string;
   medium?: 'av' | 'music';
 }) {
-  const typeDropdownMenuItems: DropdownMenuItem[] = [
-    { label: tFilters('type.global'), param: 'type', value: 'global' },
-    { label: tFilters('type.subscribed'), param: 'type', value: 'subscribed' },
+  const typeOptions: { label: string; value: QueryParamsSubscribedType }[] = [
+    { label: tFilters('type.global'), value: 'global' },
+    { label: tFilters('type.subscribed'), value: 'subscribed' },
   ];
 
   if (!medium || medium === 'av') {
-    typeDropdownMenuItems.push({
+    typeOptions.push({
       label: tFilters('type.category'),
-      param: 'type',
       value: 'category',
     });
   }
 
-  let sortDropdownMenuItems: DropdownMenuItem[] = [];
-  const rangeDropdownMenuItems = getRangeDropdownItems(tFilters);
-  let showRangeDropdown = false;
+  const categorySorts = [
+    { label: tFilters('sort.recent'), value: 'recent' as const },
+    { label: tFilters('sort.top'), value: 'top' as const },
+  ];
 
-  if (type === 'global') {
-    sortDropdownMenuItems = [
-      { label: tFilters('sort.recent'), param: 'sort', value: 'recent' },
-      { label: tFilters('sort.top'), param: 'sort', value: 'top' },
-    ];
-  } else if (type === 'subscribed') {
-    sortDropdownMenuItems = [
-      { label: tFilters('sort.recent'), param: 'sort', value: 'recent' },
-      { label: tFilters('sort.top'), param: 'sort', value: 'top' },
-    ];
-  } else if (type === 'category') {
-    sortDropdownMenuItems = [
-      { label: tFilters('sort.recent'), param: 'sort', value: 'recent' },
-      { label: tFilters('sort.top'), param: 'sort', value: 'top' },
-    ];
-  }
-
-  if (sort === 'top') {
-    showRangeDropdown = true;
-  }
-
-  return {
-    typeMenuItems: typeDropdownMenuItems,
-    sortMenuItems: sortDropdownMenuItems,
-    rangeMenuItems: rangeDropdownMenuItems,
-    showRangeDropdown,
-  };
+  return buildSubscribedListDropdownConfig({
+    categorySorts,
+    globalSorts: [
+      { label: tFilters('sort.recent'), value: 'recent' },
+      { label: tFilters('sort.top'), value: 'top' },
+    ],
+    showRangeWhenSort: 'top',
+    sort,
+    subscribedSorts: [
+      { label: tFilters('sort.recent'), value: 'recent' },
+      { label: tFilters('sort.top'), value: 'top' },
+    ],
+    tFilters,
+    type,
+    typeOptions,
+  });
 }
 
 type EpisodesPageDropdownConfigParams = {
@@ -88,39 +78,16 @@ export type EpisodesPageDropdownConfigCurrentParams = {
 };
 
 export function getEpisodesPageFilterParams(
-  { type, sort, range, category, page }: EpisodesPageDropdownConfigParams,
+  params: EpisodesPageDropdownConfigParams,
   isValidAuthSession: boolean
 ): EpisodesPageDropdownConfigCurrentParams {
-  let currentType: QueryParamsSubscribedType;
-  let currentSort = sort;
-  let currentRange = range;
-  let currentCategory = category;
-  let currentPage = page;
-
-  if (category) {
-    currentType = 'category';
-    currentSort = getValidQueryParam(QUERY_PARAMS_GLOBAL_SORT_VALUES, currentSort, 'recent');
-  } else if (type === 'global') {
-    currentType = 'global';
-    currentSort = getValidQueryParam(QUERY_PARAMS_GLOBAL_SORT_VALUES, currentSort, 'recent');
-  } else if (type === 'subscribed') {
-    currentType = 'subscribed';
-    currentSort = getValidQueryParam(QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT, currentSort, 'recent');
-  } else {
-    if (isValidAuthSession) {
-      currentType = 'subscribed';
-      currentSort = getValidQueryParam(QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT, currentSort, 'recent');
-      currentRange = null;
-      currentCategory = null;
-      currentPage = 1;
-    } else {
-      currentType = 'global';
-      currentSort = getValidQueryParam(QUERY_PARAMS_GLOBAL_SORT_VALUES, currentSort, 'recent');
-      currentRange = null;
-      currentCategory = null;
-      currentPage = 1;
-    }
-  }
-
-  return { currentType, currentSort, currentRange, currentCategory, currentPage };
+  return buildSubscribedListFilterParams({
+    ...params,
+    defaultGlobalSort: 'recent',
+    defaultSubscribedSort: 'recent',
+    globalSortValues: QUERY_PARAMS_GLOBAL_SORT_VALUES,
+    isValidAuthSession,
+    subscribedSortValues: QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
+    supportsCategory: true,
+  });
 }

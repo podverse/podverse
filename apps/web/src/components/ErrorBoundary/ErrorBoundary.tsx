@@ -4,9 +4,7 @@ import { useTranslations } from 'next-intl';
 import type { ErrorInfo, ReactNode } from 'react';
 import React, { Component } from 'react';
 
-import { Button } from '@podverse/ui';
-
-import styles from '../../styles/components/ErrorBoundary/ErrorBoundary.module.scss';
+import { ErrorBoundaryShell } from '@podverse/ui';
 
 type ErrorBoundaryProps = {
   children: ReactNode;
@@ -72,35 +70,16 @@ const ErrorBoundaryFallback: React.FC<ErrorBoundaryFallbackProps> = ({ error, re
   const tErrors = useTranslations('errors');
   const tMisc = useTranslations('misc');
 
-  const handleReload = () => {
-    window.location.reload();
-  };
-
   return (
-    <div className={styles.errorBoundary}>
-      <div className={styles.errorBoundaryContent}>
-        <h2 className={styles.errorBoundaryTitle}>{tErrors('boundary_title')}</h2>
-        <p className={styles.errorBoundaryMessage}>{tErrors('boundary_message')}</p>
-        {process.env.NODE_ENV === 'development' && (
-          <details className={styles.errorDetails}>
-            <summary className={styles.errorDetailsSummary}>
-              {tErrors('details_development_only')}
-            </summary>
-            <pre className={styles.errorDetailsContent}>
-              {error.toString()}
-              {error.stack && `\n\n${error.stack}`}
-            </pre>
-          </details>
-        )}
-        <div className={styles.errorBoundaryActions}>
-          <Button onClick={resetError} variant="primary">
-            {tMisc('try_again')}
-          </Button>
-          <Button onClick={handleReload} variant="secondary">
-            {tMisc('reload_page')}
-          </Button>
-        </div>
-      </div>
-    </div>
+    <ErrorBoundaryShell
+      title={tErrors('boundary_title')}
+      message={tErrors('boundary_message')}
+      tryAgainLabel={tMisc('try_again')}
+      reloadLabel={tMisc('reload_page')}
+      detailsSummaryLabel={tErrors('details_development_only')}
+      error={error}
+      onReset={resetError}
+      showDetails={process.env.NODE_ENV === 'development'}
+    />
   );
 };

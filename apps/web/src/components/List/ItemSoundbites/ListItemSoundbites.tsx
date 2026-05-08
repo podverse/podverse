@@ -7,7 +7,7 @@ import type { QueryParamsItemsType } from '@podverse/helpers-requests';
 
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { scrollMainToTop } from '../../../utils/scroll';
-import Pagination from '../../Pagination/Pagination';
+import { Pagination } from '../../Pagination/Pagination';
 import { ListItemSoundbiteRow } from './ListItemSoundbiteRow';
 
 type Props = {

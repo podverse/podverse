@@ -1,10 +1,10 @@
 'use client';
 
-import React from 'react';
+import type { FC, MouseEvent } from 'react';
+
+import { IconButton as SharedIconButton } from '@podverse/ui';
 
 import { Link } from '../../Link/Link';
-
-import styles from '../../../styles/components/Media/Header/IconButton.module.scss';
 
 type IconButtonProps = {
   href?: string;
@@ -20,7 +20,7 @@ type IconButtonProps = {
   children?: React.ReactNode;
 };
 
-export const IconButton: React.FC<IconButtonProps> = ({
+export const IconButton: FC<IconButtonProps> = ({
   href,
   onClick,
   className = '',
@@ -33,27 +33,35 @@ export const IconButton: React.FC<IconButtonProps> = ({
   rel,
   children,
 }) => {
-  const classes = [styles.button, isGold ? styles.buttonGold : null, className]
-    .filter(Boolean)
-    .join(' ')
-    .trim();
+  const aria = ariaLabel ?? title;
+  if (aria === undefined || aria === '') {
+    throw new Error('IconButton requires ariaLabel or title for accessibility.');
+  }
 
-  // Use Link component for consistent handling of anchor and button semantics
+  const htmlButtonType = type === 'submit' || type === 'reset' ? type : ('button' as const);
+
+  const handleClick = onClick
+    ? (_event: MouseEvent<HTMLButtonElement>) => {
+        onClick();
+      }
+    : undefined;
+
   return (
-    <Link
-      href={href || undefined}
-      type={type as 'button' | 'submit' | 'reset' | undefined}
-      onClick={onClick}
-      className={classes}
-      aria-label={ariaLabel}
-      title={title}
-      color={color}
-      target={target as '_blank' | undefined}
+    <SharedIconButton
+      appearance="ghost"
+      accent={isGold ? 'gold' : undefined}
+      aria-label={aria}
+      className={className}
+      href={href}
+      htmlButtonType={htmlButtonType}
+      linkColor={color}
+      LinkComponent={Link}
+      onClick={handleClick}
       rel={rel}
+      target={target}
+      title={title}
     >
       {children}
-    </Link>
+    </SharedIconButton>
   );
 };
-
-export default IconButton;

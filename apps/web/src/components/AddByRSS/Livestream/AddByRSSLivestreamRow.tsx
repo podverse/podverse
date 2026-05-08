@@ -11,6 +11,7 @@ import {
   stripAndDecodeHtml,
   toIsoOrNull,
 } from '@podverse/helpers';
+import { ImagesPerView } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import type { AddByRSSListContextState } from '../../../contexts/AddByRSSListContext';
@@ -20,7 +21,6 @@ import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
 import { getAddByRSSLivestreamPath } from '../../../utils/addByRSS/itemPath';
 import type { AddByRSSLivestreamIndexItem } from '../../../utils/addByRSS/types';
 import { dedupedTrimmedUrlCandidates } from '../../../utils/image/dedupedTrimmedUrlCandidates';
-import { ImagesPerView } from '../../Image/ImagesPerView';
 import { LiveItemStatus } from '../../LiveItem/LiveItemStatus';
 import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
 import { ReadableDate } from '../../Time/ReadableDate';

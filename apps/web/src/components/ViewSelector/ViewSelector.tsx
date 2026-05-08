@@ -4,8 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useRef } from 'react';
 import { FaGear } from 'react-icons/fa6';
 
-import { useDropdownKeyboardNavigation } from '../../hooks/useDropdownKeyboardNavigation';
-import { DropdownMenu } from '../Dropdown/DropdownMenu';
+import { DropdownMenuPanel, useDropdownKeyboardNavigation } from '@podverse/ui';
 
 import styles from '../../styles/components/ViewSelector/ViewSelector.module.scss';
 
@@ -56,7 +55,7 @@ export function ViewSelector({ viewSelected, setViewSelected }: ViewSelectorProp
       >
         <FaGear />
       </button>
-      <DropdownMenu
+      <DropdownMenuPanel
         menuItems={menuItems}
         open={open}
         menuRef={menuRef}

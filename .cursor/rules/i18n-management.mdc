@@ -28,6 +28,12 @@ The Podverse monorepo uses a three-tier translation system:
 - `apps/web`
 - `apps/management-web`
 
+## Shared UI (`packages/ui`)
+
+User-facing copy lives in apps — not in `@podverse/ui`. When strings move from a component into
+message files, update **`apps/web`** and/or **`apps/management-web`** originals (see
+**`shared-ui-i18n`** rule).
+
 ## Required Locales
 
 The canonical list of required locales is defined in multiple places that **must stay in sync**:

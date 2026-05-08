@@ -5,12 +5,10 @@ import React, { useRef, useState } from 'react';
 
 import { MediumEnum } from '@podverse/helpers';
 import { copyToClipboard } from '@podverse/helpers-browser';
-import { FormStack } from '@podverse/ui';
+import { FormStack, Modal, MODAL_CONTENT_MAX_WIDTH, TextInput } from '@podverse/ui';
 
 import { WEB } from '../../constants/web';
 import { useModals } from '../../contexts/Modals';
-import { TextInput } from '../Form/TextInput';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 
 type ModalShareInput = {
   name: string;
@@ -21,6 +19,7 @@ type ModalShareInput = {
 export const ModalShare: React.FC = () => {
   const tFeatures = useTranslations('features');
   const tMedia = useTranslations('media');
+  const tMisc = useTranslations('misc');
   const tInfo = useTranslations('info');
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -131,6 +130,7 @@ export const ModalShare: React.FC = () => {
           item_soundbite: null,
         })
       }
+      closeButtonAriaLabel={tMisc('close_modal')}
       ariaLabel={tFeatures('share')}
       modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >

@@ -4,7 +4,6 @@
     "description": "Administrative management interface for {brand_name}"
   },
   "common": {
-    "loading": "Loading...",
     "error": "An error occurred",
     "save": "Save",
     "saveChanges": "Save Changes",
@@ -30,7 +29,52 @@
     "readOnlyTable": "Read-only table",
     "noDataFound": "No data found.",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "paginationPrevButton": "« Previous",
+    "paginationNextButton": "Next »",
+    "paginationPageOf": "Page {currentPage} of {totalPages}",
+    "closeModalAria": "Close modal"
+  },
+  "tableShared": {
+    "searchPlaceholder": "Search",
+    "searchSubmitLabel": "Search",
+    "searchClearLabel": "Clear search",
+    "filterColumnsLabel": "Search in columns",
+    "filterColumnsAriaLabel": "Filter which columns the search includes",
+    "sortAscLabel": "Sort ascending",
+    "sortDescLabel": "Sort descending",
+    "sortClearLabel": "Clear sort",
+    "sortAriaTemplate": "Sort by {column}",
+    "noResults": "No rows match the current filters.",
+    "noData": "No data to show.",
+    "loading": "Loading list…",
+    "errorRetry": "Retry",
+    "bulk": {
+      "selectAllAria": "Select all rows on this page",
+      "selectRowAria": "Select this row",
+      "selectedCount": "{count, plural, one {# row selected} other {# rows selected}}",
+      "clearSelection": "Clear selection",
+      "actionsLabel": "Bulk actions"
+    },
+    "cursor": {
+      "prev": "Previous",
+      "next": "Next"
+    },
+    "confirmDelete": {
+      "title": "Delete",
+      "message": "This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "aria": "Confirm delete"
+    },
+    "pagination": {
+      "pageOf": "Page {currentPage} of {totalPages}",
+      "prev": "Previous",
+      "next": "Next",
+      "goToPageLabel": "Go to page",
+      "goToPageAria": "Open go-to-page dialog",
+      "goToPageSubmit": "Go"
+    }
   },
   "auth": {
     "login": "Login",
@@ -92,6 +136,19 @@
       "description": "Browse, download, and delete objects in the configured bucket"
     }
   },
+  "errors": {
+    "boundary_title": "Something went wrong",
+    "boundary_message": "An unexpected error occurred. Please try again.",
+    "global_title": "Application Error",
+    "global_message": "A critical error occurred. Please refresh the page.",
+    "details_development_only": "Error details (development only)"
+  },
+  "misc": {
+    "loading": "Loading…",
+    "reload_page": "Reload page",
+    "return_to_home_page": "Return to home page",
+    "try_again": "Try again"
+  },
   "storage": {
     "title": "Object storage",
     "subtitle": "List objects in the configured bucket",
@@ -124,6 +181,22 @@
     "deleting": "Deleting…",
     "selectAllAria": "Select all objects on this page",
     "selectRowAria": "Select object {key}",
+    "viewAria": "View object {key}",
+    "deleteAria": "Delete object {key}",
+    "more": "More",
+    "moreAria": "More actions",
+    "deleteAll": "Delete all",
+    "deleteAllConfirmAria": "Confirm delete all matching objects",
+    "deleteAllConfirmTitle": "Delete all matching objects",
+    "deleteAllConfirmBodyWithPrefix": "Delete every object whose key starts with “{prefix}”.",
+    "deleteAllConfirmBodyEmptyPrefix": "Delete every object in the bucket. There is no prefix filter applied.",
+    "deleteAllIrreversible": "This cannot be undone.",
+    "deleteAllCounting": "Counting matching objects…",
+    "deleteAllCount": "{count, plural, one {# object} other {# objects}} will be deleted.",
+    "deleteAllCountTruncated": "More than {count} objects will be deleted.",
+    "deleteAllInProgress": "Deleting all matching objects…",
+    "deleteAllError": "Delete all failed.",
+    "deleteAllPartialError": "{deleted}/{requested} deleted; {failed} failed.",
     "download": "Download",
     "backToList": "Back to object list",
     "paginationPrev": "« Previous",
@@ -146,6 +219,7 @@
     "clear": "Clear",
     "views": "Views",
     "loadingDetail": "Loading detail...",
+    "loadingChart": "Loading chart...",
     "close": "Close",
     "idValue": "ID {id}",
     "searchPlaceholder": "Search {entity} by title...",
@@ -223,6 +297,20 @@
     "pageSubtitle": "Find a feed by Podcast Index ID (default), internal feed id, or URL. Update lifecycle state, active conditions, limits, and notes. This is separate from the database table browser.",
     "breadcrumbParent": "Feed operations",
     "breadcrumbCurrent": "Flag status",
+    "directoryHeading": "Feeds",
+    "directoryLoadError": "Could not load feeds list.",
+    "directoryEmpty": "No feeds match the current filters.",
+    "filterLifecycleLabel": "Lifecycle",
+    "filterLifecycleAll": "All lifecycles",
+    "directorySearchPlaceholder": "Filter by title, URL, or id…",
+    "directorySearchButton": "Apply filter",
+    "tableFeedId": "ID",
+    "tableChannelTitle": "Title",
+    "tablePodcastIndexId": "Podcast Index ID",
+    "tableLifecycle": "Lifecycle",
+    "tableUrl": "URL",
+    "openFeedRow": "Open",
+    "sectionDirectoryAria": "Feed directory",
     "sectionFindAria": "Search",
     "findFeedHeading": "Find a feed",
     "searchByLabel": "Search by",
@@ -234,7 +322,7 @@
     "placeholderUrl": "https://…",
     "placeholderNumber": "e.g. 12345",
     "lookupLoading": "Looking up…",
-    "lookupButton": "Look up",
+    "lookupButton": "Search",
     "optionsLoadError": "Could not load feed operations options.",
     "lookupErrorEnterUrl": "Enter a feed URL",
     "lookupErrorPositiveNumber": "Enter a positive number",
@@ -352,6 +440,7 @@
     "noResults": "No users match your search.",
     "noUsers": "No users found.",
     "confirmDelete": "Are you sure you want to delete this user? This cannot be undone.",
+    "deleteConfirmAria": "Confirm delete user",
     "userDetail": "User Detail",
     "editUser": "Edit User",
     "verified": "Verified",
@@ -432,6 +521,7 @@
     "paginationSummary": "{total} rows total | Page {page} of {totalPages}",
     "paginationSummarySingular": "{total} row total | Page {page} of {totalPages}",
     "deleteConfirm": "Are you sure you want to delete this row? This cannot be undone.",
+    "deleteConfirmAria": "Confirm delete row",
     "tables": {
       "feed": {
         "label": "Feeds",

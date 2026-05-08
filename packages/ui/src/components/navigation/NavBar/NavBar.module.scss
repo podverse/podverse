@@ -1,3 +1,5 @@
+@use '../../../styles/mixins/flexbox' as *;
+@use '../../../styles/mixins/media-queries' as *;
 @use '../../../styles/variables' as *;
 
 .navBar {
@@ -11,22 +13,147 @@
   border-bottom: $border-width solid $color-border-light;
 }
 
-.brand {
+// Matches apps/web NavBar shell — product chrome baseline.
+.navBarWeb {
+  @include flexBetween;
+  flex-shrink: 0;
+  gap: $spacing-md;
+  padding: var(--spacing-none) var(--spacing-md) var(--spacing-none) var(--spacing-2xl);
+  background: var(--background-color-secondary);
+  height: var(--navbar-desktop-height);
+  min-height: var(--navbar-desktop-height);
+
+  @include mobile {
+    background-color: var(--background-color-quaternary);
+    padding: var(--spacing-none);
+    height: var(--navbar-mobile-height);
+    min-height: var(--navbar-mobile-height);
+  }
+}
+
+.brandRegion {
   display: flex;
   align-items: center;
   min-width: 0;
 }
 
-.left {
+.brandAlways {
   display: flex;
+  align-items: center;
+}
+
+// Absorbed from apps/web NavBarBrand.module.scss — logo link visible on small viewports only.
+.brandMobileOnly {
+  display: none;
+  align-items: center;
+  height: 48px;
+  box-sizing: border-box;
+  cursor: pointer;
+
+  @include mobile {
+    display: flex;
+    padding: 0 var(--spacing-lg);
+  }
+}
+
+.brandLink {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+// Absorbed from NavBarLeftButtons — desktop history controls.
+.leftCluster {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-base);
+  min-width: 0;
+
+  @include mobile {
+    display: none;
+  }
+}
+
+// Absorbed from NavBarRightButtons — cluster anchored end.
+.rightCluster {
+  display: flex;
+  flex: 1;
+  justify-content: flex-end;
   align-items: center;
   gap: $spacing-md;
   min-width: 0;
 }
 
-.right {
+// Absorbed from NavBarSearchButton — icon search visible only on mobile/collapsed chrome.
+.searchLink {
+  display: none;
+  background: none;
+  border: none;
+  font-size: var(--font-size-lg);
+  padding: var(--spacing-form-input);
+  align-items: center;
+
+  @include mobile {
+    display: flex;
+  }
+}
+
+.dropdownWrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.accountTrigger {
   display: flex;
   align-items: center;
-  gap: $spacing-md;
-  min-width: 0;
+  background: none;
+  border: none;
+  padding: var(--spacing-form-input);
+  cursor: pointer;
+}
+
+.profileInfo {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+}
+
+.profileName {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: var(--spacing-md);
+}
+
+.profileIcon {
+  font-size: var(--font-size-lg);
+  margin-right: var(--spacing-md);
+}
+
+@include mobile {
+  .profileName {
+    display: none;
+  }
+}
+
+// Absorbed from NavBarMoreButton — menu toggle on small viewports.
+.mobileToggleButton {
+  display: none;
+  background: none;
+  border: none;
+  font-size: var(--font-size-xl);
+  padding: var(--spacing-form-input);
+  align-items: center;
+
+  @include mobile {
+    display: flex;
+    font-size: var(--font-size-md);
+  }
+}
+
+.mobileToggleIcon {
+  display: flex;
 }

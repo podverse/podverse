@@ -4,9 +4,10 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import { SkeletonFlashImage } from '@podverse/ui';
+
 import { IMAGES } from '../../../../constants/images';
 import { listItemImageCandidates } from '../../../../utils/image/listItemImageCandidates';
-import { SkeletonFlashImage } from '../../../Image/SkeletonFlashImage';
 import type { AlbumListItem } from './types';
 
 import styles from '../../../../styles/components/Common/List/Podcasts/ListPodcastRow.module.scss';

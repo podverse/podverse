@@ -1,18 +1,29 @@
 'use client';
 
+import NextLink from 'next/link';
 import { useTranslations } from 'next-intl';
 import { FaDiscord, FaGithub, FaMastodon, FaXTwitter } from 'react-icons/fa6';
 import { SiMatrix } from 'react-icons/si';
 
+import {
+  FooterBrand,
+  FooterCopyright,
+  FooterLayout,
+  FooterLinks,
+  FooterSocialLinks,
+} from '@podverse/ui';
+
+import { LINKS } from '../../constants/links';
 import { ROUTES } from '../../constants/routes';
 import { SOCIALS } from '../../constants/socials';
+import { useConfig } from '../../contexts/Config';
+import { useLocalSettings } from '../../contexts/LocalSettings';
+import { getBrandLogoSrc } from '../../utils/brandLogo';
 import { Link } from '../Link/Link';
-import FooterBrand from './FooterBrand';
-import FooterCopyright from './FooterCopyright';
-
-import styles from '../../styles/components/Footer/Footer.module.scss';
 
 export const Footer: React.FC = () => {
+  const config = useConfig();
+  const { uiTheme } = useLocalSettings();
   const tMisc = useTranslations('misc');
   const tInfo = useTranslations('info');
   const tMembership = useTranslations('membership');
@@ -21,13 +32,24 @@ export const Footer: React.FC = () => {
   const tContact = useTranslations('contact');
 
   return (
-    <footer className={styles.footer}>
-      <div className={styles.footerTop}>
-        <FooterBrand />
-        <FooterCopyright />
-      </div>
-      <div className={styles.footerBottom}>
-        <div className={styles.footerLinks}>
+    <FooterLayout
+      top={
+        <>
+          <FooterBrand
+            alt={config.public.brand.name}
+            LinkComponent={NextLink}
+            logoSrc={getBrandLogoSrc(uiTheme)}
+            skipProxy
+          />
+          <FooterCopyright
+            href={LINKS.opensourceLicense}
+            label={tMisc('open_source')}
+            LinkComponent={NextLink}
+          />
+        </>
+      }
+      links={
+        <FooterLinks>
           <Link href={ROUTES.CONTACT}>{tContact('contact')}</Link>
           <Link href={ROUTES.ABOUT}>{tInfo('about')}</Link>
           <Link href={ROUTES.DONATE}>{tMisc('donate')}</Link>
@@ -38,8 +60,10 @@ export const Footer: React.FC = () => {
             {tFeatures('embed')}
           </Link>
           {/* <Link href={ROUTES.UPDATES}>{tMisc("updates")}</Link> */}
-        </div>
-        <div className={styles.footerSocialLinks}>
+        </FooterLinks>
+      }
+      social={
+        <FooterSocialLinks>
           <Link
             href={SOCIALS.DISCORD}
             color="secondary"
@@ -85,8 +109,8 @@ export const Footer: React.FC = () => {
           >
             <FaGithub />
           </Link>
-        </div>
-      </div>
-    </footer>
+        </FooterSocialLinks>
+      }
+    />
   );
 };

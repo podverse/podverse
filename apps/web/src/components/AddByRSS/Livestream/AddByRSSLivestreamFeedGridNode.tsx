@@ -10,10 +10,10 @@ import {
   getQueryParamFromQueueMediumId,
   prependDistinctImageCandidate,
 } from '@podverse/helpers';
+import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
-import { SkeletonFlashImage } from '../../Image/SkeletonFlashImage';
 
 import styles from '../../../styles/components/Common/List/ListGridNode.module.scss';
 

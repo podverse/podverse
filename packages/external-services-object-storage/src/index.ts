@@ -102,6 +102,29 @@ export type ObjectStorageDeleteObjectsResult = {
   failed: { key: string; error: string }[];
 };
 
+export type ObjectStorageCountObjectsParams = {
+  bucket: string;
+  prefix?: string;
+  cap: number;
+};
+
+export type ObjectStorageCountObjectsResult = {
+  count: number;
+  exact: boolean;
+};
+
+export type ObjectStorageDeleteAllByPrefixParams = {
+  bucket: string;
+  prefix?: string;
+  cap: number;
+};
+
+export type ObjectStorageDeleteAllByPrefixResult = {
+  deleted: number;
+  failed: { key: string; error: string }[];
+  requested: number;
+};
+
 export type ObjectStorageListObjectsResult = {
   objects: ObjectStorageListObject[];
   nextContinuationToken?: string;
@@ -288,6 +311,89 @@ export class ObjectStorageService {
       lastModified,
       etag,
     };
+  }
+
+  async countObjects(
+    params: ObjectStorageCountObjectsParams
+  ): Promise<ObjectStorageCountObjectsResult> {
+    let count = 0;
+    let token: string | undefined;
+    for (;;) {
+      const res = await this.listObjects({
+        bucket: params.bucket,
+        prefix: params.prefix,
+        continuationToken: token,
+        maxKeys: 1000,
+      });
+      count += res.objects.length;
+      const hasMore =
+        res.isTruncated &&
+        res.nextContinuationToken !== undefined &&
+        res.nextContinuationToken !== '';
+      if (count >= params.cap) {
+        return { count: params.cap, exact: false };
+      }
+      if (!hasMore) {
+        return { count, exact: true };
+      }
+      token = res.nextContinuationToken;
+    }
+  }
+
+  async deleteAllByPrefix(
+    params: ObjectStorageDeleteAllByPrefixParams
+  ): Promise<ObjectStorageDeleteAllByPrefixResult> {
+    const failed: { key: string; error: string }[] = [];
+    let deleted = 0;
+    let requested = 0;
+    let token: string | undefined;
+
+    while (requested < params.cap) {
+      const res = await this.listObjects({
+        bucket: params.bucket,
+        prefix: params.prefix,
+        continuationToken: token,
+        maxKeys: 1000,
+      });
+
+      if (res.objects.length === 0) {
+        const hasMore =
+          res.isTruncated &&
+          res.nextContinuationToken !== undefined &&
+          res.nextContinuationToken !== '';
+        if (!hasMore) {
+          break;
+        }
+        token = res.nextContinuationToken;
+        continue;
+      }
+
+      const keys = res.objects.map((o) => o.key);
+      let offset = 0;
+      while (offset < keys.length && requested < params.cap) {
+        const room = params.cap - requested;
+        const slice = keys.slice(offset, offset + Math.min(1000, room));
+        offset += slice.length;
+        requested += slice.length;
+        const outcome = await this.deleteObjectsByKeys({
+          bucket: params.bucket,
+          keys: slice,
+        });
+        deleted += outcome.deleted.length;
+        failed.push(...outcome.failed);
+      }
+
+      const hasMore =
+        res.isTruncated &&
+        res.nextContinuationToken !== undefined &&
+        res.nextContinuationToken !== '';
+      if (!hasMore) {
+        break;
+      }
+      token = res.nextContinuationToken;
+    }
+
+    return { deleted, failed, requested };
   }
 
   async deleteObjectsByKeys(

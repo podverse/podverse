@@ -1,10 +1,12 @@
+@use '../../../styles/mixins/form' as *;
+
 .grid {
   display: grid;
   grid-template-columns: minmax(9rem, 1fr) minmax(6rem, 1fr) auto;
   row-gap: var(--spacing-md);
   column-gap: var(--spacing-lg);
   width: 100%;
-  align-items: start;
+  align-items: center;
 }
 
 .actionLabelCell {
@@ -22,15 +24,40 @@
 .inlineControl {
   box-sizing: border-box;
   min-height: 2.75rem;
-  align-self: start;
 }
 
 .inlineControlButton {
   box-sizing: border-box;
   min-height: 2.75rem;
-  align-self: start;
   width: auto;
   min-width: 7rem;
+}
+
+/* Outer chrome matches TextInput (formInputWrapper); use with a native select (not ui Select, which applies primitive styles). */
+.nativeSelectFormChrome {
+  @include formInputWrapper;
+  box-sizing: border-box;
+  width: 100%;
+
+  select {
+    all: unset;
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    font-size: var(--font-size-md);
+    padding: var(--spacing-form-input-inner);
+    color: var(--text-color-primary);
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    &:focus {
+      outline: none;
+    }
+  }
 }
 
 .formBlock {

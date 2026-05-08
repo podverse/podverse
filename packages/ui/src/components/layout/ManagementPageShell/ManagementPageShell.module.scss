@@ -1,8 +1,9 @@
 .shell {
   box-sizing: border-box;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--spacing-lg);
+  width: 100%;
+  min-width: 0;
+  /* Horizontal inset matches management `NavBar` (`.navBar` uses `$spacing-lg` → `--spacing-2xl`). */
+  padding: var(--spacing-lg) var(--spacing-2xl);
 }
 
 .header {

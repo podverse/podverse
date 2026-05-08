@@ -12,7 +12,13 @@ import {
   MediumEnum,
 } from '@podverse/helpers';
 import { getTotalPages } from '@podverse/helpers';
-import { ButtonTabs, FormStack } from '@podverse/ui';
+import {
+  ButtonTabs,
+  CallToActionMessage,
+  FormStack,
+  Modal,
+  MODAL_CONTENT_MAX_WIDTH,
+} from '@podverse/ui';
 
 import { MEDIUM } from '../../constants/medium';
 import { ROUTES } from '../../constants/routes';
@@ -21,11 +27,9 @@ import type { ModalPlaylistAddToState } from '../../contexts/Modals';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
-import { CallToActionMessage } from '../CallToActionMessage/CallToActionMessage';
 import { ListPlaylists } from '../List/Playlists/ListPlaylists';
 import { MediaHeaderMini } from '../MediaHeaderMini/MediaHeaderMini';
 import { showToastPromise } from '../Toast/Toast';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 
 import styles from '../../styles/components/Modal/ModalPlaylistAddTo.module.scss';
 
@@ -53,6 +57,7 @@ export const ModalPlaylistAddTo: React.FC = () => {
   const tMedia = useTranslations('media');
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
+  const tMisc = useTranslations('misc');
   const header = tFeatures('playlist.add_to_playlist');
   const { modalPlaylistAddTo, setModalPlaylistAddTo, setModalAuthLogin } = useModals();
   const router = useRouter();
@@ -211,6 +216,7 @@ export const ModalPlaylistAddTo: React.FC = () => {
     <Modal
       isOpen={isOpen}
       onClose={clearModalPlaylistAddTo}
+      closeButtonAriaLabel={tMisc('close_modal')}
       header={header}
       ariaLabel={header}
       modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}

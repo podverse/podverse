@@ -4,7 +4,6 @@
     "description": "Interfaz de gestión administrativa para {brand_name}"
   },
   "common": {
-    "loading": "Cargando...",
     "error": "Ocurrió un error",
     "save": "Guardar",
     "saveChanges": "Guardar cambios",
@@ -30,7 +29,52 @@
     "readOnlyTable": "Tabla de solo lectura",
     "noDataFound": "No se encontró ningún dato.",
     "previous": "Anterior",
-    "next": "Siguiente"
+    "next": "Siguiente",
+    "paginationPrevButton": "« Anterior",
+    "paginationNextButton": "Siguiente »",
+    "paginationPageOf": "Página {currentPage} de {totalPages}",
+    "closeModalAria": "Cerrar modal"
+  },
+  "tableShared": {
+    "searchPlaceholder": "Buscar",
+    "searchSubmitLabel": "Buscar",
+    "searchClearLabel": "Borrar búsqueda",
+    "filterColumnsLabel": "Buscar en columnas",
+    "filterColumnsAriaLabel": "Filtrar en qué columnas se incluye la búsqueda",
+    "sortAscLabel": "Orden ascendente",
+    "sortDescLabel": "Orden descendente",
+    "sortClearLabel": "Quitar orden",
+    "sortAriaTemplate": "Ordenar por {column}",
+    "noResults": "Ninguna fila coincide con los filtros.",
+    "noData": "No hay datos.",
+    "loading": "Cargando lista…",
+    "errorRetry": "Reintentar",
+    "bulk": {
+      "selectAllAria": "Seleccionar todas las filas de esta página",
+      "selectRowAria": "Seleccionar esta fila",
+      "selectedCount": "{count, plural, one {# fila seleccionada} other {# filas seleccionadas}}",
+      "clearSelection": "Borrar selección",
+      "actionsLabel": "Acciones en bloque"
+    },
+    "cursor": {
+      "prev": "Anterior",
+      "next": "Siguiente"
+    },
+    "confirmDelete": {
+      "title": "Eliminar",
+      "message": "Esta acción no se puede deshacer.",
+      "cancel": "Cancelar",
+      "confirm": "Confirmar",
+      "aria": "Confirmar eliminación"
+    },
+    "pagination": {
+      "pageOf": "Página {currentPage} de {totalPages}",
+      "prev": "Anterior",
+      "next": "Siguiente",
+      "goToPageLabel": "Ir a la página",
+      "goToPageAria": "Abrir diálogo para ir a la página",
+      "goToPageSubmit": "Ir"
+    }
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -92,6 +136,19 @@
       "description": "Examinar, descargar y eliminar objetos del depósito configurado"
     }
   },
+  "errors": {
+    "boundary_title": "Algo salió mal",
+    "boundary_message": "Ocurrió un error inesperado. Por favor, intenta de nuevo.",
+    "global_title": "Error de Aplicación",
+    "global_message": "Ocurrió un error crítico. Por favor, actualiza la página.",
+    "details_development_only": "Detalles del error (solo para desarrollo)"
+  },
+  "misc": {
+    "loading": "Cargando…",
+    "reload_page": "Recargar página",
+    "return_to_home_page": "Ir a Inicio",
+    "try_again": "Intenta de nuevo"
+  },
   "storage": {
     "title": "Almacenamiento de objetos",
     "subtitle": "Listar objetos del depósito configurado",
@@ -124,6 +181,22 @@
     "deleting": "Eliminando…",
     "selectAllAria": "Seleccionar todos los objetos de esta página",
     "selectRowAria": "Seleccionar objeto {key}",
+    "viewAria": "Ver objeto {key}",
+    "deleteAria": "Eliminar objeto {key}",
+    "more": "Más",
+    "moreAria": "Más acciones",
+    "deleteAll": "Eliminar todo",
+    "deleteAllConfirmAria": "Confirmar eliminar todos los objetos coincidentes",
+    "deleteAllConfirmTitle": "Eliminar todos los objetos coincidentes",
+    "deleteAllConfirmBodyWithPrefix": "Eliminar todos los objetos cuya clave empiece por “{prefix}”.",
+    "deleteAllConfirmBodyEmptyPrefix": "Eliminar todos los objetos del bucket. No hay filtro de prefijo aplicado.",
+    "deleteAllIrreversible": "Esta acción no se puede deshacer.",
+    "deleteAllCounting": "Contando objetos coincidentes…",
+    "deleteAllCount": "{count, plural, one {# objeto} other {# objetos}} se eliminarán.",
+    "deleteAllCountTruncated": "Se eliminarán más de {count} objetos.",
+    "deleteAllInProgress": "Eliminando todos los objetos coincidentes…",
+    "deleteAllError": "Error al eliminar todo.",
+    "deleteAllPartialError": "{deleted}/{requested} eliminados; {failed} fallidos.",
     "download": "Descargar",
     "backToList": "Volver a la lista de objetos",
     "paginationPrev": "« Anterior",
@@ -146,6 +219,7 @@
     "clear": "Limpiar",
     "views": "Vistas",
     "loadingDetail": "Cargando detalle...",
+    "loadingChart": "Cargando gráfico...",
     "close": "Cerrar",
     "idValue": "ID {id}",
     "searchPlaceholder": "Buscar {entity} por título...",
@@ -223,6 +297,20 @@
     "pageSubtitle": "Busque un feed por ID de Podcast Index (predeterminado), id interno del feed o URL. Actualice el ciclo de vida, condiciones activas, límites y notas. Esto es independiente del navegador de tablas de la base de datos.",
     "breadcrumbParent": "Operaciones de feed",
     "breadcrumbCurrent": "Estado de la bandera",
+    "directoryHeading": "Feeds",
+    "directoryLoadError": "No se pudo cargar la lista de feeds.",
+    "directoryEmpty": "Ningún feed coincide con los filtros actuales.",
+    "filterLifecycleLabel": "Ciclo de vida",
+    "filterLifecycleAll": "Todos los ciclos de vida",
+    "directorySearchPlaceholder": "Filtrar por título, URL o id…",
+    "directorySearchButton": "Aplicar filtro",
+    "tableFeedId": "ID",
+    "tableChannelTitle": "Título",
+    "tablePodcastIndexId": "ID de Podcast Index",
+    "tableLifecycle": "Ciclo de vida",
+    "tableUrl": "URL",
+    "openFeedRow": "Abrir",
+    "sectionDirectoryAria": "Directorio de feeds",
     "sectionFindAria": "Buscar",
     "findFeedHeading": "Buscar un feed",
     "searchByLabel": "Buscar por",
@@ -352,6 +440,7 @@
     "noResults": "No hay usuarios que coincidan con tu búsqueda.",
     "noUsers": "No se encontraron usuarios.",
     "confirmDelete": "¿Estás seguro de que deseas eliminar este usuario? Esto no se puede deshacer.",
+    "deleteConfirmAria": "Confirmar eliminación de usuario",
     "userDetail": "Detalle del Usuario",
     "editUser": "Editar Usuario",
     "verified": "Verificado",
@@ -432,6 +521,7 @@
     "paginationSummary": "{total} filas en total | Página {page} de {totalPages}",
     "paginationSummarySingular": "{total} fila en total | Página {page} de {totalPages}",
     "deleteConfirm": "¿Está seguro de que desea eliminar esta fila? Esto no se puede deshacer.",
+    "deleteConfirmAria": "Confirmar eliminación de fila",
     "tables": {
       "feed": {
         "label": "Feeds",

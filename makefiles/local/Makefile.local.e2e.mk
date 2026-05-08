@@ -108,7 +108,7 @@ e2e_test_web_report_spec: e2e_deps e2e_seed_web
 	PLAYWRIGHT_HTML_OUTPUT_DIR="$(E2E_REPORT_BASE)/web" \
 	E2E_STEP_SCREENSHOTS=true \
 	PLAYWRIGHT_HTML_OPEN=never \
-	npm run test:e2e -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts "$(SPEC)"
+	npm run test:e2e -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$(echo "$(SPEC)" | tr ',' ' ')
 
 # Scoped management-web report for one spec (SPEC=apps/management-web/e2e/foo.spec.ts)
 e2e_test_management_web_report_spec: e2e_deps e2e_seed_management_web
@@ -117,7 +117,7 @@ e2e_test_management_web_report_spec: e2e_deps e2e_seed_management_web
 	PLAYWRIGHT_HTML_OUTPUT_DIR="$(E2E_REPORT_BASE)/management-web" \
 	E2E_STEP_SCREENSHOTS=true \
 	PLAYWRIGHT_HTML_OPEN=never \
-	npm run test:e2e -w @podverse/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts "$(SPEC)"
+	npm run test:e2e -w @podverse/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$(echo "$(SPEC)" | tr ',' ' ')
 
 # Scoped both apps (WEB_SPEC=... MGMT_SPEC=...)
 e2e_test_report_scoped: e2e_deps e2e_seed
@@ -127,12 +127,12 @@ e2e_test_report_scoped: e2e_deps e2e_seed
 	PLAYWRIGHT_HTML_OUTPUT_DIR="$(E2E_REPORT_BASE)/web" \
 	E2E_STEP_SCREENSHOTS=true \
 	PLAYWRIGHT_HTML_OPEN=never \
-	npm run test:e2e -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts "$(WEB_SPEC)" || exit_code=$$?; \
+	npm run test:e2e -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$(echo "$(WEB_SPEC)" | tr ',' ' ') || exit_code=$$?; \
 	if [ -n "$(MGMT_SPEC)" ]; then \
 		PLAYWRIGHT_HTML_OUTPUT_DIR="$(E2E_REPORT_BASE)/management-web" \
 		E2E_STEP_SCREENSHOTS=true \
 		PLAYWRIGHT_HTML_OPEN=never \
-		npm run test:e2e -w @podverse/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts "$(MGMT_SPEC)" || exit_code=$$?; \
+		npm run test:e2e -w @podverse/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$(echo "$(MGMT_SPEC)" | tr ',' ' ') || exit_code=$$?; \
 	fi; \
 	exit $$exit_code
 

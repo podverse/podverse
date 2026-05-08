@@ -20,8 +20,8 @@ export type BreadcrumbsProps = {
   variant?: 'default' | 'compact';
   className?: string;
   marginBottom?: 'none' | 'lg';
-  /** Landmark label for `<nav>` (localize in the app, e.g. `useTranslations('common')`). */
-  navAriaLabel?: string;
+  /** Landmark label for `<nav>` — localize in the app (e.g. `useTranslations('common')`). */
+  navAriaLabel: string;
 };
 
 const DefaultLink = ({ href, children, className }: BreadcrumbsLinkProps) => (
@@ -40,7 +40,7 @@ export function Breadcrumbs({
   variant = 'default',
   className = '',
   marginBottom = 'none',
-  navAriaLabel = 'Breadcrumb',
+  navAriaLabel,
 }: BreadcrumbsProps) {
   if (items.length === 0) {
     return null;

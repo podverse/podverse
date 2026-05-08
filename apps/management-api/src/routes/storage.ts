@@ -4,7 +4,10 @@ import type { ReadableStream } from 'node:stream/web';
 import { config } from '@mgmt-api/config/index.js';
 import { ensureAuthenticated } from '@mgmt-api/lib/auth/index.js';
 import { requireCrud } from '@mgmt-api/lib/authz/requireCrud.js';
-import { storageBulkDeleteBodySchema } from '@mgmt-api/schemas/storage.js';
+import {
+  storageBulkDeleteBodySchema,
+  storageDeleteAllByPrefixBodySchema,
+} from '@mgmt-api/schemas/storage.js';
 import type { Response } from 'express';
 import express from 'express';
 
@@ -20,6 +23,7 @@ const baseUrl = `${config.api.prefix}${config.api.version}`;
 
 const DEFAULT_LIST_MAX_KEYS = 100;
 const MAX_LIST_MAX_KEYS = 1000;
+const STORAGE_COUNT_AND_DELETE_CAP = 10_000;
 
 let cachedStorageService: ObjectStorageService | null = null;
 
@@ -135,6 +139,31 @@ router.get(
         isTruncated: list.isTruncated,
         prefix: prefix ?? '',
       });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.get(
+  `${baseUrl}/storage/objects/count`,
+  ensureAuthenticated,
+  requireCrud('bucket', 'read'),
+  async (req, res, next) => {
+    try {
+      if (!isBucketStorageEnabled()) {
+        sendFeatureDisabled(res);
+        return;
+      }
+      const prefix = parsePrefix(req.query.prefix);
+      const storage = readBucketStorageConfig();
+      const svc = getObjectStorageService();
+      const outcome = await svc.countObjects({
+        bucket: storage.bucket,
+        prefix,
+        cap: STORAGE_COUNT_AND_DELETE_CAP,
+      });
+      res.json(outcome);
     } catch (error) {
       next(error);
     }
@@ -284,6 +313,37 @@ router.post(
       const storage = readBucketStorageConfig();
       const svc = getObjectStorageService();
       const outcome = await svc.deleteObjectsByKeys({ bucket: storage.bucket, keys });
+      res.json(outcome);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.post(
+  `${baseUrl}/storage/objects/delete-all-by-prefix`,
+  ensureAuthenticated,
+  requireCrud('bucket', 'delete'),
+  async (req, res, next) => {
+    try {
+      if (!isBucketStorageEnabled()) {
+        sendFeatureDisabled(res);
+        return;
+      }
+      const parsed = storageDeleteAllByPrefixBodySchema.validate(req.body);
+      if (parsed.error) {
+        res.status(400).json({ message: parsed.error.message });
+        return;
+      }
+      const rawPrefix = parsed.value.prefix;
+      const prefix = rawPrefix.trim() === '' ? undefined : rawPrefix.trim();
+      const storage = readBucketStorageConfig();
+      const svc = getObjectStorageService();
+      const outcome = await svc.deleteAllByPrefix({
+        bucket: storage.bucket,
+        prefix,
+        cap: STORAGE_COUNT_AND_DELETE_CAP,
+      });
       res.json(outcome);
     } catch (error) {
       next(error);

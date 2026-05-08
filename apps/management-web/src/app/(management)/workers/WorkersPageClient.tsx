@@ -1,33 +1,36 @@
 'use client';
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { FaArrowUpRightFromSquare } from 'react-icons/fa6';
 
-import type { StatusBadgeVariant } from '@podverse/ui';
+import type { SortDirection, StatusBadgeVariant } from '@podverse/ui';
 import {
-  ActionLink,
   Alert,
   CodeText,
   CopyToClipboardButton,
   Disclosure,
-  fieldPrimitiveClasses,
-  FormGroup,
   FormHintText,
-  Input,
-  Label,
   LeadParagraph,
-  LoadingText,
+  LoadingSpinner,
   ManagementPageShell,
   RestrictedNotice,
   StatusBadge,
   Table,
+  TableFilterBar,
+  TableWithSort,
+  useTableFilterState,
 } from '@podverse/ui';
 
+import { useManagementTableChrome } from '../../../components/Table/managementTableChrome';
+import { ManagementIconButtonLink } from '../../../lib/ManagementIconButtonLink';
+import { managementSearchParamsObject } from '../../../lib/managementTableUrl';
 import type { CurrentUser } from '../../../lib/requests/auth';
 import { getCurrentUser } from '../../../lib/requests/auth';
 import { listWorkerCommands, type WorkerCommandRow } from '../../../lib/requests/workerCommands';
+
+import styles from './WorkersPageClient.module.scss';
 
 const CATEGORY_KEY: Record<string, string> = {
   archival: 'categories.archival',
@@ -46,6 +49,8 @@ const RISK_KEY: Record<string, string> = {
   long_running: 'riskLabels.long_running',
   dev_only: 'riskLabels.dev_only',
 };
+
+const WORKER_COLUMN_IDS = ['command', 'description', 'risk', 'actions'] as const;
 
 type WorkersPageClientProps = {
   initialUser: CurrentUser;
@@ -66,10 +71,27 @@ export function WorkersPageClient({ initialUser }: WorkersPageClientProps) {
   const [commands, setCommands] = useState<WorkerCommandRow[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [filter, setFilter] = useState('');
+  const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const t = useTranslations('workers');
   const tc = useTranslations('common');
+  const chrome = useManagementTableChrome();
+
+  const basePath = pathname !== null && pathname !== '' ? pathname : '/workers';
+  const currentQueryParams = useMemo(
+    () => managementSearchParamsObject(searchParams),
+    [searchParams]
+  );
+  const urlSearch = searchParams.get('search') ?? '';
+
+  const filter = useTableFilterState({
+    allColumnIds: [...WORKER_COLUMN_IDS],
+    basePath,
+    currentQueryParams,
+    initialColumns: [...WORKER_COLUMN_IDS],
+    initialSearch: urlSearch,
+  });
 
   const getCategoryLabel = useCallback(
     (category: string): string => {
@@ -168,16 +190,16 @@ export function WorkersPageClient({ initialUser }: WorkersPageClientProps) {
     };
   }, [isSuperuser, t]);
 
-  const rows = useMemo(() => {
+  const filteredRows = useMemo(() => {
     if (!commands) {
       return [];
     }
-    return commands.filter((r) => matchesQuery(r, filter));
-  }, [commands, filter, matchesQuery]);
+    return commands.filter((r) => matchesQuery(r, filter.search));
+  }, [commands, filter.search, matchesQuery]);
 
   const commandGroups = useMemo(() => {
     const byCategory = new Map<string, WorkerCommandRow[]>();
-    for (const row of rows) {
+    for (const row of filteredRows) {
       const list = byCategory.get(row.category) ?? [];
       list.push(row);
       byCategory.set(row.category, list);
@@ -189,7 +211,49 @@ export function WorkersPageClient({ initialUser }: WorkersPageClientProps) {
       category,
       rows: byCategory.get(category) ?? [],
     }));
-  }, [rows, getCategoryLabel]);
+  }, [filteredRows, getCategoryLabel]);
+
+  const filterBarColumns = useMemo(
+    () => [
+      { id: 'command', label: t('tableHeaders.command') },
+      { id: 'description', label: t('tableHeaders.description') },
+      { id: 'risk', label: t('tableHeaders.risk') },
+      { id: 'actions', label: tc('actions') },
+    ],
+    [t, tc]
+  );
+
+  const sortColumns = useMemo(
+    () => [
+      {
+        header: t('tableHeaders.command'),
+        key: 'command',
+        sortable: false,
+      },
+      {
+        header: t('tableHeaders.description'),
+        key: 'description',
+        sortable: false,
+      },
+      {
+        header: t('tableHeaders.risk'),
+        key: 'risk',
+        sortable: false,
+      },
+      {
+        header: tc('actions'),
+        key: 'actions',
+        sortable: false,
+      },
+    ],
+    [t, tc]
+  );
+
+  const noopSort = useCallback((_sortKey: string, _order: SortDirection) => {
+    // Workers catalog has no sortable columns (tables convergence phase 06).
+  }, []);
+
+  const groupedEmpty = filteredRows.length === 0;
 
   return (
     <ManagementPageShell title={t('title')}>
@@ -208,42 +272,42 @@ export function WorkersPageClient({ initialUser }: WorkersPageClientProps) {
         </RestrictedNotice>
       )}
 
-      {isSuperuser && loading && <LoadingText>{t('loadingCommands')}</LoadingText>}
+      {isSuperuser && loading && <LoadingSpinner ariaLabel={t('loadingCommands')} size="small" />}
       {isSuperuser && !loading && loadError && <Alert>{loadError}</Alert>}
 
       {isSuperuser && !loading && !loadError && commands && (
-        <>
-          <FormGroup>
-            <Label htmlFor="worker-command-filter">{tc('search')}</Label>
-            <Input
-              id="worker-command-filter"
-              type="search"
-              value={filter}
-              onChange={(e) => {
-                setFilter(e.target.value);
-              }}
-              placeholder={t('searchPlaceholder')}
-              autoComplete="off"
-              className={fieldPrimitiveClasses.input}
-              style={{ maxWidth: '32rem' }}
-            />
-            <FormHintText variant="block">
-              {t('commandCount', { shown: rows.length, total: commands.length })}
-            </FormHintText>
-          </FormGroup>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
-            {commandGroups.map(({ category, rows: groupRows }) => (
+        <div className={styles.root}>
+          <div className={styles.filterRow}>
+            <div className={styles.filterBar}>
+              <TableFilterBar
+                columns={filterBarColumns}
+                filterColumnsLabel={chrome.filterLabels.filterColumnsLabel}
+                funnelAriaLabel={chrome.filterLabels.funnelAriaLabel}
+                searchPlaceholder={t('searchPlaceholder')}
+                searchValue={filter.search}
+                selectedColumnIds={filter.selectedColumnIds}
+                onSearchChange={filter.setSearch}
+                onSelectedColumnIdsChange={filter.handleColumnSelectionChange}
+              />
+            </div>
+          </div>
+
+          <FormHintText variant="block">
+            {t('commandCount', { shown: filteredRows.length, total: commands.length })}
+          </FormHintText>
+
+          {groupedEmpty ? (
+            <p className={styles.emptyMessage}>{t('noMatchingCommands')}</p>
+          ) : (
+            commandGroups.map(({ category, rows: groupRows }) => (
               <Disclosure key={category} title={getCategoryLabel(category)}>
                 <Table.ScrollContainer>
-                  <Table>
-                    <Table.Head>
-                      <Table.Row>
-                        <Table.HeaderCell>{t('tableHeaders.command')}</Table.HeaderCell>
-                        <Table.HeaderCell>{t('tableHeaders.description')}</Table.HeaderCell>
-                        <Table.HeaderCell>{t('tableHeaders.risk')}</Table.HeaderCell>
-                        <Table.HeaderCell>{tc('actions')}</Table.HeaderCell>
-                      </Table.Row>
-                    </Table.Head>
+                  <TableWithSort
+                    columns={sortColumns}
+                    sortBy={undefined}
+                    sortOrder="asc"
+                    onSortChange={noopSort}
+                  >
                     <Table.Body>
                       {groupRows.map((row) => (
                         <Table.Row key={row.name}>
@@ -267,19 +331,22 @@ export function WorkersPageClient({ initialUser }: WorkersPageClientProps) {
                               }}
                             >
                               <CopyToClipboardButton
-                                textToCopy={row.example_cli}
-                                idleLabel={t('copyExample')}
                                 copiedLabel={t('copiedToClipboard')}
                                 errorLabel={t('copyFailed')}
+                                idleLabel={t('copyExample')}
+                                textToCopy={row.example_cli}
                               />
                               {row.related_management_path ? (
-                                <ActionLink
-                                  href={row.related_management_path}
-                                  LinkComponent={Link}
-                                  variant="inline"
-                                >
-                                  {t('openRelatedTool')}
-                                </ActionLink>
+                                <Table.RowActions>
+                                  <Table.IconActionLink
+                                    LinkComponent={ManagementIconButtonLink}
+                                    ariaLabel={t('openRelatedTool')}
+                                    href={row.related_management_path}
+                                    title={t('openRelatedTool')}
+                                  >
+                                    <FaArrowUpRightFromSquare aria-hidden />
+                                  </Table.IconActionLink>
+                                </Table.RowActions>
                               ) : null}
                               <CodeText variant="block">{row.example_cli}</CodeText>
                             </div>
@@ -287,15 +354,12 @@ export function WorkersPageClient({ initialUser }: WorkersPageClientProps) {
                         </Table.Row>
                       ))}
                     </Table.Body>
-                  </Table>
+                  </TableWithSort>
                 </Table.ScrollContainer>
               </Disclosure>
-            ))}
-          </div>
-          {rows.length === 0 && (
-            <FormHintText variant="block">{t('noMatchingCommands')}</FormHintText>
+            ))
           )}
-        </>
+        </div>
       )}
     </ManagementPageShell>
   );

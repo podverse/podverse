@@ -4,15 +4,17 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { validateHttpsUrl } from '@podverse/helpers-validation/client';
-import { Button, Divider } from '@podverse/ui';
-
 import {
+  Button,
+  Divider,
   InlineForm,
   InlineFormButtons,
   InlineFormFieldGroup,
   InlineFormInfo,
-} from '../../../../components/Form/InlineForm';
-import { TextInput } from '../../../../components/Form/TextInput';
+  SwitchButton,
+  TextInput,
+} from '@podverse/ui';
+
 import { useAccount } from '../../../../contexts/Account';
 import { useModals } from '../../../../contexts/Modals';
 import { useNotifications } from '../../../../contexts/Notifications';
@@ -20,7 +22,6 @@ import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { useLoadingMap } from '../../../../hooks/useLoadingMap';
 import { disableNotificationPermission } from '../../../../lib/notifications/webpush/disableNotificationPermission';
 import { requestNotificationPermission } from '../../../../lib/notifications/webpush/requestNotificationPermission';
-import { SwitchButton } from '../../../Form/SwitchButton';
 import { SettingsSection } from '../../SettingsSection';
 
 import styles from '../../../../styles/components/Settings/Panels/SettingsNotifications/SettingsNotifications.module.scss';
@@ -39,6 +40,7 @@ export function SettingsNotifications() {
   const { loggedInAccount, setLoggedInAccount } = useAccount();
   const { setModalLoginRequired } = useModals();
   const tInstructions = useTranslations('instructions');
+  const tMisc = useTranslations('misc');
   const tSettings = useTranslations('settings');
 
   // State for UP form
@@ -281,8 +283,11 @@ export function SettingsNotifications() {
           }
         }}
         loading={!!loadingMap['webpush']}
+        helpAriaLabel={tMisc('more_info')}
         helpText={tSettings('notifications.web_push_help')}
         aria-describedby="webpush-help"
+        stateOffLabel={tMisc('off')}
+        stateOnLabel={tMisc('on')}
       />
 
       <Divider withSpacing />
@@ -295,8 +300,11 @@ export function SettingsNotifications() {
           checked={upRegistered}
           onChange={handleUPToggle}
           loading={!!loadingMap['unifiedpush']}
+          helpAriaLabel={tMisc('more_info')}
           helpText={tSettings('notifications.unified_push_help')}
           aria-describedby="unifiedpush-help"
+          stateOffLabel={tMisc('off')}
+          stateOnLabel={tMisc('on')}
         />
 
         {/* UP Form - shown when toggle is clicked to enable */}
@@ -369,8 +377,11 @@ export function SettingsNotifications() {
                 }
                 onChange={async (next) => await toggleDefaultType(dt.key, next)}
                 loading={!!loadingMap[`notifications.${dt.key}`]}
+                helpAriaLabel={tMisc('more_info')}
                 helpText={tSettings(`notifications.default_${dt.key}_help`)}
                 aria-describedby={`notifications-help-${dt.key}`}
+                stateOffLabel={tMisc('off')}
+                stateOnLabel={tMisc('on')}
               />
             ))}
           </SettingsSection>

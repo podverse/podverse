@@ -42,7 +42,8 @@
       "no_livestreams_found": "Δεν βρέθηκαν ζωντανές μεταδόσεις."
     },
     "updated_with_date": "Ενημερώθηκε: {date}",
-    "image": "Εικόνα"
+    "image": "Εικόνα",
+    "more_options": "Περισσότερες επιλογές"
   },
   "features": {
     "search": {
@@ -437,6 +438,12 @@
     "terms": "Όροι",
     "mobile": "Κινητό",
     "donate": "Δωρεά",
+    "open_source": "Ανοικτός κώδικας",
+    "browser_back": "Πίσω",
+    "browser_forward": "Εμπρός",
+    "navbar_menu_open": "Άνοιγμα μενού",
+    "navbar_menu_close": "Κλείσιμο μενού",
+    "close_modal": "Κλείσιμο παραθύρου διαλόγου",
     "updates": "Ενημερώσεις",
     "sharable_status": {
       "sharable_status": "Κατάσταση Μοιράσματος",
@@ -642,10 +649,10 @@
     "settings": "Ρυθμίσεις",
     "ui_theme": {
       "theme": "Θέμα",
-      "light": "☀️ Φωτεινό",
-      "dark": "🌙 Σκοτεινό",
-      "dracula": "🧛 Δράκουλας",
-      "violet": "💜 Βιολέ"
+      "light": "Φωτεινό",
+      "dark": "Σκοτεινό",
+      "dracula": "Δράκουλας",
+      "violet": "Βιολέ"
     },
     "feed": {
       "check_feed_for_updates": "Έλεγχος Ροής για Ενημερώσεις",
@@ -870,6 +877,10 @@
     "filminterviews": "Συνεντεύξεις Ταινιών",
     "filmreviews": "Κριτικές Ταινιών",
     "tvreviews": "Κριτικές Τηλεόρασης"
+  },
+  "pagination": {
+    "ariaPreviousPage": "Προηγούμενη σελίδα",
+    "ariaNextPage": "Επόμενη σελίδα"
   },
   "language": {
     "language": "Γλώσσα",

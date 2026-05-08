@@ -1,10 +1,8 @@
 import { getTranslations } from 'next-intl/server';
 
-import { MainHeader } from '../../../components/Main/MainHeader';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
+import { MainColumnStack, MainHeader, MainSidebarLayout, SideContent } from '@podverse/ui';
+
 import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { SideContent } from '../../../components/SideContent/SideContent';
 import { getConfig } from '../../../config';
 
 import styles from '../../../styles/app/v4v/BoostMessages.module.scss';
@@ -17,9 +15,9 @@ export default async function MetaboostPage() {
     <>
       <MainHeader title={t('boost_messages.title')} />
       <MainWrapper>
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             <section className={styles.page}>
               <p className={styles.paragraph}>{t('boost_messages.page_intro')}</p>
               <p className={styles.paragraph}>
@@ -79,8 +77,8 @@ export default async function MetaboostPage() {
                 </ul>
               </nav>
             </section>
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </>
   );

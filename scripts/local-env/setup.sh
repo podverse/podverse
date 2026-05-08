@@ -385,6 +385,11 @@ for v in NEXT_PUBLIC_CONTACT_EMAIL NEXT_PUBLIC_SOCIAL_ACTIVITY_PUB NEXT_PUBLIC_S
 	apply_override "$v" "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"
 done
 
+# From web-image.env (optional image proxy + Next.js image optimizer toggles for web sidecars)
+for v in NEXT_PUBLIC_IMAGE_PROXY_ENABLED NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED; do
+	apply_override "$v" "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"
+done
+
 # From brand.env: api/web = BRAND_NAME; mgmt api/mgmt web = MANAGEMENT_BRAND_NAME. Do not set NEXT_PUBLIC_BRAND_NAME in overrides.
 apply_override "BRAND_NAME" "${API_AND_WORKERS_ENV_FILES[@]}"
 

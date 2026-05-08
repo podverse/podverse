@@ -21,6 +21,9 @@ test.describe('Management-web workers page', () => {
     const title = page.getByRole('heading', { name: 'Workers', level: 1 });
     await expect(title).toBeVisible();
 
+    const workerSearch = page.getByRole('searchbox');
+    await expect(workerSearch).toBeVisible({ timeout: 15_000 });
+
     // Commands load async and sit inside collapsible <details>; expand the MQ category (en-US label).
     const mqCategorySummary = page.locator('summary').filter({ hasText: /^Message queue$/ });
     await expect(mqCategorySummary).toBeVisible({ timeout: 15_000 });

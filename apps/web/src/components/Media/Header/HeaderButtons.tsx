@@ -111,5 +111,3 @@ export const HeaderButtons: React.FC<HeaderButtonsProps> = ({ channel, shareArgs
     </div>
   );
 };
-
-export default HeaderButtons;

@@ -1,0 +1,143 @@
+@use '../../../styles/mixins/flexbox' as *;
+@use '../../../styles/mixins/form' as *;
+
+.textInput {
+  flex: 0 1 auto;
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  @include flexColumn;
+}
+
+.textInputWrapper {
+  @include formInputWrapper;
+  flex: 0 1 auto;
+  width: 100%;
+  min-height: 0;
+}
+
+.textInputWrapperDisabled {
+  background-color: color-mix(
+    in srgb,
+    var(--background-color-tertiary) 55%,
+    var(--background-color-primary)
+  );
+  cursor: not-allowed;
+
+  .eyebrow {
+    color: var(--text-color-secondary);
+  }
+
+  .input {
+    color: var(--text-color-secondary);
+    cursor: not-allowed;
+  }
+
+  .suffix {
+    color: var(--text-color-secondary);
+  }
+}
+
+.textInnerInputWrapper {
+  flex: 0 1 auto;
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 0;
+  @include flexColumn;
+}
+
+.eyebrow {
+  color: var(--text-color-link);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  margin: 0 0 var(--spacing-form-label-bottom);
+}
+
+.input {
+  all: unset;
+  font-size: var(--font-size-md);
+  padding: var(--spacing-form-input-inner);
+  width: 100%;
+}
+
+.inputWithAffixesRow {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  gap: 0;
+  min-width: 0;
+}
+
+.prefix {
+  color: var(--text-color-primary);
+  cursor: default;
+  flex-shrink: 0;
+  font-size: var(--font-size-md);
+  font-weight: inherit;
+}
+
+.prefixSpacer {
+  cursor: default;
+  flex-shrink: 0;
+  width: 0.5ch;
+}
+
+.inputWithSuffix {
+  flex: 0 0 auto;
+  padding-right: 0;
+}
+
+.suffixSpacer {
+  cursor: default;
+  flex-shrink: 0;
+  width: 0.75ch;
+}
+
+.suffix {
+  color: var(--text-color-primary);
+  cursor: default;
+  flex-shrink: 0;
+  font-size: var(--font-size-md);
+  font-weight: inherit;
+}
+
+.numberInput {
+  -moz-appearance: textfield;
+}
+
+.numberInputWithSuffix {
+  -moz-appearance: textfield;
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+.textInputInfo {
+  @include formInfoText;
+}
+
+.textInputInfoError {
+  @include formInfoTextError;
+}
+
+.button {
+  margin-left: var(--spacing-lg);
+}
+
+.buttonIcon {
+  border-radius: 100%;
+  height: 28px;
+  width: 28px;
+  @include flexCenter;
+}
+
+.buttonIconStart {
+  margin-right: var(--spacing-md);
+}
+
+.buttonIconEnd {
+  margin-left: var(--spacing-md);
+}

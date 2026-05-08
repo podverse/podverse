@@ -9,16 +9,18 @@ import {
   getAddByRSSDetailRouteSegment,
   getAddByRSSResourceTypeFromMappedFeed,
 } from '@podverse/parser-mapping';
+import {
+  CallToActionMessage,
+  CheckboxField,
+  MainColumnStack,
+  MainHeader,
+  MainSidebarLayout,
+  SideContent,
+  StackForm,
+  TextInput,
+} from '@podverse/ui';
 
-import { CallToActionMessage } from '../../../components/CallToActionMessage/CallToActionMessage';
-import { Checkbox } from '../../../components/Form/Checkbox';
-import Form from '../../../components/Form/Form';
-import { TextInput } from '../../../components/Form/TextInput';
-import { MainHeader } from '../../../components/Main/MainHeader';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { SideContent } from '../../../components/SideContent/SideContent';
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
 import {
@@ -236,9 +238,9 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
     <>
       <MainHeader title={tFeatures('add_by_rss.label')} />
       <MainWrapper>
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             <div className={styles.content}>
               <p className={styles.instructions}>{tFeatures('add_by_rss.add_feed_instructions')}</p>
 
@@ -251,7 +253,7 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
               )}
 
               {loggedInAccount && (
-                <Form onSubmit={(e) => handleAddFeed(e)} className={styles.form}>
+                <StackForm onSubmit={(e) => handleAddFeed(e)} className={styles.form}>
                   <TextInput
                     value={newFeedUrl}
                     onChange={(event) => setNewFeedUrl(event.target.value)}
@@ -270,7 +272,8 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
                     disabled={isAddingFeed}
                   />
                   <div className={styles.basicAuthSection}>
-                    <Checkbox
+                    <CheckboxField
+                      wrapInDiv
                       id="add-by-rss-use-basic-auth"
                       name="useBasicAuth"
                       checked={useBasicAuth}
@@ -299,7 +302,7 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
                       </div>
                     )}
                   </div>
-                </Form>
+                </StackForm>
               )}
 
               {statusLabel && (
@@ -313,8 +316,8 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
                 </div>
               )}
             </div>
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </>
   );

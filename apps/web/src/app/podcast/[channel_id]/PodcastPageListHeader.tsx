@@ -13,10 +13,9 @@ import {
   QUERY_PARAMS_CHANNEL_TYPE_VALUES,
   QUERY_PARAMS_STATS_RANGE_VALUES,
 } from '@podverse/helpers-requests';
-import { Tabs } from '@podverse/ui';
+import { Dropdown, Tabs } from '@podverse/ui';
 
 import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
-import Dropdown from '../../../components/Dropdown/Dropdown';
 import { useAccount } from '../../../contexts/Account';
 import { usePodcastPageContext } from './PodcastPageContext';
 import { getPodcastPageDropdownConfig } from './PodcastPageDropdownConfig';

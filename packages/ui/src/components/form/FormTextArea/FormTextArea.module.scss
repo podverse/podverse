@@ -1,0 +1,103 @@
+@use '../../../styles/mixins/flexbox' as *;
+@use '../../../styles/mixins/form' as *;
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.wrapper {
+  position: relative;
+  @include flexColumn;
+  flex: 1;
+}
+
+.textAreaWrapper {
+  @include formInputWrapper;
+  flex: 0 1 auto;
+  width: 100%;
+  min-height: 0;
+}
+
+.textAreaWrapperDisabled {
+  cursor: not-allowed;
+  background-color: color-mix(
+    in srgb,
+    var(--background-color-tertiary) 55%,
+    var(--background-color-primary)
+  );
+
+  .eyebrow {
+    color: var(--text-color-secondary);
+  }
+
+  .textArea {
+    cursor: not-allowed;
+    color: var(--text-color-secondary);
+  }
+}
+
+.textInnerAreaWrapper {
+  @include flexColumn;
+  flex: 1 1;
+  justify-content: center;
+}
+
+.textAreaFieldShell {
+  position: relative;
+  width: 100%;
+}
+
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: color-mix(in srgb, var(--background-primary) 65%, transparent);
+  z-index: 1;
+}
+
+.loadingSpinner {
+  font-size: var(--font-size-xl);
+  color: var(--text-color-secondary);
+  animation: spin 0.8s linear infinite;
+}
+
+.eyebrow {
+  color: var(--text-color-link);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  margin: 0 0 var(--spacing-form-label-bottom);
+}
+
+.textArea {
+  all: unset;
+  font-size: var(--font-size-md);
+  width: 100%;
+  padding: var(--spacing-md) var(--spacing-none);
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.textAreaInfoRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: var(--spacing-lg) var(--spacing-lg) var(--spacing-none) var(--spacing-lg);
+  gap: var(--spacing-md);
+}
+
+.textAreaInfo {
+  @include formInfoText;
+  margin: 0;
+  flex: 1;
+}
+
+.textAreaCounter {
+  font-size: var(--font-size-sm);
+  color: var(--text-color-secondary);
+  white-space: nowrap;
+  margin: 0 0 0 auto;
+}

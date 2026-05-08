@@ -6,13 +6,13 @@ import React from 'react';
 
 import type { SearchPodcastsFeed } from '@podverse/helpers';
 import { formatDateAbbrev } from '@podverse/helpers';
+import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import { ROUTES } from '../../../constants/routes';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import { dedupedTrimmedUrlCandidates } from '../../../utils/image/dedupedTrimmedUrlCandidates';
 import { redirectToChannelPageByMediumClient } from '../../../utils/redirect/redirectToChannelPageByMedium';
-import { SkeletonFlashImage } from '../../Image/SkeletonFlashImage';
 import { Link } from '../../Link/Link';
 
 import styles from '../../../styles/components/List/SearchResults/ListSearchResultPodcastIndexFeedRow.module.scss';
@@ -21,7 +21,9 @@ interface Props {
   searchResultPodcastIndexFeed: SearchPodcastsFeed;
 }
 
-const ListSearchResultPodcastIndexFeedRow: React.FC<Props> = ({ searchResultPodcastIndexFeed }) => {
+export const ListSearchResultPodcastIndexFeedRow: React.FC<Props> = ({
+  searchResultPodcastIndexFeed,
+}) => {
   const apiRequestService = getApiRequestService();
   const router = useRouter();
   const feedImageCandidates = dedupedTrimmedUrlCandidates([
@@ -73,5 +75,3 @@ const ListSearchResultPodcastIndexFeedRow: React.FC<Props> = ({ searchResultPodc
     </Link>
   );
 };
-
-export default ListSearchResultPodcastIndexFeedRow;

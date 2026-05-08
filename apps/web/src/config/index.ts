@@ -90,6 +90,9 @@ const buildConfig = () => {
       imageProxy: {
         enabled: env.NEXT_PUBLIC_IMAGE_PROXY_ENABLED === 'true',
       },
+      nextImageOptimization: {
+        enabled: env.NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED === 'true',
+      },
     },
     proxy: {
       responseCacheMaxAgeSeconds: Number(env.NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS!),

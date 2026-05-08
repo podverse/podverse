@@ -2,9 +2,8 @@
 
 import type { DTOClip } from '@podverse/helpers';
 import type { QueryParamsGetManyPartial } from '@podverse/helpers-requests';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { ClipsPageContextProvider } from './ClipsPageContext';
 import { ClipsPageHeader } from './ClipsPageHeader';
@@ -27,11 +26,11 @@ export function ClipsPageClient(props: ClipsPageClientProps) {
     >
       <ClipsPageHeader />
       <MainWrapper>
-        <MainInnerWrapper>
-          <MainInnerContentWrapper>
+        <MainSidebarLayout>
+          <MainColumnStack>
             <ClipsPageList />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </ClipsPageContextProvider>
   );

@@ -4,12 +4,9 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useMemo } from 'react';
 
 import type { DTOFeed } from '@podverse/helpers';
+import { MainColumnStack, MainHeader, MainSidebarLayout, SideContent } from '@podverse/ui';
 
-import { MainHeader } from '../../../components/Main/MainHeader';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { SideContent } from '../../../components/SideContent/SideContent';
 import {
   resolveLegalNoticeTranslationKeys,
   shouldRedirectFromTakedownNoticePage,
@@ -55,13 +52,13 @@ export function TakedownNoticeClient({ ssrFeed }: TakedownNoticeClientProps) {
     <>
       <MainHeader title={tLegal('takedown_notice')} />
       <MainWrapper>
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             <h3 className={styles.heading}>{tLegal(policyKey)}</h3>
             <p>{tLegal(explanationKey)}</p>
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </>
   );

@@ -1,9 +1,8 @@
 import type { DTOChannel, DTOItem, RemoteItemsResponse } from '@podverse/helpers';
 import type { QueryParamsChannelMusicAlbum } from '@podverse/helpers-requests';
+import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { CoreAlbumHeader } from '../../../components/Core/Artist/Album/CoreAlbumHeader';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
 import { AlbumPageContextProvider } from './AlbumPageContext';
@@ -43,17 +42,17 @@ export function AlbumPageClient(props: AlbumPageClientProps) {
     >
       <MainWrapper>
         <CoreAlbumHeader channel={ssrChannel} />
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <AlbumPageSideContent channel={ssrChannel} podroll={ssrPodroll} />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             <AlbumPageListHeader ssrHasPodroll={!!ssrPodroll} ssrCanShowBoosts={ssrCanShowBoosts} />
             <AlbumPageList
               ssrChannel={ssrChannel}
               podroll={ssrPodroll}
               ssrCanShowBoosts={ssrCanShowBoosts}
             />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </AlbumPageContextProvider>
   );

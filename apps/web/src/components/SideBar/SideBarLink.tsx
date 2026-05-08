@@ -10,10 +10,8 @@ type Props = {
   disabled?: boolean;
 };
 
-const SideBarLink: React.FC<Props> = ({ href, children, disabled }) => (
+export const SideBarLink: React.FC<Props> = ({ href, children, disabled }) => (
   <Link href={href} className={styles.link} disabled={disabled} color="secondary">
     {children}
   </Link>
 );
-
-export default SideBarLink;

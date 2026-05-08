@@ -1,9 +1,8 @@
 'use client';
 
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
+import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
+
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { SideContent } from '../../components/SideContent/SideContent';
 import { SearchPageContextProvider } from './SearchPageContext';
 import { SearchPageHeader } from './SearchPageHeader';
 import { SearchPageList } from './SearchPageList';
@@ -14,13 +13,13 @@ export function SearchPageClient() {
     <SearchPageContextProvider>
       <MainWrapper>
         <SearchPageHeader />
-        <MainInnerWrapper>
+        <MainSidebarLayout>
           <SideContent />
-          <MainInnerContentWrapper>
+          <MainColumnStack>
             <SearchPageListHeader />
             <SearchPageList />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
+          </MainColumnStack>
+        </MainSidebarLayout>
       </MainWrapper>
     </SearchPageContextProvider>
   );

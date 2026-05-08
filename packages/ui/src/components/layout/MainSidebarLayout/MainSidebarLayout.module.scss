@@ -1,0 +1,14 @@
+.mainSidebarLayout {
+  display: flex;
+  flex-direction: row-reverse;
+  margin: var(--spacing-xl) var(--spacing-xl) var(--spacing-4xl) var(--spacing-xl);
+}
+
+.mainSidebarLayout > :first-child {
+  flex: 1;
+}
+
+.mainSidebarLayout > :nth-child(2) {
+  flex: 3;
+  min-width: 0;
+}

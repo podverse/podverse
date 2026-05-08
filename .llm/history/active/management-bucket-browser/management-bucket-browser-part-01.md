@@ -186,3 +186,43 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - apps/management-web/src/app/(management)/storage/StoragePageClient.tsx
 - apps/management-web/src/app/(management)/admins/[id]/edit/EditAdminPageClient.tsx
 - apps/management-web/src/app/(management)/admins/new/NewAdminPageClient.tsx
+
+---
+
+### Session 6 - 2026-05-07
+
+#### Prompt (Developer)
+
+# Goal
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Added `@podverse/ui` **IconButton** (button + optional `href`/`LinkComponent`, `isLoading` spinner overlay, `danger` variant) and **DropdownMenu** (`DropdownMenu.Item`, outside-click + Escape) plus **InlineSpinner** for modal copy.
+- **management-api**: `GET /storage/objects/count`, `POST /storage/objects/delete-all-by-prefix` with Joi `storageDeleteAllByPrefixBodySchema`; **ObjectStorageService** `countObjects` + `deleteAllByPrefix` (explicit `cap`, route uses 10_000).
+- **management-web** `StoragePageClient`: prefix row uses **ToolbarCluster** + **More** dropdown → delete-all flow with count-then-**ConfirmPanel**; row actions use **FaEye**/**FaTrashCan** icon buttons; bulk/single/confirm buttons use **Button** `isLoading` where appropriate.
+- i18n: new `storage.*` keys in en-US/es/fr/el-GR originals + matching empty keys in overrides; `npm run i18n:validate` passed.
+- Integration mock for `@podverse/external-services-object-storage` refactored to `importOriginal` so real prototype methods bind to mocked `listObjects`/`deleteObjectsByKeys`.
+
+#### Files Created/Modified
+
+- packages/ui/src/components/button/IconButton/\*
+- packages/ui/src/components/navigation/DropdownMenu/\*
+- packages/ui/src/components/layout/InlineSpinner/\*
+- packages/ui/src/index.ts
+- packages/external-services-object-storage/src/index.ts
+- apps/management-api/src/schemas/storage.ts
+- apps/management-api/src/routes/storage.ts
+- apps/management-api/src/routes/storage.integration.test.ts
+- apps/management-web/src/lib/requests/storage.ts
+- apps/management-web/src/app/(management)/storage/StoragePageClient.tsx
+- apps/management-web/i18n/originals/en-US.json
+- apps/management-web/i18n/originals/es.json
+- apps/management-web/i18n/originals/fr.json
+- apps/management-web/i18n/originals/el-GR.json
+- apps/management-web/i18n/overrides/es.json
+- apps/management-web/i18n/overrides/fr.json
+- apps/management-web/i18n/overrides/el-GR.json

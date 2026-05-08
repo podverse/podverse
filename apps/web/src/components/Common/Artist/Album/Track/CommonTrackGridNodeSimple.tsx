@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import React from 'react';
 
+import { SkeletonFlashImage } from '@podverse/ui';
+
 import { IMAGES } from '../../../../../constants/images';
-import { SkeletonFlashImage } from '../../../../Image/SkeletonFlashImage';
 
 import styles from '../../../../../styles/components/Common/List/ListGridNode.module.scss';
 

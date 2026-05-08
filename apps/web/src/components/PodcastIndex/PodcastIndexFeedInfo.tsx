@@ -7,7 +7,7 @@ import { FaPlus, FaRss } from 'react-icons/fa6';
 
 import type { PodcastByIdFeed } from '@podverse/helpers';
 import { formatDateAbbrev } from '@podverse/helpers';
-import { Button } from '@podverse/ui';
+import { Button, SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../constants/images';
 import { useAccount } from '../../contexts/Account';
@@ -17,7 +17,6 @@ import { getApiRequestService } from '../../factories/apiRequestService';
 import { dedupedTrimmedUrlCandidates } from '../../utils/image/dedupedTrimmedUrlCandidates';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 import { redirectToChannelPageByMediumClient } from '../../utils/redirect/redirectToChannelPageByMedium';
-import { SkeletonFlashImage } from '../Image/SkeletonFlashImage';
 
 import styles from '../../styles/components/PodcastIndex/PodcastIndexFeedInfo.module.scss';
 

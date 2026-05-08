@@ -42,10 +42,16 @@ function applyWebRuntimeEnvDefaults(env: WebRuntimeConfig['env']): WebRuntimeCon
   const rawImageProxy = env.NEXT_PUBLIC_IMAGE_PROXY_ENABLED;
   const resolvedImageProxy =
     rawImageProxy !== undefined && rawImageProxy !== '' ? rawImageProxy : 'false';
+  const rawNextImageOptimization = env.NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED;
+  const resolvedNextImageOptimization =
+    rawNextImageOptimization !== undefined && rawNextImageOptimization !== ''
+      ? rawNextImageOptimization
+      : 'false';
   return {
     ...env,
     NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS: resolvedCache,
     NEXT_PUBLIC_IMAGE_PROXY_ENABLED: resolvedImageProxy,
+    NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED: resolvedNextImageOptimization,
   };
 }
 

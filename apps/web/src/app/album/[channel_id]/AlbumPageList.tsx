@@ -12,7 +12,7 @@ import { ContentPodroll } from '../../../components/Content/Podroll/ContentPodro
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { ListChannelSettings } from '../../../components/List/ListChannelSettings';
 import { ListTracks } from '../../../components/List/Music/Albums/Tracks/ListTracks';
-import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { WebLoadingSpinnerOverlay } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { useAlbumPageContext } from './AlbumPageContext';
 
 type AlbumPageListProps = {
@@ -66,7 +66,7 @@ export const AlbumPageList: React.FC<AlbumPageListProps> = ({
       )}
       {type === 'podroll' && <ContentPodroll remoteItemsResponse={podroll} />}
       {type === 'settings' && <ListChannelSettings channel={ssrChannel} />}
-      <LoadingSpinnerOverlay isLoading={isLoading} />
+      <WebLoadingSpinnerOverlay isLoading={isLoading} />
     </DetailListWrapper>
   );
 };

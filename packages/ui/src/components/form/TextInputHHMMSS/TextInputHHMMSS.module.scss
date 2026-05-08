@@ -1,0 +1,53 @@
+@use '../../../styles/mixins/flexbox' as *;
+
+.hhmmss {
+  display: flex;
+  flex: 1;
+  margin-bottom: var(--spacing-2xl);
+  position: relative;
+}
+
+.hhmmssInputWrapper {
+  align-items: center;
+  background-color: var(--background-color-tertiary);
+  border: var(--button-border-size) solid transparent;
+  border-radius: var(--border-radius);
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: var(--spacing-form-input);
+}
+
+.hhmmssInnerInputWrapper {
+  display: flex;
+  flex: 1 1;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.eyebrow {
+  color: var(--text-color-link);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  margin: 0 0 var(--spacing-form-label-bottom);
+}
+
+.input {
+  all: unset;
+  font-size: var(--font-size-md);
+  padding: var(--spacing-form-input-inner);
+  width: 100%;
+}
+
+.buttonWrapper {
+  border-radius: var(--border-radius-round);
+  height: 2rem;
+  width: 2rem;
+  @include flexCenter;
+}
+
+.playIcon {
+  font-size: var(--font-size-lg);
+  @include flexCenter;
+}
