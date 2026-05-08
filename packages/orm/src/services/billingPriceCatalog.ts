@@ -90,6 +90,20 @@ export class BillingPriceCatalogService {
 
   async ensureProductMembershipTrialSeededFromEnv(now = new Date()): Promise<void> {
     const envDefaults = resolveProductMembershipDefaultsFromEnv();
+    // Vitest sets NODE_ENV=test (apps/api/src/test/setup.ts). Linear baseline seeds
+    // product_membership_settings with production-shaped trial length; DO NOTHING leaves
+    // that row and breaks assertions that expect MEMBERSHIP_FREE_TRIAL_EXPIRATION.
+    const conflictResolution =
+      process.env.NODE_ENV === 'test'
+        ? `
+      ON CONFLICT (id) DO UPDATE SET
+        free_trial_expiration_seconds = EXCLUDED.free_trial_expiration_seconds,
+        trial_max_add_by_rss_feeds = EXCLUDED.trial_max_add_by_rss_feeds,
+        trial_max_manual_refreshes_per_hour = EXCLUDED.trial_max_manual_refreshes_per_hour,
+        premium_max_add_by_rss_feeds = EXCLUDED.premium_max_add_by_rss_feeds,
+        premium_max_manual_refreshes_per_hour = EXCLUDED.premium_max_manual_refreshes_per_hour,
+        updated_at = EXCLUDED.updated_at`
+        : 'ON CONFLICT (id) DO NOTHING';
     await this.dataSourceReadWrite.query(
       `
       INSERT INTO product_membership_settings (
@@ -103,7 +117,7 @@ export class BillingPriceCatalogService {
         updated_at
       )
       VALUES (1, $1, $2, $3, $4, $5, $6, $6)
-      ON CONFLICT (id) DO NOTHING
+      ${conflictResolution}
       `,
       [
         envDefaults.freeTrialExpirationSeconds,
