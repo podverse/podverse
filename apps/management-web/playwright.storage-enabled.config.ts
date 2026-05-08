@@ -3,17 +3,18 @@ import { defineConfig } from '@playwright/test';
 import {
   MANAGEMENT_SIDECAR_ENV_FOR_PLAYWRIGHT,
   MANAGEMENT_WEB_ENV_FOR_PLAYWRIGHT,
-  buildManagementApiEnvBucketOffForPlaywright,
+  buildManagementApiEnvFakeAwsForPlaywright,
 } from './playwright.management-api-env';
 
 const E2E_REPORT_BASE = '.artifacts/e2e-reports';
 
-const MANAGEMENT_API_ENV = buildManagementApiEnvBucketOffForPlaywright();
+const MANAGEMENT_API_ENV = buildManagementApiEnvFakeAwsForPlaywright();
 
+/** Runs only when management-api reports bucket storage enabled (fake aws-s3 env). */
 export default defineConfig({
   testDir: './e2e',
-  outputDir: `../../${E2E_REPORT_BASE}/e2e-test-results/management-web`,
-  testIgnore: '**/storage-superuser-crud-enabled.spec.ts',
+  outputDir: `../../${E2E_REPORT_BASE}/e2e-test-results/management-web-storage-enabled`,
+  testMatch: '**/storage-superuser-crud-enabled.spec.ts',
   fullyParallel: false,
   workers: 1,
   retries: process.env.CI ? 2 : 0,

@@ -4,6 +4,9 @@ import type { Page } from '@playwright/test';
 /**
  * E2E seed: superuser e2e-superadmin@example.com / Test!1Aa
  * List/detail calls from the browser are mocked so table chrome is deterministic.
+ *
+ * Run via `npm run test:e2e:storage-enabled -w @podverse/management-web` (management-api must
+ * report bucket storage enabled — see `playwright.storage-enabled.config.ts`).
  */
 
 function mockStorageListRoutes(page: Page) {
@@ -78,13 +81,7 @@ test.describe('Management-web object storage for the superuser', () => {
 
     await page.waitForURL('**/dashboard');
 
-    const storageLink = page.getByRole('link', { name: 'Object storage' });
-    const storageCount = await storageLink.count();
-    if (storageCount === 0) {
-      test.skip(true, 'Bucket storage feature is disabled in this environment.');
-    }
-
-    await storageLink.click();
+    await page.getByRole('link', { name: 'Object storage' }).click();
 
     await expect(page.getByRole('heading', { name: 'Object storage', level: 1 })).toBeVisible();
 

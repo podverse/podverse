@@ -9,4 +9,4 @@ apps/management-web/e2e/admins-list.spec.ts
 apps/management-web/e2e/database-table-browser.spec.ts
 apps/management-web/e2e/storage-disabled.spec.ts
 apps/management-web/e2e/storage-permissions.spec.ts
-apps/management-web/e2e/storage-superuser-crud.spec.ts
+apps/management-web/e2e/storage-superuser-crud-enabled.spec.ts

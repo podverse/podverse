@@ -42,6 +42,7 @@ Many Podverse features behave differently based on membership state. When testin
 | apps/web            | `apps/web/e2e/`            | `apps/web/playwright.config.ts`            |
 | apps/management-web | `apps/management-web/e2e/` | `apps/management-web/playwright.config.ts` |
 
+- **Management-web storage list chrome** (`storage-superuser-crud-enabled.spec.ts`): excluded from the default config (`testIgnore`) because it requires bucket storage enabled in management-api. Run `make e2e_test_management_web_storage_enabled` or `npm run test:e2e:storage-enabled -w @podverse/management-web` (uses `playwright.storage-enabled.config.ts`).
 - **Ports:** Web E2E uses API 4030, sidecar 4031, web 4032. Management-web uses management-api 4130, sidecar 4131, web 4132. Avoid colliding with 401x/411x ranges used by other local stacks, and with dev app ports.
 - **Seed data:** Use deterministic E2E seed (`make e2e_seed`). See `tools/web/seed-e2e.mjs` and `tools/management-web/seed-e2e.mjs`.
 
@@ -53,6 +54,7 @@ Do not resolve failing tests by increasing timeouts. Fix root cause first: add e
 
 - **Run E2E (web only):** `make e2e_test_web`
 - **Run E2E (management-web only):** `make e2e_test_management_web`
+- **Management-web storage-enabled only:** `make e2e_test_management_web_storage_enabled`
 - **Run E2E (both):** `make e2e_test`
 - **Scoped web report:** `make e2e_test_web_report_spec SPEC=e2e/<spec>.spec.ts`
 - **Scoped management-web report:** `make e2e_test_management_web_report_spec SPEC=e2e/<spec>.spec.ts`

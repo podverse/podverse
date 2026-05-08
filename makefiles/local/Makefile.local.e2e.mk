@@ -4,6 +4,7 @@
 
 .PHONY: e2e_deps e2e_seed e2e_seed_web e2e_seed_management_web
 .PHONY: e2e_test e2e_test_playwright e2e_test_api e2e_test_web e2e_test_management_web
+.PHONY: e2e_test_management_web_storage_enabled
 .PHONY: e2e_test_report e2e_test_web_report_spec e2e_test_management_web_report_spec e2e_test_report_scoped
 .PHONY: e2e_teardown
 
@@ -57,6 +58,11 @@ e2e_test_web: e2e_deps e2e_seed_web
 e2e_test_management_web: e2e_deps e2e_seed_management_web
 	@echo "Running management-web E2E tests..."
 	@npm run test:e2e -w @podverse/management-web -- --reporter=list
+
+# Management-web storage list chrome (requires fake bucket env; see playwright.storage-enabled.config.ts)
+e2e_test_management_web_storage_enabled: e2e_deps e2e_seed_management_web
+	@echo "Running management-web storage-enabled E2E..."
+	@npm run test:e2e:storage-enabled -w @podverse/management-web -- --reporter=list
 
 # Full E2E: API Vitest (apps/api + management-api) + both Playwright apps. For local `npm test`, prefer `test:e2e:api` + `e2e_test_playwright` instead; this target remains for a single all-in-one run.
 e2e_test: e2e_deps e2e_seed

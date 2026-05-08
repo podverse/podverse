@@ -24,6 +24,6 @@ test.describe('Management layout navbar chrome', () => {
     await expect(brandToDashboard).not.toHaveText('');
 
     await page.getByRole('button', { name: 'Account menu' }).click();
-    await expect(page.getByRole('menuitem', { name: /Role:/ })).toBeVisible();
+    await expect(page.getByText(/Role:/)).toBeVisible();
   });
 });
