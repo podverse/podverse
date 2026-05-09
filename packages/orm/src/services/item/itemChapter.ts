@@ -59,10 +59,22 @@ export class ItemChapterService extends BaseManyService<ItemChapter, 'item_chapt
     id_text: string,
     config?: FindOneOptions<ItemChapter>
   ): Promise<ItemChapter | null> {
+    const defaultRelations = [
+      'item_chapters_object',
+      'item_chapters_object.item_chapters_feed',
+      'item_chapters_object.item_chapters_feed.item',
+    ];
+    const { relations: extraRelations, ...restConfig } = config ?? {};
+    const mergedRelations = [
+      ...defaultRelations,
+      ...(Array.isArray(extraRelations) ? extraRelations : []),
+    ];
+    const relations = [...new Set(mergedRelations)];
+
     const options: FindOneOptions<ItemChapter> = {
       where: { id_text },
-      relations: ['item_chapters_object', 'item_chapters_object.item_chapters_feed'],
-      ...config,
+      relations,
+      ...restConfig,
     };
 
     const chapter = await this.repositoryRead.findOne(options);

@@ -5,6 +5,7 @@ import Joi from 'joi';
 
 import { ItemChapterService } from '@podverse/orm';
 
+import { itemChapterEntityToDto } from '../lib/itemChapterApiSerialization.js';
 import { handleGenericErrorResponse } from './helpers/error.js';
 
 export class ItemChapterController {
@@ -18,17 +19,21 @@ export class ItemChapterController {
     validateParamsObject(paramsSchema, req, res, async () => {
       try {
         const item_chapter_id_text = getParamRequired(req, 'item_chapter_id_text');
-        const itemChapter = await ItemChapterController.itemChapterService.getByIdText(
-          item_chapter_id_text,
-          {
-            relations: ['item_chapters_feed', 'item_chapters_feed.item'],
-          }
-        );
-        if (itemChapter) {
-          res.status(200).json(itemChapter);
-        } else {
+        const itemChapter =
+          await ItemChapterController.itemChapterService.getByIdText(item_chapter_id_text);
+
+        if (!itemChapter) {
           res.status(404).json({ message: 'Item chapter not found' });
+          return;
         }
+
+        const parentItem = itemChapter.item_chapters_object?.item_chapters_feed?.item;
+        if (!parentItem) {
+          res.status(404).json({ message: 'Item chapter parent item not found' });
+          return;
+        }
+
+        res.status(200).json(itemChapterEntityToDto(itemChapter));
       } catch (err) {
         handleGenericErrorResponse(res, err);
       }

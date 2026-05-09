@@ -160,8 +160,29 @@ const {
     ]
   ),
   itemChGetByIdTextMock: vi.fn(
-    async () =>
-      ({ id: 1, item_chapter_id_text: 'ic-1', start_time: '0' }) as Record<string, unknown> | null
+    async (): Promise<Record<string, unknown> | null> => ({
+      id: 1,
+      id_text: 'ic-some-id',
+      data_hash: 'mock-hash',
+      start_time: '0',
+      end_time: null,
+      title: 'Mock chapter',
+      img: null,
+      web_url: null,
+      table_of_contents: true,
+      item_chapters_object: {
+        item_chapters_feed: {
+          id: 77,
+          url: 'https://example.com/chapters.json',
+          type: 'application/json',
+          item: {
+            id: 10,
+            id_text: 'ep-1',
+            channel_id: '5',
+          },
+        },
+      },
+    })
   ),
   itemChGetAllWithCountMock: vi.fn(async () => ({
     results: [
@@ -552,15 +573,42 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
   });
 
   describe('item-chapter, item-soundbite, item-transcript', () => {
-    it('GET /item-chapter/:id returns 200', async () => {
+    it('GET /item-chapter/:id returns 200 with DTO-shaped item_chapters_feed', async () => {
       const res = await request(app).get(`${itemChapterBase}/ic-some-id`);
       expect(res.status).toBe(200);
+      expect(res.body.item_chapters_feed?.item?.id_text).toBe('ep-1');
+      expect(res.body.item_chapters_feed_id).toBe(77);
     });
 
     it('GET /item-chapter/:id returns 404 when not found', async () => {
       itemChGetByIdTextMock.mockResolvedValueOnce(null);
       const res = await request(app).get(`${itemChapterBase}/missing-ic`);
       expect(res.status).toBe(404);
+    });
+
+    it('GET /item-chapter/:id returns 404 when parent item is missing', async () => {
+      itemChGetByIdTextMock.mockResolvedValueOnce({
+        id: 1,
+        id_text: 'no-parent',
+        data_hash: 'x',
+        start_time: '0',
+        end_time: null,
+        title: null,
+        img: null,
+        web_url: null,
+        table_of_contents: true,
+        item_chapters_object: {
+          item_chapters_feed: {
+            id: 1,
+            url: 'https://example.com/c.json',
+            type: 'application/json',
+            item: null,
+          },
+        },
+      });
+      const res = await request(app).get(`${itemChapterBase}/no-parent`);
+      expect(res.status).toBe(404);
+      expect(res.body).toMatchObject({ message: 'Item chapter parent item not found' });
     });
 
     it('GET /item-soundbite/:id returns 200', async () => {
