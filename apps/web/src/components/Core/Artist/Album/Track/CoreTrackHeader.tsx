@@ -24,7 +24,7 @@ export const CoreTrackHeader: React.FC<CoreTrackHeaderProps> = ({ item, channel 
   const imageCandidates = itemHeaderSquareArtworkCandidates(
     item.item_images,
     IMAGES.HEADER.DESKTOP.SQUARE.SIZE_FIND_TARGET,
-    'lesser'
+    'greater'
   );
 
   const titleNode = (

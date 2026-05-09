@@ -1,5 +1,5 @@
 import {
-  buildDTOChannelImageLoadCandidates,
+  buildDTOChannelImageHeroLoadCandidates,
   prependDistinctImageCandidate,
 } from '@podverse/helpers';
 
@@ -7,18 +7,18 @@ import { IMAGES } from '../../constants/images';
 
 /** Parsed RSS channel `images` plus optional feed-level override URL; Add-by-RSS headers use `greater` like Core responsive headers. */
 export function addByRSSChannelHeaderGreaterBreakpointCandidates(
-  channelImages: Parameters<typeof buildDTOChannelImageLoadCandidates>[0],
+  channelImages: Parameters<typeof buildDTOChannelImageHeroLoadCandidates>[0],
   feedImageUrl: string | null | undefined,
   sizeFindTarget: number
 ): string[] {
   return prependDistinctImageCandidate(
     feedImageUrl ?? undefined,
-    buildDTOChannelImageLoadCandidates(channelImages, sizeFindTarget, 'greater')
+    buildDTOChannelImageHeroLoadCandidates(channelImages, sizeFindTarget, 'greater')
   );
 }
 
 export function addByRSSChannelHeaderTriple(
-  channelImages: Parameters<typeof buildDTOChannelImageLoadCandidates>[0],
+  channelImages: Parameters<typeof buildDTOChannelImageHeroLoadCandidates>[0],
   feedImageUrl: string | null | undefined
 ): {
   candidatesMobile: string[];

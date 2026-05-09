@@ -15,6 +15,8 @@ type ModalContentInlineStyle = CSSProperties & {
 type ModalSharedProps = {
   ariaLabel: string;
   children: ReactNode;
+  /** When true, scrollbars are disabled on the scroll region (overflow hidden). Use for full-viewport layouts that shrink their own content (e.g. media player). */
+  contentOverflowHidden?: boolean;
   contentTransparent?: boolean;
   header?: string;
   isOpen: boolean;
@@ -60,7 +62,15 @@ function isDismissible(props: ModalProps): props is ModalPropsWithDismiss {
 }
 
 function ModalImpl(props: ModalProps) {
-  const { ariaLabel, children, contentTransparent, header, isOpen, modalContentMaxWidth } = props;
+  const {
+    ariaLabel,
+    children,
+    contentOverflowHidden,
+    contentTransparent,
+    header,
+    isOpen,
+    modalContentMaxWidth,
+  } = props;
 
   if (!isOpen) {
     return null;
@@ -124,7 +134,8 @@ function ModalImpl(props: ModalProps) {
         <div
           className={classNames(
             styles.modalChildren,
-            contentTransparent ? styles.modalChildrenTransparent : undefined
+            contentTransparent ? styles.modalChildrenTransparent : undefined,
+            contentOverflowHidden ? styles.modalChildrenOverflowHidden : undefined
           )}
         >
           {children}

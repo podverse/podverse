@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import {
   appendDistinctImageCandidate,
+  buildDTOChannelImageHeroLoadCandidates,
   buildDTOChannelImageLoadCandidates,
+  buildDTOItemImageHeroLoadCandidates,
   buildDTOItemImageLoadCandidates,
   mergeDTOItemThenChannelImageCandidates,
+  mergeDTOItemThenChannelImageHeroCandidates,
   prependDistinctImageCandidate,
 } from './image.js';
 
@@ -69,6 +72,72 @@ describe('mergeDTOItemThenChannelImageCandidates', () => {
     const channelImages = [{ url: channelCdn, image_width_size: 300, is_resized: true }];
     const got = mergeDTOItemThenChannelImageCandidates(itemImages, channelImages, 300, 'lesser');
     expect(got).toEqual([itemCdn, channelCdn]);
+  });
+});
+
+describe('mergeDTOItemThenChannelImageHeroCandidates', () => {
+  it('places item URLs before channel URLs like the list merge', () => {
+    const itemUrl = 'https://example.com/item.jpg';
+    const chUrl = 'https://example.com/ch.jpg';
+    const got = mergeDTOItemThenChannelImageHeroCandidates(
+      [{ url: itemUrl, image_width_size: 400, is_resized: false }],
+      [{ url: chUrl, image_width_size: 400, is_resized: false }],
+      300,
+      'lesser'
+    );
+    expect(got).toEqual([itemUrl, chUrl]);
+  });
+});
+
+describe('buildDTOItemImageHeroLoadCandidates', () => {
+  it('prefers non-resized originals over equally sized resized rows', () => {
+    const cdn = 'https://cdn.example.com/w256.webp';
+    const original = 'https://example.com/original.jpg';
+    const images = [
+      { url: cdn, image_width_size: 256, is_resized: true },
+      { url: original, image_width_size: 800, is_resized: false },
+    ];
+    expect(buildDTOItemImageLoadCandidates(images, 256, 'greater')[0]).toBe(cdn);
+    expect(buildDTOItemImageHeroLoadCandidates(images, 256, 'greater')[0]).toBe(original);
+  });
+
+  it('falls back to resized when no non-resized rows exist', () => {
+    const cdn = 'https://cdn.example.com/w256.webp';
+    const images = [{ url: cdn, image_width_size: 256, is_resized: true }];
+    expect(buildDTOItemImageHeroLoadCandidates(images, 256, 'greater')).toEqual([cdn]);
+  });
+
+  it('for largest, prefers non-resized row with unset width over numeric-width resized thumbs', () => {
+    const original = 'https://example.com/full.webp';
+    const cdn = 'https://cdn.example.com/thumb-w400.webp';
+    const images = [
+      { url: original, image_width_size: null, is_resized: false },
+      { url: cdn, image_width_size: 400, is_resized: true },
+    ];
+    expect(buildDTOItemImageHeroLoadCandidates(images, 'largest', 'greater')[0]).toBe(original);
+  });
+});
+
+describe('buildDTOChannelImageHeroLoadCandidates', () => {
+  it('prefers non-resized originals over equally sized resized rows', () => {
+    const cdn = 'https://cdn.example.com/w256.webp';
+    const original = 'https://example.com/original.jpg';
+    const images = [
+      { url: cdn, image_width_size: 256, is_resized: true },
+      { url: original, image_width_size: 800, is_resized: false },
+    ];
+    expect(buildDTOChannelImageLoadCandidates(images, 256, 'greater')[0]).toBe(cdn);
+    expect(buildDTOChannelImageHeroLoadCandidates(images, 256, 'greater')[0]).toBe(original);
+  });
+
+  it('for largest, prefers non-resized row with unset width over numeric-width resized thumbs', () => {
+    const original = 'https://example.com/full.webp';
+    const cdn = 'https://cdn.example.com/thumb-w400.webp';
+    const images = [
+      { url: original, image_width_size: null, is_resized: false },
+      { url: cdn, image_width_size: 400, is_resized: true },
+    ];
+    expect(buildDTOChannelImageHeroLoadCandidates(images, 'largest', 'greater')[0]).toBe(original);
   });
 });
 

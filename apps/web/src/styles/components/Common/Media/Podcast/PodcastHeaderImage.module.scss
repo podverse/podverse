@@ -1,5 +1,16 @@
 @use '../../../../variables/breakpoints' as *;
 
+.headerImageClickable {
+  align-items: center;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  padding: 0;
+}
+
 .headerImageWrapper {
   position: relative;
   display: flex;

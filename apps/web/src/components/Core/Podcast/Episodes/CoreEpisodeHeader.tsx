@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
+import { itemHeaderLightboxArtworkCandidates } from '@podverse/helpers';
 
 import { IMAGES } from '../../../../constants/images';
 import { ROUTES } from '../../../../constants/routes';
@@ -24,8 +25,9 @@ export const CoreEpisodeHeader: React.FC<CoreEpisodeHeaderProps> = ({ item, chan
   const imageCandidates = itemHeaderSquareArtworkCandidates(
     item.item_images,
     IMAGES.HEADER.DESKTOP.SQUARE.SIZE_FIND_TARGET,
-    'lesser'
+    'greater'
   );
+  const imageLightboxCandidates = itemHeaderLightboxArtworkCandidates(item.item_images);
 
   const titleNode = (
     <Link href={`${ROUTES.EPISODE}/${item.id_text}`}>
@@ -38,6 +40,7 @@ export const CoreEpisodeHeader: React.FC<CoreEpisodeHeaderProps> = ({ item, chan
       titleNode={titleNode}
       playSectionNode={<CoreEpisodeHeaderPlaySection item={item} channel={channel} />}
       imageCandidates={imageCandidates}
+      imageLightboxCandidates={imageLightboxCandidates}
       imageAlt={item.title || tMedia('podcast.episode_image')}
     />
   );

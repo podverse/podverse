@@ -1,6 +1,17 @@
 @use '../../../mixins/flexShrink' as *;
 @use '../../../variables/breakpoints' as *;
 
+.imageClickable {
+  align-items: center;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  padding: 0;
+}
+
 .wrapper {
   display: flex;
   flex-direction: column;

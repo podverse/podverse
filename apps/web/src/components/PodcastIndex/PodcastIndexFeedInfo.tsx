@@ -7,7 +7,7 @@ import { FaPlus, FaRss } from 'react-icons/fa6';
 
 import type { PodcastByIdFeed } from '@podverse/helpers';
 import { formatDateAbbrev } from '@podverse/helpers';
-import { Button, SkeletonFlashImage } from '@podverse/ui';
+import { Button, ImageLightboxModal, SkeletonFlashImage } from '@podverse/ui';
 
 import { getContactEmail } from '../../constants/contact';
 import { IMAGES } from '../../constants/images';
@@ -38,9 +38,14 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
   const tInstructions = useTranslations('instructions');
   const tMembership = useTranslations('membership');
   const [isLoading, setIsLoading] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const feedImageCandidates = dedupedTrimmedUrlCandidates([
     podcastIndexFeed.image,
     podcastIndexFeed.artwork,
+  ]);
+  const feedImageLightboxCandidates = dedupedTrimmedUrlCandidates([
+    podcastIndexFeed.artwork,
+    podcastIndexFeed.image,
   ]);
   const description = podcastIndexFeed.description || '';
   const lastUpdateTime = podcastIndexFeed.lastUpdateTime || null;
@@ -154,13 +159,30 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
         </div>
       </div>
       {feedImageCandidates.length > 0 && (
-        <SkeletonFlashImage
-          candidates={feedImageCandidates}
-          alt={podcastIndexFeed.title || tMedia('podcast.podcast_image')}
-          width={IMAGES.ADD_FEED.SQUARE.SIZE}
-          height={IMAGES.ADD_FEED.SQUARE.SIZE}
-          className={styles.image}
-        />
+        <>
+          <button
+            aria-label={tMisc('image_preview_dialog')}
+            className={styles.imageClickable}
+            type="button"
+            onClick={() => setLightboxOpen(true)}
+          >
+            <SkeletonFlashImage
+              candidates={feedImageCandidates}
+              alt={podcastIndexFeed.title || tMedia('podcast.podcast_image')}
+              width={IMAGES.ADD_FEED.SQUARE.SIZE}
+              height={IMAGES.ADD_FEED.SQUARE.SIZE}
+              className={styles.image}
+            />
+          </button>
+          <ImageLightboxModal
+            alt={podcastIndexFeed.title || tMedia('podcast.podcast_image')}
+            ariaLabel={tMisc('image_preview_dialog')}
+            candidates={feedImageLightboxCandidates}
+            closeButtonAriaLabel={tMisc('close_modal')}
+            isOpen={lightboxOpen}
+            onClose={() => setLightboxOpen(false)}
+          />
+        </>
       )}
       <h2 className={styles.title}>{podcastIndexFeed.title}</h2>
       <div className={styles.content}>

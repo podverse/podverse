@@ -65,7 +65,7 @@ export const AddByRSSEpisodeDetailHeader: React.FC<AddByRSSEpisodeDetailHeaderPr
       ? itemHeaderSquareArtworkCandidates(
           indexItem.bundle.images,
           IMAGES.HEADER.DESKTOP.SQUARE.SIZE_FIND_TARGET,
-          'lesser'
+          'greater'
         )
       : [];
 

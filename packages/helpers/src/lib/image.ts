@@ -5,6 +5,9 @@ type ItemImagePartial = {
   is_resized?: boolean;
 };
 
+type AllowedExtension = 'png' | 'jpg' | 'gif' | 'jpeg' | 'webp';
+type ValidExtension = 'png' | 'jpg' | 'gif' | 'webp';
+
 function itemImageHasNumericWidth(
   image: ItemImagePartial
 ): image is ItemImagePartial & { image_width_size: number } {
@@ -15,9 +18,34 @@ function itemImageWidthUnset(image: ItemImagePartial): boolean {
   return image.image_width_size === null || image.image_width_size === undefined;
 }
 
+function urlHasAllowedImageExtension(url: string, allowedExtensions: AllowedExtension[]): boolean {
+  const extensions: ValidExtension[] = allowedExtensions.map((ext) =>
+    ext === 'jpeg' ? 'jpg' : ext
+  ) as ValidExtension[];
+  const match = url.match(/(\?|\.)(jpg|jpeg|png|gif|webp)(?=($|\?|#))/i);
+  if (!match || !match[2]) {
+    return false;
+  }
+  const ext = match[2].toLowerCase() === 'jpeg' ? 'jpg' : match[2].toLowerCase();
+  return extensions.includes(ext as ValidExtension);
+}
+
+/** Non-resized rows with no stored width (DTO omits size); treat as full originals before resized thumbs. */
+function pickUnsetWidthNonResizedForHero(
+  nonResizedImages: ItemImagePartial[],
+  allowedExtensions: AllowedExtension[]
+): ItemImagePartial | null {
+  const candidates = nonResizedImages.filter(
+    (img) => itemImageWidthUnset(img) && urlHasAllowedImageExtension(img.url, allowedExtensions)
+  );
+  if (candidates.length === 0) {
+    return null;
+  }
+  const sorted = [...candidates].sort((a, b) => a.url.localeCompare(b.url));
+  return sorted[0] ?? null;
+}
+
 type Comparison = 'greater' | 'lesser' | null;
-type AllowedExtension = 'png' | 'jpg' | 'gif' | 'jpeg' | 'webp';
-type ValidExtension = 'png' | 'jpg' | 'gif' | 'webp';
 
 export function findDTOChannelImageBySize(
   channelImages: ItemImagePartial[] | null | undefined,
@@ -67,6 +95,30 @@ export function findDTOItemImageForList(
     return null;
   }
   return findImageBySizePreferResized(itemImages, size, comparison, allowedExtensions);
+}
+
+export function findDTOChannelImageForHero(
+  channelImages: ItemImagePartial[] | null | undefined,
+  size: number | 'largest' | 'smallest',
+  comparison: Comparison = null,
+  allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']
+): ItemImagePartial | null {
+  if (!channelImages || channelImages.length === 0) {
+    return null;
+  }
+  return findImageBySizePreferNonResized(channelImages, size, comparison, allowedExtensions);
+}
+
+export function findDTOItemImageForHero(
+  itemImages: ItemImagePartial[] | null | undefined,
+  size: number | 'largest' | 'smallest',
+  comparison: Comparison = null,
+  allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']
+): ItemImagePartial | null {
+  if (!itemImages || itemImages.length === 0) {
+    return null;
+  }
+  return findImageBySizePreferNonResized(itemImages, size, comparison, allowedExtensions);
 }
 
 function pushDistinctUrl(urls: string[], seen: Set<string>, url: string | null | undefined) {
@@ -196,6 +248,104 @@ export function buildDTOChannelImageLoadCandidates(
 }
 
 /**
+ * Header / hero / large artwork: same fallback chain as {@link buildDTOItemImageLoadCandidates}, but the
+ * primary URL uses {@link findDTOItemImageBySize} — never {@link findDTOItemImageForList} (shrunken-first).
+ */
+export function buildDTOItemImageHeroLoadCandidates(
+  itemImages: ItemImagePartial[] | null | undefined,
+  size: number | 'largest' | 'smallest',
+  comparison: Comparison = null,
+  allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']
+): string[] {
+  const out = buildDTOImageLoadCandidates(
+    itemImages,
+    size,
+    comparison,
+    allowedExtensions,
+    findDTOItemImageForHero
+  );
+  // #region agent log
+  if (typeof window !== 'undefined' && size === 'largest') {
+    const rows = itemImages?.map((img) => ({
+      w: img.image_width_size ?? null,
+      r: img.is_resized === true,
+    }));
+    const firstUrl = out[0] ?? null;
+    const firstRow = itemImages?.find((img) => img.url === firstUrl);
+    fetch('http://127.0.0.1:7492/ingest/b00b7ad8-3302-43b6-ba18-0bcb911f8469', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd08547' },
+      body: JSON.stringify({
+        sessionId: 'd08547',
+        runId: 'post-fix',
+        hypothesisId: 'H3',
+        location: 'image.ts:buildDTOItemImageHeroLoadCandidates',
+        message: 'item_hero_largest_chain',
+        data: {
+          fixTag: 'unset-original-prefer',
+          count: out.length,
+          firstPickIsResized: firstRow?.is_resized === true,
+          rows,
+          firstSuffix: firstUrl !== null && firstUrl.length > 0 ? firstUrl.slice(-48) : null,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+  }
+  // #endregion
+  return out;
+}
+
+/**
+ * Header / hero channel artwork: primary uses {@link findDTOChannelImageBySize}, not list-oriented
+ * {@link findDTOChannelImageForList}.
+ */
+export function buildDTOChannelImageHeroLoadCandidates(
+  channelImages: ItemImagePartial[] | null | undefined,
+  size: number | 'largest' | 'smallest',
+  comparison: Comparison = null,
+  allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']
+): string[] {
+  const out = buildDTOImageLoadCandidates(
+    channelImages,
+    size,
+    comparison,
+    allowedExtensions,
+    findDTOChannelImageForHero
+  );
+  // #region agent log
+  if (typeof window !== 'undefined' && size === 'largest') {
+    const rows = channelImages?.map((img) => ({
+      w: img.image_width_size ?? null,
+      r: img.is_resized === true,
+    }));
+    const firstUrl = out[0] ?? null;
+    const firstRow = channelImages?.find((img) => img.url === firstUrl);
+    fetch('http://127.0.0.1:7492/ingest/b00b7ad8-3302-43b6-ba18-0bcb911f8469', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd08547' },
+      body: JSON.stringify({
+        sessionId: 'd08547',
+        runId: 'post-fix',
+        hypothesisId: 'H4',
+        location: 'image.ts:buildDTOChannelImageHeroLoadCandidates',
+        message: 'channel_hero_largest_chain',
+        data: {
+          fixTag: 'unset-original-prefer',
+          count: out.length,
+          firstPickIsResized: firstRow?.is_resized === true,
+          rows,
+          firstSuffix: firstUrl !== null && firstUrl.length > 0 ? firstUrl.slice(-48) : null,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+  }
+  // #endregion
+  return out;
+}
+
+/**
  * Item artwork candidates first (episode/track cover), then podcast/channel artwork — deduped in order.
  * Matches UI that prefers `item_image?.url || channel_image?.url`.
  */
@@ -217,6 +367,39 @@ export function mergeDTOItemThenChannelImageCandidates(
     pushDistinctUrl(out, seen, url);
   }
   for (const url of buildDTOChannelImageLoadCandidates(
+    channelImages,
+    size,
+    comparison,
+    allowedExtensions
+  )) {
+    pushDistinctUrl(out, seen, url);
+  }
+  return out;
+}
+
+/**
+ * Same merge order as {@link mergeDTOItemThenChannelImageCandidates} for header / hero surfaces — uses
+ * {@link buildDTOItemImageHeroLoadCandidates} and {@link buildDTOChannelImageHeroLoadCandidates} (no list
+ * shrunken-first primary).
+ */
+export function mergeDTOItemThenChannelImageHeroCandidates(
+  itemImages: ItemImagePartial[] | null | undefined,
+  channelImages: ItemImagePartial[] | null | undefined,
+  size: number | 'largest' | 'smallest',
+  comparison: Comparison = null,
+  allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']
+): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const url of buildDTOItemImageHeroLoadCandidates(
+    itemImages,
+    size,
+    comparison,
+    allowedExtensions
+  )) {
+    pushDistinctUrl(out, seen, url);
+  }
+  for (const url of buildDTOChannelImageHeroLoadCandidates(
     channelImages,
     size,
     comparison,
@@ -270,6 +453,29 @@ function findImageBySizePreferResized(
   );
   if (resizedMatch) {
     return resizedMatch;
+  }
+  return findImageBySizeWithTieBreak(itemImages, size, comparison, allowedExtensions);
+}
+
+function findImageBySizePreferNonResized(
+  itemImages: ItemImagePartial[],
+  size: number | 'largest' | 'smallest',
+  comparison: Comparison,
+  allowedExtensions: AllowedExtension[]
+): ItemImagePartial | null {
+  const nonResizedImages = itemImages.filter((image) => image.is_resized !== true);
+  const nonResizedMatch = findImageBySizeWithTieBreak(
+    nonResizedImages,
+    size,
+    comparison,
+    allowedExtensions
+  );
+  if (nonResizedMatch) {
+    return nonResizedMatch;
+  }
+  const unsetOriginal = pickUnsetWidthNonResizedForHero(nonResizedImages, allowedExtensions);
+  if (unsetOriginal !== null) {
+    return unsetOriginal;
   }
   return findImageBySizeWithTieBreak(itemImages, size, comparison, allowedExtensions);
 }

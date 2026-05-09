@@ -3,12 +3,14 @@
 
 .info {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
-  height: 100%;
   min-height: 0;
+  overflow: hidden;
 }
 
 .titleSection {
+  flex-shrink: 0;
   text-align: center;
 }
 
@@ -42,30 +44,31 @@
   margin-top: var(--spacing-sm);
 }
 
-// Square art region inside the modal flex column. The wrapper fills remaining vertical space
-// (flex: 1). The inner is sized from the HEIGHT axis (height: 100%) so that aspect-ratio: 1/1
-// produces a square equal to the shorter dimension. max-width: 100% prevents it from being
-// wider than the column when the slot is taller than it is wide.
+// Square art in the remaining vertical space between titles and controls. No fixed min-height —
+// when the viewport is short, this region shrinks so the modal never scrolls.
 .imageWrapper {
   margin-top: var(--spacing-xl);
-  flex: 1 1 0;
-  @include flexItemAllowShrink;
-  min-height: min(45vh, 80vw);
-  display: flex;
-  width: 100%;
-  box-sizing: border-box;
   align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  flex: 1 1 0;
   justify-content: center;
+  min-height: 0;
+  width: 100%;
+  @include flexItemAllowShrink;
 }
 
 .imageInner {
-  box-sizing: border-box;
-  height: 100%;
-  max-width: 100%;
-  aspect-ratio: 1 / 1;
-  display: flex;
   align-items: center;
+  aspect-ratio: 1 / 1;
+  box-sizing: border-box;
+  display: flex;
+  height: 100%;
   justify-content: center;
+  max-height: 100%;
+  max-width: 100%;
+  min-height: 0;
+  width: auto;
 }
 
 .image {
@@ -76,12 +79,12 @@
 }
 
 .subtitleSection {
+  align-items: center;
   display: flex;
+  flex: 0 0 auto;
   flex-direction: column;
   flex-shrink: 0;
   justify-content: center;
-  align-items: center;
-  flex: 0;
 }
 
 .subtitle {

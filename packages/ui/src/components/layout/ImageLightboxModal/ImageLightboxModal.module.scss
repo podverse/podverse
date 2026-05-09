@@ -1,0 +1,29 @@
+@use '../../../styles/mixins/flexShrink' as *;
+
+/** Flex region inside transparent Modal; reserves space so imagery stays clear of the absolute close control. */
+.viewport {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  max-height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  padding-bottom: 0.75rem;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  padding-top: 3.25rem;
+  width: 100%;
+  @include flexItemClampToParent;
+}
+
+.image {
+  box-sizing: border-box;
+  height: auto;
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  width: auto;
+}

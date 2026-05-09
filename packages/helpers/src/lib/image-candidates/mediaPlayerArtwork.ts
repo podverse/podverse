@@ -2,7 +2,10 @@ import type {
   AddByRSSResourceData,
   AddByRSSResourceDataImageEntry,
 } from '../../dtos/addByRSSResourceData.js';
-import { mergeDTOItemThenChannelImageCandidates, prependDistinctImageCandidate } from '../image.js';
+import {
+  mergeDTOItemThenChannelImageHeroCandidates,
+  prependDistinctImageCandidate,
+} from '../image.js';
 
 type ChannelImages = AddByRSSResourceDataImageEntry[] | null | undefined;
 type ItemImages = AddByRSSResourceDataImageEntry[] | null | undefined;
@@ -86,7 +89,7 @@ export const buildMediaPlayerArtworkImageCandidates = ({
   imageSizeTarget,
   imageSizeComparison = null,
 }: BuildMediaPlayerArtworkImageCandidatesParams) => {
-  const mergedItemChannel = mergeDTOItemThenChannelImageCandidates(
+  const mergedItemChannel = mergeDTOItemThenChannelImageHeroCandidates(
     itemImages,
     channelImages,
     imageSizeTarget,

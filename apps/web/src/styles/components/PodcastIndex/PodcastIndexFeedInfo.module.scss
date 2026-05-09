@@ -27,10 +27,22 @@
   margin-right: var(--spacing-md);
 }
 
+.imageClickable {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  display: block;
+  font: inherit;
+  margin: var(--spacing-3xl) var(--spacing-none) var(--spacing-xl) var(--spacing-none);
+  padding: 0;
+}
+
 .image {
   object-fit: cover;
   border-radius: var(--border-radius);
-  margin: var(--spacing-3xl) var(--spacing-none) var(--spacing-xl) var(--spacing-none);
+  display: block;
 }
 
 .content {

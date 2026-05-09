@@ -87,6 +87,27 @@ describe('Modal', () => {
     expect(gutter).toBe('stable');
   });
 
+  it('applies modalChildrenOverflowHidden when contentOverflowHidden is true', () => {
+    const { container } = render(
+      <Modal
+        ariaLabel="No scroll"
+        closeButtonAriaLabel="Close"
+        contentOverflowHidden
+        isOpen
+        onClose={() => {}}
+      >
+        <p>x</p>
+      </Modal>
+    );
+
+    const overflowClass = modalStyles.modalChildrenOverflowHidden;
+    if (overflowClass === undefined) {
+      throw new Error('modalChildrenOverflowHidden class missing from CSS module');
+    }
+    const childrenHost = container.querySelector(`.${modalStyles.modalChildren}.${overflowClass}`);
+    expect(childrenHost).not.toBeNull();
+  });
+
   it('renders children inside modalChildren so defensive shrink rules apply', () => {
     const { container } = render(
       <Modal ariaLabel="Shrink" closeButtonAriaLabel="Close" isOpen onClose={() => {}}>

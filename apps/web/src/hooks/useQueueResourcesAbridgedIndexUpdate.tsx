@@ -3,14 +3,12 @@ import { useCallback, useEffect, useRef } from 'react';
 import type { QueueResourceAbridgedUpdates } from '@podverse/helpers';
 import { updateQueueResourceAbridgedIndex } from '@podverse/helpers';
 
-import { useAccount } from '../contexts/Account';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
 import { useMediaPlayerCurrentTime } from '../contexts/MediaPlayerCurrentTime';
 import { useQueueResourcesAbridgedIndex } from '../contexts/QueueResourcesAbridgedIndex';
 
 export function useQueueResourcesAbridgedIndexUpdate() {
   const { mpClip, mpItemSoundbite, mpItem, mpDuration } = useMediaPlayer();
-  const { loggedInAccount } = useAccount();
   const { mpCurrentTime } = useMediaPlayerCurrentTime();
   const { queueResourcesAbridgedIndex, setQueueResourcesAbridgedIndex } =
     useQueueResourcesAbridgedIndex();
@@ -42,10 +40,6 @@ export function useQueueResourcesAbridgedIndexUpdate() {
   }, [queueResourcesAbridgedIndex]);
 
   return useCallback((completed?: boolean) => {
-    if (!loggedInAccount) {
-      return;
-    }
-
     const progressValue = completed ? '0' : (mpCurrentTimeRef.current?.toString() ?? '0');
 
     const updates: QueueResourceAbridgedUpdates = {

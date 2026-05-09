@@ -5,8 +5,12 @@ import { useTranslations } from 'next-intl';
 import React, { useState } from 'react';
 import { FaCircleDollarToSlot, FaCommentDollar, FaGlobe, FaRss } from 'react-icons/fa6';
 
+import {
+  appendDistinctImageCandidate,
+  buildDTOChannelImageHeroLoadCandidates,
+} from '@podverse/helpers';
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
-import { Button, SkeletonFlashImage } from '@podverse/ui';
+import { Button, ImageLightboxModal, SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import { useAccount } from '../../../contexts/Account';
@@ -43,9 +47,11 @@ export const AddByRSSPodcastHeader: React.FC<AddByRSSPodcastHeaderProps> = ({ fe
   const tValue = useTranslations('value');
   const tFeatures = useTranslations('features');
   const tInstructions = useTranslations('instructions');
+  const tMisc = useTranslations('misc');
   const { loggedInAccount, setLoggedInAccount } = useAccount();
   const { setModalLoginRequired, setModalBoost } = useModals();
   const [isUpdating, setIsUpdating] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const title = feed.mappedFeed?.channel?.channel?.title ?? feed.title ?? feed.feedUrl;
   const author = feed.mappedFeed?.channel?.about?.author ?? null;
   const feedUrl = feed.feedUrl;
@@ -63,6 +69,10 @@ export const AddByRSSPodcastHeader: React.FC<AddByRSSPodcastHeaderProps> = ({ fe
     candidatesDesktop,
     primaryUrl: imageUrl,
   } = addByRSSChannelHeaderTriple(channelImages, feed.imageUrl);
+  const lightboxCandidates = appendDistinctImageCandidate(
+    feed.imageUrl ?? undefined,
+    buildDTOChannelImageHeroLoadCandidates(channelImages, 'largest', 'greater')
+  );
   const detailUrl = `/add-by-rss/podcast/${feed.idText}`;
   const isSubscribed = loggedInAccount?.account_following_add_by_rss_channels?.some(
     (following) => following.feed_url === feedUrl
@@ -168,29 +178,46 @@ export const AddByRSSPodcastHeader: React.FC<AddByRSSPodcastHeaderProps> = ({ fe
   );
 
   const headerImage = (
-    <div className={imageStyles.headerImageWrapper}>
-      <SkeletonFlashImage
-        candidates={candidatesMobile}
+    <>
+      <button
+        aria-label={tMisc('image_preview_dialog')}
+        className={imageStyles.headerImageClickable}
+        type="button"
+        onClick={() => setLightboxOpen(true)}
+      >
+        <div className={imageStyles.headerImageWrapper}>
+          <SkeletonFlashImage
+            candidates={candidatesMobile}
+            alt={title || tMedia('podcast.podcast_image')}
+            width={IMAGES.HEADER.MOBILE.SQUARE.SIZE}
+            height={IMAGES.HEADER.MOBILE.SQUARE.SIZE}
+            className={imageStyles.mobile}
+          />
+          <SkeletonFlashImage
+            candidates={candidatesTablet}
+            alt={title || tMedia('podcast.podcast_image')}
+            width={IMAGES.HEADER.TABLET.SQUARE.SIZE}
+            height={IMAGES.HEADER.TABLET.SQUARE.SIZE}
+            className={imageStyles.tablet}
+          />
+          <SkeletonFlashImage
+            candidates={candidatesDesktop}
+            alt={title || tMedia('podcast.podcast_image')}
+            width={IMAGES.HEADER.DESKTOP.SQUARE.SIZE}
+            height={IMAGES.HEADER.DESKTOP.SQUARE.SIZE}
+            className={imageStyles.desktop}
+          />
+        </div>
+      </button>
+      <ImageLightboxModal
         alt={title || tMedia('podcast.podcast_image')}
-        width={IMAGES.HEADER.MOBILE.SQUARE.SIZE}
-        height={IMAGES.HEADER.MOBILE.SQUARE.SIZE}
-        className={imageStyles.mobile}
+        ariaLabel={tMisc('image_preview_dialog')}
+        candidates={lightboxCandidates}
+        closeButtonAriaLabel={tMisc('close_modal')}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
       />
-      <SkeletonFlashImage
-        candidates={candidatesTablet}
-        alt={title || tMedia('podcast.podcast_image')}
-        width={IMAGES.HEADER.TABLET.SQUARE.SIZE}
-        height={IMAGES.HEADER.TABLET.SQUARE.SIZE}
-        className={imageStyles.tablet}
-      />
-      <SkeletonFlashImage
-        candidates={candidatesDesktop}
-        alt={title || tMedia('podcast.podcast_image')}
-        width={IMAGES.HEADER.DESKTOP.SQUARE.SIZE}
-        height={IMAGES.HEADER.DESKTOP.SQUARE.SIZE}
-        className={imageStyles.desktop}
-      />
-    </div>
+    </>
   );
 
   const titleNode = (

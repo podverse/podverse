@@ -11,6 +11,7 @@ import { RuntimeConfigScript } from '../components/Head/RuntimeConfigScript';
 import { LazyLoadedComponents } from '../components/LazyLoadedComponents/LazyLoadedComponents';
 import { MediaPlayerController } from '../components/MediaPlayer/Controller/MediaPlayerController';
 import { NavBar } from '../components/NavBar/NavBar';
+import { AnonymousPlaybackRestoreController } from '../components/Queue/AnonymousPlaybackRestoreController';
 import { QueueController } from '../components/Queue/QueueController';
 import { QueueResourcesAbridgedController } from '../components/Queue/QueueResourcesAbridgedController';
 import { SideBar } from '../components/SideBar/SideBar';
@@ -106,6 +107,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </WindowWrapper>
             <MediaPlayerController />
             <QueueController />
+            <AnonymousPlaybackRestoreController />
             <QueueResourcesAbridgedController />
           </Providers>
         )}

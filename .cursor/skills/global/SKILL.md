@@ -182,6 +182,7 @@ Only use eslint-disable when:
 - **[GitHub Workflows](../github/SKILL.md)** - PR/issue management and GitHub CLI usage
 - **[Web Patterns](../web/SKILL.md)** - Next.js app patterns (`apps/web/`)
 - **[Bundle Optimization](../bundle-optimization/SKILL.md)** - Bundle size awareness when adding deps, changing helpers, or heavy UI
+- **[Header / hero image sources](../header-hero-image-sources/SKILL.md)** - List vs header artwork: `*LoadCandidates` / `*HeroLoadCandidates` and `greater` + `IMAGES.HEADER.*` for heroes
 - **[API Patterns](../api/SKILL.md)** - Express API patterns (`apps/api/`)
 - **[Management API Patterns](../management-api/SKILL.md)** - Management API Express patterns
 - **[ORM Patterns](../orm/SKILL.md)** - Database patterns (`packages/orm/`)

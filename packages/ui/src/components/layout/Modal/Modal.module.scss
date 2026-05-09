@@ -68,7 +68,15 @@
 }
 
 .modalChildrenTransparent {
+  display: flex;
+  flex-direction: column;
   margin-top: 0;
+  min-height: 0;
+}
+
+/** Full-viewport shells (e.g. media player) — body must clip/flex instead of scrolling. */
+.modalChildrenOverflowHidden {
+  overflow: hidden;
 }
 
 .modalBody {

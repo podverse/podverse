@@ -23,6 +23,7 @@ export const MediaPlayerModal: React.FC = () => {
       onClose={() => setPlayerModalIsOpen(false)}
       closeButtonAriaLabel={tMisc('close_modal')}
       ariaLabel={tMediaPlayer('fullscreen_media_player')}
+      contentOverflowHidden
       contentTransparent
     >
       <div className={styles.mediaPlayerModal}>

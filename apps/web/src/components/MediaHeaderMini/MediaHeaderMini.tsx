@@ -3,8 +3,8 @@ import React from 'react';
 
 import type { DTOChannel, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
 import {
-  buildDTOChannelImageLoadCandidates,
-  mergeDTOItemThenChannelImageCandidates,
+  buildDTOChannelImageHeroLoadCandidates,
+  mergeDTOItemThenChannelImageHeroCandidates,
 } from '@podverse/helpers';
 import { SkeletonFlashImage } from '@podverse/ui';
 
@@ -27,13 +27,13 @@ export const MediaHeaderMini: React.FC<MediaHeaderMiniProps> = ({
   const target = IMAGES.MEDIA_HEADER_MINI.SQUARE.SIZE_FIND_TARGET;
   const comparison = 'greater' as const;
   const imageCandidates = item
-    ? mergeDTOItemThenChannelImageCandidates(
+    ? mergeDTOItemThenChannelImageHeroCandidates(
         item.item_images,
         channel.channel_images,
         target,
         comparison
       )
-    : buildDTOChannelImageLoadCandidates(channel.channel_images, target, comparison);
+    : buildDTOChannelImageHeroLoadCandidates(channel.channel_images, target, comparison);
 
   let title: string;
   let subtitle: string;

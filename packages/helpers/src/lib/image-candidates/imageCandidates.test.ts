@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { addByRSSFeedListArtworkCandidates } from './addByRSSFeedListArtworkCandidates.js';
 import { addByRSSResourceMergedArtworkCandidates } from './addByRSSResourceMergedArtworkCandidates.js';
 import { dedupedTrimmedUrlCandidates } from './dedupedTrimmedUrlCandidates.js';
+import { itemHeaderLightboxArtworkCandidates } from './itemHeaderLightboxArtworkCandidates.js';
 import { itemHeaderSquareArtworkCandidates } from './itemHeaderSquareArtworkCandidates.js';
 import { resolveImageCandidates } from './resolveImageCandidates.js';
 
@@ -32,17 +33,28 @@ describe('resolveImageCandidates', () => {
   });
 });
 
+describe('itemHeaderLightboxArtworkCandidates', () => {
+  it('uses non-resized largest artwork as the first candidate', () => {
+    const primary = 'https://example.com/original.jpg';
+    const images = [
+      { url: 'https://cdn.example.com/w224.webp', image_width_size: 224, is_resized: true },
+      { url: primary, image_width_size: 800, is_resized: false },
+    ];
+    const got = itemHeaderLightboxArtworkCandidates(images);
+    expect(got[0]).toBe(primary);
+  });
+});
+
 describe('itemHeaderSquareArtworkCandidates', () => {
-  it('prepends sized primary when distinct from the load chain', () => {
-    const primary = 'https://cdn.example.com/w224.webp';
+  it('prefers non-resized hero artwork over equally sized resized rows', () => {
+    const shrunken = 'https://cdn.example.com/w256.webp';
     const original = 'https://example.com/original.jpg';
     const images = [
-      { url: primary, image_width_size: 224, is_resized: true },
+      { url: shrunken, image_width_size: 256, is_resized: true },
       { url: original, image_width_size: 800, is_resized: false },
     ];
-    const got = itemHeaderSquareArtworkCandidates(images, 224, 'lesser');
-    expect(got[0]).toBe(primary);
-    expect(got).toContain(original);
+    const got = itemHeaderSquareArtworkCandidates(images, 256, 'greater');
+    expect(got[0]).toBe(original);
   });
 });
 

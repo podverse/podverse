@@ -133,6 +133,11 @@ export type {
   ModalPropsWithDismiss,
   ModalPropsWithoutDismiss,
 } from './components/layout/Modal/Modal';
+export {
+  IMAGE_LIGHTBOX_DISPLAY_DIMENSION,
+  ImageLightboxModal,
+} from './components/layout/ImageLightboxModal/ImageLightboxModal';
+export type { ImageLightboxModalProps } from './components/layout/ImageLightboxModal/ImageLightboxModal';
 export { PageWrapper } from './components/layout/PageWrapper/PageWrapper';
 export type { PageWrapperProps } from './components/layout/PageWrapper/PageWrapper';
 export { StatusBadge } from './components/layout/StatusBadge/StatusBadge';

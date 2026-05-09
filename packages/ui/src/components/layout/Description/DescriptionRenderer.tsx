@@ -1,8 +1,9 @@
 'use client';
 
-import { sanitize } from 'isomorphic-dompurify';
 import type { FC } from 'react';
 import { useMemo } from 'react';
+import type { IOptions } from 'sanitize-html';
+import sanitizeHtml from 'sanitize-html';
 
 import styles from './SafeHtmlDescription.module.scss';
 
@@ -25,7 +26,18 @@ const ALLOWED_TAGS = [
   'li',
   'br',
 ];
-const ALLOWED_ATTR = ['href', 'title', 'target', 'rel'];
+
+const SANITIZE_OPTIONS: IOptions = {
+  allowedTags: ALLOWED_TAGS,
+  allowedAttributes: {
+    a: ['href', 'title', 'target', 'rel'],
+    '*': ['title'],
+  },
+  allowedSchemes: ['http', 'https', 'mailto'],
+  allowedSchemesByTag: {
+    a: ['http', 'https', 'mailto'],
+  },
+};
 
 export function isHtmlString(str: string): boolean {
   return /<[a-z][\s\S]*>/i.test(str);
@@ -37,12 +49,7 @@ export type SafeHtmlDescriptionProps = {
 
 export const SafeHtmlDescription: FC<SafeHtmlDescriptionProps> = ({ html }) => {
   const cleanHtml = useMemo(() => {
-    return sanitize(html, {
-      ALLOWED_TAGS,
-      ALLOWED_ATTR,
-      RETURN_TRUSTED_TYPE: false,
-      FORCE_BODY: true,
-    });
+    return sanitizeHtml(html, SANITIZE_OPTIONS);
   }, [html]);
 
   return (
