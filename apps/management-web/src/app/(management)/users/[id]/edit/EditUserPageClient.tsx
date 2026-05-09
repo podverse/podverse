@@ -44,6 +44,7 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
   const t = useTranslations('users');
   const ta = useTranslations('auth');
   const tc = useTranslations('common');
+  const tNav = useTranslations('nav');
 
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -289,6 +290,7 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
               LinkComponent={Link}
               navAriaLabel={tc('breadcrumbNav')}
               items={[
+                { href: '/dashboard', label: tNav('dashboard') },
                 { href: '/users', label: t('title') },
                 { href: `/users/${userId}`, label: user.id_text },
                 { label: tc('edit') },

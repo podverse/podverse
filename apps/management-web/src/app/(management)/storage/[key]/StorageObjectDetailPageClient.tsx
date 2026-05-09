@@ -56,6 +56,7 @@ export function StorageObjectDetailPageClient({ objectKey }: StorageObjectDetail
   const locale = useLocale();
   const t = useTranslations('storage');
   const tc = useTranslations('common');
+  const tNav = useTranslations('nav');
   const navAria = tc('breadcrumbNav');
 
   const canDelete = user !== null && canDeleteStorage(user);
@@ -123,7 +124,11 @@ export function StorageObjectDetailPageClient({ objectKey }: StorageObjectDetail
   return (
     <ManagementPageShell subtitle={t('detailSubtitle')} title={t('detailTitle')}>
       <Breadcrumbs
-        items={[{ href: '/storage', label: t('title') }, { label: shortKeyLabel(objectKey) }]}
+        items={[
+          { href: '/dashboard', label: tNav('dashboard') },
+          { href: '/storage', label: t('title') },
+          { label: shortKeyLabel(objectKey) },
+        ]}
         LinkComponent={Link}
         navAriaLabel={navAria}
       />

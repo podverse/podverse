@@ -56,6 +56,7 @@ export function TableBrowserPageClient({ tableName }: TableBrowserPageClientProp
   const [error, setError] = useState<string | null>(null);
   const t = useTranslations('database');
   const tc = useTranslations('common');
+  const tNav = useTranslations('nav');
   const tsTable = useTranslations('tableShared');
   const chrome = useManagementTableChrome();
 
@@ -216,7 +217,11 @@ export function TableBrowserPageClient({ tableName }: TableBrowserPageClientProp
         <Breadcrumbs
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
-          items={[{ href: '/database', label: t('title') }, { label: tableName }]}
+          items={[
+            { href: '/dashboard', label: tNav('dashboard') },
+            { href: '/database', label: t('title') },
+            { label: tableName },
+          ]}
         />
       }
       headerChildren={

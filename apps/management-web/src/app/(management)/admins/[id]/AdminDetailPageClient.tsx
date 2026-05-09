@@ -45,6 +45,7 @@ export function AdminDetailPageClient({ adminId, initialUser }: Props) {
   const t = useTranslations('admins');
   const tu = useTranslations('users');
   const tc = useTranslations('common');
+  const tNav = useTranslations('nav');
 
   const [user] = useState<CurrentUser>(initialUser);
   const [admin, setAdmin] = useState<AdminAccount | null>(null);
@@ -141,7 +142,11 @@ export function AdminDetailPageClient({ adminId, initialUser }: Props) {
             <Breadcrumbs
               LinkComponent={Link}
               navAriaLabel={tc('breadcrumbNav')}
-              items={[{ href: '/admins', label: t('title') }, { label: admin.id_text }]}
+              items={[
+                { href: '/dashboard', label: tNav('dashboard') },
+                { href: '/admins', label: t('title') },
+                { label: admin.id_text },
+              ]}
             />
           }
           title={t('adminDetail')}

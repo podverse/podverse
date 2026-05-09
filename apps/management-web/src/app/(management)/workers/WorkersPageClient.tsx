@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -8,6 +9,7 @@ import { FaArrowUpRightFromSquare } from 'react-icons/fa6';
 import type { SortDirection, StatusBadgeVariant } from '@podverse/ui';
 import {
   Alert,
+  Breadcrumbs,
   CodeText,
   CopyToClipboardButton,
   Disclosure,
@@ -77,6 +79,7 @@ export function WorkersPageClient({ initialUser }: WorkersPageClientProps) {
   const searchParams = useSearchParams();
   const t = useTranslations('workers');
   const tc = useTranslations('common');
+  const tNav = useTranslations('nav');
   const chrome = useManagementTableChrome();
 
   const basePath = pathname !== null && pathname !== '' ? pathname : '/workers';
@@ -261,7 +264,16 @@ export function WorkersPageClient({ initialUser }: WorkersPageClientProps) {
     !isSuperuser || loading || loadError !== null || commands === null || !systemWorkersEmpty;
 
   return (
-    <ManagementPageShell title={t('title')}>
+    <ManagementPageShell
+      headerBreadcrumbs={
+        <Breadcrumbs
+          LinkComponent={Link}
+          navAriaLabel={tc('breadcrumbNav')}
+          items={[{ href: '/dashboard', label: tNav('dashboard') }, { label: t('title') }]}
+        />
+      }
+      title={t('title')}
+    >
       {showWorkersIntro && (
         <LeadParagraph>
           {t.rich('intro', {

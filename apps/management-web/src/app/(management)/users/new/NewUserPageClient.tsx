@@ -70,6 +70,7 @@ export function NewUserPageClient() {
 
   const t = useTranslations('users');
   const tc = useTranslations('common');
+  const tNav = useTranslations('nav');
 
   useEffect(() => {
     let cancelled = false;
@@ -316,7 +317,11 @@ export function NewUserPageClient() {
     <Breadcrumbs
       LinkComponent={Link}
       navAriaLabel={tc('breadcrumbNav')}
-      items={[{ href: '/users', label: t('title') }, { label: tc('new') }]}
+      items={[
+        { href: '/dashboard', label: tNav('dashboard') },
+        { href: '/users', label: t('title') },
+        { label: tc('new') },
+      ]}
     />
   );
 

@@ -56,6 +56,7 @@ export function RowDetailPageClient({ tableName, rowId, initialRow }: RowDetailP
   const [success, setSuccess] = useState(false);
   const t = useTranslations('database');
   const tc = useTranslations('common');
+  const tNav = useTranslations('nav');
 
   useEffect(() => {
     let cancelled = false;
@@ -171,6 +172,7 @@ export function RowDetailPageClient({ tableName, rowId, initialRow }: RowDetailP
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
           items={[
+            { href: '/dashboard', label: tNav('dashboard') },
             { href: '/database', label: t('title') },
             { href: `/database/${tableName}`, label: tableName },
             { label: `#${rowId}` },

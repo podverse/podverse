@@ -656,7 +656,7 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
           navAriaLabel={tc('breadcrumbNav')}
           items={[
             { href: '/dashboard', label: tNav('dashboard') },
-            { label: t('breadcrumbParent') },
+            { href: '/feeds', label: t('breadcrumbFeeds') },
             { label: t('breadcrumbCurrent') },
           ]}
         />

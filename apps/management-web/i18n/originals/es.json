@@ -105,8 +105,8 @@
     "title": "Tablero",
     "welcome": "Bienvenido a {brandName}",
     "feedFlagStatus": {
-      "title": "Estado de la bandera del feed",
-      "description": "Establecer eliminación, spam y otros estados con un motivo y nota (no el navegador de tablas)"
+      "title": "Feeds",
+      "description": "Herramientas de feeds: ciclo de vida, condiciones y estado de marca (aparte del navegador de tablas)"
     },
     "stats": {
       "title": "Estadísticas",
@@ -136,6 +136,11 @@
       "title": "Almacenamiento de objetos",
       "description": "Examinar, descargar y eliminar objetos del depósito configurado"
     }
+  },
+  "feedsHub": {
+    "pageTitle": "Feeds",
+    "flagStatusCardTitle": "Estado del feed",
+    "flagStatusCardDescription": "Establecer eliminación, spam y otros estados con un motivo y nota (no el navegador de tablas)"
   },
   "errors": {
     "boundary_title": "Algo salió mal",
@@ -215,7 +220,6 @@
   },
   "statsPage": {
     "title": "Estadísticas",
-    "breadcrumbDashboard": "Panel",
     "failedToLoad": "No se pudieron cargar las estadísticas.",
     "clear": "Limpiar",
     "views": "Vistas",
@@ -258,15 +262,12 @@
   },
   "products": {
     "pageTitle": "Productos",
-    "welcomeLine": "Elija un área de producto.",
     "membershipsCardTitle": "Membresías",
-    "membershipsCardDescription": "Ver valores de membresía resueltos (entorno y base de datos).",
-    "breadcrumbDashboard": "Panel"
+    "membershipsCardDescription": "Ver valores de membresía resueltos (entorno y base de datos)."
   },
   "productMemberships": {
     "pageTitle": "Membresías",
     "pageSubtitle": "Límites efectivos y campos de precios para nuevos usuarios y administración.",
-    "breadcrumbDashboard": "Panel",
     "breadcrumbProducts": "Productos",
     "loadError": "No se pudo cargar la configuración del producto de membresía.",
     "saveSuccess": "Configuración actualizada correctamente.",
@@ -305,7 +306,7 @@
   "feedFlagStatus": {
     "pageTitle": "Establecer estado del feed",
     "pageSubtitle": "Busque un feed por ID de Podcast Index (predeterminado), id interno del feed o URL. Actualice el ciclo de vida, condiciones activas, límites y notas. Esto es independiente del navegador de tablas de la base de datos.",
-    "breadcrumbParent": "Operaciones de feed",
+    "breadcrumbFeeds": "Feeds",
     "breadcrumbCurrent": "Estado de la bandera",
     "directoryHeading": "Feeds",
     "directoryLoadError": "No se pudo cargar la lista de feeds.",

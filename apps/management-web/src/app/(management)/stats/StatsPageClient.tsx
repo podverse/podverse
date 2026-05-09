@@ -136,6 +136,7 @@ export type StatsPageClientProps = {
 
 export function StatsPageClient({ initialUser }: StatsPageClientProps) {
   const tc = useTranslations('common');
+  const tNav = useTranslations('nav');
   const ts = useTranslations('statsPage');
   const tsTable = useTranslations('tableShared');
   const chrome = useManagementTableChrome();
@@ -483,7 +484,7 @@ export function StatsPageClient({ initialUser }: StatsPageClientProps) {
         <Breadcrumbs
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
-          items={[{ href: '/dashboard', label: ts('breadcrumbDashboard') }, { label: ts('title') }]}
+          items={[{ href: '/dashboard', label: tNav('dashboard') }, { label: ts('title') }]}
         />
       }
     >

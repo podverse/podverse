@@ -76,6 +76,7 @@ export function EditAdminPageClient({ admin }: EditAdminPageClientProps) {
   const [success, setSuccess] = useState(false);
   const t = useTranslations('admins');
   const tc = useTranslations('common');
+  const tNav = useTranslations('nav');
   const ta = useTranslations('auth');
   const tp = useTranslations('admins.permissions');
 
@@ -133,6 +134,7 @@ export function EditAdminPageClient({ admin }: EditAdminPageClientProps) {
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
           items={[
+            { href: '/dashboard', label: tNav('dashboard') },
             { href: '/admins', label: t('title') },
             { label: t('editAdminItem', { email: admin.email ?? admin.id_text }) },
           ]}

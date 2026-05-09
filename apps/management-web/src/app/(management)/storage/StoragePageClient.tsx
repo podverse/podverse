@@ -1,6 +1,7 @@
 'use client';
 
 import { isAxiosError } from 'axios';
+import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -8,6 +9,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { formatDateTimeAbbrevOrFallback, formatFileSize } from '@podverse/helpers';
 import {
   Alert,
+  Breadcrumbs,
   Button,
   EllipsisText,
   ManagementPageShell,
@@ -57,6 +59,7 @@ export function StoragePageClient({ initialUser }: StoragePageClientProps) {
   const t = useTranslations('storage');
   const tc = useTranslations('common');
   const tsTable = useTranslations('tableShared');
+  const tNav = useTranslations('nav');
   const chrome = useManagementTableChrome();
 
   const basePath = pathname !== null && pathname !== '' ? pathname : '/storage';
@@ -267,7 +270,17 @@ export function StoragePageClient({ initialUser }: StoragePageClientProps) {
   const deleteAllOverlayMessage = deleteAllBusy ? t('deleteAllInProgress') : t('deleteAllCounting');
 
   return (
-    <ManagementPageShell subtitle={t('subtitle')} title={t('title')}>
+    <ManagementPageShell
+      headerBreadcrumbs={
+        <Breadcrumbs
+          LinkComponent={Link}
+          navAriaLabel={tc('breadcrumbNav')}
+          items={[{ href: '/dashboard', label: tNav('dashboard') }, { label: t('title') }]}
+        />
+      }
+      subtitle={t('subtitle')}
+      title={t('title')}
+    >
       <ManagementLoadingSpinnerOverlayStatus
         isLoading={deleteAllCounting || deleteAllBusy}
         message={deleteAllOverlayMessage}

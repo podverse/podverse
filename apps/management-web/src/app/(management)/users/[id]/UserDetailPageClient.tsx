@@ -41,6 +41,7 @@ type Props = {
 export function UserDetailPageClient({ userId }: Props) {
   const t = useTranslations('users');
   const tc = useTranslations('common');
+  const tNav = useTranslations('nav');
 
   const [user, setUser] = useState<User | null>(null);
   const [inviteLink, setInviteLink] = useState<InviteLink | null>(null);
@@ -134,7 +135,11 @@ export function UserDetailPageClient({ userId }: Props) {
             <Breadcrumbs
               LinkComponent={Link}
               navAriaLabel={tc('breadcrumbNav')}
-              items={[{ href: '/users', label: t('title') }, { label: user.id_text }]}
+              items={[
+                { href: '/dashboard', label: tNav('dashboard') },
+                { href: '/users', label: t('title') },
+                { label: user.id_text },
+              ]}
             />
           }
           title={t('userDetail')}
