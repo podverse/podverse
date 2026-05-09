@@ -6,6 +6,7 @@ import { useMemo, useRef } from 'react';
 import { FaChevronDown } from 'react-icons/fa6';
 
 import { useDropdownKeyboardNavigation } from '../../../hooks/useDropdownKeyboardNavigation';
+import { useDropdownViewportClamp } from '../../../hooks/useDropdownViewportClamp';
 
 import styles from './FormDropdown.module.scss';
 
@@ -58,6 +59,15 @@ function FormDropdownMenu({
   setFocusedIndex,
   setOpen,
 }: FormDropdownMenuProps) {
+  const { viewportClampStyle } = useDropdownViewportClamp({
+    open,
+    menuRef,
+    menuItemCount: menuItems.length,
+    position,
+    fullWidth,
+    verticalPosition: 'below',
+  });
+
   if (!open) {
     return null;
   }
@@ -70,6 +80,7 @@ function FormDropdownMenu({
   const style = {
     ...positionStyle,
     ...fullWidthStyle,
+    ...viewportClampStyle,
     top: '100%',
     bottom: 'auto',
     marginBottom: 0,

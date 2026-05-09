@@ -3,6 +3,8 @@
 import classNames from 'classnames';
 import type { KeyboardEvent, RefObject } from 'react';
 
+import { useDropdownViewportClamp } from '../../../hooks/useDropdownViewportClamp';
+
 import styles from './DropdownMenuPanel.module.scss';
 
 export type DropdownMenuPanelItem = {
@@ -36,6 +38,15 @@ export function DropdownMenuPanel({
   fullWidth,
   verticalPosition = 'below',
 }: DropdownMenuPanelProps) {
+  const { viewportClampStyle } = useDropdownViewportClamp({
+    open,
+    menuRef,
+    menuItemCount: menuItems.length,
+    position,
+    fullWidth,
+    verticalPosition,
+  });
+
   if (!open) {
     return null;
   }
@@ -60,7 +71,7 @@ export function DropdownMenuPanel({
           marginBottom: 0,
         };
 
-  const style = { ...positionStyle, ...verticalStyle, ...fullWidthStyle };
+  const style = { ...positionStyle, ...verticalStyle, ...fullWidthStyle, ...viewportClampStyle };
 
   return (
     <ul
