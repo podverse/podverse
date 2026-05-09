@@ -162,7 +162,15 @@ describe('handleMediaPlayerWindowKeyDown', () => {
     window.removeEventListener(EVENTS.MEDIA_PLAYER.SEEK, handler);
 
     expect(handler).toHaveBeenCalledTimes(1);
-    const evt = handler.mock.calls[0][0] as CustomEvent<{ time: number }>;
-    expect(evt.detail?.time).toBe(42);
+    const firstArgs = handler.mock.calls[0];
+    if (firstArgs === undefined) {
+      expect.fail('expected handler to be called with arguments');
+    }
+    const eventArg = firstArgs[0];
+    if (eventArg === undefined) {
+      expect.fail('expected event as first argument');
+    }
+    expect(eventArg).toBeInstanceOf(CustomEvent);
+    expect(eventArg.detail).toEqual({ time: 42 });
   });
 });
