@@ -25,6 +25,19 @@ The sidecar uses the same validation helpers as the rest of the monorepo (`@podv
   - Used by the Next.js server to fetch runtime config at startup via `instrumentation.ts`
   - **Not needed at build time** - the sidecar architecture allows builds without any env vars
 
+- **`EXTENSIONS_ENABLED`** (Optional)
+  - Master switch for extensions host wiring (`ExtensionHeadScripts`, `ExtensionProviders`, and cache subscriber bootstrap)
+  - Valid values: `"true"` or `"false"`; unset defaults to disabled
+  - Proposal reference: `docs/proposals/EXTENSIONS.md`
+
+  Preferred Cloudflare extension control surface uses canonical extension env keys:
+  `EXTENSION_CLOUDFLARE_WEB_ANALYTICS_ENABLED`,
+  `EXTENSION_CLOUDFLARE_WEB_ANALYTICS_TOKEN`, and optional
+  `EXTENSION_CLOUDFLARE_WEB_ANALYTICS_BEACONURL` with `EXTENSIONS_ENABLED=true`.
+  Runtime-editable overrides are available in management-web at `/extensions` and
+  `/extensions/cloudflare-web-analytics`; see `docs/proposals/EXTENSIONS.md` for
+  resolution order details.
+
 ### Proxy Configuration
 
 - **`NEXT_PUBLIC_IMAGE_PROXY_ENABLED`** (Optional)

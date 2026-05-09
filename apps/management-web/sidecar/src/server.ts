@@ -31,6 +31,7 @@ const requiredKeys = [
 ] as const;
 
 const optionalKeys = [
+  'EXTENSIONS_ENABLED',
   'NEXT_PUBLIC_API_PORT',
   'NEXT_PUBLIC_BRAND_APPLE_TOUCH_ICON_URL',
   'NEXT_PUBLIC_BRAND_APP_ICON_192_URL',
@@ -44,6 +45,12 @@ const optionalKeys = [
 ] as const;
 
 const allKeys = [...requiredKeys, ...optionalKeys];
+
+function getExtensionEnvKeys(): string[] {
+  return Object.keys(process.env)
+    .filter((key) => key.startsWith('EXTENSION_'))
+    .sort((a, b) => a.localeCompare(b));
+}
 
 function validatePort(): ValidationResult {
   const value = process.env.PORT;
@@ -82,6 +89,37 @@ function validatePort(): ValidationResult {
 
 function validateOne(key: string, isRequired: boolean): ValidationResult {
   const category = getCategory(key);
+  if (key === 'EXTENSIONS_ENABLED') {
+    const value = process.env[key] ?? '';
+    if (value.trim() === '') {
+      return {
+        name: key,
+        isSet: false,
+        isValid: true,
+        isRequired: false,
+        message: 'Use Default (disabled)',
+        category: 'Extensions',
+      };
+    }
+    if (value !== 'true' && value !== 'false') {
+      return {
+        name: key,
+        isSet: true,
+        isValid: false,
+        isRequired: false,
+        message: `Invalid value: "${value}" - must be "true" or "false"`,
+        category: 'Extensions',
+      };
+    }
+    return {
+      name: key,
+      isSet: true,
+      isValid: true,
+      isRequired: false,
+      message: `Set to ${value}`,
+      category: 'Extensions',
+    };
+  }
   if (key === 'NEXT_PUBLIC_API_PROTOCOL' || key === 'NEXT_PUBLIC_SSR_API_PROTOCOL') {
     return validateWebProtocol(key, category, true);
   }
@@ -115,6 +153,7 @@ function validateOne(key: string, isRequired: boolean): ValidationResult {
 function getCategory(key: string): string {
   const map: Record<string, string> = {
     PORT: 'Server',
+    EXTENSIONS_ENABLED: 'Extensions',
     NEXT_PUBLIC_API_HOST: 'API',
     NEXT_PUBLIC_API_PREFIX: 'API',
     NEXT_PUBLIC_API_PROTOCOL: 'API',
@@ -176,8 +215,9 @@ const normalizeEnvValue = (value: string | undefined): string | undefined =>
   value === '' ? undefined : value;
 
 function buildRuntimeConfig(): { env: Record<string, string | undefined> } {
+  const extensionEnvKeys = getExtensionEnvKeys();
   const env: Record<string, string | undefined> = {};
-  for (const key of allKeys) {
+  for (const key of [...allKeys, ...extensionEnvKeys]) {
     env[key] = normalizeEnvValue(process.env[key]);
   }
   return { env };

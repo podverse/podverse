@@ -7,7 +7,8 @@ type PermissionResource =
   | 'admins'
   | 'stats'
   | 'billing_prices'
-  | 'bucket';
+  | 'bucket'
+  | 'extensions';
 
 function getCrudForResource(
   permissions: NonNullable<Express.User['permissions']>,
@@ -26,6 +27,8 @@ function getCrudForResource(
       return permissions.billing_prices_crud ?? 0;
     case 'bucket':
       return permissions.bucket_crud ?? 0;
+    case 'extensions':
+      return permissions.extensions_crud ?? 0;
   }
 }
 

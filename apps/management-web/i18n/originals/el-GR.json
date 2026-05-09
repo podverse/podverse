@@ -94,6 +94,7 @@
   },
   "nav": {
     "dashboard": "Πίνακας Ελέγχου",
+    "extensions": "Επεκτάσεις",
     "users": "Χρήστες",
     "content": "Περιεχόμενο",
     "settings": "Ρυθμίσεις",
@@ -135,6 +136,51 @@
     "storage": {
       "title": "Αποθήκευση αντικειμένων",
       "description": "Περιήγηση, λήψη και διαγραφή αντικειμένων στο ρυθμισμένο bucket"
+    },
+    "extensions": {
+      "title": "Επεκτάσεις",
+      "description": "Ενεργοποίηση και ρύθμιση επεκτάσεων host"
+    }
+  },
+  "extensions": {
+    "title": "Επεκτάσεις",
+    "tableHeaders": {
+      "name": "Όνομα",
+      "kind": "Τύπος",
+      "enabled": "Ενεργή",
+      "lastUpdated": "Τελευταία ενημέρωση"
+    },
+    "enabled": "Ενεργή",
+    "disabled": "Ανενεργή",
+    "emptySystemMessage": "Δεν υπάρχουν καταχωρημένες επεκτάσεις. Καταχωρήστε μία στο registry για να την ενεργοποιήσετε εδώ.",
+    "manifestSectionTitle": "Manifest",
+    "configurationSectionTitle": "Ρυθμίσεις",
+    "configurationSectionDescription": "Ενεργοποιήστε αυτή την επέκταση και ρυθμίστε την παρακάτω.",
+    "enabledFieldLabel": "Ενεργή",
+    "saveError": "Αποτυχία αποθήκευσης ρυθμίσεων επέκτασης.",
+    "saveSuccessToast": "Οι ρυθμίσεις επέκτασης αποθηκεύτηκαν.",
+    "saveErrorToast": "Δεν ήταν δυνατή η αποθήκευση των ρυθμίσεων επέκτασης.",
+    "validationSummaryLabel": "Σφάλματα επικύρωσης",
+    "fixValidationErrors": "Διορθώστε τα σφάλματα επικύρωσης πριν την αποθήκευση.",
+    "leaveBlankToKeepCurrentSecret": "Αφήστε κενό για διατήρηση της τρέχουσας τιμής.",
+    "fieldHelpAriaLabel": "Βοήθεια για {label}",
+    "fieldManagedByEnv": "Μόνο ανάγνωση. Ελέγχεται από μεταβλητή περιβάλλοντος: {envKey}",
+    "numberStepDecrement": "Μείωση τιμής",
+    "numberStepIncrement": "Αύξηση τιμής",
+    "cloudflare": {
+      "token": {
+        "label": "Token beacon Cloudflare",
+        "help": "Δημόσιο αναγνωριστικό beacon του Cloudflare Web Analytics. Δεν είναι διαπιστευτήριο διαχειριστή."
+      },
+      "beaconUrl": {
+        "label": "URL script beacon",
+        "help": "Προαιρετικό προσαρμοσμένο URL script beacon. Αφήστε κενό για χρήση του προεπιλεγμένου Cloudflare."
+      }
+    },
+    "meta": {
+      "id": "ID",
+      "kind": "Τύπος",
+      "description": "Περιγραφή"
     }
   },
   "feedsHub": {

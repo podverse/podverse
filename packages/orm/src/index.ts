@@ -124,6 +124,7 @@ export * from './entities/queue/queue.js';
 export * from './entities/queue/queueResource.js';
 
 export * from './entities/category.js';
+export * from './entities/ExtensionSetting.js';
 export * from './entities/billingPrice.js';
 export * from './entities/billingPriceChangeAudit.js';
 export * from './entities/billingDomainEvent.js';
@@ -150,6 +151,7 @@ export * from './entities/stats/statsTrackEventPlaylist.js';
 export * from './lib/typeORMTypes.js';
 export * from './lib/nanoid.js';
 export * from './lib/billingLimits.js';
+export * from './lib/extensionSettingsCache.js';
 export * from './lib/feedLifecycleLimits.js';
 export * from './lib/feedTableLimits.js';
 export * from './lib/feedLifecycleState.js';
@@ -216,6 +218,7 @@ export * from './services/channel/channelValueRecipient.js';
 export * from './services/clip.js';
 
 export * from './services/deduplicator.js';
+export * from './services/ExtensionSettingsService.js';
 export * from './services/imageShrinkSource.js';
 
 export * from './services/feed/feed.js';

@@ -17,4 +17,14 @@ export async function register(): Promise<void> {
   } catch {
     // Sidecar unreachable at startup; request-time layout hydration/fallback handles this.
   }
+
+  if (process.env.EXTENSIONS_ENABLED === 'true') {
+    try {
+      const { ensureExtensionCacheSubscriberStarted } =
+        await import('./src/lib/extensions/cacheSubscriber');
+      await ensureExtensionCacheSubscriberStarted();
+    } catch {
+      // Best effort subscriber bootstrap; extensions still resolve via DB/env fallback.
+    }
+  }
 }

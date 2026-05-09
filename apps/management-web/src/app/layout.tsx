@@ -7,6 +7,8 @@ import { FontPreloads } from '@podverse/ui';
 
 import Providers from '../providers/Providers';
 import { getLocale } from 'next-intl/server';
+import { ExtensionHeadScripts } from '../components/Extensions/ExtensionHeadScripts';
+import { ExtensionProviders } from '../components/Extensions/ExtensionProviders';
 import RuntimeConfigScript from '../components/Head/RuntimeConfigScript';
 import FavIcons from '../components/Head/FavIcons';
 import { getConfig } from '../config';
@@ -37,6 +39,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={locale} data-ui-theme={ssrUITheme}>
       <head>
         <RuntimeConfigScript runtimeConfig={runtimeConfig} />
+        <ExtensionHeadScripts />
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>{brandName}</title>
@@ -44,9 +47,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <FavIcons />
       </head>
       <body>
-        <Providers locale={locale} messages={messages}>
-          {children}
-        </Providers>
+        <ExtensionProviders>
+          <Providers locale={locale} messages={messages}>
+            {children}
+          </Providers>
+        </ExtensionProviders>
       </body>
     </html>
   );

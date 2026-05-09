@@ -94,6 +94,7 @@
   },
   "nav": {
     "dashboard": "Tableau de bord",
+    "extensions": "Extensions",
     "users": "Utilisateurs",
     "content": "Contenu",
     "settings": "Paramètres",
@@ -135,6 +136,51 @@
     "storage": {
       "title": "Stockage d'objets",
       "description": "Parcourir, télécharger et supprimer des objets dans le compartiment configuré"
+    },
+    "extensions": {
+      "title": "Extensions",
+      "description": "Activer et configurer les extensions hôte"
+    }
+  },
+  "extensions": {
+    "title": "Extensions",
+    "tableHeaders": {
+      "name": "Nom",
+      "kind": "Type",
+      "enabled": "Activée",
+      "lastUpdated": "Dernière mise à jour"
+    },
+    "enabled": "Activée",
+    "disabled": "Désactivée",
+    "emptySystemMessage": "Aucune extension n'est enregistrée. Enregistrez-en une dans le registre pour l'activer ici.",
+    "manifestSectionTitle": "Manifest",
+    "configurationSectionTitle": "Configuration",
+    "configurationSectionDescription": "Activez cette extension et ajustez sa configuration ci-dessous.",
+    "enabledFieldLabel": "Activée",
+    "saveError": "Impossible d'enregistrer les paramètres de l'extension.",
+    "saveSuccessToast": "Paramètres de l'extension enregistrés.",
+    "saveErrorToast": "Impossible d'enregistrer les paramètres de l'extension.",
+    "validationSummaryLabel": "Erreurs de validation",
+    "fixValidationErrors": "Corrigez les erreurs de validation avant d'enregistrer.",
+    "leaveBlankToKeepCurrentSecret": "Laisser vide pour conserver la valeur actuelle.",
+    "fieldHelpAriaLabel": "Aide pour {label}",
+    "fieldManagedByEnv": "Lecture seule. Géré par la variable d'environnement : {envKey}",
+    "numberStepDecrement": "Diminuer la valeur",
+    "numberStepIncrement": "Augmenter la valeur",
+    "cloudflare": {
+      "token": {
+        "label": "Jeton beacon Cloudflare",
+        "help": "Identifiant public du beacon Cloudflare Web Analytics. Ce n'est pas un identifiant opérateur."
+      },
+      "beaconUrl": {
+        "label": "URL du script beacon",
+        "help": "URL personnalisée facultative du script beacon. Laissez vide pour utiliser la valeur Cloudflare par défaut."
+      }
+    },
+    "meta": {
+      "id": "ID",
+      "kind": "Type",
+      "description": "Description"
     }
   },
   "feedsHub": {

@@ -25,8 +25,15 @@ vi.mock('../../../lib/server/bucketStorageDashboard.js', () => ({
   fetchBucketStorageEnabledForDashboard: vi.fn(),
 }));
 
+vi.mock('../../../config/runtime-config-store.js', () => ({
+  getRuntimeConfig: vi.fn(() => ({
+    env: { EXTENSIONS_ENABLED: 'true' },
+  })),
+}));
+
 import { redirect } from 'next/navigation';
 
+import { getRuntimeConfig } from '../../../config/runtime-config-store.js';
 import { getManagementSessionUser } from '../../../lib/auth/serverManagementSession.js';
 import { fetchBucketStorageEnabledForDashboard } from '../../../lib/server/bucketStorageDashboard.js';
 import DashboardPage from './page.js';
@@ -62,9 +69,18 @@ describe('DashboardPage (server)', () => {
     const tree = await DashboardPage();
 
     expect(tree).not.toBeNull();
-    const props = (tree as { props?: { initialUser?: unknown; bucketStorageEnabled?: boolean } })
-      .props;
+    const props = (
+      tree as {
+        props?: {
+          initialUser?: unknown;
+          bucketStorageEnabled?: boolean;
+          extensionsEnabled?: boolean;
+        };
+      }
+    ).props;
     expect(props?.initialUser).toEqual(mockUser);
     expect(props?.bucketStorageEnabled).toBe(false);
+    expect(props?.extensionsEnabled).toBe(true);
+    expect(vi.mocked(getRuntimeConfig)).toHaveBeenCalledTimes(1);
   });
 });

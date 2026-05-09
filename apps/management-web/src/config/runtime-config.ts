@@ -1,4 +1,5 @@
 export type ManagementWebRuntimeConfigEnvKey =
+  | 'EXTENSIONS_ENABLED'
   | 'NEXT_PUBLIC_API_HOST'
   | 'NEXT_PUBLIC_API_PORT'
   | 'NEXT_PUBLIC_API_PREFIX'
@@ -37,6 +38,7 @@ export const managementWebRuntimeConfigEnvKeys = {
     'NEXT_PUBLIC_SSR_API_PROTOCOL',
   ],
   optional: [
+    'EXTENSIONS_ENABLED',
     'NEXT_PUBLIC_API_PORT',
     'NEXT_PUBLIC_BRAND_APPLE_TOUCH_ICON_URL',
     'NEXT_PUBLIC_BRAND_APP_ICON_192_URL',
@@ -51,9 +53,10 @@ export const managementWebRuntimeConfigEnvKeys = {
   ],
 } as const;
 
-export type ManagementWebRuntimeConfigValues = {
-  [K in ManagementWebRuntimeConfigEnvKey]: string | undefined;
-};
+export type ManagementWebRuntimeConfigValues = Partial<
+  Record<ManagementWebRuntimeConfigEnvKey, string | undefined>
+> &
+  Record<string, string | undefined>;
 
 export type ManagementWebRuntimeConfig = {
   env: ManagementWebRuntimeConfigValues;

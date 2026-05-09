@@ -94,6 +94,7 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "extensions": "Extensions",
     "users": "Users",
     "content": "Content",
     "settings": "Settings",
@@ -135,6 +136,51 @@
     "storage": {
       "title": "Object storage",
       "description": "Browse, download, and delete objects in the configured bucket"
+    },
+    "extensions": {
+      "title": "Extensions",
+      "description": "Enable and configure host extensions"
+    }
+  },
+  "extensions": {
+    "title": "Extensions",
+    "tableHeaders": {
+      "name": "Name",
+      "kind": "Kind",
+      "enabled": "Enabled",
+      "lastUpdated": "Last updated"
+    },
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "emptySystemMessage": "No extensions are registered. Register one in the registry to enable it here.",
+    "manifestSectionTitle": "Manifest",
+    "configurationSectionTitle": "Configuration",
+    "configurationSectionDescription": "Enable this extension and adjust its configuration below.",
+    "enabledFieldLabel": "Enabled",
+    "saveError": "Failed to save extension settings.",
+    "saveSuccessToast": "Extension settings saved.",
+    "saveErrorToast": "Could not save extension settings.",
+    "validationSummaryLabel": "Validation errors",
+    "fixValidationErrors": "Fix validation errors before saving.",
+    "leaveBlankToKeepCurrentSecret": "Leave blank to keep current.",
+    "fieldHelpAriaLabel": "Help for {label}",
+    "fieldManagedByEnv": "Read-only. Managed by environment variable: {envKey}",
+    "numberStepDecrement": "Decrease value",
+    "numberStepIncrement": "Increase value",
+    "cloudflare": {
+      "token": {
+        "label": "Cloudflare beacon token",
+        "help": "Public beacon identifier from Cloudflare Web Analytics. This is not an operator credential."
+      },
+      "beaconUrl": {
+        "label": "Beacon script URL",
+        "help": "Optional custom beacon script URL. Leave empty to use Cloudflare default."
+      }
+    },
+    "meta": {
+      "id": "ID",
+      "kind": "Kind",
+      "description": "Description"
     }
   },
   "feedsHub": {

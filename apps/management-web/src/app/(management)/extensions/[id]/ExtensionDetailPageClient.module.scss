@@ -1,0 +1,42 @@
+.detailPage {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.metaSection {
+  border: 1px solid var(--pv-color-border-subtle);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.metaGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.metaTerm {
+  color: var(--pv-color-text-subtle);
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.metaValue {
+  color: var(--pv-color-text);
+  overflow-wrap: anywhere;
+}
+
+.formSection {
+  border: 1px solid var(--pv-color-border-subtle);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.sectionTitle {
+  font-size: 1.125rem;
+  margin-bottom: 1rem;
+}
+
+.formIntro {
+  margin-bottom: 1rem;
+}

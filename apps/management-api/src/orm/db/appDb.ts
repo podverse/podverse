@@ -3,6 +3,8 @@ import type { DataSourceOptions } from 'typeorm';
 import { DataSource } from 'typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
+import { ExtensionSetting } from '@podverse/orm';
+
 const commonConfig: DataSourceOptions = {
   type: 'postgres',
   host: config.appDatabase.host,
@@ -11,7 +13,7 @@ const commonConfig: DataSourceOptions = {
   cache: false,
   synchronize: false,
   logging: false,
-  entities: [],
+  entities: [ExtensionSetting],
   migrations: [],
   subscribers: [],
   namingStrategy: new SnakeNamingStrategy(),

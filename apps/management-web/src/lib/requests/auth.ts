@@ -17,6 +17,7 @@ export type CrudPermissions = {
   stats_crud: number;
   billing_prices_crud?: number;
   bucket_crud?: number;
+  extensions_crud?: number;
 };
 
 export type CurrentUser = {

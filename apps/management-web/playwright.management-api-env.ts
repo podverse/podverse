@@ -61,6 +61,7 @@ export function buildManagementApiEnvFakeAwsForPlaywright(): string {
 export const MANAGEMENT_SIDECAR_ENV_FOR_PLAYWRIGHT = [
   `PORT=4131`,
   `API_URL=http://localhost:4130`,
+  `EXTENSIONS_ENABLED=true`,
   `NEXT_PUBLIC_API_PROTOCOL=http`,
   `NEXT_PUBLIC_API_HOST=localhost`,
   `NEXT_PUBLIC_API_PORT=4130`,
@@ -78,6 +79,7 @@ export const MANAGEMENT_SIDECAR_ENV_FOR_PLAYWRIGHT = [
 export const MANAGEMENT_WEB_ENV_FOR_PLAYWRIGHT = [
   `PORT=4132`,
   `RUNTIME_CONFIG_URL=http://localhost:4131`,
+  `EXTENSIONS_ENABLED=true`,
   `NEXT_PUBLIC_API_PROTOCOL=http`,
   `NEXT_PUBLIC_API_HOST=localhost`,
   `NEXT_PUBLIC_API_PORT=4130`,

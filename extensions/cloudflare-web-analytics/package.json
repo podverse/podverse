@@ -1,0 +1,34 @@
+{
+  "name": "@podverse/extension-cloudflare-web-analytics",
+  "version": "0.0.1",
+  "type": "module",
+  "sideEffects": false,
+  "description": "Cloudflare Web Analytics extension for Podverse hosts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "npm run lint && tsc",
+    "build:prod": "tsc",
+    "build:watch": "tsc --build --watch --preserveWatchOutput",
+    "lint": "eslint ./src --max-warnings 0",
+    "lint:fix": "eslint ./src --fix",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "license": "AGPL-3.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@podverse/extensions-sdk": "*",
+    "joi": "^18.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.12.0",
+    "vitest": "^3.2.4"
+  }
+}

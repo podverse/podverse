@@ -8,6 +8,7 @@ import { registerHealthRoutes } from '@mgmt-api/lib/health/registerHealthRoutes.
 import { adminsRouter } from '@mgmt-api/routes/admins.js';
 import { authRouter } from '@mgmt-api/routes/auth.js';
 import { databaseRouter } from '@mgmt-api/routes/database.js';
+import { extensionsRouter } from '@mgmt-api/routes/extensions.js';
 import { feedsRouter } from '@mgmt-api/routes/feeds.js';
 import { productRouter } from '@mgmt-api/routes/product/index.js';
 import { statsRouter } from '@mgmt-api/routes/stats.js';
@@ -72,6 +73,7 @@ app.get(`${baseUrl}/`, (_req: Request, res: Response) => {
 app.use(authRouter);
 app.use(adminsRouter);
 app.use(databaseRouter);
+app.use(extensionsRouter);
 app.use(feedsRouter);
 app.use(productRouter);
 app.use(statsRouter);

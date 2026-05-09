@@ -94,6 +94,7 @@
   },
   "nav": {
     "dashboard": "Tablero",
+    "extensions": "Extensiones",
     "users": "Usuarios",
     "content": "Contenido",
     "settings": "Configuraciones",
@@ -135,6 +136,51 @@
     "storage": {
       "title": "Almacenamiento de objetos",
       "description": "Examinar, descargar y eliminar objetos del depósito configurado"
+    },
+    "extensions": {
+      "title": "Extensiones",
+      "description": "Habilitar y configurar extensiones del host"
+    }
+  },
+  "extensions": {
+    "title": "Extensiones",
+    "tableHeaders": {
+      "name": "Nombre",
+      "kind": "Tipo",
+      "enabled": "Habilitada",
+      "lastUpdated": "Última actualización"
+    },
+    "enabled": "Habilitada",
+    "disabled": "Deshabilitada",
+    "emptySystemMessage": "No hay extensiones registradas. Registra una en el registro para habilitarla aquí.",
+    "manifestSectionTitle": "Manifest",
+    "configurationSectionTitle": "Configuración",
+    "configurationSectionDescription": "Habilita esta extensión y ajusta su configuración abajo.",
+    "enabledFieldLabel": "Habilitada",
+    "saveError": "No se pudieron guardar los ajustes de la extensión.",
+    "saveSuccessToast": "Ajustes de la extensión guardados.",
+    "saveErrorToast": "No se pudieron guardar los ajustes de la extensión.",
+    "validationSummaryLabel": "Errores de validación",
+    "fixValidationErrors": "Corrige los errores de validación antes de guardar.",
+    "leaveBlankToKeepCurrentSecret": "Deja en blanco para conservar el valor actual.",
+    "fieldHelpAriaLabel": "Ayuda para {label}",
+    "fieldManagedByEnv": "Solo lectura. Gestionado por la variable de entorno: {envKey}",
+    "numberStepDecrement": "Disminuir valor",
+    "numberStepIncrement": "Aumentar valor",
+    "cloudflare": {
+      "token": {
+        "label": "Token de beacon de Cloudflare",
+        "help": "Identificador público del beacon de Cloudflare Web Analytics. No es una credencial del operador."
+      },
+      "beaconUrl": {
+        "label": "URL del script beacon",
+        "help": "URL personalizada opcional del script beacon. Déjala vacía para usar la predeterminada de Cloudflare."
+      }
+    },
+    "meta": {
+      "id": "ID",
+      "kind": "Tipo",
+      "description": "Descripción"
     }
   },
   "feedsHub": {

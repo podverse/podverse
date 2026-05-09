@@ -82,6 +82,17 @@ export function canReadStats(user: CurrentUser): boolean {
   );
 }
 
+export function canManageExtensions(user: CurrentUser): boolean {
+  return (
+    user.role === 'superuser' ||
+    Boolean(
+      user.permissions !== null &&
+      user.permissions !== undefined &&
+      (user.permissions.extensions_crud ?? 0) >= 2
+    )
+  );
+}
+
 export function canReadStorage(user: CurrentUser): boolean {
   if (user.role === 'superuser') {
     return true;

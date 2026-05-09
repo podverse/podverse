@@ -1,4 +1,9 @@
-import { canReadFeeds, canReadStats, canReadStorage } from './managementPermissions';
+import {
+  canManageExtensions,
+  canReadFeeds,
+  canReadStats,
+  canReadStorage,
+} from './managementPermissions';
 import type { CurrentUser } from './requests/auth';
 
 export type ManagementNavSection =
@@ -9,10 +14,12 @@ export type ManagementNavSection =
   | 'admins'
   | 'users'
   | 'workers'
-  | 'storage';
+  | 'storage'
+  | 'extensions';
 
 export type ManagementAppNavContext = {
   bucketStorageEnabled: boolean;
+  extensionsEnabled: boolean;
 };
 
 export type ManagementNavRoute = {
@@ -23,6 +30,7 @@ export type ManagementNavRoute = {
 
 const defaultNavContext: ManagementAppNavContext = {
   bucketStorageEnabled: false,
+  extensionsEnabled: false,
 };
 
 const isAdminsReadable = (user: CurrentUser): boolean =>
@@ -56,6 +64,11 @@ const ROUTES: ManagementNavRoute[] = [
     href: '/storage',
     visible: (user, ctx) => canReadStorage(user) && ctx.bucketStorageEnabled,
   },
+  {
+    section: 'extensions',
+    href: '/extensions',
+    visible: (user, ctx) => ctx.extensionsEnabled && canManageExtensions(user),
+  },
 ];
 
 export function getManagementAppRoutesForUser(
@@ -73,7 +86,8 @@ export type DashboardI18nTitleKey =
   | 'admins.title'
   | 'users.title'
   | 'workers.title'
-  | 'storage.title';
+  | 'storage.title'
+  | 'extensions.title';
 
 export type DashboardI18nDescriptionKey =
   | 'feedFlagStatus.description'
@@ -83,7 +97,8 @@ export type DashboardI18nDescriptionKey =
   | 'admins.description'
   | 'users.description'
   | 'workers.description'
-  | 'storage.description';
+  | 'storage.description'
+  | 'extensions.description';
 
 const titleKeys: Record<ManagementNavSection, DashboardI18nTitleKey> = {
   feedFlagStatus: 'feedFlagStatus.title',
@@ -94,6 +109,7 @@ const titleKeys: Record<ManagementNavSection, DashboardI18nTitleKey> = {
   users: 'users.title',
   workers: 'workers.title',
   storage: 'storage.title',
+  extensions: 'extensions.title',
 };
 
 const descriptionKeys: Record<ManagementNavSection, DashboardI18nDescriptionKey> = {
@@ -105,6 +121,7 @@ const descriptionKeys: Record<ManagementNavSection, DashboardI18nDescriptionKey>
   users: 'users.description',
   workers: 'workers.description',
   storage: 'storage.description',
+  extensions: 'extensions.description',
 };
 
 export function dashboardI18nTitleKey(section: ManagementNavSection): DashboardI18nTitleKey {

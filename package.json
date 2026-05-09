@@ -23,6 +23,7 @@
   },
   "workspaces": [
     "packages/*",
+    "extensions/*",
     "apps/*",
     "apps/web/sidecar",
     "apps/management-web/sidecar",

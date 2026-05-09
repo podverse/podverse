@@ -94,6 +94,7 @@
   },
   "nav": {
     "dashboard": "",
+    "extensions": "",
     "users": "",
     "content": "",
     "settings": "",
@@ -134,6 +135,51 @@
     },
     "storage": {
       "title": "",
+      "description": ""
+    },
+    "extensions": {
+      "title": "",
+      "description": ""
+    }
+  },
+  "extensions": {
+    "title": "",
+    "tableHeaders": {
+      "name": "",
+      "kind": "",
+      "enabled": "",
+      "lastUpdated": ""
+    },
+    "enabled": "",
+    "disabled": "",
+    "emptySystemMessage": "",
+    "manifestSectionTitle": "",
+    "configurationSectionTitle": "",
+    "configurationSectionDescription": "",
+    "enabledFieldLabel": "",
+    "saveError": "",
+    "saveSuccessToast": "",
+    "saveErrorToast": "",
+    "validationSummaryLabel": "",
+    "fixValidationErrors": "",
+    "leaveBlankToKeepCurrentSecret": "",
+    "fieldHelpAriaLabel": "",
+    "fieldManagedByEnv": "",
+    "numberStepDecrement": "",
+    "numberStepIncrement": "",
+    "cloudflare": {
+      "token": {
+        "label": "",
+        "help": ""
+      },
+      "beaconUrl": {
+        "label": "",
+        "help": ""
+      }
+    },
+    "meta": {
+      "id": "",
+      "kind": "",
       "description": ""
     }
   },

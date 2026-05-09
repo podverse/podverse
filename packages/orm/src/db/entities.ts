@@ -117,6 +117,7 @@ import { StatsTrackEventClip } from '@orm/entities/stats/statsTrackEventClip.js'
 import { StatsTrackEventItem } from '@orm/entities/stats/statsTrackEventItem.js';
 import { StatsTrackEventPlaylist } from '@orm/entities/stats/statsTrackEventPlaylist.js';
 
+import { ExtensionSetting } from '../entities/ExtensionSetting.js';
 import { ImageShrinkSource } from '../entities/imageShrinkSource.js';
 
 export const entities = [
@@ -150,6 +151,7 @@ export const entities = [
   BillingDomainEvent,
   BillingProduct,
   Category,
+  ExtensionSetting,
   Channel,
   ChannelAbout,
   ChannelCategory,

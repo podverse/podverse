@@ -190,4 +190,29 @@ describe('requireCrud', () => {
 
     expect(next).toHaveBeenCalled();
   });
+
+  it('checks extensions CRUD resource column', () => {
+    const middleware = requireCrud('extensions', 'update');
+    const req = createMockReq({
+      id: 2,
+      id_text: 'admin',
+      admin_account_role_id: 2,
+      role: 'admin',
+      permissions: {
+        feeds_crud: 0,
+        feed_takedown_reasons_crud: 0,
+        admins_crud: 0,
+        stats_crud: 0,
+        billing_prices_crud: 0,
+        bucket_crud: 0,
+        extensions_crud: 4,
+      },
+    }) as Request;
+    const { res } = createMockRes();
+    const next = createMockNext();
+
+    middleware(req, res as Response, next);
+
+    expect(next).toHaveBeenCalled();
+  });
 });

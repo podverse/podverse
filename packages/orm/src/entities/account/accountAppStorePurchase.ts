@@ -4,10 +4,10 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class AccountAppStorePurchase {
-  @PrimaryColumn()
+  @PrimaryColumn({ type: 'varchar' })
   transaction_id!: string;
 
-  @Column()
+  @Column({ type: 'integer' })
   account_id!: number;
 
   @ManyToOne('Account', (account: Account) => account.id, { onDelete: 'CASCADE' })

@@ -25,6 +25,11 @@ The sidecar uses the same validation helpers as the rest of the monorepo (`@podv
   - Used by the Next.js server to fetch runtime config at startup via root `instrumentation.ts` (`setRuntimeConfig`). The root layout then embeds that config in `RuntimeConfigScript` for the browser (server render must be dynamic; see `dynamic` export in `src/app/layout.tsx`)
   - **Not needed at build time** - the sidecar architecture allows builds without any env vars
 
+- **`EXTENSIONS_ENABLED`** (Optional)
+  - Master switch for extensions host wiring (`ExtensionHeadScripts` and `ExtensionProviders`)
+  - Valid values: `"true"` or `"false"`; unset defaults to disabled
+  - Proposal reference: `docs/proposals/EXTENSIONS.md`
+
 ### API Configuration (SSR)
 
 - **`NEXT_PUBLIC_SSR_API_PROTOCOL`** (Required) - Protocol for server-side API requests (`http` or `https`)

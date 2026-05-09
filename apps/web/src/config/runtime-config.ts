@@ -1,4 +1,8 @@
 export type WebRuntimeConfigEnvKey =
+  | 'EXTENSIONS_ENABLED'
+  | 'EXTENSION_CLOUDFLARE_WEB_ANALYTICS_BEACONURL'
+  | 'EXTENSION_CLOUDFLARE_WEB_ANALYTICS_ENABLED'
+  | 'EXTENSION_CLOUDFLARE_WEB_ANALYTICS_TOKEN'
   | 'NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE'
   | 'NEXT_PUBLIC_API_HOST'
   | 'NEXT_PUBLIC_API_PORT'
@@ -67,6 +71,10 @@ export const webRuntimeConfigEnvKeys = {
     'NEXT_PUBLIC_WEB_PROTOCOL',
   ],
   optional: [
+    'EXTENSIONS_ENABLED',
+    'EXTENSION_CLOUDFLARE_WEB_ANALYTICS_BEACONURL',
+    'EXTENSION_CLOUDFLARE_WEB_ANALYTICS_ENABLED',
+    'EXTENSION_CLOUDFLARE_WEB_ANALYTICS_TOKEN',
     'NEXT_PUBLIC_API_PORT',
     'NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_ADDRESS',
     'NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_NAME',
@@ -105,9 +113,8 @@ export const webRuntimeConfigEnvKeys = {
   ],
 } as const;
 
-export type WebRuntimeConfigValues = {
-  [K in WebRuntimeConfigEnvKey]: string | undefined;
-};
+export type WebRuntimeConfigValues = Partial<Record<WebRuntimeConfigEnvKey, string | undefined>> &
+  Record<string, string | undefined>;
 
 export type WebRuntimeConfig = {
   env: WebRuntimeConfigValues;

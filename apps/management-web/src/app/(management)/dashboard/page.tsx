@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
+import { getRuntimeConfig } from '../../../config/runtime-config-store';
 import {
   getManagementSessionUser,
   MANAGEMENT_AUTH_COOKIE_NAME,
@@ -18,6 +19,13 @@ export default async function DashboardPage() {
   const token = cookieStore.get(MANAGEMENT_AUTH_COOKIE_NAME)?.value ?? '';
   const bucketStorageEnabled =
     token !== '' ? await fetchBucketStorageEnabledForDashboard(token, user) : false;
+  const extensionsEnabled = getRuntimeConfig().env.EXTENSIONS_ENABLED === 'true';
 
-  return <DashboardPageClient bucketStorageEnabled={bucketStorageEnabled} initialUser={user} />;
+  return (
+    <DashboardPageClient
+      bucketStorageEnabled={bucketStorageEnabled}
+      extensionsEnabled={extensionsEnabled}
+      initialUser={user}
+    />
+  );
 }

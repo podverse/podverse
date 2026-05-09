@@ -6,6 +6,8 @@ import { AppWrapper, FontPreloads, PageWrapper } from '@podverse/ui';
 
 import { AuthSessionChecker } from '../components/Auth/AuthSessionChecker';
 import { MembershipExpiredBanner } from '../components/Banner/MembershipExpiredBanner';
+import { ExtensionHeadScripts } from '../components/Extensions/ExtensionHeadScripts';
+import { ExtensionProviders } from '../components/Extensions/ExtensionProviders';
 import { FavIcons } from '../components/Head/FavIcons';
 import { RuntimeConfigScript } from '../components/Head/RuntimeConfigScript';
 import { LazyLoadedComponents } from '../components/LazyLoadedComponents/LazyLoadedComponents';
@@ -77,6 +79,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={locale} data-ui-theme={ssrUITheme}>
       <head>
         <RuntimeConfigScript runtimeConfig={runtimeConfig} />
+        <ExtensionHeadScripts />
         <title>{config.public.brand.name}</title>
         <FontPreloads />
         <FavIcons />
@@ -84,30 +87,32 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         {ssrShouldLogout && <AuthSessionChecker ssrShouldLogout={ssrShouldLogout} />}
         {!ssrShouldLogout && (
-          <Providers
-            config={config}
-            locale={locale}
-            ssrLoggedInAccount={ssrLoggedInAccount}
-            ssrLocalSettings={ssrLocalSettings}
-            ssrQueueResourcesAbridgedIndex={ssrQueueResourcesAbridgedIndex}
-            messages={messages}
-            categories={categories}
-          >
-            <WindowWrapper>
-              <AppWrapper>
-                <SideBar />
-                <PageWrapper>
-                  <NavBar />
-                  <MembershipExpiredBanner />
-                  {children}
-                </PageWrapper>
-              </AppWrapper>
-              <LazyLoadedComponents />
-            </WindowWrapper>
-            <MediaPlayerController />
-            <QueueController />
-            <QueueResourcesAbridgedController />
-          </Providers>
+          <ExtensionProviders>
+            <Providers
+              config={config}
+              locale={locale}
+              ssrLoggedInAccount={ssrLoggedInAccount}
+              ssrLocalSettings={ssrLocalSettings}
+              ssrQueueResourcesAbridgedIndex={ssrQueueResourcesAbridgedIndex}
+              messages={messages}
+              categories={categories}
+            >
+              <WindowWrapper>
+                <AppWrapper>
+                  <SideBar />
+                  <PageWrapper>
+                    <NavBar />
+                    <MembershipExpiredBanner />
+                    {children}
+                  </PageWrapper>
+                </AppWrapper>
+                <LazyLoadedComponents />
+              </WindowWrapper>
+              <MediaPlayerController />
+              <QueueController />
+              <QueueResourcesAbridgedController />
+            </Providers>
+          </ExtensionProviders>
         )}
       </body>
     </html>

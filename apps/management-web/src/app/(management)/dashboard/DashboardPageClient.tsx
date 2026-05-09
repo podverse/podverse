@@ -20,16 +20,18 @@ export type DashboardPageClientProps = {
   /** Validated on the server before render; client re-check is fallback UX only. */
   initialUser: CurrentUser;
   bucketStorageEnabled: boolean;
+  extensionsEnabled: boolean;
 };
 
 export function DashboardPageClient({
   initialUser,
   bucketStorageEnabled,
+  extensionsEnabled,
 }: DashboardPageClientProps) {
   const t = useTranslations('dashboard');
   const user = useManagementClientSessionGuard(initialUser);
 
-  const navContext: ManagementAppNavContext = { bucketStorageEnabled };
+  const navContext: ManagementAppNavContext = { bucketStorageEnabled, extensionsEnabled };
 
   const cards: NavCard[] = getManagementAppRoutesForUser(user, navContext).map((r) => ({
     href: r.href,

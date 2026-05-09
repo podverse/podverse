@@ -24,6 +24,7 @@ const createAdminSchema = Joi.object({
     stats_crud: crudSchema,
     billing_prices_crud: crudSchema,
     bucket_crud: crudSchema,
+    extensions_crud: crudSchema,
   }).optional(),
 }).required();
 
@@ -37,6 +38,7 @@ const updateAdminSchema = Joi.object({
     stats_crud: crudSchema,
     billing_prices_crud: crudSchema,
     bucket_crud: crudSchema,
+    extensions_crud: crudSchema,
   }),
 })
   .min(1)
@@ -55,6 +57,7 @@ function adminAccountToJson(admin: {
     statsCrud: number;
     billingPricesCrud: number;
     bucketCrud: number;
+    extensionsCrud?: number;
   } | null;
   created_at: Date;
 }) {
@@ -71,6 +74,7 @@ function adminAccountToJson(admin: {
           stats_crud: admin.permissions.statsCrud,
           billing_prices_crud: admin.permissions.billingPricesCrud,
           bucket_crud: admin.permissions.bucketCrud,
+          extensions_crud: admin.permissions.extensionsCrud ?? 0,
         }
       : null,
     created_at: admin.created_at,
