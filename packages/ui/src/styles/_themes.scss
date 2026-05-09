@@ -76,6 +76,7 @@
   --button-outline-color: var(--border-color-primary);
   --button-opaque-bg: rgba(30, 128, 227, 0.16);
   --button-opaque-warning-bg: rgba(244, 162, 79, 0.16);
+  --button-opaque-warning-color: var(--text-color-primary);
   --button-opaque-danger-bg: rgba(196, 55, 69, 0.16);
   --button-opaque-danger-border: #aa1e2b;
   --button-enabled-icon-color: var(--text-color-accent);
@@ -153,6 +154,7 @@
   --button-outline-color: var(--border-color-primary);
   --button-opaque-bg: rgba(0, 113, 227, 0.1);
   --button-opaque-warning-bg: rgba(230, 126, 34, 0.1);
+  --button-opaque-warning-color: var(--text-color-tertiary);
   --button-opaque-danger-bg: rgba(192, 57, 43, 0.1);
   --button-opaque-danger-border: #a93226;
   --button-enabled-icon-color: var(--text-color-accent);
@@ -230,6 +232,7 @@
   --button-outline-color: var(--border-color-primary);
   --button-opaque-bg: rgba(189, 147, 249, 0.16);
   --button-opaque-warning-bg: rgba(255, 184, 108, 0.16);
+  --button-opaque-warning-color: var(--text-color-primary);
   --button-opaque-danger-bg: rgba(255, 85, 85, 0.16);
   --button-opaque-danger-border: #cc4444;
   --button-enabled-icon-color: var(--text-color-accent);
@@ -307,6 +310,7 @@
   --button-outline-color: var(--border-color-primary);
   --button-opaque-bg: rgba(124, 58, 237, 0.18);
   --button-opaque-warning-bg: rgba(244, 162, 79, 0.16);
+  --button-opaque-warning-color: var(--text-color-primary);
   --button-opaque-danger-bg: rgba(196, 55, 69, 0.16);
   --button-opaque-danger-border: #aa1e2b;
   --button-enabled-icon-color: var(--text-color-accent);
