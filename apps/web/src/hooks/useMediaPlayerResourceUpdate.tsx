@@ -8,7 +8,7 @@ import type {
   DTOItemSoundbite,
   EnclosureSelectedParams,
 } from '@podverse/helpers';
-import { MediumEnum } from '@podverse/helpers';
+import { isMusicMediumId, MediumEnum } from '@podverse/helpers';
 
 import { useAddByRSSListContext } from '../contexts/AddByRSSListContext';
 import type { AutoQueueConfig } from '../contexts/AutoQueue';
@@ -16,6 +16,9 @@ import { useAutoQueue } from '../contexts/AutoQueue';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
 import { useMediaPlayerCurrentTime } from '../contexts/MediaPlayerCurrentTime';
 import { useQueueResourcesAbridgedIndex } from '../contexts/QueueResourcesAbridgedIndex';
+import type { MusicItemPlaybackIntent } from '../lib/musicItemPlaybackIntent';
+import { resolveMusicSessionRestoreSeekSeconds } from '../lib/musicSessionRestoreCurrentTime';
+import { trimPlaybackPositionNearEnd } from '../lib/playbackResumeNearEnd';
 import { useQueueResourcesUpdateNowPlaying } from './useQueueResourceUpdateNowPlaying';
 
 export function useMediaPlayerResourceUpdate() {
@@ -31,11 +34,14 @@ export function useMediaPlayerResourceUpdate() {
     setMPItemLabeledItemEnclosures,
     setMPEnclosureSelectedParams,
     setMPIsPlaying,
+    mpEnclosureSelectedParams,
+    mpItem,
+    musicItemPlaybackIntentRef,
+    musicSessionRestoreSeekSecondsRef,
   } = useMediaPlayer();
   const { autoQueueConfig, setAutoQueueConfig, setAutoQueueResources, setAutoQueueActiveRow } =
     useAutoQueue();
   const { setAddByRSSListContext } = useAddByRSSListContext();
-  const { mpEnclosureSelectedParams, mpItem } = useMediaPlayer();
   const { setMPCurrentTime } = useMediaPlayerCurrentTime();
   const updateNowPlaying = useQueueResourcesUpdateNowPlaying();
   const { queueResourcesAbridgedIndex } = useQueueResourcesAbridgedIndex();
@@ -74,6 +80,7 @@ export function useMediaPlayerResourceUpdate() {
     isPlaying,
     newAutoQueueConfig,
     autoQueueShouldClear,
+    musicItemPlaybackIntent,
   }: {
     shouldPlay?: boolean;
     channel: DTOChannel | null;
@@ -89,6 +96,8 @@ export function useMediaPlayerResourceUpdate() {
     skipMoveNowPlayingToHistory: boolean;
     newAutoQueueConfig: AutoQueueConfig;
     autoQueueShouldClear: boolean;
+    /** Music-type items only; podcast/video ignore this. Default `explicit_play`. */
+    musicItemPlaybackIntent?: MusicItemPlaybackIntent;
   }) => {
     setMPAddByRSS(null);
     setAddByRSSListContext(null);
@@ -135,6 +144,8 @@ export function useMediaPlayerResourceUpdate() {
       setMPIsPlaying(isPlaying);
     }
 
+    musicSessionRestoreSeekSecondsRef.current = null;
+
     // Assign the resource you are loading's abridged index data to the media player
     // so that it is already loaded by the time the now playing resource is updated within the queue.
     // Else, clear the previous items current time and duration by setting to 0
@@ -150,9 +161,7 @@ export function useMediaPlayerResourceUpdate() {
       let currentTime = Number(abridged?.p) || 0;
       const duration = Number(abridged?.d) || 0;
 
-      if (duration > 0 && currentTime >= duration - 5) {
-        currentTime = 0;
-      }
+      currentTime = trimPlaybackPositionNearEnd(currentTime, duration);
 
       if (!preventSet) {
         setMPCurrentTime(currentTime);
@@ -173,6 +182,29 @@ export function useMediaPlayerResourceUpdate() {
     } else if (item) {
       if (channel?.medium_id === MediumEnum.Podcast || channel?.medium_id === MediumEnum.Video) {
         timeData = getAbridgedAndSet(item, queueResourcesAbridgedIndexRef.current.items);
+      } else if (isMusicMediumId(channel?.medium_id)) {
+        const effectiveMusicIntent: MusicItemPlaybackIntent =
+          musicItemPlaybackIntent ?? 'explicit_play';
+        if (effectiveMusicIntent === 'session_restore') {
+          const abridged = queueResourcesAbridgedIndexRef.current.items[item.id];
+          const { seekSeconds, durationFromIndex } = resolveMusicSessionRestoreSeekSeconds({
+            explicitPlaybackSeconds: mpCurrentTime,
+            abridged,
+            mpDurationHint: mpDuration,
+          });
+          timeData = { currentTime: seekSeconds, duration: durationFromIndex };
+          setMPCurrentTime(seekSeconds);
+          musicSessionRestoreSeekSecondsRef.current = seekSeconds;
+        } else {
+          const preventSet = true;
+          const tempTimeData = getAbridgedAndSet(
+            item,
+            queueResourcesAbridgedIndexRef.current.items,
+            preventSet
+          );
+          timeData = { currentTime: 0, duration: tempTimeData.duration };
+          setMPCurrentTime(0);
+        }
       } else {
         const preventSet = true;
         const tempTimeData = getAbridgedAndSet(
@@ -188,7 +220,20 @@ export function useMediaPlayerResourceUpdate() {
     }
 
     const finalDuration = mpDuration !== undefined ? mpDuration : timeData.duration;
-    const finalCurrentTime = mpCurrentTime !== undefined ? mpCurrentTime : timeData.currentTime;
+
+    const resolvedMusicIntent: MusicItemPlaybackIntent | null =
+      !clip && !itemSoundbite && item && channel && isMusicMediumId(channel.medium_id)
+        ? (musicItemPlaybackIntent ?? 'explicit_play')
+        : null;
+
+    const finalCurrentTime =
+      resolvedMusicIntent === 'session_restore'
+        ? timeData.currentTime
+        : mpCurrentTime !== undefined
+          ? mpCurrentTime
+          : timeData.currentTime;
+
+    musicItemPlaybackIntentRef.current = resolvedMusicIntent;
 
     updateNowPlaying({
       mpChannel: channel,

@@ -1,5 +1,6 @@
 'use client';
 
+import type { RefObject } from 'react';
 import { useRef, useState } from 'react';
 
 import { checkBackNavFlag } from '../contexts/Navigation';
@@ -28,8 +29,8 @@ interface UseListPageCacheResult<TParams, TData> {
   setData: (data: TData) => void;
   totalPages: number;
   setTotalPages: (totalPages: number) => void;
-  shouldSkipFetch: React.MutableRefObject<boolean>;
-  isRestoredFromCache: React.MutableRefObject<boolean>;
+  shouldSkipFetch: RefObject<boolean>;
+  isRestoredFromCache: RefObject<boolean>;
 }
 
 /**

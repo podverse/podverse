@@ -1,5 +1,6 @@
 'use client';
 
+import type { RefObject } from 'react';
 import React, { useEffect, useMemo, useRef } from 'react';
 
 import type {
@@ -13,14 +14,23 @@ import type {
   QueueResourcesAbridgedIndex,
   SelectedLabeledItemEnclosureAndSource,
 } from '@podverse/helpers';
-import { getSelectedLabeledItemEnclosureAndSource, isEqual, MediumEnum } from '@podverse/helpers';
+import {
+  getSelectedLabeledItemEnclosureAndSource,
+  isEqual,
+  isMusicMediumId,
+  MediumEnum,
+} from '@podverse/helpers';
 
 import { EVENTS } from '../../../constants/events';
 import { useAccount } from '../../../contexts/Account';
 import type { MediaPlayerAddByRSSState } from '../../../contexts/MediaPlayer';
+import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import type { MoveNowPlayingToHistoryCallbackParams } from '../../../hooks/useQueueResourceMoveNowPlayingToHistory';
 import type { QueueResourcesLoadActiveResult } from '../../../hooks/useQueueResourcesLoadActive';
 import type { UpdateNowPlayingParams } from '../../../hooks/useQueueResourceUpdateNowPlaying';
+import type { MusicItemPlaybackIntent } from '../../../lib/musicItemPlaybackIntent';
+import { resolveMusicSessionRestoreSeekSeconds } from '../../../lib/musicSessionRestoreCurrentTime';
+import { trimPlaybackPositionNearEnd } from '../../../lib/playbackResumeNearEnd';
 import {
   checkIfIsAudioFile,
   checkIfIsVideoFile,
@@ -70,6 +80,7 @@ export interface MediaPlayerControllerAVProps {
   moveNowPlayingToHistory: (params: MoveNowPlayingToHistoryCallbackParams) => Promise<void>;
   queueResourcesLoadActive: (medium_id?: number) => Promise<QueueResourcesLoadActiveResult>;
   queueResourcesAbridgedIndex: QueueResourcesAbridgedIndex;
+  musicItemPlaybackIntentRef: RefObject<MusicItemPlaybackIntent | null>;
   /** When add-by-RSS is now playing, called to save position (e.g. every 15s and on pause). */
   onAddByRSSPositionSave?: (positionSeconds: number) => void;
   /** When add-by-RSS playback ends, called to add to history; then controller clears add-by-RSS state. */
@@ -82,6 +93,7 @@ export interface MediaPlayerControllerAVProps {
 let globalPauseAtTime: number | null = null;
 
 export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (props) => {
+  const { pendingMusicQueueLoadIntentRef, musicSessionRestoreSeekSecondsRef } = useMediaPlayer();
   const { loggedInAccount } = useAccount();
   const loggedInAccountRef = useRef(loggedInAccount);
   useEffect(() => {
@@ -123,6 +135,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     moveNowPlayingToHistory,
     queueResourcesLoadActive,
     queueResourcesAbridgedIndex,
+    musicItemPlaybackIntentRef,
     onAddByRSSPositionSave,
     onAddByRSSEnded,
     onAddByRSSPlayNext,
@@ -401,8 +414,24 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
       } else if (mpItemChapterRef.current) {
         newCurrentTime = Number(mpItemChapterRef.current.start_time);
       } else if (mpItemRef.current) {
-        if (mpChannelRef.current?.medium_id === MediumEnum.Music) {
-          newCurrentTime = 0;
+        if (isMusicMediumId(mpChannelRef.current?.medium_id)) {
+          const intent = musicItemPlaybackIntentRef.current;
+          if (intent === 'session_restore') {
+            const queueResourceAbridged =
+              queueResourcesAbridgedIndexRef.current.items[mpItemRef.current.id];
+            const seed = musicSessionRestoreSeekSecondsRef.current;
+            if (seed !== null) {
+              newCurrentTime = trimPlaybackPositionNearEnd(seed, newDuration);
+              musicSessionRestoreSeekSecondsRef.current = null;
+            } else {
+              const { seekSeconds } = resolveMusicSessionRestoreSeekSeconds({
+                abridged: queueResourceAbridged,
+              });
+              newCurrentTime = trimPlaybackPositionNearEnd(seekSeconds, newDuration);
+            }
+          } else {
+            newCurrentTime = 0;
+          }
         } else {
           const queueResourceAbridged =
             queueResourcesAbridgedIndexRef.current.items[mpItemRef.current.id];
@@ -600,6 +629,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
             : undefined;
         await onAddByRSSEndedRef.current(positionSeconds);
         setMPShouldPlay(false);
+        pendingMusicQueueLoadIntentRef.current = 'fresh_transition';
         const { upcomingManualCount } = await queueResourcesLoadActive(medium_id);
         if (upcomingManualCount > 0) {
           return;
@@ -618,6 +648,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         mpItem: mpItemRef.current,
         mpItemSoundbite: mpItemSoundbiteRef.current,
       });
+      pendingMusicQueueLoadIntentRef.current = 'fresh_transition';
       const { upcomingManualCount, hasAutoQueueNext } = await queueResourcesLoadActive();
       if (upcomingManualCount === 0 && !hasAutoQueueNext) {
         clearNowPlayingRef.current?.();

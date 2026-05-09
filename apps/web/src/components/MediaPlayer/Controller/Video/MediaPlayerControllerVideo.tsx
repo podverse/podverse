@@ -73,6 +73,7 @@ export function MediaPlayerControllerVideo() {
       moveNowPlayingToHistory={moveNowPlayingToHistory}
       queueResourcesLoadActive={queueResourcesLoadActive}
       queueResourcesAbridgedIndex={queueResourcesAbridgedIndex}
+      musicItemPlaybackIntentRef={mediaPlayer.musicItemPlaybackIntentRef}
       onAddByRSSPositionSave={onAddByRSSPositionSave}
       onAddByRSSEnded={onAddByRSSEnded}
       onAddByRSSPlayNext={onAddByRSSPlayNext}

@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { createContext, useContext, useState } from 'react';
+import type { ReactNode, RefObject } from 'react';
+import { createContext, useContext, useRef, useState } from 'react';
 
 import type {
   AddByRSSResourceData,
@@ -13,6 +13,8 @@ import type {
   PlaybackMode,
   PlaybackSpeedValue,
 } from '@podverse/helpers';
+
+import type { MusicItemPlaybackIntent } from '../lib/musicItemPlaybackIntent';
 
 /** State for "now playing" when the source is add-by-RSS (no DTO item). */
 export type MediaPlayerAddByRSSState = {
@@ -61,6 +63,19 @@ type MediaPlayerContextType = {
   /** One-shot seek time for Add-by-RSS restored position; set by usePlayAddByRSS, consumed and cleared by controller. */
   addByRSSSeekToTime: number | null;
   setAddByRSSSeekToTime: (val: number | null) => void;
+  /**
+   * Effective intent after the latest mediaPlayerResourceUpdate (music items only). Consumed by AV `loadedmetadata`.
+   */
+  musicItemPlaybackIntentRef: RefObject<MusicItemPlaybackIntent | null>;
+  /**
+   * When set before queue reload + MediaPlayerController hydration, the next queue-driven load uses this intent
+   * for music (e.g. `fresh_transition` after skip/next or track-ended).
+   */
+  pendingMusicQueueLoadIntentRef: RefObject<MusicItemPlaybackIntent | null>;
+  /**
+   * Synchronous seed seconds for music `session_restore` seek (hook-written; AV `loadedmetadata` reads before React flushes `mpCurrentTime`).
+   */
+  musicSessionRestoreSeekSecondsRef: RefObject<number | null>;
 };
 
 export const MediaPlayerContext = createContext<MediaPlayerContextType | undefined>(undefined);
@@ -96,6 +111,9 @@ export const MediaPlayerProvider = ({ children }: MediaPlayerProviderProps) => {
   const [playerModalIsOpen, setPlayerModalIsOpen] = useState<boolean>(false);
   const [mpShouldPlay, setMPShouldPlay] = useState<boolean>(false);
   const [addByRSSSeekToTime, setAddByRSSSeekToTime] = useState<number | null>(null);
+  const musicItemPlaybackIntentRef = useRef<MusicItemPlaybackIntent | null>(null);
+  const pendingMusicQueueLoadIntentRef = useRef<MusicItemPlaybackIntent | null>(null);
+  const musicSessionRestoreSeekSecondsRef = useRef<number | null>(null);
 
   return (
     <MediaPlayerContext.Provider
@@ -138,6 +156,9 @@ export const MediaPlayerProvider = ({ children }: MediaPlayerProviderProps) => {
         setMPShouldPlay,
         addByRSSSeekToTime,
         setAddByRSSSeekToTime,
+        musicItemPlaybackIntentRef,
+        pendingMusicQueueLoadIntentRef,
+        musicSessionRestoreSeekSecondsRef,
       }}
     >
       {children}

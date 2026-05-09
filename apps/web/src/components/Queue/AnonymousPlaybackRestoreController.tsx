@@ -94,6 +94,7 @@ export function AnonymousPlaybackRestoreController() {
             mpCurrentTime: snapshot.playback_position_seconds,
             newAutoQueueConfig,
             autoQueueShouldClear: true,
+            musicItemPlaybackIntent: 'session_restore',
           });
           return;
         }
@@ -124,6 +125,7 @@ export function AnonymousPlaybackRestoreController() {
             mpCurrentTime: snapshot.playback_position_seconds,
             newAutoQueueConfig,
             autoQueueShouldClear: true,
+            musicItemPlaybackIntent: 'session_restore',
           });
           return;
         }
@@ -149,6 +151,7 @@ export function AnonymousPlaybackRestoreController() {
           mpCurrentTime: snapshot.playback_position_seconds,
           newAutoQueueConfig,
           autoQueueShouldClear: true,
+          musicItemPlaybackIntent: 'session_restore',
         });
       } catch {
         // Best-effort restore

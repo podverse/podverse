@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 
 import type { DTOQueueResource } from '@podverse/helpers';
-import { buildLabeledItemEnclosures } from '@podverse/helpers';
+import { buildLabeledItemEnclosures, isMusicMediumId } from '@podverse/helpers';
 
 import type { AutoQueueResourcesMapRow } from '../../../contexts/AutoQueue';
 import { checkIsActiveRowHighestKey, useAutoQueue } from '../../../contexts/AutoQueue';
@@ -14,6 +14,9 @@ import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useAutoQueueLoadResources } from '../../../hooks/useAutoQueueLoadResources';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
 import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
+import type { MusicItemPlaybackIntent } from '../../../lib/musicItemPlaybackIntent';
+import { parseQueueResourceNumericSeconds } from '../../../lib/musicSessionRestoreCurrentTime';
+import { trimPlaybackPositionNearEnd } from '../../../lib/playbackResumeNearEnd';
 import { loadAddByRSSIndexItemFromResourceData } from '../../../utils/addByRSS/playFromQueueResource';
 import { updateLayoutForMediaPlayer } from '../../../utils/mediaPlayer/mediaPlayerLayout';
 import { MediaPlayerControllerAudio } from './Audio/MediaPlayerControllerAudio';
@@ -38,6 +41,7 @@ export const MediaPlayerController: React.FC = () => {
     setMPIsPlaying,
     setMPItemChapters,
     setMPItemLabeledItemEnclosures,
+    pendingMusicQueueLoadIntentRef,
   } = useMediaPlayer();
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const playAddByRSS = usePlayAddByRSS();
@@ -169,37 +173,59 @@ export const MediaPlayerController: React.FC = () => {
             shuffleHash: autoQueueConfigRef.current.shuffleHash,
           },
           autoQueueShouldClear: false,
+          musicItemPlaybackIntent: isMusicMediumId(fullChannel.medium_id)
+            ? 'fresh_transition'
+            : undefined,
         });
       }
     }
   }
 
-  async function handleLoadQueueItem(nextResource: DTOQueueResource) {
+  async function handleLoadQueueItem(
+    nextResource: DTOQueueResource,
+    musicItemPlaybackIntent: MusicItemPlaybackIntent
+  ) {
     const fullItem = await apiRequestService.reqItemGetByIdOrIdText(nextResource.item.id_text);
-    if (fullItem) {
-      const fullChannel = await apiRequestService.reqChannelGetByIdOrIdText(fullItem.channel_id);
-      if (fullChannel) {
-        mediaPlayerResourceUpdate({
-          channel: fullChannel,
-          clip: nextResource.clip || null,
-          item: fullItem,
-          itemChapter: null,
-          itemChapterShouldSeek: false,
-          itemSoundbite: nextResource.item_soundbite || null,
-          enclosureSelectedParams: 'use-active-item-or-default',
-          skipMoveNowPlayingToHistory: false,
-          newAutoQueueConfig: {
-            playlist_id_text: autoQueueConfigRef.current.playlist_id_text,
-            disabled: false,
-            random: autoQueueConfigRef.current.random,
-            repeat: autoQueueConfigRef.current.repeat,
-            nextPage: autoQueueConfigRef.current.nextPage || 1,
-            shuffleHash: autoQueueConfigRef.current.shuffleHash,
-          },
-          autoQueueShouldClear: true,
-        });
+    if (!fullItem) {
+      return;
+    }
+    const fullChannel = await apiRequestService.reqChannelGetByIdOrIdText(fullItem.channel_id);
+    if (!fullChannel) {
+      return;
+    }
+
+    let mpCurrentTimeOverride: number | undefined;
+    if (musicItemPlaybackIntent === 'session_restore' && isMusicMediumId(fullChannel.medium_id)) {
+      const pos = parseQueueResourceNumericSeconds(nextResource.playback_position);
+      const dur = parseQueueResourceNumericSeconds(nextResource.media_file_duration);
+      if (pos !== undefined) {
+        mpCurrentTimeOverride = dur !== undefined ? trimPlaybackPositionNearEnd(pos, dur) : pos;
       }
     }
+
+    mediaPlayerResourceUpdate({
+      channel: fullChannel,
+      clip: nextResource.clip || null,
+      item: fullItem,
+      itemChapter: null,
+      itemChapterShouldSeek: false,
+      itemSoundbite: nextResource.item_soundbite || null,
+      enclosureSelectedParams: 'use-active-item-or-default',
+      skipMoveNowPlayingToHistory: false,
+      newAutoQueueConfig: {
+        playlist_id_text: autoQueueConfigRef.current.playlist_id_text,
+        disabled: false,
+        random: autoQueueConfigRef.current.random,
+        repeat: autoQueueConfigRef.current.repeat,
+        nextPage: autoQueueConfigRef.current.nextPage || 1,
+        shuffleHash: autoQueueConfigRef.current.shuffleHash,
+      },
+      autoQueueShouldClear: true,
+      mpCurrentTime: mpCurrentTimeOverride,
+      musicItemPlaybackIntent: isMusicMediumId(fullChannel.medium_id)
+        ? musicItemPlaybackIntent
+        : undefined,
+    });
   }
 
   async function handleLoadQueueClip(nextResource: DTOQueueResource) {
@@ -312,7 +338,12 @@ export const MediaPlayerController: React.FC = () => {
       ) {
         handleLoadQueueItemAddByRSS(nextResource);
       } else if (nextResource?.item && !isAlreadyPlayingThisAddByRSS) {
-        handleLoadQueueItem(nextResource);
+        let musicIntent: MusicItemPlaybackIntent = 'session_restore';
+        if (pendingMusicQueueLoadIntentRef.current !== null) {
+          musicIntent = pendingMusicQueueLoadIntentRef.current;
+          pendingMusicQueueLoadIntentRef.current = null;
+        }
+        void handleLoadQueueItem(nextResource, musicIntent);
       } else if (nextResource?.clip) {
         handleLoadQueueClip(nextResource);
       } else if (nextResource?.item_soundbite) {
