@@ -8,8 +8,10 @@ storage and resolver, web/api/management-web host wiring, the first concrete ext
 ## Scope (Phase 1)
 
 - New workspace package `packages/extensions-sdk` (types only).
-- New linear migration `0032_extension_settings.sql` and ORM service.
-- Host resolver + Valkey cache.
+- New linear migration `NNNN_extension_settings.sql` (next free number per
+  [`linear-sql-greenfield-only`](../../../../.cursor/skills/linear-sql-greenfield-only/SKILL.md))
+  and ORM service.
+- Host resolver + Valkey cache + pub/sub invalidation (see phase `03`).
 - `apps/web` host wiring (`<ExtensionHeadScripts />`, providers, CSP merging,
   master-switch and per-extension env keys).
 - `apps/management-api` routes `GET /extensions`, `GET /extensions/:id`,
@@ -76,10 +78,10 @@ yields the same end state because both share the same target shape:
 - `00-EXECUTION-ORDER.md` — sequencing and parallelization notes.
 - `00-SUMMARY.md` — this file.
 - `01-sdk-package.md` — `@podverse/extensions-sdk`.
-- `02-storage-migration-and-orm-service.md` — `0032_extension_settings.sql` + entity +
+- `02-storage-migration-and-orm-service.md` — `NNNN_extension_settings.sql` + entity +
   service.
-- `03-host-resolver-and-cache.md` — env+DB resolver, Valkey cache, per-app empty
-  registries.
+- `03-host-resolver-and-cache.md` — env+DB resolver, Valkey cache + pub/sub helpers,
+  per-app empty registries.
 - `04-web-host-wiring.md` — `<ExtensionHeadScripts />`, master-switch env, CSP merging.
 - `05-mgmt-api-extensions-routes.md` — `GET/PUT /extensions`, `extensions_crud`
   permission, integration tests.
@@ -95,10 +97,11 @@ yields the same end state because both share the same target shape:
 
 ## Decisions taken during execution
 
-Record any deviations from the proposal's preferred answers (master-switch name,
-permission name, caching TTL, Phase-1 scope) here with a one-line rationale and a
-date. Do not edit the proposal RFC after acceptance; supersede it with a new proposal
-file if the design changes substantially.
+Resolved design choices live in
+[docs/proposals/EXTENSIONS.md §14](../../../../docs/proposals/EXTENSIONS.md#14-decisions-resolved).
+Record **only deviations** from that section discovered during implementation (with a
+one-line rationale and date). Do not edit the accepted proposal RFC for small tweaks;
+supersede it with a new proposal file if the design changes substantially.
 
 - _(none yet)_
 

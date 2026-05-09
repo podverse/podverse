@@ -97,9 +97,17 @@ branch of the resolution flowchart in proposal section 5:
 - `stripUnknown: true` — extra keys on `dbRow.config` are dropped.
 
 Reference manifest used in tests: a small in-test fixture with two fields
-(`token: required string`, `beaconUrl: optional string`).
+(`token: required string`, `beaconUrl: optional string`) and **`labelKey` / optional
+`helpKey`** on each `configSchema.fields` entry so the fixture satisfies phase `01`
+types.
 
-## Valkey cache helpers
+## Valkey cache and pub/sub invalidation
+
+Per [docs/proposals/EXTENSIONS.md §6](../../../../docs/proposals/EXTENSIONS.md) and
+[§14 decision 3](../../../../docs/proposals/EXTENSIONS.md#14-decisions-resolved): a
+**long TTL** is a safety net; **pub/sub** propagates invalidation across replicas within
+~1 second. Cold replicas that miss the invalidation event still converge within the TTL
+worst case (e.g. 5 minutes).
 
 Decide where the helpers live based on existing repo conventions:
 
@@ -110,7 +118,9 @@ Decide where the helpers live based on existing repo conventions:
 Helpers exposed:
 
 ```ts
-export const EXTENSION_CACHE_TTL_SECONDS = 30;
+/** Safety-net TTL only; hot path invalidates via `extension:invalidated:<id>`. */
+export const EXTENSION_CACHE_TTL_SECONDS = 300;
+export const EXTENSION_INVALIDATION_CHANNEL = 'extension:invalidated';
 export function extensionCacheKey(id: string): string;
 export async function readCachedExtensionSetting(
   client: ValkeyClient,
@@ -121,18 +131,35 @@ export async function writeCachedExtensionSetting(
   id: string,
   value: { enabled: boolean; config: Record<string, unknown> } | null
 ): Promise<void>;
-export async function invalidateCachedExtensionSetting(
+/** `PUBLISH extension:invalidated:<id>` so all subscribers drop their cache. */
+export async function publishExtensionInvalidation(
+  client: ValkeyClient,
+  id: string
+): Promise<void>;
+/**
+ * Subscribes to `extension:invalidated:*` (or a single pattern your Valkey client
+ * supports). On each message, parse the extension `id` and call `onInvalidate`, which
+ * should `DEL extension:<id>` in Valkey and clear any in-process map for that id.
+ */
+export async function subscribeToExtensionInvalidations(
+  client: ValkeyClient,
+  onInvalidate: (id: string) => Promise<void>
+): Promise<void>;
+export async function deleteExtensionCacheKey(
   client: ValkeyClient,
   id: string
 ): Promise<void>;
 ```
 
 `null` is a valid cache value meaning "no DB row" — caching the absence prevents the
-common case (no row) from hitting the DB on every render. Use a sentinel string in the
-serialized payload (e.g. `__null__`) or two separate keys; pick whatever matches the
-repo's existing cache patterns.
+common case (no row) from hitting the DB on every render. That long-TTL + `null` cache
+means a cold replica can be up to `EXTENSION_CACHE_TTL_SECONDS` stale; **active**
+replicas should receive `PUBLISH` and drop state within ~1s. Use a sentinel string in
+the serialized payload (e.g. `__null__`) or two separate keys; pick whatever matches
+the repo's existing cache patterns.
 
-Unit tests for the cache helpers go alongside.
+Unit tests for the cache helpers and a minimal pub/sub happy-path (mock or integration)
+go alongside.
 
 ## Per-app empty registries
 

@@ -64,8 +64,18 @@ export const manifest: ExtensionManifest = {
       beaconUrl: Joi.string().uri().optional(),
     }),
     fields: {
-      token: { secret: false, userEditable: true },
-      beaconUrl: { secret: false, userEditable: true },
+      token: {
+        secret: false,
+        userEditable: true,
+        labelKey: 'extensions.cloudflare.token.label',
+        helpKey: 'extensions.cloudflare.token.help',
+      },
+      beaconUrl: {
+        secret: false,
+        userEditable: true,
+        labelKey: 'extensions.cloudflare.beaconUrl.label',
+        helpKey: 'extensions.cloudflare.beaconUrl.help',
+      },
     },
   },
   requires: { web: webClient },
@@ -143,7 +153,16 @@ export const mgmt: ManagementHook = {
 ```
 
 No custom `SettingsForm`; the management-web auto-form from phase `06` renders the
-two-field config (`token`, `beaconUrl`).
+two-field config (`token`, `beaconUrl`) using the four `labelKey` / `helpKey` entries.
+
+Add the matching strings to `apps/management-web/i18n/originals/en-US.json` (and sync
+other locales per [`i18n`](../../../../.cursor/skills/i18n/SKILL.md)):
+
+- `extensions.cloudflare.token.label`, `extensions.cloudflare.token.help`
+- `extensions.cloudflare.beaconUrl.label`, `extensions.cloudflare.beaconUrl.help`
+
+The **help** text for `token` should state the token is a public beacon identifier, not
+an operator credential.
 
 ## Index
 

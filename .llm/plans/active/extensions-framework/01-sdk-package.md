@@ -86,6 +86,9 @@ import type Joi from 'joi';
 export type ExtensionConfigFieldMeta = {
   secret: boolean;
   userEditable: boolean;
+  /** next-intl message key; human strings live in apps/management-web/i18n only. */
+  labelKey: string;
+  helpKey?: string;
 };
 
 export type ExtensionConfigSchema = {
@@ -93,6 +96,11 @@ export type ExtensionConfigSchema = {
   fields: Record<string, ExtensionConfigFieldMeta>;
 };
 ```
+
+Human-readable strings for `labelKey` / `helpKey` ship in
+`apps/management-web/i18n/originals/<locale>.json` (and overrides) per
+[shared-ui-i18n](../../../../.cursor/rules/shared-ui-i18n.mdc); the SDK stores keys
+only.
 
 The runtime cost of carrying field metadata next to the Joi schema is zero, and it
 lets the management-web auto-form (phase `06`) and the SSR secret stripper (phase `04`)

@@ -6,15 +6,20 @@ can read and write it.
 
 ## Linear migration
 
-New file:
-`infra/k8s/base/ops/source/database/linear-migrations/app/0032_extension_settings.sql`.
+New file (name at execution time):
+
+`infra/k8s/base/ops/source/database/linear-migrations/app/NNNN_extension_settings.sql`.
+
+The `NNNN` numeric prefix is the **next free** migration number in that directory per
+[`linear-sql-greenfield-only`](../../../../.cursor/skills/linear-sql-greenfield-only/SKILL.md)
+— assign it when implementing; do not assume `0032`.
 
 Authoring rules per
 [`linear-sql-greenfield-only`](../../../../.cursor/skills/linear-sql-greenfield-only/SKILL.md):
 strict greenfield-only forward chain, no upgrade/idempotency clutter.
 
 ```sql
--- 0032_extension_settings.sql
+-- NNNN_extension_settings.sql
 -- Extension settings for the conditional extensions framework.
 -- See docs/proposals/EXTENSIONS.md.
 

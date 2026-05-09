@@ -15,16 +15,19 @@ phase `06`. All writes flow through these routes; the apps/web SSR path only rea
   resolved state, and current DB-stored config (or `null` if no row).
 - `PUT /extensions/:id` — body is `{ enabled: boolean, config: object }`. Validates
   `config` against the manifest's `configSchema.joi` server-side. Upserts via the
-  ORM service from phase `02`. Invalidates the Valkey cache key. Returns the saved
-  row.
+  ORM service from phase `02`. **`DEL`s** the local Valkey `extension:<id>` entry (if
+  any), then **`PUBLISH`es** `extension:invalidated:<id>` so all replicas drop cached
+  state. Returns the saved row.
 
 The router is mounted at `${config.api.prefix}${config.api.version}/extensions` per
 the [`management-api`](../../../../.cursor/skills/management-api/SKILL.md) skill.
 
 ## Permission
 
-Add a new `extensions_crud` permission to the management permissions schema. The
-v1 default is "superuser only" but the column exists so a future role can grant it.
+Add a new `extensions_crud` permission to the management permissions schema.
+**Superusers** always pass the gate; **non-superuser** admins need `extensions_crud`
+granted (per proposal §14). Seed defaults follow existing patterns for similar CRUD
+permissions.
 
 - `apps/management-api/src/lib/auth/`: add the permission to the union type and
   default-deny list.
@@ -50,8 +53,20 @@ The write path:
    invalid, 400 with the Joi error.
 1. `ExtensionSettingsService.upsert(...)` with `updatedByAdminId` set to the current
    admin's id.
-1. `invalidateCachedExtensionSetting(...)`.
+1. `deleteExtensionCacheKey(...)` for `extension:<id>` on this process's Valkey client,
+   then `publishExtensionInvalidation(..., id)` from phase `03` so apps/web and other
+   replicas converge within ~1s. Order matters: local `DEL` before `PUBLISH` avoids the
+   handler's own subscriber double-processing stale keys if the subscriber runs in-process.
 1. Return the saved row in the response shape.
+
+## Pub/sub subscriber (management-api process)
+
+If management-api caches extension list/detail responses in Valkey or in-process,
+start **`subscribeToExtensionInvalidations`** at server startup (same helpers as phase
+`03`), gated on **`EXTENSIONS_ENABLED=true`** in management-api env. On invalidate,
+drop any server-local memo for that extension id. If GET routes always read fresh from
+the app DB for Phase 1, the subscriber can be a no-op stub — document the choice in
+the PR.
 
 ## Joi schemas (request validation)
 
@@ -78,8 +93,9 @@ of `apps/management-api/src/routes/feeds.integration.test.ts`:
   and `GET /extensions/:id` reflects the change.
 - `PUT /extensions/:id` with invalid `config` against the manifest schema returns
   400.
-- After a successful `PUT`, the corresponding Valkey key is invalidated (assert via a
-  spy or by reading the key directly through the test client).
+- After a successful `PUT`, a **`PUBLISH` to `extension:invalidated:<id>`** is observed
+  (spy on the Valkey client, or assert the publish channel payload). Optionally assert
+  the local `extension:<id>` key was `DEL`'d first.
 
 The fake test extension keeps the test isolated from the real Cloudflare extension
 that lands in phase `07`.

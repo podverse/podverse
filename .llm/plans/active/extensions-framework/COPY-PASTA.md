@@ -17,7 +17,8 @@ is the instruction to execute the referenced file in full.
 
 - [ ] **Phase 02.** Read and execute
       `.llm/plans/active/extensions-framework/02-storage-migration-and-orm-service.md`.
-      Add `0032_extension_settings.sql`, regenerate the linear baseline gz, add the
+      Add `NNNN_extension_settings.sql` (next free migration number), regenerate the
+      linear baseline gz, add the
       ORM entity and `ExtensionSettingsService`, and add integration tests that run
       against the `podverse_app_test` database. End response with the integration-test
       command from the file.

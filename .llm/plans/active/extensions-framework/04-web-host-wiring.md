@@ -70,6 +70,28 @@ removes any field whose `secret: true`. Secret fields stay available to `headScr
 on the server but are stripped before any data crosses the SSR boundary into client
 code.
 
+## Subscriber bootstrap (Valkey pub/sub)
+
+Per proposal §6 / §14: after a management-api `PUT`, replicas must drop cached
+`extension:<id>` entries within ~1s via **`PUBLISH extension:invalidated:<id>`** and
+**`SUBSCRIBE`** on each process that reads the cache.
+
+- Add `apps/web/src/lib/extensions/cacheSubscriber.ts` (name flexible) that calls
+  `subscribeToExtensionInvalidations` from phase `03` with an `onInvalidate` that
+  `DEL`s the Valkey key and clears any in-process memo map used by `readDbRow`.
+- Start the subscriber **once per Node process** on the same cold-start path where the
+  app obtains its Valkey client (e.g. `instrumentation.ts` if the stack supports it, or
+  a lazy singleton initializer invoked before the first `resolveActiveExtensions`
+  call). Register shutdown hooks to unsubscribe / close the subscriber connection on
+  process exit where the runtime allows.
+- **Do not** start the subscriber when `process.env.EXTENSIONS_ENABLED !== 'true'`.
+  When the master switch is off, extension reads are inert and pub/sub would add noise.
+- **management-web:** If server components in this phase read extension settings from
+  Valkey (same `readDbRow` pattern as apps/web), start the same subscriber in that
+  process. If management-web only calls management-api over HTTP and never touches
+  Valkey for extensions in Phase 1, skip the subscriber there and rely on the API +
+  apps/web path — document which branch you chose in the PR.
+
 ## Runtime-config and sidecar additions
 
 The web app's runtime-config pipeline is the canonical place to expose env values to

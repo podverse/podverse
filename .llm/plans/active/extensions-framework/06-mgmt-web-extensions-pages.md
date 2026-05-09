@@ -54,6 +54,9 @@ apps/management-web/src/app/(management)/extensions/
 `configSchema` and renders form controls:
 
 - For each field in `configSchema.fields`:
+  - Resolve **labels** with `useTranslations()` using **`fields[name].labelKey`** (required
+    on every field per phase `01`).
+  - Resolve optional **help** tooltips with **`fields[name].helpKey`** when present.
   - Read the Joi schema's `describe()` result for that field (type, required,
     constraints).
   - Render the appropriate `@podverse/ui` form primitive: text input, number input,
@@ -63,6 +66,9 @@ apps/management-web/src/app/(management)/extensions/
     operators at the corresponding env var.
 - Validates client-side via the same Joi schema (`joi.validate(value)`).
 - Emits `onChange(config)` with the typed object.
+
+Omitting `labelKey` on a field is a **TypeScript error** at manifest authoring time
+(`ExtensionConfigFieldMeta`), not a runtime English fallback.
 
 If an extension provides a custom `SettingsForm` in its manifest, the detail page
 renders that instead. Phase `07`'s Cloudflare extension uses the auto-form.
@@ -126,9 +132,13 @@ Per [`shared-ui-i18n`](../../../../.cursor/rules/shared-ui-i18n.mdc) and the
 [`i18n`](../../../../.cursor/skills/i18n/SKILL.md) skill, add new keys to
 `apps/management-web/i18n/originals/en-US.json` and keep other locales in sync:
 
-- `nav.extensions`, page titles, breadcrumb labels, form labels for "Enabled",
-  "Configuration", "Save changes", empty state, success toast, error toast.
-- All copy lives in the app, not the auto-form generator (which is framework-agnostic).
+- **Shell:** `nav.extensions`, page titles, breadcrumb labels, form labels for
+  "Enabled", "Configuration", "Save changes", empty state, success toast, error toast.
+- **Per-extension fields:** each manifest `labelKey` / `helpKey` must exist under a
+  stable namespace (e.g. `extensions.cloudflare.token.label`,
+  `extensions.cloudflare.token.help`). Phase `07` lists the Cloudflare keys explicitly.
+- All copy lives in the app, not the auto-form generator (which is framework-agnostic but
+  reads keys from the manifest).
 
 ## URL and tab state
 
