@@ -137,6 +137,11 @@
       "description": ""
     }
   },
+  "feedsHub": {
+    "pageTitle": "",
+    "flagStatusCardTitle": "",
+    "flagStatusCardDescription": ""
+  },
   "errors": {
     "boundary_title": "",
     "boundary_message": "",
@@ -215,7 +220,6 @@
   },
   "statsPage": {
     "title": "",
-    "breadcrumbDashboard": "",
     "failedToLoad": "",
     "clear": "",
     "views": "",
@@ -258,15 +262,12 @@
   },
   "products": {
     "pageTitle": "",
-    "welcomeLine": "",
     "membershipsCardTitle": "",
-    "membershipsCardDescription": "",
-    "breadcrumbDashboard": ""
+    "membershipsCardDescription": ""
   },
   "productMemberships": {
     "pageTitle": "",
     "pageSubtitle": "",
-    "breadcrumbDashboard": "",
     "breadcrumbProducts": "",
     "loadError": "",
     "saveSuccess": "",
@@ -305,7 +306,7 @@
   "feedFlagStatus": {
     "pageTitle": "",
     "pageSubtitle": "",
-    "breadcrumbParent": "",
+    "breadcrumbFeeds": "",
     "breadcrumbCurrent": "",
     "directoryHeading": "",
     "directoryLoadError": "",

@@ -89,6 +89,7 @@ export function ProductMembershipsPageClient() {
   const t = useTranslations('productMemberships');
   const tt = useTranslations('tableShared');
   const tc = useTranslations('common');
+  const tNav = useTranslations('nav');
   const chrome = useManagementTableChrome();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -362,7 +363,7 @@ export function ProductMembershipsPageClient() {
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
           items={[
-            { href: '/dashboard', label: t('breadcrumbDashboard') },
+            { href: '/dashboard', label: tNav('dashboard') },
             { href: '/products', label: t('breadcrumbProducts') },
             { label: t('pageTitle') },
           ]}

@@ -40,6 +40,7 @@ export function CreateRowPageClient({ tableName }: CreateRowPageClientProps) {
   const [error, setError] = useState<string | null>(null);
   const t = useTranslations('database');
   const tc = useTranslations('common');
+  const tNav = useTranslations('nav');
 
   useEffect(() => {
     let cancelled = false;
@@ -112,6 +113,7 @@ export function CreateRowPageClient({ tableName }: CreateRowPageClientProps) {
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
           items={[
+            { href: '/dashboard', label: tNav('dashboard') },
             { href: '/database', label: t('title') },
             { href: `/database/${tableName}`, label: tableName },
             { label: tc('new') },

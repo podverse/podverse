@@ -105,8 +105,8 @@
     "title": "Dashboard",
     "welcome": "Welcome to {brandName}",
     "feedFlagStatus": {
-      "title": "Feed flag status",
-      "description": "Set takedown, spam, and other statuses with a reason and note (not the table browser)"
+      "title": "Feeds",
+      "description": "Feed tools: lifecycle, conditions, and flag status (separate from the database table browser)"
     },
     "stats": {
       "title": "Stats",
@@ -136,6 +136,11 @@
       "title": "Object storage",
       "description": "Browse, download, and delete objects in the configured bucket"
     }
+  },
+  "feedsHub": {
+    "pageTitle": "Feeds",
+    "flagStatusCardTitle": "Flag status",
+    "flagStatusCardDescription": "Set takedown, spam, and other statuses with a reason and note (not the table browser)"
   },
   "errors": {
     "boundary_title": "Something went wrong",
@@ -215,7 +220,6 @@
   },
   "statsPage": {
     "title": "Stats",
-    "breadcrumbDashboard": "Dashboard",
     "failedToLoad": "Failed to load stats.",
     "clear": "Clear",
     "views": "Views",
@@ -258,15 +262,12 @@
   },
   "products": {
     "pageTitle": "Products",
-    "welcomeLine": "Choose a product area.",
     "membershipsCardTitle": "Memberships",
-    "membershipsCardDescription": "View resolved membership values (environment bootstrap and database).",
-    "breadcrumbDashboard": "Dashboard"
+    "membershipsCardDescription": "View resolved membership values (environment bootstrap and database)."
   },
   "productMemberships": {
     "pageTitle": "Memberships",
     "pageSubtitle": "Effective limits and pricing-related fields for new users and admin surfaces.",
-    "breadcrumbDashboard": "Dashboard",
     "breadcrumbProducts": "Products",
     "loadError": "Could not load membership product settings.",
     "saveSuccess": "Settings updated successfully.",
@@ -305,7 +306,7 @@
   "feedFlagStatus": {
     "pageTitle": "Set feed status",
     "pageSubtitle": "Find a feed by Podcast Index ID (default), internal feed id, or URL. Update lifecycle state, active conditions, limits, and notes. This is separate from the database table browser.",
-    "breadcrumbParent": "Feed operations",
+    "breadcrumbFeeds": "Feeds",
     "breadcrumbCurrent": "Flag status",
     "directoryHeading": "Feeds",
     "directoryLoadError": "Could not load feeds list.",

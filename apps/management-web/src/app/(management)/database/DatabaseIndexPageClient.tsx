@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import type { NavCard } from '@podverse/ui';
-import { Alert, ManagementPageShell, NavCardGrid } from '@podverse/ui';
+import { Alert, Breadcrumbs, ManagementPageShell, NavCardGrid } from '@podverse/ui';
 
 import { ManagementLoadingSpinnerOverlayStatus } from '../../../components/LoadingSpinner/ManagementLoadingSpinnerOverlay';
 import { getDatabaseTables, type TableMeta } from '../../../lib/requests/database';
@@ -23,6 +23,7 @@ export function DatabaseIndexPageClient() {
   const [error, setError] = useState<string | null>(null);
   const t = useTranslations('database');
   const tc = useTranslations('common');
+  const tNav = useTranslations('nav');
 
   useEffect(() => {
     let cancelled = false;
@@ -72,7 +73,16 @@ export function DatabaseIndexPageClient() {
   });
 
   return (
-    <ManagementPageShell title={t('title')}>
+    <ManagementPageShell
+      headerBreadcrumbs={
+        <Breadcrumbs
+          LinkComponent={Link}
+          navAriaLabel={tc('breadcrumbNav')}
+          items={[{ href: '/dashboard', label: tNav('dashboard') }, { label: t('title') }]}
+        />
+      }
+      title={t('title')}
+    >
       <ManagementLoadingSpinnerOverlayStatus isLoading={loading} message={t('loadingTables')} />
       <Alert>{error}</Alert>
       {!error && (

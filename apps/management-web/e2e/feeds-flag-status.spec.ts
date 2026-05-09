@@ -1,6 +1,19 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('Management-web feeds flag status', () => {
+  test('dashboard shows a Feeds card linking to the feeds hub', async ({ page }) => {
+    await page.goto('/');
+
+    await page.locator('#email').fill('e2e-superadmin@example.com');
+    await page.locator('#password').fill('Test!1Aa');
+    await page.getByRole('button', { name: 'Sign In' }).click();
+    await page.waitForURL('**/dashboard');
+
+    const feedsCard = page.getByRole('link', { name: 'Feeds' });
+    await expect(feedsCard).toBeVisible();
+    await expect(feedsCard).toHaveAttribute('href', '/feeds');
+  });
+
   test('a superuser can set and clear a feed spam item limit override', async ({ page }) => {
     test.setTimeout(45_000);
 
@@ -91,7 +104,10 @@ test.describe('Management-web feeds flag status', () => {
     await page.getByRole('button', { name: 'Sign In' }).click();
     await page.waitForURL('**/dashboard');
 
-    await page.goto('/feeds/flag-status');
+    await page.goto('/feeds');
+    await expect(page.getByRole('heading', { name: 'Feeds', level: 1 })).toBeVisible();
+    await page.getByRole('link', { name: 'Flag status' }).click();
+    await expect(page).toHaveURL(/\/feeds\/flag-status$/);
     await expect(page.getByRole('heading', { name: 'Set feed status', level: 1 })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Feeds', level: 2 })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Feed directory' })).toBeVisible();
@@ -234,7 +250,9 @@ test.describe('Management-web feeds flag status', () => {
     await page.getByRole('button', { name: 'Sign In' }).click();
     await page.waitForURL('**/dashboard');
 
-    await page.goto('/feeds/flag-status');
+    await page.goto('/feeds');
+    await page.getByRole('link', { name: 'Flag status' }).click();
+    await expect(page).toHaveURL(/\/feeds\/flag-status$/);
     await expect(page.getByRole('heading', { name: 'Feeds', level: 2 })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Sort by ID' })).toBeVisible();
 
@@ -287,7 +305,9 @@ test.describe('Management-web feeds flag status', () => {
     await page.getByRole('button', { name: 'Sign In' }).click();
     await page.waitForURL('**/dashboard');
 
-    await page.goto('/feeds/flag-status');
+    await page.goto('/feeds');
+    await page.getByRole('link', { name: 'Flag status' }).click();
+    await expect(page).toHaveURL(/\/feeds\/flag-status$/);
     await expect(page.getByRole('heading', { name: 'Set feed status', level: 1 })).toBeVisible();
 
     await expect(page.getByRole('status')).toContainText(/No data found yet/i);

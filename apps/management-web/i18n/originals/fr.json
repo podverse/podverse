@@ -105,8 +105,8 @@
     "title": "Tableau de bord",
     "welcome": "Bienvenue à {brandName}",
     "feedFlagStatus": {
-      "title": "État des drapeaux de contenu",
-      "description": "Définir des retraits, du spam et d'autres états avec une raison et une note (pas le navigateur de tableau)"
+      "title": "Flux",
+      "description": "Outils pour les flux : cycle de vie, conditions et état des signalements (hors explorateur de tables)"
     },
     "stats": {
       "title": "Statistiques",
@@ -136,6 +136,11 @@
       "title": "Stockage d'objets",
       "description": "Parcourir, télécharger et supprimer des objets dans le compartiment configuré"
     }
+  },
+  "feedsHub": {
+    "pageTitle": "Flux",
+    "flagStatusCardTitle": "État du signalement",
+    "flagStatusCardDescription": "Définir des retraits, du spam et d'autres états avec une raison et une note (pas le navigateur de tableau)"
   },
   "errors": {
     "boundary_title": "Quelque chose a mal tourné",
@@ -215,7 +220,6 @@
   },
   "statsPage": {
     "title": "Statistiques",
-    "breadcrumbDashboard": "Tableau de bord",
     "failedToLoad": "Échec du chargement des statistiques.",
     "clear": "Effacer",
     "views": "Vues",
@@ -258,15 +262,12 @@
   },
   "products": {
     "pageTitle": "Produits",
-    "welcomeLine": "Choisissez un domaine produit.",
     "membershipsCardTitle": "Abonnements",
-    "membershipsCardDescription": "Voir les valeurs d’abonnement résolues (environnement et base de données).",
-    "breadcrumbDashboard": "Tableau de bord"
+    "membershipsCardDescription": "Voir les valeurs d’abonnement résolues (environnement et base de données)."
   },
   "productMemberships": {
     "pageTitle": "Abonnements",
     "pageSubtitle": "Limites effectives et champs tarifaires pour les nouveaux utilisateurs et l’administration.",
-    "breadcrumbDashboard": "Tableau de bord",
     "breadcrumbProducts": "Produits",
     "loadError": "Impossible de charger les paramètres du produit d’abonnement.",
     "saveSuccess": "Paramètres mis à jour.",
@@ -305,7 +306,7 @@
   "feedFlagStatus": {
     "pageTitle": "Définir l'état du flux",
     "pageSubtitle": "Trouvez un flux par ID Podcast Index (par défaut), id interne du flux ou URL. Mettez à jour le cycle de vie, les conditions actives, les limites et les notes. Ceci est distinct du navigateur de tables de la base de données.",
-    "breadcrumbParent": "Opérations sur les flux",
+    "breadcrumbFeeds": "Flux",
     "breadcrumbCurrent": "État du drapeau",
     "directoryHeading": "Flux",
     "directoryLoadError": "Impossible de charger la liste des flux.",

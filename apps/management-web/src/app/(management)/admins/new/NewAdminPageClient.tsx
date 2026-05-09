@@ -72,6 +72,7 @@ export function NewAdminPageClient() {
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
   const t = useTranslations('admins');
   const tc = useTranslations('common');
+  const tNav = useTranslations('nav');
   const ta = useTranslations('auth');
   const tu = useTranslations('users');
   const tp = useTranslations('admins.permissions');
@@ -142,7 +143,11 @@ export function NewAdminPageClient() {
         <Breadcrumbs
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
-          items={[{ href: '/admins', label: t('title') }, { label: tc('new') }]}
+          items={[
+            { href: '/dashboard', label: tNav('dashboard') },
+            { href: '/admins', label: t('title') },
+            { label: tc('new') },
+          ]}
         />
       }
     >

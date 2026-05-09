@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   ActionLink,
   Alert,
+  Breadcrumbs,
   ManagementPageShell,
   PageHeaderActions,
   ResourceTableWithFilter,
@@ -112,6 +113,7 @@ export function AdminsListPageClient({ initialUser }: AdminsListPageClientProps)
   const t = useTranslations('admins');
   const tc = useTranslations('common');
   const tsTable = useTranslations('tableShared');
+  const tNav = useTranslations('nav');
   const chrome = useManagementTableChrome();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -247,6 +249,13 @@ export function AdminsListPageClient({ initialUser }: AdminsListPageClientProps)
 
   return (
     <ManagementPageShell
+      headerBreadcrumbs={
+        <Breadcrumbs
+          LinkComponent={Link}
+          navAriaLabel={tc('breadcrumbNav')}
+          items={[{ href: '/dashboard', label: tNav('dashboard') }, { label: t('title') }]}
+        />
+      }
       title={t('title')}
       headerChildren={
         !systemAdminsEmpty ? (

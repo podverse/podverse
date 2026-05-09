@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActionLink,
   Alert,
+  Breadcrumbs,
   ManagementPageShell,
   PageHeaderActions,
   ResourceTableWithFilter,
@@ -54,6 +55,7 @@ function sortUsers(rows: User[], sortKey: string, order: SortDirection): User[] 
 export function UsersListPageClient() {
   const t = useTranslations('users');
   const tc = useTranslations('common');
+  const tNav = useTranslations('nav');
   const chrome = useManagementTableChrome();
   const pathname = usePathname();
   const router = useRouter();
@@ -216,6 +218,13 @@ export function UsersListPageClient() {
 
   return (
     <ManagementPageShell
+      headerBreadcrumbs={
+        <Breadcrumbs
+          LinkComponent={Link}
+          navAriaLabel={tc('breadcrumbNav')}
+          items={[{ href: '/dashboard', label: tNav('dashboard') }, { label: t('title') }]}
+        />
+      }
       title={t('title')}
       headerChildren={
         usersChromePhase === 'content' && !systemUsersEmpty ? (

@@ -6,16 +6,16 @@ import { useTranslations } from 'next-intl';
 import type { NavCard } from '@podverse/ui';
 import { Breadcrumbs, ManagementPageShell, NavCardGrid } from '@podverse/ui';
 
-export function ProductsPageClient() {
-  const t = useTranslations('products');
+export function FeedsPageClient() {
+  const t = useTranslations('feedsHub');
   const tc = useTranslations('common');
   const tNav = useTranslations('nav');
 
   const cards: NavCard[] = [
     {
-      href: '/products/memberships',
-      title: t('membershipsCardTitle'),
-      description: t('membershipsCardDescription'),
+      href: '/feeds/flag-status',
+      title: t('flagStatusCardTitle'),
+      description: t('flagStatusCardDescription'),
     },
   ];
 
