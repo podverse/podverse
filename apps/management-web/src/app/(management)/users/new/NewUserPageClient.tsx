@@ -461,6 +461,14 @@ export function NewUserPageClient() {
                   <FormDropdown
                     id="allow-directory-add"
                     eyebrow={t('advancedOverrides.allowDirectoryAddByRss')}
+                    info={t('advancedOverrides.allowDirectoryAddByRssHelp', {
+                      trialDefault: trialEnt.allowDirectoryAddByRSS
+                        ? t('advancedOverrides.on')
+                        : t('advancedOverrides.off'),
+                      premiumDefault: premiumEnt.allowDirectoryAddByRSS
+                        ? t('advancedOverrides.on')
+                        : t('advancedOverrides.off'),
+                    })}
                     options={addByRssTriOptions}
                     value={
                       allowDirectoryAddByRSS === null
@@ -477,16 +485,6 @@ export function NewUserPageClient() {
                       }
                     }}
                   />
-                  <FormHintText>
-                    {t('advancedOverrides.allowDirectoryAddByRssHelp', {
-                      trialDefault: trialEnt.allowDirectoryAddByRSS
-                        ? t('advancedOverrides.on')
-                        : t('advancedOverrides.off'),
-                      premiumDefault: premiumEnt.allowDirectoryAddByRSS
-                        ? t('advancedOverrides.on')
-                        : t('advancedOverrides.off'),
-                    })}
-                  </FormHintText>
                 </FormGroup>
                 <TextInput
                   id="max-add-by-rss-feeds"
@@ -524,6 +522,14 @@ export function NewUserPageClient() {
                   <FormDropdown
                     id="track-stats"
                     eyebrow={t('advancedOverrides.trackStats')}
+                    info={t('advancedOverrides.trackStatsHelp', {
+                      trialDefault: trialEnt.trackStats
+                        ? t('advancedOverrides.on')
+                        : t('advancedOverrides.off'),
+                      premiumDefault: premiumEnt.trackStats
+                        ? t('advancedOverrides.on')
+                        : t('advancedOverrides.off'),
+                    })}
                     options={trackStatsTriOptions}
                     value={trackStats === null ? '' : trackStats ? 'true' : 'false'}
                     onChange={(v) => {
@@ -534,21 +540,19 @@ export function NewUserPageClient() {
                       }
                     }}
                   />
-                  <FormHintText>
-                    {t('advancedOverrides.trackStatsHelp', {
-                      trialDefault: trialEnt.trackStats
-                        ? t('advancedOverrides.on')
-                        : t('advancedOverrides.off'),
-                      premiumDefault: premiumEnt.trackStats
-                        ? t('advancedOverrides.on')
-                        : t('advancedOverrides.off'),
-                    })}
-                  </FormHintText>
                 </FormGroup>
                 <FormGroup layout="inStack">
                   <FormDropdown
                     id="allow-notifications"
                     eyebrow={t('advancedOverrides.allowNotifications')}
+                    info={t('advancedOverrides.allowNotificationsHelp', {
+                      trialDefault: trialEnt.allowNotifications
+                        ? t('advancedOverrides.on')
+                        : t('advancedOverrides.off'),
+                      premiumDefault: premiumEnt.allowNotifications
+                        ? t('advancedOverrides.on')
+                        : t('advancedOverrides.off'),
+                    })}
                     options={notificationsTriOptions}
                     value={allowNotifications === null ? '' : allowNotifications ? 'true' : 'false'}
                     onChange={(v) => {
@@ -559,16 +563,6 @@ export function NewUserPageClient() {
                       }
                     }}
                   />
-                  <FormHintText>
-                    {t('advancedOverrides.allowNotificationsHelp', {
-                      trialDefault: trialEnt.allowNotifications
-                        ? t('advancedOverrides.on')
-                        : t('advancedOverrides.off'),
-                      premiumDefault: premiumEnt.allowNotifications
-                        ? t('advancedOverrides.on')
-                        : t('advancedOverrides.off'),
-                    })}
-                  </FormHintText>
                 </FormGroup>
               </>
             )}
