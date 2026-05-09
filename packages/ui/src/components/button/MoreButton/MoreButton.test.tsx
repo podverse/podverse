@@ -38,4 +38,37 @@ describe('MoreButton', () => {
     expect(screen.getByText('First')).toBeTruthy();
     expect(screen.getByText('Second')).toBeTruthy();
   });
+
+  it('Space on a menu item activates once and stops propagation so window listeners do not run', () => {
+    const onFirst = vi.fn();
+    const windowKeyDown = vi.fn();
+
+    window.addEventListener('keydown', windowKeyDown);
+
+    render(
+      <MoreButton
+        ariaLabel="Actions"
+        moreButtonMenuItems={[
+          { label: 'First', onClick: onFirst },
+          { label: 'Second', onClick: () => {} },
+        ]}
+      />
+    );
+
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Actions' }), {
+      key: 'ArrowDown',
+    });
+
+    const firstItem = screen.getByRole('menuitem', { name: 'First' });
+
+    fireEvent.keyDown(firstItem, {
+      bubbles: true,
+      key: ' ',
+    });
+
+    window.removeEventListener('keydown', windowKeyDown);
+
+    expect(onFirst).toHaveBeenCalledTimes(1);
+    expect(windowKeyDown).not.toHaveBeenCalled();
+  });
 });

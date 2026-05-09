@@ -40,10 +40,13 @@
 
   --text-line-height: 1.35;
 
+  // Progress bar: --progress-chapter-marker must stay readable on both segments but stay in the same
+  // hue family as --progress-bar-before / accent (a lighter or darker shade), not a contrasting accent.
+  // Every new [data-ui-theme] palette must define --progress-chapter-marker.
   --progress-bar-before: #ffffff;
   --progress-bar-after: #252a64;
   --progress-bar-highlighted: rgba(61, 157, 254, 0.5);
-  --progress-chapter-marker: var(--text-color-accent);
+  --progress-chapter-marker: #7e9cff;
 
   --table-row-selected-bg: rgba(61, 157, 254, 0.18);
 }
@@ -122,7 +125,7 @@
   --progress-bar-before: #0071e3;
   --progress-bar-after: #d1d1d6;
   --progress-bar-highlighted: rgba(0, 113, 227, 0.4);
-  --progress-chapter-marker: var(--text-color-primary);
+  --progress-chapter-marker: #5aadff;
 
   --table-row-selected-bg: rgba(0, 113, 227, 0.12);
 }
@@ -200,7 +203,7 @@
   --progress-bar-before: #bd93f9;
   --progress-bar-after: #44475a;
   --progress-bar-highlighted: rgba(189, 147, 249, 0.5);
-  --progress-chapter-marker: var(--text-color-highlighted);
+  --progress-chapter-marker: #cdb4fa;
 
   --table-row-selected-bg: rgba(189, 147, 249, 0.22);
 }
@@ -278,7 +281,7 @@
   --progress-bar-before: #7c3aed;
   --progress-bar-after: #1f1430;
   --progress-bar-highlighted: rgba(124, 58, 237, 0.45);
-  --progress-chapter-marker: var(--text-color-accent);
+  --progress-chapter-marker: #a78bfa;
 
   --table-row-selected-bg: rgba(124, 58, 237, 0.22);
 }

@@ -5,7 +5,6 @@ import React, { useEffect, useRef } from 'react';
 import type { DTOQueueResource } from '@podverse/helpers';
 import { buildLabeledItemEnclosures } from '@podverse/helpers';
 
-import { EVENTS } from '../../../constants/events';
 import type { AutoQueueResourcesMapRow } from '../../../contexts/AutoQueue';
 import { checkIsActiveRowHighestKey, useAutoQueue } from '../../../contexts/AutoQueue';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
@@ -20,17 +19,23 @@ import { updateLayoutForMediaPlayer } from '../../../utils/mediaPlayer/mediaPlay
 import { MediaPlayerControllerAudio } from './Audio/MediaPlayerControllerAudio';
 import { MediaPlayerControllerLiveStreamAudio } from './LiveStream/MediaPlayerControllerLiveStreamAudio';
 import { MediaPlayerLiveStreamVideoWrapper } from './LiveStream/MediaPlayerLiveStreamVideoWrapper';
+import {
+  dispatchMediaPlayerSeek,
+  handleMediaPlayerWindowKeyDown,
+} from './mediaPlayerWindowKeyDown';
 import { MediaPlayerVideoWrapper } from './Video/MediaPlayerVideoWrapper';
 
 export const MediaPlayerController: React.FC = () => {
   const apiRequestService = getApiRequestService();
   const {
+    mpAddByRSS,
     mpChannel,
+    mpDuration,
+    mpIsPlaying,
     mpItem,
     mpClip,
     mpItemSoundbite,
-    mpAddByRSS,
-    mpDuration,
+    setMPIsPlaying,
     setMPItemChapters,
     setMPItemLabeledItemEnclosures,
   } = useMediaPlayer();
@@ -56,33 +61,52 @@ export const MediaPlayerController: React.FC = () => {
     autoQueueConfigRef.current = autoQueueConfig;
   }, [autoQueueConfig]);
 
-  const handleKeyDown = (e: KeyboardEvent | React.KeyboardEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLElement;
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-      return;
-    }
+  const mpCurrentTimeRef = useRef(mpCurrentTime);
+  useEffect(() => {
+    mpCurrentTimeRef.current = mpCurrentTime;
+  }, [mpCurrentTime]);
 
-    if (e.key === 'ArrowLeft') {
-      const newTime = Math.max(0, mpCurrentTime - 10);
-      window.dispatchEvent(
-        new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, { detail: { time: newTime } })
-      );
-      e.preventDefault();
-    }
-    if (e.key === 'ArrowRight') {
-      const newTime = Math.min(mpDuration, mpCurrentTime + 10);
-      window.dispatchEvent(
-        new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, { detail: { time: newTime } })
-      );
-      e.preventDefault();
-    }
-  };
+  const mpDurationRef = useRef(mpDuration);
+  useEffect(() => {
+    mpDurationRef.current = mpDuration;
+  }, [mpDuration]);
+
+  const mpIsPlayingRef = useRef(mpIsPlaying);
+  useEffect(() => {
+    mpIsPlayingRef.current = mpIsPlaying;
+  }, [mpIsPlaying]);
+
+  const mpChannelRef = useRef(mpChannel);
+  useEffect(() => {
+    mpChannelRef.current = mpChannel;
+  }, [mpChannel]);
+
+  const mpAddByRSSRef = useRef(mpAddByRSS);
+  useEffect(() => {
+    mpAddByRSSRef.current = mpAddByRSS;
+  }, [mpAddByRSS]);
 
   useEffect(() => {
-    const listener = (e: KeyboardEvent) => handleKeyDown(e);
+    const listener = (e: KeyboardEvent) => {
+      handleMediaPlayerWindowKeyDown(
+        e,
+        e.target as HTMLElement,
+        {
+          mpAddByRSS: mpAddByRSSRef.current,
+          mpChannel: mpChannelRef.current,
+          mpCurrentTime: mpCurrentTimeRef.current,
+          mpDuration: mpDurationRef.current,
+        },
+        dispatchMediaPlayerSeek,
+        () => {
+          setMPIsPlaying(!mpIsPlayingRef.current);
+        }
+      );
+    };
+
     window.addEventListener('keydown', listener);
     return () => window.removeEventListener('keydown', listener);
-  });
+  }, [setMPIsPlaying]);
 
   useEffect(() => {
     updateLayoutForMediaPlayer(!!mpChannel || !!mpAddByRSS);

@@ -61,6 +61,7 @@ export function useDropdownKeyboardNavigation({
       setOpen(true);
       setFocusedIndex(0);
       e.preventDefault();
+      e.stopPropagation();
     }
   };
 
@@ -69,15 +70,23 @@ export function useDropdownKeyboardNavigation({
       setOpen(false);
       setFocusedIndex(-1);
       buttonRef.current?.focus();
+      e.preventDefault();
+      e.stopPropagation();
     } else if (e.key === 'ArrowDown') {
       setFocusedIndex((i) => (i + 1) % itemCount);
+      e.preventDefault();
+      e.stopPropagation();
     } else if (e.key === 'ArrowUp') {
       setFocusedIndex((i) => (i - 1 + itemCount) % itemCount);
+      e.preventDefault();
+      e.stopPropagation();
     } else if (e.key === 'Tab') {
       setOpen(false);
     } else if (e.key === 'Enter' || e.key === ' ') {
       onItemSelect(focusedIndex);
       setOpen(false);
+      e.preventDefault();
+      e.stopPropagation();
     }
   };
 
