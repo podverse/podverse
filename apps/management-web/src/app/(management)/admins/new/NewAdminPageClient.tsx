@@ -112,18 +112,19 @@ export function NewAdminPageClient() {
       if (result.set_password_url !== undefined && result.set_password_url.length > 0) {
         setInviteUrl(result.set_password_url);
         setSuccessMessage(t('createdWithLink'));
+        setEmail('');
+        setPassword('');
+        setPermissions({
+          feeds_crud: 0,
+          feed_takedown_reasons_crud: 0,
+          admins_crud: 0,
+          stats_crud: 0,
+          bucket_crud: 0,
+        });
       } else {
-        setSuccessMessage(t('createdSuccessfully'));
+        router.push('/admins');
+        router.refresh();
       }
-      setEmail('');
-      setPassword('');
-      setPermissions({
-        feeds_crud: 0,
-        feed_takedown_reasons_crud: 0,
-        admins_crud: 0,
-        stats_crud: 0,
-        bucket_crud: 0,
-      });
     } catch (err) {
       const raw =
         err && typeof err === 'object' && 'response' in err

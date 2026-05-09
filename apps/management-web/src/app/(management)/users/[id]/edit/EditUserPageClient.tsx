@@ -225,7 +225,7 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
     setError(null);
     setSuccess(null);
     try {
-      const result = await updateUser(userId, {
+      await updateUser(userId, {
         email: email || undefined,
         username: username || undefined,
         verified,
@@ -241,8 +241,8 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
         track_stats: trackStats,
         allow_notifications: allowNotifications,
       });
-      setUser(result.user);
-      setSuccess(t('updatedSuccessfully'));
+      router.push('/users');
+      router.refresh();
     } catch {
       setError(t('failedToUpdate'));
     } finally {

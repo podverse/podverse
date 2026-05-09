@@ -52,7 +52,6 @@ export function NewUserPageClient() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [membershipId, setMembershipId] = useState(AccountMembershipEnum.Trial);
   const [premiumCadence, setPremiumCadence] = useState<PremiumBillingCadence>('annual');
@@ -235,7 +234,6 @@ export function NewUserPageClient() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setSuccessMessage(null);
     setInviteLink(null);
 
     const trimmedUsername = username.trim();
@@ -294,13 +292,13 @@ export function NewUserPageClient() {
 
       if (result.set_password_url) {
         setInviteLink(result.set_password_url);
+        setUsername('');
+        setEmail('');
+        setPassword('');
       } else {
-        setSuccessMessage(t('createdSuccessfully'));
+        router.push('/users');
+        router.refresh();
       }
-
-      setUsername('');
-      setEmail('');
-      setPassword('');
     } catch (err) {
       const raw =
         err && typeof err === 'object' && 'response' in err
@@ -568,7 +566,6 @@ export function NewUserPageClient() {
             )}
           </MembershipAdvancedOverridesGroup>
           <Alert>{error}</Alert>
-          {successMessage && <Alert variant="success">{successMessage}</Alert>}
           <FormPrimaryActions>
             <Button type="button" variant="secondary" onClick={() => router.push('/users')}>
               {tc('cancel')}

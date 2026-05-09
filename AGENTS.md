@@ -320,6 +320,7 @@ When implementing features or executing plans that touch **api** or **management
 - **e2e-page-tests** — how to write E2E Playwright specs
 - **ui-component-promotion** — promote shared UI across web and management-web via `packages/ui`
 - **modal-layout-contract** — `Modal`, `Modal.Body`, `Modal.Actions`; no overflow masking; modal footers match web (right-aligned, wrap)
+- **management-post-save-navigation** — after successful create or primary save on management-web New/Edit (one row), navigate to the list unless an exception applies (invite link, password-only update, detail-first flows)
 - **css-custom-properties-no-var-fallbacks** — never `var(--token, fallback)` in SCSS/CSS or inline styles; fix tokens or set vars at source
 - **unit-test-priority-confident** — prioritize unit tests by risk
 - **unit-test-design-no-overgranularity** — avoid over-testing

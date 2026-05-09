@@ -92,6 +92,53 @@ test.describe('Management-web create user (username-only)', () => {
     );
   });
 
+  test('a superuser is redirected to the users list after create when the API returns no invite link', async ({
+    page,
+  }) => {
+    test.setTimeout(45_000);
+
+    await page.route('**/products/membership', async (route) => {
+      if (route.request().method() !== 'GET') {
+        await route.continue();
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: productMembershipBody(),
+      });
+    });
+
+    await page.route('**/users', async (route) => {
+      if (route.request().method() !== 'POST') {
+        await route.continue();
+        return;
+      }
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          message: 'User created.',
+        }),
+      });
+    });
+
+    await page.goto('/');
+    await page.locator('#email').fill('e2e-superadmin@example.com');
+    await page.locator('#password').fill('Test!1Aa');
+    await page.getByRole('button', { name: 'Sign In' }).click();
+    await page.waitForURL('**/dashboard');
+
+    await page.goto('/users/new');
+
+    await expect(page.getByRole('heading', { name: 'Create User', level: 1 })).toBeVisible();
+
+    await page.locator('#username').fill('e2e_no_invite_redirect');
+    await page.getByRole('button', { name: 'Create User' }).first().click();
+
+    await expect(page).toHaveURL(/\/users$/);
+  });
+
   test('the Create User form shows membership status and advanced overrides toggle', async ({
     page,
   }) => {
