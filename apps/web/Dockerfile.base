@@ -1,7 +1,7 @@
 # Standalone deps image for web. Published by the Alpha workflow as web-base;
 # used as the builder base for web-deploy (see apps/web/Dockerfile).
 # Build context: repo root (.).
-FROM node:24-slim
+FROM node:26-slim
 WORKDIR /opt
 
 COPY package*.json tsconfig.base.json ./
