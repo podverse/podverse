@@ -421,15 +421,15 @@ export function StatsPageClient({ initialUser }: StatsPageClientProps) {
           ? undefined
           : probeStatsUnscopedExist;
 
-  const statsSystemEmpty =
-    !loading && error === null && sortedRows.length === 0 && hasStatsDataInSystem === false;
-
   const probingStatsExistence =
     !loading &&
     error === null &&
     urlSearch.trim() !== '' &&
     rows.length === 0 &&
     probeStatsUnscopedExist === undefined;
+
+  const statsSystemEmpty =
+    !loading && error === null && sortedRows.length === 0 && hasStatsDataInSystem === false;
 
   const statsTableEmptyState = resolveManagementTableEmptyState({
     filteredEmptyMessage: tsTable('noResults'),

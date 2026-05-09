@@ -11,7 +11,10 @@ export type ManagementTableEmptyResolutionArgs = {
 
 /**
  * Builds {@link TableWithFilterEmptyState} for management list pages:
- * - **system-empty**: no rows exist in the system for this resource → hide table tools via `mode`.
+ * - **system-empty**: no rows exist in the system for this resource → `hideTools` hides **in-table**
+ *   chrome (filter/search/pagination) in shared table components — not **`ManagementPageShell`**
+ *   header actions. Keep primary CTAs (Create New, etc.) in page headers independent of this
+ *   resolution.
  * - **filtered-empty**: rows exist but none match current filters/search.
  */
 export function resolveManagementTableEmptyState(

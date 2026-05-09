@@ -208,8 +208,6 @@ export function TableBrowserPageClient({ tableName }: TableBrowserPageClientProp
     systemEmptyMessage: chrome.systemEmptyMessage,
   });
 
-  const systemBrowserEmpty = browserTableEmptyState?.mode === 'system-empty';
-
   return (
     <ManagementPageShell
       title={tableLabel}
@@ -225,7 +223,7 @@ export function TableBrowserPageClient({ tableName }: TableBrowserPageClientProp
         />
       }
       headerChildren={
-        meta !== null && !systemBrowserEmpty ? (
+        meta !== null ? (
           <PageHeaderActions>
             {!meta.readOnly && (
               <ActionLink href={`/database/${tableName}/new`} variant="inline" LinkComponent={Link}>

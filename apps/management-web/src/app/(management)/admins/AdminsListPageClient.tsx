@@ -245,8 +245,6 @@ export function AdminsListPageClient({ initialUser }: AdminsListPageClientProps)
     systemEmptyMessage: chrome.systemEmptyMessage,
   });
 
-  const systemAdminsEmpty = adminsTableEmptyState?.mode === 'system-empty';
-
   return (
     <ManagementPageShell
       headerBreadcrumbs={
@@ -258,15 +256,13 @@ export function AdminsListPageClient({ initialUser }: AdminsListPageClientProps)
       }
       title={t('title')}
       headerChildren={
-        !systemAdminsEmpty ? (
-          <PageHeaderActions>
-            {canCreate && (
-              <ActionLink href="/admins/new" variant="primary" LinkComponent={Link}>
-                {t('createAdmin')}
-              </ActionLink>
-            )}
-          </PageHeaderActions>
-        ) : null
+        <PageHeaderActions>
+          {canCreate && (
+            <ActionLink href="/admins/new" variant="primary" LinkComponent={Link}>
+              {t('createAdmin')}
+            </ActionLink>
+          )}
+        </PageHeaderActions>
       }
     >
       <ManagementLoadingSpinnerOverlay isLoading={loading} />

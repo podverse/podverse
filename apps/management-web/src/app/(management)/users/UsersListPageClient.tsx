@@ -20,7 +20,6 @@ import {
 import { ManagementProbeChromeGate } from '../../../components/ManagementProbeChromeGate/ManagementProbeChromeGate';
 import { useManagementTableChrome } from '../../../components/Table/managementTableChrome';
 import { ManagementIconButtonLink } from '../../../lib/ManagementIconButtonLink';
-import { resolveManagementProbeChromePhase } from '../../../lib/managementProbeChromeGate';
 import { managementSearchParamsObject } from '../../../lib/managementTableUrl';
 import { deleteUser, listUsers, probeUsersExist, type User } from '../../../lib/requests/users';
 import { resolveManagementTableEmptyState } from '../../../lib/tableEmptyState';
@@ -208,14 +207,6 @@ export function UsersListPageClient() {
     users.length === 0 &&
     probeUsersUnscopedExist === undefined;
 
-  const systemUsersEmpty = usersTableEmptyState?.mode === 'system-empty';
-
-  const usersChromePhase = resolveManagementProbeChromePhase({
-    bypassWhileError: error !== null,
-    loading,
-    probingExistence: probingUsersExistence,
-  });
-
   return (
     <ManagementPageShell
       headerBreadcrumbs={
@@ -227,13 +218,11 @@ export function UsersListPageClient() {
       }
       title={t('title')}
       headerChildren={
-        usersChromePhase === 'content' && !systemUsersEmpty ? (
-          <PageHeaderActions>
-            <ActionLink href="/users/new" variant="primary" LinkComponent={Link}>
-              {tc('createNew')}
-            </ActionLink>
-          </PageHeaderActions>
-        ) : null
+        <PageHeaderActions>
+          <ActionLink href="/users/new" variant="primary" LinkComponent={Link}>
+            {tc('createNew')}
+          </ActionLink>
+        </PageHeaderActions>
       }
     >
       <ManagementProbeChromeGate

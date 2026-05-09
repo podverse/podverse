@@ -571,7 +571,6 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
     systemEmptyMessage: chrome.systemEmptyMessage,
   });
 
-  /** Matches {@link directoryTableEmptyState} system-empty; hide directory/find/detail when no feeds exist globally (see resolveManagementTableEmptyState). */
   const feedOpsDirectorySystemEmpty =
     directoryTableEmptyState?.mode === 'system-empty' &&
     directoryError === null &&

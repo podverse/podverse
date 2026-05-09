@@ -85,7 +85,7 @@ test.describe('Management-web users list', () => {
     ).toBeVisible();
   });
 
-  test('when the users API reports zero users, table tools are hidden and the system empty message is shown', async ({
+  test('when the users API reports zero users, in-table tools stay hidden but Create New stays visible with the system empty message', async ({
     page,
   }) => {
     test.setTimeout(45_000);
@@ -120,7 +120,7 @@ test.describe('Management-web users list', () => {
     await expect(page.getByRole('heading', { name: 'Users', level: 1 })).toBeVisible();
 
     await expect(page.getByPlaceholder('Search')).not.toBeVisible();
-    await expect(page.getByRole('link', { name: 'Create New' })).not.toBeVisible();
+    await expect(page.getByRole('link', { name: 'Create New' })).toBeVisible();
     await expect(
       page.getByText('No data found yet. This page will be enabled when there is data to display.')
     ).toBeVisible();
