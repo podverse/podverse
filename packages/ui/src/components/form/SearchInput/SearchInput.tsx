@@ -39,6 +39,8 @@ export function SearchInput({
 }: SearchInputProps) {
   const [inputValue, setInputValue] = useState<string | null>(null);
   const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onSearchRef = useRef(onSearch);
+  onSearchRef.current = onSearch;
 
   useEffect(() => {
     if (inputValue === null) {
@@ -49,14 +51,14 @@ export function SearchInput({
       clearTimeout(debounceTimeout.current);
     }
     debounceTimeout.current = setTimeout(() => {
-      onSearch(inputValue);
+      onSearchRef.current(inputValue);
     }, 1000);
     return () => {
       if (debounceTimeout.current) {
         clearTimeout(debounceTimeout.current);
       }
     };
-  }, [inputValue, onSearch]);
+  }, [inputValue]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
@@ -70,8 +72,8 @@ export function SearchInput({
     if (inputValue === null) {
       return;
     }
-    onSearch(inputValue);
-  }, [inputValue, onSearch]);
+    onSearchRef.current(inputValue);
+  }, [inputValue]);
 
   return (
     <TextInput
