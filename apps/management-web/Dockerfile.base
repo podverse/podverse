@@ -1,7 +1,7 @@
 # Standalone deps image for management-web. Published by the Alpha workflow as
 # management-web-base; used as the builder base for management-web-deploy
 # (see apps/management-web/Dockerfile). Build context: repo root (.).
-FROM node:24-slim
+FROM node:26-slim
 WORKDIR /opt
 
 COPY package*.json tsconfig.base.json ./

@@ -17,7 +17,7 @@ RUN npm run build:packages:prod
 RUN npm run build -w apps/management-web
 
 # Stage 3: Run the app
-FROM node:24-slim AS runner
+FROM node:26-slim AS runner
 WORKDIR /opt/app
 ENV NODE_ENV=production
 ENV PORT=3100
