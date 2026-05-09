@@ -59,27 +59,37 @@
   @include flexColumn;
 }
 
-.textInnerEyebrowPickerRow {
-  align-items: center;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: row;
-  gap: var(--spacing-md);
+.nativePickerInputBox {
+  display: block;
+  position: relative;
   width: 100%;
-  @include flexItemAllowShrink;
 }
 
-.textInputMain {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: var(--spacing-form-label-bottom);
-  min-width: 0;
-  @include flexItemAllowShrink;
-}
+/* Firefox has no CSS hook to hide the native calendar icon on date/datetime/time inputs (Mozilla bug 1830890).
+   Browsers that lack ::-webkit-calendar-picker-indicator get a same-color mask over the icon strip.
+   Chromium/Safari skip this block and rely on type-qualified pseudo-element hiding above. */
+@supports not selector(::-webkit-calendar-picker-indicator) {
+  .nativePickerInputBox::after {
+    background-color: var(--background-color-tertiary);
+    content: '';
+    inset-block: 0;
+    inset-inline-end: 0;
+    pointer-events: none;
+    position: absolute;
+    width: 28px;
+  }
 
-.textInputMain .eyebrow {
-  margin-bottom: 0;
+  .textInputWrapperDisabled .nativePickerInputBox::after {
+    background-color: color-mix(
+      in srgb,
+      var(--background-color-tertiary) 55%,
+      var(--background-color-primary)
+    );
+  }
+
+  .inputNativePickerIndicatorHidden {
+    padding-inline-end: 32px;
+  }
 }
 
 .eyebrow {
@@ -100,11 +110,34 @@
   }
 }
 
+/*
+ * Native picker UI is replaced by our wrapper-level button (showPicker). Type-qualify
+ * `::-webkit-calendar-picker-indicator` so author rules beat UA `input[type=…]::-webkit-…` (0,1,2).
+ * If a Chromium rev still paints, inspect shadow DOM (DevTools → “Show user agent shadow DOM”).
+ */
 .inputNativePickerIndicatorHidden {
-  /* Native glyph replaced by trailing button calling showPicker(); field stays keyboard-editable.
-     WebKit often still paints the indicator if only `display: none` is used (duplicate vs Fa icon). */
-  &::-webkit-calendar-picker-indicator {
+  &[type='date'],
+  &[type='datetime-local'],
+  &[type='time'] {
+    appearance: none;
+    position: relative;
     -webkit-appearance: none;
+  }
+
+  &[type='datetime-local']::-webkit-inner-spin-button {
+    appearance: none;
+    display: none;
+    margin: 0;
+    -webkit-appearance: none;
+  }
+
+  &::-webkit-clear-button {
+    display: none;
+  }
+
+  &[type='date']::-webkit-calendar-picker-indicator,
+  &[type='datetime-local']::-webkit-calendar-picker-indicator,
+  &[type='time']::-webkit-calendar-picker-indicator {
     appearance: none;
     background: none;
     block-size: 0;
@@ -113,14 +146,15 @@
     inline-size: 0;
     margin: 0;
     opacity: 0;
-    overflow: hidden;
     padding: 0;
     pointer-events: none;
     visibility: hidden;
+    -webkit-appearance: none;
   }
 
-  /* Firefox (supported types); harmless where unsupported */
-  &::-moz-calendar-picker-indicator {
+  &[type='date']::-moz-calendar-picker-indicator,
+  &[type='datetime-local']::-moz-calendar-picker-indicator,
+  &[type='time']::-moz-calendar-picker-indicator {
     display: none;
   }
 }
@@ -133,7 +167,9 @@
   cursor: pointer;
   display: flex;
   flex-shrink: 0;
+  justify-content: center;
   line-height: 1;
+  margin-left: var(--spacing-md);
 
   &:disabled {
     color: var(--text-color-secondary);
@@ -195,16 +231,19 @@
 }
 
 .numberInput {
+  appearance: textfield;
   -moz-appearance: textfield;
 }
 
 .numberInputWithSuffix {
+  appearance: textfield;
   -moz-appearance: textfield;
 
   &::-webkit-inner-spin-button,
   &::-webkit-outer-spin-button {
-    -webkit-appearance: none;
+    appearance: none;
     margin: 0;
+    -webkit-appearance: none;
   }
 }
 

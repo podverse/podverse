@@ -174,11 +174,11 @@ export function TextInput({
         ) : null}
         <div className={styles.textInnerInputWrapper}>
           {useEyebrowNativePickerRow ? (
-            <div className={styles.textInnerEyebrowPickerRow}>
-              <div className={styles.textInputMain}>
-                <label htmlFor={inputId} className={styles.eyebrow}>
-                  {eyebrow}
-                </label>
+            <>
+              <label htmlFor={inputId} className={styles.eyebrow}>
+                {eyebrow}
+              </label>
+              <span className={styles.nativePickerInputBox}>
                 <input
                   ref={inputRef}
                   aria-describedby={info ? infoId : ariaDescribedBy}
@@ -203,25 +203,8 @@ export function TextInput({
                   onWheel={onWheel}
                   {...rest}
                 />
-              </div>
-              <button
-                aria-label={pickerAffixAriaLabel}
-                className={styles.nativePickerAffix}
-                disabled={disabled || readOnly}
-                type="button"
-                onClick={() => {
-                  if (!disabled && !readOnly) {
-                    openNativePicker();
-                  }
-                }}
-              >
-                {type === 'time' ? (
-                  <FaClock aria-hidden className={styles.nativePickerAffixIcon} />
-                ) : (
-                  <FaCalendarDays aria-hidden className={styles.nativePickerAffixIcon} />
-                )}
-              </button>
-            </div>
+              </span>
+            </>
           ) : (
             <>
               {eyebrow ? (
@@ -315,6 +298,25 @@ export function TextInput({
             </>
           )}
         </div>
+        {useEyebrowNativePickerRow ? (
+          <button
+            aria-label={pickerAffixAriaLabel}
+            className={styles.nativePickerAffix}
+            disabled={disabled || readOnly}
+            type="button"
+            onClick={() => {
+              if (!disabled && !readOnly) {
+                openNativePicker();
+              }
+            }}
+          >
+            {type === 'time' ? (
+              <FaClock aria-hidden className={styles.nativePickerAffixIcon} />
+            ) : (
+              <FaCalendarDays aria-hidden className={styles.nativePickerAffixIcon} />
+            )}
+          </button>
+        ) : null}
         {type === 'number' && numberStepperAriaLabels !== undefined ? (
           <TextInputNumberIncrement
             decrementAriaLabel={numberStepperAriaLabels.decrement}
