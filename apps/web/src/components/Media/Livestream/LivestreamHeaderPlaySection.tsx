@@ -3,6 +3,7 @@
 import React from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
+import { LiveItemStatusEnum } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
 
 import { useAutoQueue } from '../../../contexts/AutoQueue';
@@ -27,6 +28,7 @@ export const LivestreamHeaderPlaySection: React.FC<LivestreamHeaderPlaySectionPr
   const { mpItem, mpClip, mpItemSoundbite, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const { autoQueueConfig } = useAutoQueue();
+  const showPlayButton = item.live_item?.live_item_status?.id === LiveItemStatusEnum.Live;
 
   const playButtonOnClick = () => {
     if (item.id === mpItem?.id && !mpClip && !mpItemSoundbite) {
@@ -59,7 +61,7 @@ export const LivestreamHeaderPlaySection: React.FC<LivestreamHeaderPlaySectionPr
   return (
     <div className={styles.playSection}>
       <div className={styles.sectionStart}>
-        <PlayButtonLarge item={item} onClick={playButtonOnClick} />
+        {showPlayButton && <PlayButtonLarge item={item} onClick={playButtonOnClick} />}
         {item.live_item && (
           <>
             <LiveItemStatus live_item={item.live_item} />
