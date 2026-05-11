@@ -1,7 +1,6 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
-import { dismissLocalDevelopmentModal } from './helpers/dismissLocalDevelopmentModal';
 import { E2E_SET_PASSWORD_INVITE_TOKEN } from './helpers/setPasswordInvite';
 
 const LOGIN_EMAIL = 'e2e-user@example.com';
@@ -10,10 +9,7 @@ const API_LOGIN_URL = 'http://localhost:4030/api/v2/auth/login';
 
 async function openSetPasswordInvite(page: Page): Promise<void> {
   await page.goto(`/set-password?token=${encodeURIComponent(E2E_SET_PASSWORD_INVITE_TOKEN)}`);
-  await expect(page.getByRole('dialog', { name: /Local Development/i })).toBeVisible({
-    timeout: 15_000,
-  });
-  await dismissLocalDevelopmentModal(page);
+  await expect(page.locator('body')).toBeVisible({ timeout: 15_000 });
 }
 
 async function loginSeedUser(page: Page): Promise<void> {
@@ -106,8 +102,6 @@ test.describe('Set-password invite when another session is active', () => {
           url.pathname.endsWith('/set-password') &&
           url.searchParams.get('token') === E2E_SET_PASSWORD_INVITE_TOKEN
       );
-      // Modal may not reappear after reload when the disclaimer was already accepted in-session.
-      await dismissLocalDevelopmentModal(page);
     });
 
     await test.step('No session banner after logout', async () => {

@@ -1,7 +1,5 @@
 import { expect, test } from '@playwright/test';
 
-import { dismissLocalDevelopmentModal } from './helpers/dismissLocalDevelopmentModal';
-
 test.describe('Podcast Index add feed when directory add is blocked for Trial', () => {
   test.beforeEach(async ({ page }) => {
     await page.route('**/mq/rss/add/on-demand', async (route) => {
@@ -34,10 +32,7 @@ test.describe('Podcast Index add feed when directory add is blocked for Trial', 
     // Use Podcast Index mock-feed id range (see packages/external-services-podcast-index TEST_PODCAST_INDEX_ID_MIN).
     // E2E runs the API with NODE_ENV=test (not production), so real PI ids hit live Podcast Index and SSR fails without credentials.
     await page.goto('/podcast-index/feed/2147483640');
-    await expect(page.getByRole('dialog', { name: /Local Development/i })).toBeVisible({
-      timeout: 15_000,
-    });
-    await dismissLocalDevelopmentModal(page);
+    await expect(page.locator('body')).toBeVisible({ timeout: 15_000 });
 
     await test.step('The Add Feed button is available after login', async () => {
       await expect(page.getByRole('button', { name: /add feed/i })).toBeVisible();

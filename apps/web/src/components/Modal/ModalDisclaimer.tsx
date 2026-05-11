@@ -8,6 +8,7 @@ import { Button, Modal, TextCheckboxes } from '@podverse/ui';
 import { useConfig } from '../../contexts/Config';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useModals } from '../../contexts/Modals';
+import { shouldShowServerEnvironmentDisclaimer } from './serverEnvironmentDisclaimer';
 
 import styles from '../../styles/components/Modal/ModalDisclaimer.module.scss';
 
@@ -19,7 +20,7 @@ export const ModalDisclaimer: React.FC<ModalDisclaimerProps> = ({ isOpen }) => {
   const config = useConfig();
   const server_env = config.public.server_env;
 
-  if (!server_env || server_env === 'prod') {
+  if (!shouldShowServerEnvironmentDisclaimer(server_env)) {
     return null;
   }
 

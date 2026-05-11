@@ -1,18 +1,12 @@
 import { expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
-import { dismissLocalDevelopmentModal } from './dismissLocalDevelopmentModal';
-
 export async function openMediaPlayerHarness(page: Page) {
   await page.goto('/e2e/media-player-foundation');
-  await expect(page.getByRole('dialog', { name: /Local Development/i })).toBeVisible({
-    timeout: 15_000,
-  });
-  await dismissLocalDevelopmentModal(page);
+  await expect(page.locator('body')).toBeVisible({ timeout: 15_000 });
 }
 
 export async function selectScenario(page: Page, scenarioId: string) {
-  await dismissLocalDevelopmentModal(page);
   await page.evaluate((nextScenarioId) => {
     window.dispatchEvent(
       new CustomEvent('media_player_set_scenario', { detail: { scenarioId: nextScenarioId } })
