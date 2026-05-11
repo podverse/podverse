@@ -21,6 +21,8 @@ PSQL_PASSWORD=""
 PSQL_DB=""
 DB_HOST="${DB_HOST:-localhost}"
 DB_PORT="${DB_PORT:-5432}"
+LINEAR_MIGRATIONS_QUIET="${LINEAR_MIGRATIONS_QUIET:-0}"
+LINEAR_MIGRATIONS_CLIENT_MIN_MESSAGES="${LINEAR_MIGRATIONS_CLIENT_MIN_MESSAGES:-ERROR}"
 ENV_FILE="${LINEAR_MIGRATIONS_ENV_FILE:-}"
 if [[ -z "$ENV_FILE" ]] && command -v git >/dev/null 2>&1; then
   REPO_ROOT_FROM_GIT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel 2>/dev/null || true)"
@@ -117,7 +119,14 @@ fi
 
 sql_exec() {
   local sql="$1"
-  PGPASSWORD="$PSQL_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$PSQL_USER" -d "$PSQL_DB" -v ON_ERROR_STOP=1 -t -A -c "$sql"
+  if [[ "$LINEAR_MIGRATIONS_QUIET" == "1" ]]; then
+    PGPASSWORD="$PSQL_PASSWORD" \
+      PGOPTIONS="-c client_min_messages=$LINEAR_MIGRATIONS_CLIENT_MIN_MESSAGES" \
+      psql -q -h "$DB_HOST" -p "$DB_PORT" -U "$PSQL_USER" -d "$PSQL_DB" -v ON_ERROR_STOP=1 -t -A -c "$sql"
+  else
+    PGPASSWORD="$PSQL_PASSWORD" \
+      psql -h "$DB_HOST" -p "$DB_PORT" -U "$PSQL_USER" -d "$PSQL_DB" -v ON_ERROR_STOP=1 -t -A -c "$sql"
+  fi
 }
 
 sql_exec_file_and_record_in_tx() {
@@ -136,7 +145,14 @@ sql_exec_file_and_record_in_tx() {
     cat "$sql_file"
     printf "INSERT INTO linear_migration_history (migration_filename, migration_checksum) VALUES ('%s', '%s');\n" "$escaped_filename" "$escaped_checksum"
     echo "COMMIT;"
-  } | PGPASSWORD="$PSQL_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$PSQL_USER" -d "$PSQL_DB" -v ON_ERROR_STOP=1
+  } | if [[ "$LINEAR_MIGRATIONS_QUIET" == "1" ]]; then
+    PGPASSWORD="$PSQL_PASSWORD" \
+      PGOPTIONS="-c client_min_messages=$LINEAR_MIGRATIONS_CLIENT_MIN_MESSAGES" \
+      psql -q -t -A -h "$DB_HOST" -p "$DB_PORT" -U "$PSQL_USER" -d "$PSQL_DB" -v ON_ERROR_STOP=1
+  else
+    PGPASSWORD="$PSQL_PASSWORD" \
+      psql -h "$DB_HOST" -p "$DB_PORT" -U "$PSQL_USER" -d "$PSQL_DB" -v ON_ERROR_STOP=1
+  fi
 }
 
 compute_sha256() {

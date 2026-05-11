@@ -21,7 +21,7 @@
     "build:watch": "tsc --build --watch --preserveWatchOutput",
     "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit"
   },

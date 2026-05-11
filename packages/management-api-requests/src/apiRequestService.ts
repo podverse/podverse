@@ -73,11 +73,16 @@ export class ManagementApiRequestService {
     abort,
     userAgent,
   }: ApiRequestParams): Promise<T> {
+    const hasWindow =
+      typeof globalThis !== 'undefined' &&
+      'window' in globalThis &&
+      (globalThis as { window?: unknown }).window !== undefined;
     const authHeaders = toAuthHeaders(this.authContext);
     const existingHeaders = (requestConfig.headers as Record<string, string> | undefined) ?? {};
     const mergedConfig = {
       ...requestConfig,
       ...(userAgent ? { userAgent } : {}),
+      ...(hasWindow ? { withCredentials: true } : {}),
       headers: {
         ...existingHeaders,
         ...authHeaders,
