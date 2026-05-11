@@ -2,8 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
+import type { DTOAccount } from '@podverse/helpers';
 import {
   getPassword2ErrorKey,
   getPasswordErrorKey,
@@ -20,10 +21,23 @@ import {
 } from '@podverse/ui';
 
 import { MainWrapper } from '../../components/Main/MainWrapper';
+import { useAccount } from '../../contexts/Account';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 
 import styles from '../../styles/components/Auth/AuthResetPasswordForm.module.scss';
+
+function sessionLabelForBanner(account: DTOAccount): string {
+  const email = account.account_credentials?.email;
+  if (email !== undefined && email !== null && email.trim() !== '') {
+    return email.trim();
+  }
+  const displayName = account.account_profile?.display_name;
+  if (displayName !== undefined && displayName !== null && displayName.trim() !== '') {
+    return displayName.trim();
+  }
+  return account.id_text;
+}
 
 type SetPasswordPageClientProps = {
   token?: string;
@@ -39,16 +53,43 @@ export function SetPasswordPageClient({ token }: SetPasswordPageClientProps) {
   const [password2Touched, setPassword2Touched] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [otherSessionBannerDismissed, setOtherSessionBannerDismissed] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const { loggedInAccount } = useAccount();
   const tAuthentication = useTranslations('authentication');
   const tMisc = useTranslations('misc');
   const router = useRouter();
   const locale = useLocale();
+
+  const sessionBannerLabel = useMemo(() => {
+    if (loggedInAccount === null || loggedInAccount === undefined) {
+      return '';
+    }
+    return sessionLabelForBanner(loggedInAccount);
+  }, [loggedInAccount]);
+
+  const showOtherSessionBanner =
+    !isComplete &&
+    loggedInAccount !== null &&
+    loggedInAccount !== undefined &&
+    !otherSessionBannerDismissed;
 
   useEffect(() => {
     if (!token) {
       router.replace('/');
     }
   }, [token, router]);
+
+  const handleSignOutAndContinue = async () => {
+    if (!token) return;
+    setIsSigningOut(true);
+    try {
+      await getApiRequestService().reqAuthLogout();
+      window.location.assign(`/set-password?token=${encodeURIComponent(token)}`);
+    } catch {
+      setIsSigningOut(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,6 +187,33 @@ export function SetPasswordPageClient({ token }: SetPasswordPageClientProps) {
         <MainSidebarLayout>
           <MainColumnStack>
             <div className={styles.authResetPasswordForm}>
+              {!isComplete && showOtherSessionBanner && (
+                <div className={styles.sessionBanner}>
+                  <FormInfoMessageText
+                    message={tAuthentication('set_password_other_session_banner', {
+                      sessionLabel: sessionBannerLabel,
+                    })}
+                  />
+                  <div className={styles.buttons}>
+                    <Button
+                      type="button"
+                      disabled={isSigningOut}
+                      onClick={() => setOtherSessionBannerDismissed(true)}
+                      variant="secondary"
+                    >
+                      {tAuthentication('set_password_continue_without_signing_out')}
+                    </Button>
+                    <Button
+                      type="button"
+                      isLoading={isSigningOut}
+                      onClick={() => void handleSignOutAndContinue()}
+                      variant="primary"
+                    >
+                      {tAuthentication('set_password_sign_out_to_continue')}
+                    </Button>
+                  </div>
+                </div>
+              )}
               {!isComplete && (
                 <StackForm onSubmit={handleSubmit}>
                   <TextInput
