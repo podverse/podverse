@@ -29,6 +29,7 @@ import {
   sleep,
 } from '@podverse/helpers';
 import { getStatusCodeFromError } from '@podverse/helpers-requests';
+import { canonicalHttpOrHttpsUrl } from '@podverse/helpers-validation';
 import {
   AccountService,
   ChannelSeasonService,
@@ -180,6 +181,12 @@ export const parseRSSFeedAndSaveToDatabase = async (
         `parseRSSFeedAndSaveToDatabase: url or podcast_index_id is missing for ${url} ${podcast_index_id}`
       );
     }
+
+    const canonicalUrl = canonicalHttpOrHttpsUrl(url);
+    if (canonicalUrl === null) {
+      throw new Error(`parseRSSFeedAndSaveToDatabase: invalid feed URL: ${url}`);
+    }
+    url = canonicalUrl;
 
     await handleRateLimitRequestDelay(url);
 

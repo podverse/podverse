@@ -6,6 +6,8 @@ import type { FeedPolicy } from '@orm/entities/feed/feedPolicy.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
 import { isPostgresUniqueViolation } from '@orm/lib/postgresUniqueViolation.js';
 
+import { canonicalHttpOrHttpsUrl } from '@podverse/helpers-validation';
+
 import { computeParsingStaleBefore, deriveHttpsAndHttpUrlsFromInput } from './feed.helpers.js';
 import {
   FeedLifecycleStateService,
@@ -139,7 +141,8 @@ export class FeedService {
     return Number.isNaN(n) ? null : n;
   }
 
-  async getOrCreate({ url, podcast_index_id }: FeedCreateDto): Promise<Feed> {
+  async getOrCreate({ url: urlRaw, podcast_index_id }: FeedCreateDto): Promise<Feed> {
+    const url = canonicalHttpOrHttpsUrl(urlRaw) ?? urlRaw;
     const feed = await this.repositoryRead.findOne({
       where: { url },
       relations: [...FEED_RELATIONS],
@@ -170,7 +173,8 @@ export class FeedService {
     }
   }
 
-  async create({ url, podcast_index_id }: FeedCreateDto): Promise<Feed> {
+  async create({ url: urlRaw, podcast_index_id }: FeedCreateDto): Promise<Feed> {
+    const url = canonicalHttpOrHttpsUrl(urlRaw) ?? urlRaw;
     const feed = new Feed();
     feed.url = url;
     feed.podcast_index_id = podcast_index_id;
@@ -182,6 +186,10 @@ export class FeedService {
   }
 
   async update(id: number, dto: FeedUpdateDto): Promise<Feed> {
+    if (dto.url !== undefined && dto.url !== null) {
+      dto = { ...dto, url: canonicalHttpOrHttpsUrl(dto.url) ?? dto.url };
+    }
+
     let feed = await this.get(id);
 
     if (!feed) {

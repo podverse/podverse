@@ -2,7 +2,7 @@ import { activeMQArtemisService } from '@api/factories/activeMQArtemisService.js
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
 import { cacheGetJson, cacheSetJson } from '@api/lib/keyvaldb/keyvaldb.js';
 import { rateLimitAuthEndpoint } from '@api/lib/rateLimiter.js';
-import { validateBodyObject } from '@api/lib/validation/index.js';
+import { joiFeedUrl, validateBodyObject } from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 
@@ -37,7 +37,7 @@ export class MQController {
         async () => {
           MQController.rssOnDemandMiddleware(req, res, () => {
             const bodySchema = Joi.object({
-              url: Joi.string().uri().required(),
+              url: joiFeedUrl(),
               podcast_index_id: Joi.number().min(1).required(),
             });
 

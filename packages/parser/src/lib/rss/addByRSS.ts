@@ -3,6 +3,7 @@ import type { FeedObject } from 'podverse-partytime';
 import { parseFeed } from 'podverse-partytime';
 
 import { DEFAULT_HTTP_TIMEOUT_MS, resolveParserMaxFeedBodyBytes, sleep } from '@podverse/helpers';
+import { canonicalHttpOrHttpsUrl } from '@podverse/helpers-validation';
 
 import { getRawFeedMd5Hash } from './hash/rawFeed.js';
 
@@ -66,7 +67,12 @@ export const parseRSSFeedForAddByRSS = async (
     return { status: 'failed', error: 'parseRSSFeedForAddByRSS: url is required' };
   }
 
-  await handleRateLimitRequestDelay(url);
+  const canonicalUrl = canonicalHttpOrHttpsUrl(url);
+  if (canonicalUrl === null) {
+    return { status: 'failed', error: `parseRSSFeedForAddByRSS: invalid feed URL: ${url}` };
+  }
+
+  await handleRateLimitRequestDelay(canonicalUrl);
 
   const conditionalHeaders: Record<string, string> = {};
   if (options.etag) {
@@ -88,7 +94,7 @@ export const parseRSSFeedForAddByRSS = async (
     conditionalHeaders['Authorization'] = `Basic ${encoded}`;
   }
 
-  const response = await _requestWithHeaders<string>(url, {
+  const response = await _requestWithHeaders<string>(canonicalUrl, {
     headers: conditionalHeaders,
     validateStatus: (status) => (status >= 200 && status < 300) || status === 304,
   });
@@ -106,7 +112,7 @@ export const parseRSSFeedForAddByRSS = async (
 
   const rawFeed = typeof response.data === 'string' ? response.data : String(response.data);
   if (!rawFeed) {
-    return { status: 'failed', error: `parseRSSFeedForAddByRSS: empty body for ${url}` };
+    return { status: 'failed', error: `parseRSSFeedForAddByRSS: empty body for ${canonicalUrl}` };
   }
 
   const responseHeaders = response.headers as HeaderRecord;
@@ -132,7 +138,7 @@ export const parseRSSFeedForAddByRSS = async (
   if (!parsedFeed) {
     return {
       status: 'failed',
-      error: `parseRSSFeedForAddByRSS: parsedFeed not found for ${url}`,
+      error: `parseRSSFeedForAddByRSS: parsedFeed not found for ${canonicalUrl}`,
     };
   }
 
