@@ -21,7 +21,7 @@ export const ItemSoundbiteHeader: React.FC<ItemSoundbiteHeaderProps> = ({
 }) => {
   return (
     <header>
-      <Link href={`${ROUTES.EPISODE}/${item.id_text}`}>
+      <Link className={styles.episodeTitleLink} href={`${ROUTES.EPISODE}/${item.id_text}`}>
         <h2 className={styles.episodeTitle}>{item.title || 'Untitled'}</h2>
       </Link>
       <h3 className={styles.officialClipTitle}>{item_soundbite.title || 'Untitled'}</h3>

@@ -1,4 +1,5 @@
 @use '../../../../variables/breakpoints';
+@use '../../../../mixins/focus' as focus;
 
 .contentDesktop {
   display: flex;
@@ -19,6 +20,10 @@
 .title {
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-light);
+}
+
+.titleLink {
+  @include focus.title-link-focus-box;
 }
 
 @media (max-width: breakpoints.$breakpoint-md-max) {

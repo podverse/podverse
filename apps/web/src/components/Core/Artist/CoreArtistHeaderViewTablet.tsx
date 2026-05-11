@@ -22,7 +22,7 @@ export const CoreArtistHeaderViewTablet: React.FC<CoreArtistHeaderViewTabletProp
     <CommonArtistHeaderViewTablet
       imageNode={<CoreArtistHeaderImage channel={channel} />}
       titleNode={
-        <Link href={`${ROUTES.ARTIST}/${channel.id_text}`}>
+        <Link className={styles.titleLink} href={`${ROUTES.ARTIST}/${channel.id_text}`}>
           <h1 className={styles.title}>{channel.title}</h1>
         </Link>
       }

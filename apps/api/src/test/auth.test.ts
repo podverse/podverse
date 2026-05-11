@@ -1,7 +1,7 @@
 import type { Server } from 'http';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ORMContext } from '@podverse/orm';
 
@@ -102,6 +102,40 @@ describe('auth routes', () => {
   let server: Server | undefined;
   let ormContext: ORMContext | undefined;
   let app: import('express').Express;
+
+  beforeEach(() => {
+    getByEmailMock.mockReset();
+    getByEmailMock.mockImplementation(async () => ({
+      id: TEST_USER_ID,
+      id_text: TEST_ACCOUNT_ID_TEXT,
+      verified: true,
+      account_credentials: { email: TEST_EMAIL, password: 'hashed-password' },
+    }));
+
+    getByUsernameMock.mockReset();
+    getByUsernameMock.mockImplementation(async () => ({
+      id: TEST_USER_ID,
+      id_text: TEST_ACCOUNT_ID_TEXT,
+      verified: true,
+      account_credentials: { username: 'auth-test-username', password: 'hashed-password' },
+    }));
+
+    getMock.mockReset();
+    getMock.mockImplementation(async () => ({
+      id: TEST_USER_ID,
+      id_text: TEST_ACCOUNT_ID_TEXT,
+      account_credentials: { email: TEST_EMAIL },
+      account_membership_status: {
+        membership_expires_at: new Date(Date.now() + 86400000 * 365),
+      },
+    }));
+
+    verifyPasswordMock.mockReset();
+    verifyPasswordMock.mockImplementation(async () => true);
+
+    getSenderGuidByAccountIdMock.mockReset();
+    getSenderGuidByAccountIdMock.mockImplementation(async () => null);
+  });
 
   beforeAll(async () => {
     const result = await startTestApp();
@@ -390,6 +424,57 @@ describe('auth routes', () => {
       const res = await request(app).get(`${authBase}/check-session`);
 
       expect(res.status).toBe(401);
+    });
+  });
+
+  describe('POST /auth/mobile/*', () => {
+    it('issues mobile token pair from credentials', async () => {
+      const res = await request(app)
+        .post(`${authBase}/mobile/token`)
+        .send({ email: TEST_EMAIL, password: TEST_PASSWORD });
+
+      expect(res.status).toBe(200);
+      expect(res.body.token_type).toBe('Bearer');
+      expect(typeof res.body.access_token).toBe('string');
+      expect(typeof res.body.refresh_token).toBe('string');
+      expect(res.body.access_token_expires_in).toBeGreaterThan(0);
+      expect(res.body.refresh_token_expires_in).toBeGreaterThan(0);
+    });
+
+    it('rotates refresh token and rejects reuse', async () => {
+      const issue = await request(app)
+        .post(`${authBase}/mobile/token`)
+        .send({ email: TEST_EMAIL, password: TEST_PASSWORD });
+      const refreshToken = issue.body.refresh_token as string;
+
+      const refreshOne = await request(app)
+        .post(`${authBase}/mobile/refresh`)
+        .send({ refresh_token: refreshToken });
+      expect(refreshOne.status).toBe(200);
+      expect(typeof refreshOne.body.refresh_token).toBe('string');
+
+      const reuse = await request(app)
+        .post(`${authBase}/mobile/refresh`)
+        .send({ refresh_token: refreshToken });
+      expect(reuse.status).toBe(401);
+      expect(reuse.body.code).toBe('refresh_token_reuse_detected');
+    });
+
+    it('revokes family and denies refresh after revoke', async () => {
+      const issue = await request(app)
+        .post(`${authBase}/mobile/token`)
+        .send({ email: TEST_EMAIL, password: TEST_PASSWORD });
+      const refreshToken = issue.body.refresh_token as string;
+
+      const revoke = await request(app)
+        .post(`${authBase}/mobile/revoke`)
+        .send({ refresh_token: refreshToken });
+      expect(revoke.status).toBe(200);
+
+      const refreshAfterRevoke = await request(app)
+        .post(`${authBase}/mobile/refresh`)
+        .send({ refresh_token: refreshToken });
+      expect(refreshAfterRevoke.status).toBe(401);
     });
   });
 });

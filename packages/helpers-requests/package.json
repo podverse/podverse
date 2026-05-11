@@ -40,6 +40,7 @@
     "access": "public"
   },
   "dependencies": {
+    "@podverse/http-request-core": "*",
     "@podverse/helpers": "*",
     "axios": "^1.13.6",
     "ipaddr.js": "^2.3.0"

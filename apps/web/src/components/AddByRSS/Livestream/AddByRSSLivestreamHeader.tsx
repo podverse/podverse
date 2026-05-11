@@ -33,7 +33,7 @@ export const AddByRSSLivestreamHeader: React.FC<AddByRSSLivestreamHeaderProps> =
   const detailUrl = `/add-by-rss/${mediumSlug}/livestream/${feed.idText}`;
 
   const titleNode = (
-    <Link href={detailUrl}>
+    <Link className={styles.episodeTitleLink} href={detailUrl}>
       <h2 className={styles.episodeTitle}>{title || 'Untitled'}</h2>
     </Link>
   );

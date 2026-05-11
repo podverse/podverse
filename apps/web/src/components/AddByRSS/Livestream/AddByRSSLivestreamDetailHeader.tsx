@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { AddByRSSResourceDataImageEntry } from '@podverse/helpers';
+import { LiveItemStatusEnum } from '@podverse/helpers';
 
 import { IMAGES } from '../../../constants/images';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
@@ -45,6 +46,8 @@ export const AddByRSSLivestreamDetailHeader: React.FC<AddByRSSLivestreamDetailHe
   const tMediaPlayer = useTranslations('media_player');
   const { mpAddByRSS, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
   const playAddByRSS = usePlayAddByRSS();
+  const liveStatusId = indexItem?.liveItem.live_item_status ?? LiveItemStatusEnum.Pending;
+  const showPlayButton = liveStatusId === LiveItemStatusEnum.Live;
 
   const togglePlay = () => {
     if (indexItem && mpAddByRSS?.idText === indexItem.idText) {
@@ -57,7 +60,10 @@ export const AddByRSSLivestreamDetailHeader: React.FC<AddByRSSLivestreamDetailHe
   };
 
   const titleNode = (
-    <Link href={getAddByRSSLivestreamPath(itemIdText, mediumSlug)}>
+    <Link
+      className={styles.episodeTitleLink}
+      href={getAddByRSSLivestreamPath(itemIdText, mediumSlug)}
+    >
       <h2 className={styles.episodeTitle}>{title || 'Untitled'}</h2>
     </Link>
   );
@@ -77,7 +83,9 @@ export const AddByRSSLivestreamDetailHeader: React.FC<AddByRSSLivestreamDetailHe
   const playSectionNode = (
     <div className={playSectionStyles.playSection}>
       <div className={playSectionStyles.sectionStart}>
-        <PlayButtonLarge addByRSSIdText={indexItem?.idText} onClick={togglePlay} />
+        {showPlayButton && (
+          <PlayButtonLarge addByRSSIdText={indexItem?.idText} onClick={togglePlay} />
+        )}
         <div className={playSectionStyles.timeSection} />
       </div>
     </div>

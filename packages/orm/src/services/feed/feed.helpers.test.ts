@@ -5,9 +5,9 @@ import { computeParsingStaleBefore, deriveHttpsAndHttpUrlsFromInput } from './fe
 describe('deriveHttpsAndHttpUrlsFromInput', () => {
   it('strips scheme and builds https and http URLs', () => {
     expect(deriveHttpsAndHttpUrlsFromInput('HTTPS://Example.COM/path')).toEqual({
-      base: 'Example.COM/path',
-      httpsUrl: 'https://Example.COM/path',
-      httpUrl: 'http://Example.COM/path',
+      base: 'example.com/path',
+      httpsUrl: 'https://example.com/path',
+      httpUrl: 'http://example.com/path',
     });
   });
 

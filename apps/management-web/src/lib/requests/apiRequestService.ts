@@ -1,5 +1,7 @@
+import type { ManagementApiRequestService as PackageManagementApiRequestService } from '@podverse/management-api-requests';
+import { createManagementApiClientFromConfig } from '@podverse/management-api-requests';
+
 import { getConfig } from '../../config';
-import { request } from './_request';
 
 export type AbortOpts = { controller: AbortController; timeoutMs: number };
 
@@ -13,20 +15,15 @@ export interface ApiRequestParams {
 }
 
 export class ManagementApiRequestService {
-  private apiBase: string;
-  private jwt?: string;
+  private client: PackageManagementApiRequestService;
 
   constructor(jwt?: string) {
     const config = getConfig();
-    const { prefix, version } = config.public.api;
-    const apiTarget =
-      typeof window === 'undefined' ? config.public.api.ssr : config.public.api.client;
-    const { protocol, host, port } = apiTarget;
-    const portPart = port ? `:${port}` : '';
-    this.apiBase = `${protocol}://${host}${portPart}${prefix?.replace(/\/$/, '') || ''}${version || ''}`;
-    if (jwt !== undefined) {
-      this.jwt = jwt;
-    }
+
+    this.client = createManagementApiClientFromConfig({
+      config,
+      jwt,
+    });
   }
 
   async apiRequest<T>({
@@ -37,23 +34,13 @@ export class ManagementApiRequestService {
     abort,
     userAgent,
   }: ApiRequestParams): Promise<T> {
-    const mergedConfig = {
-      ...requestConfig,
-      ...(userAgent ? { userAgent } : {}),
-      ...(this.jwt
-        ? {
-            headers: {
-              ...(requestConfig.headers || {}),
-              Cookie: `pv_mgmt_auth=${this.jwt}`,
-            },
-          }
-        : {}),
-    };
-
-    const options =
-      method === 'GET' ? { method, ...mergedConfig } : { method, data, ...mergedConfig };
-
-    const response = await request<T>(`${this.apiBase}${path}`, options, abort);
-    return response.data;
+    return this.client.apiRequest<T>({
+      path,
+      method,
+      data,
+      config: requestConfig,
+      abort,
+      userAgent,
+    });
   }
 }

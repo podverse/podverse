@@ -2,6 +2,8 @@
  * Sessions: JWT TTL/cookie max-age use AUTH_JWT_EXPIRATION (seconds). Login JSON includes `token`
  * only when AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY=true and the client sends includeTokenInResponseBody.
  */
+import { createHash, randomUUID } from 'node:crypto';
+
 import type { AuthenticatedAdmin } from '@mgmt-api/@types/express.js';
 import { config } from '@mgmt-api/config/index.js';
 import type { AdminAccount } from '@mgmt-api/orm/entities/adminAccount.js';
@@ -16,6 +18,98 @@ import { isValidNanoIdV2IdText } from '@podverse/orm';
 
 const isProduction = config.nodeEnv === 'production';
 const ADMIN_AUTH_COOKIE_NAME = 'pv_mgmt_auth';
+const MOBILE_ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
+const MOBILE_REFRESH_TOKEN_TTL_SECONDS = 30 * 24 * 60 * 60;
+
+type MobileRefreshRecord = {
+  adminId: number;
+  adminIdText: string;
+  familyId: string;
+  used: boolean;
+  revoked: boolean;
+  expiresAtMs: number;
+};
+
+const mobileRefreshStore = new Map<string, MobileRefreshRecord>();
+
+type RefreshPayload = {
+  id: number;
+  id_text: string;
+  token_use: 'refresh';
+  family_id: string;
+  jti: string;
+};
+
+const hashRefreshToken = (token: string): string =>
+  createHash('sha256').update(token).digest('hex');
+
+const revokeRefreshFamily = (familyId: string): void => {
+  for (const [tokenHash, record] of mobileRefreshStore.entries()) {
+    if (record.familyId === familyId) {
+      mobileRefreshStore.set(tokenHash, { ...record, revoked: true });
+    }
+  }
+};
+
+const issueMobileTokenPair = (params: {
+  adminId: number;
+  adminIdText: string;
+  familyId?: string;
+}): {
+  token_type: 'Bearer';
+  access_token: string;
+  access_token_expires_in: number;
+  refresh_token: string;
+  refresh_token_expires_in: number;
+} => {
+  const familyId = params.familyId ?? randomUUID();
+  const refreshJti = randomUUID();
+
+  const accessToken = jwt.sign(
+    {
+      id: params.adminId,
+      id_text: params.adminIdText,
+      scope: 'podverse_management_mobile',
+      token_use: 'access',
+    },
+    config.auth.jwtSecret,
+    {
+      expiresIn: MOBILE_ACCESS_TOKEN_TTL_SECONDS,
+    } as SignOptions
+  );
+
+  const refreshToken = jwt.sign(
+    {
+      id: params.adminId,
+      id_text: params.adminIdText,
+      scope: 'podverse_management_mobile',
+      token_use: 'refresh',
+      family_id: familyId,
+      jti: refreshJti,
+    },
+    config.auth.jwtSecret,
+    {
+      expiresIn: MOBILE_REFRESH_TOKEN_TTL_SECONDS,
+    } as SignOptions
+  );
+
+  mobileRefreshStore.set(hashRefreshToken(refreshToken), {
+    adminId: params.adminId,
+    adminIdText: params.adminIdText,
+    familyId,
+    used: false,
+    revoked: false,
+    expiresAtMs: Date.now() + MOBILE_REFRESH_TOKEN_TTL_SECONDS * 1000,
+  });
+
+  return {
+    token_type: 'Bearer',
+    access_token: accessToken,
+    access_token_expires_in: MOBILE_ACCESS_TOKEN_TTL_SECONDS,
+    refresh_token: refreshToken,
+    refresh_token_expires_in: MOBILE_REFRESH_TOKEN_TTL_SECONDS,
+  };
+};
 
 const setAuthCookie = (res: Response, token: string) => {
   const maxAge = config.auth.sessionCookieMaxAgeMs;
@@ -305,4 +399,92 @@ export const logout = (_req: Request, res: Response) => {
   }
 
   return res.json({ message: 'Logged out successfully' });
+};
+
+export const issueMobileToken = async (req: Request, res: Response): Promise<void> => {
+  const body = req.body as { email?: string; password?: string } | undefined;
+  const email = body?.email?.trim() ?? '';
+  const password = body?.password ?? '';
+  if (email === '' || password === '') {
+    res.status(400).json({ message: 'email and password are required' });
+    return;
+  }
+
+  const admin = await adminAccountService.verifyPassword(email, password);
+  if (!admin || !admin.id_text || !isValidNanoIdV2IdText(admin.id_text)) {
+    res.status(401).json({ message: 'Invalid credentials.' });
+    return;
+  }
+
+  res.json(issueMobileTokenPair({ adminId: admin.id, adminIdText: admin.id_text }));
+};
+
+export const refreshMobileToken = (req: Request, res: Response): void => {
+  const body = req.body as { refresh_token?: string } | undefined;
+  const refreshToken = body?.refresh_token ?? '';
+  if (refreshToken === '') {
+    res.status(400).json({ message: 'refresh_token is required' });
+    return;
+  }
+
+  let payload: RefreshPayload;
+  try {
+    payload = jwt.verify(refreshToken, config.auth.jwtSecret) as RefreshPayload;
+  } catch {
+    res.status(401).json({ message: 'Invalid refresh token' });
+    return;
+  }
+
+  if (
+    payload.token_use !== 'refresh' ||
+    typeof payload.family_id !== 'string' ||
+    typeof payload.jti !== 'string' ||
+    typeof payload.id !== 'number' ||
+    typeof payload.id_text !== 'string'
+  ) {
+    res.status(401).json({ message: 'Invalid refresh token' });
+    return;
+  }
+
+  const hashed = hashRefreshToken(refreshToken);
+  const record = mobileRefreshStore.get(hashed);
+  if (!record || record.revoked || record.expiresAtMs < Date.now()) {
+    res.status(401).json({ message: 'Refresh token is invalid or expired' });
+    return;
+  }
+
+  if (record.used) {
+    revokeRefreshFamily(record.familyId);
+    res.status(401).json({
+      message: 'Refresh token reuse detected',
+      code: 'refresh_token_reuse_detected',
+    });
+    return;
+  }
+
+  mobileRefreshStore.set(hashed, { ...record, used: true });
+  res.json(
+    issueMobileTokenPair({
+      adminId: record.adminId,
+      adminIdText: record.adminIdText,
+      familyId: record.familyId,
+    })
+  );
+};
+
+export const revokeMobileToken = (req: Request, res: Response): void => {
+  const body = req.body as { refresh_token?: string } | undefined;
+  const refreshToken = body?.refresh_token ?? '';
+  if (refreshToken !== '') {
+    try {
+      const payload = jwt.verify(refreshToken, config.auth.jwtSecret) as Partial<RefreshPayload>;
+      if (typeof payload.family_id === 'string' && payload.family_id !== '') {
+        revokeRefreshFamily(payload.family_id);
+      }
+    } catch {
+      // Return success for idempotent revocation requests.
+    }
+  }
+
+  res.json({ message: 'Mobile token family revoked' });
 };

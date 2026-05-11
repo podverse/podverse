@@ -11,7 +11,7 @@ export default async function EditAdminPage({ params }: { params: Promise<{ id: 
     redirect('/');
   }
 
-  const { user, service } = session;
+  const { user, token } = session;
   if (!canUpdateAdmins(user)) {
     redirect('/admins');
   }
@@ -24,7 +24,7 @@ export default async function EditAdminPage({ params }: { params: Promise<{ id: 
 
   let admin;
   try {
-    admin = await getAdminAccountById(adminId, service);
+    admin = await getAdminAccountById(adminId, token);
   } catch {
     redirect('/admins');
   }

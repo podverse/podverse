@@ -1,0 +1,4 @@
+@mixin focus-ring {
+  box-shadow: var(--box-shadow-focus);
+  outline: none;
+}

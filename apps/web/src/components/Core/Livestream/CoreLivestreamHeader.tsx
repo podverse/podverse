@@ -39,7 +39,7 @@ export const CoreLivestreamHeader: React.FC<CoreLivestreamHeaderProps> = ({
   const imageLightboxCandidates = itemHeaderLightboxArtworkCandidates(item.item_images);
 
   const titleNode = (
-    <Link href={link}>
+    <Link className={styles.episodeTitleLink} href={link}>
       <h2 className={styles.episodeTitle}>{item.title || 'Untitled'}</h2>
     </Link>
   );

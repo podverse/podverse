@@ -22,7 +22,7 @@ import {
   validateParamsObject,
   validateQueryObject,
 } from '@api/lib/validation/index.js';
-import archiver from 'archiver';
+import { ZipArchive } from 'archiver';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 import { v4 as uuidv4 } from 'uuid';
@@ -816,7 +816,7 @@ export class AccountController {
             await AccountController.accountDataExportService.exportUserData(account_id);
 
           // Create zip file with JSON data
-          const archive = archiver('zip', {
+          const archive = new ZipArchive({
             zlib: { level: 9 }, // Maximum compression
           });
 

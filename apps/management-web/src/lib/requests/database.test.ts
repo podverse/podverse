@@ -1,12 +1,37 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const apiRequestMock = vi.fn();
-
-vi.mock('../requests/apiRequestService', () => ({
-  ManagementApiRequestService: vi.fn().mockImplementation(() => ({
-    apiRequest: apiRequestMock,
-  })),
+const {
+  getDatabaseTablesMock,
+  getTableMetaMock,
+  queryTableMock,
+  getTableRowMock,
+  createTableRowMock,
+  updateTableRowMock,
+  deleteTableRowMock,
+} = vi.hoisted(() => ({
+  getDatabaseTablesMock: vi.fn(),
+  getTableMetaMock: vi.fn(),
+  queryTableMock: vi.fn(),
+  getTableRowMock: vi.fn(),
+  createTableRowMock: vi.fn(),
+  updateTableRowMock: vi.fn(),
+  deleteTableRowMock: vi.fn(),
 }));
+
+vi.mock('@podverse/management-api-requests', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@podverse/management-api-requests')>();
+
+  return {
+    ...actual,
+    getDatabaseTables: getDatabaseTablesMock,
+    getTableMeta: getTableMetaMock,
+    queryTable: queryTableMock,
+    getTableRow: getTableRowMock,
+    createTableRow: createTableRowMock,
+    updateTableRow: updateTableRowMock,
+    deleteTableRow: deleteTableRowMock,
+  };
+});
 
 import {
   createTableRow,
@@ -20,88 +45,71 @@ import {
 
 describe('database request helpers', () => {
   beforeEach(() => {
-    apiRequestMock.mockReset();
-    apiRequestMock.mockResolvedValue({ tables: [] });
+    getDatabaseTablesMock.mockReset();
+    getTableMetaMock.mockReset();
+    queryTableMock.mockReset();
+    getTableRowMock.mockReset();
+    createTableRowMock.mockReset();
+    updateTableRowMock.mockReset();
+    deleteTableRowMock.mockReset();
   });
 
   it('getDatabaseTables calls /database/tables', async () => {
-    apiRequestMock.mockResolvedValue({ tables: [{ tableName: 'feed' }] });
+    getDatabaseTablesMock.mockResolvedValue({ tables: [{ tableName: 'feed' }] });
 
     const result = await getDatabaseTables();
 
-    expect(apiRequestMock).toHaveBeenCalledWith({
-      path: '/database/tables',
-      method: 'GET',
-    });
+    expect(getDatabaseTablesMock).toHaveBeenCalled();
     expect(result.tables).toHaveLength(1);
   });
 
   it('getTableMeta calls /database/:table/meta', async () => {
-    apiRequestMock.mockResolvedValue({ tableName: 'feed', fields: [] });
+    getTableMetaMock.mockResolvedValue({ tableName: 'feed', fields: [] });
 
     await getTableMeta('feed');
 
-    expect(apiRequestMock).toHaveBeenCalledWith({
-      path: '/database/feed/meta',
-      method: 'GET',
-    });
+    expect(getTableMetaMock).toHaveBeenCalledWith('feed');
   });
 
   it('queryTable calls /database/:table/query with POST', async () => {
-    apiRequestMock.mockResolvedValue({ rows: [], total: 0 });
+    queryTableMock.mockResolvedValue({ rows: [], total: 0 });
 
     await queryTable('feed', { page: 1, pageSize: 25 });
 
-    expect(apiRequestMock).toHaveBeenCalledWith({
-      path: '/database/feed/query',
-      method: 'POST',
-      data: { page: 1, pageSize: 25 },
-    });
+    expect(queryTableMock).toHaveBeenCalledWith('feed', { page: 1, pageSize: 25 });
   });
 
   it('getTableRow calls /database/:table/:id with GET', async () => {
-    apiRequestMock.mockResolvedValue({ id: 1 });
+    getTableRowMock.mockResolvedValue({ id: 1 });
 
     await getTableRow('feed', 1);
 
-    expect(apiRequestMock).toHaveBeenCalledWith({
-      path: '/database/feed/1',
-      method: 'GET',
-    });
+    expect(getTableRowMock).toHaveBeenCalledWith('feed', 1);
   });
 
   it('createTableRow calls /database/:table with POST', async () => {
-    apiRequestMock.mockResolvedValue({ id: 5 });
+    createTableRowMock.mockResolvedValue({ id: 5 });
 
     await createTableRow('feed_takedown_reason', { reason: 'spam' });
 
-    expect(apiRequestMock).toHaveBeenCalledWith({
-      path: '/database/feed_takedown_reason',
-      method: 'POST',
-      data: { reason: 'spam' },
-    });
+    expect(createTableRowMock).toHaveBeenCalledWith('feed_takedown_reason', { reason: 'spam' });
   });
 
   it('updateTableRow calls /database/:table/:id with PATCH', async () => {
-    apiRequestMock.mockResolvedValue({ id: 1, reason: 'updated' });
+    updateTableRowMock.mockResolvedValue({ id: 1, reason: 'updated' });
 
     await updateTableRow('feed_takedown_reason', 1, { reason: 'updated' });
 
-    expect(apiRequestMock).toHaveBeenCalledWith({
-      path: '/database/feed_takedown_reason/1',
-      method: 'PATCH',
-      data: { reason: 'updated' },
+    expect(updateTableRowMock).toHaveBeenCalledWith('feed_takedown_reason', 1, {
+      reason: 'updated',
     });
   });
 
   it('deleteTableRow calls /database/:table/:id with DELETE', async () => {
-    apiRequestMock.mockResolvedValue(undefined);
+    deleteTableRowMock.mockResolvedValue(undefined);
 
     await deleteTableRow('feed_takedown_reason', 7);
 
-    expect(apiRequestMock).toHaveBeenCalledWith({
-      path: '/database/feed_takedown_reason/7',
-      method: 'DELETE',
-    });
+    expect(deleteTableRowMock).toHaveBeenCalledWith('feed_takedown_reason', 7);
   });
 });

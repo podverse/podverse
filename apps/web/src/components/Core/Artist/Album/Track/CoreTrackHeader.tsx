@@ -28,7 +28,7 @@ export const CoreTrackHeader: React.FC<CoreTrackHeaderProps> = ({ item, channel 
   );
 
   const titleNode = (
-    <Link href={`${ROUTES.TRACK}/${item.id_text}`}>
+    <Link className={styles.episodeTitleLink} href={`${ROUTES.TRACK}/${item.id_text}`}>
       <h2 className={styles.episodeTitle}>{item.title || 'Untitled'}</h2>
     </Link>
   );

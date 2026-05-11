@@ -22,15 +22,6 @@
   width: var(--list-item-button-size);
 }
 
-.button:focus {
-  outline: none;
-}
-
-.button:focus-visible:not(:disabled) {
-  outline: 2px solid var(--border-color-primary);
-  outline-offset: 2px;
-}
-
 .button:hover:not(:disabled),
 .button:focus-visible:not(:disabled) {
   background-color: var(--button-secondary-bg-hover);

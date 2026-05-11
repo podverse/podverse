@@ -60,7 +60,7 @@ export const AddByRSSTrackDetailHeader: React.FC<AddByRSSTrackDetailHeaderProps>
       : [];
 
   const titleNode = (
-    <Link href={getAddByRSSItemPath(itemIdText, 'tracks')}>
+    <Link className={styles.episodeTitleLink} href={getAddByRSSItemPath(itemIdText, 'tracks')}>
       <h2 className={styles.episodeTitle}>{title || 'Untitled'}</h2>
     </Link>
   );
