@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "@podverse/helpers": "*",
-    "@podverse/helpers-config": "*"
+    "@podverse/helpers-config": "*",
+    "next-intl": "^4.11.2"
   },
   "devDependencies": {
     "esbuild": "^0.27.4",

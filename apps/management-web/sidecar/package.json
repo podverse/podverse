@@ -13,8 +13,9 @@
   "dependencies": {
     "@podverse/helpers": "*",
     "@podverse/helpers-config": "*",
-    "@tanstack/react-query": "^5.99.2",
-    "@tanstack/react-table": "^8.21.3"
+    "@tanstack/react-query": "^5.100.10",
+    "@tanstack/react-table": "^8.21.3",
+    "next-intl": "^4.11.2"
   },
   "devDependencies": {
     "esbuild": "^0.27.4",
