@@ -404,10 +404,16 @@
     "createdWithLink": "Administrateur créé. Partagez le lien d'invitation ci-dessous pour que la personne définisse son mot de passe.",
     "passwordOptional": "Mot de passe (facultatif)",
     "passwordInviteHint": "Si vous laissez ce champ vide, un lien d'invitation est généré que vous pouvez envoyer pour définir le mot de passe.",
+    "emailOptional": "Email (facultatif)",
+    "usernameOptional": "Nom d'utilisateur (facultatif)",
+    "emailOrUsernameHint": "Fournissez au moins un email ou un nom d'utilisateur.",
+    "emailOrUsernameRequired": "Fournissez au moins un email ou un nom d'utilisateur.",
+    "invalidAdminUsername": "Le nom d'utilisateur doit comporter entre 1 et 64 caractères et ne peut contenir que des lettres, des chiffres, des points, des traits de soulignement et des tirets.",
     "updatedSuccessfully": "Administrateur mis à jour avec succès",
     "tableHeaders": {
       "id": "ID",
       "email": "Email",
+      "username": "Nom d'utilisateur",
       "role": "Rôle",
       "createdAt": "Créé",
       "feeds": "Contenus",
@@ -440,7 +446,38 @@
       "takedownReasons": "Raisons de retrait",
       "admins": "Admins",
       "stats": "Statistiques",
-      "bucket": "Stockage d'objets"
+      "billingPrices": "Prix de facturation",
+      "bucket": "Stockage d'objets",
+      "roleTemplateLabel": "Modèle de permission",
+      "roleTemplateHint": "Choisissez un modèle enregistré pour remplir la grille. Vous pouvez toujours ajuster les cases individuelles par la suite.",
+      "roleCustom": "Personnalisé (manuel)",
+      "roleCustomHint": "Les permissions ont été modifiées manuellement et peuvent ne pas correspondre à un modèle enregistré.",
+      "roleCreateNew": "Créer un nouveau modèle…",
+      "loadingRoles": "Chargement des modèles…",
+      "selectAll": "Sélectionner toutes les permissions",
+      "clearAll": "Effacer toutes les permissions",
+      "customTemplateHint": "Modèle enregistré : {name}",
+      "rolePresetLabels": {
+        "everything": "Accès total",
+        "read_everything": "Lecture seule (tous les ressources)",
+        "feeds_moderation": "Modération des flux et retrait",
+        "admins_stats_read": "Admins et statistiques",
+        "storage_full": "Stockage d'objets uniquement"
+      },
+      "rolePresetDescriptions": {
+        "everything": "Création/lecture/mise à jour/suppression complètes sur chaque ressource.",
+        "read_everything": "Accès en lecture à toutes les ressources.",
+        "feeds_moderation": "Gérer uniquement les raisons de modération et de retrait.",
+        "admins_stats_read": "Gérer les admins et statistiques ; lire ailleurs.",
+        "storage_full": "Accès complet uniquement au stockage d'objets."
+      }
+    },
+    "roleTemplates": {
+      "pageTitle": "Créer un modèle de permission",
+      "templateName": "Nom du modèle",
+      "saveTemplate": "Enregistrer le modèle",
+      "createFailed": "Échec de l'enregistrement du modèle",
+      "nameRequired": "Entrez un nom de modèle"
     }
   },
   "users": {

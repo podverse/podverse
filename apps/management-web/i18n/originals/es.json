@@ -446,7 +446,38 @@
       "takedownReasons": "Motivos de retirada",
       "admins": "Administradores",
       "stats": "Estadísticas",
-      "bucket": "Almacenamiento de objetos"
+      "billingPrices": "Precios de facturación",
+      "bucket": "Almacenamiento de objetos",
+      "roleTemplateLabel": "Plantilla de permisos",
+      "roleTemplateHint": "Elige una plantilla guardada para llenar la cuadrícula. Aún puedes ajustar las casillas individuales después.",
+      "roleCustom": "Personalizado (manual)",
+      "roleCustomHint": "Los permisos se editaron manualmente y pueden no coincidir con una plantilla guardada.",
+      "roleCreateNew": "Crear nueva plantilla…",
+      "loadingRoles": "Cargando plantillas…",
+      "selectAll": "Seleccionar todos los permisos",
+      "clearAll": "Eliminar todos los permisos",
+      "customTemplateHint": "Plantilla guardada: {name}",
+      "rolePresetLabels": {
+        "everything": "Acceso total",
+        "read_everything": "Solo lectura (todos los recursos)",
+        "feeds_moderation": "Modificación de feeds y eliminación",
+        "admins_stats_read": "Admins y estadísticas",
+        "storage_full": "Solo almacenamiento de objetos"
+      },
+      "rolePresetDescriptions": {
+        "everything": "Permisos completos de crear/leer/actualizar/eliminar en cada recurso.",
+        "read_everything": "Acceso de lectura a través de todos los recursos.",
+        "feeds_moderation": "Gestionar feeds y razones de eliminación únicamente.",
+        "admins_stats_read": "Gestionar admins y estadísticas; leer en otros lugares.",
+        "storage_full": "Acceso completo solo al almacenamiento de objetos."
+      }
+    },
+    "roleTemplates": {
+      "pageTitle": "Crear plantilla de permisos",
+      "templateName": "Nombre de la plantilla",
+      "saveTemplate": "Guardar plantilla",
+      "createFailed": "No se pudo guardar la plantilla",
+      "nameRequired": "Ingresa un nombre para la plantilla"
     }
   },
   "users": {
