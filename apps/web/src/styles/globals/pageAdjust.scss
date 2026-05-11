@@ -1,23 +1,43 @@
 @use '../variables/breakpoints';
 
+// Viewport: use 100vh first (legacy), then 100dvh (matches visible viewport on mobile).
+// Bottom inset: reserve space for home indicator; pad #media-player so controls clear it.
+
 #sidebar.media-player-active {
   min-height: calc(100vh - var(--media-player-height-mobile) - var(--navbar-mobile-height));
   height: calc(100vh - var(--media-player-height-mobile) - var(--navbar-mobile-height));
+  min-height: calc(
+    100dvh - var(--media-player-height-mobile) - var(--navbar-mobile-height) - env(
+        safe-area-inset-bottom,
+        0px
+      )
+  );
+  height: calc(
+    100dvh - var(--media-player-height-mobile) - var(--navbar-mobile-height) - env(
+        safe-area-inset-bottom,
+        0px
+      )
+  );
 }
 
 #page-wrapper.media-player-active {
   min-height: calc(100vh - var(--media-player-height-mobile));
   height: calc(100vh - var(--media-player-height-mobile));
+  min-height: calc(100dvh - var(--media-player-height-mobile) - env(safe-area-inset-bottom, 0px));
+  height: calc(100dvh - var(--media-player-height-mobile) - env(safe-area-inset-bottom, 0px));
 }
 
 #media-player.media-player-active {
   display: flex;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 @media (min-width: breakpoints.$breakpoint-md-min) {
   #sidebar.media-player-active {
     min-height: calc(100vh - var(--media-player-height-mobile));
     height: calc(100vh - var(--media-player-height-mobile));
+    min-height: calc(100dvh - var(--media-player-height-mobile) - env(safe-area-inset-bottom, 0px));
+    height: calc(100dvh - var(--media-player-height-mobile) - env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -25,10 +45,14 @@
   #sidebar.media-player-active {
     min-height: calc(100vh - var(--media-player-height));
     height: calc(100vh - var(--media-player-height));
+    min-height: calc(100dvh - var(--media-player-height) - env(safe-area-inset-bottom, 0px));
+    height: calc(100dvh - var(--media-player-height) - env(safe-area-inset-bottom, 0px));
   }
 
   #page-wrapper.media-player-active {
     min-height: calc(100vh - var(--media-player-height));
     height: calc(100vh - var(--media-player-height));
+    min-height: calc(100dvh - var(--media-player-height) - env(safe-area-inset-bottom, 0px));
+    height: calc(100dvh - var(--media-player-height) - env(safe-area-inset-bottom, 0px));
   }
 }
