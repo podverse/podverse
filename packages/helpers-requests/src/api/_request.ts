@@ -13,6 +13,8 @@ import type {
   UpdateAccountUPDeviceParams,
   UpdateAccountWebPushDeviceParams,
 } from '@podverse/helpers';
+import type { AuthContext } from '@podverse/http-request-core';
+import { toAuthHeaders } from '@podverse/http-request-core';
 
 import { request } from '../_request.js';
 import type { QueryParamsGetManyProfiles } from './account/account.js';
@@ -73,7 +75,15 @@ import {
   reqAccountSettingsNotificationTypeCreate,
   reqAccountSettingsNotificationTypeDelete,
 } from './accountSettings/accountSettings.js';
-import { reqAuthCheckSession, reqAuthLogin, reqAuthLogout, reqAuthMe } from './auth/auth.js';
+import {
+  reqAuthCheckSession,
+  reqAuthLogin,
+  reqAuthLogout,
+  reqAuthMe,
+  reqAuthMobileRefresh,
+  reqAuthMobileRevoke,
+  reqAuthMobileToken,
+} from './auth/auth.js';
 import { reqCategoryGetAll } from './category/category.js';
 import {
   reqChannelGetByIdOrIdText,
@@ -259,7 +269,7 @@ export interface ApiRequestParams {
 
 export class ApiRequestService {
   private apiBase: string;
-  private jwt?: string;
+  private authContext?: AuthContext;
 
   constructor(params: {
     protocol: string;
@@ -268,13 +278,13 @@ export class ApiRequestService {
     prefix: string;
     version: string;
     jwt?: string;
+    authContext?: AuthContext;
   }) {
-    const { protocol, host, port, prefix, version, jwt } = params;
+    const { protocol, host, port, prefix, version, jwt, authContext } = params;
     const portPart = port ? `:${port}` : '';
     this.apiBase = `${protocol}://${host}${portPart}${prefix.replace(/\/$/, '')}${version}`;
-    if (jwt !== undefined) {
-      this.jwt = jwt;
-    }
+    this.authContext =
+      authContext ?? (jwt ? { mode: 'cookie', cookieName: 'jwt', token: jwt } : undefined);
   }
 
   async apiRequest<T>({
@@ -292,14 +302,10 @@ export class ApiRequestService {
       const mergedConfig = {
         ...config,
         ...(userAgent ? { userAgent } : {}),
-        ...(this.jwt
-          ? {
-              headers: {
-                ...(config.headers || {}),
-                Cookie: `jwt=${this.jwt}`,
-              },
-            }
-          : {}),
+        headers: {
+          ...((config.headers as Record<string, string> | undefined) ?? {}),
+          ...toAuthHeaders(this.authContext),
+        },
       };
 
       const options =
@@ -599,6 +605,18 @@ export class ApiRequestService {
 
   reqAuthCheckSession() {
     return reqAuthCheckSession(this);
+  }
+
+  reqAuthMobileToken(params: { email: string; password: string }) {
+    return reqAuthMobileToken(this, params);
+  }
+
+  reqAuthMobileRefresh(refresh_token: string) {
+    return reqAuthMobileRefresh(this, refresh_token);
+  }
+
+  reqAuthMobileRevoke(refresh_token: string) {
+    return reqAuthMobileRevoke(this, refresh_token);
   }
 
   /* CATEGORY */

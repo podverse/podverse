@@ -1,8 +1,8 @@
 {
-  "name": "@podverse/helpers-requests",
+  "name": "@podverse/management-api-requests",
   "version": "5.4.28",
   "sideEffects": false,
-  "description": "API client utilities for Podverse web application",
+  "description": "Typed request client for Podverse management API",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -10,16 +10,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
-    },
-    "./outbound-requests": {
-      "types": "./dist/_requestOutbound.d.ts",
-      "import": "./dist/_requestOutbound.js",
-      "default": "./dist/_requestOutbound.js"
-    },
-    "./outbound-http-policy": {
-      "types": "./dist/outboundHttpPolicy.d.ts",
-      "import": "./dist/outboundHttpPolicy.js",
-      "default": "./dist/outboundHttpPolicy.js"
     }
   },
   "files": [
@@ -40,10 +30,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@podverse/http-request-core": "*",
     "@podverse/helpers": "*",
-    "axios": "^1.13.6",
-    "ipaddr.js": "^2.3.0"
+    "@podverse/http-request-core": "*"
   },
   "type": "module",
   "devDependencies": {

@@ -27,6 +27,7 @@
     "@podverse/helpers": "*",
     "@podverse/helpers-backend": "*",
     "@podverse/helpers-browser": "*",
+    "@podverse/management-api-requests": "*",
     "@podverse/ui": "*",
     "@tanstack/react-query": "^5.99.2",
     "@tanstack/react-table": "^8.21.3",
