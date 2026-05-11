@@ -6,6 +6,7 @@ import {
   buildDTOChannelImageLoadCandidates,
   buildDTOItemImageHeroLoadCandidates,
   buildDTOItemImageLoadCandidates,
+  findDTOItemImageForList,
   mergeDTOItemThenChannelImageCandidates,
   mergeDTOItemThenChannelImageHeroCandidates,
   prependDistinctImageCandidate,
@@ -62,6 +63,23 @@ describe('buildDTOItemImageLoadCandidates', () => {
     ];
     expect(buildDTOItemImageLoadCandidates(images, 300, 'lesser')).toEqual([url]);
   });
+
+  it('accepts gif as a default list extension', () => {
+    const originalGif = 'https://example.com/list-default.gif';
+    const images = [{ url: originalGif, image_width_size: 640, is_resized: false }];
+
+    expect(buildDTOItemImageLoadCandidates(images, 300, 'lesser')[0]).toBe(originalGif);
+  });
+});
+
+describe('findDTOItemImageForList', () => {
+  it('accepts gif as a default list extension', () => {
+    const originalGif = 'https://example.com/list-pick.gif';
+    const images = [{ url: originalGif, image_width_size: 640, is_resized: false }];
+
+    const selected = findDTOItemImageForList(images, 300, 'lesser');
+    expect(selected?.url).toBe(originalGif);
+  });
 });
 
 describe('mergeDTOItemThenChannelImageCandidates', () => {
@@ -72,6 +90,16 @@ describe('mergeDTOItemThenChannelImageCandidates', () => {
     const channelImages = [{ url: channelCdn, image_width_size: 300, is_resized: true }];
     const got = mergeDTOItemThenChannelImageCandidates(itemImages, channelImages, 300, 'lesser');
     expect(got).toEqual([itemCdn, channelCdn]);
+  });
+
+  it('accepts gif defaults for item and channel candidates', () => {
+    const itemGif = 'https://example.com/item-list.gif';
+    const channelGif = 'https://example.com/channel-list.gif';
+    const itemImages = [{ url: itemGif, image_width_size: 640, is_resized: false }];
+    const channelImages = [{ url: channelGif, image_width_size: 640, is_resized: false }];
+
+    const got = mergeDTOItemThenChannelImageCandidates(itemImages, channelImages, 300, 'lesser');
+    expect(got).toEqual([itemGif, channelGif]);
   });
 });
 
@@ -90,6 +118,18 @@ describe('mergeDTOItemThenChannelImageHeroCandidates', () => {
 });
 
 describe('buildDTOItemImageHeroLoadCandidates', () => {
+  it('allows gif as the default hero extension', () => {
+    const gifOriginal = 'https://example.com/original.gif';
+    const webpThumb = 'https://cdn.example.com/thumb-w300.webp';
+    const images = [
+      { url: webpThumb, image_width_size: 300, is_resized: true },
+      { url: gifOriginal, image_width_size: 600, is_resized: false },
+    ];
+
+    expect(buildDTOItemImageLoadCandidates(images, 300, 'lesser')[0]).toBe(webpThumb);
+    expect(buildDTOItemImageHeroLoadCandidates(images, 300, 'lesser')[0]).toBe(gifOriginal);
+  });
+
   it('prefers non-resized originals over equally sized resized rows', () => {
     const cdn = 'https://cdn.example.com/w256.webp';
     const original = 'https://example.com/original.jpg';
@@ -119,6 +159,18 @@ describe('buildDTOItemImageHeroLoadCandidates', () => {
 });
 
 describe('buildDTOChannelImageHeroLoadCandidates', () => {
+  it('allows gif as the default hero extension', () => {
+    const gifOriginal = 'https://example.com/channel-original.gif';
+    const webpThumb = 'https://cdn.example.com/channel-thumb-w300.webp';
+    const images = [
+      { url: webpThumb, image_width_size: 300, is_resized: true },
+      { url: gifOriginal, image_width_size: 600, is_resized: false },
+    ];
+
+    expect(buildDTOChannelImageLoadCandidates(images, 300, 'lesser')[0]).toBe(webpThumb);
+    expect(buildDTOChannelImageHeroLoadCandidates(images, 300, 'lesser')[0]).toBe(gifOriginal);
+  });
+
   it('prefers non-resized originals over equally sized resized rows', () => {
     const cdn = 'https://cdn.example.com/w256.webp';
     const original = 'https://example.com/original.jpg';

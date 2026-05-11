@@ -11,10 +11,12 @@ import {
 } from '@workers/config/index.js';
 import { getImageStorageService } from '@workers/factories/imageStorageService.js';
 import { getLoggerService } from '@workers/factories/loggerService.js';
+import type { Metadata as SharpMetadata } from 'sharp';
 import sharp from 'sharp';
 
 import {
   createThroughputLimiter,
+  isShrinkEligibleImageUrl,
   readOptionalPositiveExpirationEnv,
   sha256Hex,
   truncateForLog,
@@ -60,6 +62,33 @@ type OriginFetchDiagnostics = {
   originEtag?: string | null;
   originLastModified?: string | null;
   originContentType?: string | null;
+};
+
+const SHRINK_ELIGIBLE_SHARP_FORMATS = new Set(['jpeg', 'png', 'webp']);
+
+/** Subset of sharp metadata used by getImageShrinkMetadataSkipReason (tests pass minimal shapes). */
+export type ImageShrinkMetadataSkipInput = Pick<Partial<SharpMetadata>, 'format' | 'pages'>;
+
+export const isImageShrinkTargetUrlEligible = (url: string): boolean => {
+  return isShrinkEligibleImageUrl(url);
+};
+
+export const getImageShrinkMetadataSkipReason = (
+  metadata: ImageShrinkMetadataSkipInput
+): string | null => {
+  if (!metadata.format) {
+    return 'missing-format';
+  }
+  if (metadata.format === 'gif') {
+    return 'gif-format';
+  }
+  if (!SHRINK_ELIGIBLE_SHARP_FORMATS.has(metadata.format)) {
+    return 'unsupported-format';
+  }
+  if (metadata.format === 'webp' && typeof metadata.pages === 'number' && metadata.pages > 1) {
+    return 'animated-webp';
+  }
+  return null;
 };
 
 const FETCH_TIMEOUT_MS = 15000;
@@ -287,6 +316,20 @@ export const createImageShrinkProcessor = (): ImageShrinkProcessor => {
         }
       }
 
+      if (!isImageShrinkTargetUrlEligible(target.url)) {
+        logger.info(
+          'imageShrinkProcessor: skipped target due to non-shrink-eligible url extension',
+          {
+            entityType: target.entityType,
+            entityId: target.entityId,
+            url: target.url,
+            hinted: target.hinted,
+          }
+        );
+        await imageShrinkSourceService.updateCheckTime(target.url);
+        return;
+      }
+
       const persisted = await loadPersistedImage(target);
       if (!persisted) {
         logger.warn('imageShrinkProcessor: no image row for target', {
@@ -317,6 +360,27 @@ export const createImageShrinkProcessor = (): ImageShrinkProcessor => {
         );
 
         if (unchanged) {
+          await imageShrinkSourceService.upsert(
+            target.url,
+            sanitizeHttpCacheMetadata(responseMeta),
+            false,
+            checksum,
+            { markDeepCheckComplete }
+          );
+          return;
+        }
+
+        const metadata = await sharp(originalBuffer, { failOn: 'none' }).metadata();
+        const metadataSkipReason = getImageShrinkMetadataSkipReason(metadata);
+        if (metadataSkipReason !== null) {
+          logger.info('imageShrinkProcessor: skipped resize after metadata check', {
+            entityType: target.entityType,
+            entityId: target.entityId,
+            url: target.url,
+            format: metadata.format ?? null,
+            pages: metadata.pages ?? null,
+            skipReason: metadataSkipReason,
+          });
           await imageShrinkSourceService.upsert(
             target.url,
             sanitizeHttpCacheMetadata(responseMeta),

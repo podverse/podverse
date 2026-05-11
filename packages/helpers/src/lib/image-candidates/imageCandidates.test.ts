@@ -46,6 +46,17 @@ describe('itemHeaderLightboxArtworkCandidates', () => {
 });
 
 describe('itemHeaderSquareArtworkCandidates', () => {
+  it('accepts gif originals for hero/header candidates by default', () => {
+    const shrunken = 'https://cdn.example.com/w256.webp';
+    const originalGif = 'https://example.com/original.gif';
+    const images = [
+      { url: shrunken, image_width_size: 256, is_resized: true },
+      { url: originalGif, image_width_size: 800, is_resized: false },
+    ];
+    const got = itemHeaderSquareArtworkCandidates(images, 256, 'greater');
+    expect(got[0]).toBe(originalGif);
+  });
+
   it('prefers non-resized hero artwork over equally sized resized rows', () => {
     const shrunken = 'https://cdn.example.com/w256.webp';
     const original = 'https://example.com/original.jpg';
@@ -79,6 +90,21 @@ describe('addByRSSResourceMergedArtworkCandidates', () => {
 
   it('returns empty when resource data is absent', () => {
     expect(addByRSSResourceMergedArtworkCandidates(undefined, 300, 'lesser')).toEqual([]);
+  });
+
+  it('accepts gif defaults for merged list candidates', () => {
+    const itemGif = 'https://example.com/add-by-rss-item.gif';
+    const channelGif = 'https://example.com/add-by-rss-channel.gif';
+    const got = addByRSSResourceMergedArtworkCandidates(
+      {
+        item_images: [{ url: itemGif, image_width_size: 600, is_resized: false }],
+        channel_images: [{ url: channelGif, image_width_size: 600, is_resized: false }],
+      },
+      300,
+      'lesser'
+    );
+
+    expect(got).toEqual([itemGif, channelGif]);
   });
 });
 

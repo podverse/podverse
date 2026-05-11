@@ -105,43 +105,6 @@ export const Image: React.FC<ImageProps> = ({
   const showPlaceholder =
     resolvedChain.length === 0 || attemptIndex >= resolvedChain.length || rawSrc === undefined;
 
-  // #region agent log
-  useEffect(() => {
-    if (showPlaceholder || width !== 1920 || height !== 1920) {
-      return;
-    }
-    const active = rawSrc ?? null;
-    fetch('http://127.0.0.1:7492/ingest/b00b7ad8-3302-43b6-ba18-0bcb911f8469', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd08547' },
-      body: JSON.stringify({
-        sessionId: 'd08547',
-        runId: 'pre-fix',
-        hypothesisId: 'H2',
-        location: 'Image.tsx:lightbox_attempt',
-        message: 'image_lightbox_chain_attempt',
-        data: {
-          attemptIndex,
-          chainLen: resolvedChain.length,
-          usesProxy: imageProxyEnabled && !skipProxy,
-          activeSuffix: active !== null && active.length > 0 ? active.slice(-56) : null,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-  }, [
-    attemptIndex,
-    chainId,
-    height,
-    imageProxyEnabled,
-    rawSrc,
-    resolvedChain.length,
-    showPlaceholder,
-    skipProxy,
-    width,
-  ]);
-  // #endregion
-
   if (showPlaceholder) {
     return (
       <div

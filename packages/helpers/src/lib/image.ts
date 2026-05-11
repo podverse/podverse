@@ -8,6 +8,9 @@ type ItemImagePartial = {
 type AllowedExtension = 'png' | 'jpg' | 'gif' | 'jpeg' | 'webp';
 type ValidExtension = 'png' | 'jpg' | 'gif' | 'webp';
 
+export const DEFAULT_ARTWORK_EXTENSIONS: AllowedExtension[] = ['png', 'jpg', 'webp', 'gif'];
+export const DEFAULT_HERO_ARTWORK_EXTENSIONS = DEFAULT_ARTWORK_EXTENSIONS;
+
 function itemImageHasNumericWidth(
   image: ItemImagePartial
 ): image is ItemImagePartial & { image_width_size: number } {
@@ -51,7 +54,7 @@ export function findDTOChannelImageBySize(
   channelImages: ItemImagePartial[] | null | undefined,
   size: number | 'largest' | 'smallest',
   comparison: Comparison = null,
-  allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']
+  allowedExtensions: AllowedExtension[] = DEFAULT_ARTWORK_EXTENSIONS
 ): ItemImagePartial | null {
   if (!channelImages || channelImages.length === 0) {
     return null;
@@ -64,7 +67,7 @@ export function findDTOItemImageBySize(
   itemImages: ItemImagePartial[] | null | undefined,
   size: number | 'largest' | 'smallest',
   comparison: Comparison = null,
-  allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']
+  allowedExtensions: AllowedExtension[] = DEFAULT_ARTWORK_EXTENSIONS
 ): ItemImagePartial | null {
   if (!itemImages || itemImages.length === 0) {
     return null;
@@ -77,7 +80,7 @@ export function findDTOChannelImageForList(
   channelImages: ItemImagePartial[] | null | undefined,
   size: number | 'largest' | 'smallest',
   comparison: Comparison = null,
-  allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']
+  allowedExtensions: AllowedExtension[] = DEFAULT_ARTWORK_EXTENSIONS
 ): ItemImagePartial | null {
   if (!channelImages || channelImages.length === 0) {
     return null;
@@ -89,7 +92,7 @@ export function findDTOItemImageForList(
   itemImages: ItemImagePartial[] | null | undefined,
   size: number | 'largest' | 'smallest',
   comparison: Comparison = null,
-  allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']
+  allowedExtensions: AllowedExtension[] = DEFAULT_ARTWORK_EXTENSIONS
 ): ItemImagePartial | null {
   if (!itemImages || itemImages.length === 0) {
     return null;
@@ -101,7 +104,7 @@ export function findDTOChannelImageForHero(
   channelImages: ItemImagePartial[] | null | undefined,
   size: number | 'largest' | 'smallest',
   comparison: Comparison = null,
-  allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']
+  allowedExtensions: AllowedExtension[] = DEFAULT_HERO_ARTWORK_EXTENSIONS
 ): ItemImagePartial | null {
   if (!channelImages || channelImages.length === 0) {
     return null;
@@ -113,7 +116,7 @@ export function findDTOItemImageForHero(
   itemImages: ItemImagePartial[] | null | undefined,
   size: number | 'largest' | 'smallest',
   comparison: Comparison = null,
-  allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']
+  allowedExtensions: AllowedExtension[] = DEFAULT_HERO_ARTWORK_EXTENSIONS
 ): ItemImagePartial | null {
   if (!itemImages || itemImages.length === 0) {
     return null;
@@ -220,7 +223,7 @@ export function buildDTOItemImageLoadCandidates(
   itemImages: ItemImagePartial[] | null | undefined,
   size: number | 'largest' | 'smallest',
   comparison: Comparison = null,
-  allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']
+  allowedExtensions: AllowedExtension[] = DEFAULT_ARTWORK_EXTENSIONS
 ): string[] {
   return buildDTOImageLoadCandidates(
     itemImages,
@@ -236,7 +239,7 @@ export function buildDTOChannelImageLoadCandidates(
   channelImages: ItemImagePartial[] | null | undefined,
   size: number | 'largest' | 'smallest',
   comparison: Comparison = null,
-  allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']
+  allowedExtensions: AllowedExtension[] = DEFAULT_ARTWORK_EXTENSIONS
 ): string[] {
   return buildDTOImageLoadCandidates(
     channelImages,
@@ -255,45 +258,15 @@ export function buildDTOItemImageHeroLoadCandidates(
   itemImages: ItemImagePartial[] | null | undefined,
   size: number | 'largest' | 'smallest',
   comparison: Comparison = null,
-  allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']
+  allowedExtensions: AllowedExtension[] = DEFAULT_HERO_ARTWORK_EXTENSIONS
 ): string[] {
-  const out = buildDTOImageLoadCandidates(
+  return buildDTOImageLoadCandidates(
     itemImages,
     size,
     comparison,
     allowedExtensions,
     findDTOItemImageForHero
   );
-  // #region agent log
-  if (typeof window !== 'undefined' && size === 'largest') {
-    const rows = itemImages?.map((img) => ({
-      w: img.image_width_size ?? null,
-      r: img.is_resized === true,
-    }));
-    const firstUrl = out[0] ?? null;
-    const firstRow = itemImages?.find((img) => img.url === firstUrl);
-    fetch('http://127.0.0.1:7492/ingest/b00b7ad8-3302-43b6-ba18-0bcb911f8469', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd08547' },
-      body: JSON.stringify({
-        sessionId: 'd08547',
-        runId: 'post-fix',
-        hypothesisId: 'H3',
-        location: 'image.ts:buildDTOItemImageHeroLoadCandidates',
-        message: 'item_hero_largest_chain',
-        data: {
-          fixTag: 'unset-original-prefer',
-          count: out.length,
-          firstPickIsResized: firstRow?.is_resized === true,
-          rows,
-          firstSuffix: firstUrl !== null && firstUrl.length > 0 ? firstUrl.slice(-48) : null,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-  }
-  // #endregion
-  return out;
 }
 
 /**
@@ -304,45 +277,15 @@ export function buildDTOChannelImageHeroLoadCandidates(
   channelImages: ItemImagePartial[] | null | undefined,
   size: number | 'largest' | 'smallest',
   comparison: Comparison = null,
-  allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']
+  allowedExtensions: AllowedExtension[] = DEFAULT_HERO_ARTWORK_EXTENSIONS
 ): string[] {
-  const out = buildDTOImageLoadCandidates(
+  return buildDTOImageLoadCandidates(
     channelImages,
     size,
     comparison,
     allowedExtensions,
     findDTOChannelImageForHero
   );
-  // #region agent log
-  if (typeof window !== 'undefined' && size === 'largest') {
-    const rows = channelImages?.map((img) => ({
-      w: img.image_width_size ?? null,
-      r: img.is_resized === true,
-    }));
-    const firstUrl = out[0] ?? null;
-    const firstRow = channelImages?.find((img) => img.url === firstUrl);
-    fetch('http://127.0.0.1:7492/ingest/b00b7ad8-3302-43b6-ba18-0bcb911f8469', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'd08547' },
-      body: JSON.stringify({
-        sessionId: 'd08547',
-        runId: 'post-fix',
-        hypothesisId: 'H4',
-        location: 'image.ts:buildDTOChannelImageHeroLoadCandidates',
-        message: 'channel_hero_largest_chain',
-        data: {
-          fixTag: 'unset-original-prefer',
-          count: out.length,
-          firstPickIsResized: firstRow?.is_resized === true,
-          rows,
-          firstSuffix: firstUrl !== null && firstUrl.length > 0 ? firstUrl.slice(-48) : null,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-  }
-  // #endregion
-  return out;
 }
 
 /**
@@ -354,7 +297,7 @@ export function mergeDTOItemThenChannelImageCandidates(
   channelImages: ItemImagePartial[] | null | undefined,
   size: number | 'largest' | 'smallest',
   comparison: Comparison = null,
-  allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']
+  allowedExtensions: AllowedExtension[] = DEFAULT_ARTWORK_EXTENSIONS
 ): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -387,7 +330,7 @@ export function mergeDTOItemThenChannelImageHeroCandidates(
   channelImages: ItemImagePartial[] | null | undefined,
   size: number | 'largest' | 'smallest',
   comparison: Comparison = null,
-  allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']
+  allowedExtensions: AllowedExtension[] = DEFAULT_HERO_ARTWORK_EXTENSIONS
 ): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -610,7 +553,7 @@ export function findImageBySize(
   itemImages: ItemImagePartial[],
   size: number | 'largest' | 'smallest',
   comparison: Comparison = null,
-  allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']
+  allowedExtensions: AllowedExtension[] = DEFAULT_ARTWORK_EXTENSIONS
 ): ItemImagePartial | null {
   const extensions: ValidExtension[] = allowedExtensions.map((ext) =>
     ext === 'jpeg' ? 'jpg' : ext

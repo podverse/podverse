@@ -4,10 +4,14 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import type { AddByRSSResourceDataImageEntry } from '@podverse/helpers';
+
+import { IMAGES } from '../../../constants/images';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
 import { getAddByRSSLivestreamPath } from '../../../utils/addByRSS/itemPath';
 import type { AddByRSSLivestreamIndexItem } from '../../../utils/addByRSS/types';
+import { addByRSSResourceMergedArtworkCandidates } from '../../../utils/image/addByRSSResourceArtworkCandidates';
 import { CommonItemHeader } from '../../Common/Item/CommonItemHeader';
 import { PlayButtonLarge } from '../../MediaPlayer/Buttons/PlayButtonLarge';
 
@@ -17,6 +21,12 @@ import playSectionStyles from '../../../styles/components/Common/Media/Podcast/E
 const alertPlaceholder = (label: string) => () => {
   window.alert(`Add by RSS: ${label}`);
 };
+
+function hasLivestreamImage(item: unknown): item is { image: string } {
+  return (
+    typeof item === 'object' && item !== null && 'image' in item && typeof item.image === 'string'
+  );
+}
 
 type AddByRSSLivestreamDetailHeaderProps = {
   itemIdText: string;
@@ -31,6 +41,7 @@ export const AddByRSSLivestreamDetailHeader: React.FC<AddByRSSLivestreamDetailHe
   mediumSlug,
   indexItem,
 }) => {
+  const tMedia = useTranslations('media');
   const tMediaPlayer = useTranslations('media_player');
   const { mpAddByRSS, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
   const playAddByRSS = usePlayAddByRSS();
@@ -50,6 +61,18 @@ export const AddByRSSLivestreamDetailHeader: React.FC<AddByRSSLivestreamDetailHe
       <h2 className={styles.episodeTitle}>{title || 'Untitled'}</h2>
     </Link>
   );
+  const itemImages: AddByRSSResourceDataImageEntry[] =
+    indexItem && hasLivestreamImage(indexItem.item)
+      ? [{ url: indexItem.item.image, image_width_size: null }]
+      : [];
+  const imageCandidates = addByRSSResourceMergedArtworkCandidates(
+    {
+      item_images: itemImages,
+      channel_image_url: indexItem?.channelImageUrl ?? null,
+    },
+    IMAGES.HEADER.DESKTOP.SQUARE.SIZE_FIND_TARGET,
+    'greater'
+  );
 
   const playSectionNode = (
     <div className={playSectionStyles.playSection}>
@@ -60,5 +83,13 @@ export const AddByRSSLivestreamDetailHeader: React.FC<AddByRSSLivestreamDetailHe
     </div>
   );
 
-  return <CommonItemHeader titleNode={titleNode} playSectionNode={playSectionNode} />;
+  return (
+    <CommonItemHeader
+      titleNode={titleNode}
+      playSectionNode={playSectionNode}
+      imageCandidates={imageCandidates}
+      imageLightboxCandidates={imageCandidates}
+      imageAlt={title || tMedia('livestream.livestream_image')}
+    />
+  );
 };
