@@ -9,6 +9,7 @@
     "build": "npm run lint && tsc && tsc-alias",
     "build:prod": "tsc && tsc-alias",
     "build:watch": "tsc --build --watch --preserveWatchOutput & tsc-alias --watch",
+    "dev": "npm run build:watch",
     "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
     "test": "vitest run",
