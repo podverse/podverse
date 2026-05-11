@@ -1,5 +1,6 @@
 import type { RemoteItemsResponse } from '@podverse/helpers';
 
+import { ContentExpandableRows } from '../ContentExpandableRows';
 import { ContentPodrollChannelRow } from './ContentPodrollChannelRow';
 import { ContentPodrollChannelUnaddedRow } from './ContentPodrollChannelUnaddedRow';
 import { ContentPodrollItemRow } from './ContentPodrollItemRow';
@@ -11,40 +12,56 @@ type ContentPodrollProps = {
   remoteItemsResponse: RemoteItemsResponse;
 };
 
+const getItemUnaddedKey = (
+  itemUnadded: NonNullable<RemoteItemsResponse['itemsUnadded'][number]>,
+  index: number
+) => {
+  if (typeof itemUnadded === 'object' && itemUnadded !== null) {
+    if (
+      'guid' in itemUnadded &&
+      typeof itemUnadded.guid === 'string' &&
+      itemUnadded.guid.length > 0
+    ) {
+      return itemUnadded.guid;
+    }
+
+    if ('id' in itemUnadded && typeof itemUnadded.id === 'number') {
+      return itemUnadded.id;
+    }
+  }
+
+  return `item-unadded-${index}`;
+};
+
 export const ContentPodrollRows = ({ remoteItemsResponse }: ContentPodrollProps) => {
-  const channelAddedNodes = remoteItemsResponse?.channelsAdded?.map((channel) => {
+  const channelAddedRows = remoteItemsResponse.channelsAdded.map((channel) => {
     return <ContentPodrollChannelRow key={channel.id} channel={channel} />;
   });
 
-  const channelUnaddedNodes = remoteItemsResponse?.channelsUnadded?.map((channelUnadded) => {
+  const channelUnaddedRows = remoteItemsResponse.channelsUnadded.map((channelUnadded) => {
     return (
       <ContentPodrollChannelUnaddedRow key={channelUnadded.id} channelUnadded={channelUnadded} />
     );
   });
 
-  const itemAddedNodes = remoteItemsResponse?.itemsAdded?.map((item) => {
+  const itemAddedRows = remoteItemsResponse.itemsAdded.map((item) => {
     return <ContentPodrollItemRow key={item.id} item={item} />;
   });
 
-  const itemUnaddedNodes = remoteItemsResponse?.itemsUnadded?.map((itemUnadded) => {
+  const itemUnaddedRows = (remoteItemsResponse.itemsUnadded ?? []).flatMap((itemUnadded, index) => {
     if (!itemUnadded) {
-      return null;
+      return [];
     }
 
-    // itemUnadded can have different shapes from Podcast Index API
-    type ItemUnaddedWithId = typeof itemUnadded & { guid?: string; id?: number };
-    const itemWithId = itemUnadded as ItemUnaddedWithId;
-    const key = itemWithId.guid || itemWithId.id || `item-unadded-${Math.random()}`;
-
-    return <ContentPodrollItemUnaddedRow key={key} itemUnadded={itemUnadded} />;
+    return [
+      <ContentPodrollItemUnaddedRow
+        key={getItemUnaddedKey(itemUnadded, index)}
+        itemUnadded={itemUnadded}
+      />,
+    ];
   });
 
-  return (
-    <div className={styles.rows}>
-      {channelAddedNodes}
-      {channelUnaddedNodes}
-      {itemAddedNodes}
-      {itemUnaddedNodes}
-    </div>
-  );
+  const rows = [...channelAddedRows, ...channelUnaddedRows, ...itemAddedRows, ...itemUnaddedRows];
+
+  return <ContentExpandableRows rows={rows} rowsClassName={styles.rows} />;
 };
