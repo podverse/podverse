@@ -7,6 +7,9 @@
  *
  * Schema: account (id SERIAL, id_text, verified, sharable_status_id)
  *         account_credentials (id SERIAL, account_id FK, email, password)
+ *
+ * Also seeds a second account with account_set_password for `/set-password` Playwright tests.
+ * Token must match apps/web/e2e/helpers/setPasswordInvite.ts (E2E_SET_PASSWORD_INVITE_TOKEN).
  */
 
 import crypto from 'node:crypto';
@@ -22,8 +25,12 @@ const DB_NAME = process.env.DB_APP_NAME ?? 'podverse_app_test';
 
 const TEST_PASSWORD = 'Test!1Aa';
 
+/** Sync with apps/web/e2e/helpers/setPasswordInvite.ts */
+const E2E_SET_PASSWORD_INVITE_TOKEN = '11111111-1111-4111-8111-111111111111';
+
 async function main() {
   const passwordHash = await bcrypt.hash(TEST_PASSWORD, 10);
+  const invitePlaceholderPasswordHash = await bcrypt.hash(crypto.randomUUID(), 10);
 
   const client = new pg.Client({
     host: DB_HOST,
@@ -69,7 +76,43 @@ async function main() {
     [accountId, membershipExpiresAt.toISOString()]
   );
 
+  const inviteIdText = crypto.randomBytes(8).toString('hex').slice(0, 15);
+  const inviteAccountResult = await client.query(
+    `INSERT INTO "account" (id_text, verified, sharable_status_id)
+     VALUES ($1, false, 1)
+     RETURNING id`,
+    [inviteIdText]
+  );
+  const inviteAccountId = inviteAccountResult.rows[0].id;
+
+  await client.query(
+    `INSERT INTO "account_credentials" (account_id, email, username, password)
+     VALUES ($1, NULL, $2, $3)`,
+    [inviteAccountId, 'e2e_invite_user', invitePlaceholderPasswordHash]
+  );
+
+  const inviteMembershipExpiresAt = new Date();
+  inviteMembershipExpiresAt.setUTCDate(inviteMembershipExpiresAt.getUTCDate() + 30);
+
+  await client.query(
+    `INSERT INTO "account_membership_status" (account_id, account_membership_id, membership_expires_at)
+     VALUES ($1, 1, $2)`,
+    [inviteAccountId, inviteMembershipExpiresAt.toISOString()]
+  );
+
+  const setPasswordExpiresAt = new Date();
+  setPasswordExpiresAt.setUTCFullYear(setPasswordExpiresAt.getUTCFullYear() + 1);
+
+  await client.query(
+    `INSERT INTO "account_set_password" (account_id, set_password_token, set_password_token_expires_at)
+     VALUES ($1, $2, $3)`,
+    [inviteAccountId, E2E_SET_PASSWORD_INVITE_TOKEN, setPasswordExpiresAt.toISOString()]
+  );
+
   console.log(`Seeded 1 test user: e2e-user@example.com`);
+  console.log(
+    `Seeded invite set-password token for account id ${inviteAccountId} (username e2e_invite_user)`
+  );
   await client.end();
   console.log('Web E2E seed complete.');
 }
