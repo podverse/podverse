@@ -30,6 +30,27 @@
     height: var(--navbar-mobile-height);
     min-height: var(--navbar-mobile-height);
   }
+
+  // Web xs: tight icon cluster; caret hidden (see accountMenuCaret).
+  @include mobile(xs-max) {
+    .rightCluster {
+      gap: var(--spacing-sm);
+    }
+
+    .accountMenuCaret {
+      display: none;
+    }
+
+    .profileIcon {
+      margin-right: 0;
+    }
+
+    .searchLink,
+    .accountTrigger,
+    .mobileToggleButton {
+      padding: var(--spacing-md) var(--spacing-base);
+    }
+  }
 }
 
 .brandRegion {

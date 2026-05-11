@@ -176,7 +176,9 @@ export function NavBar({
                 ) : (
                   <FaRegCircleUser aria-hidden className={styles.profileIcon} />
                 )}
-                <FaChevronDown aria-hidden />
+                <span className={styles.accountMenuCaret}>
+                  <FaChevronDown aria-hidden />
+                </span>
               </>
             }
           >
