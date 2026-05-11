@@ -50,9 +50,12 @@ test.describe('Management-web admins list', () => {
     await expect(page).toHaveURL(/\/admins$/);
     await expect(page.getByRole('heading', { name: 'Admins', level: 1 })).toBeVisible();
 
-    await expect(page.getByRole('button', { name: 'Sort by Email / Username' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Sort by Email' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Sort by Username' })).toBeVisible();
     await expect(
       page.getByRole('cell', { name: 'e2e-admin-row@example.com', exact: true })
     ).toBeVisible();
+    const adminDataRow = page.locator('tbody tr').filter({ hasText: 'e2e_admin_row' });
+    await expect(adminDataRow.getByRole('cell').nth(2)).toHaveText('-');
   });
 });

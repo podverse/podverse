@@ -413,7 +413,6 @@
     "tableHeaders": {
       "id": "ID",
       "email": "Correo electrónico",
-      "emailOrUsername": "Correo / Usuario",
       "username": "Nombre de usuario",
       "role": "Rol",
       "createdAt": "Creado",
