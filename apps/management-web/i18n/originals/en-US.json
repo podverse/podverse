@@ -447,7 +447,38 @@
       "takedownReasons": "Takedown reasons",
       "admins": "Admins",
       "stats": "Stats",
-      "bucket": "Object storage"
+      "billingPrices": "Billing prices",
+      "bucket": "Object storage",
+      "roleTemplateLabel": "Permission template",
+      "roleTemplateHint": "Pick a saved template to fill the grid. You can still adjust individual boxes afterward.",
+      "roleCustom": "Custom (manual)",
+      "roleCustomHint": "Permissions were edited manually and may not match a saved template.",
+      "roleCreateNew": "Create new template…",
+      "loadingRoles": "Loading templates…",
+      "selectAll": "Select all permissions",
+      "clearAll": "Clear all permissions",
+      "customTemplateHint": "Saved template: {name}",
+      "rolePresetLabels": {
+        "everything": "Full access",
+        "read_everything": "Read-only (all resources)",
+        "feeds_moderation": "Feeds and takedown",
+        "admins_stats_read": "Admins and stats",
+        "storage_full": "Object storage only"
+      },
+      "rolePresetDescriptions": {
+        "everything": "Full create/read/update/delete on every resource.",
+        "read_everything": "Read access across every resource.",
+        "feeds_moderation": "Manage feeds and takedown reasons only.",
+        "admins_stats_read": "Manage admins and stats; read elsewhere.",
+        "storage_full": "Full access to object storage only."
+      }
+    },
+    "roleTemplates": {
+      "pageTitle": "Create permission template",
+      "templateName": "Template name",
+      "saveTemplate": "Save template",
+      "createFailed": "Could not save template",
+      "nameRequired": "Enter a template name"
     }
   },
   "users": {

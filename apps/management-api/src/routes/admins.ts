@@ -1,4 +1,11 @@
 import { config } from '@mgmt-api/config/index.js';
+import {
+  handleCreateManagementAdminRole,
+  handleDeleteManagementAdminRole,
+  handleListManagementAdminRoles,
+  handleUpdateManagementAdminRole,
+  resolvePodverseManagementAdminRole,
+} from '@mgmt-api/lib/adminRoles.js';
 import { ensureAuthenticated } from '@mgmt-api/lib/auth/index.js';
 import { requireCrud } from '@mgmt-api/lib/authz/requireCrud.js';
 import { hasCrud } from '@mgmt-api/lib/crud.js';
@@ -26,6 +33,7 @@ const createAdminSchema = Joi.object({
   email: Joi.string().optional(),
   username: Joi.string().optional(),
   password: Joi.string().min(8).optional(),
+  role_id: Joi.string().trim().optional().allow(''),
   permissions: Joi.object({
     feeds_crud: crudSchema,
     feed_takedown_reasons_crud: crudSchema,
@@ -40,6 +48,7 @@ const updateAdminSchema = Joi.object({
   email: Joi.string().trim().allow('', null).optional(),
   username: Joi.string().trim().allow('', null).optional(),
   password: Joi.string().min(8),
+  role_id: Joi.string().trim().optional().allow(''),
   permissions: Joi.object({
     feeds_crud: crudSchema,
     feed_takedown_reasons_crud: crudSchema,
@@ -151,6 +160,32 @@ router.get('/', ensureAuthenticated, requireCrud('admins', 'read'), async (_req,
   }
 });
 
+router.get('/roles', ensureAuthenticated, requireCrud('admins', 'read'), (req, res, next) => {
+  void handleListManagementAdminRoles(req, res).catch(next);
+});
+
+router.post('/roles', ensureAuthenticated, requireCrud('admins', 'create'), (req, res, next) => {
+  void handleCreateManagementAdminRole(req, res).catch(next);
+});
+
+router.patch(
+  '/roles/:roleId',
+  ensureAuthenticated,
+  requireCrud('admins', 'update'),
+  (req, res, next) => {
+    void handleUpdateManagementAdminRole(req, res).catch(next);
+  }
+);
+
+router.delete(
+  '/roles/:roleId',
+  ensureAuthenticated,
+  requireCrud('admins', 'delete'),
+  (req, res, next) => {
+    void handleDeleteManagementAdminRole(req, res).catch(next);
+  }
+);
+
 // Get admin account by id
 router.get('/:id', ensureAuthenticated, requireCrud('admins', 'read'), async (req, res, next) => {
   try {
@@ -227,12 +262,23 @@ router.post('/', ensureAuthenticated, requireCrud('admins', 'create'), async (re
       }
     }
 
+    let permissions = value.permissions;
+    const roleIdRaw = typeof value.role_id === 'string' ? value.role_id.trim() : '';
+    if (roleIdRaw !== '') {
+      const resolved = await resolvePodverseManagementAdminRole(roleIdRaw);
+      if (resolved === null) {
+        res.status(404).json({ message: 'Role not found' });
+        return;
+      }
+      permissions = resolved;
+    }
+
     const service = new AdminAccountService();
     const dto = {
       email: emailRaw === '' ? undefined : emailRaw.toLowerCase(),
       username: usernameRaw === '' ? undefined : usernameRaw.toLowerCase(),
       password: value.password,
-      permissions: value.permissions,
+      permissions,
     };
     const admin = await service.create(dto);
     const json = adminAccountToJson(admin);
@@ -311,7 +357,16 @@ router.patch(
       if (value.password !== undefined) {
         patch.password = value.password;
       }
-      if (value.permissions !== undefined) {
+
+      const roleIdPatch = typeof value.role_id === 'string' ? value.role_id.trim() : '';
+      if (roleIdPatch !== '') {
+        const resolved = await resolvePodverseManagementAdminRole(roleIdPatch);
+        if (resolved === null) {
+          res.status(404).json({ message: 'Role not found' });
+          return;
+        }
+        patch.permissions = resolved;
+      } else if (value.permissions !== undefined) {
         patch.permissions = value.permissions;
       }
 
@@ -364,19 +419,23 @@ router.patch(
       const isSelfUpdate = actor.id === targetId;
       const isSuperuser = actor.role === 'superuser';
 
-      if (value.permissions !== undefined && isSelfUpdate && !isSuperuser) {
+      const wantsPermissionChange =
+        value.permissions !== undefined ||
+        (typeof value.role_id === 'string' && value.role_id.trim() !== '');
+
+      if (wantsPermissionChange && isSelfUpdate && !isSuperuser) {
         res.status(403).json({ message: 'Cannot change your own permissions' });
         return;
       }
 
       // Superuser cannot change their own permissions either
-      if (value.permissions !== undefined && isSelfUpdate && isSuperuser) {
+      if (wantsPermissionChange && isSelfUpdate && isSuperuser) {
         res.status(403).json({ message: 'Cannot change your own permissions' });
         return;
       }
 
       // Non-superuser actors need admins:create or admins:update to modify permissions
-      if (value.permissions !== undefined && !isSuperuser) {
+      if (wantsPermissionChange && !isSuperuser) {
         const adminsCrud = actor.permissions?.admins_crud ?? 0;
         const canChangePermissions = hasCrud(adminsCrud, 'create') || hasCrud(adminsCrud, 'update');
         if (!canChangePermissions) {

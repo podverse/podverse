@@ -118,6 +118,67 @@ const { getWithRoleAndPermissionsMock, listMock, createMock, updateMock, deleteM
   })
 );
 
+vi.mock('@mgmt-api/orm/services/managementAdminRole.js', () => {
+  return {
+    ManagementAdminRoleService: class {
+      async listAll() {
+        return [];
+      }
+      async findById(_id: string) {
+        return null;
+      }
+      async create(data: {
+        name: string;
+        feedsCrud: number;
+        feedTakedownReasonsCrud: number;
+        adminsCrud: number;
+        statsCrud: number;
+        billingPricesCrud: number;
+        bucketCrud: number;
+      }) {
+        return {
+          id: '11111111-1111-1111-1111-111111111111',
+          name: data.name,
+          feedsCrud: data.feedsCrud,
+          feedTakedownReasonsCrud: data.feedTakedownReasonsCrud,
+          adminsCrud: data.adminsCrud,
+          statsCrud: data.statsCrud,
+          billingPricesCrud: data.billingPricesCrud,
+          bucketCrud: data.bucketCrud,
+          created_at: new Date('2024-06-01T00:00:00.000Z'),
+        };
+      }
+      async update(
+        id: string,
+        updates: Partial<{
+          name: string;
+          feedsCrud: number;
+          feedTakedownReasonsCrud: number;
+          adminsCrud: number;
+          statsCrud: number;
+          billingPricesCrud: number;
+          bucketCrud: number;
+        }>
+      ) {
+        return {
+          id,
+          name: updates.name ?? 'updated',
+          feedsCrud: updates.feedsCrud ?? 0,
+          feedTakedownReasonsCrud: updates.feedTakedownReasonsCrud ?? 0,
+          adminsCrud: updates.adminsCrud ?? 0,
+          statsCrud: updates.statsCrud ?? 0,
+          billingPricesCrud: updates.billingPricesCrud ?? 0,
+          bucketCrud: updates.bucketCrud ?? 0,
+          created_at: new Date('2024-06-01T00:00:00.000Z'),
+        };
+      }
+      async delete(_id: string) {
+        return;
+      }
+    },
+  };
+});
+
 vi.mock('@mgmt-api/orm/services/adminAccount.js', () => {
   class AdminAccountService {
     async get(id: number) {
@@ -546,6 +607,118 @@ describe('management-api admins routes', () => {
       const res = await request(app).delete(`${adminsBase}/2/invite-link`).set(adminAuthHeaders(1));
 
       expect(res.status).toBe(200);
+    });
+  });
+
+  describe('GET /admins/roles', () => {
+    it('returns predefined and custom roles for superuser', async () => {
+      const res = await request(app).get(`${adminsBase}/roles`).set(adminAuthHeaders(1));
+
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body.roles)).toBe(true);
+      expect(res.body.roles.some((r: { id: string }) => r.id === 'everything')).toBe(true);
+      expect(res.body.roles.some((r: { id: string }) => r.id === 'storage_full')).toBe(true);
+    });
+
+    it('returns 403 without admins:read', async () => {
+      const res = await request(app).get(`${adminsBase}/roles`).set(adminAuthHeaders(3));
+
+      expect(res.status).toBe(403);
+    });
+  });
+
+  describe('POST /admins with role_id', () => {
+    it('resolves predefined role_id and passes permissions to create', async () => {
+      createMock.mockResolvedValueOnce({
+        id: 9,
+        id_text: 'pvMgtRl001',
+        admin_account_role_id: 2,
+        admin_account_role: { role: 'admin' },
+        admin_account_credentials: { email: 'rolepreset@example.com', username: null },
+        permissions: {
+          feedsCrud: 0,
+          feedTakedownReasonsCrud: 0,
+          adminsCrud: 0,
+          statsCrud: 0,
+          billingPricesCrud: 0,
+          bucketCrud: 15,
+        },
+        created_at: new Date('2024-01-01T00:00:00.000Z'),
+      });
+
+      const res = await request(app).post(`${adminsBase}`).set(adminAuthHeaders(1)).send({
+        email: 'rolepreset@example.com',
+        password: 'test-password',
+        role_id: 'storage_full',
+      });
+
+      expect(res.status).toBe(201);
+      expect(createMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          permissions: expect.objectContaining({
+            feeds_crud: 0,
+            bucket_crud: 15,
+          }),
+        })
+      );
+    });
+
+    it('returns 404 for unknown role_id', async () => {
+      const res = await request(app).post(`${adminsBase}`).set(adminAuthHeaders(1)).send({
+        email: 'badrole@example.com',
+        password: 'test-password',
+        role_id: 'not-a-real-role-id',
+      });
+
+      expect(res.status).toBe(404);
+      expect(res.body.message).toBe('Role not found');
+    });
+  });
+
+  describe('PATCH /admins/:id with role_id', () => {
+    it('applies resolved permissions from role_id', async () => {
+      updateMock.mockResolvedValueOnce({
+        id: 2,
+        id_text: 'pvMgtAd002',
+        admin_account_role_id: 2,
+        admin_account_role: { role: 'admin' },
+        admin_account_credentials: { email: 'reader@example.com', username: null },
+        permissions: {
+          feedsCrud: 15,
+          feedTakedownReasonsCrud: 15,
+          adminsCrud: 15,
+          statsCrud: 15,
+          billingPricesCrud: 15,
+          bucketCrud: 15,
+        },
+        created_at: new Date('2020-01-01T00:00:00.000Z'),
+      });
+
+      const res = await request(app)
+        .patch(`${adminsBase}/2`)
+        .set(adminAuthHeaders(1))
+        .send({ role_id: 'everything' });
+
+      expect(res.status).toBe(200);
+      expect(updateMock).toHaveBeenCalledWith(
+        2,
+        expect.objectContaining({
+          permissions: expect.objectContaining({
+            feeds_crud: 15,
+            bucket_crud: 15,
+          }),
+        })
+      );
+    });
+
+    it('returns 403 when admin tries to apply role_id to self', async () => {
+      const res = await request(app)
+        .patch(`${adminsBase}/2`)
+        .set(adminAuthHeaders(2))
+        .send({ role_id: 'everything' });
+
+      expect(res.status).toBe(403);
+      expect(res.body.message).toBe('Cannot change your own permissions');
     });
   });
 

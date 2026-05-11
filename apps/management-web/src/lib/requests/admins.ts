@@ -29,6 +29,8 @@ export type CreateAdminParams = {
   email?: string;
   username?: string;
   password?: string;
+  /** Resolved server-side when set; overrides `permissions`. */
+  role_id?: string;
   permissions?: Partial<CrudPermissions>;
 };
 
@@ -76,6 +78,8 @@ export type UpdateAdminParams = {
   email?: string;
   username?: string;
   password?: string;
+  /** Resolved server-side when set; overrides granular `permissions`. */
+  role_id?: string;
   permissions?: Partial<CrudPermissions>;
 };
 

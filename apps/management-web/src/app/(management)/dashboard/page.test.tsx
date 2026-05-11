@@ -37,6 +37,8 @@ const mockUser = {
     feed_takedown_reasons_crud: 15,
     admins_crud: 15,
     stats_crud: 15,
+    billing_prices_crud: 15,
+    bucket_crud: 15,
   },
 };
 
