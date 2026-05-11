@@ -572,7 +572,10 @@
     "set_password": "Set Password",
     "set_password_complete_message": "Your password has been set successfully. You can now login.",
     "set_password_email_optional": "Email (optional)",
-    "set_password_email_required": "Email"
+    "set_password_email_required": "Email",
+    "set_password_other_session_banner": "You are signed in as {sessionLabel}. This invitation link finishes setup for a different account.",
+    "set_password_sign_out_to_continue": "Sign out and continue",
+    "set_password_continue_without_signing_out": "Continue without signing out"
   },
   "membership": {
     "membership": "Membership",

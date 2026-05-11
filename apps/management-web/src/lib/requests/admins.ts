@@ -38,8 +38,14 @@ export type CreateAdminResponse = AdminAccount & {
   invite_link?: AdminInviteLink;
 };
 
-export async function getAdminAccountById(id: number, jwt?: string): Promise<AdminAccount> {
-  const service = new ManagementApiRequestService(jwt);
+export async function getAdminAccountById(
+  id: number,
+  jwtOrService?: string | ManagementApiRequestService
+): Promise<AdminAccount> {
+  const service =
+    jwtOrService instanceof ManagementApiRequestService
+      ? jwtOrService
+      : new ManagementApiRequestService(jwtOrService);
   return service.apiRequest<AdminAccount>({
     path: `/admins/${id}`,
     method: 'GET',

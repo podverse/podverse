@@ -572,7 +572,10 @@
     "set_password": "Ορισμός Κωδικού Πρόσβασης",
     "set_password_complete_message": "Ο κωδικός πρόσβασης έχει οριστεί με επιτυχία. Μπορείτε τώρα να συνδεθείτε.",
     "set_password_email_optional": "Email (προαιρετικό)",
-    "set_password_email_required": "Email"
+    "set_password_email_required": "Email",
+    "set_password_other_session_banner": "Έχετε συνδεθεί ως {sessionLabel}. Αυτός ο σύνδεσμος πρόσκλησης ολοκληρώνει τη ρύθμιση διαφορετικού λογαριασμού.",
+    "set_password_sign_out_to_continue": "Αποσύνδεση και συνέχεια",
+    "set_password_continue_without_signing_out": "Συνέχεια χωρίς αποσύνδεση"
   },
   "membership": {
     "membership": "Μέλος",

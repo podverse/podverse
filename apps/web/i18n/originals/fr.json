@@ -572,7 +572,10 @@
     "set_password": "Définir le mot de passe",
     "set_password_complete_message": "Votre mot de passe a été défini avec succès. Vous pouvez maintenant vous connecter.",
     "set_password_email_optional": "E-mail (facultatif)",
-    "set_password_email_required": "E-mail"
+    "set_password_email_required": "E-mail",
+    "set_password_other_session_banner": "Vous êtes connecté en tant que {sessionLabel}. Ce lien d'invitation termine la configuration d'un autre compte.",
+    "set_password_sign_out_to_continue": "Se déconnecter et continuer",
+    "set_password_continue_without_signing_out": "Continuer sans se déconnecter"
   },
   "membership": {
     "membership": "Abonnement",

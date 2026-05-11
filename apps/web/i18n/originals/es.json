@@ -572,7 +572,10 @@
     "set_password": "Establecer contraseña",
     "set_password_complete_message": "Tu contraseña se ha establecido con éxito. Ahora puedes iniciar sesión.",
     "set_password_email_optional": "Correo electrónico (opcional)",
-    "set_password_email_required": "Correo electrónico"
+    "set_password_email_required": "Correo electrónico",
+    "set_password_other_session_banner": "Has iniciado sesión como {sessionLabel}. Este enlace de invitación completa la configuración de una cuenta distinta.",
+    "set_password_sign_out_to_continue": "Cerrar sesión y continuar",
+    "set_password_continue_without_signing_out": "Continuar sin cerrar sesión"
   },
   "membership": {
     "membership": "Membresía",
