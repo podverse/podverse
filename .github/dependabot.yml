@@ -1,8 +1,10 @@
 # Dependabot configuration for automated dependency updates
 # Targets develop branch - PRs will be created against develop
 #
-# Node.js: we only care about LTS (even-numbered: 18, 20, 22, 24, 26...).
-# Odd-numbered majors are non-LTS and are ignored for node / @types/node.
+# Node.js: Dependabot has no "LTS only" filter. We adopt new Node LTS on a defined
+# schedule (.nvmrc, CI, Dockerfiles) and do not use Dependabot PRs for the official
+# `node` Docker image (ignore all `node` image updates below). @types/node is filtered
+# to reduce noise from non-LTS odd majors and not-yet-adopted current lines (e.g. 26.x).
 #
 # Note: This is an alternative to Renovate - use ONE or the other, not both
 # Renovate offers better monorepo support if needed
@@ -27,10 +29,20 @@ updates:
       - "dependencies"
     commit-message:
       prefix: "chore(deps)"
-    # Only LTS (even) Node: ignore odd-numbered @types/node versions
     ignore:
       - dependency-name: "@types/node"
-        versions: ["19.x", "21.x", "23.x", "25.x", "27.x", "29.x", "31.x"]
+        versions:
+          - "19.x"
+          - "21.x"
+          - "23.x"
+          - "25.x"
+          - "26.x"
+          - "27.x"
+          - "28.x"
+          - "29.x"
+          - "30.x"
+          - "31.x"
+          - "32.x"
     groups:
       # Group minor/patch prod deps together
       production-minor-patch:
@@ -51,8 +63,7 @@ updates:
           - "@types/*"
           - "eslint*"
 
-  # Docker images
-  # Docker `versions` use Bundler/Rubygems ranges (GitHub docs), not npm semver like "25.x".
+  # Docker images — ignore all updates for the official `node` base image (bump with LTS adoption).
   - package-ecosystem: "docker"
     directory: "/apps/api"
     target-branch: "develop"
@@ -61,10 +72,8 @@ updates:
     labels:
       - "dependencies"
       - "docker"
-    # Only LTS (even) Node: ignore non-LTS odd-numbered versions
     ignore:
       - dependency-name: "node"
-        versions: ["19", "21", "23", "25", "27", "29", "31"]
 
   - package-ecosystem: "docker"
     directory: "/apps/web"
@@ -74,10 +83,8 @@ updates:
     labels:
       - "dependencies"
       - "docker"
-    # Only LTS (even) Node: ignore non-LTS odd-numbered versions
     ignore:
       - dependency-name: "node"
-        versions: ["19", "21", "23", "25", "27", "29", "31"]
 
   - package-ecosystem: "docker"
     directory: "/apps/workers"
@@ -87,10 +94,8 @@ updates:
     labels:
       - "dependencies"
       - "docker"
-    # Only LTS (even) Node: ignore non-LTS odd-numbered versions
     ignore:
       - dependency-name: "node"
-        versions: ["19", "21", "23", "25", "27", "29", "31"]
 
   - package-ecosystem: "docker"
     directory: "/apps/management-api"
@@ -100,10 +105,8 @@ updates:
     labels:
       - "dependencies"
       - "docker"
-    # Only LTS (even) Node: ignore non-LTS odd-numbered versions
     ignore:
       - dependency-name: "node"
-        versions: ["19", "21", "23", "25", "27", "29", "31"]
 
   - package-ecosystem: "docker"
     directory: "/apps/management-web"
@@ -113,10 +116,8 @@ updates:
     labels:
       - "dependencies"
       - "docker"
-    # Only LTS (even) Node: ignore non-LTS odd-numbered versions
     ignore:
       - dependency-name: "node"
-        versions: ["19", "21", "23", "25", "27", "29", "31"]
 
   # GitHub Actions
   - package-ecosystem: "github-actions"

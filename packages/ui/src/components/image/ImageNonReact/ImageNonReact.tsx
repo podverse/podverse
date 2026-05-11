@@ -3,7 +3,7 @@
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
 
-import { LoadingSpinner } from '../../layout/LoadingSpinner';
+import { LoadingSpinner } from '../../layout/LoadingSpinner/index';
 import { useImageRuntime } from '../ImageRuntime/ImageRuntime';
 
 import styles from './ImageNonReact.module.scss';

@@ -8,7 +8,10 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+import { checkAssetsServerReachable } from './check-assets-server.js';
 import { DEFAULT_ASSETS_BASE_URL } from './constants.js';
+import { generateFeedAndAssets } from './generate-feed.js';
 import {
   confirmAddFakeValueTags,
   getFeedUrlsForSets,
@@ -16,8 +19,6 @@ import {
   getValueFromConfig,
   parseNumericArg,
 } from './generate-feed-cli.js';
-import { generateFeedAndAssets } from './generate-feed.js';
-import { checkAssetsServerReachable } from './check-assets-server.js';
 import { populateDatabaseFromFeed } from './populate-database.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

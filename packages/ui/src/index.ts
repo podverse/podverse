@@ -6,15 +6,15 @@ export type {
 } from './components/navigation/Breadcrumbs/Breadcrumbs';
 export { Button } from './components/button/Button/Button';
 export type { ButtonVariant } from './components/button/Button/Button';
-export { IconButton } from './components/button/IconButton';
+export { IconButton } from './components/button/IconButton/index';
 export type {
   IconButtonAppearance,
   IconButtonLinkComponentProps,
   IconButtonProps,
   IconButtonVariant,
-} from './components/button/IconButton';
-export { MoreButton } from './components/button/MoreButton';
-export type { MoreButtonMenuItem, MoreButtonProps } from './components/button/MoreButton';
+} from './components/button/IconButton/index';
+export { MoreButton } from './components/button/MoreButton/index';
+export type { MoreButtonMenuItem, MoreButtonProps } from './components/button/MoreButton/index';
 export { Image } from './components/image/Image/Image';
 export type { ImageFallbackControl, ImageProps } from './components/image/Image/Image';
 export { ImageNonReact } from './components/image/ImageNonReact/ImageNonReact';
@@ -31,8 +31,8 @@ export { SkeletonFlashImage } from './components/image/SkeletonFlashImage/Skelet
 export type { SkeletonFlashImageProps } from './components/image/SkeletonFlashImage/SkeletonFlashImage';
 export { CopyToClipboardButton } from './components/button/CopyToClipboardButton/CopyToClipboardButton';
 export type { CopyToClipboardButtonProps } from './components/button/CopyToClipboardButton/CopyToClipboardButton';
-export { CursorPagination } from './components/navigation/CursorPagination';
-export type { CursorPaginationProps } from './components/navigation/CursorPagination';
+export { CursorPagination } from './components/navigation/CursorPagination/index';
+export type { CursorPaginationProps } from './components/navigation/CursorPagination/index';
 export {
   DescriptionList,
   DescriptionListRow,
@@ -62,8 +62,8 @@ export type {
  */
 export { Alert } from './components/layout/Alert/Alert';
 export type { AlertProps } from './components/layout/Alert/Alert';
-export { Accordion } from './components/layout/Accordion';
-export type { AccordionProps } from './components/layout/Accordion';
+export { Accordion } from './components/layout/Accordion/index';
+export type { AccordionProps } from './components/layout/Accordion/index';
 export { AppWrapper } from './components/layout/AppWrapper/AppWrapper';
 export type { AppWrapperProps } from './components/layout/AppWrapper/AppWrapper';
 export { AuthCard, AuthCardHeader } from './components/layout/AuthCard/AuthCard';
@@ -72,10 +72,10 @@ export { Banner } from './components/layout/Banner/Banner';
 export type { BannerProps, BannerVariant } from './components/layout/Banner/Banner';
 export { Card } from './components/layout/Card/Card';
 export type { CardProps } from './components/layout/Card/Card';
-export { Callout } from './components/layout/Callout';
-export type { CalloutProps } from './components/layout/Callout';
-export { CallToActionMessage } from './components/layout/CallToActionMessage';
-export type { CallToActionMessageProps } from './components/layout/CallToActionMessage';
+export { Callout } from './components/layout/Callout/index';
+export type { CalloutProps } from './components/layout/Callout/index';
+export { CallToActionMessage } from './components/layout/CallToActionMessage/index';
+export type { CallToActionMessageProps } from './components/layout/CallToActionMessage/index';
 export { CenterContainer } from './components/layout/CenterContainer/CenterContainer';
 export type { CenterContainerProps } from './components/layout/CenterContainer/CenterContainer';
 export { Divider } from './components/layout/Divider/Divider';
@@ -85,7 +85,7 @@ export {
   DropdownMenuLinkItem,
   DropdownMenuMeta,
   DropdownMenuPanel,
-} from './components/navigation/DropdownMenu';
+} from './components/navigation/DropdownMenu/index';
 export type {
   DropdownMenuItemProps,
   DropdownMenuItemVariant,
@@ -94,22 +94,25 @@ export type {
   DropdownMenuPanelItem,
   DropdownMenuPanelProps,
   DropdownMenuProps,
-} from './components/navigation/DropdownMenu';
+} from './components/navigation/DropdownMenu/index';
 export { Dropdown } from './components/navigation/Dropdown/Dropdown';
 export type { DropdownOption, DropdownProps } from './components/navigation/Dropdown/Dropdown';
 export { PageHeaderActions } from './components/layout/PageHeaderActions/PageHeaderActions';
 export type { PageHeaderActionsProps } from './components/layout/PageHeaderActions/PageHeaderActions';
 export { InfoWrapper } from './components/layout/InfoWrapper/InfoWrapper';
 export type { InfoWrapperProps } from './components/layout/InfoWrapper/InfoWrapper';
-export { LazyLoadPlaceholder } from './components/layout/LazyLoadPlaceholder';
-export type { LazyLoadPlaceholderProps } from './components/layout/LazyLoadPlaceholder';
-export { LoadingSpinner } from './components/layout/LoadingSpinner';
-export type { LoadingSpinnerProps, LoadingSpinnerSize } from './components/layout/LoadingSpinner';
-export { LoadingSpinnerOverlay } from './components/layout/LoadingSpinnerOverlay';
+export { LazyLoadPlaceholder } from './components/layout/LazyLoadPlaceholder/index';
+export type { LazyLoadPlaceholderProps } from './components/layout/LazyLoadPlaceholder/index';
+export { LoadingSpinner } from './components/layout/LoadingSpinner/index';
+export type {
+  LoadingSpinnerProps,
+  LoadingSpinnerSize,
+} from './components/layout/LoadingSpinner/index';
+export { LoadingSpinnerOverlay } from './components/layout/LoadingSpinnerOverlay/index';
 export type {
   LoadingSpinnerOverlayProps,
   LoadingSpinnerOverlaySize,
-} from './components/layout/LoadingSpinnerOverlay';
+} from './components/layout/LoadingSpinnerOverlay/index';
 export { NavigationLoadingOverlay } from './components/layout/NavigationLoadingOverlay/NavigationLoadingOverlay';
 export type { NavigationLoadingOverlayProps } from './components/layout/NavigationLoadingOverlay/NavigationLoadingOverlay';
 export { MainPageScaffold } from './components/layout/MainPageScaffold/MainPageScaffold';
@@ -147,15 +150,15 @@ export type {
 } from './components/layout/StatusBadge/StatusBadge';
 export { RestrictedNotice } from './components/layout/RestrictedNotice/RestrictedNotice';
 export type { RestrictedNoticeProps } from './components/layout/RestrictedNotice/RestrictedNotice';
-export { Disclosure } from './components/layout/Disclosure';
-export type { DisclosureProps } from './components/layout/Disclosure';
+export { Disclosure } from './components/layout/Disclosure/index';
+export type { DisclosureProps } from './components/layout/Disclosure/index';
 export { FavIcons } from './components/head/FavIcons/FavIcons';
 export type { FavIconsProps } from './components/head/FavIcons/FavIcons';
 export { FontPreloads } from './components/head/FontPreloads/FontPreloads';
 export type { FontPreloadsProps } from './components/head/FontPreloads/FontPreloads';
 export { RuntimeConfigScript } from './components/head/RuntimeConfigScript/RuntimeConfigScript';
 export type { RuntimeConfigScriptProps } from './components/head/RuntimeConfigScript/RuntimeConfigScript';
-export { NavBar } from './components/navigation/NavBar';
+export { NavBar } from './components/navigation/NavBar/index';
 export type {
   NavBarAccountMenuItem,
   NavBarAccountMenuProps,
@@ -167,22 +170,22 @@ export type {
   NavBarMobileToggleProps,
   NavBarProps,
   NavBarSearchProps,
-} from './components/navigation/NavBar';
-export { NavArrowButton } from './components/navigation/NavArrowButton';
-export type { NavArrowButtonProps } from './components/navigation/NavArrowButton';
-export { NavCardGrid } from './components/navigation/NavCardGrid';
-export type { NavCard, NavCardGridProps } from './components/navigation/NavCardGrid';
+} from './components/navigation/NavBar/index';
+export { NavArrowButton } from './components/navigation/NavArrowButton/index';
+export type { NavArrowButtonProps } from './components/navigation/NavArrowButton/index';
+export { NavCardGrid } from './components/navigation/NavCardGrid/index';
+export type { NavCard, NavCardGridProps } from './components/navigation/NavCardGrid/index';
 export { GoToPageModal } from './components/navigation/GoToPageModal/GoToPageModal';
 export type { GoToPageModalProps } from './components/navigation/GoToPageModal/GoToPageModal';
-export { Pagination } from './components/navigation/Pagination';
-export type { PaginationProps } from './components/navigation/Pagination';
+export { Pagination } from './components/navigation/Pagination/index';
+export type { PaginationProps } from './components/navigation/Pagination/index';
 export {
   PAGINATION_STRIP_DEFAULT_MAX_BUTTONS,
   PaginatedSection,
 } from './components/navigation/PaginatedSection/PaginatedSection';
 export type { PaginatedSectionProps } from './components/navigation/PaginatedSection/PaginatedSection';
-export { PaginationStrip } from './components/navigation/PaginationStrip';
-export type { PaginationStripProps } from './components/navigation/PaginationStrip';
+export { PaginationStrip } from './components/navigation/PaginationStrip/index';
+export type { PaginationStripProps } from './components/navigation/PaginationStrip/index';
 export type { UITheme } from './lib/uiTheme/uiTheme';
 export { ALL_POSSIBLE_THEMES } from './lib/uiTheme/uiTheme';
 export {
@@ -250,14 +253,20 @@ export type {
   ActionLinkProps,
   ActionLinkVariant,
 } from './components/navigation/ActionLink/ActionLink';
-export { Link } from './components/navigation/Link';
-export type { LinkProps, LinkRenderProps } from './components/navigation/Link';
-export { StatsBarChart } from './components/stats/StatsBarChart';
-export type { StatsBarChartProps, StatsBarChartDatum } from './components/stats/StatsBarChart';
-export { StatSummaryGrid } from './components/stats/StatSummaryGrid';
-export type { StatSummaryGridProps, StatSummaryItem } from './components/stats/StatSummaryGrid';
-export { Checkbox } from './components/form/Checkbox';
-export type { CheckboxProps } from './components/form/Checkbox';
+export { Link } from './components/navigation/Link/index';
+export type { LinkProps, LinkRenderProps } from './components/navigation/Link/index';
+export { StatsBarChart } from './components/stats/StatsBarChart/index';
+export type {
+  StatsBarChartProps,
+  StatsBarChartDatum,
+} from './components/stats/StatsBarChart/index';
+export { StatSummaryGrid } from './components/stats/StatSummaryGrid/index';
+export type {
+  StatSummaryGridProps,
+  StatSummaryItem,
+} from './components/stats/StatSummaryGrid/index';
+export { Checkbox } from './components/form/Checkbox/index';
+export type { CheckboxProps } from './components/form/Checkbox/index';
 export { CheckboxField } from './components/form/CheckboxField/CheckboxField';
 export type { CheckboxFieldProps } from './components/form/CheckboxField/CheckboxField';
 export { CheckboxFieldList } from './components/form/CheckboxFieldList/CheckboxFieldList';
@@ -278,8 +287,8 @@ export type {
   FormContainerProps,
   FormMaxWidthProps,
 } from './components/form/FormContainer/FormContainer';
-export { FormDropdown } from './components/form/FormDropdown';
-export type { FormDropdownOption, FormDropdownProps } from './components/form/FormDropdown';
+export { FormDropdown } from './components/form/FormDropdown/index';
+export type { FormDropdownOption, FormDropdownProps } from './components/form/FormDropdown/index';
 export { FormGroup } from './components/form/FormGroup/FormGroup';
 export type { FormGroupProps } from './components/form/FormGroup/FormGroup';
 export { FormPrimaryActions } from './components/form/FormPrimaryActions/FormPrimaryActions';
@@ -288,8 +297,8 @@ export { FormStack } from './components/form/FormStack/FormStack';
 export type { FormStackProps } from './components/form/FormStack/FormStack';
 export { FormTextArea } from './components/form/FormTextArea/FormTextArea';
 export type { FormTextAreaProps } from './components/form/FormTextArea/FormTextArea';
-export { StackForm } from './components/form/StackForm';
-export type { StackFormProps } from './components/form/StackForm';
+export { StackForm } from './components/form/StackForm/index';
+export type { StackFormProps } from './components/form/StackForm/index';
 export { FormInfoMessageText } from './components/form/FormInfoMessageText/FormInfoMessageText';
 export type { FormInfoMessageTextProps } from './components/form/FormInfoMessageText/FormInfoMessageText';
 export { FormErrorMessageText } from './components/form/FormErrorMessageText/FormErrorMessageText';
@@ -328,8 +337,8 @@ export { TextInputNumberIncrement } from './components/form/TextInputNumberIncre
 export type { TextInputNumberIncrementProps } from './components/form/TextInputNumberIncrement/TextInputNumberIncrement';
 export { EditValueModal } from './components/feedback/EditValueModal/EditValueModal';
 export type { EditValueModalProps } from './components/feedback/EditValueModal/EditValueModal';
-export { PopoverIcon } from './components/feedback/PopoverIcon';
-export type { PopoverIconProps } from './components/feedback/PopoverIcon';
+export { PopoverIcon } from './components/feedback/PopoverIcon/index';
+export type { PopoverIconProps } from './components/feedback/PopoverIcon/index';
 export {
   Toast,
   dismissToast,
@@ -338,15 +347,15 @@ export {
   showToastLoading,
   showToastPromise,
   showToastPromiseWithLoading,
-} from './components/feedback/Toast';
+} from './components/feedback/Toast/index';
 export type {
   CustomToastProps,
   ToastLinkComponentProps,
   ToastOptions,
-} from './components/feedback/Toast';
+} from './components/feedback/Toast/index';
 export { Tooltip } from './components/overlays/Tooltip/Tooltip';
 export type { TooltipProps } from './components/overlays/Tooltip/Tooltip';
-export { Table } from './components/table/Table';
+export { Table } from './components/table/Table/index';
 export type {
   CellProps,
   RowActionsProps,
@@ -358,22 +367,25 @@ export type {
   TableProps,
   TableSortableHeaderCellProps,
   TableSortableHeaderSortDirection,
-} from './components/table/Table';
+} from './components/table/Table/index';
 export type {
   TableIconActionLinkProps,
   TableIconDeleteButtonProps,
   TableIconEditLinkProps,
   TableIconViewLinkProps,
-} from './components/table/Table';
+} from './components/table/Table/index';
 export {
   TableIconActionLink,
   TableIconDeleteButton,
   TableIconEditLink,
   TableIconViewLink,
-} from './components/table/Table';
-export { BulkActionBar } from './components/table/BulkActionBar';
-export type { BulkActionBarAction, BulkActionBarProps } from './components/table/BulkActionBar';
-export { ResourceTableWithFilter } from './components/table/ResourceTableWithFilter';
+} from './components/table/Table/index';
+export { BulkActionBar } from './components/table/BulkActionBar/index';
+export type {
+  BulkActionBarAction,
+  BulkActionBarProps,
+} from './components/table/BulkActionBar/index';
+export { ResourceTableWithFilter } from './components/table/ResourceTableWithFilter/index';
 export type {
   ResourceRowActionState,
   ResourceRowActionsPolicy,
@@ -383,14 +395,17 @@ export type {
   ResourceTableDeleteConfirm,
   ResourceTableGroupedSection,
   ResourceTableWithFilterProps,
-} from './components/table/ResourceTableWithFilter';
-export { TableFilterBar } from './components/table/TableFilterBar';
-export type { TableFilterBarColumn, TableFilterBarProps } from './components/table/TableFilterBar';
+} from './components/table/ResourceTableWithFilter/index';
+export { TableFilterBar } from './components/table/TableFilterBar/index';
+export type {
+  TableFilterBarColumn,
+  TableFilterBarProps,
+} from './components/table/TableFilterBar/index';
 export {
   computeFilterBarColumns,
   tableWithFilterColumnsToSortColumns,
 } from './components/table/Table/tableWithFilterColumnHelpers';
-export { TableWithFilter } from './components/table/TableWithFilter';
+export { TableWithFilter } from './components/table/TableWithFilter/index';
 export type {
   TableWithFilterBodyRenderArgs,
   TableWithFilterBulkSelect,
@@ -399,21 +414,24 @@ export type {
   TableWithFilterFilterBag,
   TableWithFilterPaginationLabels,
   TableWithFilterProps,
-} from './components/table/TableWithFilter';
-export { TableWithSort } from './components/table/TableWithSort';
-export type { TableWithSortColumn, TableWithSortProps } from './components/table/TableWithSort';
-export { TableEmptyCell } from './components/table/TableEmptyCell';
-export type { TableEmptyCellProps } from './components/table/TableEmptyCell';
-export { CodeText } from './components/layout/CodeText';
-export type { CodeTextProps } from './components/layout/CodeText';
-export { ConfirmPanel } from './components/layout/ConfirmPanel';
-export type { ConfirmPanelProps } from './components/layout/ConfirmPanel';
+} from './components/table/TableWithFilter/index';
+export { TableWithSort } from './components/table/TableWithSort/index';
+export type {
+  TableWithSortColumn,
+  TableWithSortProps,
+} from './components/table/TableWithSort/index';
+export { TableEmptyCell } from './components/table/TableEmptyCell/index';
+export type { TableEmptyCellProps } from './components/table/TableEmptyCell/index';
+export { CodeText } from './components/layout/CodeText/index';
+export type { CodeTextProps } from './components/layout/CodeText/index';
+export { ConfirmPanel } from './components/layout/ConfirmPanel/index';
+export type { ConfirmPanelProps } from './components/layout/ConfirmPanel/index';
 export { DeleteConfirmModalShell } from './components/layout/DeleteConfirmModalShell/DeleteConfirmModalShell';
 export type { DeleteConfirmModalShellProps } from './components/layout/DeleteConfirmModalShell/DeleteConfirmModalShell';
-export { EmptyStateText } from './components/layout/EmptyStateText';
-export type { EmptyStateTextProps } from './components/layout/EmptyStateText';
-export { EllipsisText } from './components/layout/EllipsisText';
-export type { EllipsisTextProps } from './components/layout/EllipsisText';
+export { EmptyStateText } from './components/layout/EmptyStateText/index';
+export type { EmptyStateTextProps } from './components/layout/EmptyStateText/index';
+export { EllipsisText } from './components/layout/EllipsisText/index';
+export type { EllipsisTextProps } from './components/layout/EllipsisText/index';
 export {
   ErrorBoundaryShell,
   GlobalErrorBoundaryShell,
@@ -422,14 +440,14 @@ export type {
   ErrorBoundaryShellProps,
   GlobalErrorBoundaryShellProps,
 } from './components/layout/ErrorBoundaryShell/ErrorBoundaryShell';
-export { FeatureComparison } from './components/layout/FeatureComparison';
+export { FeatureComparison } from './components/layout/FeatureComparison/index';
 export type {
   FeatureComparisonProps,
   FeatureComparisonRow,
   FeatureComparisonTier,
-} from './components/layout/FeatureComparison';
-export { FilterTablePageLayout } from './components/layout/FilterTablePageLayout';
-export type { FilterTablePageLayoutProps } from './components/layout/FilterTablePageLayout';
+} from './components/layout/FeatureComparison/index';
+export { FilterTablePageLayout } from './components/layout/FilterTablePageLayout/index';
+export type { FilterTablePageLayoutProps } from './components/layout/FilterTablePageLayout/index';
 export { FooterBrand } from './components/layout/FooterLayout/FooterBrand';
 export type {
   FooterBrandLinkProps,
@@ -443,17 +461,17 @@ export { FooterLinks } from './components/layout/FooterLayout/FooterLinks';
 export type { FooterLinksProps } from './components/layout/FooterLayout/FooterLinks';
 export { FooterSocialLinks } from './components/layout/FooterLayout/FooterSocialLinks';
 export type { FooterSocialLinksProps } from './components/layout/FooterLayout/FooterSocialLinks';
-export { FlexBetween } from './components/layout/FlexBetween';
-export type { FlexBetweenProps } from './components/layout/FlexBetween';
-export { FormContinuationSection } from './components/layout/FormContinuationSection';
-export type { FormContinuationSectionProps } from './components/layout/FormContinuationSection';
-export { FormHintText } from './components/layout/FormHintText';
-export type { FormHintTextProps } from './components/layout/FormHintText';
-export { LeadParagraph, ManagementPageShell } from './components/layout/ManagementPageShell';
+export { FlexBetween } from './components/layout/FlexBetween/index';
+export type { FlexBetweenProps } from './components/layout/FlexBetween/index';
+export { FormContinuationSection } from './components/layout/FormContinuationSection/index';
+export type { FormContinuationSectionProps } from './components/layout/FormContinuationSection/index';
+export { FormHintText } from './components/layout/FormHintText/index';
+export type { FormHintTextProps } from './components/layout/FormHintText/index';
+export { LeadParagraph, ManagementPageShell } from './components/layout/ManagementPageShell/index';
 export type {
   LeadParagraphProps,
   ManagementPageShellProps,
-} from './components/layout/ManagementPageShell';
+} from './components/layout/ManagementPageShell/index';
 export {
   LookupFieldGrid,
   LookupFieldSpacerLabel,
@@ -461,24 +479,27 @@ export {
   lookupFieldGridControlClass,
   lookupFieldGridFormBlockClass,
   lookupFieldGridNativeSelectWrapClass,
-} from './components/layout/LookupFieldGrid';
+} from './components/layout/LookupFieldGrid/index';
 export type {
   LookupFieldGridProps,
   LookupFieldSpacerLabelProps,
-} from './components/layout/LookupFieldGrid';
-export { MutedBreakableText } from './components/layout/MutedBreakableText';
-export type { MutedBreakableTextProps } from './components/layout/MutedBreakableText';
-export { PageSection } from './components/layout/PageSection';
-export type { PageSectionProps } from './components/layout/PageSection';
-export { PaginationSummaryLine } from './components/layout/PaginationSummaryLine';
-export type { PaginationSummaryLineProps } from './components/layout/PaginationSummaryLine';
-export { SectionBlock, SectionHeading } from './components/layout/SectionHeading';
-export type { SectionBlockProps, SectionHeadingProps } from './components/layout/SectionHeading';
+} from './components/layout/LookupFieldGrid/index';
+export { MutedBreakableText } from './components/layout/MutedBreakableText/index';
+export type { MutedBreakableTextProps } from './components/layout/MutedBreakableText/index';
+export { PageSection } from './components/layout/PageSection/index';
+export type { PageSectionProps } from './components/layout/PageSection/index';
+export { PaginationSummaryLine } from './components/layout/PaginationSummaryLine/index';
+export type { PaginationSummaryLineProps } from './components/layout/PaginationSummaryLine/index';
+export { SectionBlock, SectionHeading } from './components/layout/SectionHeading/index';
+export type {
+  SectionBlockProps,
+  SectionHeadingProps,
+} from './components/layout/SectionHeading/index';
 export { SideContent } from './components/layout/SideContent/SideContent';
 export type { SideContentProps } from './components/layout/SideContent/SideContent';
-export { StickyBulkActionBar } from './components/layout/StickyBulkActionBar';
-export type { StickyBulkActionBarProps } from './components/layout/StickyBulkActionBar';
-export { ToolbarCluster } from './components/layout/ToolbarCluster';
-export type { ToolbarClusterProps } from './components/layout/ToolbarCluster';
-export { VirtualizedList } from './components/layout/VirtualizedList';
-export type { VirtualizedListProps } from './components/layout/VirtualizedList';
+export { StickyBulkActionBar } from './components/layout/StickyBulkActionBar/index';
+export type { StickyBulkActionBarProps } from './components/layout/StickyBulkActionBar/index';
+export { ToolbarCluster } from './components/layout/ToolbarCluster/index';
+export type { ToolbarClusterProps } from './components/layout/ToolbarCluster/index';
+export { VirtualizedList } from './components/layout/VirtualizedList/index';
+export type { VirtualizedListProps } from './components/layout/VirtualizedList/index';

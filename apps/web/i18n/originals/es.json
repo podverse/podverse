@@ -572,7 +572,10 @@
     "set_password": "Establecer contraseña",
     "set_password_complete_message": "Tu contraseña se ha establecido con éxito. Ahora puedes iniciar sesión.",
     "set_password_email_optional": "Correo electrónico (opcional)",
-    "set_password_email_required": "Correo electrónico"
+    "set_password_email_required": "Correo electrónico",
+    "set_password_other_session_banner": "Has iniciado sesión como {sessionLabel}. Este enlace de invitación completa la configuración de una cuenta distinta.",
+    "set_password_sign_out_to_continue": "Cerrar sesión y continuar",
+    "set_password_continue_without_signing_out": "Continuar sin cerrar sesión"
   },
   "membership": {
     "membership": "Membresía",
@@ -734,6 +737,19 @@
       "new_item": "Nuevo elemento",
       "livestream_scheduled": "Transmisión en vivo programada",
       "livestream_started": "Transmisión en vivo iniciada"
+    },
+    "keyboard": {
+      "keyboard": "Teclado",
+      "intro": "Estos atajos funcionan en todo el sitio cuando el foco no está dentro de un campo de texto, cuadro de búsqueda u otro control editable.",
+      "keys_space": "Espacio",
+      "keys_arrows_seek": "Flecha izquierda / Flecha derecha",
+      "keys_arrows_volume": "Flecha izquierda / Flecha derecha",
+      "shortcut_play_pause_label": "Reproducir o pausar",
+      "shortcut_play_pause_detail": "Pulsa Espacio para reproducir o pausar el episodio o pista actual cuando el reproductor tiene contenido. Espacio se ignora si el foco está en un input, textarea, select o campo editable, y no alterna la reproducción si el foco está en un botón o enlace (o dentro de un menú).",
+      "shortcut_seek_label": "Retroceder o avanzar 10 segundos",
+      "shortcut_seek_detail": "Pulsa una vez la flecha Izquierda o Derecha para saltar 10 segundos. Mantener pulsada la tecla no repite la acción hasta soltarla.",
+      "shortcut_volume_label": "Volumen (con el control de volumen enfocado)",
+      "shortcut_volume_detail": "Con el foco en el control de volumen del reproductor, las flechas Izquierda y Derecha bajan o suben el volumen un 5% por pulsación."
     }
   },
   "contact": {
@@ -770,10 +786,6 @@
       "alpha": {
         "header": "Advertencia Alpha ⚠️",
         "message": "Esta es la versión alpha del sitio web. Está incompleta, puede contener errores y tus datos alpha pueden ser restablecidos o eliminados periódicamente."
-      },
-      "local": {
-        "header": "Desarrollo Local ⚙️",
-        "message": "Estás ejecutando una versión de desarrollo local."
       }
     }
   },

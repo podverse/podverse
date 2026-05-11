@@ -572,7 +572,10 @@
     "set_password": "",
     "set_password_complete_message": "",
     "set_password_email_optional": "",
-    "set_password_email_required": ""
+    "set_password_email_required": "",
+    "set_password_other_session_banner": "",
+    "set_password_sign_out_to_continue": "",
+    "set_password_continue_without_signing_out": ""
   },
   "membership": {
     "membership": "",
@@ -734,6 +737,19 @@
       "new_item": "",
       "livestream_scheduled": "",
       "livestream_started": ""
+    },
+    "keyboard": {
+      "keyboard": "",
+      "intro": "",
+      "keys_space": "",
+      "keys_arrows_seek": "",
+      "keys_arrows_volume": "",
+      "shortcut_play_pause_label": "",
+      "shortcut_play_pause_detail": "",
+      "shortcut_seek_label": "",
+      "shortcut_seek_detail": "",
+      "shortcut_volume_label": "",
+      "shortcut_volume_detail": ""
     }
   },
   "contact": {
@@ -768,10 +784,6 @@
   "disclaimers": {
     "environment_warning": {
       "alpha": {
-        "header": "",
-        "message": ""
-      },
-      "local": {
         "header": "",
         "message": ""
       }

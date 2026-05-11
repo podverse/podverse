@@ -15,14 +15,15 @@ export type CrudPermissions = {
   feed_takedown_reasons_crud: number;
   admins_crud: number;
   stats_crud: number;
-  billing_prices_crud?: number;
-  bucket_crud?: number;
+  billing_prices_crud: number;
+  bucket_crud: number;
 };
 
 export type CurrentUser = {
   id: number;
   id_text: string;
-  email: string;
+  email: string | null;
+  username: string | null;
   role: string;
   permissions: CrudPermissions | null;
 };

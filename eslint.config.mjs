@@ -6,6 +6,8 @@ import { dirname } from 'path';
 import tseslint from 'typescript-eslint';
 import { fileURLToPath } from 'url';
 
+import requireRelativeJsExtension from './eslint-rules/require-relative-js-extension.mjs';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -79,6 +81,52 @@ export default tseslint.config(
     files: ['**/apps/management-web/src/app/layout.tsx'],
     rules: {
       'simple-import-sort/imports': 'off',
+    },
+  },
+  {
+    files: [
+      'packages/**/*.{ts,tsx}',
+      'apps/api/**/*.{ts,tsx}',
+      'apps/management-api/**/*.{ts,tsx}',
+      'apps/workers/**/*.{ts,tsx}',
+      'apps/web/sidecar/**/*.{ts,tsx}',
+      'apps/management-web/sidecar/**/*.{ts,tsx}',
+      'tools/**/*.{ts,tsx}',
+      'scripts/**/*.{ts,mts}',
+    ],
+    plugins: {
+      nodeNextRelativeImports: {
+        rules: {
+          'require-relative-js-extension': requireRelativeJsExtension,
+        },
+      },
+    },
+    rules: {
+      'nodeNextRelativeImports/require-relative-js-extension': 'error',
+    },
+  },
+  {
+    files: ['packages/ui/**/*.{ts,tsx}'],
+    rules: {
+      'nodeNextRelativeImports/require-relative-js-extension': 'off',
+    },
+  },
+  {
+    files: [
+      'apps/web/src/**/*.{ts,tsx}',
+      'apps/management-web/src/**/*.{ts,tsx}',
+      'apps/web/e2e/**/*.{ts,tsx}',
+      'apps/management-web/e2e/**/*.{ts,tsx}',
+    ],
+    plugins: {
+      nodeNextRelativeImports: {
+        rules: {
+          'require-relative-js-extension': requireRelativeJsExtension,
+        },
+      },
+    },
+    rules: {
+      'nodeNextRelativeImports/require-relative-js-extension': 'off',
     },
   },
   {

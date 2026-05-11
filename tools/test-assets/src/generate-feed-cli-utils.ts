@@ -1,4 +1,5 @@
 import readline from 'node:readline';
+
 import { faker } from '@faker-js/faker';
 
 export type MultiConfig =

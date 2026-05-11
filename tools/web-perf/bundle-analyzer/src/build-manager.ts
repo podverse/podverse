@@ -1,9 +1,10 @@
 import type { ChildProcess } from 'child_process';
 import { spawn } from 'child_process';
-import * as path from 'path';
 import * as fs from 'fs';
-import { fileURLToPath } from 'url';
+import * as path from 'path';
 import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
 import { getAppEnvironment } from './env-config.js';
 
 // ES modules __dirname equivalent

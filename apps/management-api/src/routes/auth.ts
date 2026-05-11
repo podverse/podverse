@@ -19,6 +19,7 @@ router.get('/me', ensureAuthenticated, (req, res) => {
     id: admin.id,
     id_text: admin.id_text,
     email: admin.email,
+    username: admin.username,
     role: admin.role,
     permissions: admin.permissions,
   });

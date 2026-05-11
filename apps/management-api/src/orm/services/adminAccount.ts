@@ -18,16 +18,24 @@ type CrudPermissions = {
 };
 
 type CreateAdminAccountDto = {
-  email: string;
+  email?: string;
+  username?: string;
   password?: string;
   permissions?: CrudPermissions;
 };
 
 type UpdateAdminAccountDto = {
-  email?: string;
+  email?: string | null;
+  username?: string | null;
   password?: string;
   permissions?: CrudPermissions;
 };
+
+export const ADMIN_ACCOUNT_DUPLICATE_CREDENTIALS_ERROR =
+  'Admin account with this email or username already exists';
+
+export const ADMIN_ACCOUNT_MUST_HAVE_IDENTIFIER_ERROR =
+  'Admin account must have an email or username';
 
 export class AdminAccountService {
   protected repositoryRead: Repository<AdminAccount>;
@@ -69,8 +77,12 @@ export class AdminAccountService {
     email: string,
     config?: FindOneOptions<AdminAccount>
   ): Promise<AdminAccount | null> {
+    const normalized = email.trim().toLowerCase();
+    if (normalized.length === 0) {
+      return null;
+    }
     const credentials = await this.credentialsRepositoryRead.findOne({
-      where: { email },
+      where: { email: normalized },
       relations: ['admin_account'],
     });
 
@@ -99,12 +111,30 @@ export class AdminAccountService {
   }
 
   async create(dto: CreateAdminAccountDto): Promise<AdminAccount> {
-    const existingCredentials = await this.credentialsRepositoryRead.findOne({
-      where: { email: dto.email },
-    });
+    const emailNorm =
+      dto.email !== undefined && dto.email.length > 0 ? dto.email.trim().toLowerCase() : null;
+    const usernameNorm =
+      dto.username !== undefined && dto.username.length > 0
+        ? dto.username.trim().toLowerCase()
+        : null;
 
-    if (existingCredentials) {
-      throw new Error('Admin account with this email already exists');
+    if (emailNorm === null && usernameNorm === null) {
+      throw new Error(ADMIN_ACCOUNT_MUST_HAVE_IDENTIFIER_ERROR);
+    }
+
+    if (emailNorm !== null) {
+      const byEmail = await this.credentialsRepositoryRead.findOne({ where: { email: emailNorm } });
+      if (byEmail) {
+        throw new Error(ADMIN_ACCOUNT_DUPLICATE_CREDENTIALS_ERROR);
+      }
+    }
+    if (usernameNorm !== null) {
+      const byUsername = await this.credentialsRepositoryRead.findOne({
+        where: { username: usernameNorm },
+      });
+      if (byUsername) {
+        throw new Error(ADMIN_ACCOUNT_DUPLICATE_CREDENTIALS_ERROR);
+      }
     }
 
     const adminAccount = this.repositoryReadWrite.create();
@@ -117,7 +147,8 @@ export class AdminAccountService {
 
     const credentials = this.credentialsRepositoryReadWrite.create({
       admin_account_id: savedAccount.id,
-      email: dto.email,
+      email: emailNorm,
+      username: usernameNorm,
       password: hashedPassword,
     });
     await this.credentialsRepositoryReadWrite.save(credentials);
@@ -146,22 +177,48 @@ export class AdminAccountService {
       throw new Error('Superuser accounts cannot be modified via API');
     }
 
-    if (dto.email !== undefined || dto.password !== undefined) {
+    if (dto.email !== undefined || dto.username !== undefined || dto.password !== undefined) {
       const credentials = await this.credentialsRepositoryReadWrite.findOne({
         where: { admin_account_id: id },
       });
       if (!credentials) {
         throw new Error('Admin credentials not found');
       }
+
+      let nextEmail = credentials.email;
+      let nextUsername = credentials.username;
+
       if (dto.email !== undefined) {
+        nextEmail = dto.email;
+      }
+      if (dto.username !== undefined) {
+        nextUsername = dto.username;
+      }
+
+      if (nextEmail === null && nextUsername === null) {
+        throw new Error(ADMIN_ACCOUNT_MUST_HAVE_IDENTIFIER_ERROR);
+      }
+
+      if (dto.email !== undefined && nextEmail !== null) {
         const existingWithEmail = await this.credentialsRepositoryRead.findOne({
-          where: { email: dto.email },
+          where: { email: nextEmail },
         });
         if (existingWithEmail && existingWithEmail.admin_account_id !== id) {
-          throw new Error('Admin account with this email already exists');
+          throw new Error(ADMIN_ACCOUNT_DUPLICATE_CREDENTIALS_ERROR);
         }
-        credentials.email = dto.email;
       }
+      if (dto.username !== undefined && nextUsername !== null) {
+        const existingWithUsername = await this.credentialsRepositoryRead.findOne({
+          where: { username: nextUsername },
+        });
+        if (existingWithUsername && existingWithUsername.admin_account_id !== id) {
+          throw new Error(ADMIN_ACCOUNT_DUPLICATE_CREDENTIALS_ERROR);
+        }
+      }
+
+      credentials.email = nextEmail;
+      credentials.username = nextUsername;
+
       if (dto.password !== undefined) {
         const saltRounds = 10;
         const salt = await bcrypt.genSalt(saltRounds);
@@ -227,11 +284,21 @@ export class AdminAccountService {
     await this.repositoryReadWrite.remove(adminAccount);
   }
 
-  async verifyPassword(email: string, password: string): Promise<AdminAccount | null> {
-    const credentials = await this.credentialsRepositoryRead.findOne({
-      where: { email },
-      relations: ['admin_account'],
-    });
+  async verifyPassword(loginIdentifier: string, password: string): Promise<AdminAccount | null> {
+    const trimmed = loginIdentifier.trim();
+    if (trimmed.length === 0) {
+      return null;
+    }
+    const idLower = trimmed.toLowerCase();
+
+    const credentials = await this.credentialsRepositoryRead
+      .createQueryBuilder('c')
+      .innerJoinAndSelect('c.admin_account', 'admin_account')
+      .where(
+        '(c.email IS NOT NULL AND c.email = :idLower) OR (c.username IS NOT NULL AND c.username = :idLower)',
+        { idLower }
+      )
+      .getOne();
 
     if (!credentials) {
       return null;

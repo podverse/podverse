@@ -4,6 +4,7 @@ import { AdminAccountCredentials } from '@mgmt-api/orm/entities/adminAccountCred
 import { AdminAccountPermissions } from '@mgmt-api/orm/entities/adminAccountPermissions.js';
 import { AdminAccountRole } from '@mgmt-api/orm/entities/adminAccountRole.js';
 import { DatabaseAuditLog } from '@mgmt-api/orm/entities/databaseAuditLog.js';
+import { ManagementAdminRole } from '@mgmt-api/orm/entities/managementAdminRole.js';
 import type { DataSourceOptions } from 'typeorm';
 import { DataSource } from 'typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
@@ -22,6 +23,7 @@ const commonConfig: DataSourceOptions = {
     AdminAccountPermissions,
     AdminAccountRole,
     DatabaseAuditLog,
+    ManagementAdminRole,
   ],
   migrations: [],
   subscribers: [],

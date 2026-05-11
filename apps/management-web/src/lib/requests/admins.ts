@@ -6,6 +6,7 @@ export type AdminAccount = {
   id_text: string;
   role: string;
   email: string | null;
+  username: string | null;
   permissions: CrudPermissions | null;
   created_at: string;
 };
@@ -25,8 +26,11 @@ export type GenerateAdminInviteLinkResponse = {
 };
 
 export type CreateAdminParams = {
-  email: string;
+  email?: string;
+  username?: string;
   password?: string;
+  /** Resolved server-side when set; overrides `permissions`. */
+  role_id?: string;
   permissions?: Partial<CrudPermissions>;
 };
 
@@ -36,8 +40,14 @@ export type CreateAdminResponse = AdminAccount & {
   invite_link?: AdminInviteLink;
 };
 
-export async function getAdminAccountById(id: number, jwt?: string): Promise<AdminAccount> {
-  const service = new ManagementApiRequestService(jwt);
+export async function getAdminAccountById(
+  id: number,
+  jwtOrService?: string | ManagementApiRequestService
+): Promise<AdminAccount> {
+  const service =
+    jwtOrService instanceof ManagementApiRequestService
+      ? jwtOrService
+      : new ManagementApiRequestService(jwtOrService);
   return service.apiRequest<AdminAccount>({
     path: `/admins/${id}`,
     method: 'GET',
@@ -64,9 +74,12 @@ export async function createAdmin(
   });
 }
 
-type UpdateAdminParams = {
+export type UpdateAdminParams = {
   email?: string;
+  username?: string;
   password?: string;
+  /** Resolved server-side when set; overrides granular `permissions`. */
+  role_id?: string;
   permissions?: Partial<CrudPermissions>;
 };
 

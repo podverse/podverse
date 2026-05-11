@@ -1,11 +1,12 @@
-import path from 'path';
 import { config } from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import { OpenAI } from 'openai';
-import type { LighthouseReport } from './report-manager.js';
+import path from 'path';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
 import type { ComparisonResult } from './comparison.js';
 import { ComparisonEngine } from './comparison.js';
+import type { LighthouseReport } from './report-manager.js';
 
 // ES modules __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);

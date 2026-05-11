@@ -1,8 +1,8 @@
 import classNames from 'classnames';
 import type { CSSProperties } from 'react';
 
-import type { LoadingSpinnerSize } from '../LoadingSpinner';
-import { LoadingSpinner } from '../LoadingSpinner';
+import type { LoadingSpinnerSize } from '../LoadingSpinner/index';
+import { LoadingSpinner } from '../LoadingSpinner/index';
 
 import styles from './LoadingSpinnerOverlay.module.scss';
 

@@ -1,31 +1,33 @@
 // Log immediately - before any imports
 console.log('📝 Script starting - loading modules...\n');
 
+import dotenv from 'dotenv';
+import fs from 'fs';
 import inquirer from 'inquirer';
+import path from 'path';
+import { dirname } from 'path';
+import {
+  checkAssetsServerReachable,
+  DEFAULT_TEST_FEED_URL,
+  generateFeedAndAssets,
+  populateDatabaseFromFeed,
+} from 'podverse-test-assets';
+import { fileURLToPath } from 'url';
+
+import { DEFAULT_HTTP_TIMEOUT_MS } from '@podverse/helpers';
+
+import { ApiManager } from './api-manager.js';
 import { BrowserAutomation } from './browser-automation.js';
-import type { LighthouseScreenshotOptions } from './lighthouse-runner.js';
-import { LighthouseRunner } from './lighthouse-runner.js';
-import { ReportManager } from './report-manager.js';
 import { ComparisonEngine } from './comparison.js';
-import { generateComparisonSummary } from './openai-summary.js';
 // Delay podverse-orm import to avoid ESM/CommonJS conflicts
 // import { UserManager } from './user-manager.js';
 import { DatabaseSetup } from './database-setup.js';
-import { WebAppManager } from './web-app-manager.js';
-import { ApiManager } from './api-manager.js';
-import { DEFAULT_HTTP_TIMEOUT_MS } from '@podverse/helpers';
+import type { LighthouseScreenshotOptions } from './lighthouse-runner.js';
+import { LighthouseRunner } from './lighthouse-runner.js';
+import { generateComparisonSummary } from './openai-summary.js';
 import { killProcessOnPort } from './port-killer.js';
-import {
-  generateFeedAndAssets,
-  checkAssetsServerReachable,
-  populateDatabaseFromFeed,
-  DEFAULT_TEST_FEED_URL,
-} from 'podverse-test-assets';
-import dotenv from 'dotenv';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import { ReportManager } from './report-manager.js';
+import { WebAppManager } from './web-app-manager.js';
 
 // ES modules __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);

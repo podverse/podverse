@@ -572,7 +572,10 @@
     "set_password": "Set Password",
     "set_password_complete_message": "Your password has been set successfully. You can now login.",
     "set_password_email_optional": "Email (optional)",
-    "set_password_email_required": "Email"
+    "set_password_email_required": "Email",
+    "set_password_other_session_banner": "You are signed in as {sessionLabel}. This invitation link finishes setup for a different account.",
+    "set_password_sign_out_to_continue": "Sign out and continue",
+    "set_password_continue_without_signing_out": "Continue without signing out"
   },
   "membership": {
     "membership": "Membership",
@@ -734,6 +737,19 @@
       "new_item": "New item",
       "livestream_scheduled": "Livestream scheduled",
       "livestream_started": "Livestream started"
+    },
+    "keyboard": {
+      "keyboard": "Keyboard",
+      "intro": "These shortcuts work across the site when focus is not inside a text field, search box, or other editable control.",
+      "keys_space": "Space",
+      "keys_arrows_seek": "Arrow Left / Arrow Right",
+      "keys_arrows_volume": "Arrow Left / Arrow Right",
+      "shortcut_play_pause_label": "Play or pause",
+      "shortcut_play_pause_detail": "Press Space to play or pause the current episode or track when the player has media loaded. Space is ignored while focus is in an input, textarea, select, or contenteditable field, and does not toggle play when focus is on a button or link (or inside a menu).",
+      "shortcut_seek_label": "Seek backward or forward 10 seconds",
+      "shortcut_seek_detail": "Press the Left or Right arrow key once to jump 10 seconds. Repeating the key does not seek again until you release it (no key repeat).",
+      "shortcut_volume_label": "Volume (when the volume slider is focused)",
+      "shortcut_volume_detail": "With keyboard focus on the player volume slider, Left and Right arrow keys decrease or increase volume by 5% per press."
     }
   },
   "contact": {
@@ -770,10 +786,6 @@
       "alpha": {
         "header": "Alpha Warning ⚠️",
         "message": "This is the alpha version of the website. It is unfinished, may contain bugs, and your alpha data may be periodically reset or deleted."
-      },
-      "local": {
-        "header": "Local Development ⚙️",
-        "message": "You are running a local development build."
       }
     }
   },

@@ -1,18 +1,19 @@
 // Log immediately - before any imports
 console.log('📝 Bundle Analyzer starting - loading modules...\n');
 
+import dotenv from 'dotenv';
+import fs from 'fs';
 import inquirer from 'inquirer';
-import { BundleAnalyzer } from './bundle-analyzer.js';
-import { BundleReportManager } from './report-manager.js';
-import { BundleComparisonEngine } from './comparison.js';
-import { generateComparisonSummary } from './openai-summary.js';
+import path from 'path';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
 import type { AppTarget } from './app-config.js';
 import { getAppConfig } from './app-config.js';
-import dotenv from 'dotenv';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import { BundleAnalyzer } from './bundle-analyzer.js';
+import { BundleComparisonEngine } from './comparison.js';
+import { generateComparisonSummary } from './openai-summary.js';
+import { BundleReportManager } from './report-manager.js';
 
 // ES modules __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);

@@ -393,7 +393,7 @@
     "adminDetail": "Admin detail",
     "createAdmin": "Create Admin",
     "editAdmin": "Edit Admin",
-    "editAdminItem": "Edit {email}",
+    "editAdminItem": "Edit {identifier}",
     "failedToLoad": "Failed to load admin accounts",
     "failedToCreate": "Failed to create admin",
     "failedToUpdate": "Failed to update admin",
@@ -404,10 +404,16 @@
     "createdWithLink": "Admin created. Share the invite link below so they can set their password.",
     "passwordOptional": "Password (optional)",
     "passwordInviteHint": "If you leave this blank, an invitation link is generated that you can send so they can set their password.",
+    "emailOptional": "Email (optional)",
+    "usernameOptional": "Username (optional)",
+    "emailOrUsernameHint": "Provide at least an email or a username.",
+    "emailOrUsernameRequired": "Provide at least an email or a username.",
+    "invalidAdminUsername": "Username must be 1–64 characters and may only contain letters, numbers, periods, underscores, and hyphens.",
     "updatedSuccessfully": "Admin updated successfully.",
     "tableHeaders": {
       "id": "ID",
       "email": "Email",
+      "username": "Username",
       "role": "Role",
       "createdAt": "Created",
       "feeds": "Feeds",
@@ -440,7 +446,38 @@
       "takedownReasons": "Takedown reasons",
       "admins": "Admins",
       "stats": "Stats",
-      "bucket": "Object storage"
+      "billingPrices": "Billing prices",
+      "bucket": "Object storage",
+      "roleTemplateLabel": "Permission template",
+      "roleTemplateHint": "Pick a saved template to fill the grid. You can still adjust individual boxes afterward.",
+      "roleCustom": "Custom (manual)",
+      "roleCustomHint": "Permissions were edited manually and may not match a saved template.",
+      "roleCreateNew": "Create new template…",
+      "loadingRoles": "Loading templates…",
+      "selectAll": "Select all permissions",
+      "clearAll": "Clear all permissions",
+      "customTemplateHint": "Saved template: {name}",
+      "rolePresetLabels": {
+        "everything": "Full access",
+        "read_everything": "Read-only (all resources)",
+        "feeds_moderation": "Feeds and takedown",
+        "admins_stats_read": "Admins and stats",
+        "storage_full": "Object storage only"
+      },
+      "rolePresetDescriptions": {
+        "everything": "Full create/read/update/delete on every resource.",
+        "read_everything": "Read access across every resource.",
+        "feeds_moderation": "Manage feeds and takedown reasons only.",
+        "admins_stats_read": "Manage admins and stats; read elsewhere.",
+        "storage_full": "Full access to object storage only."
+      }
+    },
+    "roleTemplates": {
+      "pageTitle": "Create permission template",
+      "templateName": "Template name",
+      "saveTemplate": "Save template",
+      "createFailed": "Could not save template",
+      "nameRequired": "Enter a template name"
     }
   },
   "users": {

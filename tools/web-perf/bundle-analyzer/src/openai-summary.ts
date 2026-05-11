@@ -1,10 +1,11 @@
-import path from 'path';
 import { config } from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import { OpenAI } from 'openai';
-import type { BundleReport, BundleChunkSummary } from './report-manager.js';
+import path from 'path';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
 import type { BundleComparisonResult } from './comparison.js';
+import type { BundleChunkSummary, BundleReport } from './report-manager.js';
 
 // ES modules __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);

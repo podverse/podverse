@@ -1,16 +1,17 @@
 import { redirect } from 'next/navigation';
 
-import { getManagementSessionUser } from '../../../../../lib/auth/serverManagementSession';
+import { getManagementSession } from '../../../../../lib/auth/serverManagementSession';
 import { canUpdateAdmins } from '../../../../../lib/managementPermissions';
 import { getAdminAccountById } from '../../../../../lib/requests/admins';
 import { EditAdminPageClient } from './EditAdminPageClient';
 
 export default async function EditAdminPage({ params }: { params: Promise<{ id: string }> }) {
-  const user = await getManagementSessionUser();
-  if (!user) {
+  const session = await getManagementSession();
+  if (!session) {
     redirect('/');
   }
 
+  const { user, service } = session;
   if (!canUpdateAdmins(user)) {
     redirect('/admins');
   }
@@ -21,7 +22,13 @@ export default async function EditAdminPage({ params }: { params: Promise<{ id: 
     redirect('/admins');
   }
 
-  const admin = await getAdminAccountById(adminId, undefined);
+  let admin;
+  try {
+    admin = await getAdminAccountById(adminId, service);
+  } catch {
+    redirect('/admins');
+  }
+
   if (!admin || admin.role === 'superuser') {
     redirect('/admins');
   }

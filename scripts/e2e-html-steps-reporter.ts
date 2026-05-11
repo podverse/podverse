@@ -13,7 +13,6 @@ import type {
   TestCase,
   TestResult,
 } from '@playwright/test/reporter';
-
 import fs from 'fs';
 import path from 'path';
 
