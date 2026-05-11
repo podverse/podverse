@@ -734,6 +734,19 @@
       "new_item": "Nouvel élément",
       "livestream_scheduled": "Diffusion en direct planifiée",
       "livestream_started": "Diffusion en direct commencée"
+    },
+    "keyboard": {
+      "keyboard": "Clavier",
+      "intro": "Ces raccourcis fonctionnent sur tout le site lorsque le focus n'est pas dans un champ de texte, une zone de recherche ou un autre contrôle éditable.",
+      "keys_space": "Espace",
+      "keys_arrows_seek": "Flèche gauche / Flèche droite",
+      "keys_arrows_volume": "Flèche gauche / Flèche droite",
+      "shortcut_play_pause_label": "Lecture ou pause",
+      "shortcut_play_pause_detail": "Appuyez sur Espace pour lire ou mettre en pause l'épisode ou la piste en cours lorsque le lecteur contient un média. Espace est ignoré si le focus est dans un champ input, textarea, select ou contenteditable, et ne bascule pas la lecture sur un bouton ou un lien (ou dans un menu).",
+      "shortcut_seek_label": "Reculer ou avancer de 10 secondes",
+      "shortcut_seek_detail": "Appuyez une fois sur la flèche Gauche ou Droite pour sauter de 10 secondes. Maintenir la touche ne répète pas l'action avant relâchement.",
+      "shortcut_volume_label": "Volume (lorsque le curseur de volume a le focus)",
+      "shortcut_volume_detail": "Avec le focus sur le curseur de volume du lecteur, les flèches Gauche et Droite diminuent ou augmentent le volume de 5 % par pression."
     }
   },
   "contact": {

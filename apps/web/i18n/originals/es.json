@@ -734,6 +734,19 @@
       "new_item": "Nuevo elemento",
       "livestream_scheduled": "Transmisión en vivo programada",
       "livestream_started": "Transmisión en vivo iniciada"
+    },
+    "keyboard": {
+      "keyboard": "Teclado",
+      "intro": "Estos atajos funcionan en todo el sitio cuando el foco no está dentro de un campo de texto, cuadro de búsqueda u otro control editable.",
+      "keys_space": "Espacio",
+      "keys_arrows_seek": "Flecha izquierda / Flecha derecha",
+      "keys_arrows_volume": "Flecha izquierda / Flecha derecha",
+      "shortcut_play_pause_label": "Reproducir o pausar",
+      "shortcut_play_pause_detail": "Pulsa Espacio para reproducir o pausar el episodio o pista actual cuando el reproductor tiene contenido. Espacio se ignora si el foco está en un input, textarea, select o campo editable, y no alterna la reproducción si el foco está en un botón o enlace (o dentro de un menú).",
+      "shortcut_seek_label": "Retroceder o avanzar 10 segundos",
+      "shortcut_seek_detail": "Pulsa una vez la flecha Izquierda o Derecha para saltar 10 segundos. Mantener pulsada la tecla no repite la acción hasta soltarla.",
+      "shortcut_volume_label": "Volumen (con el control de volumen enfocado)",
+      "shortcut_volume_detail": "Con el foco en el control de volumen del reproductor, las flechas Izquierda y Derecha bajan o suben el volumen un 5% por pulsación."
     }
   },
   "contact": {

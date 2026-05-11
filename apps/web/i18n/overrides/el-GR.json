@@ -734,6 +734,19 @@
       "new_item": "",
       "livestream_scheduled": "",
       "livestream_started": ""
+    },
+    "keyboard": {
+      "keyboard": "",
+      "intro": "",
+      "keys_space": "",
+      "keys_arrows_seek": "",
+      "keys_arrows_volume": "",
+      "shortcut_play_pause_label": "",
+      "shortcut_play_pause_detail": "",
+      "shortcut_seek_label": "",
+      "shortcut_seek_detail": "",
+      "shortcut_volume_label": "",
+      "shortcut_volume_detail": ""
     }
   },
   "contact": {
