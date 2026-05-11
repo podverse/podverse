@@ -60,7 +60,10 @@ export const AddByRSSLivestreamDetailHeader: React.FC<AddByRSSLivestreamDetailHe
   };
 
   const titleNode = (
-    <Link href={getAddByRSSLivestreamPath(itemIdText, mediumSlug)}>
+    <Link
+      className={styles.episodeTitleLink}
+      href={getAddByRSSLivestreamPath(itemIdText, mediumSlug)}
+    >
       <h2 className={styles.episodeTitle}>{title || 'Untitled'}</h2>
     </Link>
   );

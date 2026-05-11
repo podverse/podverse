@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import * as managementApiRequests from '@podverse/management-api-requests';
@@ -21,10 +22,11 @@ const baseConfig = {
   },
 };
 
+type CreateManagementApiClientFn =
+  (typeof managementApiRequests)['createManagementApiClientFromConfig'];
+
 describe('ManagementApiRequestService', () => {
-  let createClientSpy: ReturnType<
-    typeof vi.spyOn<typeof managementApiRequests, 'createManagementApiClientFromConfig'>
-  >;
+  let createClientSpy: MockInstance<CreateManagementApiClientFn>;
 
   beforeEach(() => {
     mockGetConfig.mockReset();

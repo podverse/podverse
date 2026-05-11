@@ -1,4 +1,5 @@
 @use '../../../../variables/breakpoints';
+@use '../../../../mixins/focus' as focus;
 
 .topSection {
   display: flex;
@@ -25,6 +26,10 @@
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-light);
   margin-left: var(--spacing-2xl);
+}
+
+.titleLink {
+  @include focus.title-link-focus-box;
 }
 
 @media (min-width: breakpoints.$breakpoint-lg-min) {

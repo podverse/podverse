@@ -1,0 +1,10 @@
+@mixin focus-ring {
+  box-shadow: var(--box-shadow-focus);
+  outline: none;
+}
+
+@mixin title-link-focus-box($margin-bottom: 0) {
+  display: inline-block;
+  border-radius: var(--border-radius);
+  margin-bottom: $margin-bottom;
+}

@@ -221,13 +221,13 @@ export const AddByRSSArtistHeader: React.FC<AddByRSSArtistHeaderProps> = ({ feed
   );
 
   const titleNode = (
-    <Link href={detailUrl}>
+    <Link className={headerDesktopStyles.titleLink} href={detailUrl}>
       <h1 className={headerDesktopStyles.title}>{title}</h1>
     </Link>
   );
 
   const titleNodeTablet = (
-    <Link href={detailUrl}>
+    <Link className={headerTabletStyles.titleLink} href={detailUrl}>
       <h1 className={headerTabletStyles.title}>{title}</h1>
     </Link>
   );

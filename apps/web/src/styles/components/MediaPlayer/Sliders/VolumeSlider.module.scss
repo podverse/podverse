@@ -1,3 +1,5 @@
+@use '../../../mixins/focus';
+
 .volumeSliderWrapper {
   display: flex;
   align-items: center;
@@ -13,9 +15,20 @@
   border-radius: var(--border-radius-round);
   margin: 0 var(--spacing-xs);
   display: flex;
-  overflow: hidden;
   cursor: pointer;
   position: relative;
+}
+
+.customVolumeBar:focus-visible {
+  @include focus.focus-ring;
+}
+
+.customVolumeBarInner {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--border-radius-round);
+  overflow: hidden;
 }
 
 .volumeLevel {

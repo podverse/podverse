@@ -1,5 +1,11 @@
+@use '../../../mixins/focus' as focus;
+
+.episodeTitleLink {
+  @include focus.title-link-focus-box(var(--spacing-base));
+}
+
 .episodeTitle {
-  margin-bottom: var(--spacing-base);
+  margin-bottom: 0;
 }
 
 .clipTitle {

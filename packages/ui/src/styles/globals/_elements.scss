@@ -1,3 +1,5 @@
+@use '../mixins/focus';
+
 html {
   color: var(--text-color-primary);
   font-size: var(--font-size-base) !important;
@@ -26,8 +28,8 @@ button {
   border-radius: var(--border-radius);
 }
 
-button:focus {
-  box-shadow: var(--box-shadow-focus);
+button:focus-visible {
+  @include focus.focus-ring;
 }
 
 a {
@@ -37,15 +39,12 @@ a {
   border-radius: var(--border-radius);
 }
 
-a:focus {
-  box-shadow: var(--box-shadow-focus);
-  outline: none;
-  background: none;
+a:focus-visible {
+  @include focus.focus-ring;
 }
 
-summary:focus {
-  box-shadow: var(--box-shadow-focus);
-  outline: none;
+summary:focus-visible {
+  @include focus.focus-ring;
 }
 
 h1,

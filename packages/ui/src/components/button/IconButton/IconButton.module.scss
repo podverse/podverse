@@ -17,15 +17,6 @@
   color: var(--text-color-primary);
   cursor: pointer;
   text-decoration: none;
-
-  &:focus {
-    outline: none;
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--border-color-primary);
-    outline-offset: 2px;
-  }
 }
 
 .appearanceControl {
@@ -48,7 +39,7 @@
   padding: 0;
   background: transparent;
   border: none;
-  border-radius: 0;
+  border-radius: 50%;
 }
 
 .appearanceGhost:hover:not(:disabled),
