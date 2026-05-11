@@ -20,9 +20,9 @@ import {
   CUSTOM_ROLE_SELECTION_ID,
   emptyPermissionState,
   type PermissionState,
-} from '../../../../../components/admins/adminPermissionModel.js';
-import { AdminPermissionsSection } from '../../../../../components/admins/AdminPermissionsSection.js';
-import { createManagementAdminRole } from '../../../../../lib/requests/adminRoles.js';
+} from '../../../../../components/admins/adminPermissionModel';
+import { AdminPermissionsSection } from '../../../../../components/admins/AdminPermissionsSection';
+import { createManagementAdminRole } from '../../../../../lib/requests/adminRoles';
 
 export function AdminRoleTemplatePageClient({ returnUrl }: { returnUrl: string }) {
   const router = useRouter();

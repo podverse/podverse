@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 
-import { LoadingSpinner } from '../LoadingSpinner';
+import { LoadingSpinner } from '../LoadingSpinner/index';
 
 import styles from './LazyLoadPlaceholder.module.scss';
 

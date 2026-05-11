@@ -23,8 +23,8 @@ import {
   CUSTOM_ROLE_SELECTION_ID,
   type PermissionState,
   permissionStatesEqual,
-} from '../../../../../components/admins/adminPermissionModel.js';
-import { AdminPermissionsSection } from '../../../../../components/admins/AdminPermissionsSection.js';
+} from '../../../../../components/admins/adminPermissionModel';
+import { AdminPermissionsSection } from '../../../../../components/admins/AdminPermissionsSection';
 import {
   type AdminAccount,
   updateAdmin,

@@ -7,8 +7,8 @@ import { FaEllipsis } from 'react-icons/fa6';
 
 import { useDropdownKeyboardNavigation } from '../../../hooks/useDropdownKeyboardNavigation';
 import { cssClass } from '../../../lib/cssModule';
-import type { DropdownMenuPanelItem } from '../../navigation/DropdownMenu';
-import { DropdownMenuPanel } from '../../navigation/DropdownMenu';
+import type { DropdownMenuPanelItem } from '../../navigation/DropdownMenu/index';
+import { DropdownMenuPanel } from '../../navigation/DropdownMenu/index';
 
 import styles from './MoreButton.module.scss';
 

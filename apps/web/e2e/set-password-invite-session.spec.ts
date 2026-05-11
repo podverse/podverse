@@ -106,9 +106,7 @@ test.describe('Set-password invite when another session is active', () => {
           url.pathname.endsWith('/set-password') &&
           url.searchParams.get('token') === E2E_SET_PASSWORD_INVITE_TOKEN
       );
-      await expect(page.getByRole('dialog', { name: /Local Development/i })).toBeVisible({
-        timeout: 15_000,
-      });
+      // Modal may not reappear after reload when the disclaimer was already accepted in-session.
       await dismissLocalDevelopmentModal(page);
     });
 

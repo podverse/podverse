@@ -1,5 +1,5 @@
-import { DataSource } from 'typeorm';
 import bcrypt from 'bcryptjs';
+import { DataSource } from 'typeorm';
 
 export interface TestUser {
   email: string;

@@ -18,7 +18,7 @@ import {
 import {
   listManagementAdminRoles,
   type ManagementAdminRoleItem,
-} from '../../lib/requests/adminRoles.js';
+} from '../../lib/requests/adminRoles';
 import {
   ADMIN_PERMISSION_RESOURCE_KEYS,
   CREATE_ROLE_NAV_ID,
@@ -28,7 +28,7 @@ import {
   type PermissionState,
   permissionStateFromRoleItem,
   rolePermissionScore,
-} from './adminPermissionModel.js';
+} from './adminPermissionModel';
 
 const CRUD_BITS = [
   { bit: 1, labelKey: 'create' },

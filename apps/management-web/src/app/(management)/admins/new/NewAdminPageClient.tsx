@@ -25,8 +25,8 @@ import {
   CUSTOM_ROLE_SELECTION_ID,
   emptyPermissionState,
   type PermissionState,
-} from '../../../../components/admins/adminPermissionModel.js';
-import { AdminPermissionsSection } from '../../../../components/admins/AdminPermissionsSection.js';
+} from '../../../../components/admins/adminPermissionModel';
+import { AdminPermissionsSection } from '../../../../components/admins/AdminPermissionsSection';
 import { createAdmin, type CreateAdminResponse } from '../../../../lib/requests/admins';
 
 const ADMIN_USERNAME_PATTERN = /^[a-zA-Z0-9._-]+$/;
