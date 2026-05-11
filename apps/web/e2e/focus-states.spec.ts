@@ -42,37 +42,56 @@ test.describe('Focus state consistency', () => {
       // Return to episode page via browser history so we can tab into chrome.
       await page.goBack();
       await expect(page.locator('body')).toBeVisible({ timeout: 15_000 });
+      await page.waitForLoadState('domcontentloaded');
+      await page.bringToFront();
+      await page.evaluate(() => {
+        window.focus();
+      });
 
       // Keyboard Tab from the page root to the first focusable element in the nav.
       await page.keyboard.press('Tab');
 
-      const focused = page.locator(':focus');
-      await expect(focused).toBeVisible({ timeout: 5_000 });
+      await expect
+        .poll(
+          async () =>
+            page.evaluate(() => {
+              const activeElement = document.activeElement;
+              if (!(activeElement instanceof HTMLElement)) {
+                return null;
+              }
+              const tag = activeElement.tagName.toLowerCase();
+              if (tag === 'body' || tag === 'html') {
+                return null;
+              }
+              return tag;
+            }),
+          { timeout: 5_000 }
+        )
+        .not.toBeNull();
 
-      const shadow = await focused.evaluate((el) => getComputedStyle(el).boxShadow);
+      const shadow = await page.evaluate(() => {
+        const activeElement = document.activeElement;
+        if (!(activeElement instanceof Element)) {
+          return null;
+        }
+        return getComputedStyle(activeElement).boxShadow;
+      });
       // The focus ring must be non-empty (i.e. a box-shadow other than "none" is applied).
+      expect(shadow).not.toBeNull();
       expect(shadow).not.toBe('none');
     });
 
     await test.step('Tab-focused button shows --box-shadow-focus ring', async () => {
-      // Continue tabbing until we land on a button.
-      let tabsLeft = 20;
-      let buttonFocused = false;
-      while (tabsLeft-- > 0) {
-        await page.keyboard.press('Tab');
-        const tag = await page.evaluate(() => document.activeElement?.tagName?.toLowerCase());
-        if (tag === 'button') {
-          buttonFocused = true;
-          break;
-        }
-      }
+      // Episode tab strip buttons use a U-shaped ::after ring (box-shadow none). Assert the global
+      // token ring on a chrome control instead of probing tab stops through the sidebar.
+      const chromeButton = page.getByRole('button', { name: 'Back' });
+      await expect(chromeButton).toBeVisible({ timeout: 10_000 });
+      await chromeButton.focus();
 
-      expect(buttonFocused).toBe(true);
+      const tag = await page.evaluate(() => document.activeElement?.tagName?.toLowerCase());
+      expect(tag).toBe('button');
 
-      const shadow = await page.evaluate(() => {
-        const el = document.activeElement as HTMLElement | null;
-        return el ? getComputedStyle(el).boxShadow : '';
-      });
+      const shadow = await chromeButton.evaluate((el) => getComputedStyle(el).boxShadow);
       expect(shadow).not.toBe('none');
     });
   });
