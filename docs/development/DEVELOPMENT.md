@@ -9,7 +9,7 @@ Use this page as a quick map for development documentation.
 
 ## White-label / rebranding
 
-- [REBRANDING-CDN.md](./REBRANDING-CDN.md) — CDN-hosted icons, manifest, and `NEXT_PUBLIC_*` env map
+- [REBRANDING-CDN.md](./REBRANDING-CDN.md) — bundled asset checklist (filenames, dimensions), then CDN-hosted icons, manifest, and `NEXT_PUBLIC_*` env map
 
 ## Topic folders
 
