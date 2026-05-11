@@ -35,6 +35,7 @@ describe('getManagementSessionUser', () => {
       id: 1,
       id_text: 'abc',
       email: 'abc@example.com',
+      username: null,
       role: 'superuser',
       permissions: {
         feeds_crud: 15,

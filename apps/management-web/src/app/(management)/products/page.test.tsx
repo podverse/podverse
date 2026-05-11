@@ -31,6 +31,7 @@ describe('ProductsPage (server)', () => {
       id: 2,
       id_text: 'u2',
       email: 'admin@example.com',
+      username: null,
       role: 'admin',
       permissions: null,
     });
@@ -47,6 +48,7 @@ describe('ProductsPage (server)', () => {
       id: 1,
       id_text: 'u1',
       email: 'super@example.com',
+      username: null,
       role: 'superuser',
       permissions: {
         feeds_crud: 15,

@@ -14,6 +14,7 @@ const mockSuperuserAdmin = {
   admin_account_role: { role: 'superuser' },
   admin_account_credentials: {
     email: 'admin@example.com',
+    username: null,
     password: 'hash',
     id: 1,
     admin_account_id: 1,
@@ -169,6 +170,7 @@ describe('management-api auth routes', () => {
         id: 1,
         id_text: 'pvMgtAu001',
         email: 'admin@example.com',
+        username: null,
         role: 'superuser',
         permissions: {
           feeds_crud: 15,

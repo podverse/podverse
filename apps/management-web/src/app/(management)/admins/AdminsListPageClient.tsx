@@ -56,9 +56,24 @@ function crudLabel(value: number): string {
   return CRUD_LABELS[value] ?? String(value);
 }
 
+function adminLoginLabel(adminRow: AdminAccount): string {
+  const e = adminRow.email;
+  const u = adminRow.username;
+  if (e !== null && e !== undefined && e !== '' && u !== null && u !== undefined && u !== '') {
+    return `${e} / ${u}`;
+  }
+  if (e !== null && e !== undefined && e !== '') {
+    return e;
+  }
+  if (u !== null && u !== undefined && u !== '') {
+    return u;
+  }
+  return '—';
+}
+
 const ADMIN_COLUMN_IDS = [
   'id_text',
-  'email',
+  'login',
   'role',
   'feeds',
   'takedownReasons',
@@ -94,6 +109,9 @@ function sortAdmins(rows: AdminAccount[], sortKey: string, order: SortDirection)
       const va = a.permissions?.bucket_crud ?? 0;
       const vb = b.permissions?.bucket_crud ?? 0;
       return (va - vb) * dir;
+    }
+    if (sortKey === 'login') {
+      return adminLoginLabel(a).localeCompare(adminLoginLabel(b)) * dir;
     }
     const av = a[sortKey as keyof AdminAccount];
     const bv = b[sortKey as keyof AdminAccount];
@@ -170,7 +188,7 @@ export function AdminsListPageClient({ initialUser }: AdminsListPageClientProps)
     }
     return sortedAdmins.filter(
       (a) =>
-        (a.email ?? '').toLowerCase().includes(q) ||
+        adminLoginLabel(a).toLowerCase().includes(q) ||
         (a.id_text ?? '').toLowerCase().includes(q) ||
         (a.role ?? '').toLowerCase().includes(q)
     );
@@ -186,11 +204,11 @@ export function AdminsListPageClient({ initialUser }: AdminsListPageClientProps)
         sortKey: 'id_text',
       },
       {
-        header: t('tableHeaders.email'),
-        id: 'email',
-        label: t('tableHeaders.email'),
-        sortAriaLabel: chrome.sortAriaForColumn(String(t('tableHeaders.email'))),
-        sortKey: 'email',
+        header: t('tableHeaders.emailOrUsername'),
+        id: 'login',
+        label: t('tableHeaders.emailOrUsername'),
+        sortAriaLabel: chrome.sortAriaForColumn(String(t('tableHeaders.emailOrUsername'))),
+        sortKey: 'login',
       },
       {
         header: t('tableHeaders.role'),
@@ -320,7 +338,7 @@ export function AdminsListPageClient({ initialUser }: AdminsListPageClientProps)
             renderCells={(adminRow) => (
               <>
                 <Table.Cell>{adminRow.id_text}</Table.Cell>
-                <Table.Cell>{adminRow.email ?? '-'}</Table.Cell>
+                <Table.Cell>{adminLoginLabel(adminRow)}</Table.Cell>
                 <Table.Cell>
                   <StatusBadge variant={adminRow.role === 'superuser' ? 'success' : 'neutral'}>
                     {adminRow.role}

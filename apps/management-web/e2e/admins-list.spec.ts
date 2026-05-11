@@ -10,6 +10,7 @@ const MOCK_ADMIN = {
   id_text: 'e2e_admin_row',
   role: 'superuser',
   email: 'e2e-admin-row@example.com',
+  username: null,
   permissions: {
     feeds_crud: 15,
     feed_takedown_reasons_crud: 0,
@@ -49,7 +50,7 @@ test.describe('Management-web admins list', () => {
     await expect(page).toHaveURL(/\/admins$/);
     await expect(page.getByRole('heading', { name: 'Admins', level: 1 })).toBeVisible();
 
-    await expect(page.getByRole('button', { name: 'Sort by Email' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Sort by Email / Username' })).toBeVisible();
     await expect(
       page.getByRole('cell', { name: 'e2e-admin-row@example.com', exact: true })
     ).toBeVisible();

@@ -65,7 +65,8 @@ function mapAdminToAuthenticatedUser(admin: AdminAccount): AuthenticatedAdmin | 
   return {
     id: admin.id,
     id_text: admin.id_text,
-    email: admin.admin_account_credentials?.email ?? '',
+    email: admin.admin_account_credentials?.email ?? null,
+    username: admin.admin_account_credentials?.username ?? null,
     admin_account_role_id: admin.admin_account_role_id,
     role: admin.admin_account_role.role,
     permissions: admin.permissions

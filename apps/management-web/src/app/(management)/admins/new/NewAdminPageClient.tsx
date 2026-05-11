@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
+import { ADMIN_ACCOUNT_CREDENTIALS_USERNAME_MAX_LENGTH } from '@podverse/helpers';
 import {
   Alert,
   Breadcrumbs,
@@ -55,9 +56,12 @@ const RESOURCE_LABEL_KEYS: Record<(typeof RESOURCE_KEYS)[number], string> = {
   bucket_crud: 'bucket',
 };
 
+const ADMIN_USERNAME_PATTERN = /^[a-zA-Z0-9._-]+$/;
+
 export function NewAdminPageClient() {
   const router = useRouter();
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [permissions, setPermissions] = useState<PermissionState>({
     feeds_crud: 0,
@@ -73,7 +77,6 @@ export function NewAdminPageClient() {
   const t = useTranslations('admins');
   const tc = useTranslations('common');
   const tNav = useTranslations('nav');
-  const ta = useTranslations('auth');
   const tu = useTranslations('users');
   const tp = useTranslations('admins.permissions');
 
@@ -98,12 +101,37 @@ export function NewAdminPageClient() {
       return;
     }
 
+    const trimmedEmail = email.trim();
+    const trimmedUsername = username.trim();
+    if (trimmedEmail === '' && trimmedUsername === '') {
+      setError(t('emailOrUsernameRequired'));
+      setLoading(false);
+      return;
+    }
+    if (trimmedUsername !== '') {
+      if (
+        trimmedUsername.length > ADMIN_ACCOUNT_CREDENTIALS_USERNAME_MAX_LENGTH ||
+        !ADMIN_USERNAME_PATTERN.test(trimmedUsername)
+      ) {
+        setError(t('invalidAdminUsername'));
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
       const payload: {
-        email: string;
         permissions: PermissionState;
+        email?: string;
+        username?: string;
         password?: string;
-      } = { email, permissions };
+      } = { permissions };
+      if (trimmedEmail !== '') {
+        payload.email = trimmedEmail;
+      }
+      if (trimmedUsername !== '') {
+        payload.username = trimmedUsername;
+      }
       if (trimmedPassword.length > 0) {
         payload.password = trimmedPassword;
       }
@@ -113,6 +141,7 @@ export function NewAdminPageClient() {
         setInviteUrl(result.set_password_url);
         setSuccessMessage(t('createdWithLink'));
         setEmail('');
+        setUsername('');
         setPassword('');
         setPermissions({
           feeds_crud: 0,
@@ -156,12 +185,20 @@ export function NewAdminPageClient() {
         <StackForm onSubmit={(e) => void handleSubmit(e)}>
           <TextInput
             id="email"
-            eyebrow={ta('email')}
+            eyebrow={t('emailOptional')}
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
           />
+          <TextInput
+            id="admin-username"
+            eyebrow={t('usernameOptional')}
+            type="text"
+            autoComplete="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <FormHintText>{t('emailOrUsernameHint')}</FormHintText>
           <TextInput
             id="password"
             eyebrow={t('passwordOptional')}

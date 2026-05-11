@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
+import { ADMIN_ACCOUNT_CREDENTIALS_USERNAME_MAX_LENGTH } from '@podverse/helpers';
 import {
   Alert,
   Breadcrumbs,
   Button,
   Checkbox,
   Fieldset,
+  FormHintText,
   FormMaxWidth,
   FormPrimaryActions,
   ManagementPageShell,
@@ -19,7 +21,11 @@ import {
   TextInput,
 } from '@podverse/ui';
 
-import { type AdminAccount, updateAdmin } from '../../../../../lib/requests/admins';
+import {
+  type AdminAccount,
+  updateAdmin,
+  type UpdateAdminParams,
+} from '../../../../../lib/requests/admins';
 
 const RESOURCE_KEYS = [
   'feeds_crud',
@@ -52,6 +58,8 @@ const RESOURCE_LABEL_KEYS: Record<(typeof RESOURCE_KEYS)[number], string> = {
   bucket_crud: 'bucket',
 };
 
+const ADMIN_USERNAME_PATTERN = /^[a-zA-Z0-9._-]+$/;
+
 function permissionsFromAdmin(admin: AdminAccount): PermissionState {
   return {
     feeds_crud: admin.permissions?.feeds_crud ?? 0,
@@ -69,6 +77,7 @@ export type EditAdminPageClientProps = {
 export function EditAdminPageClient({ admin }: EditAdminPageClientProps) {
   const router = useRouter();
   const [email, setEmail] = useState(admin.email ?? '');
+  const [username, setUsername] = useState(admin.username ?? '');
   const [password, setPassword] = useState('');
   const [permissions, setPermissions] = useState<PermissionState>(permissionsFromAdmin(admin));
   const [loading, setLoading] = useState(false);
@@ -93,14 +102,33 @@ export function EditAdminPageClient({ admin }: EditAdminPageClientProps) {
     setError(null);
     setSuccess(false);
 
+    const trimmedEmail = email.trim();
+    const trimmedUsername = username.trim();
+    if (trimmedEmail === '' && trimmedUsername === '') {
+      setError(t('emailOrUsernameRequired'));
+      setLoading(false);
+      return;
+    }
+    if (trimmedUsername !== '') {
+      if (
+        trimmedUsername.length > ADMIN_ACCOUNT_CREDENTIALS_USERNAME_MAX_LENGTH ||
+        !ADMIN_USERNAME_PATTERN.test(trimmedUsername)
+      ) {
+        setError(t('invalidAdminUsername'));
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
-      const updateData: {
-        email?: string;
-        password?: string;
-        permissions?: Partial<PermissionState>;
-      } = {};
-      if (email !== (admin.email ?? '')) {
-        updateData.email = email;
+      const updateData: UpdateAdminParams = {};
+      const prevEmail = (admin.email ?? '').trim();
+      const prevUsername = (admin.username ?? '').trim();
+      if (trimmedEmail !== prevEmail) {
+        updateData.email = trimmedEmail;
+      }
+      if (trimmedUsername !== prevUsername) {
+        updateData.username = trimmedUsername;
       }
       if (password) {
         updateData.password = password;
@@ -136,7 +164,11 @@ export function EditAdminPageClient({ admin }: EditAdminPageClientProps) {
           items={[
             { href: '/dashboard', label: tNav('dashboard') },
             { href: '/admins', label: t('title') },
-            { label: t('editAdminItem', { email: admin.email ?? admin.id_text }) },
+            {
+              label: t('editAdminItem', {
+                identifier: admin.email ?? admin.username ?? admin.id_text,
+              }),
+            },
           ]}
         />
       }
@@ -145,12 +177,20 @@ export function EditAdminPageClient({ admin }: EditAdminPageClientProps) {
         <StackForm onSubmit={(e) => void handleSubmit(e)}>
           <TextInput
             id="email"
-            eyebrow={ta('email')}
+            eyebrow={t('emailOptional')}
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
           />
+          <TextInput
+            id="admin-username"
+            eyebrow={t('usernameOptional')}
+            type="text"
+            autoComplete="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <FormHintText>{t('emailOrUsernameHint')}</FormHintText>
           <TextInput
             id="password"
             eyebrow={ta('newPassword')}

@@ -154,6 +154,7 @@ export function AdminDetailPageClient({ adminId, initialUser }: Props) {
           <DescriptionList variant="rows">
             <DescriptionListRow detail={admin.id_text} term={t('tableHeaders.id')} />
             <DescriptionListRow detail={admin.email ?? '-'} term={t('tableHeaders.email')} />
+            <DescriptionListRow detail={admin.username ?? '-'} term={t('tableHeaders.username')} />
             <DescriptionListRow
               detail={
                 <StatusBadge variant={admin.role === 'superuser' ? 'success' : 'neutral'}>
