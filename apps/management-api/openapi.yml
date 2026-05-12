@@ -1,0 +1,104 @@
+openapi: 3.0.3
+info:
+  title: Management API
+  description: API for managing Podverse admin and management operations.
+  version: 1.0.0
+servers:
+  - url: https://management-api.podverse.com/v1
+    description: Production server
+  - url: http://localhost:4000/v1
+    description: Local development server
+paths:
+  /admins/{id}:
+    get:
+      summary: Get Admin Details
+      description: Fetches details of an admin account by ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier for the admin.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully fetched admin details.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Unique admin ID.
+                  email:
+                    type: string
+                    description: Admin's email address.
+                  username:
+                    type: string
+                    description: Admin's username.
+                  role:
+                    type: string
+                    description: Admin's role.
+        "404":
+          description: Admin not found.
+        "401":
+          description: Unauthorized.
+
+    patch:
+      summary: Update Admin Details
+      description: Updates specific details of an admin account.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier for the admin account.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: Updated admin email.
+                username:
+                  type: string
+                  description: Updated admin username.
+                password:
+                  type: string
+                  description: Updated password for the admin account.
+              required:
+                - username
+      responses:
+        "200":
+          description: Admin details successfully updated.
+        "400":
+          description: Invalid request.
+        "404":
+          description: Admin not found.
+        "401":
+          description: Unauthorized.
+
+    delete:
+      summary: Delete Admin Account
+      description: Deletes the admin account associated with the provided ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier for the admin account.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successfully deleted admin account.
+        "403":
+          description: Forbidden. Cannot delete own account.
+        "404":
+          description: Admin account not found.
+        "401":
+          description: Unauthorized.
