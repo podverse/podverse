@@ -1,0 +1,399 @@
+openapi: 3.0.3
+info:
+  title: Podverse Management API
+  description: Administrative API for Podverse management operations, including users, admins, feeds, billing, and system configuration.
+  version: 2.0.0
+servers:
+  - url: https://management-api.podverse.fm/api/v2
+    description: Production Server
+  - url: http://localhost:3100/api/v2
+    description: Local Development Server
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: pv_mgmt_auth
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - cookieAuth: []
+  - bearerAuth: []
+
+paths:
+  # ==============================
+  # Auth
+  # ==============================
+  /auth/login:
+    post:
+      summary: Admin Login
+      description: Authenticate an admin and issue a session cookie.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                includeTokenInResponseBody:
+                  type: boolean
+      responses:
+        "200":
+          description: Authenticated successfully.
+        "401":
+          description: Invalid credentials.
+
+  /auth/logout:
+    post:
+      summary: Admin Logout
+      description: Clears the admin session cookie.
+      responses:
+        "200":
+          description: Logged out successfully.
+
+  /auth/me:
+    get:
+      summary: Get Current Admin
+      description: Retrieve details, role, and permissions of the currently logged-in admin.
+      responses:
+        "200":
+          description: Success.
+        "401":
+          description: Unauthorized.
+
+  # ==============================
+  # Admins
+  # ==============================
+  /admins:
+    get:
+      summary: List Admins
+      description: Get a list of all admin accounts. Requires `admins:read` or superuser.
+      responses:
+        "200":
+          description: Success.
+    post:
+      summary: Create Admin
+      description: Create a new admin account. Requires `admins:create` or superuser.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                username:
+                  type: string
+                password:
+                  type: string
+                role_id:
+                  type: string
+                permissions:
+                  type: object
+      responses:
+        "201":
+          description: Admin created successfully.
+
+  /admins/roles:
+    get:
+      summary: List Admin Roles
+      description: Get list of predefined and custom roles.
+      responses:
+        "200":
+          description: Success.
+
+  /admins/{id}:
+    get:
+      summary: Get Admin
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Success.
+    patch:
+      summary: Update Admin
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                username:
+                  type: string
+                password:
+                  type: string
+                role_id:
+                  type: string
+                permissions:
+                  type: object
+      responses:
+        "200":
+          description: Updated successfully.
+    delete:
+      summary: Delete Admin
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted successfully.
+
+  /admins/invite-link/redeem:
+    post:
+      summary: Redeem Invite Link
+      description: Set a password using an invite token. Publicly accessible.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Password updated.
+
+  # ==============================
+  # Users
+  # ==============================
+  /users:
+    get:
+      summary: List Users
+      description: Retrieve a paginated list of regular users. Superuser only.
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+        - in: query
+          name: search
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success.
+    post:
+      summary: Create User
+      description: Create a new regular user account. Superuser only.
+      responses:
+        "201":
+          description: Success.
+
+  /users/{id}:
+    get:
+      summary: Get User
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Success.
+    patch:
+      summary: Update User
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Success.
+    delete:
+      summary: Delete User
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Success.
+
+  # ==============================
+  # Feeds
+  # ==============================
+  /feeds:
+    get:
+      summary: List Feeds Operations
+      description: Retrieve feed operation statuses. Requires `feeds:read`.
+      responses:
+        "200":
+          description: Success.
+
+  /feeds/options:
+    get:
+      summary: Feed Options
+      description: Retrieve lifecycle states, conditions, and takedown reason enumerations.
+      responses:
+        "200":
+          description: Success.
+
+  /feeds/lookup:
+    get:
+      summary: Lookup Feed
+      description: Find a feed by podcast_index_id, internal id, or URL.
+      parameters:
+        - in: query
+          name: podcast_index_id
+          schema:
+            type: integer
+        - in: query
+          name: url
+          schema:
+            type: string
+        - in: query
+          name: feed_id
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Success.
+        "404":
+          description: Not found.
+
+  /feeds/{id}/policy-state:
+    patch:
+      summary: Update Feed Policy
+      description: Update feed operation policies/overrides. Requires `feeds:update`.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Success.
+
+  # ==============================
+  # Products / Membership
+  # ==============================
+  /products/membership:
+    get:
+      summary: Get Membership Settings
+      description: Superuser only.
+      responses:
+        "200":
+          description: Success.
+    patch:
+      summary: Update Membership Settings
+      description: Update constraints (e.g. trial max feeds). Superuser only.
+      responses:
+        "200":
+          description: Success.
+
+  /products/pricing/active:
+    get:
+      summary: List Active Prices
+      description: Get active billing prices. Requires `billing_prices:read`.
+      responses:
+        "200":
+          description: Success.
+
+  # ==============================
+  # Stats
+  # ==============================
+  /stats/{entityType}/top:
+    get:
+      summary: Get Top Stats
+      parameters:
+        - in: path
+          name: entityType
+          required: true
+          schema:
+            type: string
+            enum: [channel, item, clip, playlist, account]
+      responses:
+        "200":
+          description: Success.
+
+  # ==============================
+  # Database & Storage
+  # ==============================
+  /database/tables:
+    get:
+      summary: List Allowed Tables
+      description: Get a list of database tables allowed for query/mutation.
+      responses:
+        "200":
+          description: Success.
+
+  /database/{table}/query:
+    post:
+      summary: Query Table
+      description: Filter and sort records for a specific table.
+      parameters:
+        - in: path
+          name: table
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success.
+
+  /storage:
+    get:
+      summary: Get Storage Configuration Status
+      description: Checks if bucket storage is enabled and returns config summary.
+      responses:
+        "200":
+          description: Success.
+
+  /workers/commands:
+    get:
+      summary: List Worker Commands
+      description: Superuser only. Lists all executable worker commands.
+      responses:
+        "200":
+          description: Success.
+
