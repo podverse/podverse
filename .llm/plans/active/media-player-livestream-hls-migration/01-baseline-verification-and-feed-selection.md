@@ -22,7 +22,7 @@ Baseline green; feeds chosen; matrix appendix updated.
 ## Verification (placeholder)
 
 ```bash
-npm run test:unit -w apps/web
+npm run test:unit
 make e2e_test_web_report_spec SPEC=e2e/media-player-livestream-audio-start.spec.ts
 ```
 

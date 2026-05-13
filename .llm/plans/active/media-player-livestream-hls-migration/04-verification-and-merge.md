@@ -18,6 +18,6 @@ Green CI; skill/docs updated; plan-set archived.
 
 ```bash
 npm run lint -w apps/web
-npm run test:unit -w apps/web
+npm run test:unit
 make e2e_test_web_report
 ```

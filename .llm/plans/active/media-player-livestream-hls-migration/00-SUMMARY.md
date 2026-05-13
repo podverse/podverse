@@ -43,6 +43,6 @@ blocked until the architecture refactor is merged.
 ## Verification (after real implementation)
 
 Commands will be finalized when this plan-set is expanded. Expect at
-minimum: `npm run lint -w apps/web`, `npm run test:unit -w apps/web`,
+minimum: `npm run lint -w apps/web`, `npm run test:unit`,
 `make e2e_test_web_report`, plus the livestream spec list from Phase 1
 section 6 of the architecture plan-set.
