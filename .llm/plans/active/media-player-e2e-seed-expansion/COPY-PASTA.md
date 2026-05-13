@@ -114,7 +114,7 @@ green at every commit.
   make e2e_test_web_report
   make e2e_test_management_web_report
   npm run lint -w apps/web
-  npm run test:unit -w apps/web
+  npm run test:unit
   ```
 
 - [ ] **Plan archival (this plan-set)**

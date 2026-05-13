@@ -85,7 +85,7 @@ clean before merging.
 
 ```bash
 npm run lint -w apps/web
-npm run test:unit -w apps/web
+npm run test:unit
 ```
 
 Should pass — this plan-set does not touch `apps/web/src/` except
@@ -143,7 +143,7 @@ developer working from that branch sees the gate is open.
   the matrix doc.
 - `make e2e_test_web_report` passes with all six lifted specs active.
 - `make e2e_test_management_web_report` is clean.
-- `npm run lint -w apps/web` and `npm run test:unit -w apps/web` are
+- `npm run lint -w apps/web` and `npm run test:unit` are
   clean.
 - The PR is merged into `develop` and the plan-set directory is
   moved to `.llm/plans/completed/`.
@@ -157,5 +157,5 @@ make e2e_seed_web
 make e2e_test_web_report
 make e2e_test_management_web_report
 npm run lint -w apps/web
-npm run test:unit -w apps/web
+npm run test:unit
 ```
