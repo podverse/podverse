@@ -73,14 +73,16 @@ export const VolumeSlider: React.FC = () => {
         aria-valuetext={mpIsMuted ? 'Muted' : `${Math.round(mpVolume * 100)}%`}
         tabIndex={0}
       >
-        <div
-          className={styles.volumeLevel}
-          style={{ width: `${mpIsMuted ? 0 : mpVolume * 100}%` }}
-        />
-        <div
-          className={styles.volumeRemaining}
-          style={{ width: `${mpIsMuted ? 100 : (1 - mpVolume) * 100}%` }}
-        />
+        <div className={styles.customVolumeBarInner}>
+          <div
+            className={styles.volumeLevel}
+            style={{ width: `${mpIsMuted ? 0 : mpVolume * 100}%` }}
+          />
+          <div
+            className={styles.volumeRemaining}
+            style={{ width: `${mpIsMuted ? 100 : (1 - mpVolume) * 100}%` }}
+          />
+        </div>
       </div>
     </div>
   );

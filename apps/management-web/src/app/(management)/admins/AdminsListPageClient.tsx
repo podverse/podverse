@@ -59,6 +59,7 @@ function crudLabel(value: number): string {
 const ADMIN_COLUMN_IDS = [
   'id_text',
   'email',
+  'username',
   'role',
   'feeds',
   'takedownReasons',
@@ -171,6 +172,7 @@ export function AdminsListPageClient({ initialUser }: AdminsListPageClientProps)
     return sortedAdmins.filter(
       (a) =>
         (a.email ?? '').toLowerCase().includes(q) ||
+        (a.username ?? '').toLowerCase().includes(q) ||
         (a.id_text ?? '').toLowerCase().includes(q) ||
         (a.role ?? '').toLowerCase().includes(q)
     );
@@ -191,6 +193,13 @@ export function AdminsListPageClient({ initialUser }: AdminsListPageClientProps)
         label: t('tableHeaders.email'),
         sortAriaLabel: chrome.sortAriaForColumn(String(t('tableHeaders.email'))),
         sortKey: 'email',
+      },
+      {
+        header: t('tableHeaders.username'),
+        id: 'username',
+        label: t('tableHeaders.username'),
+        sortAriaLabel: chrome.sortAriaForColumn(String(t('tableHeaders.username'))),
+        sortKey: 'username',
       },
       {
         header: t('tableHeaders.role'),
@@ -321,6 +330,7 @@ export function AdminsListPageClient({ initialUser }: AdminsListPageClientProps)
               <>
                 <Table.Cell>{adminRow.id_text}</Table.Cell>
                 <Table.Cell>{adminRow.email ?? '-'}</Table.Cell>
+                <Table.Cell>{adminRow.username ?? '-'}</Table.Cell>
                 <Table.Cell>
                   <StatusBadge variant={adminRow.role === 'superuser' ? 'success' : 'neutral'}>
                     {adminRow.role}

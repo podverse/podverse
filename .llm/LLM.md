@@ -21,6 +21,8 @@ This folder holds plans, optional development notes, and shared context for the 
 
 Active work lives under `.llm/plans/active/`; completed sets move to `.llm/plans/completed/`. See `.cursor/skills/plan-completion/SKILL.md` and repo rules for the 300-line plan limit.
 
+**Import specifiers (Tier A vs Next `src`):** see [docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md](../docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md).
+
 ## Optional history notes
 
 Some teams keep markdown notes under `.llm/history/active/<feature>/`. That is **optional** and not required for contributing.

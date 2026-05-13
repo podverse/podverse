@@ -1,3 +1,5 @@
+import { createHash, randomUUID } from 'node:crypto';
+
 import { config } from '@api/config/index.js';
 import type { CookieOptions, NextFunction, Request, Response } from 'express';
 import jwt, { type SignOptions } from 'jsonwebtoken';
@@ -23,6 +25,133 @@ import { verifyPassword } from './password.js';
  */
 const isProduction = config.nodeEnv === 'production';
 const MEMBERSHIP_EXPIRED_I18N_KEY = 'membership.membership_expired';
+const MOBILE_ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
+const MOBILE_REFRESH_TOKEN_TTL_SECONDS = 30 * 24 * 60 * 60;
+
+type MobileRefreshRecord = {
+  accountId: number;
+  accountIdText: string;
+  familyId: string;
+  used: boolean;
+  revoked: boolean;
+  expiresAtMs: number;
+};
+
+const mobileRefreshStore = new Map<string, MobileRefreshRecord>();
+
+type RefreshPayload = {
+  id: number;
+  id_text: string;
+  token_use: 'refresh';
+  family_id: string;
+  jti: string;
+};
+
+const hashRefreshToken = (token: string): string =>
+  createHash('sha256').update(token).digest('hex');
+
+const revokeRefreshFamily = (familyId: string): void => {
+  for (const [tokenHash, record] of mobileRefreshStore.entries()) {
+    if (record.familyId === familyId) {
+      mobileRefreshStore.set(tokenHash, { ...record, revoked: true });
+    }
+  }
+};
+
+const issueMobileTokenPair = (params: {
+  accountId: number;
+  accountIdText: string;
+  familyId?: string;
+}): {
+  token_type: 'Bearer';
+  access_token: string;
+  access_token_expires_in: number;
+  refresh_token: string;
+  refresh_token_expires_in: number;
+} => {
+  const familyId = params.familyId ?? randomUUID();
+  const refreshJti = randomUUID();
+
+  const accessToken = jwt.sign(
+    {
+      id: params.accountId,
+      id_text: params.accountIdText,
+      scope: 'podverse_app_mobile',
+      token_use: 'access',
+    },
+    config.auth.jwtSecret,
+    {
+      expiresIn: MOBILE_ACCESS_TOKEN_TTL_SECONDS,
+    } as SignOptions
+  );
+
+  const refreshToken = jwt.sign(
+    {
+      id: params.accountId,
+      id_text: params.accountIdText,
+      scope: 'podverse_app_mobile',
+      token_use: 'refresh',
+      family_id: familyId,
+      jti: refreshJti,
+    },
+    config.auth.jwtSecret,
+    {
+      expiresIn: MOBILE_REFRESH_TOKEN_TTL_SECONDS,
+    } as SignOptions
+  );
+
+  mobileRefreshStore.set(hashRefreshToken(refreshToken), {
+    accountId: params.accountId,
+    accountIdText: params.accountIdText,
+    familyId,
+    used: false,
+    revoked: false,
+    expiresAtMs: Date.now() + MOBILE_REFRESH_TOKEN_TTL_SECONDS * 1000,
+  });
+
+  return {
+    token_type: 'Bearer',
+    access_token: accessToken,
+    access_token_expires_in: MOBILE_ACCESS_TOKEN_TTL_SECONDS,
+    refresh_token: refreshToken,
+    refresh_token_expires_in: MOBILE_REFRESH_TOKEN_TTL_SECONDS,
+  };
+};
+
+const authenticateAccountCredentials = async (
+  identifier: string,
+  password: string
+): Promise<{ id: number; id_text: string } | null> => {
+  if (!password) {
+    return null;
+  }
+
+  const account = identifier.includes('@')
+    ? await getAccountService().getByEmail(identifier, {
+        relations: ['account_credentials'],
+      })
+    : await getAccountService().getByUsername(identifier, {
+        relations: ['account_credentials'],
+      });
+
+  if (!account || !account.account_credentials?.password || !account.verified) {
+    return null;
+  }
+
+  if (!account.id_text) {
+    return null;
+  }
+
+  const isMatch = await verifyPassword(password, account.account_credentials.password);
+  if (!isMatch) {
+    return null;
+  }
+
+  return {
+    id: account.id,
+    id_text: account.id_text,
+  };
+};
 
 let accountServiceSingleton: AccountService | undefined;
 function getAccountService(): AccountService {
@@ -383,4 +512,92 @@ export const logout = (_req: Request, res: Response) => {
   }
 
   return res.json({ message: 'Logged out successfully' });
+};
+
+export const issueMobileToken = async (req: Request, res: Response): Promise<void> => {
+  const body = req.body as { email?: string; password?: string } | undefined;
+  const identifier = body?.email?.trim() ?? '';
+  const password = body?.password ?? '';
+  if (identifier === '' || password === '') {
+    res.status(400).json({ message: 'email and password are required' });
+    return;
+  }
+
+  const account = await authenticateAccountCredentials(identifier, password);
+  if (!account) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return;
+  }
+
+  res.json(issueMobileTokenPair({ accountId: account.id, accountIdText: account.id_text }));
+};
+
+export const refreshMobileToken = async (req: Request, res: Response): Promise<void> => {
+  const body = req.body as { refresh_token?: string } | undefined;
+  const refreshToken = body?.refresh_token ?? '';
+  if (refreshToken === '') {
+    res.status(400).json({ message: 'refresh_token is required' });
+    return;
+  }
+
+  let payload: RefreshPayload;
+  try {
+    payload = jwt.verify(refreshToken, config.auth.jwtSecret) as RefreshPayload;
+  } catch {
+    res.status(401).json({ message: 'Invalid refresh token' });
+    return;
+  }
+
+  if (
+    payload.token_use !== 'refresh' ||
+    typeof payload.family_id !== 'string' ||
+    typeof payload.jti !== 'string' ||
+    typeof payload.id !== 'number' ||
+    typeof payload.id_text !== 'string'
+  ) {
+    res.status(401).json({ message: 'Invalid refresh token' });
+    return;
+  }
+
+  const hashed = hashRefreshToken(refreshToken);
+  const record = mobileRefreshStore.get(hashed);
+  if (!record || record.revoked || record.expiresAtMs < Date.now()) {
+    res.status(401).json({ message: 'Refresh token is invalid or expired' });
+    return;
+  }
+
+  if (record.used) {
+    revokeRefreshFamily(record.familyId);
+    res.status(401).json({
+      message: 'Refresh token reuse detected',
+      code: 'refresh_token_reuse_detected',
+    });
+    return;
+  }
+
+  mobileRefreshStore.set(hashed, { ...record, used: true });
+  res.json(
+    issueMobileTokenPair({
+      accountId: record.accountId,
+      accountIdText: record.accountIdText,
+      familyId: record.familyId,
+    })
+  );
+};
+
+export const revokeMobileToken = (req: Request, res: Response): void => {
+  const body = req.body as { refresh_token?: string } | undefined;
+  const refreshToken = body?.refresh_token ?? '';
+  if (refreshToken !== '') {
+    try {
+      const payload = jwt.verify(refreshToken, config.auth.jwtSecret) as Partial<RefreshPayload>;
+      if (typeof payload.family_id === 'string' && payload.family_id !== '') {
+        revokeRefreshFamily(payload.family_id);
+      }
+    } catch {
+      // Return success for idempotent revocation requests.
+    }
+  }
+
+  res.json({ message: 'Mobile token family revoked' });
 };

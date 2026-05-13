@@ -264,7 +264,9 @@ test.describe('Management-web feeds flag status', () => {
     await expect(page.getByRole('region', { name: 'Feed directory' })).toBeVisible({
       timeout: 20_000,
     });
-    await expect(page.getByRole('button', { name: 'Sort by ID' })).toBeVisible();
+    // Filtered-empty lists omit the sortable `<thead>` (no rows); assert directory chrome + empty copy instead.
+    await expect(page.getByText('No feeds match the current filters.')).toBeVisible();
+    await expect(page.locator('#feed-directory-lifecycle')).toBeVisible();
     await expect(page.getByRole('region', { name: 'Feed directory' })).not.toHaveAttribute(
       'aria-busy'
     );

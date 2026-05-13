@@ -14,7 +14,7 @@ import {
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
 import { getParamRequired } from '@api/lib/params.js';
 import { rateLimitAuthEndpoint } from '@api/lib/rateLimiter.js';
-import { validateBodyObject, validateParamsObject } from '@api/lib/validation/index.js';
+import { joiFeedUrl, validateBodyObject, validateParamsObject } from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 
@@ -44,7 +44,7 @@ class AccountAddByRSSParseController {
       async () => {
         enqueueRateLimit(req, res, () => {
           const bodySchema = Joi.object({
-            feed_url: Joi.string().uri().required(),
+            feed_url: joiFeedUrl(),
             feed_hash: Joi.string().optional(),
             etag: Joi.string().optional(),
             last_modified: Joi.string().optional(),

@@ -1,5 +1,12 @@
 import { config } from '@mgmt-api/config/index.js';
-import { authenticate, ensureAuthenticated, logout } from '@mgmt-api/lib/auth/index.js';
+import {
+  authenticate,
+  ensureAuthenticated,
+  issueMobileToken,
+  logout,
+  refreshMobileToken,
+  revokeMobileToken,
+} from '@mgmt-api/lib/auth/index.js';
 import express from 'express';
 
 const router = express.Router();
@@ -7,6 +14,9 @@ const router = express.Router();
 router.post('/login', authenticate);
 
 router.post('/logout', logout);
+router.post('/mobile/token', issueMobileToken);
+router.post('/mobile/refresh', refreshMobileToken);
+router.post('/mobile/revoke', revokeMobileToken);
 
 router.get('/me', ensureAuthenticated, (req, res) => {
   const admin = req.user;
@@ -19,6 +29,7 @@ router.get('/me', ensureAuthenticated, (req, res) => {
     id: admin.id,
     id_text: admin.id_text,
     email: admin.email,
+    username: admin.username,
     role: admin.role,
     permissions: admin.permissions,
   });

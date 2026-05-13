@@ -1,6 +1,6 @@
 {
   "name": "@podverse/api",
-  "version": "5.4.28",
+  "version": "5.4.29",
   "type": "module",
   "description": "Data API, database migration scripts, and backend services for Podverse",
   "private": true,
@@ -35,8 +35,7 @@
     "@podverse/parser": "*",
     "@podverse/parser-mapping": "*",
     "@podverse/v4v-metaboost": "*",
-    "@types/archiver": "^7.0.0",
-    "archiver": "^7.0.1",
+    "archiver": "^8.0.0",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
     "cookie-parser": "^1.4.7",

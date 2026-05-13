@@ -1,8 +1,9 @@
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { LIGHTHOUSE_CHANNEL_ID_FEED_1, LIGHTHOUSE_ITEM_ID_FEED_1 } from 'podverse-test-assets';
+import { fileURLToPath } from 'url';
+
 import type { LighthouseTestResults } from './lighthouse-runner.js';
 
 // ES modules __dirname equivalent

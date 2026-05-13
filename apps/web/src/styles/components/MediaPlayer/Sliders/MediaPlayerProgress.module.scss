@@ -1,3 +1,4 @@
+@use '../../../mixins/focus';
 @use '../../../variables/breakpoints';
 
 .mediaPlayerProgress {
@@ -35,6 +36,10 @@
   outline: none;
   border: none;
   width: 100%;
+}
+
+.customProgressBar:focus-visible {
+  @include focus.focus-ring;
 }
 
 .customProgressBarInner {

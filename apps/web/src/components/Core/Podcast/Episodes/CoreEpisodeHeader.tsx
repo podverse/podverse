@@ -30,7 +30,7 @@ export const CoreEpisodeHeader: React.FC<CoreEpisodeHeaderProps> = ({ item, chan
   const imageLightboxCandidates = itemHeaderLightboxArtworkCandidates(item.item_images);
 
   const titleNode = (
-    <Link href={`${ROUTES.EPISODE}/${item.id_text}`}>
+    <Link className={styles.episodeTitleLink} href={`${ROUTES.EPISODE}/${item.id_text}`}>
       <h2 className={styles.episodeTitle}>{item.title || 'Untitled'}</h2>
     </Link>
   );

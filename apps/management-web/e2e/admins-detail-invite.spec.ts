@@ -9,6 +9,7 @@ const MOCK_ADMIN_ROW = {
   id_text: 'e2e_admin_row',
   role: 'admin',
   email: 'e2e-admin-row@example.com',
+  username: null,
   permissions: {
     feeds_crud: 15,
     feed_takedown_reasons_crud: 0,

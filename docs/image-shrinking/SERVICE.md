@@ -20,6 +20,12 @@ Key points:
 - A periodic orphan cleanup deletes unreferenced WebP objects from storage.
 - Resized images are stored in `channel_image` and `item_image` with `is_resized = true`.
 - List views prefer resized images; headers and full-size views continue using original URLs.
+- Shrink processing is static-only by source type: URL whitelist allows `png` / `jpg` / `jpeg` /
+  `webp`.
+- GIF URLs are never resized; they remain origin URLs for hero/header/media-player artwork
+  fallback chains.
+- Animated WebP is also not resized (detected by metadata after download, see Static-only metadata
+  guard below), so it likewise remains on origin URLs.
 
 For detailed testing steps (prerequisites, backfill, consumer, verification), see [Testing Guide](TESTING.md).
 
@@ -44,6 +50,9 @@ Further reading:
   responses are rejected using `Content-Length` when present, or after the body exceeds the cap.
 - **Decode:** Sharp runs with `failOn: 'none'` for best-effort handling of marginal JPEG/PNG/WebP
   inputs; truly corrupt origins may still fail (for example libvips JPEG errors).
+- **Static-only metadata guard:** After download, Sharp metadata is checked before resize/upload. The
+  processor skips resize for `gif`, unsupported formats, missing format metadata, and animated
+  (multi-page) WebP (`metadata.pages > 1`).
 - **Processor logs:** On failure, workers emit `imageShrinkProcessor: failed to process target` with
   `entityType`, `entityId`, `url`, `urlHash`, `hinted`, `maxSourceBytes`, `errorName`, `errorMessage`,
   and (when a full GET completed first) `originResponseStatus`, `originContentLength`, `originEtag`,

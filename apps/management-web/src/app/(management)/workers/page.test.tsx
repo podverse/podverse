@@ -19,12 +19,15 @@ const mockUser = {
   id: 1,
   id_text: 'u1',
   email: 'u1@example.com',
+  username: null,
   role: 'superuser',
   permissions: {
     feeds_crud: 15,
     feed_takedown_reasons_crud: 15,
     admins_crud: 15,
     stats_crud: 15,
+    billing_prices_crud: 15,
+    bucket_crud: 15,
   },
 };
 

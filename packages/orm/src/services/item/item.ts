@@ -750,7 +750,7 @@ export class ItemService {
   ): Promise<Item[]> {
     return this.repositoryRead.find({
       where: {
-        channel,
+        channel: { id: channel.id },
         live_item: {
           id: Not(IsNull()),
         },

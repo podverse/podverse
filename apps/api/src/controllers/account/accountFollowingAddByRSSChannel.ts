@@ -2,6 +2,7 @@ import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.j
 import { getParamRequired } from '@api/lib/params.js';
 import {
   accountIdTextParamSchema,
+  joiFeedUrl,
   validateBodyObject,
   validateParamsObject,
 } from '@api/lib/validation/index.js';
@@ -60,7 +61,7 @@ class AccountFollowingAddByRSSChannelController {
       res,
       async () => {
         const bodySchema = Joi.object({
-          feed_url: Joi.string().uri().required(),
+          feed_url: joiFeedUrl(),
           title: Joi.string().allow(null, ''),
           image_url: Joi.string().uri().allow(null, ''),
           basic_auth_username: Joi.string().allow(null, '').max(255),
@@ -157,7 +158,7 @@ class AccountFollowingAddByRSSChannelController {
       res,
       async () => {
         const bodySchema = Joi.object({
-          feed_url: Joi.string().uri().required(),
+          feed_url: joiFeedUrl(),
         });
 
         validateBodyObject(bodySchema, req, res, async () => {

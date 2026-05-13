@@ -1,8 +1,9 @@
-import http from 'http';
 import fs from 'fs';
+import http from 'http';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
 import {
   BASIC_AUTH_SUBDIR,
   BASIC_AUTH_TEST_PASSWORD,

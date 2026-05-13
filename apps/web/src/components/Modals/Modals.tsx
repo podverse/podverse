@@ -3,8 +3,10 @@
 import dynamic from 'next/dynamic';
 import React from 'react';
 
+import { useConfig } from '../../contexts/Config';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useModals } from '../../contexts/Modals';
+import { shouldShowServerEnvironmentDisclaimer } from '../Modal/serverEnvironmentDisclaimer';
 
 const LazyModalAuthLogin = dynamic(
   () => import('../Modal/ModalAuthLogin').then((m) => ({ default: m.ModalAuthLogin })),
@@ -86,8 +88,11 @@ export const Modals: React.FC = () => {
     modalBoostMintRateLimit,
     modalLoginRequired,
   } = useModals();
+  const config = useConfig();
   const { serverEnvironmentDisclaimerAccepted } = useLocalSettings();
-  const showDisclaimer = !serverEnvironmentDisclaimerAccepted;
+  const showDisclaimer =
+    shouldShowServerEnvironmentDisclaimer(config.public.server_env) &&
+    !serverEnvironmentDisclaimerAccepted;
 
   return (
     <>

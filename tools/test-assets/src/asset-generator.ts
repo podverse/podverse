@@ -1,9 +1,9 @@
 import { exec } from 'child_process';
-import { promisify } from 'util';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { promisify } from 'util';
 
 // ES modules __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);

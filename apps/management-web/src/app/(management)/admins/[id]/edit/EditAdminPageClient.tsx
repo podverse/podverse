@@ -3,62 +3,45 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
+import { ADMIN_ACCOUNT_CREDENTIALS_USERNAME_MAX_LENGTH } from '@podverse/helpers';
 import {
   Alert,
   Breadcrumbs,
   Button,
-  Checkbox,
-  Fieldset,
+  FormHintText,
   FormMaxWidth,
   FormPrimaryActions,
   ManagementPageShell,
   StackForm,
-  Table,
   TextInput,
 } from '@podverse/ui';
 
-import { type AdminAccount, updateAdmin } from '../../../../../lib/requests/admins';
+import {
+  CREATE_ROLE_NAV_ID,
+  CUSTOM_ROLE_SELECTION_ID,
+  type PermissionState,
+  permissionStatesEqual,
+} from '../../../../../components/admins/adminPermissionModel';
+import { AdminPermissionsSection } from '../../../../../components/admins/AdminPermissionsSection';
+import {
+  type AdminAccount,
+  updateAdmin,
+  type UpdateAdminParams,
+} from '../../../../../lib/requests/admins';
 
-const RESOURCE_KEYS = [
-  'feeds_crud',
-  'feed_takedown_reasons_crud',
-  'admins_crud',
-  'stats_crud',
-  'bucket_crud',
-] as const;
-
-const CRUD_BITS = [
-  { bit: 1, labelKey: 'create' },
-  { bit: 2, labelKey: 'read' },
-  { bit: 4, labelKey: 'update' },
-  { bit: 8, labelKey: 'deletePerm' },
-] as const;
-
-type PermissionState = {
-  feeds_crud: number;
-  feed_takedown_reasons_crud: number;
-  admins_crud: number;
-  stats_crud: number;
-  bucket_crud: number;
-};
-
-const RESOURCE_LABEL_KEYS: Record<(typeof RESOURCE_KEYS)[number], string> = {
-  feeds_crud: 'feeds',
-  feed_takedown_reasons_crud: 'takedownReasons',
-  admins_crud: 'admins',
-  stats_crud: 'stats',
-  bucket_crud: 'bucket',
-};
+const ADMIN_USERNAME_PATTERN = /^[a-zA-Z0-9._-]+$/;
 
 function permissionsFromAdmin(admin: AdminAccount): PermissionState {
+  const p = admin.permissions;
   return {
-    feeds_crud: admin.permissions?.feeds_crud ?? 0,
-    feed_takedown_reasons_crud: admin.permissions?.feed_takedown_reasons_crud ?? 0,
-    admins_crud: admin.permissions?.admins_crud ?? 0,
-    stats_crud: admin.permissions?.stats_crud ?? 0,
-    bucket_crud: admin.permissions?.bucket_crud ?? 0,
+    feeds_crud: p?.feeds_crud ?? 0,
+    feed_takedown_reasons_crud: p?.feed_takedown_reasons_crud ?? 0,
+    admins_crud: p?.admins_crud ?? 0,
+    stats_crud: p?.stats_crud ?? 0,
+    billing_prices_crud: p?.billing_prices_crud ?? 0,
+    bucket_crud: p?.bucket_crud ?? 0,
   };
 }
 
@@ -68,9 +51,13 @@ export type EditAdminPageClientProps = {
 
 export function EditAdminPageClient({ admin }: EditAdminPageClientProps) {
   const router = useRouter();
+  const initialPermissionsMatch = useMemo(() => permissionsFromAdmin(admin), [admin]);
   const [email, setEmail] = useState(admin.email ?? '');
+  const [username, setUsername] = useState(admin.username ?? '');
   const [password, setPassword] = useState('');
-  const [permissions, setPermissions] = useState<PermissionState>(permissionsFromAdmin(admin));
+  const [permissions, setPermissions] = useState<PermissionState>(initialPermissionsMatch);
+  const [selectedRoleId, setSelectedRoleId] = useState('');
+  const [permissionsReady, setPermissionsReady] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -78,14 +65,6 @@ export function EditAdminPageClient({ admin }: EditAdminPageClientProps) {
   const tc = useTranslations('common');
   const tNav = useTranslations('nav');
   const ta = useTranslations('auth');
-  const tp = useTranslations('admins.permissions');
-
-  const toggleCrudBit = (resource: keyof PermissionState, bit: number) => {
-    setPermissions((prev) => ({
-      ...prev,
-      [resource]: prev[resource] ^ bit,
-    }));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,22 +72,51 @@ export function EditAdminPageClient({ admin }: EditAdminPageClientProps) {
     setError(null);
     setSuccess(false);
 
+    const trimmedEmail = email.trim();
+    const trimmedUsername = username.trim();
+    if (trimmedEmail === '' && trimmedUsername === '') {
+      setError(t('emailOrUsernameRequired'));
+      setLoading(false);
+      return;
+    }
+    if (trimmedUsername !== '') {
+      if (
+        trimmedUsername.length > ADMIN_ACCOUNT_CREDENTIALS_USERNAME_MAX_LENGTH ||
+        !ADMIN_USERNAME_PATTERN.test(trimmedUsername)
+      ) {
+        setError(t('invalidAdminUsername'));
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
-      const updateData: {
-        email?: string;
-        password?: string;
-        permissions?: Partial<PermissionState>;
-      } = {};
-      if (email !== (admin.email ?? '')) {
-        updateData.email = email;
+      const updateData: UpdateAdminParams = {};
+      const prevEmail = (admin.email ?? '').trim();
+      const prevUsername = (admin.username ?? '').trim();
+      if (trimmedEmail !== prevEmail) {
+        updateData.email = trimmedEmail;
+      }
+      if (trimmedUsername !== prevUsername) {
+        updateData.username = trimmedUsername;
       }
       if (password) {
         updateData.password = password;
       }
+
       const currentPerms = permissionsFromAdmin(admin);
-      const permsChanged = RESOURCE_KEYS.some((key) => permissions[key] !== currentPerms[key]);
+      const permsChanged = !permissionStatesEqual(permissions, currentPerms);
+
       if (permsChanged) {
-        updateData.permissions = permissions;
+        const useRoleTemplate =
+          selectedRoleId !== CUSTOM_ROLE_SELECTION_ID &&
+          selectedRoleId !== '' &&
+          selectedRoleId !== CREATE_ROLE_NAV_ID;
+        if (useRoleTemplate) {
+          updateData.role_id = selectedRoleId;
+        } else {
+          updateData.permissions = permissions;
+        }
       }
 
       await updateAdmin(admin.id, updateData);
@@ -136,7 +144,11 @@ export function EditAdminPageClient({ admin }: EditAdminPageClientProps) {
           items={[
             { href: '/dashboard', label: tNav('dashboard') },
             { href: '/admins', label: t('title') },
-            { label: t('editAdminItem', { email: admin.email ?? admin.id_text }) },
+            {
+              label: t('editAdminItem', {
+                identifier: admin.email ?? admin.username ?? admin.id_text,
+              }),
+            },
           ]}
         />
       }
@@ -145,12 +157,20 @@ export function EditAdminPageClient({ admin }: EditAdminPageClientProps) {
         <StackForm onSubmit={(e) => void handleSubmit(e)}>
           <TextInput
             id="email"
-            eyebrow={ta('email')}
+            eyebrow={t('emailOptional')}
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
           />
+          <TextInput
+            id="admin-username"
+            eyebrow={t('usernameOptional')}
+            type="text"
+            autoComplete="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <FormHintText>{t('emailOrUsernameHint')}</FormHintText>
           <TextInput
             id="password"
             eyebrow={ta('newPassword')}
@@ -160,45 +180,24 @@ export function EditAdminPageClient({ admin }: EditAdminPageClientProps) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <Fieldset legend={tp('legend')}>
-            <Table.ScrollContainer>
-              <Table>
-                <Table.Head>
-                  <Table.Row>
-                    <Table.HeaderCell>{tp('resource')}</Table.HeaderCell>
-                    {CRUD_BITS.map((check) => (
-                      <Table.HeaderCell key={check.bit}>{tp(check.labelKey)}</Table.HeaderCell>
-                    ))}
-                  </Table.Row>
-                </Table.Head>
-                <Table.Body>
-                  {RESOURCE_KEYS.map((key) => (
-                    <Table.Row key={key}>
-                      <Table.Cell>{tp(RESOURCE_LABEL_KEYS[key])}</Table.Cell>
-                      {CRUD_BITS.map((check) => (
-                        <Table.Cell key={check.bit}>
-                          <Checkbox
-                            aria-label={`${tp(RESOURCE_LABEL_KEYS[key])}, ${tp(check.labelKey)}`}
-                            checked={(permissions[key] & check.bit) !== 0}
-                            onChange={() => {
-                              toggleCrudBit(key, check.bit);
-                            }}
-                          />
-                        </Table.Cell>
-                      ))}
-                    </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table>
-            </Table.ScrollContainer>
-          </Fieldset>
+          <AdminPermissionsSection
+            bootstrapHighestRole={false}
+            createRoleReturnUrl={`/admins/${admin.id}/edit`}
+            matchInitialPermissions={initialPermissionsMatch}
+            onPermissionsChange={setPermissions}
+            onRolesReadyChange={setPermissionsReady}
+            onSelectedRoleIdChange={setSelectedRoleId}
+            permissions={permissions}
+            selectedRoleId={selectedRoleId}
+            showRolePicker
+          />
           <Alert>{error}</Alert>
-          {success && <Alert variant="success">{t('updatedSuccessfully')}</Alert>}
+          {success ? <Alert variant="success">{t('updatedSuccessfully')}</Alert> : null}
           <FormPrimaryActions>
             <Button type="button" variant="secondary" onClick={() => router.push('/admins')}>
               {tc('cancel')}
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || !permissionsReady}>
               {loading ? tc('saving') : tc('saveChanges')}
             </Button>
           </FormPrimaryActions>

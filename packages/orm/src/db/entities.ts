@@ -16,6 +16,7 @@ import { AccountNotificationChannelType } from '@orm/entities/account/accountNot
 import { AccountPayPalOrder } from '@orm/entities/account/accountPayPalOrder.js';
 import { AccountProfile } from '@orm/entities/account/accountProfile.js';
 import { AccountResetPassword } from '@orm/entities/account/accountResetPassword.js';
+import { AccountSetPassword } from '@orm/entities/account/accountSetPassword.js';
 import { AccountSettings } from '@orm/entities/account/accountSettings/accountSettings.js';
 import { AccountSettingsLocale } from '@orm/entities/account/accountSettings/accountSettingsLocale.js';
 import { AccountSettingsNotification } from '@orm/entities/account/accountSettings/accountSettingsNotification.js';
@@ -138,6 +139,7 @@ export const entities = [
   AccountPayPalOrder,
   AccountProfile,
   AccountResetPassword,
+  AccountSetPassword,
   AccountSettings,
   AccountSettingsLocale,
   AccountSettingsNotification,

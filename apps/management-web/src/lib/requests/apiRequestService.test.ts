@@ -1,4 +1,7 @@
+import type { MockInstance } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import * as managementApiRequests from '@podverse/management-api-requests';
 
 const mockGetConfig = vi.fn();
 
@@ -19,29 +22,40 @@ const baseConfig = {
   },
 };
 
+type CreateManagementApiClientFn =
+  (typeof managementApiRequests)['createManagementApiClientFromConfig'];
+
 describe('ManagementApiRequestService', () => {
+  let createClientSpy: MockInstance<CreateManagementApiClientFn>;
+
   beforeEach(() => {
     mockGetConfig.mockReset();
     mockGetConfig.mockReturnValue(baseConfig);
+    createClientSpy = vi.spyOn(managementApiRequests, 'createManagementApiClientFromConfig');
   });
 
   afterEach(() => {
+    createClientSpy.mockRestore();
     delete (globalThis as { window?: unknown }).window;
   });
 
   it('builds an SSR API base with protocol, host, port, prefix, and version', () => {
-    const service = new ManagementApiRequestService();
+    new ManagementApiRequestService();
 
-    expect((service as unknown as { apiBase: string }).apiBase).toBe(
+    const innerClient = createClientSpy.mock.results[0]
+      ?.value as managementApiRequests.ManagementApiRequestService;
+    expect((innerClient as unknown as { apiBase: string }).apiBase).toBe(
       'http://podverse_local_management_api:3100/api/v2'
     );
   });
 
   it('builds a client API base with protocol, host, port, prefix, and version', () => {
     (globalThis as { window: unknown }).window = {};
-    const service = new ManagementApiRequestService();
+    new ManagementApiRequestService();
 
-    expect((service as unknown as { apiBase: string }).apiBase).toBe(
+    const innerClient = createClientSpy.mock.results[0]
+      ?.value as managementApiRequests.ManagementApiRequestService;
+    expect((innerClient as unknown as { apiBase: string }).apiBase).toBe(
       'http://localhost:3100/api/v2'
     );
   });

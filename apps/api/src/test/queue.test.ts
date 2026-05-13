@@ -21,6 +21,29 @@ const ITEM_ID_TEXT = 'q-item-1';
 const SOUNDBITE_ID_TEXT = 'q-sb-1';
 const ADD_RSS_HASH = 'rss-hash-1';
 
+function buildDefaultAccountForQueueTests() {
+  return {
+    id: TEST_USER_ID,
+    id_text: TEST_USER_ACCOUNT_ID_TEXT,
+    account_credentials: { email: TEST_EMAIL },
+    account_membership_status: {
+      membership_expires_at: new Date(Date.now() + 86400000 * 365),
+    },
+  };
+}
+
+function defaultQueueGetByIdTextResponse(): {
+  id: number;
+  queue_id_text: string;
+  account: { id: number };
+} {
+  return {
+    id: 1,
+    queue_id_text: QUEUE_ID_TEXT,
+    account: { id: TEST_USER_ID },
+  };
+}
+
 const {
   queueGetByIdTextMock,
   queueGetAllPrivateMock,
@@ -62,11 +85,7 @@ const {
       id: number;
       queue_id_text: string;
       account: { id: number };
-    }> => ({
-      id: 1,
-      queue_id_text: QUEUE_ID_TEXT,
-      account: { id: TEST_USER_ID },
-    })
+    }> => defaultQueueGetByIdTextResponse()
   ),
   queueGetAllPrivateMock: vi.fn(async () => [{ id: 1, queue_id_text: QUEUE_ID_TEXT }]),
   queueUpdateIsActiveMock: vi.fn(async () => {}),
@@ -100,14 +119,7 @@ const {
   qrAddSbBetweenMock: vi.fn(async () => ({ id: 1 })),
   qrAddSbHistoryMock: vi.fn(async () => ({ id: 1 })),
   qrRemoveSbMock: vi.fn(async () => {}),
-  getAccountMock: vi.fn(async () => ({
-    id: TEST_USER_ID,
-    id_text: TEST_USER_ACCOUNT_ID_TEXT,
-    account_credentials: { email: TEST_EMAIL },
-    account_membership_status: {
-      membership_expires_at: new Date(Date.now() + 86400000 * 365),
-    },
-  })),
+  getAccountMock: vi.fn(async () => buildDefaultAccountForQueueTests()),
 }));
 
 function queueOwnedBy(ownerId: number) {
@@ -197,9 +209,17 @@ describe('queue routes', () => {
     await stopTestApp(server, ormContext);
   });
 
-  /** Clears mockResolvedValueOnce queues and restores the hoisted default AccountService#get impl. */
+  /**
+   * Clears mockResolvedValueOnce chains. Vitest mockReset() removes implementations, so re-apply
+   * defaults here (the hoisted vi.fn factories are not restored automatically).
+   */
   beforeEach(() => {
     getAccountMock.mockReset();
+    getAccountMock.mockImplementation(async () => buildDefaultAccountForQueueTests());
+    queueGetByIdTextMock.mockReset();
+    queueGetByIdTextMock.mockImplementation(async (_id: string) =>
+      defaultQueueGetByIdTextResponse()
+    );
   });
 
   const auth = () => authHeaders(TEST_USER_ID);

@@ -1,19 +1,19 @@
 {
   "name": "@podverse/management-web-sidecar",
-  "version": "5.4.28",
+  "version": "5.4.29",
   "private": true,
   "type": "module",
   "description": "Runtime-config sidecar for podverse-management-web",
   "scripts": {
-    "test": "exit 0",
-    "lint": "exit 0",
+    "test": "node -e \"process.exit(0)\"",
+    "lint": "node -e \"process.exit(0)\"",
     "build": "tsc",
     "bundle": "esbuild src/server.ts --bundle --platform=node --format=esm --outfile=dist/server.js"
   },
   "dependencies": {
     "@podverse/helpers": "*",
     "@podverse/helpers-config": "*",
-    "@tanstack/react-query": "^5.99.2",
+    "@tanstack/react-query": "^5.100.10",
     "@tanstack/react-table": "^8.21.3"
   },
   "devDependencies": {

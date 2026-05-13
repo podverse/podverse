@@ -13,6 +13,14 @@ type AuthLoginResponse = ApiMessageResponse & {
   token?: string;
 };
 
+export type MobileTokenResponse = {
+  token_type: 'Bearer';
+  access_token: string;
+  access_token_expires_in: number;
+  refresh_token: string;
+  refresh_token_expires_in: number;
+};
+
 export async function reqAuthLogin(api: ApiRequestService, params: ReqAuthLoginParams) {
   return api.apiRequest<AuthLoginResponse>({
     path: '/auth/login',
@@ -59,5 +67,32 @@ export async function reqAuthCheckSession(
       withCredentials: true,
       ...(options?.headers ? { headers: options.headers } : {}),
     },
+  });
+}
+
+export async function reqAuthMobileToken(api: ApiRequestService, params: ReqAuthLoginParams) {
+  return api.apiRequest<MobileTokenResponse>({
+    path: '/auth/mobile/token',
+    method: 'POST',
+    data: {
+      email: params.email,
+      password: params.password,
+    },
+  });
+}
+
+export async function reqAuthMobileRefresh(api: ApiRequestService, refresh_token: string) {
+  return api.apiRequest<MobileTokenResponse>({
+    path: '/auth/mobile/refresh',
+    method: 'POST',
+    data: { refresh_token },
+  });
+}
+
+export async function reqAuthMobileRevoke(api: ApiRequestService, refresh_token: string) {
+  return api.apiRequest<ApiMessageResponse>({
+    path: '/auth/mobile/revoke',
+    method: 'POST',
+    data: { refresh_token },
   });
 }

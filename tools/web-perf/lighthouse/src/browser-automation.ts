@@ -1,6 +1,7 @@
-import type { Browser, Page, BrowserContext } from 'playwright';
+import type { Browser, BrowserContext, Page } from 'playwright';
 import { chromium } from 'playwright';
 import { LIGHTHOUSE_CHANNEL_ID_FEED_1, LIGHTHOUSE_ITEM_ID_FEED_1 } from 'podverse-test-assets';
+
 import type { TestUser } from './user-manager.js';
 
 export interface TestUrls {

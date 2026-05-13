@@ -1,5 +1,5 @@
 import { canReadStorage } from '../managementPermissions';
-import { ManagementApiRequestService } from '../requests/apiRequestService';
+import type { ManagementApiRequestService } from '../requests/apiRequestService';
 import type { CurrentUser } from '../requests/auth';
 
 /**
@@ -7,13 +7,12 @@ import type { CurrentUser } from '../requests/auth';
  * and the admin may read bucket storage. Treats errors and `enabled: false` as false.
  */
 export async function fetchBucketStorageEnabledForDashboard(
-  token: string,
+  service: ManagementApiRequestService,
   user: CurrentUser
 ): Promise<boolean> {
   if (!canReadStorage(user)) {
     return false;
   }
-  const service = new ManagementApiRequestService(token);
   try {
     const res = await service.apiRequest<{ enabled: boolean }>({
       path: '/storage',

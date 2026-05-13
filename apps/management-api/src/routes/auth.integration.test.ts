@@ -14,6 +14,7 @@ const mockSuperuserAdmin = {
   admin_account_role: { role: 'superuser' },
   admin_account_credentials: {
     email: 'admin@example.com',
+    username: null,
     password: 'hash',
     id: 1,
     admin_account_id: 1,
@@ -169,6 +170,7 @@ describe('management-api auth routes', () => {
         id: 1,
         id_text: 'pvMgtAu001',
         email: 'admin@example.com',
+        username: null,
         role: 'superuser',
         permissions: {
           feeds_crud: 15,
@@ -250,6 +252,54 @@ describe('management-api auth routes', () => {
 
       expect(res.status).toBe(503);
       expect(res.body).toMatchObject({ status: 'unavailable' });
+    });
+  });
+
+  describe('POST /auth/mobile/*', () => {
+    it('issues mobile token pair from credentials', async () => {
+      const res = await request(app)
+        .post(`${authBase}/mobile/token`)
+        .send({ email: 'admin@example.com', password: 'test-password' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.token_type).toBe('Bearer');
+      expect(typeof res.body.access_token).toBe('string');
+      expect(typeof res.body.refresh_token).toBe('string');
+    });
+
+    it('rotates refresh token and rejects reuse', async () => {
+      const issue = await request(app)
+        .post(`${authBase}/mobile/token`)
+        .send({ email: 'admin@example.com', password: 'test-password' });
+      const refreshToken = issue.body.refresh_token as string;
+
+      const refreshOne = await request(app)
+        .post(`${authBase}/mobile/refresh`)
+        .send({ refresh_token: refreshToken });
+      expect(refreshOne.status).toBe(200);
+
+      const reuse = await request(app)
+        .post(`${authBase}/mobile/refresh`)
+        .send({ refresh_token: refreshToken });
+      expect(reuse.status).toBe(401);
+      expect(reuse.body.code).toBe('refresh_token_reuse_detected');
+    });
+
+    it('revokes family and denies refresh after revoke', async () => {
+      const issue = await request(app)
+        .post(`${authBase}/mobile/token`)
+        .send({ email: 'admin@example.com', password: 'test-password' });
+      const refreshToken = issue.body.refresh_token as string;
+
+      const revoke = await request(app)
+        .post(`${authBase}/mobile/revoke`)
+        .send({ refresh_token: refreshToken });
+      expect(revoke.status).toBe(200);
+
+      const refreshAfterRevoke = await request(app)
+        .post(`${authBase}/mobile/refresh`)
+        .send({ refresh_token: refreshToken });
+      expect(refreshAfterRevoke.status).toBe(401);
     });
   });
 });

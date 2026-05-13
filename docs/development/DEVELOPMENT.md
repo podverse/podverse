@@ -6,10 +6,11 @@ Use this page as a quick map for development documentation.
 
 - [CONTRIBUTING.md](./CONTRIBUTING.md)
 - [IDE-SETUP.md](./IDE-SETUP.md)
+- [API-CLIENT-BOUNDARIES.md](./API-CLIENT-BOUNDARIES.md)
 
 ## White-label / rebranding
 
-- [REBRANDING-CDN.md](./REBRANDING-CDN.md) — CDN-hosted icons, manifest, and `NEXT_PUBLIC_*` env map
+- [REBRANDING-CDN.md](./REBRANDING-CDN.md) — bundled asset checklist (filenames, dimensions), then CDN-hosted icons, manifest, and `NEXT_PUBLIC_*` env map
 
 ## Topic folders
 

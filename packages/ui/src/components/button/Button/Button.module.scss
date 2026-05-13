@@ -18,7 +18,7 @@
   min-width: 9rem;
   width: auto;
   padding: 0 var(--spacing-lg);
-  overflow: hidden;
+  overflow: visible;
 
   &:focus {
     outline: none;
@@ -80,7 +80,7 @@ a.button {
   background: var(--button-primary-bg-hover);
 }
 
-.primary:focus {
+.primary:focus-visible {
   background: var(--button-primary-bg-hover);
 }
 
@@ -93,7 +93,7 @@ a.button {
   background: var(--button-secondary-bg-hover);
 }
 
-.secondary:focus {
+.secondary:focus-visible {
   background: var(--button-secondary-bg-hover);
 }
 
@@ -103,7 +103,7 @@ a.button {
 }
 
 .success:hover,
-.success:focus {
+.success:focus-visible {
   background: var(--button-success-bg-hover);
 }
 
@@ -113,7 +113,7 @@ a.button {
 }
 
 .warning:hover,
-.warning:focus {
+.warning:focus-visible {
   background: var(--button-warning-bg-hover);
 }
 
@@ -123,7 +123,7 @@ a.button {
 }
 
 .danger:hover,
-.danger:focus {
+.danger:focus-visible {
   background: var(--button-danger-bg-hover);
 }
 
@@ -147,7 +147,7 @@ a.button {
 }
 
 .link:hover,
-.link:focus {
+.link:focus-visible {
   color: var(--text-color-link-hover);
 }
 
@@ -164,7 +164,7 @@ a.button {
 }
 
 .linkInline:hover,
-.linkInline:focus {
+.linkInline:focus-visible {
   color: var(--text-color-link-hover);
 }
 
@@ -174,7 +174,7 @@ a.button {
 }
 
 .highlight:hover,
-.highlight:focus {
+.highlight:focus-visible {
   background: var(--button-highlight-bg-hover);
 }
 

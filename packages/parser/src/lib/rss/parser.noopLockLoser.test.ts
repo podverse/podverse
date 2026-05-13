@@ -100,17 +100,21 @@ vi.mock('../_request.js', () => ({
   _request: vi.fn(),
 }));
 
-vi.mock('@podverse/helpers', () => ({
-  DEFAULT_HTTP_TIMEOUT_MS: 1000,
-  getOnDemandParserEventDateRange: vi.fn(() => new Date()),
-  ON_DEMAND_ADD_PARSER_LIMIT: 999,
-  ON_DEMAND_REFRESH_PARSER_LIMIT: 999,
-  OnDemandParserEventType: {
-    ADD: 'ADD',
-    REFRESH: 'REFRESH',
-  },
-  sleep: vi.fn(),
-}));
+vi.mock('@podverse/helpers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@podverse/helpers')>();
+  return {
+    ...actual,
+    DEFAULT_HTTP_TIMEOUT_MS: 1000,
+    getOnDemandParserEventDateRange: vi.fn(() => new Date()),
+    ON_DEMAND_ADD_PARSER_LIMIT: 999,
+    ON_DEMAND_REFRESH_PARSER_LIMIT: 999,
+    OnDemandParserEventType: {
+      ADD: 'ADD',
+      REFRESH: 'REFRESH',
+    },
+    sleep: vi.fn(),
+  };
+});
 
 vi.mock('@podverse/helpers-requests', () => ({
   getStatusCodeFromError: vi.fn(() => null),

@@ -10,15 +10,17 @@ import { useAccount } from '../../contexts/Account';
 import { ListHeader } from '../List/ListHeader';
 import { SettingsAccount } from './Panels/SettingsAccount/SettingsAccount';
 import { SettingsGeneral } from './Panels/SettingsGeneral/SettingsGeneral';
+import { SettingsKeyboard } from './Panels/SettingsKeyboard/SettingsKeyboard';
 import { SettingsNotifications } from './Panels/SettingsNotifications/SettingsNotifications';
 import { SettingsProfile } from './Panels/SettingsProfile/SettingsProfile';
 import { SettingsWrapper } from './SettingsWrapper';
 
-type TabKey = 'account' | 'general' | 'notifications' | 'profile';
+type TabKey = 'account' | 'general' | 'keyboard' | 'notifications' | 'profile';
 
 function tabFromQueryParam(value: string | null): TabKey | null {
   if (value === 'account' || value === 'profile' || value === 'notifications') return value;
   if (value === 'general') return 'general';
+  if (value === 'keyboard') return 'keyboard';
   return null;
 }
 
@@ -33,8 +35,14 @@ export function Settings() {
   const tabFromQuery = tabFromQueryParam(tabParam);
 
   const [tab, setTab] = React.useState<TabKey>(() => {
-    if (!loggedInAccount) return 'general';
-    return tabFromQuery ?? 'general';
+    const initialFromUrl = tabFromQueryParam(searchParams.get('tab'));
+    if (!loggedInAccount) {
+      if (initialFromUrl === 'keyboard' || initialFromUrl === 'general') {
+        return initialFromUrl ?? 'general';
+      }
+      return 'general';
+    }
+    return initialFromUrl ?? 'general';
   });
 
   // Sync tab from URL when URL changes (e.g. back/forward or direct link)
@@ -48,51 +56,74 @@ export function Settings() {
   // Redirect non-logged-in users away from restricted tabs
   React.useEffect(() => {
     if (loggedInAccount) return;
-    if (tabFromQuery === null || tabFromQuery === 'general') return;
+    if (tabFromQuery === null || tabFromQuery === 'general' || tabFromQuery === 'keyboard') return;
     setTab('general');
     router.replace('/settings');
   }, [loggedInAccount, tabFromQuery, router]);
 
-  const handleTabChange = (newTab: TabKey) => {
-    setTab(newTab);
-    const path = newTab === 'general' ? '/settings' : `/settings?tab=${newTab}`;
-    router.replace(path);
-  };
+  const handleTabChange = React.useCallback(
+    (newTab: TabKey) => {
+      setTab(newTab);
+      const path = newTab === 'general' ? '/settings' : `/settings?tab=${newTab}`;
+      router.replace(path);
+    },
+    [router]
+  );
 
-  const allTabs = [
-    {
-      key: 'general' as const,
-      label: tContact('general'),
-      onClick: () => handleTabChange('general'),
-      zIndex: 10,
-    },
-    {
-      key: 'account' as const,
-      label: tSettings('account.account'),
-      onClick: () => handleTabChange('account'),
-      zIndex: 9,
-    },
-    {
-      key: 'profile' as const,
-      label: tSettings('profile.profile'),
-      onClick: () => handleTabChange('profile'),
-      zIndex: 8,
-    },
-    {
-      key: 'notifications' as const,
-      label: tSettings('notifications.notifications'),
-      onClick: () => handleTabChange('notifications'),
-      zIndex: 7,
-    },
-  ];
-
-  const tabData = loggedInAccount ? allTabs : allTabs[0] ? [allTabs[0]] : [];
+  const tabData = React.useMemo(() => {
+    let z = 10;
+    const rows: {
+      key: TabKey;
+      label: string;
+      onClick: () => void;
+      zIndex: number;
+    }[] = [
+      {
+        key: 'general',
+        label: tContact('general'),
+        onClick: () => handleTabChange('general'),
+        zIndex: z,
+      },
+    ];
+    z -= 1;
+    if (loggedInAccount) {
+      rows.push({
+        key: 'account',
+        label: tSettings('account.account'),
+        onClick: () => handleTabChange('account'),
+        zIndex: z,
+      });
+      z -= 1;
+      rows.push({
+        key: 'profile',
+        label: tSettings('profile.profile'),
+        onClick: () => handleTabChange('profile'),
+        zIndex: z,
+      });
+      z -= 1;
+      rows.push({
+        key: 'notifications',
+        label: tSettings('notifications.notifications'),
+        onClick: () => handleTabChange('notifications'),
+        zIndex: z,
+      });
+      z -= 1;
+    }
+    rows.push({
+      key: 'keyboard',
+      label: tSettings('keyboard.keyboard'),
+      onClick: () => handleTabChange('keyboard'),
+      zIndex: z,
+    });
+    return rows;
+  }, [handleTabChange, loggedInAccount, tContact, tSettings]);
 
   return (
     <div>
       <ListHeader tabs={<Tabs tabData={tabData} selectedKey={tab} />} />
       <SettingsWrapper>
         {tab === 'general' && <SettingsGeneral />}
+        {tab === 'keyboard' ? <SettingsKeyboard /> : null}
         {loggedInAccount && tab === 'account' && <SettingsAccount />}
         {loggedInAccount && tab === 'profile' && <SettingsProfile />}
         {loggedInAccount && tab === 'notifications' && <SettingsNotifications />}

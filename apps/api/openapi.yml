@@ -1,0 +1,332 @@
+openapi: 3.0.3
+info:
+  title: Podverse API
+  description: This is the Podverse API supporting authentication and account management.
+  version: 2.0.0
+servers:
+  - url: https://api.podverse.fm/api/v2
+    description: "Production Server"
+  - url: http://localhost:3000/api/v2
+    description: "Local Development Server"
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: podverse_auth
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - cookieAuth: []
+  - bearerAuth: []
+
+paths:
+  /auth/login:
+    post:
+      summary: User Login
+      description: Authenticate a user and issue a session cookie. Optionally returns a token in the body if requested and permitted by the server.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  description: User email or username.
+                password:
+                  type: string
+                  description: Password credentials.
+                includeTokenInResponseBody:
+                  type: boolean
+                  description: Set to true to request the JWT token in the JSON response body.
+      responses:
+        "200":
+          description: Login success. Session cookie set.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Authenticated successfully"
+                  token:
+                    type: string
+                    description: JWT token (only present if requested and allowed by server config).
+        "401":
+          description: Unauthorized / Invalid credentials.
+        "403":
+          description: Account not verified.
+
+  /auth/logout:
+    post:
+      summary: User Logout
+      description: Logs out the current user and clears the session cookie.
+      responses:
+        "200":
+          description: Successfully logged out.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Logged out successfully"
+
+  /auth/me:
+    get:
+      summary: Get Logged-in User Details
+      description: Retrieve details of the currently logged-in user.
+      responses:
+        "200":
+          description: Successfully retrieved user details.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    description: User ID.
+                  id_text:
+                    type: string
+                    description: Public account ID text.
+                  account_credentials:
+                    type: object
+                    properties:
+                      email:
+                        type: string
+        "401":
+          description: Unauthorized. User must be logged in.
+
+  /auth/check-session:
+    get:
+      summary: Session Validity Check
+      description: Check if the current session is valid.
+      responses:
+        "200":
+          description: Session is valid.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Valid auth session"
+        "401":
+          description: Invalid or missing session.
+
+  /auth/mobile/token:
+    post:
+      summary: Issue Mobile Token
+      description: Generate a mobile authentication token pair (access and refresh) for the user.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Mobile token successfully generated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token_type:
+                    type: string
+                    example: "Bearer"
+                  access_token:
+                    type: string
+                  access_token_expires_in:
+                    type: number
+                  refresh_token:
+                    type: string
+                  refresh_token_expires_in:
+                    type: number
+        "400":
+          description: Email and password are required.
+        "401":
+          description: Unauthorized.
+
+  /auth/mobile/refresh:
+    post:
+      summary: Refresh Mobile Token
+      description: Refresh the user’s mobile authentication token using a refresh token.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        "200":
+          description: Mobile token successfully refreshed.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token_type:
+                    type: string
+                  access_token:
+                    type: string
+                  access_token_expires_in:
+                    type: number
+                  refresh_token:
+                    type: string
+                  refresh_token_expires_in:
+                    type: number
+        "401":
+          description: Unauthorized or Refresh token reuse detected.
+
+  /auth/mobile/revoke:
+    post:
+      summary: Revoke Mobile Token
+      description: Revoke the current user’s mobile token family.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        "200":
+          description: Successfully revoked the mobile token.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Mobile token family revoked"
+
+  /account:
+    post:
+      summary: Create New Account
+      description: Creates a new user account. Responds with 200 even if the email exists to prevent enumeration.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - locale
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email of the new user.
+                password:
+                  type: string
+                  minLength: 8
+                  description: Password for the new account.
+                locale:
+                  type: string
+                  example: "en-US"
+                  description: Locale for the user.
+      responses:
+        "200":
+          description: Account created (or already exists).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Account created"
+        "400":
+          description: Bad request due to invalid input.
+
+  /account/recent:
+    get:
+      summary: Get Recent Accounts
+      description: Retrieves a paginated list of recently created public accounts.
+      parameters:
+        - in: query
+          name: page
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+      responses:
+        "200":
+          description: Successfully fetched recent accounts.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: number
+                      count:
+                        type: number
+                        nullable: true
+                      limit:
+                        type: number
+
+  /account/delete:
+    delete:
+      summary: Delete Account
+      description: Deletes the currently logged-in user account.
+      responses:
+        "200":
+          description: Account successfully deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Account deleted successfully"
+        "401":
+          description: Unauthorized or user not logged in.

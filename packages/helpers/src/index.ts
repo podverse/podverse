@@ -11,6 +11,7 @@ export {
 } from './lib/accountMembership.js';
 export * from './lib/accountTrust.js';
 export * from './lib/accountSignupMode.js';
+export * from './lib/adminAccountCredentialsLimits.js';
 export * from './lib/accountNotificationType.js';
 export * from './lib/array.js';
 export * from './lib/channelItunesType.js';
@@ -42,6 +43,7 @@ export * from './lib/liveItem/liveItemEnclosure.js';
 export * from './lib/liveItemStatus.js';
 export * from './lib/logLevel.js';
 export * from './lib/medium.js';
+export * from './managementAdminRoles/constants.js';
 export * from './lib/membershipPeriodPolicy.js';
 export * from './lib/mq/mqConstants.js';
 export * from './lib/mq/dedupeWindows.js';

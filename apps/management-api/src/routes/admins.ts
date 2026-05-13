@@ -1,22 +1,39 @@
 import { config } from '@mgmt-api/config/index.js';
+import {
+  handleCreateManagementAdminRole,
+  handleDeleteManagementAdminRole,
+  handleListManagementAdminRoles,
+  handleUpdateManagementAdminRole,
+  resolvePodverseManagementAdminRole,
+} from '@mgmt-api/lib/adminRoles.js';
 import { ensureAuthenticated } from '@mgmt-api/lib/auth/index.js';
 import { requireCrud } from '@mgmt-api/lib/authz/requireCrud.js';
 import { hasCrud } from '@mgmt-api/lib/crud.js';
 import { getParamRequired } from '@mgmt-api/lib/params.js';
 import { AdminAccountRoleEnum } from '@mgmt-api/orm/entities/adminAccountRole.js';
-import { AdminAccountService } from '@mgmt-api/orm/services/adminAccount.js';
+import {
+  ADMIN_ACCOUNT_DUPLICATE_CREDENTIALS_ERROR,
+  ADMIN_ACCOUNT_MUST_HAVE_IDENTIFIER_ERROR,
+  AdminAccountService,
+} from '@mgmt-api/orm/services/adminAccount.js';
 import express from 'express';
 import Joi from 'joi';
 
+import { ADMIN_ACCOUNT_CREDENTIALS_USERNAME_MAX_LENGTH } from '@podverse/helpers';
 import { validatePassword } from '@podverse/helpers-validation';
 
 const router = express.Router();
 
 const crudSchema = Joi.number().integer().min(0).max(15);
 
+/** Letters, digits, period, underscore, hyphen — stored lowercased for login. */
+const ADMIN_USERNAME_PATTERN = /^[a-zA-Z0-9._-]+$/;
+
 const createAdminSchema = Joi.object({
-  email: Joi.string().email().required(),
+  email: Joi.string().optional(),
+  username: Joi.string().optional(),
   password: Joi.string().min(8).optional(),
+  role_id: Joi.string().trim().optional().allow(''),
   permissions: Joi.object({
     feeds_crud: crudSchema,
     feed_takedown_reasons_crud: crudSchema,
@@ -28,8 +45,10 @@ const createAdminSchema = Joi.object({
 }).required();
 
 const updateAdminSchema = Joi.object({
-  email: Joi.string().email(),
+  email: Joi.string().trim().allow('', null).optional(),
+  username: Joi.string().trim().allow('', null).optional(),
   password: Joi.string().min(8),
+  role_id: Joi.string().trim().optional().allow(''),
   permissions: Joi.object({
     feeds_crud: crudSchema,
     feed_takedown_reasons_crud: crudSchema,
@@ -47,7 +66,7 @@ function adminAccountToJson(admin: {
   id_text: string;
   admin_account_role_id: number;
   admin_account_role: { role: string };
-  admin_account_credentials?: { email: string } | null;
+  admin_account_credentials?: { email: string | null; username: string | null } | null;
   permissions?: {
     feedsCrud: number;
     feedTakedownReasonsCrud: number;
@@ -63,6 +82,7 @@ function adminAccountToJson(admin: {
     id_text: admin.id_text,
     role: admin.admin_account_role.role,
     email: admin.admin_account_credentials?.email ?? null,
+    username: admin.admin_account_credentials?.username ?? null,
     permissions: admin.permissions
       ? {
           feeds_crud: admin.permissions.feedsCrud,
@@ -140,6 +160,32 @@ router.get('/', ensureAuthenticated, requireCrud('admins', 'read'), async (_req,
   }
 });
 
+router.get('/roles', ensureAuthenticated, requireCrud('admins', 'read'), (req, res, next) => {
+  void handleListManagementAdminRoles(req, res).catch(next);
+});
+
+router.post('/roles', ensureAuthenticated, requireCrud('admins', 'create'), (req, res, next) => {
+  void handleCreateManagementAdminRole(req, res).catch(next);
+});
+
+router.patch(
+  '/roles/:roleId',
+  ensureAuthenticated,
+  requireCrud('admins', 'update'),
+  (req, res, next) => {
+    void handleUpdateManagementAdminRole(req, res).catch(next);
+  }
+);
+
+router.delete(
+  '/roles/:roleId',
+  ensureAuthenticated,
+  requireCrud('admins', 'delete'),
+  (req, res, next) => {
+    void handleDeleteManagementAdminRole(req, res).catch(next);
+  }
+);
+
 // Get admin account by id
 router.get('/:id', ensureAuthenticated, requireCrud('admins', 'read'), async (req, res, next) => {
   try {
@@ -182,11 +228,57 @@ router.post('/', ensureAuthenticated, requireCrud('admins', 'create'), async (re
       return;
     }
 
+    const emailRaw = typeof value.email === 'string' ? value.email.trim() : '';
+    const usernameRaw = typeof value.username === 'string' ? value.username.trim() : '';
+
+    if (emailRaw === '' && usernameRaw === '') {
+      res.status(400).json({ message: 'Either email or username is required' });
+      return;
+    }
+
+    if (emailRaw !== '') {
+      const emailValidation = Joi.string().email().validate(emailRaw);
+      if (emailValidation.error) {
+        res.status(400).json({ message: emailValidation.error.message });
+        return;
+      }
+    }
+
+    if (usernameRaw !== '') {
+      if (
+        usernameRaw.length < 1 ||
+        usernameRaw.length > ADMIN_ACCOUNT_CREDENTIALS_USERNAME_MAX_LENGTH
+      ) {
+        res.status(400).json({
+          message: `Username must be between 1 and ${ADMIN_ACCOUNT_CREDENTIALS_USERNAME_MAX_LENGTH} characters`,
+        });
+        return;
+      }
+      if (!ADMIN_USERNAME_PATTERN.test(usernameRaw)) {
+        res.status(400).json({
+          message: 'Username may only contain letters, numbers, periods, underscores, and hyphens',
+        });
+        return;
+      }
+    }
+
+    let permissions = value.permissions;
+    const roleIdRaw = typeof value.role_id === 'string' ? value.role_id.trim() : '';
+    if (roleIdRaw !== '') {
+      const resolved = await resolvePodverseManagementAdminRole(roleIdRaw);
+      if (resolved === null) {
+        res.status(404).json({ message: 'Role not found' });
+        return;
+      }
+      permissions = resolved;
+    }
+
     const service = new AdminAccountService();
     const dto = {
-      email: value.email,
+      email: emailRaw === '' ? undefined : emailRaw.toLowerCase(),
+      username: usernameRaw === '' ? undefined : usernameRaw.toLowerCase(),
       password: value.password,
-      permissions: value.permissions,
+      permissions,
     };
     const admin = await service.create(dto);
     const json = adminAccountToJson(admin);
@@ -210,11 +302,12 @@ router.post('/', ensureAuthenticated, requireCrud('admins', 'create'), async (re
       },
     });
   } catch (error) {
-    if (
-      error instanceof Error &&
-      error.message === 'Admin account with this email already exists'
-    ) {
+    if (error instanceof Error && error.message === ADMIN_ACCOUNT_DUPLICATE_CREDENTIALS_ERROR) {
       res.status(409).json({ message: error.message });
+      return;
+    }
+    if (error instanceof Error && error.message === ADMIN_ACCOUNT_MUST_HAVE_IDENTIFIER_ERROR) {
+      res.status(400).json({ message: error.message });
       return;
     }
     next(error);
@@ -247,23 +340,102 @@ router.patch(
         return;
       }
 
+      const patch: {
+        email?: string | null;
+        username?: string | null;
+        password?: string;
+        permissions?: {
+          feeds_crud?: number;
+          feed_takedown_reasons_crud?: number;
+          admins_crud?: number;
+          stats_crud?: number;
+          billing_prices_crud?: number;
+          bucket_crud?: number;
+        };
+      } = {};
+
+      if (value.password !== undefined) {
+        patch.password = value.password;
+      }
+
+      const roleIdPatch = typeof value.role_id === 'string' ? value.role_id.trim() : '';
+      if (roleIdPatch !== '') {
+        const resolved = await resolvePodverseManagementAdminRole(roleIdPatch);
+        if (resolved === null) {
+          res.status(404).json({ message: 'Role not found' });
+          return;
+        }
+        patch.permissions = resolved;
+      } else if (value.permissions !== undefined) {
+        patch.permissions = value.permissions;
+      }
+
+      if (value.email !== undefined) {
+        if (value.email === null || value.email === '') {
+          patch.email = null;
+        } else {
+          const trimmedEmail = String(value.email).trim();
+          if (trimmedEmail === '') {
+            patch.email = null;
+          } else {
+            const emailValidation = Joi.string().email().validate(trimmedEmail);
+            if (emailValidation.error) {
+              res.status(400).json({ message: emailValidation.error.message });
+              return;
+            }
+            patch.email = trimmedEmail.toLowerCase();
+          }
+        }
+      }
+
+      if (value.username !== undefined) {
+        if (value.username === null || value.username === '') {
+          patch.username = null;
+        } else {
+          const trimmedUsername = String(value.username).trim();
+          if (trimmedUsername === '') {
+            patch.username = null;
+          } else if (
+            trimmedUsername.length < 1 ||
+            trimmedUsername.length > ADMIN_ACCOUNT_CREDENTIALS_USERNAME_MAX_LENGTH
+          ) {
+            res.status(400).json({
+              message: `Username must be between 1 and ${ADMIN_ACCOUNT_CREDENTIALS_USERNAME_MAX_LENGTH} characters`,
+            });
+            return;
+          } else if (!ADMIN_USERNAME_PATTERN.test(trimmedUsername)) {
+            res.status(400).json({
+              message:
+                'Username may only contain letters, numbers, periods, underscores, and hyphens',
+            });
+            return;
+          } else {
+            patch.username = trimmedUsername.toLowerCase();
+          }
+        }
+      }
+
       // Self-permission guard: admin cannot change their own CRUD permissions
       const isSelfUpdate = actor.id === targetId;
       const isSuperuser = actor.role === 'superuser';
 
-      if (value.permissions !== undefined && isSelfUpdate && !isSuperuser) {
+      const wantsPermissionChange =
+        value.permissions !== undefined ||
+        (typeof value.role_id === 'string' && value.role_id.trim() !== '');
+
+      if (wantsPermissionChange && isSelfUpdate && !isSuperuser) {
         res.status(403).json({ message: 'Cannot change your own permissions' });
         return;
       }
 
       // Superuser cannot change their own permissions either
-      if (value.permissions !== undefined && isSelfUpdate && isSuperuser) {
+      if (wantsPermissionChange && isSelfUpdate && isSuperuser) {
         res.status(403).json({ message: 'Cannot change your own permissions' });
         return;
       }
 
       // Non-superuser actors need admins:create or admins:update to modify permissions
-      if (value.permissions !== undefined && !isSuperuser) {
+      if (wantsPermissionChange && !isSuperuser) {
         const adminsCrud = actor.permissions?.admins_crud ?? 0;
         const canChangePermissions = hasCrud(adminsCrud, 'create') || hasCrud(adminsCrud, 'update');
         if (!canChangePermissions) {
@@ -286,7 +458,7 @@ router.patch(
         return;
       }
 
-      const updated = await service.update(targetId, value);
+      const updated = await service.update(targetId, patch);
       res.json(adminAccountToJson(updated));
     } catch (error) {
       if (
@@ -294,6 +466,14 @@ router.patch(
         error.message === 'Superuser accounts cannot be modified via API'
       ) {
         res.status(403).json({ message: error.message });
+        return;
+      }
+      if (error instanceof Error && error.message === ADMIN_ACCOUNT_DUPLICATE_CREDENTIALS_ERROR) {
+        res.status(409).json({ message: error.message });
+        return;
+      }
+      if (error instanceof Error && error.message === ADMIN_ACCOUNT_MUST_HAVE_IDENTIFIER_ERROR) {
+        res.status(400).json({ message: error.message });
         return;
       }
       next(error);

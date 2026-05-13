@@ -33,7 +33,7 @@ export function ManagementNavBar({ brandName, user }: ManagementNavBarProps) {
     router.replace('/');
   }, [router]);
 
-  const displayName = (user.email || user.id_text).trim() || '—';
+  const displayName = (user.email || user.username || user.id_text).trim() || '—';
 
   const items: NavBarAccountMenuItem[] = [
     {

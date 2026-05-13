@@ -1,9 +1,10 @@
 import fs from 'fs';
-import path from 'path';
-import lighthouse from 'lighthouse';
 import type { Result as LighthouseResult } from 'lighthouse';
-import { TEST_FIXTURES } from './browser-automation.js';
+import lighthouse from 'lighthouse';
+import path from 'path';
+
 import type { BrowserAutomation } from './browser-automation.js';
+import { TEST_FIXTURES } from './browser-automation.js';
 
 export interface LighthouseScenarioResult {
   homepage?: LighthouseResult;

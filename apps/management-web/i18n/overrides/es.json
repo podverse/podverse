@@ -404,10 +404,16 @@
     "createdWithLink": "",
     "passwordOptional": "",
     "passwordInviteHint": "",
+    "emailOptional": "",
+    "usernameOptional": "",
+    "emailOrUsernameHint": "",
+    "emailOrUsernameRequired": "",
+    "invalidAdminUsername": "",
     "updatedSuccessfully": "",
     "tableHeaders": {
       "id": "",
       "email": "",
+      "username": "",
       "role": "",
       "createdAt": "",
       "feeds": "",
@@ -440,7 +446,38 @@
       "takedownReasons": "",
       "admins": "",
       "stats": "",
-      "bucket": ""
+      "billingPrices": "",
+      "bucket": "",
+      "roleTemplateLabel": "",
+      "roleTemplateHint": "",
+      "roleCustom": "",
+      "roleCustomHint": "",
+      "roleCreateNew": "",
+      "loadingRoles": "",
+      "selectAll": "",
+      "clearAll": "",
+      "customTemplateHint": "",
+      "rolePresetLabels": {
+        "everything": "",
+        "read_everything": "",
+        "feeds_moderation": "",
+        "admins_stats_read": "",
+        "storage_full": ""
+      },
+      "rolePresetDescriptions": {
+        "everything": "",
+        "read_everything": "",
+        "feeds_moderation": "",
+        "admins_stats_read": "",
+        "storage_full": ""
+      }
+    },
+    "roleTemplates": {
+      "pageTitle": "",
+      "templateName": "",
+      "saveTemplate": "",
+      "createFailed": "",
+      "nameRequired": ""
     }
   },
   "users": {

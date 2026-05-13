@@ -5,7 +5,9 @@
 .sidebar {
   width: var(--sidebar-desktop-width);
   min-height: 100vh;
+  min-height: 100dvh;
   height: 100vh;
+  height: 100dvh;
   background: var(--background-color-tertiary);
   color: var(--text-color-primary);
   overflow-y: auto;
@@ -54,6 +56,8 @@
     border-left: 1px solid var(--border-color-opaque);
     height: calc(100vh - var(--navbar-mobile-height));
     min-height: calc(100vh - var(--navbar-mobile-height));
+    height: calc(100dvh - var(--navbar-mobile-height) - env(safe-area-inset-bottom, 0px));
+    min-height: calc(100dvh - var(--navbar-mobile-height) - env(safe-area-inset-bottom, 0px));
   }
   .scrollable {
     padding: var(--spacing-md) var(--spacing-none);

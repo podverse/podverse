@@ -1,4 +1,37 @@
 /**
+ * Normalizes a feed URL to its canonical percent-encoded HTTP(S) form.
+ *
+ * - Trims leading/trailing whitespace.
+ * - Attempts to parse as-is; if that fails, replaces ASCII spaces with %20 and retries.
+ * - Returns the canonical `parsed.href` string, or null if the URL is invalid/non-http(s).
+ *
+ * Use this as the single entry point for any feed URL before storage or lookup.
+ */
+export function canonicalHttpOrHttpsUrl(urlRaw: string): string | null {
+  const trimmed = urlRaw.trim();
+  if (trimmed === '') {
+    return null;
+  }
+
+  const tryParse = (candidate: string): string | null => {
+    try {
+      const parsed = new URL(candidate);
+      if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+        return null;
+      }
+      if (!parsed.hostname) {
+        return null;
+      }
+      return parsed.href;
+    } catch {
+      return null;
+    }
+  };
+
+  return tryParse(trimmed) ?? tryParse(trimmed.replace(/ /g, '%20'));
+}
+
+/**
  * Parses a trimmed string as an HTTP or HTTPS URL with a non-empty hostname.
  * Returns null if the input is not a valid http(s) URL for this contract.
  */

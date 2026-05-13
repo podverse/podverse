@@ -145,7 +145,7 @@ Enforced by ESLint; fix with `npm run lint:fix`. Styles (CSS/SCSS) go last in co
 
 ### ESM and import type
 
-- **ESM**: Relative imports use `.js` extensions. Packages and apps use ESM (NodeNext in `tsconfig.base.json`).
+- **ESM**: **Tier A** (packages except `packages/ui`, Node apps, workers, sidecars, tools, scripts) uses NodeNext-style **`.js` relative specifiers** for TypeScript modules; **Tier C** (`packages/ui`) and **Tier B** (`apps/web/src`, `apps/management-web/src`, and those apps' `e2e`) keep **extensionless** relative imports for bundler-transpiled UI / Turbopack — see [docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md](docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md) and [`.cursor/skills/import-specifiers-tiered/SKILL.md`](.cursor/skills/import-specifiers-tiered/SKILL.md).
 - **Type-only imports**: Use `import type { X } from '...'` when the import is only used as a type (avoids runtime references and helps with circular deps). Keep value imports when the symbol is used at runtime (e.g. classes for `instanceof`, decorators that need the constructor).
 - **Separate line for types**: Do not mix type and value in one import. Use a separate `import type { ... }` line (e.g. `import { DataSource } from 'typeorm';` and `import type { DataSourceOptions } from 'typeorm';`). ESLint `consistent-type-imports` with `fixStyle: 'separate-type-imports'` enforces this.
 
@@ -334,6 +334,7 @@ When implementing features or executing plans that touch **api** or **management
 - [Architecture](docs/architecture/ARCHITECTURE.md) - System design and data flow
 - [V4V MetaBoost + LNURL](docs/v4v/bitcoin/lnd/V4V-METABOOST-LNURL.md) - Value-for-value boost flow and local setup
 - [Contributing](docs/development/CONTRIBUTING.md) - Workflow and PR guidelines
+- [API Client Boundaries](docs/development/API-CLIENT-BOUNDARIES.md) - Shared request client/auth contracts for web, SSR, and mobile
 - [Lockfile (Linux)](docs/development/tooling/LOCKFILE-LINUX.md) - Generating package-lock.json for CI
 - [i18n Guide](docs/localization/I18N.md) - Translation system details
 - [IDE Setup](docs/development/IDE-SETUP.md) - VS Code configuration
