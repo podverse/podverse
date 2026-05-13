@@ -1,0 +1,49 @@
+import { clampNearEndSeconds } from './clampNearEndSeconds';
+import { parsePlaybackSeconds } from './parsePlaybackSeconds';
+
+export type AbridgedSeekInput = {
+  p?: unknown;
+  d?: unknown;
+};
+
+export type ResumeSeekFromAbridgedParams = {
+  abridged: AbridgedSeekInput | null | undefined;
+  explicitSeconds?: unknown;
+};
+
+/**
+ * Resolve the final seek position seconds for a resume-style load.
+ *
+ * Precedence (mirrors the decision-matrix anonymous-restore and
+ * queue-load rows):
+ *
+ * 1. **Explicit caller-supplied seconds win, no clamp.** When the caller
+ *    passes a finite non-negative `explicitSeconds` (typically an
+ *    anonymous-snapshot `playback_position_seconds` or queue resource
+ *    `playback_position`), it is returned verbatim — the explicit value
+ *    is treated as authoritative and is not re-evaluated against the
+ *    abridged duration.
+ * 2. **Invalid explicit falls through** (negative, NaN, non-finite,
+ *    non-numeric, empty string, `null`, `undefined`). Treated as no
+ *    explicit override, the helper then reads the abridged row.
+ * 3. **Abridged `p`/`d` parsed via `parsePlaybackSeconds`.** Either may
+ *    independently fail to parse; missing `p` resolves to `0`, missing
+ *    `d` disables the near-end clamp.
+ * 4. **`clampNearEndSeconds` applied** to the parsed abridged values.
+ *
+ * Phase 2 helper — no production consumer yet. Phase 3 wires this into
+ * `useMediaPlayerResourceUpdate` and the anonymous-restore flow.
+ */
+export function resumeSeekFromAbridged({
+  abridged,
+  explicitSeconds,
+}: ResumeSeekFromAbridgedParams): number {
+  const parsedExplicit = parsePlaybackSeconds(explicitSeconds);
+  if (parsedExplicit !== undefined) {
+    return parsedExplicit;
+  }
+
+  const currentSeconds = parsePlaybackSeconds(abridged?.p) ?? 0;
+  const durationSeconds = parsePlaybackSeconds(abridged?.d) ?? 0;
+  return clampNearEndSeconds({ currentSeconds, durationSeconds });
+}
