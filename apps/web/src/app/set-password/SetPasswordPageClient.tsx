@@ -265,7 +265,7 @@ export function SetPasswordPageClient({ token }: SetPasswordPageClientProps) {
               {isComplete && (
                 <>
                   <FormInfoMessageText message={tAuthentication('set_password_complete_message')} />
-                  <div className={styles.buttons}>
+                  <div className={styles.completePrimaryAction}>
                     <Button type="button" onClick={() => router.push('/login')} variant="primary">
                       {tAuthentication('login')}
                     </Button>

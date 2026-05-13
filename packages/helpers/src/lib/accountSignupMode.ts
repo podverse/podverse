@@ -33,7 +33,7 @@ export function getAccountSignupModeCapabilities(
       canPublicSignup: false,
       canUseEmailVerificationFlows: true,
       canIssueAdminInviteLink: true,
-      requiresEmailAtInviteCompletion: true,
+      requiresEmailAtInviteCompletion: false,
     };
   }
   return {
