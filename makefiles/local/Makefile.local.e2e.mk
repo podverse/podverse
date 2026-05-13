@@ -101,11 +101,11 @@ e2e_test_report: e2e_deps e2e_seed
 	echo "  Web:              $(E2E_REPORT_BASE)/web/index.html"; \
 	echo "  Management-web:   $(E2E_REPORT_BASE)/management-web/index.html"; \
 	echo "  Latest symlink:   .artifacts/e2e-reports/latest/"; \
-	@bash -c 'cd .artifacts/e2e-reports && ls -d */ 2>/dev/null | sort -r | tail -n +11 | xargs -r rm -rf'; \
-	@# Open reports on macOS/Linux
-	@(command -v open >/dev/null 2>&1 && open $(E2E_REPORT_BASE)/web/index.html $(E2E_REPORT_BASE)/management-web/index.html 2>/dev/null) || \
-	 (command -v xdg-open >/dev/null 2>&1 && xdg-open $(E2E_REPORT_BASE)/web/index.html 2>/dev/null) || true
-	@exit $$exit_code
+	echo $$exit_code > .artifacts/e2e-reports/.last-exit-code
+	@bash -c 'cd .artifacts/e2e-reports && ls -d */ 2>/dev/null | sort -r | tail -n +11 | xargs -r rm -rf' || true
+	@(command -v open >/dev/null 2>&1 && open $(E2E_REPORT_BASE)/web/index.html $(E2E_REPORT_BASE)/management-web/index.html 2>/dev/null) \
+	  || (command -v xdg-open >/dev/null 2>&1 && xdg-open $(E2E_REPORT_BASE)/web/index.html 2>/dev/null) || true
+	@exit_code=$$(cat .artifacts/e2e-reports/.last-exit-code 2>/dev/null || echo 0); rm -f .artifacts/e2e-reports/.last-exit-code; exit $$exit_code
 
 # Scoped web report for one spec (SPEC=apps/web/e2e/foo.spec.ts)
 e2e_test_web_report_spec: e2e_deps e2e_seed_web

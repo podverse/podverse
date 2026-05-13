@@ -28,4 +28,54 @@ describe('selectItemChapterForTime', () => {
     const a = ch({ id: 1, end_time: '1', table_of_contents: false });
     expect(selectItemChapterForTime([a], 2)).toBeNull();
   });
+
+  // -- Boundary cases captured by the media-player decision matrix --
+  // See apps/web/src/components/MediaPlayer/MEDIA-PLAYER-DECISION-MATRIX.md
+
+  it('returns null on empty chapter list', () => {
+    expect(selectItemChapterForTime([], 5)).toBeNull();
+  });
+
+  it('matches exactly at start_time (inclusive lower bound)', () => {
+    const a = ch({ id: 1, start_time: '0', end_time: '10', table_of_contents: false });
+    expect(selectItemChapterForTime([a], 0)?.id).toBe(1);
+  });
+
+  it('does not match at exactly end_time (exclusive upper bound)', () => {
+    const a = ch({ id: 1, start_time: '0', end_time: '10', table_of_contents: false });
+    expect(selectItemChapterForTime([a], 10)).toBeNull();
+  });
+
+  it('skips chapters whose end_time is missing or non-numeric', () => {
+    const noEnd = ch({
+      id: 1,
+      start_time: '0',
+      end_time: null as unknown as string,
+      table_of_contents: false,
+    });
+    const garbage = ch({
+      id: 2,
+      start_time: '0',
+      end_time: 'not-a-number',
+      table_of_contents: false,
+    });
+    const valid = ch({ id: 3, start_time: '0', end_time: '50', table_of_contents: false });
+    expect(selectItemChapterForTime([noEnd, garbage, valid], 5)?.id).toBe(3);
+  });
+
+  it('returns null when time is negative', () => {
+    const a = ch({ id: 1, start_time: '0', end_time: '10', table_of_contents: false });
+    expect(selectItemChapterForTime([a], -1)).toBeNull();
+  });
+
+  it('accepts very large currentTime values without throwing', () => {
+    const a = ch({ id: 1, start_time: '0', end_time: '1000000', table_of_contents: false });
+    expect(selectItemChapterForTime([a], 999_999.99)?.id).toBe(1);
+  });
+
+  it('uses the first matching chapter when none have table_of_contents=false', () => {
+    const a = ch({ id: 1, start_time: '0', end_time: '10', table_of_contents: true });
+    const b = ch({ id: 2, start_time: '0', end_time: '10', table_of_contents: true });
+    expect(selectItemChapterForTime([a, b], 5)?.id).toBe(1);
+  });
 });

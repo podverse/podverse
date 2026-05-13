@@ -1,5 +1,14 @@
 'use client';
 
+/**
+ * Behavior contract for the entire media player tree lives in
+ * `apps/web/src/components/MediaPlayer/MEDIA-PLAYER-DECISION-MATRIX.md`.
+ * That matrix is the regression oracle for any change inside this directory,
+ * inside `Controller/`, and inside the queue/auto-queue hooks that feed it.
+ * Update the matrix alongside production changes; orchestration tests under
+ * `Controller/__tests__/` execute it as a contract.
+ */
+
 import { useEffect } from 'react';
 
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
