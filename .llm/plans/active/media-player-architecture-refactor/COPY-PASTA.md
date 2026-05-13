@@ -20,12 +20,13 @@ stay green at every commit.
 
   Execute
   [`01-behavior-baseline-and-test-harness.md`](./01-behavior-baseline-and-test-harness.md):
-  write the decision matrix doc (including the optional live-stream /
-  video.js baseline appendix for the future HLS plan-set), build the
-  fake `HTMLMediaElement` harness, write orchestration tests against
-  current behavior, fill the E2E gaps (including the four live-stream
-  specs to prove livestream behavior is unchanged after the
-  refactor), extend pure-helper coverage. No production code changes.
+  write the decision matrix doc (including the **required** live-stream /
+  video.js baseline appendix in section 6 — regression oracle for this
+  refactor and baseline for the future HLS plan-set), build the fake
+  `HTMLMediaElement` harness, write orchestration tests against current
+  behavior, fill the E2E gaps (including the four live-stream specs so
+  every later phase proves livestream behavior is unchanged), extend
+  pure-helper coverage. No production code changes.
   Commit per deliverable. Verify:
 
   ```bash
