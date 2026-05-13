@@ -9,8 +9,19 @@ import { useQueues } from '../contexts/Queue';
 import { getApiRequestService } from '../factories/apiRequestService';
 
 export type QueueResourcesLoadActiveResult = {
+  historyMoved: number;
+  upcomingResources: DTOQueueResource[];
+  /** The resource callers may synchronously translate into a PlaybackLoadRequest. */
+  activeResource: DTOQueueResource | null;
   upcomingManualCount: number;
   hasAutoQueueNext?: boolean;
+};
+
+const emptyLoadActiveResult: QueueResourcesLoadActiveResult = {
+  activeResource: null,
+  historyMoved: 0,
+  upcomingManualCount: 0,
+  upcomingResources: [],
 };
 
 /*
@@ -58,7 +69,7 @@ export function useQueueResourcesLoadActive() {
 
     if (!loggedInAccountRef.current) {
       setQueues([]);
-      return { upcomingManualCount: 0 };
+      return emptyLoadActiveResult;
     }
 
     const queueData = await apiRequestService.reqQueueGetAllForAccountPrivate();
@@ -135,11 +146,14 @@ export function useQueueResourcesLoadActive() {
       }
 
       return {
+        activeResource: combinedQueueResources[0] ?? null,
+        historyMoved: 0,
+        upcomingResources: combinedQueueResources,
         upcomingManualCount: combinedQueueResources.length,
         hasAutoQueueNext: combinedQueueResources.length === 0 ? hasAutoQueueNext : undefined,
       };
     }
 
-    return { upcomingManualCount: 0 };
+    return emptyLoadActiveResult;
   }, []);
 }

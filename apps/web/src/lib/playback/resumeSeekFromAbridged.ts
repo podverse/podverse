@@ -9,6 +9,7 @@ export type AbridgedSeekInput = {
 export type ResumeSeekFromAbridgedParams = {
   abridged: AbridgedSeekInput | null | undefined;
   explicitSeconds?: unknown;
+  durationHintSeconds?: unknown;
 };
 
 /**
@@ -36,6 +37,7 @@ export type ResumeSeekFromAbridgedParams = {
  */
 export function resumeSeekFromAbridged({
   abridged,
+  durationHintSeconds,
   explicitSeconds,
 }: ResumeSeekFromAbridgedParams): number {
   const parsedExplicit = parsePlaybackSeconds(explicitSeconds);
@@ -44,6 +46,7 @@ export function resumeSeekFromAbridged({
   }
 
   const currentSeconds = parsePlaybackSeconds(abridged?.p) ?? 0;
-  const durationSeconds = parsePlaybackSeconds(abridged?.d) ?? 0;
+  const durationSeconds =
+    parsePlaybackSeconds(abridged?.d) ?? parsePlaybackSeconds(durationHintSeconds) ?? 0;
   return clampNearEndSeconds({ currentSeconds, durationSeconds });
 }
