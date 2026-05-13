@@ -43,7 +43,9 @@ if ! docker run --rm \
   -v "$REPO_ROOT:/app" \
   -w /app \
   "$NODE_IMAGE" \
-  sh -c "find . -name node_modules -type d -prune -exec rm -rf '{}' + && npm install --include=optional"; then
+  sh -c "find . -name node_modules -type d -prune -exec rm -rf '{}' + \
+    && npm install --include=optional \
+    && find . -name node_modules -type d -prune -exec rm -rf '{}' +"; then
   echo "" >&2
   echo "Docker/npm install failed. On Apple Silicon + linux/amd64, try Rosetta for amd64 in Docker Desktop," >&2
   echo "or: LOCKFILE_DOCKER_PLATFORM=linux/arm64 $0 (see docs/development/tooling/LOCKFILE-LINUX.md)." >&2
@@ -51,3 +53,8 @@ if ! docker run --rm \
 fi
 
 echo "Done. package-lock.json is now Linux-canonical; commit it so CI uses it."
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  echo ""
+  echo "Next on macOS: run 'npm install' on the host to repopulate node_modules"
+  echo "with darwin native binaries (rollup, next swc, parcel watcher, sharp, etc.)."
+fi
