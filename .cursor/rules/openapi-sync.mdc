@@ -3,8 +3,12 @@ description: Require OpenAPI updates for API surface changes
 globs:
   - "apps/api/src/routes/**/*.ts"
   - "apps/management-api/src/routes/**/*.ts"
+  - "apps/api/src/app.ts"
+  - "apps/management-api/src/app.ts"
   - "apps/api/src/controllers/**/*.ts"
-  - "apps/management-api/src/**/*.ts"
+  - "apps/management-api/src/controllers/**/*.ts"
+  - "apps/api/src/lib/**/*.ts"
+  - "apps/management-api/src/lib/**/*.ts"
 alwaysApply: false
 ---
 
@@ -34,3 +38,13 @@ When a change affects HTTP API behavior, update the matching OpenAPI spec in the
 - Route-to-spec parity is complete
 - 401 vs 403 semantics are explicit where relevant
 - No stale examples contradict implementation
+
+## Required PR evidence for route-related changes
+
+- `./scripts/nix/with-env npm run openapi:check` output is included in the PR description
+- Route parity evidence is included for changed endpoints:
+  - changed method+path
+  - matching OpenAPI path+method
+  - matching `operationId`
+- If auth behavior changed, PR includes explicit 401 vs 403 behavior notes
+- If a route-related change does not require spec edits, PR includes explicit justification

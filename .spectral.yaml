@@ -1,0 +1,13 @@
+extends:
+  - spectral:oas
+
+formats:
+  - oas3
+
+rules:
+  operation-description: warn
+  operation-tag-defined: error
+  oas3-unused-component: warn
+  operation-operationId-unique: error
+  no-$ref-siblings: error
+  oas3-schema: error
