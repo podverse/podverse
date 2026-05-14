@@ -107,7 +107,8 @@ export class AssetGenerator {
   async generateMP3(
     filename: string,
     durationSeconds: number = 300,
-    frequencyHz?: number
+    frequencyHz?: number,
+    options?: { bitrateKbps?: number; channels?: 1 | 2; sampleRateHz?: number }
   ): Promise<void> {
     const filePath = path.join(this.assetsDir, 'audio', filename);
 
@@ -117,7 +118,6 @@ export class AssetGenerator {
     }
 
     try {
-      // Import ffmpeg-static dynamically
       const ffmpegStatic = await import('ffmpeg-static').catch((err) => {
         throw new Error(
           `Failed to import ffmpeg-static. Make sure to run 'npm install' first. Error: ${err instanceof Error ? err.message : String(err)}`
@@ -130,7 +130,10 @@ export class AssetGenerator {
       }
 
       const frequency = frequencyHz ?? this.getAudioFrequency();
-      const command = `"${ffmpegPath}" -f lavfi -i sine=frequency=${frequency}:duration=${durationSeconds} -t ${durationSeconds} -acodec libmp3lame -b:a 128k -y "${filePath}"`;
+      const bitrateKbps = options?.bitrateKbps ?? 128;
+      const channels = options?.channels ?? 2;
+      const sampleRateFlag = options?.sampleRateHz ? ` -ar ${options.sampleRateHz}` : '';
+      const command = `"${ffmpegPath}" -f lavfi -i sine=frequency=${frequency}:duration=${durationSeconds} -t ${durationSeconds} -acodec libmp3lame -b:a ${bitrateKbps}k -ac ${channels}${sampleRateFlag} -y "${filePath}"`;
 
       await execAsync(command);
       console.log(`   ✅ Generated: ${filename} (${durationSeconds}s)`);

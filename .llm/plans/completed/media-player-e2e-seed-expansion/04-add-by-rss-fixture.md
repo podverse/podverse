@@ -53,18 +53,18 @@ Insert in dependency order:
    - **with-position resource**: `id_text =
      E2E_ADD_BY_RSS_RESOURCE_WITH_POSITION_ID_TEXT`,
      `feed_url = E2E_ADD_BY_RSS_FEED_URL`,
-     `playback_position = E2E_ADD_BY_RSS_RESOURCE_WITH_POSITION_SECONDS = 42`,
-     `is_add_by_rss_redacted = false`, plus a deterministic
-     `enclosure_url` such as
-     `'https://e2e-seed-addbyrss.example/with-position.mp3'`.
-     **Title and any other display fields**: use stable strings so the
-     spec can target the row by text if needed.
+     `playback_position = E2E_ADD_BY_RSS_RESOURCE_WITH_POSITION_SECONDS = 25`,
+     `is_add_by_rss_redacted = false`, `enclosure_url =
+     E2E_ADDBYRSS_WITH_POSITION_ENCLOSURE_URL`
+     (`http://localhost:2111/e2e/audio/e2e-addbyrss-with-position-60s-440hz.mp3`).
+     **Title and any other display fields**: use stable strings so
+     the spec can target the row by text if needed.
    - **fresh resource**: same shape with
      `id_text = E2E_ADD_BY_RSS_RESOURCE_FRESH_ID_TEXT`,
      `playback_position = NULL` (or whatever sentinel the column uses
      when no playback has been recorded — verify during step 4),
-     `enclosure_url =
-     'https://e2e-seed-addbyrss.example/fresh.mp3'`.
+     `enclosure_url = E2E_ADDBYRSS_FRESH_ENCLOSURE_URL`
+     (`http://localhost:2111/e2e/audio/e2e-addbyrss-fresh-60s-440hz.mp3`).
 
 2. If the schema requires an `add_by_rss_credentials` row (or
    similar) with encrypted feed credentials, insert one. Use a test
@@ -90,9 +90,9 @@ Replace `test.fixme()` with two test branches:
   `addByRSSSeekToTime !== null && >= 0` case): authenticate as the
   E2E user; navigate to the with-position add-by-RSS resource; click
   play; assert seek to
-  `E2E_ADD_BY_RSS_RESOURCE_WITH_POSITION_SECONDS = 42` on
-  `loadedmetadata`. Assert stats tracking is **not** invoked (per the
-  add-by-RSS skip rule).
+  `E2E_ADD_BY_RSS_RESOURCE_WITH_POSITION_SECONDS = 25` on
+  `loadedmetadata` (inside the 60 s fixture's real duration). Assert
+  stats tracking is **not** invoked (per the add-by-RSS skip rule).
 - **No stored position seeks to 0**: same auth/setup with the fresh
   resource; assert seek to `0` on `loadedmetadata`.
 

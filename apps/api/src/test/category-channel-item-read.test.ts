@@ -29,6 +29,15 @@ vi.mock('../lib/_request.js', () => ({
   _request: _requestMock,
 }));
 
+/**
+ * Default mock implementations extracted as named factories so they can be
+ * re-applied in `beforeEach` after `mockReset()` clears all queued
+ * `mockResolvedValueOnce` values. Without this, a previous test's queued
+ * one-shot return value could leak into the next test (e.g.
+ * `getAccountMock` queued in an authenticated test that didn't fully
+ * consume the queue could cause a later auth-less test to fall through
+ * the auth path with an unexpected stub).
+ */
 const {
   categoryGetMock,
   categoryGetAllMock,
@@ -57,163 +66,139 @@ const {
   channelPodrollGetMock,
   publisherFeedGetMock,
   getAccountMock,
-} = vi.hoisted(() => ({
-  categoryGetMock: vi.fn(async (id: number) =>
+  defaultImpls,
+} = vi.hoisted(() => {
+  const defaultCategoryGet = async (id: number) =>
     id === 404
       ? null
       : {
           id: 1,
           title: 'Test Category',
-        }
-  ),
-  categoryGetAllMock: vi.fn(async () => [
+        };
+  const defaultCategoryGetAll = async () => [
     { id: 1, title: 'A' },
     { id: 2, title: 'B' },
-  ]),
-  channelGetByIdOrIdTextMock: vi.fn(async () => null),
-  channelGetByPodcastIndexIdMock: vi.fn(
-    async () => ({ id: 7, id_text: 'by-pi' }) as Record<string, unknown> | null
-  ),
-  channelGetManyMock: vi.fn(async () => [{ id: 1, id_text: 'ch-1' }] as Record<string, unknown>[]),
-  statsChGetManyMock: vi.fn(
-    async () => [{ id: 1, channel: { id: 1, id_text: 'st-ch' } }] as Record<string, unknown>[]
-  ),
-  statsChGetManyByChannelsAndCountMock: vi.fn(
-    async (): Promise<[Record<string, unknown>[], number]> => [
-      [{ channel: { id: 1, id_text: 'subch' } }],
-      1,
-    ]
-  ),
-  accountFollowingGetFollowedMock: vi.fn(
-    async (
-      _a: number,
-      _m: string | null,
-      config?: unknown
-    ): Promise<{ results: Record<string, unknown>[]; count: number }> => {
-      if (config) {
-        return {
-          results: [
-            { channel: { id: 1, id_text: 'f-ch', channel_about: { last_pub_date: new Date() } } },
-          ],
-          count: 1,
-        };
-      }
-      return { results: [{ channel_id: 1 }], count: 1 };
+  ];
+  const defaultChannelGetByPodcastIndexId = async () =>
+    ({ id: 7, id_text: 'by-pi' }) as Record<string, unknown> | null;
+  const defaultChannelGetMany = async () =>
+    [{ id: 1, id_text: 'ch-1' }] as Record<string, unknown>[];
+  const defaultStatsChGetMany = async () =>
+    [{ id: 1, channel: { id: 1, id_text: 'st-ch' } }] as Record<string, unknown>[];
+  const defaultStatsChGetManyByChannelsAndCount = async (): Promise<
+    [Record<string, unknown>[], number]
+  > => [[{ channel: { id: 1, id_text: 'subch' } }], 1];
+  const defaultAccountFollowingGetFollowed = async (
+    _a: number,
+    _m: string | null,
+    config?: unknown
+  ): Promise<{ results: Record<string, unknown>[]; count: number }> => {
+    if (config) {
+      return {
+        results: [
+          { channel: { id: 1, id_text: 'f-ch', channel_about: { last_pub_date: new Date() } } },
+        ],
+        count: 1,
+      };
     }
-  ),
-  itemGetByIdOrIdTextMock: vi.fn(async () => null),
-  itemGetManyMock: vi.fn(async () => [{ id: 10, id_text: 'it-1' }] as Record<string, unknown>[]),
-  itemGetManyByChannelsMock: vi.fn(
-    async () => [{ id: 11, id_text: 'sub-it' }] as Record<string, unknown>[]
-  ),
-  itemGetManyByChannelMock: vi.fn(
-    async () => [{ id: 12, id_text: 'ch-it' }] as Record<string, unknown>[]
-  ),
-  itemGetManyByChannelBySeasonMock: vi.fn(
-    async () => [{ id: 13, id_text: 's-it' }] as Record<string, unknown>[]
-  ),
-  itemGetManyByChannelShuffleMock: vi.fn(
-    async () => [{ id: 14, id_text: 'shuf' }] as Record<string, unknown>[]
-  ),
-  itemGetManyForQueueByPubDateMock: vi.fn(
-    async () => [{ id: 15, id_text: 'q-pd' }] as Record<string, unknown>[]
-  ),
-  itemGetManyForQueueBySeasonMock: vi.fn(
-    async () => [{ id: 16, id_text: 'q-se' }] as Record<string, unknown>[]
-  ),
-  itemGetManyByChannelWithLiveItemMock: vi.fn(
-    async () =>
-      [
-        {
-          id: 1,
-          live_item: {
-            start_time: new Date('2025-01-01'),
-            end_time: new Date('2025-01-02'),
-            live_item_status: { id: LiveItemStatusEnum.Live },
-          },
-        },
-        {
-          id: 2,
-          live_item: {
-            start_time: new Date('2025-01-03'),
-            end_time: new Date('2025-01-04'),
-            live_item_status: { id: LiveItemStatusEnum.Pending },
-          },
-        },
-        {
-          id: 3,
-          live_item: {
-            start_time: new Date('2025-01-05'),
-            end_time: new Date('2025-01-06'),
-            live_item_status: { id: LiveItemStatusEnum.Ended },
-          },
-        },
-      ] as Record<string, unknown>[]
-  ),
-  statsItGetManyMock: vi.fn(
-    async () => [{ id: 1, item: { id: 10, id_text: 'st-it' } }] as Record<string, unknown>[]
-  ),
-  statsItGetManyByChannelsAndCountMock: vi.fn(
-    async (): Promise<[Record<string, unknown>[], number]> => [
-      [{ item: { id: 20, id_text: 'subtop' } }],
-      2,
-    ]
-  ),
-  itemChGetByIdTextMock: vi.fn(
-    async (): Promise<Record<string, unknown> | null> => ({
-      id: 1,
-      id_text: 'ic-some-id',
-      data_hash: 'mock-hash',
-      start_time: '0',
-      end_time: null,
-      title: 'Mock chapter',
-      img: null,
-      web_url: null,
-      table_of_contents: true,
-      item_chapters_object: {
-        item_chapters_feed: {
-          id: 77,
-          url: 'https://example.com/chapters.json',
-          type: 'application/json',
-          item: {
-            id: 10,
-            id_text: 'ep-1',
-            channel_id: '5',
-          },
+    return { results: [{ channel_id: 1 }], count: 1 };
+  };
+  const defaultItemGetMany = async () => [{ id: 10, id_text: 'it-1' }] as Record<string, unknown>[];
+  const defaultItemGetManyByChannels = async () =>
+    [{ id: 11, id_text: 'sub-it' }] as Record<string, unknown>[];
+  const defaultItemGetManyByChannel = async () =>
+    [{ id: 12, id_text: 'ch-it' }] as Record<string, unknown>[];
+  const defaultItemGetManyByChannelBySeason = async () =>
+    [{ id: 13, id_text: 's-it' }] as Record<string, unknown>[];
+  const defaultItemGetManyByChannelShuffle = async () =>
+    [{ id: 14, id_text: 'shuf' }] as Record<string, unknown>[];
+  const defaultItemGetManyForQueueByPubDate = async () =>
+    [{ id: 15, id_text: 'q-pd' }] as Record<string, unknown>[];
+  const defaultItemGetManyForQueueBySeason = async () =>
+    [{ id: 16, id_text: 'q-se' }] as Record<string, unknown>[];
+  const defaultItemGetManyByChannelWithLiveItem = async () =>
+    [
+      {
+        id: 1,
+        live_item: {
+          start_time: new Date('2025-01-01'),
+          end_time: new Date('2025-01-02'),
+          live_item_status: { id: LiveItemStatusEnum.Live },
         },
       },
-    })
-  ),
-  itemChGetAllWithCountMock: vi.fn(async () => ({
+      {
+        id: 2,
+        live_item: {
+          start_time: new Date('2025-01-03'),
+          end_time: new Date('2025-01-04'),
+          live_item_status: { id: LiveItemStatusEnum.Pending },
+        },
+      },
+      {
+        id: 3,
+        live_item: {
+          start_time: new Date('2025-01-05'),
+          end_time: new Date('2025-01-06'),
+          live_item_status: { id: LiveItemStatusEnum.Ended },
+        },
+      },
+    ] as Record<string, unknown>[];
+  const defaultStatsItGetMany = async () =>
+    [{ id: 1, item: { id: 10, id_text: 'st-it' } }] as Record<string, unknown>[];
+  const defaultStatsItGetManyByChannelsAndCount = async (): Promise<
+    [Record<string, unknown>[], number]
+  > => [[{ item: { id: 20, id_text: 'subtop' } }], 2];
+  const defaultItemChGetByIdText = async (): Promise<Record<string, unknown> | null> => ({
+    id: 1,
+    id_text: 'ic-some-id',
+    data_hash: 'mock-hash',
+    start_time: '0',
+    end_time: null,
+    title: 'Mock chapter',
+    img: null,
+    web_url: null,
+    table_of_contents: true,
+    item_chapters_object: {
+      item_chapters_feed: {
+        id: 77,
+        url: 'https://example.com/chapters.json',
+        type: 'application/json',
+        item: {
+          id: 10,
+          id_text: 'ep-1',
+          channel_id: '5',
+        },
+      },
+    },
+  });
+  const defaultItemChGetAllWithCount = async () => ({
     results: [
       { id: 1, start_time: '0', end_time: '60', title: 'One', table_of_contents: true },
       { id: 2, start_time: '60', end_time: '120', title: 'Two', table_of_contents: true },
     ],
-  })),
-  itemSoundbiteGetByIdTextMock: vi.fn(
-    async () =>
-      ({ id: 1, id_text: 'sb-1', item: { id: 1, id_text: 'ep' } }) as Record<string, unknown> | null
-  ),
-  itemSoundbiteGetManyAndCountMock: vi.fn(
-    async (): Promise<[Record<string, unknown>[], number]> => [[{ id: 1, id_text: 'sbx' }], 1]
-  ),
-  itemTranscriptGetManyMock: vi.fn(
-    async (): Promise<Record<string, unknown>[]> => [{ id: 1, url: 'https://example.com/tr.json' }]
-  ),
-  channelPodrollGetMock: vi.fn(async () => ({
+  });
+  const defaultItemSoundbiteGetByIdText = async () =>
+    ({ id: 1, id_text: 'sb-1', item: { id: 1, id_text: 'ep' } }) as Record<string, unknown> | null;
+  const defaultItemSoundbiteGetManyAndCount = async (): Promise<
+    [Record<string, unknown>[], number]
+  > => [[{ id: 1, id_text: 'sbx' }], 1];
+  const defaultItemTranscriptGetMany = async (): Promise<Record<string, unknown>[]> => [
+    { id: 1, url: 'https://example.com/tr.json' },
+  ];
+  const defaultChannelPodrollGet = async () => ({
     podrollChannelsAdded: [],
     podrollChannelsUnadded: [],
     podrollItemsAdded: [],
     podrollItemsUnadded: [],
-  })),
-  publisherFeedGetMock: vi.fn(async () => ({
+  });
+  const defaultPublisherFeedGet = async () => ({
     channel: { id: 1, id_text: 'pub-ch' },
     publisherChannelsAdded: [],
     publisherChannelsUnadded: [],
     publisherItemsAdded: [],
     publisherItemsUnadded: [],
-  })),
-  getAccountMock: vi.fn(async (id: number) => {
+  });
+  const defaultGetAccount = async (id: number) => {
     if (id !== TEST_USER_ID) {
       return null;
     }
@@ -225,8 +210,65 @@ const {
         membership_expires_at: new Date(Date.now() + 86400000 * 365),
       },
     };
-  }),
-}));
+  };
+
+  return {
+    categoryGetMock: vi.fn(defaultCategoryGet),
+    categoryGetAllMock: vi.fn(defaultCategoryGetAll),
+    channelGetByIdOrIdTextMock: vi.fn(async () => null),
+    channelGetByPodcastIndexIdMock: vi.fn(defaultChannelGetByPodcastIndexId),
+    channelGetManyMock: vi.fn(defaultChannelGetMany),
+    statsChGetManyMock: vi.fn(defaultStatsChGetMany),
+    statsChGetManyByChannelsAndCountMock: vi.fn(defaultStatsChGetManyByChannelsAndCount),
+    accountFollowingGetFollowedMock: vi.fn(defaultAccountFollowingGetFollowed),
+    itemGetByIdOrIdTextMock: vi.fn(async () => null),
+    itemGetManyMock: vi.fn(defaultItemGetMany),
+    itemGetManyByChannelsMock: vi.fn(defaultItemGetManyByChannels),
+    itemGetManyByChannelMock: vi.fn(defaultItemGetManyByChannel),
+    itemGetManyByChannelBySeasonMock: vi.fn(defaultItemGetManyByChannelBySeason),
+    itemGetManyByChannelShuffleMock: vi.fn(defaultItemGetManyByChannelShuffle),
+    itemGetManyForQueueByPubDateMock: vi.fn(defaultItemGetManyForQueueByPubDate),
+    itemGetManyForQueueBySeasonMock: vi.fn(defaultItemGetManyForQueueBySeason),
+    itemGetManyByChannelWithLiveItemMock: vi.fn(defaultItemGetManyByChannelWithLiveItem),
+    statsItGetManyMock: vi.fn(defaultStatsItGetMany),
+    statsItGetManyByChannelsAndCountMock: vi.fn(defaultStatsItGetManyByChannelsAndCount),
+    itemChGetByIdTextMock: vi.fn(defaultItemChGetByIdText),
+    itemChGetAllWithCountMock: vi.fn(defaultItemChGetAllWithCount),
+    itemSoundbiteGetByIdTextMock: vi.fn(defaultItemSoundbiteGetByIdText),
+    itemSoundbiteGetManyAndCountMock: vi.fn(defaultItemSoundbiteGetManyAndCount),
+    itemTranscriptGetManyMock: vi.fn(defaultItemTranscriptGetMany),
+    channelPodrollGetMock: vi.fn(defaultChannelPodrollGet),
+    publisherFeedGetMock: vi.fn(defaultPublisherFeedGet),
+    getAccountMock: vi.fn(defaultGetAccount),
+    defaultImpls: {
+      categoryGet: defaultCategoryGet,
+      categoryGetAll: defaultCategoryGetAll,
+      channelGetByPodcastIndexId: defaultChannelGetByPodcastIndexId,
+      channelGetMany: defaultChannelGetMany,
+      statsChGetMany: defaultStatsChGetMany,
+      statsChGetManyByChannelsAndCount: defaultStatsChGetManyByChannelsAndCount,
+      accountFollowingGetFollowed: defaultAccountFollowingGetFollowed,
+      itemGetMany: defaultItemGetMany,
+      itemGetManyByChannels: defaultItemGetManyByChannels,
+      itemGetManyByChannel: defaultItemGetManyByChannel,
+      itemGetManyByChannelBySeason: defaultItemGetManyByChannelBySeason,
+      itemGetManyByChannelShuffle: defaultItemGetManyByChannelShuffle,
+      itemGetManyForQueueByPubDate: defaultItemGetManyForQueueByPubDate,
+      itemGetManyForQueueBySeason: defaultItemGetManyForQueueBySeason,
+      itemGetManyByChannelWithLiveItem: defaultItemGetManyByChannelWithLiveItem,
+      statsItGetMany: defaultStatsItGetMany,
+      statsItGetManyByChannelsAndCount: defaultStatsItGetManyByChannelsAndCount,
+      itemChGetByIdText: defaultItemChGetByIdText,
+      itemChGetAllWithCount: defaultItemChGetAllWithCount,
+      itemSoundbiteGetByIdText: defaultItemSoundbiteGetByIdText,
+      itemSoundbiteGetManyAndCount: defaultItemSoundbiteGetManyAndCount,
+      itemTranscriptGetMany: defaultItemTranscriptGetMany,
+      channelPodrollGet: defaultChannelPodrollGet,
+      publisherFeedGet: defaultPublisherFeedGet,
+      getAccount: defaultGetAccount,
+    },
+  };
+});
 
 vi.mock('@podverse/orm', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@podverse/orm')>();
@@ -358,7 +400,28 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
   });
 
   beforeEach(() => {
+    /**
+     * Reset every mock that any test in this suite uses with
+     * `mockResolvedValueOnce` so that an un-consumed one-shot return
+     * value from a previous test cannot leak across test boundaries.
+     * `mockReset()` also clears the default implementation, so each
+     * mock is re-bound to its default impl from `defaultImpls` (or to
+     * an inline impl when the default depends on the per-test id).
+     *
+     * Without this, a flaky failure was observed in the full-suite
+     * `e2e_test_report` order where `getAccountMock` and similar mocks
+     * accumulated queued returns and unrelated routes resolved to the
+     * wrong status (e.g. 404 instead of 401 for
+     * `/channel/subscribed/recent` without auth, and 401 instead of
+     * 200 for `/item/global/recent`).
+     */
     _requestMock.mockClear();
+
+    categoryGetMock.mockReset();
+    categoryGetMock.mockImplementation(defaultImpls.categoryGet);
+    categoryGetAllMock.mockReset();
+    categoryGetAllMock.mockImplementation(defaultImpls.categoryGetAll);
+
     channelGetByIdOrIdTextMock.mockReset();
     channelGetByIdOrIdTextMock.mockImplementation(async (id: string) => {
       if (id === 'missing-chan' || id === '404') {
@@ -370,6 +433,20 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
         channel_about: { episode_count: 3, last_pub_date: new Date() },
       };
     });
+
+    channelGetByPodcastIndexIdMock.mockReset();
+    channelGetByPodcastIndexIdMock.mockImplementation(defaultImpls.channelGetByPodcastIndexId);
+    channelGetManyMock.mockReset();
+    channelGetManyMock.mockImplementation(defaultImpls.channelGetMany);
+    statsChGetManyMock.mockReset();
+    statsChGetManyMock.mockImplementation(defaultImpls.statsChGetMany);
+    statsChGetManyByChannelsAndCountMock.mockReset();
+    statsChGetManyByChannelsAndCountMock.mockImplementation(
+      defaultImpls.statsChGetManyByChannelsAndCount
+    );
+    accountFollowingGetFollowedMock.mockReset();
+    accountFollowingGetFollowedMock.mockImplementation(defaultImpls.accountFollowingGetFollowed);
+
     itemGetByIdOrIdTextMock.mockReset();
     itemGetByIdOrIdTextMock.mockImplementation(async (id: string) => {
       if (id === 'missing-item' || id === '404') {
@@ -387,6 +464,50 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
       }
       return { id: 1, id_text: 'it-ok', item: {} };
     });
+
+    itemGetManyMock.mockReset();
+    itemGetManyMock.mockImplementation(defaultImpls.itemGetMany);
+    itemGetManyByChannelsMock.mockReset();
+    itemGetManyByChannelsMock.mockImplementation(defaultImpls.itemGetManyByChannels);
+    itemGetManyByChannelMock.mockReset();
+    itemGetManyByChannelMock.mockImplementation(defaultImpls.itemGetManyByChannel);
+    itemGetManyByChannelBySeasonMock.mockReset();
+    itemGetManyByChannelBySeasonMock.mockImplementation(defaultImpls.itemGetManyByChannelBySeason);
+    itemGetManyByChannelShuffleMock.mockReset();
+    itemGetManyByChannelShuffleMock.mockImplementation(defaultImpls.itemGetManyByChannelShuffle);
+    itemGetManyForQueueByPubDateMock.mockReset();
+    itemGetManyForQueueByPubDateMock.mockImplementation(defaultImpls.itemGetManyForQueueByPubDate);
+    itemGetManyForQueueBySeasonMock.mockReset();
+    itemGetManyForQueueBySeasonMock.mockImplementation(defaultImpls.itemGetManyForQueueBySeason);
+    itemGetManyByChannelWithLiveItemMock.mockReset();
+    itemGetManyByChannelWithLiveItemMock.mockImplementation(
+      defaultImpls.itemGetManyByChannelWithLiveItem
+    );
+    statsItGetManyMock.mockReset();
+    statsItGetManyMock.mockImplementation(defaultImpls.statsItGetMany);
+    statsItGetManyByChannelsAndCountMock.mockReset();
+    statsItGetManyByChannelsAndCountMock.mockImplementation(
+      defaultImpls.statsItGetManyByChannelsAndCount
+    );
+
+    itemChGetByIdTextMock.mockReset();
+    itemChGetByIdTextMock.mockImplementation(defaultImpls.itemChGetByIdText);
+    itemChGetAllWithCountMock.mockReset();
+    itemChGetAllWithCountMock.mockImplementation(defaultImpls.itemChGetAllWithCount);
+    itemSoundbiteGetByIdTextMock.mockReset();
+    itemSoundbiteGetByIdTextMock.mockImplementation(defaultImpls.itemSoundbiteGetByIdText);
+    itemSoundbiteGetManyAndCountMock.mockReset();
+    itemSoundbiteGetManyAndCountMock.mockImplementation(defaultImpls.itemSoundbiteGetManyAndCount);
+    itemTranscriptGetManyMock.mockReset();
+    itemTranscriptGetManyMock.mockImplementation(defaultImpls.itemTranscriptGetMany);
+
+    channelPodrollGetMock.mockReset();
+    channelPodrollGetMock.mockImplementation(defaultImpls.channelPodrollGet);
+    publisherFeedGetMock.mockReset();
+    publisherFeedGetMock.mockImplementation(defaultImpls.publisherFeedGet);
+
+    getAccountMock.mockReset();
+    getAccountMock.mockImplementation(defaultImpls.getAccount);
   });
 
   describe('category', () => {

@@ -202,6 +202,35 @@ calculation, which uses raw `Number(queueResourceAbridged?.p) > 0`. Track
 this in Phase 2 — the matrix cells above assume the
 `useMediaPlayerResourceUpdate` clamp is the canonical authority.
 
+### Sign and validity rules (Phase 2 tightening)
+
+Today's inline `Number(p) || 0` accepts and passes through any finite number
+including **negative** values (because `-5 || 0 === -5`). Phase 2 introduces
+`parsePlaybackSeconds(unknown): number | undefined` which **tightens** the
+contract: negative, non-finite (`NaN`, `Infinity`, `-Infinity`), and
+non-numeric inputs all become `undefined`. Phase 3 consumers compose
+`parsePlaybackSeconds(value) ?? 0` so callers continue to see `0` for
+invalid input — but a stored negative `p` no longer leaks into the player
+state. This is a one-way change; no existing user-facing behavior depends
+on negatives flowing through.
+
+## Music playback intents (Phase 2 type naming)
+
+Phase 2's `MusicItemPlaybackIntent` discriminator names the three music
+playback contexts that already exist in this matrix as prose. The literal
+values map 1:1 to the trigger sections above:
+
+| Intent literal     | Matrix section(s)                                                                           | Expected `currentTime`                                |
+| ------------------ | ------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `session_restore`  | § 2 — Anonymous restore (logged-out, first page load) for `item` (music) row                | `0` always (music never resumes mid-track on restore) |
+| `explicit_play`    | § 1 — Initial load `item-music` row; § 3 — Queue load `item-music` row                      | `0` always (`p` ignored)                              |
+| `fresh_transition` | § 4 — AutoQueue transition (music row); § 5 — Track-ended (music row when next-up is music) | `0` always (`p` ignored)                              |
+
+The "music forces 0" rule is invariant across all three intents; the
+discriminator exists so Phase 3+ code can stop conflating these contexts
+when wiring stats, queue side effects, and analytics. No new behavior
+contract is added by naming them.
+
 ## Section 6 (REQUIRED) — Livestream / video.js baseline
 
 The architecture refactor does **not** retire `video.js`, but Phases 4a/4b/4c
@@ -305,22 +334,6 @@ The cheap-and-durable Phase 1 oracle that remains useful through every
 phase is the audio-start controller-mount assertion — it locks down
 "items with `live_item` set route to `MediaPlayerControllerLiveStreamAV`"
 and breaks loudly if Phase 4 fumbles the controller-selection logic.
-
-## Non-livestream E2E placeholders
-
-Some Phase 1 E2E specs remain `test.fixme()` because the current
-deterministic E2E seed does not include the data required for faithful
-page-level assertions. These are documented here so the placeholders
-name concrete seed work instead of vague future coverage.
-
-| Spec                                                                                                        | Current Phase 1 status | Missing seed or fixture                                                                                                                                                                                                                                                                 |
-| ----------------------------------------------------------------------------------------------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [media-player-clip-soundbite-end-pause.spec.ts](../../../e2e/media-player-clip-soundbite-end-pause.spec.ts) | Kept `test.fixme()`    | Add one short clip and one short soundbite, both tied to a known podcast item, with deterministic `start_time` and an end boundary inside the first ~30 seconds of playback. The spec should then verify `loadedmetadata` seek and end-pause behavior on the real clip/soundbite pages. |
-| [media-player-chapter-seek.spec.ts](../../../e2e/media-player-chapter-seek.spec.ts)                         | Kept `test.fixme()`    | Add a known podcast item with at least two short chapters whose `start_time` / `end_time` values fall inside the first ~30 seconds of playback. The spec should then click a real chapter row and verify both `loadedmetadata` seek and time-update chapter switching.                  |
-| [media-player-podcast-resume.spec.ts](../../../e2e/media-player-podcast-resume.spec.ts)                     | Kept `test.fixme()`    | Add known podcast items plus stored queue/abridged playback-position rows for the E2E test account covering `p > 0`, `p >= d - 5`, and no stored row. This is the page-level partner to the Phase 1 hook/orchestration coverage for resume and near-end clamp behavior.                 |
-| [media-player-music-playback.spec.ts](../../../e2e/media-player-music-playback.spec.ts)                     | Kept `test.fixme()`    | Add a music album with at least two known tracks, stored abridged `p > 0` for one track, and deterministic queue/auto-queue setup so the spec can prove music always starts at 0 on explicit play, track-ended, and auto-queue transitions.                                             |
-| [media-player-anonymous-restore.spec.ts](../../../e2e/media-player-anonymous-restore.spec.ts)               | Kept `test.fixme()`    | Add stable podcast and music snapshot targets whose ids and id_text values are known before first page load, plus login wiring to prove `clearAnonymousPlaybackSnapshot()` after authentication. The spec should use `page.addInitScript` to write localStorage before navigation.      |
-| [media-player-addbyrss-resume.spec.ts](../../../e2e/media-player-addbyrss-resume.spec.ts)                   | Kept `test.fixme()`    | Add deterministic add-by-RSS feed/list entries available to the test API, including one resource with a saved `playback_position` and one without prior playback. Server-side persistence depends on `ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`, already configured for E2E.               |
 
 ## Cross-cutting side effects glossary
 

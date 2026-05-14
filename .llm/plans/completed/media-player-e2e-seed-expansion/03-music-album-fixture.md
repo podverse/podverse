@@ -48,14 +48,23 @@ dependency order:
      `title = 'E2E Music Track One'`.
    - **track two**: `id_text = E2E_MUSIC_TRACK_TWO_ID_TEXT`,
      `title = 'E2E Music Track Two'`.
-7. `item_enclosure` rows for each track (stable fake URLs;
-   real-audio not required — see step 2 rationale).
+7. `item_enclosure` rows for each track using the asset-server
+   fixtures from step 1b:
+   - track one → `E2E_MUSIC_TRACK_ONE_ENCLOSURE_URL`
+     (`http://localhost:2111/e2e/audio/e2e-music-track-one-30s-330hz.mp3`,
+     30 s @ 330 Hz)
+   - track two → `E2E_MUSIC_TRACK_TWO_ENCLOSURE_URL`
+     (`http://localhost:2111/e2e/audio/e2e-music-track-two-30s-294hz.mp3`,
+     30 s @ 294 Hz)
+
+   Distinct frequencies keep the two fixtures byte-distinct.
 8. Abridged playback row for **track one** only:
-   `p = E2E_MUSIC_TRACK_ONE_P_SECONDS = 22`,
-   `d = E2E_MUSIC_TRACK_DURATION_SECONDS = 180`. The matrix § 1
+   `p = E2E_MUSIC_TRACK_ONE_P_SECONDS = 7`,
+   `d = E2E_MUSIC_TRACK_DURATION_SECONDS = 30`. The matrix § 1
    item-music row says music **always** seeks to 0 regardless of `p`,
    so this row exists specifically to prove the rule under realistic
    data (a non-zero stored `p` that the controller ignores).
+   Values match the 30 s music fixture's real metadata duration.
 9. Queue / auto-queue rows: verify exact table names via:
 
    ```bash
@@ -75,26 +84,29 @@ dependency order:
 
 ### 2. Spec lift — `media-player-music-playback.spec.ts`
 
-Replace the `test.fixme()` calls with three test branches:
+Replace the `test.fixme()` calls with three test branches. The
+30 s music fixtures pinned by step 1b mean the spec can drive `ended`
+deterministically via the audio element.
 
 - **Explicit play seeks to 0** (matrix § 1 item-music row): navigate
   to the track-one page; click play; assert seek to `0` on
-  `loadedmetadata` even though abridged `p = 22` exists.
+  `loadedmetadata` even though abridged `p = 7` exists.
 - **Track-ended advances to track two and seeks to 0** (matrix § 5
-  track-ended row, music): simulate the `ended` event via existing
-  test helpers or by waiting on the controller state transition;
-  assert track two loads and seeks to `0`.
+  track-ended row, music): fast-forward track one to its end:
+
+  ```typescript
+  const audio = page.locator('audio').first();
+  await audio.evaluate((el: HTMLAudioElement) => {
+    el.currentTime = el.duration - 0.2;
+  });
+  ```
+
+  The browser fires `ended` shortly thereafter. Assert track two
+  loads and `mpCurrentTime === 0`.
 - **Auto-queue transition seeks to 0** (matrix § 4 autoQueue row):
   with track two queued as auto-queue, advance via the autoQueue
   active row change; assert `currentTime === 0` after
   `loadedmetadata`.
-
-If the spec cannot reliably trigger the real `ended` event without a
-real audio file, use the existing controller-mount assertion pattern
-the audio-start livestream spec uses — assert observable context
-state (`mpItem`, `mpCurrentTime`, `mpChannel.medium_id`) rather than
-the real DOM `<audio>` events. The matrix rule applies regardless of
-trigger source.
 
 ### 3. Constants imported via seedConstants helper
 

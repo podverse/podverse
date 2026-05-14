@@ -68,10 +68,13 @@ export const E2E_ANON_SNAPSHOT_MUSIC_ITEM_ID_TEXT =
 /**
  * Deterministic playback positions in seconds, kept here so the
  * specs and the seed agree on the same numeric assertions.
+ *
+ * Durations match the committed fixtures in
+ * `tools/test-assets/assets/e2e/audio/` — see step 1b.
  */
-export const E2E_PODCAST_ITEM_RESUME_P_POS_SECONDS = 30; // matrix § 1 item-podcast row, "p > 0" case
-export const E2E_PODCAST_ITEM_RESUME_DURATION_SECONDS = 1800; // 30 min sample
-export const E2E_PODCAST_ITEM_RESUME_NEAR_END_P_SECONDS = 1797; // 1800 - 3 → near-end clamp triggers (matrix § near-end clamp)
+export const E2E_PODCAST_ITEM_RESUME_P_POS_SECONDS = 5; // matrix § 1 item-podcast row, "p > 0" case
+export const E2E_PODCAST_ITEM_RESUME_DURATION_SECONDS = 60; // fixture: e2e-podcast-resume-60s-440hz.mp3
+export const E2E_PODCAST_ITEM_RESUME_NEAR_END_P_SECONDS = 57; // 60 - 3 → near-end clamp triggers (matrix § near-end clamp)
 
 export const E2E_CLIP_START_SECONDS = 5;
 export const E2E_CLIP_END_SECONDS = 12;
@@ -83,10 +86,30 @@ export const E2E_CHAPTER_ONE_END_SECONDS = 5;
 export const E2E_CHAPTER_TWO_START_SECONDS = 6;
 export const E2E_CHAPTER_TWO_END_SECONDS = 10;
 
-export const E2E_MUSIC_TRACK_ONE_P_SECONDS = 22; // stored but ignored — matrix § 1 item-music row says always 0
-export const E2E_MUSIC_TRACK_DURATION_SECONDS = 180;
+export const E2E_MUSIC_TRACK_ONE_P_SECONDS = 7; // stored but ignored — matrix § 1 item-music row says always 0
+export const E2E_MUSIC_TRACK_DURATION_SECONDS = 30; // fixture: e2e-music-track-*-30s-*hz.mp3
 
-export const E2E_ADD_BY_RSS_RESOURCE_WITH_POSITION_SECONDS = 42;
+export const E2E_ADD_BY_RSS_RESOURCE_WITH_POSITION_SECONDS = 25; // inside 60 s fixture
+
+/**
+ * Asset-server enclosure URLs for the seeded items. The asset server is
+ * auto-started by the Playwright webServer config (port 2111). See step
+ * 1b for fixture generation and the gitignore exception that pins them.
+ */
+export const E2E_ASSET_BASE_URL = 'http://localhost:2111/e2e/audio';
+
+export const E2E_PODCAST_SHORT_ENCLOSURE_URL =
+  `${E2E_ASSET_BASE_URL}/e2e-podcast-short-60s-440hz.mp3`;
+export const E2E_PODCAST_RESUME_ENCLOSURE_URL =
+  `${E2E_ASSET_BASE_URL}/e2e-podcast-resume-60s-440hz.mp3`;
+export const E2E_MUSIC_TRACK_ONE_ENCLOSURE_URL =
+  `${E2E_ASSET_BASE_URL}/e2e-music-track-one-30s-330hz.mp3`;
+export const E2E_MUSIC_TRACK_TWO_ENCLOSURE_URL =
+  `${E2E_ASSET_BASE_URL}/e2e-music-track-two-30s-294hz.mp3`;
+export const E2E_ADDBYRSS_WITH_POSITION_ENCLOSURE_URL =
+  `${E2E_ASSET_BASE_URL}/e2e-addbyrss-with-position-60s-440hz.mp3`;
+export const E2E_ADDBYRSS_FRESH_ENCLOSURE_URL =
+  `${E2E_ASSET_BASE_URL}/e2e-addbyrss-fresh-60s-440hz.mp3`;
 ```
 
 The constants are deliberately exported individually (no default
@@ -103,6 +126,15 @@ Add a JS-side block above the existing `E2E_LIVESTREAM_*` block:
 const E2E_PODCAST_CHANNEL_ID_TEXT = 'e2ePodChnl001';
 const E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT = 'e2ePodResume01';
 /* ...etc, full mirror of the TS constants above... */
+
+// Asset-server enclosure URLs (mirror of step 1b)
+const E2E_ASSET_BASE_URL = 'http://localhost:2111/e2e/audio';
+const E2E_PODCAST_SHORT_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-short-60s-440hz.mp3`;
+const E2E_PODCAST_RESUME_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-resume-60s-440hz.mp3`;
+const E2E_MUSIC_TRACK_ONE_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-one-30s-330hz.mp3`;
+const E2E_MUSIC_TRACK_TWO_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-two-30s-294hz.mp3`;
+const E2E_ADDBYRSS_WITH_POSITION_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-addbyrss-with-position-60s-440hz.mp3`;
+const E2E_ADDBYRSS_FRESH_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-addbyrss-fresh-60s-440hz.mp3`;
 ```
 
 No new `INSERT` statements in this commit. Steps 2–5 each add their
@@ -155,8 +187,8 @@ Step 5 adds `apps/web/e2e/helpers/anonymousSnapshot.ts`. This commit
 - `npm run lint -w apps/web` passes.
 - `make e2e_seed_web` still succeeds and remains idempotent (no
   behavior change yet).
-- Running `make e2e_test_web_report` produces the same pass/fail set
-  as before this commit (all seven Phase 1 active specs pass; the
+- Running `make e2e_test_report` produces the same pass/fail set as
+  before this commit (all seven Phase 1 active web specs pass; the
   nine fixme'd specs are still skipped).
 
 ## Verification commands
@@ -166,5 +198,5 @@ npm run lint -w apps/web
 make test_deps
 make e2e_seed_web
 make e2e_seed_web   # second run proves idempotency
-make e2e_test_web_report
+make e2e_test_report
 ```

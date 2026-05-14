@@ -7,6 +7,7 @@ do not collapse them into one PR.
 | #   | Step                                            | File                                                                  | Branch op                            |
 | --- | ----------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------ |
 | 1   | Seed extension design + id constants            | [`01-seed-extension-design.md`](./01-seed-extension-design.md)        | start `feat/media-player-e2e-seeds`  |
+| 1b  | Test audio fixtures + asset-server wiring       | [`01b-test-audio-fixtures-and-asset-server.md`](./01b-test-audio-fixtures-and-asset-server.md) | continue           |
 | 2   | Podcast item fixtures (clip, soundbite, chapter, resume) | [`02-podcast-item-fixtures.md`](./02-podcast-item-fixtures.md) | continue                             |
 | 3   | Music album fixture                             | [`03-music-album-fixture.md`](./03-music-album-fixture.md)            | continue                             |
 | 4   | Add-by-RSS fixture                              | [`04-add-by-rss-fixture.md`](./04-add-by-rss-fixture.md)              | continue                             |
@@ -15,10 +16,15 @@ do not collapse them into one PR.
 
 ## Why this ordering
 
-- **1 → 2:** The seed-design pass produces every deterministic id_text
-  and helper constant the later specs import. Doing it as its own
-  commit keeps the next commits small (each one just inserts rows and
-  lifts specs against constants that already exist).
+- **1 → 1b:** Step 1 produces every deterministic id_text and helper
+  constant the later specs import. Step 1b lands the matching audio
+  fixtures and Playwright/asset-server wiring those constants point
+  at. Splitting 1 from 1b keeps each commit reviewable: 1 is text-
+  only, 1b is binary fixtures + tooling.
+- **1b → 2:** Steps 2-4 INSERT `enclosure_url` values that resolve to
+  the fixtures pinned by 1b. Without 1b first, the seeded items would
+  point at unreachable hosts and the lifted specs could not fire real
+  `loadedmetadata` / `timeupdate` / `ended` events.
 - **2 → 3 → 4:** Podcast fixtures are the largest single seed addition
   and unblock the three highest-density specs (clip/soundbite,
   chapter, podcast resume). Music and add-by-RSS are independent
@@ -34,7 +40,7 @@ do not collapse them into one PR.
 ## Gating with the architecture refactor
 
 This plan-set is a **prerequisite for Phase 3b** of the
-[media-player-architecture-refactor](../media-player-architecture-refactor/).
+[media-player-architecture-refactor](../../active/media-player-architecture-refactor/).
 Phase 3b's `00-EXECUTION-ORDER.md` includes a `3b-gate` row pointing
 back here. Phases 1, 2, and 3a of the refactor are skip-safe and may
 land before, during, or after this plan-set.
@@ -62,6 +68,8 @@ internals.
 ## Estimated effort (rough; for sequencing, not scheduling)
 
 - 1: 0.5 day (constants + helper file + table inventory writeup).
+- 1b: 0.5 day (generator script + commit six fixtures + asset-server
+  webServer entry + gitignore exception).
 - 2: 1–1.5 days (largest seed; three specs to lift).
 - 3: 0.5–1 day (music album + tracks + queue rows; one spec to lift).
 - 4: 0.5 day (two add-by-RSS rows; one spec to lift; verify existing
@@ -69,7 +77,7 @@ internals.
 - 5: 0.5 day (helper + spec lift; no DB work).
 - 6: 0.5 day (matrix edit + full E2E run + merge).
 
-Total ~3.5–4.5 working days of focused effort across the lifetime of
+Total ~4–5 working days of focused effort across the lifetime of
 the branch. Calendar time will be longer if interleaved with other
 work.
 
@@ -92,11 +100,10 @@ floor is:
 
 ## Final smoke (before merging step 6)
 
-- `make e2e_test_web_report` (full report; confirm the six newly
-  active specs pass and the seven previously active specs still pass).
-- `make e2e_test_management_web_report` (sanity; this plan-set does
-  not touch management-web but rebases pick up other people's
-  changes).
+- `make e2e_test_report` (full report; confirms the six newly
+  active web specs pass, the seven previously active web specs
+  still pass, and the management-web report — which this plan-set
+  does not touch — still passes against any concurrent rebases).
 - `npm run lint -w apps/web` (helpers under `apps/web/e2e/helpers/`
   are linted).
 - Visually scan a sample of the new step screenshots and compare

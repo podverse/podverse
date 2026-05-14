@@ -37,13 +37,14 @@ Open the matrix doc and:
 The matrix's behavior cells (§§ 1-6) are unchanged — they remain the
 oracle the now-active specs assert against.
 
-### 2. Full E2E web report
+### 2. Full E2E report
 
 Run the full suite to confirm no regressions across all
-`media-player-*.spec.ts` and the rest of the web E2E surface:
+`media-player-*.spec.ts` and the rest of the E2E surface (web +
+management-web):
 
 ```bash
-make e2e_test_web_report
+make e2e_test_report
 ```
 
 Expected outcome:
@@ -73,13 +74,10 @@ to confirm UI rendered correctly for the lifted specs.
 
 ### 3. Management-web sanity
 
-```bash
-make e2e_test_management_web_report
-```
-
-This plan-set does not touch management-web, but rebases pick up
-other people's changes, so confirm the management-web report is also
-clean before merging.
+The `make e2e_test_report` run in step 2 above already covers the
+management-web report. This plan-set does not touch management-web,
+but rebases pick up other people's changes, so confirm the
+management-web portion of that report is also clean before merging.
 
 ### 4. Lint and unit-test sanity
 
@@ -114,7 +112,7 @@ mv .llm/plans/active/media-player-e2e-seed-expansion \
 ```
 
 If
-[media-player-architecture-refactor/COPY-PASTA.md](../media-player-architecture-refactor/COPY-PASTA.md)
+[media-player-architecture-refactor/COPY-PASTA.md](../../active/media-player-architecture-refactor/COPY-PASTA.md)
 references the gate row pointing at the still-active path
 (`../media-player-e2e-seed-expansion/`), update that link to point
 at the new `../../completed/media-player-e2e-seed-expansion/`
@@ -123,9 +121,9 @@ location in the same archival commit.
 ### 7. Notify the architecture refactor gate
 
 Once this plan-set is merged on `develop`, the
-[media-player-architecture-refactor](../media-player-architecture-refactor/)
+[media-player-architecture-refactor](../../active/media-player-architecture-refactor/)
 plan-set's `3b-gate` row is satisfied. Mark the gate checkbox in
-[`COPY-PASTA.md`](../media-player-architecture-refactor/COPY-PASTA.md)
+[`COPY-PASTA.md`](../../active/media-player-architecture-refactor/COPY-PASTA.md)
 in the refactor's branch (whichever branch is the current target
 for refactor work — typically `refactor/media-player`) so the next
 developer working from that branch sees the gate is open.
@@ -141,10 +139,9 @@ developer working from that branch sees the gate is open.
 
 - The "Non-livestream E2E placeholders" subsection is removed from
   the matrix doc.
-- `make e2e_test_web_report` passes with all six lifted specs active.
-- `make e2e_test_management_web_report` is clean.
-- `npm run lint -w apps/web` and `npm run test:unit` are
-  clean.
+- `make e2e_test_report` passes with all six lifted specs active
+  (web suite covers the lifts; management-web stays clean).
+- `npm run lint -w apps/web` and `npm run test:unit` are clean.
 - The PR is merged into `develop` and the plan-set directory is
   moved to `.llm/plans/completed/`.
 - The architecture-refactor gate checkbox is marked open.
@@ -154,8 +151,7 @@ developer working from that branch sees the gate is open.
 ```bash
 make test_deps
 make e2e_seed_web
-make e2e_test_web_report
-make e2e_test_management_web_report
+make e2e_test_report
 npm run lint -w apps/web
 npm run test:unit
 ```

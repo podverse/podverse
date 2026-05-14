@@ -406,8 +406,19 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         } else {
           const queueResourceAbridged =
             queueResourcesAbridgedIndexRef.current.items[mpItemRef.current.id];
-          if (Number(queueResourceAbridged?.p) > 0) {
-            newCurrentTime = Number(queueResourceAbridged?.p);
+          const storedPosition = Number(queueResourceAbridged?.p);
+          const storedDuration = Number(queueResourceAbridged?.d);
+          if (storedPosition > 0) {
+            // Mirror the near-end clamp from useMediaPlayerResourceUpdate so the
+            // actual audio element does not seek past the documented `p >= d - 5`
+            // reset boundary. Falls back to the live newDuration if the abridged
+            // index does not yet carry a duration for this item.
+            const effectiveDuration = storedDuration > 0 ? storedDuration : newDuration;
+            if (effectiveDuration > 0 && storedPosition >= effectiveDuration - 5) {
+              newCurrentTime = 0;
+            } else {
+              newCurrentTime = storedPosition;
+            }
           } else {
             newCurrentTime = 0;
           }

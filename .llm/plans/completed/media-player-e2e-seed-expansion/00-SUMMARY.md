@@ -4,7 +4,7 @@
 
 Test-infrastructure-only plan-set that lifts the six non-livestream
 `test.fixme()` specs added during Phase 1 of the
-[media-player-architecture-refactor](../media-player-architecture-refactor/)
+[media-player-architecture-refactor](../../active/media-player-architecture-refactor/)
 into active page-level oracles. Each fixme is documented in
 [`MEDIA-PLAYER-DECISION-MATRIX.md`](../../../apps/web/src/components/MediaPlayer/MEDIA-PLAYER-DECISION-MATRIX.md)
 under "Non-livestream E2E placeholders" with its exact missing seed
@@ -16,9 +16,16 @@ In scope:
   new deterministic podcast items, clips, soundbites, chapters, abridged
   playback rows, music album/tracks, add-by-RSS resource rows.
 - [`apps/web/e2e/helpers/`](../../../apps/web/e2e/helpers/) additions —
-  new `seedConstants.ts` (deterministic id_text values) and
-  `anonymousSnapshot.ts` (localStorage write helper for
-  `page.addInitScript`).
+  new `seedConstants.ts` (deterministic id_text values and asset-server
+  enclosure URLs) and `anonymousSnapshot.ts` (localStorage write helper
+  for `page.addInitScript`).
+- Six committed audio fixtures under
+  [`tools/test-assets/assets/e2e/audio/`](../../../tools/test-assets/assets/e2e/audio/)
+  plus a gitignore exception, a generator script
+  (`tools/test-assets/src/generate-e2e-media-fixtures.ts`), an extension
+  to `AssetGenerator.generateMP3` for bitrate / channels / sample-rate
+  options, and a Playwright `webServer` entry that auto-starts the
+  asset server on port 2111 (see step `01b`).
 - The six specs themselves (each currently `test.fixme()`):
   - [`media-player-clip-soundbite-end-pause.spec.ts`](../../../apps/web/e2e/media-player-clip-soundbite-end-pause.spec.ts)
   - [`media-player-chapter-seek.spec.ts`](../../../apps/web/e2e/media-player-chapter-seek.spec.ts)
@@ -56,6 +63,28 @@ plan-set merging (see refactor's `00-EXECUTION-ORDER.md` row `3b-gate`
 and `COPY-PASTA.md` gate checkbox). The reverse dependency does not
 exist; nothing in this plan-set imports from refactor branches.
 
+## Determinism contract
+
+Every byte the lifted specs touch lives in the repo or on `localhost`.
+There is **no third-party network dependency** at any layer:
+
+- **Audio bytes:** Six small MP3 fixtures (~900 KB total) committed
+  under `tools/test-assets/assets/e2e/audio/`. Generated once via
+  `npm run generate:e2e-media -w podverse-test-assets` (skip-if-exists
+  on rerun). 24 kbps mono @ 22050 Hz so binaries stay tiny without
+  losing matrix-cell fidelity.
+- **HTTP transport:** The existing
+  [`tools/test-assets/src/asset-server.ts`](../../../tools/test-assets/src/asset-server.ts)
+  on `localhost:2111` serves the fixtures with correct MIME types and
+  CORS. Auto-started by
+  [`apps/web/playwright.e2e-webservers.ts`](../../../apps/web/playwright.e2e-webservers.ts).
+- **DB rows:** [`tools/web/seed-e2e.mjs`](../../../tools/web/seed-e2e.mjs)
+  writes `item_enclosure.url` values that point at the asset server.
+- **DOM events:** With real bytes flowing, the browser's `<audio>`
+  fires `loadedmetadata`, `timeupdate`, and `ended` deterministically.
+  Specs fast-forward via `audio.evaluate(el => el.currentTime = N)`
+  rather than waiting wall-clock seconds.
+
 ## Behavior preservation contract
 
 Each of the six specs asserts the cells already documented in
@@ -85,7 +114,7 @@ mismatch surfaced by the spec must be either:
 ## Exit criteria
 
 - All six specs run **without `test.fixme()`** under
-  `make e2e_test_web_report` on `develop`.
+  `make e2e_test_report` on `develop`.
 - The "Non-livestream E2E placeholders" subsection in
   [`MEDIA-PLAYER-DECISION-MATRIX.md`](../../../apps/web/src/components/MediaPlayer/MEDIA-PLAYER-DECISION-MATRIX.md)
   is removed; surrounding "Coverage" references are updated.
