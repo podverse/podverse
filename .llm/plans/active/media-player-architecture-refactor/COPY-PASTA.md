@@ -5,7 +5,7 @@ checkboxes as you complete each step. Each numbered step is a logical
 commit (or a small commit series) on `refactor/media-player`; CI must
 stay green at every commit.
 
-- [ ] **Phase 0 — branch setup**
+- [x] **Phase 0 — branch setup**
 
   Create the long-lived refactor branch off latest `develop`:
 
@@ -16,7 +16,7 @@ stay green at every commit.
   git switch -c refactor/media-player
   ```
 
-- [ ] **Phase 1 — behavior baseline and test harness**
+- [x] **Phase 1 — behavior baseline and test harness**
 
   Execute
   [`01-behavior-baseline-and-test-harness.md`](./01-behavior-baseline-and-test-harness.md):
@@ -30,11 +30,11 @@ stay green at every commit.
   Commit per deliverable. Verify:
 
   ```bash
-  npm run test:unit -w apps/web
+  npm run test:unit
   make e2e_test_web_report
   ```
 
-- [ ] **Phase 2 — playback domain types**
+- [x] **Phase 2 — playback domain types**
 
   Execute [`02-playback-domain-types.md`](./02-playback-domain-types.md):
   add `apps/web/src/lib/playback/` with `PlaybackTarget`,
@@ -43,10 +43,10 @@ stay green at every commit.
 
   ```bash
   npm run lint -w apps/web
-  npm run test:unit -w apps/web
+  npm run test:unit
   ```
 
-- [ ] **Phase 3a — load policy + new MediaPlayer context shape (no consumers yet)**
+- [x] **Phase 3a — load policy + new MediaPlayer context shape (no consumers yet)**
 
   Execute
   [`03a-policy-design-and-context-shape.md`](./03a-policy-design-and-context-shape.md):
@@ -58,17 +58,43 @@ stay green at every commit.
 
   ```bash
   npm run lint -w apps/web
-  npm run test:unit -w apps/web
+  npm run test:unit
   ```
+
+- [x] **Gate — seed-expansion plan-set complete**
+
+  *(Satisfied on `refactor/media-player`: the
+  [`media-player-e2e-seed-expansion`](../../completed/media-player-e2e-seed-expansion/)
+  plan-set is executed, archived under `completed/`, and the six
+  lifted specs are green on this branch. Merge to `develop` is still
+  pending with the rest of this branch — treat the gate as “oracles
+  ready here,” not “already on `develop`.”)*
+
+  Phase 3b rewires the six non-livestream consumers (podcast, music,
+  clip, soundbite, chapter, add-by-RSS). The page-level oracles for
+  those consumers live in the
+  [`media-player-e2e-seed-expansion`](../../completed/media-player-e2e-seed-expansion/)
+  plan-set. Do **not** begin Phase 3b until that plan-set has merged
+  on `develop` and its six lifted specs are green there, **or** until
+  you explicitly accept the regression risk in writing on this gate
+  (document the rationale here and proceed with weaker page-level
+  coverage). The Phase 1 livestream audio-start spec and Phase 1
+  orchestration tests are sufficient oracles for Phases 2, 3a, 4, and
+  5; only Phase 3b depends on this gate.
 
 - [ ] **Phase 3b — consumer migration; delete superseded helpers**
 
+  *Status (housekeeping audit): not started — `useMediaPlayerResourceUpdate` still exposes the legacy inline parameter object; callers pass `mediaPlayerResourceUpdate({ channel, clip, … })` rather than a single `PlaybackLoadRequest`. See [`03b-consumer-migration.md`](./03b-consumer-migration.md).*
+
   Execute [`03b-consumer-migration.md`](./03b-consumer-migration.md):
-  one commit per migration step as documented there. Verify:
+  one commit per migration step as documented there. Page-level
+  oracles for these consumers come from the seed-expansion plan-set
+  above; if the gate was waived, document the regressions you accept
+  in the commit message of this phase. Verify:
 
   ```bash
   npm run lint -w apps/web
-  npm run test:unit -w apps/web
+  npm run test:unit
   make e2e_test_web_report
   ```
 
@@ -84,7 +110,7 @@ stay green at every commit.
 
   ```bash
   npm run lint -w apps/web
-  npm run test:unit -w apps/web
+  npm run test:unit
   make e2e_test_web_report
   ```
 
@@ -98,7 +124,7 @@ stay green at every commit.
 
   ```bash
   npm run lint -w apps/web
-  npm run test:unit -w apps/web
+  npm run test:unit
   make e2e_test_web_report
   ```
 
@@ -112,7 +138,7 @@ stay green at every commit.
 
   ```bash
   npm run lint -w apps/web
-  npm run test:unit -w apps/web
+  npm run test:unit
   make e2e_test_web_report
   ```
 
@@ -129,7 +155,7 @@ stay green at every commit.
     apps/web/src/components/MediaPlayer/MediaElement/MediaElement.tsx \
     apps/web/src/hooks/useMediaElementBridge.ts
   npm run lint -w apps/web
-  npm run test:unit -w apps/web
+  npm run test:unit
   make e2e_test_web_report
   ```
 
@@ -142,7 +168,9 @@ stay green at every commit.
 
 - [ ] **Plan archival (this plan-set)**
 
-  After merge, per Plan Lifecycle:
+  **Run only after** the PR that merges `refactor/media-player` into
+  `develop` has landed (so `develop` contains the shipped refactor).
+  Then, per Plan Lifecycle:
 
   ```bash
   mv .llm/plans/active/media-player-architecture-refactor \

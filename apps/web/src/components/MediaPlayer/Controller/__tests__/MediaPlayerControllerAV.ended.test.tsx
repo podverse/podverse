@@ -66,8 +66,10 @@ async function renderAV(overrides: RenderOverrides = {}): Promise<{
 }> {
   const moveNowPlayingToHistory = vi.fn(() => Promise.resolve());
   const queueResult: QueueResourcesLoadActiveResult = overrides.queueResult ?? {
+    activeResource: null,
+    historyMoved: 0,
     upcomingManualCount: 0,
-    hasAutoQueueNext: false,
+    upcomingResources: [],
   };
   const queueResourcesLoadActive = vi.fn(() => Promise.resolve(queueResult));
   const clearNowPlaying = vi.fn();
@@ -166,7 +168,12 @@ afterEach(() => {
 describe('MediaPlayerControllerAV — ended (matrix § 5)', () => {
   it('non add-by-RSS, both queues empty: moves to history, calls load, then clearNowPlaying', async () => {
     const { fake, spies } = await renderAV({
-      queueResult: { upcomingManualCount: 0, hasAutoQueueNext: false },
+      queueResult: {
+        activeResource: null,
+        historyMoved: 0,
+        upcomingManualCount: 0,
+        upcomingResources: [],
+      },
     });
 
     await act(async () => {
@@ -184,7 +191,13 @@ describe('MediaPlayerControllerAV — ended (matrix § 5)', () => {
 
   it('non add-by-RSS, manual queue has next: setMPShouldPlay(true), does not clearNowPlaying', async () => {
     const { fake, spies } = await renderAV({
-      queueResult: { upcomingManualCount: 2, hasAutoQueueNext: false },
+      queueResult: {
+        activeResource: null,
+        historyMoved: 0,
+        upcomingManualCount: 2,
+        upcomingResources: [],
+        hasAutoQueueNext: false,
+      },
     });
 
     await act(async () => {
@@ -198,7 +211,13 @@ describe('MediaPlayerControllerAV — ended (matrix § 5)', () => {
 
   it('non add-by-RSS, only auto-queue has next: setMPShouldPlay(true), does not clearNowPlaying', async () => {
     const { fake, spies } = await renderAV({
-      queueResult: { upcomingManualCount: 0, hasAutoQueueNext: true },
+      queueResult: {
+        activeResource: null,
+        historyMoved: 0,
+        upcomingManualCount: 0,
+        upcomingResources: [],
+        hasAutoQueueNext: true,
+      },
     });
 
     await act(async () => {
@@ -216,7 +235,13 @@ describe('MediaPlayerControllerAV — ended (matrix § 5)', () => {
         idText: 'arrs-1',
         resourceData: { medium_id: MediumEnum.Podcast },
       } as unknown as MediaPlayerAddByRSSState,
-      queueResult: { upcomingManualCount: 1, hasAutoQueueNext: false },
+      queueResult: {
+        activeResource: null,
+        historyMoved: 0,
+        upcomingManualCount: 1,
+        upcomingResources: [],
+        hasAutoQueueNext: false,
+      },
     });
 
     await act(async () => {
@@ -237,7 +262,13 @@ describe('MediaPlayerControllerAV — ended (matrix § 5)', () => {
         idText: 'arrs-1',
         resourceData: { medium_id: MediumEnum.Podcast },
       } as unknown as MediaPlayerAddByRSSState,
-      queueResult: { upcomingManualCount: 0, hasAutoQueueNext: false },
+      queueResult: {
+        activeResource: null,
+        historyMoved: 0,
+        upcomingManualCount: 0,
+        upcomingResources: [],
+        hasAutoQueueNext: false,
+      },
       addByRSSPlayedNext: true,
     });
 
@@ -256,7 +287,13 @@ describe('MediaPlayerControllerAV — ended (matrix § 5)', () => {
         idText: 'arrs-1',
         resourceData: { medium_id: MediumEnum.Podcast },
       } as unknown as MediaPlayerAddByRSSState,
-      queueResult: { upcomingManualCount: 0, hasAutoQueueNext: false },
+      queueResult: {
+        activeResource: null,
+        historyMoved: 0,
+        upcomingManualCount: 0,
+        upcomingResources: [],
+        hasAutoQueueNext: false,
+      },
       addByRSSPlayedNext: false,
     });
 

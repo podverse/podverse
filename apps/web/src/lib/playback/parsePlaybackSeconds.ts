@@ -2,8 +2,7 @@
  * Parse an arbitrary value into a finite, non-negative seconds count.
  *
  * This is the Phase 2 replacement for the inline `Number(value) || 0`
- * pattern used in `useMediaPlayerResourceUpdate.getAbridgedAndSet` and
- * scattered throughout snapshot/queue/abridged consumers. Compared to
+ * pattern used in queue / abridged / snapshot consumers. Compared to
  * the inline pattern, this helper **tightens** the contract:
  *
  * - `null`, `undefined`, empty string, non-numeric string, `NaN`,

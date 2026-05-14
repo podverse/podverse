@@ -17,6 +17,7 @@ import { getApiRequestService } from '../factories/apiRequestService';
 
 export function usePlayAddByRSS() {
   const {
+    applyPlaybackLoad,
     setMPAddByRSS,
     setMPChannel,
     setMPClip,
@@ -29,7 +30,6 @@ export function usePlayAddByRSS() {
     setMPEnclosureSelectedParams,
     setMPShouldPlay,
     setMPDuration,
-    setAddByRSSSeekToTime,
   } = useMediaPlayer();
   const { setMPCurrentTime } = useMediaPlayerCurrentTime();
   const { setAutoQueueResources, setAutoQueueActiveRow } = useAutoQueue();
@@ -110,21 +110,24 @@ export function usePlayAddByRSS() {
     const duration = typeof resourceData.duration === 'number' ? resourceData.duration : 0;
     setMPDuration(duration);
 
-    // When playbackPosition is provided (e.g. from queue), set seek synchronously so the first
-    // controller effect run applies it; otherwise the effect would run with null and seek to 0.
     const hasProvidedPosition =
       typeof playbackPosition === 'number' &&
       !Number.isNaN(playbackPosition) &&
       playbackPosition >= 0;
+
+    const syncPlaybackPolicy = (positionSeconds: number, durationSeconds: number) => {
+      const decision = applyPlaybackLoad({
+        target: { kind: 'add-by-rss', resourceData },
+        explicitPlaybackSeconds: positionSeconds,
+        mediaFileDurationHintSeconds: durationSeconds > 0 ? durationSeconds : undefined,
+      });
+      setMPCurrentTime(decision.initialSeekSeconds);
+    };
+
     if (hasProvidedPosition) {
-      let syncPosition = playbackPosition;
-      if (duration > 0 && syncPosition >= duration - 5) {
-        syncPosition = 0;
-      }
-      setMPCurrentTime(syncPosition);
-      setAddByRSSSeekToTime(syncPosition);
+      syncPlaybackPolicy(playbackPosition, duration);
     } else {
-      setMPCurrentTime(0);
+      syncPlaybackPolicy(0, duration);
     }
     setMPShouldPlay(true);
 
@@ -190,19 +193,11 @@ export function usePlayAddByRSS() {
           }
         }
 
-        const durationSeconds = getDurationSecondsFromBundle(resourceData.bundle);
-        if (
-          typeof durationSeconds === 'number' &&
-          durationSeconds > 0 &&
-          resolvedPosition >= durationSeconds - 5
-        ) {
-          resolvedPosition = 0;
-        }
+        const durationSeconds = getDurationSecondsFromBundle(resourceData.bundle) ?? 0;
 
         // Only update seek state when we resolved position in this async (was not provided).
         if (typeof playbackPosition !== 'number') {
-          setMPCurrentTime(resolvedPosition);
-          setAddByRSSSeekToTime(resolvedPosition);
+          syncPlaybackPolicy(resolvedPosition, durationSeconds);
         }
 
         apiRequestService

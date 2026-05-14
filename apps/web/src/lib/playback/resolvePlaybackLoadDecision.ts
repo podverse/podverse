@@ -1,5 +1,6 @@
 import type { QueueResourcesAbridgedIndex } from '@podverse/helpers';
 
+import { clampNearEndSeconds } from './clampNearEndSeconds';
 import { parsePlaybackSeconds } from './parsePlaybackSeconds';
 import type { PlaybackLoadRequest } from './playbackLoadRequest';
 import { resumeSeekFromAbridged } from './resumeSeekFromAbridged';
@@ -40,7 +41,19 @@ export function resolvePlaybackLoadDecision(
 ): PlaybackLoadDecision {
   switch (request.target.kind) {
     case 'clip': {
-      const initialSeekSeconds = parsePlaybackSeconds(request.target.clip.start_time) ?? 0;
+      const fromClipStart = parsePlaybackSeconds(request.target.clip.start_time) ?? 0;
+      const explicitParsed = parsePlaybackSeconds(request.explicitPlaybackSeconds);
+      const clipRow = indices.abridged.clips[request.target.clip.id];
+      const initialSeekSeconds =
+        explicitParsed !== undefined
+          ? explicitParsed
+          : parsePlaybackSeconds(clipRow?.p) !== undefined
+            ? resumeSeekFromAbridged({
+                abridged: clipRow,
+                explicitSeconds: undefined,
+                durationHintSeconds: undefined,
+              })
+            : fromClipStart;
       const clipEndSeconds = parsePlaybackSeconds(request.target.clip.end_time);
       return baseDecision({
         initialSeekSeconds,
@@ -49,16 +62,30 @@ export function resolvePlaybackLoadDecision(
       });
     }
     case 'soundbite': {
-      const startSeconds = parsePlaybackSeconds(request.target.soundbite.start_time) ?? 0;
+      const fromStart = parsePlaybackSeconds(request.target.soundbite.start_time) ?? 0;
+      const explicitParsed = parsePlaybackSeconds(request.explicitPlaybackSeconds);
+      const soundbiteRow = indices.abridged.item_soundbites[request.target.soundbite.id];
+      const initialSeekSeconds =
+        explicitParsed !== undefined
+          ? explicitParsed
+          : parsePlaybackSeconds(soundbiteRow?.p) !== undefined
+            ? resumeSeekFromAbridged({
+                abridged: soundbiteRow,
+                explicitSeconds: undefined,
+                durationHintSeconds: undefined,
+              })
+            : fromStart;
       const durationSeconds = parsePlaybackSeconds(request.target.soundbite.duration) ?? 0;
       return baseDecision({
-        initialSeekSeconds: startSeconds,
-        pauseAtSeconds: startSeconds + durationSeconds + 1,
+        initialSeekSeconds,
+        pauseAtSeconds: fromStart + durationSeconds + 1,
         reason: 'soundbite-start',
       });
     }
     case 'chapter': {
-      const initialSeekSeconds = parsePlaybackSeconds(request.target.chapter.start_time) ?? 0;
+      const fromChapterStart = parsePlaybackSeconds(request.target.chapter.start_time) ?? 0;
+      const initialSeekSeconds =
+        parsePlaybackSeconds(request.explicitPlaybackSeconds) ?? fromChapterStart;
       const chapterEndSeconds = parsePlaybackSeconds(request.target.chapter.end_time);
       return baseDecision({
         initialSeekSeconds,
@@ -86,11 +113,7 @@ export function resolvePlaybackLoadDecision(
       if (request.target.intent === 'session_restore') {
         return {
           ...baseDecision({
-            initialSeekSeconds: resumeSeekFromAbridged({
-              abridged: indices.abridged.items[request.target.item.id],
-              durationHintSeconds: request.mediaFileDurationHintSeconds,
-              explicitSeconds: request.explicitPlaybackSeconds,
-            }),
+            initialSeekSeconds: 0,
             reason: 'item-music-session-restore',
             shouldClearAutoQueue: false,
           }),
@@ -111,8 +134,17 @@ export function resolvePlaybackLoadDecision(
         shouldClearAutoQueue: false,
       });
     case 'add-by-rss': {
+      const fromResource = parsePlaybackSeconds(request.target.resourceData.playback_position);
+      const fromExplicit = parsePlaybackSeconds(request.explicitPlaybackSeconds);
+      const rawSeek = fromExplicit ?? fromResource ?? 0;
+      const durationHint = parsePlaybackSeconds(request.mediaFileDurationHintSeconds) ?? 0;
       const initialSeekSeconds =
-        parsePlaybackSeconds(request.target.resourceData.playback_position) ?? 0;
+        durationHint > 0
+          ? clampNearEndSeconds({
+              currentSeconds: rawSeek,
+              durationSeconds: durationHint,
+            })
+          : rawSeek;
       return {
         ...baseDecision({
           initialSeekSeconds,

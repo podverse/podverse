@@ -58,7 +58,7 @@ const item = (id: number): DTOItem =>
     item_txts: [],
     item_values: [],
     title: `Item ${id}`,
-  }) as DTOItem;
+  }) as unknown as DTOItem;
 
 const clip = ({ endTime, startTime }: { endTime?: string; startTime?: string }): DTOClip =>
   ({
@@ -169,6 +169,81 @@ describe('resolvePlaybackLoadDecision', () => {
     });
   });
 
+  it('clip: queue abridged p near end clamps when no explicit override', () => {
+    expect(
+      resolvePlaybackLoadDecision(
+        {
+          target: {
+            channel: channel(MediumEnum.Podcast),
+            clip: clip({ endTime: '60', startTime: '0' }),
+            item: item(1),
+            kind: 'clip',
+          },
+        },
+        {
+          abridged: {
+            ...emptyAbridged,
+            clips: { 10: { p: '58', d: '60' } },
+          },
+        }
+      )
+    ).toMatchObject({
+      initialSeekSeconds: 0,
+      pauseAtSeconds: 61,
+      reason: 'clip-start',
+    });
+  });
+
+  it('clip: explicit playback seconds win over abridged queue row', () => {
+    expect(
+      resolvePlaybackLoadDecision(
+        {
+          explicitPlaybackSeconds: 42,
+          target: {
+            channel: channel(MediumEnum.Podcast),
+            clip: clip({ endTime: '60', startTime: '0' }),
+            item: item(1),
+            kind: 'clip',
+          },
+        },
+        {
+          abridged: {
+            ...emptyAbridged,
+            clips: { 10: { p: '58', d: '60' } },
+          },
+        }
+      )
+    ).toMatchObject({
+      initialSeekSeconds: 42,
+      reason: 'clip-start',
+    });
+  });
+
+  it('soundbite: queue abridged p near end clamps when no explicit override', () => {
+    expect(
+      resolvePlaybackLoadDecision(
+        {
+          target: {
+            channel: channel(MediumEnum.Podcast),
+            item: item(1),
+            kind: 'soundbite',
+            soundbite: soundbite({ duration: '15', startTime: '0' }),
+          },
+        },
+        {
+          abridged: {
+            ...emptyAbridged,
+            item_soundbites: { 20: { p: '14', d: '15' } },
+          },
+        }
+      )
+    ).toMatchObject({
+      initialSeekSeconds: 0,
+      pauseAtSeconds: 16,
+      reason: 'soundbite-start',
+    });
+  });
+
   it('chapter: seeks to start_time and pauses one second after end_time when present', () => {
     expect(
       resolvePlaybackLoadDecision(
@@ -264,10 +339,12 @@ describe('resolvePlaybackLoadDecision', () => {
     });
   });
 
-  it('item-music session_restore: resumes from abridged mid-track without recording a fresh stat', () => {
+  it('item-music session_restore: always starts at 0 (ignores abridged row and snapshot explicit seconds)', () => {
     expect(
       resolvePlaybackLoadDecision(
         {
+          explicitPlaybackSeconds: 45,
+          mediaFileDurationHintSeconds: 100,
           target: {
             channel: channel(MediumEnum.Music),
             intent: 'session_restore',
@@ -278,14 +355,14 @@ describe('resolvePlaybackLoadDecision', () => {
         { abridged: { ...emptyAbridged, items: { 300: { d: '100', p: '30' } } } }
       )
     ).toMatchObject({
-      initialSeekSeconds: 30,
+      initialSeekSeconds: 0,
       reason: 'item-music-session-restore',
       shouldClearAutoQueue: false,
       shouldRecordPlaybackStat: false,
     });
   });
 
-  it('item-music session_restore: near-end abridged position clamps to 0', () => {
+  it('item-music session_restore: still 0 when abridged p is near end', () => {
     expect(
       resolvePlaybackLoadDecision(
         {

@@ -1,22 +1,10 @@
 /**
- * Pins the 5-second near-end clamp behavior inside
- * `useMediaPlayerResourceUpdate`.
- *
- * The clamp lives at
- * [useMediaPlayerResourceUpdate.tsx:153](../useMediaPlayerResourceUpdate.tsx):
- *
- * ```ts
- * if (duration > 0 && currentTime >= duration - 5) {
- *   currentTime = 0;
- * }
- * ```
+ * Pins the 5-second near-end clamp behavior for playback loads routed through
+ * `resolvePlaybackLoadDecision` + `useMediaPlayerResourceUpdate`.
  *
  * Matrix reference:
  * [MEDIA-PLAYER-DECISION-MATRIX.md](../../components/MediaPlayer/MEDIA-PLAYER-DECISION-MATRIX.md)
- * § 6 "Near-end clamp / 5-second rule". Phase 2 of the media-player refactor
- * extracts this rule into `clampNearEndSeconds.ts`; this pinning test must be
- * rewritten against the new helper at that time so the semantics survive the
- * extraction unchanged.
+ * § 6 "Near-end clamp / 5-second rule".
  */
 import { cleanup, render } from '@testing-library/react';
 import { useEffect } from 'react';
@@ -32,6 +20,9 @@ import type {
 } from '@podverse/helpers';
 import { MediumEnum } from '@podverse/helpers';
 
+import type { PlaybackLoadRequest } from '../../lib/playback';
+import { playbackTargetFromStandardLoad, resolvePlaybackLoadDecision } from '../../lib/playback';
+import type { MediaPlayerPlaybackLoadInput } from '../useMediaPlayerResourceUpdate';
 import { useMediaPlayerResourceUpdate } from '../useMediaPlayerResourceUpdate';
 
 const hoisted = vi.hoisted(() => ({
@@ -71,6 +62,10 @@ vi.mock('../../contexts/AutoQueue', () => ({
 
 vi.mock('../../contexts/MediaPlayer', () => ({
   useMediaPlayer: () => ({
+    applyPlaybackLoad: (req: PlaybackLoadRequest) =>
+      resolvePlaybackLoadDecision(req, { abridged: hoisted.abridgedRef.current }),
+    setActivePlaybackTarget: vi.fn(),
+    setPendingPlaybackDecision: vi.fn(),
     setMPAddByRSS: vi.fn(),
     setMPShouldPlay: vi.fn(),
     setMPChannel: vi.fn(),
@@ -122,22 +117,24 @@ const item = (id: number): DTOItem =>
     id_text: `item-${id}`,
   }) as unknown as DTOItem;
 
-const clip = (id: number): DTOClip =>
+const clip = (id: number, clipItem: DTOItem): DTOClip =>
   ({
     id,
     id_text: `clip-${id}`,
     start_time: 0,
     end_time: 60,
+    item: clipItem,
   }) as unknown as DTOClip;
 
-const soundbite = (id: number): DTOItemSoundbite =>
+const soundbite = (id: number, sbItem: DTOItem): DTOItemSoundbite =>
   ({
     id,
     start_time: 0,
     duration: 15,
+    item: sbItem,
   }) as unknown as DTOItemSoundbite;
 
-type UpdateArgs = Parameters<ReturnType<typeof useMediaPlayerResourceUpdate>>[0];
+type UpdateArgs = MediaPlayerPlaybackLoadInput;
 
 function Probe({ args }: { args: UpdateArgs }) {
   const update = useMediaPlayerResourceUpdate();
@@ -149,19 +146,27 @@ function Probe({ args }: { args: UpdateArgs }) {
 
 function dispatch(
   abridged: QueueResourcesAbridgedIndex,
-  args: Partial<UpdateArgs> & Pick<UpdateArgs, 'channel'>
+  args: {
+    channel: DTOChannel;
+    clip?: DTOClip | null;
+    item: DTOItem;
+    itemSoundbite?: DTOItemSoundbite | null;
+  }
 ) {
   hoisted.abridgedRef.current = abridged;
   const merged: UpdateArgs = {
-    channel: args.channel,
-    clip: args.clip ?? null,
-    item: args.item ?? null,
-    itemChapter: args.itemChapter ?? null,
-    itemChapterShouldSeek: args.itemChapterShouldSeek ?? false,
-    itemSoundbite: args.itemSoundbite ?? null,
-    enclosureSelectedParams: args.enclosureSelectedParams ?? defaultEnclosureParams,
-    skipMoveNowPlayingToHistory: args.skipMoveNowPlayingToHistory ?? false,
-    newAutoQueueConfig: args.newAutoQueueConfig ?? {
+    target: playbackTargetFromStandardLoad({
+      channel: args.channel,
+      clip: args.clip ?? null,
+      item: args.item,
+      itemChapter: null,
+      itemSoundbite: args.itemSoundbite ?? null,
+      musicIntent: 'explicit_play',
+    }),
+    itemChapterShouldSeek: false,
+    enclosureSelectedParams: defaultEnclosureParams,
+    skipMoveNowPlayingToHistory: false,
+    newAutoQueueConfig: {
       playlist_id_text: null,
       disabled: false,
       random: false,
@@ -169,7 +174,7 @@ function dispatch(
       nextPage: 1,
       shuffleHash: '',
     },
-    autoQueueShouldClear: args.autoQueueShouldClear ?? false,
+    autoQueueShouldClear: false,
   };
   render(<Probe args={merged} />);
 }
@@ -243,6 +248,7 @@ describe('useMediaPlayerResourceUpdate near-end clamp (matrix § 6)', () => {
   });
 
   it('clip: clamp applies against clip-row abridged p/d', () => {
+    const it = item(10);
     dispatch(
       {
         items: {},
@@ -250,12 +256,13 @@ describe('useMediaPlayerResourceUpdate near-end clamp (matrix § 6)', () => {
         item_soundbites: {},
         add_by_rss_resource_datas: {},
       },
-      { channel: channel(MediumEnum.Podcast), item: item(10), clip: clip(7) }
+      { channel: channel(MediumEnum.Podcast), item: it, clip: clip(7, it) }
     );
     expect(hoisted.setMPCurrentTime).toHaveBeenCalledWith(0);
   });
 
   it('soundbite: clamp applies against soundbite-row abridged p/d', () => {
+    const it = item(10);
     dispatch(
       {
         items: {},
@@ -263,7 +270,7 @@ describe('useMediaPlayerResourceUpdate near-end clamp (matrix § 6)', () => {
         item_soundbites: { 8: { p: '14', d: '15' } },
         add_by_rss_resource_datas: {},
       },
-      { channel: channel(MediumEnum.Podcast), item: item(10), itemSoundbite: soundbite(8) }
+      { channel: channel(MediumEnum.Podcast), item: it, itemSoundbite: soundbite(8, it) }
     );
     expect(hoisted.setMPCurrentTime).toHaveBeenCalledWith(0);
   });

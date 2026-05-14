@@ -21,6 +21,7 @@ import type { MediaPlayerAddByRSSState } from '../../../contexts/MediaPlayer';
 import type { MoveNowPlayingToHistoryCallbackParams } from '../../../hooks/useQueueResourceMoveNowPlayingToHistory';
 import type { QueueResourcesLoadActiveResult } from '../../../hooks/useQueueResourcesLoadActive';
 import type { UpdateNowPlayingParams } from '../../../hooks/useQueueResourceUpdateNowPlaying';
+import type { PlaybackLoadDecision } from '../../../lib/playback';
 import {
   checkIfIsAudioFile,
   checkIfIsVideoFile,
@@ -70,6 +71,9 @@ export interface MediaPlayerControllerAVProps {
   moveNowPlayingToHistory: (params: MoveNowPlayingToHistoryCallbackParams) => Promise<void>;
   queueResourcesLoadActive: (medium_id?: number) => Promise<QueueResourcesLoadActiveResult>;
   queueResourcesAbridgedIndex: QueueResourcesAbridgedIndex;
+  /** Staged seek/play policy from `applyPlaybackLoad`; consumed on `loadedmetadata`. */
+  pendingPlaybackDecision?: PlaybackLoadDecision | null;
+  setPendingPlaybackDecision?: (decision: PlaybackLoadDecision | null) => void;
   /** When add-by-RSS is now playing, called to save position (e.g. every 15s and on pause). */
   onAddByRSSPositionSave?: (positionSeconds: number) => void;
   /** When add-by-RSS playback ends, called to add to history; then controller clears add-by-RSS state. */
@@ -123,6 +127,8 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     moveNowPlayingToHistory,
     queueResourcesLoadActive,
     queueResourcesAbridgedIndex,
+    pendingPlaybackDecision = null,
+    setPendingPlaybackDecision,
     onAddByRSSPositionSave,
     onAddByRSSEnded,
     onAddByRSSPlayNext,
@@ -184,6 +190,9 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
   useEffect(() => {
     queueResourcesAbridgedIndexRef.current = queueResourcesAbridgedIndex;
   }, [queueResourcesAbridgedIndex]);
+
+  const pendingPlaybackDecisionRef = useRef<PlaybackLoadDecision | null>(null);
+  pendingPlaybackDecisionRef.current = pendingPlaybackDecision;
 
   const playbackElapsedRef = useRef(0);
   const lastPlaybackTimeRef = useRef<number | null>(null);
@@ -392,6 +401,48 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         return;
       }
       const newDuration = mediaRef.current.duration;
+      const stagedDecision = pendingPlaybackDecisionRef.current;
+
+      if (stagedDecision !== null && stagedDecision !== undefined) {
+        mediaRef.current.currentTime = stagedDecision.initialSeekSeconds;
+        if (typeof stagedDecision.pauseAtSeconds === 'number') {
+          globalPauseAtTime = stagedDecision.pauseAtSeconds;
+        } else {
+          globalPauseAtTime = null;
+        }
+
+        setMPDuration(newDuration);
+        updateNowPlaying({
+          mpChannel: mpChannelRef.current,
+          mpClip: mpClipRef.current,
+          mpItem: mpItemRef.current,
+          mpItemSoundbite: mpItemSoundbiteRef.current,
+          mpDuration: newDuration,
+          mpCurrentTime: stagedDecision.initialSeekSeconds,
+        });
+
+        setPendingPlaybackDecision?.(null);
+
+        if (!loggedInAccountRef.current || mpAddByRSSRef.current) {
+          return;
+        }
+        if (!stagedDecision.shouldRecordPlaybackStat) {
+          return;
+        }
+        if (mpChannelRef.current) {
+          trackStatsChannel(mpChannelRef.current.id_text);
+        }
+        if (mpClipRef.current) {
+          trackStatsClip(mpClipRef.current.id_text);
+        }
+        const itemIdText =
+          mpItemRef.current?.id_text ?? mpItemSoundbiteRef.current?.item?.id_text ?? null;
+        if (itemIdText) {
+          trackStatsItem(itemIdText);
+        }
+        return;
+      }
+
       let newCurrentTime: number | null = null;
 
       if (mpClipRef.current) {
@@ -409,10 +460,6 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
           const storedPosition = Number(queueResourceAbridged?.p);
           const storedDuration = Number(queueResourceAbridged?.d);
           if (storedPosition > 0) {
-            // Mirror the near-end clamp from useMediaPlayerResourceUpdate so the
-            // actual audio element does not seek past the documented `p >= d - 5`
-            // reset boundary. Falls back to the live newDuration if the abridged
-            // index does not yet carry a duration for this item.
             const effectiveDuration = storedDuration > 0 ? storedDuration : newDuration;
             if (effectiveDuration > 0 && storedPosition >= effectiveDuration - 5) {
               newCurrentTime = 0;

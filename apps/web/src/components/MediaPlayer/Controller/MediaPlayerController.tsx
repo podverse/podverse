@@ -14,6 +14,7 @@ import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useAutoQueueLoadResources } from '../../../hooks/useAutoQueueLoadResources';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
 import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
+import { parsePlaybackSeconds, playbackTargetFromStandardLoad } from '../../../lib/playback';
 import { loadAddByRSSIndexItemFromResourceData } from '../../../utils/addByRSS/playFromQueueResource';
 import { updateLayoutForMediaPlayer } from '../../../utils/mediaPlayer/mediaPlayerLayout';
 import { MediaPlayerControllerAudio } from './Audio/MediaPlayerControllerAudio';
@@ -152,12 +153,15 @@ export const MediaPlayerController: React.FC = () => {
       const fullChannel = await apiRequestService.reqChannelGetByIdOrIdText(fullItem.channel_id);
       if (fullChannel) {
         mediaPlayerResourceUpdate({
-          channel: fullChannel,
-          clip: nextResource.clip,
-          item: fullItem,
-          itemChapter: null,
+          target: playbackTargetFromStandardLoad({
+            channel: fullChannel,
+            clip: nextResource.clip,
+            item: fullItem,
+            itemChapter: null,
+            itemSoundbite: nextResource.item_soundbite,
+            musicIntent: 'fresh_transition',
+          }),
           itemChapterShouldSeek: false,
-          itemSoundbite: nextResource.item_soundbite,
           enclosureSelectedParams: 'use-active-item-or-default',
           skipMoveNowPlayingToHistory: false,
           newAutoQueueConfig: {
@@ -180,12 +184,16 @@ export const MediaPlayerController: React.FC = () => {
       const fullChannel = await apiRequestService.reqChannelGetByIdOrIdText(fullItem.channel_id);
       if (fullChannel) {
         mediaPlayerResourceUpdate({
-          channel: fullChannel,
-          clip: nextResource.clip || null,
-          item: fullItem,
-          itemChapter: null,
+          target: playbackTargetFromStandardLoad({
+            channel: fullChannel,
+            clip: nextResource.clip ?? null,
+            item: fullItem,
+            itemChapter: null,
+            itemSoundbite: nextResource.item_soundbite ?? null,
+            musicIntent: 'fresh_transition',
+          }),
+          explicitPlaybackSeconds: parsePlaybackSeconds(nextResource.playback_position),
           itemChapterShouldSeek: false,
-          itemSoundbite: nextResource.item_soundbite || null,
           enclosureSelectedParams: 'use-active-item-or-default',
           skipMoveNowPlayingToHistory: false,
           newAutoQueueConfig: {
@@ -213,12 +221,16 @@ export const MediaPlayerController: React.FC = () => {
           );
           if (fullChannel) {
             mediaPlayerResourceUpdate({
-              channel: fullChannel,
-              clip: fullClip,
-              item: fullItem,
-              itemChapter: null,
+              target: playbackTargetFromStandardLoad({
+                channel: fullChannel,
+                clip: fullClip,
+                item: fullItem,
+                itemChapter: null,
+                itemSoundbite: null,
+                musicIntent: 'fresh_transition',
+              }),
+              explicitPlaybackSeconds: parsePlaybackSeconds(nextResource.playback_position),
               itemChapterShouldSeek: false,
-              itemSoundbite: null,
               enclosureSelectedParams: 'use-active-item-or-default',
               skipMoveNowPlayingToHistory: false,
               newAutoQueueConfig: {
@@ -255,12 +267,16 @@ export const MediaPlayerController: React.FC = () => {
           );
           if (fullChannel) {
             mediaPlayerResourceUpdate({
-              channel: fullChannel,
-              clip: null,
-              item: fullItem,
-              itemChapter: null,
+              target: playbackTargetFromStandardLoad({
+                channel: fullChannel,
+                clip: null,
+                item: fullItem,
+                itemChapter: null,
+                itemSoundbite: fullItemSoundbite,
+                musicIntent: 'fresh_transition',
+              }),
+              explicitPlaybackSeconds: parsePlaybackSeconds(nextResource.playback_position),
               itemChapterShouldSeek: false,
-              itemSoundbite: fullItemSoundbite,
               enclosureSelectedParams: 'use-active-item-or-default',
               skipMoveNowPlayingToHistory: false,
               newAutoQueueConfig: {

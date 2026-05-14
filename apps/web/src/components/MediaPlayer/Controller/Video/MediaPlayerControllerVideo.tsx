@@ -69,6 +69,8 @@ export function MediaPlayerControllerVideo() {
       setMPCurrentTime={setMPCurrentTime}
       addByRSSSeekToTime={mediaPlayer.addByRSSSeekToTime}
       setAddByRSSSeekToTime={mediaPlayer.setAddByRSSSeekToTime}
+      pendingPlaybackDecision={mediaPlayer.pendingPlaybackDecision}
+      setPendingPlaybackDecision={mediaPlayer.setPendingPlaybackDecision}
       updateNowPlaying={updateNowPlaying}
       moveNowPlayingToHistory={moveNowPlayingToHistory}
       queueResourcesLoadActive={queueResourcesLoadActive}

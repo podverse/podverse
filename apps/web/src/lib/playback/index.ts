@@ -11,4 +11,9 @@ export {
   type PlaybackLoadDecisionReason,
 } from './resolvePlaybackLoadDecision';
 export type { PlaybackLoadRequest } from './playbackLoadRequest';
+export {
+  playbackTargetFromStandardLoad,
+  playbackTargetLivestream,
+} from './playbackTargetFromStandardLoad';
+export type { PlaybackTargetFromStandardLoadParams } from './playbackTargetFromStandardLoad';
 export type { MusicItemPlaybackIntent, PlaybackTarget, PlaybackTargetKind } from './playbackTarget';

@@ -19,6 +19,7 @@ import { ROUTES } from '../../../constants/routes';
 import { useAutoQueue } from '../../../contexts/AutoQueue';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
+import { playbackTargetLivestream } from '../../../lib/playback';
 import { LiveItemStatus } from '../../LiveItem/LiveItemStatus';
 import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
 import { ReadableDate } from '../../Time/ReadableDate';
@@ -62,13 +63,9 @@ export const ListLiveItemRow: React.FC<Props> = ({
       setMPIsPlaying(!mpIsPlaying);
     } else {
       mediaPlayerResourceUpdate({
-        shouldPlay: true,
-        channel: channel,
-        clip: null,
-        item: item,
-        itemChapter: null,
+        target: playbackTargetLivestream(channel, item),
         itemChapterShouldSeek: false,
-        itemSoundbite: null,
+        shouldPlay: true,
         enclosureSelectedParams: 'use-active-item-or-default',
         isPlaying: true,
         skipMoveNowPlayingToHistory: false,

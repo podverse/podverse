@@ -32,8 +32,7 @@ export type ResumeSeekFromAbridgedParams = {
  *    `d` disables the near-end clamp.
  * 4. **`clampNearEndSeconds` applied** to the parsed abridged values.
  *
- * Phase 2 helper — no production consumer yet. Phase 3 wires this into
- * `useMediaPlayerResourceUpdate` and the anonymous-restore flow.
+ * Used by `resolvePlaybackLoadDecision` for item / clip / soundbite resume paths.
  */
 export function resumeSeekFromAbridged({
   abridged,

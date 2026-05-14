@@ -8,6 +8,7 @@ import { formatNumericToHHMMSS } from '@podverse/helpers';
 
 import { useAutoQueue } from '../../../../contexts/AutoQueue';
 import { useMediaPlayerResourceUpdate } from '../../../../hooks/useMediaPlayerResourceUpdate';
+import { playbackTargetFromStandardLoad } from '../../../../lib/playback';
 
 interface ClipEditPageContextType {
   sharableStatus: string;
@@ -57,19 +58,22 @@ export const ClipEditPageContextProvider = ({
 
     if (item && channel) {
       mediaPlayerResourceUpdate({
-        channel: channel,
-        clip: ssrClip,
-        item: item,
-        itemChapter: null,
+        target: playbackTargetFromStandardLoad({
+          channel,
+          clip: ssrClip,
+          item,
+          itemChapter: null,
+          itemSoundbite: null,
+          musicIntent: 'explicit_play',
+        }),
         itemChapterShouldSeek: false,
-        itemSoundbite: null,
-        isPlaying: false,
-        skipMoveNowPlayingToHistory: false,
         enclosureSelectedParams: {
           type: ssrEnclosureTypeSelected,
           enclosureRowSelected: ssrEnclosureRowSelected,
           sourceRowSelected: null,
         },
+        isPlaying: false,
+        skipMoveNowPlayingToHistory: false,
         newAutoQueueConfig: {
           playlist_id_text: autoQueueConfig.playlist_id_text,
           disabled: true,

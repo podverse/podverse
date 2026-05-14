@@ -151,7 +151,12 @@ async function renderAV(overrides: RenderOverrides = {}): Promise<RenderResult> 
         updateNowPlaying={() => undefined}
         moveNowPlayingToHistory={() => Promise.resolve()}
         queueResourcesLoadActive={() =>
-          Promise.resolve({ upcomingManualCount: 0, hasAutoQueueNext: false })
+          Promise.resolve({
+            activeResource: null,
+            historyMoved: 0,
+            upcomingManualCount: 0,
+            upcomingResources: [],
+          })
         }
         queueResourcesAbridgedIndex={abridgedIndex}
         clearNowPlaying={() => undefined}

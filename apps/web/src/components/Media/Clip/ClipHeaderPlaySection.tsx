@@ -16,6 +16,7 @@ import { useQueues } from '../../../contexts/Queue';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useLikesClipBatch } from '../../../hooks/useLikesClipBatch';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
+import { playbackTargetFromStandardLoad } from '../../../lib/playback';
 import { downloadEpisodeWithModal } from '../../../utils/downloadModal/downloadEpisodeWithModal';
 import { downloadAndSaveFile } from '../../../utils/fileDownloader';
 import { PlayButtonLarge } from '../../MediaPlayer/Buttons/PlayButtonLarge';
@@ -65,13 +66,16 @@ export const ClipHeaderPlaySection: React.FC<ClipHeaderPlaySectionProps> = ({
       setMPIsPlaying(!mpIsPlaying);
     } else {
       mediaPlayerResourceUpdate({
-        shouldPlay: true,
-        channel: channel,
-        clip,
-        item,
-        itemChapter: null,
+        target: playbackTargetFromStandardLoad({
+          channel,
+          clip,
+          item,
+          itemChapter: null,
+          itemSoundbite: null,
+          musicIntent: 'explicit_play',
+        }),
         itemChapterShouldSeek: false,
-        itemSoundbite: null,
+        shouldPlay: true,
         enclosureSelectedParams: 'use-active-item-or-default',
         isPlaying: true,
         skipMoveNowPlayingToHistory: false,

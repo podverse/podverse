@@ -20,6 +20,7 @@ import { useModals } from '../../../../../contexts/Modals';
 import { useQueues } from '../../../../../contexts/Queue';
 import { getApiRequestService } from '../../../../../factories/apiRequestService';
 import { useMediaPlayerResourceUpdate } from '../../../../../hooks/useMediaPlayerResourceUpdate';
+import { playbackTargetFromStandardLoad } from '../../../../../lib/playback';
 import { downloadTrackWithModal } from '../../../../../utils/downloadModal/downloadTrackWithModal';
 import { downloadAndSaveFile } from '../../../../../utils/fileDownloader';
 import { showToastPromise, showToastPromiseWithLoading } from '../../../../Toast/Toast';
@@ -73,13 +74,16 @@ export const CommonTrackListRow: React.FC<CommonTrackListRowProps> = ({
       setMPIsPlaying(!mpIsPlaying);
     } else {
       mediaPlayerResourceUpdate({
-        shouldPlay: true,
-        channel: channel,
-        clip: null,
-        item: item,
-        itemChapter: null,
+        target: playbackTargetFromStandardLoad({
+          channel,
+          clip: null,
+          item,
+          itemChapter: null,
+          itemSoundbite: null,
+          musicIntent: 'explicit_play',
+        }),
         itemChapterShouldSeek: false,
-        itemSoundbite: null,
+        shouldPlay: true,
         enclosureSelectedParams: 'use-active-item-or-default',
         isPlaying: true,
         skipMoveNowPlayingToHistory: false,

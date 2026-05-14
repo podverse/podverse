@@ -7,6 +7,7 @@ import { useAccount } from '../contexts/Account';
 import { autoQueueIncrementActiveRow, useAutoQueue } from '../contexts/AutoQueue';
 import { useQueues } from '../contexts/Queue';
 import { getApiRequestService } from '../factories/apiRequestService';
+import { combineQueueNowPlayingAndUpcoming } from '../lib/queue/combineQueueNowPlayingAndUpcoming';
 
 export type QueueResourcesLoadActiveResult = {
   historyMoved: number;
@@ -114,8 +115,6 @@ export function useQueueResourcesLoadActive() {
     if (activeQueue) {
       setActiveQueue(activeQueue);
 
-      const combinedQueueResources: DTOQueueResource[] = [];
-
       // Use already-fetched nowPlayingResource if available, otherwise fetch it
       if (!nowPlayingResource) {
         nowPlayingResource = await apiRequestService.reqQueueResourcesGetNowPlayingByQueueIdText(
@@ -126,11 +125,10 @@ export function useQueueResourcesLoadActive() {
       const upcomingQueueResources =
         await apiRequestService.reqQueueResourcesGetAllUpcomingByQueueIdText(activeQueue.id_text);
 
-      if (nowPlayingResource) {
-        combinedQueueResources.push(nowPlayingResource, ...upcomingQueueResources);
-      } else if (upcomingQueueResources.length > 0) {
-        combinedQueueResources.push(...upcomingQueueResources);
-      }
+      const combinedQueueResources = combineQueueNowPlayingAndUpcoming(
+        nowPlayingResource,
+        upcomingQueueResources
+      );
 
       setActiveQueueUpcomingResources(combinedQueueResources);
 

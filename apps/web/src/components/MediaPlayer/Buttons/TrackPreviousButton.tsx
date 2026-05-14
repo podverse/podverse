@@ -20,6 +20,7 @@ import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useAddByRSSPlayPrevious } from '../../../hooks/useAddByRSSPlayPrevious';
 import { useLongPress } from '../../../hooks/useLongPress';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
+import { playbackTargetFromStandardLoad } from '../../../lib/playback';
 import { resolveAddByRSSListContextFromCurrentItem } from '../../../utils/addByRSS/resolveListContextFromCurrentItem';
 
 import styles from '../../../styles/components/MediaPlayer/Buttons/TrackPreviousButton.module.scss';
@@ -104,15 +105,18 @@ export const TrackPreviousButton = () => {
           item_soundbite = null;
         }
 
-        if (item) {
+        if (item && channel) {
           mediaPlayerResourceUpdate({
-            shouldPlay: mpIsPlaying,
-            channel,
-            clip,
-            item,
-            itemChapter: null,
+            target: playbackTargetFromStandardLoad({
+              channel,
+              clip,
+              item,
+              itemChapter: null,
+              itemSoundbite: item_soundbite,
+              musicIntent: 'explicit_play',
+            }),
             itemChapterShouldSeek: false,
-            itemSoundbite: item_soundbite,
+            shouldPlay: mpIsPlaying,
             enclosureSelectedParams: 'use-active-item-or-default',
             isPlaying: mpIsPlaying,
             skipMoveNowPlayingToHistory: false,
@@ -236,15 +240,18 @@ export const TrackPreviousButton = () => {
             item_soundbite = null;
           }
 
-          if (item) {
+          if (item && channel) {
             mediaPlayerResourceUpdate({
-              shouldPlay: mpIsPlaying,
-              channel,
-              clip,
-              item,
-              itemChapter: null,
+              target: playbackTargetFromStandardLoad({
+                channel,
+                clip,
+                item,
+                itemChapter: null,
+                itemSoundbite: item_soundbite,
+                musicIntent: 'explicit_play',
+              }),
               itemChapterShouldSeek: false,
-              itemSoundbite: item_soundbite,
+              shouldPlay: mpIsPlaying,
               enclosureSelectedParams: 'use-active-item-or-default',
               isPlaying: mpIsPlaying,
               skipMoveNowPlayingToHistory: false,
