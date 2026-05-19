@@ -6,8 +6,7 @@ Freeze the architecture for the imperative shell of **non-live**
 playback: the `useMediaElementBridge` hook, the
 `MediaPlayerControlsContext`, and the `<MediaElement>` component
 contract. Wire the bridge into **only** the regular audio and video
-controllers (`MediaPlayerControllerAudio` via
-`MediaPlayerControllerAV`, `MediaPlayerVideoWrapper`); their event
+controllers (`NonLiveMediaMount` / `NonLiveMediaOrchestrator`); their event
 listeners move into the bridge. **Livestream** controllers keep their
 existing video.js-based wiring unchanged in this plan-set (see
 [`media-player-livestream-hls-migration`](../media-player-livestream-hls-migration/)).
@@ -24,9 +23,8 @@ collapse yet — that is Phase 4b.
   (new component scaffold; not consumed by anyone in 4a)
 - `apps/web/src/components/MediaPlayer/MediaElement/mediaElementSourceFromTarget.ts`
   (new)
-- **In scope for bridge wiring:** `MediaPlayerControllerAudio` /
-  `MediaPlayerControllerAV` path and `MediaPlayerVideoWrapper` path
-  only.
+- **In scope for bridge wiring:** `NonLiveMediaMount` /
+  `NonLiveMediaOrchestrator` path only.
 - **Out of scope for bridge wiring:** `MediaPlayerControllerLiveStreamAudio`,
   `MediaPlayerLiveStreamVideoWrapper`, `MediaPlayerControllerLiveStreamAV`.
 
@@ -241,10 +239,8 @@ Same as the prior plan: `attachMediaSession` in the bridge;
 
 ## 4. Wiring legacy controllers (in 4a)
 
-**Use the bridge:** `MediaPlayerControllerAudio` /
-`MediaPlayerControllerAV` and `MediaPlayerVideoWrapper` (and any
-shared AV file they delegate to) — replace giant listener `useEffect`s
-with `useMediaElementBridge` + bridge method calls.
+**Use the bridge:** `NonLiveMediaOrchestrator` (via `NonLiveMediaMount`)
+— replace giant listener `useEffect`s with `useMediaElementBridge` + bridge method calls.
 
 **Do not change:** `MediaPlayerControllerLiveStreamAudio`,
 `MediaPlayerLiveStreamVideoWrapper`, `MediaPlayerControllerLiveStreamAV`
@@ -271,18 +267,19 @@ follow-up).
 - `useMediaElementBridge` exists with unit tests on the fake element.
 - `MediaPlayerControlsContext` is provided; non-live path publishes
   `isAttached: true` when appropriate.
-- Regular AV controllers use the bridge; livestream controllers are
+- `NonLiveMediaOrchestrator` uses the bridge; livestream controllers are
   unchanged from pre-4a behavior.
-- `MediaPlayerControllerAV.tsx` is < 350 lines (or equivalent after
-  extraction).
+- `NonLiveMediaOrchestrator.tsx` coordinates non-live playback (line-count
+  targets are guidance; helpers may live in `mediaElementBridgeSurface.ts`).
 - Phase 1 E2E suite passes.
-- `<MediaElement>` scaffold checked in; not yet the active renderer for
-  non-live (that is 4b).
+- `<MediaElement>` is the DOM shell for `<audio>` / `<video>` inside the
+  orchestrator (full `PlaybackTarget`-driven `mediaElementSourceFromTarget`
+  wiring remains incremental).
 
 ## Verification commands
 
 ```bash
 npm run lint -w apps/web
-npm run test:unit -w apps/web
+npm run test:unit
 make e2e_test_web_report
 ```

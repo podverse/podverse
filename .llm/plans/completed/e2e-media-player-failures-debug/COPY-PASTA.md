@@ -2,7 +2,7 @@
 
 Executed on `refactor/media-player`. All phases below are complete;
 details and root-cause notes live in
-[`.llm/history/active/e2e-media-player-failures-debug/01-diagnostic-clip-test-1.md`](../../history/active/e2e-media-player-failures-debug/01-diagnostic-clip-test-1.md).
+[`.llm/history/completed/e2e-media-player-failures-debug/01-diagnostic-clip-test-1.md`](../../history/completed/e2e-media-player-failures-debug/01-diagnostic-clip-test-1.md).
 
 - [x] **Phase 0 — diagnostic capture (clip-soundbite test 1)**
 

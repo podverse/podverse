@@ -155,7 +155,7 @@ green at every commit.
 - [x] **Open the architecture-refactor gate**
 
   In
-  [media-player-architecture-refactor/COPY-PASTA.md](../../active/media-player-architecture-refactor/COPY-PASTA.md),
+  [media-player-architecture-refactor/COPY-PASTA.md](../../completed/media-player-architecture-refactor/COPY-PASTA.md),
   mark the `Gate — seed-expansion plan-set complete` checkbox so the
   next developer working on `refactor/media-player` sees Phase 3b is
   unblocked. If the architecture-refactor plan-set has since been

@@ -112,7 +112,7 @@ mv .llm/plans/active/media-player-e2e-seed-expansion \
 ```
 
 If
-[media-player-architecture-refactor/COPY-PASTA.md](../../active/media-player-architecture-refactor/COPY-PASTA.md)
+[media-player-architecture-refactor/COPY-PASTA.md](../../completed/media-player-architecture-refactor/COPY-PASTA.md)
 references the gate row pointing at the still-active path
 (`../media-player-e2e-seed-expansion/`), update that link to point
 at the new `../../completed/media-player-e2e-seed-expansion/`
@@ -121,9 +121,9 @@ location in the same archival commit.
 ### 7. Notify the architecture refactor gate
 
 Once this plan-set is merged on `develop`, the
-[media-player-architecture-refactor](../../active/media-player-architecture-refactor/)
+[media-player-architecture-refactor](../../completed/media-player-architecture-refactor/)
 plan-set's `3b-gate` row is satisfied. Mark the gate checkbox in
-[`COPY-PASTA.md`](../../active/media-player-architecture-refactor/COPY-PASTA.md)
+[`COPY-PASTA.md`](../../completed/media-player-architecture-refactor/COPY-PASTA.md)
 in the refactor's branch (whichever branch is the current target
 for refactor work — typically `refactor/media-player`) so the next
 developer working from that branch sees the gate is open.

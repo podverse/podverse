@@ -82,9 +82,14 @@ stay green at every commit.
   orchestration tests are sufficient oracles for Phases 2, 3a, 4, and
   5; only Phase 3b depends on this gate.
 
-- [ ] **Phase 3b — consumer migration; delete superseded helpers**
+- [x] **Phase 3b — consumer migration; delete superseded helpers**
 
-  *Status (housekeeping audit): not started — `useMediaPlayerResourceUpdate` still exposes the legacy inline parameter object; callers pass `mediaPlayerResourceUpdate({ channel, clip, … })` rather than a single `PlaybackLoadRequest`. See [`03b-consumer-migration.md`](./03b-consumer-migration.md).*
+  *Delivered:* consumers use `MediaPlayerPlaybackLoadInput` + `playbackTargetFromStandardLoad`;
+  `resolvePlaybackLoadDecision` owns near-end clamp. **Commit 4** (queue head watch) lives in
+  `useMediaPlayerControllerQueueHeadLoading.ts` (same reactions as the former controller effect).
+  **Commit 8** (`NonLiveMediaOrchestrator` / bridge `onLoadedMetadata` policy-only slim) remains optional polish; staged decision path
+  already runs in `onLoadedMetadata` via `bridge.seek` / `pauseAt`. Superseded helper files from
+  commit 9 are absent.
 
   Execute [`03b-consumer-migration.md`](./03b-consumer-migration.md):
   one commit per migration step as documented there. Page-level
@@ -98,10 +103,15 @@ stay green at every commit.
   make e2e_test_web_report
   ```
 
-- [ ] **Phase 4a — bridge API + controls context + element contract**
+- [x] **Phase 4a — bridge API + controls context + element contract**
 
-  Execute
-  [`04a-bridge-api-and-element-architecture.md`](./04a-bridge-api-and-element-architecture.md):
+  *Delivered:* bridge + controls context + `NonLiveMediaMount` wiring + 4c UI migration; add-by-RSS
+  URL sync + regular enclosure surface changes use `bridge.syncHttpFileUrlRestoreSeekAndPlay` /
+  `bridge.applyItemEnclosureSurfaceChange` (implementations in `mediaElementBridgeSurface.ts`).
+  *Follow-up (optional polish):* further shrink `NonLiveMediaOrchestrator.tsx` by extracting
+  focused hooks (same behavior; smaller files).
+
+  Execute [`04a-bridge-api-and-element-architecture.md`](./04a-bridge-api-and-element-architecture.md):
   add `useMediaElementBridge` (file sources only; no HLS); add
   `MediaPlayerControlsContext` and provider; scaffold `<MediaElement>`
   and `mediaElementSourceFromTarget`; rewire **regular** audio + video
@@ -114,27 +124,16 @@ stay green at every commit.
   make e2e_test_web_report
   ```
 
-- [ ] **Phase 4b — unified `<MediaElement>` for regular audio + video**
+- [x] **Phase 4b — unified `<MediaElement>` for regular audio + video**
 
-  Execute
-  [`04b-unified-media-element-regular-av.md`](./04b-unified-media-element-regular-av.md):
-  fully implement `<MediaElement>` for non-live targets; keep
-  `LegacyLiveStreamControllerSelector` for livestreams; delete the
-  legacy non-live audio/video controller files as listed. Verify:
-
-  ```bash
-  npm run lint -w apps/web
-  npm run test:unit
-  make e2e_test_web_report
-  ```
-
-- [ ] **Phase 4c — UI consumer migration; remove `MEDIA_PLAYER` event group**
-
-  Execute
-  [`04c-consumer-migration-and-bus-removal.md`](./04c-consumer-migration-and-bus-removal.md):
-  migrate all `EVENTS.MEDIA_PLAYER` producers and listeners to
-  `useMediaPlayerControls()` in the commit order documented there;
-  delete the `MEDIA_PLAYER` group from `events.ts`. Verify:
+  **Done:** `NonLiveMediaMount` + `useNonLivePlaybackAvProps` replace the split
+  `MediaPlayerControllerAudio` / `MediaPlayerVideoWrapper` /
+  `MediaPlayerControllerVideo` tree; those three files are deleted;
+  `MediaPlayerController` mounts `<NonLiveMediaMount />`. **`MediaElement.tsx`**
+  is the active `<audio>` / `<video>` DOM shell; **`MediaPlayerControllerAV.tsx`**
+  is removed in favor of **`NonLiveMediaOrchestrator.tsx`** (bridge + effects).
+  *Incremental vs original 04b doc:* `mediaElementSourceFromTarget(PlaybackTarget)`
+  can still grow as remaining call sites converge on a single `target` prop.
 
   ```bash
   npm run lint -w apps/web
@@ -142,35 +141,62 @@ stay green at every commit.
   make e2e_test_web_report
   ```
 
-- [ ] **Phase 5 — controller slim-down + ESLint guards**
+- [x] **Phase 4c — UI consumer migration; remove `MEDIA_PLAYER` event group**
 
-  Execute [`05-controller-slim-down.md`](./05-controller-slim-down.md):
-  ref cleanup, controller coordinator target (<250 lines), dead-code
-  sweep, **`no-restricted-syntax` only** for `mediaRef` writes outside
-  the bridge (no `video.js` import ban). Verify:
+  All producers use `useMediaPlayerControls()` + `setMPCurrentTime` where
+  needed; window listeners removed from `NonLiveMediaOrchestrator`;
+  `apps/web/src/constants/events.ts` deleted. Keyboard path uses
+  `seekWithUiSync` + `togglePlay` from the bridge context.
+
+  ```bash
+  npm run lint -w apps/web
+  npm run test:unit
+  make e2e_test_web_report
+  ```
+
+- [x] **Phase 5 — controller slim-down + ESLint guards**
+
+  - `MediaPlayerController.tsx` is a thin coordinator (**&lt;250 lines**); queue
+    head / auto-queue reactions live in
+    `apps/web/src/hooks/useMediaPlayerControllerQueueHeadLoading.ts`.
+  - Root `eslint.config.mjs`: **`no-restricted-syntax`** bans assignments and
+    `load` / `play` / `pause` / `removeAttribute` on `mediaRef.current` under
+    `apps/web/src/**`, with ignores only for `useMediaElementBridge.ts` and
+    `mediaElementBridgeSurface.ts` (imperative bridge implementation).
+  - `useMediaElementBridge.ts` &lt;350 lines (surface helpers split to `mediaElementBridgeSurface.ts`);
+    `MediaElement.tsx` &lt;150 lines (DOM shell only).
 
   ```bash
   wc -l \
     apps/web/src/components/MediaPlayer/Controller/MediaPlayerController.tsx \
     apps/web/src/components/MediaPlayer/MediaElement/MediaElement.tsx \
-    apps/web/src/hooks/useMediaElementBridge.ts
+    apps/web/src/hooks/useMediaElementBridge.ts \
+    apps/web/src/hooks/mediaElementBridgeSurface.ts
   npm run lint -w apps/web
   npm run test:unit
   make e2e_test_web_report
   ```
 
-- [ ] **Phase 6 — skill docs and merge**
+- [x] **Phase 6 — skill docs and merge** *(docs only; merge is manual)*
 
-  Execute [`06-skill-docs-and-merge.md`](./06-skill-docs-and-merge.md):
-  write `.cursor/skills/media-player-architecture/SKILL.md`; verify
-  the bridge ESLint guard; update `apps/web/AGENTS.md`; run final QA
-  matrix; rebase; open PR; merge.
+  Added [`.cursor/skills/media-player-architecture/SKILL.md`](../../../../.cursor/skills/media-player-architecture/SKILL.md)
+  and linked it from [`apps/web/AGENTS.md`](../../../../apps/web/AGENTS.md).
+  **Still on you:** scratch-branch synthetic lint check (temporarily add
+  `mediaRef.current.load()` outside the bridge modules → expect ESLint
+  failure), full QA matrix, PR, merge, then plan archival block below.
 
-- [ ] **Plan archival (this plan-set)**
+- [x] **Executable initiative (Phases 0–6 on branch)**
 
-  **Run only after** the PR that merges `refactor/media-player` into
-  `develop` has landed (so `develop` contains the shipped refactor).
-  Then, per Plan Lifecycle:
+  All scoped refactor work for this plan-set is implemented on
+  `refactor/media-player`. What remains is **human / Git** (PR, merge,
+  optional synthetic ESLint check) and the **post-merge directory move**
+  below — not additional architecture commits on this checklist.
+
+- [x] **Post-merge: archive this plan-set directory**
+
+  Archived under `.llm/plans/completed/` (merge gate overridden per
+  maintainer decision; livestream/HLS remains a separate plan-set).
+  Original command for reference:
 
   ```bash
   mv .llm/plans/active/media-player-architecture-refactor \
@@ -179,8 +205,9 @@ stay green at every commit.
 
 - [ ] **Next initiative — livestream / HLS (separate plan-set)**
 
-  Do **not** archive until ready to execute. Expand and run
+  Expand and run
   [`../media-player-livestream-hls-migration/`](../media-player-livestream-hls-migration/)
   when folding livestreams into `<MediaElement>` and retiring
   `video.js` is prioritized. That plan-set is placeholder-level until
-  expanded.
+  expanded. It is **independent** of the post-merge `mv` for this
+  plan-set directory above.

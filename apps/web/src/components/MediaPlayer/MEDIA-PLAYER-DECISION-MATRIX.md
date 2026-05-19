@@ -2,7 +2,7 @@
 
 Authoritative behavior baseline for the Podverse web media player. Locked in
 during **Phase 1** of the
-[media-player-architecture-refactor](../../../../../.llm/plans/active/media-player-architecture-refactor/)
+[media-player-architecture-refactor](../../../../../.llm/plans/completed/media-player-architecture-refactor/)
 plan-set and used as the regression oracle for every subsequent phase. Each
 later phase that touches the controller tree must keep this matrix passing.
 
@@ -16,7 +16,7 @@ Behavior is read from current production code; the cross-references below
 are sticky pointers — keep them updated when the code moves.
 
 - Decision spine: `MediaPlayerController.tsx` →
-  `MediaPlayerControllerAV.tsx` (non-live audio / video)
+  `NonLiveMediaOrchestrator.tsx` (non-live audio / video)
 - Resource load entry point: `useMediaPlayerResourceUpdate.tsx`
 - Anonymous restore: `AnonymousPlaybackRestoreController.tsx` +
   `anonymousPlaybackStorage.ts`
@@ -40,7 +40,7 @@ not a single enum. The matrix uses these labels:
 | **livestream**   | `mpItem.live_item` truthy (drives a separate video.js controller)       |
 
 Decision precedence inside the `loadedmetadata` handler (in
-[`MediaPlayerControllerAV.tsx`](./Controller/MediaPlayerControllerAV.tsx)
+[`NonLiveMediaOrchestrator.tsx`](./Controller/NonLiveMediaOrchestrator.tsx)
 lines 390–422): clip > soundbite > chapter > item, then within item,
 music forces 0 while podcast/video reads the abridged-index `p`.
 
@@ -53,7 +53,7 @@ music forces 0 while podcast/video reads the abridged-index `p`.
 | **Queue load**           | `activeQueueUpcomingResources[0]` changes → `handleLoadQueueItem` / `handleLoadQueueClip` / `handleLoadQueueItemSoundbite` / `handleLoadQueueItemAddByRSS` in `MediaPlayerController.tsx` |
 | **AutoQueue transition** | `autoQueueActiveRow` changes → `handleLoadAutoQueueItem`                                                                                                                                  |
 | **Skip-next button**     | `TrackNextButton*` → move-to-history + `useQueueResourcesLoadActive()` → queue load                                                                                                       |
-| **Track-ended**          | Media element `ended` event in `MediaPlayerControllerAV` `handleEnded`                                                                                                                    |
+| **Track-ended**          | Media element `ended` event in `NonLiveMediaOrchestrator` `handleEnded`                                                                                                                   |
 | **Explicit play**        | List/detail "play" buttons → `useMediaPlayerResourceUpdate` (same as initial load, just from a different surface)                                                                         |
 
 ## Matrix — Sections 1 through 5 (non-livestream)
@@ -128,7 +128,7 @@ AddByRSS). **`autoQueueShouldClear: true`** in every path.
 4. Otherwise: queue-load path runs; new resource loads via § 3 / § 4
 
 **Track-ended** (media element `ended` event,
-`MediaPlayerControllerAV.handleEnded`):
+`NonLiveMediaOrchestrator.handleEnded`):
 
 | Context              | Outcome                                                                                                                                                                                                             |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -137,7 +137,7 @@ AddByRSS). **`autoQueueShouldClear: true`** in every path.
 
 ### 6. Time-update side effects
 
-`handleTimeUpdate` (lines 502–588 of `MediaPlayerControllerAV.tsx`) does:
+`handleTimeUpdate` (lines 502–588 of `NonLiveMediaOrchestrator.tsx`) does:
 
 1. `setMPCurrentTime` (skipped when add-by-RSS is paused, to keep the
    slider stuck at the saved position).
@@ -249,7 +249,7 @@ plan-set.
 | **Initial play, audio live stream** | `<source>` selected via `getSelectedLabeledItemEnclosureAndSource` (same labeled-enclosure flow as VOD). video.js init: `controls: false, autoplay: true, preload: 'auto', sources: [{ src, type }]`. First-byte time depends on upstream; once `play` fires, `mpIsPlaying = true` syncs via the play/pause observer. `currentTime` typically reads `0` and never advances meaningfully (live edge). `duration` is `Infinity` in most cases. UI controls: seek bar disabled, jump buttons no-op (chrome currently leaves them rendered but inert). |
 | **Initial play, video live stream** | Same source-selection flow; the `<video>` element is rendered inside `MediaPlayerLiveStreamVideoWrapper` → `MediaPlayerLivestreamVideoPortalFloating` so fullscreen / floating UI behavior matches VOD video.                                                                                                                                                                                                                                                                                                                                      |
 | **Source fallback**                 | When the first labeled `<source>` 404s or codec unsupported, video.js currently tries the next source from the labeled enclosures array. Document **specific** observed fallbacks against the chosen test feeds in § 6c.                                                                                                                                                                                                                                                                                                                           |
-| **Live → non-live transition**      | User triggers an explicit play of a regular podcast item while live is playing. Today: enclosure selection updates → `selectedItemEnclosureAndSource` effect fires → previous video.js player is **disposed**; container DOM is emptied; a new audio / video element is appended; the non-live `MediaPlayerControllerAV` then drives playback. The bottom-of-file note in `MediaPlayerControllerLiveStreamAV.tsx` captures the bug class this dispose/recreate prevents. Quoted verbatim below.                                                    |
+| **Live → non-live transition**      | User triggers an explicit play of a regular podcast item while live is playing. Today: enclosure selection updates → `selectedItemEnclosureAndSource` effect fires → previous video.js player is **disposed**; container DOM is emptied; a new audio / video element is appended; the non-live `NonLiveMediaOrchestrator` then drives playback. The bottom-of-file note in `MediaPlayerControllerLiveStreamAV.tsx` captures the bug class this dispose/recreate prevents. Quoted verbatim below.                                                   |
 | **Non-live → live transition**      | Reverse direction. The non-live `<audio>`/`<video>` is unmounted from the wrapper (since `mpItem.live_item` becomes truthy, the non-live AV controller short-circuits source assignment) and the video.js controller mounts.                                                                                                                                                                                                                                                                                                                       |
 | **Live stream end / disconnect**    | When the upstream stops, video.js typically pauses and surfaces no user-facing retry. `mpIsPlaying` follows. Document specific observed behavior against the chosen test feeds in § 6c (this cell is intentionally underspecified until baseline runs occur).                                                                                                                                                                                                                                                                                      |
 | **Reload while live is playing**    | Full-page reload: `AnonymousPlaybackRestoreController` reads the snapshot; the snapshot writer skips livestream because `mpItem.live_item` items still write as `kind: 'item'`, but the live player does not honor `mpCurrentTime` since live `currentTime` is `0`. **Action item for § 6b** — assert via spec that anonymous restore for a live item does **not** auto-play, then capture whatever today's UI shows for the artist/episode page.                                                                                                  |
@@ -340,7 +340,7 @@ and breaks loudly if Phase 4 fumbles the controller-selection logic.
 | Effect                                                    | When it fires                                                                     | Where                                           |
 | --------------------------------------------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------- |
 | `setMPCurrentTime(p_or_0)`                                | On resource load, before metadata                                                 | `useMediaPlayerResourceUpdate`                  |
-| `mediaRef.currentTime = newCurrentTime`                   | On `loadedmetadata` after seek policy decides                                     | `MediaPlayerControllerAV.handleLoadedMetadata`  |
+| `mediaRef.currentTime = newCurrentTime`                   | On `loadedmetadata` after seek policy decides                                     | `NonLiveMediaOrchestrator.handleLoadedMetadata` |
 | `setMPClip(null)`                                         | On clip end-time + 1 reached                                                      | `handleTimeUpdate`                              |
 | `setMPItemSoundbite(null)`                                | On soundbite end-time + 1 reached                                                 | `handleTimeUpdate`                              |
 | `setMPItemChapter(...)`                                   | On `timeupdate` when chapters list exists, no clip/soundbite                      | `handleTimeUpdate`                              |
@@ -351,13 +351,13 @@ and breaks loudly if Phase 4 fumbles the controller-selection logic.
 | `trackStatsChannel` / `trackStatsClip` / `trackStatsItem` | Once per load on `loadedmetadata`, **only** when logged in **and** not add-by-RSS | `handleLoadedMetadata`                          |
 | `writeAnonymousPlaybackSnapshotFromPlayerState`           | On every `updateNowPlaying` while logged out                                      | `useQueueResourceUpdateNowPlaying`              |
 | `clearAnonymousPlaybackSnapshot()`                        | On login                                                                          | `AnonymousPlaybackRestoreController`            |
-| `globalPauseAtTime` set                                   | On clip / soundbite load (in `playWhenReady` effect)                              | `MediaPlayerControllerAV`                       |
-| `globalPauseAtTime` cleared                               | On `timeupdate` when reached, or on chapter end with `end_time`                   | `MediaPlayerControllerAV`                       |
+| `globalPauseAtTime` set                                   | On clip / soundbite load (in `playWhenReady` effect)                              | `NonLiveMediaOrchestrator`                      |
+| `globalPauseAtTime` cleared                               | On `timeupdate` when reached, or on chapter end with `end_time`                   | `NonLiveMediaOrchestrator`                      |
 
 ## Phase 1 deliverable-5 substitution
 
 Phase 1's
-[01-behavior-baseline-and-test-harness.md](../../../../../.llm/plans/active/media-player-architecture-refactor/01-behavior-baseline-and-test-harness.md)
+[01-behavior-baseline-and-test-harness.md](../../../../../.llm/plans/completed/media-player-architecture-refactor/01-behavior-baseline-and-test-harness.md)
 deliverable 5 named two pure-helper test files to confirm and extend:
 
 - `apps/web/src/lib/playbackResumeNearEnd.test.ts`

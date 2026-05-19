@@ -90,7 +90,7 @@ async function removeMusicTrackTwoFromQueue(page: Page): Promise<void> {
  *     tracks; the music seek-to-0 rule applies on every load.
  *
  * Pure-function and orchestration coverage exists in
- * `Controller/__tests__/MediaPlayerControllerAV.seekPolicy.test.tsx`.
+ * `Controller/__tests__/NonLiveMediaOrchestrator.seekPolicy.test.tsx`.
  */
 test.describe('Media player music playback', () => {
   test.beforeEach(async ({ page }) => {

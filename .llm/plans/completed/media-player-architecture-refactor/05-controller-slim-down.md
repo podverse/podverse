@@ -45,7 +45,7 @@ Unchanged from prior plan: keep `MediaPlayerCurrentTime` separate; keep
 ### 4. Final dead-code sweep
 
 ```bash
-rg "musicItemPlaybackIntent|musicSessionRestoreCurrentTime|playbackResumeNearEnd|EVENTS\.MEDIA_PLAYER|MediaPlayerControllerAV|MediaPlayerControllerAudio|MediaPlayerControllerVideo|MediaPlayerVideoWrapper" apps/web
+rg "musicItemPlaybackIntent|musicSessionRestoreCurrentTime|playbackResumeNearEnd|EVENTS\.MEDIA_PLAYER|NonLiveMediaOrchestrator|MediaPlayerControllerAudio|MediaPlayerControllerVideo|MediaPlayerVideoWrapper" apps/web
 ```
 
 Should return zero hits for **removed** symbols. **Do not** require
@@ -83,6 +83,6 @@ wc -l \
   apps/web/src/components/MediaPlayer/MediaElement/MediaElement.tsx \
   apps/web/src/hooks/useMediaElementBridge.ts
 npm run lint -w apps/web
-npm run test:unit -w apps/web
+npm run test:unit
 make e2e_test_web_report
 ```

@@ -4,7 +4,7 @@ Each numbered file below is **high-level** today. Before execution:
 
 1. Split each into concrete sub-phases (policy, bridge delta, UI
    parity, lint guards, merge) similar to
-   [`media-player-architecture-refactor`](../media-player-architecture-refactor/).
+   [`media-player-architecture-refactor`](../../completed/media-player-architecture-refactor/).
 2. Open a dedicated branch (e.g. `refactor/media-player-hls`) only after
    the prerequisite refactor is on `develop`.
 

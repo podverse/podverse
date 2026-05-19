@@ -24,9 +24,10 @@ import {
 } from '../../../components/LoadingSpinner/WebLoadingSpinnerOverlay';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { NoResults } from '../../../components/NoResults/NoResults';
-import { EVENTS } from '../../../constants/events';
 import { useAccount } from '../../../contexts/Account';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+import { useMediaPlayerControls } from '../../../contexts/MediaPlayerControls';
+import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import {
   getCachedChaptersTranscript,
@@ -72,6 +73,8 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
   const searchParams = useSearchParams();
   const { loggedInAccount } = useAccount();
   const { mpAddByRSS, setMPItemChapter, setMPItemChapterShouldSeek } = useMediaPlayer();
+  const { seek } = useMediaPlayerControls();
+  const { setMPCurrentTime } = useMediaPlayerCurrentTime();
   const [feed, setFeed] = React.useState<AddByRSSFeedRecord | null>(null);
   const [episode, setEpisode] = React.useState<AddByRSSItemIndexItem | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -342,13 +345,18 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
       if (!episode || mpAddByRSS?.idText !== episode.idText) return;
       setMPItemChapter(chapter);
       setMPItemChapterShouldSeek(true);
-      window.dispatchEvent(
-        new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, {
-          detail: { time: Number(chapter.start_time) },
-        })
-      );
+      const t = Number(chapter.start_time);
+      seek(t);
+      setMPCurrentTime(t);
     },
-    [episode, mpAddByRSS?.idText, setMPItemChapter, setMPItemChapterShouldSeek]
+    [
+      episode,
+      mpAddByRSS?.idText,
+      seek,
+      setMPCurrentTime,
+      setMPItemChapter,
+      setMPItemChapterShouldSeek,
+    ]
   );
 
   if (isLoading) {

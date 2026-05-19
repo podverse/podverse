@@ -2,7 +2,7 @@
 
 ## Prerequisite
 
-[`media-player-architecture-refactor`](../media-player-architecture-refactor/)
+[`media-player-architecture-refactor`](../../completed/media-player-architecture-refactor/)
 merged to `develop`.
 
 ## Expand later

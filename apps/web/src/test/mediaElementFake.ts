@@ -49,7 +49,7 @@ export interface MediaElementFakeOptions {
 }
 
 /**
- * Subset of `HTMLMediaElement` exercised by `MediaPlayerControllerAV` and
+ * Subset of `HTMLMediaElement` exercised by `NonLiveMediaOrchestrator` and
  * related controllers. Cast to `HTMLAudioElement & HTMLVideoElement` at the
  * test boundary where needed; the controller code only touches members that
  * are implemented here.

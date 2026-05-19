@@ -1,5 +1,5 @@
 /**
- * Orchestration tests for `MediaPlayerControllerAV`'s `ended` handler.
+ * Orchestration tests for `NonLiveMediaOrchestrator`'s `ended` handler.
  * Locks matrix § 5 (track-ended) and the auto-queue / clear-now-playing
  * branches.
  *
@@ -26,7 +26,7 @@ import {
   type InstalledMediaElementFake,
   installMediaElementFake,
 } from '../../../../test/mediaElementFake';
-import { MediaPlayerControllerAV } from '../MediaPlayerControllerAV';
+import { NonLiveMediaOrchestrator } from '../NonLiveMediaOrchestrator';
 
 interface SpyProps {
   moveNowPlayingToHistory: ReturnType<typeof vi.fn>;
@@ -96,7 +96,7 @@ async function renderAV(overrides: RenderOverrides = {}): Promise<{
         setLoggedInAccount: () => undefined,
       }}
     >
-      <MediaPlayerControllerAV
+      <NonLiveMediaOrchestrator
         mediaType="audio"
         hidden
         mpAddByRSS={overrides.mpAddByRSS ?? null}
@@ -165,7 +165,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('MediaPlayerControllerAV — ended (matrix § 5)', () => {
+describe('NonLiveMediaOrchestrator — ended (matrix § 5)', () => {
   it('non add-by-RSS, both queues empty: moves to history, calls load, then clearNowPlaying', async () => {
     const { fake, spies } = await renderAV({
       queueResult: {

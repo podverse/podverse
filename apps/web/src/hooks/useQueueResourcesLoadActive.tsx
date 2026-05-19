@@ -29,7 +29,7 @@ const emptyLoadActiveResult: QueueResourcesLoadActiveResult = {
   NOTE: If you want useQueueResourcesLoadActive to load the next item
   from the queue or auto-queue, and to skip the current "now playing item",
   you must call moveNowPlayingToHistory before calling this hook's returned function.
-  (example: TrackNextButton, TrackNextButtonMobile, and MediaPlayerControllerAV)
+  (example: TrackNextButton, TrackNextButtonMobile, and NonLiveMediaOrchestrator)
 */
 
 export function useQueueResourcesLoadActive() {

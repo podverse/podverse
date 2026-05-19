@@ -1,19 +1,26 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef } from 'react';
 
 import { getSelectedLabeledItemEnclosureAndSource, MediumEnum } from '@podverse/helpers';
 
-import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
-import { useMediaPlayerCurrentTime } from '../../../../contexts/MediaPlayerCurrentTime';
-import { useMediaPlayerVideo } from '../../../../contexts/MediaPlayerVideo';
-import { useAddByRSSPositionSave } from '../../../../hooks/useAddByRSSPositionSave';
-import { useMediaPlayerClearNowPlaying } from '../../../../hooks/useMediaPlayerClearNowPlaying';
-import { useQueueResourcesMoveNowPlayingToHistory } from '../../../../hooks/useQueueResourceMoveNowPlayingToHistory';
-import { MediaPlayerControllerVideo } from './MediaPlayerControllerVideo';
-import { MediaPlayerVideoPortalFloating } from './MediaPlayerVideoPortalFloating';
+import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
+import { useMediaPlayerVideo } from '../../../contexts/MediaPlayerVideo';
+import { useAddByRSSPositionSave } from '../../../hooks/useAddByRSSPositionSave';
+import { useMediaPlayerClearNowPlaying } from '../../../hooks/useMediaPlayerClearNowPlaying';
+import { useNonLivePlaybackAvProps } from '../../../hooks/useNonLivePlaybackAvProps';
+import { useQueueResourcesMoveNowPlayingToHistory } from '../../../hooks/useQueueResourceMoveNowPlayingToHistory';
+import { NonLiveMediaOrchestrator } from '../Controller/NonLiveMediaOrchestrator';
+import { MediaPlayerVideoPortalFloating } from '../Controller/Video/MediaPlayerVideoPortalFloating';
 
-export function MediaPlayerVideoWrapper() {
+/**
+ * Single mount point for non-live audio (hidden) and non-live video (floating portal).
+ * Replaces `MediaPlayerControllerAudio`, `MediaPlayerVideoWrapper`, and `MediaPlayerControllerVideo`.
+ */
+export function NonLiveMediaMount() {
+  const avProps = useNonLivePlaybackAvProps();
   const { videoLocation, setVideoLocation } = useMediaPlayerVideo();
   const {
     mpItem,
@@ -98,30 +105,38 @@ export function MediaPlayerVideoWrapper() {
     }
   }, [currentVideoKey, videoLocation, setVideoLocation, mpAddByRSS, isAddByRSSVideo]);
 
+  const videoEngine = (
+    <NonLiveMediaOrchestrator
+      {...avProps}
+      mediaType="video"
+      preload="auto"
+      style={{ width: '100%', height: '100%' }}
+    />
+  );
+
+  let floatingVideo: ReactNode = null;
   if (mpAddByRSS && isAddByRSSVideo) {
     if (videoLocation === 'floating') {
-      return (
+      floatingVideo = (
         <MediaPlayerVideoPortalFloating onClose={handleCloseFloating}>
-          <MediaPlayerControllerVideo />
+          {videoEngine}
         </MediaPlayerVideoPortalFloating>
       );
     }
-    return null;
-  }
-
-  if (!mpItem || mpItem.live_item) {
-    return null;
-  }
-
-  if (isVideoFile && !isLiveItem) {
+  } else if (mpItem && !mpItem.live_item && isVideoFile) {
     if (videoLocation === 'floating') {
-      return (
+      floatingVideo = (
         <MediaPlayerVideoPortalFloating onClose={handleCloseFloating}>
-          <MediaPlayerControllerVideo />
+          {videoEngine}
         </MediaPlayerVideoPortalFloating>
       );
     }
   }
 
-  return null;
+  return (
+    <>
+      <NonLiveMediaOrchestrator {...avProps} mediaType="audio" preload="auto" hidden={true} />
+      {floatingVideo}
+    </>
+  );
 }

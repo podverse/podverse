@@ -265,11 +265,11 @@ demonstrates it is needed.
 - No production code path calls `applyPlaybackLoad` yet (verified by
   ripgrep).
 - `npm run lint -w apps/web` passes.
-- `npm run test:unit -w apps/web` passes.
+- `npm run test:unit` passes.
 
 ## Verification commands
 
 ```bash
 npm run lint -w apps/web
-npm run test:unit -w apps/web
+npm run test:unit
 ```

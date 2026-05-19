@@ -9,6 +9,7 @@ not collapse them into one PR.
 | 1   | Behavior baseline and test harness                             | [`01-behavior-baseline-and-test-harness.md`](./01-behavior-baseline-and-test-harness.md)            | start `refactor/media-player`          |
 | 2   | Playback domain types and helpers                              | [`02-playback-domain-types.md`](./02-playback-domain-types.md)                                      | continue `refactor/media-player`       |
 | 3a  | Load policy + new MediaPlayer context shape (no consumers yet) | [`03a-policy-design-and-context-shape.md`](./03a-policy-design-and-context-shape.md)                | continue                               |
+| 3b-gate | Seed-expansion plan-set merged on develop                 | [`../../completed/media-player-e2e-seed-expansion/`](../../completed/media-player-e2e-seed-expansion/) | gate, not a commit                     |
 | 3b  | Migrate every load-policy consumer; delete superseded helpers  | [`03b-consumer-migration.md`](./03b-consumer-migration.md)                                          | continue                               |
 | 4a  | Bridge API + controls context + unified element contract       | [`04a-bridge-api-and-element-architecture.md`](./04a-bridge-api-and-element-architecture.md)        | continue                               |
 | 4b  | Unified `<MediaElement>` for regular audio + video             | [`04b-unified-media-element-regular-av.md`](./04b-unified-media-element-regular-av.md)              | continue                               |
@@ -23,13 +24,25 @@ not collapse them into one PR.
   E2E specs that gate every later commit. Phase 2 is type-only — no
   runtime risk.
 - **2 → 3a → 3b:** The load-policy work is decoupled from the bridge
-  work. Doing it first means the (still-legacy)
-  `MediaPlayerControllerAV` already speaks the new
+  work. Doing it first means the non-live
+  `NonLiveMediaOrchestrator` already speaks the new
   `PlaybackLoadRequest` vocabulary by the time we tear into the media
   element wiring. 3a designs and ships the new context shape +
   `resolvePlaybackLoadDecision` without flipping any consumers; 3b is
   the migration commit that flips them and deletes the superseded
   helpers.
+- **3a → 3b-gate → 3b:** Phase 3a is additive and skip-safe. Phase 3b
+  rewires the six non-livestream consumers (podcast, music, clip,
+  soundbite, chapter, add-by-RSS). Page-level oracles for those
+  consumers live in the
+  [`media-player-e2e-seed-expansion`](../../completed/media-player-e2e-seed-expansion/)
+  plan-set, which is independently mergeable on `develop`. The
+  `3b-gate` row is a *gate*, not a commit on this branch: do not
+  begin Phase 3b until the seed-expansion plan-set has merged on
+  `develop` (or you have documented an explicit risk acceptance).
+  Phases 1, 2, 3a, 4, and 5 are not gated on seed-expansion; their
+  oracles are the Phase 1 orchestration tests, the audio-start
+  livestream spec, and the seven Phase 1 active web specs.
 - **3 → 4a → 4b → 4c:** The bridge work is split three ways so each
   commit ships one architectural change with bounded blast radius:
   - **4a** designs and ships the bridge hook,

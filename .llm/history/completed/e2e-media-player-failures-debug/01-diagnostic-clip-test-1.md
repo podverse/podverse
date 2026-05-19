@@ -31,11 +31,11 @@ Instrumented [`media-player-clip-soundbite-end-pause.spec.ts`](../../../../apps/
 
 ### Fix branch chosen
 
-- Plan's Out-of-Scope says don't restructure `MediaPlayerControllerAV.handleLoadedMetadata`. That guidance still holds — the loaded-metadata handler logic is correct.
+- Plan's Out-of-Scope says don't restructure `NonLiveMediaOrchestrator.handleLoadedMetadata`. That guidance still holds — the loaded-metadata handler logic is correct.
 - The race is in the **queue auto-load effect** treating the first upcoming resource as if it were the now-playing item, which clobbers any user-initiated play on a non-queue page. Production fix would be in `MediaPlayerController.tsx` (effect at line 299), but the plan keeps controller changes out of scope.
 - **Phase 2 spec-side fix**: clear the user's seeded podcast queue resources before clip/soundbite/chapter tests via the existing `DELETE /queue/:queue_id_text/item/:item_id_text` endpoint. With an empty queue, the auto-load effect has no upcoming resources to load, so the user's Play click stands. Add `waitForAudioReadyAtLeast(page, 1)` (per plan) before `expectAudioCurrentTimeNear` for general flakiness reduction.
 - Add-by-RSS tests intentionally seed/promote queue resources and need a different handling path (their now-playing IS what the test wants). Will revisit during Phase 4 if a second class of failures remains.
-- Anonymous restore failure is a separate race between `setQueueResourcesAbridgedIndex` (sync in anonymous branch) and `queueResourcesAbridgedIndexRef.current` (synced via useEffect) inside [`MediaPlayerControllerAV.tsx:183-186`](../../../../apps/web/src/components/MediaPlayer/Controller/MediaPlayerControllerAV.tsx); Phase 2 readiness gate should give the ref a chance to update before the currentTime poll begins. Confirm during Phase 4.
+- Anonymous restore failure is a separate race between `setQueueResourcesAbridgedIndex` (sync in anonymous branch) and `queueResourcesAbridgedIndexRef.current` (synced via useEffect) inside [`NonLiveMediaOrchestrator.tsx:183-186`](../../../../apps/web/src/components/MediaPlayer/Controller/NonLiveMediaOrchestrator.tsx); Phase 2 readiness gate should give the ref a chance to update before the currentTime poll begins. Confirm during Phase 4.
 
 ### Diagnostic instrumentation
 
@@ -43,7 +43,7 @@ Reverted in the same commit. No instrumentation remains in [`media-player-clip-s
 
 ## Phase 2 follow-up — second root cause uncovered (asset server has no Range support)
 
-After implementing the queue-clearing fix in Phase 2 the audio `src` stayed on `e2e-podcast-short-60s-440hz.mp3` (correct), but `expectAudioCurrentTimeNear` still timed out for every non-zero seek target. Re-instrumented `MediaPlayerControllerAV.handleLoadedMetadata` to log `seekable`, `duration`, `seeking`, and `seeked` events:
+After implementing the queue-clearing fix in Phase 2 the audio `src` stayed on `e2e-podcast-short-60s-440hz.mp3` (correct), but `expectAudioCurrentTimeNear` still timed out for every non-zero seek target. Re-instrumented `NonLiveMediaOrchestrator.handleLoadedMetadata` to log `seekable`, `duration`, `seeking`, and `seeked` events:
 
 ```
 [diag handleLoadedMetadata] {readyState: 1, beforeSeekCurrentTime: 0, newDuration: 60, newCurrentTime: 5}
@@ -74,7 +74,7 @@ This is a deterministic fix that unblocks every seek-based media-player E2E spec
 
 ### Diagnostic instrumentation v2
 
-All Phase-2 instrumentation in `MediaPlayerControllerAV.tsx` and `media-player-clip-soundbite-end-pause.spec.ts` was reverted after capturing the seekable-range evidence above.
+All Phase-2 instrumentation in `NonLiveMediaOrchestrator.tsx` and `media-player-clip-soundbite-end-pause.spec.ts` was reverted after capturing the seekable-range evidence above.
 
 ## Phase 3 follow-up — chapter-seek test 2 title race
 
@@ -102,7 +102,7 @@ Fix: parameterized `pubDateOffsetSeconds` in `insertMusicTrack` so Track Two is 
 
 [`media-player-podcast-resume.spec.ts`](../../../../apps/web/e2e/media-player-podcast-resume.spec.ts) test 2 ("p within 5s of duration resets to 0") observed `audio.currentTime ≈ 57` instead of 0. The clamp in [`useMediaPlayerResourceUpdate`](../../../../apps/web/src/hooks/useMediaPlayerResourceUpdate.tsx) only sets `mpCurrentTime`; the controller's `handleLoadedMetadata` then independently seeks based on `queueResourcesAbridgedIndexRef.current.items[item.id].p` and bypasses the clamp, so the actual audio element seeks past the documented "p >= d - 5" boundary.
 
-Fix: mirrored the same clamp inside `handleLoadedMetadata` in [`apps/web/src/components/MediaPlayer/Controller/MediaPlayerControllerAV.tsx`](../../../../apps/web/src/components/MediaPlayer/Controller/MediaPlayerControllerAV.tsx). When the abridged duration is available, use it; otherwise fall back to the freshly-read `mediaRef.current.duration`. Falls back to `storedPosition` when not near-end. The hook-level clamp test (`useMediaPlayerResourceUpdate.nearEndClamp.test.tsx`) still pins the context-state behavior; the new controller-side clamp closes the gap between context state and the actual audio element.
+Fix: mirrored the same clamp inside `handleLoadedMetadata` in [`apps/web/src/components/MediaPlayer/Controller/NonLiveMediaOrchestrator.tsx`](../../../../apps/web/src/components/MediaPlayer/Controller/NonLiveMediaOrchestrator.tsx). When the abridged duration is available, use it; otherwise fall back to the freshly-read `mediaRef.current.duration`. Falls back to `storedPosition` when not near-end. The hook-level clamp test (`useMediaPlayerResourceUpdate.nearEndClamp.test.tsx`) still pins the context-state behavior; the new controller-side clamp closes the gap between context state and the actual audio element.
 
 ### C. Podcast-resume spec state leakage across the full batch
 

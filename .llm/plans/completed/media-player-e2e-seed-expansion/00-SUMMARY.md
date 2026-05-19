@@ -4,7 +4,7 @@
 
 Test-infrastructure-only plan-set that lifts the six non-livestream
 `test.fixme()` specs added during Phase 1 of the
-[media-player-architecture-refactor](../../active/media-player-architecture-refactor/)
+[media-player-architecture-refactor](../../completed/media-player-architecture-refactor/)
 into active page-level oracles. Each fixme is documented in
 [`MEDIA-PLAYER-DECISION-MATRIX.md`](../../../apps/web/src/components/MediaPlayer/MEDIA-PLAYER-DECISION-MATRIX.md)
 under "Non-livestream E2E placeholders" with its exact missing seed

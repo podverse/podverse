@@ -1,7 +1,7 @@
 # Livestream / HLS migration — copy-pasta
 
 **Do not execute** until
-[`media-player-architecture-refactor`](../media-player-architecture-refactor/)
+[`media-player-architecture-refactor`](../../completed/media-player-architecture-refactor/)
 is merged **and** each phase file below has been expanded from
 placeholder to implementation-ready detail.
 

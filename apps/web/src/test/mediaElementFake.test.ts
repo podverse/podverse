@@ -1,6 +1,6 @@
 /**
  * Self-tests for the fake `HTMLMediaElement` harness. The orchestration tests
- * for `MediaPlayerControllerAV` rely on this fake being accurate, so these
+ * for `NonLiveMediaOrchestrator` rely on this fake being accurate, so these
  * cases lock its observable contract.
  *
  * Matrix-level scenarios for the player itself live in

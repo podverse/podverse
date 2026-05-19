@@ -1,10 +1,12 @@
+'use client';
+
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 
 import type { TranscriptRow } from '@podverse/helpers';
 import { SearchInput, VirtualizedList } from '@podverse/ui';
 
-import { EVENTS } from '../../constants/events';
+import { useMediaPlayerControls } from '../../contexts/MediaPlayerControls';
 import { useMediaPlayerCurrentTime } from '../../contexts/MediaPlayerCurrentTime';
 import { ItemTranscriptRow } from './ItemTranscriptRow';
 
@@ -17,7 +19,8 @@ interface ItemTranscriptProps {
 
 export const ItemTranscript = ({ rows, autoScrollOn }: ItemTranscriptProps) => {
   const tInfo = useTranslations('info');
-  const { mpCurrentTime } = useMediaPlayerCurrentTime();
+  const { seek } = useMediaPlayerControls();
+  const { mpCurrentTime, setMPCurrentTime } = useMediaPlayerCurrentTime();
 
   const [searchTerm, setSearchTerm] = useState<string>('');
 
@@ -25,11 +28,8 @@ export const ItemTranscript = ({ rows, autoScrollOn }: ItemTranscriptProps) => {
   const safeRows = rows ?? [];
 
   const handleRowClick = (startTime: number) => {
-    window.dispatchEvent(
-      new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, {
-        detail: { time: startTime },
-      })
-    );
+    seek(startTime);
+    setMPCurrentTime(startTime);
   };
 
   const filteredRows = useMemo(() => {

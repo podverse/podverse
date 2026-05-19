@@ -38,7 +38,7 @@ Plus the single listener site that 4a already migrated to the bridge:
 apps/web/src/hooks/useMediaElementBridge.ts  (no longer listens to window events)
 ```
 
-(The legacy `MediaPlayerControllerAV.tsx` listener block was deleted
+(The `NonLiveMediaOrchestrator.tsx` window listener block was deleted
 in 4b along with the file.)
 
 ## Migration order (one commit per logical group)
@@ -216,7 +216,7 @@ After each commit on the refactor branch:
 
 ```bash
 npm run lint -w apps/web
-npm run test:unit -w apps/web
+npm run test:unit
 ```
 
 Spec-scoped E2E for the consumer touched:
@@ -257,6 +257,6 @@ make e2e_test_web_report
 
 ```bash
 npm run lint -w apps/web
-npm run test:unit -w apps/web
+npm run test:unit
 make e2e_test_web_report
 ```

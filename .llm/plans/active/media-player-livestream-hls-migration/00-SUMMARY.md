@@ -10,7 +10,7 @@ ordering only.
 ## Prerequisite
 
 Merge and ship
-[`media-player-architecture-refactor`](../media-player-architecture-refactor/)
+[`media-player-architecture-refactor`](../../completed/media-player-architecture-refactor/)
 first. That plan-set delivers: load policy, non-live
 `<MediaElement>`, bridge + controls context, removal of the
 `MEDIA_PLAYER` window-event bus, and **keeps** `video.js` for

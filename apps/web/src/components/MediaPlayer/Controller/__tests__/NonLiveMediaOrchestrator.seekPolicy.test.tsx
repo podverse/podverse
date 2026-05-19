@@ -1,5 +1,5 @@
 /**
- * Orchestration tests for `MediaPlayerControllerAV`'s `loadedmetadata`
+ * Orchestration tests for `NonLiveMediaOrchestrator`'s `loadedmetadata`
  * seek policy. Locks the matrix at
  * [`MEDIA-PLAYER-DECISION-MATRIX.md`](../../MEDIA-PLAYER-DECISION-MATRIX.md)
  * § 1 (initial load) in place as an executable contract.
@@ -37,7 +37,7 @@ import {
   type InstalledMediaElementFake,
   installMediaElementFake,
 } from '../../../../test/mediaElementFake';
-import { MediaPlayerControllerAV } from '../MediaPlayerControllerAV';
+import { NonLiveMediaOrchestrator } from '../NonLiveMediaOrchestrator';
 
 type RenderOverrides = Partial<{
   loggedInAccount: DTOAccount | null;
@@ -118,7 +118,7 @@ async function renderAV(overrides: RenderOverrides = {}): Promise<RenderResult> 
 
   const renderResult = render(
     <AccountContext.Provider value={{ loggedInAccount, setLoggedInAccount: () => undefined }}>
-      <MediaPlayerControllerAV
+      <NonLiveMediaOrchestrator
         mediaType="audio"
         hidden
         mpAddByRSS={overrides.mpAddByRSS ?? null}
@@ -170,7 +170,7 @@ async function renderAV(overrides: RenderOverrides = {}): Promise<RenderResult> 
 
   const audio = renderResult.container.querySelector('audio');
   if (audio === null) {
-    throw new Error('Expected <audio> element to be rendered by MediaPlayerControllerAV');
+    throw new Error('Expected <audio> element to be rendered by NonLiveMediaOrchestrator');
   }
   const fake = installMediaElementFake(audio);
   // Reset so per-test currentTime writes do not include any initial setup writes.
@@ -183,7 +183,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('MediaPlayerControllerAV — loadedmetadata seek policy (matrix § 1)', () => {
+describe('NonLiveMediaOrchestrator — loadedmetadata seek policy (matrix § 1)', () => {
   it('clip: seeks to Number(mpClip.start_time) regardless of abridged data', async () => {
     const { fake } = await renderAV({
       mpChannel: noopChannel(MediumEnum.Podcast),
@@ -352,7 +352,7 @@ describe('MediaPlayerControllerAV — loadedmetadata seek policy (matrix § 1)',
   });
 });
 
-describe('MediaPlayerControllerAV — add-by-RSS saved-position resume on loadedmetadata (matrix § 1, addByRSSSeekToTime)', () => {
+describe('NonLiveMediaOrchestrator — add-by-RSS saved-position resume on loadedmetadata (matrix § 1, addByRSSSeekToTime)', () => {
   const addByRSSWithEnclosure = (): MediaPlayerAddByRSSState =>
     ({
       idText: 'arrs-1',

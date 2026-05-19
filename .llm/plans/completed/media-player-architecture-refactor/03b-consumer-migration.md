@@ -10,7 +10,7 @@ and what should it do next."
 ## Scope
 
 Per-call-site edits. No new types, no new contexts, no bridge work
-(that is Phase 4). The legacy `MediaPlayerControllerAV.tsx` still owns
+(that is Phase 4). The non-live `NonLiveMediaOrchestrator.tsx` still owns
 the `<audio>` / `<video>` element after this phase — its
 `handleLoadedMetadata` simply consumes
 `pendingPlaybackDecision.initialSeekSeconds` from context instead of
@@ -170,9 +170,9 @@ Construct an `add-by-rss` target with the appropriate
 load policy reads the value out of `request.explicitPlaybackSeconds`
 on the way through).
 
-### Commit 8: `MediaPlayerControllerAV.handleLoadedMetadata`
+### Commit 8: `NonLiveMediaOrchestrator.handleLoadedMetadata`
 
-File: `apps/web/src/components/MediaPlayer/Controller/MediaPlayerControllerAV.tsx`
+File: `apps/web/src/components/MediaPlayer/Controller/NonLiveMediaOrchestrator.tsx`
 
 Replace the inline seek-time computation with a read of
 `pendingPlaybackDecision`. The new flow:
@@ -245,7 +245,7 @@ After each commit on the refactor branch:
 
 ```bash
 npm run lint -w apps/web
-npm run test:unit -w apps/web
+npm run test:unit
 make e2e_test_web_report_spec SPEC=e2e/<spec-relevant-to-the-commit>.spec.ts
 ```
 
@@ -268,7 +268,7 @@ make e2e_test_web_report
 - `MediaPlayer.tsx` context exposes only the new fields from 3a.
 - `MediaPlayerController.tsx` does not contain any music-intent
   branching.
-- `MediaPlayerControllerAV.handleLoadedMetadata` is < 30 lines and
+- `NonLiveMediaOrchestrator.handleLoadedMetadata` is < 30 lines and
   contains no per-source `if/else` chain.
 - The three helper files listed in commit 9 do not exist.
 - `pendingPlaybackLoadRef` is not referenced anywhere in the codebase
@@ -281,6 +281,6 @@ make e2e_test_web_report
 
 ```bash
 npm run lint -w apps/web
-npm run test:unit -w apps/web
+npm run test:unit
 make e2e_test_web_report
 ```

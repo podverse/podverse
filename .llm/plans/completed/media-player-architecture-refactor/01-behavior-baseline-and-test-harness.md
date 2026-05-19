@@ -176,6 +176,29 @@ reuse:
 Add cases for boundaries the matrix exposes (zero duration, negative
 position, NaN inputs, very large positions).
 
+### 7. Deferred to seed-expansion plan-set
+
+Phase 1 deliberately ships **six non-livestream E2E specs as
+`test.fixme()`** because the deterministic seed in
+[`tools/web/seed-e2e.mjs`](../../../../tools/web/seed-e2e.mjs) does
+not yet include the items, clips, soundbites, chapters, music album,
+stored playback positions, or add-by-RSS resources those specs need.
+The matrix's "Non-livestream E2E placeholders" subsection names each
+missing seed in the same table the lifted specs will satisfy.
+
+That seed work and the spec lifts live in the separate
+[`media-player-e2e-seed-expansion`](../../completed/media-player-e2e-seed-expansion/)
+plan-set and are a **prerequisite for Phase 3b**, not for Phase 1.
+The Phase 1 exit criteria below are satisfied by the orchestration
+tests, the audio-start livestream spec, the seven web specs that are
+already active on `develop`, the pure-helper coverage extensions, and
+the matrix doc itself.
+
+Three additional livestream specs remain `test.fixme()` per matrix
+§ 6c "Deferred to Phase 4" and are owned by the
+[`media-player-livestream-hls-migration`](../media-player-livestream-hls-migration/)
+plan-set; do **not** lift those during seed-expansion.
+
 ## Out of scope
 
 - Renaming or moving any production file.
@@ -184,7 +207,7 @@ position, NaN inputs, very large positions).
 
 ## Exit criteria
 
-- `npm run test:unit -w apps/web` passes including the new orchestration
+- `npm run test:unit` passes including the new orchestration
   tests.
 - `make e2e_test_web_report` passes including the new playback specs.
 - The decision matrix doc lists every (source kind x trigger) cell with
@@ -195,6 +218,6 @@ position, NaN inputs, very large positions).
 ## Verification commands
 
 ```bash
-npm run test:unit -w apps/web
+npm run test:unit
 make e2e_test_web_report
 ```

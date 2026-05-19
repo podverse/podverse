@@ -113,12 +113,12 @@ NaN inputs, missing fields, explicit-overrides-abridged precedence.
 
 - All Phase 2 modules compile and have unit tests.
 - `npm run lint -w apps/web` passes.
-- `npm run test:unit -w apps/web` passes including the new tests.
+- `npm run test:unit` passes including the new tests.
 - No production code path imports the new modules yet (verified by grep).
 
 ## Verification commands
 
 ```bash
 npm run lint -w apps/web
-npm run test:unit -w apps/web
+npm run test:unit
 ```

@@ -1,5 +1,3 @@
-import { EVENTS } from '../../../constants/events';
-
 export type MediaPlayerKeyDownState = {
   mpAddByRSS: unknown | null;
   mpChannel: unknown | null;
@@ -15,7 +13,7 @@ export function handleMediaPlayerWindowKeyDown(
   e: Pick<KeyboardEvent, 'code' | 'key' | 'repeat' | 'preventDefault'>,
   target: HTMLElement,
   state: MediaPlayerKeyDownState,
-  dispatchSeek: (time: number) => void,
+  seek: (time: number) => void,
   togglePlayPause: () => void
 ): void {
   if (target.closest('input, textarea, select, [contenteditable="true"]')) {
@@ -27,7 +25,7 @@ export function handleMediaPlayerWindowKeyDown(
       return;
     }
     const newTime = Math.max(0, state.mpCurrentTime - 10);
-    dispatchSeek(newTime);
+    seek(newTime);
     e.preventDefault();
     return;
   }
@@ -37,7 +35,7 @@ export function handleMediaPlayerWindowKeyDown(
       return;
     }
     const newTime = Math.min(state.mpDuration, state.mpCurrentTime + 10);
-    dispatchSeek(newTime);
+    seek(newTime);
     e.preventDefault();
     return;
   }
@@ -62,8 +60,4 @@ export function handleMediaPlayerWindowKeyDown(
     togglePlayPause();
     e.preventDefault();
   }
-}
-
-export function dispatchMediaPlayerSeek(time: number): void {
-  window.dispatchEvent(new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, { detail: { time } }));
 }

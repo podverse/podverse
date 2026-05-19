@@ -31,10 +31,10 @@ plan-set.
   difference between the audio and video controllers; once they are
   one element, the wrapper is gone).
 - `apps/web/src/components/MediaPlayer/Controller/MediaPlayerControllerAV.tsx`
-  — **deleted**. Its remaining responsibility (`handleLoadedMetadata`,
-  shared event listener wiring) is already inside
-  `useMediaElementBridge` from 4a; without the audio/video
-  controllers, there is nothing left.
+  — **removed** (replaced by `NonLiveMediaOrchestrator.tsx`, which renders
+  `<MediaElement>` and wires `useMediaElementBridge`).
+- `apps/web/src/components/MediaPlayer/Controller/NonLiveMediaOrchestrator.tsx`
+  — coordinates non-live playback, context mirrors, and bridge callbacks.
 - `apps/web/src/components/MediaPlayer/Controller/Video/MediaPlayerVideoPortalFloating.tsx`
   — preserved, but consumes `<MediaElement>` directly when the active
   target is a video.
@@ -74,7 +74,7 @@ export function mediaElementSourceFromTarget(
 ```
 
 `pickPrimaryMediaUrl` and `pickPrimaryMimeType` are extracted from the
-existing `MediaPlayerControllerAV` source-selection logic. They become
+existing `NonLiveMediaOrchestrator` source-selection logic. They become
 small, individually testable helpers under
 `apps/web/src/components/MediaPlayer/MediaElement/`.
 
@@ -219,22 +219,23 @@ In order on the refactor branch:
    apps/web/src` — should show only the file definitions.
 2. Delete `MediaPlayerControllerAudio.tsx`,
    `MediaPlayerControllerVideo.tsx`, `MediaPlayerVideoWrapper.tsx`.
-3. Delete `MediaPlayerControllerAV.tsx`. Its useful remnants
-   (`handleLoadedMetadata`, listener wiring) are already inside
-   `useMediaElementBridge` from 4a.
+3. **Done:** `MediaPlayerControllerAV.tsx` removed; non-live coordination
+   lives in `NonLiveMediaOrchestrator.tsx`, and the `<audio>` / `<video>` DOM
+   is rendered by `MediaElement.tsx` (bridge still owns imperative `src` /
+   `load` / seek where applicable).
 4. Delete `apps/web/src/components/MediaPlayer/Controller/Audio/`
    directory if it becomes empty.
 5. Delete `apps/web/src/components/MediaPlayer/Controller/Video/`
    directory if only `MediaPlayerVideoPortalFloating.tsx` remains; if
    so, move that file up one level into `MediaElement/`.
 
-After step 5, the only files under
-`apps/web/src/components/MediaPlayer/Controller/` are:
+After step 5, the primary non-live files under
+`apps/web/src/components/MediaPlayer/Controller/` include:
 
 - `MediaPlayerController.tsx` (the slimmed top-level controller)
+- `NonLiveMediaOrchestrator.tsx` (non-live bridge wiring + effects)
 - `LiveStream/` (kept until the HLS migration plan-set removes it)
-- `mediaPlayerWindowKeyDown.ts` (lives here until Phase 4c migrates the
-  keyboard handler off the window event bus)
+- `mediaPlayerWindowKeyDown.ts`
 - `mediaPlayerWindowKeyDown.test.ts`
 
 ## 6. Testing
@@ -261,19 +262,19 @@ selector updates if the DOM hierarchy changed).
 
 ## Exit criteria
 
-- One `<MediaElement>` component renders all non-live audio and video
-  in the app.
-- The four files listed under "Deletions" above no longer exist.
-- `MediaPlayerControlsProvider` publishes the `<MediaElement>` bridge
-  when the active target is non-live.
+- `<MediaElement>` renders the non-live `<audio>` / `<video>` DOM for each
+  `NonLiveMediaOrchestrator` mount (hidden audio + floating video).
+- Legacy split controllers (`MediaPlayerControllerAudio`, `MediaPlayerControllerVideo`,
+  `MediaPlayerVideoWrapper`) and `MediaPlayerControllerAV.tsx` are gone.
+- `MediaPlayerControlsProvider` publishes the bridge when non-live playback
+  is active.
 - The floating-portal video player works end-to-end (verified by E2E).
-- `MediaPlayerControllerAV.tsx` does not exist.
 - The Phase 1 baseline E2E suite still passes.
 
 ## Verification commands
 
 ```bash
 npm run lint -w apps/web
-npm run test:unit -w apps/web
+npm run test:unit
 make e2e_test_web_report
 ```

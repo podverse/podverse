@@ -1,12 +1,12 @@
 /**
- * Orchestration tests for `MediaPlayerControllerAV`'s `timeupdate` handler.
+ * Orchestration tests for `NonLiveMediaOrchestrator`'s `timeupdate` handler.
  * Locks the matrix at
  * [`MEDIA-PLAYER-DECISION-MATRIX.md`](../../MEDIA-PLAYER-DECISION-MATRIX.md)
  * § 6 (time-update side effects) and the clip / soundbite "+ 1 second"
  * end-time pause buffer.
  *
  * Rendering strategy is identical to the seek-policy test file:
- * `MediaPlayerControllerAV` is rendered directly with explicit props and
+ * `NonLiveMediaOrchestrator` is rendered directly with explicit props and
  * its real DOM `<audio>` is decorated with `installMediaElementFake`.
  */
 import { act, cleanup, render } from '@testing-library/react';
@@ -29,7 +29,7 @@ import {
   type InstalledMediaElementFake,
   installMediaElementFake,
 } from '../../../../test/mediaElementFake';
-import { MediaPlayerControllerAV } from '../MediaPlayerControllerAV';
+import { NonLiveMediaOrchestrator } from '../NonLiveMediaOrchestrator';
 
 type RenderOverrides = Partial<{
   loggedInAccount: DTOAccount | null;
@@ -119,7 +119,7 @@ async function renderAV(overrides: RenderOverrides = {}): Promise<RenderResult> 
         setLoggedInAccount: () => undefined,
       }}
     >
-      <MediaPlayerControllerAV
+      <NonLiveMediaOrchestrator
         mediaType="audio"
         hidden
         mpAddByRSS={null}
@@ -182,7 +182,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('MediaPlayerControllerAV — timeupdate (matrix § 6)', () => {
+describe('NonLiveMediaOrchestrator — timeupdate (matrix § 6)', () => {
   it('clip: clears mpClip and pauses one second after end_time', async () => {
     const setMPClip = vi.fn<(clip: DTOClip | null) => void>();
     const setMPIsPlaying = vi.fn<(playing: boolean) => void>();
@@ -192,7 +192,7 @@ describe('MediaPlayerControllerAV — timeupdate (matrix § 6)', () => {
       setMPIsPlaying,
     });
     // Discard mount-time setMPIsPlaying(false) from the mpIsPlaying=false
-    // effect in MediaPlayerControllerAV (lines 648–657); we only care about
+    // effect in NonLiveMediaOrchestrator (lines 648–657); we only care about
     // timeupdate-driven calls in this test.
     setMPIsPlaying.mockClear();
 

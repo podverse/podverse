@@ -69,7 +69,7 @@ async function expectAudioSrcMatches(page: Page, enclosureUrl: string): Promise<
  *     resumes via `mediaPlayerResourceUpdate({ mpCurrentTime, mpDuration })`.
  *   - § 2 — music items always seek to `0` on every load regardless of
  *     the stored snapshot position (the music seek-to-0 rule in
- *     `MediaPlayerControllerAV.handleLoadedMetadata`).
+ *     `NonLiveMediaOrchestrator.handleLoadedMetadata`).
  *   - § 2 — on login, the snapshot is cleared via
  *     `clearAnonymousPlaybackSnapshot()` and the restore path is skipped
  *     for the rest of the session.

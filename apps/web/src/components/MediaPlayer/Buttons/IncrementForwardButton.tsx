@@ -1,18 +1,21 @@
+'use client';
+
 import { FaChevronRight } from 'react-icons/fa6';
 
 import { MEDIA_JUMP_INCREMENT_SECONDS } from '@podverse/helpers';
 
-import { EVENTS } from '../../../constants/events';
+import { useMediaPlayerControls } from '../../../contexts/MediaPlayerControls';
+import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
 
 import styles from '../../../styles/components/MediaPlayer/Buttons/IncrementForwardButton.module.scss';
 
 export const IncrementForwardButton = () => {
+  const { jumpBy } = useMediaPlayerControls();
+  const { setMPCurrentTime } = useMediaPlayerCurrentTime();
+
   const handleClick = () => {
-    window.dispatchEvent(
-      new CustomEvent(EVENTS.MEDIA_PLAYER.JUMP_FORWARD, {
-        detail: { seconds: MEDIA_JUMP_INCREMENT_SECONDS },
-      })
-    );
+    const t = jumpBy(MEDIA_JUMP_INCREMENT_SECONDS);
+    setMPCurrentTime(t);
   };
 
   return (

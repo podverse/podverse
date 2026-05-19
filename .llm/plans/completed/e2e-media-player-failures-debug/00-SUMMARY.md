@@ -9,7 +9,7 @@ with `useMediaPlayerResourceUpdate`, and podcast-resume re-promotion
 after broad queue cleanup).
 
 **Primary evidence and narrative:** see
-[`.llm/history/active/e2e-media-player-failures-debug/01-diagnostic-clip-test-1.md`](../../history/active/e2e-media-player-failures-debug/01-diagnostic-clip-test-1.md)
+[`.llm/history/completed/e2e-media-player-failures-debug/01-diagnostic-clip-test-1.md`](../../history/completed/e2e-media-player-failures-debug/01-diagnostic-clip-test-1.md)
 (appendix covers Phases 2–4 follow-ups).
 
 This plan-set was executed on branch `refactor/media-player`; there was

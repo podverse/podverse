@@ -6,7 +6,7 @@ import { expect, test } from '@playwright/test';
  * § 6a "Live-stream / video.js baseline" — "Live → non-live transition"):
  *   - Triggering an explicit play of a regular podcast item while live is
  *     playing must dispose the video.js player, clear the container DOM,
- *     and let the non-live `MediaPlayerControllerAV` mount cleanly.
+ *     and let the non-live `NonLiveMediaOrchestrator` mount cleanly.
  *
  * Verbatim regression note from
  * `MediaPlayerControllerLiveStreamAV.tsx` bottom-of-file:

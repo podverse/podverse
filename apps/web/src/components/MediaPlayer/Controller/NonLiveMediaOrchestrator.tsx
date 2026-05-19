@@ -15,9 +15,11 @@ import type {
 } from '@podverse/helpers';
 import { getSelectedLabeledItemEnclosureAndSource, isEqual, MediumEnum } from '@podverse/helpers';
 
-import { EVENTS } from '../../../constants/events';
 import { useAccount } from '../../../contexts/Account';
 import type { MediaPlayerAddByRSSState } from '../../../contexts/MediaPlayer';
+import { useRegisterMediaPlayerControlsBridge } from '../../../contexts/MediaPlayerControls';
+import type { MediaElementBridge, MediaElementSource } from '../../../hooks/useMediaElementBridge';
+import { useMediaElementBridge } from '../../../hooks/useMediaElementBridge';
 import type { MoveNowPlayingToHistoryCallbackParams } from '../../../hooks/useQueueResourceMoveNowPlayingToHistory';
 import type { QueueResourcesLoadActiveResult } from '../../../hooks/useQueueResourcesLoadActive';
 import type { UpdateNowPlayingParams } from '../../../hooks/useQueueResourceUpdateNowPlaying';
@@ -27,7 +29,6 @@ import {
   checkIfIsVideoFile,
   checkIsLiveItem,
 } from '../../../utils/mediaPlayer/mediaPlayerItemEnclosureType';
-import { playMediaWhenReady } from '../../../utils/mediaPlayer/mediaPlayerPlayMediaWhenReady';
 import { waitForSourceUri } from '../../../utils/mediaPlayer/mediaPlayerPlayMediaWhenReady';
 import { selectItemChapterForTime } from '../../../utils/mediaPlayer/selectItemChapterForTime';
 import {
@@ -35,8 +36,9 @@ import {
   trackStatsClip,
   trackStatsItem,
 } from '../../../utils/statsTracking/statsTracking';
+import { MediaElement } from '../MediaElement/MediaElement';
 
-export interface MediaPlayerControllerAVProps {
+export interface NonLiveMediaOrchestratorProps {
   mediaType: 'audio' | 'video';
   preload?: 'auto' | 'metadata' | 'none';
   style?: React.CSSProperties;
@@ -83,9 +85,7 @@ export interface MediaPlayerControllerAVProps {
   clearNowPlaying: () => void;
 }
 
-let globalPauseAtTime: number | null = null;
-
-export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (props) => {
+export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> = (props) => {
   const { loggedInAccount } = useAccount();
   const loggedInAccountRef = useRef(loggedInAccount);
   useEffect(() => {
@@ -135,7 +135,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     clearNowPlaying,
   } = props;
 
-  const mediaRef = useRef<HTMLAudioElement & HTMLVideoElement>(null);
+  const mediaRef = useRef<HTMLMediaElement | null>(null);
 
   const mpAddByRSSRef = useRef(mpAddByRSS);
   useEffect(() => {
@@ -197,218 +197,21 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
   const playbackElapsedRef = useRef(0);
   const lastPlaybackTimeRef = useRef<number | null>(null);
 
-  const prevSelectedRef = useRef<SelectedLabeledItemEnclosureAndSource | null>(null);
+  const bridgeRef = useRef<MediaElementBridge | null>(null);
 
-  const selectedItemEnclosureAndSource = useMemo(() => {
-    const next = getSelectedLabeledItemEnclosureAndSource({
-      labeledItemEnclosures: mpItemLabeledEnclosures,
-      type: mpEnclosureSelectedParams.type,
-      enclosureRowIndex: mpEnclosureSelectedParams.enclosureRowSelected,
-      sourceRowIndex: mpEnclosureSelectedParams.sourceRowSelected,
-    });
-    if (isEqual(prevSelectedRef.current, next)) {
-      return prevSelectedRef.current;
-    }
-    prevSelectedRef.current = next;
-    return next;
-  }, [mpItemLabeledEnclosures, mpEnclosureSelectedParams]);
-
-  const addByRSSSelectedMediaType =
-    mpAddByRSS && mpItemLabeledEnclosures.length > 0
-      ? (selectedItemEnclosureAndSource?.labeledItemEnclosure?.mediaType ?? null)
-      : null;
-
-  useEffect(() => {
-    if (!mediaRef.current || !mpAddByRSS?.resourceData) return;
-
-    const mediumId = mpAddByRSS.resourceData.medium_id;
-    const addByRSSMediaType =
-      addByRSSSelectedMediaType ?? (mediumId === MediumEnum.Video ? 'video' : 'audio');
-    if (mediaType === 'audio' && addByRSSMediaType === 'video') return;
-    if (mediaType === 'video' && addByRSSMediaType !== 'video') return;
-
-    let url: string;
-    if (mpItemLabeledEnclosures.length > 0) {
-      const selected = getSelectedLabeledItemEnclosureAndSource({
-        labeledItemEnclosures: mpItemLabeledEnclosures,
-        type: mpEnclosureSelectedParams.type,
-        enclosureRowIndex: mpEnclosureSelectedParams.enclosureRowSelected,
-        sourceRowIndex: mpEnclosureSelectedParams.sourceRowSelected,
-      });
-      const uri = selected?.source?.uri;
-      if (typeof uri !== 'string' || uri.trim() === '') return;
-      url = uri.trim();
-    } else {
-      const enclosureUrl = mpAddByRSS.resourceData.enclosure_url;
-      if (typeof enclosureUrl !== 'string' || enclosureUrl.trim() === '') return;
-      url = enclosureUrl.trim();
-    }
-    const isRestoredSeek = addByRSSSeekToTime !== null;
-    const seekTime = isRestoredSeek && addByRSSSeekToTime >= 0 ? addByRSSSeekToTime : 0;
-
-    // Only set src/load if not already set (e.g. declarative src from JSX may already match).
-    if (mediaRef.current.src !== url) {
-      mediaRef.current.src = url;
-      mediaRef.current.load();
-    }
-
-    const applySeek = () => {
-      if (isRestoredSeek) {
-        if (mediaRef.current) {
-          mediaRef.current.currentTime = seekTime;
-        }
-        setAddByRSSSeekToTime(null);
-      }
-    };
-
-    if (mediaRef.current.readyState >= 1) {
-      applySeek();
-    } else {
-      mediaRef.current.addEventListener('loadedmetadata', applySeek, { once: true });
-    }
-
-    if (mpShouldPlay) {
-      if (mediaRef.current) {
-        playMediaWhenReady(mediaRef.current, () => setMPShouldPlay(false));
-      }
-    }
-  }, [
-    mpAddByRSS,
-    mediaType,
-    mpShouldPlay,
-    addByRSSSeekToTime,
-    setAddByRSSSeekToTime,
-    mpItemLabeledEnclosures,
-    mpEnclosureSelectedParams,
-    addByRSSSelectedMediaType,
-  ]);
-
-  useEffect(() => {
-    const isAddByRSSWithNoEnclosures = mpAddByRSS && mpItemLabeledEnclosures.length === 0;
-    if (isAddByRSSWithNoEnclosures) return;
-    if (!selectedItemEnclosureAndSource) {
-      return;
-    }
-    if (!selectedItemEnclosureAndSource.labeledItemEnclosure?.enclosure?.type) {
-      return;
-    }
-    if (!selectedItemEnclosureAndSource.source?.uri) {
-      return;
-    }
-
-    if (mediaRef.current) {
-      const isAudioFile = checkIfIsAudioFile(selectedItemEnclosureAndSource);
-      const isVideoFile = checkIfIsVideoFile(selectedItemEnclosureAndSource);
-      const isLiveItem = checkIsLiveItem(mpItemRef.current);
-
-      if ((mediaType === 'audio' ? isAudioFile : isVideoFile) && !isLiveItem) {
-        mediaRef.current.currentTime = 0;
-        mediaRef.current.load();
-        if (mpShouldPlayRef.current) {
-          playMediaWhenReady(mediaRef.current, () => setMPShouldPlay(false));
-        }
-      } else {
-        mediaRef.current.pause();
-        mediaRef.current.removeAttribute('src');
-        mediaRef.current.load();
-      }
-    }
-  }, [mpAddByRSS, mpItemLabeledEnclosures.length, selectedItemEnclosureAndSource]);
-
-  useEffect(() => {
-    const syncItemChapterToTime = (t: number) => {
-      if (mpItemSoundbiteRef.current || mpClipRef.current) {
-        return;
-      }
-      const chapters = mpItemChaptersRef.current;
-      if (!Array.isArray(chapters) || chapters.length === 0) {
-        return;
-      }
-      const selectedChapter = selectItemChapterForTime(chapters, t);
-      if (selectedChapter) {
-        if (!mpItemChapterRef.current || mpItemChapterRef.current.id !== selectedChapter.id) {
-          setMPItemChapter(selectedChapter);
-        }
-      } else if (mpItemChapterRef.current) {
-        setMPItemChapter(null);
-      }
-    };
-
-    const handleSeek = (e: Event) => {
-      const customEvent = e as CustomEvent<{ time: number }>;
-      if (mediaRef.current && typeof customEvent.detail.time === 'number') {
-        const t = customEvent.detail.time;
-        mediaRef.current.currentTime = t;
-        setMPCurrentTime(t);
-        syncItemChapterToTime(t);
-      }
-    };
-
-    const handleJumpBack = (e: Event) => {
-      const customEvent = e as CustomEvent<{ seconds: number }>;
-      if (mediaRef.current && typeof customEvent.detail.seconds === 'number') {
-        const newTime = Math.max(mediaRef.current.currentTime - customEvent.detail.seconds, 0);
-        mediaRef.current.currentTime = newTime;
-        setMPCurrentTime(newTime);
-        syncItemChapterToTime(newTime);
-      }
-    };
-
-    const handleJumpForward = (e: Event) => {
-      const customEvent = e as CustomEvent<{ seconds: number }>;
-      if (
-        mediaRef.current &&
-        typeof customEvent.detail.seconds === 'number' &&
-        typeof mediaRef.current.duration === 'number'
-      ) {
-        const newTime = Math.min(
-          mediaRef.current.currentTime + customEvent.detail.seconds,
-          mediaRef.current.duration
-        );
-        mediaRef.current.currentTime = newTime;
-        setMPCurrentTime(newTime);
-        syncItemChapterToTime(newTime);
-      }
-    };
-
-    const handlePauseAt = (e: Event) => {
-      const customEvent = e as CustomEvent<{ stopAt: number }>;
-      if (typeof customEvent.detail.stopAt === 'number') {
-        globalPauseAtTime = customEvent.detail.stopAt;
-      }
-    };
-
-    window.addEventListener(EVENTS.MEDIA_PLAYER.SEEK, handleSeek);
-    window.addEventListener(EVENTS.MEDIA_PLAYER.JUMP_BACK, handleJumpBack);
-    window.addEventListener(EVENTS.MEDIA_PLAYER.JUMP_FORWARD, handleJumpForward);
-    window.addEventListener(EVENTS.MEDIA_PLAYER.PAUSE_AT, handlePauseAt);
-
-    return () => {
-      window.removeEventListener(EVENTS.MEDIA_PLAYER.SEEK, handleSeek);
-      window.removeEventListener(EVENTS.MEDIA_PLAYER.JUMP_BACK, handleJumpBack);
-      window.removeEventListener(EVENTS.MEDIA_PLAYER.JUMP_FORWARD, handleJumpForward);
-      window.removeEventListener(EVENTS.MEDIA_PLAYER.PAUSE_AT, handlePauseAt);
-    };
-  }, [setMPItemChapter]);
-
-  useEffect(() => {
-    if (!mediaRef.current) {
-      return;
-    }
-
-    const handleLoadedMetadata = () => {
+  const bridge = useMediaElementBridge(mediaRef, {
+    onLoadedMetadata(newDuration) {
       if (!mediaRef.current) {
         return;
       }
-      const newDuration = mediaRef.current.duration;
       const stagedDecision = pendingPlaybackDecisionRef.current;
 
       if (stagedDecision !== null && stagedDecision !== undefined) {
-        mediaRef.current.currentTime = stagedDecision.initialSeekSeconds;
+        bridgeRef.current?.seek(stagedDecision.initialSeekSeconds);
         if (typeof stagedDecision.pauseAtSeconds === 'number') {
-          globalPauseAtTime = stagedDecision.pauseAtSeconds;
+          bridgeRef.current?.pauseAt(stagedDecision.pauseAtSeconds);
         } else {
-          globalPauseAtTime = null;
+          bridgeRef.current?.pauseAt(-1);
         }
 
         setMPDuration(newDuration);
@@ -476,7 +279,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         (mpClipRef.current || mpItemSoundbiteRef.current || mpItemRef.current) &&
         newCurrentTime !== null
       ) {
-        mediaRef.current.currentTime = newCurrentTime;
+        bridgeRef.current?.seek(newCurrentTime);
       }
 
       setMPDuration(newDuration);
@@ -503,9 +306,8 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
       if (itemIdText) {
         trackStatsItem(itemIdText);
       }
-    };
-
-    const handlePlay = () => {
+    },
+    onPlay() {
       if (!mediaRef.current) {
         return;
       }
@@ -529,9 +331,8 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         lastPlaybackTimeRef.current = newCurrentTime;
       }
       setMPIsPlaying(true);
-    };
-
-    const handlePause = () => {
+    },
+    onPause() {
       if (!mediaRef.current) {
         return;
       }
@@ -555,13 +356,11 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         lastPlaybackTimeRef.current = null;
       }
       setMPIsPlaying(false);
-    };
-
-    const handleTimeUpdate = () => {
+    },
+    onTimeUpdate(newCurrentTime) {
       if (!mediaRef.current) {
         return;
       }
-      const newCurrentTime = mediaRef.current.currentTime;
 
       const shouldUpdateCurrentTime = !mpAddByRSSRef.current || !mediaRef.current.paused;
       if (shouldUpdateCurrentTime) {
@@ -594,11 +393,6 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         playbackElapsedRef.current = 0;
       }
 
-      if (globalPauseAtTime !== null && newCurrentTime >= globalPauseAtTime) {
-        setMPIsPlaying(false);
-        globalPauseAtTime = null;
-      }
-
       if (mpClipRef.current && mpClipRef.current.end_time) {
         const endTimeNum =
           typeof mpClipRef.current.end_time === 'string'
@@ -608,7 +402,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         if (!isNaN(endTimeNumAdjusted) && newCurrentTime >= endTimeNumAdjusted) {
           setMPClip(null);
           setMPIsPlaying(false);
-          globalPauseAtTime = null;
+          bridgeRef.current?.pauseAt(-1);
         }
       }
 
@@ -626,7 +420,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         if (!isNaN(endTimeNumAdjusted) && newCurrentTime >= endTimeNumAdjusted) {
           setMPItemSoundbite(null);
           setMPIsPlaying(false);
-          globalPauseAtTime = null;
+          bridgeRef.current?.pauseAt(-1);
         }
       }
 
@@ -643,143 +437,221 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
           }
         }
       }
-    };
-
-    const handleEnded = async () => {
-      if (mpAddByRSSRef.current && onAddByRSSEndedRef.current) {
-        if (!mediaRef.current) {
+    },
+    onEnded() {
+      void (async () => {
+        if (mpAddByRSSRef.current && onAddByRSSEndedRef.current) {
+          if (!mediaRef.current) {
+            return;
+          }
+          const positionSeconds = mediaRef.current.currentTime;
+          const medium_id =
+            typeof mpAddByRSSRef.current.resourceData?.medium_id === 'number'
+              ? mpAddByRSSRef.current.resourceData.medium_id
+              : undefined;
+          await onAddByRSSEndedRef.current(positionSeconds);
+          setMPShouldPlay(false);
+          const { upcomingManualCount } = await queueResourcesLoadActive(medium_id);
+          if (upcomingManualCount > 0) {
+            return;
+          }
+          const playedNext = onAddByRSSPlayNextRef.current
+            ? await onAddByRSSPlayNextRef.current()
+            : false;
+          if (!playedNext) {
+            clearNowPlayingRef.current?.();
+          }
           return;
         }
-        const positionSeconds = mediaRef.current.currentTime;
-        // Capture medium_id before potentially clearing mpAddByRSS so we can find the correct queue
-        const medium_id =
-          typeof mpAddByRSSRef.current.resourceData?.medium_id === 'number'
-            ? mpAddByRSSRef.current.resourceData.medium_id
-            : undefined;
-        await onAddByRSSEndedRef.current(positionSeconds);
-        setMPShouldPlay(false);
-        const { upcomingManualCount } = await queueResourcesLoadActive(medium_id);
-        if (upcomingManualCount > 0) {
-          return;
-        }
-        const playedNext = onAddByRSSPlayNextRef.current
-          ? await onAddByRSSPlayNextRef.current()
-          : false;
-        if (!playedNext) {
+        await moveNowPlayingToHistory({
+          completed: true,
+          mpClip: mpClipRef.current,
+          mpItem: mpItemRef.current,
+          mpItemSoundbite: mpItemSoundbiteRef.current,
+        });
+        const { upcomingManualCount, hasAutoQueueNext } = await queueResourcesLoadActive();
+        if (upcomingManualCount === 0 && !hasAutoQueueNext) {
           clearNowPlayingRef.current?.();
+          return;
         }
-        return;
-      }
-      await moveNowPlayingToHistory({
-        completed: true,
-        mpClip: mpClipRef.current,
-        mpItem: mpItemRef.current,
-        mpItemSoundbite: mpItemSoundbiteRef.current,
+        if (upcomingManualCount > 0 || hasAutoQueueNext) {
+          setMPShouldPlay(true);
+        }
+      })();
+    },
+  });
+  bridgeRef.current = bridge;
+  useRegisterMediaPlayerControlsBridge(bridge);
+
+  const prevSelectedRef = useRef<SelectedLabeledItemEnclosureAndSource | null>(null);
+
+  const selectedItemEnclosureAndSource = useMemo(() => {
+    const next = getSelectedLabeledItemEnclosureAndSource({
+      labeledItemEnclosures: mpItemLabeledEnclosures,
+      type: mpEnclosureSelectedParams.type,
+      enclosureRowIndex: mpEnclosureSelectedParams.enclosureRowSelected,
+      sourceRowIndex: mpEnclosureSelectedParams.sourceRowSelected,
+    });
+    if (isEqual(prevSelectedRef.current, next)) {
+      return prevSelectedRef.current;
+    }
+    prevSelectedRef.current = next;
+    return next;
+  }, [mpItemLabeledEnclosures, mpEnclosureSelectedParams]);
+
+  const addByRSSSelectedMediaType =
+    mpAddByRSS && mpItemLabeledEnclosures.length > 0
+      ? (selectedItemEnclosureAndSource?.labeledItemEnclosure?.mediaType ?? null)
+      : null;
+
+  useEffect(() => {
+    if (!mediaRef.current || !mpAddByRSS?.resourceData) return;
+
+    const mediumId = mpAddByRSS.resourceData.medium_id;
+    const addByRSSMediaType =
+      addByRSSSelectedMediaType ?? (mediumId === MediumEnum.Video ? 'video' : 'audio');
+    if (mediaType === 'audio' && addByRSSMediaType === 'video') return;
+    if (mediaType === 'video' && addByRSSMediaType !== 'video') return;
+
+    let url: string;
+    if (mpItemLabeledEnclosures.length > 0) {
+      const selected = getSelectedLabeledItemEnclosureAndSource({
+        labeledItemEnclosures: mpItemLabeledEnclosures,
+        type: mpEnclosureSelectedParams.type,
+        enclosureRowIndex: mpEnclosureSelectedParams.enclosureRowSelected,
+        sourceRowIndex: mpEnclosureSelectedParams.sourceRowSelected,
       });
-      const { upcomingManualCount, hasAutoQueueNext } = await queueResourcesLoadActive();
-      if (upcomingManualCount === 0 && !hasAutoQueueNext) {
-        clearNowPlayingRef.current?.();
-        return;
-      }
-      if (upcomingManualCount > 0 || hasAutoQueueNext) {
-        setMPShouldPlay(true);
-      }
-    };
-
-    mediaRef.current.addEventListener('loadedmetadata', handleLoadedMetadata);
-    mediaRef.current.addEventListener('play', handlePlay);
-    mediaRef.current.addEventListener('pause', handlePause);
-    mediaRef.current.addEventListener('timeupdate', handleTimeUpdate);
-    mediaRef.current.addEventListener('ended', handleEnded);
-
-    return () => {
-      if (mediaRef.current) {
-        mediaRef.current.removeEventListener('loadedmetadata', handleLoadedMetadata);
-        mediaRef.current.removeEventListener('play', handlePlay);
-        mediaRef.current.removeEventListener('pause', handlePause);
-        mediaRef.current.removeEventListener('timeupdate', handleTimeUpdate);
-        mediaRef.current.removeEventListener('ended', handleEnded);
-      }
-    };
-  }, [mediaRef]);
-
-  useEffect(() => {
-    if (!mediaRef.current) {
-      return;
-    }
-    if (mpIsPlaying) {
-      playMediaWhenReady(mediaRef.current);
+      const uri = selected?.source?.uri;
+      if (typeof uri !== 'string' || uri.trim() === '') return;
+      url = uri.trim();
     } else {
-      mediaRef.current.pause();
+      const enclosureUrl = mpAddByRSS.resourceData.enclosure_url;
+      if (typeof enclosureUrl !== 'string' || enclosureUrl.trim() === '') return;
+      url = enclosureUrl.trim();
     }
-  }, [mpIsPlaying]);
+    const persistedSeekToApply =
+      addByRSSSeekToTime !== null ? (addByRSSSeekToTime >= 0 ? addByRSSSeekToTime : 0) : null;
+
+    bridge.syncHttpFileUrlRestoreSeekAndPlay({
+      url,
+      persistedSeekToApply,
+      onRestoreSeekApplied: () => {
+        setAddByRSSSeekToTime(null);
+      },
+      shouldPlay: mpShouldPlay,
+      onPlayedShouldPlayClear: () => {
+        setMPShouldPlay(false);
+      },
+    });
+  }, [
+    mpAddByRSS,
+    mediaType,
+    mpShouldPlay,
+    addByRSSSeekToTime,
+    setAddByRSSSeekToTime,
+    mpItemLabeledEnclosures,
+    mpEnclosureSelectedParams,
+    addByRSSSelectedMediaType,
+  ]);
 
   useEffect(() => {
-    if (!mediaRef.current) {
+    const isAddByRSSWithNoEnclosures = mpAddByRSS && mpItemLabeledEnclosures.length === 0;
+    if (isAddByRSSWithNoEnclosures) return;
+    if (!selectedItemEnclosureAndSource) {
       return;
     }
-    mediaRef.current.volume = mpVolume;
-  }, [mpVolume]);
+    if (!selectedItemEnclosureAndSource.labeledItemEnclosure?.enclosure?.type) {
+      return;
+    }
+    if (!selectedItemEnclosureAndSource.source?.uri) {
+      return;
+    }
+
+    const isAudioFile = checkIfIsAudioFile(selectedItemEnclosureAndSource);
+    const isVideoFile = checkIfIsVideoFile(selectedItemEnclosureAndSource);
+    const isLiveItem = checkIsLiveItem(mpItemRef.current);
+
+    bridge.applyItemEnclosureSurfaceChange({
+      treatAsActiveNonLiveFile: (mediaType === 'audio' ? isAudioFile : isVideoFile) && !isLiveItem,
+      shouldPlayWhenReady: mpShouldPlayRef.current === true,
+      onPlayedShouldPlayClear: () => {
+        setMPShouldPlay(false);
+      },
+    });
+  }, [mpAddByRSS, mpItemLabeledEnclosures.length, selectedItemEnclosureAndSource, mediaType]);
 
   useEffect(() => {
-    if (!mediaRef.current) {
-      return;
+    if (mpIsPlaying) {
+      void bridge.play();
+    } else {
+      bridge.pause();
     }
-    mediaRef.current.muted = mpIsMuted;
-  }, [mpIsMuted]);
+  }, [mpIsPlaying, bridge]);
 
   useEffect(() => {
-    if (!mediaRef.current) {
-      return;
-    }
-    mediaRef.current.playbackRate = mpPlaybackSpeed;
-  }, [mpPlaybackSpeed]);
+    bridge.setVolume(mpVolume);
+  }, [mpVolume, bridge]);
+
+  useEffect(() => {
+    bridge.setMuted(mpIsMuted);
+  }, [mpIsMuted, bridge]);
+
+  useEffect(() => {
+    bridge.setPlaybackRate(mpPlaybackSpeed);
+  }, [mpPlaybackSpeed, bridge]);
 
   useEffect(() => {
     const playWhenReady = async () => {
       if (mpClip && mediaRef.current) {
-        mediaRef.current.currentTime = Number(mpClip.start_time);
+        bridge.seek(Number(mpClip.start_time));
         if (mpShouldPlayRef.current) {
           const uri = await waitForSourceUri(mediaRef.current, 1000, 50);
           if (uri) {
-            playMediaWhenReady(mediaRef.current, () => setMPShouldPlay(false));
+            void bridge.play().then(() => setMPShouldPlay(false));
           }
         }
         if (mpClip.end_time) {
-          globalPauseAtTime = Number(mpClip.end_time);
+          bridge.pauseAt(Number(mpClip.end_time));
         }
       }
       if (mpItemChapter && mediaRef.current) {
         if (mpItemChapterShouldSeek) {
           setMPItemChapterShouldSeek(false);
-          mediaRef.current.currentTime = Number(mpItemChapter.start_time);
+          bridge.seek(Number(mpItemChapter.start_time));
           if (mpShouldPlayRef.current) {
             const uri = await waitForSourceUri(mediaRef.current, 1000, 50);
             if (uri) {
-              playMediaWhenReady(mediaRef.current, () => setMPShouldPlay(false));
+              void bridge.play().then(() => setMPShouldPlay(false));
             }
           }
         }
         if (mpItemChapter.end_time) {
-          globalPauseAtTime = null;
+          bridge.pauseAt(-1);
         }
       }
       if (mpItemSoundbite && mediaRef.current) {
-        mediaRef.current.currentTime = Number(mpItemSoundbite.start_time);
+        bridge.seek(Number(mpItemSoundbite.start_time));
         if (mpShouldPlayRef.current) {
           const uri = await waitForSourceUri(mediaRef.current, 1000, 50);
           if (uri) {
-            playMediaWhenReady(mediaRef.current, () => setMPShouldPlay(false));
+            void bridge.play().then(() => setMPShouldPlay(false));
           }
         }
         if (mpItemSoundbite.duration) {
-          globalPauseAtTime = Number(mpItemSoundbite.start_time) + Number(mpItemSoundbite.duration);
+          bridge.pauseAt(Number(mpItemSoundbite.start_time) + Number(mpItemSoundbite.duration));
         }
       }
     };
 
-    playWhenReady();
-  }, [mpClip, mpItemChapter, mpItemSoundbite]);
+    void playWhenReady();
+  }, [
+    mpClip,
+    mpItemChapter,
+    mpItemSoundbite,
+    bridge,
+    mpItemChapterShouldSeek,
+    setMPItemChapterShouldSeek,
+  ]);
 
   const addByRSSEnclosureUrl = (() => {
     if (!mpAddByRSS?.resourceData) return undefined;
@@ -799,25 +671,19 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
   })();
   const sourceUri =
     addByRSSEnclosureUrl ?? selectedItemEnclosureAndSource?.source?.uri ?? undefined;
+  const elementSource: MediaElementSource | null =
+    typeof sourceUri === 'string' && sourceUri.trim() !== ''
+      ? { kind: 'file', src: sourceUri.trim() }
+      : null;
 
-  if (mediaType === 'audio') {
-    return (
-      <audio
-        ref={mediaRef}
-        src={sourceUri}
-        preload={preload}
-        style={hidden ? { display: 'none' } : style}
-      />
-    );
-  } else {
-    return (
-      <video
-        ref={mediaRef}
-        src={sourceUri}
-        preload={preload}
-        style={hidden ? { display: 'none' } : style}
-        controls={false}
-      />
-    );
-  }
+  return (
+    <MediaElement
+      isVideo={mediaType === 'video'}
+      mediaRef={mediaRef}
+      source={elementSource}
+      preload={preload}
+      hidden={hidden}
+      style={style}
+    />
+  );
 };

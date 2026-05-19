@@ -95,8 +95,8 @@ async function fastForwardAudioTo(page: Page, seconds: number): Promise<void> {
  *     soundbite pauses at `start_time + duration + 1`.
  *
  * Pure-function and orchestration coverage exists at
- *   - `apps/web/src/components/MediaPlayer/Controller/__tests__/MediaPlayerControllerAV.timeUpdate.test.tsx`
- *   - `apps/web/src/components/MediaPlayer/Controller/__tests__/MediaPlayerControllerAV.seekPolicy.test.tsx`
+ *   - `apps/web/src/components/MediaPlayer/Controller/__tests__/NonLiveMediaOrchestrator.timeUpdate.test.tsx`
+ *   - `apps/web/src/components/MediaPlayer/Controller/__tests__/NonLiveMediaOrchestrator.seekPolicy.test.tsx`
  */
 test.describe('Media player time-bounded playback (clip and soundbite)', () => {
   test.beforeEach(async ({ page }) => {

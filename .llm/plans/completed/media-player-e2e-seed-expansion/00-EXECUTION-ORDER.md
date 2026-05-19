@@ -40,7 +40,7 @@ do not collapse them into one PR.
 ## Gating with the architecture refactor
 
 This plan-set is a **prerequisite for Phase 3b** of the
-[media-player-architecture-refactor](../../active/media-player-architecture-refactor/).
+[media-player-architecture-refactor](../../completed/media-player-architecture-refactor/).
 Phase 3b's `00-EXECUTION-ORDER.md` includes a `3b-gate` row pointing
 back here. Phases 1, 2, and 3a of the refactor are skip-safe and may
 land before, during, or after this plan-set.

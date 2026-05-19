@@ -88,7 +88,7 @@ async function promotePodcastItemToNowPlaying(
  *     `handleLoadQueueItem`.
  *
  * Orchestration coverage of the seek policy itself is in
- * `Controller/__tests__/MediaPlayerControllerAV.seekPolicy.test.tsx`; the
+ * `Controller/__tests__/NonLiveMediaOrchestrator.seekPolicy.test.tsx`; the
  * hook-level near-end clamp pin is in
  * `useMediaPlayerResourceUpdate.nearEndClamp.test.tsx`.
  */

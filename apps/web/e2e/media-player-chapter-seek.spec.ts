@@ -73,7 +73,7 @@ async function openChaptersTab(page: Page): Promise<void> {
  *     when `mpItemChapter` is set with `mpItemChapterShouldSeek = true`.
  *   - § 6 "time-update" — `mpItemChapter` updates as `currentTime` walks
  *     into the next chapter (handled separately in
- *     `MediaPlayerControllerAV.timeUpdate.test.tsx`).
+ *     `NonLiveMediaOrchestrator.timeUpdate.test.tsx`).
  *
  * The pure-function coverage for the selection helper lives at
  * `selectItemChapterForTime.test.ts`; the existing foundation harness

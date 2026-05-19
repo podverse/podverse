@@ -11,10 +11,10 @@ import type {
 } from '@podverse/helpers';
 import { MediumEnum } from '@podverse/helpers';
 
-import { EVENTS } from '../../../constants/events';
 import { useAddByRSSListContext } from '../../../contexts/AddByRSSListContext';
 import { useAutoQueue } from '../../../contexts/AutoQueue';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+import { useMediaPlayerControls } from '../../../contexts/MediaPlayerControls';
 import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useAddByRSSPlayPrevious } from '../../../hooks/useAddByRSSPlayPrevious';
@@ -29,12 +29,18 @@ export const TrackPreviousButton = () => {
   const apiRequestService = getApiRequestService();
   const { mpChannel, mpItem, mpClip, mpItemSoundbite, setMPShouldPlay, mpIsPlaying, mpAddByRSS } =
     useMediaPlayer();
-  const { mpCurrentTime } = useMediaPlayerCurrentTime();
+  const { seek } = useMediaPlayerControls();
+  const { mpCurrentTime, setMPCurrentTime } = useMediaPlayerCurrentTime();
   const { listContext } = useAddByRSSListContext();
 
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const { autoQueueConfig, autoQueueActiveRow, setAutoQueueActiveRow } = useAutoQueue();
   const addByRSSPlayPrevious = useAddByRSSPlayPrevious();
+
+  const seekToStart = useCallback(() => {
+    seek(0);
+    setMPCurrentTime(0);
+  }, [seek, setMPCurrentTime]);
 
   const runAddByRSSPreviousOnly = useCallback(async () => {
     if (!mpAddByRSS) return;
@@ -48,9 +54,9 @@ export const TrackPreviousButton = () => {
       : null;
     const played = await addByRSSPlayPrevious(fallbackContext ?? undefined);
     if (!played) {
-      window.dispatchEvent(new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, { detail: { time: 0 } }));
+      seekToStart();
     }
-  }, [mpAddByRSS, listContext, addByRSSPlayPrevious]);
+  }, [mpAddByRSS, listContext, addByRSSPlayPrevious, seekToStart]);
 
   const runCorePreviousOnly = useCallback(async () => {
     if (!mpChannel || !mpItem) return;
@@ -60,7 +66,7 @@ export const TrackPreviousButton = () => {
       setAutoQueueActiveRow(previousAutoQueueActiveRow);
     } else {
       if (autoQueueConfig.random) {
-        window.dispatchEvent(new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, { detail: { time: 0 } }));
+        seekToStart();
       } else {
         let channel: DTOChannel | null = null;
         let clip: DTOClip | null = null;
@@ -131,7 +137,7 @@ export const TrackPreviousButton = () => {
             autoQueueShouldClear: true,
           });
         } else {
-          window.dispatchEvent(new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, { detail: { time: 0 } }));
+          seekToStart();
         }
       }
     }
@@ -146,6 +152,7 @@ export const TrackPreviousButton = () => {
     setMPShouldPlay,
     setAutoQueueActiveRow,
     mediaPlayerResourceUpdate,
+    seekToStart,
   ]);
 
   const handleLongPress = useCallback(() => {
@@ -160,7 +167,7 @@ export const TrackPreviousButton = () => {
     if (mpAddByRSS) {
       const isRestartThreshold = 3;
       if (mpCurrentTime > isRestartThreshold) {
-        window.dispatchEvent(new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, { detail: { time: 0 } }));
+        seekToStart();
         return;
       }
       const hasListContext = listContext && listContext.itemIdTexts.length > 0;
@@ -173,7 +180,7 @@ export const TrackPreviousButton = () => {
         : null;
       const played = await addByRSSPlayPrevious(fallbackContext ?? undefined);
       if (played) return;
-      window.dispatchEvent(new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, { detail: { time: 0 } }));
+      seekToStart();
       return;
     }
     if (mpChannel && mpItem) {
@@ -181,7 +188,7 @@ export const TrackPreviousButton = () => {
       const shouldRestart = mpCurrentTime > isRestartThreshold;
 
       if (shouldRestart) {
-        window.dispatchEvent(new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, { detail: { time: 0 } }));
+        seekToStart();
         return;
       }
 
@@ -191,7 +198,7 @@ export const TrackPreviousButton = () => {
         setAutoQueueActiveRow(previousAutoQueueActiveRow);
       } else {
         if (autoQueueConfig.random) {
-          window.dispatchEvent(new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, { detail: { time: 0 } }));
+          seekToStart();
         } else {
           let channel: DTOChannel | null = null;
           let clip: DTOClip | null = null;
@@ -266,9 +273,7 @@ export const TrackPreviousButton = () => {
               autoQueueShouldClear: true,
             });
           } else {
-            window.dispatchEvent(
-              new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, { detail: { time: 0 } })
-            );
+            seekToStart();
           }
         }
       }
@@ -288,6 +293,7 @@ export const TrackPreviousButton = () => {
     setMPShouldPlay,
     setAutoQueueActiveRow,
     mediaPlayerResourceUpdate,
+    seekToStart,
   ]);
 
   const { onClick, ...longPressProps } = useLongPress({

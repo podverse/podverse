@@ -31,6 +31,14 @@
 
 ## Follow-up plans
 
+- **[`media-player-e2e-seed-expansion`](../../completed/media-player-e2e-seed-expansion/)**
+  — adds the six page-level oracles for the non-livestream
+  `test.fixme()` specs from Phase 1 (clip/soundbite end-pause,
+  chapter seek, podcast resume, music playback, anonymous restore,
+  add-by-RSS resume). **Prerequisite for Phase 3b** of this plan-set
+  (see `00-EXECUTION-ORDER.md` row `3b-gate` and `COPY-PASTA.md` gate
+  checkbox). Not coupled to the HLS migration. Phases 1, 2, 3a, 4,
+  and 5 of this refactor are **not** gated on it.
 - **[`media-player-livestream-hls-migration`](../media-player-livestream-hls-migration/)**
   — retire `video.js`, fold livestreams into `<MediaElement>` (native
   HLS + `hls.js` as needed), and remove the legacy livestream
@@ -42,9 +50,10 @@
 
 The `apps/web` media player has crossed a complexity threshold:
 
-- [`MediaPlayerControllerAV.tsx`](../../../../apps/web/src/components/MediaPlayer/Controller/MediaPlayerControllerAV.tsx)
-  is ~800 lines with 18 ref-mirrors and a single ~280-line `useEffect`
-  that binds every `<audio>`/`<video>` event listener.
+- [`NonLiveMediaOrchestrator.tsx`](../../../../apps/web/src/components/MediaPlayer/Controller/NonLiveMediaOrchestrator.tsx)
+  coordinates non-live playback (context mirrors, bridge callbacks, and
+  effects) while [`MediaElement.tsx`](../../../../apps/web/src/components/MediaPlayer/MediaElement/MediaElement.tsx)
+  renders the `<audio>` / `<video>` DOM.
 - The decision "where does the next track start playing?" is computed
   in three places.
 - A window `CustomEvent` bus (`SEEK`, `JUMP_BACK`, `JUMP_FORWARD`,
@@ -105,6 +114,18 @@ Phase 1 produces the contract. Every later phase is gated by it:
 Phases 2–6 must keep the harness and E2E green at every commit on the
 refactor branch.
 
+**Phase 3b page-level coverage** comes from the separate
+[`media-player-e2e-seed-expansion`](../../completed/media-player-e2e-seed-expansion/)
+plan-set. Phase 1 of this refactor intentionally leaves six
+non-livestream specs as `test.fixme()` because the deterministic E2E
+seed in [`tools/web/seed-e2e.mjs`](../../../tools/web/seed-e2e.mjs)
+does not yet include the items, clips, soundbites, chapters, music
+album, stored positions, or add-by-RSS resources those specs need.
+That work lives in the seed-expansion plan-set and is a prerequisite
+for Phase 3b (see `00-EXECUTION-ORDER.md` row `3b-gate`). Phases 2,
+3a, 4, and 5 ride on the Phase 1 orchestration tests and the
+audio-start livestream spec for their oracles.
+
 ## In scope
 
 - `apps/web/src/components/MediaPlayer/**`
@@ -147,9 +168,9 @@ refactor branch.
 - `video.js` remains in `apps/web/package.json`; livestream playback
   behaves identically to pre-refactor (proven by the Phase 1
   livestream E2E specs).
-- `MediaPlayerControllerAV.tsx` is replaced (or trimmed to under 350
-  lines) for the **non-live** path only and has no more than five
-  `useRef` calls on any surviving file in that path.
+- `NonLiveMediaOrchestrator.tsx` coordinates the non-live path; optional
+  follow-up is to extract focused hooks to shrink the file. Livestream
+  controllers remain separate until the HLS plan-set.
 - The window `CustomEvent` bus for player control is removed; the
   `MEDIA_PLAYER` group is deleted from
   [`events.ts`](../../../../apps/web/src/constants/events.ts).
