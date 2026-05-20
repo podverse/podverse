@@ -5,6 +5,8 @@ import 'reflect-metadata';
 import { config } from '@mgmt-api/config/index.js';
 import { initializePassport } from '@mgmt-api/lib/auth/index.js';
 import { registerSwaggerDocs } from '@mgmt-api/lib/docs/registerSwaggerDocs.js';
+import { registerExtensionRoutes } from '@mgmt-api/lib/extensions/registerExtensionRoutes.js';
+import { createPrometheusExporter } from '@mgmt-api/lib/extensions/prometheus/prometheusExporter.js';
 import { registerHealthRoutes } from '@mgmt-api/lib/health/registerHealthRoutes.js';
 import { adminsRouter } from '@mgmt-api/routes/admins.js';
 import { authRouter } from '@mgmt-api/routes/auth.js';
@@ -51,6 +53,15 @@ app.use(cookieParser());
 app.use(initializePassport());
 
 const baseUrl = `${config.api.prefix}${config.api.version}`;
+// TODO(extensions-migration): Replace this in-process exporter bootstrap with the
+// management-api extension registry/bootstrap flow once extension-based metrics land.
+const prometheusExporter = config.extensions.prometheus.enabled
+  ? createPrometheusExporter('podverse_management_api')
+  : undefined;
+
+if (prometheusExporter) {
+  app.use(prometheusExporter.httpMiddleware);
+}
 
 // --- Unversioned GET /
 // Informal dev ping only (not for K8s probes — use versioned /health).
@@ -80,6 +91,11 @@ app.use(statsRouter);
 app.use(storageRouter);
 app.use(usersRouter);
 app.use(workersRouter);
+
+// --- Extension routes (after feature routers; e.g. prometheus /metrics)
+registerExtensionRoutes(app, baseUrl, config.extensions, {
+  prometheus: prometheusExporter,
+});
 
 // --- Error handler
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {

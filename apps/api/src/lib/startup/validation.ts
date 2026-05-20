@@ -309,6 +309,15 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
     validateOptional('LOG_DIR', 'General', 'Optional - empty for localhost, set for file logging')
   );
 
+  // Extensions (forward-looking) — last in apps/api/.env.example
+  results.push(
+    validateOptional(
+      'EXT_PROMETHEUS_ENABLED',
+      'Extensions',
+      'Blank/false: disabled; true: expose GET .../extensions/prometheus/metrics'
+    )
+  );
+
   // Calculate summary
   const total = results.length;
   const passed = results.filter((r) => r.isValid && r.isSet).length;
