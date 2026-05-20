@@ -16,6 +16,7 @@ tags:
   - name: channel
   - name: clip
   - name: external-services
+  - name: extensions
   - name: feed
   - name: item
   - name: item-chapter
@@ -2373,6 +2374,27 @@ security:
   - bearerAuth: []
   - cookieAuth: []
 paths:
+  /extensions/prometheus/metrics:
+    get:
+      operationId: apiGetExtensionsPrometheusMetrics
+      tags:
+        - extensions
+      summary: GET /extensions/prometheus/metrics
+      description: >-
+        Prometheus scrape endpoint (OpenMetrics text exposition). Registered only when
+        EXT_PROMETHEUS_ENABLED is true and the runtime exporter is configured. Intended for
+        metrics collectors; not authenticated.
+      security: []
+      responses:
+        "200":
+          description: Prometheus metrics exposition
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: Prometheus text format metrics payload.
+        "404":
+          description: Not found when the prometheus extension is disabled or not bootstrapped
   /account:
     post:
       operationId: apiPostAccount
