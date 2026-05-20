@@ -1,6 +1,6 @@
 {
   "name": "@podverse/web-sidecar",
-  "version": "5.4.29",
+  "version": "5.4.30",
   "private": true,
   "type": "module",
   "description": "Runtime-config sidecar for podverse-web",
