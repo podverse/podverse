@@ -190,6 +190,10 @@ router.get(
 
 See `apps/api/src/lib/startup/validation.ts` for environment variable validation patterns.
 
+**Validation order:** Keep `results.push` order in `validation.ts` aligned with
+`apps/api/.env.example` section order when practical (see
+[startup-validation-env-order](../startup-validation-env-order/SKILL.md)).
+
 **Env file alignment:** All `.env` files (including `infra/config/local/*.env`) must match the organization, section comments, and variable order of their authoritative `.env.example`; only values may differ.
 
 **Lighthouse alignment:** When validation changes here, update
