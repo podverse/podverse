@@ -4,6 +4,7 @@ import 'reflect-metadata';
 
 import { config } from '@mgmt-api/config/index.js';
 import { initializePassport } from '@mgmt-api/lib/auth/index.js';
+import { registerSwaggerDocs } from '@mgmt-api/lib/docs/registerSwaggerDocs.js';
 import { registerExtensionRoutes } from '@mgmt-api/lib/extensions/registerExtensionRoutes.js';
 import { createPrometheusExporter } from '@mgmt-api/lib/extensions/prometheus/prometheusExporter.js';
 import { registerHealthRoutes } from '@mgmt-api/lib/health/registerHealthRoutes.js';
@@ -74,6 +75,7 @@ app.get(`${baseUrl}/meta`, (_req: Request, res: Response) => {
 });
 
 registerHealthRoutes(app, baseUrl);
+registerSwaggerDocs(app, baseUrl);
 
 app.get(`${baseUrl}/`, (_req: Request, res: Response) => {
   res.send(`${config.brandName} Management API is running on port ${port}`);

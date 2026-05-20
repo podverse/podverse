@@ -16,6 +16,7 @@ import { CategoryService } from '@podverse/orm';
 import { registerExtensionRoutes } from './lib/extensions/registerExtensionRoutes.js';
 import { createPrometheusExporter } from './lib/extensions/prometheus/prometheusExporter.js';
 import { registerHealthRoutes } from './lib/health/registerHealthRoutes.js';
+import { registerSwaggerDocs } from './lib/docs/registerSwaggerDocs.js';
 
 // Route imports are deferred until after ORM initialization (see startApp).
 
@@ -68,6 +69,7 @@ export const startApp = async () => {
 
     // --- Versioned: health (before heavy route modules)
     registerHealthRoutes(app, baseUrl);
+    registerSwaggerDocs(app, baseUrl);
 
     const categoryService = new CategoryService();
     await categoryService.setCategoryCache();

@@ -66,6 +66,9 @@ npm run build:prod -w apps/management-api
 
 All routers are mounted with the `${config.api.prefix}${config.api.version}/<resource>` pattern (matches `apps/api`). Handlers use relative paths.
 
+- OpenAPI UI: `/api/v2/docs`
+- OpenAPI YAML: `/api/v2/docs.yaml`
+
 ### Authentication
 
 - `POST /api/v2/auth/login` - Admin login
