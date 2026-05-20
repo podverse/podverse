@@ -253,6 +253,13 @@ describe('management-api auth routes', () => {
       expect(res.status).toBe(503);
       expect(res.body).toMatchObject({ status: 'unavailable' });
     });
+
+    it('returns 404 on /extensions/prometheus/metrics when EXT_PROMETHEUS_ENABLED is not true', async () => {
+      const baseUrl = `${config.api.prefix}${config.api.version}`;
+      const res = await request(app).get(`${baseUrl}/extensions/prometheus/metrics`);
+
+      expect(res.status).toBe(404);
+    });
   });
 
   describe('POST /auth/mobile/*', () => {

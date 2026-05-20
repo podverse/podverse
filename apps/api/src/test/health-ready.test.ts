@@ -52,4 +52,8 @@ describe('API health routes', () => {
     const res = await request(app).get(`${apiBase}/health/ready`).expect(200);
     expect(res.body).toMatchObject({ status: 'ok', message: 'Ready' });
   });
+
+  it(`GET ${apiBase}/extensions/prometheus/metrics returns 404 when EXT_PROMETHEUS_ENABLED is not true`, async () => {
+    await request(app).get(`${apiBase}/extensions/prometheus/metrics`).expect(404);
+  });
 });

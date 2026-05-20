@@ -134,6 +134,15 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateRequired('NODE_ENV', 'General'));
   results.push(validateRequired('LOG_LEVEL', 'General'));
 
+  // Extensions (forward-looking) — last in apps/management-api/.env.example
+  results.push(
+    validateOptional(
+      'EXT_PROMETHEUS_ENABLED',
+      'Extensions',
+      'Blank/false: disabled; true: expose GET .../extensions/prometheus/metrics'
+    )
+  );
+
   // Calculate summary
   const total = results.length;
   const passed = results.filter((r) => r.isValid && r.isSet).length;

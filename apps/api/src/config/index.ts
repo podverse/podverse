@@ -29,6 +29,11 @@ type Config = {
     level: string;
     dir: string;
   };
+  extensions: {
+    prometheus: {
+      enabled: boolean;
+    };
+  };
   auth: {
     jwtSecret: string;
     /** From AUTH_JWT_EXPIRATION. */
@@ -120,6 +125,11 @@ export const config: Config = {
   log: {
     level: process.env.LOG_LEVEL!,
     dir: process.env.LOG_DIR ?? '',
+  },
+  extensions: {
+    prometheus: {
+      enabled: process.env.EXT_PROMETHEUS_ENABLED === 'true',
+    },
   },
   auth: (() => {
     const jwtExpiration = readOptionalPositiveExpirationEnv(

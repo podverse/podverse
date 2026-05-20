@@ -330,4 +330,3 @@ paths:
                     example: "Account deleted successfully"
         "401":
           description: Unauthorized or user not logged in.
-

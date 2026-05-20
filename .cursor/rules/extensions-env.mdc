@@ -1,0 +1,29 @@
+---
+description: Extension env vars live in the last file section and map to config.extensions.*.
+globs: apps/api/.env.example,apps/management-api/.env.example,infra/k8s/**/source/*.env,apps/api/src/config/index.ts,apps/management-api/src/config/index.ts,apps/**/src/lib/extensions/**
+alwaysApply: false
+---
+
+# Extensions environment variables
+
+Use the **extensions-env** skill (`.cursor/skills/extensions-env/SKILL.md`) for full detail.
+
+## Do
+
+- Put extension-related env vars in the **last** section: `Extensions (forward-looking)`.
+- Map under nested `config.extensions.<service>.<property>` (e.g. `config.extensions.prometheus.enabled`).
+- **All extension env keys must use the `EXT_` prefix** (e.g. `EXT_PROMETHEUS_ENABLED`, not
+  `PROMETHEUS_ENABLED`).
+- Name the service `prometheus` (not `prometheusMetrics`); HTTP resource `metrics` at
+  `/extensions/prometheus/metrics`.
+- Validate optional extension vars under startup category **`Extensions`**, at the **end** of
+  `validateAllEnvironmentVariables` (see **startup-validation-env-order** skill).
+- Register extension HTTP routes via **`registerExtensionRoutes`** (after feature routers), one
+  folder per service under `lib/extensions/<serviceName>/` — not in `registerHealthRoutes`.
+- Prefer paths `{version}/extensions/{service-kebab}/{resource}` (e.g.
+  `/api/v2/extensions/prometheus/metrics`), not top-level `/metrics`.
+
+## Don't
+
+- Use `config.observability.*` or other top-level groups for extension toggles.
+- Place extension vars above other sections (Extensions must be last).
