@@ -1,7 +1,6 @@
 import type { IRouter, Request, Response } from 'express';
 
 import type { PrometheusScrapeEndpoint } from '../types.js';
-
 import { prometheusMetricsRoutePath } from './prometheusPaths.js';
 
 /**
