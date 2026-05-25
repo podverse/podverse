@@ -70,7 +70,7 @@ Secret generator scripts and a **full ordered runbook** (below) are maintained i
 **Script upstream vs GitOps copy:** the reference implementations of workload and GHCR pull-secret helpers live in **this (Podverse) repository** under [`infra/k8s/scripts/secret-generators/`](../../../infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md) (for example `create_all_secrets_auto_gen.sh`, `create_github_registry_secret.sh`, and the `create_*_secret.sh` files the runner calls). **Your GitOps repository** should contain **copies** of those files under **`./scripts/secret-generators/`**, with default output paths pointing at the GitOps **`secrets/`** tree. Copy or sync from `podverse/infra/k8s/scripts/secret-generators/` when you need to update generators, then use **only** the GitOps checkout to run them (next to **`.sops.yaml`**). Upstream defaults and GitOps checkouts both use repo-root **`./secrets/…`** (same path layout; no per-repo `sed` rewrites for output paths).
 
 Image build/tag and publish workflows are **not** part of this checklist; see
-[ALPHA-DEPLOYMENT](../../operations/ALPHA-DEPLOYMENT.md) and [PUBLISH](../../operations/PUBLISH.md)
+[ALPHA-DEPLOYMENT](../../operations/deploy/ALPHA-DEPLOYMENT.md) and [PUBLISH](../../operations/deploy/PUBLISH.md)
 (Podverse source checkout where those docs say so; not from `<gitops-repo>`).
 
 ## End-to-end command checklist
@@ -357,8 +357,8 @@ curl -sI https://api.example.com/api/v2/
 
 ## Related docs
 
-- [PUBLISH](../../operations/PUBLISH.md)
-- [ALPHA-DEPLOYMENT](../../operations/ALPHA-DEPLOYMENT.md) (CI, tags, local/server alpha; pairs with this guide for remote GitOps)
+- [PUBLISH](../../operations/deploy/PUBLISH.md)
+- [ALPHA-DEPLOYMENT](../../operations/deploy/ALPHA-DEPLOYMENT.md) (CI, tags, local/server alpha; pairs with this guide for remote GitOps)
 - [infra/k8s/README](../../../infra/k8s/INFRA-K8S.md)
 
 ## Documentation guardrails (must pass)

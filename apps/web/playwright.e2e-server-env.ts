@@ -103,12 +103,35 @@ const WEB_E2E_NEXT_PUBLIC_ENV = [
   `NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS="86400"`,
 ].join(' ');
 
+const WEB_E2E_INTEGRATIONS_ENV_DISABLED = [
+  `CLOUDFLARE_WEB_ANALYTICS_ENABLED=false`,
+  `CLOUDFLARE_WEB_ANALYTICS_TOKEN=`,
+].join(' ');
+
+const WEB_E2E_INTEGRATIONS_ENV_ENABLED = [
+  `CLOUDFLARE_WEB_ANALYTICS_ENABLED=true`,
+  `CLOUDFLARE_WEB_ANALYTICS_TOKEN=e2e-test-cloudflare-token`,
+].join(' ');
+
+export type E2eWebSidecarEnvOptions = {
+  cloudflareWebAnalyticsEnabled?: boolean;
+};
+
 /**
  * Env prefix for the web sidecar in E2E mode.
  * Sidecar needs NEXT_PUBLIC_* vars to serve them via /runtime-config.
  */
-export function buildE2eWebSidecarEnvPrefix(): string {
-  return [`PORT=4031`, `API_URL=http://localhost:4030`, WEB_E2E_NEXT_PUBLIC_ENV].join(' ');
+export function buildE2eWebSidecarEnvPrefix(options?: E2eWebSidecarEnvOptions): string {
+  const integrationsEnv =
+    options?.cloudflareWebAnalyticsEnabled === true
+      ? WEB_E2E_INTEGRATIONS_ENV_ENABLED
+      : WEB_E2E_INTEGRATIONS_ENV_DISABLED;
+  return [
+    `PORT=4031`,
+    `API_URL=http://localhost:4030`,
+    integrationsEnv,
+    WEB_E2E_NEXT_PUBLIC_ENV,
+  ].join(' ');
 }
 
 /**

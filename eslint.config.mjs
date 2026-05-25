@@ -106,7 +106,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['packages/ui/**/*.{ts,tsx}'],
+    files: ['packages/ui/**/*.{ts,tsx}', 'packages/integrations-web/**/*.{ts,tsx}'],
     rules: {
       'nodeNextRelativeImports/require-relative-js-extension': 'off',
     },

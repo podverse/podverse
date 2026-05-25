@@ -1,12 +1,15 @@
 import { podcastIndexService } from '@api/factories/podcastIndexService.js';
+import { searchFeedDirectory } from '@api/lib/feedDirectories/registry.js';
 import { getParamRequired } from '@api/lib/params.js';
-import { validateParamsObject, validateQueryObject } from '@api/lib/validation/index.js';
+import {
+  podcastIndexSearchQuerySchema,
+  validateParamsObject,
+  validateQueryObject,
+} from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 
-interface PodcastIndexSearchPodcastsQuery {
-  q: string;
-}
+import type { QueryParamsPodcastIndexSearchMedium } from '@podverse/helpers';
 
 export class PodcastIndexController {
   static async podcastById(req: Request, res: Response): Promise<void> {
@@ -29,14 +32,12 @@ export class PodcastIndexController {
   }
 
   static async searchPodcasts(req: Request, res: Response): Promise<void> {
-    const querySchema = Joi.object({
-      q: Joi.string().trim().min(1).required(),
-    }).unknown(false);
-
-    validateQueryObject(querySchema, req, res, async () => {
-      const { q } = req.query as unknown as PodcastIndexSearchPodcastsQuery;
-      const options = { max: 50 };
-      const results = await podcastIndexService.searchPodcasts(q, options);
+    validateQueryObject(Joi.object(podcastIndexSearchQuerySchema), req, res, async () => {
+      const { q, medium } = req.query as {
+        q: string;
+        medium: QueryParamsPodcastIndexSearchMedium;
+      };
+      const results = await searchFeedDirectory('podcast-index', { q, medium });
 
       if (!results) {
         res.status(500).json({ error: 'Failed to fetch search results from Podcast Index' });

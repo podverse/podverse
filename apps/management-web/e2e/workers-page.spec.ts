@@ -1,11 +1,13 @@
 import { expect, test } from '@playwright/test';
 
+import { capturePageLoad } from './helpers/stepScreenshots';
+
 /**
  * E2E seed: superuser e2e-superadmin@example.com / Test!1Aa
  * (see tools/management-web/seed-e2e.mjs, make e2e_seed_management_web)
  */
 test.describe('Management-web workers page', () => {
-  test('signed-in superuser sees worker command catalog', async ({ page }) => {
+  test('signed-in superuser sees worker command catalog', async ({ page }, testInfo) => {
     test.setTimeout(30_000);
 
     await page.goto('/');
@@ -31,11 +33,18 @@ test.describe('Management-web workers page', () => {
 
     const mqRss = page.getByText('mqRSSAdd', { exact: true });
     await expect(mqRss.first()).toBeVisible();
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The workers page shows the Message queue category with mqRSSAdd command.',
+      mqRss.first()
+    );
   });
 
   test('when the workers commands API returns an empty catalog, filter tools are hidden and the system empty message is shown', async ({
     page,
-  }) => {
+  }, testInfo) => {
     test.setTimeout(30_000);
 
     await page.route('**/workers/commands**', async (route) => {
@@ -66,5 +75,12 @@ test.describe('Management-web workers page', () => {
     await expect(
       page.getByText('No data found yet. This page will be enabled when there is data to display.')
     ).toBeVisible();
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The empty workers catalog hides filter tools and shows the system empty message.',
+      page.getByText('No data found yet. This page will be enabled when there is data to display.')
+    );
   });
 });

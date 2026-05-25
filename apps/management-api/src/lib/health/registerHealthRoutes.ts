@@ -1,5 +1,5 @@
-import { AppDbDataSourceRead } from '@mgmt-api/orm/db/appDb.js';
-import { AppDataSourceRead } from '@mgmt-api/orm/db/index.js';
+import { AppDbDataSourceRead } from '@management-api/orm/db/appDb.js';
+import { AppDataSourceRead } from '@management-api/orm/db/index.js';
 import type { IRouter, Request, Response } from 'express';
 
 async function isManagementDatabaseReachable(): Promise<boolean> {

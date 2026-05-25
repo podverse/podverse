@@ -54,6 +54,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: podverse-web-config
+            - configMapRef:
+                name: podverse-extensions-config
           securityContext:
             readOnlyRootFilesystem: true
             allowPrivilegeEscalation: false
@@ -111,6 +113,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: podverse-web-runtime-config
+            - configMapRef:
+                name: podverse-integrations-config
           securityContext:
             readOnlyRootFilesystem: true
             allowPrivilegeEscalation: false

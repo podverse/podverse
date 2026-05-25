@@ -4,14 +4,40 @@ import type { Logger } from 'winston';
 import { createLogger, format, transports } from 'winston';
 import type * as TransportStream from 'winston-transport';
 
+import {
+  getActiveSpanId,
+  getActiveTraceId,
+  getObservabilityServiceName,
+} from '@podverse/observability';
+
 import 'winston-daily-rotate-file';
 
 const { combine, timestamp, printf, colorize, json } = format;
 
-const logFormat = printf(({ level, message, timestamp, stack }) => {
+const traceCorrelationFormat = format((info) => {
+  const traceId = getActiveTraceId();
+  const spanId = getActiveSpanId();
+  const serviceName = getObservabilityServiceName();
+  if (traceId !== undefined) {
+    info.trace_id = traceId;
+  }
+  if (spanId !== undefined) {
+    info.span_id = spanId;
+  }
+  if (serviceName !== undefined) {
+    info['service.name'] = serviceName;
+  }
+  return info;
+});
+
+const logFormat = printf(({ level, message, timestamp, stack, trace_id, span_id }) => {
+  const traceSuffix =
+    trace_id !== undefined
+      ? ` trace_id=${String(trace_id)}${span_id !== undefined ? ` span_id=${String(span_id)}` : ''}`
+      : '';
   return stack
-    ? `${timestamp} [${level}]: ${message} - ${stack}`
-    : `${timestamp} [${level}]: ${message}`;
+    ? `${timestamp} [${level}]: ${message}${traceSuffix} - ${stack}`
+    : `${timestamp} [${level}]: ${message}${traceSuffix}`;
 });
 
 export interface LoggerServiceParams {
@@ -34,7 +60,7 @@ export class LoggerService {
   constructor({ logLevel, logDir }: LoggerServiceParams) {
     const loggerTransports: TransportStream[] = [
       new transports.Console({
-        format: combine(colorize(), timestamp(), logFormat),
+        format: combine(colorize(), timestamp(), traceCorrelationFormat(), logFormat),
       }),
     ];
 
@@ -44,7 +70,7 @@ export class LoggerService {
         new transports.DailyRotateFile({
           filename: `${logDir}/app-%DATE%.log`,
           datePattern: 'YYYY-MM-DD',
-          format: combine(timestamp(), json()),
+          format: combine(timestamp(), traceCorrelationFormat(), json()),
           zippedArchive: true,
           maxSize: '20m',
           maxFiles: '14d',
@@ -54,7 +80,7 @@ export class LoggerService {
 
     this.logger = createLogger({
       level: logLevel,
-      format: combine(timestamp(), logFormat),
+      format: combine(timestamp(), traceCorrelationFormat(), logFormat),
       transports: loggerTransports,
     });
   }

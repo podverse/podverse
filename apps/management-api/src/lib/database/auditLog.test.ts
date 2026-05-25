@@ -5,7 +5,7 @@ const saveMock = vi.fn(async (entity: unknown) => {
   savedArgs.push(entity);
 });
 
-vi.mock('@mgmt-api/orm/db/index.js', () => ({
+vi.mock('@management-api/orm/db/index.js', () => ({
   AppDataSourceReadWrite: {
     getRepository: () => ({
       save: saveMock,

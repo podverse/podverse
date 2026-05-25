@@ -1,6 +1,5 @@
-import path from 'path';
-
 import createNextIntlPlugin from 'next-intl/plugin';
+import path from 'path';
 
 const nextConfig = {
   async redirects() {
@@ -15,10 +14,18 @@ const nextConfig = {
   },
   output: 'standalone',
   outputFileTracingRoot: path.join(import.meta.dirname, '../../'),
+  serverExternalPackages: [
+    '@podverse/extension-metrics-sdk',
+    '@opentelemetry/api',
+    '@opentelemetry/exporter-metrics-otlp-http',
+    '@opentelemetry/resources',
+    '@opentelemetry/sdk-metrics',
+    '@opentelemetry/semantic-conventions',
+  ],
   sassOptions: {
     includePaths: [import.meta.dirname + '/src/styles/variables'],
   },
-  transpilePackages: ['@podverse/helpers', '@podverse/ui'],
+  transpilePackages: ['@podverse/helpers', '@podverse/ui', '@podverse/integrations-web'],
   images: {
     remotePatterns: [
       {

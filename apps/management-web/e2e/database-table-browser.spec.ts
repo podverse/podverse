@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { capturePageLoad } from './helpers/stepScreenshots';
+
 /**
  * E2E seed: superuser e2e-superadmin@example.com / Test!1Aa
  * Database meta + query responses are mocked so the browser page does not depend on DB rows.
@@ -33,7 +35,7 @@ const MOCK_ROWS = [{ id: 424242, url: 'https://example.com/e2e-feed.xml' }];
 test.describe('Management-web database table browser', () => {
   test('when meta and query succeed, the table shows sort controls and a row view link', async ({
     page,
-  }) => {
+  }, testInfo) => {
     test.setTimeout(45_000);
 
     await page.route('**/api/v2/database/feed/meta', async (route) => {
@@ -77,5 +79,12 @@ test.describe('Management-web database table browser', () => {
       page.getByRole('cell', { name: 'https://example.com/e2e-feed.xml', exact: true })
     ).toBeVisible();
     await expect(page.getByRole('link', { name: 'View 424242' })).toBeVisible();
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The database feed table shows sort controls and a row view link.',
+      page.getByRole('link', { name: 'View 424242' })
+    );
   });
 });

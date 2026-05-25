@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test';
 
+import { capturePageLoad } from './helpers/stepScreenshots';
+
 test.describe('Management-web feeds flag status', () => {
-  test('dashboard shows a Feeds card linking to the feeds hub', async ({ page }) => {
+  test('dashboard shows a Feeds card linking to the feeds hub', async ({ page }, testInfo) => {
     await page.goto('/');
 
     await page.locator('#email').fill('e2e-superadmin@example.com');
@@ -12,9 +14,18 @@ test.describe('Management-web feeds flag status', () => {
     const feedsCard = page.getByRole('link', { name: 'Feeds' });
     await expect(feedsCard).toBeVisible();
     await expect(feedsCard).toHaveAttribute('href', '/feeds');
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The dashboard shows a Feeds card linking to the feeds hub.',
+      feedsCard
+    );
   });
 
-  test('a superuser can set and clear a feed spam item limit override', async ({ page }) => {
+  test('a superuser can set and clear a feed spam item limit override', async ({
+    page,
+  }, testInfo) => {
     test.setTimeout(45_000);
 
     const applyBodies: Record<string, unknown>[] = [];
@@ -136,6 +147,13 @@ test.describe('Management-web feeds flag status', () => {
       })
     );
 
+    await capturePageLoad(
+      page,
+      testInfo,
+      'Applying a spam item limit override shows the success message.',
+      page.getByText('Feed status was updated')
+    );
+
     await spamOverrideInput.fill('');
     await page.getByRole('button', { name: 'Apply change' }).click();
 
@@ -147,11 +165,18 @@ test.describe('Management-web feeds flag status', () => {
         spam_item_limit_override: null,
       })
     );
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'Clearing the spam item limit override persists on the flag status form.',
+      spamOverrideInput
+    );
   });
 
   test('the feeds directory table stays mounted while the lifecycle filter refetches the list', async ({
     page,
-  }) => {
+  }, testInfo) => {
     test.setTimeout(45_000);
 
     await page.route('**/feeds/options', async (route) => {
@@ -270,11 +295,18 @@ test.describe('Management-web feeds flag status', () => {
     await expect(page.getByRole('region', { name: 'Feed directory' })).not.toHaveAttribute(
       'aria-busy'
     );
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'After lifecycle filter refetch, the feed directory shows the filtered-empty message.',
+      page.getByText('No feeds match the current filters.')
+    );
   });
 
   test('when no feeds exist globally the page shows only the system-empty status (no directory or find sections)', async ({
     page,
-  }) => {
+  }, testInfo) => {
     test.setTimeout(45_000);
 
     await page.route('**/feeds/options', async (route) => {
@@ -317,5 +349,12 @@ test.describe('Management-web feeds flag status', () => {
     await expect(page.getByRole('heading', { name: 'Find a feed', level: 2 })).toHaveCount(0);
     await expect(page.getByRole('region', { name: 'Feed directory' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Search', exact: true })).toHaveCount(0);
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'When no feeds exist globally, flag status shows only the system-empty status.',
+      page.getByRole('status')
+    );
   });
 });

@@ -6,6 +6,8 @@ import {
   MS_PER_SECOND,
   readOptionalPositiveExpirationEnv,
 } from '@podverse/helpers';
+import type { ObservabilityConfig } from '@podverse/observability/config';
+import { buildObservabilityConfigFromEnv } from '@podverse/observability/config';
 
 type Config = {
   nodeEnv: string;
@@ -13,10 +15,17 @@ type Config = {
   brandName: string;
   log: {
     level: string;
+    dir: string;
   };
+  observability: ObservabilityConfig;
   extensions: {
     prometheus: {
       enabled: boolean;
+    };
+    otel: {
+      otlpEndpoint: string;
+      serviceName: string;
+      resourceAttributes: string | undefined;
     };
   };
   auth: {
@@ -74,10 +83,17 @@ export const config: Config = {
   brandName: process.env.BRAND_NAME!,
   log: {
     level: process.env.LOG_LEVEL!,
+    dir: process.env.LOG_DIR ?? '',
   },
+  observability: buildObservabilityConfigFromEnv(process.env),
   extensions: {
     prometheus: {
-      enabled: process.env.EXT_PROMETHEUS_ENABLED === 'true',
+      enabled: process.env.PROMETHEUS_ENABLED === 'true',
+    },
+    otel: {
+      otlpEndpoint: process.env.OTEL_EXPORTER_OTLP_ENDPOINT!,
+      serviceName: process.env.OTEL_SERVICE_NAME!,
+      resourceAttributes: process.env.OTEL_RESOURCE_ATTRIBUTES,
     },
   },
   auth: (() => {

@@ -1,29 +1,33 @@
 ---
-description: Extension env vars live in the last file section and map to config.extensions.*.
-globs: apps/api/.env.example,apps/management-api/.env.example,infra/k8s/**/source/*.env,apps/api/src/config/index.ts,apps/management-api/src/config/index.ts,apps/**/src/lib/extensions/**
+description: Three-pillar env — Observability, Integrations, Extensions — and config mapping. Extensions env is last on main app containers.
+globs: apps/api/.env.example,apps/management-api/.env.example,apps/web/.env.example,apps/management-web/.env.example,apps/workers/.env.example,apps/web/sidecar/.env.example,apps/management-web/sidecar/.env.example,infra/k8s/**/source/*.env,infra/config/env-templates/*.env.example,apps/api/src/config/index.ts,apps/management-api/src/config/index.ts,apps/web/src/config/**,apps/management-web/src/config/**,apps/**/src/lib/extensions/**,packages/observability/**,packages/integrations-web/**,infra/k8s/base/integrations/**
 alwaysApply: false
 ---
 
-# Extensions environment variables
+# Platform env — extensions, integrations, observability
 
-Use the **extensions-env** skill (`.cursor/skills/extensions-env/SKILL.md`) for full detail.
+Use **extensions-env**, **integrations-web**, and **observability** skills for full detail.
+
+## Three pillars
+
+| Pillar | Config | Subsection order |
+| ------ | ------ | ---------------- |
+| Observability | `config.observability.*` | **First** |
+| Integration | `config.integrations.<vendor>.<product>` | Second |
+| Extension | `config.extensions.*` | **Last** (main app only) |
 
 ## Do
 
-- Put extension-related env vars in the **last** section: `Extensions (forward-looking)`.
-- Map under nested `config.extensions.<service>.<property>` (e.g. `config.extensions.prometheus.enabled`).
-- **All extension env keys must use the `EXT_` prefix** (e.g. `EXT_PROMETHEUS_ENABLED`, not
-  `PROMETHEUS_ENABLED`).
-- Name the service `prometheus` (not `prometheusMetrics`); HTTP resource `metrics` at
-  `/extensions/prometheus/metrics`.
-- Validate optional extension vars under startup category **`Extensions`**, at the **end** of
-  `validateAllEnvironmentVariables` (see **startup-validation-env-order** skill).
-- Register extension HTTP routes via **`registerExtensionRoutes`** (after feature routers), one
-  folder per service under `lib/extensions/<serviceName>/` — not in `registerHealthRoutes`.
-- Prefer paths `{version}/extensions/{service-kebab}/{resource}` (e.g.
-  `/api/v2/extensions/prometheus/metrics`), not top-level `/metrics`.
+- Map extension toggles under `config.extensions.<service>.<property>` (e.g. `config.extensions.prometheus.enabled`).
+- Use **`PROMETHEUS_*`** and **`OTEL_*`** for extensions/observability (no `EXT_*` prefix after plan 02).
+- Mount **`podverse-integrations-config`** on runtime-config sidecars only.
+- Mount **`podverse-extensions-config`** on main app + extension sidecar containers.
+- Validate **Observability** categories before **Extensions** in startup validation.
+- Express: observability HTTP middleware **before** extension metrics middleware.
 
 ## Don't
 
-- Use `config.observability.*` or other top-level groups for extension toggles.
-- Place extension vars above other sections (Extensions must be last).
+- Use `config.extensions.tracing` or extension toggles for always-on trace context.
+- Put Integrations or Extensions env on runtime-config sidecars (Integrations CM + `NEXT_PUBLIC_*` only).
+- Register `/extensions/prometheus/metrics` on Express/Next app processes (sidecar port **9464** only).
+- Flatten integration config (`config.integrations.cloudflareWebAnalytics`).

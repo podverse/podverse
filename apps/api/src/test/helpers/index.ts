@@ -68,6 +68,9 @@ export async function startTestApp(): Promise<TestAppResult> {
   await ormContext.dataSourceRead.initialize();
   await ormContext.dataSourceReadWrite.initialize();
 
+  const { initObservability } = await import('@podverse/observability');
+  initObservability(appConfig.observability);
+
   const { app, startApp } = await import('../../app.js');
   const maybeServer = await startApp();
 

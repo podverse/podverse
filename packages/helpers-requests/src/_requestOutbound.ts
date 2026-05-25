@@ -2,6 +2,7 @@ import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import axios from 'axios';
 
 import { DEFAULT_HTTP_TIMEOUT_MS, resolveParserMaxFeedBodyBytes } from '@podverse/helpers';
+import { injectTraceContext } from '@podverse/observability';
 
 import type { RequestConfig } from './_request.js';
 import {
@@ -47,11 +48,15 @@ const requestOutboundInternal = async <T>(
     const method = rest.method || 'GET';
     const isJSONRequest = method.toUpperCase() === 'POST' || method.toUpperCase() === 'PUT';
 
+    const traceHeaders: Record<string, string> = {};
+    injectTraceContext(traceHeaders);
+
     const axiosConfig: AxiosRequestConfig = {
       url,
       method,
       ...rest,
       headers: {
+        ...traceHeaders,
         ...(userAgent ? { 'User-Agent': userAgent } : {}),
         ...(isJSONRequest ? { 'Content-Type': 'application/json' } : {}),
         ...rest.headers,

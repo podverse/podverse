@@ -42,6 +42,7 @@
   "dependencies": {
     "@podverse/http-request-core": "*",
     "@podverse/helpers": "*",
+    "@podverse/observability": "*",
     "axios": "^1.16.1",
     "ipaddr.js": "^2.3.0"
   },

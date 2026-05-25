@@ -8,7 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   resolve: {
     alias: {
-      '@mgmt-api': path.resolve(__dirname, 'src'),
+      '@management-api': path.resolve(__dirname, 'src'),
     },
   },
   test: {

@@ -3,6 +3,7 @@ import '../styles/index.scss';
 
 import { cookies } from 'next/headers';
 
+import { IntegrationsWebScripts } from '@podverse/integrations-web';
 import { FontPreloads } from '@podverse/ui';
 
 import Providers from '../providers/Providers';
@@ -37,6 +38,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={locale} data-ui-theme={ssrUITheme}>
       <head>
         <RuntimeConfigScript runtimeConfig={runtimeConfig} />
+        <IntegrationsWebScripts integrations={runtimeConfig.integrations} />
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>{brandName}</title>

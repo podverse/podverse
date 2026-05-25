@@ -11,7 +11,7 @@
     "emitDecoratorMetadata": true,
     "baseUrl": "./",
     "paths": {
-      "@mgmt-api/*": ["src/*"]
+      "@management-api/*": ["src/*"]
     }
   },
   "include": ["./src/**/*.ts", "./src/@types/**/*.d.ts"],

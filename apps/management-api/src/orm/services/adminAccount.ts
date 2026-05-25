@@ -1,9 +1,9 @@
-import { config } from '@mgmt-api/config/index.js';
-import { AppDataSourceRead, AppDataSourceReadWrite } from '@mgmt-api/orm/db/index.js';
-import { AdminAccount } from '@mgmt-api/orm/entities/adminAccount.js';
-import { AdminAccountCredentials } from '@mgmt-api/orm/entities/adminAccountCredentials.js';
-import { AdminAccountPermissions } from '@mgmt-api/orm/entities/adminAccountPermissions.js';
-import { AdminAccountRoleEnum } from '@mgmt-api/orm/entities/adminAccountRole.js';
+import { config } from '@management-api/config/index.js';
+import { AppDataSourceRead, AppDataSourceReadWrite } from '@management-api/orm/db/index.js';
+import { AdminAccount } from '@management-api/orm/entities/adminAccount.js';
+import { AdminAccountCredentials } from '@management-api/orm/entities/adminAccountCredentials.js';
+import { AdminAccountPermissions } from '@management-api/orm/entities/adminAccountPermissions.js';
+import { AdminAccountRoleEnum } from '@management-api/orm/entities/adminAccountRole.js';
 import bcrypt from 'bcrypt';
 import type { FindOneOptions, Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';

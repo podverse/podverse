@@ -2,6 +2,8 @@ import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import type { WorkerCommandStatus } from '@podverse/extension-metrics-sdk';
+
 const loadEnv = async () => {
   if (process.env.NODE_ENV !== 'production') {
     const dotenvx = await import('@dotenvx/dotenvx');
@@ -25,13 +27,9 @@ const run = async () => {
   // Command-first bootstrap: resolve command from argv before validation or config
   const argv = process.argv.slice(2);
   const commandName = (argv[0] as string) ?? '';
-  const longRunningCommands = new Set([
-    'mqRSSRunParser',
-    'mqAddByRSSRunParser',
-    'mqRSSRunLiveItemListener',
-    'mqRSSRunDlqConsumer',
-    'imageShrinkRunConsumer',
-  ]);
+  const { LONG_RUNNING_COMMANDS } = await import('./lib/extensions/longRunningCommands.js');
+  const { initWorkerExtensions, registerWorkerExtensionsShutdown } =
+    await import('./lib/extensions/initWorkerExtensions.js');
 
   const { KNOWN_COMMANDS } = await import('@workers/commands/commandNames.js');
   if (!commandName || !KNOWN_COMMANDS.includes(commandName)) {
@@ -42,6 +40,27 @@ const run = async () => {
   // Validate environment variables for this command BEFORE importing config
   const { validateStartupRequirements } = await import('./lib/startup/validation.js');
   validateStartupRequirements(commandName);
+
+  const { getObservabilityConfig } = await import('./config/index.js');
+  const { initObservability, shutdownObservability, withWorkerSpan } =
+    await import('@podverse/observability');
+  initObservability(getObservabilityConfig());
+
+  const registerObservabilityShutdown = (): void => {
+    const shutdown = async (): Promise<void> => {
+      await shutdownObservability();
+    };
+    process.on('SIGTERM', () => {
+      void shutdown();
+    });
+    process.on('SIGINT', () => {
+      void shutdown();
+    });
+  };
+  registerObservabilityShutdown();
+
+  initWorkerExtensions(commandName);
+  registerWorkerExtensionsShutdown(commandName);
 
   const {
     getCategoriesForCommand,
@@ -96,6 +115,8 @@ const run = async () => {
     await import('./lib/keyvaldb/keyvaldb.js');
   const { ActiveMQArtemisService } = await import('@podverse/mq');
   const { setPodcastIndexService } = await import('./factories/podcastIndexService.js');
+  const { recordWorkerCommand } = await import('@podverse/extension-metrics-sdk');
+  const { shouldInitWorkerExtensions } = await import('./lib/extensions/initWorkerExtensions.js');
 
   const args = parseArgs();
   const argsCommandName = (args._ as string[])[0];
@@ -264,7 +285,21 @@ const run = async () => {
       }
 
       if (command) {
-        await command(args);
+        const recordCommandMetrics = shouldInitWorkerExtensions(commandName);
+        const commandStartMs = performance.now();
+        let commandStatus: WorkerCommandStatus = 'success';
+        try {
+          await withWorkerSpan(`worker ${commandName}`, async () => {
+            await command(args);
+          });
+        } catch (commandError) {
+          commandStatus = 'error';
+          throw commandError;
+        } finally {
+          if (recordCommandMetrics) {
+            recordWorkerCommand(commandName, commandStatus, performance.now() - commandStartMs);
+          }
+        }
       } else {
         getLoggerService().logError(`runApp: Command "${commandName}" not found.`);
       }
@@ -282,7 +317,7 @@ const run = async () => {
         process.exit(1);
       }
     } finally {
-      if (!longRunningCommands.has(commandName)) {
+      if (!LONG_RUNNING_COMMANDS.has(commandName)) {
         process.exit(0);
       }
     }

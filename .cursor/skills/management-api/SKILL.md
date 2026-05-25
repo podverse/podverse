@@ -16,12 +16,14 @@ The Management API follows the same patterns as the main API. See the [API Skill
 - **Purpose**: Administrative operations and internal tooling
 - **Authentication**: Uses admin-specific auth middleware
 
-## Import Aliases
+## Import aliases (in-app)
+
+Internal imports within `apps/management-api/src` use **`@management-api/*`** → `src/*` (full directory name — not `@mgmt-api`). See `.cursor/rules/app-internal-import-aliases.mdc`.
 
 ```typescript
-import { config } from '@mgmt-api/config';
-import { AdminAccountService } from '@mgmt-api/orm/services/adminAccount';
-import { ensureAuthenticated } from '@mgmt-api/lib/auth';
+import { config } from '@management-api/config/index.js';
+import { AdminAccountService } from '@management-api/orm/services/adminAccount.js';
+import { ensureAuthenticated } from '@management-api/lib/auth/index.js';
 ```
 
 ## TypeScript Express Patterns

@@ -30,6 +30,7 @@ const MINT_OK_EMAIL = 'es-meta-mint-ok@example.com';
 const {
   podcastGetByIdMock,
   searchPodcastsMock,
+  searchMusicByTermMock,
   feedGetByPodcastIndexIdMock,
   mediumGetAllMock,
   claimTokenMock,
@@ -44,6 +45,9 @@ const {
     ),
     searchPodcastsMock: vi.fn(
       async () => ({ count: 1, feeds: [{ id: 1, title: 'S' }] }) as Record<string, unknown> | null
+    ),
+    searchMusicByTermMock: vi.fn(
+      async () => ({ count: 1, feeds: [{ id: 2, title: 'M' }] }) as Record<string, unknown> | null
     ),
     feedGetByPodcastIndexIdMock: vi.fn(
       async () => ({ id: 1, feed_url: 'https://a.com/feed' }) as Record<string, unknown> | null
@@ -113,6 +117,7 @@ vi.mock('@api/factories/podcastIndexService.js', () => ({
   podcastIndexService: {
     podcastGetById: podcastGetByIdMock,
     searchPodcasts: searchPodcastsMock,
+    searchMusicByTerm: searchMusicByTermMock,
   },
 }));
 
@@ -268,6 +273,11 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
   });
 
   describe('ExternalServices (Podcast Index proxy)', () => {
+    beforeEach(() => {
+      searchPodcastsMock.mockClear();
+      searchMusicByTermMock.mockClear();
+    });
+
     it('GET /podcast-index/feed/:id returns 200 with podcast data', async () => {
       podcastGetByIdMock.mockResolvedValueOnce({ title: 'Show', id: 99 } as never);
       const res = await request(app).get(`${externalServicesBase}/podcast-index/feed/100`);
@@ -290,6 +300,39 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
         .query({ q: 'search term' });
       expect(res.status).toBe(200);
       expect(res.body).toEqual({ count: 2, feeds: [] });
+      expect(searchPodcastsMock).toHaveBeenCalledOnce();
+      expect(searchMusicByTermMock).not.toHaveBeenCalled();
+    });
+
+    it('GET /podcast-index/search/podcasts returns 200 with medium=all', async () => {
+      searchPodcastsMock.mockResolvedValueOnce({ count: 1, feeds: [] } as never);
+      const res = await request(app)
+        .get(`${externalServicesBase}/podcast-index/search/podcasts`)
+        .query({ q: 'search term', medium: 'all' });
+      expect(res.status).toBe(200);
+      expect(searchPodcastsMock).toHaveBeenCalledOnce();
+      expect(searchMusicByTermMock).not.toHaveBeenCalled();
+    });
+
+    it('GET /podcast-index/search/podcasts returns 200 with medium=music', async () => {
+      searchMusicByTermMock.mockResolvedValueOnce({ count: 3, feeds: [{ id: 9 }] } as never);
+      const res = await request(app)
+        .get(`${externalServicesBase}/podcast-index/search/podcasts`)
+        .query({ q: 'jazz', medium: 'music' });
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ count: 3, feeds: [{ id: 9 }] });
+      expect(searchMusicByTermMock).toHaveBeenCalledOnce();
+      expect(searchMusicByTermMock).toHaveBeenCalledWith('jazz', { max: 50 });
+      expect(searchPodcastsMock).not.toHaveBeenCalled();
+    });
+
+    it('GET /podcast-index/search/podcasts returns 400 for unsupported medium', async () => {
+      const res = await request(app)
+        .get(`${externalServicesBase}/podcast-index/search/podcasts`)
+        .query({ q: 'search term', medium: 'podcasts' });
+      expect(res.status).toBe(400);
+      expect(searchPodcastsMock).not.toHaveBeenCalled();
+      expect(searchMusicByTermMock).not.toHaveBeenCalled();
     });
 
     it('GET /podcast-index/search/podcasts returns 500 when search returns null', async () => {

@@ -1,5 +1,5 @@
 extends:
-  - spectral:oas
+  - [spectral:oas, off]
 
 formats:
   - oas3

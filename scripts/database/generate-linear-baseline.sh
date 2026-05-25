@@ -215,7 +215,7 @@ for f in "$APP_DUMP" "$MGT_DUMP"; do
 done
 
 {
-  printf '%s\n' "-- GENERATED FILE (do not edit) — see scripts/database/generate-linear-baseline.sh and docs/operations/LINEAR-MIGRATIONS.md" ""
+  printf '%s\n' "-- GENERATED FILE (do not edit) — see scripts/database/generate-linear-baseline.sh and docs/operations/database/LINEAR-MIGRATIONS.md" ""
   printf '%s\n' "-- App database baseline (schema + migration-materialized data; applied as DB_APP_MIGRATOR_USER)." ""
   printf '%s\n' "-- linear_migration_history data is appended deterministically from migration filenames + checksums." ""
   cat "$APP_DUMP"
@@ -224,7 +224,7 @@ done
 append_history_seed_block "App database" "$APP_MIGRATIONS_DIR" "$TMP_APP_SQL"
 
 {
-  printf '%s\n' "-- GENERATED FILE (do not edit) — see scripts/database/generate-linear-baseline.sh and docs/operations/LINEAR-MIGRATIONS.md" ""
+  printf '%s\n' "-- GENERATED FILE (do not edit) — see scripts/database/generate-linear-baseline.sh and docs/operations/database/LINEAR-MIGRATIONS.md" ""
   printf '%s\n' "-- Management database baseline (schema + migration-materialized data; applied as DB_MANAGEMENT_MIGRATOR_USER)." ""
   printf '%s\n' "-- linear_migration_history data is appended deterministically from migration filenames + checksums." ""
   cat "$MGT_DUMP"

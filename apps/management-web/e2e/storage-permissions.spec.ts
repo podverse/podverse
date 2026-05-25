@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { capturePageLoad } from './helpers/stepScreenshots';
+
 /**
  * E2E seed: admin e2e-nobucket@example.com / Test!1Aa (feeds read, no bucket read)
  * (see tools/management-web/seed-e2e.mjs, make e2e_seed_management_web)
@@ -7,7 +9,7 @@ import { expect, test } from '@playwright/test';
 test.describe('Management-web object storage for an admin without bucket read', () => {
   test('the dashboard hides the storage tile and the storage route redirects away', async ({
     page,
-  }) => {
+  }, testInfo) => {
     test.setTimeout(30_000);
 
     await page.goto('/');
@@ -23,5 +25,12 @@ test.describe('Management-web object storage for an admin without bucket read', 
     await page.goto('/storage');
 
     await page.waitForURL('**/dashboard');
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'An admin without bucket read is redirected from /storage to the dashboard.',
+      page.getByRole('heading', { level: 1 })
+    );
   });
 });

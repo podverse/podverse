@@ -27,6 +27,17 @@ This skill provides quick reference for common patterns used in the podverse-api
 | `@podverse/external-services` | Third-party service integrations           |
 | `@podverse/notifications`     | Push notifications                         |
 
+## Import aliases (in-app)
+
+Internal imports within `apps/api/src` use **`@api/*`** → `src/*` (matches the `apps/api/` directory name). Do not abbreviate. See `.cursor/rules/app-internal-import-aliases.mdc`.
+
+```typescript
+import { config } from '@api/config/index.js';
+import { loggerService } from '@api/factories/loggerService.js';
+```
+
+Workspace packages use `@podverse/*`, not `@api/*`.
+
 ## Patterns
 
 ### Route Definition

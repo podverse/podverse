@@ -1,6 +1,6 @@
-import { app } from '@mgmt-api/app.js';
-import { config } from '@mgmt-api/config/index.js';
-import { TABLE_POLICIES } from '@mgmt-api/lib/database/tablePolicy.js';
+import { app } from '@management-api/app.js';
+import { config } from '@management-api/config/index.js';
+import { TABLE_POLICIES } from '@management-api/lib/database/tablePolicy.js';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -94,7 +94,7 @@ const { auditRecordMock } = vi.hoisted(() => ({
   auditRecordMock: vi.fn(async () => {}),
 }));
 
-vi.mock('@mgmt-api/orm/services/adminAccount.js', () => {
+vi.mock('@management-api/orm/services/adminAccount.js', () => {
   class AdminAccountService {
     async get(id: number) {
       return getWithRoleAndPermissionsMock(id);
@@ -106,7 +106,7 @@ vi.mock('@mgmt-api/orm/services/adminAccount.js', () => {
   return { AdminAccountService };
 });
 
-vi.mock('@mgmt-api/lib/database/queryEngine.js', () => {
+vi.mock('@management-api/lib/database/queryEngine.js', () => {
   class DatabaseQueryEngine {
     async queryTable() {
       return queryTableMock();
@@ -135,7 +135,7 @@ vi.mock('@mgmt-api/lib/database/queryEngine.js', () => {
   };
 });
 
-vi.mock('@mgmt-api/lib/database/auditLog.js', () => {
+vi.mock('@management-api/lib/database/auditLog.js', () => {
   class AuditLogService {
     async record(...args: unknown[]) {
       return auditRecordMock(...args);
@@ -410,18 +410,17 @@ describe('management-api database routes', () => {
   });
 
   describe('Audit logging', () => {
-    it('includes request id from x-request-id header on create', async () => {
+    it('uses OTEL trace id for audit request id when observability middleware is active', async () => {
       const res = await request(app)
         .post(`${dbBase}/feed_takedown_reason`)
         .set({ ...adminAuthHeaders(1), 'x-request-id': 'req-test-123' })
         .send({ reason: 'audit_test' });
 
       expect(res.status).toBe(201);
-      expect(auditRecordMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          requestId: 'req-test-123',
-        })
-      );
+      const auditCall = auditRecordMock.mock.calls[0]?.[0] as { requestId?: string } | undefined;
+      expect(auditCall?.requestId).toMatch(/^[0-9a-f]{32}$/);
+      expect(auditCall?.requestId).not.toBe('req-test-123');
+      expect(res.headers['x-trace-id']).toBe(auditCall?.requestId);
     });
 
     it('captures before and after snapshots on update', async () => {

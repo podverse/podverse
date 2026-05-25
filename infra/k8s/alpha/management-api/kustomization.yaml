@@ -28,3 +28,10 @@ patches:
 images:
   - name: ghcr.io/podverse/podverse/management-api
     newTag: "X.Y.Z-staging.N"
+  # Extension sidecar (uncomment with prometheus-sidecar component below):
+  # - name: ghcr.io/podverse/podverse/extension-prometheus
+  #   newTag: "X.Y.Z-staging.N"
+
+# Optional Prometheus extension sidecar (also set PROMETHEUS_ENABLED=true in podverse-extensions-config):
+# components:
+#   - ../../base/extensions/components/prometheus-sidecar

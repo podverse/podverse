@@ -32,6 +32,8 @@ WORKDIR /opt
 COPY --from=builder /opt/package*.json ./
 COPY --from=builder /opt/packages/helpers/package.json ./packages/helpers/
 COPY --from=builder /opt/packages/helpers/dist/ ./packages/helpers/dist/
+COPY --from=builder /opt/packages/extension-metrics-sdk/package.json ./packages/extension-metrics-sdk/
+COPY --from=builder /opt/packages/extension-metrics-sdk/dist/ ./packages/extension-metrics-sdk/dist/
 COPY --from=builder /opt/packages/helpers-validation/package.json ./packages/helpers-validation/
 COPY --from=builder /opt/packages/helpers-validation/dist/ ./packages/helpers-validation/dist/
 COPY --from=builder /opt/packages/helpers-requests/package.json ./packages/helpers-requests/
@@ -48,6 +50,8 @@ COPY --from=builder /opt/packages/external-services-podcast-index/package.json .
 COPY --from=builder /opt/packages/external-services-podcast-index/dist/ ./packages/external-services-podcast-index/dist/
 COPY --from=builder /opt/packages/external-services-object-storage/package.json ./packages/external-services-object-storage/
 COPY --from=builder /opt/packages/external-services-object-storage/dist/ ./packages/external-services-object-storage/dist/
+COPY --from=builder /opt/packages/observability/package.json ./packages/observability/
+COPY --from=builder /opt/packages/observability/dist/ ./packages/observability/dist/
 COPY --from=builder /opt/packages/orm/package.json ./packages/orm/
 COPY --from=builder /opt/packages/orm/dist/ ./packages/orm/dist/
 COPY --from=builder /opt/packages/notifications/package.json ./packages/notifications/

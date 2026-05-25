@@ -13,6 +13,7 @@
   "dependencies": {
     "@podverse/helpers": "*",
     "@podverse/helpers-config": "*",
+    "@podverse/integrations-web": "*",
     "axios": "^1.16.1",
     "next-intl": "^4.12.0"
   },

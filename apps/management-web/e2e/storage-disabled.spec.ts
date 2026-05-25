@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { capturePageLoad } from './helpers/stepScreenshots';
+
 /**
  * E2E seed: superuser e2e-superadmin@example.com / Test!1Aa
  * (see tools/management-web/seed-e2e.mjs, make e2e_seed_management_web)
@@ -7,7 +9,7 @@ import { expect, test } from '@playwright/test';
 test.describe('Management-web object storage when the bucket feature is off', () => {
   test('the dashboard hides the storage tile and the storage route redirects away', async ({
     page,
-  }) => {
+  }, testInfo) => {
     test.setTimeout(30_000);
 
     await page.goto('/');
@@ -23,5 +25,12 @@ test.describe('Management-web object storage when the bucket feature is off', ()
     await page.goto('/storage');
 
     await page.waitForURL('**/dashboard');
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'When storage is disabled, visiting /storage redirects back to the dashboard.',
+      page.getByRole('heading', { level: 1 })
+    );
   });
 });

@@ -46,6 +46,7 @@
   },
   "license": "AGPL-3.0",
   "dependencies": {
+    "@podverse/extension-metrics-sdk": "*",
     "@podverse/external-services-object-storage": "*",
     "@podverse/external-services-firebase": "*",
     "@podverse/external-services-podcast-index": "*",
@@ -54,6 +55,7 @@
     "@podverse/helpers-config": "*",
     "@podverse/mq": "*",
     "@podverse/notifications": "*",
+    "@podverse/observability": "*",
     "@podverse/orm": "*",
     "@podverse/parser": "*",
     "@podverse/worker-commands": "*",

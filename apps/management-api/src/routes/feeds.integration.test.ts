@@ -1,5 +1,5 @@
-import { app } from '@mgmt-api/app.js';
-import { config } from '@mgmt-api/config/index.js';
+import { app } from '@management-api/app.js';
+import { config } from '@management-api/config/index.js';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -153,7 +153,7 @@ const {
   audit: vi.fn(),
 }));
 
-vi.mock('@mgmt-api/orm/services/adminAccount.js', () => {
+vi.mock('@management-api/orm/services/adminAccount.js', () => {
   class AdminAccountService {
     async get(id: number) {
       return getWithRoleAndPermissionsMock(id);
@@ -165,7 +165,7 @@ vi.mock('@mgmt-api/orm/services/adminAccount.js', () => {
   return { AdminAccountService };
 });
 
-vi.mock('@mgmt-api/lib/feed/feedFlagStatusAppDb.js', () => ({
+vi.mock('@management-api/lib/feed/feedFlagStatusAppDb.js', () => ({
   findFeedByPodcastIndexId: (id: number) => findByPi(id),
   findFeedByInternalId: (id: number) => findById(id),
   findFeedByUrl: (u: string) => findByUrl(u),
@@ -182,7 +182,7 @@ vi.mock('@mgmt-api/lib/feed/feedFlagStatusAppDb.js', () => ({
   ) => updatePolicy(feedId, adminId, params),
 }));
 
-vi.mock('@mgmt-api/lib/database/auditLog.js', () => {
+vi.mock('@management-api/lib/database/auditLog.js', () => {
   class AuditLogService {
     async record(args: unknown) {
       return audit(args);
@@ -461,7 +461,7 @@ describe('feeds routes', () => {
     );
   });
 
-  it('Audit record includes admin id and request id when present', async () => {
+  it('Audit record includes admin id and OTEL trace id when observability is active', async () => {
     getSnap.mockResolvedValue({ id: 9 });
     findById.mockResolvedValue({ ...sampleFeed });
     const res = await request(app)
@@ -470,10 +470,16 @@ describe('feeds routes', () => {
       .set('X-Request-Id', 'req-feed-ops-1')
       .send({ spam_item_limit_override: 8000 });
     expect(res.status).toBe(200);
+    const auditCall = audit.mock.calls[0]?.[0] as
+      | { requestId?: string; adminAccountId?: number }
+      | undefined;
+    expect(auditCall?.adminAccountId).toBe(1);
+    expect(auditCall?.requestId).toMatch(/^[0-9a-f]{32}$/);
+    expect(auditCall?.requestId).not.toBe('req-feed-ops-1');
+    expect(res.headers['x-trace-id']).toBe(auditCall?.requestId);
     expect(audit).toHaveBeenCalledWith(
       expect.objectContaining({
         adminAccountId: 1,
-        requestId: 'req-feed-ops-1',
         beforeSnapshot: expect.any(Object),
         afterSnapshot: expect.any(Object),
       })

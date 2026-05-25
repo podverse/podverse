@@ -10,6 +10,8 @@ import {
   readOptionalPositiveExpirationEnv,
   readRequiredPositiveExpirationEnv,
 } from '@podverse/helpers';
+import type { ObservabilityConfig } from '@podverse/observability/config';
+import { buildObservabilityConfigFromEnv } from '@podverse/observability/config';
 
 type SocialConfig = {
   pageUrl: string;
@@ -29,9 +31,15 @@ type Config = {
     level: string;
     dir: string;
   };
+  observability: ObservabilityConfig;
   extensions: {
     prometheus: {
       enabled: boolean;
+    };
+    otel: {
+      otlpEndpoint: string;
+      serviceName: string;
+      resourceAttributes: string | undefined;
     };
   };
   auth: {
@@ -74,6 +82,7 @@ type Config = {
   podcastIndex: {
     authKey: string;
     baseUrl: string;
+    searchMax: number;
     secretKey: string;
   };
   activeMQArtemis: {
@@ -126,9 +135,15 @@ export const config: Config = {
     level: process.env.LOG_LEVEL!,
     dir: process.env.LOG_DIR ?? '',
   },
+  observability: buildObservabilityConfigFromEnv(process.env),
   extensions: {
     prometheus: {
-      enabled: process.env.EXT_PROMETHEUS_ENABLED === 'true',
+      enabled: process.env.PROMETHEUS_ENABLED === 'true',
+    },
+    otel: {
+      otlpEndpoint: process.env.OTEL_EXPORTER_OTLP_ENDPOINT!,
+      serviceName: process.env.OTEL_SERVICE_NAME!,
+      resourceAttributes: process.env.OTEL_RESOURCE_ATTRIBUTES,
     },
   },
   auth: (() => {
@@ -186,6 +201,9 @@ export const config: Config = {
   podcastIndex: {
     authKey: process.env.PODCAST_INDEX_AUTH_KEY!,
     baseUrl: process.env.PODCAST_INDEX_BASE_URL!,
+    searchMax: process.env.PODCAST_INDEX_SEARCH_MAX
+      ? parseInt(process.env.PODCAST_INDEX_SEARCH_MAX, 10)
+      : 50,
     secretKey: process.env.PODCAST_INDEX_SECRET_KEY!,
   },
   activeMQArtemis: {

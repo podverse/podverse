@@ -16,6 +16,7 @@ import {
   validateOptionalAbsoluteHttpUrlIfSet,
   validateRequired,
 } from '@podverse/helpers-config';
+import { buildObservabilityValidationResults } from '@podverse/observability/config';
 
 /**
  * Validates critical environment variables and configuration at application startup.
@@ -134,12 +135,44 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateRequired('NODE_ENV', 'General'));
   results.push(validateRequired('LOG_LEVEL', 'General'));
 
-  // Extensions (forward-looking) — last in apps/management-api/.env.example
+  results.push(...buildObservabilityValidationResults(process.env));
+
+  // Extensions (sidecar — separate container) — last in apps/management-api/.env.example; OpenTelemetry export, then Prometheus extension
+  const metricsExtensionEnabled = process.env.PROMETHEUS_ENABLED === 'true';
+  if (metricsExtensionEnabled) {
+    results.push(validateRequired('OTEL_EXPORTER_OTLP_ENDPOINT', 'Extensions / OpenTelemetry'));
+    results.push(validateRequired('OTEL_SERVICE_NAME', 'Extensions / OpenTelemetry'));
+    results.push(
+      validateOptional('OTEL_RESOURCE_ATTRIBUTES', 'Extensions / OpenTelemetry', 'Skipped')
+    );
+  } else {
+    results.push(
+      validateOptional(
+        'OTEL_EXPORTER_OTLP_ENDPOINT',
+        'Extensions / OpenTelemetry',
+        'Skipped (extensions disabled)'
+      )
+    );
+    results.push(
+      validateOptional(
+        'OTEL_SERVICE_NAME',
+        'Extensions / OpenTelemetry',
+        'Skipped (extensions disabled)'
+      )
+    );
+    results.push(
+      validateOptional(
+        'OTEL_RESOURCE_ATTRIBUTES',
+        'Extensions / OpenTelemetry',
+        'Skipped (extensions disabled)'
+      )
+    );
+  }
   results.push(
     validateOptional(
-      'EXT_PROMETHEUS_ENABLED',
-      'Extensions',
-      'Blank/false: disabled; true: expose GET .../extensions/prometheus/metrics'
+      'PROMETHEUS_ENABLED',
+      'Extensions / Prometheus',
+      'Blank/false: disabled; true: enable sidecar — set OTEL_* when true'
     )
   );
 

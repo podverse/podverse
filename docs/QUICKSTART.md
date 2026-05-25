@@ -222,6 +222,35 @@ npm run dev:workers
 
 Workers require the database, message queue, and cache to be running.
 
+## Extensions (Prometheus / OTLP)
+
+Optional **extension-prometheus** sidecar for local metrics (OTLP from apps → Prometheus scrape on port **9464**). Not started by `make local_infra_up`.
+
+```bash
+make local_extensions_prometheus_up
+curl -fsS http://127.0.0.1:9464/extensions/prometheus/health
+```
+
+`make local_env_setup` seeds extension env from three templates:
+
+- `infra/config/env-templates/extensions.env.example` → `infra/config/local/extensions.env`
+- `infra/config/env-templates/extension-sidecar-otel.env.example` → `infra/config/local/extension-sidecar-otel.env`
+- `infra/config/env-templates/extension-prometheus.env.example` → `infra/config/local/extension-prometheus.env`
+
+To export metrics from an app running on the host (e.g. `npm run dev:api`):
+
+1. Set in `apps/api/.env` (or the app you run): `PROMETHEUS_ENABLED="true"`,
+   `OTEL_EXPORTER_OTLP_ENDPOINT="http://127.0.0.1:4318"`, and `OTEL_SERVICE_NAME="podverse-api"`.
+   For web/management-web, set those keys in `apps/*/sidecar/.env` and re-run `make local_env_setup`
+   (copies them into `.env.local`).
+2. Start the app and hit HTTP routes.
+3. Scrape `http://127.0.0.1:9464/extensions/prometheus/metrics` (not the app port).
+
+Stop the sidecar: `make local_extensions_down`. Platform capabilities:
+[operations/platform/DOCS-OPERATIONS-PLATFORM.md](operations/platform/DOCS-OPERATIONS-PLATFORM.md).
+Extension sidecar: [EXTENSIONS-SIDECAR.md](operations/extensions/EXTENSIONS-SIDECAR.md).
+Tracing: [TRACING.md](operations/observability/TRACING.md).
+
 ## Troubleshooting
 
 ### Docker Network Error

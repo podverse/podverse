@@ -36,6 +36,10 @@ Tier 1 → Tier 2 → ... → Tier 5. Only depend on lower tiers.
 { "extends": "../../tsconfig.base.json" }
 ```
 
+### App internal import aliases
+
+Node apps (`apps/api`, `apps/management-api`, `apps/workers`) import from their own `src/` via a path alias whose prefix **matches the full `apps/<name>/` directory** (e.g. `@management-api/*`, not `@mgmt-api/*`). Workspace packages stay `@podverse/*`. Rule: `.cursor/rules/app-internal-import-aliases.mdc`.
+
 Avoid type assertions (`as`) when a better approach exists (types, narrowing, type guards).
 
 Prefer **named exports** in TypeScript modules; avoid `export default` when a named export works. See [prefer-named-exports](./prefer-named-exports/SKILL.md) (Next.js `page` defaults excepted).

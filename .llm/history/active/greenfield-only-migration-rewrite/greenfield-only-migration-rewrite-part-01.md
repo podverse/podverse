@@ -39,7 +39,7 @@ make sure that this choice is in skill files so you remember to follow this stan
 
 #### Key Decisions
 
-- Added Podverse skill `.cursor/skills/linear-sql-greenfield-only/SKILL.md`; linked from `migration-readiness-marker-sync`, `linear-baseline-0003.mdc`, and `docs/operations/LINEAR-MIGRATIONS.md`.
+- Added Podverse skill `.cursor/skills/linear-sql-greenfield-only/SKILL.md`; linked from `migration-readiness-marker-sync`, `linear-baseline-0003.mdc`, and `docs/operations/database/LINEAR-MIGRATIONS.md`.
 - Extended Metaboost `linear-db-migrations` and `linear-baseline-gz-sync` skills with the same greenfield-only authoring standard.
 
 #### Files Created/Modified
@@ -47,6 +47,6 @@ make sure that this choice is in skill files so you remember to follow this stan
 - `.cursor/skills/linear-sql-greenfield-only/SKILL.md`
 - `.cursor/skills/migration-readiness-marker-sync/SKILL.md`
 - `.cursor/rules/linear-baseline-0003.mdc`
-- `docs/operations/LINEAR-MIGRATIONS.md`
+- `docs/operations/database/LINEAR-MIGRATIONS.md`
 - `.cursor/skills/linear-db-migrations/SKILL.md` (Metaboost)
 - `.cursor/skills/linear-baseline-gz-sync/SKILL.md` (Metaboost)

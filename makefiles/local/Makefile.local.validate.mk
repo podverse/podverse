@@ -8,7 +8,7 @@ db_regen_linear_baseline:
 	@bash scripts/database/generate-linear-baseline.sh
 
 # Compare generated DB bootstrap 0003 (Docker) with committed files.
-# See scripts/database/verify-linear-baseline.sh and docs/operations/LINEAR-MIGRATIONS.md
+# See scripts/database/verify-linear-baseline.sh and docs/operations/database/LINEAR-MIGRATIONS.md
 db_verify_linear_baseline:
 	@bash scripts/database/verify-linear-baseline.sh
 

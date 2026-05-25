@@ -12,7 +12,7 @@ This skill provides quick reference for common patterns used in the podverse-orm
 
 - **ORM package location**: `packages/orm/`
 - **Database migrations (canonical):** `infra/k8s/base/ops/source/database/linear-migrations/` (see
-  [docs/operations/LINEAR-MIGRATIONS.md](docs/operations/LINEAR-MIGRATIONS.md); legacy TypeORM migration paths in this
+  [docs/operations/database/LINEAR-MIGRATIONS.md](docs/operations/database/LINEAR-MIGRATIONS.md); legacy TypeORM migration paths in this
   skill may still appear in older snippets)
 - **Helper packages** (from `packages/helpers*/`): `@podverse/helpers`, `@podverse/helpers-validation`, `@podverse/helpers-config`
 

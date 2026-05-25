@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { capturePageLoad } from './helpers/stepScreenshots';
+
 /**
  * E2E seed: superuser e2e-superadmin@example.com / Test!1Aa
  */
@@ -38,7 +40,7 @@ const ROLES_FIXTURE = {
 test.describe('Create admin page for the authenticated superuser', () => {
   test('when the user opens create admin, permission templates load and bulk shortcut buttons are available', async ({
     page,
-  }) => {
+  }, testInfo) => {
     test.setTimeout(45_000);
 
     await page.route('**/api/v2/admins/roles', async (route) => {
@@ -66,5 +68,12 @@ test.describe('Create admin page for the authenticated superuser', () => {
     await expect(page.getByRole('button', { name: 'Select all permissions' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Clear all permissions' })).toBeVisible();
     await expect(page.getByText('Billing prices')).toBeVisible();
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The create admin page loads permission templates and bulk shortcut buttons.',
+      page.getByRole('heading', { name: 'Create Admin', level: 1 })
+    );
   });
 });

@@ -18,6 +18,10 @@ import {
   validateSupportedThemesList,
   validateWebProtocol,
 } from '@podverse/helpers-config';
+import {
+  buildIntegrationsWebConfigFromEnv,
+  validateIntegrationsWebConfigFromEnv,
+} from '@podverse/integrations-web/config';
 
 /** Keep in sync with `DEFAULT_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS` in apps/web/src/config/runtime-config-store.ts */
 const DEFAULT_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS = 86400;
@@ -273,9 +277,54 @@ function getCategory(key: string): string {
   return map[key] ?? 'Config';
 }
 
+function validateIntegrationsWebAnalytics(): ValidationResult {
+  const enabled = process.env.CLOUDFLARE_WEB_ANALYTICS_ENABLED === 'true';
+  const tokenRaw = process.env.CLOUDFLARE_WEB_ANALYTICS_TOKEN;
+  const tokenSet =
+    tokenRaw !== undefined &&
+    tokenRaw !== null &&
+    typeof tokenRaw === 'string' &&
+    tokenRaw.trim() !== '';
+
+  try {
+    validateIntegrationsWebConfigFromEnv(process.env);
+    if (!enabled) {
+      return {
+        name: 'CLOUDFLARE_WEB_ANALYTICS_ENABLED',
+        isSet: false,
+        isValid: true,
+        isRequired: false,
+        message: 'Disabled (default)',
+        category: 'Integrations / Cloudflare Web Analytics',
+      };
+    }
+    return {
+      name: 'CLOUDFLARE_WEB_ANALYTICS_TOKEN',
+      isSet: tokenSet,
+      isValid: true,
+      isRequired: false,
+      message: 'Set',
+      category: 'Integrations / Cloudflare Web Analytics',
+    };
+  } catch (error) {
+    return {
+      name: 'CLOUDFLARE_WEB_ANALYTICS_TOKEN',
+      isSet: false,
+      isValid: false,
+      isRequired: true,
+      message:
+        error instanceof Error
+          ? error.message
+          : 'CLOUDFLARE_WEB_ANALYTICS_TOKEN is required when CLOUDFLARE_WEB_ANALYTICS_ENABLED=true',
+      category: 'Integrations / Cloudflare Web Analytics',
+    };
+  }
+}
+
 function buildValidationResults(): ValidationResult[] {
   const results: ValidationResult[] = [];
   results.push(validatePort());
+  results.push(validateIntegrationsWebAnalytics());
   for (const key of requiredKeys) {
     results.push(validateOne(key, true));
   }
@@ -343,12 +392,18 @@ function buildSummary(results: ValidationResult[]): ValidationSummary {
 const normalizeEnvValue = (value: string | undefined): string | undefined =>
   value === '' ? undefined : value;
 
-function buildRuntimeConfig(): { env: Record<string, string | undefined> } {
+function buildRuntimeConfig(): {
+  env: Record<string, string | undefined>;
+  integrations: ReturnType<typeof buildIntegrationsWebConfigFromEnv>;
+} {
   const env: Record<string, string | undefined> = {};
   for (const key of allKeys) {
     env[key] = normalizeEnvValue(process.env[key]);
   }
-  return { env };
+  return {
+    env,
+    integrations: buildIntegrationsWebConfigFromEnv(process.env),
+  };
 }
 
 function findMissingRequiredKeys(runtimeConfig: {

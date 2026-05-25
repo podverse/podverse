@@ -12,8 +12,10 @@ import {
   validateConditionalOptional,
   validateOptional,
   validateOptionalAbsoluteHttpUrlIfSet,
+  validatePositiveNumber,
   validateRequired,
 } from '@podverse/helpers-config';
+import { buildObservabilityValidationResults } from '@podverse/observability/config';
 
 /** MetaBoost AppAssertion: optional, but if one signing var is set the other is required. */
 const validateMetaboostAppAssertionPair = (): ValidationResult[] => {
@@ -182,6 +184,7 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateRequired('PODCAST_INDEX_AUTH_KEY', 'Podcast Index'));
   results.push(validateRequired('PODCAST_INDEX_BASE_URL', 'Podcast Index'));
   results.push(validateRequired('PODCAST_INDEX_SECRET_KEY', 'Podcast Index'));
+  results.push(validatePositiveNumber('PODCAST_INDEX_SEARCH_MAX', 'Podcast Index', false, 1));
 
   // Add-by-RSS (required: Basic Auth credentials encrypted at rest)
   results.push(validateRequired('ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY', 'Add-by-RSS'));
@@ -309,12 +312,44 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
     validateOptional('LOG_DIR', 'General', 'Optional - empty for localhost, set for file logging')
   );
 
-  // Extensions (forward-looking) — last in apps/api/.env.example
+  results.push(...buildObservabilityValidationResults(process.env));
+
+  // Extensions (sidecar — separate container) — last in apps/api/.env.example; OpenTelemetry export, then Prometheus extension
+  const metricsExtensionEnabled = process.env.PROMETHEUS_ENABLED === 'true';
+  if (metricsExtensionEnabled) {
+    results.push(validateRequired('OTEL_EXPORTER_OTLP_ENDPOINT', 'Extensions / OpenTelemetry'));
+    results.push(validateRequired('OTEL_SERVICE_NAME', 'Extensions / OpenTelemetry'));
+    results.push(
+      validateOptional('OTEL_RESOURCE_ATTRIBUTES', 'Extensions / OpenTelemetry', 'Skipped')
+    );
+  } else {
+    results.push(
+      validateOptional(
+        'OTEL_EXPORTER_OTLP_ENDPOINT',
+        'Extensions / OpenTelemetry',
+        'Skipped (extensions disabled)'
+      )
+    );
+    results.push(
+      validateOptional(
+        'OTEL_SERVICE_NAME',
+        'Extensions / OpenTelemetry',
+        'Skipped (extensions disabled)'
+      )
+    );
+    results.push(
+      validateOptional(
+        'OTEL_RESOURCE_ATTRIBUTES',
+        'Extensions / OpenTelemetry',
+        'Skipped (extensions disabled)'
+      )
+    );
+  }
   results.push(
     validateOptional(
-      'EXT_PROMETHEUS_ENABLED',
-      'Extensions',
-      'Blank/false: disabled; true: expose GET .../extensions/prometheus/metrics'
+      'PROMETHEUS_ENABLED',
+      'Extensions / Prometheus',
+      'Blank/false: disabled; true: enable sidecar — set OTEL_* when true'
     )
   );
 

@@ -1,5 +1,5 @@
-import { AppDataSourceReadWrite } from '@mgmt-api/orm/db/index.js';
-import { DatabaseAuditLog } from '@mgmt-api/orm/entities/databaseAuditLog.js';
+import { AppDataSourceReadWrite } from '@management-api/orm/db/index.js';
+import { DatabaseAuditLog } from '@management-api/orm/entities/databaseAuditLog.js';
 
 const SENSITIVE_FIELD_PATTERNS = [
   /password/i,
