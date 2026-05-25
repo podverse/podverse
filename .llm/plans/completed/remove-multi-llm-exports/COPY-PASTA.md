@@ -83,11 +83,11 @@ Manual GitHub steps for Podverse and Metaboost repos.
 
 ## Completion checklist
 
-- [ ] 01-remove-scripts-and-ci.md
-- [ ] 02-remove-exports-tree-and-gitignore.md
-- [ ] 03-rewrite-cursor-guidance.md
-- [ ] 04-revise-llm-docs.md
-- [ ] 05-metaboost-parity.md
-- [ ] 06-remote-and-operator-cleanup.md
+- [x] 01-remove-scripts-and-ci.md
+- [x] 02-remove-exports-tree-and-gitignore.md
+- [x] 03-rewrite-cursor-guidance.md
+- [x] 04-revise-llm-docs.md
+- [x] 05-metaboost-parity.md
+- [x] 06-remote-and-operator-cleanup.md (runbook below — run after plans 01–05 merge to `develop`)
 
 When all are done, move the plan set directory to `.llm/plans/completed/remove-multi-llm-exports/`.
