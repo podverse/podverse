@@ -93,7 +93,6 @@ Per-project plans live under `.llm/plans/active/` and `.llm/plans/completed/` (s
 
 - **Primary**: `00-master-plan.md` - For comprehensive master plans
 - **Alternative**: `00-overview.md` - For overviews and guides
-- **Legacy**: `index.md` - Acceptable but less preferred
 - **Never**: `README.md` or full-path names like `LLM-PLANS-ACTIVE-FEATURE.md`
 
 **Plan execution guides:**
@@ -132,4 +131,4 @@ The `.cursor/` directory is for Cursor IDE-specific configuration only (rules, s
 
 ### Migration Note
 
-If you encounter existing `README.md` files in subdirectories (from legacy structure), rename them following the full-path convention.
+If you encounter existing `README.md` files in subdirectories (from an older directory layout), rename them following the full-path convention.

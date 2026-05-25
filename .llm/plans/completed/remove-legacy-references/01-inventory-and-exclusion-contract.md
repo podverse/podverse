@@ -70,9 +70,45 @@ If the team wants enforcement, plan 05 may add `scripts/development/check-no-leg
 
 ## Deliverables
 
-- [ ] Baseline command run; summary recorded
-- [ ] Exclusion table agreed (this file is the contract)
-- [ ] No code changes in plan 01 unless a stray match is clearly wrong (prefer plan 02–04)
+- [x] Baseline command run; summary recorded (see **Completion note** below)
+- [x] Exclusion table agreed (this file is the contract)
+- [x] No code changes in plan 01 unless a stray match is clearly wrong (prefer plan 02–04)
+
+## Completion note (2026-05-25)
+
+**Baseline file:** `/tmp/podverse-legacy-baseline.txt` (regenerated with plan globs plus `!infra/data/**` so feed CSV URLs are not counted as in-scope prose).
+
+| Metric | Value |
+| ------ | ----- |
+| Match lines (`\blegacy\b`, case-insensitive) | 28 |
+| Unique files | 22 |
+
+**Summary by area (unique files):**
+
+| Area | Files | In-scope for 02–04 |
+| ---- | ----- | ------------------ |
+| `docs/` | 4 | yes |
+| `apps/` | 5 | yes (ENV, storage, SCSS, next.config; see camelCase addendum) |
+| `packages/` | 7 | yes |
+| `.cursor/` | 3 | yes |
+| `scripts/` | 2 | yes |
+| `infra/` | 1 | yes (`create_argocd_github_repo_secret.sh` comment only) |
+
+**Supplemental exclusion (not in original table):**
+
+| Location | Reason |
+| -------- | ------ |
+| `infra/data/**` (e.g. `podcastindex_feeds.csv`) | Third-party feed URLs containing the substring `legacy`; not repo-authored wording |
+
+**CamelCase / vendor tokens** (matched by `[Ll]egacy` but not always by `\blegacy\b`; plan 04 must still handle identifiers):
+
+| Location | Token | Treatment |
+| -------- | ----- | --------- |
+| `apps/web/.../modalForMembership403.tsx` | `getLegacyMembership403ModalProps` | rename (plan 04) |
+| `apps/web/.../storage.ts` | `LEGACY_*` store constants | rename (plan 04) |
+| `packages/management-api-requests/.../apiRequestService.ts` | `isLegacyJwt` | rename (plan 04) |
+| Permanent exclusions table above | `legacyHeaders`, `legacyWatch`, `legacyPackages` | no change |
+| `infra/k8s/base/ops/kustomization.yaml` | `0027_feed_legacy_flag_drop.sql` path | no change (filename) |
 
 ## Verification
 

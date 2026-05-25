@@ -2,9 +2,11 @@ import { defineConfig } from '@playwright/test';
 
 import {
   buildManagementApiEnvBucketOffForPlaywright,
-  MANAGEMENT_SIDECAR_ENV_FOR_PLAYWRIGHT,
+  buildManagementSidecarEnvForPlaywright,
   MANAGEMENT_WEB_ENV_FOR_PLAYWRIGHT,
 } from './playwright.management-api-env';
+
+const MANAGEMENT_SIDECAR_ENV_FOR_PLAYWRIGHT = buildManagementSidecarEnvForPlaywright();
 
 const E2E_REPORT_BASE = '.artifacts/e2e-reports';
 

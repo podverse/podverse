@@ -47,7 +47,7 @@ export async function getAdminAccountById(
   const service =
     jwtOrService instanceof ManagementApiRequestService
       ? jwtOrService
-      : new ManagementApiRequestService(jwtOrService);
+      : new ManagementApiRequestService({ jwt: jwtOrService });
   return service.apiRequest<AdminAccount>({
     path: `/admins/${id}`,
     method: 'GET',
@@ -55,7 +55,7 @@ export async function getAdminAccountById(
 }
 
 export async function listAdmins(jwt?: string): Promise<AdminAccount[]> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<AdminAccount[]>({
     path: '/admins',
     method: 'GET',
@@ -66,7 +66,7 @@ export async function createAdmin(
   params: CreateAdminParams,
   jwt?: string
 ): Promise<CreateAdminResponse> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<CreateAdminResponse>({
     path: '/admins',
     method: 'POST',
@@ -88,7 +88,7 @@ export async function updateAdmin(
   params: UpdateAdminParams,
   jwt?: string
 ): Promise<AdminAccount> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<AdminAccount>({
     path: `/admins/${id}`,
     method: 'PATCH',
@@ -97,7 +97,7 @@ export async function updateAdmin(
 }
 
 export async function deleteAdmin(id: number, jwt?: string): Promise<void> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   await service.apiRequest<void>({
     path: `/admins/${id}`,
     method: 'DELETE',
@@ -108,7 +108,7 @@ export async function getAdminInviteLink(
   id: number,
   jwt?: string
 ): Promise<AdminInviteLinkResponse> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<AdminInviteLinkResponse>({
     path: `/admins/${id}/invite-link`,
     method: 'GET',
@@ -119,7 +119,7 @@ export async function generateAdminInviteLink(
   id: number,
   jwt?: string
 ): Promise<GenerateAdminInviteLinkResponse> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<GenerateAdminInviteLinkResponse>({
     path: `/admins/${id}/invite-link`,
     method: 'POST',
@@ -130,7 +130,7 @@ export async function revokeAdminInviteLink(
   id: number,
   jwt?: string
 ): Promise<{ message: string }> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<{ message: string }>({
     path: `/admins/${id}/invite-link`,
     method: 'DELETE',

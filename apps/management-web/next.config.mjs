@@ -2,16 +2,6 @@ import createNextIntlPlugin from 'next-intl/plugin';
 import path from 'path';
 
 const nextConfig = {
-  async redirects() {
-    // Legacy URLs: feature routes used to live under /dashboard/...
-    return [
-      { source: '/dashboard/admins', destination: '/admins', permanent: true },
-      { source: '/dashboard/admins/:path*', destination: '/admins/:path*', permanent: true },
-      { source: '/dashboard/database', destination: '/database', permanent: true },
-      { source: '/dashboard/database/:path*', destination: '/database/:path*', permanent: true },
-      { source: '/dashboard/workers', destination: '/workers', permanent: true },
-    ];
-  },
   output: 'standalone',
   outputFileTracingRoot: path.join(import.meta.dirname, '../../'),
   serverExternalPackages: [

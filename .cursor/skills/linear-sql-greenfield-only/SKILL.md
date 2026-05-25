@@ -12,7 +12,7 @@ Use when adding or editing files under:
 
 ## Contract
 
-Linear migrations model **ordered fresh applies**: migration `NNNN` may assume the schema and data produced by all strictly earlier files in that chain (`0000`, …, `NNNN-1`). They are **not** written for ad-hoc repair on arbitrary legacy states.
+Linear migrations model **ordered fresh applies**: migration `NNNN` may assume the schema and data produced by all strictly earlier files in that chain (`0000`, …, `NNNN-1`). They are **not** written for ad-hoc repair on arbitrary pre-chain database states.
 
 ## Do (greenfield)
 

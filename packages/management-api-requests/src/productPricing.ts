@@ -18,7 +18,7 @@ export type ProductPricingActiveResponse = {
 };
 
 export async function getActiveProductPricing(jwt?: string): Promise<ProductPricingActiveResponse> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<ProductPricingActiveResponse>({
     path: '/products/pricing/active',
   });
@@ -41,7 +41,7 @@ export async function scheduleProductPricing(
   payload: ScheduleProductPricingRequest,
   jwt?: string
 ): Promise<ScheduleProductPricingResponse> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<ScheduleProductPricingResponse>({
     path: '/products/pricing/schedule',
     method: 'POST',

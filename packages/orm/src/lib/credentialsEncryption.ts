@@ -66,11 +66,11 @@ export function encryptCredentials(plaintext: string): string {
 
 /**
  * Decrypts a value using an explicit key (64 hex chars). Use for key-rotation scripts.
- * If value does not start with the encryption prefix, returns it as-is. Returns null if key is invalid or decryption fails.
+ * Returns null if the value is not `v1:` ciphertext, the key is invalid, or decryption fails.
  */
 export function decryptWithKey(ciphertext: string, keyHex: string): string | null {
   if (!ciphertext.startsWith(ENCRYPTION_PREFIX)) {
-    return ciphertext;
+    return null;
   }
   const key = keyHexToBuffer(keyHex);
   if (!key) {
@@ -100,13 +100,12 @@ function decryptWithKeyBuffer(ciphertext: string, key: Buffer): string | null {
 }
 
 /**
- * Decrypts a value. If it does not start with the encryption prefix, returns it as-is (legacy plaintext).
+ * Decrypts `v1:` ciphertext. Returns null when the value is not encrypted or decryption fails.
  * Tries current key first; if that fails and addByRssCredentialsEncryptionKeyOld is set, tries the old key (for key rotation).
- * Returns null if decryption fails with all configured keys.
  */
 export function decryptCredentials(ciphertext: string): string | null {
   if (!ciphertext.startsWith(ENCRYPTION_PREFIX)) {
-    return ciphertext;
+    return null;
   }
   const config = getORMConfig();
   const key = keyHexToBuffer(config.addByRssCredentialsEncryptionKey);

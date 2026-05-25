@@ -17,7 +17,7 @@ export type UpdateProductMembershipSettingsRequest = {
 export async function getResolvedProductMembership(
   jwt?: string
 ): Promise<ResolvedProductMembershipResponse> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<ResolvedProductMembershipResponse>({
     path: '/products/membership',
   });
@@ -27,7 +27,7 @@ export async function updateProductMembershipSettings(
   payload: UpdateProductMembershipSettingsRequest,
   jwt?: string
 ): Promise<ResolvedProductMembershipResponse> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<ResolvedProductMembershipResponse>({
     path: '/products/membership',
     method: 'PATCH',

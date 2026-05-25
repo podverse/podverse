@@ -50,6 +50,13 @@ Per [plan-completion skill](../../../.cursor/skills/plan-completion/SKILL.md):
 
 ## Deliverables
 
-- [ ] Full grep shows only exclusion list
-- [ ] Lint (and build:packages) pass
-- [ ] Plan set archived to `completed/`
+- [x] Full grep shows only exclusion list (plus `infra/data/**` feed URLs excluded per plan 01; allowed tokens `legacyHeaders`, `legacyWatch`, `legacyPackages`, `0027_feed_legacy_flag_drop.sql` do not match `\blegacy\b` as standalone words)
+- [x] Lint (and build:packages) pass — 2026-05-25
+- [x] Plan set archived to `completed/`
+
+## Completion note (2026-05-25)
+
+- Scoped `rg` on `apps packages scripts docs .cursor infra` (excluding `.llm`, `linear-migrations`, `infra/data`, lighthouse reports): **no matches**.
+- Full-repo matches limited to `package-lock.json` npm package names and `tools/web-perf/lighthouse/reports/**` vendor JSON.
+- `./scripts/nix/with-env npm run lint` and `npm run build:packages` passed after Prettier on `LOCAL-ENV-OVERRIDES.md` and `eslint --fix` import sort in `apps/web`.
+- Optional `check-no-legacy-wording.sh` skipped (plan optional).

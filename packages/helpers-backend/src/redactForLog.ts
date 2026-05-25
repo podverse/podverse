@@ -5,7 +5,6 @@
 
 const SENSITIVE_KEYS_EXACT = new Set<string>([
   'authorization',
-  'basic_auth_password',
   'passwd',
   'password',
   'pwd',

@@ -43,7 +43,7 @@ export type StorageDeleteAllByPrefixResponse = {
 };
 
 export async function getStorageFeature(jwt?: string): Promise<StorageFeatureResponse> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<StorageFeatureResponse>({
     path: '/storage',
     method: 'GET',
@@ -64,7 +64,7 @@ export async function listStorageObjects(
   },
   jwt?: string
 ): Promise<StorageListObjectsResponse> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<StorageListObjectsResponse>({
     path: '/storage/objects',
     method: 'GET',
@@ -84,7 +84,7 @@ export async function getStorageObjectMetadata(
   key: string,
   jwt?: string
 ): Promise<StorageObjectMetadataResponse> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<StorageObjectMetadataResponse>({
     path: '/storage/objects/metadata',
     method: 'GET',
@@ -103,7 +103,7 @@ export async function deleteStorageObject(
   key: string,
   jwt?: string
 ): Promise<{ deleted: string[] }> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<{ deleted: string[] }>({
     path: '/storage/objects',
     method: 'DELETE',
@@ -115,7 +115,7 @@ export async function bulkDeleteStorageObjects(
   keys: string[],
   jwt?: string
 ): Promise<StorageBulkDeleteResponse> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<StorageBulkDeleteResponse>({
     path: '/storage/objects/bulk-delete',
     method: 'POST',
@@ -127,7 +127,7 @@ export async function countStorageObjectsByPrefix(
   prefix: string,
   jwt?: string
 ): Promise<StorageCountResponse> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   const trimmed = prefix.trim();
   return service.apiRequest<StorageCountResponse>({
     path: '/storage/objects/count',
@@ -142,7 +142,7 @@ export async function deleteAllStorageObjectsByPrefix(
   prefix: string,
   jwt?: string
 ): Promise<StorageDeleteAllByPrefixResponse> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<StorageDeleteAllByPrefixResponse>({
     path: '/storage/objects/delete-all-by-prefix',
     method: 'POST',

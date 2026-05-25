@@ -10,8 +10,7 @@ Primary configuration lives in GitHub Rulesets:
 
 The active ruleset **`develop-protection`** targets **`develop`**, **`main`**, and **`staging`** and requires
 `validate` as a status check, plus PR, code review, and branch safety rules (see table below). The
-`staging` branch is the preprod / publish-train trigger (replacing the old `alpha` branch in GitHub
-rules; in-cluster “alpha” environment names in K8s are separate).
+`staging` branch is the preprod / publish-train trigger.
 
 Do not duplicate the same merge policy under Settings -> Branches. Keep Rulesets
 as the single source of truth to avoid conflicting enforcement behavior.
@@ -34,10 +33,6 @@ as the single source of truth to avoid conflicting enforcement behavior.
 | Allow deletions                       | No         |
 
 Bypass: configured teams/integrations in the ruleset (e.g. for automation that must push to these branches with `--no-verify` only where policy allows).
-
-**Legacy:** Older docs referred to separate policies for `alpha` / `beta` Git branches. The current
-**`staging`** line uses the same ruleset as `develop` and `main` above. Retired `alpha` / `beta` Git
-branches are no longer listed in this ruleset.
 
 ## Local Enforcement
 

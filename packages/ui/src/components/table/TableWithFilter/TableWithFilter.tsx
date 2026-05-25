@@ -77,11 +77,6 @@ export type TableWithFilterEmptyState = {
 type TableWithFilterSharedProps<TRow> = {
   bulkSelect?: TableWithFilterBulkSelect<TRow>;
   columns: TableWithFilterColumn[];
-  /**
-   * Prefer {@link emptyState}. When only this is set, behaves like filtered-empty (toolbar stays visible).
-   * @deprecated Use {@link emptyState} with `mode: 'filtered-empty'` or `'system-empty'`.
-   */
-  emptyMessage?: ReactNode;
   emptyState?: TableWithFilterEmptyState;
   /** From {@link useTableFilterState} at the page or resource wrapper. */
   filter: TableWithFilterFilterBag;
@@ -128,7 +123,6 @@ export type TableWithFilterProps<TRow> =
 export function TableWithFilter<TRow>(props: TableWithFilterProps<TRow>) {
   const {
     columns,
-    emptyMessage,
     emptyState,
     filter,
     filterableColumnIds,
@@ -145,7 +139,7 @@ export function TableWithFilter<TRow>(props: TableWithFilterProps<TRow>) {
     trailingToolbar,
   } = props;
 
-  const resolvedEmptyMessage = emptyState !== undefined ? emptyState.message : emptyMessage;
+  const resolvedEmptyMessage = emptyState?.message;
 
   const filterColumns = useMemo(
     () => computeFilterBarColumns(columns, filterableColumnIds),

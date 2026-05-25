@@ -27,7 +27,7 @@ export type CreateManagementAdminRoleParams = {
 export async function listManagementAdminRoles(
   jwt?: string
 ): Promise<{ roles: ManagementAdminRoleItem[] }> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<{ roles: ManagementAdminRoleItem[] }>({
     path: '/admins/roles',
     method: 'GET',
@@ -38,7 +38,7 @@ export async function createManagementAdminRole(
   params: CreateManagementAdminRoleParams,
   jwt?: string
 ): Promise<{ role: ManagementAdminRoleItem }> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<{ role: ManagementAdminRoleItem }>({
     path: '/admins/roles',
     method: 'POST',

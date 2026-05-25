@@ -72,8 +72,8 @@ Verify: full gate from plan 05 passes; move plan set to completed/.
 
 ## Progress
 
-- [ ] 1.1 — Inventory and exclusion contract
-- [ ] 2.1 — Operator docs and env wording
-- [ ] 3.1 — Cursor skills and internal docs
-- [ ] 4.1 — TypeScript identifiers and comments
-- [ ] 5.1 — Verification and CI guard
+- [x] 1.1 — Inventory and exclusion contract
+- [x] 2.1 — Operator docs and env wording
+- [x] 3.1 — Cursor skills and internal docs
+- [x] 4.1 — TypeScript identifiers and comments
+- [x] 5.1 — Verification and CI guard

@@ -127,7 +127,7 @@ Primitives and composites for admin-style list pages. Apps pass **localized stri
 - **`TableWithSort`** — renders **`<thead>`** from typed **`columns`**; sortable headers use **`Table.SortableHeaderCell`**; optional **`sortPrefsCookieName`** / **`sortPrefsListKey`** merge sort into the browser cookie; body is **`children`** (caller supplies **`<tbody>`**).
 - **`TableWithFilter`** — **`TableFilterBar`** + **`TableWithSort`** + optional **`Pagination`**; **`paginationMode`**
   **`'page'`** | **`'none'`**; **`renderCells`**; optional **`bulkSelect`** (prepends select header/cells only). When
-  **`rows`** is empty, the sortable table is not rendered; optional **`emptyMessage`** is shown below the filter row
+  **`rows`** is empty, the sortable table is not rendered; optional **`emptyState`** is shown below the filter row
   inside **`role="status"`**. State sync **`'url'`** | **`'cookie'`**.
 - **`BulkActionBar`** — summary + action buttons + clear; used by **`ResourceTableWithFilter`** when **`bulkSelect.toolbarActions`** is set and the selection is non-empty.
 - **`ResourceTableWithFilter`** — wraps **`TableWithFilter`** with fixed **`RowActions`** (view / edit / delete icons from **`actions`** + **`getRowActions`** policy), **`DeleteConfirmModalShell`** + **`useDeleteModal`**, **`paginationMode`** **`'page'`** | **`'cursor'`** | **`'none'`** (cursor uses **`CursorPagination`** below the table), optional **`bulkSelect`** (select columns + **`BulkActionBar`**), optional **`groupedSections`** (shared filter row, one **`Disclosure`** per section with its own table body; bulk selection is not used for grouped mode).

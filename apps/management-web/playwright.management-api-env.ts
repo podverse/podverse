@@ -98,9 +98,6 @@ export function buildManagementSidecarEnvForPlaywright(
   ].join(' ');
 }
 
-/** @deprecated Use buildManagementSidecarEnvForPlaywright() — default Cloudflare disabled. */
-export const MANAGEMENT_SIDECAR_ENV_FOR_PLAYWRIGHT = buildManagementSidecarEnvForPlaywright();
-
 export const MANAGEMENT_WEB_ENV_FOR_PLAYWRIGHT = [
   `PORT=4132`,
   `RUNTIME_CONFIG_URL=http://localhost:4131`,

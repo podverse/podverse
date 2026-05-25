@@ -19,7 +19,7 @@ describe('TableWithFilter', () => {
             label: 'A',
           },
         ]}
-        emptyMessage="Nothing here"
+        emptyState={{ message: 'Nothing here', mode: 'filtered-empty' }}
         filter={{
           handleColumnSelectionChange: vi.fn(),
           search: '',
