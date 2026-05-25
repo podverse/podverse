@@ -421,5 +421,4 @@ Core rule: Move QueryParams to @podverse/helpers-browser
 ## Related Skills
 
 - `create-plan`: For creating individual plan files
-- `llm-history`: For tracking execution and decisions
 - `Task` tool with `subagent_type: "explore"`: For initial scope analysis

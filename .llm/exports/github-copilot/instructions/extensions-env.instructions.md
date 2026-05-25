@@ -1,0 +1,32 @@
+---
+description: "Three-pillar env — Observability, Integrations, Extensions — and config mapping. Extensions env is last on main app containers."
+applyTo: "apps/api/.env.example,apps/management-api/.env.example,apps/web/.env.example,apps/management-web/.env.example,apps/workers/.env.example,apps/web/sidecar/.env.example,apps/management-web/sidecar/.env.example,infra/k8s/**/source/*.env,infra/config/env-templates/*.env.example,apps/api/src/config/index.ts,apps/management-api/src/config/index.ts,apps/web/src/config/**,apps/management-web/src/config/**,apps/**/src/lib/extensions/**,packages/observability/**,packages/integrations-web/**,infra/k8s/base/integrations/**"
+---
+
+# Platform env — extensions, integrations, observability
+
+Use **extensions-env**, **integrations-web**, and **observability** skills for full detail.
+
+## Three pillars
+
+| Pillar | Config | Subsection order |
+| ------ | ------ | ---------------- |
+| Observability | `config.observability.*` | **First** |
+| Integration | `config.integrations.<vendor>.<product>` | Second |
+| Extension | `config.extensions.*` | **Last** (main app only) |
+
+## Do
+
+- Map extension toggles under `config.extensions.<service>.<property>` (e.g. `config.extensions.prometheus.enabled`).
+- Use **`PROMETHEUS_*`** and **`OTEL_*`** for extensions/observability (no `EXT_*` prefix after plan 02).
+- Mount **`podverse-integrations-config`** on runtime-config sidecars only.
+- Mount **`podverse-extensions-config`** on main app + extension sidecar containers.
+- Validate **Observability** categories before **Extensions** in startup validation.
+- Express: observability HTTP middleware **before** extension metrics middleware.
+
+## Don't
+
+- Use `config.extensions.tracing` or extension toggles for always-on trace context.
+- Put Integrations or Extensions env on runtime-config sidecars (Integrations CM + `NEXT_PUBLIC_*` only).
+- Register `/extensions/prometheus/metrics` on Express/Next app processes (sidecar port **9464** only).
+- Flatten integration config (`config.integrations.cloudflareWebAnalytics`).

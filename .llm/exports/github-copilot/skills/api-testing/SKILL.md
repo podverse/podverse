@@ -18,7 +18,7 @@ Use this skill when adding or changing auth endpoints, routes, or any API behavi
 | `apps/api/src/test/*.test.ts`                          | API integration tests            | Add tests for new routes or behavior changes |
 | `apps/management-api/src/routes/*.integration.test.ts` | Management-API integration tests | Change when management routes change         |
 
-- **Base URL**: Use `config.api.prefix` + `config.api.version` (from config), never hardcode `/api/v1`.
+- **Base URL**: Use `config.api.prefix` + `config.api.version` (from config), never hardcode `/api/v2`.
 - **Test data**: Use file-unique prefixes for all emails, usernames, and identifiers so tests run without collisions.
 
 ## Test setup

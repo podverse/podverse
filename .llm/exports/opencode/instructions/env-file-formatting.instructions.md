@@ -35,6 +35,10 @@ URL_WITH_SPECIAL_CHARS=http://example.com?foo=bar&baz=qux
 
 Files under `infra/k8s/**/source/*.env` (and GitOps copies) follow the value rules above. For comments that name env vars, use **one variable per line** in each `#` comment. Do not combine multiple variable names in a single comment line (e.g. `VAR1, VAR2: …`). If the same note applies to two keys, use two comment lines and duplicate the text.
 
+## Order: non-`NEXT_PUBLIC_*` before `NEXT_PUBLIC_*`
+
+When a file mixes server-side keys with `NEXT_PUBLIC_*`, list **all non-`NEXT_PUBLIC_*` assignments first**, blank line, then all `NEXT_PUBLIC_*`. See `.llm/exports/opencode/skills/env-file-formatting/SKILL.md`.
+
 ## Rationale
 
 - Quotation marks ensure consistent parsing across different tools (dotenv, dotenvx, shell scripts)

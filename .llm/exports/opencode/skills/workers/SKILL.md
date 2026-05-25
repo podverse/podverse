@@ -18,6 +18,7 @@ Per-job env validation, command-first bootstrap, and checklist for adding worker
 
 ## Core rules
 
+- **In-app imports**: use `@workers/*` for paths under `apps/workers/src` (full directory name). See `.llm/exports/opencode/instructions/app-internal-import-aliases.instructions.md`.
 - **Per-job validation**: Each command has its own validator; only the env vars required for that
   command are validated and read.
 - **Command-first**: Parse the running command from argv before any validation or config loading.

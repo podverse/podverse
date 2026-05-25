@@ -1,0 +1,39 @@
+---
+description: "Prefer @podverse/ui for shared primitives; web-first style when web and management-web overlap"
+applyTo:
+  - "apps/web/src/**/*.tsx"
+  - "apps/management-web/src/**/*.tsx"
+---
+
+# Prefer shared UI (web + management-web)
+
+When adding or changing UI in **web** or **management-web**:
+
+## Order
+
+1. **Check `@podverse/ui` first** — reuse an existing export if it fits (buttons, tables, forms, navigation primitives, spinners, etc.).
+2. **If both apps need the same generic behavior** — implement **once** in `packages/ui/src/components/**` (or `packages/ui/src/hooks/**` for shared hooks) and export from `packages/ui/src/index.ts`.
+3. **App-local components** — only for shell, routing, or product-specific behavior; not for duplicating a primitive that belongs in `@podverse/ui`.
+
+## Style convergence
+
+When **web** and **management-web** already have overlapping patterns (e.g. icon actions, menus):
+
+- **Prefer the existing web app’s visual baseline** (colors, borders, spacing, interaction) in the shared implementation unless there is a documented accessibility or product reason not to.
+- **Do not** fork near-duplicate components in each app when one shared primitive can serve both with props (`appearance`, `variant`, etc.).
+
+## Before adding anything new
+
+- Search `packages/ui` and `apps/web/src/components` for an existing pattern to promote or extend.
+- See also: **`reusable-components`** skill and **management-web-prefer-shared-ui** (management-specific notes).
+
+## Promotion checklist (touching web or management-web)
+
+1. Search **`packages/ui`** for an existing primitive that fits.
+2. If the control is **generic and reusable** → add or extend **`packages/ui`** (do not introduce a parallel app-local copy).
+3. Keep the implementation **in the app** only when it hits the **stay-in-app denylist**: Next-only imports (`next/*`), **`next-intl`** wiring, authenticated data fetch in render, product-only routes, or domain-specific modals.
+
+## i18n
+
+- Shared primitives must not embed user-facing copy; apps pass localized strings (see
+  **`shared-ui-i18n`** rule).

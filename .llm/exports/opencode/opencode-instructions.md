@@ -14,13 +14,15 @@ See `.llm/context/architecture.md`. Lower tiers cannot depend on higher.
 ## Code Quality
 
 - No `any` types
+- **Shared UI:** Prefer `@podverse/ui` for reusable primitives in web and management-web. When both apps overlap, implement once in `packages/ui` and **prefer the web app’s existing visual baseline** when merging styles unless a11y/product docs say otherwise (see `.llm/exports/opencode/instructions/prefer-shared-ui-web-management.instructions.md`, **`reusable-components`**, and **`ui-component-promotion`** when extracting between apps).
 - DTOs from `@podverse/helpers`
 - Follow `tsconfig.base.json`
-- Use ESM formatting (`.js` extensions in relative imports; `"type": "module"` where applicable)
+- Use ESM formatting: **Tier A** uses `.js` specifiers on relative TS imports (NodeNext); **Tier B** (`apps/web/src`, `apps/management-web/src`) stays extensionless until Turbopack parity — [docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md](docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md). Prefer `"type": "module"` where applicable.
 - Prefer `import type` for type-only imports instead of value imports
 - **Strict equality**: Use `===` and `!==` only (no `==` or `!=`). For "not null or undefined" use `x !== null && x !== undefined` (or optional chaining / truthiness where appropriate).
 - **Avoid type assertions (`as`)**: Prefer proper types, optional chaining, type guards, or narrowing so the type system enforces correctness. Use `as` only when there is no better way (e.g. necessary escape hatch); keep such use minimal and documented.
 - **Named exports**: Prefer named `export` in TypeScript modules; avoid `export default` when a named export works. Framework-required defaults (e.g. Next.js `page.tsx`) are the exception. See `.llm/exports/opencode/skills/prefer-named-exports/SKILL.md`.
+- **CSS `var()`:** Do not use fallback arguments in SCSS/CSS (`var(--token, …)`); see `.llm/exports/opencode/instructions/css-custom-properties-no-var-fallbacks.instructions.md`.
 
 ## Commands / Terminal
 
@@ -53,44 +55,6 @@ Ask once at start: "Related GitHub issue?"
 ### Scope Management
 
 Warn if drifting: "This seems outside scope. Continue?"
-
----
-
-## HISTORY TRACKING (Essential)
-
-**Applies to every file-modifying response in this repo** — no exception for path or task size. When in doubt, update history.
-
-Before work: Check/create `.llm/history/active/[feature].md` (or `[feature]/[feature]-part-01.md`)
-
-After changes, update with:
-
-- Session date, user prompt (EXACT text), decisions, files
-
-### Prompt Recording (CRITICAL)
-
-**Always use the user's EXACT, FULL prompt text.** Never summarize or paraphrase.
-
-- Copy the prompt verbatim, preserving original wording
-- Include short confirmations ("yes", "continue") as-is
-- For multi-message exchanges, capture each message
-
-### Prompt Source Labeling (CRITICAL)
-
-**Differentiate prompt sources using labels:**
-
-- `#### Prompt (Developer)` — Manually typed by the user
-- `#### Prompt (Agent)` — System-generated (e.g., clicking "Build" on a plan)
-
-### Real-Time Capture (CRITICAL)
-
-**If a response will modify files, log the prompt FIRST.**
-
-- **Start of response**: Log prompt to `.llm/history/active/[feature].md`
-- **End of response**: Update with files changed and key decisions
-
-Skip logging for pure Q&A or explanations that don't change files.
-
-End file-modifying responses with: **LLM History**: Updated `.llm/history/active/[feature].md`
 
 ---
 

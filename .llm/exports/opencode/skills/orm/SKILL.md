@@ -12,7 +12,9 @@ This skill provides quick reference for common patterns used in the podverse-orm
 ## Monorepo Context
 
 - **ORM package location**: `packages/orm/`
-- **Database migrations**: `infra/database/main/migrations/`
+- **Database migrations (canonical):** `infra/k8s/base/ops/source/database/linear-migrations/` (see
+  [docs/operations/database/LINEAR-MIGRATIONS.md](docs/operations/database/LINEAR-MIGRATIONS.md); legacy TypeORM migration paths in this
+  skill may still appear in older snippets)
 - **Helper packages** (from `packages/helpers*/`): `@podverse/helpers`, `@podverse/helpers-validation`, `@podverse/helpers-config`
 
 ## Key Dependencies
@@ -102,6 +104,16 @@ export const PodcastService = {
   },
 };
 ```
+
+### `varchar` lengths (constants vs inline)
+
+- **SQL:** Keep explicit `VARCHAR(n)` in linear migration files; TypeScript cannot be imported there.
+- **TypeScript:** When the same **semantic** max length appears in more than one place (e.g. multiple entities or
+  entity + API validation), define **domain-named** numeric constants under `packages/orm/src/lib/` (example:
+  [`feedLifecycleLimits.ts`](packages/orm/src/lib/feedLifecycleLimits.ts)), export them from
+  [`packages/orm/src/index.ts`](packages/orm/src/index.ts), and reference them in `@Column({ length: ... })` and in
+  apps (e.g. Joi `.max(...)`). Document in the lib file which migration defines the width.
+- **Inline literals** are fine for column widths that are unique to one entity and not duplicated elsewhere.
 
 ### Query Builder Pattern
 

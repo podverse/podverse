@@ -1,7 +1,7 @@
 ---
 name: k8s
 description: Common patterns for Kubernetes manifests in infra/k8s. Use when editing or adding K8s manifests, changing deployment config, adding env vars to ConfigMaps, or working with ArgoCD/Kustomize/SOPS.
-version: 1.0.4
+version: 1.0.5
 ---
 
 
@@ -81,7 +81,7 @@ alpha-application.yaml → alpha/apps/*.yaml → alpha/<component>/kustomization
 
 ### Argo CD `Application` YAML named `ops.yaml` (editors / GitOps repos)
 
-The [JSON Schema Store](https://www.schemastore.org/) maps **`ops.yaml` / `ops.yml`** to an unrelated "Ops configuration" spec, so editors can mis-validate a real Argo CD `Application`. **Podverse** uses a **line 1** `# yaml-language-server: $schema=...` modeline in [`infra/k8s/alpha/apps/ops.yaml`](../../../infra/k8s/alpha/apps/ops.yaml). A matching GitOps checkout (e.g. k.podcastdj.com) should add the same **first-line modeline** on `argocd/.../ops.yaml` and may also commit `.vscode/settings.json` for backup. **Prefer the modeline**; rename or user `yaml.schemas` if needed. For the operator GitOps repo, see the **argocd-yaml-schema-ops-filename** skill (`.llm/exports/github-copilot/skills/` there).
+The [JSON Schema Store](https://www.schemastore.org/) maps **`ops.yaml` / `ops.yml`** to an unrelated "Ops configuration" spec, so editors can mis-validate a real Argo CD `Application`. **Podverse** uses a **line 1** `# yaml-language-server: $schema=...` modeline in [`infra/k8s/alpha/apps/ops.yaml`](../../../infra/k8s/alpha/apps/ops.yaml). Your separate GitOps repository checkout should add the same **first-line modeline** on `argocd/.../ops.yaml` and may also commit `.vscode/settings.json` for backup. **Prefer the modeline**; rename or user `yaml.schemas` if needed. For the operator GitOps repo, see the **argocd-yaml-schema-ops-filename** skill (`.llm/exports/github-copilot/skills/` there).
 
 ## Kustomize Usage
 
@@ -120,6 +120,10 @@ kustomize build --load-restrictor LoadRestrictionsNone infra/k8s/alpha/api/ | ku
 - Override ConfigMap values with `configMapGenerator` (behavior: merge)
 - Set image tags in `images:` section
 - Apply patches (e.g., `deployment-link-patch.yaml`)
+- **`base/product-membership`:** list it under **`alpha/common`** (namespace + ingress + shared
+  ConfigMaps) so one Argo app emits `podverse-product-membership-config`; `alpha/api` and
+  `alpha/management-api` only reference that name in Deployments (same pattern for external GitOps
+  `common` overlays).
 
 ## ConfigMap Conventions
 
@@ -148,7 +152,7 @@ ConfigMaps in `base/<component>/01-configmap.yaml` should mirror the structure o
   # DB_APP_READ_WRITE_USER: ""           # in secrets
   # DB_APP_READ_WRITE_PASSWORD: ""      # in secrets
 
-# In Deployment (API loads JWT, mailer, and Metaboost from separate Secrets)
+# In Deployment (API loads JWT, mailer, webpush, and Metaboost from separate Secrets; mailer + webpush optional)
 envFrom:
   - configMapRef:
       name: podverse-api-config
@@ -156,6 +160,10 @@ envFrom:
       name: podverse-api-opaque
   - secretRef:
       name: podverse-mailer-opaque
+    optional: true
+  - secretRef:
+      name: podverse-workers-webpush-opaque
+    optional: true
   - secretRef:
       name: podverse-metaboost-opaque
 ```
@@ -188,8 +196,8 @@ configMapGenerator:
 
 ```yaml
 images:
-  - name: ghcr.io/podverse/podverse-api/podverse-api
-    newTag: '5.1.28-staging.0'
+  - name: ghcr.io/podverse/podverse/api
+    newTag: 'X.Y.Z-staging.N'
 ```
 
 ## ArgoCD Applications
@@ -199,7 +207,7 @@ Child applications in `alpha/apps/<component>.yaml` define:
 - `metadata.name`: e.g., `podverse-alpha-api`
 - `spec.project`: `podverse`
 - `spec.source.repoURL`: GitHub repo URL
-- `spec.source.targetRevision`: branch or tag in the app repo (e.g., `staging`)
+- `spec.source.targetRevision`: immutable Git tag in the Podverse repo (e.g., `X.Y.Z-staging.N`), matching overlay `?ref=` / images
 - `spec.source.path`: path to overlay (e.g., `k8s/alpha/api`)
 - `spec.destination.namespace`: `podverse-alpha`
 - `spec.syncPolicy.automated`: `prune: true`, `selfHeal: true`
@@ -296,13 +304,13 @@ labels:
 
 ## Database: linear migrations and bootstrap
 
-- **One source of truth for SQL migrations:** `infra/k8s/ops/source/app/` and `infra/k8s/ops/source/management/`. Additive, ordered files (`0001_*.sql`, …); the migration runner applies them in order and records them in `linear_migration_history` (the runner creates that table; do not add a “history table” migration for it).
-- **Bootstrap in init:** `infra/k8s/base/db/source/bootstrap/` — `0001` and `0002` shell scripts create users/roles and the management database; the generated `0003_linear_baseline.sql` (do not hand-edit) materializes the full schema after the linear chain. See `docs/operations/LINEAR-MIGRATIONS.md` and `scripts/database/generate-linear-baseline.sh`. In cluster, **ops** migration jobs also apply the same files from ConfigMaps.
-- **Runners and validation:** From repo root, `bash scripts/database/run-linear-migrations.sh --database app|management` (always pass `--database`); `bash scripts/database/validate-linear-migrations.sh` checks filenames, ordering, and that every SQL file in `source/app` and `source/management` is listed in `infra/k8s/base/ops/kustomization.yaml` (ops bundle must stay in sync with disk).
-- **Kustomize and ops:** When rendering `infra/k8s/base/ops/`, Kustomize may include files under `scripts/`; use a load policy that allows files outside the ops directory, e.g. `kubectl kustomize infra/k8s/base/ops --load-restrictor LoadRestrictionsNone`.
-- **DB credentials naming:** Authoritative admin keys in secrets and env are `DB_APP_ADMIN_USER` / `DB_APP_ADMIN_PASSWORD` and `DB_MANAGEMENT_ADMIN_USER` / `DB_MANAGEMENT_ADMIN_PASSWORD` (plus read/write keys per `infra/config/env-templates/db.env.example`). The official **postgres** image still expects `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` **inside the container** only—map from the `DB_*` keys in StatefulSet or Compose, not the other way around.
+- **One source of truth for SQL migrations:** `infra/k8s/base/ops/source/database/linear-migrations/app/` and `infra/k8s/base/ops/source/database/linear-migrations/management/`. Additive, ordered files (`0001_*.sql`, …); the migration runner applies them in order and records them in `linear_migration_history` (do not add a dedicated “history table” migration).
+- **Bootstrap in init:** `infra/k8s/base/db/source/bootstrap/` — `0001` and `0002` create roles/databases (including `DB_*_OWNER_*` and `DB_*_MIGRATOR_*` roles), `0003_apply_linear_baselines.sh` installs extensions as owner roles then loads generated `0003a_app_linear_baseline.sql.gz` and `0003b_management_linear_baseline.sql.gz` as migrator roles; these generated baselines include deterministic `linear_migration_history` rows so ops jobs skip already-applied files. See `docs/operations/database/LINEAR-MIGRATIONS.md` and `make db_regen_linear_baseline`.
+- **Runners and validation:** From repo root, `bash scripts/database/run-linear-migrations.sh --database app|management` (always pass `--database`; wrappers delegate to `infra/k8s/base/ops/source/database/runner/`). **App** migrations use `DB_APP_MIGRATOR_USER`, `DB_APP_MIGRATOR_PASSWORD`, `DB_APP_NAME`, `DB_HOST`, and `DB_PORT`. **Management** migrations use `DB_MANAGEMENT_MIGRATOR_USER`, `DB_MANAGEMENT_MIGRATOR_PASSWORD`, `DB_MANAGEMENT_NAME`, `DB_HOST`, and `DB_PORT`. K8s jobs pass these via Secrets; use `LINEAR_MIGRATIONS_BASE_DIR` (or `LINEAR_MIGRATIONS_DIR`) for mounted SQL paths. `bash scripts/database/validate-linear-migrations.sh` checks filenames, ordering, and bundle sync in `infra/k8s/base/ops/kustomization.yaml`.
+- **Kustomize and ops:** Migration assets live under `infra/k8s/base/ops/source/database/` so `kubectl kustomize infra/k8s/base/ops` does not need paths outside the ops directory.
+- **DB credentials naming:** Owner keys (`DB_APP_OWNER_*`, `DB_MANAGEMENT_OWNER_*`) are for bootstrap-only ownership and extension setup. Migrator keys (`DB_APP_MIGRATOR_*`, `DB_MANAGEMENT_MIGRATOR_*`) are for forward migration runners. Runtime API/worker roles stay on read/read*write credentials. The official **postgres** image still expects `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` inside the container only—map from `DB\_*` keys in StatefulSet or Compose.
 
-**Read more:** [docs/operations/DB-MIGRATIONS.md](../../docs/operations/DB-MIGRATIONS.md), [docs/operations/LINEAR-MIGRATIONS.md](../../docs/operations/LINEAR-MIGRATIONS.md).
+**Read more:** [docs/operations/database/DB-MIGRATIONS.md](../../docs/operations/database/DB-MIGRATIONS.md), [docs/operations/database/LINEAR-MIGRATIONS.md](../../docs/operations/database/LINEAR-MIGRATIONS.md).
 
 ## Common Tasks
 
@@ -328,8 +336,8 @@ Edit the overlay's `kustomization.yaml` (e.g., `alpha/api/kustomization.yaml`):
 
 ```yaml
 images:
-  - name: ghcr.io/podverse/podverse-api/podverse-api
-    newTag: '5.1.29-staging.0' # Update this
+  - name: ghcr.io/podverse/podverse/api
+    newTag: 'X.Y.Z-staging.N' # bump with remote ?ref= and Argo targetRevision
 ```
 
 ArgoCD will detect the change and sync automatically.
@@ -361,9 +369,9 @@ See [infra/k8s/scripts/README.md](../../infra/k8s/scripts/README.md) for details
 ## References
 
 - [infra/k8s/README.md](../../infra/k8s/README.md) - Full K8s documentation
-- [docs/operations/ALPHA-DEPLOYMENT.md](../../docs/operations/ALPHA-DEPLOYMENT.md) - Docker/CI and alpha deployment
-- [docs/operations/DB-MIGRATIONS.md](../../docs/operations/DB-MIGRATIONS.md) - DB migrations and ops jobs
-- [docs/operations/LINEAR-MIGRATIONS.md](../../docs/operations/LINEAR-MIGRATIONS.md) - Linear migration contract
+- [docs/operations/deploy/ALPHA-DEPLOYMENT.md](../../docs/operations/deploy/ALPHA-DEPLOYMENT.md) - Docker/CI and alpha deployment
+- [docs/operations/database/DB-MIGRATIONS.md](../../docs/operations/database/DB-MIGRATIONS.md) - DB migrations and ops jobs
+- [docs/operations/database/LINEAR-MIGRATIONS.md](../../docs/operations/database/LINEAR-MIGRATIONS.md) - Linear migration contract
 - [.llm/exports/github-copilot/instructions/infra-k8s.instructions.md](../.llm/exports/github-copilot/instructions/infra-k8s.instructions.md) - K8s cursor rules
 - [.prettierrc.json](../../.prettierrc.json) - Prettier config with k8s overrides
 

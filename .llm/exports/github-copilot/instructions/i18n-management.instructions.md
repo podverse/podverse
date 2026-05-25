@@ -27,6 +27,12 @@ The Podverse monorepo uses a three-tier translation system:
 - `apps/web`
 - `apps/management-web`
 
+## Shared UI (`packages/ui`)
+
+User-facing copy lives in apps — not in `@podverse/ui`. When strings move from a component into
+message files, update **`apps/web`** and/or **`apps/management-web`** originals (see
+**`shared-ui-i18n`** rule).
+
 ## Required Locales
 
 The canonical list of required locales is defined in multiple places that **must stay in sync**:
@@ -90,7 +96,7 @@ When PRs are merged to `develop`:
 - Override files are synced (new keys with empty values)
 - Only `originals/` and `overrides/` are committed (not `compiled/`)
 
-**Requires**: `OPENAI_API_KEY` repository secret (see `docs/modules/SECRETS.md`)
+**Requires**: `OPENAI_API_KEY` repository secret (see [docs/operations/deploy/SECRETS.md](../../docs/operations/deploy/SECRETS.md))
 
 **Local development**: Copy `.env.openai.example` to `.env.openai` at the root and add your API key.
 
