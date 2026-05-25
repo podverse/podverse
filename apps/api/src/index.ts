@@ -18,6 +18,10 @@ const run = async () => {
 
   validateStartupRequirements();
 
+  const { config } = await import('./config/index.js');
+  const { initObservability, shutdownObservability } = await import('@podverse/observability');
+  initObservability(config.observability);
+
   const {
     validateORMConfig,
     validateNotificationsConfig,
@@ -33,7 +37,6 @@ const run = async () => {
   const { activeMQArtemisService } = await import('./factories/activeMQArtemisService.js');
   const { keyvaldb } = await import('./lib/keyvaldb/keyvaldb.js');
   const { waitForKeyvalPingReady } = await import('./lib/keyvaldb/waitForKeyvalPingReady.js');
-  const { config } = await import('./config/index.js');
 
   const shutdown = async (signal?: string) => {
     try {
@@ -66,6 +69,17 @@ const run = async () => {
         }
       } catch (err) {
         loggerService.error('Error closing KeyValDB connection during shutdown', err as Error);
+      }
+      try {
+        const { shutdownApiExtensions } = await import('./lib/extensions/bootstrapExtensions.js');
+        await shutdownApiExtensions();
+      } catch (err) {
+        loggerService.error('Error shutting down extensions during shutdown', err as Error);
+      }
+      try {
+        await shutdownObservability();
+      } catch (err) {
+        loggerService.error('Error shutting down observability during shutdown', err as Error);
       }
     } catch (err) {
       loggerService.error('Error during shutdown', err as Error);

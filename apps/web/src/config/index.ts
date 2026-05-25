@@ -2,6 +2,7 @@
 
 import type { AccountSignupMode } from '@podverse/helpers';
 import { parseSidebarGroupOrder } from '@podverse/helpers-config';
+import { buildObservabilityConfigFromEnv } from '@podverse/observability/config';
 
 import { ASSETS } from '../constants/assets';
 import { getRuntimeConfig } from './runtime-config-store';
@@ -11,9 +12,16 @@ const opt = (v: string | undefined): string | undefined =>
   v === '' || v === undefined ? undefined : v;
 
 const buildConfig = () => {
-  const { env } = getRuntimeConfig();
+  const runtimeConfig = getRuntimeConfig();
+  const { env } = runtimeConfig;
 
   return {
+    observability: buildObservabilityConfigFromEnv(process.env),
+    integrations: {
+      cloudflare: {
+        webAnalytics: runtimeConfig.integrations.cloudflare.webAnalytics,
+      },
+    },
     public: {
       brand: {
         name: env.NEXT_PUBLIC_BRAND_NAME!,

@@ -23,6 +23,7 @@
   },
   "workspaces": [
     "packages/*",
+    "extensions/*",
     "apps/*",
     "apps/web/sidecar",
     "apps/management-web/sidecar",
@@ -69,8 +70,8 @@
     "llm:exports:restore": "git restore .llm/exports",
     "llm:vendors": "node scripts/llm/vendor-selector.mjs",
     "build": "node scripts/ci/run-workspaces.mjs --script build --all",
-    "build:packages": "node scripts/ci/run-workspaces.mjs --script build --workspaces packages/worker-commands packages/helpers packages/helpers-validation packages/v4v-metaboost packages/v4v-helpers packages/parser-mapping packages/http-request-core packages/helpers-requests packages/management-api-requests packages/helpers-backend packages/helpers-browser packages/helpers-config packages/external-services-firebase packages/external-services-paypal packages/external-services-object-storage packages/external-services-podcast-index packages/orm packages/notifications packages/parser packages/mq packages/v4v-btc-ln",
-    "build:packages:prod": "node scripts/ci/run-workspaces.mjs --script build:prod --workspaces packages/worker-commands packages/helpers packages/helpers-validation packages/v4v-metaboost packages/v4v-helpers packages/parser-mapping packages/http-request-core packages/helpers-requests packages/management-api-requests packages/helpers-backend packages/helpers-browser packages/helpers-config packages/external-services-firebase packages/external-services-paypal packages/external-services-object-storage packages/external-services-podcast-index packages/orm packages/notifications packages/parser packages/mq packages/v4v-btc-ln",
+    "build:packages": "node scripts/ci/run-workspaces.mjs --script build --workspaces packages/worker-commands packages/helpers packages/observability packages/extension-metrics-sdk packages/integrations-web packages/helpers-validation packages/v4v-metaboost packages/v4v-helpers packages/parser-mapping packages/http-request-core packages/helpers-requests packages/management-api-requests packages/helpers-backend packages/helpers-browser packages/helpers-config packages/external-services-firebase packages/external-services-paypal packages/external-services-object-storage packages/external-services-podcast-index packages/orm packages/notifications packages/parser packages/mq packages/v4v-btc-ln",
+    "build:packages:prod": "node scripts/ci/run-workspaces.mjs --script build:prod --workspaces packages/worker-commands packages/helpers packages/observability packages/extension-metrics-sdk packages/integrations-web packages/helpers-validation packages/v4v-metaboost packages/v4v-helpers packages/parser-mapping packages/http-request-core packages/helpers-requests packages/management-api-requests packages/helpers-backend packages/helpers-browser packages/helpers-config packages/external-services-firebase packages/external-services-paypal packages/external-services-object-storage packages/external-services-podcast-index packages/orm packages/notifications packages/parser packages/mq packages/v4v-btc-ln",
     "build:apps": "node scripts/ci/run-workspaces.mjs --script build --workspaces apps/api apps/web apps/workers apps/management-api apps/management-web apps/web/sidecar apps/management-web/sidecar",
     "clean": "npm run clean --workspaces --if-present",
     "clean:packages": "find packages -name 'tsconfig.tsbuildinfo' -delete && find packages -type d -name 'dist' -exec rm -rf {} + 2>/dev/null || true",

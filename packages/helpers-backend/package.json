@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@podverse/helpers": "*",
+    "@podverse/observability": "*",
     "bignumber.js": "^11.0.0",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0",

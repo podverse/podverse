@@ -1,5 +1,5 @@
-import { app } from '@mgmt-api/app.js';
-import { config } from '@mgmt-api/config/index.js';
+import { app } from '@management-api/app.js';
+import { config } from '@management-api/config/index.js';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -76,7 +76,7 @@ const { updateProductMembershipSettingsMock, auditRecordMock } = vi.hoisted(() =
   auditRecordMock: vi.fn(async () => undefined),
 }));
 
-vi.mock('@mgmt-api/orm/services/adminAccount.js', () => {
+vi.mock('@management-api/orm/services/adminAccount.js', () => {
   class AdminAccountService {
     async getWithRoleAndPermissions(id: number) {
       return getWithRoleAndPermissionsMock(id);
@@ -107,7 +107,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
   return { ...actual, BillingPriceCatalogService };
 });
 
-vi.mock('@mgmt-api/lib/database/auditLog.js', () => {
+vi.mock('@management-api/lib/database/auditLog.js', () => {
   class AuditLogService {
     async record(entry: unknown) {
       return auditRecordMock(entry);

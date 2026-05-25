@@ -1,8 +1,8 @@
-import { config } from '@mgmt-api/config/index.js';
-import { ensureAuthenticated } from '@mgmt-api/lib/auth/index.js';
-import { requireCrud } from '@mgmt-api/lib/authz/requireCrud.js';
-import { getParamRequired } from '@mgmt-api/lib/params.js';
-import { AppDbDataSourceRead } from '@mgmt-api/orm/db/appDb.js';
+import { config } from '@management-api/config/index.js';
+import { ensureAuthenticated } from '@management-api/lib/auth/index.js';
+import { requireCrud } from '@management-api/lib/authz/requireCrud.js';
+import { getParamRequired } from '@management-api/lib/params.js';
+import { AppDbDataSourceRead } from '@management-api/orm/db/appDb.js';
 import express from 'express';
 import Joi from 'joi';
 

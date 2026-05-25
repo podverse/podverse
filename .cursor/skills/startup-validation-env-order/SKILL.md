@@ -22,7 +22,7 @@ equivalent), especially after adding vars to `apps/<app>/.env.example`.
    section header in `.env.example`.
 3. **Last section = last block** — Vars in the final env section (e.g. **Extensions
    (forward-looking)**) belong at the **end** of `validateAllEnvironmentVariables`, not
-   mixed into an earlier category block (e.g. do not put `EXT_PROMETHEUS_ENABLED` under
+   mixed into an earlier category block (e.g. do not put `PROMETHEUS_ENABLED` under
    API Configuration in validation when it is last in `.env.example`).
 4. **Comments** — Optional short comment tying a validation block to the env section name
    helps future edits stay aligned.

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `podverse-web` application is a Next.js app that reads `NEXT_PUBLIC_*` values at runtime via an internal runtime-config sidecar. The app's `.env.example` contains only `RUNTIME_CONFIG_URL`; the sidecar env (and `apps/web/sidecar/.env.example`) holds the full variable list. These values are exposed to the browser, so do not include secrets.
+The `podverse-web` application is a Next.js app that reads `NEXT_PUBLIC_*` values at runtime via an internal runtime-config sidecar. The app's `.env.example` contains only `RUNTIME_CONFIG_URL`. The canonical env catalog is `apps/web/sidecar/.env.example`; `make local_env_setup` copies Observability and Extensions keys from the sidecar env into `.env.local` for the Next.js server process. These values are exposed to the browser, so do not include secrets.
 
 **No environment variables are required at build time.** The app can be built without any `.env` file. All configuration is fetched from the sidecar at runtime.
 

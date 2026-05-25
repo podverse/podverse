@@ -53,7 +53,7 @@ describe('API health routes', () => {
     expect(res.body).toMatchObject({ status: 'ok', message: 'Ready' });
   });
 
-  it(`GET ${apiBase}/extensions/prometheus/metrics returns 404 when EXT_PROMETHEUS_ENABLED is not true`, async () => {
+  it(`GET ${apiBase}/extensions/prometheus/metrics is not served by the app (sidecar-only; always 404)`, async () => {
     await request(app).get(`${apiBase}/extensions/prometheus/metrics`).expect(404);
   });
 });

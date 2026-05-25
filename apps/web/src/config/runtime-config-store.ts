@@ -1,4 +1,6 @@
 /* eslint-disable no-console */
+import { buildIntegrationsWebConfigFromEnv } from '@podverse/integrations-web/config';
+
 import type { WebRuntimeConfig, WebRuntimeConfigEnvKey } from './runtime-config';
 import { webRuntimeConfigEnvKeys } from './runtime-config';
 
@@ -30,7 +32,10 @@ function buildRuntimeConfigFromProcessEnv(): WebRuntimeConfig {
       return [key, typeof v === 'string' ? v.trim() : v];
     })
   ) as WebRuntimeConfig['env'];
-  return { env };
+  return {
+    env,
+    integrations: buildIntegrationsWebConfigFromEnv(process.env),
+  };
 }
 
 function applyWebRuntimeEnvDefaults(env: WebRuntimeConfig['env']): WebRuntimeConfig['env'] {
@@ -55,6 +60,15 @@ function applyWebRuntimeEnvDefaults(env: WebRuntimeConfig['env']): WebRuntimeCon
   };
 }
 
+function resolveIntegrations(
+  runtimeConfig: WebRuntimeConfig | undefined
+): WebRuntimeConfig['integrations'] {
+  if (runtimeConfig?.integrations !== undefined) {
+    return runtimeConfig.integrations;
+  }
+  return buildIntegrationsWebConfigFromEnv(process.env);
+}
+
 let hasLoggedFallback = false;
 
 export const getRuntimeConfig = (): WebRuntimeConfig => {
@@ -73,7 +87,10 @@ export const getRuntimeConfig = (): WebRuntimeConfig => {
         }
         return buildRuntimeConfigFromProcessEnv().env;
       })();
-  return { env: applyWebRuntimeEnvDefaults(baseEnv) };
+  return {
+    env: applyWebRuntimeEnvDefaults(baseEnv),
+    integrations: resolveIntegrations(runtimeConfig),
+  };
 };
 
 export {};

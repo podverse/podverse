@@ -1,8 +1,9 @@
-import { ensureAuthenticated } from '@mgmt-api/lib/auth/index.js';
-import { requireCrud } from '@mgmt-api/lib/authz/requireCrud.js';
-import { AuditLogService } from '@mgmt-api/lib/database/auditLog.js';
-import { getParamRequired } from '@mgmt-api/lib/params.js';
-import { AppDbDataSourceRead, AppDbDataSourceReadWrite } from '@mgmt-api/orm/db/appDb.js';
+import { ensureAuthenticated } from '@management-api/lib/auth/index.js';
+import { requireCrud } from '@management-api/lib/authz/requireCrud.js';
+import { AuditLogService } from '@management-api/lib/database/auditLog.js';
+import { getAuditRequestId } from '@management-api/lib/getAuditRequestId.js';
+import { getParamRequired } from '@management-api/lib/params.js';
+import { AppDbDataSourceRead, AppDbDataSourceReadWrite } from '@management-api/orm/db/appDb.js';
 import express from 'express';
 import Joi from 'joi';
 
@@ -19,10 +20,6 @@ const schedulePriceSchema = Joi.object({
   effectiveFrom: Joi.date().iso().optional(),
   changeReason: Joi.string().max(500).allow('', null).optional(),
 }).required();
-
-function getRequestId(req: express.Request): string {
-  return req.id ?? req.headers['x-request-id']?.toString() ?? '';
-}
 
 type PricingRow = {
   id: number;
@@ -187,7 +184,7 @@ router.post(
         operation: 'create',
         tableName: 'billing_price',
         rowId: result.priceId,
-        requestId: getRequestId(req),
+        requestId: getAuditRequestId(req),
         afterSnapshot: {
           cadence: value.cadence,
           amount_cents: value.amountCents,
@@ -274,7 +271,7 @@ router.post(
         operation: 'update',
         tableName: 'billing_price',
         rowId: target.id,
-        requestId: getRequestId(req),
+        requestId: getAuditRequestId(req),
         afterSnapshot: { activated: true },
       });
 
@@ -334,7 +331,7 @@ router.post(
         operation: 'update',
         tableName: 'billing_price',
         rowId: target.id,
-        requestId: getRequestId(req),
+        requestId: getAuditRequestId(req),
         afterSnapshot: { deprecated: true },
       });
 

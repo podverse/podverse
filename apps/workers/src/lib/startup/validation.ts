@@ -36,7 +36,9 @@ import {
   validateOptionalAbsoluteHttpUrlIfSet,
   validateRequired,
 } from '@podverse/helpers-config';
+import { buildObservabilityValidationResults } from '@podverse/observability/config';
 
+import { isLongRunningCommand } from '../extensions/longRunningCommands.js';
 import {
   CATEGORY_BASE,
   CATEGORY_IMAGE_SHRINK,
@@ -402,6 +404,89 @@ function validateWebNotifications(): ValidationResult[] {
   return results;
 }
 
+/** Observability — first in apps/workers/.env.example Observability subsection. */
+function validateObservability(): ValidationResult[] {
+  return buildObservabilityValidationResults(process.env);
+}
+
+/** Extensions — last in apps/workers/.env.example; OpenTelemetry export, then Prometheus extension. */
+function validateExtensions(commandName: string): ValidationResult[] {
+  const results: ValidationResult[] = [];
+  const metricsExtensionEnabled = process.env.PROMETHEUS_ENABLED === 'true';
+
+  if (!metricsExtensionEnabled) {
+    results.push(
+      validateOptional(
+        'OTEL_EXPORTER_OTLP_ENDPOINT',
+        'Extensions / OpenTelemetry',
+        'Skipped (extensions disabled)'
+      )
+    );
+    results.push(
+      validateOptional(
+        'OTEL_SERVICE_NAME',
+        'Extensions / OpenTelemetry',
+        'Skipped (extensions disabled)'
+      )
+    );
+    results.push(
+      validateOptional(
+        'OTEL_RESOURCE_ATTRIBUTES',
+        'Extensions / OpenTelemetry',
+        'Skipped (extensions disabled)'
+      )
+    );
+    results.push(
+      validateOptional(
+        'PROMETHEUS_ENABLED',
+        'Extensions / Prometheus',
+        'Blank/false: disabled; true: enable sidecar — set OTEL_* when true'
+      )
+    );
+    return results;
+  }
+
+  if (isLongRunningCommand(commandName)) {
+    results.push(validateRequired('OTEL_EXPORTER_OTLP_ENDPOINT', 'Extensions / OpenTelemetry'));
+    results.push(validateRequired('OTEL_SERVICE_NAME', 'Extensions / OpenTelemetry'));
+    results.push(
+      validateOptional('OTEL_RESOURCE_ATTRIBUTES', 'Extensions / OpenTelemetry', 'Skipped')
+    );
+  } else {
+    results.push(
+      validateOptional(
+        'OTEL_EXPORTER_OTLP_ENDPOINT',
+        'Extensions / OpenTelemetry',
+        'Skipped (not a long-running Deployment command)'
+      )
+    );
+    results.push(
+      validateOptional(
+        'OTEL_SERVICE_NAME',
+        'Extensions / OpenTelemetry',
+        'Skipped (not a long-running Deployment command)'
+      )
+    );
+    results.push(
+      validateOptional(
+        'OTEL_RESOURCE_ATTRIBUTES',
+        'Extensions / OpenTelemetry',
+        'Skipped (extensions disabled for command)'
+      )
+    );
+  }
+
+  results.push(
+    validateOptional(
+      'PROMETHEUS_ENABLED',
+      'Extensions / Prometheus',
+      'Blank/false: disabled; true: enable sidecar — set OTEL_* when true (long-running Deployments only)'
+    )
+  );
+
+  return results;
+}
+
 /** Build ValidationSummary from results (same calculation as before) */
 function buildValidationSummary(results: ValidationResult[]): ValidationSummary {
   const total = results.length;
@@ -451,6 +536,9 @@ function getValidationResultsForCommand(commandName: string): ValidationResult[]
   if (categories.has(CATEGORY_IMAGE_SHRINK)) {
     results.push(...validateImageShrink());
   }
+
+  results.push(...validateObservability());
+  results.push(...validateExtensions(commandName));
 
   return results;
 }

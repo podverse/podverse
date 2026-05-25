@@ -1,4 +1,4 @@
-import { requireSuperuser } from '@mgmt-api/lib/authz/requireSuperuser.js';
+import { requireSuperuser } from '@management-api/lib/authz/requireSuperuser.js';
 import type { NextFunction, Request, Response } from 'express';
 import { describe, expect, it, vi } from 'vitest';
 

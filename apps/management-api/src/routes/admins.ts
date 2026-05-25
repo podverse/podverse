@@ -1,21 +1,21 @@
-import { config } from '@mgmt-api/config/index.js';
+import { config } from '@management-api/config/index.js';
 import {
   handleCreateManagementAdminRole,
   handleDeleteManagementAdminRole,
   handleListManagementAdminRoles,
   handleUpdateManagementAdminRole,
   resolvePodverseManagementAdminRole,
-} from '@mgmt-api/lib/adminRoles.js';
-import { ensureAuthenticated } from '@mgmt-api/lib/auth/index.js';
-import { requireCrud } from '@mgmt-api/lib/authz/requireCrud.js';
-import { hasCrud } from '@mgmt-api/lib/crud.js';
-import { getParamRequired } from '@mgmt-api/lib/params.js';
-import { AdminAccountRoleEnum } from '@mgmt-api/orm/entities/adminAccountRole.js';
+} from '@management-api/lib/adminRoles.js';
+import { ensureAuthenticated } from '@management-api/lib/auth/index.js';
+import { requireCrud } from '@management-api/lib/authz/requireCrud.js';
+import { hasCrud } from '@management-api/lib/crud.js';
+import { getParamRequired } from '@management-api/lib/params.js';
+import { AdminAccountRoleEnum } from '@management-api/orm/entities/adminAccountRole.js';
 import {
   ADMIN_ACCOUNT_DUPLICATE_CREDENTIALS_ERROR,
   ADMIN_ACCOUNT_MUST_HAVE_IDENTIFIER_ERROR,
   AdminAccountService,
-} from '@mgmt-api/orm/services/adminAccount.js';
+} from '@management-api/orm/services/adminAccount.js';
 import express from 'express';
 import Joi from 'joi';
 

@@ -29,8 +29,16 @@ const nextConfig = {
   },
   output: 'standalone',
   outputFileTracingRoot: path.join(import.meta.dirname, '../../'),
-  serverExternalPackages: ['winston'],
-  transpilePackages: ['@podverse/helpers', '@podverse/ui'],
+  serverExternalPackages: [
+    'winston',
+    '@podverse/extension-metrics-sdk',
+    '@opentelemetry/api',
+    '@opentelemetry/exporter-metrics-otlp-http',
+    '@opentelemetry/resources',
+    '@opentelemetry/sdk-metrics',
+    '@opentelemetry/semantic-conventions',
+  ],
+  transpilePackages: ['@podverse/helpers', '@podverse/ui', '@podverse/integrations-web'],
   // Turbopack config for development (Next.js 16 default bundler)
   turbopack: {
     resolveAlias: {

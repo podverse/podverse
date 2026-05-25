@@ -15,6 +15,11 @@ import type {
 import { type ILoggerLike, summarizeUpstreamHttpErrorForLog } from '@podverse/helpers-backend';
 import { type AxiosRequestConfig, requestWithUserAgent } from '@podverse/helpers-requests';
 
+import {
+  type PodcastIndexSearchByTermOptions,
+  podcastIndexSearchByTermPath,
+} from './searchByTermQuery.js';
+
 type Constructor = {
   userAgent: string;
   authKey: string;
@@ -330,43 +335,25 @@ export class PodcastIndexService {
 
   searchPodcasts = async (
     term: string,
-    options: {
-      max?: number;
-      val?: 'any' | 'lightning' | 'hive' | 'webmonetization';
-      aponly?: boolean;
-      clean?: boolean;
-      similar?: boolean;
-      fulltext?: boolean;
-      pretty?: boolean;
-    } = {}
+    options: PodcastIndexSearchByTermOptions = {}
   ): Promise<PodcastIndexSearchPodcastsResponse | null> => {
-    const { max = 25, val, aponly, clean, similar, fulltext, pretty } = options;
+    return this.searchByTerm('/search/byterm', term, options, 'searchPodcasts');
+  };
 
-    const safeMax = Math.min(Math.max(max, 1), 1000);
-    const params: string[] = [`q=${encodeURIComponent(term)}`, `max=${safeMax}`];
+  searchMusicByTerm = async (
+    term: string,
+    options: PodcastIndexSearchByTermOptions = {}
+  ): Promise<PodcastIndexSearchPodcastsResponse | null> => {
+    return this.searchByTerm('/search/music/byterm', term, options, 'searchMusicByTerm');
+  };
 
-    if (val) {
-      params.push(`val=${encodeURIComponent(val)}`);
-    }
-    // Boolean flags: if true, include param name without value per Podcast Index docs
-    if (aponly) {
-      params.push('aponly');
-    }
-    if (clean) {
-      params.push('clean');
-    }
-    if (similar) {
-      params.push('similar');
-    }
-    if (fulltext) {
-      params.push('fulltext');
-    }
-    if (pretty) {
-      params.push('pretty');
-    }
-
-    const query = params.join('&');
-    const url = `${this.baseUrl}/search/byterm?${query}`;
+  private searchByTerm = async (
+    searchPath: '/search/byterm' | '/search/music/byterm',
+    term: string,
+    options: PodcastIndexSearchByTermOptions,
+    logLabel: 'searchPodcasts' | 'searchMusicByTerm'
+  ): Promise<PodcastIndexSearchPodcastsResponse | null> => {
+    const url = podcastIndexSearchByTermPath(this.baseUrl, searchPath, term, options);
 
     try {
       const response = await this.podcastIndexAPIRequest(url);
@@ -374,7 +361,7 @@ export class PodcastIndexService {
     } catch (error: unknown) {
       const summary = summarizeUpstreamHttpErrorForLog(error, { requestUrl: url });
       this.loggerService.logError(
-        `[PodcastIndex] searchPodcasts failed: ${JSON.stringify({
+        `[PodcastIndex] ${logLabel} failed: ${JSON.stringify({
           ...summary,
           searchTermCharCount: term.length,
         })}`

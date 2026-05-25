@@ -8,6 +8,8 @@ import type { ILoggerLike } from '@podverse/helpers-backend';
 import { getContainerIpPart } from '@podverse/helpers-backend';
 import type { ParseRSSFeedAndSaveToDatabaseOptions } from '@podverse/parser';
 
+import { attachMqTraceContext, withMqConsumerSpan } from '../../lib/traceEnvelope.js';
+
 export type MQQueueName =
   | 'rss-normal'
   | 'rss-on-demand'
@@ -337,7 +339,8 @@ export class ActiveMQArtemisService {
     const { queueName, message, priority, dedupeCacheTimeMS, amqpPriority } = params;
     try {
       const sender = await this.ensureSender(queueName);
-      const bodyString = JSON.stringify(message);
+      const messageWithTrace = attachMqTraceContext(message);
+      const bodyString = JSON.stringify(messageWithTrace);
       const duplicateId = this.computeDuplicateId(queueName, message, dedupeCacheTimeMS);
       if (process.env.MQ_DEBUG === 'true') {
         this.logger.info('MQ send debug', {
@@ -472,9 +475,20 @@ export class ActiveMQArtemisService {
         if (context.receiver !== receiver) {
           return;
         }
+        const bodyRaw = context.message?.body;
+        const bodyStr = typeof bodyRaw === 'string' ? bodyRaw : '';
+        let parsedBody: unknown = bodyStr;
+        if (bodyStr !== '') {
+          try {
+            parsedBody = JSON.parse(bodyStr);
+          } catch {
+            // Non-JSON payloads still get a consumer span without trace link.
+          }
+        }
         try {
-          // The processing function is now responsible for accepting/rejecting and adding credit.
-          await processMessage(context, receiver);
+          await withMqConsumerSpan(`mq ${queueName}`, parsedBody, async () => {
+            await processMessage(context, receiver);
+          });
         } catch (err) {
           const error = err as Error;
           this.logger.logError('Error processing message', error);

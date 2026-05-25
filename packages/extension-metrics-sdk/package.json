@@ -1,0 +1,37 @@
+{
+  "name": "@podverse/extension-metrics-sdk",
+  "version": "5.4.30",
+  "description": "OTEL metrics client for Podverse extension sidecars (OTLP to sidecar; not a general extension umbrella)",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "npm run lint && tsc",
+    "build:prod": "tsc",
+    "build:watch": "tsc --build --watch --preserveWatchOutput",
+    "lint": "eslint ./src --max-warnings 0",
+    "lint:fix": "eslint ./src --fix",
+    "test": "vitest run",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit"
+  },
+  "license": "AGPL-3.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/exporter-metrics-otlp-http": "^0.57.0",
+    "@opentelemetry/resources": "^1.30.0",
+    "@opentelemetry/sdk-metrics": "^1.30.0",
+    "@opentelemetry/semantic-conventions": "^1.28.0",
+    "@podverse/helpers": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.12.0",
+    "vitest": "^3.2.4"
+  }
+}

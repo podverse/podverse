@@ -1,5 +1,5 @@
-import { app } from '@mgmt-api/app.js';
-import { config } from '@mgmt-api/config/index.js';
+import { app } from '@management-api/app.js';
+import { config } from '@management-api/config/index.js';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -86,13 +86,13 @@ const { getWithRoleAndPermissionsMock, queryMock, readWriteQueryMock, readWriteT
     ),
   }));
 
-vi.mock('@mgmt-api/orm/services/adminAccount.js', () => ({
+vi.mock('@management-api/orm/services/adminAccount.js', () => ({
   AdminAccountService: vi.fn(() => ({
     getWithRoleAndPermissions: getWithRoleAndPermissionsMock,
   })),
 }));
 
-vi.mock('@mgmt-api/orm/db/appDb.js', () => ({
+vi.mock('@management-api/orm/db/appDb.js', () => ({
   AppDbDataSourceRead: {
     query: queryMock,
   },
@@ -103,7 +103,7 @@ vi.mock('@mgmt-api/orm/db/appDb.js', () => ({
 }));
 
 // Avoid loading management ORM DataSource and entities (see database routes mock pattern).
-vi.mock('@mgmt-api/lib/database/auditLog.js', () => {
+vi.mock('@management-api/lib/database/auditLog.js', () => {
   class AuditLogService {
     async record() {
       return;

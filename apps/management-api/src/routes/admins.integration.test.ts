@@ -1,5 +1,5 @@
-import { app } from '@mgmt-api/app.js';
-import { config } from '@mgmt-api/config/index.js';
+import { app } from '@management-api/app.js';
+import { config } from '@management-api/config/index.js';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -118,7 +118,7 @@ const { getWithRoleAndPermissionsMock, listMock, createMock, updateMock, deleteM
   })
 );
 
-vi.mock('@mgmt-api/orm/services/managementAdminRole.js', () => {
+vi.mock('@management-api/orm/services/managementAdminRole.js', () => {
   return {
     ManagementAdminRoleService: class {
       async listAll() {
@@ -179,7 +179,7 @@ vi.mock('@mgmt-api/orm/services/managementAdminRole.js', () => {
   };
 });
 
-vi.mock('@mgmt-api/orm/services/adminAccount.js', () => {
+vi.mock('@management-api/orm/services/adminAccount.js', () => {
   class AdminAccountService {
     async get(id: number) {
       return getWithRoleAndPermissionsMock(id);
@@ -224,7 +224,7 @@ vi.mock('@mgmt-api/orm/services/adminAccount.js', () => {
   return { AdminAccountService };
 });
 
-vi.mock('@mgmt-api/lib/database/auditLog.js', () => {
+vi.mock('@management-api/lib/database/auditLog.js', () => {
   class AuditLogService {
     async record() {
       return;

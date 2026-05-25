@@ -1,8 +1,8 @@
-import { config } from '@mgmt-api/config/index.js';
-import { ensureAuthenticated } from '@mgmt-api/lib/auth/index.js';
-import { requireCrud } from '@mgmt-api/lib/authz/requireCrud.js';
-import { AuditLogService } from '@mgmt-api/lib/database/auditLog.js';
-import type { UpdateFeedOperationsPolicyStateParams } from '@mgmt-api/lib/feed/feedFlagStatusAppDb.js';
+import { config } from '@management-api/config/index.js';
+import { ensureAuthenticated } from '@management-api/lib/auth/index.js';
+import { requireCrud } from '@management-api/lib/authz/requireCrud.js';
+import { AuditLogService } from '@management-api/lib/database/auditLog.js';
+import type { UpdateFeedOperationsPolicyStateParams } from '@management-api/lib/feed/feedFlagStatusAppDb.js';
 import {
   assertTakedownReasonExists,
   findFeedByInternalId,
@@ -14,16 +14,17 @@ import {
   listLifecycleStateOptions,
   listTakedownReasonOptions,
   updateFeedOperationsPolicyState,
-} from '@mgmt-api/lib/feed/feedFlagStatusAppDb.js';
+} from '@management-api/lib/feed/feedFlagStatusAppDb.js';
 import {
   toConditionTypeEnums,
   toLifecycleStateEnum,
-} from '@mgmt-api/lib/feed/feedOperationsEnums.js';
+} from '@management-api/lib/feed/feedOperationsEnums.js';
+import { getAuditRequestId } from '@management-api/lib/getAuditRequestId.js';
 import {
   feedOperationsListQuerySchema,
   type FeedOperationsListQueryValidated,
-} from '@mgmt-api/schemas/feedOperationsListQuery.js';
-import { feedOperationsUpdatePolicyStateBodySchema } from '@mgmt-api/schemas/feedOperationsPolicy.js';
+} from '@management-api/schemas/feedOperationsListQuery.js';
+import { feedOperationsUpdatePolicyStateBodySchema } from '@management-api/schemas/feedOperationsPolicy.js';
 import express from 'express';
 
 import { FeedLifecycleStateKeyEnum } from '@podverse/orm';
@@ -35,20 +36,6 @@ function parseIdParam(raw: string | string[] | undefined): number | null {
   if (!raw || Array.isArray(raw)) return null;
   const n = parseInt(raw, 10);
   return isNaN(n) ? null : n;
-}
-
-function getRequestId(req: express.Request): string {
-  const hdr = req.headers['x-request-id'];
-  if (typeof hdr === 'string' && hdr.length > 0) {
-    return hdr;
-  }
-  if ('id' in req) {
-    const candidate = Reflect.get(req, 'id');
-    if (typeof candidate === 'string' && candidate.length > 0) {
-      return candidate;
-    }
-  }
-  return 'unknown';
 }
 
 router.get('/options', ensureAuthenticated, requireCrud('feeds', 'read'), async (_req, res) => {
@@ -288,7 +275,7 @@ router.patch(
         rowId: feedId,
         beforeSnapshot: before,
         afterSnapshot: after ?? { ...afterFeed },
-        requestId: getRequestId(req),
+        requestId: getAuditRequestId(req),
       });
 
       res.json({ feed: afterFeed });

@@ -304,12 +304,12 @@ labels:
 ## Database: linear migrations and bootstrap
 
 - **One source of truth for SQL migrations:** `infra/k8s/base/ops/source/database/linear-migrations/app/` and `infra/k8s/base/ops/source/database/linear-migrations/management/`. Additive, ordered files (`0001_*.sql`, …); the migration runner applies them in order and records them in `linear_migration_history` (do not add a dedicated “history table” migration).
-- **Bootstrap in init:** `infra/k8s/base/db/source/bootstrap/` — `0001` and `0002` create roles/databases (including `DB_*_OWNER_*` and `DB_*_MIGRATOR_*` roles), `0003_apply_linear_baselines.sh` installs extensions as owner roles then loads generated `0003a_app_linear_baseline.sql.gz` and `0003b_management_linear_baseline.sql.gz` as migrator roles; these generated baselines include deterministic `linear_migration_history` rows so ops jobs skip already-applied files. See `docs/operations/LINEAR-MIGRATIONS.md` and `make db_regen_linear_baseline`.
+- **Bootstrap in init:** `infra/k8s/base/db/source/bootstrap/` — `0001` and `0002` create roles/databases (including `DB_*_OWNER_*` and `DB_*_MIGRATOR_*` roles), `0003_apply_linear_baselines.sh` installs extensions as owner roles then loads generated `0003a_app_linear_baseline.sql.gz` and `0003b_management_linear_baseline.sql.gz` as migrator roles; these generated baselines include deterministic `linear_migration_history` rows so ops jobs skip already-applied files. See `docs/operations/database/LINEAR-MIGRATIONS.md` and `make db_regen_linear_baseline`.
 - **Runners and validation:** From repo root, `bash scripts/database/run-linear-migrations.sh --database app|management` (always pass `--database`; wrappers delegate to `infra/k8s/base/ops/source/database/runner/`). **App** migrations use `DB_APP_MIGRATOR_USER`, `DB_APP_MIGRATOR_PASSWORD`, `DB_APP_NAME`, `DB_HOST`, and `DB_PORT`. **Management** migrations use `DB_MANAGEMENT_MIGRATOR_USER`, `DB_MANAGEMENT_MIGRATOR_PASSWORD`, `DB_MANAGEMENT_NAME`, `DB_HOST`, and `DB_PORT`. K8s jobs pass these via Secrets; use `LINEAR_MIGRATIONS_BASE_DIR` (or `LINEAR_MIGRATIONS_DIR`) for mounted SQL paths. `bash scripts/database/validate-linear-migrations.sh` checks filenames, ordering, and bundle sync in `infra/k8s/base/ops/kustomization.yaml`.
 - **Kustomize and ops:** Migration assets live under `infra/k8s/base/ops/source/database/` so `kubectl kustomize infra/k8s/base/ops` does not need paths outside the ops directory.
 - **DB credentials naming:** Owner keys (`DB_APP_OWNER_*`, `DB_MANAGEMENT_OWNER_*`) are for bootstrap-only ownership and extension setup. Migrator keys (`DB_APP_MIGRATOR_*`, `DB_MANAGEMENT_MIGRATOR_*`) are for forward migration runners. Runtime API/worker roles stay on read/read*write credentials. The official **postgres** image still expects `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` inside the container only—map from `DB\_*` keys in StatefulSet or Compose.
 
-**Read more:** [docs/operations/DB-MIGRATIONS.md](../../docs/operations/DB-MIGRATIONS.md), [docs/operations/LINEAR-MIGRATIONS.md](../../docs/operations/LINEAR-MIGRATIONS.md).
+**Read more:** [docs/operations/database/DB-MIGRATIONS.md](../../docs/operations/database/DB-MIGRATIONS.md), [docs/operations/database/LINEAR-MIGRATIONS.md](../../docs/operations/database/LINEAR-MIGRATIONS.md).
 
 ## Common Tasks
 
@@ -368,9 +368,9 @@ See [infra/k8s/scripts/README.md](../../infra/k8s/scripts/README.md) for details
 ## References
 
 - [infra/k8s/README.md](../../infra/k8s/README.md) - Full K8s documentation
-- [docs/operations/ALPHA-DEPLOYMENT.md](../../docs/operations/ALPHA-DEPLOYMENT.md) - Docker/CI and alpha deployment
-- [docs/operations/DB-MIGRATIONS.md](../../docs/operations/DB-MIGRATIONS.md) - DB migrations and ops jobs
-- [docs/operations/LINEAR-MIGRATIONS.md](../../docs/operations/LINEAR-MIGRATIONS.md) - Linear migration contract
+- [docs/operations/deploy/ALPHA-DEPLOYMENT.md](../../docs/operations/deploy/ALPHA-DEPLOYMENT.md) - Docker/CI and alpha deployment
+- [docs/operations/database/DB-MIGRATIONS.md](../../docs/operations/database/DB-MIGRATIONS.md) - DB migrations and ops jobs
+- [docs/operations/database/LINEAR-MIGRATIONS.md](../../docs/operations/database/LINEAR-MIGRATIONS.md) - Linear migration contract
 - [.cursor/rules/infra-k8s.mdc](../.cursor/rules/infra-k8s.mdc) - K8s cursor rules
 - [.prettierrc.json](../../.prettierrc.json) - Prettier config with k8s overrides
 

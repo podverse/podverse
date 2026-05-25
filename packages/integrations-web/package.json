@@ -1,0 +1,42 @@
+{
+  "name": "@podverse/integrations-web",
+  "version": "5.4.30",
+  "private": true,
+  "type": "module",
+  "description": "Built-in web integrations (Cloudflare Web Analytics) for Podverse Next.js apps",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./config": {
+      "types": "./dist/config/index.d.ts",
+      "import": "./dist/config/index.js",
+      "default": "./dist/config/index.js"
+    }
+  },
+  "scripts": {
+    "build": "npm run lint && tsc -p tsconfig.build.json",
+    "build:prod": "tsc -p tsconfig.build.json",
+    "build:watch": "tsc --build --watch --preserveWatchOutput",
+    "lint": "eslint ./src --max-warnings 0",
+    "lint:fix": "eslint ./src --fix",
+    "test": "vitest run",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit"
+  },
+  "license": "AGPL-3.0",
+  "peerDependencies": {
+    "next": "^16.1.6",
+    "react": "^19.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^24.12.0",
+    "@types/react": "^19.2.11",
+    "next": "^16.1.6",
+    "react": "^19.2.4",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

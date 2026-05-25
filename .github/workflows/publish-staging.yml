@@ -236,6 +236,8 @@ jobs:
             dockerfile: apps/web/sidecar/Dockerfile
           - app: management-web-runtime-config
             dockerfile: apps/management-web/sidecar/Dockerfile
+          - app: extension-prometheus
+            dockerfile: infra/docker/local/extensions/prometheus/Dockerfile
     steps:
       - uses: actions/checkout@v6
 
@@ -289,7 +291,7 @@ jobs:
             echo "GHCR_REGISTRY_TOKEN not set; falling back to GITHUB_TOKEN for verification."
           fi
 
-          APPS="web-base management-web-base api workers management-api web-deploy management-web-deploy web-runtime-config management-web-runtime-config"
+          APPS="web-base management-web-base api workers management-api web-deploy management-web-deploy web-runtime-config management-web-runtime-config extension-prometheus"
           for APP in $APPS; do
             IMAGE_PATH="${{ github.repository }}/${APP}"
             echo "Checking tags for ${IMAGE_PATH}"
@@ -335,14 +337,14 @@ jobs:
             echo ""
             echo "| Image | Tags |"
             echo "|-------|------|"
-            for app in web-base management-web-base api workers management-api web-deploy management-web-deploy web-runtime-config management-web-runtime-config; do
+            for app in web-base management-web-base api workers management-api web-deploy management-web-deploy web-runtime-config management-web-runtime-config extension-prometheus; do
               echo "| \`ghcr.io/${REPO}/${app}\` | \`${VERSION}\`, \`${FT}\` |"
             done
             echo ""
             echo "Pin GitOps to the version tag or the floating tag. Git tag matches the semver when created."
             echo ""
             echo "## All published image references"
-            for app in web-base management-web-base api workers management-api web-deploy management-web-deploy web-runtime-config management-web-runtime-config; do
+            for app in web-base management-web-base api workers management-api web-deploy management-web-deploy web-runtime-config management-web-runtime-config extension-prometheus; do
               echo "- \`ghcr.io/${REPO}/${app}:${VERSION}\` (version tag)"
               echo "- \`ghcr.io/${REPO}/${app}:${FT}\` (floating tag)"
             done

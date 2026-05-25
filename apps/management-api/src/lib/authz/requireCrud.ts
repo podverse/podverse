@@ -1,4 +1,4 @@
-import { type CrudOp, hasCrud } from '@mgmt-api/lib/crud.js';
+import { type CrudOp, hasCrud } from '@management-api/lib/crud.js';
 import type { NextFunction, Request, Response } from 'express';
 
 type PermissionResource =

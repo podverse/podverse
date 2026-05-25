@@ -16,7 +16,6 @@ tags:
   - name: channel
   - name: clip
   - name: external-services
-  - name: extensions
   - name: feed
   - name: item
   - name: item-chapter
@@ -2374,27 +2373,6 @@ security:
   - bearerAuth: []
   - cookieAuth: []
 paths:
-  /extensions/prometheus/metrics:
-    get:
-      operationId: apiGetExtensionsPrometheusMetrics
-      tags:
-        - extensions
-      summary: GET /extensions/prometheus/metrics
-      description: >-
-        Prometheus scrape endpoint (OpenMetrics text exposition). Registered only when
-        EXT_PROMETHEUS_ENABLED is true and the runtime exporter is configured. Intended for
-        metrics collectors; not authenticated.
-      security: []
-      responses:
-        "200":
-          description: Prometheus metrics exposition
-          content:
-            text/plain:
-              schema:
-                type: string
-                description: Prometheus text format metrics payload.
-        "404":
-          description: Not found when the prometheus extension is disabled or not bootstrapped
   /account:
     post:
       operationId: apiPostAccount
@@ -7239,10 +7217,31 @@ paths:
       tags:
         - external-services
       summary: GET /external-services/podcast-index/search/podcasts
-      description: Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth).
+      description: >-
+        Search Podcast Index feeds by term. Optional medium filters the directory search scope
+        (all = general by-term search; music = music-only by-term search). Defaults to all when
+        medium is omitted.
       security:
         - bearerAuth: []
         - cookieAuth: []
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          description: Search term (trimmed; minimum one character).
+        - in: query
+          name: medium
+          required: false
+          schema:
+            type: string
+            enum:
+              - all
+              - music
+            default: all
+          description: Feed-directory search scope. Omit or use all for general search; music for music feeds only.
       responses:
         "200":
           description: Successful response

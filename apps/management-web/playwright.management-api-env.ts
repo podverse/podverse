@@ -58,22 +58,48 @@ export function buildManagementApiEnvFakeAwsForPlaywright(): string {
   ].join(' ');
 }
 
-export const MANAGEMENT_SIDECAR_ENV_FOR_PLAYWRIGHT = [
-  `PORT=4131`,
-  `API_URL=http://localhost:4130`,
-  `NEXT_PUBLIC_API_PROTOCOL=http`,
-  `NEXT_PUBLIC_API_HOST=localhost`,
-  `NEXT_PUBLIC_API_PORT=4130`,
-  `NEXT_PUBLIC_API_PREFIX=/api`,
-  `NEXT_PUBLIC_API_VERSION=/v2`,
-  `NEXT_PUBLIC_SSR_API_PROTOCOL=http`,
-  `NEXT_PUBLIC_SSR_API_HOST=localhost`,
-  `NEXT_PUBLIC_SSR_API_PORT=4130`,
-  `NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE=en-US`,
-  `NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES=all-available`,
-  `NEXT_PUBLIC_DEFAULT_THEME=dark`,
-  `NEXT_PUBLIC_SUPPORTED_THEMES=all-available`,
+export const MANAGEMENT_SIDECAR_INTEGRATIONS_ENV_DISABLED = [
+  `CLOUDFLARE_WEB_ANALYTICS_ENABLED=false`,
+  `CLOUDFLARE_WEB_ANALYTICS_TOKEN=`,
 ].join(' ');
+
+export const MANAGEMENT_SIDECAR_INTEGRATIONS_ENV_ENABLED = [
+  `CLOUDFLARE_WEB_ANALYTICS_ENABLED=true`,
+  `CLOUDFLARE_WEB_ANALYTICS_TOKEN=e2e-test-cloudflare-token`,
+].join(' ');
+
+export type ManagementSidecarEnvOptions = {
+  cloudflareWebAnalyticsEnabled?: boolean;
+};
+
+export function buildManagementSidecarEnvForPlaywright(
+  options?: ManagementSidecarEnvOptions
+): string {
+  const integrationsEnv =
+    options?.cloudflareWebAnalyticsEnabled === true
+      ? MANAGEMENT_SIDECAR_INTEGRATIONS_ENV_ENABLED
+      : MANAGEMENT_SIDECAR_INTEGRATIONS_ENV_DISABLED;
+  return [
+    `PORT=4131`,
+    `API_URL=http://localhost:4130`,
+    integrationsEnv,
+    `NEXT_PUBLIC_API_PROTOCOL=http`,
+    `NEXT_PUBLIC_API_HOST=localhost`,
+    `NEXT_PUBLIC_API_PORT=4130`,
+    `NEXT_PUBLIC_API_PREFIX=/api`,
+    `NEXT_PUBLIC_API_VERSION=/v2`,
+    `NEXT_PUBLIC_SSR_API_PROTOCOL=http`,
+    `NEXT_PUBLIC_SSR_API_HOST=localhost`,
+    `NEXT_PUBLIC_SSR_API_PORT=4130`,
+    `NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE=en-US`,
+    `NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES=all-available`,
+    `NEXT_PUBLIC_DEFAULT_THEME=dark`,
+    `NEXT_PUBLIC_SUPPORTED_THEMES=all-available`,
+  ].join(' ');
+}
+
+/** @deprecated Use buildManagementSidecarEnvForPlaywright() — default Cloudflare disabled. */
+export const MANAGEMENT_SIDECAR_ENV_FOR_PLAYWRIGHT = buildManagementSidecarEnvForPlaywright();
 
 export const MANAGEMENT_WEB_ENV_FOR_PLAYWRIGHT = [
   `PORT=4132`,

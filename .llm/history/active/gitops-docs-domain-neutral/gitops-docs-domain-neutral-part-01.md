@@ -19,6 +19,6 @@ we also do not want k.podcastdj.com mentioned within the podverse monorepo, and 
 
 #### Files Created/Modified
 
-- `docs/operations/DB-MIGRATIONS.md`
+- `docs/operations/database/DB-MIGRATIONS.md`
 - `.cursor/skills/k8s/SKILL.md`
 - `.llm/history/active/gitops-docs-domain-neutral/gitops-docs-domain-neutral-part-01.md`

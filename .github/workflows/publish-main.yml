@@ -58,7 +58,7 @@ jobs:
 
           BASE="${{ steps.version.outputs.base_version }}"
           PREFIX="${BASE}-staging."
-          APPS="web-base management-web-base api workers management-api web-deploy management-web-deploy web-runtime-config management-web-runtime-config"
+          APPS="web-base management-web-base api workers management-api web-deploy management-web-deploy web-runtime-config management-web-runtime-config extension-prometheus"
           MINS=""
 
           max_staging_n() {
@@ -149,12 +149,12 @@ jobs:
             echo ""
             echo "| Image | Pinned as |"
             echo "|-------|-----------|"
-            for a in web-base management-web-base api workers management-api web-deploy management-web-deploy web-runtime-config management-web-runtime-config; do
+            for a in web-base management-web-base api workers management-api web-deploy management-web-deploy web-runtime-config management-web-runtime-config extension-prometheus; do
               echo "| \`ghcr.io/${REPO}/${a}\` | \`$BASE\`, \`latest\` |"
             done
             echo ""
             echo "## All published image references"
-            for a in web-base management-web-base api workers management-api web-deploy management-web-deploy web-runtime-config management-web-runtime-config; do
+            for a in web-base management-web-base api workers management-api web-deploy management-web-deploy web-runtime-config management-web-runtime-config extension-prometheus; do
               echo "- \`ghcr.io/${REPO}/${a}:${BASE}\` (immutable)"
               echo "- \`ghcr.io/${REPO}/${a}:latest\` (floating)"
             done

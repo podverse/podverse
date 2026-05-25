@@ -97,6 +97,8 @@ const testEnv: Record<string, string> = {
   PODCAST_FEED_URL: '',
   // Public base URL
   API_PUBLIC_BASE_URL: 'http://localhost:29999',
+  OTEL_SERVICE_NAME: 'podverse-api',
+  OTEL_TRACES_EXPORT: 'none',
 };
 
 for (const [key, value] of Object.entries(testEnv)) {

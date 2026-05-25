@@ -1,4 +1,4 @@
-import { CrudMask, hasCrud } from '@mgmt-api/lib/crud.js';
+import { CrudMask, hasCrud } from '@management-api/lib/crud.js';
 import { describe, expect, it } from 'vitest';
 
 describe('hasCrud', () => {

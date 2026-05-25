@@ -2,7 +2,8 @@
 
 .PHONY: local_build_api local_build_workers local_build_management_api local_build_web_base
 .PHONY: local_build_management_web_base local_build_web local_build_web_runtime_config
-.PHONY: local_build_management_web local_build_management_web_runtime_config local_build_all
+.PHONY: local_build_management_web local_build_management_web_runtime_config
+.PHONY: local_build_extension_prometheus local_build_all
 
 local_build_api:
 	docker build -f apps/api/Dockerfile -t podverse-api:latest .
@@ -31,5 +32,8 @@ local_build_management_web: local_build_management_web_base
 local_build_management_web_runtime_config:
 	docker build -f apps/management-web/sidecar/Dockerfile -t podverse-management-web-runtime-config:latest .
 
-local_build_all: local_build_api local_build_workers local_build_management_api local_build_web local_build_web_runtime_config local_build_management_web local_build_management_web_runtime_config
+local_build_extension_prometheus:
+	docker build -f infra/docker/local/extensions/prometheus/Dockerfile -t podverse-extension-prometheus:latest .
+
+local_build_all: local_build_api local_build_workers local_build_management_api local_build_web local_build_web_runtime_config local_build_management_web local_build_management_web_runtime_config local_build_extension_prometheus
 	@echo "All Docker images built successfully"

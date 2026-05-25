@@ -1,146 +1,136 @@
 ---
 name: extensions-env
-description: Extension-related environment variables and nested config.extensions.<service> mapping. Use when adding or editing extension toggles, Prometheus env, or the Extensions section in app env files.
-version: 1.6.0
+description: Three-pillar env layout — Observability, Integrations, Extensions — plus config.extensions.* and extension sidecar keys. Use when adding extension toggles, Prometheus env, integrations ConfigMaps, or Extensions section in app env files.
+version: 2.0.0
 ---
 
-# Extensions environment variables
+# Extensions, integrations, and observability env
 
 ## When to use
 
-When adding or editing extension-related env vars in Podverse apps (especially
-`apps/api`, `apps/management-api`), K8s `infra/k8s/base/*/source/*.env`, or
-`apps/*/.env.example`.
+When adding or editing env vars for:
+
+- **Extensions (app)** — `apps/*/.env.example` Extensions subsection; `infra/k8s/base/extensions/source/extensions.env`
+- **Extension sidecars** — `extension-sidecar-otel.env`, `extension-prometheus.env` (merged into same ConfigMap)
+- **Integrations** — web/management-web runtime-config sidecars; `infra/k8s/base/integrations/source/integrations.env`
+- **Observability** — all workloads; per-app `source/*.env` and `observability.env.example`
+
+Authoritative ops docs:
+
+- [docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md](../../docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md) — platform capabilities index
+- [docs/operations/observability/TRACING.md](../../docs/operations/observability/TRACING.md)
+- [docs/operations/integrations/INTEGRATIONS-WEB.md](../../docs/operations/integrations/INTEGRATIONS-WEB.md)
+- [docs/operations/extensions/EXTENSIONS-SIDECAR.md](../../docs/operations/extensions/EXTENSIONS-SIDECAR.md)
+
+## Three pillars
+
+| Pillar        | Config                                   | ConfigMap                      | Env subsection order                                     |
+| ------------- | ---------------------------------------- | ------------------------------ | -------------------------------------------------------- |
+| Observability | `config.observability.*`                 | Per-app env                    | **First**                                                |
+| Integration   | `config.integrations.<vendor>.<product>` | `podverse-integrations-config` | Second (runtime-config sidecar only for integrations CM) |
+| Extension     | `config.extensions.*`                    | `podverse-extensions-config`   | **Last** (main app containers)                           |
+
+Two shared ConfigMaps: **`podverse-integrations-config`** (runtime-config sidecars only) and
+**`podverse-extensions-config`** (app + extension sidecar containers).
+
+## Extensions (sidecar metrics)
+
+- App client: **`@podverse/extension-metrics-sdk`**
+- Toggle: **`PROMETHEUS_ENABLED`** (no `EXT_` prefix) — in **`extensions.env`**
+- OTLP to sidecar: **`OTEL_EXPORTER_OTLP_ENDPOINT`** in **`extensions.env`**; **`OTEL_SERVICE_NAME`** in Observability subsection
+- Sidecar OTLP collector: **`OTEL_RECEIVER_OTLP_HTTP_PORT`**, **`OTEL_TRACES_EXPORTER_*`** — in **`extension-sidecar-otel.env`**
+- Prometheus scrape: **`PROMETHEUS_METRICS_*`** — in **`extension-prometheus.env`**
+- **Do not** use `prom-client` in apps
+
+**Web/management-web env catalog:** `apps/*/sidecar/.env.example` lists Observability, Integrations,
+Extensions, and `NEXT_PUBLIC_*`. The runtime-config sidecar **process** uses Integrations +
+`NEXT_PUBLIC_*` only; `make local_env_setup` syncs `OTEL_*` / `PROMETHEUS_*` to `.env.local` and
+`infra/config/local/web.env` for the Next.js main process. App `.env.example` files: `RUNTIME_CONFIG_URL` only.
+
+## Integrations (built-in web)
+
+- Package: **`@podverse/integrations-web`**
+- Nested config: **`config.integrations.cloudflare.webAnalytics`**
+- Env: **`CLOUDFLARE_WEB_ANALYTICS_*`** in Integrations subsection
+
+## Observability (always-on tracing)
+
+- Package: **`@podverse/observability`**
+- Config: **`config.observability.*`** — never `config.extensions.tracing`
+- Env: **`OTEL_SERVICE_NAME`**, **`OTEL_TRACES_EXPORT`**, optional sampler and OTLP endpoint
+
+See **observability** skill for trace-specific rules.
 
 ## Config mapping (TypeScript)
 
-- Extension settings live under **`config.extensions.<serviceName>`**, grouped by
-  integration/service, with **properties nested inside** that object.
-- Do **not** flatten toggles as `config.extensions.prometheusEnabled` or use
-  `config.observability.*` / other top-level namespaces.
-- Do **not** name the service `prometheusMetrics` — the service is **`prometheus`**; the HTTP
-  resource is **`metrics`**.
-- Example (prometheus extension):
-
-  ```typescript
-  extensions: {
-    prometheus: {
-      enabled: process.env.EXT_PROMETHEUS_ENABLED === 'true',
-    },
-  };
-  ```
-
-  Usage: `config.extensions.prometheus.enabled`.
-
-- Future extensions follow the same shape, e.g.
-  `config.extensions.cloudflareWebAnalytics.token` (when wired).
-- Startup validation category for extension env vars: **`Extensions`**.
-
-## Env file layout (required)
-
-1. **Last section** — The **Extensions** block must be the **final section** in every
-   env template/source file that defines extension vars (nothing after it).
-2. **Section header** — Use this header (exact wording for `.env.example`):
-
-   ```text
-   #####
-   ##### Extensions (forward-looking)
-   #####
-   ```
-
-   For K8s `source/*.env` (no `#####` style), use:
-
-   ```text
-   # Extensions (forward-looking)
-   ```
-
-3. **Comments** — Note that vars in this section are extension-intended even when the
-   current implementation is still baked into core (e.g. temporary `prom-client` path).
-
-## Naming
-
-### Env keys (required `EXT_` prefix)
-
-**All extension-specific environment variables must use the `EXT_` prefix.**
-
-- Pattern: `EXT_<SERVICE>_<PROPERTY>` in `SCREAMING_SNAKE_CASE`.
-- **Service** segment aligns with `config.extensions.<service>` (e.g. `PROMETHEUS` for
-  `config.extensions.prometheus`).
-- **Property** segment describes the setting (`ENABLED`, `TOKEN`, etc.).
-- Current prometheus toggle: **`EXT_PROMETHEUS_ENABLED`** (`"true"` / blank / `"false"`).
-- Do **not** add extension toggles without `EXT_` (e.g. not `PROMETHEUS_ENABLED`,
-  `PROMETHEUS_METRICS_ENABLED`).
-- When the extensions framework lands, additional keys may follow
-  `EXT_<ID>_...` (still under the **last** Extensions section).
-
-### Config keys (`config.extensions`)
-
-- **Service segment:** short camelCase integration id matching the URL segment when possible
-  (e.g. `prometheus`, `cloudflareWebAnalytics`).
-- **Properties:** boolean toggles and other fields **inside** the service object
-  (`enabled`, `token`, etc.), not suffixes on the service name.
-- Map each `EXT_*` env var in `config/index.ts` under the matching `extensions.<service>` object.
-
-## Values
-
-Follow [env-file-formatting](../env-file-formatting/SKILL.md):
-
-- Non-empty: double quotes in `.env.example` (e.g. `EXT_PROMETHEUS_ENABLED="false"`).
-- K8s source: unquoted `false` / `true` per existing `source/*.env` style.
-
-## HTTP routes (per service)
-
-Extension HTTP endpoints are **not** registered in `registerHealthRoutes`. Use the extension
-router pattern:
-
-- `apps/<app>/src/lib/extensions/registerExtensionRoutes.ts` — orchestrator; call after feature
-  routers in `app.ts` / `startApp`, before the error handler.
-- `apps/<app>/src/lib/extensions/<service>/register<Service>Routes.ts` — routes for one
-  extension (e.g. `prometheus/registerPrometheusRoutes.ts` registers the **metrics** resource).
-- `apps/<app>/src/lib/extensions/<service>/` — exporter/runtime for that service only (e.g.
-  `prometheus/prometheusExporter.ts` with `createPrometheusExporter`).
-
-Register extension middleware at app bootstrap when `config.extensions.<service>.enabled`; pass
-runtime into `registerExtensionRoutes(app, baseUrl, config.extensions, { prometheus: exporter })`.
-
-### URL path convention (preferred)
-
-Extension HTTP routes live under the versioned API base, **not** at top-level `/metrics` or mixed
-into health routes:
-
-```text
-{API_PREFIX}{API_VERSION}/extensions/{service}/{resource}
+```typescript
+observability: {
+  serviceName: process.env.OTEL_SERVICE_NAME!,
+  tracesExport: process.env.OTEL_TRACES_EXPORT!,
+  // ...
+},
+integrations: {
+  cloudflare: {
+    webAnalytics: { /* ... */ },
+  },
+},
+extensions: {
+  prometheus: {
+    enabled: process.env.PROMETHEUS_ENABLED === 'true',
+  },
+  otel: {
+    otlpEndpoint: process.env.OTEL_EXPORTER_OTLP_ENDPOINT!,
+    serviceName: process.env.OTEL_SERVICE_NAME!,
+  },
+},
 ```
 
-Examples (default prefix/version `/api` + `/v2`):
+Startup validation category order: **Observability** → **Integrations** (where applicable) →
+**Extensions** (last).
 
-| `config.extensions` key | Env toggle (example)     | URL path (suffix after version)  | Resource  |
-| ----------------------- | ------------------------ | -------------------------------- | --------- |
-| `prometheus`            | `EXT_PROMETHEUS_ENABLED` | `/extensions/prometheus/metrics` | `metrics` |
+## Env file layout
 
-- **`service`:** URL segment matches `config.extensions` key (`prometheus` → `prometheus`).
-- **`resource`:** capability endpoint (`metrics`, `webhooks`, etc.).
-- **Prometheus:** exposition format and scrape behavior are unchanged; operators set
-  `metrics_path` to `/api/v2/extensions/prometheus/metrics`. See
-  [PROMETHEUS-METRICS-ENDPOINTS.md](../../docs/operations/PROMETHEUS-METRICS-ENDPOINTS.md).
+Main app `.env.example` section order:
 
-Define path constants in `lib/extensions/<service>/` (e.g. `prometheus/prometheusPaths.ts`) and use
-them in route registration and tests.
+1. Observability
+2. Integrations (if app serves integration config)
+3. Extensions (last)
+
+Templates:
+
+- `infra/config/env-templates/observability.env.example`
+- `infra/config/env-templates/integrations.env.example`
+- `infra/config/env-templates/extensions.env.example` — app toggles + OTLP endpoint
+- `infra/config/env-templates/extension-sidecar-otel.env.example` — sidecar OTLP receiver + trace forward
+- `infra/config/env-templates/extension-prometheus.env.example` — Prometheus sidecar scrape
+
+K8s merges all three extension source files into **`podverse-extensions-config`**. Local Compose
+loads three files under `infra/config/local/`.
+
+## HTTP routes (Prometheus extension)
+
+Sidecar only:
+
+| Resource | Path                             |
+| -------- | -------------------------------- |
+| metrics  | `/extensions/prometheus/metrics` |
+| health   | `/extensions/prometheus/health`  |
+
+Do not register metrics on Express/Next app processes.
 
 ## Files to keep in sync
 
-When adding a new extension env var:
-
-- `apps/<app>/.env.example` — Extensions section at bottom; key must start with `EXT_`
-- `apps/<app>/src/config/index.ts` — nested under `extensions.<serviceName> { ... }`
-- `apps/<app>/src/lib/startup/validation.ts` — `validateOptional(..., 'Extensions', ...)` at the
-  **end** of `validateAllEnvironmentVariables` (aligned with Extensions being the last env
-  section; see [startup-validation-env-order](../startup-validation-env-order/SKILL.md))
-- `apps/<app>/src/lib/extensions/` — per-service route registration (see above)
-- `infra/k8s/base/<app>/source/*.env` — Extensions block at bottom (if the app has K8s env)
+- App extension env: `extensions.env.example`, `infra/k8s/base/extensions/source/extensions.env`
+- Sidecar OTLP: `extension-sidecar-otel.env.example`, `infra/k8s/base/extensions/source/extension-sidecar-otel.env`
+- Prometheus sidecar: `extension-prometheus.env.example`, `infra/k8s/base/extensions/source/extension-prometheus.env`
+- Integration env: `integrations.env.example`, `infra/k8s/base/integrations/source/integrations.env`
+- App configs and `validation.ts` per pillar
+- Ops docs under `docs/operations/`
 
 ## References
 
-- [docs/operations/PROMETHEUS-METRICS-ENDPOINTS.md](../../docs/operations/PROMETHEUS-METRICS-ENDPOINTS.md)
-- [docs/proposals/EXTENSIONS.md](../../docs/proposals/EXTENSIONS.md) (when present on branch)
+- [extensions-env rule](../../rules/extensions-env.mdc)
+- [integrations-web](../integrations-web/SKILL.md)
+- [observability](../observability/SKILL.md)
 - [env-file-formatting](../env-file-formatting/SKILL.md)
+- [startup-validation-env-order](../startup-validation-env-order/SKILL.md)

@@ -17,6 +17,7 @@ Per-job env validation, command-first bootstrap, and checklist for adding worker
 
 ## Core rules
 
+- **In-app imports**: use `@workers/*` for paths under `apps/workers/src` (full directory name). See `.cursor/rules/app-internal-import-aliases.mdc`.
 - **Per-job validation**: Each command has its own validator; only the env vars required for that
   command are validated and read.
 - **Command-first**: Parse the running command from argv before any validation or config loading.

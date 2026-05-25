@@ -1,6 +1,10 @@
 import Joi from 'joi';
 
-import { CATEGORY_MAPPING_KEYS, QUERY_PARAMS_MEDIUMS } from '@podverse/helpers';
+import {
+  CATEGORY_MAPPING_KEYS,
+  QUERY_PARAMS_MEDIUMS,
+  QUERY_PARAMS_PODCAST_INDEX_SEARCH_MEDIUMS,
+} from '@podverse/helpers';
 import { QUERY_PARAMS_STATS_RANGE_VALUES } from '@podverse/helpers-requests';
 
 export const idOrIdTextParamSchema = {
@@ -88,6 +92,13 @@ export const mediumCategoryPageRangeQuerySchema = {
   range: Joi.string()
     .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
     .required(),
+};
+
+export const podcastIndexSearchQuerySchema = {
+  q: Joi.string().trim().min(1).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_PODCAST_INDEX_SEARCH_MEDIUMS)
+    .default('all'),
 };
 
 export const positionBetweenBodySchema = {

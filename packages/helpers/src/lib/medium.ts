@@ -115,6 +115,15 @@ export type QueryParamsMedium = (typeof QUERY_PARAMS_MEDIUMS)[number];
 export const QUERY_PARAMS_QUEUE_MEDIUMS = ['all', 'av', 'music'] as const;
 export type QueryParamsQueueMedium = (typeof QUERY_PARAMS_QUEUE_MEDIUMS)[number];
 
+/** External feed directory identifiers (search providers). */
+export const FEED_DIRECTORY_IDS = ['podcast-index'] as const;
+export type FeedDirectoryId = (typeof FEED_DIRECTORY_IDS)[number];
+
+/** Allowed `medium` query values for Podcast Index feed-directory search. */
+export const QUERY_PARAMS_PODCAST_INDEX_SEARCH_MEDIUMS = ['all', 'music'] as const;
+export type QueryParamsPodcastIndexSearchMedium =
+  (typeof QUERY_PARAMS_PODCAST_INDEX_SEARCH_MEDIUMS)[number];
+
 export const getMediumFromQueryParam = (val: QueryParamsMedium): MediumEnum | null => {
   switch (val) {
     case 'podcasts':

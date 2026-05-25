@@ -1,4 +1,4 @@
-import { requireCrud } from '@mgmt-api/lib/authz/requireCrud.js';
+import { requireCrud } from '@management-api/lib/authz/requireCrud.js';
 import type { NextFunction, Request, Response } from 'express';
 import { describe, expect, it, vi } from 'vitest';
 

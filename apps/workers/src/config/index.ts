@@ -14,6 +14,8 @@ import {
   readOptionalPositiveExpirationEnv,
   readRequiredPositiveExpirationEnv,
 } from '@podverse/helpers';
+import type { ObservabilityConfig } from '@podverse/observability/config';
+import { buildObservabilityConfigFromEnv } from '@podverse/observability/config';
 
 /**
  * Category-scoped config getters. Each getter reads only its env vars.
@@ -282,6 +284,34 @@ export function getNotificationsConfig(): NotificationsConfig {
       vapid_public_key: process.env.WEBPUSH_VAPID_PUBLIC_KEY,
       vapid_private_key: process.env.WEBPUSH_VAPID_PRIVATE_KEY,
       vapid_subject: process.env.WEBPUSH_VAPID_SUBJECT,
+    },
+  };
+}
+
+export type ExtensionsConfig = {
+  prometheus: {
+    enabled: boolean;
+  };
+  otel: {
+    otlpEndpoint: string;
+    serviceName: string;
+    resourceAttributes: string | undefined;
+  };
+};
+
+export function getObservabilityConfig(): ObservabilityConfig {
+  return buildObservabilityConfigFromEnv(process.env);
+}
+
+export function getExtensionsConfig(): ExtensionsConfig {
+  return {
+    prometheus: {
+      enabled: process.env.PROMETHEUS_ENABLED === 'true',
+    },
+    otel: {
+      otlpEndpoint: process.env.OTEL_EXPORTER_OTLP_ENDPOINT!,
+      serviceName: process.env.OTEL_SERVICE_NAME!,
+      resourceAttributes: process.env.OTEL_RESOURCE_ATTRIBUTES,
     },
   };
 }

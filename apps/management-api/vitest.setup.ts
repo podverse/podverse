@@ -27,3 +27,13 @@ process.env.DB_MANAGEMENT_READ_USER = 'podverse_management_read';
 process.env.DB_MANAGEMENT_READ_PASSWORD = 'test';
 process.env.DB_MANAGEMENT_READ_WRITE_USER = 'podverse_management_read_write';
 process.env.DB_MANAGEMENT_READ_WRITE_PASSWORD = 'test';
+process.env.LOG_DIR = process.env.LOG_DIR ?? '';
+process.env.PROMETHEUS_ENABLED = process.env.PROMETHEUS_ENABLED ?? 'false';
+process.env.OTEL_SERVICE_NAME = process.env.OTEL_SERVICE_NAME ?? 'podverse-management-api';
+process.env.OTEL_TRACES_EXPORT = process.env.OTEL_TRACES_EXPORT ?? 'none';
+process.env.OTEL_EXPORTER_OTLP_ENDPOINT = process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? '';
+
+import { initObservability } from '@podverse/observability';
+import { buildObservabilityConfigFromEnv } from '@podverse/observability/config';
+
+initObservability(buildObservabilityConfigFromEnv(process.env));

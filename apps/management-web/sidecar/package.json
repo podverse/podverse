@@ -13,6 +13,7 @@
   "dependencies": {
     "@podverse/helpers": "*",
     "@podverse/helpers-config": "*",
+    "@podverse/integrations-web": "*",
     "@tanstack/react-query": "^5.100.11",
     "@tanstack/react-table": "^8.21.3",
     "axios": "^1.16.1",

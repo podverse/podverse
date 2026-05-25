@@ -1,3 +1,5 @@
+import type { IntegrationsWebConfig } from '@podverse/integrations-web/config';
+
 export type WebRuntimeConfigEnvKey =
   | 'NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE'
   | 'NEXT_PUBLIC_API_HOST'
@@ -111,4 +113,5 @@ export type WebRuntimeConfigValues = {
 
 export type WebRuntimeConfig = {
   env: WebRuntimeConfigValues;
+  integrations: IntegrationsWebConfig;
 };

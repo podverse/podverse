@@ -1,5 +1,6 @@
 import type { QueueExtraParams } from '@podverse/helpers';
 import type { BetweenParams } from '@podverse/helpers';
+import type { QueryParamsPodcastIndexSearchMedium } from '@podverse/helpers';
 import type {
   CreateAccountFCMDeviceParams,
   CreateAccountUPDeviceParams,
@@ -675,7 +676,10 @@ export class ApiRequestService {
     return reqPodcastIndexFeedById(this, podcast_index_id);
   }
 
-  reqPodcastIndexSearchPodcasts(options: { q: string }) {
+  reqPodcastIndexSearchPodcasts(options: {
+    q: string;
+    medium?: QueryParamsPodcastIndexSearchMedium;
+  }) {
     return reqPodcastIndexSearchPodcasts(this, options);
   }
 

@@ -12,9 +12,10 @@ import type { NextFunction, Request, Response } from 'express';
 import express from 'express';
 
 import { CategoryService } from '@podverse/orm';
+import { getObservabilityHttpMiddleware } from '@podverse/observability';
 
+import { bootstrapApiExtensions } from './lib/extensions/bootstrapExtensions.js';
 import { registerExtensionRoutes } from './lib/extensions/registerExtensionRoutes.js';
-import { createPrometheusExporter } from './lib/extensions/prometheus/prometheusExporter.js';
 import { registerHealthRoutes } from './lib/health/registerHealthRoutes.js';
 import { registerSwaggerDocs } from './lib/docs/registerSwaggerDocs.js';
 
@@ -48,16 +49,11 @@ app.use(cookieParser());
 
 app.use(initializePassport());
 
-const baseUrl = `${config.api.prefix}${config.api.version}`;
-// TODO(extensions-migration): Replace this in-process exporter bootstrap with the
-// API extension registry/bootstrap flow once extension-based metrics are enabled.
-const prometheusExporter = config.extensions.prometheus.enabled
-  ? createPrometheusExporter('podverse_api')
-  : undefined;
+app.use(getObservabilityHttpMiddleware());
 
-if (prometheusExporter) {
-  app.use(prometheusExporter.httpMiddleware);
-}
+const baseUrl = `${config.api.prefix}${config.api.version}`;
+
+bootstrapApiExtensions(app);
 
 export const startApp = async () => {
   try {
@@ -143,10 +139,7 @@ export const startApp = async () => {
     app.use(queueRouter);
     app.use(statsRouter);
 
-    // --- Extension routes (after feature routers; e.g. prometheus /metrics)
-    registerExtensionRoutes(app, baseUrl, config.extensions, {
-      prometheus: prometheusExporter,
-    });
+    registerExtensionRoutes(app, baseUrl);
 
     // --- Error handler
     app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {

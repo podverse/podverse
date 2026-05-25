@@ -35,4 +35,4 @@ Linear migrations model **ordered fresh applies**: migration `NNNN` may assume t
 ## Related
 
 - [migration-readiness-marker-sync](../migration-readiness-marker-sync/SKILL.md) — marker env when filenames advance.
-- [docs/operations/LINEAR-MIGRATIONS.md](../../../docs/operations/LINEAR-MIGRATIONS.md) — bootstrap and baseline contract.
+- [docs/operations/database/LINEAR-MIGRATIONS.md](../../../docs/operations/database/LINEAR-MIGRATIONS.md) — bootstrap and baseline contract.

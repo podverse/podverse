@@ -6,7 +6,7 @@ This document provides rules and patterns for AI coding assistants working on th
 
 Authoritative AI rules and skills: **`.cursor/`**, **`.cursorrules`**. **Styles / design tokens** (SCSS, themes): [`.cursor/skills/styles-source-of-truth/SKILL.md`](.cursor/skills/styles-source-of-truth/SKILL.md). **Machine-generated** output: [`.llm/exports/`](.llm/exports/) (portable; gitignored; produced and published by the **`llm-exports-sync`** / **`llm-exports-full`** Actions — not by default local `npm` runs). `LLM_EXPORT_ALLOW_LOCAL=1` is only for [scripts/llm/](scripts/llm/) development; see [docs/development/llm/DOCS-DEVELOPMENT-LLM.md](docs/development/llm/DOCS-DEVELOPMENT-LLM.md) and [`llm-cursor-source`](.cursor/skills/llm-cursor-source/SKILL.md). If you use a non-Cursor LLM, start from those exports, then the alignment prompt if needed: [docs/development/llm/LLM-EDITOR-ALIGNMENT-PROMPT.md](docs/development/llm/LLM-EDITOR-ALIGNMENT-PROMPT.md). Full policy, **`llm` label**, and `gh` setup: [docs/development/llm/DOCS-DEVELOPMENT-LLM.md](docs/development/llm/DOCS-DEVELOPMENT-LLM.md) and [docs/development/llm/GH-EXPORTS-SETUP.md](docs/development/llm/GH-EXPORTS-SETUP.md).
 
-**Linear SQL migrations and generated `0003a_` / `0003b_`:** Authoritative forward-only files live under `infra/k8s/base/ops/source/database/linear-migrations/`. The init snapshots `0003a_app_linear_baseline.sql.gz` and `0003b_management_linear_baseline.sql.gz` are **generated** (plus hand-maintained `0003_apply_linear_baselines.sh`) and include deterministic `linear_migration_history` seed rows — do not hand-edit the gz files; after SQL changes run `make db_regen_linear_baseline` (regenerates both archives), commit them, and use **`/test` on a PR** so the workflow re-verifies. See [docs/operations/LINEAR-MIGRATIONS.md](docs/operations/LINEAR-MIGRATIONS.md) and [`.cursor/rules/linear-baseline-0003.mdc`](.cursor/rules/linear-baseline-0003.mdc).
+**Linear SQL migrations and generated `0003a_` / `0003b_`:** Authoritative forward-only files live under `infra/k8s/base/ops/source/database/linear-migrations/`. The init snapshots `0003a_app_linear_baseline.sql.gz` and `0003b_management_linear_baseline.sql.gz` are **generated** (plus hand-maintained `0003_apply_linear_baselines.sh`) and include deterministic `linear_migration_history` seed rows — do not hand-edit the gz files; after SQL changes run `make db_regen_linear_baseline` (regenerates both archives), commit them, and use **`/test` on a PR** so the workflow re-verifies. See [docs/operations/database/LINEAR-MIGRATIONS.md](docs/operations/database/LINEAR-MIGRATIONS.md) and [`.cursor/rules/linear-baseline-0003.mdc`](.cursor/rules/linear-baseline-0003.mdc).
 
 ## Quick Reference
 
@@ -172,6 +172,9 @@ apps/               # Deployable applications
   workers/          # Background job processors
   management-api/   # Admin API
   management-web/   # Admin dashboard
+
+extensions/         # Optional extension sidecar images (operator-selected)
+  prometheus/       # @podverse/extension-prometheus — OTLP + Prometheus scrape
 ```
 
 ### Where to Find Things
@@ -187,6 +190,7 @@ apps/               # Deployable applications
 | Environment templates      | `infra/config/env-templates/` (app stubs link to `apps/*/.env.example`)          |
 | Workers startup validation | `apps/workers/src/lib/startup/validation.ts` (see [ENV.md](apps/workers/ENV.md)) |
 | K8s manifests              | `infra/k8s/`                                                                     |
+| Extension sidecar source   | `extensions/<id>/` (K8s wiring: `infra/k8s/base/extensions/`)                    |
 | Jenkins pipelines          | `infra/pipelines/jenkins/`                                                       |
 | GitHub Actions             | `.github/workflows/`                                                             |
 

@@ -1,4 +1,6 @@
 /* eslint-disable no-console */
+import { buildIntegrationsWebConfigFromEnv } from '@podverse/integrations-web/config';
+
 import {
   type ManagementWebRuntimeConfig,
   type ManagementWebRuntimeConfigEnvKey,
@@ -31,7 +33,19 @@ function buildRuntimeConfigFromProcessEnv(): ManagementWebRuntimeConfig {
     allKeys.map((key) => [key, process.env[key]])
   ) as ManagementWebRuntimeConfig['env'];
 
-  return { env };
+  return {
+    env,
+    integrations: buildIntegrationsWebConfigFromEnv(process.env),
+  };
+}
+
+function resolveIntegrations(
+  runtimeConfig: ManagementWebRuntimeConfig | undefined
+): ManagementWebRuntimeConfig['integrations'] {
+  if (runtimeConfig?.integrations !== undefined) {
+    return runtimeConfig.integrations;
+  }
+  return buildIntegrationsWebConfigFromEnv(process.env);
 }
 
 let hasLoggedFallback = false;
@@ -49,7 +63,10 @@ export const getRuntimeConfig = (): ManagementWebRuntimeConfig => {
     }
     return buildRuntimeConfigFromProcessEnv();
   }
-  return runtimeConfig;
+  return {
+    env: runtimeConfig.env,
+    integrations: resolveIntegrations(runtimeConfig),
+  };
 };
 
 export {};
