@@ -1,9 +1,11 @@
 import { expect, test } from '@playwright/test';
 
+import { capturePageLoad } from './helpers/stepScreenshots';
+
 test.describe('Header image full-size preview', () => {
   test('Podcast Index feed artwork opens the image preview dialog and closes from the close control', async ({
     page,
-  }) => {
+  }, testInfo) => {
     test.setTimeout(45_000);
 
     await page.goto('/podcast-index/feed/2147483640');
@@ -15,11 +17,24 @@ test.describe('Header image full-size preview', () => {
       await openTrigger.click();
       const preview = page.getByRole('dialog', { name: 'Image preview' });
       await expect(preview).toBeVisible();
+
+      await capturePageLoad(
+        page,
+        testInfo,
+        'The Image preview dialog opens after clicking feed artwork.',
+        preview
+      );
     });
 
     await test.step('The close button dismisses the preview overlay', async () => {
       await page.getByRole('button', { name: 'Close modal' }).click();
       await expect(page.getByRole('dialog', { name: 'Image preview' })).toHaveCount(0);
+
+      await capturePageLoad(
+        page,
+        testInfo,
+        'The Image preview dialog closes after clicking the close control.'
+      );
     });
   });
 });

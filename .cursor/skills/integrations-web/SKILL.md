@@ -61,9 +61,10 @@ Template: `infra/config/env-templates/integrations.env.example`.
 
 Integration UI changes require **E2E** specs (see **e2e-page-tests**):
 
-- `apps/web/e2e/cloudflare-web-analytics-integration.spec.ts`
-- management-web mirror
-- Default E2E run: integration **disabled**; enabled spec sets `CLOUDFLARE_*` via playwright env
+- `apps/web/e2e/cloudflare-web-analytics-disabled.spec.ts` — default config (integration off)
+- `apps/web/e2e/cloudflare-web-analytics-enabled.spec.ts` — `playwright.cloudflare-web-analytics-enabled.config.ts` only
+- management-web mirrors
+- `make e2e_test` runs both configs; no `describe.skip` branching
 
 ## Don't
 

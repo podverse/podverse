@@ -13,4 +13,4 @@ apps/management-web/e2e/database-table-browser.spec.ts
 apps/management-web/e2e/storage-disabled.spec.ts
 apps/management-web/e2e/storage-permissions.spec.ts
 apps/management-web/e2e/storage-superuser-crud-enabled.spec.ts
-apps/management-web/e2e/cloudflare-web-analytics-integration.spec.ts
+apps/management-web/e2e/cloudflare-web-analytics-disabled.spec.ts

@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { capturePageLoad } from './helpers/stepScreenshots';
+
 /**
  * E2E seed: superuser e2e-superadmin@example.com / Test!1Aa
  * (see tools/management-web/seed-e2e.mjs, make e2e_seed_management_web)
@@ -31,7 +33,7 @@ const MOCK_STATS_ROW = {
 test.describe('Management-web stats page', () => {
   test('When a superuser opens the stats page with mocked stats API responses, they can switch the entity tab, open a table row, and use the close control in the detail panel.', async ({
     page,
-  }) => {
+  }, testInfo) => {
     test.setTimeout(45_000);
 
     await page.route(/\/stats\/[a-z]+\/top(?:\?.*)?$/, async (route) => {
@@ -85,7 +87,21 @@ test.describe('Management-web stats page', () => {
       page.getByRole('heading', { name: 'E2E stats mock title', level: 3 })
     ).toBeVisible();
 
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The stats detail panel opens for the selected row on the Items tab.',
+      page.getByRole('heading', { name: 'E2E stats mock title', level: 3 })
+    );
+
     await page.getByRole('button', { name: 'Close' }).click();
     await expect(page.getByRole('button', { name: 'Close' })).not.toBeVisible();
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The stats detail panel closes and returns to the table view.',
+      page.getByRole('heading', { name: 'Stats', level: 1 })
+    );
   });
 });

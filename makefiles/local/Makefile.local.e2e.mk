@@ -47,6 +47,8 @@ e2e_test_playwright: e2e_deps e2e_seed
 	@exit_code=0; \
 	npm run test:e2e -w @podverse/web -- --reporter=list || exit_code=$$?; \
 	npm run test:e2e -w @podverse/management-web -- --reporter=list || exit_code=$$?; \
+	npm run test:e2e:cloudflare-enabled -w @podverse/web -- --reporter=list || exit_code=$$?; \
+	npm run test:e2e:cloudflare-enabled -w @podverse/management-web -- --reporter=list || exit_code=$$?; \
 	exit $$exit_code
 
 # Run web Playwright tests (default list reporter)
@@ -71,6 +73,8 @@ e2e_test: e2e_deps e2e_seed
 	npm run test -w apps/api && npm run test -w apps/management-api || exit_code=$$?; \
 	npm run test:e2e -w @podverse/web -- --reporter=list || exit_code=$$?; \
 	npm run test:e2e -w @podverse/management-web -- --reporter=list || exit_code=$$?; \
+	npm run test:e2e:cloudflare-enabled -w @podverse/web -- --reporter=list || exit_code=$$?; \
+	npm run test:e2e:cloudflare-enabled -w @podverse/management-web -- --reporter=list || exit_code=$$?; \
 	exit $$exit_code
 
 # --- Report targets (HTML step reporter with screenshots) ---
@@ -78,68 +82,139 @@ e2e_test: e2e_deps e2e_seed
 # Full E2E with HTML reports
 e2e_test_report: e2e_deps e2e_seed
 	@echo "=== Full E2E report suite ==="
-	@mkdir -p $(E2E_REPORT_BASE)/web $(E2E_REPORT_BASE)/management-web
-	@rm -f .artifacts/e2e-reports/latest
-	@ln -s $(E2E_REPORT_TIMESTAMP) .artifacts/e2e-reports/latest
-	@exit_code=0; \
+	@ROOT_DIR="$$(pwd)"; \
+	TS="$(E2E_REPORT_TIMESTAMP)"; \
+	REPORT_BASE="$$ROOT_DIR/.artifacts/e2e-reports/$$TS"; \
+	WEB_REPORT="$$REPORT_BASE/web"; \
+	WEB_CF_REPORT="$$REPORT_BASE/web-cloudflare-enabled"; \
+	MGMT_REPORT="$$REPORT_BASE/management-web"; \
+	MGMT_CF_REPORT="$$REPORT_BASE/management-web-cloudflare-enabled"; \
+	mkdir -p "$$WEB_REPORT" "$$WEB_CF_REPORT" "$$MGMT_REPORT" "$$MGMT_CF_REPORT"; \
+	rm -f "$$ROOT_DIR/.artifacts/e2e-reports/latest"; \
+	ln -s "$$TS" "$$ROOT_DIR/.artifacts/e2e-reports/latest"; \
+	exit_code=0; \
 	echo "--- API integration tests ---"; \
 	npm run test -w apps/api && npm run test -w apps/management-api || exit_code=$$?; \
 	echo "--- Web E2E report ---"; \
 	E2E_SPEC_ORDER="$(E2E_SPEC_ORDER_WEB)" \
-	PLAYWRIGHT_HTML_OUTPUT_DIR="$(E2E_REPORT_BASE)/web" \
+	PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_REPORT" \
 	E2E_STEP_SCREENSHOTS=true \
 	PLAYWRIGHT_HTML_OPEN=never \
 	npm run test:e2e -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts || exit_code=$$?; \
+	echo "--- Web Cloudflare-enabled E2E report ---"; \
+	PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_CF_REPORT" \
+	E2E_STEP_SCREENSHOTS=true \
+	PLAYWRIGHT_HTML_OPEN=never \
+	npm run test:e2e:cloudflare-enabled -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts || exit_code=$$?; \
 	echo "--- Management-web E2E report ---"; \
 	E2E_SPEC_ORDER="$(E2E_SPEC_ORDER_MANAGEMENT_WEB)" \
-	PLAYWRIGHT_HTML_OUTPUT_DIR="$(E2E_REPORT_BASE)/management-web" \
+	PLAYWRIGHT_HTML_OUTPUT_DIR="$$MGMT_REPORT" \
 	E2E_STEP_SCREENSHOTS=true \
 	PLAYWRIGHT_HTML_OPEN=never \
 	npm run test:e2e -w @podverse/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts || exit_code=$$?; \
+	echo "--- Management-web Cloudflare-enabled E2E report ---"; \
+	PLAYWRIGHT_HTML_OUTPUT_DIR="$$MGMT_CF_REPORT" \
+	E2E_STEP_SCREENSHOTS=true \
+	PLAYWRIGHT_HTML_OPEN=never \
+	npm run test:e2e:cloudflare-enabled -w @podverse/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts || exit_code=$$?; \
 	echo ""; \
 	echo "=== E2E reports ==="; \
-	echo "  Web:              $(E2E_REPORT_BASE)/web/index.html"; \
-	echo "  Management-web:   $(E2E_REPORT_BASE)/management-web/index.html"; \
-	echo "  Latest symlink:   .artifacts/e2e-reports/latest/"; \
-	@bash -c 'cd .artifacts/e2e-reports && ls -d */ 2>/dev/null | sort -r | tail -n +11 | xargs -r rm -rf'; \
-	@# Open reports on macOS/Linux
-	@(command -v open >/dev/null 2>&1 && open $(E2E_REPORT_BASE)/web/index.html $(E2E_REPORT_BASE)/management-web/index.html 2>/dev/null) || \
-	 (command -v xdg-open >/dev/null 2>&1 && xdg-open $(E2E_REPORT_BASE)/web/index.html 2>/dev/null) || true
-	@exit $$exit_code
+	echo "  Web:                         $$WEB_REPORT/index.html"; \
+	echo "  Web (Cloudflare enabled):    $$WEB_CF_REPORT/index.html"; \
+	echo "  Management-web:              $$MGMT_REPORT/index.html"; \
+	echo "  Management-web (CF enabled): $$MGMT_CF_REPORT/index.html"; \
+	echo "  Latest symlink:              $$ROOT_DIR/.artifacts/e2e-reports/latest/"; \
+	RUN_DIRS=$$((ls -1d "$$ROOT_DIR/.artifacts/e2e-reports"/20??????-?????? 2>/dev/null || true) | sort); \
+	RUN_COUNT=$$(printf "%s\n" "$$RUN_DIRS" | sed '/^$$/d' | wc -l | tr -d ' '); \
+	if [ "$$RUN_COUNT" -gt 10 ]; then \
+		REMOVE_COUNT=$$((RUN_COUNT - 10)); \
+		printf "%s\n" "$$RUN_DIRS" | sed '/^$$/d' | head -n "$$REMOVE_COUNT" | while IFS= read -r OLD_DIR; do \
+			if [ -n "$$OLD_DIR" ]; then \
+				rm -rf "$$OLD_DIR"; \
+			fi; \
+		done; \
+		echo "Rotated old E2E reports: kept newest 10 timestamped directories."; \
+	fi; \
+	if command -v open >/dev/null 2>&1; then \
+		[ -f "$$WEB_REPORT/index.html" ] && open "$$WEB_REPORT/index.html" "$$WEB_CF_REPORT/index.html" "$$MGMT_REPORT/index.html" "$$MGMT_CF_REPORT/index.html" 2>/dev/null || true; \
+	elif command -v xdg-open >/dev/null 2>&1; then \
+		[ -f "$$WEB_REPORT/index.html" ] && xdg-open "$$WEB_REPORT/index.html" >/dev/null 2>&1 || true; \
+		[ -f "$$WEB_CF_REPORT/index.html" ] && xdg-open "$$WEB_CF_REPORT/index.html" >/dev/null 2>&1 || true; \
+		[ -f "$$MGMT_REPORT/index.html" ] && xdg-open "$$MGMT_REPORT/index.html" >/dev/null 2>&1 || true; \
+		[ -f "$$MGMT_CF_REPORT/index.html" ] && xdg-open "$$MGMT_CF_REPORT/index.html" >/dev/null 2>&1 || true; \
+	fi; \
+	exit $$exit_code
 
 # Scoped web report for one spec (SPEC=apps/web/e2e/foo.spec.ts)
 e2e_test_web_report_spec: e2e_deps e2e_seed_web
 	@test -n "$(SPEC)" || (echo "Usage: make e2e_test_web_report_spec SPEC=apps/web/e2e/foo.spec.ts"; exit 1)
-	@mkdir -p $(E2E_REPORT_BASE)/web
-	PLAYWRIGHT_HTML_OUTPUT_DIR="$(E2E_REPORT_BASE)/web" \
+	@ROOT_DIR="$$(pwd)"; \
+	TS="$(E2E_REPORT_TIMESTAMP)"; \
+	WEB_REPORT="$$ROOT_DIR/.artifacts/e2e-reports/$$TS/web"; \
+	mkdir -p "$$WEB_REPORT"; \
+	rm -f "$$ROOT_DIR/.artifacts/e2e-reports/latest"; \
+	ln -sfn "$$TS" "$$ROOT_DIR/.artifacts/e2e-reports/latest"; \
+	PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_REPORT" \
 	E2E_STEP_SCREENSHOTS=true \
 	PLAYWRIGHT_HTML_OPEN=never \
-	npm run test:e2e -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$(echo "$(SPEC)" | tr ',' ' ')
+	npm run test:e2e -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$(echo "$(SPEC)" | tr ',' ' '); \
+	if command -v open >/dev/null 2>&1; then \
+		[ -f "$$WEB_REPORT/index.html" ] && open "$$WEB_REPORT/index.html" 2>/dev/null || true; \
+	elif command -v xdg-open >/dev/null 2>&1; then \
+		[ -f "$$WEB_REPORT/index.html" ] && xdg-open "$$WEB_REPORT/index.html" >/dev/null 2>&1 || true; \
+	fi; \
+	echo "E2E report: $$WEB_REPORT/index.html"
 
 # Scoped management-web report for one spec (SPEC=apps/management-web/e2e/foo.spec.ts)
 e2e_test_management_web_report_spec: e2e_deps e2e_seed_management_web
 	@test -n "$(SPEC)" || (echo "Usage: make e2e_test_management_web_report_spec SPEC=apps/management-web/e2e/foo.spec.ts"; exit 1)
-	@mkdir -p $(E2E_REPORT_BASE)/management-web
-	PLAYWRIGHT_HTML_OUTPUT_DIR="$(E2E_REPORT_BASE)/management-web" \
+	@ROOT_DIR="$$(pwd)"; \
+	TS="$(E2E_REPORT_TIMESTAMP)"; \
+	MGMT_REPORT="$$ROOT_DIR/.artifacts/e2e-reports/$$TS/management-web"; \
+	mkdir -p "$$MGMT_REPORT"; \
+	rm -f "$$ROOT_DIR/.artifacts/e2e-reports/latest"; \
+	ln -sfn "$$TS" "$$ROOT_DIR/.artifacts/e2e-reports/latest"; \
+	PLAYWRIGHT_HTML_OUTPUT_DIR="$$MGMT_REPORT" \
 	E2E_STEP_SCREENSHOTS=true \
 	PLAYWRIGHT_HTML_OPEN=never \
-	npm run test:e2e -w @podverse/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$(echo "$(SPEC)" | tr ',' ' ')
+	npm run test:e2e -w @podverse/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$(echo "$(SPEC)" | tr ',' ' '); \
+	if command -v open >/dev/null 2>&1; then \
+		[ -f "$$MGMT_REPORT/index.html" ] && open "$$MGMT_REPORT/index.html" 2>/dev/null || true; \
+	elif command -v xdg-open >/dev/null 2>&1; then \
+		[ -f "$$MGMT_REPORT/index.html" ] && xdg-open "$$MGMT_REPORT/index.html" >/dev/null 2>&1 || true; \
+	fi; \
+	echo "E2E report: $$MGMT_REPORT/index.html"
 
 # Scoped both apps (WEB_SPEC=... MGMT_SPEC=...)
 e2e_test_report_scoped: e2e_deps e2e_seed
 	@test -n "$(WEB_SPEC)" || (echo "Usage: make e2e_test_report_scoped WEB_SPEC=... MGMT_SPEC=..."; exit 1)
-	@mkdir -p $(E2E_REPORT_BASE)/web $(E2E_REPORT_BASE)/management-web
-	@exit_code=0; \
-	PLAYWRIGHT_HTML_OUTPUT_DIR="$(E2E_REPORT_BASE)/web" \
+	@ROOT_DIR="$$(pwd)"; \
+	TS="$(E2E_REPORT_TIMESTAMP)"; \
+	REPORT_BASE="$$ROOT_DIR/.artifacts/e2e-reports/$$TS"; \
+	WEB_REPORT="$$REPORT_BASE/web"; \
+	MGMT_REPORT="$$REPORT_BASE/management-web"; \
+	mkdir -p "$$WEB_REPORT" "$$MGMT_REPORT"; \
+	rm -f "$$ROOT_DIR/.artifacts/e2e-reports/latest"; \
+	ln -sfn "$$TS" "$$ROOT_DIR/.artifacts/e2e-reports/latest"; \
+	exit_code=0; \
+	PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_REPORT" \
 	E2E_STEP_SCREENSHOTS=true \
 	PLAYWRIGHT_HTML_OPEN=never \
 	npm run test:e2e -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$(echo "$(WEB_SPEC)" | tr ',' ' ') || exit_code=$$?; \
 	if [ -n "$(MGMT_SPEC)" ]; then \
-		PLAYWRIGHT_HTML_OUTPUT_DIR="$(E2E_REPORT_BASE)/management-web" \
+		PLAYWRIGHT_HTML_OUTPUT_DIR="$$MGMT_REPORT" \
 		E2E_STEP_SCREENSHOTS=true \
 		PLAYWRIGHT_HTML_OPEN=never \
 		npm run test:e2e -w @podverse/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$(echo "$(MGMT_SPEC)" | tr ',' ' ') || exit_code=$$?; \
 	fi; \
+	if command -v open >/dev/null 2>&1; then \
+		[ -f "$$WEB_REPORT/index.html" ] && open "$$WEB_REPORT/index.html" 2>/dev/null || true; \
+		[ -f "$$MGMT_REPORT/index.html" ] && open "$$MGMT_REPORT/index.html" 2>/dev/null || true; \
+	elif command -v xdg-open >/dev/null 2>&1; then \
+		[ -f "$$WEB_REPORT/index.html" ] && xdg-open "$$WEB_REPORT/index.html" >/dev/null 2>&1 || true; \
+		[ -f "$$MGMT_REPORT/index.html" ] && xdg-open "$$MGMT_REPORT/index.html" >/dev/null 2>&1 || true; \
+	fi; \
+	echo "E2E reports: $$WEB_REPORT/index.html $$MGMT_REPORT/index.html"; \
 	exit $$exit_code
 
 e2e_teardown:

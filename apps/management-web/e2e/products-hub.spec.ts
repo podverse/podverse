@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { capturePageLoad } from './helpers/stepScreenshots';
+
 /**
  * E2E seed: superuser e2e-superadmin@example.com / Test!1Aa
  * (see tools/management-web/seed-e2e.mjs, make e2e_seed_management_web)
@@ -7,7 +9,7 @@ import { expect, test } from '@playwright/test';
 test.describe('Management-web products hub', () => {
   test('superuser can open Products from the dashboard and reach Memberships with resolved values visible', async ({
     page,
-  }) => {
+  }, testInfo) => {
     test.setTimeout(45_000);
     let freeTrialExpirationSeconds = 86400;
     let trialMaxAddByRSSFeeds = 2;
@@ -149,6 +151,13 @@ test.describe('Management-web products hub', () => {
     await expect(page.getByRole('cell', { name: 'monthly', exact: true })).toBeVisible();
     await expect(page.getByRole('cell', { name: 'annual', exact: true })).toBeVisible();
 
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The memberships page shows resolved product values and active pricing rows.',
+      page.getByRole('heading', { name: 'Memberships', level: 1 })
+    );
+
     await page.getByRole('button', { name: 'Edit Free trial duration (seconds)' }).click();
     await expect(page.getByRole('dialog', { name: 'Edit membership setting' })).toBeVisible();
     await page.getByRole('dialog').getByLabel('Free trial duration (seconds)').fill('172800');
@@ -169,5 +178,12 @@ test.describe('Management-web products hub', () => {
     await page.getByRole('dialog').getByRole('button', { name: 'Save Changes' }).click();
     await expect(page.getByText('9')).toBeVisible();
     expect(patchRequested).toBe(true);
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'Membership settings updates persist on the memberships page after edits.',
+      page.getByText('9')
+    );
   });
 });

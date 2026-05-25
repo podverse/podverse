@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { capturePageLoad } from './helpers/stepScreenshots';
+
 /**
  * E2E seed: superuser e2e-superadmin@example.com / Test!1Aa
  * User and product-membership endpoints are mocked so default override display is deterministic.
@@ -39,7 +41,9 @@ const PRODUCT_MEMBERSHIP = {
 };
 
 test.describe('Management-web user edit advanced overrides', () => {
-  test('a superuser sees effective defaults for unset advanced overrides', async ({ page }) => {
+  test('a superuser sees effective defaults for unset advanced overrides', async ({
+    page,
+  }, testInfo) => {
     test.setTimeout(45_000);
 
     await page.route('**/api/v2/users/9001', async (route) => {
@@ -88,6 +92,13 @@ test.describe('Management-web user edit advanced overrides', () => {
     await expect(page.locator('#edit-user-refresh-limit')).toHaveAttribute(
       'placeholder',
       'Default: 3'
+    );
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'Edit user advanced overrides show effective defaults from product membership.',
+      page.locator('#edit-user-add-by-rss-value')
     );
   });
 });

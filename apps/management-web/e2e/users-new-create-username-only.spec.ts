@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { capturePageLoad } from './helpers/stepScreenshots';
+
 /**
  * E2E seed: superuser e2e-superadmin@example.com / Test!1Aa
  * (see tools/management-web/seed-e2e.mjs, make e2e_seed_management_web)
@@ -35,7 +37,7 @@ function productMembershipBody(trialSeconds = 86400): string {
 test.describe('Management-web create user (username-only)', () => {
   test('a superuser can create a user with username only and receives an invite link', async ({
     page,
-  }) => {
+  }, testInfo) => {
     test.setTimeout(45_000);
 
     const sentBodies: Record<string, unknown>[] = [];
@@ -90,11 +92,18 @@ test.describe('Management-web create user (username-only)', () => {
     expect(String(body.membership_expires_at)).toMatch(
       /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{3})?)?$/
     );
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'Create user with username only shows the generated invite link.',
+      inviteLinkInput
+    );
   });
 
   test('a superuser is redirected to the users list after create when the API returns no invite link', async ({
     page,
-  }) => {
+  }, testInfo) => {
     test.setTimeout(45_000);
 
     await page.route('**/products/membership', async (route) => {
@@ -137,11 +146,18 @@ test.describe('Management-web create user (username-only)', () => {
     await page.getByRole('button', { name: 'Create User' }).first().click();
 
     await expect(page).toHaveURL(/\/users$/);
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'After create without invite link, the user is redirected to the users list.',
+      page.getByRole('heading', { name: 'Users', level: 1 })
+    );
   });
 
   test('the Create User form shows membership status and advanced overrides toggle', async ({
     page,
-  }) => {
+  }, testInfo) => {
     test.setTimeout(45_000);
 
     await page.route('**/products/membership', async (route) => {
@@ -184,11 +200,18 @@ test.describe('Management-web create user (username-only)', () => {
       'placeholder',
       'Default: 4'
     );
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'Advanced overrides expand with effective default labels on create user.',
+      page.locator('#allow-directory-add-value')
+    );
   });
 
   test('default membership expiry reflects product GET freeTrialExpirationSeconds', async ({
     page,
-  }) => {
+  }, testInfo) => {
     test.setTimeout(45_000);
 
     const trialSeconds = 7200;
@@ -240,5 +263,12 @@ test.describe('Management-web create user (username-only)', () => {
     expect(deltaMs).not.toBeNull();
     expect(deltaMs).toBeGreaterThan(trialSeconds * 1000 - 120_000);
     expect(deltaMs).toBeLessThan(trialSeconds * 1000 + 120_000);
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'Default membership expiry reflects product freeTrialExpirationSeconds.',
+      expiryInput
+    );
   });
 });

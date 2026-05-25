@@ -82,10 +82,13 @@ the package.
 When changing integration behavior, add or update E2E specs (see **integrations-web** and
 **e2e-page-tests** skills):
 
-- `apps/web/e2e/cloudflare-web-analytics-integration.spec.ts`
-- management-web mirror
+- `apps/web/e2e/cloudflare-web-analytics-disabled.spec.ts` — default Playwright config (integration off)
+- `apps/web/e2e/cloudflare-web-analytics-enabled.spec.ts` — Cloudflare-enabled Playwright config only
+- management-web mirrors under `apps/management-web/e2e/`
 
-Default Playwright config runs the **disabled** integration path. Enabled beacon coverage:
+`make e2e_test` and `make e2e_test_report` run **both** default and Cloudflare-enabled configs (no skipped tests).
+
+Enabled-only beacon coverage (also included in full E2E targets):
 
 ```bash
 npm run test:e2e:cloudflare-enabled -w @podverse/web
@@ -95,8 +98,8 @@ npm run test:e2e:cloudflare-enabled -w @podverse/management-web
 Disabled-path report specs:
 
 ```bash
-make e2e_test_web_report_spec SPEC=e2e/cloudflare-web-analytics-integration.spec.ts
-make e2e_test_management_web_report_spec SPEC=e2e/cloudflare-web-analytics-integration.spec.ts
+make e2e_test_web_report_spec SPEC=e2e/cloudflare-web-analytics-disabled.spec.ts
+make e2e_test_management_web_report_spec SPEC=e2e/cloudflare-web-analytics-disabled.spec.ts
 ```
 
 ## Related docs

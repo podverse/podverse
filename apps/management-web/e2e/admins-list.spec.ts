@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { capturePageLoad } from './helpers/stepScreenshots';
+
 /**
  * E2E seed: superuser e2e-superadmin@example.com / Test!1Aa
  * Admins list GET is mocked for deterministic table chrome.
@@ -25,7 +27,7 @@ const MOCK_ADMIN = {
 test.describe('Management-web admins list', () => {
   test('when the admins API returns rows, the list shows sortable header buttons', async ({
     page,
-  }) => {
+  }, testInfo) => {
     test.setTimeout(45_000);
 
     await page.route('**/api/v2/admins', async (route) => {
@@ -57,5 +59,12 @@ test.describe('Management-web admins list', () => {
     ).toBeVisible();
     const adminDataRow = page.locator('tbody tr').filter({ hasText: 'e2e_admin_row' });
     await expect(adminDataRow.getByRole('cell').nth(2)).toHaveText('-');
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The admins list shows sortable headers and the mocked admin row.',
+      page.getByRole('cell', { name: 'e2e-admin-row@example.com', exact: true })
+    );
   });
 });

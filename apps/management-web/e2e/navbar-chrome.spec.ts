@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { capturePageLoad } from './helpers/stepScreenshots';
+
 /**
  * E2E seed: superuser e2e-superadmin@example.com / Test!1Aa
  * (see tools/management-web/seed-e2e.mjs, make e2e_seed_management_web)
@@ -7,7 +9,7 @@ import { expect, test } from '@playwright/test';
 test.describe('Management layout navbar chrome', () => {
   test('the dashboard shows the management shell bar with a dashboard brand link and account menu', async ({
     page,
-  }) => {
+  }, testInfo) => {
     await page.goto('/');
 
     await page.locator('#email').fill('e2e-superadmin@example.com');
@@ -25,5 +27,12 @@ test.describe('Management layout navbar chrome', () => {
 
     await page.getByRole('button', { name: 'Account menu' }).click();
     await expect(page.getByText(/Role:/)).toBeVisible();
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The dashboard shows management shell chrome and the account menu with role text.',
+      page.getByText(/Role:/)
+    );
   });
 });

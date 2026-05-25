@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { capturePageLoad } from './helpers/stepScreenshots';
+
 /**
  * E2E seed: superuser e2e-superadmin@example.com / Test!1Aa
  * List endpoint is mocked so the table chrome is deterministic.
@@ -25,7 +27,7 @@ const MOCK_USER = {
 test.describe('Management-web users list', () => {
   test('when the users API returns rows, the list shows sortable headers and can delete with confirmation', async ({
     page,
-  }) => {
+  }, testInfo) => {
     test.setTimeout(45_000);
 
     let includeUserAfterDelete = true;
@@ -76,6 +78,13 @@ test.describe('Management-web users list', () => {
       page.getByRole('cell', { name: 'e2e-list-user@example.com', exact: true })
     ).toBeVisible();
 
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The users list shows sortable headers and the mocked user row.',
+      page.getByRole('cell', { name: 'e2e-list-user@example.com', exact: true })
+    );
+
     const userRow = page.getByRole('row', { name: /e2e-list-user@example.com/ });
     await userRow.getByRole('button', { name: 'Delete' }).click();
     await page.getByRole('button', { name: 'Confirm' }).click();
@@ -83,11 +92,18 @@ test.describe('Management-web users list', () => {
     await expect(
       page.getByText('No data found yet. This page will be enabled when there is data to display.')
     ).toBeVisible();
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'After delete confirmation, the users list shows the system empty message.',
+      page.getByText('No data found yet. This page will be enabled when there is data to display.')
+    );
   });
 
   test('when the users API reports zero users, in-table tools stay hidden but Create New stays visible with the system empty message', async ({
     page,
-  }) => {
+  }, testInfo) => {
     test.setTimeout(45_000);
 
     await page.route('**/api/v2/users**', async (route) => {
@@ -124,9 +140,18 @@ test.describe('Management-web users list', () => {
     await expect(
       page.getByText('No data found yet. This page will be enabled when there is data to display.')
     ).toBeVisible();
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The empty users list hides in-table tools but keeps Create New visible.',
+      page.getByRole('link', { name: 'Create New' })
+    );
   });
 
-  test('when the users list refetches, the sortable header stays mounted', async ({ page }) => {
+  test('when the users list refetches, the sortable header stays mounted', async ({
+    page,
+  }, testInfo) => {
     test.setTimeout(45_000);
 
     let listCalls = 0;
@@ -176,5 +201,12 @@ test.describe('Management-web users list', () => {
     await expect(
       page.getByRole('cell', { name: 'e2e-list-user@example.com', exact: true })
     ).toBeVisible();
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'After refetch, the users list keeps the sortable header and mocked row visible.',
+      page.getByRole('button', { name: 'Sort by Email' })
+    );
   });
 });
