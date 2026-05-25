@@ -1,6 +1,6 @@
 {
   "name": "@podverse/observability",
-  "version": "5.4.30",
+  "version": "5.4.31",
   "description": "Always-on distributed tracing for Podverse apps (W3C context, spans, log correlation)",
   "type": "module",
   "main": "dist/index.js",
