@@ -57,7 +57,7 @@ When disabled: no extension sidecar scheduled; apps do not start OTLP export.
 
 Prometheus runs in **your GitOps repo** (not the Podverse monorepo). Discover extension sidecars on
 container port **9464** with Kubernetes pod service discovery or a **PodMonitor** (Prometheus
-Operator). Do not use legacy `prometheus.io/*` pod annotations.
+Operator). Do not use `prometheus.io/*` pod annotations.
 
 ### Kubernetes pod SD (all workloads including workers)
 

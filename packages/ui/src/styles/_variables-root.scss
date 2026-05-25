@@ -98,7 +98,7 @@
   --spacing-gap-4xl: 2rem;
   --spacing-modal-side: 100px;
 
-  // legacy aliases (kept for byte-equivalence with apps/web)
+  // compatibility aliases (kept for byte-equivalence with apps/web)
   --header-padding: var(--spacing-container);
   --form-gap: var(--spacing-3xl);
 

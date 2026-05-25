@@ -32,6 +32,12 @@ export interface ApiRequestParams {
   userAgent?: string;
 }
 
+export type ManagementApiRequestServiceParams = {
+  base?: ApiClientBaseConfig;
+  authContext?: AuthContext;
+  jwt?: string;
+};
+
 export class ManagementApiRequestService {
   private static defaultBase: ApiClientBaseConfig | undefined;
 
@@ -42,21 +48,15 @@ export class ManagementApiRequestService {
     this.defaultBase = base;
   }
 
-  constructor(
-    paramsOrJwt?: string | { base?: ApiClientBaseConfig; authContext?: AuthContext; jwt?: string }
-  ) {
-    const isLegacyJwt = typeof paramsOrJwt === 'string' || paramsOrJwt === undefined;
-    const base =
-      isLegacyJwt || paramsOrJwt?.base === undefined
-        ? ManagementApiRequestService.defaultBase
-        : paramsOrJwt.base;
+  constructor(params?: ManagementApiRequestServiceParams) {
+    const base = params?.base === undefined ? ManagementApiRequestService.defaultBase : params.base;
     if (base === undefined) {
       throw new Error(
         'ManagementApiRequestService base URL is not configured. Call configureDefaultBase() or pass constructor params with base.'
       );
     }
-    const authContext = isLegacyJwt ? undefined : paramsOrJwt?.authContext;
-    const jwt = isLegacyJwt ? paramsOrJwt : paramsOrJwt?.jwt;
+    const authContext = params?.authContext;
+    const jwt = params?.jwt;
 
     const { protocol, host, port } = base;
     const portPart = port ? `:${port}` : '';

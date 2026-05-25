@@ -13,8 +13,6 @@
 # !.env.local
 # !.env.*
 
-# Copilot export mirror: generated on develop by CI; source of truth is .cursor (see llm-cursor-source)
-.llm/exports/
 
 # Optional human LLM history workflow (archived policy text; not agent instructions)
 docs/development/llm/LLM-HISTORY-WORKFLOW-ARCHIVE.md

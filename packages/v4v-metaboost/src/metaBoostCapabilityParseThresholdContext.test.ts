@@ -23,7 +23,7 @@ describe('parseCapabilityThresholdContextFields', () => {
     });
   });
 
-  it('ignores legacy minimum_message_amount_minor (not part of capability contract)', () => {
+  it('ignores deprecated field minimum_message_amount_minor (not part of capability contract)', () => {
     expect(
       parseCapabilityThresholdContextFields({
         preferred_currency: 'EUR',

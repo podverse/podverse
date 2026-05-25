@@ -131,7 +131,6 @@ export function buildAddByRSSResourceData(
     id_text: item.idText ?? '',
     medium_id: item.mediumId ?? null,
     channel_title: item.channelTitle ?? null,
-    channel_image_url: item.channelImageUrl ?? null,
     channel_images,
     item_images,
   };

@@ -1,6 +1,6 @@
 @use '../variables/breakpoints';
 
-// Viewport: use 100vh first (legacy), then 100dvh (matches visible viewport on mobile).
+// Viewport: use 100vh first (fallback), then 100dvh (matches visible viewport on mobile).
 // Bottom inset: reserve space for home indicator; pad #media-player so controls clear it.
 
 #sidebar.media-player-active {

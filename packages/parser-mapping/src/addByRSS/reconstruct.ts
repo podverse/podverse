@@ -4,13 +4,32 @@
  * e.g., when accessing a queue from a different device.
  */
 
-import type { AddByRSSResourceData } from '@podverse/helpers';
+import type { AddByRSSResourceData, AddByRSSResourceDataImageEntry } from '@podverse/helpers';
 
 import type {
   AddByRSSItemIndexItem,
   AddByRSSLivestreamIndexItem,
   AddByRSSMappedFeed,
 } from './types.js';
+
+function isAddByRSSResourceDataImageEntry(value: unknown): value is AddByRSSResourceDataImageEntry {
+  return (
+    typeof value === 'object' && value !== null && 'url' in value && typeof value.url === 'string'
+  );
+}
+
+function channelImageUrlFromResourceData(resourceData: AddByRSSResourceData): string | undefined {
+  const images = resourceData.channel_images;
+  if (!Array.isArray(images)) {
+    return undefined;
+  }
+  for (const entry of images) {
+    if (isAddByRSSResourceDataImageEntry(entry) && entry.url !== '') {
+      return entry.url;
+    }
+  }
+  return undefined;
+}
 
 /**
  * Reconstruct an AddByRSSItemIndexItem from stored resource data (bundle).
@@ -33,8 +52,7 @@ export function reconstructAddByRSSItemFromResourceData(
   const itemGuid = typeof resourceData.guid === 'string' ? resourceData.guid.trim() : '';
   const channelTitle =
     typeof resourceData.channel_title === 'string' ? resourceData.channel_title : '';
-  const channelImageUrl =
-    typeof resourceData.channel_image_url === 'string' ? resourceData.channel_image_url : undefined;
+  const channelImageUrl = channelImageUrlFromResourceData(resourceData);
   const mediumId = typeof resourceData.medium_id === 'number' ? resourceData.medium_id : null;
 
   // Parse pub_date back to milliseconds
@@ -86,8 +104,7 @@ export function reconstructAddByRSSLivestreamFromResourceData(
   const itemGuid = typeof resourceData.guid === 'string' ? resourceData.guid.trim() : '';
   const channelTitle =
     typeof resourceData.channel_title === 'string' ? resourceData.channel_title : '';
-  const channelImageUrl =
-    typeof resourceData.channel_image_url === 'string' ? resourceData.channel_image_url : undefined;
+  const channelImageUrl = channelImageUrlFromResourceData(resourceData);
   const mediumId = typeof resourceData.medium_id === 'number' ? resourceData.medium_id : null;
 
   // Parse start_time back to milliseconds

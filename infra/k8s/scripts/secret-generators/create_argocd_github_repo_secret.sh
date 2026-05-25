@@ -85,7 +85,7 @@ derived_secret="$(truncate_k8s_name "${slug}-repo-creds")"
 derived_file="./secrets/${slug}-argoc-repo.enc.yaml"
 
 echo ""
-echo "Derived Kubernetes Secret name (override if you use a fixed legacy name): ${derived_secret}"
+echo "Derived Kubernetes Secret name (override if you use a fixed secret name): ${derived_secret}"
 read -r -p "Secret name [${derived_secret}]: " SECRET_NAME_IN
 SECRET_NAME="${SECRET_NAME_IN:-$derived_secret}"
 SECRET_NAME="$(truncate_k8s_name "$SECRET_NAME")"

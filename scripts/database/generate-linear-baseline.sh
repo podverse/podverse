@@ -5,7 +5,7 @@
 #   infra/k8s/base/db/source/bootstrap/0003a_app_linear_baseline.sql.gz
 #   infra/k8s/base/db/source/bootstrap/0003b_management_linear_baseline.sql.gz
 # Pass a directory as the first argument to write both files there (for verify-linear-baseline.sh).
-# Pass a path ending in .sql for uncompressed combined debug output (legacy).
+# Pass a path ending in .sql for uncompressed combined debug output.
 # Do not edit 0003a/0003b manually; re-run this script or `make db_regen_linear_baseline` after migration changes.
 #
 # Requires: docker, gzip (when writing .gz), a POSIX shell

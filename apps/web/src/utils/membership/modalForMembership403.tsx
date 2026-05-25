@@ -99,33 +99,3 @@ export function getMembership403ModalProps(params: {
 
   return null;
 }
-
-/**
- * Fallback for other `membership.*` 403 responses (e.g. future keys) using API message and renew path.
- */
-export function getLegacyMembership403ModalProps(params: {
-  error: unknown;
-  tMembership: MembershipTranslator;
-}): ModalMessage | null {
-  const payload = readMembership403Payload(params.error);
-  if (payload === null) {
-    return null;
-  }
-  if (!payload.i18nKey.startsWith('membership.')) {
-    return null;
-  }
-  const key = payload.i18nKey.slice('membership.'.length);
-  if (key === '') {
-    return null;
-  }
-  return {
-    title: null,
-    message: payload.message ?? params.tMembership(key),
-    messageNode: null,
-    actionLabel:
-      payload.renewPath !== undefined && payload.renewPath !== ''
-        ? params.tMembership('renew_membership')
-        : null,
-    actionHref: payload.renewPath ?? null,
-  };
-}

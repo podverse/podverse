@@ -71,10 +71,14 @@ export const AddByRSSLivestreamDetailHeader: React.FC<AddByRSSLivestreamDetailHe
     indexItem && hasLivestreamImage(indexItem.item)
       ? [{ url: indexItem.item.image, image_width_size: null }]
       : [];
+  const channel_images: AddByRSSResourceDataImageEntry[] =
+    indexItem?.channelImageUrl !== undefined && indexItem.channelImageUrl !== ''
+      ? [{ url: indexItem.channelImageUrl, image_width_size: null }]
+      : [];
   const imageCandidates = addByRSSResourceMergedArtworkCandidates(
     {
       item_images: itemImages,
-      channel_image_url: indexItem?.channelImageUrl ?? null,
+      channel_images,
     },
     IMAGES.HEADER.DESKTOP.SQUARE.SIZE_FIND_TARGET,
     'greater'

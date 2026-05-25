@@ -1,44 +1,47 @@
-# LLM and AI editor configuration
+# LLM and Cursor configuration
 
-## Source of truth (what we commit)
+## Source of truth
 
-This repository’s **authoritative** AI guidance is:
+Authoritative AI guidance for this repository lives only in:
 
 - `.cursor/skills/**` — one `SKILL.md` per directory
 - `.cursor/rules/**` — Cursor rules (`.mdc`)
 - `.cursorrules` — root-level rules
+- `.cursorignore` — path-level ignores for Cursor
 
-[`.llm/exports/`](../../.llm/exports/) holds **machine-generated** per-target trees (`github-copilot`, `opencode`, etc.). The **`llm-exports-sync`** GitHub Action (**LLM exports sync**) is the **only normal producer**: it runs on pushes to **develop** (or manual dispatch) and updates branch **`llm`** and its PR into **`develop`**. Pull requests that change `.cursor` or export scripts are **not** required to pre-commit a matching export tree; merge to **develop** triggers the sync, then review/merge the rolling **`llm`** → **`develop`** PR when you want the mirrors updated. The separate **`llm-exports-full-sync`** Action (**LLM exports full**) is **on-demand** only: full regen (removes orphans under each target’s generated subtrees) and a PR on **`llm-full`**. For catch-up after large renames, run **LLM exports full** from the Actions tab.
+Cursor reads these paths directly after `git pull`. There is no separate generated mirror tree in the repo.
 
-**Local runs:** the export script **does not write** to `.llm/exports` outside GitHub Actions unless you set `LLM_EXPORT_ALLOW_LOCAL=1` (intended for **editing and testing** [scripts/llm/](../../../scripts/llm/) only). The npm scripts are `llm:exports:sync` (incremental) and `llm:exports:sync:full` (full). Example: `LLM_EXPORT_ALLOW_LOCAL=1 npm run llm:exports:sync`. For normal work on skills and rules, **do not** set this; commit `.cursor` changes and let the **`llm`** automation PR update exports.
+## What to commit
 
-**Spurious `git` changes under `.llm/exports`:** if tracked export files show as modified (for example after an old local sync or tooling), run `npm run llm:exports:restore` to match the last commit, or `git restore .llm/exports` yourself.
+When you add or change skills, rules, or root Cursor config:
 
-The generated files remain **`.gitignore`d**; **`.llm/exports/`** is in **`.cursorignore`**. The workflow stages them with `git add -A -f` on the runner. The pre-commit hook can prompt if you try to add ignored export paths. See [`.llm/exports/LLM-EXPORTS.md`](../../.llm/exports/LLM-EXPORTS.md) and [EXPORT-TARGETS.md](EXPORT-TARGETS.md).
+1. Edit files under `.cursor/`, `.cursorrules`, or `.cursorignore`.
+2. Commit and push **only** those source paths in your PR.
 
-## Who should read this
+Do not duplicate guidance under `.github/` or other ad-hoc trees. See the **llm-cursor-source** skill
+(`.cursor/skills/llm-cursor-source/SKILL.md`) and rule (`.cursor/rules/llm-cursor-source.mdc`).
 
-- **Cursor users:** The paths above are what you get from `git pull`; no extra step.
-- **Other LLM tools or IDEs** that expect their own project-level instructions: use the alignment prompt on first clone and after `.cursor` changes (see below).
+## Plans and optional history
 
-## Exports + GitHub (operators)
+- **Plans:** active work under `.llm/plans/active/`; completed sets under `.llm/plans/completed/`.
+  Keep individual plan files under 300 lines. When you finish a plan, move it per
+  `.cursor/skills/plan-completion/SKILL.md`.
+- **History (optional):** some teams keep notes under `.llm/history/active/<feature>/`. That is not
+  required for contributing. A retired human-only workflow description is in
+  [LLM-HISTORY-WORKFLOW-ARCHIVE.md](LLM-HISTORY-WORKFLOW-ARCHIVE.md) (listed in `.cursorignore` so
+  Cursor does not treat it as agent instructions).
+- **Layout overview:** [.llm/LLM.md](../../.llm/LLM.md).
 
-- [GH-EXPORTS-SETUP.md](GH-EXPORTS-SETUP.md) — `gh` commands and notes for **Podverse and Metaboost** (labels, optional secrets, running workflows).
+When a PR merges to `develop`, `.github/workflows/complete-feature.yml` may archive a matching
+`.llm/history/active/<feature-name>/` folder if one exists.
 
-## Non-Cursor editors: alignment prompt
+## What we removed
 
-Use the checked-in **`.llm/exports/...`** trees when your editor can read from a repo path. If you still need a one-off local conversion, run this **first** when setting up, and **again** after you pull work that changes `.cursor` or `.cursorrules` (or when you see PRs and issues labeled **`llm`**):
+This repo no longer maintains machine-generated multi-editor export mirrors under `.llm/exports/` or
+CI that published them. Cursor-only source under `.cursor/` is the policy going forward.
 
-- [LLM-EDITOR-ALIGNMENT-PROMPT.md](LLM-EDITOR-ALIGNMENT-PROMPT.md)
+## Related
 
-That prompt asks your tool to create or refresh local config from the repo’s `.cursor` content, add ignore rules for any generated paths, and stay aligned over time.
-
-## GitHub: `llm` label
-
-Pull requests that touch `.cursor/**` or `.cursorrules` are labeled **`llm`** so it is easy to see when shared AI guidance changed. For **issues** about the same, add the `llm` label when you file or triage the ticket (the PR labeler only runs on pull requests).
-
-## History
-
-- The old “Cursor to Copilot sync” flow is retired. See [CURSOR-COPILOT-SYNC.md](CURSOR-COPILOT-SYNC.md) for a one-line pointer.
-
-Local vendor setup is opt-in via `npm run llm:vendors` (default active vendor: `cursor`).
+- [AGENTS.md](../../../AGENTS.md) — AI development guide for the monorepo
+- [.llm/LLM.md](../../.llm/LLM.md) — `.llm/` directory layout
+- [LLM-HISTORY-WORKFLOW-ARCHIVE.md](LLM-HISTORY-WORKFLOW-ARCHIVE.md) — optional archived human workflow

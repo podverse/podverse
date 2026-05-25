@@ -70,20 +70,17 @@ describe('itemHeaderSquareArtworkCandidates', () => {
 });
 
 describe('addByRSSResourceMergedArtworkCandidates', () => {
-  it('merges item and channel rows then prepends distinct channel_image_url', () => {
+  it('merges item and channel image rows', () => {
     const item = 'https://cdn.example.com/item.webp';
     const channel = 'https://cdn.example.com/channel.webp';
-    const legacy = 'https://feed.example.com/itunes.jpg';
     const got = addByRSSResourceMergedArtworkCandidates(
       {
         item_images: [{ url: item, image_width_size: 300, is_resized: true }],
         channel_images: [{ url: channel, image_width_size: 300, is_resized: true }],
-        channel_image_url: legacy,
       },
       300,
       'lesser'
     );
-    expect(got[0]).toBe(legacy);
     expect(got).toContain(item);
     expect(got).toContain(channel);
   });

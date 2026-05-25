@@ -16,10 +16,7 @@ import { useConfig } from '../../contexts/Config';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { dedupedTrimmedUrlCandidates } from '../../utils/image/dedupedTrimmedUrlCandidates';
-import {
-  getLegacyMembership403ModalProps,
-  getMembership403ModalProps,
-} from '../../utils/membership/modalForMembership403';
+import { getMembership403ModalProps } from '../../utils/membership/modalForMembership403';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 import { redirectToChannelPageByMediumClient } from '../../utils/redirect/redirectToChannelPageByMedium';
 
@@ -112,13 +109,12 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
       } catch (error: unknown) {
         const rateLimitErrorHandled = await handleRateLimitAlert(error, locale, tMisc);
         if (!rateLimitErrorHandled) {
-          const membershipModal =
-            getMembership403ModalProps({
-              error,
-              contactEmail: getContactEmail(),
-              featureContext: 'directory_add_by_rss',
-              tMembership,
-            }) ?? getLegacyMembership403ModalProps({ error, tMembership });
+          const membershipModal = getMembership403ModalProps({
+            error,
+            contactEmail: getContactEmail(),
+            featureContext: 'directory_add_by_rss',
+            tMembership,
+          });
           if (membershipModal !== null) {
             setModalLoginRequired(membershipModal);
           } else {

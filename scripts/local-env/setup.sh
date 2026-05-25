@@ -481,11 +481,10 @@ for v in NEXT_PUBLIC_BRAND_APP_ICON_192_URL NEXT_PUBLIC_BRAND_APP_ICON_512_URL N
 	apply_override "$v" "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"
 done
 
-# From brand.env: app/shell background (maps to NEXT_PUBLIC_BRAND_BACKGROUND_COLOR in sidecar). Legacy: BRAND_COLOR_BACKGROUND.
-if [ -n "${BRAND_BACKGROUND_COLOR:-${BRAND_COLOR_BACKGROUND:-}}" ]; then
-	_bg_val="${BRAND_BACKGROUND_COLOR:-${BRAND_COLOR_BACKGROUND:-}}"
+# From brand.env: app/shell background -> NEXT_PUBLIC_BRAND_BACKGROUND_COLOR in sidecar
+if [ -n "${BRAND_BACKGROUND_COLOR:-}" ]; then
 	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
-		upsert_var "$file" "NEXT_PUBLIC_BRAND_BACKGROUND_COLOR" "$_bg_val"
+		upsert_var "$file" "NEXT_PUBLIC_BRAND_BACKGROUND_COLOR" "$BRAND_BACKGROUND_COLOR"
 	done
 fi
 

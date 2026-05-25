@@ -19,6 +19,7 @@ describe('redactForLog', () => {
   it('redacts sensitive keys in nested objects and mixed-case key names', () => {
     const input = {
       title: 'ok',
+      basic_auth_password: 'leak',
       User_Secret: 'leak',
       nest: {
         API_KEY: 'k',
@@ -30,17 +31,12 @@ describe('redactForLog', () => {
     const out = redactForLog(input as Record<string, unknown>);
 
     expect(out.title).toBe('ok');
+    expect(out.basic_auth_password).toBe('[REDACTED]');
     expect(out.User_Secret).toBe('[REDACTED]');
     expect((out.nest as Record<string, unknown>).API_KEY).toBe('[REDACTED]');
     expect((out.nest as Record<string, unknown>).safe).toBe('x');
     const items = (out.nest as Record<string, unknown>).items as Record<string, unknown>[];
     expect(items[0]?.token).toBe('[REDACTED]');
     expect(items[1]?.name).toBe('n');
-  });
-
-  it('still redacts basic_auth_password used by legacy DTO paths', () => {
-    const out = redactForLog({ basic_auth_password: 'x', label: 'y' } as Record<string, unknown>);
-    expect(out.basic_auth_password).toBe('[REDACTED]');
-    expect(out.label).toBe('y');
   });
 });

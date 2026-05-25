@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import type { AddByRSSResourceDataImageEntry } from '@podverse/helpers';
 import { getQueryParamFromQueueMediumId } from '@podverse/helpers';
 
 import { IMAGES } from '../../../constants/images';
@@ -37,10 +38,16 @@ export const AddByRSSLivestreamHeader: React.FC<AddByRSSLivestreamHeaderProps> =
       <h2 className={styles.episodeTitle}>{title || 'Untitled'}</h2>
     </Link>
   );
+  const mappedChannelImages = feed.mappedFeed?.channel?.images;
+  const channel_images: AddByRSSResourceDataImageEntry[] =
+    mappedChannelImages !== undefined && mappedChannelImages.length > 0
+      ? mappedChannelImages
+      : feed.imageUrl
+        ? [{ url: feed.imageUrl, image_width_size: null }]
+        : [];
   const imageCandidates = addByRSSResourceMergedArtworkCandidates(
     {
-      channel_images: feed.mappedFeed?.channel?.images,
-      channel_image_url: feed.imageUrl ?? null,
+      channel_images,
     },
     IMAGES.HEADER.DESKTOP.SQUARE.SIZE_FIND_TARGET,
     'greater'
