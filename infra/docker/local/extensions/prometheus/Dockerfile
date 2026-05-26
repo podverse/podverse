@@ -1,5 +1,5 @@
 # Build context: monorepo root
-FROM otel/opentelemetry-collector-contrib:0.120.1 AS otelcol
+FROM otel/opentelemetry-collector-contrib:0.120.0 AS otelcol
 
 FROM node:24-alpine AS builder
 WORKDIR /app
