@@ -1,4 +1,4 @@
-import { Resource } from '@opentelemetry/resources';
+import { resourceFromAttributes } from '@opentelemetry/resources';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 
 const parseResourceAttributes = (raw: string | undefined): Record<string, string> | undefined => {
@@ -32,7 +32,7 @@ export const buildExtensionResource = (
   resourceAttributes: string | undefined
 ) => {
   const extra = parseResourceAttributes(resourceAttributes);
-  return new Resource({
+  return resourceFromAttributes({
     [ATTR_SERVICE_NAME]: serviceName,
     ...extra,
   });

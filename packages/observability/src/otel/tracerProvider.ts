@@ -30,16 +30,16 @@ const createSpanExporter = (config: ObservabilityConfig): SpanExporter => {
 export const createObservabilityTracerProvider = (
   config: ObservabilityConfig
 ): NodeTracerProvider => {
-  const provider = new NodeTracerProvider({
-    resource: createObservabilityResource(config.serviceName),
-  });
-
   const exporter = createSpanExporter(config);
   const processor =
     config.tracesExport === 'otlp'
       ? new BatchSpanProcessor(exporter)
       : new SimpleSpanProcessor(exporter);
-  provider.addSpanProcessor(processor);
+
+  const provider = new NodeTracerProvider({
+    resource: createObservabilityResource(config.serviceName),
+    spanProcessors: [processor],
+  });
 
   return provider;
 };
