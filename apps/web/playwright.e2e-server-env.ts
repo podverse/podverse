@@ -81,10 +81,11 @@ export function buildE2eWebSidecarEnvPrefix(options?: E2eWebSidecarEnvOptions): 
 }
 
 /**
- * Env record for the web app build and start in E2E mode.
+ * Env record for the web app build and start in E2E mode (production Next.js build).
  */
 export function buildE2eWebAppEnv(): Record<string, string> {
   return {
+    NODE_ENV: 'production',
     PORT: '4032',
     RUNTIME_CONFIG_URL: 'http://localhost:4031',
     NODE_OPTIONS: '--disable-warning=DEP0060',

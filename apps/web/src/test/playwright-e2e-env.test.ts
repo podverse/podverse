@@ -4,8 +4,15 @@ import { validateObservabilityConfigFromEnv } from '@podverse/observability/conf
 
 import { buildE2eWebAppEnv } from '../../playwright.e2e-server-env';
 
+const toProcessEnv = (env: Record<string, string>): NodeJS.ProcessEnv => ({
+  ...env,
+  NODE_ENV: 'production',
+});
+
 describe('Playwright E2E web app env', () => {
   it('passes observability validation for instrumentation hook', () => {
-    expect(() => validateObservabilityConfigFromEnv(buildE2eWebAppEnv())).not.toThrow();
+    expect(() =>
+      validateObservabilityConfigFromEnv(toProcessEnv(buildE2eWebAppEnv()))
+    ).not.toThrow();
   });
 });

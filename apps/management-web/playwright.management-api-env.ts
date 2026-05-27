@@ -91,9 +91,10 @@ const MANAGEMENT_WEB_E2E_NEXT_PUBLIC_ENV: Record<string, string> = {
   NEXT_PUBLIC_SUPPORTED_THEMES: 'all-available',
 };
 
-/** Env record for the management-web app build and start in E2E mode. */
+/** Env record for the management-web app build and start in E2E mode (production Next.js build). */
 export function buildManagementWebE2eAppEnv(): Record<string, string> {
   return {
+    NODE_ENV: 'production',
     PORT: '4132',
     RUNTIME_CONFIG_URL: 'http://localhost:4131',
     ...PODVERSE_MANAGEMENT_WEB_E2E_OBSERVABILITY_ENV,
