@@ -117,11 +117,21 @@ After this plan, **`npm run build:packages` will likely fail** until plans 03–
 
 ## Deliverables
 
-- [ ] `SnakeNamingStrategy` vendored and exported
-- [ ] All four workspaces on `typeorm@^1.0.0`
-- [ ] `typeorm-naming-strategies` removed from package.json files
-- [ ] Linux lockfile committed
-- [ ] Dependabot #221 closed/superseded with link to this plan set
+- [x] `SnakeNamingStrategy` vendored and exported
+- [x] All four workspaces on `typeorm@^1.0.0`
+- [x] `typeorm-naming-strategies` removed from package.json files
+- [x] Linux lockfile regenerated (`package-lock.json`)
+- [ ] Dependabot #221 closed/superseded when branch is pushed (link to `chore/typeorm-v1` / this plan set)
+
+## Completion note
+
+**Executed:** 2026-05-26 on `chore/typeorm-v1` in `/Users/mitcheldowney/repos/pv/podverse-typeorm-v1`.
+
+- Added `packages/orm/src/lib/snakeNamingStrategy.ts` (MIT port); exported from `@podverse/orm`.
+- Updated `factory.ts`, `management-api` `orm/db/index.ts` and `appDb.ts` imports.
+- `npm ls typeorm` → **1.0.0** at root, orm, management-api, workers.
+- `typeorm-naming-strategies` absent from `package-lock.json` and all `package.json` files.
+- `npm run type-check -w @podverse/orm` fails on string `relations` (expected until plans 04–06).
 
 ## Verification
 
@@ -134,6 +144,6 @@ test -f packages/orm/src/lib/snakeNamingStrategy.ts
 
 ## Completion checklist
 
-- [ ] No `typeorm-naming-strategies` in package.json or TS imports
-- [ ] `npm ls typeorm` shows 1.x at repo root
-- [ ] Lockfile updated and committed
+- [x] No `typeorm-naming-strategies` in package.json or TS imports
+- [x] `npm ls typeorm` shows 1.x at repo root
+- [x] Lockfile updated (commit with branch)

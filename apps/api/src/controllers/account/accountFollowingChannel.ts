@@ -45,7 +45,7 @@ class AccountFollowingChannelController {
               };
               const account = await AccountFollowingChannelController.accountService.getByIdText(
                 account_id_text,
-                { relations: ['sharable_status'] }
+                { relations: { sharable_status: true } }
               );
               if (!account) {
                 res.status(404).json({ message: 'Account not found' });
@@ -63,7 +63,7 @@ class AccountFollowingChannelController {
                 await AccountFollowingChannelController.accountFollowingChannelService.getFollowedChannels(
                   account.id,
                   medium,
-                  { relations: ['channel'] }
+                  { relations: { channel: true } }
                 );
               res.json(followedChannels);
             } catch (err) {

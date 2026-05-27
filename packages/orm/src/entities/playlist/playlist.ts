@@ -14,7 +14,6 @@ import {
   Unique,
 } from 'typeorm';
 
-import type { MediumEnum, SharableStatusEnum } from '@podverse/helpers';
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
 
 import type { PlaylistResource } from './playlistResource.js';
@@ -34,7 +33,7 @@ export class Playlist {
 
   @ManyToOne('SharableStatus', (sharableStatus: SharableStatus) => sharableStatus.id)
   @JoinColumn({ name: 'sharable_status_id' })
-  sharable_status!: SharableStatusEnum;
+  sharable_status!: Relation<SharableStatus>;
 
   /*
     NOTE: this is not truly nullable, but we need this column to allow
@@ -60,7 +59,7 @@ export class Playlist {
 
   @ManyToOne('Medium', (medium: Medium) => medium.id)
   @JoinColumn({ name: 'medium_id' })
-  medium!: MediumEnum;
+  medium!: Relation<Medium>;
 
   /*
     NOTE: this is not truly nullable, but we need this column to allow

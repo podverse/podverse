@@ -1,4 +1,10 @@
-export type { FindManyOptions, FindOptionsWhere, FindOptionsOrder } from 'typeorm';
+export type {
+  FindManyOptions,
+  FindOptionsOrder,
+  FindOptionsRelations,
+  FindOptionsSelect,
+  FindOptionsWhere,
+} from 'typeorm';
 
 // Config types for app-level configuration
 export * from './config/index.js';
@@ -6,6 +12,12 @@ export * from './config/index.js';
 // Factory function to create the ORM context
 export { createORMContext } from './factory.js';
 export type { ORMContext } from './factory.js';
+
+export { SnakeNamingStrategy } from './lib/snakeNamingStrategy.js';
+export {
+  findOptionsRelationsFromPaths,
+  mergeFindOptionsRelations,
+} from './lib/findOptionsRelationsFromPaths.js';
 
 // Context accessors for advanced use cases
 export {

@@ -8,6 +8,7 @@ import { Item } from '@orm/entities/item/item.js';
 import type { ItemFlagStatus } from '@orm/entities/item/itemFlagStatus.js';
 import { ItemFlagStatusStatusEnum } from '@orm/entities/item/itemFlagStatus.js';
 import { PlaylistResource } from '@orm/entities/playlist/playlistResource.js';
+import type { FindOptionsRelations } from 'typeorm';
 
 import { FeedService } from './feed/feed.js';
 import { ItemFlagStatusService } from './item/itemFlagStatus.js';
@@ -15,12 +16,10 @@ import { pruneNonActiveItemBackedQueueResourceRows } from './queue/queueResource
 
 const ARCHIVED_ITEM_ORPHAN_DELETE_BATCH_SIZE = 1000;
 
-const FEED_RELATIONS_PENDING_OR_SPAM = [
-  'feed_lifecycle_state',
-  'feed_lifecycle_state.feed_lifecycle_state_type',
-  'channel',
-  'channel.items',
-] as const;
+export const FEED_RELATIONS_PENDING_OR_SPAM: FindOptionsRelations<Feed> = {
+  feed_lifecycle_state: { feed_lifecycle_state_type: true },
+  channel: { items: true },
+};
 
 export class ArchiverService {
   private itemRepositoryRead = AppDataSourceRead.getRepository(Item);
@@ -132,13 +131,17 @@ export class ArchiverService {
           },
         },
       ],
-      relations: [
-        'channel',
-        'channel.feed',
-        'channel.feed.feed_lifecycle_state',
-        'channel.feed.feed_lifecycle_state.feed_lifecycle_state_type',
-        'item_flag_status',
-      ],
+      relations: {
+        channel: {
+          feed: {
+            feed_lifecycle_state: {
+              feed_lifecycle_state_type: true,
+            },
+          },
+        },
+
+        item_flag_status: true,
+      },
     });
   }
 
@@ -151,7 +154,7 @@ export class ArchiverService {
           },
         },
       },
-      relations: [...FEED_RELATIONS_PENDING_OR_SPAM],
+      relations: FEED_RELATIONS_PENDING_OR_SPAM,
     });
   }
 
@@ -264,7 +267,9 @@ export class ArchiverService {
         where: {
           channel: feed.channel,
         },
-        relations: ['item_flag_status'],
+        relations: {
+          item_flag_status: true,
+        },
       });
 
       if (items.length > 0) {
@@ -308,7 +313,9 @@ export class ArchiverService {
         where: {
           channel: feed.channel,
         },
-        relations: ['item_flag_status'],
+        relations: {
+          item_flag_status: true,
+        },
       });
 
       if (items.length > 0) {
@@ -343,7 +350,7 @@ export class ArchiverService {
           },
         },
       },
-      relations: [...FEED_RELATIONS_PENDING_OR_SPAM],
+      relations: FEED_RELATIONS_PENDING_OR_SPAM,
     });
   }
 

@@ -35,7 +35,7 @@ export async function getFollowedAccountIds(account_id: number): Promise<number[
   const followedAccounts = await accountFollowingAccountService.getFollowedAccountsPrivate(
     Number(account_id),
     {
-      relations: ['following_account'],
+      relations: { following_account: true },
     }
   );
   return followedAccounts

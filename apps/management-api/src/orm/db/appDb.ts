@@ -1,7 +1,8 @@
 import { config } from '@management-api/config/index.js';
 import type { DataSourceOptions } from 'typeorm';
 import { DataSource } from 'typeorm';
-import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+
+import { SnakeNamingStrategy } from '@podverse/orm';
 
 const commonConfig: DataSourceOptions = {
   type: 'postgres',

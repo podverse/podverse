@@ -33,7 +33,7 @@ class AccountFollowingPlaylistController {
             const account_id_text = getParamRequired(req, 'account_id_text');
             const account = await AccountFollowingPlaylistController.accountService.getByIdText(
               account_id_text,
-              { relations: ['sharable_status'] }
+              { relations: { sharable_status: true } }
             );
             if (!account) {
               res.status(404).json({ message: 'Account not found' });
@@ -51,14 +51,14 @@ class AccountFollowingPlaylistController {
               const followedPlaylists =
                 await AccountFollowingPlaylistController.accountFollowingPlaylistService.getFollowedPlaylistsPrivate(
                   account.id,
-                  { relations: ['playlist'] }
+                  { relations: { playlist: true } }
                 );
               res.json(followedPlaylists);
             } else {
               const followedPlaylists =
                 await AccountFollowingPlaylistController.accountFollowingPlaylistService.getFollowedPlaylistsPublic(
                   account.id,
-                  { relations: ['playlist'] }
+                  { relations: { playlist: true } }
                 );
               res.json(followedPlaylists);
             }

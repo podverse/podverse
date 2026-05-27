@@ -69,7 +69,11 @@ export class AdminAccountService {
     }
     return this.repositoryRead.findOne({
       where: { id },
-      relations: ['admin_account_role', 'permissions', 'admin_account_credentials'],
+      relations: {
+        admin_account_role: true,
+        permissions: true,
+        admin_account_credentials: true,
+      },
     });
   }
 
@@ -83,7 +87,9 @@ export class AdminAccountService {
     }
     const credentials = await this.credentialsRepositoryRead.findOne({
       where: { email: normalized },
-      relations: ['admin_account'],
+      relations: {
+        admin_account: true,
+      },
     });
 
     if (!credentials) {
@@ -105,7 +111,11 @@ export class AdminAccountService {
 
   async list(): Promise<AdminAccount[]> {
     return this.repositoryRead.find({
-      relations: ['admin_account_role', 'admin_account_credentials', 'permissions'],
+      relations: {
+        admin_account_role: true,
+        admin_account_credentials: true,
+        permissions: true,
+      },
       order: { id: 'ASC' },
     });
   }
@@ -270,7 +280,9 @@ export class AdminAccountService {
   async delete(id: number): Promise<void> {
     const adminAccount = await this.repositoryReadWrite.findOne({
       where: { id },
-      relations: ['admin_account_role'],
+      relations: {
+        admin_account_role: true,
+      },
     });
 
     if (!adminAccount) {

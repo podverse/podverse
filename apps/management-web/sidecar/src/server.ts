@@ -5,6 +5,8 @@ import { URL } from 'node:url';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
   displayValidationResults,
+  displayValidationResultsSilent,
+  isPodverseStartupValidationSilent,
   validateDefaultTheme,
   validateLocale,
   validateOptional,
@@ -264,17 +266,26 @@ function sendJson(res: http.ServerResponse, status: number, payload: unknown): v
   res.end(JSON.stringify(payload));
 }
 
-console.log('Running startup validation...');
+const startupValidationSilent = isPodverseStartupValidationSilent();
+if (!startupValidationSilent) {
+  console.log('Running startup validation...');
+}
 const results = buildValidationResults();
 const summary = buildSummary(results);
-displayValidationResults(summary);
+if (startupValidationSilent) {
+  displayValidationResultsSilent(summary);
+} else {
+  displayValidationResults(summary);
+}
 if (summary.requiredMissing > 0) {
   console.error(
     `FATAL: ${summary.requiredMissing} required environment variable(s) are missing or invalid. Please check the validation output above for details.`
   );
   process.exit(1);
 }
-console.log('Startup validation completed successfully');
+if (!startupValidationSilent) {
+  console.log('Startup validation completed successfully');
+}
 
 const server = http.createServer((req: http.IncomingMessage, res: http.ServerResponse) => {
   const requestUrl = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);

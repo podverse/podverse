@@ -39,6 +39,7 @@ import type {
   Account,
   AccountFollowingAccount,
   FindManyOptions,
+  FindOptionsRelations,
   StatsAggregatedAccount,
 } from '@podverse/orm';
 import {
@@ -51,12 +52,17 @@ import {
   AccountService,
   AccountSetPasswordService,
   AccountVerificationService,
+  findOptionsRelationsFromPaths,
+  mergeFindOptionsRelations,
   StatsAggregatedAccountService,
 } from '@podverse/orm';
 
-const publicRelations = ['account_following_channels', 'account_profile'];
+const publicRelations: FindOptionsRelations<Account> = {
+  account_following_channels: true,
+  account_profile: true,
+};
 
-const privateRelations = [
+const privateRelations: FindOptionsRelations<Account> = findOptionsRelationsFromPaths<Account>([
   // 'account_app_store_purchases',
   'account_credentials',
   // 'account_fcm_devices',
@@ -75,14 +81,35 @@ const privateRelations = [
   'account_settings.account_settings_notification.account_settings_notification_types',
   // 'account_up_device_tokens',
   // 'account_up_devices',
-  // 'account_verification'
-];
+  // 'account_verification',
+]);
 
-const subAccountGetManyRelations = [
+const accountPublicWithSharableStatusRelations = mergeFindOptionsRelations<Account>(
+  publicRelations,
+  { sharable_status: true }
+);
+
+const accountFullRelations = mergeFindOptionsRelations<Account>(publicRelations, privateRelations);
+
+const trackedAccountProfileRelations = [
   'tracked_account',
   'tracked_account.account_profile',
   'tracked_account.sharable_status',
-];
+] as const;
+
+const statsTrackedAccountRelations: FindOptionsRelations<StatsAggregatedAccount> =
+  findOptionsRelationsFromPaths<StatsAggregatedAccount>(trackedAccountProfileRelations);
+
+const followingAccountListRelations: FindOptionsRelations<AccountFollowingAccount> = {
+  following_account: {
+    account_profile: true,
+    sharable_status: true,
+  },
+};
+
+const accountCredentialsRelations: FindOptionsRelations<Account> = {
+  account_credentials: true,
+};
 
 export class AccountController {
   private static accountService = new AccountService();
@@ -111,7 +138,7 @@ export class AccountController {
             const id_text = getParamRequired(req, 'id_text');
             const jwtUser = req.user;
 
-            const config = { relations: [...publicRelations, 'sharable_status'] };
+            const config = { relations: accountPublicWithSharableStatusRelations };
             const data = await AccountController.accountService.getByIdText(id_text, config);
 
             if (!data) {
@@ -156,7 +183,7 @@ export class AccountController {
           const account_id = jwtUser.id;
 
           const data = await AccountController.accountService.get(account_id, {
-            relations: [...publicRelations, ...privateRelations],
+            relations: accountFullRelations,
           });
 
           if (data === null) {
@@ -208,7 +235,7 @@ export class AccountController {
           order: { id: 'DESC' },
           skip: offset,
           take: limit,
-          relations: [...publicRelations, 'sharable_status'],
+          relations: accountPublicWithSharableStatusRelations,
         });
 
         // Remove private information from accounts before returning
@@ -265,11 +292,7 @@ export class AccountController {
             const config: FindManyOptions<AccountFollowingAccount> = {
               skip: offset,
               take: limit,
-              relations: [
-                'following_account',
-                'following_account.account_profile',
-                'following_account.sharable_status',
-              ],
+              relations: followingAccountListRelations,
               order,
             };
 
@@ -350,11 +373,7 @@ export class AccountController {
             const config: FindManyOptions<AccountFollowingAccount> = {
               skip: offset,
               take: limit,
-              relations: [
-                'following_account',
-                'following_account.account_profile',
-                'following_account.sharable_status',
-              ],
+              relations: followingAccountListRelations,
               order,
             };
 
@@ -413,7 +432,7 @@ export class AccountController {
           order: { [orderField]: 'DESC' },
           skip: offset,
           take: limit,
-          relations: subAccountGetManyRelations,
+          relations: statsTrackedAccountRelations,
         };
         const statsResults = await AccountController.statsAggregatedAccountService.getMany(
           topConfig,
@@ -466,7 +485,7 @@ export class AccountController {
                 order: { [orderField]: 'DESC' },
                 skip: offset,
                 take: limit,
-                relations: subAccountGetManyRelations,
+                relations: statsTrackedAccountRelations,
               };
               const results =
                 await AccountController.statsAggregatedAccountService.getManyByAccountsAndCount(
@@ -667,7 +686,7 @@ export class AccountController {
     pending_email_address: string
   ): Promise<void> {
     const account = await AccountController.accountService.get(account_id, {
-      relations: ['account_credentials'],
+      relations: accountCredentialsRelations,
     });
     if (!account) {
       console.warn('[AccountController.sendEmailChangeVerificationEmailHelper] account not found', {

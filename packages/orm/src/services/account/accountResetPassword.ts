@@ -20,7 +20,9 @@ export class AccountResetPasswordService extends BaseOneService<AccountResetPass
   async getByToken(reset_token: string): Promise<AccountResetPassword | null> {
     return this.repositoryRead.findOne({
       where: { reset_token },
-      relations: ['account'],
+      relations: {
+        account: true,
+      },
     });
   }
 

@@ -2,6 +2,7 @@ import type { Clip } from '@orm/entities/clip.js';
 import type { Item } from '@orm/entities/item/item.js';
 import type { PlaylistResource } from '@orm/entities/playlist/playlistResource.js';
 import type { QueueResource } from '@orm/entities/queue/queueResource.js';
+import { findOptionsRelationsFromPaths } from '@orm/lib/findOptionsRelationsFromPaths.js';
 
 import { ClipService } from '../clip.js';
 import { PlaylistService } from '../playlist/playlist.js';
@@ -15,6 +16,26 @@ import { AccountFollowingAddByRSSChannelService } from './accountFollowingAddByR
 import { AccountFollowingChannelService } from './accountFollowingChannel.js';
 import { AccountFollowingPlaylistService } from './accountFollowingPlaylist.js';
 import { AccountMetaboostService } from './accountMetaboost.js';
+
+const playlistDataExportResourceRelations = findOptionsRelationsFromPaths<PlaylistResource>([
+  'item',
+  'item.channel',
+  'item.channel.feed',
+  'clip',
+  'clip.item',
+  'clip.item.channel',
+  'clip.item.channel.feed',
+  'item_soundbite',
+  'item_soundbite.item',
+  'item_soundbite.item.channel',
+  'item_soundbite.item.channel.feed',
+]);
+
+const clipExportItemRelations = findOptionsRelationsFromPaths<Item>([
+  'item',
+  'item.channel',
+  'item.channel.feed',
+]);
 
 export class AccountDataExportService {
   private accountService: AccountService;
@@ -55,7 +76,7 @@ export class AccountDataExportService {
     queues: Array<unknown>;
   }> {
     const account = await this.accountService.get(account_id, {
-      relations: ['account_profile'],
+      relations: { account_profile: true },
     });
 
     if (!account) {
@@ -89,20 +110,20 @@ export class AccountDataExportService {
     const followingAccounts = await accountFollowingAccountService.getFollowedAccountsPrivate(
       account_id,
       {
-        relations: ['following_account'],
+        relations: { following_account: true },
       }
     );
     const followingChannels = await accountFollowingChannelService.getFollowedChannels(
       account_id,
       null,
       {
-        relations: ['channel', 'channel.feed'],
+        relations: { channel: { feed: true } },
       }
     );
     const followingPlaylists = await accountFollowingPlaylistService.getFollowedPlaylistsPrivate(
       account_id,
       {
-        relations: ['playlist', 'playlist.account'],
+        relations: { playlist: { account: true } },
       }
     );
     const followingAddByRSSChannels =
@@ -112,7 +133,7 @@ export class AccountDataExportService {
     const playlistService = new PlaylistService();
     const playlistResourceService = new PlaylistResourceService();
     const [playlists] = await playlistService.getManyPrivate(account_id, null, {
-      relations: ['playlist_resources'],
+      relations: { playlist_resources: true },
     });
 
     // Get user's clips
@@ -183,19 +204,7 @@ export class AccountDataExportService {
           playlist.id_text,
           account_id,
           {
-            relations: [
-              'item',
-              'item.channel',
-              'item.channel.feed',
-              'clip',
-              'clip.item',
-              'clip.item.channel',
-              'clip.item.channel.feed',
-              'item_soundbite',
-              'item_soundbite.item',
-              'item_soundbite.item.channel',
-              'item_soundbite.item.channel.feed',
-            ],
+            relations: playlistDataExportResourceRelations,
           }
         );
 
@@ -264,7 +273,7 @@ export class AccountDataExportService {
       clips.map(async (clip) => {
         // Need to load item with channel and feed
         const clipWithRelations = await clipService.getByIdText(clip.id_text, {
-          relations: ['item', 'item.channel', 'item.channel.feed'],
+          relations: clipExportItemRelations,
         });
 
         return {

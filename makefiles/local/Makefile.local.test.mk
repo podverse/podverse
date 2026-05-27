@@ -65,6 +65,9 @@ test_postgres_up:
 		echo "Test Postgres ready on port $(TEST_DB_PORT)."; \
 	fi
 
+# Valkey password matches KEYVALDB_PASSWORD in @podverse/helpers-config test profiles.
+TEST_VALKEY_PASSWORD ?= test
+
 # Start Valkey on port $(TEST_VALKEY_PORT) for tests (idempotent).
 test_valkey_up:
 	@if docker ps -q -f name=^/$(TEST_VALKEY_CONTAINER)$$ | grep -q .; then \
@@ -74,7 +77,8 @@ test_valkey_up:
 		docker start $(TEST_VALKEY_CONTAINER); \
 		echo "Waiting for Valkey to be ready..."; \
 		for i in 1 2 3 4 5; do \
-			if (echo "PING" | nc -w 1 127.0.0.1 $(TEST_VALKEY_PORT) | grep -q PONG) 2>/dev/null || true; then break; fi; \
+			if docker exec $(TEST_VALKEY_CONTAINER) valkey-cli -a $(TEST_VALKEY_PASSWORD) ping 2>/dev/null | grep -q PONG \
+				|| docker exec $(TEST_VALKEY_CONTAINER) valkey-cli ping 2>/dev/null | grep -q PONG; then break; fi; \
 			sleep 1; \
 		done; \
 		echo "Test Valkey ready on port $(TEST_VALKEY_PORT)."; \
@@ -83,10 +87,11 @@ test_valkey_up:
 		docker run -d --name $(TEST_VALKEY_CONTAINER) \
 			-p 127.0.0.1:$(TEST_VALKEY_PORT):6379 \
 			valkey/valkey:9.0.1 \
+			valkey-server --requirepass $(TEST_VALKEY_PASSWORD) \
 		|| (echo "If bind failed: Podverse dev uses 6379; test uses $(TEST_VALKEY_PORT). Metaboost test uses 6579. Check docker ps and free the port or set TEST_VALKEY_PORT."; exit 1); \
 		echo "Waiting for Valkey to be ready..."; \
 		for i in 1 2 3 4 5; do \
-			if (echo "PING" | nc -w 1 127.0.0.1 $(TEST_VALKEY_PORT) | grep -q PONG) 2>/dev/null || true; then break; fi; \
+			if docker exec $(TEST_VALKEY_CONTAINER) valkey-cli -a $(TEST_VALKEY_PASSWORD) ping 2>/dev/null | grep -q PONG; then break; fi; \
 			sleep 1; \
 		done; \
 		echo "Test Valkey ready on port $(TEST_VALKEY_PORT)."; \

@@ -16,6 +16,8 @@
     "test:e2e": "playwright test",
     "test:e2e:cloudflare-enabled": "playwright test -c playwright.cloudflare-web-analytics-enabled.config.ts",
     "start": "next start",
+    "postbuild:standalone": "mkdir -p .next/standalone/apps/web/.next && cp -r .next/static .next/standalone/apps/web/.next/static && cp -r public .next/standalone/apps/web/public",
+    "start:standalone": "node .next/standalone/apps/web/server.js",
     "clean": "rm -rf .next",
     "type-check": "tsc --noEmit -p .",
     "validate-env": "ts-node --project tsconfig.scripts.json scripts/validate-env.ts",

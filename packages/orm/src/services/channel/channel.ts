@@ -1,7 +1,9 @@
 import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
+import type { AccountFollowingChannel } from '@orm/entities/account/accountFollowingChannel.js';
 import { Channel } from '@orm/entities/channel/channel.js';
 import { Feed } from '@orm/entities/feed/feed.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
+import { findOptionsRelationsFromPaths } from '@orm/lib/findOptionsRelationsFromPaths.js';
 import type { FindManyOptions, FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
 import { Equal, In, IsNull, Not } from 'typeorm';
 
@@ -31,42 +33,32 @@ type ChannelDto = {
   has_value_time_splits?: boolean;
 };
 
-export const channelGetManyRelations = [
-  'channel_about',
-  'channel_categories',
-  'channel_chat',
-  'channel_description',
-  'channel_images',
-  'channel_internal_settings',
-  'channel_license',
-  'channel_location',
-  'channel_persons',
-];
+export const channelGetManyRelations: FindOptionsRelations<Channel> =
+  findOptionsRelationsFromPaths<Channel>([
+    'channel_about',
+    'channel_categories',
+    'channel_chat',
+    'channel_description',
+    'channel_images',
+    'channel_internal_settings',
+    'channel_license',
+    'channel_location',
+    'channel_persons',
+  ]);
 
-export type SubChannelGetManyRelations =
-  | 'channel'
-  | 'channel.channel_about'
-  | 'channel.channel_categories'
-  | 'channel.channel_chat'
-  | 'channel.channel_description'
-  | 'channel.channel_images'
-  | 'channel.channel_internal_settings'
-  | 'channel.channel_license'
-  | 'channel.channel_location'
-  | 'channel.channel_persons';
-
-export const subChannelGetManyRelations: SubChannelGetManyRelations[] = [
-  'channel',
-  'channel.channel_about',
-  'channel.channel_categories',
-  'channel.channel_chat',
-  'channel.channel_description',
-  'channel.channel_images',
-  'channel.channel_internal_settings',
-  'channel.channel_license',
-  'channel.channel_location',
-  'channel.channel_persons',
-];
+export const subChannelGetManyRelations: FindOptionsRelations<AccountFollowingChannel> =
+  findOptionsRelationsFromPaths<AccountFollowingChannel>([
+    'channel',
+    'channel.channel_about',
+    'channel.channel_categories',
+    'channel.channel_chat',
+    'channel.channel_description',
+    'channel.channel_images',
+    'channel.channel_internal_settings',
+    'channel.channel_license',
+    'channel.channel_location',
+    'channel.channel_persons',
+  ]);
 
 export const channelGetOneRelations: FindOptionsRelations<Channel> = {
   channel_about: true,

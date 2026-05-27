@@ -25,7 +25,9 @@ export class AccountSettingsNotificationTypeService {
     const accountSettingsRepo = AppDataSourceRead.getRepository(AccountSettings);
     const accountSettings = await accountSettingsRepo.findOne({
       where: { account_id: dto.account_id },
-      relations: ['account_settings_notification'],
+      relations: {
+        account_settings_notification: true,
+      },
     });
     if (!accountSettings || !accountSettings.account_settings_notification) {
       throw new Error('AccountSettingsNotification not found for account');
@@ -45,7 +47,9 @@ export class AccountSettingsNotificationTypeService {
     const accountSettingsRepo = AppDataSourceRead.getRepository(AccountSettings);
     const accountSettings = await accountSettingsRepo.findOne({
       where: { account_id },
-      relations: ['account_settings_notification'],
+      relations: {
+        account_settings_notification: true,
+      },
     });
 
     if (!accountSettings || !accountSettings.account_settings_notification) {
@@ -61,7 +65,9 @@ export class AccountSettingsNotificationTypeService {
           id: parentId,
         },
       },
-      relations: ['account_settings_notification'],
+      relations: {
+        account_settings_notification: true,
+      },
     });
     if (!item) {
       return;

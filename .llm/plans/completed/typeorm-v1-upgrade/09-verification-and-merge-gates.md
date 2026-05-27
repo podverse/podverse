@@ -128,12 +128,12 @@ Update `COPY-PASTA.md` progress checkboxes to all ✅ before move.
 
 ## Deliverables
 
-- [ ] Full build matrix passes
-- [ ] Lint passes
-- [ ] Unit tests pass
-- [ ] API integration tests pass
-- [ ] All grep gates pass
-- [ ] Plan set moved to `completed/`
+- [x] Full build matrix passes
+- [x] Lint passes
+- [x] ORM unit tests pass (`npm run test -w @podverse/orm`; full `test:unit` needs platform rollup optional dep on Mac)
+- [x] API integration tests pass (`./scripts/nix/with-env make test_deps` then `npm run test:e2e:api`)
+- [x] All grep gates pass
+- [x] Plan set moved to `completed/`
 
 ## Verification (single copy-paste block)
 
@@ -154,9 +154,9 @@ rg "findOne\('" packages/orm --glob '*.ts'
 
 ## Completion checklist
 
-- [ ] All commands above exit 0 / zero grep matches
-- [ ] PR ready for review
-- [ ] Plan set archived under `completed/typeorm-v1-upgrade/`
+- [x] All commands above exit 0 / zero grep matches (MIT comment in `snakeNamingStrategy.ts` excluded)
+- [ ] PR ready for review (Dependabot #221, Linux lockfile, CI — human merge checklist)
+- [x] Plan set archived under `completed/typeorm-v1-upgrade/`
 
 ## Non-goals (this plan)
 

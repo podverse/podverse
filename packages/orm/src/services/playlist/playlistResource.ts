@@ -17,6 +17,8 @@ import { ClipService } from '../clip.js';
 import { ItemService } from '../item/item.js';
 import { ItemSoundbiteService } from '../item/itemSoundbite.js';
 import { listResourceRelations } from '../queue/queueResource.js';
+
+const playlistAccountRelations = { account: true } as const;
 import { PlaylistService } from './playlist.js';
 
 const PLAYLIST_LIST_POSITION_INCREMENT = 0.00000001;
@@ -80,7 +82,7 @@ export class PlaylistResourceService extends BaseManyService<PlaylistResource, '
     options: Partial<FindManyOptions<PlaylistResource>> = {}
   ): Promise<PlaylistResource[]> {
     const playlist = await this.playlistService.getByIdText(playlist_id_text, {
-      relations: ['account'],
+      relations: playlistAccountRelations,
     });
     if (!playlist) {
       throw new Error('Playlist not found.');
@@ -120,7 +122,7 @@ export class PlaylistResourceService extends BaseManyService<PlaylistResource, '
     }
 
     const playlist = await this.playlistService.getByIdText(playlist_id_text, {
-      relations: ['account'],
+      relations: playlistAccountRelations,
     });
     if (!playlist) {
       throw new Error('Playlist not found.');
@@ -188,7 +190,7 @@ export class PlaylistResourceService extends BaseManyService<PlaylistResource, '
     options?: FindManyOptions<PlaylistResource>
   ): Promise<PlaylistResource[]> {
     const playlist = await this.playlistService.getByIdText(playlist_id_text, {
-      relations: ['account'],
+      relations: playlistAccountRelations,
     });
     if (!playlist) {
       throw new Error('Playlist not found.');

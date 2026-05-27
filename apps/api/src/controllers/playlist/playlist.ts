@@ -30,7 +30,9 @@ import type { ApiListResponse, QueryParamsStatsRange } from '@podverse/helpers-r
 import type {
   AccountFollowingPlaylist,
   FindManyOptions,
+  FindOptionsRelations,
   Playlist,
+  PlaylistResource,
   StatsAggregatedPlaylist,
 } from '@podverse/orm';
 import {
@@ -47,6 +49,10 @@ import { getPaginationParams } from '../helpers/pagination.js';
 
 const playlistService = new PlaylistService();
 
+const playlistResourceWithProfileRelations: FindOptionsRelations<PlaylistResource> = {
+  playlist: { account: { account_profile: true } },
+};
+
 export const verifyPlaylistOwnership = () => {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const account = getAuthenticatedUser(req);
@@ -54,7 +60,7 @@ export const verifyPlaylistOwnership = () => {
 
     try {
       const playlist = await playlistService.getByIdText(playlist_id_text, {
-        relations: ['account'],
+        relations: { account: true },
       });
       if (!playlist) {
         res.status(404).json({ message: 'Playlist not found' });
@@ -80,7 +86,7 @@ export const verifyPrivatePlaylistOwnershipIfNeeded = () => {
 
     try {
       const playlist = await playlistService.getByIdText(playlist_id_text, {
-        relations: ['account', 'sharable_status'],
+        relations: { account: true, sharable_status: true },
       });
 
       if (!playlist) {
@@ -442,7 +448,7 @@ class PlaylistController {
             order: { [order]: 'DESC' },
             skip: offset,
             take: limit,
-            relations: ['playlist', 'playlist.account', 'playlist.account.account_profile'],
+            relations: playlistResourceWithProfileRelations,
           };
           const statsResults =
             await PlaylistController.statsAggregatedPlaylistService.getManyPrivateByPlaylists(
@@ -483,7 +489,7 @@ class PlaylistController {
           const config: FindManyOptions<AccountFollowingPlaylist> = {
             skip: offset,
             take: limit,
-            relations: ['playlist', 'playlist.account', 'playlist.account.account_profile'],
+            relations: playlistResourceWithProfileRelations,
             order: { playlist: { last_updated: 'DESC' } },
           };
           const results =
@@ -528,7 +534,7 @@ class PlaylistController {
           const config: FindManyOptions<AccountFollowingPlaylist> = {
             skip: offset,
             take: limit,
-            relations: ['playlist', 'playlist.account', 'playlist.account.account_profile'],
+            relations: playlistResourceWithProfileRelations,
             order: { playlist: { last_updated: 'ASC' } },
           };
           const results =
@@ -573,7 +579,7 @@ class PlaylistController {
           const config: FindManyOptions<AccountFollowingPlaylist> = {
             skip: offset,
             take: limit,
-            relations: ['playlist', 'playlist.account', 'playlist.account.account_profile'],
+            relations: playlistResourceWithProfileRelations,
             order: { playlist: { title: 'ASC' } },
           };
           const results =

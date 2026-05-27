@@ -3,7 +3,7 @@ import { defineConfig } from '@playwright/test';
 import {
   buildManagementApiEnvBucketOffForPlaywright,
   buildManagementSidecarEnvForPlaywright,
-  MANAGEMENT_WEB_ENV_FOR_PLAYWRIGHT,
+  buildManagementWebE2eStartCommand,
 } from './playwright.management-api-env';
 
 const MANAGEMENT_SIDECAR_ENV_FOR_PLAYWRIGHT = buildManagementSidecarEnvForPlaywright();
@@ -11,6 +11,7 @@ const MANAGEMENT_SIDECAR_ENV_FOR_PLAYWRIGHT = buildManagementSidecarEnvForPlaywr
 const E2E_REPORT_BASE = '.artifacts/e2e-reports';
 
 const MANAGEMENT_API_ENV = buildManagementApiEnvBucketOffForPlaywright();
+const MANAGEMENT_WEB_START_COMMAND = buildManagementWebE2eStartCommand();
 
 export default defineConfig({
   testDir: './e2e',
@@ -26,7 +27,7 @@ export default defineConfig({
   reporter: 'list',
   webServer: [
     {
-      command: `npm run build -w @podverse/management-api && ${MANAGEMENT_API_ENV} npm run start -w @podverse/management-api`,
+      command: `npm run build -w @podverse/helpers-config && npm run build -w @podverse/management-api && ${MANAGEMENT_API_ENV} npm run start -w @podverse/management-api`,
       port: 4130,
       cwd: '../..',
       timeout: 420_000,
@@ -40,7 +41,7 @@ export default defineConfig({
       reuseExistingServer: false,
     },
     {
-      command: `${MANAGEMENT_WEB_ENV_FOR_PLAYWRIGHT} npm run build -w @podverse/management-web && NODE_OPTIONS="--disable-warning=DEP0060" ${MANAGEMENT_WEB_ENV_FOR_PLAYWRIGHT} npm run start -w @podverse/management-web -- -p 4132`,
+      command: MANAGEMENT_WEB_START_COMMAND,
       port: 4132,
       cwd: '../..',
       timeout: 420_000,

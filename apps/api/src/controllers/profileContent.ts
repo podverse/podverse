@@ -18,17 +18,19 @@ import type {
   Channel,
   Clip,
   FindManyOptions,
+  FindOptionsRelations,
   Playlist,
 } from '@podverse/orm';
 import {
   AccountFollowingChannelService,
   AccountService,
   ClipService,
+  findOptionsRelationsFromPaths,
   PlaylistService,
   subChannelGetManyRelations,
 } from '@podverse/orm';
 
-const clipRelations = [
+const clipRelations: FindOptionsRelations<Clip> = findOptionsRelationsFromPaths<Clip>([
   'item',
   'item.item_enclosures',
   'item.item_enclosures.item_enclosure_sources',
@@ -38,9 +40,11 @@ const clipRelations = [
   'account',
   'account.account_profile',
   'sharable_status',
-];
+]);
 
-const playlistRelations = ['account', 'account.account_profile'];
+const playlistRelations: FindOptionsRelations<Playlist> = {
+  account: { account_profile: true },
+};
 
 export class ProfileContentController {
   private static accountService = new AccountService();
@@ -60,7 +64,7 @@ export class ProfileContentController {
           // Check if account exists and is public/unlisted
           const account = await ProfileContentController.accountService.getByIdText(
             account_id_text,
-            { relations: ['sharable_status'] }
+            { relations: { sharable_status: true } }
           );
 
           if (!account) {
@@ -112,7 +116,7 @@ export class ProfileContentController {
           // Check if account exists and is public/unlisted
           const account = await ProfileContentController.accountService.getByIdText(
             account_id_text,
-            { relations: ['sharable_status'] }
+            { relations: { sharable_status: true } }
           );
 
           if (!account) {
@@ -161,7 +165,7 @@ export class ProfileContentController {
           // Check if account exists and is public/unlisted
           const account = await ProfileContentController.accountService.getByIdText(
             account_id_text,
-            { relations: ['sharable_status'] }
+            { relations: { sharable_status: true } }
           );
 
           if (!account) {
@@ -210,7 +214,7 @@ export class ProfileContentController {
           // Check if account exists and is public/unlisted
           const account = await ProfileContentController.accountService.getByIdText(
             account_id_text,
-            { relations: ['sharable_status'] }
+            { relations: { sharable_status: true } }
           );
 
           if (!account) {

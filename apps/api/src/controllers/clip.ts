@@ -22,10 +22,16 @@ import type { CategoryMappingKeys, QueryParamsMedium } from '@podverse/helpers';
 import { getCategoryEnumValue, SharableStatusEnum } from '@podverse/helpers';
 import type { ApiListResponse, QueryParamsStatsRange } from '@podverse/helpers-requests';
 import { emptyApiListResponse } from '@podverse/helpers-requests';
-import type { Clip, FindManyOptions, StatsAggregatedClip } from '@podverse/orm';
+import type {
+  Clip,
+  FindManyOptions,
+  FindOptionsRelations,
+  StatsAggregatedClip,
+} from '@podverse/orm';
 import {
   ChannelService,
   ClipService,
+  findOptionsRelationsFromPaths,
   ItemService,
   StatsAggregatedClipService,
 } from '@podverse/orm';
@@ -38,7 +44,7 @@ import {
 import { handleGenericErrorResponse } from './helpers/error.js';
 import { getPaginationParams } from './helpers/pagination.js';
 
-const clipPublicManyRelations = [
+const clipPublicManyRelations: FindOptionsRelations<Clip> = findOptionsRelationsFromPaths<Clip>([
   'item',
   'item.item_enclosures',
   'item.item_enclosures.item_enclosure_sources',
@@ -47,42 +53,53 @@ const clipPublicManyRelations = [
   'item.channel.channel_images',
   'account',
   'sharable_status',
-];
+]);
 
-const clipPublicManyChannelRelations = [
-  'item',
-  'item.item_enclosures',
-  'item.item_enclosures.item_enclosure_sources',
-  'item.item_images',
-  'account',
-  'sharable_status',
-];
+const clipPublicManyChannelRelations: FindOptionsRelations<Clip> =
+  findOptionsRelationsFromPaths<Clip>([
+    'item',
+    'item.item_enclosures',
+    'item.item_enclosures.item_enclosure_sources',
+    'item.item_images',
+    'account',
+    'sharable_status',
+  ]);
 
-const clipPublicManyItemRelations = ['account', 'sharable_status'];
+const clipPublicManyItemRelations: FindOptionsRelations<Clip> = {
+  account: true,
+  sharable_status: true,
+};
 
-const statsAggregationRelations = [
-  'clip',
-  'clip.item',
-  'clip.item.item_enclosures',
-  'clip.item.item_enclosures.item_enclosure_sources',
-  'clip.item.item_images',
-  'clip.item.channel',
-  'clip.item.channel.channel_images',
-  'clip.account',
-  'clip.sharable_status',
-];
+const statsAggregationRelations: FindOptionsRelations<StatsAggregatedClip> =
+  findOptionsRelationsFromPaths<StatsAggregatedClip>([
+    'clip',
+    'clip.item',
+    'clip.item.item_enclosures',
+    'clip.item.item_enclosures.item_enclosure_sources',
+    'clip.item.item_images',
+    'clip.item.channel',
+    'clip.item.channel.channel_images',
+    'clip.account',
+    'clip.sharable_status',
+  ]);
 
-const statsAggregationChannelRelations = [
-  'clip',
-  'clip.item',
-  'clip.item.item_enclosures',
-  'clip.item.item_enclosures.item_enclosure_sources',
-  'clip.item.item_images',
-  'clip.account',
-  'clip.sharable_status',
-];
+const statsAggregationChannelRelations: FindOptionsRelations<StatsAggregatedClip> =
+  findOptionsRelationsFromPaths<StatsAggregatedClip>([
+    'clip',
+    'clip.item',
+    'clip.item.item_enclosures',
+    'clip.item.item_enclosures.item_enclosure_sources',
+    'clip.item.item_images',
+    'clip.account',
+    'clip.sharable_status',
+  ]);
 
-const statsAggregationItemRelations = ['clip', 'clip.account', 'clip.sharable_status'];
+const statsAggregationItemRelations: FindOptionsRelations<StatsAggregatedClip> =
+  findOptionsRelationsFromPaths<StatsAggregatedClip>([
+    'clip',
+    'clip.account',
+    'clip.sharable_status',
+  ]);
 
 class ClipController {
   public static channelService = new ChannelService();
@@ -210,16 +227,15 @@ class ClipController {
             try {
               const clip_id_text = getParamRequired(req, 'clip_id_text');
               const clip = await ClipController.clipService.getByIdText(clip_id_text, {
-                relations: [
-                  'item',
-                  'item.item_enclosures',
-                  'item.item_enclosures.item_enclosure_sources',
-                  'item.item_images',
-                  'item.channel',
-                  'item.channel.channel_images',
-                  'account',
-                  'sharable_status',
-                ],
+                relations: {
+                  item: {
+                    item_enclosures: { item_enclosure_sources: true },
+                    item_images: true,
+                    channel: { channel_images: true },
+                  },
+                  account: true,
+                  sharable_status: true,
+                },
               });
               if (clip) {
                 const { id: _id, ...clipWithoutId } = clip;
@@ -779,7 +795,7 @@ const verifyClipOwnership = () => {
 
     try {
       const clip = await ClipController.clipService.getByIdText(clip_id_text, {
-        relations: ['account'],
+        relations: { account: true },
       });
       if (!clip) {
         res.status(404).json({ message: 'Clip not found' });
@@ -805,7 +821,7 @@ const verifyPrivateClipOwnership = () => {
 
     try {
       const clip = await ClipController.clipService.getByIdText(clip_id_text, {
-        relations: ['account', 'sharable_status'],
+        relations: { account: true, sharable_status: true },
       });
 
       if (!clip) {

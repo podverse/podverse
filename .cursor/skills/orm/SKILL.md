@@ -1,224 +1,213 @@
 ---
 name: podverse-orm-patterns
-description: Common patterns for the podverse-orm package
-version: 1.0.0
+description: TypeORM v1 patterns for @podverse/orm — DataSource lifecycle, find options, services, linear SQL migrations
+version: 2.0.0
 ---
 
-# Podverse ORM Development Patterns
+# Podverse ORM (TypeORM v1)
 
-This skill provides quick reference for common patterns used in the podverse-orm package.
+Quick reference for `@podverse/orm` (`packages/orm/`). Podverse uses **TypeORM 1.x** with **linear SQL migrations** only — not the TypeORM CLI.
 
-## Monorepo Context
+## Monorepo context
 
-- **ORM package location**: `packages/orm/`
-- **Database migrations (canonical):** `infra/k8s/base/ops/source/database/linear-migrations/` (see
-  [docs/operations/database/LINEAR-MIGRATIONS.md](docs/operations/database/LINEAR-MIGRATIONS.md); removed TypeORM migration paths in this
-  skill may still appear in older snippets)
-- **Helper packages** (from `packages/helpers*/`): `@podverse/helpers`, `@podverse/helpers-validation`, `@podverse/helpers-config`
+- **Package:** `@podverse/orm` — entities, services, `createORMContext`, shared find-option helpers
+- **Schema (canonical):** `infra/k8s/base/ops/source/database/linear-migrations/`
+- **Contributor doc:** [docs/operations/database/LINEAR-MIGRATIONS.md](docs/operations/database/LINEAR-MIGRATIONS.md)
+- **After SQL changes:** `make db_regen_linear_baseline` when baselines must be regenerated (see AGENTS.md / linear-baseline rule)
+- **Helper packages:** `@podverse/helpers`, `@podverse/helpers-validation`, `@podverse/helpers-config`
 
-## Key Dependencies
+## DataSource lifecycle
 
-| Package         | Purpose                         |
-| --------------- | ------------------------------- |
-| Helper packages | Types, DTOs, validation, config |
-| `typeorm`       | ORM framework                   |
-
-## Patterns
-
-### Entity Definition
+Apps call `createORMContext(config)` from `@podverse/orm`, then initialize **read** and **read-write** sources separately:
 
 ```typescript
-// packages/orm/src/entities/Podcast.ts
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  OneToMany,
-  CreateDateColumn,
-  UpdateDateColumn,
-} from 'typeorm';
-import { Episode } from './Episode';
+import { createORMContext } from '@podverse/orm';
 
-@Entity('podcast')
-export class Podcast {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+const orm = createORMContext(ormConfig);
+await orm.dataSourceRead.initialize();
+await orm.dataSourceReadWrite.initialize();
 
-  @Column()
-  title: string;
-
-  @Column({ nullable: true })
-  description?: string;
-
-  @Column({ unique: true })
-  feedUrl: string;
-
-  @Column({ nullable: true })
-  imageUrl?: string;
-
-  @OneToMany(() => Episode, (episode) => episode.podcast)
-  episodes: Episode[];
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
-}
+// shutdown
+await orm.dataSourceRead.destroy();
+await orm.dataSourceReadWrite.destroy();
 ```
 
-### Service Pattern
+- **Workers / API:** context is set at startup; services use `getDataSourceRead()` / `getDataSourceReadWrite()` internally.
+- **Management-api:** four DataSources (management entities + app console raw SQL) — see `apps/management-api/src/index.ts`.
+- Use **entity class references** in APIs: `manager.findOne(Queue, { where: … })`, not string entity names.
+
+## Repository access
+
+Use a `DataSource` instance or service base classes — **never** import repository accessors from the top-level `typeorm` package (use `dataSource.getRepository(Entity)` on an initialized source).
 
 ```typescript
-// packages/orm/src/services/PodcastService.ts
-import { getRepository } from 'typeorm';
-import { Podcast } from '../entities/Podcast';
+import { getDataSourceRead } from '@podverse/orm';
+import { Clip } from '@podverse/orm';
 
-export const PodcastService = {
-  async getById(id: string): Promise<Podcast | null> {
-    const repo = getRepository(Podcast);
-    return repo.findOne({ where: { id } });
-  },
+const repo = getDataSourceRead().getRepository(Clip);
+await repo.findOne({ where: { id_text: idText } });
+```
 
-  async getByFeedUrl(feedUrl: string): Promise<Podcast | null> {
-    const repo = getRepository(Podcast);
-    return repo.findOne({ where: { feedUrl } });
-  },
+`BaseManyService` / `BaseOneService` wire repositories from context in their constructors.
 
-  async create(data: Partial<Podcast>): Promise<Podcast> {
-    const repo = getRepository(Podcast);
-    const podcast = repo.create(data);
-    return repo.save(podcast);
-  },
+## Find options (object syntax only)
 
-  async update(id: string, data: Partial<Podcast>): Promise<Podcast | null> {
-    const repo = getRepository(Podcast);
-    await repo.update(id, data);
-    return this.getById(id);
-  },
+TypeORM v1 requires **object** `relations` and `select` — not string arrays.
 
-  async delete(id: string): Promise<void> {
-    const repo = getRepository(Podcast);
-    await repo.delete(id);
-  },
+```typescript
+import { IsNull } from 'typeorm';
+import type { FindOptionsRelations, FindOptionsSelect } from '@podverse/orm';
+
+const relations: FindOptionsRelations<Account> = {
+  account_profile: true,
+  account_membership: { account_membership_status: true },
 };
+
+const select: FindOptionsSelect<Account> = {
+  id: true,
+  id_text: true,
+  email: true,
+};
+
+await repo.find({
+  where: {
+    email,
+    deleted_at: IsNull(),
+  },
+  relations,
+  select,
+});
 ```
 
-### `varchar` lengths (constants vs inline)
+**Nested paths from dot strings:** use `findOptionsRelationsFromPaths` / `mergeFindOptionsRelations` from `@podverse/orm` when converting legacy path lists.
 
-- **SQL:** Keep explicit `VARCHAR(n)` in linear migration files; TypeScript cannot be imported there.
-- **TypeScript:** When the same **semantic** max length appears in more than one place (e.g. multiple entities or
-  entity + API validation), define **domain-named** numeric constants under `packages/orm/src/lib/` (example:
-  [`feedLifecycleLimits.ts`](packages/orm/src/lib/feedLifecycleLimits.ts)), export them from
-  [`packages/orm/src/index.ts`](packages/orm/src/index.ts), and reference them in `@Column({ length: ... })` and in
-  apps (e.g. Joi `.max(...)`). Document in the lib file which migration defines the width.
-- **Inline literals** are fine for column widths that are unique to one entity and not duplicated elsewhere.
-
-### Query Builder Pattern
+**Optional filters:** do not pass `undefined` in `where` (v1 throws). Omit keys or build the object conditionally:
 
 ```typescript
-// For complex queries
-async findWithFilters(filters: PodcastFilters): Promise<Podcast[]> {
-  const repo = getRepository(Podcast)
-  const qb = repo.createQueryBuilder('podcast')
-
-  if (filters.searchTerm) {
-    qb.where('podcast.title ILIKE :term', { term: `%${filters.searchTerm}%` })
-  }
-
-  if (filters.category) {
-    qb.andWhere('podcast.category = :category', { category: filters.category })
-  }
-
-  qb.orderBy('podcast.createdAt', 'DESC')
-    .skip(filters.offset || 0)
-    .take(filters.limit || 20)
-
-  return qb.getMany()
+where: {
+  ...(optionalName !== undefined ? { name: optionalName } : {}),
 }
 ```
 
-### Relations Pattern
+Do **not** set `invalidWhereValuesBehavior` to ignore null/undefined on the DataSource.
+
+## Transactions
 
 ```typescript
-// Loading relations
-async getByIdWithEpisodes(id: string): Promise<Podcast | null> {
-  const repo = getRepository(Podcast)
-  return repo.findOne({
-    where: { id },
-    relations: ['episodes']
-  })
-}
-
-// Eager vs Lazy loading
-@OneToMany(() => Episode, (episode) => episode.podcast, { eager: false })
-episodes: Episode[]
+await getDataSourceReadWrite().transaction(async (manager) => {
+  const queue = await manager.findOne(Queue, { where: { id_text: queueIdText } });
+  await manager.save(QueueResource, partial);
+});
 ```
 
-## Migration Patterns
+Prefer `dataSource.transaction` or `manager.transaction` inside an existing unit of work.
 
-Migrations are located in `infra/database/main/migrations/`.
+## QueryBuilder
 
-### Creating a Migration
-
-```bash
-# Generate migration from entity changes
-npm run typeorm migration:generate -- -n MigrationName
-
-# Create empty migration
-npm run typeorm migration:create -- -n MigrationName
-```
-
-### Migration Structure
+For complex filters, use the repository or manager QueryBuilder with explicit aliases:
 
 ```typescript
-// infra/database/main/migrations/YYYYMMDDHHMMSS-AddPodcastCategory.ts
-import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
+const rows = await repo
+  .createQueryBuilder('clip')
+  .innerJoin('clip.item', 'item')
+  .where('item.channel_id = :channelId', { channelId })
+  .orderBy('clip.id', 'DESC')
+  .getMany();
+```
 
-export class AddPodcastCategory1234567890123 implements MigrationInterface {
-  public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.addColumn(
-      'podcast',
-      new TableColumn({
-        name: 'category',
-        type: 'varchar',
-        isNullable: true,
-      })
-    );
-  }
+Use **entity classes** in `findOne` / `update` / `delete` — not string table names.
 
-  public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropColumn('podcast', 'category');
-  }
+## Schema changes (linear SQL only)
+
+1. Add a new forward-only `.sql` file under `linear-migrations/` (app or management tree per table).
+2. Update readiness markers / docs if required.
+3. Regenerate committed baseline gz when the plan or PR workflow calls for it (`make db_regen_linear_baseline`).
+
+Do **not** use `npm run typeorm migration:*`, `infra/database/main/migrations/`, or TypeORM `MigrationInterface` classes in this repo.
+
+## Naming strategy
+
+Use `SnakeNamingStrategy` from `@podverse/orm` on every DataSource that maps entities:
+
+```typescript
+import { SnakeNamingStrategy } from '@podverse/orm';
+
+namingStrategy: new SnakeNamingStrategy(),
+```
+
+## Entity conventions
+
+- Table/column names: **snake_case** in DB; TypeScript properties match entity fields.
+- Relations: `Relation<T>` on the property; `@ManyToOne` / `@JoinColumn` with explicit `name`.
+- IDs: often `id` (number) + `id_text` (public string).
+
+```typescript
+import type { Relation } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+
+@Entity('clip')
+export class Clip {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @Column({ type: 'varchar', unique: true, length: NANO_ID_V2_MAX_LENGTH })
+  id_text!: string;
+
+  @ManyToOne('Account', (account: Account) => account.id, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'account_id' })
+  account!: Relation<Account>;
 }
 ```
 
-## File Structure
+## Service pattern
+
+Business data access lives in **classes** under `packages/orm/src/services/`:
+
+- `AccountService` — standalone class with read/write repos
+- `ClipService extends BaseManyService<Clip, 'account'>` — parent-scoped CRUD
+- Export services and entities from `packages/orm/src/index.ts`; apps import `@podverse/orm`
+
+Controllers and workers should call **services**, not repositories directly.
+
+## Type re-exports from `@podverse/orm`
+
+Prefer importing find-option types from the package (keeps apps aligned with the ORM version):
+
+```typescript
+import type {
+  FindManyOptions,
+  FindOptionsRelations,
+  FindOptionsSelect,
+  FindOptionsWhere,
+} from '@podverse/orm';
+```
+
+`EntityManager` is re-exported from `packages/orm/src/lib/typeORMTypes.ts`.
+
+## `varchar` lengths
+
+- **SQL:** explicit `VARCHAR(n)` in linear migration files.
+- **TypeScript:** domain-named constants in `packages/orm/src/lib/` when reused (entity + validation); see `feedLifecycleLimits.ts`.
+
+## File structure
 
 ```
-packages/orm/
-├── src/
-│   ├── entities/        # TypeORM entities
-│   ├── services/        # Data access services
-│   ├── subscribers/     # Entity subscribers
-│   └── index.ts         # Public exports
-├── package.json
-└── tsconfig.json
+packages/orm/src/
+├── entities/
+├── services/
+├── lib/                 # snakeNamingStrategy, findOptionsRelationsFromPaths, limits
+├── factory.ts           # createORMContext
+├── context.ts           # getDataSourceRead / ReadWrite
+└── index.ts
 
-infra/database/main/
-├── migrations/          # TypeORM migrations
-└── seeds/               # Seed data (if any)
+infra/k8s/base/ops/source/database/linear-migrations/
+├── app/
+└── management/
 ```
 
-## Best Practices
+## Related skills
 
-1. **Always use services**: Don't access repositories directly from controllers
-2. **Use transactions**: For operations that modify multiple entities
-3. **Index properly**: Add indexes for frequently queried columns
-4. **Validate at entity level**: Use class-validator decorators when appropriate
-5. **Use DTOs**: Transform entities to DTOs before sending to clients
-
-## Related Skills
-
-- **[API Patterns](../api/SKILL.md)** - Using ORM in controllers
-- **[Global Patterns](../global/SKILL.md)** - Monorepo conventions
+- **[API Patterns](../api/SKILL.md)** — using ORM in controllers
+- **[Workers](../workers/SKILL.md)** — ORM context in worker commands
+- **[Global Patterns](../global/SKILL.md)** — monorepo conventions
+- **linear-baseline-0003** rule — baseline regeneration

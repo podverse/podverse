@@ -20,7 +20,9 @@ export class AccountVerificationService extends BaseOneService<AccountVerificati
   async getByToken(verification_token: string): Promise<AccountVerification | null> {
     return this.repositoryRead.findOne({
       where: { verification_token },
-      relations: ['account'],
+      relations: {
+        account: true,
+      },
     });
   }
 

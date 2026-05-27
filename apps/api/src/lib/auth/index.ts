@@ -14,7 +14,14 @@ import {
   ERROR_MESSAGES,
   hasValidMembership,
 } from '@podverse/helpers';
-import { AccountService, BillingPriceCatalogService, isValidNanoIdV2IdText } from '@podverse/orm';
+import type { Account, FindOptionsRelations } from '@podverse/orm';
+import {
+  AccountService,
+  BillingPriceCatalogService,
+  findOptionsRelationsFromPaths,
+  isValidNanoIdV2IdText,
+  mergeFindOptionsRelations,
+} from '@podverse/orm';
 
 import { accountHasCapability, getAccountEntitlements } from '../accountEntitlements.js';
 import { verifyPassword } from './password.js';
@@ -128,10 +135,10 @@ const authenticateAccountCredentials = async (
 
   const account = identifier.includes('@')
     ? await getAccountService().getByEmail(identifier, {
-        relations: ['account_credentials'],
+        relations: { account_credentials: true },
       })
     : await getAccountService().getByUsername(identifier, {
-        relations: ['account_credentials'],
+        relations: { account_credentials: true },
       });
 
   if (!account || !account.account_credentials?.password || !account.verified) {
@@ -207,11 +214,11 @@ passport.use(
         let account;
         if (identifier.includes('@')) {
           account = await getAccountService().getByEmail(identifier, {
-            relations: ['account_credentials'],
+            relations: { account_credentials: true },
           });
         } else {
           account = await getAccountService().getByUsername(identifier, {
-            relations: ['account_credentials'],
+            relations: { account_credentials: true },
           });
         }
         if (!account) {
@@ -256,7 +263,7 @@ passport.use(
           return done(null, false);
         }
         const account = await getAccountService().get(jwtPayload.id, {
-          relations: ['account_credentials'],
+          relations: { account_credentials: true },
         });
         if (!account) {
           return done(null, false);
@@ -388,10 +395,14 @@ const verifyTokenAndMembership = (
         return;
       }
 
-      const relations = ['account_credentials'];
+      let relations: FindOptionsRelations<Account> = findOptionsRelationsFromPaths<Account>([
+        'account_credentials',
+      ]);
       if (!options.skipMembershipStatus) {
-        relations.push('account_membership_status');
-        relations.push('account_membership_status.account_membership');
+        relations = mergeFindOptionsRelations<Account>(relations, [
+          'account_membership_status',
+          'account_membership_status.account_membership',
+        ]);
       }
       const account = await getAccountService().get(payload.id, { relations });
       if (!account) {

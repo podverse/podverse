@@ -123,7 +123,7 @@ export const handleParsedItems = async (
 
   timerManager.start('getManyByChannel');
   const existingItems = await itemService.getManyByChannel(channel, {
-    select: ['id', 'guid', 'guid_enclosure_url'],
+    select: { id: true, guid: true, guid_enclosure_url: true },
   });
   timerManager.end('getManyByChannel');
 
