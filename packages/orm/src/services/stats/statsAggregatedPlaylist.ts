@@ -64,13 +64,16 @@ export class StatsAggregatedPlaylistService extends BaseStatsAggregatedService<
           ...(medium_id ? { medium_id: Equal(medium_id) } : {}),
         },
       },
-      relations: [
-        'playlist',
-        'playlist.account',
-        'playlist.account.account_profile',
-        'playlist.sharable_status',
-        'playlist.medium',
-      ],
+      relations: {
+        playlist: {
+          account: {
+            account_profile: true,
+          },
+
+          sharable_status: true,
+          medium: true,
+        },
+      },
     });
   }
 
@@ -105,13 +108,16 @@ export class StatsAggregatedPlaylistService extends BaseStatsAggregatedService<
           ...(account_id ? { account: { id: Equal(account_id) } } : {}),
         },
       },
-      relations: [
-        'playlist',
-        'playlist.account',
-        'playlist.account.account_profile',
-        'playlist.sharable_status',
-        'playlist.medium',
-      ],
+      relations: {
+        playlist: {
+          account: {
+            account_profile: true,
+          },
+
+          sharable_status: true,
+          medium: true,
+        },
+      },
     });
   }
 

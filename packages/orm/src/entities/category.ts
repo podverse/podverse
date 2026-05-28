@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
@@ -13,7 +14,7 @@ export class Category {
     nullable: true,
   })
   @JoinColumn({ name: 'parent_id' })
-  parent_id!: number | null;
+  parent_id!: Relation<Category> | null;
 
   @Column({ type: 'varchar', length: DATABASE_CONSTANTS.varchar_normal })
   display_name!: string;

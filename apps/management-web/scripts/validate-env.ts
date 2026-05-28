@@ -7,10 +7,12 @@
  */
 
 import { config } from 'dotenv';
-import { resolve } from 'path';
 import { existsSync } from 'fs';
+import { resolve } from 'path';
+
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
-import { validateRequired } from '@podverse/helpers-config';
+import { validateOptional, validateRequired } from '@podverse/helpers-config';
+import { buildObservabilityValidationResults } from '@podverse/observability/config';
 
 // Load .env file based on NODE_ENV
 // Next.js loads .env files automatically, but this script runs standalone via ts-node
@@ -65,6 +67,47 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
 
   // Optional proxy override for local dev
   results.push(validateOptionalBoolean('ALLOW_LOCALHOST_PROXY', 'Proxy Configuration'));
+
+  results.push(...buildObservabilityValidationResults(process.env));
+
+  // Extensions (sidecar — separate container) — last in apps/management-web/.env.example; OpenTelemetry export, then Prometheus extension
+  const metricsExtensionEnabled = process.env.PROMETHEUS_ENABLED === 'true';
+  if (metricsExtensionEnabled) {
+    results.push(validateRequired('OTEL_EXPORTER_OTLP_ENDPOINT', 'Extensions / OpenTelemetry'));
+    results.push(validateRequired('OTEL_SERVICE_NAME', 'Extensions / OpenTelemetry'));
+    results.push(
+      validateOptional('OTEL_RESOURCE_ATTRIBUTES', 'Extensions / OpenTelemetry', 'Skipped')
+    );
+  } else {
+    results.push(
+      validateOptional(
+        'OTEL_EXPORTER_OTLP_ENDPOINT',
+        'Extensions / OpenTelemetry',
+        'Skipped (extensions disabled)'
+      )
+    );
+    results.push(
+      validateOptional(
+        'OTEL_SERVICE_NAME',
+        'Extensions / OpenTelemetry',
+        'Skipped (extensions disabled)'
+      )
+    );
+    results.push(
+      validateOptional(
+        'OTEL_RESOURCE_ATTRIBUTES',
+        'Extensions / OpenTelemetry',
+        'Skipped (extensions disabled)'
+      )
+    );
+  }
+  results.push(
+    validateOptional(
+      'PROMETHEUS_ENABLED',
+      'Extensions / Prometheus',
+      'Blank/false: disabled; true: enable sidecar — set OTEL_* when true'
+    )
+  );
 
   // Calculate summary
   const total = results.length;

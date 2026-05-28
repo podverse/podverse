@@ -17,7 +17,7 @@ Current E2E bar: **Confident**. Use this skill when you change **layout**, **fun
 - **Condition changes** — New or changed redirects, auth guards, visibility rules, or error/empty states.
 - **Membership-state changes** — New or changed membership-gated features, trial restrictions, or premium-only behavior.
 
-For CRUD flows, also apply **e2e-crud-state-matrix**. For membership-gated pages, apply **e2e-membership-state-matrix** and **e2e-authz-matrix**. For query-param state, apply **e2e-url-state-contracts**. For test readability, apply **e2e-readability**.
+For CRUD flows, also apply **e2e-crud-state-matrix**. For membership-gated pages, apply **e2e-membership-state-matrix** and **e2e-authz-matrix**. For query-param state, apply **e2e-url-state-contracts**. For test readability, apply **e2e-readability**. For HTML report screenshots, apply **e2e-screenshot-verified-element** and call `capturePageLoad` / `actionAndCapture` from `e2e/helpers/stepScreenshots.ts` (see below).
 
 **End your response with exact E2E verification commands.** See **response-ending-make-verify**.
 
@@ -45,6 +45,15 @@ Many Podverse features behave differently based on membership state. When testin
 - **Management-web storage list chrome** (`storage-superuser-crud-enabled.spec.ts`): excluded from the default config (`testIgnore`) because it requires bucket storage enabled in management-api. Run `make e2e_test_management_web_storage_enabled` or `npm run test:e2e:storage-enabled -w @podverse/management-web` (uses `playwright.storage-enabled.config.ts`).
 - **Ports:** Web E2E uses API 4030, sidecar 4031, web 4032. Management-web uses management-api 4130, sidecar 4131, web 4132. Avoid colliding with 401x/411x ranges used by other local stacks, and with dev app ports.
 - **Seed data:** Use deterministic E2E seed (`make e2e_seed`). See `tools/web/seed-e2e.mjs` and `tools/management-web/seed-e2e.mjs`.
+
+## Step screenshots (HTML report)
+
+Report targets (`make e2e_test_report`, `make e2e_test_*_report_spec`) set `E2E_STEP_SCREENSHOTS=true`. Specs attach PNGs via `e2e/helpers/stepScreenshots.ts`:
+
+- **`capturePageLoad(page, testInfo, label, scrollToElement?)`** — after assertions on a stable page state.
+- **`actionAndCapture(page, testInfo, label, action, scrollToElement?)`** — run navigation/interaction, then capture.
+
+Pass `testInfo` from the test callback (`async ({ page }, testInfo) => { ... }`). When verifying a specific element, pass it as `scrollToElement` so the screenshot centers that element (**e2e-screenshot-verified-element**). Non-report runs skip attachments when `E2E_STEP_SCREENSHOTS` is unset.
 
 ## Timeout increases are almost never the fix
 

@@ -1,14 +1,24 @@
 openapi: 3.0.3
 info:
   title: Podverse Management API
-  description: Administrative API for Podverse management operations, including users, admins, feeds, billing, and system configuration.
+  description: Comprehensive OpenAPI specification generated from audited route matrix coverage for Podverse management API.
   version: 2.0.0
 servers:
   - url: https://management-api.podverse.fm/api/v2
     description: Production Server
   - url: http://localhost:3100/api/v2
     description: Local Development Server
-
+tags:
+  - name: admins
+  - name: auth
+  - name: database
+  - name: feeds
+  - name: products
+  - name: stats
+  - name: storage
+  - name: system
+  - name: users
+  - name: workers
 components:
   securitySchemes:
     cookieAuth:
@@ -19,286 +29,3037 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-
+  parameters:
+    PageQueryOptional:
+      in: query
+      name: page
+      required: false
+      description: 1-based page number for paginated list results.
+      schema:
+        type: integer
+        minimum: 1
+    LimitQueryOptional:
+      in: query
+      name: limit
+      required: false
+      description: Maximum number of items to return per page.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+    StatsRangeQueryOptional:
+      in: query
+      name: range
+      required: false
+      description: Aggregation range used for ranked stats list ordering.
+      schema:
+        type: string
+        enum:
+          - day
+          - 7day
+          - 30day
+          - 1year
+          - all-time
+    FeedSortQueryOptional:
+      in: query
+      name: sort
+      required: false
+      description: Feed field used for list sorting.
+      schema:
+        type: string
+        enum:
+          - id
+          - podcast_index_id
+          - channel_title
+          - lifecycle_state_key
+          - url
+    SortOrderQueryOptional:
+      in: query
+      name: order
+      required: false
+      description: Sort direction for list results.
+      schema:
+        type: string
+        enum:
+          - asc
+          - desc
+    SearchQueryOptional:
+      in: query
+      name: search
+      required: false
+      description: Free-text search query for list filtering.
+      schema:
+        type: string
+    QueryTextOptional:
+      in: query
+      name: q
+      required: false
+      description: Free-text search query for list filtering.
+      schema:
+        type: string
+    FeedLifecycleQueryOptional:
+      in: query
+      name: lifecycle
+      required: false
+      description: Lifecycle-state filter for feed list results.
+      schema:
+        type: string
+  schemas:
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+          nullable: true
+          description: Machine-readable error code when available.
+        details:
+          type: array
+          nullable: true
+          description: Optional field-level or contextual error details.
+          items:
+            $ref: "#/components/schemas/ErrorDetail"
+    ErrorDetail:
+      type: object
+      required:
+        - message
+      properties:
+        field:
+          type: string
+          nullable: true
+          description: Request field associated with this detail entry when applicable.
+        message:
+          type: string
+          description: Human-readable detail message.
+        code:
+          type: string
+          nullable: true
+          description: Optional machine-readable detail code.
+    ValidationErrorResponse:
+      allOf:
+        - $ref: "#/components/schemas/ErrorResponse"
+        - type: object
+          properties:
+            message:
+              type: string
+              description: Error description
+              example: Validation failed
+            code:
+              type: string
+              example: validation_error
+    AuthenticationErrorResponse:
+      allOf:
+        - $ref: "#/components/schemas/ErrorResponse"
+        - type: object
+          properties:
+            message:
+              type: string
+              description: Authentication failure reason
+              example: Unauthorized
+            code:
+              type: string
+              example: unauthorized
+    AuthorizationErrorResponse:
+      allOf:
+        - $ref: "#/components/schemas/ErrorResponse"
+        - type: object
+          properties:
+            message:
+              type: string
+              description: Authorization failure reason
+              example: Forbidden
+            code:
+              type: string
+              example: forbidden
+    NotFoundErrorResponse:
+      allOf:
+        - $ref: "#/components/schemas/ErrorResponse"
+        - type: object
+          properties:
+            message:
+              type: string
+              description: Resource not found
+              example: Not found
+            code:
+              type: string
+              example: not_found
+    InternalServerErrorResponse:
+      allOf:
+        - $ref: "#/components/schemas/ErrorResponse"
+        - type: object
+          properties:
+            message:
+              type: string
+              example: Internal server error
+            code:
+              type: string
+              example: internal_server_error
+    AuthLoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email for authentication
+          example: admin@podverse.fm
+        password:
+          type: string
+          format: password
+          description: Password
+          example: adminPassword123
+    AuthLoginResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Authenticated successfully
+        token:
+          type: string
+          format: jwt
+          description: JWT token (if configured to return in body)
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    AuthLogoutResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Logged out successfully
+    AuthSessionResponse:
+      type: object
+      description: Authenticated admin account
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        id_text:
+          type: string
+          example: admin-01
+        email:
+          type: string
+          nullable: true
+          format: email
+          example: admin@podverse.fm
+        username:
+          type: string
+          nullable: true
+          example: admin
+        role:
+          type: string
+          example: superuser
+        permissions:
+          $ref: "#/components/schemas/AdminPermissions"
+    MobileTokenRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: admin@podverse.fm
+        password:
+          type: string
+          format: password
+          example: adminPassword123
+    MobileTokenResponse:
+      type: object
+      required:
+        - token_type
+        - access_token
+        - access_token_expires_in
+        - refresh_token
+        - refresh_token_expires_in
+      properties:
+        token_type:
+          type: string
+          enum:
+            - Bearer
+          example: Bearer
+        access_token:
+          type: string
+          format: jwt
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        access_token_expires_in:
+          type: integer
+          format: int32
+          example: 900
+        refresh_token:
+          type: string
+          format: jwt
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        refresh_token_expires_in:
+          type: integer
+          format: int32
+          example: 2592000
+    MobileTokenRefreshRequest:
+      type: object
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          format: jwt
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    MobileTokenRevokeRequest:
+      type: object
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          format: jwt
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    EmptyResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Operation completed successfully
+    AdminListResponse:
+      type: array
+      description: List of all admins
+      items:
+        $ref: "#/components/schemas/Admin"
+    AdminCreateRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: Admin email address
+          example: newadmin@podverse.fm
+        username:
+          type: string
+          description: Username (letters, digits, period, underscore, hyphen)
+          example: newadmin
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: Optional password. When omitted, invite link is generated.
+          example: securePassword123
+        role_id:
+          type: string
+          description: Optional predefined or custom role id
+          example: standard_admin
+        permissions:
+          $ref: "#/components/schemas/AdminPermissions"
+    AdminCreateResponse:
+      allOf:
+        - $ref: "#/components/schemas/Admin"
+        - type: object
+          properties:
+            message:
+              type: string
+              example: Admin created. Invite link generated.
+            set_password_url:
+              type: string
+              format: uri
+            invite_link:
+              $ref: "#/components/schemas/AdminInviteLink"
+    AdminUpdateRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          nullable: true
+          example: updatedadmin@podverse.fm
+        username:
+          type: string
+          nullable: true
+          example: updatedadmin
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: newSecurePassword123
+        role_id:
+          type: string
+          description: Optional predefined or custom role id
+          example: standard_admin
+        permissions:
+          $ref: "#/components/schemas/AdminPermissions"
+    AdminUpdateResponse:
+      allOf:
+        - $ref: "#/components/schemas/Admin"
+    AdminDeleteResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Admin deleted successfully
+    AdminGetResponse:
+      type: object
+      description: Single admin detail
+      allOf:
+        - $ref: "#/components/schemas/Admin"
+    AdminInviteLinkCreateResponse:
+      type: object
+      properties:
+        invite_link:
+          allOf:
+            - $ref: "#/components/schemas/AdminInviteLink"
+          nullable: true
+    AdminInviteLinkRedeemRequest:
+      type: object
+      required:
+        - token
+        - password
+      properties:
+        token:
+          type: string
+          description: Invite token
+          example: invite-token-test
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: Password to set for invited admin account
+          example: securePassword123
+    AdminInviteLinkRedeemResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Password updated
+    AdminRoleListResponse:
+      type: object
+      description: List of available roles
+      properties:
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminRole"
+    AdminRoleCreateRequest:
+      type: object
+      required:
+        - name
+        - feeds_crud
+        - feed_takedown_reasons_crud
+        - admins_crud
+        - stats_crud
+        - billing_prices_crud
+        - bucket_crud
+      properties:
+        name:
+          type: string
+          description: Role name
+          example: moderator
+        feeds_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        feed_takedown_reasons_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        admins_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        stats_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        billing_prices_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        bucket_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+    AdminRoleCreateResponse:
+      type: object
+      properties:
+        role:
+          $ref: "#/components/schemas/AdminRole"
+    AdminRoleUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: moderator
+        feeds_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        feed_takedown_reasons_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        admins_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        stats_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        billing_prices_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        bucket_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+    AdminRoleUpdateResponse:
+      type: object
+      description: Updated role details
+      properties:
+        role:
+          $ref: "#/components/schemas/AdminRole"
+    Admin:
+      type: object
+      description: Admin user account
+      required:
+        - id
+        - id_text
+        - role
+        - created_at
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        id_text:
+          type: string
+          description: URL-friendly admin identifier
+          example: admin-01
+        email:
+          type: string
+          nullable: true
+          format: email
+          example: admin@podverse.fm
+        username:
+          type: string
+          nullable: true
+          example: admin
+        role:
+          type: string
+          example: superuser
+        permissions:
+          $ref: "#/components/schemas/AdminPermissions"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00Z"
+    CrudPermissionValue:
+      type: integer
+      minimum: 0
+      maximum: 15
+      example: 15
+    AdminPermissions:
+      type: object
+      nullable: true
+      properties:
+        feeds_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        feed_takedown_reasons_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        admins_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        stats_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        billing_prices_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        bucket_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+    AdminInviteLink:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          example: https://management.podverse.fm/admins/redeem-invite-link?token=abc123
+        expires_at:
+          type: string
+          format: date-time
+          example: "2024-05-13T10:00:00Z"
+        is_expired:
+          type: boolean
+          example: false
+    AdminRole:
+      type: object
+      description: Admin role with permissions
+      properties:
+        id:
+          type: string
+          example: superuser
+        name_key:
+          type: string
+          nullable: true
+          example: superuser
+        name:
+          type: string
+          nullable: true
+          description: Display name for custom roles; null for predefined roles
+          example: Moderation Team
+        is_predefined:
+          type: boolean
+          example: true
+        feeds_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        feed_takedown_reasons_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        admins_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        stats_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        billing_prices_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        bucket_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2024-01-01T00:00:00Z"
+    DatabaseMutationData:
+      type: object
+      minProperties: 1
+      maxProperties: 20
+      additionalProperties:
+        anyOf:
+          - type: string
+          - type: number
+          - type: boolean
+        nullable: true
+    DatabaseFieldMeta:
+      type: object
+      required:
+        - name
+        - type
+        - nullable
+        - updatable
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+            - integer
+            - text
+            - boolean
+            - timestamp
+        nullable:
+          type: boolean
+        updatable:
+          type: boolean
+    DatabaseTableMeta:
+      type: object
+      required:
+        - tableName
+        - primaryKeyField
+        - fields
+        - defaultSortField
+        - defaultSortDirection
+        - maxPageSize
+        - readOnly
+      properties:
+        tableName:
+          type: string
+        primaryKeyField:
+          type: string
+        fields:
+          type: array
+          items:
+            $ref: "#/components/schemas/DatabaseFieldMeta"
+        defaultSortField:
+          type: string
+        defaultSortDirection:
+          type: string
+          enum:
+            - ASC
+            - DESC
+        maxPageSize:
+          type: integer
+          minimum: 1
+        readOnly:
+          type: boolean
+    DatabaseFilterCondition:
+      type: object
+      required:
+        - field
+        - operator
+      properties:
+        field:
+          type: string
+        operator:
+          type: string
+          enum:
+            - eq
+            - neq
+            - gt
+            - gte
+            - lt
+            - lte
+            - like
+            - in
+            - is_null
+            - is_not_null
+        value:
+          oneOf:
+            - type: string
+            - type: number
+            - type: array
+              maxItems: 50
+              items:
+                oneOf:
+                  - type: string
+                  - type: number
+    DatabaseSortCondition:
+      type: object
+      required:
+        - field
+        - direction
+      properties:
+        field:
+          type: string
+        direction:
+          type: string
+          enum:
+            - ASC
+            - DESC
+    ManagementPostDatabaseTableRequest:
+      $ref: "#/components/schemas/DatabaseMutationData"
+    ManagementPostDatabaseTableResponse201:
+      type: object
+      description: Operation-specific response payload for POST /database/{table} (201).
+      additionalProperties: true
+    ManagementDeleteDatabaseTableIdResponse200:
+      type: object
+      description: Operation-specific response payload for DELETE /database/{table}/{id} (200).
+      additionalProperties: true
+    ManagementGetDatabaseTableIdResponse200:
+      type: object
+      description: Operation-specific response payload for GET /database/{table}/{id} (200).
+      additionalProperties: true
+    ManagementPatchDatabaseTableIdRequest:
+      $ref: "#/components/schemas/DatabaseMutationData"
+    ManagementPatchDatabaseTableIdResponse200:
+      type: object
+      description: Operation-specific response payload for PATCH /database/{table}/{id} (200).
+      additionalProperties: true
+    ManagementGetDatabaseTableMetaResponse200:
+      $ref: "#/components/schemas/DatabaseTableMeta"
+    ManagementPostDatabaseTableQueryRequest:
+      type: object
+      description: Operation-specific request payload for POST /database/{table}/query.
+      properties:
+        filters:
+          type: array
+          maxItems: 10
+          items:
+            $ref: "#/components/schemas/DatabaseFilterCondition"
+        sorts:
+          type: array
+          maxItems: 3
+          items:
+            $ref: "#/components/schemas/DatabaseSortCondition"
+        page:
+          type: integer
+          minimum: 1
+          default: 1
+        pageSize:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 25
+      additionalProperties: false
+    ManagementPostDatabaseTableQueryResponse200:
+      type: object
+      description: Operation-specific response payload for POST /database/{table}/query (200).
+      required:
+        - rows
+        - total
+      properties:
+        rows:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        total:
+          type: integer
+          minimum: 0
+    ManagementGetDatabaseTablesResponse200:
+      type: object
+      description: Operation-specific response payload for GET /database/tables (200).
+      required:
+        - tables
+      properties:
+        tables:
+          type: array
+          items:
+            $ref: "#/components/schemas/DatabaseTableMeta"
+    ManagementPatchFeedsIdPolicyStateRequest:
+      type: object
+      description: Request payload for feed policy/lifecycle mutation.
+      properties:
+        lifecycle_state_key:
+          type: string
+          enum:
+            - active
+            - pending_archive
+            - archived
+            - takedown
+        active_condition_keys:
+          type: array
+          items:
+            type: string
+        lifecycle_reason_key:
+          type: string
+          nullable: true
+        condition_note:
+          type: string
+          nullable: true
+        transition_note:
+          type: string
+          nullable: true
+        spam_item_limit_override:
+          type: integer
+          minimum: 1
+          nullable: true
+        max_response_body_bytes_override:
+          type: integer
+          minimum: 1
+          nullable: true
+        policy_overrides:
+          $ref: "#/components/schemas/FeedPolicyOverrides"
+        takedown_transitional:
+          type: boolean
+      additionalProperties: false
+    ManagementPatchFeedsIdPolicyStateResponse200:
+      type: object
+      description: Updated feed policy/lifecycle state.
+      required:
+        - feed
+      properties:
+        feed:
+          $ref: "#/components/schemas/FeedOperationsLookupRow"
+    ManagementGetFeedsLookupResponse200:
+      type: object
+      description: Feed lookup result.
+      required:
+        - feed
+      properties:
+        feed:
+          $ref: "#/components/schemas/FeedOperationsLookupRow"
+    ManagementGetFeedsOptionsResponse200:
+      type: object
+      description: Feed policy options.
+      required:
+        - lifecycle_states
+        - condition_types
+        - takedown_reasons
+      properties:
+        lifecycle_states:
+          type: array
+          items:
+            type: object
+            required:
+              - state_key
+            properties:
+              state_key:
+                type: string
+        condition_types:
+          type: array
+          items:
+            type: object
+            required:
+              - condition_key
+            properties:
+              condition_key:
+                type: string
+        takedown_reasons:
+          type: array
+          items:
+            type: object
+            required:
+              - reason
+            properties:
+              reason:
+                type: string
+    FeedPolicyOverrides:
+      type: object
+      properties:
+        parse_allowed_override:
+          type: boolean
+          nullable: true
+        public_visible_override:
+          type: boolean
+          nullable: true
+        add_allowed_override:
+          type: boolean
+          nullable: true
+      additionalProperties: false
+    FeedOperationsLookupRow:
+      type: object
+      required:
+        - id
+        - url
+        - podcast_index_id
+        - lifecycle_state_key
+        - updated_source
+        - active_condition_keys
+        - parse_allowed
+        - public_visible
+        - add_allowed
+      properties:
+        id:
+          type: integer
+          format: int64
+        url:
+          type: string
+          format: uri
+        podcast_index_id:
+          type: integer
+        spam_item_limit_override:
+          type: integer
+          nullable: true
+        max_response_body_bytes_override:
+          type: integer
+          nullable: true
+        lifecycle_state_key:
+          type: string
+        lifecycle_reason:
+          type: string
+          nullable: true
+        updated_source:
+          type: string
+        active_condition_keys:
+          type: array
+          items:
+            type: string
+        parse_allowed:
+          type: boolean
+        public_visible:
+          type: boolean
+        add_allowed:
+          type: boolean
+        primary_block_reason:
+          type: string
+          nullable: true
+        policy_overrides:
+          allOf:
+            - $ref: "#/components/schemas/FeedPolicyOverrides"
+          nullable: true
+        channel_title:
+          type: string
+          nullable: true
+    ProductPricingRow:
+      type: object
+      required:
+        - id
+        - product_code
+        - currency_code
+        - billing_cadence
+        - amount_cents
+        - effective_from
+        - source
+      properties:
+        id:
+          type: integer
+        product_code:
+          type: string
+          example: membership_premium
+        currency_code:
+          type: string
+          minLength: 3
+          maxLength: 3
+          example: USD
+        billing_cadence:
+          type: string
+          enum:
+            - monthly
+            - annual
+        amount_cents:
+          type: integer
+          minimum: 0
+          example: 300
+        effective_from:
+          type: string
+          format: date-time
+        effective_to:
+          type: string
+          format: date-time
+          nullable: true
+        source:
+          type: string
+          example: management_api
+    ManagementPostProductsPricingIdActivateResponse200:
+      type: object
+      required:
+        - message
+      description: Operation-specific response payload for POST /products/pricing/{id}/activate (200).
+      properties:
+        message:
+          type: string
+          example: Pricing row activated
+    ManagementPostProductsPricingIdDeprecateResponse200:
+      type: object
+      required:
+        - message
+      description: Operation-specific response payload for POST /products/pricing/{id}/deprecate (200).
+      properties:
+        message:
+          type: string
+          example: Pricing row deprecated
+    ManagementGetProductsPricingActiveResponse200:
+      type: object
+      required:
+        - data
+      description: Operation-specific response payload for GET /products/pricing/active (200).
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductPricingRow"
+    ManagementPostProductsPricingScheduleRequest:
+      type: object
+      required:
+        - cadence
+        - amountCents
+      description: Operation-specific request payload for POST /products/pricing/schedule.
+      properties:
+        productCode:
+          type: string
+          default: membership_premium
+          example: membership_premium
+        currencyCode:
+          type: string
+          minLength: 3
+          maxLength: 3
+          default: USD
+          example: USD
+        cadence:
+          type: string
+          enum:
+            - monthly
+            - annual
+        amountCents:
+          type: integer
+          minimum: 0
+          example: 350
+        effectiveFrom:
+          type: string
+          format: date-time
+        changeReason:
+          type: string
+          nullable: true
+          maxLength: 500
+      additionalProperties: false
+    ManagementPostProductsPricingScheduleResponse201:
+      type: object
+      required:
+        - data
+      description: Operation-specific response payload for POST /products/pricing/schedule (201).
+      properties:
+        data:
+          type: object
+          required:
+            - id
+          properties:
+            id:
+              type: integer
+    ProductMembershipSettingsPatchRequest:
+      type: object
+      properties:
+        freeTrialExpirationSeconds:
+          type: integer
+          minimum: 60
+          maximum: 31536000
+        trialMaxAddByRSSFeeds:
+          type: integer
+          minimum: 0
+        trialMaxManualRefreshesPerHour:
+          type: integer
+          minimum: 0
+        premiumMaxAddByRSSFeeds:
+          type: integer
+          minimum: 0
+        premiumMaxManualRefreshesPerHour:
+          type: integer
+          minimum: 0
+      minProperties: 1
+      additionalProperties: false
+    ProductMembershipResolved:
+      type: object
+      required:
+        - freeTrialExpirationSeconds
+        - premiumMembershipCostMonthly
+        - premiumMembershipCostAnnually
+        - trialAllowDirectoryAddByRSS
+        - trialMaxAddByRSSFeeds
+        - trialMaxManualRefreshesPerHour
+        - trialTrackStats
+        - trialAllowNotifications
+        - premiumAllowDirectoryAddByRSS
+        - premiumMaxAddByRSSFeeds
+        - premiumMaxManualRefreshesPerHour
+        - premiumTrackStats
+        - premiumAllowNotifications
+      properties:
+        freeTrialExpirationSeconds:
+          type: integer
+          minimum: 1
+        premiumMembershipCostMonthly:
+          type: number
+          minimum: 0
+        premiumMembershipCostAnnually:
+          type: number
+          minimum: 0
+        trialAllowDirectoryAddByRSS:
+          type: boolean
+        trialMaxAddByRSSFeeds:
+          type: integer
+          minimum: 0
+        trialMaxManualRefreshesPerHour:
+          type: integer
+          minimum: 0
+        trialTrackStats:
+          type: boolean
+        trialAllowNotifications:
+          type: boolean
+        premiumAllowDirectoryAddByRSS:
+          type: boolean
+        premiumMaxAddByRSSFeeds:
+          type: integer
+          minimum: 0
+        premiumMaxManualRefreshesPerHour:
+          type: integer
+          minimum: 0
+        premiumTrackStats:
+          type: boolean
+        premiumAllowNotifications:
+          type: boolean
+    ManagementGetProductsMembershipResponse200:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: "#/components/schemas/ProductMembershipResolved"
+    ManagementPatchProductsMembershipResponse200:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: "#/components/schemas/ProductMembershipResolved"
+    StatsAggregatedRow:
+      type: object
+      required:
+        - id
+        - day_current_count
+        - day_1_count
+        - day_2_count
+        - day_3_count
+        - day_4_count
+        - day_5_count
+        - day_6_count
+        - day_7_count
+        - day_8_count
+        - week_current_count
+        - week_1_count
+        - week_2_count
+        - week_3_count
+        - week_4_count
+        - month_current_count
+        - month_1_count
+        - all_time_count
+      properties:
+        id:
+          type: integer
+        channel_id:
+          type: integer
+          nullable: true
+        item_id:
+          type: integer
+          nullable: true
+        clip_id:
+          type: integer
+          nullable: true
+        playlist_id:
+          type: integer
+          nullable: true
+        tracked_account_id:
+          type: integer
+          nullable: true
+        title:
+          type: string
+          nullable: true
+        day_current_count:
+          type: integer
+        day_1_count:
+          type: integer
+        day_2_count:
+          type: integer
+        day_3_count:
+          type: integer
+        day_4_count:
+          type: integer
+        day_5_count:
+          type: integer
+        day_6_count:
+          type: integer
+        day_7_count:
+          type: integer
+        day_8_count:
+          type: integer
+        week_current_count:
+          type: integer
+        week_1_count:
+          type: integer
+        week_2_count:
+          type: integer
+        week_3_count:
+          type: integer
+        week_4_count:
+          type: integer
+        month_current_count:
+          type: integer
+        month_1_count:
+          type: integer
+        all_time_count:
+          type: integer
+    StatsAggregatedRowWithRange:
+      allOf:
+        - $ref: "#/components/schemas/StatsAggregatedRow"
+        - type: object
+          required:
+            - range_count
+          properties:
+            range_count:
+              type: integer
+    PaginationMeta:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          description: 1-based page number for list responses.
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: Maximum number of items returned per page.
+        total:
+          type: integer
+          minimum: 0
+          description: Total number of matching records.
+        totalPages:
+          type: integer
+          minimum: 0
+          description: Total number of available pages.
+    StatsPaginationMeta:
+      type: object
+      required:
+        - total
+        - page
+        - pageSize
+      properties:
+        total:
+          type: integer
+          minimum: 0
+          description: Total number of matching records.
+        page:
+          type: integer
+          minimum: 1
+          description: 1-based page number for stats list responses.
+        pageSize:
+          type: integer
+          minimum: 1
+          description: Number of rows returned per page.
+    ManagementGetStatsEntitytypeIdResponse200:
+      $ref: "#/components/schemas/StatsAggregatedRow"
+    ManagementGetStatsEntitytypeSearchResponse200:
+      allOf:
+        - $ref: "#/components/schemas/StatsPaginationMeta"
+        - type: object
+          required:
+            - rows
+          properties:
+            rows:
+              type: array
+              items:
+                $ref: "#/components/schemas/StatsAggregatedRowWithRange"
+    ManagementGetStatsEntitytypeTopResponse200:
+      allOf:
+        - $ref: "#/components/schemas/StatsPaginationMeta"
+        - type: object
+          required:
+            - rows
+          properties:
+            rows:
+              type: array
+              items:
+                $ref: "#/components/schemas/StatsAggregatedRowWithRange"
+    SystemStatusResponse:
+      type: object
+      required:
+        - version
+        - release
+        - status
+      properties:
+        version:
+          type: string
+        release:
+          type: string
+        status:
+          type: string
+          example: ok
+    HealthCheckResponse:
+      type: object
+      required:
+        - status
+        - message
+      properties:
+        status:
+          type: string
+          example: ok
+        message:
+          type: string
+    ReadyStatusResponse:
+      type: object
+      required:
+        - status
+        - message
+      properties:
+        status:
+          type: string
+          enum:
+            - ok
+            - unavailable
+        message:
+          type: string
+    StorageDeleteFailure:
+      type: object
+      required:
+        - key
+        - error
+      properties:
+        key:
+          type: string
+        error:
+          type: string
+    StorageObjectListItem:
+      type: object
+      required:
+        - key
+        - size
+      properties:
+        key:
+          type: string
+        size:
+          type: integer
+          minimum: 0
+        lastModified:
+          type: string
+          format: date-time
+          nullable: true
+        etag:
+          type: string
+          nullable: true
+    ManagementDeleteStorageObjectsResponse200:
+      type: object
+      required:
+        - deleted
+      description: Operation-specific response payload for DELETE /storage/objects (200).
+      properties:
+        deleted:
+          type: array
+          items:
+            type: string
+    ManagementDeleteStorageObjectsResponse502:
+      type: object
+      required:
+        - message
+        - failed
+      description: Operation-specific response payload for DELETE /storage/objects (502).
+      properties:
+        message:
+          type: string
+          example: Delete failed
+        failed:
+          type: array
+          items:
+            $ref: "#/components/schemas/StorageDeleteFailure"
+    ManagementGetStorageObjectsResponse200:
+      type: object
+      required:
+        - objects
+        - isTruncated
+        - prefix
+      description: Operation-specific response payload for GET /storage/objects (200).
+      properties:
+        objects:
+          type: array
+          items:
+            $ref: "#/components/schemas/StorageObjectListItem"
+        nextContinuationToken:
+          type: string
+          nullable: true
+        isTruncated:
+          type: boolean
+        prefix:
+          type: string
+    ManagementPostStorageObjectsBulkDeleteRequest:
+      type: object
+      description: Operation-specific request payload for POST /storage/objects/bulk-delete.
+      required:
+        - keys
+      properties:
+        keys:
+          type: array
+          minItems: 1
+          maxItems: 1000
+          items:
+            type: string
+            minLength: 1
+            maxLength: 2048
+      additionalProperties: false
+    ManagementPostStorageObjectsBulkDeleteResponse200:
+      type: object
+      description: Operation-specific response payload for POST /storage/objects/bulk-delete (200).
+      required:
+        - deleted
+        - failed
+      properties:
+        deleted:
+          type: array
+          items:
+            type: string
+        failed:
+          type: array
+          items:
+            $ref: "#/components/schemas/StorageDeleteFailure"
+    ManagementGetStorageObjectsCountResponse200:
+      type: object
+      description: Operation-specific response payload for GET /storage/objects/count (200).
+      required:
+        - count
+        - exact
+      properties:
+        count:
+          type: integer
+          minimum: 0
+        exact:
+          type: boolean
+    ManagementPostStorageObjectsDeleteAllByPrefixRequest:
+      type: object
+      description: Operation-specific request payload for POST /storage/objects/delete-all-by-prefix.
+      required:
+        - prefix
+      properties:
+        prefix:
+          type: string
+          maxLength: 2048
+      additionalProperties: false
+    ManagementPostStorageObjectsDeleteAllByPrefixResponse200:
+      type: object
+      description: Operation-specific response payload for POST /storage/objects/delete-all-by-prefix (200).
+      required:
+        - deleted
+        - failed
+        - requested
+      properties:
+        deleted:
+          type: integer
+          minimum: 0
+        failed:
+          type: array
+          items:
+            $ref: "#/components/schemas/StorageDeleteFailure"
+        requested:
+          type: integer
+          minimum: 0
+    ManagementGetStorageObjectsDownloadResponse200:
+      type: string
+      format: binary
+      description: Operation-specific response payload for GET /storage/objects/download (200).
+    ManagementGetStorageObjectsMetadataResponse200:
+      type: object
+      description: Operation-specific response payload for GET /storage/objects/metadata (200).
+      required:
+        - key
+        - contentType
+        - contentLength
+      properties:
+        key:
+          type: string
+        contentType:
+          type: string
+        contentLength:
+          type: integer
+          minimum: 0
+        lastModified:
+          type: string
+          format: date-time
+          nullable: true
+        etag:
+          type: string
+          nullable: true
+    UserCreateResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: User created successfully
+        set_password_url:
+          type: string
+          format: uri
+          description: Present when password is omitted and invite link flow is used.
+    UserGetResponse:
+      type: object
+      required:
+        - user
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+    UserPatchRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: updated@example.com
+        username:
+          type: string
+          example: updated_username
+        verified:
+          type: boolean
+        account_membership_id:
+          type: integer
+          enum:
+            - 1
+            - 2
+          description: 1=trial, 2=premium
+        membership_expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        allow_directory_add_by_rss:
+          type: boolean
+          nullable: true
+        max_add_by_rss_feeds:
+          type: integer
+          minimum: 0
+          nullable: true
+        max_manual_refreshes_per_hour:
+          type: integer
+          minimum: 0
+          nullable: true
+        track_stats:
+          type: boolean
+          nullable: true
+        allow_notifications:
+          type: boolean
+          nullable: true
+      additionalProperties: false
+    UserPatchResponse:
+      type: object
+      required:
+        - user
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+    UserInviteLinkResponse:
+      type: object
+      properties:
+        invite_link:
+          allOf:
+            - $ref: "#/components/schemas/AdminInviteLink"
+          nullable: true
+    UserSetPasswordRequest:
+      type: object
+      required:
+        - password
+      properties:
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: newpassword123
+      additionalProperties: false
+    WorkerCommandListItem:
+      type: object
+      required:
+        - name
+        - label
+        - description
+        - category
+        - risk
+        - example_cli
+        - related_management_path
+      properties:
+        name:
+          type: string
+        label:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum:
+            - billing
+            - archival
+            - on_demand_parser
+            - image
+            - mq
+            - orm
+            - parser
+            - podcast_index
+            - stats
+            - dev
+        risk:
+          type: string
+          enum:
+            - normal
+            - long_running
+            - dev_only
+        example_cli:
+          type: string
+        related_management_path:
+          type: string
+          nullable: true
+    ManagementGetWorkersCommandsResponse200:
+      type: object
+      required:
+        - commands
+      description: Operation-specific response payload for GET /workers/commands (200).
+      properties:
+        commands:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkerCommandListItem"
+    FeedListResponse:
+      type: object
+      required:
+        - feeds
+        - pagination
+      properties:
+        feeds:
+          type: array
+          items:
+            $ref: "#/components/schemas/FeedOperationsLookupRow"
+        pagination:
+          $ref: "#/components/schemas/PaginationMeta"
+    StorageUsageResponse:
+      type: object
+      required:
+        - enabled
+      properties:
+        enabled:
+          type: boolean
+        provider:
+          type: string
+        bucketName:
+          type: string
+    User:
+      type: object
+      required:
+        - id
+        - id_text
+        - verified
+        - sharable_status_id
+        - created_at
+        - account_membership_id
+      properties:
+        id:
+          type: integer
+          format: int64
+        id_text:
+          type: string
+        verified:
+          type: boolean
+        email:
+          type: string
+          format: email
+          nullable: true
+        username:
+          type: string
+          nullable: true
+        sharable_status_id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        account_membership_id:
+          type: integer
+          enum:
+            - 1
+            - 2
+          description: 1=trial, 2=premium
+        membership_expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        allow_directory_add_by_rss:
+          type: boolean
+          nullable: true
+        max_add_by_rss_feeds:
+          type: integer
+          minimum: 0
+          nullable: true
+        max_manual_refreshes_per_hour:
+          type: integer
+          minimum: 0
+          nullable: true
+        track_stats:
+          type: boolean
+          nullable: true
+        allow_notifications:
+          type: boolean
+          nullable: true
+    UserListPagination:
+      allOf:
+        - $ref: "#/components/schemas/PaginationMeta"
+    UserListResponse:
+      type: object
+      required:
+        - users
+        - pagination
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        pagination:
+          $ref: "#/components/schemas/UserListPagination"
+    UserCreateRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          example: username_only
+        email:
+          type: string
+          format: email
+          example: email_only@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: password123
+        account_membership_id:
+          type: integer
+          enum:
+            - 1
+            - 2
+          description: 1=trial, 2=premium
+        membership_expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        allow_directory_add_by_rss:
+          type: boolean
+          nullable: true
+        max_add_by_rss_feeds:
+          type: integer
+          minimum: 0
+          nullable: true
+        max_manual_refreshes_per_hour:
+          type: integer
+          minimum: 0
+          nullable: true
+        track_stats:
+          type: boolean
+          nullable: true
+        allow_notifications:
+          type: boolean
+          nullable: true
+        premium_billing_cadence:
+          type: string
+          enum:
+            - monthly
+            - annual
+      additionalProperties: true
 security:
-  - cookieAuth: []
   - bearerAuth: []
-
+  - cookieAuth: []
 paths:
-  # ==============================
-  # Auth
-  # ==============================
-  /auth/login:
-    post:
-      summary: Admin Login
-      description: Authenticate an admin and issue a session cookie.
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - email
-                - password
-              properties:
-                email:
-                  type: string
-                password:
-                  type: string
-                includeTokenInResponseBody:
-                  type: boolean
-      responses:
-        "200":
-          description: Authenticated successfully.
-        "401":
-          description: Invalid credentials.
-
-  /auth/logout:
-    post:
-      summary: Admin Logout
-      description: Clears the admin session cookie.
-      responses:
-        "200":
-          description: Logged out successfully.
-
-  /auth/me:
+  /meta:
     get:
-      summary: Get Current Admin
-      description: Retrieve details, role, and permissions of the currently logged-in admin.
+      operationId: managementGetMeta
+      tags:
+        - system
+      summary: GET /meta
+      description: Public version and release metadata endpoint.
+      security: []
       responses:
         "200":
-          description: Success.
-        "401":
-          description: Unauthorized.
-
-  # ==============================
-  # Admins
-  # ==============================
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SystemStatusResponse"
+  /health:
+    get:
+      operationId: managementGetHealth
+      tags:
+        - system
+      summary: GET /health
+      description: Public liveness endpoint.
+      security: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthCheckResponse"
+  /health/ready:
+    get:
+      operationId: managementGetHealthReady
+      tags:
+        - system
+      summary: GET /health/ready
+      description: Public readiness endpoint for management and app database connectivity.
+      security: []
+      responses:
+        "200":
+          description: Ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadyStatusResponse"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadyStatusResponse"
   /admins:
     get:
-      summary: List Admins
-      description: Get a list of all admin accounts. Requires `admins:read` or superuser.
+      operationId: managementGetAdmins
+      tags:
+        - admins
+      summary: GET /admins
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('admins', 'read')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       responses:
         "200":
-          description: Success.
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminListResponse"
+              examples:
+                adminList:
+                  summary: Admin list response
+                  value:
+                    - id: 1
+                      id_text: admin-01
+                      email: admin@podverse.fm
+                      username: admin
+                      role: superuser
+                      permissions:
+                        feeds_crud: 15
+                        feed_takedown_reasons_crud: 15
+                        admins_crud: 15
+                        stats_crud: 15
+                        billing_prices_crud: 15
+                        bucket_crud: 15
+                      created_at: "2024-01-01T00:00:00Z"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
     post:
-      summary: Create Admin
-      description: Create a new admin account. Requires `admins:create` or superuser.
+      operationId: managementPostAdmins
+      tags:
+        - admins
+      summary: POST /admins
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('admins', 'create')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                username:
-                  type: string
-                password:
-                  type: string
-                role_id:
-                  type: string
-                permissions:
-                  type: object
+              $ref: "#/components/schemas/AdminCreateRequest"
+            examples:
+              createAdmin:
+                summary: Create a standard admin with explicit permissions
+                value:
+                  email: newadmin@podverse.fm
+                  username: newadmin
+                  password: securePassword123
+                  role_id: standard_admin
+                  permissions:
+                    feeds_crud: 7
+                    feed_takedown_reasons_crud: 3
+                    admins_crud: 1
+                    stats_crud: 7
+                    billing_prices_crud: 1
+                    bucket_crud: 1
       responses:
         "201":
-          description: Admin created successfully.
-
-  /admins/roles:
-    get:
-      summary: List Admin Roles
-      description: Get list of predefined and custom roles.
-      responses:
-        "200":
-          description: Success.
-
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminCreateResponse"
+              examples:
+                adminCreated:
+                  summary: Admin created with invite metadata
+                  value:
+                    id: 12
+                    id_text: newadmin-12
+                    email: newadmin@podverse.fm
+                    username: newadmin
+                    role: standard_admin
+                    permissions:
+                      feeds_crud: 7
+                      feed_takedown_reasons_crud: 3
+                      admins_crud: 1
+                      stats_crud: 7
+                      billing_prices_crud: 1
+                      bucket_crud: 1
+                    created_at: "2026-05-13T12:10:00Z"
+                    message: Admin created. Invite link generated.
+                    set_password_url: https://management.podverse.fm/admins/redeem-invite-link?token=abc123
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+              examples:
+                missingPermission:
+                  summary: Caller lacks admins:create permission
+                  value:
+                    message: Forbidden
+                    code: forbidden
+                    details:
+                      - field: permissions
+                        message: Missing required admins:create permission
+                        code: insufficient_permission
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
   /admins/{id}:
-    get:
-      summary: Get Admin
+    delete:
+      operationId: managementDeleteAdminsId
+      tags:
+        - admins
+      summary: DELETE /admins/{id}
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('admins', 'delete')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - in: path
           name: id
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         "200":
-          description: Success.
-    patch:
-      summary: Update Admin
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDeleteResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+    get:
+      operationId: managementGetAdminsId
+      tags:
+        - admins
+      summary: GET /admins/{id}
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('admins', 'read')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - in: path
           name: id
           required: true
           schema:
-            type: integer
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminGetResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+    patch:
+      operationId: managementPatchAdminsId
+      tags:
+        - admins
+      summary: PATCH /admins/{id}
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('admins', 'update')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                username:
-                  type: string
-                password:
-                  type: string
-                role_id:
-                  type: string
-                permissions:
-                  type: object
+              $ref: "#/components/schemas/AdminUpdateRequest"
       responses:
         "200":
-          description: Updated successfully.
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUpdateResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /admins/{id}/invite-link:
     delete:
-      summary: Delete Admin
+      operationId: managementDeleteAdminsIdInviteLink
+      tags:
+        - admins
+      summary: DELETE /admins/{id}/invite-link
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('admins', 'update')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - in: path
           name: id
           required: true
           schema:
-            type: integer
+            type: string
       responses:
         "200":
-          description: Deleted successfully.
-
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+    get:
+      operationId: managementGetAdminsIdInviteLink
+      tags:
+        - admins
+      summary: GET /admins/{id}/invite-link
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('admins', 'read')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminInviteLinkCreateResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+    post:
+      operationId: managementPostAdminsIdInviteLink
+      tags:
+        - admins
+      summary: POST /admins/{id}/invite-link
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('admins', 'update')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminInviteLinkCreateResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
   /admins/invite-link/redeem:
     post:
-      summary: Redeem Invite Link
-      description: Set a password using an invite token. Publicly accessible.
+      operationId: managementPostAdminsInviteLinkRedeem
+      tags:
+        - admins
+      summary: POST /admins/invite-link/redeem
+      description: "Auto-generated from route matrix. Public endpoint. Permission/auth note: public."
       security: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                token:
-                  type: string
-                password:
-                  type: string
+              $ref: "#/components/schemas/AdminInviteLinkRedeemRequest"
       responses:
         "200":
-          description: Password updated.
-
-  # ==============================
-  # Users
-  # ==============================
-  /users:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminInviteLinkRedeemResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /admins/roles:
     get:
-      summary: List Users
-      description: Retrieve a paginated list of regular users. Superuser only.
-      parameters:
-        - in: query
-          name: page
-          schema:
-            type: integer
-        - in: query
-          name: limit
-          schema:
-            type: integer
-        - in: query
-          name: search
-          schema:
-            type: string
+      operationId: managementGetAdminsRoles
+      tags:
+        - admins
+      summary: GET /admins/roles
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('admins', 'read')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       responses:
         "200":
-          description: Success.
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminRoleListResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
     post:
-      summary: Create User
-      description: Create a new regular user account. Superuser only.
+      operationId: managementPostAdminsRoles
+      tags:
+        - admins
+      summary: POST /admins/roles
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('admins', 'create')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminRoleCreateRequest"
       responses:
         "201":
-          description: Success.
-
-  /users/{id}:
-    get:
-      summary: Get User
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Success.
-    patch:
-      summary: Update User
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Success.
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminRoleCreateResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /admins/roles/{role_id}:
     delete:
-      summary: Delete User
+      operationId: managementDeleteAdminsRolesRoleid
+      tags:
+        - admins
+      summary: DELETE /admins/roles/{role_id}
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('admins', 'delete')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - in: path
-          name: id
+          name: role_id
           required: true
-          schema:
-            type: integer
-      responses:
-        "200":
-          description: Success.
-
-  # ==============================
-  # Feeds
-  # ==============================
-  /feeds:
-    get:
-      summary: List Feeds Operations
-      description: Retrieve feed operation statuses. Requires `feeds:read`.
-      responses:
-        "200":
-          description: Success.
-
-  /feeds/options:
-    get:
-      summary: Feed Options
-      description: Retrieve lifecycle states, conditions, and takedown reason enumerations.
-      responses:
-        "200":
-          description: Success.
-
-  /feeds/lookup:
-    get:
-      summary: Lookup Feed
-      description: Find a feed by podcast_index_id, internal id, or URL.
-      parameters:
-        - in: query
-          name: podcast_index_id
-          schema:
-            type: integer
-        - in: query
-          name: url
           schema:
             type: string
-        - in: query
-          name: feed_id
+      responses:
+        "204":
+          description: No content
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+    patch:
+      operationId: managementPatchAdminsRolesRoleid
+      tags:
+        - admins
+      summary: PATCH /admins/roles/{role_id}
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('admins', 'update')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: role_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminRoleUpdateRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminRoleUpdateResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /auth/login:
+    post:
+      operationId: managementPostAuthLogin
+      tags:
+        - auth
+      summary: POST /auth/login
+      description: Public endpoint for admin authentication. Returns JWT token via response body when configured.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthLoginRequest"
+            examples:
+              adminLogin:
+                summary: Management auth login
+                value:
+                  email: admin@podverse.fm
+                  password: adminPassword123
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthLoginResponse"
+              examples:
+                loginSuccess:
+                  summary: Authenticated admin session
+                  value:
+                    message: Authenticated successfully
+                    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example.signature
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+              examples:
+                invalidCredentials:
+                  summary: Incorrect admin credentials
+                  value:
+                    message: Unauthorized
+                    code: unauthorized
+                    details:
+                      - field: email
+                        message: Invalid email or password
+                        code: invalid_credentials
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /auth/logout:
+    post:
+      operationId: managementPostAuthLogout
+      tags:
+        - auth
+      summary: POST /auth/logout
+      description: Auto-generated from route matrix. Public endpoint. Permission/auth note is runtime-idempotent and does not require authentication.
+      security: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthLogoutResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /auth/me:
+    get:
+      operationId: managementGetAuthMe
+      tags:
+        - auth
+      summary: GET /auth/me
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: authenticated."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSessionResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /auth/mobile/refresh:
+    post:
+      operationId: managementPostAuthMobileRefresh
+      tags:
+        - auth
+      summary: POST /auth/mobile/refresh
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: authenticated."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MobileTokenRefreshRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MobileTokenResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /auth/mobile/revoke:
+    post:
+      operationId: managementPostAuthMobileRevoke
+      tags:
+        - auth
+      summary: POST /auth/mobile/revoke
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: authenticated."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MobileTokenRevokeRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmptyResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /auth/mobile/token:
+    post:
+      operationId: managementPostAuthMobileToken
+      tags:
+        - auth
+      summary: POST /auth/mobile/token
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: authenticated."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MobileTokenRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MobileTokenResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /database/{table}:
+    post:
+      operationId: managementPostDatabaseTable
+      tags:
+        - database
+      summary: POST /database/{table}
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: authenticated."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: table
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ManagementPostDatabaseTableRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementPostDatabaseTableResponse201"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /database/{table}/{id}:
+    delete:
+      operationId: managementDeleteDatabaseTableId
+      tags:
+        - database
+      summary: DELETE /database/{table}/{id}
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: authenticated."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: table
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: id
+          required: true
           schema:
             type: integer
       responses:
         "200":
-          description: Success.
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementDeleteDatabaseTableIdResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
         "404":
-          description: Not found.
-
-  /feeds/{id}/policy-state:
-    patch:
-      summary: Update Feed Policy
-      description: Update feed operation policies/overrides. Requires `feeds:update`.
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+    get:
+      operationId: managementGetDatabaseTableId
+      tags:
+        - database
+      summary: GET /database/{table}/{id}
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: authenticated."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       parameters:
+        - in: path
+          name: table
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementGetDatabaseTableIdResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+    patch:
+      operationId: managementPatchDatabaseTableId
+      tags:
+        - database
+      summary: PATCH /database/{table}/{id}
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: authenticated."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: table
+          required: true
+          schema:
+            type: string
         - in: path
           name: id
           required: true
@@ -309,68 +3070,54 @@ paths:
         content:
           application/json:
             schema:
-              type: object
+              $ref: "#/components/schemas/ManagementPatchDatabaseTableIdRequest"
       responses:
         "200":
-          description: Success.
-
-  # ==============================
-  # Products / Membership
-  # ==============================
-  /products/membership:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementPatchDatabaseTableIdResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /database/{table}/meta:
     get:
-      summary: Get Membership Settings
-      description: Superuser only.
-      responses:
-        "200":
-          description: Success.
-    patch:
-      summary: Update Membership Settings
-      description: Update constraints (e.g. trial max feeds). Superuser only.
-      responses:
-        "200":
-          description: Success.
-
-  /products/pricing/active:
-    get:
-      summary: List Active Prices
-      description: Get active billing prices. Requires `billing_prices:read`.
-      responses:
-        "200":
-          description: Success.
-
-  # ==============================
-  # Stats
-  # ==============================
-  /stats/{entityType}/top:
-    get:
-      summary: Get Top Stats
-      parameters:
-        - in: path
-          name: entityType
-          required: true
-          schema:
-            type: string
-            enum: [channel, item, clip, playlist, account]
-      responses:
-        "200":
-          description: Success.
-
-  # ==============================
-  # Database & Storage
-  # ==============================
-  /database/tables:
-    get:
-      summary: List Allowed Tables
-      description: Get a list of database tables allowed for query/mutation.
-      responses:
-        "200":
-          description: Success.
-
-  /database/{table}/query:
-    post:
-      summary: Query Table
-      description: Filter and sort records for a specific table.
+      operationId: managementGetDatabaseTableMeta
+      tags:
+        - database
+      summary: GET /database/{table}/meta
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: authenticated."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - in: path
           name: table
@@ -379,20 +3126,1862 @@ paths:
             type: string
       responses:
         "200":
-          description: Success.
-
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementGetDatabaseTableMetaResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /database/{table}/query:
+    post:
+      operationId: managementPostDatabaseTableQuery
+      tags:
+        - database
+      summary: POST /database/{table}/query
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: Requires CRUD permissions specific to the requested table."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: table
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ManagementPostDatabaseTableQueryRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementPostDatabaseTableQueryResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /database/tables:
+    get:
+      operationId: managementGetDatabaseTables
+      tags:
+        - database
+      summary: GET /database/tables
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: authenticated."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementGetDatabaseTablesResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /feeds:
+    get:
+      operationId: managementGetFeeds
+      tags:
+        - feeds
+      summary: GET /feeds
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('feeds', 'read')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/PageQueryOptional"
+        - $ref: "#/components/parameters/LimitQueryOptional"
+        - $ref: "#/components/parameters/FeedSortQueryOptional"
+        - $ref: "#/components/parameters/SortOrderQueryOptional"
+        - $ref: "#/components/parameters/QueryTextOptional"
+        - $ref: "#/components/parameters/FeedLifecycleQueryOptional"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedListResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /feeds/{id}/policy-state:
+    patch:
+      operationId: managementPatchFeedsIdPolicyState
+      tags:
+        - feeds
+      summary: PATCH /feeds/{id}/policy-state
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('feeds', 'update')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ManagementPatchFeedsIdPolicyStateRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementPatchFeedsIdPolicyStateResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /feeds/lookup:
+    get:
+      operationId: managementGetFeedsLookup
+      tags:
+        - feeds
+      summary: GET /feeds/lookup
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('feeds', 'read')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: podcast_index_id
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: feed_id
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: url
+          required: false
+          schema:
+            type: string
+            format: uri
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementGetFeedsLookupResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /feeds/options:
+    get:
+      operationId: managementGetFeedsOptions
+      tags:
+        - feeds
+      summary: GET /feeds/options
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('feeds', 'read')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementGetFeedsOptionsResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /products/pricing/{id}/activate:
+    post:
+      operationId: managementPostProductsPricingIdActivate
+      tags:
+        - products
+      summary: POST /products/pricing/{id}/activate
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('billing_prices', 'update')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementPostProductsPricingIdActivateResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /products/pricing/{id}/deprecate:
+    post:
+      operationId: managementPostProductsPricingIdDeprecate
+      tags:
+        - products
+      summary: POST /products/pricing/{id}/deprecate
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('billing_prices', 'update')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementPostProductsPricingIdDeprecateResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /products/pricing/active:
+    get:
+      operationId: managementGetProductsPricingActive
+      tags:
+        - products
+      summary: GET /products/pricing/active
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('billing_prices', 'read')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementGetProductsPricingActiveResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /products/pricing/schedule:
+    post:
+      operationId: managementPostProductsPricingSchedule
+      tags:
+        - products
+      summary: POST /products/pricing/schedule
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('billing_prices', 'create')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ManagementPostProductsPricingScheduleRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementPostProductsPricingScheduleResponse201"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /products/membership:
+    get:
+      operationId: managementGetProductsMembership
+      tags:
+        - products
+      summary: GET /products/membership
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireSuperuser."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementGetProductsMembershipResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+    patch:
+      operationId: managementPatchProductsMembership
+      tags:
+        - products
+      summary: PATCH /products/membership
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireSuperuser and requireCrud('billing_prices', 'update')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductMembershipSettingsPatchRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementPatchProductsMembershipResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /stats/{entity_type}/{id}:
+    get:
+      operationId: managementGetStatsEntitytypeId
+      tags:
+        - stats
+      summary: GET /stats/{entity_type}/{id}
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('stats', 'read')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: entity_type
+          required: true
+          schema:
+            type: string
+            enum:
+              - channel
+              - item
+              - clip
+              - playlist
+              - account
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementGetStatsEntitytypeIdResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /stats/{entity_type}/search:
+    get:
+      operationId: managementGetStatsEntitytypeSearch
+      tags:
+        - stats
+      summary: GET /stats/{entity_type}/search
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('stats', 'read')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: entity_type
+          required: true
+          schema:
+            type: string
+            enum:
+              - channel
+              - item
+              - clip
+              - playlist
+              - account
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 200
+        - $ref: "#/components/parameters/StatsRangeQueryOptional"
+        - $ref: "#/components/parameters/LimitQueryOptional"
+        - $ref: "#/components/parameters/PageQueryOptional"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementGetStatsEntitytypeSearchResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /stats/{entity_type}/top:
+    get:
+      operationId: managementGetStatsEntitytypeTop
+      tags:
+        - stats
+      summary: GET /stats/{entity_type}/top
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('stats', 'read')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: entity_type
+          required: true
+          schema:
+            type: string
+            enum:
+              - channel
+              - item
+              - clip
+              - playlist
+              - account
+        - $ref: "#/components/parameters/StatsRangeQueryOptional"
+        - $ref: "#/components/parameters/LimitQueryOptional"
+        - $ref: "#/components/parameters/PageQueryOptional"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementGetStatsEntitytypeTopResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
   /storage:
     get:
-      summary: Get Storage Configuration Status
-      description: Checks if bucket storage is enabled and returns config summary.
+      operationId: managementGetStorage
+      tags:
+        - storage
+      summary: GET /storage
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('bucket', 'read')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       responses:
         "200":
-          description: Success.
-
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StorageUsageResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /storage/objects:
+    delete:
+      operationId: managementDeleteStorageObjects
+      tags:
+        - storage
+      summary: DELETE /storage/objects
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('bucket', 'delete')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: key
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementDeleteStorageObjectsResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+        "502":
+          description: Bad gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementDeleteStorageObjectsResponse502"
+    get:
+      operationId: managementGetStorageObjects
+      tags:
+        - storage
+      summary: GET /storage/objects
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('bucket', 'read')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: prefix
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: continuationToken
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: maxKeys
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementGetStorageObjectsResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /storage/objects/bulk-delete:
+    post:
+      operationId: managementPostStorageObjectsBulkDelete
+      tags:
+        - storage
+      summary: POST /storage/objects/bulk-delete
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('bucket', 'delete')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ManagementPostStorageObjectsBulkDeleteRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementPostStorageObjectsBulkDeleteResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /storage/objects/count:
+    get:
+      operationId: managementGetStorageObjectsCount
+      tags:
+        - storage
+      summary: GET /storage/objects/count
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('bucket', 'read')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: prefix
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementGetStorageObjectsCountResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /storage/objects/delete-all-by-prefix:
+    post:
+      operationId: managementPostStorageObjectsDeleteAllByPrefix
+      tags:
+        - storage
+      summary: POST /storage/objects/delete-all-by-prefix
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('bucket', 'delete')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ManagementPostStorageObjectsDeleteAllByPrefixRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementPostStorageObjectsDeleteAllByPrefixResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /storage/objects/download:
+    get:
+      operationId: managementGetStorageObjectsDownload
+      tags:
+        - storage
+      summary: GET /storage/objects/download
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('bucket', 'read')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: key
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/octet-stream:
+              schema:
+                $ref: "#/components/schemas/ManagementGetStorageObjectsDownloadResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /storage/objects/metadata:
+    get:
+      operationId: managementGetStorageObjectsMetadata
+      tags:
+        - storage
+      summary: GET /storage/objects/metadata
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('bucket', 'read')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: key
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementGetStorageObjectsMetadataResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /users:
+    get:
+      operationId: managementGetUsers
+      tags:
+        - users
+      summary: GET /users
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: superuser."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/PageQueryOptional"
+        - $ref: "#/components/parameters/LimitQueryOptional"
+        - $ref: "#/components/parameters/SearchQueryOptional"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserListResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+    post:
+      operationId: managementPostUsers
+      tags:
+        - users
+      summary: POST /users
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: superuser."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreateRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserCreateResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /users/{id}:
+    delete:
+      operationId: managementDeleteUsersId
+      tags:
+        - users
+      summary: DELETE /users/{id}
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: superuser."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+    get:
+      operationId: managementGetUsersId
+      tags:
+        - users
+      summary: GET /users/{id}
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: superuser."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserGetResponse"
+              examples:
+                userDetail:
+                  summary: Full user detail for management editing
+                  value:
+                    user:
+                      id: 2001
+                      id_text: user-2001
+                      verified: true
+                      email: user@example.com
+                      username: user2001
+                      sharable_status_id: 1
+                      created_at: "2025-01-01T10:00:00Z"
+                      account_membership_id: 2
+                      membership_expires_at: "2026-01-01T00:00:00Z"
+                      allow_directory_add_by_rss: true
+                      max_add_by_rss_feeds: 100
+                      max_manual_refreshes_per_hour: 60
+                      track_stats: true
+                      allow_notifications: true
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+    patch:
+      operationId: managementPatchUsersId
+      tags:
+        - users
+      summary: PATCH /users/{id}
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: superuser."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserPatchRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPatchResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /users/{id}/invite-link:
+    delete:
+      operationId: managementDeleteUsersIdInviteLink
+      tags:
+        - users
+      summary: DELETE /users/{id}/invite-link
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: superuser."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+    get:
+      operationId: managementGetUsersIdInviteLink
+      tags:
+        - users
+      summary: GET /users/{id}/invite-link
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: superuser."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInviteLinkResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+    post:
+      operationId: managementPostUsersIdInviteLink
+      tags:
+        - users
+      summary: POST /users/{id}/invite-link
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: superuser."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInviteLinkResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /users/{id}/password:
+    post:
+      operationId: managementPostUsersIdPassword
+      tags:
+        - users
+      summary: POST /users/{id}/password
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: superuser."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserSetPasswordRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
   /workers/commands:
     get:
-      summary: List Worker Commands
-      description: Superuser only. Lists all executable worker commands.
+      operationId: managementGetWorkersCommands
+      tags:
+        - workers
+      summary: GET /workers/commands
+      description: "Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: superuser."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
       responses:
         "200":
-          description: Success.
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementGetWorkersCommandsResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"

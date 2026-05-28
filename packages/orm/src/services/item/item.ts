@@ -4,7 +4,12 @@ import { Item } from '@orm/entities/item/item.js';
 import { ItemFlagStatusStatusEnum } from '@orm/entities/item/itemFlagStatus.js';
 import type { ItemValueTimeSplit } from '@orm/entities/item/itemValueTimeSplit.js';
 import { getLiveItemStatusEnumValue } from '@orm/entities/liveItem/liveItemStatus.js';
+import type { StatsAggregatedItem } from '@orm/entities/stats/statsAggregatedItem.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
+import {
+  findOptionsRelationsFromPaths,
+  mergeFindOptionsRelations,
+} from '@orm/lib/findOptionsRelationsFromPaths.js';
 import type { FindManyOptions, FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
 import { Brackets, Equal, In, IsNull, LessThan, MoreThan, Not } from 'typeorm';
 
@@ -40,14 +45,23 @@ type ItemGetByDto = {
   guid_enclosure_url: string | null;
 };
 
-const itemQueueListRelations = [
+/** TypeORM v1 rejects nullable columns (e.g. channel.slug) in relation-object where clauses. */
+function findWhereChannelId(channel: Channel): FindOptionsWhere<Channel> {
+  return { id: channel.id };
+}
+
+function findWhereChannelIds(channels: Channel[]): FindOptionsWhere<Channel> {
+  return { id: In(channels.map((entry) => entry.id)) };
+}
+
+const itemQueueListRelations = findOptionsRelationsFromPaths<Item>([
   'item_about',
   'item_enclosures',
   'item_enclosures.item_enclosure_sources',
   'item_images',
   'channel',
   'channel.channel_images',
-];
+]);
 
 export class ItemService {
   protected repositoryRead: Repository<Item>;
@@ -76,7 +90,7 @@ export class ItemService {
     if (relations.item_chapters_feed) {
       const itemChaptersFeedService = new ItemChaptersFeedService();
       const item_chapters_feed = await itemChaptersFeedService._get(item, {
-        relations: ['item_chapters_feed_log'],
+        relations: { item_chapters_feed_log: true },
       });
       if (item_chapters_feed) {
         item.item_chapters_feed = item_chapters_feed;
@@ -94,7 +108,10 @@ export class ItemService {
     if (relations.item_enclosures) {
       const itemEnclosureService = new ItemEnclosureService();
       const item_enclosures = await itemEnclosureService._getAll(item, {
-        relations: ['item_enclosure_integrity', 'item_enclosure_sources'],
+        relations: {
+          item_enclosure_integrity: true,
+          item_enclosure_sources: true,
+        },
       });
       if (item_enclosures) {
         item.item_enclosures = item_enclosures;
@@ -328,7 +345,7 @@ export class ItemService {
   async getByGuid(channel: Channel, guid: string): Promise<Item | null> {
     return this.repositoryRead.findOne({
       where: {
-        channel,
+        channel: findWhereChannelId(channel),
         guid,
       },
     });
@@ -337,7 +354,7 @@ export class ItemService {
   async getByEnclosureUrl(channel: Channel, guid_enclosure_url: string): Promise<Item | null> {
     return this.repositoryRead.findOne({
       where: {
-        channel,
+        channel: findWhereChannelId(channel),
         guid_enclosure_url,
       },
     });
@@ -350,7 +367,7 @@ export class ItemService {
   ): Promise<Item[]> {
     return this.repositoryRead.find({
       where: {
-        channel,
+        channel: findWhereChannelId(channel),
         guid: In(guids),
         item_flag_status: {
           id: ItemFlagStatusStatusEnum.Active,
@@ -367,7 +384,7 @@ export class ItemService {
   ): Promise<Item[]> {
     return this.repositoryRead.find({
       where: {
-        channel,
+        channel: findWhereChannelId(channel),
         guid_enclosure_url: In(guidEnclosureUrls),
         item_flag_status: {
           id: ItemFlagStatusStatusEnum.Active,
@@ -380,7 +397,7 @@ export class ItemService {
   async getManyByChannel(channel: Channel, options?: FindManyOptions<Item>): Promise<Item[]> {
     return this.repositoryRead.find({
       where: {
-        channel,
+        channel: findWhereChannelId(channel),
         live_item: {
           id: IsNull(),
         },
@@ -411,7 +428,7 @@ export class ItemService {
 
     return this.repositoryRead.find({
       where: {
-        channel: item.channel,
+        channel: findWhereChannelId(item.channel),
         live_item: {
           id: IsNull(),
         },
@@ -796,7 +813,7 @@ export class ItemService {
   ): Promise<Item[]> {
     return this.repositoryRead.find({
       where: {
-        channel: In(channels),
+        channel: findWhereChannelIds(channels),
         live_item: {
           id: Not(IsNull()),
         },
@@ -884,89 +901,52 @@ export class ItemService {
   }
 }
 
-export type ItemGetManyRelations =
-  | 'item_about'
-  | 'item_about.item_itunes_episode_type'
-  | 'item_chat'
-  | 'item_description'
-  | 'item_enclosures'
-  | 'item_enclosures.item_enclosure_integrity'
-  | 'item_enclosures.item_enclosure_sources'
-  | 'item_images'
-  | 'item_persons'
-  | 'item_season'
-  | 'item_season.channel_season'
-  | 'live_item'
-  | 'live_item.live_item_status';
+export const itemGetManyRelations: FindOptionsRelations<Item> = findOptionsRelationsFromPaths<Item>(
+  [
+    'item_about',
+    'item_about.item_itunes_episode_type',
+    'item_chat',
+    'item_description',
+    'item_enclosures',
+    'item_enclosures.item_enclosure_integrity',
+    'item_enclosures.item_enclosure_sources',
+    'item_images',
+    'item_persons',
+    'item_season',
+    'item_season.channel_season',
+    'live_item',
+    'live_item.live_item_status',
+  ]
+);
 
-export const itemGetManyRelations: ItemGetManyRelations[] = [
-  'item_about',
-  'item_about.item_itunes_episode_type',
-  'item_chat',
-  'item_description',
-  'item_enclosures',
-  'item_enclosures.item_enclosure_integrity',
-  'item_enclosures.item_enclosure_sources',
-  'item_images',
-  'item_persons',
-  'item_season',
-  'item_season.channel_season',
-  'live_item',
-  'live_item.live_item_status',
-];
+export const subItemGetManyRelations: FindOptionsRelations<StatsAggregatedItem> =
+  findOptionsRelationsFromPaths<StatsAggregatedItem>([
+    'item',
+    'item.item_about',
+    'item.item_chat',
+    'item.item_description',
+    'item.item_enclosures',
+    'item.item_enclosures.item_enclosure_integrity',
+    'item.item_enclosures.item_enclosure_sources',
+    'item.item_images',
+    'item.item_persons',
+    'item.item_season',
+    'item.item_season.channel_season',
+    'item.live_item',
+  ]);
 
-export type SubItemGetManyRelations =
-  | 'item'
-  | 'item.item_about'
-  | 'item.item_chat'
-  | 'item.item_description'
-  | 'item.item_enclosures'
-  | 'item.item_enclosures.item_enclosure_integrity'
-  | 'item.item_enclosures.item_enclosure_sources'
-  | 'item.item_images'
-  | 'item.item_persons'
-  | 'item.item_season'
-  | 'item.item_season.channel_season'
-  | 'item.live_item';
+export const itemGetManyRelationsWithChannel: FindOptionsRelations<Item> =
+  mergeFindOptionsRelations<Item>(itemGetManyRelations, [
+    'channel',
+    'channel.channel_images',
+    'channel.channel_about',
+  ]);
 
-export const subItemGetManyRelations: SubItemGetManyRelations[] = [
-  'item',
-  'item.item_about',
-  'item.item_chat',
-  'item.item_description',
-  'item.item_enclosures',
-  'item.item_enclosures.item_enclosure_integrity',
-  'item.item_enclosures.item_enclosure_sources',
-  'item.item_images',
-  'item.item_persons',
-  'item.item_season',
-  'item.item_season.channel_season',
-  'item.live_item',
-];
-
-export type ItemGetManyRelationsWithChannel =
-  | ItemGetManyRelations
-  | 'channel'
-  | 'channel.channel_images'
-  | 'channel.channel_about';
-
-export const itemGetManyRelationsWithChannel: ItemGetManyRelationsWithChannel[] = [
-  ...itemGetManyRelations,
-  'channel',
-  'channel.channel_images',
-  'channel.channel_about',
-];
-
-export type SubItemGetManyRelationsWithChannel =
-  | SubItemGetManyRelations
-  | 'item.channel'
-  | 'item.channel.channel_images';
-
-export const subItemGetManyRelationsWithChannel: SubItemGetManyRelationsWithChannel[] = [
-  ...subItemGetManyRelations,
-  'item.channel',
-  'item.channel.channel_images',
-];
+export const subItemGetManyRelationsWithChannel: FindOptionsRelations<StatsAggregatedItem> =
+  mergeFindOptionsRelations<StatsAggregatedItem>(subItemGetManyRelations, [
+    'item.channel',
+    'item.channel.channel_images',
+  ]);
 
 export const itemGetOneRelations: FindOptionsRelations<Item> = {
   item_about: true,

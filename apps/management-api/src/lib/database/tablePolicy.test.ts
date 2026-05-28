@@ -1,4 +1,4 @@
-import { getTablePolicy } from '@mgmt-api/lib/database/queryEngine.js';
+import { getTablePolicy } from '@management-api/lib/database/queryEngine.js';
 import { describe, expect, it } from 'vitest';
 
 import { isTableReadOnly } from './tablePolicy.js';

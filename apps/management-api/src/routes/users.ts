@@ -1,7 +1,7 @@
-import { config } from '@mgmt-api/config/index.js';
-import { ensureAuthenticated } from '@mgmt-api/lib/auth/index.js';
-import { requireSuperuser } from '@mgmt-api/lib/authz/requireSuperuser.js';
-import { AppDbDataSourceRead, AppDbDataSourceReadWrite } from '@mgmt-api/orm/db/appDb.js';
+import { config } from '@management-api/config/index.js';
+import { ensureAuthenticated } from '@management-api/lib/auth/index.js';
+import { requireSuperuser } from '@management-api/lib/authz/requireSuperuser.js';
+import { AppDbDataSourceRead, AppDbDataSourceReadWrite } from '@management-api/orm/db/appDb.js';
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 

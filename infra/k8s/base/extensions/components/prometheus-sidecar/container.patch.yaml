@@ -1,0 +1,53 @@
+# JSON6902: append extension-prometheus sidecar to pod (all Deployments in overlay).
+- op: add
+  path: /spec/template/spec/volumes/-
+  value:
+    name: extension-prometheus-tmp
+    emptyDir: {}
+- op: add
+  path: /spec/template/spec/containers/-
+  value:
+    name: extension-prometheus
+    image: ghcr.io/podverse/podverse/extension-prometheus
+    imagePullPolicy: IfNotPresent
+    ports:
+      - containerPort: 9464
+        name: metrics
+        protocol: TCP
+    envFrom:
+      - configMapRef:
+          name: podverse-extensions-config
+    resources:
+      requests:
+        memory: 64Mi
+        cpu: 50m
+      limits:
+        memory: 128Mi
+        cpu: 200m
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+    volumeMounts:
+      - name: extension-prometheus-tmp
+        mountPath: /tmp
+    livenessProbe:
+      httpGet:
+        path: /extensions/prometheus/health
+        port: metrics
+        scheme: HTTP
+      initialDelaySeconds: 10
+      periodSeconds: 20
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readinessProbe:
+      httpGet:
+        path: /extensions/prometheus/health
+        port: metrics
+        scheme: HTTP
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3

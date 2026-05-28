@@ -1,5 +1,5 @@
-import { app } from '@mgmt-api/app.js';
-import { config } from '@mgmt-api/config/index.js';
+import { app } from '@management-api/app.js';
+import { config } from '@management-api/config/index.js';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -54,7 +54,7 @@ const { verifyPasswordMock, getWithRoleAndPermissionsMock } = vi.hoisted(() => (
   ),
 }));
 
-vi.mock('@mgmt-api/orm/services/adminAccount.js', () => {
+vi.mock('@management-api/orm/services/adminAccount.js', () => {
   class AdminAccountService {
     async verifyPassword(email: string, password: string) {
       return verifyPasswordMock(email, password);
@@ -67,7 +67,7 @@ vi.mock('@mgmt-api/orm/services/adminAccount.js', () => {
 });
 
 // Avoid loading management orm/entities (auditLog imports orm DataSource; see feeds test).
-vi.mock('@mgmt-api/lib/database/auditLog.js', () => {
+vi.mock('@management-api/lib/database/auditLog.js', () => {
   class AuditLogService {
     async record() {
       return;
@@ -252,6 +252,13 @@ describe('management-api auth routes', () => {
 
       expect(res.status).toBe(503);
       expect(res.body).toMatchObject({ status: 'unavailable' });
+    });
+
+    it('returns 404 on /extensions/prometheus/metrics (not served by app; sidecar-only scrape)', async () => {
+      const baseUrl = `${config.api.prefix}${config.api.version}`;
+      const res = await request(app).get(`${baseUrl}/extensions/prometheus/metrics`);
+
+      expect(res.status).toBe(404);
     });
   });
 

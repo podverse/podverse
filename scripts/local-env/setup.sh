@@ -109,6 +109,36 @@ set_if_empty_or_equals() {
 	fi
 }
 
+# OTEL_* and PROMETHEUS_* in sidecar env catalog are for the Next.js main container, not the
+# runtime-config sidecar HTTP process. setup.sh copies them into .env.local and infra web.env.
+sync_main_next_env_from_sidecar_catalog() {
+	local sidecar_file="$1"
+	local dest_file="$2"
+	local line var value
+
+	[ -f "$sidecar_file" ] || return 0
+	[ -f "$dest_file" ] || return 0
+
+	while IFS= read -r line; do
+		var="${line%%=*}"
+		value="$(trim_quotes "${line#*=}")"
+		upsert_var "$dest_file" "$var" "$value"
+	done < <(grep -E '^(OTEL_|PROMETHEUS_)' "$sidecar_file" 2>/dev/null || true)
+}
+
+write_next_app_env_local() {
+	local runtime_url="$1"
+	local sidecar_env="$2"
+	local dest="$3"
+
+	printf '%s\n' \
+		'#####' \
+		'##### Runtime Config Sidecar' \
+		'#####' \
+		"RUNTIME_CONFIG_URL=\"${runtime_url}\"" >"$dest"
+	sync_main_next_env_from_sidecar_catalog "$sidecar_env" "$dest"
+}
+
 first_non_empty_or_generate() {
 	local generator="$1"
 	shift
@@ -451,11 +481,10 @@ for v in NEXT_PUBLIC_BRAND_APP_ICON_192_URL NEXT_PUBLIC_BRAND_APP_ICON_512_URL N
 	apply_override "$v" "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"
 done
 
-# From brand.env: app/shell background (maps to NEXT_PUBLIC_BRAND_BACKGROUND_COLOR in sidecar). Legacy: BRAND_COLOR_BACKGROUND.
-if [ -n "${BRAND_BACKGROUND_COLOR:-${BRAND_COLOR_BACKGROUND:-}}" ]; then
-	_bg_val="${BRAND_BACKGROUND_COLOR:-${BRAND_COLOR_BACKGROUND:-}}"
+# From brand.env: app/shell background -> NEXT_PUBLIC_BRAND_BACKGROUND_COLOR in sidecar
+if [ -n "${BRAND_BACKGROUND_COLOR:-}" ]; then
 	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
-		upsert_var "$file" "NEXT_PUBLIC_BRAND_BACKGROUND_COLOR" "$_bg_val"
+		upsert_var "$file" "NEXT_PUBLIC_BRAND_BACKGROUND_COLOR" "$BRAND_BACKGROUND_COLOR"
 	done
 fi
 
@@ -501,7 +530,7 @@ done
 upsert_var "$API_INFRA_ENV" "NODE_ENV" "production"
 upsert_var "$WORKERS_INFRA_ENV" "NODE_ENV" "production"
 upsert_var "$MANAGEMENT_API_INFRA_ENV" "NODE_ENV" "production"
-# Web and management-web (Next.js) main container env: only RUNTIME_CONFIG_URL (app fetches config from sidecar).
+# Web and management-web (Next.js) main container: RUNTIME_CONFIG_URL (Docker service names).
 upsert_var "$WEB_INFRA_ENV" "RUNTIME_CONFIG_URL" "http://podverse_local_web_runtime_config:3001"
 upsert_var "$MANAGEMENT_WEB_INFRA_ENV" "RUNTIME_CONFIG_URL" "http://podverse_local_management_web_runtime_config:3101"
 upsert_var "$WEB_SIDECAR_INFRA_ENV" "NEXT_PUBLIC_SSR_API_HOST" "podverse_local_api"
@@ -521,8 +550,11 @@ for file in "$WEB_SIDECAR_INFRA_ENV" "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV"; do
 	fi
 done
 
-# .env.local: only RUNTIME_CONFIG_URL (Next.js app uses it to fetch config from sidecar).
-printf '%s\n' '#####' '##### Runtime Config Sidecar' '#####' "RUNTIME_CONFIG_URL=\"http://localhost:3001\"" >"$WEB_APP_ENV"
-printf '%s\n' '#####' '##### Runtime Config Sidecar' '#####' "RUNTIME_CONFIG_URL=\"http://localhost:3101\"" >"$MANAGEMENT_WEB_APP_ENV"
+# .env.local: RUNTIME_CONFIG_URL plus Observability/Extensions from sidecar env catalog.
+write_next_app_env_local "http://localhost:3001" "$WEB_APP_SIDECAR_ENV" "$WEB_APP_ENV"
+write_next_app_env_local "http://localhost:3101" "$MANAGEMENT_WEB_APP_SIDECAR_ENV" "$MANAGEMENT_WEB_APP_ENV"
+
+sync_main_next_env_from_sidecar_catalog "$WEB_SIDECAR_INFRA_ENV" "$WEB_INFRA_ENV"
+sync_main_next_env_from_sidecar_catalog "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV" "$MANAGEMENT_WEB_INFRA_ENV"
 
 echo "Applied local env values from generated defaults and overrides."

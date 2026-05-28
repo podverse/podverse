@@ -12,8 +12,12 @@ import type { NextFunction, Request, Response } from 'express';
 import express from 'express';
 
 import { CategoryService } from '@podverse/orm';
+import { getObservabilityHttpMiddleware } from '@podverse/observability';
 
+import { bootstrapApiExtensions } from './lib/extensions/bootstrapExtensions.js';
+import { registerExtensionRoutes } from './lib/extensions/registerExtensionRoutes.js';
 import { registerHealthRoutes } from './lib/health/registerHealthRoutes.js';
+import { registerSwaggerDocs } from './lib/docs/registerSwaggerDocs.js';
 
 // Route imports are deferred until after ORM initialization (see startApp).
 
@@ -45,7 +49,11 @@ app.use(cookieParser());
 
 app.use(initializePassport());
 
+app.use(getObservabilityHttpMiddleware());
+
 const baseUrl = `${config.api.prefix}${config.api.version}`;
+
+bootstrapApiExtensions(app);
 
 export const startApp = async () => {
   try {
@@ -57,6 +65,7 @@ export const startApp = async () => {
 
     // --- Versioned: health (before heavy route modules)
     registerHealthRoutes(app, baseUrl);
+    registerSwaggerDocs(app, baseUrl);
 
     const categoryService = new CategoryService();
     await categoryService.setCategoryCache();
@@ -129,6 +138,8 @@ export const startApp = async () => {
     app.use(publisherFeedRouter);
     app.use(queueRouter);
     app.use(statsRouter);
+
+    registerExtensionRoutes(app, baseUrl);
 
     // --- Error handler
     app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {

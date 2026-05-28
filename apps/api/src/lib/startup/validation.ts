@@ -9,11 +9,15 @@ import {
 } from '@podverse/helpers';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
+  displayValidationResultsSilent,
+  isPodverseStartupValidationSilent,
   validateConditionalOptional,
   validateOptional,
   validateOptionalAbsoluteHttpUrlIfSet,
+  validatePositiveNumber,
   validateRequired,
 } from '@podverse/helpers-config';
+import { buildObservabilityValidationResults } from '@podverse/observability/config';
 
 /** MetaBoost AppAssertion: optional, but if one signing var is set the other is required. */
 const validateMetaboostAppAssertionPair = (): ValidationResult[] => {
@@ -90,10 +94,18 @@ const validateMetaboostAppAssertionPair = (): ValidationResult[] => {
  * @throws Error if any critical validation fails
  */
 export const validateStartupRequirements = (): void => {
-  loggerService.info('Running startup validation...');
+  const silent = isPodverseStartupValidationSilent();
+
+  if (!silent) {
+    loggerService.info('Running startup validation...');
+  }
 
   const summary = validateAllEnvironmentVariables();
-  displayValidationResults(summary);
+  if (silent) {
+    displayValidationResultsSilent(summary);
+  } else {
+    displayValidationResults(summary);
+  }
 
   if (summary.failed > 0) {
     const errorMessage =
@@ -104,7 +116,9 @@ export const validateStartupRequirements = (): void => {
     throw new Error(errorMessage);
   }
 
-  loggerService.info('Startup validation completed successfully');
+  if (!silent) {
+    loggerService.info('Startup validation completed successfully');
+  }
 };
 
 /**
@@ -182,6 +196,7 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateRequired('PODCAST_INDEX_AUTH_KEY', 'Podcast Index'));
   results.push(validateRequired('PODCAST_INDEX_BASE_URL', 'Podcast Index'));
   results.push(validateRequired('PODCAST_INDEX_SECRET_KEY', 'Podcast Index'));
+  results.push(validatePositiveNumber('PODCAST_INDEX_SEARCH_MAX', 'Podcast Index', false, 1));
 
   // Add-by-RSS (required: Basic Auth credentials encrypted at rest)
   results.push(validateRequired('ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY', 'Add-by-RSS'));
@@ -307,6 +322,47 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateOptional('LOG_LEVEL', 'General'));
   results.push(
     validateOptional('LOG_DIR', 'General', 'Optional - empty for localhost, set for file logging')
+  );
+
+  results.push(...buildObservabilityValidationResults(process.env));
+
+  // Extensions (sidecar — separate container) — last in apps/api/.env.example; OpenTelemetry export, then Prometheus extension
+  const metricsExtensionEnabled = process.env.PROMETHEUS_ENABLED === 'true';
+  if (metricsExtensionEnabled) {
+    results.push(validateRequired('OTEL_EXPORTER_OTLP_ENDPOINT', 'Extensions / OpenTelemetry'));
+    results.push(validateRequired('OTEL_SERVICE_NAME', 'Extensions / OpenTelemetry'));
+    results.push(
+      validateOptional('OTEL_RESOURCE_ATTRIBUTES', 'Extensions / OpenTelemetry', 'Skipped')
+    );
+  } else {
+    results.push(
+      validateOptional(
+        'OTEL_EXPORTER_OTLP_ENDPOINT',
+        'Extensions / OpenTelemetry',
+        'Skipped (extensions disabled)'
+      )
+    );
+    results.push(
+      validateOptional(
+        'OTEL_SERVICE_NAME',
+        'Extensions / OpenTelemetry',
+        'Skipped (extensions disabled)'
+      )
+    );
+    results.push(
+      validateOptional(
+        'OTEL_RESOURCE_ATTRIBUTES',
+        'Extensions / OpenTelemetry',
+        'Skipped (extensions disabled)'
+      )
+    );
+  }
+  results.push(
+    validateOptional(
+      'PROMETHEUS_ENABLED',
+      'Extensions / Prometheus',
+      'Blank/false: disabled; true: enable sidecar — set OTEL_* when true'
+    )
   );
 
   // Calculate summary

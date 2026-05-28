@@ -1,6 +1,6 @@
 {
   "name": "@podverse/api",
-  "version": "5.4.29",
+  "version": "5.4.31",
   "type": "module",
   "description": "Data API, database migration scripts, and backend services for Podverse",
   "private": true,
@@ -22,6 +22,7 @@
   },
   "license": "AGPL-3.0",
   "dependencies": {
+    "@podverse/extension-metrics-sdk": "*",
     "@podverse/external-services-firebase": "*",
     "@podverse/external-services-paypal": "*",
     "@podverse/external-services-podcast-index": "*",
@@ -31,6 +32,7 @@
     "@podverse/helpers-requests": "*",
     "@podverse/mq": "*",
     "@podverse/notifications": "*",
+    "@podverse/observability": "*",
     "@podverse/orm": "*",
     "@podverse/parser": "*",
     "@podverse/parser-mapping": "*",
@@ -41,7 +43,7 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "express-rate-limit": "^8.5.0",
+    "express-rate-limit": "^8.5.2",
     "ioredis": "^5.10.0",
     "joi": "^18.0.1",
     "jsonwebtoken": "^9.0.2",

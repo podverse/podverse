@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `podverse-management-web` app is a Next.js app that reads `NEXT_PUBLIC_*` values at runtime via an internal runtime-config sidecar. The app's `.env.example` contains only `RUNTIME_CONFIG_URL`; the sidecar env (and `apps/management-web/sidecar/.env.example`) holds the full variable list. These values are exposed to the browser, so do not include secrets.
+The `podverse-management-web` app is a Next.js app that reads `NEXT_PUBLIC_*` values at runtime via an internal runtime-config sidecar. The app's `.env.example` contains only `RUNTIME_CONFIG_URL`. The canonical env catalog is `apps/management-web/sidecar/.env.example`; `make local_env_setup` copies Observability and Extensions keys from the sidecar env into `.env.local` for the Next.js server process. These values are exposed to the browser, so do not include secrets.
 
 **No environment variables are required at build time.** The app can be built without any `.env` file. All configuration is fetched from the sidecar at runtime.
 
@@ -82,7 +82,7 @@ The installable app manifest is served from **`/manifest.webmanifest`** (`app/ma
 - **`NEXT_PUBLIC_BRAND_APP_ICON_192_URL`** (Optional) - 192×192 maskable icon
 - **`NEXT_PUBLIC_BRAND_APP_ICON_512_URL`** (Optional) - 512×512 maskable icon
 - **`NEXT_PUBLIC_BRAND_THEME_COLOR`** (Optional) - UI / browser chrome tint (CSS color)
-- **`NEXT_PUBLIC_BRAND_BACKGROUND_COLOR`** (Optional) - App shell / launch background. For local [`brand.env`](../../dev/env-overrides/local/brand.env.example), set **`BRAND_BACKGROUND_COLOR`** (legacy: `BRAND_COLOR_BACKGROUND`); `make local_env_setup` writes it to this key in the sidecar.
+- **`NEXT_PUBLIC_BRAND_BACKGROUND_COLOR`** (Optional) - App shell / launch background. For local [`brand.env`](../../dev/env-overrides/local/brand.env.example), set **`BRAND_BACKGROUND_COLOR`**; `make local_env_setup` writes `NEXT_PUBLIC_BRAND_BACKGROUND_COLOR` in the sidecar.
 - **`NEXT_PUBLIC_BRAND_FAVICON_ICO_URL`** (Optional) - `.ico` favicon URL
 - **`NEXT_PUBLIC_BRAND_FAVICON_SVG_URL`** (Optional) - SVG favicon URL
 - **`NEXT_PUBLIC_BRAND_FAVICON_PNG_96_URL`** (Optional) - 96×96 PNG favicon URL

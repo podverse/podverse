@@ -4,10 +4,10 @@
  */
 import { createHash, randomUUID } from 'node:crypto';
 
-import type { AuthenticatedAdmin } from '@mgmt-api/@types/express.js';
-import { config } from '@mgmt-api/config/index.js';
-import type { AdminAccount } from '@mgmt-api/orm/entities/adminAccount.js';
-import { AdminAccountService } from '@mgmt-api/orm/services/adminAccount.js';
+import type { AuthenticatedAdmin } from '@management-api/@types/express.js';
+import { config } from '@management-api/config/index.js';
+import type { AdminAccount } from '@management-api/orm/entities/adminAccount.js';
+import { AdminAccountService } from '@management-api/orm/services/adminAccount.js';
 import type { CookieOptions, NextFunction, Request, Response } from 'express';
 import jwt, { type SignOptions } from 'jsonwebtoken';
 import passport from 'passport';

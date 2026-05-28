@@ -20,7 +20,7 @@ export const verifyQueueOwnership = () => {
     const queue_id_text = getParamRequired(req, 'queue_id_text');
 
     try {
-      const queue = await queueService.getByIdText(queue_id_text, { relations: ['account'] });
+      const queue = await queueService.getByIdText(queue_id_text, { relations: { account: true } });
       if (!queue) {
         res.status(404).json({ message: 'Queue not found' });
         return;
@@ -47,7 +47,7 @@ class QueueController {
         try {
           const account = getAuthenticatedUser(req);
           const queues = await queueService.getAllPrivate(account.id, {
-            relations: ['medium'],
+            relations: { medium: true },
           });
           res.status(200).json(queues);
         } catch (err) {

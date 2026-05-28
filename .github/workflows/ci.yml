@@ -90,6 +90,10 @@ jobs:
         id: lint
         run: npm run lint
 
+      - name: OpenAPI check
+        id: openapi-check
+        run: npm run openapi:check
+
       - name: Build apps
         id: build-apps
         run: npm run build:apps
@@ -123,6 +127,7 @@ jobs:
               '| Dependencies installed | ✅ |',
               '| Build packages | ✅ |',
               '| Lint (type-check, ESLint, Prettier) | ✅ |',
+              '| OpenAPI check | ✅ |',
               '| Build apps | ✅ |',
               '| Test | ⏭️ Skipped in CI (run locally) |',
               '',
@@ -168,6 +173,7 @@ jobs:
           DB_RUNTIME_EXTENSION_GUARD: ${{ steps.db-runtime-extension-guard.outcome }}
           INSTALL: ${{ steps.install.outcome }}
           LINT: ${{ steps.lint.outcome }}
+          OPENAPI_CHECK: ${{ steps.openapi-check.outcome }}
           BUILD_PACKAGES: ${{ steps.build-packages.outcome }}
           BUILD_APPS: ${{ steps.build-apps.outcome }}
         with:
@@ -206,6 +212,7 @@ jobs:
               `| Dependencies installed | ${status(process.env.INSTALL)} |`,
               `| Build packages | ${status(process.env.BUILD_PACKAGES)} |`,
               `| Lint (type-check, ESLint, Prettier) | ${status(process.env.LINT)} |`,
+              `| OpenAPI check | ${status(process.env.OPENAPI_CHECK)} |`,
               `| Build apps | ${status(process.env.BUILD_APPS)} |`,
               '',
               'Legend: ✅ Passed | ❌ Failed | ⏭️ Skipped',

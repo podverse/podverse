@@ -1,4 +1,4 @@
-import { config } from '@mgmt-api/config/index.js';
+import { config } from '@management-api/config/index.js';
 import express from 'express';
 
 import { productPricingRouter } from './pricing.js';

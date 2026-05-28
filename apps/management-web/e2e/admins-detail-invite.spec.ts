@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { capturePageLoad } from './helpers/stepScreenshots';
+
 /**
  * Admins detail + invite controls are exercised with route mocks so table/detail stay deterministic.
  */
@@ -24,7 +26,7 @@ const MOCK_ADMIN_ROW = {
 test.describe('Management-web admins detail and invite controls', () => {
   test('signed-in superuser can open admin detail and generate a password reset link', async ({
     page,
-  }) => {
+  }, testInfo) => {
     test.setTimeout(45_000);
 
     await page.route('**/api/v2/admins', async (route) => {
@@ -91,11 +93,24 @@ test.describe('Management-web admins detail and invite controls', () => {
     await expect(page).toHaveURL(new RegExp(`/admins/${MOCK_ADMIN_ROW.id}$`));
     await expect(page.getByRole('heading', { name: 'Admin detail', level: 1 })).toBeVisible();
 
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The admin detail page loads from the admins list.',
+      page.getByRole('heading', { name: 'Admin detail', level: 1 })
+    );
+
     await page.getByRole('button', { name: 'Generate password reset link' }).click();
-    await expect(
-      page.getByRole('link', {
-        name: 'https://example.com/admins/redeem-invite-link?token=e2e-token',
-      })
-    ).toBeVisible();
+    const inviteLink = page.getByRole('link', {
+      name: 'https://example.com/admins/redeem-invite-link?token=e2e-token',
+    });
+    await expect(inviteLink).toBeVisible();
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'Generate password reset link shows the invite URL on admin detail.',
+      inviteLink
+    );
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "@podverse/http-request-core",
-  "version": "5.4.29",
+  "version": "5.4.31",
   "sideEffects": false,
   "description": "Shared HTTP request transport and auth context helpers",
   "main": "./dist/index.js",
@@ -30,7 +30,7 @@
     "access": "public"
   },
   "dependencies": {
-    "axios": "^1.13.6"
+    "axios": "^1.16.1"
   },
   "type": "module",
   "devDependencies": {

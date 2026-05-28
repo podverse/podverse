@@ -49,7 +49,9 @@ export class AccountPayPalOrderService extends BaseManyService<AccountPayPalOrde
   async completePayPalOrder(payment_id: string, state: string, isV2: boolean): Promise<void> {
     const accountPayPalOrder = await this.repositoryRead.findOne({
       where: { payment_id },
-      relations: ['account', 'account_membership_status'],
+      relations: {
+        account: { account_membership_status: true },
+      },
     });
 
     if (!accountPayPalOrder) {

@@ -12,10 +12,13 @@ import {
 import { isValidUUID } from '@podverse/helpers';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
+  displayValidationResultsSilent,
+  isPodverseStartupValidationSilent,
   validateOptional,
   validateOptionalAbsoluteHttpUrlIfSet,
   validateRequired,
 } from '@podverse/helpers-config';
+import { buildObservabilityValidationResults } from '@podverse/observability/config';
 
 /**
  * Validates critical environment variables and configuration at application startup.
@@ -25,10 +28,18 @@ import {
  * @throws Error if any critical validation fails
  */
 export const validateStartupRequirements = (): void => {
-  console.log('Running startup validation...');
+  const silent = isPodverseStartupValidationSilent();
+
+  if (!silent) {
+    console.log('Running startup validation...');
+  }
 
   const summary = validateAllEnvironmentVariables();
-  displayValidationResults(summary);
+  if (silent) {
+    displayValidationResultsSilent(summary);
+  } else {
+    displayValidationResults(summary);
+  }
 
   if (summary.requiredMissing > 0) {
     const errorMessage = `FATAL: ${summary.requiredMissing} required environment variable(s) are missing or invalid. Please check the validation output above for details.`;
@@ -37,7 +48,9 @@ export const validateStartupRequirements = (): void => {
     throw new Error(errorMessage);
   }
 
-  console.log('Startup validation completed successfully');
+  if (!silent) {
+    console.log('Startup validation completed successfully');
+  }
 };
 
 /**
@@ -133,6 +146,47 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   // General
   results.push(validateRequired('NODE_ENV', 'General'));
   results.push(validateRequired('LOG_LEVEL', 'General'));
+
+  results.push(...buildObservabilityValidationResults(process.env));
+
+  // Extensions (sidecar — separate container) — last in apps/management-api/.env.example; OpenTelemetry export, then Prometheus extension
+  const metricsExtensionEnabled = process.env.PROMETHEUS_ENABLED === 'true';
+  if (metricsExtensionEnabled) {
+    results.push(validateRequired('OTEL_EXPORTER_OTLP_ENDPOINT', 'Extensions / OpenTelemetry'));
+    results.push(validateRequired('OTEL_SERVICE_NAME', 'Extensions / OpenTelemetry'));
+    results.push(
+      validateOptional('OTEL_RESOURCE_ATTRIBUTES', 'Extensions / OpenTelemetry', 'Skipped')
+    );
+  } else {
+    results.push(
+      validateOptional(
+        'OTEL_EXPORTER_OTLP_ENDPOINT',
+        'Extensions / OpenTelemetry',
+        'Skipped (extensions disabled)'
+      )
+    );
+    results.push(
+      validateOptional(
+        'OTEL_SERVICE_NAME',
+        'Extensions / OpenTelemetry',
+        'Skipped (extensions disabled)'
+      )
+    );
+    results.push(
+      validateOptional(
+        'OTEL_RESOURCE_ATTRIBUTES',
+        'Extensions / OpenTelemetry',
+        'Skipped (extensions disabled)'
+      )
+    );
+  }
+  results.push(
+    validateOptional(
+      'PROMETHEUS_ENABLED',
+      'Extensions / Prometheus',
+      'Blank/false: disabled; true: enable sidecar — set OTEL_* when true'
+    )
+  );
 
   // Calculate summary
   const total = results.length;

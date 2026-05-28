@@ -14,7 +14,9 @@ export class CategoryService {
     }
     const categoryRaw = await this.repositoryRead.findOne({
       where: { id },
-      relations: ['parent_id'],
+      relations: {
+        parent_id: true,
+      },
     });
     const parsedCategory = {
       ...categoryRaw,
@@ -25,7 +27,11 @@ export class CategoryService {
   }
 
   async setCategoryCache(): Promise<void> {
-    const allCategoriesRaw = await this.repositoryRead.find({ relations: ['parent_id'] });
+    const allCategoriesRaw = await this.repositoryRead.find({
+      relations: {
+        parent_id: true,
+      },
+    });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const parsedCategories = allCategoriesRaw.map((category: any) => {
       return {

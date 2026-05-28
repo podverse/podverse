@@ -143,7 +143,9 @@ export class BillingRenewalOrchestratorService {
       });
 
       const account = await this.accountService.get(candidate.account_id, {
-        relations: ['account_membership_status', 'account_membership_status.account_membership'],
+        relations: {
+          account_membership_status: { account_membership: true },
+        },
       });
       if (!account || !account.account_membership_status) {
         continue;

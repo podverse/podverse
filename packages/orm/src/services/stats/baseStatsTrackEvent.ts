@@ -17,7 +17,7 @@ export abstract class BaseStatsTrackEventService<T extends ObjectLiteral> {
   }
 
   protected entityMetadata(): EntityMetadata {
-    return this.readWriteEntityManager.connection.getMetadata(this.entity);
+    return this.readWriteEntityManager.dataSource.getMetadata(this.entity);
   }
 
   protected targetEntityIdColumnPropertyPath(): string {

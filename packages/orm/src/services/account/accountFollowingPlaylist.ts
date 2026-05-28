@@ -48,7 +48,13 @@ export class AccountFollowingPlaylistService extends BaseManyService<
         account_id,
         ...(medium_id ? { playlist: { medium_id: Equal(medium_id) } } : {}),
       },
-      relations: ['playlist', 'playlist.account', 'playlist.account.account_profile'],
+      relations: {
+        playlist: {
+          account: {
+            account_profile: true,
+          },
+        },
+      },
     });
   }
 
@@ -69,7 +75,7 @@ export class AccountFollowingPlaylistService extends BaseManyService<
           sharable_status: Not(SharableStatusEnum.Private),
         },
       },
-      relations: ['playlist'],
+      relations: { playlist: true },
     };
 
     return this.repositoryRead.find(publicConfig);

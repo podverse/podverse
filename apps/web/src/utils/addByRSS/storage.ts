@@ -6,16 +6,12 @@ import type {
 } from './types';
 
 const DB_NAME = 'add-by-rss';
-const DB_VERSION = 6;
+/** Bump when object stores change; prior local cache may be reset on upgrade. */
+const DB_VERSION = 7;
 const FEEDS_STORE = 'feeds';
 const ITEMS_STORE = 'items';
 const ITEMS_META_STORE = 'itemsMeta';
 const LIVE_ITEMS_STORE = 'liveItems';
-
-// Legacy store names for migration
-const LEGACY_EPISODES_STORE = 'episodes';
-const LEGACY_EPISODES_META_STORE = 'episodesMeta';
-const LEGACY_V4_ITEMS_STORE = 'items';
 
 const isIndexedDbAvailable = (): boolean =>
   typeof window !== 'undefined' && typeof window.indexedDB !== 'undefined';
@@ -34,35 +30,16 @@ const openAddByRSSDb = (): Promise<IDBDatabase> =>
     }
 
     const request = window.indexedDB.open(DB_NAME, DB_VERSION);
-    request.onupgradeneeded = (event) => {
+    request.onupgradeneeded = () => {
       const db = request.result;
-      const oldVersion = event.oldVersion;
 
-      // Create feeds store if it doesn't exist
       if (!db.objectStoreNames.contains(FEEDS_STORE)) {
         const store = db.createObjectStore(FEEDS_STORE, { keyPath: 'idText' });
         store.createIndex('feedUrl', 'feedUrl', { unique: true });
         store.createIndex('resourceType', 'resourceType', { unique: false });
       }
 
-      // Migration from v3 to v4: rename episodes stores to items stores
-      if (oldVersion < 4) {
-        // Delete legacy stores if they exist
-        if (db.objectStoreNames.contains(LEGACY_EPISODES_STORE)) {
-          db.deleteObjectStore(LEGACY_EPISODES_STORE);
-        }
-        if (db.objectStoreNames.contains(LEGACY_EPISODES_META_STORE)) {
-          db.deleteObjectStore(LEGACY_EPISODES_META_STORE);
-        }
-      }
-
-      // Migration from v4 to v5: add mediumId index to items store
-      // Need to recreate the store to add the index
-      if (oldVersion === 4 && db.objectStoreNames.contains(LEGACY_V4_ITEMS_STORE)) {
-        db.deleteObjectStore(LEGACY_V4_ITEMS_STORE);
-      }
-
-      // Create items store if it doesn't exist (includes mediumId index in v5)
+      // Create items store if it doesn't exist
       if (!db.objectStoreNames.contains(ITEMS_STORE)) {
         const store = db.createObjectStore(ITEMS_STORE, { keyPath: 'id' });
         store.createIndex('pubDateMs', 'pubDateMs', { unique: false });

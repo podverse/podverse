@@ -24,7 +24,9 @@ export class AccountEmailChangeVerificationService extends BaseOneService<
   async getByToken(verification_token: string): Promise<AccountEmailChangeVerification | null> {
     return this.repositoryRead.findOne({
       where: { verification_token },
-      relations: ['account'],
+      relations: {
+        account: true,
+      },
     });
   }
 

@@ -12,6 +12,7 @@ import { resolve } from 'path';
 
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import { validateOptional, validateRequired } from '@podverse/helpers-config';
+import { buildObservabilityValidationResults } from '@podverse/observability/config';
 
 // Load .env file based on NODE_ENV
 // Next.js loads .env files automatically, but this script runs standalone via ts-node
@@ -69,6 +70,47 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
 
   // Winston-style level (same as apps/api); when `debug`, /api/proxy may log failure diagnostics
   results.push(validateOptional('LOG_LEVEL', 'General', 'Blank'));
+
+  results.push(...buildObservabilityValidationResults(process.env));
+
+  // Extensions — from sidecar env catalog (synced to .env.local by local_env_setup)
+  const metricsExtensionEnabled = process.env.PROMETHEUS_ENABLED === 'true';
+  if (metricsExtensionEnabled) {
+    results.push(validateRequired('OTEL_EXPORTER_OTLP_ENDPOINT', 'Extensions / OpenTelemetry'));
+    results.push(validateRequired('OTEL_SERVICE_NAME', 'Extensions / OpenTelemetry'));
+    results.push(
+      validateOptional('OTEL_RESOURCE_ATTRIBUTES', 'Extensions / OpenTelemetry', 'Skipped')
+    );
+  } else {
+    results.push(
+      validateOptional(
+        'OTEL_EXPORTER_OTLP_ENDPOINT',
+        'Extensions / OpenTelemetry',
+        'Skipped (extensions disabled)'
+      )
+    );
+    results.push(
+      validateOptional(
+        'OTEL_SERVICE_NAME',
+        'Extensions / OpenTelemetry',
+        'Skipped (extensions disabled)'
+      )
+    );
+    results.push(
+      validateOptional(
+        'OTEL_RESOURCE_ATTRIBUTES',
+        'Extensions / OpenTelemetry',
+        'Skipped (extensions disabled)'
+      )
+    );
+  }
+  results.push(
+    validateOptional(
+      'PROMETHEUS_ENABLED',
+      'Extensions / Prometheus',
+      'Blank/false: disabled; true: enable sidecar — set OTEL_* when true'
+    )
+  );
 
   // Calculate summary
   const total = results.length;

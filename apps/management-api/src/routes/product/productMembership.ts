@@ -1,9 +1,10 @@
-import { ensureAuthenticated } from '@mgmt-api/lib/auth/index.js';
-import { requireCrud } from '@mgmt-api/lib/authz/requireCrud.js';
-import { requireSuperuser } from '@mgmt-api/lib/authz/requireSuperuser.js';
-import { AuditLogService } from '@mgmt-api/lib/database/auditLog.js';
-import { AppDbDataSourceRead, AppDbDataSourceReadWrite } from '@mgmt-api/orm/db/appDb.js';
-import { updateProductMembershipSettingsBodySchema } from '@mgmt-api/schemas/productMembership.js';
+import { ensureAuthenticated } from '@management-api/lib/auth/index.js';
+import { requireCrud } from '@management-api/lib/authz/requireCrud.js';
+import { requireSuperuser } from '@management-api/lib/authz/requireSuperuser.js';
+import { AuditLogService } from '@management-api/lib/database/auditLog.js';
+import { getAuditRequestId } from '@management-api/lib/getAuditRequestId.js';
+import { AppDbDataSourceRead, AppDbDataSourceReadWrite } from '@management-api/orm/db/appDb.js';
+import { updateProductMembershipSettingsBodySchema } from '@management-api/schemas/productMembership.js';
 import express from 'express';
 
 import { BillingPriceCatalogService } from '@podverse/orm';
@@ -14,10 +15,6 @@ const billingPriceCatalogService = new BillingPriceCatalogService({
   dataSourceRead: AppDbDataSourceRead,
   dataSourceReadWrite: AppDbDataSourceReadWrite,
 });
-
-function getRequestId(req: express.Request): string {
-  return req.id ?? req.headers['x-request-id']?.toString() ?? '';
-}
 
 productMembershipRouter.get('/', ensureAuthenticated, requireSuperuser, async (_req, res, next) => {
   try {
@@ -109,7 +106,7 @@ productMembershipRouter.patch(
         operation: 'update',
         tableName: 'product_membership_settings',
         rowId: 1,
-        requestId: getRequestId(req),
+        requestId: getAuditRequestId(req),
         afterSnapshot,
       });
 

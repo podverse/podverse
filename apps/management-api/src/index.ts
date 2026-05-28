@@ -1,5 +1,8 @@
 const loadEnv = async () => {
   if (process.env.NODE_ENV !== 'production') {
+    if (process.env.PODVERSE_SKIP_DOTENV === 'true') {
+      return;
+    }
     const dotenvx = await import('@dotenvx/dotenvx');
     dotenvx.config({ path: '.env' });
   }
@@ -10,20 +13,29 @@ let serverInstance: import('http').Server | null = null;
 const run = async () => {
   await loadEnv();
 
-  const { AppDataSourceRead, AppDataSourceReadWrite } = await import('@mgmt-api/orm/db/index.js');
+  const { AppDataSourceRead, AppDataSourceReadWrite } =
+    await import('@management-api/orm/db/index.js');
   const { AppDbDataSourceRead, AppDbDataSourceReadWrite } =
-    await import('@mgmt-api/orm/db/appDb.js');
-  const { startApp } = await import('./app.js');
+    await import('@management-api/orm/db/appDb.js');
   const { validateStartupRequirements } = await import('./lib/startup/validation.js');
+
+  validateStartupRequirements();
+
+  const { config } = await import('./config/index.js');
+  const { initObservability, shutdownObservability } = await import('@podverse/observability');
+  initObservability(config.observability);
+
+  const { loggerService } = await import('./factories/loggerService.js');
+  const { startApp } = await import('./app.js');
 
   const shutdown = async (signal?: string) => {
     try {
-      console.warn(`Shutdown initiated${signal ? ` due to ${signal}` : ''}`);
+      loggerService.warn(`Shutdown initiated${signal ? ` due to ${signal}` : ''}`);
       if (serverInstance) {
         await new Promise<void>((resolve, reject) => {
           serverInstance?.close((err) => (err ? reject(err) : resolve()));
         });
-        console.warn('HTTP server closed');
+        loggerService.warn('HTTP server closed');
       }
       try {
         if (AppDataSourceRead.isInitialized) {
@@ -38,12 +50,24 @@ const run = async () => {
         if (AppDbDataSourceReadWrite.isInitialized) {
           await AppDbDataSourceReadWrite.destroy();
         }
-        console.warn('Database connections closed');
+        loggerService.warn('Database connections closed');
       } catch (err) {
-        console.error('Error closing DB connections during shutdown:', err);
+        loggerService.logError('Error closing DB connections during shutdown', err);
+      }
+      try {
+        const { shutdownManagementApiExtensions } =
+          await import('./lib/extensions/bootstrapExtensions.js');
+        await shutdownManagementApiExtensions();
+      } catch (err) {
+        loggerService.logError('Error shutting down extensions during shutdown', err);
+      }
+      try {
+        await shutdownObservability();
+      } catch (err) {
+        loggerService.logError('Error shutting down observability during shutdown', err);
       }
     } catch (err) {
-      console.error('Error during shutdown:', err);
+      loggerService.logError('Error during shutdown', err);
     } finally {
       process.exit(0);
     }
@@ -53,17 +77,15 @@ const run = async () => {
   process.on('SIGTERM', () => void shutdown('SIGTERM'));
 
   try {
-    validateStartupRequirements();
-
-    console.warn('Connecting to the management database');
+    loggerService.warn('Connecting to the management database');
     await AppDataSourceRead.initialize();
     await AppDataSourceReadWrite.initialize();
-    console.warn('Connected to the management database');
+    loggerService.warn('Connected to the management database');
 
-    console.warn('Connecting to the app database (database console queries)');
+    loggerService.warn('Connecting to the app database (database console queries)');
     await AppDbDataSourceRead.initialize();
     await AppDbDataSourceReadWrite.initialize();
-    console.warn('Connected to the app database');
+    loggerService.warn('Connected to the app database');
 
     const maybeServer = await startApp();
     if (maybeServer) {
@@ -80,7 +102,7 @@ const run = async () => {
       process.exit(1);
     } else {
       // Other errors - log with full details
-      console.error('Error during application startup:', error);
+      loggerService.logError('Error during application startup', error);
       process.exit(1);
     }
   }

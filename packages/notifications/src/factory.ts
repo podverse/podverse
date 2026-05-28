@@ -21,9 +21,13 @@ export type NotificationsContext = {
 export function createNotificationsContext(config: NotificationsConfig): NotificationsContext {
   let webpushAdmin: typeof webpush | null = null;
   let isWebPushEnabled = false;
+  const shouldLogConfigNotice =
+    process.env.NODE_ENV !== 'production' || process.env.LOG_LEVEL === 'debug';
 
   if (!config.webpush.enabled) {
-    console.warn('Web Push notifications are disabled in the configuration.');
+    if (shouldLogConfigNotice) {
+      console.warn('Web Push notifications are disabled in the configuration.');
+    }
   } else {
     // Check if the VAPID keys are provided
     if (
@@ -40,7 +44,9 @@ export function createNotificationsContext(config: NotificationsConfig): Notific
       webpushAdmin = null;
       isWebPushEnabled = false;
     } else {
-      console.warn('Web Push notifications are enabled in the configuration.');
+      if (shouldLogConfigNotice) {
+        console.warn('Web Push notifications are enabled in the configuration.');
+      }
 
       try {
         // Safe to use these values directly - we've validated they exist above

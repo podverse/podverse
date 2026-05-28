@@ -1,4 +1,4 @@
-import { config } from '@mgmt-api/config/index.js';
+import { config } from '@management-api/config/index.js';
 import {
   authenticate,
   ensureAuthenticated,
@@ -6,7 +6,7 @@ import {
   logout,
   refreshMobileToken,
   revokeMobileToken,
-} from '@mgmt-api/lib/auth/index.js';
+} from '@management-api/lib/auth/index.js';
 import express from 'express';
 
 const router = express.Router();

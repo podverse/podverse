@@ -65,7 +65,7 @@ export async function createUser(
   params: CreateUserParams,
   jwt?: string
 ): Promise<CreateUserResponse> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<CreateUserResponse>({
     path: '/users',
     method: 'POST',
@@ -85,7 +85,7 @@ export async function listUsers(params?: {
   search?: string;
   jwt?: string;
 }): Promise<ListUsersResponse> {
-  const service = new ManagementApiRequestService(params?.jwt);
+  const service = new ManagementApiRequestService({ jwt: params?.jwt });
   const queryParams: Record<string, string> = {};
   if (params?.page) queryParams.page = String(params.page);
   if (params?.limit) queryParams.limit = String(params.limit);
@@ -100,7 +100,7 @@ export async function listUsers(params?: {
 }
 
 export async function getUser(id: number, jwt?: string): Promise<{ user: User }> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<{ user: User }>({ path: `/users/${id}` });
 }
 
@@ -109,7 +109,7 @@ export async function updateUser(
   params: UpdateUserParams,
   jwt?: string
 ): Promise<{ user: User }> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<{ user: User }>({
     path: `/users/${id}`,
     method: 'PATCH',
@@ -118,7 +118,7 @@ export async function updateUser(
 }
 
 export async function deleteUser(id: number, jwt?: string): Promise<{ message: string }> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<{ message: string }>({
     path: `/users/${id}`,
     method: 'DELETE',
@@ -130,7 +130,7 @@ export async function setUserPassword(
   password: string,
   jwt?: string
 ): Promise<{ message: string }> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<{ message: string }>({
     path: `/users/${id}/password`,
     method: 'POST',
@@ -148,7 +148,7 @@ export async function getInviteLink(
   id: number,
   jwt?: string
 ): Promise<{ invite_link: InviteLink | null }> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<{ invite_link: InviteLink | null }>({
     path: `/users/${id}/invite-link`,
   });
@@ -158,7 +158,7 @@ export async function generateInviteLink(
   id: number,
   jwt?: string
 ): Promise<{ invite_link: InviteLink }> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<{ invite_link: InviteLink }>({
     path: `/users/${id}/invite-link`,
     method: 'POST',
@@ -166,7 +166,7 @@ export async function generateInviteLink(
 }
 
 export async function revokeInviteLink(id: number, jwt?: string): Promise<{ message: string }> {
-  const service = new ManagementApiRequestService(jwt);
+  const service = new ManagementApiRequestService({ jwt });
   return service.apiRequest<{ message: string }>({
     path: `/users/${id}/invite-link`,
     method: 'DELETE',

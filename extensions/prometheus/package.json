@@ -1,0 +1,23 @@
+{
+  "name": "@podverse/extension-prometheus",
+  "version": "5.4.31",
+  "private": true,
+  "type": "module",
+  "description": "Prometheus extension sidecar (OTLP ingest + scrape endpoints)",
+  "scripts": {
+    "test": "vitest run",
+    "lint": "eslint ./src --max-warnings 0",
+    "lint:fix": "eslint ./src --fix",
+    "build": "npm run lint && tsc",
+    "bundle": "esbuild src/server.ts --bundle --platform=node --format=esm --outfile=dist/server.js",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit"
+  },
+  "license": "AGPL-3.0",
+  "devDependencies": {
+    "@types/node": "^24.12.0",
+    "esbuild": "^0.27.4",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

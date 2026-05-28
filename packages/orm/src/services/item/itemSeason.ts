@@ -16,6 +16,6 @@ export class ItemSeasonService extends BaseOneService<ItemSeason, 'item'> {
   }
 
   async update(item: Item, dto: ItemSeasonDto): Promise<ItemSeason> {
-    return super._update(item, dto, { relations: ['channel_season'] });
+    return super._update(item, dto, { relations: { channel_season: true } });
   }
 }

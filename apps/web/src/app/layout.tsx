@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 
 import type { QueueResourcesAbridgedIndex } from '@podverse/helpers';
 import { generateQueueResourceAbridgedIndex } from '@podverse/helpers';
+import { IntegrationsWebScripts } from '@podverse/integrations-web';
 import { AppWrapper, FontPreloads, PageWrapper } from '@podverse/ui';
 
 import { AuthSessionChecker } from '../components/Auth/AuthSessionChecker';
@@ -78,6 +79,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={locale} data-ui-theme={ssrUITheme}>
       <head>
         <RuntimeConfigScript runtimeConfig={runtimeConfig} />
+        <IntegrationsWebScripts integrations={runtimeConfig.integrations} />
         <title>{config.public.brand.name}</title>
         <FontPreloads />
         <FavIcons />

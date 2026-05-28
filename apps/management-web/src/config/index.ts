@@ -1,11 +1,20 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at build time in scripts/validate-env.ts */
 
+import { buildObservabilityConfigFromEnv } from '@podverse/observability/config';
+
 import { getRuntimeConfig } from './runtime-config-store';
 
 const buildConfig = () => {
-  const { env } = getRuntimeConfig();
+  const runtimeConfig = getRuntimeConfig();
+  const { env } = runtimeConfig;
 
   return {
+    observability: buildObservabilityConfigFromEnv(process.env),
+    integrations: {
+      cloudflare: {
+        webAnalytics: runtimeConfig.integrations.cloudflare.webAnalytics,
+      },
+    },
     public: {
       brand: {
         name: env.NEXT_PUBLIC_BRAND_NAME,

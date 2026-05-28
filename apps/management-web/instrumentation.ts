@@ -6,6 +6,19 @@ export async function register(): Promise<void> {
   if (process.env.NEXT_RUNTIME !== 'nodejs') {
     return;
   }
+
+  const { buildObservabilityConfigFromEnv } = await import('@podverse/observability/config');
+  const { initObservability, registerNextHttpServerInstrumentation } =
+    await import('@podverse/observability');
+
+  initObservability(buildObservabilityConfigFromEnv(process.env));
+  registerNextHttpServerInstrumentation();
+
+  const { bootstrapManagementWebExtensions, registerManagementWebGracefulShutdownHandlers } =
+    await import('./src/lib/extensions/bootstrapManagementWebExtensions');
+  bootstrapManagementWebExtensions();
+  registerManagementWebGracefulShutdownHandlers();
+
   if (!process.env.RUNTIME_CONFIG_URL) {
     return;
   }

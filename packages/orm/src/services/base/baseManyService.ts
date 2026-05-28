@@ -184,8 +184,9 @@ export class BaseManyService<T extends ObjectLiteral, K extends keyof T> {
   }
 
   public async _delete(parentEntity: T[K], whereKeyValues: Record<string, unknown>): Promise<void> {
+    const parentWhereValue = this.getParentWhereValue(parentEntity);
     const where: FindOptionsWhere<T> = {
-      [this.parentEntityKey]: parentEntity,
+      [this.parentEntityKey]: parentWhereValue,
       ...whereKeyValues,
     } as FindOptionsWhere<T>;
 

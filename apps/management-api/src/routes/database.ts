@@ -1,23 +1,24 @@
-import { config } from '@mgmt-api/config/index.js';
-import { ensureAuthenticated } from '@mgmt-api/lib/auth/index.js';
-import { requireCrud } from '@mgmt-api/lib/authz/requireCrud.js';
-import { type PermissionResource } from '@mgmt-api/lib/authz/requireCrud.js';
-import { CrudMask } from '@mgmt-api/lib/crud.js';
-import { AuditLogService } from '@mgmt-api/lib/database/auditLog.js';
+import { config } from '@management-api/config/index.js';
+import { ensureAuthenticated } from '@management-api/lib/auth/index.js';
+import { requireCrud } from '@management-api/lib/authz/requireCrud.js';
+import { type PermissionResource } from '@management-api/lib/authz/requireCrud.js';
+import { CrudMask } from '@management-api/lib/crud.js';
+import { AuditLogService } from '@management-api/lib/database/auditLog.js';
 import {
   DatabaseQueryEngine,
   DatabaseQueryError,
   type FilterCondition,
   type QueryOptions,
   type SortCondition,
-} from '@mgmt-api/lib/database/queryEngine.js';
+} from '@management-api/lib/database/queryEngine.js';
 import {
   isTableAllowlisted,
   isTableReadOnly,
   TABLE_POLICIES,
   type TablePolicyDefinition,
-} from '@mgmt-api/lib/database/tablePolicy.js';
-import { getParamRequired } from '@mgmt-api/lib/params.js';
+} from '@management-api/lib/database/tablePolicy.js';
+import { getAuditRequestId } from '@management-api/lib/getAuditRequestId.js';
+import { getParamRequired } from '@management-api/lib/params.js';
 import express from 'express';
 import Joi from 'joi';
 
@@ -135,10 +136,6 @@ function tablePolicyToMeta(policy: TablePolicyDefinition) {
     maxPageSize: policy.maxPageSize,
     readOnly: policy.readOnly,
   };
-}
-
-function getRequestId(req: express.Request): string {
-  return (req.headers['x-request-id'] as string) || req.id || 'unknown';
 }
 
 // --- Routes ---
@@ -281,7 +278,7 @@ router.post('/:table', ensureAuthenticated, async (req, res) => {
       tableName,
       rowId: row.id as number,
       afterSnapshot: row,
-      requestId: getRequestId(req),
+      requestId: getAuditRequestId(req),
     });
 
     res.status(201).json(row);
@@ -348,7 +345,7 @@ router.patch('/:table/:id', ensureAuthenticated, async (req, res) => {
       rowId: id,
       beforeSnapshot: beforeRow,
       afterSnapshot: row,
-      requestId: getRequestId(req),
+      requestId: getAuditRequestId(req),
     });
 
     res.json(row);
@@ -408,7 +405,7 @@ router.delete('/:table/:id', ensureAuthenticated, async (req, res) => {
       tableName,
       rowId: id,
       beforeSnapshot: beforeRow,
-      requestId: getRequestId(req),
+      requestId: getAuditRequestId(req),
     });
 
     res.json({ message: 'Row deleted' });

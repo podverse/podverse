@@ -1,13 +1,13 @@
 import { Readable } from 'node:stream';
 import type { ReadableStream } from 'node:stream/web';
 
-import { config } from '@mgmt-api/config/index.js';
-import { ensureAuthenticated } from '@mgmt-api/lib/auth/index.js';
-import { requireCrud } from '@mgmt-api/lib/authz/requireCrud.js';
+import { config } from '@management-api/config/index.js';
+import { ensureAuthenticated } from '@management-api/lib/auth/index.js';
+import { requireCrud } from '@management-api/lib/authz/requireCrud.js';
 import {
   storageBulkDeleteBodySchema,
   storageDeleteAllByPrefixBodySchema,
-} from '@mgmt-api/schemas/storage.js';
+} from '@management-api/schemas/storage.js';
 import type { Response } from 'express';
 import express from 'express';
 

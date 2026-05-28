@@ -11,8 +11,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import type { MediumEnum } from '@podverse/helpers';
-
 @Entity()
 export class Queue {
   @PrimaryGeneratedColumn()
@@ -27,7 +25,7 @@ export class Queue {
 
   @ManyToOne('Medium', (medium: Medium) => medium.id)
   @JoinColumn({ name: 'medium_id' })
-  medium!: MediumEnum;
+  medium!: Relation<Medium>;
 
   /*
     NOTE: this is not truly nullable, but we need this column to allow

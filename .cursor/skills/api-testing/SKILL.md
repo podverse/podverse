@@ -22,17 +22,26 @@ Use this skill when adding or changing auth endpoints, routes, or any API behavi
 
 ## Test setup
 
+**Canonical test env** lives in [`packages/helpers-config/src/podverseTestEnv.ts`](packages/helpers-config/src/podverseTestEnv.ts). Vitest setup files and Playwright E2E server prefixes import builders from `@podverse/helpers-config`. Integration tests and E2E do **not** require `make local_env_setup` (only `make test_deps` plus app builds).
+
 ### apps/api
 
-- `apps/api/src/test/setup.ts` sets smart-default env for all tests (DB port 5732, Valkey port 6679, test DB names).
+- `apps/api/src/test/setup.ts` applies `buildPodverseApiTestEnv({ profile: 'apiVitest' })`.
 - `apps/api/vitest.config.ts` references the setup file via `setupFiles`.
+- `apps/api/src/test/podverse-test-env-startup.test.ts` asserts Vitest and web-E2E profiles pass `validateStartupRequirements()`.
 - Tests that need different env override only those vars at the top of the file and load config via dynamic import in `beforeAll`.
 
 ### apps/management-api
 
-- `apps/management-api/vitest.setup.ts` sets test env (`DB_HOST`/`DB_PORT`, `DB_APP_*`, `DB_MANAGEMENT_*`, port 5732, test DB names).
+- `apps/management-api/vitest.setup.ts` applies `buildPodverseManagementApiTestEnv({ profile: 'managementApiVitest' })`.
 - `apps/management-api/vitest.config.ts` references the setup file.
+- `apps/management-api/src/test/podverse-test-env-startup.test.ts` asserts Vitest and E2E profiles pass startup validation.
 - For ORM-dependent tests, mock the ORM layer or ensure test DB is populated.
+
+### Playwright E2E
+
+- Web API server: `buildPodverseApiTestEnv({ profile: 'apiWebE2e' })` via `apps/web/playwright.e2e-server-env.ts` (sets `PODVERSE_SKIP_DOTENV=true`).
+- Management API: `buildPodverseManagementApiTestEnv` via `apps/management-web/playwright.management-api-env.ts`.
 
 ## Requirements
 
@@ -44,11 +53,11 @@ Use this skill when adding or changing auth endpoints, routes, or any API behavi
 
 1. **New route**: Add a test file in the appropriate test directory with happy path and error cases.
 2. **Schema/ORM change**: Ensure entity column names match the DB so tests don't fail with "column does not exist".
-3. **New env variable**: Add it to the test setup file with a safe default.
+3. **New env variable**: Add it to `packages/helpers-config/src/podverseTestEnv.ts` for every affected profile, then run `podverse-test-env-startup.test.ts` in api and/or management-api.
 
 ## Quick reference
 
 - Run all API tests: `npm run test:e2e:api` from repo root.
 - Run one API test file: `npm run test -w apps/api -- src/test/<file>.test.ts`
 - Run management-api tests: `npm run test -w apps/management-api`
-- Test env: `apps/api/src/test/setup.ts` (ports 5732/6679, DB names `podverse_app_test`/`podverse_management_test`).
+- Test env: `packages/helpers-config/src/podverseTestEnv.ts` (ports 5732/6679, DB names `podverse_app_test`/`podverse_management_test`).

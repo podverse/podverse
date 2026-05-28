@@ -2,19 +2,24 @@
 // eslint-disable-next-line simple-import-sort/imports
 import 'reflect-metadata';
 
-import { config } from '@mgmt-api/config/index.js';
-import { initializePassport } from '@mgmt-api/lib/auth/index.js';
-import { registerHealthRoutes } from '@mgmt-api/lib/health/registerHealthRoutes.js';
-import { adminsRouter } from '@mgmt-api/routes/admins.js';
-import { authRouter } from '@mgmt-api/routes/auth.js';
-import { databaseRouter } from '@mgmt-api/routes/database.js';
-import { feedsRouter } from '@mgmt-api/routes/feeds.js';
-import { productRouter } from '@mgmt-api/routes/product/index.js';
-import { statsRouter } from '@mgmt-api/routes/stats.js';
-import { storageRouter } from '@mgmt-api/routes/storage.js';
-import { usersRouter } from '@mgmt-api/routes/users.js';
-import { workersRouter } from '@mgmt-api/routes/workers.js';
+import { config } from '@management-api/config/index.js';
+import { loggerService } from '@management-api/factories/loggerService.js';
+import { initializePassport } from '@management-api/lib/auth/index.js';
+import { registerSwaggerDocs } from '@management-api/lib/docs/registerSwaggerDocs.js';
+import { bootstrapManagementApiExtensions } from '@management-api/lib/extensions/bootstrapExtensions.js';
+import { registerExtensionRoutes } from '@management-api/lib/extensions/registerExtensionRoutes.js';
+import { registerHealthRoutes } from '@management-api/lib/health/registerHealthRoutes.js';
+import { adminsRouter } from '@management-api/routes/admins.js';
+import { authRouter } from '@management-api/routes/auth.js';
+import { databaseRouter } from '@management-api/routes/database.js';
+import { feedsRouter } from '@management-api/routes/feeds.js';
+import { productRouter } from '@management-api/routes/product/index.js';
+import { statsRouter } from '@management-api/routes/stats.js';
+import { storageRouter } from '@management-api/routes/storage.js';
+import { usersRouter } from '@management-api/routes/users.js';
+import { workersRouter } from '@management-api/routes/workers.js';
 import { isLogLevelDebug } from '@podverse/helpers';
+import { getObservabilityHttpMiddleware } from '@podverse/observability';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -49,7 +54,11 @@ app.use(cookieParser());
 
 app.use(initializePassport());
 
+app.use(getObservabilityHttpMiddleware());
+
 const baseUrl = `${config.api.prefix}${config.api.version}`;
+
+bootstrapManagementApiExtensions(app);
 
 // --- Unversioned GET /
 // Informal dev ping only (not for K8s probes — use versioned /health).
@@ -63,6 +72,7 @@ app.get(`${baseUrl}/meta`, (_req: Request, res: Response) => {
 });
 
 registerHealthRoutes(app, baseUrl);
+registerSwaggerDocs(app, baseUrl);
 
 app.get(`${baseUrl}/`, (_req: Request, res: Response) => {
   res.send(`${config.brandName} Management API is running on port ${port}`);
@@ -79,10 +89,12 @@ app.use(storageRouter);
 app.use(usersRouter);
 app.use(workersRouter);
 
+registerExtensionRoutes(app, baseUrl);
+
 // --- Error handler
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   if (isLogLevelDebug(config.log.level)) {
-    console.error('API Router Error:', err);
+    loggerService.logError('API Router Error', err);
   }
 
   if (!res.headersSent) {
@@ -93,15 +105,12 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 export const startApp = async (): Promise<import('http').Server | undefined> => {
   try {
     const server = app.listen(port, () => {
-      // eslint-disable-next-line no-console
-      console.log(`${config.brandName} Management API is running on port ${port}`);
+      loggerService.info(`${config.brandName} Management API is running on port ${port}`);
     });
 
     return server;
   } catch (error) {
-    if (isLogLevelDebug(config.log.level)) {
-      console.error('API Top Level Router Error:', error);
-    }
+    loggerService.logError('API Top Level Router Error', error as Error);
     return undefined;
   }
 };

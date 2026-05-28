@@ -5,7 +5,7 @@ import styles from './LookupFieldGrid.module.scss';
 
 export type LookupFieldGridProps = HTMLAttributes<HTMLDivElement> & {
   /**
-   * `default` — optional top row of external {@link Label}s plus control row (legacy).
+   * `default` — optional label row above controls (external {@link Label}s plus control row).
    * `inlineEyebrow` — one row; use {@link TextInput} / {@link FormDropdown} `eyebrow` for titles;
    * action column aligns to the bottom of each control so primary buttons line up with inputs.
    */

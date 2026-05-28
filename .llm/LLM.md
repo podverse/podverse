@@ -37,8 +37,3 @@ When a PR merges to `develop`, `.github/workflows/complete-feature.yml` may dete
 folder under `.llm/history/active/<feature-name>/` (derived from the branch name), set completion
 metadata, move it under `.llm/history/completed/YYYY-MM/`, and push. If no folder exists, the job
 no-ops.
-
-## Machine-generated exports
-
-Portable AI-editor bundles under `.llm/exports/` are produced by CI from `.cursor/` (see
-`llm-cursor-source` skill). Do not hand-edit those exports.

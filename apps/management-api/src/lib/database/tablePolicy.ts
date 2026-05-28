@@ -1,4 +1,4 @@
-import type { PermissionResource } from '@mgmt-api/lib/authz/requireCrud.js';
+import type { PermissionResource } from '@management-api/lib/authz/requireCrud.js';
 
 export type TableFieldDefinition = {
   name: string;

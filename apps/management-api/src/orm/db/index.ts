@@ -1,13 +1,14 @@
-import { config } from '@mgmt-api/config/index.js';
-import { AdminAccount } from '@mgmt-api/orm/entities/adminAccount.js';
-import { AdminAccountCredentials } from '@mgmt-api/orm/entities/adminAccountCredentials.js';
-import { AdminAccountPermissions } from '@mgmt-api/orm/entities/adminAccountPermissions.js';
-import { AdminAccountRole } from '@mgmt-api/orm/entities/adminAccountRole.js';
-import { DatabaseAuditLog } from '@mgmt-api/orm/entities/databaseAuditLog.js';
-import { ManagementAdminRole } from '@mgmt-api/orm/entities/managementAdminRole.js';
+import { config } from '@management-api/config/index.js';
+import { AdminAccount } from '@management-api/orm/entities/adminAccount.js';
+import { AdminAccountCredentials } from '@management-api/orm/entities/adminAccountCredentials.js';
+import { AdminAccountPermissions } from '@management-api/orm/entities/adminAccountPermissions.js';
+import { AdminAccountRole } from '@management-api/orm/entities/adminAccountRole.js';
+import { DatabaseAuditLog } from '@management-api/orm/entities/databaseAuditLog.js';
+import { ManagementAdminRole } from '@management-api/orm/entities/managementAdminRole.js';
 import type { DataSourceOptions } from 'typeorm';
 import { DataSource } from 'typeorm';
-import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+
+import { SnakeNamingStrategy } from '@podverse/orm';
 
 const commonConfig: DataSourceOptions = {
   type: 'postgres',

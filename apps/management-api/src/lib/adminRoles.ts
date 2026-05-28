@@ -1,14 +1,14 @@
-import { getParam } from '@mgmt-api/lib/params.js';
-import type { ManagementAdminRole } from '@mgmt-api/orm/entities/managementAdminRole.js';
+import { getParam } from '@management-api/lib/params.js';
+import type { ManagementAdminRole } from '@management-api/orm/entities/managementAdminRole.js';
 import {
   type CreateManagementAdminRoleData,
   ManagementAdminRoleService,
   type UpdateManagementAdminRoleData,
-} from '@mgmt-api/orm/services/managementAdminRole.js';
+} from '@management-api/orm/services/managementAdminRole.js';
 import {
   createManagementAdminRoleSchema,
   updateManagementAdminRoleSchema,
-} from '@mgmt-api/schemas/managementAdminRoles.js';
+} from '@management-api/schemas/managementAdminRoles.js';
 import type { Request, Response } from 'express';
 
 import {

@@ -5,7 +5,7 @@
 #   infra/k8s/base/db/source/bootstrap/0003a_app_linear_baseline.sql.gz
 #   infra/k8s/base/db/source/bootstrap/0003b_management_linear_baseline.sql.gz
 # Pass a directory as the first argument to write both files there (for verify-linear-baseline.sh).
-# Pass a path ending in .sql for uncompressed combined debug output (legacy).
+# Pass a path ending in .sql for uncompressed combined debug output.
 # Do not edit 0003a/0003b manually; re-run this script or `make db_regen_linear_baseline` after migration changes.
 #
 # Requires: docker, gzip (when writing .gz), a POSIX shell
@@ -215,7 +215,7 @@ for f in "$APP_DUMP" "$MGT_DUMP"; do
 done
 
 {
-  printf '%s\n' "-- GENERATED FILE (do not edit) — see scripts/database/generate-linear-baseline.sh and docs/operations/LINEAR-MIGRATIONS.md" ""
+  printf '%s\n' "-- GENERATED FILE (do not edit) — see scripts/database/generate-linear-baseline.sh and docs/operations/database/LINEAR-MIGRATIONS.md" ""
   printf '%s\n' "-- App database baseline (schema + migration-materialized data; applied as DB_APP_MIGRATOR_USER)." ""
   printf '%s\n' "-- linear_migration_history data is appended deterministically from migration filenames + checksums." ""
   cat "$APP_DUMP"
@@ -224,7 +224,7 @@ done
 append_history_seed_block "App database" "$APP_MIGRATIONS_DIR" "$TMP_APP_SQL"
 
 {
-  printf '%s\n' "-- GENERATED FILE (do not edit) — see scripts/database/generate-linear-baseline.sh and docs/operations/LINEAR-MIGRATIONS.md" ""
+  printf '%s\n' "-- GENERATED FILE (do not edit) — see scripts/database/generate-linear-baseline.sh and docs/operations/database/LINEAR-MIGRATIONS.md" ""
   printf '%s\n' "-- Management database baseline (schema + migration-materialized data; applied as DB_MANAGEMENT_MIGRATOR_USER)." ""
   printf '%s\n' "-- linear_migration_history data is appended deterministically from migration filenames + checksums." ""
   cat "$MGT_DUMP"

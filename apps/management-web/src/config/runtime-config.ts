@@ -1,3 +1,5 @@
+import type { IntegrationsWebConfig } from '@podverse/integrations-web/config';
+
 export type ManagementWebRuntimeConfigEnvKey =
   | 'NEXT_PUBLIC_API_HOST'
   | 'NEXT_PUBLIC_API_PORT'
@@ -57,4 +59,5 @@ export type ManagementWebRuntimeConfigValues = {
 
 export type ManagementWebRuntimeConfig = {
   env: ManagementWebRuntimeConfigValues;
+  integrations: IntegrationsWebConfig;
 };

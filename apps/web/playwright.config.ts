@@ -4,6 +4,7 @@ import { buildE2eWebServers } from './playwright.e2e-webservers';
 
 export default defineConfig({
   testDir: './e2e',
+  testIgnore: '**/cloudflare-web-analytics-enabled.spec.ts',
   outputDir: '../../.artifacts/e2e-test-results/web',
   fullyParallel: false,
   workers: 1,

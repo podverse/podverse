@@ -25,6 +25,11 @@ export type ValidationSummary = {
   results: ValidationResult[];
 };
 
+/** True when the env var name denotes a TCP/UDP port (not e.g. OTEL_EXPORTER_*). */
+export function isEnvVarPortName(varName: string): boolean {
+  return varName === 'PORT' || varName.endsWith('_PORT');
+}
+
 /**
  * Validates a required environment variable
  * @param varName - The name of the environment variable to validate
@@ -37,7 +42,7 @@ export function validateRequired(varName: string, category: string): ValidationR
     value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
 
   // Additional validation for numeric values
-  if (isSet && (varName.includes('PORT') || varName.endsWith('_EXPIRATION'))) {
+  if (isSet && (isEnvVarPortName(varName) || varName.endsWith('_EXPIRATION'))) {
     const numValue = Number(value);
     if (isNaN(numValue) || numValue <= 0) {
       return {
@@ -95,7 +100,7 @@ export function validateOptional(
   const isSet = value !== '';
 
   // Additional validation for numeric values if set
-  if (isSet && (varName.includes('PORT') || varName.endsWith('_EXPIRATION'))) {
+  if (isSet && (isEnvVarPortName(varName) || varName.endsWith('_EXPIRATION'))) {
     const numValue = Number(value);
     if (isNaN(numValue) || numValue <= 0) {
       return {
@@ -173,7 +178,7 @@ export function validateConditionalOptional(
   }
 
   // Additional validation for numeric values if set
-  if (varName.includes('PORT') || varName.endsWith('_EXPIRATION')) {
+  if (isEnvVarPortName(varName) || varName.endsWith('_EXPIRATION')) {
     const numValue = Number(value);
     if (isNaN(numValue) || numValue <= 0) {
       return {
@@ -211,6 +216,10 @@ export function getAllAvailableOrListMessage(validValues: string[]): string {
  * This is intended for modules (not apps) that should not show validation output unless there are errors.
  * @param summary - The validation summary to display
  */
+export function isPodverseStartupValidationSilent(): boolean {
+  return process.env.PODVERSE_STARTUP_VALIDATION_SILENT === '1';
+}
+
 export function displayValidationResultsSilent(summary: ValidationSummary): void {
   // Only log if there are failures
   if (summary.failed === 0 && summary.requiredMissing === 0) {

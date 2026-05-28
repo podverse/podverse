@@ -99,6 +99,8 @@ spec:
                 optional: true
             - configMapRef:
                 name: podverse-product-membership-config
+            - configMapRef:
+                name: podverse-extensions-config
           volumeMounts:
             - name: logs-volume
               mountPath: /logs

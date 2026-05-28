@@ -1,5 +1,5 @@
-import { AppDataSourceRead, AppDataSourceReadWrite } from '@mgmt-api/orm/db/index.js';
-import { ManagementAdminRole } from '@mgmt-api/orm/entities/managementAdminRole.js';
+import { AppDataSourceRead, AppDataSourceReadWrite } from '@management-api/orm/db/index.js';
+import { ManagementAdminRole } from '@management-api/orm/entities/managementAdminRole.js';
 import type { Repository } from 'typeorm';
 
 export type CreateManagementAdminRoleData = {

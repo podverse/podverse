@@ -10,8 +10,12 @@ import { AccountSettingsLocale } from '@orm/entities/account/accountSettings/acc
 import { AccountSettingsNotification } from '@orm/entities/account/accountSettings/accountSettingsNotification.js';
 import { AccountSettingsNotificationType } from '@orm/entities/account/accountSettings/accountSettingsNotificationType.js';
 import { SharableStatus } from '@orm/entities/sharableStatus.js';
+import {
+  findOptionsRelationsFromPaths,
+  mergeFindOptionsRelations,
+} from '@orm/lib/findOptionsRelationsFromPaths.js';
 import { hashPassword } from '@orm/lib/password.js';
-import type { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
+import type { FindManyOptions, FindOneOptions, FindOptionsRelations, Repository } from 'typeorm';
 import { In, IsNull, Not } from 'typeorm';
 
 import {
@@ -44,12 +48,12 @@ type UpdateAccountDto = {
   locale: string;
 };
 
-const requiredRelations = [
+const requiredRelations: FindOptionsRelations<Account> = findOptionsRelationsFromPaths([
   'account_settings',
   'account_settings.account_settings_locale',
   'account_settings.account_settings_notification',
   'account_settings.account_settings_notification.account_settings_notification_types',
-];
+]);
 
 export class AccountService {
   protected repositoryRead: Repository<Account>;
@@ -65,16 +69,11 @@ export class AccountService {
       return null;
     }
 
-    let mergedRelations: string[];
-    if (config?.relations && Array.isArray(config.relations)) {
-      mergedRelations = Array.from(new Set([...config.relations, ...requiredRelations]));
-    } else {
-      mergedRelations = requiredRelations;
-    }
+    const mergedRelations = mergeFindOptionsRelations(requiredRelations, config?.relations);
 
     const account = await this.repositoryRead.findOne({
-      where: { id },
       ...(config || {}),
+      where: { id },
       relations: mergedRelations,
     });
     if (!account) {
@@ -242,7 +241,9 @@ export class AccountService {
   async update(account_id: number, dto: UpdateAccountDto): Promise<Account | null> {
     const account = await this.repositoryReadWrite.findOne({
       where: { id: account_id },
-      relations: ['sharable_status'],
+      relations: {
+        sharable_status: true,
+      },
     });
 
     if (!account) {
@@ -271,7 +272,9 @@ export class AccountService {
     // Always update locale
     const accountSettings = await AppDataSourceReadWrite.getRepository(AccountSettings).findOne({
       where: { account_id },
-      relations: ['account_settings_locale'],
+      relations: {
+        account_settings_locale: true,
+      },
     });
 
     if (accountSettings?.account_settings_locale) {
@@ -282,7 +285,10 @@ export class AccountService {
 
     return this.repositoryReadWrite.findOne({
       where: { id: account_id },
-      relations: ['account_profile', 'sharable_status'],
+      relations: {
+        account_profile: true,
+        sharable_status: true,
+      },
     });
   }
 

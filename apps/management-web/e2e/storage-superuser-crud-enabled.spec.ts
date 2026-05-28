@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
+import { capturePageLoad } from './helpers/stepScreenshots';
+
 /**
  * E2E seed: superuser e2e-superadmin@example.com / Test!1Aa
  * List/detail calls from the browser are mocked so table chrome is deterministic.
@@ -68,7 +70,7 @@ function mockStorageListRoutes(page: Page) {
 test.describe('Management-web object storage for the superuser', () => {
   test('when storage is enabled, the list uses shared table chrome: prefix filter, bulk bar, and cursor pagination', async ({
     page,
-  }) => {
+  }, testInfo) => {
     test.setTimeout(45_000);
 
     await mockStorageListRoutes(page);
@@ -96,14 +98,35 @@ test.describe('Management-web object storage for the superuser', () => {
     await page.getByRole('button', { name: 'Clear selection' }).click();
     await expect(page.getByText('1 object selected')).not.toBeVisible();
 
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The object storage list shows prefix filter, bulk selection bar, and first page rows.',
+      page.getByRole('cell', { name: 'e2e-fixture/object-one.bin', exact: true })
+    );
+
     await page.getByRole('button', { name: 'Next »' }).click();
     await expect(
       page.getByRole('cell', { name: 'e2e-fixture/object-two.bin', exact: true })
     ).toBeVisible();
 
+    await capturePageLoad(
+      page,
+      testInfo,
+      'Cursor pagination shows the second page of object storage results.',
+      page.getByRole('cell', { name: 'e2e-fixture/object-two.bin', exact: true })
+    );
+
     await page.getByRole('button', { name: '« Previous' }).click();
     await expect(
       page.getByRole('cell', { name: 'e2e-fixture/object-one.bin', exact: true })
     ).toBeVisible();
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'Previous pagination returns to the first page of object storage results.',
+      page.getByRole('cell', { name: 'e2e-fixture/object-one.bin', exact: true })
+    );
   });
 });

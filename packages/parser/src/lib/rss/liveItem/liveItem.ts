@@ -105,7 +105,7 @@ export const handleParsedLiveItems = async (
   const itemService = new ItemService();
   const liveItemService = new LiveItemService();
   const existingLiveItems = await liveItemService.getManyByChannel(channel, {
-    relations: ['item', 'live_item_status'],
+    relations: { item: true, live_item_status: true },
   });
   const existingLiveItemMap: Map<string, LiveItem> = new Map(
     existingLiveItems

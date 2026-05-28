@@ -171,12 +171,14 @@ const handleRemoteItemsItemValueTimeSplitParsing = async (
   if (channel.has_value_time_splits) {
     const itemService = new ItemService();
     const items = await itemService.getManyByChannel(channel, {
-      relations: [
-        'item_values',
-        'item_values.item_value_time_splits',
-        'item_values.item_value_time_splits.item_value_time_split_recipients',
-        'item_values.item_value_time_splits.item_value_time_split_remote_item',
-      ],
+      relations: {
+        item_values: {
+          item_value_time_splits: {
+            item_value_time_split_recipients: true,
+            item_value_time_split_remote_item: true,
+          },
+        },
+      },
     });
     const results: RemoteItemsQueueMessage[] = [];
     for (const item of items) {

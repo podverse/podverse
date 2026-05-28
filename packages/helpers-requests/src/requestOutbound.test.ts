@@ -74,4 +74,28 @@ describe('requestForOutbound', () => {
       maxBodyLength: 7777,
     });
   });
+
+  it('injects traceparent when observability is initialized with an active span', async () => {
+    const { initObservability, shutdownObservability } = await import('@podverse/observability');
+    const { context, trace } = await import('@opentelemetry/api');
+
+    initObservability({
+      serviceName: 'podverse-test',
+      tracesExport: 'none',
+    });
+
+    const tracer = trace.getTracer('test');
+    const span = tracer.startSpan('outbound-test');
+    const activeContext = trace.setSpan(context.active(), span);
+
+    await context.with(activeContext, async () => {
+      await requestForOutbound('http://1.1.1.1/feed.xml');
+    });
+    span.end();
+    await shutdownObservability();
+
+    const cfg = vi.mocked(axios.request).mock.calls[0]?.[0];
+    const headers = cfg?.headers as Record<string, string> | undefined;
+    expect(headers?.traceparent).toMatch(/^00-[0-9a-f]{32}-[0-9a-f]{16}-0[1-9a-f]$/);
+  });
 });

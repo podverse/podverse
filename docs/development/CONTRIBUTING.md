@@ -109,6 +109,18 @@ The CI workflow runs:
 - Type checking
 - Package builds
 - App builds
+- OpenAPI validation/lint/bundle checks when OpenAPI-related files change (`.github/workflows/openapi-validate.yml`)
+
+### OpenAPI Evidence Merge Blocker
+
+For any PR that changes API route behavior, auth semantics, validators, or request/response contracts, missing OpenAPI evidence is a merge blocker.
+
+Required evidence in PR description:
+
+- `./scripts/nix/with-env npm run openapi:check` result summary
+- changed route parity mapping (source route -> OpenAPI path/method -> operationId)
+- explicit 401 vs 403 notes for changed protected endpoints
+- explicit justification when route behavior changed but no spec edits were required
 
 ## PR Checklist
 
@@ -120,6 +132,7 @@ Before submitting a PR:
 - [ ] Commit messages reference issues
 - [ ] PR description explains the change
 - [ ] Documentation updated if needed
+- [ ] For API route or contract changes, OpenAPI sync evidence is included (see `docs/development/OPENAPI-PR-CHECKLIST.md`)
 
 ## Release/Deployment Process
 

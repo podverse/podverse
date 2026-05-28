@@ -34,7 +34,7 @@ export class ItemSoundbiteController {
         const itemSoundbite = await ItemSoundbiteController.itemSoundbiteService.getByIdText(
           item_soundbite_id_text,
           {
-            relations: ['item'],
+            relations: { item: true },
           }
         );
         if (itemSoundbite) {
@@ -80,12 +80,12 @@ export class ItemSoundbiteController {
               order,
               skip: offset,
               take: limit,
-              relations: [
-                'item',
-                'item.item_enclosures',
-                'item.item_enclosures.item_enclosure_sources',
-                'item.item_images',
-              ],
+              relations: {
+                item: {
+                  item_enclosures: { item_enclosure_sources: true },
+                  item_images: true,
+                },
+              },
             });
 
           const response: ApiListResponse<ItemSoundbite> = {
@@ -131,12 +131,12 @@ export class ItemSoundbiteController {
               order,
               skip: offset,
               take: limit,
-              relations: [
-                'item',
-                'item.item_enclosures',
-                'item.item_enclosures.item_enclosure_sources',
-                'item.item_images',
-              ],
+              relations: {
+                item: {
+                  item_enclosures: { item_enclosure_sources: true },
+                  item_images: true,
+                },
+              },
             });
 
           const response: ApiListResponse<ItemSoundbite> = {

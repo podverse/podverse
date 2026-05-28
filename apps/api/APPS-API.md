@@ -88,6 +88,9 @@ make local_test_api
 
 The API exposes endpoints at `{host}:{port}/api/v2/`:
 
+- OpenAPI UI: `/api/v2/docs`
+- OpenAPI YAML: `/api/v2/docs.yaml`
+
 - `/auth/*` - Authentication
 - `/user/*` - User management
 - `/podcast/*` - Podcast data

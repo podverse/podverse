@@ -4,9 +4,9 @@ This document provides rules and patterns for AI coding assistants working on th
 
 ### LLM / editor guidance (read early)
 
-Authoritative AI rules and skills: **`.cursor/`**, **`.cursorrules`**. **Styles / design tokens** (SCSS, themes): [`.cursor/skills/styles-source-of-truth/SKILL.md`](.cursor/skills/styles-source-of-truth/SKILL.md). **Machine-generated** output: [`.llm/exports/`](.llm/exports/) (portable; gitignored; produced and published by the **`llm-exports-sync`** / **`llm-exports-full`** Actions — not by default local `npm` runs). `LLM_EXPORT_ALLOW_LOCAL=1` is only for [scripts/llm/](scripts/llm/) development; see [docs/development/llm/DOCS-DEVELOPMENT-LLM.md](docs/development/llm/DOCS-DEVELOPMENT-LLM.md) and [`llm-cursor-source`](.cursor/skills/llm-cursor-source/SKILL.md). If you use a non-Cursor LLM, start from those exports, then the alignment prompt if needed: [docs/development/llm/LLM-EDITOR-ALIGNMENT-PROMPT.md](docs/development/llm/LLM-EDITOR-ALIGNMENT-PROMPT.md). Full policy, **`llm` label**, and `gh` setup: [docs/development/llm/DOCS-DEVELOPMENT-LLM.md](docs/development/llm/DOCS-DEVELOPMENT-LLM.md) and [docs/development/llm/GH-EXPORTS-SETUP.md](docs/development/llm/GH-EXPORTS-SETUP.md).
+Authoritative AI rules and skills: **`.cursor/`**, **`.cursorrules`**. **Styles / design tokens** (SCSS, themes): [`.cursor/skills/styles-source-of-truth/SKILL.md`](.cursor/skills/styles-source-of-truth/SKILL.md). Contributor policy and plans: [docs/development/llm/DOCS-DEVELOPMENT-LLM.md](docs/development/llm/DOCS-DEVELOPMENT-LLM.md) and [`llm-cursor-source`](.cursor/skills/llm-cursor-source/SKILL.md).
 
-**Linear SQL migrations and generated `0003a_` / `0003b_`:** Authoritative forward-only files live under `infra/k8s/base/ops/source/database/linear-migrations/`. The init snapshots `0003a_app_linear_baseline.sql.gz` and `0003b_management_linear_baseline.sql.gz` are **generated** (plus hand-maintained `0003_apply_linear_baselines.sh`) and include deterministic `linear_migration_history` seed rows — do not hand-edit the gz files; after SQL changes run `make db_regen_linear_baseline` (regenerates both archives), commit them, and use **`/test` on a PR** so the workflow re-verifies. See [docs/operations/LINEAR-MIGRATIONS.md](docs/operations/LINEAR-MIGRATIONS.md) and [`.cursor/rules/linear-baseline-0003.mdc`](.cursor/rules/linear-baseline-0003.mdc).
+**Linear SQL migrations and generated `0003a_` / `0003b_`:** Authoritative forward-only files live under `infra/k8s/base/ops/source/database/linear-migrations/`. The init snapshots `0003a_app_linear_baseline.sql.gz` and `0003b_management_linear_baseline.sql.gz` are **generated** (plus hand-maintained `0003_apply_linear_baselines.sh`) and include deterministic `linear_migration_history` seed rows — do not hand-edit the gz files; after SQL changes run `make db_regen_linear_baseline` (regenerates both archives), commit them, and use **`/test` on a PR** so the workflow re-verifies. See [docs/operations/database/LINEAR-MIGRATIONS.md](docs/operations/database/LINEAR-MIGRATIONS.md) and [`.cursor/rules/linear-baseline-0003.mdc`](.cursor/rules/linear-baseline-0003.mdc).
 
 ## Quick Reference
 
@@ -172,6 +172,9 @@ apps/               # Deployable applications
   workers/          # Background job processors
   management-api/   # Admin API
   management-web/   # Admin dashboard
+
+extensions/         # Optional extension sidecar images (operator-selected)
+  prometheus/       # @podverse/extension-prometheus — OTLP + Prometheus scrape
 ```
 
 ### Where to Find Things
@@ -187,6 +190,7 @@ apps/               # Deployable applications
 | Environment templates      | `infra/config/env-templates/` (app stubs link to `apps/*/.env.example`)          |
 | Workers startup validation | `apps/workers/src/lib/startup/validation.ts` (see [ENV.md](apps/workers/ENV.md)) |
 | K8s manifests              | `infra/k8s/`                                                                     |
+| Extension sidecar source   | `extensions/<id>/` (K8s wiring: `infra/k8s/base/extensions/`)                    |
 | Jenkins pipelines          | `infra/pipelines/jenkins/`                                                       |
 | GitHub Actions             | `.github/workflows/`                                                             |
 
@@ -288,6 +292,7 @@ When implementing features or executing plans that touch **api** or **management
 
 ### Test infrastructure
 
+- **Test env (no `local_env_setup`)** — API integration tests and Playwright E2E use deterministic env from [`packages/helpers-config/src/podverseTestEnv.ts`](packages/helpers-config/src/podverseTestEnv.ts). E2E servers set `PODVERSE_SKIP_DOTENV=true` so missing `apps/api/.env` does not fail startup. **`make local_env_setup` is for local dev only**, not required for `make test_deps`, `npm run test:e2e:api`, or `make e2e_test_*`.
 - **`make test_deps`** — starts Postgres (port **5732**), Valkey (port **6679**), creates test DBs (`podverse_app_test`, `podverse_management_test`), applies schema. Port coexistence: Podverse dev uses 5432/6379; the dedicated test ports avoid clashing with those and with other local toolchains that may use different test ports.
 - **`scripts/check-test-requirements.mjs`** — TCP check for 5732/6679; exits with instructions if unreachable.
 - **`make help_test`** — prints test ports, container names, and instructions.
@@ -295,13 +300,13 @@ When implementing features or executing plans that touch **api** or **management
 
 ### API integration tests
 
-- `apps/api/src/test/setup.ts` sets smart-default env (ports 5732/6679, test DB names).
-- `apps/management-api/vitest.setup.ts` sets management-api test env.
+- Vitest applies `buildPodverseApiTestEnv` / `buildPodverseManagementApiTestEnv` from `@podverse/helpers-config` (see `apps/api/src/test/setup.ts`, `apps/management-api/vitest.setup.ts`).
 - Run: `npm run test:e2e:api` (or `npm run test -w apps/api` for api only).
 
 ### E2E (Playwright)
 
 - Web ports: API 4030, sidecar 4031, web 4032. Management-web ports: 4130, 4131, 4132.
+- Playwright-spawned API processes use the `apiWebE2e` / `managementApiE2e` profiles from `podverseTestEnv.ts` (not dev `.env` files).
 - Seed data: `make e2e_seed` (deterministic test users).
 - Reports: `make e2e_test_report` produces HTML with step screenshots in `.artifacts/e2e-reports/`.
 - Apps must be built before E2E: `npm run build:packages && npm run build -w apps/api && npm run build -w apps/management-api`.

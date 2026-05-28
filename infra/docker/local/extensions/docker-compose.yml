@@ -1,0 +1,27 @@
+# Optional extension sidecars (Compose profiles). Does not start with make local_infra_up.
+# See infra/docker/local/extensions/README.md and docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md
+networks:
+  podverse_local_network:
+    external: true
+
+services:
+  podverse_local_extension_prometheus:
+    profiles:
+      - extensions
+      - extensions-prometheus
+    image: podverse-extension-prometheus:latest
+    container_name: podverse_local_extension_prometheus
+    build:
+      context: ../../../..
+      dockerfile: infra/docker/local/extensions/prometheus/Dockerfile
+    ports:
+      - "127.0.0.1:9464:9464"
+      - "127.0.0.1:4318:4318"
+    env_file:
+      - ../../../config/local/extensions.env
+      - ../../../config/local/extension-sidecar-otel.env
+      - ../../../config/local/extension-prometheus.env
+    networks:
+      podverse_local_network:
+        aliases:
+          - podverse_local_extension_prometheus

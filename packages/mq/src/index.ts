@@ -10,5 +10,10 @@ export { mqRSSRunLiveItemListener } from './functions/mq/rss/runLiveItemListener
 
 export { ActiveMQArtemisService } from './services/activeMQArtemis/index.js';
 export type { ActiveMQArtemisServiceParams } from './services/activeMQArtemis/index.js';
-export type { MQAddByRSSMessage, MQImageShrinkHintMessage } from './types/mq.js';
+export {
+  attachMqTraceContext,
+  getMqTraceContextFromMessage,
+  withMqConsumerSpan,
+} from './lib/traceEnvelope.js';
+export type { MQAddByRSSMessage, MQImageShrinkHintMessage, MQTraceContext } from './types/mq.js';
 export { createActiveMQShutdown } from './services/activeMQArtemis/shutdown.js';

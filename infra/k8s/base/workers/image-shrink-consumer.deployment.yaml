@@ -70,6 +70,8 @@ spec:
                 optional: true
             - secretRef:
                 name: podverse-workers-storage-bucket-opaque
+            - configMapRef:
+                name: podverse-extensions-config
           volumeMounts:
             - name: logs-volume
               mountPath: /logs
