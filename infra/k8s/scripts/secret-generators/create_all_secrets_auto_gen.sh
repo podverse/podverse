@@ -36,6 +36,7 @@ AUTO_GEN_SCRIPTS=(
 MANUAL_SCRIPTS=(
 	"create_api.podcastindex.org_secret.sh  (requires Podcast Index API keys)"
 	"create_cloudflare_api_token_secret.sh  (requires Cloudflare DNS token; used by cert-manager DNS01)"
+	"create_grafana_admin_secret.sh        (Grafana UI admin; Secret grafana-admin in namespace grafana; GitOps observability)"
 	"create_cloudflared_tunnel_secret.sh    (requires Cloudflare Tunnel token; Secret cloudflared-tunnel-secret in external-infra)"
 	"create_firebase_secret.sh              (requires firebase-key.json file)"
 	"create_workers_storage_bucket_secret.sh (requires S3-compatible access/secret keys; Secret podverse-workers-storage-bucket-opaque; see docs/image-shrinking/BUCKET-PROVIDERS.md)"

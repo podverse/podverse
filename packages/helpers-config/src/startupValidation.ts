@@ -25,6 +25,11 @@ export type ValidationSummary = {
   results: ValidationResult[];
 };
 
+/** True when the env var name denotes a TCP/UDP port (not e.g. OTEL_EXPORTER_*). */
+export function isEnvVarPortName(varName: string): boolean {
+  return varName === 'PORT' || varName.endsWith('_PORT');
+}
+
 /**
  * Validates a required environment variable
  * @param varName - The name of the environment variable to validate
@@ -37,7 +42,7 @@ export function validateRequired(varName: string, category: string): ValidationR
     value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
 
   // Additional validation for numeric values
-  if (isSet && (varName.includes('PORT') || varName.endsWith('_EXPIRATION'))) {
+  if (isSet && (isEnvVarPortName(varName) || varName.endsWith('_EXPIRATION'))) {
     const numValue = Number(value);
     if (isNaN(numValue) || numValue <= 0) {
       return {
@@ -95,7 +100,7 @@ export function validateOptional(
   const isSet = value !== '';
 
   // Additional validation for numeric values if set
-  if (isSet && (varName.includes('PORT') || varName.endsWith('_EXPIRATION'))) {
+  if (isSet && (isEnvVarPortName(varName) || varName.endsWith('_EXPIRATION'))) {
     const numValue = Number(value);
     if (isNaN(numValue) || numValue <= 0) {
       return {
@@ -173,7 +178,7 @@ export function validateConditionalOptional(
   }
 
   // Additional validation for numeric values if set
-  if (varName.includes('PORT') || varName.endsWith('_EXPIRATION')) {
+  if (isEnvVarPortName(varName) || varName.endsWith('_EXPIRATION')) {
     const numValue = Number(value);
     if (isNaN(numValue) || numValue <= 0) {
       return {
