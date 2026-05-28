@@ -42,7 +42,9 @@ not a single enum. The matrix uses these labels:
 Decision precedence inside the `loadedmetadata` handler (in
 [`NonLiveMediaOrchestrator.tsx`](./Controller/NonLiveMediaOrchestrator.tsx)
 lines 390–422): clip > soundbite > chapter > item, then within item,
-music forces 0 while podcast/video reads the abridged-index `p`.
+podcast/video read the abridged-index `p`; music uses intent-specific
+policy (`session_restore` resumes snapshot; `explicit_play` /
+`fresh_transition` force `0`).
 
 ## Triggers
 
@@ -72,7 +74,7 @@ Notation: `p` = abridged stored position seconds (`queueResourcesAbridgedIndex.i
 | **chapter (with `shouldSeek`)** | `Number(mpItemChapter.start_time)` (set by `playWhenReady` effect when chapter changes); `loadedmetadata` then re-applies chapter start because `mpItemChapterRef.current` is set | controller follows `mpShouldPlay`                                                                          | `setMPItemChapterShouldSeek(false)`; `updateNowPlaying`; `globalPauseAtTime = null` if `mpItemChapter.end_time`                                                                                                                                      |
 | **item-podcast**                | `p` if `p > 0` else `0`; near-end `p >= d - 5` clamps `mpCurrentTime` to `0` at update-time in `useMediaPlayerResourceUpdate` (see **§ near-end clamp**)                          | follows `mpShouldPlay`                                                                                     | `updateNowPlaying`; `trackStatsChannel`; `trackStatsItem` (skipped if no logged-in account or add-by-RSS)                                                                                                                                            |
 | **item-video**                  | Same as item-podcast                                                                                                                                                              | follows `mpShouldPlay`                                                                                     | Same as item-podcast plus floating-portal video wrapper rendering                                                                                                                                                                                    |
-| **item-music**                  | **`0` always**, regardless of `p` (forced in both `useMediaPlayerResourceUpdate` and `handleLoadedMetadata`)                                                                      | follows `mpShouldPlay`                                                                                     | `updateNowPlaying`; track stats item/channel                                                                                                                                                                                                         |
+| **item-music**                  | **`0` for `explicit_play` / `fresh_transition`** (`p` ignored); **`session_restore`** uses snapshot + near-end clamp via `resolvePlaybackLoadDecision`                            | follows `mpShouldPlay`                                                                                     | `updateNowPlaying`; track stats item/channel                                                                                                                                                                                                         |
 | **add-by-RSS**                  | If `addByRSSSeekToTime !== null` and `>= 0`: that value (applied on `loadedmetadata` once or directly if `readyState >= 1`); otherwise `0`                                        | follows `mpShouldPlay`; stats tracking is **skipped** for add-by-RSS (see `if (!loggedInAccountRef.current |                                                                                                                                                                                                                                                      | mpAddByRSSRef.current) return`) | `onAddByRSSPositionSave` is called from `play`, `pause`, and every 15s of accumulated playback in `timeupdate` |
 | **livestream**                  | See **§ 6a** appendix (video.js owns position; `currentTime` typically meaningless)                                                                                               | video.js autoplay = true; player typically renders playing                                                 | See § 6a                                                                                                                                                                                                                                             |
 
@@ -86,14 +88,13 @@ in [`AnonymousPlaybackRestoreController.tsx`](../../components/Queue/AnonymousPl
 | `clip`                 | `Number(mpClip.start_time)` — the **clip start**, _not_ the snapshot position (because clip precedence overrides item-level data in `handleLoadedMetadata`) | `false` (snapshot restore never auto-plays; `shouldPlay` is not passed) | `mediaPlayerResourceUpdate({ ..., mpCurrentTime: snapshot.playback_position_seconds, mpDuration: snapshot.media_file_duration_seconds })`; `autoQueueShouldClear: true` |
 | `item_soundbite`       | `Number(mpItemSoundbite.start_time)` — same precedence as above                                                                                             | `false`                                                                 | Soundbite end-time + 1 still pauses if snapshot position is past it                                                                                                     |
 | `item` (podcast/video) | `snapshot.playback_position_seconds` once `loadedmetadata` fires (via abridged `p`)                                                                         | `false`                                                                 | Snapshot drives both `mpCurrentTime` and `mpDuration` so the UI shows the saved position immediately, before media metadata loads                                       |
-| `item` (music)         | **`0`** (music kind always forces 0; see § near-end clamp)                                                                                                  | `false`                                                                 | Music never resumes mid-track on restore                                                                                                                                |
+| `item` (music)         | `snapshot.playback_position_seconds` (near-end clamp via `mediaFileDurationHintSeconds` / abridged `d`; explicit `0` does not fall back to `p`)             | `false`                                                                 | `item-music` + `session_restore`; same resume model as podcast snapshot                                                                                                 |
 | **logged in**          | Restore is **skipped** entirely; snapshot is cleared by the login effect                                                                                    | n/a                                                                     | `clearAnonymousPlaybackSnapshot()` is called                                                                                                                            |
 
-> ⚠️ **Known inconsistency** to capture as a regression case: when the
-> snapshot is a `clip`, the controller seeks to the **clip start** on
-> `loadedmetadata`, ignoring `snapshot.playback_position_seconds`. The
-> Phase 2 plan will decide whether to preserve or fix this; this matrix
-> documents current behavior.
+> **Clip / soundbite anonymous restore (by design):** when the snapshot is a
+> `clip` or `item_soundbite`, the controller seeks to **segment start** on
+> `loadedmetadata`, not `snapshot.playback_position_seconds`. Clips and
+> soundbites are short segments; resume is anchored at the segment boundary.
 
 ### 3. Queue load (manual queue)
 
@@ -101,12 +102,12 @@ in [`AnonymousPlaybackRestoreController.tsx`](../../components/Queue/AnonymousPl
 `MediaPlayerController` (`handleLoadQueueItem` / Clip / Soundbite /
 AddByRSS). **`autoQueueShouldClear: true`** in every path.
 
-| Resource shape                                         | `currentTime` after `loadedmetadata`                                 | `mpIsPlaying`                                                            | Side effects                                                                                                                                        |
-| ------------------------------------------------------ | -------------------------------------------------------------------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `nextResource.item` only (no clip/soundbite)           | item-podcast/video: `p` or `0` (item-music: `0`)                     | follows `mpShouldPlay`; queue load does not set `shouldPlay` → unchanged | `setAutoQueueResources({})`, `setAutoQueueActiveRow(0)`; `updateNowPlaying`; move-now-playing-to-history triggered separately by skip-next or ended |
-| `nextResource.clip`                                    | `Number(clip.start_time)`                                            | unchanged                                                                | Clip pause-at-end-time + 1 still active                                                                                                             |
-| `nextResource.item_soundbite`                          | `Number(soundbite.start_time)`                                       | unchanged                                                                | Soundbite pause-at-end-time + 1 still active                                                                                                        |
-| `nextResource.add_by_rss_resource_data` (non-redacted) | If `playback_position` parses to a finite number: that value; else 0 | `mpShouldPlay` set by `usePlayAddByRSS`                                  | `setMPAddByRSS`; reads `playback_position` from queue resource; `is_add_by_rss_redacted` resources are skipped                                      |
+| Resource shape                                         | `currentTime` after `loadedmetadata`                                                                                                                           | `mpIsPlaying`                                                            | Side effects                                                                                                                                           |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `nextResource.item` only (no clip/soundbite)           | item-podcast/video: `p` or `0`; item-music: **`session_restore`** resumes `playback_position` (near-end clamp); **`fresh_transition`** after skip/ended is `0` | follows `mpShouldPlay`; queue load does not set `shouldPlay` → unchanged | `handleLoadQueueItem` defaults music to `session_restore`; `pendingMusicQueueLoadIntentRef` supplies `fresh_transition` before skip/ended `loadActive` |
+| `nextResource.clip`                                    | `Number(clip.start_time)`                                                                                                                                      | unchanged                                                                | Clip pause-at-end-time + 1 still active                                                                                                                |
+| `nextResource.item_soundbite`                          | `Number(soundbite.start_time)`                                                                                                                                 | unchanged                                                                | Soundbite pause-at-end-time + 1 still active                                                                                                           |
+| `nextResource.add_by_rss_resource_data` (non-redacted) | If `playback_position` parses to a finite number: that value; else 0                                                                                           | `mpShouldPlay` set by `usePlayAddByRSS`                                  | `setMPAddByRSS`; reads `playback_position` from queue resource; `is_add_by_rss_redacted` resources are skipped                                         |
 
 ### 4. AutoQueue transition (`autoQueueActiveRow` change)
 
@@ -220,16 +221,20 @@ Phase 2's `MusicItemPlaybackIntent` discriminator names the three music
 playback contexts that already exist in this matrix as prose. The literal
 values map 1:1 to the trigger sections above:
 
-| Intent literal     | Matrix section(s)                                                                           | Expected `currentTime`                                |
-| ------------------ | ------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `session_restore`  | § 2 — Anonymous restore (logged-out, first page load) for `item` (music) row                | `0` always (music never resumes mid-track on restore) |
-| `explicit_play`    | § 1 — Initial load `item-music` row; § 3 — Queue load `item-music` row                      | `0` always (`p` ignored)                              |
-| `fresh_transition` | § 4 — AutoQueue transition (music row); § 5 — Track-ended (music row when next-up is music) | `0` always (`p` ignored)                              |
+| Intent literal     | Matrix section(s)                                                                                       | Expected `currentTime`                                                                                                                   |
+| ------------------ | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `session_restore`  | § 2 — Anonymous restore (`item` music); § 3 — logged-in queue hydration (`handleLoadQueueItem` default) | snapshot / `playback_position` via `resumeSeekFromAbridged` (near-end clamp on explicit and `p`; explicit `0` does not fall back to `p`) |
+| `explicit_play`    | § 1 — User Play from list/detail (`useMediaPlayerResourceUpdate`)                                       | `0` always (`p` ignored)                                                                                                                 |
+| `fresh_transition` | § 4 — AutoQueue transition; § 5 — skip-next / track-ended before `loadActive`                           | `0` always (`p` ignored)                                                                                                                 |
 
-The "music forces 0" rule is invariant across all three intents; the
-discriminator exists so Phase 3+ code can stop conflating these contexts
-when wiring stats, queue side effects, and analytics. No new behavior
-contract is added by naming them.
+Only `session_restore` resumes mid-track. Skip, ended, and auto-queue
+advances set `pendingMusicQueueLoadIntentRef` to `fresh_transition` before
+`queueResourcesLoadActive` so the next music row does not inherit a prior
+track's saved position.
+
+**Playlists:** playlist-driven next/previous uses auto-queue / queue rows;
+no separate playlist intent — same `fresh_transition` vs `session_restore`
+split as § 3–§ 5.
 
 ## Section 6 (REQUIRED) — Livestream / video.js baseline
 

@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { createContext, useCallback, useContext, useState } from 'react';
+import type { ReactNode, RefObject } from 'react';
+import { createContext, useCallback, useContext, useRef, useState } from 'react';
 
 import type {
   AddByRSSResourceData,
@@ -14,7 +14,12 @@ import type {
   PlaybackSpeedValue,
 } from '@podverse/helpers';
 
-import type { PlaybackLoadDecision, PlaybackLoadRequest, PlaybackTarget } from '../lib/playback';
+import type {
+  MusicItemPlaybackIntent,
+  PlaybackLoadDecision,
+  PlaybackLoadRequest,
+  PlaybackTarget,
+} from '../lib/playback';
 import { resolvePlaybackLoadDecision } from '../lib/playback';
 import { useQueueResourcesAbridgedIndex } from './QueueResourcesAbridgedIndex';
 
@@ -73,6 +78,12 @@ type MediaPlayerContextType = {
   setPendingPlaybackDecision: (decision: PlaybackLoadDecision | null) => void;
   /** Resolve and stage a target + decision in a single synchronous call. */
   applyPlaybackLoad: (request: PlaybackLoadRequest) => PlaybackLoadDecision;
+  /**
+   * One-shot override for the next queue-head music load (`handleLoadQueueItem`).
+   * Set to `fresh_transition` before skip/ended-driven `queueResourcesLoadActive`;
+   * otherwise queue hydration defaults to `session_restore`.
+   */
+  pendingMusicQueueLoadIntentRef: RefObject<MusicItemPlaybackIntent | null>;
 };
 
 export const MediaPlayerContext = createContext<MediaPlayerContextType | undefined>(undefined);
@@ -112,6 +123,7 @@ export const MediaPlayerProvider = ({ children }: MediaPlayerProviderProps) => {
   const [activePlaybackTarget, setActivePlaybackTarget] = useState<PlaybackTarget | null>(null);
   const [pendingPlaybackDecision, setPendingPlaybackDecision] =
     useState<PlaybackLoadDecision | null>(null);
+  const pendingMusicQueueLoadIntentRef = useRef<MusicItemPlaybackIntent | null>(null);
 
   const applyPlaybackLoad = useCallback(
     (request: PlaybackLoadRequest): PlaybackLoadDecision => {
@@ -171,6 +183,7 @@ export const MediaPlayerProvider = ({ children }: MediaPlayerProviderProps) => {
         pendingPlaybackDecision,
         setPendingPlaybackDecision,
         applyPlaybackLoad,
+        pendingMusicQueueLoadIntentRef,
       }}
     >
       {children}

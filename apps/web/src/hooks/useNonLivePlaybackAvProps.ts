@@ -84,5 +84,6 @@ export function useNonLivePlaybackAvProps(): Omit<
     onAddByRSSEnded,
     onAddByRSSPlayNext,
     clearNowPlaying,
+    pendingMusicQueueLoadIntentRef: mediaPlayer.pendingMusicQueueLoadIntentRef,
   };
 }

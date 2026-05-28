@@ -81,8 +81,9 @@ async function removeMusicTrackTwoFromQueue(page: Page): Promise<void> {
 /**
  * Matrix cells (see
  * `apps/web/src/components/MediaPlayer/MEDIA-PLAYER-DECISION-MATRIX.md`):
- *   - § 1 "Initial load" — item-music always seeks to 0 regardless of
- *     abridged `p`.
+ *   - § 1 "Initial load" — explicit Play on a track seeks to 0 (`explicit_play`).
+ *   - § 3 "Queue load" — logged-in hydration resume is covered in
+ *     `media-player-music-queue-restore.spec.ts`.
  *   - § 5 "Track-ended" — non add-by-RSS, queue has next →
  *     `setMPShouldPlay(true)` and the next track loads at 0.
  *   - § 4 "AutoQueue transition" — auto-queue does **not** silently resume

@@ -36,6 +36,11 @@ export type MediaElementBridge = {
    * Pass a **negative** value to disarm (clear any armed boundary).
    */
   pauseAt: (seconds: number) => void;
+  /**
+   * Pause immediately and clear any armed `pauseAt` boundary so a later
+   * `timeupdate` does not re-trigger the scheduled stop.
+   */
+  pauseAndDisarmBoundary: () => void;
   setVolume: (volume: number) => void;
   setMuted: (muted: boolean) => void;
   setPlaybackRate: (rate: number) => void;
@@ -80,12 +85,12 @@ export function useMediaElementBridge(
     }
     const onTimeUpdate = () => {
       const t = media.currentTime;
-      optionsRef.current.onTimeUpdate?.(t);
       const stop = pauseAtRef.current;
       if (stop !== null && t >= stop) {
         media.pause();
         pauseAtRef.current = null;
       }
+      optionsRef.current.onTimeUpdate?.(t);
     };
     const onPlay = () => {
       optionsRef.current.onPlay?.();
@@ -229,6 +234,15 @@ export function useMediaElementBridge(
     pauseAtRef.current = seconds < 0 ? null : seconds;
   }, []);
 
+  const pauseAndDisarmBoundary = useCallback(() => {
+    const media = mediaRef.current;
+    if (!media) {
+      return;
+    }
+    pauseAtRef.current = null;
+    media.pause();
+  }, [mediaRef]);
+
   const setVolume = useCallback(
     (volume: number) => {
       const media = mediaRef.current;
@@ -285,6 +299,7 @@ export function useMediaElementBridge(
       seek,
       jumpBy,
       pauseAt,
+      pauseAndDisarmBoundary,
       setVolume,
       setMuted,
       setPlaybackRate,
@@ -300,6 +315,7 @@ export function useMediaElementBridge(
       seek,
       jumpBy,
       pauseAt,
+      pauseAndDisarmBoundary,
       setVolume,
       setMuted,
       setPlaybackRate,

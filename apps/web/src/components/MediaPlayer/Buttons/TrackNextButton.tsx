@@ -10,8 +10,15 @@ import { resolveAddByRSSListContextFromCurrentItem } from '../../../utils/addByR
 import styles from '../../../styles/components/MediaPlayer/Buttons/TrackNextButton.module.scss';
 
 export const TrackNextButton = () => {
-  const { mpItem, mpClip, mpItemSoundbite, setMPShouldPlay, mpIsPlaying, mpAddByRSS } =
-    useMediaPlayer();
+  const {
+    mpItem,
+    mpClip,
+    mpItemSoundbite,
+    pendingMusicQueueLoadIntentRef,
+    setMPShouldPlay,
+    mpIsPlaying,
+    mpAddByRSS,
+  } = useMediaPlayer();
   const { listContext } = useAddByRSSListContext();
   const moveNowPlayingToHistory = useQueueResourcesMoveNowPlayingToHistory();
   const queueResourcesLoadActive = useQueueResourcesLoadActive();
@@ -37,6 +44,7 @@ export const TrackNextButton = () => {
       mpItemSoundbite: mpItemSoundbite,
     });
     setMPShouldPlay(mpIsPlaying);
+    pendingMusicQueueLoadIntentRef.current = 'fresh_transition';
     await queueResourcesLoadActive();
   };
 

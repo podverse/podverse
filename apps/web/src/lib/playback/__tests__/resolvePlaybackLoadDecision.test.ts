@@ -301,7 +301,7 @@ describe('resolvePlaybackLoadDecision', () => {
     });
   });
 
-  it('item-video: explicit playback seconds win over abridged near-end clamp', () => {
+  it('item-video: explicit playback seconds below near-end resume without clamp', () => {
     expect(
       resolvePlaybackLoadDecision(
         {
@@ -317,6 +317,26 @@ describe('resolvePlaybackLoadDecision', () => {
     ).toMatchObject({
       initialSeekSeconds: 42,
       reason: 'item-video-resume',
+    });
+  });
+
+  it('item-video: clamps explicit playback seconds within 5 seconds of duration', () => {
+    expect(
+      resolvePlaybackLoadDecision(
+        {
+          explicitPlaybackSeconds: 96,
+          mediaFileDurationHintSeconds: 100,
+          target: {
+            channel: channel(MediumEnum.Video),
+            item: item(200),
+            kind: 'item-video',
+          },
+        },
+        { abridged: { ...emptyAbridged, items: { 200: { d: '100', p: '30' } } } }
+      )
+    ).toMatchObject({
+      initialSeekSeconds: 0,
+      reason: 'item-video-fresh',
     });
   });
 
@@ -339,7 +359,7 @@ describe('resolvePlaybackLoadDecision', () => {
     });
   });
 
-  it('item-music session_restore: always starts at 0 (ignores abridged row and snapshot explicit seconds)', () => {
+  it('item-music session_restore: uses snapshot explicit seconds over abridged p', () => {
     expect(
       resolvePlaybackLoadDecision(
         {
@@ -355,14 +375,14 @@ describe('resolvePlaybackLoadDecision', () => {
         { abridged: { ...emptyAbridged, items: { 300: { d: '100', p: '30' } } } }
       )
     ).toMatchObject({
-      initialSeekSeconds: 0,
+      initialSeekSeconds: 45,
       reason: 'item-music-session-restore',
       shouldClearAutoQueue: false,
       shouldRecordPlaybackStat: false,
     });
   });
 
-  it('item-music session_restore: still 0 when abridged p is near end', () => {
+  it('item-music session_restore: clamps near-end abridged p to 0', () => {
     expect(
       resolvePlaybackLoadDecision(
         {
@@ -374,6 +394,47 @@ describe('resolvePlaybackLoadDecision', () => {
           },
         },
         { abridged: { ...emptyAbridged, items: { 300: { d: '100', p: '95' } } } }
+      )
+    ).toMatchObject({
+      initialSeekSeconds: 0,
+      reason: 'item-music-session-restore',
+    });
+  });
+
+  it('item-music session_restore: clamps near-end explicit seconds to 0', () => {
+    expect(
+      resolvePlaybackLoadDecision(
+        {
+          explicitPlaybackSeconds: 96,
+          mediaFileDurationHintSeconds: 100,
+          target: {
+            channel: channel(MediumEnum.Music),
+            intent: 'session_restore',
+            item: item(300),
+            kind: 'item-music',
+          },
+        },
+        { abridged: { ...emptyAbridged, items: { 300: { d: '100', p: '30' } } } }
+      )
+    ).toMatchObject({
+      initialSeekSeconds: 0,
+      reason: 'item-music-session-restore',
+    });
+  });
+
+  it('item-music session_restore: explicit 0 does not fall back to abridged p', () => {
+    expect(
+      resolvePlaybackLoadDecision(
+        {
+          explicitPlaybackSeconds: 0,
+          target: {
+            channel: channel(MediumEnum.Music),
+            intent: 'session_restore',
+            item: item(300),
+            kind: 'item-music',
+          },
+        },
+        { abridged: { ...emptyAbridged, items: { 300: { d: '100', p: '99' } } } }
       )
     ).toMatchObject({
       initialSeekSeconds: 0,

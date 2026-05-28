@@ -23,7 +23,7 @@ import { useMediaElementBridge } from '../../../hooks/useMediaElementBridge';
 import type { MoveNowPlayingToHistoryCallbackParams } from '../../../hooks/useQueueResourceMoveNowPlayingToHistory';
 import type { QueueResourcesLoadActiveResult } from '../../../hooks/useQueueResourcesLoadActive';
 import type { UpdateNowPlayingParams } from '../../../hooks/useQueueResourceUpdateNowPlaying';
-import type { PlaybackLoadDecision } from '../../../lib/playback';
+import type { MusicItemPlaybackIntent, PlaybackLoadDecision } from '../../../lib/playback';
 import {
   checkIfIsAudioFile,
   checkIfIsVideoFile,
@@ -83,6 +83,8 @@ export interface NonLiveMediaOrchestratorProps {
   /** When add-by-RSS playback ends and queue is empty, try to play next from list context. Returns true if playback started. */
   onAddByRSSPlayNext?: () => Promise<boolean>;
   clearNowPlaying: () => void;
+  /** Set to `fresh_transition` before skip/ended queue loads so music advances start at 0. */
+  pendingMusicQueueLoadIntentRef: React.RefObject<MusicItemPlaybackIntent | null>;
 }
 
 export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> = (props) => {
@@ -133,6 +135,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     onAddByRSSEnded,
     onAddByRSSPlayNext,
     clearNowPlaying,
+    pendingMusicQueueLoadIntentRef,
   } = props;
 
   const mediaRef = useRef<HTMLMediaElement | null>(null);
@@ -402,7 +405,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
         if (!isNaN(endTimeNumAdjusted) && newCurrentTime >= endTimeNumAdjusted) {
           setMPClip(null);
           setMPIsPlaying(false);
-          bridgeRef.current?.pauseAt(-1);
+          bridgeRef.current?.pauseAndDisarmBoundary();
         }
       }
 
@@ -420,7 +423,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
         if (!isNaN(endTimeNumAdjusted) && newCurrentTime >= endTimeNumAdjusted) {
           setMPItemSoundbite(null);
           setMPIsPlaying(false);
-          bridgeRef.current?.pauseAt(-1);
+          bridgeRef.current?.pauseAndDisarmBoundary();
         }
       }
 
@@ -451,6 +454,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
               : undefined;
           await onAddByRSSEndedRef.current(positionSeconds);
           setMPShouldPlay(false);
+          pendingMusicQueueLoadIntentRef.current = 'fresh_transition';
           const { upcomingManualCount } = await queueResourcesLoadActive(medium_id);
           if (upcomingManualCount > 0) {
             return;
@@ -469,6 +473,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
           mpItem: mpItemRef.current,
           mpItemSoundbite: mpItemSoundbiteRef.current,
         });
+        pendingMusicQueueLoadIntentRef.current = 'fresh_transition';
         const { upcomingManualCount, hasAutoQueueNext } = await queueResourcesLoadActive();
         if (upcomingManualCount === 0 && !hasAutoQueueNext) {
           clearNowPlayingRef.current?.();
@@ -638,7 +643,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
           }
         }
         if (mpItemSoundbite.duration) {
-          bridge.pauseAt(Number(mpItemSoundbite.start_time) + Number(mpItemSoundbite.duration));
+          bridge.pauseAt(Number(mpItemSoundbite.start_time) + Number(mpItemSoundbite.duration) + 1);
         }
       }
     };

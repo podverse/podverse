@@ -10,6 +10,7 @@ import { checkIsActiveRowHighestKey, useAutoQueue } from '../contexts/AutoQueue'
 import { useMediaPlayer } from '../contexts/MediaPlayer';
 import { useQueues } from '../contexts/Queue';
 import { getApiRequestService } from '../factories/apiRequestService';
+import type { MusicItemPlaybackIntent } from '../lib/playback';
 import { parsePlaybackSeconds, playbackTargetFromStandardLoad } from '../lib/playback';
 import { loadAddByRSSIndexItemFromResourceData } from '../utils/addByRSS/playFromQueueResource';
 import { useAutoQueueLoadResources } from './useAutoQueueLoadResources';
@@ -28,6 +29,7 @@ export function useMediaPlayerControllerQueueHeadLoading(): void {
     mpClip,
     mpItemSoundbite,
     mpAddByRSS,
+    pendingMusicQueueLoadIntentRef,
     setMPItemChapters,
     setMPItemLabeledItemEnclosures,
   } = useMediaPlayer();
@@ -127,6 +129,15 @@ export function useMediaPlayerControllerQueueHeadLoading(): void {
     }
   }
 
+  function resolveMusicIntentForQueueHeadLoad(): MusicItemPlaybackIntent {
+    const pending = pendingMusicQueueLoadIntentRef.current;
+    if (pending !== null) {
+      pendingMusicQueueLoadIntentRef.current = null;
+      return pending;
+    }
+    return 'session_restore';
+  }
+
   async function handleLoadQueueItem(nextResource: DTOQueueResource) {
     const fullItem = await apiRequestService.reqItemGetByIdOrIdText(nextResource.item.id_text);
     if (fullItem) {
@@ -139,7 +150,7 @@ export function useMediaPlayerControllerQueueHeadLoading(): void {
             item: fullItem,
             itemChapter: null,
             itemSoundbite: nextResource.item_soundbite ?? null,
-            musicIntent: 'fresh_transition',
+            musicIntent: resolveMusicIntentForQueueHeadLoad(),
           }),
           explicitPlaybackSeconds: parsePlaybackSeconds(nextResource.playback_position),
           itemChapterShouldSeek: false,

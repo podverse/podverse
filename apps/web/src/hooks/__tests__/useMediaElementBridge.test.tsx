@@ -63,17 +63,59 @@ describe('useMediaElementBridge', () => {
   });
 
   it('pauseAt arms boundary and pauses on timeupdate', async () => {
-    const { current, fake } = createMediaElementFakeRef({ readyState: 1, duration: 100 });
+    const { current, fake } = createMediaElementFakeRef({ readyState: 2, duration: 100 });
     const mediaRef: MutableRefObject<HTMLMediaElement | null> = { current };
 
     const { result } = renderHook(() => useMediaElementBridge(mediaRef, {}));
     const bridge = result.current;
 
     fake.fireLoadedMetadata(100);
+    await bridge.play();
     bridge.pauseAt(50);
     fake.fireTimeUpdate(49);
-    expect(fake.paused).toBe(true);
+    expect(fake.paused).toBe(false);
     fake.fireTimeUpdate(51);
+    await waitFor(() => {
+      expect(fake.paused).toBe(true);
+    });
+  });
+
+  it('pauseAndDisarmBoundary pauses immediately and clears armed pauseAt', async () => {
+    const { current, fake } = createMediaElementFakeRef({ readyState: 2, duration: 100 });
+    const mediaRef: MutableRefObject<HTMLMediaElement | null> = { current };
+
+    const { result } = renderHook(() => useMediaElementBridge(mediaRef, {}));
+    const bridge = result.current;
+
+    fake.fireLoadedMetadata(100);
+    await bridge.play();
+    bridge.pauseAt(50);
+    bridge.pauseAndDisarmBoundary();
+    expect(fake.paused).toBe(true);
+
+    await bridge.play();
+    fake.fireTimeUpdate(60);
+    expect(fake.paused).toBe(false);
+  });
+
+  it('runs armed pauseAt before onTimeUpdate so disarm in callback cannot skip boundary pause', async () => {
+    const { current, fake } = createMediaElementFakeRef({ readyState: 2, duration: 100 });
+    const mediaRef: MutableRefObject<HTMLMediaElement | null> = { current };
+
+    const { result } = renderHook(() =>
+      useMediaElementBridge(mediaRef, {
+        onTimeUpdate: () => {
+          result.current.pauseAt(-1);
+        },
+      })
+    );
+    const bridge = result.current;
+
+    fake.fireLoadedMetadata(100);
+    await bridge.play();
+    bridge.pauseAt(50);
+    fake.fireTimeUpdate(51);
+
     await waitFor(() => {
       expect(fake.paused).toBe(true);
     });

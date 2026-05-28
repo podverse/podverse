@@ -18,6 +18,7 @@ export const noopMediaElementBridge: MediaElementBridge = Object.freeze({
   seek: () => {},
   jumpBy: () => 0,
   pauseAt: () => {},
+  pauseAndDisarmBoundary: () => {},
   setVolume: () => {},
   setMuted: () => {},
   setPlaybackRate: () => {},

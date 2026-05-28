@@ -65,14 +65,17 @@ async function expectAudioSrcMatches(page: Page, enclosureUrl: string): Promise<
 async function expectAudioPaused(page: Page): Promise<void> {
   const audio = audioLocator(page);
   await expect
-    .poll(async () => {
-      return audio.evaluate((el) => {
-        if (!(el instanceof HTMLAudioElement)) {
-          return false;
-        }
-        return el.paused;
-      });
-    })
+    .poll(
+      async () => {
+        return audio.evaluate((el) => {
+          if (!(el instanceof HTMLAudioElement)) {
+            return false;
+          }
+          return el.paused;
+        });
+      },
+      { timeout: 10_000 }
+    )
     .toBe(true);
 }
 

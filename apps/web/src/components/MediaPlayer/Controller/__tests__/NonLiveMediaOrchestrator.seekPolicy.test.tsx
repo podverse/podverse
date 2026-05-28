@@ -159,6 +159,7 @@ async function renderAV(overrides: RenderOverrides = {}): Promise<RenderResult> 
         }
         queueResourcesAbridgedIndex={abridgedIndex}
         clearNowPlaying={() => undefined}
+        pendingMusicQueueLoadIntentRef={{ current: null }}
       />
     </AccountContext.Provider>
   );

@@ -3,12 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { resumeSeekFromAbridged } from '../resumeSeekFromAbridged';
 
 describe('resumeSeekFromAbridged', () => {
-  describe('explicit override wins (no clamp)', () => {
+  describe('explicit override with near-end clamp', () => {
     it('returns explicitSeconds when finite non-negative and abridged is absent', () => {
       expect(resumeSeekFromAbridged({ abridged: null, explicitSeconds: 42 })).toBe(42);
     });
 
-    it('returns explicitSeconds even when abridged would otherwise clamp', () => {
+    it('returns explicitSeconds when below near-end threshold', () => {
       expect(
         resumeSeekFromAbridged({
           abridged: { p: 99, d: 100 },
@@ -17,13 +17,23 @@ describe('resumeSeekFromAbridged', () => {
       ).toBe(42);
     });
 
-    it('returns explicitSeconds without applying the near-end clamp against abridged d', () => {
+    it('clamps explicitSeconds when within 5 seconds of abridged duration', () => {
       expect(
         resumeSeekFromAbridged({
           abridged: { p: 0, d: 100 },
           explicitSeconds: 96,
         })
-      ).toBe(96);
+      ).toBe(0);
+    });
+
+    it('clamps explicitSeconds using durationHintSeconds when abridged d is absent', () => {
+      expect(
+        resumeSeekFromAbridged({
+          abridged: null,
+          durationHintSeconds: 100,
+          explicitSeconds: 96,
+        })
+      ).toBe(0);
     });
 
     it('accepts a numeric-string explicit override', () => {

@@ -29,3 +29,14 @@ export function clampNearEndSeconds({
   }
   return currentSeconds;
 }
+
+/** Clamp a playback position before persisting to storage or the server. */
+export function clampPlaybackPositionForStorage(
+  positionSeconds: number,
+  durationSeconds: number | undefined
+): number {
+  if (durationSeconds !== undefined && durationSeconds > 0) {
+    return clampNearEndSeconds({ currentSeconds: positionSeconds, durationSeconds });
+  }
+  return positionSeconds;
+}

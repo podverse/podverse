@@ -18,12 +18,10 @@ export type ResumeSeekFromAbridgedParams = {
  * Precedence (mirrors the decision-matrix anonymous-restore and
  * queue-load rows):
  *
- * 1. **Explicit caller-supplied seconds win, no clamp.** When the caller
- *    passes a finite non-negative `explicitSeconds` (typically an
- *    anonymous-snapshot `playback_position_seconds` or queue resource
- *    `playback_position`), it is returned verbatim — the explicit value
- *    is treated as authoritative and is not re-evaluated against the
- *    abridged duration.
+ * 1. **Explicit caller-supplied seconds win.** When the caller passes a
+ *    finite non-negative `explicitSeconds` (snapshot, queue
+ *    `playback_position`, etc.), that value is used and the same
+ *    near-end clamp applies when a duration hint is available.
  * 2. **Invalid explicit falls through** (negative, NaN, non-finite,
  *    non-numeric, empty string, `null`, `undefined`). Treated as no
  *    explicit override, the helper then reads the abridged row.
@@ -39,13 +37,16 @@ export function resumeSeekFromAbridged({
   durationHintSeconds,
   explicitSeconds,
 }: ResumeSeekFromAbridgedParams): number {
+  const durationSeconds =
+    parsePlaybackSeconds(abridged?.d) ?? parsePlaybackSeconds(durationHintSeconds) ?? 0;
+
   const parsedExplicit = parsePlaybackSeconds(explicitSeconds);
   if (parsedExplicit !== undefined) {
-    return parsedExplicit;
+    return durationSeconds > 0
+      ? clampNearEndSeconds({ currentSeconds: parsedExplicit, durationSeconds })
+      : parsedExplicit;
   }
 
   const currentSeconds = parsePlaybackSeconds(abridged?.p) ?? 0;
-  const durationSeconds =
-    parsePlaybackSeconds(abridged?.d) ?? parsePlaybackSeconds(durationHintSeconds) ?? 0;
   return clampNearEndSeconds({ currentSeconds, durationSeconds });
 }

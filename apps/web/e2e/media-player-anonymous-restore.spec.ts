@@ -14,7 +14,9 @@ import {
   E2E_ANON_SNAPSHOT_MUSIC_ITEM_ID_TEXT,
   E2E_ANON_SNAPSHOT_PODCAST_ITEM_ID_TEXT,
   E2E_MUSIC_TRACK_DURATION_SECONDS,
+  E2E_MUSIC_TRACK_NEAR_END_P_SECONDS,
   E2E_MUSIC_TRACK_ONE_ENCLOSURE_URL,
+  E2E_MUSIC_TRACK_ONE_P_SECONDS,
   E2E_PODCAST_ITEM_RESUME_DURATION_SECONDS,
   E2E_PODCAST_RESUME_ENCLOSURE_URL,
 } from './helpers/seedConstants';
@@ -24,7 +26,6 @@ const LOGIN_EMAIL = 'e2e-user@example.com';
 const LOGIN_PASSWORD = 'Test!1Aa';
 
 const PODCAST_SNAPSHOT_RESUME_SECONDS = 30;
-const MUSIC_SNAPSHOT_POSITION_SECONDS = 45;
 const PODCAST_RESUME_TITLE = 'E2E Podcast Resume P > 0';
 const MUSIC_TRACK_ONE_TITLE = 'E2E Music Track One';
 
@@ -67,9 +68,10 @@ async function expectAudioSrcMatches(page: Page, enclosureUrl: string): Promise<
  *   - § 2 "Anonymous restore" — first page load while logged out reads the
  *     `localStorage` snapshot via `AnonymousPlaybackRestoreController` and
  *     resumes via `mediaPlayerResourceUpdate({ mpCurrentTime, mpDuration })`.
- *   - § 2 — music items always seek to `0` on every load regardless of
- *     the stored snapshot position (the music seek-to-0 rule in
- *     `NonLiveMediaOrchestrator.handleLoadedMetadata`).
+ *   - § 2 — music items resume at the stored snapshot position on
+ *     anonymous restore (`session_restore`, near-end clamp). Snapshot
+ *     seconds must be within fixture duration and below `duration - 5`
+ *     (see `E2E_MUSIC_TRACK_*` in seedConstants).
  *   - § 2 — on login, the snapshot is cleared via
  *     `clearAnonymousPlaybackSnapshot()` and the restore path is skipped
  *     for the rest of the session.
@@ -79,10 +81,8 @@ async function expectAudioSrcMatches(page: Page, enclosureUrl: string): Promise<
  * `AnonymousPlaybackRestoreController` mounts in
  * `apps/web/src/app/layout.tsx`, so any first navigation triggers it.
  *
- * The "clip-snapshot seeks to clip start" inconsistency noted in matrix
- * § 2 is intentionally left uncovered here — see
- * `MEDIA-PLAYER-DECISION-MATRIX.md` for the rationale. A future Phase 2
- * orchestration change would add a new branch.
+ * Clip/soundbite snapshots seek to segment start (matrix § 2 by design);
+ * not covered in this spec.
  */
 test.describe('Media player anonymous playback restore', () => {
   test.beforeEach(() => {
@@ -106,13 +106,30 @@ test.describe('Media player anonymous playback restore', () => {
     await expectAudioCurrentTimeNear(page, PODCAST_SNAPSHOT_RESUME_SECONDS);
   });
 
-  test('First page load while logged out for a music snapshot starts the track at 0 because music forces seek-to-0 on every load', async ({
+  test('First page load while logged out for a music snapshot resumes the track at the stored snapshot position', async ({
     page,
   }) => {
     await writeAnonymousSnapshotBeforeNavigation(page, {
       kind: 'item',
       itemIdText: E2E_ANON_SNAPSHOT_MUSIC_ITEM_ID_TEXT,
-      playbackPositionSeconds: MUSIC_SNAPSHOT_POSITION_SECONDS,
+      playbackPositionSeconds: E2E_MUSIC_TRACK_ONE_P_SECONDS,
+      mediaFileDurationSeconds: E2E_MUSIC_TRACK_DURATION_SECONDS,
+    });
+
+    await page.goto('/');
+
+    await expectMediaPlayerTitleVisible(page, MUSIC_TRACK_ONE_TITLE);
+    await expectAudioSrcMatches(page, E2E_MUSIC_TRACK_ONE_ENCLOSURE_URL);
+    await expectAudioCurrentTimeNear(page, E2E_MUSIC_TRACK_ONE_P_SECONDS);
+  });
+
+  test('First page load while logged out for a music snapshot within 5 seconds of duration seeks to 0', async ({
+    page,
+  }) => {
+    await writeAnonymousSnapshotBeforeNavigation(page, {
+      kind: 'item',
+      itemIdText: E2E_ANON_SNAPSHOT_MUSIC_ITEM_ID_TEXT,
+      playbackPositionSeconds: E2E_MUSIC_TRACK_NEAR_END_P_SECONDS,
       mediaFileDurationSeconds: E2E_MUSIC_TRACK_DURATION_SECONDS,
     });
 
@@ -144,7 +161,7 @@ test.describe('Media player anonymous playback restore', () => {
     await writeAnonymousSnapshotBeforeNavigation(page, {
       kind: 'item',
       itemIdText: E2E_ANON_SNAPSHOT_MUSIC_ITEM_ID_TEXT,
-      playbackPositionSeconds: MUSIC_SNAPSHOT_POSITION_SECONDS,
+      playbackPositionSeconds: E2E_MUSIC_TRACK_ONE_P_SECONDS,
       mediaFileDurationSeconds: E2E_MUSIC_TRACK_DURATION_SECONDS,
     });
 

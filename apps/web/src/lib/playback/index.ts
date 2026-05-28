@@ -1,4 +1,4 @@
-export { clampNearEndSeconds } from './clampNearEndSeconds';
+export { clampNearEndSeconds, clampPlaybackPositionForStorage } from './clampNearEndSeconds';
 export { parsePlaybackSeconds } from './parsePlaybackSeconds';
 export {
   resumeSeekFromAbridged,

@@ -132,6 +132,7 @@ async function renderAV(overrides: RenderOverrides = {}): Promise<{
         onAddByRSSEnded={onAddByRSSEnded}
         onAddByRSSPlayNext={onAddByRSSPlayNext}
         clearNowPlaying={clearNowPlaying}
+        pendingMusicQueueLoadIntentRef={{ current: null }}
       />
     </AccountContext.Provider>
   );

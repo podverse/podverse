@@ -111,9 +111,14 @@ export function resolvePlaybackLoadDecision(
       });
     case 'item-music':
       if (request.target.intent === 'session_restore') {
+        const abridged = indices.abridged.items[request.target.item.id];
         return {
           ...baseDecision({
-            initialSeekSeconds: 0,
+            initialSeekSeconds: resumeSeekFromAbridged({
+              abridged,
+              durationHintSeconds: request.mediaFileDurationHintSeconds,
+              explicitSeconds: request.explicitPlaybackSeconds,
+            }),
             reason: 'item-music-session-restore',
             shouldClearAutoQueue: false,
           }),

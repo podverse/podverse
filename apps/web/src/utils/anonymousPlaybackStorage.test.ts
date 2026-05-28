@@ -283,6 +283,28 @@ describe('anonymousPlaybackStorage', () => {
     expect(readAnonymousPlaybackSnapshot(storage)?.playback_position_seconds).toBe(0);
   });
 
+  it('writeAnonymousPlaybackSnapshotFromPlayerState clamps near-end position to 0 before persist', () => {
+    const storage = createStorageMock();
+    Object.defineProperty(globalThis, 'window', {
+      configurable: true,
+      value: { localStorage: storage },
+      writable: true,
+    });
+
+    writeAnonymousPlaybackSnapshotFromPlayerState(
+      {
+        mpClip: null,
+        mpItem: { id: 1, id_text: 'i1' } as DTOItem,
+        mpItemSoundbite: null,
+        mpCurrentTime: 97,
+        mpDuration: 100,
+      },
+      storage
+    );
+
+    expect(readAnonymousPlaybackSnapshot(storage)?.playback_position_seconds).toBe(0);
+  });
+
   it('writeAnonymousPlaybackSnapshotFromPlayerState drops NaN/Infinity duration silently', () => {
     const storage = createStorageMock();
     Object.defineProperty(globalThis, 'window', {
