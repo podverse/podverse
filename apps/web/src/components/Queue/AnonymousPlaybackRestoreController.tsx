@@ -2,10 +2,13 @@
 
 import { useEffect, useRef } from 'react';
 
+import { MediumEnum } from '@podverse/helpers';
+
 import { useAccount } from '../../contexts/Account';
 import { useAutoQueue } from '../../contexts/AutoQueue';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { useMediaPlayerResourceUpdate } from '../../hooks/useMediaPlayerResourceUpdate';
+import { playbackTargetFromStandardLoad } from '../../lib/playback';
 import {
   clearAnonymousPlaybackSnapshot,
   readAnonymousPlaybackSnapshot,
@@ -82,16 +85,19 @@ export function AnonymousPlaybackRestoreController() {
             return;
           }
           mediaPlayerResourceUpdateRef.current({
-            channel: fullChannel,
-            clip: fullClip,
-            item: fullItem,
-            itemChapter: null,
+            target: playbackTargetFromStandardLoad({
+              channel: fullChannel,
+              clip: fullClip,
+              item: fullItem,
+              itemChapter: null,
+              itemSoundbite: null,
+              musicIntent: 'explicit_play',
+            }),
+            explicitPlaybackSeconds: snapshot.playback_position_seconds,
+            mediaFileDurationHintSeconds: snapshot.media_file_duration_seconds,
             itemChapterShouldSeek: false,
-            itemSoundbite: null,
             enclosureSelectedParams: 'use-active-item-or-default',
             skipMoveNowPlayingToHistory: false,
-            mpDuration: snapshot.media_file_duration_seconds,
-            mpCurrentTime: snapshot.playback_position_seconds,
             newAutoQueueConfig,
             autoQueueShouldClear: true,
           });
@@ -112,16 +118,19 @@ export function AnonymousPlaybackRestoreController() {
             return;
           }
           mediaPlayerResourceUpdateRef.current({
-            channel: fullChannel,
-            clip: null,
-            item: fullItem,
-            itemChapter: null,
+            target: playbackTargetFromStandardLoad({
+              channel: fullChannel,
+              clip: null,
+              item: fullItem,
+              itemChapter: null,
+              itemSoundbite: fullItemSoundbite,
+              musicIntent: 'explicit_play',
+            }),
+            explicitPlaybackSeconds: snapshot.playback_position_seconds,
+            mediaFileDurationHintSeconds: snapshot.media_file_duration_seconds,
             itemChapterShouldSeek: false,
-            itemSoundbite: fullItemSoundbite,
             enclosureSelectedParams: 'use-active-item-or-default',
             skipMoveNowPlayingToHistory: false,
-            mpDuration: snapshot.media_file_duration_seconds,
-            mpCurrentTime: snapshot.playback_position_seconds,
             newAutoQueueConfig,
             autoQueueShouldClear: true,
           });
@@ -136,17 +145,24 @@ export function AnonymousPlaybackRestoreController() {
         if (!fullChannel || loggedInAccountRef.current) {
           return;
         }
+        const target =
+          fullChannel.medium_id === MediumEnum.Music
+            ? {
+                kind: 'item-music' as const,
+                item: fullItem,
+                channel: fullChannel,
+                intent: 'session_restore' as const,
+              }
+            : fullChannel.medium_id === MediumEnum.Video
+              ? { kind: 'item-video' as const, item: fullItem, channel: fullChannel }
+              : { kind: 'item-podcast' as const, item: fullItem, channel: fullChannel };
         mediaPlayerResourceUpdateRef.current({
-          channel: fullChannel,
-          clip: null,
-          item: fullItem,
-          itemChapter: null,
+          target,
+          explicitPlaybackSeconds: snapshot.playback_position_seconds,
+          mediaFileDurationHintSeconds: snapshot.media_file_duration_seconds,
           itemChapterShouldSeek: false,
-          itemSoundbite: null,
           enclosureSelectedParams: 'use-active-item-or-default',
           skipMoveNowPlayingToHistory: false,
-          mpDuration: snapshot.media_file_duration_seconds,
-          mpCurrentTime: snapshot.playback_position_seconds,
           newAutoQueueConfig,
           autoQueueShouldClear: true,
         });

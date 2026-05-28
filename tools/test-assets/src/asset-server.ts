@@ -144,7 +144,6 @@ export class AssetServer {
           }
         }
 
-        // Check if file exists
         fs.stat(normalizedPath, (err, stats) => {
           if (err || !stats.isFile()) {
             res.writeHead(404, { 'Content-Type': 'text/plain' });
@@ -152,26 +151,101 @@ export class AssetServer {
             return;
           }
 
-          // Read and serve file
-          fs.readFile(normalizedPath, (err, data) => {
-            if (err) {
-              res.writeHead(500, { 'Content-Type': 'text/plain' });
-              res.end('Internal server error');
+          const mimeType = this.getMimeType(normalizedPath, normalizedPath);
+          const ext = path.extname(normalizedPath).toLowerCase();
+          const totalSize = stats.size;
+          const rangeHeader = req.headers.range;
+
+          /**
+           * Always advertise byte-range support. Browsers use this to know
+           * the media is seekable; without it the audio element reports
+           * `seekable = [0, 0]` and silently clamps every `currentTime`
+           * assignment back to 0, which broke media-player E2E specs that
+           * seek to clip / soundbite / chapter / resume positions.
+           */
+          const baseHeaders: Record<string, string> = {
+            'Content-Type': mimeType,
+            'Accept-Ranges': 'bytes',
+          };
+          if (ext === '.rss' || ext === '.xml') {
+            baseHeaders['Content-Disposition'] = 'inline';
+          }
+
+          if (rangeHeader) {
+            const match = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader);
+            if (!match) {
+              res.writeHead(416, {
+                ...baseHeaders,
+                'Content-Range': `bytes */${totalSize}`,
+              });
+              res.end();
               return;
             }
-
-            const mimeType = this.getMimeType(normalizedPath, normalizedPath);
-            const ext = path.extname(normalizedPath).toLowerCase();
-            const headers: Record<string, string> = {
-              'Content-Type': mimeType,
-              'Content-Length': String(data.length),
-            };
-            if (ext === '.rss' || ext === '.xml') {
-              headers['Content-Disposition'] = 'inline';
+            const startStr = match[1] ?? '';
+            const endStr = match[2] ?? '';
+            let start: number;
+            let end: number;
+            if (startStr === '' && endStr === '') {
+              res.writeHead(416, {
+                ...baseHeaders,
+                'Content-Range': `bytes */${totalSize}`,
+              });
+              res.end();
+              return;
             }
-            res.writeHead(200, headers);
-            res.end(data);
+            if (startStr === '') {
+              const suffixLength = parseInt(endStr, 10);
+              if (!Number.isFinite(suffixLength) || suffixLength <= 0) {
+                res.writeHead(416, {
+                  ...baseHeaders,
+                  'Content-Range': `bytes */${totalSize}`,
+                });
+                res.end();
+                return;
+              }
+              start = Math.max(totalSize - suffixLength, 0);
+              end = totalSize - 1;
+            } else {
+              start = parseInt(startStr, 10);
+              end = endStr === '' ? totalSize - 1 : parseInt(endStr, 10);
+            }
+            if (
+              !Number.isFinite(start) ||
+              !Number.isFinite(end) ||
+              start < 0 ||
+              end >= totalSize ||
+              start > end
+            ) {
+              res.writeHead(416, {
+                ...baseHeaders,
+                'Content-Range': `bytes */${totalSize}`,
+              });
+              res.end();
+              return;
+            }
+            const chunkSize = end - start + 1;
+            res.writeHead(206, {
+              ...baseHeaders,
+              'Content-Range': `bytes ${start}-${end}/${totalSize}`,
+              'Content-Length': String(chunkSize),
+            });
+            const stream = fs.createReadStream(normalizedPath, { start, end });
+            stream.on('error', () => {
+              res.end();
+            });
+            stream.pipe(res);
+            return;
+          }
+
+          res.writeHead(200, {
+            ...baseHeaders,
+            'Content-Length': String(totalSize),
           });
+          const stream = fs.createReadStream(normalizedPath);
+          stream.on('error', () => {
+            res.end();
+          });
+          stream.pipe(res);
         });
       });
 

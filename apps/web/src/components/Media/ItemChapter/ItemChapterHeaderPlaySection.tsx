@@ -11,6 +11,7 @@ import { useAutoQueue } from '../../../contexts/AutoQueue';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useModals } from '../../../contexts/Modals';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
+import { playbackTargetFromStandardLoad } from '../../../lib/playback';
 import { downloadEpisodeWithModal } from '../../../utils/downloadModal/downloadEpisodeWithModal';
 import { downloadAndSaveFile } from '../../../utils/fileDownloader';
 import { PlayButtonLarge } from '../../MediaPlayer/Buttons/PlayButtonLarge';
@@ -44,13 +45,16 @@ export const ItemChapterHeaderPlaySection: React.FC<ItemChapterHeaderPlaySection
       setMPIsPlaying(!mpIsPlaying);
     } else {
       mediaPlayerResourceUpdate({
-        shouldPlay: true,
-        channel: channel,
-        clip: null,
-        item,
-        itemChapter: item_chapter,
+        target: playbackTargetFromStandardLoad({
+          channel,
+          clip: null,
+          item,
+          itemChapter: item_chapter,
+          itemSoundbite: null,
+          musicIntent: 'explicit_play',
+        }),
         itemChapterShouldSeek: true,
-        itemSoundbite: null,
+        shouldPlay: true,
         enclosureSelectedParams: 'use-active-item-or-default',
         isPlaying: true,
         skipMoveNowPlayingToHistory: false,

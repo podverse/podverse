@@ -20,6 +20,7 @@
     "start": "tsx src/serve.ts",
     "generate": "tsx src/run-generate-feed-cli.ts",
     "generate:only": "tsx src/run-generate-feed-cli.ts",
+    "generate:e2e-media": "tsx src/generate-e2e-media-fixtures.ts",
     "generate_and_parse": "tsx src/generate-and-parse.ts"
   },
   "dependencies": {

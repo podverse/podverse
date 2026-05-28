@@ -141,6 +141,48 @@ export default tseslint.config(
       '**/*.mdc',
     ],
   },
+  {
+    files: ['apps/web/src/**/*.{ts,tsx}'],
+    ignores: [
+      'apps/web/src/hooks/useMediaElementBridge.ts',
+      'apps/web/src/hooks/mediaElementBridgeSurface.ts',
+    ],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            'AssignmentExpression > MemberExpression[object.type="MemberExpression"][object.object.name="mediaRef"][object.property.name="current"]',
+          message:
+            'Do not assign through mediaRef.current here; only useMediaElementBridge may mutate the mounted media element (see .cursor/skills/media-player-architecture/SKILL.md).',
+        },
+        {
+          selector:
+            'CallExpression[callee.type="MemberExpression"][callee.object.type="MemberExpression"][callee.object.object.name="mediaRef"][callee.object.property.name="current"][callee.property.name="load"]',
+          message:
+            'Do not call mediaRef.current.load() here; only useMediaElementBridge may call load().',
+        },
+        {
+          selector:
+            'CallExpression[callee.type="MemberExpression"][callee.object.type="MemberExpression"][callee.object.object.name="mediaRef"][callee.object.property.name="current"][callee.property.name="play"]',
+          message:
+            'Do not call mediaRef.current.play() here; only useMediaElementBridge may call play().',
+        },
+        {
+          selector:
+            'CallExpression[callee.type="MemberExpression"][callee.object.type="MemberExpression"][callee.object.object.name="mediaRef"][callee.object.property.name="current"][callee.property.name="pause"]',
+          message:
+            'Do not call mediaRef.current.pause() here; only useMediaElementBridge may call pause().',
+        },
+        {
+          selector:
+            'CallExpression[callee.type="MemberExpression"][callee.object.type="MemberExpression"][callee.object.object.name="mediaRef"][callee.object.property.name="current"][callee.property.name="removeAttribute"]',
+          message:
+            'Do not call mediaRef.current.removeAttribute() here; only useMediaElementBridge may do that.',
+        },
+      ],
+    },
+  },
   eslintConfigPrettier,
   {
     rules: {

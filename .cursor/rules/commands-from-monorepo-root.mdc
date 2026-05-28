@@ -16,6 +16,8 @@ alwaysApply: true
 - Put every runnable command in a fenced code block so a copy button appears.
 - When you change flake, env, or scripts and the user will want to run something to verify, end with a fenced code block containing the exact command(s) to run.
 - When giving verification or run instructions (smoke test, apply, confirm), always provide a final fenced code block with one command per line so the user can copy-paste.
+- Before suggesting `npm run <script> -w <workspace>`, verify that `<script>` exists in that workspace's `package.json`; root aggregate scripts are not automatically available inside workspaces.
+- Use root `npm run test:unit` for unit tests. Do **not** suggest `npm run test:unit -w apps/web` or `npm run test:unit -w apps/management-web`; `test:unit` is a root orchestration script that runs workspace `test` scripts and excludes API integration tests.
 - From repo root: `npm run <script> -w apps/workers -- <args>`
 - From repo root: `npm run build:packages` then `npm run build -w apps/workers`
 - From repo root: `node apps/workers/dist/index.js devPiBulkFeedsAddFromFile -startId 1 -endId 10 -q rss-slow` (uses hardcoded path `infra/data/dev/podcast-index-feeds` relative to monorepo root)
@@ -25,6 +27,7 @@ alwaysApply: true
 
 - Don't say: "cd apps/workers" then "npm run dev_pi_bulk_feeds_add_from_file -- ..."
 - Don't give app-specific commands that assume the user is already inside an app directory
+- Don't scope root aggregate scripts with `-w` unless the workspace actually defines that exact script. Known bad example: `npm run test:unit -w apps/web`.
 
 ## Examples
 

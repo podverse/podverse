@@ -20,6 +20,7 @@ import { useModals } from '../../../contexts/Modals';
 import { useQueues } from '../../../contexts/Queue';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
+import { playbackTargetFromStandardLoad } from '../../../lib/playback';
 import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableTimeRange } from '../../Time/ReadableTimeRange';
@@ -94,13 +95,19 @@ export const ListClipRow: React.FC<Props> = ({
     if (clip.id_text === mpClip?.id_text) {
       setMPIsPlaying(!mpIsPlaying);
     } else {
+      if (!channel || !item) {
+        return;
+      }
       mediaPlayerResourceUpdate({
-        channel: channel,
-        clip: clip,
-        item: item,
-        itemChapter: null,
+        target: playbackTargetFromStandardLoad({
+          channel,
+          clip,
+          item,
+          itemChapter: null,
+          itemSoundbite: null,
+          musicIntent: 'explicit_play',
+        }),
         itemChapterShouldSeek: false,
-        itemSoundbite: null,
         isPlaying: true,
         shouldPlay: true,
         skipMoveNowPlayingToHistory: false,

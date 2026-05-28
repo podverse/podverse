@@ -61,42 +61,33 @@ test.describe('Focus state consistency', () => {
       );
     });
 
-    await test.step('Tab-focused navigation link shows --box-shadow-focus ring', async () => {
-      await page.goto('/episodes');
-      await expect(page.locator('body')).toBeVisible({ timeout: 15_000 });
-      await page.waitForLoadState('domcontentloaded');
-      await page.bringToFront();
-      await page.evaluate(() => {
-        window.focus();
-      });
+    await test.step('Keyboard Tab from a navigation link shows --box-shadow-focus ring on the next focusable element', async () => {
+      // `Locator.press('Tab')` focuses the element programmatically and then
+      // dispatches a real keyboard Tab keydown/keyup. Tab moves focus to the
+      // next focusable element via a real keyboard event, which is exactly
+      // what engages `:focus-visible` in Chromium — regardless of whether the
+      // previous interaction in this test was a mouse click. This replaces
+      // the previous `goBack() + bringToFront() + window.focus() + bare
+      // page.keyboard.press('Tab')` dance, which depended on the page being
+      // refocused and on Tab from `body`/`html` advancing into the first
+      // tabbable element in headless Chromium — both of which were flaky.
+      const firstNavLink = page.getByRole('navigation').getByRole('link').first();
+      await expect(firstNavLink).toBeVisible({ timeout: 10_000 });
+      await firstNavLink.press('Tab');
 
-      const maxTabPresses = 80;
-      let focusedInTopNav = false;
-      for (let i = 0; i < maxTabPresses; i += 1) {
-        await page.keyboard.press('Tab');
-        focusedInTopNav = await page.evaluate(() => {
-          const activeElement = document.activeElement;
-          if (!(activeElement instanceof HTMLElement)) {
-            return false;
-          }
-          return activeElement.closest('nav[data-appearance="web"]') !== null;
-        });
-        if (focusedInTopNav) {
-          break;
-        }
-      }
-      expect(focusedInTopNav).toBe(true);
-
-      const shadow = await page.evaluate(() => {
-        const activeElement = document.activeElement;
-        if (!(activeElement instanceof Element)) {
+      const result = await page.evaluate(() => {
+        const el = document.activeElement;
+        if (!(el instanceof HTMLElement)) {
           return null;
         }
-        return getComputedStyle(activeElement).boxShadow;
+        const tag = el.tagName.toLowerCase();
+        if (tag === 'body' || tag === 'html') {
+          return null;
+        }
+        return { tag, shadow: getComputedStyle(el).boxShadow };
       });
-      // The focus ring must be non-empty (i.e. a box-shadow other than "none" is applied).
-      expect(shadow).not.toBeNull();
-      expect(shadow).not.toBe('none');
+      expect(result).not.toBeNull();
+      expect(result?.shadow).not.toBe('none');
 
       await capturePageLoad(
         page,

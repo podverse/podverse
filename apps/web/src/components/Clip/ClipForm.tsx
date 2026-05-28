@@ -16,10 +16,11 @@ import {
   TextInputHHMMSS,
 } from '@podverse/ui';
 
-import { EVENTS } from '../../constants/events';
 import { SHARABLE_STATUS } from '../../constants/sharableStatus';
 import { useAccount } from '../../contexts/Account';
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
+import { useMediaPlayerControls } from '../../contexts/MediaPlayerControls';
+import { useMediaPlayerCurrentTime } from '../../contexts/MediaPlayerCurrentTime';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { MediaHeaderMini } from '../MediaHeaderMini/MediaHeaderMini';
@@ -61,6 +62,8 @@ export const ClipForm: React.FC<ClipFormProps> = ({
   edit_clip_id_text,
 }) => {
   const { setMPIsPlaying } = useMediaPlayer();
+  const { seek, pauseAt } = useMediaPlayerControls();
+  const { setMPCurrentTime } = useMediaPlayerCurrentTime();
   const { loggedInAccount } = useAccount();
   const { setModalClip, setModalAuthLogin } = useModals();
   const tFeatures = useTranslations('features');
@@ -77,11 +80,9 @@ export const ClipForm: React.FC<ClipFormProps> = ({
   };
 
   const startTimeOnButtonClick = () => {
-    window.dispatchEvent(
-      new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, {
-        detail: { time: hhmmssToSecondsNumber(startTimeString) },
-      })
-    );
+    const t = hhmmssToSecondsNumber(startTimeString);
+    seek(t);
+    setMPCurrentTime(t);
     setMPIsPlaying(true);
   };
 
@@ -89,16 +90,9 @@ export const ClipForm: React.FC<ClipFormProps> = ({
     if (endTimeString) {
       const endTimeInSeconds = hhmmssToSecondsNumber(endTimeString);
       const seekTime = endTimeInSeconds > 3 ? endTimeInSeconds - 3 : 0;
-      window.dispatchEvent(
-        new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, {
-          detail: { time: seekTime },
-        })
-      );
-      window.dispatchEvent(
-        new CustomEvent(EVENTS.MEDIA_PLAYER.PAUSE_AT, {
-          detail: { stopAt: endTimeInSeconds },
-        })
-      );
+      seek(seekTime);
+      setMPCurrentTime(seekTime);
+      pauseAt(endTimeInSeconds);
       setMPIsPlaying(true);
     }
   };

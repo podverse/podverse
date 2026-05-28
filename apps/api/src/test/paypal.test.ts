@@ -6,6 +6,7 @@ import type { ORMContext } from '@podverse/orm';
 
 import {
   authHeaders,
+  createDefaultAccountGet,
   getBaseApiUrl,
   startTestApp,
   stopTestApp,
@@ -120,20 +121,7 @@ describe('account PayPal order routes', () => {
 
   beforeEach(() => {
     getAccountMock.mockReset();
-    getAccountMock.mockImplementation(async (id: number) => {
-      if (id !== TEST_USER_ID) {
-        return null;
-      }
-      return {
-        id: TEST_USER_ID,
-        id_text: TEST_USER_ACCOUNT_ID_TEXT,
-        account_credentials: { email: TEST_EMAIL },
-        account_membership_status: {
-          membership_expires_at: future(),
-          account_membership: { id: 2 },
-        },
-      };
-    });
+    getAccountMock.mockImplementation(createDefaultAccountGet(TEST_EMAIL));
     ppOrderGetMock.mockReset();
     ppOrderGetMock.mockImplementation(
       async () => ({ id: 1, payment_id: 'pay-ok', state: 'created' }) as never
@@ -298,12 +286,6 @@ describe('account PayPal order routes', () => {
     });
 
     it('returns 500 when capture status is missing', async () => {
-      getAccountMock.mockResolvedValueOnce({
-        id: TEST_USER_ID,
-        id_text: TEST_USER_ACCOUNT_ID_TEXT,
-        account_credentials: { email: TEST_EMAIL },
-        account_membership_status: { membership_expires_at: future() },
-      });
       paypalGetCaptureInfoMock.mockResolvedValueOnce(null);
       const res = await withMutedExpectedErrorLogs(async () =>
         request(app)

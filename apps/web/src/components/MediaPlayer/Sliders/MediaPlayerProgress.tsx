@@ -5,8 +5,8 @@ import React, { useCallback, useRef, useState } from 'react';
 import type { DTOClip, DTOItemChapter } from '@podverse/helpers';
 import { formatHHMMSS } from '@podverse/helpers';
 
-import { EVENTS } from '../../../constants/events';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+import { useMediaPlayerControls } from '../../../contexts/MediaPlayerControls';
 import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
 import { ChapterProgressTooltip } from './ChapterProgressTooltip';
 
@@ -29,7 +29,8 @@ export const MediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
   includeMobileTime,
 }) => {
   const { mpClip, mpItemSoundbite, mpItemChapter, mpItemChapters, mpDuration } = useMediaPlayer();
-  const { mpCurrentTime } = useMediaPlayerCurrentTime();
+  const { seek } = useMediaPlayerControls();
+  const { mpCurrentTime, setMPCurrentTime } = useMediaPlayerCurrentTime();
   const barRef = useRef<HTMLDivElement>(null);
   const progress = mpDuration > 0 ? mpCurrentTime / mpDuration : 0;
 
@@ -95,7 +96,8 @@ export const MediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
       barRef.current.getBoundingClientRect().left;
     const percent = Math.min(Math.max(x / barRef.current.getBoundingClientRect().width, 0), 1);
     const newTime = Math.round(percent * mpDuration);
-    window.dispatchEvent(new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, { detail: { time: newTime } }));
+    seek(newTime);
+    setMPCurrentTime(newTime);
   };
 
   const handleBarClick = (e: React.MouseEvent<HTMLDivElement>) => {

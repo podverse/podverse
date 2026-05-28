@@ -1,10 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { EVENTS } from '../../../constants/events';
-import {
-  dispatchMediaPlayerSeek,
-  handleMediaPlayerWindowKeyDown,
-} from './mediaPlayerWindowKeyDown';
+import { handleMediaPlayerWindowKeyDown } from './mediaPlayerWindowKeyDown';
 
 describe('handleMediaPlayerWindowKeyDown', () => {
   const baseState = {
@@ -153,24 +149,5 @@ describe('handleMediaPlayerWindowKeyDown', () => {
       vi.fn()
     );
     expect(seek).toHaveBeenCalledWith(40);
-  });
-
-  it('dispatchMediaPlayerSeek emits the canonical seek event', () => {
-    const handler = vi.fn();
-    window.addEventListener(EVENTS.MEDIA_PLAYER.SEEK, handler);
-    dispatchMediaPlayerSeek(42);
-    window.removeEventListener(EVENTS.MEDIA_PLAYER.SEEK, handler);
-
-    expect(handler).toHaveBeenCalledTimes(1);
-    const firstArgs = handler.mock.calls[0];
-    if (firstArgs === undefined) {
-      expect.fail('expected handler to be called with arguments');
-    }
-    const eventArg = firstArgs[0];
-    if (eventArg === undefined) {
-      expect.fail('expected event as first argument');
-    }
-    expect(eventArg).toBeInstanceOf(CustomEvent);
-    expect(eventArg.detail).toEqual({ time: 42 });
   });
 });

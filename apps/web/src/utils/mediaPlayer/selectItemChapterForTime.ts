@@ -1,7 +1,7 @@
 import type { DTOItemChapter } from '@podverse/helpers';
 
 /**
- * Picks the active chapter for a playback time (seconds), matching MediaPlayerControllerAV
+ * Picks the active chapter for a playback time (seconds), matching NonLiveMediaOrchestrator
  * timeupdate and chapter list UI behavior: overlap must include end, chapters without
  * numeric end are skipped.
  */

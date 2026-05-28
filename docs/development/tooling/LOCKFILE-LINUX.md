@@ -22,7 +22,33 @@ the resulting `package-lock.json` into the repo. Forcing Linux x64 keeps optiona
 dependency resolution aligned with GitHub Actions runners. Commit the updated lockfile so CI
 and Docker builds use it.
 
+### After running on macOS
+
+The script runs `npm install` inside a Linux container with the repo bind-mounted, so any
+`node_modules` the container creates would land on the host. The script removes that
+container-created `node_modules` before exiting; the host's previous `node_modules` is no
+longer trustworthy either way.
+
+On macOS, run `npm install` on the host so darwin native binaries are restored:
+
+```bash
+npm install
+```
+
+This does **not** modify `package-lock.json` – the lockfile already lists every platform's
+optional dependencies (darwin-arm64, darwin-x64, linux-x64, etc.). `npm install` simply
+materializes the entries matching your host platform.
+
 ## Troubleshooting
+
+### `Cannot find module @<scope>/<pkg>-darwin-arm64` (or similar)
+
+The lockfile lists the package, but `node_modules` is missing the macOS native binary. This
+usually means you recently ran `update-lockfile-linux.sh`. Fix:
+
+```bash
+npm install
+```
 
 ### `Bus error` during `node postinstall.js` (e.g. under `@swc/core`)
 

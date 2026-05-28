@@ -14,6 +14,7 @@ import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
 import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
+import { playbackTargetFromStandardLoad } from '../../../lib/playback';
 import { loadAddByRSSIndexItemFromResourceData } from '../../../utils/addByRSS/playFromQueueResource';
 import { scrollMainToTop } from '../../../utils/scroll';
 import { Pagination } from '../../Pagination/Pagination';
@@ -76,12 +77,15 @@ export const ListPlaylistResources: React.FC<Props> = ({
         const channel = clipItem?.channel;
         if (channel && clipItem) {
           mediaPlayerResourceUpdate({
-            channel,
-            clip,
-            item: clipItem,
-            itemChapter: null,
+            target: playbackTargetFromStandardLoad({
+              channel,
+              clip,
+              item: clipItem,
+              itemChapter: null,
+              itemSoundbite: null,
+              musicIntent: 'explicit_play',
+            }),
             itemChapterShouldSeek: false,
-            itemSoundbite: null,
             isPlaying: true,
             shouldPlay: true,
             skipMoveNowPlayingToHistory: false,
@@ -102,12 +106,15 @@ export const ListPlaylistResources: React.FC<Props> = ({
         const channel = soundbiteItem?.channel;
         if (channel && soundbiteItem) {
           mediaPlayerResourceUpdate({
-            channel,
-            clip: null,
-            item: soundbiteItem,
-            itemChapter: null,
+            target: playbackTargetFromStandardLoad({
+              channel,
+              clip: null,
+              item: soundbiteItem,
+              itemChapter: null,
+              itemSoundbite: item_soundbite,
+              musicIntent: 'explicit_play',
+            }),
             itemChapterShouldSeek: false,
-            itemSoundbite: item_soundbite,
             isPlaying: true,
             shouldPlay: true,
             skipMoveNowPlayingToHistory: false,
@@ -127,12 +134,15 @@ export const ListPlaylistResources: React.FC<Props> = ({
         const channel = item.channel;
         if (channel) {
           mediaPlayerResourceUpdate({
-            channel,
-            clip: null,
-            item,
-            itemChapter: null,
+            target: playbackTargetFromStandardLoad({
+              channel,
+              clip: null,
+              item,
+              itemChapter: null,
+              itemSoundbite: null,
+              musicIntent: 'explicit_play',
+            }),
             itemChapterShouldSeek: false,
-            itemSoundbite: null,
             isPlaying: true,
             shouldPlay: true,
             skipMoveNowPlayingToHistory: false,

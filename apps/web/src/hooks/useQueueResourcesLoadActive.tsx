@@ -7,17 +7,29 @@ import { useAccount } from '../contexts/Account';
 import { autoQueueIncrementActiveRow, useAutoQueue } from '../contexts/AutoQueue';
 import { useQueues } from '../contexts/Queue';
 import { getApiRequestService } from '../factories/apiRequestService';
+import { combineQueueNowPlayingAndUpcoming } from '../lib/queue/combineQueueNowPlayingAndUpcoming';
 
 export type QueueResourcesLoadActiveResult = {
+  historyMoved: number;
+  upcomingResources: DTOQueueResource[];
+  /** The resource callers may synchronously translate into a PlaybackLoadRequest. */
+  activeResource: DTOQueueResource | null;
   upcomingManualCount: number;
   hasAutoQueueNext?: boolean;
+};
+
+const emptyLoadActiveResult: QueueResourcesLoadActiveResult = {
+  activeResource: null,
+  historyMoved: 0,
+  upcomingManualCount: 0,
+  upcomingResources: [],
 };
 
 /*
   NOTE: If you want useQueueResourcesLoadActive to load the next item
   from the queue or auto-queue, and to skip the current "now playing item",
   you must call moveNowPlayingToHistory before calling this hook's returned function.
-  (example: TrackNextButton, TrackNextButtonMobile, and MediaPlayerControllerAV)
+  (example: TrackNextButton, TrackNextButtonMobile, and NonLiveMediaOrchestrator)
 */
 
 export function useQueueResourcesLoadActive() {
@@ -58,7 +70,7 @@ export function useQueueResourcesLoadActive() {
 
     if (!loggedInAccountRef.current) {
       setQueues([]);
-      return { upcomingManualCount: 0 };
+      return emptyLoadActiveResult;
     }
 
     const queueData = await apiRequestService.reqQueueGetAllForAccountPrivate();
@@ -103,8 +115,6 @@ export function useQueueResourcesLoadActive() {
     if (activeQueue) {
       setActiveQueue(activeQueue);
 
-      const combinedQueueResources: DTOQueueResource[] = [];
-
       // Use already-fetched nowPlayingResource if available, otherwise fetch it
       if (!nowPlayingResource) {
         nowPlayingResource = await apiRequestService.reqQueueResourcesGetNowPlayingByQueueIdText(
@@ -115,11 +125,10 @@ export function useQueueResourcesLoadActive() {
       const upcomingQueueResources =
         await apiRequestService.reqQueueResourcesGetAllUpcomingByQueueIdText(activeQueue.id_text);
 
-      if (nowPlayingResource) {
-        combinedQueueResources.push(nowPlayingResource, ...upcomingQueueResources);
-      } else if (upcomingQueueResources.length > 0) {
-        combinedQueueResources.push(...upcomingQueueResources);
-      }
+      const combinedQueueResources = combineQueueNowPlayingAndUpcoming(
+        nowPlayingResource,
+        upcomingQueueResources
+      );
 
       setActiveQueueUpcomingResources(combinedQueueResources);
 
@@ -135,11 +144,14 @@ export function useQueueResourcesLoadActive() {
       }
 
       return {
+        activeResource: combinedQueueResources[0] ?? null,
+        historyMoved: 0,
+        upcomingResources: combinedQueueResources,
         upcomingManualCount: combinedQueueResources.length,
         hasAutoQueueNext: combinedQueueResources.length === 0 ? hasAutoQueueNext : undefined,
       };
     }
 
-    return { upcomingManualCount: 0 };
+    return emptyLoadActiveResult;
   }, []);
 }

@@ -1,6 +1,7 @@
 import type { DTOClip, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
 
 import { LOCAL_STORAGE } from '../constants/localStorage';
+import { clampPlaybackPositionForStorage } from '../lib/playback/clampNearEndSeconds';
 
 export const ANONYMOUS_PLAYBACK_SNAPSHOT_VERSION = 1 as const;
 
@@ -135,11 +136,13 @@ export function writeAnonymousPlaybackSnapshotFromPlayerState(
       ? durationRaw
       : undefined;
 
+  const storedPositionSeconds = clampPlaybackPositionForStorage(positionSeconds, durationSeconds);
+
   const snapshot: AnonymousPlaybackSnapshotV1 = {
     v: ANONYMOUS_PLAYBACK_SNAPSHOT_VERSION,
     kind: resolved.kind,
     id_text: resolved.id_text,
-    playback_position_seconds: positionSeconds,
+    playback_position_seconds: storedPositionSeconds,
     updated_at: new Date().toISOString(),
   };
 

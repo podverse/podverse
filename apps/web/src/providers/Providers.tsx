@@ -15,6 +15,7 @@ import { CategoriesProvider } from '../contexts/Categories';
 import { ConfigProvider } from '../contexts/Config';
 import { LocalSettingsProvider } from '../contexts/LocalSettings';
 import { MediaPlayerProvider } from '../contexts/MediaPlayer';
+import { MediaPlayerControlsProvider } from '../contexts/MediaPlayerControls';
 import { MediaPlayerCurrentTimeProvider } from '../contexts/MediaPlayerCurrentTime';
 import { MediaPlayerVideoProvider } from '../contexts/MediaPlayerVideo';
 import { ModalsProvider } from '../contexts/Modals';
@@ -66,15 +67,17 @@ export default function Providers({
                         <MediaPlayerCurrentTimeProvider>
                           <MediaPlayerProvider>
                             <MediaPlayerVideoProvider>
-                              <AddByRSSListContextProvider>
-                                <AutoQueueProvider ssrLocalSettings={ssrLocalSettings}>
-                                  <ModalsProvider>
-                                    <CategoriesProvider ssrCategories={categories}>
-                                      {children}
-                                    </CategoriesProvider>
-                                  </ModalsProvider>
-                                </AutoQueueProvider>
-                              </AddByRSSListContextProvider>
+                              <MediaPlayerControlsProvider>
+                                <AddByRSSListContextProvider>
+                                  <AutoQueueProvider ssrLocalSettings={ssrLocalSettings}>
+                                    <ModalsProvider>
+                                      <CategoriesProvider ssrCategories={categories}>
+                                        {children}
+                                      </CategoriesProvider>
+                                    </ModalsProvider>
+                                  </AutoQueueProvider>
+                                </AddByRSSListContextProvider>
+                              </MediaPlayerControlsProvider>
                             </MediaPlayerVideoProvider>
                           </MediaPlayerProvider>
                         </MediaPlayerCurrentTimeProvider>

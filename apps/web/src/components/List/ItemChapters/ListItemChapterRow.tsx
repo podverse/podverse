@@ -17,6 +17,7 @@ import { ROUTES } from '../../../constants/routes';
 import { useAutoQueue } from '../../../contexts/AutoQueue';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
+import { playbackTargetFromStandardLoad } from '../../../lib/playback';
 import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableTimeRange } from '../../Time/ReadableTimeRange';
@@ -83,16 +84,19 @@ export const ListItemChapterRow: React.FC<ListItemChapterRowProps> = ({
       setMPIsPlaying(!mpIsPlaying);
     } else if (channel && item) {
       mediaPlayerResourceUpdate({
-        shouldPlay: true,
-        channel: channel,
-        clip: null,
-        item: item,
-        itemChapter: item_chapter,
+        target: playbackTargetFromStandardLoad({
+          channel,
+          clip: null,
+          item,
+          itemChapter: item_chapter,
+          itemSoundbite: null,
+          musicIntent: 'explicit_play',
+        }),
         itemChapterShouldSeek: true,
-        itemSoundbite: null,
+        shouldPlay: true,
+        enclosureSelectedParams: 'use-active-item-or-default',
         isPlaying: true,
         skipMoveNowPlayingToHistory: false,
-        enclosureSelectedParams: 'use-active-item-or-default',
         newAutoQueueConfig: {
           playlist_id_text: null,
           disabled: false,

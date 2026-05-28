@@ -7,6 +7,7 @@ import { useAccount } from '../contexts/Account';
 import { useQueues } from '../contexts/Queue';
 import { useQueueResourcesAbridgedIndex } from '../contexts/QueueResourcesAbridgedIndex';
 import { getApiRequestService } from '../factories/apiRequestService';
+import { clampPlaybackPositionForStorage } from '../lib/playback/clampNearEndSeconds';
 import { writeAnonymousPlaybackSnapshotFromPlayerState } from '../utils/anonymousPlaybackStorage';
 import { buildQueueResourceAbridgedUpdatesFromNowPlayingLike } from '../utils/nowPlayingParamsToAbridgedUpdates';
 import { useQueueResourcesAbridgedIndexUpdate } from './useQueueResourcesAbridgedIndexUpdate';
@@ -46,6 +47,14 @@ export function useQueueResourcesUpdateNowPlaying() {
 
     const { mpChannel, mpClip, mpItem, mpItemSoundbite, mpDuration, mpCurrentTime } = params;
 
+    const storedPlaybackPosition =
+      mpCurrentTime !== undefined
+        ? clampPlaybackPositionForStorage(
+            mpCurrentTime,
+            mpDuration !== undefined && Number.isFinite(mpDuration) ? mpDuration : undefined
+          )
+        : undefined;
+
     const activeQueue = queuesRef.current.find((q) => {
       return (
         q.medium_id === (mpChannel?.medium_id && getQueueMediumIdFromMediumId(mpChannel?.medium_id))
@@ -66,7 +75,7 @@ export function useQueueResourcesUpdateNowPlaying() {
           activeQueue.id_text,
           mpClip.id_text,
           {
-            playback_position: mpCurrentTime?.toString(),
+            playback_position: storedPlaybackPosition?.toString(),
             media_file_duration: mpDuration?.toString(),
           }
         );
@@ -75,7 +84,7 @@ export function useQueueResourcesUpdateNowPlaying() {
           activeQueue.id_text,
           mpItemSoundbite.id_text,
           {
-            playback_position: mpCurrentTime?.toString(),
+            playback_position: storedPlaybackPosition?.toString(),
             media_file_duration: mpDuration?.toString(),
           }
         );
@@ -84,7 +93,7 @@ export function useQueueResourcesUpdateNowPlaying() {
           activeQueue.id_text,
           mpItem.id_text,
           {
-            playback_position: mpCurrentTime?.toString(),
+            playback_position: storedPlaybackPosition?.toString(),
             media_file_duration: mpDuration?.toString(),
           }
         );

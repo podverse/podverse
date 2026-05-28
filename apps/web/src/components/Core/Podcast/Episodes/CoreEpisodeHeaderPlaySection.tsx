@@ -17,6 +17,7 @@ import { useQueueResourcesAbridgedIndex } from '../../../../contexts/QueueResour
 import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { useLikesItemBatch } from '../../../../hooks/useLikesItemBatch';
 import { useMediaPlayerResourceUpdate } from '../../../../hooks/useMediaPlayerResourceUpdate';
+import { playbackTargetFromStandardLoad } from '../../../../lib/playback';
 import { downloadEpisodeWithModal } from '../../../../utils/downloadModal/downloadEpisodeWithModal';
 import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
 import { PlayButtonLarge } from '../../../MediaPlayer/Buttons/PlayButtonLarge';
@@ -66,15 +67,18 @@ export const CoreEpisodeHeaderPlaySection: React.FC<CoreEpisodeHeaderPlaySection
       setMPIsPlaying(!mpIsPlaying);
     } else {
       mediaPlayerResourceUpdate({
-        shouldPlay: true,
-        channel: channel,
-        clip: null,
-        item: item,
-        itemChapter: null,
+        target: playbackTargetFromStandardLoad({
+          channel,
+          clip: null,
+          item,
+          itemChapter: null,
+          itemSoundbite: null,
+          musicIntent: 'explicit_play',
+        }),
         itemChapterShouldSeek: false,
-        itemSoundbite: null,
-        isPlaying: true,
+        shouldPlay: true,
         enclosureSelectedParams: 'use-active-item-or-default',
+        isPlaying: true,
         skipMoveNowPlayingToHistory: false,
         newAutoQueueConfig: {
           playlist_id_text: null,

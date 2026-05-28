@@ -160,12 +160,10 @@ const authenticateAccountCredentials = async (
   };
 };
 
-let accountServiceSingleton: AccountService | undefined;
+// AccountService is constructed per lookup so Vitest per-file vi.mock('@podverse/orm')
+// stays effective (no stale cached instance from another test file).
 function getAccountService(): AccountService {
-  if (accountServiceSingleton === undefined) {
-    accountServiceSingleton = new AccountService();
-  }
-  return accountServiceSingleton;
+  return new AccountService();
 }
 
 let billingPriceCatalogServiceSingleton: BillingPriceCatalogService | undefined;
