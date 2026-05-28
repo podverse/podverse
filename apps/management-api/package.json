@@ -42,7 +42,7 @@
     "passport-local": "^1.0.0",
     "pg": "^8.21.0",
     "reflect-metadata": "^0.2.2",
-    "typeorm": "^0.3.26",
+    "typeorm": "^1.0.0",
     "typeorm-naming-strategies": "^4.1.0"
   },
   "devDependencies": {
