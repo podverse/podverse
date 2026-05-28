@@ -68,18 +68,21 @@ export class DeduplicatorService {
     itemToArchiveId: number,
     duplicateItemToKeepId: number
   ): Promise<void> {
+    const duplicateItemId = String(duplicateItemToKeepId);
+    const archivedItemId = String(itemToArchiveId);
+
     await this.readWriteEntityManager
       .createQueryBuilder()
       .update(Clip)
-      .set({ item_id: duplicateItemToKeepId })
-      .where('item_id = :itemToArchiveId', { itemToArchiveId })
+      .set({ item_id: duplicateItemId })
+      .where('item_id = :itemToArchiveId', { itemToArchiveId: archivedItemId })
       .execute();
 
     await this.readWriteEntityManager
       .createQueryBuilder()
       .update(PlaylistResource)
-      .set({ item_id: duplicateItemToKeepId })
-      .where('item_id = :itemToArchiveId', { itemToArchiveId })
+      .set({ item_id: duplicateItemId })
+      .where('item_id = :itemToArchiveId', { itemToArchiveId: archivedItemId })
       .execute();
   }
 

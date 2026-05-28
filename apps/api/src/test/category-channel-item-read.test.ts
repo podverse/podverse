@@ -359,6 +359,10 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
 
   beforeEach(() => {
     _requestMock.mockClear();
+    channelGetByPodcastIndexIdMock.mockReset();
+    channelGetByPodcastIndexIdMock.mockImplementation(
+      async () => ({ id: 7, id_text: 'by-pi' }) as Record<string, unknown> | null
+    );
     channelGetByIdOrIdTextMock.mockReset();
     channelGetByIdOrIdTextMock.mockImplementation(async (id: string) => {
       if (id === 'missing-chan' || id === '404') {

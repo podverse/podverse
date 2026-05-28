@@ -170,7 +170,11 @@ export class PlaylistService extends BaseManyService<Playlist, 'account'> {
         id_text: playlist_id_text,
         sharable_status_id: Not(SharableStatusEnum.Private),
       },
-      relations: ['account', 'account.account_profile'],
+      relations: {
+        account: {
+          account_profile: true,
+        },
+      },
       ...options,
     });
   }
@@ -186,7 +190,11 @@ export class PlaylistService extends BaseManyService<Playlist, 'account'> {
         id_text: playlist_id_text,
         account: { id_text: account_id_text },
       },
-      relations: ['account', 'account.account_profile'],
+      relations: {
+        account: {
+          account_profile: true,
+        },
+      },
       ...options,
     });
   }
@@ -198,7 +206,9 @@ export class PlaylistService extends BaseManyService<Playlist, 'account'> {
           is_default_likes: true,
           account: { id: account_id },
         },
-        relations: ['medium'],
+        relations: {
+          medium: true,
+        },
       });
     }
 
@@ -218,7 +228,7 @@ export class PlaylistService extends BaseManyService<Playlist, 'account'> {
         is_default_likes: true,
         account: { id: account_id },
       },
-      relations: ['medium', 'playlist_resources'],
+      relations: { medium: true, playlist_resources: true },
     };
 
     return this.repositoryRead.find(options);
@@ -355,7 +365,10 @@ export class PlaylistService extends BaseManyService<Playlist, 'account'> {
               id: In([avPlaylistId, musicPlaylistId].filter((id): id is number => Boolean(id))),
             },
           },
-          relations: ['item', 'playlist'],
+          relations: {
+            item: true,
+            playlist: true,
+          },
           select: {
             item: { id: true },
             playlist: { id: true },
@@ -394,7 +407,9 @@ export class PlaylistService extends BaseManyService<Playlist, 'account'> {
             clip: { id: In(Array.from(clipLookup.values())) },
             playlist: { id: avPlaylistId },
           },
-          relations: ['clip'],
+          relations: {
+            clip: true,
+          },
           select: {
             clip: { id: true },
           },

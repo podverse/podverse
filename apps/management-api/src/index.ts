@@ -1,5 +1,8 @@
 const loadEnv = async () => {
   if (process.env.NODE_ENV !== 'production') {
+    if (process.env.PODVERSE_SKIP_DOTENV === 'true') {
+      return;
+    }
     const dotenvx = await import('@dotenvx/dotenvx');
     dotenvx.config({ path: '.env' });
   }

@@ -19,7 +19,7 @@
     "playwright": "^1.40.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.2",
-    "typeorm": "^0.3.20",
+    "typeorm": "^1.0.0",
     "typescript": "^5.9.2"
   },
   "dependencies": {

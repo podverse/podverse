@@ -7,7 +7,8 @@ import { DatabaseAuditLog } from '@management-api/orm/entities/databaseAuditLog.
 import { ManagementAdminRole } from '@management-api/orm/entities/managementAdminRole.js';
 import type { DataSourceOptions } from 'typeorm';
 import { DataSource } from 'typeorm';
-import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+
+import { SnakeNamingStrategy } from '@podverse/orm';
 
 const commonConfig: DataSourceOptions = {
   type: 'postgres',

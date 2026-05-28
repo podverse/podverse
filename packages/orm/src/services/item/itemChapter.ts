@@ -3,6 +3,10 @@ import { ItemChapter } from '@orm/entities/item/itemChapter.js';
 import { ItemChapterLocation } from '@orm/entities/item/itemChapterLocation.js';
 import type { ItemChaptersFeed } from '@orm/entities/item/itemChaptersFeed.js';
 import type { ItemChaptersObject } from '@orm/entities/item/itemChaptersObject.js';
+import {
+  findOptionsRelationsFromPaths,
+  mergeFindOptionsRelations,
+} from '@orm/lib/findOptionsRelationsFromPaths.js';
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
 import { ItemChaptersObjectService } from '@orm/services/item/itemChaptersObject.js';
 import type { EntityManager, FindManyOptions, FindOneOptions } from 'typeorm';
@@ -59,17 +63,13 @@ export class ItemChapterService extends BaseManyService<ItemChapter, 'item_chapt
     id_text: string,
     config?: FindOneOptions<ItemChapter>
   ): Promise<ItemChapter | null> {
-    const defaultRelations = [
+    const defaultRelations = findOptionsRelationsFromPaths<ItemChapter>([
       'item_chapters_object',
       'item_chapters_object.item_chapters_feed',
       'item_chapters_object.item_chapters_feed.item',
-    ];
+    ]);
     const { relations: extraRelations, ...restConfig } = config ?? {};
-    const mergedRelations = [
-      ...defaultRelations,
-      ...(Array.isArray(extraRelations) ? extraRelations : []),
-    ];
-    const relations = [...new Set(mergedRelations)];
+    const relations = mergeFindOptionsRelations(defaultRelations, extraRelations);
 
     const options: FindOneOptions<ItemChapter> = {
       where: { id_text },

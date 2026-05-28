@@ -3,6 +3,16 @@
 Created: 2026-05-25  
 Scope: **Podverse** monorepo only (not Metaboost).
 
+## Work location
+
+| Item | Value |
+| ---- | ----- |
+| Branch | `chore/typeorm-v1` |
+| Worktree | `/Users/mitcheldowney/repos/pv/podverse-typeorm-v1` |
+| Primary checkout (do not implement here) | `/Users/mitcheldowney/repos/pv/podverse` on `develop` |
+
+Pre-flight: `cd /Users/mitcheldowney/repos/pv/podverse-typeorm-v1 && git branch --show-current`
+
 ## Goal
 
 Upgrade `typeorm` from **0.3.30** to **1.0.0** across all direct consumers with a **clean hard break**. After completion, the codebase uses only TypeORM v1 APIs and patterns — no compatibility shims, no v0.3 naming strategy, no rollback flags.
@@ -24,7 +34,11 @@ Related: [Dependabot PR #221](https://github.com/podverse/podverse/pull/221) bum
 - [Upgrading from 0.3 to 1.0](https://typeorm.io/docs/releases/1.0/upgrading-from-0.3/)
 - [`@typeorm/codemod`](https://www.npmjs.com/package/@typeorm/codemod)
 
-## Inventory snapshot (plan authoring baseline)
+## Inventory snapshot
+
+**Plan 01 baseline (2026-05-26, worktree):** 241 typeorm-import files; 44 string-`relations` files; 4 string-`select`; 1 string-entity `findOne`; 19 QueryBuilder files; 0 legacy `getConnection`/`createConnection` in TS. Full table: [completed/01-baseline-inventory-and-contract.md](../completed/typeorm-v1-upgrade/01-baseline-inventory-and-contract.md).
+
+**Plan authoring baseline (approximate):**
 
 | Area | Scale | v1 risk |
 | ---- | ----- | ------- |

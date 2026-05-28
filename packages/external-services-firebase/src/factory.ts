@@ -24,11 +24,17 @@ export type FirebaseContext = {
 export function createFirebaseContext(config: ExternalServicesConfig): FirebaseContext {
   let firebaseAdminInstance: typeof admin | null = null;
   let isFirebaseEnabled = false;
+  const shouldLogConfigNotice =
+    process.env.NODE_ENV !== 'production' || process.env.LOG_LEVEL === 'debug';
 
   if (!config.firebase.notifications_enabled) {
-    console.warn('Firebase notifications are disabled in the configuration.');
+    if (shouldLogConfigNotice) {
+      console.warn('Firebase notifications are disabled in the configuration.');
+    }
   } else {
-    console.warn('Firebase notifications are enabled in the configuration.');
+    if (shouldLogConfigNotice) {
+      console.warn('Firebase notifications are enabled in the configuration.');
+    }
 
     // Check if the admin JSON key path is provided
     if (!config.firebase.admin_json_key_path || config.firebase.admin_json_key_path.trim() === '') {

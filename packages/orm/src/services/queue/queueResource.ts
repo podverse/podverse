@@ -1,12 +1,21 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Queue } from '@orm/entities/queue/queue.js';
 import { QueueResource } from '@orm/entities/queue/queueResource.js';
+import { findOptionsRelationsFromPaths } from '@orm/lib/findOptionsRelationsFromPaths.js';
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
 import { QueueService } from '@orm/services/queue/queue.js';
 import { Mutex } from 'async-mutex';
-import type { EntityManager, FindManyOptions, FindOptionsOrderValue } from 'typeorm';
+import type {
+  DeepPartial,
+  EntityManager,
+  FindManyOptions,
+  FindOperator,
+  FindOptionsOrderValue,
+  FindOptionsRelations,
+  FindOptionsWhere,
+} from 'typeorm';
 import { Between, In, LessThan, LessThanOrEqual, MoreThan } from 'typeorm';
 
-import type { QueueExtraParams } from '@podverse/helpers';
+import type { DTOQueueResourceAbridgedResponseData, QueueExtraParams } from '@podverse/helpers';
 import { getAddByRSSHashId } from '@podverse/helpers';
 
 import { ClipService } from '../clip.js';
@@ -23,33 +32,161 @@ const QUEUE_LIST_POSITION_INCREMENT = 0.00000001;
 
 const epsilon = 1e-21;
 
-export const listResourceRelations = [
-  'clip',
-  'clip.item',
-  'clip.item.item_about',
-  'clip.item.item_enclosures',
-  'clip.item.item_enclosures.item_enclosure_sources',
-  'clip.item.item_images',
-  'clip.item.channel',
-  'clip.item.channel.channel_images',
-  'clip.sharable_status',
-  'clip.account',
-  'item',
-  'item.item_about',
-  'item.item_enclosures',
-  'item.item_enclosures.item_enclosure_sources',
-  'item.item_images',
-  'item.channel',
-  'item.channel.channel_images',
-  'item_soundbite',
-  'item_soundbite.item',
-  'item_soundbite.item.item_about',
-  'item_soundbite.item.item_enclosures',
-  'item_soundbite.item.item_enclosures.item_enclosure_sources',
-  'item_soundbite.item.item_images',
-  'item_soundbite.item.channel',
-  'item_soundbite.item.channel.channel_images',
-];
+type QueueLinkedResourceKey = 'clip' | 'item' | 'item_soundbite';
+
+type QueueLinkedResourceLookup = {
+  getByIdText: (id_text: string) => Promise<{ id: string | number } | null>;
+};
+
+export type QueueResourceAbridgedRow = DTOQueueResourceAbridgedResponseData;
+
+type QueueResourceAbridgedRawRow = {
+  i: number | string;
+  p: string | number | null;
+  d: string | number | null;
+  z: boolean | null;
+  c: string | number | null;
+  t: string | number | null;
+  s: string | number | null;
+  a: string | null;
+};
+
+function abridgedOptionalId(value: string | number | null): number | undefined {
+  if (value === null || value === '') {
+    return undefined;
+  }
+  if (typeof value === 'number') {
+    return value;
+  }
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? undefined : parsed;
+}
+
+function mapAbridgedRawRow(row: QueueResourceAbridgedRawRow): DTOQueueResourceAbridgedResponseData {
+  const mapped: DTOQueueResourceAbridgedResponseData = {
+    i: typeof row.i === 'number' ? row.i : Number(row.i),
+    p: row.p === null || row.p === undefined ? '' : String(row.p),
+    d: row.d === null || row.d === undefined ? '' : String(row.d),
+  };
+  if (row.z === true) {
+    mapped.z = true;
+  }
+  const clipId = abridgedOptionalId(row.c);
+  if (clipId !== undefined) {
+    mapped.c = clipId;
+  }
+  const itemId = abridgedOptionalId(row.t);
+  if (itemId !== undefined) {
+    mapped.t = itemId;
+  }
+  const soundbiteId = abridgedOptionalId(row.s);
+  if (soundbiteId !== undefined) {
+    mapped.s = soundbiteId;
+  }
+  if (row.a !== null && row.a !== undefined && row.a !== '') {
+    mapped.a = row.a;
+  }
+  return mapped;
+}
+
+type QueueResourceIdColumn = 'clip_id' | 'item_id' | 'item_soundbite_id';
+
+const QUEUE_RESOURCE_ID_BY_KEY: Record<QueueLinkedResourceKey, QueueResourceIdColumn> = {
+  clip: 'clip_id',
+  item: 'item_id',
+  item_soundbite: 'item_soundbite_id',
+};
+
+const listPositionLessThan = (value: number): FindOperator<string> => LessThan(String(value));
+
+const listPositionLessThanOrEqual = (value: number): FindOperator<string> =>
+  LessThanOrEqual(String(value));
+
+const listPositionMoreThan = (value: number): FindOperator<string> => MoreThan(String(value));
+
+const nowPlayingListPositionWhere = (): FindOperator<string> =>
+  Between(String(-epsilon), String(epsilon));
+
+function queueResourceIdColumn(resourceKey: QueueLinkedResourceKey): QueueResourceIdColumn {
+  return QUEUE_RESOURCE_ID_BY_KEY[resourceKey];
+}
+
+function queueResourceWhereByLinkedId(
+  queueId: number,
+  resourceKey: QueueLinkedResourceKey,
+  resourceId: string
+): FindOptionsWhere<QueueResource> {
+  if (resourceKey === 'clip') {
+    return { queue: { id: queueId }, clip_id: resourceId };
+  }
+  if (resourceKey === 'item') {
+    return { queue: { id: queueId }, item_id: resourceId };
+  }
+  return { queue: { id: queueId }, item_soundbite_id: resourceId };
+}
+
+function queueResourceLinkedId(row: QueueResource, resourceKey: QueueLinkedResourceKey): string {
+  if (resourceKey === 'clip') {
+    return row.clip_id;
+  }
+  if (resourceKey === 'item') {
+    return row.item_id;
+  }
+  return row.item_soundbite_id;
+}
+
+function queueResourceDeleteWhere(
+  resourceKey: QueueLinkedResourceKey,
+  resourceId: string
+): Record<string, string> {
+  return { [queueResourceIdColumn(resourceKey)]: resourceId };
+}
+
+function queueResourceCreatePartial(
+  queue: Queue,
+  resourceKey: QueueLinkedResourceKey,
+  resourceId: string,
+  list_position: string,
+  params: QueueExtraParams
+): DeepPartial<QueueResource> {
+  const base: DeepPartial<QueueResource> = { queue, list_position, ...params };
+  if (resourceKey === 'clip') {
+    return { ...base, clip_id: resourceId };
+  }
+  if (resourceKey === 'item') {
+    return { ...base, item_id: resourceId };
+  }
+  return { ...base, item_soundbite_id: resourceId };
+}
+
+export const listResourceRelations: FindOptionsRelations<QueueResource> =
+  findOptionsRelationsFromPaths([
+    'clip',
+    'clip.item',
+    'clip.item.item_about',
+    'clip.item.item_enclosures',
+    'clip.item.item_enclosures.item_enclosure_sources',
+    'clip.item.item_images',
+    'clip.item.channel',
+    'clip.item.channel.channel_images',
+    'clip.sharable_status',
+    'clip.account',
+    'item',
+    'item.item_about',
+    'item.item_enclosures',
+    'item.item_enclosures.item_enclosure_sources',
+    'item.item_images',
+    'item.channel',
+    'item.channel.channel_images',
+    'item_soundbite',
+    'item_soundbite.item',
+    'item_soundbite.item.item_about',
+    'item_soundbite.item.item_enclosures',
+    'item_soundbite.item.item_enclosures.item_enclosure_sources',
+    'item_soundbite.item.item_images',
+    'item_soundbite.item.channel',
+    'item_soundbite.item.channel.channel_images',
+  ]);
 
 export class QueueResourceService extends BaseManyService<QueueResource, 'queue'> {
   private queueService: QueueService;
@@ -86,13 +223,13 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     const rel = relations ?? listResourceRelations;
     const rows = await this.repositoryRead.find({
       where: { id: In(ids) },
-      relations: rel as never,
+      relations: rel,
     });
     const byId = new Map<number, QueueResource>(rows.map((r) => [r.id, r]));
     return ids.map((id) => byId.get(id)).filter((r): r is QueueResource => r !== undefined);
   }
 
-  async getAllByAccountAbridged(account_id: number): Promise<any[]> {
+  async getAllByAccountAbridged(account_id: number): Promise<QueueResourceAbridgedRow[]> {
     const queues = await this.queueService.getAllPrivate(account_id);
     if (!queues.length) {
       throw new Error('No queues found for account.');
@@ -100,7 +237,7 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     const queueIds = queues.map((q) => q.id);
     const idChunks = chunkIdsForInClause(queueIds, QUEUE_IN_CLAUSE_MAX_IDS);
 
-    const merged: any[] = [];
+    const merged: QueueResourceAbridgedRow[] = [];
     for (const ids of idChunks) {
       const abridgedQb = this.repositoryRead
         .createQueryBuilder('qr')
@@ -116,8 +253,10 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
         ])
         .where('qr.queue_id IN (:...queueIds)', { queueIds: ids });
       applyResolvesToActiveItemOrAddByRss('qr', abridgedQb);
-      const rows = await abridgedQb.orderBy('qr.list_position', 'ASC').getRawMany();
-      merged.push(...rows);
+      const rows = await abridgedQb
+        .orderBy('qr.list_position', 'ASC')
+        .getRawMany<QueueResourceAbridgedRawRow>();
+      merged.push(...rows.map(mapAbridgedRawRow));
     }
 
     return merged;
@@ -179,7 +318,7 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
 
     const merged = mergeHistoryListOptions(
       {
-        where: { queue: { id: queue.id }, list_position: LessThanOrEqual(0) as any },
+        where: { queue: { id: queue.id }, list_position: listPositionLessThanOrEqual(0) },
         order: { list_position: 'DESC' as FindOptionsOrderValue },
         relations: listResourceRelations,
       },
@@ -229,7 +368,7 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     }
 
     const firstQueued = await this.repositoryRead.findOne({
-      where: { queue, list_position: MoreThan(0) as any },
+      where: { queue, list_position: listPositionMoreThan(0) },
       order: { list_position: 'ASC' },
     });
 
@@ -250,7 +389,7 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     }
 
     const mostRecentHistoryItem = await this.repositoryRead.findOne({
-      where: { queue, list_position: LessThan(0) as any },
+      where: { queue, list_position: listPositionLessThan(0) },
       order: { list_position: 'DESC' },
     });
 
@@ -260,8 +399,8 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
   private async addResourceToQueue(
     queue_id_text: string,
     resource_id_text: string,
-    resourceService: any,
-    resourceKey: keyof QueueResource,
+    resourceService: QueueLinkedResourceLookup,
+    resourceKey: QueueLinkedResourceKey,
     calculatePosition: (
       firstQueued: QueueResource | null,
       lastQueued: QueueResource | null
@@ -281,21 +420,21 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
       await this.getFirstAndLastQueuedItemsByQueueIdText(queue_id_text);
     const list_position = calculatePosition(firstQueued, lastQueued);
 
-    const resourceKeyId = `${resourceKey}_id` as any;
+    const idColumn = queueResourceIdColumn(resourceKey);
 
     const finalDto = {
-      [resourceKeyId]: resource.id,
+      [idColumn]: String(resource.id),
       list_position,
     };
 
-    return this._update(queue, [resourceKeyId], finalDto);
+    return this._update(queue, [idColumn], finalDto);
   }
 
   private async addResourceToQueueHelper(
     queue_id_text: string,
     resource_id_text: string,
-    resourceService: any,
-    resourceKey: keyof QueueResource,
+    resourceService: QueueLinkedResourceLookup,
+    resourceKey: QueueLinkedResourceKey,
     calculatePosition: (
       firstQueued: QueueResource | null,
       lastQueued: QueueResource | null
@@ -313,8 +452,8 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
   async addResourceToQueueNext(
     queue_id_text: string,
     resource_id_text: string,
-    resourceService: any,
-    resourceKey: keyof QueueResource
+    resourceService: QueueLinkedResourceLookup,
+    resourceKey: QueueLinkedResourceKey
   ): Promise<QueueResource> {
     const { firstQueued } = await this.getFirstAndLastQueuedItemsByQueueIdText(queue_id_text);
     const newPosition = firstQueued
@@ -332,8 +471,8 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
   async addResourceToQueueLast(
     queue_id_text: string,
     resource_id_text: string,
-    resourceService: any,
-    resourceKey: keyof QueueResource
+    resourceService: QueueLinkedResourceLookup,
+    resourceKey: QueueLinkedResourceKey
   ): Promise<QueueResource> {
     const { lastQueued } = await this.getFirstAndLastQueuedItemsByQueueIdText(queue_id_text);
     const newPosition = lastQueued
@@ -351,8 +490,8 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
   async addResourceToQueueBetween(
     queue_id_text: string,
     resource_id_text: string,
-    resourceService: any,
-    resourceKey: keyof QueueResource,
+    resourceService: QueueLinkedResourceLookup,
+    resourceKey: QueueLinkedResourceKey,
     position1: number,
     position2: number
   ): Promise<QueueResource> {
@@ -381,8 +520,8 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
   async addResourceToNowPlaying(
     queue_id_text: string,
     resource_id_text: string,
-    resourceService: any,
-    resourceKey: keyof QueueResource,
+    resourceService: QueueLinkedResourceLookup,
+    resourceKey: QueueLinkedResourceKey,
     params: QueueExtraParams = {}
   ): Promise<QueueResource> {
     const lock = this.getQueueLock(queue_id_text);
@@ -404,11 +543,11 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     manager: EntityManager,
     queue_id_text: string,
     resource_id_text: string,
-    resourceService: any,
-    resourceKey: keyof QueueResource,
+    resourceService: QueueLinkedResourceLookup,
+    resourceKey: QueueLinkedResourceKey,
     params: QueueExtraParams = {}
   ): Promise<QueueResource> {
-    const queue = (await manager.findOne('Queue', { where: { id_text: queue_id_text } })) as any;
+    const queue = await manager.findOne(Queue, { where: { id_text: queue_id_text } });
     if (!queue) {
       throw new Error('Queue not found.');
     }
@@ -418,19 +557,21 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
       throw new Error(`${resourceKey} not found.`);
     }
 
-    const existingNowPlaying = (await manager.findOne(QueueResource, {
-      where: { queue: { id: queue.id }, list_position: Between(-epsilon, epsilon) as any },
-    })) as any;
+    const resourceId = String(resource.id);
+
+    const existingNowPlaying = await manager.findOne(QueueResource, {
+      where: { queue: { id: queue.id }, list_position: nowPlayingListPositionWhere() },
+    });
 
     if (
       existingNowPlaying &&
-      existingNowPlaying[`${resourceKey}_id`] === resource.id &&
+      queueResourceLinkedId(existingNowPlaying, resourceKey) === resourceId &&
       existingNowPlaying.list_position === params.playback_position
     ) {
       return existingNowPlaying;
     }
 
-    if (existingNowPlaying && resource.id !== existingNowPlaying.id) {
+    if (existingNowPlaying && resourceId !== String(existingNowPlaying.id)) {
       await this.moveQueueResourceToHistoryByIdTransactional(
         manager,
         queue_id_text,
@@ -439,22 +580,19 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     }
 
     let queueResource = await manager.findOne(QueueResource, {
-      where: { queue: { id: queue.id }, [`${resourceKey}_id`]: resource.id },
+      where: queueResourceWhereByLinkedId(queue.id, resourceKey, resourceId),
     });
 
     if (!queueResource) {
-      queueResource = manager.create(QueueResource, {
-        queue,
-        [`${resourceKey}`]: resource,
-        list_position: '0',
-        ...params,
-      });
+      queueResource = manager.create(
+        QueueResource,
+        queueResourceCreatePartial(queue, resourceKey, resourceId, '0', params)
+      );
     } else {
-      Object.assign(queueResource, {
-        [`${resourceKey}`]: resource,
-        list_position: '0',
-        ...params,
-      });
+      Object.assign(
+        queueResource,
+        queueResourceCreatePartial(queue, resourceKey, resourceId, '0', params)
+      );
     }
 
     // Set this queue as the active queue (clear any other active queues for this account)
@@ -472,21 +610,21 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     queue: { id: number }
   ): Promise<void> {
     // Get the queue with account relation to find the account_id
-    const fullQueue = await manager.findOne('Queue', {
+    const fullQueue = await manager.findOne(Queue, {
       where: { id: queue.id },
-      relations: ['account'],
+      relations: { account: true },
     });
 
-    if (!fullQueue || !(fullQueue as any).account?.id) {
+    if (!fullQueue?.account?.id) {
       return; // Cannot set active queue without account
     }
 
-    const accountId = (fullQueue as any).account.id;
+    const accountId = fullQueue.account.id;
 
     // Clear is_active_queue on all queues for this account using query builder
     await manager
       .createQueryBuilder()
-      .update('Queue')
+      .update(Queue)
       .set({ is_active_queue: false })
       .where('account_id = :accountId AND is_active_queue = true', { accountId })
       .execute();
@@ -494,7 +632,7 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     // Set this queue as active
     await manager
       .createQueryBuilder()
-      .update('Queue')
+      .update(Queue)
       .set({ is_active_queue: true })
       .where('id = :id', { id: queue.id })
       .execute();
@@ -506,7 +644,7 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     queue_resource_id: number,
     params: QueueExtraParams = {}
   ): Promise<QueueResource> {
-    const queue = (await manager.findOne('Queue', { where: { id_text: queue_id_text } })) as any;
+    const queue = await manager.findOne(Queue, { where: { id_text: queue_id_text } });
     if (!queue) {
       throw new Error('Queue not found.');
     }
@@ -519,7 +657,7 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     }
 
     const mostRecentHistoryItem = await manager.findOne(QueueResource, {
-      where: { queue: { id: queue.id }, list_position: LessThan(0) as any },
+      where: { queue: { id: queue.id }, list_position: listPositionLessThan(0) },
       order: { list_position: 'DESC' },
     });
     const newPosition = mostRecentHistoryItem
@@ -537,16 +675,16 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
   async addResourceToHistory(
     queue_id_text: string,
     resource_id_text: string,
-    resourceService: any,
-    resourceKey: keyof QueueResource,
+    resourceService: QueueLinkedResourceLookup,
+    resourceKey: QueueLinkedResourceKey,
     params: QueueExtraParams
   ): Promise<QueueResource> {
     const lock = this.getQueueLock(queue_id_text);
     return lock.runExclusive(async () => {
       return await this.repositoryReadWrite.manager.transaction(async (manager) => {
-        const queue = (await manager.findOne('Queue', {
+        const queue = await manager.findOne(Queue, {
           where: { id_text: queue_id_text },
-        })) as any;
+        });
         if (!queue) {
           throw new Error('Queue not found.');
         }
@@ -556,8 +694,10 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
           throw new Error(`${resourceKey} not found.`);
         }
 
+        const resourceId = String(resource.id);
+
         const mostRecentHistoryItem = await manager.findOne(QueueResource, {
-          where: { queue: { id: queue.id }, list_position: LessThan(0) as any },
+          where: { queue: { id: queue.id }, list_position: listPositionLessThan(0) },
           order: { list_position: 'DESC' },
         });
 
@@ -566,22 +706,31 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
           : -1;
 
         let queueResource = await manager.findOne(QueueResource, {
-          where: { queue: { id: queue.id }, [`${resourceKey}_id`]: resource.id },
+          where: queueResourceWhereByLinkedId(queue.id, resourceKey, resourceId),
         });
 
         if (!queueResource) {
-          queueResource = manager.create(QueueResource, {
-            queue,
-            [`${resourceKey}`]: resource,
-            list_position: newPosition.toString(),
-            ...params,
-          });
+          queueResource = manager.create(
+            QueueResource,
+            queueResourceCreatePartial(
+              queue,
+              resourceKey,
+              resourceId,
+              newPosition.toString(),
+              params
+            )
+          );
         } else {
-          Object.assign(queueResource, {
-            [`${resourceKey}`]: resource,
-            list_position: newPosition.toString(),
-            ...params,
-          });
+          Object.assign(
+            queueResource,
+            queueResourceCreatePartial(
+              queue,
+              resourceKey,
+              resourceId,
+              newPosition.toString(),
+              params
+            )
+          );
         }
 
         return await manager.save(queueResource);
@@ -592,8 +741,8 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
   async removeResourceFromQueue(
     queue_id_text: string,
     resource_id_text: string,
-    resourceService: any,
-    resourceKey: keyof QueueResource
+    resourceService: QueueLinkedResourceLookup,
+    resourceKey: QueueLinkedResourceKey
   ): Promise<void> {
     const queue = await this.queueService.getByIdText(queue_id_text);
     if (!queue) {
@@ -605,7 +754,7 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
       throw new Error(`${resourceKey} not found.`);
     }
 
-    return this._delete(queue, { [`${resourceKey}_id`]: resource.id });
+    return this._delete(queue, queueResourceDeleteWhere(resourceKey, String(resource.id)));
   }
 
   async addClipToQueueNext(queue_id_text: string, clip_id_text: string): Promise<QueueResource> {
@@ -906,16 +1055,16 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     add_by_rss_resource_data: object,
     params: QueueExtraParams = {}
   ): Promise<QueueResource> {
-    const queue = (await manager.findOne('Queue', { where: { id_text: queue_id_text } })) as any;
+    const queue = await manager.findOne(Queue, { where: { id_text: queue_id_text } });
     if (!queue) {
       throw new Error('Queue not found.');
     }
 
     const add_by_rss_hash_id = getAddByRSSHashId(add_by_rss_resource_data);
 
-    const existingNowPlaying = (await manager.findOne(QueueResource, {
-      where: { queue: { id: queue.id }, list_position: Between(-epsilon, epsilon) as any },
-    })) as QueueResource | null;
+    const existingNowPlaying = await manager.findOne(QueueResource, {
+      where: { queue: { id: queue.id }, list_position: nowPlayingListPositionWhere() },
+    });
 
     // Always move current now-playing to history so position 0 is free. Avoids violating
     // UNIQUE (queue_id, list_position) when we insert/update below.

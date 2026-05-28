@@ -42,7 +42,7 @@ export class ChannelPodrollService extends BaseOneService<ChannelPodroll, 'chann
 
     const podrollChannels = await channelService.getAllByPodcastGuids(
       {
-        relations: ['channel_images'],
+        relations: { channel_images: true },
       },
       feed_guids
     );
@@ -64,7 +64,10 @@ export class ChannelPodrollService extends BaseOneService<ChannelPodroll, 'chann
     }
 
     const podrollItems = await itemService.getManyByPodcastGuidAndItemGuid(params, {
-      relations: ['channel', 'channel.channel_images', 'item_images'],
+      relations: {
+        channel: { channel_images: true },
+        item_images: true,
+      },
     });
 
     return podrollItems;

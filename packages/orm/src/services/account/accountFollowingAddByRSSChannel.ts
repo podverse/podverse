@@ -6,7 +6,7 @@ import {
 } from '@orm/lib/credentialsEncryption.js';
 import { AccountService } from '@orm/services/account/account.js';
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
-import type { EntityManager, FindManyOptions } from 'typeorm';
+import type { EntityManager, FindManyOptions, FindOptionsSelect } from 'typeorm';
 
 export type AccountFollowingAddByRSSChannelDto = {
   feed_url: string;
@@ -41,13 +41,13 @@ export class AccountFollowingAddByRSSChannelService extends BaseManyService<
       throw new Error('Account not found.');
     }
 
-    const safeSelect: (keyof AccountFollowingAddByRSSChannel)[] = [
-      'account_id',
-      'feed_url',
-      'title',
-      'image_url',
-      'basic_auth_username',
-    ];
+    const safeSelect: FindOptionsSelect<AccountFollowingAddByRSSChannel> = {
+      account_id: true,
+      feed_url: true,
+      title: true,
+      image_url: true,
+      basic_auth_username: true,
+    };
     const mergedConfig: FindManyOptions<AccountFollowingAddByRSSChannel> = {
       select: safeSelect,
       ...config,

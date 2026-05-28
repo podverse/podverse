@@ -123,7 +123,7 @@ vi.mock('./feed/feed.js', () => ({
 import { FeedLifecycleStateKeyEnum } from '@orm/entities/feed/feedLifecycleStateType.js';
 import { ItemFlagStatusStatusEnum } from '@orm/entities/item/itemFlagStatus.js';
 
-import { ArchiverService } from './archiver.js';
+import { ArchiverService, FEED_RELATIONS_PENDING_OR_SPAM } from './archiver.js';
 
 describe('ArchiverService takedown hard-delete handling', () => {
   beforeEach(() => {
@@ -159,12 +159,7 @@ describe('ArchiverService takedown hard-delete handling', () => {
           },
         },
       },
-      relations: [
-        'feed_lifecycle_state',
-        'feed_lifecycle_state.feed_lifecycle_state_type',
-        'channel',
-        'channel.items',
-      ],
+      relations: FEED_RELATIONS_PENDING_OR_SPAM,
     });
   });
 

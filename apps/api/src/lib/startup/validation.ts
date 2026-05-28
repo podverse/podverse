@@ -9,6 +9,8 @@ import {
 } from '@podverse/helpers';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
+  displayValidationResultsSilent,
+  isPodverseStartupValidationSilent,
   validateConditionalOptional,
   validateOptional,
   validateOptionalAbsoluteHttpUrlIfSet,
@@ -92,10 +94,18 @@ const validateMetaboostAppAssertionPair = (): ValidationResult[] => {
  * @throws Error if any critical validation fails
  */
 export const validateStartupRequirements = (): void => {
-  loggerService.info('Running startup validation...');
+  const silent = isPodverseStartupValidationSilent();
+
+  if (!silent) {
+    loggerService.info('Running startup validation...');
+  }
 
   const summary = validateAllEnvironmentVariables();
-  displayValidationResults(summary);
+  if (silent) {
+    displayValidationResultsSilent(summary);
+  } else {
+    displayValidationResults(summary);
+  }
 
   if (summary.failed > 0) {
     const errorMessage =
@@ -106,7 +116,9 @@ export const validateStartupRequirements = (): void => {
     throw new Error(errorMessage);
   }
 
-  loggerService.info('Startup validation completed successfully');
+  if (!silent) {
+    loggerService.info('Startup validation completed successfully');
+  }
 };
 
 /**

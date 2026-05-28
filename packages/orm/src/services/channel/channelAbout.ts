@@ -20,6 +20,6 @@ export class ChannelAboutService extends BaseOneService<ChannelAbout, 'channel'>
   }
 
   async update(channel: Channel, dto: ChannelAboutDto): Promise<ChannelAbout> {
-    return super._update(channel, dto, { relations: ['itunes_type'] });
+    return super._update(channel, dto, { relations: { itunes_type: true } });
   }
 }

@@ -292,6 +292,7 @@ When implementing features or executing plans that touch **api** or **management
 
 ### Test infrastructure
 
+- **Test env (no `local_env_setup`)** — API integration tests and Playwright E2E use deterministic env from [`packages/helpers-config/src/podverseTestEnv.ts`](packages/helpers-config/src/podverseTestEnv.ts). E2E servers set `PODVERSE_SKIP_DOTENV=true` so missing `apps/api/.env` does not fail startup. **`make local_env_setup` is for local dev only**, not required for `make test_deps`, `npm run test:e2e:api`, or `make e2e_test_*`.
 - **`make test_deps`** — starts Postgres (port **5732**), Valkey (port **6679**), creates test DBs (`podverse_app_test`, `podverse_management_test`), applies schema. Port coexistence: Podverse dev uses 5432/6379; the dedicated test ports avoid clashing with those and with other local toolchains that may use different test ports.
 - **`scripts/check-test-requirements.mjs`** — TCP check for 5732/6679; exits with instructions if unreachable.
 - **`make help_test`** — prints test ports, container names, and instructions.
@@ -299,13 +300,13 @@ When implementing features or executing plans that touch **api** or **management
 
 ### API integration tests
 
-- `apps/api/src/test/setup.ts` sets smart-default env (ports 5732/6679, test DB names).
-- `apps/management-api/vitest.setup.ts` sets management-api test env.
+- Vitest applies `buildPodverseApiTestEnv` / `buildPodverseManagementApiTestEnv` from `@podverse/helpers-config` (see `apps/api/src/test/setup.ts`, `apps/management-api/vitest.setup.ts`).
 - Run: `npm run test:e2e:api` (or `npm run test -w apps/api` for api only).
 
 ### E2E (Playwright)
 
 - Web ports: API 4030, sidecar 4031, web 4032. Management-web ports: 4130, 4131, 4132.
+- Playwright-spawned API processes use the `apiWebE2e` / `managementApiE2e` profiles from `podverseTestEnv.ts` (not dev `.env` files).
 - Seed data: `make e2e_seed` (deterministic test users).
 - Reports: `make e2e_test_report` produces HTML with step screenshots in `.artifacts/e2e-reports/`.
 - Apps must be built before E2E: `npm run build:packages && npm run build -w apps/api && npm run build -w apps/management-api`.

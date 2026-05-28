@@ -20,7 +20,9 @@ export class AccountSetPasswordService extends BaseOneService<AccountSetPassword
   async getByToken(set_password_token: string): Promise<AccountSetPassword | null> {
     return this.repositoryRead.findOne({
       where: { set_password_token },
-      relations: ['account'],
+      relations: {
+        account: true,
+      },
     });
   }
 

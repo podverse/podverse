@@ -50,7 +50,7 @@ export class AccountFollowingAccountService extends BaseManyService<
           sharable_status: Not(SharableStatusEnum.Private),
         },
       },
-      relations: ['following_account'],
+      relations: { following_account: true },
     };
 
     return this.repositoryRead.find(publicConfig);

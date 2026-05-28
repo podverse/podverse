@@ -137,11 +137,11 @@ Do not add runtime fallbacks — fix data or entity metadata intentionally.
 
 ## Deliverables
 
-- [ ] Zero `findOne('EntityString'` in packages/orm
-- [ ] QueryBuilder files compile under v1
-- [ ] No `invalidWhereValuesBehavior` rollback in factory
-- [ ] Dynamic where audit complete; throws prevented
-- [ ] nullable:false entities reviewed
+- [x] Zero `findOne('EntityString'` in packages/orm
+- [x] QueryBuilder files compile under v1 (`npm run build -w @podverse/orm`)
+- [x] No `invalidWhereValuesBehavior` rollback in factory
+- [x] Dynamic where audit complete; queue helpers use typed `FindOptionsWhere` / FK columns only
+- [x] nullable:false entities reviewed (channel/liveItem — no schema change; fix seeds if INNER JOIN excludes rows)
 
 ## Verification
 
@@ -156,7 +156,7 @@ make test_deps
 
 ## Completion checklist
 
-- [ ] queueResource string entity names eliminated
-- [ ] ORM package builds
-- [ ] ORM unit tests pass
-- [ ] No DataSource invalidWhereValuesBehavior rollback added
+- [x] queueResource string entity names eliminated
+- [x] ORM package builds
+- [ ] ORM unit tests pass (run locally; may need `@rollup/rollup-darwin-arm64` on Mac)
+- [x] No DataSource invalidWhereValuesBehavior rollback added

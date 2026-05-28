@@ -124,10 +124,19 @@ Codemod may still touch imports or typings — review diff regardless.
 
 ## Deliverables
 
-- [ ] Codemod applied to all scoped paths
-- [ ] Zero codemod TODO comments remaining
-- [ ] `npm run lint:fix` clean on touched files
-- [ ] `git diff` reviewed for unexpected changes outside scope
+- [x] Codemod applied to all scoped paths (20 files; `queueResource.ts` parse error — fixed manually)
+- [x] Zero codemod TODO comments remaining
+- [x] `npm run lint:fix` clean on `@podverse/orm` and `@podverse/management-api`
+- [x] `git diff` reviewed; helper added for dynamic relation paths
+
+## Completion note
+
+**Executed:** 2026-05-26 on `chore/typeorm-v1`.
+
+- Dry run + apply: 18 `find-options-string-relations`, 2 `find-options-string-select`, 1 `connection-to-datasource`.
+- Resolved 4 codemod TODO sites via `findOptionsRelationsFromPaths` / `mergeFindOptionsRelations` and object `listResourceRelations`.
+- Added `packages/orm/src/lib/findOptionsRelationsFromPaths.ts` (+ unit test).
+- Remaining string `relations: [` elsewhere deferred to plan 04 (expected compile failures).
 
 ## Verification
 
@@ -141,7 +150,7 @@ Compile may still fail on string `relations` — that is expected until plan 04.
 
 ## Completion checklist
 
-- [ ] Dry run reviewed before apply
-- [ ] All TODOs resolved
-- [ ] Lint fix run
-- [ ] No legacy global TypeORM APIs reintroduced
+- [x] Dry run reviewed before apply
+- [x] All TODOs resolved
+- [x] Lint fix run
+- [x] No legacy global TypeORM APIs reintroduced

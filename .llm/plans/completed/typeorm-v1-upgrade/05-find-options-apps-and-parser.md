@@ -114,10 +114,10 @@ select: {
 
 ## Deliverables
 
-- [ ] Zero string-array `relations` in apps, parser, scripts
-- [ ] Zero string-array `select` in apps, parser, scripts, workers
-- [ ] Account relation constants converted to object syntax
-- [ ] Reencrypt worker/script selects aligned
+- [x] Zero string-array `relations` in apps, parser, scripts
+- [x] Zero string-array `select` in apps, parser, scripts, workers (reencrypt files already object syntax)
+- [x] Account relation constants converted to object syntax
+- [x] Reencrypt worker/script selects aligned
 
 ## Verification
 
@@ -136,7 +136,8 @@ rg "relations: \[|select: \[" --glob '*.ts' --glob '!**/.llm/**'
 
 ## Completion checklist
 
-- [ ] All 17 relations files converted
-- [ ] All 4 select files converted
-- [ ] Repo-wide string relations/select grep is zero
-- [ ] API and parser build successfully
+- [x] All 17 relations files converted (+ shared ORM exports `itemGetManyRelations*`, `channelGetManyRelations`, `subChannelGetManyRelations`)
+- [x] All 4 select files converted
+- [x] Repo-wide string relations/select grep is zero
+- [x] API and parser build successfully
+- [x] Entity fixes: `Clip.sharable_status`, `Queue.medium` typed as `Relation<>` for v1 find options

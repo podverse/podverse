@@ -17,6 +17,8 @@ export class ItemAboutService extends BaseOneService<ItemAbout, 'item'> {
   }
 
   async update(item: Item, dto: ItemAboutDto): Promise<ItemAbout> {
-    return super._update(item, dto, { relations: ['item_itunes_episode_type'] });
+    return super._update(item, dto, {
+      relations: { item_itunes_episode_type: true },
+    });
   }
 }

@@ -19,7 +19,7 @@ export class PublisherFeedService {
 
     const publisherChannels = await channelService.getAllByPodcastGuids(
       {
-        relations: ['channel_images'],
+        relations: { channel_images: true },
       },
       feed_guids
     );
@@ -38,7 +38,10 @@ export class PublisherFeedService {
     }
 
     const publisherItems = await itemService.getManyByPodcastGuidAndItemGuid(params, {
-      relations: ['channel', 'channel.channel_images', 'item_images'],
+      relations: {
+        channel: { channel_images: true },
+        item_images: true,
+      },
     });
 
     return publisherItems;

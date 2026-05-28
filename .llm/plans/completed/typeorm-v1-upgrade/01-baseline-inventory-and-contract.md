@@ -1,5 +1,11 @@
 # Plan 01 — Baseline inventory and contract
 
+## Work location
+
+- **Branch:** `chore/typeorm-v1`
+- **Worktree:** `/Users/mitcheldowney/repos/pv/podverse-typeorm-v1`
+- Run all commands from the worktree root. Do not run baseline inventory on `develop` or other branches.
+
 ## Objective
 
 Capture a **reproducible baseline** of TypeORM usage and a **binding scope contract** before any dependency or code changes. This plan produces documentation only — no product code edits.
@@ -43,9 +49,12 @@ Record in the PR or completion note:
 
 ### 1. Run baseline inventory commands
 
-From repo root:
+From worktree root (`/Users/mitcheldowney/repos/pv/podverse-typeorm-v1`):
 
 ```bash
+cd /Users/mitcheldowney/repos/pv/podverse-typeorm-v1
+test "$(git branch --show-current)" = "chore/typeorm-v1"
+
 BASE=/tmp/podverse-typeorm-v1-baseline
 mkdir -p "$BASE"
 
@@ -185,22 +194,30 @@ Paste into **Completion note** below (not the full dumps):
 
 ## Deliverables
 
-- [ ] Baseline commands run; summary table in completion note
-- [ ] Hard-break contract acknowledged
-- [ ] Dependabot #221 disposition recorded
-- [ ] No product code changes
+- [x] Baseline commands run; summary table in completion note
+- [x] Hard-break contract acknowledged
+- [x] Dependabot #221 disposition recorded
+- [x] No product code changes
 
 ## Completion note
 
-_(Fill when plan 01 executes.)_
+**Executed:** 2026-05-26 on branch `chore/typeorm-v1` at `/Users/mitcheldowney/repos/pv/podverse-typeorm-v1`.
 
-| Metric | Value |
-| ------ | ----- |
-| typeorm import files | |
-| string relations files | |
-| string select files | |
-| string entity findOne files | |
-| querybuilder files | |
+| Metric | Value | Notes |
+| ------ | ----- | ----- |
+| Files importing `typeorm` | **241** | `packages`, `apps`, `tools`, `scripts` only (includes entities) |
+| Files with string `relations: [` | **44** | Plan authoring listed 45; one file may use object syntax only |
+| Files with string `select: [` | **4** | Matches plan list |
+| Files with `findOne('Entity'` | **1** | `packages/orm/src/services/queue/queueResource.ts` |
+| `typeorm-naming-strategies` (product) | **5** | `packages/orm`, `apps/management-api`, `apps/workers` package.json; `factory.ts`, `orm/db/index.ts`, `appDb.ts` imports |
+| Legacy global API (`getConnection` / `createConnection`) | **0** | In `*.ts` product code |
+| Global `getRepository` from `'typeorm'` | **0** | In `*.ts`; stale examples in `.cursor/skills/orm/SKILL.md` (plan 08) |
+| QueryBuilder files | **19** | `createQueryBuilder` in packages/apps/tools/scripts |
+| Direct `typeorm` in package.json | **4** | orm, management-api, workers, lighthouse (`^0.3.x`) |
+
+**Dependabot #221:** Close or supersede in favor of this branch; do not merge the bare version bump.
+
+**Hard-break contract:** Recorded in this plan and [00-SUMMARY.md](./00-SUMMARY.md).
 
 ## Verification
 

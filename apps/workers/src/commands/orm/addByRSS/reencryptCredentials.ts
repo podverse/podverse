@@ -34,7 +34,12 @@ export async function reencryptAddByRSSCredentials(): Promise<void> {
   const repo = ds.getRepository(AccountFollowingAddByRSSChannel);
   const rows = await repo.find({
     where: { basic_auth_username: Not(IsNull()) },
-    select: ['account_id', 'feed_url', 'basic_auth_username', 'basic_auth_password'],
+    select: {
+      account_id: true,
+      feed_url: true,
+      basic_auth_username: true,
+      basic_auth_password: true,
+    },
   });
   let updated = 0;
   for (const row of rows) {

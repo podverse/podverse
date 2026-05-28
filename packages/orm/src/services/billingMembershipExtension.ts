@@ -38,7 +38,9 @@ export class BillingMembershipExtensionService {
     membershipExpiresAt: Date | null;
   }> {
     const account = await this.accountService.get(params.accountId, {
-      relations: ['account_membership_status', 'account_membership_status.account_membership'],
+      relations: {
+        account_membership_status: { account_membership: true },
+      },
     });
     if (!account) {
       throw new Error('Account not found');
@@ -82,7 +84,9 @@ export class BillingMembershipExtensionService {
     membershipExpiresAt: Date | null;
   }> {
     const account = await this.accountService.get(params.accountId, {
-      relations: ['account_membership_status', 'account_membership_status.account_membership'],
+      relations: {
+        account_membership_status: { account_membership: true },
+      },
     });
     if (!account) {
       throw new Error('Account not found');

@@ -125,10 +125,10 @@ If `AGENTS.md` or `docs/architecture/` mentions TypeORM migrations for Podverse,
 
 ## Deliverables
 
-- [ ] ORM skill documents v1-only patterns
-- [ ] Type re-exports verified against typeorm 1.x
-- [ ] Docs/skills grep clean (per exclusions)
-- [ ] No pre-v1 TypeORM pattern examples in `.cursor/skills/orm/`
+- [x] ORM skill documents v1-only patterns
+- [x] Type re-exports verified against typeorm 1.x (`FindManyOptions`, `FindOptionsWhere`, `FindOptionsOrder`, `FindOptionsRelations`, `FindOptionsSelect`; `EntityManager` in `typeORMTypes.ts`)
+- [x] Docs/skills grep clean (per exclusions)
+- [x] No pre-v1 TypeORM pattern examples in `.cursor/skills/orm/`
 
 ## Verification
 
@@ -141,7 +141,7 @@ rg -i 'typeorm migration:generate|typeorm migration:run' docs .cursor --glob '!*
 
 ## Completion checklist
 
-- [ ] ORM skill rewritten
-- [ ] index.ts exports verified
-- [ ] Stale migration CLI references removed from docs/skills
-- [ ] packages build still passes
+- [x] ORM skill rewritten
+- [x] index.ts exports verified
+- [x] Stale migration CLI references removed from docs/skills
+- [x] packages build still passes

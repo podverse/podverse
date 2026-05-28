@@ -12,7 +12,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import type { SharableStatusEnum } from '@podverse/helpers';
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
 
 @Entity('clip')
@@ -51,7 +50,7 @@ export class Clip {
 
   @ManyToOne('SharableStatus', (sharableStatus: SharableStatus) => sharableStatus.id)
   @JoinColumn({ name: 'sharable_status_id' })
-  sharable_status!: SharableStatusEnum;
+  sharable_status!: Relation<SharableStatus>;
 
   /*
     NOTE: this is not truly nullable, but we need this column to allow

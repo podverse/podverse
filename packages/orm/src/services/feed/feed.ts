@@ -5,6 +5,7 @@ import type { FeedConditionTypeKeyEnum } from '@orm/entities/feed/feedConditionT
 import type { FeedPolicy } from '@orm/entities/feed/feedPolicy.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
 import { isPostgresUniqueViolation } from '@orm/lib/postgresUniqueViolation.js';
+import type { FindOptionsRelations } from 'typeorm';
 
 import { canonicalHttpOrHttpsUrl } from '@podverse/helpers-validation';
 
@@ -42,13 +43,12 @@ export type ApplyFeedModerationChangesParams = {
   refreshPolicy?: boolean;
 };
 
-const FEED_RELATIONS = [
-  'channel',
-  'feed_lifecycle_state',
-  'feed_lifecycle_state.feed_lifecycle_state_type',
-  'feed_log',
-  'feed_policy',
-] as const;
+const FEED_RELATIONS: FindOptionsRelations<Feed> = {
+  channel: true,
+  feed_lifecycle_state: { feed_lifecycle_state_type: true },
+  feed_log: true,
+  feed_policy: true,
+};
 
 export class FeedService {
   private repositoryRead = AppDataSourceRead.getRepository(Feed);
@@ -57,13 +57,13 @@ export class FeedService {
   async get(id: number): Promise<Feed | null> {
     return this.repositoryRead.findOne({
       where: { id },
-      relations: [...FEED_RELATIONS],
+      relations: FEED_RELATIONS,
     });
   }
 
   async getAll(): Promise<Feed[]> {
     return await this.repositoryRead.find({
-      relations: [...FEED_RELATIONS],
+      relations: FEED_RELATIONS,
     });
   }
 
@@ -74,7 +74,7 @@ export class FeedService {
           podcast_guid,
         },
       },
-      relations: [...FEED_RELATIONS],
+      relations: FEED_RELATIONS,
     });
   }
 
@@ -85,7 +85,7 @@ export class FeedService {
       where: {
         url: httpsUrl,
       },
-      relations: [...FEED_RELATIONS],
+      relations: FEED_RELATIONS,
     });
     if (httpsFeed) {
       return httpsFeed;
@@ -95,7 +95,7 @@ export class FeedService {
       where: {
         url: httpUrl,
       },
-      relations: [...FEED_RELATIONS],
+      relations: FEED_RELATIONS,
     });
     if (httpFeed) {
       return httpFeed;
@@ -116,7 +116,7 @@ export class FeedService {
         url,
         podcast_index_id,
       },
-      relations: [...FEED_RELATIONS],
+      relations: FEED_RELATIONS,
     });
   }
 
@@ -125,7 +125,7 @@ export class FeedService {
       where: {
         podcast_index_id,
       },
-      relations: [...FEED_RELATIONS],
+      relations: FEED_RELATIONS,
     });
   }
 
@@ -145,7 +145,7 @@ export class FeedService {
     const url = canonicalHttpOrHttpsUrl(urlRaw) ?? urlRaw;
     const feed = await this.repositoryRead.findOne({
       where: { url },
-      relations: [...FEED_RELATIONS],
+      relations: FEED_RELATIONS,
     });
 
     if (feed) {

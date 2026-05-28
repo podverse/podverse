@@ -55,7 +55,7 @@ describe('mergeHistoryListOptions', () => {
     const base = {
       where: { id: 1 },
       order: { id: 'DESC' as const },
-      relations: ['a'],
+      relations: { clip: true },
     };
 
     const merged = mergeHistoryListOptions(base, {

@@ -49,7 +49,9 @@ export class AccountSettingsLocaleService {
     const accountSettingsRepo = AppDataSourceRead.getRepository(AccountSettings);
     const accountSettings = await accountSettingsRepo.findOne({
       where: { account_id: dto.account_id },
-      relations: ['account_settings_locale'],
+      relations: {
+        account_settings_locale: true,
+      },
     });
 
     if (!accountSettings) {

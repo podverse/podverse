@@ -25,7 +25,9 @@ export class ChannelTrailerService extends BaseManyService<ChannelTrailer, 'chan
 
   async updateMany(channel: Channel, dtos: ChannelTrailerDto[]): Promise<ChannelTrailer[]> {
     const whereKeys = ['url'] as (keyof ChannelTrailer)[];
-    return super._updateMany(channel, whereKeys, dtos, { relations: ['channel_season'] });
+    return super._updateMany(channel, whereKeys, dtos, {
+      relations: { channel_season: true },
+    });
   }
 
   async deleteAll(channel: Channel): Promise<void> {

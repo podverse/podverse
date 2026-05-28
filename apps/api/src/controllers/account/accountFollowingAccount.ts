@@ -33,7 +33,7 @@ class AccountFollowingAccountController {
 
             const account = await AccountFollowingAccountController.accountService.getByIdText(
               account_id_text,
-              { relations: ['sharable_status'] }
+              { relations: { sharable_status: true } }
             );
 
             if (!account) {

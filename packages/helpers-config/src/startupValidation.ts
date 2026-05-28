@@ -216,6 +216,10 @@ export function getAllAvailableOrListMessage(validValues: string[]): string {
  * This is intended for modules (not apps) that should not show validation output unless there are errors.
  * @param summary - The validation summary to display
  */
+export function isPodverseStartupValidationSilent(): boolean {
+  return process.env.PODVERSE_STARTUP_VALIDATION_SILENT === '1';
+}
+
 export function displayValidationResultsSilent(summary: ValidationSummary): void {
   // Only log if there are failures
   if (summary.failed === 0 && summary.requiredMissing === 0) {

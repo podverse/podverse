@@ -132,11 +132,11 @@ Parser uses `AppDataSourceReadWrite.manager.transaction` — no local config. Co
 
 ## Deliverables
 
-- [ ] All four management-api DataSources compile and lifecycle unchanged
-- [ ] `appDb.ts` uses `@podverse/orm` naming strategy
-- [ ] workers, parser, management-api build successfully
-- [ ] lighthouse on typeorm 1.x
-- [ ] test-assets script compiles
+- [x] All four management-api DataSources compile and lifecycle unchanged
+- [x] `appDb.ts` uses `@podverse/orm` naming strategy
+- [x] workers, parser, management-api build successfully
+- [x] lighthouse on typeorm 1.x (`tools/web-perf/lighthouse/package.json`; no build script — TS reviewed)
+- [x] test-assets script compiles (`npm run build -w tools/test-assets`)
 
 ## Verification
 
@@ -149,7 +149,7 @@ rg "typeorm-naming-strategies" apps/management-api tools
 
 ## Completion checklist
 
-- [ ] management-api build passes
-- [ ] workers build passes
-- [ ] No stale naming-strategy imports in management-api
-- [ ] Satellite tools reviewed for v1 API usage
+- [x] management-api build passes
+- [x] workers build passes
+- [x] No stale naming-strategy imports in management-api
+- [x] Satellite tools reviewed for v1 API usage

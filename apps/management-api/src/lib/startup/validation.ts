@@ -12,6 +12,8 @@ import {
 import { isValidUUID } from '@podverse/helpers';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
+  displayValidationResultsSilent,
+  isPodverseStartupValidationSilent,
   validateOptional,
   validateOptionalAbsoluteHttpUrlIfSet,
   validateRequired,
@@ -26,10 +28,18 @@ import { buildObservabilityValidationResults } from '@podverse/observability/con
  * @throws Error if any critical validation fails
  */
 export const validateStartupRequirements = (): void => {
-  console.log('Running startup validation...');
+  const silent = isPodverseStartupValidationSilent();
+
+  if (!silent) {
+    console.log('Running startup validation...');
+  }
 
   const summary = validateAllEnvironmentVariables();
-  displayValidationResults(summary);
+  if (silent) {
+    displayValidationResultsSilent(summary);
+  } else {
+    displayValidationResults(summary);
+  }
 
   if (summary.requiredMissing > 0) {
     const errorMessage = `FATAL: ${summary.requiredMissing} required environment variable(s) are missing or invalid. Please check the validation output above for details.`;
@@ -38,7 +48,9 @@ export const validateStartupRequirements = (): void => {
     throw new Error(errorMessage);
   }
 
-  console.log('Startup validation completed successfully');
+  if (!silent) {
+    console.log('Startup validation completed successfully');
+  }
 };
 
 /**

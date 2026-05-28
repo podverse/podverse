@@ -100,7 +100,7 @@ export const parseChapters = async (item: Item): Promise<{ parsed: boolean }> =>
   const itemChapterService = new ItemChapterService();
 
   const existingChapters = await itemChapterService.getAll(item_chapters_feed, {
-    select: ['id', 'data_hash'],
+    select: { id: true, data_hash: true },
   });
   const existingChaptersDataHashes = existingChapters.map((item_chapter) => item_chapter.data_hash);
   const updatedChaptersDataHashes: string[] = [];
