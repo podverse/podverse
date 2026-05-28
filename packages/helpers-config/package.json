@@ -14,7 +14,8 @@
     "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
     "clean": "rm -rf dist",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
   },
   "license": "AGPL-3.0",
   "publishConfig": {
@@ -24,7 +25,8 @@
     "@podverse/helpers": "*"
   },
   "devDependencies": {
-    "@types/node": "^24.12.0"
+    "@types/node": "^24.12.0",
+    "vitest": "^3.2.4"
   },
   "type": "module"
 }
