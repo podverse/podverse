@@ -167,6 +167,23 @@ Use **`./scripts/secret-generators/`** there (kept in sync with [Podverse `infra
    `cert-manager` with key `api-token`, not `$NAMESPACE`. Align ingress `ClusterIssuer` and DNS01 wiring
    with **§5** below.
 
+6. **Grafana admin** (optional; when your GitOps repo deploys Grafana for cluster/Podverse metrics):
+
+   Prometheus and Grafana manifests live in **GitOps** (not in the Podverse monorepo). The Grafana Deployment expects Secret **`grafana-admin`** in namespace **`grafana`**. Generate from your GitOps repo root (after copying generators from Podverse):
+
+   ```fish
+   ./scripts/secret-generators/create_grafana_admin_secret.sh
+   ```
+
+   Default encrypted file: **`secrets/grafana-admin.enc.yaml`**. Apply before or with the first Grafana rollout:
+
+   ```fish
+   kubectl create namespace grafana --dry-run=client -o yaml | kubectl apply -f -
+   sops -d secrets/grafana-admin.enc.yaml | kubectl apply -f -
+   ```
+
+   Scrape jobs for Podverse extension metrics and optional **node-exporter** are documented in your GitOps repo (see Podverse [PROMETHEUS-METRICS-ENDPOINTS.md](../../operations/extensions/PROMETHEUS-METRICS-ENDPOINTS.md)).
+
 ### 4. Validate secrets, then apply (cluster)
 
 **`$GITOPS_REPO_DIR`**. **Requires** the encrypted files from **Generate encrypted secrets** and working SOPS decrypt for that repo’s **`.sops.yaml`**.
