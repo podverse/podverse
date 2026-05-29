@@ -21,8 +21,7 @@ K8s YAML is formatted with Prettier using **k8s-specific overrides** (see root `
 **How to format:**
 
 - Format-on-save in VS Code/Cursor applies k8s overrides automatically
-- Manual: `npm run prettier:write` or `npm run lint:fix` from repo root
-- Pre-commit: `lint-staged` formats staged k8s YAML
+- Manual: `npm run prettier:write` or `npm run lint:fix` from repo root before commit
 
 ## ConfigMap Conventions
 
