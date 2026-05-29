@@ -6,8 +6,11 @@ import { MediumEnum } from '@podverse/helpers';
 
 import { useAccount } from '../../contexts/Account';
 import { useAutoQueue } from '../../contexts/AutoQueue';
+import { useConfig } from '../../contexts/Config';
+import { useLocalSettings } from '../../contexts/LocalSettings';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { useMediaPlayerResourceUpdate } from '../../hooks/useMediaPlayerResourceUpdate';
+import { cookieConsentAllowsAnonymousFeatureStorage } from '../../lib/cookieConsent/cookieConsentPolicy';
 import { playbackTargetFromStandardLoad } from '../../lib/playback';
 import {
   clearAnonymousPlaybackSnapshot,
@@ -17,9 +20,16 @@ import {
 let anonymousPlaybackRestoreStarted = false;
 
 export function AnonymousPlaybackRestoreController() {
+  const config = useConfig();
+  const { cookieConsent } = useLocalSettings();
   const { loggedInAccount } = useAccount();
   const { autoQueueConfig } = useAutoQueue();
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
+
+  const allowsAnonymousFeatureStorage = cookieConsentAllowsAnonymousFeatureStorage(
+    config.public.cookieConsent.bannerEnabled,
+    cookieConsent
+  );
 
   const loggedInAccountRef = useRef(loggedInAccount);
   const autoQueueConfigRef = useRef(autoQueueConfig);
@@ -44,7 +54,7 @@ export function AnonymousPlaybackRestoreController() {
   }, [loggedInAccount]);
 
   useEffect(() => {
-    if (loggedInAccount || anonymousPlaybackRestoreStarted) {
+    if (loggedInAccount || anonymousPlaybackRestoreStarted || !allowsAnonymousFeatureStorage) {
       return;
     }
     anonymousPlaybackRestoreStarted = true;
@@ -170,7 +180,7 @@ export function AnonymousPlaybackRestoreController() {
         // Best-effort restore
       }
     })();
-  }, [loggedInAccount]);
+  }, [loggedInAccount, allowsAnonymousFeatureStorage]);
 
   return null;
 }

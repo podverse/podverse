@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import {
   getEmailErrorKey,
@@ -10,14 +10,32 @@ import {
   getPasswordErrorKey,
   getPasswordRequirementsInfoKey,
 } from '@podverse/helpers-validation/client';
-import { Button, FormInfoMessageText, StackForm, TextInput } from '@podverse/ui';
+import { Button, FormInfoMessageText, StackForm, TextCheckboxes, TextInput } from '@podverse/ui';
 
+import { ROUTES } from '../../constants/routes';
+import { useConfig } from '../../contexts/Config';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
+import { Link } from '../Link/Link';
 
 import styles from '../../styles/components/Auth/AuthSignUpForm.module.scss';
 
-export const AuthSignUpForm: React.FC = () => {
+type ErrorWithResponse = {
+  response?: { status?: number; data?: { message?: string } };
+  status?: number;
+};
+
+function isInvalidTermsVersionError(error: unknown): boolean {
+  const apiError = error as ErrorWithResponse;
+  const status = apiError.response?.status ?? apiError.status;
+  if (status !== 400) {
+    return false;
+  }
+  const message = apiError.response?.data?.message;
+  return message === 'Invalid terms version';
+}
+
+export const AuthSignUpForm = () => {
   const [email, setEmail] = useState('');
   const [password1, setPassword1] = useState('');
   const [password2, setPassword2] = useState('');
@@ -27,33 +45,48 @@ export const AuthSignUpForm: React.FC = () => {
   const [emailTouched, setEmailTouched] = useState(false);
   const [password1Touched, setPassword1Touched] = useState(false);
   const [password2Touched, setPassword2Touched] = useState(false);
+  const [termsAgreed, setTermsAgreed] = useState(false);
+  const [listenStatsSelected, setListenStatsSelected] = useState<string[]>(['opt-in']);
+  const [termsVersionError, setTermsVersionError] = useState<string | undefined>();
   const [isAccountCreated, setIsAccountCreated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const tAuthentication = useTranslations('authentication');
   const tMisc = useTranslations('misc');
+  const config = useConfig();
   const router = useRouter();
   const locale = useLocale();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isFormValid) {
-      setIsLoading(true);
-      try {
-        await getApiRequestService().reqAccountCreate({
-          email,
-          password: password1,
-          locale,
-        });
-        setIsAccountCreated(true);
-      } catch (err) {
-        const rateLimitErrorHandled = await handleRateLimitAlert(err, locale, tMisc);
-        if (!rateLimitErrorHandled) {
-          console.error('Sign up failed:', err);
-          alert(tMisc('errors.generic'));
-        }
-      }
+    if (!isFormValid) {
+      return;
     }
-    setIsLoading(false);
+
+    setIsLoading(true);
+    setTermsVersionError(undefined);
+    try {
+      await getApiRequestService().reqAccountCreate({
+        email,
+        password: password1,
+        locale,
+        terms_version: config.public.legal.terms.version,
+        allow_listen_stats: listenStatsSelected.includes('opt-in'),
+      });
+      setIsAccountCreated(true);
+    } catch (err) {
+      const rateLimitErrorHandled = await handleRateLimitAlert(err, locale, tMisc);
+      if (rateLimitErrorHandled) {
+        return;
+      }
+      if (isInvalidTermsVersionError(err)) {
+        setTermsVersionError(tAuthentication('terms_version_invalid'));
+        return;
+      }
+      console.error('Sign up failed:', err);
+      alert(tMisc('errors.generic'));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleEmailBlur = () => {
@@ -135,7 +168,10 @@ export const AuthSignUpForm: React.FC = () => {
     !getPassword2ErrorKey(password1, password2) &&
     !!email &&
     !!password1 &&
-    !!password2;
+    !!password2 &&
+    termsAgreed;
+
+  const listenStatsOptions = [{ label: tAuthentication('listen_stats_opt_in'), value: 'opt-in' }];
 
   return (
     <div className={styles.authSignUpForm}>
@@ -174,6 +210,33 @@ export const AuthSignUpForm: React.FC = () => {
           />
           <div className={styles.passwordInfo}>
             {tAuthentication(getPasswordRequirementsInfoKey())}
+          </div>
+          <div className={styles.consentCheckboxes}>
+            <label className={styles.consentOption}>
+              <input
+                type="checkbox"
+                checked={termsAgreed}
+                onChange={(event) => setTermsAgreed(event.target.checked)}
+                className={styles.consentCheckbox}
+              />
+              <span className={styles.consentLabel}>
+                {tMisc('i_have_read_and_agree')} <Link href={ROUTES.TERMS}>{tMisc('terms')}</Link>
+              </span>
+            </label>
+            <TextCheckboxes
+              name="listen-stats-opt-in"
+              options={listenStatsOptions}
+              selectedValues={listenStatsSelected}
+              onChange={setListenStatsSelected}
+            />
+            <p className={styles.consentHelp}>
+              {tAuthentication('listen_stats_opt_in_help', {
+                retention_days: config.public.stats.trackEventRetentionDays,
+              })}
+            </p>
+            {termsVersionError !== undefined && (
+              <p className={styles.termsVersionError}>{termsVersionError}</p>
+            )}
           </div>
           <div className={styles.buttons}>
             <Button type="button" onClick={() => router.push('/')} variant="secondary">

@@ -8,6 +8,11 @@ import {
   optionalEnsureAuthenticated,
 } from '@api/lib/auth//index.js';
 import { getFollowedAccountIds } from '@api/lib/followed.js';
+import {
+  isConfiguredTermsVersion,
+  sendInvalidTermsVersionResponse,
+  TERMS_VERSION_MAX_LENGTH,
+} from '@api/lib/legal/termsVersion.js';
 import { sendEmailChangeVerificationEmail } from '@api/lib/mailer/sendChangeEmailVerificationEmail.js';
 import { sendResetPasswordEmail } from '@api/lib/mailer/sendResetPasswordEmail.js';
 import { sendVerificationEmail } from '@api/lib/mailer/sendVerificationEmail.js';
@@ -51,6 +56,7 @@ import {
   AccountResetPasswordService,
   AccountService,
   AccountSetPasswordService,
+  AccountTermsAcceptanceService,
   AccountVerificationService,
   findOptionsRelationsFromPaths,
   mergeFindOptionsRelations,
@@ -77,6 +83,7 @@ const privateRelations: FindOptionsRelations<Account> = findOptionsRelationsFrom
   // 'account_paypal_orders',
   // 'account_reset_password',
   'account_settings',
+  'account_terms_acceptance',
   'account_settings.account_settings_notification',
   'account_settings.account_settings_notification.account_settings_notification_types',
   // 'account_up_device_tokens',
@@ -534,16 +541,32 @@ export class AccountController {
       email: Joi.string().email().required(),
       password: Joi.string().min(8).required(),
       locale: Joi.string().required(),
+      terms_version: Joi.string().max(TERMS_VERSION_MAX_LENGTH).required(),
+      allow_listen_stats: Joi.boolean().default(true),
     });
 
     validateBodyObject(bodySchema, req, res, async () => {
       try {
-        const { email, password, locale } = req.body as {
+        const { email, password, locale, terms_version, allow_listen_stats } = req.body as {
           email: string;
           password: string;
           locale: string;
+          terms_version: string;
+          allow_listen_stats?: boolean;
         };
-        await AccountController.accountService.create({ email, password, locale });
+
+        if (!isConfiguredTermsVersion(terms_version)) {
+          sendInvalidTermsVersionResponse(res);
+          return;
+        }
+
+        await AccountController.accountService.create({
+          email,
+          password,
+          locale,
+          terms_version,
+          allow_listen_stats,
+        });
         await AccountController.sendVerificationEmailHelper(email);
         res.json({
           message: 'Account created',
@@ -557,6 +580,42 @@ export class AccountController {
           handleGenericErrorResponse(res, error);
         }
       }
+    });
+  }
+
+  static async acceptTerms(req: Request, res: Response): Promise<void> {
+    const bodySchema = Joi.object({
+      terms_version: Joi.string().max(TERMS_VERSION_MAX_LENGTH).required(),
+    });
+
+    validateBodyObject(bodySchema, req, res, async () => {
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          try {
+            const jwtUser = getAuthenticatedUser(req);
+            const { terms_version } = req.body as { terms_version: string };
+
+            if (!isConfiguredTermsVersion(terms_version)) {
+              sendInvalidTermsVersionResponse(res);
+              return;
+            }
+
+            const service = new AccountTermsAcceptanceService();
+            const acceptance = await service.upsert(jwtUser.id, terms_version);
+            res.status(201).json({
+              data: {
+                terms_version: acceptance.terms_version,
+                accepted_at: acceptance.accepted_at.toISOString(),
+              },
+            });
+          } catch (error) {
+            handleGenericErrorResponse(res, error);
+          }
+        },
+        { skipMembershipStatus: true }
+      );
     });
   }
 

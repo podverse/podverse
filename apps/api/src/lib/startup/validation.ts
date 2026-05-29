@@ -265,6 +265,12 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
     }
   }
 
+  if (signupMode === 'user_signup_email') {
+    results.push(validateRequired('TERMS_OF_SERVICE_VERSION', 'Legal'));
+  } else {
+    results.push(validateOptional('TERMS_OF_SERVICE_VERSION', 'Legal'));
+  }
+
   // Social Media (optional - used when signup mode uses email flows but not required)
   results.push(validateOptional('SOCIAL_FACEBOOK_IMAGE_URL', 'Social Media'));
   results.push(validateOptional('SOCIAL_FACEBOOK_PAGE_URL', 'Social Media'));
@@ -596,6 +602,8 @@ const displayValidationResults = (summary: ValidationSummary): void => {
     'RESET_PASSWORD_TOKEN_EXPIRATION',
   ];
 
+  const userSignupEmailRequiredVars = ['TERMS_OF_SERVICE_VERSION'];
+
   // Display by category
   const categories = Object.keys(byCategory).sort();
   for (const category of categories) {
@@ -607,6 +615,8 @@ const displayValidationResults = (summary: ValidationSummary): void => {
       if (result.isRequired) {
         if (conditionallyRequiredVars.includes(result.name)) {
           requiredText = ' (required when signup mode uses email flows)';
+        } else if (userSignupEmailRequiredVars.includes(result.name)) {
+          requiredText = ' (required when ACCOUNT_SIGNUP_MODE=user_signup_email)';
         }
         // No text for always-required vars - lack of parentheses indicates required
       } else {

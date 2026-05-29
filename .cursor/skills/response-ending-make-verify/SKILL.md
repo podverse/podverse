@@ -1,23 +1,32 @@
 ---
 name: response-ending-make-verify
 description: End implementation responses with scoped make-based report commands for web and management-web verification.
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Response-Ending Make Verification
 
 Use this skill when answering implementation requests in this repo.
 
-## Do not run tests during agent or plan work
+## UI changes: run screenshot report
 
-- **Never run test or verification commands** as part of your agent or plan work.
-- **Only instruct the user** to run those commands after your work is done. Provide the exact command(s) in a fenced `bash` block.
+When the change touches **Next.js / React / shared UI** (`apps/web/src`, `apps/management-web/src`, or `packages/ui/src` consumed by those apps), follow **ui-e2e-screenshot-report**:
+
+- **Run** the targeted `make e2e_test_*_report_spec` (or scoped report) before finishing.
+- **Display** the report path (`.artifacts/e2e-reports/latest/.../index.html`) so the operator can review step screenshots.
+
+## Non-UI changes: instruct only
+
+For API, workers, packages without UI impact, and other non-visual work:
+
+- **Do not run** test or verification commands during agent or plan work unless the user explicitly asks.
+- **Instruct the user** to run commands after your work is done. Provide exact command(s) in a fenced `bash` block.
 
 ## Required response behavior
 
-1. Give the user a runnable make command in a fenced `bash` block at the end of the response.
+1. End with verification guidance: either a completed report path (UI) or runnable make commands (non-UI).
 2. Do not suggest direct Playwright execution (`npx playwright test ...`) for E2E verification; use the `make` wrappers so seed/setup is included.
-3. **E2E-affected changes (mandatory):** If the change affects E2E tests, you **MUST** end with a fenced `bash` block containing the **EXACT** command(s) needed to verify. No exception.
+3. **E2E-affected changes (mandatory):** If the change affects E2E tests, include the **EXACT** command(s) needed to verify—even when you already ran them for UI work.
 4. Prefer feature-scoped screenshot report commands over full-suite commands.
 
 ## Command selection

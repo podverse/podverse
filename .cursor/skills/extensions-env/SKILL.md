@@ -10,9 +10,9 @@ version: 2.0.0
 
 When adding or editing env vars for:
 
-- **Extensions (app)** — `apps/*/.env.example` Extensions subsection; `infra/k8s/base/extensions/source/extensions.env`
+- **Extensions (app)** — `apps/*/.env.example` Extensions subsection; `infra/k8s/base/common/source/extensions/extensions.env`
 - **Extension sidecars** — `extension-sidecar-otel.env`, `extension-prometheus.env` (merged into same ConfigMap)
-- **Integrations** — web/management-web runtime-config sidecars; `infra/k8s/base/integrations/source/integrations.env`
+- **Integrations** — web/management-web runtime-config sidecars; `infra/k8s/base/common/source/integrations/integrations.env`
 - **Observability** — all workloads; per-app `source/*.env` and `observability.env.example`
 
 Authoritative ops docs:
@@ -120,10 +120,10 @@ Do not register metrics on Express/Next app processes.
 
 ## Files to keep in sync
 
-- App extension env: `extensions.env.example`, `infra/k8s/base/extensions/source/extensions.env`
-- Sidecar OTLP: `extension-sidecar-otel.env.example`, `infra/k8s/base/extensions/source/extension-sidecar-otel.env`
-- Prometheus sidecar: `extension-prometheus.env.example`, `infra/k8s/base/extensions/source/extension-prometheus.env`
-- Integration env: `integrations.env.example`, `infra/k8s/base/integrations/source/integrations.env`
+- App extension env: `extensions.env.example`, `infra/k8s/base/common/source/extensions/extensions.env`
+- Sidecar OTLP: `extension-sidecar-otel.env.example`, `infra/k8s/base/common/source/extensions/extension-sidecar-otel.env`
+- Prometheus sidecar: `extension-prometheus.env.example`, `infra/k8s/base/common/source/extensions/extension-prometheus.env`
+- Integration env: `integrations.env.example`, `infra/k8s/base/common/source/integrations/integrations.env`
 - App configs and `validation.ts` per pillar
 - Ops docs under `docs/operations/`
 

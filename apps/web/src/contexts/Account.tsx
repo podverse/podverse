@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
-import { createContext, useState } from 'react';
-import { useContext } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 import type { DTOAccount } from '@podverse/helpers';
+
+import { syncListenStatsGateFromAccount } from '../utils/statsTracking/statsTracking';
 
 type AccountContextType = {
   loggedInAccount: DTOAccount | null;
@@ -21,6 +22,10 @@ type AccountProviderProps = {
 
 export const AccountProvider = ({ children, ssrLoggedInAccount = null }: AccountProviderProps) => {
   const [loggedInAccount, setLoggedInAccount] = useState<DTOAccount | null>(ssrLoggedInAccount);
+
+  useEffect(() => {
+    syncListenStatsGateFromAccount(loggedInAccount);
+  }, [loggedInAccount]);
 
   return (
     <AccountContext.Provider value={{ loggedInAccount, setLoggedInAccount }}>

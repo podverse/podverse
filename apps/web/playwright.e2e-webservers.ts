@@ -13,9 +13,11 @@ import type { E2eWebSidecarEnvOptions } from './playwright.e2e-server-env';
 
 export function buildE2eWebServers(options?: E2eWebSidecarEnvOptions) {
   const sidecarEnvPrefix = buildE2eWebSidecarEnvPrefix(options);
+  const apiEnvPrefix = buildE2eWebApiEnvPrefix(options);
+  const appEnvPrefix = buildE2eWebAppEnvPrefix(options);
   return [
     {
-      command: `npm run build -w @podverse/helpers-config && npm run build -w @podverse/api && ${buildE2eWebApiEnvPrefix()} npm run start -w @podverse/api`,
+      command: `npm run build -w @podverse/helpers-config && npm run build -w @podverse/api && ${apiEnvPrefix} npm run start -w @podverse/api`,
       port: 4030,
       cwd: '../..',
       timeout: 420_000,
@@ -29,7 +31,7 @@ export function buildE2eWebServers(options?: E2eWebSidecarEnvOptions) {
       reuseExistingServer: false,
     },
     {
-      command: `${buildE2eWebAppEnvPrefix()} bash scripts/e2e/build-and-start-next-standalone.sh @podverse/web`,
+      command: `${appEnvPrefix} bash scripts/e2e/build-and-start-next-standalone.sh @podverse/web`,
       port: 4032,
       cwd: '../..',
       timeout: 420_000,

@@ -32,6 +32,7 @@ import { AccountCredentialsService } from './accountCredentials.js';
 import { AccountMembershipStatusService } from './accountMembershipStatus.js';
 import { AccountProfileService } from './accountProfile.js';
 import { AccountResetPasswordService } from './accountResetPassword.js';
+import { AccountTermsAcceptanceService } from './accountTermsAcceptance.js';
 import { AccountVerificationService } from './accountVerification.js';
 
 type CreateAccountDto = {
@@ -39,6 +40,8 @@ type CreateAccountDto = {
   username?: string;
   password: string;
   locale: string;
+  terms_version?: string;
+  allow_listen_stats?: boolean;
 };
 
 type UpdateAccountDto = {
@@ -199,7 +202,11 @@ export class AccountService {
     });
     const account = await this.repositoryReadWrite.save(accountObj);
 
-    await this.ensureAccountSettings(account, { alwaysCreate: true, locale: dto.locale });
+    await this.ensureAccountSettings(account, {
+      alwaysCreate: true,
+      locale: dto.locale,
+      allow_listen_stats: dto.allow_listen_stats,
+    });
 
     // Create account_profile row with null display_name and bio
     const accountProfileRepo = AppDataSourceReadWrite.getRepository(AccountProfile);
@@ -236,6 +243,11 @@ export class AccountService {
       sender_guid: randomUUID(),
     });
     await accountMetaboostRepo.save(accountMetaboost);
+
+    if (dto.terms_version !== undefined && dto.terms_version.trim() !== '') {
+      const accountTermsAcceptanceService = new AccountTermsAcceptanceService();
+      await accountTermsAcceptanceService.upsert(account.id, dto.terms_version);
+    }
   }
 
   async update(account_id: number, dto: UpdateAccountDto): Promise<Account | null> {
@@ -336,7 +348,7 @@ export class AccountService {
 
   private async ensureAccountSettings(
     account: Account,
-    params: { alwaysCreate: boolean; locale: string }
+    params: { alwaysCreate: boolean; locale: string; allow_listen_stats?: boolean }
   ): Promise<void> {
     const accountSettingsRepo = AppDataSourceReadWrite.getRepository(AccountSettings);
     const localeRepo = AppDataSourceReadWrite.getRepository(AccountSettingsLocale);
@@ -347,6 +359,7 @@ export class AccountService {
       // First, create and save AccountSettings
       const accountSettings = new AccountSettings();
       accountSettings.account_id = account.id;
+      accountSettings.allow_listen_stats = params.allow_listen_stats ?? true;
       const savedAccountSettings = await accountSettingsRepo.save(accountSettings);
 
       // Then create and save the locale with the proper foreign key

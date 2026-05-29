@@ -194,6 +194,39 @@ a.button {
   background-color: var(--background-color-tertiary);
 }
 
+.miniSubtle {
+  background-color: transparent;
+  border: 1px solid var(--border-color-opaque);
+  color: var(--text-color-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  height: 1.75rem;
+  min-width: auto;
+  padding: var(--spacing-button-small);
+  white-space: nowrap;
+}
+
+.miniSubtle:hover:not(:disabled) {
+  background-color: var(--background-color-secondary);
+  color: var(--text-color-primary);
+}
+
+.miniSubtleAccent {
+  background-color: var(--background-color-secondary);
+  border: 1px solid var(--border-color-opaque);
+  color: var(--text-color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  height: 1.75rem;
+  min-width: auto;
+  padding: var(--spacing-button-small);
+  white-space: nowrap;
+}
+
+.miniSubtleAccent:hover:not(:disabled) {
+  background-color: var(--background-color-tertiary);
+}
+
 .miniSelected {
   background: var(--border-color-primary);
   color: var(--background-color-tertiary);

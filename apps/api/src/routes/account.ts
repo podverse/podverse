@@ -45,6 +45,7 @@ router.post(
   rateLimitEndpoint({ windowMs: 10 * 60 * 1000, max: 3 }),
   asyncHandler(AccountController.create)
 );
+router.post('/accept-terms', asyncHandler(AccountController.acceptTerms));
 router.put('/', asyncHandler(AccountController.update));
 router.post(
   '/send-verification-email',

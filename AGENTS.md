@@ -190,7 +190,7 @@ extensions/         # Optional extension sidecar images (operator-selected)
 | Environment templates      | `infra/config/env-templates/` (app stubs link to `apps/*/.env.example`)          |
 | Workers startup validation | `apps/workers/src/lib/startup/validation.ts` (see [ENV.md](apps/workers/ENV.md)) |
 | K8s manifests              | `infra/k8s/`                                                                     |
-| Extension sidecar source   | `extensions/<id>/` (K8s wiring: `infra/k8s/base/extensions/`)                    |
+| Extension sidecar source   | `extensions/<id>/` (K8s wiring: `infra/k8s/base/common/`)                        |
 | Jenkins pipelines          | `infra/pipelines/jenkins/`                                                       |
 | GitHub Actions             | `.github/workflows/`                                                             |
 

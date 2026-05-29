@@ -1,6 +1,20 @@
+# Shared ingress/TLS plus cross-component ConfigMaps (integrations, extensions).
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
   - ingress.yaml
   - secure-tls.tlsoption.yaml
+
+configMapGenerator:
+  - name: podverse-integrations-config
+    envs:
+      - source/integrations/integrations.env
+  - name: podverse-extensions-config
+    envs:
+      - source/extensions/extensions.env
+      - source/extensions/extension-sidecar-otel.env
+      - source/extensions/extension-prometheus.env
+
+generatorOptions:
+  disableNameSuffixHash: true

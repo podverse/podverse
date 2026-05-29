@@ -67,6 +67,9 @@ type Config = {
     name: string;
     address: string;
   };
+  terms: {
+    version: string;
+  };
   mailer: {
     disabled: boolean;
     host: string;
@@ -179,6 +182,9 @@ export const config: Config = {
   legal: {
     name: process.env.LEGAL_NAME!,
     address: process.env.LEGAL_ADDRESS!,
+  },
+  terms: {
+    version: process.env.TERMS_OF_SERVICE_VERSION ?? '',
   },
   mailer: {
     disabled:

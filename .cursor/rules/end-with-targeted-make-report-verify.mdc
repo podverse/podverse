@@ -1,5 +1,5 @@
 ---
-description: End implementation responses with targeted make screenshot-report verification commands.
+description: End implementation responses with targeted make screenshot-report verification; run reports for UI changes.
 alwaysApply: true
 ---
 
@@ -7,10 +7,11 @@ alwaysApply: true
 
 For implementation responses in this repo:
 
-1. **Give the user** one or more runnable `make` commands they can copy and run to verify the change; place them in a fenced `bash` code block at the end of your response.
-2. **MANDATORY when the change affects E2E:** If you modified UI (apps/web or apps/management-web), E2E spec files, or any code that E2E tests cover, you **MUST** end the response with a fenced `bash` block containing the **EXACT** command(s) needed to run the affected E2E test(s). Example: `make e2e_test_web_report_spec SPEC=e2e/smoke.spec.ts`.
-3. Prefer screenshot-report targets scoped to the changed feature area.
-4. Use full-suite report mode only when change scope is broad or cross-cutting.
+1. **UI changes (apps/web, apps/management-web, packages/ui):** Run a targeted screenshot report via make before finishing and tell the operator where to open it (`.artifacts/e2e-reports/latest/web/index.html` or `.../management-web/index.html`). See **ui-e2e-screenshot-report** skill.
+2. **Other changes:** Give the user runnable `make` commands in a fenced `bash` code block at the end of your response.
+3. **MANDATORY when the change affects E2E:** If you modified UI, E2E spec files, or any code that E2E tests cover, you **MUST** include the **EXACT** command(s) needed to run the affected E2E test(s)—in a fenced `bash` block even when you already ran them for UI work.
+4. Prefer screenshot-report targets scoped to the changed feature area.
+5. Use full-suite report mode only when change scope is broad or cross-cutting.
 
 Preferred commands:
 
@@ -20,4 +21,4 @@ Preferred commands:
 - Full regression: `make e2e_test_report`
 - API only: `npm run test:e2e:api`
 
-Extended reference: **response-ending-make-verify** skill.
+Extended reference: **response-ending-make-verify** and **ui-e2e-screenshot-report** skills.

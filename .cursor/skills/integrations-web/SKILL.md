@@ -9,7 +9,7 @@ version: 1.0.0
 ## When to use
 
 - Adding or changing **`@podverse/integrations-web`**
-- **`podverse-integrations-config`** K8s ConfigMap or `infra/k8s/base/integrations/`
+- **`podverse-integrations-config`** K8s ConfigMap or `infra/k8s/base/common/source/integrations/integrations.env`
 - Runtime-config sidecar env (`CLOUDFLARE_WEB_ANALYTICS_*`)
 - Web/management-web layout scripts driven by `/runtime-config`
 

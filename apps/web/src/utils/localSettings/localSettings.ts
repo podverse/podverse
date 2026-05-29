@@ -15,6 +15,10 @@ import type {
 } from '@podverse/helpers-requests';
 
 import type { ViewSelectedOption } from '../../components/ViewSelector/ViewSelector';
+import {
+  COOKIE_CONSENT_MODEL_VERSION,
+  normalizeCookieConsentState,
+} from '../../lib/cookieConsent/cookieConsentPolicy';
 import { clearCookie, readCookie, writeCookie } from '../cookie';
 import type { UITheme } from './uiTheme';
 import { getDefaultTheme, setUIThemeOnDocument, toUITheme } from './uiTheme';
@@ -32,7 +36,16 @@ LocalSettingsState Legend:
   - fd = filterDefaults (per-page filter preferences)
   - metd = membershipExpirationToastDismissed (ISO date string of last dismissal)
   - bfd = boostFormDefaults (per value type: send to creator, send to app, your name)
+  - cc = cookieConsent (device-level cookie banner choice)
 */
+
+export type CookieConsentChoice = 'all' | 'essential' | 'none';
+
+export type CookieConsentState = {
+  choice: CookieConsentChoice;
+  at: string;
+  v?: 2;
+};
 
 export interface BoostFormDefaultsForValueKey {
   totalAmountToCreator: number;
@@ -160,6 +173,7 @@ export interface LocalSettingsState {
   fd?: Partial<FilterDefaults>;
   metd?: string; // membershipExpirationToastDismissed (ISO date string of last dismissal)
   bfd?: BoostFormDefaultsByValueKey;
+  cc?: CookieConsentState;
 }
 
 export function handleLocalSettingsUpdate(newState: LocalSettingsState) {
@@ -179,6 +193,29 @@ export function handleLocalSettingsUpdate(newState: LocalSettingsState) {
 
   const serialized = encodeURIComponent(JSON.stringify(newState));
   writeCookie('local-settings', serialized);
+}
+
+function isStoredCookieConsentChoice(choice: unknown): boolean {
+  return choice === 'all' || choice === 'essential' || choice === 'none' || choice === 'features';
+}
+
+function isValidCookieConsentState(cc: unknown): cc is CookieConsentState {
+  if (typeof cc !== 'object' || cc === null) {
+    return false;
+  }
+  if (!('choice' in cc) || !('at' in cc)) {
+    return false;
+  }
+  const record = cc as { choice: unknown; at: unknown; v?: unknown };
+  return isStoredCookieConsentChoice(record.choice) && typeof record.at === 'string';
+}
+
+function parseCookieConsentState(cc: unknown): CookieConsentState | undefined {
+  if (!isValidCookieConsentState(cc)) {
+    return undefined;
+  }
+  const record = cc as { choice: unknown; at: string; v?: unknown };
+  return normalizeCookieConsentState(record);
 }
 
 function getDefaultLocalSettings(): LocalSettingsState {
@@ -225,8 +262,17 @@ function isValidLocalSettings(settings: unknown): settings is LocalSettingsState
         typeof sba.library === 'boolean')) &&
     (s.fd === undefined || (typeof s.fd === 'object' && s.fd !== null)) &&
     (s.metd === undefined || typeof s.metd === 'string') &&
-    (s.bfd === undefined || (typeof s.bfd === 'object' && s.bfd !== null))
+    (s.bfd === undefined || (typeof s.bfd === 'object' && s.bfd !== null)) &&
+    (s.cc === undefined || isValidCookieConsentState(s.cc))
   );
+}
+
+export function setCookieConsent(choice: CookieConsentChoice): void {
+  const settings = getParsedLocalSettings();
+  handleLocalSettingsUpdate({
+    ...settings,
+    cc: { choice, at: new Date().toISOString(), v: COOKIE_CONSENT_MODEL_VERSION },
+  });
 }
 
 type CookieStore = { get: (name: string) => { value?: string } | undefined };
@@ -258,6 +304,7 @@ export function getParsedLocalSettings(cookieStore?: CookieStore): LocalSettings
     }
 
     const defaults = getDefaultLocalSettings();
+    const cc = parseCookieConsentState(parsed.cc);
     return {
       ...defaults,
       ...parsed,
@@ -266,6 +313,7 @@ export function getParsedLocalSettings(cookieStore?: CookieStore): LocalSettings
         ...(parsed.sba as Partial<SidebarAccordionState> | undefined),
       },
       bfd: parsed.bfd !== undefined ? (parsed.bfd as BoostFormDefaultsByValueKey) : defaults.bfd,
+      cc,
     };
   } catch {
     if (!isServer) {

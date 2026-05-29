@@ -11,6 +11,7 @@ import {
   readBucketStorageConfig,
 } from '@podverse/external-services-object-storage';
 import {
+  DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS,
   readOptionalPositiveExpirationEnv,
   readRequiredPositiveExpirationEnv,
 } from '@podverse/helpers';
@@ -314,4 +315,16 @@ export function getExtensionsConfig(): ExtensionsConfig {
       resourceAttributes: process.env.OTEL_RESOURCE_ATTRIBUTES,
     },
   };
+}
+
+export type StatsConfig = {
+  trackEventRetentionDays: number;
+};
+
+export function getStatsConfig(): StatsConfig {
+  const raw = process.env.STATS_TRACK_EVENT_RETENTION_DAYS;
+  if (raw === undefined || raw.trim() === '') {
+    return { trackEventRetentionDays: DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS };
+  }
+  return { trackEventRetentionDays: Number.parseInt(raw, 10) };
 }

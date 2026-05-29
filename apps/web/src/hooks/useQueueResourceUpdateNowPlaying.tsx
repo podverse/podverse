@@ -4,9 +4,12 @@ import type { DTOChannel, DTOClip, DTOItem, DTOItemSoundbite } from '@podverse/h
 import { getQueueMediumIdFromMediumId, updateQueueResourceAbridgedIndex } from '@podverse/helpers';
 
 import { useAccount } from '../contexts/Account';
+import { useConfig } from '../contexts/Config';
+import { useLocalSettings } from '../contexts/LocalSettings';
 import { useQueues } from '../contexts/Queue';
 import { useQueueResourcesAbridgedIndex } from '../contexts/QueueResourcesAbridgedIndex';
 import { getApiRequestService } from '../factories/apiRequestService';
+import { cookieConsentAllowsAnonymousFeatureStorage } from '../lib/cookieConsent/cookieConsentPolicy';
 import { clampPlaybackPositionForStorage } from '../lib/playback/clampNearEndSeconds';
 import { writeAnonymousPlaybackSnapshotFromPlayerState } from '../utils/anonymousPlaybackStorage';
 import { buildQueueResourceAbridgedUpdatesFromNowPlayingLike } from '../utils/nowPlayingParamsToAbridgedUpdates';
@@ -22,6 +25,8 @@ export type UpdateNowPlayingParams = {
 };
 
 export function useQueueResourcesUpdateNowPlaying() {
+  const config = useConfig();
+  const { cookieConsent } = useLocalSettings();
   const { loggedInAccount } = useAccount();
   const { queues, setActiveQueue } = useQueues();
   const updateAbridgedIndex = useQueueResourcesAbridgedIndexUpdate();
@@ -31,6 +36,12 @@ export function useQueueResourcesUpdateNowPlaying() {
   const queuesRef = useRef(queues);
   const loggedInAccountRef = useRef(loggedInAccount);
   const queueResourcesAbridgedIndexRef = useRef(queueResourcesAbridgedIndex);
+  const allowsAnonymousFeatureStorageRef = useRef(
+    cookieConsentAllowsAnonymousFeatureStorage(
+      config.public.cookieConsent.bannerEnabled,
+      cookieConsent
+    )
+  );
 
   useEffect(() => {
     queuesRef.current = queues;
@@ -41,6 +52,12 @@ export function useQueueResourcesUpdateNowPlaying() {
   useEffect(() => {
     queueResourcesAbridgedIndexRef.current = queueResourcesAbridgedIndex;
   }, [queueResourcesAbridgedIndex]);
+  useEffect(() => {
+    allowsAnonymousFeatureStorageRef.current = cookieConsentAllowsAnonymousFeatureStorage(
+      config.public.cookieConsent.bannerEnabled,
+      cookieConsent
+    );
+  }, [config.public.cookieConsent.bannerEnabled, cookieConsent]);
 
   return useCallback(async (params: UpdateNowPlayingParams) => {
     const apiRequestService = getApiRequestService();
@@ -117,6 +134,8 @@ export function useQueueResourcesUpdateNowPlaying() {
     setQueueResourcesAbridgedIndex(
       updateQueueResourceAbridgedIndex(queueResourcesAbridgedIndexRef.current, updates)
     );
-    writeAnonymousPlaybackSnapshotFromPlayerState(params);
+    if (allowsAnonymousFeatureStorageRef.current) {
+      writeAnonymousPlaybackSnapshotFromPlayerState(params);
+    }
   }, []);
 }

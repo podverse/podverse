@@ -17,6 +17,8 @@ export type ButtonVariant =
   | 'link'
   | 'linkInline'
   | 'mini'
+  | 'miniSubtle'
+  | 'miniSubtleAccent'
   | 'miniSelected'
   | 'miniGlow'
   | 'miniGlowWarning'

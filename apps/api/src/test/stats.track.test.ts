@@ -16,12 +16,14 @@ const {
   statsTrackClipCreateMock,
   statsTrackItemCreateMock,
   statsTrackPlaylistCreateMock,
+  getAllowListenStatsMock,
 } = vi.hoisted(() => ({
   statsTrackAccountCreateMock: vi.fn(async () => {}),
   statsTrackChannelCreateMock: vi.fn(async () => {}),
   statsTrackClipCreateMock: vi.fn(async () => {}),
   statsTrackItemCreateMock: vi.fn(async () => {}),
   statsTrackPlaylistCreateMock: vi.fn(async () => {}),
+  getAllowListenStatsMock: vi.fn(async () => true),
 }));
 
 vi.mock('@podverse/orm', async (importOriginal) => {
@@ -47,6 +49,10 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     _create = statsTrackItemCreateMock;
   }
 
+  class MockAccountSettingsListenStatsService {
+    getAllowListenStats = getAllowListenStatsMock;
+  }
+
   class MockStatsTrackEventPlaylistService {
     _create = statsTrackPlaylistCreateMock;
   }
@@ -55,6 +61,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     ...actual,
     CategoryService: IntegrationTestNoopCategoryService,
     AccountService: MockAccountService,
+    AccountSettingsListenStatsService: MockAccountSettingsListenStatsService,
     StatsTrackEventAccountService: MockStatsTrackEventAccountService,
     StatsTrackEventChannelService: MockStatsTrackEventChannelService,
     StatsTrackEventClipService: MockStatsTrackEventClipService,
@@ -157,5 +164,18 @@ describe('stats track POST routes', () => {
 
     expect(res.status).toBe(201);
     expect(statsTrackPlaylistCreateMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns 403 for stats/item when allow_listen_stats is false', async () => {
+    getAllowListenStatsMock.mockResolvedValueOnce(false);
+    statsTrackItemCreateMock.mockClear();
+
+    const res = await request(app)
+      .post(`${statsBase}/item`)
+      .set(authHeaders())
+      .send({ item_id_text: 'blocked-item-id-text' });
+
+    expect(res.status).toBe(403);
+    expect(statsTrackItemCreateMock).not.toHaveBeenCalled();
   });
 });

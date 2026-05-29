@@ -576,7 +576,15 @@
     "set_password_email_required": "E-mail",
     "set_password_other_session_banner": "Vous êtes connecté en tant que {sessionLabel}. Ce lien d'invitation termine la configuration d'un autre compte.",
     "set_password_sign_out_to_continue": "Se déconnecter et continuer",
-    "set_password_continue_without_signing_out": "Continuer sans se déconnecter"
+    "set_password_continue_without_signing_out": "Continuer sans se déconnecter",
+    "listen_stats_opt_in": "Aider à améliorer le contenu tendance avec des statistiques d'écoute",
+    "listen_stats_opt_in_help": "Nous enregistrons des événements d'écoute pseudonymes pour afficher la popularité. Les données sont conservées {retention_days} jours. Vous pouvez modifier ce choix à tout moment dans les paramètres du compte.",
+    "terms_version_invalid": "La version des conditions d'utilisation est obsolète. Actualisez la page et réessayez."
+  },
+  "terms_acceptance": {
+    "header": "Conditions d'utilisation mises à jour",
+    "message": "Nos Conditions d'utilisation ont changé. Veuillez lire et accepter les conditions mises à jour pour continuer à utiliser votre compte.",
+    "checkbox_label": "J'ai lu et j'accepte les Conditions d'utilisation mises à jour"
   },
   "membership": {
     "membership": "Abonnement",
@@ -698,7 +706,11 @@
       "download_my_data_description": "Téléchargez toutes vos données de compte sous forme de fichier JSON",
       "download_my_data_loading": "Préparation de vos données...",
       "download_my_data_success": "Données téléchargées avec succès",
-      "download_my_data_error": "Échec du téléchargement des données"
+      "download_my_data_error": "Échec du téléchargement des données",
+      "listen_stats_toggle": "Statistiques d'écoute",
+      "listen_stats_toggle_help": "Autoriser les événements d'écoute pseudonymes pour le contenu tendance. Les événements sont conservés {retention_days} jours.",
+      "listen_stats_toggle_error": "Impossible de mettre à jour la préférence de statistiques d'écoute. Veuillez réessayer.",
+      "listen_stats_terms_link": "En savoir plus dans nos <termsLink>Conditions d'utilisation</termsLink>."
     },
     "profile": {
       "profile": "Profil",
@@ -765,15 +777,40 @@
     "join_matrix_space": "Rejoignez notre espace Matrix",
     "chat_discord": "Discutez avec nous sur Discord"
   },
+  "cookie_consent": {
+    "banner_message": "Nous utilisons des cookies pour les fonctionnalités et l'analytique optionnelle. Consultez nos <termsLink>Conditions d'utilisation</termsLink> pour plus de détails.",
+    "accept_all": "Tout accepter",
+    "accept_all_help": "Analytique et mémorisation de la lecture hors connexion.",
+    "essential_only": "Essentiels uniquement",
+    "essential_only_help": "Mémoriser la lecture hors connexion ; pas d'analytique.",
+    "none": "Aucun",
+    "none_help": "Aucun cookie optionnel sur l'appareil ; la connexion reste possible."
+  },
   "terms": {
     "terms": "Conditions",
+    "legal_entity_heading": "{legal_name}",
+    "service_intro": "{brand_name} est exploité par {legal_name}. Ces conditions décrivent comment nous traitons vos données et notre service.",
     "never_sell_data": "{brand_name} ne vendra ni ne partagera jamais les données privées des utilisateurs.",
     "no_ads_without_permission": "Nous ne mettrons jamais de publicités à côté ou dans le contenu d'un podcast sans la permission de ce podcast.",
     "audio_video_hosting": "Tous les fichiers audio ou vidéo trouvés sur {brand_domain} proviennent du serveur public du podcasteur. Nous n'hébergeons pas nous-mêmes les fichiers audio ou vidéo de podcast.",
     "third_party_feeds": "Nous hébergeons des liens et du contenu de podcasts provenant de flux et de sites tiers. Ceux-ci ont leurs propres politiques de confidentialité indépendantes, et nous n'avons aucune responsabilité concernant leur contenu ou leurs activités.",
     "clips_crowdsourced": "Tous les extraits hébergés sur {brand_domain} sont collectés par la foule et non officiels, sauf indication contraire du podcasteur.",
     "clips_load_full_episode": "Les extraits se chargent dans le fichier média de l'épisode complet, donc l'utilisateur a toujours accès à l'enregistrement complet.",
-    "reduced_size_images": "Nous hébergeons également des images de podcast réduites provenant des flux de podcasteurs, pour économiser les données du réseau de l'utilisateur et accélérer les temps de chargement des pages."
+    "reduced_size_images": "Nous hébergeons également des images de podcast réduites provenant des flux de podcasteurs, pour économiser les données du réseau de l'utilisateur et accélérer les temps de chargement des pages.",
+    "data_service_necessary": "Les données de file d'attente, de connexion et de lecture du compte sont nécessaires pour faire fonctionner {brand_name}. Nous ne demandons pas de consentement séparé pour cette fonctionnalité essentielle. La mémorisation de la lecture hors connexion est optionnelle et se règle dans la bannière de cookies.",
+    "data_listen_stats_heading": "Statistiques d'écoute",
+    "data_listen_stats_body": "{legal_name} peut enregistrer des événements d'écoute pseudonymes pour afficher les tendances. Les événements sont conservés {retention_days} jours. Vous pouvez activer ou désactiver cette option dans les paramètres du compte.",
+    "data_listen_stats_anonymization": "Les statistiques utilisent un identifiant interne de compte. Il n'est pas affiché comme votre profil public ou votre nom d'utilisateur.",
+    "data_web_analytics": "L'analytique web anonyme (Cloudflare) ne se charge que si vous acceptez les cookies d'analytique dans la bannière de consentement.",
+    "data_retention": "Les événements d'écoute bruts sont supprimés après {retention_days} jours.",
+    "data_requests": "Pour les demandes d'accès ou de suppression, écrivez à {contact_email}.",
+    "cookie_choices_heading": "Choix de cookies",
+    "cookie_choice_all": "Tout accepter",
+    "cookie_choice_all_help": "Analytique et mémorisation de la lecture hors connexion.",
+    "cookie_choice_essential": "Essentiels uniquement",
+    "cookie_choice_essential_help": "Mémoriser la lecture hors connexion ; pas d'analytique.",
+    "cookie_choice_none": "Aucun",
+    "cookie_choice_none_help": "Aucun cookie optionnel sur l'appareil ; la connexion et la lecture du compte restent possibles."
   },
   "socials": {
     "discord": "Discord",

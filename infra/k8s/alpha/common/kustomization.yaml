@@ -1,16 +1,12 @@
-# Version: 9
-# Example alpha overlay — integrations and extensions disabled by default.
-# Base Deployments envFrom podverse-integrations-config and podverse-extensions-config; stub
-# ConfigMaps below satisfy that while optional bases are commented out.
+# Version: 10
+# Example alpha overlay — integrations and extensions disabled by default via base/common.
+# Base Deployments envFrom podverse-integrations-config and podverse-extensions-config from base/common.
 #
 # To enable integrations/extensions in your GitOps repo:
-# 1. Uncomment base/integrations and/or base/extensions under resources.
-# 2. Remove (comment) the matching stub configMapGenerator entries below.
-# 3. Optionally merge overrides: configMapGenerator behavior merge + source/*.env.
-#    Copy source/*.env.example into GitOps configMapGenerator envs when enabling extensions.
-# 4. On workloads: uncomment prometheus-sidecar component + extension-prometheus image pin;
+# 1. In common overlay: configMapGenerator behavior merge + source/integrations/ and source/extensions/ overrides.
+# 2. On workloads: uncomment prometheus-sidecar component + extension-prometheus image pin;
 #    set PROMETHEUS_ENABLED=true (and integration tokens) in merged ConfigMap env.
-# 5. See infra/k8s/alpha/examples/optional-extension-metrics/README.md for Prometheus/Grafana.
+# 3. See infra/k8s/alpha/examples/optional-extension-metrics/README.md for Prometheus/Grafana.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
@@ -18,18 +14,6 @@ resources:
   - namespace.yaml
   - https://github.com/podverse/podverse//infra/k8s/base/common?ref=X.Y.Z-staging.N
   - https://github.com/podverse/podverse//infra/k8s/base/product-membership?ref=X.Y.Z-staging.N
-  # Optional — built-in web integrations (podverse-integrations-config):
-  # - https://github.com/podverse/podverse//infra/k8s/base/integrations?ref=X.Y.Z-staging.N
-  # Optional — extension sidecar shared env (podverse-extensions-config):
-  # - https://github.com/podverse/podverse//infra/k8s/base/extensions?ref=X.Y.Z-staging.N
-
-configMapGenerator:
-  - name: podverse-integrations-config
-    envs:
-      - source/integrations.env
-  - name: podverse-extensions-config
-    envs:
-      - source/extensions.env
 
 patches:
   - path: ingress-hosts-patch.yaml

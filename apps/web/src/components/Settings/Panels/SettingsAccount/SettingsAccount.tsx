@@ -14,6 +14,7 @@ import { dismissToast, showToast, showToastLoading } from '../../../Toast/Toast'
 import { SettingsSection } from '../../SettingsSection';
 import { ModalChangeEmail } from './ModalChangeEmail';
 import { ModalDeleteAccount } from './ModalDeleteAccount';
+import { SettingsListenStats } from './SettingsListenStats';
 
 export function SettingsAccount() {
   const tSettings = useTranslations('settings');
@@ -70,6 +71,8 @@ export function SettingsAccount() {
 
   return (
     <>
+      <SettingsListenStats />
+      <Divider withSpacing />
       {capabilities.canUseEmailVerificationFlows && (
         <>
           <SettingsSection>

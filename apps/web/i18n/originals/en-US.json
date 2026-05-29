@@ -576,7 +576,15 @@
     "set_password_email_required": "Email",
     "set_password_other_session_banner": "You are signed in as {sessionLabel}. This invitation link finishes setup for a different account.",
     "set_password_sign_out_to_continue": "Sign out and continue",
-    "set_password_continue_without_signing_out": "Continue without signing out"
+    "set_password_continue_without_signing_out": "Continue without signing out",
+    "listen_stats_opt_in": "Help improve trending content with listen statistics",
+    "listen_stats_opt_in_help": "We record pseudonymous listen events to show popularity. Data is kept for {retention_days} days. You can change this anytime in account settings.",
+    "terms_version_invalid": "The terms of service version is out of date. Please refresh the page and try again."
+  },
+  "terms_acceptance": {
+    "header": "Updated Terms of Service",
+    "message": "Our Terms of Service have changed. Please read and accept the updated terms to continue using your account.",
+    "checkbox_label": "I have read and agree to the updated Terms of Service"
   },
   "membership": {
     "membership": "Membership",
@@ -698,7 +706,11 @@
       "download_my_data_description": "Download all of your account data as a JSON file",
       "download_my_data_loading": "Preparing your data...",
       "download_my_data_success": "Data downloaded successfully",
-      "download_my_data_error": "Failed to download data"
+      "download_my_data_error": "Failed to download data",
+      "listen_stats_toggle": "Listen statistics",
+      "listen_stats_toggle_help": "Allow pseudonymous listen events for trending content. Events are kept for {retention_days} days.",
+      "listen_stats_toggle_error": "Could not update listen statistics preference. Please try again.",
+      "listen_stats_terms_link": "Learn more in our <termsLink>Terms of Service</termsLink>."
     },
     "profile": {
       "profile": "Profile",
@@ -765,15 +777,40 @@
     "join_matrix_space": "Join our Matrix space",
     "chat_discord": "Chat with us on Discord"
   },
+  "cookie_consent": {
+    "banner_message": "We use cookies for features and optional analytics. See our <termsLink>Terms of Service</termsLink> for details.",
+    "accept_all": "Accept all",
+    "accept_all_help": "Analytics and remembering playback while logged out.",
+    "essential_only": "Essential only",
+    "essential_only_help": "Remember playback while logged out; no analytics.",
+    "none": "None",
+    "none_help": "No optional device cookies; sign-in still works."
+  },
   "terms": {
     "terms": "Terms",
+    "legal_entity_heading": "{legal_name}",
+    "service_intro": "{brand_name} is operated by {legal_name}. These terms describe how we handle your data and our service.",
     "never_sell_data": "{brand_name} will never sell or share private user data.",
     "no_ads_without_permission": "We will never put advertisements next to or within a podcast's content without that podcast's permission.",
     "audio_video_hosting": "All audio or video files found on {brand_domain} load from the podcaster's own public server. We do not host podcast audio or video files ourselves.",
     "third_party_feeds": "We host podcast links and content from third-party podcast feeds and sites. These have their own independent privacy policies, and we have no responsibility for their content or activities.",
     "clips_crowdsourced": "All clips hosted on {brand_domain} are crowd-sourced and unofficial, unless otherwise noted by the podcaster themselves.",
     "clips_load_full_episode": "Clips load within the full episode's media file, so the user always has access to the full recording.",
-    "reduced_size_images": "We also host reduced size podcast images from podcasters' feeds, to save user network data and speed up page loading times."
+    "reduced_size_images": "We also host reduced size podcast images from podcasters' feeds, to save user network data and speed up page loading times.",
+    "data_service_necessary": "Queue, sign-in, and account playback data are required to run {brand_name}. We do not ask for separate consent for this core functionality. Remembering playback while logged out is optional and controlled by the cookie banner.",
+    "data_listen_stats_heading": "Listen statistics",
+    "data_listen_stats_body": "{legal_name} may record pseudonymous listen events to show trending content. Events are kept for {retention_days} days. You can opt in or out in account settings.",
+    "data_listen_stats_anonymization": "Statistics use an internal account identifier. It is not shown as your public profile or username.",
+    "data_web_analytics": "Anonymous web analytics (Cloudflare) load only if you accept analytics cookies in the consent banner.",
+    "data_retention": "Raw listen-stat events are deleted after {retention_days} days.",
+    "data_requests": "For access or deletion requests, email {contact_email}.",
+    "cookie_choices_heading": "Cookie choices",
+    "cookie_choice_all": "Accept all",
+    "cookie_choice_all_help": "Analytics and remembering playback while logged out.",
+    "cookie_choice_essential": "Essential only",
+    "cookie_choice_essential_help": "Remember playback while logged out; no analytics.",
+    "cookie_choice_none": "None",
+    "cookie_choice_none_help": "No optional device cookies; sign-in and account playback still work."
   },
   "socials": {
     "discord": "Discord",

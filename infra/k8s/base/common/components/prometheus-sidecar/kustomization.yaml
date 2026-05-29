@@ -1,4 +1,4 @@
-# Optional: include from alpha/{api,web,...}/kustomization.yaml when PROMETHEUS_ENABLED=true.
+# Optional: include from alpha/{api,web,...}/kustomization.yaml (or GitOps workload overlay) when PROMETHEUS_ENABLED=true.
 # Adds extension-prometheus container to every Deployment in that overlay build.
 apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component

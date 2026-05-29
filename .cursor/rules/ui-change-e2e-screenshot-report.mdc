@@ -1,0 +1,15 @@
+---
+description: Run targeted E2E screenshot reports after web, management-web, or shared UI edits.
+globs:
+  - apps/web/src/**/*
+  - apps/management-web/src/**/*
+  - packages/ui/src/**/*
+---
+
+# UI Change E2E Screenshot Report
+
+When you edit files matched by this rule:
+
+1. Follow **ui-e2e-screenshot-report** before marking the task complete.
+2. Run `./scripts/nix/with-env make e2e_test_web_report_spec` or `e2e_test_management_web_report_spec` with the narrowest `SPEC=` that covers the change.
+3. Surface `.artifacts/e2e-reports/latest/.../index.html` in your response so the operator can review step screenshots.

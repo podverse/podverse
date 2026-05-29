@@ -20,6 +20,7 @@ import { toAuthHeaders } from '@podverse/http-request-core';
 import { request } from '../_request.js';
 import type { QueryParamsGetManyProfiles } from './account/account.js';
 import {
+  reqAccountAcceptTerms,
   reqAccountChangeEmailAddress,
   reqAccountCreate,
   reqAccountDelete,
@@ -72,6 +73,7 @@ import {
   reqAccountWebPushDeviceUpdate,
 } from './account/webpush/webpush.js';
 import {
+  reqAccountSettingsListenStatsUpdate,
   reqAccountSettingsLocaleUpdate,
   reqAccountSettingsNotificationTypeCreate,
   reqAccountSettingsNotificationTypeDelete,
@@ -401,8 +403,18 @@ export class ApiRequestService {
     return reqAccountGetByIdText(this, params);
   }
 
-  reqAccountCreate(params: { email: string; password: string; locale: string }) {
+  reqAccountCreate(params: {
+    email: string;
+    password: string;
+    locale: string;
+    terms_version: string;
+    allow_listen_stats?: boolean;
+  }) {
     return reqAccountCreate(this, params);
+  }
+
+  reqAccountAcceptTerms(params: { terms_version: string }) {
+    return reqAccountAcceptTerms(this, params);
   }
 
   reqAccountSendVerificationEmail(params: { email: string }) {
@@ -578,6 +590,10 @@ export class ApiRequestService {
 
   reqAccountSettingsLocaleUpdate(params: { locale: string }) {
     return reqAccountSettingsLocaleUpdate(this, params);
+  }
+
+  reqAccountSettingsListenStatsUpdate(params: { allow_listen_stats: boolean }) {
+    return reqAccountSettingsListenStatsUpdate(this, params);
   }
 
   /* ACCOUNT > SETTINGS > NOTIFICATIONS */

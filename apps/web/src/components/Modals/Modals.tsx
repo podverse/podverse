@@ -3,9 +3,11 @@
 import dynamic from 'next/dynamic';
 import React from 'react';
 
+import { useAccount } from '../../contexts/Account';
 import { useConfig } from '../../contexts/Config';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useModals } from '../../contexts/Modals';
+import { isTermsAcceptanceRequired } from '../../lib/termsAcceptanceRequired';
 import { shouldShowServerEnvironmentDisclaimer } from '../Modal/serverEnvironmentDisclaimer';
 
 const LazyModalAuthLogin = dynamic(
@@ -74,6 +76,11 @@ const LazyModalDisclaimer = dynamic(
   { ssr: false }
 );
 
+const LazyModalTermsAcceptance = dynamic(
+  () => import('../Modal/ModalTermsAcceptance').then((m) => ({ default: m.ModalTermsAcceptance })),
+  { ssr: false }
+);
+
 export const Modals: React.FC = () => {
   const {
     modalAuthLogin,
@@ -89,10 +96,14 @@ export const Modals: React.FC = () => {
     modalLoginRequired,
   } = useModals();
   const config = useConfig();
+  const { loggedInAccount } = useAccount();
   const { serverEnvironmentDisclaimerAccepted } = useLocalSettings();
   const showDisclaimer =
     shouldShowServerEnvironmentDisclaimer(config.public.server_env) &&
     !serverEnvironmentDisclaimerAccepted;
+  const showTermsAcceptance =
+    !showDisclaimer &&
+    isTermsAcceptanceRequired(loggedInAccount, config.public.legal.terms.version);
 
   return (
     <>
@@ -117,6 +128,7 @@ export const Modals: React.FC = () => {
         <LazyModalLoginRequired />
       )}
       {showDisclaimer && <LazyModalDisclaimer isOpen={showDisclaimer} />}
+      {showTermsAcceptance && <LazyModalTermsAcceptance isOpen={showTermsAcceptance} />}
     </>
   );
 };
