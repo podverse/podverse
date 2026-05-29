@@ -32,7 +32,7 @@ and [TRACING.md](../observability/TRACING.md).
 Authoritative shared template:
 [infra/config/env-templates/integrations.env.example](../../../infra/config/env-templates/integrations.env.example).
 
-K8s: `infra/k8s/base/integrations/source/integrations.env` → ConfigMap
+K8s: `infra/k8s/base/common/source/integrations/integrations.env` → ConfigMap
 `podverse-integrations-config`.
 
 ## Runtime-config sidecar only

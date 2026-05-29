@@ -1,6 +1,6 @@
 ---
 description: Three-pillar env — Observability, Integrations, Extensions — and config mapping. Extensions env is last on main app containers.
-globs: apps/api/.env.example,apps/management-api/.env.example,apps/web/.env.example,apps/management-web/.env.example,apps/workers/.env.example,apps/web/sidecar/.env.example,apps/management-web/sidecar/.env.example,infra/k8s/**/source/*.env,infra/config/env-templates/*.env.example,apps/api/src/config/index.ts,apps/management-api/src/config/index.ts,apps/web/src/config/**,apps/management-web/src/config/**,apps/**/src/lib/extensions/**,packages/observability/**,packages/integrations-web/**,infra/k8s/base/integrations/**
+globs: apps/api/.env.example,apps/management-api/.env.example,apps/web/.env.example,apps/management-web/.env.example,apps/workers/.env.example,apps/web/sidecar/.env.example,apps/management-web/sidecar/.env.example,infra/k8s/**/source/*.env,infra/config/env-templates/*.env.example,apps/api/src/config/index.ts,apps/management-api/src/config/index.ts,apps/web/src/config/**,apps/management-web/src/config/**,apps/**/src/lib/extensions/**,packages/observability/**,packages/integrations-web/**,infra/k8s/base/common/**
 alwaysApply: false
 ---
 
