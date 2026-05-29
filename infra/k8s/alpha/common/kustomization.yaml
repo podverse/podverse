@@ -7,8 +7,10 @@
 # 1. Uncomment base/integrations and/or base/extensions under resources.
 # 2. Remove (comment) the matching stub configMapGenerator entries below.
 # 3. Optionally merge overrides: configMapGenerator behavior merge + source/*.env.
+#    Copy source/*.env.example into GitOps configMapGenerator envs when enabling extensions.
 # 4. On workloads: uncomment prometheus-sidecar component + extension-prometheus image pin;
 #    set PROMETHEUS_ENABLED=true (and integration tokens) in merged ConfigMap env.
+# 5. See infra/k8s/alpha/examples/optional-extension-metrics/README.md for Prometheus/Grafana.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 

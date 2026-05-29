@@ -76,7 +76,9 @@ scrape_configs:
         regex: '9464'
         action: keep
       - source_labels: [__meta_kubernetes_namespace]
-        target_label: namespace
+        target_label: k8s_namespace
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        target_label: podverse_app
       - source_labels: [__meta_kubernetes_pod_name]
         target_label: pod
       - source_labels: [__meta_kubernetes_pod_container_name]
@@ -133,6 +135,42 @@ HTTP metrics use a bounded label set (semconv):
 - `http.response.status_code`
 
 Do not add user IDs, feed URLs, IP addresses, or other unbounded labels.
+
+## Operator dashboards
+
+Operators provision Grafana dashboards in **their GitOps repository** (not the Podverse monorepo).
+Typical dashboard types:
+
+| Dashboard     | Purpose                                              |
+| ------------- | ---------------------------------------------------- |
+| Overview      | Scrape health, HTTP/worker summary                   |
+| HTTP          | Latency, errors, routes, status codes                |
+| Workers       | Command rate, duration, errors                       |
+| Node-exporter | Host CPU, memory, disk, network (optional DaemonSet) |
+
+**Metric prefix:** extension sidecar metrics use `podverse_extension_prometheus_*` (otelcol
+exporter naming). **HTTP labels:** `http_request_method`, `http_route`, `http_response_status_code`.
+**Worker labels:** `command`, `status`. **`podverse_app`** is a **scrape relabel** from the
+Kubernetes pod label `app`, not an OTEL resource attribute — add the relabel in Prometheus (see
+scrape example above).
+
+Copy-paste PromQL for Grafana Explore (replace `<namespace>`):
+
+```promql
+sum(rate(podverse_extension_prometheus_http_server_request_duration_count{k8s_namespace="<namespace>"}[5m]))
+```
+
+```promql
+sum by (podverse_app) (rate(podverse_extension_prometheus_http_server_request_duration_count{k8s_namespace="<namespace>"}[5m]))
+```
+
+Worker command rate (empty when workers are idle):
+
+```promql
+sum by (command) (rate(podverse_extension_prometheus_podverse_worker_command_duration_count{k8s_namespace="<namespace>"}[5m]))
+```
+
+Enablement checklist: [`infra/k8s/alpha/examples/optional-extension-metrics/README.md`](../../../infra/k8s/alpha/examples/optional-extension-metrics/README.md). Remote GitOps steps: [REMOTE-K8S-GITOPS.md](../../development/k8s/REMOTE-K8S-GITOPS.md).
 
 ## Operator note
 
