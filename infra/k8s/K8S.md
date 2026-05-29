@@ -190,7 +190,8 @@ npm run lint:fix         # Lint and format all files
 
 **Format-on-save:** VS Code/Cursor automatically applies k8s overrides when saving files under `infra/k8s/`.
 
-**Pre-commit:** `lint-staged` formats staged k8s YAML files automatically.
+Before committing, run `npm run prettier:write` or `npm run lint:fix` from the repo root when you
+change k8s YAML (CI `validate` also enforces lint).
 
 ### Important
 

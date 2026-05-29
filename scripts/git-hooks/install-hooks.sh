@@ -11,11 +11,11 @@ mkdir -p "$HOOKS_DIR"
 
 git -C "$REPO_ROOT" config commit.template .gitmessage
 
-cp "$SCRIPT_DIR/pre-commit" "$HOOKS_DIR/pre-commit"
-chmod +x "$HOOKS_DIR/pre-commit"
+# Pre-commit formatting was removed; drop any legacy hook so commits are not blocked.
+rm -f "$HOOKS_DIR/pre-commit"
 
 cp "$SCRIPT_DIR/pre-push" "$HOOKS_DIR/pre-push"
 chmod +x "$HOOKS_DIR/pre-push"
 
-echo "✓ Git hooks installed (pre-commit, pre-push)"
+echo "✓ Git hooks installed (pre-push)"
 echo "✓ Commit message template set (.gitmessage)"
