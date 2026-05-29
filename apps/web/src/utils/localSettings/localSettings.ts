@@ -196,12 +196,7 @@ export function handleLocalSettingsUpdate(newState: LocalSettingsState) {
 }
 
 function isStoredCookieConsentChoice(choice: unknown): boolean {
-  return (
-    choice === 'all' ||
-    choice === 'essential' ||
-    choice === 'none' ||
-    choice === 'features'
-  );
+  return choice === 'all' || choice === 'essential' || choice === 'none' || choice === 'features';
 }
 
 function isValidCookieConsentState(cc: unknown): cc is CookieConsentState {

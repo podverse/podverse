@@ -207,10 +207,12 @@ describe('account CRUD and email routes', () => {
       const { ERROR_MESSAGES } = await import('@podverse/helpers');
       createMock.mockRejectedValueOnce(new Error(ERROR_MESSAGES.ACCOUNT.ALREADY_EXISTS));
 
-      const res = await request(app).post(`${accountBase}/`).send({
-        ...validAccountCreateBody,
-        email: 'duplicate@example.com',
-      });
+      const res = await request(app)
+        .post(`${accountBase}/`)
+        .send({
+          ...validAccountCreateBody,
+          email: 'duplicate@example.com',
+        });
 
       expect(res.status).toBe(200);
       expect(res.body.message).toBe('Account created');

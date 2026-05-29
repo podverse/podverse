@@ -220,8 +220,7 @@ export const AuthSignUpForm = () => {
                 className={styles.consentCheckbox}
               />
               <span className={styles.consentLabel}>
-                {tMisc('i_have_read_and_agree')}{' '}
-                <Link href={ROUTES.TERMS}>{tMisc('terms')}</Link>
+                {tMisc('i_have_read_and_agree')} <Link href={ROUTES.TERMS}>{tMisc('terms')}</Link>
               </span>
             </label>
             <TextCheckboxes

@@ -70,11 +70,13 @@ describe('POST /account (create) terms_version validation', () => {
   });
 
   it('returns 400 with wrong terms_version', async () => {
-    const res = await request(app).post(`${accountBase}/`).send({
-      ...validAccountCreateBody,
-      email: 'wrong-terms@example.com',
-      terms_version: '1999-01-01',
-    });
+    const res = await request(app)
+      .post(`${accountBase}/`)
+      .send({
+        ...validAccountCreateBody,
+        email: 'wrong-terms@example.com',
+        terms_version: '1999-01-01',
+      });
 
     expect(res.status).toBe(400);
     expect(res.body.message).toBe('Invalid terms version');

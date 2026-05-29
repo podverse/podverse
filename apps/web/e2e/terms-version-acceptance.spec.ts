@@ -54,9 +54,9 @@ test.describe('Terms version acceptance', () => {
             })
             .check();
           await page.getByRole('button', { name: 'Continue' }).click();
-          await expect(
-            page.getByRole('dialog', { name: 'Updated Terms of Service' })
-          ).toHaveCount(0);
+          await expect(page.getByRole('dialog', { name: 'Updated Terms of Service' })).toHaveCount(
+            0
+          );
           await page.goto('/terms');
           await expect(page).toHaveURL('/terms');
           await expect(page.getByRole('heading', { name: 'Terms', level: 1 })).toBeVisible();

@@ -10,9 +10,7 @@ export const ConsentGatedIntegrations = () => {
   const config = useConfig();
   const { cookieConsent } = useLocalSettings();
 
-  if (
-    cookieConsentAllowsWebAnalytics(config.public.cookieConsent.bannerEnabled, cookieConsent)
-  ) {
+  if (cookieConsentAllowsWebAnalytics(config.public.cookieConsent.bannerEnabled, cookieConsent)) {
     return <IntegrationsWebScripts integrations={config.integrations} />;
   }
 

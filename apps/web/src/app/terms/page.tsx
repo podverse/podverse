@@ -56,7 +56,8 @@ export default async function TermsPage() {
                   <strong>{t('cookie_choice_all')}</strong> — {t('cookie_choice_all_help')}
                 </li>
                 <li>
-                  <strong>{t('cookie_choice_essential')}</strong> — {t('cookie_choice_essential_help')}
+                  <strong>{t('cookie_choice_essential')}</strong> —{' '}
+                  {t('cookie_choice_essential_help')}
                 </li>
                 <li>
                   <strong>{t('cookie_choice_none')}</strong> — {t('cookie_choice_none_help')}

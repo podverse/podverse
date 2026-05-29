@@ -1,9 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import {
-  E2E_CONFIGURED_TERMS_VERSION,
-  E2E_SIGNUP_TEST_PASSWORD,
-} from './helpers/legalConsent';
+import { E2E_CONFIGURED_TERMS_VERSION, E2E_SIGNUP_TEST_PASSWORD } from './helpers/legalConsent';
 import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 
 const uniqueSignupEmail = (): string =>
@@ -46,8 +43,7 @@ test.describe('Sign-up legal consent', () => {
     await expect(page).toHaveURL('/sign-up');
 
     const createAccountRequest = page.waitForRequest(
-      (request) =>
-        request.method() === 'POST' && request.url().includes('/api/v2/account')
+      (request) => request.method() === 'POST' && request.url().includes('/api/v2/account')
     );
 
     const termsCheckbox = page.getByRole('checkbox', {

@@ -2,8 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 
-import { Button } from '@podverse/ui';
 import type { ButtonVariant } from '@podverse/ui';
+import { Button } from '@podverse/ui';
 
 import { ROUTES } from '../../constants/routes';
 import { useConfig } from '../../contexts/Config';
