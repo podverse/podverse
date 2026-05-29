@@ -6,6 +6,7 @@
 # 1. In common overlay: configMapGenerator behavior merge + source/integrations/ and source/extensions/ overrides.
 # 2. On workloads: uncomment prometheus-sidecar component + extension-prometheus image pin;
 #    set PROMETHEUS_ENABLED=true (and integration tokens) in merged ConfigMap env.
+# 3. See infra/k8s/alpha/examples/optional-extension-metrics/README.md for Prometheus/Grafana.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 

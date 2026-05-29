@@ -115,6 +115,8 @@ export type {
 } from './components/layout/LoadingSpinnerOverlay/index';
 export { NavigationLoadingOverlay } from './components/layout/NavigationLoadingOverlay/NavigationLoadingOverlay';
 export type { NavigationLoadingOverlayProps } from './components/layout/NavigationLoadingOverlay/NavigationLoadingOverlay';
+export { RouteNavigationLoading } from './components/layout/RouteNavigationLoading/RouteNavigationLoading';
+export type { RouteNavigationLoadingProps } from './components/layout/RouteNavigationLoading/RouteNavigationLoading';
 export { MainPageScaffold } from './components/layout/MainPageScaffold/MainPageScaffold';
 export type { MainPageScaffoldProps } from './components/layout/MainPageScaffold/MainPageScaffold';
 export { MainHeader } from './components/layout/MainHeader/MainHeader';
@@ -227,6 +229,7 @@ export type {
 } from './hooks/useCursorPagination';
 export { useAsyncPageLoading } from './hooks/useAsyncPageLoading';
 export type { UseAsyncPageLoadingReturn } from './hooks/useAsyncPageLoading';
+export { useRouteNavigationLoading } from './hooks/useRouteNavigationLoading';
 export { useCookieModeListRefresh } from './hooks/useCookieModeListRefresh';
 export type {
   UseCookieModeListRefreshOptions,

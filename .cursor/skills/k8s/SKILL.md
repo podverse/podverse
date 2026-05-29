@@ -263,7 +263,7 @@ sops -d secrets/podverse-alpha-db-opaque.enc.yaml | kubectl apply -f -
   npm run prettier:write
   npm run lint:fix
   ```
-- **Pre-commit:** `lint-staged` runs Prettier on staged k8s YAML files
+- **Before commit:** run `npm run prettier:write` or `npm run lint:fix` when you change k8s YAML
 
 ### Important
 
