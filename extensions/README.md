@@ -21,5 +21,5 @@ Deployable **extension sidecar** workspaces. Each subdirectory is one optional c
 1. Add `extensions/<id>/` with its own `package.json` and image build.
 2. Add K8s component under `infra/k8s/base/common/components/<id>-sidecar/`.
 3. Add app toggle env keys to `infra/k8s/base/common/source/extensions/extensions.env`; sidecar keys to
-   `extension-<id>.env` (and shared OTLP collector keys to `extension-sidecar-otel.env` when using otelcol).
+   `source/extensions/extension-<id>.env` (and shared OTLP collector keys to `source/extensions/extension-sidecar-otel.env` when using otelcol).
 4. Publish image as `ghcr.io/podverse/podverse/extension-<id>` (separate from other extensions).

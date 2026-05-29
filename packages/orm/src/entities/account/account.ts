@@ -28,6 +28,7 @@ import type { AccountPayPalOrder } from './accountPayPalOrder.js';
 import type { AccountProfile } from './accountProfile.js';
 import type { AccountResetPassword } from './accountResetPassword.js';
 import type { AccountSettings } from './accountSettings/accountSettings.js';
+import type { AccountTermsAcceptance } from './accountTermsAcceptance.js';
 import type { AccountUPDevice } from './accountUPDevice.js';
 import type { AccountVerification } from './accountVerification.js';
 import type { AccountWebPushDevice } from './accountWebPushDevice.js';
@@ -104,6 +105,12 @@ export class Account {
 
   @OneToOne('AccountMetaboost', (accountMetaboost: AccountMetaboost) => accountMetaboost.account)
   account_metaboost?: Relation<AccountMetaboost>;
+
+  @OneToOne(
+    'AccountTermsAcceptance',
+    (accountTermsAcceptance: AccountTermsAcceptance) => accountTermsAcceptance.account
+  )
+  account_terms_acceptance?: Relation<AccountTermsAcceptance>;
 
   @OneToMany(
     'AccountNotificationChannel',

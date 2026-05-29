@@ -4,6 +4,7 @@ import type { DTOAccountSettingsNotification } from './accountSettingsNotificati
 export interface DTOAccountSettings {
   id: number;
   account_id: number;
+  allow_listen_stats: boolean;
   account_settings_locale: DTOAccountSettingsLocale;
   account_settings_notification?: DTOAccountSettingsNotification;
 }

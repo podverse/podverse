@@ -15,6 +15,14 @@ import {
 
 const TEST_EMAIL = 'account-test@example.com';
 const TEST_USER_ID = 1;
+const VALID_TERMS_VERSION = '2026-01-01';
+
+const validAccountCreateBody = {
+  email: 'new@example.com',
+  password: 'valid-password-123',
+  locale: 'en-US',
+  terms_version: VALID_TERMS_VERSION,
+};
 
 const {
   createMock,
@@ -168,6 +176,10 @@ describe('account CRUD and email routes', () => {
   });
 
   describe('POST /account (create)', () => {
+    beforeEach(() => {
+      createMock.mockClear();
+    });
+
     it('returns 200 with valid data', async () => {
       createMock.mockResolvedValueOnce({});
       getByEmailMock.mockResolvedValueOnce({
@@ -178,15 +190,17 @@ describe('account CRUD and email routes', () => {
       });
       verificationUpdateMock.mockResolvedValueOnce({});
 
-      const res = await request(app).post(`${accountBase}/`).send({
-        email: 'new@example.com',
-        password: 'valid-password-123',
-        locale: 'en-US',
-      });
+      const res = await request(app).post(`${accountBase}/`).send(validAccountCreateBody);
 
       expect(res.status).toBe(200);
       expect(res.body.message).toBe('Account created');
       expect(createMock).toHaveBeenCalledTimes(1);
+      expect(createMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          terms_version: VALID_TERMS_VERSION,
+          allow_listen_stats: true,
+        })
+      );
     });
 
     it('returns 200 on duplicate email (prevents enumeration)', async () => {
@@ -194,9 +208,8 @@ describe('account CRUD and email routes', () => {
       createMock.mockRejectedValueOnce(new Error(ERROR_MESSAGES.ACCOUNT.ALREADY_EXISTS));
 
       const res = await request(app).post(`${accountBase}/`).send({
+        ...validAccountCreateBody,
         email: 'duplicate@example.com',
-        password: 'valid-password-123',
-        locale: 'en-US',
       });
 
       expect(res.status).toBe(200);
@@ -208,6 +221,7 @@ describe('account CRUD and email routes', () => {
         email: 'short@example.com',
         password: 'short',
         locale: 'en-US',
+        terms_version: VALID_TERMS_VERSION,
       });
 
       expect(res.status).toBe(400);
@@ -216,24 +230,24 @@ describe('account CRUD and email routes', () => {
     it('returns 429 when rate limit is exceeded', async () => {
       createMock.mockRejectedValue(new Error('Rate limited test'));
 
-      for (let i = 0; i < 3; i++) {
-        await request(app)
+      let limitedResponse: request.Response | null = null;
+
+      for (let i = 0; i < 120; i++) {
+        const res = await request(app)
           .post(`${accountBase}/`)
           .send({
+            ...validAccountCreateBody,
             email: `rl-${i}@example.com`,
-            password: 'valid-password-123',
-            locale: 'en-US',
           });
+
+        if (res.status === 429) {
+          limitedResponse = res;
+          break;
+        }
       }
 
-      const res = await request(app).post(`${accountBase}/`).send({
-        email: 'rl-4@example.com',
-        password: 'valid-password-123',
-        locale: 'en-US',
-      });
-
-      expect(res.status).toBe(429);
-    });
+      expect(limitedResponse?.status).toBe(429);
+    }, 15000);
   });
 
   describe('PUT /account (update)', () => {

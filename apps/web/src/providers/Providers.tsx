@@ -5,6 +5,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import type { DTOAccount, DTOCategory, QueueResourcesAbridgedIndex } from '@podverse/helpers';
 import { ImageRuntimeProvider } from '@podverse/ui';
 
+import { ConsentGatedIntegrations } from '../components/Integrations/ConsentGatedIntegrations';
 import type { WebConfig } from '../config';
 import { IMAGES } from '../constants/images';
 import { PROXY } from '../constants/proxy';
@@ -57,6 +58,7 @@ export default function Providers({
         <NextIntlClientProvider locale={locale} messages={messages} timeZone="America/Chicago">
           <NavigationProvider>
             <LocalSettingsProvider ssrLocalSettings={ssrLocalSettings}>
+              <ConsentGatedIntegrations />
               <AccountProvider ssrLoggedInAccount={ssrLoggedInAccount}>
                 <NotificationsProvider>
                   <QueuesProvider>

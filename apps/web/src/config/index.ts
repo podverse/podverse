@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at build time in scripts/validate-env.ts */
 
 import type { AccountSignupMode } from '@podverse/helpers';
+import { DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS } from '@podverse/helpers';
 import { parseSidebarGroupOrder } from '@podverse/helpers-config';
 import { buildObservabilityConfigFromEnv } from '@podverse/observability/config';
 
@@ -10,6 +11,14 @@ import { getRuntimeConfig } from './runtime-config-store';
 /** Optional env value: treat empty string as undefined so "not configured" is consistent. */
 const opt = (v: string | undefined): string | undefined =>
   v === '' || v === undefined ? undefined : v;
+
+const parsePositiveIntWithDefault = (raw: string | undefined, defaultValue: number): number => {
+  if (raw === undefined || raw.trim() === '') {
+    return defaultValue;
+  }
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : defaultValue;
+};
 
 const buildConfig = () => {
   const runtimeConfig = getRuntimeConfig();
@@ -90,6 +99,21 @@ const buildConfig = () => {
       },
       contact: {
         email: env.NEXT_PUBLIC_CONTACT_EMAIL!,
+      },
+      legal: {
+        name: env.NEXT_PUBLIC_LEGAL_NAME!,
+        terms: {
+          version: env.NEXT_PUBLIC_TERMS_OF_SERVICE_VERSION!,
+        },
+      },
+      stats: {
+        trackEventRetentionDays: parsePositiveIntWithDefault(
+          env.NEXT_PUBLIC_STATS_TRACK_EVENT_RETENTION_DAYS,
+          DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS
+        ),
+      },
+      cookieConsent: {
+        bannerEnabled: env.NEXT_PUBLIC_COOKIE_CONSENT_BANNER_ENABLED === 'true',
       },
       account: {
         signupMode: env.NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE! as AccountSignupMode,

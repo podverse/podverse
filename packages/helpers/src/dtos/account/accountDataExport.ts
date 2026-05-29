@@ -132,10 +132,17 @@ export interface DTOAccountDataExportAccountMetaboost {
   sender_guid: string;
 }
 
+export interface DTOAccountDataExportTermsAcceptance {
+  terms_version: string;
+  accepted_at: string;
+}
+
 export interface DTOAccountDataExport {
   export_date: string;
   account: DTOAccountDataExportAccount;
   account_metaboost: DTOAccountDataExportAccountMetaboost | null;
+  account_terms_acceptance: DTOAccountDataExportTermsAcceptance | null;
+  allow_listen_stats: boolean;
   following: DTOAccountDataExportFollowing;
   playlists: DTOAccountDataExportPlaylist[];
   clips: DTOAccountDataExportClip[];

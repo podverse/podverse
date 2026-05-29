@@ -46,6 +46,5 @@ export const sendVerificationEmail = async (
     });
   } catch (err) {
     console.error('[sendVerificationEmail] mail send failed', err);
-    throw err;
   }
 };

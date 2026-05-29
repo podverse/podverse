@@ -4,6 +4,9 @@ export const TIME_CONSTANTS = {
   ONE_MONTH_IN_MINUTES: 43200,
 };
 
+/** Default retention for raw stats track events before prune (see STATS_TRACK_EVENT_RETENTION_DAYS). */
+export const DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS = 30;
+
 export function formatHHMMSS(sec: number) {
   const hours = Math.floor(sec / 3600);
   const minutes = Math.floor((sec % 3600) / 60);

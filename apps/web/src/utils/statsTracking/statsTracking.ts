@@ -1,3 +1,4 @@
+import type { DTOAccount } from '@podverse/helpers';
 import {
   reqStatsTrackAccount,
   reqStatsTrackChannel,
@@ -8,7 +9,23 @@ import {
 
 import { getApiRequestService } from '../../factories/apiRequestService';
 
+let accountForListenStatsGate: DTOAccount | null = null;
+
+export function syncListenStatsGateFromAccount(account: DTOAccount | null): void {
+  accountForListenStatsGate = account;
+}
+
+function shouldSkipListenStatsForLoggedInAccount(): boolean {
+  if (accountForListenStatsGate === null) {
+    return false;
+  }
+  return accountForListenStatsGate.account_settings?.allow_listen_stats === false;
+}
+
 function fireStatsRequest(promise: Promise<unknown>): void {
+  if (shouldSkipListenStatsForLoggedInAccount()) {
+    return;
+  }
   void promise.catch(() => {});
 }
 

@@ -29,11 +29,13 @@ import { hasAnyImageShrinkEnvSet, SUPPORTED_BUCKET_PROVIDERS } from '@workers/co
 import { validateSpamFeedItemThresholdEnvVar } from '@workers/lib/parser/spamThresholdEnv.js';
 
 import { isBucketProvider } from '@podverse/external-services-object-storage';
+import { DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS } from '@podverse/helpers';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
   displayValidationResults,
   validateOptional,
   validateOptionalAbsoluteHttpUrlIfSet,
+  validatePositiveNumber,
   validateRequired,
 } from '@podverse/helpers-config';
 import { buildObservabilityValidationResults } from '@podverse/observability/config';
@@ -96,6 +98,22 @@ function validateUserAgentEffective(): ValidationResult {
   };
 }
 
+function validateStatsTrackEventRetentionDays(): ValidationResult {
+  const key = 'STATS_TRACK_EVENT_RETENTION_DAYS';
+  const value = process.env[key] ?? '';
+  if (value.trim() === '') {
+    return {
+      name: key,
+      isSet: false,
+      isValid: true,
+      isRequired: false,
+      message: `Use Default (${DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS} days)`,
+      category: 'Stats',
+    };
+  }
+  return validatePositiveNumber(key, 'Stats', false, 1, 3650);
+}
+
 /** Category: Config/Base — every command needs at least these */
 function validateBase(): ValidationResult[] {
   const results: ValidationResult[] = [];
@@ -106,6 +124,7 @@ function validateBase(): ValidationResult[] {
   );
   results.push(validateOptional('LOG_TIMER', 'Config', 'Use Default (false)'));
   results.push(validateOptional('NODE_ENV', 'General', 'Use Default (development)'));
+  results.push(validateStatsTrackEventRetentionDays());
   results.push(
     validateOptional('BILLING_RENEWAL_RETRY_DELAY_MINUTES', 'Billing', 'Use Default (60 minutes)')
   );

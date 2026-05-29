@@ -3,7 +3,7 @@
 # Base Deployments envFrom podverse-integrations-config and podverse-extensions-config from base/common.
 #
 # To enable integrations/extensions in your GitOps repo:
-# 1. In common overlay: configMapGenerator behavior merge + source/*.env overrides.
+# 1. In common overlay: configMapGenerator behavior merge + source/integrations/ and source/extensions/ overrides.
 # 2. On workloads: uncomment prometheus-sidecar component + extension-prometheus image pin;
 #    set PROMETHEUS_ENABLED=true (and integration tokens) in merged ConfigMap env.
 apiVersion: kustomize.config.k8s.io/v1beta1

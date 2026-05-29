@@ -1,7 +1,7 @@
 import type { CommandLineArgs } from '@workers/commands/index.js';
+import { getStatsConfig } from '@workers/config/index.js';
 import { getTimerManager } from '@workers/factories/timerManager.js';
 
-import { TIME_CONSTANTS } from '@podverse/helpers';
 import {
   StatsAggregatedAccountService,
   StatsAggregatedChannelService,
@@ -22,7 +22,8 @@ const updateStats = async (
   getTopEntities: (limit: number) => Promise<number[]>,
   updateAggregatedStats: (id: number, shouldUpdateAllTime: boolean) => Promise<void>,
   deleteOldEvents: (time: number) => Promise<void>,
-  shouldUpdateAllTime: boolean
+  shouldUpdateAllTime: boolean,
+  retentionMinutes: number
 ) => {
   const timerLabelGet = `${entityName} track events - get top ${entityName}s`;
   const timerManager = getTimerManager();
@@ -40,7 +41,7 @@ const updateStats = async (
   }
   timerManager.end(timerLabelAggregated);
 
-  await deleteOldEvents(TIME_CONSTANTS.ONE_MONTH_IN_MINUTES);
+  await deleteOldEvents(retentionMinutes);
 };
 
 export const statsUpdateAggregated = async (args: CommandLineArgs) => {
@@ -48,6 +49,8 @@ export const statsUpdateAggregated = async (args: CommandLineArgs) => {
   getTimerManager().start(timerFullRunLabel);
 
   const shouldUpdateAllTime = 'at' in args;
+  const { trackEventRetentionDays } = getStatsConfig();
+  const retentionMinutes = trackEventRetentionDays * 24 * 60;
 
   await updateStats(
     'Account',
@@ -58,7 +61,8 @@ export const statsUpdateAggregated = async (args: CommandLineArgs) => {
       new StatsAggregatedAccountService()
     ),
     new StatsTrackEventAccountService()._deleteOldEvents.bind(new StatsTrackEventAccountService()),
-    shouldUpdateAllTime
+    shouldUpdateAllTime,
+    retentionMinutes
   );
 
   await updateStats(
@@ -70,7 +74,8 @@ export const statsUpdateAggregated = async (args: CommandLineArgs) => {
       new StatsAggregatedChannelService()
     ),
     new StatsTrackEventChannelService()._deleteOldEvents.bind(new StatsTrackEventChannelService()),
-    shouldUpdateAllTime
+    shouldUpdateAllTime,
+    retentionMinutes
   );
 
   await updateStats(
@@ -80,7 +85,8 @@ export const statsUpdateAggregated = async (args: CommandLineArgs) => {
     ),
     new StatsAggregatedClipService().updateAggregatedStats.bind(new StatsAggregatedClipService()),
     new StatsTrackEventClipService()._deleteOldEvents.bind(new StatsTrackEventClipService()),
-    shouldUpdateAllTime
+    shouldUpdateAllTime,
+    retentionMinutes
   );
 
   await updateStats(
@@ -90,7 +96,8 @@ export const statsUpdateAggregated = async (args: CommandLineArgs) => {
     ),
     new StatsAggregatedItemService().updateAggregatedStats.bind(new StatsAggregatedItemService()),
     new StatsTrackEventItemService()._deleteOldEvents.bind(new StatsTrackEventItemService()),
-    shouldUpdateAllTime
+    shouldUpdateAllTime,
+    retentionMinutes
   );
 
   await updateStats(
@@ -104,7 +111,8 @@ export const statsUpdateAggregated = async (args: CommandLineArgs) => {
     new StatsTrackEventPlaylistService()._deleteOldEvents.bind(
       new StatsTrackEventPlaylistService()
     ),
-    shouldUpdateAllTime
+    shouldUpdateAllTime,
+    retentionMinutes
   );
 
   getTimerManager().end(timerFullRunLabel);
