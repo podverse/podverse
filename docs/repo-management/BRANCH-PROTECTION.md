@@ -39,7 +39,7 @@ Bypass: configured teams/integrations in the ruleset (e.g. for automation that m
 In addition to GitHub branch protection, local git hooks enforce:
 
 - **pre-push**: Blocks direct pushes to protected branches (main, staging, develop)
-- **pre-push**: Validates branch naming conventions (feature/_, fix/_, chore/_, docs/_, hotfix/_, release/_, llm/_)
+- **pre-push**: Validates branch naming conventions (feature/_, fix/_, chore/_, docs/_, hotfix/_, release/_, llm/\_)
 
 Commit message template (`.gitmessage`) suggests optional GitHub issue references (#123). See `scripts/git-hooks/` for implementation details.
 
