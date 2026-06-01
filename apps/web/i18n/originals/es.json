@@ -576,7 +576,15 @@
     "set_password_email_required": "Correo electrónico",
     "set_password_other_session_banner": "Has iniciado sesión como {sessionLabel}. Este enlace de invitación completa la configuración de una cuenta distinta.",
     "set_password_sign_out_to_continue": "Cerrar sesión y continuar",
-    "set_password_continue_without_signing_out": "Continuar sin cerrar sesión"
+    "set_password_continue_without_signing_out": "Continuar sin cerrar sesión",
+    "listen_stats_opt_in": "Ayudar a mejorar el contenido en tendencia con estadísticas de escucha",
+    "listen_stats_opt_in_help": "Registramos eventos de escucha seudónimos para mostrar popularidad. Los datos se conservan {retention_days} días. Puedes cambiar esto en cualquier momento en la configuración de la cuenta.",
+    "terms_version_invalid": "La versión de los términos de servicio está desactualizada. Actualiza la página e inténtalo de nuevo."
+  },
+  "terms_acceptance": {
+    "header": "Términos de servicio actualizados",
+    "message": "Nuestros Términos de servicio han cambiado. Lee y acepta los términos actualizados para seguir usando tu cuenta.",
+    "checkbox_label": "He leído y acepto los Términos de servicio actualizados"
   },
   "membership": {
     "membership": "Membresía",
@@ -698,7 +706,11 @@
       "download_my_data_description": "Descarga todos los datos de tu cuenta como un archivo JSON",
       "download_my_data_loading": "Preparando tus datos...",
       "download_my_data_success": "Datos descargados con éxito",
-      "download_my_data_error": "Error al descargar los datos"
+      "download_my_data_error": "Error al descargar los datos",
+      "listen_stats_toggle": "Estadísticas de escucha",
+      "listen_stats_toggle_help": "Permitir eventos de escucha seudónimos para contenido en tendencia. Los eventos se conservan {retention_days} días.",
+      "listen_stats_toggle_error": "No se pudo actualizar la preferencia de estadísticas de escucha. Inténtalo de nuevo.",
+      "listen_stats_terms_link": "Más información en nuestros <termsLink>Términos de servicio</termsLink>."
     },
     "profile": {
       "profile": "Perfil",
@@ -765,15 +777,40 @@
     "join_matrix_space": "Únete a nuestro espacio de Matrix",
     "chat_discord": "Chatea con nosotros en Discord"
   },
+  "cookie_consent": {
+    "banner_message": "Usamos cookies para funciones y analítica opcional. Consulta nuestros <termsLink>Términos de servicio</termsLink> para más detalles.",
+    "accept_all": "Aceptar todo",
+    "accept_all_help": "Analítica y recordar la reproducción sin iniciar sesión.",
+    "essential_only": "Solo esenciales",
+    "essential_only_help": "Recordar la reproducción sin iniciar sesión; sin analítica.",
+    "none": "Ninguna",
+    "none_help": "Sin cookies opcionales del dispositivo; el inicio de sesión sigue funcionando."
+  },
   "terms": {
     "terms": "Términos",
+    "legal_entity_heading": "{legal_name}",
+    "service_intro": "{brand_name} es operado por {legal_name}. Estos términos describen cómo tratamos tus datos y nuestro servicio.",
     "never_sell_data": "{brand_name} nunca venderá ni compartirá datos privados de los usuarios.",
     "no_ads_without_permission": "Nunca pondremos anuncios al lado o dentro del contenido de un podcast sin el permiso de ese podcast.",
     "audio_video_hosting": "Todos los archivos de audio o video encontrados en {brand_domain} se cargan desde el propio servidor público del podcaster. No alojamos archivos de audio o video de podcasts nosotros mismos.",
     "third_party_feeds": "Alojamos enlaces y contenido de podcasts de fuentes y sitios de terceros. Estos tienen sus propias políticas de privacidad independientes, y no tenemos responsabilidad por su contenido o actividades.",
     "clips_crowdsourced": "Todos los clips alojados en {brand_domain} son obtenidos de forma colaborativa y no oficiales, a menos que el propio podcaster indique lo contrario.",
     "clips_load_full_episode": "Los clips se cargan dentro del archivo de medios del episodio completo, por lo que el usuario siempre tiene acceso a la grabación completa.",
-    "reduced_size_images": "También alojamos imágenes de podcasts de tamaño reducido de los feeds de los podcasters, para ahorrar datos de red del usuario y acelerar los tiempos de carga de la página."
+    "reduced_size_images": "También alojamos imágenes de podcasts de tamaño reducido de los feeds de los podcasters, para ahorrar datos de red del usuario y acelerar los tiempos de carga de la página.",
+    "data_service_necessary": "Los datos de cola, inicio de sesión y reproducción de la cuenta son necesarios para ejecutar {brand_name}. No pedimos consentimiento aparte para esta funcionalidad básica. Recordar la reproducción sin iniciar sesión es opcional y se controla en el banner de cookies.",
+    "data_listen_stats_heading": "Estadísticas de escucha",
+    "data_listen_stats_body": "{legal_name} puede registrar eventos de escucha seudónimos para mostrar contenido en tendencia. Los eventos se conservan {retention_days} días. Puedes activar o desactivar esta opción en la configuración de la cuenta.",
+    "data_listen_stats_anonymization": "Las estadísticas usan un identificador interno de cuenta. No se muestra como tu perfil público ni tu nombre de usuario.",
+    "data_web_analytics": "La analítica web anónima (Cloudflare) solo se carga si aceptas cookies de analítica en el banner de consentimiento.",
+    "data_retention": "Los eventos de escucha en bruto se eliminan después de {retention_days} días.",
+    "data_requests": "Para solicitudes de acceso o eliminación, escribe a {contact_email}.",
+    "cookie_choices_heading": "Opciones de cookies",
+    "cookie_choice_all": "Aceptar todo",
+    "cookie_choice_all_help": "Analítica y recordar la reproducción sin iniciar sesión.",
+    "cookie_choice_essential": "Solo esenciales",
+    "cookie_choice_essential_help": "Recordar la reproducción sin iniciar sesión; sin analítica.",
+    "cookie_choice_none": "Ninguna",
+    "cookie_choice_none_help": "Sin cookies opcionales del dispositivo; el inicio de sesión y la reproducción de la cuenta siguen funcionando."
   },
   "socials": {
     "discord": "Discord",

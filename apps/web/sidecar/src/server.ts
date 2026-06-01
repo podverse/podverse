@@ -2,6 +2,7 @@
 import http from 'node:http';
 import { URL } from 'node:url';
 
+import { DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS } from '@podverse/helpers';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
   displayValidationResults,
@@ -38,9 +39,11 @@ const requiredKeys = [
   'NEXT_PUBLIC_DEFAULT_THEME',
   'NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE',
   'NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES',
+  'NEXT_PUBLIC_LEGAL_NAME',
   'NEXT_PUBLIC_SSR_API_HOST',
   'NEXT_PUBLIC_SSR_API_PROTOCOL',
   'NEXT_PUBLIC_SUPPORTED_THEMES',
+  'NEXT_PUBLIC_TERMS_OF_SERVICE_VERSION',
   'NEXT_PUBLIC_WEB_DOMAIN',
   'NEXT_PUBLIC_WEB_PROTOCOL',
 ] as const;
@@ -67,6 +70,7 @@ const optionalKeys = [
   'NEXT_PUBLIC_BRAND_NAME',
   'NEXT_PUBLIC_BRAND_THEME_COLOR',
   'NEXT_PUBLIC_CONTACT_EMAIL',
+  'NEXT_PUBLIC_COOKIE_CONSENT_BANNER_ENABLED',
   'NEXT_PUBLIC_IMAGE_PROXY_ENABLED',
   'NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED',
   'NEXT_PUBLIC_POLLING_INTERVAL_MS',
@@ -79,6 +83,7 @@ const optionalKeys = [
   'NEXT_PUBLIC_SOCIAL_GITHUB',
   'NEXT_PUBLIC_SOCIAL_MATRIX',
   'NEXT_PUBLIC_SOCIAL_X',
+  'NEXT_PUBLIC_STATS_TRACK_EVENT_RETENTION_DAYS',
   'NEXT_PUBLIC_SSR_API_PORT',
   'NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY',
 ] as const;
@@ -218,6 +223,51 @@ function validateOne(key: string, isRequired: boolean): ValidationResult {
   if (key === 'NEXT_PUBLIC_POLLING_INTERVAL_MS') {
     return validatePositiveNumber(key, category, false);
   }
+  if (key === 'NEXT_PUBLIC_COOKIE_CONSENT_BANNER_ENABLED') {
+    const value = process.env[key] ?? '';
+    if (value.trim() === '') {
+      return {
+        name: key,
+        isSet: false,
+        isValid: true,
+        isRequired: false,
+        message: 'Use Default (disabled)',
+        category: 'Legal',
+      };
+    }
+    if (value !== 'true' && value !== 'false') {
+      return {
+        name: key,
+        isSet: true,
+        isValid: false,
+        isRequired: false,
+        message: `Invalid value: "${value}" - must be "true" or "false"`,
+        category: 'Legal',
+      };
+    }
+    return {
+      name: key,
+      isSet: true,
+      isValid: true,
+      isRequired: false,
+      message: `Set to ${value}`,
+      category: 'Legal',
+    };
+  }
+  if (key === 'NEXT_PUBLIC_STATS_TRACK_EVENT_RETENTION_DAYS') {
+    const value = process.env[key] ?? '';
+    if (value.trim() === '') {
+      return {
+        name: key,
+        isSet: false,
+        isValid: true,
+        isRequired: false,
+        message: `Use Default (${DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS} days)`,
+        category: 'Stats',
+      };
+    }
+    return validatePositiveNumber(key, 'Stats', false, 1);
+  }
   if (isRequired) {
     return validateRequired(key, category);
   }
@@ -236,6 +286,8 @@ function getCategory(key: string): string {
     NEXT_PUBLIC_DEFAULT_THEME: 'Themes',
     NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE: 'Features',
     NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES: 'Features',
+    NEXT_PUBLIC_COOKIE_CONSENT_BANNER_ENABLED: 'Legal',
+    NEXT_PUBLIC_LEGAL_NAME: 'Legal',
     NEXT_PUBLIC_IMAGE_PROXY_ENABLED: 'Proxy',
     NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED: 'Proxy',
     NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS: 'Proxy',
@@ -274,6 +326,8 @@ function getCategory(key: string): string {
     NEXT_PUBLIC_SOCIAL_GITHUB: 'Social',
     NEXT_PUBLIC_SOCIAL_MATRIX: 'Social',
     NEXT_PUBLIC_SOCIAL_X: 'Social',
+    NEXT_PUBLIC_STATS_TRACK_EVENT_RETENTION_DAYS: 'Stats',
+    NEXT_PUBLIC_TERMS_OF_SERVICE_VERSION: 'Legal',
     NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY: 'Notifications',
   };
   return map[key] ?? 'Config';

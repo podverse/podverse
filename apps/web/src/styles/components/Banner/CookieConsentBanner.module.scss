@@ -1,0 +1,109 @@
+.root {
+  background: var(--background-color-tertiary);
+  border-top: 1px solid var(--border-color-opaque);
+  bottom: 0;
+  box-shadow: var(--shadow-modal);
+  color: var(--text-color-primary);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+  left: 0;
+  padding: var(--spacing-xl) var(--spacing-lg);
+  position: fixed;
+  right: 0;
+  z-index: 200;
+}
+
+.message {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--spacing-lg);
+  width: 100%;
+}
+
+.actionRow {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-lg);
+  justify-content: flex-end;
+}
+
+.help {
+  align-items: center;
+  color: var(--text-color-secondary);
+  display: flex;
+  flex: 1;
+  font-size: var(--font-size-xs);
+  justify-content: flex-end;
+  margin: 0;
+  min-height: 1.75rem;
+  min-width: 0;
+  text-align: end;
+}
+
+.buttonSlot {
+  flex-shrink: 0;
+  width: 7.25rem;
+}
+
+.consentButton {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .root {
+    align-items: center;
+    display: grid;
+    gap: var(--spacing-xl);
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: var(--spacing-lg) var(--spacing-xl);
+  }
+
+  .message {
+    align-self: center;
+    min-width: 0;
+  }
+
+  .actions {
+    align-items: flex-end;
+    gap: var(--spacing-md);
+    width: auto;
+  }
+
+  .actionRow {
+    gap: var(--spacing-xl);
+    min-width: 22rem;
+  }
+
+  .help {
+    font-size: var(--font-size-sm);
+  }
+
+  .buttonSlot {
+    width: 7.75rem;
+  }
+}
+
+@media (max-width: 479px) {
+  .root {
+    gap: var(--spacing-lg);
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+
+  .actions {
+    gap: var(--spacing-md);
+  }
+
+  .actionRow {
+    gap: var(--spacing-md);
+  }
+
+  .buttonSlot {
+    width: 6.75rem;
+  }
+}

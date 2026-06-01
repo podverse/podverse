@@ -1,5 +1,6 @@
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { assertListenStatsAllowed, ListenStatsOptedOutError } from '@api/lib/legal/listenStats.js';
 import { validateBodyObject } from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
@@ -24,12 +25,17 @@ export class StatsTrackEventAccountController {
           const { account_id_text } = req.body;
 
           try {
+            await assertListenStatsAllowed(jwtUser.id);
             await StatsTrackEventAccountController.statsTrackEventAccountService._create(
               jwtUser.id,
               account_id_text
             );
             res.status(201).json({ message: 'Event logged successfully' });
           } catch (error) {
+            if (error instanceof ListenStatsOptedOutError) {
+              res.status(403).json({ message: error.message });
+              return;
+            }
             handleGenericErrorResponse(res, error);
           }
         });

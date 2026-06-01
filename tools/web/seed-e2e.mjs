@@ -25,6 +25,11 @@ const DB_NAME = process.env.DB_APP_NAME ?? 'podverse_app_test';
 
 const TEST_PASSWORD = 'Test!1Aa';
 
+/** Sync with apps/web/e2e/helpers/legalConsent.ts */
+const E2E_CONFIGURED_TERMS_VERSION = '2026-01-01';
+const E2E_OUTDATED_TERMS_VERSION = '2025-01-01';
+const E2E_STALE_TERMS_EMAIL = 'e2e-stale-terms@example.com';
+
 /** Sync with apps/web/e2e/helpers/setPasswordInvite.ts */
 const E2E_SET_PASSWORD_INVITE_TOKEN = '11111111-1111-4111-8111-111111111111';
 
@@ -150,6 +155,39 @@ async function main() {
     [accountId, membershipExpiresAt.toISOString()]
   );
 
+  await client.query(
+    `INSERT INTO "account_terms_acceptance" (account_id, terms_version, accepted_at)
+     VALUES ($1, $2, NOW())`,
+    [accountId, E2E_CONFIGURED_TERMS_VERSION]
+  );
+
+  const staleTermsIdText = crypto.randomBytes(8).toString('hex').slice(0, 15);
+  const staleTermsAccountResult = await client.query(
+    `INSERT INTO "account" (id_text, verified, sharable_status_id)
+     VALUES ($1, true, 1)
+     RETURNING id`,
+    [staleTermsIdText]
+  );
+  const staleTermsAccountId = staleTermsAccountResult.rows[0].id;
+
+  await client.query(
+    `INSERT INTO "account_credentials" (account_id, email, password)
+     VALUES ($1, $2, $3)`,
+    [staleTermsAccountId, E2E_STALE_TERMS_EMAIL, passwordHash]
+  );
+
+  await client.query(
+    `INSERT INTO "account_membership_status" (account_id, account_membership_id, membership_expires_at)
+     VALUES ($1, 1, $2)`,
+    [staleTermsAccountId, membershipExpiresAt.toISOString()]
+  );
+
+  await client.query(
+    `INSERT INTO "account_terms_acceptance" (account_id, terms_version, accepted_at)
+     VALUES ($1, $2, NOW())`,
+    [staleTermsAccountId, E2E_OUTDATED_TERMS_VERSION]
+  );
+
   const inviteIdText = crypto.randomBytes(8).toString('hex').slice(0, 15);
   const inviteAccountResult = await client.query(
     `INSERT INTO "account" (id_text, verified, sharable_status_id)
@@ -184,6 +222,7 @@ async function main() {
   );
 
   console.log(`Seeded 1 test user: e2e-user@example.com`);
+  console.log(`Seeded stale-terms user: ${E2E_STALE_TERMS_EMAIL}`);
   console.log(
     `Seeded invite set-password token for account id ${inviteAccountId} (username e2e_invite_user)`
   );

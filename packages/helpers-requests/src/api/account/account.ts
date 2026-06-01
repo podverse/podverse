@@ -62,12 +62,35 @@ export async function reqAccountGetByIdText(
 
 export async function reqAccountCreate(
   api: ApiRequestService,
-  params: { email: string; password: string; locale: string }
+  params: {
+    email: string;
+    password: string;
+    locale: string;
+    terms_version: string;
+    allow_listen_stats?: boolean;
+  }
 ): Promise<{ message: string }> {
   return api.apiRequest<{ message: string }>({
     path: '/account',
     method: 'POST',
     data: params,
+  });
+}
+
+export async function reqAccountAcceptTerms(
+  api: ApiRequestService,
+  params: { terms_version: string }
+): Promise<{
+  data: {
+    terms_version: string;
+    accepted_at: string;
+  };
+}> {
+  return api.apiRequest({
+    path: '/account/accept-terms',
+    method: 'POST',
+    data: params,
+    config: { withCredentials: true },
   });
 }
 

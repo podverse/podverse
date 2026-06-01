@@ -16,6 +16,7 @@ import { AccountFollowingAddByRSSChannelService } from './accountFollowingAddByR
 import { AccountFollowingChannelService } from './accountFollowingChannel.js';
 import { AccountFollowingPlaylistService } from './accountFollowingPlaylist.js';
 import { AccountMetaboostService } from './accountMetaboost.js';
+import { AccountTermsAcceptanceService } from './accountTermsAcceptance.js';
 
 const playlistDataExportResourceRelations = findOptionsRelationsFromPaths<PlaylistResource>([
   'item',
@@ -74,9 +75,11 @@ export class AccountDataExportService {
     playlists: Array<unknown>;
     clips: Array<unknown>;
     queues: Array<unknown>;
+    account_terms_acceptance: { terms_version: string; accepted_at: string } | null;
+    allow_listen_stats: boolean;
   }> {
     const account = await this.accountService.get(account_id, {
-      relations: { account_profile: true },
+      relations: { account_profile: true, account_settings: true },
     });
 
     if (!account) {
@@ -100,6 +103,17 @@ export class AccountDataExportService {
     const metaboostSenderGuid = await accountMetaboostService.getSenderGuidByAccountId(account_id);
     const accountMetaboost =
       metaboostSenderGuid !== null ? { sender_guid: metaboostSenderGuid } : null;
+
+    const accountTermsAcceptanceService = new AccountTermsAcceptanceService();
+    const termsAcceptance = await accountTermsAcceptanceService.getByAccountId(account_id);
+    const accountTermsAcceptance =
+      termsAcceptance !== null
+        ? {
+            terms_version: termsAcceptance.terms_version,
+            accepted_at: termsAcceptance.accepted_at.toISOString(),
+          }
+        : null;
+    const allowListenStats = account.account_settings?.allow_listen_stats ?? true;
 
     // Get following relationships
     const accountFollowingAccountService = new AccountFollowingAccountService();
@@ -389,6 +403,8 @@ export class AccountDataExportService {
       export_date: new Date().toISOString(),
       account: accountData,
       account_metaboost: accountMetaboost,
+      account_terms_acceptance: accountTermsAcceptance,
+      allow_listen_stats: allowListenStats,
       following: {
         accounts: followingAccounts.map((fa) => ({
           id_text: fa.following_account.id_text,

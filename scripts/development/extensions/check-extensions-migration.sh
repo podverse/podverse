@@ -15,10 +15,10 @@ if ! rg -q 'prom-client' extensions/prometheus/package.json 2>/dev/null; then
   echo "NOTE: extensions/prometheus may bundle prom-client via otelcol only (no direct dep in package.json)."
 fi
 
-echo "Building K8s extensions base..."
+echo "Building K8s common base..."
 if command -v kustomize >/dev/null 2>&1; then
-  kustomize build --load-restrictor LoadRestrictionsNone infra/k8s/base/extensions/ >/dev/null
-  echo "kustomize build infra/k8s/base/extensions/ OK"
+  kustomize build --load-restrictor LoadRestrictionsNone infra/k8s/base/common/ >/dev/null
+  echo "kustomize build infra/k8s/base/common/ OK"
 else
   echo "WARN: kustomize not on PATH; skip extensions base build"
 fi

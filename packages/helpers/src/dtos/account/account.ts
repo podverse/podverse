@@ -13,6 +13,7 @@ import type { DTOAccountPayPalOrder } from './accountPayPalOrder.js';
 import type { DTOAccountProfile } from './accountProfile.js';
 import type { DTOAccountResetPassword } from './accountResetPassword.js';
 import type { DTOAccountSettings } from './accountSettings/accountSettings.js';
+import type { DTOAccountTermsAcceptance } from './accountTermsAcceptance.js';
 import type { DTOAccountUPDevice } from './accountUPDevice.js';
 import type { DTOAccountVerification } from './accountVerification.js';
 
@@ -38,6 +39,7 @@ export interface DTOAccount {
   account_profile?: DTOAccountProfile;
   account_reset_password?: DTOAccountResetPassword;
   account_settings?: DTOAccountSettings;
+  account_terms_acceptance?: DTOAccountTermsAcceptance;
   account_up_devices?: DTOAccountUPDevice[];
   account_verification?: DTOAccountVerification;
 }

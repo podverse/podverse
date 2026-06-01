@@ -38,7 +38,7 @@ images:
 
 # Optional Prometheus extension sidecar (also set PROMETHEUS_ENABLED=true in podverse-extensions-config):
 # components:
-#   - ../../base/extensions/components/prometheus-sidecar
+#   - ../../base/common/components/prometheus-sidecar
 
 patches:
   - path: deployment-link-patch.yaml

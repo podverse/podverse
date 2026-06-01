@@ -190,7 +190,7 @@ extensions/         # Optional extension sidecar images (operator-selected)
 | Environment templates      | `infra/config/env-templates/` (app stubs link to `apps/*/.env.example`)          |
 | Workers startup validation | `apps/workers/src/lib/startup/validation.ts` (see [ENV.md](apps/workers/ENV.md)) |
 | K8s manifests              | `infra/k8s/`                                                                     |
-| Extension sidecar source   | `extensions/<id>/` (K8s wiring: `infra/k8s/base/extensions/`)                    |
+| Extension sidecar source   | `extensions/<id>/` (K8s wiring: `infra/k8s/base/common/`)                        |
 | Jenkins pipelines          | `infra/pipelines/jenkins/`                                                       |
 | GitHub Actions             | `.github/workflows/`                                                             |
 
@@ -341,6 +341,7 @@ Operators and PR authors verify locally:
 - **unit-test-design-no-overgranularity** — avoid over-testing
 - **unit-test-new-code-gate** — require tests for new critical logic
 - **response-ending-make-verify** (skill + rule) — agents end implementation responses with operator verification commands in a fenced `bash` block; agents do not run tests during implementation
+- **ui-e2e-screenshot-report** (skill + rule) — for UI changes, instruct the operator to run the narrowest scoped screenshot report and where to open `.artifacts/e2e-reports/latest/.../index.html`
 - **e2e-run-with-make-only** (rule) — always use make targets for E2E
 
 ## References

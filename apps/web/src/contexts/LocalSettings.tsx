@@ -1,8 +1,12 @@
 import React, { createContext, useContext, useLayoutEffect, useState } from 'react';
 
 import type { ViewSelectedOption } from '../components/ViewSelector/ViewSelector';
+import { COOKIE_CONSENT_MODEL_VERSION } from '../lib/cookieConsent/cookieConsentPolicy';
+import { clearAnonymousPlaybackSnapshot } from '../utils/anonymousPlaybackStorage';
 import type {
   BoostFormDefaultsByValueKey,
+  CookieConsentChoice,
+  CookieConsentState,
   LocalSettingsState,
 } from '../utils/localSettings/localSettings';
 import {
@@ -28,6 +32,8 @@ type LocalSettingsContextType = {
   setSidebarAccordion: React.Dispatch<React.SetStateAction<LocalSettingsState['sba']>>;
   boostFormDefaults: BoostFormDefaultsByValueKey;
   setBoostFormDefaults: React.Dispatch<React.SetStateAction<BoostFormDefaultsByValueKey>>;
+  cookieConsent: CookieConsentState | undefined;
+  setCookieConsent: (choice: CookieConsentChoice) => void;
 };
 
 type LocalSettingsProps = {
@@ -55,6 +61,20 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
   const [boostFormDefaults, setBoostFormDefaults] = useState<BoostFormDefaultsByValueKey>(
     ssrLocalSettings.bfd ?? {}
   );
+  const [cookieConsent, setCookieConsentState] = useState<CookieConsentState | undefined>(
+    ssrLocalSettings.cc
+  );
+
+  const setCookieConsent = (choice: CookieConsentChoice) => {
+    if (choice === 'none') {
+      clearAnonymousPlaybackSnapshot();
+    }
+    setCookieConsentState({
+      choice,
+      at: new Date().toISOString(),
+      v: COOKIE_CONSENT_MODEL_VERSION,
+    });
+  };
 
   useLayoutEffect(() => {
     const existingSettings = getParsedLocalSettings();
@@ -69,6 +89,7 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
       fd: existingSettings.fd,
       metd: existingSettings.metd,
       bfd: boostFormDefaults,
+      cc: cookieConsent !== undefined ? cookieConsent : existingSettings.cc,
     });
   }, [
     uiTheme,
@@ -77,6 +98,7 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
     lsAutoQueueConfig,
     sidebarAccordion,
     boostFormDefaults,
+    cookieConsent,
   ]);
 
   return (
@@ -96,6 +118,8 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
         setSidebarAccordion,
         boostFormDefaults,
         setBoostFormDefaults,
+        cookieConsent,
+        setCookieConsent,
       }}
     >
       {children}

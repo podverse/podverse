@@ -14,20 +14,14 @@ import {
 
 export type E2eWebSidecarEnvOptions = {
   cloudflareWebAnalyticsEnabled?: boolean;
+  cookieConsentBannerEnabled?: boolean;
+  userSignupEmail?: boolean;
 };
 
-export function buildE2eWebApiEnvPrefix(): string {
-  return toShellEnvPrefix({
-    ...buildPodverseApiTestEnv({ profile: 'apiWebE2e' }),
-    ...PODVERSE_SKIP_DOTENV_ENV,
-  });
-}
+/** Matches `TERMS_OF_SERVICE_VERSION` / `NEXT_PUBLIC_TERMS_OF_SERVICE_VERSION` in E2E env. */
+export const E2E_TERMS_OF_SERVICE_VERSION = '2026-01-01';
 
-/**
- * NEXT_PUBLIC_* env vars shared by sidecar and web app build.
- * Sidecar serves these via /runtime-config; next build inlines them.
- */
-const WEB_E2E_NEXT_PUBLIC_ENV: Record<string, string> = {
+const WEB_E2E_NEXT_PUBLIC_ENV_BASE: Record<string, string> = {
   NEXT_PUBLIC_SSR_API_PROTOCOL: 'http',
   NEXT_PUBLIC_SSR_API_HOST: 'localhost',
   NEXT_PUBLIC_SSR_API_PORT: '4030',
@@ -40,18 +34,28 @@ const WEB_E2E_NEXT_PUBLIC_ENV: Record<string, string> = {
   NEXT_PUBLIC_WEB_DOMAIN: 'localhost:4032',
   NEXT_PUBLIC_BRAND_NAME: 'PodverseE2E',
   NEXT_PUBLIC_CONTACT_EMAIL: 'contact-e2e@example.com',
+  NEXT_PUBLIC_LEGAL_NAME: 'PodverseE2E Legal',
+  NEXT_PUBLIC_TERMS_OF_SERVICE_VERSION: E2E_TERMS_OF_SERVICE_VERSION,
+  NEXT_PUBLIC_STATS_TRACK_EVENT_RETENTION_DAYS: '30',
   NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES: 'all-available',
   NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE: 'en-US',
   NEXT_PUBLIC_SUPPORTED_THEMES: 'all-available',
   NEXT_PUBLIC_DEFAULT_THEME: 'dark',
-  NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE: 'admin_only_email',
   NEXT_PUBLIC_SERVER_ENV: 'local',
   NEXT_PUBLIC_IMAGE_PROXY_ENABLED: 'false',
   NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED: 'false',
   NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS: '86400',
 };
 
-const WEB_E2E_NEXT_PUBLIC_ENV_PREFIX = toShellEnvPrefix(WEB_E2E_NEXT_PUBLIC_ENV);
+function buildE2eWebNextPublicEnv(options?: E2eWebSidecarEnvOptions): Record<string, string> {
+  return {
+    ...WEB_E2E_NEXT_PUBLIC_ENV_BASE,
+    NEXT_PUBLIC_COOKIE_CONSENT_BANNER_ENABLED:
+      options?.cookieConsentBannerEnabled === true ? 'true' : '',
+    NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE:
+      options?.userSignupEmail === true ? 'user_signup_email' : 'admin_only_email',
+  };
+}
 
 const WEB_E2E_INTEGRATIONS_ENV_DISABLED = [
   `CLOUDFLARE_WEB_ANALYTICS_ENABLED=false`,
@@ -62,6 +66,15 @@ const WEB_E2E_INTEGRATIONS_ENV_ENABLED = [
   `CLOUDFLARE_WEB_ANALYTICS_ENABLED=true`,
   `CLOUDFLARE_WEB_ANALYTICS_TOKEN=e2e-test-cloudflare-token`,
 ].join(' ');
+
+export function buildE2eWebApiEnvPrefix(options?: E2eWebSidecarEnvOptions): string {
+  const apiEnv = {
+    ...buildPodverseApiTestEnv({ profile: 'apiWebE2e' }),
+    ...(options?.userSignupEmail === true ? { ACCOUNT_SIGNUP_MODE: 'user_signup_email' } : {}),
+    ...PODVERSE_SKIP_DOTENV_ENV,
+  };
+  return toShellEnvPrefix(apiEnv);
+}
 
 /**
  * Env prefix for the web sidecar in E2E mode.
@@ -75,7 +88,7 @@ export function buildE2eWebSidecarEnvPrefix(options?: E2eWebSidecarEnvOptions): 
     `PORT=4031`,
     `API_URL=http://localhost:4030`,
     integrationsEnv,
-    WEB_E2E_NEXT_PUBLIC_ENV_PREFIX,
+    toShellEnvPrefix(buildE2eWebNextPublicEnv(options)),
     toShellEnvPrefix(PODVERSE_STARTUP_VALIDATION_SILENT_ENV),
   ].join(' ');
 }
@@ -83,20 +96,20 @@ export function buildE2eWebSidecarEnvPrefix(options?: E2eWebSidecarEnvOptions): 
 /**
  * Env record for the web app build and start in E2E mode (production Next.js build).
  */
-export function buildE2eWebAppEnv(): Record<string, string> {
+export function buildE2eWebAppEnv(options?: E2eWebSidecarEnvOptions): Record<string, string> {
   return {
     NODE_ENV: 'production',
     PORT: '4032',
     RUNTIME_CONFIG_URL: 'http://localhost:4031',
     NODE_OPTIONS: '--disable-warning=DEP0060',
     ...PODVERSE_WEB_E2E_OBSERVABILITY_ENV,
-    ...WEB_E2E_NEXT_PUBLIC_ENV,
+    ...buildE2eWebNextPublicEnv(options),
   };
 }
 
 /**
  * Env prefix for the web app build and start in E2E mode.
  */
-export function buildE2eWebAppEnvPrefix(): string {
-  return toShellEnvPrefix(buildE2eWebAppEnv());
+export function buildE2eWebAppEnvPrefix(options?: E2eWebSidecarEnvOptions): string {
+  return toShellEnvPrefix(buildE2eWebAppEnv(options));
 }

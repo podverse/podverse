@@ -12,3 +12,35 @@
   // font-size: var(--font-size-sm);
   color: var(--text-color-secondary);
 }
+
+.consentCheckboxes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.consentOption {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.consentCheckbox {
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+}
+
+.consentLabel {
+  color: var(--text-color-primary);
+}
+
+.consentHelp {
+  color: var(--text-color-secondary);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+.termsVersionError {
+  color: var(--border-color-error);
+  margin: 0;
+}

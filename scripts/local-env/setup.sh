@@ -467,9 +467,29 @@ apply_override "BRAND_COLOR_PRIMARY" "${API_ENV_FILES[@]}"
 apply_override "BRAND_BANNER_IMAGE_3X1_URL" "${API_ENV_FILES[@]}"
 
 # From legal.env: registered legal name and address (API)
-for v in LEGAL_NAME LEGAL_ADDRESS; do
+for v in LEGAL_NAME LEGAL_ADDRESS TERMS_OF_SERVICE_VERSION; do
 	apply_override "$v" "${API_ENV_FILES[@]}"
 done
+
+if [ -n "${LEGAL_NAME:-}" ]; then
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+		[ -f "$file" ] && upsert_var "$file" "NEXT_PUBLIC_LEGAL_NAME" "$LEGAL_NAME"
+	done
+fi
+
+if [ -n "${TERMS_OF_SERVICE_VERSION:-}" ]; then
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+		[ -f "$file" ] && upsert_var "$file" "NEXT_PUBLIC_TERMS_OF_SERVICE_VERSION" "$TERMS_OF_SERVICE_VERSION"
+	done
+fi
+
+apply_override "STATS_TRACK_EVENT_RETENTION_DAYS" "${WORKERS_ENV_FILES[@]}"
+
+if [ -n "${STATS_TRACK_EVENT_RETENTION_DAYS:-}" ]; then
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+		[ -f "$file" ] && upsert_var "$file" "NEXT_PUBLIC_STATS_TRACK_EVENT_RETENTION_DAYS" "$STATS_TRACK_EVENT_RETENTION_DAYS"
+	done
+fi
 
 # When brand UI theme tint is not set, align with BRAND_COLOR_PRIMARY (set NEXT_PUBLIC_BRAND_THEME_COLOR in brand.env to override)
 if [ -n "${BRAND_COLOR_PRIMARY:-}" ] && [ -z "${NEXT_PUBLIC_BRAND_THEME_COLOR:-}" ]; then

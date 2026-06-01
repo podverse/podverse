@@ -25,6 +25,7 @@ export * from './account/accountNotificationChannelType.js';
 export * from './account/accountPayPalOrder.js';
 export * from './account/accountProfile.js';
 export * from './account/accountResetPassword.js';
+export * from './account/accountTermsAcceptance.js';
 export * from './account/accountSettings/accountSettings.js';
 export * from './account/accountSettings/accountSettingsLocale.js';
 export * from './account/accountSettings/accountSettingsNotification.js';

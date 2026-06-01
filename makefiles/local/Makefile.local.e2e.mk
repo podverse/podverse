@@ -48,6 +48,8 @@ e2e_test_playwright: e2e_deps e2e_seed
 	npm run test:e2e -w @podverse/web -- --reporter=list || exit_code=$$?; \
 	npm run test:e2e -w @podverse/management-web -- --reporter=list || exit_code=$$?; \
 	npm run test:e2e:cloudflare-enabled -w @podverse/web -- --reporter=list || exit_code=$$?; \
+	npm run test:e2e:cookie-consent-enabled -w @podverse/web -- --reporter=list || exit_code=$$?; \
+	npm run test:e2e:signup-enabled -w @podverse/web -- --reporter=list || exit_code=$$?; \
 	npm run test:e2e:cloudflare-enabled -w @podverse/management-web -- --reporter=list || exit_code=$$?; \
 	exit $$exit_code
 
@@ -74,6 +76,8 @@ e2e_test: e2e_deps e2e_seed
 	npm run test:e2e -w @podverse/web -- --reporter=list || exit_code=$$?; \
 	npm run test:e2e -w @podverse/management-web -- --reporter=list || exit_code=$$?; \
 	npm run test:e2e:cloudflare-enabled -w @podverse/web -- --reporter=list || exit_code=$$?; \
+	npm run test:e2e:cookie-consent-enabled -w @podverse/web -- --reporter=list || exit_code=$$?; \
+	npm run test:e2e:signup-enabled -w @podverse/web -- --reporter=list || exit_code=$$?; \
 	npm run test:e2e:cloudflare-enabled -w @podverse/management-web -- --reporter=list || exit_code=$$?; \
 	exit $$exit_code
 
@@ -87,9 +91,11 @@ e2e_test_report: e2e_deps e2e_seed
 	REPORT_BASE="$$ROOT_DIR/.artifacts/e2e-reports/$$TS"; \
 	WEB_REPORT="$$REPORT_BASE/web"; \
 	WEB_CF_REPORT="$$REPORT_BASE/web-cloudflare-enabled"; \
+	WEB_COOKIE_REPORT="$$REPORT_BASE/web-cookie-consent-enabled"; \
+	WEB_SIGNUP_REPORT="$$REPORT_BASE/web-signup-enabled"; \
 	MGMT_REPORT="$$REPORT_BASE/management-web"; \
 	MGMT_CF_REPORT="$$REPORT_BASE/management-web-cloudflare-enabled"; \
-	mkdir -p "$$WEB_REPORT" "$$WEB_CF_REPORT" "$$MGMT_REPORT" "$$MGMT_CF_REPORT"; \
+	mkdir -p "$$WEB_REPORT" "$$WEB_CF_REPORT" "$$WEB_COOKIE_REPORT" "$$WEB_SIGNUP_REPORT" "$$MGMT_REPORT" "$$MGMT_CF_REPORT"; \
 	rm -f "$$ROOT_DIR/.artifacts/e2e-reports/latest"; \
 	ln -s "$$TS" "$$ROOT_DIR/.artifacts/e2e-reports/latest"; \
 	exit_code=0; \
@@ -106,6 +112,16 @@ e2e_test_report: e2e_deps e2e_seed
 	E2E_STEP_SCREENSHOTS=true \
 	PLAYWRIGHT_HTML_OPEN=never \
 	npm run test:e2e:cloudflare-enabled -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts || exit_code=$$?; \
+	echo "--- Web cookie-consent-enabled E2E report ---"; \
+	PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_COOKIE_REPORT" \
+	E2E_STEP_SCREENSHOTS=true \
+	PLAYWRIGHT_HTML_OPEN=never \
+	npm run test:e2e:cookie-consent-enabled -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts || exit_code=$$?; \
+	echo "--- Web signup-enabled E2E report ---"; \
+	PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_SIGNUP_REPORT" \
+	E2E_STEP_SCREENSHOTS=true \
+	PLAYWRIGHT_HTML_OPEN=never \
+	npm run test:e2e:signup-enabled -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts || exit_code=$$?; \
 	echo "--- Management-web E2E report ---"; \
 	E2E_SPEC_ORDER="$(E2E_SPEC_ORDER_MANAGEMENT_WEB)" \
 	PLAYWRIGHT_HTML_OUTPUT_DIR="$$MGMT_REPORT" \
@@ -121,6 +137,8 @@ e2e_test_report: e2e_deps e2e_seed
 	echo "=== E2E reports ==="; \
 	echo "  Web:                         $$WEB_REPORT/index.html"; \
 	echo "  Web (Cloudflare enabled):    $$WEB_CF_REPORT/index.html"; \
+	echo "  Web (cookie consent):      $$WEB_COOKIE_REPORT/index.html"; \
+	echo "  Web (signup enabled):      $$WEB_SIGNUP_REPORT/index.html"; \
 	echo "  Management-web:              $$MGMT_REPORT/index.html"; \
 	echo "  Management-web (CF enabled): $$MGMT_CF_REPORT/index.html"; \
 	echo "  Latest symlink:              $$ROOT_DIR/.artifacts/e2e-reports/latest/"; \
@@ -154,10 +172,15 @@ e2e_test_web_report_spec: e2e_deps e2e_seed_web
 	mkdir -p "$$WEB_REPORT"; \
 	rm -f "$$ROOT_DIR/.artifacts/e2e-reports/latest"; \
 	ln -sfn "$$TS" "$$ROOT_DIR/.artifacts/e2e-reports/latest"; \
+	WEB_E2E_CMD="npm run test:e2e -w @podverse/web"; \
+	case "$(SPEC)" in \
+	  *cookie-consent-enabled*) WEB_E2E_CMD="npm run test:e2e:cookie-consent-enabled -w @podverse/web" ;; \
+	  *sign-up-legal-consent*) WEB_E2E_CMD="npm run test:e2e:signup-enabled -w @podverse/web" ;; \
+	esac; \
 	PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_REPORT" \
 	E2E_STEP_SCREENSHOTS=true \
 	PLAYWRIGHT_HTML_OPEN=never \
-	npm run test:e2e -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$(echo "$(SPEC)" | tr ',' ' '); \
+	$$WEB_E2E_CMD -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$(echo "$(SPEC)" | tr ',' ' '); \
 	if command -v open >/dev/null 2>&1; then \
 		[ -f "$$WEB_REPORT/index.html" ] && open "$$WEB_REPORT/index.html" 2>/dev/null || true; \
 	elif command -v xdg-open >/dev/null 2>&1; then \

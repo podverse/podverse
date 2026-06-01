@@ -198,10 +198,11 @@ kubectl apply -f infra/k8s/alpha-application.yaml
 Use Kustomize to render overlays locally, matching what ArgoCD applies. Because bases live outside the overlay folders, include the relaxed load restrictor flag.
 
 - Keep `base/<component>/kustomization.yaml` self-contained: do not import sibling directories with `../`.
-- Compose shared cross-component resources (for example `base/product-membership`, `base/integrations`, `base/extensions`) in the **common** overlay (`alpha/common`, or your GitOps `common` equivalent) so one sync path owns namespace-wide ConfigMaps; workload overlays reference them only via Deployments.
-- **Example `infra/k8s/alpha`:** integrations and extensions are **disabled by default** — `alpha/common` ships stub ConfigMaps and comments out optional `base/integrations` / `base/extensions` resources; workload overlays keep `prometheus-sidecar` and `extension-prometheus` image pins commented. Copy the pattern into your GitOps repo and uncomment when enabling.
-- Built-in web integrations: `podverse-integrations-config` from `base/integrations/` — mounted on **runtime-config sidecars only** (web + management-web); see [docs/operations/integrations/INTEGRATIONS-WEB.md](../../docs/operations/integrations/INTEGRATIONS-WEB.md).
-- Prometheus extension sidecar: optional Kustomize **components** under `base/extensions/components/` (enable per workload overlay; see [docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md](../../docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md)).
+- Compose shared cross-component resources (for example `base/product-membership`) in the **common** overlay (`alpha/common`, or your GitOps `common` equivalent) so one sync path owns namespace-wide ConfigMaps; workload overlays reference them only via Deployments.
+- **`base/common`** ships ingress/TLS plus `podverse-integrations-config` and `podverse-extensions-config` (`source/integrations/`, `source/extensions/`). GitOps `common` overlays merge overrides when enabling.
+- **Example `infra/k8s/alpha`:** integrations and extensions are **disabled by default** via remote `base/common`; workload overlays keep `prometheus-sidecar` and `extension-prometheus` image pins commented. Copy the pattern into your GitOps repo and enable via merge overrides + workload components.
+- Built-in web integrations: `podverse-integrations-config` from `base/common/source/integrations/integrations.env` — mounted on **runtime-config sidecars only** (web + management-web); see [docs/operations/integrations/INTEGRATIONS-WEB.md](../../docs/operations/integrations/INTEGRATIONS-WEB.md).
+- Prometheus extension sidecar: optional Kustomize **components** under `base/common/components/` (enable per workload overlay; see [docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md](../../docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md)).
 
 ```bash
 kustomize build --load-restrictor LoadRestrictionsNone infra/k8s/alpha/workers/

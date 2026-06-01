@@ -65,6 +65,7 @@ const apiTestEnvBase = (): Record<string, string> => ({
   EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION: exp,
   LEGAL_NAME: 'Test Legal',
   LEGAL_ADDRESS: 'Test Address',
+  TERMS_OF_SERVICE_VERSION: '2026-01-01',
   PAYPAL_CLIENT_ID: 'test',
   PAYPAL_CLIENT_SECRET: 'test',
   PODCAST_INDEX_AUTH_KEY: 'test',

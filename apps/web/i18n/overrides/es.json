@@ -576,7 +576,15 @@
     "set_password_email_required": "",
     "set_password_other_session_banner": "",
     "set_password_sign_out_to_continue": "",
-    "set_password_continue_without_signing_out": ""
+    "set_password_continue_without_signing_out": "",
+    "listen_stats_opt_in": "",
+    "listen_stats_opt_in_help": "",
+    "terms_version_invalid": ""
+  },
+  "terms_acceptance": {
+    "header": "",
+    "message": "",
+    "checkbox_label": ""
   },
   "membership": {
     "membership": "",
@@ -698,7 +706,11 @@
       "download_my_data_description": "",
       "download_my_data_loading": "",
       "download_my_data_success": "",
-      "download_my_data_error": ""
+      "download_my_data_error": "",
+      "listen_stats_toggle": "",
+      "listen_stats_toggle_help": "",
+      "listen_stats_toggle_error": "",
+      "listen_stats_terms_link": ""
     },
     "profile": {
       "profile": "",
@@ -765,15 +777,40 @@
     "join_matrix_space": "",
     "chat_discord": ""
   },
+  "cookie_consent": {
+    "banner_message": "",
+    "accept_all": "",
+    "accept_all_help": "",
+    "essential_only": "",
+    "essential_only_help": "",
+    "none": "",
+    "none_help": ""
+  },
   "terms": {
     "terms": "",
+    "legal_entity_heading": "",
+    "service_intro": "",
     "never_sell_data": "",
     "no_ads_without_permission": "",
     "audio_video_hosting": "",
     "third_party_feeds": "",
     "clips_crowdsourced": "",
     "clips_load_full_episode": "",
-    "reduced_size_images": ""
+    "reduced_size_images": "",
+    "data_service_necessary": "",
+    "data_listen_stats_heading": "",
+    "data_listen_stats_body": "",
+    "data_listen_stats_anonymization": "",
+    "data_web_analytics": "",
+    "data_retention": "",
+    "data_requests": "",
+    "cookie_choices_heading": "",
+    "cookie_choice_all": "",
+    "cookie_choice_all_help": "",
+    "cookie_choice_essential": "",
+    "cookie_choice_essential_help": "",
+    "cookie_choice_none": "",
+    "cookie_choice_none_help": ""
   },
   "socials": {
     "discord": "",

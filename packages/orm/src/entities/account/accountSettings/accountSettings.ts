@@ -13,6 +13,9 @@ export class AccountSettings {
   @Column({ name: 'account_id', unique: true })
   account_id!: number;
 
+  @Column({ type: 'boolean', name: 'allow_listen_stats', default: true })
+  allow_listen_stats!: boolean;
+
   @OneToOne('Account', (account: Account) => account.account_settings, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
   account!: Relation<Account>;

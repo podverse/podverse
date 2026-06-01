@@ -11,6 +11,24 @@ type ReqNotificationTypeParams = {
   type: string;
 };
 
+export async function reqAccountSettingsListenStatsUpdate(
+  api: ApiRequestService,
+  params: { allow_listen_stats: boolean }
+): Promise<DTOAccount> {
+  await api.apiRequest({
+    path: '/account-settings/listen-stats',
+    method: 'PATCH',
+    data: {
+      allow_listen_stats: params.allow_listen_stats,
+    },
+    config: {
+      withCredentials: true,
+    },
+  });
+
+  return reqAuthMe(api);
+}
+
 export async function reqAccountSettingsLocaleUpdate(
   api: ApiRequestService,
   params: ReqLocaleParams

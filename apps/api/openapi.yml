@@ -254,6 +254,7 @@ components:
         - email
         - password
         - locale
+        - terms_version
       properties:
         email:
           type: string
@@ -270,6 +271,16 @@ components:
           type: string
           description: ISO locale code
           example: en
+        terms_version:
+          type: string
+          maxLength: 64
+          description: Terms of service version accepted at signup
+          example: "2026-01-01"
+        allow_listen_stats:
+          type: boolean
+          description: Whether the account opts in to listen-stats tracking (defaults to true)
+          default: true
+          example: true
     AccountCreateResponse:
       type: object
       properties:
@@ -277,6 +288,20 @@ components:
           type: string
           description: Confirmation message
           example: Account created
+    AccountTermsAcceptance:
+      type: object
+      required:
+        - terms_version
+        - accepted_at
+      properties:
+        terms_version:
+          type: string
+          maxLength: 64
+          example: "2026-01-01"
+        accepted_at:
+          type: string
+          format: date-time
+          example: "2026-01-15T10:30:00Z"
     AccountUpdateRequest:
       type: object
       required:
@@ -394,6 +419,8 @@ components:
           $ref: "#/components/schemas/AccountCredentialsPublic"
         account_settings:
           $ref: "#/components/schemas/AccountSettings"
+        account_terms_acceptance:
+          $ref: "#/components/schemas/AccountTermsAcceptance"
         account_membership_status:
           $ref: "#/components/schemas/AccountMembershipStatus"
         account_notification_channels:
@@ -450,6 +477,10 @@ components:
           type: integer
           format: int64
           example: 2222
+        allow_listen_stats:
+          type: boolean
+          description: Whether listen-stats tracking is enabled for this account
+          example: true
         account_settings_locale:
           type: object
           properties:
@@ -654,6 +685,41 @@ components:
             locale:
               type: string
               example: en-US
+    ApiPatchAccountSettingsListenStatsRequest:
+      type: object
+      required:
+        - allow_listen_stats
+      properties:
+        allow_listen_stats:
+          type: boolean
+          description: Whether listen-stats tracking is enabled for this account
+          example: false
+    ApiPatchAccountSettingsListenStatsResponse200:
+      type: object
+      properties:
+        data:
+          type: object
+          required:
+            - allow_listen_stats
+          properties:
+            allow_listen_stats:
+              type: boolean
+              example: false
+    ApiPostAccountAcceptTermsRequest:
+      type: object
+      required:
+        - terms_version
+      properties:
+        terms_version:
+          type: string
+          maxLength: 64
+          description: Terms of service version being accepted
+          example: "2026-01-01"
+    ApiPostAccountAcceptTermsResponse201:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/AccountTermsAcceptance"
     ApiDeleteAccountSettingsNotificationTypeResponse200:
       type: object
       properties:
@@ -2549,6 +2615,59 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account-settings/listen-stats:
+    patch:
+      operationId: apiPatchAccountSettingsListenStats
+      tags:
+        - account-settings
+      summary: PATCH /account-settings/listen-stats
+      description: Update whether listen-stats tracking is enabled for the authenticated account.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiPatchAccountSettingsListenStatsRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPatchAccountSettingsListenStatsResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
   /account-settings/notification-type:
     delete:
       operationId: apiDeleteAccountSettingsNotificationType
@@ -2624,6 +2743,59 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiPostAccountSettingsNotificationTypeResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/accept-terms:
+    post:
+      operationId: apiPostAccountAcceptTerms
+      tags:
+        - account
+      summary: POST /account/accept-terms
+      description: Record terms-of-service acceptance for the authenticated account.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiPostAccountAcceptTermsRequest"
+      responses:
+        "201":
+          description: Terms acceptance recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPostAccountAcceptTermsResponse201"
         "400":
           description: Bad request
           content:

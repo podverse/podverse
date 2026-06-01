@@ -142,7 +142,7 @@ Use Kustomize to render overlays locally, matching what ArgoCD applies. Because 
 
 - Keep `base/<component>/kustomization.yaml` self-contained: do not import sibling directories with `../`.
 - Compose shared cross-component resources (for example `base/product-membership`) in the **common** overlay (`alpha/common`, or your GitOps `common` equivalent) so one sync path owns namespace-wide ConfigMaps; workload overlays reference them only via Deployments.
-- Example `infra/k8s/alpha` keeps **integrations and extensions disabled** (stub ConfigMaps in `alpha/common`; optional bases and sidecar components commented on workloads). Enable in GitOps by following comments in `alpha/common/kustomization.yaml`.
+- Example `infra/k8s/alpha` keeps **integrations and extensions disabled by default** via remote `base/common`; workload sidecar components and image pins stay commented. Enable in GitOps via merge overrides in `common` and workload `prometheus-sidecar` components (see `alpha/common/kustomization.yaml` comments).
 
 ```bash
 kustomize build --load-restrictor LoadRestrictionsNone infra/k8s/alpha/workers/
