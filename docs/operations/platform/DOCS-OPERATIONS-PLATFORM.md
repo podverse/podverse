@@ -5,8 +5,8 @@ package(s), env subsection order, and Kubernetes wiring rules.
 
 ## Three pillars
 
-| Pillar            | Sidecar? | Package / client                                  | ConfigMap                      | Config path              | Detail doc                                                   |
-| ----------------- | -------- | ------------------------------------------------- | ------------------------------ | ------------------------ | ------------------------------------------------------------ |
+| Pillar            | Sidecar? | Package / client                                  | ConfigMap                      | Config path              | Detail doc                                                                 |
+| ----------------- | -------- | ------------------------------------------------- | ------------------------------ | ------------------------ | -------------------------------------------------------------------------- |
 | **Observability** | No       | `@podverse/observability`                         | Per-app source env             | `config.observability.*` | [TRACING.md](/docs/operations/observability/TRACING.md)                    |
 | **Integration**   | No       | `@podverse/integrations-web`                      | `podverse-integrations-config` | `config.integrations.*`  | [INTEGRATIONS-WEB.md](/docs/operations/integrations/INTEGRATIONS-WEB.md)   |
 | **Extension**     | Yes      | `@podverse/extension-metrics-sdk` + sidecar image | `podverse-extensions-config`   | `config.extensions.*`    | [EXTENSIONS-SIDECAR.md](/docs/operations/extensions/EXTENSIONS-SIDECAR.md) |
@@ -51,8 +51,8 @@ Kubernetes splits the same keys across `podverse-web-config`, `podverse-web-runt
 
 ## Quick reference
 
-| Topic                                           | Doc                                                                              |
-| ----------------------------------------------- | -------------------------------------------------------------------------------- |
+| Topic                                           | Doc                                                                                            |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | Tracing, `OTEL_TRACES_*`, log correlation       | [TRACING.md](/docs/operations/observability/TRACING.md)                                        |
 | Cloudflare Web Analytics, `CLOUDFLARE_*`        | [INTEGRATIONS-WEB.md](/docs/operations/integrations/INTEGRATIONS-WEB.md)                       |
 | Prometheus sidecar, metrics SDK, `PROMETHEUS_*` | [EXTENSIONS-SIDECAR.md](/docs/operations/extensions/EXTENSIONS-SIDECAR.md)                     |

@@ -309,10 +309,10 @@ server, mocked HLS via `page.route`, or extended seed) belongs to the
 **Phase 4 HLS migration plan-set** that actually changes the live-stream
 code path.
 
-| Slot       | Choice                                                   | Source                                                       | Date verified | Scope                                                               |
-| ---------- | -------------------------------------------------------- | ------------------------------------------------------------ | ------------- | ------------------------------------------------------------------- |
+| Slot       | Choice                                                   | Source                                            | Date verified | Scope                                                               |
+| ---------- | -------------------------------------------------------- | ------------------------------------------------- | ------------- | ------------------------------------------------------------------- |
 | Live audio | Seeded internal feed `v5fCrIj9Io` / item `e2eLiveStrm01` | [tools/web/seed-e2e.mjs](/tools/web/seed-e2e.mjs) | 2026-05-13    | Controller-mount assertions only (no play, no seek, no real stream) |
-| Live video | _Deferred to Phase 4_ — see subsection below             | _TBD by Phase 4 plan-set_                                    | _TBD_         | _TBD_                                                               |
+| Live video | _Deferred to Phase 4_ — see subsection below             | _TBD by Phase 4 plan-set_                         | _TBD_         | _TBD_                                                               |
 
 ### 6c. Deferred to Phase 4
 
@@ -321,11 +321,11 @@ Three of the four live-stream specs are intentionally left
 meaningful only once Phase 4 starts modifying the live-stream code path
 and needs the regression oracle.
 
-| Spec                                                                                                                        | Reason for deferral                                                                     | Phase 4 prerequisite                                                                                                                                                                                                                 |
-| --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Spec                                                                                                                         | Reason for deferral                                                                     | Phase 4 prerequisite                                                                                                                                                                                                      |
+| ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [media-player-livestream-video-start.spec.ts](/apps/web/e2e/media-player-livestream-video-start.spec.ts)                     | No video live-stream item in the current seed                                           | Either (a) add a video `live_item` to [seed-e2e.mjs](/tools/web/seed-e2e.mjs) with a mocked HLS URL, (b) add Playwright `page.route` HLS mocks, or (c) point at a public HLS test stream gated by `E2E_LIVE_FEEDS_OK` env |
 | [media-player-livestream-to-podcast-transition.spec.ts](/apps/web/e2e/media-player-livestream-to-podcast-transition.spec.ts) | Seed has no regular (non-live) podcast item with an enclosure for the transition target | Add one item with a real or mocked enclosure URL to [seed-e2e.mjs](/tools/web/seed-e2e.mjs); reuse the same HLS infrastructure decision as the video-start spec                                                           |
-| [media-player-podcast-to-livestream-transition.spec.ts](/apps/web/e2e/media-player-podcast-to-livestream-transition.spec.ts) | Same as above — needs both a playable podcast item and a playable live-stream item      | Same as above                                                                                                                                                                                                                        |
+| [media-player-podcast-to-livestream-transition.spec.ts](/apps/web/e2e/media-player-podcast-to-livestream-transition.spec.ts) | Same as above — needs both a playable podcast item and a playable live-stream item      | Same as above                                                                                                                                                                                                             |
 
 **Why Phase 4, not Phase 2 or 3?** Phases 2 and 3 (playback domain types
 and controller decomposition) do not change the live-stream code path.

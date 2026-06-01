@@ -283,7 +283,7 @@ function main() {
 
   if (verifyOnly) {
     console.log(
-      `Verify OK: ${totalChanges} link(s) in ${filesChanged} file(s) would normalize; ${allSkipped.length} skipped.`,
+      `Verify OK: ${totalChanges} link(s) in ${filesChanged} file(s) would normalize; ${allSkipped.length} skipped.`
     );
     if (allSkipped.length > 0) {
       console.log('Skipped (left unchanged):');

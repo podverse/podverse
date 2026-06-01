@@ -17,8 +17,8 @@
 
 ## Directory index — abcmemory (`.cursor/`)
 
-| Path               | Operator doc                                              |
-| ------------------ | --------------------------------------------------------- |
+| Path               | Operator doc                                            |
+| ------------------ | ------------------------------------------------------- |
 | `.cursor/skills/`  | [CURSOR-SKILLS.md](/.cursor/skills/CURSOR-SKILLS.md)    |
 | `.cursor/rules/`   | [CURSOR-RULES.md](/.cursor/rules/CURSOR-RULES.md)       |
 | `.cursor/prompts/` | [CURSOR-PROMPTS.md](/.cursor/prompts/CURSOR-PROMPTS.md) |
