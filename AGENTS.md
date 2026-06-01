@@ -279,6 +279,14 @@ logger.error('Feed parsing failed', { error, feedUrl });
 
 When implementing features or executing plans that touch **api** or **management-api**, include **integration tests** (see api-testing skill). When they touch **web** or **management-web**, include **E2E tests** (see e2e-page-tests skill).
 
+### AI agents: write tests, do not run them
+
+- **During agent or plan implementation:** do **not** run test, lint, or verification commands (`npm run test*`, `make e2e_*`, or `npm run lint` as verification gates).
+- **Do** add or update tests when the change requires them (see paragraph above and **feature-implementation-testing**).
+- **After each implementation response:** tell the **operator** which command(s) to run in a fenced `bash` block — see **response-ending-make-verify** skill, **end-with-targeted-make-report-verify** rule, and `.cursorrules` § Agent/plan work.
+- **Final COPY-PASTA step:** when completing the last prompt in a plan set, list **all** cumulative verification commands for the whole set (assume the operator ran all COPY-PASTA prompts without testing until the end). See **plan-completion** and **parallel-plan-execution** skills.
+- **Before Submitting Changes** below applies to **operators and PR authors**, not to in-session agent runs.
+
 ### Root npm scripts
 
 | Script                         | What it runs                                                             | Services needed                                       |
@@ -313,6 +321,8 @@ When implementing features or executing plans that touch **api** or **management
 
 ### Before Submitting Changes
 
+Operators and PR authors verify locally:
+
 1. **Lint passes**: `npm run lint`
 2. **Builds succeed**: `npm run build:packages`
 3. **Tests pass**: `npm run test:unit` (no DB needed) and `npm run test:e2e:api` (requires `make test_deps`)
@@ -330,7 +340,7 @@ When implementing features or executing plans that touch **api** or **management
 - **unit-test-priority-confident** — prioritize unit tests by risk
 - **unit-test-design-no-overgranularity** — avoid over-testing
 - **unit-test-new-code-gate** — require tests for new critical logic
-- **response-ending-make-verify** (skill + rule) — end responses with verification commands
+- **response-ending-make-verify** (skill + rule) — agents end implementation responses with operator verification commands in a fenced `bash` block; agents do not run tests during implementation
 - **e2e-run-with-make-only** (rule) — always use make targets for E2E
 
 ## References

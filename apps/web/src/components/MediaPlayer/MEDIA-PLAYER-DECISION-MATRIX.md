@@ -299,7 +299,9 @@ must run unchanged across every phase.
 ### 6c. Test feed selection
 
 Phase 1 decision (see
-[close-phase-1-gaps plan](../../../../../.cursor/plans/close-phase-1-gaps_ee712506.plan.md)):
+[media-player-architecture skill](../../../../../.cursor/skills/media-player-architecture/SKILL.md)
+and
+[01-baseline-verification-and-feed-selection.md](../../../../../.llm/plans/active/media-player-livestream-hls-migration/01-baseline-verification-and-feed-selection.md)):
 exercise **only the controller-plumbing surface** against the existing
 internal seed; do not stand up a live-stream test server or external
 network dependency in Phase 1. The infrastructure decision (real HLS

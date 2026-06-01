@@ -3,6 +3,8 @@ description: AI guidance source of truth is under .cursor and .cursorrules
 globs:
   - ".cursor/skills/**"
   - ".cursor/rules/**"
+  - ".cursor/prompts/**"
+  - ".cursor/hooks/**"
   - ".cursorrules"
 alwaysApply: true
 ---
@@ -13,6 +15,8 @@ Committed **authoring** guidance for this repo lives only in:
 
 - `.cursor/skills/**`
 - `.cursor/rules/**`
+- `.cursor/prompts/**`
+- `.cursor/hooks/**` and `.cursor/hooks.json` (when present)
 - `.cursorrules`
 - `.cursorignore`
 

@@ -1,7 +1,7 @@
 ---
 name: response-ending-make-verify
 description: End implementation responses with scoped make-based report commands for web and management-web verification.
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Response-Ending Make Verification
@@ -31,6 +31,16 @@ Use this skill when answering implementation requests in this repo.
 ## API gate
 
 E2E commands **do not run** API integration tests by default. Only add API verification commands when the change affected API code.
+
+## Copy-pasta final prompt (cumulative verification)
+
+When you complete the **last** step in a plan set (`COPY-PASTA.md` / `00-EXECUTION-ORDER.md`):
+
+1. Assume the operator ran every COPY-PASTA prompt back-to-back **without** running tests until this final step.
+2. Collect **Verification** sections from each numbered plan file in the set.
+3. Merge into one fenced `bash` block for the operator: `npm run build:packages`, `npm run lint`, `npm run test:unit`, `npm run test:e2e:api`, scoped `make e2e_test_*_report_spec`, etc., as applicable to the set.
+4. Deduplicate commands; order: build/lint → unit → API → E2E (scoped before full suite).
+5. For intermediate COPY-PASTA steps (not the last), end with verification commands for **that step only**.
 
 ## Spec variables
 

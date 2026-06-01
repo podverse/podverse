@@ -1,0 +1,29 @@
+---
+description: User vocabulary abcmemory and abcremember for Cursor guidance files
+alwaysApply: true
+---
+
+# abcmemory / abcremember vocabulary
+
+## abcmemory
+
+**abcmemory** means the committed files Cursor uses for agent guidance in this repo — **only** under `.cursor/` and the repo root files Cursor reads:
+
+- `.cursor/skills/**`
+- `.cursor/rules/**`
+- `.cursor/prompts/**`
+- `.cursor/hooks/**` and `.cursor/hooks.json` (when present)
+- `.cursorrules`
+- `.cursorignore`
+
+## Not abcmemory
+
+**`.llm/`** (plans, history, templates, context) is a **planning workspace**, not agent memory. Do not treat it as a second abcmemory tree.
+
+Also not abcmemory unless you explicitly ask: `docs/`, `.github/`, and ad-hoc paths.
+
+## abcremember
+
+When the user says **abcremember**, persist what they told you into the best-fit **`.cursor/`** file(s) (or `.cursorrules` / `.cursorignore`), then follow that guidance in future work. Do **not** write to `.llm/` unless they explicitly say to remember something there.
+
+For placement and workflow details, see `.cursor/skills/abcmemory/SKILL.md`.

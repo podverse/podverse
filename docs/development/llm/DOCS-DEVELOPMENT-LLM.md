@@ -6,14 +6,18 @@ Authoritative AI guidance for this repository lives only in:
 
 - `.cursor/skills/**` — one `SKILL.md` per directory
 - `.cursor/rules/**` — Cursor rules (`.mdc`)
+- `.cursor/prompts/**` — reusable agent-facing prompt snippets
+- `.cursor/hooks/**` and `.cursor/hooks.json` — optional Cursor project hooks (when used)
 - `.cursorrules` — root-level rules
 - `.cursorignore` — path-level ignores for Cursor
 
 Cursor reads these paths directly after `git pull`. There is no separate generated mirror tree in the repo.
 
+**`.llm/` is not abcmemory.** It is a planning workspace (plans, optional history, templates, context). **abcremember** writes to `.cursor/` by default, not `.llm/`, unless you explicitly say otherwise. See [.llm/LLM.md](../../.llm/LLM.md).
+
 ## What to commit
 
-When you add or change skills, rules, or root Cursor config:
+When you add or change skills, rules, prompts, hooks, or root Cursor config:
 
 1. Edit files under `.cursor/`, `.cursorrules`, or `.cursorignore`.
 2. Commit and push **only** those source paths in your PR.
@@ -34,11 +38,6 @@ Do not duplicate guidance under `.github/` or other ad-hoc trees. See the **llm-
 
 When a PR merges to `develop`, `.github/workflows/complete-feature.yml` may archive a matching
 `.llm/history/active/<feature-name>/` folder if one exists.
-
-## What we removed
-
-This repo no longer maintains machine-generated multi-editor export mirrors under `.llm/exports/` or
-CI that published them. Cursor-only source under `.cursor/` is the policy going forward.
 
 ## Related
 
