@@ -25,11 +25,22 @@ K8s YAML is formatted with Prettier using **k8s-specific overrides** (see root `
 
 ## ConfigMap Conventions
 
-- **Sync with env-templates:** ConfigMaps in `base/<component>/01-configmap.yaml` mirror structure of `infra/config/env-templates/<component>.env.example`
-- **Section headers:** Use comments like `##### App / General #####`
+- **Env sources:** Prefer `configMapGenerator` + `base/<component>/source/*.env` (and overlay merge
+  fragments). Sync keys with `infra/config/env-templates/<component>.env.example` and app
+  `.env.example`; use **unquoted** values in `source/*.env` (see **env-file-formatting** skill).
+- **Section headers:** Use comments like `##### App / General #####` in env source files.
 - **No secrets:** Mark sensitive vars with `# in secrets` comment; actual secrets go in SOPS-encrypted files. When several consecutive lines have `# in secrets`, align that comment vertically (same column).
-- **String values:** Use double quotes (e.g., `NODE_ENV: "production"`)
-- **Comments:** Reference source (e.g., `# Mapped from config/podverse-api.env.example`)
+- **Comments:** Reference source (e.g., `# Mapped from apps/api/.env.example`).
+
+## Value types in YAML
+
+- **String fields** (OpenAPI `type: string`): double-quoted scalars are fine; Prettier uses
+  `singleQuote: false` for YAML strings.
+- **Integer / float fields** (OpenAPI `type: integer` or `number`): use **unquoted YAML numbers**.
+  Never write `"123"` where the schema expects a numeric type (e.g. `replicas`, `containerPort`,
+  probe `periodSeconds`, `failureThreshold`).
+- **Container `env[].value`:** typed as **string** in the Kubernetes API — `value: "5432"` is valid
+  for env overrides; do not confuse with numeric schema fields above.
 
 ## Base Resource Naming
 
