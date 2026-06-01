@@ -11,14 +11,18 @@ Only these paths define shared guidance for this repo:
 
 - `.cursor/skills/**`
 - `.cursor/rules/**`
+- `.cursor/prompts/**`
+- `.cursor/hooks/**` and `.cursor/hooks.json` (when present)
 - `.cursorrules` (repo root)
 - `.cursorignore` (repo root) — path-level ignores for Cursor
 
 Do not commit ad-hoc skill or rule trees under `.github/` or other paths outside `.cursor/`.
 
+Operator directory docs (`CURSOR-*.md`, `LLM-*.md`) describe folders for humans; they are not a second source of agent rules.
+
 ## When `.cursor` changes
 
-- Edit skills, rules, `.cursorrules`, and (when needed) `.cursorignore`, then commit them like any other source.
+- Edit skills, rules, prompts, hooks, `.cursorrules`, and (when needed) `.cursorignore`, then commit them like any other source.
 - Do not add duplicate guidance elsewhere; keep one source of truth under `.cursor/`.
 
 ## Skill file hygiene

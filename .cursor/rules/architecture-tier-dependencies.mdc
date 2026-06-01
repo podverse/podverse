@@ -1,0 +1,11 @@
+---
+description: Package tier dependency order — lower tiers cannot depend on higher
+alwaysApply: true
+---
+
+# Architecture tier dependencies
+
+Lower tiers cannot depend on higher tiers in the monorepo package graph.
+
+Full tier table, directory layout, and app descriptions:
+[.llm/context/architecture.md](../../.llm/context/architecture.md) (contributor reference).
