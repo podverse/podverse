@@ -5,11 +5,11 @@ package(s), env subsection order, and Kubernetes wiring rules.
 
 ## Three pillars
 
-| Pillar            | Sidecar? | Package / client                                  | ConfigMap                      | Config path              | Detail doc                                                   |
-| ----------------- | -------- | ------------------------------------------------- | ------------------------------ | ------------------------ | ------------------------------------------------------------ |
-| **Observability** | No       | `@podverse/observability`                         | Per-app source env             | `config.observability.*` | [TRACING.md](../observability/TRACING.md)                    |
-| **Integration**   | No       | `@podverse/integrations-web`                      | `podverse-integrations-config` | `config.integrations.*`  | [INTEGRATIONS-WEB.md](../integrations/INTEGRATIONS-WEB.md)   |
-| **Extension**     | Yes      | `@podverse/extension-metrics-sdk` + sidecar image | `podverse-extensions-config`   | `config.extensions.*`    | [EXTENSIONS-SIDECAR.md](../extensions/EXTENSIONS-SIDECAR.md) |
+| Pillar            | Sidecar? | Package / client                                  | ConfigMap                      | Config path              | Detail doc                                                                 |
+| ----------------- | -------- | ------------------------------------------------- | ------------------------------ | ------------------------ | -------------------------------------------------------------------------- |
+| **Observability** | No       | `@podverse/observability`                         | Per-app source env             | `config.observability.*` | [TRACING.md](/docs/operations/observability/TRACING.md)                    |
+| **Integration**   | No       | `@podverse/integrations-web`                      | `podverse-integrations-config` | `config.integrations.*`  | [INTEGRATIONS-WEB.md](/docs/operations/integrations/INTEGRATIONS-WEB.md)   |
+| **Extension**     | Yes      | `@podverse/extension-metrics-sdk` + sidecar image | `podverse-extensions-config`   | `config.extensions.*`    | [EXTENSIONS-SIDECAR.md](/docs/operations/extensions/EXTENSIONS-SIDECAR.md) |
 
 ## Pillar definitions
 
@@ -40,7 +40,7 @@ Tracing lives in `@podverse/observability`. Metrics export lives in `@podverse/e
 
 API and workers use three subsections in each app `.env.example` (Observability → Integrations → Extensions).
 
-Web and management-web local catalog: [apps/web/sidecar/.env.example](../../../apps/web/sidecar/.env.example)
+Web and management-web local catalog: [apps/web/sidecar/.env.example](/apps/web/sidecar/.env.example)
 (and management-web mirror). That file lists all keys; `make local_env_setup` copies **Integrations**
 and `NEXT_PUBLIC_*` to the runtime-config sidecar env and **Observability** + **Extensions** to
 `.env.local` and `infra/config/local/web.env` for the Next.js main process. App
@@ -51,12 +51,12 @@ Kubernetes splits the same keys across `podverse-web-config`, `podverse-web-runt
 
 ## Quick reference
 
-| Topic                                           | Doc                                                                              |
-| ----------------------------------------------- | -------------------------------------------------------------------------------- |
-| Tracing, `OTEL_TRACES_*`, log correlation       | [TRACING.md](../observability/TRACING.md)                                        |
-| Cloudflare Web Analytics, `CLOUDFLARE_*`        | [INTEGRATIONS-WEB.md](../integrations/INTEGRATIONS-WEB.md)                       |
-| Prometheus sidecar, metrics SDK, `PROMETHEUS_*` | [EXTENSIONS-SIDECAR.md](../extensions/EXTENSIONS-SIDECAR.md)                     |
-| Scrape paths and Prometheus jobs                | [PROMETHEUS-METRICS-ENDPOINTS.md](../extensions/PROMETHEUS-METRICS-ENDPOINTS.md) |
+| Topic                                           | Doc                                                                                            |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Tracing, `OTEL_TRACES_*`, log correlation       | [TRACING.md](/docs/operations/observability/TRACING.md)                                        |
+| Cloudflare Web Analytics, `CLOUDFLARE_*`        | [INTEGRATIONS-WEB.md](/docs/operations/integrations/INTEGRATIONS-WEB.md)                       |
+| Prometheus sidecar, metrics SDK, `PROMETHEUS_*` | [EXTENSIONS-SIDECAR.md](/docs/operations/extensions/EXTENSIONS-SIDECAR.md)                     |
+| Scrape paths and Prometheus jobs                | [PROMETHEUS-METRICS-ENDPOINTS.md](/docs/operations/extensions/PROMETHEUS-METRICS-ENDPOINTS.md) |
 
 ## Local development
 
@@ -66,8 +66,8 @@ make local_extensions_prometheus_up
 ./scripts/development/observability/verify-trace-otlp-local.sh
 ```
 
-See [EXTENSIONS-SIDECAR.md](../extensions/EXTENSIONS-SIDECAR.md) for extension sidecar setup and
-[TRACING.md](../observability/TRACING.md) for trace export.
+See [EXTENSIONS-SIDECAR.md](/docs/operations/extensions/EXTENSIONS-SIDECAR.md) for extension sidecar setup and
+[TRACING.md](/docs/operations/observability/TRACING.md) for trace export.
 
 ## Cursor guidance
 

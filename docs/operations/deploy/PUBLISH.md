@@ -2,8 +2,8 @@
 
 Two separate workflows build or promote release artifacts:
 
-1. [`.github/workflows/publish-staging.yml`](../../../.github/workflows/publish-staging.yml) (display name **“Publish (staging)”**) — runs on every push to **`staging`** (or `workflow_dispatch`).
-2. [`.github/workflows/publish-main.yml`](../../../.github/workflows/publish-main.yml) (display name **“Publish (main)”**) — runs on every push to **`main`**. It does **not** rebuild app images; it **promotes** the existing `X.Y.Z-staging.N` line from GHCR to immutable `X.Y.Z` and floating **`:latest`**, then creates the Git tag and a **non-prerelease** GitHub Release.
+1. [`.github/workflows/publish-staging.yml`](/.github/workflows/publish-staging.yml) (display name **“Publish (staging)”**) — runs on every push to **`staging`** (or `workflow_dispatch`).
+2. [`.github/workflows/publish-main.yml`](/.github/workflows/publish-main.yml) (display name **“Publish (main)”**) — runs on every push to **`main`**. It does **not** rebuild app images; it **promotes** the existing `X.Y.Z-staging.N` line from GHCR to immutable `X.Y.Z` and floating **`:latest`**, then creates the Git tag and a **non-prerelease** GitHub Release.
 
 | Git branch | What happens      | Immutable image / tag pattern           | Floating GHCR tag |
 | ---------- | ----------------- | --------------------------------------- | ----------------- |
@@ -67,7 +67,7 @@ On first publish when GHCR has no package for an image, tag discovery can bootst
 
 ## Main workflow (promote)
 
-Pushes to **`main`** do not run `docker build` for these apps. The job picks a single staging line: **the minimum, across all images, of each image’s maximum `N` for the base `X.Y.Z` from `package.json`** on the push commit, so the same `BASE-staging.M` is used for every app. [crane](https://github.com/google/go-containerregistry) copies each image to **`X.Y.Z`** and **`:latest`**, then a Git tag `X.Y.Z` and a **non-prerelease** GitHub Release are created. See [`.github/workflows/publish-main.yml`](../../../.github/workflows/publish-main.yml).
+Pushes to **`main`** do not run `docker build` for these apps. The job picks a single staging line: **the minimum, across all images, of each image’s maximum `N` for the base `X.Y.Z` from `package.json`** on the push commit, so the same `BASE-staging.M` is used for every app. [crane](https://github.com/google/go-containerregistry) copies each image to **`X.Y.Z`** and **`:latest`**, then a Git tag `X.Y.Z` and a **non-prerelease** GitHub Release are created. See [`.github/workflows/publish-main.yml`](/.github/workflows/publish-main.yml).
 
 ---
 
@@ -107,12 +107,12 @@ docker pull ghcr.io/podverse/podverse/management-web-runtime-config:staging
 
 **Production:** use **`X.Y.Z`** or **`:latest`** after a successful `Publish (main)` run for that version. For reproducible source checkouts, pin immutable version tags (`X.Y.Z`, `X.Y.Z-staging.N`) or explicit branch refs (`refs/heads/main`, `refs/heads/staging`).
 
-See [ALPHA-DEPLOYMENT](ALPHA-DEPLOYMENT.md) for the full preprod flow, and the [K8S skill](../../../.cursor/skills/k8s/SKILL.md) for overlay `newTag` conventions under `infra/k8s/alpha/`.
+See [ALPHA-DEPLOYMENT](ALPHA-DEPLOYMENT.md) for the full preprod flow, and the [K8S skill](/.cursor/skills/k8s/SKILL.md) for overlay `newTag` conventions under `infra/k8s/alpha/`.
 
 ## Workflow reference
 
-- **Staging (build + push):** [`.github/workflows/publish-staging.yml`](../../../.github/workflows/publish-staging.yml)
-- **Main (promote + RTM):** [`.github/workflows/publish-main.yml`](../../../.github/workflows/publish-main.yml)
+- **Staging (build + push):** [`.github/workflows/publish-staging.yml`](/.github/workflows/publish-staging.yml)
+- **Main (promote + RTM):** [`.github/workflows/publish-main.yml`](/.github/workflows/publish-main.yml)
 - **GHCR tag discovery** (for smart-start and verification): `GHCR_REGISTRY_TOKEN` (recommended) or `GITHUB_TOKEN`; see [SECRETS](SECRETS.md).
 
 ## Atomic version reservation

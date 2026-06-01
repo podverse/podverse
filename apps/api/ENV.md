@@ -112,14 +112,14 @@ The mailer is automatically disabled when `ACCOUNT_SIGNUP_MODE` is not `'user_si
 - **`LEGAL_NAME`** (Required when signup mode is 'user_signup_email') - Legal or display business name (e.g. Podverse LLC). `config.legal.name` (e.g. HTML email footer, other call sites).
 - **`LEGAL_ADDRESS`** (Required when signup mode is 'user_signup_email') - Legal or mailing address. `config.legal.address`.
 
-For local development, set both in [`legal.env`](../../dev/env-overrides/local/legal.env.example). Run `make local_env_setup` to apply.
+For local development, set both in [`legal.env`](/dev/env-overrides/local/legal.env.example). Run `make local_env_setup` to apply.
 
 ### Email Configuration
 
-- **`BRAND_COLOR_PRIMARY`** (Required when signup mode is 'user_signup_email') - Primary brand accent as a CSS color (e.g. hex). Used for **HTML email** CTAs and other server-side brand styling. For local development, set in [`brand.env`](../../dev/env-overrides/local/brand.env.example). If **`NEXT_PUBLIC_BRAND_THEME_COLOR`** is not set in `brand.env`, `make local_env_setup` copies **`BRAND_COLOR_PRIMARY`** into the web/management-web sidecar as the app UI / browser-chrome tint unless you override.
-- **`BRAND_BANNER_IMAGE_3X1_URL`** (Required when signup mode is 'user_signup_email') - Absolute **`http`/`https` URL** for the 3:1 brand banner image. Today this is used in the API’s HTML **email** template; set it in [`brand.env`](../../dev/env-overrides/local/brand.env.example) for local overrides. The conventional path on the public web app is **`/branding/banner_3x1.png`** (file: `apps/web/public/branding/banner_3x1.png` in the repo). For local email testing, use your dev web origin, e.g. `http://localhost:3000/branding/banner_3x1.png` if the web app serves on that port.
+- **`BRAND_COLOR_PRIMARY`** (Required when signup mode is 'user_signup_email') - Primary brand accent as a CSS color (e.g. hex). Used for **HTML email** CTAs and other server-side brand styling. For local development, set in [`brand.env`](/dev/env-overrides/local/brand.env.example). If **`NEXT_PUBLIC_BRAND_THEME_COLOR`** is not set in `brand.env`, `make local_env_setup` copies **`BRAND_COLOR_PRIMARY`** into the web/management-web sidecar as the app UI / browser-chrome tint unless you override.
+- **`BRAND_BANNER_IMAGE_3X1_URL`** (Required when signup mode is 'user_signup_email') - Absolute **`http`/`https` URL** for the 3:1 brand banner image. Today this is used in the API’s HTML **email** template; set it in [`brand.env`](/dev/env-overrides/local/brand.env.example) for local overrides. The conventional path on the public web app is **`/branding/banner_3x1.png`** (file: `apps/web/public/branding/banner_3x1.png` in the repo). For local email testing, use your dev web origin, e.g. `http://localhost:3000/branding/banner_3x1.png` if the web app serves on that port.
 
-For local setup, set [legal entity](#legal-entity) in [`legal.env`](../../dev/env-overrides/local/legal.env.example), **`BRAND_COLOR_PRIMARY`** and **`BRAND_BANNER_IMAGE_3X1_URL`** in [`brand.env`](../../dev/env-overrides/local/brand.env.example), then run `make local_env_setup`.
+For local setup, set [legal entity](#legal-entity) in [`legal.env`](/dev/env-overrides/local/legal.env.example), **`BRAND_COLOR_PRIMARY`** and **`BRAND_BANNER_IMAGE_3X1_URL`** in [`brand.env`](/dev/env-overrides/local/brand.env.example), then run `make local_env_setup`.
 
 ### Token Expiration
 
@@ -161,7 +161,7 @@ For local setup, these can be customized via `dev/env-overrides/local/socials.en
 
 ### WebPush (optional)
 
-When **`WEBPUSH_ENABLED`** is `true`, the API uses **`WEBPUSH_VAPID_PUBLIC_KEY`**, **`WEBPUSH_VAPID_PRIVATE_KEY`**, and **`WEBPUSH_VAPID_SUBJECT`** (see [`apps/workers/ENV.md`](../../apps/workers/ENV.md) for semantics). Set **`WEBPUSH_VAPID_SUBJECT` and the public key** in **`apps/api/.env`** (local) or the K8s ConfigMap source `infra/k8s/base/api/source/api.env` (or your `apps/.../api/source/api.env` GitOps overlay).
+When **`WEBPUSH_ENABLED`** is `true`, the API uses **`WEBPUSH_VAPID_PUBLIC_KEY`**, **`WEBPUSH_VAPID_PRIVATE_KEY`**, and **`WEBPUSH_VAPID_SUBJECT`** (see [`apps/workers/ENV.md`](/apps/workers/ENV.md) for semantics). Set **`WEBPUSH_VAPID_SUBJECT` and the public key** in **`apps/api/.env`** (local) or the K8s ConfigMap source `infra/k8s/base/api/source/api.env` (or your `apps/.../api/source/api.env` GitOps overlay).
 
 On **Kubernetes**, do not put **`WEBPUSH_VAPID_PRIVATE_KEY`** in the API ConfigMap: use the same Secret as workers, **`podverse-workers-webpush-opaque`**, which is mounted on the API deployment via `envFrom` (see `infra/k8s/base/api/deployment.yaml`).
 
@@ -178,14 +178,14 @@ Clients must send an **authenticated Podverse session** (cookie or `Authorizatio
 
 Add-by-RSS allows users to follow RSS feeds (podcasts, music) not in the main directory. Optional HTTP Basic Auth credentials (username/password) can be provided when adding a feed; they are stored per-feed in the database (`account_following_add_by_rss_channel`).
 
-- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`** (Required) – Basic Auth credentials are encrypted at rest using AES-256-GCM. Must be exactly 64 hex characters (32 bytes). Generate with: `openssl rand -hex 32`. The value is passed into the ORM via `createORMContext(config)`. See [docs/features/ADD-BY-RSS.md](../../docs/features/ADD-BY-RSS.md) and key-rotation procedure there.
+- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`** (Required) – Basic Auth credentials are encrypted at rest using AES-256-GCM. Must be exactly 64 hex characters (32 bytes). Generate with: `openssl rand -hex 32`. The value is passed into the ORM via `createORMContext(config)`. See [docs/features/ADD-BY-RSS.md](/docs/features/ADD-BY-RSS.md) and key-rotation procedure there.
 - **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD`** (Optional) – During key rotation only. When set, the app decrypts with the current key first, then with this old key, so existing ciphertext remains readable until the re-encryption script has run. Remove after rotation.
 
 ### General
 
 - **`NODE_ENV`** (Optional) - Node environment (`development`, `production`, etc.)
 - **`LOG_LEVEL`** (Optional) - Logging level (`error`, `warn`, `info`, `debug`, `verbose`, `silly`, `silent`)
-- **`LOG_DIR`** (Optional) - Log directory for file logging. **No default.** Leave empty for console-only; when set in Docker with a log volume, use the container path (e.g. `/opt/logs`). See [logs/LOGS.md](../../logs/LOGS.md).
+- **`LOG_DIR`** (Optional) - Log directory for file logging. **No default.** Leave empty for console-only; when set in Docker with a log volume, use the container path (e.g. `/opt/logs`). See [logs/LOGS.md](/logs/LOGS.md).
 
 ## Validation Rules
 

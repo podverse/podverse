@@ -111,5 +111,5 @@ Delete the branch separately if desired (`git branch -d feature/tracking-consent
 
 ## Related
 
-- Contributor LLM overview: [docs/development/llm/DOCS-DEVELOPMENT-LLM.md](../../../docs/development/llm/DOCS-DEVELOPMENT-LLM.md)
-- Nix wrapper (run from worktree root): [nix-terminal-wrapper](../nix-terminal-wrapper/SKILL.md) skill / `.cursor/rules/nix-terminal-wrapper.mdc`
+- Contributor LLM overview: [docs/development/llm/DOCS-DEVELOPMENT-LLM.md](/docs/development/llm/DOCS-DEVELOPMENT-LLM.md)
+- Nix wrapper (run from worktree root): [nix-terminal-wrapper](/.cursor/rules/nix-terminal-wrapper.mdc) skill / `.cursor/rules/nix-terminal-wrapper.mdc`

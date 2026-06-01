@@ -173,4 +173,4 @@ If you only run the backfill without the parser, the backfill will still enqueue
 
 - [Service](SERVICE.md) — architecture, flow, env vars, K8s
 - [Bucket providers](BUCKET-PROVIDERS.md) — S3-compatible backends and env vars
-- [apps/workers/ENV.md](../../apps/workers/ENV.md) — all worker env vars and categories
+- [apps/workers/ENV.md](/apps/workers/ENV.md) — all worker env vars and categories

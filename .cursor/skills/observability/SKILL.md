@@ -14,7 +14,7 @@ version: 1.0.0
 - Log `trace_id` / `span_id` correlation
 - W3C propagation on outbound HTTP or MQ
 
-Authoritative doc: [docs/operations/observability/TRACING.md](../../docs/operations/observability/TRACING.md).
+Authoritative doc: [docs/operations/observability/TRACING.md](/docs/operations/observability/TRACING.md).
 
 ## Architecture
 
@@ -56,7 +56,7 @@ K8s: per-workload app `source/*.env` — **not** in `extensions.env` or `integra
 
 ## References
 
-- [extensions-env](../extensions-env/SKILL.md) — pillar order and shared `OTEL_SERVICE_NAME`
-- [TRACING.md](../../docs/operations/observability/TRACING.md)
-- [DOCS-OPERATIONS-PLATFORM.md](../../docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md)
-- [feature-implementation-testing](../feature-implementation-testing/SKILL.md)
+- [extensions-env](/.cursor/skills/extensions-env/SKILL.md) — pillar order and shared `OTEL_SERVICE_NAME`
+- [TRACING.md](/docs/operations/observability/TRACING.md)
+- [DOCS-OPERATIONS-PLATFORM.md](/docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md)
+- [feature-implementation-testing](/.cursor/skills/feature-implementation-testing/SKILL.md)

@@ -32,7 +32,7 @@ To enable writes to the `feed` table:
 
 ### Phase 3: Additional Tables
 
-Follow the [Allowlist Onboarding checklist](../../../.llm/plans/active/management-web-database-console/91-allowlist-onboarding.md) for each new table.
+Follow the management-web database console allowlist checklist for each new table.
 
 ## Rollback Procedures
 
@@ -47,7 +47,7 @@ Remove `feed` from `MGMT_DB_ALLOWED_WRITE_TABLES` (or unset the variable) and re
 
 ### Data Rollback
 
-Use the `database_audit_log` table to identify affected rows and restore previous values. See the [Audit and Rollback Runbook](../../../.llm/plans/active/management-web-database-console/92-audit-rollback-runbook.md).
+Use the `database_audit_log` table to identify affected rows and restore previous values. See management-api ops runbooks for rollback steps.
 
 ## Post-Release Monitoring Checklist
 

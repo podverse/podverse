@@ -27,11 +27,11 @@ Committed guidance for this repo lives only in:
 - `.cursorrules` — root-level rules
 - `.cursorignore` — path-level ignores for Cursor
 
-**Not abcmemory:** `.llm/plans/`, `.llm/history/`, `.llm/templates/`, and `.llm/context/` are operator workflow and reference material. See [.llm/LLM.md](../../../.llm/LLM.md).
+**Not abcmemory:** `.llm/plans/`, `.llm/history/`, `.llm/templates/`, and `.llm/context/` are operator workflow and reference material. See [.llm/LLM.md](/.llm/LLM.md).
 
 Do not duplicate the same guidance under `.github/`, docs, or `.llm/history/` unless the user explicitly asks.
 
-Contributor policy: [docs/development/llm/DOCS-DEVELOPMENT-LLM.md](../../../docs/development/llm/DOCS-DEVELOPMENT-LLM.md). See also **llm-cursor-source**.
+Contributor policy: [docs/development/llm/DOCS-DEVELOPMENT-LLM.md](/docs/development/llm/DOCS-DEVELOPMENT-LLM.md). See also **llm-cursor-source**.
 
 ## Prompts vs `.llm/templates/`
 

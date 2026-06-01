@@ -31,5 +31,5 @@ When **`actions`** is set, **`ResourceTableWithFilter`** renders **View → Edit
 
 ## References
 
-- [`packages/ui/src/components/table/ResourceTableWithFilter/ResourceTableWithFilter.tsx`](../../../packages/ui/src/components/table/ResourceTableWithFilter/ResourceTableWithFilter.tsx)
-- **[`management-web-tables`](../../rules/management-web-tables.mdc)** rule
+- [`packages/ui/src/components/table/ResourceTableWithFilter/ResourceTableWithFilter.tsx`](/packages/ui/src/components/table/ResourceTableWithFilter/ResourceTableWithFilter.tsx)
+- **[`management-web-tables`](/.cursor/rules/management-web-tables.mdc)** rule

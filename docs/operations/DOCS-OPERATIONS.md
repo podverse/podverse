@@ -47,5 +47,5 @@ Operator and platform runbooks for Podverse deployments, data stores, and platfo
 
 ## Related
 
-- [Remote Kubernetes (GitOps)](../development/k8s/REMOTE-K8S-GITOPS.md)
-- [INFRA-K8S.md](../../infra/k8s/INFRA-K8S.md)
+- [Remote Kubernetes (GitOps)](/docs/development/k8s/REMOTE-K8S-GITOPS.md)
+- [INFRA-K8S.md](/infra/k8s/INFRA-K8S.md)

@@ -17,10 +17,10 @@ When adding or editing env vars for:
 
 Authoritative ops docs:
 
-- [docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md](../../docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md) — platform capabilities index
-- [docs/operations/observability/TRACING.md](../../docs/operations/observability/TRACING.md)
-- [docs/operations/integrations/INTEGRATIONS-WEB.md](../../docs/operations/integrations/INTEGRATIONS-WEB.md)
-- [docs/operations/extensions/EXTENSIONS-SIDECAR.md](../../docs/operations/extensions/EXTENSIONS-SIDECAR.md)
+- [docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md](/docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md) — platform capabilities index
+- [docs/operations/observability/TRACING.md](/docs/operations/observability/TRACING.md)
+- [docs/operations/integrations/INTEGRATIONS-WEB.md](/docs/operations/integrations/INTEGRATIONS-WEB.md)
+- [docs/operations/extensions/EXTENSIONS-SIDECAR.md](/docs/operations/extensions/EXTENSIONS-SIDECAR.md)
 
 ## Three pillars
 
@@ -129,8 +129,8 @@ Do not register metrics on Express/Next app processes.
 
 ## References
 
-- [extensions-env rule](../../rules/extensions-env.mdc)
-- [integrations-web](../integrations-web/SKILL.md)
-- [observability](../observability/SKILL.md)
-- [env-file-formatting](../env-file-formatting/SKILL.md)
-- [startup-validation-env-order](../startup-validation-env-order/SKILL.md)
+- [extensions-env rule](/.cursor/rules/extensions-env.mdc)
+- [integrations-web](/.cursor/skills/integrations-web/SKILL.md)
+- [observability](/.cursor/skills/observability/SKILL.md)
+- [env-file-formatting](/.cursor/skills/env-file-formatting/SKILL.md)
+- [startup-validation-env-order](/.cursor/skills/startup-validation-env-order/SKILL.md)

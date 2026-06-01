@@ -21,6 +21,6 @@ Fallbacks hide missing or mistyped custom properties and make theme bugs easy to
 
 ## Authority
 
-Workspace rule: [`.cursor/rules/css-custom-properties-no-var-fallbacks.mdc`](../../rules/css-custom-properties-no-var-fallbacks.mdc).
+Workspace rule: [`.cursor/rules/css-custom-properties-no-var-fallbacks.mdc`](/.cursor/rules/css-custom-properties-no-var-fallbacks.mdc).
 
 Related: **`styles-source-of-truth`** for where canonical tokens live.

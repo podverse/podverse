@@ -43,11 +43,11 @@ When adding an env var:
 
 - `apps/<app>/.env.example` — authoritative section + key order
 - `apps/<app>/src/lib/startup/validation.ts` — matching push order (same app)
-- Extension vars: also follow [extensions-env](../extensions-env/SKILL.md) (Extensions
+- Extension vars: also follow [extensions-env](/.cursor/skills/extensions-env/SKILL.md) (Extensions
   section last in env files and validation).
 
 ## References
 
-- [extensions-env](../extensions-env/SKILL.md) — Extensions section and validation category
-- [env-file-formatting](../env-file-formatting/SKILL.md) — env value formatting
-- [api](../api/SKILL.md) — API startup validation patterns
+- [extensions-env](/.cursor/skills/extensions-env/SKILL.md) — Extensions section and validation category
+- [env-file-formatting](/.cursor/skills/env-file-formatting/SKILL.md) — env value formatting
+- [api](/.cursor/skills/api/SKILL.md) — API startup validation patterns

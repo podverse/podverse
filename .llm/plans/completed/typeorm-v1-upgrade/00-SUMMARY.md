@@ -36,7 +36,7 @@ Related: [Dependabot PR #221](https://github.com/podverse/podverse/pull/221) bum
 
 ## Inventory snapshot
 
-**Plan 01 baseline (2026-05-26, worktree):** 241 typeorm-import files; 44 string-`relations` files; 4 string-`select`; 1 string-entity `findOne`; 19 QueryBuilder files; 0 legacy `getConnection`/`createConnection` in TS. Full table: [completed/01-baseline-inventory-and-contract.md](../completed/typeorm-v1-upgrade/01-baseline-inventory-and-contract.md).
+**Plan 01 baseline (2026-05-26, worktree):** 241 typeorm-import files; 44 string-`relations` files; 4 string-`select`; 1 string-entity `findOne`; 19 QueryBuilder files; 0 legacy `getConnection`/`createConnection` in TS. Full table: [completed/01-baseline-inventory-and-contract.md](/.llm/plans/completed/typeorm-v1-upgrade/01-baseline-inventory-and-contract.md).
 
 **Plan authoring baseline (approximate):**
 

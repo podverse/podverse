@@ -8,12 +8,12 @@ Remove **legacy** from contributor/operator-facing documentation and env comment
 
 | File | Action |
 | ---- | ------ |
-| [docs/development/REBRANDING-CDN.md](../../../docs/development/REBRANDING-CDN.md) | “older browsers” instead of “legacy browsers”; “ICO favicon” instead of “Legacy tab icon”; `BRAND_COLOR_BACKGROUND` as **alternate** key, not “legacy:” |
-| [docs/development/env/LOCAL-ENV-OVERRIDES.md](../../../docs/development/env/LOCAL-ENV-OVERRIDES.md) | Same for `BRAND_COLOR_BACKGROUND` row |
-| [apps/web/ENV.md](../../../apps/web/ENV.md) | `BRAND_BACKGROUND_COLOR` docs: alternate key `BRAND_COLOR_BACKGROUND` |
-| [apps/management-web/ENV.md](../../../apps/management-web/ENV.md) | Same |
-| [scripts/local-env/setup.sh](../../../scripts/local-env/setup.sh) | Comment near brand.env mapping (~line 454) |
-| [docs/repo-management/BRANCH-PROTECTION.md](../../../docs/repo-management/BRANCH-PROTECTION.md) | Remove or rewrite **Legacy:** paragraph — use “Previous documentation” or delete if redundant |
+| [docs/development/REBRANDING-CDN.md](/docs/development/REBRANDING-CDN.md) | “older browsers” instead of “legacy browsers”; “ICO favicon” instead of “Legacy tab icon”; `BRAND_COLOR_BACKGROUND` as **alternate** key, not “legacy:” |
+| [docs/development/env/LOCAL-ENV-OVERRIDES.md](/docs/development/env/LOCAL-ENV-OVERRIDES.md) | Same for `BRAND_COLOR_BACKGROUND` row |
+| [apps/web/ENV.md](/apps/web/ENV.md) | `BRAND_BACKGROUND_COLOR` docs: alternate key `BRAND_COLOR_BACKGROUND` |
+| [apps/management-web/ENV.md](/apps/management-web/ENV.md) | Same |
+| [scripts/local-env/setup.sh](/scripts/local-env/setup.sh) | Comment near brand.env mapping (~line 454) |
+| [docs/repo-management/BRANCH-PROTECTION.md](/docs/repo-management/BRANCH-PROTECTION.md) | Remove or rewrite **Legacy:** paragraph — use “Previous documentation” or delete if redundant |
 
 ## Wording pattern (brand env)
 

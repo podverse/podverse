@@ -3,9 +3,9 @@
 **Integrations** are optional vendor capabilities shipped in the **default application image** (no
 extension sidecar). The first integration is **Cloudflare Web Analytics** for web and management-web.
 
-Platform overview: [DOCS-OPERATIONS-PLATFORM.md](../platform/DOCS-OPERATIONS-PLATFORM.md). For the
-Prometheus extension sidecar and tracing, see [EXTENSIONS-SIDECAR.md](../extensions/EXTENSIONS-SIDECAR.md)
-and [TRACING.md](../observability/TRACING.md).
+Platform overview: [DOCS-OPERATIONS-PLATFORM.md](/docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md). For the
+Prometheus extension sidecar and tracing, see [EXTENSIONS-SIDECAR.md](/docs/operations/extensions/EXTENSIONS-SIDECAR.md)
+and [TRACING.md](/docs/operations/observability/TRACING.md).
 
 ## Package
 
@@ -30,7 +30,7 @@ and [TRACING.md](../observability/TRACING.md).
 | `CLOUDFLARE_WEB_ANALYTICS_TOKEN`   | Cloudflare site token (secret in cluster) |
 
 Authoritative shared template:
-[infra/config/env-templates/integrations.env.example](../../../infra/config/env-templates/integrations.env.example).
+[infra/config/env-templates/integrations.env.example](/infra/config/env-templates/integrations.env.example).
 
 K8s: `infra/k8s/base/common/source/integrations/integrations.env` → ConfigMap
 `podverse-integrations-config`.
@@ -104,7 +104,7 @@ make e2e_test_management_web_report_spec SPEC=e2e/cloudflare-web-analytics-disab
 
 ## Related docs
 
-- [DOCS-OPERATIONS-PLATFORM.md](../platform/DOCS-OPERATIONS-PLATFORM.md) — platform capabilities index
-- [TRACING.md](../observability/TRACING.md) — observability
-- [EXTENSIONS-SIDECAR.md](../extensions/EXTENSIONS-SIDECAR.md) — extension sidecars
+- [DOCS-OPERATIONS-PLATFORM.md](/docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md) — platform capabilities index
+- [TRACING.md](/docs/operations/observability/TRACING.md) — observability
+- [EXTENSIONS-SIDECAR.md](/docs/operations/extensions/EXTENSIONS-SIDECAR.md) — extension sidecars
 - `.cursor/skills/integrations-web/SKILL.md` — authoring rules

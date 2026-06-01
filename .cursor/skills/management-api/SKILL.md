@@ -8,7 +8,7 @@ version: 1.0.0
 
 ## Overview
 
-The Management API follows the same patterns as the main API. See the [API Skill](../api/SKILL.md) for detailed patterns.
+The Management API follows the same patterns as the main API. See the [API Skill](/.cursor/skills/api/SKILL.md) for detailed patterns.
 
 ## Key Differences
 
@@ -28,7 +28,7 @@ import { ensureAuthenticated } from '@management-api/lib/auth/index.js';
 
 ## TypeScript Express Patterns
 
-All TypeScript Express patterns from the main API apply here. See the [API Skill - TypeScript Express Patterns](../api/SKILL.md#typescript-express-patterns) section for:
+All TypeScript Express patterns from the main API apply here. See the [API Skill - TypeScript Express Patterns](/.cursor/skills/api/SKILL.md#typescript-express-patterns) section for:
 
 - Route handler return types (`Promise<void>`)
 - Correct response method patterns
@@ -50,6 +50,6 @@ apps/management-api/
 
 ## See Also
 
-- **[API Patterns](../api/SKILL.md)** - All Express patterns apply
-- **[ORM Patterns](../orm/SKILL.md)** - Database patterns
-- **[Global Patterns](../global/SKILL.md)** - Monorepo conventions
+- **[API Patterns](/.cursor/skills/api/SKILL.md)** - All Express patterns apply
+- **[ORM Patterns](/.cursor/skills/orm/SKILL.md)** - Database patterns
+- **[Global Patterns](/.cursor/skills/global/SKILL.md)** - Monorepo conventions

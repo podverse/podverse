@@ -203,7 +203,7 @@ See `apps/api/src/lib/startup/validation.ts` for environment variable validation
 
 **Validation order:** Keep `results.push` order in `validation.ts` aligned with
 `apps/api/.env.example` section order when practical (see
-[startup-validation-env-order](../startup-validation-env-order/SKILL.md)).
+[startup-validation-env-order](/.cursor/skills/startup-validation-env-order/SKILL.md)).
 
 **Env file alignment:** All `.env` files (including `infra/config/local/*.env`) must match the organization, section comments, and variable order of their authoritative `.env.example`; only values may differ.
 
@@ -229,6 +229,6 @@ apps/api/
 
 ## Related Skills
 
-- **[Web Patterns](../web/SKILL.md)** - Client-side patterns
-- **[ORM Patterns](../orm/SKILL.md)** - Database patterns
-- **[Global Patterns](../global/SKILL.md)** - Monorepo conventions
+- **[Web Patterns](/.cursor/skills/web/SKILL.md)** - Client-side patterns
+- **[ORM Patterns](/.cursor/skills/orm/SKILL.md)** - Database patterns
+- **[Global Patterns](/.cursor/skills/global/SKILL.md)** - Monorepo conventions

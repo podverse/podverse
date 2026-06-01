@@ -2,7 +2,7 @@
 
 **Planning workspace** for this repo — feature plans, optional history, human templates, and reference context.
 
-**Not abcmemory.** Standing agent guidance (what Cursor loads every session) lives **only** under [`.cursor/`](../.cursor/skills/abcmemory/SKILL.md) plus `.cursorrules` and `.cursorignore`. When you say **abcremember**, agents write to `.cursor/`, not here, unless you explicitly ask otherwise.
+**Not abcmemory.** Standing agent guidance (what Cursor loads every session) lives **only** under [`.cursor/`](/.cursor/skills/abcmemory/SKILL.md) plus `.cursorrules` and `.cursorignore`. When you say **abcremember**, agents write to `.cursor/`, not here, unless you explicitly ask otherwise.
 
 ## Directory index — `.llm/` (planning workspace)
 
@@ -17,14 +17,14 @@
 
 ## Directory index — abcmemory (`.cursor/`)
 
-| Path               | Operator doc                                              |
-| ------------------ | --------------------------------------------------------- |
-| `.cursor/skills/`  | [CURSOR-SKILLS.md](../.cursor/skills/CURSOR-SKILLS.md)    |
-| `.cursor/rules/`   | [CURSOR-RULES.md](../.cursor/rules/CURSOR-RULES.md)       |
-| `.cursor/prompts/` | [CURSOR-PROMPTS.md](../.cursor/prompts/CURSOR-PROMPTS.md) |
-| `.cursor/hooks/`   | [CURSOR-HOOKS.md](../.cursor/hooks/CURSOR-HOOKS.md)       |
+| Path               | Operator doc                                            |
+| ------------------ | ------------------------------------------------------- |
+| `.cursor/skills/`  | [CURSOR-SKILLS.md](/.cursor/skills/CURSOR-SKILLS.md)    |
+| `.cursor/rules/`   | [CURSOR-RULES.md](/.cursor/rules/CURSOR-RULES.md)       |
+| `.cursor/prompts/` | [CURSOR-PROMPTS.md](/.cursor/prompts/CURSOR-PROMPTS.md) |
+| `.cursor/hooks/`   | [CURSOR-HOOKS.md](/.cursor/hooks/CURSOR-HOOKS.md)       |
 
-Vocabulary: **abcmemory** / **abcremember** — [abcmemory skill](../.cursor/skills/abcmemory/SKILL.md).
+Vocabulary: **abcmemory** / **abcremember** — [abcmemory skill](/.cursor/skills/abcmemory/SKILL.md).
 
 ## Layout
 
@@ -58,7 +58,7 @@ Empty layout directories may contain a `.gitkeep` so git tracks the folder after
 
 Active work lives under `.llm/plans/active/`; completed sets move to `.llm/plans/completed/`. See `.cursor/skills/plan-completion/SKILL.md` and repo rules for the 300-line plan limit.
 
-**Import specifiers (Tier A vs Next `src`):** see [docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md](../docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md).
+**Import specifiers (Tier A vs Next `src`):** see [docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md](/docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md).
 
 ## Optional history notes
 

@@ -4,7 +4,7 @@ This document explains the automated dependency update system using GitHub Depen
 
 ## Overview
 
-Dependabot automatically creates pull requests to keep dependencies up-to-date and secure. Configuration is in [`.github/dependabot.yml`](../../.github/dependabot.yml).
+Dependabot automatically creates pull requests to keep dependencies up-to-date and secure. Configuration is in [`.github/dependabot.yml`](/.github/dependabot.yml).
 
 ## Update Schedule
 
@@ -210,8 +210,8 @@ ignore:
 ## Related Documentation
 
 - [GitHub Labels](GITHUB-LABELS.md) - Complete label reference
-- [Contributing](../development/CONTRIBUTING.md) - PR review guidelines
-- [GitHub Actions](../../.github/workflows/) - CI/CD workflows
+- [Contributing](/docs/development/CONTRIBUTING.md) - PR review guidelines
+- [GitHub Actions](/.github/workflows) - CI/CD workflows
 
 ## References
 

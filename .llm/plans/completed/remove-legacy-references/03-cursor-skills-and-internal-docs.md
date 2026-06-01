@@ -8,9 +8,9 @@ Remove confusing **legacy** from `.cursor/skills`, `.cursor/rules`, and internal
 
 | File | Suggested rewrite |
 | ---- | ----------------- |
-| [.cursor/skills/documentation-conventions/SKILL.md](../../../.cursor/skills/documentation-conventions/SKILL.md) | “**Older:** `index.md`” or “Less preferred: `index.md`”; “from an older directory layout” instead of “legacy structure” |
-| [.cursor/skills/linear-sql-greenfield-only/SKILL.md](../../../.cursor/skills/linear-sql-greenfield-only/SKILL.md) | “arbitrary pre-chain database states” instead of “legacy states” |
-| [.cursor/skills/orm/SKILL.md](../../../.cursor/skills/orm/SKILL.md) | “removed TypeORM migration paths” instead of “legacy TypeORM migration paths” |
+| [.cursor/skills/documentation-conventions/SKILL.md](/.cursor/skills/documentation-conventions/SKILL.md) | “**Older:** `index.md`” or “Less preferred: `index.md`”; “from an older directory layout” instead of “legacy structure” |
+| [.cursor/skills/linear-sql-greenfield-only/SKILL.md](/.cursor/skills/linear-sql-greenfield-only/SKILL.md) | “arbitrary pre-chain database states” instead of “legacy states” |
+| [.cursor/skills/orm/SKILL.md](/.cursor/skills/orm/SKILL.md) | “removed TypeORM migration paths” instead of “legacy TypeORM migration paths” |
 
 ## Rules
 

@@ -129,6 +129,27 @@ The `00-` prefix ensures index files sort first in directory listings.
 
 The `.cursor/` directory is for Cursor IDE-specific configuration only (rules, skills, settings).
 
+### Cross-repo-tree links
+
+When linking to a file outside the current documentation subtree, use a **repo-root path**
+with a leading `/` (GitHub resolves these from the repository root):
+
+```markdown
+✅ Cross-tree:
+[media-player-architecture skill](/.cursor/skills/media-player-architecture/SKILL.md)
+[QUICKSTART](/docs/QUICKSTART.md)
+
+✅ Same subtree (e.g. both under docs/):
+[LOCAL-ENV-OVERRIDES](development/LOCAL-ENV-OVERRIDES.md)
+
+❌ Deep parent-relative chains:
+`../../../../../.cursor/skills/media-player-architecture/SKILL.md`
+```
+
+- **Do not** use machine-absolute paths (`/Users/...`).
+- **Avoid** `../../../` (or longer) for cross-tree targets; use `/path/from/repo/root` instead.
+- Preserve URL fragments: `/docs/FOO.md#section`.
+
 ### Migration Note
 
 If you encounter existing `README.md` files in subdirectories (from an older directory layout), rename them following the full-path convention.
