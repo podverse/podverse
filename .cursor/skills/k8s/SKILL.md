@@ -128,11 +128,13 @@ kustomize build --load-restrictor LoadRestrictionsNone infra/k8s/alpha/api/ | ku
 
 ### Sync with env templates
 
-ConfigMaps in `base/<component>/01-configmap.yaml` should mirror the structure of the authoritative app `.env.example` files (e.g. `apps/api/.env.example`, `apps/workers/.env.example`). Infra env-templates for apps are link-only stubs.
+ConfigMaps are generated from `base/<component>/source/*.env` via `configMapGenerator`. Keep keys
+aligned with authoritative app `.env.example` files (e.g. `apps/api/.env.example`,
+`apps/workers/.env.example`) and `infra/config/env-templates/*.env.example`.
 
 - Use same section headers (e.g., `##### App / General #####`)
 - Add comment: `# Mapped from apps/<component>/.env.example`
-- Keep variable names and structure aligned
+- **Unquoted values** in `source/*.env` (see **env-file-formatting** skill) — e.g. `DB_PORT=5432`
 
 ### Secrets Handling
 
@@ -242,6 +244,15 @@ sops -d secrets/podverse-alpha-db-opaque.enc.yaml | kubectl apply -f -
 - All secrets must be encrypted with SOPS before committing
 - `.gitignore` should exclude decrypted secret files
 - Scripts generate encrypted files automatically
+
+## Value types in YAML
+
+- **String schema fields:** double-quoted YAML strings are fine (Prettier default under `infra/k8s/`).
+- **Integer / float schema fields:** use unquoted numbers (`replicas: 1`, `containerPort: 3000`).
+  Never `"1"` or `"3000"` where OpenAPI expects a numeric type — strict validators reject that.
+- **`containers[].env[].value`:** always a string in the API; `value: "5432"` is valid for env data.
+
+See [.cursor/rules/infra-k8s.mdc](../../.cursor/rules/infra-k8s.mdc) § Value types in YAML.
 
 ## Linting and Formatting
 
