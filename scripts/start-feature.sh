@@ -14,13 +14,17 @@ echo ""
 
 # 1. Feature type
 echo -e "${CYAN}Select feature type:${NC}"
-select TYPE in feature fix chore docs hotfix release; do
+select TYPE in feature fix chore docs hotfix release llm; do
   [[ -n "$TYPE" ]] && break
 done
 
 # 2. Short name
 echo ""
-read -p "Short name (kebab-case, e.g., add-podcast-chapters): " NAME
+if [[ "$TYPE" == "llm" ]]; then
+  read -p "Short name (kebab-case, e.g., abcmemory-vocabulary): " NAME
+else
+  read -p "Short name (kebab-case, e.g., add-podcast-chapters): " NAME
+fi
 
 # Validate kebab-case
 if [[ ! "$NAME" =~ ^[a-z][a-z0-9-]*$ ]]; then

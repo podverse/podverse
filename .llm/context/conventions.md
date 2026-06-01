@@ -21,7 +21,7 @@
 
 - Present tense commits
 - Include issue refs (#123)
-- Branches: feature/, fix/, chore/
+- Branches: feature/, fix/, chore/, docs/, hotfix/, release/, llm/
 
 ## GitHub Issues
 

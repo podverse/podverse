@@ -25,6 +25,24 @@ When you add or change skills, rules, prompts, hooks, or root Cursor config:
 Do not duplicate guidance under `.github/` or other ad-hoc trees. See the **llm-cursor-source** skill
 (`.cursor/skills/llm-cursor-source/SKILL.md`) and rule (`.cursor/rules/llm-cursor-source.mdc`).
 
+## Branch naming
+
+Use an **`llm/<kebab-name>`** branch when the PR changes **only** LLM-related paths:
+
+- **abcmemory:** `.cursor/**`, `.cursorrules`, `.cursorignore`
+- **Contributor LLM docs:** `docs/development/llm/**`, relevant LLM sections of `AGENTS.md`
+- **Planning workspace:** `.llm/**` (plans, templates, context, optional history)
+
+Product or app changes belong on `feature/`, `fix/`, `chore/`, or other standard prefixes — not `llm/`.
+
+Create a branch with `npm run start-feature` (choose **llm** in the type menu) or manually:
+
+```bash
+git checkout -b llm/your-description develop
+```
+
+Local pre-push hooks enforce allowed prefixes; see [BRANCH-PROTECTION.md](../../repo-management/BRANCH-PROTECTION.md).
+
 ## Plans and optional history
 
 - **Plans:** active work under `.llm/plans/active/`; completed sets under `.llm/plans/completed/`.

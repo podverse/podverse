@@ -39,6 +39,7 @@ Examples:
 | `feature/tracking-consent`   | `podverse_feature_tracking_consent` |
 | `feature/page-navigation-ux` | `podverse_page_navigation_ux`       |
 | `chore/typeorm-v1`           | `podverse_chore_typeorm_v1`         |
+| `llm/cursor-hooks`           | `podverse_llm_cursor_hooks`         |
 
 Older worktrees may use hyphens (e.g. `podverse-typeorm-v1`); **prefer the underscore form** for new worktrees.
 

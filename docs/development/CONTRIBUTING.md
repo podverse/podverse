@@ -29,7 +29,7 @@ npm run start-feature
 
 This interactive script:
 
-- Prompts for feature type (feature, fix, chore, docs, hotfix, release)
+- Prompts for feature type (feature, fix, chore, docs, hotfix, release, llm)
 - Creates a branch with proper naming convention (e.g., `feature/add-podcast-chapters`)
 - Creates an LLM history file in `.llm/history/active/`
 - Links to GitHub issues (optional)
