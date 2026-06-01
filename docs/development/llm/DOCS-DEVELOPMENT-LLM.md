@@ -13,7 +13,7 @@ Authoritative AI guidance for this repository lives only in:
 
 Cursor reads these paths directly after `git pull`. There is no separate generated mirror tree in the repo.
 
-**`.llm/` is not abcmemory.** It is a planning workspace (plans, optional history, templates, context). **abcremember** writes to `.cursor/` by default, not `.llm/`, unless you explicitly say otherwise. See [.llm/LLM.md](../../.llm/LLM.md).
+**`.llm/` is not abcmemory.** It is a planning workspace (plans, optional history, templates, context). **abcremember** writes to `.cursor/` by default, not `.llm/`, unless you explicitly say otherwise. See [.llm/LLM.md](/.llm/LLM.md).
 
 ## What to commit
 
@@ -41,7 +41,7 @@ Create a branch with `npm run start-feature` (choose **llm** in the type menu) o
 git checkout -b llm/your-description develop
 ```
 
-Local pre-push hooks enforce allowed prefixes; see [BRANCH-PROTECTION.md](../../repo-management/BRANCH-PROTECTION.md).
+Local pre-push hooks enforce allowed prefixes; see [BRANCH-PROTECTION.md](/docs/repo-management/BRANCH-PROTECTION.md).
 
 ## Plans and optional history
 
@@ -52,13 +52,15 @@ Local pre-push hooks enforce allowed prefixes; see [BRANCH-PROTECTION.md](../../
   required for contributing. A retired human-only workflow description is in
   [LLM-HISTORY-WORKFLOW-ARCHIVE.md](LLM-HISTORY-WORKFLOW-ARCHIVE.md) (listed in `.cursorignore` so
   Cursor does not treat it as agent instructions).
-- **Layout overview:** [.llm/LLM.md](../../.llm/LLM.md).
+- **Layout overview:** [.llm/LLM.md](/.llm/LLM.md).
 
 When a PR merges to `develop`, `.github/workflows/complete-feature.yml` may archive a matching
 `.llm/history/active/<feature-name>/` folder if one exists.
 
 ## Related
 
-- [AGENTS.md](../../../AGENTS.md) — AI development guide for the monorepo
-- [.llm/LLM.md](../../.llm/LLM.md) — `.llm/` directory layout
+- Cross-tree markdown links use repo-root paths (leading `/`); see
+  [documentation-conventions](/.cursor/skills/documentation-conventions/SKILL.md).
+- [AGENTS.md](/AGENTS.md) — AI development guide for the monorepo
+- [.llm/LLM.md](/.llm/LLM.md) — `.llm/` directory layout
 - [LLM-HISTORY-WORKFLOW-ARCHIVE.md](LLM-HISTORY-WORKFLOW-ARCHIVE.md) — optional archived human workflow

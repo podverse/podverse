@@ -8,19 +8,19 @@ by default**. Prometheus, Grafana, and dashboard JSON live in **your GitOps repo
 
 ### 1. GitOps — common overlay
 
-1. Uncomment `base/extensions` in [`common/kustomization.yaml`](../../common/kustomization.yaml)
+1. Uncomment `base/extensions` in [`common/kustomization.yaml`](/infra/k8s/alpha/common/kustomization.yaml)
    `resources:` (remote Kustomize URL).
 2. Remove or comment the stub `podverse-extensions-config` `configMapGenerator` entry that points at
    `source/extensions.env` only.
 3. Merge env into `podverse-extensions-config`:
-   - [`common/source/extensions.env`](../../common/source/extensions.env) — set
+   - [`extensions.env`](/infra/k8s/base/common/source/extensions/extensions.env) — set
      `PROMETHEUS_ENABLED=true` and `OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:4318`
-   - Copy [`extension-prometheus.env.example`](../../common/source/extension-prometheus.env.example)
+   - Copy [`extension-prometheus.env.example`](/infra/k8s/alpha/common/source/extension-prometheus.env.example)
      → `extension-prometheus.env` in GitOps
-   - Copy [`extension-sidecar-otel.env.example`](../../common/source/extension-sidecar-otel.env.example)
+   - Copy [`extension-sidecar-otel.env.example`](/infra/k8s/alpha/common/source/extension-sidecar-otel.env.example)
      → `extension-sidecar-otel.env` in GitOps
 
-Canonical keys: [`infra/k8s/base/extensions/source/`](../../../base/extensions/source/).
+Canonical keys: [`infra/k8s/base/extensions/source/`](/infra/k8s/base/extensions/source/).
 
 ### 2. GitOps — workloads
 
@@ -29,7 +29,7 @@ On **api**, **web**, **management-api**, **management-web**, and **workers** (no
 1. Uncomment `extension-prometheus` in `images:`.
 2. Uncomment `prometheus-sidecar` under `components:`.
 
-See commented blocks in each workload [`kustomization.yaml`](../../api/kustomization.yaml) under
+See commented blocks in each workload [`kustomization.yaml`](/infra/k8s/alpha/api/kustomization.yaml) under
 `infra/k8s/alpha/<component>/`.
 
 ### 3. GitOps — Prometheus
@@ -42,7 +42,7 @@ Deploy Prometheus in your GitOps repo. Scrape extension sidecars:
 | Path    | `/extensions/prometheus/metrics`     |
 | Relabel | pod label `app` → **`podverse_app`** |
 
-Full scrape examples: [PROMETHEUS-METRICS-ENDPOINTS.md](../../../../docs/operations/extensions/PROMETHEUS-METRICS-ENDPOINTS.md).
+Full scrape examples: [PROMETHEUS-METRICS-ENDPOINTS.md](/docs/operations/extensions/PROMETHEUS-METRICS-ENDPOINTS.md).
 
 Optional **node-exporter** DaemonSet on port **9100** for host CPU, memory, disk, and network.
 
@@ -83,4 +83,4 @@ A complete GitOps tree often mirrors:
 - `apps/grafana/manifests/` — provisioning and dashboard ConfigMaps
 - `docs/k8s/podverse/PODVERSE-ALPHA.md` — operator runbook
 
-Remote deploy checklist: [REMOTE-K8S-GITOPS.md](../../../../docs/development/k8s/REMOTE-K8S-GITOPS.md).
+Remote deploy checklist: [REMOTE-K8S-GITOPS.md](/docs/development/k8s/REMOTE-K8S-GITOPS.md).

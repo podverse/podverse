@@ -2,7 +2,7 @@
 
 ## Overview
 
-Release and promote scripts call [scripts/lib/check-audit-gate.sh](../../../scripts/lib/check-audit-gate.sh),
+Release and promote scripts call [scripts/lib/check-audit-gate.sh](/scripts/lib/check-audit-gate.sh),
 which fails on **moderate and higher** npm audit findings unless an advisory ID allowlist is passed.
 
 **Current state:** The gate runs with **no** allowlisted advisory IDs (empty allowlist = strict). Root
@@ -22,13 +22,13 @@ Use allowlisting only when:
 
 Pass comma-separated npm advisory `source` IDs as the first argument to `check-audit-gate.sh` in:
 
-- [scripts/publish/bump-version.sh](../../../scripts/publish/bump-version.sh)
-- [scripts/publish/sync-develop-to-staging.sh](../../../scripts/publish/sync-develop-to-staging.sh)
-- [scripts/publish/sync-staging-to-main.sh](../../../scripts/publish/sync-staging-to-main.sh)
+- [scripts/publish/bump-version.sh](/scripts/publish/bump-version.sh)
+- [scripts/publish/sync-develop-to-staging.sh](/scripts/publish/sync-develop-to-staging.sh)
+- [scripts/publish/sync-staging-to-main.sh](/scripts/publish/sync-staging-to-main.sh)
 
 Keep the three call sites **in sync**.
 
-Also update [.cursor/skills/npm-audit/SKILL.md](../../../.cursor/skills/npm-audit/SKILL.md) examples.
+Also update [.cursor/skills/npm-audit/SKILL.md](/.cursor/skills/npm-audit/SKILL.md) examples.
 
 ## Previously Allowlisted (resolved)
 

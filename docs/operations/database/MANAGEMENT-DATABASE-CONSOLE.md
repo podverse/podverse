@@ -71,11 +71,11 @@ The `feed` table is read-only unless `feed` appears in this list.
 
 ## Adding a New Table
 
-See [Allowlist Onboarding](../../../.llm/plans/active/management-web-database-console/91-allowlist-onboarding.md) for the step-by-step checklist.
+See the management-web database console allowlist configuration in management-api for the step-by-step checklist.
 
 ## Audit Trail and Rollback
 
-See [Audit and Rollback Runbook](../../../.llm/plans/active/management-web-database-console/92-audit-rollback-runbook.md) for incident response procedures.
+See `database_audit_log` queries and management-api ops runbooks for incident response procedures.
 
 ## Database Migrations
 

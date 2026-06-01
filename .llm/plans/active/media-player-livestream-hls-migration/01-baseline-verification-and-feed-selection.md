@@ -2,7 +2,7 @@
 
 ## Prerequisite
 
-[`media-player-architecture-refactor`](../../completed/media-player-architecture-refactor/)
+[MEDIA-PLAYER-DECISION-MATRIX](/apps/web/src/components/MediaPlayer/MEDIA-PLAYER-DECISION-MATRIX.md)
 merged to `develop`.
 
 ## Expand later

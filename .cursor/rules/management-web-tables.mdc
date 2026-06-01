@@ -23,9 +23,9 @@ When adding or refactoring **list / directory / storage** pages under **`apps/ma
 
 ## References
 
-- [`packages/ui/PACKAGES-UI.md`](../../packages/ui/PACKAGES-UI.md) — **Table family** section.
-- [`01-design-target-api.md`](../../.llm/plans/completed/management-web-tables-convergence/01-design-target-api.md) — locked contracts for table APIs (tables convergence plan set).
-- [`.cursor/skills/crud-tables-resources/SKILL.md`](../skills/crud-tables-resources/SKILL.md)
-- [`.cursor/skills/tables-support-sorting/SKILL.md`](../skills/tables-support-sorting/SKILL.md)
-- [`.cursor/skills/table-sort-defaults/SKILL.md`](../skills/table-sort-defaults/SKILL.md)
-- [`.cursor/skills/sort-prefs-cookie-by-path/SKILL.md`](../skills/sort-prefs-cookie-by-path/SKILL.md)
+- [`packages/ui/PACKAGES-UI.md`](/packages/ui/PACKAGES-UI.md) — **Table family** section.
+- Locked contracts for table APIs live in management-api route modules and `@podverse/ui` table helpers (tables convergence plan set completed).
+- [`.cursor/skills/crud-tables-resources/SKILL.md`](/.cursor/skills/crud-tables-resources/SKILL.md)
+- [`.cursor/skills/tables-support-sorting/SKILL.md`](/.cursor/skills/tables-support-sorting/SKILL.md)
+- [`.cursor/skills/table-sort-defaults/SKILL.md`](/.cursor/skills/table-sort-defaults/SKILL.md)
+- [`.cursor/skills/sort-prefs-cookie-by-path/SKILL.md`](/.cursor/skills/sort-prefs-cookie-by-path/SKILL.md)

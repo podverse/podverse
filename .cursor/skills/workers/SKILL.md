@@ -30,17 +30,17 @@ Per-job env validation, command-first bootstrap, and checklist for adding worker
 ## Adding a new worker command
 
 1. Add the command to `KNOWN_COMMANDS` in
-   [commandNames.ts](../../apps/workers/src/commands/commandNames.ts).
+   [commandNames.ts](/apps/workers/src/commands/commandNames.ts).
 2. Add the command to the appropriate **group** in
-   [categoriesForCommand.ts](../../apps/workers/src/lib/startup/categoriesForCommand.ts) (e.g.
+   [categoriesForCommand.ts](/apps/workers/src/lib/startup/categoriesForCommand.ts) (e.g.
    `BASE_ORM_COMMANDS`, `FULL_STACK_COMMANDS`) so it gets the right categories—validation then runs
    the existing category validators for that command. Only add a new category and `validate*`
-   function in [validation.ts](../../apps/workers/src/lib/startup/validation.ts) if the command
+   function in [validation.ts](/apps/workers/src/lib/startup/validation.ts) if the command
    needs env vars that don't fit existing categories.
-3. Update [ENV.md](../../apps/workers/ENV.md): if the command fits an existing group, ensure the
+3. Update [ENV.md](/apps/workers/ENV.md): if the command fits an existing group, ensure the
    "Command groups and env categories" table or examples still reflect it; if you added a new
    category, document required/optional vars for it.
-4. Ensure [index.ts](../../apps/workers/src/index.ts) only builds contexts for the command's
+4. Ensure [index.ts](/apps/workers/src/index.ts) only builds contexts for the command's
    categories (it already uses the same categoriesForCommand mapping; no change unless you added
    a new category).
 
@@ -55,8 +55,8 @@ Per-job env validation, command-first bootstrap, and checklist for adding worker
 | PodcastIndex      | PODCAST*INDEX*\*                                    |
 | Web/Notifications | WEB*\*, BRAND_NAME, WEBPUSH*_, GOOGLE*FIREBASE*_    |
 
-Reference [ENV.md](../../apps/workers/ENV.md) and
-[validation.ts](../../apps/workers/src/lib/startup/validation.ts) for which commands need which
+Reference [ENV.md](/apps/workers/ENV.md) and
+[validation.ts](/apps/workers/src/lib/startup/validation.ts) for which commands need which
 categories.
 
 ## Monorepo context
@@ -71,7 +71,7 @@ categories.
 
 ## References
 
-- [apps/workers/ENV.md](../../apps/workers/ENV.md) — per-command env requirements.
-- [apps/workers/APPS-WORKERS.md](../../apps/workers/APPS-WORKERS.md) — overview and env config.
-- [workers-env-00-SUMMARY.md](../../.llm/plans/active/workers-env-validation/workers-env-00-SUMMARY.md)
+- [apps/workers/ENV.md](/apps/workers/ENV.md) — per-command env requirements.
+- [apps/workers/APPS-WORKERS.md](/apps/workers/APPS-WORKERS.md) — overview and env config.
+- [apps/workers/ENV.md](/apps/workers/ENV.md) — worker env reference
   — full workers env validation plan (optional).

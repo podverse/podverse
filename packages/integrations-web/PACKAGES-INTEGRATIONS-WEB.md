@@ -19,7 +19,7 @@ integrations: {
 }
 ```
 
-Authoritative contract: [docs/operations/integrations/INTEGRATIONS-WEB.md](../../docs/operations/integrations/INTEGRATIONS-WEB.md).
+Authoritative contract: [docs/operations/integrations/INTEGRATIONS-WEB.md](/docs/operations/integrations/INTEGRATIONS-WEB.md).
 
 ## Env vars
 

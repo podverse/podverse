@@ -86,7 +86,7 @@ Plans organized by status:
 
 When you finish executing a plan in `active/`, **automatically** move it to `completed/` (do not
 ask). If it's the last plan in its set (execution order, copy-pasta, or feature directory), move
-the whole set. See **[Plan Completion](../plan-completion/SKILL.md)** for full behavior.
+the whole set. See **[Plan Completion](/.cursor/skills/plan-completion/SKILL.md)** for full behavior.
 
 ### Grouping Sub-Plans
 
@@ -111,7 +111,7 @@ When giving terminal or npm commands, **always give them relative to the monorep
 
 ## GitHub Workflows
 
-**Issue Templates & Labels**: [docs/repo-management/GITHUB-LABELS.md](../../../docs/repo-management/GITHUB-LABELS.md)
+**Issue Templates & Labels**: [docs/repo-management/GITHUB-LABELS.md](/docs/repo-management/GITHUB-LABELS.md)
 
 The repository uses 23 carefully curated labels and 5 issue templates. When creating issues or discussing GitHub workflows, refer to the label documentation.
 
@@ -182,11 +182,11 @@ Only use eslint-disable when:
 
 ## Related Skills
 
-- **[Plan Completion](../plan-completion/SKILL.md)** - Auto-archive completed plans (and full set when last)
-- **[GitHub Workflows](../github/SKILL.md)** - PR/issue management and GitHub CLI usage
-- **[Web Patterns](../web/SKILL.md)** - Next.js app patterns (`apps/web/`)
-- **[Bundle Optimization](../bundle-optimization/SKILL.md)** - Bundle size awareness when adding deps, changing helpers, or heavy UI
-- **[Header / hero image sources](../header-hero-image-sources/SKILL.md)** - List vs header artwork: `*LoadCandidates` / `*HeroLoadCandidates` and `greater` + `IMAGES.HEADER.*` for heroes
-- **[API Patterns](../api/SKILL.md)** - Express API patterns (`apps/api/`)
-- **[Management API Patterns](../management-api/SKILL.md)** - Management API Express patterns
-- **[ORM Patterns](../orm/SKILL.md)** - Database patterns (`packages/orm/`)
+- **[Plan Completion](/.cursor/skills/plan-completion/SKILL.md)** - Auto-archive completed plans (and full set when last)
+- **[GitHub Workflows](/.cursor/skills/github/SKILL.md)** - PR/issue management and GitHub CLI usage
+- **[Web Patterns](/.cursor/skills/web/SKILL.md)** - Next.js app patterns (`apps/web/`)
+- **[Bundle Optimization](/.cursor/skills/bundle-optimization/SKILL.md)** - Bundle size awareness when adding deps, changing helpers, or heavy UI
+- **[Header / hero image sources](/.cursor/skills/header-hero-image-sources/SKILL.md)** - List vs header artwork: `*LoadCandidates` / `*HeroLoadCandidates` and `greater` + `IMAGES.HEADER.*` for heroes
+- **[API Patterns](/.cursor/skills/api/SKILL.md)** - Express API patterns (`apps/api/`)
+- **[Management API Patterns](/.cursor/skills/management-api/SKILL.md)** - Management API Express patterns
+- **[ORM Patterns](/.cursor/skills/orm/SKILL.md)** - Database patterns (`packages/orm/`)

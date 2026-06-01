@@ -18,9 +18,9 @@ We run any command that needs the flake’s tools **inside** the Nix dev shell v
 
 | Item                                                                                   | Purpose                                                                                                                                  |
 | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| [scripts/nix/with-env](../../scripts/nix/with-env)                                     | Bash script that runs `nix develop <repo_root> -c "$@"`. Use it to run a single command with node, npm, and other flake tools on `PATH`. |
-| [.cursor/rules/nix-terminal-wrapper.mdc](../../.cursor/rules/nix-terminal-wrapper.mdc) | Cursor rule (always applied) that tells the AI to use `./scripts/nix/with-env` for node/npm/npx and other flake tools.                   |
-| [AGENTS.md](../../AGENTS.md)                                                           | Contains a short “Nix / terminal (agent sandbox)” section that points to the wrapper and the rule.                                       |
+| [scripts/nix/with-env](/scripts/nix/with-env)                                     | Bash script that runs `nix develop <repo_root> -c "$@"`. Use it to run a single command with node, npm, and other flake tools on `PATH`. |
+| [.cursor/rules/nix-terminal-wrapper.mdc](/.cursor/rules/nix-terminal-wrapper.mdc) | Cursor rule (always applied) that tells the AI to use `./scripts/nix/with-env` for node/npm/npx and other flake tools.                   |
+| [AGENTS.md](/AGENTS.md)                                                           | Contains a short “Nix / terminal (agent sandbox)” section that points to the wrapper and the rule.                                       |
 
 ### How to use it
 

@@ -19,6 +19,6 @@ Do not default to `./logs` or `/app/logs` in app code; that causes file logging 
 
 ## References
 
-- [apps/workers/ENV.md](../apps/workers/ENV.md) — workers LOG_DIR docs
-- [packages/helpers-backend](../packages/helpers-backend/src/logger.ts) — LoggerService adds file transport only when `logDir` is non-empty
-- [infra/docker/local/workers/docker-compose.yml](../infra/docker/local/workers/docker-compose.yml) — workers log volume and path
+- [apps/workers/ENV.md](/apps/workers/ENV.md) — workers LOG_DIR docs
+- [packages/helpers-backend](/packages/helpers-backend/src/logger.ts) — LoggerService adds file transport only when `logDir` is non-empty
+- [infra/docker/local/workers/docker-compose.yml](/infra/docker/local/workers/docker-compose.yml) — workers log volume and path

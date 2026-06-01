@@ -16,4 +16,4 @@ alwaysApply: false
 - **Tier C** (`packages/ui`): **extensionless** relatives (bundler-transpiled shared UI). ESLint NodeNext rule is **off**. Do not add `.js` — breaks resolution to `.tsx` sources.
 - **Tier B** (`apps/web/src`, `apps/management-web/src`): keep **extensionless** relative imports unless you have confirmed **`next build`** succeeds with `.js` specifiers toward `.tsx` sources.
 
-Do not mass-refactor Tier B or Tier C imports to match Tier A without a green Turbopack production build. See [docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md](../../docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md) and [vercel/next.js#82945](https://github.com/vercel/next.js/issues/82945).
+Do not mass-refactor Tier B or Tier C imports to match Tier A without a green Turbopack production build. See [docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md](/docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md) and [vercel/next.js#82945](https://github.com/vercel/next.js/issues/82945).

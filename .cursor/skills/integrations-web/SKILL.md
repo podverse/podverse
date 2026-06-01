@@ -13,7 +13,7 @@ version: 1.0.0
 - Runtime-config sidecar env (`CLOUDFLARE_WEB_ANALYTICS_*`)
 - Web/management-web layout scripts driven by `/runtime-config`
 
-Authoritative doc: [docs/operations/integrations/INTEGRATIONS-WEB.md](../../docs/operations/integrations/INTEGRATIONS-WEB.md).
+Authoritative doc: [docs/operations/integrations/INTEGRATIONS-WEB.md](/docs/operations/integrations/INTEGRATIONS-WEB.md).
 
 ## Architecture
 
@@ -74,7 +74,7 @@ Integration UI changes require **E2E** specs (see **e2e-page-tests**):
 
 ## References
 
-- [extensions-env](../extensions-env/SKILL.md) — three-pillar env order
-- [INTEGRATIONS-WEB.md](../../docs/operations/integrations/INTEGRATIONS-WEB.md)
-- [DOCS-OPERATIONS-PLATFORM.md](../../docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md)
-- [feature-implementation-testing](../feature-implementation-testing/SKILL.md)
+- [extensions-env](/.cursor/skills/extensions-env/SKILL.md) — three-pillar env order
+- [INTEGRATIONS-WEB.md](/docs/operations/integrations/INTEGRATIONS-WEB.md)
+- [DOCS-OPERATIONS-PLATFORM.md](/docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md)
+- [feature-implementation-testing](/.cursor/skills/feature-implementation-testing/SKILL.md)

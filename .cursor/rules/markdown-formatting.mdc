@@ -95,8 +95,12 @@ The command builds...
 ## Links and References
 
 - Use `[text](url)` format
-- For relative links: `[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)`
-- For references within repo: Use relative paths
+- **Cross-tree** (different top-level dirs): repo-root path with leading `/`, e.g.
+  `[skill](/.cursor/skills/foo/SKILL.md)`, `[QUICKSTART](/docs/QUICKSTART.md)`
+- **Same subtree** (e.g. both under `docs/`): sibling-relative is fine, e.g.
+  `[overrides](development/LOCAL-ENV-OVERRIDES.md)` from `docs/QUICKSTART.md`
+- **Do not** use deep `../../../` chains or machine paths (`/Users/...`)
+- See **documentation-conventions** skill for full link policy
 
 ## Emphasis
 

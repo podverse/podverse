@@ -6,4 +6,4 @@ Human copy-paste **blanks and wrappers** for optional history notes and plan aut
 - Copy a template, then create a new folder under `plans/active/` for the real plan content.
 - Use for session logs, plan autopilot wrappers, and similar operator workflows.
 - For reusable agent prompt snippets committed as guidance, use `.cursor/prompts/` instead.
-- See [LLM.md](../LLM.md) and [CURSOR-PROMPTS.md](../../.cursor/prompts/CURSOR-PROMPTS.md).
+- See [LLM.md](/.llm/LLM.md) and [CURSOR-PROMPTS.md](/.cursor/prompts/CURSOR-PROMPTS.md).

@@ -92,7 +92,7 @@ The repository uses **23 carefully selected labels**:
 - **Teal**: Low priority
 - **Gray**: Status labels (duplicate, invalid, wontfix)
 
-See [docs/repo-management/GITHUB-LABELS.md](../../docs/repo-management/GITHUB-LABELS.md) for complete color specifications.
+See [docs/repo-management/GITHUB-LABELS.md](/docs/repo-management/GITHUB-LABELS.md) for complete color specifications.
 
 ## Requirements
 
@@ -166,5 +166,4 @@ Edit the label in `setup-all-labels.sh`, then run the script again. To remove la
 
 ## See Also
 
-- [docs/repo-management/GITHUB-LABELS.md](../../docs/repo-management/GITHUB-LABELS.md) - Complete label reference
-- [docs/VULNERABILITY-SCANNER.md](../../docs/VULNERABILITY-SCANNER.md) - Vulnerability scanner documentation
+- [docs/repo-management/GITHUB-LABELS.md](/docs/repo-management/GITHUB-LABELS.md) - Complete label reference

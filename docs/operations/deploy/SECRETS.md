@@ -56,7 +56,7 @@ cp .env.openai.example .env.openai
 # Edit .env.openai and add your API key
 ```
 
-See [i18n documentation](../../localization/I18N.md) for full i18n documentation.
+See [i18n documentation](/docs/localization/I18N.md) for full i18n documentation.
 
 ### APP_ID and APP_PRIVATE_KEY
 

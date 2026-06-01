@@ -10,7 +10,7 @@ ordering only.
 ## Prerequisite
 
 Merge and ship
-[`media-player-architecture-refactor`](../../completed/media-player-architecture-refactor/)
+[MEDIA-PLAYER-DECISION-MATRIX](/apps/web/src/components/MediaPlayer/MEDIA-PLAYER-DECISION-MATRIX.md)
 first. That plan-set delivers: load policy, non-live
 `<MediaElement>`, bridge + controls context, removal of the
 `MEDIA_PLAYER` window-event bus, and **keeps** `video.js` for
@@ -18,7 +18,7 @@ livestreams.
 
 ## Goals (when executed)
 
-- Retire `video.js` from [`apps/web/package.json`](../../../../apps/web/package.json).
+- Retire `video.js` from [`apps/web/package.json`](/apps/web/package.json).
 - Add `hls.js` (or chosen alternative) with native HLS where
   `canPlayType('application/vnd.apple.mpegurl')` allows.
 - Fold `target.kind === 'livestream'` into the same `<MediaElement>` as

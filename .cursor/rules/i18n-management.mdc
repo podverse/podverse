@@ -97,7 +97,7 @@ When PRs are merged to `develop`:
 - Override files are synced (new keys with empty values)
 - Only `originals/` and `overrides/` are committed (not `compiled/`)
 
-**Requires**: `OPENAI_API_KEY` repository secret (see [docs/operations/deploy/SECRETS.md](../../docs/operations/deploy/SECRETS.md))
+**Requires**: `OPENAI_API_KEY` repository secret (see [docs/operations/deploy/SECRETS.md](/docs/operations/deploy/SECRETS.md))
 
 **Local development**: Copy `.env.openai.example` to `.env.openai` at the root and add your API key.
 

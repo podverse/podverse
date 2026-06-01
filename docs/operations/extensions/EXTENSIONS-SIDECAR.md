@@ -4,10 +4,10 @@
 clients. Main application images do not bundle extension-specific dependencies such as
 `prom-client`.
 
-See the platform index: [DOCS-OPERATIONS-PLATFORM.md](../platform/DOCS-OPERATIONS-PLATFORM.md). For
+See the platform index: [DOCS-OPERATIONS-PLATFORM.md](/docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md). For
 built-in web integrations and observability, see
-[INTEGRATIONS-WEB.md](../integrations/INTEGRATIONS-WEB.md) and
-[TRACING.md](../observability/TRACING.md).
+[INTEGRATIONS-WEB.md](/docs/operations/integrations/INTEGRATIONS-WEB.md) and
+[TRACING.md](/docs/operations/observability/TRACING.md).
 
 ## Architecture
 
@@ -67,7 +67,7 @@ Templates: `infra/config/env-templates/extensions.env.example`,
 | `PROMETHEUS_ENABLED`          | Always set    | `"true"` enables sidecar wiring and app OTLP export     |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | When enabled  | App → sidecar OTLP HTTP (often `http://127.0.0.1:4318`) |
 
-When `PROMETHEUS_ENABLED` is `true`, also set **Observability** vars (see [TRACING.md](../observability/TRACING.md)):
+When `PROMETHEUS_ENABLED` is `true`, also set **Observability** vars (see [TRACING.md](/docs/operations/observability/TRACING.md)):
 
 - `OTEL_SERVICE_NAME` — per workload (shared with observability config)
 - `OTEL_TRACES_EXPORT` — app trace export (`none` or `otlp`)
@@ -142,7 +142,7 @@ make local_extensions_prometheus_up
 ```
 
 Compose profiles live in
-[infra/docker/local/extensions/docker-compose.yml](../../../infra/docker/local/extensions/docker-compose.yml).
+[infra/docker/local/extensions/docker-compose.yml](/infra/docker/local/extensions/docker-compose.yml).
 They are **not** started by `make local_infra_up`.
 
 Typical flow (apps on host via npm):
@@ -170,6 +170,6 @@ trace export in this package — use `@podverse/observability`.
 
 ## Related docs
 
-- [DOCS-OPERATIONS-PLATFORM.md](../platform/DOCS-OPERATIONS-PLATFORM.md) — platform capabilities index
+- [DOCS-OPERATIONS-PLATFORM.md](/docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md) — platform capabilities index
 - [PROMETHEUS-METRICS-ENDPOINTS.md](PROMETHEUS-METRICS-ENDPOINTS.md) — scrape jobs and ports
 - `.cursor/skills/extensions-env/SKILL.md` — env authoring rules

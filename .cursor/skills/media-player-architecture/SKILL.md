@@ -10,7 +10,7 @@ Changing **file-based** podcast / music / clip / soundbite / chapter / add-by-RS
 - **Imperative element surface:** `useMediaElementBridge` plus `mediaElementBridgeSurface.ts` under `apps/web/src/hooks/` — the **only** places that should assign `mediaRef.current` playback fields (`src`, `currentTime`, `load`, `play` / `pause` parity). **ESLint:** root `eslint.config.mjs` uses `no-restricted-syntax` on `apps/web/src/**` for those patterns, with **temporary** ignores only for those two files (the bridge implementation).
 - **Controls context:** `MediaPlayerControlsProvider` wraps the app tree in `apps/web/src/providers/Providers.tsx`. `useMediaPlayerControls()` exposes `seek`, `jumpBy`, `pauseAt`, `togglePlay`, `loadAndStart`, etc. `isAttached: false` when no non-live bridge is registered (e.g. livestream-only playback).
 - **Non-live mounts:** `NonLiveMediaMount` in `apps/web/src/components/MediaPlayer/MediaElement/NonLiveMediaMount.tsx` — hidden audio + floating video portal; both use `NonLiveMediaOrchestrator` + `useNonLivePlaybackAvProps`.
-- **Livestream:** `MediaPlayerControllerLiveStream*` + `video.js` — unchanged until [`media-player-livestream-hls-migration`](../../../.llm/plans/active/media-player-livestream-hls-migration/) (placeholder).
+- **Livestream:** `MediaPlayerControllerLiveStream*` + `video.js` — unchanged until [`media-player-livestream-hls-migration`](/.llm/plans/active/media-player-livestream-hls-migration) (placeholder).
 
 ## Do / don’t
 

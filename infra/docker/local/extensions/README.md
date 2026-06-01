@@ -27,9 +27,9 @@ Three templates seed local sidecar + app extension config:
 
 | Template                                                                                               | Local file                                                                     |
 | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
-| [extensions.env.example](../../../config/env-templates/extensions.env.example)                         | [extensions.env](../../../config/local/extensions.env)                         |
-| [extension-sidecar-otel.env.example](../../../config/env-templates/extension-sidecar-otel.env.example) | [extension-sidecar-otel.env](../../../config/local/extension-sidecar-otel.env) |
-| [extension-prometheus.env.example](../../../config/env-templates/extension-prometheus.env.example)     | [extension-prometheus.env](../../../config/local/extension-prometheus.env)     |
+| [extensions.env.example](/infra/config/env-templates/extensions.env.example)                         | [extensions.env](/infra/config/local/extensions.env)                         |
+| [extension-sidecar-otel.env.example](/infra/config/env-templates/extension-sidecar-otel.env.example) | [extension-sidecar-otel.env](/infra/config/local/extension-sidecar-otel.env) |
+| [extension-prometheus.env.example](/infra/config/env-templates/extension-prometheus.env.example)     | [extension-prometheus.env](/infra/config/local/extension-prometheus.env)     |
 
 `make local_env_setup` copies each when missing. Compose loads all three for the sidecar; apps use
 `extensions.env` keys from their own env (synced via `local_env_setup` / sidecar catalog).

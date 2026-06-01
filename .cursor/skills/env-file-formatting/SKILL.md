@@ -52,7 +52,7 @@ Files that contain only `NEXT_PUBLIC_*` or only server keys need no extra orderi
 
 ## References
 
-- [.cursor/rules/env-file-formatting.mdc](../../.cursor/rules/env-file-formatting.mdc) — cursor rule (globs and examples)
-- [.cursor/rules/infra-k8s.mdc](../../.cursor/rules/infra-k8s.mdc) — K8s YAML string vs numeric typing
-- [AGENTS.md](../../AGENTS.md) — "In .env files" / Non-empty values / Empty values
-- [scripts/local-env/setup.sh](../../scripts/local-env/setup.sh) — `upsert_var()` writes `VAR="value"` or `VAR=`
+- [.cursor/rules/env-file-formatting.mdc](/.cursor/rules/env-file-formatting.mdc) — cursor rule (globs and examples)
+- [.cursor/rules/infra-k8s.mdc](/.cursor/rules/infra-k8s.mdc) — K8s YAML string vs numeric typing
+- [AGENTS.md](/AGENTS.md) — "In .env files" / Non-empty values / Empty values
+- [scripts/local-env/setup.sh](/scripts/local-env/setup.sh) — `upsert_var()` writes `VAR="value"` or `VAR=`

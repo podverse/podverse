@@ -116,4 +116,4 @@ When web env validation changes (`apps/web/scripts/validate-env.ts`), update
 
 ## Related Skills
 
-- **[Bundle Optimization](../bundle-optimization/SKILL.md)** — Keep bundle size in mind when adding deps, changing helpers, or adding heavy UI.
+- **[Bundle Optimization](/.cursor/skills/bundle-optimization/SKILL.md)** — Keep bundle size in mind when adding deps, changing helpers, or adding heavy UI.

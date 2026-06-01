@@ -33,7 +33,7 @@
 - Infrastructure: `infra` label (hosting, deployment, CI/CD)
 - Documentation: `docs` label
 
-**Labels**: See [docs/repo-management/GITHUB-LABELS.md](../../docs/repo-management/GITHUB-LABELS.md) for complete reference
+**Labels**: See [docs/repo-management/GITHUB-LABELS.md](/docs/repo-management/GITHUB-LABELS.md) for complete reference
 
 ## Import Order
 

@@ -27,9 +27,9 @@ version: 1.0.0
 
 ## References
 
-- [apps/workers/ENV.md](../../apps/workers/ENV.md) — workers LOG_DIR docs
-- [logs/LOGS.md](../../logs/LOGS.md) — LOG_DIR rules across the monorepo
-- [packages/helpers-backend LoggerService](../../packages/helpers-backend/src/logger.ts) — adds
+- [apps/workers/ENV.md](/apps/workers/ENV.md) — workers LOG_DIR docs
+- [logs/LOGS.md](/logs/LOGS.md) — LOG_DIR rules across the monorepo
+- [packages/helpers-backend LoggerService](/packages/helpers-backend/src/logger.ts) — adds
   file transport only when `logDir` is non-empty
-- [infra/docker/local/workers/docker-compose.yml](../../infra/docker/local/workers/docker-compose.yml)
+- [infra/docker/local/workers/docker-compose.yml](/infra/docker/local/workers/docker-compose.yml)
   — workers log volume and path (`/opt/logs`)

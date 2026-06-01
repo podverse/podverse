@@ -235,4 +235,4 @@ flowchart TD
 - [LOCAL-V4V-TESTNET-WALKTHROUGH.md](LOCAL-V4V-TESTNET-WALKTHROUGH.md) — Step-by-step Nix to boost
 - [V4V-METABOOST-LNURL.md](V4V-METABOOST-LNURL.md) — MetaBoost, LNURL, keysend/LNAddress behavior
 - [V4V-METABOOST-FLOW.md](V4V-METABOOST-FLOW.md) — Data flow diagram
-- [TOOLS-TEST-ASSETS.md](../../../tools/test-assets/TOOLS-TEST-ASSETS.md) — Test asset tool
+- [TOOLS-TEST-ASSETS.md](/tools/test-assets/TOOLS-TEST-ASSETS.md) — Test asset tool

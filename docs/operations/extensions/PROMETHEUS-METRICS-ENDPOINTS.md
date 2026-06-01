@@ -4,7 +4,7 @@ Podverse exposes Prometheus scrape endpoints via the **Prometheus extension side
 not bundle, deploy, or manage Prometheus. Deployers choose how Prometheus (and optional
 Grafana/Alertmanager) fits their architecture.
 
-**Contract:** [DOCS-OPERATIONS-PLATFORM.md](../platform/DOCS-OPERATIONS-PLATFORM.md)  
+**Contract:** [DOCS-OPERATIONS-PLATFORM.md](/docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md)  
 **Sidecar architecture:** [EXTENSIONS-SIDECAR.md](EXTENSIONS-SIDECAR.md)
 
 ## Implementation status
@@ -27,10 +27,10 @@ Runtime-config sidecars (`:3001` / `:3101`) do **not** expose Prometheus metrics
 
 ## Enable or disable
 
-Shared configuration: [extensions.env.example](../../../infra/config/env-templates/extensions.env.example)
-(app toggle + OTLP endpoint) and [extension-prometheus.env.example](../../../infra/config/env-templates/extension-prometheus.env.example)
+Shared configuration: [extensions.env.example](/infra/config/env-templates/extensions.env.example)
+(app toggle + OTLP endpoint) and [extension-prometheus.env.example](/infra/config/env-templates/extension-prometheus.env.example)
 (sidecar scrape) → Kubernetes ConfigMap `podverse-extensions-config` (merged with
-[extension-sidecar-otel.env.example](../../../infra/config/env-templates/extension-sidecar-otel.env.example)).
+[extension-sidecar-otel.env.example](/infra/config/env-templates/extension-sidecar-otel.env.example)).
 
 ```bash
 PROMETHEUS_ENABLED="true"
@@ -42,7 +42,7 @@ Kubernetes enablement is **component-based**:
 1. Set `PROMETHEUS_ENABLED=true` in shared extensions env.
 2. Apply the prometheus sidecar Kustomize component on each eligible workload.
 
-Per-app: set `OTEL_SERVICE_NAME` (see [DOCS-OPERATIONS-PLATFORM.md](../platform/DOCS-OPERATIONS-PLATFORM.md)).
+Per-app: set `OTEL_SERVICE_NAME` (see [DOCS-OPERATIONS-PLATFORM.md](/docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md)).
 
 When disabled: no extension sidecar scheduled; apps do not start OTLP export.
 
@@ -170,7 +170,7 @@ Worker command rate (empty when workers are idle):
 sum by (command) (rate(podverse_extension_prometheus_podverse_worker_command_duration_count{k8s_namespace="<namespace>"}[5m]))
 ```
 
-Enablement checklist: [`infra/k8s/alpha/examples/optional-extension-metrics/README.md`](../../../infra/k8s/alpha/examples/optional-extension-metrics/README.md). Remote GitOps steps: [REMOTE-K8S-GITOPS.md](../../development/k8s/REMOTE-K8S-GITOPS.md).
+Enablement checklist: [`infra/k8s/alpha/examples/optional-extension-metrics/README.md`](/infra/k8s/alpha/examples/optional-extension-metrics/README.md). Remote GitOps steps: [REMOTE-K8S-GITOPS.md](/docs/development/k8s/REMOTE-K8S-GITOPS.md).
 
 ## Operator note
 

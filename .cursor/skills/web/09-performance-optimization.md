@@ -512,7 +512,7 @@ const ListItem = React.memo(({ item }: { item: Item }) => {
 
 ## Bundle Optimization
 
-**See also**: [bundle-optimization skill](../bundle-optimization/SKILL.md) — when adding deps, changing helpers, or adding heavy UI.
+**See also**: [bundle-optimization skill](/.cursor/skills/bundle-optimization/SKILL.md) — when adding deps, changing helpers, or adding heavy UI.
 
 ### Measure Real JS Size
 

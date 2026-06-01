@@ -207,7 +207,7 @@ infra/k8s/base/ops/source/database/linear-migrations/
 
 ## Related skills
 
-- **[API Patterns](../api/SKILL.md)** — using ORM in controllers
-- **[Workers](../workers/SKILL.md)** — ORM context in worker commands
-- **[Global Patterns](../global/SKILL.md)** — monorepo conventions
+- **[API Patterns](/.cursor/skills/api/SKILL.md)** — using ORM in controllers
+- **[Workers](/.cursor/skills/workers/SKILL.md)** — ORM context in worker commands
+- **[Global Patterns](/.cursor/skills/global/SKILL.md)** — monorepo conventions
 - **linear-baseline-0003** rule — baseline regeneration
