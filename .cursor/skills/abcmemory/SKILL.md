@@ -9,7 +9,7 @@ description: User vocabulary abcmemory and abcremember — where Cursor guidance
 
 **abcmemory is only under `.cursor/`** (plus `.cursorrules` and `.cursorignore`). That is where Cursor loads standing agent guidance.
 
-**`.llm/` is a planning workspace** (plans, optional history, human templates, reference context). It is **not** abcmemory. Skills under `.cursor/` may *reference* `.llm/plans/` for workflow, but **abcremember** writes to `.cursor/` unless you explicitly ask to store something under `.llm/`.
+**`.llm/` is a planning workspace** (plans, optional history, human templates, reference context). It is **not** abcmemory. Skills under `.cursor/` may _reference_ `.llm/plans/` for workflow, but **abcremember** writes to `.cursor/` unless you explicitly ask to store something under `.llm/`.
 
 ## When to use
 
@@ -40,15 +40,15 @@ Contributor policy: [docs/development/llm/DOCS-DEVELOPMENT-LLM.md](../../../docs
 
 ## How to abcremember (placement guide)
 
-| Kind of instruction | Prefer |
-| --- | --- |
-| Always-on repo convention | `.cursorrules` or new/updated always-applied `.cursor/rules/*.mdc` |
-| Applies to specific paths/file types | Scoped `.cursor/rules/*.mdc` with `globs` |
-| Domain/task workflow (API, E2E, K8s, etc.) | New or extended `.cursor/skills/<topic>/SKILL.md` |
-| Reusable prompt block for agents | `.cursor/prompts/<topic>.md` |
-| Cursor event automation (shell gates, etc.) | `.cursor/hooks.json` + `.cursor/hooks/*` |
-| Path ignores for Cursor indexing | `.cursorignore` |
-| Feature plan, session log, or one-off note | `.llm/plans/` or `.llm/history/` — **not** abcremember unless you also want standing policy in `.cursor/` |
+| Kind of instruction                         | Prefer                                                                                                    |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Always-on repo convention                   | `.cursorrules` or new/updated always-applied `.cursor/rules/*.mdc`                                        |
+| Applies to specific paths/file types        | Scoped `.cursor/rules/*.mdc` with `globs`                                                                 |
+| Domain/task workflow (API, E2E, K8s, etc.)  | New or extended `.cursor/skills/<topic>/SKILL.md`                                                         |
+| Reusable prompt block for agents            | `.cursor/prompts/<topic>.md`                                                                              |
+| Cursor event automation (shell gates, etc.) | `.cursor/hooks.json` + `.cursor/hooks/*`                                                                  |
+| Path ignores for Cursor indexing            | `.cursorignore`                                                                                           |
+| Feature plan, session log, or one-off note  | `.llm/plans/` or `.llm/history/` — **not** abcremember unless you also want standing policy in `.cursor/` |
 
 ## Rules when abremembering
 

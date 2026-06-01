@@ -13,11 +13,11 @@ description: Create and use Podverse git worktrees in sibling directories named 
 
 ## Layout
 
-| Role | Path |
-| --- | --- |
-| Primary checkout (stay on `develop`) | `/Users/mitcheldowney/repos/pv/podverse` |
-| Parent of all worktrees | `/Users/mitcheldowney/repos/pv/` |
-| Feature worktree | `/Users/mitcheldowney/repos/pv/podverse_<branch_slug>/` |
+| Role                                 | Path                                                    |
+| ------------------------------------ | ------------------------------------------------------- |
+| Primary checkout (stay on `develop`) | `/Users/mitcheldowney/repos/pv/podverse`                |
+| Parent of all worktrees              | `/Users/mitcheldowney/repos/pv/`                        |
+| Feature worktree                     | `/Users/mitcheldowney/repos/pv/podverse_<branch_slug>/` |
 
 Worktrees are **siblings** of `podverse`, not subdirectories inside it.
 
@@ -34,11 +34,11 @@ Derive `<branch_slug>` from the git branch name:
 
 Examples:
 
-| Branch | Worktree directory |
-| --- | --- |
-| `feature/tracking-consent` | `podverse_feature_tracking_consent` |
-| `feature/page-navigation-ux` | `podverse_page_navigation_ux` |
-| `chore/typeorm-v1` | `podverse_chore_typeorm_v1` |
+| Branch                       | Worktree directory                  |
+| ---------------------------- | ----------------------------------- |
+| `feature/tracking-consent`   | `podverse_feature_tracking_consent` |
+| `feature/page-navigation-ux` | `podverse_page_navigation_ux`       |
+| `chore/typeorm-v1`           | `podverse_chore_typeorm_v1`         |
 
 Older worktrees may use hyphens (e.g. `podverse-typeorm-v1`); **prefer the underscore form** for new worktrees.
 

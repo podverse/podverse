@@ -65,9 +65,9 @@ appropriate.
 
 ## Summary
 
-| Situation                       | Action                                         |
-| ------------------------------- | ---------------------------------------------- |
-| Finished one plan in a set      | Move only that plan file to `completed/`       |
-| Finished the last plan in a set | Move the whole set (directory) to `completed/` |
+| Situation                       | Action                                                                                                                      |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Finished one plan in a set      | Move only that plan file to `completed/`                                                                                    |
+| Finished the last plan in a set | Move the whole set (directory) to `completed/`                                                                              |
 | Last plan in set (COPY-PASTA)   | End response with **all** cumulative operator verification commands for the whole set (see **response-ending-make-verify**) |
-| Don't ask                       | Archive automatically after the plan is done   |
+| Don't ask                       | Archive automatically after the plan is done                                                                                |
