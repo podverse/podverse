@@ -24,6 +24,6 @@ Also not abcmemory unless you explicitly ask: `docs/`, `.github/`, and ad-hoc pa
 
 ## abcremember
 
-When the user says **abcremember**, persist what they told you into the best-fit **`.cursor/`** file(s) (or `.cursorrules` / `.cursorignore`), then follow that guidance in future work. Do **not** write to `.llm/` unless they explicitly say to remember something there.
+When the user says **abcremember**, **create or update** the best-fit abcmemory file(s) under **`.cursor/`** (or `.cursorrules` / `.cursorignore`): prefer updating existing guidance when the instruction extends the same topic; create a new skill, rule, or prompt only when no suitable file exists. Then follow that guidance in future work. Do **not** write to `.llm/` unless they explicitly say to remember something there.
 
 For placement and workflow details, see `.cursor/skills/abcmemory/SKILL.md`.

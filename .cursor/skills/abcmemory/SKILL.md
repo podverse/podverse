@@ -14,7 +14,7 @@ description: User vocabulary abcmemory and abcremember — where Cursor guidance
 ## When to use
 
 - User says **abcmemory** — they mean the repo's Cursor guidance files (skills, rules, prompts, hooks, etc.).
-- User says **abcremember** — save what they told you into abcmemory and apply it going forward.
+- User says **abcremember** — create or update abcmemory with what they told you, then apply it going forward.
 
 ## Where abcmemory lives
 
@@ -38,7 +38,19 @@ Contributor policy: [docs/development/llm/DOCS-DEVELOPMENT-LLM.md](../../../docs
 - **`.cursor/prompts/`** — abcmemory; standing or reusable agent prompt snippets (kebab-case `.md` files).
 - **`.llm/templates/`** — human copy-paste templates for plans and optional history notes; not agent instruction source.
 
+## abcremember workflow
+
+1. **Understand** what the user wants remembered (scope, always-on vs path-specific vs task workflow).
+2. **Search** existing abcmemory (skills, rules, prompts, `.cursorrules`) for overlapping guidance — use the placement guide below plus grep/read, not guesswork.
+3. **Decide:**
+   - **Update** when the instruction refines, extends, or corrects existing guidance in the same domain.
+   - **Create** when the topic is new, cross-cutting enough to warrant its own skill/rule, or scoped globs need a new `.mdc`.
+4. **Write** minimally; do not duplicate the same rule in two abcmemory locations.
+5. **Report** which files were **created or updated** so the operator can commit.
+
 ## How to abcremember (placement guide)
+
+Use this table to choose where to **create or update** abcmemory:
 
 | Kind of instruction                         | Prefer                                                                                                    |
 | ------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
@@ -55,4 +67,4 @@ Contributor policy: [docs/development/llm/DOCS-DEVELOPMENT-LLM.md](../../../docs
 - One source of truth — do not duplicate the same guidance elsewhere unless the user explicitly asks.
 - Match existing repo style (frontmatter, skill `name` = folder name, blank line after closing `---`).
 - Keep changes minimal and focused on what the user asked to remember.
-- After editing abcmemory, tell the user which files were updated so they can commit them.
+- After abremembering, tell the user which abcmemory files were **created or updated** so they can commit them.
