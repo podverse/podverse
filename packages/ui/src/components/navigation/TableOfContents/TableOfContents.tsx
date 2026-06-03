@@ -16,24 +16,14 @@ export type TableOfContentsProps = {
   className?: string;
 };
 
-export function TableOfContents({
-  navAriaLabel,
-  heading,
-  items,
-  className,
-}: TableOfContentsProps) {
+export function TableOfContents({ navAriaLabel, heading, items, className }: TableOfContentsProps) {
   if (items.length === 0) {
     return null;
   }
 
   return (
-    <nav
-      aria-label={navAriaLabel}
-      className={classNames(styles.tableOfContents, className)}
-    >
-      {heading !== undefined && heading !== '' ? (
-        <p className={styles.heading}>{heading}</p>
-      ) : null}
+    <nav aria-label={navAriaLabel} className={classNames(styles.tableOfContents, className)}>
+      {heading !== undefined && heading !== '' ? <p className={styles.heading}>{heading}</p> : null}
       <ul className={styles.list}>
         {items.map((item) => (
           <li key={item.id}>

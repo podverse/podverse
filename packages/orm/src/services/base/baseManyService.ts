@@ -1,10 +1,7 @@
 import { getDataSourceRead, getDataSourceReadWrite, getLoggerService } from '@orm/context.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
 import { hasDifferentValues } from '@orm/lib/hasDifferentValues.js';
-import {
-  normalizeWhereKeyValues,
-  whereKeyValuesFromDto,
-} from '@orm/lib/whereKeyValuesFromDto.js';
+import { normalizeWhereKeyValues, whereKeyValuesFromDto } from '@orm/lib/whereKeyValuesFromDto.js';
 import type {
   EntityManager,
   FindManyOptions,

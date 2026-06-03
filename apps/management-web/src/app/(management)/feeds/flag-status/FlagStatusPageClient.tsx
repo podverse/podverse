@@ -721,124 +721,124 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
                     className={directoryLoading ? dataSurfaceBusyStyles.dataSurfaceBusy : undefined}
                   >
                     <ResourceTableWithFilter<FeedOperationsLookup>
-                    actions={{
-                      LinkComponent: ManagementIconButtonLink,
-                      labels: {
-                        delete: tc('delete'),
-                        edit: tc('edit'),
-                        view: t('openFeedRow'),
-                      },
-                      viewHref: (row) => {
-                        const p = new URLSearchParams(searchParams.toString());
-                        p.set('openFeedId', String(row.id));
-                        const qs = p.toString();
-                        return qs !== ''
-                          ? `${basePath}?${qs}`
-                          : `${basePath}?openFeedId=${String(row.id)}`;
-                      },
-                    }}
-                    allColumnIds={[
-                      'id',
-                      'channel_title',
-                      'podcast_index_id',
-                      'lifecycle_state_key',
-                      'url',
-                    ]}
-                    basePath={basePath}
-                    columns={directoryColumns}
-                    currentQueryParams={currentQueryParams}
-                    deleteConfirm={{
-                      cancelLabel: chrome.deleteConfirmLabels.cancelLabel,
-                      closeButtonAriaLabel: chrome.deleteConfirmLabels.closeButtonAriaLabel,
-                      confirmLabel: chrome.deleteConfirmLabels.confirmLabel,
-                      message: () => '',
-                      modalAriaLabel: chrome.deleteConfirmLabels.modalAriaLabel,
-                    }}
-                    emptyState={directoryTableEmptyState}
-                    filterableColumnIds={[
-                      'id',
-                      'channel_title',
-                      'podcast_index_id',
-                      'lifecycle_state_key',
-                      'url',
-                    ]}
-                    getRowActions={() => ({
-                      delete: 'hidden',
-                      edit: 'hidden',
-                      view: 'enabled',
-                    })}
-                    getRowKey={(row) => String(row.id)}
-                    initialColumns={[
-                      'id',
-                      'channel_title',
-                      'podcast_index_id',
-                      'lifecycle_state_key',
-                      'url',
-                    ]}
-                    initialSearch={searchParams.get('search') ?? ''}
-                    labels={{
-                      ...chrome.filterLabels,
-                      actionsColumn: tc('actions'),
-                    }}
-                    pagination={{
-                      currentPage: directoryPage,
-                      nextLabel: tc('paginationNextButton'),
-                      onPageChange: () => {},
-                      pageIndicatorLabel: directoryPaginationText,
-                      prevLabel: tc('paginationPrevButton'),
-                      refreshOnPage: (newPage) => {
-                        setDirectoryPage(newPage);
-                      },
-                      totalPages: directoryTotalPages,
-                    }}
-                    paginationMode="page"
-                    renderCells={(row) => (
-                      <>
-                        <Table.Cell>{row.id}</Table.Cell>
-                        <Table.Cell>{row.channel_title ?? t('emptyValue')}</Table.Cell>
-                        <Table.Cell>{row.podcast_index_id}</Table.Cell>
-                        <Table.Cell>
-                          <StatusBadge
-                            variant={directoryLifecycleBadgeVariant(row.lifecycle_state_key)}
-                          >
-                            {t('lifecycleDisplay', { state: row.lifecycle_state_key })}
-                          </StatusBadge>
-                        </Table.Cell>
-                        <Table.Cell>
-                          <MutedBreakableText>{row.url}</MutedBreakableText>
-                        </Table.Cell>
-                      </>
-                    )}
-                    rows={directoryFeeds}
-                    searchSyncParams={{ page: '1' }}
-                    sortBy={directorySortField}
-                    sortOrder={directorySortDir === 'ASC' ? 'asc' : 'desc'}
-                    sortableColumnIds={[
-                      'id',
-                      'channel_title',
-                      'podcast_index_id',
-                      'lifecycle_state_key',
-                      'url',
-                    ]}
-                    trailingToolbar={
-                      <div style={{ minWidth: 'min(100%, 220px)' }}>
-                        <FormDropdown
-                          eyebrow={t('filterLifecycleLabel')}
-                          id="feed-directory-lifecycle"
-                          options={feedDirectoryLifecycleOptions}
-                          value={directoryLifecycleFilter}
-                          onChange={(v) => {
-                            setDirectoryLifecycleFilter(v);
-                            setDirectoryPage(1);
-                          }}
-                        />
-                      </div>
-                    }
-                    onSortChange={(sortKey, order) => {
-                      setDirectorySortField(sortKey as FeedOperationsListSortKey);
-                      setDirectorySortDir(order === 'asc' ? 'ASC' : 'DESC');
-                      setDirectoryPage(1);
-                    }}
+                      actions={{
+                        LinkComponent: ManagementIconButtonLink,
+                        labels: {
+                          delete: tc('delete'),
+                          edit: tc('edit'),
+                          view: t('openFeedRow'),
+                        },
+                        viewHref: (row) => {
+                          const p = new URLSearchParams(searchParams.toString());
+                          p.set('openFeedId', String(row.id));
+                          const qs = p.toString();
+                          return qs !== ''
+                            ? `${basePath}?${qs}`
+                            : `${basePath}?openFeedId=${String(row.id)}`;
+                        },
+                      }}
+                      allColumnIds={[
+                        'id',
+                        'channel_title',
+                        'podcast_index_id',
+                        'lifecycle_state_key',
+                        'url',
+                      ]}
+                      basePath={basePath}
+                      columns={directoryColumns}
+                      currentQueryParams={currentQueryParams}
+                      deleteConfirm={{
+                        cancelLabel: chrome.deleteConfirmLabels.cancelLabel,
+                        closeButtonAriaLabel: chrome.deleteConfirmLabels.closeButtonAriaLabel,
+                        confirmLabel: chrome.deleteConfirmLabels.confirmLabel,
+                        message: () => '',
+                        modalAriaLabel: chrome.deleteConfirmLabels.modalAriaLabel,
+                      }}
+                      emptyState={directoryTableEmptyState}
+                      filterableColumnIds={[
+                        'id',
+                        'channel_title',
+                        'podcast_index_id',
+                        'lifecycle_state_key',
+                        'url',
+                      ]}
+                      getRowActions={() => ({
+                        delete: 'hidden',
+                        edit: 'hidden',
+                        view: 'enabled',
+                      })}
+                      getRowKey={(row) => String(row.id)}
+                      initialColumns={[
+                        'id',
+                        'channel_title',
+                        'podcast_index_id',
+                        'lifecycle_state_key',
+                        'url',
+                      ]}
+                      initialSearch={searchParams.get('search') ?? ''}
+                      labels={{
+                        ...chrome.filterLabels,
+                        actionsColumn: tc('actions'),
+                      }}
+                      pagination={{
+                        currentPage: directoryPage,
+                        nextLabel: tc('paginationNextButton'),
+                        onPageChange: () => {},
+                        pageIndicatorLabel: directoryPaginationText,
+                        prevLabel: tc('paginationPrevButton'),
+                        refreshOnPage: (newPage) => {
+                          setDirectoryPage(newPage);
+                        },
+                        totalPages: directoryTotalPages,
+                      }}
+                      paginationMode="page"
+                      renderCells={(row) => (
+                        <>
+                          <Table.Cell>{row.id}</Table.Cell>
+                          <Table.Cell>{row.channel_title ?? t('emptyValue')}</Table.Cell>
+                          <Table.Cell>{row.podcast_index_id}</Table.Cell>
+                          <Table.Cell>
+                            <StatusBadge
+                              variant={directoryLifecycleBadgeVariant(row.lifecycle_state_key)}
+                            >
+                              {t('lifecycleDisplay', { state: row.lifecycle_state_key })}
+                            </StatusBadge>
+                          </Table.Cell>
+                          <Table.Cell>
+                            <MutedBreakableText>{row.url}</MutedBreakableText>
+                          </Table.Cell>
+                        </>
+                      )}
+                      rows={directoryFeeds}
+                      searchSyncParams={{ page: '1' }}
+                      sortBy={directorySortField}
+                      sortOrder={directorySortDir === 'ASC' ? 'asc' : 'desc'}
+                      sortableColumnIds={[
+                        'id',
+                        'channel_title',
+                        'podcast_index_id',
+                        'lifecycle_state_key',
+                        'url',
+                      ]}
+                      trailingToolbar={
+                        <div style={{ minWidth: 'min(100%, 220px)' }}>
+                          <FormDropdown
+                            eyebrow={t('filterLifecycleLabel')}
+                            id="feed-directory-lifecycle"
+                            options={feedDirectoryLifecycleOptions}
+                            value={directoryLifecycleFilter}
+                            onChange={(v) => {
+                              setDirectoryLifecycleFilter(v);
+                              setDirectoryPage(1);
+                            }}
+                          />
+                        </div>
+                      }
+                      onSortChange={(sortKey, order) => {
+                        setDirectorySortField(sortKey as FeedOperationsListSortKey);
+                        setDirectorySortDir(order === 'asc' ? 'ASC' : 'DESC');
+                        setDirectoryPage(1);
+                      }}
                     />
                   </div>
                 )}
@@ -852,41 +852,45 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
               >
                 <SectionHeading level={2}>{t('sectionTabFindFeed')}</SectionHeading>
                 <LookupFieldGrid variant="inlineEyebrow">
-                <div className={lookupFieldGridControlClass}>
-                  <FormDropdown
-                    eyebrow={t('searchByLabel')}
-                    id="feed-flag-lookup-mode"
-                    options={feedLookupSearchModeOptions}
-                    value={searchMode}
-                    onChange={(v) => {
-                      if (v === 'podcast_index_id' || v === 'feed_id' || v === 'url') {
-                        setSearchMode(v);
-                      }
-                    }}
+                  <div className={lookupFieldGridControlClass}>
+                    <FormDropdown
+                      eyebrow={t('searchByLabel')}
+                      id="feed-flag-lookup-mode"
+                      options={feedLookupSearchModeOptions}
+                      value={searchMode}
+                      onChange={(v) => {
+                        if (v === 'podcast_index_id' || v === 'feed_id' || v === 'url') {
+                          setSearchMode(v);
+                        }
+                      }}
+                    />
+                  </div>
+                  <TextInput
+                    autoComplete="off"
+                    className={lookupFieldGridControlClass}
+                    eyebrow={
+                      searchMode === 'url' ? t('searchValueLabelUrl') : t('searchValueLabel')
+                    }
+                    id="feed-flag-lookup-value"
+                    name="q"
+                    placeholder={
+                      searchMode === 'url' ? t('placeholderUrl') : t('placeholderNumber')
+                    }
+                    type={searchMode === 'url' ? 'text' : 'number'}
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
                   />
-                </div>
-                <TextInput
-                  autoComplete="off"
-                  className={lookupFieldGridControlClass}
-                  eyebrow={searchMode === 'url' ? t('searchValueLabelUrl') : t('searchValueLabel')}
-                  id="feed-flag-lookup-value"
-                  name="q"
-                  placeholder={searchMode === 'url' ? t('placeholderUrl') : t('placeholderNumber')}
-                  type={searchMode === 'url' ? 'text' : 'number'}
-                  value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
-                />
-                <Button
-                  className={lookupFieldGridButtonClass}
-                  disabled={lookupLoading}
-                  onClick={() => {
-                    void performLookup();
-                  }}
-                  type="button"
-                  variant="primary"
-                >
-                  {lookupLoading ? t('lookupLoading') : t('lookupButton')}
-                </Button>
+                  <Button
+                    className={lookupFieldGridButtonClass}
+                    disabled={lookupLoading}
+                    onClick={() => {
+                      void performLookup();
+                    }}
+                    type="button"
+                    variant="primary"
+                  >
+                    {lookupLoading ? t('lookupLoading') : t('lookupButton')}
+                  </Button>
                 </LookupFieldGrid>
                 {loadError && <Alert variant="error">{loadError}</Alert>}
               </PageSection>
