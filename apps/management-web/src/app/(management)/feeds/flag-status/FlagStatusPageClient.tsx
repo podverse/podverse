@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { FormDropdownOption } from '@podverse/ui';
@@ -11,6 +12,7 @@ import {
   Alert,
   Breadcrumbs,
   Button,
+  ButtonTabs,
   CheckboxField,
   CheckboxFieldList,
   DescriptionList,
@@ -67,8 +69,15 @@ type FlagStatusPageClientProps = {
 };
 
 type SearchMode = 'podcast_index_id' | 'feed_id' | 'url';
+type FlagStatusSection = 'searchFeeds' | 'findFeed';
 
 const DIRECTORY_PAGE_SIZE = 25;
+
+const FEED_FLAG_STATUS_SECTION_IDS = {
+  directory: 'feed-flag-status-directory',
+  findFeed: 'feed-flag-status-find-feed',
+  thisFeed: 'feed-flag-status-this-feed',
+} as const;
 
 function directoryLifecycleBadgeVariant(
   lifecycleKey: string
@@ -100,6 +109,7 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
   const td = useTranslations('database');
   const tNav = useTranslations('nav');
   const canUpdate = canUpdateFeeds(user);
+  const [selectedSection, setSelectedSection] = useState<FlagStatusSection>('searchFeeds');
   const [options, setOptions] = useState<FeedOperationsOptionsResponse | null>(null);
   const [searchMode, setSearchMode] = useState<SearchMode>('podcast_index_id');
   const [searchText, setSearchText] = useState('');
@@ -218,6 +228,7 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
   const setFeedStateFromLookup = useCallback(
     (nextFeed: FeedOperationsLookup, conditionTypes: { condition_key: string }[]) => {
       setFeed(nextFeed);
+      setSelectedSection('findFeed');
       setLifecycleStateKey(nextFeed.lifecycle_state_key ?? '');
       setConditionChecked(
         buildConditionChecked(conditionTypes, nextFeed.active_condition_keys ?? [])
@@ -639,6 +650,26 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
     }
   }, [directoryFeeds, openFeedFromDirectoryRow, options, searchParams]);
 
+  const sectionButtonTabs = useMemo(
+    () => [
+      {
+        key: 'searchFeeds',
+        label: t('sectionTabSearchFeeds'),
+        onClick: () => {
+          setSelectedSection('searchFeeds');
+        },
+      },
+      {
+        key: 'findFeed',
+        label: t('sectionTabFindFeed'),
+        onClick: () => {
+          setSelectedSection('findFeed');
+        },
+      },
+    ],
+    [t]
+  );
+
   if (optionsLoading) {
     return (
       <ManagementPageShell title={t('pageTitle')}>
@@ -675,17 +706,21 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
 
             {optionsError && <Alert variant="error">{optionsError}</Alert>}
 
-            <PageSection
-              aria-busy={directoryLoading ? true : undefined}
-              aria-label={t('sectionDirectoryAria')}
-            >
-              <SectionHeading level={2}>{t('directoryHeading')}</SectionHeading>
-              {directoryError && <Alert variant="error">{directoryError}</Alert>}
-              {!directoryError && (
-                <div
-                  className={directoryLoading ? dataSurfaceBusyStyles.dataSurfaceBusy : undefined}
-                >
-                  <ResourceTableWithFilter<FeedOperationsLookup>
+            <ButtonTabs buttonTabs={sectionButtonTabs} selectedKey={selectedSection} />
+
+            {selectedSection === 'searchFeeds' && (
+              <PageSection
+                aria-busy={directoryLoading ? true : undefined}
+                aria-label={t('sectionDirectoryAria')}
+                id={FEED_FLAG_STATUS_SECTION_IDS.directory}
+              >
+                <SectionHeading level={2}>{t('sectionTabSearchFeeds')}</SectionHeading>
+                {directoryError && <Alert variant="error">{directoryError}</Alert>}
+                {!directoryError && (
+                  <div
+                    className={directoryLoading ? dataSurfaceBusyStyles.dataSurfaceBusy : undefined}
+                  >
+                    <ResourceTableWithFilter<FeedOperationsLookup>
                     actions={{
                       LinkComponent: ManagementIconButtonLink,
                       labels: {
@@ -804,14 +839,19 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
                       setDirectorySortDir(order === 'asc' ? 'ASC' : 'DESC');
                       setDirectoryPage(1);
                     }}
-                  />
-                </div>
-              )}
-            </PageSection>
+                    />
+                  </div>
+                )}
+              </PageSection>
+            )}
 
-            <PageSection aria-label={t('sectionFindAria')}>
-              <SectionHeading level={2}>{t('findFeedHeading')}</SectionHeading>
-              <LookupFieldGrid variant="inlineEyebrow">
+            {selectedSection === 'findFeed' && (
+              <PageSection
+                aria-label={t('sectionFindAria')}
+                id={FEED_FLAG_STATUS_SECTION_IDS.findFeed}
+              >
+                <SectionHeading level={2}>{t('sectionTabFindFeed')}</SectionHeading>
+                <LookupFieldGrid variant="inlineEyebrow">
                 <div className={lookupFieldGridControlClass}>
                   <FormDropdown
                     eyebrow={t('searchByLabel')}
@@ -847,12 +887,16 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
                 >
                   {lookupLoading ? t('lookupLoading') : t('lookupButton')}
                 </Button>
-              </LookupFieldGrid>
-              {loadError && <Alert variant="error">{loadError}</Alert>}
-            </PageSection>
+                </LookupFieldGrid>
+                {loadError && <Alert variant="error">{loadError}</Alert>}
+              </PageSection>
+            )}
 
-            {feed && (
-              <PageSection aria-label={t('sectionFeedAria')}>
+            {selectedSection === 'findFeed' && feed && (
+              <PageSection
+                aria-label={t('sectionFeedAria')}
+                id={FEED_FLAG_STATUS_SECTION_IDS.thisFeed}
+              >
                 <SectionHeading level={2}>{t('thisFeedHeading')}</SectionHeading>
                 <SectionHeading level={4}>{t('onRecordHeading')}</SectionHeading>
                 <DescriptionList variant="flat">
@@ -1057,7 +1101,7 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
                   <RestrictedNotice>
                     <FormHintText variant="block">
                       {t.rich('readonlyHint', {
-                        feedsCode: (chunks) => <code>{chunks}</code>,
+                        feedsCode: (chunks: ReactNode) => <code>{chunks}</code>,
                       })}
                     </FormHintText>
                   </RestrictedNotice>
