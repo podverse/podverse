@@ -35,4 +35,36 @@ test.describe('Management layout navbar chrome', () => {
       page.getByText(/Role:/)
     );
   });
+
+  test('clicking a dashboard nav card shows a loading overlay until the destination route is ready', async ({
+    page,
+  }, testInfo) => {
+    await page.goto('/');
+
+    await page.locator('#email').fill('e2e-superadmin@example.com');
+    await page.locator('#password').fill('Test!1Aa');
+    await page.getByRole('button', { name: 'Sign In' }).click();
+
+    await page.waitForURL('**/dashboard');
+
+    const usersNavLink = page.getByRole('link', { name: 'Users' });
+    await expect(usersNavLink).toBeVisible();
+
+    const loadingOverlay = page.getByLabel('Loading…');
+
+    await Promise.all([
+      loadingOverlay.waitFor({ state: 'visible', timeout: 10_000 }),
+      usersNavLink.click(),
+    ]);
+
+    await page.waitForURL('**/users');
+    await expect(loadingOverlay).toBeHidden();
+
+    await capturePageLoad(
+      page,
+      testInfo,
+      'The users list page is visible after route navigation and the loading overlay is dismissed.',
+      page.getByRole('heading', { name: 'Users' })
+    );
+  });
 });
