@@ -35,6 +35,10 @@
     "paginationPageOf": "Page {currentPage} sur {totalPages}",
     "closeModalAria": "Fermer la fenêtre modale"
   },
+  "tableOfContents": {
+    "navAriaLabel": "Table des matières",
+    "heading": "Table des matières"
+  },
   "tableShared": {
     "searchPlaceholder": "Rechercher",
     "searchSubmitLabel": "Rechercher",
@@ -308,6 +312,8 @@
     "pageSubtitle": "Trouvez un flux par ID Podcast Index (par défaut), id interne du flux ou URL. Mettez à jour le cycle de vie, les conditions actives, les limites et les notes. Ceci est distinct du navigateur de tables de la base de données.",
     "breadcrumbFeeds": "Flux",
     "breadcrumbCurrent": "État du drapeau",
+    "sectionTabSearchFeeds": "Rechercher des flux",
+    "sectionTabFindFeed": "Trouver un flux",
     "directoryHeading": "Flux",
     "directoryLoadError": "Impossible de charger la liste des flux.",
     "directoryEmpty": "Aucun flux ne correspond aux filtres actuels.",

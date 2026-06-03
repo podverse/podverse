@@ -248,6 +248,11 @@ export { Tab } from './components/navigation/Tab/Tab';
 export type { TabProps } from './components/navigation/Tab/Tab';
 export { Tabs } from './components/navigation/Tabs/Tabs';
 export type { TabData, TabsData, TabsProps } from './components/navigation/Tabs/Tabs';
+export { TableOfContents } from './components/navigation/TableOfContents/index';
+export type {
+  TableOfContentsItem,
+  TableOfContentsProps,
+} from './components/navigation/TableOfContents/index';
 export { ButtonTabs } from './components/navigation/ButtonTabs/ButtonTabs';
 export type { ButtonTab, ButtonTabsProps } from './components/navigation/ButtonTabs/ButtonTabs';
 export { ActionLink } from './components/navigation/ActionLink/ActionLink';

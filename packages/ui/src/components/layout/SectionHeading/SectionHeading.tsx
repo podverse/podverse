@@ -40,9 +40,14 @@ export function SectionHeading({
 export type SectionBlockProps = {
   children: ReactNode;
   className?: string;
+  id?: string;
 };
 
 /** Vertical spacing wrapper for chart/table sections */
-export function SectionBlock({ children, className }: SectionBlockProps) {
-  return <div className={classNames(styles.sectionSpaced, className)}>{children}</div>;
+export function SectionBlock({ children, className, id }: SectionBlockProps) {
+  return (
+    <div id={id} className={classNames(styles.sectionSpaced, className)}>
+      {children}
+    </div>
+  );
 }

@@ -35,6 +35,10 @@
     "paginationPageOf": "Page {currentPage} of {totalPages}",
     "closeModalAria": "Close modal"
   },
+  "tableOfContents": {
+    "navAriaLabel": "Table of Contents",
+    "heading": "Table of Contents"
+  },
   "tableShared": {
     "searchPlaceholder": "Search",
     "searchSubmitLabel": "Search",
@@ -308,6 +312,8 @@
     "pageSubtitle": "Find a feed by Podcast Index ID (default), internal feed id, or URL. Update lifecycle state, active conditions, limits, and notes. This is separate from the database table browser.",
     "breadcrumbFeeds": "Feeds",
     "breadcrumbCurrent": "Flag status",
+    "sectionTabSearchFeeds": "Search Feeds",
+    "sectionTabFindFeed": "Find a Feed",
     "directoryHeading": "Feeds",
     "directoryLoadError": "Could not load feeds list.",
     "directoryEmpty": "No feeds match the current filters.",
