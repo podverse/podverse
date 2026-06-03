@@ -1,6 +1,10 @@
 import { getDataSourceRead, getDataSourceReadWrite, getLoggerService } from '@orm/context.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
 import { hasDifferentValues } from '@orm/lib/hasDifferentValues.js';
+import {
+  normalizeWhereKeyValues,
+  whereKeyValuesFromDto,
+} from '@orm/lib/whereKeyValuesFromDto.js';
 import type {
   EntityManager,
   FindManyOptions,
@@ -70,7 +74,7 @@ export class BaseManyService<T extends ObjectLiteral, K extends keyof T> {
     const parentWhereValue = this.getParentWhereValue(parentEntity);
     const where: FindOptionsWhere<T> = {
       [this.parentEntityKey]: parentWhereValue,
-      ...whereKeyValues,
+      ...normalizeWhereKeyValues(whereKeyValues),
     } as FindOptionsWhere<T>;
     return this.repositoryRead.findOne({ where, ...config });
   }
@@ -82,12 +86,7 @@ export class BaseManyService<T extends ObjectLiteral, K extends keyof T> {
     config?: FindOneOptions<T>,
     existingEntity?: T
   ): Promise<T> {
-    const whereObject: Partial<T> = {};
-    whereKeys.forEach((key) => {
-      if (key in dto) {
-        whereObject[key as keyof T] = dto[key];
-      }
-    });
+    const whereObject = whereKeyValuesFromDto(whereKeys, dto);
 
     let entity: T | null = existingEntity || null;
 
@@ -187,7 +186,7 @@ export class BaseManyService<T extends ObjectLiteral, K extends keyof T> {
     const parentWhereValue = this.getParentWhereValue(parentEntity);
     const where: FindOptionsWhere<T> = {
       [this.parentEntityKey]: parentWhereValue,
-      ...whereKeyValues,
+      ...normalizeWhereKeyValues(whereKeyValues),
     } as FindOptionsWhere<T>;
 
     const rowToDelete = await this.repositoryRead.findOne({ where });
