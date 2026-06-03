@@ -68,3 +68,13 @@ Use this table to choose where to **create or update** abcmemory:
 - Match existing repo style (frontmatter, skill `name` = folder name, blank line after closing `---`).
 - Keep changes minimal and focused on what the user asked to remember.
 - After abremembering, tell the user which abcmemory files were **created or updated** so they can commit them.
+
+## Build process + docs sync guardrail
+
+When build orchestration changes (`package.json` build scripts, CI validate sequencing, or workspace
+build runner behavior), abcremember requires updating build-order guidance in both:
+
+- `.cursor/skills/build-order/SKILL.md`
+- `docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-BUILD-ORDER.md`
+
+Do not merge build-order changes that leave the canonical build-order document stale.
