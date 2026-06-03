@@ -24,7 +24,7 @@
     "access": "public"
   },
   "dependencies": {
-    "date-fns": "^4.2.1",
+    "date-fns": "^4.4.0",
     "he": "^1.2.0",
     "uuid": "^14.0.0"
   },

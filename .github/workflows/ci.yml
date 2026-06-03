@@ -53,6 +53,22 @@ jobs:
         with:
           ref: ${{ steps.pr-comment.outputs.head_sha }}
 
+      - name: Pull DB test images
+        run: |
+          set -euo pipefail
+          for image in postgres:18.3 node:24-slim; do
+            for attempt in 1 2 3 4 5; do
+              if docker pull "$image"; then
+                break
+              fi
+              echo "Pull failed for $image (attempt $attempt/5); retrying in 15s..." >&2
+              sleep 15
+              if [[ "$attempt" -eq 5 ]]; then
+                exit 1
+              fi
+            done
+          done
+
       - name: Validate linear migration files
         id: db-verify
         run: bash scripts/database/validate-linear-migrations.sh
