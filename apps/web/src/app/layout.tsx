@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 
 import type { QueueResourcesAbridgedIndex } from '@podverse/helpers';
@@ -18,8 +19,10 @@ import { QueueResourcesAbridgedController } from '../components/Queue/QueueResou
 import { SideBar } from '../components/SideBar/SideBar';
 import { WindowWrapper } from '../components/Window/WindowWrapper';
 import { getConfig } from '../config';
+import { getWebOrigin } from '../config';
 import { fetchWebRuntimeConfigFromSidecar } from '../config/runtime-config.server';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime-config-store';
+import { ASSETS } from '../constants/assets';
 import { getSSRApiRequestService } from '../factories/apiRequestService';
 import { useLocaleDetect } from '../hooks/useLocaleDetect';
 import { setSSRAccountForLocale } from '../i18n/request';
@@ -29,6 +32,25 @@ import { getParsedLocalSettings } from '../utils/localSettings/localSettings';
 import { toUITheme } from '../utils/localSettings/uiTheme';
 
 import '../styles/index.scss';
+
+const staticConfig = getConfig();
+const brandName = staticConfig.public.brand.name;
+const defaultOpenGraphImage = new URL(
+  staticConfig.public.brand.logoLight || ASSETS.IMAGES.BRANDING.BRAND.LOGO,
+  getWebOrigin()
+).toString();
+
+export const metadata: Metadata = {
+  metadataBase: new URL(getWebOrigin()),
+  title: {
+    default: brandName,
+    template: `%s | ${brandName}`,
+  },
+  openGraph: {
+    siteName: brandName,
+    images: [{ url: defaultOpenGraphImage }],
+  },
+};
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   let runtimeConfig = getRuntimeConfig();
@@ -79,7 +101,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={locale} data-ui-theme={ssrUITheme}>
       <head>
         <RuntimeConfigScript runtimeConfig={runtimeConfig} />
-        <title>{config.public.brand.name}</title>
         <FontPreloads />
         <FavIcons />
       </head>

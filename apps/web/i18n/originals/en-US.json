@@ -54,7 +54,7 @@
       "add_feed": "Add Feed",
       "add_feed_explanation": "This feed is not in our directory. If you would like to add it, press the \"Add Feed\" button.",
       "rss_link": "RSS Link",
-      "blocked_feed_banner": "This feed cannot currently be added in Podverse ({reason}). If you think this is a mistake, please contact",
+      "blocked_feed_banner": "This feed cannot currently be added in {brand_name} ({reason}). If you think this is a mistake, please contact",
       "blocked_reason_spam_detected": "spam detection restrictions",
       "blocked_reason_oversized_detected": "feed size limits",
       "blocked_reason_takedown_active": "a content removal request",
@@ -263,11 +263,6 @@
       "audio_with_ext_bitrate_mbps": "Audio {ext} {bitrate}Mbps"
     }
   },
-  "updates_page": {
-    "intro": "Release notes for the open-source app are published on GitHub. Use the link below for tagged releases.",
-    "title": "Updates",
-    "view_releases": "View releases on GitHub"
-  },
   "value": {
     "boost": "Boost",
     "recipient": {
@@ -451,7 +446,6 @@
     "navbar_menu_close": "Close menu",
     "close_modal": "Close modal",
     "image_preview_dialog": "Image preview",
-    "updates": "Updates",
     "sharable_status": {
       "sharable_status": "Sharable Status",
       "public": "Public",
@@ -944,6 +938,82 @@
   "pagination": {
     "ariaPreviousPage": "Previous page",
     "ariaNextPage": "Next page"
+  },
+  "seo": {
+    "pages": {
+      "home": {
+        "title": "{brand_name}",
+        "description": "Discover podcasts, music, and livestreams on {brand_name}."
+      },
+      "podcasts": {
+        "title": "Podcasts",
+        "description": "Browse podcast feeds and shows on {brand_name}."
+      },
+      "episodes": {
+        "title": "Episodes",
+        "description": "Browse podcast episodes across {brand_name}."
+      },
+      "artists": {
+        "title": "Artists",
+        "description": "Discover music artists on {brand_name}."
+      },
+      "albums": {
+        "title": "Albums",
+        "description": "Browse music albums on {brand_name}."
+      },
+      "tracks": {
+        "title": "Tracks",
+        "description": "Discover music tracks on {brand_name}."
+      },
+      "podcastsLivestreams": {
+        "title": "Podcast Livestreams",
+        "description": "Watch live podcast streams on {brand_name}."
+      },
+      "musicLivestreams": {
+        "title": "Music Livestreams",
+        "description": "Watch live music streams on {brand_name}."
+      },
+      "playlists": {
+        "title": "Playlists",
+        "description": "Explore community playlists on {brand_name}."
+      },
+      "clips": {
+        "title": "Clips",
+        "description": "Explore podcast and music clips on {brand_name}."
+      },
+      "videos": {
+        "title": "Videos",
+        "description": "Discover video content on {brand_name}."
+      },
+      "profiles": {
+        "title": "Profiles",
+        "description": "Browse public creator profiles on {brand_name}."
+      },
+      "about": {
+        "title": "About",
+        "description": "Learn more about {brand_name} and what we build."
+      },
+      "contact": {
+        "title": "Contact",
+        "description": "Contact {brand_name} for support, requests, and feedback."
+      },
+      "terms": {
+        "title": "Terms",
+        "description": "Read the {brand_name} terms of service."
+      },
+      "donate": {
+        "title": "Donate",
+        "description": "Support {brand_name} with a direct donation."
+      },
+      "mobileApp": {
+        "title": "Mobile App",
+        "description": "Get the {brand_name} mobile app on supported platforms."
+      },
+      "metaboost": {
+        "title": "MetaBoost",
+        "description": "Learn how MetaBoost powers value-for-value boost messages."
+      }
+    }
   },
   "language": {
     "language": "Language",

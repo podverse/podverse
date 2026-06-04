@@ -10,6 +10,7 @@ import {
   QUERY_PARAMS_SUBSCRIBED_TYPE,
 } from '@podverse/helpers-requests';
 
+import { getCuratedStaticPageMetadata } from '../../lib/seo/curatedPageMetadata';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import type { ProfilesFilterDefaults } from '../../utils/localSettings/localSettings';
@@ -34,6 +35,10 @@ type SearchParams = z.infer<typeof searchParamsSchema>;
 export type ProfilesPageProps = {
   searchParams: Promise<SearchParams>;
 };
+
+export async function generateMetadata() {
+  return getCuratedStaticPageMetadata('profiles');
+}
 
 export default async function ProfilesPage({ searchParams }: ProfilesPageProps) {
   const { isValidAuthSession, ssrApiRequestService } = await getSSRAuthService();

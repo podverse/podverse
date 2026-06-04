@@ -263,11 +263,6 @@
       "audio_with_ext_bitrate_mbps": ""
     }
   },
-  "updates_page": {
-    "intro": "",
-    "title": "",
-    "view_releases": ""
-  },
   "value": {
     "boost": "",
     "recipient": {
@@ -451,7 +446,6 @@
     "navbar_menu_close": "",
     "close_modal": "",
     "image_preview_dialog": "",
-    "updates": "",
     "sharable_status": {
       "sharable_status": "",
       "public": "",

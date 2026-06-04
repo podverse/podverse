@@ -2,10 +2,15 @@ import { getTranslations } from 'next-intl/server';
 
 import { MainColumnStack, MainHeader, MainSidebarLayout, SideContent } from '@podverse/ui';
 
+import { getCuratedStaticPageMetadata } from '../../../lib/seo/curatedPageMetadata';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { getConfig } from '../../../config';
 
 import styles from '../../../styles/app/v4v/BoostMessages.module.scss';
+
+export async function generateMetadata() {
+  return getCuratedStaticPageMetadata('metaboost');
+}
 
 export default async function MetaboostPage() {
   const t = await getTranslations('v4v');

@@ -59,7 +59,6 @@ export const Footer: React.FC = () => {
           <Link disabled href={ROUTES.EMBED}>
             {tFeatures('embed')}
           </Link>
-          {/* <Link href={ROUTES.UPDATES}>{tMisc("updates")}</Link> */}
         </FooterLinks>
       }
       social={

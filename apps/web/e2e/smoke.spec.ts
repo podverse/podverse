@@ -13,4 +13,9 @@ test.describe('Web smoke', () => {
 
     await capturePageLoad(page, testInfo, 'The home page loads and shows the document body.');
   });
+
+  test('robots endpoint responds successfully', async ({ request }) => {
+    const response = await request.get('/robots.txt');
+    expect(response.ok()).toBeTruthy();
+  });
 });

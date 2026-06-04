@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod';
 
+import { buildNoindexMetadata } from '../../../../../lib/seo/buildNoindexMetadata';
 import { getSSRAuthService } from '../../../../utils/auth/ssrAuth';
 import { ClipEditPageClient } from './ClipEditPageClient';
 
@@ -22,6 +23,10 @@ type ParsedClipEditParams = {
   ssrEnclosureTypeSelected: 'default' | 'audio' | 'video';
   ssrEnclosureRowSelected: number;
 };
+
+export async function generateMetadata() {
+  return buildNoindexMetadata();
+}
 
 export default async function ClipEditPage({ params, searchParams }: ClipEditPageProps) {
   const { clip_id } = await params;

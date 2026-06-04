@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { buildNoindexMetadata } from '../../lib/seo/buildNoindexMetadata';
 import { ResetPasswordPageClient } from './ResetPasswordPageClient';
 
 const searchParamsSchema = z.object({
@@ -11,6 +12,10 @@ type SearchParams = z.infer<typeof searchParamsSchema>;
 export type PodcastsPageProps = {
   searchParams: Promise<SearchParams>;
 };
+
+export async function generateMetadata() {
+  return buildNoindexMetadata();
+}
 
 export default async function ResetPasswordPage({ searchParams }: PodcastsPageProps) {
   const queryParams = searchParams ? await searchParams : {};

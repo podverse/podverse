@@ -5,6 +5,7 @@ import type { DTOChannel } from '@podverse/helpers';
 import { getTotalPages, QUERY_PARAMS_MEDIUMS } from '@podverse/helpers';
 import { QUERY_PARAMS_HOME_SORT_VALUES } from '@podverse/helpers-requests';
 
+import { getCuratedStaticPageMetadata } from '../lib/seo/curatedPageMetadata';
 import { getSSRAuthService } from '../utils/auth/ssrAuth';
 import type { HomeFilterDefaults } from '../utils/localSettings/localSettings';
 import { getParsedLocalSettings } from '../utils/localSettings/localSettings';
@@ -27,6 +28,10 @@ type SearchParams = z.infer<typeof searchParamsSchema>;
 export type HomePageProps = {
   searchParams: Promise<SearchParams>;
 };
+
+export async function generateMetadata() {
+  return getCuratedStaticPageMetadata('home');
+}
 
 export default async function HomePage({ searchParams }: HomePageProps) {
   const { isValidAuthSession, ssrApiRequestService } = await getSSRAuthService();

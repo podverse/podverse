@@ -4,6 +4,11 @@ import { MainColumnStack, MainHeader, MainSidebarLayout, SideContent } from '@po
 
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { getConfig } from '../../config';
+import { getCuratedStaticPageMetadata } from '../../lib/seo/curatedPageMetadata';
+
+export async function generateMetadata() {
+  return getCuratedStaticPageMetadata('terms');
+}
 
 export default async function TermsPage() {
   const t = await getTranslations('terms');

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { DTOQueue, QueryParamsQueueMedium } from '@podverse/helpers';
 import { QUERY_PARAMS_QUEUE_MEDIUMS } from '@podverse/helpers';
 
+import { buildNoindexMetadata } from '../../lib/seo/buildNoindexMetadata';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { QueuesPageClient } from './QueuesPageClient';
 
@@ -15,6 +16,10 @@ type SearchParams = z.infer<typeof searchParamsSchema>;
 export type QueuePageProps = {
   searchParams: Promise<SearchParams>;
 };
+
+export async function generateMetadata() {
+  return buildNoindexMetadata();
+}
 
 export default async function QueuesPage({ searchParams }: QueuePageProps) {
   const { isValidAuthSession, ssrApiRequestService } = await getSSRAuthService();

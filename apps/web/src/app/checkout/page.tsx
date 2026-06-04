@@ -1,3 +1,4 @@
+import { buildNoindexMetadata } from '../../lib/seo/buildNoindexMetadata';
 import { getConfig } from '../../config';
 import { getSSRApiRequestService } from '../../factories/apiRequestService';
 import { CheckoutPageClient } from './CheckoutPageClient';
@@ -12,6 +13,10 @@ type MembershipPricingData = {
 };
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata() {
+  return buildNoindexMetadata();
+}
 
 export default async function CheckoutPage() {
   const config = getConfig();
