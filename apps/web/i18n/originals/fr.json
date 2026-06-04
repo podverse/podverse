@@ -939,6 +939,82 @@
     "ariaPreviousPage": "Page précédente",
     "ariaNextPage": "Page suivante"
   },
+  "seo": {
+    "pages": {
+      "home": {
+        "title": "{brand_name}",
+        "description": "Découvrez des podcasts, de la musique et des livestreams sur {brand_name}."
+      },
+      "podcasts": {
+        "title": "Podcasts",
+        "description": "Parcourez les flux et les émissions de podcasts sur {brand_name}."
+      },
+      "episodes": {
+        "title": "Épisodes",
+        "description": "Parcourez les épisodes de podcast sur {brand_name}."
+      },
+      "artists": {
+        "title": "Artistes",
+        "description": "Découvrez des artistes musicaux sur {brand_name}."
+      },
+      "albums": {
+        "title": "Albums",
+        "description": "Parcourez des albums de musique sur {brand_name}."
+      },
+      "tracks": {
+        "title": "Pistes",
+        "description": "Découvrez des pistes musicales sur {brand_name}."
+      },
+      "podcastsLivestreams": {
+        "title": "Livestreams de Podcasts",
+        "description": "Regardez des streams de podcasts en direct sur {brand_name}."
+      },
+      "musicLivestreams": {
+        "title": "Livestreams de Musique",
+        "description": "Regardez des streams de musique en direct sur {brand_name}."
+      },
+      "playlists": {
+        "title": "Playlists",
+        "description": "Explorez des playlists communautaires sur {brand_name}."
+      },
+      "clips": {
+        "title": "Clips",
+        "description": "Explorez des clips de podcasts et de musique sur {brand_name}."
+      },
+      "videos": {
+        "title": "Vidéos",
+        "description": "Découvrez du contenu vidéo sur {brand_name}."
+      },
+      "profiles": {
+        "title": "Profils",
+        "description": "Parcourez les profils de créateurs publics sur {brand_name}."
+      },
+      "about": {
+        "title": "À Propos",
+        "description": "En savoir plus sur {brand_name} et ce que nous construisons."
+      },
+      "contact": {
+        "title": "Contact",
+        "description": "Contactez {brand_name} pour obtenir de l'aide, des demandes et des retours."
+      },
+      "terms": {
+        "title": "Conditions",
+        "description": "Lisez les conditions de service de {brand_name}."
+      },
+      "donate": {
+        "title": "Faire un Don",
+        "description": "Soutenez {brand_name} avec un don direct."
+      },
+      "mobileApp": {
+        "title": "Application Mobile",
+        "description": "Obtenez l'application mobile {brand_name} sur les plateformes prises en charge."
+      },
+      "metaboost": {
+        "title": "MetaBoost",
+        "description": "Découvrez comment MetaBoost alimente des messages de boost valeur pour valeur."
+      }
+    }
+  },
   "language": {
     "language": "Langue",
     "select_language": "Sélectionner la langue",

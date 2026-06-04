@@ -939,6 +939,82 @@
     "ariaPreviousPage": "",
     "ariaNextPage": ""
   },
+  "seo": {
+    "pages": {
+      "home": {
+        "title": "",
+        "description": ""
+      },
+      "podcasts": {
+        "title": "",
+        "description": ""
+      },
+      "episodes": {
+        "title": "",
+        "description": ""
+      },
+      "artists": {
+        "title": "",
+        "description": ""
+      },
+      "albums": {
+        "title": "",
+        "description": ""
+      },
+      "tracks": {
+        "title": "",
+        "description": ""
+      },
+      "podcastsLivestreams": {
+        "title": "",
+        "description": ""
+      },
+      "musicLivestreams": {
+        "title": "",
+        "description": ""
+      },
+      "playlists": {
+        "title": "",
+        "description": ""
+      },
+      "clips": {
+        "title": "",
+        "description": ""
+      },
+      "videos": {
+        "title": "",
+        "description": ""
+      },
+      "profiles": {
+        "title": "",
+        "description": ""
+      },
+      "about": {
+        "title": "",
+        "description": ""
+      },
+      "contact": {
+        "title": "",
+        "description": ""
+      },
+      "terms": {
+        "title": "",
+        "description": ""
+      },
+      "donate": {
+        "title": "",
+        "description": ""
+      },
+      "mobileApp": {
+        "title": "",
+        "description": ""
+      },
+      "metaboost": {
+        "title": "",
+        "description": ""
+      }
+    }
+  },
   "language": {
     "language": "",
     "select_language": "",
