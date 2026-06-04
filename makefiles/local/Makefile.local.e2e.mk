@@ -176,13 +176,15 @@ e2e_test_report: e2e_deps e2e_seed
 		done; \
 		echo "Rotated old E2E reports: kept newest 10 timestamped directories."; \
 	fi; \
+	E2E_REPORT_DIRS="$$WEB_REPORT $$WEB_CF_REPORT $$WEB_COOKIE_REPORT $$WEB_SIGNUP_REPORT $$WEB_CUSTOM_THEMES_NATIVE_REPORT $$WEB_CUSTOM_THEMES_REMOTE_REPORT $$WEB_CUSTOM_THEMES_COMBO_REPORT $$MGMT_REPORT $$MGMT_CF_REPORT"; \
 	if command -v open >/dev/null 2>&1; then \
-		[ -f "$$WEB_REPORT/index.html" ] && open "$$WEB_REPORT/index.html" "$$WEB_CF_REPORT/index.html" "$$MGMT_REPORT/index.html" "$$MGMT_CF_REPORT/index.html" 2>/dev/null || true; \
+		for dir in $$E2E_REPORT_DIRS; do \
+			[ -f "$$dir/index.html" ] && open "$$dir/index.html" 2>/dev/null || true; \
+		done; \
 	elif command -v xdg-open >/dev/null 2>&1; then \
-		[ -f "$$WEB_REPORT/index.html" ] && xdg-open "$$WEB_REPORT/index.html" >/dev/null 2>&1 || true; \
-		[ -f "$$WEB_CF_REPORT/index.html" ] && xdg-open "$$WEB_CF_REPORT/index.html" >/dev/null 2>&1 || true; \
-		[ -f "$$MGMT_REPORT/index.html" ] && xdg-open "$$MGMT_REPORT/index.html" >/dev/null 2>&1 || true; \
-		[ -f "$$MGMT_CF_REPORT/index.html" ] && xdg-open "$$MGMT_CF_REPORT/index.html" >/dev/null 2>&1 || true; \
+		for dir in $$E2E_REPORT_DIRS; do \
+			[ -f "$$dir/index.html" ] && xdg-open "$$dir/index.html" >/dev/null 2>&1 || true; \
+		done; \
 	fi; \
 	exit $$exit_code
 
@@ -248,8 +250,15 @@ e2e_test_web_custom_themes_report: e2e_deps e2e_seed_web
 	echo "  Remote:  $$REMOTE_REPORT/index.html"; \
 	echo "  Combo:   $$COMBO_REPORT/index.html"; \
 	echo "  Latest:  $$ROOT_DIR/.artifacts/e2e-reports/latest/"; \
+	CUSTOM_THEMES_REPORT_DIRS="$$NATIVE_REPORT $$REMOTE_REPORT $$COMBO_REPORT"; \
 	if command -v open >/dev/null 2>&1; then \
-		[ -f "$$COMBO_REPORT/index.html" ] && open "$$NATIVE_REPORT/index.html" "$$REMOTE_REPORT/index.html" "$$COMBO_REPORT/index.html" 2>/dev/null || true; \
+		for dir in $$CUSTOM_THEMES_REPORT_DIRS; do \
+			[ -f "$$dir/index.html" ] && open "$$dir/index.html" 2>/dev/null || true; \
+		done; \
+	elif command -v xdg-open >/dev/null 2>&1; then \
+		for dir in $$CUSTOM_THEMES_REPORT_DIRS; do \
+			[ -f "$$dir/index.html" ] && xdg-open "$$dir/index.html" >/dev/null 2>&1 || true; \
+		done; \
 	fi; \
 	exit $$exit_code
 
