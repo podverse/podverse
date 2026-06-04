@@ -5,7 +5,7 @@
 .PHONY: e2e_deps e2e_seed e2e_seed_web e2e_seed_management_web
 .PHONY: e2e_test e2e_test_playwright e2e_test_api e2e_test_web e2e_test_management_web
 .PHONY: e2e_test_management_web_storage_enabled
-.PHONY: e2e_test_report e2e_test_web_report_spec e2e_test_management_web_report_spec e2e_test_report_scoped
+.PHONY: e2e_test_report e2e_test_web_report_spec e2e_test_web_custom_themes_report e2e_test_management_web_report_spec e2e_test_report_scoped
 .PHONY: e2e_teardown
 
 # Report output directory (timestamped)
@@ -176,6 +176,9 @@ e2e_test_web_report_spec: e2e_deps e2e_seed_web
 	case "$(SPEC)" in \
 	  *cookie-consent-enabled*) WEB_E2E_CMD="npm run test:e2e:cookie-consent-enabled -w @podverse/web" ;; \
 	  *sign-up-legal-consent*) WEB_E2E_CMD="npm run test:e2e:signup-enabled -w @podverse/web" ;; \
+	  *custom-themes-native*) WEB_E2E_CMD="npm run test:e2e:custom-themes-native -w @podverse/web" ;; \
+	  *custom-themes-remote*) WEB_E2E_CMD="npm run test:e2e:custom-themes-remote -w @podverse/web" ;; \
+	  *custom-themes-combo*) WEB_E2E_CMD="npm run test:e2e:custom-themes-combo -w @podverse/web" ;; \
 	esac; \
 	PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_REPORT" \
 	E2E_STEP_SCREENSHOTS=true \
@@ -187,6 +190,45 @@ e2e_test_web_report_spec: e2e_deps e2e_seed_web
 		[ -f "$$WEB_REPORT/index.html" ] && xdg-open "$$WEB_REPORT/index.html" >/dev/null 2>&1 || true; \
 	fi; \
 	echo "E2E report: $$WEB_REPORT/index.html"
+
+# Custom themes E2E (native / remote / combo) with separate HTML reports
+e2e_test_web_custom_themes_report: e2e_deps e2e_seed_web
+	@echo "=== Web custom themes E2E reports ==="
+	@ROOT_DIR="$$(pwd)"; \
+	TS="$(E2E_REPORT_TIMESTAMP)"; \
+	REPORT_BASE="$$ROOT_DIR/.artifacts/e2e-reports/$$TS"; \
+	NATIVE_REPORT="$$REPORT_BASE/web-custom-themes-native"; \
+	REMOTE_REPORT="$$REPORT_BASE/web-custom-themes-remote"; \
+	COMBO_REPORT="$$REPORT_BASE/web-custom-themes-combo"; \
+	mkdir -p "$$NATIVE_REPORT" "$$REMOTE_REPORT" "$$COMBO_REPORT"; \
+	rm -f "$$ROOT_DIR/.artifacts/e2e-reports/latest"; \
+	ln -sfn "$$TS" "$$ROOT_DIR/.artifacts/e2e-reports/latest"; \
+	exit_code=0; \
+	echo "--- Web custom themes (native) ---"; \
+	PLAYWRIGHT_HTML_OUTPUT_DIR="$$NATIVE_REPORT" \
+	E2E_STEP_SCREENSHOTS=true \
+	PLAYWRIGHT_HTML_OPEN=never \
+	npm run test:e2e:custom-themes-native -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts || exit_code=$$?; \
+	echo "--- Web custom themes (remote) ---"; \
+	PLAYWRIGHT_HTML_OUTPUT_DIR="$$REMOTE_REPORT" \
+	E2E_STEP_SCREENSHOTS=true \
+	PLAYWRIGHT_HTML_OPEN=never \
+	npm run test:e2e:custom-themes-remote -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts || exit_code=$$?; \
+	echo "--- Web custom themes (combo) ---"; \
+	PLAYWRIGHT_HTML_OUTPUT_DIR="$$COMBO_REPORT" \
+	E2E_STEP_SCREENSHOTS=true \
+	PLAYWRIGHT_HTML_OPEN=never \
+	npm run test:e2e:custom-themes-combo -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts || exit_code=$$?; \
+	echo ""; \
+	echo "=== Custom themes E2E reports ==="; \
+	echo "  Native:  $$NATIVE_REPORT/index.html"; \
+	echo "  Remote:  $$REMOTE_REPORT/index.html"; \
+	echo "  Combo:   $$COMBO_REPORT/index.html"; \
+	echo "  Latest:  $$ROOT_DIR/.artifacts/e2e-reports/latest/"; \
+	if command -v open >/dev/null 2>&1; then \
+		[ -f "$$COMBO_REPORT/index.html" ] && open "$$NATIVE_REPORT/index.html" "$$REMOTE_REPORT/index.html" "$$COMBO_REPORT/index.html" 2>/dev/null || true; \
+	fi; \
+	exit $$exit_code
 
 # Scoped management-web report for one spec (SPEC=apps/management-web/e2e/foo.spec.ts)
 e2e_test_management_web_report_spec: e2e_deps e2e_seed_management_web

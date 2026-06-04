@@ -191,6 +191,16 @@ export type { PaginationStripProps } from './components/navigation/PaginationStr
 export type { UITheme } from './lib/uiTheme/uiTheme';
 export { ALL_POSSIBLE_THEMES } from './lib/uiTheme/uiTheme';
 export {
+  buildCustomThemesCssText,
+  isAllowedCustomThemesUrl,
+  parseRemoteThemePack,
+} from './lib/customThemes/customThemes';
+export type {
+  RemoteThemeDefinition,
+  RemoteThemeLabelMap,
+  RemoteThemePack,
+} from './lib/customThemes/customThemes';
+export {
   mergeSortPrefsCookie,
   readSortPrefsMap,
   serializeSortPrefsMap,

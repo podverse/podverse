@@ -1,0 +1,33 @@
+{
+  "version": "2026-06-02",
+  "themes": [
+    {
+      "id": "custom_midnight_ocean",
+      "labels": {
+        "en-US": "Midnight Ocean",
+        "es": "Oceano Medianoche"
+      },
+      "cssVariables": {
+        "--background-color-primary": "#070b14",
+        "--background-color-secondary": "#0f1728",
+        "--text-color-primary": "#e8eefc",
+        "--text-color-secondary": "#a3b4d9",
+        "--text-color-accent": "#6ca4ff"
+      }
+    },
+    {
+      "id": "custom_sunrise_sand",
+      "labels": {
+        "en-US": "Sunrise Sand",
+        "es": "Arena Amanecer"
+      },
+      "cssVariables": {
+        "--background-color-primary": "#fff6ec",
+        "--background-color-secondary": "#ffecd9",
+        "--text-color-primary": "#2d1f14",
+        "--text-color-secondary": "#6b4b35",
+        "--text-color-accent": "#d97a2b"
+      }
+    }
+  ]
+}

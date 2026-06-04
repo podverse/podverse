@@ -1,9 +1,8 @@
 import type { MetadataRoute } from 'next';
 
-import { getRuntimeConfig } from '../config/runtime-config-store';
+import { optionalEnvString } from '@podverse/helpers-config';
 
-const opt = (v: string | undefined): string | undefined =>
-  v === undefined || v.trim() === '' ? undefined : v.trim();
+import { getRuntimeConfig } from '../config/runtime-config-store';
 
 /**
  * Web app manifest (PWA). `name` and `short_name` follow `NEXT_PUBLIC_BRAND_NAME`; icon/theme
@@ -11,14 +10,14 @@ const opt = (v: string | undefined): string | undefined =>
  */
 export default function manifest(): MetadataRoute.Manifest {
   const { env } = getRuntimeConfig();
-  const name = opt(env.NEXT_PUBLIC_BRAND_NAME) ?? 'Podverse Management';
+  const name = optionalEnvString(env.NEXT_PUBLIC_BRAND_NAME) ?? 'Podverse Management';
   const shortName = name;
   const icon192 =
-    opt(env.NEXT_PUBLIC_BRAND_APP_ICON_192_URL) ?? '/favicon/web-app-manifest-192x192.png';
+    optionalEnvString(env.NEXT_PUBLIC_BRAND_APP_ICON_192_URL) ?? '/favicon/web-app-manifest-192x192.png';
   const icon512 =
-    opt(env.NEXT_PUBLIC_BRAND_APP_ICON_512_URL) ?? '/favicon/web-app-manifest-512x512.png';
-  const theme = opt(env.NEXT_PUBLIC_BRAND_THEME_COLOR) ?? '#ffffff';
-  const background = opt(env.NEXT_PUBLIC_BRAND_BACKGROUND_COLOR) ?? '#ffffff';
+    optionalEnvString(env.NEXT_PUBLIC_BRAND_APP_ICON_512_URL) ?? '/favicon/web-app-manifest-512x512.png';
+  const theme = optionalEnvString(env.NEXT_PUBLIC_BRAND_THEME_COLOR) ?? '#ffffff';
+  const background = optionalEnvString(env.NEXT_PUBLIC_BRAND_BACKGROUND_COLOR) ?? '#ffffff';
 
   return {
     name,

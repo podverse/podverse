@@ -1,6 +1,6 @@
 /**
- * Runs once when the Next.js server instance starts. Warms the runtime-config
- * cache so the first user request does not block on the sidecar.
+ * Runs once when the Next.js server instance starts. Warms runtime config and custom
+ * themes in memory so requests read from the store without blocking on network I/O.
  */
 export async function register(): Promise<void> {
   if (process.env.NEXT_RUNTIME !== 'nodejs') {
@@ -19,15 +19,7 @@ export async function register(): Promise<void> {
   bootstrapWebExtensions();
   registerWebGracefulShutdownHandlers();
 
-  if (!process.env.RUNTIME_CONFIG_URL) {
-    return;
-  }
-  try {
-    const { fetchWebRuntimeConfigFromSidecar } = await import('./src/config/runtime-config.server');
-    const { setRuntimeConfig } = await import('./src/config/runtime-config-store');
-    const runtimeConfig = await fetchWebRuntimeConfigFromSidecar();
-    setRuntimeConfig(runtimeConfig);
-  } catch {
-    // Sidecar unreachable at startup; request-time layout hydration/fallback handles this.
-  }
+  const { warmWebRuntimeConfigAtStartup } =
+    await import('./src/config/runtime-config-bootstrap.server');
+  await warmWebRuntimeConfigAtStartup();
 }
