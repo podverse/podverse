@@ -84,7 +84,7 @@ These are served by the same asset server at `http://localhost:2111/themes/<file
 
 **CSS variable names:** Remote packs must override the same custom properties Podverse SCSS uses in `packages/ui/src/styles/_themes.scss` (for example `--background-color-primary`, `--text-color-primary`). Do not use alternate names such as `--pv-color-bg-primary`; the UI reads `var(--background-color-primary)` on `body` and components, not `pv-color` tokens.
 
-**Web E2E (custom themes):** From repo root run `make test_deps` and `make e2e_seed` first (`apps/web/e2e/custom-themes-global-setup.mjs` checks Postgres/Valkey and exits with instructions if missing). Playwright then starts test-assets on port **2111** before sidecar/web (`testAssetsFirst`). Theme JSON is loaded at **runtime** (`start:standalone`), not during `next build`. See `make e2e_test_web_custom_themes_report`.
+**Web E2E (custom themes):** From repo root run `make test_deps` and `make e2e_seed` first (`apps/web/e2e/custom-themes-global-setup.mjs` checks Postgres/Valkey and exits with instructions if missing). Playwright then starts test-assets on port **2111** before sidecar/web (`testAssetsFirst`). Theme JSON is loaded at **runtime** (`start:standalone`), not during `next build`. These specs use dedicated Playwright configs (not the default `playwright.config.ts`). They run in `make e2e_test_web_custom_themes_report` and as separate report dirs in `make e2e_test_report`.
 
 ## Notes
 

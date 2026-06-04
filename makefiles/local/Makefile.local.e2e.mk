@@ -93,9 +93,14 @@ e2e_test_report: e2e_deps e2e_seed
 	WEB_CF_REPORT="$$REPORT_BASE/web-cloudflare-enabled"; \
 	WEB_COOKIE_REPORT="$$REPORT_BASE/web-cookie-consent-enabled"; \
 	WEB_SIGNUP_REPORT="$$REPORT_BASE/web-signup-enabled"; \
+	WEB_CUSTOM_THEMES_NATIVE_REPORT="$$REPORT_BASE/web-custom-themes-native"; \
+	WEB_CUSTOM_THEMES_REMOTE_REPORT="$$REPORT_BASE/web-custom-themes-remote"; \
+	WEB_CUSTOM_THEMES_COMBO_REPORT="$$REPORT_BASE/web-custom-themes-combo"; \
 	MGMT_REPORT="$$REPORT_BASE/management-web"; \
 	MGMT_CF_REPORT="$$REPORT_BASE/management-web-cloudflare-enabled"; \
-	mkdir -p "$$WEB_REPORT" "$$WEB_CF_REPORT" "$$WEB_COOKIE_REPORT" "$$WEB_SIGNUP_REPORT" "$$MGMT_REPORT" "$$MGMT_CF_REPORT"; \
+	mkdir -p "$$WEB_REPORT" "$$WEB_CF_REPORT" "$$WEB_COOKIE_REPORT" "$$WEB_SIGNUP_REPORT" \
+		"$$WEB_CUSTOM_THEMES_NATIVE_REPORT" "$$WEB_CUSTOM_THEMES_REMOTE_REPORT" "$$WEB_CUSTOM_THEMES_COMBO_REPORT" \
+		"$$MGMT_REPORT" "$$MGMT_CF_REPORT"; \
 	rm -f "$$ROOT_DIR/.artifacts/e2e-reports/latest"; \
 	ln -s "$$TS" "$$ROOT_DIR/.artifacts/e2e-reports/latest"; \
 	exit_code=0; \
@@ -122,6 +127,21 @@ e2e_test_report: e2e_deps e2e_seed
 	E2E_STEP_SCREENSHOTS=true \
 	PLAYWRIGHT_HTML_OPEN=never \
 	npm run test:e2e:signup-enabled -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts || exit_code=$$?; \
+	echo "--- Web custom themes (native) ---"; \
+	PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_CUSTOM_THEMES_NATIVE_REPORT" \
+	E2E_STEP_SCREENSHOTS=true \
+	PLAYWRIGHT_HTML_OPEN=never \
+	npm run test:e2e:custom-themes-native -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts || exit_code=$$?; \
+	echo "--- Web custom themes (remote) ---"; \
+	PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_CUSTOM_THEMES_REMOTE_REPORT" \
+	E2E_STEP_SCREENSHOTS=true \
+	PLAYWRIGHT_HTML_OPEN=never \
+	npm run test:e2e:custom-themes-remote -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts || exit_code=$$?; \
+	echo "--- Web custom themes (combo) ---"; \
+	PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_CUSTOM_THEMES_COMBO_REPORT" \
+	E2E_STEP_SCREENSHOTS=true \
+	PLAYWRIGHT_HTML_OPEN=never \
+	npm run test:e2e:custom-themes-combo -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts || exit_code=$$?; \
 	echo "--- Management-web E2E report ---"; \
 	E2E_SPEC_ORDER="$(E2E_SPEC_ORDER_MANAGEMENT_WEB)" \
 	PLAYWRIGHT_HTML_OUTPUT_DIR="$$MGMT_REPORT" \
@@ -139,6 +159,9 @@ e2e_test_report: e2e_deps e2e_seed
 	echo "  Web (Cloudflare enabled):    $$WEB_CF_REPORT/index.html"; \
 	echo "  Web (cookie consent):      $$WEB_COOKIE_REPORT/index.html"; \
 	echo "  Web (signup enabled):      $$WEB_SIGNUP_REPORT/index.html"; \
+	echo "  Web (custom themes native):  $$WEB_CUSTOM_THEMES_NATIVE_REPORT/index.html"; \
+	echo "  Web (custom themes remote):  $$WEB_CUSTOM_THEMES_REMOTE_REPORT/index.html"; \
+	echo "  Web (custom themes combo):   $$WEB_CUSTOM_THEMES_COMBO_REPORT/index.html"; \
 	echo "  Management-web:              $$MGMT_REPORT/index.html"; \
 	echo "  Management-web (CF enabled): $$MGMT_CF_REPORT/index.html"; \
 	echo "  Latest symlink:              $$ROOT_DIR/.artifacts/e2e-reports/latest/"; \
