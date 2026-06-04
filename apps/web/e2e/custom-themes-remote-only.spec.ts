@@ -21,10 +21,7 @@ test.describe('Custom themes (remote pack only)', () => {
     await loginE2eUser(page);
     await gotoSettingsThemeSelector(page);
 
-    await expectCustomThemeStyleTagContains(
-      page,
-      `[data-ui-theme='${CUSTOM_THEME_MINIMAL_ID}']`
-    );
+    await expectCustomThemeStyleTagContains(page, `[data-ui-theme='${CUSTOM_THEME_MINIMAL_ID}']`);
 
     const themeSelector = page.locator('#settings_theme_selector');
     await expect(themeSelector).toContainText('custom_minimal');

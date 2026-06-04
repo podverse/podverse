@@ -3,8 +3,7 @@ import { expect } from '@playwright/test';
 
 export const E2E_CUSTOM_THEMES_MINIMAL_URL =
   'http://localhost:2111/themes/custom-themes.minimal.json';
-export const E2E_CUSTOM_THEMES_MULTI_URL =
-  'http://localhost:2111/themes/custom-themes.multi.json';
+export const E2E_CUSTOM_THEMES_MULTI_URL = 'http://localhost:2111/themes/custom-themes.multi.json';
 
 export const E2E_LOGIN_EMAIL = 'e2e-user@example.com';
 export const E2E_LOGIN_PASSWORD = 'Test!1Aa';
@@ -114,18 +113,10 @@ export async function expectCustomThemeUiColorsApplied(
   options?: { textPrimaryHex?: string }
 ): Promise<void> {
   await expectThemeDiffersFromBuiltInDark(page);
-  await expectComputedCssVarOnHtml(
-    page,
-    '--background-color-primary',
-    backgroundPrimaryHex
-  );
+  await expectComputedCssVarOnHtml(page, '--background-color-primary', backgroundPrimaryHex);
   await expectBodyBackgroundColorMatchesTheme(page, backgroundPrimaryHex);
   if (options?.textPrimaryHex !== undefined) {
-    await expectComputedCssVarOnHtml(
-      page,
-      '--text-color-primary',
-      options.textPrimaryHex
-    );
+    await expectComputedCssVarOnHtml(page, '--text-color-primary', options.textPrimaryHex);
   }
 }
 
@@ -168,10 +159,7 @@ export async function selectThemeByMenuLabel(page: Page, label: string): Promise
   await expect(themeSelectorMenu(page)).toHaveCount(0);
 }
 
-export async function expectThemeMenuLabels(
-  page: Page,
-  expectedLabels: string[]
-): Promise<void> {
+export async function expectThemeMenuLabels(page: Page, expectedLabels: string[]): Promise<void> {
   await openThemeSelectorMenu(page);
   const menu = themeSelectorMenu(page);
   for (const label of expectedLabels) {

@@ -16,8 +16,7 @@ export type E2eCustomThemesProfile = 'native' | 'remote' | 'combo';
 
 export const E2E_CUSTOM_THEMES_MINIMAL_URL =
   'http://localhost:2111/themes/custom-themes.minimal.json';
-export const E2E_CUSTOM_THEMES_MULTI_URL =
-  'http://localhost:2111/themes/custom-themes.multi.json';
+export const E2E_CUSTOM_THEMES_MULTI_URL = 'http://localhost:2111/themes/custom-themes.multi.json';
 
 export type E2eWebSidecarEnvOptions = {
   cloudflareWebAnalyticsEnabled?: boolean;

@@ -25,10 +25,7 @@ test.describe('Custom themes (built-in plus remote pack)', () => {
       page,
       `[data-ui-theme='${CUSTOM_THEME_MIDNIGHT_OCEAN_ID}']`
     );
-    await expectCustomThemeStyleTagContains(
-      page,
-      "[data-ui-theme='custom_sunrise_sand']"
-    );
+    await expectCustomThemeStyleTagContains(page, "[data-ui-theme='custom_sunrise_sand']");
 
     const themeSelector = page.locator('#settings_theme_selector');
     await expectThemeMenuLabels(page, ['Midnight Ocean', 'Sunrise Sand', 'Dark', 'Light']);
@@ -54,10 +51,7 @@ test.describe('Custom themes (built-in plus remote pack)', () => {
       async () => {
         await selectThemeByMenuLabel(page, 'Midnight Ocean');
         await expectHtmlUiTheme(page, CUSTOM_THEME_MIDNIGHT_OCEAN_ID);
-        await expectCustomThemeUiColorsApplied(
-          page,
-          CUSTOM_MIDNIGHT_OCEAN_BACKGROUND_PRIMARY_HEX
-        );
+        await expectCustomThemeUiColorsApplied(page, CUSTOM_MIDNIGHT_OCEAN_BACKGROUND_PRIMARY_HEX);
       },
       page.locator('body')
     );
@@ -69,10 +63,7 @@ test.describe('Custom themes (built-in plus remote pack)', () => {
       async () => {
         await selectThemeByMenuLabel(page, 'Sunrise Sand');
         await expectHtmlUiTheme(page, 'custom_sunrise_sand');
-        await expectCustomThemeUiColorsApplied(
-          page,
-          CUSTOM_SUNRISE_SAND_BACKGROUND_PRIMARY_HEX
-        );
+        await expectCustomThemeUiColorsApplied(page, CUSTOM_SUNRISE_SAND_BACKGROUND_PRIMARY_HEX);
       },
       page.locator('body')
     );

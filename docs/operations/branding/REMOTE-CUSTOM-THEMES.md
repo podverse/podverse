@@ -44,13 +44,13 @@ Remote packs are **JSON**, not raw CSS. The app converts each theme’s `cssVari
 }
 ```
 
-| Field | Rules |
-| ----- | ----- |
-| `version` | Non-empty string (opaque to the app; bump when you change the file). |
-| `themes` | Non-empty array; each `id` must be unique. |
-| `themes[].id` | Lowercase letters, digits, `_`, `-` only (normalized to lowercase). Must **not** match a built-in id (`dark`, `light`, `dracula`, `violet`). |
-| `themes[].labels` | Optional locale → display name map (e.g. `en-US`, `es`). |
-| `themes[].cssVariables` | Object of `--*` property names to CSS values (colors, gradients, shadows). |
+| Field                   | Rules                                                                                                                                        |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `version`               | Non-empty string (opaque to the app; bump when you change the file).                                                                         |
+| `themes`                | Non-empty array; each `id` must be unique.                                                                                                   |
+| `themes[].id`           | Lowercase letters, digits, `_`, `-` only (normalized to lowercase). Must **not** match a built-in id (`dark`, `light`, `dracula`, `violet`). |
+| `themes[].labels`       | Optional locale → display name map (e.g. `en-US`, `es`).                                                                                     |
+| `themes[].cssVariables` | Object of `--*` property names to CSS values (colors, gradients, shadows).                                                                   |
 
 **Variable names:** Use the exact tokens from `_themes.scss` (for example `--background-color-primary`, `--button-primary-bg`). Do **not** invent alternate names such as `--pv-color-bg-primary`; the UI reads `var(--background-color-primary)`.
 
@@ -60,21 +60,21 @@ Remote packs are **JSON**, not raw CSS. The app converts each theme’s `cssVari
 
 ## URL and security
 
-| Rule | Detail |
-| ---- | ------ |
-| Production | **`https://` only** |
-| Local dev | `http://localhost:…` or `http://127.0.0.1:…` allowed |
-| Fetch | Server-side at web/management-web startup (3s timeout); cached per process |
-| Failure | Invalid URL, HTTP error, or invalid JSON **fails startup** (fail-fast) |
+| Rule       | Detail                                                                     |
+| ---------- | -------------------------------------------------------------------------- |
+| Production | **`https://` only**                                                        |
+| Local dev  | `http://localhost:…` or `http://127.0.0.1:…` allowed                       |
+| Fetch      | Server-side at web/management-web startup (3s timeout); cached per process |
+| Failure    | Invalid URL, HTTP error, or invalid JSON **fails startup** (fail-fast)     |
 
 Set env on the **runtime-config sidecar**, not only on the Next.js container. Sidecar maps `CUSTOM_THEMES_URL` → `NEXT_PUBLIC_CUSTOM_THEMES_URL` during local setup; in K8s, set `NEXT_PUBLIC_CUSTOM_THEMES_URL` on the sidecar env bundle web/management-web read at runtime.
 
 ## Operator sample vs E2E test fixtures
 
-| Artifact | Location | Purpose |
-| -------- | -------- | ------- |
-| **Operator sample** | [`custom-themes.operator-sample.json`](custom-themes.operator-sample.json) | Full 61-variable reference; copy for production/CDN testing |
-| **E2E fixtures** | [`tools/test-assets/assets/themes/`](/tools/test-assets/assets/themes/) | Minimal/partial JSON for deterministic Playwright runs on `localhost:2111` |
+| Artifact            | Location                                                                   | Purpose                                                                    |
+| ------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| **Operator sample** | [`custom-themes.operator-sample.json`](custom-themes.operator-sample.json) | Full 61-variable reference; copy for production/CDN testing                |
+| **E2E fixtures**    | [`tools/test-assets/assets/themes/`](/tools/test-assets/assets/themes/)    | Minimal/partial JSON for deterministic Playwright runs on `localhost:2111` |
 
 Do **not** point production at the E2E fixtures. They intentionally use small variable sets and theme ids (`custom_midnight_ocean`, etc.) tied to automated tests. See [`tools/test-assets/TOOLS-TEST-ASSETS.md`](/tools/test-assets/TOOLS-TEST-ASSETS.md).
 

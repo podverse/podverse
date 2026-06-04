@@ -13,9 +13,11 @@ export default function manifest(): MetadataRoute.Manifest {
   const name = optionalEnvString(env.NEXT_PUBLIC_BRAND_NAME) ?? 'Podverse Management';
   const shortName = name;
   const icon192 =
-    optionalEnvString(env.NEXT_PUBLIC_BRAND_APP_ICON_192_URL) ?? '/favicon/web-app-manifest-192x192.png';
+    optionalEnvString(env.NEXT_PUBLIC_BRAND_APP_ICON_192_URL) ??
+    '/favicon/web-app-manifest-192x192.png';
   const icon512 =
-    optionalEnvString(env.NEXT_PUBLIC_BRAND_APP_ICON_512_URL) ?? '/favicon/web-app-manifest-512x512.png';
+    optionalEnvString(env.NEXT_PUBLIC_BRAND_APP_ICON_512_URL) ??
+    '/favicon/web-app-manifest-512x512.png';
   const theme = optionalEnvString(env.NEXT_PUBLIC_BRAND_THEME_COLOR) ?? '#ffffff';
   const background = optionalEnvString(env.NEXT_PUBLIC_BRAND_BACKGROUND_COLOR) ?? '#ffffff';
 

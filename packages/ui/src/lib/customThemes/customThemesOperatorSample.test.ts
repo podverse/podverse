@@ -19,7 +19,9 @@ function readThemeCssVariableKeysFromThemesScss(): string[] {
   const start = scss.indexOf(':root,');
   const end = scss.indexOf('// Light theme');
   const darkSection = scss.slice(start, end);
-  const keys = [...darkSection.matchAll(/^\s+(--[a-z-]+):/gm)].map((match) => match[1]);
+  const keys = [...darkSection.matchAll(/^\s+(--[a-z-]+):/gm)]
+    .map((match) => match[1])
+    .filter((key): key is string => key !== undefined);
   return [...new Set(keys)];
 }
 
