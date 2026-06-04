@@ -7,7 +7,6 @@ import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
 } from '@podverse/helpers-requests';
 
-import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
 import { buildContentMetadata } from '../../../lib/seo/buildContentMetadata';
 import {
   getChannelForSeoPage,
@@ -62,8 +61,6 @@ export async function generateMetadata({ params }: EpisodePageProps): Promise<Me
 export default async function EpisodePage({ params, searchParams }: EpisodePageProps) {
   const { item_id } = await params;
   const queryParams = await searchParams;
-
-  const { ssrApiRequestService } = await getSSRAuthService();
 
   const { currentPage, currentType, currentSort, currentRange } = parseSearchParams(queryParams);
 

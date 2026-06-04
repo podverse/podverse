@@ -13,7 +13,7 @@ const getSsrApiRequestService = cache(async () => {
   return ssrApiRequestService;
 });
 
-export const getChannelForSeoPage = cache(async (idOrIdText: string) => {
+export const getChannelForSeoPage = cache(async (idOrIdText: string | number) => {
   const ssrApiRequestService = await getSsrApiRequestService();
   return ssrApiRequestService.reqChannelGetByIdOrIdText(idOrIdText);
 });

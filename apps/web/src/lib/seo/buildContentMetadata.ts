@@ -6,11 +6,19 @@ import { buildOpenGraphImage } from './buildOpenGraphImage';
 import { truncateMetaDescription } from './truncateMetaDescription';
 
 type BuildContentMetadataInput = {
-  title: string;
+  title: string | null | undefined;
   descriptionPlain: string;
   pathname: string;
   imageUrl?: string;
   type?: 'website' | 'article';
+};
+
+const getTitle = (title: string | null | undefined): string => {
+  if (title) {
+    return title;
+  }
+
+  return getConfig().public.brand.name;
 };
 
 const getDescription = (descriptionPlain: string): string => {
@@ -23,18 +31,19 @@ const getDescription = (descriptionPlain: string): string => {
 };
 
 export const buildContentMetadata = (input: BuildContentMetadataInput): Metadata => {
+  const title = getTitle(input.title);
   const description = getDescription(input.descriptionPlain);
   const canonical = buildAbsoluteWebUrl(input.pathname);
   const image = buildOpenGraphImage(input.imageUrl);
 
   return {
-    title: input.title,
+    title,
     description,
     alternates: {
       canonical,
     },
     openGraph: {
-      title: input.title,
+      title,
       description,
       type: input.type ?? 'article',
       url: canonical,
@@ -42,7 +51,7 @@ export const buildContentMetadata = (input: BuildContentMetadataInput): Metadata
     },
     twitter: {
       card: 'summary_large_image',
-      title: input.title,
+      title,
       description,
       images: [image],
     },

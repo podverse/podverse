@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod';
 
-import { buildNoindexMetadata } from '../../../../../lib/seo/buildNoindexMetadata';
+import { buildNoindexMetadata } from '../../../../lib/seo/buildNoindexMetadata';
 import { getSSRAuthService } from '../../../../utils/auth/ssrAuth';
 import { ClipEditPageClient } from './ClipEditPageClient';
 
