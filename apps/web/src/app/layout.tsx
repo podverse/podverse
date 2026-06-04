@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 
 import type { QueueResourcesAbridgedIndex } from '@podverse/helpers';
@@ -17,9 +18,10 @@ import { QueueController } from '../components/Queue/QueueController';
 import { QueueResourcesAbridgedController } from '../components/Queue/QueueResourcesAbridgedController';
 import { SideBar } from '../components/SideBar/SideBar';
 import { WindowWrapper } from '../components/Window/WindowWrapper';
-import { getConfig } from '../config';
+import { getConfig, getWebOrigin } from '../config';
 import { getCustomThemeCssText } from '../config/custom-themes.server';
 import { resolveWebRuntimeConfigForRequest } from '../config/resolve-runtime-config.server';
+import { ASSETS } from '../constants/assets';
 import { getSSRApiRequestService } from '../factories/apiRequestService';
 import { useLocaleDetect } from '../hooks/useLocaleDetect';
 import { setSSRAccountForLocale } from '../i18n/request';
@@ -29,6 +31,25 @@ import { getParsedLocalSettings } from '../utils/localSettings/localSettings';
 import { toUITheme } from '../utils/localSettings/uiTheme';
 
 import '../styles/index.scss';
+
+const staticConfig = getConfig();
+const brandName = staticConfig.public.brand.name;
+const defaultOpenGraphImage = new URL(
+  staticConfig.public.brand.logoLight || ASSETS.IMAGES.BRANDING.BRAND.LOGO,
+  getWebOrigin()
+).toString();
+
+export const metadata: Metadata = {
+  metadataBase: new URL(getWebOrigin()),
+  title: {
+    default: brandName,
+    template: `%s | ${brandName}`,
+  },
+  openGraph: {
+    siteName: brandName,
+    images: [{ url: defaultOpenGraphImage }],
+  },
+};
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const runtimeConfig = await resolveWebRuntimeConfigForRequest();
@@ -75,7 +96,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {customThemeCssText ? (
           <style id="pv-custom-theme-variables">{customThemeCssText}</style>
         ) : null}
-        <title>{config.public.brand.name}</title>
         <FontPreloads />
         <FavIcons />
       </head>

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { z } from 'zod';
 
 import {
@@ -6,7 +7,15 @@ import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
 } from '@podverse/helpers-requests';
 
-import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
+import { buildContentMetadata } from '../../../lib/seo/buildContentMetadata';
+import { buildNoindexMetadata } from '../../../lib/seo/buildNoindexMetadata';
+import {
+  getChannelForSeoPage,
+  getItemForSeoPage,
+  getItemThenChannelHeroImageUrl,
+} from '../../../lib/seo/fetchers';
+import { toSeoPlainText } from '../../../lib/seo/toSeoPlainText';
+import { truncateMetaDescription } from '../../../lib/seo/truncateMetaDescription';
 import { EpisodePageClient } from './EpisodePageClient';
 import type { EpisodePageDropdownConfigCurrentParams } from './EpisodePageDropdownConfig';
 import { getEpisodePageFilterParams } from './EpisodePageDropdownConfig';
@@ -29,16 +38,35 @@ export type EpisodePageProps = {
   params: Promise<{ item_id: string }>;
 };
 
+export async function generateMetadata({ params }: EpisodePageProps): Promise<Metadata> {
+  try {
+    const { item_id } = await params;
+    const item = await getItemForSeoPage(item_id);
+    const channel = await getChannelForSeoPage(item.channel_id);
+    const descriptionPlain = truncateMetaDescription(
+      toSeoPlainText(item.item_description?.value || item.title)
+    );
+
+    return buildContentMetadata({
+      title: item.title,
+      descriptionPlain,
+      pathname: `/episode/${item.id_text}`,
+      imageUrl: getItemThenChannelHeroImageUrl(item.item_images, channel.channel_images),
+      type: 'article',
+    });
+  } catch {
+    return buildNoindexMetadata();
+  }
+}
+
 export default async function EpisodePage({ params, searchParams }: EpisodePageProps) {
   const { item_id } = await params;
   const queryParams = await searchParams;
 
-  const { ssrApiRequestService } = await getSSRAuthService();
-
   const { currentPage, currentType, currentSort, currentRange } = parseSearchParams(queryParams);
 
-  const ssrItem = await ssrApiRequestService.reqItemGetByIdOrIdText(item_id);
-  const ssrChannel = await ssrApiRequestService.reqChannelGetByIdOrIdText(ssrItem.channel_id);
+  const ssrItem = await getItemForSeoPage(item_id);
+  const ssrChannel = await getChannelForSeoPage(ssrItem.channel_id);
 
   const ssrHasChapters = !!ssrItem.item_chapters_feed;
   const ssrHasSoundbites = !!ssrItem.item_soundbites && ssrItem.item_soundbites.length > 0;

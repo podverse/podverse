@@ -1,6 +1,7 @@
 // The root styles must be imported first to ensure the correct order of styles
 import '../styles/index.scss';
 
+import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 
 import { IntegrationsWebScripts } from '@podverse/integrations-web';
@@ -15,11 +16,22 @@ import { getCustomThemeCssText } from '../config/custom-themes.server';
 import { resolveManagementWebRuntimeConfigForRequest } from '../config/resolve-runtime-config.server';
 import { toUITheme, UI_THEME_COOKIE } from '../utils/uiTheme';
 
+const managementBrandName = getConfig().public.brand.name ?? 'Management';
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+  title: {
+    default: managementBrandName,
+    template: `%s | ${managementBrandName}`,
+  },
+};
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const runtimeConfig = await resolveManagementWebRuntimeConfigForRequest();
-  const config = getConfig();
   const customThemeCssText = getCustomThemeCssText(runtimeConfig);
-  const brandName = config.public.brand.name ?? 'Management';
   const locale = await getLocale();
   const messages = (await import(`../../i18n/originals/${locale}.json`)).default;
 
@@ -36,7 +48,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <IntegrationsWebScripts integrations={runtimeConfig.integrations} />
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>{brandName}</title>
         <FontPreloads />
         <FavIcons />
       </head>

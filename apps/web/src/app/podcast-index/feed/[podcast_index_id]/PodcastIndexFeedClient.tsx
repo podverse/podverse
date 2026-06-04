@@ -8,6 +8,7 @@ import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
 import { MainWrapper } from '../../../../components/Main/MainWrapper';
 import { PodcastIndexFeedInfo } from '../../../../components/PodcastIndex/PodcastIndexFeedInfo';
 import { getContactEmail } from '../../../../constants/contact';
+import { useConfig } from '../../../../contexts/Config';
 import { PodcastIndexFeedHeader } from './PodcastIndexFeedHeader';
 
 type PodcastIndexFeedClientProps = {
@@ -39,6 +40,7 @@ export function PodcastIndexFeedClient({
   blockedReasonForUi,
 }: PodcastIndexFeedClientProps) {
   const t = useTranslations('features.add_feed');
+  const config = useConfig();
   const contactEmail = getContactEmail();
   const showBlockedBanner = blockedReasonForUi !== null;
 
@@ -51,6 +53,7 @@ export function PodcastIndexFeedClient({
           {showBlockedBanner ? (
             <p>
               {t('blocked_feed_banner', {
+                brand_name: config.public.brand.name,
                 reason: t(blockedReasonMessageKey(blockedReasonForUi)),
               })}{' '}
               <a href={`mailto:${contactEmail}`}>{contactEmail}</a>.

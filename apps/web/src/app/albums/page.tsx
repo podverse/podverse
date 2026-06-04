@@ -10,6 +10,7 @@ import {
   QUERY_PARAMS_SUBSCRIBED_MUSIC_TYPE,
 } from '@podverse/helpers-requests';
 
+import { getCuratedStaticPageMetadata } from '../../lib/seo/curatedPageMetadata';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import type { AlbumsFilterDefaults } from '../../utils/localSettings/localSettings';
@@ -34,6 +35,10 @@ type SearchParams = z.infer<typeof searchParamsSchema>;
 export type AlbumsPageProps = {
   searchParams: Promise<SearchParams>;
 };
+
+export async function generateMetadata() {
+  return getCuratedStaticPageMetadata('albums');
+}
 
 export default async function AlbumsPage({ searchParams }: AlbumsPageProps) {
   const { isValidAuthSession, ssrApiRequestService } = await getSSRAuthService();

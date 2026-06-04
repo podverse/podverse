@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { buildNoindexMetadata } from '../../lib/seo/buildNoindexMetadata';
 import { EmailChangeVerifyingPageClient } from './EmailChangeVerifyingPageClient';
 
 const searchParamsSchema = z.object({
@@ -11,6 +12,10 @@ type SearchParams = z.infer<typeof searchParamsSchema>;
 export type EmailChangeVerifyingProps = {
   searchParams: Promise<SearchParams>;
 };
+
+export async function generateMetadata() {
+  return buildNoindexMetadata();
+}
 
 export default async function EmailChangeVerifyingPage({
   searchParams,

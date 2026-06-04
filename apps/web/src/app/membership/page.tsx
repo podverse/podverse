@@ -14,6 +14,7 @@ import { MainWrapper } from '../../components/Main/MainWrapper';
 import { getConfig } from '../../config';
 import { FEATURES } from '../../constants/features';
 import { getSSRApiRequestService } from '../../factories/apiRequestService';
+import { buildNoindexMetadata } from '../../lib/seo/buildNoindexMetadata';
 import { getSSRLoggedInAccount } from '../../utils/auth/ssrAuth';
 import { MembershipCTA } from './MembershipCTA';
 import { TrialLimitationsCollapsible } from './TrialLimitationsCollapsible';
@@ -46,6 +47,10 @@ type RenderIntroTextParams = {
 };
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata() {
+  return buildNoindexMetadata();
+}
 
 export default async function MembershipPage() {
   const config = getConfig();

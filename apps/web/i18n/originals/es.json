@@ -54,7 +54,7 @@
       "add_feed": "Agregar Feed",
       "add_feed_explanation": "Este feed no está en nuestro directorio. Si deseas agregarlo, presiona el botón \"Agregar Feed\".",
       "rss_link": "Enlace RSS",
-      "blocked_feed_banner": "Este feed no se puede añadir actualmente en Podverse ({reason}). Si crees que es un error, contacta con",
+      "blocked_feed_banner": "Este feed no se puede añadir actualmente en {brand_name} ({reason}). Si crees que es un error, contacta con",
       "blocked_reason_spam_detected": "restricciones por detección de spam",
       "blocked_reason_oversized_detected": "límites de tamaño del feed",
       "blocked_reason_takedown_active": "una solicitud de retirada de contenido",
@@ -263,11 +263,6 @@
       "audio_with_ext_bitrate_mbps": "Audio {ext} {bitrate}Mbps"
     }
   },
-  "updates_page": {
-    "intro": "Las notas de versión de la aplicación de código abierto se publican en GitHub. Use el enlace siguiente para ver los lanzamientos etiquetados.",
-    "title": "Actualizaciones",
-    "view_releases": "Ver lanzamientos en GitHub"
-  },
   "value": {
     "boost": "Aumentar",
     "recipient": {
@@ -451,7 +446,6 @@
     "navbar_menu_close": "Cerrar menú",
     "close_modal": "Cerrar modal",
     "image_preview_dialog": "Vista previa de imagen",
-    "updates": "Actualizaciones",
     "sharable_status": {
       "sharable_status": "Estado Compartible",
       "public": "Público",
@@ -944,6 +938,82 @@
   "pagination": {
     "ariaPreviousPage": "Página anterior",
     "ariaNextPage": "Página siguiente"
+  },
+  "seo": {
+    "pages": {
+      "home": {
+        "title": "{brand_name}",
+        "description": "Descubre podcasts, música y transmisiones en vivo en {brand_name}."
+      },
+      "podcasts": {
+        "title": "Podcasts",
+        "description": "Explora feeds y programas de podcasts en {brand_name}."
+      },
+      "episodes": {
+        "title": "Episodios",
+        "description": "Explora episodios de podcasts en todo {brand_name}."
+      },
+      "artists": {
+        "title": "Artistas",
+        "description": "Descubre artistas de música en {brand_name}."
+      },
+      "albums": {
+        "title": "Álbumes",
+        "description": "Explora álbumes de música en {brand_name}."
+      },
+      "tracks": {
+        "title": "Pistas",
+        "description": "Descubre pistas de música en {brand_name}."
+      },
+      "podcastsLivestreams": {
+        "title": "Transmisiones en Vivo de Podcasts",
+        "description": "Mira transmisiones en vivo de podcasts en {brand_name}."
+      },
+      "musicLivestreams": {
+        "title": "Transmisiones en Vivo de Música",
+        "description": "Mira transmisiones en vivo de música en {brand_name}."
+      },
+      "playlists": {
+        "title": "Listas de Reproducción",
+        "description": "Explora listas de reproducción de la comunidad en {brand_name}."
+      },
+      "clips": {
+        "title": "Clips",
+        "description": "Explora clips de podcasts y música en {brand_name}."
+      },
+      "videos": {
+        "title": "Videos",
+        "description": "Descubre contenido de video en {brand_name}."
+      },
+      "profiles": {
+        "title": "Perfiles",
+        "description": "Explora perfiles públicos de creadores en {brand_name}."
+      },
+      "about": {
+        "title": "Acerca de",
+        "description": "Conoce más sobre {brand_name} y lo que construimos."
+      },
+      "contact": {
+        "title": "Contacto",
+        "description": "Contacta con {brand_name} para soporte, solicitudes y comentarios."
+      },
+      "terms": {
+        "title": "Términos",
+        "description": "Lee los términos de servicio de {brand_name}."
+      },
+      "donate": {
+        "title": "Donar",
+        "description": "Apoya a {brand_name} con una donación directa."
+      },
+      "mobileApp": {
+        "title": "App Móvil",
+        "description": "Obtén la app móvil de {brand_name} en plataformas compatibles."
+      },
+      "metaboost": {
+        "title": "MetaBoost",
+        "description": "Descubre cómo MetaBoost impulsa los mensajes value-for-value."
+      }
+    }
   },
   "language": {
     "language": "Idioma",

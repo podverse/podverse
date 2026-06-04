@@ -54,7 +54,7 @@
       "add_feed": "Ajouter un flux",
       "add_feed_explanation": "Ce flux n'est pas dans notre annuaire. Si vous souhaitez l'ajouter, appuyez sur le bouton \"Ajouter un flux\".",
       "rss_link": "Lien RSS",
-      "blocked_feed_banner": "Ce flux ne peut pas être ajouté pour le moment dans Podverse ({reason}). Si vous pensez qu'il s'agit d'une erreur, veuillez contacter",
+      "blocked_feed_banner": "Ce flux ne peut pas être ajouté pour le moment dans {brand_name} ({reason}). Si vous pensez qu'il s'agit d'une erreur, veuillez contacter",
       "blocked_reason_spam_detected": "des restrictions liées à la détection de spam",
       "blocked_reason_oversized_detected": "des limites de taille du flux",
       "blocked_reason_takedown_active": "une demande de retrait de contenu",
@@ -263,11 +263,6 @@
       "audio_with_ext_bitrate_mbps": "Audio {ext} {bitrate}Mbps"
     }
   },
-  "updates_page": {
-    "intro": "Les notes de version de l’application open source sont publiées sur GitHub. Utilisez le lien ci-dessous pour les versions étiquetées.",
-    "title": "Mises à jour",
-    "view_releases": "Voir les versions sur GitHub"
-  },
   "value": {
     "boost": "Amplifier",
     "recipient": {
@@ -451,7 +446,6 @@
     "navbar_menu_close": "Fermer le menu",
     "close_modal": "Fermer la fenêtre modale",
     "image_preview_dialog": "Aperçu de l'image",
-    "updates": "Mises à jour",
     "sharable_status": {
       "sharable_status": "État partageable",
       "public": "Public",

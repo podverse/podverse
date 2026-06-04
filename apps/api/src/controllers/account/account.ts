@@ -2,6 +2,7 @@ import { config } from '@api/config/index.js';
 import { handleReturnDataOrNotFound } from '@api/controllers/helpers/data.js';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
 import { getPaginationParams } from '@api/controllers/helpers/pagination.js';
+import { accountToJson } from '@api/lib/accountApiSerialization.js';
 import {
   ensureAuthenticated,
   getAuthenticatedUser,
@@ -17,6 +18,7 @@ import { sendEmailChangeVerificationEmail } from '@api/lib/mailer/sendChangeEmai
 import { sendResetPasswordEmail } from '@api/lib/mailer/sendResetPasswordEmail.js';
 import { sendVerificationEmail } from '@api/lib/mailer/sendVerificationEmail.js';
 import { getParamRequired } from '@api/lib/params.js';
+import { resolveSharableStatusId } from '@api/lib/resolveSharableStatusId.js';
 import { getStatsOrder } from '@api/lib/stats.js';
 import {
   emailBodySchema,
@@ -91,10 +93,7 @@ const privateRelations: FindOptionsRelations<Account> = findOptionsRelationsFrom
   // 'account_verification',
 ]);
 
-const accountPublicWithSharableStatusRelations = mergeFindOptionsRelations<Account>(
-  publicRelations,
-  { sharable_status: true }
-);
+const accountPublicRelations = publicRelations;
 
 const accountFullRelations = mergeFindOptionsRelations<Account>(publicRelations, privateRelations);
 
@@ -110,7 +109,6 @@ const statsTrackedAccountRelations: FindOptionsRelations<StatsAggregatedAccount>
 const followingAccountListRelations: FindOptionsRelations<AccountFollowingAccount> = {
   following_account: {
     account_profile: true,
-    sharable_status: true,
   },
 };
 
@@ -145,7 +143,7 @@ export class AccountController {
             const id_text = getParamRequired(req, 'id_text');
             const jwtUser = req.user;
 
-            const config = { relations: accountPublicWithSharableStatusRelations };
+            const config = { relations: accountPublicRelations };
             const data = await AccountController.accountService.getByIdText(id_text, config);
 
             if (!data) {
@@ -156,13 +154,14 @@ export class AccountController {
             // If user is viewing their own account, return it (even if private)
             if (jwtUser?.id && data.id === jwtUser.id) {
               // User is viewing their own profile via public link - frontend will redirect
-              handleReturnDataOrNotFound(res, data, 'Account');
+              handleReturnDataOrNotFound(res, accountToJson(data), 'Account');
               return;
             }
 
             // For non-owners, only return if public or unlisted
             const sharableStatusIds = getSharableStatusIdsForProfileType('subscribed');
-            if (!sharableStatusIds.includes(data.sharable_status.id)) {
+            const sharableStatusId = resolveSharableStatusId(data);
+            if (sharableStatusId === undefined || !sharableStatusIds.includes(sharableStatusId)) {
               // Private account, return not found
               handleReturnDataOrNotFound(res, null, 'Account');
               return;
@@ -210,7 +209,7 @@ export class AccountController {
             Object.assign(data, { sender_guid });
           }
 
-          handleReturnDataOrNotFound(res, data, 'Account');
+          handleReturnDataOrNotFound(res, accountToJson(data), 'Account');
         } catch (error) {
           handleGenericErrorResponse(res, error);
         }
@@ -242,7 +241,7 @@ export class AccountController {
           order: { id: 'DESC' },
           skip: offset,
           take: limit,
-          relations: accountPublicWithSharableStatusRelations,
+          relations: accountPublicRelations,
         });
 
         // Remove private information from accounts before returning
@@ -994,8 +993,10 @@ export class AccountController {
     T extends {
       account_credentials?: { password?: string; email?: string | null };
       account_membership_status?: unknown;
+      sharable_status_id?: number | null;
+      sharable_status?: unknown;
     },
-  >(account: T): T {
+  >(account: T): Omit<T, 'sharable_status'> {
     const cleanedAccount = { ...account };
 
     if (cleanedAccount.account_credentials) {
@@ -1008,6 +1009,6 @@ export class AccountController {
       delete cleanedAccount.account_membership_status;
     }
 
-    return cleanedAccount;
+    return accountToJson(cleanedAccount);
   }
 }

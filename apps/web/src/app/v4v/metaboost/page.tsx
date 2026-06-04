@@ -4,8 +4,13 @@ import { MainColumnStack, MainHeader, MainSidebarLayout, SideContent } from '@po
 
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { getConfig } from '../../../config';
+import { getCuratedStaticPageMetadata } from '../../../lib/seo/curatedPageMetadata';
 
 import styles from '../../../styles/app/v4v/BoostMessages.module.scss';
+
+export async function generateMetadata() {
+  return getCuratedStaticPageMetadata('metaboost');
+}
 
 export default async function MetaboostPage() {
   const t = await getTranslations('v4v');

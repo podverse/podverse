@@ -34,6 +34,25 @@ User-facing copy lives in apps — not in `@podverse/ui`. When strings move from
 message files, update **`apps/web`** and/or **`apps/management-web`** originals (see
 **`shared-ui-i18n`** rule).
 
+## Brand name and domain (no hardcoded product name)
+
+Do **not** hardcode the product brand name (e.g. `Podverse`) or deployment domain (e.g.
+`podverse.fm`) in `i18n/originals/` or `i18n/overrides/`. White-label deployments set these via
+env / runtime config.
+
+| Interpolation | Env / runtime source | Pass at `t()` call site |
+| ------------- | -------------------- | ----------------------- |
+| `{brand_name}` | `BRAND_NAME` → `NEXT_PUBLIC_BRAND_NAME` (web/management-web sidecar) | `config.public.brand.name` (server or `useConfig()` on client) |
+| `{brand_domain}` | `BRAND_DOMAIN` → `NEXT_PUBLIC_BRAND_DOMAIN` | `config.public.brand.domain` |
+| `{legal_name}` | `LEGAL_NAME` → `NEXT_PUBLIC_LEGAL_NAME` | `config.public.legal.name` (where used) |
+
+- Use **`{brand_name}`** in message strings; wire **`brand_name: config.public.brand.name`** (or
+  equivalent) in every `t(...)` call for those keys.
+- Product names that are **external standards or other products** (e.g. Metaboost, Podcast Index)
+  may stay literal when they refer to that standard, not this deployment's brand.
+- Before committing i18n changes, grep originals/overrides for the default brand string and domain
+  and replace any remaining hits with placeholders.
+
 ## Required Locales
 
 The canonical list of required locales is defined in multiple places that **must stay in sync**:

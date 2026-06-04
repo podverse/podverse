@@ -2,6 +2,11 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 
 import { ROUTES } from '../../../constants/routes';
+import { buildNoindexMetadata } from '../../../lib/seo/buildNoindexMetadata';
+
+export async function generateMetadata() {
+  return buildNoindexMetadata();
+}
 
 export default async function MembershipRenewPage() {
   const t = await getTranslations('membership');

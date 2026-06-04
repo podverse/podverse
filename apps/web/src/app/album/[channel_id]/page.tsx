@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
@@ -10,6 +11,10 @@ import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
 } from '@podverse/helpers-requests';
 
+import { buildContentMetadata } from '../../../lib/seo/buildContentMetadata';
+import { getChannelForSeoPage, getChannelHeroImageUrl } from '../../../lib/seo/fetchers';
+import { toSeoPlainText } from '../../../lib/seo/toSeoPlainText';
+import { truncateMetaDescription } from '../../../lib/seo/truncateMetaDescription';
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
 import { AlbumPageClient } from './AlbumPageClient';
 import type { AlbumPageDropdownConfigCurrentParams } from './AlbumPageDropdownConfig';
@@ -33,6 +38,35 @@ export type AlbumPageProps = {
   params: Promise<{ channel_id: string }>;
 };
 
+export async function generateMetadata({ params }: AlbumPageProps): Promise<Metadata> {
+  try {
+    const { channel_id } = await params;
+    const channel = await getChannelForSeoPage(channel_id);
+    const descriptionPlain = truncateMetaDescription(
+      toSeoPlainText(channel.channel_description?.value || channel.title)
+    );
+
+    if (channel?.feed?.podcast_index_id && channel.feed.feed_policy?.public_visible === false) {
+      // When this URL redirects, prefer metadata that matches the target path.
+      return buildContentMetadata({
+        title: channel.title,
+        descriptionPlain,
+        pathname: `/podcast-index/feed/${channel.feed.podcast_index_id}`,
+        imageUrl: getChannelHeroImageUrl(channel.channel_images),
+      });
+    }
+
+    return buildContentMetadata({
+      title: channel.title,
+      descriptionPlain,
+      pathname: `/album/${channel.id_text}`,
+      imageUrl: getChannelHeroImageUrl(channel.channel_images),
+    });
+  } catch {
+    return {};
+  }
+}
+
 export default async function AlbumPage({ params, searchParams }: AlbumPageProps) {
   const { channel_id } = await params;
   const queryParams = await searchParams;
@@ -42,7 +76,7 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
   const { currentPage, currentType, currentSort, currentRange } =
     await parseSearchParams(queryParams);
 
-  const ssrChannel = await ssrApiRequestService.reqChannelGetByIdOrIdText(channel_id);
+  const ssrChannel = await getChannelForSeoPage(channel_id);
   if (ssrChannel?.feed?.podcast_index_id && ssrChannel.feed.feed_policy?.public_visible === false) {
     redirect(`/podcast-index/feed/${ssrChannel.feed.podcast_index_id}`);
   }

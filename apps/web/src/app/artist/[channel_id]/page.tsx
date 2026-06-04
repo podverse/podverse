@@ -1,7 +1,15 @@
+import type { Metadata } from 'next';
 import { z } from 'zod';
 
 import { QUERY_PARAMS_CHANNEL_MUSIC_ARTIST_TYPE_VALUES } from '@podverse/helpers-requests';
 
+import { buildContentMetadata } from '../../../lib/seo/buildContentMetadata';
+import {
+  getChannelHeroImageUrl,
+  getPublisherRemoteItemsForChannelSeoPage,
+} from '../../../lib/seo/fetchers';
+import { toSeoPlainText } from '../../../lib/seo/toSeoPlainText';
+import { truncateMetaDescription } from '../../../lib/seo/truncateMetaDescription';
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
 import { ArtistPageClient } from './ArtistPageClient';
 import type { ArtistPageDropdownConfigCurrentParams } from './ArtistPageDropdownConfig';
@@ -18,6 +26,26 @@ export type ArtistPageProps = {
   params: Promise<{ channel_id: string }>;
 };
 
+export async function generateMetadata({ params }: ArtistPageProps): Promise<Metadata> {
+  try {
+    const { channel_id } = await params;
+    const response = await getPublisherRemoteItemsForChannelSeoPage(channel_id);
+    const channel = response.channel;
+    const descriptionPlain = truncateMetaDescription(
+      toSeoPlainText(channel.channel_description?.value || channel.title)
+    );
+
+    return buildContentMetadata({
+      title: channel.title,
+      descriptionPlain,
+      pathname: `/artist/${channel.id_text}`,
+      imageUrl: getChannelHeroImageUrl(channel.channel_images),
+    });
+  } catch {
+    return {};
+  }
+}
+
 export default async function ArtistPage({ params, searchParams }: ArtistPageProps) {
   const { channel_id } = await params;
   const queryParams = await searchParams;
@@ -26,7 +54,7 @@ export default async function ArtistPage({ params, searchParams }: ArtistPagePro
 
   const { currentType } = await parseSearchParams(queryParams);
 
-  const response = await ssrApiRequestService.reqPublisherFeedGetRemoteItemsForChannel(channel_id);
+  const response = await getPublisherRemoteItemsForChannelSeoPage(channel_id);
 
   let ssrPodroll = null;
   if ((response.channel?.channel_podroll?.channel_podroll_remote_items?.length ?? 0) > 0) {

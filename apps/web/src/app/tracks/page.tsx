@@ -10,6 +10,7 @@ import {
   QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
 } from '@podverse/helpers-requests';
 
+import { getCuratedStaticPageMetadata } from '../../lib/seo/curatedPageMetadata';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import type { TracksFilterDefaults } from '../../utils/localSettings/localSettings';
@@ -34,6 +35,10 @@ type SearchParams = z.infer<typeof searchParamsSchema>;
 export type TracksPageProps = {
   searchParams: Promise<SearchParams>;
 };
+
+export async function generateMetadata() {
+  return getCuratedStaticPageMetadata('tracks');
+}
 
 export default async function TracksPage({ searchParams }: TracksPageProps) {
   const { isValidAuthSession, ssrApiRequestService } = await getSSRAuthService();
