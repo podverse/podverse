@@ -22,6 +22,11 @@
       "types": "./src/components/feedback/Toast/index.ts",
       "import": "./src/components/feedback/Toast/index.ts",
       "default": "./src/components/feedback/Toast/index.ts"
+    },
+    "./custom-themes/server": {
+      "types": "./src/lib/customThemes/enrichRuntimeConfigWithCustomThemes.ts",
+      "import": "./src/lib/customThemes/enrichRuntimeConfigWithCustomThemes.ts",
+      "default": "./src/lib/customThemes/enrichRuntimeConfigWithCustomThemes.ts"
     }
   },
   "scripts": {
@@ -53,6 +58,7 @@
   },
   "dependencies": {
     "@podverse/helpers": "*",
+    "@podverse/helpers-config": "*",
     "classnames": "^2.5.1",
     "react-hot-toast": "^2.6.0",
     "react-icons": "^5.6.0",

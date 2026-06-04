@@ -1,13 +1,18 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 
-import { FormDropdown } from '@podverse/ui';
+import { ALL_POSSIBLE_THEMES, FormDropdown } from '@podverse/ui';
 
 import { writeCookie } from '../../utils/cookie';
 import type { UITheme } from '../../utils/uiTheme';
-import { getValidThemes, toUITheme, UI_THEME_COOKIE } from '../../utils/uiTheme';
+import {
+  getCustomThemeById,
+  getValidThemes,
+  toUITheme,
+  UI_THEME_COOKIE,
+} from '../../utils/uiTheme';
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
@@ -27,7 +32,9 @@ export const ManagementThemeSwitcher = ({
   optionLabel,
 }: ManagementThemeSwitcherProps) => {
   const t = useTranslations('settings');
+  const locale = useLocale();
   const [theme, setTheme] = useState<UITheme>('dark');
+  const builtInThemes = useMemo(() => new Set<string>(ALL_POSSIBLE_THEMES), []);
 
   useEffect(() => {
     const current = document.documentElement.getAttribute('data-ui-theme');
@@ -38,9 +45,24 @@ export const ManagementThemeSwitcher = ({
     () =>
       getValidThemes().map((tr) => ({
         value: tr,
-        label: optionLabel !== undefined ? optionLabel(tr) : t(`ui_theme.${tr}`),
+        label:
+          optionLabel !== undefined
+            ? optionLabel(tr)
+            : (() => {
+                if (builtInThemes.has(tr)) {
+                  return t(`ui_theme.${tr}`);
+                }
+                const customTheme = getCustomThemeById(tr);
+                if (customTheme?.labels?.[locale]) {
+                  return customTheme.labels[locale];
+                }
+                if (customTheme?.labels?.['en-US']) {
+                  return customTheme.labels['en-US'];
+                }
+                return customTheme?.id ?? tr;
+              })(),
       })),
-    [optionLabel, t]
+    [builtInThemes, locale, optionLabel, t]
   );
 
   const handleChange = (next: string) => {

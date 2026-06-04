@@ -45,6 +45,13 @@ Operator and platform runbooks for Podverse deployments, data stores, and platfo
 | [PUBLISH.md](deploy/PUBLISH.md)                   | Staging builds, main promotion, GHCR tags  |
 | [SECRETS.md](deploy/SECRETS.md)                   | Repository and deployment secrets          |
 
+## Branding
+
+| Doc                                                         | Purpose                                          |
+| ----------------------------------------------------------- | ------------------------------------------------ |
+| [REMOTE-CUSTOM-THEMES.md](branding/REMOTE-CUSTOM-THEMES.md) | Remote JSON theme packs for web/management-web   |
+| [REBRANDING-CDN.md](/docs/development/REBRANDING-CDN.md)    | Logos, favicons, manifest colors via runtime env |
+
 ## Related
 
 - [Remote Kubernetes (GitOps)](/docs/development/k8s/REMOTE-K8S-GITOPS.md)

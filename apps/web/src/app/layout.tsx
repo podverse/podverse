@@ -18,8 +18,8 @@ import { QueueResourcesAbridgedController } from '../components/Queue/QueueResou
 import { SideBar } from '../components/SideBar/SideBar';
 import { WindowWrapper } from '../components/Window/WindowWrapper';
 import { getConfig } from '../config';
-import { fetchWebRuntimeConfigFromSidecar } from '../config/runtime-config.server';
-import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime-config-store';
+import { getCustomThemeCssText } from '../config/custom-themes.server';
+import { resolveWebRuntimeConfigForRequest } from '../config/resolve-runtime-config.server';
 import { getSSRApiRequestService } from '../factories/apiRequestService';
 import { useLocaleDetect } from '../hooks/useLocaleDetect';
 import { setSSRAccountForLocale } from '../i18n/request';
@@ -31,16 +31,9 @@ import { toUITheme } from '../utils/localSettings/uiTheme';
 import '../styles/index.scss';
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  let runtimeConfig = getRuntimeConfig();
-  if (process.env.RUNTIME_CONFIG_URL) {
-    try {
-      runtimeConfig = await fetchWebRuntimeConfigFromSidecar();
-      setRuntimeConfig(runtimeConfig);
-    } catch {
-      runtimeConfig = getRuntimeConfig();
-    }
-  }
+  const runtimeConfig = await resolveWebRuntimeConfigForRequest();
   const config = getConfig();
+  const customThemeCssText = getCustomThemeCssText(runtimeConfig);
   const cookieStore = await cookies();
   const ssrLocalSettings = getParsedLocalSettings(cookieStore);
   const ssrUITheme = toUITheme(ssrLocalSettings.uit);
@@ -79,6 +72,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={locale} data-ui-theme={ssrUITheme}>
       <head>
         <RuntimeConfigScript runtimeConfig={runtimeConfig} />
+        {customThemeCssText ? (
+          <style id="pv-custom-theme-variables">{customThemeCssText}</style>
+        ) : null}
         <title>{config.public.brand.name}</title>
         <FontPreloads />
         <FavIcons />

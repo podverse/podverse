@@ -1,0 +1,17 @@
+---
+description: Keep operator custom-themes sample JSON in sync when theme CSS variables change in _themes.scss
+globs:
+  - packages/ui/src/styles/_themes.scss
+  - docs/operations/branding/custom-themes.operator-sample.json
+alwaysApply: false
+---
+
+# Custom themes operator sample sync
+
+When you add, rename, or remove a **theme-scoped** CSS custom property in [`packages/ui/src/styles/_themes.scss`](/packages/ui/src/styles/_themes.scss) (inside `[data-ui-theme='…']` blocks):
+
+1. Update [`docs/operations/branding/custom-themes.operator-sample.json`](/docs/operations/branding/custom-themes.operator-sample.json) so **each** sample theme’s `cssVariables` includes the full key set with explicit values.
+2. Run `npm run test -w @podverse/ui` — `customThemesOperatorSample.test.ts` asserts parity with `_themes.scss`.
+3. If operator-facing steps changed, update [`docs/operations/branding/REMOTE-CUSTOM-THEMES.md`](/docs/operations/branding/REMOTE-CUSTOM-THEMES.md).
+
+Do **not** use E2E fixtures under `tools/test-assets/assets/themes/` for this; those stay minimal for Playwright.

@@ -80,6 +80,12 @@ Set **`BRAND_BANNER_IMAGE_3X1_URL`** in API env (ConfigMap, `brand` local overri
 
 ---
 
+## Full UI color themes (remote JSON)
+
+For **entire extra themes** (backgrounds, buttons, progress bar, tables — not just manifest chrome colors), host a remote theme pack JSON and set **`NEXT_PUBLIC_CUSTOM_THEMES_URL`** on the web and management-web runtime-config sidecars. See the operator guide [REMOTE-CUSTOM-THEMES.md](/docs/operations/branding/REMOTE-CUSTOM-THEMES.md) and the committed sample [`custom-themes.operator-sample.json`](/docs/operations/branding/custom-themes.operator-sample.json).
+
+---
+
 ## Where to configure
 
 - **Production / Kubernetes:** runtime-config **sidecar** env (e.g. `web-sidecar` / `management-web-sidecar` ConfigMaps in your GitOps repo). See [apps/web/ENV.md](/apps/web/ENV.md) and [apps/management-web/ENV.md](/apps/management-web/ENV.md) for the full variable list and validation rules.

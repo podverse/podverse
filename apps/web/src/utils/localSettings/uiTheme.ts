@@ -1,25 +1,25 @@
-import type { UITheme } from '@podverse/ui';
+import type { RemoteThemeDefinition } from '@podverse/ui';
 import { ALL_POSSIBLE_THEMES } from '@podverse/ui';
 
 import { getConfig } from '../../config';
 
-export type { UITheme };
+export type UITheme = string;
 
 /**
  * Get the list of valid themes from config, or all themes if config is blank
  */
 const ALL_AVAILABLE_VALUE = 'all-available';
 
-export function getValidThemes(): UITheme[] {
+function getBuiltInValidThemes(): string[] {
   const config = getConfig();
   const validThemesConfig = config.public.theme.valid?.trim();
 
   if (!validThemesConfig) {
-    return [...ALL_POSSIBLE_THEMES];
+    return [...ALL_POSSIBLE_THEMES].map((theme) => theme.toLowerCase());
   }
 
   if (validThemesConfig.toLowerCase() === ALL_AVAILABLE_VALUE) {
-    return [...ALL_POSSIBLE_THEMES];
+    return [...ALL_POSSIBLE_THEMES].map((theme) => theme.toLowerCase());
   }
 
   const themes = validThemesConfig
@@ -28,7 +28,7 @@ export function getValidThemes(): UITheme[] {
     .filter(Boolean);
 
   // Validate themes and log warnings for invalid ones
-  const validThemes: UITheme[] = [];
+  const validThemes: string[] = [];
   themes.forEach((theme) => {
     const match = ALL_POSSIBLE_THEMES.find((t) => t === theme);
     if (match !== undefined) {
@@ -55,10 +55,32 @@ export function getValidThemes(): UITheme[] {
   return validThemes;
 }
 
+export function getCustomThemes(): RemoteThemeDefinition[] {
+  const config = getConfig();
+  return config.public.theme.customThemes ?? [];
+}
+
+export function getCustomThemeById(themeId: string): RemoteThemeDefinition | undefined {
+  return getCustomThemes().find((theme) => theme.id === themeId);
+}
+
+export function getValidThemes(): UITheme[] {
+  const builtInThemes = getBuiltInValidThemes();
+  const customThemes = getCustomThemes().map((theme) => theme.id);
+  const uniqueThemes = new Set<string>([...builtInThemes, ...customThemes]);
+  return [...uniqueThemes];
+}
+
 /**
  * Get the default theme from config, or "dark" if blank, or first valid theme if dark is not valid
  */
 export function getDefaultTheme(): UITheme {
+  const customThemes = getCustomThemes();
+  const firstCustomTheme = customThemes.at(0);
+  if (firstCustomTheme !== undefined) {
+    return firstCustomTheme.id;
+  }
+
   const config = getConfig();
   const defaultThemeConfig = config.public.theme.default?.trim().toLowerCase();
   const validThemes = getValidThemes();
@@ -71,7 +93,9 @@ export function getDefaultTheme(): UITheme {
     return validThemes[0] || 'dark';
   }
 
-  const defaultThemeMatch = ALL_POSSIBLE_THEMES.find((t) => t === defaultThemeConfig);
+  const defaultThemeMatch = ALL_POSSIBLE_THEMES.find(
+    (t) => t === defaultThemeConfig
+  )?.toLowerCase();
   if (defaultThemeMatch === undefined) {
     if (typeof window !== 'undefined') {
       console.warn(

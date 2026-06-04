@@ -7,6 +7,7 @@ import type { ValidationResult, ValidationSummary } from '@podverse/helpers-conf
 import {
   displayValidationResults,
   displayValidationResultsSilent,
+  isAllowedCustomThemesUrl,
   isPodverseStartupValidationSilent,
   validateDefaultTheme,
   validateLocale,
@@ -70,6 +71,7 @@ const optionalKeys = [
   'NEXT_PUBLIC_BRAND_NAME',
   'NEXT_PUBLIC_BRAND_THEME_COLOR',
   'NEXT_PUBLIC_CONTACT_EMAIL',
+  'NEXT_PUBLIC_CUSTOM_THEMES_URL',
   'NEXT_PUBLIC_COOKIE_CONSENT_BANNER_ENABLED',
   'NEXT_PUBLIC_IMAGE_PROXY_ENABLED',
   'NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED',
@@ -214,6 +216,37 @@ function validateOne(key: string, isRequired: boolean): ValidationResult {
   if (key === 'NEXT_PUBLIC_SUPPORTED_THEMES') {
     return validateSupportedThemesList(key, category);
   }
+  if (key === 'NEXT_PUBLIC_CUSTOM_THEMES_URL') {
+    const value = process.env[key] ?? '';
+    if (value.trim() === '') {
+      return {
+        name: key,
+        isSet: false,
+        isValid: true,
+        isRequired: false,
+        message: 'Blank',
+        category,
+      };
+    }
+    if (!isAllowedCustomThemesUrl(value)) {
+      return {
+        name: key,
+        isSet: true,
+        isValid: false,
+        isRequired: false,
+        message: `Invalid value: "${value}" - must be https:// or local http://localhost/... URL`,
+        category,
+      };
+    }
+    return {
+      name: key,
+      isSet: true,
+      isValid: true,
+      isRequired: false,
+      message: `Set to ${value}`,
+      category,
+    };
+  }
   if (key === 'NEXT_PUBLIC_DEFAULT_THEME') {
     return validateDefaultTheme(key, category);
   }
@@ -320,6 +353,7 @@ function getCategory(key: string): string {
     NEXT_PUBLIC_BRAND_LOGO_DARK: 'Brand',
     NEXT_PUBLIC_BRAND_LOGO_LIGHT: 'Brand',
     NEXT_PUBLIC_CONTACT_EMAIL: 'Brand',
+    NEXT_PUBLIC_CUSTOM_THEMES_URL: 'Themes',
     NEXT_PUBLIC_POLLING_INTERVAL_MS: 'API',
     NEXT_PUBLIC_SOCIAL_ACTIVITY_PUB: 'Social',
     NEXT_PUBLIC_SOCIAL_DISCORD: 'Social',
