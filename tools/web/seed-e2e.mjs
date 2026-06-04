@@ -33,6 +33,9 @@ const E2E_STALE_TERMS_EMAIL = 'e2e-stale-terms@example.com';
 /** Sync with apps/web/e2e/helpers/setPasswordInvite.ts */
 const E2E_SET_PASSWORD_INVITE_TOKEN = '11111111-1111-4111-8111-111111111111';
 
+/** Sync with apps/web/e2e/helpers/seedConstants.ts (SEO profile specs). */
+const E2E_SEO_PUBLIC_PROFILE_ID_TEXT = 'e2eSeoPublic01';
+
 /** Deterministic podcast_index_id + channel id_text for apps/web/e2e/header-image-livestream.spec.ts */
 const E2E_LIVESTREAM_FEED_PI_ID = 876543210;
 const E2E_LIVESTREAM_CHANNEL_ID_TEXT = 'v5fCrIj9Io';
@@ -226,6 +229,26 @@ async function main() {
   console.log(
     `Seeded invite set-password token for account id ${inviteAccountId} (username e2e_invite_user)`
   );
+
+  const seoPublicProfileResult = await client.query(
+    `INSERT INTO "account" (id_text, verified, sharable_status_id)
+     VALUES ($1, true, 1)
+     RETURNING id`,
+    [E2E_SEO_PUBLIC_PROFILE_ID_TEXT]
+  );
+  const seoPublicProfileAccountId = seoPublicProfileResult.rows[0].id;
+
+  await client.query(
+    `INSERT INTO "account_profile" (account_id, display_name, bio)
+     VALUES ($1, $2, $3)`,
+    [
+      seoPublicProfileAccountId,
+      'E2E SEO Public Profile',
+      'Deterministic public profile for SEO E2E tests.',
+    ]
+  );
+
+  console.log(`Seeded SEO public profile: ${E2E_SEO_PUBLIC_PROFILE_ID_TEXT}`);
 
   await client.query(`DELETE FROM feed WHERE podcast_index_id = $1`, [E2E_LIVESTREAM_FEED_PI_ID]);
 

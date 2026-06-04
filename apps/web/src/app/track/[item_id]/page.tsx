@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { QUERY_PARAMS_ITEM_MUSIC_TYPE_VALUES } from '@podverse/helpers-requests';
 
 import { buildContentMetadata } from '../../../lib/seo/buildContentMetadata';
+import { buildNoindexMetadata } from '../../../lib/seo/buildNoindexMetadata';
 import {
   getChannelForSeoPage,
   getItemForSeoPage,
@@ -43,7 +44,7 @@ export async function generateMetadata({ params }: TrackPageProps): Promise<Meta
       type: 'article',
     });
   } catch {
-    return {};
+    return buildNoindexMetadata();
   }
 }
 

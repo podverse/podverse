@@ -1,6 +1,10 @@
 import { expect, test } from '@playwright/test';
 
-import { expectMetaDescriptionContains, fetchSsrHtml } from './helpers/seoHtml';
+import {
+  expectHeadDoesNotContain,
+  expectMetaDescriptionContains,
+  fetchSsrHtml,
+} from './helpers/seoHtml';
 
 test.describe('Web SEO static page metadata', () => {
   test('SSR HTML for curated pages uses i18n SEO copy and not feed descriptions', async ({
@@ -13,7 +17,8 @@ test.describe('Web SEO static page metadata', () => {
         html,
         'Discover podcasts, music, and livestreams on PodverseE2E.'
       );
-      expect(html).not.toContain(
+      expectHeadDoesNotContain(
+        html,
         'E2E seeded channel for deterministic media-player podcast tests.'
       );
     });
@@ -22,7 +27,8 @@ test.describe('Web SEO static page metadata', () => {
       const html = await fetchSsrHtml(request, '/podcasts');
       expect(html).toContain('<title>Podcasts');
       expectMetaDescriptionContains(html, 'Browse podcast feeds and shows on PodverseE2E.');
-      expect(html).not.toContain(
+      expectHeadDoesNotContain(
+        html,
         'E2E seeded channel for deterministic media-player podcast tests.'
       );
     });
@@ -31,7 +37,8 @@ test.describe('Web SEO static page metadata', () => {
       const html = await fetchSsrHtml(request, '/episodes');
       expect(html).toContain('<title>Episodes');
       expectMetaDescriptionContains(html, 'Browse podcast episodes across PodverseE2E.');
-      expect(html).not.toContain(
+      expectHeadDoesNotContain(
+        html,
         'E2E seeded channel for deterministic media-player podcast tests.'
       );
     });

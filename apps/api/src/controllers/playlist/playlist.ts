@@ -5,6 +5,12 @@ import {
 } from '@api/lib/auth/index.js';
 import { getFollowedPlaylistIdsPrivate } from '@api/lib/followed.js';
 import { getParamRequired } from '@api/lib/params.js';
+import {
+  type PlaylistApiJson,
+  playlistsToJson,
+  playlistToJson,
+} from '@api/lib/playlistApiSerialization.js';
+import { resolveSharableStatusId } from '@api/lib/resolveSharableStatusId.js';
 import { getStatsOrder } from '@api/lib/stats.js';
 import {
   mediumPageQuerySchema,
@@ -48,6 +54,14 @@ import { handleGenericErrorResponse } from '../helpers/error.js';
 import { getPaginationParams } from '../helpers/pagination.js';
 
 const playlistService = new PlaylistService();
+
+function preparePlaylistForJson(playlist: Playlist): PlaylistApiJson {
+  return playlistToJson(playlist);
+}
+
+function preparePlaylistsForJson(playlists: Playlist[]): PlaylistApiJson[] {
+  return playlistsToJson(playlists);
+}
 
 const playlistResourceWithProfileRelations: FindOptionsRelations<PlaylistResource> = {
   playlist: { account: { account_profile: true } },
@@ -96,11 +110,7 @@ export const verifyPrivatePlaylistOwnershipIfNeeded = () => {
 
       const isOwner = !!account?.id && playlist.account.id === account.id;
 
-      // sharable_status can be either a numeric enum value or a relation object with an id property
-      const sharableStatusId =
-        typeof playlist.sharable_status === 'number'
-          ? playlist.sharable_status
-          : (playlist.sharable_status as unknown as { id: number })?.id;
+      const sharableStatusId = resolveSharableStatusId(playlist);
       if (sharableStatusId === SharableStatusEnum.Private) {
         if (!isOwner) {
           res.status(404).json({ message: 'Playlist not found' });
@@ -161,7 +171,7 @@ class PlaylistController {
 
           try {
             const playlist = await playlistService.create(account.id, dto);
-            res.status(201).json(playlist);
+            res.status(201).json(preparePlaylistForJson(playlist));
           } catch (err) {
             handleGenericErrorResponse(res, err);
           }
@@ -202,7 +212,7 @@ class PlaylistController {
 
               try {
                 const playlist = await playlistService.update(account.id, playlist_id_text, dto);
-                res.status(200).json(playlist);
+                res.status(200).json(preparePlaylistForJson(playlist));
               } catch (err) {
                 handleGenericErrorResponse(res, err);
               }
@@ -257,9 +267,9 @@ class PlaylistController {
           config,
           medium
         );
-        const playlists = statsResults
-          .map((stat: { playlist: Playlist }) => stat.playlist)
-          .filter(Boolean);
+        const playlists = preparePlaylistsForJson(
+          statsResults.map((stat: { playlist: Playlist }) => stat.playlist).filter(Boolean)
+        );
 
         res.status(200).json({
           data: playlists,
@@ -300,12 +310,12 @@ class PlaylistController {
                 account.id,
                 medium
               );
-            const data = statsResults[0]
-              .map((stat: { playlist: Playlist }) => stat.playlist)
-              .filter(Boolean);
+            const data = preparePlaylistsForJson(
+              statsResults[0].map((stat: { playlist: Playlist }) => stat.playlist).filter(Boolean)
+            );
             const count = statsResults[1];
 
-            const response: ApiListResponse<Playlist> = {
+            const response: ApiListResponse<PlaylistApiJson> = {
               data: data,
               meta: { page, count, limit },
             };
@@ -341,8 +351,8 @@ class PlaylistController {
 
             const results = await playlistService.getManyPrivate(account.id, medium, config);
 
-            const response: ApiListResponse<Playlist> = {
-              data: results[0],
+            const response: ApiListResponse<PlaylistApiJson> = {
+              data: preparePlaylistsForJson(results[0]),
               meta: { page, count: results[1], limit },
             };
 
@@ -377,8 +387,8 @@ class PlaylistController {
 
             const results = await playlistService.getManyPrivate(account.id, medium, config);
 
-            const response: ApiListResponse<Playlist> = {
-              data: results[0],
+            const response: ApiListResponse<PlaylistApiJson> = {
+              data: preparePlaylistsForJson(results[0]),
               meta: { page, count: results[1], limit },
             };
 
@@ -413,8 +423,8 @@ class PlaylistController {
 
             const results = await playlistService.getManyPrivate(account.id, medium, config);
 
-            const response: ApiListResponse<Playlist> = {
-              data: results[0],
+            const response: ApiListResponse<PlaylistApiJson> = {
+              data: preparePlaylistsForJson(results[0]),
               meta: { page, count: results[1], limit },
             };
 
@@ -456,12 +466,12 @@ class PlaylistController {
               config
             );
 
-          const playlists = statsResults[0]
-            .map((stat: { playlist: Playlist }) => stat.playlist)
-            .filter(Boolean);
+          const playlists = preparePlaylistsForJson(
+            statsResults[0].map((stat: { playlist: Playlist }) => stat.playlist).filter(Boolean)
+          );
           const count = statsResults[1];
 
-          const response: ApiListResponse<Playlist> = {
+          const response: ApiListResponse<PlaylistApiJson> = {
             data: playlists,
             meta: { page, count, limit },
           };
@@ -498,15 +508,17 @@ class PlaylistController {
               medium,
               config
             );
-          const playlists = results[0]
-            .map(
-              (account_following_playlist: { playlist: Playlist }) =>
-                account_following_playlist.playlist
-            )
-            .filter(Boolean);
+          const playlists = preparePlaylistsForJson(
+            results[0]
+              .map(
+                (account_following_playlist: { playlist: Playlist }) =>
+                  account_following_playlist.playlist
+              )
+              .filter(Boolean)
+          );
           const count = results[1];
 
-          const response: ApiListResponse<Playlist> = {
+          const response: ApiListResponse<PlaylistApiJson> = {
             data: playlists,
             meta: { page, count, limit },
           };
@@ -543,15 +555,17 @@ class PlaylistController {
               medium,
               config
             );
-          const playlists = results[0]
-            .map(
-              (account_following_playlist: { playlist: Playlist }) =>
-                account_following_playlist.playlist
-            )
-            .filter(Boolean);
+          const playlists = preparePlaylistsForJson(
+            results[0]
+              .map(
+                (account_following_playlist: { playlist: Playlist }) =>
+                  account_following_playlist.playlist
+              )
+              .filter(Boolean)
+          );
           const count = results[1];
 
-          const response: ApiListResponse<Playlist> = {
+          const response: ApiListResponse<PlaylistApiJson> = {
             data: playlists,
             meta: { page, count, limit },
           };
@@ -588,15 +602,17 @@ class PlaylistController {
               medium,
               config
             );
-          const playlists = results[0]
-            .map(
-              (account_following_playlist: { playlist: Playlist }) =>
-                account_following_playlist.playlist
-            )
-            .filter(Boolean);
+          const playlists = preparePlaylistsForJson(
+            results[0]
+              .map(
+                (account_following_playlist: { playlist: Playlist }) =>
+                  account_following_playlist.playlist
+              )
+              .filter(Boolean)
+          );
           const count = results[1];
 
-          const response: ApiListResponse<Playlist> = {
+          const response: ApiListResponse<PlaylistApiJson> = {
             data: playlists,
             meta: { page, count, limit },
           };
@@ -840,7 +856,7 @@ class PlaylistController {
               }
 
               if (playlist) {
-                res.status(200).json(playlist);
+                res.status(200).json(preparePlaylistForJson(playlist));
               } else {
                 res.status(404).json({ message: 'Playlist not found' });
               }

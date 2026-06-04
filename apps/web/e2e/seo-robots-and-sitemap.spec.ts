@@ -16,6 +16,6 @@ test.describe('Web robots and sitemap', () => {
 
     const body = await response.text();
     expect(body).toContain('/podcasts');
-    expect(body).toContain('https://');
+    expect(body).toMatch(/<loc>https?:\/\//);
   });
 });

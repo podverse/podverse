@@ -8,6 +8,7 @@ import {
 } from '@podverse/helpers-requests';
 
 import { buildContentMetadata } from '../../../lib/seo/buildContentMetadata';
+import { buildNoindexMetadata } from '../../../lib/seo/buildNoindexMetadata';
 import {
   getChannelForSeoPage,
   getItemForSeoPage,
@@ -54,7 +55,7 @@ export async function generateMetadata({ params }: EpisodePageProps): Promise<Me
       type: 'article',
     });
   } catch {
-    return {};
+    return buildNoindexMetadata();
   }
 }
 

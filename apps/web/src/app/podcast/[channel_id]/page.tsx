@@ -12,6 +12,7 @@ import {
 } from '@podverse/helpers-requests';
 
 import { buildContentMetadata } from '../../../lib/seo/buildContentMetadata';
+import { buildNoindexMetadata } from '../../../lib/seo/buildNoindexMetadata';
 import { getChannelForSeoPage, getChannelHeroImageUrl } from '../../../lib/seo/fetchers';
 import { toSeoPlainText } from '../../../lib/seo/toSeoPlainText';
 import { truncateMetaDescription } from '../../../lib/seo/truncateMetaDescription';
@@ -63,7 +64,7 @@ export async function generateMetadata({ params }: PodcastPageProps): Promise<Me
       imageUrl: getChannelHeroImageUrl(channel.channel_images),
     });
   } catch {
-    return {};
+    return buildNoindexMetadata();
   }
 }
 
