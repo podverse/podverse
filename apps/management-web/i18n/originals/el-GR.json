@@ -35,6 +35,10 @@
     "paginationPageOf": "Σελίδα {currentPage} από {totalPages}",
     "closeModalAria": "Κλείσιμο παραθύρου διαλόγου"
   },
+  "tableOfContents": {
+    "navAriaLabel": "Πίνακας περιεχομένων",
+    "heading": "Πίνακας περιεχομένων"
+  },
   "tableShared": {
     "searchPlaceholder": "Αναζήτηση",
     "searchSubmitLabel": "Αναζήτηση",
@@ -308,6 +312,8 @@
     "pageSubtitle": "Βρείτε μια τροφοδοσία με ID Podcast Index (προεπιλογή), εσωτερικό id τροφοδοσίας ή URL. Ενημερώστε κύκλο ζωής, ενεργές συνθήκες, όρια και σημειώσεις. Αυτό είναι ξεχωριστό από το πρόγραμμα περιήγησης πινάκων της βάσης.",
     "breadcrumbFeeds": "Ροές",
     "breadcrumbCurrent": "Κατάσταση σημαίας",
+    "sectionTabSearchFeeds": "Αναζήτηση τροφοδοσιών",
+    "sectionTabFindFeed": "Εύρεση τροφοδοσίας",
     "directoryHeading": "Τροφοδοσίες",
     "directoryLoadError": "Δεν ήταν δυνατή η φόρτωση της λίστας τροφοδοσιών.",
     "directoryEmpty": "Καμία τροφοδοσία δεν ταιριάζει με τα τρέχοντα φίλτρα.",

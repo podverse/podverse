@@ -28,7 +28,7 @@ import {
   resolveParserMaxFeedBodyBytes,
   sleep,
 } from '@podverse/helpers';
-import { getStatusCodeFromError } from '@podverse/helpers-requests';
+import { getStatusCodeFromError, isTlsOrProtocolError } from '@podverse/helpers-requests';
 import { canonicalHttpOrHttpsUrl } from '@podverse/helpers-validation';
 import {
   AccountService,
@@ -390,7 +390,14 @@ export const parseRSSFeedAndSaveToDatabase = async (
           parse_errors: (feedLog?.parse_errors || 0) + 1,
         });
       }
-      loggerService.logError('parseRSSFeedAndSaveToDatabase', error as Error);
+      if (isTlsOrProtocolError(error)) {
+        const tlsDetail = error instanceof Error ? error.message : String(error);
+        loggerService.warn(
+          `parseRSSFeedAndSaveToDatabase TLS/protocol error (feed skipped): ${url} podcast_index_id=${podcast_index_id} feed_id=${feed?.id ?? 'unknown'} — ${tlsDetail}`
+        );
+      } else {
+        loggerService.logError('parseRSSFeedAndSaveToDatabase', error as Error);
+      }
     }
   } finally {
     loggerService.info(

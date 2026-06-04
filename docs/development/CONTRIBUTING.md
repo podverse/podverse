@@ -17,6 +17,9 @@ npm run dev:api # Start API (localhost:3000)
 npm run dev:web # Start web app (localhost:3002)
 ```
 
+Build order details and dependency-safe sequencing are documented in
+[DOCS-DEVELOPMENT-TOOLING-BUILD-ORDER.md](tooling/DOCS-DEVELOPMENT-TOOLING-BUILD-ORDER.md).
+
 ## Workflow
 
 ### Starting a Feature
