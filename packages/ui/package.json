@@ -42,10 +42,10 @@
     "react-virtuoso": "^4.18.3"
   },
   "devDependencies": {
-    "@types/sanitize-html": "^2.16.0",
     "@testing-library/react": "^16.3.0",
     "@types/react": "^19.2.16",
     "@types/react-dom": "^19.2.2",
+    "@types/sanitize-html": "^2.16.0",
     "@vitejs/plugin-react": "^5.1.1",
     "jsdom": "^26.1.0",
     "next": "^16.2.7",
@@ -54,7 +54,7 @@
     "react-virtuoso": "^4.18.3",
     "sass": "^1.98.0",
     "typescript": "^5.9.2",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.8"
   },
   "dependencies": {
     "@podverse/helpers": "*",
