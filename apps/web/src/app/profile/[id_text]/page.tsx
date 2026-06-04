@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 
 import { SharableStatusEnum } from '@podverse/helpers';
 
@@ -36,7 +36,9 @@ export async function generateMetadata({ params }: ProfilePageProps): Promise<Me
     }
 
     const title = resolveProfileTitle(id_text, account.account_profile?.display_name);
-    const descriptionPlain = toSeoPlainText(account.account_profile?.bio || 'Podverse profile page');
+    const descriptionPlain = toSeoPlainText(
+      account.account_profile?.bio || 'Podverse profile page'
+    );
 
     return buildStaticPageMetadata({
       title,

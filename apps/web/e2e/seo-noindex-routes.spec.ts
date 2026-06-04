@@ -30,7 +30,9 @@ test.describe('Web SEO noindex routes', () => {
     });
   });
 
-  test('guest my-profile route remains non-indexable even when it redirects', async ({ request }) => {
+  test('guest my-profile route remains non-indexable even when it redirects', async ({
+    request,
+  }) => {
     const response = await request.get('/my-profile');
     if (response.status() >= 300 && response.status() < 400) {
       return;

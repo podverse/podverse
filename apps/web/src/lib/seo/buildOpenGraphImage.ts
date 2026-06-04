@@ -1,5 +1,5 @@
-import { ASSETS } from '../../constants/assets';
 import { getConfig } from '../../config';
+import { ASSETS } from '../../constants/assets';
 import { buildAbsoluteWebUrl } from './buildAbsoluteWebUrl';
 
 const buildDefaultOpenGraphImage = (): string => {

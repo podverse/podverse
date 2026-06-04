@@ -1,7 +1,10 @@
 const DEFAULT_META_DESCRIPTION_MAX_LENGTH = 160;
 const MIN_WORD_BOUNDARY_FALLBACK_LENGTH = 60;
 
-export const truncateMetaDescription = (text: string, maxLength = DEFAULT_META_DESCRIPTION_MAX_LENGTH) => {
+export const truncateMetaDescription = (
+  text: string,
+  maxLength = DEFAULT_META_DESCRIPTION_MAX_LENGTH
+) => {
   const normalized = text.trim();
   if (normalized === '' || maxLength <= 0) {
     return '';

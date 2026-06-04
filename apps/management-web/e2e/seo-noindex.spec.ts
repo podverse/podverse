@@ -6,6 +6,8 @@ test.describe('Management-web SEO noindex', () => {
     expect(response.ok()).toBeTruthy();
 
     const html = await response.text();
-    expect(html).toMatch(/<meta[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex[^"']*["'][^>]*>/i);
+    expect(html).toMatch(
+      /<meta[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex[^"']*["'][^>]*>/i
+    );
   });
 });

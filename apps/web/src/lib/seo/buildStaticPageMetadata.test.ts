@@ -22,15 +22,21 @@ describe('buildStaticPageMetadata', () => {
       imageUrl: 'https://img.example/podcasts.png',
     });
 
-    expect(metadata.title).toBe('Podcasts');
-    expect(metadata.description).toBe('Browse podcast episodes, channels, and creators.');
-    expect(metadata.alternates?.canonical).toBe('https://podverse.example/podcasts');
-
-    expect(metadata.openGraph?.type).toBe('website');
-    expect(metadata.openGraph?.url).toBe('https://podverse.example/podcasts');
-    expect(metadata.openGraph?.images).toEqual([{ url: 'https://img.example/podcasts.png' }]);
-
-    expect(metadata.twitter?.card).toBe('summary_large_image');
-    expect(metadata.twitter?.images).toEqual(['https://img.example/podcasts.png']);
+    expect(metadata).toMatchObject({
+      title: 'Podcasts',
+      description: 'Browse podcast episodes, channels, and creators.',
+      alternates: {
+        canonical: 'https://podverse.example/podcasts',
+      },
+      openGraph: {
+        type: 'website',
+        url: 'https://podverse.example/podcasts',
+        images: [{ url: 'https://img.example/podcasts.png' }],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        images: ['https://img.example/podcasts.png'],
+      },
+    });
   });
 });

@@ -13,7 +13,8 @@ describe('truncateMetaDescription', () => {
   });
 
   it('truncates at a word boundary when possible', () => {
-    const text = 'A very long metadata description that should stop at a clean boundary for readability.';
+    const text =
+      'A very long metadata description that should stop at a clean boundary for readability.';
     expect(truncateMetaDescription(text, 52)).toBe(
       'A very long metadata description that should stop at'
     );

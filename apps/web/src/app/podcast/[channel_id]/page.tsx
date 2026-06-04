@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import type { DTOClip, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
@@ -11,14 +11,11 @@ import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
 } from '@podverse/helpers-requests';
 
-import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
 import { buildContentMetadata } from '../../../lib/seo/buildContentMetadata';
-import {
-  getChannelForSeoPage,
-  getChannelHeroImageUrl,
-} from '../../../lib/seo/fetchers';
+import { getChannelForSeoPage, getChannelHeroImageUrl } from '../../../lib/seo/fetchers';
 import { toSeoPlainText } from '../../../lib/seo/toSeoPlainText';
 import { truncateMetaDescription } from '../../../lib/seo/truncateMetaDescription';
+import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
 import { PodcastPageClient } from './PodcastPageClient';
 import type { PodcastPageDropdownConfigCurrentParams } from './PodcastPageDropdownConfig';
 import { getPodcastPageFilterParams } from './PodcastPageDropdownConfig';

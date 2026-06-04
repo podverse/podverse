@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 
-import { buildNoindexMetadata } from '../../../lib/seo/buildNoindexMetadata';
 import { ROUTES } from '../../../constants/routes';
+import { buildNoindexMetadata } from '../../../lib/seo/buildNoindexMetadata';
 
 export async function generateMetadata() {
   return buildNoindexMetadata();

@@ -1,5 +1,5 @@
-import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
 import { primaryBlockReasonForUi } from '@podverse/helpers';
 
@@ -20,9 +20,7 @@ type PodcastIndexFeedPageProps = {
   params: Promise<{ podcast_index_id: string }>;
 };
 
-export async function generateMetadata({
-  params,
-}: PodcastIndexFeedPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: PodcastIndexFeedPageProps): Promise<Metadata> {
   try {
     const { podcast_index_id } = await params;
     const podcastIndexResponse = await getPodcastIndexFeedForSeoPage(podcast_index_id);
@@ -33,7 +31,9 @@ export async function generateMetadata({
       return {};
     }
 
-    const descriptionPlain = truncateMetaDescription(toSeoPlainText(ssrFeed.description || ssrFeed.title));
+    const descriptionPlain = truncateMetaDescription(
+      toSeoPlainText(ssrFeed.description || ssrFeed.title)
+    );
     const isBlockedByPolicy =
       ssrInternalFeed?.feed_policy?.add_allowed === false ||
       ssrInternalFeed?.feed_policy?.public_visible === false;

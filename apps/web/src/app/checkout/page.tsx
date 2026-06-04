@@ -1,6 +1,6 @@
-import { buildNoindexMetadata } from '../../lib/seo/buildNoindexMetadata';
 import { getConfig } from '../../config';
 import { getSSRApiRequestService } from '../../factories/apiRequestService';
+import { buildNoindexMetadata } from '../../lib/seo/buildNoindexMetadata';
 import { CheckoutPageClient } from './CheckoutPageClient';
 
 type MembershipPricingData = {

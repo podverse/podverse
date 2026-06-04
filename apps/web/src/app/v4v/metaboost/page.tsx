@@ -2,9 +2,9 @@ import { getTranslations } from 'next-intl/server';
 
 import { MainColumnStack, MainHeader, MainSidebarLayout, SideContent } from '@podverse/ui';
 
-import { getCuratedStaticPageMetadata } from '../../../lib/seo/curatedPageMetadata';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { getConfig } from '../../../config';
+import { getCuratedStaticPageMetadata } from '../../../lib/seo/curatedPageMetadata';
 
 import styles from '../../../styles/app/v4v/BoostMessages.module.scss';
 

@@ -22,19 +22,25 @@ describe('buildContentMetadata', () => {
       imageUrl: 'https://img.example/podcast.png',
     });
 
-    expect(metadata.title).toBe('E2E Podcast Seed Channel');
-    expect(metadata.description).toBe('A deterministic channel for regression checks.');
-    expect(metadata.alternates?.canonical).toBe('https://podverse.example/podcast/e2ePodChnl001');
-
-    expect(metadata.openGraph?.title).toBe('E2E Podcast Seed Channel');
-    expect(metadata.openGraph?.description).toBe('A deterministic channel for regression checks.');
-    expect(metadata.openGraph?.type).toBe('article');
-    expect(metadata.openGraph?.url).toBe('https://podverse.example/podcast/e2ePodChnl001');
-    expect(metadata.openGraph?.images).toEqual([{ url: 'https://img.example/podcast.png' }]);
-
-    expect(metadata.twitter?.title).toBe('E2E Podcast Seed Channel');
-    expect(metadata.twitter?.description).toBe('A deterministic channel for regression checks.');
-    expect(metadata.twitter?.card).toBe('summary_large_image');
-    expect(metadata.twitter?.images).toEqual(['https://img.example/podcast.png']);
+    expect(metadata).toMatchObject({
+      title: 'E2E Podcast Seed Channel',
+      description: 'A deterministic channel for regression checks.',
+      alternates: {
+        canonical: 'https://podverse.example/podcast/e2ePodChnl001',
+      },
+      openGraph: {
+        title: 'E2E Podcast Seed Channel',
+        description: 'A deterministic channel for regression checks.',
+        type: 'article',
+        url: 'https://podverse.example/podcast/e2ePodChnl001',
+        images: [{ url: 'https://img.example/podcast.png' }],
+      },
+      twitter: {
+        title: 'E2E Podcast Seed Channel',
+        description: 'A deterministic channel for regression checks.',
+        card: 'summary_large_image',
+        images: ['https://img.example/podcast.png'],
+      },
+    });
   });
 });

@@ -3,7 +3,6 @@ import { z } from 'zod';
 
 import { QUERY_PARAMS_CHANNEL_MUSIC_ARTIST_TYPE_VALUES } from '@podverse/helpers-requests';
 
-import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
 import { buildContentMetadata } from '../../../lib/seo/buildContentMetadata';
 import {
   getChannelHeroImageUrl,
@@ -11,6 +10,7 @@ import {
 } from '../../../lib/seo/fetchers';
 import { toSeoPlainText } from '../../../lib/seo/toSeoPlainText';
 import { truncateMetaDescription } from '../../../lib/seo/truncateMetaDescription';
+import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
 import { ArtistPageClient } from './ArtistPageClient';
 import type { ArtistPageDropdownConfigCurrentParams } from './ArtistPageDropdownConfig';
 import { getArtistPageFilterParams } from './ArtistPageDropdownConfig';

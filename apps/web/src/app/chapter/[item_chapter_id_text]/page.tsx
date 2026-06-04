@@ -1,5 +1,5 @@
-import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
 import { buildContentMetadata } from '../../../lib/seo/buildContentMetadata';
 import {
@@ -28,7 +28,9 @@ export async function generateMetadata({ params }: ChapterPageProps): Promise<Me
     const item = await getItemForSeoPage(itemChapter.item_chapters_feed.item.id_text);
     const channel = await getChannelForSeoPage(item.channel_id);
     const descriptionPlain = truncateMetaDescription(
-      toSeoPlainText(`${itemChapter.title || item.title} ${item.item_description?.value || item.title}`)
+      toSeoPlainText(
+        `${itemChapter.title || item.title} ${item.item_description?.value || item.title}`
+      )
     );
 
     return buildContentMetadata({

@@ -27,9 +27,7 @@ const CURATED_PAGE_PATHS = {
 
 export type CuratedSeoPageId = keyof typeof CURATED_PAGE_PATHS;
 
-export const getCuratedStaticPageMetadata = async (
-  pageId: CuratedSeoPageId
-): Promise<Metadata> => {
+export const getCuratedStaticPageMetadata = async (pageId: CuratedSeoPageId): Promise<Metadata> => {
   const tSeo = await getTranslations('seo.pages');
   const brandName = getConfig().public.brand.name;
 

@@ -72,7 +72,9 @@ const findFirstAbsoluteImageUrl = (urls: string[]): string | undefined => {
   return urls.find((url) => /^https?:\/\//i.test(url));
 };
 
-export const getChannelHeroImageUrl = (channelImages: Parameters<typeof findDTOChannelImageForHero>[0]) => {
+export const getChannelHeroImageUrl = (
+  channelImages: Parameters<typeof findDTOChannelImageForHero>[0]
+) => {
   return findDTOChannelImageForHero(channelImages, 'largest', null)?.url;
 };
 

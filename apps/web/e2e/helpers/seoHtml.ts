@@ -21,7 +21,9 @@ export function expectMetaDescriptionContains(html: string, fragment: string): v
 }
 
 export function expectRobotsNoindex(html: string): void {
-  expect(html).toMatch(/<meta[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex[^"']*["'][^>]*>/i);
+  expect(html).toMatch(
+    /<meta[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex[^"']*["'][^>]*>/i
+  );
 }
 
 export function expectCanonical(html: string, url: string): void {

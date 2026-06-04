@@ -14,7 +14,10 @@ test.describe('Web SEO public content metadata', () => {
     await test.step('Fetch the seeded public podcast channel HTML and assert metadata contract.', async () => {
       const html = await fetchSsrHtml(request, `/podcast/${E2E_PODCAST_CHANNEL_ID_TEXT}`);
       expect(html).toContain('<title>E2E Podcast Seed Channel');
-      expectMetaDescriptionContains(html, 'E2E seeded channel for deterministic media-player podcast tests.');
+      expectMetaDescriptionContains(
+        html,
+        'E2E seeded channel for deterministic media-player podcast tests.'
+      );
       expect(html).not.toMatch(/name=["']robots["'][^>]*noindex/i);
     });
 
