@@ -17,9 +17,8 @@ cd "$REPO_ROOT"
 
 echo -e "${YELLOW}Running security audit (moderate and above; low permitted)...${NC}"
 
-# Call shared audit gate utility (moderate+; no advisory ID allowlist — strict).
-# See docs/development/security/NPM-AUDIT-ALLOWLIST.md when an allowlist is needed again.
-if ! "$SCRIPT_DIR/../lib/check-audit-gate.sh" "" "release"; then
+# Advisory 1117015: next pins postcss@8.4.31 in nested node_modules; npm overrides do not replace it.
+if ! "$SCRIPT_DIR/../lib/check-audit-gate.sh" "1117015" "release"; then
   echo -e "${RED}Error: npm audit found disallowed moderate or higher vulnerabilities. Fix them before bumping version.${NC}"
   exit 1
 fi

@@ -5,13 +5,35 @@
 Release and promote scripts call [scripts/lib/check-audit-gate.sh](/scripts/lib/check-audit-gate.sh),
 which fails on **moderate and higher** npm audit findings unless an advisory ID allowlist is passed.
 
-**Current state:** The gate runs with **no** allowlisted advisory IDs (empty allowlist = strict). Root
-`package.json` overrides plus dependency updates resolved the former transitive issues below without
-needing audit exceptions.
+**Current state:** Advisory **1117015** (`postcss` via `next`) is allowlisted in all three release
+scripts. Root `package.json` overrides hoist `postcss@8.5.10` for most consumers, but npm does not
+replace `next`'s nested `node_modules/postcss@8.4.31` despite `"next": { "postcss": "8.5.10" }`.
 
 The root **`ip-address`** override is kept because **express-rate-limit** still declares a dependency on
 **10.1.x** (moderate GHSA while **<=10.1.0**); npm resolves the hoisted package to **10.2.0** under that
 override.
+
+## Active allowlist
+
+### Advisory 1117015: PostCSS XSS via unescaped `</style>` (moderate)
+
+**Affected chain:** `next@16.2.7` → nested `postcss@8.4.31` (`node_modules/next/node_modules/postcss`)
+
+**Why it's allowlisted:**
+
+- `next@16.2.7` (latest stable) pins `postcss@8.4.31` as an exact dependency in its own `node_modules`.
+- Root overrides (`postcss@8.5.10`, `next.postcss@8.5.10`) do not update the nested lockfile entry after
+  `npm install`.
+- `npm audit fix --force` proposes downgrading to `next@9.3.3`, which is not acceptable.
+
+**Risk level:** Transitive-only; PostCSS stringify XSS in Next's bundled toolchain. Podverse does not
+invoke PostCSS stringify on untrusted CSS input outside Next's build pipeline.
+
+**When to revisit:**
+
+- When `next` releases a version that depends on `postcss@>=8.5.10` natively (remove override attempt
+  and allowlist entry).
+- Re-test with `bash scripts/lib/check-audit-gate.sh "" "release"` after upgrading `next`.
 
 ## When to Add an Allowlist Entry
 

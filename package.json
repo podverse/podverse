@@ -32,7 +32,10 @@
   ],
   "overrides": {
     "ip-address": "10.2.0",
-    "postcss@8.4.31": "8.5.10",
+    "postcss": "8.5.10",
+    "next": {
+      "postcss": "8.5.10"
+    },
     "glob": "^13.0.1",
     "uuid": "14.0.0",
     "@google-cloud/storage": {

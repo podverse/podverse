@@ -74,8 +74,8 @@ fi
 echo -e "${YELLOW}Running security audit on staging (moderate and above; low permitted)...${NC}"
 npm ci
 
-# Strict moderate+ audit (no advisory allowlist). See NPM-AUDIT-ALLOWLIST.md if one is added.
-if ! "$SCRIPT_DIR/../lib/check-audit-gate.sh" "" "promote to main (staging to main)"; then
+# Moderate+ audit; allowlist 1117015 (next nested postcss). See NPM-AUDIT-ALLOWLIST.md.
+if ! "$SCRIPT_DIR/../lib/check-audit-gate.sh" "1117015" "promote to main (staging to main)"; then
   echo -e "${RED}Error: npm audit found disallowed moderate or higher vulnerabilities. Fix them before promoting to main.${NC}"
   exit 1
 fi
