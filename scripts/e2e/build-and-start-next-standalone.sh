@@ -15,10 +15,18 @@ shift
 BUILD_LOG="$(mktemp "${TMPDIR:-/tmp}/podverse-e2e-next-build.XXXXXX.log")"
 trap 'rm -f "$BUILD_LOG"' EXIT
 
-if ! npm run build -w "$WORKSPACE" "$@" >"$BUILD_LOG" 2>&1; then
+# Static prerender must not fetch custom themes (no-store) from test-assets or sidecar.
+# Runtime env is restored before start:standalone / instrumentation warm.
+SAVED_CUSTOM_THEMES_URL="${NEXT_PUBLIC_CUSTOM_THEMES_URL:-}"
+SAVED_RUNTIME_CONFIG_URL="${RUNTIME_CONFIG_URL:-}"
+
+if ! NEXT_PUBLIC_CUSTOM_THEMES_URL= RUNTIME_CONFIG_URL= npm run build -w "$WORKSPACE" "$@" >"$BUILD_LOG" 2>&1; then
   cat "$BUILD_LOG" >&2
   exit 1
 fi
+
+export NEXT_PUBLIC_CUSTOM_THEMES_URL="$SAVED_CUSTOM_THEMES_URL"
+export RUNTIME_CONFIG_URL="$SAVED_RUNTIME_CONFIG_URL"
 
 npm run postbuild:standalone -w "$WORKSPACE"
 exec npm run start:standalone -w "$WORKSPACE"

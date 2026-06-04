@@ -1,0 +1,12 @@
+{
+  "version": "2026-06-02",
+  "themes": [
+    {
+      "id": "custom_minimal",
+      "cssVariables": {
+        "--background-color-primary": "#ff00ff",
+        "--text-color-primary": "#00ff00"
+      }
+    }
+  ]
+}
