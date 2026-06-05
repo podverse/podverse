@@ -124,7 +124,7 @@ Scrape **port 9464** on the extension container, not the main app HTTP port.
    `podverse-extensions-config`), including `PROMETHEUS_ENABLED=true`.
 2. In your GitOps overlay, uncomment `components:` in each eligible alpha overlay (`api`,
    `management-api`, `web`, `management-web`, `workers`) pointing at
-   `infra/k8s/base/common/components/prometheus-sidecar`.
+   `infra/k8s/base/common/extensions/components/prometheus-sidecar`.
 
 Configure Prometheus scrape in your GitOps repo (PodMonitor or Kubernetes pod SD on container
 port **9464**). See [PROMETHEUS-METRICS-ENDPOINTS.md](PROMETHEUS-METRICS-ENDPOINTS.md).

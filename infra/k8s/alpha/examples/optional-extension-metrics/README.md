@@ -20,7 +20,7 @@ by default**. Prometheus, Grafana, and dashboard JSON live in **your GitOps repo
    - Copy [`extension-sidecar-otel.env.example`](/infra/k8s/alpha/common/source/extension-sidecar-otel.env.example)
      → `extension-sidecar-otel.env` in GitOps
 
-Canonical keys: [`infra/k8s/base/extensions/source/`](/infra/k8s/base/extensions/source/).
+Canonical keys: [`infra/k8s/base/common/source/extensions/`](/infra/k8s/base/common/source/extensions/).
 
 ### 2. GitOps — workloads
 
