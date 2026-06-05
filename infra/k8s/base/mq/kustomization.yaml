@@ -1,4 +1,4 @@
-# Version: 2
+# Version: 3
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
@@ -6,6 +6,7 @@ resources:
   - service.yaml
   - statefulset.yaml
   - provisioner.job.yaml
+  - log4j2-configmap.yaml
 
 configMapGenerator:
   - name: podverse-mq-scripts
