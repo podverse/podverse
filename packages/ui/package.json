@@ -1,6 +1,6 @@
 {
   "name": "@podverse/ui",
-  "version": "5.4.32",
+  "version": "5.4.33",
   "private": true,
   "type": "module",
   "sideEffects": false,
@@ -22,6 +22,11 @@
       "types": "./src/components/feedback/Toast/index.ts",
       "import": "./src/components/feedback/Toast/index.ts",
       "default": "./src/components/feedback/Toast/index.ts"
+    },
+    "./custom-themes/server": {
+      "types": "./src/lib/customThemes/enrichRuntimeConfigWithCustomThemes.ts",
+      "import": "./src/lib/customThemes/enrichRuntimeConfigWithCustomThemes.ts",
+      "default": "./src/lib/customThemes/enrichRuntimeConfigWithCustomThemes.ts"
     }
   },
   "scripts": {
@@ -32,27 +37,28 @@
   },
   "license": "AGPL-3.0",
   "peerDependencies": {
-    "next": "^16.1.6",
-    "react": "^19.2.4",
+    "next": "^16.2.7",
+    "react": "^19.2.7",
     "react-virtuoso": "^4.18.3"
   },
   "devDependencies": {
-    "@types/sanitize-html": "^2.16.0",
     "@testing-library/react": "^16.3.0",
-    "@types/react": "^19.2.11",
+    "@types/react": "^19.2.16",
     "@types/react-dom": "^19.2.2",
+    "@types/sanitize-html": "^2.16.0",
     "@vitejs/plugin-react": "^5.1.1",
     "jsdom": "^26.1.0",
-    "next": "^16.1.6",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
+    "next": "^16.2.7",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "react-virtuoso": "^4.18.3",
     "sass": "^1.98.0",
     "typescript": "^5.9.2",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.8"
   },
   "dependencies": {
     "@podverse/helpers": "*",
+    "@podverse/helpers-config": "*",
     "classnames": "^2.5.1",
     "react-hot-toast": "^2.6.0",
     "react-icons": "^5.6.0",

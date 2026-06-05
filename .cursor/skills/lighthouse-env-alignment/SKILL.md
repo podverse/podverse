@@ -18,7 +18,7 @@ app startup validation:
 - **No defaults in Lighthouse managers**: `ApiManager` and `WebAppManager` must pass
   `process.env` through without hardcoded defaults.
 - **Env files are split**: `.env.api` for API, `.env.web` for web.
-- **API env sectioning**: match [`apps/api/.env.example`](../../../apps/api/.env.example)
+- **API env sectioning**: match [`apps/api/.env.example`](/apps/api/.env.example)
   (Web/brand and web origin, Mailer, Legal entity, etc.) in
   `tools/web-perf/lighthouse/.env.api.example` and the checked-in `.env.api`.
 - **App validation is authoritative**: if app validation changes, update

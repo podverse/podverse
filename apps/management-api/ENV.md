@@ -61,7 +61,7 @@ The main API, workers, and management-api all use shared `DB_HOST` and `DB_PORT`
 
 ### Web (two origins)
 
-Management-api builds absolute URLs for invite links. **Regular users** open the main app web (`/set-password`); **admin invite links** open the management web app (`/admins/redeem-invite-link`). Use **four** variables so each base matches [apps/web](../web/ENV.md) vs [apps/management-web](../management-web/ENV.md) as deployed.
+Management-api builds absolute URLs for invite links. **Regular users** open the main app web (`/set-password`); **admin invite links** open the management web app (`/admins/redeem-invite-link`). Use **four** variables so each base matches [apps/web](/apps/web/ENV.md) vs [apps/management-web](/apps/management-web/ENV.md) as deployed.
 
 - **`APP_WEB_PROTOCOL`** (Required) - Protocol for the **main app web** site (`http` or `https`). Align with main API **`WEB_PROTOCOL`**.
 - **`APP_WEB_DOMAIN`** (Required) - Host (and port in dev) for apps/web, e.g. `localhost:3002` or `podverse.fm`. User invite and password-reset links use `${APP_WEB_PROTOCOL}://${APP_WEB_DOMAIN}/set-password?...`.
@@ -80,17 +80,17 @@ Management-api builds absolute URLs for invite links. **Regular users** open the
 
 - **`NODE_ENV`** (Optional) - Node environment (`development`, `production`, etc.)
 - **`LOG_LEVEL`** (Optional) - Logging level (`error`, `warn`, `info`, `debug`, `verbose`, `silly`, `silent`)
-- **`LOG_DIR`** (Optional) - Log directory for file logging. **No default.** Leave empty for console-only; when set in Docker with a log volume, use the container path (e.g. `/opt/logs`). See [logs/LOGS.md](../../logs/LOGS.md).
+- **`LOG_DIR`** (Optional) - Log directory for file logging. **No default.** Leave empty for console-only; when set in Docker with a log volume, use the container path (e.g. `/opt/logs`). See [logs/LOGS.md](/logs/LOGS.md).
 
 ### Product / membership marketing defaults
 
-Optional **`MEMBERSHIP_*`** keys (trial length, premium USD prices, RSS/refresh caps) match [apps/api/ENV.md](../../apps/api/ENV.md) and bootstrap `product_membership_settings` in the app database. When that row exists, **`free_trial_expiration_seconds`** (and related merged fields from the pricing catalog path) take precedence for resolution APIs; env still validates at startup and seeds empty databases.
+Optional **`MEMBERSHIP_*`** keys (trial length, premium USD prices, RSS/refresh caps) match [apps/api/ENV.md](/apps/api/ENV.md) and bootstrap `product_membership_settings` in the app database. When that row exists, **`free_trial_expiration_seconds`** (and related merged fields from the pricing catalog path) take precedence for resolution APIs; env still validates at startup and seeds empty databases.
 
 ### Object storage (optional)
 
 When **`BUCKET_PROVIDER`** is unset, the management storage browser stays **disabled** (`GET /v2/storage` returns `{ enabled: false }`; other storage routes respond **404**).
 
-When **`BUCKET_PROVIDER`** is set, startup validates the same **`BUCKET_*`** contract as workers (including **`BUCKET_CDN_BASE_URL`**). See [apps/workers/ENV.md](../../apps/workers/ENV.md) and [docs/image-shrinking/BUCKET-PROVIDERS.md](../../docs/image-shrinking/BUCKET-PROVIDERS.md).
+When **`BUCKET_PROVIDER`** is set, startup validates the same **`BUCKET_*`** contract as workers (including **`BUCKET_CDN_BASE_URL`**). See [apps/workers/ENV.md](/apps/workers/ENV.md) and [docs/image-shrinking/BUCKET-PROVIDERS.md](/docs/image-shrinking/BUCKET-PROVIDERS.md).
 
 ## Validation Rules
 

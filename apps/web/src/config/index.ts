@@ -2,15 +2,11 @@
 
 import type { AccountSignupMode } from '@podverse/helpers';
 import { DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS } from '@podverse/helpers';
-import { parseSidebarGroupOrder } from '@podverse/helpers-config';
+import { optionalEnvString, parseSidebarGroupOrder } from '@podverse/helpers-config';
 import { buildObservabilityConfigFromEnv } from '@podverse/observability/config';
 
 import { ASSETS } from '../constants/assets';
 import { getRuntimeConfig } from './runtime-config-store';
-
-/** Optional env value: treat empty string as undefined so "not configured" is consistent. */
-const opt = (v: string | undefined): string | undefined =>
-  v === '' || v === undefined ? undefined : v;
 
 const parsePositiveIntWithDefault = (raw: string | undefined, defaultValue: number): number => {
   if (raw === undefined || raw.trim() === '') {
@@ -35,8 +31,11 @@ const buildConfig = () => {
       brand: {
         name: env.NEXT_PUBLIC_BRAND_NAME!,
         domain: env.NEXT_PUBLIC_BRAND_DOMAIN!,
-        logoDark: opt(env.NEXT_PUBLIC_BRAND_LOGO_DARK) ?? ASSETS.IMAGES.BRANDING.BRAND.LOGO_DARK,
-        logoLight: opt(env.NEXT_PUBLIC_BRAND_LOGO_LIGHT) ?? ASSETS.IMAGES.BRANDING.BRAND.LOGO,
+        logoDark:
+          optionalEnvString(env.NEXT_PUBLIC_BRAND_LOGO_DARK) ??
+          ASSETS.IMAGES.BRANDING.BRAND.LOGO_DARK,
+        logoLight:
+          optionalEnvString(env.NEXT_PUBLIC_BRAND_LOGO_LIGHT) ?? ASSETS.IMAGES.BRANDING.BRAND.LOGO,
       },
       api: {
         ssr: {
@@ -58,18 +57,18 @@ const buildConfig = () => {
       },
       app_value: {
         lightning_lnaddress: {
-          name: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_NAME),
-          address: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_ADDRESS),
+          name: optionalEnvString(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_NAME),
+          address: optionalEnvString(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_ADDRESS),
         },
         lightning_node: {
-          name: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_NAME),
-          address: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_ADDRESS),
-          custom_key: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_KEY),
-          custom_value: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_VALUE),
+          name: optionalEnvString(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_NAME),
+          address: optionalEnvString(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_ADDRESS),
+          custom_key: optionalEnvString(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_KEY),
+          custom_value: optionalEnvString(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_VALUE),
         },
         metaboost: {
-          standard: opt(env.NEXT_PUBLIC_APP_VALUE_METABOOST_STANDARD),
-          node: opt(env.NEXT_PUBLIC_APP_VALUE_METABOOST_NODE),
+          standard: optionalEnvString(env.NEXT_PUBLIC_APP_VALUE_METABOOST_STANDARD),
+          node: optionalEnvString(env.NEXT_PUBLIC_APP_VALUE_METABOOST_NODE),
         },
       },
       polling: {
@@ -82,6 +81,8 @@ const buildConfig = () => {
         },
       },
       theme: {
+        customThemes: runtimeConfig.customThemes,
+        customThemesUrl: optionalEnvString(env.NEXT_PUBLIC_CUSTOM_THEMES_URL),
         default: env.NEXT_PUBLIC_DEFAULT_THEME!,
         valid: env.NEXT_PUBLIC_SUPPORTED_THEMES!,
       },
@@ -127,7 +128,7 @@ const buildConfig = () => {
         enabled: env.NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED === 'true',
       },
       sidebar: {
-        groupOrder: parseSidebarGroupOrder(opt(env.NEXT_PUBLIC_SIDEBAR_GROUP_ORDER)),
+        groupOrder: parseSidebarGroupOrder(optionalEnvString(env.NEXT_PUBLIC_SIDEBAR_GROUP_ORDER)),
       },
     },
     proxy: {

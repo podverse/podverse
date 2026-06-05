@@ -2,7 +2,7 @@
 
 ## Setup
 
-See [QUICKSTART.md](../QUICKSTART.md) for complete setup instructions including:
+See [QUICKSTART.md](/docs/QUICKSTART.md) for complete setup instructions including:
 
 - Prerequisites (Docker, Node.js 24 LTS, see `.nvmrc`)
 - Infrastructure services (database, message queue, cache)
@@ -17,6 +17,9 @@ npm run dev:api # Start API (localhost:3000)
 npm run dev:web # Start web app (localhost:3002)
 ```
 
+Build order details and dependency-safe sequencing are documented in
+[DOCS-DEVELOPMENT-TOOLING-BUILD-ORDER.md](tooling/DOCS-DEVELOPMENT-TOOLING-BUILD-ORDER.md).
+
 ## Workflow
 
 ### Starting a Feature
@@ -29,7 +32,7 @@ npm run start-feature
 
 This interactive script:
 
-- Prompts for feature type (feature, fix, chore, docs, hotfix, release)
+- Prompts for feature type (feature, fix, chore, docs, hotfix, release, llm)
 - Creates a branch with proper naming convention (e.g., `feature/add-podcast-chapters`)
 - Creates an LLM history file in `.llm/history/active/`
 - Links to GitHub issues (optional)

@@ -1,6 +1,6 @@
 {
   "name": "@podverse/integrations-web",
-  "version": "5.4.32",
+  "version": "5.4.33",
   "private": true,
   "type": "module",
   "description": "Built-in web integrations (Cloudflare Web Analytics) for Podverse Next.js apps",
@@ -28,15 +28,15 @@
   },
   "license": "AGPL-3.0",
   "peerDependencies": {
-    "next": "^16.1.6",
-    "react": "^19.2.4"
+    "next": "^16.2.7",
+    "react": "^19.2.7"
   },
   "devDependencies": {
     "@types/node": "^24.12.0",
-    "@types/react": "^19.2.11",
-    "next": "^16.1.6",
-    "react": "^19.2.4",
+    "@types/react": "^19.2.16",
+    "next": "^16.2.7",
+    "react": "^19.2.7",
     "typescript": "^5.9.2",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.8"
   }
 }

@@ -46,7 +46,6 @@ export const ROUTES = {
   TERMS: '/terms',
   TRACK: '/track',
   TRACKS: '/tracks',
-  UPDATES: '/updates',
   VIDEO: '/video',
   VIDEOS: '/videos',
 };

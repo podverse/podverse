@@ -1,6 +1,6 @@
 {
   "name": "@podverse/web-sidecar",
-  "version": "5.4.32",
+  "version": "5.4.33",
   "private": true,
   "type": "module",
   "description": "Runtime-config sidecar for podverse-web",
@@ -14,8 +14,13 @@
     "@podverse/helpers": "*",
     "@podverse/helpers-config": "*",
     "@podverse/integrations-web": "*",
+    "@types/react": "^19.2.16",
     "axios": "^1.16.1",
-    "next-intl": "^4.12.0"
+    "next": "^16.2.7",
+    "next-intl": "^4.13.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "vitest": "4.1.8"
   },
   "devDependencies": {
     "esbuild": "^0.27.4",

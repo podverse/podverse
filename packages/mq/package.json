@@ -1,6 +1,6 @@
 {
   "name": "@podverse/mq",
-  "version": "5.4.32",
+  "version": "5.4.33",
   "description": "Message queue module for Podverse",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -35,10 +35,10 @@
     "ws": "^8.20.1"
   },
   "devDependencies": {
-    "@types/ws": "^8.18.1",
     "@types/module-alias": "^2.0.4",
+    "@types/ws": "^8.18.1",
     "tsc-alias": "^1.8.16",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.8"
   },
   "type": "module"
 }

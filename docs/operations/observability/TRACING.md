@@ -3,7 +3,7 @@
 **Observability** is always-on **in-process** tracing: W3C trace context, spans, and `trace_id` /
 `span_id` in logs. Configuration uses `config.observability.*` only.
 
-Platform overview: [DOCS-OPERATIONS-PLATFORM.md](../platform/DOCS-OPERATIONS-PLATFORM.md).
+Platform overview: [DOCS-OPERATIONS-PLATFORM.md](/docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md).
 
 ## Package roles
 
@@ -24,7 +24,7 @@ Platform overview: [DOCS-OPERATIONS-PLATFORM.md](../platform/DOCS-OPERATIONS-PLA
 | `OTEL_TRACES_SAMPLER`         | Optional    | e.g. `parentbased_traceidratio`, `always_on`                                |
 | `OTEL_TRACES_SAMPLER_ARG`     | Optional    | Ratio for `traceidratio` samplers (0.0–1.0)                                 |
 
-Template: [infra/config/env-templates/observability.env.example](../../../infra/config/env-templates/observability.env.example).
+Template: [infra/config/env-templates/observability.env.example](/infra/config/env-templates/observability.env.example).
 
 Default local: `OTEL_TRACES_EXPORT=none` — spans exist in-process and in logs; no OTLP network traffic.
 
@@ -63,7 +63,7 @@ samplers reduce export volume in production. Local dev typically leaves sampling
 ## Sidecar traces pipeline
 
 Metrics and traces can share `http://127.0.0.1:4318` when both `PROMETHEUS_ENABLED` and
-`OTEL_TRACES_EXPORT=otlp` are set. See [EXTENSIONS-SIDECAR.md](../extensions/EXTENSIONS-SIDECAR.md).
+`OTEL_TRACES_EXPORT=otlp` are set. See [EXTENSIONS-SIDECAR.md](/docs/operations/extensions/EXTENSIONS-SIDECAR.md).
 
 Sidecar-only env (not app env):
 
@@ -103,8 +103,8 @@ share the same `trace_id` when export is enabled or when inspecting in-process s
 
 ## Related docs
 
-- [DOCS-OPERATIONS-PLATFORM.md](../platform/DOCS-OPERATIONS-PLATFORM.md) — platform capabilities index
-- [EXTENSIONS-SIDECAR.md](../extensions/EXTENSIONS-SIDECAR.md) — metrics and OTLP sidecar
-- [INTEGRATIONS-WEB.md](../integrations/INTEGRATIONS-WEB.md) — built-in web integrations
-- [PROMETHEUS-METRICS-ENDPOINTS.md](../extensions/PROMETHEUS-METRICS-ENDPOINTS.md)
+- [DOCS-OPERATIONS-PLATFORM.md](/docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md) — platform capabilities index
+- [EXTENSIONS-SIDECAR.md](/docs/operations/extensions/EXTENSIONS-SIDECAR.md) — metrics and OTLP sidecar
+- [INTEGRATIONS-WEB.md](/docs/operations/integrations/INTEGRATIONS-WEB.md) — built-in web integrations
+- [PROMETHEUS-METRICS-ENDPOINTS.md](/docs/operations/extensions/PROMETHEUS-METRICS-ENDPOINTS.md)
 - `.cursor/skills/observability/SKILL.md` — authoring rules

@@ -20,7 +20,7 @@ Use this skill when:
 
 ## GitOps and remote Kustomize
 
-Remote deploys use a **separate GitOps repository** with Kustomize overlays and Argo CD. Reference Podverse with **remote Kustomize** URLs under `infra/k8s/base/…` and **copy** `scripts/secret-generators` from this repo. See [REMOTE-K8S-GITOPS.md](../../../docs/development/k8s/REMOTE-K8S-GITOPS.md).
+Remote deploys use a **separate GitOps repository** with Kustomize overlays and Argo CD. Reference Podverse with **remote Kustomize** URLs under `infra/k8s/base/…` and **copy** `scripts/secret-generators` from this repo. See [REMOTE-K8S-GITOPS.md](/docs/development/k8s/REMOTE-K8S-GITOPS.md).
 
 ## Directory Structure
 
@@ -80,7 +80,7 @@ alpha-application.yaml → alpha/apps/*.yaml → alpha/<component>/kustomization
 
 ### Argo CD `Application` YAML named `ops.yaml` (editors / GitOps repos)
 
-The [JSON Schema Store](https://www.schemastore.org/) maps **`ops.yaml` / `ops.yml`** to an unrelated "Ops configuration" spec, so editors can mis-validate a real Argo CD `Application`. **Podverse** uses a **line 1** `# yaml-language-server: $schema=...` modeline in [`infra/k8s/alpha/apps/ops.yaml`](../../../infra/k8s/alpha/apps/ops.yaml). Your separate GitOps repository checkout should add the same **first-line modeline** on `argocd/.../ops.yaml` and may also commit `.vscode/settings.json` for backup. **Prefer the modeline**; rename or user `yaml.schemas` if needed. For the operator GitOps repo, see the **argocd-yaml-schema-ops-filename** skill (`.cursor/skills/` there).
+The [JSON Schema Store](https://www.schemastore.org/) maps **`ops.yaml` / `ops.yml`** to an unrelated "Ops configuration" spec, so editors can mis-validate a real Argo CD `Application`. **Podverse** uses a **line 1** `# yaml-language-server: $schema=...` modeline in [`infra/k8s/alpha/apps/ops.yaml`](/infra/k8s/alpha/apps/ops.yaml). Your separate GitOps repository checkout should add the same **first-line modeline** on `argocd/.../ops.yaml` and may also commit `.vscode/settings.json` for backup. **Prefer the modeline**; rename or user `yaml.schemas` if needed. For the operator GitOps repo, see the **argocd-yaml-schema-ops-filename** skill (`.cursor/skills/` there).
 
 ## Kustomize Usage
 
@@ -128,11 +128,13 @@ kustomize build --load-restrictor LoadRestrictionsNone infra/k8s/alpha/api/ | ku
 
 ### Sync with env templates
 
-ConfigMaps in `base/<component>/01-configmap.yaml` should mirror the structure of the authoritative app `.env.example` files (e.g. `apps/api/.env.example`, `apps/workers/.env.example`). Infra env-templates for apps are link-only stubs.
+ConfigMaps are generated from `base/<component>/source/*.env` via `configMapGenerator`. Keep keys
+aligned with authoritative app `.env.example` files (e.g. `apps/api/.env.example`,
+`apps/workers/.env.example`) and `infra/config/env-templates/*.env.example`.
 
 - Use same section headers (e.g., `##### App / General #####`)
 - Add comment: `# Mapped from apps/<component>/.env.example`
-- Keep variable names and structure aligned
+- **Unquoted values** in `source/*.env` (see **env-file-formatting** skill) — e.g. `DB_PORT=5432`
 
 ### Secrets Handling
 
@@ -243,6 +245,15 @@ sops -d secrets/podverse-alpha-db-opaque.enc.yaml | kubectl apply -f -
 - `.gitignore` should exclude decrypted secret files
 - Scripts generate encrypted files automatically
 
+## Value types in YAML
+
+- **String schema fields:** double-quoted YAML strings are fine (Prettier default under `infra/k8s/`).
+- **Integer / float schema fields:** use unquoted numbers (`replicas: 1`, `containerPort: 3000`).
+  Never `"1"` or `"3000"` where OpenAPI expects a numeric type — strict validators reject that.
+- **`containers[].env[].value`:** always a string in the API; `value: "5432"` is valid for env data.
+
+See [.cursor/rules/infra-k8s.mdc](/.cursor/rules/infra-k8s.mdc) § Value types in YAML.
+
 ## Linting and Formatting
 
 ### K8s-Specific Prettier Rules
@@ -309,7 +320,7 @@ labels:
 - **Kustomize and ops:** Migration assets live under `infra/k8s/base/ops/source/database/` so `kubectl kustomize infra/k8s/base/ops` does not need paths outside the ops directory.
 - **DB credentials naming:** Owner keys (`DB_APP_OWNER_*`, `DB_MANAGEMENT_OWNER_*`) are for bootstrap-only ownership and extension setup. Migrator keys (`DB_APP_MIGRATOR_*`, `DB_MANAGEMENT_MIGRATOR_*`) are for forward migration runners. Runtime API/worker roles stay on read/read*write credentials. The official **postgres** image still expects `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` inside the container only—map from `DB\_*` keys in StatefulSet or Compose.
 
-**Read more:** [docs/operations/database/DB-MIGRATIONS.md](../../docs/operations/database/DB-MIGRATIONS.md), [docs/operations/database/LINEAR-MIGRATIONS.md](../../docs/operations/database/LINEAR-MIGRATIONS.md).
+**Read more:** [docs/operations/database/DB-MIGRATIONS.md](/docs/operations/database/DB-MIGRATIONS.md), [docs/operations/database/LINEAR-MIGRATIONS.md](/docs/operations/database/LINEAR-MIGRATIONS.md).
 
 ## Common Tasks
 
@@ -343,7 +354,7 @@ ArgoCD will detect the change and sync automatically.
 
 ## Helper Scripts
 
-**Secret generators** live in `infra/k8s/scripts/secret-generators/` (see [INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md](../../infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md)):
+**Secret generators** live in `infra/k8s/scripts/secret-generators/` (see [INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md](/infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md)):
 
 | Script                             | Purpose                                                                                                                               |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
@@ -363,20 +374,20 @@ ArgoCD will detect the change and sync automatically.
 | `mq/mq-connect.sh`                 | Port-forward to message queue                                                                                       |
 | `list_images.sh`                   | List image references in use (see script)                                                                           |
 
-See [infra/k8s/scripts/README.md](../../infra/k8s/scripts/README.md) for details.
+See [infra/k8s/scripts/README.md](/infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md) for details.
 
 ## References
 
-- [infra/k8s/README.md](../../infra/k8s/README.md) - Full K8s documentation
-- [docs/operations/deploy/ALPHA-DEPLOYMENT.md](../../docs/operations/deploy/ALPHA-DEPLOYMENT.md) - Docker/CI and alpha deployment
-- [docs/operations/database/DB-MIGRATIONS.md](../../docs/operations/database/DB-MIGRATIONS.md) - DB migrations and ops jobs
-- [docs/operations/database/LINEAR-MIGRATIONS.md](../../docs/operations/database/LINEAR-MIGRATIONS.md) - Linear migration contract
-- [.cursor/rules/infra-k8s.mdc](../.cursor/rules/infra-k8s.mdc) - K8s cursor rules
-- [.prettierrc.json](../../.prettierrc.json) - Prettier config with k8s overrides
+- [infra/k8s/README.md](/infra/k8s/INFRA-K8S.md) - Full K8s documentation
+- [docs/operations/deploy/ALPHA-DEPLOYMENT.md](/docs/operations/deploy/ALPHA-DEPLOYMENT.md) - Docker/CI and alpha deployment
+- [docs/operations/database/DB-MIGRATIONS.md](/docs/operations/database/DB-MIGRATIONS.md) - DB migrations and ops jobs
+- [docs/operations/database/LINEAR-MIGRATIONS.md](/docs/operations/database/LINEAR-MIGRATIONS.md) - Linear migration contract
+- [.cursor/rules/infra-k8s.mdc](/.cursor/rules/infra-k8s.mdc) - K8s cursor rules
+- [.prettierrc.json](/.prettierrc.json) - Prettier config with k8s overrides
 
 ## Related Skills
 
-- **[API Patterns](../api/SKILL.md)** - Backend API patterns
-- **[Web Patterns](../web/SKILL.md)** - Frontend patterns
-- **[ORM Patterns](../orm/SKILL.md)** - Database patterns
-- **[Global Patterns](../global/SKILL.md)** - Monorepo conventions
+- **[API Patterns](/.cursor/skills/api/SKILL.md)** - Backend API patterns
+- **[Web Patterns](/.cursor/skills/web/SKILL.md)** - Frontend patterns
+- **[ORM Patterns](/.cursor/skills/orm/SKILL.md)** - Database patterns
+- **[Global Patterns](/.cursor/skills/global/SKILL.md)** - Monorepo conventions

@@ -69,7 +69,7 @@ Run `npx playwright install` before your first Lighthouse run; it is required fo
 
     Keep `.env.api` and `.env.web` aligned with those validators. For the API, use
     the same **section order and variable grouping** as
-    [`apps/api/.env.example`](../../../apps/api/.env.example) (e.g. **Web Configuration**
+    [`apps/api/.env.example`](/apps/api/.env.example) (e.g. **Web Configuration**
     for `BRAND_*` and web origin, **Mailer**, **Legal entity** for `LEGAL_NAME` /
     `LEGAL_ADDRESS` — not a combined “email template” block).
 

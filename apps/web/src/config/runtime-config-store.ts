@@ -90,6 +90,7 @@ export const getRuntimeConfig = (): WebRuntimeConfig => {
   return {
     env: applyWebRuntimeEnvDefaults(baseEnv),
     integrations: resolveIntegrations(runtimeConfig),
+    customThemes: runtimeConfig?.customThemes,
   };
 };
 

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at build time in scripts/validate-env.ts */
 
+import { optionalEnvString } from '@podverse/helpers-config';
 import { buildObservabilityConfigFromEnv } from '@podverse/observability/config';
 
 import { getRuntimeConfig } from './runtime-config-store';
@@ -41,6 +42,8 @@ const buildConfig = () => {
         },
       },
       theme: {
+        customThemes: runtimeConfig.customThemes,
+        customThemesUrl: optionalEnvString(env.NEXT_PUBLIC_CUSTOM_THEMES_URL),
         default: env.NEXT_PUBLIC_DEFAULT_THEME!,
         valid: env.NEXT_PUBLIC_SUPPORTED_THEMES!,
       },

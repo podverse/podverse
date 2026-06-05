@@ -35,6 +35,10 @@
     "paginationPageOf": "",
     "closeModalAria": ""
   },
+  "tableOfContents": {
+    "navAriaLabel": "",
+    "heading": ""
+  },
   "tableShared": {
     "searchPlaceholder": "",
     "searchSubmitLabel": "",
@@ -308,6 +312,8 @@
     "pageSubtitle": "",
     "breadcrumbFeeds": "",
     "breadcrumbCurrent": "",
+    "sectionTabSearchFeeds": "",
+    "sectionTabFindFeed": "",
     "directoryHeading": "",
     "directoryLoadError": "",
     "directoryEmpty": "",

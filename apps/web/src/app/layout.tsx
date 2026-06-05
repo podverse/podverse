@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 
 import type { QueueResourcesAbridgedIndex } from '@podverse/helpers';
@@ -17,9 +18,10 @@ import { QueueController } from '../components/Queue/QueueController';
 import { QueueResourcesAbridgedController } from '../components/Queue/QueueResourcesAbridgedController';
 import { SideBar } from '../components/SideBar/SideBar';
 import { WindowWrapper } from '../components/Window/WindowWrapper';
-import { getConfig } from '../config';
-import { fetchWebRuntimeConfigFromSidecar } from '../config/runtime-config.server';
-import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime-config-store';
+import { getConfig, getWebOrigin } from '../config';
+import { getCustomThemeCssText } from '../config/custom-themes.server';
+import { resolveWebRuntimeConfigForRequest } from '../config/resolve-runtime-config.server';
+import { ASSETS } from '../constants/assets';
 import { getSSRApiRequestService } from '../factories/apiRequestService';
 import { useLocaleDetect } from '../hooks/useLocaleDetect';
 import { setSSRAccountForLocale } from '../i18n/request';
@@ -30,17 +32,29 @@ import { toUITheme } from '../utils/localSettings/uiTheme';
 
 import '../styles/index.scss';
 
+const staticConfig = getConfig();
+const brandName = staticConfig.public.brand.name;
+const defaultOpenGraphImage = new URL(
+  staticConfig.public.brand.logoLight || ASSETS.IMAGES.BRANDING.BRAND.LOGO,
+  getWebOrigin()
+).toString();
+
+export const metadata: Metadata = {
+  metadataBase: new URL(getWebOrigin()),
+  title: {
+    default: brandName,
+    template: `%s | ${brandName}`,
+  },
+  openGraph: {
+    siteName: brandName,
+    images: [{ url: defaultOpenGraphImage }],
+  },
+};
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  let runtimeConfig = getRuntimeConfig();
-  if (process.env.RUNTIME_CONFIG_URL) {
-    try {
-      runtimeConfig = await fetchWebRuntimeConfigFromSidecar();
-      setRuntimeConfig(runtimeConfig);
-    } catch {
-      runtimeConfig = getRuntimeConfig();
-    }
-  }
+  const runtimeConfig = await resolveWebRuntimeConfigForRequest();
   const config = getConfig();
+  const customThemeCssText = getCustomThemeCssText(runtimeConfig);
   const cookieStore = await cookies();
   const ssrLocalSettings = getParsedLocalSettings(cookieStore);
   const ssrUITheme = toUITheme(ssrLocalSettings.uit);
@@ -79,7 +93,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={locale} data-ui-theme={ssrUITheme}>
       <head>
         <RuntimeConfigScript runtimeConfig={runtimeConfig} />
-        <title>{config.public.brand.name}</title>
+        {customThemeCssText ? (
+          <style id="pv-custom-theme-variables">{customThemeCssText}</style>
+        ) : null}
         <FontPreloads />
         <FavIcons />
       </head>

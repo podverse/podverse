@@ -3,7 +3,7 @@
 This document describes how to deploy to the alpha environment for testing.
 
 For remote Kubernetes + Argo CD deployments with a separate GitOps repository, use
-[REMOTE-K8S-GITOPS](../../development/k8s/REMOTE-K8S-GITOPS.md). This guide focuses on image
+[REMOTE-K8S-GITOPS](/docs/development/k8s/REMOTE-K8S-GITOPS.md). This guide focuses on image
 publish and local/server alpha workflows from this repository.
 
 ## Overview
@@ -23,8 +23,8 @@ The alpha environment is a pre-production testing environment. Docker images are
 
 Promotion: `./scripts/publish/sync-develop-to-staging.sh` (preprod), then when ready for RTM `./scripts/publish/sync-staging-to-main.sh` (do not sync `develop` directly to `main`).
 
-- **Build + push to GHCR:** [`.github/workflows/publish-staging.yml`](../../../.github/workflows/publish-staging.yml) — display name **“Publish (staging)”**, on pushes to **`staging`** (or `workflow_dispatch`).
-- **Promote to RTM:** [`.github/workflows/publish-main.yml`](../../../.github/workflows/publish-main.yml) — **“Publish (main)”**, on pushes to **`main`**.
+- **Build + push to GHCR:** [`.github/workflows/publish-staging.yml`](/.github/workflows/publish-staging.yml) — display name **“Publish (staging)”**, on pushes to **`staging`** (or `workflow_dispatch`).
+- **Promote to RTM:** [`.github/workflows/publish-main.yml`](/.github/workflows/publish-main.yml) — **“Publish (main)”**, on pushes to **`main`**.
 
 ```mermaid
 flowchart TD
@@ -407,8 +407,8 @@ gh run rerun <run-id> --failed
 ## Related Documentation
 
 - [Publish: branch → semver → floating tag](PUBLISH.md)
-- [Remote Kubernetes (GitOps)](../../development/k8s/REMOTE-K8S-GITOPS.md)
-- [Branch Protection Rules](../../repo-management/BRANCH-PROTECTION.md)
+- [Remote Kubernetes (GitOps)](/docs/development/k8s/REMOTE-K8S-GITOPS.md)
+- [Branch Protection Rules](/docs/repo-management/BRANCH-PROTECTION.md)
 - [Secrets Configuration](SECRETS.md)
-- [Quick Start Guide](../../QUICKSTART.md)
-- [Architecture Overview](../../architecture/ARCHITECTURE.md)
+- [Quick Start Guide](/docs/QUICKSTART.md)
+- [Architecture Overview](/docs/architecture/ARCHITECTURE.md)

@@ -1,6 +1,6 @@
 {
   "name": "@podverse/orm",
-  "version": "5.4.32",
+  "version": "5.4.33",
   "description": "TypeORM entities and database utilities for Podverse",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -36,10 +36,10 @@
     "@types/bcrypt": "^6.0.0",
     "@types/module-alias": "^2.0.4",
     "tsc-alias": "^1.8.16",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.8"
   },
   "type": "module",
   "optionalDependencies": {
-    "@rollup/rollup-darwin-arm64": "^4.60.4"
+    "@rollup/rollup-darwin-arm64": "^4.61.0"
   }
 }

@@ -119,7 +119,7 @@ Optional: set `PODVERSE_NIX_DEV_SHELL` (e.g. `.#fish`) so the Nix shell used for
 matches your preferred interactive shell. Example: `PODVERSE_NIX_DEV_SHELL=.#fish make start_feature_worktree`.
 
 You can then `cd` into the new work tree and start working immediately. See
-[QUICKSTART.md](../QUICKSTART.md) and [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
+[QUICKSTART.md](/docs/QUICKSTART.md) and [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
 
 ## In-repo overrides (no home directory)
 
@@ -206,7 +206,7 @@ env files (including sidecar `.env`) use **localhost** only and are for `npm run
 
 ## See also
 
-- [QUICKSTART.md](../QUICKSTART.md) – Full local setup and “Clean start” flow.
+- [QUICKSTART.md](/docs/QUICKSTART.md) – Full local setup and “Clean start” flow.
 - [CONTRIBUTING.md](CONTRIBUTING.md) – Workflow and `make start_feature_worktree`.
 - `make start_feature_worktree` – Create a new branch in a new work tree with env and history ready.
 - `make local_env_clean` – Removes generated env files but keeps `dev/env-overrides/local/*.env`

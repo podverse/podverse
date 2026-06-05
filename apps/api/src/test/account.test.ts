@@ -612,6 +612,8 @@ describe('account CRUD and email routes', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.id_text).toBe('public-user');
+      expect(res.body.sharable_status_id).toBe(1);
+      expect(res.body.sharable_status).toBeUndefined();
     });
 
     it('returns 200 for own account when authenticated', async () => {

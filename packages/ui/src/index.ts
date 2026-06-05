@@ -191,6 +191,16 @@ export type { PaginationStripProps } from './components/navigation/PaginationStr
 export type { UITheme } from './lib/uiTheme/uiTheme';
 export { ALL_POSSIBLE_THEMES } from './lib/uiTheme/uiTheme';
 export {
+  buildCustomThemesCssText,
+  isAllowedCustomThemesUrl,
+  parseRemoteThemePack,
+} from './lib/customThemes/customThemes';
+export type {
+  RemoteThemeDefinition,
+  RemoteThemeLabelMap,
+  RemoteThemePack,
+} from './lib/customThemes/customThemes';
+export {
   mergeSortPrefsCookie,
   readSortPrefsMap,
   serializeSortPrefsMap,
@@ -248,6 +258,11 @@ export { Tab } from './components/navigation/Tab/Tab';
 export type { TabProps } from './components/navigation/Tab/Tab';
 export { Tabs } from './components/navigation/Tabs/Tabs';
 export type { TabData, TabsData, TabsProps } from './components/navigation/Tabs/Tabs';
+export { TableOfContents } from './components/navigation/TableOfContents/index';
+export type {
+  TableOfContentsItem,
+  TableOfContentsProps,
+} from './components/navigation/TableOfContents/index';
 export { ButtonTabs } from './components/navigation/ButtonTabs/ButtonTabs';
 export type { ButtonTab, ButtonTabsProps } from './components/navigation/ButtonTabs/ButtonTabs';
 export { ActionLink } from './components/navigation/ActionLink/ActionLink';

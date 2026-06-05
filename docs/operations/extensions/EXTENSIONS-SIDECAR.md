@@ -4,10 +4,10 @@
 clients. Main application images do not bundle extension-specific dependencies such as
 `prom-client`.
 
-See the platform index: [DOCS-OPERATIONS-PLATFORM.md](../platform/DOCS-OPERATIONS-PLATFORM.md). For
+See the platform index: [DOCS-OPERATIONS-PLATFORM.md](/docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md). For
 built-in web integrations and observability, see
-[INTEGRATIONS-WEB.md](../integrations/INTEGRATIONS-WEB.md) and
-[TRACING.md](../observability/TRACING.md).
+[INTEGRATIONS-WEB.md](/docs/operations/integrations/INTEGRATIONS-WEB.md) and
+[TRACING.md](/docs/operations/observability/TRACING.md).
 
 ## Architecture
 
@@ -67,7 +67,7 @@ Templates: `infra/config/env-templates/extensions.env.example`,
 | `PROMETHEUS_ENABLED`          | Always set    | `"true"` enables sidecar wiring and app OTLP export     |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | When enabled  | App → sidecar OTLP HTTP (often `http://127.0.0.1:4318`) |
 
-When `PROMETHEUS_ENABLED` is `true`, also set **Observability** vars (see [TRACING.md](../observability/TRACING.md)):
+When `PROMETHEUS_ENABLED` is `true`, also set **Observability** vars (see [TRACING.md](/docs/operations/observability/TRACING.md)):
 
 - `OTEL_SERVICE_NAME` — per workload (shared with observability config)
 - `OTEL_TRACES_EXPORT` — app trace export (`none` or `otlp`)
@@ -124,7 +124,7 @@ Scrape **port 9464** on the extension container, not the main app HTTP port.
    `podverse-extensions-config`), including `PROMETHEUS_ENABLED=true`.
 2. In your GitOps overlay, uncomment `components:` in each eligible alpha overlay (`api`,
    `management-api`, `web`, `management-web`, `workers`) pointing at
-   `infra/k8s/base/common/components/prometheus-sidecar`.
+   `infra/k8s/base/common/extensions/components/prometheus-sidecar`.
 
 Configure Prometheus scrape in your GitOps repo (PodMonitor or Kubernetes pod SD on container
 port **9464**). See [PROMETHEUS-METRICS-ENDPOINTS.md](PROMETHEUS-METRICS-ENDPOINTS.md).
@@ -142,7 +142,7 @@ make local_extensions_prometheus_up
 ```
 
 Compose profiles live in
-[infra/docker/local/extensions/docker-compose.yml](../../../infra/docker/local/extensions/docker-compose.yml).
+[infra/docker/local/extensions/docker-compose.yml](/infra/docker/local/extensions/docker-compose.yml).
 They are **not** started by `make local_infra_up`.
 
 Typical flow (apps on host via npm):
@@ -170,6 +170,6 @@ trace export in this package — use `@podverse/observability`.
 
 ## Related docs
 
-- [DOCS-OPERATIONS-PLATFORM.md](../platform/DOCS-OPERATIONS-PLATFORM.md) — platform capabilities index
+- [DOCS-OPERATIONS-PLATFORM.md](/docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md) — platform capabilities index
 - [PROMETHEUS-METRICS-ENDPOINTS.md](PROMETHEUS-METRICS-ENDPOINTS.md) — scrape jobs and ports
 - `.cursor/skills/extensions-env/SKILL.md` — env authoring rules

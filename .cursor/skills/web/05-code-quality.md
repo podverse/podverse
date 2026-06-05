@@ -94,7 +94,7 @@ Rate limits are a special case that must be handled on both the API and client s
 - **API side**: Must use `rateLimitAuthEndpoint()` or `rateLimitEndpoint()` from `apps/api/src/lib/rateLimiter.ts` to return 429 with structured JSON (`tooManyRequests`, `minutesRemaining`)
 - **Client side**: Must use `await handleRateLimitAlert()` to detect and display rate limit errors to users
 
-See [API & Data Fetching Patterns - Rate Limit Handling](../02-api-data-fetching.md#rate-limit-handling-special-case) for complete details.
+See [API & Data Fetching Patterns - Rate Limit Handling](/.cursor/skills/web/02-api-data-fetching.md#rate-limit-handling-special-case) for complete details.
 
 ## Type Safety with @podverse/helpers
 

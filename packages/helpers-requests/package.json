@@ -1,6 +1,6 @@
 {
   "name": "@podverse/helpers-requests",
-  "version": "5.4.32",
+  "version": "5.4.33",
   "sideEffects": false,
   "description": "API client utilities for Podverse web application",
   "main": "./dist/index.js",
@@ -40,14 +40,14 @@
     "access": "public"
   },
   "dependencies": {
-    "@podverse/http-request-core": "*",
     "@podverse/helpers": "*",
+    "@podverse/http-request-core": "*",
     "@podverse/observability": "*",
     "axios": "^1.16.1",
     "ipaddr.js": "^2.3.0"
   },
   "type": "module",
   "devDependencies": {
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.8"
   }
 }

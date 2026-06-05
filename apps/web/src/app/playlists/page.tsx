@@ -14,6 +14,7 @@ import {
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
 } from '@podverse/helpers-requests';
 
+import { getCuratedStaticPageMetadata } from '../../lib/seo/curatedPageMetadata';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import type { PlaylistsFilterDefaults } from '../../utils/localSettings/localSettings';
@@ -38,6 +39,10 @@ type SearchParams = z.infer<typeof searchParamsSchema>;
 export type PlaylistsPageProps = {
   searchParams: Promise<SearchParams>;
 };
+
+export async function generateMetadata() {
+  return getCuratedStaticPageMetadata('playlists');
+}
 
 export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps) {
   const { isValidAuthSession, ssrApiRequestService } = await getSSRAuthService();

@@ -9,7 +9,6 @@ import { AccountSettings } from '@orm/entities/account/accountSettings/accountSe
 import { AccountSettingsLocale } from '@orm/entities/account/accountSettings/accountSettingsLocale.js';
 import { AccountSettingsNotification } from '@orm/entities/account/accountSettings/accountSettingsNotification.js';
 import { AccountSettingsNotificationType } from '@orm/entities/account/accountSettings/accountSettingsNotificationType.js';
-import { SharableStatus } from '@orm/entities/sharableStatus.js';
 import {
   findOptionsRelationsFromPaths,
   mergeFindOptionsRelations,
@@ -125,7 +124,7 @@ export class AccountService {
       ...config,
       where: {
         ...config.where,
-        sharable_status: { id: In(sharableStatusIds) },
+        sharable_status_id: In(sharableStatusIds),
         account_profile: {
           display_name: Not(IsNull()),
         },
@@ -147,7 +146,7 @@ export class AccountService {
       where: {
         ...config.where,
         id: In(accountIds),
-        sharable_status: { id: In(sharableStatusIds) },
+        sharable_status_id: In(sharableStatusIds),
         account_profile: {
           display_name: Not(IsNull()),
         },
@@ -172,14 +171,6 @@ export class AccountService {
       throw new Error('Invalid password');
     }
 
-    const sharableStatusRepository = AppDataSourceRead.getRepository(SharableStatus);
-    const sharableStatus = await sharableStatusRepository.findOne({
-      where: { id: SharableStatusEnum.Private },
-    });
-    if (!sharableStatus) {
-      throw new Error('SharableStatus not found');
-    }
-
     const accountCredentialsService = new AccountCredentialsService();
 
     if (dto.email) {
@@ -197,7 +188,7 @@ export class AccountService {
     }
 
     const accountObj = this.repositoryReadWrite.create({
-      sharable_status: sharableStatus,
+      sharable_status_id: SharableStatusEnum.Private,
       verified: qaVerified ?? false,
     });
     const account = await this.repositoryReadWrite.save(accountObj);
@@ -253,9 +244,6 @@ export class AccountService {
   async update(account_id: number, dto: UpdateAccountDto): Promise<Account | null> {
     const account = await this.repositoryReadWrite.findOne({
       where: { id: account_id },
-      relations: {
-        sharable_status: true,
-      },
     });
 
     if (!account) {
@@ -270,15 +258,7 @@ export class AccountService {
     };
     await accountProfileService.update(account, accountProfileDto);
 
-    // Always update sharable status
-    const sharableStatusRepository = AppDataSourceRead.getRepository(SharableStatus);
-    const sharableStatus = await sharableStatusRepository.findOne({
-      where: { id: dto.sharable_status },
-    });
-    if (!sharableStatus) {
-      throw new Error('SharableStatus not found');
-    }
-    account.sharable_status = sharableStatus;
+    account.sharable_status_id = dto.sharable_status;
     await this.repositoryReadWrite.save(account);
 
     // Always update locale
@@ -299,7 +279,6 @@ export class AccountService {
       where: { id: account_id },
       relations: {
         account_profile: true,
-        sharable_status: true,
       },
     });
   }

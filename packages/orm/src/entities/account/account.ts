@@ -51,6 +51,13 @@ export class Account {
   @JoinColumn({ name: 'sharable_status_id' })
   sharable_status!: Relation<SharableStatus>;
 
+  /*
+    NOTE: this is not truly nullable, but we need this column to allow
+    nested where queries using the .find method of TypeORM.
+  */
+  @Column({ name: 'sharable_status_id', type: 'int', nullable: true })
+  sharable_status_id?: number | null;
+
   @OneToMany(
     'AccountAppStorePurchase',
     (accountAppStorePurchase: AccountAppStorePurchase) => accountAppStorePurchase.account

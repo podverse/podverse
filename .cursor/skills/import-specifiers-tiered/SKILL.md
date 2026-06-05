@@ -20,7 +20,7 @@ description: Tier A NodeNext .js specifiers vs Tier B Next.js src — follow rep
 
 ## References
 
-- Canonical doc: [docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md](../../../docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md)
-- ESLint: [eslint.config.mjs](../../../eslint.config.mjs), rule implementation [eslint-rules/require-relative-js-extension.mjs](../../../eslint-rules/require-relative-js-extension.mjs)
+- Canonical doc: [docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md](/docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md)
+- ESLint: [eslint.config.mjs](/eslint.config.mjs), rule implementation [eslint-rules/require-relative-js-extension.mjs](/eslint-rules/require-relative-js-extension.mjs)
 - Cursor rule: `.cursor/rules/import-specifiers-tiered.mdc`
 - Upstream: [vercel/next.js#82945](https://github.com/vercel/next.js/issues/82945)

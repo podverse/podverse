@@ -66,6 +66,7 @@ export const getRuntimeConfig = (): ManagementWebRuntimeConfig => {
   return {
     env: runtimeConfig.env,
     integrations: resolveIntegrations(runtimeConfig),
+    customThemes: runtimeConfig.customThemes,
   };
 };
 

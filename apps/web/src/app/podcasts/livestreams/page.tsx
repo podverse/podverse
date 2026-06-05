@@ -10,6 +10,7 @@ import {
   QUERY_PARAMS_SUBSCRIBED_TYPE,
 } from '@podverse/helpers-requests';
 
+import { getCuratedStaticPageMetadata } from '../../../lib/seo/curatedPageMetadata';
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
 import {
   guardSubscribedSsrFilter,
@@ -43,6 +44,10 @@ type SearchParams = z.infer<typeof searchParamsSchema>;
 export type LivestreamsPageProps = {
   searchParams: Promise<SearchParams>;
 };
+
+export async function generateMetadata() {
+  return getCuratedStaticPageMetadata('podcastsLivestreams');
+}
 
 export default async function PodcastsLivestreamsPage({ searchParams }: LivestreamsPageProps) {
   const { isValidAuthSession, ssrApiRequestService } = await getSSRAuthService();

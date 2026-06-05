@@ -120,11 +120,15 @@ test.describe('Management-web feeds flag status', () => {
     await page.getByRole('link', { name: 'Flag status' }).click();
     await expect(page).toHaveURL(/\/feeds\/flag-status$/);
     await expect(page.getByRole('heading', { name: 'Set feed status', level: 1 })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Feeds', level: 2 })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Search Feeds' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Find a Feed' })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Feed directory' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Sort by ID' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Open' }).first()).toBeVisible();
     await expect(page.getByRole('cell', { name: 'Test Show' })).toBeVisible();
+    await page.getByRole('button', { name: 'Find a Feed' }).click();
+    await expect(page.locator('#feed-flag-lookup-mode')).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Feed directory' })).toHaveCount(0);
 
     await page.locator('#feed-flag-lookup-mode').click();
     await page.getByRole('menuitem', { name: 'Podcast Index ID' }).click();
@@ -278,7 +282,7 @@ test.describe('Management-web feeds flag status', () => {
     await page.goto('/feeds');
     await page.getByRole('link', { name: 'Flag status' }).click();
     await expect(page).toHaveURL(/\/feeds\/flag-status$/);
-    await expect(page.getByRole('heading', { name: 'Feeds', level: 2 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Search Feeds', level: 2 })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Sort by ID' })).toBeVisible();
 
     await page.locator('#feed-directory-lifecycle').click();
@@ -345,8 +349,10 @@ test.describe('Management-web feeds flag status', () => {
     await expect(page.getByRole('heading', { name: 'Set feed status', level: 1 })).toBeVisible();
 
     await expect(page.getByRole('status')).toContainText(/No data found yet/i);
+    await expect(page.getByRole('button', { name: 'Search Feeds' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Find a Feed' })).toHaveCount(0);
     await expect(page.getByRole('heading', { name: 'Feeds', level: 2 })).toHaveCount(0);
-    await expect(page.getByRole('heading', { name: 'Find a feed', level: 2 })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Find a Feed', level: 2 })).toHaveCount(0);
     await expect(page.getByRole('region', { name: 'Feed directory' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Search', exact: true })).toHaveCount(0);
 

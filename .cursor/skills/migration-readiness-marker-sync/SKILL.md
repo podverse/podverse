@@ -32,7 +32,7 @@ When a new latest migration is added:
 
 ## Related skills
 
-- [linear-sql-greenfield-only](../linear-sql-greenfield-only/SKILL.md) — strict ordered-chain SQL (no upgrade-only idempotency clutter).
+- [linear-sql-greenfield-only](/.cursor/skills/linear-sql-greenfield-only/SKILL.md) — strict ordered-chain SQL (no upgrade-only idempotency clutter).
 
 ## Migration source of truth
 

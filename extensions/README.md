@@ -6,15 +6,15 @@ Deployable **extension sidecar** workspaces. Each subdirectory is one optional c
 | ------------- | -------------------------------- | ------------------------------------------------ |
 | `prometheus/` | `@podverse/extension-prometheus` | `ghcr.io/podverse/podverse/extension-prometheus` |
 
-**Client library:** apps use [`packages/extension-metrics-sdk`](../packages/extension-metrics-sdk/) for OTLP **metrics** export to sidecars in the same pod. Main app images do not bundle sidecar-specific deps.
+**Client library:** apps use [`packages/extension-metrics-sdk`](/packages/extension-metrics-sdk) for OTLP **metrics** export to sidecars in the same pod. Main app images do not bundle sidecar-specific deps.
 
-**K8s:** shared ConfigMap and sidecar components live under [`infra/k8s/base/common/`](../infra/k8s/base/common/) (not in this folder).
+**K8s:** shared ConfigMap and sidecar components live under [`infra/k8s/base/common/`](/infra/k8s/base/common) (not in this folder).
 
-**Local Docker:** [`infra/docker/local/extensions/`](../infra/docker/local/extensions/) — Compose profiles and Dockerfiles per extension id.
+**Local Docker:** [`infra/docker/local/extensions/`](/infra/docker/local/extensions) — Compose profiles and Dockerfiles per extension id.
 
-**Dev scripts:** [`scripts/development/extensions/`](../scripts/development/extensions/) — contract checks and local sidecar smoke.
+**Dev scripts:** [`scripts/development/extensions/`](/scripts/development/extensions) — contract checks and local sidecar smoke.
 
-**Docs:** [docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md](../docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md)
+**Docs:** [docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md](/docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md)
 
 ## Adding a new extension
 

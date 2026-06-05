@@ -417,6 +417,13 @@ Core rule: Move QueryParams to @podverse/helpers-browser
 - Asking for confirmation adds unnecessary friction and delay
 - The prompt structure itself IS the user's instruction
 
+### Final COPY-PASTA step
+
+When the pasted prompt is the **last** step in the plan set (`COPY-PASTA.md` / `00-EXECUTION-ORDER.md`):
+
+- Assume the operator ran all prior COPY-PASTA prompts without running tests.
+- After implementation and plan archiving, end the response with **all** cumulative verification commands for the entire set in one fenced `bash` block (see **response-ending-make-verify** skill).
+
 ## Related Skills
 
 - `create-plan`: For creating individual plan files

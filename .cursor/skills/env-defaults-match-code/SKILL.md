@@ -30,5 +30,5 @@ When adding or editing environment variables that have fallback defaults in code
 
 ## References
 
-- [env-file-formatting](../env-file-formatting/SKILL.md) -- double-quote rules for env values
-- [AGENTS.md](../../AGENTS.md) -- project-wide conventions
+- [env-file-formatting](/.cursor/skills/env-file-formatting/SKILL.md) -- double-quote rules for env values
+- [AGENTS.md](/AGENTS.md) -- project-wide conventions

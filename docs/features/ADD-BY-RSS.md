@@ -10,8 +10,8 @@ Feeds that require HTTP Basic Auth are supported. When adding a feed, users can 
 
 Credentials are stored in the DB and looked up at request time. **Required:** set `ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY` (64 hex chars, 32 bytes) in the API and workers to encrypt credentials at rest (AES-256-GCM). See:
 
-- [apps/api/ENV.md](../../apps/api/ENV.md) – API
-- [apps/workers/ENV.md](../../apps/workers/ENV.md) – Workers (e.g. `mqAddByRSSRunParser`)
+- [apps/api/ENV.md](/apps/api/ENV.md) – API
+- [apps/workers/ENV.md](/apps/workers/ENV.md) – Workers (e.g. `mqAddByRSSRunParser`)
 
 ### Request paths that use credentials
 
@@ -39,4 +39,4 @@ To rotate the encryption key without losing access to stored credentials:
 
 4. After re-encryption completes, remove `ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD` from the environment and restart API and workers. No JWT or auth changes are required.
 
-**Jenkins (alpha):** The job `aux_ops_add_by_rss_reencrypt_credentials` accepts parameters `OLD_KEY` and `NEW_KEY` (password type) and runs the workers command `reencryptAddByRSSCredentials` inside the workers container. It uses the same DB env as the alpha workers. See [infra/pipelines/jenkins/alpha/Jenkinsfile.aux_ops_add_by_rss_reencrypt_credentials](../../infra/pipelines/jenkins/alpha/Jenkinsfile.aux_ops_add_by_rss_reencrypt_credentials).
+**Jenkins (alpha):** The job `aux_ops_add_by_rss_reencrypt_credentials` accepts parameters `OLD_KEY` and `NEW_KEY` (password type) and runs the workers command `reencryptAddByRSSCredentials` inside the workers container. It uses the same DB env as the alpha workers. See [infra/pipelines/jenkins/alpha/Jenkinsfile.aux_ops_add_by_rss_reencrypt_credentials](/infra/pipelines/jenkins/alpha/Jenkinsfile.aux_ops_add_by_rss_reencrypt_credentials).

@@ -54,7 +54,7 @@
       "add_feed": "Ajouter un flux",
       "add_feed_explanation": "Ce flux n'est pas dans notre annuaire. Si vous souhaitez l'ajouter, appuyez sur le bouton \"Ajouter un flux\".",
       "rss_link": "Lien RSS",
-      "blocked_feed_banner": "Ce flux ne peut pas être ajouté pour le moment dans Podverse ({reason}). Si vous pensez qu'il s'agit d'une erreur, veuillez contacter",
+      "blocked_feed_banner": "Ce flux ne peut pas être ajouté pour le moment dans {brand_name} ({reason}). Si vous pensez qu'il s'agit d'une erreur, veuillez contacter",
       "blocked_reason_spam_detected": "des restrictions liées à la détection de spam",
       "blocked_reason_oversized_detected": "des limites de taille du flux",
       "blocked_reason_takedown_active": "une demande de retrait de contenu",
@@ -263,11 +263,6 @@
       "audio_with_ext_bitrate_mbps": "Audio {ext} {bitrate}Mbps"
     }
   },
-  "updates_page": {
-    "intro": "Les notes de version de l’application open source sont publiées sur GitHub. Utilisez le lien ci-dessous pour les versions étiquetées.",
-    "title": "Mises à jour",
-    "view_releases": "Voir les versions sur GitHub"
-  },
   "value": {
     "boost": "Amplifier",
     "recipient": {
@@ -451,7 +446,6 @@
     "navbar_menu_close": "Fermer le menu",
     "close_modal": "Fermer la fenêtre modale",
     "image_preview_dialog": "Aperçu de l'image",
-    "updates": "Mises à jour",
     "sharable_status": {
       "sharable_status": "État partageable",
       "public": "Public",
@@ -944,6 +938,82 @@
   "pagination": {
     "ariaPreviousPage": "Page précédente",
     "ariaNextPage": "Page suivante"
+  },
+  "seo": {
+    "pages": {
+      "home": {
+        "title": "{brand_name}",
+        "description": "Découvrez des podcasts, de la musique et des livestreams sur {brand_name}."
+      },
+      "podcasts": {
+        "title": "Podcasts",
+        "description": "Parcourez les flux et les émissions de podcasts sur {brand_name}."
+      },
+      "episodes": {
+        "title": "Épisodes",
+        "description": "Parcourez les épisodes de podcast sur {brand_name}."
+      },
+      "artists": {
+        "title": "Artistes",
+        "description": "Découvrez des artistes musicaux sur {brand_name}."
+      },
+      "albums": {
+        "title": "Albums",
+        "description": "Parcourez des albums de musique sur {brand_name}."
+      },
+      "tracks": {
+        "title": "Pistes",
+        "description": "Découvrez des pistes musicales sur {brand_name}."
+      },
+      "podcastsLivestreams": {
+        "title": "Livestreams de Podcasts",
+        "description": "Regardez des streams de podcasts en direct sur {brand_name}."
+      },
+      "musicLivestreams": {
+        "title": "Livestreams de Musique",
+        "description": "Regardez des streams de musique en direct sur {brand_name}."
+      },
+      "playlists": {
+        "title": "Playlists",
+        "description": "Explorez des playlists communautaires sur {brand_name}."
+      },
+      "clips": {
+        "title": "Clips",
+        "description": "Explorez des clips de podcasts et de musique sur {brand_name}."
+      },
+      "videos": {
+        "title": "Vidéos",
+        "description": "Découvrez du contenu vidéo sur {brand_name}."
+      },
+      "profiles": {
+        "title": "Profils",
+        "description": "Parcourez les profils de créateurs publics sur {brand_name}."
+      },
+      "about": {
+        "title": "À Propos",
+        "description": "En savoir plus sur {brand_name} et ce que nous construisons."
+      },
+      "contact": {
+        "title": "Contact",
+        "description": "Contactez {brand_name} pour obtenir de l'aide, des demandes et des retours."
+      },
+      "terms": {
+        "title": "Conditions",
+        "description": "Lisez les conditions de service de {brand_name}."
+      },
+      "donate": {
+        "title": "Faire un Don",
+        "description": "Soutenez {brand_name} avec un don direct."
+      },
+      "mobileApp": {
+        "title": "Application Mobile",
+        "description": "Obtenez l'application mobile {brand_name} sur les plateformes prises en charge."
+      },
+      "metaboost": {
+        "title": "MetaBoost",
+        "description": "Découvrez comment MetaBoost alimente des messages de boost valeur pour valeur."
+      }
+    }
   },
   "language": {
     "language": "Langue",

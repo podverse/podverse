@@ -6,7 +6,7 @@
 
 ## Architecture
 
-See `.llm/context/architecture.md`. Lower tiers cannot depend on higher.
+Lower tiers cannot depend on higher (see `.cursor/rules/architecture-tier-dependencies.mdc`; full table in `.llm/context/architecture.md`).
 
 ## Code Quality
 
@@ -53,10 +53,20 @@ Ask once at start: "Related GitHub issue?"
 
 Warn if drifting: "This seems outside scope. Continue?"
 
+### Agent/plan work: do not run tests
+
+- **Do not run** test or verification commands (e.g. `make e2e_test_web`, `npm run test`, `npm run lint`) during agent or plan implementation.
+- **Only instruct the user** to run those commands after your work is done; provide the exact command(s) in a fenced `bash` block. See **response-ending-make-verify** skill.
+- **Final COPY-PASTA prompt:** When you complete the last step in a plan set, assume the operator ran all COPY-PASTA prompts back-to-back without running tests. End the response with **all** cumulative verification commands for the whole set (deduped; see **response-ending-make-verify** and **plan-completion** skills).
+
+### User vocabulary
+
+User vocabulary **abcmemory** / **abcremember**: see `.cursor/rules/abcmemory-vocabulary.mdc` and `.cursor/skills/abcmemory/SKILL.md`.
+
 ---
 
 ## PLAN MANAGEMENT
 
-**Plans must be under 300 lines.**
+**Plans must be under 300 lines.** Plans live in `.llm/plans/active/` (not `.cursor/plans/`).
 
 If over 300: STOP, split into sub-plans, save, then work sequentially.

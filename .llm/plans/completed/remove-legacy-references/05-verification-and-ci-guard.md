@@ -43,7 +43,7 @@ Do **not** wire into CI unless requested — keep optional.
 
 ## Plan completion
 
-Per [plan-completion skill](../../../.cursor/skills/plan-completion/SKILL.md):
+Per [plan-completion skill](/.cursor/skills/plan-completion/SKILL.md):
 
 1. Mark all COPY-PASTA steps ✅
 2. Move `.llm/plans/active/remove-legacy-references/` → `.llm/plans/completed/remove-legacy-references/`

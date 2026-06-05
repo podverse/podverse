@@ -1,7 +1,7 @@
 # Livestream / HLS migration — copy-pasta
 
 **Do not execute** until
-[`media-player-architecture-refactor`](../../completed/media-player-architecture-refactor/)
+[MEDIA-PLAYER-DECISION-MATRIX](/apps/web/src/components/MediaPlayer/MEDIA-PLAYER-DECISION-MATRIX.md)
 is merged **and** each phase file below has been expanded from
 placeholder to implementation-ready detail.
 

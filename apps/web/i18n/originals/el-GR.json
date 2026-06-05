@@ -54,7 +54,7 @@
       "add_feed": "Προσθήκη Ροής",
       "add_feed_explanation": "Αυτή η ροή δεν είναι στον κατάλογό μας. Αν θέλετε να την προσθέσετε, πατήστε το κουμπί \"Προσθήκη Ροής\".",
       "rss_link": "Σύνδεσμος RSS",
-      "blocked_feed_banner": "Αυτή η ροή δεν μπορεί προς το παρόν να προστεθεί στο Podverse ({reason}). Αν πιστεύετε ότι πρόκειται για λάθος, επικοινωνήστε με",
+      "blocked_feed_banner": "Αυτή η ροή δεν μπορεί προς το παρόν να προστεθεί στο {brand_name} ({reason}). Αν πιστεύετε ότι πρόκειται για λάθος, επικοινωνήστε με",
       "blocked_reason_spam_detected": "περιορισμούς ανίχνευσης ανεπιθύμητης αλληλογραφίας",
       "blocked_reason_oversized_detected": "όρια μεγέθους ροής",
       "blocked_reason_takedown_active": "αίτημα κατάργησης περιεχομένου",
@@ -263,11 +263,6 @@
       "audio_with_ext_bitrate_mbps": "Ήχος {ext} {bitrate}Mbps"
     }
   },
-  "updates_page": {
-    "intro": "Οι σημειώσεις έκδοσης για την εφαρμογή ανοιχτού κώδικα δημοσιεύονται στο GitHub. Χρησιμοποιήστε τον παρακάτω σύνδεσμο για εκδόσεις με ετικέτες.",
-    "title": "Ενημερώσεις",
-    "view_releases": "Προβολή εκδόσεων στο GitHub"
-  },
   "value": {
     "boost": "Ενίσχυση",
     "recipient": {
@@ -451,7 +446,6 @@
     "navbar_menu_close": "Κλείσιμο μενού",
     "close_modal": "Κλείσιμο παραθύρου διαλόγου",
     "image_preview_dialog": "Προεπισκόπηση εικόνας",
-    "updates": "Ενημερώσεις",
     "sharable_status": {
       "sharable_status": "Κατάσταση Μοιράσματος",
       "public": "Δημόσιο",
@@ -944,6 +938,82 @@
   "pagination": {
     "ariaPreviousPage": "Προηγούμενη σελίδα",
     "ariaNextPage": "Επόμενη σελίδα"
+  },
+  "seo": {
+    "pages": {
+      "home": {
+        "title": "{brand_name}",
+        "description": "Ανακαλύψτε podcasts, μουσική και livestreams στο {brand_name}"
+      },
+      "podcasts": {
+        "title": "Podcasts",
+        "description": "Περιηγηθείτε σε podcast feeds και shows στο {brand_name}"
+      },
+      "episodes": {
+        "title": "Επεισόδια",
+        "description": "Περιηγηθείτε σε επεισόδια podcast στο {brand_name}"
+      },
+      "artists": {
+        "title": "Καλλιτέχνες",
+        "description": "Ανακαλύψτε καλλιτέχνες μουσικής στο {brand_name}"
+      },
+      "albums": {
+        "title": "Άλμπουμ",
+        "description": "Περιηγηθείτε σε μουσικά άλμπουμ στο {brand_name}"
+      },
+      "tracks": {
+        "title": "Τραγούδια",
+        "description": "Ανακαλύψτε μουσικά τραγούδια στο {brand_name}"
+      },
+      "podcastsLivestreams": {
+        "title": "Podcast Livestreams",
+        "description": "Δείτε ζωντανά podcasts στο {brand_name}"
+      },
+      "musicLivestreams": {
+        "title": "Music Livestreams",
+        "description": "Δείτε ζωντανές μουσικές εκπομπές στο {brand_name}"
+      },
+      "playlists": {
+        "title": "Playlist",
+        "description": "Εξερευνήστε playlists της κοινότητας στο {brand_name}"
+      },
+      "clips": {
+        "title": "Κλιπ",
+        "description": "Εξερευνήστε κλιπ podcast και μουσικής στο {brand_name}"
+      },
+      "videos": {
+        "title": "Βίντεο",
+        "description": "Ανακαλύψτε περιεχόμενο βίντεο στο {brand_name}"
+      },
+      "profiles": {
+        "title": "Προφίλ",
+        "description": "Περιηγηθείτε σε δημόσια προφίλ δημιουργών στο {brand_name}"
+      },
+      "about": {
+        "title": "Σχετικά",
+        "description": "Μάθετε περισσότερα για το {brand_name} και ό,τι χτίζουμε"
+      },
+      "contact": {
+        "title": "Επικοινωνία",
+        "description": "Επικοινωνήστε με το {brand_name} για υποστήριξη, αιτήματα και ανατροφοδότηση"
+      },
+      "terms": {
+        "title": "Όροι",
+        "description": "Διαβάστε τους όρους υπηρεσίας του {brand_name}"
+      },
+      "donate": {
+        "title": "Δωρεά",
+        "description": "Υποστηρίξτε το {brand_name} με μια άμεση δωρεά"
+      },
+      "mobileApp": {
+        "title": "Εφαρμογή για κινητά",
+        "description": "Προμηθευτείτε την εφαρμογή για κινητά του {brand_name} σε υποστηριζόμενες πλατφόρμες"
+      },
+      "metaboost": {
+        "title": "MetaBoost",
+        "description": "Μάθετε πώς το MetaBoost ενισχύει τα μηνύματα αξίας-για-αξία"
+      }
+    }
   },
   "language": {
     "language": "Γλώσσα",

@@ -8,25 +8,17 @@ version: 1.1.0
 
 Use this skill when answering implementation requests in this repo.
 
-## UI changes: run screenshot report
+## Do not run tests during agent or plan work
 
-When the change touches **Next.js / React / shared UI** (`apps/web/src`, `apps/management-web/src`, or `packages/ui/src` consumed by those apps), follow **ui-e2e-screenshot-report**:
-
-- **Run** the targeted `make e2e_test_*_report_spec` (or scoped report) before finishing.
-- **Display** the report path (`.artifacts/e2e-reports/latest/.../index.html`) so the operator can review step screenshots.
-
-## Non-UI changes: instruct only
-
-For API, workers, packages without UI impact, and other non-visual work:
-
-- **Do not run** test or verification commands during agent or plan work unless the user explicitly asks.
-- **Instruct the user** to run commands after your work is done. Provide exact command(s) in a fenced `bash` block.
+- **Never run** test or verification commands as part of agent or plan implementation unless the user explicitly asks.
+- **Only instruct the operator** to run those commands after your work is done. Provide exact command(s) in a fenced `bash` block.
+- For **UI changes** (`apps/web/src`, `apps/management-web/src`, or `packages/ui/src` consumed by those apps), follow **ui-e2e-screenshot-report** to pick the narrowest `make e2e_test_*_report_spec` command and tell the operator where reports appear (`.artifacts/e2e-reports/latest/.../index.html`).
 
 ## Required response behavior
 
-1. End with verification guidance: either a completed report path (UI) or runnable make commands (non-UI).
+1. End with runnable verification commands in a fenced `bash` block.
 2. Do not suggest direct Playwright execution (`npx playwright test ...`) for E2E verification; use the `make` wrappers so seed/setup is included.
-3. **E2E-affected changes (mandatory):** If the change affects E2E tests, include the **EXACT** command(s) needed to verify—even when you already ran them for UI work.
+3. **E2E-affected changes (mandatory):** If the change affects E2E tests, include the **EXACT** command(s) needed to verify.
 4. Prefer feature-scoped screenshot report commands over full-suite commands.
 
 ## Command selection
@@ -40,6 +32,16 @@ For API, workers, packages without UI impact, and other non-visual work:
 ## API gate
 
 E2E commands **do not run** API integration tests by default. Only add API verification commands when the change affected API code.
+
+## Copy-pasta final prompt (cumulative verification)
+
+When you complete the **last** step in a plan set (`COPY-PASTA.md` / `00-EXECUTION-ORDER.md`):
+
+1. Assume the operator ran every COPY-PASTA prompt back-to-back **without** running tests until this final step.
+2. Collect **Verification** sections from each numbered plan file in the set.
+3. Merge into one fenced `bash` block for the operator: `npm run build:packages`, `npm run lint`, `npm run test:unit`, `npm run test:e2e:api`, scoped `make e2e_test_*_report_spec`, etc., as applicable to the set.
+4. Deduplicate commands; order: build/lint → unit → API → E2E (scoped before full suite).
+5. For intermediate COPY-PASTA steps (not the last), end with verification commands for **that step only**.
 
 ## Spec variables
 

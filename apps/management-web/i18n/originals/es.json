@@ -35,6 +35,10 @@
     "paginationPageOf": "Página {currentPage} de {totalPages}",
     "closeModalAria": "Cerrar modal"
   },
+  "tableOfContents": {
+    "navAriaLabel": "Tabla de contenidos",
+    "heading": "Tabla de contenidos"
+  },
   "tableShared": {
     "searchPlaceholder": "Buscar",
     "searchSubmitLabel": "Buscar",
@@ -308,6 +312,8 @@
     "pageSubtitle": "Busque un feed por ID de Podcast Index (predeterminado), id interno del feed o URL. Actualice el ciclo de vida, condiciones activas, límites y notas. Esto es independiente del navegador de tablas de la base de datos.",
     "breadcrumbFeeds": "Feeds",
     "breadcrumbCurrent": "Estado de la bandera",
+    "sectionTabSearchFeeds": "Buscar feeds",
+    "sectionTabFindFeed": "Buscar un feed",
     "directoryHeading": "Feeds",
     "directoryLoadError": "No se pudo cargar la lista de feeds.",
     "directoryEmpty": "Ningún feed coincide con los filtros actuales.",

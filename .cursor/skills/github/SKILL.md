@@ -124,6 +124,6 @@ git branch -vv
 
 ## Related Documentation
 
-- [GitHub Labels](../../../docs/GITHUB-LABELS.md) - Complete label documentation
-- [Contributing Guide](../../../docs/CONTRIBUTING.md) - Contribution workflow
-- [Global Skill](../global/SKILL.md) - General patterns and workflows
+- [GitHub Labels](/docs/repo-management/GITHUB-LABELS.md) - Complete label documentation
+- [Contributing Guide](/docs/development/CONTRIBUTING.md) - Contribution workflow
+- [Global Skill](/.cursor/skills/global/SKILL.md) - General patterns and workflows

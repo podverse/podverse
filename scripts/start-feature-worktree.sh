@@ -24,13 +24,17 @@ echo ""
 
 # 1. Feature type (same as start-feature.sh)
 echo -e "${CYAN}Select feature type:${NC}"
-select TYPE in feature fix chore docs hotfix release; do
+select TYPE in feature fix chore docs hotfix release llm; do
   [[ -n "$TYPE" ]] && break
 done
 
 # 2. Short name (same as start-feature.sh)
 echo ""
-read -p "Short name (kebab-case, e.g., add-podcast-chapters): " NAME
+if [[ "$TYPE" == "llm" ]]; then
+  read -p "Short name (kebab-case, e.g., abcmemory-vocabulary): " NAME
+else
+  read -p "Short name (kebab-case, e.g., add-podcast-chapters): " NAME
+fi
 
 if [[ ! "$NAME" =~ ^[a-z][a-z0-9-]*$ ]]; then
   echo -e "${YELLOW}Name should be kebab-case (lowercase letters, numbers, hyphens)${NC}"

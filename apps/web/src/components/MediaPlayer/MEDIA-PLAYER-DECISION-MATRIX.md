@@ -2,7 +2,7 @@
 
 Authoritative behavior baseline for the Podverse web media player. Locked in
 during **Phase 1** of the
-[media-player-architecture-refactor](../../../../../.llm/plans/completed/media-player-architecture-refactor/)
+[this decision matrix](/apps/web/src/components/MediaPlayer/MEDIA-PLAYER-DECISION-MATRIX.md)
 plan-set and used as the regression oracle for every subsequent phase. Each
 later phase that touches the controller tree must keep this matrix passing.
 
@@ -81,7 +81,7 @@ Notation: `p` = abridged stored position seconds (`queueResourcesAbridgedIndex.i
 ### 2. Anonymous restore (logged-out, first page load only)
 
 Runs **once** per browser session, gated by `anonymousPlaybackRestoreStarted`
-in [`AnonymousPlaybackRestoreController.tsx`](../../components/Queue/AnonymousPlaybackRestoreController.tsx).
+in [`AnonymousPlaybackRestoreController.tsx`](/apps/web/src/components/Queue/AnonymousPlaybackRestoreController.tsx).
 
 | Snapshot `kind`        | `currentTime` after `loadedmetadata`                                                                                                                        | `mpIsPlaying` after load                                                | Side effects                                                                                                                                                            |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -244,7 +244,7 @@ arbitration between non-live and live elements. Each can affect livestream
 behavior even without modifying `MediaPlayerControllerLiveStreamAV.tsx`. The
 specs and matrix entries below are the **regression oracle** for livestream
 behavior across this plan-set, **and** the baseline for the follow-up
-[`media-player-livestream-hls-migration`](../../../../../.llm/plans/active/media-player-livestream-hls-migration/)
+[`media-player-livestream-hls-migration`](/.llm/plans/active/media-player-livestream-hls-migration)
 plan-set.
 
 ### 6a. Matrix appendix — live-stream behavior
@@ -281,7 +281,7 @@ exist to detect re-introduction of that bug class.
 
 ### 6b. Live-stream E2E specs
 
-Added under [`apps/web/e2e/`](../../../e2e/):
+Added under [`apps/web/e2e/`](/apps/web/e2e):
 
 - `media-player-livestream-audio-start.spec.ts` — start a known live audio
   stream; assert play state and player UI.
@@ -299,7 +299,9 @@ must run unchanged across every phase.
 ### 6c. Test feed selection
 
 Phase 1 decision (see
-[close-phase-1-gaps plan](../../../../../.cursor/plans/close-phase-1-gaps_ee712506.plan.md)):
+[media-player-architecture skill](/.cursor/skills/media-player-architecture/SKILL.md)
+and
+[01-baseline-verification-and-feed-selection.md](/.llm/plans/active/media-player-livestream-hls-migration/01-baseline-verification-and-feed-selection.md)):
 exercise **only the controller-plumbing surface** against the existing
 internal seed; do not stand up a live-stream test server or external
 network dependency in Phase 1. The infrastructure decision (real HLS
@@ -307,10 +309,10 @@ server, mocked HLS via `page.route`, or extended seed) belongs to the
 **Phase 4 HLS migration plan-set** that actually changes the live-stream
 code path.
 
-| Slot       | Choice                                                   | Source                                                       | Date verified | Scope                                                               |
-| ---------- | -------------------------------------------------------- | ------------------------------------------------------------ | ------------- | ------------------------------------------------------------------- |
-| Live audio | Seeded internal feed `v5fCrIj9Io` / item `e2eLiveStrm01` | [tools/web/seed-e2e.mjs](../../../../tools/web/seed-e2e.mjs) | 2026-05-13    | Controller-mount assertions only (no play, no seek, no real stream) |
-| Live video | _Deferred to Phase 4_ — see subsection below             | _TBD by Phase 4 plan-set_                                    | _TBD_         | _TBD_                                                               |
+| Slot       | Choice                                                   | Source                                            | Date verified | Scope                                                               |
+| ---------- | -------------------------------------------------------- | ------------------------------------------------- | ------------- | ------------------------------------------------------------------- |
+| Live audio | Seeded internal feed `v5fCrIj9Io` / item `e2eLiveStrm01` | [tools/web/seed-e2e.mjs](/tools/web/seed-e2e.mjs) | 2026-05-13    | Controller-mount assertions only (no play, no seek, no real stream) |
+| Live video | _Deferred to Phase 4_ — see subsection below             | _TBD by Phase 4 plan-set_                         | _TBD_         | _TBD_                                                               |
 
 ### 6c. Deferred to Phase 4
 
@@ -319,11 +321,11 @@ Three of the four live-stream specs are intentionally left
 meaningful only once Phase 4 starts modifying the live-stream code path
 and needs the regression oracle.
 
-| Spec                                                                                                                        | Reason for deferral                                                                     | Phase 4 prerequisite                                                                                                                                                                                                                 |
-| --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [media-player-livestream-video-start.spec.ts](../../../e2e/media-player-livestream-video-start.spec.ts)                     | No video live-stream item in the current seed                                           | Either (a) add a video `live_item` to [seed-e2e.mjs](../../../../tools/web/seed-e2e.mjs) with a mocked HLS URL, (b) add Playwright `page.route` HLS mocks, or (c) point at a public HLS test stream gated by `E2E_LIVE_FEEDS_OK` env |
-| [media-player-livestream-to-podcast-transition.spec.ts](../../../e2e/media-player-livestream-to-podcast-transition.spec.ts) | Seed has no regular (non-live) podcast item with an enclosure for the transition target | Add one item with a real or mocked enclosure URL to [seed-e2e.mjs](../../../../tools/web/seed-e2e.mjs); reuse the same HLS infrastructure decision as the video-start spec                                                           |
-| [media-player-podcast-to-livestream-transition.spec.ts](../../../e2e/media-player-podcast-to-livestream-transition.spec.ts) | Same as above — needs both a playable podcast item and a playable live-stream item      | Same as above                                                                                                                                                                                                                        |
+| Spec                                                                                                                         | Reason for deferral                                                                     | Phase 4 prerequisite                                                                                                                                                                                                      |
+| ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [media-player-livestream-video-start.spec.ts](/apps/web/e2e/media-player-livestream-video-start.spec.ts)                     | No video live-stream item in the current seed                                           | Either (a) add a video `live_item` to [seed-e2e.mjs](/tools/web/seed-e2e.mjs) with a mocked HLS URL, (b) add Playwright `page.route` HLS mocks, or (c) point at a public HLS test stream gated by `E2E_LIVE_FEEDS_OK` env |
+| [media-player-livestream-to-podcast-transition.spec.ts](/apps/web/e2e/media-player-livestream-to-podcast-transition.spec.ts) | Seed has no regular (non-live) podcast item with an enclosure for the transition target | Add one item with a real or mocked enclosure URL to [seed-e2e.mjs](/tools/web/seed-e2e.mjs); reuse the same HLS infrastructure decision as the video-start spec                                                           |
+| [media-player-podcast-to-livestream-transition.spec.ts](/apps/web/e2e/media-player-podcast-to-livestream-transition.spec.ts) | Same as above — needs both a playable podcast item and a playable live-stream item      | Same as above                                                                                                                                                                                                             |
 
 **Why Phase 4, not Phase 2 or 3?** Phases 2 and 3 (playback domain types
 and controller decomposition) do not change the live-stream code path.
@@ -362,7 +364,7 @@ and breaks loudly if Phase 4 fumbles the controller-selection logic.
 ## Phase 1 deliverable-5 substitution
 
 Phase 1's
-[01-behavior-baseline-and-test-harness.md](../../../../../.llm/plans/completed/media-player-architecture-refactor/01-behavior-baseline-and-test-harness.md)
+[this decision matrix](/apps/web/src/components/MediaPlayer/MEDIA-PLAYER-DECISION-MATRIX.md)
 deliverable 5 named two pure-helper test files to confirm and extend:
 
 - `apps/web/src/lib/playbackResumeNearEnd.test.ts`
@@ -380,17 +382,17 @@ that exist today:
 
 - 5-second near-end clamp (the rule `playbackResumeNearEnd` will
   encapsulate):
-  [`useMediaPlayerResourceUpdate.nearEndClamp.test.tsx`](../../hooks/__tests__/useMediaPlayerResourceUpdate.nearEndClamp.test.tsx)
+  [`useMediaPlayerResourceUpdate.nearEndClamp.test.tsx`](/apps/web/src/hooks/__tests__/useMediaPlayerResourceUpdate.nearEndClamp.test.tsx)
   pins the clamp inside `useMediaPlayerResourceUpdate` (clip, soundbite,
   podcast, video, music, zero-duration, missing-row, boundary cases).
 - Anonymous restore (the rule `musicSessionRestoreCurrentTime` will
   cover for music): boundary cases added to
-  [`anonymousPlaybackStorage.test.ts`](../../utils/anonymousPlaybackStorage.test.ts)
+  [`anonymousPlaybackStorage.test.ts`](/apps/web/src/utils/anonymousPlaybackStorage.test.ts)
   for NaN, Infinity, large positions, negative positions, and
   zero-duration acceptance.
 - Chapter selection (the rule a future helper will cover for chapter
   resume): boundary cases added to
-  [`selectItemChapterForTime.test.ts`](../../utils/mediaPlayer/selectItemChapterForTime.test.ts)
+  [`selectItemChapterForTime.test.ts`](/apps/web/src/utils/mediaPlayer/selectItemChapterForTime.test.ts)
   for empty lists, inclusive start, exclusive end, negative input, large
   input, and non-numeric end times.
 
@@ -417,15 +419,15 @@ without losing coverage.
 - **Unit / orchestration tests** that lock cell-by-cell behavior live under
   [`apps/web/src/components/MediaPlayer/Controller/__tests__/`](./Controller/__tests__/).
   The fake `HTMLMediaElement` harness they exercise lives at
-  [`apps/web/src/test/mediaElementFake.ts`](../../test/mediaElementFake.ts).
+  [`apps/web/src/test/mediaElementFake.ts`](/apps/web/src/test/mediaElementFake.ts).
 - **Pure helpers** that the new policy will reuse — coverage extensions in
-  [`selectItemChapterForTime.test.ts`](../../utils/mediaPlayer/selectItemChapterForTime.test.ts)
-  and [`anonymousPlaybackStorage.test.ts`](../../utils/anonymousPlaybackStorage.test.ts).
+  [`selectItemChapterForTime.test.ts`](/apps/web/src/utils/mediaPlayer/selectItemChapterForTime.test.ts)
+  and [`anonymousPlaybackStorage.test.ts`](/apps/web/src/utils/anonymousPlaybackStorage.test.ts).
 - **Near-end clamp pinning** until Phase 2 centralizes the rule:
-  [`useMediaPlayerResourceUpdate.nearEndClamp.test.tsx`](../../hooks/__tests__/useMediaPlayerResourceUpdate.nearEndClamp.test.tsx)
+  [`useMediaPlayerResourceUpdate.nearEndClamp.test.tsx`](/apps/web/src/hooks/__tests__/useMediaPlayerResourceUpdate.nearEndClamp.test.tsx)
   (see the "Phase 1 deliverable-5 substitution" subsection above).
 - **E2E specs** that drive the matrix end-to-end live under
-  [`apps/web/e2e/`](../../../e2e/) prefixed with `media-player-` — including
+  [`apps/web/e2e/`](/apps/web/e2e) prefixed with `media-player-` — including
   the four livestream specs from § 6b.
 
 > Open **Phase 2** items (capture before extracting helpers):

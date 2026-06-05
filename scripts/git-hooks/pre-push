@@ -26,7 +26,7 @@ if [[ "$BRANCH" =~ $PROTECTED ]]; then
 fi
 
 # Valid branch patterns
-VALID_PATTERN="^(feature|fix|chore|docs|hotfix|release)/.*$"
+VALID_PATTERN="^(feature|fix|chore|docs|hotfix|release|llm)/.*$"
 
 if [[ "$BRANCH" =~ $VALID_PATTERN ]]; then
   echo -e "${GREEN}✓ Branch name valid: $BRANCH${NC}" >&2
@@ -43,6 +43,8 @@ echo -e "${YELLOW}║                                                           
 echo -e "${YELLOW}║  Expected patterns:                                        ║${NC}" >&2
 echo -e "${YELLOW}║    feature/description   fix/description                   ║${NC}" >&2
 echo -e "${YELLOW}║    chore/description     docs/description                  ║${NC}" >&2
+echo -e "${YELLOW}║    hotfix/description    release/description                 ║${NC}" >&2
+echo -e "${YELLOW}║    llm/description       (LLM-only; see DOCS-DEVELOPMENT-LLM) ║${NC}" >&2
 echo -e "${YELLOW}╚════════════════════════════════════════════════════════════╝${NC}" >&2
 echo "" >&2
 

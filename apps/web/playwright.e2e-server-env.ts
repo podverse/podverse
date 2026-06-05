@@ -12,10 +12,17 @@ import {
   toShellEnvPrefix,
 } from '@podverse/helpers-config';
 
+export type E2eCustomThemesProfile = 'native' | 'remote' | 'combo';
+
+export const E2E_CUSTOM_THEMES_MINIMAL_URL =
+  'http://localhost:2111/themes/custom-themes.minimal.json';
+export const E2E_CUSTOM_THEMES_MULTI_URL = 'http://localhost:2111/themes/custom-themes.multi.json';
+
 export type E2eWebSidecarEnvOptions = {
   cloudflareWebAnalyticsEnabled?: boolean;
   cookieConsentBannerEnabled?: boolean;
   userSignupEmail?: boolean;
+  customThemesProfile?: E2eCustomThemesProfile;
 };
 
 /** Matches `TERMS_OF_SERVICE_VERSION` / `NEXT_PUBLIC_TERMS_OF_SERVICE_VERSION` in E2E env. */
@@ -47,9 +54,37 @@ const WEB_E2E_NEXT_PUBLIC_ENV_BASE: Record<string, string> = {
   NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS: '86400',
 };
 
+function buildCustomThemesProfileEnv(
+  profile: E2eCustomThemesProfile | undefined
+): Record<string, string> {
+  if (profile === undefined) {
+    return {};
+  }
+  if (profile === 'native') {
+    return {
+      NEXT_PUBLIC_CUSTOM_THEMES_URL: '',
+      NEXT_PUBLIC_SUPPORTED_THEMES: 'dark,light,dracula',
+      NEXT_PUBLIC_DEFAULT_THEME: 'dark',
+    };
+  }
+  if (profile === 'remote') {
+    return {
+      NEXT_PUBLIC_CUSTOM_THEMES_URL: E2E_CUSTOM_THEMES_MINIMAL_URL,
+      NEXT_PUBLIC_SUPPORTED_THEMES: 'dark',
+      NEXT_PUBLIC_DEFAULT_THEME: 'dark',
+    };
+  }
+  return {
+    NEXT_PUBLIC_CUSTOM_THEMES_URL: E2E_CUSTOM_THEMES_MULTI_URL,
+    NEXT_PUBLIC_SUPPORTED_THEMES: 'all-available',
+    NEXT_PUBLIC_DEFAULT_THEME: 'dark',
+  };
+}
+
 function buildE2eWebNextPublicEnv(options?: E2eWebSidecarEnvOptions): Record<string, string> {
   return {
     ...WEB_E2E_NEXT_PUBLIC_ENV_BASE,
+    ...buildCustomThemesProfileEnv(options?.customThemesProfile),
     NEXT_PUBLIC_COOKIE_CONSENT_BANNER_ENABLED:
       options?.cookieConsentBannerEnabled === true ? 'true' : '',
     NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE:
@@ -105,6 +140,25 @@ export function buildE2eWebAppEnv(options?: E2eWebSidecarEnvOptions): Record<str
     ...PODVERSE_WEB_E2E_OBSERVABILITY_ENV,
     ...buildE2eWebNextPublicEnv(options),
   };
+}
+
+/**
+ * Env for `next build` in E2E mode (used by build-and-start-next-standalone.sh).
+ * Clears custom-themes URL and sidecar URL so static prerender does not no-store fetch.
+ */
+export function buildE2eWebAppBuildEnv(options?: E2eWebSidecarEnvOptions): Record<string, string> {
+  return {
+    ...buildE2eWebAppEnv(options),
+    NEXT_PUBLIC_CUSTOM_THEMES_URL: '',
+    RUNTIME_CONFIG_URL: '',
+  };
+}
+
+/**
+ * Env prefix for the web app `next build` in E2E mode (remote/combo custom-themes lanes).
+ */
+export function buildE2eWebAppBuildEnvPrefix(options?: E2eWebSidecarEnvOptions): string {
+  return toShellEnvPrefix(buildE2eWebAppBuildEnv(options));
 }
 
 /**

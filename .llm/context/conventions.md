@@ -21,7 +21,7 @@
 
 - Present tense commits
 - Include issue refs (#123)
-- Branches: feature/, fix/, chore/
+- Branches: feature/, fix/, chore/, docs/, hotfix/, release/, llm/
 
 ## GitHub Issues
 
@@ -33,7 +33,7 @@
 - Infrastructure: `infra` label (hosting, deployment, CI/CD)
 - Documentation: `docs` label
 
-**Labels**: See [docs/repo-management/GITHUB-LABELS.md](../../docs/repo-management/GITHUB-LABELS.md) for complete reference
+**Labels**: See [docs/repo-management/GITHUB-LABELS.md](/docs/repo-management/GITHUB-LABELS.md) for complete reference
 
 ## Import Order
 

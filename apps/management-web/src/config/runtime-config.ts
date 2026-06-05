@@ -1,4 +1,5 @@
 import type { IntegrationsWebConfig } from '@podverse/integrations-web/config';
+import type { RemoteThemeDefinition } from '@podverse/ui';
 
 export type ManagementWebRuntimeConfigEnvKey =
   | 'NEXT_PUBLIC_API_HOST'
@@ -6,6 +7,7 @@ export type ManagementWebRuntimeConfigEnvKey =
   | 'NEXT_PUBLIC_API_PREFIX'
   | 'NEXT_PUBLIC_API_PROTOCOL'
   | 'NEXT_PUBLIC_API_VERSION'
+  | 'NEXT_PUBLIC_CUSTOM_THEMES_URL'
   | 'NEXT_PUBLIC_DEFAULT_THEME'
   | 'NEXT_PUBLIC_SUPPORTED_THEMES'
   | 'NEXT_PUBLIC_BRAND_APPLE_TOUCH_ICON_URL'
@@ -40,6 +42,7 @@ export const managementWebRuntimeConfigEnvKeys = {
   ],
   optional: [
     'NEXT_PUBLIC_API_PORT',
+    'NEXT_PUBLIC_CUSTOM_THEMES_URL',
     'NEXT_PUBLIC_BRAND_APPLE_TOUCH_ICON_URL',
     'NEXT_PUBLIC_BRAND_APP_ICON_192_URL',
     'NEXT_PUBLIC_BRAND_APP_ICON_512_URL',
@@ -60,4 +63,5 @@ export type ManagementWebRuntimeConfigValues = {
 export type ManagementWebRuntimeConfig = {
   env: ManagementWebRuntimeConfigValues;
   integrations: IntegrationsWebConfig;
+  customThemes?: RemoteThemeDefinition[];
 };

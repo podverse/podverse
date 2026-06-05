@@ -1,6 +1,6 @@
 {
   "name": "podverse",
-  "version": "5.4.32",
+  "version": "5.4.33",
   "private": true,
   "description": "Podverse monorepo - podcast app infrastructure, modules, and applications",
   "repository": {
@@ -32,7 +32,10 @@
   ],
   "overrides": {
     "ip-address": "10.2.0",
-    "postcss@8.4.31": "8.5.10",
+    "postcss": "8.5.10",
+    "next": {
+      "postcss": "8.5.10"
+    },
     "glob": "^13.0.1",
     "uuid": "14.0.0",
     "@google-cloud/storage": {
@@ -60,10 +63,11 @@
   "scripts": {
     "prepare": "bash scripts/git-hooks/install-hooks.sh",
     "start-feature": "bash scripts/start-feature.sh",
-    "build": "node scripts/ci/run-workspaces.mjs --script build --all",
+    "build": "npm run build:packages && npm run build:apps && npm run build:tools",
     "build:packages": "node scripts/ci/run-workspaces.mjs --script build --workspaces packages/worker-commands packages/helpers packages/observability packages/extension-metrics-sdk packages/integrations-web packages/helpers-validation packages/v4v-metaboost packages/v4v-helpers packages/parser-mapping packages/http-request-core packages/helpers-requests packages/management-api-requests packages/helpers-backend packages/helpers-browser packages/helpers-config packages/external-services-firebase packages/external-services-paypal packages/external-services-object-storage packages/external-services-podcast-index packages/orm packages/notifications packages/parser packages/mq packages/v4v-btc-ln",
     "build:packages:prod": "node scripts/ci/run-workspaces.mjs --script build:prod --workspaces packages/worker-commands packages/helpers packages/observability packages/extension-metrics-sdk packages/integrations-web packages/helpers-validation packages/v4v-metaboost packages/v4v-helpers packages/parser-mapping packages/http-request-core packages/helpers-requests packages/management-api-requests packages/helpers-backend packages/helpers-browser packages/helpers-config packages/external-services-firebase packages/external-services-paypal packages/external-services-object-storage packages/external-services-podcast-index packages/orm packages/notifications packages/parser packages/mq packages/v4v-btc-ln",
     "build:apps": "node scripts/ci/run-workspaces.mjs --script build --workspaces apps/api apps/web apps/workers apps/management-api apps/management-web apps/web/sidecar apps/management-web/sidecar",
+    "build:tools": "node scripts/ci/run-workspaces.mjs --script build --workspaces tools/qa tools/test-assets",
     "clean": "npm run clean --workspaces --if-present",
     "clean:packages": "find packages -name 'tsconfig.tsbuildinfo' -delete && find packages -type d -name 'dist' -exec rm -rf {} + 2>/dev/null || true",
     "clean:apps": "find apps -name 'tsconfig.tsbuildinfo' -delete && find apps -type d \\( -name 'dist' -o -name '.next' -o -name '.cache' -o -name 'compiled' \\) -exec rm -rf {} + 2>/dev/null || true",

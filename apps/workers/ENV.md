@@ -48,7 +48,7 @@ examples if needed. For the full checklist (including index.ts and new categorie
 
 Add-by-RSS feed parsing (e.g. `mqAddByRSSRunParser`) uses optional HTTP Basic Auth credentials stored per-feed in the database (`account_following_add_by_rss_channel`).
 
-- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`** (Required) – Basic Auth credentials are encrypted at rest (AES-256-GCM). Must be 64 hex characters (32 bytes). Generate with: `openssl rand -hex 32`. Passed into the ORM via `createORMContext(config)`. See [docs/features/ADD-BY-RSS.md](../../docs/features/ADD-BY-RSS.md) for key-rotation procedure.
+- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`** (Required) – Basic Auth credentials are encrypted at rest (AES-256-GCM). Must be 64 hex characters (32 bytes). Generate with: `openssl rand -hex 32`. Passed into the ORM via `createORMContext(config)`. See [docs/features/ADD-BY-RSS.md](/docs/features/ADD-BY-RSS.md) for key-rotation procedure.
 - **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD`** (Optional) – During key rotation only. When set, the app decrypts with the current key first, then with this old key. Remove after running the re-encryption script.
 
 ## General Configuration (Base — every command)
@@ -69,7 +69,7 @@ Add-by-RSS feed parsing (e.g. `mqAddByRSSRunParser`) uses optional HTTP Basic Au
   - When set, logs are written to files with daily rotation (max 20MB per file, keep 14 days, compressed).
   - When using Docker with a log volume, set to the container path that matches the mount (e.g. `/opt/logs` for workers local compose).
   - Console logs always appear in terminal regardless of this setting.
-  - See [logs/LOGS.md](../../logs/LOGS.md) for LOG_DIR rules across the monorepo.
+  - See [logs/LOGS.md](/logs/LOGS.md) for LOG_DIR rules across the monorepo.
 
 - **`LOG_TIMER`** (Optional) - Enable log timers (default: `false`)
   - Set to `"true"` to enable

@@ -6,7 +6,7 @@ Use this guide to deploy Podverse to a remote Kubernetes cluster with Argo CD an
 
 The Podverse monorepo is the **source** for public base manifests (`infra/k8s/base/…`), upstream
 secret-generator **source files** under
-[`infra/k8s/scripts/secret-generators/`](../../../infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md)
+[`infra/k8s/scripts/secret-generators/`](/infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md)
 (which you **copy** into the GitOps repo’s `./scripts/secret-generators/`). The Podverse monorepo is **not** the place to
 run the GitOps secret-generation or `kubectl` phases of a remote deploy.
 
@@ -50,8 +50,8 @@ This document is intentionally domain-agnostic for open source use:
 
 ## Health readiness semantics (management-api vs Metaboost)
 
-- **Main API:** Readiness (`…/health/ready`) checks database and KeyValDB reachability (see [`apps/api/src/lib/health/registerHealthRoutes.ts`](../../../apps/api/src/lib/health/registerHealthRoutes.ts)).
-- **Management API:** Readiness checks **management database and app database only**—no KeyValDB probe (see [`apps/management-api/src/lib/health/registerHealthRoutes.ts`](../../../apps/management-api/src/lib/health/registerHealthRoutes.ts)). Base manifests wait for Postgres and management migrations; there is **no** KeyVal wait init on management-api.
+- **Main API:** Readiness (`…/health/ready`) checks database and KeyValDB reachability (see [`apps/api/src/lib/health/registerHealthRoutes.ts`](/apps/api/src/lib/health/registerHealthRoutes.ts)).
+- **Management API:** Readiness checks **management database and app database only**—no KeyValDB probe (see [`apps/management-api/src/lib/health/registerHealthRoutes.ts`](/apps/management-api/src/lib/health/registerHealthRoutes.ts)). Base manifests wait for Postgres and management migrations; there is **no** KeyVal wait init on management-api.
 - **Metaboost:** Management-api readiness there also requires **Valkey** unless the app is configured to skip that check; base manifests include a Valkey TCP wait init before migrations. When copying mental models or runbooks between products, do not assume identical management-api readiness semantics.
 
 ## Encrypted secrets (GitOps repository)
@@ -63,14 +63,14 @@ Typical order of operations:
 - Ensure the target **namespace** exists or will be created before you apply Secrets into it.
 - If your manifests reference `imagePullSecrets`, create the **container registry pull** secret your overlay expects (default encrypted file: **`secrets/github-registry-secret.enc.yaml`** at repo root when using the Podverse generator).
 - Generate or author **opaque and integration** secrets using **your GitOps repository’s** documented scripts, templates, and root `.sops.yaml`. Commit **encrypted** manifests only; do not commit cleartext credentials.
-- If Argo CD must clone a **private GitHub** GitOps repository over HTTPS, use **`create_argocd_github_repo_secret.sh`** from the GitOps repo root (see [`INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md`](../../../infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md)); the same file may be vendored elsewhere for discoverability. Prefer the script’s derived **`<slug>-repo-creds`** / **`./secrets/<slug>-argoc-repo.enc.yaml`** convention so every GitOps URL follows one pattern; repository Secrets always belong in the **`argocd`** namespace.
+- If Argo CD must clone a **private GitHub** GitOps repository over HTTPS, use **`create_argocd_github_repo_secret.sh`** from the GitOps repo root (see [`INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md`](/infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md)); the same file may be vendored elsewhere for discoverability. Prefer the script’s derived **`<slug>-repo-creds`** / **`./secrets/<slug>-argoc-repo.enc.yaml`** convention so every GitOps URL follows one pattern; repository Secrets always belong in the **`argocd`** namespace.
 
 Secret generator scripts and a **full ordered runbook** (below) are maintained in this document; your GitOps repository still owns hostnames, private URLs, and any repo-specific one-offs.
 
-**Script upstream vs GitOps copy:** the reference implementations of workload and GHCR pull-secret helpers live in **this (Podverse) repository** under [`infra/k8s/scripts/secret-generators/`](../../../infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md) (for example `create_all_secrets_auto_gen.sh`, `create_github_registry_secret.sh`, and the `create_*_secret.sh` files the runner calls). **Your GitOps repository** should contain **copies** of those files under **`./scripts/secret-generators/`**, with default output paths pointing at the GitOps **`secrets/`** tree. Copy or sync from `podverse/infra/k8s/scripts/secret-generators/` when you need to update generators, then use **only** the GitOps checkout to run them (next to **`.sops.yaml`**). Upstream defaults and GitOps checkouts both use repo-root **`./secrets/…`** (same path layout; no per-repo `sed` rewrites for output paths).
+**Script upstream vs GitOps copy:** the reference implementations of workload and GHCR pull-secret helpers live in **this (Podverse) repository** under [`infra/k8s/scripts/secret-generators/`](/infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md) (for example `create_all_secrets_auto_gen.sh`, `create_github_registry_secret.sh`, and the `create_*_secret.sh` files the runner calls). **Your GitOps repository** should contain **copies** of those files under **`./scripts/secret-generators/`**, with default output paths pointing at the GitOps **`secrets/`** tree. Copy or sync from `podverse/infra/k8s/scripts/secret-generators/` when you need to update generators, then use **only** the GitOps checkout to run them (next to **`.sops.yaml`**). Upstream defaults and GitOps checkouts both use repo-root **`./secrets/…`** (same path layout; no per-repo `sed` rewrites for output paths).
 
 Image build/tag and publish workflows are **not** part of this checklist; see
-[ALPHA-DEPLOYMENT](../../operations/deploy/ALPHA-DEPLOYMENT.md) and [PUBLISH](../../operations/deploy/PUBLISH.md)
+[ALPHA-DEPLOYMENT](/docs/operations/deploy/ALPHA-DEPLOYMENT.md) and [PUBLISH](/docs/operations/deploy/PUBLISH.md)
 (Podverse source checkout where those docs say so; not from `<gitops-repo>`).
 
 ## End-to-end command checklist
@@ -116,7 +116,7 @@ kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -
 
 At **`$GITOPS_REPO_DIR`**, with repo-root **`.sops.yaml`** and SOPS keys (not the Podverse monorepo). This step **writes** encrypted manifests for the dry-run and apply in the next section.
 
-Use **`./scripts/secret-generators/`** there (kept in sync with [Podverse `infra/k8s/scripts/secret-generators/`](../../../infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md) as documented in your GitOps README), plus any **GitOps-only** scripts your operator repo adds beyond the Podverse set:
+Use **`./scripts/secret-generators/`** there (kept in sync with [Podverse `infra/k8s/scripts/secret-generators/`](/infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md) as documented in your GitOps README), plus any **GitOps-only** scripts your operator repo adds beyond the Podverse set:
 
 1. **Registry pull secret** (if your overlay uses `imagePullSecrets`; often interactive):
 
@@ -131,7 +131,7 @@ Use **`./scripts/secret-generators/`** there (kept in sync with [Podverse `infra
    ./scripts/secret-generators/create_all_secrets_auto_gen.sh $ENV
    ```
 
-   This runs the generators in dependency order (see [INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md](../../../infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md)); each uses **`--auto-gen`**. Outputs are **`./secrets/podverse-$ENV-*-opaque.enc.yaml`** at the **GitOps** repository root. Commit those files; do not commit cleartext. The bulk runner’s end-of-run **NOTE** lists optional follow-ups (for example web-push env).
+   This runs the generators in dependency order (see [INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md](/infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md)); each uses **`--auto-gen`**. Outputs are **`./secrets/podverse-$ENV-*-opaque.enc.yaml`** at the **GitOps** repository root. Commit those files; do not commit cleartext. The bulk runner’s end-of-run **NOTE** lists optional follow-ups (for example web-push env).
 
 3. **Pre-sync contract checks (required):**
 
@@ -182,16 +182,16 @@ Use **`./scripts/secret-generators/`** there (kept in sync with [Podverse `infra
    sops -d secrets/grafana-admin.enc.yaml | kubectl apply -f -
    ```
 
-   Scrape jobs for Podverse extension metrics and optional **node-exporter** are documented in your GitOps repo (see Podverse [PROMETHEUS-METRICS-ENDPOINTS.md](../../operations/extensions/PROMETHEUS-METRICS-ENDPOINTS.md)).
+   Scrape jobs for Podverse extension metrics and optional **node-exporter** are documented in your GitOps repo (see Podverse [PROMETHEUS-METRICS-ENDPOINTS.md](/docs/operations/extensions/PROMETHEUS-METRICS-ENDPOINTS.md)).
 
    #### Optional cluster metrics (extension sidecar + Prometheus + Grafana)
 
    Podverse emits metrics via the **extension-prometheus** sidecar; Prometheus and Grafana live in **your GitOps repository** (not the monorepo). Committed `infra/k8s/alpha/` overlays keep extensions **disabled by default** — enable in GitOps when you are ready.
-   1. **GitOps — common:** merge `extensions.env` with `PROMETHEUS_ENABLED=true` and `OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:4318`. Include sidecar env files (`extension-prometheus.env`, `extension-sidecar-otel.env`) from [`infra/k8s/base/extensions/source/`](../../../infra/k8s/base/extensions/source/) in `podverse-extensions-config` (see alpha [`extension-prometheus.env.example`](../../../infra/k8s/alpha/common/source/extension-prometheus.env.example) stubs).
-   2. **GitOps — workloads:** on api, web, management-api, management-web, and workers: add the `prometheus-sidecar` Kustomize component and `extension-prometheus` image pin (see commented blocks in [`infra/k8s/alpha/*/kustomization.yaml`](../../../infra/k8s/alpha/)).
-   3. **GitOps — Prometheus:** deploy Prometheus; scrape port **9464**, path `/extensions/prometheus/metrics`, relabel pod label `app` → `podverse_app` (see [PROMETHEUS-METRICS-ENDPOINTS.md](../../operations/extensions/PROMETHEUS-METRICS-ENDPOINTS.md)).
+   1. **GitOps — common:** merge `extensions.env` with `PROMETHEUS_ENABLED=true` and `OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:4318`. Include sidecar env files (`extension-prometheus.env`, `extension-sidecar-otel.env`) from [`infra/k8s/base/extensions/source/`](/infra/k8s/base/extensions/source/) in `podverse-extensions-config` (see alpha [`extension-prometheus.env.example`](/infra/k8s/alpha/common/source/extension-prometheus.env.example) stubs).
+   2. **GitOps — workloads:** on api, web, management-api, management-web, and workers: add the `prometheus-sidecar` Kustomize component and `extension-prometheus` image pin (see commented blocks in [`infra/k8s/alpha/*/kustomization.yaml`](/infra/k8s/alpha)).
+   3. **GitOps — Prometheus:** deploy Prometheus; scrape port **9464**, path `/extensions/prometheus/metrics`, relabel pod label `app` → `podverse_app` (see [PROMETHEUS-METRICS-ENDPOINTS.md](/docs/operations/extensions/PROMETHEUS-METRICS-ENDPOINTS.md)).
    4. **GitOps — Grafana (optional):** point a datasource at in-cluster Prometheus; provision dashboards charting `podverse_extension_prometheus_*` (overview, HTTP, workers) plus optional **node-exporter** host metrics. Dashboard JSON belongs in GitOps, not the Podverse monorepo.
-   5. **Reference layout:** mirror paths such as `apps/<namespace>/common/`, `apps/prometheus/manifests/`, `apps/grafana/manifests/`, and a runbook like `docs/k8s/podverse/PODVERSE-ALPHA.md` in your GitOps repo. See also [`infra/k8s/alpha/examples/optional-extension-metrics/README.md`](../../../infra/k8s/alpha/examples/optional-extension-metrics/README.md).
+   5. **Reference layout:** mirror paths such as `apps/<namespace>/common/`, `apps/prometheus/manifests/`, `apps/grafana/manifests/`, and a runbook like `docs/k8s/podverse/PODVERSE-ALPHA.md` in your GitOps repo. See also [`infra/k8s/alpha/examples/optional-extension-metrics/README.md`](/infra/k8s/alpha/examples/optional-extension-metrics/README.md).
 
 ### 4. Validate secrets, then apply (cluster)
 
@@ -238,19 +238,19 @@ end
 
 ### 5. GitOps overlay env
 
-In the Podverse monorepo, [`infra/k8s/alpha/`](../../../infra/k8s/alpha/) per-component `source/*.env` files are **comment-only** placeholders: add `KEY=value` lines there only when you need to override base defaults. For remote deploy, set the real values in your **GitOps** checkout under `apps/<namespace>/<component>/` (same layout), plus **patches** and **ingress** hostnames. Operator-specific values stay in your **private GitOps repository** (or in a monorepo render pipeline that writes into it).
+In the Podverse monorepo, [`infra/k8s/alpha/`](/infra/k8s/alpha) per-component `source/*.env` files are **comment-only** placeholders: add `KEY=value` lines there only when you need to override base defaults. For remote deploy, set the real values in your **GitOps** checkout under `apps/<namespace>/<component>/` (same layout), plus **patches** and **ingress** hostnames. Operator-specific values stay in your **private GitOps repository** (or in a monorepo render pipeline that writes into it).
 
 **Recommended**
 
 1. **Update every overlay you deploy** (`api`, `web`, `management-api`, `management-web`, `workers`, `cron`, plus `common` ingress/TLS if you maintain it there).
-2. **ConfigMap vs Secret:** put non-sensitive values in **ConfigMap** / `configMapGenerator` with `envs:` (small `source/*.env` files merged into base or alpha). Put passwords and API keys in **SOPS Secrets** from the [`create_*` generator reference](../../../infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md).
+2. **ConfigMap vs Secret:** put non-sensitive values in **ConfigMap** / `configMapGenerator` with `envs:` (small `source/*.env` files merged into base or alpha). Put passwords and API keys in **SOPS Secrets** from the [`create_*` generator reference](/infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md).
 3. **Ingress and workload hostnames:** use the same hostnames in ingress TLS `host` rules and in workload env (cookie domain, link generation, server-side fetch URLs) for that environment.
-4. **Cluster issuer (cert-manager):** the monorepo’s [`infra/k8s/alpha/common/ingress-hosts-patch.yaml`](../../../infra/k8s/alpha/common/ingress-hosts-patch.yaml) defaults to `letsencrypt-staging`. In the **GitOps** repository, set `cert-manager.io/cluster-issuer` to `letsencrypt-prod` on the alpha ingress when you want production ACME certificates and the cluster has a `ClusterIssuer` with that name.
+4. **Cluster issuer (cert-manager):** the monorepo’s [`infra/k8s/alpha/common/ingress-hosts-patch.yaml`](/infra/k8s/alpha/common/ingress-hosts-patch.yaml) defaults to `letsencrypt-staging`. In the **GitOps** repository, set `cert-manager.io/cluster-issuer` to `letsencrypt-prod` on the alpha ingress when you want production ACME certificates and the cluster has a `ClusterIssuer` with that name.
 5. **Cloudflare DNS01 token secret (when using Cloudflare-managed zones):** run the generator and apply
    the Secret per **§3 step 4** (upstream reference:
-   [`infra/k8s/scripts/secret-generators/create_cloudflare_api_token_secret.sh`](../../../infra/k8s/scripts/secret-generators/create_cloudflare_api_token_secret.sh)).
+   [`infra/k8s/scripts/secret-generators/create_cloudflare_api_token_secret.sh`](/infra/k8s/scripts/secret-generators/create_cloudflare_api_token_secret.sh)).
 
-**References:** [`infra/k8s/INFRA-K8S.md`](../../../infra/k8s/INFRA-K8S.md), [`infra/k8s/K8S.md`](../../../infra/k8s/K8S.md), [`INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md`](../../../infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md). If you use **Boilerplate** to render into a GitOps checkout (`configMapGenerator`, `make alpha_env_render`, etc.), follow [K8S-ENV-RENDER.md](https://github.com/podverse/boilerplate/blob/develop/docs/development/K8S-ENV-RENDER.md).
+**References:** [`infra/k8s/INFRA-K8S.md`](/infra/k8s/INFRA-K8S.md), [`infra/k8s/K8S.md`](/infra/k8s/K8S.md), [`INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md`](/infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md). If you use **Boilerplate** to render into a GitOps checkout (`configMapGenerator`, `make alpha_env_render`, etc.), follow [K8S-ENV-RENDER.md](https://github.com/podverse/boilerplate/blob/develop/docs/development/K8S-ENV-RENDER.md).
 
 ### 6. Local kustomize compile (GitOps overlays)
 
@@ -383,9 +383,9 @@ curl -sI https://api.example.com/api/v2/
 
 ## Related docs
 
-- [PUBLISH](../../operations/deploy/PUBLISH.md)
-- [ALPHA-DEPLOYMENT](../../operations/deploy/ALPHA-DEPLOYMENT.md) (CI, tags, local/server alpha; pairs with this guide for remote GitOps)
-- [infra/k8s/README](../../../infra/k8s/INFRA-K8S.md)
+- [PUBLISH](/docs/operations/deploy/PUBLISH.md)
+- [ALPHA-DEPLOYMENT](/docs/operations/deploy/ALPHA-DEPLOYMENT.md) (CI, tags, local/server alpha; pairs with this guide for remote GitOps)
+- [infra/k8s/README](/infra/k8s/INFRA-K8S.md)
 
 ## Documentation guardrails (must pass)
 

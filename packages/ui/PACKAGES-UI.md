@@ -15,7 +15,7 @@ Shared UI components for Podverse applications (see `package.json` for the publi
 - `@podverse/ui/styles` — full bundle (font-faces + variables + themes + **globals** + mixins)
 - **`FontPreloads`** (`@podverse/ui`) — preload links for Roboto TTFs under each app’s `public/fonts/Roboto/`; include in the document `<head>` next to favicons.
 
-See [`.cursor/skills/styles-source-of-truth/SKILL.md`](../../.cursor/skills/styles-source-of-truth/SKILL.md) (repo root).
+See [`.cursor/skills/styles-source-of-truth/SKILL.md`](/.cursor/skills/styles-source-of-truth/SKILL.md) (repo root).
 
 ## Navigation — NavBar
 
@@ -25,7 +25,7 @@ branding via `brand.children`. Exported types (`NavBarCompositeProps`, `NavBarBr
 in that module and the package barrel — do not duplicate them in prose docs.
 
 **Rules:** No user-visible English defaults in `@podverse/ui`. See
-[`.cursor/rules/shared-ui-i18n.mdc`](../../.cursor/rules/shared-ui-i18n.mdc).
+[`.cursor/rules/shared-ui-i18n.mdc`](/.cursor/rules/shared-ui-i18n.mdc).
 
 ### Link injection (`LinkComponent`)
 

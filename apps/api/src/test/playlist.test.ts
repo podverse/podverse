@@ -451,11 +451,17 @@ describe('playlist routes', () => {
         account: { id: OTHER_USER_ID },
         sharable_status: { id: 1 },
       } as never);
-      playlistGetOnePublicMock.mockResolvedValue({ id: 1, title: 'Pub' });
+      playlistGetOnePublicMock.mockResolvedValue({
+        id: 1,
+        title: 'Pub',
+        sharable_status: { id: 1 },
+      });
 
       const res = await request(app).get(`${playlistBase}/${PLAYLIST_ID_TEXT}`);
 
       expect(res.status).toBe(200);
+      expect(res.body.sharable_status_id).toBe(1);
+      expect(res.body.sharable_status).toBeUndefined();
     });
 
     it('returns 200 for private playlist when owner is authenticated', async () => {
@@ -465,13 +471,19 @@ describe('playlist routes', () => {
         account: { id: TEST_USER_ID },
         sharable_status: { id: 3 },
       } as never);
-      playlistGetOnePrivateMock.mockResolvedValue({ id: 1, title: 'Priv' });
+      playlistGetOnePrivateMock.mockResolvedValue({
+        id: 1,
+        title: 'Priv',
+        sharable_status: { id: 3 },
+      });
 
       const res = await request(app)
         .get(`${playlistBase}/${PLAYLIST_ID_TEXT}`)
         .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
+      expect(res.body.sharable_status_id).toBe(3);
+      expect(res.body.sharable_status).toBeUndefined();
       expect(playlistGetOnePrivateMock).toHaveBeenCalledWith(
         TEST_USER_ACCOUNT_ID_TEXT,
         PLAYLIST_ID_TEXT

@@ -13,6 +13,10 @@
 
 export const E2E_PODCAST_CHANNEL_ID_TEXT = 'e2ePodChnl001';
 
+/** Sync with tools/web/seed-e2e.mjs (SEO profile specs). */
+export const E2E_SEO_PUBLIC_PROFILE_ID_TEXT = 'e2eSeoPublic01';
+export const E2E_SEO_PRIVATE_PROFILE_PLACEHOLDER_ID_TEXT = 'e2e-seo-private-profile-placeholder';
+
 export const E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT = 'e2ePodResume01';
 export const E2E_PODCAST_ITEM_RESUME_NEAR_END_ID_TEXT = 'e2ePodResume02';
 export const E2E_PODCAST_ITEM_RESUME_NONE_ID_TEXT = 'e2ePodResume03';

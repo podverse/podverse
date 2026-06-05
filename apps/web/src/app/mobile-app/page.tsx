@@ -1,6 +1,11 @@
 import { MainHeader } from '@podverse/ui';
 
 import { MainWrapper } from '../../components/Main/MainWrapper';
+import { getCuratedStaticPageMetadata } from '../../lib/seo/curatedPageMetadata';
+
+export async function generateMetadata() {
+  return getCuratedStaticPageMetadata('mobileApp');
+}
 
 export default function MobileAppPage() {
   return (

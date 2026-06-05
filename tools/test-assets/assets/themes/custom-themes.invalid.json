@@ -1,0 +1,15 @@
+{
+  "version": "2026-06-02",
+  "themes": [
+    {
+      "id": "",
+      "labels": {
+        "en-US": "Broken Theme"
+      },
+      "cssVariables": {
+        "pv-color-bg-primary": "#000000",
+        "--pv-color-text-primary": ""
+      }
+    }
+  ]
+}

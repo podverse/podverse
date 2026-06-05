@@ -344,14 +344,18 @@ describe('auth routes', () => {
 
   describe('GET /auth/me', () => {
     it('returns 200 with account data when authenticated', async () => {
-      getMock.mockResolvedValueOnce({
+      const loggedInAccount = {
         id: TEST_USER_ID,
         id_text: TEST_ACCOUNT_ID_TEXT,
+        sharable_status_id: 2,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() + 86400000 * 365),
         },
-      });
+      };
+      // ensureAuthenticated and getLoggedInAccount each call AccountService.get once.
+      getMock.mockResolvedValueOnce(loggedInAccount);
+      getMock.mockResolvedValueOnce(loggedInAccount);
       getSenderGuidByAccountIdMock.mockResolvedValueOnce(null);
 
       const res = await request(app)
@@ -360,6 +364,8 @@ describe('auth routes', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.id).toBe(TEST_USER_ID);
+      expect(res.body.sharable_status_id).toBe(2);
+      expect(res.body.sharable_status).toBeUndefined();
       expect(res.body.account_credentials).toBeDefined();
       expect(res.body.account_credentials.password).toBeUndefined();
     });

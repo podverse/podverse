@@ -508,9 +508,9 @@ Docker services use configs in `infra/config/local/`:
 
 See the ENV.md files in each app directory for detailed variable documentation:
 
-- [apps/api/ENV.md](../apps/api/ENV.md)
-- [apps/web/ENV.md](../apps/web/ENV.md)
-- [apps/workers/ENV.md](../apps/workers/ENV.md)
+- [apps/api/ENV.md](/apps/api/ENV.md)
+- [apps/web/ENV.md](/apps/web/ENV.md)
+- [apps/workers/ENV.md](/apps/workers/ENV.md)
 
 ## Architecture Overview
 
@@ -548,4 +548,4 @@ See the ENV.md files in each app directory for detailed variable documentation:
 
 - [Architecture Overview](architecture/ARCHITECTURE.md) - System design and data flow
 - [Contributing Guide](development/CONTRIBUTING.md) - Development workflow and PR guidelines
-- [API Documentation](../apps/api/APPS-API.md) - API endpoints and usage
+- [API Documentation](/apps/api/APPS-API.md) - API endpoints and usage

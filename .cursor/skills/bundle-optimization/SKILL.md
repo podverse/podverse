@@ -58,7 +58,7 @@ This skill reminds you to consider **client bundle size** when making changes th
 
 ## References
 
-- **Web performance patterns**: [web/09-performance-optimization.md](../web/09-performance-optimization.md) — code splitting, memoization, images, **Bundle Optimization** section.
+- **Web performance patterns**: [web/09-performance-optimization.md](/.cursor/skills/web/09-performance-optimization.md) — code splitting, memoization, images, **Bundle Optimization** section.
 - **Bundle analyzer**: `tools/web-perf/bundle-analyzer` — run `npm run analyze:web` for `apps/web`; use reports to compare **client total asset size**. The analyzer is interactive (prompts for comparison and report name); do not complete those steps automatically — see **interactive-prompts** skill.
 - **Plans**: `.llm/plans/active/bundle-optimizations/` — fix measurement, `sideEffects`, date-fns, lazy-load, optional ESM/audit.
 - **AGENTS.md** — `npm run build:packages`, lint, and verification commands.

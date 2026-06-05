@@ -39,6 +39,7 @@ Examples:
 | `feature/tracking-consent`   | `podverse_feature_tracking_consent` |
 | `feature/page-navigation-ux` | `podverse_page_navigation_ux`       |
 | `chore/typeorm-v1`           | `podverse_chore_typeorm_v1`         |
+| `llm/cursor-hooks`           | `podverse_llm_cursor_hooks`         |
 
 Older worktrees may use hyphens (e.g. `podverse-typeorm-v1`); **prefer the underscore form** for new worktrees.
 
@@ -110,5 +111,5 @@ Delete the branch separately if desired (`git branch -d feature/tracking-consent
 
 ## Related
 
-- Contributor LLM overview: [docs/development/llm/DOCS-DEVELOPMENT-LLM.md](../../../docs/development/llm/DOCS-DEVELOPMENT-LLM.md)
-- Nix wrapper (run from worktree root): [nix-terminal-wrapper](../nix-terminal-wrapper/SKILL.md) skill / `.cursor/rules/nix-terminal-wrapper.mdc`
+- Contributor LLM overview: [docs/development/llm/DOCS-DEVELOPMENT-LLM.md](/docs/development/llm/DOCS-DEVELOPMENT-LLM.md)
+- Nix wrapper (run from worktree root): [nix-terminal-wrapper](/.cursor/rules/nix-terminal-wrapper.mdc) skill / `.cursor/rules/nix-terminal-wrapper.mdc`

@@ -1,6 +1,6 @@
 {
   "name": "@podverse/external-services-podcast-index",
-  "version": "5.4.32",
+  "version": "5.4.33",
   "description": "Podcast Index API integration for Podverse",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -28,7 +28,7 @@
     "csv-parser": "^3.2.0"
   },
   "devDependencies": {
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.8"
   },
   "type": "module"
 }

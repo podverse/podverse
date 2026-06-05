@@ -7,8 +7,13 @@ import { MainWrapper } from '../../components/Main/MainWrapper';
 import { getConfig } from '../../config';
 import { FEATURES } from '../../constants/features';
 import { IMAGES } from '../../constants/images';
+import { getCuratedStaticPageMetadata } from '../../lib/seo/curatedPageMetadata';
 
 import styles from '../../styles/app/about/About.module.scss';
+
+export async function generateMetadata() {
+  return getCuratedStaticPageMetadata('about');
+}
 
 export default async function AboutPage() {
   const t = await getTranslations('about');

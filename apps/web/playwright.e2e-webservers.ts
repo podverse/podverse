@@ -11,43 +11,52 @@ import {
 } from './playwright.e2e-server-env';
 import type { E2eWebSidecarEnvOptions } from './playwright.e2e-server-env';
 
-export function buildE2eWebServers(options?: E2eWebSidecarEnvOptions) {
+export type BuildE2eWebServersOptions = E2eWebSidecarEnvOptions & {
+  /** Start test-assets (2111) before sidecar/web so custom theme JSON is reachable at startup. */
+  testAssetsFirst?: boolean;
+};
+
+export function buildE2eWebServers(options?: BuildE2eWebServersOptions) {
   const sidecarEnvPrefix = buildE2eWebSidecarEnvPrefix(options);
   const apiEnvPrefix = buildE2eWebApiEnvPrefix(options);
   const appEnvPrefix = buildE2eWebAppEnvPrefix(options);
-  return [
-    {
-      command: `npm run build -w @podverse/helpers-config && npm run build -w @podverse/api && ${apiEnvPrefix} npm run start -w @podverse/api`,
-      port: 4030,
-      cwd: '../..',
-      timeout: 420_000,
-      reuseExistingServer: false,
-    },
-    {
-      command: `npm run build -w @podverse/web-sidecar && ${sidecarEnvPrefix} node apps/web/sidecar/dist/server.js`,
-      port: 4031,
-      cwd: '../..',
-      timeout: 420_000,
-      reuseExistingServer: false,
-    },
-    {
-      command: `${appEnvPrefix} bash scripts/e2e/build-and-start-next-standalone.sh @podverse/web`,
-      port: 4032,
-      cwd: '../..',
-      timeout: 420_000,
-      reuseExistingServer: false,
-    },
-    // Local test-asset server (port 2111) serves the deterministic E2E media
-    // fixtures under tools/test-assets/assets/e2e/. The seed inserts these
-    // URLs as item_enclosure.url so the browser's <audio> element resolves
-    // them locally instead of reaching out to any third party. See
-    // .llm/plans/active/media-player-e2e-seed-expansion/01b-test-audio-fixtures-and-asset-server.md.
-    {
-      command: 'npm run start -w podverse-test-assets',
-      port: 2111,
-      cwd: '../..',
-      timeout: 30_000,
-      reuseExistingServer: true,
-    },
-  ];
+
+  const apiServer = {
+    command: `npm run build -w @podverse/helpers-config && npm run build -w @podverse/api && ${apiEnvPrefix} npm run start -w @podverse/api`,
+    port: 4030,
+    cwd: '../..',
+    timeout: 420_000,
+    reuseExistingServer: false,
+  };
+
+  const sidecarServer = {
+    command: `npm run build -w @podverse/web-sidecar && ${sidecarEnvPrefix} node apps/web/sidecar/dist/server.js`,
+    port: 4031,
+    cwd: '../..',
+    timeout: 420_000,
+    reuseExistingServer: false,
+  };
+
+  const webServer = {
+    command: `${appEnvPrefix} bash scripts/e2e/build-and-start-next-standalone.sh @podverse/web`,
+    port: 4032,
+    cwd: '../..',
+    timeout: 420_000,
+    reuseExistingServer: false,
+  };
+
+  // Local test-asset server (port 2111) serves deterministic E2E fixtures (media, themes, etc.).
+  const testAssetsServer = {
+    command: 'npm run start -w podverse-test-assets',
+    port: 2111,
+    cwd: '../..',
+    timeout: 30_000,
+    reuseExistingServer: true,
+  };
+
+  if (options?.testAssetsFirst === true) {
+    return [apiServer, testAssetsServer, sidecarServer, webServer];
+  }
+
+  return [apiServer, sidecarServer, webServer, testAssetsServer];
 }
