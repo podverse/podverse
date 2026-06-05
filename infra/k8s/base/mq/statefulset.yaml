@@ -61,8 +61,7 @@ spec:
             - name: mq-data
               mountPath: /var/lib/activemq-artemis
             - name: log4j2-config
-              mountPath: /etc/artemis-logging/log4j2.properties
-              subPath: log4j2.properties
+              mountPath: /etc/artemis-logging
               readOnly: true
 
           securityContext:
