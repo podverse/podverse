@@ -86,11 +86,14 @@ const { getWithRoleAndPermissionsMock, queryMock, readWriteQueryMock, readWriteT
     ),
   }));
 
-vi.mock('@management-api/orm/services/adminAccount.js', () => ({
-  AdminAccountService: vi.fn(() => ({
-    getWithRoleAndPermissions: getWithRoleAndPermissionsMock,
-  })),
-}));
+vi.mock('@management-api/orm/services/adminAccount.js', () => {
+  class AdminAccountService {
+    async getWithRoleAndPermissions(id: number) {
+      return getWithRoleAndPermissionsMock(id);
+    }
+  }
+  return { AdminAccountService };
+});
 
 vi.mock('@management-api/orm/db/appDb.js', () => ({
   AppDbDataSourceRead: {

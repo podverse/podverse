@@ -1,10 +1,11 @@
-import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { ButtonVariant } from '@podverse/ui';
 import { Button } from '@podverse/ui';
 
 import { SettingsSection } from './SettingsSection';
+
+import styles from '../../styles/components/Settings/RSSFeedSettingsSection.module.scss';
 
 type RSSFeedSettingsSectionProps = {
   title: string;
@@ -13,7 +14,7 @@ type RSSFeedSettingsSectionProps = {
   onCheckUpdates: () => void;
   isLoading?: boolean;
   disabled?: boolean;
-  statusLine?: string | null;
+  statusLines?: string[];
   errorMessage?: string | null;
 };
 
@@ -24,26 +25,33 @@ export const RSSFeedSettingsSection: React.FC<RSSFeedSettingsSectionProps> = ({
   onCheckUpdates,
   isLoading,
   disabled,
-  statusLine,
+  statusLines,
   errorMessage,
 }) => {
-  const tMisc = useTranslations('misc');
-  const description = statusLine ?? tMisc('unknown_date');
-
   return (
     <SettingsSection>
       <h3>{title}</h3>
-      <Button
-        type="button"
-        onClick={onCheckUpdates}
-        variant={buttonVariant}
-        description={description}
-        errorMessage={errorMessage ?? undefined}
-        isLoading={isLoading}
-        disabled={disabled}
-      >
-        {buttonLabel}
-      </Button>
+      <div className={styles.actions}>
+        {statusLines !== undefined && statusLines.length > 0 && (
+          <div className={styles.statusLines}>
+            {statusLines.map((line, index) => (
+              <p key={`${index}-${line}`} className={styles.statusLine}>
+                {line}
+              </p>
+            ))}
+          </div>
+        )}
+        <Button
+          type="button"
+          onClick={onCheckUpdates}
+          variant={buttonVariant}
+          errorMessage={errorMessage ?? undefined}
+          isLoading={isLoading}
+          disabled={disabled}
+        >
+          {buttonLabel}
+        </Button>
+      </div>
     </SettingsSection>
   );
 };

@@ -1,7 +1,7 @@
 import { useLocale, useTranslations } from 'use-intl';
 
 import type { DTOAccount, DTOChannel } from '@podverse/helpers';
-import { DEDUPE_WINDOW_RSS_ON_DEMAND_MS, formatDateTimeAbbrev } from '@podverse/helpers';
+import { DEDUPE_WINDOW_RSS_ON_DEMAND_MS } from '@podverse/helpers';
 import { getStatusCodeFromError } from '@podverse/helpers-requests';
 import { Divider, SwitchButton } from '@podverse/ui';
 
@@ -10,6 +10,7 @@ import { useAccount } from '../../contexts/Account';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { useLoadingMap } from '../../hooks/useLoadingMap';
+import { buildLocalizedFeedParseStatusLines } from '../../lib/feed/buildLocalizedFeedParseStatusLines';
 import { getMembership403ModalProps } from '../../utils/membership/modalForMembership403';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 import { RSSFeedSettingsSection } from '../Settings/RSSFeedSettingsSection';
@@ -31,11 +32,15 @@ export const ListChannelSettings = ({ channel }: ListChannelSettingsProps) => {
   const { setModalLoginRequired } = useModals();
   const { loadingMap, withLoading, setLoadingFor } = useLoadingMap();
   const locale = useLocale();
-  const lastParsedAt = channel.feed?.feed_log?.last_finished_parse_time ?? null;
-  const lastParsedLabel = lastParsedAt ? formatDateTimeAbbrev(lastParsedAt, locale) : null;
-  const rssStatusLine = lastParsedLabel
-    ? tSettings('feed.last_parsed', { date: lastParsedLabel })
-    : null;
+  const feedLog = channel.feed?.feed_log;
+  const { lines: rssStatusLines } = buildLocalizedFeedParseStatusLines(
+    {
+      lastFinishedParseTime: feedLog?.last_finished_parse_time ?? null,
+      lastFailedParseTime: feedLog?.last_failed_parse_time ?? null,
+    },
+    locale,
+    tSettings
+  );
 
   const checkFeedForUpdates = async () => {
     if (!loggedInAccount) {
@@ -156,7 +161,7 @@ export const ListChannelSettings = ({ channel }: ListChannelSettingsProps) => {
         title={tInfo('rss_feed')}
         buttonLabel={tSettings('feed.check_feed_for_updates')}
         onCheckUpdates={checkFeedForUpdates}
-        statusLine={rssStatusLine}
+        statusLines={rssStatusLines}
       />
       {hasNotificationChannel && (
         <>

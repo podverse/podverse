@@ -9,7 +9,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type {
   ObjectStorageCountObjectsParams,
   ObjectStorageDeleteAllByPrefixParams,
-  ObjectStorageService,
 } from '@podverse/external-services-object-storage';
 
 const JWT_SECRET = process.env.AUTH_JWT_SECRET ?? '';
@@ -82,6 +81,22 @@ const {
 vi.mock('@podverse/external-services-object-storage', async (importOriginal) => {
   const actual =
     await importOriginal<typeof import('@podverse/external-services-object-storage')>();
+
+  class MockObjectStorageService {
+    listObjects = listObjectsMock;
+    headObject = headObjectMock;
+    getObjectStream = getObjectStreamMock;
+    deleteObjectsByKeys = deleteObjectsByKeysMock;
+
+    async countObjects(p: ObjectStorageCountObjectsParams) {
+      return actual.ObjectStorageService.prototype.countObjects.call(this, p);
+    }
+
+    async deleteAllByPrefix(p: ObjectStorageDeleteAllByPrefixParams) {
+      return actual.ObjectStorageService.prototype.deleteAllByPrefix.call(this, p);
+    }
+  }
+
   return {
     ...actual,
     isBucketStorageEnabled: () => isBucketStorageEnabledMock(),
@@ -98,27 +113,7 @@ vi.mock('@podverse/external-services-object-storage', async (importOriginal) => 
       bucket: 'test-bucket',
       cdnBaseUrl: 'https://cdn.example.test',
     }),
-    ObjectStorageService: vi.fn().mockImplementation(() => {
-      const impl = {
-        listObjects: listObjectsMock,
-        headObject: headObjectMock,
-        getObjectStream: getObjectStreamMock,
-        deleteObjectsByKeys: deleteObjectsByKeysMock,
-      };
-      return {
-        ...impl,
-        countObjects: (p: ObjectStorageCountObjectsParams) =>
-          actual.ObjectStorageService.prototype.countObjects.call(
-            impl as unknown as ObjectStorageService,
-            p
-          ),
-        deleteAllByPrefix: (p: ObjectStorageDeleteAllByPrefixParams) =>
-          actual.ObjectStorageService.prototype.deleteAllByPrefix.call(
-            impl as unknown as ObjectStorageService,
-            p
-          ),
-      };
-    }),
+    ObjectStorageService: MockObjectStorageService,
   };
 });
 

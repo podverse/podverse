@@ -10,6 +10,7 @@ import {
   handleParsedFeed,
   handleRequestRSSFeed,
 } from '@parser/lib/rss/feed/feed.js';
+import { recordFeedParseFailure } from '@parser/lib/rss/feed/recordFeedParseFailure.js';
 import type { HandleParsedItemsResult } from '@parser/lib/rss/item/item.js';
 import { handleParsedItems } from '@parser/lib/rss/item/item.js';
 import type { HandleParsedLiveItemsResult } from '@parser/lib/rss/liveItem/liveItem.js';
@@ -174,6 +175,7 @@ export const parseRSSFeedAndSaveToDatabase = async (
 
   let parsedFeed: FeedObject | null = null;
   const imageHints: ImageShrinkHint[] = [];
+  let parseSucceeded = false;
 
   try {
     if (!url || !podcast_index_id) {
@@ -361,6 +363,7 @@ export const parseRSSFeedAndSaveToDatabase = async (
 
     const feedLogService = new FeedLogService();
     await feedLogService.update(feed, { last_finished_parse_time: new Date() });
+    parseSucceeded = true;
   } catch (error) {
     if (feed?.id && isMaxResponseSizeError(error)) {
       await feedPolicyService.setCondition({
@@ -384,10 +387,8 @@ export const parseRSSFeedAndSaveToDatabase = async (
       const statusCode = getStatusCodeFromError(error);
       if (feed) {
         const feedLogService = new FeedLogService();
-        const feedLog = await feedLogService.get(feed);
-        await feedLogService.update(feed, {
+        await recordFeedParseFailure(feed, feedLogService, {
           ...(statusCode ? { last_http_status: statusCode } : {}),
-          parse_errors: (feedLog?.parse_errors || 0) + 1,
         });
       }
       if (isTlsOrProtocolError(error)) {
@@ -411,7 +412,7 @@ export const parseRSSFeedAndSaveToDatabase = async (
       } = {
         is_parsing: null,
       };
-      if (parsedFeed) {
+      if (parseSucceeded && parsedFeed) {
         feedUpdateDto.last_parsed_file_hash = getParsedFeedMd5Hash(parsedFeed);
       }
       await feedService.update(feed.id, feedUpdateDto);

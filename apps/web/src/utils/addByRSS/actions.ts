@@ -85,15 +85,17 @@ export const applyAddByRSSParseStatus = async ({
     return null;
   }
 
+  const nowIso = new Date().toISOString();
   const nextBase = {
     ...base,
     status,
     cache: cache ?? base.cache,
-    updatedAt: new Date().toISOString(),
+    updatedAt: nowIso,
     lastParsedAt:
       status === 'parsed' || status === 'not_modified'
-        ? new Date().toISOString()
+        ? nowIso
         : (base.lastParsedAt ?? null),
+    lastFailedParseAt: status === 'failed' ? nowIso : (base.lastFailedParseAt ?? null),
   };
 
   if (!parsedFeed) {

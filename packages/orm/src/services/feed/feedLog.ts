@@ -10,6 +10,7 @@ type FeedLogDto = {
   last_http_status?: number | null;
   last_good_http_status_time?: Date | null;
   last_finished_parse_time?: Date | null;
+  last_failed_parse_time?: Date | null;
   parse_errors?: number;
 };
 

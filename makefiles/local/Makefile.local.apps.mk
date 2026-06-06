@@ -4,7 +4,7 @@
 .PHONY: local_run_image_shrink_consumer local_stop_image_shrink_consumer local_run_image_shrink_backfill
 .PHONY: local_run_workers_all local_stop_workers_all local_test_management_api local_test_web
 .PHONY: local_test_management_web local_test_all_apps local_stop_all_apps local_start_all_apps
-.PHONY: local_rebuild_all_apps local_nuke_rebuild_run local_nuke_rebuild_run_v4v
+.PHONY: local_rebuild_all_apps local_nuke_rebuild_run local_nuke_rebuild_run_v4v local_refresh_parsers_all
 
 local_test_docker_builds:
 	@echo "Building all Docker images..."
@@ -30,17 +30,26 @@ local_test_workers: local_build_workers
 	@echo "Stop with: docker compose -f infra/docker/local/workers/docker-compose.yml down"
 
 local_run_parsers_all: local_build_workers
-	@echo "Starting parser workers (mirroring alpha)..."
+	@echo "Starting parser workers (single-instance local dev mode)..."
 	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_parser_rss_normal_1 podverse_local_workers node apps/workers/dist/index.js mqRSSRunParser -q rss-normal
-	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_parser_rss_normal_2 podverse_local_workers node apps/workers/dist/index.js mqRSSRunParser -q rss-normal
 	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_parser_rss_on_demand_1 podverse_local_workers node apps/workers/dist/index.js mqRSSRunParser -q rss-on-demand
-	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_parser_rss_on_demand_2 podverse_local_workers node apps/workers/dist/index.js mqRSSRunParser -q rss-on-demand
 	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_parser_rss_live_1 podverse_local_workers node apps/workers/dist/index.js mqRSSRunParser -q rss-live
 	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_parser_add_by_rss_on_demand_1 podverse_local_workers node apps/workers/dist/index.js mqAddByRSSRunParser -q add-by-rss-on-demand
-	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_parser_add_by_rss_on_demand_2 podverse_local_workers node apps/workers/dist/index.js mqAddByRSSRunParser -q add-by-rss-on-demand
 	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_parser_add_by_rss_background_1 podverse_local_workers node apps/workers/dist/index.js mqAddByRSSRunParser -q add-by-rss-background
-	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_parser_add_by_rss_background_2 podverse_local_workers node apps/workers/dist/index.js mqAddByRSSRunParser -q add-by-rss-background
 	@echo "Parser workers started. Stop with: make local_stop_parsers"
+
+local_refresh_parsers_all:
+	@echo "Stopping existing workers (parsers + image shrink consumer) if running..."
+	@$(MAKE) local_stop_workers_all
+	@echo "Removing local workers image if present..."
+	@workers_image_id=$$(docker images -q podverse-workers:latest); \
+	if [ -n "$$workers_image_id" ]; then \
+	  docker rmi "$$workers_image_id" 2>/dev/null || true; \
+	  echo "Removed image podverse-workers:latest ($$workers_image_id)."; \
+	else \
+	  echo "No local podverse-workers:latest image found."; \
+	fi
+	@$(MAKE) local_run_parsers_all
 
 local_stop_parsers:
 	@matches=$$(docker ps -a --format '{{.Names}}' | grep '^podverse_local_workers_parser_' || true); \

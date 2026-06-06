@@ -33,7 +33,7 @@ export class LiveItemService extends BaseOneService<LiveItem, 'item'> {
     config?: FindManyOptions<LiveItem>
   ): Promise<LiveItem[]> {
     return this.repositoryRead.find({
-      where: { item: { channel } },
+      where: { item: { channel: { id: channel.id } } },
       ...config,
     });
   }

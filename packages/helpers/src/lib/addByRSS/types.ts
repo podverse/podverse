@@ -30,6 +30,7 @@ export type AddByRSSFeedRecord = {
   cache?: AddByRSSCache;
   mappedFeed?: unknown;
   lastParsedAt?: string | null;
+  lastFailedParseAt?: string | null;
   updatedAt: string;
 };
 
