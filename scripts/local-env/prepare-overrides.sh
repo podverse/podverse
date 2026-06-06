@@ -90,4 +90,5 @@ Edit those files with your private or external values, then run:
   make local_env_setup
 
 Link makes the repo use these files; setup generates app and infra env from them.
+Infra passwords (DB, MQ, Valkey, JWT) persist in local-secrets.env under that directory.
 EOF

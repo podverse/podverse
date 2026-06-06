@@ -113,25 +113,10 @@ else
 fi
 WORKTREE_PATH="$WORKTREE_ABS"
 
-# 8. In work tree: link env overrides; copy main repo env files so DB credentials match, else run local env setup
+# 8. In work tree: link overrides and generate env from home-persisted secrets (same DB/MQ/Valkey passwords)
 echo ""
-echo -e "${CYAN}Linking env overrides in work tree...${NC}"
-make -C "$WORKTREE_PATH" local_env_link
-
-COPIED_ANY=0
-for f in infra/config/local/*.env apps/api/.env apps/workers/.env apps/management-api/.env apps/web/.env.local apps/management-web/.env.local; do
-  if [ -f "$REPO_ROOT/$f" ]; then
-    mkdir -p "$(dirname "$WORKTREE_PATH/$f")"
-    cp "$REPO_ROOT/$f" "$WORKTREE_PATH/$f"
-    COPIED_ANY=1
-  fi
-done
-if [ "$COPIED_ANY" -eq 1 ]; then
-  echo -e "${GREEN}Copied main repo env files into work tree (same DB credentials and overrides).${NC}"
-else
-  echo -e "${CYAN}Generating local env files in work tree...${NC}"
-  make -C "$WORKTREE_PATH" local_env_setup
-fi
+echo -e "${CYAN}Setting up work tree env (home secrets + DB password sync)...${NC}"
+make -C "$WORKTREE_PATH" local_env_worktree_setup
 
 # 9. direnv allow and npm install so the work tree is ready when the directory opens
 if command -v direnv >/dev/null 2>&1; then

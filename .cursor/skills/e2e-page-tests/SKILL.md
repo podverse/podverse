@@ -44,7 +44,7 @@ Many Podverse features behave differently based on membership state. When testin
 
 - **Management-web storage list chrome** (`storage-superuser-crud-enabled.spec.ts`): excluded from the default config (`testIgnore`) because it requires bucket storage enabled in management-api. Run `make e2e_test_management_web_storage_enabled` or `npm run test:e2e:storage-enabled -w @podverse/management-web` (uses `playwright.storage-enabled.config.ts`).
 - **Ports:** Web E2E uses API 4030, sidecar 4031, web 4032. Management-web uses management-api 4130, sidecar 4131, web 4132. Avoid colliding with 401x/411x ranges used by other local stacks, and with dev app ports.
-- **Seed data:** Use deterministic E2E seed (`make e2e_seed`). See `tools/web/seed-e2e.mjs` and `tools/management-web/seed-e2e.mjs`.
+- **Seed data:** Use deterministic E2E seed (`make e2e_seed`). See `tools/web/seed-e2e.mjs` and `tools/management-web/seed-e2e.mjs`. New fixture **`id_text`** values must fit **`nano_id_v2` (9–15 characters)** — see **e2e-seed-nano-id-limits**; run `make e2e_seed_web` after changing seed IDs.
 
 ## Step screenshots (HTML report)
 

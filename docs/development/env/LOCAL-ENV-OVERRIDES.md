@@ -19,7 +19,9 @@ canonical place for override values is `~/.config/podverse/local-env-overrides/`
    existing `KEY=` lines are never overwritten). It does not create any files in the repo.
 
 2. **Edit** — Fill in your private or external values (API keys, encryption key, etc.) in the
-   files under that home directory.
+   files under that home directory. **`local-secrets.env`** holds auto-generated infra passwords
+   (DB, MQ, Valkey, JWT); `make local_env_setup` creates or updates it from `infra/config/local/db.env`
+   when keys are still empty.
 
 3. **Link** — Make the repo use those files:
 
@@ -68,6 +70,26 @@ By keeping the real override files in a directory under your home and symlinking
 `dev/env-overrides/local/*.env` to that directory, every work tree (and the main repo) uses the
 same overrides.
 
+### DB passwords: `local-secrets.env` (not `db.env` in home)
+
+Auto-generated infra secrets live in **`~/.config/podverse/local-env-overrides/local-secrets.env`**
+(created by `make local_env_prepare` from `local-secrets.env.example`, then populated by
+`make local_env_setup` or `make local_env_export_secrets_to_home`). Each checkout still has
+**`infra/config/local/db.env`** (gitignored) as the runtime file apps and Docker read; setup copies
+passwords from home `local-secrets.env` into that file.
+
+### Existing installs (seed home secrets from primary checkout)
+
+If you already had a working primary checkout before this flow, run **once from that checkout**:
+
+```bash
+make local_env_export_secrets_to_home
+```
+
+That copies DB/MQ/Valkey/JWT passwords from `infra/config/local/*.env` into home
+`local-secrets.env`. After that, new work trees use `make local_env_worktree_setup` and share the
+same credentials.
+
 ## Default location
 
 Override files live in:
@@ -87,13 +109,33 @@ Follow the [recommended flow](#recommended-flow-one-consistent-process) above: `
 2. Run:
 
    ```bash
-   make local_env_link
-   make local_env_setup
+   make local_env_worktree_setup
    ```
 
-   No need to re-enter override values; the symlinks point to your existing home directory files.
+   This links home overrides, generates app/infra env from **`local-secrets.env`**, and syncs
+   Postgres role passwords when `podverse_local_db` is already running.
 
-3. Continue with the rest of setup (e.g. `make local_setup`, `npm run build:packages`).
+   Equivalent manual steps:
+
+   ```bash
+   make local_env_link
+   make local_env_setup
+   make local_env_sync_db_passwords
+   ```
+
+   No need to re-enter override values or copy env files from the main checkout.
+
+3. Start Docker infrastructure (env setup does **not** start containers):
+
+   ```bash
+   make local_infra_up
+   npm run check:dev-deps
+   ```
+
+   First time on a machine or after `local_all_down` removed volumes: `make local_setup` or
+   `make local_db_init` once Postgres is up.
+
+4. Continue with the rest of setup (e.g. `npm run build:packages`, `npm run dev:all:watch`).
 
 ## Start a feature in a new work tree (one command)
 
@@ -108,8 +150,8 @@ This interactive command uses the same prompts as `npm run start-feature` (featu
 optional issue numbers), then:
 
 - Creates a new work tree and branch (e.g. `feature/add-chapters` from `develop`)
-- Runs `make local_env_link` and `make local_env_setup` in the new work tree so overrides are
-  symlinked and runtime env files are generated
+- Runs `make local_env_worktree_setup` in the new work tree (link overrides, apply home-persisted
+  secrets, sync Postgres passwords when the local DB container is running)
 - Runs `direnv allow` in the work tree (if direnv is installed) so the first terminal there loads
   the Nix flake
 - Runs `npm install` in the work tree (via Nix when available) so `node_modules` is ready
@@ -188,6 +230,7 @@ different subsets.
 | notifications.env        | Workers; Web gets NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | paypal.env               | API (PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET)                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | podcast-index.env        | API + Workers (PODCAST_INDEX_AUTH_KEY, PODCAST_INDEX_SECRET_KEY; not auto-generated—only from this override).                                                                                                                                                                                                                                                                                                                                                                                                          |
+| local-secrets.env        | **Home-persisted** auto-generated infra secrets: all `DB_*_PASSWORD` keys, `ARTEMIS_PASSWORD`, `KEYVALDB_PASSWORD`, `AUTH_JWT_SECRET_API`, `AUTH_JWT_SECRET_MANAGEMENT`. `local_env_setup` reads these first so every work tree uses the same passwords as the shared Docker Postgres/MQ/Valkey. New secrets are written to home once; existing home values are never overwritten. See `dev/env-overrides/local/local-secrets.env.example`.                                                                          |
 | socials.env              | API (email template social links); Web (contact + social)                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | storage.env              | Workers + Management API: `BUCKET_*` merged into app and infra env for workers and management-api (same contract as `dev/env-overrides/local/storage.env.example`, including `BUCKET_ENDPOINT` and `BUCKET_FORCE_PATH_STYLE` for garage / s3-compatible). Management Web does not receive bucket vars here.                                                                                                                                                                                                            |
 

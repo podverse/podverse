@@ -11,6 +11,7 @@ COMPOSE_LOCAL_DB_ENV ?= --env-file infra/config/local/db.env
 .PHONY: local_management_superuser_create local_management_superuser_update
 .PHONY: local_management_superuser_create_k8s local_management_superuser_update_k8s
 .PHONY: local_infra_up local_setup local_all_down local_clean local_prune_podverse_images local_teardown_apps
+.PHONY: check_dev_deps
 
 local_network_create:
 	docker network create podverse_local_network 2>/dev/null || true
@@ -155,6 +156,9 @@ local_management_superuser_update_k8s:
 local_infra_up: local_db_up local_pgadmin_up local_mq_up local_keyvaldb_up
 	@echo "All local infrastructure services started"
 	@echo "To create read/read_write DB users (required before first use): make local_db_init"
+
+check_dev_deps:
+	node scripts/check-dev-requirements.mjs
 
 local_setup: local_env_setup local_infra_up local_db_init
 	@echo ""

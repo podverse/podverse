@@ -6,6 +6,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
+# shellcheck source=scripts/local-env/local-secrets-lib.sh
+. "$SCRIPT_DIR/local-secrets-lib.sh"
+
 OVERRIDES_DIR="dev/env-overrides/local"
 
 DB_ENV="infra/config/local/db.env"
@@ -189,6 +192,69 @@ generate_if_empty_or_placeholder() {
 	printf '%s' "$value"
 }
 
+# Prefer ~/.config/podverse/.../local-secrets.env (via load_overrides), then repo env files, then generate.
+resolve_secret_hex() {
+	local var_name="$1"
+	shift
+	if local_secrets_override_value "$var_name"; then
+		return 0
+	fi
+	printf -v "$var_name" '%s' "$(first_non_empty_or_generate generate_hex_32 "$@")"
+}
+
+resolve_secret_hex_or_read_placeholder() {
+	local var_name="$1"
+	shift
+	local candidate
+	if local_secrets_override_value "$var_name"; then
+		return 0
+	fi
+	candidate="$(first_non_empty_or_generate generate_hex_32 "$@")"
+	printf -v "$var_name" '%s' "$(generate_if_empty_or_placeholder "$candidate" "your_read_password" "your_read_write_password")"
+}
+
+resolve_secret_hex_or_postgres_placeholder() {
+	local var_name="$1"
+	shift
+	local candidate
+	if local_secrets_override_value "$var_name"; then
+		return 0
+	fi
+	candidate="$(first_non_empty_or_generate generate_hex_32 "$@")"
+	printf -v "$var_name" '%s' "$(generate_if_empty_or_placeholder "$candidate" "your_postgres_password")"
+}
+
+resolve_secret_uuid() {
+	local var_name="$1"
+	shift
+	if local_secrets_override_value "$var_name"; then
+		return 0
+	fi
+	printf -v "$var_name" '%s' "$(first_non_empty_or_generate generate_uuid "$@")"
+}
+
+resolve_secret_mq() {
+	local var_name="$1"
+	shift
+	local candidate
+	if local_secrets_override_value "$var_name"; then
+		return 0
+	fi
+	candidate="$(first_non_empty_or_generate generate_hex_32 "$@")"
+	printf -v "$var_name" '%s' "$(generate_if_empty_or_placeholder "$candidate" "your_mq_password")"
+}
+
+resolve_secret_keyval() {
+	local var_name="$1"
+	shift
+	local candidate
+	if local_secrets_override_value "$var_name"; then
+		return 0
+	fi
+	candidate="$(first_non_empty_or_generate generate_hex_32 "$@")"
+	printf -v "$var_name" '%s' "$(generate_if_empty_or_placeholder "$candidate" "your_redis_password" "# required" " # required")"
+}
+
 generate_base64_32() {
 	if command -v openssl >/dev/null 2>&1; then
 		openssl rand -base64 32 | tr -d '\n'
@@ -251,6 +317,16 @@ apply_override() {
 	done
 }
 
+bash "$SCRIPT_DIR/migrate-local-secrets-to-home.sh"
+
+HOME_LOCAL_SECRETS="$(local_secrets_home_file)"
+if [ -f "$HOME_LOCAL_SECRETS" ]; then
+	set -a
+	# shellcheck disable=SC1090
+	. "$HOME_LOCAL_SECRETS"
+	set +a
+fi
+
 load_overrides
 
 # Keep infra docker env files container-friendly on initial setup.
@@ -280,29 +356,29 @@ set_if_empty "$DB_ENV" "DB_MANAGEMENT_NAME" "podverse_management"
 
 DB_APP_NAME="$(first_non_empty_or_default "podverse_app" "$DB_ENV:DB_APP_NAME")"
 DB_APP_OWNER_USER="$(first_non_empty_or_default "podverse_app_owner" "$DB_ENV:DB_APP_OWNER_USER")"
-DB_APP_OWNER_PASSWORD="$(first_non_empty_or_generate generate_hex_32 "$DB_ENV:DB_APP_OWNER_PASSWORD")"
+resolve_secret_hex DB_APP_OWNER_PASSWORD "$DB_ENV:DB_APP_OWNER_PASSWORD"
 DB_APP_MIGRATOR_USER="$(first_non_empty_or_default "podverse_app_migrator" "$DB_ENV:DB_APP_MIGRATOR_USER")"
-DB_APP_MIGRATOR_PASSWORD="$(first_non_empty_or_generate generate_hex_32 "$DB_ENV:DB_APP_MIGRATOR_PASSWORD")"
+resolve_secret_hex DB_APP_MIGRATOR_PASSWORD "$DB_ENV:DB_APP_MIGRATOR_PASSWORD"
 DB_APP_READ_WRITE_USER="$(first_non_empty_or_default "podverse_app_read_write" "$DB_ENV:DB_APP_READ_WRITE_USER")"
 DB_APP_READ_USER="$(first_non_empty_or_default "podverse_app_read" "$DB_ENV:DB_APP_READ_USER")"
 DB_MANAGEMENT_NAME="$(first_non_empty_or_default "podverse_management" "$DB_ENV:DB_MANAGEMENT_NAME")"
 DB_MANAGEMENT_OWNER_USER="$(first_non_empty_or_default "podverse_management_owner" "$DB_ENV:DB_MANAGEMENT_OWNER_USER")"
-DB_MANAGEMENT_OWNER_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$DB_ENV:DB_MANAGEMENT_OWNER_PASSWORD")" "your_postgres_password")"
+resolve_secret_hex_or_postgres_placeholder DB_MANAGEMENT_OWNER_PASSWORD "$DB_ENV:DB_MANAGEMENT_OWNER_PASSWORD"
 DB_MANAGEMENT_MIGRATOR_USER="$(first_non_empty_or_default "podverse_management_migrator" "$DB_ENV:DB_MANAGEMENT_MIGRATOR_USER")"
-DB_MANAGEMENT_MIGRATOR_PASSWORD="$(first_non_empty_or_generate generate_hex_32 "$DB_ENV:DB_MANAGEMENT_MIGRATOR_PASSWORD")"
+resolve_secret_hex DB_MANAGEMENT_MIGRATOR_PASSWORD "$DB_ENV:DB_MANAGEMENT_MIGRATOR_PASSWORD"
 DB_MANAGEMENT_READ_WRITE_USER="$(first_non_empty_or_default "podverse_management_read_write" "$DB_ENV:DB_MANAGEMENT_READ_WRITE_USER")"
 DB_MANAGEMENT_READ_USER="$(first_non_empty_or_default "podverse_management_read" "$DB_ENV:DB_MANAGEMENT_READ_USER")"
-# DB read/read-write passwords: dynamically generated (hex-only, no chars that need escaping) when empty or placeholder; then assigned to infra + app env files.
-DB_APP_READ_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$DB_ENV:DB_APP_READ_PASSWORD")" "your_read_password" "your_read_write_password")"
-DB_APP_READ_WRITE_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$DB_ENV:DB_APP_READ_WRITE_PASSWORD")" "your_read_password" "your_read_write_password")"
-DB_MANAGEMENT_READ_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$DB_ENV:DB_MANAGEMENT_READ_PASSWORD")" "your_read_password" "your_read_write_password")"
-DB_MANAGEMENT_READ_WRITE_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$DB_ENV:DB_MANAGEMENT_READ_WRITE_PASSWORD")" "your_read_password" "your_read_write_password")"
-ARTEMIS_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$MQ_ENV:ARTEMIS_PASSWORD" "$API_APP_ENV:MESSAGE_QUEUE_PASSWORD" "$WORKERS_APP_ENV:MESSAGE_QUEUE_PASSWORD" "$API_INFRA_ENV:MESSAGE_QUEUE_PASSWORD" "$WORKERS_INFRA_ENV:MESSAGE_QUEUE_PASSWORD")" "your_mq_password")"
-KEYVALDB_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$KEYVALDB_ENV:KEYVALDB_PASSWORD" "$API_APP_ENV:KEYVALDB_PASSWORD" "$WORKERS_APP_ENV:KEYVALDB_PASSWORD" "$API_INFRA_ENV:KEYVALDB_PASSWORD" "$WORKERS_INFRA_ENV:KEYVALDB_PASSWORD")" "your_redis_password" "# required" " # required")"
+# DB read/read-write passwords: home local-secrets.env, then repo db.env, then generate (hex-only).
+resolve_secret_hex_or_read_placeholder DB_APP_READ_PASSWORD "$DB_ENV:DB_APP_READ_PASSWORD"
+resolve_secret_hex_or_read_placeholder DB_APP_READ_WRITE_PASSWORD "$DB_ENV:DB_APP_READ_WRITE_PASSWORD"
+resolve_secret_hex_or_read_placeholder DB_MANAGEMENT_READ_PASSWORD "$DB_ENV:DB_MANAGEMENT_READ_PASSWORD"
+resolve_secret_hex_or_read_placeholder DB_MANAGEMENT_READ_WRITE_PASSWORD "$DB_ENV:DB_MANAGEMENT_READ_WRITE_PASSWORD"
+resolve_secret_mq ARTEMIS_PASSWORD "$MQ_ENV:ARTEMIS_PASSWORD" "$API_APP_ENV:MESSAGE_QUEUE_PASSWORD" "$WORKERS_APP_ENV:MESSAGE_QUEUE_PASSWORD" "$API_INFRA_ENV:MESSAGE_QUEUE_PASSWORD" "$WORKERS_INFRA_ENV:MESSAGE_QUEUE_PASSWORD"
+resolve_secret_keyval KEYVALDB_PASSWORD "$KEYVALDB_ENV:KEYVALDB_PASSWORD" "$API_APP_ENV:KEYVALDB_PASSWORD" "$WORKERS_APP_ENV:KEYVALDB_PASSWORD" "$API_INFRA_ENV:KEYVALDB_PASSWORD" "$WORKERS_INFRA_ENV:KEYVALDB_PASSWORD"
 # Podcast Index keys are never auto-generated; only populated from override (e.g. podcast-index.env in ~/.config).
 # API and management-api use different JWT secrets (so Podverse and Boilerplate each have distinct API vs management JWTs).
-AUTH_JWT_SECRET_API="$(first_non_empty_or_generate generate_uuid "$API_APP_ENV:AUTH_JWT_SECRET" "$API_INFRA_ENV:AUTH_JWT_SECRET")"
-AUTH_JWT_SECRET_MANAGEMENT="$(first_non_empty_or_generate generate_uuid "$MANAGEMENT_API_APP_ENV:AUTH_JWT_SECRET" "$MANAGEMENT_API_INFRA_ENV:AUTH_JWT_SECRET")"
+resolve_secret_uuid AUTH_JWT_SECRET_API "$API_APP_ENV:AUTH_JWT_SECRET" "$API_INFRA_ENV:AUTH_JWT_SECRET"
+resolve_secret_uuid AUTH_JWT_SECRET_MANAGEMENT "$MANAGEMENT_API_APP_ENV:AUTH_JWT_SECRET" "$MANAGEMENT_API_INFRA_ENV:AUTH_JWT_SECRET"
 
 # Core infra secrets (DB_APP_NAME comes from env-templates: podverse_app / podverse_management)
 upsert_var "$DB_ENV" "DB_APP_OWNER_USER" "$DB_APP_OWNER_USER"
@@ -581,5 +657,7 @@ write_next_app_env_local "http://localhost:3101" "$MANAGEMENT_WEB_APP_SIDECAR_EN
 
 sync_main_next_env_from_sidecar_catalog "$WEB_SIDECAR_INFRA_ENV" "$WEB_INFRA_ENV"
 sync_main_next_env_from_sidecar_catalog "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV" "$MANAGEMENT_WEB_INFRA_ENV"
+
+bash "$SCRIPT_DIR/persist-local-secrets.sh"
 
 echo "Applied local env values from generated defaults and overrides."

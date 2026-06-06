@@ -142,6 +142,13 @@ For advanced terminal configurations using VS Code Terminals Manager, see [devel
 
 ### Run Multiple Apps (dev:\*:all)
 
+**Prerequisite:** Docker dev infrastructure must be running before `dev:all`, `dev:all:watch`, or the `dev:*:all` group commands. They start Node apps only; they do not start Postgres, Artemis, or Valkey.
+
+```bash
+make local_infra_up          # after first-time setup; use make local_setup once
+npm run check:dev-deps       # verify Postgres (5432), Artemis (5672), Valkey (6379)
+```
+
 For focused development, use these commands to run packages in watch mode with specific app groups:
 
 ```bash
@@ -153,9 +160,12 @@ npm run dev:management:all
 
 # All apps (requires management database)
 npm run dev:all
+
+# Full stack with package watch (same infra prerequisite)
+npm run dev:all:watch
 ```
 
-**Note**: The management database is included in `local_setup`, so all commands work out of the box.
+**Note**: Run `make local_setup` once for initial DB init. After that, use `make local_infra_up` when Docker was stopped and verify with `npm run check:dev-deps`.
 
 These commands start with staggered delays for readable log output:
 
