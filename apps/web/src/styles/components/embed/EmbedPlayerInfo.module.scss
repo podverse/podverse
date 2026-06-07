@@ -1,0 +1,60 @@
+@use '../../mixins/ellipsis' as *;
+
+.info {
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
+.imageWrapper {
+  flex: 0 0 auto;
+  height: 76px;
+  min-height: 76px;
+  min-width: 76px;
+  width: 76px;
+}
+
+.image {
+  border-radius: var(--radius-sm);
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.textSection {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  justify-content: center;
+  min-width: 0;
+}
+
+.channelTitle {
+  @include ellipsisSingleLineChild;
+
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  margin: 0;
+}
+
+.title {
+  @include ellipsisSingleLineChild;
+
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  margin: 0;
+}
+
+.publishDateBadge {
+  @include ellipsisSingleLineChild;
+
+  align-self: flex-start;
+  background: var(--color-surface-secondary);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  max-width: 100%;
+  padding: var(--space-2xs) var(--space-xs);
+}

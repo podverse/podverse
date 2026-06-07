@@ -1,0 +1,9 @@
+.playerRegion {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-height: 200px;
+  overflow: visible;
+  padding: var(--space-sm);
+}

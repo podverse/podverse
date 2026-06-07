@@ -7,11 +7,13 @@ import { MediumEnum } from '@podverse/helpers';
 import { useAccount } from '../../contexts/Account';
 import { useAutoQueue } from '../../contexts/AutoQueue';
 import { useConfig } from '../../contexts/Config';
+import { useEmbedPlaybackGuardrails } from '../../contexts/EmbedPlaybackMode';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { useMediaPlayerResourceUpdate } from '../../hooks/useMediaPlayerResourceUpdate';
 import { cookieConsentAllowsAnonymousFeatureStorage } from '../../lib/cookieConsent/cookieConsentPolicy';
 import { playbackTargetFromStandardLoad } from '../../lib/playback';
+import { canAttemptAnonymousPlaybackRestore } from '../../utils/anonymousPlaybackRestoreEligibility';
 import {
   clearAnonymousPlaybackSnapshot,
   readAnonymousPlaybackSnapshot,
@@ -25,6 +27,7 @@ export function AnonymousPlaybackRestoreController() {
   const { loggedInAccount } = useAccount();
   const { autoQueueConfig } = useAutoQueue();
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
+  const { skipAnonymousPlaybackRestore } = useEmbedPlaybackGuardrails();
 
   const allowsAnonymousFeatureStorage = cookieConsentAllowsAnonymousFeatureStorage(
     config.public.cookieConsent.bannerEnabled,
@@ -54,7 +57,14 @@ export function AnonymousPlaybackRestoreController() {
   }, [loggedInAccount]);
 
   useEffect(() => {
-    if (loggedInAccount || anonymousPlaybackRestoreStarted || !allowsAnonymousFeatureStorage) {
+    if (
+      !canAttemptAnonymousPlaybackRestore({
+        skipAnonymousPlaybackRestore,
+        loggedInAccount,
+        restoreAlreadyStarted: anonymousPlaybackRestoreStarted,
+        allowsAnonymousFeatureStorage,
+      })
+    ) {
       return;
     }
     anonymousPlaybackRestoreStarted = true;
@@ -180,7 +190,7 @@ export function AnonymousPlaybackRestoreController() {
         // Best-effort restore
       }
     })();
-  }, [loggedInAccount, allowsAnonymousFeatureStorage]);
+  }, [loggedInAccount, allowsAnonymousFeatureStorage, skipAnonymousPlaybackRestore]);
 
   return null;
 }

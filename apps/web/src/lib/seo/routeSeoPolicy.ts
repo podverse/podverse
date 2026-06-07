@@ -65,6 +65,7 @@ export const SEO_ROUTE_POLICIES: SeoRoutePolicy[] = [
   { class: 'noindex', pathPattern: '/membership/renew' },
   { class: 'noindex', pathPattern: '/search' },
   { class: 'noindex', pathPattern: '/embed' },
+  { class: 'noindex', pathPattern: '/embed/**' },
   { class: 'noindex', pathPattern: '/add-by-rss/**' },
   { class: 'noindex', pathPattern: '/playlist/create' },
   { class: 'noindex', pathPattern: '/playlist/edit/[playlist_id]' },

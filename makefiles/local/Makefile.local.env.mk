@@ -1,6 +1,8 @@
 # --- Local env setup and copy rules. ---
 
 .PHONY: local_env_prepare local_env_link local_env_setup local_env_clean
+.PHONY: local_env_sync_db_passwords local_env_worktree_setup local_db_sync_passwords
+.PHONY: local_env_export_secrets_to_home
 
 local_env_link:
 	bash scripts/local-env/link-overrides.sh
@@ -49,6 +51,27 @@ local_env_prepare:
 local_env_setup: infra/config/local/db.env infra/config/local/mq.env infra/config/local/keyvaldb.env infra/config/local/api.env infra/config/local/workers.env infra/config/local/management-api.env infra/config/local/web.env infra/config/local/web-sidecar.env infra/config/local/management-web.env infra/config/local/management-web-sidecar.env infra/config/local/extensions.env infra/config/local/extension-sidecar-otel.env infra/config/local/extension-prometheus.env apps/api/.env apps/workers/.env apps/management-api/.env apps/web/.env.local apps/web/sidecar/.env apps/management-web/.env.local apps/management-web/sidecar/.env
 	bash scripts/local-env/setup.sh
 	@echo "Local env setup complete."
+
+# Sync Postgres role passwords when the shared local container is already running (no migrations).
+local_db_sync_passwords: infra/config/local/db.env
+	@if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -qx podverse_local_db; then \
+		echo "Postgres container podverse_local_db is not running; skipping password sync."; \
+		echo "Start infra (make local_infra_up) then run: make local_db_sync_passwords"; \
+		exit 0; \
+	fi
+	@echo "Syncing Postgres role passwords from infra/config/local/db.env..."
+	@bash scripts/database/run-postgres-bootstrap-in-container.sh podverse_local_db infra/config/local/db.env all
+	@echo "DB role passwords synced."
+
+local_env_sync_db_passwords: local_db_sync_passwords
+
+# Recommended for new git work trees: link home overrides, generate repo env from persisted secrets, sync DB if running.
+local_env_worktree_setup: local_env_link local_env_setup local_env_sync_db_passwords
+	@echo "Work tree env ready (home secrets applied; DB passwords synced when Postgres was running)."
+
+# One-time: copy this checkout's infra secrets into ~/.config (use from primary checkout that owns Postgres).
+local_env_export_secrets_to_home:
+	bash scripts/local-env/export-local-secrets-to-home.sh
 
 # Auto-copy missing local env files from templates/examples
 infra/config/local/db.env:

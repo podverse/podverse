@@ -9,6 +9,7 @@ import type {
   DTOItemChapter,
   DTOItemFunding,
   DTOItemSoundbite,
+  DTOPlaylist,
   LabeledItemEnclosure,
 } from '@podverse/helpers';
 import type { AddByRSSResourceDataPayload } from '@podverse/parser-mapping';
@@ -42,6 +43,15 @@ type ModalShare = {
   clip: DTOClip | null;
   item_chapter: DTOItemChapter | null;
   item_soundbite: DTOItemSoundbite | null;
+};
+
+export type ModalEmbedBuilder = {
+  channel: DTOChannel | null;
+  item: DTOItem | null;
+  clip: DTOClip | null;
+  item_chapter: DTOItemChapter | null;
+  item_soundbite: DTOItemSoundbite | null;
+  playlist: DTOPlaylist | null;
 };
 
 type ModalFunding = {
@@ -97,6 +107,8 @@ type ModalsContextType = {
   setModalMediaPlayerIsOpen: (val: boolean) => void;
   modalShare: ModalShare;
   setModalShare: (val: ModalShare) => void;
+  modalEmbedBuilder: ModalEmbedBuilder;
+  setModalEmbedBuilder: (val: ModalEmbedBuilder) => void;
   modalFunding: ModalFunding;
   setModalFunding: (val: ModalFunding) => void;
   modalSourceSelector: ModalSourceSelector;
@@ -151,12 +163,21 @@ const defaultModalSourceSelector: ModalSourceSelector = {
   itemTitle: null,
 };
 
-const defaultModalShare = {
+export const defaultModalShare = {
   channel: null,
   item: null,
   clip: null,
   item_chapter: null,
   item_soundbite: null,
+};
+
+export const defaultModalEmbedBuilder: ModalEmbedBuilder = {
+  channel: null,
+  item: null,
+  clip: null,
+  item_chapter: null,
+  item_soundbite: null,
+  playlist: null,
 };
 
 const defaultModalLoginRequired: ModalMessage = {
@@ -189,6 +210,8 @@ export const ModalsProvider = ({ children }: { children: ReactNode }) => {
     useState<ModalClipCreated>(defaultModalClipCreated);
   const [modalMediaPlayerIsOpen, setModalMediaPlayerIsOpen] = useState<boolean>(false);
   const [modalShare, setModalShare] = useState<ModalShare>(defaultModalShare);
+  const [modalEmbedBuilder, setModalEmbedBuilder] =
+    useState<ModalEmbedBuilder>(defaultModalEmbedBuilder);
   const [modalFunding, setModalFunding] = useState<ModalFunding>(defaultModalFunding);
   const [modalSourceSelector, setModalSourceSelector] = useState<ModalSourceSelector>(
     defaultModalSourceSelector
@@ -225,6 +248,8 @@ export const ModalsProvider = ({ children }: { children: ReactNode }) => {
         setModalMediaPlayerIsOpen,
         modalShare,
         setModalShare,
+        modalEmbedBuilder,
+        setModalEmbedBuilder,
         modalFunding,
         setModalFunding,
         modalSourceSelector,

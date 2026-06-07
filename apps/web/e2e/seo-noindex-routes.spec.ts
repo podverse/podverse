@@ -1,5 +1,12 @@
 import { test } from '@playwright/test';
 
+import {
+  E2E_EMBED_PLAYLIST_ID_TEXT,
+  E2E_MUSIC_TRACK_ONE_ID_TEXT,
+  E2E_PODCAST_CHANNEL_ID_TEXT,
+  E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT,
+  E2E_SOUNDBITE_ID_TEXT,
+} from './helpers/seedConstants';
 import { expectRobotsNoindex, fetchSsrHtml } from './helpers/seoHtml';
 
 test.describe('Web SEO noindex routes', () => {
@@ -40,5 +47,40 @@ test.describe('Web SEO noindex routes', () => {
 
     const html = await response.text();
     expectRobotsNoindex(html);
+  });
+
+  test('SSR HTML marks embed routes as noindex', async ({ request }) => {
+    await test.step('Assert embed demo index is noindex in SSR metadata.', async () => {
+      const html = await fetchSsrHtml(request, '/embed');
+      expectRobotsNoindex(html);
+    });
+
+    await test.step('Assert embed episode child route is noindex in SSR metadata.', async () => {
+      const html = await fetchSsrHtml(
+        request,
+        `/embed/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`
+      );
+      expectRobotsNoindex(html);
+    });
+
+    await test.step('Assert embed podcast list child route is noindex in SSR metadata.', async () => {
+      const html = await fetchSsrHtml(request, `/embed/podcast/${E2E_PODCAST_CHANNEL_ID_TEXT}`);
+      expectRobotsNoindex(html);
+    });
+
+    await test.step('Assert embed track child route is noindex in SSR metadata.', async () => {
+      const html = await fetchSsrHtml(request, `/embed/track/${E2E_MUSIC_TRACK_ONE_ID_TEXT}`);
+      expectRobotsNoindex(html);
+    });
+
+    await test.step('Assert embed playlist child route is noindex in SSR metadata.', async () => {
+      const html = await fetchSsrHtml(request, `/embed/playlist/${E2E_EMBED_PLAYLIST_ID_TEXT}`);
+      expectRobotsNoindex(html);
+    });
+
+    await test.step('Assert embed official-clip child route is noindex in SSR metadata.', async () => {
+      const html = await fetchSsrHtml(request, `/embed/official-clip/${E2E_SOUNDBITE_ID_TEXT}`);
+      expectRobotsNoindex(html);
+    });
   });
 });

@@ -1,0 +1,23 @@
+@use '../../mixins/ellipsis' as *;
+
+.footer {
+  align-items: center;
+  border-top: 1px solid var(--color-border-subtle);
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--space-sm);
+  min-height: 0;
+  padding: var(--space-xs) var(--space-sm);
+}
+
+.aboutLink {
+  @include ellipsisSingleLineChild;
+
+  flex: 0 1 auto;
+  margin-left: auto;
+  min-width: 0;
+}
+
+.openSourceLink {
+  flex: 0 0 auto;
+}

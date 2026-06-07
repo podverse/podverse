@@ -1,5 +1,6 @@
 'use client';
 
+import classNames from 'classnames';
 import React, { useCallback, useRef, useState } from 'react';
 
 import type { DTOClip, DTOItemChapter } from '@podverse/helpers';
@@ -20,6 +21,7 @@ type MediaPlayerProgressProps = {
   overrideHighlightStartTime?: number | null;
   overrideHighlightEndTime?: number | null;
   includeMobileTime?: boolean;
+  layoutVariant?: 'default' | 'embed';
 };
 
 export const MediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
@@ -27,6 +29,7 @@ export const MediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
   overrideHighlightStartTime,
   overrideHighlightEndTime,
   includeMobileTime,
+  layoutVariant = 'default',
 }) => {
   const { mpClip, mpItemSoundbite, mpItemChapter, mpItemChapters, mpDuration } = useMediaPlayer();
   const { seek } = useMediaPlayerControls();
@@ -174,7 +177,12 @@ export const MediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
   };
 
   return (
-    <div className={styles.mediaPlayerProgress}>
+    <div
+      className={classNames(
+        styles.mediaPlayerProgress,
+        layoutVariant === 'embed' && styles.mediaPlayerProgressEmbed
+      )}
+    >
       <span className={styles.mediaPlayerProgressTime}>{formatHHMMSS(mpCurrentTime)}</span>
       <div
         className={styles.customProgressBar}

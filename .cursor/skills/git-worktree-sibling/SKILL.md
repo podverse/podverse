@@ -60,6 +60,9 @@ Create a new branch at the same time:
 
 ```bash
 git worktree add -b feature/my-feature ../podverse_feature_my_feature develop
+cd ../podverse_feature_my_feature
+make local_env_worktree_setup
+npm install
 ```
 
 ## Move WIP from primary checkout into a worktree
@@ -72,6 +75,7 @@ git stash push -u -m "feature-name wip"
 git checkout develop
 git worktree add ../podverse_feature_tracking_consent feature/tracking-consent
 cd ../podverse_feature_tracking_consent
+make local_env_worktree_setup
 git stash pop
 ```
 
@@ -81,6 +85,7 @@ Use `git stash push -u` so **untracked** files (e.g. `.llm/plans/active/...`) mo
 
 - **Edit feature code** in the sibling worktree (`podverse_feature_*`), not in `podverse` unless intentionally on `develop`.
 - **Commands** still run from that worktree’s root (same as monorepo root): `./scripts/nix/with-env npm run lint`, `make e2e_test_web_report_spec`, etc.
+- **First-time env in a worktree:** `make local_env_worktree_setup` (links home overrides, applies persisted DB/MQ/Valkey secrets, syncs Postgres passwords when the container is running).
 - **Open in Cursor** using the sibling folder path (add to workspace or open folder).
 
 List worktrees:

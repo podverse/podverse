@@ -5,10 +5,10 @@ import React, { useRef, useState } from 'react';
 
 import { MediumEnum } from '@podverse/helpers';
 import { copyToClipboard } from '@podverse/helpers-browser';
-import { FormStack, Modal, TextInput } from '@podverse/ui';
+import { Button, FormStack, Modal, TextInput } from '@podverse/ui';
 
 import { WEB } from '../../constants/web';
-import { useModals } from '../../contexts/Modals';
+import { defaultModalShare, useModals } from '../../contexts/Modals';
 
 type ModalShareInput = {
   name: string;
@@ -23,7 +23,7 @@ export const ModalShare: React.FC = () => {
   const tInfo = useTranslations('info');
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const { modalShare, setModalShare } = useModals();
+  const { modalShare, setModalShare, setModalEmbedBuilder } = useModals();
 
   React.useEffect(() => {
     return () => {
@@ -50,6 +50,18 @@ export const ModalShare: React.FC = () => {
     timeoutRef.current = setTimeout(() => {
       setCopiedIndex(null);
     }, 2000);
+  };
+
+  const handleCreateEmbed = () => {
+    setModalEmbedBuilder({
+      channel: modalShare.channel,
+      item: modalShare.item,
+      clip: modalShare.clip,
+      item_chapter: modalShare.item_chapter,
+      item_soundbite: modalShare.item_soundbite,
+      playlist: null,
+    });
+    setModalShare(defaultModalShare);
   };
 
   const shareInputs: ModalShareInput[] = [];
@@ -106,30 +118,16 @@ export const ModalShare: React.FC = () => {
   if (modalShare.item_soundbite) {
     shareInputs.push({
       name: 'soundbite.official_clip',
-      value: `${WEB.origin}/soundbite/${modalShare.item_soundbite.id_text}`,
+      value: `${WEB.origin}/official-clip/${modalShare.item_soundbite.id_text}`,
       eyebrow: tInfo('soundbite.official_clip'),
     });
   }
-
-  shareInputs.push({
-    name: 'embed',
-    value: 'TODO: add embed code here',
-    eyebrow: tFeatures('embed'),
-  });
 
   return (
     <Modal
       header={tFeatures('share')}
       isOpen={isOpen}
-      onClose={() =>
-        setModalShare({
-          channel: null,
-          item: null,
-          clip: null,
-          item_chapter: null,
-          item_soundbite: null,
-        })
-      }
+      onClose={() => setModalShare(defaultModalShare)}
       closeButtonAriaLabel={tMisc('close_modal')}
       ariaLabel={tFeatures('share')}
     >
@@ -148,6 +146,11 @@ export const ModalShare: React.FC = () => {
             readOnly
           />
         ))}
+        <div data-testid="share-create-embed">
+          <Button type="button" onClick={handleCreateEmbed}>
+            {tFeatures('create_embed')}
+          </Button>
+        </div>
       </FormStack>
     </Modal>
   );

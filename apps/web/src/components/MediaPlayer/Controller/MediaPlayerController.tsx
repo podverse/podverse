@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef } from 'react';
 
+import { useEmbedPlaybackGuardrails } from '../../../contexts/EmbedPlaybackMode';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useMediaPlayerControls } from '../../../contexts/MediaPlayerControls';
 import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
@@ -13,6 +14,7 @@ import { MediaPlayerLiveStreamVideoWrapper } from './LiveStream/MediaPlayerLiveS
 import { handleMediaPlayerWindowKeyDown } from './mediaPlayerWindowKeyDown';
 
 export const MediaPlayerController: React.FC = () => {
+  const { skipMainAppLayoutMutations } = useEmbedPlaybackGuardrails();
   const { mpAddByRSS, mpChannel, mpDuration } = useMediaPlayer();
   const { seek: bridgeSeek, togglePlay } = useMediaPlayerControls();
   const { mpCurrentTime, setMPCurrentTime } = useMediaPlayerCurrentTime();
@@ -70,8 +72,8 @@ export const MediaPlayerController: React.FC = () => {
   }, [seekWithUiSync, togglePlay]);
 
   useEffect(() => {
-    updateLayoutForMediaPlayer(!!mpChannel || !!mpAddByRSS);
-  }, [mpChannel, mpAddByRSS]);
+    updateLayoutForMediaPlayer(!!mpChannel || !!mpAddByRSS, { skipMainAppLayoutMutations });
+  }, [mpAddByRSS, mpChannel, skipMainAppLayoutMutations]);
 
   return (
     <>

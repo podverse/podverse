@@ -56,9 +56,7 @@ export const Footer: React.FC = () => {
           <Link href={ROUTES.TERMS}>{tMisc('terms')}</Link>
           <Link href={ROUTES.MEMBERSHIP}>{tMembership('premium')}</Link>
           {/* <Link disabled href={ROUTES.MOBILE_APP}>{tMisc("mobile")}</Link> */}
-          <Link disabled href={ROUTES.EMBED}>
-            {tFeatures('embed')}
-          </Link>
+          <Link href={ROUTES.EMBED}>{tFeatures('embed')}</Link>
         </FooterLinks>
       }
       social={

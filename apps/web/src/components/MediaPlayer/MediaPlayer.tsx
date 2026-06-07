@@ -11,6 +11,7 @@
 
 import { useEffect } from 'react';
 
+import { useEmbedPlaybackGuardrails } from '../../contexts/EmbedPlaybackMode';
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
 import { updateLayoutForMediaPlayer } from '../../utils/mediaPlayer/mediaPlayerLayout';
 import { MediaPlayerDesktop } from './Desktop/MediaPlayerDesktop';
@@ -20,13 +21,14 @@ import { MediaPlayerModal } from './Modal/MediaPlayerModal';
 import styles from '../../styles/components/MediaPlayer/MediaPlayer.module.scss';
 
 export const MediaPlayer = () => {
-  const { mpChannel, mpAddByRSS } = useMediaPlayer();
+  const { skipMainAppLayoutMutations } = useEmbedPlaybackGuardrails();
+  const { mpAddByRSS, mpChannel } = useMediaPlayer();
 
   // Sync layout when this component mounts (e.g. after lazy load) or when playing state changes.
   // This ensures the "reserve space" CSS is only applied once the player UI is ready to display.
   useEffect(() => {
-    updateLayoutForMediaPlayer(!!mpChannel || !!mpAddByRSS);
-  }, [mpChannel, mpAddByRSS]);
+    updateLayoutForMediaPlayer(!!mpChannel || !!mpAddByRSS, { skipMainAppLayoutMutations });
+  }, [mpAddByRSS, mpChannel, skipMainAppLayoutMutations]);
 
   return (
     <aside id="media-player" className={styles.player}>
