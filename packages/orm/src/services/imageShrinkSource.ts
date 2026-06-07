@@ -105,9 +105,9 @@ export class ImageShrinkSourceService {
       AND (
         source.last_changed_at IS NOT NULL
         OR (
-          $1 IS NOT NULL
+          $1::integer IS NOT NULL
           AND source.last_checked_at IS NOT NULL
-          AND source.last_checked_at < NOW() - ($1 * interval '1 second')
+          AND source.last_checked_at < NOW() - ($1::integer * interval '1 second')
         )
       )
       RETURNING 1;
