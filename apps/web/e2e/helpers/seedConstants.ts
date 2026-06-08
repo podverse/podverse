@@ -90,6 +90,15 @@ export const E2E_ADD_BY_RSS_ITEM_DURATION_SECONDS = 60;
  * and the gitignore exception that pins them.
  */
 export const E2E_ASSET_BASE_URL = 'http://localhost:2111/e2e/audio';
+export const E2E_IMAGE_ASSET_BASE_URL = 'http://localhost:2111/e2e/images';
+
+/** Sync with tools/web/embed-fixture-constants.mjs (embed channel_image seeds). */
+export const EMBED_FIXTURE_CHANNEL_IMAGE_URL = `${E2E_IMAGE_ASSET_BASE_URL}/e2e-embed-channel-art-1400.png`;
+
+/** Sync with tools/web/embed-fixture-constants.mjs (embed item_image seeds). */
+export const EMBED_FIXTURE_ITEM_IMAGE_URL = `${E2E_IMAGE_ASSET_BASE_URL}/e2e-embed-item-art-1400.png`;
+
+export const EMBED_FIXTURE_PLACEHOLDER_IMAGE_URL = `${E2E_IMAGE_ASSET_BASE_URL}/e2e-embed-placeholder.png`;
 
 export const E2E_PODCAST_SHORT_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-short-60s-440hz.mp3`;
 export const E2E_PODCAST_RESUME_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-resume-60s-440hz.mp3`;
@@ -104,7 +113,9 @@ export const E2E_EMBED_VIDEO_ITEM_ID_TEXT = 'e2eEmbVidItem01';
 export const E2E_EMBED_VIDEO_ITEM_TWO_ID_TEXT = 'e2eEmbVidItem02';
 
 export const E2E_EMBED_PLAYLIST_ID_TEXT = 'e2eEmbPlList01';
+export const E2E_EMBED_PLAYLIST_MIXED_ID_TEXT = 'e2eEmbPlMix01';
 export const E2E_EMBED_PRIVATE_PLAYLIST_ID_TEXT = 'e2eEmbPlPriv01';
+export const E2E_EMBED_MUSIC_TRACK_VIDEO_ID_TEXT = 'e2eEmbVidTrk01';
 
 export const E2E_EMBED_INVALID_PLAY_ID_TEXT = 'invalid-id-text';
 
@@ -128,3 +139,18 @@ export const E2E_EMBED_SCROLL_LAST_ITEM_LABEL = 'E2E Embed Scroll Item 10';
 
 /** Podcast channel with feed_policy.public_visible=false. */
 export const E2E_EMBED_PRIVATE_CHANNEL_ID_TEXT = 'e2eEmbPrvCh01';
+
+/** Showcase slot ids on `/embed` when fixture mode is enabled. Sync with embedFixtureIds.ts. */
+export const E2E_EMBED_DEMO_SHOWCASE_IDS = [
+  'episode-audio',
+  'episode-video',
+  'track-audio',
+  'track-video',
+  'clip-audio',
+  'official-clip-audio',
+  'chapter-audio',
+  'podcast-audio',
+  'podcast-video',
+  'album-audio',
+  'playlist-mixed',
+] as const;

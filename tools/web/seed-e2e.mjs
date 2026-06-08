@@ -17,6 +17,13 @@ import crypto from 'node:crypto';
 import bcrypt from 'bcrypt';
 import pg from 'pg';
 
+import {
+  EMBED_FIXTURE_CHANNEL_IMAGE_URL,
+  EMBED_FIXTURE_ITEM_IMAGE_URL,
+  EMBED_FIXTURE_MUSIC_ALBUM_ID_TEXT,
+} from './embed-fixture-constants.mjs';
+import { seedEmbedFixtures, syncE2eFixtureImageUrls } from './seed-embed-fixtures.mjs';
+
 const DB_HOST = process.env.DB_HOST ?? 'localhost';
 const DB_PORT = Number(process.env.DB_PORT ?? '5732');
 const DB_USER = process.env.SEED_DB_USER ?? 'podverse_app_read_write';
@@ -60,8 +67,9 @@ const E2E_PODCAST_ITEM_CHAPTERED_ID_TEXT = 'e2ePodChap0001';
 const E2E_CLIP_ID_TEXT = 'e2eClip00000001';
 const E2E_SOUNDBITE_ID_TEXT = 'e2eSoundbite001';
 
-const E2E_MUSIC_CHANNEL_ID_TEXT = 'e2eMusicChnl01';
-const E2E_MUSIC_ALBUM_ID_TEXT = 'e2eMusicAlbm01';
+const E2E_MUSIC_ALBUM_ID_TEXT = EMBED_FIXTURE_MUSIC_ALBUM_ID_TEXT;
+/** @deprecated Alias — album channel id_text matches E2E_MUSIC_ALBUM_ID_TEXT */
+const E2E_MUSIC_CHANNEL_ID_TEXT = E2E_MUSIC_ALBUM_ID_TEXT;
 const E2E_MUSIC_TRACK_ONE_ID_TEXT = 'e2eMusicTrk001';
 const E2E_MUSIC_TRACK_TWO_ID_TEXT = 'e2eMusicTrk002';
 const E2E_MUSIC_QUEUE_ID_TEXT = 'e2eMusicQueue01';
@@ -109,51 +117,54 @@ const E2E_MUSIC_TRACK_TWO_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track
 const E2E_ADDBYRSS_WITH_POSITION_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-addbyrss-with-position-60s-440hz.mp3`;
 const E2E_ADDBYRSS_FRESH_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-addbyrss-fresh-60s-440hz.mp3`;
 
-const E2E_EMBED_VIDEO_FEED_PI_ID = 876543213;
-const E2E_EMBED_VIDEO_FEED_URL = 'https://e2e-seed-video.example/video.xml';
-const E2E_EMBED_VIDEO_CHANNEL_ID_TEXT = 'e2eEmbedVidCh01';
 const E2E_EMBED_VIDEO_ITEM_ID_TEXT = 'e2eEmbVidItem01';
-const E2E_EMBED_VIDEO_ITEM_TWO_ID_TEXT = 'e2eEmbVidItem02';
-const E2E_EMBED_VIDEO_ENCLOSURE_URL = 'https://e2e-seed-video.example/e2e-embed-video.mp4';
-
-const E2E_EMBED_PLAYLIST_ID_TEXT = 'e2eEmbPlList01';
-const E2E_EMBED_PRIVATE_PLAYLIST_ID_TEXT = 'e2eEmbPlPriv01';
-
-const E2E_EMBED_SCROLL_FEED_PI_ID = 876543214;
-const E2E_EMBED_SCROLL_FEED_URL = 'https://e2e-seed-embed-scroll.example/podcast.xml';
-const E2E_EMBED_SCROLL_CHANNEL_ID_TEXT = 'e2eEmbScrCh01';
-const E2E_EMBED_SCROLL_ITEM_COUNT = 10;
-
-const E2E_EMBED_PRIVATE_CHANNEL_FEED_PI_ID = 876543215;
-const E2E_EMBED_PRIVATE_CHANNEL_FEED_URL = 'https://e2e-seed-embed-private.example/podcast.xml';
-const E2E_EMBED_PRIVATE_CHANNEL_ID_TEXT = 'e2eEmbPrvCh01';
 
 const E2E_ITEM_CHAPTER_INTRO_ID_TEXT = 'e2eChapIntro01';
 const E2E_ITEM_CHAPTER_TOPIC_ID_TEXT = 'e2eChapTopic01';
 /* eslint-enable @typescript-eslint/no-unused-vars */
 
-async function main() {
-  const passwordHash = await bcrypt.hash(TEST_PASSWORD, 10);
-  const invitePlaceholderPasswordHash = await bcrypt.hash(crypto.randomUUID(), 10);
+const SEED_MEDIA_FIXTURES_ONLY = process.env.SEED_MEDIA_FIXTURES_ONLY === 'true';
+const E2E_USER_EMAIL = 'e2e-user@example.com';
 
-  const client = new pg.Client({
-    host: DB_HOST,
-    port: DB_PORT,
-    user: DB_USER,
-    password: DB_PASSWORD,
-    database: DB_NAME,
-  });
+async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPasswordHash) {
+  if (SEED_MEDIA_FIXTURES_ONLY) {
+    const existing = await client.query(
+      `SELECT a.id
+       FROM account a
+       INNER JOIN account_credentials ac ON ac.account_id = a.id
+       WHERE ac.email = $1
+       LIMIT 1`,
+      [E2E_USER_EMAIL]
+    );
 
-  await client.connect();
-  console.log(`Connected to ${DB_NAME} on ${DB_HOST}:${DB_PORT}`);
+    if (existing.rows.length > 0) {
+      console.log(`Using existing fixture account ${E2E_USER_EMAIL} (id ${existing.rows[0].id})`);
+      return existing.rows[0].id;
+    }
+
+    const idText = crypto.randomBytes(8).toString('hex').slice(0, 15);
+    const accountResult = await client.query(
+      `INSERT INTO "account" (id_text, verified, sharable_status_id)
+       VALUES ($1, true, 1)
+       RETURNING id`,
+      [idText]
+    );
+    const accountId = accountResult.rows[0].id;
+
+    await client.query(
+      `INSERT INTO "account_credentials" (account_id, email, password)
+       VALUES ($1, $2, $3)`,
+      [accountId, E2E_USER_EMAIL, passwordHash]
+    );
+
+    console.log(`Created fixture account ${E2E_USER_EMAIL} (id ${accountId})`);
+    return accountId;
+  }
 
   // Truncate tables used by E2E tests (order matters for FK constraints)
-  // No RESTART IDENTITY — the read_write user doesn't own sequences.
-  // Since test_db_init drops/recreates the DB fresh each run, sequences already start at 1.
   await client.query(`TRUNCATE TABLE "account_credentials" CASCADE`);
   await client.query(`TRUNCATE TABLE "account" CASCADE`);
 
-  // Insert a test user: account row + account_credentials row
   const idText = crypto.randomBytes(8).toString('hex').slice(0, 15);
 
   const accountResult = await client.query(
@@ -168,7 +179,7 @@ async function main() {
   await client.query(
     `INSERT INTO "account_credentials" (account_id, email, password)
      VALUES ($1, $2, $3)`,
-    [accountId, 'e2e-user@example.com', passwordHash]
+    [accountId, E2E_USER_EMAIL, passwordHash]
   );
 
   const membershipExpiresAt = new Date();
@@ -271,6 +282,12 @@ async function main() {
   );
 
   console.log(`Seeded SEO public profile: ${E2E_SEO_PUBLIC_PROFILE_ID_TEXT}`);
+
+  return accountId;
+}
+
+async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
+  await syncE2eFixtureImageUrls(client);
 
   await client.query(`DELETE FROM feed WHERE podcast_index_id = $1`, [E2E_LIVESTREAM_FEED_PI_ID]);
 
@@ -390,8 +407,8 @@ async function main() {
   );
   await client.query(
     `INSERT INTO channel_image (channel_id, url, image_width_size)
-     VALUES ($1, 'https://e2e-seed-podcast.example/channel-art.png', 1400)`,
-    [podcastChannelId]
+     VALUES ($1, $2, 1400)`,
+    [podcastChannelId, EMBED_FIXTURE_CHANNEL_IMAGE_URL]
   );
 
   const podcastQueueResult = await client.query(
@@ -447,8 +464,8 @@ async function main() {
     );
     await client.query(
       `INSERT INTO item_image (item_id, url, image_width_size)
-       VALUES ($1, 'https://e2e-seed-podcast.example/item-art.png', 1400)`,
-      [itemId]
+       VALUES ($1, $2, 1400)`,
+      [itemId, EMBED_FIXTURE_ITEM_IMAGE_URL]
     );
 
     const enclosureResult = await client.query(
@@ -650,8 +667,8 @@ async function main() {
   );
   await client.query(
     `INSERT INTO channel_image (channel_id, url, image_width_size)
-     VALUES ($1, 'https://e2e-seed-music.example/album-art.png', 1400)`,
-    [musicChannelId]
+     VALUES ($1, $2, 1400)`,
+    [musicChannelId, EMBED_FIXTURE_CHANNEL_IMAGE_URL]
   );
 
   // Music queue is intentionally is_active_queue=false at seed time. The
@@ -709,8 +726,8 @@ async function main() {
     );
     await client.query(
       `INSERT INTO item_image (item_id, url, image_width_size)
-       VALUES ($1, 'https://e2e-seed-music.example/track-art.png', 1400)`,
-      [itemId]
+       VALUES ($1, $2, 1400)`,
+      [itemId, EMBED_FIXTURE_ITEM_IMAGE_URL]
     );
 
     const enclosureResult = await client.query(
@@ -883,345 +900,30 @@ async function main() {
     `Seeded add-by-RSS media-player E2E resources (${E2E_ADD_BY_RSS_RESOURCE_WITH_POSITION_ID_TEXT} at list_position 3 with playback_position=${E2E_ADD_BY_RSS_RESOURCE_WITH_POSITION_SECONDS}, ${E2E_ADD_BY_RSS_RESOURCE_FRESH_ID_TEXT} at list_position 4 with playback_position=0)`
   );
 
-  await client.query(`DELETE FROM feed WHERE podcast_index_id = $1 OR url = $2`, [
-    E2E_EMBED_VIDEO_FEED_PI_ID,
-    E2E_EMBED_VIDEO_FEED_URL,
-  ]);
-
-  const videoFeedResult = await client.query(
-    `INSERT INTO feed (url, podcast_index_id)
-     VALUES ($1, $2)
-     RETURNING id`,
-    [E2E_EMBED_VIDEO_FEED_URL, E2E_EMBED_VIDEO_FEED_PI_ID]
-  );
-  const videoFeedId = videoFeedResult.rows[0].id;
-
-  await client.query(`INSERT INTO feed_log (feed_id) VALUES ($1)`, [videoFeedId]);
-  await client.query(
-    `INSERT INTO feed_policy (feed_id, parse_allowed, public_visible, add_allowed)
-     VALUES ($1, true, true, true)`,
-    [videoFeedId]
-  );
-
-  const videoChannelResult = await client.query(
-    `INSERT INTO channel (id_text, feed_id, medium_id, title)
-     VALUES (
-       $1,
-       $2,
-       (SELECT id FROM medium WHERE value = 'video' LIMIT 1),
-       'E2E Embed Video Channel'
-     )
-     RETURNING id`,
-    [E2E_EMBED_VIDEO_CHANNEL_ID_TEXT, videoFeedId]
-  );
-  const videoChannelId = videoChannelResult.rows[0].id;
-
-  await client.query(`INSERT INTO channel_about (channel_id) VALUES ($1)`, [videoChannelId]);
-  await client.query(
-    `INSERT INTO channel_description (channel_id, value)
-     VALUES ($1, $2)`,
-    [videoChannelId, 'E2E seeded video channel for embed player placeholder tests.']
-  );
-  await client.query(
-    `INSERT INTO channel_image (channel_id, url, image_width_size)
-     VALUES ($1, 'https://e2e-seed-video.example/channel-art.png', 1400)`,
-    [videoChannelId]
-  );
-
-  async function insertVideoItem({ idText, guidSlug, title, pubDateOffsetSeconds = 0 }) {
-    const itemResult = await client.query(
-      `INSERT INTO item (
-         id_text,
-         channel_id,
-         guid,
-         pub_date,
-         title,
-         item_flag_status_id
-       )
-       VALUES ($1, $2, $3, NOW() - ($5::int * INTERVAL '1 second'), $4, 1)
-       RETURNING id`,
-      [
-        idText,
-        videoChannelId,
-        `${E2E_EMBED_VIDEO_FEED_URL}#${guidSlug}`,
-        title,
-        pubDateOffsetSeconds,
-      ]
-    );
-    const itemId = itemResult.rows[0].id;
-
-    await client.query(
-      `INSERT INTO item_about (item_id, duration)
-       VALUES ($1, $2)`,
-      [itemId, 120]
-    );
-    await client.query(
-      `INSERT INTO item_description (item_id, value)
-       VALUES ($1, $2)`,
-      [itemId, `${title} deterministic E2E embed video fixture.`]
-    );
-    await client.query(
-      `INSERT INTO item_image (item_id, url, image_width_size)
-       VALUES ($1, 'https://e2e-seed-video.example/item-art.png', 1400)`,
-      [itemId]
-    );
-
-    const enclosureResult = await client.query(
-      `INSERT INTO item_enclosure (item_id, type, length, bitrate, item_enclosure_default)
-       VALUES ($1, 'video/mp4', 0, 24, true)
-       RETURNING id`,
-      [itemId]
-    );
-    const enclosureId = enclosureResult.rows[0].id;
-
-    await client.query(
-      `INSERT INTO item_enclosure_source (item_enclosure_id, uri, content_type)
-       VALUES ($1, $2, 'video/mp4')`,
-      [enclosureId, E2E_EMBED_VIDEO_ENCLOSURE_URL]
-    );
-
-    return itemId;
-  }
-
-  await insertVideoItem({
-    idText: E2E_EMBED_VIDEO_ITEM_ID_TEXT,
-    guidSlug: 'video-one',
-    title: 'E2E Embed Video Item One',
-    pubDateOffsetSeconds: 0,
+  await seedEmbedFixtures(client, {
+    accountId,
+    resumePositiveItemId,
+    resumeNearEndItemId,
   });
-  await insertVideoItem({
-    idText: E2E_EMBED_VIDEO_ITEM_TWO_ID_TEXT,
-    guidSlug: 'video-two',
-    title: 'E2E Embed Video Item Two',
-    pubDateOffsetSeconds: 120,
+}
+
+async function main() {
+  const passwordHash = await bcrypt.hash(TEST_PASSWORD, 10);
+  const invitePlaceholderPasswordHash = await bcrypt.hash(crypto.randomUUID(), 10);
+
+  const client = new pg.Client({
+    host: DB_HOST,
+    port: DB_PORT,
+    user: DB_USER,
+    password: DB_PASSWORD,
+    database: DB_NAME,
   });
 
-  console.log(
-    `Seeded embed video E2E channel ${E2E_EMBED_VIDEO_CHANNEL_ID_TEXT} (items ${E2E_EMBED_VIDEO_ITEM_ID_TEXT}, ${E2E_EMBED_VIDEO_ITEM_TWO_ID_TEXT})`
-  );
+  await client.connect();
+  console.log(`Connected to ${DB_NAME} on ${DB_HOST}:${DB_PORT}`);
 
-  const publicPlaylistResult = await client.query(
-    `INSERT INTO playlist (
-       id_text,
-       account_id,
-       sharable_status_id,
-       title,
-       description,
-       medium_id,
-       item_count,
-       last_updated
-     )
-     VALUES (
-       $1,
-       $2,
-       1,
-       'E2E Embed Public Playlist',
-       'Deterministic public playlist for embed list tests.',
-       (SELECT id FROM medium WHERE value = 'podcast' LIMIT 1),
-       2,
-       NOW()
-     )
-     RETURNING id`,
-    [E2E_EMBED_PLAYLIST_ID_TEXT, accountId]
-  );
-  const publicPlaylistId = publicPlaylistResult.rows[0].id;
-
-  await client.query(
-    `INSERT INTO playlist_resource (playlist_id, list_position, item_id)
-     VALUES ($1, 1, $2), ($1, 2, $3)`,
-    [publicPlaylistId, resumePositiveItemId, resumeNearEndItemId]
-  );
-
-  await client.query(
-    `INSERT INTO playlist (
-       id_text,
-       account_id,
-       sharable_status_id,
-       title,
-       description,
-       medium_id,
-       item_count,
-       last_updated
-     )
-     VALUES (
-       $1,
-       $2,
-       3,
-       'E2E Embed Private Playlist',
-       'Private playlist for embed not-available tests.',
-       (SELECT id FROM medium WHERE value = 'podcast' LIMIT 1),
-       0,
-       NOW()
-     )`,
-    [E2E_EMBED_PRIVATE_PLAYLIST_ID_TEXT, accountId]
-  );
-
-  console.log(
-    `Seeded embed playlists ${E2E_EMBED_PLAYLIST_ID_TEXT} (public) and ${E2E_EMBED_PRIVATE_PLAYLIST_ID_TEXT} (private)`
-  );
-
-  await client.query(`DELETE FROM feed WHERE podcast_index_id = $1 OR url = $2`, [
-    E2E_EMBED_SCROLL_FEED_PI_ID,
-    E2E_EMBED_SCROLL_FEED_URL,
-  ]);
-
-  const scrollFeedResult = await client.query(
-    `INSERT INTO feed (url, podcast_index_id)
-     VALUES ($1, $2)
-     RETURNING id`,
-    [E2E_EMBED_SCROLL_FEED_URL, E2E_EMBED_SCROLL_FEED_PI_ID]
-  );
-  const scrollFeedId = scrollFeedResult.rows[0].id;
-
-  await client.query(`INSERT INTO feed_log (feed_id) VALUES ($1)`, [scrollFeedId]);
-  await client.query(
-    `INSERT INTO feed_policy (feed_id, parse_allowed, public_visible, add_allowed)
-     VALUES ($1, true, true, true)`,
-    [scrollFeedId]
-  );
-
-  const scrollChannelResult = await client.query(
-    `INSERT INTO channel (id_text, feed_id, medium_id, title)
-     VALUES (
-       $1,
-       $2,
-       (SELECT id FROM medium WHERE value = 'podcast' LIMIT 1),
-       'E2E Embed Scroll Channel'
-     )
-     RETURNING id`,
-    [E2E_EMBED_SCROLL_CHANNEL_ID_TEXT, scrollFeedId]
-  );
-  const scrollChannelId = scrollChannelResult.rows[0].id;
-
-  await client.query(`INSERT INTO channel_about (channel_id) VALUES ($1)`, [scrollChannelId]);
-  await client.query(
-    `INSERT INTO channel_description (channel_id, value)
-     VALUES ($1, $2)`,
-    [scrollChannelId, 'E2E seeded podcast channel with many items for embed list scroll tests.']
-  );
-  await client.query(
-    `INSERT INTO channel_image (channel_id, url, image_width_size)
-     VALUES ($1, 'https://e2e-seed-embed-scroll.example/channel-art.png', 1400)`,
-    [scrollChannelId]
-  );
-
-  async function insertScrollChannelItem({ idText, guidSlug, title, pubDateOffsetSeconds }) {
-    const itemResult = await client.query(
-      `INSERT INTO item (
-         id_text,
-         channel_id,
-         guid,
-         pub_date,
-         title,
-         item_flag_status_id
-       )
-       VALUES ($1, $2, $3, NOW() - ($5::int * INTERVAL '1 second'), $4, 1)
-       RETURNING id`,
-      [
-        idText,
-        scrollChannelId,
-        `${E2E_EMBED_SCROLL_FEED_URL}#${guidSlug}`,
-        title,
-        pubDateOffsetSeconds,
-      ]
-    );
-    const itemId = itemResult.rows[0].id;
-
-    await client.query(
-      `INSERT INTO item_about (item_id, duration)
-       VALUES ($1, $2)`,
-      [itemId, E2E_PODCAST_ITEM_RESUME_DURATION_SECONDS]
-    );
-    await client.query(
-      `INSERT INTO item_description (item_id, value)
-       VALUES ($1, $2)`,
-      [itemId, `${title} deterministic E2E embed scroll fixture.`]
-    );
-    await client.query(
-      `INSERT INTO item_image (item_id, url, image_width_size)
-       VALUES ($1, 'https://e2e-seed-embed-scroll.example/item-art.png', 1400)`,
-      [itemId]
-    );
-
-    const enclosureResult = await client.query(
-      `INSERT INTO item_enclosure (item_id, type, length, bitrate, item_enclosure_default)
-       VALUES ($1, 'audio/mpeg', 0, 24, true)
-       RETURNING id`,
-      [itemId]
-    );
-    const enclosureId = enclosureResult.rows[0].id;
-
-    await client.query(
-      `INSERT INTO item_enclosure_source (item_enclosure_id, uri, content_type)
-       VALUES ($1, $2, 'audio/mpeg')`,
-      [enclosureId, E2E_PODCAST_SHORT_ENCLOSURE_URL]
-    );
-
-    return itemId;
-  }
-
-  for (let index = 1; index <= E2E_EMBED_SCROLL_ITEM_COUNT; index += 1) {
-    const paddedIndex = String(index).padStart(2, '0');
-    await insertScrollChannelItem({
-      idText: `e2eEmbScrIt${paddedIndex}`,
-      guidSlug: `scroll-item-${paddedIndex}`,
-      title: `E2E Embed Scroll Item ${index}`,
-      pubDateOffsetSeconds: (E2E_EMBED_SCROLL_ITEM_COUNT - index) * 3600,
-    });
-  }
-
-  console.log(
-    `Seeded embed scroll E2E channel ${E2E_EMBED_SCROLL_CHANNEL_ID_TEXT} (${E2E_EMBED_SCROLL_ITEM_COUNT} items; default row e2eEmbScrIt01)`
-  );
-
-  await client.query(`DELETE FROM feed WHERE podcast_index_id = $1 OR url = $2`, [
-    E2E_EMBED_PRIVATE_CHANNEL_FEED_PI_ID,
-    E2E_EMBED_PRIVATE_CHANNEL_FEED_URL,
-  ]);
-
-  const privateChannelFeedResult = await client.query(
-    `INSERT INTO feed (url, podcast_index_id)
-     VALUES ($1, $2)
-     RETURNING id`,
-    [E2E_EMBED_PRIVATE_CHANNEL_FEED_URL, E2E_EMBED_PRIVATE_CHANNEL_FEED_PI_ID]
-  );
-  const privateChannelFeedId = privateChannelFeedResult.rows[0].id;
-
-  await client.query(`INSERT INTO feed_log (feed_id) VALUES ($1)`, [privateChannelFeedId]);
-  await client.query(
-    `INSERT INTO feed_policy (feed_id, parse_allowed, public_visible, add_allowed)
-     VALUES ($1, true, false, true)`,
-    [privateChannelFeedId]
-  );
-
-  const privateChannelResult = await client.query(
-    `INSERT INTO channel (id_text, feed_id, medium_id, title)
-     VALUES (
-       $1,
-       $2,
-       (SELECT id FROM medium WHERE value = 'podcast' LIMIT 1),
-       'E2E Embed Private Channel'
-     )
-     RETURNING id`,
-    [E2E_EMBED_PRIVATE_CHANNEL_ID_TEXT, privateChannelFeedId]
-  );
-  const privateChannelId = privateChannelResult.rows[0].id;
-
-  await client.query(`INSERT INTO channel_about (channel_id) VALUES ($1)`, [privateChannelId]);
-  await client.query(
-    `INSERT INTO channel_description (channel_id, value)
-     VALUES ($1, $2)`,
-    [privateChannelId, 'Non-public channel for embed not-available tests.']
-  );
-  await client.query(
-    `INSERT INTO channel_image (channel_id, url, image_width_size)
-     VALUES ($1, 'https://e2e-seed-embed-private.example/channel-art.png', 1400)`,
-    [privateChannelId]
-  );
-
-  console.log(
-    `Seeded embed private E2E channel ${E2E_EMBED_PRIVATE_CHANNEL_ID_TEXT} (feed_policy.public_visible=false)`
-  );
+  const accountId = await resolveSeedAccountId(client, passwordHash, invitePlaceholderPasswordHash);
+  await seedMediaPlayerAndEmbedFixtures(client, accountId);
 
   await client.end();
   console.log('Web E2E seed complete.');

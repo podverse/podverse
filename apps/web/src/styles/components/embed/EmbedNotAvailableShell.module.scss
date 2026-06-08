@@ -1,20 +1,22 @@
+@use './embedLayout' as embed;
+
 .shell {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 260px;
-  overflow: hidden;
   background: var(--color-surface-primary);
   color: var(--color-text-primary);
+  display: flex;
+  flex-direction: column;
+  height: embed.$embed-single-audio-shell-height;
+  overflow: hidden;
+  width: 100%;
 }
 
 .messageRegion {
   align-items: center;
   display: flex;
   flex: 1 1 auto;
+  height: 100%;
   justify-content: center;
-  min-height: 0;
-  padding: var(--space-sm);
+  padding: var(--spacing-sm);
 }
 
 .message {

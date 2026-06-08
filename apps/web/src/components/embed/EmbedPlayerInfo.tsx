@@ -6,10 +6,13 @@ import { useMemo } from 'react';
 import { ImageNonReact } from '@podverse/ui';
 
 import { IMAGES } from '../../constants/images';
+import { useConfig } from '../../contexts/Config';
+import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
 import { useMediaPlayerCurrentTime } from '../../contexts/MediaPlayerCurrentTime';
 import type { EmbedSingleResourcePayload } from '../../lib/embed/fetchEmbedSingleResource';
 import { formatEmbedDisplayTitle } from '../../lib/embed/formatEmbedDisplayTitle';
+import { getBrandLogoSrc } from '../../utils/brandLogo';
 import {
   buildMediaPlayerArtworkImageCandidates,
   getMediaPlayerArtworkSources,
@@ -26,6 +29,8 @@ type EmbedPlayerInfoProps = {
 };
 
 export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerInfoProps) {
+  const config = useConfig();
+  const { uiTheme } = useLocalSettings();
   const { mpChannel, mpItem, mpAddByRSS, mpItemChapter, mpItemChapters, mpClip, mpItemSoundbite } =
     useMediaPlayer();
   const { mpCurrentTime } = useMediaPlayerCurrentTime();
@@ -85,12 +90,43 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
       imageSizeComparison: 'greater',
     });
 
+    const fallback = IMAGES.SRC.EMBED_PLACEHOLDER;
     if (candidates.length === 0) {
-      return [IMAGES.SRC.PLACEHOLDER];
+      return [fallback];
+    }
+
+    if (candidates[candidates.length - 1] !== fallback) {
+      return [...candidates, fallback];
     }
 
     return candidates;
   }, [channelImages, clip, itemChapter, itemImages, itemSoundbite]);
+
+  // #region agent log
+  useMemo(() => {
+    fetch('http://127.0.0.1:7492/ingest/b00b7ad8-3302-43b6-ba18-0bcb911f8469', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '904d64' },
+      body: JSON.stringify({
+        sessionId: '904d64',
+        runId: 'post-fix',
+        hypothesisId: 'H1-H4',
+        location: 'EmbedPlayerInfo.tsx:artImageCandidates',
+        message: 'embed artwork sources and candidates',
+        data: {
+          channelImageUrls: channelImages?.map((img) => img.url) ?? [],
+          itemImageUrls: itemImages?.map((img) => img.url) ?? [],
+          artImageCandidates,
+          hasPlayerContent,
+          itemIdText: item?.id_text ?? null,
+          channelIdText: channel?.id_text ?? null,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    return null;
+  }, [artImageCandidates, channel?.id_text, channelImages, hasPlayerContent, item?.id_text, itemImages]);
+  // #endregion
 
   if (
     (channelTitle === null || channelTitle === '') &&
@@ -107,19 +143,31 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
           alt={tMediaPlayer('media_player_image')}
           candidates={artImageCandidates}
           className={styles.image}
+          skipProxy
         />
       </div>
       <div className={styles.textSection}>
-        {channelTitle !== null && channelTitle !== '' ? (
-          <p className={styles.channelTitle} data-testid="embed-channel-title">
-            {channelTitle}
-          </p>
-        ) : null}
-        {itemTitle !== null && itemTitle !== '' ? (
-          <p className={styles.title} data-testid="embed-title">
-            {itemTitle}
-          </p>
-        ) : null}
+        <div className={styles.titleAndLogoRow}>
+          <div className={styles.titleStack}>
+            {channelTitle !== null && channelTitle !== '' ? (
+              <span className={styles.channelTitle} data-testid="embed-channel-title">
+                {channelTitle}
+              </span>
+            ) : null}
+            {itemTitle !== null && itemTitle !== '' ? (
+              <span className={styles.title} data-testid="embed-title">
+                {itemTitle}
+              </span>
+            ) : null}
+          </div>
+          <div className={styles.brandLogoWrapper} data-testid="embed-brand-logo">
+            <ImageNonReact
+              alt={config.public.brand.name}
+              candidates={[getBrandLogoSrc(uiTheme)]}
+              className={styles.brandLogo}
+            />
+          </div>
+        </div>
         {publishDate !== null && publishDate !== '' ? (
           <span className={styles.publishDateBadge} data-testid="embed-publish-date">
             <ReadableDate date={publishDate} />

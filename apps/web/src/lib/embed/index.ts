@@ -13,6 +13,7 @@ export {
   buildEmbedIframeCode,
   DEFAULT_LIST_IFRAME_HEIGHT,
   DEFAULT_SINGLE_IFRAME_HEIGHT,
+  EMBED_IFRAME_ALLOW,
   getEmbedIframeHeightForRouteKind,
 } from './buildEmbedIframeCode';
 export { buildEmbedRuntime } from './buildEmbedRuntime';

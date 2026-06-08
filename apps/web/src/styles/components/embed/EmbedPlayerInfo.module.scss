@@ -1,18 +1,21 @@
 @use '../../mixins/ellipsis' as *;
+@use './embedLayout' as embed;
 
 .info {
   display: flex;
   flex: 0 0 auto;
-  gap: var(--space-sm);
+  gap: var(--spacing-sm);
+  height: embed.$embed-player-info-height;
+  min-height: embed.$embed-player-info-height;
   min-width: 0;
 }
 
 .imageWrapper {
   flex: 0 0 auto;
-  height: 76px;
-  min-height: 76px;
-  min-width: 76px;
-  width: 76px;
+  height: embed.$embed-player-info-height;
+  min-height: embed.$embed-player-info-height;
+  min-width: embed.$embed-player-info-height;
+  width: embed.$embed-player-info-height;
 }
 
 .image {
@@ -26,24 +29,59 @@
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: var(--space-2xs);
+  gap: var(--spacing-xs);
   justify-content: center;
   min-width: 0;
+}
+
+.titleAndLogoRow {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--spacing-xs);
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.titleStack {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  min-width: 0;
+}
+
+.brandLogoWrapper {
+  border-radius: var(--radius-sm);
+  flex: 0 0 auto;
+  height: embed.$embed-brand-logo-height;
+  min-height: embed.$embed-brand-logo-height;
+  width: embed.$embed-brand-logo-height;
+}
+
+.brandLogo {
+  border-radius: var(--radius-sm);
+  display: block;
+  height: 100%;
+  object-fit: contain;
+  width: 100%;
 }
 
 .channelTitle {
   @include ellipsisSingleLineChild;
 
   color: var(--color-text-secondary);
-  font-size: var(--font-size-xs);
+  display: block;
+  font-size: var(--font-size-sm);
   margin: 0;
 }
 
 .title {
   @include ellipsisSingleLineChild;
 
+  color: var(--color-text-primary);
+  display: block;
   font-size: var(--font-size-md);
-  font-weight: 700;
+  font-weight: var(--font-weight-normal);
   margin: 0;
 }
 
@@ -53,8 +91,9 @@
   align-self: flex-start;
   background: var(--color-surface-secondary);
   border-radius: var(--radius-sm);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-xs);
+  color: var(--text-color-accent);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
   max-width: 100%;
-  padding: var(--space-2xs) var(--space-xs);
+  padding: var(--spacing-xs) var(--spacing-xs);
 }

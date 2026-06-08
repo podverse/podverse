@@ -1,12 +1,11 @@
 import { expect, test } from '@playwright/test';
 
 import { expectEmbedDemoLinkResolves } from './helpers/embedAssertions';
+import { E2E_EMBED_DEMO_SHOWCASE_IDS } from './helpers/seedConstants';
 import { capturePageLoad } from './helpers/stepScreenshots';
 
-const SHOWCASE_IDS = ['episode', 'track', 'podcast', 'album', 'playlist'] as const;
-
 test.describe('Embed demo index', () => {
-  test('Demo index shows live previews and links resolve to embed shells', async ({
+  test('Demo index shows deterministic fixture previews and links resolve to embed shells', async ({
     page,
   }, testInfo) => {
     await page.goto('/embed');
@@ -14,25 +13,23 @@ test.describe('Embed demo index', () => {
     await expect(page.getByRole('heading', { name: 'Single-item embeds' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'List embeds' })).toBeVisible();
 
-    for (const showcaseId of SHOWCASE_IDS) {
+    for (const showcaseId of E2E_EMBED_DEMO_SHOWCASE_IDS) {
       await expect(page.getByTestId(`embed-demo-preview-${showcaseId}`)).toBeVisible();
+      const frameContainer = page.getByTestId(`embed-demo-frame-${showcaseId}`);
+      await expect(frameContainer).toBeVisible();
+      await expect(frameContainer).toHaveCSS('border-top-style', 'solid');
+      await expect(frameContainer).toHaveCSS('border-top-width', '1px');
 
       const iframe = page.getByTestId(`embed-demo-iframe-${showcaseId}`);
-      const unavailable = page.getByTestId(`embed-demo-unavailable-${showcaseId}`);
+      await expect(iframe).toBeVisible();
+      await expect(iframe).toHaveCSS('border-top-width', '0px');
 
-      const hasIframe = await iframe.isVisible();
-      const hasUnavailable = await unavailable.isVisible();
+      const frame = page.frameLocator(`[data-testid="embed-demo-iframe-${showcaseId}"]`);
+      const embedRoot = frame.getByTestId('embed-root');
+      const notFoundShell = frame.getByTestId('embed-not-found-shell');
+      const notAvailableShell = frame.getByTestId('embed-not-available');
 
-      expect(hasIframe || hasUnavailable).toBe(true);
-
-      if (hasIframe) {
-        const frame = page.frameLocator(`[data-testid="embed-demo-iframe-${showcaseId}"]`);
-        const embedRoot = frame.getByTestId('embed-root');
-        const notFoundShell = frame.getByTestId('embed-not-found-shell');
-        const notAvailableShell = frame.getByTestId('embed-not-available');
-
-        await expect(embedRoot.or(notFoundShell).or(notAvailableShell)).toBeVisible();
-      }
+      await expect(embedRoot.or(notFoundShell).or(notAvailableShell)).toBeVisible();
     }
 
     const demoLinks = page.locator('a[href^="/embed/"]');
@@ -46,12 +43,12 @@ test.describe('Embed demo index', () => {
       ),
     ];
 
-    expect(hrefs.length).toBeGreaterThan(0);
+    expect(hrefs.length).toBeGreaterThanOrEqual(E2E_EMBED_DEMO_SHOWCASE_IDS.length);
 
     await capturePageLoad(
       page,
       testInfo,
-      'The embed demo index lists live iframe previews resolved from list APIs.',
+      'The embed demo index lists deterministic fixture iframe previews for every showcase slot.',
       page.getByRole('heading', { name: 'Embed demos' })
     );
 

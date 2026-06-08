@@ -50,6 +50,13 @@ List routes only:
 - **Playlists:** must have public `sharable_status` only. Private or unlisted playlists render
   `embed-not-available` with no row/title leakage.
 
+## Mixed list/playlist presentation
+
+When a list embed contains both audio and video rows (for example playlist `e2eEmbPlMix01`), the
+shell shows an **Audio / Video** presentation-style selector. The selector controls panel layout
+and placeholder sizing only; audio rows still load playback resources and video remains
+placeholder-only in phase 1.
+
 ## Iframe integration
 
 Generate URLs with `buildEmbedUrl()` and snippets with `buildEmbedIframeCode()`:
@@ -58,22 +65,75 @@ Generate URLs with `buildEmbedUrl()` and snippets with `buildEmbedIframeCode()`:
 <iframe
   src="https://example.test/embed/episode/your-item-id?autoplay=true&amp;t=30"
   width="100%"
-  height="260"
+  height="284"
   frameborder="0"
-  allow="autoplay; encrypted-media"
+  allow="autoplay"
   title="Podverse embed"
 ></iframe>
 ```
 
-Heights: **260px** single embed, **720px** list embed.
+The `allow` value is defined once as `EMBED_IFRAME_ALLOW` in `buildEmbedIframeCode.ts` and reused by generated snippets and in-app preview iframes.
+
+Heights (from `buildEmbedIframeCode.ts`):
+
+| Layout | Audio style | Video style |
+| --- | --- | --- |
+| Single | 284px | 444px |
+| List | 744px | 884px |
 
 Share modal → **Create Embed** opens the builder with live preview and copyable code.
 
-## E2E fixtures
+## Deterministic fixtures (local dev + E2E)
 
-Seeded IDs are documented on `/embed` and in `apps/web/e2e/helpers/seedConstants.ts`
-(`E2E_EMBED_*` constants). Re-seed with `make e2e_seed_web` after changing
-`tools/web/seed-e2e.mjs`.
+Canonical fixture ids live in:
+
+- `tools/web/embed-fixture-constants.mjs` (seed scripts)
+- `apps/web/src/lib/embed/embedFixtureIds.ts` (runtime demo links)
+- `apps/web/e2e/helpers/seedConstants.ts` (Playwright)
+
+Shared seed core: `tools/web/seed-embed-fixtures.mjs` (called from `tools/web/seed-e2e.mjs`).
+
+| Command | Database | Notes |
+| --- | --- | --- |
+| `make e2e_seed_web` | E2E test DB (port 5732) | Full account truncate + fixtures |
+| `make local_seed_embed` | Local dev DB (port 5432) | Media/embed fixtures only; does not truncate accounts |
+
+Local bootstrap:
+
+1. `make local_env_setup` (and `make local_db_init` / `make local_infra_up` as needed)
+2. Start test-assets on port 2111: `npm run start -w podverse-test-assets`
+3. `make local_seed_embed`
+4. Open `/embed` — fixture mode is on in development (`NODE_ENV=development`) or when
+   `EMBED_DEMO_USE_FIXTURES=true` (E2E sets this in `playwright.e2e-server-env.ts`)
+
+Album list embeds use channel id **`e2eMusicAlbm01`** (not the music channel id).
+
+### Fixture images (test-assets port 2111)
+
+Embed seed scripts store channel and item artwork URLs that resolve to committed PNGs under
+`tools/test-assets/assets/e2e/images/` (served at `http://localhost:2111/e2e/images/…`).
+
+| Constant (seed) | File | Use |
+| --- | --- | --- |
+| `EMBED_FIXTURE_CHANNEL_IMAGE_URL` | `e2e-embed-channel-art-1400.png` | `channel_image` rows for embed fixtures |
+| `EMBED_FIXTURE_ITEM_IMAGE_URL` | `e2e-embed-item-art-1400.png` | `item_image` rows for embed fixtures |
+| `EMBED_FIXTURE_PLACEHOLDER_IMAGE_URL` | `e2e-embed-placeholder.png` | Test-assets mirror of app placeholder |
+
+Regenerate binaries:
+
+```bash
+npm run generate:e2e-images -w podverse-test-assets
+```
+
+Canonical URL constants live in `tools/web/embed-fixture-constants.mjs` (mirror:
+`apps/web/src/lib/embed/embedFixtureIds.ts`, `apps/web/e2e/helpers/seedConstants.ts`).
+
+### Artwork fallback in the embed UI
+
+`EmbedPlayerInfo` appends `IMAGES.SRC.EMBED_PLACEHOLDER` (`/images/placeholder-image.png`) as the
+final `ImageNonReact` candidate with `skipProxy`, so failed or missing remote artwork transitions to
+the app placeholder instead of an indefinite loading spinner. `ImageNonReact` also shows the runtime
+placeholder when all candidates are exhausted.
 
 Default list rows (with current seed):
 
@@ -82,6 +142,7 @@ Default list rows (with current seed):
 | `/embed/podcast/e2ePodChnl001` | `e2ePodResume01` (sort `recent`) |
 | `/embed/album/e2eMusicAlbm01` | `e2eMusicTrk002` (sort `forward`) |
 | `/embed/playlist/e2eEmbPlList01` | `e2ePodResume01` (first resource) |
+| `/embed/playlist/e2eEmbPlMix01` | `e2ePodResume01` (mixed audio + video resources) |
 
 ## Phase-1 limitations
 

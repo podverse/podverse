@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { buildLabeledItemEnclosures } from '@podverse/helpers';
 
@@ -24,7 +24,12 @@ export function useEmbedPlaybackLoad({
   enabled,
 }: UseEmbedPlaybackLoadInput): void {
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
+  const mediaPlayerResourceUpdateRef = useRef(mediaPlayerResourceUpdate);
   const { setMPItemLabeledItemEnclosures } = useMediaPlayer();
+
+  useEffect(() => {
+    mediaPlayerResourceUpdateRef.current = mediaPlayerResourceUpdate;
+  }, [mediaPlayerResourceUpdate]);
 
   useEffect(() => {
     if (!enabled || resource === null) {
@@ -34,7 +39,7 @@ export function useEmbedPlaybackLoad({
     const target = buildEmbedSinglePlaybackTarget(resource);
     const explicitPlaybackSeconds = startSeconds > 0 ? startSeconds : undefined;
 
-    mediaPlayerResourceUpdate({
+    mediaPlayerResourceUpdateRef.current({
       target,
       explicitPlaybackSeconds,
       itemChapterShouldSeek: resource.itemChapter !== null,
@@ -50,7 +55,6 @@ export function useEmbedPlaybackLoad({
     setMPItemLabeledItemEnclosures(labeledEnclosures);
   }, [
     enabled,
-    mediaPlayerResourceUpdate,
     resource?.clip?.id_text,
     resource?.item.id_text,
     resource?.itemChapter?.id_text,

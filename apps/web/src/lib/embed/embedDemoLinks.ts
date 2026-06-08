@@ -1,4 +1,9 @@
-import type { EmbedRouteKind } from './embedTypes';
+import {
+  buildEmbedFixtureDemoHref,
+  EMBED_FIXTURE_DEMO_SPECS,
+  shouldUseEmbedDemoFixtures,
+} from './embedFixtureIds';
+import type { EmbedMediaType, EmbedRouteKind } from './embedTypes';
 
 export type EmbedDemoShowcaseSpec = {
   showcaseId: string;
@@ -11,31 +16,31 @@ export type EmbedDemoShowcaseEntry = EmbedDemoShowcaseSpec & {
   note: string | null;
 };
 
-/** Primary embed demo slots on `/embed`; hrefs are resolved at request time from list APIs. */
-export const EMBED_DEMO_SHOWCASE_SPECS: EmbedDemoShowcaseSpec[] = [
-  {
-    showcaseId: 'episode',
-    label: 'Episode',
-    routeKind: 'episode',
-  },
-  {
-    showcaseId: 'track',
-    label: 'Track',
-    routeKind: 'track',
-  },
-  {
-    showcaseId: 'podcast',
-    label: 'Podcast',
-    routeKind: 'podcast',
-  },
-  {
-    showcaseId: 'album',
-    label: 'Album',
-    routeKind: 'album',
-  },
-  {
-    showcaseId: 'playlist',
-    label: 'Playlist',
-    routeKind: 'playlist',
-  },
-];
+/** Primary embed demo slots on `/embed`. */
+export const EMBED_DEMO_SHOWCASE_SPECS: EmbedDemoShowcaseSpec[] = EMBED_FIXTURE_DEMO_SPECS.map(
+  ({ showcaseId, label, routeKind }) => ({
+    showcaseId,
+    label,
+    routeKind,
+  })
+);
+
+export function resolveEmbedDemoShowcaseFromFixtures(): EmbedDemoShowcaseEntry[] {
+  return EMBED_FIXTURE_DEMO_SPECS.map((spec) => ({
+    showcaseId: spec.showcaseId,
+    label: spec.label,
+    routeKind: spec.routeKind,
+    href: buildEmbedFixtureDemoHref(spec.routeKind, spec.resourceIdText),
+    note: spec.note,
+  }));
+}
+
+export { shouldUseEmbedDemoFixtures };
+
+export function resolveEmbedDemoPreviewPresentationStyle(showcaseId: string): EmbedMediaType {
+  if (showcaseId.endsWith('-video')) {
+    return 'video';
+  }
+
+  return 'audio';
+}

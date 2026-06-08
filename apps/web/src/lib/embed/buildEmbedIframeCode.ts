@@ -1,13 +1,40 @@
-import type { EmbedRouteKind } from './embedTypes';
+import type { EmbedLayoutType, EmbedMediaType, EmbedRouteKind } from './embedTypes';
 import { getEmbedLayoutType } from './getEmbedLayoutType';
 
-export const DEFAULT_SINGLE_IFRAME_HEIGHT = 260;
-export const DEFAULT_LIST_IFRAME_HEIGHT = 720;
+/** Permissions Policy `allow` value for Podverse embed iframes (autoplay only). */
+export const EMBED_IFRAME_ALLOW = 'autoplay';
 
-export function getEmbedIframeHeightForRouteKind(routeKind: EmbedRouteKind): number {
-  return getEmbedLayoutType(routeKind) === 'list'
-    ? DEFAULT_LIST_IFRAME_HEIGHT
-    : DEFAULT_SINGLE_IFRAME_HEIGHT;
+export const DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT = 284;
+export const DEFAULT_SINGLE_VIDEO_IFRAME_HEIGHT = 444;
+export const DEFAULT_LIST_AUDIO_IFRAME_HEIGHT = 744;
+export const DEFAULT_LIST_VIDEO_IFRAME_HEIGHT = 884;
+
+/** @deprecated Use DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT */
+export const DEFAULT_SINGLE_IFRAME_HEIGHT = DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT;
+
+/** @deprecated Use DEFAULT_LIST_AUDIO_IFRAME_HEIGHT */
+export const DEFAULT_LIST_IFRAME_HEIGHT = DEFAULT_LIST_AUDIO_IFRAME_HEIGHT;
+
+export function getEmbedIframeHeightForPresentation(
+  layoutType: EmbedLayoutType,
+  presentationStyle: EmbedMediaType
+): number {
+  if (layoutType === 'list') {
+    return presentationStyle === 'video'
+      ? DEFAULT_LIST_VIDEO_IFRAME_HEIGHT
+      : DEFAULT_LIST_AUDIO_IFRAME_HEIGHT;
+  }
+
+  return presentationStyle === 'video'
+    ? DEFAULT_SINGLE_VIDEO_IFRAME_HEIGHT
+    : DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT;
+}
+
+export function getEmbedIframeHeightForRouteKind(
+  routeKind: EmbedRouteKind,
+  presentationStyle: EmbedMediaType = 'audio'
+): number {
+  return getEmbedIframeHeightForPresentation(getEmbedLayoutType(routeKind), presentationStyle);
 }
 
 export function buildEmbedIframeCode(
@@ -20,7 +47,7 @@ export function buildEmbedIframeCode(
 ): string {
   const title = options?.title ?? 'Podverse embed';
   const width = options?.width ?? '100%';
-  const height = options?.height ?? DEFAULT_SINGLE_IFRAME_HEIGHT;
+  const height = options?.height ?? DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT;
 
-  return `<iframe src="${embedUrl}" width="${width}" height="${height}" frameborder="0" allow="autoplay; encrypted-media" title="${title}"></iframe>`;
+  return `<iframe src="${embedUrl}" width="${width}" height="${height}" frameborder="0" allow="${EMBED_IFRAME_ALLOW}" title="${title}"></iframe>`;
 }

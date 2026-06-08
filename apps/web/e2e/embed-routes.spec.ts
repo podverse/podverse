@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 
 import {
   EMBED_LIST_SHELL_HEIGHT,
+  EMBED_LIST_SHELL_VIDEO_HEIGHT,
   EMBED_SINGLE_SHELL_HEIGHT,
   expectEmbedAudioPlayerMetadata,
   expectEmbedListActiveRowLabel,
@@ -23,6 +24,7 @@ import {
   E2E_EMBED_INVALID_PLAY_ID_TEXT,
   E2E_EMBED_PLAYLIST_DEFAULT_ITEM_ID_TEXT,
   E2E_EMBED_PLAYLIST_ID_TEXT,
+  E2E_EMBED_PLAYLIST_MIXED_ID_TEXT,
   E2E_EMBED_PODCAST_LIST_DEFAULT_ITEM_ID_TEXT,
   E2E_EMBED_PRIVATE_CHANNEL_ID_TEXT,
   E2E_EMBED_PRIVATE_PLAYLIST_ID_TEXT,
@@ -166,6 +168,26 @@ test.describe('Embed routes (anonymous)', () => {
       await expectEmbedListShell(page);
       await expectEmbedVideoPlaceholder(page);
     });
+
+    await test.step('Mixed playlist exposes audio/video presentation style switching', async () => {
+      await page.goto(`/embed/playlist/${E2E_EMBED_PLAYLIST_MIXED_ID_TEXT}`);
+      await expectEmbedListShell(page);
+      await expect(page.getByTestId('embed-presentation-style-selector')).toBeVisible();
+      await expectEmbedListActiveRowLabel(page, 'E2E Podcast Resume P > 0');
+      await expectEmbedPlayerProgressVisible(page);
+      await expectEmbedShellHeightStable(page.getByTestId('embed-list-shell'), EMBED_LIST_SHELL_HEIGHT);
+
+      await page.getByRole('radio', { name: 'Video' }).check();
+      await expectEmbedVideoPlaceholder(page);
+      await expectEmbedShellHeightStable(
+        page.getByTestId('embed-list-shell'),
+        EMBED_LIST_SHELL_VIDEO_HEIGHT
+      );
+
+      await page.getByRole('radio', { name: 'Audio' }).check();
+      await expectEmbedPlayerProgressVisible(page);
+      await expect(page.getByTestId('embed-video-placeholder')).toHaveCount(0);
+    });
   });
 
   test('List embed play_id_text override and fallback behave predictably', async ({ page }) => {
@@ -200,7 +222,7 @@ test.describe('Embed routes (anonymous)', () => {
   });
 
   test('List embed shell uses fixed height and internal scrolling', async ({ page }, testInfo) => {
-    await test.step('The podcast list shell is about 720px tall', async () => {
+    await test.step('The podcast list shell is about 744px tall', async () => {
       await page.goto(`/embed/podcast/${E2E_PODCAST_CHANNEL_ID_TEXT}`);
       await expectEmbedListShell(page);
       await expectEmbedShellHeightStable(page.getByTestId('embed-list-shell'), EMBED_LIST_SHELL_HEIGHT);

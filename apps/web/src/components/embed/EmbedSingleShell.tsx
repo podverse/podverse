@@ -3,7 +3,6 @@
 import { useEmbedSinglePlaybackLoad } from '../../hooks/useEmbedSinglePlaybackLoad';
 import type { EmbedMediaType, EmbedSharedQueryParams } from '../../lib/embed/embedTypes';
 import type { EmbedSingleResourcePayload } from '../../lib/embed/fetchEmbedSingleResource';
-import { EmbedFooter } from './EmbedFooter';
 import { EmbedPlayerPanel } from './EmbedPlayerPanel';
 
 import styles from '../../styles/components/embed/EmbedSingleShell.module.scss';
@@ -20,9 +19,11 @@ export function EmbedSingleShell({ resource, sharedQuery, mediaType }: EmbedSing
   useEmbedSinglePlaybackLoad(resource, sharedQuery, isAudio);
 
   return (
-    <section className={styles.shell} data-testid="embed-single-shell">
-      <EmbedPlayerPanel fallbackResource={resource} mediaType={mediaType} />
-      <EmbedFooter />
+    <section
+      className={mediaType === 'video' ? `${styles.shell} ${styles.shellVideo}` : styles.shell}
+      data-testid="embed-single-shell"
+    >
+      <EmbedPlayerPanel fallbackResource={resource} mediaType={mediaType} panelLayout="single" />
     </section>
   );
 }

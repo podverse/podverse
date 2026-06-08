@@ -12,6 +12,8 @@ import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import {
   EMBED_DEMO_SHOWCASE_SPECS,
   type EmbedDemoShowcaseEntry,
+  resolveEmbedDemoShowcaseFromFixtures,
+  shouldUseEmbedDemoFixtures,
 } from './embedDemoLinks';
 import { isEmbedChannelEmbeddable, isEmbedPlaylistEmbeddable } from './embedVisibility';
 
@@ -222,8 +224,12 @@ async function resolvePlaylistHref(
   return null;
 }
 
-export async function resolveEmbedDemoShowcase(): Promise<EmbedDemoShowcaseEntry[]> {
+async function resolveEmbedDemoShowcaseFromApi(): Promise<EmbedDemoShowcaseEntry[]> {
   const { isValidAuthSession, ssrApiRequestService: api } = await getSSRAuthService();
+
+  const legacySpecs = EMBED_DEMO_SHOWCASE_SPECS.filter((spec) =>
+    ['episode', 'track', 'podcast', 'album', 'playlist'].includes(spec.showcaseId)
+  );
 
   const [avChannels, musicChannels] = await Promise.all([
     fetchEmbeddableChannels(api, 'av', isValidAuthSession),
@@ -250,10 +256,7 @@ export async function resolveEmbedDemoShowcase(): Promise<EmbedDemoShowcaseEntry
   const podcastChannel = avChannels[0] ?? null;
   const albumChannel = musicChannels[0] ?? null;
 
-  const resolvedByShowcaseId: Record<
-    string,
-    { href: string | null; note: string | null }
-  > = {
+  const resolvedByShowcaseId: Record<string, { href: string | null; note: string | null }> = {
     episode: {
       href: episodeItem !== null ? `/embed/episode/${episodeItem.id_text}` : null,
       note: episodeItem?.title ?? null,
@@ -276,7 +279,7 @@ export async function resolveEmbedDemoShowcase(): Promise<EmbedDemoShowcaseEntry
     },
   };
 
-  return EMBED_DEMO_SHOWCASE_SPECS.map((spec) => {
+  return legacySpecs.map((spec) => {
     const resolved = resolvedByShowcaseId[spec.showcaseId];
     const href = resolved?.href ?? null;
 
@@ -286,4 +289,12 @@ export async function resolveEmbedDemoShowcase(): Promise<EmbedDemoShowcaseEntry
       note: resolved?.note ?? null,
     };
   });
+}
+
+export async function resolveEmbedDemoShowcase(): Promise<EmbedDemoShowcaseEntry[]> {
+  if (shouldUseEmbedDemoFixtures()) {
+    return resolveEmbedDemoShowcaseFromFixtures();
+  }
+
+  return resolveEmbedDemoShowcaseFromApi();
 }

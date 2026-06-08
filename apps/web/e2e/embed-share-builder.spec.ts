@@ -24,8 +24,13 @@ async function openEmbedBuilderFromShare(page: Page) {
 }
 
 async function expectBuilderEmbedPaths(page: Page, pathPattern: RegExp): Promise<void> {
-  const preview = page.getByTestId('embed-builder-preview').locator('iframe');
+  const previewContainer = page.getByTestId('embed-builder-preview');
+  await expect(previewContainer).toHaveCSS('border-top-style', 'solid');
+  await expect(previewContainer).toHaveCSS('border-top-width', '1px');
+
+  const preview = previewContainer.locator('iframe');
   await expect(preview).toHaveAttribute('src', pathPattern);
+  await expect(preview).toHaveCSS('border-top-width', '0px');
 
   const codeInput = page.getByTestId('embed-builder-code').locator('input');
   await expect(codeInput).toHaveValue(pathPattern);

@@ -9,6 +9,8 @@ export interface UseDropdownKeyboardNavigationProps {
   onClose: () => void;
   buttonRef: RefObject<HTMLButtonElement | null>;
   menuRef: RefObject<HTMLUListElement | null>;
+  /** When false, Enter/Space on a menu item does not close the menu (default true). */
+  closeOnItemSelect?: boolean;
 }
 
 export function useDropdownKeyboardNavigation({
@@ -17,6 +19,7 @@ export function useDropdownKeyboardNavigation({
   onClose: _onClose,
   buttonRef,
   menuRef,
+  closeOnItemSelect = true,
 }: UseDropdownKeyboardNavigationProps) {
   const [open, setOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
@@ -84,7 +87,9 @@ export function useDropdownKeyboardNavigation({
       setOpen(false);
     } else if (e.key === 'Enter' || e.key === ' ') {
       onItemSelect(focusedIndex);
-      setOpen(false);
+      if (closeOnItemSelect) {
+        setOpen(false);
+      }
       e.preventDefault();
       e.stopPropagation();
     }

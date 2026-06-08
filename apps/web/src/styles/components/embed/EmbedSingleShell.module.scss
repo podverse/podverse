@@ -1,3 +1,5 @@
+@use './embedLayout' as embed;
+
 .shell {
   background: var(--color-surface-primary);
   border: 1px solid var(--color-border-subtle);
@@ -5,7 +7,11 @@
   color: var(--color-text-primary);
   display: flex;
   flex-direction: column;
-  height: 260px;
+  height: embed.$embed-single-audio-shell-height;
   overflow: hidden;
   width: 100%;
+}
+
+.shellVideo {
+  height: embed.$embed-single-video-shell-height;
 }

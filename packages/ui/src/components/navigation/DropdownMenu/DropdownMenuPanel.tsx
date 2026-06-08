@@ -11,6 +11,8 @@ export type DropdownMenuPanelItem = {
   label: string;
   onClick: () => void;
   variant?: 'primary' | 'warning' | 'danger';
+  /** When false, selecting the item does not close the menu (default true). */
+  dismissOnSelect?: boolean;
 };
 
 export type DropdownMenuPanelProps = {
@@ -94,7 +96,9 @@ export function DropdownMenuPanel({
           )}
           onClick={() => {
             item.onClick();
-            setOpen(false);
+            if (item.dismissOnSelect !== false) {
+              setOpen(false);
+            }
           }}
           onMouseEnter={() => setFocusedIndex(idx)}
           aria-selected={focusedIndex === idx}

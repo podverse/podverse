@@ -1,7 +1,8 @@
 'use client';
 
-import { PlaybackSpeedButton } from '../MediaPlayer/Buttons/PlaybackSpeedButton';
 import { PlayButton } from '../MediaPlayer/Buttons/PlayButton';
+
+import { EmbedPlayerMoreButton } from './EmbedPlayerMoreButton';
 import { MediaPlayerProgress } from '../MediaPlayer/Sliders/MediaPlayerProgress';
 
 import styles from '../../styles/components/embed/EmbedPlayerControls.module.scss';
@@ -12,8 +13,8 @@ export function EmbedPlayerControls() {
       <div className={styles.progressRow}>
         <MediaPlayerProgress layoutVariant="embed" />
       </div>
-      <div className={styles.transportRow}>
-        <PlaybackSpeedButton />
+      <div className={styles.transportRow} data-testid="embed-player-transport">
+        <EmbedPlayerMoreButton />
         <PlayButton />
       </div>
     </div>

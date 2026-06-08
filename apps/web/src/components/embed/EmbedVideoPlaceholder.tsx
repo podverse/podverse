@@ -8,8 +8,8 @@ export function EmbedVideoPlaceholder() {
   const tFeatures = useTranslations('features');
 
   return (
-    <p className={styles.placeholder} data-testid="embed-video-placeholder">
+    <div className={styles.placeholder} data-testid="embed-video-placeholder">
       {tFeatures('embed_video_coming_soon')}
-    </p>
+    </div>
   );
 }

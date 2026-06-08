@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
 import { useEmbedPlaybackLoad } from '../../hooks/useEmbedPlaybackLoad';
@@ -8,14 +8,18 @@ import type {
   EmbedListData,
   EmbedListRow as EmbedListRowType,
 } from '../../lib/embed/embedListTypes';
-import type { EmbedSharedQueryParams } from '../../lib/embed/embedTypes';
+import type { EmbedMediaType, EmbedSharedQueryParams } from '../../lib/embed/embedTypes';
 import {
   flattenEmbedListRows,
   resolveEmbedListDefaultRow,
 } from '../../lib/embed/resolveEmbedListDefaultRow';
-import { EmbedFooter } from './EmbedFooter';
+import {
+  listHasMixedEmbedMedia,
+  resolveInitialPresentationStyle,
+} from '../../lib/embed/resolveEmbedListPresentationStyle';
 import { EmbedListRow } from './EmbedListRow';
 import { EmbedPlayerPanel } from './EmbedPlayerPanel';
+import { EmbedPresentationStyleSelector } from './EmbedPresentationStyleSelector';
 
 import groupStyles from '../../styles/components/embed/EmbedListRow.module.scss';
 import styles from '../../styles/components/embed/EmbedListShell.module.scss';
@@ -32,11 +36,21 @@ export function EmbedListShell({ listData, sharedQuery, playIdText }: EmbedListS
     () => resolveEmbedListDefaultRow(allRows, playIdText),
     [allRows, playIdText]
   );
+  const hasMixedMedia = useMemo(() => listHasMixedEmbedMedia(allRows), [allRows]);
 
   const [selectedRow, setSelectedRow] = useState<EmbedListRowType | null>(initialRow);
+  const [presentationStyle, setPresentationStyle] = useState<EmbedMediaType>(() =>
+    resolveInitialPresentationStyle(initialRow)
+  );
   const [playbackStartSeconds, setPlaybackStartSeconds] = useState(sharedQuery.startSeconds);
   const [shouldPlay, setShouldPlay] = useState(sharedQuery.autoplay);
   const { mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
+
+  useEffect(() => {
+    if (!hasMixedMedia) {
+      setPresentationStyle(resolveInitialPresentationStyle(selectedRow));
+    }
+  }, [hasMixedMedia, selectedRow]);
 
   useEmbedPlaybackLoad({
     resource: selectedRow,
@@ -54,6 +68,7 @@ export function EmbedListShell({ listData, sharedQuery, playIdText }: EmbedListS
       }
 
       setSelectedRow(row);
+      setPresentationStyle(resolveInitialPresentationStyle(row));
       setPlaybackStartSeconds(0);
       setShouldPlay(true);
     },
@@ -70,17 +85,24 @@ export function EmbedListShell({ listData, sharedQuery, playIdText }: EmbedListS
       }
     : null;
 
+  const shellClassName =
+    presentationStyle === 'video' ? `${styles.shell} ${styles.shellVideo}` : styles.shell;
+
   return (
-    <section className={styles.shell} data-testid="embed-list-shell">
+    <section className={shellClassName} data-testid="embed-list-shell">
       <EmbedPlayerPanel
         fallbackResource={selectedResource}
         headerTitle={listData.headerTitle}
-        mediaType={selectedRow?.mediaType ?? 'audio'}
+        mediaType={presentationStyle}
+        panelLayout="list"
       />
+      {hasMixedMedia ? (
+        <EmbedPresentationStyleSelector onChange={setPresentationStyle} value={presentationStyle} />
+      ) : null}
       <div className={styles.listRegion} data-testid="embed-list-region">
         {listData.groups.map((group) => (
           <div key={group.groupKey}>
-            {group.title ? <p className={groupStyles.groupTitle}>{group.title}</p> : null}
+            {group.title ? <div className={groupStyles.groupTitle}>{group.title}</div> : null}
             {group.rows.map((row) => (
               <EmbedListRow
                 key={row.rowKey}
@@ -92,7 +114,6 @@ export function EmbedListShell({ listData, sharedQuery, playIdText }: EmbedListS
           </div>
         ))}
       </div>
-      <EmbedFooter />
     </section>
   );
 }

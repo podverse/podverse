@@ -12,6 +12,7 @@ import {
   buildEmbedIframeCode,
   buildEmbedUrl,
   DEFAULT_SINGLE_IFRAME_HEIGHT,
+  EMBED_IFRAME_ALLOW,
   getEmbedIframeHeightForRouteKind,
   resolveEmbedUrlTarget,
 } from '../../lib/embed';
@@ -151,7 +152,7 @@ export const ModalEmbedBuilder: React.FC = () => {
               src={embedUrl}
               title={tFeatures('embed_preview')}
               height={previewHeight}
-              allow="autoplay; encrypted-media"
+              allow={EMBED_IFRAME_ALLOW}
             />
           ) : null}
         </div>

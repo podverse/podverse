@@ -1,8 +1,10 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect } from '@playwright/test';
 
-export const EMBED_SINGLE_SHELL_HEIGHT = 260;
-export const EMBED_LIST_SHELL_HEIGHT = 720;
+export const EMBED_SINGLE_SHELL_HEIGHT = 284;
+export const EMBED_SINGLE_SHELL_VIDEO_HEIGHT = 444;
+export const EMBED_LIST_SHELL_HEIGHT = 744;
+export const EMBED_LIST_SHELL_VIDEO_HEIGHT = 884;
 
 export async function expectEmbedRootVisible(page: Page): Promise<void> {
   await expect(page.getByTestId('embed-root')).toBeVisible();
@@ -11,13 +13,11 @@ export async function expectEmbedRootVisible(page: Page): Promise<void> {
 export async function expectEmbedSingleShell(page: Page): Promise<void> {
   await expect(page.getByTestId('embed-single-shell')).toBeVisible();
   await expect(page.getByTestId('embed-player-region')).toBeVisible();
-  await expect(page.getByTestId('embed-footer')).toBeVisible();
 }
 
 export async function expectEmbedListShell(page: Page): Promise<void> {
   await expect(page.getByTestId('embed-list-shell')).toBeVisible();
   await expect(page.getByTestId('embed-list-region')).toBeVisible();
-  await expect(page.getByTestId('embed-footer')).toBeVisible();
 }
 
 export async function expectEmbedNotFoundShell(page: Page): Promise<void> {
@@ -35,6 +35,7 @@ export async function expectEmbedVideoPlaceholder(page: Page): Promise<void> {
 export async function expectEmbedAudioPlayerMetadata(page: Page): Promise<void> {
   await expect(page.getByTestId('embed-player-info')).toBeVisible();
   await expect(page.getByTestId('embed-artwork')).toBeVisible();
+  await expect(page.getByTestId('embed-brand-logo')).toBeVisible();
   await expect(page.getByTestId('embed-channel-title')).toBeVisible();
   await expect(page.getByTestId('embed-title')).toBeVisible();
 }
