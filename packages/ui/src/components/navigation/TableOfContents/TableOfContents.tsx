@@ -26,7 +26,12 @@ export type TableOfContentsProps = {
   className?: string;
 };
 
-export function TableOfContents({ navAriaLabel, heading, sections, className }: TableOfContentsProps) {
+export function TableOfContents({
+  navAriaLabel,
+  heading,
+  sections,
+  className,
+}: TableOfContentsProps) {
   if (sections.length === 0) {
     return null;
   }

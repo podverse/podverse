@@ -4,9 +4,9 @@ import classNames from 'classnames';
 
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
 import { useEmbedItemChaptersLoad } from '../../hooks/useEmbedItemChaptersLoad';
-import { shouldEmbedShowChapterInfo } from '../../lib/embed/shouldEmbedShowChapterInfo';
 import type { EmbedMediaType, EmbedSharedQueryParams } from '../../lib/embed/embedTypes';
 import type { EmbedSingleResourcePayload } from '../../lib/embed/fetchEmbedSingleResource';
+import { shouldEmbedShowChapterInfo } from '../../lib/embed/shouldEmbedShowChapterInfo';
 import { EmbedInlineMediaMount } from './EmbedInlineMediaMount';
 import { EmbedPlayerControls } from './EmbedPlayerControls';
 import { EmbedPlayerInfo } from './EmbedPlayerInfo';

@@ -16,7 +16,9 @@ test.describe('Embed demo index', () => {
     await expect(
       page.getByRole('heading', { name: 'Podcasts, albums, and playlists' })
     ).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Table of Contents', exact: true })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Table of Contents', exact: true })
+    ).toBeVisible();
     await expect(
       page.getByRole('navigation', { name: 'Table of contents for embed examples' })
     ).toBeVisible();

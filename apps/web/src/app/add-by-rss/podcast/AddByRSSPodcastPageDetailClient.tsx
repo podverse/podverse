@@ -4,7 +4,11 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { DEDUPE_WINDOW_ADD_BY_RSS_ON_DEMAND_MS, getTotalPages, PAGINATION } from '@podverse/helpers';
+import {
+  DEDUPE_WINDOW_ADD_BY_RSS_ON_DEMAND_MS,
+  getTotalPages,
+  PAGINATION,
+} from '@podverse/helpers';
 import { getStatusCodeFromError } from '@podverse/helpers-requests';
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
 import {
