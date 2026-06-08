@@ -131,23 +131,27 @@ Local bootstrap:
 4. Open `/embed` — fixture mode is on in development (`NODE_ENV=development`) or when
    `EMBED_DEMO_USE_FIXTURES=true` (E2E sets this in `playwright.e2e-server-env.ts`)
 
-Album list embeds use channel id **`e2eMusicAlbm01`** (not the music channel id).
+Album list embeds use channel id **`embSmpAlbAud1`** (embed sample album, not the media-player music channel).
 
-### Fixture images (test-assets port 2111)
+### Embed sample assets (test-assets port 2111)
 
-Embed seed scripts store channel and item artwork URLs that resolve to committed PNGs under
-`tools/test-assets/assets/e2e/images/` (served at `http://localhost:2111/e2e/images/…`).
+Embed demo fixtures use **standalone** audio and artwork under `tools/test-assets/assets/embed/`
+(served at `http://localhost:2111/embed/audio/…` and `http://localhost:2111/embed/images/…`).
+They are separate from media-player E2E fixtures under `/e2e/`. Each image uses a distinct
+background color so it is obvious which resource type is displayed.
 
-| Constant (seed) | File | Use |
+| Resource | Display title (seed) | Image file (color) |
 | --- | --- | --- |
-| `EMBED_FIXTURE_CHANNEL_IMAGE_URL` | `e2e-embed-channel-art-1400.png` | `channel_image` rows for embed fixtures |
-| `EMBED_FIXTURE_ITEM_IMAGE_URL` | `e2e-embed-item-art-1400.png` | `item_image` rows for embed fixtures |
-| `EMBED_FIXTURE_PLACEHOLDER_IMAGE_URL` | `e2e-embed-placeholder.png` | Test-assets mirror of app placeholder |
+| Podcast channel | `Embed Sample Podcast (audio)` | `embed-sample-podcast-channel-art.png` (#1D4E89) |
+| Episode (audio) | `Embed Sample Episode (audio)` | `embed-sample-episode-audio-art.png` (#2E86AB) |
+| Album | `Embed Sample Album (audio)` | `embed-sample-album-channel-art.png` (#6B2D5C) |
+| Track (audio) | `Embed Sample Track (audio)` | `embed-sample-track-audio-art.png` (#F18F01) |
+| Clip | `Embed Sample Clip (audio)` | `embed-sample-clip-art.png` (#E9C46A) |
 
 Regenerate binaries:
 
 ```bash
-npm run generate:e2e-images -w podverse-test-assets
+npm run generate:embed-fixtures -w podverse-test-assets
 ```
 
 Canonical URL constants live in `tools/web/embed-fixture-constants.mjs` (mirror:
@@ -164,10 +168,10 @@ Default list rows (with current seed):
 
 | Route | Default row `id_text` |
 | --- | --- |
-| `/embed/podcast/e2ePodChnl001` | `e2ePodResume01` (sort `recent`) |
-| `/embed/album/e2eMusicAlbm01` | `e2eMusicTrk002` (sort `forward`) |
-| `/embed/playlist/e2eEmbPlList01` | `e2ePodResume01` (first resource) |
-| `/embed/playlist/e2eEmbPlMix01` | `e2ePodResume01` (mixed audio + video resources) |
+| `/embed/podcast/embSmpPodAud1` | `embSmpEpAud1` (sort `recent`) |
+| `/embed/album/embSmpAlbAud1` | `embSmpTrkAud2` (sort `forward`) |
+| `/embed/playlist/e2eEmbPlList01` | `embSmpEpAud1` (first resource) |
+| `/embed/playlist/e2eEmbPlMix01` | `embSmpEpAud1` (mixed audio + video resources) |
 
 ## Phase-1 limitations
 

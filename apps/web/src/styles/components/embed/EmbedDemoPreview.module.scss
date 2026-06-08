@@ -1,9 +1,16 @@
 @use './embedLayout' as embed;
 
 .preview {
+  --embed-demo-title-gap: var(--spacing-xl);
+  --embed-demo-example-gap: calc(var(--spacing-xl) + var(--spacing-2xl));
+
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xl);
+  gap: var(--embed-demo-title-gap);
+
+  &:not(:first-child) {
+    margin-top: var(--embed-demo-example-gap);
+  }
 }
 
 .frame {

@@ -92,13 +92,37 @@ export const E2E_ADD_BY_RSS_ITEM_DURATION_SECONDS = 60;
 export const E2E_ASSET_BASE_URL = 'http://localhost:2111/e2e/audio';
 export const E2E_IMAGE_ASSET_BASE_URL = 'http://localhost:2111/e2e/images';
 
-/** Sync with tools/web/embed-fixture-constants.mjs (embed channel_image seeds). */
-export const EMBED_FIXTURE_CHANNEL_IMAGE_URL = `${E2E_IMAGE_ASSET_BASE_URL}/e2e-embed-channel-art-1400.png`;
+/**
+ * Embed demo sample assets — sync with tools/web/embed-fixture-constants.mjs and
+ * apps/web/src/lib/embed/embedFixtureIds.ts (distinct from media-player E2E fixtures).
+ */
+export const EMBED_FIXTURE_ASSET_BASE_URL = 'http://localhost:2111/embed/audio';
+export const EMBED_FIXTURE_IMAGE_BASE_URL = 'http://localhost:2111/embed/images';
+export const EMBED_FIXTURE_PLACEHOLDER_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BASE_URL}/embed-sample-placeholder.png`;
 
-/** Sync with tools/web/embed-fixture-constants.mjs (embed item_image seeds). */
-export const EMBED_FIXTURE_ITEM_IMAGE_URL = `${E2E_IMAGE_ASSET_BASE_URL}/e2e-embed-item-art-1400.png`;
+export const EMBED_SAMPLE_EPISODE_AUDIO_TITLE = 'Embed Sample Episode (audio)';
+export const EMBED_SAMPLE_EPISODE_NEAR_END_TITLE = 'Embed Sample Episode (near end)';
+export const EMBED_SAMPLE_EPISODE_VIDEO_TITLE = 'Embed Sample Episode (video)';
+export const EMBED_SAMPLE_TRACK_AUDIO_TITLE = 'Embed Sample Track (audio)';
+export const EMBED_SAMPLE_TRACK_TWO_TITLE = 'Embed Sample Track Two (audio)';
+export const EMBED_SAMPLE_TRACK_VIDEO_TITLE = 'Embed Sample Track (video)';
+export const EMBED_SAMPLE_PODCAST_CHANNEL_TITLE = 'Embed Sample Podcast (audio)';
+export const EMBED_SAMPLE_ALBUM_CHANNEL_TITLE = 'Embed Sample Album (audio)';
+export const EMBED_SAMPLE_VIDEO_CHANNEL_TITLE = 'Embed Sample Podcast (video)';
+export const EMBED_SAMPLE_CLIP_TITLE = 'Embed Sample Clip (audio)';
+export const EMBED_SAMPLE_SOUNDBITE_TITLE = 'Embed Sample Official Clip (audio)';
+export const EMBED_SAMPLE_CHAPTER_TITLE = 'Intro';
+export const EMBED_SAMPLE_SCROLL_ITEM_TITLE_PREFIX = 'Embed Sample Scroll Item';
 
-export const EMBED_FIXTURE_PLACEHOLDER_IMAGE_URL = `${E2E_IMAGE_ASSET_BASE_URL}/e2e-embed-placeholder.png`;
+export const EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT = 'embSmpPodAud1';
+export const EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT = 'embSmpEpAud1';
+export const EMBED_FIXTURE_PODCAST_EPISODE_NEAR_END_ID_TEXT = 'embSmpEpAud2';
+export const EMBED_FIXTURE_MUSIC_ALBUM_ID_TEXT = 'embSmpAlbAud1';
+export const EMBED_FIXTURE_MUSIC_TRACK_AUDIO_ID_TEXT = 'embSmpTrkAud1';
+export const EMBED_FIXTURE_MUSIC_TRACK_TWO_ID_TEXT = 'embSmpTrkAud2';
+export const EMBED_FIXTURE_CLIP_AUDIO_ID_TEXT = 'embSmpClip001';
+export const EMBED_FIXTURE_SOUNDBITE_ID_TEXT = 'embSmpSbite01';
+export const EMBED_FIXTURE_CHAPTER_ID_TEXT = 'embSmpChap001';
 
 export const E2E_PODCAST_SHORT_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-short-60s-440hz.mp3`;
 export const E2E_PODCAST_RESUME_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-resume-60s-440hz.mp3`;
@@ -120,13 +144,14 @@ export const E2E_EMBED_MUSIC_TRACK_VIDEO_ID_TEXT = 'e2eEmbVidTrk01';
 export const E2E_EMBED_INVALID_PLAY_ID_TEXT = 'invalid-id-text';
 
 /** Default list row for `/embed/podcast/...` with sort=recent (newest pub_date). */
-export const E2E_EMBED_PODCAST_LIST_DEFAULT_ITEM_ID_TEXT = E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT;
+export const E2E_EMBED_PODCAST_LIST_DEFAULT_ITEM_ID_TEXT =
+  EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT;
 
 /** Default list row for `/embed/album/...` with sort=forward. */
-export const E2E_EMBED_ALBUM_LIST_DEFAULT_ITEM_ID_TEXT = E2E_MUSIC_TRACK_TWO_ID_TEXT;
+export const E2E_EMBED_ALBUM_LIST_DEFAULT_ITEM_ID_TEXT = EMBED_FIXTURE_MUSIC_TRACK_TWO_ID_TEXT;
 
 /** First playlist resource in `E2E_EMBED_PLAYLIST_ID_TEXT`. */
-export const E2E_EMBED_PLAYLIST_DEFAULT_ITEM_ID_TEXT = E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT;
+export const E2E_EMBED_PLAYLIST_DEFAULT_ITEM_ID_TEXT = EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT;
 
 /** Podcast channel with many rows for list scroll E2E (`e2eEmbScrIt01`–`e2eEmbScrIt10`). */
 export const E2E_EMBED_SCROLL_CHANNEL_ID_TEXT = 'e2eEmbScrCh01';
@@ -135,7 +160,7 @@ export const E2E_EMBED_SCROLL_CHANNEL_ID_TEXT = 'e2eEmbScrCh01';
 export const E2E_EMBED_SCROLL_DEFAULT_ITEM_ID_TEXT = 'e2eEmbScrIt01';
 
 /** Oldest scroll-channel row label for scroll-into-view assertions. */
-export const E2E_EMBED_SCROLL_LAST_ITEM_LABEL = 'E2E Embed Scroll Item 10';
+export const E2E_EMBED_SCROLL_LAST_ITEM_LABEL = `${EMBED_SAMPLE_SCROLL_ITEM_TITLE_PREFIX} 10`;
 
 /** Podcast channel with feed_policy.public_visible=false. */
 export const E2E_EMBED_PRIVATE_CHANNEL_ID_TEXT = 'e2eEmbPrvCh01';

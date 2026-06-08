@@ -20,7 +20,6 @@ import {
   expectEmbedVideoPlaceholder,
 } from './helpers/embedAssertions';
 import {
-  E2E_CLIP_ID_TEXT,
   E2E_EMBED_ALBUM_LIST_DEFAULT_ITEM_ID_TEXT,
   E2E_EMBED_INVALID_PLAY_ID_TEXT,
   E2E_EMBED_PLAYLIST_DEFAULT_ITEM_ID_TEXT,
@@ -33,27 +32,33 @@ import {
   E2E_EMBED_SCROLL_LAST_ITEM_LABEL,
   E2E_EMBED_VIDEO_CHANNEL_ID_TEXT,
   E2E_EMBED_VIDEO_ITEM_ID_TEXT,
-  E2E_ITEM_CHAPTER_INTRO_ID_TEXT,
-  E2E_MUSIC_ALBUM_ID_TEXT,
-  E2E_MUSIC_TRACK_ONE_ID_TEXT,
-  E2E_MUSIC_TRACK_TWO_ID_TEXT,
-  E2E_PODCAST_CHANNEL_ID_TEXT,
-  E2E_PODCAST_ITEM_RESUME_NEAR_END_ID_TEXT,
-  E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT,
-  E2E_SOUNDBITE_ID_TEXT,
+  EMBED_FIXTURE_CHAPTER_ID_TEXT,
+  EMBED_FIXTURE_CLIP_AUDIO_ID_TEXT,
+  EMBED_FIXTURE_MUSIC_ALBUM_ID_TEXT,
+  EMBED_FIXTURE_MUSIC_TRACK_AUDIO_ID_TEXT,
+  EMBED_FIXTURE_MUSIC_TRACK_TWO_ID_TEXT,
+  EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT,
+  EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT,
+  EMBED_FIXTURE_PODCAST_EPISODE_NEAR_END_ID_TEXT,
+  EMBED_FIXTURE_SOUNDBITE_ID_TEXT,
+  EMBED_SAMPLE_CHAPTER_TITLE,
+  EMBED_SAMPLE_EPISODE_AUDIO_TITLE,
+  EMBED_SAMPLE_EPISODE_NEAR_END_TITLE,
+  EMBED_SAMPLE_TRACK_AUDIO_TITLE,
+  EMBED_SAMPLE_TRACK_TWO_TITLE,
 } from './helpers/seedConstants';
 import { capturePageLoad } from './helpers/stepScreenshots';
 
 test.describe('Embed routes (anonymous)', () => {
   test('Single embed routes render the audio shell or video placeholder', async ({ page }, testInfo) => {
     await test.step('Episode embed loads the single audio shell', async () => {
-      await page.goto(`/embed/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`);
+      await page.goto(`/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}`);
       await expectEmbedRootVisible(page);
       await expectEmbedSingleShell(page);
       await expectEmbedAudioPlayerMetadata(page);
       await expectEmbedBrandLogoMainSiteLink(
         page,
-        `http://main.example.test/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`
+        `http://main.example.test/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}`
       );
       await expectEmbedPlayerProgressVisible(page);
       await expectEmbedTitleTruncated(page);
@@ -68,23 +73,23 @@ test.describe('Embed routes (anonymous)', () => {
     });
 
     await test.step('Track embed loads the single audio shell', async () => {
-      await page.goto(`/embed/track/${E2E_MUSIC_TRACK_ONE_ID_TEXT}`);
+      await page.goto(`/embed/track/${EMBED_FIXTURE_MUSIC_TRACK_AUDIO_ID_TEXT}`);
       await expectEmbedSingleShell(page);
     });
 
     await test.step('Clip embed loads the single audio shell', async () => {
-      await page.goto(`/embed/clip/${E2E_CLIP_ID_TEXT}`);
+      await page.goto(`/embed/clip/${EMBED_FIXTURE_CLIP_AUDIO_ID_TEXT}`);
       await expectEmbedSingleShell(page);
     });
 
     await test.step('Chapter embed appends the chapter title suffix', async () => {
-      await page.goto(`/embed/chapter/${E2E_ITEM_CHAPTER_INTRO_ID_TEXT}`);
+      await page.goto(`/embed/chapter/${EMBED_FIXTURE_CHAPTER_ID_TEXT}`);
       await expectEmbedSingleShell(page);
-      await expect(page.getByTestId('embed-title')).toContainText(' — Intro');
+      await expect(page.getByTestId('embed-title')).toContainText(` — ${EMBED_SAMPLE_CHAPTER_TITLE}`);
     });
 
     await test.step('Official clip embed loads the single audio shell', async () => {
-      await page.goto(`/embed/official-clip/${E2E_SOUNDBITE_ID_TEXT}`);
+      await page.goto(`/embed/official-clip/${EMBED_FIXTURE_SOUNDBITE_ID_TEXT}`);
       await expectEmbedSingleShell(page);
     });
 
@@ -120,7 +125,7 @@ test.describe('Embed routes (anonymous)', () => {
   });
 
   test('Track embed accepts autoplay and start-time query params', async ({ page }) => {
-    await page.goto(`/embed/track/${E2E_MUSIC_TRACK_ONE_ID_TEXT}?autoplay=true&t=10`);
+    await page.goto(`/embed/track/${EMBED_FIXTURE_MUSIC_TRACK_AUDIO_ID_TEXT}?autoplay=true&t=10`);
     await expectEmbedSingleShell(page);
     expect(page.url()).toContain('autoplay=true');
     expect(page.url()).toContain('t=10');
@@ -128,7 +133,7 @@ test.describe('Embed routes (anonymous)', () => {
 
   test('Single embed accepts autoplay and start-time query params', async ({ page }) => {
     await page.goto(
-      `/embed/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}?autoplay=true&t=42`
+      `/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}?autoplay=true&t=42`
     );
     await expectEmbedSingleShell(page);
     expect(page.url()).toContain('autoplay=true');
@@ -137,14 +142,14 @@ test.describe('Embed routes (anonymous)', () => {
 
   test('List embed routes render list shells with default row selection', async ({ page }, testInfo) => {
     await test.step('Podcast list embed selects the newest episode by default', async () => {
-      await page.goto(`/embed/podcast/${E2E_PODCAST_CHANNEL_ID_TEXT}`);
+      await page.goto(`/embed/podcast/${EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT}`);
       await expectEmbedListShell(page);
-      await expectEmbedListActiveRowLabel(page, 'E2E Podcast Resume P > 0');
+      await expectEmbedListActiveRowLabel(page, EMBED_SAMPLE_EPISODE_AUDIO_TITLE);
       await expectEmbedListRowMetadata(page);
       await expectEmbedPlayerProgressVisible(page);
-      await expect(page.getByTestId('embed-title')).toContainText('E2E Podcast Resume P > 0');
+      await expect(page.getByTestId('embed-title')).toContainText(EMBED_SAMPLE_EPISODE_AUDIO_TITLE);
       expect(E2E_EMBED_PODCAST_LIST_DEFAULT_ITEM_ID_TEXT).toBe(
-        E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT
+        EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT
       );
 
       await capturePageLoad(
@@ -156,16 +161,16 @@ test.describe('Embed routes (anonymous)', () => {
     });
 
     await test.step('Album list embed selects the forward-sort default row', async () => {
-      await page.goto(`/embed/album/${E2E_MUSIC_ALBUM_ID_TEXT}`);
+      await page.goto(`/embed/album/${EMBED_FIXTURE_MUSIC_ALBUM_ID_TEXT}`);
       await expectEmbedListShell(page);
-      await expectEmbedListActiveRowLabel(page, 'E2E Music Track Two');
-      expect(E2E_EMBED_ALBUM_LIST_DEFAULT_ITEM_ID_TEXT).toBe(E2E_MUSIC_TRACK_TWO_ID_TEXT);
+      await expectEmbedListActiveRowLabel(page, EMBED_SAMPLE_TRACK_TWO_TITLE);
+      expect(E2E_EMBED_ALBUM_LIST_DEFAULT_ITEM_ID_TEXT).toBe(EMBED_FIXTURE_MUSIC_TRACK_TWO_ID_TEXT);
     });
 
     await test.step('Public playlist list embed loads rows', async () => {
       await page.goto(`/embed/playlist/${E2E_EMBED_PLAYLIST_ID_TEXT}`);
       await expectEmbedListShell(page);
-      await expectEmbedListActiveRowLabel(page, 'E2E Podcast Resume P > 0');
+      await expectEmbedListActiveRowLabel(page, EMBED_SAMPLE_EPISODE_AUDIO_TITLE);
     });
 
     await test.step('Video channel list rows show the video placeholder when selected', async () => {
@@ -178,7 +183,7 @@ test.describe('Embed routes (anonymous)', () => {
       await page.goto(`/embed/playlist/${E2E_EMBED_PLAYLIST_MIXED_ID_TEXT}`);
       await expectEmbedListShell(page);
       await expect(page.getByTestId('embed-presentation-style-selector')).toBeVisible();
-      await expectEmbedListActiveRowLabel(page, 'E2E Podcast Resume P > 0');
+      await expectEmbedListActiveRowLabel(page, EMBED_SAMPLE_EPISODE_AUDIO_TITLE);
       await expectEmbedPlayerProgressVisible(page);
       await expectEmbedShellHeightStable(page.getByTestId('embed-list-shell'), EMBED_LIST_SHELL_HEIGHT);
 
@@ -198,37 +203,39 @@ test.describe('Embed routes (anonymous)', () => {
   test('List embed play_id_text override and fallback behave predictably', async ({ page }) => {
     await test.step('Valid play_id_text selects the matching row', async () => {
       await page.goto(
-        `/embed/podcast/${E2E_PODCAST_CHANNEL_ID_TEXT}?play_id_text=${E2E_PODCAST_ITEM_RESUME_NEAR_END_ID_TEXT}`
+        `/embed/podcast/${EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT}?play_id_text=${EMBED_FIXTURE_PODCAST_EPISODE_NEAR_END_ID_TEXT}`
       );
-      await expectEmbedListActiveRowLabel(page, 'E2E Podcast Resume Near End');
+      await expectEmbedListActiveRowLabel(page, EMBED_SAMPLE_EPISODE_NEAR_END_TITLE);
     });
 
     await test.step('Invalid play_id_text falls back to the default row', async () => {
       await page.goto(
-        `/embed/podcast/${E2E_PODCAST_CHANNEL_ID_TEXT}?play_id_text=${E2E_EMBED_INVALID_PLAY_ID_TEXT}`
+        `/embed/podcast/${EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT}?play_id_text=${E2E_EMBED_INVALID_PLAY_ID_TEXT}`
       );
-      await expectEmbedListActiveRowLabel(page, 'E2E Podcast Resume P > 0');
+      await expectEmbedListActiveRowLabel(page, EMBED_SAMPLE_EPISODE_AUDIO_TITLE);
     });
 
     await test.step('Album list honors valid play_id_text override', async () => {
       await page.goto(
-        `/embed/album/${E2E_MUSIC_ALBUM_ID_TEXT}?play_id_text=${E2E_MUSIC_TRACK_ONE_ID_TEXT}`
+        `/embed/album/${EMBED_FIXTURE_MUSIC_ALBUM_ID_TEXT}?play_id_text=${EMBED_FIXTURE_MUSIC_TRACK_AUDIO_ID_TEXT}`
       );
-      await expectEmbedListActiveRowLabel(page, 'E2E Music Track One');
+      await expectEmbedListActiveRowLabel(page, EMBED_SAMPLE_TRACK_AUDIO_TITLE);
     });
 
     await test.step('Playlist invalid play_id_text falls back to the default row', async () => {
       await page.goto(
         `/embed/playlist/${E2E_EMBED_PLAYLIST_ID_TEXT}?play_id_text=${E2E_EMBED_INVALID_PLAY_ID_TEXT}`
       );
-      await expectEmbedListActiveRowLabel(page, 'E2E Podcast Resume P > 0');
-      expect(E2E_EMBED_PLAYLIST_DEFAULT_ITEM_ID_TEXT).toBe(E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT);
+      await expectEmbedListActiveRowLabel(page, EMBED_SAMPLE_EPISODE_AUDIO_TITLE);
+      expect(E2E_EMBED_PLAYLIST_DEFAULT_ITEM_ID_TEXT).toBe(
+        EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT
+      );
     });
   });
 
   test('List embed shell uses fixed height and internal scrolling', async ({ page }, testInfo) => {
     await test.step('The podcast list shell is about 744px tall', async () => {
-      await page.goto(`/embed/podcast/${E2E_PODCAST_CHANNEL_ID_TEXT}`);
+      await page.goto(`/embed/podcast/${EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT}`);
       await expectEmbedListShell(page);
       await expectEmbedShellHeightStable(page.getByTestId('embed-list-shell'), EMBED_LIST_SHELL_HEIGHT);
     });

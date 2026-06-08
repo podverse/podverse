@@ -18,9 +18,8 @@ import bcrypt from 'bcrypt';
 import pg from 'pg';
 
 import {
-  EMBED_FIXTURE_CHANNEL_IMAGE_URL,
-  EMBED_FIXTURE_ITEM_IMAGE_URL,
-  EMBED_FIXTURE_MUSIC_ALBUM_ID_TEXT,
+  E2E_FIXTURE_CHANNEL_IMAGE_URL,
+  E2E_FIXTURE_ITEM_IMAGE_URL,
 } from './embed-fixture-constants.mjs';
 import { seedEmbedFixtures, syncE2eFixtureImageUrls } from './seed-embed-fixtures.mjs';
 
@@ -67,7 +66,7 @@ const E2E_PODCAST_ITEM_CHAPTERED_ID_TEXT = 'e2ePodChap0001';
 const E2E_CLIP_ID_TEXT = 'e2eClip00000001';
 const E2E_SOUNDBITE_ID_TEXT = 'e2eSoundbite001';
 
-const E2E_MUSIC_ALBUM_ID_TEXT = EMBED_FIXTURE_MUSIC_ALBUM_ID_TEXT;
+const E2E_MUSIC_ALBUM_ID_TEXT = 'e2eMusicAlbm01';
 /** @deprecated Alias — album channel id_text matches E2E_MUSIC_ALBUM_ID_TEXT */
 const E2E_MUSIC_CHANNEL_ID_TEXT = E2E_MUSIC_ALBUM_ID_TEXT;
 const E2E_MUSIC_TRACK_ONE_ID_TEXT = 'e2eMusicTrk001';
@@ -416,7 +415,7 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
   await client.query(
     `INSERT INTO channel_image (channel_id, url, image_width_size)
      VALUES ($1, $2, 1400)`,
-    [podcastChannelId, EMBED_FIXTURE_CHANNEL_IMAGE_URL]
+    [podcastChannelId, E2E_FIXTURE_CHANNEL_IMAGE_URL]
   );
 
   await deleteE2eQueueByIdText(client, E2E_PODCAST_QUEUE_ID_TEXT);
@@ -475,7 +474,7 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
     await client.query(
       `INSERT INTO item_image (item_id, url, image_width_size)
        VALUES ($1, $2, 1400)`,
-      [itemId, EMBED_FIXTURE_ITEM_IMAGE_URL]
+      [itemId, E2E_FIXTURE_ITEM_IMAGE_URL]
     );
 
     const enclosureResult = await client.query(
@@ -678,7 +677,7 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
   await client.query(
     `INSERT INTO channel_image (channel_id, url, image_width_size)
      VALUES ($1, $2, 1400)`,
-    [musicChannelId, EMBED_FIXTURE_CHANNEL_IMAGE_URL]
+    [musicChannelId, E2E_FIXTURE_CHANNEL_IMAGE_URL]
   );
 
   // Music queue is intentionally is_active_queue=false at seed time. The
@@ -739,7 +738,7 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
     await client.query(
       `INSERT INTO item_image (item_id, url, image_width_size)
        VALUES ($1, $2, 1400)`,
-      [itemId, EMBED_FIXTURE_ITEM_IMAGE_URL]
+      [itemId, E2E_FIXTURE_ITEM_IMAGE_URL]
     );
 
     const enclosureResult = await client.query(
@@ -912,11 +911,7 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
     `Seeded add-by-RSS media-player E2E resources (${E2E_ADD_BY_RSS_RESOURCE_WITH_POSITION_ID_TEXT} at list_position 3 with playback_position=${E2E_ADD_BY_RSS_RESOURCE_WITH_POSITION_SECONDS}, ${E2E_ADD_BY_RSS_RESOURCE_FRESH_ID_TEXT} at list_position 4 with playback_position=0)`
   );
 
-  await seedEmbedFixtures(client, {
-    accountId,
-    resumePositiveItemId,
-    resumeNearEndItemId,
-  });
+  await seedEmbedFixtures(client, { accountId });
 }
 
 async function main() {

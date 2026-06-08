@@ -22,6 +22,9 @@
     "generate:only": "tsx src/run-generate-feed-cli.ts",
     "generate:e2e-media": "tsx src/generate-e2e-media-fixtures.ts",
     "generate:e2e-images": "tsx src/generate-e2e-image-fixtures.ts",
+    "generate:embed-media": "tsx src/generate-embed-media-fixtures.ts",
+    "generate:embed-images": "tsx src/generate-embed-image-fixtures.ts",
+    "generate:embed-fixtures": "tsx src/generate-embed-media-fixtures.ts && tsx src/generate-embed-image-fixtures.ts",
     "generate_and_parse": "tsx src/generate-and-parse.ts"
   },
   "dependencies": {
