@@ -20,6 +20,7 @@ import type {
 import { MediumEnum } from '@podverse/helpers';
 
 import { AccountContext } from '../../../../contexts/Account';
+import { EmbedPlaybackModeProvider } from '../../../../contexts/EmbedPlaybackMode';
 import type { MediaPlayerAddByRSSState } from '../../../../contexts/MediaPlayer';
 import type { QueueResourcesLoadActiveResult } from '../../../../hooks/useQueueResourcesLoadActive';
 import {
@@ -28,11 +29,19 @@ import {
 } from '../../../../test/mediaElementFake';
 import { NonLiveMediaOrchestrator } from '../NonLiveMediaOrchestrator';
 
+vi.mock('../../../../contexts/MediaPlayer', () => ({
+  useMediaPlayer: () => ({
+    activePlaybackTarget: null,
+  }),
+}));
+
 interface SpyProps {
   moveNowPlayingToHistory: ReturnType<typeof vi.fn>;
   queueResourcesLoadActive: ReturnType<typeof vi.fn>;
   clearNowPlaying: ReturnType<typeof vi.fn>;
   setMPShouldPlay: ReturnType<typeof vi.fn>;
+  setMPIsPlaying: ReturnType<typeof vi.fn>;
+  setMPCurrentTime: ReturnType<typeof vi.fn>;
   onAddByRSSEnded: ReturnType<typeof vi.fn>;
   onAddByRSSPlayNext: ReturnType<typeof vi.fn>;
 }
@@ -44,6 +53,7 @@ type RenderOverrides = Partial<{
   mpChannel: DTOChannel | null;
   queueResult: QueueResourcesLoadActiveResult;
   addByRSSPlayedNext: boolean;
+  embedRoute: boolean;
 }>;
 
 const channel: DTOChannel = {
@@ -74,6 +84,8 @@ async function renderAV(overrides: RenderOverrides = {}): Promise<{
   const queueResourcesLoadActive = vi.fn(() => Promise.resolve(queueResult));
   const clearNowPlaying = vi.fn();
   const setMPShouldPlay = vi.fn();
+  const setMPIsPlaying = vi.fn();
+  const setMPCurrentTime = vi.fn();
   const onAddByRSSEnded = vi.fn(() => Promise.resolve());
   const onAddByRSSPlayNext = vi.fn(() => Promise.resolve(overrides.addByRSSPlayedNext ?? false));
 
@@ -89,6 +101,47 @@ async function renderAV(overrides: RenderOverrides = {}): Promise<{
     sourceRowSelected: null,
   };
 
+  const orchestrator = (
+    <NonLiveMediaOrchestrator
+      mediaType="audio"
+      hidden
+      mpAddByRSS={overrides.mpAddByRSS ?? null}
+      mpChannel={overrides.mpChannel ?? channel}
+      mpClip={null}
+      setMPClip={() => undefined}
+      mpItem={overrides.mpItem ?? item}
+      mpItemLabeledEnclosures={[]}
+      mpEnclosureSelectedParams={enclosureParams}
+      mpItemChapter={null}
+      setMPItemChapter={() => undefined}
+      mpItemChapters={null}
+      mpItemChapterShouldSeek={false}
+      setMPItemChapterShouldSeek={() => undefined}
+      mpItemSoundbite={null}
+      setMPItemSoundbite={() => undefined}
+      mpIsPlaying={false}
+      setMPIsPlaying={setMPIsPlaying}
+      mpPlaybackSpeed={1}
+      mpVolume={1}
+      mpIsMuted={false}
+      mpShouldPlay={false}
+      setMPShouldPlay={setMPShouldPlay}
+      setMPDuration={() => undefined}
+      mpCurrentTime={0}
+      setMPCurrentTime={setMPCurrentTime}
+      addByRSSSeekToTime={null}
+      setAddByRSSSeekToTime={() => undefined}
+      updateNowPlaying={() => undefined}
+      moveNowPlayingToHistory={moveNowPlayingToHistory}
+      queueResourcesLoadActive={queueResourcesLoadActive}
+      queueResourcesAbridgedIndex={abridgedIndex}
+      onAddByRSSEnded={onAddByRSSEnded}
+      onAddByRSSPlayNext={onAddByRSSPlayNext}
+      clearNowPlaying={clearNowPlaying}
+      pendingMusicQueueLoadIntentRef={{ current: null }}
+    />
+  );
+
   const renderResult = render(
     <AccountContext.Provider
       value={{
@@ -96,44 +149,11 @@ async function renderAV(overrides: RenderOverrides = {}): Promise<{
         setLoggedInAccount: () => undefined,
       }}
     >
-      <NonLiveMediaOrchestrator
-        mediaType="audio"
-        hidden
-        mpAddByRSS={overrides.mpAddByRSS ?? null}
-        mpChannel={overrides.mpChannel ?? channel}
-        mpClip={null}
-        setMPClip={() => undefined}
-        mpItem={overrides.mpItem ?? item}
-        mpItemLabeledEnclosures={[]}
-        mpEnclosureSelectedParams={enclosureParams}
-        mpItemChapter={null}
-        setMPItemChapter={() => undefined}
-        mpItemChapters={null}
-        mpItemChapterShouldSeek={false}
-        setMPItemChapterShouldSeek={() => undefined}
-        mpItemSoundbite={null}
-        setMPItemSoundbite={() => undefined}
-        mpIsPlaying={false}
-        setMPIsPlaying={() => undefined}
-        mpPlaybackSpeed={1}
-        mpVolume={1}
-        mpIsMuted={false}
-        mpShouldPlay={false}
-        setMPShouldPlay={setMPShouldPlay}
-        setMPDuration={() => undefined}
-        mpCurrentTime={0}
-        setMPCurrentTime={() => undefined}
-        addByRSSSeekToTime={null}
-        setAddByRSSSeekToTime={() => undefined}
-        updateNowPlaying={() => undefined}
-        moveNowPlayingToHistory={moveNowPlayingToHistory}
-        queueResourcesLoadActive={queueResourcesLoadActive}
-        queueResourcesAbridgedIndex={abridgedIndex}
-        onAddByRSSEnded={onAddByRSSEnded}
-        onAddByRSSPlayNext={onAddByRSSPlayNext}
-        clearNowPlaying={clearNowPlaying}
-        pendingMusicQueueLoadIntentRef={{ current: null }}
-      />
+      {overrides.embedRoute ? (
+        <EmbedPlaybackModeProvider>{orchestrator}</EmbedPlaybackModeProvider>
+      ) : (
+        orchestrator
+      )}
     </AccountContext.Provider>
   );
 
@@ -155,6 +175,8 @@ async function renderAV(overrides: RenderOverrides = {}): Promise<{
       queueResourcesLoadActive,
       clearNowPlaying,
       setMPShouldPlay,
+      setMPIsPlaying,
+      setMPCurrentTime,
       onAddByRSSEnded,
       onAddByRSSPlayNext,
     },
@@ -305,5 +327,29 @@ describe('NonLiveMediaOrchestrator — ended (matrix § 5)', () => {
 
     expect(spies.onAddByRSSPlayNext).toHaveBeenCalledTimes(1);
     expect(spies.clearNowPlaying).toHaveBeenCalledTimes(1);
+  });
+
+  it('embed route: pauses at end, rewinds to start, without queue advance or clearNowPlaying', async () => {
+    const { fake, spies } = await renderAV({
+      embedRoute: true,
+      queueResult: {
+        activeResource: null,
+        historyMoved: 0,
+        upcomingManualCount: 0,
+        upcomingResources: [],
+      },
+    });
+
+    await act(async () => {
+      fake.fireEnded();
+      await Promise.resolve();
+    });
+
+    expect(spies.setMPIsPlaying).toHaveBeenCalledWith(false);
+    expect(spies.setMPShouldPlay).toHaveBeenCalledWith(false);
+    expect(spies.setMPCurrentTime).toHaveBeenCalledWith(0);
+    expect(spies.moveNowPlayingToHistory).not.toHaveBeenCalled();
+    expect(spies.queueResourcesLoadActive).not.toHaveBeenCalled();
+    expect(spies.clearNowPlaying).not.toHaveBeenCalled();
   });
 });

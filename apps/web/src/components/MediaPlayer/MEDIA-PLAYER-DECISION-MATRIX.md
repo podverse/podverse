@@ -135,6 +135,7 @@ AddByRSS). **`autoQueueShouldClear: true`** in every path.
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `mpAddByRSS != null` | `onAddByRSSEnded(positionSeconds)`; `setMPShouldPlay(false)`; load active queue with stored `medium_id`; if `upcomingManualCount === 0`, attempt `onAddByRSSPlayNext()`; if that returns false, `clearNowPlaying()` |
 | Non add-by-RSS       | `moveNowPlayingToHistory({ completed: true, ... })`; `useQueueResourcesLoadActive()`; if both queues empty: `clearNowPlaying()`; otherwise: `setMPShouldPlay(true)`                                                 |
+| Embed route (`isEmbedRoute`) | `setMPIsPlaying(false)`; `setMPShouldPlay(false)`; return (no history move, queue load, or `clearNowPlaying`)                                                                                              |
 
 ### 6. Time-update side effects
 

@@ -8,6 +8,17 @@ Embeds are chromeless player surfaces served from the web app. They reuse the gl
 context with embed-mode guardrails (no anonymous restore, no auto-queue mutations, no main-app layout
 changes). All embed routes emit SSR `noindex` metadata.
 
+### Playback end
+
+When a single-item embed finishes playback, the player **pauses** and **rewinds** the scrub position
+without clearing the loaded item:
+
+- **Episode or track** — position returns to **0:00**.
+- **Clip, official clip (soundbite), or chapter** — position returns to that segment’s **start time**.
+
+Duration, chapter markers, artwork, and titles stay visible. Embeds do **not** run the main app’s
+`clearNowPlaying()` teardown or queue-advance logic on natural track end.
+
 Local demo index: [`/embed`](http://localhost:4032/embed) (ports vary by environment).
 
 ## Typed routes

@@ -15,6 +15,7 @@ import {
   expectEmbedListShell,
   expectEmbedNotAvailableShell,
   expectEmbedNotFoundShell,
+  expectEmbedPlayerDuration,
   expectEmbedPlayerProgressVisible,
   expectEmbedRootVisible,
   expectEmbedShellHeightStable,
@@ -166,6 +167,28 @@ test.describe('Embed routes (anonymous)', () => {
     );
     await expectEmbedSingleShell(page);
     await expect(page.locator('[class*="chapterMarker"]')).toHaveCount(0);
+  });
+
+  test('Episode embed retains duration and chapter markers after playback ends', async ({ page }) => {
+    await page.goto(
+      `/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}?autoplay=true`
+    );
+    await expectEmbedSingleShell(page);
+    await expectEmbedPlayerDuration(page, '1:00');
+    await expectEmbedChapterMarkerCount(page, 2);
+
+    await page.evaluate(() => {
+      const audio = document.querySelector('audio');
+      if (audio === null || !Number.isFinite(audio.duration) || audio.duration <= 0) {
+        throw new Error('Embed audio element is not ready for ended simulation');
+      }
+      audio.currentTime = audio.duration;
+      audio.dispatchEvent(new Event('ended'));
+    });
+
+    await expectEmbedPlayerDuration(page, '1:00');
+    await expectEmbedChapterMarkerCount(page, 2);
+    await expect(page.getByRole('slider')).toHaveAttribute('aria-valuenow', '0');
   });
 
   test('List embed routes render list shells with default row selection', async ({ page }, testInfo) => {

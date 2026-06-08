@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import type {
   DTOChannel,
@@ -16,13 +16,19 @@ import type {
 import { getSelectedLabeledItemEnclosureAndSource, isEqual, MediumEnum } from '@podverse/helpers';
 
 import { useAccount } from '../../../contexts/Account';
+import { useEmbedPlaybackGuardrails } from '../../../contexts/EmbedPlaybackMode';
 import type { MediaPlayerAddByRSSState } from '../../../contexts/MediaPlayer';
+import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useRegisterMediaPlayerControlsBridge } from '../../../contexts/MediaPlayerControls';
 import type { MediaElementBridge, MediaElementSource } from '../../../hooks/useMediaElementBridge';
 import { useMediaElementBridge } from '../../../hooks/useMediaElementBridge';
 import type { MoveNowPlayingToHistoryCallbackParams } from '../../../hooks/useQueueResourceMoveNowPlayingToHistory';
 import type { QueueResourcesLoadActiveResult } from '../../../hooks/useQueueResourcesLoadActive';
 import type { UpdateNowPlayingParams } from '../../../hooks/useQueueResourceUpdateNowPlaying';
+import {
+  resolveEmbedPlaybackPauseAtSeconds,
+  resolveEmbedPlaybackResetSeconds,
+} from '../../../lib/embed/resolveEmbedPlaybackResetSeconds';
 import type { MusicItemPlaybackIntent, PlaybackLoadDecision } from '../../../lib/playback';
 import {
   checkIfIsAudioFile,
@@ -89,6 +95,8 @@ export interface NonLiveMediaOrchestratorProps {
 
 export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> = (props) => {
   const { loggedInAccount } = useAccount();
+  const { isEmbedRoute } = useEmbedPlaybackGuardrails();
+  const { activePlaybackTarget } = useMediaPlayer();
   const loggedInAccountRef = useRef(loggedInAccount);
   useEffect(() => {
     loggedInAccountRef.current = loggedInAccount;
@@ -161,6 +169,11 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     clearNowPlayingRef.current = clearNowPlaying;
   }, [clearNowPlaying]);
 
+  const isEmbedRouteRef = useRef(isEmbedRoute);
+  useEffect(() => {
+    isEmbedRouteRef.current = isEmbedRoute;
+  }, [isEmbedRoute]);
+
   const mpChannelRef = useRef<typeof mpChannel>(null);
   useEffect(() => {
     mpChannelRef.current = mpChannel;
@@ -189,6 +202,14 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
   useEffect(() => {
     mpShouldPlayRef.current = mpShouldPlay;
   }, [mpShouldPlay]);
+  const mpIsPlayingRef = useRef(mpIsPlaying);
+  useEffect(() => {
+    mpIsPlayingRef.current = mpIsPlaying;
+  }, [mpIsPlaying]);
+  const activePlaybackTargetRef = useRef(activePlaybackTarget);
+  useEffect(() => {
+    activePlaybackTargetRef.current = activePlaybackTarget;
+  }, [activePlaybackTarget]);
   const queueResourcesAbridgedIndexRef = useRef(queueResourcesAbridgedIndex);
   useEffect(() => {
     queueResourcesAbridgedIndexRef.current = queueResourcesAbridgedIndex;
@@ -201,6 +222,27 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
   const lastPlaybackTimeRef = useRef<number | null>(null);
 
   const bridgeRef = useRef<MediaElementBridge | null>(null);
+
+  const finishEmbedPlayback = useCallback(() => {
+    const boundaryParams = {
+      activePlaybackTarget: activePlaybackTargetRef.current,
+      mpClip: mpClipRef.current,
+      mpItemSoundbite: mpItemSoundbiteRef.current,
+    };
+    const resetSeconds = resolveEmbedPlaybackResetSeconds(boundaryParams);
+    setMPIsPlaying(false);
+    setMPShouldPlay(false);
+    bridgeRef.current?.seek(resetSeconds);
+    setMPCurrentTime(resetSeconds);
+    lastPlaybackTimeRef.current = resetSeconds;
+    playbackElapsedRef.current = 0;
+    const pauseAtSeconds = resolveEmbedPlaybackPauseAtSeconds(boundaryParams);
+    if (pauseAtSeconds !== null) {
+      bridgeRef.current?.pauseAt(pauseAtSeconds);
+    } else {
+      bridgeRef.current?.pauseAndDisarmBoundary();
+    }
+  }, [setMPIsPlaying, setMPShouldPlay, setMPCurrentTime]);
 
   const bridge = useMediaElementBridge(mediaRef, {
     onLoadedMetadata(newDuration) {
@@ -403,6 +445,12 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
             : mpClipRef.current.end_time;
         const endTimeNumAdjusted = endTimeNum + 1;
         if (!isNaN(endTimeNumAdjusted) && newCurrentTime >= endTimeNumAdjusted) {
+          if (isEmbedRouteRef.current) {
+            if (mpIsPlayingRef.current) {
+              finishEmbedPlayback();
+            }
+            return;
+          }
           setMPClip(null);
           setMPIsPlaying(false);
           bridgeRef.current?.pauseAndDisarmBoundary();
@@ -421,9 +469,26 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
         const endTimeNum = startNum + durationNum;
         const endTimeNumAdjusted = endTimeNum + 1;
         if (!isNaN(endTimeNumAdjusted) && newCurrentTime >= endTimeNumAdjusted) {
+          if (isEmbedRouteRef.current) {
+            if (mpIsPlayingRef.current) {
+              finishEmbedPlayback();
+            }
+            return;
+          }
           setMPItemSoundbite(null);
           setMPIsPlaying(false);
           bridgeRef.current?.pauseAndDisarmBoundary();
+        }
+      }
+
+      if (isEmbedRouteRef.current) {
+        const pauseAtSeconds = resolveEmbedPlaybackPauseAtSeconds({
+          activePlaybackTarget: activePlaybackTargetRef.current,
+          mpClip: null,
+          mpItemSoundbite: null,
+        });
+        if (pauseAtSeconds !== null && newCurrentTime >= pauseAtSeconds && mpIsPlayingRef.current) {
+          finishEmbedPlayback();
         }
       }
 
@@ -443,6 +508,10 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     },
     onEnded() {
       void (async () => {
+        if (isEmbedRouteRef.current) {
+          finishEmbedPlayback();
+          return;
+        }
         if (mpAddByRSSRef.current && onAddByRSSEndedRef.current) {
           if (!mediaRef.current) {
             return;
