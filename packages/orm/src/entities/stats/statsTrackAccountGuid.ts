@@ -2,11 +2,11 @@ import type { Account } from '@orm/entities/account/account.js';
 import type { Relation } from 'typeorm';
 import {
   Column,
-  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('stats_track_account_guid')
@@ -21,6 +21,6 @@ export class StatsTrackAccountGuid {
   @Column('uuid')
   account_guid!: string;
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({ type: 'timestamp' })
   updated_at!: Date;
 }

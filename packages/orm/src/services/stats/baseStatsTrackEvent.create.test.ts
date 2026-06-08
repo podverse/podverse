@@ -71,7 +71,7 @@ describe('BaseStatsTrackEventService._create', () => {
     getRepository.mockReturnValue({
       createQueryBuilder: repoCreateQueryBuilder,
     });
-    accountGuidGetByAccountId.mockResolvedValue({ account_guid: 'ag-1' });
+    accountGuidGetByAccountId.mockResolvedValue({ id: 11, account_guid: 'ag-1' });
   });
 
   it('uses conflict-ignore insert for idempotent event writes', async () => {
@@ -83,6 +83,7 @@ describe('BaseStatsTrackEventService._create', () => {
     expect(qbInsert).toHaveBeenCalledTimes(1);
     expect(qbValues).toHaveBeenCalledWith({
       account_guid: 'ag-1',
+      stats_track_account_guid_id: 11,
       item_id: 42,
       created_at: expect.any(Date),
     });
