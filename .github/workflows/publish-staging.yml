@@ -38,7 +38,18 @@ jobs:
         run: npm install -g npm@11.13.0
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5; do
+            if npm ci; then
+              break
+            fi
+            echo "npm ci failed (attempt $attempt/5); retrying in 15s..." >&2
+            sleep 15
+            if [[ "$attempt" -eq 5 ]]; then
+              exit 1
+            fi
+          done
 
       - name: Security audit
         run: npm audit --omit=dev --audit-level=moderate

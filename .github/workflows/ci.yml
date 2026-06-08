@@ -96,7 +96,18 @@ jobs:
 
       - name: Install dependencies
         id: install
-        run: npm ci
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5; do
+            if npm ci; then
+              break
+            fi
+            echo "npm ci failed (attempt $attempt/5); retrying in 15s..." >&2
+            sleep 15
+            if [[ "$attempt" -eq 5 ]]; then
+              exit 1
+            fi
+          done
 
       - name: Build packages
         id: build-packages
