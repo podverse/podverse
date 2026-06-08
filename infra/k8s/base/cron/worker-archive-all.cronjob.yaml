@@ -5,8 +5,14 @@ metadata:
 spec:
   schedule: "0 6,18 * * *"
   concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 10
   jobTemplate:
     spec:
+      # Single attempt per cron tick: the cron schedule is the retry
+      # mechanism. In-place container restarts (restartPolicy: OnFailure
+      # + default backoffLimit: 6) turn a transient upstream 5xx into
+      # CrashLoopBackOff alerts. See <link-to-be-filed>.
+      backoffLimit: 0
       template:
         metadata:
           annotations:
@@ -58,4 +64,4 @@ spec:
               secret:
                 secretName: podverse-workers-firebase-opaque
                 optional: true
-          restartPolicy: OnFailure
+          restartPolicy: Never
