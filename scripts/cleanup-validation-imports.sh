@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Script to remove unused validation imports from web app files
 # Only removes the import if the file doesn't actually use the validation functions

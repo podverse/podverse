@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # GitHub labels setup – Podverse repository
 # Creates or updates all labels. Idempotent: run multiple times safely.
 # Optionally prompts to delete repo labels that are not in the script (does not

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Fast-forward `main` to match `staging` (triggers Publish (main) — promote-only, no app rebuild).
 # Intended flow: sync develop -> staging (build in GH), then this script: staging -> main (RTM).
 # Do not use develop -> main; `main` should only advance from the pre-built staging line.

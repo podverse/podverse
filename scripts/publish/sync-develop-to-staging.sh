@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Fast-forward `staging` to match `develop` (triggers the Publish (staging) workflow on push).
 
 set -e
