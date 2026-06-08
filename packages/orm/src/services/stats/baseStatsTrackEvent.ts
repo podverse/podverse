@@ -50,6 +50,7 @@ export abstract class BaseStatsTrackEventService<T extends ObjectLiteral> {
 
     const insertValues = {
       account_guid: accountGuid.account_guid,
+      stats_track_account_guid_id: accountGuid.id,
       [this.entityIdField]: entity.id,
       created_at: new Date(),
     } as unknown as QueryDeepPartialEntity<T>;
@@ -87,7 +88,9 @@ export abstract class BaseStatsTrackEventService<T extends ObjectLiteral> {
   }
 
   async _delete(account_id: number, entity_id_text: string): Promise<void> {
-    const accountGuid = await this.statsTrackAccountGuidService.getByAccountId(account_id);
+    const accountGuid = await this.statsTrackAccountGuidService.getByAccountId(account_id, {
+      rotate: false,
+    });
     if (!accountGuid) {
       throw new Error('Account not found.');
     }
@@ -100,7 +103,7 @@ export abstract class BaseStatsTrackEventService<T extends ObjectLiteral> {
     const repo = this.readWriteEntityManager.getRepository(this.entity);
 
     await repo.delete({
-      account_guid: accountGuid.account_guid,
+      stats_track_account_guid_id: accountGuid.id,
       [this.entityIdField]: entity.id,
     } as unknown as FindOptionsWhere<T>);
   }

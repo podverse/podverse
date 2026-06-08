@@ -5,6 +5,10 @@ import type { Repository } from 'typeorm';
 
 import { generateGuidV4 } from '@podverse/helpers';
 
+export type StatsTrackAccountGuidGetOptions = {
+  rotate?: boolean;
+};
+
 export class StatsTrackAccountGuidService {
   private repositoryRead: Repository<StatsTrackAccountGuid>;
   private repositoryReadWrite: Repository<StatsTrackAccountGuid>;
@@ -16,7 +20,11 @@ export class StatsTrackAccountGuidService {
     this.accountService = new AccountService();
   }
 
-  async getByAccountId(account_id: number): Promise<StatsTrackAccountGuid | null> {
+  async getByAccountId(
+    account_id: number,
+    options?: StatsTrackAccountGuidGetOptions
+  ): Promise<StatsTrackAccountGuid | null> {
+    const rotate = options?.rotate !== false;
     let entity = await this.repositoryRead.findOne({ where: { account: { id: account_id } } });
     if (!entity) {
       entity = await this.repositoryReadWrite.findOne({ where: { account: { id: account_id } } });
@@ -24,6 +32,7 @@ export class StatsTrackAccountGuidService {
     if (!entity) {
       entity = await this.create(account_id);
     } else if (
+      rotate &&
       entity &&
       new Date().getTime() - new Date(entity.updated_at).getTime() > 7 * 24 * 60 * 60 * 1000
     ) {

@@ -15,9 +15,15 @@ export class StatsTrackEventAccount {
   @PrimaryGeneratedColumn()
   id!: number;
 
+  @Column('uuid')
+  account_guid!: string;
+
   @ManyToOne('StatsTrackAccountGuid', (accountGuid: StatsTrackAccountGuid) => accountGuid.id)
-  @JoinColumn({ name: 'account_guid' })
-  account_guid!: Relation<StatsTrackAccountGuid>;
+  @JoinColumn({ name: 'stats_track_account_guid_id' })
+  stats_track_account_guid!: Relation<StatsTrackAccountGuid>;
+
+  @Column()
+  stats_track_account_guid_id!: number;
 
   @ManyToOne('Account', (account: Account) => account.id)
   @JoinColumn({ name: 'tracked_account_id' })
