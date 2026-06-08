@@ -22,8 +22,7 @@ export class AssetGenerator {
   constructor(options: { namespace?: string; assetsDir?: string } = {}) {
     this.namespace = options?.namespace ?? '';
     // Default: tools/test-assets/assets/ or tools/test-assets/assets/<namespace>/
-    this.assetsDir =
-      options?.assetsDir ?? path.join(__dirname, '../assets', this.namespace);
+    this.assetsDir = options?.assetsDir ?? path.join(__dirname, '../assets', this.namespace);
   }
 
   async ensureAssetsDirectory(): Promise<void> {
