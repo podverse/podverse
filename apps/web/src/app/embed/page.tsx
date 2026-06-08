@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 
-import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
+import { Divider, MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { EmbedDemoPreview } from '../../components/embed/EmbedDemoPreview';
 import { MainWrapper } from '../../components/Main/MainWrapper';
@@ -40,6 +40,8 @@ export default async function EmbedPage() {
                 ))}
               </div>
             </section>
+
+            <Divider withSpacing />
 
             <section className={styles.section} aria-labelledby="embed-demo-list-heading">
               <h2 id="embed-demo-list-heading">{t('embed_demo_list_section_title')}</h2>
