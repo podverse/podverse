@@ -19,7 +19,9 @@ describe('updateLayoutForMediaPlayer embed guardrails', () => {
   it('adds media-player-active when skipMainAppLayoutMutations is false', () => {
     updateLayoutForMediaPlayer({ id: 'playing' }, { skipMainAppLayoutMutations: false });
 
-    expect(document.getElementById('sidebar')?.classList.contains('media-player-active')).toBe(true);
+    expect(document.getElementById('sidebar')?.classList.contains('media-player-active')).toBe(
+      true
+    );
     expect(document.getElementById('page-wrapper')?.classList.contains('media-player-active')).toBe(
       true
     );

@@ -13,6 +13,10 @@
   }
 }
 
+.title {
+  scroll-margin-top: var(--spacing-2xl);
+}
+
 .frame {
   @include embed.embed-player-panel-custom-properties;
 

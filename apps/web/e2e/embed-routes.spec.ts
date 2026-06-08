@@ -55,7 +55,9 @@ import {
 import { capturePageLoad } from './helpers/stepScreenshots';
 
 test.describe('Embed routes (anonymous)', () => {
-  test('Single embed routes render the audio shell or video placeholder', async ({ page }, testInfo) => {
+  test('Single embed routes render the audio shell or video placeholder', async ({
+    page,
+  }, testInfo) => {
     await test.step('Episode embed loads the single audio shell', async () => {
       await page.goto(`/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}`);
       await expectEmbedRootVisible(page);
@@ -67,7 +69,10 @@ test.describe('Embed routes (anonymous)', () => {
       );
       await expectEmbedPlayerProgressVisible(page);
       await expectEmbedTitleTruncated(page);
-      await expectEmbedShellHeightStable(page.getByTestId('embed-single-shell'), EMBED_SINGLE_SHELL_HEIGHT);
+      await expectEmbedShellHeightStable(
+        page.getByTestId('embed-single-shell'),
+        EMBED_SINGLE_SHELL_HEIGHT
+      );
 
       await capturePageLoad(
         page,
@@ -169,10 +174,10 @@ test.describe('Embed routes (anonymous)', () => {
     await expect(page.locator('[class*="chapterMarker"]')).toHaveCount(0);
   });
 
-  test('Episode embed retains duration and chapter markers after playback ends', async ({ page }) => {
-    await page.goto(
-      `/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}?autoplay=true`
-    );
+  test('Episode embed retains duration and chapter markers after playback ends', async ({
+    page,
+  }) => {
+    await page.goto(`/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}?autoplay=true`);
     await expectEmbedSingleShell(page);
     await expectEmbedPlayerDuration(page, '1:00');
     await expectEmbedChapterMarkerCount(page, 2);
@@ -191,7 +196,9 @@ test.describe('Embed routes (anonymous)', () => {
     await expect(page.getByRole('slider')).toHaveAttribute('aria-valuenow', '0');
   });
 
-  test('List embed routes render list shells with default row selection', async ({ page }, testInfo) => {
+  test('List embed routes render list shells with default row selection', async ({
+    page,
+  }, testInfo) => {
     await test.step('Podcast list embed selects the newest episode by default', async () => {
       await page.goto(`/embed/podcast/${EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT}`);
       await expectEmbedListShell(page);
@@ -236,7 +243,10 @@ test.describe('Embed routes (anonymous)', () => {
       await expect(page.getByTestId('embed-presentation-style-selector')).toBeVisible();
       await expectEmbedListActiveRowLabel(page, EMBED_SAMPLE_EPISODE_AUDIO_TITLE);
       await expectEmbedPlayerProgressVisible(page);
-      await expectEmbedShellHeightStable(page.getByTestId('embed-list-shell'), EMBED_LIST_SHELL_HEIGHT);
+      await expectEmbedShellHeightStable(
+        page.getByTestId('embed-list-shell'),
+        EMBED_LIST_SHELL_HEIGHT
+      );
 
       await page.getByRole('radio', { name: 'Video' }).check();
       await expectEmbedVideoPlaceholder(page);
@@ -288,7 +298,10 @@ test.describe('Embed routes (anonymous)', () => {
     await test.step('The podcast list shell is about 744px tall', async () => {
       await page.goto(`/embed/podcast/${EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT}`);
       await expectEmbedListShell(page);
-      await expectEmbedShellHeightStable(page.getByTestId('embed-list-shell'), EMBED_LIST_SHELL_HEIGHT);
+      await expectEmbedShellHeightStable(
+        page.getByTestId('embed-list-shell'),
+        EMBED_LIST_SHELL_HEIGHT
+      );
     });
 
     await test.step('The scroll fixture channel list region scrolls when rows overflow', async () => {
@@ -301,7 +314,9 @@ test.describe('Embed routes (anonymous)', () => {
         element.scrollTop = element.scrollHeight;
       });
 
-      await expect(page.getByTestId('embed-list-row').filter({ hasText: E2E_EMBED_SCROLL_LAST_ITEM_LABEL })).toBeVisible();
+      await expect(
+        page.getByTestId('embed-list-row').filter({ hasText: E2E_EMBED_SCROLL_LAST_ITEM_LABEL })
+      ).toBeVisible();
 
       await capturePageLoad(
         page,

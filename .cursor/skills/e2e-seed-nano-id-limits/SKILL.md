@@ -11,9 +11,9 @@ When adding deterministic E2E fixtures (seed SQL, `tools/**/seed-e2e.mjs`, demo 
 
 ## Limits
 
-| Source | Rule |
-| --- | --- |
-| DB domain | `VARCHAR(15)` with `char_length` **9–15** (`0000_init_helpers.sql`) |
+| Source     | Rule                                                                                  |
+| ---------- | ------------------------------------------------------------------------------------- |
+| DB domain  | `VARCHAR(15)` with `char_length` **9–15** (`0000_init_helpers.sql`)                   |
 | TypeScript | `NANO_ID_V2_MIN_LENGTH` / `NANO_ID_V2_MAX_LENGTH` in `packages/orm/src/lib/nanoid.ts` |
 
 **Do not** assume descriptive strings are valid just because they look like other E2E IDs.

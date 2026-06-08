@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 
+import { buildEmbedDemoAnchorId } from '../../lib/embed/buildEmbedDemoTocItems';
 import { EMBED_IFRAME_ALLOW } from '../../lib/embed/buildEmbedIframeCode';
 import { resolveEmbedDemoPreviewPresentationStyle } from '../../lib/embed/embedDemoLinks';
 import type { EmbedRouteKind } from '../../lib/embed/embedTypes';
@@ -31,7 +32,9 @@ export async function EmbedDemoPreview({
 
   return (
     <article className={styles.preview} data-testid={`embed-demo-preview-${showcaseId}`}>
-      <h3>{label}</h3>
+      <h3 className={styles.title} id={buildEmbedDemoAnchorId(showcaseId)}>
+        {label}
+      </h3>
       {hasPreview ? (
         <div className={styles.frame} data-testid={`embed-demo-frame-${showcaseId}`}>
           <iframe
@@ -45,10 +48,7 @@ export async function EmbedDemoPreview({
         </div>
       ) : (
         <div className={styles.frame} data-testid={`embed-demo-frame-${showcaseId}`}>
-          <p
-            className={styles.unavailable}
-            data-testid={`embed-demo-unavailable-${showcaseId}`}
-          >
+          <p className={styles.unavailable} data-testid={`embed-demo-unavailable-${showcaseId}`}>
             {t('embed_demo_no_suitable_content')}
           </p>
         </div>

@@ -104,10 +104,7 @@ export const ModalEmbedBuilder: React.FC = () => {
   const previewIframeHeightClassKey =
     embedTarget === null
       ? 'iframeSingleAudio'
-      : getEmbedPreviewIframeHeightClassKey(
-          getEmbedLayoutType(embedTarget.routeKind),
-          'audio'
-        );
+      : getEmbedPreviewIframeHeightClassKey(getEmbedLayoutType(embedTarget.routeKind), 'audio');
 
   if (!isOpen) {
     return null;

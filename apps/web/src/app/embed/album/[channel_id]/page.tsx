@@ -8,5 +8,7 @@ export type EmbedAlbumPageProps = {
 export default async function EmbedAlbumPage({ params, searchParams }: EmbedAlbumPageProps) {
   const { channel_id } = await params;
 
-  return <EmbedTypedRoutePage routeKind="album" resourceId={channel_id} searchParams={searchParams} />;
+  return (
+    <EmbedTypedRoutePage routeKind="album" resourceId={channel_id} searchParams={searchParams} />
+  );
 }

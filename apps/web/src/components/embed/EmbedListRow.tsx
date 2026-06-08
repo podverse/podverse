@@ -16,9 +16,7 @@ type EmbedListRowProps = {
 export function EmbedListRow({ row, isActive, onSelect }: EmbedListRowProps) {
   const durationRaw = row.item.item_about?.duration;
   const durationStr =
-    durationRaw !== null &&
-    durationRaw !== undefined &&
-    Number(durationRaw) > 0
+    durationRaw !== null && durationRaw !== undefined && Number(durationRaw) > 0
       ? durationRaw
       : null;
 

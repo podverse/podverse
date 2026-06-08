@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import { MediumEnum } from '@podverse/helpers';
 
-import { buildEmbedUrl, buildEmbedUrlPath, resolveEmbedUrlTarget } from '../buildEmbedUrl';
 import type { EmbedUrlEntityContext } from '../buildEmbedUrl';
+import { buildEmbedUrl, buildEmbedUrlPath, resolveEmbedUrlTarget } from '../buildEmbedUrl';
 
 const podcastChannel = {
   id_text: 'podcast-channel',

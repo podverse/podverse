@@ -81,7 +81,10 @@ export async function expectEmbedPlayerProgressVisible(page: Page): Promise<void
   await expect(page.getByRole('slider')).toBeVisible();
 }
 
-export async function expectEmbedPlayerDuration(page: Page, expectedDuration: string): Promise<void> {
+export async function expectEmbedPlayerDuration(
+  page: Page,
+  expectedDuration: string
+): Promise<void> {
   const duration = page
     .getByTestId('embed-player-controls')
     .locator('[class*="mediaPlayerProgressDuration"]');

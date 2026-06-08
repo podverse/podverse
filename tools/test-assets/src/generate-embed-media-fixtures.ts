@@ -19,26 +19,11 @@ const COMMON_OPTIONS = {
 async function main(): Promise<void> {
   await generator.ensureAssetsDirectory();
 
-  await generator.generateMP3(
-    'embed-sample-episode-audio-60s-440hz.mp3',
-    60,
-    440,
-    COMMON_OPTIONS
-  );
+  await generator.generateMP3('embed-sample-episode-audio-60s-440hz.mp3', 60, 440, COMMON_OPTIONS);
   await generator.generateMP3('embed-sample-track-audio-30s-330hz.mp3', 30, 330, COMMON_OPTIONS);
   await generator.generateMP3('embed-sample-track-two-30s-294hz.mp3', 30, 294, COMMON_OPTIONS);
-  await generator.generateMP3(
-    'embed-sample-podcast-item-60s-440hz.mp3',
-    60,
-    440,
-    COMMON_OPTIONS
-  );
-  await generator.generateMP3(
-    'embed-sample-scroll-item-60s-440hz.mp3',
-    60,
-    440,
-    COMMON_OPTIONS
-  );
+  await generator.generateMP3('embed-sample-podcast-item-60s-440hz.mp3', 60, 440, COMMON_OPTIONS);
+  await generator.generateMP3('embed-sample-scroll-item-60s-440hz.mp3', 60, 440, COMMON_OPTIONS);
 
   console.log('Embed media fixtures ready.');
 }

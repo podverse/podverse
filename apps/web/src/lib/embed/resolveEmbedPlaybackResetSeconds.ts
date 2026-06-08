@@ -1,7 +1,7 @@
 import type { DTOClip, DTOItemSoundbite } from '@podverse/helpers';
 
-import { parsePlaybackSeconds } from '../playback/parsePlaybackSeconds';
 import type { PlaybackTarget } from '../playback';
+import { parsePlaybackSeconds } from '../playback/parsePlaybackSeconds';
 
 export function resolveEmbedPlaybackResetSeconds(params: {
   activePlaybackTarget: PlaybackTarget | null;

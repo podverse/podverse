@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatEmbedDisplayTitle } from '../formatEmbedDisplayTitle';
 import type { EmbedSingleResourcePayload } from '../fetchEmbedSingleResource';
+import { formatEmbedDisplayTitle } from '../formatEmbedDisplayTitle';
 
 const basePayload = (): EmbedSingleResourcePayload => ({
   channel: { id: 1, id_text: 'ch', title: 'Channel' } as EmbedSingleResourcePayload['channel'],

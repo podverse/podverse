@@ -23,16 +23,16 @@ Local demo index: [`/embed`](http://localhost:4032/embed) (ports vary by environ
 
 ## Typed routes
 
-| Entity context | Embed path |
-| --- | --- |
-| Episode (podcast/video item) | `/embed/episode/{item.id_text}` |
-| Track (music item) | `/embed/track/{item.id_text}` |
-| Clip | `/embed/clip/{clip.id_text}` |
-| Chapter | `/embed/chapter/{item_chapter.id_text}` |
-| Official clip (soundbite) | `/embed/official-clip/{item_soundbite.id_text}` |
-| Podcast channel (list) | `/embed/podcast/{channel.id_text}` |
-| Album channel (list) | `/embed/album/{channel.id_text}` |
-| Playlist (list) | `/embed/playlist/{playlist.id_text}` |
+| Entity context               | Embed path                                      |
+| ---------------------------- | ----------------------------------------------- |
+| Episode (podcast/video item) | `/embed/episode/{item.id_text}`                 |
+| Track (music item)           | `/embed/track/{item.id_text}`                   |
+| Clip                         | `/embed/clip/{clip.id_text}`                    |
+| Chapter                      | `/embed/chapter/{item_chapter.id_text}`         |
+| Official clip (soundbite)    | `/embed/official-clip/{item_soundbite.id_text}` |
+| Podcast channel (list)       | `/embed/podcast/{channel.id_text}`              |
+| Album channel (list)         | `/embed/album/{channel.id_text}`                |
+| Playlist (list)              | `/embed/playlist/{playlist.id_text}`            |
 
 Official-clip embeds always use `/embed/official-clip/…`, not `/soundbite/…`.
 
@@ -43,18 +43,18 @@ URL generation for Share → Embed Builder and copy output lives in
 
 Shared on single and list routes:
 
-| Param | Default | Normalization |
-| --- | --- | --- |
-| `autoplay` | `false` | Invalid values → `false`; only `true` is emitted in generated URLs |
-| `t` | `0` | Start time in seconds; invalid/negative → `0` |
-| `chapter_markers` | `true` | `0` or `false` hides progress-bar chapter boundary markers when chapters exist |
+| Param             | Default | Normalization                                                                  |
+| ----------------- | ------- | ------------------------------------------------------------------------------ |
+| `autoplay`        | `false` | Invalid values → `false`; only `true` is emitted in generated URLs             |
+| `t`               | `0`     | Start time in seconds; invalid/negative → `0`                                  |
+| `chapter_markers` | `true`  | `0` or `false` hides progress-bar chapter boundary markers when chapters exist |
 
 List routes only:
 
-| Param | Default | Notes |
-| --- | --- | --- |
-| `play_id_text` | — | Hidden advanced override; must match a row on the current list page or falls back to the default row |
-| `type`, `sort`, `page`, `range` | route defaults | Invalid enum/page values fall back per `parseEmbedQueryParams.ts` |
+| Param                           | Default        | Notes                                                                                                |
+| ------------------------------- | -------------- | ---------------------------------------------------------------------------------------------------- |
+| `play_id_text`                  | —              | Hidden advanced override; must match a row on the current list page or falls back to the default row |
+| `type`, `sort`, `page`, `range` | route defaults | Invalid enum/page values fall back per `parseEmbedQueryParams.ts`                                    |
 
 ### Chapter markers and titles (audio podcast episodes)
 
@@ -145,9 +145,9 @@ Canonical fixture ids live in:
 
 Shared seed core: `tools/web/seed-embed-fixtures.mjs` (called from `tools/web/seed-e2e.mjs`).
 
-| Command | Database | Notes |
-| --- | --- | --- |
-| `make e2e_seed_web` | E2E test DB (port 5732) | Full account truncate + fixtures |
+| Command                 | Database                 | Notes                                                 |
+| ----------------------- | ------------------------ | ----------------------------------------------------- |
+| `make e2e_seed_web`     | E2E test DB (port 5732)  | Full account truncate + fixtures                      |
 | `make local_seed_embed` | Local dev DB (port 5432) | Media/embed fixtures only; does not truncate accounts |
 
 Local bootstrap:
@@ -167,13 +167,13 @@ Embed demo fixtures use **standalone** audio and artwork under `tools/test-asset
 They are separate from media-player E2E fixtures under `/e2e/`. Each image uses a distinct
 background color so it is obvious which resource type is displayed.
 
-| Resource | Display title (seed) | Image file (color) |
-| --- | --- | --- |
+| Resource        | Display title (seed)           | Image file (color)                               |
+| --------------- | ------------------------------ | ------------------------------------------------ |
 | Podcast channel | `Embed Sample Podcast (audio)` | `embed-sample-podcast-channel-art.png` (#1D4E89) |
-| Episode (audio) | `Embed Sample Episode (audio)` | `embed-sample-episode-audio-art.png` (#2E86AB) |
-| Album | `Embed Sample Album (audio)` | `embed-sample-album-channel-art.png` (#6B2D5C) |
-| Track (audio) | `Embed Sample Track (audio)` | `embed-sample-track-audio-art.png` (#F18F01) |
-| Clip | `Embed Sample Clip (audio)` | `embed-sample-clip-art.png` (#E9C46A) |
+| Episode (audio) | `Embed Sample Episode (audio)` | `embed-sample-episode-audio-art.png` (#2E86AB)   |
+| Album           | `Embed Sample Album (audio)`   | `embed-sample-album-channel-art.png` (#6B2D5C)   |
+| Track (audio)   | `Embed Sample Track (audio)`   | `embed-sample-track-audio-art.png` (#F18F01)     |
+| Clip            | `Embed Sample Clip (audio)`    | `embed-sample-clip-art.png` (#E9C46A)            |
 
 Regenerate binaries:
 
@@ -193,12 +193,12 @@ placeholder when all candidates are exhausted.
 
 Default list rows (with current seed):
 
-| Route | Default row `id_text` |
-| --- | --- |
-| `/embed/podcast/embSmpPodAud1` | `embSmpEpAud1` (sort `recent`) |
-| `/embed/album/embSmpAlbAud1` | `embSmpTrkAud2` (sort `forward`) |
-| `/embed/playlist/e2eEmbPlList01` | `embSmpEpAud1` (first resource) |
-| `/embed/playlist/e2eEmbPlMix01` | `embSmpEpAud1` (mixed audio + video resources) |
+| Route                            | Default row `id_text`                          |
+| -------------------------------- | ---------------------------------------------- |
+| `/embed/podcast/embSmpPodAud1`   | `embSmpEpAud1` (sort `recent`)                 |
+| `/embed/album/embSmpAlbAud1`     | `embSmpTrkAud2` (sort `forward`)               |
+| `/embed/playlist/e2eEmbPlList01` | `embSmpEpAud1` (first resource)                |
+| `/embed/playlist/e2eEmbPlMix01`  | `embSmpEpAud1` (mixed audio + video resources) |
 
 ## Phase-1 limitations
 

@@ -51,23 +51,19 @@ function loadLocalDbEnv() {
 
 const localDbEnv = loadLocalDbEnv();
 
-const result = spawnSync(
-  process.execPath,
-  [path.join(REPO_ROOT, 'tools/web/seed-e2e.mjs')],
-  {
-    cwd: REPO_ROOT,
-    stdio: 'inherit',
-    env: {
-      ...process.env,
-      SEED_MEDIA_FIXTURES_ONLY: 'true',
-      DB_HOST: process.env.DB_HOST ?? 'localhost',
-      DB_PORT: process.env.DB_PORT ?? localDbEnv.DB_PORT ?? '5432',
-      DB_APP_NAME: process.env.DB_APP_NAME ?? localDbEnv.DB_APP_NAME ?? 'podverse_app',
-      SEED_DB_USER: process.env.SEED_DB_USER ?? localDbEnv.DB_APP_READ_WRITE_USER,
-      SEED_DB_PASSWORD: process.env.SEED_DB_PASSWORD ?? localDbEnv.DB_APP_READ_WRITE_PASSWORD,
-    },
-  }
-);
+const result = spawnSync(process.execPath, [path.join(REPO_ROOT, 'tools/web/seed-e2e.mjs')], {
+  cwd: REPO_ROOT,
+  stdio: 'inherit',
+  env: {
+    ...process.env,
+    SEED_MEDIA_FIXTURES_ONLY: 'true',
+    DB_HOST: process.env.DB_HOST ?? 'localhost',
+    DB_PORT: process.env.DB_PORT ?? localDbEnv.DB_PORT ?? '5432',
+    DB_APP_NAME: process.env.DB_APP_NAME ?? localDbEnv.DB_APP_NAME ?? 'podverse_app',
+    SEED_DB_USER: process.env.SEED_DB_USER ?? localDbEnv.DB_APP_READ_WRITE_USER,
+    SEED_DB_PASSWORD: process.env.SEED_DB_PASSWORD ?? localDbEnv.DB_APP_READ_WRITE_PASSWORD,
+  },
+});
 
 if (result.status !== 0) {
   process.exit(result.status ?? 1);

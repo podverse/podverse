@@ -1,9 +1,8 @@
 'use client';
 
 import { PlayButton } from '../MediaPlayer/Buttons/PlayButton';
-
-import { EmbedPlayerMoreButton } from './EmbedPlayerMoreButton';
 import { MediaPlayerProgress } from '../MediaPlayer/Sliders/MediaPlayerProgress';
+import { EmbedPlayerMoreButton } from './EmbedPlayerMoreButton';
 
 import styles from '../../styles/components/embed/EmbedPlayerControls.module.scss';
 

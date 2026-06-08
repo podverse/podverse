@@ -261,7 +261,9 @@ export type { TabData, TabsData, TabsProps } from './components/navigation/Tabs/
 export { TableOfContents } from './components/navigation/TableOfContents/index';
 export type {
   TableOfContentsItem,
+  TableOfContentsLinkItem,
   TableOfContentsProps,
+  TableOfContentsSection,
 } from './components/navigation/TableOfContents/index';
 export { ButtonTabs } from './components/navigation/ButtonTabs/ButtonTabs';
 export type { ButtonTab, ButtonTabsProps } from './components/navigation/ButtonTabs/ButtonTabs';

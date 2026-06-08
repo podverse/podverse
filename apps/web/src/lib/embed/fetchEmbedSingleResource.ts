@@ -1,4 +1,10 @@
-import type { DTOChannel, DTOClip, DTOItem, DTOItemChapter, DTOItemSoundbite } from '@podverse/helpers';
+import type {
+  DTOChannel,
+  DTOClip,
+  DTOItem,
+  DTOItemChapter,
+  DTOItemSoundbite,
+} from '@podverse/helpers';
 
 import {
   getChannelForSeoPage,

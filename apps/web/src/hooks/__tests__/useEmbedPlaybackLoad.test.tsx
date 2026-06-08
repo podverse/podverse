@@ -22,13 +22,17 @@ vi.mock('../../contexts/MediaPlayer', () => ({
 }));
 
 const embedResource = (): EmbedSingleResourcePayload => ({
-  channel: { id: 1, id_text: 'ch', title: 'Channel' } as EmbedSingleResourcePayload['channel'],
+  channel: {
+    id: 1,
+    id_text: 'ch',
+    title: 'Channel',
+  } as unknown as EmbedSingleResourcePayload['channel'],
   item: {
     id: 1,
     id_text: 'item',
     title: 'Episode Title',
     item_enclosures: [],
-  } as EmbedSingleResourcePayload['item'],
+  } as unknown as EmbedSingleResourcePayload['item'],
   clip: null,
   itemChapter: null,
   itemSoundbite: null,
@@ -66,34 +70,16 @@ describe('useEmbedPlaybackLoad', () => {
   it('does not reload playback when parent re-renders with unchanged embed target inputs', () => {
     const resource = embedResource();
     const { rerender } = render(
-      <Probe
-        bump={0}
-        enabled={true}
-        resource={resource}
-        shouldPlay={false}
-        startSeconds={0}
-      />
+      <Probe bump={0} enabled={true} resource={resource} shouldPlay={false} startSeconds={0} />
     );
 
     expect(hoisted.mediaPlayerResourceUpdate).toHaveBeenCalledTimes(1);
 
     rerender(
-      <Probe
-        bump={1}
-        enabled={true}
-        resource={resource}
-        shouldPlay={false}
-        startSeconds={0}
-      />
+      <Probe bump={1} enabled={true} resource={resource} shouldPlay={false} startSeconds={0} />
     );
     rerender(
-      <Probe
-        bump={2}
-        enabled={true}
-        resource={resource}
-        shouldPlay={false}
-        startSeconds={0}
-      />
+      <Probe bump={2} enabled={true} resource={resource} shouldPlay={false} startSeconds={0} />
     );
 
     expect(hoisted.mediaPlayerResourceUpdate).toHaveBeenCalledTimes(1);
@@ -102,23 +88,11 @@ describe('useEmbedPlaybackLoad', () => {
   it('reloads playback when shouldPlay changes', () => {
     const resource = embedResource();
     const { rerender } = render(
-      <Probe
-        bump={0}
-        enabled={true}
-        resource={resource}
-        shouldPlay={false}
-        startSeconds={0}
-      />
+      <Probe bump={0} enabled={true} resource={resource} shouldPlay={false} startSeconds={0} />
     );
 
     rerender(
-      <Probe
-        bump={1}
-        enabled={true}
-        resource={resource}
-        shouldPlay={true}
-        startSeconds={0}
-      />
+      <Probe bump={1} enabled={true} resource={resource} shouldPlay={true} startSeconds={0} />
     );
 
     expect(hoisted.mediaPlayerResourceUpdate).toHaveBeenCalledTimes(2);
@@ -135,9 +109,7 @@ describe('useEmbedPlaybackLoad', () => {
       />
     );
 
-    render(
-      <Probe bump={0} enabled={true} resource={null} shouldPlay={false} startSeconds={0} />
-    );
+    render(<Probe bump={0} enabled={true} resource={null} shouldPlay={false} startSeconds={0} />);
 
     expect(hoisted.mediaPlayerResourceUpdate).not.toHaveBeenCalled();
   });

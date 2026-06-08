@@ -93,11 +93,7 @@ export async function EmbedTypedRoutePage({
   const mediaType = resolveEmbedMediaType(resource.channel);
 
   return (
-    <EmbedSingleShell
-      resource={resource}
-      sharedQuery={runtime.sharedQuery}
-      mediaType={mediaType}
-    />
+    <EmbedSingleShell resource={resource} sharedQuery={runtime.sharedQuery} mediaType={mediaType} />
   );
 }
 

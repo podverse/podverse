@@ -16,5 +16,5 @@ export const getBrandLogoSrc = (uiTheme: UITheme) => {
 
 /** Optional 100×100 square brand mark for embed (`NEXT_PUBLIC_BRAND_LOGO_SQUARE_100X100`). */
 export const getBrandLogoSquareSrc = (): string | null => {
-  return getConfig().public.brand.logoSquare100x100;
+  return getConfig().public.brand.logoSquare100x100 ?? null;
 };

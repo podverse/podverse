@@ -22,11 +22,11 @@ import { parseEmbedChapterMarkers } from './parseEmbedChapterMarkers';
 
 const sharedQuerySchema = z.object({
   autoplay: z.preprocess(parseEmbedAutoplay, z.boolean()).optional().default(false),
-  t: z.preprocess((value) => parsePlaybackSeconds(value) ?? 0, z.number()).optional().default(0),
-  chapter_markers: z
-    .preprocess(parseEmbedChapterMarkers, z.boolean())
+  t: z
+    .preprocess((value) => parsePlaybackSeconds(value) ?? 0, z.number())
     .optional()
-    .default(true),
+    .default(0),
+  chapter_markers: z.preprocess(parseEmbedChapterMarkers, z.boolean()).optional().default(true),
 });
 
 const singleQuerySchema = sharedQuerySchema;
@@ -45,11 +45,7 @@ const podcastListQuerySchema = sharedQuerySchema.extend({
     }, z.number())
     .optional()
     .default(1),
-  range: z
-    .enum(QUERY_PARAMS_STATS_RANGE_VALUES)
-    .optional()
-    .nullable()
-    .default(null),
+  range: z.enum(QUERY_PARAMS_STATS_RANGE_VALUES).optional().nullable().default(null),
   play_id_text: z.string().trim().min(1).optional().nullable().default(null),
 });
 
@@ -67,11 +63,7 @@ const albumListQuerySchema = sharedQuerySchema.extend({
     }, z.number())
     .optional()
     .default(1),
-  range: z
-    .enum(QUERY_PARAMS_STATS_RANGE_VALUES)
-    .optional()
-    .nullable()
-    .default(null),
+  range: z.enum(QUERY_PARAMS_STATS_RANGE_VALUES).optional().nullable().default(null),
   play_id_text: z.string().trim().min(1).optional().nullable().default(null),
 });
 

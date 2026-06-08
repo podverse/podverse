@@ -424,13 +424,7 @@ export async function seedEmbedSampleDemoFixtures(client, { accountId }) {
     [albumChannelId, EMBED_SAMPLE_ALBUM_CHANNEL_IMAGE_URL]
   );
 
-  async function insertAlbumTrack({
-    idText,
-    guidSlug,
-    title,
-    enclosureUrl,
-    pubDateOffsetSeconds,
-  }) {
+  async function insertAlbumTrack({ idText, guidSlug, title, enclosureUrl, pubDateOffsetSeconds }) {
     const itemResult = await client.query(
       `INSERT INTO item (
          id_text,
@@ -442,7 +436,13 @@ export async function seedEmbedSampleDemoFixtures(client, { accountId }) {
        )
        VALUES ($1, $2, $3, NOW() - ($5::int * INTERVAL '1 second'), $4, 1)
        RETURNING id`,
-      [idText, albumChannelId, `${EMBED_SAMPLE_ALBUM_FEED_URL}#${guidSlug}`, title, pubDateOffsetSeconds]
+      [
+        idText,
+        albumChannelId,
+        `${EMBED_SAMPLE_ALBUM_FEED_URL}#${guidSlug}`,
+        title,
+        pubDateOffsetSeconds,
+      ]
     );
     const itemId = itemResult.rows[0].id;
 

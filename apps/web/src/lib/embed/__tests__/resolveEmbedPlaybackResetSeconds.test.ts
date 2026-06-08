@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import type { DTOChannel, DTOClip, DTOItem, DTOItemChapter, DTOItemSoundbite } from '@podverse/helpers';
+import type {
+  DTOChannel,
+  DTOClip,
+  DTOItem,
+  DTOItemChapter,
+  DTOItemSoundbite,
+} from '@podverse/helpers';
 
 import type { PlaybackTarget } from '../../playback';
 import {

@@ -98,7 +98,8 @@ export const EMBED_FIXTURE_VIDEO_ITEM_TWO_ID_TEXT = 'e2eEmbVidItem02';
 
 export const EMBED_FIXTURE_VIDEO_FEED_PI_ID = 876543213;
 export const EMBED_FIXTURE_VIDEO_FEED_URL = 'https://e2e-seed-video.example/video.xml';
-export const EMBED_FIXTURE_VIDEO_ENCLOSURE_URL = 'https://e2e-seed-video.example/e2e-embed-video.mp4';
+export const EMBED_FIXTURE_VIDEO_ENCLOSURE_URL =
+  'https://e2e-seed-video.example/e2e-embed-video.mp4';
 
 export const EMBED_FIXTURE_VIDEO_MUSIC_FEED_PI_ID = 876543216;
 export const EMBED_FIXTURE_VIDEO_MUSIC_FEED_URL = 'https://e2e-seed-video-music.example/album.xml';

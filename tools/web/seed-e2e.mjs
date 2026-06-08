@@ -451,13 +451,7 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
        )
        VALUES ($1, $2, $3, NOW() - ($5::int * INTERVAL '1 second'), $4, 1)
        RETURNING id`,
-      [
-        idText,
-        podcastChannelId,
-        `${E2E_PODCAST_FEED_URL}#${guidSlug}`,
-        title,
-        pubDateOffsetSeconds,
-      ]
+      [idText, podcastChannelId, `${E2E_PODCAST_FEED_URL}#${guidSlug}`, title, pubDateOffsetSeconds]
     );
     const itemId = itemResult.rows[0].id;
 

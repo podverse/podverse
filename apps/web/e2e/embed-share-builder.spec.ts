@@ -19,7 +19,10 @@ async function openShareModal(page: Page) {
 
 async function openEmbedBuilderFromShare(page: Page) {
   await openShareModal(page);
-  await page.getByTestId('share-create-embed').getByRole('button', { name: 'Create Embed' }).click();
+  await page
+    .getByTestId('share-create-embed')
+    .getByRole('button', { name: 'Create Embed' })
+    .click();
   await expect(page.getByTestId('embed-builder-modal')).toBeVisible();
 }
 
@@ -46,7 +49,9 @@ async function toggleEmbedListLayout(page: Page): Promise<void> {
 }
 
 test.describe('Embed share builder handoff', () => {
-  test('Share from an episode opens the builder with an episode embed URL', async ({ page }, testInfo) => {
+  test('Share from an episode opens the builder with an episode embed URL', async ({
+    page,
+  }, testInfo) => {
     await test.step('Navigate to the episode page and open the embed builder', async () => {
       await page.goto(`/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`);
       await openEmbedBuilderFromShare(page);
@@ -67,7 +72,9 @@ test.describe('Embed share builder handoff', () => {
     });
   });
 
-  test('Share from an official clip uses the official-clip embed path', async ({ page }, testInfo) => {
+  test('Share from an official clip uses the official-clip embed path', async ({
+    page,
+  }, testInfo) => {
     await test.step('Navigate to the official clip page and open Share', async () => {
       await page.goto(`/official-clip/${E2E_SOUNDBITE_ID_TEXT}`);
       await openShareModal(page);
@@ -77,7 +84,10 @@ test.describe('Embed share builder handoff', () => {
         new RegExp(`/official-clip/${E2E_SOUNDBITE_ID_TEXT}$`)
       );
 
-      await page.getByTestId('share-create-embed').getByRole('button', { name: 'Create Embed' }).click();
+      await page
+        .getByTestId('share-create-embed')
+        .getByRole('button', { name: 'Create Embed' })
+        .click();
       await expect(page.getByTestId('embed-builder-modal')).toBeVisible();
 
       await capturePageLoad(
@@ -136,7 +146,9 @@ test.describe('Embed share builder handoff', () => {
     );
   });
 
-  test('Episode share builder list layout toggle switches to podcast list embed', async ({ page }) => {
+  test('Episode share builder list layout toggle switches to podcast list embed', async ({
+    page,
+  }) => {
     await page.goto(`/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`);
     await openEmbedBuilderFromShare(page);
 

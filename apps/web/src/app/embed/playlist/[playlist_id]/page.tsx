@@ -9,6 +9,10 @@ export default async function EmbedPlaylistPage({ params, searchParams }: EmbedP
   const { playlist_id } = await params;
 
   return (
-    <EmbedTypedRoutePage routeKind="playlist" resourceId={playlist_id} searchParams={searchParams} />
+    <EmbedTypedRoutePage
+      routeKind="playlist"
+      resourceId={playlist_id}
+      searchParams={searchParams}
+    />
   );
 }
