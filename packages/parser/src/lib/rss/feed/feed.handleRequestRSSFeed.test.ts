@@ -49,13 +49,13 @@ describe('handleRequestRSSFeed empty parsed feed', () => {
   it('records parse failure instead of last_finished_parse_time when parsed feed is empty', async () => {
     getAndParseRSSFeedMock.mockResolvedValue(null);
 
-    await expect(handleRequestRSSFeed(feed, 10_000_000)).rejects.toThrow('parsedFeed no data found');
-
-    expect(recordFeedParseFailureMock).toHaveBeenCalledWith(
-      feed,
-      expect.any(Object),
-      { last_http_status: 200 }
+    await expect(handleRequestRSSFeed(feed, 10_000_000)).rejects.toThrow(
+      'parsedFeed no data found'
     );
+
+    expect(recordFeedParseFailureMock).toHaveBeenCalledWith(feed, expect.any(Object), {
+      last_http_status: 200,
+    });
     expect(feedLogUpdateMock).not.toHaveBeenCalledWith(
       feed,
       expect.objectContaining({ last_finished_parse_time: expect.any(Date) })

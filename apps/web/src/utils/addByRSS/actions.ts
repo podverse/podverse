@@ -92,9 +92,7 @@ export const applyAddByRSSParseStatus = async ({
     cache: cache ?? base.cache,
     updatedAt: nowIso,
     lastParsedAt:
-      status === 'parsed' || status === 'not_modified'
-        ? nowIso
-        : (base.lastParsedAt ?? null),
+      status === 'parsed' || status === 'not_modified' ? nowIso : (base.lastParsedAt ?? null),
     lastFailedParseAt: status === 'failed' ? nowIso : (base.lastFailedParseAt ?? null),
   };
 

@@ -134,6 +134,15 @@ export const IMAGES = {
   },
   SRC: {
     PLACEHOLDER: '/images/placeholder-image.png',
+    /** Guaranteed app-local artwork fallback (also used as final embed candidate). */
+    EMBED_PLACEHOLDER: '/images/placeholder-image.png',
+  },
+  EMBED: {
+    /** Test-assets PNG served on port 2111; regenerate via `npm run generate:e2e-images -w podverse-test-assets`. */
+    TEST_ASSETS_PLACEHOLDER_URL: 'http://localhost:2111/e2e/images/e2e-embed-placeholder.png',
+    TEST_ASSETS_CHANNEL_IMAGE_URL:
+      'http://localhost:2111/e2e/images/e2e-embed-channel-art-1400.png',
+    TEST_ASSETS_ITEM_IMAGE_URL: 'http://localhost:2111/e2e/images/e2e-embed-item-art-1400.png',
   },
   MOBILE: {
     APP_STORES: {

@@ -19,10 +19,10 @@ export class AssetGenerator {
   private assetsDir: string;
   private namespace: string;
 
-  constructor(options: { namespace?: string } = {}) {
+  constructor(options: { namespace?: string; assetsDir?: string } = {}) {
     this.namespace = options?.namespace ?? '';
-    // Assets directory is tools/test-assets/assets/ or tools/test-assets/assets/<namespace>/
-    this.assetsDir = path.join(__dirname, '../assets', this.namespace);
+    // Default: tools/test-assets/assets/ or tools/test-assets/assets/<namespace>/
+    this.assetsDir = options?.assetsDir ?? path.join(__dirname, '../assets', this.namespace);
   }
 
   async ensureAssetsDirectory(): Promise<void> {

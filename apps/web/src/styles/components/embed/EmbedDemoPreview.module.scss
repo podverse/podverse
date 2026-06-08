@@ -1,0 +1,57 @@
+@use './embedLayout' as embed;
+
+.preview {
+  --embed-demo-title-gap: var(--spacing-xl);
+  --embed-demo-example-gap: calc(var(--spacing-xl) + var(--spacing-2xl));
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--embed-demo-title-gap);
+
+  &:not(:first-child) {
+    margin-top: var(--embed-demo-example-gap);
+  }
+}
+
+.title {
+  scroll-margin-top: var(--spacing-2xl);
+}
+
+.frame {
+  @include embed.embed-player-panel-custom-properties;
+
+  border: 1px solid var(--border-color-opaque);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-xs);
+}
+
+.iframe {
+  border-radius: var(--radius-sm);
+  display: block;
+  border: 0;
+  max-width: 100%;
+  width: 100%;
+}
+
+.iframeSingleAudio {
+  height: embed.$embed-single-audio-shell-height;
+}
+
+.iframeSingleVideo {
+  height: embed.$embed-single-video-shell-height;
+}
+
+.iframeListAudio {
+  height: embed.$embed-list-audio-shell-height;
+}
+
+.iframeListVideo {
+  height: embed.$embed-list-video-shell-height;
+}
+
+.unavailable {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin: 0;
+  padding: var(--spacing-sm);
+}

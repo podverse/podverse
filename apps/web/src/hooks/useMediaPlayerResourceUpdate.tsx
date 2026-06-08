@@ -13,6 +13,7 @@ import type {
 import { useAddByRSSListContext } from '../contexts/AddByRSSListContext';
 import type { AutoQueueConfig } from '../contexts/AutoQueue';
 import { useAutoQueue } from '../contexts/AutoQueue';
+import { useEmbedPlaybackGuardrails } from '../contexts/EmbedPlaybackMode';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
 import { useMediaPlayerCurrentTime } from '../contexts/MediaPlayerCurrentTime';
 import { useQueueResourcesAbridgedIndex } from '../contexts/QueueResourcesAbridgedIndex';
@@ -199,6 +200,7 @@ export function useMediaPlayerResourceUpdate() {
   const { setMPCurrentTime } = useMediaPlayerCurrentTime();
   const updateNowPlaying = useQueueResourcesUpdateNowPlaying();
   const { queueResourcesAbridgedIndex } = useQueueResourcesAbridgedIndex();
+  const embedGuardrails = useEmbedPlaybackGuardrails();
 
   const queueResourcesAbridgedIndexRef = useRef(queueResourcesAbridgedIndex);
   useEffect(() => {
@@ -238,15 +240,17 @@ export function useMediaPlayerResourceUpdate() {
       setAddByRSSListContext(null);
     }
 
-    if (autoQueueShouldClear) {
+    if (autoQueueShouldClear && !embedGuardrails.skipAutoQueueMutations) {
       setAutoQueueResources({});
       setAutoQueueActiveRow(0);
     }
 
-    setAutoQueueConfig({
-      ...autoQueueConfigRef.current,
-      ...newAutoQueueConfig,
-    });
+    if (!embedGuardrails.skipAutoQueueMutations) {
+      setAutoQueueConfig({
+        ...autoQueueConfigRef.current,
+        ...newAutoQueueConfig,
+      });
+    }
 
     if (shouldPlay !== undefined) {
       setMPShouldPlay(shouldPlay);
@@ -296,12 +300,14 @@ export function useMediaPlayerResourceUpdate() {
     );
     const hintedDuration = parsePlaybackSeconds(mediaFileDurationHintSeconds);
     const finalDuration = hintedDuration !== undefined ? hintedDuration : rowDuration;
-    const np = nowPlayingFieldsFromTarget(target);
-    void updateNowPlaying({
-      ...np,
-      mpDuration: finalDuration,
-      mpCurrentTime: decision.initialSeekSeconds,
-    });
+    if (!embedGuardrails.skipAutoQueueMutations) {
+      const np = nowPlayingFieldsFromTarget(target);
+      void updateNowPlaying({
+        ...np,
+        mpDuration: finalDuration,
+        mpCurrentTime: decision.initialSeekSeconds,
+      });
+    }
 
     return decision;
   };

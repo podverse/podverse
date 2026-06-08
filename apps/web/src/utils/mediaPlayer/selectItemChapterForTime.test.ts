@@ -36,9 +36,19 @@ describe('selectItemChapterForTime', () => {
     expect(selectItemChapterForTime([], 5)).toBeNull();
   });
 
-  it('matches exactly at start_time (inclusive lower bound)', () => {
+  it('suppresses chapter match at exactly 0 when a chapter starts at or before 0', () => {
     const a = ch({ id: 1, start_time: '0', end_time: '10', table_of_contents: false });
-    expect(selectItemChapterForTime([a], 0)?.id).toBe(1);
+    expect(selectItemChapterForTime([a], 0)).toBeNull();
+  });
+
+  it('matches after playhead passes 0 when chapter starts at 0', () => {
+    const a = ch({ id: 1, start_time: '0', end_time: '10', table_of_contents: false });
+    expect(selectItemChapterForTime([a], 0.1)?.id).toBe(1);
+  });
+
+  it('matches exactly at start_time when chapter starts after 0', () => {
+    const a = ch({ id: 1, start_time: '5', end_time: '10', table_of_contents: false });
+    expect(selectItemChapterForTime([a], 5)?.id).toBe(1);
   });
 
   it('does not match at exactly end_time (exclusive upper bound)', () => {

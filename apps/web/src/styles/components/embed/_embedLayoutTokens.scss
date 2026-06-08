@@ -1,0 +1,16 @@
+// Canonical embed layout literals. Keep apps/web/src/lib/embed/embedLayoutTokens.ts in sync.
+// Interior panel padding/gap use global CSS vars (--spacing-lg, --spacing-md) at 16px root.
+
+$embed-player-art-size: 78px;
+$embed-play-button-size: 3rem;
+$embed-brand-logo-height: 32px;
+
+$embed-single-video-placeholder-height: 334px;
+$embed-list-video-placeholder-height: 234px;
+
+$embed-presentation-selector-height: 52px;
+$embed-list-row-height: 48px;
+
+// List scroll viewport below the player panel.
+$embed-list-region-audio-height: 588px;
+$embed-list-region-video-height: 542px;

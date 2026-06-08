@@ -36,6 +36,8 @@ const buildConfig = () => {
           ASSETS.IMAGES.BRANDING.BRAND.LOGO_DARK,
         logoLight:
           optionalEnvString(env.NEXT_PUBLIC_BRAND_LOGO_LIGHT) ?? ASSETS.IMAGES.BRANDING.BRAND.LOGO,
+        logoSquare: optionalEnvString(env.NEXT_PUBLIC_BRAND_LOGO_SQUARE),
+        logoSquare100x100: optionalEnvString(env.NEXT_PUBLIC_BRAND_LOGO_SQUARE_100X100),
       },
       api: {
         ssr: {
@@ -145,4 +147,15 @@ export const getConfig = (): WebConfig => buildConfig();
 export const getWebOrigin = (): string => {
   const c = getConfig();
   return `${c.public.web.protocol}://${c.public.web.host}`;
+};
+
+/** Main website origin from `NEXT_PUBLIC_BRAND_DOMAIN` (embed brand-logo outbound links). */
+export const getBrandSiteOrigin = (): string | null => {
+  const c = getConfig();
+  const domain = c.public.brand.domain;
+  if (domain === null || domain === undefined || domain === '') {
+    return null;
+  }
+
+  return `${c.public.web.protocol}://${domain}`;
 };

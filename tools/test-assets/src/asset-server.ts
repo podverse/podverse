@@ -56,6 +56,8 @@ export class AssetServer {
       case '.jpg':
       case '.jpeg':
         return 'image/jpeg';
+      case '.png':
+        return 'image/png';
       case '.mp3':
         return 'audio/mpeg';
       case '.mp4':

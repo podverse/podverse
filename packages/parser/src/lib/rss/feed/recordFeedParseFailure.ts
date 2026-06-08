@@ -1,5 +1,5 @@
 import type { Feed } from '@podverse/orm';
-import { FeedLogService } from '@podverse/orm';
+import type { FeedLogService } from '@podverse/orm';
 
 type RecordFeedParseFailureExtras = {
   last_http_status?: number | null;

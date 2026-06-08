@@ -22,6 +22,9 @@ export const E2E_PODCAST_ITEM_RESUME_NEAR_END_ID_TEXT = 'e2ePodResume02';
 export const E2E_PODCAST_ITEM_RESUME_NONE_ID_TEXT = 'e2ePodResume03';
 export const E2E_PODCAST_ITEM_CHAPTERED_ID_TEXT = 'e2ePodChap0001';
 
+export const E2E_ITEM_CHAPTER_INTRO_ID_TEXT = 'e2eChapIntro01';
+export const E2E_ITEM_CHAPTER_TOPIC_ID_TEXT = 'e2eChapTopic01';
+
 export const E2E_CLIP_ID_TEXT = 'e2eClip00000001';
 export const E2E_SOUNDBITE_ID_TEXT = 'e2eSoundbite001';
 
@@ -87,6 +90,56 @@ export const E2E_ADD_BY_RSS_ITEM_DURATION_SECONDS = 60;
  * and the gitignore exception that pins them.
  */
 export const E2E_ASSET_BASE_URL = 'http://localhost:2111/e2e/audio';
+export const E2E_IMAGE_ASSET_BASE_URL = 'http://localhost:2111/e2e/images';
+
+/**
+ * Embed demo sample assets — sync with tools/web/embed-fixture-constants.mjs and
+ * apps/web/src/lib/embed/embedFixtureIds.ts (served from apps/web/public/embed-demo/).
+ */
+export const EMBED_DEMO_PUBLIC_AUDIO_PATH = '/embed-demo/audio';
+export const EMBED_DEMO_PUBLIC_IMAGES_PATH = '/embed-demo/images';
+export const EMBED_DEMO_E2E_WEB_ORIGIN = 'http://localhost:4032';
+
+export const EMBED_FIXTURE_ASSET_BASE_URL = `${EMBED_DEMO_E2E_WEB_ORIGIN}${EMBED_DEMO_PUBLIC_AUDIO_PATH}`;
+export const EMBED_FIXTURE_IMAGE_BASE_URL = `${EMBED_DEMO_E2E_WEB_ORIGIN}${EMBED_DEMO_PUBLIC_IMAGES_PATH}`;
+export const EMBED_FIXTURE_PLACEHOLDER_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BASE_URL}/embed-sample-placeholder.png`;
+
+export const EMBED_SAMPLE_EPISODE_AUDIO_TITLE = 'Embed Sample Episode (audio)';
+export const EMBED_SAMPLE_EPISODE_NEAR_END_TITLE = 'Embed Sample Episode (near end)';
+export const EMBED_SAMPLE_EPISODE_VIDEO_TITLE = 'Embed Sample Episode (video)';
+export const EMBED_SAMPLE_TRACK_AUDIO_TITLE = 'Embed Sample Track (audio)';
+export const EMBED_SAMPLE_TRACK_TWO_TITLE = 'Embed Sample Track Two (audio)';
+export const EMBED_SAMPLE_TRACK_VIDEO_TITLE = 'Embed Sample Track (video)';
+export const EMBED_SAMPLE_PODCAST_CHANNEL_TITLE = 'Embed Sample Podcast (audio)';
+export const EMBED_SAMPLE_ALBUM_CHANNEL_TITLE = 'Embed Sample Album (audio)';
+export const EMBED_SAMPLE_VIDEO_CHANNEL_TITLE = 'Embed Sample Podcast (video)';
+export const EMBED_SAMPLE_CLIP_TITLE = 'Embed Sample Clip (audio)';
+export const EMBED_SAMPLE_SOUNDBITE_TITLE = 'Embed Sample Official Clip (audio)';
+export const EMBED_SAMPLE_CHAPTER_TITLE = 'Intro';
+export const EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE = 'Topic A';
+export const EMBED_SAMPLE_CHAPTER_OUTRO_TITLE = 'Outro';
+
+export const EMBED_SAMPLE_CHAPTER_ONE_START_SECONDS = 0;
+export const EMBED_SAMPLE_CHAPTER_ONE_END_SECONDS = 20;
+export const EMBED_SAMPLE_CHAPTER_TWO_START_SECONDS = 20;
+export const EMBED_SAMPLE_CHAPTER_TWO_END_SECONDS = 40;
+export const EMBED_SAMPLE_CHAPTER_THREE_START_SECONDS = 40;
+export const EMBED_SAMPLE_CHAPTER_THREE_END_SECONDS = 60;
+
+export const EMBED_SAMPLE_EPISODE_AUDIO_ITEM_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BASE_URL}/embed-sample-episode-audio-art.png`;
+export const EMBED_SAMPLE_SCROLL_ITEM_TITLE_PREFIX = 'Embed Sample Scroll Item';
+
+export const EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT = 'embSmpPodAud1';
+export const EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT = 'embSmpEpAud1';
+export const EMBED_FIXTURE_PODCAST_EPISODE_NEAR_END_ID_TEXT = 'embSmpEpAud2';
+export const EMBED_FIXTURE_MUSIC_ALBUM_ID_TEXT = 'embSmpAlbAud1';
+export const EMBED_FIXTURE_MUSIC_TRACK_AUDIO_ID_TEXT = 'embSmpTrkAud1';
+export const EMBED_FIXTURE_MUSIC_TRACK_TWO_ID_TEXT = 'embSmpTrkAud2';
+export const EMBED_FIXTURE_CLIP_AUDIO_ID_TEXT = 'embSmpClip001';
+export const EMBED_FIXTURE_SOUNDBITE_ID_TEXT = 'embSmpSbite01';
+export const EMBED_FIXTURE_CHAPTER_ID_TEXT = 'embSmpChap001';
+export const EMBED_FIXTURE_CHAPTER_TWO_ID_TEXT = 'embSmpChap002';
+export const EMBED_FIXTURE_CHAPTER_THREE_ID_TEXT = 'embSmpChap003';
 
 export const E2E_PODCAST_SHORT_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-short-60s-440hz.mp3`;
 export const E2E_PODCAST_RESUME_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-resume-60s-440hz.mp3`;
@@ -94,3 +147,52 @@ export const E2E_MUSIC_TRACK_ONE_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-musi
 export const E2E_MUSIC_TRACK_TWO_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-two-30s-294hz.mp3`;
 export const E2E_ADDBYRSS_WITH_POSITION_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-addbyrss-with-position-60s-440hz.mp3`;
 export const E2E_ADDBYRSS_FRESH_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-addbyrss-fresh-60s-440hz.mp3`;
+
+/** Embed player E2E fixtures — sync with `tools/web/seed-e2e.mjs`. */
+export const E2E_EMBED_VIDEO_CHANNEL_ID_TEXT = 'e2eEmbedVidCh01';
+export const E2E_EMBED_VIDEO_ITEM_ID_TEXT = 'e2eEmbVidItem01';
+export const E2E_EMBED_VIDEO_ITEM_TWO_ID_TEXT = 'e2eEmbVidItem02';
+
+export const E2E_EMBED_PLAYLIST_ID_TEXT = 'e2eEmbPlList01';
+export const E2E_EMBED_PLAYLIST_MIXED_ID_TEXT = 'e2eEmbPlMix01';
+export const E2E_EMBED_PRIVATE_PLAYLIST_ID_TEXT = 'e2eEmbPlPriv01';
+export const E2E_EMBED_MUSIC_TRACK_VIDEO_ID_TEXT = 'e2eEmbVidTrk01';
+
+export const E2E_EMBED_INVALID_PLAY_ID_TEXT = 'invalid-id-text';
+
+/** Default list row for `/embed/podcast/...` with sort=recent (newest pub_date). */
+export const E2E_EMBED_PODCAST_LIST_DEFAULT_ITEM_ID_TEXT =
+  EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT;
+
+/** Default list row for `/embed/album/...` with sort=forward. */
+export const E2E_EMBED_ALBUM_LIST_DEFAULT_ITEM_ID_TEXT = EMBED_FIXTURE_MUSIC_TRACK_TWO_ID_TEXT;
+
+/** First playlist resource in `E2E_EMBED_PLAYLIST_ID_TEXT`. */
+export const E2E_EMBED_PLAYLIST_DEFAULT_ITEM_ID_TEXT = EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT;
+
+/** Podcast channel with many rows for list scroll E2E (`e2eEmbScrIt01`–`e2eEmbScrIt10`). */
+export const E2E_EMBED_SCROLL_CHANNEL_ID_TEXT = 'e2eEmbScrCh01';
+
+/** Default list row for scroll channel (sort=recent, newest pub_date). */
+export const E2E_EMBED_SCROLL_DEFAULT_ITEM_ID_TEXT = 'e2eEmbScrIt01';
+
+/** Oldest scroll-channel row label for scroll-into-view assertions. */
+export const E2E_EMBED_SCROLL_LAST_ITEM_LABEL = `${EMBED_SAMPLE_SCROLL_ITEM_TITLE_PREFIX} 10`;
+
+/** Podcast channel with feed_policy.public_visible=false. */
+export const E2E_EMBED_PRIVATE_CHANNEL_ID_TEXT = 'e2eEmbPrvCh01';
+
+/** Showcase slot ids on `/embed` when fixture mode is enabled. Sync with embedFixtureIds.ts. */
+export const E2E_EMBED_DEMO_SHOWCASE_IDS = [
+  'episode-audio',
+  'episode-video',
+  'track-audio',
+  'track-video',
+  'clip-audio',
+  'official-clip-audio',
+  'chapter-audio',
+  'podcast-audio',
+  'podcast-video',
+  'album-audio',
+  'playlist-mixed',
+] as const;

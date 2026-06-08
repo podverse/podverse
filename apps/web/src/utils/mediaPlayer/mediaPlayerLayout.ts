@@ -1,3 +1,7 @@
+export type UpdateLayoutForMediaPlayerOptions = {
+  skipMainAppLayoutMutations?: boolean;
+};
+
 /**
  * Applies or removes the media-player-active class on sidebar, page-wrapper, and media-player
  * so the layout reserves space at the bottom for the player.
@@ -5,7 +9,14 @@
  * MediaPlayer component has mounted). This prevents a blank rectangle from appearing when
  * something is playing but the player UI has not yet loaded.
  */
-export function updateLayoutForMediaPlayer(nowPlayingItem: unknown) {
+export function updateLayoutForMediaPlayer(
+  nowPlayingItem: unknown,
+  options?: UpdateLayoutForMediaPlayerOptions
+) {
+  if (options?.skipMainAppLayoutMutations) {
+    return;
+  }
+
   const sidebar = document.getElementById('sidebar');
   const pageWrapper = document.getElementById('page-wrapper');
   const mediaPlayer = document.getElementById('media-player');

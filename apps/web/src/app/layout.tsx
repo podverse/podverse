@@ -3,21 +3,12 @@ import { cookies } from 'next/headers';
 
 import type { QueueResourcesAbridgedIndex } from '@podverse/helpers';
 import { generateQueueResourceAbridgedIndex } from '@podverse/helpers';
-import { AppWrapper, FontPreloads, PageWrapper } from '@podverse/ui';
+import { FontPreloads } from '@podverse/ui';
 
+import { AppChrome } from '../components/App/AppChrome';
 import { AuthSessionChecker } from '../components/Auth/AuthSessionChecker';
-import { CookieConsentBanner } from '../components/Banner/CookieConsentBanner';
-import { MembershipExpiredBanner } from '../components/Banner/MembershipExpiredBanner';
 import { FavIcons } from '../components/Head/FavIcons';
 import { RuntimeConfigScript } from '../components/Head/RuntimeConfigScript';
-import { LazyLoadedComponents } from '../components/LazyLoadedComponents/LazyLoadedComponents';
-import { MediaPlayerController } from '../components/MediaPlayer/Controller/MediaPlayerController';
-import { NavBar } from '../components/NavBar/NavBar';
-import { AnonymousPlaybackRestoreController } from '../components/Queue/AnonymousPlaybackRestoreController';
-import { QueueController } from '../components/Queue/QueueController';
-import { QueueResourcesAbridgedController } from '../components/Queue/QueueResourcesAbridgedController';
-import { SideBar } from '../components/SideBar/SideBar';
-import { WindowWrapper } from '../components/Window/WindowWrapper';
 import { getConfig, getWebOrigin } from '../config';
 import { getCustomThemeCssText } from '../config/custom-themes.server';
 import { resolveWebRuntimeConfigForRequest } from '../config/resolve-runtime-config.server';
@@ -65,7 +56,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   setSSRAccountForLocale(ssrLoggedInAccount);
 
-  // Detect locale based on account settings, cookie, or browser preference
   const locale = await useLocaleDetect(ssrLoggedInAccount);
 
   let ssrQueueResourcesAbridgedIndex: QueueResourcesAbridgedIndex | null = null;
@@ -111,22 +101,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             messages={messages}
             categories={categories}
           >
-            <WindowWrapper>
-              <AppWrapper>
-                <SideBar />
-                <PageWrapper>
-                  <NavBar />
-                  <MembershipExpiredBanner />
-                  <CookieConsentBanner />
-                  {children}
-                </PageWrapper>
-              </AppWrapper>
-              <LazyLoadedComponents />
-            </WindowWrapper>
-            <MediaPlayerController />
-            <QueueController />
-            <AnonymousPlaybackRestoreController />
-            <QueueResourcesAbridgedController />
+            <AppChrome>{children}</AppChrome>
           </Providers>
         )}
       </body>

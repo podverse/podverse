@@ -1,0 +1,30 @@
+@use './embedLayout' as embed;
+
+.fieldset {
+  border: 0;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  height: embed.$embed-presentation-selector-height;
+  margin: 0;
+  min-height: embed.$embed-presentation-selector-height;
+  padding: 0 var(--spacing-sm) var(--spacing-xs);
+}
+
+.legend {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.option {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-xs);
+}

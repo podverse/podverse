@@ -27,5 +27,6 @@ describe('SEO_ROUTE_POLICIES', () => {
     expect(classFor('/search')).toBe('noindex');
     expect(classFor('/settings')).toBe('noindex');
     expect(classFor('/add-by-rss/**')).toBe('noindex');
+    expect(classFor('/embed/**')).toBe('noindex');
   });
 });

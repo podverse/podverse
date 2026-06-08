@@ -1,7 +1,7 @@
 'use client';
 
 import classNames from 'classnames';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { LoadingSpinner } from '../../layout/LoadingSpinner/index';
 import { useImageRuntime } from '../ImageRuntime/ImageRuntime';
@@ -27,6 +27,7 @@ export const ImageNonReact: React.FC<ImageNonReactProps> = ({
   skipProxy,
 }) => {
   const { imageProxyEnabled, placeholderSrc, proxyPathPrefix } = useImageRuntime();
+  const previousIdRef = useRef<string | null>(null);
 
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<LoadPhase>(() =>
@@ -38,10 +39,16 @@ export const ImageNonReact: React.FC<ImageNonReactProps> = ({
     if (id === '[]') {
       setIndex(0);
       setPhase('exhausted');
+      previousIdRef.current = id;
       return;
     }
+
+    const previousId = previousIdRef.current;
+    previousIdRef.current = id;
     setIndex(0);
-    setPhase('loading');
+    if (previousId !== null && previousId !== id) {
+      setPhase('loading');
+    }
     // `id` is JSON.stringify(candidates) — do not list `candidates` in deps, or a new array ref
     // each parent render would reset the load every frame.
   }, [id]);
@@ -49,6 +56,18 @@ export const ImageNonReact: React.FC<ImageNonReactProps> = ({
   const onLoadSuccess = () => {
     setPhase('loaded');
   };
+
+  const syncLoadedFromImageElement = useCallback((img: HTMLImageElement | null) => {
+    if (img === null) {
+      return;
+    }
+
+    const alreadyLoaded = img.complete && img.naturalWidth > 0;
+
+    if (alreadyLoaded) {
+      setPhase('loaded');
+    }
+  }, []);
 
   const onImageError = () => {
     if (index < candidates.length - 1) {
@@ -89,6 +108,7 @@ export const ImageNonReact: React.FC<ImageNonReactProps> = ({
       {showAttempt && (
         <img
           key={`${id}-${index}-${showAttempt}`}
+          ref={syncLoadedFromImageElement}
           src={showAttempt}
           alt={alt}
           onLoad={onLoadSuccess}

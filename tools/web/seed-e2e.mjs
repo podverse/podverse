@@ -17,6 +17,12 @@ import crypto from 'node:crypto';
 import bcrypt from 'bcrypt';
 import pg from 'pg';
 
+import {
+  E2E_FIXTURE_CHANNEL_IMAGE_URL,
+  E2E_FIXTURE_ITEM_IMAGE_URL,
+} from './embed-fixture-constants.mjs';
+import { seedEmbedFixtures, syncE2eFixtureImageUrls } from './seed-embed-fixtures.mjs';
+
 const DB_HOST = process.env.DB_HOST ?? 'localhost';
 const DB_PORT = Number(process.env.DB_PORT ?? '5732');
 const DB_USER = process.env.SEED_DB_USER ?? 'podverse_app_read_write';
@@ -60,8 +66,9 @@ const E2E_PODCAST_ITEM_CHAPTERED_ID_TEXT = 'e2ePodChap0001';
 const E2E_CLIP_ID_TEXT = 'e2eClip00000001';
 const E2E_SOUNDBITE_ID_TEXT = 'e2eSoundbite001';
 
-const E2E_MUSIC_CHANNEL_ID_TEXT = 'e2eMusicChnl01';
 const E2E_MUSIC_ALBUM_ID_TEXT = 'e2eMusicAlbm01';
+/** @deprecated Alias — album channel id_text matches E2E_MUSIC_ALBUM_ID_TEXT */
+const E2E_MUSIC_CHANNEL_ID_TEXT = E2E_MUSIC_ALBUM_ID_TEXT;
 const E2E_MUSIC_TRACK_ONE_ID_TEXT = 'e2eMusicTrk001';
 const E2E_MUSIC_TRACK_TWO_ID_TEXT = 'e2eMusicTrk002';
 const E2E_MUSIC_QUEUE_ID_TEXT = 'e2eMusicQueue01';
@@ -108,30 +115,55 @@ const E2E_MUSIC_TRACK_ONE_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track
 const E2E_MUSIC_TRACK_TWO_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-two-30s-294hz.mp3`;
 const E2E_ADDBYRSS_WITH_POSITION_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-addbyrss-with-position-60s-440hz.mp3`;
 const E2E_ADDBYRSS_FRESH_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-addbyrss-fresh-60s-440hz.mp3`;
+
+const E2E_EMBED_VIDEO_ITEM_ID_TEXT = 'e2eEmbVidItem01';
+
+const E2E_ITEM_CHAPTER_INTRO_ID_TEXT = 'e2eChapIntro01';
+const E2E_ITEM_CHAPTER_TOPIC_ID_TEXT = 'e2eChapTopic01';
 /* eslint-enable @typescript-eslint/no-unused-vars */
 
-async function main() {
-  const passwordHash = await bcrypt.hash(TEST_PASSWORD, 10);
-  const invitePlaceholderPasswordHash = await bcrypt.hash(crypto.randomUUID(), 10);
+const SEED_MEDIA_FIXTURES_ONLY = process.env.SEED_MEDIA_FIXTURES_ONLY === 'true';
+const E2E_USER_EMAIL = 'e2e-user@example.com';
 
-  const client = new pg.Client({
-    host: DB_HOST,
-    port: DB_PORT,
-    user: DB_USER,
-    password: DB_PASSWORD,
-    database: DB_NAME,
-  });
+async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPasswordHash) {
+  if (SEED_MEDIA_FIXTURES_ONLY) {
+    const existing = await client.query(
+      `SELECT a.id
+       FROM account a
+       INNER JOIN account_credentials ac ON ac.account_id = a.id
+       WHERE ac.email = $1
+       LIMIT 1`,
+      [E2E_USER_EMAIL]
+    );
 
-  await client.connect();
-  console.log(`Connected to ${DB_NAME} on ${DB_HOST}:${DB_PORT}`);
+    if (existing.rows.length > 0) {
+      console.log(`Using existing fixture account ${E2E_USER_EMAIL} (id ${existing.rows[0].id})`);
+      return existing.rows[0].id;
+    }
+
+    const idText = crypto.randomBytes(8).toString('hex').slice(0, 15);
+    const accountResult = await client.query(
+      `INSERT INTO "account" (id_text, verified, sharable_status_id)
+       VALUES ($1, true, 1)
+       RETURNING id`,
+      [idText]
+    );
+    const accountId = accountResult.rows[0].id;
+
+    await client.query(
+      `INSERT INTO "account_credentials" (account_id, email, password)
+       VALUES ($1, $2, $3)`,
+      [accountId, E2E_USER_EMAIL, passwordHash]
+    );
+
+    console.log(`Created fixture account ${E2E_USER_EMAIL} (id ${accountId})`);
+    return accountId;
+  }
 
   // Truncate tables used by E2E tests (order matters for FK constraints)
-  // No RESTART IDENTITY — the read_write user doesn't own sequences.
-  // Since test_db_init drops/recreates the DB fresh each run, sequences already start at 1.
   await client.query(`TRUNCATE TABLE "account_credentials" CASCADE`);
   await client.query(`TRUNCATE TABLE "account" CASCADE`);
 
-  // Insert a test user: account row + account_credentials row
   const idText = crypto.randomBytes(8).toString('hex').slice(0, 15);
 
   const accountResult = await client.query(
@@ -146,7 +178,7 @@ async function main() {
   await client.query(
     `INSERT INTO "account_credentials" (account_id, email, password)
      VALUES ($1, $2, $3)`,
-    [accountId, 'e2e-user@example.com', passwordHash]
+    [accountId, E2E_USER_EMAIL, passwordHash]
   );
 
   const membershipExpiresAt = new Date();
@@ -249,6 +281,20 @@ async function main() {
   );
 
   console.log(`Seeded SEO public profile: ${E2E_SEO_PUBLIC_PROFILE_ID_TEXT}`);
+
+  return accountId;
+}
+
+async function deleteE2eQueueByIdText(client, queueIdText) {
+  await client.query(
+    `DELETE FROM queue_resource WHERE queue_id IN (SELECT id FROM queue WHERE id_text = $1)`,
+    [queueIdText]
+  );
+  await client.query(`DELETE FROM queue WHERE id_text = $1`, [queueIdText]);
+}
+
+async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
+  await syncE2eFixtureImageUrls(client);
 
   await client.query(`DELETE FROM feed WHERE podcast_index_id = $1`, [E2E_LIVESTREAM_FEED_PI_ID]);
 
@@ -372,9 +418,11 @@ async function main() {
   );
   await client.query(
     `INSERT INTO channel_image (channel_id, url, image_width_size)
-     VALUES ($1, 'https://e2e-seed-podcast.example/channel-art.png', 1400)`,
-    [podcastChannelId]
+     VALUES ($1, $2, 1400)`,
+    [podcastChannelId, E2E_FIXTURE_CHANNEL_IMAGE_URL]
   );
+
+  await deleteE2eQueueByIdText(client, E2E_PODCAST_QUEUE_ID_TEXT);
 
   const podcastQueueResult = await client.query(
     `INSERT INTO queue (id_text, account_id, medium_id, is_active_queue)
@@ -389,7 +437,13 @@ async function main() {
   );
   const podcastQueueId = podcastQueueResult.rows[0].id;
 
-  async function insertPodcastItem({ idText, guidSlug, title, enclosureUrl }) {
+  async function insertPodcastItem({
+    idText,
+    guidSlug,
+    title,
+    enclosureUrl,
+    pubDateOffsetSeconds = 0,
+  }) {
     const itemResult = await client.query(
       `INSERT INTO item (
          id_text,
@@ -399,9 +453,9 @@ async function main() {
          title,
          item_flag_status_id
        )
-       VALUES ($1, $2, $3, NOW(), $4, 1)
+       VALUES ($1, $2, $3, NOW() - ($5::int * INTERVAL '1 second'), $4, 1)
        RETURNING id`,
-      [idText, podcastChannelId, `${E2E_PODCAST_FEED_URL}#${guidSlug}`, title]
+      [idText, podcastChannelId, `${E2E_PODCAST_FEED_URL}#${guidSlug}`, title, pubDateOffsetSeconds]
     );
     const itemId = itemResult.rows[0].id;
 
@@ -417,8 +471,8 @@ async function main() {
     );
     await client.query(
       `INSERT INTO item_image (item_id, url, image_width_size)
-       VALUES ($1, 'https://e2e-seed-podcast.example/item-art.png', 1400)`,
-      [itemId]
+       VALUES ($1, $2, 1400)`,
+      [itemId, E2E_FIXTURE_ITEM_IMAGE_URL]
     );
 
     const enclosureResult = await client.query(
@@ -443,24 +497,28 @@ async function main() {
     guidSlug: 'resume-positive',
     title: 'E2E Podcast Resume P > 0',
     enclosureUrl: E2E_PODCAST_RESUME_ENCLOSURE_URL,
+    pubDateOffsetSeconds: 0,
   });
   const resumeNearEndItemId = await insertPodcastItem({
     idText: E2E_PODCAST_ITEM_RESUME_NEAR_END_ID_TEXT,
     guidSlug: 'resume-near-end',
     title: 'E2E Podcast Resume Near End',
     enclosureUrl: E2E_PODCAST_RESUME_ENCLOSURE_URL,
+    pubDateOffsetSeconds: 3600,
   });
   await insertPodcastItem({
     idText: E2E_PODCAST_ITEM_RESUME_NONE_ID_TEXT,
     guidSlug: 'resume-none',
     title: 'E2E Podcast No Stored Position',
     enclosureUrl: E2E_PODCAST_RESUME_ENCLOSURE_URL,
+    pubDateOffsetSeconds: 7200,
   });
   const chapteredItemId = await insertPodcastItem({
     idText: E2E_PODCAST_ITEM_CHAPTERED_ID_TEXT,
     guidSlug: 'chaptered',
     title: 'E2E Podcast With Chapters',
     enclosureUrl: E2E_PODCAST_SHORT_ENCLOSURE_URL,
+    pubDateOffsetSeconds: 10800,
   });
 
   await client.query(
@@ -616,8 +674,8 @@ async function main() {
   );
   await client.query(
     `INSERT INTO channel_image (channel_id, url, image_width_size)
-     VALUES ($1, 'https://e2e-seed-music.example/album-art.png', 1400)`,
-    [musicChannelId]
+     VALUES ($1, $2, 1400)`,
+    [musicChannelId, E2E_FIXTURE_CHANNEL_IMAGE_URL]
   );
 
   // Music queue is intentionally is_active_queue=false at seed time. The
@@ -627,6 +685,8 @@ async function main() {
   // the music spec from auto-loading a queued track before the user clicks
   // play, while still letting handleEnded find the music queue when the
   // spec drives track-1 to its end.
+  await deleteE2eQueueByIdText(client, E2E_MUSIC_QUEUE_ID_TEXT);
+
   const musicQueueResult = await client.query(
     `INSERT INTO queue (id_text, account_id, medium_id, is_active_queue)
      VALUES (
@@ -675,8 +735,8 @@ async function main() {
     );
     await client.query(
       `INSERT INTO item_image (item_id, url, image_width_size)
-       VALUES ($1, 'https://e2e-seed-music.example/track-art.png', 1400)`,
-      [itemId]
+       VALUES ($1, $2, 1400)`,
+      [itemId, E2E_FIXTURE_ITEM_IMAGE_URL]
     );
 
     const enclosureResult = await client.query(
@@ -848,6 +908,27 @@ async function main() {
   console.log(
     `Seeded add-by-RSS media-player E2E resources (${E2E_ADD_BY_RSS_RESOURCE_WITH_POSITION_ID_TEXT} at list_position 3 with playback_position=${E2E_ADD_BY_RSS_RESOURCE_WITH_POSITION_SECONDS}, ${E2E_ADD_BY_RSS_RESOURCE_FRESH_ID_TEXT} at list_position 4 with playback_position=0)`
   );
+
+  await seedEmbedFixtures(client, { accountId });
+}
+
+async function main() {
+  const passwordHash = await bcrypt.hash(TEST_PASSWORD, 10);
+  const invitePlaceholderPasswordHash = await bcrypt.hash(crypto.randomUUID(), 10);
+
+  const client = new pg.Client({
+    host: DB_HOST,
+    port: DB_PORT,
+    user: DB_USER,
+    password: DB_PASSWORD,
+    database: DB_NAME,
+  });
+
+  await client.connect();
+  console.log(`Connected to ${DB_NAME} on ${DB_HOST}:${DB_PORT}`);
+
+  const accountId = await resolveSeedAccountId(client, passwordHash, invitePlaceholderPasswordHash);
+  await seedMediaPlayerAndEmbedFixtures(client, accountId);
 
   await client.end();
   console.log('Web E2E seed complete.');

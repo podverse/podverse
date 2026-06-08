@@ -39,7 +39,9 @@ const WEB_E2E_NEXT_PUBLIC_ENV_BASE: Record<string, string> = {
   NEXT_PUBLIC_API_VERSION: '/v2',
   NEXT_PUBLIC_WEB_PROTOCOL: 'http',
   NEXT_PUBLIC_WEB_DOMAIN: 'localhost:4032',
+  NEXT_PUBLIC_BRAND_DOMAIN: 'main.example.test',
   NEXT_PUBLIC_BRAND_NAME: 'PodverseE2E',
+  NEXT_PUBLIC_BRAND_LOGO_SQUARE_100X100: 'http://localhost:4032/images/placeholder-image.png',
   NEXT_PUBLIC_CONTACT_EMAIL: 'contact-e2e@example.com',
   NEXT_PUBLIC_LEGAL_NAME: 'PodverseE2E Legal',
   NEXT_PUBLIC_TERMS_OF_SERVICE_VERSION: E2E_TERMS_OF_SERVICE_VERSION,
@@ -137,6 +139,7 @@ export function buildE2eWebAppEnv(options?: E2eWebSidecarEnvOptions): Record<str
     PORT: '4032',
     RUNTIME_CONFIG_URL: 'http://localhost:4031',
     NODE_OPTIONS: '--disable-warning=DEP0060',
+    EMBED_DEMO_USE_FIXTURES: 'true',
     ...PODVERSE_WEB_E2E_OBSERVABILITY_ENV,
     ...buildE2eWebNextPublicEnv(options),
   };

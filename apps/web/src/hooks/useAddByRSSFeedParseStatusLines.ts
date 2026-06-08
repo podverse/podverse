@@ -9,7 +9,11 @@ import {
 import type { AddByRSSFeedRecord } from '../utils/addByRSS/types';
 
 type TranslateFeatures = (
-  key: 'add_by_rss.status' | 'add_by_rss.status_pending' | 'add_by_rss.status_parsing' | 'add_by_rss.status_failed'
+  key:
+    | 'add_by_rss.status'
+    | 'add_by_rss.status_pending'
+    | 'add_by_rss.status_parsing'
+    | 'add_by_rss.status_failed'
 ) => string;
 
 export function useAddByRSSFeedParseStatusLines(

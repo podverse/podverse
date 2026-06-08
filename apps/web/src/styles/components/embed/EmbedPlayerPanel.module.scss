@@ -1,0 +1,35 @@
+@use './embedLayout' as embed;
+
+.playerRegion {
+  @include embed.embed-player-panel-custom-properties;
+
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  overflow: visible;
+  padding: var(--embed-panel-padding-block) var(--embed-panel-padding-inline);
+}
+
+.playerRegionSingle {
+  height: 100%;
+}
+
+.playerRegionList {
+  height: embed.$embed-list-player-panel-audio-height;
+}
+
+.playerRegionVideo.playerRegionList {
+  height: embed.$embed-list-player-panel-video-height;
+}
+
+.videoPlaceholder {
+  flex: 0 0 auto;
+  height: var(--embed-list-video-placeholder-height);
+  min-height: var(--embed-list-video-placeholder-height);
+}
+
+.playerRegionSingle .videoPlaceholder {
+  height: var(--embed-single-video-placeholder-height);
+  min-height: var(--embed-single-video-placeholder-height);
+}

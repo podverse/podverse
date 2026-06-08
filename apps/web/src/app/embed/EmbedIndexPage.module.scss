@@ -1,0 +1,87 @@
+.embedDemos {
+  // Keep in sync with EmbedDemoPreview.module.scss (--embed-demo-example-gap).
+  --embed-demo-example-gap: calc(var(--spacing-xl) + var(--spacing-2xl));
+
+  display: flex;
+  flex-direction: column;
+}
+
+.introStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.tocDivider {
+  margin-bottom: var(--embed-demo-example-gap);
+  margin-top: var(--spacing-lg);
+}
+
+.sectionDivider {
+  margin-block: var(--embed-demo-example-gap);
+}
+
+.lead {
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.intro {
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.shareIconInline {
+  align-items: center;
+  color: var(--color-text-secondary);
+  display: inline-flex;
+  font-size: 0.95em;
+  margin: 0 0.15em;
+  vertical-align: middle;
+}
+
+.tableOfContents {
+  margin-bottom: 0;
+  padding: var(--spacing-md);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.showcaseGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.link {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

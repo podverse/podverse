@@ -73,17 +73,21 @@ upsert_var() {
 
 	[ -f "$file" ] || return 0
 
-	if [ -z "$value" ]; then
-		replacement="${var}="
-	else
-		replacement="${var}=\"$(escape_sed_replacement "$value")\""
-	fi
-
+	# sed replacement needs escaped / and &; append writes the raw value to disk.
 	if grep -q -E "^${var}=" "$file" 2>/dev/null; then
+		if [ -z "$value" ]; then
+			replacement="${var}="
+		else
+			replacement="${var}=\"$(escape_sed_replacement "$value")\""
+		fi
 		sed -i.bak "s|^${var}=.*|${replacement}|" "$file"
 		rm -f "${file}.bak"
 	else
-		echo "$replacement" >>"$file"
+		if [ -z "$value" ]; then
+			printf '%s\n' "${var}=" >>"$file"
+		else
+			printf '%s\n' "${var}=\"${value}\"" >>"$file"
+		fi
 	fi
 }
 
@@ -535,6 +539,18 @@ fi
 if [ -n "${BRAND_LOGO_LIGHT:-}" ]; then
 	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
 		upsert_var "$file" "NEXT_PUBLIC_BRAND_LOGO_LIGHT" "$BRAND_LOGO_LIGHT"
+	done
+fi
+
+# From brand.env: square brand marks -> NEXT_PUBLIC_BRAND_LOGO_SQUARE* for web sidecars.
+if [ -n "${BRAND_LOGO_SQUARE:-}" ]; then
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+		upsert_var "$file" "NEXT_PUBLIC_BRAND_LOGO_SQUARE" "$BRAND_LOGO_SQUARE"
+	done
+fi
+if [ -n "${BRAND_LOGO_SQUARE_100X100:-}" ]; then
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+		upsert_var "$file" "NEXT_PUBLIC_BRAND_LOGO_SQUARE_100X100" "$BRAND_LOGO_SQUARE_100X100"
 	done
 fi
 

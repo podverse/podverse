@@ -1,0 +1,26 @@
+@use './embedLayout' as embed;
+
+.shell {
+  @include embed.embed-player-panel-custom-properties;
+
+  background: var(--color-surface-primary);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  display: flex;
+  flex-direction: column;
+  height: embed.$embed-list-audio-shell-height;
+  overflow: hidden;
+  width: 100%;
+}
+
+.shellVideo {
+  height: embed.$embed-list-video-shell-height;
+}
+
+.listRegion {
+  border-top: 1px solid var(--color-border-subtle);
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}

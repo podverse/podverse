@@ -2,7 +2,7 @@
 
 .PHONY: local_env_prepare local_env_link local_env_setup local_env_clean
 .PHONY: local_env_sync_db_passwords local_env_worktree_setup local_db_sync_passwords
-.PHONY: local_env_export_secrets_to_home
+.PHONY: local_env_export_secrets_to_home local_seed_embed
 
 local_env_link:
 	bash scripts/local-env/link-overrides.sh
@@ -188,3 +188,9 @@ infra/config/local/extension-prometheus.env:
 	@echo "Copying from example file"
 	mkdir -p infra/config/local
 	cp ./infra/config/env-templates/extension-prometheus.env.example ./$@
+
+# Seed deterministic media-player + embed fixtures into the local dev app DB (does not truncate accounts).
+local_seed_embed: infra/config/local/db.env
+	@echo "Seeding local embed + media-player fixtures..."
+	@node tools/web/seed-local-embed.mjs
+	@echo "Local embed seed complete."

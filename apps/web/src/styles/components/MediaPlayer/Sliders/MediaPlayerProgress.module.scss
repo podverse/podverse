@@ -9,6 +9,23 @@
   margin-bottom: var(--spacing-xs);
 }
 
+.mediaPlayerProgressEmbed {
+  flex: 1 1 auto;
+  flex-direction: row;
+  margin-bottom: 0;
+  max-width: 100%;
+  width: 100%;
+}
+
+.mediaPlayerProgressEmbed .mediaPlayerProgressTime,
+.mediaPlayerProgressEmbed .mediaPlayerProgressDuration {
+  display: block;
+}
+
+.mediaPlayerProgressEmbed .mobileTimeWrapper {
+  display: none;
+}
+
 .mediaPlayerProgressTime,
 .mediaPlayerProgressTimeMobile {
   color: var(--text-color-primary);
@@ -85,6 +102,16 @@
   .mediaPlayerProgress {
     flex: 1;
     flex-direction: column;
+  }
+
+  .mediaPlayerProgressEmbed {
+    flex-direction: row;
+    width: 100%;
+  }
+
+  .mediaPlayerProgressEmbed .mediaPlayerProgressTime,
+  .mediaPlayerProgressEmbed .mediaPlayerProgressDuration {
+    display: block;
   }
 
   .mediaPlayerProgressTime,

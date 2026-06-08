@@ -35,6 +35,11 @@ const LazyModalShare = dynamic(
   { ssr: false }
 );
 
+const LazyModalEmbedBuilder = dynamic(
+  () => import('../Modal/ModalEmbedBuilder').then((m) => ({ default: m.ModalEmbedBuilder })),
+  { ssr: false }
+);
+
 const LazyModalFunding = dynamic(
   () => import('../Modal/ModalFunding').then((m) => ({ default: m.ModalFunding })),
   { ssr: false }
@@ -88,6 +93,7 @@ export const Modals: React.FC = () => {
     modalClip,
     modalClipCreated,
     modalShare,
+    modalEmbedBuilder,
     modalFunding,
     modalSourceSelector,
     modalBoost,
@@ -117,6 +123,12 @@ export const Modals: React.FC = () => {
         modalShare.clip !== null ||
         modalShare.item_chapter !== null ||
         modalShare.item_soundbite !== null) && <LazyModalShare />}
+      {(modalEmbedBuilder.channel !== null ||
+        modalEmbedBuilder.item !== null ||
+        modalEmbedBuilder.clip !== null ||
+        modalEmbedBuilder.item_chapter !== null ||
+        modalEmbedBuilder.item_soundbite !== null ||
+        modalEmbedBuilder.playlist !== null) && <LazyModalEmbedBuilder />}
       {(modalFunding.channel_fundings.length > 0 || modalFunding.item_fundings.length > 0) && (
         <LazyModalFunding />
       )}

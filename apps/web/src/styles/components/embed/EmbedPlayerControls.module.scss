@@ -1,0 +1,23 @@
+@use './embedLayout' as embed;
+
+.controls {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--spacing-sm);
+  height: var(--embed-play-button-size);
+  min-height: var(--embed-play-button-size);
+  width: 100%;
+}
+
+.progressRow {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.transportRow {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--spacing-lg);
+}
