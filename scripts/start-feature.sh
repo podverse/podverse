@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Podverse Start Feature Script
 # Creates a properly named git branch (optional LLM history scaffold disabled; see docs/development/llm/LLM-HISTORY-WORKFLOW-ARCHIVE.md)

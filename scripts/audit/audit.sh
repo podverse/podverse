@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Check for vulnerabilities in all packages.
 # By default, only moderate and above fail (low are permitted in deployments).
 # Pass --include-low to also fail on low vulnerabilities (report and fix on demand).

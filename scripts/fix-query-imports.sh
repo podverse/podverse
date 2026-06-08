@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Script to fix QueryParams imports - move them from @podverse/helpers to @podverse/helpers-requests
 # EXCEPT QueryParamsMedium and QueryParamsQueueMedium which stay in @podverse/helpers
