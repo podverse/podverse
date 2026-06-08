@@ -22,6 +22,7 @@ import {
   expectEmbedSingleShell,
   expectEmbedTitleTruncated,
   expectEmbedVideoPlaceholder,
+  expectNoEmbedChapterMarkers,
 } from './helpers/embedAssertions';
 import {
   E2E_EMBED_ALBUM_LIST_DEFAULT_ITEM_ID_TEXT,
@@ -36,7 +37,7 @@ import {
   E2E_EMBED_SCROLL_LAST_ITEM_LABEL,
   E2E_EMBED_VIDEO_CHANNEL_ID_TEXT,
   E2E_EMBED_VIDEO_ITEM_ID_TEXT,
-  EMBED_FIXTURE_CHAPTER_ID_TEXT,
+  EMBED_FIXTURE_CHAPTER_TWO_ID_TEXT,
   EMBED_FIXTURE_CLIP_AUDIO_ID_TEXT,
   EMBED_FIXTURE_MUSIC_ALBUM_ID_TEXT,
   EMBED_FIXTURE_MUSIC_TRACK_AUDIO_ID_TEXT,
@@ -45,10 +46,12 @@ import {
   EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT,
   EMBED_FIXTURE_PODCAST_EPISODE_NEAR_END_ID_TEXT,
   EMBED_FIXTURE_SOUNDBITE_ID_TEXT,
-  EMBED_SAMPLE_CHAPTER_TITLE,
   EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE,
+  EMBED_SAMPLE_CHAPTER_TWO_START_SECONDS,
+  EMBED_SAMPLE_CLIP_TITLE,
   EMBED_SAMPLE_EPISODE_AUDIO_TITLE,
   EMBED_SAMPLE_EPISODE_NEAR_END_TITLE,
+  EMBED_SAMPLE_SOUNDBITE_TITLE,
   EMBED_SAMPLE_TRACK_AUDIO_TITLE,
   EMBED_SAMPLE_TRACK_TWO_TITLE,
 } from './helpers/seedConstants';
@@ -93,11 +96,12 @@ test.describe('Embed routes (anonymous)', () => {
       await expectEmbedArtworkSrcContains(page, 'embed-sample-episode-audio-art');
     });
 
-    await test.step('Chapter embed shows the active chapter title at the playhead', async () => {
-      await page.goto(`/embed/chapter/${EMBED_FIXTURE_CHAPTER_ID_TEXT}`);
+    await test.step('Chapter embed shows the second chapter title at the playhead', async () => {
+      await page.goto(`/embed/chapter/${EMBED_FIXTURE_CHAPTER_TWO_ID_TEXT}`);
       await expectEmbedSingleShell(page);
-      await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_CHAPTER_TITLE);
-      await expectEmbedArtworkSrcContains(page, 'embed-sample-episode-audio-art');
+      await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE);
+      await expect(page.getByTestId('embed-chapter-title-icon')).toBeVisible();
+      await expectEmbedArtworkSrcContains(page, 'embed-sample-chapter-topic-a-art');
     });
 
     await test.step('Official clip embed loads the single audio shell with episode artwork', async () => {
@@ -158,12 +162,26 @@ test.describe('Embed routes (anonymous)', () => {
     await expectEmbedSingleShell(page);
     await expectEmbedChapterMarkerCount(page, 2);
     await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE);
+    await expect(page.getByTestId('embed-chapter-title-icon')).toBeVisible();
+    await expectEmbedArtworkSrcContains(page, 'embed-sample-chapter-topic-a-art');
 
     await page.getByTestId('embed-title-toggle').click();
     await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_EPISODE_AUDIO_TITLE);
+    await expect(page.getByTestId('embed-chapter-title-icon')).toHaveCount(0);
+    await expectEmbedArtworkSrcContains(page, 'embed-sample-episode-audio-art');
 
     await page.getByTestId('embed-title-toggle').click();
     await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE);
+    await expect(page.getByTestId('embed-chapter-title-icon')).toBeVisible();
+    await expectEmbedArtworkSrcContains(page, 'embed-sample-chapter-topic-a-art');
+
+    await page.getByTestId('embed-chapter-title-icon').click();
+    await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_EPISODE_AUDIO_TITLE);
+    await expect(page.getByTestId('embed-chapter-title-icon')).toHaveCount(0);
+
+    await page.getByTestId('embed-channel-title').click();
+    await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE);
+    await expect(page.getByTestId('embed-chapter-title-icon')).toBeVisible();
   });
 
   test('Episode embed hides chapter markers when chapter_markers=0', async ({ page }) => {
@@ -171,7 +189,42 @@ test.describe('Embed routes (anonymous)', () => {
       `/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}?chapter_markers=0`
     );
     await expectEmbedSingleShell(page);
-    await expect(page.locator('[class*="chapterMarker"]')).toHaveCount(0);
+    await expectNoEmbedChapterMarkers(page);
+  });
+
+  test('Chapter embed seeks to the chapter start before the first play', async ({ page }) => {
+    await page.goto(`/embed/chapter/${EMBED_FIXTURE_CHAPTER_TWO_ID_TEXT}`);
+    await expectEmbedSingleShell(page);
+    await expectEmbedPlayerProgressVisible(page);
+    await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE);
+    await expect(page.getByTestId('embed-chapter-title-icon')).toBeVisible();
+    await expectEmbedArtworkSrcContains(page, 'embed-sample-chapter-topic-a-art');
+
+    const slider = page.getByRole('slider');
+    await expect
+      .poll(async () => await slider.getAttribute('aria-valuenow'))
+      .toBe(String(EMBED_SAMPLE_CHAPTER_TWO_START_SECONDS));
+
+    await page.getByTestId('embed-player-transport').getByRole('button').first().click();
+    await expect
+      .poll(async () => await slider.getAttribute('aria-valuenow'))
+      .toBe(String(EMBED_SAMPLE_CHAPTER_TWO_START_SECONDS));
+  });
+
+  test('Clip and soundbite embeds hide chapter info', async ({ page }) => {
+    await page.goto(`/embed/clip/${EMBED_FIXTURE_CLIP_AUDIO_ID_TEXT}?t=25`);
+    await expectEmbedSingleShell(page);
+    await expectNoEmbedChapterMarkers(page);
+    await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_CLIP_TITLE);
+    await expect(page.getByTestId('embed-title-toggle')).toHaveCount(0);
+    await expect(page.getByTestId('embed-chapter-title-icon')).toHaveCount(0);
+
+    await page.goto(`/embed/official-clip/${EMBED_FIXTURE_SOUNDBITE_ID_TEXT}?t=25`);
+    await expectEmbedSingleShell(page);
+    await expectNoEmbedChapterMarkers(page);
+    await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_SOUNDBITE_TITLE);
+    await expect(page.getByTestId('embed-title-toggle')).toHaveCount(0);
+    await expect(page.getByTestId('embed-chapter-title-icon')).toHaveCount(0);
   });
 
   test('Episode embed retains duration and chapter markers after playback ends', async ({

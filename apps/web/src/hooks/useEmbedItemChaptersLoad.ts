@@ -4,15 +4,22 @@ import { useEffect } from 'react';
 
 import { useMediaPlayer } from '../contexts/MediaPlayer';
 import { getApiRequestService } from '../factories/apiRequestService';
+import { shouldEmbedShowChapterInfo } from '../lib/embed/shouldEmbedShowChapterInfo';
 
 /**
  * Embed routes skip MediaPlayerController queue-head loading; fetch chapters here
  * so progress markers and title resolution match the main player.
  */
 export function useEmbedItemChaptersLoad(): void {
-  const { mpItem, setMPItemChapters } = useMediaPlayer();
+  const { mpItem, mpClip, mpItemSoundbite, setMPItemChapter, setMPItemChapters } = useMediaPlayer();
 
   useEffect(() => {
+    if (!shouldEmbedShowChapterInfo({ mpClip, mpItemSoundbite })) {
+      setMPItemChapters(null);
+      setMPItemChapter(null);
+      return;
+    }
+
     const itemIdText = mpItem?.id_text;
 
     if (itemIdText === undefined || itemIdText === '') {
@@ -34,5 +41,5 @@ export function useEmbedItemChaptersLoad(): void {
     return () => {
       cancelled = true;
     };
-  }, [mpItem?.id_text, setMPItemChapters]);
+  }, [mpClip, mpItem?.id_text, mpItemSoundbite, setMPItemChapter, setMPItemChapters]);
 }

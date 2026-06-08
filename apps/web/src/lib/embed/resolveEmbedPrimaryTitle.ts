@@ -14,6 +14,7 @@ export type ResolveEmbedPrimaryTitleInput = {
 export type ResolveEmbedPrimaryTitleResult = {
   title: string | null;
   allowTitleToggle: boolean;
+  showChapterTitleIcon: boolean;
 };
 
 function resolveBaseItemTitle(mpItem: DTOItem | null): string | null {
@@ -32,12 +33,20 @@ export function resolveEmbedPrimaryTitle({
   currentTimeSeconds,
   preferItemTitle,
 }: ResolveEmbedPrimaryTitleInput): ResolveEmbedPrimaryTitleResult {
-  if (mpClip?.title) {
-    return { title: mpClip.title, allowTitleToggle: false };
+  if (mpClip !== null) {
+    return {
+      title: mpClip.title ?? resolveBaseItemTitle(mpItem),
+      allowTitleToggle: false,
+      showChapterTitleIcon: false,
+    };
   }
 
-  if (mpItemSoundbite?.title) {
-    return { title: mpItemSoundbite.title, allowTitleToggle: false };
+  if (mpItemSoundbite !== null) {
+    return {
+      title: mpItemSoundbite.title ?? resolveBaseItemTitle(mpItem),
+      allowTitleToggle: false,
+      showChapterTitleIcon: false,
+    };
   }
 
   const chapters = mpItemChapters ?? [];
@@ -49,16 +58,20 @@ export function resolveEmbedPrimaryTitle({
     activeChapterTitle !== null && activeChapterTitle !== undefined && activeChapterTitle !== '';
 
   if (chapters.length === 0) {
-    return { title: baseItemTitle, allowTitleToggle: false };
+    return { title: baseItemTitle, allowTitleToggle: false, showChapterTitleIcon: false };
   }
 
   if (preferItemTitle) {
-    return { title: baseItemTitle, allowTitleToggle: true };
+    return { title: baseItemTitle, allowTitleToggle: true, showChapterTitleIcon: false };
   }
 
   if (hasChapterTitle) {
-    return { title: activeChapterTitle, allowTitleToggle: true };
+    return {
+      title: activeChapterTitle,
+      allowTitleToggle: true,
+      showChapterTitleIcon: true,
+    };
   }
 
-  return { title: baseItemTitle, allowTitleToggle: true };
+  return { title: baseItemTitle, allowTitleToggle: true, showChapterTitleIcon: false };
 }

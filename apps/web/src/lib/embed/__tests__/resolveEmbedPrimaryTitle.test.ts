@@ -36,7 +36,7 @@ describe('resolveEmbedPrimaryTitle', () => {
         currentTimeSeconds: 25,
         preferItemTitle: false,
       })
-    ).toEqual({ title: 'Clip title', allowTitleToggle: false });
+    ).toEqual({ title: 'Clip title', allowTitleToggle: false, showChapterTitleIcon: false });
   });
 
   it('prefers soundbite title without toggle', () => {
@@ -49,7 +49,20 @@ describe('resolveEmbedPrimaryTitle', () => {
         currentTimeSeconds: 25,
         preferItemTitle: false,
       })
-    ).toEqual({ title: 'Soundbite title', allowTitleToggle: false });
+    ).toEqual({ title: 'Soundbite title', allowTitleToggle: false, showChapterTitleIcon: false });
+  });
+
+  it('uses item title when clip has no title and ignores chapters', () => {
+    expect(
+      resolveEmbedPrimaryTitle({
+        mpItem: item,
+        mpClip: {} as DTOClip,
+        mpItemSoundbite: null,
+        mpItemChapters: chapters,
+        currentTimeSeconds: 25,
+        preferItemTitle: false,
+      })
+    ).toEqual({ title: 'Episode title', allowTitleToggle: false, showChapterTitleIcon: false });
   });
 
   it('shows item title at playhead 0 when first chapter starts at 0', () => {
@@ -62,7 +75,7 @@ describe('resolveEmbedPrimaryTitle', () => {
         currentTimeSeconds: 0,
         preferItemTitle: false,
       })
-    ).toEqual({ title: 'Episode title', allowTitleToggle: true });
+    ).toEqual({ title: 'Episode title', allowTitleToggle: true, showChapterTitleIcon: false });
   });
 
   it('shows active chapter title at playhead by default', () => {
@@ -75,7 +88,7 @@ describe('resolveEmbedPrimaryTitle', () => {
         currentTimeSeconds: 25,
         preferItemTitle: false,
       })
-    ).toEqual({ title: 'Topic A', allowTitleToggle: true });
+    ).toEqual({ title: 'Topic A', allowTitleToggle: true, showChapterTitleIcon: true });
   });
 
   it('shows item title when preferItemTitle is true', () => {
@@ -88,7 +101,7 @@ describe('resolveEmbedPrimaryTitle', () => {
         currentTimeSeconds: 25,
         preferItemTitle: true,
       })
-    ).toEqual({ title: 'Episode title', allowTitleToggle: true });
+    ).toEqual({ title: 'Episode title', allowTitleToggle: true, showChapterTitleIcon: false });
   });
 
   it('falls back to item title when playhead is outside chapters', () => {
@@ -101,6 +114,6 @@ describe('resolveEmbedPrimaryTitle', () => {
         currentTimeSeconds: 55,
         preferItemTitle: false,
       })
-    ).toEqual({ title: 'Episode title', allowTitleToggle: true });
+    ).toEqual({ title: 'Episode title', allowTitleToggle: true, showChapterTitleIcon: false });
   });
 });

@@ -83,14 +83,35 @@
   font-size: var(--font-size-sm);
 }
 
-.titleButton {
+.titleRow {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-md);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.infoToggleButton {
+  align-items: flex-start;
   background: none;
   border: none;
   cursor: pointer;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  justify-content: center;
   max-width: 100%;
+  min-height: 100%;
   min-width: 0;
   padding: 0;
   text-align: left;
+}
+
+.chapterTitleIcon {
+  color: var(--color-text-secondary);
+  flex: 0 0 auto;
+  font-size: var(--font-size-sm);
 }
 
 .title {
@@ -98,8 +119,10 @@
 
   color: var(--color-text-primary);
   display: block;
+  flex: 1 1 auto;
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-normal);
+  min-width: 0;
 }
 
 .publishDateBadge {

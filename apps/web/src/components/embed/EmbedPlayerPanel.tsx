@@ -2,7 +2,9 @@
 
 import classNames from 'classnames';
 
+import { useMediaPlayer } from '../../contexts/MediaPlayer';
 import { useEmbedItemChaptersLoad } from '../../hooks/useEmbedItemChaptersLoad';
+import { shouldEmbedShowChapterInfo } from '../../lib/embed/shouldEmbedShowChapterInfo';
 import type { EmbedMediaType, EmbedSharedQueryParams } from '../../lib/embed/embedTypes';
 import type { EmbedSingleResourcePayload } from '../../lib/embed/fetchEmbedSingleResource';
 import { EmbedInlineMediaMount } from './EmbedInlineMediaMount';
@@ -30,6 +32,15 @@ export function EmbedPlayerPanel({
   sharedQuery,
 }: EmbedPlayerPanelProps) {
   const isAudio = mediaType === 'audio';
+  const { mpClip, mpItemSoundbite } = useMediaPlayer();
+  const showChapterMarkers =
+    sharedQuery.showChapterMarkers &&
+    shouldEmbedShowChapterInfo({
+      mpClip,
+      mpItemSoundbite,
+      fallbackClip: fallbackResource?.clip ?? null,
+      fallbackItemSoundbite: fallbackResource?.itemSoundbite ?? null,
+    });
 
   useEmbedItemChaptersLoad();
   const playerRegionClassName = classNames(
@@ -44,7 +55,7 @@ export function EmbedPlayerPanel({
       {isAudio ? (
         <>
           <EmbedInlineMediaMount />
-          <EmbedPlayerControls showChapterMarkers={sharedQuery.showChapterMarkers} />
+          <EmbedPlayerControls showChapterMarkers={showChapterMarkers} />
         </>
       ) : (
         <div className={styles.videoPlaceholder}>

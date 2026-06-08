@@ -65,6 +65,10 @@ export async function expectEmbedChapterMarkerCount(page: Page, minCount: number
   await expect.poll(async () => markers.count()).toBeGreaterThanOrEqual(minCount);
 }
 
+export async function expectNoEmbedChapterMarkers(page: Page): Promise<void> {
+  await expect(page.locator('[class*="chapterMarker"]')).toHaveCount(0);
+}
+
 export async function expectEmbedBrandLogoMainSiteLink(
   page: Page,
   expectedHref: string

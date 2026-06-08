@@ -150,8 +150,8 @@ export const EMBED_FIXTURE_DEMO_SPECS: EmbedFixtureDemoSpec[] = [
     showcaseId: 'chapter-audio',
     label: 'Embed Sample Chapter (audio)',
     routeKind: 'chapter',
-    resourceIdText: EMBED_FIXTURE_CHAPTER_ID_TEXT,
-    note: EMBED_SAMPLE_CHAPTER_TITLE,
+    resourceIdText: EMBED_FIXTURE_CHAPTER_TWO_ID_TEXT,
+    note: EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE,
   },
   {
     showcaseId: 'podcast-audio',
