@@ -159,10 +159,7 @@ test.describe('Embed share builder handoff', () => {
     await page.goto(`/track/${E2E_MUSIC_TRACK_ONE_ID_TEXT}`);
     await openEmbedBuilderFromShare(page);
 
-    await expectBuilderEmbedPaths(
-      page,
-      new RegExp(`/embed/track/${E2E_MUSIC_TRACK_ONE_ID_TEXT}`)
-    );
+    await expectBuilderEmbedPaths(page, new RegExp(`/embed/track/${E2E_MUSIC_TRACK_ONE_ID_TEXT}`));
 
     await closeEmbedBuilderIfOpen(page);
   });
@@ -226,17 +223,11 @@ test.describe('Embed share builder handoff', () => {
     await page.goto(`/track/${E2E_MUSIC_TRACK_ONE_ID_TEXT}`);
     await openEmbedBuilderFromShare(page);
 
-    await expectBuilderEmbedPaths(
-      page,
-      new RegExp(`/embed/track/${E2E_MUSIC_TRACK_ONE_ID_TEXT}`)
-    );
+    await expectBuilderEmbedPaths(page, new RegExp(`/embed/track/${E2E_MUSIC_TRACK_ONE_ID_TEXT}`));
 
     await toggleEmbedListLayout(page);
 
-    await expectBuilderEmbedPaths(
-      page,
-      new RegExp(`/embed/album/${E2E_MUSIC_ALBUM_ID_TEXT}`)
-    );
+    await expectBuilderEmbedPaths(page, new RegExp(`/embed/album/${E2E_MUSIC_ALBUM_ID_TEXT}`));
 
     await closeEmbedBuilderIfOpen(page);
   });

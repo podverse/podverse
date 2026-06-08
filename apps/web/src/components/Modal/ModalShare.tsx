@@ -92,10 +92,7 @@ export const ModalShare: React.FC = () => {
         eyebrow: tMedia('podcast.episode'),
       });
     }
-  } else if (
-    modalShare.channel !== null &&
-    modalShare.channel.medium_id === MediumEnum.Music
-  ) {
+  } else if (modalShare.channel !== null && modalShare.channel.medium_id === MediumEnum.Music) {
     shareInputs.push({
       name: 'album',
       value: `${WEB.origin}/album/${modalShare.channel.id_text}`,
