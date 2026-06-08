@@ -24,6 +24,17 @@ test.describe('Embed demo index', () => {
       await expect(iframe).toBeVisible();
       await expect(iframe).toHaveCSS('border-top-width', '0px');
 
+      const podcastAudioShowcaseIds = new Set([
+        'episode-audio',
+        'clip-audio',
+        'official-clip-audio',
+        'chapter-audio',
+        'podcast-audio',
+      ]);
+      if (podcastAudioShowcaseIds.has(showcaseId)) {
+        await expect(iframe).toHaveAttribute('src', /chapter_markers=1/);
+      }
+
       const frame = page.frameLocator(`[data-testid="embed-demo-iframe-${showcaseId}"]`);
       const embedRoot = frame.getByTestId('embed-root');
       const notFoundShell = frame.getByTestId('embed-not-found-shell');

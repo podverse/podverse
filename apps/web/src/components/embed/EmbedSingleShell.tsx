@@ -23,7 +23,12 @@ export function EmbedSingleShell({ resource, sharedQuery, mediaType }: EmbedSing
       className={mediaType === 'video' ? `${styles.shell} ${styles.shellVideo}` : styles.shell}
       data-testid="embed-single-shell"
     >
-      <EmbedPlayerPanel fallbackResource={resource} mediaType={mediaType} panelLayout="single" />
+      <EmbedPlayerPanel
+        fallbackResource={resource}
+        mediaType={mediaType}
+        panelLayout="single"
+        sharedQuery={sharedQuery}
+      />
     </section>
   );
 }

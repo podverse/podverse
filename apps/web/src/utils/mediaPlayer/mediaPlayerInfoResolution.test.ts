@@ -83,6 +83,53 @@ describe('getMediaPlayerInfoResolution', () => {
     expect(result.subsectionUrl).toBe('/chapter/chapter-first');
   });
 
+  it('suppresses chapter title at playhead 0 when a chapter starts at 0', () => {
+    const intro = chapter({
+      id: 1,
+      id_text: 'chapter-intro',
+      table_of_contents: true,
+      title: 'Intro',
+      start_time: '0',
+      end_time: '20',
+    });
+
+    const mpItem = {
+      id: 1,
+      id_text: 'episode-1',
+      channel_id: 1,
+      item_flag_status_id: 1,
+      title: 'Episode title',
+      item_about: { id: 1, item_id: 1 },
+      item_chat: { id: 1, item_id: 1, server: 'chat.example.com' },
+      item_license: { id: 1, item_id: 1, identifier: 'CC-BY', url: null },
+      item_location: { id: 1, item_id: 1, name: null },
+      item_season: { id: 1, channel_season_id: 1, item_id: 1, title: null },
+      item_content_links: [],
+      item_enclosures: [],
+      item_fundings: [],
+      item_images: [],
+      item_persons: [],
+      item_social_interacts: [],
+      item_soundbites: [],
+      item_transcripts: [],
+      item_txts: [],
+      item_values: [],
+    } as DTOItem;
+
+    const result = getMediaPlayerInfoResolution({
+      mpChannel: null,
+      mpItem,
+      mpAddByRSS: null,
+      mpClip: null,
+      mpItemSoundbite: null,
+      mpItemChapter: null,
+      mpItemChapters: [intro],
+      currentTimeSeconds: 0,
+    });
+
+    expect(result.itemTitle).toBe('Episode title');
+  });
+
   it('falls back to item title when there is no matching chapter', () => {
     const mpChannel = {
       id: 1,

@@ -38,6 +38,7 @@ export const EMBED_PLAYBACK_GUARDRAILS: EmbedPlaybackGuardrails = {
 export type EmbedSharedQueryParams = {
   autoplay: boolean;
   startSeconds: number;
+  showChapterMarkers: boolean;
 };
 
 export type EmbedSingleQueryParams = EmbedSharedQueryParams;

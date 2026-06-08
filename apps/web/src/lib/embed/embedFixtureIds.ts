@@ -28,6 +28,9 @@ export const EMBED_SAMPLE_TRACK_AUDIO_ITEM_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BA
 export const EMBED_SAMPLE_TRACK_VIDEO_ITEM_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BASE_URL}/embed-sample-track-video-art.png`;
 export const EMBED_SAMPLE_CLIP_ITEM_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BASE_URL}/embed-sample-clip-art.png`;
 export const EMBED_SAMPLE_CHAPTER_ITEM_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BASE_URL}/embed-sample-chapter-art.png`;
+export const EMBED_SAMPLE_CHAPTER_INTRO_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BASE_URL}/embed-sample-chapter-intro-art.png`;
+export const EMBED_SAMPLE_CHAPTER_TOPIC_A_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BASE_URL}/embed-sample-chapter-topic-a-art.png`;
+export const EMBED_SAMPLE_CHAPTER_OUTRO_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BASE_URL}/embed-sample-chapter-outro-art.png`;
 export const EMBED_SAMPLE_SOUNDBITE_ITEM_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BASE_URL}/embed-sample-soundbite-art.png`;
 export const EMBED_SAMPLE_PLAYLIST_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BASE_URL}/embed-sample-playlist-art.png`;
 export const EMBED_SAMPLE_SCROLL_CHANNEL_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BASE_URL}/embed-sample-scroll-channel-art.png`;
@@ -47,6 +50,15 @@ export const EMBED_SAMPLE_CHAPTER_PARENT_TITLE = 'Embed Sample Episode (chapters
 export const EMBED_SAMPLE_CLIP_TITLE = 'Embed Sample Clip (audio)';
 export const EMBED_SAMPLE_SOUNDBITE_TITLE = 'Embed Sample Official Clip (audio)';
 export const EMBED_SAMPLE_CHAPTER_TITLE = 'Intro';
+export const EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE = 'Topic A';
+export const EMBED_SAMPLE_CHAPTER_OUTRO_TITLE = 'Outro';
+
+export const EMBED_SAMPLE_CHAPTER_ONE_START_SECONDS = 0;
+export const EMBED_SAMPLE_CHAPTER_ONE_END_SECONDS = 20;
+export const EMBED_SAMPLE_CHAPTER_TWO_START_SECONDS = 20;
+export const EMBED_SAMPLE_CHAPTER_TWO_END_SECONDS = 40;
+export const EMBED_SAMPLE_CHAPTER_THREE_START_SECONDS = 40;
+export const EMBED_SAMPLE_CHAPTER_THREE_END_SECONDS = 60;
 export const EMBED_SAMPLE_PLAYLIST_PUBLIC_TITLE = 'Embed Sample Playlist (audio)';
 export const EMBED_SAMPLE_PLAYLIST_MIXED_TITLE = 'Embed Sample Playlist (mixed)';
 export const EMBED_SAMPLE_PLAYLIST_PRIVATE_TITLE = 'Embed Sample Playlist (private)';
@@ -67,6 +79,8 @@ export const EMBED_FIXTURE_MUSIC_TRACK_VIDEO_ID_TEXT = 'e2eEmbVidTrk01';
 export const EMBED_FIXTURE_CLIP_AUDIO_ID_TEXT = 'embSmpClip001';
 export const EMBED_FIXTURE_SOUNDBITE_ID_TEXT = 'embSmpSbite01';
 export const EMBED_FIXTURE_CHAPTER_ID_TEXT = 'embSmpChap001';
+export const EMBED_FIXTURE_CHAPTER_TWO_ID_TEXT = 'embSmpChap002';
+export const EMBED_FIXTURE_CHAPTER_THREE_ID_TEXT = 'embSmpChap003';
 export const EMBED_FIXTURE_CHAPTER_PARENT_ITEM_ID_TEXT = 'embSmpChpItm1';
 
 export const EMBED_FIXTURE_PODCAST_LIST_AUDIO_ID_TEXT = EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT;
@@ -169,30 +183,74 @@ export const EMBED_FIXTURE_DEMO_SPECS: EmbedFixtureDemoSpec[] = [
   },
 ];
 
+const EMBED_DEMO_VIDEO_RESOURCE_IDS = new Set([
+  EMBED_FIXTURE_PODCAST_EPISODE_VIDEO_ID_TEXT,
+  EMBED_FIXTURE_PODCAST_LIST_VIDEO_ID_TEXT,
+  EMBED_FIXTURE_MUSIC_TRACK_VIDEO_ID_TEXT,
+]);
+
+function shouldAppendEmbedDemoChapterMarkersQuery(
+  routeKind: EmbedRouteKind,
+  resourceIdText: string
+): boolean {
+  if (EMBED_DEMO_VIDEO_RESOURCE_IDS.has(resourceIdText)) {
+    return false;
+  }
+
+  return (
+    routeKind === 'episode' ||
+    routeKind === 'clip' ||
+    routeKind === 'chapter' ||
+    routeKind === 'official-clip' ||
+    routeKind === 'podcast'
+  );
+}
+
+function appendEmbedDemoChapterMarkersQuery(pathname: string): string {
+  const separator = pathname.includes('?') ? '&' : '?';
+  return `${pathname}${separator}chapter_markers=1`;
+}
+
 export function buildEmbedFixtureDemoHref(
   routeKind: EmbedRouteKind,
   resourceIdText: string
 ): string {
+  let pathname: string;
+
   switch (routeKind) {
     case 'episode':
-      return `/embed/episode/${resourceIdText}`;
+      pathname = `/embed/episode/${resourceIdText}`;
+      break;
     case 'track':
-      return `/embed/track/${resourceIdText}`;
+      pathname = `/embed/track/${resourceIdText}`;
+      break;
     case 'clip':
-      return `/embed/clip/${resourceIdText}`;
+      pathname = `/embed/clip/${resourceIdText}`;
+      break;
     case 'chapter':
-      return `/embed/chapter/${resourceIdText}`;
+      pathname = `/embed/chapter/${resourceIdText}`;
+      break;
     case 'official-clip':
-      return `/embed/official-clip/${resourceIdText}`;
+      pathname = `/embed/official-clip/${resourceIdText}`;
+      break;
     case 'podcast':
-      return `/embed/podcast/${resourceIdText}`;
+      pathname = `/embed/podcast/${resourceIdText}`;
+      break;
     case 'album':
-      return `/embed/album/${resourceIdText}`;
+      pathname = `/embed/album/${resourceIdText}`;
+      break;
     case 'playlist':
-      return `/embed/playlist/${resourceIdText}`;
+      pathname = `/embed/playlist/${resourceIdText}`;
+      break;
     default:
-      return `/embed`;
+      pathname = `/embed`;
   }
+
+  if (shouldAppendEmbedDemoChapterMarkersQuery(routeKind, resourceIdText)) {
+    return appendEmbedDemoChapterMarkersQuery(pathname);
+  }
+
+  return pathname;
 }
 
 export function shouldUseEmbedDemoFixtures(): boolean {

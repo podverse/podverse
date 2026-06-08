@@ -83,6 +83,16 @@
   font-size: var(--font-size-sm);
 }
 
+.titleButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  max-width: 100%;
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+}
+
 .title {
   @include ellipsisSingleLineChild;
 

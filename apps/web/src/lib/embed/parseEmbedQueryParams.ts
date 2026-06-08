@@ -18,10 +18,15 @@ import type {
 } from './embedTypes';
 import { normalizeEmbedSearchParams } from './normalizeEmbedSearchParams';
 import { parseEmbedAutoplay } from './parseEmbedAutoplay';
+import { parseEmbedChapterMarkers } from './parseEmbedChapterMarkers';
 
 const sharedQuerySchema = z.object({
   autoplay: z.preprocess(parseEmbedAutoplay, z.boolean()).optional().default(false),
   t: z.preprocess((value) => parsePlaybackSeconds(value) ?? 0, z.number()).optional().default(0),
+  chapter_markers: z
+    .preprocess(parseEmbedChapterMarkers, z.boolean())
+    .optional()
+    .default(true),
 });
 
 const singleQuerySchema = sharedQuerySchema;
@@ -103,6 +108,7 @@ function mapSharedQuery(parsed: z.infer<typeof sharedQuerySchema>): EmbedSharedQ
   return {
     autoplay: parsed.autoplay,
     startSeconds: parsed.t,
+    showChapterMarkers: parsed.chapter_markers,
   };
 }
 

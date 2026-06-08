@@ -27,6 +27,7 @@ export type EmbedUrlOptions = {
   autoplay?: boolean;
   startSeconds?: number;
   playIdText?: string | null;
+  chapterMarkers?: boolean;
   origin?: string;
 };
 
@@ -57,6 +58,7 @@ function buildEmbedQueryString(options: {
   autoplay?: boolean;
   startSeconds?: number;
   playIdText?: string | null;
+  chapterMarkers?: boolean;
   isListRoute: boolean;
 }): string {
   const params = new URLSearchParams();
@@ -68,6 +70,10 @@ function buildEmbedQueryString(options: {
   const startSeconds = options.startSeconds ?? 0;
   if (startSeconds > 0) {
     params.set('t', String(startSeconds));
+  }
+
+  if (options.chapterMarkers === false) {
+    params.set('chapter_markers', '0');
   }
 
   if (options.isListRoute && options.playIdText) {
@@ -161,6 +167,7 @@ export function buildEmbedUrlPath(
     autoplay: options.autoplay,
     startSeconds: options.startSeconds,
     playIdText: options.playIdText,
+    chapterMarkers: options.chapterMarkers,
     isListRoute: target.isListRoute,
   });
 

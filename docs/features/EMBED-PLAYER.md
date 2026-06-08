@@ -36,6 +36,7 @@ Shared on single and list routes:
 | --- | --- | --- |
 | `autoplay` | `false` | Invalid values → `false`; only `true` is emitted in generated URLs |
 | `t` | `0` | Start time in seconds; invalid/negative → `0` |
+| `chapter_markers` | `true` | `0` or `false` hides progress-bar chapter boundary markers when chapters exist |
 
 List routes only:
 
@@ -43,6 +44,21 @@ List routes only:
 | --- | --- | --- |
 | `play_id_text` | — | Hidden advanced override; must match a row on the current list page or falls back to the default row |
 | `type`, `sort`, `page`, `range` | route defaults | Invalid enum/page values fall back per `parseEmbedQueryParams.ts` |
+
+### Chapter markers and titles (audio podcast episodes)
+
+When an item has chapters, the embed player loads them via the same API as the main app
+(`reqItemParseAndGetChapters`) and draws boundary markers on the progress bar (unless
+`chapter_markers=0`). Clip, official-clip, and chapter embeds use the parent episode **item**
+artwork (not per-chapter images).
+
+For episode and chapter embeds (not clip/soundbite), the primary title line defaults to the
+**active chapter title** at the current playhead. Click the title to toggle between chapter
+title and episode item title when chapters are loaded.
+
+Local demo podcast samples (`embSmpEpAud1`, `embSmpEpAud2`, `embSmpChpItm1`, …) are seeded with
+three chapters (Intro / Topic A / Outro) and distinct per-chapter artwork URLs in the database.
+The `/embed` demo index appends `chapter_markers=1` on podcast-audio showcase iframes.
 
 ## List visibility
 

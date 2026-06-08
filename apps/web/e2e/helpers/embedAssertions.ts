@@ -39,11 +39,30 @@ export async function expectEmbedVideoPlaceholder(page: Page): Promise<void> {
   await expect(page.getByTestId('embed-video-placeholder')).toBeVisible();
 }
 
+export function embedTitleLocator(page: Page): Locator {
+  return page.getByTestId('embed-title-toggle').or(page.getByTestId('embed-title'));
+}
+
 export async function expectEmbedAudioPlayerMetadata(page: Page): Promise<void> {
   await expect(page.getByTestId('embed-player-info')).toBeVisible();
   await expect(page.getByTestId('embed-artwork')).toBeVisible();
   await expect(page.getByTestId('embed-channel-title')).toBeVisible();
-  await expect(page.getByTestId('embed-title')).toBeVisible();
+  await expect(embedTitleLocator(page)).toBeVisible();
+}
+
+export async function expectEmbedArtworkSrcContains(page: Page, fragment: string): Promise<void> {
+  const artworkImage = page.getByTestId('embed-artwork').locator('img').first();
+  await expect(artworkImage).toBeVisible();
+  const src = await artworkImage.getAttribute('src');
+  expect(src).not.toBeNull();
+  if (src !== null) {
+    expect(src).toContain(fragment);
+  }
+}
+
+export async function expectEmbedChapterMarkerCount(page: Page, minCount: number): Promise<void> {
+  const markers = page.locator('[class*="chapterMarker"]');
+  await expect.poll(async () => markers.count()).toBeGreaterThanOrEqual(minCount);
 }
 
 export async function expectEmbedBrandLogoMainSiteLink(
@@ -63,7 +82,7 @@ export async function expectEmbedPlayerProgressVisible(page: Page): Promise<void
 }
 
 export async function expectEmbedTitleTruncated(page: Page): Promise<void> {
-  const title = page.getByTestId('embed-title');
+  const title = embedTitleLocator(page);
   await expect(title).toBeVisible();
 
   const styles = await title.evaluate((element) => {

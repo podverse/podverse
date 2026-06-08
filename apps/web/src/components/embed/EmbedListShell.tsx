@@ -95,6 +95,11 @@ export function EmbedListShell({ listData, sharedQuery, playIdText }: EmbedListS
         headerTitle={listData.headerTitle}
         mediaType={presentationStyle}
         panelLayout="list"
+        sharedQuery={{
+          autoplay: shouldPlay,
+          startSeconds: playbackStartSeconds,
+          showChapterMarkers: sharedQuery.showChapterMarkers,
+        }}
       />
       {hasMixedMedia ? (
         <EmbedPresentationStyleSelector onChange={setPresentationStyle} value={presentationStyle} />

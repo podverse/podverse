@@ -7,11 +7,15 @@ import { MediaPlayerProgress } from '../MediaPlayer/Sliders/MediaPlayerProgress'
 
 import styles from '../../styles/components/embed/EmbedPlayerControls.module.scss';
 
-export function EmbedPlayerControls() {
+type EmbedPlayerControlsProps = {
+  showChapterMarkers: boolean;
+};
+
+export function EmbedPlayerControls({ showChapterMarkers }: EmbedPlayerControlsProps) {
   return (
     <div className={styles.controls} data-testid="embed-player-controls">
       <div className={styles.progressRow}>
-        <MediaPlayerProgress layoutVariant="embed" />
+        <MediaPlayerProgress layoutVariant="embed" showChapterMarkers={showChapterMarkers} />
       </div>
       <div className={styles.transportRow} data-testid="embed-player-transport">
         <PlayButton />

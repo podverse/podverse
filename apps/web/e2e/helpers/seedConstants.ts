@@ -112,6 +112,17 @@ export const EMBED_SAMPLE_VIDEO_CHANNEL_TITLE = 'Embed Sample Podcast (video)';
 export const EMBED_SAMPLE_CLIP_TITLE = 'Embed Sample Clip (audio)';
 export const EMBED_SAMPLE_SOUNDBITE_TITLE = 'Embed Sample Official Clip (audio)';
 export const EMBED_SAMPLE_CHAPTER_TITLE = 'Intro';
+export const EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE = 'Topic A';
+export const EMBED_SAMPLE_CHAPTER_OUTRO_TITLE = 'Outro';
+
+export const EMBED_SAMPLE_CHAPTER_ONE_START_SECONDS = 0;
+export const EMBED_SAMPLE_CHAPTER_ONE_END_SECONDS = 20;
+export const EMBED_SAMPLE_CHAPTER_TWO_START_SECONDS = 20;
+export const EMBED_SAMPLE_CHAPTER_TWO_END_SECONDS = 40;
+export const EMBED_SAMPLE_CHAPTER_THREE_START_SECONDS = 40;
+export const EMBED_SAMPLE_CHAPTER_THREE_END_SECONDS = 60;
+
+export const EMBED_SAMPLE_EPISODE_AUDIO_ITEM_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BASE_URL}/embed-sample-episode-audio-art.png`;
 export const EMBED_SAMPLE_SCROLL_ITEM_TITLE_PREFIX = 'Embed Sample Scroll Item';
 
 export const EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT = 'embSmpPodAud1';
@@ -123,6 +134,8 @@ export const EMBED_FIXTURE_MUSIC_TRACK_TWO_ID_TEXT = 'embSmpTrkAud2';
 export const EMBED_FIXTURE_CLIP_AUDIO_ID_TEXT = 'embSmpClip001';
 export const EMBED_FIXTURE_SOUNDBITE_ID_TEXT = 'embSmpSbite01';
 export const EMBED_FIXTURE_CHAPTER_ID_TEXT = 'embSmpChap001';
+export const EMBED_FIXTURE_CHAPTER_TWO_ID_TEXT = 'embSmpChap002';
+export const EMBED_FIXTURE_CHAPTER_THREE_ID_TEXT = 'embSmpChap003';
 
 export const E2E_PODCAST_SHORT_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-short-60s-440hz.mp3`;
 export const E2E_PODCAST_RESUME_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-resume-60s-440hz.mp3`;

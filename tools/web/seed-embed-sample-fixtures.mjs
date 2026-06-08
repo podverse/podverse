@@ -5,6 +5,8 @@
 import {
   EMBED_FIXTURE_CHAPTER_ID_TEXT,
   EMBED_FIXTURE_CHAPTER_PARENT_ITEM_ID_TEXT,
+  EMBED_FIXTURE_CHAPTER_THREE_ID_TEXT,
+  EMBED_FIXTURE_CHAPTER_TWO_ID_TEXT,
   EMBED_FIXTURE_CLIP_AUDIO_ID_TEXT,
   EMBED_FIXTURE_MUSIC_ALBUM_ID_TEXT,
   EMBED_FIXTURE_MUSIC_TRACK_AUDIO_ID_TEXT,
@@ -15,10 +17,19 @@ import {
   EMBED_FIXTURE_SOUNDBITE_ID_TEXT,
   EMBED_SAMPLE_ALBUM_CHANNEL_IMAGE_URL,
   EMBED_SAMPLE_ALBUM_CHANNEL_TITLE,
-  EMBED_SAMPLE_CHAPTER_ITEM_IMAGE_URL,
+  EMBED_SAMPLE_CHAPTER_INTRO_IMAGE_URL,
+  EMBED_SAMPLE_CHAPTER_ONE_END_SECONDS,
+  EMBED_SAMPLE_CHAPTER_ONE_START_SECONDS,
+  EMBED_SAMPLE_CHAPTER_OUTRO_IMAGE_URL,
+  EMBED_SAMPLE_CHAPTER_OUTRO_TITLE,
   EMBED_SAMPLE_CHAPTER_PARENT_TITLE,
+  EMBED_SAMPLE_CHAPTER_THREE_END_SECONDS,
+  EMBED_SAMPLE_CHAPTER_THREE_START_SECONDS,
   EMBED_SAMPLE_CHAPTER_TITLE,
-  EMBED_SAMPLE_CLIP_ITEM_IMAGE_URL,
+  EMBED_SAMPLE_CHAPTER_TOPIC_A_IMAGE_URL,
+  EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE,
+  EMBED_SAMPLE_CHAPTER_TWO_END_SECONDS,
+  EMBED_SAMPLE_CHAPTER_TWO_START_SECONDS,
   EMBED_SAMPLE_CLIP_TITLE,
   EMBED_SAMPLE_EPISODE_AUDIO_AUDIO_URL,
   EMBED_SAMPLE_EPISODE_AUDIO_ITEM_IMAGE_URL,
@@ -27,7 +38,6 @@ import {
   EMBED_SAMPLE_PODCAST_CHANNEL_IMAGE_URL,
   EMBED_SAMPLE_PODCAST_CHANNEL_TITLE,
   EMBED_SAMPLE_PODCAST_ITEM_AUDIO_URL,
-  EMBED_SAMPLE_SOUNDBITE_ITEM_IMAGE_URL,
   EMBED_SAMPLE_SOUNDBITE_TITLE,
   EMBED_SAMPLE_TRACK_AUDIO_AUDIO_URL,
   EMBED_SAMPLE_TRACK_AUDIO_ITEM_IMAGE_URL,
@@ -47,6 +57,121 @@ const EMBED_SAMPLE_CLIP_START_SECONDS = 5;
 const EMBED_SAMPLE_CLIP_END_SECONDS = 10;
 const EMBED_SAMPLE_SOUNDBITE_START_SECONDS = 14;
 const EMBED_SAMPLE_SOUNDBITE_DURATION_SECONDS = 6;
+
+/** Canonical chapter ids for /embed/chapter/* E2E (global unique item_chapter.id_text). */
+const EMBED_SAMPLE_CANONICAL_CHAPTER_ROWS = [
+  {
+    idText: EMBED_FIXTURE_CHAPTER_ID_TEXT,
+    dataHash: '11111111111111111111111111111111',
+    startSeconds: EMBED_SAMPLE_CHAPTER_ONE_START_SECONDS,
+    endSeconds: EMBED_SAMPLE_CHAPTER_ONE_END_SECONDS,
+    title: EMBED_SAMPLE_CHAPTER_TITLE,
+    imgUrl: EMBED_SAMPLE_CHAPTER_INTRO_IMAGE_URL,
+  },
+  {
+    idText: EMBED_FIXTURE_CHAPTER_TWO_ID_TEXT,
+    dataHash: '22222222222222222222222222222222',
+    startSeconds: EMBED_SAMPLE_CHAPTER_TWO_START_SECONDS,
+    endSeconds: EMBED_SAMPLE_CHAPTER_TWO_END_SECONDS,
+    title: EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE,
+    imgUrl: EMBED_SAMPLE_CHAPTER_TOPIC_A_IMAGE_URL,
+  },
+  {
+    idText: EMBED_FIXTURE_CHAPTER_THREE_ID_TEXT,
+    dataHash: '33333333333333333333333333333333',
+    startSeconds: EMBED_SAMPLE_CHAPTER_THREE_START_SECONDS,
+    endSeconds: EMBED_SAMPLE_CHAPTER_THREE_END_SECONDS,
+    title: EMBED_SAMPLE_CHAPTER_OUTRO_TITLE,
+    imgUrl: EMBED_SAMPLE_CHAPTER_OUTRO_IMAGE_URL,
+  },
+];
+
+/**
+ * Per-episode chapter ids (nano_id_v2); prefix + Ch01..Ch03 must stay 9–15 chars.
+ *
+ * @param {string} idPrefix e.g. embSmpEp1 -> embSmpEp1Ch01
+ */
+function buildEmbedItemChapterRows(idPrefix) {
+  return [
+    {
+      idText: `${idPrefix}Ch01`,
+      dataHash: '11111111111111111111111111111111',
+      startSeconds: EMBED_SAMPLE_CHAPTER_ONE_START_SECONDS,
+      endSeconds: EMBED_SAMPLE_CHAPTER_ONE_END_SECONDS,
+      title: EMBED_SAMPLE_CHAPTER_TITLE,
+      imgUrl: EMBED_SAMPLE_CHAPTER_INTRO_IMAGE_URL,
+    },
+    {
+      idText: `${idPrefix}Ch02`,
+      dataHash: '22222222222222222222222222222222',
+      startSeconds: EMBED_SAMPLE_CHAPTER_TWO_START_SECONDS,
+      endSeconds: EMBED_SAMPLE_CHAPTER_TWO_END_SECONDS,
+      title: EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE,
+      imgUrl: EMBED_SAMPLE_CHAPTER_TOPIC_A_IMAGE_URL,
+    },
+    {
+      idText: `${idPrefix}Ch03`,
+      dataHash: '33333333333333333333333333333333',
+      startSeconds: EMBED_SAMPLE_CHAPTER_THREE_START_SECONDS,
+      endSeconds: EMBED_SAMPLE_CHAPTER_THREE_END_SECONDS,
+      title: EMBED_SAMPLE_CHAPTER_OUTRO_TITLE,
+      imgUrl: EMBED_SAMPLE_CHAPTER_OUTRO_IMAGE_URL,
+    },
+  ];
+}
+
+/**
+ * @param {import('pg').Client} client
+ * @param {number} itemId
+ * @param {string} objectTitle
+ * @param {typeof EMBED_SAMPLE_CANONICAL_CHAPTER_ROWS} chapterRows
+ */
+async function seedEmbedItemChapters(client, itemId, objectTitle, chapterRows) {
+  const chaptersFeedResult = await client.query(
+    `INSERT INTO item_chapters_feed (item_id, url, type)
+     VALUES ($1, 'https://e2e-seed-embed-sample.example/chapters.json', 'application/json')
+     RETURNING id`,
+    [itemId]
+  );
+  const chaptersFeedId = chaptersFeedResult.rows[0].id;
+
+  await client.query(`INSERT INTO item_chapters_feed_log (item_chapters_feed_id) VALUES ($1)`, [
+    chaptersFeedId,
+  ]);
+
+  const chaptersObjectResult = await client.query(
+    `INSERT INTO item_chapters_object (item_chapters_feed_id, title)
+     VALUES ($1, $2)
+     RETURNING id`,
+    [chaptersFeedId, objectTitle]
+  );
+  const chaptersObjectId = chaptersObjectResult.rows[0].id;
+
+  for (const chapter of chapterRows) {
+    await client.query(
+      `INSERT INTO item_chapter (
+         id_text,
+         item_chapters_object_id,
+         data_hash,
+         start_time,
+         end_time,
+         title,
+         img,
+         table_of_contents
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, true)`,
+      [
+        chapter.idText,
+        chaptersObjectId,
+        chapter.dataHash,
+        chapter.startSeconds,
+        chapter.endSeconds,
+        chapter.title,
+        chapter.imgUrl,
+      ]
+    );
+  }
+}
 
 /**
  * @param {import('pg').Client} client
@@ -173,6 +298,13 @@ export async function seedEmbedSampleDemoFixtures(client, { accountId }) {
     itemImageUrl: EMBED_SAMPLE_EPISODE_AUDIO_ITEM_IMAGE_URL,
     pubDateOffsetSeconds: 0,
   });
+  await seedEmbedItemChapters(
+    client,
+    episodeAudioItemId,
+    EMBED_SAMPLE_EPISODE_AUDIO_TITLE,
+    buildEmbedItemChapterRows('embSmpEp1')
+  );
+
   const episodeNearEndItemId = await insertPodcastSampleItem({
     idText: EMBED_FIXTURE_PODCAST_EPISODE_NEAR_END_ID_TEXT,
     guidSlug: 'episode-near-end',
@@ -181,7 +313,14 @@ export async function seedEmbedSampleDemoFixtures(client, { accountId }) {
     itemImageUrl: EMBED_SAMPLE_EPISODE_AUDIO_ITEM_IMAGE_URL,
     pubDateOffsetSeconds: 3600,
   });
-  await insertPodcastSampleItem({
+  await seedEmbedItemChapters(
+    client,
+    episodeNearEndItemId,
+    EMBED_SAMPLE_EPISODE_NEAR_END_TITLE,
+    buildEmbedItemChapterRows('embSmpEp2')
+  );
+
+  const episodeOlderItemId = await insertPodcastSampleItem({
     idText: 'embSmpEpAud3',
     guidSlug: 'episode-older',
     title: 'Embed Sample Episode (older)',
@@ -189,15 +328,27 @@ export async function seedEmbedSampleDemoFixtures(client, { accountId }) {
     itemImageUrl: EMBED_SAMPLE_EPISODE_AUDIO_ITEM_IMAGE_URL,
     pubDateOffsetSeconds: 7200,
   });
+  await seedEmbedItemChapters(
+    client,
+    episodeOlderItemId,
+    'Embed Sample Episode (older)',
+    buildEmbedItemChapterRows('embSmpEp3')
+  );
 
   const chapterParentItemId = await insertPodcastSampleItem({
     idText: EMBED_FIXTURE_CHAPTER_PARENT_ITEM_ID_TEXT,
     guidSlug: 'chapter-parent',
     title: EMBED_SAMPLE_CHAPTER_PARENT_TITLE,
     enclosureUrl: EMBED_SAMPLE_PODCAST_ITEM_AUDIO_URL,
-    itemImageUrl: EMBED_SAMPLE_CHAPTER_ITEM_IMAGE_URL,
+    itemImageUrl: EMBED_SAMPLE_EPISODE_AUDIO_ITEM_IMAGE_URL,
     pubDateOffsetSeconds: 10800,
   });
+  await seedEmbedItemChapters(
+    client,
+    chapterParentItemId,
+    EMBED_SAMPLE_CHAPTER_PARENT_TITLE,
+    EMBED_SAMPLE_CANONICAL_CHAPTER_ROWS
+  );
 
   await client.query(
     `INSERT INTO clip (
@@ -230,46 +381,6 @@ export async function seedEmbedSampleDemoFixtures(client, { accountId }) {
       EMBED_SAMPLE_SOUNDBITE_START_SECONDS,
       EMBED_SAMPLE_SOUNDBITE_DURATION_SECONDS,
       EMBED_SAMPLE_SOUNDBITE_TITLE,
-    ]
-  );
-
-  const chaptersFeedResult = await client.query(
-    `INSERT INTO item_chapters_feed (item_id, url, type)
-     VALUES ($1, 'https://e2e-seed-embed-sample.example/chapters.json', 'application/json')
-     RETURNING id`,
-    [chapterParentItemId]
-  );
-  const chaptersFeedId = chaptersFeedResult.rows[0].id;
-
-  await client.query(`INSERT INTO item_chapters_feed_log (item_chapters_feed_id) VALUES ($1)`, [
-    chaptersFeedId,
-  ]);
-
-  const chaptersObjectResult = await client.query(
-    `INSERT INTO item_chapters_object (item_chapters_feed_id, title)
-     VALUES ($1, $2)
-     RETURNING id`,
-    [chaptersFeedId, EMBED_SAMPLE_CHAPTER_PARENT_TITLE]
-  );
-  const chaptersObjectId = chaptersObjectResult.rows[0].id;
-
-  await client.query(
-    `INSERT INTO item_chapter (
-       id_text,
-       item_chapters_object_id,
-       data_hash,
-       start_time,
-       end_time,
-       title,
-       table_of_contents
-     )
-     VALUES ($1, $2, '22222222222222222222222222222222', $3, $4, $5, true)`,
-    [
-      EMBED_FIXTURE_CHAPTER_ID_TEXT,
-      chaptersObjectId,
-      EMBED_SAMPLE_CLIP_START_SECONDS,
-      EMBED_SAMPLE_CLIP_END_SECONDS,
-      EMBED_SAMPLE_CHAPTER_TITLE,
     ]
   );
 

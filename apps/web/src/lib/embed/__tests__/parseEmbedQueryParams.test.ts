@@ -12,6 +12,7 @@ describe('parseEmbedSingleQueryParams', () => {
     expect(parseEmbedSingleQueryParams({})).toEqual({
       autoplay: false,
       startSeconds: 0,
+      showChapterMarkers: true,
     });
   });
 
@@ -24,6 +25,7 @@ describe('parseEmbedSingleQueryParams', () => {
     ).toEqual({
       autoplay: false,
       startSeconds: 0,
+      showChapterMarkers: true,
     });
   });
 
@@ -36,6 +38,16 @@ describe('parseEmbedSingleQueryParams', () => {
     ).toEqual({
       autoplay: true,
       startSeconds: 42,
+      showChapterMarkers: true,
+    });
+  });
+
+  it('disables chapter markers when chapter_markers is 0 or false', () => {
+    expect(parseEmbedSingleQueryParams({ chapter_markers: '0' })).toMatchObject({
+      showChapterMarkers: false,
+    });
+    expect(parseEmbedSingleQueryParams({ chapter_markers: 'false' })).toMatchObject({
+      showChapterMarkers: false,
     });
   });
 });
@@ -45,6 +57,7 @@ describe('parseEmbedPodcastListQueryParams', () => {
     expect(parseEmbedPodcastListQueryParams({})).toEqual({
       autoplay: false,
       startSeconds: 0,
+      showChapterMarkers: true,
       type: 'episodes',
       sort: 'recent',
       page: 1,
@@ -62,6 +75,7 @@ describe('parseEmbedPodcastListQueryParams', () => {
     ).toEqual({
       autoplay: false,
       startSeconds: 0,
+      showChapterMarkers: true,
       type: 'episodes',
       sort: 'recent',
       page: 1,
@@ -86,6 +100,7 @@ describe('parseEmbedAlbumListQueryParams', () => {
     expect(parseEmbedAlbumListQueryParams({})).toEqual({
       autoplay: false,
       startSeconds: 0,
+      showChapterMarkers: true,
       type: 'tracks',
       sort: 'forward',
       page: 1,
@@ -100,6 +115,7 @@ describe('parseEmbedPlaylistListQueryParams', () => {
     expect(parseEmbedPlaylistListQueryParams({})).toEqual({
       autoplay: false,
       startSeconds: 0,
+      showChapterMarkers: true,
       page: 1,
       playIdText: null,
     });

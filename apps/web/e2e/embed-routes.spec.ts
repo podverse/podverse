@@ -4,8 +4,11 @@ import {
   EMBED_LIST_SHELL_HEIGHT,
   EMBED_LIST_SHELL_VIDEO_HEIGHT,
   EMBED_SINGLE_SHELL_HEIGHT,
+  embedTitleLocator,
+  expectEmbedArtworkSrcContains,
   expectEmbedAudioPlayerMetadata,
   expectEmbedBrandLogoMainSiteLink,
+  expectEmbedChapterMarkerCount,
   expectEmbedListActiveRowLabel,
   expectEmbedListRegionScrollable,
   expectEmbedListRowMetadata,
@@ -42,6 +45,7 @@ import {
   EMBED_FIXTURE_PODCAST_EPISODE_NEAR_END_ID_TEXT,
   EMBED_FIXTURE_SOUNDBITE_ID_TEXT,
   EMBED_SAMPLE_CHAPTER_TITLE,
+  EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE,
   EMBED_SAMPLE_EPISODE_AUDIO_TITLE,
   EMBED_SAMPLE_EPISODE_NEAR_END_TITLE,
   EMBED_SAMPLE_TRACK_AUDIO_TITLE,
@@ -77,20 +81,23 @@ test.describe('Embed routes (anonymous)', () => {
       await expectEmbedSingleShell(page);
     });
 
-    await test.step('Clip embed loads the single audio shell', async () => {
+    await test.step('Clip embed loads the single audio shell with episode artwork', async () => {
       await page.goto(`/embed/clip/${EMBED_FIXTURE_CLIP_AUDIO_ID_TEXT}`);
       await expectEmbedSingleShell(page);
+      await expectEmbedArtworkSrcContains(page, 'embed-sample-episode-audio-art');
     });
 
-    await test.step('Chapter embed appends the chapter title suffix', async () => {
+    await test.step('Chapter embed shows the active chapter title at the playhead', async () => {
       await page.goto(`/embed/chapter/${EMBED_FIXTURE_CHAPTER_ID_TEXT}`);
       await expectEmbedSingleShell(page);
-      await expect(page.getByTestId('embed-title')).toContainText(` — ${EMBED_SAMPLE_CHAPTER_TITLE}`);
+      await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_CHAPTER_TITLE);
+      await expectEmbedArtworkSrcContains(page, 'embed-sample-episode-audio-art');
     });
 
-    await test.step('Official clip embed loads the single audio shell', async () => {
+    await test.step('Official clip embed loads the single audio shell with episode artwork', async () => {
       await page.goto(`/embed/official-clip/${EMBED_FIXTURE_SOUNDBITE_ID_TEXT}`);
       await expectEmbedSingleShell(page);
+      await expectEmbedArtworkSrcContains(page, 'embed-sample-episode-audio-art');
     });
 
     await test.step('Video episode embed shows the video placeholder', async () => {
@@ -140,6 +147,27 @@ test.describe('Embed routes (anonymous)', () => {
     expect(page.url()).toContain('t=42');
   });
 
+  test('Episode embed shows chapter markers and time-based chapter titles', async ({ page }) => {
+    await page.goto(`/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}?t=25`);
+    await expectEmbedSingleShell(page);
+    await expectEmbedChapterMarkerCount(page, 2);
+    await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE);
+
+    await page.getByTestId('embed-title-toggle').click();
+    await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_EPISODE_AUDIO_TITLE);
+
+    await page.getByTestId('embed-title-toggle').click();
+    await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE);
+  });
+
+  test('Episode embed hides chapter markers when chapter_markers=0', async ({ page }) => {
+    await page.goto(
+      `/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}?chapter_markers=0`
+    );
+    await expectEmbedSingleShell(page);
+    await expect(page.locator('[class*="chapterMarker"]')).toHaveCount(0);
+  });
+
   test('List embed routes render list shells with default row selection', async ({ page }, testInfo) => {
     await test.step('Podcast list embed selects the newest episode by default', async () => {
       await page.goto(`/embed/podcast/${EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT}`);
@@ -147,7 +175,7 @@ test.describe('Embed routes (anonymous)', () => {
       await expectEmbedListActiveRowLabel(page, EMBED_SAMPLE_EPISODE_AUDIO_TITLE);
       await expectEmbedListRowMetadata(page);
       await expectEmbedPlayerProgressVisible(page);
-      await expect(page.getByTestId('embed-title')).toContainText(EMBED_SAMPLE_EPISODE_AUDIO_TITLE);
+      await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_EPISODE_AUDIO_TITLE);
       expect(E2E_EMBED_PODCAST_LIST_DEFAULT_ITEM_ID_TEXT).toBe(
         EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT
       );

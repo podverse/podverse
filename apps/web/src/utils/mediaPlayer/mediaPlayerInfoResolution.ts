@@ -9,6 +9,10 @@ import { MediumEnum } from '@podverse/helpers';
 
 import type { MediaPlayerAddByRSSState } from '../../contexts/MediaPlayer';
 import { getAddByRSSItemPath, getAddByRSSLivestreamPath } from '../addByRSS/itemPath';
+import {
+  selectItemChapterForTime,
+  shouldSuppressChapterSelectionAtTime,
+} from './selectItemChapterForTime';
 import { getResolvedVtsLikeTargetItem } from './vtsOverrideLikeItem';
 
 type ResolutionParams = {
@@ -60,15 +64,18 @@ const pickActiveChapter = (
   currentTimeSeconds: number
 ): DTOItemChapter | null => {
   const chapters = mpItemChapters ?? [];
-  const matchingChapters = chapters.filter((chapter) =>
-    isChapterAtTime(chapter, currentTimeSeconds)
-  );
-  if (matchingChapters.length > 0) {
-    return (
-      matchingChapters.find((chapter) => chapter.table_of_contents === false) ??
-      matchingChapters[0] ??
-      null
-    );
+  const chaptersForZeroGuard =
+    mpItemChapter !== null && !chapters.some((chapter) => chapter.id === mpItemChapter.id)
+      ? [...chapters, mpItemChapter]
+      : chapters;
+
+  if (shouldSuppressChapterSelectionAtTime(chaptersForZeroGuard, currentTimeSeconds)) {
+    return null;
+  }
+
+  const fromList = selectItemChapterForTime(chapters, currentTimeSeconds);
+  if (fromList !== null) {
+    return fromList;
   }
 
   if (mpItemChapter && isChapterAtTime(mpItemChapter, currentTimeSeconds)) {

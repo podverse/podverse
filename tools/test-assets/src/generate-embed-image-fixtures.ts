@@ -57,6 +57,21 @@ async function main(): Promise<void> {
       label: 'Chapter',
     },
     {
+      filename: 'embed-sample-chapter-intro-art.png',
+      color: '#264653',
+      label: 'Intro',
+    },
+    {
+      filename: 'embed-sample-chapter-topic-a-art.png',
+      color: '#2A9D8F',
+      label: 'Topic A',
+    },
+    {
+      filename: 'embed-sample-chapter-outro-art.png',
+      color: '#E9C46A',
+      label: 'Outro',
+    },
+    {
       filename: 'embed-sample-soundbite-art.png',
       color: '#E76F51',
       label: 'Official clip',

@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { ImageNonReact } from '@podverse/ui';
 
@@ -13,11 +13,11 @@ import { useMediaPlayerCurrentTime } from '../../contexts/MediaPlayerCurrentTime
 import { buildEmbedMainSiteUrl } from '../../lib/embed/buildEmbedMainSiteUrl';
 import type { EmbedSingleResourcePayload } from '../../lib/embed/fetchEmbedSingleResource';
 import { formatEmbedDisplayTitle } from '../../lib/embed/formatEmbedDisplayTitle';
+import { resolveEmbedPrimaryTitle } from '../../lib/embed/resolveEmbedPrimaryTitle';
 import { getBrandLogoSquareSrc } from '../../utils/brandLogo';
 import {
   buildMediaPlayerArtworkImageCandidates,
   getMediaPlayerArtworkSources,
-  shouldUseChapterArtwork,
 } from '../../utils/mediaPlayer/mediaPlayerArtwork';
 import { getMediaPlayerInfoResolution } from '../../utils/mediaPlayer/mediaPlayerInfoResolution';
 import { ReadableDate } from '../Time/ReadableDate';
@@ -45,7 +45,6 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
   const channel = mpChannel ?? fallbackResource?.channel ?? null;
   const item = mpItem ?? fallbackResource?.item ?? null;
   const clip = mpClip ?? fallbackResource?.clip ?? null;
-  const itemChapter = mpItemChapter ?? fallbackResource?.itemChapter ?? null;
   const itemSoundbite = mpItemSoundbite ?? fallbackResource?.itemSoundbite ?? null;
 
   const infoResolution = hasPlayerContent
@@ -66,11 +65,30 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
     channel?.title ??
     (headerTitle !== null && headerTitle !== undefined && headerTitle !== '' ? headerTitle : null);
 
+  const [preferItemTitle, setPreferItemTitle] = useState(false);
+
+  useEffect(() => {
+    setPreferItemTitle(false);
+  }, [mpItem?.id_text]);
+
+  const primaryTitleResolution = hasPlayerContent
+    ? resolveEmbedPrimaryTitle({
+        mpItem,
+        mpClip: clip,
+        mpItemSoundbite: itemSoundbite,
+        mpItemChapters,
+        currentTimeSeconds: mpCurrentTime,
+        preferItemTitle,
+      })
+    : null;
+
   const itemTitle = hasPlayerContent
-    ? (infoResolution?.itemTitle ?? tMisc('untitled'))
+    ? (primaryTitleResolution?.title ?? infoResolution?.itemTitle ?? tMisc('untitled'))
     : fallbackResource !== null
       ? formatEmbedDisplayTitle(fallbackResource)
       : null;
+
+  const allowTitleToggle = primaryTitleResolution?.allowTitleToggle === true;
 
   const publishDate = item?.pub_date ?? null;
 
@@ -84,12 +102,7 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
     const candidates = buildMediaPlayerArtworkImageCandidates({
       channelImages,
       itemImages,
-      chapterImageUrl: itemChapter?.img,
-      includeChapterImage: shouldUseChapterArtwork({
-        mpItemChapter: itemChapter,
-        mpClip: clip,
-        mpItemSoundbite: itemSoundbite,
-      }),
+      includeChapterImage: false,
       imageSizeTarget: IMAGES.MEDIA_PLAYER.DESKTOP.MINI.SIZE_FIND_TARGET,
       imageSizeComparison: 'greater',
     });
@@ -104,7 +117,7 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
     }
 
     return candidates;
-  }, [channelImages, clip, itemChapter, itemImages, itemSoundbite]);
+  }, [channelImages, itemImages]);
 
   if (
     (channelTitle === null || channelTitle === '') &&
@@ -133,9 +146,20 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
               </span>
             ) : null}
             {itemTitle !== null && itemTitle !== '' ? (
-              <span className={styles.title} data-testid="embed-title">
-                {itemTitle}
-              </span>
+              allowTitleToggle ? (
+                <button
+                  className={styles.titleButton}
+                  data-testid="embed-title-toggle"
+                  type="button"
+                  onClick={() => setPreferItemTitle((current) => !current)}
+                >
+                  <span className={styles.title}>{itemTitle}</span>
+                </button>
+              ) : (
+                <span className={styles.title} data-testid="embed-title">
+                  {itemTitle}
+                </span>
+              )
             ) : null}
             {publishDate !== null && publishDate !== '' ? (
               <span className={styles.publishDateBadge} data-testid="embed-publish-date">
