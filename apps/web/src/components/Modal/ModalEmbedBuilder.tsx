@@ -11,9 +11,10 @@ import type { EmbedUrlLayoutPreference } from '../../lib/embed';
 import {
   buildEmbedIframeCode,
   buildEmbedUrl,
-  DEFAULT_SINGLE_IFRAME_HEIGHT,
   EMBED_IFRAME_ALLOW,
   getEmbedIframeHeightForRouteKind,
+  getEmbedLayoutType,
+  getEmbedPreviewIframeHeightClassKey,
   resolveEmbedUrlTarget,
 } from '../../lib/embed';
 
@@ -100,10 +101,13 @@ export const ModalEmbedBuilder: React.FC = () => {
     });
   }, [embedTarget, embedUrl, tFeatures]);
 
-  const previewHeight =
+  const previewIframeHeightClassKey =
     embedTarget === null
-      ? DEFAULT_SINGLE_IFRAME_HEIGHT
-      : getEmbedIframeHeightForRouteKind(embedTarget.routeKind);
+      ? 'iframeSingleAudio'
+      : getEmbedPreviewIframeHeightClassKey(
+          getEmbedLayoutType(embedTarget.routeKind),
+          'audio'
+        );
 
   if (!isOpen) {
     return null;
@@ -148,10 +152,9 @@ export const ModalEmbedBuilder: React.FC = () => {
         <div className={styles.previewFrame} data-testid="embed-builder-preview">
           {embedUrl !== null ? (
             <iframe
-              className={styles.previewIframe}
+              className={`${styles.previewIframe} ${styles[previewIframeHeightClassKey]}`}
               src={embedUrl}
               title={tFeatures('embed_preview')}
-              height={previewHeight}
               allow={EMBED_IFRAME_ALLOW}
             />
           ) : null}

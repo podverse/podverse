@@ -5,6 +5,7 @@ import {
   EMBED_LIST_SHELL_VIDEO_HEIGHT,
   EMBED_SINGLE_SHELL_HEIGHT,
   expectEmbedAudioPlayerMetadata,
+  expectEmbedBrandLogoMainSiteLink,
   expectEmbedListActiveRowLabel,
   expectEmbedListRegionScrollable,
   expectEmbedListRowMetadata,
@@ -50,6 +51,10 @@ test.describe('Embed routes (anonymous)', () => {
       await expectEmbedRootVisible(page);
       await expectEmbedSingleShell(page);
       await expectEmbedAudioPlayerMetadata(page);
+      await expectEmbedBrandLogoMainSiteLink(
+        page,
+        `http://main.example.test/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`
+      );
       await expectEmbedPlayerProgressVisible(page);
       await expectEmbedTitleTruncated(page);
       await expectEmbedShellHeightStable(page.getByTestId('embed-single-shell'), EMBED_SINGLE_SHELL_HEIGHT);

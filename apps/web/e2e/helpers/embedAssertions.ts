@@ -1,10 +1,17 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect } from '@playwright/test';
 
-export const EMBED_SINGLE_SHELL_HEIGHT = 284;
-export const EMBED_SINGLE_SHELL_VIDEO_HEIGHT = 444;
-export const EMBED_LIST_SHELL_HEIGHT = 744;
-export const EMBED_LIST_SHELL_VIDEO_HEIGHT = 884;
+import {
+  DEFAULT_LIST_AUDIO_IFRAME_HEIGHT,
+  DEFAULT_LIST_VIDEO_IFRAME_HEIGHT,
+  DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT,
+  DEFAULT_SINGLE_VIDEO_IFRAME_HEIGHT,
+} from '../../src/lib/embed/embedLayoutDimensions';
+
+export const EMBED_SINGLE_SHELL_HEIGHT = DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT;
+export const EMBED_SINGLE_SHELL_VIDEO_HEIGHT = DEFAULT_SINGLE_VIDEO_IFRAME_HEIGHT;
+export const EMBED_LIST_SHELL_HEIGHT = DEFAULT_LIST_AUDIO_IFRAME_HEIGHT;
+export const EMBED_LIST_SHELL_VIDEO_HEIGHT = DEFAULT_LIST_VIDEO_IFRAME_HEIGHT;
 
 export async function expectEmbedRootVisible(page: Page): Promise<void> {
   await expect(page.getByTestId('embed-root')).toBeVisible();
@@ -35,9 +42,19 @@ export async function expectEmbedVideoPlaceholder(page: Page): Promise<void> {
 export async function expectEmbedAudioPlayerMetadata(page: Page): Promise<void> {
   await expect(page.getByTestId('embed-player-info')).toBeVisible();
   await expect(page.getByTestId('embed-artwork')).toBeVisible();
-  await expect(page.getByTestId('embed-brand-logo')).toBeVisible();
   await expect(page.getByTestId('embed-channel-title')).toBeVisible();
   await expect(page.getByTestId('embed-title')).toBeVisible();
+}
+
+export async function expectEmbedBrandLogoMainSiteLink(
+  page: Page,
+  expectedHref: string
+): Promise<void> {
+  const brandLogoLink = page.getByTestId('embed-brand-logo-link');
+  await expect(brandLogoLink).toBeVisible();
+  await expect(brandLogoLink).toHaveAttribute('href', expectedHref);
+  await expect(brandLogoLink).toHaveAttribute('target', '_blank');
+  await expect(brandLogoLink).toHaveAttribute('rel', 'noopener noreferrer');
 }
 
 export async function expectEmbedPlayerProgressVisible(page: Page): Promise<void> {

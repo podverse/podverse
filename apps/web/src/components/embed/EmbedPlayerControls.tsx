@@ -14,8 +14,8 @@ export function EmbedPlayerControls() {
         <MediaPlayerProgress layoutVariant="embed" />
       </div>
       <div className={styles.transportRow} data-testid="embed-player-transport">
-        <EmbedPlayerMoreButton />
         <PlayButton />
+        <EmbedPlayerMoreButton />
       </div>
     </div>
   );

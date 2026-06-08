@@ -1,17 +1,44 @@
-$embed-single-audio-shell-height: 284px;
-$embed-single-video-shell-height: 444px;
-$embed-list-audio-shell-height: 744px;
-$embed-list-video-shell-height: 884px;
+// Embed shell height formulas. Literals: _embedLayoutTokens.scss (+ embedLayoutTokens.ts).
+// Iframe codegen px heights: apps/web/src/lib/embed/embedLayoutDimensions.ts
 
-$embed-player-info-height: 100px;
-$embed-brand-logo-height: 32px;
-$embed-player-controls-height: 40px;
+@forward 'embedLayoutTokens';
+@use 'embedLayoutTokens' as tokens;
 
-$embed-list-player-panel-audio-height: 224px;
-$embed-list-player-panel-video-height: 344px;
+@mixin embed-player-panel-custom-properties {
+  --embed-list-video-placeholder-height: #{tokens.$embed-list-video-placeholder-height};
+  --embed-panel-padding-block: var(--spacing-lg);
+  --embed-panel-padding-inline: var(--spacing-lg);
+  --embed-play-button-size: #{tokens.$embed-play-button-size};
+  --embed-player-art-size: #{tokens.$embed-player-art-size};
+  --embed-single-video-placeholder-height: #{tokens.$embed-single-video-placeholder-height};
+}
 
-$embed-presentation-selector-height: 52px;
-$embed-list-row-height: 48px;
+// padding-block + info + gap + bottom section + padding-block
+$embed-player-panel-audio-height: calc(
+  var(--embed-panel-padding-block) + var(--embed-player-art-size) + var(--spacing-md) +
+    var(--embed-play-button-size) + var(--embed-panel-padding-block)
+);
 
-$embed-single-video-placeholder-height: 334px;
-$embed-list-video-placeholder-height: 234px;
+$embed-player-panel-video-height-single: calc(
+  var(--embed-panel-padding-block) + var(--embed-player-art-size) + var(--spacing-md) +
+    var(--embed-single-video-placeholder-height) + var(--embed-panel-padding-block)
+);
+
+$embed-player-panel-video-height-list: calc(
+  var(--embed-panel-padding-block) + var(--embed-player-art-size) + var(--spacing-md) +
+    var(--embed-list-video-placeholder-height) + var(--embed-panel-padding-block)
+);
+
+$embed-list-player-panel-audio-height: $embed-player-panel-audio-height;
+$embed-list-player-panel-video-height: $embed-player-panel-video-height-list;
+
+$embed-single-audio-shell-height: $embed-player-panel-audio-height;
+$embed-single-video-shell-height: $embed-player-panel-video-height-single;
+
+$embed-list-audio-shell-height: calc(
+  #{$embed-player-panel-audio-height} + #{tokens.$embed-list-region-audio-height}
+);
+
+$embed-list-video-shell-height: calc(
+  #{$embed-player-panel-video-height-list} + #{tokens.$embed-list-region-video-height}
+);

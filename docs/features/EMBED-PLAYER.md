@@ -57,6 +57,23 @@ shell shows an **Audio / Video** presentation-style selector. The selector contr
 and placeholder sizing only; audio rows still load playback resources and video remains
 placeholder-only in phase 1.
 
+## Brand mark (upper-right, optional)
+
+When `NEXT_PUBLIC_BRAND_LOGO_SQUARE_100X100` is set to a full CDN URL, the player info row shows a
+**32×32** square brand mark inside a new-tab link (`data-testid="embed-brand-logo-link"`).
+Clicking the mark opens the corresponding main-site page in a new tab (for example
+`/embed/episode/{id}` → `https://{NEXT_PUBLIC_BRAND_DOMAIN}/episode/{id}`). Domain comes from
+`BRAND_DOMAIN` / `NEXT_PUBLIC_BRAND_DOMAIN`; protocol matches `NEXT_PUBLIC_WEB_PROTOCOL`. When the
+logo URL is unset, the mark and link are not rendered. `NEXT_PUBLIC_BRAND_LOGO_SQUARE` holds a
+full-size square asset for future use; nothing reads it today.
+
+Canonical embed asset filename on the CDN: **`brand-square-100x100.png`** (**100×100** PNG). Example:
+
+`https://<cdn>/static/images/branding/brand-square-100x100.png`
+
+Local dev: set `BRAND_LOGO_SQUARE_100X100` in `brand.env`; `local_env_setup` maps it to
+`NEXT_PUBLIC_BRAND_LOGO_SQUARE_100X100`. See [REBRANDING-CDN.md](/docs/development/REBRANDING-CDN.md).
+
 ## Iframe integration
 
 Generate URLs with `buildEmbedUrl()` and snippets with `buildEmbedIframeCode()`:
@@ -65,7 +82,7 @@ Generate URLs with `buildEmbedUrl()` and snippets with `buildEmbedIframeCode()`:
 <iframe
   src="https://example.test/embed/episode/your-item-id?autoplay=true&amp;t=30"
   width="100%"
-  height="284"
+  height="172"
   frameborder="0"
   allow="autoplay"
   title="Podverse embed"
@@ -74,12 +91,20 @@ Generate URLs with `buildEmbedUrl()` and snippets with `buildEmbedIframeCode()`:
 
 The `allow` value is defined once as `EMBED_IFRAME_ALLOW` in `buildEmbedIframeCode.ts` and reused by generated snippets and in-app preview iframes.
 
-Heights (from `buildEmbedIframeCode.ts`):
+### Layout height tokens
 
-| Layout | Audio style | Video style |
-| --- | --- | --- |
-| Single | 284px | 444px |
-| List | 744px | 884px |
+Canonical **literals** (art size, video placeholders, list viewport, and so on) live in:
+
+- `apps/web/src/styles/components/embed/_embedLayoutTokens.scss`
+- `apps/web/src/lib/embed/embedLayoutTokens.ts` (must stay in sync; `embedLayoutTokens.sync.test.ts` enforces parity)
+
+Shell **formulas** (player panel + list region) are in `_embedLayout.scss`. At **16px root**
+(`--spacing-lg` = 16px, `--spacing-md` = 8px), single-audio height is:
+`padding + art + gap + play button + padding`.
+
+**In-app previews** (demo index `/embed`, share-modal embed builder) size iframes with the same SCSS shell-height variables and `embed-player-panel-custom-properties` mixin — not hardcoded pixel attributes.
+
+**Copy-paste iframe snippets** (`buildEmbedIframeCode`) emit numeric `height="…"` for external sites; values come from `embedLayoutDimensions.ts`, which derives px from `embedLayoutTokens.ts` using the same formulas as `_embedLayout.scss`. Import `DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT` (and related exports) or call `getEmbedIframeHeightForRouteKind()` for the current defaults.
 
 Share modal → **Create Embed** opens the builder with live preview and copyable code.
 

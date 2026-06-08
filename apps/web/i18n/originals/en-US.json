@@ -173,6 +173,7 @@
     "embed_presentation_style_legend": "Presentation style",
     "embed_presentation_style_audio": "Audio",
     "embed_presentation_style_video": "Video",
+    "embed_brand_logo_link": "Open on {brand_name}",
     "copy": "Copy",
     "copied": "Copied",
     "subscribe": "Subscribe",

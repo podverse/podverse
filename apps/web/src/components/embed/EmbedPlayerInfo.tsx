@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 
@@ -7,12 +8,12 @@ import { ImageNonReact } from '@podverse/ui';
 
 import { IMAGES } from '../../constants/images';
 import { useConfig } from '../../contexts/Config';
-import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
 import { useMediaPlayerCurrentTime } from '../../contexts/MediaPlayerCurrentTime';
+import { buildEmbedMainSiteUrl } from '../../lib/embed/buildEmbedMainSiteUrl';
 import type { EmbedSingleResourcePayload } from '../../lib/embed/fetchEmbedSingleResource';
 import { formatEmbedDisplayTitle } from '../../lib/embed/formatEmbedDisplayTitle';
-import { getBrandLogoSrc } from '../../utils/brandLogo';
+import { getBrandLogoSquareSrc } from '../../utils/brandLogo';
 import {
   buildMediaPlayerArtworkImageCandidates,
   getMediaPlayerArtworkSources,
@@ -29,11 +30,14 @@ type EmbedPlayerInfoProps = {
 };
 
 export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerInfoProps) {
+  const pathname = usePathname();
   const config = useConfig();
-  const { uiTheme } = useLocalSettings();
+  const brandLogoSquareSrc = getBrandLogoSquareSrc();
+  const mainSiteUrl = buildEmbedMainSiteUrl(pathname);
   const { mpChannel, mpItem, mpAddByRSS, mpItemChapter, mpItemChapters, mpClip, mpItemSoundbite } =
     useMediaPlayer();
   const { mpCurrentTime } = useMediaPlayerCurrentTime();
+  const tFeatures = useTranslations('features');
   const tMediaPlayer = useTranslations('media_player');
   const tMisc = useTranslations('misc');
 
@@ -102,32 +106,6 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
     return candidates;
   }, [channelImages, clip, itemChapter, itemImages, itemSoundbite]);
 
-  // #region agent log
-  useMemo(() => {
-    fetch('http://127.0.0.1:7492/ingest/b00b7ad8-3302-43b6-ba18-0bcb911f8469', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '904d64' },
-      body: JSON.stringify({
-        sessionId: '904d64',
-        runId: 'post-fix',
-        hypothesisId: 'H1-H4',
-        location: 'EmbedPlayerInfo.tsx:artImageCandidates',
-        message: 'embed artwork sources and candidates',
-        data: {
-          channelImageUrls: channelImages?.map((img) => img.url) ?? [],
-          itemImageUrls: itemImages?.map((img) => img.url) ?? [],
-          artImageCandidates,
-          hasPlayerContent,
-          itemIdText: item?.id_text ?? null,
-          channelIdText: channel?.id_text ?? null,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    return null;
-  }, [artImageCandidates, channel?.id_text, channelImages, hasPlayerContent, item?.id_text, itemImages]);
-  // #endregion
-
   if (
     (channelTitle === null || channelTitle === '') &&
     (itemTitle === null || itemTitle === '') &&
@@ -148,7 +126,7 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
       </div>
       <div className={styles.textSection}>
         <div className={styles.titleAndLogoRow}>
-          <div className={styles.titleStack}>
+          <div className={styles.textStack}>
             {channelTitle !== null && channelTitle !== '' ? (
               <span className={styles.channelTitle} data-testid="embed-channel-title">
                 {channelTitle}
@@ -159,20 +137,31 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
                 {itemTitle}
               </span>
             ) : null}
+            {publishDate !== null && publishDate !== '' ? (
+              <span className={styles.publishDateBadge} data-testid="embed-publish-date">
+                <ReadableDate date={publishDate} />
+              </span>
+            ) : null}
           </div>
-          <div className={styles.brandLogoWrapper} data-testid="embed-brand-logo">
-            <ImageNonReact
-              alt={config.public.brand.name}
-              candidates={[getBrandLogoSrc(uiTheme)]}
-              className={styles.brandLogo}
-            />
-          </div>
+          {brandLogoSquareSrc !== null && mainSiteUrl !== null ? (
+            <a
+              aria-label={tFeatures('embed_brand_logo_link', {
+                brand_name: config.public.brand.name,
+              })}
+              className={styles.brandLogoLink}
+              data-testid="embed-brand-logo-link"
+              href={mainSiteUrl}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              <ImageNonReact
+                alt=""
+                candidates={[brandLogoSquareSrc]}
+                className={styles.brandLogo}
+              />
+            </a>
+          ) : null}
         </div>
-        {publishDate !== null && publishDate !== '' ? (
-          <span className={styles.publishDateBadge} data-testid="embed-publish-date">
-            <ReadableDate date={publishDate} />
-          </span>
-        ) : null}
       </div>
     </div>
   );

@@ -5,8 +5,8 @@
   display: flex;
   flex: 0 0 auto;
   gap: var(--spacing-sm);
-  height: embed.$embed-player-controls-height;
-  min-height: embed.$embed-player-controls-height;
+  height: var(--embed-play-button-size);
+  min-height: var(--embed-play-button-size);
   width: 100%;
 }
 

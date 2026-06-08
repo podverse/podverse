@@ -286,6 +286,14 @@ async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPassw
   return accountId;
 }
 
+async function deleteE2eQueueByIdText(client, queueIdText) {
+  await client.query(
+    `DELETE FROM queue_resource WHERE queue_id IN (SELECT id FROM queue WHERE id_text = $1)`,
+    [queueIdText]
+  );
+  await client.query(`DELETE FROM queue WHERE id_text = $1`, [queueIdText]);
+}
+
 async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
   await syncE2eFixtureImageUrls(client);
 
@@ -410,6 +418,8 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
      VALUES ($1, $2, 1400)`,
     [podcastChannelId, EMBED_FIXTURE_CHANNEL_IMAGE_URL]
   );
+
+  await deleteE2eQueueByIdText(client, E2E_PODCAST_QUEUE_ID_TEXT);
 
   const podcastQueueResult = await client.query(
     `INSERT INTO queue (id_text, account_id, medium_id, is_active_queue)
@@ -678,6 +688,8 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
   // the music spec from auto-loading a queued track before the user clicks
   // play, while still letting handleEnded find the music queue when the
   // spec drives track-1 to its end.
+  await deleteE2eQueueByIdText(client, E2E_MUSIC_QUEUE_ID_TEXT);
+
   const musicQueueResult = await client.query(
     `INSERT INTO queue (id_text, account_id, medium_id, is_active_queue)
      VALUES (

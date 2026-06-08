@@ -18,9 +18,10 @@ describe('buildEmbedIframeCode', () => {
     expect(code).not.toContain('encrypted-media');
   });
 
-  it('defaults height to single-audio iframe height', () => {
+  it('defaults height to the derived single-audio iframe height', () => {
     const code = buildEmbedIframeCode('https://example.test/embed/episode/demo-item');
 
+    expect(DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT).toBeGreaterThan(0);
     expect(code).toContain(`height="${DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT}"`);
   });
 

@@ -1,12 +1,14 @@
 @use './embedLayout' as embed;
 
 .playerRegion {
+  @include embed.embed-player-panel-custom-properties;
+
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-md);
   overflow: visible;
-  padding: var(--spacing-sm) var(--spacing-md) var(--spacing-sm) var(--spacing-sm);
+  padding: var(--embed-panel-padding-block) var(--embed-panel-padding-inline);
 }
 
 .playerRegionSingle {
@@ -23,11 +25,11 @@
 
 .videoPlaceholder {
   flex: 0 0 auto;
-  height: embed.$embed-list-video-placeholder-height;
-  min-height: embed.$embed-list-video-placeholder-height;
+  height: var(--embed-list-video-placeholder-height);
+  min-height: var(--embed-list-video-placeholder-height);
 }
 
 .playerRegionSingle .videoPlaceholder {
-  height: embed.$embed-single-video-placeholder-height;
-  min-height: embed.$embed-single-video-placeholder-height;
+  height: var(--embed-single-video-placeholder-height);
+  min-height: var(--embed-single-video-placeholder-height);
 }

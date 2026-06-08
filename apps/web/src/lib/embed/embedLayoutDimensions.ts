@@ -1,0 +1,52 @@
+import {
+  EMBED_LIST_REGION_AUDIO_PX,
+  EMBED_LIST_REGION_VIDEO_PX,
+  EMBED_LIST_VIDEO_PLACEHOLDER_PX,
+  EMBED_PANEL_PADDING_BLOCK_PX,
+  EMBED_PANEL_SECTION_GAP_PX,
+  EMBED_PLAY_BUTTON_SIZE_PX,
+  EMBED_PLAYER_ART_SIZE_PX,
+  EMBED_SINGLE_VIDEO_PLACEHOLDER_PX,
+} from './embedLayoutTokens';
+
+/**
+ * Default embed iframe heights at 16px root.
+ * Formulas mirror apps/web/src/styles/components/embed/_embedLayout.scss.
+ */
+function embedPlayerPanelAudioHeightPx(): number {
+  return (
+    EMBED_PANEL_PADDING_BLOCK_PX * 2 +
+    EMBED_PLAYER_ART_SIZE_PX +
+    EMBED_PANEL_SECTION_GAP_PX +
+    EMBED_PLAY_BUTTON_SIZE_PX
+  );
+}
+
+function embedPlayerPanelVideoHeightPx(placeholderHeightPx: number): number {
+  return (
+    EMBED_PANEL_PADDING_BLOCK_PX * 2 +
+    EMBED_PLAYER_ART_SIZE_PX +
+    EMBED_PANEL_SECTION_GAP_PX +
+    placeholderHeightPx
+  );
+}
+
+export const EMBED_PLAYER_PANEL_AUDIO_HEIGHT_PX = embedPlayerPanelAudioHeightPx();
+
+export const DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT = EMBED_PLAYER_PANEL_AUDIO_HEIGHT_PX;
+
+export const DEFAULT_SINGLE_VIDEO_IFRAME_HEIGHT = embedPlayerPanelVideoHeightPx(
+  EMBED_SINGLE_VIDEO_PLACEHOLDER_PX
+);
+
+export const DEFAULT_LIST_AUDIO_IFRAME_HEIGHT =
+  EMBED_PLAYER_PANEL_AUDIO_HEIGHT_PX + EMBED_LIST_REGION_AUDIO_PX;
+
+export const DEFAULT_LIST_VIDEO_IFRAME_HEIGHT =
+  embedPlayerPanelVideoHeightPx(EMBED_LIST_VIDEO_PLACEHOLDER_PX) + EMBED_LIST_REGION_VIDEO_PX;
+
+/** @deprecated Use DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT */
+export const DEFAULT_SINGLE_IFRAME_HEIGHT = DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT;
+
+/** @deprecated Use DEFAULT_LIST_AUDIO_IFRAME_HEIGHT */
+export const DEFAULT_LIST_IFRAME_HEIGHT = DEFAULT_LIST_AUDIO_IFRAME_HEIGHT;

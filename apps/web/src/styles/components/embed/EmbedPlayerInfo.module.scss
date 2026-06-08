@@ -2,20 +2,25 @@
 @use './embedLayout' as embed;
 
 .info {
+  align-items: flex-start;
   display: flex;
   flex: 0 0 auto;
-  gap: var(--spacing-sm);
-  height: embed.$embed-player-info-height;
-  min-height: embed.$embed-player-info-height;
+  gap: var(--spacing-lg);
+  height: var(--embed-player-art-size);
+  min-height: var(--embed-player-art-size);
   min-width: 0;
+}
+
+.imageWrapper,
+.textSection {
+  height: var(--embed-player-art-size);
+  min-height: var(--embed-player-art-size);
 }
 
 .imageWrapper {
   flex: 0 0 auto;
-  height: embed.$embed-player-info-height;
-  min-height: embed.$embed-player-info-height;
-  min-width: embed.$embed-player-info-height;
-  width: embed.$embed-player-info-height;
+  min-width: var(--embed-player-art-size);
+  width: var(--embed-player-art-size);
 }
 
 .image {
@@ -29,8 +34,7 @@
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: var(--spacing-xs);
-  justify-content: center;
+  justify-content: flex-start;
   min-width: 0;
 }
 
@@ -38,20 +42,25 @@
   align-items: flex-start;
   display: flex;
   gap: var(--spacing-xs);
+  height: 100%;
   justify-content: space-between;
+  min-height: 100%;
   min-width: 0;
 }
 
-.titleStack {
+.textStack {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-sm);
+  justify-content: center;
+  min-height: 100%;
   min-width: 0;
 }
 
-.brandLogoWrapper {
+.brandLogoLink {
   border-radius: var(--radius-sm);
+  display: block;
   flex: 0 0 auto;
   height: embed.$embed-brand-logo-height;
   min-height: embed.$embed-brand-logo-height;
@@ -72,7 +81,6 @@
   color: var(--color-text-secondary);
   display: block;
   font-size: var(--font-size-sm);
-  margin: 0;
 }
 
 .title {
@@ -82,7 +90,6 @@
   display: block;
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-normal);
-  margin: 0;
 }
 
 .publishDateBadge {
@@ -95,5 +102,4 @@
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
   max-width: 100%;
-  padding: var(--spacing-xs) var(--spacing-xs);
 }

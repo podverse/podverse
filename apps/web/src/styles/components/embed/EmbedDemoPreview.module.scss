@@ -1,3 +1,5 @@
+@use './embedLayout' as embed;
+
 .preview {
   display: flex;
   flex-direction: column;
@@ -5,6 +7,8 @@
 }
 
 .frame {
+  @include embed.embed-player-panel-custom-properties;
+
   border: 1px solid var(--border-color-opaque);
   border-radius: var(--radius-sm);
   padding: var(--spacing-xs);
@@ -16,6 +20,22 @@
   border: 0;
   max-width: 100%;
   width: 100%;
+}
+
+.iframeSingleAudio {
+  height: embed.$embed-single-audio-shell-height;
+}
+
+.iframeSingleVideo {
+  height: embed.$embed-single-video-shell-height;
+}
+
+.iframeListAudio {
+  height: embed.$embed-list-audio-shell-height;
+}
+
+.iframeListVideo {
+  height: embed.$embed-list-video-shell-height;
 }
 
 .unavailable {

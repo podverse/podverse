@@ -1,19 +1,25 @@
+import {
+  DEFAULT_LIST_AUDIO_IFRAME_HEIGHT,
+  DEFAULT_LIST_IFRAME_HEIGHT,
+  DEFAULT_LIST_VIDEO_IFRAME_HEIGHT,
+  DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT,
+  DEFAULT_SINGLE_IFRAME_HEIGHT,
+  DEFAULT_SINGLE_VIDEO_IFRAME_HEIGHT,
+} from './embedLayoutDimensions';
 import type { EmbedLayoutType, EmbedMediaType, EmbedRouteKind } from './embedTypes';
 import { getEmbedLayoutType } from './getEmbedLayoutType';
 
 /** Permissions Policy `allow` value for Podverse embed iframes (autoplay only). */
 export const EMBED_IFRAME_ALLOW = 'autoplay';
 
-export const DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT = 284;
-export const DEFAULT_SINGLE_VIDEO_IFRAME_HEIGHT = 444;
-export const DEFAULT_LIST_AUDIO_IFRAME_HEIGHT = 744;
-export const DEFAULT_LIST_VIDEO_IFRAME_HEIGHT = 884;
-
-/** @deprecated Use DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT */
-export const DEFAULT_SINGLE_IFRAME_HEIGHT = DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT;
-
-/** @deprecated Use DEFAULT_LIST_AUDIO_IFRAME_HEIGHT */
-export const DEFAULT_LIST_IFRAME_HEIGHT = DEFAULT_LIST_AUDIO_IFRAME_HEIGHT;
+export {
+  DEFAULT_LIST_AUDIO_IFRAME_HEIGHT,
+  DEFAULT_LIST_IFRAME_HEIGHT,
+  DEFAULT_LIST_VIDEO_IFRAME_HEIGHT,
+  DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT,
+  DEFAULT_SINGLE_IFRAME_HEIGHT,
+  DEFAULT_SINGLE_VIDEO_IFRAME_HEIGHT,
+};
 
 export function getEmbedIframeHeightForPresentation(
   layoutType: EmbedLayoutType,

@@ -2,6 +2,7 @@ export type { EmbedDemoShowcaseEntry, EmbedDemoShowcaseSpec } from './embedDemoL
 export { EMBED_DEMO_SHOWCASE_SPECS } from './embedDemoLinks';
 export { resolveEmbedDemoShowcase } from './resolveEmbedDemoShowcase';
 export { buildEmbedSinglePlaybackTarget } from './buildEmbedSinglePlaybackTarget';
+export { buildEmbedMainSiteUrl, embedPathnameToMainSitePath } from './buildEmbedMainSiteUrl';
 export { buildEmbedUrl, buildEmbedUrlPath, resolveEmbedUrlTarget } from './buildEmbedUrl';
 export type {
   EmbedUrlBuildResult,
@@ -53,6 +54,10 @@ export {
   requiresPublicListVisibility,
 } from './embedVisibility';
 export { getEmbedLayoutType } from './getEmbedLayoutType';
+export {
+  getEmbedPreviewIframeHeightClassKey,
+} from './getEmbedPreviewIframeHeightClassKey';
+export type { EmbedPreviewIframeHeightClassKey } from './getEmbedPreviewIframeHeightClassKey';
 export { isEmbedPathname } from './isEmbedPathname';
 export { normalizeEmbedSearchParams } from './normalizeEmbedSearchParams';
 export { parseEmbedAutoplay } from './parseEmbedAutoplay';
