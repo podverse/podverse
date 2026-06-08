@@ -703,6 +703,8 @@
       "check_feed_for_updates": "Check Feed for Updates",
       "check_feed_added_to_queue": "Feed added to queue for parsing. It may take a few minutes for the feed to be parsed. Please check the list for updates later.",
       "last_parsed": "Last Parsed: {date}",
+      "last_failed_parse": "Last failed parse: {date}",
+      "never_fully_parsed": "Never fully parsed",
       "wait_to_retry_minutes": "You will need to wait up to {minutes} minutes to do that again.",
       "wait_to_retry_minute": "You will need to wait up to {minutes} minute to do that again."
     },

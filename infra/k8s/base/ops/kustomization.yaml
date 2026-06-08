@@ -63,6 +63,7 @@ configMapGenerator:
       - source/database/linear-migrations/app/0031_product_membership_settings_caps.sql
       - source/database/linear-migrations/app/0032_account_terms_acceptance.sql
       - source/database/linear-migrations/app/0033_account_settings_listen_stats.sql
+      - source/database/linear-migrations/app/0034_feed_log_last_failed_parse_time.sql
   - name: podverse-ops-management-linear-migrations
     files:
       - source/database/linear-migrations/management/0000_init_helpers.sql

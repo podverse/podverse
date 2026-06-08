@@ -16,10 +16,8 @@ export default defineConfig({
     include: ['src/**/*.test.ts'],
     setupFiles: ['src/test/setup.ts'],
     pool: 'forks',
-    poolOptions: {
-      forks: {
-        singleFork: true,
-      },
-    },
+    fileParallelism: false,
+    maxWorkers: 1,
+    isolate: false,
   },
 });

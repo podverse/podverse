@@ -385,7 +385,11 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
   );
   const podcastFeedId = podcastFeedResult.rows[0].id;
 
-  await client.query(`INSERT INTO feed_log (feed_id) VALUES ($1)`, [podcastFeedId]);
+  await client.query(
+    `INSERT INTO feed_log (feed_id, last_finished_parse_time, last_failed_parse_time)
+     VALUES ($1, $2, $3)`,
+    [podcastFeedId, '2024-01-01T12:00:00.000Z', '2024-01-02T12:00:00.000Z']
+  );
 
   await client.query(
     `INSERT INTO feed_policy (feed_id, parse_allowed, public_visible, add_allowed)

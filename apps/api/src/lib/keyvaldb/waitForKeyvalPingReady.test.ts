@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { testKeyvaldbConnection } from './keyvaldb.js';
 import { waitForKeyvalPingReady } from './waitForKeyvalPingReady.js';
@@ -8,6 +8,10 @@ vi.mock('./keyvaldb.js', () => ({
 }));
 
 describe('waitForKeyvalPingReady', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();

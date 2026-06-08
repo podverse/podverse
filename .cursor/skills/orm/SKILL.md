@@ -91,6 +91,11 @@ where: {
 
 Do **not** set `invalidWhereValuesBehavior` to ignore null/undefined on the DataSource.
 
+**Relation-object `where` + nullable columns:** TypeORM v1 can reject relation-object `where` clauses when a
+joined relation includes nullable columns (for example `channel.slug`). Prefer matching by non-nullable relation
+keys (typically `id`) inside relation-object `where` clauses. If you need nullable-relation predicates, move the
+filter to QueryBuilder joins/conditions instead of relation-object `where`.
+
 ## Transactions
 
 ```typescript

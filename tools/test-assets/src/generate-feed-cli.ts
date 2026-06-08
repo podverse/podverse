@@ -13,7 +13,7 @@
  * feed_flag_status
  *   id, status
  * feed_log
- *   id, feed_id, last_http_status, last_good_http_status_time, last_finished_parse_time, parse_errors
+ *   id, feed_id, last_http_status, last_good_http_status_time, last_finished_parse_time, last_failed_parse_time, parse_errors
  * channel
  *   id, id_text, feed_id, podcast_guid, title, sortable_title, medium_id
  * channel_about

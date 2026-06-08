@@ -9,6 +9,7 @@ import { getParserConfig } from '../../../context.js';
 import { FeedIsParsingError, FeedNoChangesSinceLastParsedError } from '../errors.js';
 import { getParsedFeedMd5Hash } from '../hash/parsedFeed.js';
 import { getAndParseRSSFeed } from '../parser.js';
+import { recordFeedParseFailure } from './recordFeedParseFailure.js';
 
 export const handleGetRSSFeed = async (url: string, podcast_index_id: number): Promise<Feed> => {
   timerManager.start('handleGetRSSFeed');
@@ -63,20 +64,15 @@ export const handleRequestRSSFeed = async (
     });
   } catch (error) {
     const statusCode = getStatusCodeFromError(error);
-    const feedLog = await feedLogService.get(feed);
-    await feedLogService.update(feed, {
+    await recordFeedParseFailure(feed, feedLogService, {
       ...(statusCode ? { last_http_status: statusCode } : {}),
-      parse_errors: (feedLog?.parse_errors || 0) + 1,
     });
     return throwRequestError(error);
   }
 
   if (!parsedFeed) {
-    const feedLog = await feedLogService.get(feed);
-    await feedLogService.update(feed, {
+    await recordFeedParseFailure(feed, feedLogService, {
       last_http_status: 200,
-      last_finished_parse_time: new Date(),
-      parse_errors: (feedLog?.parse_errors || 0) + 1,
     });
     return throwRequestError('parsedFeed no data found');
   }

@@ -4,12 +4,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import {
-  DEDUPE_WINDOW_ADD_BY_RSS_ON_DEMAND_MS,
-  formatDateTimeAbbrev,
-  getTotalPages,
-  PAGINATION,
-} from '@podverse/helpers';
+import { DEDUPE_WINDOW_ADD_BY_RSS_ON_DEMAND_MS, getTotalPages, PAGINATION } from '@podverse/helpers';
 import { getStatusCodeFromError } from '@podverse/helpers-requests';
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
 import {
@@ -34,6 +29,7 @@ import { RSSFeedSettingsSection } from '../../../components/Settings/RSSFeedSett
 import { SettingsWrapper } from '../../../components/Settings/SettingsWrapper';
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
+import { useAddByRSSFeedParseStatusLines } from '../../../hooks/useAddByRSSFeedParseStatusLines';
 import { applyAddByRSSParseStatus, pollAddByRSSParseStatus } from '../../../utils/addByRSS/actions';
 import { enqueueAddByRSSParse } from '../../../utils/addByRSS/api';
 import {
@@ -175,14 +171,6 @@ export const AddByRSSAlbumPageClient: React.FC<AddByRSSAlbumPageClientProps> = (
     setCurrentPage(1);
   };
 
-  const lastParsedLabel = useMemo(() => {
-    if (!localFeed.lastParsedAt) {
-      return null;
-    }
-    const formatted = formatDateTimeAbbrev(localFeed.lastParsedAt, locale);
-    return tSettings('feed.last_parsed', { date: formatted });
-  }, [localFeed.lastParsedAt, locale, tSettings]);
-
   const sortMenuItems = useMemo(
     () => [
       { label: tFilters('sort.forward'), param: 'sort', value: 'forward' },
@@ -196,31 +184,7 @@ export const AddByRSSAlbumPageClient: React.FC<AddByRSSAlbumPageClientProps> = (
       <Dropdown value={sort} menuItems={sortMenuItems} onChange={handleSortChange} />
     ) : null;
 
-  const statusLabel = useMemo(() => {
-    switch (localFeed.status) {
-      case 'queued':
-        return tFeatures('add_by_rss.status_pending');
-      case 'processing':
-        return tFeatures('add_by_rss.status_parsing');
-      case 'failed':
-        return tFeatures('add_by_rss.status_failed');
-      case 'parsed':
-      case 'not_modified':
-        return lastParsedLabel;
-      default:
-        return null;
-    }
-  }, [lastParsedLabel, localFeed.status, tFeatures]);
-
-  const statusLine = useMemo(() => {
-    if (!statusLabel) {
-      return null;
-    }
-    if (localFeed.status === 'parsed' || localFeed.status === 'not_modified') {
-      return statusLabel;
-    }
-    return `${tFeatures('add_by_rss.status')}: ${statusLabel}`;
-  }, [localFeed.status, statusLabel, tFeatures]);
+  const statusLines = useAddByRSSFeedParseStatusLines(localFeed, locale, tFeatures, tSettings);
 
   const handleParseStatus = useCallback(
     async (
@@ -422,7 +386,7 @@ export const AddByRSSAlbumPageClient: React.FC<AddByRSSAlbumPageClientProps> = (
                   onCheckUpdates={handleRefreshFeed}
                   isLoading={isUpdating}
                   disabled={localFeed.status === 'processing'}
-                  statusLine={statusLine}
+                  statusLines={statusLines}
                   errorMessage={errorMessage}
                 />
               </SettingsWrapper>

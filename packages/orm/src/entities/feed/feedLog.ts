@@ -20,6 +20,9 @@ export class FeedLog {
   @Column({ type: 'timestamp', nullable: true })
   last_finished_parse_time!: Date | null;
 
+  @Column({ type: 'timestamp', nullable: true })
+  last_failed_parse_time!: Date | null;
+
   @Column({ type: 'int', default: 0 })
   parse_errors!: number;
 }

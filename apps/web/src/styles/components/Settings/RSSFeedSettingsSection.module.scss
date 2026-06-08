@@ -1,0 +1,18 @@
+@use '../../mixins/flexbox' as *;
+
+.actions {
+  @include flexColumn(var(--spacing-xl));
+  align-items: flex-start;
+  width: fit-content;
+}
+
+.statusLines {
+  @include flexColumn(var(--spacing-md));
+  align-items: flex-start;
+}
+
+.statusLine {
+  margin: var(--spacing-none);
+  color: var(--text-color-secondary);
+  font-size: var(--font-size-base);
+}

@@ -19,9 +19,9 @@ canonical place for override values is `~/.config/podverse/local-env-overrides/`
    existing `KEY=` lines are never overwritten). It does not create any files in the repo.
 
 2. **Edit** — Fill in your private or external values (API keys, encryption key, etc.) in the
-   files under that home directory. **`local-secrets.env`** is filled automatically on the first
-   `make local_env_setup` (migrated from existing `infra/config/local/db.env` when present, or
-   generated once and persisted to home).
+   files under that home directory. **`local-secrets.env`** holds auto-generated infra passwords
+   (DB, MQ, Valkey, JWT). On the first `make local_env_setup`, it is created or updated (migrated
+   from existing `infra/config/local/db.env` when present, or generated once and persisted to home).
 
 3. **Link** — Make the repo use those files:
 
@@ -70,18 +70,25 @@ By keeping the real override files in a directory under your home and symlinking
 `dev/env-overrides/local/*.env` to that directory, every work tree (and the main repo) uses the
 same overrides.
 
+### DB passwords: `local-secrets.env` (not `db.env` in home)
+
+Auto-generated infra secrets live in **`~/.config/podverse/local-env-overrides/local-secrets.env`**
+(created by `make local_env_prepare` from `local-secrets.env.example`, then populated by
+`make local_env_setup` or `make local_env_export_secrets_to_home`). Each checkout still has
+**`infra/config/local/db.env`** (gitignored) as the runtime file apps and Docker read; setup copies
+passwords from home `local-secrets.env` into that file.
+
 ### Existing installs (seed home secrets from primary checkout)
 
-If you already had a working **`podverse`** checkout before this flow, run **once from that
-primary checkout** (the one whose Postgres you use):
+If you already had a working primary checkout before this flow, run **once from that checkout**:
 
 ```bash
 make local_env_export_secrets_to_home
 ```
 
-That copies DB/MQ/Valkey/JWT passwords from `infra/config/local/*.env` into
-`~/.config/podverse/local-env-overrides/local-secrets.env`. After that, new work trees use
-`make local_env_worktree_setup` and share the same credentials.
+That copies DB/MQ/Valkey/JWT passwords from `infra/config/local/*.env` into home
+`local-secrets.env`. After that, new work trees use `make local_env_worktree_setup` and share the
+same credentials.
 
 ## Default location
 
