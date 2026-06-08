@@ -34,7 +34,7 @@ import {
   E2E_EMBED_PRIVATE_CHANNEL_ID_TEXT,
   E2E_EMBED_PRIVATE_PLAYLIST_ID_TEXT,
   E2E_EMBED_SCROLL_CHANNEL_ID_TEXT,
-  E2E_EMBED_SCROLL_LAST_ITEM_LABEL,
+  E2E_EMBED_SCROLL_OLDEST_ITEM_LABEL,
   E2E_EMBED_VIDEO_CHANNEL_ID_TEXT,
   E2E_EMBED_VIDEO_ITEM_ID_TEXT,
   EMBED_FIXTURE_CHAPTER_TWO_ID_TEXT,
@@ -367,8 +367,9 @@ test.describe('Embed routes (anonymous)', () => {
         element.scrollTop = element.scrollHeight;
       });
 
+      const oldestRow = page.getByTestId('embed-list-row').last();
       await expect(
-        page.getByTestId('embed-list-row').filter({ hasText: E2E_EMBED_SCROLL_LAST_ITEM_LABEL })
+        oldestRow.getByText(E2E_EMBED_SCROLL_OLDEST_ITEM_LABEL, { exact: true })
       ).toBeVisible();
 
       await capturePageLoad(
@@ -380,9 +381,9 @@ test.describe('Embed routes (anonymous)', () => {
     });
   });
 
-  test('Private playlist embed renders the not-available shell', async ({ page }) => {
+  test('Private playlist embed renders the not-found shell', async ({ page }) => {
     await page.goto(`/embed/playlist/${E2E_EMBED_PRIVATE_PLAYLIST_ID_TEXT}`);
-    await expectEmbedNotAvailableShell(page);
+    await expectEmbedNotFoundShell(page);
   });
 
   test('Private podcast channel embed renders the not-available shell', async ({ page }) => {

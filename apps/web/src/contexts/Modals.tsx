@@ -43,6 +43,7 @@ type ModalShare = {
   clip: DTOClip | null;
   item_chapter: DTOItemChapter | null;
   item_soundbite: DTOItemSoundbite | null;
+  playlist: DTOPlaylist | null;
 };
 
 export type ModalEmbedBuilder = {
@@ -169,6 +170,7 @@ export const defaultModalShare = {
   clip: null,
   item_chapter: null,
   item_soundbite: null,
+  playlist: null,
 };
 
 export const defaultModalEmbedBuilder: ModalEmbedBuilder = {

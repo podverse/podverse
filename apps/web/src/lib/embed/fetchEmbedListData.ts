@@ -37,14 +37,14 @@ export async function fetchEmbedListData(
 ): Promise<EmbedListFetchResult> {
   try {
     if (input.routeKind === 'playlist') {
-      return fetchEmbedPlaylistListData(input.resourceId, input.listQuery);
+      return await fetchEmbedPlaylistListData(input.resourceId, input.listQuery);
     }
 
     if (input.routeKind === 'album') {
-      return fetchEmbedChannelListData('album', input.resourceId, input.listQuery);
+      return await fetchEmbedChannelListData('album', input.resourceId, input.listQuery);
     }
 
-    return fetchEmbedChannelListData('podcast', input.resourceId, input.listQuery);
+    return await fetchEmbedChannelListData('podcast', input.resourceId, input.listQuery);
   } catch {
     return { status: 'not_found' };
   }

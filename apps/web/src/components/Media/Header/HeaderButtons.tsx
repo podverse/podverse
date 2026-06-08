@@ -76,7 +76,9 @@ export const HeaderButtons: React.FC<HeaderButtonsProps> = ({ channel, shareArgs
       )}
       <IconButton
         type="button"
-        onClick={() => setModalShare({ channel, item, clip, item_chapter, item_soundbite })}
+        onClick={() =>
+          setModalShare({ channel, item, clip, item_chapter, item_soundbite, playlist: null })
+        }
         ariaLabel={tFeatures('share')}
         title={tFeatures('share')}
         color="secondary"

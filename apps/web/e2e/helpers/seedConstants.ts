@@ -170,14 +170,14 @@ export const E2E_EMBED_ALBUM_LIST_DEFAULT_ITEM_ID_TEXT = EMBED_FIXTURE_MUSIC_TRA
 /** First playlist resource in `E2E_EMBED_PLAYLIST_ID_TEXT`. */
 export const E2E_EMBED_PLAYLIST_DEFAULT_ITEM_ID_TEXT = EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT;
 
-/** Podcast channel with many rows for list scroll E2E (`e2eEmbScrIt01`–`e2eEmbScrIt10`). */
+/** Podcast channel with many rows for list scroll E2E (`e2eEmbScrIt01`–`e2eEmbScrIt12`). */
 export const E2E_EMBED_SCROLL_CHANNEL_ID_TEXT = 'e2eEmbScrCh01';
 
 /** Default list row for scroll channel (sort=recent, newest pub_date). */
 export const E2E_EMBED_SCROLL_DEFAULT_ITEM_ID_TEXT = 'e2eEmbScrIt01';
 
-/** Oldest scroll-channel row label for scroll-into-view assertions. */
-export const E2E_EMBED_SCROLL_LAST_ITEM_LABEL = `${EMBED_SAMPLE_SCROLL_ITEM_TITLE_PREFIX} 10`;
+/** Oldest scroll-channel row label for scroll-into-view assertions (bottom of sort=recent list). */
+export const E2E_EMBED_SCROLL_OLDEST_ITEM_LABEL = `${EMBED_SAMPLE_SCROLL_ITEM_TITLE_PREFIX} 1`;
 
 /** Podcast channel with feed_policy.public_visible=false. */
 export const E2E_EMBED_PRIVATE_CHANNEL_ID_TEXT = 'e2eEmbPrvCh01';

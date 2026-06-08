@@ -8,6 +8,7 @@ import { useConfig } from '../../contexts/Config';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useModals } from '../../contexts/Modals';
 import { isTermsAcceptanceRequired } from '../../lib/termsAcceptanceRequired';
+import { ModalEmbedBuilder } from '../Modal/ModalEmbedBuilder';
 import { shouldShowServerEnvironmentDisclaimer } from '../Modal/serverEnvironmentDisclaimer';
 
 const LazyModalAuthLogin = dynamic(
@@ -32,11 +33,6 @@ const LazyModalClipCreated = dynamic(
 
 const LazyModalShare = dynamic(
   () => import('../Modal/ModalShare').then((m) => ({ default: m.ModalShare })),
-  { ssr: false }
-);
-
-const LazyModalEmbedBuilder = dynamic(
-  () => import('../Modal/ModalEmbedBuilder').then((m) => ({ default: m.ModalEmbedBuilder })),
   { ssr: false }
 );
 
@@ -111,6 +107,14 @@ export const Modals: React.FC = () => {
     !showDisclaimer &&
     isTermsAcceptanceRequired(loggedInAccount, config.public.legal.terms.version);
 
+  const shouldMountEmbedBuilder =
+    modalEmbedBuilder.channel !== null ||
+    modalEmbedBuilder.item !== null ||
+    modalEmbedBuilder.clip !== null ||
+    modalEmbedBuilder.item_chapter !== null ||
+    modalEmbedBuilder.item_soundbite !== null ||
+    modalEmbedBuilder.playlist !== null;
+
   return (
     <>
       {modalAuthLogin.isOpen && <LazyModalAuthLogin />}
@@ -122,13 +126,9 @@ export const Modals: React.FC = () => {
         modalShare.item !== null ||
         modalShare.clip !== null ||
         modalShare.item_chapter !== null ||
-        modalShare.item_soundbite !== null) && <LazyModalShare />}
-      {(modalEmbedBuilder.channel !== null ||
-        modalEmbedBuilder.item !== null ||
-        modalEmbedBuilder.clip !== null ||
-        modalEmbedBuilder.item_chapter !== null ||
-        modalEmbedBuilder.item_soundbite !== null ||
-        modalEmbedBuilder.playlist !== null) && <LazyModalEmbedBuilder />}
+        modalShare.item_soundbite !== null ||
+        modalShare.playlist !== null) && <LazyModalShare />}
+      {shouldMountEmbedBuilder && <ModalEmbedBuilder />}
       {(modalFunding.channel_fundings.length > 0 || modalFunding.item_fundings.length > 0) && (
         <LazyModalFunding />
       )}

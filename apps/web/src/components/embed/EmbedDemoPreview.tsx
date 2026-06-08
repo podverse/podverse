@@ -41,7 +41,7 @@ export async function EmbedDemoPreview({
             allow={EMBED_IFRAME_ALLOW}
             className={`${styles.iframe} ${styles[iframeHeightClassKey]}`}
             data-testid={`embed-demo-iframe-${showcaseId}`}
-            loading="lazy"
+            loading="eager"
             src={href}
             title={t('embed_demo_iframe_title', { label })}
           />

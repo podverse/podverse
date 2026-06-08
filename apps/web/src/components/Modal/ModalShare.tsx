@@ -33,9 +33,9 @@ export const ModalShare: React.FC = () => {
     };
   }, []);
 
-  const isOpen = !!modalShare.channel;
+  const isOpen = modalShare.channel !== null || modalShare.playlist !== null;
 
-  if (!modalShare.channel) {
+  if (modalShare.channel === null && modalShare.playlist === null) {
     return null;
   }
 
@@ -59,16 +59,25 @@ export const ModalShare: React.FC = () => {
       clip: modalShare.clip,
       item_chapter: modalShare.item_chapter,
       item_soundbite: modalShare.item_soundbite,
-      playlist: null,
+      playlist: modalShare.playlist,
     });
     setModalShare(defaultModalShare);
   };
 
   const shareInputs: ModalShareInput[] = [];
 
+  if (modalShare.playlist) {
+    shareInputs.push({
+      name: 'playlist',
+      value: `${WEB.origin}/playlist/${modalShare.playlist.id_text}`,
+      eyebrow: tMedia('playlist.playlist'),
+    });
+  }
+
   if (
-    modalShare.channel.medium_id === MediumEnum.Podcast ||
-    modalShare.channel.medium_id === MediumEnum.Video
+    modalShare.channel !== null &&
+    (modalShare.channel.medium_id === MediumEnum.Podcast ||
+      modalShare.channel.medium_id === MediumEnum.Video)
   ) {
     shareInputs.push({
       name: 'podcast',
@@ -83,7 +92,10 @@ export const ModalShare: React.FC = () => {
         eyebrow: tMedia('podcast.episode'),
       });
     }
-  } else if (modalShare.channel.medium_id === MediumEnum.Music) {
+  } else if (
+    modalShare.channel !== null &&
+    modalShare.channel.medium_id === MediumEnum.Music
+  ) {
     shareInputs.push({
       name: 'album',
       value: `${WEB.origin}/album/${modalShare.channel.id_text}`,

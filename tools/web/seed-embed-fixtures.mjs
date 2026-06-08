@@ -38,7 +38,7 @@ import { seedEmbedSampleDemoFixtures } from './seed-embed-sample-fixtures.mjs';
 
 const E2E_EMBED_SCROLL_FEED_PI_ID = 876543214;
 const E2E_EMBED_SCROLL_FEED_URL = 'https://e2e-seed-embed-scroll.example/podcast.xml';
-const E2E_EMBED_SCROLL_ITEM_COUNT = 10;
+const E2E_EMBED_SCROLL_ITEM_COUNT = 12;
 
 const E2E_EMBED_PRIVATE_CHANNEL_FEED_PI_ID = 876543215;
 const E2E_EMBED_PRIVATE_CHANNEL_FEED_URL = 'https://e2e-seed-embed-private.example/podcast.xml';

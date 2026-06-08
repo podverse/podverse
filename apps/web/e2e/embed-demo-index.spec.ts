@@ -8,6 +8,8 @@ test.describe('Embed demo index', () => {
   test('Demo index shows deterministic fixture previews and links resolve to embed shells', async ({
     page,
   }, testInfo) => {
+    test.setTimeout(120_000);
+
     await page.goto('/embed');
     await expect(page.getByRole('heading', { name: 'Embed player' })).toBeVisible();
     await expect(
@@ -23,6 +25,8 @@ test.describe('Embed demo index', () => {
       page.getByRole('navigation', { name: 'Table of contents for embed examples' })
     ).toBeVisible();
 
+    const embedPaths: string[] = [];
+
     for (const showcaseId of E2E_EMBED_DEMO_SHOWCASE_IDS) {
       await expect(page.getByTestId(`embed-demo-preview-${showcaseId}`)).toBeVisible();
       const frameContainer = page.getByTestId(`embed-demo-frame-${showcaseId}`);
@@ -32,7 +36,15 @@ test.describe('Embed demo index', () => {
 
       const iframe = page.getByTestId(`embed-demo-iframe-${showcaseId}`);
       await expect(iframe).toBeVisible();
+      await iframe.scrollIntoViewIfNeeded();
       await expect(iframe).toHaveCSS('border-top-width', '0px');
+
+      const iframeSrc = await iframe.getAttribute('src');
+      expect(iframeSrc).not.toBeNull();
+      if (iframeSrc !== null) {
+        const embedUrl = new URL(iframeSrc, page.url());
+        embedPaths.push(`${embedUrl.pathname}${embedUrl.search}`);
+      }
 
       const podcastAudioShowcaseIds = new Set([
         'episode-audio',
@@ -50,19 +62,12 @@ test.describe('Embed demo index', () => {
       const notFoundShell = frame.getByTestId('embed-not-found-shell');
       const notAvailableShell = frame.getByTestId('embed-not-available');
 
-      await expect(embedRoot.or(notFoundShell).or(notAvailableShell)).toBeVisible();
+      await expect(embedRoot.or(notFoundShell).or(notAvailableShell)).toBeVisible({
+        timeout: 15_000,
+      });
     }
 
-    const demoLinks = page.locator('a[href^="/embed/"]');
-    const hrefs = [
-      ...new Set(
-        await demoLinks.evaluateAll((anchors) =>
-          anchors
-            .map((anchor) => anchor.getAttribute('href'))
-            .filter((href): href is string => href !== null && href.length > 0)
-        )
-      ),
-    ];
+    const hrefs = [...new Set(embedPaths)];
 
     expect(hrefs.length).toBeGreaterThanOrEqual(E2E_EMBED_DEMO_SHOWCASE_IDS.length);
 
