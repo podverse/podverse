@@ -176,6 +176,7 @@
     "embed_presentation_style_legend": "",
     "embed_presentation_style_audio": "",
     "embed_presentation_style_video": "",
+    "embed_brand_logo_link": "",
     "copy": "",
     "copied": "",
     "subscribe": "",
@@ -702,6 +703,8 @@
       "check_feed_for_updates": "",
       "check_feed_added_to_queue": "",
       "last_parsed": "",
+      "last_failed_parse": "",
+      "never_fully_parsed": "",
       "wait_to_retry_minutes": "",
       "wait_to_retry_minute": ""
     },

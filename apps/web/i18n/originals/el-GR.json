@@ -176,6 +176,7 @@
     "embed_presentation_style_legend": "Στυλ παρουσίασης",
     "embed_presentation_style_audio": "Ήχος",
     "embed_presentation_style_video": "Βίντεο",
+    "embed_brand_logo_link": "Άνοιγμα στο {brand_name}",
     "copy": "Αντιγραφή",
     "copied": "Αντιγράφηκε",
     "subscribe": "Εγγραφή",
@@ -702,6 +703,8 @@
       "check_feed_for_updates": "Έλεγχος Ροής για Ενημερώσεις",
       "check_feed_added_to_queue": "Η ροή προστέθηκε στην ουρά για ανάλυση. Μπορεί να χρειαστούν μερικά λεπτά για να αναλυθεί η ροή. Παρακαλώ ελέγξτε τη λίστα για ενημερώσεις αργότερα.",
       "last_parsed": "Τελευταία ανάλυση: {date}",
+      "last_failed_parse": "Τελευταία αποτυχία ανάλυσης: {date}",
+      "never_fully_parsed": "Ποτέ δεν αναλύθηκε πλήρως",
       "wait_to_retry_minutes": "Θα χρειαστεί να περιμένετε έως και {minutes} λεπτά για να το ξανακάνετε.",
       "wait_to_retry_minute": "Θα χρειαστεί να περιμένετε έως και {minutes} λεπτό για να το ξανακάνετε."
     },
