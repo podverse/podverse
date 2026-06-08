@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Regenerate package-lock.json under Linux (Docker) so optional deps match CI.
 # Run from repo root when adding/updating deps or as part of bump-version.
 # Requires: Docker.

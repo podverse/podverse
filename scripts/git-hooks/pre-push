@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Podverse Pre-Push Hook - Branch Naming Enforcement
 # Outputs to stderr so messages appear in GUI error dialogs

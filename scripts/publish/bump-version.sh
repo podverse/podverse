@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Bump version across all packages
 # Uses --no-verify to bypass git hooks
 # Requires branch protection bypass permissions in GitHub for the user

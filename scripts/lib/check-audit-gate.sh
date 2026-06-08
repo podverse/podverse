@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Shared npm audit gate with allowlist support
 # Centralizes audit validation logic across release scripts to maintain consistency
 # Usage: scripts/lib/check-audit-gate.sh <allowed-ids> [context-name]
