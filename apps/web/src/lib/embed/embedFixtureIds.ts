@@ -1,16 +1,22 @@
 /**
- * Deterministic embed demo fixture ids (localhost asset server on port 2111).
+ * Deterministic embed demo fixture ids and web-hosted demo asset URLs.
  * Mirror of tools/web/embed-fixture-constants.mjs — update both in one commit.
  */
 
 import type { EmbedRouteKind } from './embedTypes';
 
+export const EMBED_DEMO_PUBLIC_AUDIO_PATH = '/embed-demo/audio';
+export const EMBED_DEMO_PUBLIC_IMAGES_PATH = '/embed-demo/images';
+
+/** Default origin documented for local dev; seeds resolve via EMBED_DEMO_WEB_ORIGIN. */
+export const EMBED_DEMO_DEFAULT_WEB_ORIGIN = 'http://localhost:3002';
+
 export const E2E_FIXTURE_IMAGE_BASE_URL = 'http://localhost:2111/e2e/images';
 export const E2E_FIXTURE_CHANNEL_IMAGE_URL = `${E2E_FIXTURE_IMAGE_BASE_URL}/e2e-embed-channel-art-1400.png`;
 export const E2E_FIXTURE_ITEM_IMAGE_URL = `${E2E_FIXTURE_IMAGE_BASE_URL}/e2e-embed-item-art-1400.png`;
 
-export const EMBED_FIXTURE_ASSET_BASE_URL = 'http://localhost:2111/embed/audio';
-export const EMBED_FIXTURE_IMAGE_BASE_URL = 'http://localhost:2111/embed/images';
+export const EMBED_FIXTURE_ASSET_BASE_URL = `${EMBED_DEMO_DEFAULT_WEB_ORIGIN}${EMBED_DEMO_PUBLIC_AUDIO_PATH}`;
+export const EMBED_FIXTURE_IMAGE_BASE_URL = `${EMBED_DEMO_DEFAULT_WEB_ORIGIN}${EMBED_DEMO_PUBLIC_IMAGES_PATH}`;
 
 export const EMBED_FIXTURE_PLACEHOLDER_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BASE_URL}/embed-sample-placeholder.png`;
 
@@ -102,7 +108,7 @@ export type EmbedFixtureDemoSpec = {
   note: string | null;
 };
 
-/** Hardcoded `/embed` demo slots when fixture mode is enabled (local dev + E2E). */
+/** Hardcoded `/embed` demo slots (local dev, E2E, and production unless disabled). */
 export const EMBED_FIXTURE_DEMO_SPECS: EmbedFixtureDemoSpec[] = [
   {
     showcaseId: 'episode-audio',
@@ -254,13 +260,5 @@ export function buildEmbedFixtureDemoHref(
 }
 
 export function shouldUseEmbedDemoFixtures(): boolean {
-  if (process.env.EMBED_DEMO_USE_FIXTURES === 'true') {
-    return true;
-  }
-
-  if (process.env.EMBED_DEMO_USE_FIXTURES === 'false') {
-    return false;
-  }
-
-  return process.env.NODE_ENV === 'development';
+  return process.env.EMBED_DEMO_USE_FIXTURES !== 'false';
 }

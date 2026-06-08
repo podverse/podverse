@@ -1,14 +1,20 @@
 /**
  * Generate deterministic embed demo audio fixtures under
- * `tools/test-assets/assets/embed/audio/`.
+ * `apps/web/public/embed-demo/audio/`.
  *
  * Run from repo root:
  *   npm run generate:embed-media -w podverse-test-assets
  */
 
+import path from 'path';
+import { fileURLToPath } from 'url';
+
 import { AssetGenerator } from './asset-generator.js';
 
-const generator = new AssetGenerator({ namespace: 'embed' });
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+const generator = new AssetGenerator({
+  assetsDir: path.join(repoRoot, 'apps/web/public/embed-demo'),
+});
 
 const COMMON_OPTIONS = {
   bitrateKbps: 24,

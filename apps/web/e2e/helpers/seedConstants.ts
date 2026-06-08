@@ -94,10 +94,14 @@ export const E2E_IMAGE_ASSET_BASE_URL = 'http://localhost:2111/e2e/images';
 
 /**
  * Embed demo sample assets — sync with tools/web/embed-fixture-constants.mjs and
- * apps/web/src/lib/embed/embedFixtureIds.ts (distinct from media-player E2E fixtures).
+ * apps/web/src/lib/embed/embedFixtureIds.ts (served from apps/web/public/embed-demo/).
  */
-export const EMBED_FIXTURE_ASSET_BASE_URL = 'http://localhost:2111/embed/audio';
-export const EMBED_FIXTURE_IMAGE_BASE_URL = 'http://localhost:2111/embed/images';
+export const EMBED_DEMO_PUBLIC_AUDIO_PATH = '/embed-demo/audio';
+export const EMBED_DEMO_PUBLIC_IMAGES_PATH = '/embed-demo/images';
+export const EMBED_DEMO_E2E_WEB_ORIGIN = 'http://localhost:4032';
+
+export const EMBED_FIXTURE_ASSET_BASE_URL = `${EMBED_DEMO_E2E_WEB_ORIGIN}${EMBED_DEMO_PUBLIC_AUDIO_PATH}`;
+export const EMBED_FIXTURE_IMAGE_BASE_URL = `${EMBED_DEMO_E2E_WEB_ORIGIN}${EMBED_DEMO_PUBLIC_IMAGES_PATH}`;
 export const EMBED_FIXTURE_PLACEHOLDER_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BASE_URL}/embed-sample-placeholder.png`;
 
 export const EMBED_SAMPLE_EPISODE_AUDIO_TITLE = 'Embed Sample Episode (audio)';

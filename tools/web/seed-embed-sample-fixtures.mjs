@@ -1,5 +1,6 @@
 /**
- * Embed demo sample fixtures — standalone titles, audio, and artwork under /embed/* on test-assets.
+ * Embed demo sample fixtures — standalone titles, audio, and artwork served from
+ * apps/web/public/embed-demo/ by the web app.
  */
 
 import {

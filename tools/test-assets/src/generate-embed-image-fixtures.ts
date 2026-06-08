@@ -1,14 +1,20 @@
 /**
  * Generate deterministic embed demo image fixtures under
- * `tools/test-assets/assets/embed/images/`.
+ * `apps/web/public/embed-demo/images/`.
  *
  * Run from repo root:
  *   npm run generate:embed-images -w podverse-test-assets
  */
 
+import path from 'path';
+import { fileURLToPath } from 'url';
+
 import { AssetGenerator } from './asset-generator.js';
 
-const generator = new AssetGenerator({ namespace: 'embed' });
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+const generator = new AssetGenerator({
+  assetsDir: path.join(repoRoot, 'apps/web/public/embed-demo'),
+});
 
 const IMAGE_SIZE = { width: 1400, height: 1400 };
 

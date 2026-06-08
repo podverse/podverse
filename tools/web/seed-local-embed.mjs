@@ -57,6 +57,7 @@ const result = spawnSync(process.execPath, [path.join(REPO_ROOT, 'tools/web/seed
   env: {
     ...process.env,
     SEED_MEDIA_FIXTURES_ONLY: 'true',
+    EMBED_DEMO_WEB_ORIGIN: process.env.EMBED_DEMO_WEB_ORIGIN ?? 'http://localhost:3002',
     DB_HOST: process.env.DB_HOST ?? 'localhost',
     DB_PORT: process.env.DB_PORT ?? localDbEnv.DB_PORT ?? '5432',
     DB_APP_NAME: process.env.DB_APP_NAME ?? localDbEnv.DB_APP_NAME ?? 'podverse_app',

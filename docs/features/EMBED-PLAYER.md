@@ -153,19 +153,18 @@ Shared seed core: `tools/web/seed-embed-fixtures.mjs` (called from `tools/web/se
 Local bootstrap:
 
 1. `make local_env_setup` (and `make local_db_init` / `make local_infra_up` as needed)
-2. Start test-assets on port 2111: `npm run start -w podverse-test-assets`
-3. `make local_seed_embed`
-4. Open `/embed` — fixture mode is on in development (`NODE_ENV=development`) or when
-   `EMBED_DEMO_USE_FIXTURES=true` (E2E sets this in `playwright.e2e-server-env.ts`)
+2. `make local_seed_embed`
+3. Open `/embed` — fixture showcase is on by default (`EMBED_DEMO_USE_FIXTURES=false` disables it)
 
 Album list embeds use channel id **`embSmpAlbAud1`** (embed sample album, not the media-player music channel).
 
-### Embed sample assets (test-assets port 2111)
+### Embed sample assets (web public)
 
-Embed demo fixtures use **standalone** audio and artwork under `tools/test-assets/assets/embed/`
-(served at `http://localhost:2111/embed/audio/…` and `http://localhost:2111/embed/images/…`).
-They are separate from media-player E2E fixtures under `/e2e/`. Each image uses a distinct
-background color so it is obvious which resource type is displayed.
+Embed demo fixtures use **standalone** audio and artwork committed under
+`apps/web/public/embed-demo/` (served by the web app at `/embed-demo/audio/…` and
+`/embed-demo/images/…` in local dev, E2E, and production). They are separate from media-player E2E
+fixtures on the test-assets server under `/e2e/`. Each image uses a distinct background color so it
+is obvious which resource type is displayed.
 
 | Resource        | Display title (seed)           | Image file (color)                               |
 | --------------- | ------------------------------ | ------------------------------------------------ |
@@ -175,11 +174,14 @@ background color so it is obvious which resource type is displayed.
 | Track (audio)   | `Embed Sample Track (audio)`   | `embed-sample-track-audio-art.png` (#F18F01)     |
 | Clip            | `Embed Sample Clip (audio)`    | `embed-sample-clip-art.png` (#E9C46A)            |
 
-Regenerate binaries:
+Regenerate binaries (writes into `apps/web/public/embed-demo/`):
 
 ```bash
 npm run generate:embed-fixtures -w podverse-test-assets
 ```
+
+Seed scripts set absolute enclosure/artwork URLs via `EMBED_DEMO_WEB_ORIGIN` (defaults:
+`http://localhost:4032` for `make e2e_seed_web`, `http://localhost:3002` for `make local_seed_embed`).
 
 Canonical URL constants live in `tools/web/embed-fixture-constants.mjs` (mirror:
 `apps/web/src/lib/embed/embedFixtureIds.ts`, `apps/web/e2e/helpers/seedConstants.ts`).

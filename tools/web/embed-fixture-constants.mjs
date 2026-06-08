@@ -1,17 +1,26 @@
 /**
- * Canonical deterministic embed fixture ids and localhost asset URLs.
+ * Canonical deterministic embed fixture ids and web-hosted demo asset URLs.
  * Mirror in apps/web/src/lib/embed/embedFixtureIds.ts and
  * apps/web/e2e/helpers/seedConstants.ts — update all three in one commit.
  */
+
+import {
+  EMBED_DEMO_PUBLIC_AUDIO_PATH,
+  EMBED_DEMO_PUBLIC_IMAGES_PATH,
+  resolveEmbedDemoAudioBaseUrl,
+  resolveEmbedDemoImagesBaseUrl,
+} from './embed-demo-public-paths.mjs';
 
 /** Media-player E2E artwork (not used by embed demo samples). */
 export const E2E_FIXTURE_IMAGE_BASE_URL = 'http://localhost:2111/e2e/images';
 export const E2E_FIXTURE_CHANNEL_IMAGE_URL = `${E2E_FIXTURE_IMAGE_BASE_URL}/e2e-embed-channel-art-1400.png`;
 export const E2E_FIXTURE_ITEM_IMAGE_URL = `${E2E_FIXTURE_IMAGE_BASE_URL}/e2e-embed-item-art-1400.png`;
 
-/** Embed demo sample assets (distinct from media-player E2E fixtures). */
-export const EMBED_FIXTURE_ASSET_BASE_URL = 'http://localhost:2111/embed/audio';
-export const EMBED_FIXTURE_IMAGE_BASE_URL = 'http://localhost:2111/embed/images';
+/** Embed demo sample assets — served from apps/web/public/embed-demo/ by the web app. */
+export { EMBED_DEMO_PUBLIC_AUDIO_PATH, EMBED_DEMO_PUBLIC_IMAGES_PATH };
+
+export const EMBED_FIXTURE_ASSET_BASE_URL = resolveEmbedDemoAudioBaseUrl();
+export const EMBED_FIXTURE_IMAGE_BASE_URL = resolveEmbedDemoImagesBaseUrl();
 
 export const EMBED_FIXTURE_PLACEHOLDER_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BASE_URL}/embed-sample-placeholder.png`;
 

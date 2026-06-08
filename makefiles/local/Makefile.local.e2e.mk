@@ -23,7 +23,7 @@ e2e_deps: test_deps
 # Seed web test database with deterministic E2E data
 e2e_seed_web: e2e_deps
 	@echo "Seeding web E2E data..."
-	@node tools/web/seed-e2e.mjs
+	@EMBED_DEMO_WEB_ORIGIN=http://localhost:4032 node tools/web/seed-e2e.mjs
 	@echo "Web E2E seed complete."
 
 # Seed management-web test database with deterministic E2E data

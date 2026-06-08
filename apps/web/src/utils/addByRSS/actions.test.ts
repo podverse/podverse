@@ -14,7 +14,7 @@ import type { AddByRSSFeedRecord } from './types';
 const baseRecord: AddByRSSFeedRecord = {
   id: 1,
   idText: 'test-id',
-  resourceType: 'podcast',
+  resourceType: 'podcasts',
   feedUrl: 'https://example.com/feed.xml',
   title: 'Test Feed',
   imageUrl: null,

@@ -4,6 +4,15 @@ import type { DTOItemChapter } from '@podverse/helpers';
 
 import { resolveEmbedActiveChapterForArtwork } from '../resolveEmbedActiveChapterForArtwork';
 
+const topicChapter = {
+  id_text: 'chap-topic',
+  start_time: '20',
+  end_time: '40',
+  title: 'Topic A',
+  img: 'http://localhost/embed-sample-chapter-topic-a-art.png',
+  table_of_contents: true,
+} as DTOItemChapter;
+
 const chapters: DTOItemChapter[] = [
   {
     id_text: 'chap-intro',
@@ -13,14 +22,7 @@ const chapters: DTOItemChapter[] = [
     img: 'http://localhost/embed-sample-chapter-intro-art.png',
     table_of_contents: true,
   } as DTOItemChapter,
-  {
-    id_text: 'chap-topic',
-    start_time: '20',
-    end_time: '40',
-    title: 'Topic A',
-    img: 'http://localhost/embed-sample-chapter-topic-a-art.png',
-    table_of_contents: true,
-  } as DTOItemChapter,
+  topicChapter,
 ];
 
 describe('resolveEmbedActiveChapterForArtwork', () => {
@@ -55,21 +57,20 @@ describe('resolveEmbedActiveChapterForArtwork', () => {
         preferItemTitle: true,
         mpItemChapters: chapters,
         mpCurrentTimeSeconds: 25,
-        mpItemChapter: chapters[1],
+        mpItemChapter: topicChapter,
       })
     ).toBeNull();
   });
 
   it('uses the loaded chapter target before chapters are fetched', () => {
-    const chapterTarget = chapters[1];
     expect(
       resolveEmbedActiveChapterForArtwork({
         showChapterInfo: true,
         preferItemTitle: false,
         mpItemChapters: null,
         mpCurrentTimeSeconds: 20,
-        mpItemChapter: chapterTarget,
+        mpItemChapter: topicChapter,
       })
-    ).toBe(chapterTarget);
+    ).toBe(topicChapter);
   });
 });

@@ -21,8 +21,6 @@ assets/**/*.vtt
 # .llm/plans/active/media-player-e2e-seed-expansion/01b-test-audio-fixtures-and-asset-server.md.
 !assets/e2e/
 !assets/e2e/**
-!assets/embed/
-!assets/embed/**
 !assets/themes/
 !assets/themes/**
 
