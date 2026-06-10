@@ -51,6 +51,9 @@ fi
 echo "Repository: $REPO"
 echo ""
 
+# gh label list defaults to 30; repos with extra labels need a higher limit for lookups.
+LABEL_LIST_LIMIT=40
+
 # Define ALL labels with colors and descriptions
 # Format: "name|color|description"
 LABELS=(
@@ -72,12 +75,13 @@ LABELS=(
   "more info needed|fbcb04|Needs more information from the author"
   "translations|d4c5f9|Translations and localization"
   
-  # === CODE AREAS (8) - Monorepo structure ===
+  # === CODE AREAS (9) - Monorepo structure ===
   "apps|0e8a16|Changes to apps/"
   "packages|1d76db|Changes to packages/"
   "docs|fef2c0|Changes to docs/"
   "infra|d93f0b|Changes to infra/"
   "ci|fbca04|Changes to .github/"
+  "llm|6e5499|Changes to .cursor skills, rules, or .cursorrules—non-Cursor: re-run LLM alignment on pull"
   "scripts|5319e7|Changes to scripts/"
   "tools|e99695|Changes to tools/"
   "i18n|c5def5|Changes to internationalization files"
@@ -108,7 +112,7 @@ for label_def in "${LABELS[@]}"; do
   IFS='|' read -r name color description <<< "$label_def"
   
   # Check if label already exists
-  EXISTING=$(gh label list --json name,color,description --jq ".[] | select(.name == \"$name\")" 2>/dev/null || echo "")
+  EXISTING=$(gh label list --limit "$LABEL_LIST_LIMIT" --json name,color,description --jq ".[] | select(.name == \"$name\")" 2>/dev/null || echo "")
   
   if [ -n "$EXISTING" ]; then
     # Label exists - check if it needs updating
@@ -121,7 +125,7 @@ for label_def in "${LABELS[@]}"; do
     
     if [ "$EXISTING_COLOR" != "$color" ] || [ "$EXISTING_DESC" != "$description" ]; then
       # Update the label
-      if gh label edit "$name" --color "$color" --description "$description" 2>/dev/null; then
+      if gh label edit "$name" --color "$color" --description "$description"; then
         echo "  🔄 $name (updated color/description)"
         UPDATED=$((UPDATED + 1))
       else
@@ -133,8 +137,8 @@ for label_def in "${LABELS[@]}"; do
       EXISTS=$((EXISTS + 1))
     fi
   else
-    # Create the label
-    if gh label create "$name" --color "$color" --description "$description" 2>/dev/null; then
+    # Create the label (--force upserts if the list lookup missed an existing label)
+    if gh label create "$name" --color "$color" --description "$description" --force; then
       echo "  ✅ $name (created)"
       CREATED=$((CREATED + 1))
     else
@@ -174,7 +178,7 @@ for label_def in "${LABELS[@]}"; do
   DEFINED_NAMES+=("$name")
 done
 
-REPO_LABELS=$(gh label list --json name --jq '.[].name' 2>/dev/null || echo "")
+REPO_LABELS=$(gh label list --limit "$LABEL_LIST_LIMIT" --json name --jq '.[].name' 2>/dev/null || echo "")
 EXTRA_LABELS=()
 while IFS= read -r name; do
   [ -z "$name" ] && continue
