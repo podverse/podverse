@@ -53,6 +53,11 @@ Ask once at start: "Related GitHub issue?"
 
 Warn if drifting: "This seems outside scope. Continue?"
 
+### Agent/plan work: operator-only git and publish
+
+- **Git operations = `git` + `gh`.** Do not run write/publish commands (`git push`, `gh pr create`, `gh pr merge`, releases, etc.) unless the user explicitly asks for a specific command in that message.
+- Implement locally; give the operator copy-pasteable `git` and `gh` commands in a fenced `bash` block. See **operator-only-git-operations** rule.
+
 ### Agent/plan work: do not run tests
 
 - **Do not run** test or verification commands (e.g. `make e2e_test_web`, `npm run test`, `npm run lint`) during agent or plan implementation.
