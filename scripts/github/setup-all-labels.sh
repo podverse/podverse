@@ -82,8 +82,9 @@ LABELS=(
   "tools|e99695|Changes to tools/"
   "i18n|c5def5|Changes to internationalization files"
   
-  # === WORKFLOW & SECURITY (2) ===
+  # === WORKFLOW & SECURITY (3) ===
   "blocked|990099|The work on this issue is blocked by another issue"
+  "published: awaiting verification|2da44e|Published to production; awaiting operator verification"
   "security|550000|Security vulnerabilities"
   
   # === DEPENDENCIES & PRIORITY (6) ===
