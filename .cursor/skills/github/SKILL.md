@@ -5,6 +5,12 @@ version: 1.0.0
 
 # GitHub Workflows & Issue Management
 
+## Agent policy: `gh` is a git operation
+
+For agents, **`gh` counts as git** — same operator-only policy as `git`. Read-only `gh` is fine (`gh pr view`, `gh issue list`, `gh run list`). Do **not** run write `gh` commands (`gh pr create`, `gh pr merge`, `gh release create`, mutating `gh api`, etc.) unless the user explicitly requests that exact command in that message.
+
+After implementation, give the operator fenced `bash` commands (`git` and `gh`) for commit, push, PR, and merge. See **operator-only-git-operations** rule.
+
 ## Repository Information
 
 - **Repository**: `podverse/podverse`
