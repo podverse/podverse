@@ -46,6 +46,7 @@ import {
   EMBED_SAMPLE_TRACK_TWO_AUDIO_URL,
   EMBED_SAMPLE_TRACK_TWO_TITLE,
 } from './embed-fixture-constants.mjs';
+import { insertEmbedDemoEnclosures } from './insert-embed-demo-enclosures.mjs';
 
 const EMBED_SAMPLE_PODCAST_FEED_PI_ID = 876543220;
 const EMBED_SAMPLE_PODCAST_FEED_URL = 'https://e2e-seed-embed-sample-podcast.example/podcast.xml';
@@ -274,19 +275,10 @@ export async function seedEmbedSampleDemoFixtures(client, { accountId }) {
       [itemId, itemImageUrl]
     );
 
-    const enclosureResult = await client.query(
-      `INSERT INTO item_enclosure (item_id, type, length, bitrate, item_enclosure_default)
-       VALUES ($1, 'audio/mpeg', 0, 24, true)
-       RETURNING id`,
-      [itemId]
-    );
-    const enclosureId = enclosureResult.rows[0].id;
-
-    await client.query(
-      `INSERT INTO item_enclosure_source (item_enclosure_id, uri, content_type)
-       VALUES ($1, $2, 'audio/mpeg')`,
-      [enclosureId, enclosureUrl]
-    );
+    await insertEmbedDemoEnclosures(client, itemId, {
+      primaryUrl: enclosureUrl,
+      primaryType: 'audio/mpeg',
+    });
 
     return itemId;
   }
@@ -324,7 +316,7 @@ export async function seedEmbedSampleDemoFixtures(client, { accountId }) {
   const episodeOlderItemId = await insertPodcastSampleItem({
     idText: 'embSmpEpAud3',
     guidSlug: 'episode-older',
-    title: 'Embed Sample Episode (older)',
+    title: 'Episode (older)',
     enclosureUrl: EMBED_SAMPLE_PODCAST_ITEM_AUDIO_URL,
     itemImageUrl: EMBED_SAMPLE_EPISODE_AUDIO_ITEM_IMAGE_URL,
     pubDateOffsetSeconds: 7200,
@@ -332,7 +324,7 @@ export async function seedEmbedSampleDemoFixtures(client, { accountId }) {
   await seedEmbedItemChapters(
     client,
     episodeOlderItemId,
-    'Embed Sample Episode (older)',
+    'Episode (older)',
     buildEmbedItemChapterRows('embSmpEp3')
   );
 
@@ -463,19 +455,10 @@ export async function seedEmbedSampleDemoFixtures(client, { accountId }) {
       [itemId, EMBED_SAMPLE_TRACK_AUDIO_ITEM_IMAGE_URL]
     );
 
-    const enclosureResult = await client.query(
-      `INSERT INTO item_enclosure (item_id, type, length, bitrate, item_enclosure_default)
-       VALUES ($1, 'audio/mpeg', 0, 24, true)
-       RETURNING id`,
-      [itemId]
-    );
-    const enclosureId = enclosureResult.rows[0].id;
-
-    await client.query(
-      `INSERT INTO item_enclosure_source (item_enclosure_id, uri, content_type)
-       VALUES ($1, $2, 'audio/mpeg')`,
-      [enclosureId, enclosureUrl]
-    );
+    await insertEmbedDemoEnclosures(client, itemId, {
+      primaryUrl: enclosureUrl,
+      primaryType: 'audio/mpeg',
+    });
 
     return itemId;
   }

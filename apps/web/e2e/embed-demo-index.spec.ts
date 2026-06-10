@@ -79,7 +79,7 @@ test.describe('Embed demo index', () => {
     );
 
     await test.step('Table of contents jumps to a demo anchor', async () => {
-      await page.getByRole('link', { name: 'Embed Sample Episode (audio)' }).click();
+      await page.getByRole('link', { name: 'Episode (audio)' }).click();
       await expect(page).toHaveURL(/#embed-demo-episode-audio$/);
       await expect(page.locator('#embed-demo-episode-audio')).toBeVisible();
     });

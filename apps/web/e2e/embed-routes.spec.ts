@@ -85,6 +85,31 @@ test.describe('Embed routes (anonymous)', () => {
       );
     });
 
+    await test.step('Episode embed alternate enclosure modal lists supported formats', async () => {
+      await page.goto(`/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}`);
+      await expect(page.getByTestId('embed-player-alternate-enclosure-button')).toBeVisible();
+      await expect(page.getByTestId('embed-player-playback-speed-button')).toBeVisible();
+      await expect(page.getByTestId('embed-player-more-button')).toHaveCount(0);
+      await page.getByTestId('embed-player-alternate-enclosure-button').click();
+      const modal = page.getByTestId('embed-alternate-enclosure-modal');
+      await expect(modal).toBeVisible();
+      const options = page.getByTestId('embed-alternate-enclosure-options');
+      await expect(options.getByRole('button')).toHaveCount(4);
+      await expect(
+        options.getByTestId('embed-alternate-enclosure-option-audio-mpeg')
+      ).toBeVisible();
+      await expect(
+        options.getByTestId('embed-alternate-enclosure-option-audio-mpeg')
+      ).toContainText('localhost');
+      await expect(options.getByTestId('embed-alternate-enclosure-option-audio-ogg')).toBeVisible();
+      await expect(options.getByTestId('embed-alternate-enclosure-option-video-mp4')).toBeVisible();
+      await expect(
+        options.getByTestId('embed-alternate-enclosure-option-video-webm')
+      ).toBeVisible();
+      await options.getByTestId('embed-alternate-enclosure-option-audio-ogg').click();
+      await expect(modal).toHaveCount(0);
+    });
+
     await test.step('Track embed loads the single audio shell', async () => {
       await page.goto(`/embed/track/${EMBED_FIXTURE_MUSIC_TRACK_AUDIO_ID_TEXT}`);
       await expectEmbedSingleShell(page);

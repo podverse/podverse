@@ -51,17 +51,19 @@ export function EmbedPlayerPanel({
 
   return (
     <div className={playerRegionClassName} data-testid="embed-player-region">
-      <EmbedPlayerInfo fallbackResource={fallbackResource} headerTitle={headerTitle} />
-      {isAudio ? (
-        <>
-          <EmbedInlineMediaMount />
-          <EmbedPlayerControls showChapterMarkers={showChapterMarkers} />
-        </>
-      ) : (
-        <div className={styles.videoPlaceholder}>
-          <EmbedVideoPlaceholder />
-        </div>
-      )}
+      <div className={styles.playerSurface} data-testid="embed-player-surface">
+        <EmbedPlayerInfo fallbackResource={fallbackResource} headerTitle={headerTitle} />
+        {isAudio ? (
+          <>
+            <EmbedInlineMediaMount />
+            <EmbedPlayerControls showChapterMarkers={showChapterMarkers} />
+          </>
+        ) : (
+          <div className={styles.videoPlaceholder}>
+            <EmbedVideoPlaceholder />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

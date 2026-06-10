@@ -1,0 +1,6 @@
+@use '../../mixins/buttons.scss' as *;
+
+.playbackSpeedButton {
+  @include mediaPlayerButton;
+  font-size: var(--font-size-sm);
+}

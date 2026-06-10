@@ -4,6 +4,7 @@
  */
 
 export const EMBED_DEMO_PUBLIC_AUDIO_PATH = '/embed-demo/audio';
+export const EMBED_DEMO_PUBLIC_VIDEOS_PATH = '/embed-demo/videos';
 export const EMBED_DEMO_PUBLIC_IMAGES_PATH = '/embed-demo/images';
 
 const DEFAULT_LOCAL_WEB_ORIGIN = 'http://localhost:3002';
@@ -39,4 +40,8 @@ export function resolveEmbedDemoAudioBaseUrl() {
 
 export function resolveEmbedDemoImagesBaseUrl() {
   return `${resolveEmbedDemoWebOrigin()}${EMBED_DEMO_PUBLIC_IMAGES_PATH}`;
+}
+
+export function resolveEmbedDemoVideosBaseUrl() {
+  return `${resolveEmbedDemoWebOrigin()}${EMBED_DEMO_PUBLIC_VIDEOS_PATH}`;
 }

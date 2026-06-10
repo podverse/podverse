@@ -7,8 +7,10 @@
 import {
   EMBED_DEMO_PUBLIC_AUDIO_PATH,
   EMBED_DEMO_PUBLIC_IMAGES_PATH,
+  EMBED_DEMO_PUBLIC_VIDEOS_PATH,
   resolveEmbedDemoAudioBaseUrl,
   resolveEmbedDemoImagesBaseUrl,
+  resolveEmbedDemoVideosBaseUrl,
 } from './embed-demo-public-paths.mjs';
 
 /** Media-player E2E artwork (not used by embed demo samples). */
@@ -17,10 +19,19 @@ export const E2E_FIXTURE_CHANNEL_IMAGE_URL = `${E2E_FIXTURE_IMAGE_BASE_URL}/e2e-
 export const E2E_FIXTURE_ITEM_IMAGE_URL = `${E2E_FIXTURE_IMAGE_BASE_URL}/e2e-embed-item-art-1400.png`;
 
 /** Embed demo sample assets — served from apps/web/public/embed-demo/ by the web app. */
-export { EMBED_DEMO_PUBLIC_AUDIO_PATH, EMBED_DEMO_PUBLIC_IMAGES_PATH };
+export {
+  EMBED_DEMO_PUBLIC_AUDIO_PATH,
+  EMBED_DEMO_PUBLIC_IMAGES_PATH,
+  EMBED_DEMO_PUBLIC_VIDEOS_PATH,
+};
 
 export const EMBED_FIXTURE_ASSET_BASE_URL = resolveEmbedDemoAudioBaseUrl();
+export const EMBED_FIXTURE_VIDEO_ASSET_BASE_URL = resolveEmbedDemoVideosBaseUrl();
 export const EMBED_FIXTURE_IMAGE_BASE_URL = resolveEmbedDemoImagesBaseUrl();
+
+export const EMBED_SAMPLE_ALT_AUDIO_OGG_URL = `${EMBED_FIXTURE_ASSET_BASE_URL}/embed-sample-alternate-audio.ogg`;
+export const EMBED_SAMPLE_ALT_VIDEO_MP4_URL = `${EMBED_FIXTURE_VIDEO_ASSET_BASE_URL}/embed-sample-alternate-video.mp4`;
+export const EMBED_SAMPLE_ALT_VIDEO_WEBM_URL = `${EMBED_FIXTURE_VIDEO_ASSET_BASE_URL}/embed-sample-alternate-video.webm`;
 
 export const EMBED_FIXTURE_PLACEHOLDER_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BASE_URL}/embed-sample-placeholder.png`;
 
@@ -48,18 +59,18 @@ export const EMBED_SAMPLE_PRIVATE_CHANNEL_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BAS
 export const EMBED_SAMPLE_VIDEO_CHANNEL_IMAGE_URL = EMBED_SAMPLE_EPISODE_VIDEO_ITEM_IMAGE_URL;
 
 /** Display titles for embed demo samples (also stored in seeded DB rows). */
-export const EMBED_SAMPLE_EPISODE_AUDIO_TITLE = 'Embed Sample Episode (audio)';
-export const EMBED_SAMPLE_EPISODE_NEAR_END_TITLE = 'Embed Sample Episode (near end)';
-export const EMBED_SAMPLE_EPISODE_VIDEO_TITLE = 'Embed Sample Episode (video)';
-export const EMBED_SAMPLE_TRACK_AUDIO_TITLE = 'Embed Sample Track (audio)';
-export const EMBED_SAMPLE_TRACK_TWO_TITLE = 'Embed Sample Track Two (audio)';
-export const EMBED_SAMPLE_TRACK_VIDEO_TITLE = 'Embed Sample Track (video)';
+export const EMBED_SAMPLE_EPISODE_AUDIO_TITLE = 'Episode (audio)';
+export const EMBED_SAMPLE_EPISODE_NEAR_END_TITLE = 'Episode (near end)';
+export const EMBED_SAMPLE_EPISODE_VIDEO_TITLE = 'Episode (video)';
+export const EMBED_SAMPLE_TRACK_AUDIO_TITLE = 'Track (audio)';
+export const EMBED_SAMPLE_TRACK_TWO_TITLE = 'Track Two (audio)';
+export const EMBED_SAMPLE_TRACK_VIDEO_TITLE = 'Track (video)';
 export const EMBED_SAMPLE_PODCAST_CHANNEL_TITLE = 'Embed Sample Podcast (audio)';
 export const EMBED_SAMPLE_ALBUM_CHANNEL_TITLE = 'Embed Sample Album (audio)';
 export const EMBED_SAMPLE_VIDEO_CHANNEL_TITLE = 'Embed Sample Podcast (video)';
-export const EMBED_SAMPLE_CHAPTER_PARENT_TITLE = 'Embed Sample Episode (chapters)';
-export const EMBED_SAMPLE_CLIP_TITLE = 'Embed Sample Clip (audio)';
-export const EMBED_SAMPLE_SOUNDBITE_TITLE = 'Embed Sample Official Clip (audio)';
+export const EMBED_SAMPLE_CHAPTER_PARENT_TITLE = 'Episode (chapters)';
+export const EMBED_SAMPLE_CLIP_TITLE = 'Clip (audio)';
+export const EMBED_SAMPLE_SOUNDBITE_TITLE = 'Official Clip (audio)';
 export const EMBED_SAMPLE_CHAPTER_TITLE = 'Intro';
 export const EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE = 'Topic A';
 export const EMBED_SAMPLE_CHAPTER_OUTRO_TITLE = 'Outro';
@@ -70,11 +81,11 @@ export const EMBED_SAMPLE_CHAPTER_TWO_START_SECONDS = 20;
 export const EMBED_SAMPLE_CHAPTER_TWO_END_SECONDS = 40;
 export const EMBED_SAMPLE_CHAPTER_THREE_START_SECONDS = 40;
 export const EMBED_SAMPLE_CHAPTER_THREE_END_SECONDS = 60;
-export const EMBED_SAMPLE_PLAYLIST_PUBLIC_TITLE = 'Embed Sample Playlist (audio)';
-export const EMBED_SAMPLE_PLAYLIST_MIXED_TITLE = 'Embed Sample Playlist (mixed)';
-export const EMBED_SAMPLE_PLAYLIST_PRIVATE_TITLE = 'Embed Sample Playlist (private)';
+export const EMBED_SAMPLE_PLAYLIST_PUBLIC_TITLE = 'Playlist (audio)';
+export const EMBED_SAMPLE_PLAYLIST_MIXED_TITLE = 'Playlist (mixed)';
+export const EMBED_SAMPLE_PLAYLIST_PRIVATE_TITLE = 'Playlist (private)';
 export const EMBED_SAMPLE_SCROLL_CHANNEL_TITLE = 'Embed Sample Podcast (scroll)';
-export const EMBED_SAMPLE_SCROLL_ITEM_TITLE_PREFIX = 'Embed Sample Scroll Item';
+export const EMBED_SAMPLE_SCROLL_ITEM_TITLE_PREFIX = 'Scroll Item';
 export const EMBED_SAMPLE_PRIVATE_CHANNEL_TITLE = 'Embed Sample Podcast (private)';
 
 export const EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT = 'embSmpPodAud1';

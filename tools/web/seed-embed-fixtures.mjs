@@ -35,6 +35,7 @@ import {
   EMBED_SAMPLE_VIDEO_CHANNEL_TITLE,
 } from './embed-fixture-constants.mjs';
 import { seedEmbedSampleDemoFixtures } from './seed-embed-sample-fixtures.mjs';
+import { insertEmbedDemoEnclosures } from './insert-embed-demo-enclosures.mjs';
 
 const E2E_EMBED_SCROLL_FEED_PI_ID = 876543214;
 const E2E_EMBED_SCROLL_FEED_URL = 'https://e2e-seed-embed-scroll.example/podcast.xml';
@@ -174,19 +175,10 @@ export async function seedEmbedFixtures(client, options) {
       [itemId, itemImageUrl]
     );
 
-    const enclosureResult = await client.query(
-      `INSERT INTO item_enclosure (item_id, type, length, bitrate, item_enclosure_default)
-       VALUES ($1, 'video/mp4', 0, 24, true)
-       RETURNING id`,
-      [itemId]
-    );
-    const enclosureId = enclosureResult.rows[0].id;
-
-    await client.query(
-      `INSERT INTO item_enclosure_source (item_enclosure_id, uri, content_type)
-       VALUES ($1, $2, 'video/mp4')`,
-      [enclosureId, EMBED_FIXTURE_VIDEO_ENCLOSURE_URL]
-    );
+    await insertEmbedDemoEnclosures(client, itemId, {
+      primaryUrl: EMBED_FIXTURE_VIDEO_ENCLOSURE_URL,
+      primaryType: 'video/mp4',
+    });
 
     return itemId;
   }
@@ -201,7 +193,7 @@ export async function seedEmbedFixtures(client, options) {
   await insertVideoItem({
     idText: EMBED_FIXTURE_VIDEO_ITEM_TWO_ID_TEXT,
     guidSlug: 'video-two',
-    title: 'Embed Sample Episode Two (video)',
+    title: 'Episode Two (video)',
     itemImageUrl: EMBED_SAMPLE_EPISODE_VIDEO_ITEM_IMAGE_URL,
     pubDateOffsetSeconds: 120,
   });
@@ -398,19 +390,10 @@ export async function seedEmbedFixtures(client, options) {
       [itemId, EMBED_SAMPLE_EPISODE_AUDIO_ITEM_IMAGE_URL]
     );
 
-    const enclosureResult = await client.query(
-      `INSERT INTO item_enclosure (item_id, type, length, bitrate, item_enclosure_default)
-       VALUES ($1, 'audio/mpeg', 0, 24, true)
-       RETURNING id`,
-      [itemId]
-    );
-    const enclosureId = enclosureResult.rows[0].id;
-
-    await client.query(
-      `INSERT INTO item_enclosure_source (item_enclosure_id, uri, content_type)
-       VALUES ($1, $2, 'audio/mpeg')`,
-      [enclosureId, EMBED_SAMPLE_SCROLL_ITEM_AUDIO_URL]
-    );
+    await insertEmbedDemoEnclosures(client, itemId, {
+      primaryUrl: EMBED_SAMPLE_SCROLL_ITEM_AUDIO_URL,
+      primaryType: 'audio/mpeg',
+    });
 
     return itemId;
   }

@@ -11,6 +11,15 @@
   padding: var(--embed-panel-padding-block) var(--embed-panel-padding-inline);
 }
 
+.playerSurface {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  min-height: 0;
+  position: relative;
+}
+
 .playerRegionSingle {
   height: 100%;
 }

@@ -6,6 +6,7 @@
 import type { EmbedRouteKind } from './embedTypes';
 
 export const EMBED_DEMO_PUBLIC_AUDIO_PATH = '/embed-demo/audio';
+export const EMBED_DEMO_PUBLIC_VIDEOS_PATH = '/embed-demo/videos';
 export const EMBED_DEMO_PUBLIC_IMAGES_PATH = '/embed-demo/images';
 
 /** Default origin documented for local dev; seeds resolve via EMBED_DEMO_WEB_ORIGIN. */
@@ -16,7 +17,12 @@ export const E2E_FIXTURE_CHANNEL_IMAGE_URL = `${E2E_FIXTURE_IMAGE_BASE_URL}/e2e-
 export const E2E_FIXTURE_ITEM_IMAGE_URL = `${E2E_FIXTURE_IMAGE_BASE_URL}/e2e-embed-item-art-1400.png`;
 
 export const EMBED_FIXTURE_ASSET_BASE_URL = `${EMBED_DEMO_DEFAULT_WEB_ORIGIN}${EMBED_DEMO_PUBLIC_AUDIO_PATH}`;
+export const EMBED_FIXTURE_VIDEO_ASSET_BASE_URL = `${EMBED_DEMO_DEFAULT_WEB_ORIGIN}${EMBED_DEMO_PUBLIC_VIDEOS_PATH}`;
 export const EMBED_FIXTURE_IMAGE_BASE_URL = `${EMBED_DEMO_DEFAULT_WEB_ORIGIN}${EMBED_DEMO_PUBLIC_IMAGES_PATH}`;
+
+export const EMBED_SAMPLE_ALT_AUDIO_OGG_URL = `${EMBED_FIXTURE_ASSET_BASE_URL}/embed-sample-alternate-audio.ogg`;
+export const EMBED_SAMPLE_ALT_VIDEO_MP4_URL = `${EMBED_FIXTURE_VIDEO_ASSET_BASE_URL}/embed-sample-alternate-video.mp4`;
+export const EMBED_SAMPLE_ALT_VIDEO_WEBM_URL = `${EMBED_FIXTURE_VIDEO_ASSET_BASE_URL}/embed-sample-alternate-video.webm`;
 
 export const EMBED_FIXTURE_PLACEHOLDER_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BASE_URL}/embed-sample-placeholder.png`;
 
@@ -43,18 +49,18 @@ export const EMBED_SAMPLE_SCROLL_CHANNEL_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BASE
 export const EMBED_SAMPLE_PRIVATE_CHANNEL_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BASE_URL}/embed-sample-private-channel-art.png`;
 export const EMBED_SAMPLE_VIDEO_CHANNEL_IMAGE_URL = EMBED_SAMPLE_EPISODE_VIDEO_ITEM_IMAGE_URL;
 
-export const EMBED_SAMPLE_EPISODE_AUDIO_TITLE = 'Embed Sample Episode (audio)';
-export const EMBED_SAMPLE_EPISODE_NEAR_END_TITLE = 'Embed Sample Episode (near end)';
-export const EMBED_SAMPLE_EPISODE_VIDEO_TITLE = 'Embed Sample Episode (video)';
-export const EMBED_SAMPLE_TRACK_AUDIO_TITLE = 'Embed Sample Track (audio)';
-export const EMBED_SAMPLE_TRACK_TWO_TITLE = 'Embed Sample Track Two (audio)';
-export const EMBED_SAMPLE_TRACK_VIDEO_TITLE = 'Embed Sample Track (video)';
+export const EMBED_SAMPLE_EPISODE_AUDIO_TITLE = 'Episode (audio)';
+export const EMBED_SAMPLE_EPISODE_NEAR_END_TITLE = 'Episode (near end)';
+export const EMBED_SAMPLE_EPISODE_VIDEO_TITLE = 'Episode (video)';
+export const EMBED_SAMPLE_TRACK_AUDIO_TITLE = 'Track (audio)';
+export const EMBED_SAMPLE_TRACK_TWO_TITLE = 'Track Two (audio)';
+export const EMBED_SAMPLE_TRACK_VIDEO_TITLE = 'Track (video)';
 export const EMBED_SAMPLE_PODCAST_CHANNEL_TITLE = 'Embed Sample Podcast (audio)';
 export const EMBED_SAMPLE_ALBUM_CHANNEL_TITLE = 'Embed Sample Album (audio)';
 export const EMBED_SAMPLE_VIDEO_CHANNEL_TITLE = 'Embed Sample Podcast (video)';
-export const EMBED_SAMPLE_CHAPTER_PARENT_TITLE = 'Embed Sample Episode (chapters)';
-export const EMBED_SAMPLE_CLIP_TITLE = 'Embed Sample Clip (audio)';
-export const EMBED_SAMPLE_SOUNDBITE_TITLE = 'Embed Sample Official Clip (audio)';
+export const EMBED_SAMPLE_CHAPTER_PARENT_TITLE = 'Episode (chapters)';
+export const EMBED_SAMPLE_CLIP_TITLE = 'Clip (audio)';
+export const EMBED_SAMPLE_SOUNDBITE_TITLE = 'Official Clip (audio)';
 export const EMBED_SAMPLE_CHAPTER_TITLE = 'Intro';
 export const EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE = 'Topic A';
 export const EMBED_SAMPLE_CHAPTER_OUTRO_TITLE = 'Outro';
@@ -65,11 +71,11 @@ export const EMBED_SAMPLE_CHAPTER_TWO_START_SECONDS = 20;
 export const EMBED_SAMPLE_CHAPTER_TWO_END_SECONDS = 40;
 export const EMBED_SAMPLE_CHAPTER_THREE_START_SECONDS = 40;
 export const EMBED_SAMPLE_CHAPTER_THREE_END_SECONDS = 60;
-export const EMBED_SAMPLE_PLAYLIST_PUBLIC_TITLE = 'Embed Sample Playlist (audio)';
-export const EMBED_SAMPLE_PLAYLIST_MIXED_TITLE = 'Embed Sample Playlist (mixed)';
-export const EMBED_SAMPLE_PLAYLIST_PRIVATE_TITLE = 'Embed Sample Playlist (private)';
+export const EMBED_SAMPLE_PLAYLIST_PUBLIC_TITLE = 'Playlist (audio)';
+export const EMBED_SAMPLE_PLAYLIST_MIXED_TITLE = 'Playlist (mixed)';
+export const EMBED_SAMPLE_PLAYLIST_PRIVATE_TITLE = 'Playlist (private)';
 export const EMBED_SAMPLE_SCROLL_CHANNEL_TITLE = 'Embed Sample Podcast (scroll)';
-export const EMBED_SAMPLE_SCROLL_ITEM_TITLE_PREFIX = 'Embed Sample Scroll Item';
+export const EMBED_SAMPLE_SCROLL_ITEM_TITLE_PREFIX = 'Scroll Item';
 export const EMBED_SAMPLE_PRIVATE_CHANNEL_TITLE = 'Embed Sample Podcast (private)';
 
 export const EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT = 'embSmpPodAud1';
@@ -112,77 +118,77 @@ export type EmbedFixtureDemoSpec = {
 export const EMBED_FIXTURE_DEMO_SPECS: EmbedFixtureDemoSpec[] = [
   {
     showcaseId: 'episode-audio',
-    label: 'Embed Sample Episode (audio)',
+    label: EMBED_SAMPLE_EPISODE_AUDIO_TITLE,
     routeKind: 'episode',
     resourceIdText: EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT,
     note: EMBED_SAMPLE_EPISODE_AUDIO_TITLE,
   },
   {
     showcaseId: 'episode-video',
-    label: 'Embed Sample Episode (video)',
+    label: EMBED_SAMPLE_EPISODE_VIDEO_TITLE,
     routeKind: 'episode',
     resourceIdText: EMBED_FIXTURE_PODCAST_EPISODE_VIDEO_ID_TEXT,
     note: EMBED_SAMPLE_EPISODE_VIDEO_TITLE,
   },
   {
     showcaseId: 'track-audio',
-    label: 'Embed Sample Track (audio)',
+    label: EMBED_SAMPLE_TRACK_AUDIO_TITLE,
     routeKind: 'track',
     resourceIdText: EMBED_FIXTURE_MUSIC_TRACK_AUDIO_ID_TEXT,
     note: EMBED_SAMPLE_TRACK_AUDIO_TITLE,
   },
   {
     showcaseId: 'track-video',
-    label: 'Embed Sample Track (video)',
+    label: EMBED_SAMPLE_TRACK_VIDEO_TITLE,
     routeKind: 'track',
     resourceIdText: EMBED_FIXTURE_MUSIC_TRACK_VIDEO_ID_TEXT,
     note: EMBED_SAMPLE_TRACK_VIDEO_TITLE,
   },
   {
     showcaseId: 'clip-audio',
-    label: 'Embed Sample Clip (audio)',
+    label: EMBED_SAMPLE_CLIP_TITLE,
     routeKind: 'clip',
     resourceIdText: EMBED_FIXTURE_CLIP_AUDIO_ID_TEXT,
     note: EMBED_SAMPLE_CLIP_TITLE,
   },
   {
     showcaseId: 'official-clip-audio',
-    label: 'Embed Sample Official Clip (audio)',
+    label: EMBED_SAMPLE_SOUNDBITE_TITLE,
     routeKind: 'official-clip',
     resourceIdText: EMBED_FIXTURE_SOUNDBITE_ID_TEXT,
     note: EMBED_SAMPLE_SOUNDBITE_TITLE,
   },
   {
     showcaseId: 'chapter-audio',
-    label: 'Embed Sample Chapter (audio)',
+    label: 'Chapter (audio)',
     routeKind: 'chapter',
     resourceIdText: EMBED_FIXTURE_CHAPTER_TWO_ID_TEXT,
     note: EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE,
   },
   {
     showcaseId: 'podcast-audio',
-    label: 'Embed Sample Podcast (audio)',
+    label: 'Podcast (audio)',
     routeKind: 'podcast',
     resourceIdText: EMBED_FIXTURE_PODCAST_LIST_AUDIO_ID_TEXT,
     note: EMBED_SAMPLE_PODCAST_CHANNEL_TITLE,
   },
   {
     showcaseId: 'podcast-video',
-    label: 'Embed Sample Podcast (video)',
+    label: 'Podcast (video)',
     routeKind: 'podcast',
     resourceIdText: EMBED_FIXTURE_PODCAST_LIST_VIDEO_ID_TEXT,
     note: EMBED_SAMPLE_VIDEO_CHANNEL_TITLE,
   },
   {
     showcaseId: 'album-audio',
-    label: 'Embed Sample Album (audio)',
+    label: 'Album (audio)',
     routeKind: 'album',
     resourceIdText: EMBED_FIXTURE_ALBUM_LIST_AUDIO_ID_TEXT,
     note: EMBED_SAMPLE_ALBUM_CHANNEL_TITLE,
   },
   {
     showcaseId: 'playlist-mixed',
-    label: 'Embed Sample Playlist (mixed)',
+    label: EMBED_SAMPLE_PLAYLIST_MIXED_TITLE,
     routeKind: 'playlist',
     resourceIdText: EMBED_FIXTURE_PLAYLIST_MIXED_ID_TEXT,
     note: EMBED_SAMPLE_PLAYLIST_MIXED_TITLE,
