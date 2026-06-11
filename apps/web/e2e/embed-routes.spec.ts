@@ -50,6 +50,7 @@ import {
   EMBED_SAMPLE_CHAPTER_TWO_START_SECONDS,
   EMBED_SAMPLE_CLIP_TITLE,
   EMBED_SAMPLE_EPISODE_AUDIO_TITLE,
+  EMBED_SAMPLE_EPISODE_DURATION_DISPLAY,
   EMBED_SAMPLE_EPISODE_NEAR_END_TITLE,
   EMBED_SAMPLE_SOUNDBITE_TITLE,
   EMBED_SAMPLE_TRACK_AUDIO_TITLE,
@@ -88,8 +89,10 @@ test.describe('Embed routes (anonymous)', () => {
     await test.step('Episode embed alternate enclosure modal lists supported formats', async () => {
       await page.goto(`/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}`);
       await expect(page.getByTestId('embed-player-alternate-enclosure-button')).toBeVisible();
-      await expect(page.getByTestId('embed-player-playback-speed-button')).toBeVisible();
-      await expect(page.getByTestId('embed-player-more-button')).toHaveCount(0);
+      await expect(page.getByTestId('embed-player-more-button')).toBeVisible();
+      await expect(page.getByTestId('embed-player-playback-speed-button')).toHaveCount(0);
+      await page.getByTestId('embed-player-more-button').click();
+      await expect(page.getByRole('menuitem', { name: 'Playback Speed: 1x' })).toBeVisible();
       await page.getByTestId('embed-player-alternate-enclosure-button').click();
       const modal = page.getByTestId('embed-alternate-enclosure-modal');
       await expect(modal).toBeVisible();
@@ -118,7 +121,7 @@ test.describe('Embed routes (anonymous)', () => {
     await test.step('Clip embed loads the single audio shell with episode artwork', async () => {
       await page.goto(`/embed/clip/${EMBED_FIXTURE_CLIP_AUDIO_ID_TEXT}`);
       await expectEmbedSingleShell(page);
-      await expectEmbedArtworkSrcContains(page, 'embed-sample-episode-audio-art');
+      await expectEmbedArtworkSrcContains(page, 'e2e-embed-item-art');
     });
 
     await test.step('Chapter embed shows the second chapter title at the playhead', async () => {
@@ -126,13 +129,13 @@ test.describe('Embed routes (anonymous)', () => {
       await expectEmbedSingleShell(page);
       await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE);
       await expect(page.getByTestId('embed-chapter-title-icon')).toBeVisible();
-      await expectEmbedArtworkSrcContains(page, 'embed-sample-chapter-topic-a-art');
+      await expectEmbedArtworkSrcContains(page, 'e2e-embed-item-art');
     });
 
     await test.step('Official clip embed loads the single audio shell with episode artwork', async () => {
       await page.goto(`/embed/official-clip/${EMBED_FIXTURE_SOUNDBITE_ID_TEXT}`);
       await expectEmbedSingleShell(page);
-      await expectEmbedArtworkSrcContains(page, 'embed-sample-episode-audio-art');
+      await expectEmbedArtworkSrcContains(page, 'e2e-embed-item-art');
     });
 
     await test.step('Video episode embed shows the video placeholder', async () => {
@@ -183,22 +186,25 @@ test.describe('Embed routes (anonymous)', () => {
   });
 
   test('Episode embed shows chapter markers and time-based chapter titles', async ({ page }) => {
-    await page.goto(`/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}?t=25`);
+    const chapterTwoPlayheadSeconds = EMBED_SAMPLE_CHAPTER_TWO_START_SECONDS + 6;
+    await page.goto(
+      `/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}?t=${chapterTwoPlayheadSeconds}`
+    );
     await expectEmbedSingleShell(page);
     await expectEmbedChapterMarkerCount(page, 2);
     await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE);
     await expect(page.getByTestId('embed-chapter-title-icon')).toBeVisible();
-    await expectEmbedArtworkSrcContains(page, 'embed-sample-chapter-topic-a-art');
+    await expectEmbedArtworkSrcContains(page, 'e2e-embed-item-art');
 
     await page.getByTestId('embed-title-toggle').click();
     await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_EPISODE_AUDIO_TITLE);
     await expect(page.getByTestId('embed-chapter-title-icon')).toHaveCount(0);
-    await expectEmbedArtworkSrcContains(page, 'embed-sample-episode-audio-art');
+    await expectEmbedArtworkSrcContains(page, 'e2e-embed-item-art');
 
     await page.getByTestId('embed-title-toggle').click();
     await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE);
     await expect(page.getByTestId('embed-chapter-title-icon')).toBeVisible();
-    await expectEmbedArtworkSrcContains(page, 'embed-sample-chapter-topic-a-art');
+    await expectEmbedArtworkSrcContains(page, 'e2e-embed-item-art');
 
     await page.getByTestId('embed-chapter-title-icon').click();
     await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_EPISODE_AUDIO_TITLE);
@@ -223,14 +229,14 @@ test.describe('Embed routes (anonymous)', () => {
     await expectEmbedPlayerProgressVisible(page);
     await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE);
     await expect(page.getByTestId('embed-chapter-title-icon')).toBeVisible();
-    await expectEmbedArtworkSrcContains(page, 'embed-sample-chapter-topic-a-art');
+    await expectEmbedArtworkSrcContains(page, 'e2e-embed-item-art');
 
     const slider = page.getByRole('slider');
     await expect
       .poll(async () => await slider.getAttribute('aria-valuenow'))
       .toBe(String(EMBED_SAMPLE_CHAPTER_TWO_START_SECONDS));
 
-    await page.getByTestId('embed-player-transport').getByRole('button').first().click();
+    await page.getByTestId('embed-player-play-button-cell').getByRole('button').click();
     await expect
       .poll(async () => await slider.getAttribute('aria-valuenow'))
       .toBe(String(EMBED_SAMPLE_CHAPTER_TWO_START_SECONDS));
@@ -257,7 +263,7 @@ test.describe('Embed routes (anonymous)', () => {
   }) => {
     await page.goto(`/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}?autoplay=true`);
     await expectEmbedSingleShell(page);
-    await expectEmbedPlayerDuration(page, '1:00');
+    await expectEmbedPlayerDuration(page, EMBED_SAMPLE_EPISODE_DURATION_DISPLAY);
     await expectEmbedChapterMarkerCount(page, 2);
 
     await page.evaluate(() => {
@@ -269,7 +275,7 @@ test.describe('Embed routes (anonymous)', () => {
       audio.dispatchEvent(new Event('ended'));
     });
 
-    await expectEmbedPlayerDuration(page, '1:00');
+    await expectEmbedPlayerDuration(page, EMBED_SAMPLE_EPISODE_DURATION_DISPLAY);
     await expectEmbedChapterMarkerCount(page, 2);
     await expect(page.getByRole('slider')).toHaveAttribute('aria-valuenow', '0');
   });

@@ -1,47 +1,41 @@
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
-import type { FindOneOptions, FindOptionsWhere, ObjectLiteral } from 'typeorm';
+import type { FindOneOptions, ObjectLiteral } from 'typeorm';
+
+/** Remote-item rows looked up by Podcast Index feed_guid / feed_url / item_guid. */
+type RemoteItemWhereFields = {
+  feed_guid: string;
+  feed_url?: string | null;
+  item_guid?: string | null;
+};
 
 export class BaseRemoteItemsService<
-  T extends ObjectLiteral,
+  T extends ObjectLiteral & RemoteItemWhereFields,
   K extends keyof T,
 > extends BaseManyService<T, K> {
   async getAll(parentEntity: T[K]): Promise<T[]> {
-    const where: FindOptionsWhere<T> = {
-      [this.parentEntityKey]: parentEntity,
-    } as FindOptionsWhere<T>;
-    return this.repositoryRead.find({ where });
+    return this._getAll(parentEntity);
   }
 
-  async getByItemGuid(parentEntity: T[K], item_guid: keyof T): Promise<T | null> {
-    const where: FindOptionsWhere<T> = {
-      [this.parentEntityKey]: parentEntity,
-      item_guid,
-    } as unknown as FindOptionsWhere<T>;
-    return this.repositoryRead.findOne({ where });
+  async getByItemGuid(parentEntity: T[K], item_guid: T['item_guid']): Promise<T | null> {
+    return this._get(parentEntity, { item_guid });
   }
 
-  async getByFeedGuid(parentEntity: T[K], feed_guid: keyof T): Promise<T | null> {
-    const where: FindOptionsWhere<T> = {
-      [this.parentEntityKey]: parentEntity,
-      feed_guid,
-    } as unknown as FindOptionsWhere<T>;
-    return this.repositoryRead.findOne({ where });
+  async getByFeedGuid(parentEntity: T[K], feed_guid: T['feed_guid']): Promise<T | null> {
+    return this._get(parentEntity, { feed_guid });
   }
 
-  async getByFeedUrl(parentEntity: T[K], feed_url: keyof T): Promise<T | null> {
-    const where: FindOptionsWhere<T> = {
-      [this.parentEntityKey]: parentEntity,
-      feed_url,
-    } as unknown as FindOptionsWhere<T>;
-    return this.repositoryRead.findOne({ where });
+  async getByFeedUrl(parentEntity: T[K], feed_url: T['feed_url']): Promise<T | null> {
+    return this._get(parentEntity, { feed_url });
   }
 
   async get(parentEntity: T[K], dto: Partial<T>): Promise<T | null> {
-    if (dto.item_guid) {
+    if (dto.item_guid !== null && dto.item_guid !== undefined) {
       return this.getByItemGuid(parentEntity, dto.item_guid);
-    } else if (dto.feed_guid) {
+    }
+    if (dto.feed_guid !== null && dto.feed_guid !== undefined) {
       return this.getByFeedGuid(parentEntity, dto.feed_guid);
-    } else if (dto.feed_url) {
+    }
+    if (dto.feed_url !== null && dto.feed_url !== undefined) {
       return this.getByFeedUrl(parentEntity, dto.feed_url);
     }
 

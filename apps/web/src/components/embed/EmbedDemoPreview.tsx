@@ -1,18 +1,12 @@
 import { getTranslations } from 'next-intl/server';
 
-import { buildEmbedDemoAnchorId } from '../../lib/embed/buildEmbedDemoTocItems';
-import { EMBED_IFRAME_ALLOW } from '../../lib/embed/buildEmbedIframeCode';
-import { resolveEmbedDemoPreviewPresentationStyle } from '../../lib/embed/embedDemoLinks';
 import type { EmbedRouteKind } from '../../lib/embed/embedTypes';
-import { getEmbedLayoutType } from '../../lib/embed/getEmbedLayoutType';
-import { getEmbedPreviewIframeHeightClassKey } from '../../lib/embed/getEmbedPreviewIframeHeightClassKey';
-
-import styles from '../../styles/components/embed/EmbedDemoPreview.module.scss';
+import { EmbedDemoPreviewIframe } from './EmbedDemoPreviewIframe';
 
 type EmbedDemoPreviewProps = {
   showcaseId: string;
   label: string;
-  href: string | null;
+  href: string;
   routeKind: EmbedRouteKind;
 };
 
@@ -23,36 +17,14 @@ export async function EmbedDemoPreview({
   routeKind,
 }: EmbedDemoPreviewProps) {
   const t = await getTranslations('features');
-  const presentationStyle = resolveEmbedDemoPreviewPresentationStyle(showcaseId);
-  const iframeHeightClassKey = getEmbedPreviewIframeHeightClassKey(
-    getEmbedLayoutType(routeKind),
-    presentationStyle
-  );
-  const hasPreview = href !== null && href !== undefined && href !== '';
 
   return (
-    <article className={styles.preview} data-testid={`embed-demo-preview-${showcaseId}`}>
-      <h3 className={styles.title} id={buildEmbedDemoAnchorId(showcaseId)}>
-        {label}
-      </h3>
-      {hasPreview ? (
-        <div className={styles.frame} data-testid={`embed-demo-frame-${showcaseId}`}>
-          <iframe
-            allow={EMBED_IFRAME_ALLOW}
-            className={`${styles.iframe} ${styles[iframeHeightClassKey]}`}
-            data-testid={`embed-demo-iframe-${showcaseId}`}
-            loading="eager"
-            src={href}
-            title={t('embed_demo_iframe_title', { label })}
-          />
-        </div>
-      ) : (
-        <div className={styles.frame} data-testid={`embed-demo-frame-${showcaseId}`}>
-          <p className={styles.unavailable} data-testid={`embed-demo-unavailable-${showcaseId}`}>
-            {t('embed_demo_no_suitable_content')}
-          </p>
-        </div>
-      )}
-    </article>
+    <EmbedDemoPreviewIframe
+      href={href}
+      iframeTitle={t('embed_demo_iframe_title', { label })}
+      label={label}
+      routeKind={routeKind}
+      showcaseId={showcaseId}
+    />
   );
 }

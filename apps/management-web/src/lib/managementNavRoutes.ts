@@ -1,4 +1,9 @@
-import { canReadFeeds, canReadStats, canReadStorage } from './managementPermissions';
+import {
+  canReadEmbedDemo,
+  canReadFeeds,
+  canReadStats,
+  canReadStorage,
+} from './managementPermissions';
 import type { CurrentUser } from './requests/auth';
 
 export type ManagementNavSection =
@@ -6,6 +11,7 @@ export type ManagementNavSection =
   | 'stats'
   | 'database'
   | 'products'
+  | 'web'
   | 'admins'
   | 'users'
   | 'workers'
@@ -48,6 +54,7 @@ const ROUTES: ManagementNavRoute[] = [
   { section: 'stats', href: '/stats', visible: (user) => canReadStats(user) },
   { section: 'database', href: '/database', visible: (user) => isDatabaseReadable(user) },
   { section: 'products', href: '/products', visible: (user) => isProductsReadable(user) },
+  { section: 'web', href: '/web', visible: (user) => canReadEmbedDemo(user) },
   { section: 'admins', href: '/admins', visible: (user) => isAdminsReadable(user) },
   { section: 'users', href: '/users', visible: (user) => isUsersReadable(user) },
   { section: 'workers', href: '/workers', visible: () => true },
@@ -70,6 +77,7 @@ export type DashboardI18nTitleKey =
   | 'stats.title'
   | 'database.title'
   | 'products.title'
+  | 'web.title'
   | 'admins.title'
   | 'users.title'
   | 'workers.title'
@@ -80,6 +88,7 @@ export type DashboardI18nDescriptionKey =
   | 'stats.description'
   | 'database.description'
   | 'products.description'
+  | 'web.description'
   | 'admins.description'
   | 'users.description'
   | 'workers.description'
@@ -90,6 +99,7 @@ const titleKeys: Record<ManagementNavSection, DashboardI18nTitleKey> = {
   stats: 'stats.title',
   database: 'database.title',
   products: 'products.title',
+  web: 'web.title',
   admins: 'admins.title',
   users: 'users.title',
   workers: 'workers.title',
@@ -101,6 +111,7 @@ const descriptionKeys: Record<ManagementNavSection, DashboardI18nDescriptionKey>
   stats: 'stats.description',
   database: 'database.description',
   products: 'products.description',
+  web: 'web.description',
   admins: 'admins.description',
   users: 'users.description',
   workers: 'workers.description',

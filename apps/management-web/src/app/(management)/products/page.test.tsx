@@ -57,6 +57,7 @@ describe('ProductsPage (server)', () => {
         stats_crud: 15,
         billing_prices_crud: 15,
         bucket_crud: 15,
+        embed_demo_crud: 15,
       },
     });
 

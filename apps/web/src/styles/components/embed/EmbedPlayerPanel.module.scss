@@ -3,6 +3,7 @@
 .playerRegion {
   @include embed.embed-player-panel-custom-properties;
 
+  box-sizing: border-box;
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
@@ -15,7 +16,7 @@
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: var(--embed-player-info-controls-gap);
   min-height: 0;
   position: relative;
 }

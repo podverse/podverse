@@ -35,8 +35,8 @@ test.describe('Embed demo index', () => {
       await expect(frameContainer).toHaveCSS('border-top-width', '1px');
 
       const iframe = page.getByTestId(`embed-demo-iframe-${showcaseId}`);
-      await expect(iframe).toBeVisible();
       await iframe.scrollIntoViewIfNeeded();
+      await expect(iframe).toBeVisible();
       await expect(iframe).toHaveCSS('border-top-width', '0px');
 
       const iframeSrc = await iframe.getAttribute('src');
@@ -69,7 +69,7 @@ test.describe('Embed demo index', () => {
 
     const hrefs = [...new Set(embedPaths)];
 
-    expect(hrefs.length).toBeGreaterThanOrEqual(E2E_EMBED_DEMO_SHOWCASE_IDS.length);
+    expect(hrefs.length).toBe(E2E_EMBED_DEMO_SHOWCASE_IDS.length);
 
     await capturePageLoad(
       page,

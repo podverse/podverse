@@ -24,6 +24,7 @@ export type ResolvedManagementAdminPermissions = {
   stats_crud: number;
   billing_prices_crud: number;
   bucket_crud: number;
+  embed_demo_crud: number;
 };
 
 function predefinedRoleToJson(role: (typeof PREDEFINED_MANAGEMENT_ADMIN_ROLES)[number]) {
@@ -38,6 +39,7 @@ function predefinedRoleToJson(role: (typeof PREDEFINED_MANAGEMENT_ADMIN_ROLES)[n
     stats_crud: role.statsCrud,
     billing_prices_crud: role.billingPricesCrud,
     bucket_crud: role.bucketCrud,
+    embed_demo_crud: role.embedDemoCrud,
     created_at: null as string | null,
   };
 }
@@ -54,6 +56,7 @@ function customRoleToJson(role: ManagementAdminRole) {
     stats_crud: role.statsCrud,
     billing_prices_crud: role.billingPricesCrud,
     bucket_crud: role.bucketCrud,
+    embed_demo_crud: role.embedDemoCrud,
     created_at: role.created_at.toISOString(),
   };
 }
@@ -70,6 +73,7 @@ export async function resolvePodverseManagementAdminRole(
       stats_crud: predefined.statsCrud,
       billing_prices_crud: predefined.billingPricesCrud,
       bucket_crud: predefined.bucketCrud,
+      embed_demo_crud: predefined.embedDemoCrud,
     };
   }
   const roleService = new ManagementAdminRoleService();
@@ -84,6 +88,7 @@ export async function resolvePodverseManagementAdminRole(
     stats_crud: custom.statsCrud,
     billing_prices_crud: custom.billingPricesCrud,
     bucket_crud: custom.bucketCrud,
+    embed_demo_crud: custom.embedDemoCrud,
   };
 }
 
@@ -108,6 +113,7 @@ export async function handleCreateManagementAdminRole(req: Request, res: Respons
     statsCrud: value.stats_crud,
     billingPricesCrud: value.billing_prices_crud,
     bucketCrud: value.bucket_crud,
+    embedDemoCrud: value.embed_demo_crud,
   };
   const roleService = new ManagementAdminRoleService();
   const role = await roleService.create(data);
@@ -156,6 +162,9 @@ export async function handleUpdateManagementAdminRole(req: Request, res: Respons
   }
   if (value.bucket_crud !== undefined) {
     updates.bucketCrud = value.bucket_crud;
+  }
+  if (value.embed_demo_crud !== undefined) {
+    updates.embedDemoCrud = value.embed_demo_crud;
   }
   const updated = await roleService.update(roleId, updates);
   if (updated === null) {

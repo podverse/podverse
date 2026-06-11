@@ -74,3 +74,30 @@ export function createORMContext(config: ORMConfig): ORMContext {
 
   return context;
 }
+
+export type BindORMContextInput = {
+  config: ORMConfig;
+  dataSourceRead: DataSource;
+  dataSourceReadWrite: DataSource;
+  loggerService: LoggerService;
+};
+
+/**
+ * Binds existing, app-owned DataSources to the module-level ORM context.
+ * Use when an app already creates and initializes its own read/read_write pools
+ * (e.g. management-api AppDbDataSourceRead/Write) instead of createORMContext().
+ *
+ * DataSources must already be initialized before calling services that use them.
+ */
+export function bindORMContext(input: BindORMContextInput): ORMContext {
+  const context: ORMContext = {
+    config: input.config,
+    dataSourceRead: input.dataSourceRead,
+    dataSourceReadWrite: input.dataSourceReadWrite,
+    loggerService: input.loggerService,
+  };
+
+  setORMContext(context);
+
+  return context;
+}

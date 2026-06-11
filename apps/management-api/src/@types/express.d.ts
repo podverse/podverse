@@ -12,6 +12,7 @@ export type AuthenticatedAdmin = {
     stats_crud: number;
     billing_prices_crud?: number;
     bucket_crud?: number;
+    embed_demo_crud?: number;
   } | null;
 };
 

@@ -40,6 +40,9 @@ export class AdminAccountPermissions {
   @Column({ name: 'bucket_crud', type: 'integer', default: 0 })
   bucketCrud!: number;
 
+  @Column({ name: 'embed_demo_crud', type: 'integer', default: 0 })
+  embedDemoCrud!: number;
+
   @CreateDateColumn({ type: 'timestamp', default: () => 'NOW()' })
   created_at!: Date;
 

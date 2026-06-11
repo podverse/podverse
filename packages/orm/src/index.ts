@@ -10,8 +10,8 @@ export type {
 export * from './config/index.js';
 
 // Factory function to create the ORM context
-export { createORMContext } from './factory.js';
-export type { ORMContext } from './factory.js';
+export { bindORMContext, createORMContext } from './factory.js';
+export type { BindORMContextInput, ORMContext } from './factory.js';
 
 export { SnakeNamingStrategy } from './lib/snakeNamingStrategy.js';
 export {
@@ -143,6 +143,7 @@ export * from './entities/billingDomainEvent.js';
 export * from './entities/billingProduct.js';
 export * from './entities/clip.js';
 export * from './entities/medium.js';
+export * from './entities/embedDemoShowcase.js';
 export * from './entities/imageShrinkSource.js';
 export * from './entities/membershipClaimToken.js';
 export * from './entities/productMembershipSettings.js';
@@ -231,6 +232,7 @@ export * from './services/channel/channelValueRecipient.js';
 export * from './services/clip.js';
 
 export * from './services/deduplicator.js';
+export * from './services/embedDemoConfig.js';
 export * from './services/imageShrinkSource.js';
 
 export * from './services/feed/feed.js';

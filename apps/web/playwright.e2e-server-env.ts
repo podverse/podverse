@@ -139,7 +139,6 @@ export function buildE2eWebAppEnv(options?: E2eWebSidecarEnvOptions): Record<str
     PORT: '4032',
     RUNTIME_CONFIG_URL: 'http://localhost:4031',
     NODE_OPTIONS: '--disable-warning=DEP0060',
-    EMBED_DEMO_USE_FIXTURES: 'true',
     ...PODVERSE_WEB_E2E_OBSERVABILITY_ENV,
     ...buildE2eWebNextPublicEnv(options),
   };

@@ -19,6 +19,7 @@ const MOCK_ADMIN_ROW = {
     stats_crud: 15,
     billing_prices_crud: 0,
     bucket_crud: 0,
+    embed_demo_crud: 0,
   },
   created_at: '2026-02-01T15:30:00.000Z',
 };

@@ -1,6 +1,6 @@
 import type { TableOfContentsSection } from '@podverse/ui';
 
-import type { EmbedDemoShowcaseEntry } from './embedDemoLinks';
+import type { EmbedDemoShowcaseEntry } from './resolveEmbedDemoShowcase';
 
 export function buildEmbedDemoAnchorId(showcaseId: string): string {
   return `embed-demo-${showcaseId}`;

@@ -1787,6 +1787,35 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Category"
+    EmbedDemoShowcaseApiEntry:
+      type: object
+      required:
+        - showcaseId
+        - routeKind
+        - resourceIdText
+        - href
+        - note
+      properties:
+        showcaseId:
+          type: string
+        routeKind:
+          type: string
+        resourceIdText:
+          type: string
+        href:
+          type: string
+        note:
+          type: string
+          nullable: true
+    EmbedDemoShowcaseApiResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/EmbedDemoShowcaseApiEntry"
     CategoryDetailResponse:
       allOf:
         - $ref: "#/components/schemas/Category"
@@ -7324,6 +7353,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /embed-demo/showcase:
+    get:
+      operationId: apiGetEmbedDemoShowcase
+      tags:
+        - embed-demo
+      summary: GET /embed-demo/showcase
+      description: Public endpoint returning configured embed demo showcase slots.
+      security: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmbedDemoShowcaseApiResponse"
         "500":
           description: Internal server error
           content:

@@ -13,7 +13,12 @@ export const PlayButton = () => {
   };
 
   return (
-    <button className={styles.playButton} onClick={handleClick} type="button">
+    <button
+      className={styles.playButton}
+      data-media-player-playing={mpIsPlaying ? 'true' : undefined}
+      onClick={handleClick}
+      type="button"
+    >
       {icon}
     </button>
   );

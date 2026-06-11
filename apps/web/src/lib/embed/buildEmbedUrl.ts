@@ -9,7 +9,7 @@ import type {
 import { MediumEnum } from '@podverse/helpers';
 
 import { WEB } from '../../constants/web';
-import type { EmbedRouteKind } from './embedTypes';
+import type { EmbedPresentationQuery, EmbedRouteKind } from './embedTypes';
 
 export type EmbedUrlEntityContext = {
   channel: DTOChannel | null;
@@ -28,6 +28,8 @@ export type EmbedUrlOptions = {
   startSeconds?: number;
   playIdText?: string | null;
   chapterMarkers?: boolean;
+  presentation?: EmbedPresentationQuery;
+  sort?: string | null;
   origin?: string;
 };
 
@@ -59,6 +61,8 @@ function buildEmbedQueryString(options: {
   startSeconds?: number;
   playIdText?: string | null;
   chapterMarkers?: boolean;
+  presentation?: EmbedPresentationQuery;
+  sort?: string | null;
   isListRoute: boolean;
 }): string {
   const params = new URLSearchParams();
@@ -74,6 +78,14 @@ function buildEmbedQueryString(options: {
 
   if (options.chapterMarkers === false) {
     params.set('chapter_markers', '0');
+  }
+
+  if (options.presentation === 'video' || options.presentation === 'audio') {
+    params.set('presentation', options.presentation);
+  }
+
+  if (options.isListRoute && options.sort) {
+    params.set('sort', options.sort);
   }
 
   if (options.isListRoute && options.playIdText) {
@@ -168,6 +180,8 @@ export function buildEmbedUrlPath(
     startSeconds: options.startSeconds,
     playIdText: options.playIdText,
     chapterMarkers: options.chapterMarkers,
+    presentation: options.presentation,
+    sort: options.sort,
     isListRoute: target.isListRoute,
   });
 

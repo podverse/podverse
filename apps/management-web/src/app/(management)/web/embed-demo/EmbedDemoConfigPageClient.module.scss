@@ -1,0 +1,20 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.lead {
+  margin: 0;
+}
+
+.detailWithAction {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.detailValue {
+  flex: 1;
+  min-width: 0;
+}

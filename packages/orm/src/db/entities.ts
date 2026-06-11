@@ -119,6 +119,7 @@ import { StatsTrackEventClip } from '@orm/entities/stats/statsTrackEventClip.js'
 import { StatsTrackEventItem } from '@orm/entities/stats/statsTrackEventItem.js';
 import { StatsTrackEventPlaylist } from '@orm/entities/stats/statsTrackEventPlaylist.js';
 
+import { EmbedDemoShowcase } from '../entities/embedDemoShowcase.js';
 import { ImageShrinkSource } from '../entities/imageShrinkSource.js';
 
 export const entities = [
@@ -189,6 +190,7 @@ export const entities = [
   FeedLog,
   FeedPolicy,
   FeedPolicyOverride,
+  EmbedDemoShowcase,
   ImageShrinkSource,
   Item,
   ItemAbout,

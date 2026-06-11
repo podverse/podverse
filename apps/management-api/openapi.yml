@@ -454,6 +454,7 @@ components:
         - stats_crud
         - billing_prices_crud
         - bucket_crud
+        - embed_demo_crud
       properties:
         name:
           type: string
@@ -470,6 +471,8 @@ components:
         billing_prices_crud:
           $ref: "#/components/schemas/CrudPermissionValue"
         bucket_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        embed_demo_crud:
           $ref: "#/components/schemas/CrudPermissionValue"
     AdminRoleCreateResponse:
       type: object
@@ -493,6 +496,8 @@ components:
         billing_prices_crud:
           $ref: "#/components/schemas/CrudPermissionValue"
         bucket_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        embed_demo_crud:
           $ref: "#/components/schemas/CrudPermissionValue"
     AdminRoleUpdateResponse:
       type: object
@@ -556,6 +561,8 @@ components:
           $ref: "#/components/schemas/CrudPermissionValue"
         bucket_crud:
           $ref: "#/components/schemas/CrudPermissionValue"
+        embed_demo_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
     AdminInviteLink:
       type: object
       properties:
@@ -600,6 +607,8 @@ components:
         billing_prices_crud:
           $ref: "#/components/schemas/CrudPermissionValue"
         bucket_crud:
+          $ref: "#/components/schemas/CrudPermissionValue"
+        embed_demo_crud:
           $ref: "#/components/schemas/CrudPermissionValue"
         created_at:
           type: string
@@ -1138,6 +1147,53 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/ProductMembershipResolved"
+    EmbedDemoShowcaseAdminSlot:
+      type: object
+      required:
+        - showcaseId
+        - routeKind
+        - resourceIdText
+      properties:
+        showcaseId:
+          type: string
+        routeKind:
+          type: string
+        resourceIdText:
+          type: string
+          nullable: true
+    ManagementGetEmbedDemoShowcaseResponse200:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/EmbedDemoShowcaseAdminSlot"
+    UpsertEmbedDemoShowcaseRequest:
+      type: object
+      required:
+        - resourceIdText
+      properties:
+        resourceIdText:
+          type: string
+          minLength: 1
+          maxLength: 15
+    ManagementPutEmbedDemoShowcaseResponse200:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - showcaseId
+            - resourceIdText
+          properties:
+            showcaseId:
+              type: string
+            resourceIdText:
+              type: string
     StatsAggregatedRow:
       type: object
       required:
@@ -1861,6 +1917,7 @@ paths:
                         stats_crud: 15
                         billing_prices_crud: 15
                         bucket_crud: 15
+                        embed_demo_crud: 15
                       created_at: "2024-01-01T00:00:00Z"
         "400":
           description: Bad request
@@ -1922,6 +1979,7 @@ paths:
                     stats_crud: 7
                     billing_prices_crud: 1
                     bucket_crud: 1
+                    embed_demo_crud: 0
       responses:
         "201":
           description: Created
@@ -1945,6 +2003,7 @@ paths:
                       stats_crud: 7
                       billing_prices_crud: 1
                       bucket_crud: 1
+                      embed_demo_crud: 0
                     created_at: "2026-05-13T12:10:00Z"
                     message: Admin created. Invite link generated.
                     set_password_url: https://management.podverse.fm/admins/redeem-invite-link?token=abc123
@@ -4914,6 +4973,136 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /web/embed-demo/showcase:
+    get:
+      operationId: managementGetWebEmbedDemoShowcase
+      tags:
+        - web
+      summary: GET /web/embed-demo/showcase
+      description: "Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('embed_demo', 'read')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementGetEmbedDemoShowcaseResponse200"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /web/embed-demo/showcase/{showcaseId}:
+    put:
+      operationId: managementPutWebEmbedDemoShowcaseShowcaseId
+      tags:
+        - web
+      summary: PUT /web/embed-demo/showcase/{showcaseId}
+      description: "Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('embed_demo', 'update')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: showcaseId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertEmbedDemoShowcaseRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManagementPutEmbedDemoShowcaseResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+    delete:
+      operationId: managementDeleteWebEmbedDemoShowcaseShowcaseId
+      tags:
+        - web
+      summary: DELETE /web/embed-demo/showcase/{showcaseId}
+      description: "Authenticated endpoint (cookieAuth or bearerAuth). Permission/auth note: requireCrud('embed_demo', 'update')."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: showcaseId
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Showcase slot cleared
         "401":
           description: Unauthorized
           content:

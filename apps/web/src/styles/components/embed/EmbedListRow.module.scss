@@ -5,18 +5,27 @@
 .rowActive {
   align-items: center;
   background: transparent;
-  border-bottom: 1px solid var(--color-border-subtle);
+  border-bottom: 1px solid var(--border-color-opaque);
+  box-sizing: border-box;
   color: inherit;
   display: flex;
-  gap: var(--spacing-sm);
-  height: embed.$embed-list-row-height;
+  gap: var(--spacing-lg);
   min-height: embed.$embed-list-row-height;
-  padding: var(--spacing-xs) var(--spacing-sm);
+  min-width: 0;
+  padding: var(--spacing-md);
   width: 100%;
 }
 
 .rowActive {
   background: var(--color-surface-secondary);
+}
+
+.rowLast {
+  border-bottom: 0;
+}
+
+.playButtonCell {
+  flex: 0 0 auto;
 }
 
 .contentButton {
@@ -29,35 +38,44 @@
   flex: 1 1 auto;
   flex-direction: column;
   font: inherit;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-sm);
   min-width: 0;
   padding: 0;
   text-align: left;
 }
 
+.titleRow {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-xs);
+  max-width: 100%;
+  min-width: 0;
+}
+
 .title {
   @include ellipsisSingleLineChild;
 
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  width: 100%;
+  display: block;
+  flex: 1 1 auto;
+  font-size: var(--font-size-base);
+  min-width: 0;
 }
 
 .meta {
   @include ellipsisSingleLineChild;
 
-  color: var(--color-text-secondary);
+  display: block;
   font-size: var(--font-size-xs);
-  width: 100%;
+  max-width: 100%;
+  min-height: var(--embed-meta-line-min-height);
 }
 
 .groupTitle {
-  color: var(--color-text-secondary);
   font-size: var(--font-size-xs);
   font-weight: 600;
   margin: 0;
   overflow: hidden;
-  padding: var(--spacing-xs) var(--spacing-sm) 0;
+  padding: var(--spacing-xs) var(--spacing-md) 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

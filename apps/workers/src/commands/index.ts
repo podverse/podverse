@@ -1,4 +1,5 @@
 import archiveAll from '@workers/commands/archiver/archiveAll.js';
+import { seedEmbedDemoShowcaseFeeds } from '@workers/commands/embedDemo/seedShowcaseFeeds.js';
 import { mqRSSAdd } from '@workers/commands/mq/rss/add.js';
 import { mqRSSAddAll } from '@workers/commands/mq/rss/addAll.js';
 import { devPiBulkFeedsAddFromFile } from '@workers/commands/mq/rss/devPiBulkFeedsAddFromFile.js';
@@ -37,6 +38,7 @@ export default {
   parserRSSParseFeed,
   devParserRSSParsePodcasting20Feeds,
   devParserRSSParseTrendingFeeds,
+  seedEmbedDemoShowcaseFeeds,
   podcastIndexDeadFeedsDeleteCache,
   podcastIndexDeadFeedsFlagAndMerge,
   podcastIndexTrendingPodcastsGet,

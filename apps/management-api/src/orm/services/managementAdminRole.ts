@@ -10,6 +10,7 @@ export type CreateManagementAdminRoleData = {
   statsCrud: number;
   billingPricesCrud: number;
   bucketCrud: number;
+  embedDemoCrud: number;
 };
 
 export type UpdateManagementAdminRoleData = Partial<CreateManagementAdminRoleData>;
@@ -43,6 +44,7 @@ export class ManagementAdminRoleService {
       statsCrud: data.statsCrud,
       billingPricesCrud: data.billingPricesCrud,
       bucketCrud: data.bucketCrud,
+      embedDemoCrud: data.embedDemoCrud,
     });
     return this.repositoryReadWrite.save(row);
   }
@@ -75,6 +77,9 @@ export class ManagementAdminRoleService {
     }
     if (data.bucketCrud !== undefined) {
       existing.bucketCrud = data.bucketCrud;
+    }
+    if (data.embedDemoCrud !== undefined) {
+      existing.embedDemoCrud = data.embedDemoCrud;
     }
     return this.repositoryReadWrite.save(existing);
   }

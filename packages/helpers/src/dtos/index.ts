@@ -2,6 +2,7 @@ export * from './addByRSSResourceData.js';
 export * from './betweenParams.js';
 export * from './category.js';
 export * from './clip.js';
+export * from './embedDemoShowcase.js';
 export * from './medium.js';
 export * from './membershipClaimToken.js';
 export * from './onDemandParserEvent.js';

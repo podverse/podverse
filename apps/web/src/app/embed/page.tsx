@@ -19,12 +19,15 @@ export default async function EmbedPage() {
     (entry) => getEmbedLayoutType(entry.routeKind) === 'single'
   );
   const listShowcase = showcase.filter((entry) => getEmbedLayoutType(entry.routeKind) === 'list');
-  const tocSections = buildEmbedDemoTocSections({
-    singleShowcase,
-    listShowcase,
-    singleSectionLabel: t('embed_demo_single_section_title'),
-    listSectionLabel: t('embed_demo_list_section_title'),
-  });
+  const hasConfiguredShowcases = showcase.length > 0;
+  const tocSections = hasConfiguredShowcases
+    ? buildEmbedDemoTocSections({
+        singleShowcase,
+        listShowcase,
+        singleSectionLabel: t('embed_demo_single_section_title'),
+        listSectionLabel: t('embed_demo_list_section_title'),
+      })
+    : [];
 
   return (
     <MainWrapper>
@@ -33,49 +36,61 @@ export default async function EmbedPage() {
           <div className={styles.embedDemos}>
             <div className={styles.introStack}>
               <h1>{t('embed_demo_page_title')}</h1>
-              <EmbedDemoPageIntro />
+              <EmbedDemoPageIntro configuredCount={showcase.length} />
 
-              <TableOfContents
-                className={styles.tableOfContents}
-                heading={t('embed_demo_toc_heading')}
-                navAriaLabel={t('embed_demo_toc_nav_aria_label')}
-                sections={tocSections}
-              />
+              {hasConfiguredShowcases ? (
+                <TableOfContents
+                  className={styles.tableOfContents}
+                  heading={t('embed_demo_toc_heading')}
+                  navAriaLabel={t('embed_demo_toc_nav_aria_label')}
+                  sections={tocSections}
+                />
+              ) : null}
             </div>
 
-            <Divider className={styles.tocDivider} />
+            {hasConfiguredShowcases ? (
+              <>
+                <Divider className={styles.tocDivider} />
 
-            <section className={styles.section} aria-labelledby="embed-demo-single-heading">
-              <h2 id="embed-demo-single-heading">{t('embed_demo_single_section_title')}</h2>
-              <div className={styles.showcaseGrid}>
-                {singleShowcase.map((entry) => (
-                  <EmbedDemoPreview
-                    key={entry.showcaseId}
-                    href={entry.href}
-                    label={entry.label}
-                    routeKind={entry.routeKind}
-                    showcaseId={entry.showcaseId}
-                  />
-                ))}
-              </div>
-            </section>
+                {singleShowcase.length > 0 ? (
+                  <section className={styles.section} aria-labelledby="embed-demo-single-heading">
+                    <h2 id="embed-demo-single-heading">{t('embed_demo_single_section_title')}</h2>
+                    <div className={styles.showcaseGrid}>
+                      {singleShowcase.map((entry) => (
+                        <EmbedDemoPreview
+                          key={entry.showcaseId}
+                          href={entry.href}
+                          label={entry.label}
+                          routeKind={entry.routeKind}
+                          showcaseId={entry.showcaseId}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
 
-            <Divider className={styles.sectionDivider} />
+                {singleShowcase.length > 0 && listShowcase.length > 0 ? (
+                  <Divider className={styles.sectionDivider} />
+                ) : null}
 
-            <section className={styles.section} aria-labelledby="embed-demo-list-heading">
-              <h2 id="embed-demo-list-heading">{t('embed_demo_list_section_title')}</h2>
-              <div className={styles.showcaseGrid}>
-                {listShowcase.map((entry) => (
-                  <EmbedDemoPreview
-                    key={entry.showcaseId}
-                    href={entry.href}
-                    label={entry.label}
-                    routeKind={entry.routeKind}
-                    showcaseId={entry.showcaseId}
-                  />
-                ))}
-              </div>
-            </section>
+                {listShowcase.length > 0 ? (
+                  <section className={styles.section} aria-labelledby="embed-demo-list-heading">
+                    <h2 id="embed-demo-list-heading">{t('embed_demo_list_section_title')}</h2>
+                    <div className={styles.showcaseGrid}>
+                      {listShowcase.map((entry) => (
+                        <EmbedDemoPreview
+                          key={entry.showcaseId}
+                          href={entry.href}
+                          label={entry.label}
+                          routeKind={entry.routeKind}
+                          showcaseId={entry.showcaseId}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+              </>
+            ) : null}
           </div>
         </MainColumnStack>
       </MainSidebarLayout>

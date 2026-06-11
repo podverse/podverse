@@ -9,7 +9,7 @@ const topicChapter = {
   start_time: '20',
   end_time: '40',
   title: 'Topic A',
-  img: 'http://localhost/embed-sample-chapter-topic-a-art.png',
+  img: 'http://localhost:2111/e2e/images/e2e-embed-item-art-1400.png',
   table_of_contents: true,
 } as DTOItemChapter;
 
@@ -19,7 +19,7 @@ const chapters: DTOItemChapter[] = [
     start_time: '0',
     end_time: '20',
     title: 'Intro',
-    img: 'http://localhost/embed-sample-chapter-intro-art.png',
+    img: 'http://localhost:2111/e2e/images/e2e-embed-item-art-1400.png',
     table_of_contents: true,
   } as DTOItemChapter,
   topicChapter,
@@ -47,7 +47,7 @@ describe('resolveEmbedActiveChapterForArtwork', () => {
         mpCurrentTimeSeconds: 25,
         mpItemChapter: null,
       })?.img
-    ).toContain('chapter-topic-a-art');
+    ).toContain('e2e-embed-item-art');
   });
 
   it('returns null when the user prefers the episode title', () => {

@@ -42,6 +42,7 @@ function permissionsFromAdmin(admin: AdminAccount): PermissionState {
     stats_crud: p?.stats_crud ?? 0,
     billing_prices_crud: p?.billing_prices_crud ?? 0,
     bucket_crud: p?.bucket_crud ?? 0,
+    embed_demo_crud: p?.embed_demo_crud ?? 0,
   };
 }
 

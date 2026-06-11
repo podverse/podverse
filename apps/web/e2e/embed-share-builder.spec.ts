@@ -17,12 +17,11 @@ async function openShareModal(page: Page) {
   const shareButton = page.getByRole('button', { name: 'Share' }).locator('visible=true').first();
   await expect(shareButton).toBeVisible();
   await expect(shareButton).toBeEnabled();
-  const createEmbed = page.getByTestId('share-create-embed');
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
     await shareButton.click();
     try {
-      await expect(createEmbed).toBeVisible({ timeout: 5_000 });
+      await expect(page.getByRole('dialog', { name: 'Share' })).toBeVisible({ timeout: 5_000 });
       return;
     } catch {
       if (attempt === 1) {
@@ -32,35 +31,20 @@ async function openShareModal(page: Page) {
   }
 }
 
-async function closeEmbedBuilderIfOpen(page: Page): Promise<void> {
-  const builder = page.getByTestId('embed-builder-modal');
-  if (await builder.isVisible()) {
-    await page.keyboard.press('Escape');
-    // Non-fatal cleanup: page.goto in each test resets UI state.
-    if (await builder.isVisible()) {
-      const globalCloseButton = page.getByRole('button', { name: /close/i }).first();
-      if (await globalCloseButton.isVisible()) {
-        await globalCloseButton.click();
-      }
-    }
-  }
-}
-
-async function openEmbedBuilderFromShare(page: Page) {
+async function openEmbedBuilderFromShare(page: Page, embedButtonTestId: string) {
   await openShareModal(page);
-  const createEmbedButton = page
-    .getByTestId('share-create-embed')
-    .getByRole('button', { name: 'Create Embed' });
-  const embedBuilderModal = page.getByTestId('embed-builder-modal');
+  const embedLink = page.getByTestId(embedButtonTestId).getByRole('button');
+  const embedBuilderPage = page.getByTestId('embed-builder-page');
+  await expect(embedLink).toBeVisible({ timeout: 10_000 });
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
-    await createEmbedButton.click();
+    await embedLink.click();
     try {
-      await expect(embedBuilderModal).toBeVisible({ timeout: 5_000 });
+      await expect(embedBuilderPage).toBeVisible({ timeout: 5_000 });
       return;
     } catch {
       if (attempt === 1) {
-        throw new Error('Embed builder did not open after retry.');
+        throw new Error('Embed builder page did not open after retry.');
       }
     }
   }
@@ -79,13 +63,8 @@ async function expectBuilderEmbedPaths(page: Page, pathPattern: RegExp): Promise
   await expect.poll(async () => codeInput.inputValue()).toMatch(pathPattern);
 }
 
-async function openEmbedBuilderAdvancedSection(page: Page): Promise<void> {
-  await page.getByText('Advanced options').click();
-}
-
-async function toggleEmbedListLayout(page: Page): Promise<void> {
-  await openEmbedBuilderAdvancedSection(page);
-  await page.getByRole('checkbox', { name: 'Embed full list instead of single item' }).check();
+async function selectEmbedBuilderType(page: Page, label: string): Promise<void> {
+  await page.getByTestId('embed-builder-type-selector').getByRole('radio', { name: label }).check();
 }
 
 test.describe('Embed share builder handoff', () => {
@@ -96,13 +75,13 @@ test.describe('Embed share builder handoff', () => {
   }, testInfo) => {
     await test.step('Navigate to the episode page and open the embed builder', async () => {
       await page.goto(`/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`);
-      await openEmbedBuilderFromShare(page);
+      await openEmbedBuilderFromShare(page, 'share-embed-episode');
 
       await capturePageLoad(
         page,
         testInfo,
-        'The embed builder opens after Create Embed is clicked from Share on an episode page.',
-        page.getByTestId('embed-builder-modal')
+        'The embed builder page opens after Embed Episode is clicked from Share on an episode page.',
+        page.getByTestId('embed-builder-page')
       );
     });
 
@@ -112,8 +91,6 @@ test.describe('Embed share builder handoff', () => {
         new RegExp(`/embed/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`)
       );
     });
-
-    await closeEmbedBuilderIfOpen(page);
   });
 
   test('Share from an official clip uses the official-clip embed path', async ({
@@ -128,17 +105,14 @@ test.describe('Embed share builder handoff', () => {
         new RegExp(`/official-clip/${E2E_SOUNDBITE_ID_TEXT}$`)
       );
 
-      await page
-        .getByTestId('share-create-embed')
-        .getByRole('button', { name: 'Create Embed' })
-        .click();
-      await expect(page.getByTestId('embed-builder-modal')).toBeVisible();
+      await page.getByTestId('share-embed-official-clip').getByRole('button').click();
+      await expect(page.getByTestId('embed-builder-page')).toBeVisible();
 
       await capturePageLoad(
         page,
         testInfo,
-        'The embed builder opens from Share on an official clip page.',
-        page.getByTestId('embed-builder-modal')
+        'The embed builder page opens from Share on an official clip page.',
+        page.getByTestId('embed-builder-page')
       );
     });
 
@@ -151,90 +125,80 @@ test.describe('Embed share builder handoff', () => {
       const codeInput = page.getByTestId('embed-builder-code').locator('input');
       await expect(codeInput).not.toHaveValue(/\/soundbite\//);
     });
-
-    await closeEmbedBuilderIfOpen(page);
   });
 
   test('Share from a track opens the builder with a track embed URL', async ({ page }) => {
     await page.goto(`/track/${E2E_MUSIC_TRACK_ONE_ID_TEXT}`);
-    await openEmbedBuilderFromShare(page);
+    await openEmbedBuilderFromShare(page, 'share-embed-track');
 
     await expectBuilderEmbedPaths(page, new RegExp(`/embed/track/${E2E_MUSIC_TRACK_ONE_ID_TEXT}`));
-
-    await closeEmbedBuilderIfOpen(page);
   });
 
   test('Share from a clip opens the builder with a clip embed URL', async ({ page }) => {
     await page.goto(`/clip/${E2E_CLIP_ID_TEXT}`);
     await expect(page.getByRole('heading', { name: 'E2E Clip End Pause', level: 3 })).toBeVisible();
-    await openEmbedBuilderFromShare(page);
+    await openShareModal(page);
+
+    const clipShareInput = page.locator('input[name="clip.clip"]');
+    await expect(clipShareInput).toHaveValue(new RegExp(`/clip/${E2E_CLIP_ID_TEXT}$`));
+
+    await page.getByTestId('share-embed-clip').getByRole('button').click();
+    await expect(page.getByTestId('embed-builder-page')).toBeVisible();
 
     await expectBuilderEmbedPaths(page, new RegExp(`/embed/clip/${E2E_CLIP_ID_TEXT}`));
-
-    await closeEmbedBuilderIfOpen(page);
   });
 
   test('Share from a chapter opens the builder with a chapter embed URL', async ({ page }) => {
     await page.goto(`/chapter/${E2E_ITEM_CHAPTER_INTRO_ID_TEXT}`);
-    await openEmbedBuilderFromShare(page);
+    await openEmbedBuilderFromShare(page, 'share-embed-chapter');
 
     await expectBuilderEmbedPaths(
       page,
       new RegExp(`/embed/chapter/${E2E_ITEM_CHAPTER_INTRO_ID_TEXT}`)
     );
-
-    await closeEmbedBuilderIfOpen(page);
   });
 
   test('Share from a playlist opens the builder with a playlist embed URL', async ({ page }) => {
     await page.goto(`/playlist/${E2E_EMBED_PLAYLIST_ID_TEXT}`);
-    await openEmbedBuilderFromShare(page);
+    await openEmbedBuilderFromShare(page, 'share-embed-playlist');
 
     await expectBuilderEmbedPaths(
       page,
       new RegExp(`/embed/playlist/${E2E_EMBED_PLAYLIST_ID_TEXT}`)
     );
-
-    await closeEmbedBuilderIfOpen(page);
   });
 
-  test('Episode share builder list layout toggle switches to podcast list embed', async ({
-    page,
-  }) => {
+  test('Episode share builder audio list type switches to podcast list embed', async ({ page }) => {
     await page.goto(`/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`);
-    await openEmbedBuilderFromShare(page);
+    await openEmbedBuilderFromShare(page, 'share-embed-episode');
 
     await expectBuilderEmbedPaths(
       page,
       new RegExp(`/embed/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`)
     );
 
-    await toggleEmbedListLayout(page);
+    await selectEmbedBuilderType(page, 'Audio list');
 
     await expectBuilderEmbedPaths(
       page,
       new RegExp(`/embed/podcast/${E2E_PODCAST_CHANNEL_ID_TEXT}`)
     );
-
-    await closeEmbedBuilderIfOpen(page);
   });
 
-  test('Track share builder list layout toggle switches to album list embed', async ({ page }) => {
+  test('Track share builder audio list type switches to album list embed', async ({ page }) => {
     await page.goto(`/track/${E2E_MUSIC_TRACK_ONE_ID_TEXT}`);
-    await openEmbedBuilderFromShare(page);
+    await openEmbedBuilderFromShare(page, 'share-embed-track');
 
     await expectBuilderEmbedPaths(page, new RegExp(`/embed/track/${E2E_MUSIC_TRACK_ONE_ID_TEXT}`));
 
-    await toggleEmbedListLayout(page);
+    await selectEmbedBuilderType(page, 'Audio list');
 
     await expectBuilderEmbedPaths(page, new RegExp(`/embed/album/${E2E_MUSIC_ALBUM_ID_TEXT}`));
-
-    await closeEmbedBuilderIfOpen(page);
   });
 
   test('Builder preview URL updates when autoplay and start time change', async ({ page }) => {
     await page.goto(`/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`);
-    await openEmbedBuilderFromShare(page);
+    await openEmbedBuilderFromShare(page, 'share-embed-episode');
 
     const preview = page.getByTestId('embed-builder-preview').locator('iframe');
     await expect(preview).toHaveAttribute(
@@ -251,7 +215,5 @@ test.describe('Embed share builder handoff', () => {
     const codeInput = page.getByTestId('embed-builder-code').locator('input');
     await expect.poll(async () => codeInput.inputValue()).toMatch(/autoplay=true/);
     await expect.poll(async () => codeInput.inputValue()).toMatch(/[?&]t=15/);
-
-    await closeEmbedBuilderIfOpen(page);
   });
 });

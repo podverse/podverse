@@ -5,7 +5,11 @@ import { FaShare } from 'react-icons/fa6';
 
 import styles from '../../app/embed/EmbedIndexPage.module.scss';
 
-export function EmbedDemoPageIntro() {
+type EmbedDemoPageIntroProps = {
+  configuredCount: number;
+};
+
+export function EmbedDemoPageIntro({ configuredCount }: EmbedDemoPageIntroProps) {
   const t = useTranslations('features');
 
   return (
@@ -19,7 +23,11 @@ export function EmbedDemoPageIntro() {
           ),
         })}
       </p>
-      <p className={styles.intro}>{t('embed_demo_page_examples_intro')}</p>
+      {configuredCount > 0 ? (
+        <p className={styles.intro}>{t('embed_demo_page_examples_intro')}</p>
+      ) : (
+        <p className={styles.intro}>{t('embed_demo_page_not_configured')}</p>
+      )}
     </>
   );
 }

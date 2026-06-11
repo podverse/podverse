@@ -51,7 +51,13 @@ export const PlayButtonRow: React.FC<PlayButtonRowProps> = ({
   const icon = isPlaying ? <FaPause /> : <FaPlay />;
 
   return (
-    <button className={styles.playButtonRow} aria-label={label} onClick={onClick} type="button">
+    <button
+      className={styles.playButtonRow}
+      aria-label={label}
+      data-media-player-playing={isPlaying ? 'true' : undefined}
+      onClick={onClick}
+      type="button"
+    >
       {icon}
     </button>
   );

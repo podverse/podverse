@@ -35,10 +35,14 @@ export const EMBED_PLAYBACK_GUARDRAILS: EmbedPlaybackGuardrails = {
   skipMainAppLayoutMutations: true,
 };
 
+export type EmbedPresentationQuery = 'audio' | 'video';
+
 export type EmbedSharedQueryParams = {
   autoplay: boolean;
   startSeconds: number;
   showChapterMarkers: boolean;
+  presentation: EmbedPresentationQuery;
+  presentationLocked: boolean;
 };
 
 export type EmbedSingleQueryParams = EmbedSharedQueryParams;

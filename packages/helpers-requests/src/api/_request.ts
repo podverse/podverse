@@ -103,6 +103,7 @@ import {
   reqClipGetManyPublic,
   reqClipUpdate,
 } from './clip/clip.js';
+import { reqEmbedDemoGetShowcase } from './embedDemo/embedDemo.js';
 import {
   reqPodcastIndexFeedById,
   reqPodcastIndexSearchPodcasts,
@@ -697,6 +698,12 @@ export class ApiRequestService {
     medium?: QueryParamsPodcastIndexSearchMedium;
   }) {
     return reqPodcastIndexSearchPodcasts(this, options);
+  }
+
+  /* EMBED DEMO */
+
+  reqEmbedDemoGetShowcase() {
+    return reqEmbedDemoGetShowcase(this);
   }
 
   /* FEED */

@@ -14,9 +14,20 @@ export type EmbedListGroup = {
   rows: EmbedListRow[];
 };
 
+export type EmbedListPagination = {
+  page: number;
+  totalPages: number;
+  hasNextPage: boolean;
+};
+
+export type EmbedListRouteKind = 'podcast' | 'album' | 'playlist';
+
 export type EmbedListData = {
   headerTitle: string;
   groups: EmbedListGroup[];
+  pagination: EmbedListPagination;
+  routeKind: EmbedListRouteKind;
+  resourceId: string;
 };
 
 export type EmbedListFetchResult =

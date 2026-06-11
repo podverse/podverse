@@ -8,7 +8,9 @@ describe('formatEmbedEnclosureSourceDisplay', () => {
       formatEmbedEnclosureSourceDisplay('https://cdn.example.test/path/file.mp3?token=abc')
     ).toBe('cdn.example.test');
     expect(
-      formatEmbedEnclosureSourceDisplay('http://localhost:4032/embed-demo/audio/sample.mp3')
+      formatEmbedEnclosureSourceDisplay(
+        'http://localhost:2111/e2e/audio/e2e-podcast-short-60s-440hz.mp3'
+      )
     ).toBe('localhost');
   });
 

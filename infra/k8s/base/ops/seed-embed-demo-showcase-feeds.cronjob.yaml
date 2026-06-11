@@ -1,0 +1,69 @@
+# Manual only: suspended CronJob. Create a one-off job to parse showcase PI feeds and seed embed_demo_showcase.
+# kubectl create job --from=cronjob/seed-embed-demo-showcase-feeds seed-embed-demo-$(date +%s) -n <ns>
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: seed-embed-demo-showcase-feeds
+spec:
+  schedule: "* * * * *"
+  suspend: true
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 600
+      template:
+        metadata:
+          labels:
+            app: podverse-ops
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: worker
+              image: ghcr.io/podverse/podverse/workers
+              command:
+                - "node"
+                - "apps/workers/dist/index.js"
+                - "seedEmbedDemoShowcaseFeeds"
+                - "-f"
+              securityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+                runAsNonRoot: true
+                readOnlyRootFilesystem: true
+                allowPrivilegeEscalation: false
+              resources:
+                requests:
+                  memory: "512Mi"
+                  cpu: "100m"
+                limits:
+                  memory: "1Gi"
+                  cpu: "500m"
+              envFrom:
+                - configMapRef:
+                    name: podverse-workers-config
+                - secretRef:
+                    name: podverse-db-opaque
+                - secretRef:
+                    name: podverse-mq-opaque
+                - secretRef:
+                    name: podverse-api.podcastindex.org-opaque
+                - secretRef:
+                    name: podverse-workers-add-by-rss-opaque
+                - secretRef:
+                    name: podverse-workers-webpush-opaque
+                    optional: true
+              volumeMounts:
+                - name: logs-volume
+                  mountPath: /logs
+                - name: logs-volume
+                  mountPath: /opt/logs
+                - name: firebase-key
+                  mountPath: /var/secrets/firebase
+                  readOnly: true
+          volumes:
+            - name: logs-volume
+              emptyDir: {}
+            - name: firebase-key
+              secret:
+                secretName: podverse-workers-firebase-opaque
+                optional: true

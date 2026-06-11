@@ -65,6 +65,7 @@ const BASE_ORM_PARSER_PODCAST_INDEX_COMMANDS = [
   'parserRSSParseFeed',
   'devParserRSSParsePodcasting20Feeds',
   'devParserRSSParseTrendingFeeds',
+  'seedEmbedDemoShowcaseFeeds',
 ] as const;
 
 const FULL_STACK_COMMANDS = [

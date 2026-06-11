@@ -2,7 +2,7 @@ import { config } from '@management-api/config/index.js';
 import type { DataSourceOptions } from 'typeorm';
 import { DataSource } from 'typeorm';
 
-import { SnakeNamingStrategy } from '@podverse/orm';
+import { entities, SnakeNamingStrategy } from '@podverse/orm';
 
 const commonConfig: DataSourceOptions = {
   type: 'postgres',
@@ -12,7 +12,7 @@ const commonConfig: DataSourceOptions = {
   cache: false,
   synchronize: false,
   logging: false,
-  entities: [],
+  entities,
   migrations: [],
   subscribers: [],
   namingStrategy: new SnakeNamingStrategy(),

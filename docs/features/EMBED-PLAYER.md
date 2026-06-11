@@ -51,10 +51,15 @@ Shared on single and list routes:
 
 List routes only:
 
-| Param                           | Default        | Notes                                                                                                |
-| ------------------------------- | -------------- | ---------------------------------------------------------------------------------------------------- |
-| `play_id_text`                  | —              | Hidden advanced override; must match a row on the current list page or falls back to the default row |
-| `type`, `sort`, `page`, `range` | route defaults | Invalid enum/page values fall back per `parseEmbedQueryParams.ts`                                    |
+| Param                           | Default        | Notes                                                                      |
+| ------------------------------- | -------------- | -------------------------------------------------------------------------- |
+| `play_id_text`                  | —              | Initial list row; must match a loaded row or falls back to the first row   |
+| `presentation`                  | `audio`        | `audio` or `video`; locks list/single presentation when present in the URL |
+| `type`, `sort`, `page`, `range` | route defaults | Invalid enum/page values fall back per `parseEmbedQueryParams.ts`          |
+
+List embeds support infinite scrolling inside the iframe: additional pages load when the user
+scrolls to the bottom (loading spinner at the list foot). When autoplay is enabled, playback
+advances to the next list row after the current item ends. The active row is highlighted in the list.
 
 ### Chapter markers and titles (audio podcast episodes)
 
@@ -129,62 +134,113 @@ Shell **formulas** (player panel + list region) are in `_embedLayout.scss`. At *
 (`--spacing-lg` = 16px, `--spacing-md` = 8px), single-audio height is:
 `padding + art + gap + play button + padding`.
 
-**In-app previews** (demo index `/embed`, share-modal embed builder) size iframes with the same SCSS shell-height variables and `embed-player-panel-custom-properties` mixin — not hardcoded pixel attributes.
+**In-app previews** (demo index `/embed`, embed builder page `/embed/builder`) size iframes with the
+same SCSS shell-height variables and `embed-player-panel-custom-properties` mixin — not hardcoded
+pixel attributes. Video single embeds use width-filling aspect-ratio layout in the builder preview.
 
 **Copy-paste iframe snippets** (`buildEmbedIframeCode`) emit numeric `height="…"` for external sites; values come from `embedLayoutDimensions.ts`, which derives px from `embedLayoutTokens.ts` using the same formulas as `_embedLayout.scss`. Import `DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT` (and related exports) or call `getEmbedIframeHeightForRouteKind()` for the current defaults.
 
-Share modal → **Create Embed** opens the builder with live preview and copyable code.
+Share modal → entity-specific **Embed** buttons (for example **Embed Podcast**, **Embed
+Playlist**, **Embed Episode**) navigate to `/embed/builder` with query params. The builder page
+supports four embed types: `audio`, `video`, `audio-list`, and `video-list`, with live preview and
+copyable iframe code.
+
+Builder URL shape:
+
+`/embed/builder?channel=<id_text>&item=<id_text>&playlist=<id_text>&type=<audio|video|audio-list|video-list>&playlist_item=<id_text>&sort=<sort>&autoplay=true`
+
+List embeds default autoplay on in the builder (toggleable). Playlist item share includes both
+`playlist` and `playlist_item`; `playlist_item` becomes `play_id_text` in the generated embed URL.
+
+## Embed demo index (`/embed`) — operator configuration
+
+The public demo index at `/embed` is **database-driven**. Operators configure twelve fixed
+showcase slots in the `embed_demo_showcase` table (one row per slot). Unconfigured slots are
+hidden on `/embed`.
+
+| Surface              | Path                                                         | Auth                |
+| -------------------- | ------------------------------------------------------------ | ------------------- |
+| Public demo index    | Web `/embed`                                                 | None                |
+| Public read API      | `GET /api/v2/embed-demo/showcase`                            | None                |
+| Management config UI | Management-web `/web/embed-demo`                             | `embed_demo` read   |
+| Management write API | `PUT` / `DELETE /api/v2/web/embed-demo/showcase/:showcaseId` | `embed_demo` update |
+
+Showcase slot ids and route kinds are fixed in `@podverse/helpers`
+(`EMBED_DEMO_SHOWCASE_SLOT_DEFS`). Each slot stores a single `resource_id_text` (episode,
+track, clip, chapter, official clip, podcast channel, album channel, or playlist).
+
+E2E and local dev seeds populate all twelve slots via `tools/web/seed-embed-fixtures.mjs`
+(`embed_demo_showcase` rows plus underlying podcast/album/video fixtures).
+
+### Production / staging showcase feeds (Podcast Index)
+
+For real `/embed` demos (not E2E fixtures), run the worker command that parses four Podcast
+Index feeds **directly** (no RSS queue), **always re-parses** existing feeds by
+`podcast_index_id`, and **overwrites** eight seed-managed showcase rows every run:
+
+| Podcast Index id                                    | Feed                              | Showcase slots                                 |
+| --------------------------------------------------- | --------------------------------- | ---------------------------------------------- |
+| [920666](https://podcastindex.org/podcast/920666)   | Podcasting 2.0                    | `podcast-audio`, `episode-audio` (latest item) |
+| [6642704](https://podcastindex.org/podcast/6642704) | Music From The Doerfel-Verse      | `album-audio`, `track-audio` (latest item)     |
+| [162612](https://podcastindex.org/podcast/162612)   | Geek News Central Podcast (Video) | `podcast-video`, `episode-video` (latest item) |
+| [7814960](https://podcastindex.org/podcast/7814960) | Them                              | `album-video`, `track-video` (latest video item) |
+
+Clip, official-clip, chapter, and playlist slots are **not** set by this job — configure those in
+management-web (`/web/embed-demo`).
+
+Local:
+
+```bash
+npm run build:packages
+npm run build -w apps/workers
+make local_seed_embed_demo_feeds
+```
+
+Kubernetes (suspended ops CronJob `seed-embed-demo-showcase-feeds`):
+
+```bash
+kubectl create job --from=cronjob/seed-embed-demo-showcase-feeds seed-embed-demo-$(date +%s) -n <ns>
+```
 
 ## Deterministic fixtures (local dev + E2E)
 
-Canonical fixture ids live in:
+Canonical fixture ids and port-2111 media URLs live in:
 
 - `tools/web/embed-fixture-constants.mjs` (seed scripts)
-- `apps/web/src/lib/embed/embedFixtureIds.ts` (runtime demo links)
 - `apps/web/e2e/helpers/seedConstants.ts` (Playwright)
 
 Shared seed core: `tools/web/seed-embed-fixtures.mjs` (called from `tools/web/seed-e2e.mjs`).
 
 | Command                 | Database                 | Notes                                                 |
 | ----------------------- | ------------------------ | ----------------------------------------------------- |
-| `make e2e_seed_web`     | E2E test DB (port 5732)  | Full account truncate + fixtures                      |
+| `make e2e_seed_web`     | E2E test DB (port 5732)  | Full account truncate + fixtures + showcase rows      |
 | `make local_seed_embed` | Local dev DB (port 5432) | Media/embed fixtures only; does not truncate accounts |
 
 Local bootstrap:
 
 1. `make local_env_setup` (and `make local_db_init` / `make local_infra_up` as needed)
 2. `make local_seed_embed`
-3. Open `/embed` — fixture showcase is on by default (`EMBED_DEMO_USE_FIXTURES=false` disables it)
+3. Open `/embed` — configured showcase rows appear after seed (or configure slots in management-web)
 
 Album list embeds use channel id **`embSmpAlbAud1`** (embed sample album, not the media-player music channel).
 
-### Embed sample assets (web public)
+### Embed sample assets (E2E asset server)
 
-Embed demo fixtures use **standalone** audio and artwork committed under
-`apps/web/public/embed-demo/` (served by the web app at `/embed-demo/audio/…` and
-`/embed-demo/images/…` in local dev, E2E, and production). They are separate from media-player E2E
-fixtures on the test-assets server under `/e2e/`. Each image uses a distinct background color so it
-is obvious which resource type is displayed.
+Embed demo enclosure and artwork URLs point at the deterministic test-asset server on port
+**2111** (auto-started during Playwright E2E):
 
-| Resource        | Display title (seed)           | Image file (color)                               |
-| --------------- | ------------------------------ | ------------------------------------------------ |
-| Podcast channel | `Embed Sample Podcast (audio)` | `embed-sample-podcast-channel-art.png` (#1D4E89) |
-| Episode (audio) | `Embed Sample Episode (audio)` | `embed-sample-episode-audio-art.png` (#2E86AB)   |
-| Album           | `Embed Sample Album (audio)`   | `embed-sample-album-channel-art.png` (#6B2D5C)   |
-| Track (audio)   | `Embed Sample Track (audio)`   | `embed-sample-track-audio-art.png` (#F18F01)     |
-| Clip            | `Embed Sample Clip (audio)`    | `embed-sample-clip-art.png` (#E9C46A)            |
+- Audio: `http://localhost:2111/e2e/audio/…`
+- Images: `http://localhost:2111/e2e/images/…`
 
-Regenerate binaries (writes into `apps/web/public/embed-demo/`):
+Regenerate committed binaries:
 
 ```bash
-npm run generate:embed-fixtures -w podverse-test-assets
+npm run generate:e2e-media -w podverse-test-assets
+npm run generate:e2e-images -w podverse-test-assets
 ```
 
-Seed scripts set absolute enclosure/artwork URLs via `EMBED_DEMO_WEB_ORIGIN` (defaults:
-`http://localhost:4032` for `make e2e_seed_web`, `http://localhost:3002` for `make local_seed_embed`).
-
-Canonical URL constants live in `tools/web/embed-fixture-constants.mjs` (mirror:
-`apps/web/src/lib/embed/embedFixtureIds.ts`, `apps/web/e2e/helpers/seedConstants.ts`).
+Seed scripts store absolute enclosure/artwork URLs from `embed-fixture-constants.mjs` (mirror:
+`apps/web/e2e/helpers/seedConstants.ts`).
 
 ### Artwork fallback in the embed UI
 
@@ -215,3 +271,6 @@ Default list rows (with current seed):
 - Layout: `apps/web/src/app/embed/layout.tsx`
 - Runtime helpers: `apps/web/src/lib/embed/`
 - E2E: `apps/web/e2e/embed-routes.spec.ts`, `embed-share-builder.spec.ts`, `embed-demo-index.spec.ts`
+- Management E2E: `apps/management-web/e2e/embed-demo-config.spec.ts`
+- API tests: `apps/api/src/routes/embedDemo.integration.test.ts`,
+  `apps/management-api/src/routes/embedDemo.integration.test.ts`

@@ -47,7 +47,13 @@ export const PlayButtonLarge: React.FC<PlayButtonLargeProps> = ({
   const icon = isPlaying ? <FaPause /> : <FaPlay />;
 
   return (
-    <button className={styles.playButtonLarge} aria-label={label} onClick={onClick} type="button">
+    <button
+      className={styles.playButtonLarge}
+      aria-label={label}
+      data-media-player-playing={isPlaying ? 'true' : undefined}
+      onClick={onClick}
+      type="button"
+    >
       {icon}
     </button>
   );

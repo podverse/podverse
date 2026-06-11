@@ -26,6 +26,9 @@ export class ManagementAdminRole {
   @Column({ name: 'bucket_crud', type: 'integer' })
   bucketCrud!: number;
 
+  @Column({ name: 'embed_demo_crud', type: 'integer' })
+  embedDemoCrud!: number;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   created_at!: Date;
 }

@@ -25,6 +25,7 @@ import { useMediaElementBridge } from '../../../hooks/useMediaElementBridge';
 import type { MoveNowPlayingToHistoryCallbackParams } from '../../../hooks/useQueueResourceMoveNowPlayingToHistory';
 import type { QueueResourcesLoadActiveResult } from '../../../hooks/useQueueResourcesLoadActive';
 import type { UpdateNowPlayingParams } from '../../../hooks/useQueueResourceUpdateNowPlaying';
+import { notifyEmbedListItemEnded } from '../../../lib/embed/embedListPlaybackAdvance';
 import {
   resolveEmbedPlaybackPauseAtSeconds,
   resolveEmbedPlaybackResetSeconds,
@@ -509,6 +510,10 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     onEnded() {
       void (async () => {
         if (isEmbedRouteRef.current) {
+          if (notifyEmbedListItemEnded()) {
+            return;
+          }
+
           finishEmbedPlayback();
           return;
         }

@@ -89,11 +89,9 @@ export async function expectEmbedPlayerDuration(
   page: Page,
   expectedDuration: string
 ): Promise<void> {
-  const duration = page
-    .getByTestId('embed-player-controls')
-    .locator('[class*="mediaPlayerProgressDuration"]');
-  await expect(duration).toBeVisible();
-  await expect(duration).toHaveText(expectedDuration);
+  const time = page.getByTestId('embed-player-time');
+  await expect(time).toBeVisible();
+  await expect(time).toHaveText(expectedDuration);
 }
 
 export async function expectEmbedTitleTruncated(page: Page): Promise<void> {

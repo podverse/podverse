@@ -37,7 +37,7 @@ export const PlaylistPageHeader: React.FC<PlaylistPageHeaderProps> = ({ playlist
         <div className={styles.actions}>
           <IconButton
             type="button"
-            onClick={() => setModalShare({ ...defaultModalShare, playlist })}
+            onClick={() => setModalShare({ ...defaultModalShare, playlist, playlist_item: null })}
             ariaLabel={tFeatures('share')}
             title={tFeatures('share')}
             color="secondary"

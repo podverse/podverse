@@ -1,6 +1,8 @@
+import { getTotalPages } from '@podverse/helpers';
+
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { getChannelForSeoPage, getPlaylistForSeoPage } from '../seo/fetchers';
-import type { EmbedListFetchResult } from './embedListTypes';
+import type { EmbedListData, EmbedListFetchResult, EmbedListGroup } from './embedListTypes';
 import type {
   EmbedAlbumListQueryParams,
   EmbedPlaylistListQueryParams,
@@ -14,6 +16,7 @@ import {
   mapChannelSoundbitesToEmbedListRows,
   mapPlaylistResourcesToEmbedListRows,
 } from './mapEmbedListRows';
+import { filterEmbedCurrentlyLiveChannelItems } from './resolveEmbedLiveItemStatus';
 
 type FetchEmbedListDataInput =
   | {
@@ -73,14 +76,23 @@ async function fetchEmbedChannelListData(
     if (albumQuery.type !== 'tracks') {
       return {
         status: 'ok',
-        listData: {
+        listData: buildEmbedListData({
+          routeKind: 'album',
+          resourceId: channel.id_text,
           headerTitle: channel.title ?? '',
           groups: [],
-        },
+          page: albumQuery.page,
+          totalPages: 1,
+        }),
       };
     }
 
-    const liveItems = await ssrApiRequestService.reqLiveItemGetManyByChannel(channel.id_text);
+    const liveItems =
+      albumQuery.page === 1
+        ? filterEmbedCurrentlyLiveChannelItems(
+            await ssrApiRequestService.reqLiveItemGetManyByChannel(channel.id_text)
+          )
+        : [];
     const responseItems = await ssrApiRequestService.reqItemGetManyByChannelBySeason({
       idOrIdText: channel.id_text,
       page: albumQuery.page,
@@ -89,13 +101,23 @@ async function fetchEmbedChannelListData(
     });
 
     const items = [...liveItems, ...responseItems.data];
+    const totalPages = getTotalPages(
+      responseItems.meta.count,
+      responseItems.meta.limit,
+      responseItems.data.length,
+      albumQuery.page
+    );
 
     return {
       status: 'ok',
-      listData: {
+      listData: buildEmbedListData({
+        routeKind: 'album',
+        resourceId: channel.id_text,
         headerTitle: channel.title ?? '',
         groups: mapAlbumItemsToEmbedListGroups(channel, items),
-      },
+        page: albumQuery.page,
+        totalPages,
+      }),
     };
   }
 
@@ -104,10 +126,14 @@ async function fetchEmbedChannelListData(
   if (podcastQuery.type === 'boosts') {
     return {
       status: 'ok',
-      listData: {
+      listData: buildEmbedListData({
+        routeKind: 'podcast',
+        resourceId: channel.id_text,
         headerTitle: channel.title ?? '',
         groups: [],
-      },
+        page: podcastQuery.page,
+        totalPages: 1,
+      }),
     };
   }
 
@@ -119,12 +145,23 @@ async function fetchEmbedChannelListData(
       range: podcastQuery.range,
     });
 
+    const totalPages = getTotalPages(
+      responseClips.meta.count,
+      responseClips.meta.limit,
+      responseClips.data.length,
+      podcastQuery.page
+    );
+
     return {
       status: 'ok',
-      listData: {
+      listData: buildEmbedListData({
+        routeKind: 'podcast',
+        resourceId: channel.id_text,
         headerTitle: channel.title ?? '',
         groups: mapChannelClipsToEmbedListRows(channel, responseClips.data),
-      },
+        page: podcastQuery.page,
+        totalPages,
+      }),
     };
   }
 
@@ -137,16 +174,32 @@ async function fetchEmbedChannelListData(
       }
     );
 
+    const totalPages = getTotalPages(
+      responseSoundbites.meta.count,
+      responseSoundbites.meta.limit,
+      responseSoundbites.data.length,
+      podcastQuery.page
+    );
+
     return {
       status: 'ok',
-      listData: {
+      listData: buildEmbedListData({
+        routeKind: 'podcast',
+        resourceId: channel.id_text,
         headerTitle: channel.title ?? '',
         groups: mapChannelSoundbitesToEmbedListRows(channel, responseSoundbites.data),
-      },
+        page: podcastQuery.page,
+        totalPages,
+      }),
     };
   }
 
-  const liveItems = await ssrApiRequestService.reqLiveItemGetManyByChannel(channel.id_text);
+  const liveItems =
+    podcastQuery.page === 1
+      ? filterEmbedCurrentlyLiveChannelItems(
+          await ssrApiRequestService.reqLiveItemGetManyByChannel(channel.id_text)
+        )
+      : [];
   const responseItems = await ssrApiRequestService.reqItemGetManyByChannel({
     idOrIdText: channel.id_text,
     page: podcastQuery.page,
@@ -155,13 +208,23 @@ async function fetchEmbedChannelListData(
   });
 
   const items = [...liveItems, ...responseItems.data];
+  const totalPages = getTotalPages(
+    responseItems.meta.count,
+    responseItems.meta.limit,
+    responseItems.data.length,
+    podcastQuery.page
+  );
 
   return {
     status: 'ok',
-    listData: {
+    listData: buildEmbedListData({
+      routeKind: 'podcast',
+      resourceId: channel.id_text,
       headerTitle: channel.title ?? '',
       groups: mapChannelItemsToEmbedListRows(channel, items),
-    },
+      page: podcastQuery.page,
+      totalPages,
+    }),
   };
 }
 
@@ -187,11 +250,43 @@ async function fetchEmbedPlaylistListData(
     }
   );
 
+  const totalPages = getTotalPages(
+    response.meta.count,
+    response.meta.limit,
+    response.data.length,
+    listQuery.page
+  );
+
   return {
     status: 'ok',
-    listData: {
+    listData: buildEmbedListData({
+      routeKind: 'playlist',
+      resourceId: playlist.id_text,
       headerTitle: playlist.title ?? '',
       groups: mapPlaylistResourcesToEmbedListRows(response.data),
+      page: listQuery.page,
+      totalPages,
+    }),
+  };
+}
+
+function buildEmbedListData(input: {
+  routeKind: EmbedListData['routeKind'];
+  resourceId: string;
+  headerTitle: string;
+  groups: EmbedListGroup[];
+  page: number;
+  totalPages: number;
+}): EmbedListData {
+  return {
+    headerTitle: input.headerTitle,
+    groups: input.groups,
+    routeKind: input.routeKind,
+    resourceId: input.resourceId,
+    pagination: {
+      page: input.page,
+      totalPages: input.totalPages,
+      hasNextPage: input.page < input.totalPages,
     },
   };
 }

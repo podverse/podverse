@@ -3,12 +3,12 @@
 import { useState } from 'react';
 
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
-// import { EmbedPlayerMoreButton } from './EmbedPlayerMoreButton';
 import { PlayButton } from '../MediaPlayer/Buttons/PlayButton';
 import { MediaPlayerProgress } from '../MediaPlayer/Sliders/MediaPlayerProgress';
 import { EmbedAlternateEnclosureButton } from './EmbedAlternateEnclosureButton';
 import { EmbedAlternateEnclosureModal } from './EmbedAlternateEnclosureModal';
-import { EmbedPlaybackSpeedButton } from './EmbedPlaybackSpeedButton';
+import { EmbedPlayerMoreButton } from './EmbedPlayerMoreButton';
+import { EmbedPlayerTime } from './EmbedPlayerTime';
 
 import styles from '../../styles/components/embed/EmbedPlayerControls.module.scss';
 
@@ -27,8 +27,8 @@ export function EmbedPlayerControls({ showChapterMarkers }: EmbedPlayerControlsP
         <div className={styles.progressRow}>
           <MediaPlayerProgress layoutVariant="embed" showChapterMarkers={showChapterMarkers} />
         </div>
-        <div className={styles.transportRow} data-testid="embed-player-transport">
-          <PlayButton />
+        <EmbedPlayerTime />
+        <div className={styles.actionsRow} data-testid="embed-player-transport">
           {showAlternateEnclosureButton ? (
             <EmbedAlternateEnclosureButton
               onOpen={() => {
@@ -36,8 +36,10 @@ export function EmbedPlayerControls({ showChapterMarkers }: EmbedPlayerControlsP
               }}
             />
           ) : null}
-          <EmbedPlaybackSpeedButton />
-          {/* <EmbedPlayerMoreButton /> */}
+          <EmbedPlayerMoreButton />
+        </div>
+        <div className={styles.playButtonCell} data-testid="embed-player-play-button-cell">
+          <PlayButton />
         </div>
       </div>
       <EmbedAlternateEnclosureModal

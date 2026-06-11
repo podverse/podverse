@@ -8,7 +8,6 @@ import { useConfig } from '../../contexts/Config';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useModals } from '../../contexts/Modals';
 import { isTermsAcceptanceRequired } from '../../lib/termsAcceptanceRequired';
-import { ModalEmbedBuilder } from '../Modal/ModalEmbedBuilder';
 import { shouldShowServerEnvironmentDisclaimer } from '../Modal/serverEnvironmentDisclaimer';
 
 const LazyModalAuthLogin = dynamic(
@@ -89,7 +88,6 @@ export const Modals: React.FC = () => {
     modalClip,
     modalClipCreated,
     modalShare,
-    modalEmbedBuilder,
     modalFunding,
     modalSourceSelector,
     modalBoost,
@@ -107,14 +105,6 @@ export const Modals: React.FC = () => {
     !showDisclaimer &&
     isTermsAcceptanceRequired(loggedInAccount, config.public.legal.terms.version);
 
-  const shouldMountEmbedBuilder =
-    modalEmbedBuilder.channel !== null ||
-    modalEmbedBuilder.item !== null ||
-    modalEmbedBuilder.clip !== null ||
-    modalEmbedBuilder.item_chapter !== null ||
-    modalEmbedBuilder.item_soundbite !== null ||
-    modalEmbedBuilder.playlist !== null;
-
   return (
     <>
       {modalAuthLogin.isOpen && <LazyModalAuthLogin />}
@@ -128,7 +118,6 @@ export const Modals: React.FC = () => {
         modalShare.item_chapter !== null ||
         modalShare.item_soundbite !== null ||
         modalShare.playlist !== null) && <LazyModalShare />}
-      {shouldMountEmbedBuilder && <ModalEmbedBuilder />}
       {(modalFunding.channel_fundings.length > 0 || modalFunding.item_fundings.length > 0) && (
         <LazyModalFunding />
       )}

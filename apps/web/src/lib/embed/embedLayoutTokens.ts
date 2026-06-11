@@ -5,7 +5,11 @@
 export const EMBED_ROOT_FONT_SIZE_PX = 16;
 
 export const EMBED_PANEL_PADDING_BLOCK_PX = 16;
-export const EMBED_PANEL_SECTION_GAP_PX = 8;
+/** Vertical gap between embed player info (art/titles) and controls / video placeholder. */
+export const EMBED_PLAYER_INFO_CONTROLS_GAP_PX = 8;
+
+/** @deprecated Use EMBED_PLAYER_INFO_CONTROLS_GAP_PX */
+export const EMBED_PANEL_SECTION_GAP_PX = EMBED_PLAYER_INFO_CONTROLS_GAP_PX;
 
 export const EMBED_PLAYER_ART_SIZE_PX = 78;
 export const EMBED_PLAY_BUTTON_SIZE_REM = 3;

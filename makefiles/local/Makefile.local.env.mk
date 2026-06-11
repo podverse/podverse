@@ -2,7 +2,7 @@
 
 .PHONY: local_env_prepare local_env_link local_env_setup local_env_clean
 .PHONY: local_env_sync_db_passwords local_env_worktree_setup local_db_sync_passwords
-.PHONY: local_env_export_secrets_to_home local_seed_embed
+.PHONY: local_env_export_secrets_to_home local_seed_embed local_seed_embed_demo_feeds
 
 local_env_link:
 	bash scripts/local-env/link-overrides.sh
@@ -194,3 +194,9 @@ local_seed_embed: infra/config/local/db.env
 	@echo "Seeding local embed + media-player fixtures..."
 	@node tools/web/seed-local-embed.mjs
 	@echo "Local embed seed complete."
+
+# Parse Podcast Index showcase feeds and upsert embed_demo_showcase rows (always re-parses).
+local_seed_embed_demo_feeds: infra/config/local/db.env
+	@echo "Seeding embed demo showcase from Podcast Index feeds..."
+	@npm run seed_embed_demo_showcase_feeds -w apps/workers
+	@echo "Embed demo showcase feed seed complete."

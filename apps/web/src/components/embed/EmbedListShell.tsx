@@ -1,14 +1,28 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+import { LoadingSpinner } from '@podverse/ui';
 
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
 import { useEmbedPlaybackLoad } from '../../hooks/useEmbedPlaybackLoad';
+import { registerEmbedListEndedHandler } from '../../lib/embed/embedListPlaybackAdvance';
 import type {
   EmbedListData,
+  EmbedListGroup,
   EmbedListRow as EmbedListRowType,
 } from '../../lib/embed/embedListTypes';
-import type { EmbedMediaType, EmbedSharedQueryParams } from '../../lib/embed/embedTypes';
+import type {
+  EmbedAlbumListQueryParams,
+  EmbedMediaType,
+  EmbedPlaylistListQueryParams,
+  EmbedPodcastListQueryParams,
+  EmbedSharedQueryParams,
+} from '../../lib/embed/embedTypes';
+import {
+  fetchEmbedListPageClient,
+  mergeEmbedListGroups,
+} from '../../lib/embed/fetchEmbedListPageClient';
 import {
   flattenEmbedListRows,
   resolveEmbedListDefaultRow,
@@ -28,35 +42,57 @@ type EmbedListShellProps = {
   listData: EmbedListData;
   sharedQuery: EmbedSharedQueryParams;
   playIdText: string | null;
+  listQuery: EmbedPodcastListQueryParams | EmbedAlbumListQueryParams | EmbedPlaylistListQueryParams;
 };
 
-export function EmbedListShell({ listData, sharedQuery, playIdText }: EmbedListShellProps) {
-  const allRows = useMemo(() => flattenEmbedListRows(listData.groups), [listData.groups]);
+export function EmbedListShell({
+  listData,
+  sharedQuery,
+  playIdText,
+  listQuery,
+}: EmbedListShellProps) {
+  const [groups, setGroups] = useState<EmbedListGroup[]>(listData.groups);
+  const [pagination, setPagination] = useState(listData.pagination);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const loadMoreSentinelRef = useRef<HTMLDivElement | null>(null);
+
+  const allRows = useMemo(() => flattenEmbedListRows(groups), [groups]);
+  const lastRowKey = allRows.at(-1)?.rowKey ?? null;
   const initialRow = useMemo(
     () => resolveEmbedListDefaultRow(allRows, playIdText),
     [allRows, playIdText]
   );
   const hasMixedMedia = useMemo(() => listHasMixedEmbedMedia(allRows), [allRows]);
+  const presentationLocked = sharedQuery.presentationLocked;
 
   const [selectedRow, setSelectedRow] = useState<EmbedListRowType | null>(initialRow);
-  const [presentationStyle, setPresentationStyle] = useState<EmbedMediaType>(() =>
-    resolveInitialPresentationStyle(initialRow)
-  );
+  const [presentationStyle, setPresentationStyle] = useState<EmbedMediaType>(() => {
+    if (presentationLocked) {
+      return sharedQuery.presentation;
+    }
+
+    return resolveInitialPresentationStyle(initialRow);
+  });
   const [playbackStartSeconds, setPlaybackStartSeconds] = useState(sharedQuery.startSeconds);
   const [shouldPlay, setShouldPlay] = useState(sharedQuery.autoplay);
   const { mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
 
   useEffect(() => {
+    if (presentationLocked) {
+      setPresentationStyle(sharedQuery.presentation);
+      return;
+    }
+
     if (!hasMixedMedia) {
       setPresentationStyle(resolveInitialPresentationStyle(selectedRow));
     }
-  }, [hasMixedMedia, selectedRow]);
+  }, [hasMixedMedia, presentationLocked, selectedRow, sharedQuery.presentation]);
 
   useEmbedPlaybackLoad({
     resource: selectedRow,
     shouldPlay,
     startSeconds: playbackStartSeconds,
-    enabled: selectedRow !== null && selectedRow.mediaType === 'audio',
+    enabled: selectedRow !== null && presentationStyle === 'audio',
   });
 
   const handleRowSelect = useCallback(
@@ -68,12 +104,127 @@ export function EmbedListShell({ listData, sharedQuery, playIdText }: EmbedListS
       }
 
       setSelectedRow(row);
-      setPresentationStyle(resolveInitialPresentationStyle(row));
+      if (!presentationLocked) {
+        setPresentationStyle(resolveInitialPresentationStyle(row));
+      }
       setPlaybackStartSeconds(0);
       setShouldPlay(true);
     },
-    [mpIsPlaying, selectedRow?.rowKey, setMPIsPlaying]
+    [mpIsPlaying, presentationLocked, selectedRow?.rowKey, setMPIsPlaying]
   );
+
+  const loadNextPage = useCallback(
+    async (autoplayFirstNewRow: boolean) => {
+      if (!pagination.hasNextPage || isLoadingMore) {
+        return;
+      }
+
+      setIsLoadingMore(true);
+      const nextPage = pagination.page + 1;
+      const nextListQuery = { ...listQuery, page: nextPage };
+
+      try {
+        const nextPageData = await fetchEmbedListPageClient({
+          routeKind: listData.routeKind,
+          resourceId: listData.resourceId,
+          headerTitle: listData.headerTitle,
+          listQuery: nextListQuery,
+        } as Parameters<typeof fetchEmbedListPageClient>[0]);
+
+        if (nextPageData === null) {
+          return;
+        }
+
+        setGroups((current) => mergeEmbedListGroups(current, nextPageData.groups));
+        setPagination(nextPageData.pagination);
+
+        if (autoplayFirstNewRow) {
+          const appendedRows = flattenEmbedListRows(nextPageData.groups);
+          const firstNewRow = appendedRows[0] ?? null;
+          if (firstNewRow) {
+            setSelectedRow(firstNewRow);
+            if (!presentationLocked) {
+              setPresentationStyle(resolveInitialPresentationStyle(firstNewRow));
+            }
+            setPlaybackStartSeconds(0);
+            setShouldPlay(true);
+          }
+        }
+      } finally {
+        setIsLoadingMore(false);
+      }
+    },
+    [
+      presentationLocked,
+      isLoadingMore,
+      listData.headerTitle,
+      listData.resourceId,
+      listData.routeKind,
+      listQuery,
+      pagination.hasNextPage,
+      pagination.page,
+    ]
+  );
+
+  const advanceToNextRow = useCallback(() => {
+    if (!shouldPlay || selectedRow === null) {
+      return;
+    }
+
+    const currentIndex = allRows.findIndex((row) => row.rowKey === selectedRow.rowKey);
+    const nextRow = currentIndex >= 0 ? allRows[currentIndex + 1] : null;
+
+    if (nextRow) {
+      setSelectedRow(nextRow);
+      if (!presentationLocked) {
+        setPresentationStyle(resolveInitialPresentationStyle(nextRow));
+      }
+      setPlaybackStartSeconds(0);
+      setShouldPlay(true);
+      return;
+    }
+
+    if (pagination.hasNextPage && !isLoadingMore) {
+      void loadNextPage(true);
+    }
+  }, [
+    allRows,
+    isLoadingMore,
+    loadNextPage,
+    presentationLocked,
+    pagination.hasNextPage,
+    selectedRow,
+    shouldPlay,
+  ]);
+
+  useEffect(() => {
+    registerEmbedListEndedHandler(advanceToNextRow);
+    return () => {
+      registerEmbedListEndedHandler(null);
+    };
+  }, [advanceToNextRow]);
+
+  useEffect(() => {
+    const sentinel = loadMoreSentinelRef.current;
+    if (!sentinel || !pagination.hasNextPage) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry?.isIntersecting) {
+          void loadNextPage(false);
+        }
+      },
+      { rootMargin: '120px' }
+    );
+
+    observer.observe(sentinel);
+    return () => {
+      observer.disconnect();
+    };
+  }, [loadNextPage, pagination.hasNextPage]);
 
   const selectedResource = selectedRow
     ? {
@@ -88,6 +239,8 @@ export function EmbedListShell({ listData, sharedQuery, playIdText }: EmbedListS
   const shellClassName =
     presentationStyle === 'video' ? `${styles.shell} ${styles.shellVideo}` : styles.shell;
 
+  const showPresentationSelector = hasMixedMedia && !presentationLocked;
+
   return (
     <section className={shellClassName} data-testid="embed-list-shell">
       <EmbedPlayerPanel
@@ -99,25 +252,37 @@ export function EmbedListShell({ listData, sharedQuery, playIdText }: EmbedListS
           autoplay: shouldPlay,
           startSeconds: playbackStartSeconds,
           showChapterMarkers: sharedQuery.showChapterMarkers,
+          presentation: sharedQuery.presentation,
+          presentationLocked: sharedQuery.presentationLocked,
         }}
       />
-      {hasMixedMedia ? (
+      {showPresentationSelector ? (
         <EmbedPresentationStyleSelector onChange={setPresentationStyle} value={presentationStyle} />
       ) : null}
       <div className={styles.listRegion} data-testid="embed-list-region">
-        {listData.groups.map((group) => (
-          <div key={group.groupKey}>
+        {groups.map((group) => (
+          <div className={styles.listGroup} key={group.groupKey}>
             {group.title ? <div className={groupStyles.groupTitle}>{group.title}</div> : null}
             {group.rows.map((row) => (
               <EmbedListRow
                 key={row.rowKey}
                 isActive={selectedRow?.rowKey === row.rowKey}
+                isLastRow={row.rowKey === lastRowKey}
                 onSelect={() => handleRowSelect(row)}
                 row={row}
               />
             ))}
           </div>
         ))}
+        {pagination.hasNextPage ? (
+          <div
+            className={styles.loadMoreSentinel}
+            data-testid="embed-list-load-more"
+            ref={loadMoreSentinelRef}
+          >
+            {isLoadingMore ? <LoadingSpinner ariaLabel="Loading more items" size="small" /> : null}
+          </div>
+        ) : null}
       </div>
     </section>
   );

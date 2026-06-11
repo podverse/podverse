@@ -1,9 +1,23 @@
-export type { EmbedDemoShowcaseEntry, EmbedDemoShowcaseSpec } from './embedDemoLinks';
-export { EMBED_DEMO_SHOWCASE_SPECS } from './embedDemoLinks';
+export type { EmbedDemoShowcaseEntry } from './embedDemoLinks';
+export {
+  EMBED_DEMO_SHOWCASE_CATALOG,
+  resolveEmbedDemoPreviewPresentationStyle,
+} from './embedDemoLinks';
 export { resolveEmbedDemoShowcase } from './resolveEmbedDemoShowcase';
 export { buildEmbedSinglePlaybackTarget } from './buildEmbedSinglePlaybackTarget';
 export { buildEmbedMainSiteUrl, embedPathnameToMainSitePath } from './buildEmbedMainSiteUrl';
 export { buildEmbedUrl, buildEmbedUrlPath, resolveEmbedUrlTarget } from './buildEmbedUrl';
+export { buildEmbedBuilderUrl, buildEmbedBuilderUrlPath } from './buildEmbedBuilderUrl';
+export type { EmbedBuilderUrlInput } from './buildEmbedBuilderUrl';
+export {
+  buildEmbedUrlFromBuilderParams,
+  buildEmbedUrlPathFromBuilderParams,
+} from './buildEmbedUrlFromBuilderParams';
+export { parseEmbedBuilderQueryParams } from './parseEmbedBuilderQueryParams';
+export { getEmbedShareActions } from './getEmbedShareActions';
+export type { EmbedShareAction } from './getEmbedShareActions';
+export { EMBED_BUILDER_TYPES } from './embedBuilderTypes';
+export type { EmbedBuilderQueryParams, EmbedBuilderType } from './embedBuilderTypes';
 export type {
   EmbedUrlBuildResult,
   EmbedUrlEntityContext,
@@ -25,6 +39,7 @@ export { formatEmbedDisplayTitle } from './formatEmbedDisplayTitle';
 export { resolveEmbedMediaType } from './resolveEmbedMediaType';
 export type {
   EmbedAlbumListQueryParams,
+  EmbedPresentationQuery,
   EmbedLayoutType,
   EmbedMediaType,
   EmbedPlaybackGuardrails,

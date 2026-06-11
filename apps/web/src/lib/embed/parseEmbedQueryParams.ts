@@ -27,6 +27,7 @@ const sharedQuerySchema = z.object({
     .optional()
     .default(0),
   chapter_markers: z.preprocess(parseEmbedChapterMarkers, z.boolean()).optional().default(true),
+  presentation: z.enum(['audio', 'video']).optional().default('audio'),
 });
 
 const singleQuerySchema = sharedQuerySchema;
@@ -96,11 +97,18 @@ function parseSchemaWithDefaults<T extends z.ZodTypeAny>(
   return schema.parse({});
 }
 
-function mapSharedQuery(parsed: z.infer<typeof sharedQuerySchema>): EmbedSharedQueryParams {
+function mapSharedQuery(
+  parsed: z.infer<typeof sharedQuerySchema>,
+  raw: Record<string, string | string[] | undefined>
+): EmbedSharedQueryParams {
+  const normalized = normalizeEmbedSearchParams(raw);
+
   return {
     autoplay: parsed.autoplay,
     startSeconds: parsed.t,
     showChapterMarkers: parsed.chapter_markers,
+    presentation: parsed.presentation,
+    presentationLocked: normalized.presentation !== undefined,
   };
 }
 
@@ -108,7 +116,7 @@ export function parseEmbedSingleQueryParams(
   raw: Record<string, string | string[] | undefined>
 ): EmbedSingleQueryParams {
   const parsed = parseSchemaWithDefaults(singleQuerySchema, raw);
-  return mapSharedQuery(parsed);
+  return mapSharedQuery(parsed, raw);
 }
 
 export function parseEmbedPodcastListQueryParams(
@@ -117,7 +125,7 @@ export function parseEmbedPodcastListQueryParams(
   const parsed = parseSchemaWithDefaults(podcastListQuerySchema, raw);
 
   return {
-    ...mapSharedQuery(parsed),
+    ...mapSharedQuery(parsed, raw),
     type: parsed.type,
     sort: parsed.sort,
     page: parsed.page,
@@ -132,7 +140,7 @@ export function parseEmbedAlbumListQueryParams(
   const parsed = parseSchemaWithDefaults(albumListQuerySchema, raw);
 
   return {
-    ...mapSharedQuery(parsed),
+    ...mapSharedQuery(parsed, raw),
     type: parsed.type,
     sort: parsed.sort,
     page: parsed.page,
@@ -147,7 +155,7 @@ export function parseEmbedPlaylistListQueryParams(
   const parsed = parseSchemaWithDefaults(playlistListQuerySchema, raw);
 
   return {
-    ...mapSharedQuery(parsed),
+    ...mapSharedQuery(parsed, raw),
     page: parsed.page,
     playIdText: parsed.play_id_text,
   };

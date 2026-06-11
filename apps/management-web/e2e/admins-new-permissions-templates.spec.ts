@@ -19,6 +19,7 @@ const ROLES_FIXTURE = {
       stats_crud: 15,
       billing_prices_crud: 15,
       bucket_crud: 15,
+      embed_demo_crud: 15,
       created_at: null,
     },
     {
@@ -32,6 +33,7 @@ const ROLES_FIXTURE = {
       stats_crud: 0,
       billing_prices_crud: 0,
       bucket_crud: 15,
+      embed_demo_crud: 15,
       created_at: null,
     },
   ],

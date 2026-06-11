@@ -13,6 +13,8 @@ describe('parseEmbedSingleQueryParams', () => {
       autoplay: false,
       startSeconds: 0,
       showChapterMarkers: true,
+      presentation: 'audio',
+      presentationLocked: false,
     });
   });
 
@@ -26,6 +28,8 @@ describe('parseEmbedSingleQueryParams', () => {
       autoplay: false,
       startSeconds: 0,
       showChapterMarkers: true,
+      presentation: 'audio',
+      presentationLocked: false,
     });
   });
 
@@ -39,6 +43,18 @@ describe('parseEmbedSingleQueryParams', () => {
       autoplay: true,
       startSeconds: 42,
       showChapterMarkers: true,
+      presentation: 'audio',
+      presentationLocked: false,
+    });
+  });
+
+  it('locks presentation when presentation query param is present', () => {
+    expect(parseEmbedSingleQueryParams({ presentation: 'video' })).toEqual({
+      autoplay: false,
+      startSeconds: 0,
+      showChapterMarkers: true,
+      presentation: 'video',
+      presentationLocked: true,
     });
   });
 
@@ -58,6 +74,8 @@ describe('parseEmbedPodcastListQueryParams', () => {
       autoplay: false,
       startSeconds: 0,
       showChapterMarkers: true,
+      presentation: 'audio',
+      presentationLocked: false,
       type: 'episodes',
       sort: 'recent',
       page: 1,
@@ -76,6 +94,8 @@ describe('parseEmbedPodcastListQueryParams', () => {
       autoplay: false,
       startSeconds: 0,
       showChapterMarkers: true,
+      presentation: 'audio',
+      presentationLocked: false,
       type: 'episodes',
       sort: 'recent',
       page: 1,
@@ -101,6 +121,8 @@ describe('parseEmbedAlbumListQueryParams', () => {
       autoplay: false,
       startSeconds: 0,
       showChapterMarkers: true,
+      presentation: 'audio',
+      presentationLocked: false,
       type: 'tracks',
       sort: 'forward',
       page: 1,
@@ -116,6 +138,8 @@ describe('parseEmbedPlaylistListQueryParams', () => {
       autoplay: false,
       startSeconds: 0,
       showChapterMarkers: true,
+      presentation: 'audio',
+      presentationLocked: false,
       page: 1,
       playIdText: null,
     });
