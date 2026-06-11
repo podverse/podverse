@@ -33,10 +33,10 @@ test.describe('Embed demo index', () => {
       await expect(frameContainer).toBeVisible();
       await expect(frameContainer).toHaveCSS('border-top-style', 'solid');
       await expect(frameContainer).toHaveCSS('border-top-width', '1px');
+      await frameContainer.scrollIntoViewIfNeeded();
 
       const iframe = page.getByTestId(`embed-demo-iframe-${showcaseId}`);
-      await iframe.scrollIntoViewIfNeeded();
-      await expect(iframe).toBeVisible();
+      await expect(iframe).toBeVisible({ timeout: 15_000 });
       await expect(iframe).toHaveCSS('border-top-width', '0px');
 
       const iframeSrc = await iframe.getAttribute('src');

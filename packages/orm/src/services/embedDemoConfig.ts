@@ -33,22 +33,64 @@ export class EmbedDemoConfigValidationError extends Error {
 export class EmbedDemoConfigService {
   private dataSourceRead: DataSource;
   private dataSourceReadWrite: DataSource;
-  private itemService: ItemService;
-  private channelService: ChannelService;
-  private clipService: ClipService;
-  private itemChapterService: ItemChapterService;
-  private itemSoundbiteService: ItemSoundbiteService;
-  private playlistService: PlaylistService;
+  private itemServiceInstance: ItemService | undefined;
+  private channelServiceInstance: ChannelService | undefined;
+  private clipServiceInstance: ClipService | undefined;
+  private itemChapterServiceInstance: ItemChapterService | undefined;
+  private itemSoundbiteServiceInstance: ItemSoundbiteService | undefined;
+  private playlistServiceInstance: PlaylistService | undefined;
 
   constructor(params?: { dataSourceRead?: DataSource; dataSourceReadWrite?: DataSource }) {
     this.dataSourceRead = params?.dataSourceRead ?? getDataSourceRead();
     this.dataSourceReadWrite = params?.dataSourceReadWrite ?? getDataSourceReadWrite();
-    this.itemService = new ItemService();
-    this.channelService = new ChannelService();
-    this.clipService = new ClipService();
-    this.itemChapterService = new ItemChapterService();
-    this.itemSoundbiteService = new ItemSoundbiteService();
-    this.playlistService = new PlaylistService();
+  }
+
+  private getItemService(): ItemService {
+    if (this.itemServiceInstance === undefined) {
+      this.itemServiceInstance = new ItemService();
+    }
+
+    return this.itemServiceInstance;
+  }
+
+  private getChannelService(): ChannelService {
+    if (this.channelServiceInstance === undefined) {
+      this.channelServiceInstance = new ChannelService();
+    }
+
+    return this.channelServiceInstance;
+  }
+
+  private getClipService(): ClipService {
+    if (this.clipServiceInstance === undefined) {
+      this.clipServiceInstance = new ClipService();
+    }
+
+    return this.clipServiceInstance;
+  }
+
+  private getItemChapterService(): ItemChapterService {
+    if (this.itemChapterServiceInstance === undefined) {
+      this.itemChapterServiceInstance = new ItemChapterService();
+    }
+
+    return this.itemChapterServiceInstance;
+  }
+
+  private getItemSoundbiteService(): ItemSoundbiteService {
+    if (this.itemSoundbiteServiceInstance === undefined) {
+      this.itemSoundbiteServiceInstance = new ItemSoundbiteService();
+    }
+
+    return this.itemSoundbiteServiceInstance;
+  }
+
+  private getPlaylistService(): PlaylistService {
+    if (this.playlistServiceInstance === undefined) {
+      this.playlistServiceInstance = new PlaylistService();
+    }
+
+    return this.playlistServiceInstance;
   }
 
   async getConfiguredShowcases(): Promise<EmbedDemoShowcaseApiEntry[]> {
@@ -169,7 +211,7 @@ export class EmbedDemoConfigService {
     routeKind: 'episode' | 'track',
     resourceIdText: string
   ): Promise<void> {
-    const item = await this.itemService.getByIdText(resourceIdText, {
+    const item = await this.getItemService().getByIdText(resourceIdText, {
       channel: { feed: { feed_policy: true } },
     });
 
@@ -230,7 +272,7 @@ export class EmbedDemoConfigService {
   }
 
   private async validateClip(resourceIdText: string): Promise<void> {
-    const clip = await this.clipService.getByIdText(resourceIdText, {
+    const clip = await this.getClipService().getByIdText(resourceIdText, {
       relations: { item: { channel: { feed: { feed_policy: true } } } },
     });
 
@@ -246,7 +288,7 @@ export class EmbedDemoConfigService {
   }
 
   private async validateSoundbite(resourceIdText: string): Promise<void> {
-    const soundbite = await this.itemSoundbiteService.getByIdText(resourceIdText, {
+    const soundbite = await this.getItemSoundbiteService().getByIdText(resourceIdText, {
       relations: { item: { channel: { feed: { feed_policy: true } } } },
     });
 
@@ -262,7 +304,7 @@ export class EmbedDemoConfigService {
   }
 
   private async validateChapter(resourceIdText: string): Promise<void> {
-    const chapter = await this.itemChapterService.getByIdText(resourceIdText);
+    const chapter = await this.getItemChapterService().getByIdText(resourceIdText);
 
     if (chapter === null) {
       throw new EmbedDemoConfigValidationError(`Chapter not found: ${resourceIdText}`);
@@ -273,7 +315,7 @@ export class EmbedDemoConfigService {
     showcaseId: EmbedDemoShowcaseId,
     resourceIdText: string
   ): Promise<void> {
-    const channel = await this.channelService.getByIdText(resourceIdText, {
+    const channel = await this.getChannelService().getByIdText(resourceIdText, {
       feed: { feed_policy: true },
     });
 
@@ -316,7 +358,7 @@ export class EmbedDemoConfigService {
   }
 
   private async validateAlbumChannel(resourceIdText: string): Promise<void> {
-    const channel = await this.channelService.getByIdText(resourceIdText, {
+    const channel = await this.getChannelService().getByIdText(resourceIdText, {
       feed: { feed_policy: true },
     });
 
@@ -339,7 +381,7 @@ export class EmbedDemoConfigService {
   }
 
   private async validatePlaylist(resourceIdText: string): Promise<void> {
-    const playlist = await this.playlistService.getByIdText(resourceIdText);
+    const playlist = await this.getPlaylistService().getByIdText(resourceIdText);
 
     if (playlist === null) {
       throw new EmbedDemoConfigValidationError(`Playlist not found: ${resourceIdText}`);
@@ -359,28 +401,28 @@ export class EmbedDemoConfigService {
     switch (routeKind) {
       case 'episode':
       case 'track': {
-        const item = await this.itemService.getByIdText(resourceIdText);
+        const item = await this.getItemService().getByIdText(resourceIdText);
         return item?.title ?? null;
       }
       case 'clip': {
-        const clip = await this.clipService.getByIdText(resourceIdText);
+        const clip = await this.getClipService().getByIdText(resourceIdText);
         return clip?.title ?? clip?.item?.title ?? null;
       }
       case 'official-clip': {
-        const soundbite = await this.itemSoundbiteService.getByIdText(resourceIdText);
+        const soundbite = await this.getItemSoundbiteService().getByIdText(resourceIdText);
         return soundbite?.title ?? soundbite?.item?.title ?? null;
       }
       case 'chapter': {
-        const chapter = await this.itemChapterService.getByIdText(resourceIdText);
+        const chapter = await this.getItemChapterService().getByIdText(resourceIdText);
         return chapter?.title ?? null;
       }
       case 'podcast':
       case 'album': {
-        const channel = await this.channelService.getByIdText(resourceIdText);
+        const channel = await this.getChannelService().getByIdText(resourceIdText);
         return channel?.title ?? null;
       }
       case 'playlist': {
-        const playlist = await this.playlistService.getByIdText(resourceIdText);
+        const playlist = await this.getPlaylistService().getByIdText(resourceIdText);
         return playlist?.title ?? null;
       }
       default: {

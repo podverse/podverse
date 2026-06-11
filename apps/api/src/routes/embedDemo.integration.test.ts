@@ -20,7 +20,10 @@ vi.mock('@podverse/orm', async (importOriginal) => {
   };
 });
 
-const showcaseBase = `${getBaseApiUrl()}/embed-demo`;
+/** Restored in afterAll — sync with tools/web/embed-fixture-constants.mjs */
+const E2E_EMBED_SHOWCASE_EPISODE_AUDIO_ID_TEXT = 'embSmpEpAud1';
+
+let showcaseBase: string;
 
 async function seedEmbedDemoShowcaseFixture(ormContext: ORMContext): Promise<{
   itemId: number;
@@ -49,16 +52,13 @@ async function seedEmbedDemoShowcaseFixture(ormContext: ORMContext): Promise<{
     })
   );
 
-  const itemIdText = `embApiIt${String(runId).slice(-6)}`;
-
   const itemRepo = manager.getRepository(Item);
   const item = await itemRepo.save(
     itemRepo.create({
-      id_text: itemIdText,
-      channel_id: channel.id,
+      channel_id: String(channel.id),
       guid: `https://embed-demo-api-${runId}.example.com/item-guid`,
       title: 'Heavenly Bodies',
-      item_flag_status_id: 1,
+      item_flag_status: { id: 1 },
       pub_date: new Date(),
     })
   );
@@ -68,11 +68,11 @@ async function seedEmbedDemoShowcaseFixture(ormContext: ORMContext): Promise<{
   await showcaseRepo.save(
     showcaseRepo.create({
       showcase_id: 'episode-audio',
-      resource_id_text: itemIdText,
+      resource_id_text: item.id_text,
     })
   );
 
-  return { itemId: item.id, itemIdText };
+  return { itemId: item.id, itemIdText: item.id_text };
 }
 
 describe('Embed demo public API', () => {
@@ -82,6 +82,7 @@ describe('Embed demo public API', () => {
   let seededItemIdText: string | undefined;
 
   beforeAll(async () => {
+    showcaseBase = `${await getBaseApiUrl()}/embed-demo`;
     const started = await startTestApp();
     server = started.server;
     ormContext = started.ormContext;
@@ -96,9 +97,14 @@ describe('Embed demo public API', () => {
   afterAll(async () => {
     if (ormContext !== undefined) {
       const { EmbedDemoShowcase, Item } = await import('@podverse/orm');
-      await ormContext.dataSourceReadWrite
-        .getRepository(EmbedDemoShowcase)
-        .delete({ showcase_id: 'episode-audio' });
+      const showcaseRepo = ormContext.dataSourceReadWrite.getRepository(EmbedDemoShowcase);
+      await showcaseRepo.delete({ showcase_id: 'episode-audio' });
+      await showcaseRepo.save(
+        showcaseRepo.create({
+          showcase_id: 'episode-audio',
+          resource_id_text: E2E_EMBED_SHOWCASE_EPISODE_AUDIO_ID_TEXT,
+        })
+      );
       if (seededItemId !== undefined) {
         await ormContext.dataSourceReadWrite.getRepository(Item).delete({ id: seededItemId });
       }

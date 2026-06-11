@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import React, { useRef, useState } from 'react';
 
@@ -25,7 +24,6 @@ export const ModalShare: React.FC = () => {
   const tInfo = useTranslations('info');
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const router = useRouter();
   const { modalShare, setModalShare } = useModals();
 
   React.useEffect(() => {
@@ -155,10 +153,9 @@ export const ModalShare: React.FC = () => {
         {embedActions.map((action) => (
           <div key={action.testId} data-testid={action.testId}>
             <Button
-              type="button"
+              href={action.href}
               onClick={() => {
                 handleClose();
-                router.push(action.href);
               }}
             >
               {tFeatures(action.labelKey)}

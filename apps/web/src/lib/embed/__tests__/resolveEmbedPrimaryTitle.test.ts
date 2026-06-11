@@ -32,6 +32,7 @@ describe('resolveEmbedPrimaryTitle', () => {
         mpItem: item,
         mpClip: clip,
         mpItemSoundbite: null,
+        mpItemChapter: null,
         mpItemChapters: chapters,
         currentTimeSeconds: 25,
         preferItemTitle: false,
@@ -45,6 +46,7 @@ describe('resolveEmbedPrimaryTitle', () => {
         mpItem: item,
         mpClip: null,
         mpItemSoundbite: soundbite,
+        mpItemChapter: null,
         mpItemChapters: chapters,
         currentTimeSeconds: 25,
         preferItemTitle: false,
@@ -58,6 +60,7 @@ describe('resolveEmbedPrimaryTitle', () => {
         mpItem: item,
         mpClip: {} as DTOClip,
         mpItemSoundbite: null,
+        mpItemChapter: null,
         mpItemChapters: chapters,
         currentTimeSeconds: 25,
         preferItemTitle: false,
@@ -71,6 +74,7 @@ describe('resolveEmbedPrimaryTitle', () => {
         mpItem: item,
         mpClip: null,
         mpItemSoundbite: null,
+        mpItemChapter: null,
         mpItemChapters: chapters,
         currentTimeSeconds: 0,
         preferItemTitle: false,
@@ -84,6 +88,7 @@ describe('resolveEmbedPrimaryTitle', () => {
         mpItem: item,
         mpClip: null,
         mpItemSoundbite: null,
+        mpItemChapter: null,
         mpItemChapters: chapters,
         currentTimeSeconds: 25,
         preferItemTitle: false,
@@ -97,11 +102,26 @@ describe('resolveEmbedPrimaryTitle', () => {
         mpItem: item,
         mpClip: null,
         mpItemSoundbite: null,
+        mpItemChapter: null,
         mpItemChapters: chapters,
         currentTimeSeconds: 25,
         preferItemTitle: true,
       })
     ).toEqual({ title: 'Episode title', allowTitleToggle: true, showChapterTitleIcon: false });
+  });
+
+  it('prefers pinned chapter title for dedicated chapter embeds', () => {
+    expect(
+      resolveEmbedPrimaryTitle({
+        mpItem: item,
+        mpClip: null,
+        mpItemSoundbite: null,
+        mpItemChapter: chapters[1] ?? null,
+        mpItemChapters: chapters,
+        currentTimeSeconds: 0,
+        preferItemTitle: false,
+      })
+    ).toEqual({ title: 'Topic A', allowTitleToggle: true, showChapterTitleIcon: true });
   });
 
   it('falls back to item title without toggle when playhead is outside chapters', () => {
@@ -110,6 +130,7 @@ describe('resolveEmbedPrimaryTitle', () => {
         mpItem: item,
         mpClip: null,
         mpItemSoundbite: null,
+        mpItemChapter: null,
         mpItemChapters: chapters,
         currentTimeSeconds: 55,
         preferItemTitle: false,

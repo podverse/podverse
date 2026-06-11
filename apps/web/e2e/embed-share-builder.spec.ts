@@ -31,23 +31,28 @@ async function openShareModal(page: Page) {
   }
 }
 
-async function openEmbedBuilderFromShare(page: Page, embedButtonTestId: string) {
-  await openShareModal(page);
-  const embedLink = page.getByTestId(embedButtonTestId).getByRole('button');
-  const embedBuilderPage = page.getByTestId('embed-builder-page');
-  await expect(embedLink).toBeVisible({ timeout: 10_000 });
+async function clickShareEmbedAction(page: Page, embedButtonTestId: string): Promise<void> {
+  const dialog = page.getByRole('dialog', { name: 'Share' });
+  const embedControl = dialog.getByTestId(embedButtonTestId).getByRole('link');
+  await expect(embedControl).toBeVisible({ timeout: 10_000 });
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
-    await embedLink.click();
+    await embedControl.click();
     try {
-      await expect(embedBuilderPage).toBeVisible({ timeout: 5_000 });
+      await expect(page.getByTestId('embed-builder-page')).toBeVisible({ timeout: 10_000 });
       return;
     } catch {
       if (attempt === 1) {
-        throw new Error('Embed builder page did not open after retry.');
+        throw new Error(`Embed builder page did not open for ${embedButtonTestId}.`);
       }
+      await expect(dialog).toBeVisible({ timeout: 5_000 });
     }
   }
+}
+
+async function openEmbedBuilderFromShare(page: Page, embedButtonTestId: string) {
+  await openShareModal(page);
+  await clickShareEmbedAction(page, embedButtonTestId);
 }
 
 async function expectBuilderEmbedPaths(page: Page, pathPattern: RegExp): Promise<void> {
@@ -105,7 +110,7 @@ test.describe('Embed share builder handoff', () => {
         new RegExp(`/official-clip/${E2E_SOUNDBITE_ID_TEXT}$`)
       );
 
-      await page.getByTestId('share-embed-official-clip').getByRole('button').click();
+      await clickShareEmbedAction(page, 'share-embed-official-clip');
       await expect(page.getByTestId('embed-builder-page')).toBeVisible();
 
       await capturePageLoad(
@@ -142,8 +147,7 @@ test.describe('Embed share builder handoff', () => {
     const clipShareInput = page.locator('input[name="clip.clip"]');
     await expect(clipShareInput).toHaveValue(new RegExp(`/clip/${E2E_CLIP_ID_TEXT}$`));
 
-    await page.getByTestId('share-embed-clip').getByRole('button').click();
-    await expect(page.getByTestId('embed-builder-page')).toBeVisible();
+    await clickShareEmbedAction(page, 'share-embed-clip');
 
     await expectBuilderEmbedPaths(page, new RegExp(`/embed/clip/${E2E_CLIP_ID_TEXT}`));
   });

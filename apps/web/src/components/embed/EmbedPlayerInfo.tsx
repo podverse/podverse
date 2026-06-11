@@ -88,6 +88,7 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
         mpItem,
         mpClip: clip,
         mpItemSoundbite: itemSoundbite,
+        mpItemChapter: showChapterInfo ? mpItemChapter : null,
         mpItemChapters: showChapterInfo ? mpItemChapters : null,
         currentTimeSeconds: mpCurrentTime,
         preferItemTitle,

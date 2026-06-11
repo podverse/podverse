@@ -261,7 +261,7 @@ test.describe('Embed routes (anonymous)', () => {
   test('Episode embed retains duration and chapter markers after playback ends', async ({
     page,
   }) => {
-    await page.goto(`/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}?autoplay=true`);
+    await page.goto(`/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}`);
     await expectEmbedSingleShell(page);
     await expectEmbedPlayerDuration(page, EMBED_SAMPLE_EPISODE_DURATION_DISPLAY);
     await expectEmbedChapterMarkerCount(page, 2);

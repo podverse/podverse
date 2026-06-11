@@ -6,6 +6,7 @@ export type ResolveEmbedPrimaryTitleInput = {
   mpItem: DTOItem | null;
   mpClip: DTOClip | null;
   mpItemSoundbite: DTOItemSoundbite | null;
+  mpItemChapter: DTOItemChapter | null;
   mpItemChapters: DTOItemChapter[] | null;
   currentTimeSeconds: number;
   preferItemTitle: boolean;
@@ -29,6 +30,7 @@ export function resolveEmbedPrimaryTitle({
   mpItem,
   mpClip,
   mpItemSoundbite,
+  mpItemChapter,
   mpItemChapters,
   currentTimeSeconds,
   preferItemTitle,
@@ -46,6 +48,18 @@ export function resolveEmbedPrimaryTitle({
       title: mpItemSoundbite.title ?? resolveBaseItemTitle(mpItem),
       allowTitleToggle: false,
       showChapterTitleIcon: false,
+    };
+  }
+
+  const pinnedChapterTitle = mpItemChapter?.title ?? null;
+  const hasPinnedChapterTitle =
+    pinnedChapterTitle !== null && pinnedChapterTitle !== undefined && pinnedChapterTitle !== '';
+
+  if (hasPinnedChapterTitle && !preferItemTitle) {
+    return {
+      title: pinnedChapterTitle,
+      allowTitleToggle: true,
+      showChapterTitleIcon: true,
     };
   }
 
