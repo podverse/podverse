@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { FaShare } from 'react-icons/fa6';
 
 import { useConfig } from '../../contexts/Config';
+
 import styles from '../../app/embed/EmbedIndexPage.module.scss';
 
 type EmbedDemoPageIntroProps = {

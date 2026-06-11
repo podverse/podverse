@@ -178,11 +178,11 @@ For real `/embed` demos (not E2E fixtures), run the worker command that parses f
 Index feeds **directly** (no RSS queue), **always re-parses** existing feeds by
 `podcast_index_id`, and **overwrites** eight seed-managed showcase rows every run:
 
-| Podcast Index id                                    | Feed                              | Showcase slots                                 |
-| --------------------------------------------------- | --------------------------------- | ---------------------------------------------- |
-| [920666](https://podcastindex.org/podcast/920666)   | Podcasting 2.0                    | `podcast-audio`, `episode-audio` (latest item) |
-| [6642704](https://podcastindex.org/podcast/6642704) | Music From The Doerfel-Verse      | `album-audio`, `track-audio` (latest item)     |
-| [162612](https://podcastindex.org/podcast/162612)   | Geek News Central Podcast (Video) | `podcast-video`, `episode-video` (latest item) |
+| Podcast Index id                                    | Feed                              | Showcase slots                                   |
+| --------------------------------------------------- | --------------------------------- | ------------------------------------------------ |
+| [920666](https://podcastindex.org/podcast/920666)   | Podcasting 2.0                    | `podcast-audio`, `episode-audio` (latest item)   |
+| [6642704](https://podcastindex.org/podcast/6642704) | Music From The Doerfel-Verse      | `album-audio`, `track-audio` (latest item)       |
+| [162612](https://podcastindex.org/podcast/162612)   | Geek News Central Podcast (Video) | `podcast-video`, `episode-video` (latest item)   |
 | [7814960](https://podcastindex.org/podcast/7814960) | Them                              | `album-video`, `track-video` (latest video item) |
 
 Clip, official-clip, chapter, and playlist slots are **not** set by this job — configure those in

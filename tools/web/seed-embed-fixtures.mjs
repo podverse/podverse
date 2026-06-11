@@ -826,7 +826,11 @@ export async function seedEmbedFixtures(client, options) {
        $3
      )
      RETURNING id`,
-    [EMBED_FIXTURE_ALBUM_LIST_VIDEO_ID_TEXT, videoMusicFeedId, EMBED_SAMPLE_ALBUM_VIDEO_CHANNEL_TITLE]
+    [
+      EMBED_FIXTURE_ALBUM_LIST_VIDEO_ID_TEXT,
+      videoMusicFeedId,
+      EMBED_SAMPLE_ALBUM_VIDEO_CHANNEL_TITLE,
+    ]
   );
   const videoAlbumChannelId = videoAlbumChannelResult.rows[0].id;
 
@@ -870,7 +874,10 @@ export async function seedEmbedFixtures(client, options) {
   await client.query(
     `INSERT INTO item_description (item_id, value)
      VALUES ($1, $2)`,
-    [videoAlbumTrackId, `${EMBED_SAMPLE_TRACK_VIDEO_TITLE} deterministic E2E embed video album fixture.`]
+    [
+      videoAlbumTrackId,
+      `${EMBED_SAMPLE_TRACK_VIDEO_TITLE} deterministic E2E embed video album fixture.`,
+    ]
   );
   await client.query(
     `INSERT INTO item_image (item_id, url, image_width_size)
