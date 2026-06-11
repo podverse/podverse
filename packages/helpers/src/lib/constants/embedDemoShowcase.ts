@@ -91,6 +91,14 @@ function appendEmbedDemoChapterMarkersQuery(pathname: string): string {
   return `${pathname}${separator}chapter_markers=1`;
 }
 
+function appendEmbedDemoPresentationQuery(
+  pathname: string,
+  presentation: 'audio' | 'video'
+): string {
+  const separator = pathname.includes('?') ? '&' : '?';
+  return `${pathname}${separator}presentation=${presentation}`;
+}
+
 export function buildEmbedDemoHref(
   routeKind: EmbedDemoShowcaseRouteKind,
   resourceIdText: string,
@@ -130,7 +138,11 @@ export function buildEmbedDemoHref(
   }
 
   if (shouldAppendEmbedDemoChapterMarkersQuery(routeKind, showcaseId)) {
-    return appendEmbedDemoChapterMarkersQuery(pathname);
+    pathname = appendEmbedDemoChapterMarkersQuery(pathname);
+  }
+
+  if (isEmbedDemoVideoShowcase(showcaseId)) {
+    pathname = appendEmbedDemoPresentationQuery(pathname, 'video');
   }
 
   return pathname;

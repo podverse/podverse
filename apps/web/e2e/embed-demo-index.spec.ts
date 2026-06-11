@@ -57,6 +57,16 @@ test.describe('Embed demo index', () => {
         await expect(iframe).toHaveAttribute('src', /chapter_markers=1/);
       }
 
+      const videoShowcaseIds = new Set([
+        'episode-video',
+        'track-video',
+        'podcast-video',
+        'album-video',
+      ]);
+      if (videoShowcaseIds.has(showcaseId)) {
+        await expect(iframe).toHaveAttribute('src', /presentation=video/);
+      }
+
       const frame = page.frameLocator(`[data-testid="embed-demo-iframe-${showcaseId}"]`);
       const embedRoot = frame.getByTestId('embed-root');
       const notFoundShell = frame.getByTestId('embed-not-found-shell');

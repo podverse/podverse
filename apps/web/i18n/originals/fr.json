@@ -165,7 +165,7 @@
     "embed_list_layout": "Intégrer la liste complète au lieu d'un seul élément",
     "embed_color_customization_coming_soon": "La personnalisation des couleurs sera disponible dans une version ultérieure.",
     "embed_demo_page_title": "Lecteur intégré",
-    "embed_demo_page_lead": "Ajoutez un lecteur Podverse à votre site ou blog. Sur un épisode, un morceau, un extrait, un chapitre, une playlist, un podcast ou un album, ouvrez le menu <shareIcon></shareIcon> Partager et choisissez Intégrer pour copier un code iframe qui lit votre contenu sans rediriger les visiteurs vers l'application complète.",
+    "embed_demo_page_lead": "Ajoutez un lecteur {brand_name} à votre site ou blog. Sur un épisode, un morceau, un extrait, un chapitre, une playlist, un podcast ou un album, ouvrez le menu <shareIcon></shareIcon> Partager et choisissez Intégrer pour copier un code iframe qui lit votre contenu sans rediriger les visiteurs vers l'application complète.",
     "embed_demo_page_examples_intro": "Chaque exemple ci-dessous est une intégration en direct. Utilisez la table des matières pour accéder au type dont vous avez besoin.",
     "embed_demo_toc_heading": "Table des matières",
     "embed_demo_toc_nav_aria_label": "Table des matières des exemples d'intégration",

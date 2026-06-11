@@ -165,7 +165,7 @@
     "embed_list_layout": "Incrustar lista completa en lugar de un solo elemento",
     "embed_color_customization_coming_soon": "La personalización de colores estará disponible en una versión futura.",
     "embed_demo_page_title": "Reproductor integrado",
-    "embed_demo_page_lead": "Coloca un reproductor de Podverse en tu sitio web o blog. En cualquier episodio, pista, clip, capítulo, lista de reproducción, podcast o álbum, abre el menú <shareIcon></shareIcon> Compartir y elige Incrustar para copiar un código iframe que reproduce tu contenido sin enviar a los visitantes a la aplicación completa.",
+    "embed_demo_page_lead": "Coloca un reproductor de {brand_name} en tu sitio web o blog. En cualquier episodio, pista, clip, capítulo, lista de reproducción, podcast o álbum, abre el menú <shareIcon></shareIcon> Compartir y elige Incrustar para copiar un código iframe que reproduce tu contenido sin enviar a los visitantes a la aplicación completa.",
     "embed_demo_page_examples_intro": "Cada ejemplo a continuación es una incrustación en vivo. Usa la tabla de contenidos para ir al tipo que necesitas.",
     "embed_demo_toc_heading": "Tabla de contenidos",
     "embed_demo_toc_nav_aria_label": "Tabla de contenidos de ejemplos de incrustación",
