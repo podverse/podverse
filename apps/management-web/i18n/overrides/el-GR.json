@@ -124,6 +124,10 @@
       "title": "",
       "description": ""
     },
+    "web": {
+      "title": "",
+      "description": ""
+    },
     "admins": {
       "title": "",
       "description": ""
@@ -268,6 +272,42 @@
     "pageTitle": "",
     "membershipsCardTitle": "",
     "membershipsCardDescription": ""
+  },
+  "webHub": {
+    "pageTitle": "",
+    "embedDemoCardTitle": "",
+    "embedDemoCardDescription": ""
+  },
+  "embedDemoConfig": {
+    "pageTitle": "",
+    "pageSubtitle": "",
+    "singleSectionTitle": "",
+    "listSectionTitle": "",
+    "loadError": "",
+    "saveSuccess": "",
+    "clearSuccess": "",
+    "saveError": "",
+    "notConfigured": "",
+    "editFieldAria": "",
+    "clearFieldAria": "",
+    "editValueModalAria": "",
+    "editModalTitle": "",
+    "resourceIdTextLabel": "",
+    "emptyValueMessage": "",
+    "slotLabels": {
+      "episode-audio": "",
+      "episode-video": "",
+      "track-audio": "",
+      "track-video": "",
+      "clip-audio": "",
+      "official-clip-audio": "",
+      "chapter-audio": "",
+      "podcast-audio": "",
+      "podcast-video": "",
+      "album-audio": "",
+      "album-video": "",
+      "playlist-mixed": ""
+    }
   },
   "productMemberships": {
     "pageTitle": "",
@@ -454,6 +494,7 @@
       "stats": "",
       "billingPrices": "",
       "bucket": "",
+      "embedDemo": "",
       "roleTemplateLabel": "",
       "roleTemplateHint": "",
       "roleCustom": "",

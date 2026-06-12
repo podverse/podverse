@@ -124,6 +124,10 @@
       "title": "Productos",
       "description": "Áreas de producto, incluida la configuración de membresía"
     },
+    "web": {
+      "title": "Web",
+      "description": "Configurar superficies web públicas como la página de demostración integrada"
+    },
     "admins": {
       "title": "Administradores",
       "description": "Gestionar cuentas y permisos de administradores"
@@ -268,6 +272,42 @@
     "pageTitle": "Productos",
     "membershipsCardTitle": "Membresías",
     "membershipsCardDescription": "Ver valores de membresía resueltos (entorno y base de datos)."
+  },
+  "webHub": {
+    "pageTitle": "Web",
+    "embedDemoCardTitle": "Demostración integrada",
+    "embedDemoCardDescription": "Elige qué contenido aparece en la página pública de demostración /embed."
+  },
+  "embedDemoConfig": {
+    "pageTitle": "Demostración integrada",
+    "pageSubtitle": "Ingresa valores id_text para cada tipo de integración que desees mostrar en la página de demostración pública. Los espacios no configurados están ocultos.",
+    "singleSectionTitle": "Episodios, pistas y clips individuales",
+    "listSectionTitle": "Podcasts, álbumes y listas de reproducción",
+    "loadError": "No se pudo cargar la configuración de la demostración integrada.",
+    "saveSuccess": "Espacio de demostración integrado actualizado.",
+    "clearSuccess": "Espacio de demostración integrado limpiado.",
+    "saveError": "No se pudo guardar este espacio de demostración integrada.",
+    "notConfigured": "No configurado",
+    "editFieldAria": "Editar {fieldLabel}",
+    "clearFieldAria": "Limpiar {fieldLabel}",
+    "editValueModalAria": "Editar espacio de demostración integrada",
+    "editModalTitle": "Editar {label}",
+    "resourceIdTextLabel": "Id_text del recurso",
+    "emptyValueMessage": "Ingresa un id_text de recurso.",
+    "slotLabels": {
+      "episode-audio": "Episodio (audio)",
+      "episode-video": "Episodio (video)",
+      "track-audio": "Pista (audio)",
+      "track-video": "Pista (video)",
+      "clip-audio": "Clip (audio)",
+      "official-clip-audio": "Clip oficial (audio)",
+      "chapter-audio": "Capítulo (audio)",
+      "podcast-audio": "Podcast (audio)",
+      "podcast-video": "Podcast (video)",
+      "album-audio": "Álbum (audio)",
+      "album-video": "Álbum (video)",
+      "playlist-mixed": "Lista de reproducción (mixta)"
+    }
   },
   "productMemberships": {
     "pageTitle": "Membresías",
@@ -454,6 +494,7 @@
       "stats": "Estadísticas",
       "billingPrices": "Precios de facturación",
       "bucket": "Almacenamiento de objetos",
+      "embedDemo": "Demostración integrada",
       "roleTemplateLabel": "Plantilla de permisos",
       "roleTemplateHint": "Elige una plantilla guardada para llenar la cuadrícula. Aún puedes ajustar las casillas individuales después.",
       "roleCustom": "Personalizado (manual)",

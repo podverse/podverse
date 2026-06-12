@@ -124,6 +124,10 @@
       "title": "Produits",
       "description": "Domaines produits, y compris la configuration des abonnements"
     },
+    "web": {
+      "title": "Web",
+      "description": "Configurer les surfaces web publiques telles que la page de démonstration intégrée"
+    },
     "admins": {
       "title": "Administrateurs",
       "description": "Gérer les comptes et permissions des administrateurs"
@@ -268,6 +272,42 @@
     "pageTitle": "Produits",
     "membershipsCardTitle": "Abonnements",
     "membershipsCardDescription": "Voir les valeurs d’abonnement résolues (environnement et base de données)."
+  },
+  "webHub": {
+    "pageTitle": "Web",
+    "embedDemoCardTitle": "Démonstration intégrée",
+    "embedDemoCardDescription": "Choisissez quel contenu apparaît sur la page de démonstration publique /embed."
+  },
+  "embedDemoConfig": {
+    "pageTitle": "Démonstration intégrée",
+    "pageSubtitle": "Entrez des valeurs id_text pour chaque type d'intégration que vous souhaitez afficher sur la page de démonstration publique. Les emplacements non configurés sont cachés.",
+    "singleSectionTitle": "Épisodes uniques, pistes et extraits",
+    "listSectionTitle": "Podcasts, albums et playlists",
+    "loadError": "Impossible de charger la configuration de la démonstration intégrée.",
+    "saveSuccess": "Emplacement de la démonstration intégrée mis à jour.",
+    "clearSuccess": "Emplacement de la démonstration intégrée vidé.",
+    "saveError": "Impossible de sauvegarder cet emplacement de démonstration intégrée.",
+    "notConfigured": "Non configuré",
+    "editFieldAria": "Modifier {fieldLabel}",
+    "clearFieldAria": "Vider {fieldLabel}",
+    "editValueModalAria": "Modifier l'emplacement de la démonstration intégrée",
+    "editModalTitle": "Modifier {label}",
+    "resourceIdTextLabel": "Identifiant de ressource id_text",
+    "emptyValueMessage": "Entrez un identifiant de ressource id_text.",
+    "slotLabels": {
+      "episode-audio": "Épisode (audio)",
+      "episode-video": "Épisode (vidéo)",
+      "track-audio": "Piste (audio)",
+      "track-video": "Piste (vidéo)",
+      "clip-audio": "Extrait (audio)",
+      "official-clip-audio": "Extrait officiel (audio)",
+      "chapter-audio": "Chapitre (audio)",
+      "podcast-audio": "Podcast (audio)",
+      "podcast-video": "Podcast (vidéo)",
+      "album-audio": "Album (audio)",
+      "album-video": "Album (vidéo)",
+      "playlist-mixed": "Playlist (mixte)"
+    }
   },
   "productMemberships": {
     "pageTitle": "Abonnements",
@@ -454,6 +494,7 @@
       "stats": "Statistiques",
       "billingPrices": "Prix de facturation",
       "bucket": "Stockage d'objets",
+      "embedDemo": "Démonstration intégrée",
       "roleTemplateLabel": "Modèle de permission",
       "roleTemplateHint": "Choisissez un modèle enregistré pour remplir la grille. Vous pouvez toujours ajuster les cases individuelles par la suite.",
       "roleCustom": "Personnalisé (manuel)",
