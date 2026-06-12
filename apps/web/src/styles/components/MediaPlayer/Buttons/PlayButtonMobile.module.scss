@@ -2,4 +2,5 @@
 
 .playButtonMobile {
   @include mediaPlayerButtonMobile;
+  @include mediaPlayerPlayPauseIconCentering;
 }

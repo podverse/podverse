@@ -56,6 +56,9 @@ export const MediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
       ? getChapterBoundaryRatios(chapters, mpDuration)
       : [];
 
+  // The embed player does not show the chapter info tooltip on progress-bar hover.
+  const enableChapterHoverTooltip = layoutVariant !== 'embed';
+
   const { highlightStartPosition, highlightEndPosition } = getHighlightPositions({
     mpDuration,
     isClipForm,
@@ -136,6 +139,9 @@ export const MediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
   };
 
   const handleBarMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!enableChapterHoverTooltip) {
+      return;
+    }
     const percent = getPercentFromClientX(e.clientX);
     if (percent !== null) {
       showTooltipForPercent(percent, false);
@@ -191,7 +197,9 @@ export const MediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
         layoutVariant === 'embed' && styles.mediaPlayerProgressEmbed
       )}
     >
-      <span className={styles.mediaPlayerProgressTime}>{formatHHMMSS(mpCurrentTime)}</span>
+      {layoutVariant !== 'embed' ? (
+        <span className={styles.mediaPlayerProgressTime}>{formatHHMMSS(mpCurrentTime)}</span>
+      ) : null}
       <div
         className={styles.customProgressBar}
         ref={barRef}
@@ -231,15 +239,17 @@ export const MediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
           ))}
         </div>
       </div>
-      {tooltipChapter && (
+      {tooltipChapter ? (
         <ChapterProgressTooltip
           visible
           title={tooltipChapter.title ?? ''}
           barRect={barRef.current?.getBoundingClientRect() ?? null}
           percent={tooltipPercent}
         />
-      )}
-      <span className={styles.mediaPlayerProgressDuration}>{formatHHMMSS(mpDuration)}</span>
+      ) : null}
+      {layoutVariant !== 'embed' ? (
+        <span className={styles.mediaPlayerProgressDuration}>{formatHHMMSS(mpDuration)}</span>
+      ) : null}
       {includeMobileTime && (
         <div className={styles.mobileTimeWrapper}>
           <span className={styles.mediaPlayerProgressTimeMobile}>

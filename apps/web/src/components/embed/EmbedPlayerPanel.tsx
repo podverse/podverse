@@ -4,12 +4,14 @@ import classNames from 'classnames';
 
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
 import { useEmbedItemChaptersLoad } from '../../hooks/useEmbedItemChaptersLoad';
+import { useEmbedPlayerContentReady } from '../../hooks/useEmbedPlayerContentReady';
 import type { EmbedMediaType, EmbedSharedQueryParams } from '../../lib/embed/embedTypes';
 import type { EmbedSingleResourcePayload } from '../../lib/embed/fetchEmbedSingleResource';
 import { shouldEmbedShowChapterInfo } from '../../lib/embed/shouldEmbedShowChapterInfo';
 import { EmbedInlineMediaMount } from './EmbedInlineMediaMount';
 import { EmbedPlayerControls } from './EmbedPlayerControls';
 import { EmbedPlayerInfo } from './EmbedPlayerInfo';
+import { EmbedPlayerLoadingOverlay } from './EmbedPlayerLoadingOverlay';
 import { EmbedVideoPlaceholder } from './EmbedVideoPlaceholder';
 
 import styles from '../../styles/components/embed/EmbedPlayerPanel.module.scss';
@@ -43,6 +45,11 @@ export function EmbedPlayerPanel({
     });
 
   useEmbedItemChaptersLoad();
+  const isContentReady = useEmbedPlayerContentReady({
+    fallbackResource,
+    headerTitle,
+    mediaType,
+  });
   const playerRegionClassName = classNames(
     styles.playerRegion,
     panelLayout === 'single' ? styles.playerRegionSingle : styles.playerRegionList,
@@ -51,17 +58,20 @@ export function EmbedPlayerPanel({
 
   return (
     <div className={playerRegionClassName} data-testid="embed-player-region">
-      <EmbedPlayerInfo fallbackResource={fallbackResource} headerTitle={headerTitle} />
-      {isAudio ? (
-        <>
-          <EmbedInlineMediaMount />
-          <EmbedPlayerControls showChapterMarkers={showChapterMarkers} />
-        </>
-      ) : (
-        <div className={styles.videoPlaceholder}>
-          <EmbedVideoPlaceholder />
-        </div>
-      )}
+      <div className={styles.playerSurface} data-testid="embed-player-surface">
+        <EmbedPlayerLoadingOverlay isLoading={!isContentReady} />
+        <EmbedPlayerInfo fallbackResource={fallbackResource} headerTitle={headerTitle} />
+        {isAudio ? (
+          <>
+            <EmbedInlineMediaMount />
+            <EmbedPlayerControls showChapterMarkers={showChapterMarkers} />
+          </>
+        ) : (
+          <div className={styles.videoPlaceholder}>
+            <EmbedVideoPlaceholder />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

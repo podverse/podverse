@@ -177,6 +177,15 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     example_cli: 'npm run dev_parser_rss_parse_podcasting20_feeds -w apps/workers -- -f',
   },
   {
+    name: 'seedEmbedDemoShowcaseFeeds',
+    label: 'Seed embed demo showcase from Podcast Index feeds',
+    description:
+      'Parse four showcase Podcast Index feeds directly (always re-parses by podcast_index_id) and upsert seven embed_demo_showcase channel/item rows.',
+    category: 'parser',
+    risk: 'normal',
+    example_cli: 'npm run seed_embed_demo_showcase_feeds -w apps/workers',
+  },
+  {
     name: 'podcastIndexDeadFeedsDeleteCache',
     label: 'Podcast Index: dead feeds cache delete',
     description: 'Delete cached data used for “dead feed” processing.',

@@ -93,41 +93,42 @@ export const E2E_ASSET_BASE_URL = 'http://localhost:2111/e2e/audio';
 export const E2E_IMAGE_ASSET_BASE_URL = 'http://localhost:2111/e2e/images';
 
 /**
- * Embed demo sample assets — sync with tools/web/embed-fixture-constants.mjs and
- * apps/web/src/lib/embed/embedFixtureIds.ts (served from apps/web/public/embed-demo/).
+ * Embed demo sample assets — sync with tools/web/embed-fixture-constants.mjs
+ * (served from the E2E asset server on port 2111).
  */
-export const EMBED_DEMO_PUBLIC_AUDIO_PATH = '/embed-demo/audio';
-export const EMBED_DEMO_PUBLIC_IMAGES_PATH = '/embed-demo/images';
-export const EMBED_DEMO_E2E_WEB_ORIGIN = 'http://localhost:4032';
+export const EMBED_FIXTURE_ASSET_BASE_URL = E2E_ASSET_BASE_URL;
+export const EMBED_FIXTURE_IMAGE_BASE_URL = E2E_IMAGE_ASSET_BASE_URL;
+export const EMBED_SAMPLE_ALT_AUDIO_OGG_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-resume-60s-440hz.mp3`;
+export const EMBED_SAMPLE_ALT_VIDEO_MP4_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-one-30s-330hz.mp3`;
+export const EMBED_SAMPLE_ALT_VIDEO_WEBM_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track-two-30s-294hz.mp3`;
+export const EMBED_FIXTURE_PLACEHOLDER_IMAGE_URL = `${E2E_IMAGE_ASSET_BASE_URL}/e2e-embed-placeholder.png`;
 
-export const EMBED_FIXTURE_ASSET_BASE_URL = `${EMBED_DEMO_E2E_WEB_ORIGIN}${EMBED_DEMO_PUBLIC_AUDIO_PATH}`;
-export const EMBED_FIXTURE_IMAGE_BASE_URL = `${EMBED_DEMO_E2E_WEB_ORIGIN}${EMBED_DEMO_PUBLIC_IMAGES_PATH}`;
-export const EMBED_FIXTURE_PLACEHOLDER_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BASE_URL}/embed-sample-placeholder.png`;
-
-export const EMBED_SAMPLE_EPISODE_AUDIO_TITLE = 'Embed Sample Episode (audio)';
-export const EMBED_SAMPLE_EPISODE_NEAR_END_TITLE = 'Embed Sample Episode (near end)';
-export const EMBED_SAMPLE_EPISODE_VIDEO_TITLE = 'Embed Sample Episode (video)';
-export const EMBED_SAMPLE_TRACK_AUDIO_TITLE = 'Embed Sample Track (audio)';
-export const EMBED_SAMPLE_TRACK_TWO_TITLE = 'Embed Sample Track Two (audio)';
-export const EMBED_SAMPLE_TRACK_VIDEO_TITLE = 'Embed Sample Track (video)';
-export const EMBED_SAMPLE_PODCAST_CHANNEL_TITLE = 'Embed Sample Podcast (audio)';
-export const EMBED_SAMPLE_ALBUM_CHANNEL_TITLE = 'Embed Sample Album (audio)';
+export const EMBED_SAMPLE_EPISODE_AUDIO_TITLE = 'Heavenly Bodies';
+export const EMBED_SAMPLE_EPISODE_NEAR_END_TITLE = 'Constellations';
+export const EMBED_SAMPLE_EPISODE_VIDEO_TITLE = 'Episode (video)';
+export const EMBED_SAMPLE_TRACK_AUDIO_TITLE = 'Magic Flute Overture';
+export const EMBED_SAMPLE_TRACK_TWO_TITLE = 'Egmont Overture';
+export const EMBED_SAMPLE_TRACK_VIDEO_TITLE = 'Track (video)';
+export const EMBED_SAMPLE_PODCAST_CHANNEL_TITLE = 'Cosmos Classroom';
+export const EMBED_SAMPLE_ALBUM_CHANNEL_TITLE = 'Orbital Classics';
 export const EMBED_SAMPLE_VIDEO_CHANNEL_TITLE = 'Embed Sample Podcast (video)';
-export const EMBED_SAMPLE_CLIP_TITLE = 'Embed Sample Clip (audio)';
-export const EMBED_SAMPLE_SOUNDBITE_TITLE = 'Embed Sample Official Clip (audio)';
-export const EMBED_SAMPLE_CHAPTER_TITLE = 'Intro';
-export const EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE = 'Topic A';
-export const EMBED_SAMPLE_CHAPTER_OUTRO_TITLE = 'Outro';
+export const EMBED_SAMPLE_CLIP_TITLE = 'Through the Telescope';
+export const EMBED_SAMPLE_SOUNDBITE_TITLE = 'Night Sky Notes';
+export const EMBED_SAMPLE_CHAPTER_TITLE = 'Introduction';
+export const EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE = 'Planets and Moons';
+export const EMBED_SAMPLE_CHAPTER_OUTRO_TITLE = 'Conclusion';
 
+/** Chapter boundaries fit the committed 60s E2E audio fixtures on port 2111. */
 export const EMBED_SAMPLE_CHAPTER_ONE_START_SECONDS = 0;
 export const EMBED_SAMPLE_CHAPTER_ONE_END_SECONDS = 20;
 export const EMBED_SAMPLE_CHAPTER_TWO_START_SECONDS = 20;
 export const EMBED_SAMPLE_CHAPTER_TWO_END_SECONDS = 40;
 export const EMBED_SAMPLE_CHAPTER_THREE_START_SECONDS = 40;
 export const EMBED_SAMPLE_CHAPTER_THREE_END_SECONDS = 60;
+export const EMBED_SAMPLE_EPISODE_DURATION_DISPLAY = '1:00';
 
-export const EMBED_SAMPLE_EPISODE_AUDIO_ITEM_IMAGE_URL = `${EMBED_FIXTURE_IMAGE_BASE_URL}/embed-sample-episode-audio-art.png`;
-export const EMBED_SAMPLE_SCROLL_ITEM_TITLE_PREFIX = 'Embed Sample Scroll Item';
+export const EMBED_SAMPLE_EPISODE_AUDIO_ITEM_IMAGE_URL = `${E2E_IMAGE_ASSET_BASE_URL}/e2e-embed-item-art-1400.png`;
+export const EMBED_SAMPLE_SCROLL_ITEM_TITLE_PREFIX = 'Scroll Item';
 
 export const EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT = 'embSmpPodAud1';
 export const EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT = 'embSmpEpAud1';
@@ -182,7 +183,7 @@ export const E2E_EMBED_SCROLL_OLDEST_ITEM_LABEL = `${EMBED_SAMPLE_SCROLL_ITEM_TI
 /** Podcast channel with feed_policy.public_visible=false. */
 export const E2E_EMBED_PRIVATE_CHANNEL_ID_TEXT = 'e2eEmbPrvCh01';
 
-/** Showcase slot ids on `/embed` when fixture mode is enabled. Sync with embedFixtureIds.ts. */
+/** Showcase slot ids on `/embed` from embed_demo_showcase seed. Sync with embed-fixture-constants.mjs. */
 export const E2E_EMBED_DEMO_SHOWCASE_IDS = [
   'episode-audio',
   'episode-video',
@@ -194,5 +195,6 @@ export const E2E_EMBED_DEMO_SHOWCASE_IDS = [
   'podcast-audio',
   'podcast-video',
   'album-audio',
+  'album-video',
   'playlist-mixed',
 ] as const;

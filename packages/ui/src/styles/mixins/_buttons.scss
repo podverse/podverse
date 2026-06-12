@@ -23,3 +23,10 @@
   width: 40px;
   font-size: var(--font-size-md);
 }
+
+// Play triangle needs 1px right offset; pause reads centered without it.
+@mixin mediaPlayerPlayPauseIconCentering {
+  &:not([data-media-player-playing='true']) {
+    padding-left: 1px;
+  }
+}

@@ -254,6 +254,36 @@ export class ItemService {
     return item;
   }
 
+  async getLatestPublishedItemByChannelId(channelId: number): Promise<Item | null> {
+    return this.repositoryRead
+      .createQueryBuilder('item')
+      .leftJoin('item.live_item', 'live_item')
+      .leftJoin('item.item_flag_status', 'item_flag_status')
+      .where('item.channel_id = :channelId', { channelId })
+      .andWhere('item.pub_date IS NOT NULL')
+      .andWhere('live_item.id IS NULL')
+      .andWhere('item_flag_status.id = :status', { status: ItemFlagStatusStatusEnum.Active })
+      .orderBy('item.pub_date', 'DESC')
+      .limit(1)
+      .getOne();
+  }
+
+  async getLatestPublishedVideoItemByChannelId(channelId: number): Promise<Item | null> {
+    return this.repositoryRead
+      .createQueryBuilder('item')
+      .innerJoin('item.item_enclosures', 'item_enclosure')
+      .leftJoin('item.live_item', 'live_item')
+      .leftJoin('item.item_flag_status', 'item_flag_status')
+      .where('item.channel_id = :channelId', { channelId })
+      .andWhere('item.pub_date IS NOT NULL')
+      .andWhere('live_item.id IS NULL')
+      .andWhere('item_flag_status.id = :status', { status: ItemFlagStatusStatusEnum.Active })
+      .andWhere('item_enclosure.type LIKE :videoTypePrefix', { videoTypePrefix: 'video/%' })
+      .orderBy('item.pub_date', 'DESC')
+      .limit(1)
+      .getOne();
+  }
+
   async getRandomItem(medium_id: number): Promise<Item | null> {
     const query = this.repositoryRead
       .createQueryBuilder('item')

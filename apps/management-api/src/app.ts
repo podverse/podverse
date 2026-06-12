@@ -17,6 +17,7 @@ import { productRouter } from '@management-api/routes/product/index.js';
 import { statsRouter } from '@management-api/routes/stats.js';
 import { storageRouter } from '@management-api/routes/storage.js';
 import { usersRouter } from '@management-api/routes/users.js';
+import { webRouter } from '@management-api/routes/web/index.js';
 import { workersRouter } from '@management-api/routes/workers.js';
 import { isLogLevelDebug } from '@podverse/helpers';
 import { getObservabilityHttpMiddleware } from '@podverse/observability';
@@ -87,6 +88,7 @@ app.use(productRouter);
 app.use(statsRouter);
 app.use(storageRouter);
 app.use(usersRouter);
+app.use(webRouter);
 app.use(workersRouter);
 
 registerExtensionRoutes(app, baseUrl);

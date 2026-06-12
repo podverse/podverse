@@ -83,6 +83,7 @@ describe('requireCrud', () => {
         stats_crud: 0,
         billing_prices_crud: 0,
         bucket_crud: 0,
+        embed_demo_crud: 0,
       },
     }) as Request;
     const { res } = createMockRes();
@@ -108,6 +109,7 @@ describe('requireCrud', () => {
         stats_crud: 0,
         billing_prices_crud: 0,
         bucket_crud: 0,
+        embed_demo_crud: 0,
       },
     }) as Request;
     const { res } = createMockRes();
@@ -133,6 +135,7 @@ describe('requireCrud', () => {
         stats_crud: 0,
         billing_prices_crud: 0,
         bucket_crud: 0,
+        embed_demo_crud: 0,
       },
     }) as Request;
     const { res } = createMockRes();
@@ -157,6 +160,7 @@ describe('requireCrud', () => {
         stats_crud: 0,
         billing_prices_crud: 4,
         bucket_crud: 0,
+        embed_demo_crud: 0,
       },
     }) as Request;
     const { res } = createMockRes();
@@ -181,6 +185,32 @@ describe('requireCrud', () => {
         stats_crud: 0,
         billing_prices_crud: 0,
         bucket_crud: 2,
+        embed_demo_crud: 0,
+      },
+    }) as Request;
+    const { res } = createMockRes();
+    const next = createMockNext();
+
+    middleware(req, res as Response, next);
+
+    expect(next).toHaveBeenCalled();
+  });
+
+  it('checks embed demo CRUD resource column', () => {
+    const middleware = requireCrud('embed_demo', 'update');
+    const req = createMockReq({
+      id: 2,
+      id_text: 'admin',
+      admin_account_role_id: 2,
+      role: 'admin',
+      permissions: {
+        feeds_crud: 0,
+        feed_takedown_reasons_crud: 0,
+        admins_crud: 0,
+        stats_crud: 0,
+        billing_prices_crud: 0,
+        bucket_crud: 0,
+        embed_demo_crud: 4,
       },
     }) as Request;
     const { res } = createMockRes();

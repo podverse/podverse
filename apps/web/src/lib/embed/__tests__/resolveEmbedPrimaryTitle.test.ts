@@ -32,6 +32,7 @@ describe('resolveEmbedPrimaryTitle', () => {
         mpItem: item,
         mpClip: clip,
         mpItemSoundbite: null,
+        mpItemChapter: null,
         mpItemChapters: chapters,
         currentTimeSeconds: 25,
         preferItemTitle: false,
@@ -45,6 +46,7 @@ describe('resolveEmbedPrimaryTitle', () => {
         mpItem: item,
         mpClip: null,
         mpItemSoundbite: soundbite,
+        mpItemChapter: null,
         mpItemChapters: chapters,
         currentTimeSeconds: 25,
         preferItemTitle: false,
@@ -58,6 +60,7 @@ describe('resolveEmbedPrimaryTitle', () => {
         mpItem: item,
         mpClip: {} as DTOClip,
         mpItemSoundbite: null,
+        mpItemChapter: null,
         mpItemChapters: chapters,
         currentTimeSeconds: 25,
         preferItemTitle: false,
@@ -65,17 +68,18 @@ describe('resolveEmbedPrimaryTitle', () => {
     ).toEqual({ title: 'Episode title', allowTitleToggle: false, showChapterTitleIcon: false });
   });
 
-  it('shows item title at playhead 0 when first chapter starts at 0', () => {
+  it('shows item title without toggle at playhead 0 when first chapter starts at 0', () => {
     expect(
       resolveEmbedPrimaryTitle({
         mpItem: item,
         mpClip: null,
         mpItemSoundbite: null,
+        mpItemChapter: null,
         mpItemChapters: chapters,
         currentTimeSeconds: 0,
         preferItemTitle: false,
       })
-    ).toEqual({ title: 'Episode title', allowTitleToggle: true, showChapterTitleIcon: false });
+    ).toEqual({ title: 'Episode title', allowTitleToggle: false, showChapterTitleIcon: false });
   });
 
   it('shows active chapter title at playhead by default', () => {
@@ -84,6 +88,7 @@ describe('resolveEmbedPrimaryTitle', () => {
         mpItem: item,
         mpClip: null,
         mpItemSoundbite: null,
+        mpItemChapter: null,
         mpItemChapters: chapters,
         currentTimeSeconds: 25,
         preferItemTitle: false,
@@ -97,6 +102,7 @@ describe('resolveEmbedPrimaryTitle', () => {
         mpItem: item,
         mpClip: null,
         mpItemSoundbite: null,
+        mpItemChapter: null,
         mpItemChapters: chapters,
         currentTimeSeconds: 25,
         preferItemTitle: true,
@@ -104,16 +110,31 @@ describe('resolveEmbedPrimaryTitle', () => {
     ).toEqual({ title: 'Episode title', allowTitleToggle: true, showChapterTitleIcon: false });
   });
 
-  it('falls back to item title when playhead is outside chapters', () => {
+  it('prefers pinned chapter title for dedicated chapter embeds', () => {
     expect(
       resolveEmbedPrimaryTitle({
         mpItem: item,
         mpClip: null,
         mpItemSoundbite: null,
+        mpItemChapter: chapters[1] ?? null,
+        mpItemChapters: chapters,
+        currentTimeSeconds: 0,
+        preferItemTitle: false,
+      })
+    ).toEqual({ title: 'Topic A', allowTitleToggle: true, showChapterTitleIcon: true });
+  });
+
+  it('falls back to item title without toggle when playhead is outside chapters', () => {
+    expect(
+      resolveEmbedPrimaryTitle({
+        mpItem: item,
+        mpClip: null,
+        mpItemSoundbite: null,
+        mpItemChapter: null,
         mpItemChapters: chapters,
         currentTimeSeconds: 55,
         preferItemTitle: false,
       })
-    ).toEqual({ title: 'Episode title', allowTitleToggle: true, showChapterTitleIcon: false });
+    ).toEqual({ title: 'Episode title', allowTitleToggle: false, showChapterTitleIcon: false });
   });
 });

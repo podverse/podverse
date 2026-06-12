@@ -431,6 +431,8 @@ function getCrudForResource(
       return permissions.billing_prices_crud ?? 0;
     case 'bucket':
       return permissions.bucket_crud ?? 0;
+    case 'embed_demo':
+      return permissions.embed_demo_crud ?? 0;
   }
 }
 

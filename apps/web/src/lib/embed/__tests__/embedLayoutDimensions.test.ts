@@ -12,9 +12,9 @@ import {
   EMBED_LIST_REGION_VIDEO_PX,
   EMBED_LIST_VIDEO_PLACEHOLDER_PX,
   EMBED_PANEL_PADDING_BLOCK_PX,
-  EMBED_PANEL_SECTION_GAP_PX,
   EMBED_PLAY_BUTTON_SIZE_PX,
   EMBED_PLAYER_ART_SIZE_PX,
+  EMBED_PLAYER_INFO_CONTROLS_GAP_PX,
   EMBED_SINGLE_VIDEO_PLACEHOLDER_PX,
 } from '../embedLayoutTokens';
 
@@ -22,7 +22,7 @@ function expectedPanelAudioHeightPx(): number {
   return (
     EMBED_PANEL_PADDING_BLOCK_PX * 2 +
     EMBED_PLAYER_ART_SIZE_PX +
-    EMBED_PANEL_SECTION_GAP_PX +
+    EMBED_PLAYER_INFO_CONTROLS_GAP_PX +
     EMBED_PLAY_BUTTON_SIZE_PX
   );
 }
@@ -31,7 +31,7 @@ function expectedPanelVideoHeightPx(placeholderHeightPx: number): number {
   return (
     EMBED_PANEL_PADDING_BLOCK_PX * 2 +
     EMBED_PLAYER_ART_SIZE_PX +
-    EMBED_PANEL_SECTION_GAP_PX +
+    EMBED_PLAYER_INFO_CONTROLS_GAP_PX +
     placeholderHeightPx
   );
 }

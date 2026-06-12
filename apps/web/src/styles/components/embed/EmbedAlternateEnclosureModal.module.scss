@@ -1,0 +1,132 @@
+.overlay {
+  background: var(--background-color-primary);
+  display: flex;
+  inset: 0;
+  min-height: 0;
+  position: absolute;
+  z-index: 2;
+}
+
+.panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  min-height: 0;
+  min-width: 0;
+  padding: var(--spacing-xs) var(--spacing-lg) var(--spacing-md);
+  width: 100%;
+}
+
+.header {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--spacing-md);
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-normal);
+  margin: 0;
+  min-width: 0;
+}
+
+.closeButton {
+  background: transparent;
+  border: 0;
+  color: var(--text-color-primary);
+  cursor: pointer;
+  flex: 0 0 auto;
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+.options {
+  border: 1px solid var(--border-color-primary);
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.option {
+  align-items: center;
+  background: var(--background-color-secondary);
+  border: 0;
+  border-bottom: 1px solid var(--border-color-primary);
+  border-radius: 0;
+  color: var(--text-color-primary);
+  cursor: pointer;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: row;
+  gap: var(--spacing-md);
+  min-height: 2.75rem;
+  padding: var(--spacing-md);
+  text-align: left;
+  width: 100%;
+}
+
+.option:last-child {
+  border-bottom: 0;
+}
+
+.optionSelected {
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
+
+.optionMediaIcon {
+  align-items: center;
+  color: var(--text-color-secondary);
+  display: flex;
+  flex: 0 0 auto;
+  font-size: var(--font-size-md);
+  justify-content: center;
+  padding-inline: var(--spacing-sm);
+}
+
+.optionContent {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  min-width: 0;
+}
+
+.optionTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
+}
+
+.optionMetaRow {
+  align-items: baseline;
+  display: flex;
+  gap: var(--spacing-sm);
+  min-width: 0;
+  width: 100%;
+}
+
+.optionLabel {
+  color: var(--text-color-secondary);
+  flex: 0 1 auto;
+  font-size: var(--font-size-sm);
+  min-width: 0;
+}
+
+.optionSource {
+  color: var(--text-color-secondary);
+  flex: 1 1 0;
+  font-size: var(--font-size-sm);
+  margin-left: auto;
+  min-width: 0;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

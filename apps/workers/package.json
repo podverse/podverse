@@ -21,6 +21,7 @@
     "dev_pi_bulk_feeds_add_from_file": "node ./dist/index.js devPiBulkFeedsAddFromFile",
     "dev_parser_rss_parse_podcasting20_feeds": "node ./dist/index.js devParserRSSParsePodcasting20Feeds",
     "dev_parser_rss_parse_trending_feeds": "node ./dist/index.js devParserRSSParseTrendingFeeds",
+    "seed_embed_demo_showcase_feeds": "node ./dist/index.js seedEmbedDemoShowcaseFeeds",
     "image_shrink_backfill": "node ./dist/index.js imageShrinkBackfill",
     "image_shrink_cleanup_orphans": "node ./dist/index.js imageShrinkCleanupOrphans",
     "image_shrink_run_consumer": "node ./dist/index.js imageShrinkRunConsumer",

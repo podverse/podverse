@@ -7,6 +7,7 @@ export const ADMIN_PERMISSION_RESOURCE_KEYS = [
   'stats_crud',
   'billing_prices_crud',
   'bucket_crud',
+  'embed_demo_crud',
 ] as const;
 
 export type PermissionState = {
@@ -16,6 +17,7 @@ export type PermissionState = {
   stats_crud: number;
   billing_prices_crud: number;
   bucket_crud: number;
+  embed_demo_crud: number;
 };
 
 /** User cleared template or edited checkboxes manually — submit explicit permissions only. */
@@ -32,6 +34,7 @@ export function emptyPermissionState(): PermissionState {
     stats_crud: 0,
     billing_prices_crud: 0,
     bucket_crud: 0,
+    embed_demo_crud: 0,
   };
 }
 
@@ -43,6 +46,7 @@ export function permissionStateFromRoleItem(item: ManagementAdminRoleItem): Perm
     stats_crud: item.stats_crud,
     billing_prices_crud: item.billing_prices_crud,
     bucket_crud: item.bucket_crud,
+    embed_demo_crud: item.embed_demo_crud,
   };
 }
 
@@ -57,7 +61,8 @@ export function rolePermissionScore(item: ManagementAdminRoleItem): number {
     item.admins_crud +
     item.stats_crud +
     item.billing_prices_crud +
-    item.bucket_crud
+    item.bucket_crud +
+    item.embed_demo_crud
   );
 }
 

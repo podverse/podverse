@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const getAddByRSSFeedByUrlMock = vi.fn();
-const upsertAddByRSSFeedMock = vi.fn();
+const { getAddByRSSFeedByUrlMock, upsertAddByRSSFeedMock } = vi.hoisted(() => ({
+  getAddByRSSFeedByUrlMock: vi.fn(),
+  upsertAddByRSSFeedMock: vi.fn(),
+}));
 
 vi.mock('./storage', () => ({
   getAddByRSSFeedByUrl: getAddByRSSFeedByUrlMock,

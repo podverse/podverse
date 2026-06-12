@@ -21,6 +21,7 @@ type MockAdmin = {
     statsCrud: number;
     billingPricesCrud: number;
     bucketCrud: number;
+    embedDemoCrud: number;
   } | null;
   created_at: Date;
 };
@@ -38,6 +39,7 @@ const superuserAdmin: MockAdmin = {
     statsCrud: 15,
     billingPricesCrud: 15,
     bucketCrud: 15,
+    embedDemoCrud: 15,
   },
   created_at: new Date('2020-01-01T00:00:00.000Z'),
 };
@@ -56,6 +58,7 @@ const adminWithAdminsRead: MockAdmin = {
     statsCrud: 0,
     billingPricesCrud: 0,
     bucketCrud: 0,
+    embedDemoCrud: 0,
   },
   created_at: new Date('2020-01-01T00:00:00.000Z'),
 };
@@ -73,6 +76,7 @@ const adminWithNoPermissions: MockAdmin = {
     statsCrud: 0,
     billingPricesCrud: 0,
     bucketCrud: 0,
+    embedDemoCrud: 0,
   },
   created_at: new Date('2020-01-01T00:00:00.000Z'),
 };
@@ -91,6 +95,7 @@ const adminWithAdminsCreate: MockAdmin = {
     statsCrud: 0,
     billingPricesCrud: 0,
     bucketCrud: 0,
+    embedDemoCrud: 0,
   },
   created_at: new Date('2020-01-01T00:00:00.000Z'),
 };
@@ -135,6 +140,7 @@ vi.mock('@management-api/orm/services/managementAdminRole.js', () => {
         statsCrud: number;
         billingPricesCrud: number;
         bucketCrud: number;
+        embedDemoCrud: number;
       }) {
         return {
           id: '11111111-1111-1111-1111-111111111111',
@@ -145,6 +151,7 @@ vi.mock('@management-api/orm/services/managementAdminRole.js', () => {
           statsCrud: data.statsCrud,
           billingPricesCrud: data.billingPricesCrud,
           bucketCrud: data.bucketCrud,
+          embedDemoCrud: data.embedDemoCrud,
           created_at: new Date('2024-06-01T00:00:00.000Z'),
         };
       }
@@ -158,6 +165,7 @@ vi.mock('@management-api/orm/services/managementAdminRole.js', () => {
           statsCrud: number;
           billingPricesCrud: number;
           bucketCrud: number;
+          embedDemoCrud: number;
         }>
       ) {
         return {
@@ -169,6 +177,7 @@ vi.mock('@management-api/orm/services/managementAdminRole.js', () => {
           statsCrud: updates.statsCrud ?? 0,
           billingPricesCrud: updates.billingPricesCrud ?? 0,
           bucketCrud: updates.bucketCrud ?? 0,
+          embedDemoCrud: updates.embedDemoCrud ?? 0,
           created_at: new Date('2024-06-01T00:00:00.000Z'),
         };
       }
@@ -325,6 +334,7 @@ describe('management-api admins routes', () => {
           statsCrud: 0,
           billingPricesCrud: 0,
           bucketCrud: 0,
+          embedDemoCrud: 0,
         },
         created_at: new Date('2024-01-01T00:00:00.000Z'),
       });
@@ -356,6 +366,7 @@ describe('management-api admins routes', () => {
           statsCrud: 0,
           billingPricesCrud: 0,
           bucketCrud: 0,
+          embedDemoCrud: 0,
         },
         created_at: new Date('2024-01-01T00:00:00.000Z'),
       });
@@ -387,6 +398,7 @@ describe('management-api admins routes', () => {
           statsCrud: 0,
           billingPricesCrud: 0,
           bucketCrud: 0,
+          embedDemoCrud: 0,
         },
         created_at: new Date('2024-01-01T00:00:00.000Z'),
       });
@@ -429,6 +441,7 @@ describe('management-api admins routes', () => {
           statsCrud: 0,
           billingPricesCrud: 0,
           bucketCrud: 0,
+          embedDemoCrud: 0,
         },
         created_at: new Date('2024-01-01T00:00:00.000Z'),
       });
@@ -456,6 +469,7 @@ describe('management-api admins routes', () => {
           statsCrud: 0,
           billingPricesCrud: 0,
           bucketCrud: 0,
+          embedDemoCrud: 0,
         },
         created_at: new Date('2024-01-01T00:00:00.000Z'),
       });
@@ -495,6 +509,7 @@ describe('management-api admins routes', () => {
           statsCrud: 0,
           billingPricesCrud: 0,
           bucketCrud: 0,
+          embedDemoCrud: 0,
         },
         created_at: new Date('2020-01-01T00:00:00.000Z'),
       });
@@ -642,6 +657,7 @@ describe('management-api admins routes', () => {
           statsCrud: 0,
           billingPricesCrud: 0,
           bucketCrud: 15,
+          embedDemoCrud: 0,
         },
         created_at: new Date('2024-01-01T00:00:00.000Z'),
       });
@@ -690,6 +706,7 @@ describe('management-api admins routes', () => {
           statsCrud: 15,
           billingPricesCrud: 15,
           bucketCrud: 15,
+          embedDemoCrud: 15,
         },
         created_at: new Date('2020-01-01T00:00:00.000Z'),
       });

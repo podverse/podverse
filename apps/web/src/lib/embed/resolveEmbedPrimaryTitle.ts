@@ -6,6 +6,7 @@ export type ResolveEmbedPrimaryTitleInput = {
   mpItem: DTOItem | null;
   mpClip: DTOClip | null;
   mpItemSoundbite: DTOItemSoundbite | null;
+  mpItemChapter: DTOItemChapter | null;
   mpItemChapters: DTOItemChapter[] | null;
   currentTimeSeconds: number;
   preferItemTitle: boolean;
@@ -29,6 +30,7 @@ export function resolveEmbedPrimaryTitle({
   mpItem,
   mpClip,
   mpItemSoundbite,
+  mpItemChapter,
   mpItemChapters,
   currentTimeSeconds,
   preferItemTitle,
@@ -49,6 +51,18 @@ export function resolveEmbedPrimaryTitle({
     };
   }
 
+  const pinnedChapterTitle = mpItemChapter?.title ?? null;
+  const hasPinnedChapterTitle =
+    pinnedChapterTitle !== null && pinnedChapterTitle !== undefined && pinnedChapterTitle !== '';
+
+  if (hasPinnedChapterTitle && !preferItemTitle) {
+    return {
+      title: pinnedChapterTitle,
+      allowTitleToggle: true,
+      showChapterTitleIcon: true,
+    };
+  }
+
   const chapters = mpItemChapters ?? [];
   const baseItemTitle = resolveBaseItemTitle(mpItem);
   const activeChapter =
@@ -57,7 +71,11 @@ export function resolveEmbedPrimaryTitle({
   const hasChapterTitle =
     activeChapterTitle !== null && activeChapterTitle !== undefined && activeChapterTitle !== '';
 
-  if (chapters.length === 0) {
+  // The title toggle only does something when a chapter title is active at the current
+  // playhead (it switches between the chapter title and the item title). With no active
+  // chapter title (e.g. playhead 0 before the first chapter, or a gap between chapters),
+  // there is nothing to toggle, so do not render the clickable affordance/pointer cursor.
+  if (!hasChapterTitle) {
     return { title: baseItemTitle, allowTitleToggle: false, showChapterTitleIcon: false };
   }
 
@@ -65,13 +83,9 @@ export function resolveEmbedPrimaryTitle({
     return { title: baseItemTitle, allowTitleToggle: true, showChapterTitleIcon: false };
   }
 
-  if (hasChapterTitle) {
-    return {
-      title: activeChapterTitle,
-      allowTitleToggle: true,
-      showChapterTitleIcon: true,
-    };
-  }
-
-  return { title: baseItemTitle, allowTitleToggle: true, showChapterTitleIcon: false };
+  return {
+    title: activeChapterTitle,
+    allowTitleToggle: true,
+    showChapterTitleIcon: true,
+  };
 }

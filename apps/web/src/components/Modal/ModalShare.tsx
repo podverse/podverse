@@ -9,6 +9,7 @@ import { Button, FormStack, Modal, TextInput } from '@podverse/ui';
 
 import { WEB } from '../../constants/web';
 import { defaultModalShare, useModals } from '../../contexts/Modals';
+import { getEmbedShareActions } from '../../lib/embed/getEmbedShareActions';
 
 type ModalShareInput = {
   name: string;
@@ -23,7 +24,7 @@ export const ModalShare: React.FC = () => {
   const tInfo = useTranslations('info');
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const { modalShare, setModalShare, setModalEmbedBuilder } = useModals();
+  const { modalShare, setModalShare } = useModals();
 
   React.useEffect(() => {
     return () => {
@@ -52,17 +53,11 @@ export const ModalShare: React.FC = () => {
     }, 2000);
   };
 
-  const handleCreateEmbed = () => {
-    setModalEmbedBuilder({
-      channel: modalShare.channel,
-      item: modalShare.item,
-      clip: modalShare.clip,
-      item_chapter: modalShare.item_chapter,
-      item_soundbite: modalShare.item_soundbite,
-      playlist: modalShare.playlist,
-    });
+  const handleClose = () => {
     setModalShare(defaultModalShare);
   };
+
+  const embedActions = getEmbedShareActions(modalShare);
 
   const shareInputs: ModalShareInput[] = [];
 
@@ -136,7 +131,7 @@ export const ModalShare: React.FC = () => {
     <Modal
       header={tFeatures('share')}
       isOpen={isOpen}
-      onClose={() => setModalShare(defaultModalShare)}
+      onClose={handleClose}
       closeButtonAriaLabel={tMisc('close_modal')}
       ariaLabel={tFeatures('share')}
     >
@@ -155,11 +150,18 @@ export const ModalShare: React.FC = () => {
             readOnly
           />
         ))}
-        <div data-testid="share-create-embed">
-          <Button type="button" onClick={handleCreateEmbed}>
-            {tFeatures('create_embed')}
-          </Button>
-        </div>
+        {embedActions.map((action) => (
+          <div key={action.testId} data-testid={action.testId}>
+            <Button
+              href={action.href}
+              onClick={() => {
+                handleClose();
+              }}
+            >
+              {tFeatures(action.labelKey)}
+            </Button>
+          </div>
+        ))}
       </FormStack>
     </Modal>
   );

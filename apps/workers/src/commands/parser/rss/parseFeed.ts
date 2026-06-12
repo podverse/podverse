@@ -15,13 +15,25 @@ export async function parsePodcastIndexFeedById(
   podcastIndexId: number,
   forceParse: boolean
 ): Promise<void> {
+  await parsePodcastIndexFeedDirectly(podcastIndexId, forceParse, { enqueueFollowUpWork: true });
+}
+
+/**
+ * Fetches a Podcast Index feed, parses RSS, and persists to the DB. Optionally skips MQ
+ * follow-up (remote items, image hints) for one-shot seed/ops jobs.
+ */
+export async function parsePodcastIndexFeedDirectly(
+  podcastIndexId: number,
+  forceParse: boolean,
+  options: { enqueueFollowUpWork: boolean }
+): Promise<void> {
   const feedData = await getPodcastIndexService().podcastGetById(podcastIndexId);
   const feedUrl = feedData?.feed?.url;
   if (!feedUrl) {
     throw new Error(`No feedUrl found for podcast_index_id ${podcastIndexId}`);
   }
 
-  const options = forceParse
+  const parseOptions = forceParse
     ? {
         forceParse: true,
         onDemandParserEvent: {
@@ -39,7 +51,11 @@ export async function parsePodcastIndexFeedById(
         },
       };
 
-  const result = await parseRSSFeedAndSaveToDatabase(feedUrl, podcastIndexId, options);
+  const result = await parseRSSFeedAndSaveToDatabase(feedUrl, podcastIndexId, parseOptions);
+
+  if (!options.enqueueFollowUpWork) {
+    return;
+  }
 
   const activeMQArtemisService = getActiveMQArtemisService();
   let sentMessages = 0;

@@ -1,3 +1,5 @@
+@use '../../../mixins/buttons.scss' as *;
+
 .playButtonRow {
   display: flex;
   align-items: center;
@@ -9,4 +11,5 @@
   height: var(--list-item-button-size);
   width: var(--list-item-button-size);
   font-size: var(--font-size-xs);
+  @include mediaPlayerPlayPauseIconCentering;
 }

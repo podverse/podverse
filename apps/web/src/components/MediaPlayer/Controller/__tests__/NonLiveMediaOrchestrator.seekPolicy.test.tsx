@@ -39,6 +39,12 @@ import {
 } from '../../../../test/mediaElementFake';
 import { NonLiveMediaOrchestrator } from '../NonLiveMediaOrchestrator';
 
+vi.mock('../../../../contexts/MediaPlayer', () => ({
+  useMediaPlayer: () => ({
+    activePlaybackTarget: null,
+  }),
+}));
+
 type RenderOverrides = Partial<{
   loggedInAccount: DTOAccount | null;
   mpAddByRSS: MediaPlayerAddByRSSState;

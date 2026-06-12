@@ -124,6 +124,10 @@
       "title": "Products",
       "description": "Product areas including membership configuration"
     },
+    "web": {
+      "title": "Web",
+      "description": "Configure public web surfaces such as the embed demo page"
+    },
     "admins": {
       "title": "Admins",
       "description": "Manage admin accounts and permissions"
@@ -268,6 +272,42 @@
     "pageTitle": "Products",
     "membershipsCardTitle": "Memberships",
     "membershipsCardDescription": "View resolved membership values (environment bootstrap and database)."
+  },
+  "webHub": {
+    "pageTitle": "Web",
+    "embedDemoCardTitle": "Embed demo",
+    "embedDemoCardDescription": "Choose which content appears on the public /embed demo page."
+  },
+  "embedDemoConfig": {
+    "pageTitle": "Embed demo",
+    "pageSubtitle": "Enter id_text values for each embed type you want shown on the public demo page. Unconfigured slots are hidden.",
+    "singleSectionTitle": "Single episodes, tracks, and clips",
+    "listSectionTitle": "Podcasts, albums, and playlists",
+    "loadError": "Could not load embed demo configuration.",
+    "saveSuccess": "Embed demo slot updated.",
+    "clearSuccess": "Embed demo slot cleared.",
+    "saveError": "Could not save this embed demo slot.",
+    "notConfigured": "Not configured",
+    "editFieldAria": "Edit {fieldLabel}",
+    "clearFieldAria": "Clear {fieldLabel}",
+    "editValueModalAria": "Edit embed demo slot",
+    "editModalTitle": "Edit {label}",
+    "resourceIdTextLabel": "Resource id_text",
+    "emptyValueMessage": "Enter a resource id_text.",
+    "slotLabels": {
+      "episode-audio": "Episode (audio)",
+      "episode-video": "Episode (video)",
+      "track-audio": "Track (audio)",
+      "track-video": "Track (video)",
+      "clip-audio": "Clip (audio)",
+      "official-clip-audio": "Official clip (audio)",
+      "chapter-audio": "Chapter (audio)",
+      "podcast-audio": "Podcast (audio)",
+      "podcast-video": "Podcast (video)",
+      "album-audio": "Album (audio)",
+      "album-video": "Album (video)",
+      "playlist-mixed": "Playlist (mixed)"
+    }
   },
   "productMemberships": {
     "pageTitle": "Memberships",
@@ -454,6 +494,7 @@
       "stats": "Stats",
       "billingPrices": "Billing prices",
       "bucket": "Object storage",
+      "embedDemo": "Embed demo",
       "roleTemplateLabel": "Permission template",
       "roleTemplateHint": "Pick a saved template to fill the grid. You can still adjust individual boxes afterward.",
       "roleCustom": "Custom (manual)",

@@ -16,6 +16,7 @@ export function EmbedPlayerMoreButton() {
   const menuRef = useRef<HTMLUListElement>(null);
   const { mpPlaybackSpeed, setMPPlaybackSpeed } = useMediaPlayer();
   const tMediaPlayer = useTranslations('media_player');
+  const tMedia = useTranslations('media');
 
   const playbackSpeedOnClick = () => {
     setMPPlaybackSpeed(getNextPlaybackSpeed(mpPlaybackSpeed));
@@ -48,7 +49,7 @@ export function EmbedPlayerMoreButton() {
         className={styles.moreButton}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={tMediaPlayer('playback_speed.playback_speed')}
+        aria-label={tMedia('more_options')}
         data-testid="embed-player-more-button"
         onClick={() => setOpen((v) => !v)}
         onKeyDown={handleButtonKeyDown}

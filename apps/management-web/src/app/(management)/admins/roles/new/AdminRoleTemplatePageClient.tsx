@@ -54,6 +54,7 @@ export function AdminRoleTemplatePageClient({ returnUrl }: { returnUrl: string }
         stats_crud: permissions.stats_crud,
         billing_prices_crud: permissions.billing_prices_crud,
         bucket_crud: permissions.bucket_crud,
+        embed_demo_crud: permissions.embed_demo_crud,
       });
       router.push(returnUrl);
       router.refresh();

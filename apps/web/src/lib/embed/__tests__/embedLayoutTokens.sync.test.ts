@@ -11,6 +11,7 @@ import {
   EMBED_PLAY_BUTTON_SIZE_PX,
   EMBED_PLAY_BUTTON_SIZE_REM,
   EMBED_PLAYER_ART_SIZE_PX,
+  EMBED_PLAYER_INFO_CONTROLS_GAP_PX,
   EMBED_ROOT_FONT_SIZE_PX,
   EMBED_SINGLE_VIDEO_PLACEHOLDER_PX,
 } from '../embedLayoutTokens';
@@ -67,6 +68,7 @@ describe('embedLayoutTokens SCSS sync', () => {
     );
     expect(scssTokens['embed-list-video-placeholder-height']).toBe(EMBED_LIST_VIDEO_PLACEHOLDER_PX);
     expect(scssTokens['embed-list-region-audio-height']).toBe(EMBED_LIST_REGION_AUDIO_PX);
+    expect(scssTokens['embed-player-info-controls-gap']).toBe(EMBED_PLAYER_INFO_CONTROLS_GAP_PX);
     expect(scssTokens['embed-list-region-video-height']).toBe(EMBED_LIST_REGION_VIDEO_PX);
   });
 });

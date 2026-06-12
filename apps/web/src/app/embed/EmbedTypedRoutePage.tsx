@@ -78,6 +78,7 @@ export async function EmbedTypedRoutePage({
     return (
       <EmbedListShell
         listData={listResult.listData}
+        listQuery={runtime.listQuery}
         playIdText={playIdText}
         sharedQuery={runtime.sharedQuery}
       />
@@ -90,7 +91,9 @@ export async function EmbedTypedRoutePage({
     return <EmbedNotFoundShell />;
   }
 
-  const mediaType = resolveEmbedMediaType(resource.channel);
+  const mediaType = runtime.sharedQuery.presentationLocked
+    ? runtime.sharedQuery.presentation
+    : resolveEmbedMediaType(resource.channel);
 
   return (
     <EmbedSingleShell resource={resource} sharedQuery={runtime.sharedQuery} mediaType={mediaType} />

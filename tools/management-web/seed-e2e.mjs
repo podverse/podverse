@@ -76,8 +76,9 @@ async function main() {
        admins_crud,
        stats_crud,
        billing_prices_crud,
-       bucket_crud
-     ) VALUES ($1, 2, 0, 0, 0, 0, 0)`,
+       bucket_crud,
+       embed_demo_crud
+     ) VALUES ($1, 2, 0, 0, 0, 0, 0, 0)`,
     [noBucketId]
   );
 

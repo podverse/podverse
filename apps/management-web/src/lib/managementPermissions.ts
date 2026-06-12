@@ -98,6 +98,22 @@ export function canDeleteStorage(user: CurrentUser): boolean {
   return user.permissions !== null && user.permissions !== undefined && (crud & CRUD_DELETE) !== 0;
 }
 
+export function canReadEmbedDemo(user: CurrentUser): boolean {
+  if (user.role === 'superuser') {
+    return true;
+  }
+  const crud = user.permissions?.embed_demo_crud ?? 0;
+  return user.permissions !== null && user.permissions !== undefined && (crud & CRUD_READ) !== 0;
+}
+
+export function canUpdateEmbedDemo(user: CurrentUser): boolean {
+  if (user.role === 'superuser') {
+    return true;
+  }
+  const crud = user.permissions?.embed_demo_crud ?? 0;
+  return user.permissions !== null && user.permissions !== undefined && (crud & CRUD_UPDATE) !== 0;
+}
+
 /** Matches feed lifecycle `takedown` from management feeds API. */
 export const LIFECYCLE_TAKEDOWN_KEY = 'takedown';
 

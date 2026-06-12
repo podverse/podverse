@@ -76,6 +76,7 @@ export const startApp = async () => {
     const { categoryRouter } = await import('@api/routes/category.js');
     const { channelRouter } = await import('@api/routes/channel.js');
     const { clipRouter } = await import('@api/routes/clip.js');
+    const { embedDemoRoutesRoot } = await import('@api/routes/embedDemo.js');
     const { externalServicesRouter } = await import('@api/routes/externalServices.js');
     const { itemRouter } = await import('@api/routes/item.js');
     const { itemSoundbiteRouter } = await import('./routes/itemSoundbite.js');
@@ -119,6 +120,7 @@ export const startApp = async () => {
     app.use(categoryRouter);
     app.use(channelRouter);
     app.use(clipRouter);
+    app.use(embedDemoRoutesRoot);
     app.use(externalServicesRouter);
     app.use(feedRouter);
     app.use(itemRouter);

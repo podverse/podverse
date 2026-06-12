@@ -17,9 +17,13 @@
   width: 100%;
 }
 
+.mediaPlayerProgressEmbed .customProgressBar {
+  margin: 0;
+}
+
 .mediaPlayerProgressEmbed .mediaPlayerProgressTime,
 .mediaPlayerProgressEmbed .mediaPlayerProgressDuration {
-  display: block;
+  display: none;
 }
 
 .mediaPlayerProgressEmbed .mobileTimeWrapper {
@@ -111,7 +115,7 @@
 
   .mediaPlayerProgressEmbed .mediaPlayerProgressTime,
   .mediaPlayerProgressEmbed .mediaPlayerProgressDuration {
-    display: block;
+    display: none;
   }
 
   .mediaPlayerProgressTime,

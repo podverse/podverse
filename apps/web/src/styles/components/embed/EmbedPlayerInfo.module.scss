@@ -125,6 +125,22 @@
   min-width: 0;
 }
 
+.meta {
+  @include ellipsisSingleLineChild;
+
+  display: block;
+  font-size: var(--font-size-xs);
+  max-width: 100%;
+  min-height: var(--embed-meta-line-min-height);
+}
+
+.publishDateSlot {
+  align-self: flex-start;
+  flex: 0 0 auto;
+  min-height: var(--embed-meta-line-min-height);
+  min-width: 0;
+}
+
 .publishDateBadge {
   @include ellipsisSingleLineChild;
 

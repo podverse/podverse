@@ -9,8 +9,4 @@ export const ASSETS = {
       },
     },
   },
-  EMBED_DEMO: {
-    AUDIO: '/embed-demo/audio',
-    IMAGES: '/embed-demo/images',
-  },
 };

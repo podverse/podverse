@@ -4,12 +4,16 @@
 $embed-player-art-size: 78px;
 $embed-play-button-size: 3rem;
 $embed-brand-logo-height: 32px;
+$embed-player-info-controls-gap: 0.5rem;
 
 $embed-single-video-placeholder-height: 334px;
 $embed-list-video-placeholder-height: 234px;
 
 $embed-presentation-selector-height: 52px;
 $embed-list-row-height: 48px;
+
+// Reserved height for date/duration meta rows in embed list rows and player info.
+$embed-meta-line-min-height: 1.25rem;
 
 // List scroll viewport below the player panel.
 $embed-list-region-audio-height: 588px;

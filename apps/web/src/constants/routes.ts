@@ -19,6 +19,7 @@ export const ROUTES = {
   CONTACT: '/contact',
   DONATE: '/donate',
   EMBED: '/embed',
+  EMBED_BUILDER: '/embed/builder',
   EPISODE: '/episode',
   EPISODES: '/episodes',
   HISTORY: '/history',

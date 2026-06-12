@@ -1,13 +1,15 @@
 // Embed shell height formulas. Literals: _embedLayoutTokens.scss (+ embedLayoutTokens.ts).
 // Iframe codegen px heights: apps/web/src/lib/embed/embedLayoutDimensions.ts
 
-@forward 'embedLayoutTokens';
 @use 'embedLayoutTokens' as tokens;
+@forward 'embedLayoutTokens';
 
 @mixin embed-player-panel-custom-properties {
   --embed-list-video-placeholder-height: #{tokens.$embed-list-video-placeholder-height};
+  --embed-meta-line-min-height: #{tokens.$embed-meta-line-min-height};
   --embed-panel-padding-block: var(--spacing-lg);
   --embed-panel-padding-inline: var(--spacing-lg);
+  --embed-player-info-controls-gap: #{tokens.$embed-player-info-controls-gap};
   --embed-play-button-size: #{tokens.$embed-play-button-size};
   --embed-player-art-size: #{tokens.$embed-player-art-size};
   --embed-single-video-placeholder-height: #{tokens.$embed-single-video-placeholder-height};
@@ -15,18 +17,21 @@
 
 // padding-block + info + gap + bottom section + padding-block
 $embed-player-panel-audio-height: calc(
-  var(--embed-panel-padding-block) + var(--embed-player-art-size) + var(--spacing-md) +
-    var(--embed-play-button-size) + var(--embed-panel-padding-block)
+  var(--embed-panel-padding-block) + var(--embed-player-art-size) +
+    var(--embed-player-info-controls-gap) + var(--embed-play-button-size) +
+    var(--embed-panel-padding-block)
 );
 
 $embed-player-panel-video-height-single: calc(
-  var(--embed-panel-padding-block) + var(--embed-player-art-size) + var(--spacing-md) +
-    var(--embed-single-video-placeholder-height) + var(--embed-panel-padding-block)
+  var(--embed-panel-padding-block) + var(--embed-player-art-size) +
+    var(--embed-player-info-controls-gap) + var(--embed-single-video-placeholder-height) +
+    var(--embed-panel-padding-block)
 );
 
 $embed-player-panel-video-height-list: calc(
-  var(--embed-panel-padding-block) + var(--embed-player-art-size) + var(--spacing-md) +
-    var(--embed-list-video-placeholder-height) + var(--embed-panel-padding-block)
+  var(--embed-panel-padding-block) + var(--embed-player-art-size) +
+    var(--embed-player-info-controls-gap) + var(--embed-list-video-placeholder-height) +
+    var(--embed-panel-padding-block)
 );
 
 $embed-list-player-panel-audio-height: $embed-player-panel-audio-height;

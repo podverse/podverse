@@ -20,38 +20,45 @@
 .frame {
   @include embed.embed-player-panel-custom-properties;
 
+  // content-box so the 1px border sits outside the reserved height; the iframe
+  // (height: 100%) then equals the shell height exactly and the embedded document
+  // never overflows its iframe (no outer scrollbar inside the embed).
   border: 1px solid var(--border-color-opaque);
   border-radius: var(--radius-sm);
-  padding: var(--spacing-xs);
+  box-sizing: content-box;
+  overflow: hidden;
+  padding: 0;
 }
 
 .iframe {
-  border-radius: var(--radius-sm);
   display: block;
   border: 0;
+  height: 100%;
   max-width: 100%;
   width: 100%;
 }
 
-.iframeSingleAudio {
+.iframeSingleAudio,
+.frame.iframeSingleAudio {
   height: embed.$embed-single-audio-shell-height;
 }
 
-.iframeSingleVideo {
+.iframeSingleVideo,
+.frame.iframeSingleVideo {
   height: embed.$embed-single-video-shell-height;
 }
 
-.iframeListAudio {
+.iframeListAudio,
+.frame.iframeListAudio {
   height: embed.$embed-list-audio-shell-height;
 }
 
-.iframeListVideo {
+.iframeListVideo,
+.frame.iframeListVideo {
   height: embed.$embed-list-video-shell-height;
 }
 
-.unavailable {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  margin: 0;
-  padding: var(--spacing-sm);
+.placeholder {
+  height: 100%;
+  width: 100%;
 }

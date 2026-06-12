@@ -15,6 +15,7 @@ import { buildEmbedMainSiteUrl } from '../../lib/embed/buildEmbedMainSiteUrl';
 import type { EmbedSingleResourcePayload } from '../../lib/embed/fetchEmbedSingleResource';
 import { formatEmbedDisplayTitle } from '../../lib/embed/formatEmbedDisplayTitle';
 import { resolveEmbedActiveChapterForArtwork } from '../../lib/embed/resolveEmbedActiveChapterForArtwork';
+import { isEmbedItemCurrentlyLive } from '../../lib/embed/resolveEmbedLiveItemStatus';
 import { resolveEmbedPrimaryTitle } from '../../lib/embed/resolveEmbedPrimaryTitle';
 import { shouldEmbedShowChapterInfo } from '../../lib/embed/shouldEmbedShowChapterInfo';
 import { getBrandLogoSquareSrc } from '../../utils/brandLogo';
@@ -25,6 +26,7 @@ import {
 } from '../../utils/mediaPlayer/mediaPlayerArtwork';
 import { getMediaPlayerInfoResolution } from '../../utils/mediaPlayer/mediaPlayerInfoResolution';
 import { ReadableDate } from '../Time/ReadableDate';
+import { EmbedLiveItemStatus } from './EmbedLiveItemStatus';
 
 import styles from '../../styles/components/embed/EmbedPlayerInfo.module.scss';
 
@@ -86,6 +88,7 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
         mpItem,
         mpClip: clip,
         mpItemSoundbite: itemSoundbite,
+        mpItemChapter: showChapterInfo ? mpItemChapter : null,
         mpItemChapters: showChapterInfo ? mpItemChapters : null,
         currentTimeSeconds: mpCurrentTime,
         preferItemTitle,
@@ -105,6 +108,8 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
     : showChapterInfo && fallbackResource?.itemChapter !== null;
 
   const publishDate = item?.pub_date ?? null;
+  const hasPublishDate = publishDate !== null && publishDate !== '';
+  const isCurrentlyLive = item !== null && isEmbedItemCurrentlyLive(item);
 
   const { channelImages, itemImages } = getMediaPlayerArtworkSources({
     mpChannel: channel,
@@ -192,6 +197,7 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
               ) : null}
               {itemTitle !== null && itemTitle !== '' ? (
                 <span className={styles.titleRow}>
+                  {isCurrentlyLive ? <EmbedLiveItemStatus /> : null}
                   {showChapterTitleIcon ? (
                     <FaListOl
                       aria-hidden
@@ -202,11 +208,16 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
                   <span className={styles.title}>{itemTitle}</span>
                 </span>
               ) : null}
-              {publishDate !== null && publishDate !== '' ? (
-                <span className={styles.publishDateBadge} data-testid="embed-publish-date">
-                  <ReadableDate date={publishDate} />
-                </span>
-              ) : null}
+              <span
+                className={
+                  hasPublishDate
+                    ? `${styles.publishDateSlot} ${styles.publishDateBadge}`
+                    : styles.publishDateSlot
+                }
+                data-testid="embed-publish-date"
+              >
+                {hasPublishDate ? <ReadableDate date={publishDate} /> : null}
+              </span>
             </button>
           ) : (
             <div className={styles.textStack}>
@@ -217,6 +228,7 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
               ) : null}
               {itemTitle !== null && itemTitle !== '' ? (
                 <span className={styles.titleRow}>
+                  {isCurrentlyLive ? <EmbedLiveItemStatus /> : null}
                   {showChapterTitleIcon ? (
                     <FaListOl
                       aria-hidden
@@ -229,11 +241,16 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
                   </span>
                 </span>
               ) : null}
-              {publishDate !== null && publishDate !== '' ? (
-                <span className={styles.publishDateBadge} data-testid="embed-publish-date">
-                  <ReadableDate date={publishDate} />
-                </span>
-              ) : null}
+              <span
+                className={
+                  hasPublishDate
+                    ? `${styles.publishDateSlot} ${styles.publishDateBadge}`
+                    : styles.publishDateSlot
+                }
+                data-testid="embed-publish-date"
+              >
+                {hasPublishDate ? <ReadableDate date={publishDate} /> : null}
+              </span>
             </div>
           )}
           {brandLogoSquareSrc !== null && mainSiteUrl !== null ? (

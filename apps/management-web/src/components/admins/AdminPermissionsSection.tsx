@@ -44,6 +44,7 @@ const RESOURCE_LABEL_KEYS: Record<(typeof ADMIN_PERMISSION_RESOURCE_KEYS)[number
   stats_crud: 'stats',
   billing_prices_crud: 'billingPrices',
   bucket_crud: 'bucket',
+  embed_demo_crud: 'embedDemo',
 };
 
 export type AdminPermissionsSectionProps = {
@@ -181,6 +182,7 @@ export function AdminPermissionsSection({
       stats_crud: 15,
       billing_prices_crud: 15,
       bucket_crud: 15,
+      embed_demo_crud: 15,
     });
   }, [onPermissionsChange, onSelectedRoleIdChange]);
 

@@ -26,6 +26,7 @@ import { useQueueResourcesAbridgedIndex } from '../../../../contexts/QueueResour
 import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { useMediaPlayerResourceUpdate } from '../../../../hooks/useMediaPlayerResourceUpdate';
 import { playbackTargetFromStandardLoad } from '../../../../lib/playback';
+import { buildPlaylistItemShareModalState } from '../../../../lib/share/openPlaylistItemShareModal';
 import { downloadEpisodeWithModal } from '../../../../utils/downloadModal/downloadEpisodeWithModal';
 import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
 import { PlayButtonRow } from '../../../MediaPlayer/Buttons/PlayButtonRow';
@@ -82,7 +83,8 @@ export const ListEpisodeRow: React.FC<Props> = ({
   const { loggedInAccount } = useAccount();
   const { mpItem, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
-  const { setModalPlaylistAddTo, setModalSourceSelector, setModalLoginRequired } = useModals();
+  const { setModalPlaylistAddTo, setModalSourceSelector, setModalLoginRequired, setModalShare } =
+    useModals();
   const { queueResourcesAbridgedIndex } = useQueueResourcesAbridgedIndex();
   const { durationStr, positionStr } = getDurationAndPositionStr(item, queueResourcesAbridgedIndex);
   const { autoQueueConfig } = useAutoQueue();
@@ -288,6 +290,23 @@ export const ListEpisodeRow: React.FC<Props> = ({
           label: tFeatures('download.download_episode'),
           onClick: downloadEpisode,
         },
+        ...(playlist_id_text
+          ? [
+              {
+                label: tFeatures('share'),
+                onClick: () => {
+                  setModalShare(
+                    buildPlaylistItemShareModalState({
+                      channel,
+                      item,
+                      playlist_id_text,
+                      playlist_item_id_text: item.id_text,
+                    })
+                  );
+                },
+              } satisfies MoreButtonMenuItem,
+            ]
+          : []),
       ];
 
   if (isEditModeQueue) {

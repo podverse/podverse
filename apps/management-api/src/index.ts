@@ -26,7 +26,6 @@ const run = async () => {
   initObservability(config.observability);
 
   const { loggerService } = await import('./factories/loggerService.js');
-  const { startApp } = await import('./app.js');
 
   const shutdown = async (signal?: string) => {
     try {
@@ -87,6 +86,38 @@ const run = async () => {
     await AppDbDataSourceReadWrite.initialize();
     loggerService.warn('Connected to the app database');
 
+    const { bindORMContext } = await import('@podverse/orm');
+    bindORMContext({
+      config: {
+        nodeEnv: config.nodeEnv,
+        database: {
+          host: config.appDatabase.host,
+          port: config.appDatabase.port,
+          read_username: config.appDatabase.read_username,
+          read_password: config.appDatabase.read_password,
+          read_write_username: config.appDatabase.read_write_username,
+          read_write_password: config.appDatabase.read_write_password,
+          database: config.appDatabase.database,
+          ssl_connection: config.appDatabase.ssl_connection,
+        },
+        log: {
+          level: config.log.level,
+          dir: config.log.dir,
+        },
+        defaults: {
+          account: {
+            settings: {
+              locale: process.env.DEFAULT_ACCOUNT_SETTINGS_LOCALE,
+            },
+          },
+        },
+      },
+      dataSourceRead: AppDbDataSourceRead,
+      dataSourceReadWrite: AppDbDataSourceReadWrite,
+      loggerService,
+    });
+
+    const { startApp } = await import('./app.js');
     const maybeServer = await startApp();
     if (maybeServer) {
       serverInstance = maybeServer;
