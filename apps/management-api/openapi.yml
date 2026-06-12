@@ -18,6 +18,7 @@ tags:
   - name: storage
   - name: system
   - name: users
+  - name: web
   - name: workers
 components:
   securitySchemes:

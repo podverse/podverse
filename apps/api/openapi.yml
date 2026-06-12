@@ -16,6 +16,7 @@ tags:
   - name: channel
   - name: clip
   - name: external-services
+  - name: embed-demo
   - name: feed
   - name: item
   - name: item-chapter
