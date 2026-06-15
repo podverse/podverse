@@ -37,6 +37,7 @@
       "postcss": "8.5.10"
     },
     "glob": "^13.0.1",
+    "esbuild": "0.28.1",
     "uuid": "14.0.0",
     "@google-cloud/storage": {
       "teeny-request": "10.1.2"
