@@ -36,7 +36,7 @@ export { EMBED_DISABLED_AUTO_QUEUE_CONFIG } from './embedAutoQueueConfig';
 export { fetchEmbedSingleResource } from './fetchEmbedSingleResource';
 export type { EmbedSingleResourcePayload } from './fetchEmbedSingleResource';
 export { formatEmbedDisplayTitle } from './formatEmbedDisplayTitle';
-export { resolveEmbedMediaType } from './resolveEmbedMediaType';
+export { resolveEmbedMediaType, toEmbedPresentationQuery } from './resolveEmbedMediaType';
 export type {
   EmbedAlbumListQueryParams,
   EmbedPresentationQuery,

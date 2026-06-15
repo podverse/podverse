@@ -17,7 +17,7 @@ describe('resolveEmbedPlaybackSegmentRefs', () => {
         mpClip: null,
         mpItemSoundbite: null,
         fallbackClip,
-        fallbackItemSoundbite,
+        fallbackItemSoundbite: fallbackSoundbite,
       })
     ).toEqual({
       clip: fallbackClip,

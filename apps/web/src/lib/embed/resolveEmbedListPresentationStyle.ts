@@ -1,5 +1,5 @@
 import type { EmbedListRow } from './embedListTypes';
-import type { EmbedMediaType } from './embedTypes';
+import type { EmbedPresentationQuery } from './embedTypes';
 
 type EmbedListMediaRow = Pick<EmbedListRow, 'mediaType'>;
 
@@ -26,7 +26,7 @@ export function listHasMixedEmbedMedia(rows: EmbedListMediaRow[]): boolean {
 
 export function resolveInitialPresentationStyle(
   row: Pick<EmbedListRow, 'mediaType'> | null
-): EmbedMediaType {
+): EmbedPresentationQuery {
   if (row === null) {
     return 'audio';
   }

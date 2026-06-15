@@ -12,7 +12,13 @@ describe('buildEndedLiveItemTimeVariants', () => {
   });
 
   it('keeps items whose end_time is at or after the cutoff (first variant)', () => {
-    const [withEndTime] = buildEndedLiveItemTimeVariants(CUTOFF);
+    const variants = buildEndedLiveItemTimeVariants(CUTOFF);
+    const withEndTime = variants[0];
+    expect(withEndTime).toBeDefined();
+    if (withEndTime === undefined) {
+      return;
+    }
+
     const endTime = withEndTime.end_time;
 
     expect(endTime).toBeInstanceOf(FindOperator);
@@ -26,6 +32,11 @@ describe('buildEndedLiveItemTimeVariants', () => {
   it('falls back to start_time when end_time is null (second variant)', () => {
     const variants = buildEndedLiveItemTimeVariants(CUTOFF);
     const nullEndTime = variants[1];
+    expect(nullEndTime).toBeDefined();
+    if (nullEndTime === undefined) {
+      return;
+    }
+
     const endTime = nullEndTime.end_time;
     const startTime = nullEndTime.start_time;
 
@@ -43,8 +54,13 @@ describe('buildEndedLiveItemTimeVariants', () => {
 
   it('defaults the cutoff to roughly one day before now', () => {
     const before = Date.now() - ONE_DAY_MS;
-    const [withEndTime] = buildEndedLiveItemTimeVariants();
+    const variants = buildEndedLiveItemTimeVariants();
+    const withEndTime = variants[0];
     const after = Date.now() - ONE_DAY_MS;
+    expect(withEndTime).toBeDefined();
+    if (withEndTime === undefined) {
+      return;
+    }
 
     const endTime = withEndTime.end_time;
     expect(endTime).toBeInstanceOf(FindOperator);

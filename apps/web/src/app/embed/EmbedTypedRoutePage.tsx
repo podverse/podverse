@@ -22,6 +22,7 @@ import {
 import {
   resolveEmbedMediaType,
   resolveEmbedPlayerSizeFromChannel,
+  toEmbedPresentationQuery,
 } from '../../lib/embed/resolveEmbedMediaType';
 
 type EmbedTypedRoutePageProps = {
@@ -105,7 +106,7 @@ export async function EmbedTypedRoutePage({
 
   const mediaPreference: EmbedPresentationQuery = runtime.sharedQuery.presentationLocked
     ? runtime.sharedQuery.presentation
-    : resolveEmbedMediaType(resource.channel);
+    : toEmbedPresentationQuery(resolveEmbedMediaType(resource.channel));
 
   const effectiveSharedQuery = {
     ...runtime.sharedQuery,

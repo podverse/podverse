@@ -38,8 +38,16 @@ describe('EMBED_DEMO_SHOWCASE_CATALOG', () => {
     ] as const;
 
     for (let index = 0; index < order.length - 1; index += 1) {
-      expect(getEmbedDemoShowcaseOrderIndex(order[index])).toBeLessThan(
-        getEmbedDemoShowcaseOrderIndex(order[index + 1])
+      const currentId = order[index];
+      const nextId = order[index + 1];
+      expect(currentId).toBeDefined();
+      expect(nextId).toBeDefined();
+      if (currentId === undefined || nextId === undefined) {
+        continue;
+      }
+
+      expect(getEmbedDemoShowcaseOrderIndex(currentId)).toBeLessThan(
+        getEmbedDemoShowcaseOrderIndex(nextId)
       );
     }
   });

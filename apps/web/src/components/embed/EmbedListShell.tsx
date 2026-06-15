@@ -12,13 +12,13 @@ import { useEmbedTallAutoResize } from '../../hooks/useEmbedTallAutoResize';
 import { getEmbedListVideoPlaceholderHeightPx } from '../../lib/embed/embedLayoutDimensions';
 import { registerEmbedListEndedHandler } from '../../lib/embed/embedListPlaybackAdvance';
 import type {
-  EmbedAlbumListQueryParams,
-  EmbedEpisodeChaptersListQueryParams,
   EmbedListData,
   EmbedListGroup,
   EmbedListRow as EmbedListRowType,
 } from '../../lib/embed/embedListTypes';
 import type {
+  EmbedAlbumListQueryParams,
+  EmbedEpisodeChaptersListQueryParams,
   EmbedPlaylistListQueryParams,
   EmbedPodcastListQueryParams,
   EmbedPresentationQuery,

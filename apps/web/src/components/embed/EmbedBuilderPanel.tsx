@@ -168,14 +168,15 @@ export function EmbedBuilderPanel({ initialParams }: EmbedBuilderPanelProps) {
   const listVisibleRows = parseListVisibleRowsInput(listVisibleRowsInput);
 
   const listContentOptions = resolveEmbedBuilderListContentOptions(builderParams);
-  const normalizedListContentType =
+  const normalizedListContentType: EmbedBuilderListContentType =
     listContentOptions.length > 0 && !listContentOptions.includes(builderParams.listContentType)
-      ? listContentOptions[0]
+      ? (listContentOptions[0] ?? builderParams.listContentType)
       : builderParams.listContentType;
-  const listSortOptions = EMBED_BUILDER_LIST_SORT_OPTIONS_BY_CONTENT[normalizedListContentType];
-  const normalizedListSort = listSortOptions.includes(builderParams.listSort)
+  const listSortOptions: readonly EmbedBuilderListSort[] =
+    EMBED_BUILDER_LIST_SORT_OPTIONS_BY_CONTENT[normalizedListContentType];
+  const normalizedListSort: EmbedBuilderListSort = listSortOptions.includes(builderParams.listSort)
     ? builderParams.listSort
-    : listSortOptions[0];
+    : (listSortOptions[0] ?? builderParams.listSort);
   const normalizedListRange =
     normalizedListSort === 'top' ? (builderParams.listRange ?? 'all-time') : null;
 
@@ -547,7 +548,7 @@ export function EmbedBuilderPanel({ initialParams }: EmbedBuilderPanelProps) {
             role="radiogroup"
             aria-label={tFeatures('embed_list_sort_label')}
           >
-            {listSortOptions.map((listSort) => (
+            {listSortOptions.map((listSort: EmbedBuilderListSort) => (
               <label key={listSort} className={styles.typeOption}>
                 <input
                   checked={effectiveParams.listSort === listSort}

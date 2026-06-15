@@ -13,7 +13,7 @@ const chapters = [
   { id_text: 'ch-2', title: 'Topic A', start_time: 20 },
   { id_text: 'ch-1', title: 'Intro', start_time: 0 },
   { id_text: 'ch-3', title: 'Outro', start_time: 40 },
-] as DTOItemChapter[];
+] as unknown as DTOItemChapter[];
 
 describe('sortEmbedItemChapters', () => {
   it('orders chapters by start_time ascending', () => {
@@ -45,12 +45,23 @@ describe('mapItemChaptersToEmbedListRows', () => {
     const groups = mapItemChaptersToEmbedListRows(channel, item, sorted);
 
     expect(groups).toHaveLength(1);
-    expect(groups[0].groupKey).toBe('chapters');
+    const group = groups[0];
+    expect(group).toBeDefined();
+    if (group === undefined) {
+      return;
+    }
 
-    const rows = groups[0].rows;
+    expect(group.groupKey).toBe('chapters');
+
+    const rows = group.rows;
     expect(rows.map((row) => row.rowKey)).toEqual(['chapter:ch-1', 'chapter:ch-2', 'chapter:ch-3']);
 
     const firstRow = rows[0];
+    expect(firstRow).toBeDefined();
+    if (firstRow === undefined) {
+      return;
+    }
+
     expect(firstRow.playIdText).toBe('ch-1');
     expect(firstRow.listLabel).toBe('Intro');
     expect(firstRow.itemChapter?.id_text).toBe('ch-1');
@@ -61,15 +72,45 @@ describe('mapItemChaptersToEmbedListRows', () => {
   });
 
   it('uses the channel medium to resolve the row media type', () => {
-    const groups = mapItemChaptersToEmbedListRows(videoChannel, item, [chapters[1]]);
-    expect(groups[0].rows[0].mediaType).toBe('video');
+    const chapter = chapters[1];
+    expect(chapter).toBeDefined();
+    if (chapter === undefined) {
+      return;
+    }
+
+    const groups = mapItemChaptersToEmbedListRows(videoChannel, item, [chapter]);
+    const firstGroup = groups[0];
+    expect(firstGroup).toBeDefined();
+    if (firstGroup === undefined) {
+      return;
+    }
+
+    const firstRow = firstGroup.rows[0];
+    expect(firstRow).toBeDefined();
+    if (firstRow === undefined) {
+      return;
+    }
+
+    expect(firstRow.mediaType).toBe('video');
   });
 
   it('falls back to a display title when a chapter title is blank', () => {
     const blankTitleChapters = [
       { id_text: 'ch-x', title: '   ', start_time: 0 },
-    ] as DTOItemChapter[];
+    ] as unknown as DTOItemChapter[];
     const groups = mapItemChaptersToEmbedListRows(channel, item, blankTitleChapters);
-    expect(groups[0].rows[0].listLabel).not.toBe('');
+    const firstGroup = groups[0];
+    expect(firstGroup).toBeDefined();
+    if (firstGroup === undefined) {
+      return;
+    }
+
+    const firstRow = firstGroup.rows[0];
+    expect(firstRow).toBeDefined();
+    if (firstRow === undefined) {
+      return;
+    }
+
+    expect(firstRow.listLabel).not.toBe('');
   });
 });
