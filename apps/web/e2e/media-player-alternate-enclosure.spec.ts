@@ -8,7 +8,7 @@ import { capturePageLoad, actionAndCapture } from './helpers/stepScreenshots';
 
 async function seekMainPlayerToSeconds(page: import('@playwright/test').Page, seconds: number) {
   const mediaPlayer = page.locator('aside#media-player');
-  const slider = mediaPlayer.getByRole('slider');
+  const slider = mediaPlayer.locator('[class*="customProgressBar"]').first();
   await expect(slider).toBeVisible();
 
   const durationSeconds = Number(await slider.getAttribute('aria-valuemax'));
@@ -51,9 +51,9 @@ test.describe('Media player alternate enclosure control', () => {
 
     await test.step('The alternate enclosure button is visible as the leftmost control in the player button row', async () => {
       const mediaPlayer = page.locator('aside#media-player');
-      const alternateEnclosureButton = mediaPlayer.getByTestId(
-        'media-player-alternate-enclosure-button'
-      );
+      const alternateEnclosureButton = mediaPlayer
+        .getByTestId('media-player-alternate-enclosure-button')
+        .first();
       await expect(alternateEnclosureButton).toBeVisible();
 
       await actionAndCapture(
@@ -69,11 +69,11 @@ test.describe('Media player alternate enclosure control', () => {
 
     await test.step('Clicking the alternate enclosure button opens the source selector modal with multiple formats', async () => {
       const mediaPlayer = page.locator('aside#media-player');
-      await mediaPlayer.getByTestId('media-player-alternate-enclosure-button').click();
+      await mediaPlayer.getByTestId('media-player-alternate-enclosure-button').first().click();
       const modal = page.getByRole('dialog', { name: 'Select Media Source' });
       await expect(modal).toBeVisible();
-      await expect(modal.getByRole('link')).toHaveCount(4);
-      await expect(modal.getByRole('link').filter({ hasText: 'localhost' })).toHaveCount(4);
+      const sourceButtons = modal.getByRole('button').filter({ hasText: 'localhost' });
+      await expect(sourceButtons).toHaveCount(4);
 
       await actionAndCapture(
         page,
@@ -94,14 +94,14 @@ test.describe('Media player alternate enclosure control', () => {
 
     await seekMainPlayerToSeconds(page, 15);
     const mediaPlayer = page.locator('aside#media-player');
-    const slider = mediaPlayer.getByRole('slider');
+    const slider = mediaPlayer.locator('[class*="customProgressBar"]').first();
     const positionBeforeSwitch = Number(await slider.getAttribute('aria-valuenow'));
     expect(positionBeforeSwitch).toBeGreaterThanOrEqual(13);
 
-    await mediaPlayer.getByTestId('media-player-alternate-enclosure-button').click();
+    await mediaPlayer.getByTestId('media-player-alternate-enclosure-button').first().click();
     const modal = page.getByRole('dialog', { name: 'Select Media Source' });
     await expect(modal).toBeVisible();
-    await modal.getByRole('link').filter({ hasText: 'audio/ogg' }).first().click();
+    await modal.getByRole('button', { name: /OGG Opus/i }).click();
 
     await expect
       .poll(async () => Number(await slider.getAttribute('aria-valuenow')))

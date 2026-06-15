@@ -1,6 +1,6 @@
 'use client';
 
-import { getSelectedLabeledItemEnclosureAndSource } from '@podverse/helpers';
+import { getSelectedLabeledItemEnclosureAndSource, MediumEnum } from '@podverse/helpers';
 
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
 import { useNonLivePlaybackAvProps } from '../../hooks/useNonLivePlaybackAvProps';
@@ -16,7 +16,7 @@ type EmbedTallMediaMountProps = {
 
 export function EmbedTallMediaMount({ fallbackResource }: EmbedTallMediaMountProps) {
   const avProps = useNonLivePlaybackAvProps();
-  const { mpItemLabeledItemEnclosures, mpEnclosureSelectedParams } = useMediaPlayer();
+  const { mpChannel, mpItemLabeledItemEnclosures, mpEnclosureSelectedParams } = useMediaPlayer();
 
   const selectedItemEnclosureAndSource =
     mpItemLabeledItemEnclosures.length > 0
@@ -28,9 +28,13 @@ export function EmbedTallMediaMount({ fallbackResource }: EmbedTallMediaMountPro
         })
       : null;
 
-  const isVideoFile = selectedItemEnclosureAndSource?.labeledItemEnclosure?.mediaType === 'video';
+  const channel = mpChannel ?? fallbackResource?.channel ?? null;
+  const isVideoChannel = channel?.medium_id === MediumEnum.Video;
+  const isVideoEnclosure =
+    selectedItemEnclosureAndSource?.labeledItemEnclosure?.mediaType === 'video';
+  const showVideoElement = isVideoChannel && isVideoEnclosure;
 
-  if (isVideoFile) {
+  if (showVideoElement) {
     return (
       <div className={styles.videoFill} data-testid="embed-tall-video-element">
         <NonLiveMediaOrchestrator

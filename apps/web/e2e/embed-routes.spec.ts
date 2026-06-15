@@ -50,8 +50,6 @@ import {
   EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT,
   EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT,
   EMBED_FIXTURE_PODCAST_EPISODE_NEAR_END_ID_TEXT,
-  EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE,
-  EMBED_SAMPLE_CLIP_TITLE,
   EMBED_FIXTURE_SOUNDBITE_ID_TEXT,
   EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE,
   EMBED_SAMPLE_CHAPTER_TWO_START_SECONDS,
@@ -269,7 +267,7 @@ test.describe('Embed routes (anonymous)', () => {
     await expect(page.getByTestId('embed-title-toggle')).toHaveCount(0);
     await expect(page.getByTestId('embed-chapter-title-icon')).toHaveCount(0);
 
-    await page.goto(`/embed/official-clip/${EMBED_FIXTURE_SOUNDBITE_ID_TEXT}?t=25`);
+    await page.goto(`/embed/official-clip/${EMBED_FIXTURE_SOUNDBITE_ID_TEXT}?t=15`);
     await expectEmbedSingleShell(page);
     await expectNoEmbedChapterMarkers(page);
     await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_SOUNDBITE_TITLE);

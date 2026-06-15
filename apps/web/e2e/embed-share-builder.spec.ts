@@ -69,7 +69,10 @@ async function expectBuilderEmbedPaths(page: Page, pathPattern: RegExp): Promise
 }
 
 async function selectEmbedBuilderType(page: Page, label: string): Promise<void> {
-  await page.getByTestId('embed-builder-type-selector').getByRole('radio', { name: label }).check();
+  await page
+    .getByTestId('embed-builder-type-selector')
+    .getByRole('radio', { name: label, exact: true })
+    .check();
 }
 
 test.describe('Embed share builder handoff', () => {

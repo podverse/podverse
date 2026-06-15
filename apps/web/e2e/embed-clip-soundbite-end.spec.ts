@@ -19,22 +19,33 @@ import {
   EMBED_SAMPLE_SOUNDBITE_TITLE,
 } from './helpers/seedConstants';
 
-async function expectEmbedAudioPaused(page: Page): Promise<void> {
-  const audio = page.locator('audio').first();
+async function expectEmbedMediaPaused(page: Page): Promise<void> {
+  const media = page.locator('video, audio').first();
   await expect
-    .poll(async () => audio.evaluate((el) => el instanceof HTMLAudioElement && el.paused), {
-      timeout: 10_000,
-    })
+    .poll(
+      async () =>
+        media.evaluate((el) => {
+          if (el instanceof HTMLVideoElement || el instanceof HTMLAudioElement) {
+            return el.paused;
+          }
+          return false;
+        }),
+      { timeout: 10_000 }
+    )
     .toBe(true);
 }
 
-async function fastForwardEmbedAudioTo(page: Page, seconds: number): Promise<void> {
+async function fastForwardEmbedMediaTo(page: Page, seconds: number): Promise<void> {
+  const video = page.locator('video').first();
   const audio = page.locator('audio').first();
-  await expect(audio).toHaveCount(1);
-  await waitForAudioReadyAtLeast(page, 1);
-  await audio.evaluate((el, nextTime) => {
-    if (!(el instanceof HTMLAudioElement)) {
-      throw new Error('Expected embed audio element.');
+  const media = (await video.count()) > 0 ? video : audio;
+  await expect(media).toHaveCount(1);
+  if ((await audio.count()) > 0) {
+    await waitForAudioReadyAtLeast(page, 1);
+  }
+  await media.evaluate((el, nextTime) => {
+    if (!(el instanceof HTMLVideoElement) && !(el instanceof HTMLAudioElement)) {
+      throw new Error('Expected embed media element.');
     }
     el.currentTime = nextTime;
     el.dispatchEvent(new Event('timeupdate'));
@@ -43,6 +54,15 @@ async function fastForwardEmbedAudioTo(page: Page, seconds: number): Promise<voi
 
 async function playEmbed(page: Page): Promise<void> {
   await page.getByTestId('embed-player-play-button-cell').getByRole('button').click();
+  const video = page.locator('video').first();
+  if ((await video.count()) > 0) {
+    await expect
+      .poll(async () => video.evaluate((el) => el instanceof HTMLVideoElement && !el.paused), {
+        timeout: 10_000,
+      })
+      .toBe(true);
+    return;
+  }
   await waitForAudioReadyAtLeast(page, 1);
 }
 
@@ -58,9 +78,9 @@ test.describe('Embed clip and soundbite end UI', () => {
     await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_CLIP_TITLE);
 
     await playEmbed(page);
-    await fastForwardEmbedAudioTo(page, EMBED_SAMPLE_CLIP_END_SECONDS + 1);
+    await fastForwardEmbedMediaTo(page, EMBED_SAMPLE_CLIP_END_SECONDS + 1);
 
-    await expectEmbedAudioPaused(page);
+    await expectEmbedMediaPaused(page);
     await expect(embedTitleLocator(page)).not.toContainText(EMBED_SAMPLE_CLIP_TITLE);
   });
 
@@ -74,9 +94,9 @@ test.describe('Embed clip and soundbite end UI', () => {
     await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_CLIP_TITLE);
 
     await playEmbed(page);
-    await fastForwardEmbedAudioTo(page, EMBED_SAMPLE_CLIP_END_SECONDS + 1);
+    await fastForwardEmbedMediaTo(page, EMBED_SAMPLE_CLIP_END_SECONDS + 1);
 
-    await expectEmbedAudioPaused(page);
+    await expectEmbedMediaPaused(page);
     await expect(page.getByTestId('embed-segment-info-bar')).toHaveCount(0);
     await expect(embedTitleLocator(page)).not.toContainText(EMBED_SAMPLE_CLIP_TITLE);
   });
@@ -90,12 +110,12 @@ test.describe('Embed clip and soundbite end UI', () => {
     await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_SOUNDBITE_TITLE);
 
     await playEmbed(page);
-    await fastForwardEmbedAudioTo(
+    await fastForwardEmbedMediaTo(
       page,
       EMBED_SAMPLE_SOUNDBITE_START_SECONDS + EMBED_SAMPLE_SOUNDBITE_DURATION_SECONDS + 1.1
     );
 
-    await expectEmbedAudioPaused(page);
+    await expectEmbedMediaPaused(page);
     await expect(embedTitleLocator(page)).not.toContainText(EMBED_SAMPLE_SOUNDBITE_TITLE);
   });
 });

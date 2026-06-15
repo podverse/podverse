@@ -98,7 +98,6 @@ export interface NonLiveMediaOrchestratorProps {
 export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> = (props) => {
   const { loggedInAccount } = useAccount();
   const { embedPlayerSize, isEmbedRoute } = useEmbedPlaybackGuardrails();
-  const allowVideoOnAudioOrchestrator = embedPlayerSize === 'short';
   const { activePlaybackTarget } = useMediaPlayer();
   const loggedInAccountRef = useRef(loggedInAccount);
   useEffect(() => {
@@ -148,6 +147,11 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     clearNowPlaying,
     pendingMusicQueueLoadIntentRef,
   } = props;
+
+  const isVideoChannel = mpChannel?.medium_id === MediumEnum.Video;
+  const allowVideoOnAudioOrchestrator =
+    embedPlayerSize === 'short' ||
+    (isEmbedRoute && embedPlayerSize === 'tall' && isVideoChannel !== true);
 
   const mediaRef = useRef<HTMLMediaElement | null>(null);
 

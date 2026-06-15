@@ -49,7 +49,6 @@ test.describe('Embed demo index', () => {
       const podcastAudioShowcaseIds = new Set([
         'episode-audio',
         'clip-audio',
-        'official-clip-audio',
         'chapter-audio',
         'podcast-audio',
       ]);
@@ -60,6 +59,8 @@ test.describe('Embed demo index', () => {
       const videoShowcaseIds = new Set([
         'episode-video',
         'track-video',
+        'clip-video',
+        'chapter-video',
         'podcast-video',
         'album-video',
         'episode-chapters-video',
@@ -91,7 +92,7 @@ test.describe('Embed demo index', () => {
     );
 
     await test.step('Table of contents jumps to a demo anchor', async () => {
-      await page.getByRole('link', { name: 'Episode (audio)' }).click();
+      await page.getByRole('link', { name: 'Episode (short)' }).click();
       await expect(page).toHaveURL(/#embed-demo-episode-audio$/);
       await expect(page.locator('#embed-demo-episode-audio')).toBeVisible();
     });

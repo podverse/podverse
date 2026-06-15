@@ -189,15 +189,16 @@ export const E2E_EMBED_SCROLL_OLDEST_ITEM_LABEL = `${EMBED_SAMPLE_SCROLL_ITEM_TI
 /** Podcast channel with feed_policy.public_visible=false. */
 export const E2E_EMBED_PRIVATE_CHANNEL_ID_TEXT = 'e2eEmbPrvCh01';
 
-/** Showcase slot ids on `/embed` from embed_demo_showcase seed. Sync with embed-fixture-constants.mjs. */
+/** Showcase slot ids visible on `/embed` (excludes hidden route kinds). Sync with resolveEmbedDemoShowcase. */
 export const E2E_EMBED_DEMO_SHOWCASE_IDS = [
   'episode-audio',
   'episode-video',
   'track-audio',
   'track-video',
-  'clip-audio',
-  'official-clip-audio',
   'chapter-audio',
+  'chapter-video',
+  'clip-audio',
+  'clip-video',
   'podcast-audio',
   'podcast-video',
   'album-audio',
@@ -206,5 +207,4 @@ export const E2E_EMBED_DEMO_SHOWCASE_IDS = [
   'episode-chapters-video',
   'podcast-clips-audio',
   'podcast-clips-video',
-  'playlist-mixed',
 ] as const;
