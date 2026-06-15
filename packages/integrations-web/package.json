@@ -1,6 +1,6 @@
 {
   "name": "@podverse/integrations-web",
-  "version": "5.4.34",
+  "version": "5.4.35",
   "private": true,
   "type": "module",
   "description": "Built-in web integrations (Cloudflare Web Analytics) for Podverse Next.js apps",
