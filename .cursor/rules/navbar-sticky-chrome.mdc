@@ -1,0 +1,28 @@
+---
+description: Keep top NavBar visible during scroll on pages with app chrome.
+globs:
+  - packages/ui/src/components/navigation/NavBar/**
+  - packages/ui/src/components/layout/PageWrapper/**
+  - packages/ui/src/components/layout/MainPageScaffold/**
+  - apps/web/src/components/App/AppChrome.tsx
+  - apps/management-web/src/components/ManagementAppLayout/**
+alwaysApply: false
+---
+
+# NavBar sticky chrome
+
+## Requirement
+
+Pages with app chrome must keep `@podverse/ui` **NavBar** visible while the user scrolls. No page with a navbar is an exception (including `/embed` demo index).
+
+## Implementation (do not regress)
+
+- **NavBar** (`NavBar.module.scss`): `position: sticky; top: 0; z-index: 100` on both management and web appearances. This keeps the bar visible when `#page-wrapper` or the document scrolls.
+- **Do not** set `#page-wrapper` to `overflow: hidden` unless every main-content path has a working inner scroll container — that clips long pages (e.g. `/embed` demo).
+- **Web inner scroll**: `#mainOuterWrapper` (`MainPageScaffold`) may also scroll on shorter pages; keep `min-height: 0` there so flex layout can shrink the scroll region when `#page-wrapper` does not scroll.
+- **Embed iframe routes** (`/embed/*` except `/embed`): remain chromeless via `isEmbedPathname` — no navbar there by design.
+
+## When changing layout
+
+- Do not move scroll from `#mainOuterWrapper` without updating `apps/web/src/utils/scroll.ts` and scroll-restore callers.
+- Prefer sticky NavBar over clipping `#page-wrapper` when fixing navbar visibility on long pages.

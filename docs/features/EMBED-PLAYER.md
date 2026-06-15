@@ -19,6 +19,13 @@ without clearing the loaded item:
 Duration, chapter markers, artwork, and titles stay visible. Embeds do **not** run the main app’s
 `clearNowPlaying()` teardown or queue-advance logic on natural track end.
 
+**Clip and official-clip segment end:** Playback clearing is shared with the main app
+(`NonLiveMediaOrchestrator` clears `mpClip` / `mpItemSoundbite` at `end_time + 1` or
+`start_time + duration + 1`, pauses at the playhead, no rewind). Embed title and the video
+segment info bar follow **live player state** only — SSR fallback clip/soundbite refs are for the
+pre-load shell, not after segment end. When segment refs clear, chapter markers and time-based
+chapter titles may resume on chaptered parent episodes.
+
 Local demo index: [`/embed`](http://localhost:4032/embed) (ports vary by environment).
 
 ## Typed routes
@@ -33,33 +40,58 @@ Local demo index: [`/embed`](http://localhost:4032/embed) (ports vary by environ
 | Podcast channel (list)       | `/embed/podcast/{channel.id_text}`              |
 | Album channel (list)         | `/embed/album/{channel.id_text}`                |
 | Playlist (list)              | `/embed/playlist/{playlist.id_text}`            |
+| Episode chapters (list)      | `/embed/episode-chapters/{item.id_text}`        |
 
 Official-clip embeds always use `/embed/official-clip/…`, not `/soundbite/…`.
+
+The `episode-chapters` route renders a single episode/item as a **list of its chapters**. Unlike
+podcast/album/playlist list rows (each a distinct enclosure), every chapter row shares the parent
+episode enclosure and plays by seeking to that chapter's `start_time`. Chapters are fetched via
+`reqItemParseAndGetChapters` and ordered client-side by `sort` (`asc` default, `desc` reverses).
 
 URL generation for Share → Embed Builder and copy output lives in
 `apps/web/src/lib/embed/buildEmbedUrl.ts`.
 
-## Query parameters (phase 1)
+## Query parameters
 
 Shared on single and list routes:
 
-| Param             | Default | Normalization                                                                  |
-| ----------------- | ------- | ------------------------------------------------------------------------------ |
-| `autoplay`        | `false` | Invalid values → `false`; only `true` is emitted in generated URLs             |
-| `t`               | `0`     | Start time in seconds; invalid/negative → `0`                                  |
-| `chapter_markers` | `true`  | `0` or `false` hides progress-bar chapter boundary markers when chapters exist |
+| Param             | Default  | Normalization                                                                                                                                |
+| ----------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `t`               | `0`      | Start time in seconds; invalid/negative → `0`                                                                                                |
+| `chapter_markers` | `true`   | `0` or `false` hides progress-bar chapter boundary markers when chapters exist                                                               |
+| `ar`              | `16x9`   | Aspect ratio for **tall** player shell (`16x9`, `4x3`, `1x1`)                                                                                |
+| `player`          | inferred | `short` or `tall`; controls iframe height and player chrome. When absent, inferred from `presentation` (`audio` → `short`, `video` → `tall`) |
+| `presentation`    | `audio`  | Media **preference** for enclosure best-fit (`audio` or `video`); locks preference when present in the URL                                   |
 
 List routes only:
 
-| Param                           | Default        | Notes                                                                      |
-| ------------------------------- | -------------- | -------------------------------------------------------------------------- |
-| `play_id_text`                  | —              | Initial list row; must match a loaded row or falls back to the first row   |
-| `presentation`                  | `audio`        | `audio` or `video`; locks list/single presentation when present in the URL |
-| `type`, `sort`, `page`, `range` | route defaults | Invalid enum/page values fall back per `parseEmbedQueryParams.ts`          |
+| Param                           | Default        | Notes                                                                    |
+| ------------------------------- | -------------- | ------------------------------------------------------------------------ |
+| `play_id_text`                  | —              | Initial list row; must match a loaded row or falls back to the first row |
+| `rows`                          | `5`            | List viewport rows, clamped `2-10`                                       |
+| `resize`                        | off            | Advanced **tall-list** auto-resize (`resize=1`)                          |
+| `type`, `sort`, `page`, `range` | route defaults | Invalid enum/page values fall back per `parseEmbedQueryParams.ts`        |
+
+### Player size vs media preference
+
+Embed URLs separate two concerns:
+
+| Concept          | URL param      | Values           | Controls                                                  |
+| ---------------- | -------------- | ---------------- | --------------------------------------------------------- |
+| Player size      | `player`       | `short`, `tall`  | iframe height, aspect ratio shell, short vs tall panel UI |
+| Media preference | `presentation` | `audio`, `video` | enclosure best-fit order (`resolveEmbedBestFitEnclosure`) |
+
+**Short player:** always uses the audio-style shell (no inline `<video>` UI). When `presentation=video` selects a video enclosure, playback still runs through the hidden audio orchestrator (HTML5 audio element with a video URL).
+
+**Tall player:** can render the tall video stage when the active enclosure is video; audio-only items show center artwork instead of a `<video>` element.
+
+Legacy links without `player=` continue to work: player size is inferred from `presentation` only.
 
 List embeds support infinite scrolling inside the iframe: additional pages load when the user
-scrolls to the bottom (loading spinner at the list foot). When autoplay is enabled, playback
-advances to the next list row after the current item ends. The active row is highlighted in the list.
+scrolls to the bottom (loading spinner at the list foot). After the listener starts playback on a
+row, playback advances to the next list row when the current item ends. The active row is
+highlighted in the list.
 
 ### Chapter markers and titles (audio podcast episodes)
 
@@ -82,12 +114,28 @@ The `/embed` demo index appends `chapter_markers=1` on podcast-audio showcase if
 - **Playlists:** must have public `sharable_status` only. Private or unlisted playlists render
   `embed-not-available` with no row/title leakage.
 
+## Tall player (video stage)
+
+The **tall** player is available for both single and list embeds (`player=tall`).
+
+- Single tall embeds render a width-responsive video stage (`ar` controls aspect ratio).
+- Tall overlays show info + controls while paused, on hover, or on focus; when playing, overlays fade out after idle.
+- Tall controls include a mute toggle (`embed-tall-mute-toggle`) for user-controlled volume.
+- Audio items in tall mode with prefer-video render center artwork (`embed-tall-center-art`) instead of a `<video>` element. Center art uses the same fallback chain as the overlay info art: chapter image (when applicable), then item image, then channel image, then the embed placeholder.
+- Chapter UX differs intentionally from short presentation:
+  - Chapter title shows in a dedicated line above controls.
+  - Progress-bar chapter hover tooltip is enabled in tall presentation and remains disabled in short embed controls.
+
+## Short player + prefer video
+
+When `player=short` and `presentation=video`, the shell stays short (audio UI) but enclosure selection prefers video sources. Video enclosures play as audio-only (no tall stage mount). Alternate-enclosure switches to video while short follow the same path.
+
 ## Mixed list/playlist presentation
 
 When a list embed contains both audio and video rows (for example playlist `e2eEmbPlMix01`), the
-shell shows an **Audio / Video** presentation-style selector. The selector controls panel layout
-and placeholder sizing only; audio rows still load playback resources and video remains
-placeholder-only in phase 1.
+shell shows a **Prefer audio / Prefer video** selector. The selector controls media preference
+for enclosure best-fit on the active row while preserving list-row selection and playback behavior.
+When `player=short` is locked in the URL, the shell stays short regardless of prefer value.
 
 ## Brand mark (upper-right, optional)
 
@@ -112,7 +160,7 @@ Generate URLs with `buildEmbedUrl()` and snippets with `buildEmbedIframeCode()`:
 
 ```html
 <iframe
-  src="https://example.test/embed/episode/your-item-id?autoplay=true&amp;t=30"
+  src="https://example.test/embed/episode/your-item-id?t=30"
   width="100%"
   height="172"
   frameborder="0"
@@ -123,6 +171,8 @@ Generate URLs with `buildEmbedUrl()` and snippets with `buildEmbedIframeCode()`:
 
 The `allow` value is defined once as `EMBED_IFRAME_ALLOW` in `buildEmbedIframeCode.ts` and reused by generated snippets and in-app preview iframes.
 
+Single-video snippets use a responsive wrapper (`padding-bottom` ratio box) instead of fixed `height`.
+
 ### Layout height tokens
 
 Canonical **literals** (art size, video placeholders, list viewport, and so on) live in:
@@ -130,7 +180,9 @@ Canonical **literals** (art size, video placeholders, list viewport, and so on) 
 - `apps/web/src/styles/components/embed/_embedLayoutTokens.scss`
 - `apps/web/src/lib/embed/embedLayoutTokens.ts` (must stay in sync; `embedLayoutTokens.sync.test.ts` enforces parity)
 
-Shell **formulas** (player panel + list region) are in `_embedLayout.scss`. At **16px root**
+Shell **formulas** (player panel + list region) and `embed-player-panel-custom-properties` are in
+`_embedLayoutTokens.scss`. Import that file from embed `*.module.scss` (e.g.
+`@use './embedLayoutTokens' as embed`). At **16px root**
 (`--spacing-lg` = 16px, `--spacing-md` = 8px), single-audio height is:
 `padding + art + gap + play button + padding`.
 
@@ -138,7 +190,25 @@ Shell **formulas** (player panel + list region) are in `_embedLayout.scss`. At *
 same SCSS shell-height variables and `embed-player-panel-custom-properties` mixin — not hardcoded
 pixel attributes. Video single embeds use width-filling aspect-ratio layout in the builder preview.
 
-**Copy-paste iframe snippets** (`buildEmbedIframeCode`) emit numeric `height="…"` for external sites; values come from `embedLayoutDimensions.ts`, which derives px from `embedLayoutTokens.ts` using the same formulas as `_embedLayout.scss`. Import `DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT` (and related exports) or call `getEmbedIframeHeightForRouteKind()` for the current defaults.
+**Copy-paste iframe snippets** (`buildEmbedIframeCode`) emit numeric `height="…"` for fixed-size layouts and a responsive wrapper for single-video layouts. Numeric heights come from `embedLayoutDimensions.ts`, which derives px from `embedLayoutTokens.ts` using the same formulas as `_embedLayoutTokens.scss`. Import `DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT` (and related exports) or call `getEmbedIframeHeightForRouteKind()` for current defaults.
+
+### List sizing and breaking default
+
+List embeds now default to **5 visible rows** (`rows=5`) instead of the previous ~12-row viewport.
+
+- Audio list shell height: player panel + `rows x 48px` (+ presentation selector height when shown).
+- Video list shell height (fixed mode): fixed video panel + `rows x 48px` (+ selector height when shown).
+- Video list shell height (advanced mode): enable `resize=1` for responsive video panel plus fixed list region.
+
+### Advanced video-list auto-resize (`resize=1`)
+
+Auto-resize is opt-in and intended for host pages that install a parent listener.
+
+1. Enable `resize=1` on a video-list embed URL.
+2. Add `data-podverse-embed-resize` to the iframe (builder does this automatically when toggle is on).
+3. Install the generated parent-page listener snippet and keep strict origin checks (`event.origin` must match the Podverse web origin).
+
+When `resize=1` is not set, embed pages never post resize messages and fixed deterministic heights remain active.
 
 Share modal → entity-specific **Embed** buttons (for example **Embed Podcast**, **Embed
 Playlist**, **Embed Episode**) navigate to `/embed/builder` with query params. The builder page
@@ -147,16 +217,44 @@ copyable iframe code.
 
 Builder URL shape:
 
-`/embed/builder?channel=<id_text>&item=<id_text>&playlist=<id_text>&type=<audio|video|audio-list|video-list>&playlist_item=<id_text>&sort=<sort>&autoplay=true`
+`/embed/builder?channel=<id_text>&item=<id_text>&playlist=<id_text>&type=<audio|video|audio-list|video-list>&playlist_item=<id_text>&sort=<sort>&t=30`
 
-List embeds default autoplay on in the builder (toggleable). Playlist item share includes both
-`playlist` and `playlist_item`; `playlist_item` becomes `play_id_text` in the generated embed URL.
+Playlist item share includes both `playlist` and `playlist_item`; `playlist_item` becomes
+`play_id_text` in the generated embed URL.
+
+### List content types and sort (audio-list / video-list)
+
+For list embeds the builder offers a **List content** selector and a per-content **Sort** selector
+(plus a **Time range** selector when sort is popularity). Available content types are resolved from
+the source entity (see `resolveEmbedBuilderListContentOptions` in
+`apps/web/src/lib/embed/embedBuilderTypes.ts`):
+
+| Source                         | Content types        | Resulting list route                                |
+| ------------------------------ | -------------------- | --------------------------------------------------- |
+| Podcast channel / episode item | `episodes`, `clips`  | `/embed/podcast/{channel}` (`type=clips` for clips) |
+| Episode item (podcast)         | `chapters`           | `/embed/episode-chapters/{item}`                    |
+| Album channel / track item     | `tracks`             | `/embed/album/{channel}`                            |
+| Playlist                       | (playlist resources) | `/embed/playlist/{playlist}`                        |
+
+Sort options and their emitted `sort` query value by content type (the default sort is omitted from
+generated URLs):
+
+| Content type | Sort options (default first)           | Emitted `sort`             |
+| ------------ | -------------------------------------- | -------------------------- |
+| `episodes`   | Recent (default), Oldest, Popularity   | `oldest`, `top` (+`range`) |
+| `clips`      | Recent (default), Popularity           | `top` (+`range`)           |
+| `tracks`     | First to last (default), Last to first | `backward`                 |
+| `chapters`   | First to last (default), Last to first | `desc`                     |
+
+`chapters` is item-based: switching an episode-source list to **Chapters** keeps the item context
+and targets `/embed/episode-chapters/{item}` rather than the channel list route.
 
 ## Embed demo index (`/embed`) — operator configuration
 
-The public demo index at `/embed` is **database-driven**. Operators configure twelve fixed
-showcase slots in the `embed_demo_showcase` table (one row per slot). Unconfigured slots are
-hidden on `/embed`.
+The public demo index at `/embed` is **database-driven**. Operators configure eighteen fixed
+showcase slots in the `embed_demo_showcase` table (one row per slot), including the
+`episode-chapters-audio`/`-video` and `podcast-clips-audio`/`-video` list slots. Unconfigured slots
+are hidden on `/embed`.
 
 | Surface              | Path                                                         | Auth                |
 | -------------------- | ------------------------------------------------------------ | ------------------- |
@@ -167,26 +265,33 @@ hidden on `/embed`.
 
 Showcase slot ids and route kinds are fixed in `@podverse/helpers`
 (`EMBED_DEMO_SHOWCASE_SLOT_DEFS`). Each slot stores a single `resource_id_text` (episode,
-track, clip, chapter, official clip, podcast channel, album channel, or playlist).
+track, clip, chapter, official clip, podcast channel, album channel, playlist, or — for the
+`episode-chapters` list slots — the parent episode item).
 
-E2E and local dev seeds populate all twelve slots via `tools/web/seed-embed-fixtures.mjs`
-(`embed_demo_showcase` rows plus underlying podcast/album/video fixtures).
+E2E and local dev seeds populate all eighteen slots via `tools/web/seed-embed-fixtures.mjs`
+(`embed_demo_showcase` rows plus underlying podcast/album/video fixtures). The `podcast-clips`
+list slots reuse a podcast channel id with `?type=clips`; the `episode-chapters` slots use an
+episode item id.
 
 ### Production / staging showcase feeds (Podcast Index)
 
 For real `/embed` demos (not E2E fixtures), run the worker command that parses four Podcast
 Index feeds **directly** (no RSS queue), **always re-parses** existing feeds by
-`podcast_index_id`, and **overwrites** eight seed-managed showcase rows every run:
+`podcast_index_id`, and **overwrites** twelve seed-managed showcase rows every run:
 
-| Podcast Index id                                    | Feed                              | Showcase slots                                   |
-| --------------------------------------------------- | --------------------------------- | ------------------------------------------------ |
-| [920666](https://podcastindex.org/podcast/920666)   | Podcasting 2.0                    | `podcast-audio`, `episode-audio` (latest item)   |
-| [6642704](https://podcastindex.org/podcast/6642704) | Music From The Doerfel-Verse      | `album-audio`, `track-audio` (latest item)       |
-| [162612](https://podcastindex.org/podcast/162612)   | Geek News Central Podcast (Video) | `podcast-video`, `episode-video` (latest item)   |
-| [7814960](https://podcastindex.org/podcast/7814960) | Them                              | `album-video`, `track-video` (latest video item) |
+| Podcast Index id                                    | Feed                              | Showcase slots                                                                 |
+| --------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------ |
+| [920666](https://podcastindex.org/podcast/920666)   | Podcasting 2.0                    | `podcast-audio`, `episode-audio`, `clip-audio`, `chapter-audio`                |
+| [6642704](https://podcastindex.org/podcast/6642704) | Music From The Doerfel-Verse      | `album-audio`, `track-audio` (pinned guid)                                     |
+| [162612](https://podcastindex.org/podcast/162612)   | Geek News Central Podcast (Video) | `podcast-video`, `episode-video`, `clip-video`, `chapter-video` (pinned guids) |
+| [7814960](https://podcastindex.org/podcast/7814960) | Them                              | `album-video`, `track-video` (pinned guids)                                    |
 
-Clip, official-clip, chapter, and playlist slots are **not** set by this job — configure those in
-management-web (`/web/embed-demo`).
+Podcast audio/video feeds also create a public **Sample Clip** (90 seconds) and upsert the
+middle parsed chapter for the clip/chapter showcase slots. Clips are owned by the backend
+**`demo`** system account (username-only; auto-created by this job and by
+`infra/development/seeds/local-dev-accounts.sql` on `make local_db_init`). Official-clip and
+playlist slots are **not** set by this job — configure those in management-web
+(`/web/embed-demo`).
 
 Local:
 
@@ -196,10 +301,17 @@ npm run build -w apps/workers
 make local_seed_embed_demo_feeds
 ```
 
-Kubernetes (suspended ops CronJob `seed-embed-demo-showcase-feeds`):
+Kubernetes (suspended ops CronJob `seed-embed-demo-showcase-feeds`; same worker command as local):
 
 ```bash
-kubectl create job --from=cronjob/seed-embed-demo-showcase-feeds seed-embed-demo-$(date +%s) -n <ns>
+make local_seed_embed_demo_feeds_k8s
+# or: K8S_NAMESPACE=podverse-alpha npm run seed:embed-demo-showcase-feeds:k8s
+```
+
+Follow logs with the job name printed by the script, e.g.:
+
+```bash
+kubectl -n podverse-alpha logs -f job/seed-embed-demo-showcase-feeds-manual-<timestamp>
 ```
 
 ## Deterministic fixtures (local dev + E2E)
@@ -219,8 +331,9 @@ Shared seed core: `tools/web/seed-embed-fixtures.mjs` (called from `tools/web/se
 Local bootstrap:
 
 1. `make local_env_setup` (and `make local_db_init` / `make local_infra_up` as needed)
-2. `make local_seed_embed`
-3. Open `/embed` — configured showcase rows appear after seed (or configure slots in management-web)
+2. `make local_seed_embed_demo_feeds` (Podcast Index showcase feeds + Sample Clip)
+3. Optional: `make local_seed_embed` for deterministic fixture rows on `/embed`
+4. Open `/embed` — configured showcase rows appear after seed (or configure slots in management-web)
 
 Album list embeds use channel id **`embSmpAlbAud1`** (embed sample album, not the media-player music channel).
 
@@ -258,13 +371,10 @@ Default list rows (with current seed):
 | `/embed/playlist/e2eEmbPlList01` | `embSmpEpAud1` (first resource)                |
 | `/embed/playlist/e2eEmbPlMix01`  | `embSmpEpAud1` (mixed audio + video resources) |
 
-## Phase-1 limitations
+## Current limitations
 
-- **Video:** detected video channels/items show a “coming soon” placeholder; no inline video playback.
 - **Color customization:** builder advanced section is a placeholder only.
 - **Private playlists:** not embeddable; no support for unlisted playlist embeds in phase 1.
-- **Autoplay in browsers:** E2E asserts URL/query and shell load; real autoplay playback is not gated in
-  tests.
 
 ## Related code
 

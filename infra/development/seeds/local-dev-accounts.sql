@@ -90,6 +90,78 @@ BEGIN
     END LOOP;
 END $$;
 
+-- Embed demo system account (username-only; password hash of discarded random secret)
+DO $$
+DECLARE
+    private_status_id INTEGER;
+    premium_membership_id INTEGER;
+    existing_account_id INTEGER;
+    new_account_id INTEGER;
+    new_account_settings_id INTEGER;
+    new_account_settings_notification_id INTEGER;
+BEGIN
+    SELECT id INTO private_status_id FROM sharable_status WHERE status = 'private';
+    SELECT id INTO premium_membership_id FROM account_membership WHERE tier = 'premium';
+
+    SELECT ac.account_id INTO existing_account_id
+    FROM account_credentials ac
+    WHERE ac.username = 'demo';
+
+    IF existing_account_id IS NOT NULL THEN
+        UPDATE account_membership_status
+        SET account_membership_id = premium_membership_id,
+            membership_expires_at = NOW() + INTERVAL '100 years'
+        WHERE account_id = existing_account_id;
+
+        RAISE NOTICE 'Local embed demo account already exists: demo (id: %)', existing_account_id;
+        RETURN;
+    END IF;
+
+    INSERT INTO account (id_text, verified, sharable_status_id)
+    VALUES (
+        'embeddemo01'::nano_id_v2,
+        TRUE,
+        private_status_id
+    )
+    RETURNING id INTO new_account_id;
+
+    INSERT INTO account_credentials (account_id, email, username, password)
+    VALUES (
+        new_account_id,
+        NULL,
+        'demo',
+        '$2b$10$hhALeI8Aowf/2tAttZMzION.TNszTWqLwegwm9ygZeuvOiZl2udoi'
+    );
+
+    INSERT INTO account_profile (account_id)
+    VALUES (new_account_id);
+
+    INSERT INTO account_membership_status (account_id, account_membership_id, membership_expires_at)
+    VALUES (
+        new_account_id,
+        premium_membership_id,
+        NOW() + INTERVAL '100 years'
+    );
+
+    INSERT INTO account_settings (account_id)
+    VALUES (new_account_id)
+    RETURNING id INTO new_account_settings_id;
+
+    INSERT INTO account_settings_locale (account_settings_id, locale)
+    VALUES (new_account_settings_id, 'en-US');
+
+    INSERT INTO account_settings_notification (account_settings_id)
+    VALUES (new_account_settings_id)
+    RETURNING id INTO new_account_settings_notification_id;
+
+    INSERT INTO account_settings_notification_type (account_settings_notification_id, type)
+    VALUES
+        (new_account_settings_notification_id, 'new-item'),
+        (new_account_settings_notification_id, 'livestream-started');
+
+    RAISE NOTICE 'Local embed demo account created: demo (id: %)', new_account_id;
+END $$;
+
 -- Stable sender_guid for MetaBoost mbrss-v1 (matches signup). Idempotent: fixes rows created before
 -- account_metaboost existed, and runs after new-account creation above.
 INSERT INTO account_metaboost (account_id, sender_guid)

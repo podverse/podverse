@@ -27,6 +27,7 @@ type MediaPlayerProgressProps = {
   includeMobileTime?: boolean;
   layoutVariant?: 'default' | 'embed';
   showChapterMarkers?: boolean;
+  showChapterHoverTooltip?: boolean;
 };
 
 export const MediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
@@ -36,6 +37,7 @@ export const MediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
   includeMobileTime,
   layoutVariant = 'default',
   showChapterMarkers = true,
+  showChapterHoverTooltip,
 }) => {
   const { mpClip, mpItemSoundbite, mpItemChapter, mpItemChapters, mpDuration } = useMediaPlayer();
   const { seek } = useMediaPlayerControls();
@@ -57,7 +59,7 @@ export const MediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
       : [];
 
   // The embed player does not show the chapter info tooltip on progress-bar hover.
-  const enableChapterHoverTooltip = layoutVariant !== 'embed';
+  const enableChapterHoverTooltip = showChapterHoverTooltip ?? layoutVariant !== 'embed';
 
   const { highlightStartPosition, highlightEndPosition } = getHighlightPositions({
     mpDuration,

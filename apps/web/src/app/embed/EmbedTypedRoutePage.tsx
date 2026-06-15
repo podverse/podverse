@@ -5,18 +5,25 @@ import { EmbedSingleShell } from '../../components/embed/EmbedSingleShell';
 import { buildEmbedRuntime } from '../../lib/embed/buildEmbedRuntime';
 import type {
   EmbedAlbumListQueryParams,
+  EmbedEpisodeChaptersListQueryParams,
   EmbedPlaylistListQueryParams,
   EmbedPodcastListQueryParams,
+  EmbedPresentationQuery,
   EmbedRouteKind,
 } from '../../lib/embed/embedTypes';
 import { fetchEmbedListData } from '../../lib/embed/fetchEmbedListData';
 import { fetchEmbedSingleResource } from '../../lib/embed/fetchEmbedSingleResource';
 import {
   parseEmbedAlbumListQueryParams,
+  parseEmbedEpisodeChaptersListQueryParams,
   parseEmbedPlaylistListQueryParams,
   parseEmbedPodcastListQueryParams,
 } from '../../lib/embed/parseEmbedQueryParams';
-import { resolveEmbedMediaType } from '../../lib/embed/resolveEmbedMediaType';
+import {
+  resolveEmbedMediaType,
+  resolveEmbedPlayerSizeFromChannel,
+  toEmbedPresentationQuery,
+} from '../../lib/embed/resolveEmbedMediaType';
 
 type EmbedTypedRoutePageProps = {
   routeKind: EmbedRouteKind;
@@ -61,6 +68,12 @@ export async function EmbedTypedRoutePage({
         resourceId,
         listQuery: parseEmbedPodcastListQueryParams(rawSearchParams),
       });
+    } else if (routeKind === 'episode-chapters') {
+      listResult = await fetchEmbedListData({
+        routeKind: 'episode-chapters',
+        resourceId,
+        listQuery: parseEmbedEpisodeChaptersListQueryParams(rawSearchParams),
+      });
     } else {
       return <EmbedNotFoundShell />;
     }
@@ -91,17 +104,32 @@ export async function EmbedTypedRoutePage({
     return <EmbedNotFoundShell />;
   }
 
-  const mediaType = runtime.sharedQuery.presentationLocked
+  const mediaPreference: EmbedPresentationQuery = runtime.sharedQuery.presentationLocked
     ? runtime.sharedQuery.presentation
-    : resolveEmbedMediaType(resource.channel);
+    : toEmbedPresentationQuery(resolveEmbedMediaType(resource.channel));
+
+  const effectiveSharedQuery = {
+    ...runtime.sharedQuery,
+    playerSize: runtime.sharedQuery.playerSizeLocked
+      ? runtime.sharedQuery.playerSize
+      : resolveEmbedPlayerSizeFromChannel(resource.channel),
+  };
 
   return (
-    <EmbedSingleShell resource={resource} sharedQuery={runtime.sharedQuery} mediaType={mediaType} />
+    <EmbedSingleShell
+      mediaPreference={mediaPreference}
+      resource={resource}
+      sharedQuery={effectiveSharedQuery}
+    />
   );
 }
 
 function getPlayIdTextFromListQuery(
-  listQuery: EmbedPodcastListQueryParams | EmbedAlbumListQueryParams | EmbedPlaylistListQueryParams
+  listQuery:
+    | EmbedPodcastListQueryParams
+    | EmbedAlbumListQueryParams
+    | EmbedPlaylistListQueryParams
+    | EmbedEpisodeChaptersListQueryParams
 ): string | null {
   return listQuery.playIdText;
 }

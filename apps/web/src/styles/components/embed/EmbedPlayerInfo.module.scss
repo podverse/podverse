@@ -1,5 +1,5 @@
 @use '../../mixins/ellipsis' as *;
-@use './embedLayout' as embed;
+@use './embedLayoutTokens' as embed;
 
 .info {
   align-items: flex-start;
@@ -9,6 +9,22 @@
   height: var(--embed-player-art-size);
   min-height: var(--embed-player-art-size);
   min-width: 0;
+}
+
+// Video overlay variant: three evenly spaced columns (art, text, logo). The artwork
+// is a square the same height as the text block beside it (both inherit the base
+// art-size), the text is vertically centered, and the brand logo is pinned to the
+// top-right corner. The column gap is one step larger than the base info gap so the
+// three columns breathe. Equal-height wrappers and vertical centering are handled by
+// the EmbedVideoInfoOverlay / EmbedVideoControlsOverlay sections.
+.infoOverlay {
+  flex: 1 1 auto;
+  gap: var(--spacing-lg);
+  width: 100%;
+}
+
+.infoOverlay .brandLogoLink {
+  align-self: flex-start;
 }
 
 .imageWrapper,
@@ -24,7 +40,7 @@
 }
 
 .image {
-  border-radius: var(--radius-sm);
+  border-radius: var(--border-radius-artwork);
   height: 100%;
   object-fit: cover;
   width: 100%;
@@ -35,16 +51,6 @@
   flex: 1 1 auto;
   flex-direction: column;
   justify-content: flex-start;
-  min-width: 0;
-}
-
-.titleAndLogoRow {
-  align-items: flex-start;
-  display: flex;
-  gap: var(--spacing-xs);
-  height: 100%;
-  justify-content: space-between;
-  min-height: 100%;
   min-width: 0;
 }
 
@@ -59,7 +65,7 @@
 }
 
 .brandLogoLink {
-  border-radius: var(--radius-sm);
+  border-radius: var(--border-radius-artwork);
   display: block;
   flex: 0 0 auto;
   height: embed.$embed-brand-logo-height;
@@ -68,7 +74,7 @@
 }
 
 .brandLogo {
-  border-radius: var(--radius-sm);
+  border-radius: var(--border-radius-artwork);
   display: block;
   height: 100%;
   object-fit: contain;
@@ -78,7 +84,7 @@
 .channelTitle {
   @include ellipsisSingleLineChild;
 
-  color: var(--color-text-secondary);
+  color: var(--text-color-secondary);
   display: block;
   font-size: var(--font-size-sm);
 }
@@ -109,7 +115,7 @@
 }
 
 .chapterTitleIcon {
-  color: var(--color-text-secondary);
+  color: var(--text-color-secondary);
   flex: 0 0 auto;
   font-size: var(--font-size-sm);
 }
@@ -117,7 +123,7 @@
 .title {
   @include ellipsisSingleLineChild;
 
-  color: var(--color-text-primary);
+  color: var(--text-color-primary);
   display: block;
   flex: 1 1 auto;
   font-size: var(--font-size-md);
@@ -145,8 +151,6 @@
   @include ellipsisSingleLineChild;
 
   align-self: flex-start;
-  background: var(--color-surface-secondary);
-  border-radius: var(--radius-sm);
   color: var(--text-color-accent);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);

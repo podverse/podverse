@@ -3,7 +3,14 @@
 @use '../../../styles/mixins/media-queries' as *;
 @use '../../../styles/variables' as *;
 
+@mixin navBarStickyChrome {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
 .navBar {
+  @include navBarStickyChrome;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -16,6 +23,7 @@
 
 // Matches apps/web NavBar shell — product chrome baseline.
 .navBarWeb {
+  @include navBarStickyChrome;
   @include flexBetween;
   flex-shrink: 0;
   gap: $spacing-md;

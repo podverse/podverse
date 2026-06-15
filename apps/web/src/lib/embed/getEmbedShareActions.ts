@@ -73,10 +73,9 @@ export function getEmbedShareActions(context: EmbedShareContext): EmbedShareActi
   if (playlistId) {
     actions.push(
       buildAction('embed_playlist', 'share-embed-playlist', {
-        type: 'audio-list',
+        type: 'short-list',
         playlist: playlistId,
         playlistItem,
-        autoplay: true,
       })
     );
   }
@@ -85,19 +84,17 @@ export function getEmbedShareActions(context: EmbedShareContext): EmbedShareActi
     if (mediumId === MediumEnum.Podcast || mediumId === MediumEnum.Video) {
       actions.push(
         buildAction('embed_podcast', 'share-embed-podcast', {
-          type: 'audio-list',
+          type: 'short-list',
           ...channelFields,
           playlist: playlistId,
           playlistItem,
-          autoplay: true,
         })
       );
     } else if (mediumId === MediumEnum.Music) {
       actions.push(
         buildAction('embed_album', 'share-embed-album', {
-          type: 'audio-list',
+          type: 'short-list',
           ...channelFields,
-          autoplay: true,
         })
       );
     }
@@ -111,7 +108,7 @@ export function getEmbedShareActions(context: EmbedShareContext): EmbedShareActi
     context.item_soundbite === null;
 
   if (hasSingleItemContext) {
-    const defaultType: EmbedBuilderType = 'audio';
+    const defaultType: EmbedBuilderType = 'short';
 
     if (mediumId === MediumEnum.Music) {
       actions.push(
@@ -137,7 +134,7 @@ export function getEmbedShareActions(context: EmbedShareContext): EmbedShareActi
   if (clipIdText !== null) {
     actions.push(
       buildAction('embed_clip', 'share-embed-clip', {
-        type: 'audio',
+        type: 'short',
         ...channelFields,
         item: itemId,
         clip: clipIdText,
@@ -148,7 +145,7 @@ export function getEmbedShareActions(context: EmbedShareContext): EmbedShareActi
   if (context.item_chapter?.id_text) {
     actions.push(
       buildAction('embed_chapter', 'share-embed-chapter', {
-        type: 'audio',
+        type: 'short',
         ...channelFields,
         item: itemId,
         chapter: context.item_chapter.id_text,
@@ -159,7 +156,7 @@ export function getEmbedShareActions(context: EmbedShareContext): EmbedShareActi
   if (context.item_soundbite?.id_text) {
     actions.push(
       buildAction('embed_official_clip', 'share-embed-official-clip', {
-        type: 'audio',
+        type: 'short',
         ...channelFields,
         item: itemId,
         official_clip: context.item_soundbite.id_text,

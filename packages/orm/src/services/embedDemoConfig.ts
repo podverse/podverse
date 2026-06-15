@@ -18,6 +18,7 @@ import {
   buildEmbedDemoHref,
   EMBED_DEMO_SHOWCASE_SLOT_DEFS,
   getEmbedDemoShowcaseSlotDef,
+  isEmbedDemoListRouteKind,
   isEmbedDemoShowcaseId,
   MediumEnum,
   SharableStatusEnum,
@@ -112,7 +113,12 @@ export class EmbedDemoConfigService {
         showcaseId: row.showcase_id,
         routeKind: slot.routeKind,
         resourceIdText: row.resource_id_text,
-        href: buildEmbedDemoHref(slot.routeKind, row.resource_id_text, row.showcase_id),
+        href: buildEmbedDemoHref(
+          slot.routeKind,
+          row.resource_id_text,
+          row.showcase_id,
+          row.play_resource_id_text
+        ),
         note,
       });
     }
@@ -131,7 +137,11 @@ export class EmbedDemoConfigService {
     }));
   }
 
-  async upsertShowcase(showcaseId: string, resourceIdText: string): Promise<EmbedDemoShowcase> {
+  async upsertShowcase(
+    showcaseId: string,
+    resourceIdText: string,
+    playResourceIdText?: string | null
+  ): Promise<EmbedDemoShowcase> {
     if (!isEmbedDemoShowcaseId(showcaseId)) {
       throw new EmbedDemoConfigValidationError(`Unknown showcase id: ${showcaseId}`);
     }
@@ -144,17 +154,32 @@ export class EmbedDemoConfigService {
     const slot = getEmbedDemoShowcaseSlotDef(showcaseId);
     await this.validateResourceForSlot(showcaseId, slot.routeKind, trimmedIdText);
 
+    const trimmedPlayIdText = playResourceIdText?.trim() ?? '';
+    const resolvedPlayIdText = trimmedPlayIdText === '' ? null : trimmedPlayIdText;
+    if (resolvedPlayIdText !== null) {
+      if (!isEmbedDemoListRouteKind(slot.routeKind)) {
+        throw new EmbedDemoConfigValidationError(
+          `Play item is only supported for list showcases; ${showcaseId} is a single-resource slot.`
+        );
+      }
+      await this.validateListPlayResource(slot.routeKind, trimmedIdText, resolvedPlayIdText);
+    }
+
     const repo = this.dataSourceReadWrite.getRepository(EmbedDemoShowcase);
     const existing = await repo.findOne({ where: { showcase_id: showcaseId } });
 
     if (existing !== null) {
       existing.resource_id_text = trimmedIdText;
+      if (playResourceIdText !== undefined) {
+        existing.play_resource_id_text = resolvedPlayIdText;
+      }
       return repo.save(existing);
     }
 
     const created = repo.create({
       showcase_id: showcaseId,
       resource_id_text: trimmedIdText,
+      play_resource_id_text: resolvedPlayIdText,
     });
     return repo.save(created);
   }
@@ -181,6 +206,9 @@ export class EmbedDemoConfigService {
       case 'track':
         await this.validateItemForShowcase(showcaseId, routeKind, resourceIdText);
         return;
+      case 'episode-chapters':
+        await this.validateEpisodeChaptersItem(resourceIdText);
+        return;
       case 'clip':
         await this.validateClip(resourceIdText);
         return;
@@ -204,6 +232,46 @@ export class EmbedDemoConfigService {
         throw new EmbedDemoConfigValidationError(`Unsupported route kind: ${String(exhaustive)}`);
       }
     }
+  }
+
+  private async validateListPlayResource(
+    routeKind: EmbedDemoShowcaseRouteKind,
+    resourceIdText: string,
+    playResourceIdText: string
+  ): Promise<void> {
+    if (routeKind === 'podcast' || routeKind === 'album') {
+      const item = await this.getItemService().getByIdText(playResourceIdText, { channel: true });
+
+      if (item === null) {
+        throw new EmbedDemoConfigValidationError(`Play item not found: ${playResourceIdText}`);
+      }
+
+      if (item.channel?.id_text !== resourceIdText) {
+        throw new EmbedDemoConfigValidationError(
+          `Play item ${playResourceIdText} does not belong to channel ${resourceIdText}.`
+        );
+      }
+
+      return;
+    }
+
+    // playlist: ensure the play id_text resolves to a real item, clip, or soundbite row.
+    const item = await this.getItemService().getByIdText(playResourceIdText);
+    if (item !== null) {
+      return;
+    }
+
+    const clip = await this.getClipService().getByIdText(playResourceIdText);
+    if (clip !== null) {
+      return;
+    }
+
+    const soundbite = await this.getItemSoundbiteService().getByIdText(playResourceIdText);
+    if (soundbite !== null) {
+      return;
+    }
+
+    throw new EmbedDemoConfigValidationError(`Play item not found: ${playResourceIdText}`);
   }
 
   private async validateItemForShowcase(
@@ -268,6 +336,27 @@ export class EmbedDemoConfigService {
           `Video showcase requires video-capable content for ${resourceIdText}`
         );
       }
+    }
+  }
+
+  private async validateEpisodeChaptersItem(resourceIdText: string): Promise<void> {
+    const item = await this.getItemService().getByIdText(resourceIdText, {
+      channel: { feed: { feed_policy: true } },
+    });
+
+    if (item === null) {
+      throw new EmbedDemoConfigValidationError(`Item not found: ${resourceIdText}`);
+    }
+
+    const channel = item.channel;
+    if (channel === null || channel === undefined) {
+      throw new EmbedDemoConfigValidationError(`Item channel not found: ${resourceIdText}`);
+    }
+
+    if (channel.feed?.feed_policy?.public_visible === false) {
+      throw new EmbedDemoConfigValidationError(
+        `Item channel is not publicly visible: ${resourceIdText}`
+      );
     }
   }
 
@@ -400,7 +489,8 @@ export class EmbedDemoConfigService {
   ): Promise<string | null> {
     switch (routeKind) {
       case 'episode':
-      case 'track': {
+      case 'track':
+      case 'episode-chapters': {
         const item = await this.getItemService().getByIdText(resourceIdText);
         return item?.title ?? null;
       }

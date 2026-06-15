@@ -8794,7 +8794,7 @@ paths:
       tags:
         - live-item
       summary: GET /live-item/category/recent
-      description: Public endpoint returning recent live items for a category and medium.
+      description: Public endpoint returning recent live items for a category and medium. When liveItemType is "ended", only live items that ended within the last day are returned.
       security: []
       parameters:
         - in: query
@@ -8870,7 +8870,7 @@ paths:
       tags:
         - live-item
       summary: GET /live-item/category/top
-      description: Public endpoint returning top live items for a category, medium, and stats range.
+      description: Public endpoint returning top live items for a category, medium, and stats range. When liveItemType is "ended", only live items that ended within the last day are returned.
       security: []
       parameters:
         - in: query
@@ -8947,7 +8947,7 @@ paths:
       tags:
         - live-item
       summary: GET /live-item/channel/{channel_id_or_id_text}
-      description: Public endpoint returning live, pending, and ended channel items sorted by timeline.
+      description: Public endpoint returning live, pending, and ended channel items sorted by timeline. Ended live items that ended more than a day ago are omitted; live and pending are always returned.
       security: []
       parameters:
         - in: path
@@ -9014,7 +9014,7 @@ paths:
       tags:
         - live-item
       summary: GET /live-item/global/recent
-      description: Public endpoint returning recent live items globally by medium.
+      description: Public endpoint returning recent live items globally by medium. When liveItemType is "ended", only live items that ended within the last day are returned.
       security: []
       parameters:
         - in: query
@@ -9085,7 +9085,7 @@ paths:
       tags:
         - live-item
       summary: GET /live-item/global/top
-      description: Public endpoint returning top live items globally by medium and stats range.
+      description: Public endpoint returning top live items globally by medium and stats range. When liveItemType is "ended", only live items that ended within the last day are returned.
       security: []
       parameters:
         - in: query

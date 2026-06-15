@@ -1,7 +1,11 @@
 'use client';
 
+import type { CSSProperties } from 'react';
+
+import { EmbedShellPlaybackModeProvider } from '../../contexts/EmbedPlaybackMode';
 import { useEmbedSinglePlaybackLoad } from '../../hooks/useEmbedSinglePlaybackLoad';
-import type { EmbedMediaType, EmbedSharedQueryParams } from '../../lib/embed/embedTypes';
+import { embedAspectRatioToCssValue } from '../../lib/embed/embedAspectRatio';
+import type { EmbedPresentationQuery, EmbedSharedQueryParams } from '../../lib/embed/embedTypes';
 import type { EmbedSingleResourcePayload } from '../../lib/embed/fetchEmbedSingleResource';
 import { EmbedPlayerPanel } from './EmbedPlayerPanel';
 
@@ -10,25 +14,38 @@ import styles from '../../styles/components/embed/EmbedSingleShell.module.scss';
 type EmbedSingleShellProps = {
   resource: EmbedSingleResourcePayload;
   sharedQuery: EmbedSharedQueryParams;
-  mediaType: EmbedMediaType;
+  mediaPreference: EmbedPresentationQuery;
 };
 
-export function EmbedSingleShell({ resource, sharedQuery, mediaType }: EmbedSingleShellProps) {
-  const isAudio = mediaType === 'audio';
+export function EmbedSingleShell({
+  resource,
+  sharedQuery,
+  mediaPreference,
+}: EmbedSingleShellProps) {
+  const { playerSize } = sharedQuery;
+  const isTallPlayer = playerSize === 'tall';
+  const tallShellStyle: CSSProperties | undefined = isTallPlayer
+    ? ({
+        '--embed-video-aspect-ratio': embedAspectRatioToCssValue(sharedQuery.aspectRatio),
+      } as CSSProperties)
+    : undefined;
 
-  useEmbedSinglePlaybackLoad(resource, sharedQuery, isAudio);
+  useEmbedSinglePlaybackLoad(resource, sharedQuery, true, mediaPreference);
 
   return (
-    <section
-      className={mediaType === 'video' ? `${styles.shell} ${styles.shellVideo}` : styles.shell}
-      data-testid="embed-single-shell"
-    >
-      <EmbedPlayerPanel
-        fallbackResource={resource}
-        mediaType={mediaType}
-        panelLayout="single"
-        sharedQuery={sharedQuery}
-      />
-    </section>
+    <EmbedShellPlaybackModeProvider playerSize={playerSize}>
+      <section
+        className={isTallPlayer ? `${styles.shell} ${styles.shellTall}` : styles.shell}
+        data-testid="embed-single-shell"
+        style={tallShellStyle}
+      >
+        <EmbedPlayerPanel
+          fallbackResource={resource}
+          panelLayout="single"
+          playerSize={playerSize}
+          sharedQuery={sharedQuery}
+        />
+      </section>
+    </EmbedShellPlaybackModeProvider>
   );
 }

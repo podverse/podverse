@@ -11,8 +11,8 @@ describe('shouldEmbedShowChapterInfo', () => {
   it('returns true for episode-only playback', () => {
     expect(
       shouldEmbedShowChapterInfo({
-        mpClip: null,
-        mpItemSoundbite: null,
+        clip: null,
+        itemSoundbite: null,
       })
     ).toBe(true);
   });
@@ -20,8 +20,8 @@ describe('shouldEmbedShowChapterInfo', () => {
   it('returns false when a clip is active', () => {
     expect(
       shouldEmbedShowChapterInfo({
-        mpClip: clip,
-        mpItemSoundbite: null,
+        clip,
+        itemSoundbite: null,
       })
     ).toBe(false);
   });
@@ -29,27 +29,18 @@ describe('shouldEmbedShowChapterInfo', () => {
   it('returns false when a soundbite is active', () => {
     expect(
       shouldEmbedShowChapterInfo({
-        mpClip: null,
-        mpItemSoundbite: soundbite,
+        clip: null,
+        itemSoundbite: soundbite,
       })
     ).toBe(false);
   });
 
-  it('uses fallback clip or soundbite before player state is ready', () => {
+  it('returns true when segment refs are cleared after playback end', () => {
     expect(
       shouldEmbedShowChapterInfo({
-        mpClip: null,
-        mpItemSoundbite: null,
-        fallbackClip: clip,
+        clip: null,
+        itemSoundbite: null,
       })
-    ).toBe(false);
-
-    expect(
-      shouldEmbedShowChapterInfo({
-        mpClip: null,
-        mpItemSoundbite: null,
-        fallbackItemSoundbite: soundbite,
-      })
-    ).toBe(false);
+    ).toBe(true);
   });
 });

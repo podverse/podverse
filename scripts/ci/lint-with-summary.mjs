@@ -1,12 +1,15 @@
-/* eslint-disable no-console */
 /**
- * Runs type-check, workspace lint, and prettier; streams output and prints
- * a summary of errors/warnings at the end. When Prettier fails, prints a
- * unified diff for each failed file so you can see what would change.
+ * Runs type-check, workspace lint, repo-root script lint, and prettier; streams
+ * output and prints a summary of errors/warnings at the end. When Prettier
+ * fails, prints a unified diff for each failed file so you can see what would
+ * change.
  *
  * Usage: node scripts/ci/lint-with-summary.mjs [lint|lint:fix]
  * Default: lint (use lint:fix for fix mode)
  */
+
+/** Non-workspace paths covered by root eslint.config.mjs (not workspace lint scripts). */
+const REPO_SCRIPT_LINT_PATHS = ['tools/web', 'tools/management-web', 'scripts'];
 
 import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -22,9 +25,18 @@ const filterPrettierOutput = (output) =>
     .filter((line) => !line.includes('(unchanged)'))
     .join('\n');
 
+const repoScriptLintArgs = [
+  'eslint',
+  ...REPO_SCRIPT_LINT_PATHS,
+  '--max-warnings',
+  '0',
+  ...(mode === 'lint:fix' ? ['--fix'] : []),
+];
+
 const steps = [
   { name: 'type-check', cmd: 'npm', args: ['run', 'type-check', '--workspaces', '--if-present'] },
   { name: 'lint', cmd: 'npm', args: ['run', mode, '--workspaces', '--if-present'] },
+  { name: 'lint:repo-scripts', cmd: 'npx', args: repoScriptLintArgs },
   {
     name: 'prettier',
     cmd: 'npm',
@@ -140,8 +152,10 @@ for (const step of steps) {
 const allOutput = results.map((r) => r.output).join('');
 const summary = summarize(allOutput);
 const typeCheckFailed = results[0].code !== 0;
-const lintFailed = results[1].code !== 0;
-const prettierFailed = results[2].code !== 0;
+const workspaceLintFailed = results[1].code !== 0;
+const repoScriptsLintFailed = results[2].code !== 0;
+const prettierFailed = results[3].code !== 0;
+const lintFailed = workspaceLintFailed || repoScriptsLintFailed;
 
 console.log('\n--- Lint summary ---');
 console.log(
@@ -155,7 +169,7 @@ console.log(
 );
 
 if (prettierFailed && summary.prettierFiles > 0) {
-  const prettierOutput = results[2].output;
+  const prettierOutput = results[3].output;
   const failedFiles = parsePrettierFailedFiles(prettierOutput);
   if (failedFiles.length > 0) {
     console.log('\n--- Prettier (what would change) ---');

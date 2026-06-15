@@ -7,9 +7,13 @@ import type {
   DTOPlaylist,
 } from '@podverse/helpers';
 import { MediumEnum } from '@podverse/helpers';
+import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
 
 import { WEB } from '../../constants/web';
-import type { EmbedPresentationQuery, EmbedRouteKind } from './embedTypes';
+import type { EmbedAspectRatioQuery } from './embedAspectRatio';
+import { DEFAULT_EMBED_ASPECT_RATIO } from './embedAspectRatio';
+import type { EmbedPlayerSizeQuery, EmbedPresentationQuery, EmbedRouteKind } from './embedTypes';
+import { EMBED_LIST_VISIBLE_ROWS_DEFAULT } from './parseEmbedListRows';
 
 export type EmbedUrlEntityContext = {
   channel: DTOChannel | null;
@@ -24,14 +28,22 @@ export type EmbedUrlLayoutPreference = 'auto' | 'single' | 'list';
 
 export type EmbedUrlOptions = {
   layout?: EmbedUrlLayoutPreference;
-  autoplay?: boolean;
   startSeconds?: number;
   playIdText?: string | null;
   chapterMarkers?: boolean;
+  aspectRatio?: EmbedAspectRatioQuery;
   presentation?: EmbedPresentationQuery;
+  playerSize?: EmbedPlayerSizeQuery;
   sort?: string | null;
+  listContentType?: EmbedUrlListContentType;
+  listSort?: string | null;
+  listRange?: QueryParamsStatsRange | null;
+  listVisibleRows?: number;
+  autoResize?: boolean;
   origin?: string;
 };
+
+export type EmbedUrlListContentType = 'episodes' | 'clips' | 'tracks' | 'chapters';
 
 export type EmbedUrlBuildResult = {
   routeKind: EmbedRouteKind;
@@ -57,19 +69,21 @@ function resolveItemSingleRouteKind(channel: DTOChannel): EmbedRouteKind {
 }
 
 function buildEmbedQueryString(options: {
-  autoplay?: boolean;
   startSeconds?: number;
   playIdText?: string | null;
   chapterMarkers?: boolean;
+  aspectRatio?: EmbedAspectRatioQuery;
   presentation?: EmbedPresentationQuery;
+  playerSize?: EmbedPlayerSizeQuery;
   sort?: string | null;
+  listContentType?: EmbedUrlListContentType;
+  listSort?: string | null;
+  listRange?: QueryParamsStatsRange | null;
+  listVisibleRows?: number;
+  autoResize?: boolean;
   isListRoute: boolean;
 }): string {
   const params = new URLSearchParams();
-
-  if (options.autoplay === true) {
-    params.set('autoplay', 'true');
-  }
 
   const startSeconds = options.startSeconds ?? 0;
   if (startSeconds > 0) {
@@ -80,16 +94,45 @@ function buildEmbedQueryString(options: {
     params.set('chapter_markers', '0');
   }
 
+  if (options.aspectRatio && options.aspectRatio !== DEFAULT_EMBED_ASPECT_RATIO) {
+    params.set('ar', options.aspectRatio);
+  }
+
   if (options.presentation === 'video' || options.presentation === 'audio') {
     params.set('presentation', options.presentation);
   }
 
-  if (options.isListRoute && options.sort) {
-    params.set('sort', options.sort);
+  if (options.playerSize === 'short' || options.playerSize === 'tall') {
+    params.set('player', options.playerSize);
+  }
+
+  if (options.isListRoute && options.listContentType === 'clips') {
+    params.set('type', 'clips');
+  }
+
+  const listSort = options.listSort ?? options.sort ?? null;
+  if (options.isListRoute && listSort !== null && listSort !== 'recent') {
+    params.set('sort', listSort);
+  }
+
+  if (options.isListRoute && listSort === 'top') {
+    params.set('range', options.listRange ?? 'all-time');
   }
 
   if (options.isListRoute && options.playIdText) {
     params.set('play_id_text', options.playIdText);
+  }
+
+  if (
+    options.isListRoute &&
+    options.listVisibleRows !== undefined &&
+    options.listVisibleRows !== EMBED_LIST_VISIBLE_ROWS_DEFAULT
+  ) {
+    params.set('rows', String(options.listVisibleRows));
+  }
+
+  if (options.isListRoute && options.autoResize === true) {
+    params.set('resize', '1');
   }
 
   const queryString = params.toString();
@@ -98,7 +141,8 @@ function buildEmbedQueryString(options: {
 
 export function resolveEmbedUrlTarget(
   context: EmbedUrlEntityContext,
-  layout: EmbedUrlLayoutPreference = 'auto'
+  layout: EmbedUrlLayoutPreference = 'auto',
+  listContentType?: EmbedUrlListContentType
 ): EmbedUrlBuildResult | null {
   const { clip, item_chapter, item_soundbite, item, channel, playlist } = context;
 
@@ -138,6 +182,16 @@ export function resolveEmbedUrlTarget(
     };
   }
 
+  // An episode/item rendered as a list of its chapters.
+  if (layout === 'list' && listContentType === 'chapters' && item?.id_text) {
+    return {
+      routeKind: 'episode-chapters',
+      pathname: `/embed/episode-chapters/${item.id_text}`,
+      isListRoute: true,
+      resourceIdText: item.id_text,
+    };
+  }
+
   if (channel?.id_text) {
     const useListLayout = layout === 'list' || (layout === 'auto' && item === null);
     const useSingleLayout = layout === 'single' || (layout === 'auto' && item !== null);
@@ -170,18 +224,24 @@ export function buildEmbedUrlPath(
   context: EmbedUrlEntityContext,
   options: EmbedUrlOptions = {}
 ): string | null {
-  const target = resolveEmbedUrlTarget(context, options.layout ?? 'auto');
+  const target = resolveEmbedUrlTarget(context, options.layout ?? 'auto', options.listContentType);
   if (target === null) {
     return null;
   }
 
   const queryString = buildEmbedQueryString({
-    autoplay: options.autoplay,
     startSeconds: options.startSeconds,
     playIdText: options.playIdText,
     chapterMarkers: options.chapterMarkers,
+    aspectRatio: options.aspectRatio,
     presentation: options.presentation,
+    playerSize: options.playerSize,
     sort: options.sort,
+    listContentType: options.listContentType,
+    listSort: options.listSort,
+    listRange: options.listRange,
+    listVisibleRows: options.listVisibleRows,
+    autoResize: options.autoResize,
     isListRoute: target.isListRoute,
   });
 

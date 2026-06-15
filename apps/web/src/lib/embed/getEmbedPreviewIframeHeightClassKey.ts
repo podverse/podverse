@@ -1,20 +1,20 @@
-import type { EmbedLayoutType, EmbedMediaType } from './embedTypes';
+import type { EmbedLayoutType, EmbedPlayerSizeQuery } from './embedTypes';
 
 export type EmbedPreviewIframeHeightClassKey =
-  | 'iframeSingleAudio'
-  | 'iframeSingleVideo'
-  | 'iframeListAudio'
-  | 'iframeListVideo';
+  | 'iframeSingleShort'
+  | 'iframeSingleTall'
+  | 'iframeListShort'
+  | 'iframeListTall';
 
 export function getEmbedPreviewIframeHeightClassKey(
   layoutType: EmbedLayoutType,
-  presentationStyle: EmbedMediaType
+  playerSize: EmbedPlayerSizeQuery
 ): EmbedPreviewIframeHeightClassKey {
-  const isVideo = presentationStyle === 'video';
+  const isTall = playerSize === 'tall';
 
   if (layoutType === 'list') {
-    return isVideo ? 'iframeListVideo' : 'iframeListAudio';
+    return isTall ? 'iframeListTall' : 'iframeListShort';
   }
 
-  return isVideo ? 'iframeSingleVideo' : 'iframeSingleAudio';
+  return isTall ? 'iframeSingleTall' : 'iframeSingleShort';
 }

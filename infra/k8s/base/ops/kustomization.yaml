@@ -67,6 +67,7 @@ configMapGenerator:
       - source/database/linear-migrations/app/0034_feed_log_last_failed_parse_time.sql
       - source/database/linear-migrations/app/0035_stats_track_event_account_guid_id.sql
       - source/database/linear-migrations/app/0036_embed_demo_showcase.sql
+      - source/database/linear-migrations/app/0037_embed_demo_showcase_play_resource.sql
   - name: podverse-ops-management-linear-migrations
     files:
       - source/database/linear-migrations/management/0000_init_helpers.sql

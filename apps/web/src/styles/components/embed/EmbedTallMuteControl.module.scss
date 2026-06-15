@@ -1,0 +1,48 @@
+@use '../../mixins/buttons.scss' as *;
+@use '../../mixins/focus';
+
+.container {
+  position: relative;
+}
+
+.muteToggle {
+  @include mediaPlayerButton;
+}
+
+.popover {
+  align-items: center;
+  background: var(--background-color-primary);
+  border: 1px solid var(--border-color-tertiary);
+  border-radius: var(--border-radius);
+  bottom: 100%;
+  display: flex;
+  justify-content: center;
+  left: 50%;
+  padding: var(--spacing-md) var(--spacing-sm);
+  position: absolute;
+  transform: translateX(-50%);
+  z-index: 3;
+}
+
+.verticalBar {
+  background: var(--progress-bar-after);
+  border-radius: var(--border-radius-round);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  height: 5rem;
+  justify-content: flex-end;
+  overflow: hidden;
+  position: relative;
+  width: 0.625rem;
+}
+
+.verticalBar:focus-visible {
+  @include focus.focus-ring;
+}
+
+.verticalBarLevel {
+  background: var(--progress-bar-before);
+  border-radius: var(--border-radius-round);
+  width: 100%;
+}

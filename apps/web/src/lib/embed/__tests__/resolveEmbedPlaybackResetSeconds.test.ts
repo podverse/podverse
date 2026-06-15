@@ -56,26 +56,6 @@ const musicTarget = {
 } as PlaybackTarget;
 
 describe('resolveEmbedPlaybackResetSeconds', () => {
-  it('returns clip start when mpClip is set', () => {
-    expect(
-      resolveEmbedPlaybackResetSeconds({
-        activePlaybackTarget: null,
-        mpClip: clip,
-        mpItemSoundbite: null,
-      })
-    ).toBe(12);
-  });
-
-  it('returns soundbite start when mpItemSoundbite is set', () => {
-    expect(
-      resolveEmbedPlaybackResetSeconds({
-        activePlaybackTarget: null,
-        mpClip: null,
-        mpItemSoundbite: soundbite,
-      })
-    ).toBe(30);
-  });
-
   it('returns chapter start for chapter playback targets', () => {
     expect(
       resolveEmbedPlaybackResetSeconds({
@@ -86,7 +66,23 @@ describe('resolveEmbedPlaybackResetSeconds', () => {
     ).toBe(20);
   });
 
-  it('returns 0 for episode and track playback targets', () => {
+  it('returns 0 for clip, soundbite, episode, and track playback targets', () => {
+    expect(
+      resolveEmbedPlaybackResetSeconds({
+        activePlaybackTarget: null,
+        mpClip: clip,
+        mpItemSoundbite: null,
+      })
+    ).toBe(0);
+
+    expect(
+      resolveEmbedPlaybackResetSeconds({
+        activePlaybackTarget: null,
+        mpClip: null,
+        mpItemSoundbite: soundbite,
+      })
+    ).toBe(0);
+
     expect(
       resolveEmbedPlaybackResetSeconds({
         activePlaybackTarget: podcastTarget,
@@ -98,26 +94,6 @@ describe('resolveEmbedPlaybackResetSeconds', () => {
 });
 
 describe('resolveEmbedPlaybackPauseAtSeconds', () => {
-  it('returns clip end boundary when mpClip is set', () => {
-    expect(
-      resolveEmbedPlaybackPauseAtSeconds({
-        activePlaybackTarget: null,
-        mpClip: clip,
-        mpItemSoundbite: null,
-      })
-    ).toBe(43);
-  });
-
-  it('returns soundbite end boundary when mpItemSoundbite is set', () => {
-    expect(
-      resolveEmbedPlaybackPauseAtSeconds({
-        activePlaybackTarget: null,
-        mpClip: null,
-        mpItemSoundbite: soundbite,
-      })
-    ).toBe(46);
-  });
-
   it('returns chapter end boundary for chapter playback targets', () => {
     expect(
       resolveEmbedPlaybackPauseAtSeconds({
@@ -128,7 +104,23 @@ describe('resolveEmbedPlaybackPauseAtSeconds', () => {
     ).toBe(51);
   });
 
-  it('returns null for full-item playback targets', () => {
+  it('returns null for clip, soundbite, and full-item playback targets', () => {
+    expect(
+      resolveEmbedPlaybackPauseAtSeconds({
+        activePlaybackTarget: null,
+        mpClip: clip,
+        mpItemSoundbite: null,
+      })
+    ).toBeNull();
+
+    expect(
+      resolveEmbedPlaybackPauseAtSeconds({
+        activePlaybackTarget: null,
+        mpClip: null,
+        mpItemSoundbite: soundbite,
+      })
+    ).toBeNull();
+
     expect(
       resolveEmbedPlaybackPauseAtSeconds({
         activePlaybackTarget: musicTarget,

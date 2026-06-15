@@ -6,6 +6,7 @@ import { EmbedDemoPageIntro } from '../../components/embed/EmbedDemoPageIntro';
 import { EmbedDemoPreview } from '../../components/embed/EmbedDemoPreview';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { buildEmbedDemoTocSections } from '../../lib/embed/buildEmbedDemoTocItems';
+import { EMBED_DEMO_TOP_ANCHOR_ID } from '../../lib/embed/embedDemoAnchors';
 import { getEmbedLayoutType } from '../../lib/embed/getEmbedLayoutType';
 import { resolveEmbedDemoShowcase } from '../../lib/embed/resolveEmbedDemoShowcase';
 
@@ -33,7 +34,7 @@ export default async function EmbedPage() {
     <MainWrapper>
       <MainSidebarLayout>
         <MainColumnStack>
-          <div className={styles.embedDemos}>
+          <div className={styles.embedDemos} id={EMBED_DEMO_TOP_ANCHOR_ID}>
             <div className={styles.introStack}>
               <h1>{t('embed_demo_page_title')}</h1>
               <EmbedDemoPageIntro configuredCount={showcase.length} />

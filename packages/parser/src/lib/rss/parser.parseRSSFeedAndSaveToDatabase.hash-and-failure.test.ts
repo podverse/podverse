@@ -58,6 +58,13 @@ vi.mock('@parser/config/index.js', () => ({
   },
 }));
 
+vi.mock('@parser/context.js', () => ({
+  getParserConfig: vi.fn(() => ({ parser: undefined })),
+  getPodcastIndexService: vi.fn(() => ({
+    podcastGetById: vi.fn().mockResolvedValue(null),
+  })),
+}));
+
 vi.mock('@parser/factories/loggerService.js', () => ({
   loggerService: {
     info: vi.fn(),
@@ -131,6 +138,7 @@ vi.mock('@podverse/helpers', async (importOriginal) => {
 
 vi.mock('@podverse/helpers-requests', () => ({
   getStatusCodeFromError: vi.fn(() => null),
+  isTlsOrProtocolError: vi.fn(() => false),
 }));
 
 vi.mock('@podverse/parser-mapping', () => ({

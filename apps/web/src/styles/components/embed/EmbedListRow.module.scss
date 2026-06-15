@@ -1,5 +1,5 @@
 @use '../../mixins/ellipsis' as *;
-@use './embedLayout' as embed;
+@use './embedLayoutTokens' as embed;
 
 .row,
 .rowActive {
@@ -10,14 +10,16 @@
   color: inherit;
   display: flex;
   gap: var(--spacing-lg);
-  min-height: embed.$embed-list-row-height;
+  height: embed.$embed-list-row-height;
   min-width: 0;
+  overflow: hidden;
   padding: var(--spacing-md);
   width: 100%;
 }
 
-.rowActive {
-  background: var(--color-surface-secondary);
+.rowActive .title,
+.rowActive .meta {
+  color: var(--text-color-highlighted);
 }
 
 .rowLast {

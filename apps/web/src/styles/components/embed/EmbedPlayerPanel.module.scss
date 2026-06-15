@@ -1,4 +1,4 @@
-@use './embedLayout' as embed;
+@use './embedLayoutTokens' as embed;
 
 .playerRegion {
   @include embed.embed-player-panel-custom-properties;
@@ -21,6 +21,14 @@
   position: relative;
 }
 
+// Video player region: full-bleed (no padding) so the video stage fills the entire
+// shell and a video at the selected aspect ratio (e.g. 16:9) fills the whole embed
+// edge to edge. The top/bottom overlays carry their own horizontal padding for the
+// info/controls breathing room.
+.playerRegionTall {
+  padding: 0;
+}
+
 .playerRegionSingle {
   height: 100%;
 }
@@ -29,17 +37,10 @@
   height: embed.$embed-list-player-panel-audio-height;
 }
 
-.playerRegionVideo.playerRegionList {
+.playerRegionTall.playerRegionList {
   height: embed.$embed-list-player-panel-video-height;
 }
 
-.videoPlaceholder {
-  flex: 0 0 auto;
-  height: var(--embed-list-video-placeholder-height);
-  min-height: var(--embed-list-video-placeholder-height);
-}
-
-.playerRegionSingle .videoPlaceholder {
-  height: var(--embed-single-video-placeholder-height);
-  min-height: var(--embed-single-video-placeholder-height);
+.playerRegionTall.playerRegionList.playerRegionListTallAutoResize {
+  height: auto;
 }

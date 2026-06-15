@@ -53,7 +53,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['tools/**/*.{ts,tsx,js,mjs,cjs}'],
+    files: ['tools/**/*.{ts,tsx,js,mjs,cjs}', 'scripts/**/*.{ts,mjs,mts}'],
     rules: {
       'no-console': 'off',
     },

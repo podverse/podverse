@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from 'react';
 
-import type { EmbedPlaybackGuardrails } from '../lib/embed/embedTypes';
+import type { EmbedPlaybackGuardrails, EmbedPlayerSizeQuery } from '../lib/embed/embedTypes';
 import { EMBED_PLAYBACK_GUARDRAILS } from '../lib/embed/embedTypes';
 
 type EmbedPlaybackModeContextValue = EmbedPlaybackGuardrails | null;
@@ -12,6 +12,22 @@ const EmbedPlaybackModeContext = createContext<EmbedPlaybackModeContextValue>(nu
 export function EmbedPlaybackModeProvider({ children }: { children: React.ReactNode }) {
   return (
     <EmbedPlaybackModeContext.Provider value={EMBED_PLAYBACK_GUARDRAILS}>
+      {children}
+    </EmbedPlaybackModeContext.Provider>
+  );
+}
+
+export function EmbedShellPlaybackModeProvider({
+  playerSize,
+  children,
+}: {
+  playerSize: EmbedPlayerSizeQuery;
+  children: React.ReactNode;
+}) {
+  return (
+    <EmbedPlaybackModeContext.Provider
+      value={{ ...EMBED_PLAYBACK_GUARDRAILS, embedPlayerSize: playerSize }}
+    >
       {children}
     </EmbedPlaybackModeContext.Provider>
   );
@@ -30,6 +46,7 @@ export function useEmbedPlaybackGuardrails(): EmbedPlaybackGuardrails {
       skipAnonymousPlaybackRestore: false,
       skipAutoQueueMutations: false,
       skipMainAppLayoutMutations: false,
+      embedPlayerSize: null,
     };
   }
 

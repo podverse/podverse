@@ -1,8 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const getAndParseRSSFeedMock = vi.fn();
-const feedLogUpdateMock = vi.fn();
-const recordFeedParseFailureMock = vi.fn();
+const { getAndParseRSSFeedMock, feedLogUpdateMock, recordFeedParseFailureMock } = vi.hoisted(
+  () => ({
+    getAndParseRSSFeedMock: vi.fn(),
+    feedLogUpdateMock: vi.fn(),
+    recordFeedParseFailureMock: vi.fn(),
+  })
+);
 
 vi.mock('@parser/factories/timerManager.js', () => ({
   timerManager: {

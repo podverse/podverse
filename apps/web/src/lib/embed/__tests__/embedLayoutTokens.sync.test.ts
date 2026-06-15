@@ -5,15 +5,24 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import {
-  EMBED_LIST_REGION_AUDIO_PX,
-  EMBED_LIST_REGION_VIDEO_PX,
+  EMBED_CONTROLS_OVERLAY_HEIGHT_PX,
+  EMBED_LIST_ROW_HEIGHT_PX,
+  EMBED_LIST_ROW_INNER_GAP_PX,
+  EMBED_LIST_ROW_PADDING_BLOCK_PX,
+  EMBED_LIST_ROW_TITLE_FONT_SIZE_PX,
   EMBED_LIST_VIDEO_PLACEHOLDER_PX,
+  EMBED_LIST_VIDEO_REFERENCE_WIDTH_PX,
+  EMBED_LIST_VISIBLE_ROWS_DEFAULT,
+  EMBED_META_LINE_MIN_HEIGHT_PX,
   EMBED_PLAY_BUTTON_SIZE_PX,
   EMBED_PLAY_BUTTON_SIZE_REM,
   EMBED_PLAYER_ART_SIZE_PX,
   EMBED_PLAYER_INFO_CONTROLS_GAP_PX,
+  EMBED_PRESENTATION_SELECTOR_HEIGHT_PX,
   EMBED_ROOT_FONT_SIZE_PX,
+  EMBED_SEGMENT_INFO_BAR_HEIGHT_PX,
   EMBED_SINGLE_VIDEO_PLACEHOLDER_PX,
+  EMBED_TEXT_LINE_HEIGHT,
 } from '../embedLayoutTokens';
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
@@ -24,7 +33,7 @@ const embedLayoutTokensScssPath = path.resolve(
 
 type ScssTokenMap = Record<string, number>;
 
-function parsePxValue(rawValue: string): number {
+function parsePxValue(rawValue: string): number | null {
   const trimmed = rawValue.trim();
 
   if (trimmed.endsWith('px')) {
@@ -36,7 +45,12 @@ function parsePxValue(rawValue: string): number {
     return Math.round(rem * EMBED_ROOT_FONT_SIZE_PX);
   }
 
-  throw new Error(`Unsupported SCSS unit in embed layout token: ${rawValue}`);
+  const asNumber = Number.parseFloat(trimmed);
+  if (!Number.isNaN(asNumber) && /^-?\d+(\.\d+)?$/.test(trimmed)) {
+    return asNumber;
+  }
+
+  return null;
 }
 
 function parseEmbedLayoutTokensScss(source: string): ScssTokenMap {
@@ -48,7 +62,10 @@ function parseEmbedLayoutTokensScss(source: string): ScssTokenMap {
     const rawValue = match[2];
 
     if (variableName !== undefined && rawValue !== undefined) {
-      tokens[variableName] = parsePxValue(rawValue);
+      const parsedValue = parsePxValue(rawValue);
+      if (parsedValue !== null) {
+        tokens[variableName] = parsedValue;
+      }
     }
   }
 
@@ -56,6 +73,15 @@ function parseEmbedLayoutTokensScss(source: string): ScssTokenMap {
 }
 
 describe('embedLayoutTokens SCSS sync', () => {
+  it('derives list row height from row layout literals', () => {
+    expect(EMBED_LIST_ROW_HEIGHT_PX).toBe(
+      EMBED_LIST_ROW_PADDING_BLOCK_PX * 2 +
+        Math.round(EMBED_LIST_ROW_TITLE_FONT_SIZE_PX * EMBED_TEXT_LINE_HEIGHT) +
+        EMBED_LIST_ROW_INNER_GAP_PX +
+        EMBED_META_LINE_MIN_HEIGHT_PX
+    );
+  });
+
   it('matches iframe-height literals in _embedLayoutTokens.scss', () => {
     const scssSource = readFileSync(embedLayoutTokensScssPath, 'utf8');
     const scssTokens = parseEmbedLayoutTokensScss(scssSource);
@@ -67,8 +93,16 @@ describe('embedLayoutTokens SCSS sync', () => {
       EMBED_SINGLE_VIDEO_PLACEHOLDER_PX
     );
     expect(scssTokens['embed-list-video-placeholder-height']).toBe(EMBED_LIST_VIDEO_PLACEHOLDER_PX);
-    expect(scssTokens['embed-list-region-audio-height']).toBe(EMBED_LIST_REGION_AUDIO_PX);
+    expect(scssTokens['embed-list-video-reference-width']).toBe(
+      EMBED_LIST_VIDEO_REFERENCE_WIDTH_PX
+    );
+    expect(scssTokens['embed-list-row-height']).toBe(EMBED_LIST_ROW_HEIGHT_PX);
+    expect(scssTokens['embed-list-visible-rows-default']).toBe(EMBED_LIST_VISIBLE_ROWS_DEFAULT);
+    expect(scssTokens['embed-presentation-selector-height']).toBe(
+      EMBED_PRESENTATION_SELECTOR_HEIGHT_PX
+    );
     expect(scssTokens['embed-player-info-controls-gap']).toBe(EMBED_PLAYER_INFO_CONTROLS_GAP_PX);
-    expect(scssTokens['embed-list-region-video-height']).toBe(EMBED_LIST_REGION_VIDEO_PX);
+    expect(scssTokens['embed-controls-overlay-height']).toBe(EMBED_CONTROLS_OVERLAY_HEIGHT_PX);
+    expect(scssTokens['embed-segment-info-bar-height']).toBe(EMBED_SEGMENT_INFO_BAR_HEIGHT_PX);
   });
 });

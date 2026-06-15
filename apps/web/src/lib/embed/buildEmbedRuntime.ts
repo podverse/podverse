@@ -4,6 +4,7 @@ import { requiresPublicListVisibility } from './embedVisibility';
 import { getEmbedLayoutType } from './getEmbedLayoutType';
 import {
   parseEmbedAlbumListQueryParams,
+  parseEmbedEpisodeChaptersListQueryParams,
   parseEmbedPlaylistListQueryParams,
   parseEmbedPodcastListQueryParams,
   parseEmbedSingleQueryParams,
@@ -27,6 +28,8 @@ export function buildEmbedRuntime(input: BuildEmbedRuntimeInput): EmbedRuntimeMo
     listQuery = parseEmbedAlbumListQueryParams(input.rawSearchParams);
   } else if (input.routeKind === 'playlist') {
     listQuery = parseEmbedPlaylistListQueryParams(input.rawSearchParams);
+  } else if (input.routeKind === 'episode-chapters') {
+    listQuery = parseEmbedEpisodeChaptersListQueryParams(input.rawSearchParams);
   }
 
   return {

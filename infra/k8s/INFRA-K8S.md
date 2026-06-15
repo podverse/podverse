@@ -164,6 +164,22 @@ Operator order after a logical wipe: **drop → rebootstrap → migrate-app → 
 For **`DROP DATABASE`** or a corrupted volume, delete the DB StatefulSet pod + PVC and let
 `docker-entrypoint-initdb.d` run again instead.
 
+### Ops: embed demo showcase feeds (Podcast Index)
+
+[`seed-embed-demo-showcase-feeds.cronjob.yaml`](base/ops/seed-embed-demo-showcase-feeds.cronjob.yaml) runs the
+workers command `seedEmbedDemoShowcaseFeeds` (parse showcase Podcast Index feeds and upsert
+`embed_demo_showcase` rows). Suspended CronJob only (`suspend: true`); not scheduled.
+
+From monorepo root:
+
+```bash
+make local_seed_embed_demo_feeds_k8s
+# or: K8S_NAMESPACE=podverse-alpha npm run seed:embed-demo-showcase-feeds:k8s
+```
+
+Requires workers image, DB/MQ secrets, and Podcast Index credentials (`podverse-api.podcastindex.org-opaque`).
+This is the K8s equivalent of `make local_seed_embed_demo_feeds` only (not deterministic E2E embed fixtures).
+
 **Apply**
 
 ```bash

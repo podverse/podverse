@@ -6,6 +6,8 @@ import type {
   QueryParamsStatsRange,
 } from '@podverse/helpers-requests';
 
+import type { EmbedAspectRatioQuery } from './embedAspectRatio';
+
 export type EmbedLayoutType = 'single' | 'list' | 'index';
 
 export type EmbedMediaType = 'audio' | 'video' | 'unknown';
@@ -19,13 +21,18 @@ export type EmbedRouteKind =
   | 'official-clip'
   | 'podcast'
   | 'album'
-  | 'playlist';
+  | 'playlist'
+  | 'episode-chapters';
+
+export type EmbedEpisodeChaptersSort = 'asc' | 'desc';
 
 export type EmbedPlaybackGuardrails = {
   isEmbedRoute: boolean;
   skipAnonymousPlaybackRestore: boolean;
   skipAutoQueueMutations: boolean;
   skipMainAppLayoutMutations: boolean;
+  /** When `short`, video enclosures play through the audio orchestrator without tall UI. */
+  embedPlayerSize: EmbedPlayerSizeQuery | null;
 };
 
 export const EMBED_PLAYBACK_GUARDRAILS: EmbedPlaybackGuardrails = {
@@ -33,16 +40,23 @@ export const EMBED_PLAYBACK_GUARDRAILS: EmbedPlaybackGuardrails = {
   skipAnonymousPlaybackRestore: true,
   skipAutoQueueMutations: true,
   skipMainAppLayoutMutations: true,
+  embedPlayerSize: null,
 };
 
 export type EmbedPresentationQuery = 'audio' | 'video';
 
+export type EmbedPlayerSizeQuery = 'short' | 'tall';
+
 export type EmbedSharedQueryParams = {
-  autoplay: boolean;
   startSeconds: number;
   showChapterMarkers: boolean;
+  aspectRatio: EmbedAspectRatioQuery;
+  /** Enclosure preference (prefer audio vs prefer video). */
   presentation: EmbedPresentationQuery;
   presentationLocked: boolean;
+  /** Player chrome / iframe height (short vs tall). */
+  playerSize: EmbedPlayerSizeQuery;
+  playerSizeLocked: boolean;
 };
 
 export type EmbedSingleQueryParams = EmbedSharedQueryParams;
@@ -53,6 +67,8 @@ export type EmbedPodcastListQueryParams = EmbedSharedQueryParams & {
   page: number;
   range: QueryParamsStatsRange | null;
   playIdText: string | null;
+  listVisibleRows: number;
+  autoResize: boolean;
 };
 
 export type EmbedAlbumListQueryParams = EmbedSharedQueryParams & {
@@ -61,11 +77,24 @@ export type EmbedAlbumListQueryParams = EmbedSharedQueryParams & {
   page: number;
   range: QueryParamsStatsRange | null;
   playIdText: string | null;
+  listVisibleRows: number;
+  autoResize: boolean;
 };
 
 export type EmbedPlaylistListQueryParams = EmbedSharedQueryParams & {
   page: number;
   playIdText: string | null;
+  listVisibleRows: number;
+  autoResize: boolean;
+};
+
+// Episode-chapters lists are not paginated; `sort` is applied client-side (asc/desc).
+export type EmbedEpisodeChaptersListQueryParams = EmbedSharedQueryParams & {
+  sort: EmbedEpisodeChaptersSort;
+  page: number;
+  playIdText: string | null;
+  listVisibleRows: number;
+  autoResize: boolean;
 };
 
 export type EmbedRuntimeModel = {
@@ -80,5 +109,6 @@ export type EmbedRuntimeModel = {
     | EmbedPodcastListQueryParams
     | EmbedAlbumListQueryParams
     | EmbedPlaylistListQueryParams
+    | EmbedEpisodeChaptersListQueryParams
     | null;
 };

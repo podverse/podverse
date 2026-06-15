@@ -10,13 +10,17 @@ import {
 } from '@podverse/helpers';
 import type { Channel, Item } from '@podverse/orm';
 import {
+  AccountService,
   ChannelService,
+  ClipService,
   EmbedDemoConfigService,
   EmbedDemoConfigValidationError,
   FeedService,
   ItemService,
 } from '@podverse/orm';
 
+import { ensureEmbedDemoSystemAccount } from './ensureEmbedDemoSystemAccount.js';
+import { seedEmbedDemoClipAndChapterShowcases } from './seedShowcaseClipChapterHelpers.js';
 import {
   feedDefRequiresItem,
   shouldContinueSeedAfterParseFailure,
@@ -28,18 +32,46 @@ function normalizeError(error: unknown): Error {
 
 type LoggerService = ReturnType<typeof getLoggerService>;
 
-async function resolveLatestItemForFeedDef(
+async function resolveItemForFeedDef(
   itemService: ItemService,
-  channelId: number,
+  channel: Channel,
   feedDef: EmbedDemoPiSeedFeedDef
 ): Promise<Item | null> {
+  if (feedDef.itemGuid !== undefined) {
+    return itemService.getByGuid(channel, feedDef.itemGuid);
+  }
+
   const itemSelection = resolveEmbedDemoPiSeedItemSelection(feedDef);
 
   if (itemSelection === 'latest-video') {
-    return itemService.getLatestPublishedVideoItemByChannelId(channelId);
+    return itemService.getLatestPublishedVideoItemByChannelId(channel.id);
   }
 
-  return itemService.getLatestPublishedItemByChannelId(channelId);
+  return itemService.getLatestPublishedItemByChannelId(channel.id);
+}
+
+/**
+ * Resolves the default play item id_text for a list showcase from
+ * `channelPlayItemGuid`. Returns `null` when the feed pins no play item so the
+ * re-seed clears any stale value; throws when a pinned guid cannot be found.
+ */
+async function resolveChannelPlayItemIdText(
+  itemService: ItemService,
+  channel: Channel,
+  feedDef: EmbedDemoPiSeedFeedDef
+): Promise<string | null> {
+  if (feedDef.channelPlayItemGuid === undefined) {
+    return null;
+  }
+
+  const playItem = await itemService.getByGuid(channel, feedDef.channelPlayItemGuid);
+  if (playItem === null || playItem.id_text === null || playItem.id_text === undefined) {
+    throw new Error(
+      `No item with guid ${feedDef.channelPlayItemGuid} found for channel ${channel.id_text} (podcast_index_id=${feedDef.podcastIndexId})`
+    );
+  }
+
+  return playItem.id_text;
 }
 
 async function upsertShowcaseWithOverwriteLog(
@@ -47,7 +79,8 @@ async function upsertShowcaseWithOverwriteLog(
   logger: LoggerService,
   showcaseResourceById: Map<string, string | null>,
   showcaseId: string,
-  resourceIdText: string
+  resourceIdText: string,
+  playResourceIdText?: string | null
 ): Promise<void> {
   const previousResourceIdText = showcaseResourceById.get(showcaseId) ?? null;
 
@@ -57,7 +90,7 @@ async function upsertShowcaseWithOverwriteLog(
     );
   }
 
-  await embedDemoConfigService.upsertShowcase(showcaseId, resourceIdText);
+  await embedDemoConfigService.upsertShowcase(showcaseId, resourceIdText, playResourceIdText);
   showcaseResourceById.set(showcaseId, resourceIdText);
 }
 
@@ -66,6 +99,8 @@ async function seedSingleEmbedDemoPiFeed(params: {
   feedService: FeedService;
   channelService: ChannelService;
   itemService: ItemService;
+  embedDemoAccountId: number;
+  clipService: ClipService;
   embedDemoConfigService: EmbedDemoConfigService;
   showcaseResourceById: Map<string, string | null>;
   logger: LoggerService;
@@ -75,6 +110,8 @@ async function seedSingleEmbedDemoPiFeed(params: {
     feedService,
     channelService,
     itemService,
+    embedDemoAccountId,
+    clipService,
     embedDemoConfigService,
     showcaseResourceById,
     logger,
@@ -108,20 +145,33 @@ async function seedSingleEmbedDemoPiFeed(params: {
   }
 
   if (feedDef.channelShowcaseId !== undefined) {
+    const channelPlayItemIdText = await resolveChannelPlayItemIdText(itemService, channel, feedDef);
+
     await upsertShowcaseWithOverwriteLog(
       embedDemoConfigService,
       logger,
       showcaseResourceById,
       feedDef.channelShowcaseId,
-      channel.id_text
+      channel.id_text,
+      channelPlayItemIdText
     );
+
+    if (channelPlayItemIdText !== null) {
+      logger.info(
+        `[seedEmbedDemoShowcaseFeeds] Set ${feedDef.channelShowcaseId} default play item=${channelPlayItemIdText}.`
+      );
+    }
   }
 
   if (feedDefRequiresItem(feedDef)) {
-    const latestItem = await resolveLatestItemForFeedDef(itemService, channel.id, feedDef);
-    if (latestItem === null || latestItem.id_text === null || latestItem.id_text === undefined) {
+    const item = await resolveItemForFeedDef(itemService, channel, feedDef);
+    if (item === null || item.id_text === null || item.id_text === undefined) {
+      const reason =
+        feedDef.itemGuid !== undefined
+          ? `No item with guid ${feedDef.itemGuid} found`
+          : 'No published item found';
       throw new Error(
-        `No published item found for channel ${channel.id_text} (podcast_index_id=${feedDef.podcastIndexId})`
+        `${reason} for channel ${channel.id_text} (podcast_index_id=${feedDef.podcastIndexId})`
       );
     }
 
@@ -130,18 +180,36 @@ async function seedSingleEmbedDemoPiFeed(params: {
       logger,
       showcaseResourceById,
       feedDef.itemShowcaseId,
-      latestItem.id_text
+      item.id_text
     );
 
     logger.info(
-      `[seedEmbedDemoShowcaseFeeds] Configured ${formatFeedDefSummary(feedDef, channel, latestItem)}.`
+      `[seedEmbedDemoShowcaseFeeds] Configured ${formatFeedDefSummary(feedDef, channel, item)}.`
     );
-    return;
+  } else {
+    logger.info(
+      `[seedEmbedDemoShowcaseFeeds] Configured ${feedDef.channelShowcaseId}=${channel.id_text}.`
+    );
   }
 
-  logger.info(
-    `[seedEmbedDemoShowcaseFeeds] Configured ${feedDef.channelShowcaseId}=${channel.id_text}.`
-  );
+  await seedEmbedDemoClipAndChapterShowcases({
+    feedDef,
+    channel,
+    embedDemoAccountId,
+    itemService,
+    clipService,
+    upsertShowcase: async (showcaseId, resourceIdText, playResourceIdText) => {
+      await upsertShowcaseWithOverwriteLog(
+        embedDemoConfigService,
+        logger,
+        showcaseResourceById,
+        showcaseId,
+        resourceIdText,
+        playResourceIdText
+      );
+    },
+    logger,
+  });
 }
 
 function formatFeedDefSummary(
@@ -171,18 +239,26 @@ function formatFeedDefSummary(
  * Idempotent: existing feeds are identified by podcast_index_id, always re-parsed,
  * and showcase rows are overwritten every run.
  *
- * Does not configure clip, official-clip, chapter, or playlist slots — those stay admin-managed.
+ * Clip/chapter showcase slots on podcast-audio and podcast-video feeds are seeded here
+ * (Sample Clip + middle parsed chapter). Official-clip and playlist slots stay admin-managed.
  */
 export async function seedEmbedDemoShowcaseFeeds(_args: CommandLineArgs): Promise<void> {
   const logger = getLoggerService();
   const feedService = new FeedService();
   const channelService = new ChannelService();
   const itemService = new ItemService();
+  const accountService = new AccountService();
+  const clipService = new ClipService();
   const embedDemoConfigService = new EmbedDemoConfigService();
   const managedShowcaseIds = getEmbedDemoPiSeedManagedShowcaseIds();
 
   logger.info(
     `[seedEmbedDemoShowcaseFeeds] Seeding ${EMBED_DEMO_PI_SEED_FEEDS.length} Podcast Index feed(s) for ${managedShowcaseIds.length} embed demo showcase slot(s).`
+  );
+
+  const embedDemoAccountId = await ensureEmbedDemoSystemAccount(accountService);
+  logger.info(
+    `[seedEmbedDemoShowcaseFeeds] Using embed demo system account id=${embedDemoAccountId}.`
   );
 
   const adminSlots = await embedDemoConfigService.getAdminShowcaseSlots();
@@ -200,6 +276,8 @@ export async function seedEmbedDemoShowcaseFeeds(_args: CommandLineArgs): Promis
         feedService,
         channelService,
         itemService,
+        embedDemoAccountId,
+        clipService,
         embedDemoConfigService,
         showcaseResourceById,
         logger,

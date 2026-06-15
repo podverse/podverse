@@ -1,4 +1,4 @@
-@use '../../styles/components/embed/embedLayout' as embed;
+@use '../../styles/components/embed/embedLayoutTokens' as embed;
 
 .root {
   display: flex;
@@ -16,13 +16,13 @@
   @include embed.embed-player-panel-custom-properties;
 
   border: 1px solid var(--border-color-opaque);
-  border-radius: var(--radius-sm);
+  border-radius: var(--border-radius);
   overflow: hidden;
   width: 100%;
 }
 
-.previewFrameVideo {
-  aspect-ratio: 16 / 9;
+.previewFrameTall {
+  aspect-ratio: var(--embed-video-aspect-ratio);
 }
 
 .previewIframe {
@@ -31,21 +31,21 @@
   width: 100%;
 }
 
-.iframeSingleAudio {
-  height: embed.$embed-single-audio-shell-height;
+.iframeSingleShort {
+  height: embed.$embed-single-short-shell-height;
 }
 
-.iframeSingleVideo {
-  aspect-ratio: 16 / 9;
+.iframeSingleTall {
+  aspect-ratio: var(--embed-video-aspect-ratio);
   height: auto;
 }
 
-.iframeListAudio {
-  height: embed.$embed-list-audio-shell-height;
+.iframeListShort {
+  height: embed.$embed-list-short-shell-height;
 }
 
-.iframeListVideo {
-  height: embed.$embed-list-video-shell-height;
+.iframeListTall {
+  height: embed.$embed-list-tall-shell-height;
 }
 
 .controls {
@@ -87,4 +87,10 @@
 .placeholder {
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
+}
+
+.resizeSnippetBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
 }

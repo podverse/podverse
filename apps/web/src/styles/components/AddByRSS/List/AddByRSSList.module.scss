@@ -20,7 +20,7 @@
 }
 
 .loading {
-  color: var(--color-text-secondary);
+  color: var(--text-color-secondary);
   margin: 12px 0;
 }
 
@@ -47,7 +47,7 @@
 }
 
 .image {
-  border-radius: var(--border-radius-sm);
+  border-radius: var(--border-radius-artwork);
   object-fit: cover;
 }
 
@@ -68,7 +68,7 @@
   display: flex;
   gap: 6px;
   font-size: 0.875rem;
-  color: var(--color-text-secondary);
+  color: var(--text-color-secondary);
 }
 
 .statusLabel {
@@ -81,7 +81,7 @@
 
 .feedUrl {
   font-size: 0.875rem;
-  color: var(--color-text-secondary);
+  color: var(--text-color-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
 }

@@ -1,18 +1,21 @@
 'use client';
 
 import classNames from 'classnames';
+import { useState } from 'react';
 
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
 import { useEmbedItemChaptersLoad } from '../../hooks/useEmbedItemChaptersLoad';
 import { useEmbedPlayerContentReady } from '../../hooks/useEmbedPlayerContentReady';
-import type { EmbedMediaType, EmbedSharedQueryParams } from '../../lib/embed/embedTypes';
+import type { EmbedPlayerSizeQuery, EmbedSharedQueryParams } from '../../lib/embed/embedTypes';
 import type { EmbedSingleResourcePayload } from '../../lib/embed/fetchEmbedSingleResource';
+import { resolveEmbedPlaybackSegmentRefs } from '../../lib/embed/resolveEmbedPlaybackSegmentRefs';
 import { shouldEmbedShowChapterInfo } from '../../lib/embed/shouldEmbedShowChapterInfo';
+import { EmbedAlternateEnclosureModal } from './EmbedAlternateEnclosureModal';
 import { EmbedInlineMediaMount } from './EmbedInlineMediaMount';
 import { EmbedPlayerControls } from './EmbedPlayerControls';
 import { EmbedPlayerInfo } from './EmbedPlayerInfo';
 import { EmbedPlayerLoadingOverlay } from './EmbedPlayerLoadingOverlay';
-import { EmbedVideoPlaceholder } from './EmbedVideoPlaceholder';
+import { EmbedTallStage } from './EmbedTallStage';
 
 import styles from '../../styles/components/embed/EmbedPlayerPanel.module.scss';
 
@@ -21,56 +24,79 @@ type EmbedPlayerPanelLayout = 'single' | 'list';
 type EmbedPlayerPanelProps = {
   fallbackResource: EmbedSingleResourcePayload | null;
   headerTitle?: string | null;
-  mediaType: EmbedMediaType;
   panelLayout: EmbedPlayerPanelLayout;
+  playerSize: EmbedPlayerSizeQuery;
+  listTallAutoResize?: boolean;
   sharedQuery: EmbedSharedQueryParams;
 };
 
 export function EmbedPlayerPanel({
   fallbackResource,
   headerTitle,
-  mediaType,
   panelLayout,
+  playerSize,
+  listTallAutoResize = false,
   sharedQuery,
 }: EmbedPlayerPanelProps) {
-  const isAudio = mediaType === 'audio';
-  const { mpClip, mpItemSoundbite } = useMediaPlayer();
+  const isShortPlayer = playerSize === 'short';
+  const { mpAddByRSS, mpChannel, mpClip, mpItemSoundbite } = useMediaPlayer();
+  const [isAlternateEnclosureModalOpen, setIsAlternateEnclosureModalOpen] = useState(false);
+  const hasPlayerContent = mpChannel !== null || mpAddByRSS !== null;
+  const { clip, itemSoundbite } = resolveEmbedPlaybackSegmentRefs({
+    hasPlayerContent,
+    mpClip,
+    mpItemSoundbite,
+    fallbackClip: fallbackResource?.clip ?? null,
+    fallbackItemSoundbite: fallbackResource?.itemSoundbite ?? null,
+  });
   const showChapterMarkers =
-    sharedQuery.showChapterMarkers &&
-    shouldEmbedShowChapterInfo({
-      mpClip,
-      mpItemSoundbite,
-      fallbackClip: fallbackResource?.clip ?? null,
-      fallbackItemSoundbite: fallbackResource?.itemSoundbite ?? null,
-    });
+    sharedQuery.showChapterMarkers && shouldEmbedShowChapterInfo({ clip, itemSoundbite });
 
   useEmbedItemChaptersLoad();
   const isContentReady = useEmbedPlayerContentReady({
     fallbackResource,
     headerTitle,
-    mediaType,
   });
   const playerRegionClassName = classNames(
     styles.playerRegion,
     panelLayout === 'single' ? styles.playerRegionSingle : styles.playerRegionList,
-    !isAudio && styles.playerRegionVideo
+    !isShortPlayer && styles.playerRegionTall,
+    panelLayout === 'list' && listTallAutoResize && styles.playerRegionListTallAutoResize
   );
-
   return (
     <div className={playerRegionClassName} data-testid="embed-player-region">
       <div className={styles.playerSurface} data-testid="embed-player-surface">
         <EmbedPlayerLoadingOverlay isLoading={!isContentReady} />
-        <EmbedPlayerInfo fallbackResource={fallbackResource} headerTitle={headerTitle} />
-        {isAudio ? (
+        {isShortPlayer ? (
+          <EmbedPlayerInfo fallbackResource={fallbackResource} headerTitle={headerTitle} />
+        ) : null}
+        {isShortPlayer ? (
           <>
             <EmbedInlineMediaMount />
-            <EmbedPlayerControls showChapterMarkers={showChapterMarkers} />
+            <EmbedPlayerControls
+              onOpenAlternateEnclosureModal={() => {
+                setIsAlternateEnclosureModalOpen(true);
+              }}
+              showChapterMarkers={showChapterMarkers}
+            />
           </>
         ) : (
-          <div className={styles.videoPlaceholder}>
-            <EmbedVideoPlaceholder />
-          </div>
+          <EmbedTallStage
+            fallbackResource={fallbackResource}
+            headerTitle={headerTitle}
+            listTallAutoResize={listTallAutoResize}
+            onOpenAlternateEnclosureModal={() => {
+              setIsAlternateEnclosureModalOpen(true);
+            }}
+            showChapterMarkers={showChapterMarkers}
+          />
         )}
+        <EmbedAlternateEnclosureModal
+          isOpen={isAlternateEnclosureModalOpen}
+          onClose={() => {
+            setIsAlternateEnclosureModalOpen(false);
+          }}
+        />
       </div>
     </div>
   );

@@ -177,7 +177,7 @@ function candidateRepoHrefs(resolvedAbs) {
   return candidates;
 }
 
-function resolveToRepoHref(href, fileDir, filePath) {
+function resolveToRepoHref(href, fileDir, _filePath) {
   const hashIndex = href.indexOf('#');
   const pathPart = hashIndex === -1 ? href : href.slice(0, hashIndex);
   const fragment = hashIndex === -1 ? '' : href.slice(hashIndex);

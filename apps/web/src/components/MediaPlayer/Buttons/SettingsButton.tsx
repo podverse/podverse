@@ -4,66 +4,31 @@ import { useTranslations } from 'next-intl';
 import { useRef } from 'react';
 import { FaGear } from 'react-icons/fa6';
 
-import {
-  getNextPlaybackSpeed,
-  getPlaybackTranslationKey,
-  getSelectedLabeledItemEnclosureAndSource,
-} from '@podverse/helpers';
+import { getNextPlaybackSpeed, getPlaybackTranslationKey } from '@podverse/helpers';
 import { DropdownMenuPanel, useDropdownKeyboardNavigation } from '@podverse/ui';
 
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
-import { useModals } from '../../../contexts/Modals';
-import { useEnclosureLabel } from '../../../utils/itemEnclosure';
 
 import styles from '../../../styles/components/MediaPlayer/Buttons/SettingsButton.module.scss';
 
 export const SettingsButton = () => {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLUListElement>(null);
-  const {
-    mpPlaybackSpeed,
-    setMPPlaybackSpeed,
-    mpEnclosureSelectedParams,
-    mpItemLabeledItemEnclosures,
-    mpItem,
-  } = useMediaPlayer();
-  const { setModalSourceSelector } = useModals();
+  const { mpPlaybackSpeed, setMPPlaybackSpeed } = useMediaPlayer();
   const tMediaPlayer = useTranslations('media_player');
 
   const playbackSpeedOnClick = () => {
     setMPPlaybackSpeed(getNextPlaybackSpeed(mpPlaybackSpeed));
   };
 
-  const selectedItemEnclosureAndSource = getSelectedLabeledItemEnclosureAndSource({
-    labeledItemEnclosures: mpItemLabeledItemEnclosures,
-    type: mpEnclosureSelectedParams.type,
-    enclosureRowIndex: mpEnclosureSelectedParams.enclosureRowSelected,
-    sourceRowIndex: mpEnclosureSelectedParams.sourceRowSelected,
-  });
-
-  const enclosureLabel = useEnclosureLabel(selectedItemEnclosureAndSource.labeledItemEnclosure);
-
-  const menuItems: { label: string; onClick: () => void }[] = [];
-
-  if (mpItemLabeledItemEnclosures.length > 1) {
-    menuItems.push({
-      label: tMediaPlayer('source.source_with_format', { format: enclosureLabel ?? '' }),
-      onClick: () => {
-        setModalSourceSelector({
-          labeledItemEnclosures: mpItemLabeledItemEnclosures,
-          actionType: 'load-in-player',
-          itemTitle: mpItem?.title || null,
-        });
-      },
-    });
-  }
-
-  menuItems.push({
-    label: tMediaPlayer('playback_speed.playback_speed_with_value', {
-      speed: tMediaPlayer(`playback_speed.speeds.${getPlaybackTranslationKey(mpPlaybackSpeed)}`),
-    }),
-    onClick: playbackSpeedOnClick,
-  });
+  const menuItems = [
+    {
+      label: tMediaPlayer('playback_speed.playback_speed_with_value', {
+        speed: tMediaPlayer(`playback_speed.speeds.${getPlaybackTranslationKey(mpPlaybackSpeed)}`),
+      }),
+      onClick: playbackSpeedOnClick,
+    },
+  ];
 
   const { open, setOpen, focusedIndex, setFocusedIndex, handleButtonKeyDown, handleMenuKeyDown } =
     useDropdownKeyboardNavigation({

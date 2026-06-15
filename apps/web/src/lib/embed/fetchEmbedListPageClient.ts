@@ -4,6 +4,7 @@ import { getApiRequestService } from '../../factories/apiRequestService';
 import type { EmbedListData, EmbedListGroup } from './embedListTypes';
 import type {
   EmbedAlbumListQueryParams,
+  EmbedEpisodeChaptersListQueryParams,
   EmbedPlaylistListQueryParams,
   EmbedPodcastListQueryParams,
 } from './embedTypes';
@@ -12,7 +13,9 @@ import {
   mapChannelClipsToEmbedListRows,
   mapChannelItemsToEmbedListRows,
   mapChannelSoundbitesToEmbedListRows,
+  mapItemChaptersToEmbedListRows,
   mapPlaylistResourcesToEmbedListRows,
+  sortEmbedItemChapters,
 } from './mapEmbedListRows';
 import { filterEmbedCurrentlyLiveChannelItems } from './resolveEmbedLiveItemStatus';
 
@@ -33,6 +36,12 @@ type FetchEmbedListPageClientInput =
       routeKind: 'playlist';
       resourceId: string;
       listQuery: EmbedPlaylistListQueryParams;
+      headerTitle: string;
+    }
+  | {
+      routeKind: 'episode-chapters';
+      resourceId: string;
+      listQuery: EmbedEpisodeChaptersListQueryParams;
       headerTitle: string;
     };
 
@@ -61,6 +70,26 @@ export async function fetchEmbedListPageClient(
   input: FetchEmbedListPageClientInput
 ): Promise<EmbedListData | null> {
   const api = getApiRequestService();
+
+  if (input.routeKind === 'episode-chapters') {
+    const item = await api.reqItemGetByIdOrIdText(input.resourceId);
+    const channel = item.channel ?? (await api.reqChannelGetByIdOrIdText(item.channel_id));
+    if (!channel) {
+      return null;
+    }
+
+    const chaptersResponse = await api.reqItemParseAndGetChapters(item.id_text);
+    const chapters = sortEmbedItemChapters(chaptersResponse.data, input.listQuery.sort);
+
+    return buildEmbedListData({
+      routeKind: 'episode-chapters',
+      resourceId: item.id_text,
+      headerTitle: input.headerTitle,
+      groups: mapItemChaptersToEmbedListRows(channel, item, chapters),
+      page: 1,
+      totalPages: 1,
+    });
+  }
 
   if (input.routeKind === 'playlist') {
     const response = await api.reqPlaylistResourceGetManyByPlaylistIdText(input.resourceId, {

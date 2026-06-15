@@ -10,6 +10,16 @@ export {
   type PlaybackLoadDecision,
   type PlaybackLoadDecisionReason,
 } from './resolvePlaybackLoadDecision';
+export {
+  resolveEnclosureSwitchPlaybackDecision,
+  type ResolveEnclosureSwitchPlaybackDecisionParams,
+} from './resolveEnclosureSwitchPlaybackDecision';
+export {
+  buildEnclosureSwitchPlaybackDecisionIfChanged,
+  isDifferentEnclosureSelection,
+  type StageEnclosureSwitchFromSelectionParams,
+} from './stageEnclosureSwitchFromSelection';
+export { resolveResumeAtSecondsForEnclosureSwitch } from './resolveResumeAtSecondsForEnclosureSwitch';
 export type { PlaybackLoadRequest } from './playbackLoadRequest';
 export {
   playbackTargetFromStandardLoad,

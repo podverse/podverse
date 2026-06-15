@@ -1,5 +1,6 @@
-# Manual only: suspended CronJob. Create a one-off job to parse showcase PI feeds and seed embed_demo_showcase.
-# kubectl create job --from=cronjob/seed-embed-demo-showcase-feeds seed-embed-demo-$(date +%s) -n <ns>
+# Manual only: suspended CronJob. Trigger from monorepo root:
+#   make local_seed_embed_demo_feeds_k8s
+#   K8S_NAMESPACE=<ns> npm run seed:embed-demo-showcase-feeds:k8s
 apiVersion: batch/v1
 kind: CronJob
 metadata:

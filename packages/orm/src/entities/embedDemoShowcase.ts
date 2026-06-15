@@ -8,6 +8,9 @@ export class EmbedDemoShowcase {
   @Column({ type: 'varchar', length: 15 })
   resource_id_text!: string;
 
+  @Column({ type: 'varchar', length: 15, nullable: true })
+  play_resource_id_text!: string | null;
+
   @CreateDateColumn({ type: 'timestamp', default: () => 'NOW()' })
   created_at!: Date;
 

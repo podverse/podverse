@@ -3,6 +3,7 @@
 .PHONY: local_env_prepare local_env_link local_env_setup local_env_clean
 .PHONY: local_env_sync_db_passwords local_env_worktree_setup local_db_sync_passwords
 .PHONY: local_env_export_secrets_to_home local_seed_embed local_seed_embed_demo_feeds
+.PHONY: local_seed_embed_demo_feeds_k8s
 
 local_env_link:
 	bash scripts/local-env/link-overrides.sh
@@ -200,3 +201,8 @@ local_seed_embed_demo_feeds: infra/config/local/db.env
 	@echo "Seeding embed demo showcase from Podcast Index feeds..."
 	@npm run seed_embed_demo_showcase_feeds -w apps/workers
 	@echo "Embed demo showcase feed seed complete."
+
+# K8s counterpart to local_seed_embed_demo_feeds (suspended ops CronJob seed-embed-demo-showcase-feeds).
+local_seed_embed_demo_feeds_k8s:
+	@K8S_NAMESPACE="$${K8S_NAMESPACE:-podverse-alpha}" npm run seed:embed-demo-showcase-feeds:k8s
+	@echo "Next step: kubectl -n $${K8S_NAMESPACE:-podverse-alpha} logs -f job/<name-from-script-output>"

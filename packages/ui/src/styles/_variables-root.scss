@@ -6,6 +6,9 @@
   // border-radius
   --border-radius: 0.625rem;
   --border-radius-round: 100rem;
+  --border-radius-sm: var(--border-radius);
+  // Artwork/thumbnail images are square; change here to round all site artwork at once.
+  --border-radius-artwork: 0;
 
   // element sizes
   --navbar-desktop-height: 62px;
@@ -23,6 +26,7 @@
   --button-border-size: 1.5px;
   --media-player-height: 100px;
   --media-player-height-mobile: 90px;
+  --media-player-play-button-size: 3rem;
   --media-player-height-top-section: 28px;
   --media-player-height-top-section-negative: -28px;
   --form-max-width: 560px;

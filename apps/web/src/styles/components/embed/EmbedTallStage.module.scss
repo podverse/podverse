@@ -1,0 +1,54 @@
+@use './embedLayoutTokens' as tokens;
+
+.tallStage {
+  background: var(--background-color-secondary);
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.tallStageAutoResize {
+  aspect-ratio: var(--embed-video-aspect-ratio);
+  height: auto;
+}
+
+.mediaLayer {
+  inset: 0;
+  position: absolute;
+}
+
+.overlayTop {
+  left: 0;
+  pointer-events: auto;
+  position: absolute;
+  right: 0;
+  top: 0;
+  transition: opacity tokens.$embed-video-overlay-transition-ms ease-in-out;
+  z-index: 2;
+}
+
+.overlaySegment {
+  bottom: var(--embed-controls-overlay-height);
+  left: 0;
+  pointer-events: auto;
+  position: absolute;
+  right: 0;
+  transition: opacity tokens.$embed-video-overlay-transition-ms ease-in-out;
+  z-index: 2;
+}
+
+.overlayBottom {
+  bottom: 0;
+  left: 0;
+  pointer-events: auto;
+  position: absolute;
+  right: 0;
+  transition: opacity tokens.$embed-video-overlay-transition-ms ease-in-out;
+  z-index: 2;
+}
+
+.overlayHidden {
+  opacity: 0;
+  pointer-events: none;
+}

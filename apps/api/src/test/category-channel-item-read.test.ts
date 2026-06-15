@@ -361,6 +361,28 @@ const categoryQ = 'medium=podcasts&page=1&category=arts';
 const categoryQTop = 'medium=podcasts&page=1&category=arts&range=week';
 const liveQ = (extra: string) => `medium=podcasts&page=1&liveItemType=${extra}`;
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Build a channel live item with relative start/end ages so stale-ended visibility
+ * filtering (LiveItemController.getManyByChannel) can be asserted. `endAgoMs: null`
+ * leaves end_time unset so the cutoff falls back to start_time.
+ */
+const buildLiveItemMock = (
+  id: number,
+  statusId: LiveItemStatusEnum,
+  ages: { startAgoMs: number; endAgoMs: number | null }
+): Record<string, unknown> => ({
+  id,
+  id_text: `li-${id}`,
+  live_item: {
+    start_time: new Date(Date.now() - ages.startAgoMs),
+    end_time: ages.endAgoMs === null ? null : new Date(Date.now() - ages.endAgoMs),
+    live_item_status_id: statusId,
+    live_item_status: { id: statusId },
+  },
+});
+
 describe('category, channel, item, chapters, soundbites, transcripts, live, podroll, publisher read', () => {
   let server: Server | undefined;
   let ormContext: ORMContext | undefined;
@@ -813,6 +835,86 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
       });
       const res = await request(app).get(`${liveItemBase}/channel/ch-placeholder`);
       expect(res.status).toBe(404);
+    });
+
+    it('GET /live-item/channel/:id excludes ended live items that ended more than a day ago', async () => {
+      itemGetManyByChannelWithLiveItemMock.mockResolvedValueOnce([
+        buildLiveItemMock(101, LiveItemStatusEnum.Ended, {
+          startAgoMs: 3 * ONE_DAY_MS,
+          endAgoMs: 2 * ONE_DAY_MS,
+        }),
+        buildLiveItemMock(102, LiveItemStatusEnum.Ended, {
+          startAgoMs: 3 * ONE_DAY_MS,
+          endAgoMs: 2 * 60 * 60 * 1000,
+        }),
+      ]);
+
+      const res = await request(app).get(`${liveItemBase}/channel/ch-1`);
+      expect(res.status).toBe(200);
+      const ids: number[] = res.body.map((entry: { id: number }) => entry.id);
+      expect(ids).toContain(102);
+      expect(ids).not.toContain(101);
+    });
+
+    it('GET /live-item/channel/:id uses start_time when an ended live item has no end_time', async () => {
+      itemGetManyByChannelWithLiveItemMock.mockResolvedValueOnce([
+        buildLiveItemMock(201, LiveItemStatusEnum.Ended, {
+          startAgoMs: 2 * ONE_DAY_MS,
+          endAgoMs: null,
+        }),
+        buildLiveItemMock(202, LiveItemStatusEnum.Ended, {
+          startAgoMs: 2 * 60 * 60 * 1000,
+          endAgoMs: null,
+        }),
+      ]);
+
+      const res = await request(app).get(`${liveItemBase}/channel/ch-1`);
+      expect(res.status).toBe(200);
+      const ids: number[] = res.body.map((entry: { id: number }) => entry.id);
+      expect(ids).toContain(202);
+      expect(ids).not.toContain(201);
+    });
+
+    it('GET /live-item/channel/:id always returns live and pending items regardless of age', async () => {
+      itemGetManyByChannelWithLiveItemMock.mockResolvedValueOnce([
+        buildLiveItemMock(301, LiveItemStatusEnum.Live, {
+          startAgoMs: 10 * ONE_DAY_MS,
+          endAgoMs: 9 * ONE_DAY_MS,
+        }),
+        buildLiveItemMock(302, LiveItemStatusEnum.Pending, {
+          startAgoMs: 10 * ONE_DAY_MS,
+          endAgoMs: 9 * ONE_DAY_MS,
+        }),
+        buildLiveItemMock(303, LiveItemStatusEnum.Ended, {
+          startAgoMs: 10 * ONE_DAY_MS,
+          endAgoMs: 9 * ONE_DAY_MS,
+        }),
+      ]);
+
+      const res = await request(app).get(`${liveItemBase}/channel/ch-1`);
+      expect(res.status).toBe(200);
+      const ids: number[] = res.body.map((entry: { id: number }) => entry.id);
+      expect(ids).toContain(301);
+      expect(ids).toContain(302);
+      expect(ids).not.toContain(303);
+    });
+
+    it('GET /item/:idOrIdText still returns a stale ended live item (direct link)', async () => {
+      itemGetByIdOrIdTextMock.mockResolvedValueOnce({
+        id: 999,
+        id_text: 'stale-live',
+        item: {},
+        live_item: {
+          start_time: new Date(Date.now() - 10 * ONE_DAY_MS),
+          end_time: new Date(Date.now() - 9 * ONE_DAY_MS),
+          live_item_status_id: LiveItemStatusEnum.Ended,
+          live_item_status: { id: LiveItemStatusEnum.Ended },
+        },
+      });
+
+      const res = await request(app).get(`${itemBase}/stale-live`);
+      expect(res.status).toBe(200);
+      expect(res.body.id_text).toBe('stale-live');
     });
 
     it('GET /live-item/subscribed/recent returns 200 when authenticated', async () => {

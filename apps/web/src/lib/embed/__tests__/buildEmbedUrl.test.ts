@@ -173,6 +173,45 @@ describe('resolveEmbedUrlTarget', () => {
       )?.pathname
     ).toBe('/embed/podcast/podcast-channel');
   });
+
+  it('maps an item with chapters list content to the episode-chapters route', () => {
+    expect(
+      resolveEmbedUrlTarget(
+        {
+          channel: podcastChannel,
+          item: podcastItem,
+          clip: null,
+          item_chapter: null,
+          item_soundbite: null,
+          playlist: null,
+        },
+        'list',
+        'chapters'
+      )
+    ).toEqual({
+      routeKind: 'episode-chapters',
+      pathname: '/embed/episode-chapters/episode-item',
+      isListRoute: true,
+      resourceIdText: 'episode-item',
+    });
+  });
+
+  it('keeps the channel list route when list content is episodes even with an item present', () => {
+    expect(
+      resolveEmbedUrlTarget(
+        {
+          channel: podcastChannel,
+          item: podcastItem,
+          clip: null,
+          item_chapter: null,
+          item_soundbite: null,
+          playlist: null,
+        },
+        'list',
+        'episodes'
+      )?.pathname
+    ).toBe('/embed/podcast/podcast-channel');
+  });
 });
 
 describe('buildEmbedUrlPath', () => {
@@ -189,10 +228,16 @@ describe('buildEmbedUrlPath', () => {
     expect(buildEmbedUrlPath(context)).toBe('/embed/episode/episode-item');
     expect(
       buildEmbedUrlPath(context, {
-        autoplay: true,
         startSeconds: 42,
       })
-    ).toBe('/embed/episode/episode-item?autoplay=true&t=42');
+    ).toBe('/embed/episode/episode-item?t=42');
+
+    expect(
+      buildEmbedUrlPath(context, {
+        presentation: 'video',
+        aspectRatio: '4x3',
+      })
+    ).toBe('/embed/episode/episode-item?ar=4x3&presentation=video');
   });
 
   it('includes play_id_text only for list routes', () => {
@@ -223,6 +268,107 @@ describe('buildEmbedUrlPath', () => {
         { playIdText: 'other-episode' }
       )
     ).toBe('/embed/episode/episode-item');
+  });
+
+  it('includes rows only for list routes and when non-default', () => {
+    expect(
+      buildEmbedUrlPath(
+        {
+          channel: podcastChannel,
+          item: null,
+          clip: null,
+          item_chapter: null,
+          item_soundbite: null,
+          playlist: null,
+        },
+        { listVisibleRows: 7 }
+      )
+    ).toBe('/embed/podcast/podcast-channel?rows=7');
+
+    expect(
+      buildEmbedUrlPath(
+        {
+          channel: podcastChannel,
+          item: podcastItem,
+          clip: null,
+          item_chapter: null,
+          item_soundbite: null,
+          playlist: null,
+        },
+        { listVisibleRows: 7 }
+      )
+    ).toBe('/embed/episode/episode-item');
+  });
+
+  it('includes resize only for list routes when enabled', () => {
+    expect(
+      buildEmbedUrlPath(
+        {
+          channel: podcastChannel,
+          item: null,
+          clip: null,
+          item_chapter: null,
+          item_soundbite: null,
+          playlist: null,
+        },
+        { autoResize: true }
+      )
+    ).toBe('/embed/podcast/podcast-channel?resize=1');
+
+    expect(
+      buildEmbedUrlPath(
+        {
+          channel: podcastChannel,
+          item: podcastItem,
+          clip: null,
+          item_chapter: null,
+          item_soundbite: null,
+          playlist: null,
+        },
+        { autoResize: true }
+      )
+    ).toBe('/embed/episode/episode-item');
+  });
+
+  it('includes clip list type and popularity range for podcast list routes', () => {
+    expect(
+      buildEmbedUrlPath(
+        {
+          channel: podcastChannel,
+          item: null,
+          clip: null,
+          item_chapter: null,
+          item_soundbite: null,
+          playlist: null,
+        },
+        {
+          listContentType: 'clips',
+          listSort: 'top',
+          listRange: 'all-time',
+        }
+      )
+    ).toBe('/embed/podcast/podcast-channel?type=clips&sort=top&range=all-time');
+  });
+
+  it('builds the episode-chapters route with a descending sort', () => {
+    expect(
+      buildEmbedUrlPath(
+        {
+          channel: podcastChannel,
+          item: podcastItem,
+          clip: null,
+          item_chapter: null,
+          item_soundbite: null,
+          playlist: null,
+        },
+        {
+          layout: 'list',
+          listContentType: 'chapters',
+          listSort: 'desc',
+          sort: 'desc',
+        }
+      )
+    ).toBe('/embed/episode-chapters/episode-item?sort=desc');
   });
 });
 

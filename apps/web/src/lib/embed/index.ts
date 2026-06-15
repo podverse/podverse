@@ -36,7 +36,7 @@ export { EMBED_DISABLED_AUTO_QUEUE_CONFIG } from './embedAutoQueueConfig';
 export { fetchEmbedSingleResource } from './fetchEmbedSingleResource';
 export type { EmbedSingleResourcePayload } from './fetchEmbedSingleResource';
 export { formatEmbedDisplayTitle } from './formatEmbedDisplayTitle';
-export { resolveEmbedMediaType } from './resolveEmbedMediaType';
+export { resolveEmbedMediaType, toEmbedPresentationQuery } from './resolveEmbedMediaType';
 export type {
   EmbedAlbumListQueryParams,
   EmbedPresentationQuery,
@@ -70,10 +70,14 @@ export { getEmbedPreviewIframeHeightClassKey } from './getEmbedPreviewIframeHeig
 export type { EmbedPreviewIframeHeightClassKey } from './getEmbedPreviewIframeHeightClassKey';
 export { isEmbedPathname } from './isEmbedPathname';
 export { normalizeEmbedSearchParams } from './normalizeEmbedSearchParams';
-export { parseEmbedAutoplay } from './parseEmbedAutoplay';
 export {
   parseEmbedAlbumListQueryParams,
   parseEmbedPlaylistListQueryParams,
   parseEmbedPodcastListQueryParams,
   parseEmbedSingleQueryParams,
 } from './parseEmbedQueryParams';
+export { resolveEmbedPlaybackSegmentRefs } from './resolveEmbedPlaybackSegmentRefs';
+export type {
+  EmbedPlaybackSegmentRefs,
+  ResolveEmbedPlaybackSegmentRefsParams,
+} from './resolveEmbedPlaybackSegmentRefs';

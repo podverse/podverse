@@ -3,7 +3,10 @@ import { getTranslations } from 'next-intl/server';
 import type { EmbedDemoShowcaseApiEntry } from '@podverse/helpers';
 
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
-import { getEmbedDemoShowcaseLabelKey } from './embedDemoShowcaseCatalog';
+import {
+  getEmbedDemoShowcaseLabelKey,
+  getEmbedDemoShowcaseOrderIndex,
+} from './embedDemoShowcaseCatalog';
 import type { EmbedRouteKind } from './embedTypes';
 
 function isEmbedRouteKind(value: string): value is EmbedRouteKind {
@@ -15,9 +18,13 @@ function isEmbedRouteKind(value: string): value is EmbedRouteKind {
     value === 'official-clip' ||
     value === 'podcast' ||
     value === 'album' ||
-    value === 'playlist'
+    value === 'playlist' ||
+    value === 'episode-chapters'
   );
 }
+
+// Route kinds that stay live but are hidden from the `/embed` demo listing.
+const HIDDEN_DEMO_ROUTE_KINDS = new Set<EmbedRouteKind>(['official-clip', 'playlist']);
 
 export type EmbedDemoShowcaseEntry = EmbedDemoShowcaseApiEntry & {
   label: string;
@@ -35,8 +42,12 @@ export async function resolveEmbedDemoShowcase(): Promise<EmbedDemoShowcaseEntry
     configured = [];
   }
 
-  return configured.flatMap((entry) => {
+  const entries = configured.flatMap((entry) => {
     if (!isEmbedRouteKind(entry.routeKind)) {
+      return [];
+    }
+
+    if (HIDDEN_DEMO_ROUTE_KINDS.has(entry.routeKind)) {
       return [];
     }
 
@@ -51,4 +62,9 @@ export async function resolveEmbedDemoShowcase(): Promise<EmbedDemoShowcaseEntry
       },
     ];
   });
+
+  return entries.sort(
+    (a, b) =>
+      getEmbedDemoShowcaseOrderIndex(a.showcaseId) - getEmbedDemoShowcaseOrderIndex(b.showcaseId)
+  );
 }
