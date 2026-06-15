@@ -132,6 +132,7 @@ vi.mock('@podverse/helpers', async (importOriginal) => {
 
 vi.mock('@podverse/helpers-requests', () => ({
   getStatusCodeFromError: vi.fn(() => null),
+  isTlsOrProtocolError: vi.fn(() => false),
 }));
 
 vi.mock('@podverse/parser-mapping', () => ({

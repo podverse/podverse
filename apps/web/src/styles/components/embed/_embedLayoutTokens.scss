@@ -1,5 +1,6 @@
 // Canonical embed layout literals. Keep apps/web/src/lib/embed/embedLayoutTokens.ts in sync.
 // Interior panel padding/gap use global CSS vars (--spacing-lg, --spacing-md) at 16px root.
+// Import as @use './embedLayoutTokens' as embed (or `tokens`) from embed *.module.scss files.
 
 $embed-player-art-size: 78px;
 $embed-play-button-size: 3rem;
@@ -7,14 +8,81 @@ $embed-brand-logo-height: 32px;
 $embed-player-info-controls-gap: 0.5rem;
 
 $embed-single-video-placeholder-height: 334px;
-$embed-list-video-placeholder-height: 234px;
+$embed-list-video-reference-width: 640px;
+$embed-list-video-placeholder-height: 360px;
+$embed-video-aspect-ratio-16x9: calc(16 / 9);
+$embed-video-aspect-ratio-4x3: calc(4 / 3);
+$embed-video-aspect-ratio-1x1: 1;
+$embed-video-overlay-fade-duration-ms: 1500ms;
+$embed-video-overlay-transition-ms: 300ms;
 
 $embed-presentation-selector-height: 52px;
-$embed-list-row-height: 48px;
+$embed-controls-overlay-height: 60px;
+$embed-segment-info-bar-height: 28px;
+// padding-block×2 + title line (1rem × 1.35) + inner gap + meta min-height — see embedLayoutTokens.ts
+$embed-list-row-height: 62px;
+$embed-list-visible-rows-default: 5;
 
 // Reserved height for date/duration meta rows in embed list rows and player info.
 $embed-meta-line-min-height: 1.25rem;
 
-// List scroll viewport below the player panel.
-$embed-list-region-audio-height: 588px;
-$embed-list-region-video-height: 542px;
+@mixin embed-player-panel-custom-properties {
+  --embed-list-video-placeholder-height: #{$embed-list-video-placeholder-height};
+  --embed-list-row-height: #{$embed-list-row-height};
+  --embed-list-visible-rows: #{$embed-list-visible-rows-default};
+  --embed-meta-line-min-height: #{$embed-meta-line-min-height};
+  --embed-has-presentation-selector: 0;
+  --embed-presentation-selector-height: #{$embed-presentation-selector-height};
+  --embed-panel-padding-block: var(--spacing-lg);
+  --embed-panel-padding-inline: var(--spacing-lg);
+  --embed-player-info-controls-gap: #{$embed-player-info-controls-gap};
+  --embed-play-button-size: #{$embed-play-button-size};
+  --embed-controls-overlay-height: #{$embed-controls-overlay-height};
+  --embed-segment-info-bar-height: #{$embed-segment-info-bar-height};
+  --embed-player-art-size: #{$embed-player-art-size};
+  --embed-video-aspect-ratio: #{$embed-video-aspect-ratio-16x9};
+  --embed-single-video-placeholder-height: #{$embed-single-video-placeholder-height};
+}
+
+// padding-block + info + gap + bottom section + padding-block
+$embed-player-panel-audio-height: calc(
+  var(--embed-panel-padding-block) + var(--embed-player-art-size) +
+    var(--embed-player-info-controls-gap) + var(--embed-play-button-size) +
+    var(--embed-panel-padding-block)
+);
+
+$embed-player-panel-video-height-single: calc(
+  var(--embed-panel-padding-block) + var(--embed-player-art-size) +
+    var(--embed-player-info-controls-gap) + var(--embed-single-video-placeholder-height) +
+    var(--embed-panel-padding-block)
+);
+
+$embed-player-panel-video-height-list: calc(
+  var(--embed-panel-padding-block) + var(--embed-player-art-size) +
+    var(--embed-player-info-controls-gap) + var(--embed-list-video-placeholder-height) +
+    var(--embed-panel-padding-block)
+);
+
+$embed-list-player-panel-audio-height: $embed-player-panel-audio-height;
+$embed-list-player-panel-video-height: $embed-player-panel-video-height-list;
+
+$embed-single-audio-shell-height: $embed-player-panel-audio-height;
+$embed-single-video-shell-height: $embed-player-panel-video-height-single;
+
+$embed-list-region-height-for-rows: calc(
+  var(--embed-list-visible-rows) * var(--embed-list-row-height)
+);
+
+$embed-list-audio-shell-height: calc(
+  #{$embed-player-panel-audio-height} + #{$embed-list-region-height-for-rows} +
+    (var(--embed-has-presentation-selector) * var(--embed-presentation-selector-height))
+);
+
+$embed-list-tall-shell-height: calc(
+  #{$embed-player-panel-video-height-list} + #{$embed-list-region-height-for-rows} +
+    (var(--embed-has-presentation-selector) * var(--embed-presentation-selector-height))
+);
+
+$embed-single-short-shell-height: $embed-single-audio-shell-height;
+$embed-single-tall-shell-height: $embed-single-video-shell-height;
+$embed-list-short-shell-height: $embed-list-audio-shell-height;

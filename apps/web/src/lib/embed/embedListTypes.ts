@@ -20,7 +20,7 @@ export type EmbedListPagination = {
   hasNextPage: boolean;
 };
 
-export type EmbedListRouteKind = 'podcast' | 'album' | 'playlist';
+export type EmbedListRouteKind = 'podcast' | 'album' | 'playlist' | 'episode-chapters';
 
 export type EmbedListData = {
   headerTitle: string;

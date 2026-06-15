@@ -2,7 +2,9 @@ import { expect, test } from '@playwright/test';
 
 import {
   EMBED_LIST_SHELL_HEIGHT,
-  EMBED_LIST_SHELL_VIDEO_HEIGHT,
+  EMBED_LIST_SHELL_HEIGHT_WITH_SELECTOR,
+  EMBED_LIST_SHELL_TALL_HEIGHT,
+  EMBED_LIST_SHELL_TALL_HEIGHT_WITH_SELECTOR,
   EMBED_SINGLE_SHELL_HEIGHT,
   embedTitleLocator,
   expectEmbedArtworkSrcContains,
@@ -10,18 +12,21 @@ import {
   expectEmbedBrandLogoMainSiteLink,
   expectEmbedChapterMarkerCount,
   expectEmbedListActiveRowLabel,
+  expectEmbedListActiveRowMetaContains,
   expectEmbedListRegionScrollable,
   expectEmbedListRowMetadata,
   expectEmbedListShell,
+  expectEmbedTallCenterArt,
+  expectEmbedTallVideoElement,
   expectEmbedNotAvailableShell,
   expectEmbedNotFoundShell,
   expectEmbedPlayerDuration,
   expectEmbedPlayerProgressVisible,
+  seekEmbedPlayerToSeconds,
   expectEmbedRootVisible,
   expectEmbedShellHeightStable,
   expectEmbedSingleShell,
   expectEmbedTitleTruncated,
-  expectEmbedVideoPlaceholder,
   expectNoEmbedChapterMarkers,
 } from './helpers/embedAssertions';
 import {
@@ -45,6 +50,8 @@ import {
   EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT,
   EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT,
   EMBED_FIXTURE_PODCAST_EPISODE_NEAR_END_ID_TEXT,
+  EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE,
+  EMBED_SAMPLE_CLIP_TITLE,
   EMBED_FIXTURE_SOUNDBITE_ID_TEXT,
   EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE,
   EMBED_SAMPLE_CHAPTER_TWO_START_SECONDS,
@@ -59,9 +66,7 @@ import {
 import { capturePageLoad } from './helpers/stepScreenshots';
 
 test.describe('Embed routes (anonymous)', () => {
-  test('Single embed routes render the audio shell or video placeholder', async ({
-    page,
-  }, testInfo) => {
+  test('Single embed routes render audio and video player shells', async ({ page }, testInfo) => {
     await test.step('Episode embed loads the single audio shell', async () => {
       await page.goto(`/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}`);
       await expectEmbedRootVisible(page);
@@ -113,6 +118,24 @@ test.describe('Embed routes (anonymous)', () => {
       await expect(modal).toHaveCount(0);
     });
 
+    await test.step('Episode embed alternate enclosure switch preserves the current playhead', async () => {
+      await page.goto(`/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}`);
+      await expectEmbedPlayerProgressVisible(page);
+      await page.getByTestId('embed-player-play-button-cell').getByRole('button').click();
+      await seekEmbedPlayerToSeconds(page, 15);
+
+      const slider = page.getByRole('slider');
+      const positionBeforeSwitch = Number(await slider.getAttribute('aria-valuenow'));
+      expect(positionBeforeSwitch).toBeGreaterThanOrEqual(13);
+
+      await page.getByTestId('embed-player-alternate-enclosure-button').click();
+      await page.getByTestId('embed-alternate-enclosure-option-audio-ogg').click();
+
+      await expect
+        .poll(async () => Number(await slider.getAttribute('aria-valuenow')))
+        .toBeGreaterThanOrEqual(positionBeforeSwitch - 2);
+    });
+
     await test.step('Track embed loads the single audio shell', async () => {
       await page.goto(`/embed/track/${EMBED_FIXTURE_MUSIC_TRACK_AUDIO_ID_TEXT}`);
       await expectEmbedSingleShell(page);
@@ -138,16 +161,16 @@ test.describe('Embed routes (anonymous)', () => {
       await expectEmbedArtworkSrcContains(page, 'e2e-embed-item-art');
     });
 
-    await test.step('Video episode embed shows the video placeholder', async () => {
+    await test.step('Video episode embed shows the inline video stage and video element', async () => {
       await page.goto(`/embed/episode/${E2E_EMBED_VIDEO_ITEM_ID_TEXT}`);
       await expectEmbedSingleShell(page);
-      await expectEmbedVideoPlaceholder(page);
+      await expectEmbedTallVideoElement(page);
 
       await capturePageLoad(
         page,
         testInfo,
-        'The video episode embed shows the coming-soon placeholder.',
-        page.getByTestId('embed-video-placeholder')
+        'The video episode embed shows the inline tall video stage.',
+        page.getByTestId('embed-tall-stage')
       );
     });
   });
@@ -169,19 +192,15 @@ test.describe('Embed routes (anonymous)', () => {
     await expectEmbedNotFoundShell(page);
   });
 
-  test('Track embed accepts autoplay and start-time query params', async ({ page }) => {
-    await page.goto(`/embed/track/${EMBED_FIXTURE_MUSIC_TRACK_AUDIO_ID_TEXT}?autoplay=true&t=10`);
+  test('Track embed accepts start-time query param', async ({ page }) => {
+    await page.goto(`/embed/track/${EMBED_FIXTURE_MUSIC_TRACK_AUDIO_ID_TEXT}?t=10`);
     await expectEmbedSingleShell(page);
-    expect(page.url()).toContain('autoplay=true');
     expect(page.url()).toContain('t=10');
   });
 
-  test('Single embed accepts autoplay and start-time query params', async ({ page }) => {
-    await page.goto(
-      `/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}?autoplay=true&t=42`
-    );
+  test('Single embed accepts start-time query param', async ({ page }) => {
+    await page.goto(`/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}?t=42`);
     await expectEmbedSingleShell(page);
-    expect(page.url()).toContain('autoplay=true');
     expect(page.url()).toContain('t=42');
   });
 
@@ -315,10 +334,10 @@ test.describe('Embed routes (anonymous)', () => {
       await expectEmbedListActiveRowLabel(page, EMBED_SAMPLE_EPISODE_AUDIO_TITLE);
     });
 
-    await test.step('Video channel list rows show the video placeholder when selected', async () => {
+    await test.step('Video channel list rows show the video stage when selected', async () => {
       await page.goto(`/embed/podcast/${E2E_EMBED_VIDEO_CHANNEL_ID_TEXT}`);
       await expectEmbedListShell(page);
-      await expectEmbedVideoPlaceholder(page);
+      await expectEmbedTallVideoElement(page);
     });
 
     await test.step('Mixed playlist exposes audio/video presentation style switching', async () => {
@@ -329,19 +348,19 @@ test.describe('Embed routes (anonymous)', () => {
       await expectEmbedPlayerProgressVisible(page);
       await expectEmbedShellHeightStable(
         page.getByTestId('embed-list-shell'),
-        EMBED_LIST_SHELL_HEIGHT
+        EMBED_LIST_SHELL_HEIGHT_WITH_SELECTOR
       );
 
-      await page.getByRole('radio', { name: 'Video' }).check();
-      await expectEmbedVideoPlaceholder(page);
+      await page.getByRole('radio', { name: 'Prefer video' }).check();
+      await expectEmbedTallCenterArt(page);
       await expectEmbedShellHeightStable(
         page.getByTestId('embed-list-shell'),
-        EMBED_LIST_SHELL_VIDEO_HEIGHT
+        EMBED_LIST_SHELL_TALL_HEIGHT_WITH_SELECTOR
       );
 
-      await page.getByRole('radio', { name: 'Audio' }).check();
+      await page.getByRole('radio', { name: 'Prefer audio' }).check();
       await expectEmbedPlayerProgressVisible(page);
-      await expect(page.getByTestId('embed-video-placeholder')).toHaveCount(0);
+      await expect(page.getByTestId('embed-tall-stage')).toHaveCount(0);
     });
   });
 
@@ -375,6 +394,28 @@ test.describe('Embed routes (anonymous)', () => {
       expect(E2E_EMBED_PLAYLIST_DEFAULT_ITEM_ID_TEXT).toBe(
         EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT
       );
+    });
+  });
+
+  test('Episode chapters and clips list embeds show segment times in row metadata', async ({
+    page,
+  }) => {
+    await test.step('Chapter list rows show chapter start time instead of episode duration', async () => {
+      await page.goto(
+        `/embed/episode-chapters/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}?play_id_text=embSmpEp1Ch02`
+      );
+      await expectEmbedListShell(page);
+      await expectEmbedListActiveRowLabel(page, EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE);
+      await expectEmbedListActiveRowMetaContains(page, '0:20');
+    });
+
+    await test.step('Clips list rows show clip start and end times when end_time is set', async () => {
+      await page.goto(
+        `/embed/podcast/${EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT}?type=clips&play_id_text=${EMBED_FIXTURE_CLIP_AUDIO_ID_TEXT}`
+      );
+      await expectEmbedListShell(page);
+      await expectEmbedListActiveRowLabel(page, EMBED_SAMPLE_CLIP_TITLE);
+      await expectEmbedListActiveRowMetaContains(page, '0:05 to 0:10');
     });
   });
 

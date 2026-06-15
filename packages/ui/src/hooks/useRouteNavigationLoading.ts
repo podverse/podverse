@@ -19,6 +19,9 @@ export function useRouteNavigationLoading(): boolean {
 
   const [isNavigating, setIsNavigating] = useState(false);
   const hasCompletedInitialLoadRef = useRef(false);
+  // The settled pathname + search (hash excluded). Used to distinguish real
+  // history navigation from in-page scroll-to-id (hash-only) changes.
+  const settledRouteRef = useRef<string>('');
 
   const startNavigating = useCallback(() => {
     if (!hasCompletedInitialLoadRef.current) {
@@ -32,6 +35,9 @@ export function useRouteNavigationLoading(): boolean {
   }, []);
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      settledRouteRef.current = `${window.location.pathname}${window.location.search}`;
+    }
     setIsNavigating(false);
   }, [routeKey]);
 
@@ -56,6 +62,13 @@ export function useRouteNavigationLoading(): boolean {
     };
 
     const handlePopState = () => {
+      // Ignore history changes that only move the hash (e.g. clicking a
+      // table-of-contents link that scrolls to an id); those are not real
+      // navigations and must not show the loading overlay.
+      const nextRoute = `${window.location.pathname}${window.location.search}`;
+      if (nextRoute === settledRouteRef.current) {
+        return;
+      }
       startNavigating();
     };
 

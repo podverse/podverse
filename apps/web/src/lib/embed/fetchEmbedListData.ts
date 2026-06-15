@@ -1,10 +1,15 @@
 import { getTotalPages } from '@podverse/helpers';
 
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
-import { getChannelForSeoPage, getPlaylistForSeoPage } from '../seo/fetchers';
+import {
+  getChannelForSeoPage,
+  getItemForSeoPage,
+  getPlaylistForSeoPage,
+} from '../seo/fetchers';
 import type { EmbedListData, EmbedListFetchResult, EmbedListGroup } from './embedListTypes';
 import type {
   EmbedAlbumListQueryParams,
+  EmbedEpisodeChaptersListQueryParams,
   EmbedPlaylistListQueryParams,
   EmbedPodcastListQueryParams,
 } from './embedTypes';
@@ -14,7 +19,9 @@ import {
   mapChannelClipsToEmbedListRows,
   mapChannelItemsToEmbedListRows,
   mapChannelSoundbitesToEmbedListRows,
+  mapItemChaptersToEmbedListRows,
   mapPlaylistResourcesToEmbedListRows,
+  sortEmbedItemChapters,
 } from './mapEmbedListRows';
 import { filterEmbedCurrentlyLiveChannelItems } from './resolveEmbedLiveItemStatus';
 
@@ -33,6 +40,11 @@ type FetchEmbedListDataInput =
       routeKind: 'playlist';
       resourceId: string;
       listQuery: EmbedPlaylistListQueryParams;
+    }
+  | {
+      routeKind: 'episode-chapters';
+      resourceId: string;
+      listQuery: EmbedEpisodeChaptersListQueryParams;
     };
 
 export async function fetchEmbedListData(
@@ -43,6 +55,10 @@ export async function fetchEmbedListData(
       return await fetchEmbedPlaylistListData(input.resourceId, input.listQuery);
     }
 
+    if (input.routeKind === 'episode-chapters') {
+      return await fetchEmbedEpisodeChaptersListData(input.resourceId, input.listQuery);
+    }
+
     if (input.routeKind === 'album') {
       return await fetchEmbedChannelListData('album', input.resourceId, input.listQuery);
     }
@@ -51,6 +67,43 @@ export async function fetchEmbedListData(
   } catch {
     return { status: 'not_found' };
   }
+}
+
+async function fetchEmbedEpisodeChaptersListData(
+  itemId: string,
+  listQuery: EmbedEpisodeChaptersListQueryParams
+): Promise<EmbedListFetchResult> {
+  const item = await getItemForSeoPage(itemId);
+
+  if (!item) {
+    return { status: 'not_found' };
+  }
+
+  const channel = await getChannelForSeoPage(item.channel_id);
+
+  if (!channel) {
+    return { status: 'not_found' };
+  }
+
+  if (!isEmbedChannelEmbeddable(channel)) {
+    return { status: 'not_available' };
+  }
+
+  const { ssrApiRequestService } = await getSSRAuthService();
+  const response = await ssrApiRequestService.reqItemParseAndGetChapters(item.id_text);
+  const chapters = sortEmbedItemChapters(response.data, listQuery.sort);
+
+  return {
+    status: 'ok',
+    listData: buildEmbedListData({
+      routeKind: 'episode-chapters',
+      resourceId: item.id_text,
+      headerTitle: item.title ?? '',
+      groups: mapItemChaptersToEmbedListRows(channel, item, chapters),
+      page: 1,
+      totalPages: 1,
+    }),
+  };
 }
 
 async function fetchEmbedChannelListData(

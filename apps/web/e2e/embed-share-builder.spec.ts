@@ -172,7 +172,7 @@ test.describe('Embed share builder handoff', () => {
     );
   });
 
-  test('Episode share builder audio list type switches to podcast list embed', async ({ page }) => {
+  test('Episode share builder short list type switches to podcast list embed', async ({ page }) => {
     await page.goto(`/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`);
     await openEmbedBuilderFromShare(page, 'share-embed-episode');
 
@@ -181,7 +181,7 @@ test.describe('Embed share builder handoff', () => {
       new RegExp(`/embed/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`)
     );
 
-    await selectEmbedBuilderType(page, 'Audio list');
+    await selectEmbedBuilderType(page, 'Short list');
 
     await expectBuilderEmbedPaths(
       page,
@@ -189,18 +189,82 @@ test.describe('Embed share builder handoff', () => {
     );
   });
 
-  test('Track share builder audio list type switches to album list embed', async ({ page }) => {
+  test('Podcast list builder can switch to a popularity-sorted clip list embed', async ({
+    page,
+  }) => {
+    await page.goto(`/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`);
+    await openEmbedBuilderFromShare(page, 'share-embed-episode');
+
+    await selectEmbedBuilderType(page, 'Short list');
+
+    await page
+      .getByTestId('embed-builder-list-content-selector')
+      .getByRole('radio', { name: 'Clips' })
+      .check();
+    await page
+      .getByTestId('embed-builder-list-sort-selector')
+      .getByRole('radio', { name: 'Popularity' })
+      .check();
+
+    await expectBuilderEmbedPaths(
+      page,
+      new RegExp(
+        `/embed/podcast/${E2E_PODCAST_CHANNEL_ID_TEXT}\\?.*type=clips.*sort=top.*range=all-time`
+      )
+    );
+  });
+
+  test('Episode share builder can switch to an episode-chapters list embed', async ({ page }) => {
+    await page.goto(`/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`);
+    await openEmbedBuilderFromShare(page, 'share-embed-episode');
+
+    await selectEmbedBuilderType(page, 'Short list');
+
+    await page
+      .getByTestId('embed-builder-list-content-selector')
+      .getByRole('radio', { name: 'Chapters' })
+      .check();
+
+    await expectBuilderEmbedPaths(
+      page,
+      new RegExp(`/embed/episode-chapters/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`)
+    );
+
+    await page
+      .getByTestId('embed-builder-list-sort-selector')
+      .getByRole('radio', { name: 'Last to first' })
+      .check();
+
+    await expectBuilderEmbedPaths(
+      page,
+      new RegExp(
+        `/embed/episode-chapters/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}\\?.*sort=desc`
+      )
+    );
+  });
+
+  test('Track share builder short list type switches to album list embed', async ({ page }) => {
     await page.goto(`/track/${E2E_MUSIC_TRACK_ONE_ID_TEXT}`);
     await openEmbedBuilderFromShare(page, 'share-embed-track');
 
     await expectBuilderEmbedPaths(page, new RegExp(`/embed/track/${E2E_MUSIC_TRACK_ONE_ID_TEXT}`));
 
-    await selectEmbedBuilderType(page, 'Audio list');
+    await selectEmbedBuilderType(page, 'Short list');
 
     await expectBuilderEmbedPaths(page, new RegExp(`/embed/album/${E2E_MUSIC_ALBUM_ID_TEXT}`));
+
+    await page
+      .getByTestId('embed-builder-list-sort-selector')
+      .getByRole('radio', { name: 'Last to first' })
+      .check();
+
+    await expectBuilderEmbedPaths(
+      page,
+      new RegExp(`/embed/album/${E2E_MUSIC_ALBUM_ID_TEXT}\\?.*sort=backward`)
+    );
   });
 
-  test('Builder preview URL updates when autoplay and start time change', async ({ page }) => {
+  test('Builder preview URL updates when start time changes', async ({ page }) => {
     await page.goto(`/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`);
     await openEmbedBuilderFromShare(page, 'share-embed-episode');
 
@@ -210,14 +274,101 @@ test.describe('Embed share builder handoff', () => {
       new RegExp(`/embed/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`)
     );
 
-    await page.getByTestId('embed-builder-autoplay').getByRole('checkbox').check();
     await page.getByTestId('embed-builder-start-time').locator('input').fill('15');
 
-    await expect(preview).toHaveAttribute('src', /autoplay=true/);
     await expect(preview).toHaveAttribute('src', /[?&]t=15/);
 
     const codeInput = page.getByTestId('embed-builder-code').locator('input');
-    await expect.poll(async () => codeInput.inputValue()).toMatch(/autoplay=true/);
     await expect.poll(async () => codeInput.inputValue()).toMatch(/[?&]t=15/);
+  });
+
+  test('Border color selector updates the inline border style in the generated embed code.', async ({
+    page,
+  }) => {
+    await page.goto(`/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`);
+    await openEmbedBuilderFromShare(page, 'share-embed-episode');
+
+    const borderSelector = page.getByTestId('embed-builder-border-color-selector');
+    const codeInput = page.getByTestId('embed-builder-code').locator('input');
+
+    await test.step('The default border color is darker gray and appears as an inline style.', async () => {
+      await expect.poll(async () => codeInput.inputValue()).toMatch(/border:1px solid #444444/);
+    });
+
+    await test.step('Choosing None removes the inline border from the generated code.', async () => {
+      await borderSelector.getByRole('radio', { name: 'None' }).check();
+      await expect.poll(async () => codeInput.inputValue()).not.toMatch(/border:/);
+    });
+
+    await test.step('Choosing Black sets a black inline border in the generated code.', async () => {
+      await borderSelector.getByRole('radio', { name: 'Black' }).check();
+      await expect.poll(async () => codeInput.inputValue()).toMatch(/border:1px solid #000000/);
+    });
+
+    await test.step('Choosing Custom and typing a color sets that inline border in the generated code.', async () => {
+      await borderSelector.getByRole('radio', { name: 'Custom' }).check();
+      await page.getByTestId('embed-builder-border-color-custom').locator('input').fill('#abcdef');
+      await expect.poll(async () => codeInput.inputValue()).toMatch(/border:1px solid #abcdef/);
+    });
+  });
+
+  test('When tall-list auto-resize settings are enabled in the builder, the URL and helper snippet update together.', async ({
+    page,
+  }) => {
+    await page.goto(`/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`);
+    await openEmbedBuilderFromShare(page, 'share-embed-episode');
+
+    await selectEmbedBuilderType(page, 'Tall list');
+    await expectBuilderEmbedPaths(
+      page,
+      new RegExp(`/embed/podcast/${E2E_PODCAST_CHANNEL_ID_TEXT}`)
+    );
+
+    await page.getByTestId('embed-builder-list-visible-rows').locator('input').fill('7');
+    const preview = page.getByTestId('embed-builder-preview').locator('iframe');
+    await expect(preview).toHaveAttribute('src', /[?&]rows=7/);
+
+    await page.getByText('Advanced options').click();
+    await page.getByRole('checkbox', { name: 'Auto-resize iframe to content width' }).check();
+
+    await expect(preview).toHaveAttribute('src', /[?&]resize=1/);
+    const codeInput = page.getByTestId('embed-builder-code').locator('input');
+    await expect.poll(async () => codeInput.inputValue()).toMatch(/data-podverse-embed-resize/);
+    await expect(page.locator('textarea[name="embed_resize_listener_snippet"]')).toBeVisible();
+    await expect(page.locator('textarea[name="embed_resize_listener_snippet"]')).toHaveValue(
+      /MESSAGE_SOURCE/
+    );
+  });
+
+  test('Builder type changes set default prefer values and generated URLs include player and presentation params', async ({
+    page,
+  }) => {
+    await page.goto(`/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`);
+    await openEmbedBuilderFromShare(page, 'share-embed-episode');
+
+    const preferSelector = page.getByTestId('embed-builder-prefer-selector');
+    const preview = page.getByTestId('embed-builder-preview').locator('iframe');
+    const codeInput = page.getByTestId('embed-builder-code').locator('input');
+
+    await test.step('Short player defaults to prefer audio in preview and embed code', async () => {
+      await expect(preferSelector.getByRole('radio', { name: 'Prefer audio' })).toBeChecked();
+      await expect(preview).toHaveAttribute('src', /[?&]player=short/);
+      await expect(preview).toHaveAttribute('src', /[?&]presentation=audio/);
+      await expect.poll(async () => codeInput.inputValue()).toMatch(/player=short/);
+      await expect.poll(async () => codeInput.inputValue()).toMatch(/presentation=audio/);
+    });
+
+    await test.step('Tall player defaults to prefer video', async () => {
+      await selectEmbedBuilderType(page, 'Tall');
+      await expect(preferSelector.getByRole('radio', { name: 'Prefer video' })).toBeChecked();
+      await expect(preview).toHaveAttribute('src', /[?&]player=tall/);
+      await expect(preview).toHaveAttribute('src', /[?&]presentation=video/);
+    });
+
+    await test.step('Prefer audio can be selected independently on tall player', async () => {
+      await preferSelector.getByRole('radio', { name: 'Prefer audio' }).check();
+      await expect(preview).toHaveAttribute('src', /[?&]player=tall/);
+      await expect(preview).toHaveAttribute('src', /[?&]presentation=audio/);
+    });
   });
 });

@@ -10,51 +10,74 @@ import {
 describe('parseEmbedSingleQueryParams', () => {
   it('returns stable defaults for missing params', () => {
     expect(parseEmbedSingleQueryParams({})).toEqual({
-      autoplay: false,
       startSeconds: 0,
       showChapterMarkers: true,
+      aspectRatio: '16x9',
       presentation: 'audio',
       presentationLocked: false,
+      playerSize: 'short',
+      playerSizeLocked: false,
     });
   });
 
-  it('normalizes invalid autoplay and start time values', () => {
+  it('normalizes invalid start time values', () => {
     expect(
       parseEmbedSingleQueryParams({
-        autoplay: 'maybe',
         t: '-5',
       })
     ).toEqual({
-      autoplay: false,
       startSeconds: 0,
       showChapterMarkers: true,
+      aspectRatio: '16x9',
       presentation: 'audio',
       presentationLocked: false,
+      playerSize: 'short',
+      playerSizeLocked: false,
     });
   });
 
-  it('parses valid autoplay and start seconds', () => {
+  it('parses start seconds from t query param', () => {
     expect(
       parseEmbedSingleQueryParams({
-        autoplay: 'true',
         t: '42',
       })
     ).toEqual({
-      autoplay: true,
       startSeconds: 42,
       showChapterMarkers: true,
+      aspectRatio: '16x9',
       presentation: 'audio',
       presentationLocked: false,
+      playerSize: 'short',
+      playerSizeLocked: false,
     });
   });
 
   it('locks presentation when presentation query param is present', () => {
     expect(parseEmbedSingleQueryParams({ presentation: 'video' })).toEqual({
-      autoplay: false,
       startSeconds: 0,
       showChapterMarkers: true,
+      aspectRatio: '16x9',
       presentation: 'video',
       presentationLocked: true,
+      playerSize: 'tall',
+      playerSizeLocked: false,
+    });
+  });
+
+  it('parses player size independently from presentation', () => {
+    expect(
+      parseEmbedSingleQueryParams({
+        presentation: 'video',
+        player: 'short',
+      })
+    ).toEqual({
+      startSeconds: 0,
+      showChapterMarkers: true,
+      aspectRatio: '16x9',
+      presentation: 'video',
+      presentationLocked: true,
+      playerSize: 'short',
+      playerSizeLocked: true,
     });
   });
 
@@ -66,21 +89,34 @@ describe('parseEmbedSingleQueryParams', () => {
       showChapterMarkers: false,
     });
   });
+
+  it('parses and normalizes aspect ratio values', () => {
+    expect(parseEmbedSingleQueryParams({ ar: '4x3' })).toMatchObject({
+      aspectRatio: '4x3',
+    });
+    expect(parseEmbedSingleQueryParams({ ar: 'invalid' })).toMatchObject({
+      aspectRatio: '16x9',
+    });
+  });
 });
 
 describe('parseEmbedPodcastListQueryParams', () => {
   it('returns podcast list defaults', () => {
     expect(parseEmbedPodcastListQueryParams({})).toEqual({
-      autoplay: false,
       startSeconds: 0,
       showChapterMarkers: true,
+      aspectRatio: '16x9',
       presentation: 'audio',
       presentationLocked: false,
+      playerSize: 'short',
+      playerSizeLocked: false,
       type: 'episodes',
       sort: 'recent',
       page: 1,
       range: null,
       playIdText: null,
+      listVisibleRows: 5,
+      autoResize: false,
     });
   });
 
@@ -91,16 +127,20 @@ describe('parseEmbedPodcastListQueryParams', () => {
         type: 'not-a-type',
       })
     ).toEqual({
-      autoplay: false,
       startSeconds: 0,
       showChapterMarkers: true,
+      aspectRatio: '16x9',
       presentation: 'audio',
       presentationLocked: false,
+      playerSize: 'short',
+      playerSizeLocked: false,
       type: 'episodes',
       sort: 'recent',
       page: 1,
       range: null,
       playIdText: null,
+      listVisibleRows: 5,
+      autoResize: false,
     });
   });
 
@@ -113,21 +153,36 @@ describe('parseEmbedPodcastListQueryParams', () => {
       playIdText: 'e2ePodResume02',
     });
   });
+
+  it('parses and clamps rows query param', () => {
+    expect(parseEmbedPodcastListQueryParams({ rows: '1' }).listVisibleRows).toBe(2);
+    expect(parseEmbedPodcastListQueryParams({ rows: '10' }).listVisibleRows).toBe(10);
+    expect(parseEmbedPodcastListQueryParams({ rows: '99' }).listVisibleRows).toBe(10);
+  });
+
+  it('parses auto-resize query param', () => {
+    expect(parseEmbedPodcastListQueryParams({ resize: '1' }).autoResize).toBe(true);
+    expect(parseEmbedPodcastListQueryParams({ resize: '0' }).autoResize).toBe(false);
+  });
 });
 
 describe('parseEmbedAlbumListQueryParams', () => {
   it('returns album list defaults', () => {
     expect(parseEmbedAlbumListQueryParams({})).toEqual({
-      autoplay: false,
       startSeconds: 0,
       showChapterMarkers: true,
+      aspectRatio: '16x9',
       presentation: 'audio',
       presentationLocked: false,
+      playerSize: 'short',
+      playerSizeLocked: false,
       type: 'tracks',
       sort: 'forward',
       page: 1,
       range: null,
       playIdText: null,
+      listVisibleRows: 5,
+      autoResize: false,
     });
   });
 });
@@ -135,13 +190,17 @@ describe('parseEmbedAlbumListQueryParams', () => {
 describe('parseEmbedPlaylistListQueryParams', () => {
   it('returns playlist list defaults', () => {
     expect(parseEmbedPlaylistListQueryParams({})).toEqual({
-      autoplay: false,
       startSeconds: 0,
       showChapterMarkers: true,
+      aspectRatio: '16x9',
       presentation: 'audio',
       presentationLocked: false,
+      playerSize: 'short',
+      playerSizeLocked: false,
       page: 1,
       playIdText: null,
+      listVisibleRows: 5,
+      autoResize: false,
     });
   });
 });

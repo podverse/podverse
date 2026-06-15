@@ -53,6 +53,8 @@ export type MediaElementBridge = {
   syncHttpFileUrlRestoreSeekAndPlay: (input: SyncHttpFileUrlRestoreSeekAndPlayInput) => void;
   /** Regular-item enclosure switch: rewind+load or clear src for mismatched kind. */
   applyItemEnclosureSurfaceChange: (input: ApplyItemEnclosureSurfaceChangeInput) => void;
+  /** Live element playhead when mounted; `undefined` when no element or time is invalid. */
+  readCurrentTimeSeconds: () => number | undefined;
 };
 
 export type UseMediaElementBridgeOptions = {
@@ -290,6 +292,18 @@ export function useMediaElementBridge(
     [mediaRef]
   );
 
+  const readCurrentTimeSeconds = useCallback((): number | undefined => {
+    const media = mediaRef.current;
+    if (!media) {
+      return undefined;
+    }
+    const currentTime = media.currentTime;
+    if (!Number.isFinite(currentTime) || currentTime < 0) {
+      return undefined;
+    }
+    return currentTime;
+  }, [mediaRef]);
+
   return useMemo(
     () => ({
       loadAndStart,
@@ -306,6 +320,7 @@ export function useMediaElementBridge(
       currentSourceKind,
       syncHttpFileUrlRestoreSeekAndPlay,
       applyItemEnclosureSurfaceChange,
+      readCurrentTimeSeconds,
     }),
     [
       loadAndStart,
@@ -322,6 +337,7 @@ export function useMediaElementBridge(
       currentSourceKind,
       syncHttpFileUrlRestoreSeekAndPlay,
       applyItemEnclosureSurfaceChange,
+      readCurrentTimeSeconds,
     ]
   );
 }

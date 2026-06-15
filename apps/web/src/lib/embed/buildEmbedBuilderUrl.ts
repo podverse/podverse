@@ -1,9 +1,22 @@
+import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
+
 import { ROUTES } from '../../constants/routes';
 import { WEB } from '../../constants/web';
-import type { EmbedBuilderQueryParams, EmbedBuilderType } from './embedBuilderTypes';
+import type { EmbedAspectRatioQuery } from './embedAspectRatio';
+import { DEFAULT_EMBED_ASPECT_RATIO } from './embedAspectRatio';
+import { DEFAULT_EMBED_BORDER_COLOR } from './embedBorderColor';
+import type {
+  EmbedBuilderListContentType,
+  EmbedBuilderListSort,
+  EmbedBuilderQueryParams,
+  EmbedBuilderType,
+} from './embedBuilderTypes';
+import type { EmbedPresentationQuery } from './embedTypes';
+import { EMBED_LIST_VISIBLE_ROWS_DEFAULT } from './parseEmbedListRows';
 
 export type EmbedBuilderUrlInput = {
   type?: EmbedBuilderType;
+  mediaPreference?: EmbedPresentationQuery;
   channel?: string | null;
   medium_id?: number | null;
   item?: string | null;
@@ -13,10 +26,16 @@ export type EmbedBuilderUrlInput = {
   playlist?: string | null;
   playlistItem?: string | null;
   sort?: string | null;
-  autoplay?: boolean;
+  listContentType?: EmbedBuilderListContentType;
+  listSort?: EmbedBuilderListSort;
+  listRange?: QueryParamsStatsRange | null;
   startSeconds?: number;
   playIdText?: string | null;
+  listVisibleRows?: number;
+  autoResize?: boolean;
   showChapterMarkers?: boolean;
+  aspectRatio?: EmbedAspectRatioQuery;
+  borderColor?: string | null;
   origin?: string;
 };
 
@@ -25,6 +44,10 @@ export function buildEmbedBuilderUrlPath(input: EmbedBuilderUrlInput = {}): stri
 
   if (input.type !== null && input.type !== undefined) {
     params.set('type', input.type);
+  }
+
+  if (input.mediaPreference !== null && input.mediaPreference !== undefined) {
+    params.set('prefer', input.mediaPreference);
   }
 
   if (input.channel) {
@@ -63,8 +86,16 @@ export function buildEmbedBuilderUrlPath(input: EmbedBuilderUrlInput = {}): stri
     params.set('sort', input.sort);
   }
 
-  if (input.autoplay === true) {
-    params.set('autoplay', 'true');
+  if (input.listContentType && input.listContentType !== 'episodes') {
+    params.set('list_content', input.listContentType);
+  }
+
+  if (input.listSort && input.listSort !== 'recent') {
+    params.set('list_sort', input.listSort);
+  }
+
+  if (input.listRange) {
+    params.set('list_range', input.listRange);
   }
 
   const startSeconds = input.startSeconds ?? 0;
@@ -76,8 +107,31 @@ export function buildEmbedBuilderUrlPath(input: EmbedBuilderUrlInput = {}): stri
     params.set('play_id_text', input.playIdText);
   }
 
+  if (
+    input.listVisibleRows !== undefined &&
+    input.listVisibleRows !== EMBED_LIST_VISIBLE_ROWS_DEFAULT
+  ) {
+    params.set('rows', String(input.listVisibleRows));
+  }
+
+  if (input.autoResize === true) {
+    params.set('resize', '1');
+  }
+
   if (input.showChapterMarkers === false) {
     params.set('chapter_markers', '0');
+  }
+
+  if (input.aspectRatio && input.aspectRatio !== DEFAULT_EMBED_ASPECT_RATIO) {
+    params.set('ar', input.aspectRatio);
+  }
+
+  if (
+    input.borderColor !== null &&
+    input.borderColor !== undefined &&
+    input.borderColor !== DEFAULT_EMBED_BORDER_COLOR
+  ) {
+    params.set('border', input.borderColor);
   }
 
   const queryString = params.toString();
@@ -94,6 +148,7 @@ export function embedBuilderQueryParamsToUrlInput(
 ): EmbedBuilderUrlInput {
   return {
     type: params.type,
+    mediaPreference: params.mediaPreference,
     channel: params.channel,
     medium_id: params.mediumId,
     item: params.item,
@@ -103,9 +158,15 @@ export function embedBuilderQueryParamsToUrlInput(
     playlist: params.playlist,
     playlistItem: params.playlistItem,
     sort: params.sort,
-    autoplay: params.autoplay,
+    listContentType: params.listContentType,
+    listSort: params.listSort,
+    listRange: params.listRange,
     startSeconds: params.startSeconds,
     playIdText: params.playIdText,
+    listVisibleRows: params.listVisibleRows,
+    autoResize: params.autoResize,
     showChapterMarkers: params.showChapterMarkers,
+    aspectRatio: params.aspectRatio,
+    borderColor: params.borderColor,
   };
 }

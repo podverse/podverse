@@ -7,8 +7,12 @@ import type { LabeledItemEnclosure } from '@podverse/helpers';
 import { getSelectedLabeledItemEnclosureAndSource } from '@podverse/helpers';
 
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
+import { useMediaPlayerControls } from '../../contexts/MediaPlayerControls';
+import { useMediaPlayerCurrentTime } from '../../contexts/MediaPlayerCurrentTime';
 import { formatEmbedEnclosureSourceDisplay } from '../../lib/embed/formatEmbedEnclosureSourceDisplay';
 import { buildEmbedEnclosureSelectionParams } from '../../lib/embed/setEmbedEnclosureSelection';
+import { resolveResumeAtSecondsForEnclosureSwitch } from '../../lib/playback/resolveResumeAtSecondsForEnclosureSwitch';
+import { buildEnclosureSwitchPlaybackDecisionIfChanged } from '../../lib/playback/stageEnclosureSwitchFromSelection';
 import { useEnclosureLabel } from '../../utils/itemEnclosure';
 
 import styles from '../../styles/components/embed/EmbedAlternateEnclosureModal.module.scss';
@@ -39,6 +43,7 @@ function EmbedAlternateEnclosureOption({
 
   return (
     <button
+      aria-current={isSelected ? 'true' : undefined}
       className={isSelected ? `${styles.option} ${styles.optionSelected}` : styles.option}
       data-testid={`embed-alternate-enclosure-option-${labeledItemEnclosure.enclosure.type.replace('/', '-')}`}
       onClick={onSelect}
@@ -74,8 +79,17 @@ export function EmbedAlternateEnclosureModal({
 }: EmbedAlternateEnclosureModalProps) {
   const tMediaPlayer = useTranslations('media_player');
   const tMisc = useTranslations('misc');
-  const { mpEnclosureSelectedParams, mpItemLabeledItemEnclosures, setMPEnclosureSelectedParams } =
-    useMediaPlayer();
+  const {
+    mpClip,
+    mpEnclosureSelectedParams,
+    mpItemChapter,
+    mpItemLabeledItemEnclosures,
+    mpItemSoundbite,
+    setMPEnclosureSelectedParams,
+    setPendingPlaybackDecision,
+  } = useMediaPlayer();
+  const { mpCurrentTime } = useMediaPlayerCurrentTime();
+  const { readCurrentTimeSeconds } = useMediaPlayerControls();
 
   if (!isOpen || mpItemLabeledItemEnclosures.length <= 1) {
     return null;
@@ -91,9 +105,31 @@ export function EmbedAlternateEnclosureModal({
   const selectedEnclosureId = selectedItemEnclosureAndSource.labeledItemEnclosure?.enclosure.id;
 
   const handleSelect = (labeledItemEnclosure: LabeledItemEnclosure) => {
-    setMPEnclosureSelectedParams(
-      buildEmbedEnclosureSelectionParams(mpItemLabeledItemEnclosures, labeledItemEnclosure)
+    if (labeledItemEnclosure.enclosure.id === selectedEnclosureId) {
+      onClose();
+      return;
+    }
+
+    const nextEnclosureSelectedParams = buildEmbedEnclosureSelectionParams(
+      mpItemLabeledItemEnclosures,
+      labeledItemEnclosure
     );
+    const enclosureSwitchDecision = buildEnclosureSwitchPlaybackDecisionIfChanged({
+      labeledItemEnclosures: mpItemLabeledItemEnclosures,
+      currentEnclosureSelectedParams: mpEnclosureSelectedParams,
+      nextEnclosureSelectedParams,
+      resumeAtSeconds: resolveResumeAtSecondsForEnclosureSwitch(
+        readCurrentTimeSeconds(),
+        mpCurrentTime
+      ),
+      mpClip,
+      mpItemSoundbite,
+      mpItemChapter,
+    });
+    if (enclosureSwitchDecision !== null) {
+      setPendingPlaybackDecision(enclosureSwitchDecision);
+    }
+    setMPEnclosureSelectedParams(nextEnclosureSelectedParams);
     onClose();
   };
 

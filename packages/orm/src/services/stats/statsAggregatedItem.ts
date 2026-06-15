@@ -1,7 +1,9 @@
+import type { LiveItem } from '@orm/entities/liveItem/liveItem.js';
 import { StatsAggregatedItem } from '@orm/entities/stats/statsAggregatedItem.js';
 import { getLiveItemStatusEnumValue } from '@orm/index.js';
 import { getActiveFeedWhere } from '@orm/lib/feedFlagHelpers.js';
-import type { FindManyOptions } from 'typeorm';
+import { buildEndedLiveItemTimeVariants } from '@orm/lib/liveItemWhere.js';
+import type { FindManyOptions, FindOptionsWhere } from 'typeorm';
 import { Equal, IsNull, Not } from 'typeorm';
 
 import type { QueryParamsMedium } from '@podverse/helpers';
@@ -34,20 +36,35 @@ export class StatsAggregatedItemService extends BaseStatsAggregatedService<
   ): Promise<StatsAggregatedItem[]> {
     const live_item_status_id = getLiveItemStatusEnumValue(liveItemType);
 
-    return this.repositoryRead.find({
-      where: {
-        item: {
-          ...getActiveFeedWhere({
-            channel_ids: null,
-            mediumType,
-            category_id,
-          }),
-          live_item: {
-            id: itemType === 'live-item' ? Not(IsNull()) : IsNull(),
-            ...(live_item_status_id ? { live_item_status_id: Equal(live_item_status_id) } : {}),
-          },
-        },
+    const activeFeedWhere = getActiveFeedWhere({
+      channel_ids: null,
+      mediumType,
+      category_id,
+    });
+
+    const liveItemWhere: FindOptionsWhere<LiveItem> = {
+      id: itemType === 'live-item' ? Not(IsNull()) : IsNull(),
+      ...(live_item_status_id ? { live_item_status_id: Equal(live_item_status_id) } : {}),
+    };
+
+    const buildWhere = (
+      live_item: FindOptionsWhere<LiveItem>
+    ): FindOptionsWhere<StatsAggregatedItem> => ({
+      item: {
+        ...activeFeedWhere,
+        live_item,
       },
+    });
+
+    const where =
+      liveItemType === 'ended'
+        ? buildEndedLiveItemTimeVariants().map((variant) =>
+            buildWhere({ ...liveItemWhere, ...variant })
+          )
+        : buildWhere(liveItemWhere);
+
+    return this.repositoryRead.find({
+      where,
       ...config,
     });
   }
@@ -60,20 +77,35 @@ export class StatsAggregatedItemService extends BaseStatsAggregatedService<
   ): Promise<[StatsAggregatedItem[], number]> {
     const live_item_status_id = getLiveItemStatusEnumValue(liveItemType);
 
-    return this.repositoryRead.findAndCount({
-      where: {
-        item: {
-          ...getActiveFeedWhere({
-            channel_ids,
-            mediumType: null,
-            category_id: null,
-          }),
-          live_item: {
-            id: itemType === 'live-item' ? Not(IsNull()) : IsNull(),
-            ...(live_item_status_id ? { live_item_status_id: Equal(live_item_status_id) } : {}),
-          },
-        },
+    const activeFeedWhere = getActiveFeedWhere({
+      channel_ids,
+      mediumType: null,
+      category_id: null,
+    });
+
+    const liveItemWhere: FindOptionsWhere<LiveItem> = {
+      id: itemType === 'live-item' ? Not(IsNull()) : IsNull(),
+      ...(live_item_status_id ? { live_item_status_id: Equal(live_item_status_id) } : {}),
+    };
+
+    const buildWhere = (
+      live_item: FindOptionsWhere<LiveItem>
+    ): FindOptionsWhere<StatsAggregatedItem> => ({
+      item: {
+        ...activeFeedWhere,
+        live_item,
       },
+    });
+
+    const where =
+      liveItemType === 'ended'
+        ? buildEndedLiveItemTimeVariants().map((variant) =>
+            buildWhere({ ...liveItemWhere, ...variant })
+          )
+        : buildWhere(liveItemWhere);
+
+    return this.repositoryRead.findAndCount({
+      where,
       ...config,
     });
   }

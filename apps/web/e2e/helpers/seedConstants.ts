@@ -113,7 +113,11 @@ export const EMBED_SAMPLE_PODCAST_CHANNEL_TITLE = 'Cosmos Classroom';
 export const EMBED_SAMPLE_ALBUM_CHANNEL_TITLE = 'Orbital Classics';
 export const EMBED_SAMPLE_VIDEO_CHANNEL_TITLE = 'Embed Sample Podcast (video)';
 export const EMBED_SAMPLE_CLIP_TITLE = 'Through the Telescope';
+export const EMBED_SAMPLE_CLIP_START_SECONDS = 5;
+export const EMBED_SAMPLE_CLIP_END_SECONDS = 10;
 export const EMBED_SAMPLE_SOUNDBITE_TITLE = 'Night Sky Notes';
+export const EMBED_SAMPLE_SOUNDBITE_START_SECONDS = 14;
+export const EMBED_SAMPLE_SOUNDBITE_DURATION_SECONDS = 6;
 export const EMBED_SAMPLE_CHAPTER_TITLE = 'Introduction';
 export const EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE = 'Planets and Moons';
 export const EMBED_SAMPLE_CHAPTER_OUTRO_TITLE = 'Conclusion';
@@ -137,10 +141,12 @@ export const EMBED_FIXTURE_MUSIC_ALBUM_ID_TEXT = 'embSmpAlbAud1';
 export const EMBED_FIXTURE_MUSIC_TRACK_AUDIO_ID_TEXT = 'embSmpTrkAud1';
 export const EMBED_FIXTURE_MUSIC_TRACK_TWO_ID_TEXT = 'embSmpTrkAud2';
 export const EMBED_FIXTURE_CLIP_AUDIO_ID_TEXT = 'embSmpClip001';
+export const EMBED_FIXTURE_CLIP_VIDEO_ID_TEXT = 'embSmpClipV01';
 export const EMBED_FIXTURE_SOUNDBITE_ID_TEXT = 'embSmpSbite01';
 export const EMBED_FIXTURE_CHAPTER_ID_TEXT = 'embSmpChap001';
 export const EMBED_FIXTURE_CHAPTER_TWO_ID_TEXT = 'embSmpChap002';
 export const EMBED_FIXTURE_CHAPTER_THREE_ID_TEXT = 'embSmpChap003';
+export const EMBED_FIXTURE_CHAPTER_VIDEO_ID_TEXT = 'embSmpChpVCh02';
 
 export const E2E_PODCAST_SHORT_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-short-60s-440hz.mp3`;
 export const E2E_PODCAST_RESUME_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-resume-60s-440hz.mp3`;
@@ -196,5 +202,9 @@ export const E2E_EMBED_DEMO_SHOWCASE_IDS = [
   'podcast-video',
   'album-audio',
   'album-video',
+  'episode-chapters-audio',
+  'episode-chapters-video',
+  'podcast-clips-audio',
+  'podcast-clips-video',
   'playlist-mixed',
 ] as const;

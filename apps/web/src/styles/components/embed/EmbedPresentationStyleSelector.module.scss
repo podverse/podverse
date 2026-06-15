@@ -1,4 +1,4 @@
-@use './embedLayout' as embed;
+@use './embedLayoutTokens' as embed;
 
 .fieldset {
   border: 0;
@@ -13,7 +13,7 @@
 }
 
 .legend {
-  color: var(--color-text-secondary);
+  color: var(--text-color-secondary);
   font-size: var(--font-size-sm);
 }
 

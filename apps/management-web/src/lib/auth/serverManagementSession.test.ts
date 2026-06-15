@@ -80,9 +80,9 @@ describe('getManagementSession', () => {
       apiRequest: vi.fn().mockResolvedValue(mockUser),
     };
 
-    vi.mocked(ManagementApiRequestService).mockImplementation(
-      () => mockInstance as unknown as InstanceType<typeof ManagementApiRequestService>
-    );
+    vi.mocked(ManagementApiRequestService).mockImplementation(function () {
+      return mockInstance as unknown as InstanceType<typeof ManagementApiRequestService>;
+    } as unknown as typeof ManagementApiRequestService);
 
     await expect(getManagementSession()).resolves.toEqual({
       user: mockUser,
@@ -100,12 +100,11 @@ describe('getManagementSession', () => {
           : undefined,
     } as unknown as Awaited<ReturnType<typeof cookies>>);
 
-    vi.mocked(ManagementApiRequestService).mockImplementation(
-      () =>
-        ({
-          apiRequest: vi.fn().mockRejectedValue({ response: { status: 401 } }),
-        }) as unknown as InstanceType<typeof ManagementApiRequestService>
-    );
+    vi.mocked(ManagementApiRequestService).mockImplementation(function () {
+      return {
+        apiRequest: vi.fn().mockRejectedValue({ response: { status: 401 } }),
+      } as unknown as InstanceType<typeof ManagementApiRequestService>;
+    } as unknown as typeof ManagementApiRequestService);
 
     await expect(getManagementSession()).resolves.toBeNull();
   });
@@ -136,9 +135,9 @@ describe('getManagementAuthService', () => {
       apiRequest: vi.fn().mockResolvedValue(mockUser),
     };
 
-    vi.mocked(ManagementApiRequestService).mockImplementation(
-      () => mockInstance as unknown as InstanceType<typeof ManagementApiRequestService>
-    );
+    vi.mocked(ManagementApiRequestService).mockImplementation(function () {
+      return mockInstance as unknown as InstanceType<typeof ManagementApiRequestService>;
+    } as unknown as typeof ManagementApiRequestService);
 
     await expect(getManagementAuthService()).resolves.toEqual({
       user: mockUser,
@@ -169,12 +168,11 @@ describe('getManagementSessionUser', () => {
           : undefined,
     } as unknown as Awaited<ReturnType<typeof cookies>>);
 
-    vi.mocked(ManagementApiRequestService).mockImplementation(
-      () =>
-        ({
-          apiRequest: vi.fn().mockResolvedValue(mockUser),
-        }) as unknown as InstanceType<typeof ManagementApiRequestService>
-    );
+    vi.mocked(ManagementApiRequestService).mockImplementation(function () {
+      return {
+        apiRequest: vi.fn().mockResolvedValue(mockUser),
+      } as unknown as InstanceType<typeof ManagementApiRequestService>;
+    } as unknown as typeof ManagementApiRequestService);
 
     await expect(getManagementSessionUser()).resolves.toEqual(mockUser);
     expect(ManagementApiRequestService).toHaveBeenCalledWith('jwt-token');
@@ -188,12 +186,11 @@ describe('getManagementSessionUser', () => {
           : undefined,
     } as unknown as Awaited<ReturnType<typeof cookies>>);
 
-    vi.mocked(ManagementApiRequestService).mockImplementation(
-      () =>
-        ({
-          apiRequest: vi.fn().mockRejectedValue({ response: { status: 401 } }),
-        }) as unknown as InstanceType<typeof ManagementApiRequestService>
-    );
+    vi.mocked(ManagementApiRequestService).mockImplementation(function () {
+      return {
+        apiRequest: vi.fn().mockRejectedValue({ response: { status: 401 } }),
+      } as unknown as InstanceType<typeof ManagementApiRequestService>;
+    } as unknown as typeof ManagementApiRequestService);
 
     await expect(getManagementSessionUser()).resolves.toBeNull();
   });

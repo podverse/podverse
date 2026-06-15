@@ -148,4 +148,23 @@ describe('useMediaElementBridge', () => {
     await bridge.togglePlay();
     expect(fake.paused).toBe(true);
   });
+
+  it('readCurrentTimeSeconds returns the element playhead when mounted', () => {
+    const { current, fake } = createMediaElementFakeRef({ readyState: 1, duration: 60 });
+    const mediaRef: MutableRefObject<HTMLMediaElement | null> = { current };
+
+    const { result } = renderHook(() => useMediaElementBridge(mediaRef, {}));
+    const bridge = result.current;
+
+    fake.currentTime = 83.42;
+    expect(bridge.readCurrentTimeSeconds()).toBe(83.42);
+  });
+
+  it('readCurrentTimeSeconds returns undefined when no element is mounted', () => {
+    const mediaRef: MutableRefObject<HTMLMediaElement | null> = { current: null };
+
+    const { result } = renderHook(() => useMediaElementBridge(mediaRef, {}));
+
+    expect(result.current.readCurrentTimeSeconds()).toBeUndefined();
+  });
 });

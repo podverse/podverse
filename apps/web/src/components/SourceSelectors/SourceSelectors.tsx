@@ -6,7 +6,11 @@ import { getDownloadFilenameFromSource } from '@podverse/helpers';
 import { Divider } from '@podverse/ui';
 
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
+import { useMediaPlayerControls } from '../../contexts/MediaPlayerControls';
+import { useMediaPlayerCurrentTime } from '../../contexts/MediaPlayerCurrentTime';
 import { useModals } from '../../contexts/Modals';
+import { resolveResumeAtSecondsForEnclosureSwitch } from '../../lib/playback/resolveResumeAtSecondsForEnclosureSwitch';
+import { buildEnclosureSwitchPlaybackDecisionIfChanged } from '../../lib/playback/stageEnclosureSwitchFromSelection';
 import { downloadAndSaveFile } from '../../utils/fileDownloader';
 import { showToast, showToastPromiseWithLoading } from '../Toast/Toast';
 import { SourceSelectorRow } from './SourceSelectorRow';
@@ -31,7 +35,16 @@ export const SourceSelectors = ({
   itemTitle,
 }: SourceSelectorsProps) => {
   const tFeatures = useTranslations('features');
-  const { setMPEnclosureSelectedParams } = useMediaPlayer();
+  const {
+    mpClip,
+    mpEnclosureSelectedParams,
+    mpItemChapter,
+    mpItemSoundbite,
+    setMPEnclosureSelectedParams,
+    setPendingPlaybackDecision,
+  } = useMediaPlayer();
+  const { mpCurrentTime } = useMediaPlayerCurrentTime();
+  const { readCurrentTimeSeconds } = useMediaPlayerControls();
   const { setModalSourceSelector } = useModals();
 
   const onClick = (enclosureIndex: number, sourceIndex: number) => {
@@ -43,11 +56,27 @@ export const SourceSelectors = ({
     if (source) {
       const mediaType = labeledItemEnclosure.mediaType;
       if (actionType === 'load-in-player') {
-        setMPEnclosureSelectedParams({
+        const nextEnclosureSelectedParams = {
           type: mediaType,
           enclosureRowSelected: enclosureIndex,
           sourceRowSelected: sourceIndex,
+        };
+        const enclosureSwitchDecision = buildEnclosureSwitchPlaybackDecisionIfChanged({
+          labeledItemEnclosures,
+          currentEnclosureSelectedParams: mpEnclosureSelectedParams,
+          nextEnclosureSelectedParams,
+          resumeAtSeconds: resolveResumeAtSecondsForEnclosureSwitch(
+            readCurrentTimeSeconds(),
+            mpCurrentTime
+          ),
+          mpClip,
+          mpItemSoundbite,
+          mpItemChapter,
         });
+        if (enclosureSwitchDecision !== null) {
+          setPendingPlaybackDecision(enclosureSwitchDecision);
+        }
+        setMPEnclosureSelectedParams(nextEnclosureSelectedParams);
       } else if (actionType === 'download-episode') {
         if (!source.uri) {
           showToast(tFeatures('download.episode_download_error'), 'error');

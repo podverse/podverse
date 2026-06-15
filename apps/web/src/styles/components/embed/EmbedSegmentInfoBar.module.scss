@@ -1,0 +1,32 @@
+@use './embedLayoutTokens' as tokens;
+
+.segmentBar {
+  align-items: center;
+  backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--background-color-primary) 82%, transparent);
+  box-sizing: border-box;
+  display: flex;
+  gap: var(--spacing-md);
+  height: var(--embed-segment-info-bar-height);
+  justify-content: space-between;
+  min-height: var(--embed-segment-info-bar-height);
+  padding-inline: var(--spacing-lg);
+  width: 100%;
+}
+
+.title {
+  color: var(--text-color-primary);
+  flex: 1 1 auto;
+  font-size: var(--font-size-sm);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timeRange {
+  color: var(--text-color-secondary);
+  flex: 0 0 auto;
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+}

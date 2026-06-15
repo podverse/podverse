@@ -62,6 +62,8 @@ test.describe('Embed demo index', () => {
         'track-video',
         'podcast-video',
         'album-video',
+        'episode-chapters-video',
+        'podcast-clips-video',
       ]);
       if (videoShowcaseIds.has(showcaseId)) {
         await expect(iframe).toHaveAttribute('src', /presentation=video/);
@@ -92,6 +94,12 @@ test.describe('Embed demo index', () => {
       await page.getByRole('link', { name: 'Episode (audio)' }).click();
       await expect(page).toHaveURL(/#embed-demo-episode-audio$/);
       await expect(page.locator('#embed-demo-episode-audio')).toBeVisible();
+    });
+
+    await test.step('Each example offers a back-to-top link that returns to the page top', async () => {
+      await page.getByTestId('embed-demo-back-to-top-episode-audio').click();
+      await expect(page).toHaveURL(/#embed-demo-top$/);
+      await expect(page.locator('#embed-demo-top')).toBeVisible();
     });
 
     for (const href of hrefs) {

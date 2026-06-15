@@ -16,6 +16,9 @@ export function buildEmbedUrlEntityContextFromBuilderParams(
   layout: EmbedUrlLayoutPreference
 ): EmbedUrlEntityContext {
   const useListLayout = layout === 'list';
+  // A chapters list is item-based (rendered via the episode-chapters route), so keep the item even
+  // in list layout. All other list content types are channel-based and drop the item.
+  const keepItemForChaptersList = useListLayout && params.listContentType === 'chapters';
 
   const channel =
     params.channel !== null
@@ -27,7 +30,10 @@ export function buildEmbedUrlEntityContextFromBuilderParams(
 
   return {
     channel,
-    item: useListLayout || !params.item ? null : ({ id_text: params.item } as DTOItem),
+    item:
+      (!useListLayout || keepItemForChaptersList) && params.item
+        ? ({ id_text: params.item } as DTOItem)
+        : null,
     clip: params.clip ? ({ id_text: params.clip } as DTOClip) : null,
     item_chapter: params.itemChapter ? ({ id_text: params.itemChapter } as DTOItemChapter) : null,
     item_soundbite: params.itemSoundbite

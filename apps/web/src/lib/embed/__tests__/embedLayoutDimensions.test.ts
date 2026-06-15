@@ -2,15 +2,13 @@ import { describe, expect, it } from 'vitest';
 
 import {
   DEFAULT_LIST_AUDIO_IFRAME_HEIGHT,
-  DEFAULT_LIST_VIDEO_IFRAME_HEIGHT,
   DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT,
   DEFAULT_SINGLE_VIDEO_IFRAME_HEIGHT,
   EMBED_PLAYER_PANEL_AUDIO_HEIGHT_PX,
+  getEmbedListAudioIframeHeightPx,
 } from '../embedLayoutDimensions';
 import {
-  EMBED_LIST_REGION_AUDIO_PX,
-  EMBED_LIST_REGION_VIDEO_PX,
-  EMBED_LIST_VIDEO_PLACEHOLDER_PX,
+  EMBED_LIST_ROW_HEIGHT_PX,
   EMBED_PANEL_PADDING_BLOCK_PX,
   EMBED_PLAY_BUTTON_SIZE_PX,
   EMBED_PLAYER_ART_SIZE_PX,
@@ -52,13 +50,12 @@ describe('embedLayoutDimensions', () => {
 
   it('derives list shell heights from the player panel plus list viewport', () => {
     const expectedPanelAudioHeight = expectedPanelAudioHeightPx();
-    const expectedPanelVideoHeight = expectedPanelVideoHeightPx(EMBED_LIST_VIDEO_PLACEHOLDER_PX);
 
     expect(DEFAULT_LIST_AUDIO_IFRAME_HEIGHT).toBe(
-      expectedPanelAudioHeight + EMBED_LIST_REGION_AUDIO_PX
+      expectedPanelAudioHeight + EMBED_LIST_ROW_HEIGHT_PX * 5
     );
-    expect(DEFAULT_LIST_VIDEO_IFRAME_HEIGHT).toBe(
-      expectedPanelVideoHeight + EMBED_LIST_REGION_VIDEO_PX
+    expect(getEmbedListAudioIframeHeightPx({ listVisibleRows: 10 })).toBe(
+      expectedPanelAudioHeight + EMBED_LIST_ROW_HEIGHT_PX * 10
     );
   });
 });

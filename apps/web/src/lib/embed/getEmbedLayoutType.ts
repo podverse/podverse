@@ -5,7 +5,12 @@ export function getEmbedLayoutType(routeKind: EmbedRouteKind): EmbedLayoutType {
     return 'index';
   }
 
-  if (routeKind === 'podcast' || routeKind === 'album' || routeKind === 'playlist') {
+  if (
+    routeKind === 'podcast' ||
+    routeKind === 'album' ||
+    routeKind === 'playlist' ||
+    routeKind === 'episode-chapters'
+  ) {
     return 'list';
   }
 

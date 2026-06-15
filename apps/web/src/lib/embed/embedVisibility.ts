@@ -8,7 +8,12 @@ export function isPublicSharableStatus(sharableStatusId: number): boolean {
 }
 
 export function requiresPublicListVisibility(routeKind: EmbedRouteKind): boolean {
-  return routeKind === 'podcast' || routeKind === 'album' || routeKind === 'playlist';
+  return (
+    routeKind === 'podcast' ||
+    routeKind === 'album' ||
+    routeKind === 'playlist' ||
+    routeKind === 'episode-chapters'
+  );
 }
 
 export function isEmbedChannelEmbeddable(channel: DTOChannel): boolean {

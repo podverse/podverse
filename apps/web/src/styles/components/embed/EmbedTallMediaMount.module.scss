@@ -1,0 +1,11 @@
+// The video element wrapper fills the media layer so the <video> (height/width 100%,
+// object-fit: contain) scales to fill the available space — completely when the video
+// aspect ratio matches the stage, and centered (letterboxed) when it cannot. No gap is
+// left between the video and the wrapper when the video can fill the space at scale.
+.videoFill {
+  align-items: center;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}

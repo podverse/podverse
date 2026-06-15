@@ -3,9 +3,11 @@ import type { Channel } from '@orm/entities/channel/channel.js';
 import { Item } from '@orm/entities/item/item.js';
 import { ItemFlagStatusStatusEnum } from '@orm/entities/item/itemFlagStatus.js';
 import type { ItemValueTimeSplit } from '@orm/entities/item/itemValueTimeSplit.js';
+import type { LiveItem } from '@orm/entities/liveItem/liveItem.js';
 import { getLiveItemStatusEnumValue } from '@orm/entities/liveItem/liveItemStatus.js';
 import type { StatsAggregatedItem } from '@orm/entities/stats/statsAggregatedItem.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
+import { buildEndedLiveItemTimeVariants } from '@orm/lib/liveItemWhere.js';
 import {
   findOptionsRelationsFromPaths,
   mergeFindOptionsRelations,
@@ -308,29 +310,42 @@ export class ItemService {
     const medium_ids = mediumType ? getMediumIdArrayFromType(mediumType) : null;
     const live_item_status_id = getLiveItemStatusEnumValue(liveItemType);
 
-    return this.repositoryRead.find({
-      ...config,
-      where: {
-        channel: {
-          channel_about: {
-            id: Not(IsNull()),
-          },
-          feed: {
-            feed_policy: {
-              public_visible: true,
-            },
-          },
-          ...(medium_ids ? { medium_id: In(medium_ids) } : {}),
-          ...(category_id ? { channel_categories: { category_id: Equal(category_id) } } : {}),
-        },
-        item_flag_status: {
-          id: ItemFlagStatusStatusEnum.Active,
-        },
-        live_item: {
-          id: itemType === 'live-item' ? Not(IsNull()) : IsNull(),
-          ...(live_item_status_id ? { live_item_status_id: Equal(live_item_status_id) } : {}),
+    const channelWhere: FindOptionsWhere<Channel> = {
+      channel_about: {
+        id: Not(IsNull()),
+      },
+      feed: {
+        feed_policy: {
+          public_visible: true,
         },
       },
+      ...(medium_ids ? { medium_id: In(medium_ids) } : {}),
+      ...(category_id ? { channel_categories: { category_id: Equal(category_id) } } : {}),
+    };
+
+    const liveItemWhere: FindOptionsWhere<LiveItem> = {
+      id: itemType === 'live-item' ? Not(IsNull()) : IsNull(),
+      ...(live_item_status_id ? { live_item_status_id: Equal(live_item_status_id) } : {}),
+    };
+
+    const buildWhere = (live_item: FindOptionsWhere<LiveItem>): FindOptionsWhere<Item> => ({
+      channel: channelWhere,
+      item_flag_status: {
+        id: ItemFlagStatusStatusEnum.Active,
+      },
+      live_item,
+    });
+
+    const where =
+      liveItemType === 'ended'
+        ? buildEndedLiveItemTimeVariants().map((variant) =>
+            buildWhere({ ...liveItemWhere, ...variant })
+          )
+        : buildWhere(liveItemWhere);
+
+    return this.repositoryRead.find({
+      ...config,
+      where,
     });
   }
 
@@ -817,22 +832,35 @@ export class ItemService {
   ): Promise<Item[]> {
     const live_item_status_id = getLiveItemStatusEnumValue(liveItemType);
 
-    return this.repositoryRead.find({
-      where: {
-        channel: {
-          id: In(channel_ids),
-          channel_about: {
-            id: Not(IsNull()),
-          },
-        },
-        live_item: {
-          id: itemType === 'live-item' ? Not(IsNull()) : IsNull(),
-          ...(live_item_status_id ? { live_item_status_id: Equal(live_item_status_id) } : {}),
-        },
-        item_flag_status: {
-          id: ItemFlagStatusStatusEnum.Active,
-        },
+    const channelWhere: FindOptionsWhere<Channel> = {
+      id: In(channel_ids),
+      channel_about: {
+        id: Not(IsNull()),
       },
+    };
+
+    const liveItemWhere: FindOptionsWhere<LiveItem> = {
+      id: itemType === 'live-item' ? Not(IsNull()) : IsNull(),
+      ...(live_item_status_id ? { live_item_status_id: Equal(live_item_status_id) } : {}),
+    };
+
+    const buildWhere = (live_item: FindOptionsWhere<LiveItem>): FindOptionsWhere<Item> => ({
+      channel: channelWhere,
+      live_item,
+      item_flag_status: {
+        id: ItemFlagStatusStatusEnum.Active,
+      },
+    });
+
+    const where =
+      liveItemType === 'ended'
+        ? buildEndedLiveItemTimeVariants().map((variant) =>
+            buildWhere({ ...liveItemWhere, ...variant })
+          )
+        : buildWhere(liveItemWhere);
+
+    return this.repositoryRead.find({
+      where,
       ...options,
     });
   }

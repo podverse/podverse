@@ -4,14 +4,13 @@
   inset: 0;
   min-height: 0;
   position: absolute;
-  z-index: 2;
+  z-index: 10;
 }
 
 .panel {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: var(--spacing-xs);
   min-height: 0;
   min-width: 0;
   padding: var(--spacing-xs) var(--spacing-lg) var(--spacing-md);
@@ -24,6 +23,7 @@
   flex: 0 0 auto;
   gap: var(--spacing-md);
   justify-content: space-between;
+  margin-bottom: var(--spacing-md);
   min-width: 0;
 }
 
@@ -78,7 +78,13 @@
 }
 
 .optionSelected {
-  box-shadow: inset 3px 0 0 var(--color-primary);
+  background: var(--background-color-tertiary);
+}
+
+.optionSelected .optionMediaIcon,
+.optionSelected .optionTitle,
+.optionSelected .optionLabel {
+  color: var(--text-color-highlighted);
 }
 
 .optionMediaIcon {

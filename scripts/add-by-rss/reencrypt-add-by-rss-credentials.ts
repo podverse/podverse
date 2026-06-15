@@ -108,12 +108,12 @@ function main(): void {
         continue;
       }
       const newU =
-        u !== null && u !== undefined && u.startsWith('v1:')
-          ? encryptCredentials(plainU!)
+        u !== null && u !== undefined && u.startsWith('v1:') && plainU !== null
+          ? encryptCredentials(plainU)
           : (u ?? null);
       const newP =
-        p !== null && p !== undefined && p.startsWith('v1:')
-          ? encryptCredentials(plainP!)
+        p !== null && p !== undefined && p.startsWith('v1:') && plainP !== null
+          ? encryptCredentials(plainP)
           : (p ?? null);
       row.basic_auth_username = newU;
       row.basic_auth_password = newP;

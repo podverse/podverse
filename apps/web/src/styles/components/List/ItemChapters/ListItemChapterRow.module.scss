@@ -9,13 +9,13 @@
 
 .image {
   object-fit: cover;
-  border-radius: var(--border-radius);
+  border-radius: var(--border-radius-artwork);
 }
 
 .imageMobile {
   display: none;
   object-fit: cover;
-  border-radius: var(--border-radius);
+  border-radius: var(--border-radius-artwork);
 }
 
 .content {

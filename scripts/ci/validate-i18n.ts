@@ -35,17 +35,29 @@ interface ValidationError {
 
 const errors: ValidationError[] = [];
 
+function isJsonObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function parseJsonObject(content: string, label: string): Record<string, unknown> {
+  const parsed: unknown = JSON.parse(content);
+  if (!isJsonObject(parsed)) {
+    throw new Error(`${label} must be a JSON object`);
+  }
+  return parsed;
+}
+
 /**
  * Get all keys from a nested object as dot-notation paths
  */
-function getKeys(obj: any, prefix = ''): string[] {
+function getKeys(obj: Record<string, unknown>, prefix = ''): string[] {
   const keys: string[] = [];
 
   for (const key of Object.keys(obj)) {
     const fullKey = prefix ? `${prefix}.${key}` : key;
     const value = obj[key];
 
-    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+    if (isJsonObject(value)) {
       keys.push(...getKeys(value, fullKey));
     } else {
       keys.push(fullKey);
@@ -58,12 +70,14 @@ function getKeys(obj: any, prefix = ''): string[] {
 /**
  * Get value at a dot-notation path
  */
-function getValueAtPath(obj: any, path: string): any {
+function getValueAtPath(obj: Record<string, unknown>, path: string): unknown {
   const parts = path.split('.');
-  let current = obj;
+  let current: unknown = obj;
 
   for (const part of parts) {
-    if (current === undefined || current === null) return undefined;
+    if (!isJsonObject(current)) {
+      return undefined;
+    }
     current = current[part];
   }
 
@@ -142,7 +156,7 @@ function validateApp(appPath: string): void {
     return;
   }
 
-  const enUS = JSON.parse(fs.readFileSync(enUSPath, 'utf-8'));
+  const enUS = parseJsonObject(fs.readFileSync(enUSPath, 'utf-8'), enUSPath);
   const enUSKeys = getKeys(enUS);
 
   console.log(`  📊 Found ${enUSKeys.length} keys in en-US.json`);
@@ -166,7 +180,7 @@ function validateApp(appPath: string): void {
     const localePath = path.join(originalsDir, `${locale}.json`);
     if (!fs.existsSync(localePath)) continue;
 
-    const localeData = JSON.parse(fs.readFileSync(localePath, 'utf-8'));
+    const localeData = parseJsonObject(fs.readFileSync(localePath, 'utf-8'), localePath);
     const localeKeys = getKeys(localeData);
 
     // Check for key mismatch with en-US
@@ -231,8 +245,8 @@ function validateApp(appPath: string): void {
 
     if (!fs.existsSync(originalsPath) || !fs.existsSync(overridesPath)) continue;
 
-    const originals = JSON.parse(fs.readFileSync(originalsPath, 'utf-8'));
-    const overrides = JSON.parse(fs.readFileSync(overridesPath, 'utf-8'));
+    const originals = parseJsonObject(fs.readFileSync(originalsPath, 'utf-8'), originalsPath);
+    const overrides = parseJsonObject(fs.readFileSync(overridesPath, 'utf-8'), overridesPath);
 
     const originalsKeys = getKeys(originals);
     const overridesKeys = getKeys(overrides);

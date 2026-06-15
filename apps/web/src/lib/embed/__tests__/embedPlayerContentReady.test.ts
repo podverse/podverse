@@ -58,22 +58,26 @@ describe('isEmbedPlayerContentReady', () => {
     expect(
       isEmbedPlayerContentReady({
         fallbackResource: buildResource(),
-        mediaType: 'audio',
         mpChannel: null,
         mpItem: null,
+        mpClip: null,
+        mpItemChapter: null,
+        mpItemSoundbite: null,
       })
     ).toBe(true);
   });
 
-  it('returns true for video when only the video placeholder would render', () => {
+  it('returns false when no fallback/header/loaded identity exists', () => {
     expect(
       isEmbedPlayerContentReady({
         fallbackResource: null,
-        mediaType: 'video',
         mpChannel: null,
         mpItem: null,
+        mpClip: null,
+        mpItemChapter: null,
+        mpItemSoundbite: null,
       })
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it('returns true for list embeds that only have a header title', () => {
@@ -81,9 +85,11 @@ describe('isEmbedPlayerContentReady', () => {
       isEmbedPlayerContentReady({
         fallbackResource: null,
         headerTitle: 'Album title',
-        mediaType: 'audio',
         mpChannel: null,
         mpItem: null,
+        mpClip: null,
+        mpItemChapter: null,
+        mpItemSoundbite: null,
       })
     ).toBe(true);
   });
@@ -94,9 +100,11 @@ describe('isEmbedPlayerContentReady', () => {
     expect(
       isEmbedPlayerContentReady({
         fallbackResource: null,
-        mediaType: 'audio',
         mpChannel: resource.channel,
         mpItem: resource.item,
+        mpClip: null,
+        mpItemChapter: null,
+        mpItemSoundbite: null,
       })
     ).toBe(true);
   });
@@ -105,11 +113,28 @@ describe('isEmbedPlayerContentReady', () => {
     expect(
       isEmbedPlayerContentReady({
         fallbackResource: null,
-        mediaType: 'audio',
         mpChannel: null,
         mpItem: null,
+        mpClip: null,
+        mpItemChapter: null,
+        mpItemSoundbite: null,
       })
     ).toBe(false);
+  });
+
+  it('returns true when loaded identity matches target identity', () => {
+    const resource = buildResource();
+
+    expect(
+      isEmbedPlayerContentReady({
+        fallbackResource: resource,
+        mpChannel: null,
+        mpItem: resource.item,
+        mpClip: null,
+        mpItemChapter: null,
+        mpItemSoundbite: null,
+      })
+    ).toBe(true);
   });
 });
 

@@ -1,4 +1,4 @@
-@use './embedLayout' as embed;
+@use './embedLayoutTokens' as embed;
 
 .preview {
   --embed-demo-title-gap: var(--spacing-xl);
@@ -13,8 +13,29 @@
   }
 }
 
+.titleRow {
+  align-items: baseline;
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: space-between;
+}
+
 .title {
   scroll-margin-top: var(--spacing-2xl);
+}
+
+.backToTop {
+  align-items: center;
+  color: var(--text-color-secondary);
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: var(--font-size-md);
+  justify-content: center;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--text-color-link-hover);
+  }
 }
 
 .frame {
@@ -24,7 +45,6 @@
   // (height: 100%) then equals the shell height exactly and the embedded document
   // never overflows its iframe (no outer scrollbar inside the embed).
   border: 1px solid var(--border-color-opaque);
-  border-radius: var(--radius-sm);
   box-sizing: content-box;
   overflow: hidden;
   padding: 0;
@@ -38,24 +58,25 @@
   width: 100%;
 }
 
-.iframeSingleAudio,
-.frame.iframeSingleAudio {
-  height: embed.$embed-single-audio-shell-height;
+.iframeSingleShort,
+.frame.iframeSingleShort {
+  height: embed.$embed-single-short-shell-height;
 }
 
-.iframeSingleVideo,
-.frame.iframeSingleVideo {
-  height: embed.$embed-single-video-shell-height;
+.iframeSingleTall,
+.frame.iframeSingleTall {
+  aspect-ratio: 16 / 9;
+  height: auto;
 }
 
-.iframeListAudio,
-.frame.iframeListAudio {
-  height: embed.$embed-list-audio-shell-height;
+.iframeListShort,
+.frame.iframeListShort {
+  height: embed.$embed-list-short-shell-height;
 }
 
-.iframeListVideo,
-.frame.iframeListVideo {
-  height: embed.$embed-list-video-shell-height;
+.iframeListTall,
+.frame.iframeListTall {
+  height: embed.$embed-list-tall-shell-height;
 }
 
 .placeholder {

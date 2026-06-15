@@ -33,6 +33,7 @@ import { MediumEnum } from '@podverse/helpers';
 
 import { AccountContext } from '../../../../contexts/Account';
 import type { MediaPlayerAddByRSSState } from '../../../../contexts/MediaPlayer';
+import type { PlaybackLoadDecision } from '../../../../lib/playback';
 import {
   type InstalledMediaElementFake,
   installMediaElementFake,
@@ -57,6 +58,7 @@ type RenderOverrides = Partial<{
   mpShouldPlay: boolean;
   abridgedItems: QueueResourcesAbridgedIndex['items'];
   addByRSSSeekToTime: number | null;
+  pendingPlaybackDecision: PlaybackLoadDecision | null;
 }>;
 
 const noopChannel = (mediumId: number): DTOChannel =>
@@ -165,6 +167,8 @@ async function renderAV(overrides: RenderOverrides = {}): Promise<RenderResult> 
         }
         queueResourcesAbridgedIndex={abridgedIndex}
         clearNowPlaying={() => undefined}
+        pendingPlaybackDecision={overrides.pendingPlaybackDecision ?? null}
+        setPendingPlaybackDecision={() => undefined}
         pendingMusicQueueLoadIntentRef={{ current: null }}
       />
     </AccountContext.Provider>
@@ -419,5 +423,27 @@ describe('NonLiveMediaOrchestrator — add-by-RSS saved-position resume on loade
     });
 
     fake.assertNeverSeeked();
+  });
+});
+
+describe('NonLiveMediaOrchestrator — enclosure switch resume', () => {
+  it('enclosure-switch-resume: seeks to the staged resume seconds on loadedmetadata', async () => {
+    const { fake } = await renderAV({
+      mpChannel: noopChannel(MediumEnum.Podcast),
+      mpItem: noopItem(10, 'item-1'),
+      pendingPlaybackDecision: {
+        initialSeekSeconds: 83,
+        reason: 'enclosure-switch-resume',
+        shouldAutoPlay: false,
+        shouldClearAutoQueue: false,
+        shouldRecordPlaybackStat: false,
+      },
+    });
+
+    await act(async () => {
+      fake.fireLoadedMetadata(3600);
+    });
+
+    fake.assertSeekedTo(83);
   });
 });

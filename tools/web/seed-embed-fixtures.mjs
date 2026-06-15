@@ -9,7 +9,10 @@ import {
   E2E_FIXTURE_ITEM_IMAGE_URL,
   EMBED_DEMO_SHOWCASE_IDS,
   EMBED_DEMO_SHOWCASE_RESOURCE_IDS,
-  EMBED_FIXTURE_ALBUM_LIST_AUDIO_ID_TEXT,
+  EMBED_DEMO_SYSTEM_ACCOUNT_ID_TEXT,
+  EMBED_DEMO_SYSTEM_ACCOUNT_PASSWORD_HASH,
+  EMBED_DEMO_SYSTEM_ACCOUNT_USERNAME,
+  EMBED_DEMO_SYSTEM_MEMBERSHIP_YEARS,
   EMBED_FIXTURE_ALBUM_LIST_VIDEO_ID_TEXT,
   EMBED_FIXTURE_ALBUM_VIDEO_TRACK_ID_TEXT,
   EMBED_FIXTURE_CHAPTER_ID_TEXT,
@@ -17,6 +20,7 @@ import {
   EMBED_FIXTURE_CHAPTER_THREE_ID_TEXT,
   EMBED_FIXTURE_CHAPTER_TWO_ID_TEXT,
   EMBED_FIXTURE_CLIP_AUDIO_ID_TEXT,
+  EMBED_FIXTURE_CLIP_VIDEO_ID_TEXT,
   EMBED_FIXTURE_MUSIC_ALBUM_ID_TEXT,
   EMBED_FIXTURE_MUSIC_TRACK_AUDIO_ID_TEXT,
   EMBED_FIXTURE_MUSIC_TRACK_TWO_ID_TEXT,
@@ -66,8 +70,8 @@ import {
   EMBED_SAMPLE_EPISODE_VIDEO_ITEM_IMAGE_URL,
   EMBED_SAMPLE_EPISODE_VIDEO_TITLE,
   EMBED_SAMPLE_PLAYLIST_MIXED_TITLE,
-  EMBED_SAMPLE_PLAYLIST_PUBLIC_TITLE,
   EMBED_SAMPLE_PLAYLIST_PRIVATE_TITLE,
+  EMBED_SAMPLE_PLAYLIST_PUBLIC_TITLE,
   EMBED_SAMPLE_PODCAST_CHANNEL_IMAGE_URL,
   EMBED_SAMPLE_PODCAST_CHANNEL_TITLE,
   EMBED_SAMPLE_PODCAST_ITEM_AUDIO_URL,
@@ -301,10 +305,98 @@ async function seedEmbedItemChapters(client, itemId, objectTitle, chapterRows) {
 }
 
 /**
+ * Ensures the backend-owned embed demo account exists with premium membership.
+ *
  * @param {import('pg').Client} client
- * @param {{ accountId: number }} options
+ * @returns {Promise<number>}
  */
-async function seedEmbedSampleDemoFixtures(client, { accountId }) {
+async function ensureEmbedDemoSystemAccount(client) {
+  const existing = await client.query(
+    `SELECT ac.account_id AS id
+     FROM account_credentials ac
+     WHERE ac.username = $1
+     LIMIT 1`,
+    [EMBED_DEMO_SYSTEM_ACCOUNT_USERNAME]
+  );
+
+  if (existing.rows.length > 0) {
+    const accountId = existing.rows[0].id;
+    await client.query(
+      `UPDATE account_membership_status
+       SET account_membership_id = (SELECT id FROM account_membership WHERE tier = 'premium'),
+           membership_expires_at = NOW() + ($2::int * INTERVAL '1 year')
+       WHERE account_id = $1`,
+      [accountId, EMBED_DEMO_SYSTEM_MEMBERSHIP_YEARS]
+    );
+    return accountId;
+  }
+
+  const accountResult = await client.query(
+    `INSERT INTO account (id_text, verified, sharable_status_id)
+     VALUES ($1, true, (SELECT id FROM sharable_status WHERE status = 'private' LIMIT 1))
+     RETURNING id`,
+    [EMBED_DEMO_SYSTEM_ACCOUNT_ID_TEXT]
+  );
+  const accountId = accountResult.rows[0].id;
+
+  await client.query(
+    `INSERT INTO account_credentials (account_id, email, username, password)
+     VALUES ($1, NULL, $2, $3)`,
+    [accountId, EMBED_DEMO_SYSTEM_ACCOUNT_USERNAME, EMBED_DEMO_SYSTEM_ACCOUNT_PASSWORD_HASH]
+  );
+
+  await client.query(`INSERT INTO account_profile (account_id) VALUES ($1)`, [accountId]);
+
+  await client.query(
+    `INSERT INTO account_membership_status (account_id, account_membership_id, membership_expires_at)
+     VALUES (
+       $1,
+       (SELECT id FROM account_membership WHERE tier = 'premium' LIMIT 1),
+       NOW() + ($2::int * INTERVAL '1 year')
+     )`,
+    [accountId, EMBED_DEMO_SYSTEM_MEMBERSHIP_YEARS]
+  );
+
+  const settingsResult = await client.query(
+    `INSERT INTO account_settings (account_id)
+     VALUES ($1)
+     RETURNING id`,
+    [accountId]
+  );
+  const settingsId = settingsResult.rows[0].id;
+
+  await client.query(
+    `INSERT INTO account_settings_locale (account_settings_id, locale)
+     VALUES ($1, 'en-US')`,
+    [settingsId]
+  );
+
+  const notificationResult = await client.query(
+    `INSERT INTO account_settings_notification (account_settings_id)
+     VALUES ($1)
+     RETURNING id`,
+    [settingsId]
+  );
+  const notificationId = notificationResult.rows[0].id;
+
+  await client.query(
+    `INSERT INTO account_settings_notification_type (account_settings_notification_id, type)
+     VALUES ($1, 'new-item'), ($1, 'livestream-started')`,
+    [notificationId]
+  );
+
+  console.log(
+    `Created embed demo system account ${EMBED_DEMO_SYSTEM_ACCOUNT_USERNAME} (id ${accountId})`
+  );
+
+  return accountId;
+}
+
+/**
+ * @param {import('pg').Client} client
+ * @param {{ embedDemoAccountId: number }} options
+ */
+async function seedEmbedSampleDemoFixtures(client, { embedDemoAccountId }) {
   await client.query(`DELETE FROM feed WHERE podcast_index_id IN ($1, $2)`, [
     EMBED_SAMPLE_PODCAST_FEED_PI_ID,
     EMBED_SAMPLE_ALBUM_FEED_PI_ID,
@@ -482,13 +574,42 @@ async function seedEmbedSampleDemoFixtures(client, { accountId }) {
      VALUES ($1, $2, $3, $4, $5, $6, 'Embed demo clip sample.', 1)`,
     [
       EMBED_FIXTURE_CLIP_AUDIO_ID_TEXT,
-      accountId,
+      embedDemoAccountId,
       chapterParentItemId,
       EMBED_SAMPLE_CLIP_START_SECONDS,
       EMBED_SAMPLE_CLIP_END_SECONDS,
       EMBED_SAMPLE_CLIP_TITLE,
     ]
   );
+
+  // Extra public clips so the podcast `?type=clips` list renders multiple rows.
+  const podcastListClipRows = [
+    { idText: 'embSmpClip002', itemId: episodeAudioItemId, title: 'Sample List Clip 2' },
+    { idText: 'embSmpClip003', itemId: episodeNearEndItemId, title: 'Sample List Clip 3' },
+  ];
+  for (const clipRow of podcastListClipRows) {
+    await client.query(
+      `INSERT INTO clip (
+         id_text,
+         account_id,
+         item_id,
+         start_time,
+         end_time,
+         title,
+         description,
+         sharable_status_id
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, 'Embed demo list clip sample.', 1)`,
+      [
+        clipRow.idText,
+        embedDemoAccountId,
+        clipRow.itemId,
+        EMBED_SAMPLE_CLIP_START_SECONDS,
+        EMBED_SAMPLE_CLIP_END_SECONDS,
+        clipRow.title,
+      ]
+    );
+  }
 
   await client.query(
     `INSERT INTO item_soundbite (id_text, item_id, start_time, duration, title)
@@ -669,9 +790,10 @@ export async function syncE2eFixtureImageUrls(client) {
  */
 export async function seedEmbedFixtures(client, options) {
   const { accountId } = options;
+  const embedDemoAccountId = await ensureEmbedDemoSystemAccount(client);
 
   const { episodeAudioItemId, episodeNearEndItemId } = await seedEmbedSampleDemoFixtures(client, {
-    accountId,
+    embedDemoAccountId,
   });
 
   await client.query(`DELETE FROM feed WHERE podcast_index_id = $1 OR url = $2`, [
@@ -778,13 +900,60 @@ export async function seedEmbedFixtures(client, options) {
     itemImageUrl: EMBED_SAMPLE_EPISODE_VIDEO_ITEM_IMAGE_URL,
     pubDateOffsetSeconds: 0,
   });
-  await insertVideoItem({
+  await seedEmbedItemChapters(
+    client,
+    videoItemOneId,
+    EMBED_SAMPLE_EPISODE_VIDEO_TITLE,
+    buildEmbedItemChapterRows('embSmpChpV')
+  );
+  await client.query(
+    `INSERT INTO clip (
+       id_text,
+       account_id,
+       item_id,
+       start_time,
+       end_time,
+       title,
+       description,
+       sharable_status_id
+     )
+     VALUES ($1, $2, $3, $4, $5, $6, 'Embed demo clip sample.', 1)`,
+    [
+      EMBED_FIXTURE_CLIP_VIDEO_ID_TEXT,
+      embedDemoAccountId,
+      videoItemOneId,
+      EMBED_SAMPLE_CLIP_START_SECONDS,
+      EMBED_SAMPLE_CLIP_END_SECONDS,
+      EMBED_SAMPLE_CLIP_TITLE,
+    ]
+  );
+  const videoItemTwoId = await insertVideoItem({
     idText: EMBED_FIXTURE_VIDEO_ITEM_TWO_ID_TEXT,
     guidSlug: 'video-two',
     title: 'Episode Two (video)',
     itemImageUrl: EMBED_SAMPLE_EPISODE_VIDEO_ITEM_IMAGE_URL,
     pubDateOffsetSeconds: 120,
   });
+  await client.query(
+    `INSERT INTO clip (
+       id_text,
+       account_id,
+       item_id,
+       start_time,
+       end_time,
+       title,
+       description,
+       sharable_status_id
+     )
+     VALUES ($1, $2, $3, $4, $5, 'Sample List Clip 2', 'Embed demo list clip sample.', 1)`,
+    [
+      'embSmpClipV02',
+      embedDemoAccountId,
+      videoItemTwoId,
+      EMBED_SAMPLE_CLIP_START_SECONDS,
+      EMBED_SAMPLE_CLIP_END_SECONDS,
+    ]
+  );
   await insertVideoItem({
     idText: EMBED_FIXTURE_MUSIC_TRACK_VIDEO_ID_TEXT,
     guidSlug: 'video-track',

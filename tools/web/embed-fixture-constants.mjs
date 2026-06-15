@@ -52,7 +52,11 @@ export const EMBED_SAMPLE_ALBUM_VIDEO_CHANNEL_TITLE = 'Embed Sample Album (video
 export const EMBED_SAMPLE_VIDEO_CHANNEL_TITLE = 'Embed Sample Podcast (video)';
 export const EMBED_SAMPLE_CHAPTER_PARENT_TITLE = 'The Solar System';
 export const EMBED_SAMPLE_CLIP_TITLE = 'Through the Telescope';
+export const EMBED_SAMPLE_CLIP_START_SECONDS = 5;
+export const EMBED_SAMPLE_CLIP_END_SECONDS = 10;
 export const EMBED_SAMPLE_SOUNDBITE_TITLE = 'Night Sky Notes';
+export const EMBED_SAMPLE_SOUNDBITE_START_SECONDS = 14;
+export const EMBED_SAMPLE_SOUNDBITE_DURATION_SECONDS = 6;
 export const EMBED_SAMPLE_CHAPTER_TITLE = 'Introduction';
 export const EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE = 'Planets and Moons';
 export const EMBED_SAMPLE_CHAPTER_OUTRO_TITLE = 'Conclusion';
@@ -84,10 +88,12 @@ export const EMBED_FIXTURE_MUSIC_TRACK_TWO_ID_TEXT = 'embSmpTrkAud2';
 export const EMBED_FIXTURE_MUSIC_TRACK_VIDEO_ID_TEXT = 'e2eEmbVidTrk01';
 
 export const EMBED_FIXTURE_CLIP_AUDIO_ID_TEXT = 'embSmpClip001';
+export const EMBED_FIXTURE_CLIP_VIDEO_ID_TEXT = 'embSmpClipV01';
 export const EMBED_FIXTURE_SOUNDBITE_ID_TEXT = 'embSmpSbite01';
 export const EMBED_FIXTURE_CHAPTER_ID_TEXT = 'embSmpChap001';
 export const EMBED_FIXTURE_CHAPTER_TWO_ID_TEXT = 'embSmpChap002';
 export const EMBED_FIXTURE_CHAPTER_THREE_ID_TEXT = 'embSmpChap003';
+export const EMBED_FIXTURE_CHAPTER_VIDEO_ID_TEXT = 'embSmpChpVCh02';
 export const EMBED_FIXTURE_CHAPTER_PARENT_ITEM_ID_TEXT = 'embSmpChpItm1';
 
 export const EMBED_FIXTURE_PODCAST_LIST_AUDIO_ID_TEXT = EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT;
@@ -123,12 +129,18 @@ export const EMBED_DEMO_SHOWCASE_IDS = [
   'track-audio',
   'track-video',
   'clip-audio',
+  'clip-video',
   'official-clip-audio',
   'chapter-audio',
+  'chapter-video',
   'podcast-audio',
   'podcast-video',
   'album-audio',
   'album-video',
+  'episode-chapters-audio',
+  'episode-chapters-video',
+  'podcast-clips-audio',
+  'podcast-clips-video',
   'playlist-mixed',
 ];
 
@@ -139,11 +151,26 @@ export const EMBED_DEMO_SHOWCASE_RESOURCE_IDS = {
   'track-audio': EMBED_FIXTURE_MUSIC_TRACK_AUDIO_ID_TEXT,
   'track-video': EMBED_FIXTURE_MUSIC_TRACK_VIDEO_ID_TEXT,
   'clip-audio': EMBED_FIXTURE_CLIP_AUDIO_ID_TEXT,
+  'clip-video': EMBED_FIXTURE_CLIP_VIDEO_ID_TEXT,
   'official-clip-audio': EMBED_FIXTURE_SOUNDBITE_ID_TEXT,
   'chapter-audio': EMBED_FIXTURE_CHAPTER_TWO_ID_TEXT,
+  'chapter-video': EMBED_FIXTURE_CHAPTER_VIDEO_ID_TEXT,
   'podcast-audio': EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT,
   'podcast-video': EMBED_FIXTURE_PODCAST_LIST_VIDEO_ID_TEXT,
   'album-audio': EMBED_FIXTURE_ALBUM_LIST_AUDIO_ID_TEXT,
   'album-video': EMBED_FIXTURE_ALBUM_LIST_VIDEO_ID_TEXT,
+  'episode-chapters-audio': EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT,
+  'episode-chapters-video': EMBED_FIXTURE_PODCAST_EPISODE_VIDEO_ID_TEXT,
+  'podcast-clips-audio': EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT,
+  'podcast-clips-video': EMBED_FIXTURE_PODCAST_LIST_VIDEO_ID_TEXT,
   'playlist-mixed': EMBED_FIXTURE_PLAYLIST_MIXED_ID_TEXT,
 };
+
+/** Backend-owned embed demo account (clips; playlists later). Sync with @podverse/helpers. */
+export const EMBED_DEMO_SYSTEM_ACCOUNT_USERNAME = 'demo';
+export const EMBED_DEMO_SYSTEM_ACCOUNT_ID_TEXT = 'embeddemo01';
+export const EMBED_DEMO_SYSTEM_MEMBERSHIP_YEARS = 100;
+
+/** Bcrypt hash of a discarded random password; plaintext intentionally not stored. */
+export const EMBED_DEMO_SYSTEM_ACCOUNT_PASSWORD_HASH =
+  '$2b$10$hhALeI8Aowf/2tAttZMzION.TNszTWqLwegwm9ygZeuvOiZl2udoi';

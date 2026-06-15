@@ -57,6 +57,7 @@ policy (`session_restore` resumes snapshot; `explicit_play` /
 | **Skip-next button**     | `TrackNextButton*` → move-to-history + `useQueueResourcesLoadActive()` → queue load                                                                                                       |
 | **Track-ended**          | Media element `ended` event in `NonLiveMediaOrchestrator` `handleEnded`                                                                                                                   |
 | **Explicit play**        | List/detail "play" buttons → `useMediaPlayerResourceUpdate` (same as initial load, just from a different surface)                                                                         |
+| **Alternate enclosure**  | User picks a different format/source in `SourceSelectors` / `EmbedAlternateEnclosureModal` → staged `pendingPlaybackDecision` with reason `enclosure-switch-resume` → reload at prior `mpCurrentTime` |
 
 ## Matrix — Sections 1 through 5 (non-livestream)
 
@@ -77,6 +78,10 @@ Notation: `p` = abridged stored position seconds (`queueResourcesAbridgedIndex.i
 | **item-music**                  | **`0` for `explicit_play` / `fresh_transition`** (`p` ignored); **`session_restore`** uses snapshot + near-end clamp via `resolvePlaybackLoadDecision`                            | follows `mpShouldPlay`                                                                                     | `updateNowPlaying`; track stats item/channel                                                                                                                                                                                                         |
 | **add-by-RSS**                  | If `addByRSSSeekToTime !== null` and `>= 0`: that value (applied on `loadedmetadata` once or directly if `readyState >= 1`); otherwise `0`                                        | follows `mpShouldPlay`; stats tracking is **skipped** for add-by-RSS (see `if (!loggedInAccountRef.current |                                                                                                                                                                                                                                                      | mpAddByRSSRef.current) return`) | `onAddByRSSPositionSave` is called from `play`, `pause`, and every 15s of accumulated playback in `timeupdate` |
 | **livestream**                  | See **§ 6a** appendix (video.js owns position; `currentTime` typically meaningless)                                                                                               | video.js autoplay = true; player typically renders playing                                                 | See § 6a                                                                                                                                                                                                                                             |
+
+### 1b. Alternate enclosure switch (same now-playing item)
+
+When the user selects a different labeled enclosure for the current item, the UI stages `pendingPlaybackDecision` with reason **`enclosure-switch-resume`**. After the new file loads, `currentTime` is set to the prior `mpCurrentTime` (near-end clamped against the new duration when metadata arrives). Clip/soundbite/chapter `pauseAt` boundaries are re-armed. `mpIsPlaying` is unchanged; playback resumes via the existing play/pause sync effect when the user was already playing.
 
 ### 2. Anonymous restore (logged-out, first page load only)
 

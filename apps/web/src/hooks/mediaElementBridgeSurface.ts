@@ -90,7 +90,6 @@ export function applyItemEnclosureSurfaceChangeFromRef(
     return;
   }
   if (input.treatAsActiveNonLiveFile) {
-    media.currentTime = 0;
     media.load();
     if (input.shouldPlayWhenReady) {
       playMediaWhenReady(media, input.onPlayedShouldPlayClear);

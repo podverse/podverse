@@ -8,8 +8,8 @@
   background: var(--button-opaque-bg);
   border: var(--button-border-size) solid var(--border-color-primary);
   border-radius: var(--border-radius-round);
-  height: 3rem !important;
-  width: 3rem !important;
+  height: var(--media-player-play-button-size) !important;
+  width: var(--media-player-play-button-size) !important;
   font-size: var(--font-size-base);
   @include mediaPlayerPlayPauseIconCentering;
 }

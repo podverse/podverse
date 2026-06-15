@@ -33,7 +33,8 @@ export type PlaybackLoadDecisionReason =
   | 'item-music-fresh-transition'
   | 'add-by-rss-resume'
   | 'add-by-rss-fresh'
-  | 'livestream';
+  | 'livestream'
+  | 'enclosure-switch-resume';
 
 export function resolvePlaybackLoadDecision(
   request: PlaybackLoadRequest,

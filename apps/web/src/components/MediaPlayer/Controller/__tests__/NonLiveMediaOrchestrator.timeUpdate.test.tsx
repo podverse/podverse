@@ -25,6 +25,7 @@ import type {
 import { MediumEnum } from '@podverse/helpers';
 
 import { AccountContext } from '../../../../contexts/Account';
+import { EmbedPlaybackModeProvider } from '../../../../contexts/EmbedPlaybackMode';
 import {
   type InstalledMediaElementFake,
   installMediaElementFake,
@@ -49,6 +50,8 @@ type RenderOverrides = Partial<{
   mpItemSoundbite: DTOItemSoundbite | null;
   setMPItemSoundbite: (soundbite: DTOItemSoundbite | null) => void;
   setMPIsPlaying: (playing: boolean) => void;
+  mpIsPlaying: boolean;
+  embedRoute: boolean;
 }>;
 
 const channel = (mediumId: number): DTOChannel =>
@@ -118,6 +121,52 @@ async function renderAV(overrides: RenderOverrides = {}): Promise<RenderResult> 
     sourceRowSelected: null,
   };
 
+  const orchestrator = (
+    <NonLiveMediaOrchestrator
+      mediaType="audio"
+      hidden
+      mpAddByRSS={null}
+      mpChannel={overrides.mpChannel ?? channel(MediumEnum.Podcast)}
+      mpClip={overrides.mpClip ?? null}
+      setMPClip={overrides.setMPClip ?? (() => undefined)}
+      mpItem={overrides.mpItem ?? item(10, 'item-1')}
+      mpItemLabeledEnclosures={[]}
+      mpEnclosureSelectedParams={enclosureParams}
+      mpItemChapter={overrides.mpItemChapter ?? null}
+      setMPItemChapter={overrides.setMPItemChapter ?? (() => undefined)}
+      mpItemChapters={overrides.mpItemChapters ?? null}
+      mpItemChapterShouldSeek={false}
+      setMPItemChapterShouldSeek={() => undefined}
+      mpItemSoundbite={overrides.mpItemSoundbite ?? null}
+      setMPItemSoundbite={overrides.setMPItemSoundbite ?? (() => undefined)}
+      mpIsPlaying={overrides.mpIsPlaying ?? false}
+      setMPIsPlaying={overrides.setMPIsPlaying ?? (() => undefined)}
+      mpPlaybackSpeed={1}
+      mpVolume={1}
+      mpIsMuted={false}
+      mpShouldPlay={false}
+      setMPShouldPlay={() => undefined}
+      setMPDuration={() => undefined}
+      mpCurrentTime={0}
+      setMPCurrentTime={() => undefined}
+      addByRSSSeekToTime={null}
+      setAddByRSSSeekToTime={() => undefined}
+      updateNowPlaying={() => undefined}
+      moveNowPlayingToHistory={() => Promise.resolve()}
+      queueResourcesLoadActive={() =>
+        Promise.resolve({
+          activeResource: null,
+          historyMoved: 0,
+          upcomingManualCount: 0,
+          upcomingResources: [],
+        })
+      }
+      queueResourcesAbridgedIndex={abridgedIndex}
+      clearNowPlaying={() => undefined}
+      pendingMusicQueueLoadIntentRef={{ current: null }}
+    />
+  );
+
   const renderResult = render(
     <AccountContext.Provider
       value={{
@@ -125,49 +174,11 @@ async function renderAV(overrides: RenderOverrides = {}): Promise<RenderResult> 
         setLoggedInAccount: () => undefined,
       }}
     >
-      <NonLiveMediaOrchestrator
-        mediaType="audio"
-        hidden
-        mpAddByRSS={null}
-        mpChannel={overrides.mpChannel ?? channel(MediumEnum.Podcast)}
-        mpClip={overrides.mpClip ?? null}
-        setMPClip={overrides.setMPClip ?? (() => undefined)}
-        mpItem={overrides.mpItem ?? item(10, 'item-1')}
-        mpItemLabeledEnclosures={[]}
-        mpEnclosureSelectedParams={enclosureParams}
-        mpItemChapter={overrides.mpItemChapter ?? null}
-        setMPItemChapter={overrides.setMPItemChapter ?? (() => undefined)}
-        mpItemChapters={overrides.mpItemChapters ?? null}
-        mpItemChapterShouldSeek={false}
-        setMPItemChapterShouldSeek={() => undefined}
-        mpItemSoundbite={overrides.mpItemSoundbite ?? null}
-        setMPItemSoundbite={overrides.setMPItemSoundbite ?? (() => undefined)}
-        mpIsPlaying={false}
-        setMPIsPlaying={overrides.setMPIsPlaying ?? (() => undefined)}
-        mpPlaybackSpeed={1}
-        mpVolume={1}
-        mpIsMuted={false}
-        mpShouldPlay={false}
-        setMPShouldPlay={() => undefined}
-        setMPDuration={() => undefined}
-        mpCurrentTime={0}
-        setMPCurrentTime={() => undefined}
-        addByRSSSeekToTime={null}
-        setAddByRSSSeekToTime={() => undefined}
-        updateNowPlaying={() => undefined}
-        moveNowPlayingToHistory={() => Promise.resolve()}
-        queueResourcesLoadActive={() =>
-          Promise.resolve({
-            activeResource: null,
-            historyMoved: 0,
-            upcomingManualCount: 0,
-            upcomingResources: [],
-          })
-        }
-        queueResourcesAbridgedIndex={abridgedIndex}
-        clearNowPlaying={() => undefined}
-        pendingMusicQueueLoadIntentRef={{ current: null }}
-      />
+      {overrides.embedRoute ? (
+        <EmbedPlaybackModeProvider>{orchestrator}</EmbedPlaybackModeProvider>
+      ) : (
+        orchestrator
+      )}
     </AccountContext.Provider>
   );
 
@@ -282,5 +293,28 @@ describe('NonLiveMediaOrchestrator — timeupdate (matrix § 6)', () => {
     });
 
     expect(setMPItemChapter).toHaveBeenLastCalledWith(null);
+  });
+
+  it('embed route clip: clears mpClip without rewinding to clip start', async () => {
+    const setMPClip = vi.fn<(clip: DTOClip | null) => void>();
+    const setMPIsPlaying = vi.fn<(playing: boolean) => void>();
+    const { fake } = await renderAV({
+      embedRoute: true,
+      mpIsPlaying: true,
+      mpClip: clip(5, 10),
+      setMPClip,
+      setMPIsPlaying,
+    });
+    setMPIsPlaying.mockClear();
+
+    await act(async () => {
+      fake.fireTimeUpdate(11);
+    });
+
+    expect(setMPClip).toHaveBeenCalledWith(null);
+    expect(setMPIsPlaying).toHaveBeenCalledWith(false);
+    expect(
+      fake.getEventLog().filter((entry) => entry.kind === 'set-currentTime' && entry.value === 5)
+    ).toHaveLength(0);
   });
 });

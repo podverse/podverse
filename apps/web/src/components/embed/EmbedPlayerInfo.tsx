@@ -17,6 +17,7 @@ import { formatEmbedDisplayTitle } from '../../lib/embed/formatEmbedDisplayTitle
 import { resolveEmbedActiveChapterForArtwork } from '../../lib/embed/resolveEmbedActiveChapterForArtwork';
 import { isEmbedItemCurrentlyLive } from '../../lib/embed/resolveEmbedLiveItemStatus';
 import { resolveEmbedPrimaryTitle } from '../../lib/embed/resolveEmbedPrimaryTitle';
+import { resolveEmbedPlaybackSegmentRefs } from '../../lib/embed/resolveEmbedPlaybackSegmentRefs';
 import { shouldEmbedShowChapterInfo } from '../../lib/embed/shouldEmbedShowChapterInfo';
 import { getBrandLogoSquareSrc } from '../../utils/brandLogo';
 import {
@@ -33,9 +34,16 @@ import styles from '../../styles/components/embed/EmbedPlayerInfo.module.scss';
 type EmbedPlayerInfoProps = {
   fallbackResource: EmbedSingleResourcePayload | null;
   headerTitle?: string | null;
+  preferItemTitle?: boolean;
+  variant?: 'stacked' | 'overlay';
 };
 
-export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerInfoProps) {
+export function EmbedPlayerInfo({
+  fallbackResource,
+  headerTitle,
+  preferItemTitle = false,
+  variant = 'stacked',
+}: EmbedPlayerInfoProps) {
   const pathname = usePathname();
   const config = useConfig();
   const brandLogoSquareSrc = getBrandLogoSquareSrc();
@@ -50,14 +58,14 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
   const hasPlayerContent = mpChannel !== null || mpAddByRSS !== null;
   const channel = mpChannel ?? fallbackResource?.channel ?? null;
   const item = mpItem ?? fallbackResource?.item ?? null;
-  const clip = mpClip ?? fallbackResource?.clip ?? null;
-  const itemSoundbite = mpItemSoundbite ?? fallbackResource?.itemSoundbite ?? null;
-  const showChapterInfo = shouldEmbedShowChapterInfo({
+  const { clip, itemSoundbite } = resolveEmbedPlaybackSegmentRefs({
+    hasPlayerContent,
     mpClip,
     mpItemSoundbite,
     fallbackClip: fallbackResource?.clip ?? null,
     fallbackItemSoundbite: fallbackResource?.itemSoundbite ?? null,
   });
+  const showChapterInfo = shouldEmbedShowChapterInfo({ clip, itemSoundbite });
 
   const infoResolution = hasPlayerContent
     ? getMediaPlayerInfoResolution({
@@ -77,7 +85,7 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
     channel?.title ??
     (headerTitle !== null && headerTitle !== undefined && headerTitle !== '' ? headerTitle : null);
 
-  const [preferItemTitle, setPreferItemTitle] = useState(false);
+  const [preferItemTitleState, setPreferItemTitle] = useState(false);
 
   useEffect(() => {
     setPreferItemTitle(false);
@@ -91,7 +99,7 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
         mpItemChapter: showChapterInfo ? mpItemChapter : null,
         mpItemChapters: showChapterInfo ? mpItemChapters : null,
         currentTimeSeconds: mpCurrentTime,
-        preferItemTitle,
+        preferItemTitle: preferItemTitle || preferItemTitleState,
       })
     : null;
 
@@ -121,7 +129,7 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
     () =>
       resolveEmbedActiveChapterForArtwork({
         showChapterInfo,
-        preferItemTitle,
+        preferItemTitle: preferItemTitle || preferItemTitleState,
         mpItemChapters: showChapterInfo ? mpItemChapters : null,
         mpCurrentTimeSeconds: mpCurrentTime,
         mpItemChapter: showChapterInfo ? mpItemChapter : null,
@@ -130,6 +138,7 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
     [
       showChapterInfo,
       preferItemTitle,
+      preferItemTitleState,
       mpItemChapters,
       mpCurrentTime,
       mpItemChapter,
@@ -172,7 +181,10 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
   }
 
   return (
-    <div className={styles.info} data-testid="embed-player-info">
+    <div
+      className={variant === 'overlay' ? `${styles.info} ${styles.infoOverlay}` : styles.info}
+      data-testid="embed-player-info"
+    >
       <div className={styles.imageWrapper} data-testid="embed-artwork">
         <ImageNonReact
           alt={tMediaPlayer('media_player_image')}
@@ -182,97 +194,91 @@ export function EmbedPlayerInfo({ fallbackResource, headerTitle }: EmbedPlayerIn
         />
       </div>
       <div className={styles.textSection}>
-        <div className={styles.titleAndLogoRow}>
-          {allowTitleToggle ? (
-            <button
-              className={styles.infoToggleButton}
-              data-testid="embed-title-toggle"
-              type="button"
-              onClick={() => setPreferItemTitle((current) => !current)}
-            >
-              {channelTitle !== null && channelTitle !== '' ? (
-                <span className={styles.channelTitle} data-testid="embed-channel-title">
-                  {channelTitle}
-                </span>
-              ) : null}
-              {itemTitle !== null && itemTitle !== '' ? (
-                <span className={styles.titleRow}>
-                  {isCurrentlyLive ? <EmbedLiveItemStatus /> : null}
-                  {showChapterTitleIcon ? (
-                    <FaListOl
-                      aria-hidden
-                      className={styles.chapterTitleIcon}
-                      data-testid="embed-chapter-title-icon"
-                    />
-                  ) : null}
-                  <span className={styles.title}>{itemTitle}</span>
-                </span>
-              ) : null}
-              <span
-                className={
-                  hasPublishDate
-                    ? `${styles.publishDateSlot} ${styles.publishDateBadge}`
-                    : styles.publishDateSlot
-                }
-                data-testid="embed-publish-date"
-              >
-                {hasPublishDate ? <ReadableDate date={publishDate} /> : null}
+        {allowTitleToggle && !preferItemTitle ? (
+          <button
+            className={styles.infoToggleButton}
+            data-testid="embed-title-toggle"
+            type="button"
+            onClick={() => setPreferItemTitle((current) => !current)}
+          >
+            {channelTitle !== null && channelTitle !== '' ? (
+              <span className={styles.channelTitle} data-testid="embed-channel-title">
+                {channelTitle}
               </span>
-            </button>
-          ) : (
-            <div className={styles.textStack}>
-              {channelTitle !== null && channelTitle !== '' ? (
-                <span className={styles.channelTitle} data-testid="embed-channel-title">
-                  {channelTitle}
-                </span>
-              ) : null}
-              {itemTitle !== null && itemTitle !== '' ? (
-                <span className={styles.titleRow}>
-                  {isCurrentlyLive ? <EmbedLiveItemStatus /> : null}
-                  {showChapterTitleIcon ? (
-                    <FaListOl
-                      aria-hidden
-                      className={styles.chapterTitleIcon}
-                      data-testid="embed-chapter-title-icon"
-                    />
-                  ) : null}
-                  <span className={styles.title} data-testid="embed-title">
-                    {itemTitle}
-                  </span>
-                </span>
-              ) : null}
-              <span
-                className={
-                  hasPublishDate
-                    ? `${styles.publishDateSlot} ${styles.publishDateBadge}`
-                    : styles.publishDateSlot
-                }
-                data-testid="embed-publish-date"
-              >
-                {hasPublishDate ? <ReadableDate date={publishDate} /> : null}
+            ) : null}
+            {itemTitle !== null && itemTitle !== '' ? (
+              <span className={styles.titleRow}>
+                {isCurrentlyLive ? <EmbedLiveItemStatus /> : null}
+                {showChapterTitleIcon ? (
+                  <FaListOl
+                    aria-hidden
+                    className={styles.chapterTitleIcon}
+                    data-testid="embed-chapter-title-icon"
+                  />
+                ) : null}
+                <span className={styles.title}>{itemTitle}</span>
               </span>
-            </div>
-          )}
-          {brandLogoSquareSrc !== null && mainSiteUrl !== null ? (
-            <a
-              aria-label={tFeatures('embed_brand_logo_link', {
-                brand_name: config.public.brand.name,
-              })}
-              className={styles.brandLogoLink}
-              data-testid="embed-brand-logo-link"
-              href={mainSiteUrl}
-              rel="noopener noreferrer"
-              target="_blank"
+            ) : null}
+            <span
+              className={
+                hasPublishDate
+                  ? `${styles.publishDateSlot} ${styles.publishDateBadge}`
+                  : styles.publishDateSlot
+              }
+              data-testid="embed-publish-date"
             >
-              <ImageNonReact
-                alt=""
-                candidates={[brandLogoSquareSrc]}
-                className={styles.brandLogo}
-              />
-            </a>
-          ) : null}
-        </div>
+              {hasPublishDate ? <ReadableDate date={publishDate} /> : null}
+            </span>
+          </button>
+        ) : (
+          <div className={styles.textStack}>
+            {channelTitle !== null && channelTitle !== '' ? (
+              <span className={styles.channelTitle} data-testid="embed-channel-title">
+                {channelTitle}
+              </span>
+            ) : null}
+            {itemTitle !== null && itemTitle !== '' ? (
+              <span className={styles.titleRow}>
+                {isCurrentlyLive ? <EmbedLiveItemStatus /> : null}
+                {showChapterTitleIcon ? (
+                  <FaListOl
+                    aria-hidden
+                    className={styles.chapterTitleIcon}
+                    data-testid="embed-chapter-title-icon"
+                  />
+                ) : null}
+                <span className={styles.title} data-testid="embed-title">
+                  {itemTitle}
+                </span>
+              </span>
+            ) : null}
+            <span
+              className={
+                hasPublishDate
+                  ? `${styles.publishDateSlot} ${styles.publishDateBadge}`
+                  : styles.publishDateSlot
+              }
+              data-testid="embed-publish-date"
+            >
+              {hasPublishDate ? <ReadableDate date={publishDate} /> : null}
+            </span>
+          </div>
+        )}
       </div>
+      {brandLogoSquareSrc !== null && mainSiteUrl !== null ? (
+        <a
+          aria-label={tFeatures('embed_brand_logo_link', {
+            brand_name: config.public.brand.name,
+          })}
+          className={styles.brandLogoLink}
+          data-testid="embed-brand-logo-link"
+          href={mainSiteUrl}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <ImageNonReact alt="" candidates={[brandLogoSquareSrc]} className={styles.brandLogo} />
+        </a>
+      ) : null}
     </div>
   );
 }

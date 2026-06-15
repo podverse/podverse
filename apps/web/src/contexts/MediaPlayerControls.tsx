@@ -25,6 +25,7 @@ export const noopMediaElementBridge: MediaElementBridge = Object.freeze({
   currentSourceKind: null,
   syncHttpFileUrlRestoreSeekAndPlay: () => {},
   applyItemEnclosureSurfaceChange: () => {},
+  readCurrentTimeSeconds: () => undefined,
 });
 
 const MediaPlayerControlsContext = createContext<MediaPlayerControlsContextValue | null>(null);

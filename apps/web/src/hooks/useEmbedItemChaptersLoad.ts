@@ -14,7 +14,7 @@ export function useEmbedItemChaptersLoad(): void {
   const { mpItem, mpClip, mpItemSoundbite, setMPItemChapter, setMPItemChapters } = useMediaPlayer();
 
   useEffect(() => {
-    if (!shouldEmbedShowChapterInfo({ mpClip, mpItemSoundbite })) {
+    if (!shouldEmbedShowChapterInfo({ clip: mpClip, itemSoundbite: mpItemSoundbite })) {
       setMPItemChapters(null);
       setMPItemChapter(null);
       return;

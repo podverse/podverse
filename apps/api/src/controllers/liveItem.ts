@@ -4,7 +4,7 @@ import { validateQueryObject } from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 
-import { LIVE_ITEM_STATUSES } from '@podverse/helpers';
+import { isLiveItemEndedAndStale, LIVE_ITEM_STATUSES } from '@podverse/helpers';
 import type { Item } from '@podverse/orm';
 import {
   ChannelService,
@@ -100,9 +100,14 @@ export class LiveItemController {
       return;
     }
 
-    const items = await LiveItemController.itemService.getManyByChannelWithLiveItem(channel, {
+    const allItems = await LiveItemController.itemService.getManyByChannelWithLiveItem(channel, {
       relations: itemGetManyRelations,
     });
+
+    // Hide livestreams that ended more than a day ago; live/pending are unaffected.
+    const items = allItems.filter(
+      (item) => !item.live_item || !isLiveItemEndedAndStale(item.live_item)
+    );
 
     const live: typeof items = [];
     const pending: typeof items = [];

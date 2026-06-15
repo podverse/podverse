@@ -1,0 +1,14 @@
+// Top info strip: a little taller than the bottom controls overlay. The art-size
+// info block is vertically centered, and the extra --spacing-lg of height yields 8px
+// of breathing room above and below it. Horizontal padding only (the video region is
+// full-bleed), so the info is inset while the video fills behind it. A mostly-opaque
+// surface plus a backdrop blur keeps the text readable while still hinting at the
+// video behind it.
+.overlayTop {
+  align-items: center;
+  backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--background-color-primary) 82%, transparent);
+  display: flex;
+  height: calc(var(--embed-player-art-size) + var(--spacing-lg));
+  padding-inline: var(--spacing-lg);
+}

@@ -2,6 +2,7 @@ import { MediumEnum } from '@podverse/helpers';
 
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useQueues } from '../../../contexts/Queue';
+import { AlternateEnclosureButton } from '../Buttons/AlternateEnclosureButton';
 import { ClipButton } from '../Buttons/ClipButton';
 import { PlaylistAddToButton } from '../Buttons/PlaylistAddToButton';
 import { RepeatButton } from '../Buttons/RepeatButton';
@@ -18,6 +19,7 @@ export const MediaPlayerButtonsModal = () => {
   return (
     <div className={styles.buttons}>
       <div className={styles.startSection}>
+        <AlternateEnclosureButton />
         <PlaylistAddToButton />
         {medium_id === MediumEnum.AV && !mpAddByRSS && <ClipButton />}
         <RepeatButton />

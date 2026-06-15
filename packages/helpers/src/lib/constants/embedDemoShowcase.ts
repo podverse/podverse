@@ -5,13 +5,19 @@ export const EMBED_DEMO_SHOWCASE_IDS = [
   'episode-video',
   'track-audio',
   'track-video',
-  'clip-audio',
-  'official-clip-audio',
   'chapter-audio',
+  'chapter-video',
+  'clip-audio',
+  'clip-video',
+  'official-clip-audio',
   'podcast-audio',
   'podcast-video',
   'album-audio',
   'album-video',
+  'episode-chapters-audio',
+  'episode-chapters-video',
+  'podcast-clips-audio',
+  'podcast-clips-video',
   'playlist-mixed',
 ] as const;
 
@@ -25,7 +31,8 @@ export type EmbedDemoShowcaseRouteKind =
   | 'official-clip'
   | 'podcast'
   | 'album'
-  | 'playlist';
+  | 'playlist'
+  | 'episode-chapters';
 
 export type EmbedDemoShowcaseSlotDef = {
   showcaseId: EmbedDemoShowcaseId;
@@ -37,13 +44,19 @@ export const EMBED_DEMO_SHOWCASE_SLOT_DEFS: EmbedDemoShowcaseSlotDef[] = [
   { showcaseId: 'episode-video', routeKind: 'episode' },
   { showcaseId: 'track-audio', routeKind: 'track' },
   { showcaseId: 'track-video', routeKind: 'track' },
-  { showcaseId: 'clip-audio', routeKind: 'clip' },
-  { showcaseId: 'official-clip-audio', routeKind: 'official-clip' },
   { showcaseId: 'chapter-audio', routeKind: 'chapter' },
+  { showcaseId: 'chapter-video', routeKind: 'chapter' },
+  { showcaseId: 'clip-audio', routeKind: 'clip' },
+  { showcaseId: 'clip-video', routeKind: 'clip' },
+  { showcaseId: 'official-clip-audio', routeKind: 'official-clip' },
   { showcaseId: 'podcast-audio', routeKind: 'podcast' },
   { showcaseId: 'podcast-video', routeKind: 'podcast' },
   { showcaseId: 'album-audio', routeKind: 'album' },
   { showcaseId: 'album-video', routeKind: 'album' },
+  { showcaseId: 'episode-chapters-audio', routeKind: 'episode-chapters' },
+  { showcaseId: 'episode-chapters-video', routeKind: 'episode-chapters' },
+  { showcaseId: 'podcast-clips-audio', routeKind: 'podcast' },
+  { showcaseId: 'podcast-clips-video', routeKind: 'podcast' },
   { showcaseId: 'playlist-mixed', routeKind: 'playlist' },
 ];
 
@@ -69,11 +82,25 @@ export function isEmbedDemoVideoShowcase(showcaseId: EmbedDemoShowcaseId): boole
   return showcaseId.endsWith('-video');
 }
 
+/** List route kinds load multiple rows and support a `play_id_text` default item. */
+export function isEmbedDemoListRouteKind(routeKind: EmbedDemoShowcaseRouteKind): boolean {
+  return (
+    routeKind === 'podcast' ||
+    routeKind === 'album' ||
+    routeKind === 'playlist' ||
+    routeKind === 'episode-chapters'
+  );
+}
+
 function shouldAppendEmbedDemoChapterMarkersQuery(
   routeKind: EmbedDemoShowcaseRouteKind,
   showcaseId: EmbedDemoShowcaseId
 ): boolean {
   if (isEmbedDemoVideoShowcase(showcaseId)) {
+    return false;
+  }
+
+  if (isEmbedDemoPodcastClipsShowcase(showcaseId)) {
     return false;
   }
 
@@ -99,10 +126,26 @@ function appendEmbedDemoPresentationQuery(
   return `${pathname}${separator}presentation=${presentation}`;
 }
 
+function appendEmbedDemoPlayIdTextQuery(pathname: string, playIdText: string): string {
+  const separator = pathname.includes('?') ? '&' : '?';
+  return `${pathname}${separator}play_id_text=${encodeURIComponent(playIdText)}`;
+}
+
+/** Podcast channel slots that render the channel's public clips list (`?type=clips`). */
+function isEmbedDemoPodcastClipsShowcase(showcaseId: EmbedDemoShowcaseId): boolean {
+  return showcaseId === 'podcast-clips-audio' || showcaseId === 'podcast-clips-video';
+}
+
+function appendEmbedDemoClipsListQuery(pathname: string): string {
+  const separator = pathname.includes('?') ? '&' : '?';
+  return `${pathname}${separator}type=clips`;
+}
+
 export function buildEmbedDemoHref(
   routeKind: EmbedDemoShowcaseRouteKind,
   resourceIdText: string,
-  showcaseId: EmbedDemoShowcaseId
+  showcaseId: EmbedDemoShowcaseId,
+  playResourceIdText?: string | null
 ): string {
   let pathname: string;
 
@@ -131,10 +174,17 @@ export function buildEmbedDemoHref(
     case 'playlist':
       pathname = `/embed/playlist/${resourceIdText}`;
       break;
+    case 'episode-chapters':
+      pathname = `/embed/episode-chapters/${resourceIdText}`;
+      break;
     default: {
       const exhaustive: never = routeKind;
       throw new Error(`Unsupported embed demo route kind: ${String(exhaustive)}`);
     }
+  }
+
+  if (isEmbedDemoPodcastClipsShowcase(showcaseId)) {
+    pathname = appendEmbedDemoClipsListQuery(pathname);
   }
 
   if (shouldAppendEmbedDemoChapterMarkersQuery(routeKind, showcaseId)) {
@@ -143,6 +193,11 @@ export function buildEmbedDemoHref(
 
   if (isEmbedDemoVideoShowcase(showcaseId)) {
     pathname = appendEmbedDemoPresentationQuery(pathname, 'video');
+  }
+
+  const trimmedPlayIdText = playResourceIdText?.trim() ?? '';
+  if (trimmedPlayIdText !== '' && isEmbedDemoListRouteKind(routeKind)) {
+    pathname = appendEmbedDemoPlayIdTextQuery(pathname, trimmedPlayIdText);
   }
 
   return pathname;

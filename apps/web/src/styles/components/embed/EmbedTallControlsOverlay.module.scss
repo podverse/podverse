@@ -1,0 +1,27 @@
+// Bottom controls strip. Intentionally a fixed 60px — distinct from the art size and
+// shorter than the top info strip. Horizontal padding only (the video region is
+// full-bleed), so the controls are inset while the video fills behind them, and the
+// controls are vertically centered. A mostly-opaque surface plus a backdrop blur keeps
+// the controls readable while still hinting at the video behind them. The play button
+// is slightly smaller here than in the audio embed and main player.
+.overlayBottom {
+  --media-player-play-button-size: 2.75rem;
+
+  align-items: center;
+  backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--background-color-primary) 82%, transparent);
+  box-sizing: border-box;
+  display: flex;
+  height: var(--embed-controls-overlay-height);
+  justify-content: center;
+  padding-inline: var(--spacing-lg);
+}
+
+.controlsRow {
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  gap: var(--spacing-lg);
+  min-width: 0;
+  width: 100%;
+}

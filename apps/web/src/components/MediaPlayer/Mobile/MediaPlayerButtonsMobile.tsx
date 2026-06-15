@@ -3,6 +3,7 @@
 import { MediumEnum } from '@podverse/helpers';
 
 import { useQueues } from '../../../contexts/Queue';
+import { AlternateEnclosureButton } from '../Buttons/AlternateEnclosureButton';
 import { JumpBackButtonMobile } from '../Buttons/JumpBackButtonMobile';
 import { JumpForwardButtonMobile } from '../Buttons/JumpForwardButtonMobile';
 import { PlayButtonMobile } from '../Buttons/PlayButtonMobile';
@@ -18,6 +19,7 @@ export const MediaPlayerButtonsMobile = () => {
 
   return (
     <div className={styles.buttons}>
+      <AlternateEnclosureButton />
       <SettingsButton />
       {medium_id === MediumEnum.AV && (
         <>

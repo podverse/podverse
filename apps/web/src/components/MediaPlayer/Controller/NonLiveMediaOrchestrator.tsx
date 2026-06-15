@@ -26,6 +26,7 @@ import type { MoveNowPlayingToHistoryCallbackParams } from '../../../hooks/useQu
 import type { QueueResourcesLoadActiveResult } from '../../../hooks/useQueueResourcesLoadActive';
 import type { UpdateNowPlayingParams } from '../../../hooks/useQueueResourceUpdateNowPlaying';
 import { notifyEmbedListItemEnded } from '../../../lib/embed/embedListPlaybackAdvance';
+import { clampNearEndSeconds } from '../../../lib/playback/clampNearEndSeconds';
 import {
   resolveEmbedPlaybackPauseAtSeconds,
   resolveEmbedPlaybackResetSeconds,
@@ -96,7 +97,8 @@ export interface NonLiveMediaOrchestratorProps {
 
 export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> = (props) => {
   const { loggedInAccount } = useAccount();
-  const { isEmbedRoute } = useEmbedPlaybackGuardrails();
+  const { embedPlayerSize, isEmbedRoute } = useEmbedPlaybackGuardrails();
+  const allowVideoOnAudioOrchestrator = embedPlayerSize === 'short';
   const { activePlaybackTarget } = useMediaPlayer();
   const loggedInAccountRef = useRef(loggedInAccount);
   useEffect(() => {
@@ -253,7 +255,15 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
       const stagedDecision = pendingPlaybackDecisionRef.current;
 
       if (stagedDecision !== null && stagedDecision !== undefined) {
-        bridgeRef.current?.seek(stagedDecision.initialSeekSeconds);
+        const initialSeekSeconds =
+          stagedDecision.reason === 'enclosure-switch-resume'
+            ? clampNearEndSeconds({
+                currentSeconds: stagedDecision.initialSeekSeconds,
+                durationSeconds: newDuration,
+              })
+            : stagedDecision.initialSeekSeconds;
+
+        bridgeRef.current?.seek(initialSeekSeconds);
         if (typeof stagedDecision.pauseAtSeconds === 'number') {
           bridgeRef.current?.pauseAt(stagedDecision.pauseAtSeconds);
         } else {
@@ -261,13 +271,14 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
         }
 
         setMPDuration(newDuration);
+        setMPCurrentTime(initialSeekSeconds);
         updateNowPlaying({
           mpChannel: mpChannelRef.current,
           mpClip: mpClipRef.current,
           mpItem: mpItemRef.current,
           mpItemSoundbite: mpItemSoundbiteRef.current,
           mpDuration: newDuration,
-          mpCurrentTime: stagedDecision.initialSeekSeconds,
+          mpCurrentTime: initialSeekSeconds,
         });
 
         setPendingPlaybackDecision?.(null);
@@ -446,12 +457,6 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
             : mpClipRef.current.end_time;
         const endTimeNumAdjusted = endTimeNum + 1;
         if (!isNaN(endTimeNumAdjusted) && newCurrentTime >= endTimeNumAdjusted) {
-          if (isEmbedRouteRef.current) {
-            if (mpIsPlayingRef.current) {
-              finishEmbedPlayback();
-            }
-            return;
-          }
           setMPClip(null);
           setMPIsPlaying(false);
           bridgeRef.current?.pauseAndDisarmBoundary();
@@ -470,12 +475,6 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
         const endTimeNum = startNum + durationNum;
         const endTimeNumAdjusted = endTimeNum + 1;
         if (!isNaN(endTimeNumAdjusted) && newCurrentTime >= endTimeNumAdjusted) {
-          if (isEmbedRouteRef.current) {
-            if (mpIsPlayingRef.current) {
-              finishEmbedPlayback();
-            }
-            return;
-          }
           setMPItemSoundbite(null);
           setMPIsPlaying(false);
           bridgeRef.current?.pauseAndDisarmBoundary();
@@ -589,7 +588,9 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     const mediumId = mpAddByRSS.resourceData.medium_id;
     const addByRSSMediaType =
       addByRSSSelectedMediaType ?? (mediumId === MediumEnum.Video ? 'video' : 'audio');
-    if (mediaType === 'audio' && addByRSSMediaType === 'video') return;
+    if (mediaType === 'audio' && addByRSSMediaType === 'video' && !allowVideoOnAudioOrchestrator) {
+      return;
+    }
     if (mediaType === 'video' && addByRSSMediaType !== 'video') return;
 
     let url: string;
@@ -608,16 +609,29 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
       if (typeof enclosureUrl !== 'string' || enclosureUrl.trim() === '') return;
       url = enclosureUrl.trim();
     }
+    const enclosureSwitchDecision =
+      pendingPlaybackDecisionRef.current?.reason === 'enclosure-switch-resume'
+        ? pendingPlaybackDecisionRef.current
+        : null;
     const persistedSeekToApply =
-      addByRSSSeekToTime !== null ? (addByRSSSeekToTime >= 0 ? addByRSSSeekToTime : 0) : null;
+      addByRSSSeekToTime !== null
+        ? addByRSSSeekToTime >= 0
+          ? addByRSSSeekToTime
+          : 0
+        : enclosureSwitchDecision !== null
+          ? enclosureSwitchDecision.initialSeekSeconds
+          : null;
 
     bridge.syncHttpFileUrlRestoreSeekAndPlay({
       url,
       persistedSeekToApply,
       onRestoreSeekApplied: () => {
         setAddByRSSSeekToTime(null);
+        if (enclosureSwitchDecision !== null) {
+          setPendingPlaybackDecision?.(null);
+        }
       },
-      shouldPlay: mpShouldPlay,
+      shouldPlay: enclosureSwitchDecision !== null ? mpIsPlayingRef.current : mpShouldPlay,
       onPlayedShouldPlayClear: () => {
         setMPShouldPlay(false);
       },
@@ -651,8 +665,11 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     const isLiveItem = checkIsLiveItem(mpItemRef.current);
 
     bridge.applyItemEnclosureSurfaceChange({
-      treatAsActiveNonLiveFile: (mediaType === 'audio' ? isAudioFile : isVideoFile) && !isLiveItem,
-      shouldPlayWhenReady: mpShouldPlayRef.current === true,
+      treatAsActiveNonLiveFile:
+        (mediaType === 'audio'
+          ? isAudioFile || (allowVideoOnAudioOrchestrator && isVideoFile)
+          : isVideoFile) && !isLiveItem,
+      shouldPlayWhenReady: mpIsPlayingRef.current === true,
       onPlayedShouldPlayClear: () => {
         setMPShouldPlay(false);
       },

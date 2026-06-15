@@ -68,6 +68,21 @@ describe('useRouteNavigationLoading', () => {
     anchor.remove();
   });
 
+  it('ignores hash-only history changes from in-page scroll links', async () => {
+    const { result } = renderHook(() => useRouteNavigationLoading());
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    act(() => {
+      window.history.replaceState({}, '', '/podcasts#section-two');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+
+    expect(result.current).toBe(false);
+  });
+
   it('clears loading when the route key changes', async () => {
     const { result, rerender } = renderHook(() => useRouteNavigationLoading());
 

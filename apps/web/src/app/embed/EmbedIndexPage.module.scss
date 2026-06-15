@@ -22,18 +22,18 @@
 }
 
 .lead {
-  color: var(--color-text-primary);
+  color: var(--text-color-primary);
   margin: 0;
 }
 
 .intro {
-  color: var(--color-text-secondary);
+  color: var(--text-color-secondary);
   margin: 0;
 }
 
 .shareIconInline {
   align-items: center;
-  color: var(--color-text-secondary);
+  color: var(--text-color-secondary);
   display: inline-flex;
   font-size: 0.95em;
   margin: 0 0.15em;
@@ -79,7 +79,7 @@
 }
 
 .note {
-  color: var(--color-text-secondary);
+  color: var(--text-color-secondary);
   font-size: var(--font-size-sm);
   overflow: hidden;
   text-overflow: ellipsis;

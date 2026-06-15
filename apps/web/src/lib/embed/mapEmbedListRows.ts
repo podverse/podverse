@@ -2,10 +2,12 @@ import type {
   DTOChannel,
   DTOClip,
   DTOItem,
+  DTOItemChapter,
   DTOItemSoundbite,
   DTOPlaylistResource,
 } from '@podverse/helpers';
 
+import type { EmbedEpisodeChaptersSort } from './embedTypes';
 import type { EmbedListGroup, EmbedListRow } from './embedListTypes';
 import { formatEmbedDisplayTitle } from './formatEmbedDisplayTitle';
 import { resolveEmbedMediaType } from './resolveEmbedMediaType';
@@ -72,6 +74,68 @@ function buildSoundbiteRow(
     listLabel: formatEmbedDisplayTitle(resource),
     mediaType: resolveEmbedMediaType(channel),
   };
+}
+
+function buildItemChapterRow(
+  channel: DTOChannel,
+  item: DTOItem,
+  itemChapter: DTOItemChapter,
+  rowKey: string
+): EmbedListRow {
+  const resource = {
+    channel,
+    item,
+    clip: null,
+    itemChapter,
+    itemSoundbite: null,
+  };
+
+  const chapterTitle = itemChapter.title?.trim() ?? '';
+
+  return {
+    ...resource,
+    rowKey,
+    playIdText: itemChapter.id_text,
+    listLabel: chapterTitle !== '' ? chapterTitle : formatEmbedDisplayTitle(resource),
+    mediaType: resolveEmbedMediaType(channel),
+  };
+}
+
+/**
+ * The chapters endpoint returns rows ordered by `start_time ASC`; honor the
+ * client-side `sort` param by reversing for descending. Sort explicitly so the
+ * ordering is deterministic regardless of upstream ordering.
+ */
+export function sortEmbedItemChapters(
+  chapters: DTOItemChapter[],
+  sort: EmbedEpisodeChaptersSort
+): DTOItemChapter[] {
+  const ordered = [...chapters].sort((a, b) => Number(a.start_time) - Number(b.start_time));
+  return sort === 'desc' ? ordered.reverse() : ordered;
+}
+
+/**
+ * Unlike podcast/album/playlist list rows (each a distinct enclosure), every
+ * chapter row shares the parent episode enclosure and plays by seeking to the
+ * chapter `start_time` (handled by the shared single-resource playback path via
+ * `itemChapter`).
+ */
+export function mapItemChaptersToEmbedListRows(
+  channel: DTOChannel,
+  item: DTOItem,
+  itemChapters: DTOItemChapter[]
+): EmbedListGroup[] {
+  const rows = itemChapters.map((itemChapter) =>
+    buildItemChapterRow(channel, item, itemChapter, `chapter:${itemChapter.id_text}`)
+  );
+
+  return [
+    {
+      groupKey: 'chapters',
+      title: null,
+      rows,
+    },
+  ];
 }
 
 export function mapChannelItemsToEmbedListRows(

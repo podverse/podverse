@@ -1,22 +1,29 @@
 import type { EmbedBuilderPresentation, EmbedBuilderType } from './embedBuilderTypes';
+import type { EmbedPlayerSizeQuery, EmbedPresentationQuery } from './embedTypes';
+
+export function resolveDefaultMediaPreferenceForPlayerSize(
+  playerSize: EmbedPlayerSizeQuery
+): EmbedPresentationQuery {
+  return playerSize === 'tall' ? 'video' : 'audio';
+}
 
 export function resolveEmbedBuilderPresentation(type: EmbedBuilderType): EmbedBuilderPresentation {
   switch (type) {
-    case 'audio':
-      return { layout: 'single', presentation: 'audio' };
-    case 'video':
-      return { layout: 'single', presentation: 'video' };
-    case 'audio-list':
-      return { layout: 'list', presentation: 'audio' };
-    case 'video-list':
-      return { layout: 'list', presentation: 'video' };
+    case 'short':
+      return { layout: 'single', playerSize: 'short', mediaPreference: 'audio' };
+    case 'tall':
+      return { layout: 'single', playerSize: 'tall', mediaPreference: 'video' };
+    case 'short-list':
+      return { layout: 'list', playerSize: 'short', mediaPreference: 'audio' };
+    case 'tall-list':
+      return { layout: 'list', playerSize: 'tall', mediaPreference: 'video' };
   }
 }
 
 export function isEmbedBuilderListType(type: EmbedBuilderType): boolean {
-  return type === 'audio-list' || type === 'video-list';
+  return type === 'short-list' || type === 'tall-list';
 }
 
-export function defaultAutoplayForEmbedBuilderType(type: EmbedBuilderType): boolean {
-  return isEmbedBuilderListType(type);
+export function isEmbedBuilderTallType(type: EmbedBuilderType): boolean {
+  return type === 'tall' || type === 'tall-list';
 }

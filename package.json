@@ -125,6 +125,7 @@
     "management:superuser:update": "bash scripts/management/update-superuser.sh",
     "management:superuser:create:k8s": "bash scripts/management/run-superuser-k8s-job.sh create",
     "management:superuser:update:k8s": "bash scripts/management/run-superuser-k8s-job.sh update",
+    "seed:embed-demo-showcase-feeds:k8s": "bash scripts/k8s/run-seed-embed-demo-showcase-feeds-job.sh",
     "i18n:compile": "npm run i18n-compile -w @podverse/web && npm run i18n-compile -w @podverse/management-web",
     "i18n:translate": "npm run i18n-llm-translations -w @podverse/web && npm run i18n-llm-translations -w @podverse/management-web",
     "i18n:all": "npm run i18n:translate && npm run i18n:compile",

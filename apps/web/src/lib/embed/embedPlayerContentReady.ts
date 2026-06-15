@@ -1,6 +1,5 @@
 import type { DTOItem } from '@podverse/helpers';
 
-import type { EmbedMediaType } from './embedTypes';
 import type { EmbedSingleResourcePayload } from './fetchEmbedSingleResource';
 import { formatEmbedDisplayTitle } from './formatEmbedDisplayTitle';
 
@@ -71,20 +70,30 @@ export function embedFallbackHasDisplayContent(
 export function isEmbedPlayerContentReady(input: {
   fallbackResource: EmbedSingleResourcePayload | null;
   headerTitle?: string | null;
-  mediaType: EmbedMediaType;
   mpChannel: EmbedSingleResourcePayload['channel'] | null;
   mpItem: DTOItem | null;
+  mpClip: EmbedSingleResourcePayload['clip'];
+  mpItemChapter: EmbedSingleResourcePayload['itemChapter'];
+  mpItemSoundbite: EmbedSingleResourcePayload['itemSoundbite'];
 }): boolean {
+  const targetIdentity = getEmbedResourceIdentity(input.fallbackResource);
+  const loadedIdentity = getLoadedEmbedResourceIdentity({
+    mpItem: input.mpItem,
+    mpClip: input.mpClip,
+    mpItemChapter: input.mpItemChapter,
+    mpItemSoundbite: input.mpItemSoundbite,
+  });
+
+  if (targetIdentity !== null && loadedIdentity === targetIdentity) {
+    return true;
+  }
+
   if (embedFallbackHasDisplayContent(input.fallbackResource)) {
     return true;
   }
 
   const headerTitle = input.headerTitle ?? '';
   if (headerTitle !== '') {
-    return true;
-  }
-
-  if (input.mediaType === 'video') {
     return true;
   }
 

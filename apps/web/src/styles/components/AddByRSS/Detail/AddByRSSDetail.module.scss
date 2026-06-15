@@ -1,5 +1,5 @@
 .loading {
-  color: var(--color-text-secondary);
+  color: var(--text-color-secondary);
   margin: 12px 0;
 }
 
@@ -11,7 +11,7 @@
 }
 
 .feedImage {
-  border-radius: var(--border-radius-md);
+  border-radius: var(--border-radius-artwork);
   object-fit: cover;
 }
 
@@ -27,17 +27,17 @@
 }
 
 .feedUrl {
-  color: var(--color-text-secondary);
+  color: var(--text-color-secondary);
   word-break: break-word;
 }
 
 .feedResource {
-  color: var(--color-text-secondary);
+  color: var(--text-color-secondary);
   font-size: 0.875rem;
 }
 
 .feedStatus {
-  color: var(--color-text-secondary);
+  color: var(--text-color-secondary);
   font-size: 0.875rem;
 }
 
@@ -74,9 +74,9 @@
 
 .itemDate {
   font-size: 0.875rem;
-  color: var(--color-text-secondary);
+  color: var(--text-color-secondary);
 }
 
 .emptyItems {
-  color: var(--color-text-secondary);
+  color: var(--text-color-secondary);
 }

@@ -1,10 +1,13 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { FaAnglesUp } from 'react-icons/fa6';
 
 import { buildEmbedDemoAnchorId } from '../../lib/embed/buildEmbedDemoTocItems';
 import { EMBED_IFRAME_ALLOW } from '../../lib/embed/buildEmbedIframeCode';
-import { resolveEmbedDemoPreviewPresentationStyle } from '../../lib/embed/embedDemoShowcaseCatalog';
+import { EMBED_DEMO_TOP_ANCHOR_ID } from '../../lib/embed/embedDemoAnchors';
+import { resolveEmbedDemoPreviewPlayerSize } from '../../lib/embed/embedDemoShowcaseCatalog';
 import type { EmbedRouteKind } from '../../lib/embed/embedTypes';
 import { getEmbedLayoutType } from '../../lib/embed/getEmbedLayoutType';
 import { getEmbedPreviewIframeHeightClassKey } from '../../lib/embed/getEmbedPreviewIframeHeightClassKey';
@@ -26,12 +29,13 @@ export function EmbedDemoPreviewIframe({
   iframeTitle,
   routeKind,
 }: EmbedDemoPreviewIframeProps) {
+  const t = useTranslations('features');
   const frameRef = useRef<HTMLDivElement>(null);
   const [iframeSrc, setIframeSrc] = useState<string | null>(null);
-  const presentationStyle = resolveEmbedDemoPreviewPresentationStyle(showcaseId);
+  const playerSize = resolveEmbedDemoPreviewPlayerSize(showcaseId);
   const iframeHeightClassKey = getEmbedPreviewIframeHeightClassKey(
     getEmbedLayoutType(routeKind),
-    presentationStyle
+    playerSize
   );
 
   useLayoutEffect(() => {
@@ -76,9 +80,20 @@ export function EmbedDemoPreviewIframe({
 
   return (
     <article className={styles.preview} data-testid={`embed-demo-preview-${showcaseId}`}>
-      <h3 className={styles.title} id={buildEmbedDemoAnchorId(showcaseId)}>
-        {label}
-      </h3>
+      <div className={styles.titleRow}>
+        <h3 className={styles.title} id={buildEmbedDemoAnchorId(showcaseId)}>
+          {label}
+        </h3>
+        <a
+          aria-label={t('embed_demo_back_to_top')}
+          className={styles.backToTop}
+          data-testid={`embed-demo-back-to-top-${showcaseId}`}
+          href={`#${EMBED_DEMO_TOP_ANCHOR_ID}`}
+          title={t('embed_demo_back_to_top')}
+        >
+          <FaAnglesUp aria-hidden />
+        </a>
+      </div>
       <div
         className={`${styles.frame} ${styles[iframeHeightClassKey]}`}
         data-testid={`embed-demo-frame-${showcaseId}`}

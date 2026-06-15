@@ -52,6 +52,7 @@ function Probe({ bump, enabled, resource, shouldPlay, startSeconds }: ProbeProps
     shouldPlay,
     startSeconds,
     enabled,
+    embedMediaType: 'audio',
   });
 
   return <div data-bump={bump} />;

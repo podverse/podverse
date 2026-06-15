@@ -70,10 +70,14 @@ export { getEmbedPreviewIframeHeightClassKey } from './getEmbedPreviewIframeHeig
 export type { EmbedPreviewIframeHeightClassKey } from './getEmbedPreviewIframeHeightClassKey';
 export { isEmbedPathname } from './isEmbedPathname';
 export { normalizeEmbedSearchParams } from './normalizeEmbedSearchParams';
-export { parseEmbedAutoplay } from './parseEmbedAutoplay';
 export {
   parseEmbedAlbumListQueryParams,
   parseEmbedPlaylistListQueryParams,
   parseEmbedPodcastListQueryParams,
   parseEmbedSingleQueryParams,
 } from './parseEmbedQueryParams';
+export { resolveEmbedPlaybackSegmentRefs } from './resolveEmbedPlaybackSegmentRefs';
+export type {
+  EmbedPlaybackSegmentRefs,
+  ResolveEmbedPlaybackSegmentRefsParams,
+} from './resolveEmbedPlaybackSegmentRefs';
