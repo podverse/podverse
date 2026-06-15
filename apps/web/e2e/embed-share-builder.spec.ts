@@ -237,9 +237,7 @@ test.describe('Embed share builder handoff', () => {
 
     await expectBuilderEmbedPaths(
       page,
-      new RegExp(
-        `/embed/episode-chapters/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}\\?.*sort=desc`
-      )
+      new RegExp(`/embed/episode-chapters/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}\\?.*sort=desc`)
     );
   });
 

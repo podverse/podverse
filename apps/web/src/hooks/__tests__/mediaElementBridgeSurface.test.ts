@@ -11,11 +11,14 @@ describe('applyItemEnclosureSurfaceChangeFromRef', () => {
       removeAttribute: vi.fn(),
     } as unknown as HTMLMediaElement;
 
-    applyItemEnclosureSurfaceChangeFromRef({ current: media }, {
-      treatAsActiveNonLiveFile: true,
-      shouldPlayWhenReady: false,
-      onPlayedShouldPlayClear: () => undefined,
-    });
+    applyItemEnclosureSurfaceChangeFromRef(
+      { current: media },
+      {
+        treatAsActiveNonLiveFile: true,
+        shouldPlayWhenReady: false,
+        onPlayedShouldPlayClear: () => undefined,
+      }
+    );
 
     expect(media.currentTime).toBe(83);
     expect(media.load).toHaveBeenCalledTimes(1);

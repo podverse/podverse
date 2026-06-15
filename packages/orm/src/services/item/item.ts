@@ -7,11 +7,11 @@ import type { LiveItem } from '@orm/entities/liveItem/liveItem.js';
 import { getLiveItemStatusEnumValue } from '@orm/entities/liveItem/liveItemStatus.js';
 import type { StatsAggregatedItem } from '@orm/entities/stats/statsAggregatedItem.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
-import { buildEndedLiveItemTimeVariants } from '@orm/lib/liveItemWhere.js';
 import {
   findOptionsRelationsFromPaths,
   mergeFindOptionsRelations,
 } from '@orm/lib/findOptionsRelationsFromPaths.js';
+import { buildEndedLiveItemTimeVariants } from '@orm/lib/liveItemWhere.js';
 import type { FindManyOptions, FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
 import { Brackets, Equal, In, IsNull, LessThan, MoreThan, Not } from 'typeorm';
 

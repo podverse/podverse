@@ -19,7 +19,10 @@ import {
   parseEmbedPlaylistListQueryParams,
   parseEmbedPodcastListQueryParams,
 } from '../../lib/embed/parseEmbedQueryParams';
-import { resolveEmbedMediaType, resolveEmbedPlayerSizeFromChannel } from '../../lib/embed/resolveEmbedMediaType';
+import {
+  resolveEmbedMediaType,
+  resolveEmbedPlayerSizeFromChannel,
+} from '../../lib/embed/resolveEmbedMediaType';
 
 type EmbedTypedRoutePageProps = {
   routeKind: EmbedRouteKind;

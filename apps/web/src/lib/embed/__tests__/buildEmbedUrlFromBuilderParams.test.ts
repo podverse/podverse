@@ -68,9 +68,7 @@ describe('buildEmbedUrlPathFromBuilderParams', () => {
         playlist: 'playlist-1',
         playlistItem: 'episode-item',
       })
-    ).toBe(
-      '/embed/playlist/playlist-1?presentation=audio&player=short&play_id_text=episode-item'
-    );
+    ).toBe('/embed/playlist/playlist-1?presentation=audio&player=short&play_id_text=episode-item');
   });
 
   it('includes ar query param for non-default aspect ratio on tall player', () => {

@@ -26,10 +26,7 @@ function EmbedListRowMeta({ row }: { row: EmbedListRow }) {
       <>
         {hasPublishDate ? <ReadableDate date={publishDate} /> : null}
         {hasPublishDate ? ' • ' : null}
-        <ReadableTimeRange
-          startTime={String(row.itemChapter.start_time)}
-          endTime={null}
-        />
+        <ReadableTimeRange startTime={String(row.itemChapter.start_time)} endTime={null} />
       </>
     );
   }
@@ -39,10 +36,7 @@ function EmbedListRowMeta({ row }: { row: EmbedListRow }) {
       <>
         {hasPublishDate ? <ReadableDate date={publishDate} /> : null}
         {hasPublishDate ? ' • ' : null}
-        <ReadableTimeRange
-          startTime={String(row.clip.start_time)}
-          endTime={row.clip.end_time}
-        />
+        <ReadableTimeRange startTime={String(row.clip.start_time)} endTime={row.clip.end_time} />
       </>
     );
   }

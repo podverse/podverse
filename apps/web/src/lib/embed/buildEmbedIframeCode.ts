@@ -16,7 +16,12 @@ import {
   getEmbedListShortIframeHeightPx,
   getEmbedListTallIframeHeightPx,
 } from './embedLayoutDimensions';
-import type { EmbedLayoutType, EmbedMediaType, EmbedPlayerSizeQuery, EmbedRouteKind } from './embedTypes';
+import type {
+  EmbedLayoutType,
+  EmbedMediaType,
+  EmbedPlayerSizeQuery,
+  EmbedRouteKind,
+} from './embedTypes';
 import { getEmbedLayoutType } from './getEmbedLayoutType';
 
 /** Permissions Policy `allow` value for Podverse embed iframes (autoplay only). */

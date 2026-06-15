@@ -74,7 +74,9 @@ test.describe('Embed tall player', () => {
   test('When an album list embed uses tall player for audio tracks, center artwork is visible.', async ({
     page,
   }) => {
-    await page.goto(`/embed/album/${EMBED_FIXTURE_MUSIC_ALBUM_ID_TEXT}?presentation=video&player=tall`);
+    await page.goto(
+      `/embed/album/${EMBED_FIXTURE_MUSIC_ALBUM_ID_TEXT}?presentation=video&player=tall`
+    );
     await expectEmbedListShell(page);
     await expectEmbedTallCenterArt(page);
     await expect(page.getByTestId('embed-tall-video-element')).toHaveCount(0);
@@ -83,7 +85,9 @@ test.describe('Embed tall player', () => {
   test('When switching rows in a tall list embed, the mute toggle stays unmuted.', async ({
     page,
   }) => {
-    await page.goto(`/embed/podcast/${E2E_EMBED_VIDEO_CHANNEL_ID_TEXT}?presentation=video&player=tall`);
+    await page.goto(
+      `/embed/podcast/${E2E_EMBED_VIDEO_CHANNEL_ID_TEXT}?presentation=video&player=tall`
+    );
     await expectEmbedListShell(page);
 
     await page.getByTestId('embed-list-row-active').getByRole('button').last().click();
@@ -113,9 +117,10 @@ test.describe('Embed tall player', () => {
 
     await muteToggle.hover();
     await expect(page.getByTestId('embed-tall-volume-popover')).toBeVisible();
-    await expect(
-      page.getByTestId('embed-tall-volume-popover').getByRole('slider')
-    ).toHaveAttribute('aria-orientation', 'vertical');
+    await expect(page.getByTestId('embed-tall-volume-popover').getByRole('slider')).toHaveAttribute(
+      'aria-orientation',
+      'vertical'
+    );
   });
 
   test('When comparing chapter hover behavior, tall presentation shows a chapter tooltip while short presentation does not.', async ({

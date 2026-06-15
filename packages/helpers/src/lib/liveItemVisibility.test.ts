@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import { LiveItemStatusEnum } from '../dtos/liveItem/liveItem.js';
 import {
-  LIVE_ITEM_ENDED_VISIBILITY_MAX_AGE_MS,
   getEndedLiveItemVisibilityCutoff,
   isLiveItemEndedAndStale,
+  LIVE_ITEM_ENDED_VISIBILITY_MAX_AGE_MS,
 } from './liveItemVisibility.js';
 
 const NOW = new Date('2026-06-13T12:00:00.000Z');

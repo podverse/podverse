@@ -48,11 +48,7 @@ describe('mapItemChaptersToEmbedListRows', () => {
     expect(groups[0].groupKey).toBe('chapters');
 
     const rows = groups[0].rows;
-    expect(rows.map((row) => row.rowKey)).toEqual([
-      'chapter:ch-1',
-      'chapter:ch-2',
-      'chapter:ch-3',
-    ]);
+    expect(rows.map((row) => row.rowKey)).toEqual(['chapter:ch-1', 'chapter:ch-2', 'chapter:ch-3']);
 
     const firstRow = rows[0];
     expect(firstRow.playIdText).toBe('ch-1');
@@ -70,7 +66,9 @@ describe('mapItemChaptersToEmbedListRows', () => {
   });
 
   it('falls back to a display title when a chapter title is blank', () => {
-    const blankTitleChapters = [{ id_text: 'ch-x', title: '   ', start_time: 0 }] as DTOItemChapter[];
+    const blankTitleChapters = [
+      { id_text: 'ch-x', title: '   ', start_time: 0 },
+    ] as DTOItemChapter[];
     const groups = mapItemChaptersToEmbedListRows(channel, item, blankTitleChapters);
     expect(groups[0].rows[0].listLabel).not.toBe('');
   });

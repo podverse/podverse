@@ -1,11 +1,7 @@
 import { getTotalPages } from '@podverse/helpers';
 
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
-import {
-  getChannelForSeoPage,
-  getItemForSeoPage,
-  getPlaylistForSeoPage,
-} from '../seo/fetchers';
+import { getChannelForSeoPage, getItemForSeoPage, getPlaylistForSeoPage } from '../seo/fetchers';
 import type { EmbedListData, EmbedListFetchResult, EmbedListGroup } from './embedListTypes';
 import type {
   EmbedAlbumListQueryParams,

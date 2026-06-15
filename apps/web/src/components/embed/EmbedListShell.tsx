@@ -303,7 +303,9 @@ export function EmbedListShell({
               data-testid="embed-list-load-more"
               ref={loadMoreSentinelRef}
             >
-              {isLoadingMore ? <LoadingSpinner ariaLabel="Loading more items" size="small" /> : null}
+              {isLoadingMore ? (
+                <LoadingSpinner ariaLabel="Loading more items" size="small" />
+              ) : null}
             </div>
           ) : null}
         </div>

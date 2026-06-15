@@ -7,8 +7,8 @@ import type {
   DTOPlaylistResource,
 } from '@podverse/helpers';
 
-import type { EmbedEpisodeChaptersSort } from './embedTypes';
 import type { EmbedListGroup, EmbedListRow } from './embedListTypes';
+import type { EmbedEpisodeChaptersSort } from './embedTypes';
 import { formatEmbedDisplayTitle } from './formatEmbedDisplayTitle';
 import { resolveEmbedMediaType } from './resolveEmbedMediaType';
 

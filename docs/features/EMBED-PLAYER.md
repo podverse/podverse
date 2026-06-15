@@ -56,30 +56,30 @@ URL generation for Share → Embed Builder and copy output lives in
 
 Shared on single and list routes:
 
-| Param             | Default | Normalization                                                                  |
-| ----------------- | ------- | ------------------------------------------------------------------------------ |
-| `t`               | `0`     | Start time in seconds; invalid/negative → `0`                                  |
-| `chapter_markers` | `true`  | `0` or `false` hides progress-bar chapter boundary markers when chapters exist |
-| `ar`              | `16x9`  | Aspect ratio for **tall** player shell (`16x9`, `4x3`, `1x1`)                 |
+| Param             | Default  | Normalization                                                                                                                                |
+| ----------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `t`               | `0`      | Start time in seconds; invalid/negative → `0`                                                                                                |
+| `chapter_markers` | `true`   | `0` or `false` hides progress-bar chapter boundary markers when chapters exist                                                               |
+| `ar`              | `16x9`   | Aspect ratio for **tall** player shell (`16x9`, `4x3`, `1x1`)                                                                                |
 | `player`          | inferred | `short` or `tall`; controls iframe height and player chrome. When absent, inferred from `presentation` (`audio` → `short`, `video` → `tall`) |
-| `presentation`    | `audio` | Media **preference** for enclosure best-fit (`audio` or `video`); locks preference when present in the URL |
+| `presentation`    | `audio`  | Media **preference** for enclosure best-fit (`audio` or `video`); locks preference when present in the URL                                   |
 
 List routes only:
 
-| Param                           | Default        | Notes                                                                      |
-| ------------------------------- | -------------- | -------------------------------------------------------------------------- |
-| `play_id_text`                  | —              | Initial list row; must match a loaded row or falls back to the first row   |
-| `rows`                          | `5`            | List viewport rows, clamped `2-10`                                         |
-| `resize`                        | off            | Advanced **tall-list** auto-resize (`resize=1`)                            |
-| `type`, `sort`, `page`, `range` | route defaults | Invalid enum/page values fall back per `parseEmbedQueryParams.ts`          |
+| Param                           | Default        | Notes                                                                    |
+| ------------------------------- | -------------- | ------------------------------------------------------------------------ |
+| `play_id_text`                  | —              | Initial list row; must match a loaded row or falls back to the first row |
+| `rows`                          | `5`            | List viewport rows, clamped `2-10`                                       |
+| `resize`                        | off            | Advanced **tall-list** auto-resize (`resize=1`)                          |
+| `type`, `sort`, `page`, `range` | route defaults | Invalid enum/page values fall back per `parseEmbedQueryParams.ts`        |
 
 ### Player size vs media preference
 
 Embed URLs separate two concerns:
 
-| Concept | URL param | Values | Controls |
-| ------- | --------- | ------ | -------- |
-| Player size | `player` | `short`, `tall` | iframe height, aspect ratio shell, short vs tall panel UI |
+| Concept          | URL param      | Values           | Controls                                                  |
+| ---------------- | -------------- | ---------------- | --------------------------------------------------------- |
+| Player size      | `player`       | `short`, `tall`  | iframe height, aspect ratio shell, short vs tall panel UI |
 | Media preference | `presentation` | `audio`, `video` | enclosure best-fit order (`resolveEmbedBestFitEnclosure`) |
 
 **Short player:** always uses the audio-style shell (no inline `<video>` UI). When `presentation=video` selects a video enclosure, playback still runs through the hidden audio orchestrator (HTML5 audio element with a video URL).
@@ -229,22 +229,22 @@ For list embeds the builder offers a **List content** selector and a per-content
 the source entity (see `resolveEmbedBuilderListContentOptions` in
 `apps/web/src/lib/embed/embedBuilderTypes.ts`):
 
-| Source                         | Content types        | Resulting list route                    |
-| ------------------------------ | -------------------- | --------------------------------------- |
+| Source                         | Content types        | Resulting list route                                |
+| ------------------------------ | -------------------- | --------------------------------------------------- |
 | Podcast channel / episode item | `episodes`, `clips`  | `/embed/podcast/{channel}` (`type=clips` for clips) |
-| Episode item (podcast)         | `chapters`           | `/embed/episode-chapters/{item}`        |
-| Album channel / track item     | `tracks`             | `/embed/album/{channel}`                |
-| Playlist                       | (playlist resources) | `/embed/playlist/{playlist}`            |
+| Episode item (podcast)         | `chapters`           | `/embed/episode-chapters/{item}`                    |
+| Album channel / track item     | `tracks`             | `/embed/album/{channel}`                            |
+| Playlist                       | (playlist resources) | `/embed/playlist/{playlist}`                        |
 
 Sort options and their emitted `sort` query value by content type (the default sort is omitted from
 generated URLs):
 
-| Content type | Sort options (default first)            | Emitted `sort`                |
-| ------------ | --------------------------------------- | ----------------------------- |
-| `episodes`   | Recent (default), Oldest, Popularity    | `oldest`, `top` (+`range`)    |
-| `clips`      | Recent (default), Popularity            | `top` (+`range`)              |
-| `tracks`     | First to last (default), Last to first  | `backward`                    |
-| `chapters`   | First to last (default), Last to first  | `desc`                        |
+| Content type | Sort options (default first)           | Emitted `sort`             |
+| ------------ | -------------------------------------- | -------------------------- |
+| `episodes`   | Recent (default), Oldest, Popularity   | `oldest`, `top` (+`range`) |
+| `clips`      | Recent (default), Popularity           | `top` (+`range`)           |
+| `tracks`     | First to last (default), Last to first | `backward`                 |
+| `chapters`   | First to last (default), Last to first | `desc`                     |
 
 `chapters` is item-based: switching an episode-source list to **Chapters** keeps the item context
 and targets `/embed/episode-chapters/{item}` rather than the channel list route.

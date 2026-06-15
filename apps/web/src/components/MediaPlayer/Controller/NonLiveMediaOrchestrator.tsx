@@ -26,12 +26,12 @@ import type { MoveNowPlayingToHistoryCallbackParams } from '../../../hooks/useQu
 import type { QueueResourcesLoadActiveResult } from '../../../hooks/useQueueResourcesLoadActive';
 import type { UpdateNowPlayingParams } from '../../../hooks/useQueueResourceUpdateNowPlaying';
 import { notifyEmbedListItemEnded } from '../../../lib/embed/embedListPlaybackAdvance';
-import { clampNearEndSeconds } from '../../../lib/playback/clampNearEndSeconds';
 import {
   resolveEmbedPlaybackPauseAtSeconds,
   resolveEmbedPlaybackResetSeconds,
 } from '../../../lib/embed/resolveEmbedPlaybackResetSeconds';
 import type { MusicItemPlaybackIntent, PlaybackLoadDecision } from '../../../lib/playback';
+import { clampNearEndSeconds } from '../../../lib/playback/clampNearEndSeconds';
 import {
   checkIfIsAudioFile,
   checkIfIsVideoFile,

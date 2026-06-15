@@ -16,8 +16,8 @@ import type { EmbedSingleResourcePayload } from '../../lib/embed/fetchEmbedSingl
 import { formatEmbedDisplayTitle } from '../../lib/embed/formatEmbedDisplayTitle';
 import { resolveEmbedActiveChapterForArtwork } from '../../lib/embed/resolveEmbedActiveChapterForArtwork';
 import { isEmbedItemCurrentlyLive } from '../../lib/embed/resolveEmbedLiveItemStatus';
-import { resolveEmbedPrimaryTitle } from '../../lib/embed/resolveEmbedPrimaryTitle';
 import { resolveEmbedPlaybackSegmentRefs } from '../../lib/embed/resolveEmbedPlaybackSegmentRefs';
+import { resolveEmbedPrimaryTitle } from '../../lib/embed/resolveEmbedPrimaryTitle';
 import { shouldEmbedShowChapterInfo } from '../../lib/embed/shouldEmbedShowChapterInfo';
 import { getBrandLogoSquareSrc } from '../../utils/brandLogo';
 import {

@@ -1,8 +1,8 @@
 import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
 
 import type { EmbedUrlOptions } from './buildEmbedUrl';
-import { EMBED_BUILDER_LIST_DEFAULT_SORT_BY_CONTENT } from './embedBuilderTypes';
 import type { EmbedBuilderQueryParams } from './embedBuilderTypes';
+import { EMBED_BUILDER_LIST_DEFAULT_SORT_BY_CONTENT } from './embedBuilderTypes';
 
 /**
  * Maps builder list params to the embed URL options that drive route selection and list query

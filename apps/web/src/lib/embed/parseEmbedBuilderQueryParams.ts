@@ -101,8 +101,7 @@ export function parseEmbedBuilderQueryParams(
 ): EmbedBuilderQueryParams {
   const parsed = parseSchemaWithDefaults(raw);
   const { playerSize } = resolveEmbedBuilderPresentation(parsed.type);
-  const mediaPreference =
-    parsed.prefer ?? resolveDefaultMediaPreferenceForPlayerSize(playerSize);
+  const mediaPreference = parsed.prefer ?? resolveDefaultMediaPreferenceForPlayerSize(playerSize);
 
   return {
     type: parsed.type,

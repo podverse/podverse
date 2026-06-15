@@ -22,11 +22,9 @@ import {
 async function expectEmbedAudioPaused(page: Page): Promise<void> {
   const audio = page.locator('audio').first();
   await expect
-    .poll(
-      async () =>
-        audio.evaluate((el) => el instanceof HTMLAudioElement && el.paused),
-      { timeout: 10_000 }
-    )
+    .poll(async () => audio.evaluate((el) => el instanceof HTMLAudioElement && el.paused), {
+      timeout: 10_000,
+    })
     .toBe(true);
 }
 

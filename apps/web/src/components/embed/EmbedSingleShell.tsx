@@ -17,7 +17,11 @@ type EmbedSingleShellProps = {
   mediaPreference: EmbedPresentationQuery;
 };
 
-export function EmbedSingleShell({ resource, sharedQuery, mediaPreference }: EmbedSingleShellProps) {
+export function EmbedSingleShell({
+  resource,
+  sharedQuery,
+  mediaPreference,
+}: EmbedSingleShellProps) {
   const { playerSize } = sharedQuery;
   const isTallPlayer = playerSize === 'tall';
   const tallShellStyle: CSSProperties | undefined = isTallPlayer

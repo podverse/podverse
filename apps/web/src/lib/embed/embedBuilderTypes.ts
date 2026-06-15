@@ -24,7 +24,12 @@ export function normalizeEmbedBuilderType(value: string): EmbedBuilderType | und
   return EMBED_BUILDER_TYPE_LEGACY_ALIASES[value];
 }
 
-export const EMBED_BUILDER_LIST_CONTENT_TYPES = ['episodes', 'clips', 'tracks', 'chapters'] as const;
+export const EMBED_BUILDER_LIST_CONTENT_TYPES = [
+  'episodes',
+  'clips',
+  'tracks',
+  'chapters',
+] as const;
 
 export type EmbedBuilderListContentType = (typeof EMBED_BUILDER_LIST_CONTENT_TYPES)[number];
 

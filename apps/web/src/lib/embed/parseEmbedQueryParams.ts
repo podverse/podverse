@@ -22,7 +22,6 @@ import { parseEmbedAspectRatio } from './parseEmbedAspectRatio';
 import { parseEmbedAutoResize } from './parseEmbedAutoResize';
 import { parseEmbedChapterMarkers } from './parseEmbedChapterMarkers';
 import { EMBED_LIST_VISIBLE_ROWS_DEFAULT, parseEmbedListRows } from './parseEmbedListRows';
-
 import { resolvePlayerSizeFromPresentation } from './resolvePlayerSizeFromPresentation';
 
 const sharedQuerySchema = z.object({
@@ -147,8 +146,7 @@ function mapSharedQuery(
   raw: Record<string, string | string[] | undefined>
 ): EmbedSharedQueryParams {
   const normalized = normalizeEmbedSearchParams(raw);
-  const playerSize =
-    parsed.player ?? resolvePlayerSizeFromPresentation(parsed.presentation);
+  const playerSize = parsed.player ?? resolvePlayerSizeFromPresentation(parsed.presentation);
 
   return {
     startSeconds: parsed.t,

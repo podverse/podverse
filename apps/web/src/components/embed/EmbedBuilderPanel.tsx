@@ -6,8 +6,8 @@ import type { CSSProperties } from 'react';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 
 import { copyToClipboard } from '@podverse/helpers-browser';
-import { QUERY_PARAMS_STATS_RANGE_VALUES } from '@podverse/helpers-requests';
 import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
+import { QUERY_PARAMS_STATS_RANGE_VALUES } from '@podverse/helpers-requests';
 import { Button, CheckboxField, FormStack, FormTextArea, TextInput } from '@podverse/ui';
 
 import { WEB } from '../../constants/web';

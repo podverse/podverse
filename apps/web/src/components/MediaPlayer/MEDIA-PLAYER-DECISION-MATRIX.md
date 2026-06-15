@@ -48,15 +48,15 @@ policy (`session_restore` resumes snapshot; `explicit_play` /
 
 ## Triggers
 
-| Trigger                  | Code path                                                                                                                                                                                 |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Initial load**         | User clicks play in a list/detail UI → `useMediaPlayerResourceUpdate` → context setters → `<audio>`/`<video>` `src` re-render → media element fires `loadedmetadata`                      |
-| **Anonymous restore**    | `AnonymousPlaybackRestoreController` runs once when logged out + `loggedInAccount === null`                                                                                               |
-| **Queue load**           | `activeQueueUpcomingResources[0]` changes → `handleLoadQueueItem` / `handleLoadQueueClip` / `handleLoadQueueItemSoundbite` / `handleLoadQueueItemAddByRSS` in `MediaPlayerController.tsx` |
-| **AutoQueue transition** | `autoQueueActiveRow` changes → `handleLoadAutoQueueItem`                                                                                                                                  |
-| **Skip-next button**     | `TrackNextButton*` → move-to-history + `useQueueResourcesLoadActive()` → queue load                                                                                                       |
-| **Track-ended**          | Media element `ended` event in `NonLiveMediaOrchestrator` `handleEnded`                                                                                                                   |
-| **Explicit play**        | List/detail "play" buttons → `useMediaPlayerResourceUpdate` (same as initial load, just from a different surface)                                                                         |
+| Trigger                  | Code path                                                                                                                                                                                             |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Initial load**         | User clicks play in a list/detail UI → `useMediaPlayerResourceUpdate` → context setters → `<audio>`/`<video>` `src` re-render → media element fires `loadedmetadata`                                  |
+| **Anonymous restore**    | `AnonymousPlaybackRestoreController` runs once when logged out + `loggedInAccount === null`                                                                                                           |
+| **Queue load**           | `activeQueueUpcomingResources[0]` changes → `handleLoadQueueItem` / `handleLoadQueueClip` / `handleLoadQueueItemSoundbite` / `handleLoadQueueItemAddByRSS` in `MediaPlayerController.tsx`             |
+| **AutoQueue transition** | `autoQueueActiveRow` changes → `handleLoadAutoQueueItem`                                                                                                                                              |
+| **Skip-next button**     | `TrackNextButton*` → move-to-history + `useQueueResourcesLoadActive()` → queue load                                                                                                                   |
+| **Track-ended**          | Media element `ended` event in `NonLiveMediaOrchestrator` `handleEnded`                                                                                                                               |
+| **Explicit play**        | List/detail "play" buttons → `useMediaPlayerResourceUpdate` (same as initial load, just from a different surface)                                                                                     |
 | **Alternate enclosure**  | User picks a different format/source in `SourceSelectors` / `EmbedAlternateEnclosureModal` → staged `pendingPlaybackDecision` with reason `enclosure-switch-resume` → reload at prior `mpCurrentTime` |
 
 ## Matrix — Sections 1 through 5 (non-livestream)
