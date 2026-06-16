@@ -3,11 +3,10 @@ import { cookies } from 'next/headers';
 
 import type { QueueResourcesAbridgedIndex } from '@podverse/helpers';
 import { generateQueueResourceAbridgedIndex } from '@podverse/helpers';
-import { FontPreloads } from '@podverse/ui';
-
 import { AppChrome } from '../components/App/AppChrome';
 import { AuthSessionChecker } from '../components/Auth/AuthSessionChecker';
 import { FavIcons } from '../components/Head/FavIcons';
+import { RouteAwareFontPreloads } from '../components/Head/RouteAwareFontPreloads';
 import { RuntimeConfigScript } from '../components/Head/RuntimeConfigScript';
 import { getConfig, getWebOrigin } from '../config';
 import { getCustomThemeCssText } from '../config/custom-themes.server';
@@ -86,7 +85,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {customThemeCssText ? (
           <style id="pv-custom-theme-variables">{customThemeCssText}</style>
         ) : null}
-        <FontPreloads />
+        <RouteAwareFontPreloads />
         <FavIcons />
       </head>
       <body>

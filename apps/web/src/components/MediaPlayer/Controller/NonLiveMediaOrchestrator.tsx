@@ -148,10 +148,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     pendingMusicQueueLoadIntentRef,
   } = props;
 
-  const isVideoChannel = mpChannel?.medium_id === MediumEnum.Video;
-  const allowVideoOnAudioOrchestrator =
-    embedPlayerSize === 'short' ||
-    (isEmbedRoute && embedPlayerSize === 'tall' && isVideoChannel !== true);
+  const allowVideoOnAudioOrchestrator = embedPlayerSize === 'short';
 
   const mediaRef = useRef<HTMLMediaElement | null>(null);
 

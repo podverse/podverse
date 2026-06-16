@@ -21,9 +21,9 @@ import {
 } from '../../lib/embed/parseEmbedQueryParams';
 import {
   resolveEmbedMediaType,
-  resolveEmbedPlayerSizeFromChannel,
   toEmbedPresentationQuery,
 } from '../../lib/embed/resolveEmbedMediaType';
+import { resolveEffectiveEmbedListPlayerSize } from '../../lib/embed/resolvePlayerSizeFromPresentation';
 
 type EmbedTypedRoutePageProps = {
   routeKind: EmbedRouteKind;
@@ -108,11 +108,15 @@ export async function EmbedTypedRoutePage({
     ? runtime.sharedQuery.presentation
     : toEmbedPresentationQuery(resolveEmbedMediaType(resource.channel));
 
+  const effectivePlayerSize = resolveEffectiveEmbedListPlayerSize({
+    playerSize: runtime.sharedQuery.playerSize,
+    playerSizeLocked: runtime.sharedQuery.playerSizeLocked,
+    mediaPreference,
+  });
+
   const effectiveSharedQuery = {
     ...runtime.sharedQuery,
-    playerSize: runtime.sharedQuery.playerSizeLocked
-      ? runtime.sharedQuery.playerSize
-      : resolveEmbedPlayerSizeFromChannel(resource.channel),
+    playerSize: effectivePlayerSize,
   };
 
   return (

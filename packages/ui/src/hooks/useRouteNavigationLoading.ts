@@ -1,12 +1,48 @@
 'use client';
 
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
 
 import {
   isInternalNavigationAnchor,
   wouldChangeAppRoute,
 } from '../lib/navigation/isInternalNavigationAnchor';
+
+type NavigationLoadingStore = {
+  subscribe: (onChange: () => void) => () => void;
+  getSnapshot: () => boolean;
+  getServerSnapshot: () => boolean;
+  set: (value: boolean) => void;
+};
+
+/**
+ * External store for the navigation-loading flag. History patches and DOM
+ * listeners mutate it directly (no React setter), so notifications are safe even
+ * when Next calls `history.pushState` during React's insertion-effect commit.
+ */
+function createNavigationLoadingStore(): NavigationLoadingStore {
+  let isNavigating = false;
+  const listeners = new Set<() => void>();
+  return {
+    subscribe: (onChange) => {
+      listeners.add(onChange);
+      return () => {
+        listeners.delete(onChange);
+      };
+    },
+    getSnapshot: () => isNavigating,
+    getServerSnapshot: () => false,
+    set: (value) => {
+      if (isNavigating === value) {
+        return;
+      }
+      isNavigating = value;
+      for (const listener of listeners) {
+        listener();
+      }
+    },
+  };
+}
 
 /**
  * Tracks in-app route transitions after the first client render (link clicks, history, back/forward).
@@ -17,7 +53,17 @@ export function useRouteNavigationLoading(): boolean {
   const searchParams = useSearchParams();
   const routeKey = `${pathname}?${searchParams.toString()}`;
 
-  const [isNavigating, setIsNavigating] = useState(false);
+  const storeRef = useRef<NavigationLoadingStore | null>(null);
+  if (storeRef.current === null) {
+    storeRef.current = createNavigationLoadingStore();
+  }
+  const store = storeRef.current;
+
+  const isNavigating = useSyncExternalStore(
+    store.subscribe,
+    store.getSnapshot,
+    store.getServerSnapshot
+  );
   const hasCompletedInitialLoadRef = useRef(false);
   // The settled pathname + search (hash excluded). Used to distinguish real
   // history navigation from in-page scroll-to-id (hash-only) changes.
@@ -27,8 +73,8 @@ export function useRouteNavigationLoading(): boolean {
     if (!hasCompletedInitialLoadRef.current) {
       return;
     }
-    setIsNavigating(true);
-  }, []);
+    store.set(true);
+  }, [store]);
 
   useEffect(() => {
     hasCompletedInitialLoadRef.current = true;
@@ -38,8 +84,8 @@ export function useRouteNavigationLoading(): boolean {
     if (typeof window !== 'undefined') {
       settledRouteRef.current = `${window.location.pathname}${window.location.search}`;
     }
-    setIsNavigating(false);
-  }, [routeKey]);
+    store.set(false);
+  }, [routeKey, store]);
 
   useEffect(() => {
     const handleDocumentClick = (event: MouseEvent) => {

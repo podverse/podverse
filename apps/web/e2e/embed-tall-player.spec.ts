@@ -3,6 +3,7 @@ import type { Page } from '@playwright/test';
 
 import {
   EMBED_FIXTURE_MUSIC_ALBUM_ID_TEXT,
+  EMBED_FIXTURE_MUSIC_TRACK_AUDIO_ID_TEXT,
   EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT,
   EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT,
   EMBED_SAMPLE_CHAPTER_TWO_START_SECONDS,
@@ -51,14 +52,53 @@ test.describe('Embed tall player', () => {
     );
   });
 
-  test('When an audio episode uses tall player with prefer video, center artwork renders instead of a video element.', async ({
+  test('When a music track embed uses presentation=video without an explicit player param, the tall player shell renders.', async ({
+    page,
+  }) => {
+    await page.goto(`/embed/track/${EMBED_FIXTURE_MUSIC_TRACK_AUDIO_ID_TEXT}?presentation=video`);
+    await expect(page.getByTestId('embed-single-shell')).toBeVisible();
+    await expect(page.getByTestId('embed-tall-stage')).toBeVisible();
+    await expect(page.getByTestId('embed-tall-info-overlay')).toBeVisible();
+    await expect(page.getByTestId('embed-tall-controls-overlay')).toBeVisible();
+    await expect(
+      page.getByTestId('embed-tall-info-overlay').getByTestId('embed-player-info')
+    ).toBeVisible();
+  });
+
+  test('When an audio episode uses tall player with prefer video, the inline video element renders for the video enclosure.', async ({
     page,
   }) => {
     await page.goto(
       `/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}?presentation=video&player=tall`
     );
+    await expectEmbedTallVideoElement(page);
+    await expect(page.getByTestId('embed-tall-center-art')).toHaveCount(0);
+  });
+
+  test('When an audio episode uses tall player with prefer audio, center artwork renders instead of a video element.', async ({
+    page,
+  }) => {
+    await page.goto(
+      `/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}?presentation=audio&player=tall`
+    );
     await expectEmbedTallCenterArt(page);
     await expect(page.getByTestId('embed-tall-video-element')).toHaveCount(0);
+  });
+
+  test('When a tall audio episode switches to a video alternate enclosure, the inline video element appears.', async ({
+    page,
+  }) => {
+    await page.goto(
+      `/embed/episode/${EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT}?presentation=audio&player=tall`
+    );
+    await expectEmbedTallCenterArt(page);
+    await expect(page.getByTestId('embed-tall-video-element')).toHaveCount(0);
+
+    await page.getByTestId('embed-player-alternate-enclosure-button').click();
+    await page.getByTestId('embed-alternate-enclosure-option-video-mp4').click();
+
+    await expectEmbedTallVideoElement(page);
+    await expect(page.getByTestId('embed-tall-center-art')).toHaveCount(0);
   });
 
   test('When a short player prefers video on a video episode, playback uses the short shell without a video element.', async ({
@@ -71,15 +111,15 @@ test.describe('Embed tall player', () => {
     await expect(page.getByTestId('embed-player-controls')).toBeVisible();
   });
 
-  test('When an album list embed uses tall player for audio tracks, center artwork is visible.', async ({
+  test('When an album list embed uses tall player with prefer video, the inline video element renders for the active track.', async ({
     page,
   }) => {
     await page.goto(
       `/embed/album/${EMBED_FIXTURE_MUSIC_ALBUM_ID_TEXT}?presentation=video&player=tall`
     );
     await expectEmbedListShell(page);
-    await expectEmbedTallCenterArt(page);
-    await expect(page.getByTestId('embed-tall-video-element')).toHaveCount(0);
+    await expectEmbedTallVideoElement(page);
+    await expect(page.getByTestId('embed-tall-center-art')).toHaveCount(0);
   });
 
   test('When switching rows in a tall list embed, the mute toggle stays unmuted.', async ({

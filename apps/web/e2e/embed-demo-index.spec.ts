@@ -71,6 +71,9 @@ test.describe('Embed demo index', () => {
       }
 
       const frame = page.frameLocator(`[data-testid="embed-demo-iframe-${showcaseId}"]`);
+      if (videoShowcaseIds.has(showcaseId)) {
+        await expect(frame.getByTestId('embed-tall-stage')).toBeVisible({ timeout: 15_000 });
+      }
       const embedRoot = frame.getByTestId('embed-root');
       const notFoundShell = frame.getByTestId('embed-not-found-shell');
       const notAvailableShell = frame.getByTestId('embed-not-available');

@@ -84,7 +84,7 @@ Embed URLs separate two concerns:
 
 **Short player:** always uses the audio-style shell (no inline `<video>` UI). When `presentation=video` selects a video enclosure, playback still runs through the hidden audio orchestrator (HTML5 audio element with a video URL).
 
-**Tall player:** can render the tall video stage when the active enclosure is video; audio-only items show center artwork instead of a `<video>` element.
+**Tall player:** renders the tall video stage when the active enclosure is video (from best-fit or alternate-enclosure selection). When the active enclosure is audio (for example `presentation=audio` or an explicit audio pick in the alternate-enclosure modal), the tall shell shows center artwork instead of a `<video>` element.
 
 Legacy links without `player=` continue to work: player size is inferred from `presentation` only.
 
@@ -121,7 +121,9 @@ The **tall** player is available for both single and list embeds (`player=tall`)
 - Single tall embeds render a width-responsive video stage (`ar` controls aspect ratio).
 - Tall overlays show info + controls while paused, on hover, or on focus; when playing, overlays fade out after idle.
 - Tall controls include a mute toggle (`embed-tall-mute-toggle`) for user-controlled volume.
-- Audio items in tall mode with prefer-video render center artwork (`embed-tall-center-art`) instead of a `<video>` element. Center art uses the same fallback chain as the overlay info art: chapter image (when applicable), then item image, then channel image, then the embed placeholder.
+- **Tall + video enclosure** (from best-fit or alternate-enclosure pick): inline video stage (`embed-tall-video-element`).
+- **Tall + audio enclosure** (from `presentation=audio` or explicit audio pick): center artwork (`embed-tall-center-art`) instead of a `<video>` element. Center art uses the same fallback chain as the overlay info art: chapter image (when applicable), then item image, then channel image, then the embed placeholder.
+- **Short player:** always audio shell regardless of enclosure type (see [Short player + prefer video](#short-player--prefer-video)).
 - Chapter UX differs intentionally from short presentation:
   - Chapter title shows in a dedicated line above controls.
   - Progress-bar chapter hover tooltip is enabled in tall presentation and remains disabled in short embed controls.

@@ -16,7 +16,6 @@ import {
   expectEmbedListRegionScrollable,
   expectEmbedListRowMetadata,
   expectEmbedListShell,
-  expectEmbedTallCenterArt,
   expectEmbedTallVideoElement,
   expectEmbedNotAvailableShell,
   expectEmbedNotFoundShell,
@@ -350,7 +349,7 @@ test.describe('Embed routes (anonymous)', () => {
       );
 
       await page.getByRole('radio', { name: 'Prefer video' }).check();
-      await expectEmbedTallCenterArt(page);
+      await expectEmbedTallVideoElement(page);
       await expectEmbedShellHeightStable(
         page.getByTestId('embed-list-shell'),
         EMBED_LIST_SHELL_TALL_HEIGHT_WITH_SELECTOR

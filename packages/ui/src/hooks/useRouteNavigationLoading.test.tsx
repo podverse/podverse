@@ -63,9 +63,61 @@ describe('useRouteNavigationLoading', () => {
       );
     });
 
+    await act(async () => {
+      await Promise.resolve();
+    });
+
     expect(result.current).toBe(true);
 
     anchor.remove();
+  });
+
+  it('starts loading after pushState when the URL changes route', async () => {
+    const { result } = renderHook(() => useRouteNavigationLoading());
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    act(() => {
+      window.history.pushState({}, '', '/episodes');
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current).toBe(true);
+  });
+
+  it('starts loading after pushState without scheduling a useInsertionEffect update', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    const { result } = renderHook(() => useRouteNavigationLoading());
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    act(() => {
+      window.history.pushState({}, '', '/episodes');
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current).toBe(true);
+    expect(
+      consoleErrorSpy.mock.calls.some((call) =>
+        call.some(
+          (arg) =>
+            typeof arg === 'string' && arg.includes('useInsertionEffect must not schedule updates')
+        )
+      )
+    ).toBe(false);
+
+    consoleErrorSpy.mockRestore();
   });
 
   it('ignores hash-only history changes from in-page scroll links', async () => {
@@ -101,6 +153,10 @@ describe('useRouteNavigationLoading', () => {
           cancelable: true,
         })
       );
+    });
+
+    await act(async () => {
+      await Promise.resolve();
     });
 
     expect(result.current).toBe(true);
