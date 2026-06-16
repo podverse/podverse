@@ -29,7 +29,7 @@
     "@podverse/orm": "*",
     "@podverse/worker-commands": "*",
     "bcrypt": "^6.0.0",
-    "body-parser": "^2.2.0",
+    "body-parser": "^2.3.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^5.1.0",
@@ -58,6 +58,6 @@
     "nodemon": "^3.1.14",
     "supertest": "^7.1.4",
     "tsc-alias": "^1.8.16",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.9"
   }
 }

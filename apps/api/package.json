@@ -39,7 +39,7 @@
     "@podverse/v4v-metaboost": "*",
     "archiver": "^8.0.0",
     "bcrypt": "^6.0.0",
-    "body-parser": "^2.2.0",
+    "body-parser": "^2.3.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^5.1.0",
@@ -71,6 +71,6 @@
     "supertest": "^7.1.4",
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.16",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.9"
   }
 }
