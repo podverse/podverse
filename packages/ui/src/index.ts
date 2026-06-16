@@ -157,7 +157,10 @@ export type { DisclosureProps } from './components/layout/Disclosure/index';
 export { FavIcons } from './components/head/FavIcons/FavIcons';
 export type { FavIconsProps } from './components/head/FavIcons/FavIcons';
 export { FontPreloads } from './components/head/FontPreloads/FontPreloads';
-export type { FontPreloadsProps, FontPreloadsVariant } from './components/head/FontPreloads/FontPreloads';
+export type {
+  FontPreloadsProps,
+  FontPreloadsVariant,
+} from './components/head/FontPreloads/FontPreloads';
 export { RuntimeConfigScript } from './components/head/RuntimeConfigScript/RuntimeConfigScript';
 export type { RuntimeConfigScriptProps } from './components/head/RuntimeConfigScript/RuntimeConfigScript';
 export { NavBar } from './components/navigation/NavBar/index';

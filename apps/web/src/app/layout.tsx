@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 
 import type { QueueResourcesAbridgedIndex } from '@podverse/helpers';
 import { generateQueueResourceAbridgedIndex } from '@podverse/helpers';
+
 import { AppChrome } from '../components/App/AppChrome';
 import { AuthSessionChecker } from '../components/Auth/AuthSessionChecker';
 import { FavIcons } from '../components/Head/FavIcons';
