@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@podverse/helpers": "*",
-    "firebase-admin": "^13.10.0"
+    "firebase-admin": "^14.0.0"
   },
   "type": "module"
 }
