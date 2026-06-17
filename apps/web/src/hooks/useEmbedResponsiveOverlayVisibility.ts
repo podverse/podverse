@@ -4,11 +4,13 @@ import { useEffect, useRef, useState } from 'react';
 
 import { EMBED_VIDEO_OVERLAY_FADE_DURATION_MS } from '../lib/embed/embedLayoutTokens';
 
-type UseEmbedTallOverlayVisibilityInput = {
+type UseEmbedResponsiveOverlayVisibilityInput = {
   isPlaying: boolean;
 };
 
-export function useEmbedTallOverlayVisibility({ isPlaying }: UseEmbedTallOverlayVisibilityInput) {
+export function useEmbedResponsiveOverlayVisibility({
+  isPlaying,
+}: UseEmbedResponsiveOverlayVisibilityInput) {
   const [isHovering, setIsHovering] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isVisible, setIsVisible] = useState(true);

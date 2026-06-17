@@ -31,7 +31,7 @@ export type EmbedPlaybackGuardrails = {
   skipAnonymousPlaybackRestore: boolean;
   skipAutoQueueMutations: boolean;
   skipMainAppLayoutMutations: boolean;
-  /** When `short`, video enclosures play through the audio orchestrator without tall UI. */
+  /** When `compact`, video enclosures play through the audio orchestrator without responsive UI. */
   embedPlayerSize: EmbedPlayerSizeQuery | null;
 };
 
@@ -45,7 +45,7 @@ export const EMBED_PLAYBACK_GUARDRAILS: EmbedPlaybackGuardrails = {
 
 export type EmbedPresentationQuery = 'audio' | 'video';
 
-export type EmbedPlayerSizeQuery = 'short' | 'tall';
+export type EmbedPlayerSizeQuery = 'compact' | 'responsive';
 
 export type EmbedSharedQueryParams = {
   startSeconds: number;
@@ -54,7 +54,7 @@ export type EmbedSharedQueryParams = {
   /** Enclosure preference (prefer audio vs prefer video). */
   presentation: EmbedPresentationQuery;
   presentationLocked: boolean;
-  /** Player chrome / iframe height (short vs tall). */
+  /** Player chrome / iframe height (compact vs responsive). */
   playerSize: EmbedPlayerSizeQuery;
   playerSizeLocked: boolean;
 };
@@ -68,7 +68,6 @@ export type EmbedPodcastListQueryParams = EmbedSharedQueryParams & {
   range: QueryParamsStatsRange | null;
   playIdText: string | null;
   listVisibleRows: number;
-  autoResize: boolean;
 };
 
 export type EmbedAlbumListQueryParams = EmbedSharedQueryParams & {
@@ -78,14 +77,12 @@ export type EmbedAlbumListQueryParams = EmbedSharedQueryParams & {
   range: QueryParamsStatsRange | null;
   playIdText: string | null;
   listVisibleRows: number;
-  autoResize: boolean;
 };
 
 export type EmbedPlaylistListQueryParams = EmbedSharedQueryParams & {
   page: number;
   playIdText: string | null;
   listVisibleRows: number;
-  autoResize: boolean;
 };
 
 // Episode-chapters lists are not paginated; `sort` is applied client-side (asc/desc).
@@ -94,7 +91,6 @@ export type EmbedEpisodeChaptersListQueryParams = EmbedSharedQueryParams & {
   page: number;
   playIdText: string | null;
   listVisibleRows: number;
-  autoResize: boolean;
 };
 
 export type EmbedRuntimeModel = {

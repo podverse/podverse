@@ -1,29 +1,18 @@
-import type { EmbedBuilderPresentation, EmbedBuilderType } from './embedBuilderTypes';
+import type { EmbedBuilderPresentation, EmbedBuilderQueryParams } from './embedBuilderTypes';
 import type { EmbedPlayerSizeQuery, EmbedPresentationQuery } from './embedTypes';
 
 export function resolveDefaultMediaPreferenceForPlayerSize(
   playerSize: EmbedPlayerSizeQuery
 ): EmbedPresentationQuery {
-  return playerSize === 'tall' ? 'video' : 'audio';
+  return playerSize === 'responsive' ? 'video' : 'audio';
 }
 
-export function resolveEmbedBuilderPresentation(type: EmbedBuilderType): EmbedBuilderPresentation {
-  switch (type) {
-    case 'short':
-      return { layout: 'single', playerSize: 'short', mediaPreference: 'audio' };
-    case 'tall':
-      return { layout: 'single', playerSize: 'tall', mediaPreference: 'video' };
-    case 'short-list':
-      return { layout: 'list', playerSize: 'short', mediaPreference: 'audio' };
-    case 'tall-list':
-      return { layout: 'list', playerSize: 'tall', mediaPreference: 'video' };
-  }
-}
-
-export function isEmbedBuilderListType(type: EmbedBuilderType): boolean {
-  return type === 'short-list' || type === 'tall-list';
-}
-
-export function isEmbedBuilderTallType(type: EmbedBuilderType): boolean {
-  return type === 'tall' || type === 'tall-list';
+export function resolveEmbedBuilderPresentation(
+  params: Pick<EmbedBuilderQueryParams, 'playerSize' | 'listEnabled'>
+): EmbedBuilderPresentation {
+  return {
+    layout: params.listEnabled ? 'list' : 'single',
+    playerSize: params.playerSize,
+    mediaPreference: resolveDefaultMediaPreferenceForPlayerSize(params.playerSize),
+  };
 }

@@ -18,13 +18,13 @@ import {
   shouldUseChapterArtwork,
 } from '../../utils/mediaPlayer/mediaPlayerArtwork';
 
-import styles from '../../styles/components/embed/EmbedTallCenterArt.module.scss';
+import styles from '../../styles/components/embed/EmbedResponsiveCenterArt.module.scss';
 
-type EmbedTallCenterArtProps = {
+type EmbedResponsiveCenterArtProps = {
   fallbackResource: EmbedSingleResourcePayload | null;
 };
 
-export function EmbedTallCenterArt({ fallbackResource }: EmbedTallCenterArtProps) {
+export function EmbedResponsiveCenterArt({ fallbackResource }: EmbedResponsiveCenterArtProps) {
   const { mpCurrentTime } = useMediaPlayerCurrentTime();
   const { mpChannel, mpItem, mpAddByRSS, mpClip, mpItemSoundbite, mpItemChapter, mpItemChapters } =
     useMediaPlayer();
@@ -87,7 +87,7 @@ export function EmbedTallCenterArt({ fallbackResource }: EmbedTallCenterArtProps
   }, [activeChapterForArtwork, channelImages, clip, itemImages, itemSoundbite]);
 
   return (
-    <div className={styles.centerArtContainer} data-testid="embed-tall-center-art">
+    <div className={styles.centerArtContainer} data-testid="embed-responsive-center-art">
       <div className={styles.centerArtFrame}>
         <ImageNonReact
           alt={tMediaPlayer('media_player_image')}

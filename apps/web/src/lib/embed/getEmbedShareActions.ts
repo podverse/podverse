@@ -10,19 +10,9 @@ import { MediumEnum } from '@podverse/helpers';
 
 import type { EmbedBuilderUrlInput } from './buildEmbedBuilderUrl';
 import { buildEmbedBuilderUrlPath } from './buildEmbedBuilderUrl';
-import type { EmbedBuilderType } from './embedBuilderTypes';
 
 export type EmbedShareAction = {
-  labelKey:
-    | 'embed_podcast'
-    | 'embed_album'
-    | 'embed_playlist'
-    | 'embed_episode'
-    | 'embed_track'
-    | 'embed_clip'
-    | 'embed_chapter'
-    | 'embed_official_clip';
-  testId: string;
+  testId: 'share-embed-builder';
   href: string;
 };
 
@@ -36,14 +26,11 @@ type EmbedShareContext = {
   playlist_item: string | null;
 };
 
-function buildAction(
-  labelKey: EmbedShareAction['labelKey'],
-  testId: string,
-  input: EmbedBuilderUrlInput
-): EmbedShareAction {
+const SHARE_EMBED_BUILDER_TEST_ID = 'share-embed-builder' as const;
+
+function buildAction(input: EmbedBuilderUrlInput): EmbedShareAction {
   return {
-    labelKey,
-    testId,
+    testId: SHARE_EMBED_BUILDER_TEST_ID,
     href: buildEmbedBuilderUrlPath(input),
   };
 }
@@ -61,8 +48,7 @@ function channelBuilderFields(
   };
 }
 
-export function getEmbedShareActions(context: EmbedShareContext): EmbedShareAction[] {
-  const actions: EmbedShareAction[] = [];
+export function getEmbedShareAction(context: EmbedShareContext): EmbedShareAction | null {
   const channelFields = channelBuilderFields(context.channel);
   const channelId = channelFields.channel;
   const itemId = context.item?.id_text ?? null;
@@ -70,104 +56,89 @@ export function getEmbedShareActions(context: EmbedShareContext): EmbedShareActi
   const playlistItem = context.playlist_item;
   const mediumId = context.channel?.medium_id;
 
+  if (context.item_soundbite?.id_text) {
+    return buildAction({
+      playerSize: 'compact',
+      listEnabled: false,
+      ...channelFields,
+      item: itemId,
+      official_clip: context.item_soundbite.id_text,
+    });
+  }
+
+  if (context.item_chapter?.id_text) {
+    return buildAction({
+      playerSize: 'compact',
+      listEnabled: false,
+      ...channelFields,
+      item: itemId,
+      chapter: context.item_chapter.id_text,
+    });
+  }
+
+  const clipIdText = context.clip?.id_text ?? null;
+  if (clipIdText !== null) {
+    return buildAction({
+      playerSize: 'compact',
+      listEnabled: false,
+      ...channelFields,
+      item: itemId,
+      clip: clipIdText,
+    });
+  }
+
+  if (playlistId && playlistItem) {
+    return buildAction({
+      playerSize: 'compact',
+      listEnabled: true,
+      playlist: playlistId,
+      playlistItem,
+    });
+  }
+
+  if (channelId !== null && itemId !== null) {
+    if (mediumId === MediumEnum.Music) {
+      return buildAction({
+        playerSize: 'compact',
+        listEnabled: false,
+        ...channelFields,
+        item: itemId,
+      });
+    }
+
+    return buildAction({
+      playerSize: 'compact',
+      listEnabled: false,
+      ...channelFields,
+      item: itemId,
+    });
+  }
+
   if (playlistId) {
-    actions.push(
-      buildAction('embed_playlist', 'share-embed-playlist', {
-        type: 'short-list',
-        playlist: playlistId,
-        playlistItem,
-      })
-    );
+    return buildAction({
+      playerSize: 'compact',
+      listEnabled: true,
+      playlist: playlistId,
+    });
   }
 
   if (channelId !== null) {
     if (mediumId === MediumEnum.Podcast || mediumId === MediumEnum.Video) {
-      actions.push(
-        buildAction('embed_podcast', 'share-embed-podcast', {
-          type: 'short-list',
-          ...channelFields,
-          playlist: playlistId,
-          playlistItem,
-        })
-      );
-    } else if (mediumId === MediumEnum.Music) {
-      actions.push(
-        buildAction('embed_album', 'share-embed-album', {
-          type: 'short-list',
-          ...channelFields,
-        })
-      );
+      return buildAction({
+        playerSize: 'compact',
+        listEnabled: true,
+        ...channelFields,
+      });
     }
-  }
-
-  const hasSingleItemContext =
-    channelId !== null &&
-    itemId !== null &&
-    context.clip === null &&
-    context.item_chapter === null &&
-    context.item_soundbite === null;
-
-  if (hasSingleItemContext) {
-    const defaultType: EmbedBuilderType = 'short';
 
     if (mediumId === MediumEnum.Music) {
-      actions.push(
-        buildAction('embed_track', 'share-embed-track', {
-          type: defaultType,
-          ...channelFields,
-          item: itemId,
-        })
-      );
-    } else {
-      actions.push(
-        buildAction('embed_episode', 'share-embed-episode', {
-          type: defaultType,
-          ...channelFields,
-          item: itemId,
-        })
-      );
+      return buildAction({
+        playerSize: 'compact',
+        listEnabled: true,
+        ...channelFields,
+      });
     }
   }
 
-  const clipIdText = context.clip?.id_text ?? null;
-
-  if (clipIdText !== null) {
-    actions.push(
-      buildAction('embed_clip', 'share-embed-clip', {
-        type: 'short',
-        ...channelFields,
-        item: itemId,
-        clip: clipIdText,
-      })
-    );
-  }
-
-  if (context.item_chapter?.id_text) {
-    actions.push(
-      buildAction('embed_chapter', 'share-embed-chapter', {
-        type: 'short',
-        ...channelFields,
-        item: itemId,
-        chapter: context.item_chapter.id_text,
-      })
-    );
-  }
-
-  if (context.item_soundbite?.id_text) {
-    actions.push(
-      buildAction('embed_official_clip', 'share-embed-official-clip', {
-        type: 'short',
-        ...channelFields,
-        item: itemId,
-        official_clip: context.item_soundbite.id_text,
-      })
-    );
-  }
-
-  const deduped = new Map<string, EmbedShareAction>();
-  for (const action of actions) {
-    deduped.set(action.testId, action);
-  }
-
-  return [...deduped.values()];
+  return null;
 }

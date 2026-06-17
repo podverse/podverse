@@ -32,7 +32,7 @@ LocalSettingsState Legend:
   - aqc = autoQueueConfig
     - rp = repeat
     - rd = random
-  - sba = sidebarAccordion (open/closed accordion sections)
+  - sba = sidebarAccordion (open/closed accordion sections; cookie-backed for SSR on first paint)
   - fd = filterDefaults (per-page filter preferences)
   - metd = membershipExpirationToastDismissed (ISO date string of last dismissal)
   - bfd = boostFormDefaults (per value type: send to creator, send to app, your name)
@@ -161,6 +161,14 @@ export interface SidebarAccordionState {
   library: boolean;
 }
 
+/** Sidebar nav sections start collapsed; persisted per device in the local-settings cookie (`sba`). */
+export const DEFAULT_SIDEBAR_ACCORDION_STATE: SidebarAccordionState = {
+  podcasts: false,
+  music: false,
+  addByRSS: false,
+  library: false,
+};
+
 export interface LocalSettingsState {
   uit: UITheme;
   vs: ViewSelectedOption;
@@ -227,12 +235,7 @@ function getDefaultLocalSettings(): LocalSettingsState {
       rp: false,
       rd: false,
     },
-    sba: {
-      podcasts: true,
-      music: true,
-      addByRSS: true,
-      library: true,
-    },
+    sba: { ...DEFAULT_SIDEBAR_ACCORDION_STATE },
     fd: {},
     bfd: {},
   };

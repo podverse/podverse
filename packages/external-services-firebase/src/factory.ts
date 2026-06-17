@@ -1,13 +1,12 @@
-import admin from 'firebase-admin';
+import { cert, getApps, initializeApp } from 'firebase-admin/app';
+import type { Messaging } from 'firebase-admin/messaging';
+import { getMessaging } from 'firebase-admin/messaging';
 import { existsSync } from 'fs';
-import { createRequire } from 'module';
 
 import type { ExternalServicesConfig } from './config/types.js';
 
-const require = createRequire(import.meta.url);
-
 export type FirebaseContext = {
-  firebaseAdmin: typeof admin | null;
+  firebaseMessaging: Messaging | null;
   isFirebaseEnabled: boolean;
   getWebBaseUrl: () => string;
   getWebBaseUrlWithPath: (path: string) => string;
@@ -22,7 +21,7 @@ export type FirebaseContext = {
  * @returns FirebaseContext with initialized Firebase admin and helper functions
  */
 export function createFirebaseContext(config: ExternalServicesConfig): FirebaseContext {
-  let firebaseAdminInstance: typeof admin | null = null;
+  let firebaseMessagingInstance: Messaging | null = null;
   let isFirebaseEnabled = false;
   const shouldLogConfigNotice =
     process.env.NODE_ENV !== 'production' || process.env.LOG_LEVEL === 'debug';
@@ -41,7 +40,7 @@ export function createFirebaseContext(config: ExternalServicesConfig): FirebaseC
       console.error(
         'Firebase Admin Initialization Failed: admin_json_key_path is required when firebase notifications are enabled'
       );
-      firebaseAdminInstance = null;
+      firebaseMessagingInstance = null;
       isFirebaseEnabled = false;
     } else {
       const adminJsonPath = config.firebase.admin_json_key_path.trim();
@@ -50,25 +49,22 @@ export function createFirebaseContext(config: ExternalServicesConfig): FirebaseC
           'Firebase Admin Initialization Failed: admin JSON key file not found at',
           adminJsonPath
         );
-        firebaseAdminInstance = null;
+        firebaseMessagingInstance = null;
         isFirebaseEnabled = false;
       } else {
         try {
-          const settings = require(adminJsonPath);
-          const serviceAccount = settings as admin.ServiceAccount;
-
-          if (!admin.apps.length) {
-            admin.initializeApp({
-              credential: admin.credential.cert(serviceAccount),
+          if (getApps().length === 0) {
+            initializeApp({
+              credential: cert(adminJsonPath),
             });
             console.warn('Firebase Admin Initialized Successfully');
           }
 
-          firebaseAdminInstance = admin;
+          firebaseMessagingInstance = getMessaging();
           isFirebaseEnabled = true;
         } catch (error) {
           console.error('Firebase Admin Initialization Failed:', error);
-          firebaseAdminInstance = null;
+          firebaseMessagingInstance = null;
           isFirebaseEnabled = false;
         }
       }
@@ -88,7 +84,7 @@ export function createFirebaseContext(config: ExternalServicesConfig): FirebaseC
   const getWebIconImageUrl = (): string => (config.web.icon_image_url ?? '').trim();
 
   return {
-    firebaseAdmin: firebaseAdminInstance,
+    firebaseMessaging: firebaseMessagingInstance,
     isFirebaseEnabled,
     getWebBaseUrl,
     getWebBaseUrlWithPath,

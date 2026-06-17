@@ -39,7 +39,6 @@ export type EmbedUrlOptions = {
   listSort?: string | null;
   listRange?: QueryParamsStatsRange | null;
   listVisibleRows?: number;
-  autoResize?: boolean;
   origin?: string;
 };
 
@@ -80,7 +79,6 @@ function buildEmbedQueryString(options: {
   listSort?: string | null;
   listRange?: QueryParamsStatsRange | null;
   listVisibleRows?: number;
-  autoResize?: boolean;
   isListRoute: boolean;
 }): string {
   const params = new URLSearchParams();
@@ -102,7 +100,7 @@ function buildEmbedQueryString(options: {
     params.set('presentation', options.presentation);
   }
 
-  if (options.playerSize === 'short' || options.playerSize === 'tall') {
+  if (options.playerSize === 'compact' || options.playerSize === 'responsive') {
     params.set('player', options.playerSize);
   }
 
@@ -129,10 +127,6 @@ function buildEmbedQueryString(options: {
     options.listVisibleRows !== EMBED_LIST_VISIBLE_ROWS_DEFAULT
   ) {
     params.set('rows', String(options.listVisibleRows));
-  }
-
-  if (options.isListRoute && options.autoResize === true) {
-    params.set('resize', '1');
   }
 
   const queryString = params.toString();
@@ -241,7 +235,6 @@ export function buildEmbedUrlPath(
     listSort: options.listSort,
     listRange: options.listRange,
     listVisibleRows: options.listVisibleRows,
-    autoResize: options.autoResize,
     isListRoute: target.isListRoute,
   });
 

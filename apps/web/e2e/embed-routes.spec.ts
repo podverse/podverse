@@ -3,8 +3,8 @@ import { expect, test } from '@playwright/test';
 import {
   EMBED_LIST_SHELL_HEIGHT,
   EMBED_LIST_SHELL_HEIGHT_WITH_SELECTOR,
-  EMBED_LIST_SHELL_TALL_HEIGHT,
-  EMBED_LIST_SHELL_TALL_HEIGHT_WITH_SELECTOR,
+  EMBED_LIST_SHELL_RESPONSIVE_HEIGHT,
+  EMBED_LIST_SHELL_RESPONSIVE_HEIGHT_WITH_SELECTOR,
   EMBED_SINGLE_SHELL_HEIGHT,
   embedTitleLocator,
   expectEmbedArtworkSrcContains,
@@ -16,7 +16,7 @@ import {
   expectEmbedListRegionScrollable,
   expectEmbedListRowMetadata,
   expectEmbedListShell,
-  expectEmbedTallVideoElement,
+  expectEmbedResponsiveVideoElement,
   expectEmbedNotAvailableShell,
   expectEmbedNotFoundShell,
   expectEmbedPlayerDuration,
@@ -161,13 +161,13 @@ test.describe('Embed routes (anonymous)', () => {
     await test.step('Video episode embed shows the inline video stage and video element', async () => {
       await page.goto(`/embed/episode/${E2E_EMBED_VIDEO_ITEM_ID_TEXT}`);
       await expectEmbedSingleShell(page);
-      await expectEmbedTallVideoElement(page);
+      await expectEmbedResponsiveVideoElement(page);
 
       await capturePageLoad(
         page,
         testInfo,
-        'The video episode embed shows the inline tall video stage.',
-        page.getByTestId('embed-tall-stage')
+        'The video episode embed shows the inline responsive video stage.',
+        page.getByTestId('embed-responsive-stage')
       );
     });
   });
@@ -334,7 +334,7 @@ test.describe('Embed routes (anonymous)', () => {
     await test.step('Video channel list rows show the video stage when selected', async () => {
       await page.goto(`/embed/podcast/${E2E_EMBED_VIDEO_CHANNEL_ID_TEXT}`);
       await expectEmbedListShell(page);
-      await expectEmbedTallVideoElement(page);
+      await expectEmbedResponsiveVideoElement(page);
     });
 
     await test.step('Mixed playlist exposes audio/video presentation style switching', async () => {
@@ -348,16 +348,16 @@ test.describe('Embed routes (anonymous)', () => {
         EMBED_LIST_SHELL_HEIGHT_WITH_SELECTOR
       );
 
-      await page.getByRole('radio', { name: 'Prefer video' }).check();
-      await expectEmbedTallVideoElement(page);
+      await page.getByRole('radio', { name: 'Video' }).check();
+      await expectEmbedResponsiveVideoElement(page);
       await expectEmbedShellHeightStable(
         page.getByTestId('embed-list-shell'),
-        EMBED_LIST_SHELL_TALL_HEIGHT_WITH_SELECTOR
+        EMBED_LIST_SHELL_RESPONSIVE_HEIGHT_WITH_SELECTOR
       );
 
-      await page.getByRole('radio', { name: 'Prefer audio' }).check();
+      await page.getByRole('radio', { name: 'Audio' }).check();
       await expectEmbedPlayerProgressVisible(page);
-      await expect(page.getByTestId('embed-tall-stage')).toHaveCount(0);
+      await expect(page.getByTestId('embed-responsive-stage')).toHaveCount(0);
     });
   });
 
@@ -417,7 +417,7 @@ test.describe('Embed routes (anonymous)', () => {
   });
 
   test('List embed shell uses fixed height and internal scrolling', async ({ page }, testInfo) => {
-    await test.step('The podcast list shell is about 744px tall', async () => {
+    await test.step('The podcast list shell is about 744px high', async () => {
       await page.goto(`/embed/podcast/${EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT}`);
       await expectEmbedListShell(page);
       await expectEmbedShellHeightStable(

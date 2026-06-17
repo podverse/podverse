@@ -56,13 +56,13 @@ URL generation for Share → Embed Builder and copy output lives in
 
 Shared on single and list routes:
 
-| Param             | Default  | Normalization                                                                                                                                |
-| ----------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `t`               | `0`      | Start time in seconds; invalid/negative → `0`                                                                                                |
-| `chapter_markers` | `true`   | `0` or `false` hides progress-bar chapter boundary markers when chapters exist                                                               |
-| `ar`              | `16x9`   | Aspect ratio for **tall** player shell (`16x9`, `4x3`, `1x1`)                                                                                |
-| `player`          | inferred | `short` or `tall`; controls iframe height and player chrome. When absent, inferred from `presentation` (`audio` → `short`, `video` → `tall`) |
-| `presentation`    | `audio`  | Media **preference** for enclosure best-fit (`audio` or `video`); locks preference when present in the URL                                   |
+| Param             | Default  | Normalization                                                                                                                                                |
+| ----------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `t`               | `0`      | Start time in seconds; invalid/negative → `0`                                                                                                                |
+| `chapter_markers` | `true`   | `0` or `false` hides progress-bar chapter boundary markers when chapters exist                                                                               |
+| `ar`              | `16x9`   | Aspect ratio for **responsive** player shell (`16x9`, `4x3`, `1x1`)                                                                                          |
+| `player`          | inferred | `compact` or `responsive`; controls iframe height and player chrome. When absent, inferred from `presentation` (`audio` → `compact`, `video` → `responsive`) |
+| `presentation`    | `audio`  | Media **preference** for enclosure best-fit (`audio` or `video`); locks preference when present in the URL                                                   |
 
 List routes only:
 
@@ -70,21 +70,20 @@ List routes only:
 | ------------------------------- | -------------- | ------------------------------------------------------------------------ |
 | `play_id_text`                  | —              | Initial list row; must match a loaded row or falls back to the first row |
 | `rows`                          | `5`            | List viewport rows, clamped `2-10`                                       |
-| `resize`                        | off            | Advanced **tall-list** auto-resize (`resize=1`)                          |
 | `type`, `sort`, `page`, `range` | route defaults | Invalid enum/page values fall back per `parseEmbedQueryParams.ts`        |
 
 ### Player size vs media preference
 
 Embed URLs separate two concerns:
 
-| Concept          | URL param      | Values           | Controls                                                  |
-| ---------------- | -------------- | ---------------- | --------------------------------------------------------- |
-| Player size      | `player`       | `short`, `tall`  | iframe height, aspect ratio shell, short vs tall panel UI |
-| Media preference | `presentation` | `audio`, `video` | enclosure best-fit order (`resolveEmbedBestFitEnclosure`) |
+| Concept          | URL param      | Values                  | Controls                                                          |
+| ---------------- | -------------- | ----------------------- | ----------------------------------------------------------------- |
+| Player size      | `player`       | `compact`, `responsive` | iframe height, aspect ratio shell, compact vs responsive panel UI |
+| Media preference | `presentation` | `audio`, `video`        | enclosure best-fit order (`resolveEmbedBestFitEnclosure`)         |
 
-**Short player:** always uses the audio-style shell (no inline `<video>` UI). When `presentation=video` selects a video enclosure, playback still runs through the hidden audio orchestrator (HTML5 audio element with a video URL).
+**Compact player:** always uses the audio-style shell (no inline `<video>` UI). When `presentation=video` selects a video enclosure, playback still runs through the hidden audio orchestrator (HTML5 audio element with a video URL).
 
-**Tall player:** renders the tall video stage when the active enclosure is video (from best-fit or alternate-enclosure selection). When the active enclosure is audio (for example `presentation=audio` or an explicit audio pick in the alternate-enclosure modal), the tall shell shows center artwork instead of a `<video>` element.
+**Responsive player:** renders the responsive video stage when the active enclosure is video (from best-fit or alternate-enclosure selection). When the active enclosure is audio (for example `presentation=audio` or an explicit audio pick in the alternate-enclosure modal), the responsive shell shows center artwork instead of a `<video>` element.
 
 Legacy links without `player=` continue to work: player size is inferred from `presentation` only.
 
@@ -114,30 +113,30 @@ The `/embed` demo index appends `chapter_markers=1` on podcast-audio showcase if
 - **Playlists:** must have public `sharable_status` only. Private or unlisted playlists render
   `embed-not-available` with no row/title leakage.
 
-## Tall player (video stage)
+## Responsive player (video stage)
 
-The **tall** player is available for both single and list embeds (`player=tall`).
+The **responsive** player is available for both single and list embeds (`player=responsive`).
 
-- Single tall embeds render a width-responsive video stage (`ar` controls aspect ratio).
-- Tall overlays show info + controls while paused, on hover, or on focus; when playing, overlays fade out after idle.
-- Tall controls include a mute toggle (`embed-tall-mute-toggle`) for user-controlled volume.
-- **Tall + video enclosure** (from best-fit or alternate-enclosure pick): inline video stage (`embed-tall-video-element`).
-- **Tall + audio enclosure** (from `presentation=audio` or explicit audio pick): center artwork (`embed-tall-center-art`) instead of a `<video>` element. Center art uses the same fallback chain as the overlay info art: chapter image (when applicable), then item image, then channel image, then the embed placeholder.
-- **Short player:** always audio shell regardless of enclosure type (see [Short player + prefer video](#short-player--prefer-video)).
-- Chapter UX differs intentionally from short presentation:
+- Single responsive embeds render a width-responsive video stage (`ar` controls aspect ratio).
+- Responsive overlays show info + controls while paused, on hover, or on focus; when playing, overlays fade out after idle.
+- Responsive controls include a mute toggle (`embed-responsive-mute-toggle`) for user-controlled volume.
+- **Responsive + video enclosure** (from best-fit or alternate-enclosure pick): inline video stage (`embed-responsive-video-element`).
+- **Responsive + audio enclosure** (from `presentation=audio` or explicit audio pick): center artwork (`embed-responsive-center-art`) instead of a `<video>` element. Center art uses the same fallback chain as the overlay info art: chapter image (when applicable), then item image, then channel image, then the embed placeholder.
+- **Compact player:** always audio shell regardless of enclosure type (see [Compact player + prefer video](#compact-player--prefer-video)).
+- Chapter UX differs intentionally from compact presentation:
   - Chapter title shows in a dedicated line above controls.
-  - Progress-bar chapter hover tooltip is enabled in tall presentation and remains disabled in short embed controls.
+  - Progress-bar chapter hover tooltip is enabled in responsive presentation and remains disabled in compact embed controls.
 
-## Short player + prefer video
+## Compact player + prefer video
 
-When `player=short` and `presentation=video`, the shell stays short (audio UI) but enclosure selection prefers video sources. Video enclosures play as audio-only (no tall stage mount). Alternate-enclosure switches to video while short follow the same path.
+When `player=compact` and `presentation=video`, the shell stays compact (audio UI) but enclosure selection prefers video sources. Video enclosures play as audio-only (no responsive stage mount). Alternate-enclosure switches to video while compact follow the same path.
 
 ## Mixed list/playlist presentation
 
 When a list embed contains both audio and video rows (for example playlist `e2eEmbPlMix01`), the
 shell shows a **Prefer audio / Prefer video** selector. The selector controls media preference
 for enclosure best-fit on the active row while preserving list-row selection and playback behavior.
-When `player=short` is locked in the URL, the shell stays short regardless of prefer value.
+When `player=compact` is locked in the URL, the shell stays compact regardless of prefer value.
 
 ## Brand mark (upper-right, optional)
 
@@ -185,46 +184,34 @@ Canonical **literals** (art size, video placeholders, list viewport, and so on) 
 Shell **formulas** (player panel + list region) and `embed-player-panel-custom-properties` are in
 `_embedLayoutTokens.scss`. Import that file from embed `*.module.scss` (e.g.
 `@use './embedLayoutTokens' as embed`). At **16px root**
-(`--spacing-lg` = 16px, `--spacing-md` = 8px), single-audio height is:
+(`--spacing-lg` = 16px, `--spacing-md` = 8px), single-compact height is:
 `padding + art + gap + play button + padding`.
 
 **In-app previews** (demo index `/embed`, embed builder page `/embed/builder`) size iframes with the
 same SCSS shell-height variables and `embed-player-panel-custom-properties` mixin — not hardcoded
 pixel attributes. Video single embeds use width-filling aspect-ratio layout in the builder preview.
+Both `/embed` and `/embed/builder` use full app chrome (navbar and sidebar); iframe embed routes under `/embed/<resource>` remain chromeless.
 
-**Copy-paste iframe snippets** (`buildEmbedIframeCode`) emit numeric `height="…"` for fixed-size layouts and a responsive wrapper for single-video layouts. Numeric heights come from `embedLayoutDimensions.ts`, which derives px from `embedLayoutTokens.ts` using the same formulas as `_embedLayoutTokens.scss`. Import `DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT` (and related exports) or call `getEmbedIframeHeightForRouteKind()` for current defaults.
+**Copy-paste iframe snippets** (`buildEmbedIframeCode`) emit numeric `height="…"` for fixed-size layouts and a responsive wrapper for single-video layouts. Numeric heights come from `embedLayoutDimensions.ts`, which derives px from `embedLayoutTokens.ts` using the same formulas as `_embedLayoutTokens.scss`. Import `DEFAULT_SINGLE_COMPACT_IFRAME_HEIGHT` (and related exports) or call `getEmbedIframeHeightForRouteKind()` for current defaults.
 
 ### List sizing and breaking default
 
 List embeds now default to **5 visible rows** (`rows=5`) instead of the previous ~12-row viewport.
 
 - Audio list shell height: player panel + `rows x 48px` (+ presentation selector height when shown).
-- Video list shell height (fixed mode): fixed video panel + `rows x 48px` (+ selector height when shown).
-- Video list shell height (advanced mode): enable `resize=1` for responsive video panel plus fixed list region.
+- Video list shell height: fixed video panel + `rows x 48px` (+ selector height when shown).
 
-### Advanced video-list auto-resize (`resize=1`)
-
-Auto-resize is opt-in and intended for host pages that install a parent listener.
-
-1. Enable `resize=1` on a video-list embed URL.
-2. Add `data-podverse-embed-resize` to the iframe (builder does this automatically when toggle is on).
-3. Install the generated parent-page listener snippet and keep strict origin checks (`event.origin` must match the Podverse web origin).
-
-When `resize=1` is not set, embed pages never post resize messages and fixed deterministic heights remain active.
-
-Share modal → entity-specific **Embed** buttons (for example **Embed Podcast**, **Embed
-Playlist**, **Embed Episode**) navigate to `/embed/builder` with query params. The builder page
-supports four embed types: `audio`, `video`, `audio-list`, and `video-list`, with live preview and
-copyable iframe code.
+Share modal → a single **Embed Builder** outline button navigates to `/embed/builder` with query
+params preloaded for the share context (podcast, episode, playlist, playlist item, clip,
+chapter, etc.). The builder always shows **Embed type** (`compact` or `responsive`) and a **List** on/off control. Channel and playlist sources show List **On** with **Off** disabled; clip/chapter/official-clip sources show List **Off** with **On** disabled; episode and track sources allow toggling.
 
 Builder URL shape:
 
-`/embed/builder?channel=<id_text>&item=<id_text>&playlist=<id_text>&type=<audio|video|audio-list|video-list>&playlist_item=<id_text>&sort=<sort>&t=30`
+`/embed/builder?channel=<id_text>&item=<id_text>&playlist=<id_text>&type=<compact|responsive>&list=1&playlist_item=<id_text>&sort=<sort>&t=30`
 
-Playlist item share includes both `playlist` and `playlist_item`; `playlist_item` becomes
-`play_id_text` in the generated embed URL.
+Legacy builder URLs may still use combined `type=compact-list|responsive-list` or `audio-list`/`video-list`; those map to `type` + `list=1`.
 
-### List content types and sort (audio-list / video-list)
+### List content types and sort (list=1)
 
 For list embeds the builder offers a **List content** selector and a per-content **Sort** selector
 (plus a **Time range** selector when sort is popularity). Available content types are resolved from
@@ -375,14 +362,13 @@ Default list rows (with current seed):
 
 ## Current limitations
 
-- **Color customization:** builder advanced section is a placeholder only.
 - **Private playlists:** not embeddable; no support for unlisted playlist embeds in phase 1.
 
 ## Related code
 
 - Layout: `apps/web/src/app/embed/layout.tsx`
 - Runtime helpers: `apps/web/src/lib/embed/`
-- E2E: `apps/web/e2e/embed-routes.spec.ts`, `embed-share-builder.spec.ts`, `embed-demo-index.spec.ts`
+- E2E: `apps/web/e2e/embed-routes.spec.ts`, `embed-share-builder.spec.ts`, `embed-responsive-player.spec.ts`, `embed-demo-index.spec.ts`
 - Management E2E: `apps/management-web/e2e/embed-demo-config.spec.ts`
 - API tests: `apps/api/src/routes/embedDemo.integration.test.ts`,
   `apps/management-api/src/routes/embedDemo.integration.test.ts`

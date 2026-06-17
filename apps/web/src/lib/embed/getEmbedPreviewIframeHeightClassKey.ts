@@ -1,20 +1,20 @@
 import type { EmbedLayoutType, EmbedPlayerSizeQuery } from './embedTypes';
 
 export type EmbedPreviewIframeHeightClassKey =
-  | 'iframeSingleShort'
-  | 'iframeSingleTall'
-  | 'iframeListShort'
-  | 'iframeListTall';
+  | 'iframeSingleCompact'
+  | 'iframeSingleResponsive'
+  | 'iframeListCompact'
+  | 'iframeListResponsive';
 
 export function getEmbedPreviewIframeHeightClassKey(
   layoutType: EmbedLayoutType,
   playerSize: EmbedPlayerSizeQuery
 ): EmbedPreviewIframeHeightClassKey {
-  const isTall = playerSize === 'tall';
+  const isResponsive = playerSize === 'responsive';
 
   if (layoutType === 'list') {
-    return isTall ? 'iframeListTall' : 'iframeListShort';
+    return isResponsive ? 'iframeListResponsive' : 'iframeListCompact';
   }
 
-  return isTall ? 'iframeSingleTall' : 'iframeSingleShort';
+  return isResponsive ? 'iframeSingleResponsive' : 'iframeSingleCompact';
 }

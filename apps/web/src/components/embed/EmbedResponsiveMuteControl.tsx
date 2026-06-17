@@ -7,9 +7,9 @@ import { FaVolumeHigh, FaVolumeXmark } from 'react-icons/fa6';
 
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
 
-import styles from '../../styles/components/embed/EmbedTallMuteControl.module.scss';
+import styles from '../../styles/components/embed/EmbedResponsiveMuteControl.module.scss';
 
-export function EmbedTallMuteControl() {
+export function EmbedResponsiveMuteControl() {
   const { mpVolume, setMPVolume, mpIsMuted, setMPIsMuted } = useMediaPlayer();
   const tFeatures = useTranslations('features');
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -75,15 +75,17 @@ export function EmbedTallMuteControl() {
     >
       <button
         className={styles.muteToggle}
-        aria-label={mpIsMuted ? tFeatures('embed_tall_unmute') : tFeatures('embed_tall_mute')}
-        data-testid="embed-tall-mute-toggle"
+        aria-label={
+          mpIsMuted ? tFeatures('embed_responsive_unmute') : tFeatures('embed_responsive_mute')
+        }
+        data-testid="embed-responsive-mute-toggle"
         onClick={() => setMPIsMuted(!mpIsMuted)}
         type="button"
       >
         {mpIsMuted ? <FaVolumeXmark aria-hidden /> : <FaVolumeHigh aria-hidden />}
       </button>
       {isPopoverOpen ? (
-        <div className={styles.popover} data-testid="embed-tall-volume-popover">
+        <div className={styles.popover} data-testid="embed-responsive-volume-popover">
           <div
             className={styles.verticalBar}
             ref={barRef}

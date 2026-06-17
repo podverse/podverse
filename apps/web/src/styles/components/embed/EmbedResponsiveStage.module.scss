@@ -1,16 +1,11 @@
 @use './embedLayoutTokens' as tokens;
 
-.tallStage {
+.responsiveStage {
   background: var(--background-color-secondary);
   height: 100%;
   overflow: hidden;
   position: relative;
   width: 100%;
-}
-
-.tallStageAutoResize {
-  aspect-ratio: var(--embed-video-aspect-ratio);
-  height: auto;
 }
 
 .mediaLayer {

@@ -8,7 +8,6 @@ import { LoadingSpinner } from '@podverse/ui';
 import { EmbedShellPlaybackModeProvider } from '../../contexts/EmbedPlaybackMode';
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
 import { useEmbedPlaybackLoad } from '../../hooks/useEmbedPlaybackLoad';
-import { useEmbedTallAutoResize } from '../../hooks/useEmbedTallAutoResize';
 import { getEmbedListVideoPlaceholderHeightPx } from '../../lib/embed/embedLayoutDimensions';
 import { registerEmbedListEndedHandler } from '../../lib/embed/embedListPlaybackAdvance';
 import type {
@@ -30,7 +29,7 @@ import {
 } from '../../lib/embed/fetchEmbedListPageClient';
 import {
   flattenEmbedListRows,
-  resolveEmbedListDefaultRow,
+  resolveEmbedListInitialRow,
 } from '../../lib/embed/resolveEmbedListDefaultRow';
 import {
   listHasMixedEmbedMedia,
@@ -69,8 +68,8 @@ export function EmbedListShell({
   const allRows = useMemo(() => flattenEmbedListRows(groups), [groups]);
   const lastRowKey = allRows.at(-1)?.rowKey ?? null;
   const initialRow = useMemo(
-    () => resolveEmbedListDefaultRow(allRows, playIdText),
-    [allRows, playIdText]
+    () => resolveEmbedListInitialRow(allRows, playIdText, listData.playIdTextOverrideRow),
+    [allRows, listData.playIdTextOverrideRow, playIdText]
   );
   const hasMixedMedia = useMemo(() => listHasMixedEmbedMedia(allRows), [allRows]);
   const { playerSize, playerSizeLocked, presentationLocked } = sharedQuery;
@@ -88,10 +87,30 @@ export function EmbedListShell({
     playerSizeLocked,
     mediaPreference,
   });
-  const isTallPlayer = effectivePlayerSize === 'tall';
+  const isResponsivePlayer = effectivePlayerSize === 'responsive';
   const [playbackStartSeconds, setPlaybackStartSeconds] = useState(sharedQuery.startSeconds);
   const [shouldPlay, setShouldPlay] = useState(false);
   const { mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
+
+  useEffect(() => {
+    setSelectedRow(initialRow);
+    setPlaybackStartSeconds(sharedQuery.startSeconds);
+
+    if (presentationLocked) {
+      setMediaPreference(sharedQuery.presentation);
+      return;
+    }
+
+    if (!hasMixedMedia) {
+      setMediaPreference(resolveInitialPresentationStyle(initialRow));
+    }
+  }, [
+    hasMixedMedia,
+    initialRow,
+    presentationLocked,
+    sharedQuery.presentation,
+    sharedQuery.startSeconds,
+  ]);
 
   useEffect(() => {
     if (presentationLocked) {
@@ -253,15 +272,11 @@ export function EmbedListShell({
       }
     : null;
 
-  const autoResizeEnabled = isTallPlayer && listQuery.autoResize === true;
-  const shellClassName = isTallPlayer
-    ? `${styles.shell} ${styles.shellTall} ${
-        autoResizeEnabled ? styles.shellTallAutoResize : styles.shellTallFixed
-      }`
+  const shellClassName = isResponsivePlayer
+    ? `${styles.shell} ${styles.shellResponsive}`
     : styles.shell;
 
   const showPresentationSelector = hasMixedMedia && !presentationLocked;
-  useEmbedTallAutoResize({ enabled: autoResizeEnabled });
   const shellStyle = {
     '--embed-has-presentation-selector': showPresentationSelector ? 1 : 0,
     '--embed-list-visible-rows': String(listQuery.listVisibleRows),
@@ -274,7 +289,6 @@ export function EmbedListShell({
         <EmbedPlayerPanel
           fallbackResource={selectedResource}
           headerTitle={listData.headerTitle}
-          listTallAutoResize={autoResizeEnabled}
           panelLayout="list"
           playerSize={effectivePlayerSize}
           sharedQuery={sharedQuery}

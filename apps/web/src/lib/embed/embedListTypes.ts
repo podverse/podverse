@@ -28,6 +28,8 @@ export type EmbedListData = {
   pagination: EmbedListPagination;
   routeKind: EmbedListRouteKind;
   resourceId: string;
+  /** When play_id_text is not on the loaded page, playback still uses this row. */
+  playIdTextOverrideRow: EmbedListRow | null;
 };
 
 export type EmbedListFetchResult =

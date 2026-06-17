@@ -3,9 +3,10 @@ import { describe, expect, it } from 'vitest';
 import { parseEmbedBuilderQueryParams } from '../parseEmbedBuilderQueryParams';
 
 describe('parseEmbedBuilderQueryParams', () => {
-  it('returns short defaults when params are missing', () => {
+  it('returns compact defaults when params are missing', () => {
     expect(parseEmbedBuilderQueryParams({})).toEqual({
-      type: 'short',
+      playerSize: 'compact',
+      listEnabled: false,
       mediaPreference: 'audio',
       channel: null,
       mediumId: null,
@@ -22,7 +23,6 @@ describe('parseEmbedBuilderQueryParams', () => {
       startSeconds: 0,
       playIdText: null,
       listVisibleRows: 5,
-      autoResize: false,
       showChapterMarkers: true,
       aspectRatio: '16x9',
       borderColor: '#444444',
@@ -31,22 +31,35 @@ describe('parseEmbedBuilderQueryParams', () => {
 
   it('accepts legacy audio type aliases', () => {
     expect(parseEmbedBuilderQueryParams({ type: 'audio' })).toMatchObject({
-      type: 'short',
+      playerSize: 'compact',
+      listEnabled: false,
       mediaPreference: 'audio',
     });
     expect(parseEmbedBuilderQueryParams({ type: 'video-list' })).toMatchObject({
-      type: 'tall-list',
+      playerSize: 'responsive',
+      listEnabled: true,
       mediaPreference: 'video',
     });
   });
 
+  it('parses list query param independently from type', () => {
+    expect(parseEmbedBuilderQueryParams({ type: 'compact', list: '1' })).toMatchObject({
+      playerSize: 'compact',
+      listEnabled: true,
+    });
+    expect(parseEmbedBuilderQueryParams({ type: 'responsive', list: 'off' })).toMatchObject({
+      playerSize: 'responsive',
+      listEnabled: false,
+    });
+  });
+
   it('parses prefer query param for media preference', () => {
-    expect(parseEmbedBuilderQueryParams({ type: 'short', prefer: 'video' })).toMatchObject({
-      type: 'short',
+    expect(parseEmbedBuilderQueryParams({ type: 'compact', prefer: 'video' })).toMatchObject({
+      playerSize: 'compact',
       mediaPreference: 'video',
     });
-    expect(parseEmbedBuilderQueryParams({ type: 'tall', prefer: 'audio' })).toMatchObject({
-      type: 'tall',
+    expect(parseEmbedBuilderQueryParams({ type: 'responsive', prefer: 'audio' })).toMatchObject({
+      playerSize: 'responsive',
       mediaPreference: 'audio',
     });
   });
@@ -71,7 +84,8 @@ describe('parseEmbedBuilderQueryParams', () => {
         playlist_item: 'item-1',
       })
     ).toMatchObject({
-      type: 'short-list',
+      playerSize: 'compact',
+      listEnabled: true,
       playlist: 'pl-1',
       playlistItem: 'item-1',
     });
@@ -88,11 +102,6 @@ describe('parseEmbedBuilderQueryParams', () => {
     expect(parseEmbedBuilderQueryParams({ rows: '99' }).listVisibleRows).toBe(10);
   });
 
-  it('parses auto-resize toggle', () => {
-    expect(parseEmbedBuilderQueryParams({ resize: '1' }).autoResize).toBe(true);
-    expect(parseEmbedBuilderQueryParams({ resize: '0' }).autoResize).toBe(false);
-  });
-
   it('parses and sanitizes the border color', () => {
     expect(parseEmbedBuilderQueryParams({}).borderColor).toBe('#444444');
     expect(parseEmbedBuilderQueryParams({ border: 'none' }).borderColor).toBe('none');
@@ -100,5 +109,28 @@ describe('parseEmbedBuilderQueryParams', () => {
     expect(parseEmbedBuilderQueryParams({ border: 'evil;"></iframe>' }).borderColor).toBe(
       '#444444'
     );
+  });
+
+  it('forces list on for channel-only sources', () => {
+    expect(
+      parseEmbedBuilderQueryParams({
+        channel: 'podcast-1',
+        type: 'compact',
+      })
+    ).toMatchObject({
+      playerSize: 'compact',
+      listEnabled: true,
+    });
+
+    expect(
+      parseEmbedBuilderQueryParams({
+        channel: 'podcast-1',
+        type: 'responsive',
+        list: '0',
+      })
+    ).toMatchObject({
+      playerSize: 'responsive',
+      listEnabled: true,
+    });
   });
 });

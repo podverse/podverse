@@ -3,41 +3,41 @@ import { describe, expect, it } from 'vitest';
 import { resolveEffectiveEmbedListPlayerSize } from '../resolvePlayerSizeFromPresentation';
 
 describe('resolveEffectiveEmbedListPlayerSize', () => {
-  it('keeps short shell when player size is locked to short regardless of preference', () => {
+  it('keeps compact shell when player size is locked to compact regardless of preference', () => {
     expect(
       resolveEffectiveEmbedListPlayerSize({
-        playerSize: 'short',
+        playerSize: 'compact',
         playerSizeLocked: true,
         mediaPreference: 'video',
       })
-    ).toBe('short');
+    ).toBe('compact');
   });
 
-  it('keeps tall shell when player size is locked to tall regardless of preference', () => {
+  it('keeps responsive shell when player size is locked to responsive regardless of preference', () => {
     expect(
       resolveEffectiveEmbedListPlayerSize({
-        playerSize: 'tall',
+        playerSize: 'responsive',
         playerSizeLocked: true,
         mediaPreference: 'audio',
       })
-    ).toBe('tall');
+    ).toBe('responsive');
   });
 
   it('derives shell size from media preference when player size is not locked', () => {
     expect(
       resolveEffectiveEmbedListPlayerSize({
-        playerSize: 'short',
+        playerSize: 'compact',
         playerSizeLocked: false,
         mediaPreference: 'video',
       })
-    ).toBe('tall');
+    ).toBe('responsive');
 
     expect(
       resolveEffectiveEmbedListPlayerSize({
-        playerSize: 'short',
+        playerSize: 'compact',
         playerSizeLocked: false,
         mediaPreference: 'audio',
       })
-    ).toBe('short');
+    ).toBe('compact');
   });
 });

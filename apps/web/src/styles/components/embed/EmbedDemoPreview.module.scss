@@ -40,6 +40,7 @@
 
 .frame {
   @include embed.embed-player-panel-custom-properties;
+  --embed-list-video-placeholder-height: #{embed.$embed-list-video-placeholder-height};
 
   // content-box so the 1px border sits outside the reserved height; the iframe
   // (height: 100%) then equals the shell height exactly and the embedded document
@@ -58,25 +59,26 @@
   width: 100%;
 }
 
-.iframeSingleShort,
-.frame.iframeSingleShort {
-  height: embed.$embed-single-short-shell-height;
+.iframeSingleCompact,
+.frame.iframeSingleCompact {
+  height: embed.$embed-single-compact-shell-height;
 }
 
-.iframeSingleTall,
-.frame.iframeSingleTall {
+.iframeSingleResponsive,
+.frame.iframeSingleResponsive {
   aspect-ratio: 16 / 9;
   height: auto;
 }
 
-.iframeListShort,
-.frame.iframeListShort {
-  height: embed.$embed-list-short-shell-height;
+.iframeListCompact,
+.frame.iframeListCompact {
+  height: embed.$embed-list-compact-shell-height;
 }
 
-.iframeListTall,
-.frame.iframeListTall {
-  height: embed.$embed-list-tall-shell-height;
+.iframeListResponsive,
+.frame.iframeListResponsive {
+  aspect-ratio: unset;
+  height: embed.$embed-list-responsive-shell-height;
 }
 
 .placeholder {

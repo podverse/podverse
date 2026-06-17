@@ -1,33 +1,34 @@
-import type { Page } from '@playwright/test';
+import type { FrameLocator, Locator, Page } from '@playwright/test';
 import { expect } from '@playwright/test';
 
 import {
-  DEFAULT_LIST_SHORT_IFRAME_HEIGHT,
-  DEFAULT_LIST_TALL_IFRAME_HEIGHT,
-  DEFAULT_SINGLE_SHORT_IFRAME_HEIGHT,
-  DEFAULT_SINGLE_TALL_IFRAME_HEIGHT,
-  getEmbedListShortIframeHeightPx,
-  getEmbedListTallIframeHeightPx,
+  DEFAULT_LIST_COMPACT_IFRAME_HEIGHT,
+  DEFAULT_LIST_RESPONSIVE_IFRAME_HEIGHT,
+  DEFAULT_SINGLE_COMPACT_IFRAME_HEIGHT,
+  DEFAULT_SINGLE_RESPONSIVE_IFRAME_HEIGHT,
+  getEmbedListCompactIframeHeightPx,
+  getEmbedListResponsiveIframeHeightPx,
 } from '../../src/lib/embed/embedLayoutDimensions';
 
-export const EMBED_SINGLE_SHELL_HEIGHT = DEFAULT_SINGLE_SHORT_IFRAME_HEIGHT;
-export const EMBED_SINGLE_SHELL_TALL_HEIGHT = DEFAULT_SINGLE_TALL_IFRAME_HEIGHT;
-export const EMBED_LIST_SHELL_HEIGHT = DEFAULT_LIST_SHORT_IFRAME_HEIGHT;
-export const EMBED_LIST_SHELL_TALL_HEIGHT = DEFAULT_LIST_TALL_IFRAME_HEIGHT;
-export const EMBED_LIST_SHELL_HEIGHT_WITH_SELECTOR = getEmbedListShortIframeHeightPx({
+export const EMBED_SINGLE_SHELL_HEIGHT = DEFAULT_SINGLE_COMPACT_IFRAME_HEIGHT;
+export const EMBED_SINGLE_SHELL_RESPONSIVE_HEIGHT = DEFAULT_SINGLE_RESPONSIVE_IFRAME_HEIGHT;
+export const EMBED_LIST_SHELL_HEIGHT = DEFAULT_LIST_COMPACT_IFRAME_HEIGHT;
+export const EMBED_LIST_SHELL_RESPONSIVE_HEIGHT = DEFAULT_LIST_RESPONSIVE_IFRAME_HEIGHT;
+export const EMBED_LIST_SHELL_HEIGHT_WITH_SELECTOR = getEmbedListCompactIframeHeightPx({
   includePresentationSelector: true,
 });
-export const EMBED_LIST_SHELL_TALL_HEIGHT_WITH_SELECTOR = getEmbedListTallIframeHeightPx({
-  includePresentationSelector: true,
-});
+export const EMBED_LIST_SHELL_RESPONSIVE_HEIGHT_WITH_SELECTOR =
+  getEmbedListResponsiveIframeHeightPx({
+    includePresentationSelector: true,
+  });
 
-/** @deprecated Use EMBED_SINGLE_SHELL_TALL_HEIGHT */
-export const EMBED_SINGLE_SHELL_VIDEO_HEIGHT = EMBED_SINGLE_SHELL_TALL_HEIGHT;
-/** @deprecated Use EMBED_LIST_SHELL_TALL_HEIGHT */
-export const EMBED_LIST_SHELL_VIDEO_HEIGHT = EMBED_LIST_SHELL_TALL_HEIGHT;
-/** @deprecated Use EMBED_LIST_SHELL_TALL_HEIGHT_WITH_SELECTOR */
+/** @deprecated Use EMBED_SINGLE_SHELL_RESPONSIVE_HEIGHT */
+export const EMBED_SINGLE_SHELL_VIDEO_HEIGHT = EMBED_SINGLE_SHELL_RESPONSIVE_HEIGHT;
+/** @deprecated Use EMBED_LIST_SHELL_RESPONSIVE_HEIGHT */
+export const EMBED_LIST_SHELL_VIDEO_HEIGHT = EMBED_LIST_SHELL_RESPONSIVE_HEIGHT;
+/** @deprecated Use EMBED_LIST_SHELL_RESPONSIVE_HEIGHT_WITH_SELECTOR */
 export const EMBED_LIST_SHELL_VIDEO_HEIGHT_WITH_SELECTOR =
-  EMBED_LIST_SHELL_TALL_HEIGHT_WITH_SELECTOR;
+  EMBED_LIST_SHELL_RESPONSIVE_HEIGHT_WITH_SELECTOR;
 
 export async function expectEmbedRootVisible(page: Page): Promise<void> {
   await expect(page.getByTestId('embed-root')).toBeVisible();
@@ -51,21 +52,21 @@ export async function expectEmbedNotAvailableShell(page: Page): Promise<void> {
   await expect(page.getByTestId('embed-not-available')).toBeVisible();
 }
 
-export async function expectEmbedTallStage(page: Page): Promise<void> {
+export async function expectEmbedResponsiveStage(page: Page): Promise<void> {
   await expect(page.getByTestId('embed-player-loading')).toHaveCount(0);
-  await expect(page.getByTestId('embed-tall-stage')).toBeVisible();
+  await expect(page.getByTestId('embed-responsive-stage')).toBeVisible();
 }
 
-export async function expectEmbedTallVideoElement(page: Page): Promise<void> {
-  await expectEmbedTallStage(page);
-  await expect(page.getByTestId('embed-tall-video-element')).toBeVisible();
+export async function expectEmbedResponsiveVideoElement(page: Page): Promise<void> {
+  await expectEmbedResponsiveStage(page);
+  await expect(page.getByTestId('embed-responsive-video-element')).toBeVisible();
 }
 
-export async function expectEmbedTallCenterArt(page: Page): Promise<void> {
-  await expectEmbedTallStage(page);
-  await expect(page.getByTestId('embed-tall-center-art')).toBeVisible();
+export async function expectEmbedResponsiveCenterArt(page: Page): Promise<void> {
+  await expectEmbedResponsiveStage(page);
+  await expect(page.getByTestId('embed-responsive-center-art')).toBeVisible();
 
-  const centerArtImage = page.getByTestId('embed-tall-center-art').locator('img').first();
+  const centerArtImage = page.getByTestId('embed-responsive-center-art').locator('img').first();
   await expect(centerArtImage).toBeVisible();
 
   const box = await centerArtImage.boundingBox();
@@ -76,30 +77,30 @@ export async function expectEmbedTallCenterArt(page: Page): Promise<void> {
   }
 }
 
-/** @deprecated Use expectEmbedTallStage */
+/** @deprecated Use expectEmbedResponsiveStage */
 export async function expectEmbedVideoStage(page: Page): Promise<void> {
-  await expectEmbedTallStage(page);
+  await expectEmbedResponsiveStage(page);
 }
 
-/** @deprecated Use expectEmbedTallVideoElement */
+/** @deprecated Use expectEmbedResponsiveVideoElement */
 export async function expectEmbedVideoElement(page: Page): Promise<void> {
-  await expectEmbedTallVideoElement(page);
+  await expectEmbedResponsiveVideoElement(page);
 }
 
-/** @deprecated Use expectEmbedTallCenterArt */
+/** @deprecated Use expectEmbedResponsiveCenterArt */
 export async function expectEmbedVideoCenterArt(page: Page): Promise<void> {
-  await expectEmbedTallCenterArt(page);
+  await expectEmbedResponsiveCenterArt(page);
 }
 
-export async function expectEmbedShortShellNoVideoElement(page: Page): Promise<void> {
+export async function expectEmbedCompactShellNoVideoElement(page: Page): Promise<void> {
   await expect(page.getByTestId('embed-player-loading')).toHaveCount(0);
-  await expect(page.getByTestId('embed-tall-stage')).toHaveCount(0);
-  await expect(page.getByTestId('embed-tall-video-element')).toHaveCount(0);
+  await expect(page.getByTestId('embed-responsive-stage')).toHaveCount(0);
+  await expect(page.getByTestId('embed-responsive-video-element')).toHaveCount(0);
   await expect(page.getByTestId('embed-player-info')).toBeVisible();
 }
 
-export function embedTitleLocator(page: Page): Locator {
-  return page.getByTestId('embed-title-toggle').or(page.getByTestId('embed-title'));
+export function embedTitleLocator(scope: Page | FrameLocator): Locator {
+  return scope.getByTestId('embed-title-toggle').or(scope.getByTestId('embed-title'));
 }
 
 export async function expectEmbedAudioPlayerMetadata(page: Page): Promise<void> {
@@ -224,6 +225,24 @@ export async function expectEmbedShellHeightStable(
     expect(box.height).toBeGreaterThanOrEqual(expectedHeight - 2);
     expect(box.height).toBeLessThanOrEqual(expectedHeight + 2);
   }
+}
+
+export async function expectFrameElementHeightWithin(
+  locator: Locator,
+  expectedHeight: number,
+  tolerance = 2
+): Promise<void> {
+  await expect
+    .poll(async () => {
+      try {
+        const height = await locator.evaluate((element) => element.clientHeight);
+        return height >= expectedHeight - tolerance && height <= expectedHeight + tolerance;
+      } catch {
+        // Iframe reloaded mid-evaluate (execution context destroyed); retry.
+        return false;
+      }
+    })
+    .toBe(true);
 }
 
 export async function expectEmbedListRegionScrollable(page: Page): Promise<void> {

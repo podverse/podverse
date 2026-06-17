@@ -19,7 +19,7 @@ import { EMBED_LIST_VISIBLE_ROWS_DEFAULT } from './parseEmbedListRows';
  * Default embed iframe heights at 16px root.
  * Formulas mirror apps/web/src/styles/components/embed/_embedLayoutTokens.scss.
  */
-function embedPlayerPanelAudioHeightPx(): number {
+function embedPlayerPanelCompactHeightPx(): number {
   return (
     EMBED_PANEL_PADDING_BLOCK_PX * 2 +
     EMBED_PLAYER_ART_SIZE_PX +
@@ -28,13 +28,17 @@ function embedPlayerPanelAudioHeightPx(): number {
   );
 }
 
-function embedPlayerPanelVideoHeightPx(placeholderHeightPx: number): number {
+function embedPlayerPanelResponsiveHeightPx(placeholderHeightPx: number): number {
   return (
     EMBED_PANEL_PADDING_BLOCK_PX * 2 +
     EMBED_PLAYER_ART_SIZE_PX +
     EMBED_PLAYER_INFO_CONTROLS_GAP_PX +
     placeholderHeightPx
   );
+}
+
+function embedPlayerPanelResponsiveListHeightPx(placeholderHeightPx: number): number {
+  return placeholderHeightPx;
 }
 
 function embedListRegionHeightPx(listVisibleRows: number): number {
@@ -50,21 +54,15 @@ function embedListVideoPlaceholderHeightPx(aspectRatio: EmbedAspectRatioQuery): 
   return Math.round(EMBED_LIST_VIDEO_REFERENCE_WIDTH_PX / aspectRatioValue);
 }
 
-export const EMBED_PLAYER_PANEL_SHORT_HEIGHT_PX = embedPlayerPanelAudioHeightPx();
+export const EMBED_PLAYER_PANEL_COMPACT_HEIGHT_PX = embedPlayerPanelCompactHeightPx();
 
-export const DEFAULT_SINGLE_SHORT_IFRAME_HEIGHT = EMBED_PLAYER_PANEL_SHORT_HEIGHT_PX;
+export const DEFAULT_SINGLE_COMPACT_IFRAME_HEIGHT = EMBED_PLAYER_PANEL_COMPACT_HEIGHT_PX;
 
-export const DEFAULT_SINGLE_TALL_IFRAME_HEIGHT = embedPlayerPanelVideoHeightPx(
+export const DEFAULT_SINGLE_RESPONSIVE_IFRAME_HEIGHT = embedPlayerPanelResponsiveHeightPx(
   EMBED_SINGLE_VIDEO_PLACEHOLDER_PX
 );
 
-/** @deprecated Use DEFAULT_SINGLE_SHORT_IFRAME_HEIGHT */
-export const DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT = DEFAULT_SINGLE_SHORT_IFRAME_HEIGHT;
-
-/** @deprecated Use DEFAULT_SINGLE_TALL_IFRAME_HEIGHT */
-export const DEFAULT_SINGLE_VIDEO_IFRAME_HEIGHT = DEFAULT_SINGLE_TALL_IFRAME_HEIGHT;
-
-export function getEmbedListShortIframeHeightPx(options?: {
+export function getEmbedListCompactIframeHeightPx(options?: {
   listVisibleRows?: number;
   includePresentationSelector?: boolean;
 }): number {
@@ -72,13 +70,13 @@ export function getEmbedListShortIframeHeightPx(options?: {
   const includePresentationSelector = options?.includePresentationSelector ?? false;
 
   return (
-    EMBED_PLAYER_PANEL_SHORT_HEIGHT_PX +
+    EMBED_PLAYER_PANEL_COMPACT_HEIGHT_PX +
     embedListRegionHeightPx(listVisibleRows) +
     embedPresentationSelectorHeightPx(includePresentationSelector)
   );
 }
 
-export function getEmbedListTallIframeHeightPx(options?: {
+export function getEmbedListResponsiveIframeHeightPx(options?: {
   listVisibleRows?: number;
   aspectRatio?: EmbedAspectRatioQuery;
   includePresentationSelector?: boolean;
@@ -86,7 +84,9 @@ export function getEmbedListTallIframeHeightPx(options?: {
   const listVisibleRows = options?.listVisibleRows ?? EMBED_LIST_VISIBLE_ROWS_DEFAULT;
   const aspectRatio = options?.aspectRatio ?? DEFAULT_EMBED_ASPECT_RATIO;
   const includePresentationSelector = options?.includePresentationSelector ?? false;
-  const panelHeight = embedPlayerPanelVideoHeightPx(embedListVideoPlaceholderHeightPx(aspectRatio));
+  const panelHeight = embedPlayerPanelResponsiveListHeightPx(
+    embedListVideoPlaceholderHeightPx(aspectRatio)
+  );
 
   return (
     panelHeight +
@@ -95,41 +95,12 @@ export function getEmbedListTallIframeHeightPx(options?: {
   );
 }
 
-/** @deprecated Use getEmbedListShortIframeHeightPx */
-export function getEmbedListAudioIframeHeightPx(
-  options?: Parameters<typeof getEmbedListShortIframeHeightPx>[0]
-): number {
-  return getEmbedListShortIframeHeightPx(options);
-}
-
-/** @deprecated Use getEmbedListTallIframeHeightPx */
-export function getEmbedListVideoIframeHeightPx(
-  options?: Parameters<typeof getEmbedListTallIframeHeightPx>[0]
-): number {
-  return getEmbedListTallIframeHeightPx(options);
-}
-
 export function getEmbedListVideoPlaceholderHeightPx(
   aspectRatio: EmbedAspectRatioQuery = DEFAULT_EMBED_ASPECT_RATIO
 ): number {
   return embedListVideoPlaceholderHeightPx(aspectRatio);
 }
 
-export const DEFAULT_LIST_SHORT_IFRAME_HEIGHT = getEmbedListShortIframeHeightPx();
+export const DEFAULT_LIST_COMPACT_IFRAME_HEIGHT = getEmbedListCompactIframeHeightPx();
 
-export const DEFAULT_LIST_TALL_IFRAME_HEIGHT = getEmbedListTallIframeHeightPx();
-
-/** @deprecated Use DEFAULT_LIST_SHORT_IFRAME_HEIGHT */
-export const DEFAULT_LIST_AUDIO_IFRAME_HEIGHT = DEFAULT_LIST_SHORT_IFRAME_HEIGHT;
-
-/** @deprecated Use DEFAULT_LIST_TALL_IFRAME_HEIGHT */
-export const DEFAULT_LIST_VIDEO_IFRAME_HEIGHT = DEFAULT_LIST_TALL_IFRAME_HEIGHT;
-
-/** @deprecated Use DEFAULT_SINGLE_SHORT_IFRAME_HEIGHT */
-export const DEFAULT_SINGLE_IFRAME_HEIGHT = DEFAULT_SINGLE_SHORT_IFRAME_HEIGHT;
-
-/** @deprecated Use DEFAULT_LIST_SHORT_IFRAME_HEIGHT */
-export const DEFAULT_LIST_IFRAME_HEIGHT = DEFAULT_LIST_SHORT_IFRAME_HEIGHT;
-
-/** @deprecated Use EMBED_PLAYER_PANEL_SHORT_HEIGHT_PX */
-export const EMBED_PLAYER_PANEL_AUDIO_HEIGHT_PX = EMBED_PLAYER_PANEL_SHORT_HEIGHT_PX;
+export const DEFAULT_LIST_RESPONSIVE_IFRAME_HEIGHT = getEmbedListResponsiveIframeHeightPx();

@@ -80,6 +80,8 @@ export { CenterContainer } from './components/layout/CenterContainer/CenterConta
 export type { CenterContainerProps } from './components/layout/CenterContainer/CenterContainer';
 export { Divider } from './components/layout/Divider/Divider';
 export type { DividerProps } from './components/layout/Divider/Divider';
+export { FormInset } from './components/layout/FormInset/index';
+export type { FormInsetProps } from './components/layout/FormInset/index';
 export {
   DropdownMenu,
   DropdownMenuLinkItem,
@@ -294,6 +296,20 @@ export { CheckboxField } from './components/form/CheckboxField/CheckboxField';
 export type { CheckboxFieldProps } from './components/form/CheckboxField/CheckboxField';
 export { CheckboxFieldList } from './components/form/CheckboxFieldList/CheckboxFieldList';
 export type { CheckboxFieldListProps } from './components/form/CheckboxFieldList/CheckboxFieldList';
+export { CompactNumericInput } from './components/form/CompactNumericInput/CompactNumericInput';
+export type { CompactNumericInputProps } from './components/form/CompactNumericInput/CompactNumericInput';
+export { CompactTextInput } from './components/form/CompactTextInput/CompactTextInput';
+export type { CompactTextInputProps } from './components/form/CompactTextInput/CompactTextInput';
+export {
+  CompactFieldRow,
+  CompactNumericInputRow,
+} from './components/form/CompactFieldRow/CompactFieldRow';
+export type {
+  CompactFieldRowProps,
+  CompactNumericInputRowProps,
+} from './components/form/CompactFieldRow/CompactFieldRow';
+export { CodeBlock } from './components/form/CodeBlock/CodeBlock';
+export type { CodeBlockCopyPlacement, CodeBlockProps } from './components/form/CodeBlock/CodeBlock';
 export { FieldError } from './components/form/fieldPrimitives/FieldError';
 export type { FieldErrorProps } from './components/form/fieldPrimitives/FieldError';
 export { fieldPrimitiveClasses } from './components/form/fieldPrimitives/fieldPrimitiveClasses';
@@ -332,8 +348,9 @@ export {
   InlineFormFieldGroup,
   InlineFormInfo,
 } from './components/form/InlineForm/InlineForm';
-export { RadioButton } from './components/form/RadioButton/RadioButton';
+export { RadioButton, RadioButtonGroup } from './components/form/RadioButton/RadioButton';
 export type {
+  RadioButtonLayout,
   RadioButtonOption,
   RadioButtonProps,
 } from './components/form/RadioButton/RadioButton';

@@ -1,24 +1,24 @@
 'use client';
 
 import { EmbedPlayerControls } from './EmbedPlayerControls';
-import { EmbedTallMuteControl } from './EmbedTallMuteControl';
+import { EmbedResponsiveMuteControl } from './EmbedResponsiveMuteControl';
 
-import styles from '../../styles/components/embed/EmbedTallControlsOverlay.module.scss';
+import styles from '../../styles/components/embed/EmbedResponsiveControlsOverlay.module.scss';
 
-type EmbedTallControlsOverlayProps = {
+type EmbedResponsiveControlsOverlayProps = {
   onOpenAlternateEnclosureModal: () => void;
   showChapterMarkers: boolean;
 };
 
-export function EmbedTallControlsOverlay({
+export function EmbedResponsiveControlsOverlay({
   onOpenAlternateEnclosureModal,
   showChapterMarkers,
-}: EmbedTallControlsOverlayProps) {
+}: EmbedResponsiveControlsOverlayProps) {
   return (
     <div className={styles.overlayBottom} onClick={(event) => event.stopPropagation()}>
       <div className={styles.controlsRow}>
         <EmbedPlayerControls
-          muteControl={<EmbedTallMuteControl />}
+          muteControl={<EmbedResponsiveMuteControl />}
           onOpenAlternateEnclosureModal={onOpenAlternateEnclosureModal}
           showChapterHoverTooltip={true}
           showChapterMarkers={showChapterMarkers}

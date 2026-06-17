@@ -101,6 +101,34 @@ function buildItemChapterRow(
   };
 }
 
+export function buildItemRowFromDto(channel: DTOChannel, item: DTOItem): EmbedListRow {
+  return buildItemRow(channel, item, `item:${item.id_text}`);
+}
+
+export function buildClipRowFromDto(
+  channel: DTOChannel,
+  clip: DTOClip,
+  item: DTOItem
+): EmbedListRow {
+  return buildClipRow(channel, clip, item, `clip:${clip.id_text}`);
+}
+
+export function buildSoundbiteRowFromDto(
+  channel: DTOChannel,
+  itemSoundbite: DTOItemSoundbite,
+  item: DTOItem
+): EmbedListRow {
+  return buildSoundbiteRow(channel, itemSoundbite, item, `soundbite:${itemSoundbite.id_text}`);
+}
+
+export function buildItemChapterRowFromDto(
+  channel: DTOChannel,
+  item: DTOItem,
+  itemChapter: DTOItemChapter
+): EmbedListRow {
+  return buildItemChapterRow(channel, item, itemChapter, `chapter:${itemChapter.id_text}`);
+}
+
 /**
  * The chapters endpoint returns rows ordered by `start_time ASC`; honor the
  * client-side `sort` param by reversing for descending. Sort explicitly so the

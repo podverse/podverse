@@ -2,28 +2,21 @@
 
 .shell {
   @include embed.embed-player-panel-custom-properties;
+  --embed-list-video-placeholder-height: #{embed.$embed-list-video-placeholder-height};
 
   background: var(--background-color-primary);
   box-sizing: border-box;
   color: var(--text-color-primary);
   display: flex;
   flex-direction: column;
-  height: embed.$embed-list-audio-shell-height;
+  height: embed.$embed-list-compact-shell-height;
   min-width: 0;
   overflow: hidden;
   width: 100%;
 }
 
-.shellTall {
-  height: embed.$embed-list-tall-shell-height;
-}
-
-.shellTallFixed {
-  height: embed.$embed-list-tall-shell-height;
-}
-
-.shellTallAutoResize {
-  height: auto;
+.shellResponsive {
+  height: embed.$embed-list-responsive-shell-height;
 }
 
 .listRegion {

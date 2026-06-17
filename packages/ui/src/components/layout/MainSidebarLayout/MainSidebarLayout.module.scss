@@ -3,7 +3,8 @@
 .mainSidebarLayout {
   display: flex;
   flex-direction: row-reverse;
-  margin: var(--spacing-xl) var(--spacing-xl) var(--spacing-4xl) var(--spacing-xl);
+  /* Horizontal inset matches web `NavBar` / `MainHeader` (`padding-inline: var(--spacing-2xl)`). */
+  margin: var(--spacing-xl) var(--spacing-2xl) var(--spacing-4xl) var(--spacing-2xl);
 }
 
 .mainSidebarLayout > :first-child {

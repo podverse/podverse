@@ -19,7 +19,7 @@ export async function sendFirebaseNotificationBatchIOS(
   tokens: string[],
   payload: Omit<IOSPayload, 'fcmToken'>
 ) {
-  if (!ctx.firebaseAdmin) {
+  if (!ctx.firebaseMessaging) {
     throw new Error('Firebase Admin is not initialized');
   }
 
@@ -27,7 +27,7 @@ export async function sendFirebaseNotificationBatchIOS(
   const results: unknown[] = [];
 
   for (const chunk of chunks) {
-    const multicastMessage = {
+    const multicastMessage: MulticastMessage = {
       tokens: chunk,
       apns: {
         headers: { 'apns-priority': '10' },
@@ -46,9 +46,7 @@ export async function sendFirebaseNotificationBatchIOS(
     };
 
     try {
-      const resp = await ctx.firebaseAdmin
-        .messaging()
-        .sendEachForMulticast(multicastMessage as MulticastMessage);
+      const resp = await ctx.firebaseMessaging.sendEachForMulticast(multicastMessage);
       results.push(resp);
     } catch (err) {
       console.error('sendFirebaseNotificationBatchIOS chunk error:', err);

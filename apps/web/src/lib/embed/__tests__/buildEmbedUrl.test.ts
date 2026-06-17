@@ -300,36 +300,6 @@ describe('buildEmbedUrlPath', () => {
     ).toBe('/embed/episode/episode-item');
   });
 
-  it('includes resize only for list routes when enabled', () => {
-    expect(
-      buildEmbedUrlPath(
-        {
-          channel: podcastChannel,
-          item: null,
-          clip: null,
-          item_chapter: null,
-          item_soundbite: null,
-          playlist: null,
-        },
-        { autoResize: true }
-      )
-    ).toBe('/embed/podcast/podcast-channel?resize=1');
-
-    expect(
-      buildEmbedUrlPath(
-        {
-          channel: podcastChannel,
-          item: podcastItem,
-          clip: null,
-          item_chapter: null,
-          item_soundbite: null,
-          playlist: null,
-        },
-        { autoResize: true }
-      )
-    ).toBe('/embed/episode/episode-item');
-  });
-
   it('includes clip list type and popularity range for podcast list routes', () => {
     expect(
       buildEmbedUrlPath(

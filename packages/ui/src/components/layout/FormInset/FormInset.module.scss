@@ -1,0 +1,30 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--form-gap) / 2);
+  min-width: 0;
+  width: 100%;
+}
+
+.headingRow {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.heading {
+  color: var(--text-color-primary);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  margin: 0;
+}
+
+.root {
+  background-color: var(--background-color-secondary);
+  border: 1px solid var(--border-color-opaque);
+  border-radius: var(--border-radius-md);
+  box-sizing: border-box;
+  min-width: 0;
+  padding: var(--spacing-2xl);
+  width: 100%;
+}

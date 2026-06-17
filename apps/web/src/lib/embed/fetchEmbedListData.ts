@@ -10,6 +10,7 @@ import type {
   EmbedPodcastListQueryParams,
 } from './embedTypes';
 import { isEmbedChannelEmbeddable, isEmbedPlaylistEmbeddable } from './embedVisibility';
+import { fetchEmbedListPlayIdTextOverrideRow } from './fetchEmbedListPlayIdTextOverrideRow';
 import {
   mapAlbumItemsToEmbedListGroups,
   mapChannelClipsToEmbedListRows,
@@ -91,13 +92,18 @@ async function fetchEmbedEpisodeChaptersListData(
 
   return {
     status: 'ok',
-    listData: buildEmbedListData({
+    listData: await finalizeEmbedListData({
       routeKind: 'episode-chapters',
-      resourceId: item.id_text,
-      headerTitle: item.title ?? '',
-      groups: mapItemChaptersToEmbedListRows(channel, item, chapters),
-      page: 1,
-      totalPages: 1,
+      channel,
+      listQuery,
+      listData: buildEmbedListData({
+        routeKind: 'episode-chapters',
+        resourceId: item.id_text,
+        headerTitle: item.title ?? '',
+        groups: mapItemChaptersToEmbedListRows(channel, item, chapters),
+        page: 1,
+        totalPages: 1,
+      }),
     }),
   };
 }
@@ -125,13 +131,18 @@ async function fetchEmbedChannelListData(
     if (albumQuery.type !== 'tracks') {
       return {
         status: 'ok',
-        listData: buildEmbedListData({
+        listData: await finalizeEmbedListData({
           routeKind: 'album',
-          resourceId: channel.id_text,
-          headerTitle: channel.title ?? '',
-          groups: [],
-          page: albumQuery.page,
-          totalPages: 1,
+          channel,
+          listQuery: albumQuery,
+          listData: buildEmbedListData({
+            routeKind: 'album',
+            resourceId: channel.id_text,
+            headerTitle: channel.title ?? '',
+            groups: [],
+            page: albumQuery.page,
+            totalPages: 1,
+          }),
         }),
       };
     }
@@ -159,13 +170,18 @@ async function fetchEmbedChannelListData(
 
     return {
       status: 'ok',
-      listData: buildEmbedListData({
+      listData: await finalizeEmbedListData({
         routeKind: 'album',
-        resourceId: channel.id_text,
-        headerTitle: channel.title ?? '',
-        groups: mapAlbumItemsToEmbedListGroups(channel, items),
-        page: albumQuery.page,
-        totalPages,
+        channel,
+        listQuery: albumQuery,
+        listData: buildEmbedListData({
+          routeKind: 'album',
+          resourceId: channel.id_text,
+          headerTitle: channel.title ?? '',
+          groups: mapAlbumItemsToEmbedListGroups(channel, items),
+          page: albumQuery.page,
+          totalPages,
+        }),
       }),
     };
   }
@@ -175,13 +191,18 @@ async function fetchEmbedChannelListData(
   if (podcastQuery.type === 'boosts') {
     return {
       status: 'ok',
-      listData: buildEmbedListData({
+      listData: await finalizeEmbedListData({
         routeKind: 'podcast',
-        resourceId: channel.id_text,
-        headerTitle: channel.title ?? '',
-        groups: [],
-        page: podcastQuery.page,
-        totalPages: 1,
+        channel,
+        listQuery: podcastQuery,
+        listData: buildEmbedListData({
+          routeKind: 'podcast',
+          resourceId: channel.id_text,
+          headerTitle: channel.title ?? '',
+          groups: [],
+          page: podcastQuery.page,
+          totalPages: 1,
+        }),
       }),
     };
   }
@@ -203,13 +224,18 @@ async function fetchEmbedChannelListData(
 
     return {
       status: 'ok',
-      listData: buildEmbedListData({
+      listData: await finalizeEmbedListData({
         routeKind: 'podcast',
-        resourceId: channel.id_text,
-        headerTitle: channel.title ?? '',
-        groups: mapChannelClipsToEmbedListRows(channel, responseClips.data),
-        page: podcastQuery.page,
-        totalPages,
+        channel,
+        listQuery: podcastQuery,
+        listData: buildEmbedListData({
+          routeKind: 'podcast',
+          resourceId: channel.id_text,
+          headerTitle: channel.title ?? '',
+          groups: mapChannelClipsToEmbedListRows(channel, responseClips.data),
+          page: podcastQuery.page,
+          totalPages,
+        }),
       }),
     };
   }
@@ -232,13 +258,18 @@ async function fetchEmbedChannelListData(
 
     return {
       status: 'ok',
-      listData: buildEmbedListData({
+      listData: await finalizeEmbedListData({
         routeKind: 'podcast',
-        resourceId: channel.id_text,
-        headerTitle: channel.title ?? '',
-        groups: mapChannelSoundbitesToEmbedListRows(channel, responseSoundbites.data),
-        page: podcastQuery.page,
-        totalPages,
+        channel,
+        listQuery: podcastQuery,
+        listData: buildEmbedListData({
+          routeKind: 'podcast',
+          resourceId: channel.id_text,
+          headerTitle: channel.title ?? '',
+          groups: mapChannelSoundbitesToEmbedListRows(channel, responseSoundbites.data),
+          page: podcastQuery.page,
+          totalPages,
+        }),
       }),
     };
   }
@@ -266,13 +297,18 @@ async function fetchEmbedChannelListData(
 
   return {
     status: 'ok',
-    listData: buildEmbedListData({
+    listData: await finalizeEmbedListData({
       routeKind: 'podcast',
-      resourceId: channel.id_text,
-      headerTitle: channel.title ?? '',
-      groups: mapChannelItemsToEmbedListRows(channel, items),
-      page: podcastQuery.page,
-      totalPages,
+      channel,
+      listQuery: podcastQuery,
+      listData: buildEmbedListData({
+        routeKind: 'podcast',
+        resourceId: channel.id_text,
+        headerTitle: channel.title ?? '',
+        groups: mapChannelItemsToEmbedListRows(channel, items),
+        page: podcastQuery.page,
+        totalPages,
+      }),
     }),
   };
 }
@@ -308,14 +344,42 @@ async function fetchEmbedPlaylistListData(
 
   return {
     status: 'ok',
-    listData: buildEmbedListData({
+    listData: await finalizeEmbedListData({
       routeKind: 'playlist',
-      resourceId: playlist.id_text,
-      headerTitle: playlist.title ?? '',
-      groups: mapPlaylistResourcesToEmbedListRows(response.data),
-      page: listQuery.page,
-      totalPages,
+      channel: null,
+      listQuery,
+      listData: buildEmbedListData({
+        routeKind: 'playlist',
+        resourceId: playlist.id_text,
+        headerTitle: playlist.title ?? '',
+        groups: mapPlaylistResourcesToEmbedListRows(response.data),
+        page: listQuery.page,
+        totalPages,
+      }),
     }),
+  };
+}
+
+async function finalizeEmbedListData(input: {
+  routeKind: EmbedListData['routeKind'];
+  channel: Awaited<ReturnType<typeof getChannelForSeoPage>> | null;
+  listQuery:
+    | EmbedPodcastListQueryParams
+    | EmbedAlbumListQueryParams
+    | EmbedEpisodeChaptersListQueryParams
+    | EmbedPlaylistListQueryParams;
+  listData: Omit<EmbedListData, 'playIdTextOverrideRow'>;
+}): Promise<EmbedListData> {
+  const playIdTextOverrideRow = await fetchEmbedListPlayIdTextOverrideRow({
+    routeKind: input.routeKind,
+    channel: input.channel,
+    groups: input.listData.groups,
+    listQuery: input.listQuery,
+  });
+
+  return {
+    ...input.listData,
+    playIdTextOverrideRow,
   };
 }
 
@@ -326,7 +390,7 @@ function buildEmbedListData(input: {
   groups: EmbedListGroup[];
   page: number;
   totalPages: number;
-}): EmbedListData {
+}): Omit<EmbedListData, 'playIdTextOverrideRow'> {
   return {
     headerTitle: input.headerTitle,
     groups: input.groups,

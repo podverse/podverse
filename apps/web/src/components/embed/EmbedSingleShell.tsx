@@ -23,8 +23,8 @@ export function EmbedSingleShell({
   mediaPreference,
 }: EmbedSingleShellProps) {
   const { playerSize } = sharedQuery;
-  const isTallPlayer = playerSize === 'tall';
-  const tallShellStyle: CSSProperties | undefined = isTallPlayer
+  const isResponsivePlayer = playerSize === 'responsive';
+  const responsiveShellStyle: CSSProperties | undefined = isResponsivePlayer
     ? ({
         '--embed-video-aspect-ratio': embedAspectRatioToCssValue(sharedQuery.aspectRatio),
       } as CSSProperties)
@@ -35,9 +35,9 @@ export function EmbedSingleShell({
   return (
     <EmbedShellPlaybackModeProvider playerSize={playerSize}>
       <section
-        className={isTallPlayer ? `${styles.shell} ${styles.shellTall}` : styles.shell}
+        className={isResponsivePlayer ? `${styles.shell} ${styles.shellResponsive}` : styles.shell}
         data-testid="embed-single-shell"
-        style={tallShellStyle}
+        style={responsiveShellStyle}
       >
         <EmbedPlayerPanel
           fallbackResource={resource}

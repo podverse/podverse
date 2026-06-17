@@ -72,7 +72,7 @@ test.describe('Embed demo index', () => {
 
       const frame = page.frameLocator(`[data-testid="embed-demo-iframe-${showcaseId}"]`);
       if (videoShowcaseIds.has(showcaseId)) {
-        await expect(frame.getByTestId('embed-tall-stage')).toBeVisible({ timeout: 15_000 });
+        await expect(frame.getByTestId('embed-responsive-stage')).toBeVisible({ timeout: 15_000 });
       }
       const embedRoot = frame.getByTestId('embed-root');
       const notFoundShell = frame.getByTestId('embed-not-found-shell');
@@ -95,7 +95,7 @@ test.describe('Embed demo index', () => {
     );
 
     await test.step('Table of contents jumps to a demo anchor', async () => {
-      await page.getByRole('link', { name: 'Episode (short)' }).click();
+      await page.getByRole('link', { name: 'Episode (compact)' }).click();
       await expect(page).toHaveURL(/#embed-demo-episode-audio$/);
       await expect(page.locator('#embed-demo-episode-audio')).toBeVisible();
     });

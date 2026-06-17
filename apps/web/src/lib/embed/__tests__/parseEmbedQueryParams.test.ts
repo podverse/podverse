@@ -15,7 +15,7 @@ describe('parseEmbedSingleQueryParams', () => {
       aspectRatio: '16x9',
       presentation: 'audio',
       presentationLocked: false,
-      playerSize: 'short',
+      playerSize: 'compact',
       playerSizeLocked: false,
     });
   });
@@ -31,7 +31,7 @@ describe('parseEmbedSingleQueryParams', () => {
       aspectRatio: '16x9',
       presentation: 'audio',
       presentationLocked: false,
-      playerSize: 'short',
+      playerSize: 'compact',
       playerSizeLocked: false,
     });
   });
@@ -47,7 +47,7 @@ describe('parseEmbedSingleQueryParams', () => {
       aspectRatio: '16x9',
       presentation: 'audio',
       presentationLocked: false,
-      playerSize: 'short',
+      playerSize: 'compact',
       playerSizeLocked: false,
     });
   });
@@ -59,7 +59,7 @@ describe('parseEmbedSingleQueryParams', () => {
       aspectRatio: '16x9',
       presentation: 'video',
       presentationLocked: true,
-      playerSize: 'tall',
+      playerSize: 'responsive',
       playerSizeLocked: false,
     });
   });
@@ -68,7 +68,7 @@ describe('parseEmbedSingleQueryParams', () => {
     expect(
       parseEmbedSingleQueryParams({
         presentation: 'video',
-        player: 'short',
+        player: 'compact',
       })
     ).toEqual({
       startSeconds: 0,
@@ -76,7 +76,7 @@ describe('parseEmbedSingleQueryParams', () => {
       aspectRatio: '16x9',
       presentation: 'video',
       presentationLocked: true,
-      playerSize: 'short',
+      playerSize: 'compact',
       playerSizeLocked: true,
     });
   });
@@ -108,7 +108,7 @@ describe('parseEmbedPodcastListQueryParams', () => {
       aspectRatio: '16x9',
       presentation: 'audio',
       presentationLocked: false,
-      playerSize: 'short',
+      playerSize: 'compact',
       playerSizeLocked: false,
       type: 'episodes',
       sort: 'recent',
@@ -116,7 +116,6 @@ describe('parseEmbedPodcastListQueryParams', () => {
       range: null,
       playIdText: null,
       listVisibleRows: 5,
-      autoResize: false,
     });
   });
 
@@ -132,7 +131,7 @@ describe('parseEmbedPodcastListQueryParams', () => {
       aspectRatio: '16x9',
       presentation: 'audio',
       presentationLocked: false,
-      playerSize: 'short',
+      playerSize: 'compact',
       playerSizeLocked: false,
       type: 'episodes',
       sort: 'recent',
@@ -140,7 +139,6 @@ describe('parseEmbedPodcastListQueryParams', () => {
       range: null,
       playIdText: null,
       listVisibleRows: 5,
-      autoResize: false,
     });
   });
 
@@ -159,11 +157,6 @@ describe('parseEmbedPodcastListQueryParams', () => {
     expect(parseEmbedPodcastListQueryParams({ rows: '10' }).listVisibleRows).toBe(10);
     expect(parseEmbedPodcastListQueryParams({ rows: '99' }).listVisibleRows).toBe(10);
   });
-
-  it('parses auto-resize query param', () => {
-    expect(parseEmbedPodcastListQueryParams({ resize: '1' }).autoResize).toBe(true);
-    expect(parseEmbedPodcastListQueryParams({ resize: '0' }).autoResize).toBe(false);
-  });
 });
 
 describe('parseEmbedAlbumListQueryParams', () => {
@@ -174,7 +167,7 @@ describe('parseEmbedAlbumListQueryParams', () => {
       aspectRatio: '16x9',
       presentation: 'audio',
       presentationLocked: false,
-      playerSize: 'short',
+      playerSize: 'compact',
       playerSizeLocked: false,
       type: 'tracks',
       sort: 'forward',
@@ -182,7 +175,6 @@ describe('parseEmbedAlbumListQueryParams', () => {
       range: null,
       playIdText: null,
       listVisibleRows: 5,
-      autoResize: false,
     });
   });
 });
@@ -195,12 +187,11 @@ describe('parseEmbedPlaylistListQueryParams', () => {
       aspectRatio: '16x9',
       presentation: 'audio',
       presentationLocked: false,
-      playerSize: 'short',
+      playerSize: 'compact',
       playerSizeLocked: false,
       page: 1,
       playIdText: null,
       listVisibleRows: 5,
-      autoResize: false,
     });
   });
 });

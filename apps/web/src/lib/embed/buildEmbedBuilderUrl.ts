@@ -8,14 +8,15 @@ import { DEFAULT_EMBED_BORDER_COLOR } from './embedBorderColor';
 import type {
   EmbedBuilderListContentType,
   EmbedBuilderListSort,
+  EmbedBuilderPlayerSize,
   EmbedBuilderQueryParams,
-  EmbedBuilderType,
 } from './embedBuilderTypes';
 import type { EmbedPresentationQuery } from './embedTypes';
 import { EMBED_LIST_VISIBLE_ROWS_DEFAULT } from './parseEmbedListRows';
 
 export type EmbedBuilderUrlInput = {
-  type?: EmbedBuilderType;
+  playerSize?: EmbedBuilderPlayerSize;
+  listEnabled?: boolean;
   mediaPreference?: EmbedPresentationQuery;
   channel?: string | null;
   medium_id?: number | null;
@@ -32,7 +33,6 @@ export type EmbedBuilderUrlInput = {
   startSeconds?: number;
   playIdText?: string | null;
   listVisibleRows?: number;
-  autoResize?: boolean;
   showChapterMarkers?: boolean;
   aspectRatio?: EmbedAspectRatioQuery;
   borderColor?: string | null;
@@ -42,8 +42,12 @@ export type EmbedBuilderUrlInput = {
 export function buildEmbedBuilderUrlPath(input: EmbedBuilderUrlInput = {}): string {
   const params = new URLSearchParams();
 
-  if (input.type !== null && input.type !== undefined) {
-    params.set('type', input.type);
+  if (input.playerSize !== null && input.playerSize !== undefined) {
+    params.set('type', input.playerSize);
+  }
+
+  if (input.listEnabled === true) {
+    params.set('list', '1');
   }
 
   if (input.mediaPreference !== null && input.mediaPreference !== undefined) {
@@ -114,10 +118,6 @@ export function buildEmbedBuilderUrlPath(input: EmbedBuilderUrlInput = {}): stri
     params.set('rows', String(input.listVisibleRows));
   }
 
-  if (input.autoResize === true) {
-    params.set('resize', '1');
-  }
-
   if (input.showChapterMarkers === false) {
     params.set('chapter_markers', '0');
   }
@@ -147,7 +147,8 @@ export function embedBuilderQueryParamsToUrlInput(
   params: EmbedBuilderQueryParams
 ): EmbedBuilderUrlInput {
   return {
-    type: params.type,
+    playerSize: params.playerSize,
+    listEnabled: params.listEnabled,
     mediaPreference: params.mediaPreference,
     channel: params.channel,
     medium_id: params.mediumId,
@@ -164,7 +165,6 @@ export function embedBuilderQueryParamsToUrlInput(
     startSeconds: params.startSeconds,
     playIdText: params.playIdText,
     listVisibleRows: params.listVisibleRows,
-    autoResize: params.autoResize,
     showChapterMarkers: params.showChapterMarkers,
     aspectRatio: params.aspectRatio,
     borderColor: params.borderColor,

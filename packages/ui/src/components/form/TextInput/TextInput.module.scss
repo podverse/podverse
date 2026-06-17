@@ -12,6 +12,67 @@
   @include flexColumn;
 }
 
+.textInputCompact {
+  flex: 0 0 calc(100% / 6);
+  max-width: calc(100% / 6);
+  min-width: 0;
+  width: calc(100% / 6);
+
+  .eyebrowRow {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .fieldLabelRow {
+    max-width: 100%;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .eyebrowRow .eyebrow {
+    display: block;
+    flex: 1 1 auto;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .eyebrow {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .fieldLabelRow .eyebrow,
+  .fieldLabel {
+    overflow: visible;
+    text-overflow: unset;
+    white-space: normal;
+  }
+
+  .textInputWrapper {
+    flex: 1 1 auto;
+    max-width: 100%;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .textInnerInputWrapper {
+    max-width: 100%;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .input {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
 .textInputWrapper {
   @include formInputWrapper;
   flex: 0 1 auto;
@@ -90,6 +151,37 @@
   .inputNativePickerIndicatorHidden {
     padding-inline-end: 32px;
   }
+}
+
+.eyebrowRow {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-md);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.fieldLabelRow {
+  margin: 0 0 var(--spacing-form-label-bottom);
+}
+
+.fieldLabelRow .eyebrow {
+  margin-bottom: 0;
+}
+
+.fieldLabel {
+  margin: 0 0 var(--spacing-form-label-bottom);
+}
+
+.eyebrowRow .eyebrow {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.helpIcon {
+  font-size: var(--font-size-sm);
+  height: 1em;
+  width: 1em;
 }
 
 .eyebrow {

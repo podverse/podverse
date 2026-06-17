@@ -11,7 +11,6 @@ import {
 } from '@workers/config/index.js';
 import { getImageStorageService } from '@workers/factories/imageStorageService.js';
 import { getLoggerService } from '@workers/factories/loggerService.js';
-import type { Metadata as SharpMetadata } from 'sharp';
 import sharp from 'sharp';
 
 import {
@@ -67,7 +66,10 @@ type OriginFetchDiagnostics = {
 const SHRINK_ELIGIBLE_SHARP_FORMATS = new Set(['jpeg', 'png', 'webp']);
 
 /** Subset of sharp metadata used by getImageShrinkMetadataSkipReason (tests pass minimal shapes). */
-export type ImageShrinkMetadataSkipInput = Pick<Partial<SharpMetadata>, 'format' | 'pages'>;
+export type ImageShrinkMetadataSkipInput = {
+  format?: string;
+  pages?: number;
+};
 
 export const isImageShrinkTargetUrlEligible = (url: string): boolean => {
   return isShrinkEligibleImageUrl(url);

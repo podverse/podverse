@@ -16,7 +16,7 @@ export async function sendFirebaseNotificationBatchAndroid(
   tokens: string[],
   payload: Omit<AndroidPayload, 'fcmToken'>
 ) {
-  if (!ctx.firebaseAdmin) {
+  if (!ctx.firebaseMessaging) {
     throw new Error('Firebase Admin is not initialized');
   }
 
@@ -39,7 +39,7 @@ export async function sendFirebaseNotificationBatchAndroid(
     };
 
     try {
-      const resp = await ctx.firebaseAdmin.messaging().sendEachForMulticast(multicastMessage);
+      const resp = await ctx.firebaseMessaging.sendEachForMulticast(multicastMessage);
       results.push(resp);
     } catch (err) {
       console.error('sendFirebaseNotificationBatchAndroid chunk error:', err);

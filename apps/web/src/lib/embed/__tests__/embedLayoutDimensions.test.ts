@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  DEFAULT_LIST_AUDIO_IFRAME_HEIGHT,
-  DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT,
-  DEFAULT_SINGLE_VIDEO_IFRAME_HEIGHT,
-  EMBED_PLAYER_PANEL_AUDIO_HEIGHT_PX,
-  getEmbedListAudioIframeHeightPx,
+  DEFAULT_LIST_COMPACT_IFRAME_HEIGHT,
+  DEFAULT_SINGLE_COMPACT_IFRAME_HEIGHT,
+  DEFAULT_SINGLE_RESPONSIVE_IFRAME_HEIGHT,
+  EMBED_PLAYER_PANEL_COMPACT_HEIGHT_PX,
+  getEmbedListCompactIframeHeightPx,
 } from '../embedLayoutDimensions';
 import {
   EMBED_LIST_ROW_HEIGHT_PX,
@@ -16,7 +16,7 @@ import {
   EMBED_SINGLE_VIDEO_PLACEHOLDER_PX,
 } from '../embedLayoutTokens';
 
-function expectedPanelAudioHeightPx(): number {
+function expectedPanelCompactHeightPx(): number {
   return (
     EMBED_PANEL_PADDING_BLOCK_PX * 2 +
     EMBED_PLAYER_ART_SIZE_PX +
@@ -25,7 +25,7 @@ function expectedPanelAudioHeightPx(): number {
   );
 }
 
-function expectedPanelVideoHeightPx(placeholderHeightPx: number): number {
+function expectedPanelResponsiveHeightPx(placeholderHeightPx: number): number {
   return (
     EMBED_PANEL_PADDING_BLOCK_PX * 2 +
     EMBED_PLAYER_ART_SIZE_PX +
@@ -35,27 +35,27 @@ function expectedPanelVideoHeightPx(placeholderHeightPx: number): number {
 }
 
 describe('embedLayoutDimensions', () => {
-  it('derives single-audio height from panel padding, art, gap, and play button', () => {
-    const expectedPanelHeight = expectedPanelAudioHeightPx();
+  it('derives single compact height from panel padding, art, gap, and play button', () => {
+    const expectedPanelHeight = expectedPanelCompactHeightPx();
 
-    expect(EMBED_PLAYER_PANEL_AUDIO_HEIGHT_PX).toBe(expectedPanelHeight);
-    expect(DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT).toBe(expectedPanelHeight);
+    expect(EMBED_PLAYER_PANEL_COMPACT_HEIGHT_PX).toBe(expectedPanelHeight);
+    expect(DEFAULT_SINGLE_COMPACT_IFRAME_HEIGHT).toBe(expectedPanelHeight);
   });
 
-  it('derives single-video height from the single video placeholder', () => {
-    const expectedPanelHeight = expectedPanelVideoHeightPx(EMBED_SINGLE_VIDEO_PLACEHOLDER_PX);
+  it('derives single responsive height from the single video placeholder', () => {
+    const expectedPanelHeight = expectedPanelResponsiveHeightPx(EMBED_SINGLE_VIDEO_PLACEHOLDER_PX);
 
-    expect(DEFAULT_SINGLE_VIDEO_IFRAME_HEIGHT).toBe(expectedPanelHeight);
+    expect(DEFAULT_SINGLE_RESPONSIVE_IFRAME_HEIGHT).toBe(expectedPanelHeight);
   });
 
   it('derives list shell heights from the player panel plus list viewport', () => {
-    const expectedPanelAudioHeight = expectedPanelAudioHeightPx();
+    const expectedPanelCompactHeight = expectedPanelCompactHeightPx();
 
-    expect(DEFAULT_LIST_AUDIO_IFRAME_HEIGHT).toBe(
-      expectedPanelAudioHeight + EMBED_LIST_ROW_HEIGHT_PX * 5
+    expect(DEFAULT_LIST_COMPACT_IFRAME_HEIGHT).toBe(
+      expectedPanelCompactHeight + EMBED_LIST_ROW_HEIGHT_PX * 5
     );
-    expect(getEmbedListAudioIframeHeightPx({ listVisibleRows: 10 })).toBe(
-      expectedPanelAudioHeight + EMBED_LIST_ROW_HEIGHT_PX * 10
+    expect(getEmbedListCompactIframeHeightPx({ listVisibleRows: 10 })).toBe(
+      expectedPanelCompactHeight + EMBED_LIST_ROW_HEIGHT_PX * 10
     );
   });
 });

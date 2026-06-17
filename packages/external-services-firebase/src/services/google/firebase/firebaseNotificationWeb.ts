@@ -16,7 +16,7 @@ export async function sendFirebaseNotificationBatchWeb(
   tokens: string[],
   payload: Omit<NotificationPayload, 'fcmToken'>
 ) {
-  if (!ctx.firebaseAdmin) {
+  if (!ctx.firebaseMessaging) {
     throw new Error('Firebase Admin is not initialized');
   }
 
@@ -54,7 +54,7 @@ export async function sendFirebaseNotificationBatchWeb(
     };
 
     try {
-      const resp = await ctx.firebaseAdmin.messaging().sendEachForMulticast(multicastMessage);
+      const resp = await ctx.firebaseMessaging.sendEachForMulticast(multicastMessage);
       results.push(resp);
     } catch (err) {
       console.error('sendFirebaseNotificationBatchWeb chunk error:', err);

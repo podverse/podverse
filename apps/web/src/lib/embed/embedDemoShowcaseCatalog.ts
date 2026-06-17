@@ -146,13 +146,8 @@ export function getEmbedDemoShowcaseOrderIndex(showcaseId: EmbedDemoShowcaseId):
 
 export function resolveEmbedDemoPreviewPlayerSize(showcaseId: string): EmbedPlayerSizeQuery {
   if (showcaseId.endsWith('-video')) {
-    return 'tall';
+    return 'responsive';
   }
 
-  return 'short';
-}
-
-/** @deprecated Use resolveEmbedDemoPreviewPlayerSize */
-export function resolveEmbedDemoPreviewPresentationStyle(showcaseId: string): 'audio' | 'video' {
-  return resolveEmbedDemoPreviewPlayerSize(showcaseId) === 'tall' ? 'video' : 'audio';
+  return 'compact';
 }

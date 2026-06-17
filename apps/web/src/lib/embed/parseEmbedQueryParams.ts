@@ -19,7 +19,6 @@ import type {
 } from './embedTypes';
 import { normalizeEmbedSearchParams } from './normalizeEmbedSearchParams';
 import { parseEmbedAspectRatio } from './parseEmbedAspectRatio';
-import { parseEmbedAutoResize } from './parseEmbedAutoResize';
 import { parseEmbedChapterMarkers } from './parseEmbedChapterMarkers';
 import { EMBED_LIST_VISIBLE_ROWS_DEFAULT, parseEmbedListRows } from './parseEmbedListRows';
 import { resolvePlayerSizeFromPresentation } from './resolvePlayerSizeFromPresentation';
@@ -35,7 +34,7 @@ const sharedQuerySchema = z.object({
     .optional()
     .default('16x9'),
   presentation: z.enum(['audio', 'video']).optional().default('audio'),
-  player: z.enum(['short', 'tall']).optional(),
+  player: z.enum(['compact', 'responsive']).optional(),
 });
 
 const singleQuerySchema = sharedQuerySchema;
@@ -60,7 +59,6 @@ const podcastListQuerySchema = sharedQuerySchema.extend({
     .preprocess(parseEmbedListRows, z.number())
     .optional()
     .default(EMBED_LIST_VISIBLE_ROWS_DEFAULT),
-  resize: z.preprocess(parseEmbedAutoResize, z.boolean()).optional().default(false),
 });
 
 const albumListQuerySchema = sharedQuerySchema.extend({
@@ -83,7 +81,6 @@ const albumListQuerySchema = sharedQuerySchema.extend({
     .preprocess(parseEmbedListRows, z.number())
     .optional()
     .default(EMBED_LIST_VISIBLE_ROWS_DEFAULT),
-  resize: z.preprocess(parseEmbedAutoResize, z.boolean()).optional().default(false),
 });
 
 const playlistListQuerySchema = sharedQuerySchema.extend({
@@ -103,7 +100,6 @@ const playlistListQuerySchema = sharedQuerySchema.extend({
     .preprocess(parseEmbedListRows, z.number())
     .optional()
     .default(EMBED_LIST_VISIBLE_ROWS_DEFAULT),
-  resize: z.preprocess(parseEmbedAutoResize, z.boolean()).optional().default(false),
 });
 
 const episodeChaptersListQuerySchema = sharedQuerySchema.extend({
@@ -124,7 +120,6 @@ const episodeChaptersListQuerySchema = sharedQuerySchema.extend({
     .preprocess(parseEmbedListRows, z.number())
     .optional()
     .default(EMBED_LIST_VISIBLE_ROWS_DEFAULT),
-  resize: z.preprocess(parseEmbedAutoResize, z.boolean()).optional().default(false),
 });
 
 function parseSchemaWithDefaults<T extends z.ZodTypeAny>(
@@ -179,7 +174,6 @@ export function parseEmbedPodcastListQueryParams(
     range: parsed.range,
     playIdText: parsed.play_id_text,
     listVisibleRows: parsed.rows,
-    autoResize: parsed.resize,
   };
 }
 
@@ -196,7 +190,6 @@ export function parseEmbedAlbumListQueryParams(
     range: parsed.range,
     playIdText: parsed.play_id_text,
     listVisibleRows: parsed.rows,
-    autoResize: parsed.resize,
   };
 }
 
@@ -210,7 +203,6 @@ export function parseEmbedPlaylistListQueryParams(
     page: parsed.page,
     playIdText: parsed.play_id_text,
     listVisibleRows: parsed.rows,
-    autoResize: parsed.resize,
   };
 }
 
@@ -225,6 +217,5 @@ export function parseEmbedEpisodeChaptersListQueryParams(
     page: parsed.page,
     playIdText: parsed.play_id_text,
     listVisibleRows: parsed.rows,
-    autoResize: parsed.resize,
   };
 }

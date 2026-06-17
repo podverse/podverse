@@ -67,8 +67,8 @@ describe('EMBED_DEMO_SHOWCASE_CATALOG', () => {
     );
   });
 
-  it('maps showcase ids ending in -video to tall player size previews', () => {
-    expect(resolveEmbedDemoPreviewPlayerSize('episode-video')).toBe('tall');
-    expect(resolveEmbedDemoPreviewPlayerSize('episode-audio')).toBe('short');
+  it('maps showcase ids ending in -video to responsive player size previews', () => {
+    expect(resolveEmbedDemoPreviewPlayerSize('episode-video')).toBe('responsive');
+    expect(resolveEmbedDemoPreviewPlayerSize('episode-audio')).toBe('compact');
   });
 });

@@ -4,7 +4,8 @@ import type { EmbedBuilderQueryParams } from '../embedBuilderTypes';
 import { resolveEmbedListUrlOptionsFromBuilderParams } from '../resolveEmbedListUrlOptionsFromBuilderParams';
 
 const baseParams: EmbedBuilderQueryParams = {
-  type: 'short-list',
+  playerSize: 'compact',
+  listEnabled: true,
   mediaPreference: 'audio',
   channel: 'podcast-channel',
   mediumId: null,
@@ -21,7 +22,6 @@ const baseParams: EmbedBuilderQueryParams = {
   startSeconds: 0,
   playIdText: null,
   listVisibleRows: 5,
-  autoResize: false,
   showChapterMarkers: true,
   aspectRatio: '16x9',
   borderColor: '#444444',

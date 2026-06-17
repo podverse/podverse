@@ -71,5 +71,13 @@ export function resolveEmbedPlayIdTextFromBuilderParams(
     return params.playlistItem;
   }
 
-  return params.playIdText;
+  if (params.playIdText) {
+    return params.playIdText;
+  }
+
+  if (params.listEnabled && params.item !== null && params.listContentType !== 'chapters') {
+    return params.item;
+  }
+
+  return null;
 }

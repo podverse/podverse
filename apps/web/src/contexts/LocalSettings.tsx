@@ -10,6 +10,7 @@ import type {
   LocalSettingsState,
 } from '../utils/localSettings/localSettings';
 import {
+  DEFAULT_SIDEBAR_ACCORDION_STATE,
   getParsedLocalSettings,
   handleLocalSettingsUpdate,
 } from '../utils/localSettings/localSettings';
@@ -55,7 +56,7 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
     ssrLocalSettings.aqc || { rp: false, rd: false }
   );
   const [sidebarAccordion, setSidebarAccordion] = useState(
-    ssrLocalSettings.sba || { podcasts: true, music: true, addByRSS: true, library: true }
+    ssrLocalSettings.sba ?? DEFAULT_SIDEBAR_ACCORDION_STATE
   );
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [boostFormDefaults, setBoostFormDefaults] = useState<BoostFormDefaultsByValueKey>(

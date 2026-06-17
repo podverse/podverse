@@ -2,15 +2,25 @@
 
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import type { CSSProperties } from 'react';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
+import { FaCircleQuestion } from 'react-icons/fa6';
 
-import { copyToClipboard } from '@podverse/helpers-browser';
 import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
 import { QUERY_PARAMS_STATS_RANGE_VALUES } from '@podverse/helpers-requests';
-import { Button, CheckboxField, FormStack, FormTextArea, TextInput } from '@podverse/ui';
+import {
+  Accordion,
+  CodeBlock,
+  CompactNumericInput,
+  CompactTextInput,
+  FormInset,
+  FormStack,
+  PopoverIcon,
+  RadioButton,
+  TextInput,
+} from '@podverse/ui';
 
-import { WEB } from '../../constants/web';
+import { useConfig } from '../../contexts/Config';
+import { buildEmbedBuilderPreviewFrameStyle } from '../../lib/embed/buildEmbedBuilderPreviewFrameStyle';
 import {
   buildEmbedBuilderUrlPath,
   embedBuilderQueryParamsToUrlInput,
@@ -20,11 +30,9 @@ import {
   EMBED_IFRAME_ALLOW,
   getEmbedIframeHeightForPlayerSize,
 } from '../../lib/embed/buildEmbedIframeCode';
-import { buildEmbedResizeListenerSnippet } from '../../lib/embed/buildEmbedResizeListenerSnippet';
 import { resolveEmbedUrlTarget } from '../../lib/embed/buildEmbedUrl';
 import { buildEmbedUrlEntityContextFromBuilderParams } from '../../lib/embed/buildEmbedUrlEntityContext';
 import { buildEmbedUrlFromBuilderParams } from '../../lib/embed/buildEmbedUrlFromBuilderParams';
-import { embedAspectRatioToCssValue } from '../../lib/embed/embedAspectRatio';
 import type { EmbedBorderColorPresetKey } from '../../lib/embed/embedBorderColor';
 import {
   EMBED_BORDER_COLOR_PRESET_KEYS,
@@ -34,13 +42,15 @@ import {
 import type {
   EmbedBuilderListContentType,
   EmbedBuilderListSort,
+  EmbedBuilderPlayerSize,
   EmbedBuilderQueryParams,
-  EmbedBuilderType,
 } from '../../lib/embed/embedBuilderTypes';
 import {
   EMBED_BUILDER_LIST_DEFAULT_SORT_BY_CONTENT,
   EMBED_BUILDER_LIST_SORT_OPTIONS_BY_CONTENT,
-  EMBED_BUILDER_TYPES,
+  EMBED_BUILDER_PLAYER_SIZES,
+  normalizeEmbedBuilderParamsForSource,
+  resolveEmbedBuilderListAvailability,
   resolveEmbedBuilderListContentOptions,
 } from '../../lib/embed/embedBuilderTypes';
 import type { EmbedPresentationQuery } from '../../lib/embed/embedTypes';
@@ -85,40 +95,66 @@ function parseListVisibleRowsInput(value: string): number {
   return Math.min(Math.max(parsed, EMBED_LIST_VISIBLE_ROWS_MIN), EMBED_LIST_VISIBLE_ROWS_MAX);
 }
 
+function isEmbedBuilderPlayerSize(value: string): value is EmbedBuilderPlayerSize {
+  return EMBED_BUILDER_PLAYER_SIZES.some((playerSize) => playerSize === value);
+}
+
+function isEmbedBuilderListToggleValue(value: string): value is 'on' | 'off' {
+  return value === 'on' || value === 'off';
+}
+
+function isEmbedPresentationQuery(value: string): value is EmbedPresentationQuery {
+  return value === 'audio' || value === 'video';
+}
+
+function isEmbedBorderColorPresetKey(value: string): value is EmbedBorderColorPresetKey {
+  return EMBED_BORDER_COLOR_PRESET_KEYS.some((key) => key === value);
+}
+
+function isEmbedBuilderListContentType(
+  value: string,
+  allowed: readonly EmbedBuilderListContentType[]
+): value is EmbedBuilderListContentType {
+  return allowed.some((option) => option === value);
+}
+
+function isEmbedBuilderListSort(
+  value: string,
+  allowed: readonly EmbedBuilderListSort[]
+): value is EmbedBuilderListSort {
+  return allowed.some((option) => option === value);
+}
+
+function isQueryParamsStatsRange(value: string): value is QueryParamsStatsRange {
+  return QUERY_PARAMS_STATS_RANGE_VALUES.some((option) => option === value);
+}
+
 type EmbedBuilderPanelProps = {
   initialParams: EmbedBuilderQueryParams;
 };
 
 export function EmbedBuilderPanel({ initialParams }: EmbedBuilderPanelProps) {
   const tFeatures = useTranslations('features');
+  const tMisc = useTranslations('misc');
+  const config = useConfig();
   const router = useRouter();
+  const embedIframeTitle = tFeatures('embed_iframe_title', {
+    brand_name: config.public.brand.name,
+  });
+  const fieldHelpAriaLabel = tMisc('more_info');
 
   const [builderParams, setBuilderParams] = useState<EmbedBuilderQueryParams>(initialParams);
   const [startTimeInput, setStartTimeInput] = useState(String(initialParams.startSeconds));
   const [listVisibleRowsInput, setListVisibleRowsInput] = useState(
     String(initialParams.listVisibleRows)
   );
-  const [isCopied, setIsCopied] = useState(false);
-  const [isResizeSnippetCopied, setIsResizeSnippetCopied] = useState(false);
+  const [playIdTextInput, setPlayIdTextInput] = useState(initialParams.playIdText ?? '');
   const [borderMode, setBorderMode] = useState<'preset' | 'custom'>(
     resolveEmbedBorderPresetKey(initialParams.borderColor) !== null ? 'preset' : 'custom'
   );
   const [customBorderInput, setCustomBorderInput] = useState(
     resolveEmbedBorderPresetKey(initialParams.borderColor) === null ? initialParams.borderColor : ''
   );
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const resizeSnippetTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  React.useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      if (resizeSnippetTimeoutRef.current) {
-        clearTimeout(resizeSnippetTimeoutRef.current);
-      }
-    };
-  }, []);
 
   const syncUrl = useCallback(
     (nextParams: EmbedBuilderQueryParams) => {
@@ -139,18 +175,63 @@ export function EmbedBuilderPanel({ initialParams }: EmbedBuilderPanelProps) {
     [syncUrl]
   );
 
-  const handleTypeChange = (type: EmbedBuilderType) => {
-    const { layout, playerSize } = resolveEmbedBuilderPresentation(type);
+  React.useEffect(() => {
+    const normalizedParams = normalizeEmbedBuilderParamsForSource(builderParams);
+    if (
+      normalizedParams.listEnabled !== builderParams.listEnabled ||
+      normalizedParams.playerSize !== builderParams.playerSize
+    ) {
+      updateBuilderParams({
+        listEnabled: normalizedParams.listEnabled,
+        playerSize: normalizedParams.playerSize,
+      });
+    }
+  }, [
+    builderParams.channel,
+    builderParams.clip,
+    builderParams.item,
+    builderParams.itemChapter,
+    builderParams.itemSoundbite,
+    builderParams.listEnabled,
+    builderParams.playerSize,
+    builderParams.playlist,
+    updateBuilderParams,
+  ]);
+
+  const handlePlayerSizeChange = (playerSize: EmbedBuilderPlayerSize) => {
     const defaultMediaPreference = resolveDefaultMediaPreferenceForPlayerSize(playerSize);
 
     updateBuilderParams({
-      type,
+      playerSize,
       mediaPreference: defaultMediaPreference,
-      autoResize: layout === 'list' && playerSize === 'tall' ? builderParams.autoResize : false,
+    });
+  };
+
+  const handleListEnabledChange = (listEnabled: boolean) => {
+    if (
+      listEnabled &&
+      builderParams.item !== null &&
+      builderParams.playIdText === null &&
+      builderParams.playlistItem === null &&
+      builderParams.listContentType !== 'chapters'
+    ) {
+      setPlayIdTextInput(builderParams.item);
+      updateBuilderParams({
+        listEnabled,
+        playIdText: builderParams.item,
+      });
+      return;
+    }
+
+    updateBuilderParams({
+      listEnabled,
     });
   };
 
   const handleMediaPreferenceChange = (mediaPreference: EmbedPresentationQuery) => {
+    if (mediaPreference === 'video' && builderParams.playerSize === 'compact') {
+      return;
+    }
     updateBuilderParams({ mediaPreference });
   };
 
@@ -164,10 +245,32 @@ export function EmbedBuilderPanel({ initialParams }: EmbedBuilderPanelProps) {
     updateBuilderParams({ borderColor: customBorderInput });
   };
 
-  const startSeconds = parseStartSecondsInput(startTimeInput);
-  const listVisibleRows = parseListVisibleRowsInput(listVisibleRowsInput);
+  const commitStartTimeInput = (event: React.FocusEvent<HTMLInputElement>) => {
+    const parsed = parseStartSecondsInput(event.target.value);
+    setStartTimeInput(String(parsed));
+    updateBuilderParams({ startSeconds: parsed });
+  };
+
+  const commitListVisibleRowsInput = (event: React.FocusEvent<HTMLInputElement>) => {
+    const parsed = parseListVisibleRowsInput(event.target.value);
+    setListVisibleRowsInput(String(parsed));
+    updateBuilderParams({ listVisibleRows: parsed });
+  };
+
+  const commitCustomBorderInput = (event: React.FocusEvent<HTMLInputElement>) => {
+    setCustomBorderInput(event.target.value);
+    updateBuilderParams({ borderColor: event.target.value });
+  };
+
+  const commitPlayIdTextInput = (event: React.FocusEvent<HTMLInputElement>) => {
+    const trimmed = event.target.value.trim();
+    setPlayIdTextInput(trimmed);
+    updateBuilderParams({ playIdText: trimmed === '' ? null : trimmed });
+  };
 
   const listContentOptions = resolveEmbedBuilderListContentOptions(builderParams);
+  const listAvailability = resolveEmbedBuilderListAvailability(builderParams);
+  const normalizedParams = normalizeEmbedBuilderParamsForSource(builderParams);
   const normalizedListContentType: EmbedBuilderListContentType =
     listContentOptions.length > 0 && !listContentOptions.includes(builderParams.listContentType)
       ? (listContentOptions[0] ?? builderParams.listContentType)
@@ -182,19 +285,17 @@ export function EmbedBuilderPanel({ initialParams }: EmbedBuilderPanelProps) {
 
   const effectiveParams: EmbedBuilderQueryParams = {
     ...builderParams,
-    startSeconds,
-    listVisibleRows,
+    playerSize: normalizedParams.playerSize,
+    listEnabled: normalizedParams.listEnabled,
     listContentType: normalizedListContentType,
     listSort: normalizedListSort,
     listRange: normalizedListRange,
   };
 
-  const { layout, playerSize } = resolveEmbedBuilderPresentation(effectiveParams.type);
-  const isTallListType = effectiveParams.type === 'tall-list';
+  const { layout, playerSize } = resolveEmbedBuilderPresentation(effectiveParams);
   const showListContentSelector = layout === 'list' && listContentOptions.length > 1;
   const showListSortSelector = layout === 'list' && listContentOptions.length > 0;
   const showListRangeSelector = showListSortSelector && effectiveParams.listSort === 'top';
-  const autoResizeEnabled = isTallListType && effectiveParams.autoResize;
   const entityContext = buildEmbedUrlEntityContextFromBuilderParams(effectiveParams, layout);
 
   const embedTarget = useMemo(
@@ -213,93 +314,66 @@ export function EmbedBuilderPanel({ initialParams }: EmbedBuilderPanelProps) {
     }
 
     return buildEmbedIframeCode(embedUrl, {
-      title: tFeatures('embed'),
+      title: embedIframeTitle,
       height: getEmbedIframeHeightForPlayerSize(layout, playerSize, {
         listVisibleRows: effectiveParams.listVisibleRows,
         aspectRatio: effectiveParams.aspectRatio,
-        includePresentationSelector: layout === 'list',
+        includePresentationSelector: false,
       }),
       layout,
       playerSize,
       presentation: effectiveParams.mediaPreference,
       aspectRatio: effectiveParams.aspectRatio,
       borderColor: effectiveParams.borderColor,
-      includeResizeDataAttribute: autoResizeEnabled,
     });
   }, [
-    autoResizeEnabled,
     effectiveParams.aspectRatio,
     effectiveParams.borderColor,
     effectiveParams.listVisibleRows,
     effectiveParams.mediaPreference,
     embedTarget,
+    embedIframeTitle,
     embedUrl,
     layout,
     playerSize,
-    tFeatures,
   ]);
 
-  const resizeListenerSnippet = useMemo(() => {
-    if (!autoResizeEnabled) {
-      return '';
-    }
-
-    return buildEmbedResizeListenerSnippet({ embedOrigin: WEB.origin });
-  }, [autoResizeEnabled]);
-
   const previewIframeHeightClassKey = getEmbedPreviewIframeHeightClassKey(layout, playerSize);
-  const isTallPlayerSize = playerSize === 'tall';
-  const isTallSingle = effectiveParams.type === 'tall';
-  const previewStyle = {
-    ...(isTallSingle
-      ? { '--embed-video-aspect-ratio': embedAspectRatioToCssValue(effectiveParams.aspectRatio) }
-      : {}),
-    ...(layout === 'list'
-      ? { '--embed-list-visible-rows': String(effectiveParams.listVisibleRows) }
-      : {}),
-    ...(layout === 'list' ? { '--embed-has-presentation-selector': 1 } : {}),
-  } as CSSProperties;
+  const isResponsivePlayerSize = playerSize === 'responsive';
+  const isCompactPlayerSize = playerSize === 'compact';
+  const isResponsiveSingle = !effectiveParams.listEnabled && playerSize === 'responsive';
+  const previewFrameClassName = [
+    styles.previewFrame,
+    isResponsiveSingle ? styles.previewFrameResponsive : '',
+    styles[previewIframeHeightClassKey],
+  ]
+    .filter((className) => className !== '')
+    .join(' ');
+  const previewStyle = buildEmbedBuilderPreviewFrameStyle({
+    layout,
+    playerSize,
+    listEnabled: effectiveParams.listEnabled,
+    listVisibleRows: effectiveParams.listVisibleRows,
+    aspectRatio: effectiveParams.aspectRatio,
+  });
 
-  const handleCopy = () => {
-    if (embedCode === '') {
-      return;
-    }
-
-    copyToClipboard(embedCode);
-    setIsCopied(true);
-
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    timeoutRef.current = setTimeout(() => {
-      setIsCopied(false);
-    }, 2000);
+  const playerSizeLabels: Record<EmbedBuilderPlayerSize, string> = {
+    compact: tFeatures('embed_type_compact'),
+    responsive: tFeatures('embed_type_responsive'),
   };
 
-  const handleCopyResizeSnippet = () => {
-    if (resizeListenerSnippet === '') {
-      return;
-    }
-
-    copyToClipboard(resizeListenerSnippet);
-    setIsResizeSnippetCopied(true);
-
-    if (resizeSnippetTimeoutRef.current) {
-      clearTimeout(resizeSnippetTimeoutRef.current);
-    }
-
-    resizeSnippetTimeoutRef.current = setTimeout(() => {
-      setIsResizeSnippetCopied(false);
-    }, 2000);
-  };
-
-  const typeLabels: Record<EmbedBuilderType, string> = {
-    short: tFeatures('embed_type_short'),
-    tall: tFeatures('embed_type_tall'),
-    'short-list': tFeatures('embed_type_short_list'),
-    'tall-list': tFeatures('embed_type_tall_list'),
-  };
+  const listToggleValue = effectiveParams.listEnabled ? 'on' : 'off';
+  const listOnDisabled = listAvailability === 'forced-off';
+  const listOffDisabled = listAvailability === 'forced-on';
+  const listHelpKey:
+    | 'embed_list_help'
+    | 'embed_list_help_forced_on'
+    | 'embed_list_help_forced_off' =
+    listAvailability === 'forced-on'
+      ? 'embed_list_help_forced_on'
+      : listAvailability === 'forced-off'
+        ? 'embed_list_help_forced_off'
+        : 'embed_list_help';
 
   const listContentLabels: Record<EmbedBuilderListContentType, string> = {
     episodes: tFeatures('embed_list_content_episodes'),
@@ -354,334 +428,312 @@ export function EmbedBuilderPanel({ initialParams }: EmbedBuilderPanelProps) {
   };
 
   const selectedBorderPresetKey = resolveEmbedBorderPresetKey(effectiveParams.borderColor);
+  const borderColorSelectedValue =
+    borderMode === 'custom' ? 'custom' : (selectedBorderPresetKey ?? 'darker-gray');
 
   return (
-    <div className={styles.root} data-testid="embed-builder-page">
-      <h1 className={styles.pageTitle}>{tFeatures('embed_builder')}</h1>
-
-      <div
-        className={
-          isTallSingle ? `${styles.previewFrame} ${styles.previewFrameTall}` : styles.previewFrame
-        }
-        data-testid="embed-builder-preview"
-        style={previewStyle}
-      >
-        {embedUrl !== null ? (
-          <iframe
-            className={`${styles.previewIframe} ${styles[previewIframeHeightClassKey]}`}
-            src={embedUrl}
-            title={tFeatures('embed_preview')}
-            allow={EMBED_IFRAME_ALLOW}
-          />
-        ) : null}
-      </div>
-
-      <div className={styles.typeSelector} data-testid="embed-builder-type-selector">
-        <span>{tFeatures('embed_type_label')}</span>
-        <div
-          className={styles.typeOptions}
-          role="radiogroup"
-          aria-label={tFeatures('embed_type_label')}
-        >
-          {EMBED_BUILDER_TYPES.map((type) => (
-            <label key={type} className={styles.typeOption}>
-              <input
-                checked={effectiveParams.type === type}
-                name="embed_builder_type"
-                onChange={() => handleTypeChange(type)}
-                type="radio"
-                value={type}
-              />
-              <span>{typeLabels[type]}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div className={styles.typeSelector} data-testid="embed-builder-prefer-selector">
-        <span>{tFeatures('embed_prefer_label')}</span>
-        <div
-          className={styles.typeOptions}
-          role="radiogroup"
-          aria-label={tFeatures('embed_prefer_label')}
-        >
-          <label className={styles.typeOption}>
-            <input
-              checked={effectiveParams.mediaPreference === 'audio'}
-              name="embed_builder_prefer"
-              onChange={() => handleMediaPreferenceChange('audio')}
-              type="radio"
-              value="audio"
-            />
-            <span>{tFeatures('embed_prefer_audio')}</span>
-          </label>
-          <label className={styles.typeOption}>
-            <input
-              checked={effectiveParams.mediaPreference === 'video'}
-              name="embed_builder_prefer"
-              onChange={() => handleMediaPreferenceChange('video')}
-              type="radio"
-              value="video"
-            />
-            <span>{tFeatures('embed_prefer_video')}</span>
-          </label>
-        </div>
-      </div>
-
-      {isTallPlayerSize ? (
-        <div className={styles.typeSelector} data-testid="embed-builder-aspect-ratio-selector">
-          <span>{tFeatures('embed_aspect_ratio_label')}</span>
-          <div
-            className={styles.typeOptions}
-            role="radiogroup"
-            aria-label={tFeatures('embed_aspect_ratio_label')}
-          >
-            <label className={styles.typeOption}>
-              <input
-                checked={effectiveParams.aspectRatio === '16x9'}
-                name="embed_builder_aspect_ratio"
-                onChange={() => updateBuilderParams({ aspectRatio: '16x9' })}
-                type="radio"
-                value="16x9"
-              />
-              <span>{tFeatures('embed_aspect_ratio_16_9')}</span>
-            </label>
-            <label className={styles.typeOption}>
-              <input
-                checked={effectiveParams.aspectRatio === '4x3'}
-                name="embed_builder_aspect_ratio"
-                onChange={() => updateBuilderParams({ aspectRatio: '4x3' })}
-                type="radio"
-                value="4x3"
-              />
-              <span>{tFeatures('embed_aspect_ratio_4_3')}</span>
-            </label>
-            <label className={styles.typeOption}>
-              <input
-                checked={effectiveParams.aspectRatio === '1x1'}
-                name="embed_builder_aspect_ratio"
-                onChange={() => updateBuilderParams({ aspectRatio: '1x1' })}
-                type="radio"
-                value="1x1"
-              />
-              <span>{tFeatures('embed_aspect_ratio_1_1')}</span>
-            </label>
-          </div>
-        </div>
-      ) : null}
-
-      <div className={styles.typeSelector} data-testid="embed-builder-border-color-selector">
-        <span>{tFeatures('embed_border_color_label')}</span>
-        <div
-          className={styles.typeOptions}
-          role="radiogroup"
-          aria-label={tFeatures('embed_border_color_label')}
-        >
-          {EMBED_BORDER_COLOR_PRESET_KEYS.map((key) => (
-            <label key={key} className={styles.typeOption}>
-              <input
-                checked={borderMode === 'preset' && selectedBorderPresetKey === key}
-                name="embed_builder_border_color"
-                onChange={() => handleSelectBorderPreset(key)}
-                type="radio"
-                value={key}
-              />
-              <span>{borderColorLabels[key]}</span>
-            </label>
-          ))}
-          <label className={styles.typeOption}>
-            <input
-              checked={borderMode === 'custom'}
-              name="embed_builder_border_color"
-              onChange={handleSelectBorderCustom}
-              type="radio"
-              value="custom"
-            />
-            <span>{tFeatures('embed_border_color_custom')}</span>
-          </label>
-        </div>
-        {borderMode === 'custom' ? (
-          <div data-testid="embed-builder-border-color-custom">
-            <TextInput
-              type="text"
-              name="embed_border_color_custom"
-              value={customBorderInput}
-              eyebrow={tFeatures('embed_border_color_custom_label')}
-              onChange={(event) => {
-                setCustomBorderInput(event.target.value);
-                updateBuilderParams({ borderColor: event.target.value });
-              }}
-            />
-          </div>
-        ) : null}
-      </div>
-
-      {showListContentSelector ? (
-        <div className={styles.typeSelector} data-testid="embed-builder-list-content-selector">
-          <span>{tFeatures('embed_list_content_label')}</span>
-          <div
-            className={styles.typeOptions}
-            role="radiogroup"
-            aria-label={tFeatures('embed_list_content_label')}
-          >
-            {listContentOptions.map((listContentType) => (
-              <label key={listContentType} className={styles.typeOption}>
-                <input
-                  checked={effectiveParams.listContentType === listContentType}
-                  name="embed_builder_list_content"
-                  onChange={() => handleListContentTypeChange(listContentType)}
-                  type="radio"
-                  value={listContentType}
-                />
-                <span>{listContentLabels[listContentType]}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      {showListSortSelector ? (
-        <div className={styles.typeSelector} data-testid="embed-builder-list-sort-selector">
-          <span>{tFeatures('embed_list_sort_label')}</span>
-          <div
-            className={styles.typeOptions}
-            role="radiogroup"
-            aria-label={tFeatures('embed_list_sort_label')}
-          >
-            {listSortOptions.map((listSort: EmbedBuilderListSort) => (
-              <label key={listSort} className={styles.typeOption}>
-                <input
-                  checked={effectiveParams.listSort === listSort}
-                  name="embed_builder_list_sort"
-                  onChange={() => handleListSortChange(listSort)}
-                  type="radio"
-                  value={listSort}
-                />
-                <span>{listSortLabels[listSort]}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      {showListRangeSelector ? (
-        <div className={styles.typeSelector} data-testid="embed-builder-list-range-selector">
-          <span>{tFeatures('embed_list_range_label')}</span>
-          <div
-            className={styles.typeOptions}
-            role="radiogroup"
-            aria-label={tFeatures('embed_list_range_label')}
-          >
-            {QUERY_PARAMS_STATS_RANGE_VALUES.map((listRange) => (
-              <label key={listRange} className={styles.typeOption}>
-                <input
-                  checked={(effectiveParams.listRange ?? 'all-time') === listRange}
-                  name="embed_builder_list_range"
-                  onChange={() => handleListRangeChange(listRange)}
-                  type="radio"
-                  value={listRange}
-                />
-                <span>{listRangeLabels[listRange]}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      <div className={styles.controls}>
-        <div data-testid="embed-builder-start-time">
-          <TextInput
-            type="number"
-            name="embed_start_time"
-            min={0}
-            step={1}
-            value={startTimeInput}
-            eyebrow={tFeatures('embed_start_time_seconds')}
-            onChange={(event) => {
-              setStartTimeInput(event.target.value);
-              const parsed = parseStartSecondsInput(event.target.value);
-              updateBuilderParams({ startSeconds: parsed });
-            }}
-          />
-        </div>
-        {layout === 'list' ? (
-          <div data-testid="embed-builder-list-visible-rows">
-            <TextInput
-              type="number"
-              name="embed_list_visible_rows"
-              min={EMBED_LIST_VISIBLE_ROWS_MIN}
-              max={EMBED_LIST_VISIBLE_ROWS_MAX}
-              step={1}
-              value={listVisibleRowsInput}
-              eyebrow={tFeatures('embed_list_items_visible')}
-              onChange={(event) => {
-                setListVisibleRowsInput(event.target.value);
-                const parsed = parseListVisibleRowsInput(event.target.value);
-                updateBuilderParams({ listVisibleRows: parsed });
-              }}
-            />
-          </div>
-        ) : null}
-      </div>
-
-      <details className={styles.advanced}>
-        <summary className={styles.advancedSummary}>{tFeatures('embed_advanced')}</summary>
-        <div className={styles.advanced}>
-          {layout === 'list' ? (
-            <TextInput
-              type="text"
-              name="embed_play_id_text"
-              value={effectiveParams.playIdText ?? ''}
-              eyebrow={tFeatures('embed_play_id_text')}
-              onChange={(event) =>
-                updateBuilderParams({
-                  playIdText: event.target.value.trim() === '' ? null : event.target.value.trim(),
-                })
-              }
-            />
-          ) : null}
-          {isTallListType ? (
-            <CheckboxField
-              label={tFeatures('embed_auto_resize_toggle')}
-              checked={effectiveParams.autoResize}
-              onChange={(checked) => updateBuilderParams({ autoResize: checked })}
-            />
-          ) : null}
-          {autoResizeEnabled ? (
-            <>
-              <p className={styles.placeholder}>{tFeatures('embed_auto_resize_warning')}</p>
-              <div className={styles.resizeSnippetBlock}>
-                <FormTextArea
-                  eyebrow={tFeatures('embed_auto_resize_listener_snippet')}
-                  name="embed_resize_listener_snippet"
-                  value={resizeListenerSnippet}
-                  readOnly
-                  rows={8}
-                />
-                <Button onClick={handleCopyResizeSnippet} type="button" variant="secondary">
-                  {isResizeSnippetCopied ? tFeatures('copied') : tFeatures('copy')}
-                </Button>
-              </div>
-            </>
-          ) : null}
-          <p className={styles.placeholder}>{tFeatures('embed_color_customization_coming_soon')}</p>
-        </div>
-      </details>
-
+    <div data-testid="embed-builder-page">
       <FormStack>
-        <div data-testid="embed-builder-code">
-          <TextInput
-            type="text"
-            name="embed_code"
-            value={embedCode}
-            eyebrow={tFeatures('embed_code')}
-            button={{
-              label: isCopied ? tFeatures('copied') : tFeatures('copy'),
-              onClick: handleCopy,
-            }}
-            readOnly
-          />
+        <div
+          className={previewFrameClassName}
+          data-testid="embed-builder-preview"
+          style={previewStyle}
+        >
+          {embedUrl !== null ? (
+            <iframe
+              className={styles.previewIframe}
+              src={embedUrl}
+              title={embedIframeTitle}
+              allow={EMBED_IFRAME_ALLOW}
+            />
+          ) : null}
         </div>
+
+        <FormInset
+          data-testid="embed-builder-controls"
+          heading={tFeatures('embed_builder_options')}
+          headingId="embed-builder-options-heading"
+        >
+          <FormStack>
+            <div data-testid="embed-builder-type-selector">
+              <RadioButton
+                className={styles.radioField}
+                eyebrow={tFeatures('embed_type_label')}
+                help={tFeatures('embed_type_help')}
+                helpAriaLabel={fieldHelpAriaLabel}
+                name="embed_builder_type"
+                onChange={(value) => {
+                  if (isEmbedBuilderPlayerSize(value)) {
+                    handlePlayerSizeChange(value);
+                  }
+                }}
+                options={EMBED_BUILDER_PLAYER_SIZES.map((playerSize) => ({
+                  label: playerSizeLabels[playerSize],
+                  value: playerSize,
+                }))}
+                selectedValue={effectiveParams.playerSize}
+              />
+            </div>
+
+            <div data-testid="embed-builder-list-selector">
+              <RadioButton
+                className={styles.radioField}
+                eyebrow={tFeatures('embed_list_label')}
+                help={tFeatures(listHelpKey)}
+                helpAriaLabel={fieldHelpAriaLabel}
+                name="embed_builder_list"
+                onChange={(value) => {
+                  if (isEmbedBuilderListToggleValue(value)) {
+                    handleListEnabledChange(value === 'on');
+                  }
+                }}
+                options={[
+                  { label: tFeatures('embed_list_on'), value: 'on', disabled: listOnDisabled },
+                  { label: tFeatures('embed_list_off'), value: 'off', disabled: listOffDisabled },
+                ]}
+                selectedValue={listToggleValue}
+              />
+            </div>
+
+            <div data-testid="embed-builder-prefer-selector">
+              <RadioButton
+                className={styles.radioField}
+                eyebrow={tFeatures('embed_prefer_label')}
+                help={tFeatures('embed_prefer_help')}
+                helpAriaLabel={fieldHelpAriaLabel}
+                name="embed_builder_prefer"
+                onChange={(value) => {
+                  if (isEmbedPresentationQuery(value)) {
+                    handleMediaPreferenceChange(value);
+                  }
+                }}
+                options={[
+                  { label: tFeatures('embed_prefer_audio'), value: 'audio' },
+                  {
+                    label: tFeatures('embed_prefer_video'),
+                    value: 'video',
+                    disabled: isCompactPlayerSize,
+                  },
+                ]}
+                selectedValue={effectiveParams.mediaPreference}
+              />
+            </div>
+
+            {isResponsivePlayerSize ? (
+              <div data-testid="embed-builder-aspect-ratio-selector">
+                <RadioButton
+                  className={styles.radioField}
+                  eyebrow={tFeatures('embed_aspect_ratio_label')}
+                  help={tFeatures('embed_aspect_ratio_help')}
+                  helpAriaLabel={fieldHelpAriaLabel}
+                  name="embed_builder_aspect_ratio"
+                  onChange={(value) => {
+                    if (value === '16x9' || value === '4x3' || value === '1x1') {
+                      updateBuilderParams({ aspectRatio: value });
+                    }
+                  }}
+                  options={[
+                    { label: tFeatures('embed_aspect_ratio_16_9'), value: '16x9' },
+                    { label: tFeatures('embed_aspect_ratio_4_3'), value: '4x3' },
+                    { label: tFeatures('embed_aspect_ratio_1_1'), value: '1x1' },
+                  ]}
+                  selectedValue={effectiveParams.aspectRatio}
+                />
+              </div>
+            ) : null}
+
+            <div data-testid="embed-builder-border-color-selector">
+              <RadioButton
+                className={styles.radioField}
+                eyebrow={tFeatures('embed_border_color_label')}
+                help={tFeatures('embed_border_color_help')}
+                helpAriaLabel={fieldHelpAriaLabel}
+                name="embed_builder_border_color"
+                onChange={(value) => {
+                  if (value === 'custom') {
+                    handleSelectBorderCustom();
+                    return;
+                  }
+                  if (isEmbedBorderColorPresetKey(value)) {
+                    handleSelectBorderPreset(value);
+                  }
+                }}
+                options={[
+                  ...EMBED_BORDER_COLOR_PRESET_KEYS.map((key) => ({
+                    label: borderColorLabels[key],
+                    value: key,
+                  })),
+                  { label: tFeatures('embed_border_color_custom'), value: 'custom' },
+                ]}
+                selectedValue={borderColorSelectedValue}
+              />
+              {borderMode === 'custom' ? (
+                <div data-testid="embed-builder-border-color-custom">
+                  <TextInput
+                    type="text"
+                    name="embed_border_color_custom"
+                    value={customBorderInput}
+                    eyebrow={tFeatures('embed_border_color_custom_label')}
+                    info={tFeatures('embed_border_color_custom_help')}
+                    infoAriaLabel={fieldHelpAriaLabel}
+                    onChange={(event) => {
+                      setCustomBorderInput(event.target.value);
+                    }}
+                    onBlur={commitCustomBorderInput}
+                  />
+                </div>
+              ) : null}
+            </div>
+
+            {showListContentSelector ? (
+              <div data-testid="embed-builder-list-content-selector">
+                <RadioButton
+                  className={styles.radioField}
+                  eyebrow={tFeatures('embed_list_content_label')}
+                  help={tFeatures('embed_list_content_help')}
+                  helpAriaLabel={fieldHelpAriaLabel}
+                  name="embed_builder_list_content"
+                  onChange={(value) => {
+                    if (isEmbedBuilderListContentType(value, listContentOptions)) {
+                      handleListContentTypeChange(value);
+                    }
+                  }}
+                  options={listContentOptions.map((listContentType) => ({
+                    label: listContentLabels[listContentType],
+                    value: listContentType,
+                  }))}
+                  selectedValue={effectiveParams.listContentType}
+                />
+              </div>
+            ) : null}
+
+            {showListSortSelector ? (
+              <div data-testid="embed-builder-list-sort-selector">
+                <RadioButton
+                  className={styles.radioField}
+                  eyebrow={tFeatures('embed_list_sort_label')}
+                  help={tFeatures('embed_list_sort_help')}
+                  helpAriaLabel={fieldHelpAriaLabel}
+                  name="embed_builder_list_sort"
+                  onChange={(value) => {
+                    if (isEmbedBuilderListSort(value, listSortOptions)) {
+                      handleListSortChange(value);
+                    }
+                  }}
+                  options={listSortOptions.map((listSort) => ({
+                    label: listSortLabels[listSort],
+                    value: listSort,
+                  }))}
+                  selectedValue={effectiveParams.listSort}
+                />
+              </div>
+            ) : null}
+
+            {showListRangeSelector ? (
+              <div data-testid="embed-builder-list-range-selector">
+                <RadioButton
+                  className={styles.radioField}
+                  eyebrow={tFeatures('embed_list_range_label')}
+                  help={tFeatures('embed_list_range_help')}
+                  helpAriaLabel={fieldHelpAriaLabel}
+                  name="embed_builder_list_range"
+                  onChange={(value) => {
+                    if (isQueryParamsStatsRange(value)) {
+                      handleListRangeChange(value);
+                    }
+                  }}
+                  options={QUERY_PARAMS_STATS_RANGE_VALUES.map((listRange) => ({
+                    label: listRangeLabels[listRange],
+                    value: listRange,
+                  }))}
+                  selectedValue={effectiveParams.listRange ?? 'all-time'}
+                />
+              </div>
+            ) : null}
+
+            <div data-testid="embed-builder-start-time">
+              <CompactNumericInput
+                name="embed_start_time"
+                min={0}
+                step={1}
+                value={startTimeInput}
+                eyebrow={tFeatures('embed_start_time_seconds')}
+                eyebrowPlacement="field"
+                info={tFeatures('embed_start_time_help')}
+                infoAriaLabel={fieldHelpAriaLabel}
+                onChange={(event) => {
+                  setStartTimeInput(event.target.value);
+                }}
+                onBlur={commitStartTimeInput}
+              />
+            </div>
+            {layout === 'list' ? (
+              <div data-testid="embed-builder-list-visible-rows">
+                <CompactNumericInput
+                  name="embed_list_visible_rows"
+                  min={EMBED_LIST_VISIBLE_ROWS_MIN}
+                  max={EMBED_LIST_VISIBLE_ROWS_MAX}
+                  step={1}
+                  value={listVisibleRowsInput}
+                  eyebrow={tFeatures('embed_list_items_visible')}
+                  eyebrowPlacement="field"
+                  info={tFeatures('embed_list_items_visible_help')}
+                  infoAriaLabel={fieldHelpAriaLabel}
+                  onChange={(event) => {
+                    setListVisibleRowsInput(event.target.value);
+                  }}
+                  onBlur={commitListVisibleRowsInput}
+                />
+              </div>
+            ) : null}
+
+            <Accordion
+              contentClassName={styles.advancedContent}
+              header={tFeatures('embed_advanced')}
+              size="small"
+            >
+              <FormStack>
+                {layout === 'list' ? (
+                  <CompactTextInput
+                    type="text"
+                    name="embed_play_id_text"
+                    value={playIdTextInput}
+                    eyebrow={tFeatures('embed_play_id_text')}
+                    eyebrowPlacement="field"
+                    info={tFeatures('embed_play_id_text_help')}
+                    infoAriaLabel={fieldHelpAriaLabel}
+                    onChange={(event) => {
+                      setPlayIdTextInput(event.target.value);
+                    }}
+                    onBlur={commitPlayIdTextInput}
+                  />
+                ) : null}
+              </FormStack>
+            </Accordion>
+          </FormStack>
+        </FormInset>
+
+        <FormInset
+          data-testid="embed-builder-code-section"
+          heading={tFeatures('embed_code')}
+          headingId="embed-builder-code-heading"
+          headingAccessory={
+            <PopoverIcon
+              ariaLabel={fieldHelpAriaLabel}
+              body={tFeatures('embed_code_help')}
+              icon={<FaCircleQuestion aria-hidden className={styles.helpIcon} />}
+              interaction="click"
+            />
+          }
+        >
+          <CodeBlock
+            copiedLabel={tFeatures('copied')}
+            copyLabel={tFeatures('copy')}
+            copyPlacement="aside"
+            testId="embed-builder-code"
+            value={embedCode}
+          />
+        </FormInset>
       </FormStack>
     </div>
   );
