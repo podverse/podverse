@@ -9,7 +9,7 @@ import { Button, FormStack, Modal, TextInput } from '@podverse/ui';
 
 import { WEB } from '../../constants/web';
 import { defaultModalShare, useModals } from '../../contexts/Modals';
-import { getEmbedShareActions } from '../../lib/embed/getEmbedShareActions';
+import { getEmbedShareAction } from '../../lib/embed/getEmbedShareActions';
 
 type ModalShareInput = {
   name: string;
@@ -57,7 +57,7 @@ export const ModalShare: React.FC = () => {
     setModalShare(defaultModalShare);
   };
 
-  const embedActions = getEmbedShareActions(modalShare);
+  const embedAction = getEmbedShareAction(modalShare);
 
   const shareInputs: ModalShareInput[] = [];
 
@@ -150,18 +150,19 @@ export const ModalShare: React.FC = () => {
             readOnly
           />
         ))}
-        {embedActions.map((action) => (
-          <div key={action.testId} data-testid={action.testId}>
+        {embedAction !== null && (
+          <div data-testid="share-embed-builder">
             <Button
-              href={action.href}
+              variant="outline"
+              href={embedAction.href}
               onClick={() => {
                 handleClose();
               }}
             >
-              {tFeatures(action.labelKey)}
+              {tFeatures('embed_builder')}
             </Button>
           </div>
-        ))}
+        )}
       </FormStack>
     </Modal>
   );

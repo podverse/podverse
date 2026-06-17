@@ -1,8 +1,5 @@
 export type { EmbedDemoShowcaseEntry } from './embedDemoLinks';
-export {
-  EMBED_DEMO_SHOWCASE_CATALOG,
-  resolveEmbedDemoPreviewPresentationStyle,
-} from './embedDemoLinks';
+export { EMBED_DEMO_SHOWCASE_CATALOG, resolveEmbedDemoPreviewPlayerSize } from './embedDemoLinks';
 export { resolveEmbedDemoShowcase } from './resolveEmbedDemoShowcase';
 export { buildEmbedSinglePlaybackTarget } from './buildEmbedSinglePlaybackTarget';
 export { buildEmbedMainSiteUrl, embedPathnameToMainSitePath } from './buildEmbedMainSiteUrl';
@@ -14,10 +11,14 @@ export {
   buildEmbedUrlPathFromBuilderParams,
 } from './buildEmbedUrlFromBuilderParams';
 export { parseEmbedBuilderQueryParams } from './parseEmbedBuilderQueryParams';
-export { getEmbedShareActions } from './getEmbedShareActions';
+export { getEmbedShareAction } from './getEmbedShareActions';
 export type { EmbedShareAction } from './getEmbedShareActions';
-export { EMBED_BUILDER_TYPES } from './embedBuilderTypes';
-export type { EmbedBuilderQueryParams, EmbedBuilderType } from './embedBuilderTypes';
+export { EMBED_BUILDER_PLAYER_SIZES, EMBED_BUILDER_TYPES } from './embedBuilderTypes';
+export type {
+  EmbedBuilderPlayerSize,
+  EmbedBuilderQueryParams,
+  EmbedBuilderType,
+} from './embedBuilderTypes';
 export type {
   EmbedUrlBuildResult,
   EmbedUrlEntityContext,
@@ -26,8 +27,8 @@ export type {
 } from './buildEmbedUrl';
 export {
   buildEmbedIframeCode,
-  DEFAULT_LIST_IFRAME_HEIGHT,
-  DEFAULT_SINGLE_IFRAME_HEIGHT,
+  DEFAULT_LIST_COMPACT_IFRAME_HEIGHT,
+  DEFAULT_SINGLE_COMPACT_IFRAME_HEIGHT,
   EMBED_IFRAME_ALLOW,
   getEmbedIframeHeightForRouteKind,
 } from './buildEmbedIframeCode';

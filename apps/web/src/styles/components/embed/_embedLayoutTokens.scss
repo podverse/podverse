@@ -13,8 +13,8 @@ $embed-list-video-placeholder-height: 360px;
 $embed-video-aspect-ratio-16x9: calc(16 / 9);
 $embed-video-aspect-ratio-4x3: calc(4 / 3);
 $embed-video-aspect-ratio-1x1: 1;
-$embed-video-overlay-fade-duration-ms: 1500ms;
-$embed-video-overlay-transition-ms: 300ms;
+$embed-video-overlay-fade-duration-ms: 250ms;
+$embed-video-overlay-transition-ms: 150ms;
 
 $embed-presentation-selector-height: 52px;
 $embed-controls-overlay-height: 60px;
@@ -27,7 +27,6 @@ $embed-list-visible-rows-default: 5;
 $embed-meta-line-min-height: 1.25rem;
 
 @mixin embed-player-panel-custom-properties {
-  --embed-list-video-placeholder-height: #{$embed-list-video-placeholder-height};
   --embed-list-row-height: #{$embed-list-row-height};
   --embed-list-visible-rows: #{$embed-list-visible-rows-default};
   --embed-meta-line-min-height: #{$embed-meta-line-min-height};
@@ -45,44 +44,38 @@ $embed-meta-line-min-height: 1.25rem;
 }
 
 // padding-block + info + gap + bottom section + padding-block
-$embed-player-panel-audio-height: calc(
+$embed-player-panel-compact-height: calc(
   var(--embed-panel-padding-block) + var(--embed-player-art-size) +
     var(--embed-player-info-controls-gap) + var(--embed-play-button-size) +
     var(--embed-panel-padding-block)
 );
 
-$embed-player-panel-video-height-single: calc(
+$embed-player-panel-responsive-height-single: calc(
   var(--embed-panel-padding-block) + var(--embed-player-art-size) +
     var(--embed-player-info-controls-gap) + var(--embed-single-video-placeholder-height) +
     var(--embed-panel-padding-block)
 );
 
-$embed-player-panel-video-height-list: calc(
-  var(--embed-panel-padding-block) + var(--embed-player-art-size) +
-    var(--embed-player-info-controls-gap) + var(--embed-list-video-placeholder-height) +
-    var(--embed-panel-padding-block)
-);
+// Responsive list video is full-bleed (no compact art/padding stack); reserve only the
+// aspect-ratio placeholder height at the list reference width.
+$embed-player-panel-responsive-height-list: var(--embed-list-video-placeholder-height);
 
-$embed-list-player-panel-audio-height: $embed-player-panel-audio-height;
-$embed-list-player-panel-video-height: $embed-player-panel-video-height-list;
+$embed-list-player-panel-compact-height: $embed-player-panel-compact-height;
+$embed-list-player-panel-responsive-height: $embed-player-panel-responsive-height-list;
 
-$embed-single-audio-shell-height: $embed-player-panel-audio-height;
-$embed-single-video-shell-height: $embed-player-panel-video-height-single;
+$embed-single-compact-shell-height: $embed-player-panel-compact-height;
+$embed-single-responsive-shell-height: $embed-player-panel-responsive-height-single;
 
 $embed-list-region-height-for-rows: calc(
   var(--embed-list-visible-rows) * var(--embed-list-row-height)
 );
 
-$embed-list-audio-shell-height: calc(
-  #{$embed-player-panel-audio-height} + #{$embed-list-region-height-for-rows} +
+$embed-list-compact-shell-height: calc(
+  #{$embed-player-panel-compact-height} + #{$embed-list-region-height-for-rows} +
     (var(--embed-has-presentation-selector) * var(--embed-presentation-selector-height))
 );
 
-$embed-list-tall-shell-height: calc(
-  #{$embed-player-panel-video-height-list} + #{$embed-list-region-height-for-rows} +
+$embed-list-responsive-shell-height: calc(
+  #{$embed-player-panel-responsive-height-list} + #{$embed-list-region-height-for-rows} +
     (var(--embed-has-presentation-selector) * var(--embed-presentation-selector-height))
 );
-
-$embed-single-short-shell-height: $embed-single-audio-shell-height;
-$embed-single-tall-shell-height: $embed-single-video-shell-height;
-$embed-list-short-shell-height: $embed-list-audio-shell-height;

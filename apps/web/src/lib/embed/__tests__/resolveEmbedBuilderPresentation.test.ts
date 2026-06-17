@@ -6,33 +6,41 @@ import {
 } from '../resolveEmbedBuilderPresentation';
 
 describe('resolveEmbedBuilderPresentation', () => {
-  it('maps builder types to layout, player size, and default media preference', () => {
-    expect(resolveEmbedBuilderPresentation('short')).toEqual({
+  it('maps player size and list toggle to layout, player size, and default media preference', () => {
+    expect(
+      resolveEmbedBuilderPresentation({ playerSize: 'compact', listEnabled: false })
+    ).toEqual({
       layout: 'single',
-      playerSize: 'short',
+      playerSize: 'compact',
       mediaPreference: 'audio',
     });
-    expect(resolveEmbedBuilderPresentation('tall')).toEqual({
+    expect(
+      resolveEmbedBuilderPresentation({ playerSize: 'responsive', listEnabled: false })
+    ).toEqual({
       layout: 'single',
-      playerSize: 'tall',
+      playerSize: 'responsive',
       mediaPreference: 'video',
     });
-    expect(resolveEmbedBuilderPresentation('short-list')).toEqual({
+    expect(
+      resolveEmbedBuilderPresentation({ playerSize: 'compact', listEnabled: true })
+    ).toEqual({
       layout: 'list',
-      playerSize: 'short',
+      playerSize: 'compact',
       mediaPreference: 'audio',
     });
-    expect(resolveEmbedBuilderPresentation('tall-list')).toEqual({
+    expect(
+      resolveEmbedBuilderPresentation({ playerSize: 'responsive', listEnabled: true })
+    ).toEqual({
       layout: 'list',
-      playerSize: 'tall',
+      playerSize: 'responsive',
       mediaPreference: 'video',
     });
   });
 });
 
 describe('resolveDefaultMediaPreferenceForPlayerSize', () => {
-  it('returns audio for short and video for tall', () => {
-    expect(resolveDefaultMediaPreferenceForPlayerSize('short')).toBe('audio');
-    expect(resolveDefaultMediaPreferenceForPlayerSize('tall')).toBe('video');
+  it('returns audio for compact and video for responsive', () => {
+    expect(resolveDefaultMediaPreferenceForPlayerSize('compact')).toBe('audio');
+    expect(resolveDefaultMediaPreferenceForPlayerSize('responsive')).toBe('video');
   });
 });

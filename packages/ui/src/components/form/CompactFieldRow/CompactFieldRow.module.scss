@@ -1,0 +1,26 @@
+@use '../../../styles/mixins/form' as *;
+
+.root {
+  width: 100%;
+}
+
+.row {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2xl);
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.row > * {
+  flex: 0 0 calc(100% / 6);
+  max-width: calc(100% / 6);
+  min-width: 0;
+  width: calc(100% / 6);
+}
+
+.help {
+  @include formInfoText(var(--spacing-md) 0 0 0);
+  margin-bottom: 0;
+}

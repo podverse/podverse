@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildEmbedIframeCode,
-  DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT,
+  DEFAULT_SINGLE_COMPACT_IFRAME_HEIGHT,
   EMBED_IFRAME_ALLOW,
   EMBED_IFRAME_BORDER_STYLE,
 } from '../buildEmbedIframeCode';
@@ -19,17 +19,26 @@ describe('buildEmbedIframeCode', () => {
     expect(code).not.toContain('encrypted-media');
   });
 
-  it('defaults height to the derived single-audio iframe height', () => {
+  it('emits iframe embed code on a single line', () => {
     const code = buildEmbedIframeCode('https://example.test/embed/episode/demo-item');
 
-    expect(DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT).toBeGreaterThan(0);
-    expect(code).toContain(`height="${DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT}"`);
+    expect(code).toBe(
+      `<iframe width="100%" height="${DEFAULT_SINGLE_COMPACT_IFRAME_HEIGHT}" frameborder="0" allow="${EMBED_IFRAME_ALLOW}" title="Embed player" style="box-sizing:border-box;border:${EMBED_IFRAME_BORDER_STYLE}" src="https://example.test/embed/episode/demo-item"></iframe>`
+    );
+    expect(code).not.toContain('\n');
+  });
+
+  it('defaults height to the derived single compact iframe height', () => {
+    const code = buildEmbedIframeCode('https://example.test/embed/episode/demo-item');
+
+    expect(DEFAULT_SINGLE_COMPACT_IFRAME_HEIGHT).toBeGreaterThan(0);
+    expect(code).toContain(`height="${DEFAULT_SINGLE_COMPACT_IFRAME_HEIGHT}"`);
   });
 
   it('includes the default (darker gray) border as an inline style on the iframe (not on the embed content)', () => {
     const code = buildEmbedIframeCode('https://example.test/embed/episode/demo-item');
 
-    expect(code).toContain(`box-sizing:border-box;border:${EMBED_IFRAME_BORDER_STYLE};`);
+    expect(code).toContain(`box-sizing:border-box;border:${EMBED_IFRAME_BORDER_STYLE}`);
   });
 
   it('omits the border entirely when borderColor is none', () => {
@@ -46,7 +55,7 @@ describe('buildEmbedIframeCode', () => {
       borderColor: '#abcdef',
     });
 
-    expect(code).toContain('box-sizing:border-box;border:1px solid #abcdef;');
+    expect(code).toContain('box-sizing:border-box;border:1px solid #abcdef');
   });
 
   it('honors custom title, width, and height options', () => {
@@ -63,7 +72,7 @@ describe('buildEmbedIframeCode', () => {
     expect(code).toContain(`allow="${EMBED_IFRAME_ALLOW}"`);
   });
 
-  it('uses responsive wrapper for single video presentation', () => {
+  it('uses responsive wrapper for single responsive presentation', () => {
     const code = buildEmbedIframeCode(
       'https://example.test/embed/episode/demo-item?presentation=video',
       {
@@ -78,16 +87,9 @@ describe('buildEmbedIframeCode', () => {
     expect(code.startsWith('<div style="position:relative;')).toBe(true);
     expect(code).toContain('padding-bottom:75%');
     expect(code).toContain(
-      `style="position:absolute;inset:0;width:100%;height:100%;box-sizing:border-box;border:${EMBED_IFRAME_BORDER_STYLE};"`
+      `<iframe frameborder="0" allow="${EMBED_IFRAME_ALLOW}" title="Video embed" style="position:absolute;inset:0;width:100%;height:100%;box-sizing:border-box;border:${EMBED_IFRAME_BORDER_STYLE}" src="https://example.test/embed/episode/demo-item?presentation=video"></iframe>`
     );
     expect(code).not.toContain(' height="');
-  });
-
-  it('adds resize data attribute when requested', () => {
-    const code = buildEmbedIframeCode('https://example.test/embed/podcast/demo-channel?resize=1', {
-      includeResizeDataAttribute: true,
-    });
-
-    expect(code).toContain('data-podverse-embed-resize');
+    expect(code).not.toContain('\n');
   });
 });

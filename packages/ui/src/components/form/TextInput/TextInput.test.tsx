@@ -90,4 +90,31 @@ describe('TextInput', () => {
     expect(wrapper).not.toBeNull();
     expect(root?.contains(wrapper)).toBe(true);
   });
+
+  it('renders the eyebrow above the bordered control when eyebrowPlacement is field', () => {
+    const { container } = render(
+      <TextInput
+        eyebrow="Start time (seconds)"
+        eyebrowPlacement="field"
+        name="start_time"
+        value="0"
+        onChange={vi.fn()}
+      />
+    );
+
+    const rootClass = styles.textInput;
+    const wrapperClass = styles.textInputWrapper;
+    if (rootClass === undefined || wrapperClass === undefined) {
+      throw new Error('textInput CSS module classes missing');
+    }
+
+    const root = container.querySelector(`.${rootClass}`) as HTMLElement | null;
+    const wrapper = container.querySelector(`.${wrapperClass}`) as HTMLElement | null;
+    const label = screen.getByText('Start time (seconds)');
+
+    expect(root).not.toBeNull();
+    expect(wrapper).not.toBeNull();
+    expect(root?.contains(label)).toBe(true);
+    expect(wrapper?.contains(label)).toBe(false);
+  });
 });

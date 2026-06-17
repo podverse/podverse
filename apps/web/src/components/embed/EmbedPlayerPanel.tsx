@@ -15,7 +15,7 @@ import { EmbedInlineMediaMount } from './EmbedInlineMediaMount';
 import { EmbedPlayerControls } from './EmbedPlayerControls';
 import { EmbedPlayerInfo } from './EmbedPlayerInfo';
 import { EmbedPlayerLoadingOverlay } from './EmbedPlayerLoadingOverlay';
-import { EmbedTallStage } from './EmbedTallStage';
+import { EmbedResponsiveStage } from './EmbedResponsiveStage';
 
 import styles from '../../styles/components/embed/EmbedPlayerPanel.module.scss';
 
@@ -26,7 +26,6 @@ type EmbedPlayerPanelProps = {
   headerTitle?: string | null;
   panelLayout: EmbedPlayerPanelLayout;
   playerSize: EmbedPlayerSizeQuery;
-  listTallAutoResize?: boolean;
   sharedQuery: EmbedSharedQueryParams;
 };
 
@@ -35,10 +34,9 @@ export function EmbedPlayerPanel({
   headerTitle,
   panelLayout,
   playerSize,
-  listTallAutoResize = false,
   sharedQuery,
 }: EmbedPlayerPanelProps) {
-  const isShortPlayer = playerSize === 'short';
+  const isCompactPlayer = playerSize === 'compact';
   const { mpAddByRSS, mpChannel, mpClip, mpItemSoundbite } = useMediaPlayer();
   const [isAlternateEnclosureModalOpen, setIsAlternateEnclosureModalOpen] = useState(false);
   const hasPlayerContent = mpChannel !== null || mpAddByRSS !== null;
@@ -60,17 +58,16 @@ export function EmbedPlayerPanel({
   const playerRegionClassName = classNames(
     styles.playerRegion,
     panelLayout === 'single' ? styles.playerRegionSingle : styles.playerRegionList,
-    !isShortPlayer && styles.playerRegionTall,
-    panelLayout === 'list' && listTallAutoResize && styles.playerRegionListTallAutoResize
+    !isCompactPlayer && styles.playerRegionResponsive
   );
   return (
     <div className={playerRegionClassName} data-testid="embed-player-region">
       <div className={styles.playerSurface} data-testid="embed-player-surface">
         <EmbedPlayerLoadingOverlay isLoading={!isContentReady} />
-        {isShortPlayer ? (
+        {isCompactPlayer ? (
           <EmbedPlayerInfo fallbackResource={fallbackResource} headerTitle={headerTitle} />
         ) : null}
-        {isShortPlayer ? (
+        {isCompactPlayer ? (
           <>
             <EmbedInlineMediaMount />
             <EmbedPlayerControls
@@ -81,10 +78,9 @@ export function EmbedPlayerPanel({
             />
           </>
         ) : (
-          <EmbedTallStage
+          <EmbedResponsiveStage
             fallbackResource={fallbackResource}
             headerTitle={headerTitle}
-            listTallAutoResize={listTallAutoResize}
             onOpenAlternateEnclosureModal={() => {
               setIsAlternateEnclosureModalOpen(true);
             }}

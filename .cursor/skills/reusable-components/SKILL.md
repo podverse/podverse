@@ -64,6 +64,17 @@ Prefer feature files importing that wrapper over repeating identical JSX at many
 - **Bare** one-line re-exports in app code (for example `export { Button } from '@podverse/ui';`) with no i18n or behavior — those add no value.
 - New page-specific SCSS utility classes that duplicate existing `@podverse/ui` behavior.
 - Creating a new component in app code when a `@podverse/ui` primitive can compose the same UI **without** repeated identical configuration.
+- Raw `<details>` / custom flex stacks with tight `gap` for collapsible **form** sections — use **`Accordion`** plus nested **`FormStack`** (`gap: var(--spacing-3xl)`) and `contentClassName` with `margin-top: var(--spacing-3xl)` on the accordion content panel so spacing matches sibling fields.
+
+## Collapsible form sections
+
+When a form has an optional or advanced block (embed builder, settings panels, etc.):
+
+1. Use **`Accordion`** from `@podverse/ui` for the disclosure header and chevron.
+2. Wrap fields inside **`FormStack`** so vertical rhythm matches the parent form.
+3. Set **`contentClassName`** on the accordion to add `margin-top: var(--spacing-3xl)` between the summary and the first field.
+4. Prefer **`FormGroup layout="inStack"`** or zero field margins when a control’s built-in bottom margin would stack with **`FormStack`** gap.
+5. For compact numeric/text fields, use **`CompactNumericInput`** / **`CompactTextInput`** with **`eyebrowPlacement="field"`** so the label sits above the control (same rhythm as **`RadioButton`**), not inside the bordered input.
 
 ## management-web notes
 

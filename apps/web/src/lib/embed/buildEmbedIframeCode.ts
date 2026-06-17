@@ -9,10 +9,10 @@ import {
   EMBED_BORDER_WIDTH,
 } from './embedBorderColor';
 import {
-  DEFAULT_SINGLE_SHORT_IFRAME_HEIGHT,
-  DEFAULT_SINGLE_TALL_IFRAME_HEIGHT,
-  getEmbedListShortIframeHeightPx,
-  getEmbedListTallIframeHeightPx,
+  DEFAULT_SINGLE_COMPACT_IFRAME_HEIGHT,
+  DEFAULT_SINGLE_RESPONSIVE_IFRAME_HEIGHT,
+  getEmbedListCompactIframeHeightPx,
+  getEmbedListResponsiveIframeHeightPx,
 } from './embedLayoutDimensions';
 import type {
   EmbedLayoutType,
@@ -20,6 +20,7 @@ import type {
   EmbedPlayerSizeQuery,
   EmbedRouteKind,
 } from './embedTypes';
+import { formatEmbedIframeElement, formatHtmlElement } from './formatEmbedHtmlCode';
 import { getEmbedLayoutType } from './getEmbedLayoutType';
 
 /** Permissions Policy `allow` value for Podverse embed iframes (autoplay only). */
@@ -33,13 +34,10 @@ export const EMBED_IFRAME_ALLOW = 'autoplay';
 export const EMBED_IFRAME_BORDER_STYLE = `${EMBED_BORDER_WIDTH} solid ${DEFAULT_EMBED_BORDER_COLOR}`;
 
 export {
-  DEFAULT_LIST_IFRAME_HEIGHT,
-  DEFAULT_LIST_SHORT_IFRAME_HEIGHT,
-  DEFAULT_LIST_TALL_IFRAME_HEIGHT,
-  DEFAULT_SINGLE_AUDIO_IFRAME_HEIGHT,
-  DEFAULT_SINGLE_IFRAME_HEIGHT,
-  DEFAULT_SINGLE_SHORT_IFRAME_HEIGHT,
-  DEFAULT_SINGLE_TALL_IFRAME_HEIGHT,
+  DEFAULT_LIST_COMPACT_IFRAME_HEIGHT,
+  DEFAULT_LIST_RESPONSIVE_IFRAME_HEIGHT,
+  DEFAULT_SINGLE_COMPACT_IFRAME_HEIGHT,
+  DEFAULT_SINGLE_RESPONSIVE_IFRAME_HEIGHT,
 } from './embedLayoutDimensions';
 
 export function getEmbedIframeHeightForPlayerSize(
@@ -52,35 +50,21 @@ export function getEmbedIframeHeightForPlayerSize(
   }
 ): number {
   if (layoutType === 'list') {
-    return playerSize === 'tall'
-      ? getEmbedListTallIframeHeightPx({
+    return playerSize === 'responsive'
+      ? getEmbedListResponsiveIframeHeightPx({
           listVisibleRows: options?.listVisibleRows,
           aspectRatio: options?.aspectRatio,
           includePresentationSelector: options?.includePresentationSelector,
         })
-      : getEmbedListShortIframeHeightPx({
+      : getEmbedListCompactIframeHeightPx({
           listVisibleRows: options?.listVisibleRows,
           includePresentationSelector: options?.includePresentationSelector,
         });
   }
 
-  return playerSize === 'tall'
-    ? DEFAULT_SINGLE_TALL_IFRAME_HEIGHT
-    : DEFAULT_SINGLE_SHORT_IFRAME_HEIGHT;
-}
-
-/** @deprecated Use getEmbedIframeHeightForPlayerSize */
-export function getEmbedIframeHeightForPresentation(
-  layoutType: EmbedLayoutType,
-  presentationStyle: EmbedMediaType,
-  options?: {
-    listVisibleRows?: number;
-    aspectRatio?: EmbedAspectRatioQuery;
-    includePresentationSelector?: boolean;
-  }
-): number {
-  const playerSize: EmbedPlayerSizeQuery = presentationStyle === 'video' ? 'tall' : 'short';
-  return getEmbedIframeHeightForPlayerSize(layoutType, playerSize, options);
+  return playerSize === 'responsive'
+    ? DEFAULT_SINGLE_RESPONSIVE_IFRAME_HEIGHT
+    : DEFAULT_SINGLE_COMPACT_IFRAME_HEIGHT;
 }
 
 export function getEmbedIframeHeightForRouteKind(
@@ -94,7 +78,7 @@ export function getEmbedIframeHeightForRouteKind(
 ): number {
   return getEmbedIframeHeightForPlayerSize(
     getEmbedLayoutType(routeKind),
-    presentationStyle === 'video' ? 'tall' : 'short',
+    presentationStyle === 'video' ? 'responsive' : 'compact',
     options
   );
 }
@@ -109,19 +93,16 @@ export function buildEmbedIframeCode(
     playerSize?: EmbedPlayerSizeQuery;
     presentation?: EmbedMediaType;
     aspectRatio?: EmbedAspectRatioQuery;
-    includeResizeDataAttribute?: boolean;
     borderColor?: string;
   }
 ): string {
-  const title = options?.title ?? 'Podverse embed';
+  const title = options?.title ?? 'Embed player';
   const width = options?.width ?? '100%';
-  const height = options?.height ?? DEFAULT_SINGLE_SHORT_IFRAME_HEIGHT;
+  const height = options?.height ?? DEFAULT_SINGLE_COMPACT_IFRAME_HEIGHT;
   const layout = options?.layout ?? 'single';
-  const playerSize = options?.playerSize ?? (options?.presentation === 'video' ? 'tall' : 'short');
+  const playerSize =
+    options?.playerSize ?? (options?.presentation === 'video' ? 'responsive' : 'compact');
   const aspectRatio = options?.aspectRatio ?? DEFAULT_EMBED_ASPECT_RATIO;
-  const resizeDataAttribute = options?.includeResizeDataAttribute
-    ? ' data-podverse-embed-resize'
-    : '';
   const borderValue = buildEmbedBorderStyleValue(
     options?.borderColor ?? DEFAULT_EMBED_BORDER_COLOR
   );
@@ -130,16 +111,41 @@ export function buildEmbedIframeCode(
   const borderDeclaration =
     borderValue !== null ? `box-sizing:border-box;border:${borderValue};` : '';
 
-  if (layout === 'single' && playerSize === 'tall') {
+  if (layout === 'single' && playerSize === 'responsive') {
     const paddingBottomPercent = embedAspectRatioToPaddingBottomPercent(aspectRatio);
     const wrapperWidth = formatCssWidth(width);
+    const iframeBorderStyle =
+      borderDeclaration !== '' ? borderDeclaration.slice(0, -1) : undefined;
 
-    return `<div style="position:relative;width:${wrapperWidth};padding-bottom:${paddingBottomPercent}%;height:0;overflow:hidden;"><iframe src="${embedUrl}" style="position:absolute;inset:0;width:100%;height:100%;${borderDeclaration}" frameborder="0" allow="${EMBED_IFRAME_ALLOW}" title="${title}"${resizeDataAttribute}></iframe></div>`;
+    const iframeHtml = formatEmbedIframeElement(embedUrl, {
+      title,
+      borderStyleAttribute:
+        iframeBorderStyle !== undefined
+          ? `position:absolute;inset:0;width:100%;height:100%;${iframeBorderStyle}`
+          : 'position:absolute;inset:0;width:100%;height:100%;',
+    });
+
+    return formatHtmlElement(
+      'div',
+      [
+        {
+          name: 'style',
+          value: `position:relative;width:${wrapperWidth};padding-bottom:${paddingBottomPercent}%;height:0;overflow:hidden;`,
+        },
+      ],
+      iframeHtml
+    );
   }
 
-  const borderStyleAttribute = borderDeclaration !== '' ? ` style="${borderDeclaration}"` : '';
+  const borderStyleAttribute =
+    borderDeclaration !== '' ? borderDeclaration.slice(0, -1) : undefined;
 
-  return `<iframe src="${embedUrl}" width="${width}" height="${height}" frameborder="0" allow="${EMBED_IFRAME_ALLOW}" title="${title}"${borderStyleAttribute}${resizeDataAttribute}></iframe>`;
+  return formatEmbedIframeElement(embedUrl, {
+    title,
+    width,
+    height,
+    borderStyleAttribute,
+  });
 }
 
 function formatCssWidth(width: number | string): string {

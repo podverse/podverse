@@ -6,37 +6,52 @@ import { parsePlaybackSeconds } from '../playback/parsePlaybackSeconds';
 import { DEFAULT_EMBED_BORDER_COLOR, sanitizeEmbedBorderColor } from './embedBorderColor';
 import type { EmbedBuilderQueryParams } from './embedBuilderTypes';
 import {
+  decomposeEmbedBuilderType,
   EMBED_BUILDER_LIST_CONTENT_TYPES,
   EMBED_BUILDER_LIST_SORT_VALUES,
-  EMBED_BUILDER_TYPES,
+  EMBED_BUILDER_PLAYER_SIZES,
+  normalizeEmbedBuilderParamsForSource,
   normalizeEmbedBuilderType,
 } from './embedBuilderTypes';
 import { normalizeEmbedSearchParams } from './normalizeEmbedSearchParams';
 import { parseEmbedAspectRatio } from './parseEmbedAspectRatio';
-import { parseEmbedAutoResize } from './parseEmbedAutoResize';
 import { parseEmbedChapterMarkers } from './parseEmbedChapterMarkers';
+import { parseEmbedListEnabled } from './parseEmbedListEnabled';
 import { EMBED_LIST_VISIBLE_ROWS_DEFAULT, parseEmbedListRows } from './parseEmbedListRows';
 import {
   resolveDefaultMediaPreferenceForPlayerSize,
-  resolveEmbedBuilderPresentation,
 } from './resolveEmbedBuilderPresentation';
 
-function parseEmbedBuilderTypeValue(value: unknown): (typeof EMBED_BUILDER_TYPES)[number] {
+function parsePlayerSizeValue(value: unknown): (typeof EMBED_BUILDER_PLAYER_SIZES)[number] {
   if (typeof value === 'string') {
     const normalized = normalizeEmbedBuilderType(value);
     if (normalized !== undefined) {
-      return normalized;
+      return decomposeEmbedBuilderType(normalized).playerSize;
     }
   }
 
-  return 'short';
+  return 'compact';
+}
+
+function parseListEnabledFromTypeValue(value: unknown): boolean | undefined {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  const normalized = normalizeEmbedBuilderType(value);
+  if (normalized === undefined) {
+    return undefined;
+  }
+
+  return decomposeEmbedBuilderType(normalized).listEnabled;
 }
 
 const builderQuerySchema = z.object({
   type: z
-    .preprocess(parseEmbedBuilderTypeValue, z.enum(EMBED_BUILDER_TYPES))
+    .preprocess(parsePlayerSizeValue, z.enum(EMBED_BUILDER_PLAYER_SIZES))
     .optional()
-    .default('short'),
+    .default('compact'),
+  list: z.preprocess(parseEmbedListEnabled, z.boolean().optional()),
   prefer: z.enum(['audio', 'video']).optional(),
   channel: z.string().trim().min(1).optional().nullable().default(null),
   medium_id: z
@@ -74,7 +89,6 @@ const builderQuerySchema = z.object({
     .preprocess(parseEmbedListRows, z.number())
     .optional()
     .default(EMBED_LIST_VISIBLE_ROWS_DEFAULT),
-  resize: z.preprocess(parseEmbedAutoResize, z.boolean()).optional().default(false),
   chapter_markers: z.preprocess(parseEmbedChapterMarkers, z.boolean()).optional().default(true),
   ar: z
     .preprocess(parseEmbedAspectRatio, z.enum(['16x9', '4x3', '1x1']))
@@ -99,12 +113,17 @@ function parseSchemaWithDefaults(
 export function parseEmbedBuilderQueryParams(
   raw: Record<string, string | string[] | undefined>
 ): EmbedBuilderQueryParams {
+  const normalized = normalizeEmbedSearchParams(raw);
   const parsed = parseSchemaWithDefaults(raw);
-  const { playerSize } = resolveEmbedBuilderPresentation(parsed.type);
-  const mediaPreference = parsed.prefer ?? resolveDefaultMediaPreferenceForPlayerSize(playerSize);
-
-  return {
-    type: parsed.type,
+  const listFromParam = parseEmbedListEnabled(normalized.list);
+  const listFromType = parseListEnabledFromTypeValue(normalized.type);
+  const listEnabled = listFromParam ?? listFromType ?? false;
+  const playerSize = parsed.type;
+  const mediaPreference =
+    parsed.prefer ?? resolveDefaultMediaPreferenceForPlayerSize(playerSize);
+  const params: EmbedBuilderQueryParams = {
+    playerSize,
+    listEnabled,
     mediaPreference,
     channel: parsed.channel,
     mediumId: parsed.medium_id,
@@ -121,10 +140,11 @@ export function parseEmbedBuilderQueryParams(
     startSeconds: parsed.t,
     playIdText: parsed.play_id_text,
     listVisibleRows: parsed.rows,
-    autoResize: parsed.resize,
     showChapterMarkers: parsed.chapter_markers,
     aspectRatio: parsed.ar,
     borderColor:
       parsed.border !== null ? sanitizeEmbedBorderColor(parsed.border) : DEFAULT_EMBED_BORDER_COLOR,
   };
+
+  return normalizeEmbedBuilderParamsForSource(params);
 }

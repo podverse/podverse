@@ -6,15 +6,15 @@ import { useMediaPlayer } from '../../contexts/MediaPlayer';
 import { useNonLivePlaybackAvProps } from '../../hooks/useNonLivePlaybackAvProps';
 import type { EmbedSingleResourcePayload } from '../../lib/embed/fetchEmbedSingleResource';
 import { NonLiveMediaOrchestrator } from '../MediaPlayer/Controller/NonLiveMediaOrchestrator';
-import { EmbedTallCenterArt } from './EmbedTallCenterArt';
+import { EmbedResponsiveCenterArt } from './EmbedResponsiveCenterArt';
 
-import styles from '../../styles/components/embed/EmbedTallMediaMount.module.scss';
+import styles from '../../styles/components/embed/EmbedResponsiveMediaMount.module.scss';
 
-type EmbedTallMediaMountProps = {
+type EmbedResponsiveMediaMountProps = {
   fallbackResource: EmbedSingleResourcePayload | null;
 };
 
-export function EmbedTallMediaMount({ fallbackResource }: EmbedTallMediaMountProps) {
+export function EmbedResponsiveMediaMount({ fallbackResource }: EmbedResponsiveMediaMountProps) {
   const avProps = useNonLivePlaybackAvProps();
   const { mpItemLabeledItemEnclosures, mpEnclosureSelectedParams } = useMediaPlayer();
 
@@ -34,7 +34,7 @@ export function EmbedTallMediaMount({ fallbackResource }: EmbedTallMediaMountPro
 
   if (showVideoElement) {
     return (
-      <div className={styles.videoFill} data-testid="embed-tall-video-element">
+      <div className={styles.videoFill} data-testid="embed-responsive-video-element">
         <NonLiveMediaOrchestrator
           {...avProps}
           mediaType="video"
@@ -48,7 +48,7 @@ export function EmbedTallMediaMount({ fallbackResource }: EmbedTallMediaMountPro
   return (
     <>
       <NonLiveMediaOrchestrator {...avProps} mediaType="audio" preload="auto" hidden={true} />
-      <EmbedTallCenterArt fallbackResource={fallbackResource} />
+      <EmbedResponsiveCenterArt fallbackResource={fallbackResource} />
     </>
   );
 }

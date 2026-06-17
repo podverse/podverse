@@ -16,5 +16,5 @@ export function resolveEmbedMediaType(channel: DTOChannel): EmbedMediaType {
 }
 
 export function resolveEmbedPlayerSizeFromChannel(channel: DTOChannel): EmbedPlayerSizeQuery {
-  return resolveEmbedMediaType(channel) === 'video' ? 'tall' : 'short';
+  return resolveEmbedMediaType(channel) === 'video' ? 'responsive' : 'compact';
 }

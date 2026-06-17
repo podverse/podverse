@@ -11,9 +11,10 @@ import type {
   WheelEvent,
 } from 'react';
 import { useRef } from 'react';
-import { FaCalendarDays, FaClock } from 'react-icons/fa6';
+import { FaCalendarDays, FaCircleQuestion, FaClock } from 'react-icons/fa6';
 
 import { Button } from '../../button/Button/Button';
+import { PopoverIcon } from '../../feedback/PopoverIcon/PopoverIcon';
 import { TextInputNumberIncrement } from '../TextInputNumberIncrement/TextInputNumberIncrement';
 
 import styles from './TextInput.module.scss';
@@ -48,9 +49,19 @@ export type TextInputProps = {
   className?: string;
   disabled?: boolean;
   eyebrow?: string;
+  /**
+   * Where the optional `eyebrow` label is rendered.
+   * - `inset` (default): inside the bordered control, above the value (dropdown-style).
+   * - `field`: above the control, matching {@link RadioButton} group label spacing.
+   */
+  eyebrowPlacement?: 'field' | 'inset';
   id?: string;
   info?: string;
+  /** When set with `info`, shows help in an inline popover beside the eyebrow instead of below the field. */
+  infoAriaLabel?: string;
   infoError?: string;
+  /** @default 'default' */
+  layout?: 'compact' | 'default';
   max?: number;
   maxLength?: number;
   min?: number;
@@ -88,12 +99,15 @@ export function TextInput({
   onBlur,
   eyebrow,
   info,
+  infoAriaLabel,
   infoError,
+  eyebrowPlacement = 'inset',
   placeholder,
   type = 'text',
   disabled = false,
   readOnly = false,
   className,
+  layout = 'default',
   style,
   id,
   name,
@@ -116,8 +130,15 @@ export function TextInput({
   ...rest
 }: TextInputProps) {
   const inputId = id ?? name ?? undefined;
-  const infoId = info ? `${inputId ?? 'textinput'}-info` : undefined;
+  const showInfoPopover =
+    info !== undefined &&
+    info !== '' &&
+    infoAriaLabel !== undefined &&
+    infoAriaLabel !== '';
+  const showInfoBelow = info !== undefined && info !== '' && !showInfoPopover;
+  const infoId = showInfoBelow ? `${inputId ?? 'textinput'}-info` : undefined;
   const infoErrorId = infoError ? `${inputId ?? 'textinput'}-error` : undefined;
+  const describedBy = showInfoBelow && infoId !== undefined ? infoId : ariaDescribedBy;
 
   const inputRef = useRef<HTMLInputElement>(null);
   const hasSuffix = suffix !== undefined && suffix !== '';
@@ -158,8 +179,59 @@ export function TextInput({
     type === 'number' && Boolean(suffix) && styles.numberInputWithSuffix
   );
 
+  const renderEyebrow = (placement: 'field' | 'inset') => {
+    if (eyebrow === undefined || eyebrow === '') {
+      return null;
+    }
+
+    if (eyebrowPlacement !== placement) {
+      return null;
+    }
+
+    if (showInfoPopover) {
+      return (
+        <div
+          className={classNames(
+            styles.eyebrowRow,
+            placement === 'field' && styles.fieldLabelRow
+          )}
+        >
+          <label htmlFor={inputId} className={styles.eyebrow}>
+            {eyebrow}
+          </label>
+          <PopoverIcon
+            ariaLabel={infoAriaLabel}
+            body={info}
+            icon={<FaCircleQuestion aria-hidden className={styles.helpIcon} />}
+            interaction="click"
+          />
+        </div>
+      );
+    }
+
+    return (
+      <label
+        htmlFor={inputId}
+        className={classNames(
+          styles.eyebrow,
+          placement === 'field' && styles.fieldLabel
+        )}
+      >
+        {eyebrow}
+      </label>
+    );
+  };
+
   return (
-    <div className={classNames(styles.textInput, className)} style={style}>
+    <div
+      className={classNames(
+        styles.textInput,
+        layout === 'compact' && styles.textInputCompact,
+        className
+      )}
+      style={style}
+    >
+      {renderEyebrow('field')}
       <div
         className={classNames(styles.textInputWrapper, disabled && styles.textInputWrapperDisabled)}
       >
@@ -175,13 +247,11 @@ export function TextInput({
         <div className={styles.textInnerInputWrapper}>
           {useEyebrowNativePickerRow ? (
             <>
-              <label htmlFor={inputId} className={styles.eyebrow}>
-                {eyebrow}
-              </label>
+              {renderEyebrow('inset')}
               <span className={styles.nativePickerInputBox}>
                 <input
                   ref={inputRef}
-                  aria-describedby={info ? infoId : ariaDescribedBy}
+                  aria-describedby={describedBy}
                   aria-invalid={ariaInvalid}
                   aria-label={ariaLabel}
                   aria-required={ariaRequired}
@@ -207,11 +277,7 @@ export function TextInput({
             </>
           ) : (
             <>
-              {eyebrow ? (
-                <label htmlFor={inputId} className={styles.eyebrow}>
-                  {eyebrow}
-                </label>
-              ) : null}
+              {renderEyebrow('inset')}
               {hasAffixes ? (
                 <div
                   className={styles.inputWithAffixesRow}
@@ -234,7 +300,7 @@ export function TextInput({
                   ) : null}
                   <input
                     ref={inputRef}
-                    aria-describedby={info ? infoId : ariaDescribedBy}
+                    aria-describedby={describedBy}
                     aria-invalid={ariaInvalid}
                     aria-label={ariaLabel}
                     aria-required={ariaRequired}
@@ -272,7 +338,7 @@ export function TextInput({
                 </div>
               ) : (
                 <input
-                  aria-describedby={info ? infoId : ariaDescribedBy}
+                  aria-describedby={describedBy}
                   aria-invalid={ariaInvalid}
                   aria-label={ariaLabel}
                   aria-required={ariaRequired}
@@ -351,7 +417,7 @@ export function TextInput({
           </button>
         ) : null}
       </div>
-      {info ? (
+      {showInfoBelow ? (
         <div id={infoId} className={styles.textInputInfo}>
           {info}
         </div>

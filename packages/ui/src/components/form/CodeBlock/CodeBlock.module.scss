@@ -1,0 +1,64 @@
+@use '../../../styles/mixins/flexShrink' as *;
+@use '../../../styles/mixins/form' as *;
+
+.root {
+  @include flexItemAllowShrink;
+  position: relative;
+  width: 100%;
+}
+
+.rootWithAsideCopy {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.rootWithAsideCopy .panel {
+  flex: 1;
+  min-width: 0;
+}
+
+.asideCopyButton {
+  flex-shrink: 0;
+}
+
+.panel {
+  @include formInputWrapper;
+  align-items: stretch;
+  flex-direction: column;
+  padding: var(--spacing-lg);
+  width: 100%;
+}
+
+.headerRow {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: space-between;
+  width: 100%;
+}
+
+.headerSpacer {
+  flex: 1;
+}
+
+.eyebrow {
+  @include formFieldEyebrow;
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.code {
+  color: var(--text-color-primary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: var(--font-size-base);
+  margin: 0;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  width: 100%;
+  word-break: break-all;
+}
+
+.code code {
+  font-family: inherit;
+}

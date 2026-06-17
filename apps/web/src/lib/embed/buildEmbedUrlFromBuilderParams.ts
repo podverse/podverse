@@ -11,7 +11,7 @@ export function buildEmbedUrlFromBuilderParams(
   params: EmbedBuilderQueryParams,
   options?: { origin?: string }
 ): string | null {
-  const { layout, playerSize } = resolveEmbedBuilderPresentation(params.type);
+  const { layout, playerSize } = resolveEmbedBuilderPresentation(params);
   const context = buildEmbedUrlEntityContextFromBuilderParams(params, layout);
   const listUrlOptions = resolveEmbedListUrlOptionsFromBuilderParams(params);
 
@@ -25,13 +25,12 @@ export function buildEmbedUrlFromBuilderParams(
     playerSize,
     ...listUrlOptions,
     listVisibleRows: params.listVisibleRows,
-    autoResize: layout === 'list' && playerSize === 'tall' ? params.autoResize : false,
     origin: options?.origin,
   });
 }
 
 export function buildEmbedUrlPathFromBuilderParams(params: EmbedBuilderQueryParams): string | null {
-  const { layout, playerSize } = resolveEmbedBuilderPresentation(params.type);
+  const { layout, playerSize } = resolveEmbedBuilderPresentation(params);
   const context = buildEmbedUrlEntityContextFromBuilderParams(params, layout);
   const listUrlOptions = resolveEmbedListUrlOptionsFromBuilderParams(params);
 
@@ -45,6 +44,5 @@ export function buildEmbedUrlPathFromBuilderParams(params: EmbedBuilderQueryPara
     playerSize,
     ...listUrlOptions,
     listVisibleRows: params.listVisibleRows,
-    autoResize: layout === 'list' && playerSize === 'tall' ? params.autoResize : false,
   });
 }

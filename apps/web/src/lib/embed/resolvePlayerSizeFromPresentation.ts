@@ -3,7 +3,7 @@ import type { EmbedPlayerSizeQuery, EmbedPresentationQuery } from './embedTypes'
 export function resolvePlayerSizeFromPresentation(
   presentation: EmbedPresentationQuery
 ): EmbedPlayerSizeQuery {
-  return presentation === 'video' ? 'tall' : 'short';
+  return presentation === 'video' ? 'responsive' : 'compact';
 }
 
 export function resolveEffectiveEmbedListPlayerSize(input: {
@@ -11,13 +11,13 @@ export function resolveEffectiveEmbedListPlayerSize(input: {
   playerSizeLocked: boolean;
   mediaPreference: EmbedPresentationQuery;
 }): EmbedPlayerSizeQuery {
-  if (input.playerSizeLocked && input.playerSize === 'short') {
-    return 'short';
+  if (input.playerSizeLocked && input.playerSize === 'compact') {
+    return 'compact';
   }
 
-  if (input.playerSizeLocked && input.playerSize === 'tall') {
-    return 'tall';
+  if (input.playerSizeLocked && input.playerSize === 'responsive') {
+    return 'responsive';
   }
 
-  return input.mediaPreference === 'video' ? 'tall' : 'short';
+  return input.mediaPreference === 'video' ? 'responsive' : 'compact';
 }

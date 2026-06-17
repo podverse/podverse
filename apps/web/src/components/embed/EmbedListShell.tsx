@@ -8,7 +8,6 @@ import { LoadingSpinner } from '@podverse/ui';
 import { EmbedShellPlaybackModeProvider } from '../../contexts/EmbedPlaybackMode';
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
 import { useEmbedPlaybackLoad } from '../../hooks/useEmbedPlaybackLoad';
-import { useEmbedTallAutoResize } from '../../hooks/useEmbedTallAutoResize';
 import { getEmbedListVideoPlaceholderHeightPx } from '../../lib/embed/embedLayoutDimensions';
 import { registerEmbedListEndedHandler } from '../../lib/embed/embedListPlaybackAdvance';
 import type {
@@ -88,7 +87,7 @@ export function EmbedListShell({
     playerSizeLocked,
     mediaPreference,
   });
-  const isTallPlayer = effectivePlayerSize === 'tall';
+  const isResponsivePlayer = effectivePlayerSize === 'responsive';
   const [playbackStartSeconds, setPlaybackStartSeconds] = useState(sharedQuery.startSeconds);
   const [shouldPlay, setShouldPlay] = useState(false);
   const { mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
@@ -253,15 +252,9 @@ export function EmbedListShell({
       }
     : null;
 
-  const autoResizeEnabled = isTallPlayer && listQuery.autoResize === true;
-  const shellClassName = isTallPlayer
-    ? `${styles.shell} ${styles.shellTall} ${
-        autoResizeEnabled ? styles.shellTallAutoResize : styles.shellTallFixed
-      }`
-    : styles.shell;
+  const shellClassName = isResponsivePlayer ? `${styles.shell} ${styles.shellResponsive}` : styles.shell;
 
   const showPresentationSelector = hasMixedMedia && !presentationLocked;
-  useEmbedTallAutoResize({ enabled: autoResizeEnabled });
   const shellStyle = {
     '--embed-has-presentation-selector': showPresentationSelector ? 1 : 0,
     '--embed-list-visible-rows': String(listQuery.listVisibleRows),
@@ -274,7 +267,6 @@ export function EmbedListShell({
         <EmbedPlayerPanel
           fallbackResource={selectedResource}
           headerTitle={listData.headerTitle}
-          listTallAutoResize={autoResizeEnabled}
           panelLayout="list"
           playerSize={effectivePlayerSize}
           sharedQuery={sharedQuery}

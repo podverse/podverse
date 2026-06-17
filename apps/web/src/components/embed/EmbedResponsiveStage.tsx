@@ -3,39 +3,37 @@
 import classNames from 'classnames';
 
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
-import { useEmbedTallOverlayVisibility } from '../../hooks/useEmbedTallOverlayVisibility';
+import { useEmbedResponsiveOverlayVisibility } from '../../hooks/useEmbedResponsiveOverlayVisibility';
 import type { EmbedSingleResourcePayload } from '../../lib/embed/fetchEmbedSingleResource';
 import { EmbedSegmentInfoBar } from './EmbedSegmentInfoBar';
-import { EmbedTallControlsOverlay } from './EmbedTallControlsOverlay';
-import { EmbedTallInfoOverlay } from './EmbedTallInfoOverlay';
-import { EmbedTallMediaMount } from './EmbedTallMediaMount';
+import { EmbedResponsiveControlsOverlay } from './EmbedResponsiveControlsOverlay';
+import { EmbedResponsiveInfoOverlay } from './EmbedResponsiveInfoOverlay';
+import { EmbedResponsiveMediaMount } from './EmbedResponsiveMediaMount';
 
-import styles from '../../styles/components/embed/EmbedTallStage.module.scss';
+import styles from '../../styles/components/embed/EmbedResponsiveStage.module.scss';
 
-type EmbedTallStageProps = {
+type EmbedResponsiveStageProps = {
   fallbackResource: EmbedSingleResourcePayload | null;
   headerTitle?: string | null;
-  listTallAutoResize?: boolean;
   onOpenAlternateEnclosureModal: () => void;
   showChapterMarkers: boolean;
 };
 
-export function EmbedTallStage({
+export function EmbedResponsiveStage({
   fallbackResource,
   headerTitle,
-  listTallAutoResize = false,
   onOpenAlternateEnclosureModal,
   showChapterMarkers,
-}: EmbedTallStageProps) {
+}: EmbedResponsiveStageProps) {
   const { mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
-  const { isVisible, setIsFocused, setIsHovering } = useEmbedTallOverlayVisibility({
+  const { isVisible, setIsFocused, setIsHovering } = useEmbedResponsiveOverlayVisibility({
     isPlaying: mpIsPlaying,
   });
 
   return (
     <div
-      className={classNames(styles.tallStage, listTallAutoResize && styles.tallStageAutoResize)}
-      data-testid="embed-tall-stage"
+      className={styles.responsiveStage}
+      data-testid="embed-responsive-stage"
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) {
           setIsFocused(false);
@@ -48,25 +46,25 @@ export function EmbedTallStage({
       onMouseMove={() => setIsHovering(true)}
     >
       <div className={styles.mediaLayer}>
-        <EmbedTallMediaMount fallbackResource={fallbackResource} />
+        <EmbedResponsiveMediaMount fallbackResource={fallbackResource} />
       </div>
       <div
         className={classNames(styles.overlayTop, !isVisible && styles.overlayHidden)}
-        data-testid="embed-tall-info-overlay"
+        data-testid="embed-responsive-info-overlay"
       >
-        <EmbedTallInfoOverlay fallbackResource={fallbackResource} headerTitle={headerTitle} />
+        <EmbedResponsiveInfoOverlay fallbackResource={fallbackResource} headerTitle={headerTitle} />
       </div>
       <div
         className={classNames(styles.overlaySegment, !isVisible && styles.overlayHidden)}
-        data-testid="embed-tall-segment-overlay"
+        data-testid="embed-responsive-segment-overlay"
       >
         <EmbedSegmentInfoBar fallbackResource={fallbackResource} />
       </div>
       <div
         className={classNames(styles.overlayBottom, !isVisible && styles.overlayHidden)}
-        data-testid="embed-tall-controls-overlay"
+        data-testid="embed-responsive-controls-overlay"
       >
-        <EmbedTallControlsOverlay
+        <EmbedResponsiveControlsOverlay
           onOpenAlternateEnclosureModal={onOpenAlternateEnclosureModal}
           showChapterMarkers={showChapterMarkers}
         />

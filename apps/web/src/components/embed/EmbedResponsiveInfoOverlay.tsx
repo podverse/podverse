@@ -3,14 +3,14 @@
 import type { EmbedSingleResourcePayload } from '../../lib/embed/fetchEmbedSingleResource';
 import { EmbedPlayerInfo } from './EmbedPlayerInfo';
 
-import styles from '../../styles/components/embed/EmbedTallInfoOverlay.module.scss';
+import styles from '../../styles/components/embed/EmbedResponsiveInfoOverlay.module.scss';
 
-type EmbedTallInfoOverlayProps = {
+type EmbedResponsiveInfoOverlayProps = {
   fallbackResource: EmbedSingleResourcePayload | null;
   headerTitle?: string | null;
 };
 
-export function EmbedTallInfoOverlay({ fallbackResource, headerTitle }: EmbedTallInfoOverlayProps) {
+export function EmbedResponsiveInfoOverlay({ fallbackResource, headerTitle }: EmbedResponsiveInfoOverlayProps) {
   return (
     <div className={styles.overlayTop} onClick={(event) => event.stopPropagation()}>
       <EmbedPlayerInfo
