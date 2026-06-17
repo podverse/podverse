@@ -20,7 +20,8 @@
     "next-intl": "^4.13.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "vitest": "4.1.8"
+    "sharp": "^0.35.1",
+    "vitest": "4.1.9"
   },
   "devDependencies": {
     "esbuild": "^0.28.1",
