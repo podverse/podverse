@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 
-import { AppWrapper, PageWrapper } from '@podverse/ui';
+import { AppWrapper, PageWrapper, PageWrapperMain } from '@podverse/ui';
 
 import { isEmbedPathname } from '../../lib/embed/isEmbedPathname';
 import { CookieConsentBanner } from '../Banner/CookieConsentBanner';
@@ -33,7 +33,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
             <NavBar />
             <MembershipExpiredBanner />
             <CookieConsentBanner />
-            {children}
+            <PageWrapperMain>{children}</PageWrapperMain>
           </PageWrapper>
         </AppWrapper>
         <LazyLoadedComponents />

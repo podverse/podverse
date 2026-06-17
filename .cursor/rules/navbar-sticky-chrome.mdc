@@ -3,6 +3,7 @@ description: Keep top NavBar visible during scroll on pages with app chrome.
 globs:
   - packages/ui/src/components/navigation/NavBar/**
   - packages/ui/src/components/layout/PageWrapper/**
+  - packages/ui/src/components/layout/PageWrapperMain/**
   - packages/ui/src/components/layout/MainPageScaffold/**
   - apps/web/src/components/App/AppChrome.tsx
   - apps/management-web/src/components/ManagementAppLayout/**
@@ -17,12 +18,12 @@ Pages with app chrome must keep `@podverse/ui` **NavBar** visible while the user
 
 ## Implementation (do not regress)
 
-- **NavBar** (`NavBar.module.scss`): `position: sticky; top: 0; z-index: 100` on both management and web appearances. This keeps the bar visible when `#page-wrapper` or the document scrolls.
-- **Do not** set `#page-wrapper` to `overflow: hidden` unless every main-content path has a working inner scroll container — that clips long pages (e.g. `/embed` demo).
-- **Web inner scroll**: `#mainOuterWrapper` (`MainPageScaffold`) may also scroll on shorter pages; keep `min-height: 0` there so flex layout can shrink the scroll region when `#page-wrapper` does not scroll.
-- **Embed iframe routes** (`/embed/*` except `/embed`): remain chromeless via `isEmbedPathname` — no navbar there by design.
+- **NavBar** (`NavBar.module.scss`): `position: sticky; top: 0; z-index: 100` on both management and web appearances.
+- **Single scroll owner (web):** `#mainOuterWrapper` (`MainPageScaffold`) is the only vertical scroll container for chrome pages. `#page-wrapper` and `WindowWrapper` use `overflow: hidden` with a viewport height so the document does not scroll.
+- **Flex chain:** `PageWrapperMain` (in `AppChrome`) wraps route content with `flex: 1; min-height: 0` so nested layouts (e.g. `/embed` `embed-root`) do not break height constraints before `#mainOuterWrapper`.
+- **Embed iframe routes** (`/embed/*` except `/embed` and `/embed/builder`): remain chromeless via `isEmbedPathname` — no navbar there by design.
 
 ## When changing layout
 
 - Do not move scroll from `#mainOuterWrapper` without updating `apps/web/src/utils/scroll.ts` and scroll-restore callers.
-- Prefer sticky NavBar over clipping `#page-wrapper` when fixing navbar visibility on long pages.
+- Do not re-enable `overflow-y: auto` on `#page-wrapper` — that recreates double scrollbars with `#mainOuterWrapper`.

@@ -147,6 +147,8 @@ export {
 export type { ImageLightboxModalProps } from './components/layout/ImageLightboxModal/ImageLightboxModal';
 export { PageWrapper } from './components/layout/PageWrapper/PageWrapper';
 export type { PageWrapperProps } from './components/layout/PageWrapper/PageWrapper';
+export { PageWrapperMain } from './components/layout/PageWrapperMain/PageWrapperMain';
+export type { PageWrapperMainProps } from './components/layout/PageWrapperMain/PageWrapperMain';
 export { StatusBadge } from './components/layout/StatusBadge/StatusBadge';
 export type {
   StatusBadgeProps,
