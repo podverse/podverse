@@ -131,7 +131,10 @@ test.describe('Embed responsive player', () => {
     await expectEmbedListShell(page);
 
     await page.getByTestId('embed-list-row-active').getByRole('button').last().click();
-    await expect(page.getByTestId('embed-responsive-mute-toggle')).toHaveAttribute('aria-label', 'Mute');
+    await expect(page.getByTestId('embed-responsive-mute-toggle')).toHaveAttribute(
+      'aria-label',
+      'Mute'
+    );
 
     await page
       .getByTestId('embed-list-row')
@@ -140,7 +143,10 @@ test.describe('Embed responsive player', () => {
       .last()
       .click();
     await expect(page.getByTestId('embed-list-row-active')).toContainText('Episode Two (video)');
-    await expect(page.getByTestId('embed-responsive-mute-toggle')).toHaveAttribute('aria-label', 'Mute');
+    await expect(page.getByTestId('embed-responsive-mute-toggle')).toHaveAttribute(
+      'aria-label',
+      'Mute'
+    );
   });
 
   test('When hovering the responsive mute control, a popover with a vertical volume bar appears.', async ({
@@ -157,10 +163,9 @@ test.describe('Embed responsive player', () => {
 
     await muteToggle.hover();
     await expect(page.getByTestId('embed-responsive-volume-popover')).toBeVisible();
-    await expect(page.getByTestId('embed-responsive-volume-popover').getByRole('slider')).toHaveAttribute(
-      'aria-orientation',
-      'vertical'
-    );
+    await expect(
+      page.getByTestId('embed-responsive-volume-popover').getByRole('slider')
+    ).toHaveAttribute('aria-orientation', 'vertical');
   });
 
   test('When comparing chapter hover behavior, responsive presentation shows a chapter tooltip while compact presentation does not.', async ({

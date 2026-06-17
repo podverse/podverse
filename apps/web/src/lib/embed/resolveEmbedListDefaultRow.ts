@@ -22,3 +22,27 @@ export function resolveEmbedListDefaultRow(
 
   return rows[0] ?? null;
 }
+
+export function resolveEmbedListInitialRow(
+  rows: EmbedListRow[],
+  playIdText: string | null,
+  playIdTextOverrideRow: EmbedListRow | null
+): EmbedListRow | null {
+  if (playIdText !== null) {
+    const listMatch = rows.find((row) => row.playIdText === playIdText);
+
+    if (listMatch !== undefined) {
+      return listMatch;
+    }
+
+    if (playIdTextOverrideRow !== null && playIdTextOverrideRow.playIdText === playIdText) {
+      return playIdTextOverrideRow;
+    }
+  }
+
+  if (rows.length > 0) {
+    return rows[0] ?? null;
+  }
+
+  return playIdTextOverrideRow;
+}

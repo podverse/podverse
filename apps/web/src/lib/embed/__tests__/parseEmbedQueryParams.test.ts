@@ -157,7 +157,6 @@ describe('parseEmbedPodcastListQueryParams', () => {
     expect(parseEmbedPodcastListQueryParams({ rows: '10' }).listVisibleRows).toBe(10);
     expect(parseEmbedPodcastListQueryParams({ rows: '99' }).listVisibleRows).toBe(10);
   });
-
 });
 
 describe('parseEmbedAlbumListQueryParams', () => {

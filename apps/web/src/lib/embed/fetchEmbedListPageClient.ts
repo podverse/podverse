@@ -58,6 +58,7 @@ function buildEmbedListData(input: {
     groups: input.groups,
     routeKind: input.routeKind,
     resourceId: input.resourceId,
+    playIdTextOverrideRow: null,
     pagination: {
       page: input.page,
       totalPages: input.totalPages,

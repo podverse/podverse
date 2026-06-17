@@ -29,7 +29,7 @@ import {
 } from '../../lib/embed/fetchEmbedListPageClient';
 import {
   flattenEmbedListRows,
-  resolveEmbedListDefaultRow,
+  resolveEmbedListInitialRow,
 } from '../../lib/embed/resolveEmbedListDefaultRow';
 import {
   listHasMixedEmbedMedia,
@@ -68,8 +68,8 @@ export function EmbedListShell({
   const allRows = useMemo(() => flattenEmbedListRows(groups), [groups]);
   const lastRowKey = allRows.at(-1)?.rowKey ?? null;
   const initialRow = useMemo(
-    () => resolveEmbedListDefaultRow(allRows, playIdText),
-    [allRows, playIdText]
+    () => resolveEmbedListInitialRow(allRows, playIdText, listData.playIdTextOverrideRow),
+    [allRows, listData.playIdTextOverrideRow, playIdText]
   );
   const hasMixedMedia = useMemo(() => listHasMixedEmbedMedia(allRows), [allRows]);
   const { playerSize, playerSizeLocked, presentationLocked } = sharedQuery;
@@ -91,6 +91,26 @@ export function EmbedListShell({
   const [playbackStartSeconds, setPlaybackStartSeconds] = useState(sharedQuery.startSeconds);
   const [shouldPlay, setShouldPlay] = useState(false);
   const { mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
+
+  useEffect(() => {
+    setSelectedRow(initialRow);
+    setPlaybackStartSeconds(sharedQuery.startSeconds);
+
+    if (presentationLocked) {
+      setMediaPreference(sharedQuery.presentation);
+      return;
+    }
+
+    if (!hasMixedMedia) {
+      setMediaPreference(resolveInitialPresentationStyle(initialRow));
+    }
+  }, [
+    hasMixedMedia,
+    initialRow,
+    presentationLocked,
+    sharedQuery.presentation,
+    sharedQuery.startSeconds,
+  ]);
 
   useEffect(() => {
     if (presentationLocked) {
@@ -252,7 +272,9 @@ export function EmbedListShell({
       }
     : null;
 
-  const shellClassName = isResponsivePlayer ? `${styles.shell} ${styles.shellResponsive}` : styles.shell;
+  const shellClassName = isResponsivePlayer
+    ? `${styles.shell} ${styles.shellResponsive}`
+    : styles.shell;
 
   const showPresentationSelector = hasMixedMedia && !presentationLocked;
   const shellStyle = {

@@ -10,34 +10,26 @@ afterEach(() => {
 describe('FormInset', () => {
   it('renders children', () => {
     render(<FormInset data-testid="form-inset">Controls</FormInset>);
-    expect(screen.getByTestId('form-inset')).toHaveTextContent('Controls');
+    expect(screen.getByTestId('form-inset').textContent).toContain('Controls');
   });
 
   it('renders a heading above the inset panel when heading is provided', () => {
     render(
-      <FormInset
-        data-testid="form-inset-section"
-        heading="Options"
-        headingId="options-heading"
-      >
+      <FormInset data-testid="form-inset-section" heading="Options" headingId="options-heading">
         Controls
       </FormInset>
     );
 
     expect(screen.getByRole('region', { name: 'Options' })).toBeTruthy();
-    expect(screen.getByRole('heading', { level: 2, name: 'Options' })).toHaveAttribute(
-      'id',
+    expect(screen.getByRole('heading', { level: 2, name: 'Options' }).getAttribute('id')).toBe(
       'options-heading'
     );
-    expect(screen.getByTestId('form-inset-section')).toHaveTextContent('Controls');
+    expect(screen.getByTestId('form-inset-section').textContent).toContain('Controls');
   });
 
   it('renders headingAccessory beside the heading', () => {
     render(
-      <FormInset
-        heading="Embed code"
-        headingAccessory={<button type="button">Help</button>}
-      >
+      <FormInset heading="Embed code" headingAccessory={<button type="button">Help</button>}>
         Controls
       </FormInset>
     );

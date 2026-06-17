@@ -16,6 +16,7 @@ import {
 import {
   expectEmbedShellHeightStable,
   expectFrameElementHeightWithin,
+  embedTitleLocator,
 } from './helpers/embedAssertions';
 import { capturePageLoad } from './helpers/stepScreenshots';
 import {
@@ -131,10 +132,15 @@ test.describe('Embed share builder handoff', () => {
     await page.goto(`/podcast/${E2E_PODCAST_CHANNEL_ID_TEXT}`);
     await openEmbedBuilderFromShare(page);
 
-    await expectBuilderEmbedPaths(page, new RegExp(`/embed/podcast/${E2E_PODCAST_CHANNEL_ID_TEXT}`));
+    await expectBuilderEmbedPaths(
+      page,
+      new RegExp(`/embed/podcast/${E2E_PODCAST_CHANNEL_ID_TEXT}`)
+    );
   });
 
-  test('Podcast share builder shows list on with off disabled for channel embeds', async ({ page }) => {
+  test('Podcast share builder shows list on with off disabled for channel embeds', async ({
+    page,
+  }) => {
     await page.goto(`/podcast/${E2E_PODCAST_CHANNEL_ID_TEXT}`);
     await openEmbedBuilderFromShare(page);
 
@@ -148,14 +154,18 @@ test.describe('Embed share builder handoff', () => {
 
     const typeSelector = page.getByTestId('embed-builder-type-selector');
     await expect(typeSelector.getByRole('radio', { name: 'Compact', exact: true })).toBeVisible();
-    await expect(typeSelector.getByRole('radio', { name: 'Responsive', exact: true })).toBeVisible();
+    await expect(
+      typeSelector.getByRole('radio', { name: 'Responsive', exact: true })
+    ).toBeVisible();
 
     const listSelector = page.getByTestId('embed-builder-list-selector');
     await expect(listSelector.getByRole('radio', { name: 'On', exact: true })).toBeChecked();
     await expect(listSelector.getByRole('radio', { name: 'Off', exact: true })).toBeDisabled();
   });
 
-  test('Episode share builder offers compact, responsive, and list on/off controls', async ({ page }) => {
+  test('Episode share builder offers compact, responsive, and list on/off controls', async ({
+    page,
+  }) => {
     await page.goto(`/episode/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}`);
     await openEmbedBuilderFromShare(page);
 
@@ -169,7 +179,9 @@ test.describe('Embed share builder handoff', () => {
 
     const typeSelector = page.getByTestId('embed-builder-type-selector');
     await expect(typeSelector.getByRole('radio', { name: 'Compact', exact: true })).toBeVisible();
-    await expect(typeSelector.getByRole('radio', { name: 'Responsive', exact: true })).toBeVisible();
+    await expect(
+      typeSelector.getByRole('radio', { name: 'Responsive', exact: true })
+    ).toBeVisible();
 
     const listSelector = page.getByTestId('embed-builder-list-selector');
     await expect(listSelector.getByRole('radio', { name: 'On', exact: true })).toBeVisible();
@@ -372,7 +384,15 @@ test.describe('Embed share builder handoff', () => {
 
     await selectEmbedBuilderList(page, 'On');
 
-    await expectBuilderEmbedPaths(page, new RegExp(`/embed/album/${E2E_MUSIC_ALBUM_ID_TEXT}`));
+    await expectBuilderEmbedPaths(
+      page,
+      new RegExp(
+        `/embed/album/${E2E_MUSIC_ALBUM_ID_TEXT}\\?.*play_id_text=${E2E_MUSIC_TRACK_ONE_ID_TEXT}`
+      )
+    );
+
+    const embedFrame = page.getByTestId('embed-builder-preview').frameLocator('iframe');
+    await expect(embedTitleLocator(embedFrame)).toContainText('E2E Music Track One');
 
     await page
       .getByTestId('embed-builder-list-sort-selector')
@@ -381,7 +401,9 @@ test.describe('Embed share builder handoff', () => {
 
     await expectBuilderEmbedPaths(
       page,
-      new RegExp(`/embed/album/${E2E_MUSIC_ALBUM_ID_TEXT}\\?.*sort=backward`)
+      new RegExp(
+        `/embed/album/${E2E_MUSIC_ALBUM_ID_TEXT}\\?.*play_id_text=${E2E_MUSIC_TRACK_ONE_ID_TEXT}.*sort=backward`
+      )
     );
   });
 
@@ -416,9 +438,9 @@ test.describe('Embed share builder handoff', () => {
 
     await test.step('Choosing None removes the inline border from the generated code.', async () => {
       await borderSelector.getByRole('radio', { name: 'None' }).check();
-      await expect.poll(async () => getEmbedBuilderCodeValueLocator(page).innerText()).not.toMatch(
-        /border:/
-      );
+      await expect
+        .poll(async () => getEmbedBuilderCodeValueLocator(page).innerText())
+        .not.toMatch(/border:/);
     });
 
     await test.step('Choosing Black sets a black inline border in the generated code.', async () => {
@@ -506,10 +528,7 @@ test.describe('Embed share builder handoff', () => {
     );
 
     await expectFrameElementHeightWithin(listRegion, EMBED_LIST_ROW_HEIGHT_PX * listVisibleRows);
-    await expectFrameElementHeightWithin(
-      playerRegion,
-      getEmbedListVideoPlaceholderHeightPx('4x3')
-    );
+    await expectFrameElementHeightWithin(playerRegion, getEmbedListVideoPlaceholderHeightPx('4x3'));
   });
 
   test('Builder type changes set default prefer values and generated URLs include player and presentation params', async ({

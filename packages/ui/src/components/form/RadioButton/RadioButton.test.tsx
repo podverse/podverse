@@ -1,7 +1,8 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { RadioButton, RadioButtonGroup } from './RadioButton';
+
 import styles from './RadioButton.module.scss';
 
 afterEach(() => {
@@ -42,7 +43,7 @@ describe('RadioButton', () => {
     );
 
     const videoRadio = screen.getByRole('radio', { name: 'Video' });
-    expect(videoRadio).toBeDisabled();
+    expect(videoRadio.hasAttribute('disabled')).toBe(true);
     fireEvent.click(videoRadio);
     expect(onChange).not.toHaveBeenCalled();
   });
@@ -96,8 +97,10 @@ describe('RadioButton', () => {
       />
     );
 
-    expect(screen.queryByText('Choose one option.')).not.toBeInTheDocument();
-    await screen.getByRole('button', { name: 'More info' }).click();
-    expect(screen.getByText('Choose one option.')).toBeInTheDocument();
+    expect(screen.queryByText('Choose one option.')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'More info' }));
+    await waitFor(() => {
+      expect(screen.getByText('Choose one option.')).toBeTruthy();
+    });
   });
 });

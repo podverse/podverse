@@ -1,5 +1,6 @@
-import { MediumEnum } from '@podverse/helpers';
 import { describe, expect, it } from 'vitest';
+
+import { MediumEnum } from '@podverse/helpers';
 
 import { resolveEmbedBuilderSourceKind } from '../resolveEmbedBuilderSourceKind';
 

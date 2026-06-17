@@ -10,9 +10,9 @@ import type {
   LocalSettingsState,
 } from '../utils/localSettings/localSettings';
 import {
+  DEFAULT_SIDEBAR_ACCORDION_STATE,
   getParsedLocalSettings,
   handleLocalSettingsUpdate,
-  DEFAULT_SIDEBAR_ACCORDION_STATE,
 } from '../utils/localSettings/localSettings';
 import type { UITheme } from '../utils/localSettings/uiTheme';
 import { toUITheme } from '../utils/localSettings/uiTheme';

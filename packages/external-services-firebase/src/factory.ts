@@ -1,6 +1,6 @@
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
-import { getMessaging } from 'firebase-admin/messaging';
 import type { Messaging } from 'firebase-admin/messaging';
+import { getMessaging } from 'firebase-admin/messaging';
 import { existsSync } from 'fs';
 
 import type { ExternalServicesConfig } from './config/types.js';

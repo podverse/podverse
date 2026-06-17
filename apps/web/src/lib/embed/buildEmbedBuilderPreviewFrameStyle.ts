@@ -1,8 +1,8 @@
 import type { CSSProperties } from 'react';
 
-import { embedAspectRatioToCssValue } from './embedAspectRatio';
-import type { EmbedAspectRatioQuery } from './embedAspectRatio';
 import { getEmbedIframeHeightForPlayerSize } from './buildEmbedIframeCode';
+import type { EmbedAspectRatioQuery } from './embedAspectRatio';
+import { embedAspectRatioToCssValue } from './embedAspectRatio';
 import { getEmbedListVideoPlaceholderHeightPx } from './embedLayoutDimensions';
 import type { EmbedLayoutType, EmbedPlayerSizeQuery } from './embedTypes';
 

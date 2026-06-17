@@ -10,7 +10,10 @@ type EmbedResponsiveInfoOverlayProps = {
   headerTitle?: string | null;
 };
 
-export function EmbedResponsiveInfoOverlay({ fallbackResource, headerTitle }: EmbedResponsiveInfoOverlayProps) {
+export function EmbedResponsiveInfoOverlay({
+  fallbackResource,
+  headerTitle,
+}: EmbedResponsiveInfoOverlayProps) {
   return (
     <div className={styles.overlayTop} onClick={(event) => event.stopPropagation()}>
       <EmbedPlayerInfo

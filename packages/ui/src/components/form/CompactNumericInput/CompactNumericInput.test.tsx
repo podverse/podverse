@@ -2,6 +2,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { CompactNumericInput } from './CompactNumericInput';
+
 import textInputStyles from '../TextInput/TextInput.module.scss';
 
 afterEach(() => {

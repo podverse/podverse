@@ -131,10 +131,7 @@ export function TextInput({
 }: TextInputProps) {
   const inputId = id ?? name ?? undefined;
   const showInfoPopover =
-    info !== undefined &&
-    info !== '' &&
-    infoAriaLabel !== undefined &&
-    infoAriaLabel !== '';
+    info !== undefined && info !== '' && infoAriaLabel !== undefined && infoAriaLabel !== '';
   const showInfoBelow = info !== undefined && info !== '' && !showInfoPopover;
   const infoId = showInfoBelow ? `${inputId ?? 'textinput'}-info` : undefined;
   const infoErrorId = infoError ? `${inputId ?? 'textinput'}-error` : undefined;
@@ -191,10 +188,7 @@ export function TextInput({
     if (showInfoPopover) {
       return (
         <div
-          className={classNames(
-            styles.eyebrowRow,
-            placement === 'field' && styles.fieldLabelRow
-          )}
+          className={classNames(styles.eyebrowRow, placement === 'field' && styles.fieldLabelRow)}
         >
           <label htmlFor={inputId} className={styles.eyebrow}>
             {eyebrow}
@@ -212,10 +206,7 @@ export function TextInput({
     return (
       <label
         htmlFor={inputId}
-        className={classNames(
-          styles.eyebrow,
-          placement === 'field' && styles.fieldLabel
-        )}
+        className={classNames(styles.eyebrow, placement === 'field' && styles.fieldLabel)}
       >
         {eyebrow}
       </label>

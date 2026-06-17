@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { CodeBlock } from './CodeBlock';
+
 import styles from './CodeBlock.module.scss';
 
 afterEach(() => {
@@ -20,10 +21,10 @@ describe('CodeBlock', () => {
       />
     );
 
-    expect(screen.getByTestId('sample-code-value')).toHaveTextContent(
+    expect(screen.getByTestId('sample-code-value').textContent).toContain(
       '<iframe src="https://example.com"></iframe>'
     );
-    expect(screen.getByRole('button', { name: 'Copy' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Copy' }).hasAttribute('disabled')).toBe(false);
   });
 
   it('renders aside copy control outside the code panel', () => {
@@ -41,7 +42,7 @@ describe('CodeBlock', () => {
       styles.rootWithAsideCopy
     );
     expect(container.querySelector(`.${styles.headerRow}`)).toBeNull();
-    expect(screen.getByRole('button', { name: 'Copy' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Copy' })).toBeTruthy();
   });
 
   it('copies the value and shows the copied label', async () => {
@@ -50,26 +51,19 @@ describe('CodeBlock', () => {
       clipboard: { writeText },
     });
 
-    render(
-      <CodeBlock
-        copiedLabel="Copied"
-        copyLabel="Copy"
-        onCopy={vi.fn()}
-        value="hello"
-      />
-    );
+    render(<CodeBlock copiedLabel="Copied" copyLabel="Copy" onCopy={vi.fn()} value="hello" />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
 
     await waitFor(() => {
       expect(writeText).toHaveBeenCalledWith('hello');
     });
-    expect(screen.getByRole('button', { name: 'Copied' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Copied' })).toBeTruthy();
   });
 
   it('disables copy when the value is empty', () => {
     render(<CodeBlock copiedLabel="Copied" copyLabel="Copy" value="" />);
 
-    expect(screen.getByRole('button', { name: 'Copy' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Copy' }).hasAttribute('disabled')).toBe(true);
   });
 });

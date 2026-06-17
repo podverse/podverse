@@ -5,10 +5,10 @@ import classNames from 'classnames';
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
 import { useEmbedResponsiveOverlayVisibility } from '../../hooks/useEmbedResponsiveOverlayVisibility';
 import type { EmbedSingleResourcePayload } from '../../lib/embed/fetchEmbedSingleResource';
-import { EmbedSegmentInfoBar } from './EmbedSegmentInfoBar';
 import { EmbedResponsiveControlsOverlay } from './EmbedResponsiveControlsOverlay';
 import { EmbedResponsiveInfoOverlay } from './EmbedResponsiveInfoOverlay';
 import { EmbedResponsiveMediaMount } from './EmbedResponsiveMediaMount';
+import { EmbedSegmentInfoBar } from './EmbedSegmentInfoBar';
 
 import styles from '../../styles/components/embed/EmbedResponsiveStage.module.scss';
 

@@ -1,9 +1,9 @@
 import { ROUTES } from '../../constants/routes';
 import type { EmbedBuilderQueryParams } from './embedBuilderTypes';
 import {
-  resolveEmbedBuilderSourceKind,
   type EmbedBuilderSourceKind,
   type EmbedBuilderSourceKindParams,
+  resolveEmbedBuilderSourceKind,
 } from './resolveEmbedBuilderSourceKind';
 
 export function buildEmbedBuilderSourcePagePath(

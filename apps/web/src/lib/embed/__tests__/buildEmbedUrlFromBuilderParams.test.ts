@@ -59,6 +59,20 @@ describe('buildEmbedUrlPathFromBuilderParams', () => {
     ).toBe('/embed/podcast/podcast-channel?presentation=audio&player=compact&rows=8');
   });
 
+  it('maps track item to play_id_text when list is enabled from a track builder', () => {
+    expect(
+      buildEmbedUrlPathFromBuilderParams({
+        ...baseParams,
+        playerSize: 'compact',
+        listEnabled: true,
+        channel: 'album-channel',
+        mediumId: MediumEnum.Music,
+        item: 'track-item',
+        listContentType: 'tracks',
+      })
+    ).toBe('/embed/album/album-channel?presentation=audio&player=compact&play_id_text=track-item');
+  });
+
   it('maps playlist_item to play_id_text for playlist list embeds', () => {
     expect(
       buildEmbedUrlPathFromBuilderParams({
@@ -70,7 +84,9 @@ describe('buildEmbedUrlPathFromBuilderParams', () => {
         playlist: 'playlist-1',
         playlistItem: 'episode-item',
       })
-    ).toBe('/embed/playlist/playlist-1?presentation=audio&player=compact&play_id_text=episode-item');
+    ).toBe(
+      '/embed/playlist/playlist-1?presentation=audio&player=compact&play_id_text=episode-item'
+    );
   });
 
   it('includes ar query param for non-default aspect ratio on responsive player', () => {

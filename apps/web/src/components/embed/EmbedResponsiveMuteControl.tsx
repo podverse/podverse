@@ -75,7 +75,9 @@ export function EmbedResponsiveMuteControl() {
     >
       <button
         className={styles.muteToggle}
-        aria-label={mpIsMuted ? tFeatures('embed_responsive_unmute') : tFeatures('embed_responsive_mute')}
+        aria-label={
+          mpIsMuted ? tFeatures('embed_responsive_unmute') : tFeatures('embed_responsive_mute')
+        }
         data-testid="embed-responsive-mute-toggle"
         onClick={() => setMPIsMuted(!mpIsMuted)}
         type="button"

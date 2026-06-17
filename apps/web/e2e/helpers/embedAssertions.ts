@@ -1,4 +1,4 @@
-import type { Locator, Page } from '@playwright/test';
+import type { FrameLocator, Locator, Page } from '@playwright/test';
 import { expect } from '@playwright/test';
 
 import {
@@ -17,9 +17,10 @@ export const EMBED_LIST_SHELL_RESPONSIVE_HEIGHT = DEFAULT_LIST_RESPONSIVE_IFRAME
 export const EMBED_LIST_SHELL_HEIGHT_WITH_SELECTOR = getEmbedListCompactIframeHeightPx({
   includePresentationSelector: true,
 });
-export const EMBED_LIST_SHELL_RESPONSIVE_HEIGHT_WITH_SELECTOR = getEmbedListResponsiveIframeHeightPx({
-  includePresentationSelector: true,
-});
+export const EMBED_LIST_SHELL_RESPONSIVE_HEIGHT_WITH_SELECTOR =
+  getEmbedListResponsiveIframeHeightPx({
+    includePresentationSelector: true,
+  });
 
 /** @deprecated Use EMBED_SINGLE_SHELL_RESPONSIVE_HEIGHT */
 export const EMBED_SINGLE_SHELL_VIDEO_HEIGHT = EMBED_SINGLE_SHELL_RESPONSIVE_HEIGHT;
@@ -98,8 +99,8 @@ export async function expectEmbedCompactShellNoVideoElement(page: Page): Promise
   await expect(page.getByTestId('embed-player-info')).toBeVisible();
 }
 
-export function embedTitleLocator(page: Page): Locator {
-  return page.getByTestId('embed-title-toggle').or(page.getByTestId('embed-title'));
+export function embedTitleLocator(scope: Page | FrameLocator): Locator {
+  return scope.getByTestId('embed-title-toggle').or(scope.getByTestId('embed-title'));
 }
 
 export async function expectEmbedAudioPlayerMetadata(page: Page): Promise<void> {

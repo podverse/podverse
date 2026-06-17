@@ -35,10 +35,10 @@ describe('embedDemoPiSeedFeeds', () => {
     expect(gncFeed?.channelPlayItemGuid).toBe('https://geeknewscentral.com/?p=107602');
   });
 
-  it('lists twelve managed showcase slots including clip and chapter video', () => {
+  it('lists sixteen managed showcase slots including clip and chapter video', () => {
     const managedIds = getEmbedDemoPiSeedManagedShowcaseIds();
 
-    expect(managedIds).toHaveLength(12);
+    expect(managedIds).toHaveLength(16);
     expect(managedIds).toContain('track-video');
     expect(managedIds).toContain('album-video');
     expect(managedIds).toContain('clip-audio');

@@ -3,8 +3,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { CompactNumericInput } from '../CompactNumericInput/CompactNumericInput';
 import { CompactFieldRow, CompactNumericInputRow } from './CompactFieldRow';
-import rowStyles from './CompactFieldRow.module.scss';
+
 import textInputStyles from '../TextInput/TextInput.module.scss';
+import rowStyles from './CompactFieldRow.module.scss';
 
 afterEach(() => {
   cleanup();
@@ -46,6 +47,6 @@ describe('CompactFieldRow', () => {
       </CompactFieldRow>
     );
 
-    expect(screen.getByText('Timing and list size.')).toBeInTheDocument();
+    expect(screen.getByText('Timing and list size.')).toBeTruthy();
   });
 });

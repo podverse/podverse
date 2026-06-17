@@ -146,7 +146,7 @@ describe('getEmbedShareAction', () => {
     expect(action?.href).toContain('list=1');
     expect(action?.href).toContain('playlist=playlist-id');
     expect(action?.href).toContain('playlist_item=episode-item');
-    expect(action?.href).not.toContain('item=episode-item');
+    expect(action?.href).not.toMatch(/[?&]item=episode-item/);
   });
 
   it('returns clip embed when clip id_text is present', () => {

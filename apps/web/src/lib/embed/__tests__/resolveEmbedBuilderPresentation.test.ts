@@ -7,9 +7,7 @@ import {
 
 describe('resolveEmbedBuilderPresentation', () => {
   it('maps player size and list toggle to layout, player size, and default media preference', () => {
-    expect(
-      resolveEmbedBuilderPresentation({ playerSize: 'compact', listEnabled: false })
-    ).toEqual({
+    expect(resolveEmbedBuilderPresentation({ playerSize: 'compact', listEnabled: false })).toEqual({
       layout: 'single',
       playerSize: 'compact',
       mediaPreference: 'audio',
@@ -21,9 +19,7 @@ describe('resolveEmbedBuilderPresentation', () => {
       playerSize: 'responsive',
       mediaPreference: 'video',
     });
-    expect(
-      resolveEmbedBuilderPresentation({ playerSize: 'compact', listEnabled: true })
-    ).toEqual({
+    expect(resolveEmbedBuilderPresentation({ playerSize: 'compact', listEnabled: true })).toEqual({
       layout: 'list',
       playerSize: 'compact',
       mediaPreference: 'audio',

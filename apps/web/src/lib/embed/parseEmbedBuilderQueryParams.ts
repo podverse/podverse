@@ -18,9 +18,7 @@ import { parseEmbedAspectRatio } from './parseEmbedAspectRatio';
 import { parseEmbedChapterMarkers } from './parseEmbedChapterMarkers';
 import { parseEmbedListEnabled } from './parseEmbedListEnabled';
 import { EMBED_LIST_VISIBLE_ROWS_DEFAULT, parseEmbedListRows } from './parseEmbedListRows';
-import {
-  resolveDefaultMediaPreferenceForPlayerSize,
-} from './resolveEmbedBuilderPresentation';
+import { resolveDefaultMediaPreferenceForPlayerSize } from './resolveEmbedBuilderPresentation';
 
 function parsePlayerSizeValue(value: unknown): (typeof EMBED_BUILDER_PLAYER_SIZES)[number] {
   if (typeof value === 'string') {
@@ -119,8 +117,7 @@ export function parseEmbedBuilderQueryParams(
   const listFromType = parseListEnabledFromTypeValue(normalized.type);
   const listEnabled = listFromParam ?? listFromType ?? false;
   const playerSize = parsed.type;
-  const mediaPreference =
-    parsed.prefer ?? resolveDefaultMediaPreferenceForPlayerSize(playerSize);
+  const mediaPreference = parsed.prefer ?? resolveDefaultMediaPreferenceForPlayerSize(playerSize);
   const params: EmbedBuilderQueryParams = {
     playerSize,
     listEnabled,

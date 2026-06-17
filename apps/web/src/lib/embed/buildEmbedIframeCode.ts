@@ -114,8 +114,7 @@ export function buildEmbedIframeCode(
   if (layout === 'single' && playerSize === 'responsive') {
     const paddingBottomPercent = embedAspectRatioToPaddingBottomPercent(aspectRatio);
     const wrapperWidth = formatCssWidth(width);
-    const iframeBorderStyle =
-      borderDeclaration !== '' ? borderDeclaration.slice(0, -1) : undefined;
+    const iframeBorderStyle = borderDeclaration !== '' ? borderDeclaration.slice(0, -1) : undefined;
 
     const iframeHtml = formatEmbedIframeElement(embedUrl, {
       title,

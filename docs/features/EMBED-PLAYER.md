@@ -56,13 +56,13 @@ URL generation for Share → Embed Builder and copy output lives in
 
 Shared on single and list routes:
 
-| Param             | Default  | Normalization                                                                                                                                |
-| ----------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `t`               | `0`      | Start time in seconds; invalid/negative → `0`                                                                                                |
-| `chapter_markers` | `true`   | `0` or `false` hides progress-bar chapter boundary markers when chapters exist                                                               |
-| `ar`              | `16x9`   | Aspect ratio for **responsive** player shell (`16x9`, `4x3`, `1x1`)                                                                                |
+| Param             | Default  | Normalization                                                                                                                                                |
+| ----------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `t`               | `0`      | Start time in seconds; invalid/negative → `0`                                                                                                                |
+| `chapter_markers` | `true`   | `0` or `false` hides progress-bar chapter boundary markers when chapters exist                                                                               |
+| `ar`              | `16x9`   | Aspect ratio for **responsive** player shell (`16x9`, `4x3`, `1x1`)                                                                                          |
 | `player`          | inferred | `compact` or `responsive`; controls iframe height and player chrome. When absent, inferred from `presentation` (`audio` → `compact`, `video` → `responsive`) |
-| `presentation`    | `audio`  | Media **preference** for enclosure best-fit (`audio` or `video`); locks preference when present in the URL                                   |
+| `presentation`    | `audio`  | Media **preference** for enclosure best-fit (`audio` or `video`); locks preference when present in the URL                                                   |
 
 List routes only:
 
@@ -76,10 +76,10 @@ List routes only:
 
 Embed URLs separate two concerns:
 
-| Concept          | URL param      | Values           | Controls                                                  |
-| ---------------- | -------------- | ---------------- | --------------------------------------------------------- |
-| Player size      | `player`       | `compact`, `responsive`  | iframe height, aspect ratio shell, compact vs responsive panel UI |
-| Media preference | `presentation` | `audio`, `video` | enclosure best-fit order (`resolveEmbedBestFitEnclosure`) |
+| Concept          | URL param      | Values                  | Controls                                                          |
+| ---------------- | -------------- | ----------------------- | ----------------------------------------------------------------- |
+| Player size      | `player`       | `compact`, `responsive` | iframe height, aspect ratio shell, compact vs responsive panel UI |
+| Media preference | `presentation` | `audio`, `video`        | enclosure best-fit order (`resolveEmbedBestFitEnclosure`)         |
 
 **Compact player:** always uses the audio-style shell (no inline `<video>` UI). When `presentation=video` selects a video enclosure, playback still runs through the hidden audio orchestrator (HTML5 audio element with a video URL).
 

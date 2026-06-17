@@ -167,11 +167,7 @@ export type EmbedBuilderListAvailability = 'forced-on' | 'forced-off' | 'toggle'
 export function resolveEmbedBuilderListAvailability(
   params: EmbedBuilderTypeSourceParams
 ): EmbedBuilderListAvailability {
-  if (
-    params.clip !== null ||
-    params.itemChapter !== null ||
-    params.itemSoundbite !== null
-  ) {
+  if (params.clip !== null || params.itemChapter !== null || params.itemSoundbite !== null) {
     return 'forced-off';
   }
 

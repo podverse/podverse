@@ -8,7 +8,9 @@ type UseEmbedResponsiveOverlayVisibilityInput = {
   isPlaying: boolean;
 };
 
-export function useEmbedResponsiveOverlayVisibility({ isPlaying }: UseEmbedResponsiveOverlayVisibilityInput) {
+export function useEmbedResponsiveOverlayVisibility({
+  isPlaying,
+}: UseEmbedResponsiveOverlayVisibilityInput) {
   const [isHovering, setIsHovering] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isVisible, setIsVisible] = useState(true);

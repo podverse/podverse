@@ -7,9 +7,20 @@ import { FaCircleQuestion } from 'react-icons/fa6';
 
 import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
 import { QUERY_PARAMS_STATS_RANGE_VALUES } from '@podverse/helpers-requests';
-import { Accordion, CodeBlock, CompactNumericInput, CompactTextInput, FormInset, FormStack, PopoverIcon, RadioButton, TextInput } from '@podverse/ui';
+import {
+  Accordion,
+  CodeBlock,
+  CompactNumericInput,
+  CompactTextInput,
+  FormInset,
+  FormStack,
+  PopoverIcon,
+  RadioButton,
+  TextInput,
+} from '@podverse/ui';
 
 import { useConfig } from '../../contexts/Config';
+import { buildEmbedBuilderPreviewFrameStyle } from '../../lib/embed/buildEmbedBuilderPreviewFrameStyle';
 import {
   buildEmbedBuilderUrlPath,
   embedBuilderQueryParamsToUrlInput,
@@ -42,7 +53,6 @@ import {
   resolveEmbedBuilderListAvailability,
   resolveEmbedBuilderListContentOptions,
 } from '../../lib/embed/embedBuilderTypes';
-import { buildEmbedBuilderPreviewFrameStyle } from '../../lib/embed/buildEmbedBuilderPreviewFrameStyle';
 import type { EmbedPresentationQuery } from '../../lib/embed/embedTypes';
 import { getEmbedPreviewIframeHeightClassKey } from '../../lib/embed/getEmbedPreviewIframeHeightClassKey';
 import {
@@ -198,6 +208,21 @@ export function EmbedBuilderPanel({ initialParams }: EmbedBuilderPanelProps) {
   };
 
   const handleListEnabledChange = (listEnabled: boolean) => {
+    if (
+      listEnabled &&
+      builderParams.item !== null &&
+      builderParams.playIdText === null &&
+      builderParams.playlistItem === null &&
+      builderParams.listContentType !== 'chapters'
+    ) {
+      setPlayIdTextInput(builderParams.item);
+      updateBuilderParams({
+        listEnabled,
+        playIdText: builderParams.item,
+      });
+      return;
+    }
+
     updateBuilderParams({
       listEnabled,
     });
@@ -430,262 +455,262 @@ export function EmbedBuilderPanel({ initialParams }: EmbedBuilderPanelProps) {
           headingId="embed-builder-options-heading"
         >
           <FormStack>
-              <div data-testid="embed-builder-type-selector">
-                <RadioButton
-                  className={styles.radioField}
-                  eyebrow={tFeatures('embed_type_label')}
-                  help={tFeatures('embed_type_help')}
-                  helpAriaLabel={fieldHelpAriaLabel}
-                  name="embed_builder_type"
-                  onChange={(value) => {
-                    if (isEmbedBuilderPlayerSize(value)) {
-                      handlePlayerSizeChange(value);
-                    }
-                  }}
-                  options={EMBED_BUILDER_PLAYER_SIZES.map((playerSize) => ({
-                    label: playerSizeLabels[playerSize],
-                    value: playerSize,
-                  }))}
-                  selectedValue={effectiveParams.playerSize}
-                />
-              </div>
+            <div data-testid="embed-builder-type-selector">
+              <RadioButton
+                className={styles.radioField}
+                eyebrow={tFeatures('embed_type_label')}
+                help={tFeatures('embed_type_help')}
+                helpAriaLabel={fieldHelpAriaLabel}
+                name="embed_builder_type"
+                onChange={(value) => {
+                  if (isEmbedBuilderPlayerSize(value)) {
+                    handlePlayerSizeChange(value);
+                  }
+                }}
+                options={EMBED_BUILDER_PLAYER_SIZES.map((playerSize) => ({
+                  label: playerSizeLabels[playerSize],
+                  value: playerSize,
+                }))}
+                selectedValue={effectiveParams.playerSize}
+              />
+            </div>
 
-              <div data-testid="embed-builder-list-selector">
+            <div data-testid="embed-builder-list-selector">
+              <RadioButton
+                className={styles.radioField}
+                eyebrow={tFeatures('embed_list_label')}
+                help={tFeatures(listHelpKey)}
+                helpAriaLabel={fieldHelpAriaLabel}
+                name="embed_builder_list"
+                onChange={(value) => {
+                  if (isEmbedBuilderListToggleValue(value)) {
+                    handleListEnabledChange(value === 'on');
+                  }
+                }}
+                options={[
+                  { label: tFeatures('embed_list_on'), value: 'on', disabled: listOnDisabled },
+                  { label: tFeatures('embed_list_off'), value: 'off', disabled: listOffDisabled },
+                ]}
+                selectedValue={listToggleValue}
+              />
+            </div>
+
+            <div data-testid="embed-builder-prefer-selector">
+              <RadioButton
+                className={styles.radioField}
+                eyebrow={tFeatures('embed_prefer_label')}
+                help={tFeatures('embed_prefer_help')}
+                helpAriaLabel={fieldHelpAriaLabel}
+                name="embed_builder_prefer"
+                onChange={(value) => {
+                  if (isEmbedPresentationQuery(value)) {
+                    handleMediaPreferenceChange(value);
+                  }
+                }}
+                options={[
+                  { label: tFeatures('embed_prefer_audio'), value: 'audio' },
+                  {
+                    label: tFeatures('embed_prefer_video'),
+                    value: 'video',
+                    disabled: isCompactPlayerSize,
+                  },
+                ]}
+                selectedValue={effectiveParams.mediaPreference}
+              />
+            </div>
+
+            {isResponsivePlayerSize ? (
+              <div data-testid="embed-builder-aspect-ratio-selector">
                 <RadioButton
                   className={styles.radioField}
-                  eyebrow={tFeatures('embed_list_label')}
-                  help={tFeatures(listHelpKey)}
+                  eyebrow={tFeatures('embed_aspect_ratio_label')}
+                  help={tFeatures('embed_aspect_ratio_help')}
                   helpAriaLabel={fieldHelpAriaLabel}
-                  name="embed_builder_list"
+                  name="embed_builder_aspect_ratio"
                   onChange={(value) => {
-                    if (isEmbedBuilderListToggleValue(value)) {
-                      handleListEnabledChange(value === 'on');
+                    if (value === '16x9' || value === '4x3' || value === '1x1') {
+                      updateBuilderParams({ aspectRatio: value });
                     }
                   }}
                   options={[
-                    { label: tFeatures('embed_list_on'), value: 'on', disabled: listOnDisabled },
-                    { label: tFeatures('embed_list_off'), value: 'off', disabled: listOffDisabled },
+                    { label: tFeatures('embed_aspect_ratio_16_9'), value: '16x9' },
+                    { label: tFeatures('embed_aspect_ratio_4_3'), value: '4x3' },
+                    { label: tFeatures('embed_aspect_ratio_1_1'), value: '1x1' },
                   ]}
-                  selectedValue={listToggleValue}
+                  selectedValue={effectiveParams.aspectRatio}
                 />
               </div>
+            ) : null}
 
-        <div data-testid="embed-builder-prefer-selector">
-          <RadioButton
-            className={styles.radioField}
-            eyebrow={tFeatures('embed_prefer_label')}
-            help={tFeatures('embed_prefer_help')}
-            helpAriaLabel={fieldHelpAriaLabel}
-            name="embed_builder_prefer"
-            onChange={(value) => {
-              if (isEmbedPresentationQuery(value)) {
-                handleMediaPreferenceChange(value);
-              }
-            }}
-            options={[
-              { label: tFeatures('embed_prefer_audio'), value: 'audio' },
-              {
-                label: tFeatures('embed_prefer_video'),
-                value: 'video',
-                disabled: isCompactPlayerSize,
-              },
-            ]}
-            selectedValue={effectiveParams.mediaPreference}
-          />
-        </div>
+            <div data-testid="embed-builder-border-color-selector">
+              <RadioButton
+                className={styles.radioField}
+                eyebrow={tFeatures('embed_border_color_label')}
+                help={tFeatures('embed_border_color_help')}
+                helpAriaLabel={fieldHelpAriaLabel}
+                name="embed_builder_border_color"
+                onChange={(value) => {
+                  if (value === 'custom') {
+                    handleSelectBorderCustom();
+                    return;
+                  }
+                  if (isEmbedBorderColorPresetKey(value)) {
+                    handleSelectBorderPreset(value);
+                  }
+                }}
+                options={[
+                  ...EMBED_BORDER_COLOR_PRESET_KEYS.map((key) => ({
+                    label: borderColorLabels[key],
+                    value: key,
+                  })),
+                  { label: tFeatures('embed_border_color_custom'), value: 'custom' },
+                ]}
+                selectedValue={borderColorSelectedValue}
+              />
+              {borderMode === 'custom' ? (
+                <div data-testid="embed-builder-border-color-custom">
+                  <TextInput
+                    type="text"
+                    name="embed_border_color_custom"
+                    value={customBorderInput}
+                    eyebrow={tFeatures('embed_border_color_custom_label')}
+                    info={tFeatures('embed_border_color_custom_help')}
+                    infoAriaLabel={fieldHelpAriaLabel}
+                    onChange={(event) => {
+                      setCustomBorderInput(event.target.value);
+                    }}
+                    onBlur={commitCustomBorderInput}
+                  />
+                </div>
+              ) : null}
+            </div>
 
-        {isResponsivePlayerSize ? (
-          <div data-testid="embed-builder-aspect-ratio-selector">
-            <RadioButton
-              className={styles.radioField}
-              eyebrow={tFeatures('embed_aspect_ratio_label')}
-              help={tFeatures('embed_aspect_ratio_help')}
-              helpAriaLabel={fieldHelpAriaLabel}
-              name="embed_builder_aspect_ratio"
-              onChange={(value) => {
-                if (value === '16x9' || value === '4x3' || value === '1x1') {
-                  updateBuilderParams({ aspectRatio: value });
-                }
-              }}
-              options={[
-                { label: tFeatures('embed_aspect_ratio_16_9'), value: '16x9' },
-                { label: tFeatures('embed_aspect_ratio_4_3'), value: '4x3' },
-                { label: tFeatures('embed_aspect_ratio_1_1'), value: '1x1' },
-              ]}
-              selectedValue={effectiveParams.aspectRatio}
-            />
-          </div>
-        ) : null}
+            {showListContentSelector ? (
+              <div data-testid="embed-builder-list-content-selector">
+                <RadioButton
+                  className={styles.radioField}
+                  eyebrow={tFeatures('embed_list_content_label')}
+                  help={tFeatures('embed_list_content_help')}
+                  helpAriaLabel={fieldHelpAriaLabel}
+                  name="embed_builder_list_content"
+                  onChange={(value) => {
+                    if (isEmbedBuilderListContentType(value, listContentOptions)) {
+                      handleListContentTypeChange(value);
+                    }
+                  }}
+                  options={listContentOptions.map((listContentType) => ({
+                    label: listContentLabels[listContentType],
+                    value: listContentType,
+                  }))}
+                  selectedValue={effectiveParams.listContentType}
+                />
+              </div>
+            ) : null}
 
-        <div data-testid="embed-builder-border-color-selector">
-          <RadioButton
-            className={styles.radioField}
-            eyebrow={tFeatures('embed_border_color_label')}
-            help={tFeatures('embed_border_color_help')}
-            helpAriaLabel={fieldHelpAriaLabel}
-            name="embed_builder_border_color"
-            onChange={(value) => {
-              if (value === 'custom') {
-                handleSelectBorderCustom();
-                return;
-              }
-              if (isEmbedBorderColorPresetKey(value)) {
-                handleSelectBorderPreset(value);
-              }
-            }}
-            options={[
-              ...EMBED_BORDER_COLOR_PRESET_KEYS.map((key) => ({
-                label: borderColorLabels[key],
-                value: key,
-              })),
-              { label: tFeatures('embed_border_color_custom'), value: 'custom' },
-            ]}
-            selectedValue={borderColorSelectedValue}
-          />
-          {borderMode === 'custom' ? (
-            <div data-testid="embed-builder-border-color-custom">
-              <TextInput
-                type="text"
-                name="embed_border_color_custom"
-                value={customBorderInput}
-                eyebrow={tFeatures('embed_border_color_custom_label')}
-                info={tFeatures('embed_border_color_custom_help')}
+            {showListSortSelector ? (
+              <div data-testid="embed-builder-list-sort-selector">
+                <RadioButton
+                  className={styles.radioField}
+                  eyebrow={tFeatures('embed_list_sort_label')}
+                  help={tFeatures('embed_list_sort_help')}
+                  helpAriaLabel={fieldHelpAriaLabel}
+                  name="embed_builder_list_sort"
+                  onChange={(value) => {
+                    if (isEmbedBuilderListSort(value, listSortOptions)) {
+                      handleListSortChange(value);
+                    }
+                  }}
+                  options={listSortOptions.map((listSort) => ({
+                    label: listSortLabels[listSort],
+                    value: listSort,
+                  }))}
+                  selectedValue={effectiveParams.listSort}
+                />
+              </div>
+            ) : null}
+
+            {showListRangeSelector ? (
+              <div data-testid="embed-builder-list-range-selector">
+                <RadioButton
+                  className={styles.radioField}
+                  eyebrow={tFeatures('embed_list_range_label')}
+                  help={tFeatures('embed_list_range_help')}
+                  helpAriaLabel={fieldHelpAriaLabel}
+                  name="embed_builder_list_range"
+                  onChange={(value) => {
+                    if (isQueryParamsStatsRange(value)) {
+                      handleListRangeChange(value);
+                    }
+                  }}
+                  options={QUERY_PARAMS_STATS_RANGE_VALUES.map((listRange) => ({
+                    label: listRangeLabels[listRange],
+                    value: listRange,
+                  }))}
+                  selectedValue={effectiveParams.listRange ?? 'all-time'}
+                />
+              </div>
+            ) : null}
+
+            <div data-testid="embed-builder-start-time">
+              <CompactNumericInput
+                name="embed_start_time"
+                min={0}
+                step={1}
+                value={startTimeInput}
+                eyebrow={tFeatures('embed_start_time_seconds')}
+                eyebrowPlacement="field"
+                info={tFeatures('embed_start_time_help')}
                 infoAriaLabel={fieldHelpAriaLabel}
                 onChange={(event) => {
-                  setCustomBorderInput(event.target.value);
+                  setStartTimeInput(event.target.value);
                 }}
-                onBlur={commitCustomBorderInput}
+                onBlur={commitStartTimeInput}
               />
             </div>
-          ) : null}
-        </div>
-
-        {showListContentSelector ? (
-          <div data-testid="embed-builder-list-content-selector">
-            <RadioButton
-              className={styles.radioField}
-              eyebrow={tFeatures('embed_list_content_label')}
-              help={tFeatures('embed_list_content_help')}
-              helpAriaLabel={fieldHelpAriaLabel}
-              name="embed_builder_list_content"
-              onChange={(value) => {
-                if (isEmbedBuilderListContentType(value, listContentOptions)) {
-                  handleListContentTypeChange(value);
-                }
-              }}
-              options={listContentOptions.map((listContentType) => ({
-                label: listContentLabels[listContentType],
-                value: listContentType,
-              }))}
-              selectedValue={effectiveParams.listContentType}
-            />
-          </div>
-        ) : null}
-
-        {showListSortSelector ? (
-          <div data-testid="embed-builder-list-sort-selector">
-            <RadioButton
-              className={styles.radioField}
-              eyebrow={tFeatures('embed_list_sort_label')}
-              help={tFeatures('embed_list_sort_help')}
-              helpAriaLabel={fieldHelpAriaLabel}
-              name="embed_builder_list_sort"
-              onChange={(value) => {
-                if (isEmbedBuilderListSort(value, listSortOptions)) {
-                  handleListSortChange(value);
-                }
-              }}
-              options={listSortOptions.map((listSort) => ({
-                label: listSortLabels[listSort],
-                value: listSort,
-              }))}
-              selectedValue={effectiveParams.listSort}
-            />
-          </div>
-        ) : null}
-
-        {showListRangeSelector ? (
-          <div data-testid="embed-builder-list-range-selector">
-            <RadioButton
-              className={styles.radioField}
-              eyebrow={tFeatures('embed_list_range_label')}
-              help={tFeatures('embed_list_range_help')}
-              helpAriaLabel={fieldHelpAriaLabel}
-              name="embed_builder_list_range"
-              onChange={(value) => {
-                if (isQueryParamsStatsRange(value)) {
-                  handleListRangeChange(value);
-                }
-              }}
-              options={QUERY_PARAMS_STATS_RANGE_VALUES.map((listRange) => ({
-                label: listRangeLabels[listRange],
-                value: listRange,
-              }))}
-              selectedValue={effectiveParams.listRange ?? 'all-time'}
-            />
-          </div>
-        ) : null}
-
-        <div data-testid="embed-builder-start-time">
-          <CompactNumericInput
-            name="embed_start_time"
-            min={0}
-            step={1}
-            value={startTimeInput}
-            eyebrow={tFeatures('embed_start_time_seconds')}
-            eyebrowPlacement="field"
-            info={tFeatures('embed_start_time_help')}
-            infoAriaLabel={fieldHelpAriaLabel}
-            onChange={(event) => {
-              setStartTimeInput(event.target.value);
-            }}
-            onBlur={commitStartTimeInput}
-          />
-        </div>
-        {layout === 'list' ? (
-          <div data-testid="embed-builder-list-visible-rows">
-            <CompactNumericInput
-              name="embed_list_visible_rows"
-              min={EMBED_LIST_VISIBLE_ROWS_MIN}
-              max={EMBED_LIST_VISIBLE_ROWS_MAX}
-              step={1}
-              value={listVisibleRowsInput}
-              eyebrow={tFeatures('embed_list_items_visible')}
-              eyebrowPlacement="field"
-              info={tFeatures('embed_list_items_visible_help')}
-              infoAriaLabel={fieldHelpAriaLabel}
-              onChange={(event) => {
-                setListVisibleRowsInput(event.target.value);
-              }}
-              onBlur={commitListVisibleRowsInput}
-            />
-          </div>
-        ) : null}
-
-        <Accordion
-          contentClassName={styles.advancedContent}
-          header={tFeatures('embed_advanced')}
-          size="small"
-        >
-          <FormStack>
             {layout === 'list' ? (
-              <CompactTextInput
-                type="text"
-                name="embed_play_id_text"
-                value={playIdTextInput}
-                eyebrow={tFeatures('embed_play_id_text')}
-                eyebrowPlacement="field"
-                info={tFeatures('embed_play_id_text_help')}
-                infoAriaLabel={fieldHelpAriaLabel}
-                onChange={(event) => {
-                  setPlayIdTextInput(event.target.value);
-                }}
-                onBlur={commitPlayIdTextInput}
-              />
+              <div data-testid="embed-builder-list-visible-rows">
+                <CompactNumericInput
+                  name="embed_list_visible_rows"
+                  min={EMBED_LIST_VISIBLE_ROWS_MIN}
+                  max={EMBED_LIST_VISIBLE_ROWS_MAX}
+                  step={1}
+                  value={listVisibleRowsInput}
+                  eyebrow={tFeatures('embed_list_items_visible')}
+                  eyebrowPlacement="field"
+                  info={tFeatures('embed_list_items_visible_help')}
+                  infoAriaLabel={fieldHelpAriaLabel}
+                  onChange={(event) => {
+                    setListVisibleRowsInput(event.target.value);
+                  }}
+                  onBlur={commitListVisibleRowsInput}
+                />
+              </div>
             ) : null}
+
+            <Accordion
+              contentClassName={styles.advancedContent}
+              header={tFeatures('embed_advanced')}
+              size="small"
+            >
+              <FormStack>
+                {layout === 'list' ? (
+                  <CompactTextInput
+                    type="text"
+                    name="embed_play_id_text"
+                    value={playIdTextInput}
+                    eyebrow={tFeatures('embed_play_id_text')}
+                    eyebrowPlacement="field"
+                    info={tFeatures('embed_play_id_text_help')}
+                    infoAriaLabel={fieldHelpAriaLabel}
+                    onChange={(event) => {
+                      setPlayIdTextInput(event.target.value);
+                    }}
+                    onBlur={commitPlayIdTextInput}
+                  />
+                ) : null}
+              </FormStack>
+            </Accordion>
           </FormStack>
-        </Accordion>
-            </FormStack>
         </FormInset>
 
         <FormInset

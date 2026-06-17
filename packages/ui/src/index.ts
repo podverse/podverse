@@ -300,7 +300,10 @@ export { CompactNumericInput } from './components/form/CompactNumericInput/Compa
 export type { CompactNumericInputProps } from './components/form/CompactNumericInput/CompactNumericInput';
 export { CompactTextInput } from './components/form/CompactTextInput/CompactTextInput';
 export type { CompactTextInputProps } from './components/form/CompactTextInput/CompactTextInput';
-export { CompactFieldRow, CompactNumericInputRow } from './components/form/CompactFieldRow/CompactFieldRow';
+export {
+  CompactFieldRow,
+  CompactNumericInputRow,
+} from './components/form/CompactFieldRow/CompactFieldRow';
 export type {
   CompactFieldRowProps,
   CompactNumericInputRowProps,

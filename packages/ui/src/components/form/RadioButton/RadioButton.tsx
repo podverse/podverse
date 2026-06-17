@@ -27,10 +27,7 @@ type RadioButtonBaseProps = {
 };
 
 export type RadioButtonProps = RadioButtonBaseProps &
-  (
-    | { help?: undefined; helpAriaLabel?: undefined }
-    | { help: string; helpAriaLabel: string }
-  );
+  ({ help?: undefined; helpAriaLabel?: undefined } | { help: string; helpAriaLabel: string });
 
 export function RadioButton({
   eyebrow,
@@ -74,7 +71,10 @@ export function RadioButton({
         {options.map((option) => (
           <label
             key={option.value}
-            className={classNames(styles.option, option.disabled === true ? styles.optionDisabled : null)}
+            className={classNames(
+              styles.option,
+              option.disabled === true ? styles.optionDisabled : null
+            )}
           >
             <input
               type="radio"
@@ -83,6 +83,9 @@ export function RadioButton({
               checked={selectedValue === option.value}
               disabled={option.disabled === true}
               onChange={() => {
+                if (option.disabled === true) {
+                  return;
+                }
                 handleRadioChange(option.value);
               }}
               className={styles.radio}
