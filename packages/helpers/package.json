@@ -1,6 +1,6 @@
 {
   "name": "@podverse/helpers",
-  "version": "5.4.37",
+  "version": "5.4.38",
   "type": "module",
   "sideEffects": false,
   "description": "Shared utilities and DTOs for Podverse applications",

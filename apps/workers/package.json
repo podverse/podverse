@@ -1,6 +1,6 @@
 {
   "name": "@podverse/workers",
-  "version": "5.4.37",
+  "version": "5.4.38",
   "type": "module",
   "description": "Background workers and CLI tools for Podverse",
   "private": true,
