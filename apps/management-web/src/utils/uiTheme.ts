@@ -62,54 +62,39 @@ export function getCustomThemeById(themeId: string): RemoteThemeDefinition | und
 }
 
 /**
- * Get the default theme from config, or "dark" if blank, or first valid theme if dark is not valid
+ * Get the default theme from config, or first custom theme when default is unset,
+ * or "dark" / first valid theme as final fallback.
  */
 export function getDefaultTheme(): UITheme {
+  const validThemes = getValidThemes();
+  const config = getConfig();
+  const defaultThemeConfig = config.public.theme.default?.trim().toLowerCase();
+
+  if (defaultThemeConfig) {
+    const builtInMatch = ALL_POSSIBLE_THEMES.find((t) => t === defaultThemeConfig)?.toLowerCase();
+    if (builtInMatch !== undefined && validThemes.includes(builtInMatch)) {
+      return builtInMatch;
+    }
+    if (validThemes.includes(defaultThemeConfig)) {
+      return defaultThemeConfig;
+    }
+    if (typeof window !== 'undefined') {
+      console.warn(
+        `[Theme Config] Invalid default theme "${defaultThemeConfig}" in NEXT_PUBLIC_DEFAULT_THEME. Valid themes are: ${validThemes.join(', ')}. Using fallback.`
+      );
+    }
+  }
+
   const customThemes = getCustomThemes();
   const firstCustomTheme = customThemes.at(0);
   if (firstCustomTheme !== undefined) {
     return firstCustomTheme.id;
   }
 
-  const config = getConfig();
-  const defaultThemeConfig = config.public.theme.default?.trim().toLowerCase();
-  const validThemes = getValidThemes();
-
-  if (!defaultThemeConfig) {
-    if (validThemes.includes('dark')) {
-      return 'dark';
-    }
-    return validThemes[0] || 'dark';
+  if (validThemes.includes('dark')) {
+    return 'dark';
   }
-
-  const defaultThemeMatch = ALL_POSSIBLE_THEMES.find(
-    (t) => t === defaultThemeConfig
-  )?.toLowerCase();
-  if (defaultThemeMatch === undefined) {
-    if (typeof window !== 'undefined') {
-      console.warn(
-        `[Theme Config] Invalid default theme "${defaultThemeConfig}" in NEXT_PUBLIC_DEFAULT_THEME. Valid themes are: ${ALL_POSSIBLE_THEMES.join(', ')}. Using fallback.`
-      );
-    }
-    if (validThemes.includes('dark')) {
-      return 'dark';
-    }
-    return validThemes[0] || 'dark';
-  }
-
-  if (!validThemes.includes(defaultThemeMatch)) {
-    if (typeof window !== 'undefined') {
-      console.warn(
-        '[Theme Config] Default theme is not in the list of valid themes. Using fallback.'
-      );
-    }
-    if (validThemes.includes('dark')) {
-      return 'dark';
-    }
-    return validThemes[0] || 'dark';
-  }
-
-  return defaultThemeMatch;
+  return validThemes[0] || 'dark';
 }
 
 export function toUITheme(value?: string | null): UITheme {

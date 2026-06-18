@@ -1,12 +1,10 @@
 'use client';
 
-import classNames from 'classnames';
 import { useTranslations } from 'next-intl';
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { FaXmark } from 'react-icons/fa6';
 
-import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
 import { cssClass } from '../../../../utils/cssModule';
 
 import styles from '../../../../styles/components/MediaPlayer/Controller/Video/MediaPlayerVideoPortalFloating.module.scss';
@@ -23,8 +21,6 @@ export const MediaPlayerVideoPortalFloating: React.FC<MediaPlayerVideoPortalFloa
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const { mpItemSoundbite, mpClip, mpItemChapter } = useMediaPlayer();
-  const hasMarquee = !!mpItemSoundbite || !!mpClip || !!mpItemChapter;
   const tMisc = useTranslations('misc');
 
   if (!mounted || typeof document === 'undefined') {
@@ -32,12 +28,7 @@ export const MediaPlayerVideoPortalFloating: React.FC<MediaPlayerVideoPortalFloa
   }
 
   return ReactDOM.createPortal(
-    <div
-      className={classNames({
-        [cssClass(styles, 'floatingVideoPortal')]: true,
-        [cssClass(styles, 'hasMarquee')]: hasMarquee,
-      })}
-    >
+    <div className={cssClass(styles, 'floatingVideoPortal')}>
       <button
         type="button"
         className={cssClass(styles, 'closeButton')}

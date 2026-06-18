@@ -42,7 +42,7 @@ export const MediaPlayerInfoMobile: React.FC = () => {
     mpItemChapters,
     currentTimeSeconds: mpCurrentTime,
   });
-  const title = hasContent ? (infoResolution.itemTitle ?? tMisc('untitled')) : '';
+  const title = hasContent ? (infoResolution.displayItemTitle ?? tMisc('untitled')) : '';
   const subtitle = hasContent ? (infoResolution.channelTitle ?? tMisc('untitled')) : '';
 
   const { channelImages, itemImages } = getMediaPlayerArtworkSources({

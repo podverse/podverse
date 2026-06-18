@@ -77,7 +77,7 @@ describe('uiTheme utilities', () => {
     expect(getValidThemes()).toEqual(['dark', 'brand-midnight']);
   });
 
-  it('uses first custom theme as default when custom themes are loaded', () => {
+  it('uses configured default theme when custom themes are loaded', () => {
     mockConfig.public.theme.default = 'light';
     mockConfig.public.theme.customThemes = [
       {
@@ -93,8 +93,61 @@ describe('uiTheme utilities', () => {
         },
       },
     ];
-    expect(getDefaultTheme()).toBe('brand-midnight');
+    expect(getDefaultTheme()).toBe('light');
     expect(toUITheme('light')).toBe('light');
-    expect(toUITheme('unknown-theme')).toBe('brand-midnight');
+    expect(toUITheme('unknown-theme')).toBe('light');
+  });
+
+  it('uses configured custom theme id as default when set', () => {
+    mockConfig.public.theme.default = 'brand-daylight';
+    mockConfig.public.theme.customThemes = [
+      {
+        id: 'brand-midnight',
+        cssVariables: {
+          '--pv-color-brand-primary': '#123456',
+        },
+      },
+      {
+        id: 'brand-daylight',
+        cssVariables: {
+          '--pv-color-brand-primary': '#abcdef',
+        },
+      },
+    ];
+    expect(getDefaultTheme()).toBe('brand-daylight');
+  });
+
+  it('uses first custom theme as default when custom themes are loaded and default is blank', () => {
+    mockConfig.public.theme.default = '';
+    mockConfig.public.theme.customThemes = [
+      {
+        id: 'brand-midnight',
+        cssVariables: {
+          '--pv-color-brand-primary': '#123456',
+        },
+      },
+      {
+        id: 'brand-daylight',
+        cssVariables: {
+          '--pv-color-brand-primary': '#abcdef',
+        },
+      },
+    ];
+    expect(getDefaultTheme()).toBe('brand-midnight');
+    expect(toUITheme()).toBe('brand-midnight');
+  });
+
+  it('uses built-in default theme when custom themes are loaded (alpha violet)', () => {
+    mockConfig.public.theme.default = 'violet';
+    mockConfig.public.theme.customThemes = [
+      {
+        id: 'custom_verdigris_forge',
+        cssVariables: {
+          '--pv-color-brand-primary': '#3d9b8f',
+        },
+      },
+    ];
+    expect(getDefaultTheme()).toBe('violet');
+    expect(toUITheme()).toBe('violet');
   });
 });

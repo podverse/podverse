@@ -13,8 +13,8 @@
 }
 
 .modalBackdrop {
-  @include fullCoverageWithBackdrop(absolute, 12px);
-  background: rgba(0, 0, 0, 0.7);
+  @include fullCoverageWithBackdrop(absolute, 16px);
+  background: rgba(0, 0, 0, 0.85);
 }
 
 .modalHeader {
@@ -116,7 +116,9 @@
 }
 
 .modalContentTransparent {
-  background: transparent;
+  background: color-mix(in srgb, var(--background-color-primary) 92%, transparent);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   height: 100%;
   justify-content: center;
   max-height: none;

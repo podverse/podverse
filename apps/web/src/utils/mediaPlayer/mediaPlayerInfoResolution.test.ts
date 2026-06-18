@@ -46,7 +46,9 @@ describe('getMediaPlayerInfoResolution', () => {
       currentTimeSeconds: 10,
     });
 
-    expect(result.itemTitle).toBe('Inner');
+    expect(result.itemTitle).toBeNull();
+    expect(result.displayItemTitle).toBe('Inner');
+    expect(result.subsectionTitle).toBe('Inner');
     expect(result.subsectionUrl).toBe('/chapter/ch-toc-false');
   });
 
@@ -79,7 +81,9 @@ describe('getMediaPlayerInfoResolution', () => {
       currentTimeSeconds: 20,
     });
 
-    expect(result.itemTitle).toBe('First chapter');
+    expect(result.itemTitle).toBeNull();
+    expect(result.displayItemTitle).toBe('First chapter');
+    expect(result.subsectionTitle).toBe('First chapter');
     expect(result.subsectionUrl).toBe('/chapter/chapter-first');
   });
 
@@ -128,6 +132,8 @@ describe('getMediaPlayerInfoResolution', () => {
     });
 
     expect(result.itemTitle).toBe('Episode title');
+    expect(result.displayItemTitle).toBe('Episode title');
+    expect(result.subsectionTitle).toBeNull();
   });
 
   it('falls back to item title when there is no matching chapter', () => {
@@ -179,6 +185,57 @@ describe('getMediaPlayerInfoResolution', () => {
     });
 
     expect(result.itemTitle).toBe('Episode title');
+    expect(result.displayItemTitle).toBe('Episode title');
+    expect(result.subsectionTitle).toBeNull();
     expect(result.itemLinkUrl).toBe('/episode/episode-1');
+  });
+
+  it('keeps itemTitle as base episode title when an active chapter has a subsection title', () => {
+    const mpItem = {
+      id: 1,
+      id_text: 'episode-1',
+      channel_id: 1,
+      item_flag_status_id: 1,
+      title: 'Episode title',
+      item_about: { id: 1, item_id: 1 },
+      item_chat: { id: 1, item_id: 1, server: 'chat.example.com' },
+      item_license: { id: 1, item_id: 1, identifier: 'CC-BY', url: null },
+      item_location: { id: 1, item_id: 1, name: null },
+      item_season: { id: 1, channel_season_id: 1, item_id: 1, title: null },
+      item_content_links: [],
+      item_enclosures: [],
+      item_fundings: [],
+      item_images: [],
+      item_persons: [],
+      item_social_interacts: [],
+      item_soundbites: [],
+      item_transcripts: [],
+      item_txts: [],
+      item_values: [],
+    } as DTOItem;
+
+    const activeChapter = chapter({
+      id: 1,
+      id_text: 'chapter-active',
+      table_of_contents: true,
+      title: 'Chapter title',
+      start_time: '10',
+      end_time: '30',
+    });
+
+    const result = getMediaPlayerInfoResolution({
+      mpChannel: null,
+      mpItem,
+      mpAddByRSS: null,
+      mpClip: null,
+      mpItemSoundbite: null,
+      mpItemChapter: null,
+      mpItemChapters: [activeChapter],
+      currentTimeSeconds: 15,
+    });
+
+    expect(result.itemTitle).toBe('Episode title');
+    expect(result.displayItemTitle).toBe('Chapter title');
+    expect(result.subsectionTitle).toBe('Chapter title');
   });
 });

@@ -27,7 +27,10 @@ type ResolutionParams = {
 };
 
 export type MediaPlayerInfoResolution = {
+  /** Base episode/track title — never overridden by chapter/clip/soundbite. */
   itemTitle: string | null;
+  /** Mini-player line: subsection title when present, else {@link itemTitle}. */
+  displayItemTitle: string | null;
   channelTitle: string | null;
   channelLinkUrl: string;
   itemLinkUrl: string;
@@ -209,7 +212,8 @@ export const getMediaPlayerInfoResolution = ({
     null;
 
   return {
-    itemTitle: subsectionTitle ?? itemTitleFromSource,
+    itemTitle: itemTitleFromSource,
+    displayItemTitle: subsectionTitle ?? itemTitleFromSource,
     channelTitle,
     channelLinkUrl,
     itemLinkUrl,

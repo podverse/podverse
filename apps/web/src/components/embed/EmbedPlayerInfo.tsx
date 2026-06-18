@@ -104,7 +104,7 @@ export function EmbedPlayerInfo({
     : null;
 
   const itemTitle = hasPlayerContent
-    ? (primaryTitleResolution?.title ?? infoResolution?.itemTitle ?? tMisc('untitled'))
+    ? (primaryTitleResolution?.title ?? infoResolution?.displayItemTitle ?? tMisc('untitled'))
     : fallbackResource !== null
       ? formatEmbedDisplayTitle(fallbackResource)
       : null;
