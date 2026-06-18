@@ -62,8 +62,8 @@ export function getCustomThemeById(themeId: string): RemoteThemeDefinition | und
 }
 
 /**
- * Get the default theme from config, or first custom theme when default is unset,
- * or "dark" / first valid theme as final fallback.
+ * Default theme from config when valid; otherwise first custom theme when the pack is
+ * loaded; otherwise "dark" or the first valid built-in theme.
  */
 export function getDefaultTheme(): UITheme {
   const validThemes = getValidThemes();

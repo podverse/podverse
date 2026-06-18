@@ -24,16 +24,17 @@ test.describe('Custom themes (remote pack only)', () => {
     await expectCustomThemeStyleTagContains(page, `[data-ui-theme='${CUSTOM_THEME_MINIMAL_ID}']`);
 
     const themeSelector = page.locator('#settings_theme_selector');
-    await expect(themeSelector).toContainText('custom_minimal');
+    await expect(themeSelector).toContainText('Dark');
     await expectThemeMenuLabels(page, ['Dark', 'custom_minimal']);
-
-    await expectHtmlUiTheme(page, CUSTOM_THEME_MINIMAL_ID);
+    await expectHtmlUiTheme(page, 'dark');
 
     await actionAndCapture(
       page,
       testInfo,
-      'The remote custom theme applies canonical background and text tokens and paints the page body.',
+      'After selecting the remote custom theme, canonical background and text tokens paint the page body.',
       async () => {
+        await selectThemeByMenuLabel(page, 'custom_minimal');
+        await expectHtmlUiTheme(page, CUSTOM_THEME_MINIMAL_ID);
         await expectCustomThemeUiColorsApplied(page, CUSTOM_MINIMAL_BACKGROUND_PRIMARY_HEX, {
           textPrimaryHex: CUSTOM_MINIMAL_TEXT_PRIMARY_HEX,
         });
@@ -44,7 +45,7 @@ test.describe('Custom themes (remote pack only)', () => {
     await capturePageLoad(
       page,
       testInfo,
-      'Settings shows the theme selector with the remote custom theme as the active selection.',
+      'Settings shows the theme selector with Dark as the configured default and remote themes in the menu.',
       themeSelector
     );
   });

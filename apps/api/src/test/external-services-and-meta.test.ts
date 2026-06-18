@@ -1,7 +1,6 @@
 import { generateKeyPairSync } from 'node:crypto';
 
 import { buildRSSOnDemandDedupeKey } from '@api/controllers/mq/mq.js';
-import { keyvaldb } from '@api/lib/keyvaldb/keyvaldb.js';
 import type { Server } from 'http';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -551,6 +550,7 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
     const bodyThrow = { url: 'https://feeds.example.com/only-500.xml', podcast_index_id: 99 };
 
     beforeEach(async () => {
+      const { keyvaldb } = await import('@api/lib/keyvaldb/keyvaldb.js');
       for (const key of [
         buildRSSOnDemandDedupeKey(TEST_USER_ID, OnDemandParserEventType.ADD, bodyAdd.url),
         buildRSSOnDemandDedupeKey(TEST_USER_ID, OnDemandParserEventType.REFRESH, bodyRefresh.url),
