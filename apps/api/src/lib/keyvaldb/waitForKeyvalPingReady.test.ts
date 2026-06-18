@@ -10,7 +10,10 @@ describe('waitForKeyvalPingReady', () => {
     vi.restoreAllMocks();
     try {
       const keyvaldbModule = await import('./keyvaldb.js');
-      if (keyvaldbModule.keyvaldb.status === 'ready' || keyvaldbModule.keyvaldb.status === 'connecting') {
+      if (
+        keyvaldbModule.keyvaldb.status === 'ready' ||
+        keyvaldbModule.keyvaldb.status === 'connecting'
+      ) {
         await keyvaldbModule.keyvaldb.quit();
       }
     } catch {
