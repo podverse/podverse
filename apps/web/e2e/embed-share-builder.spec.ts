@@ -1,6 +1,16 @@
-import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
+import {
+  getEmbedListResponsiveIframeHeightPx,
+  getEmbedListVideoPlaceholderHeightPx,
+} from '../src/lib/embed/embedLayoutDimensions';
+import { EMBED_LIST_ROW_HEIGHT_PX } from '../src/lib/embed/embedLayoutTokens';
+import {
+  embedTitleLocator,
+  expectEmbedShellHeightStable,
+  expectFrameElementHeightWithin,
+} from './helpers/embedAssertions';
 import {
   E2E_CLIP_ID_TEXT,
   E2E_EMBED_PLAYLIST_DEFAULT_ITEM_ID_TEXT,
@@ -13,17 +23,7 @@ import {
   E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT,
   E2E_SOUNDBITE_ID_TEXT,
 } from './helpers/seedConstants';
-import {
-  expectEmbedShellHeightStable,
-  expectFrameElementHeightWithin,
-  embedTitleLocator,
-} from './helpers/embedAssertions';
 import { capturePageLoad } from './helpers/stepScreenshots';
-import {
-  getEmbedListResponsiveIframeHeightPx,
-  getEmbedListVideoPlaceholderHeightPx,
-} from '../src/lib/embed/embedLayoutDimensions';
-import { EMBED_LIST_ROW_HEIGHT_PX } from '../src/lib/embed/embedLayoutTokens';
 
 const SHARE_EMBED_BUILDER_TEST_ID = 'share-embed-builder';
 
@@ -91,6 +91,11 @@ function getEmbedBuilderCodeValueLocator(page: Page) {
 async function expectEmbedBuilderCodeValue(page: Page, pattern: RegExp): Promise<void> {
   const codeValue = getEmbedBuilderCodeValueLocator(page);
   await expect.poll(async () => codeValue.innerText()).toMatch(pattern);
+}
+
+function embedBuilderUrlPattern(path: string, queryContains: string[]): RegExp {
+  const lookaheads = queryContains.map((fragment) => `(?=.*${fragment})`).join('');
+  return new RegExp(`${path}\\?${lookaheads}`);
 }
 
 async function expectBuilderEmbedPaths(page: Page, pathPattern: RegExp): Promise<void> {
@@ -401,9 +406,10 @@ test.describe('Embed share builder handoff', () => {
 
     await expectBuilderEmbedPaths(
       page,
-      new RegExp(
-        `/embed/album/${E2E_MUSIC_ALBUM_ID_TEXT}\\?.*play_id_text=${E2E_MUSIC_TRACK_ONE_ID_TEXT}.*sort=backward`
-      )
+      embedBuilderUrlPattern(`/embed/album/${E2E_MUSIC_ALBUM_ID_TEXT}`, [
+        `play_id_text=${E2E_MUSIC_TRACK_ONE_ID_TEXT}`,
+        'sort=backward',
+      ])
     );
   });
 

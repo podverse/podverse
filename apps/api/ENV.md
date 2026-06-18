@@ -84,6 +84,14 @@ These variables are **always required** regardless of configuration:
 - **`PODCAST_INDEX_AUTH_KEY`** (Required) - Podcast Index API authentication key
 - **`PODCAST_INDEX_BASE_URL`** (Required) - Podcast Index API base URL
 - **`PODCAST_INDEX_SECRET_KEY`** (Required) - Podcast Index API secret key
+- **`PODCAST_INDEX_API_RATE_LIMIT_DELAY`** (Optional) - Delay in milliseconds between Podcast
+  Index API requests. Default is `200`. Set to `0` to disable.
+- **`PODCAST_INDEX_API_MAX_RETRIES`** (Optional) - Retries after the first failed Podcast Index
+  API request. Default is `3` (four total attempts including the initial request).
+- **`PODCAST_INDEX_API_RETRY_BASE_DELAY_MS`** (Optional) - Base delay in milliseconds for
+  exponential backoff between Podcast Index API retries. Default is `5000`.
+- **`PODCAST_INDEX_SEARCH_MAX`** (Optional) - Maximum results per Podcast Index search request.
+  Default is `50`.
 
 ### Premium/Membership
 

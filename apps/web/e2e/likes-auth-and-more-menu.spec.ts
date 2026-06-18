@@ -1,12 +1,12 @@
 import { expect, test } from '@playwright/test';
 
 import { expectLikeAffordanceVisibleWhenLoggedOut } from './helpers/mediaPlayerAssertions';
-import { createRequestCounter } from './helpers/networkGuards';
 import {
   clickVtsLike,
   openMediaPlayerHarness,
   setLoggedInState,
 } from './helpers/mediaPlayerHarness';
+import { createRequestCounter } from './helpers/networkGuards';
 import { capturePageLoad } from './helpers/stepScreenshots';
 
 test.describe('Likes auth and like affordance', () => {

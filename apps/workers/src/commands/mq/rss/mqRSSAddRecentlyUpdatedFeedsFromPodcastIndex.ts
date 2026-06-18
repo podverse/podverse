@@ -1,5 +1,6 @@
 import type { CommandLineArgs } from '@workers/commands/index.js';
 import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService.js';
+import { getLoggerService } from '@workers/factories/loggerService.js';
 import { getPodcastIndexService } from '@workers/factories/podcastIndexService.js';
 
 import type { MQQueueNameParamKey } from '@podverse/helpers';
@@ -43,6 +44,7 @@ export const mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex = async (args: Command
       ...mqConstantMessageOptions,
       sinceRange,
       closeAfterSend: true,
+      loggerService: getLoggerService(),
     },
     {
       forceParse: false,

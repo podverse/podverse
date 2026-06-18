@@ -1,22 +1,22 @@
-import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
+import { EMBED_LIST_ROW_HEIGHT_PX } from '../src/lib/embed/embedLayoutTokens';
 import {
+  expectEmbedCompactShellNoVideoElement,
+  expectEmbedListShell,
+  expectEmbedResponsiveCenterArt,
+  expectEmbedResponsiveVideoElement,
+} from './helpers/embedAssertions';
+import {
+  E2E_EMBED_VIDEO_CHANNEL_ID_TEXT,
+  E2E_EMBED_VIDEO_ITEM_ID_TEXT,
   EMBED_FIXTURE_MUSIC_ALBUM_ID_TEXT,
   EMBED_FIXTURE_MUSIC_TRACK_AUDIO_ID_TEXT,
   EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT,
   EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT,
   EMBED_SAMPLE_CHAPTER_TWO_START_SECONDS,
-  E2E_EMBED_VIDEO_CHANNEL_ID_TEXT,
-  E2E_EMBED_VIDEO_ITEM_ID_TEXT,
 } from './helpers/seedConstants';
-import {
-  expectEmbedListShell,
-  expectEmbedCompactShellNoVideoElement,
-  expectEmbedResponsiveCenterArt,
-  expectEmbedResponsiveVideoElement,
-} from './helpers/embedAssertions';
-import { EMBED_LIST_ROW_HEIGHT_PX } from '../src/lib/embed/embedLayoutTokens';
 import { capturePageLoad } from './helpers/stepScreenshots';
 
 async function hoverProgressBarCenter(page: Page): Promise<void> {

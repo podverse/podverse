@@ -19,7 +19,7 @@ import {
   buildItemRowFromDto,
   buildSoundbiteRowFromDto,
 } from './mapEmbedListRows';
-import { flattenEmbedListRows, resolveEmbedListDefaultRow } from './resolveEmbedListDefaultRow';
+import { flattenEmbedListRows } from './resolveEmbedListDefaultRow';
 
 type FetchEmbedListPlayIdTextOverrideRowInput = {
   routeKind: EmbedListRouteKind;
@@ -42,65 +42,111 @@ export async function fetchEmbedListPlayIdTextOverrideRow(
   }
 
   const rows = flattenEmbedListRows(input.groups);
-  const matchedRow = resolveEmbedListDefaultRow(rows, playIdText);
-
-  if (matchedRow !== null && matchedRow.playIdText === playIdText) {
+  if (rows.some((row) => row.playIdText === playIdText)) {
     return null;
   }
 
-  if (input.routeKind === 'playlist') {
-    const item = await getItemForSeoPage(playIdText);
+  try {
+    if (input.routeKind === 'playlist') {
+      const item = await getItemForSeoPage(playIdText);
 
-    if (item?.channel) {
-      return buildItemRowFromDto(item.channel, item);
-    }
+      if (item?.channel) {
+        return buildItemRowFromDto(item.channel, item);
+      }
 
-    const clip = await getClipForSeoPage(playIdText);
-    const clipItem = clip?.item ?? null;
-    const clipChannel = clipItem?.channel ?? null;
+      const clip = await getClipForSeoPage(playIdText);
+      const clipItem = clip?.item ?? null;
+      const clipChannel = clipItem?.channel ?? null;
 
-    if (clip !== null && clipItem !== null && clipChannel !== null) {
-      return buildClipRowFromDto(clipChannel, clip, clipItem);
-    }
+      if (clip !== null && clipItem !== null && clipChannel !== null) {
+        return buildClipRowFromDto(clipChannel, clip, clipItem);
+      }
 
-    const itemSoundbite = await getItemSoundbiteForSeoPage(playIdText);
-    const soundbiteItem = itemSoundbite?.item ?? null;
-    const soundbiteChannel = soundbiteItem?.channel ?? null;
+      const itemSoundbite = await getItemSoundbiteForSeoPage(playIdText);
+      const soundbiteItem = itemSoundbite?.item ?? null;
+      const soundbiteChannel = soundbiteItem?.channel ?? null;
 
-    if (itemSoundbite !== null && soundbiteItem !== null && soundbiteChannel !== null) {
-      return buildSoundbiteRowFromDto(soundbiteChannel, itemSoundbite, soundbiteItem);
-    }
+      if (itemSoundbite !== null && soundbiteItem !== null && soundbiteChannel !== null) {
+        return buildSoundbiteRowFromDto(soundbiteChannel, itemSoundbite, soundbiteItem);
+      }
 
-    return null;
-  }
-
-  if (input.channel === null) {
-    return null;
-  }
-
-  const channel = input.channel;
-
-  if (input.routeKind === 'episode-chapters') {
-    const itemChapter = await getItemChapterForSeoPage(playIdText);
-    const chapterItemRef = itemChapter?.item_chapters_feed?.item ?? null;
-
-    if (itemChapter === null || chapterItemRef === null) {
       return null;
     }
 
-    const item = await getItemForSeoPage(chapterItemRef.id_text);
-
-    if (item === null || item.channel_id !== channel.id) {
+    if (input.channel === null) {
       return null;
     }
 
-    return buildItemChapterRowFromDto(channel, item, itemChapter);
-  }
+    const channel = input.channel;
 
-  if (input.routeKind === 'album') {
-    const albumQuery = input.listQuery as EmbedAlbumListQueryParams;
+    if (input.routeKind === 'episode-chapters') {
+      const itemChapter = await getItemChapterForSeoPage(playIdText);
+      const chapterItemRef = itemChapter?.item_chapters_feed?.item ?? null;
 
-    if (albumQuery.type !== 'tracks') {
+      if (itemChapter === null || chapterItemRef === null) {
+        return null;
+      }
+
+      const item = await getItemForSeoPage(chapterItemRef.id_text);
+
+      if (item === null || item.channel_id !== channel.id) {
+        return null;
+      }
+
+      return buildItemChapterRowFromDto(channel, item, itemChapter);
+    }
+
+    if (input.routeKind === 'album') {
+      const albumQuery = input.listQuery as EmbedAlbumListQueryParams;
+
+      if (albumQuery.type !== 'tracks') {
+        return null;
+      }
+
+      const item = await getItemForSeoPage(playIdText);
+
+      if (item === null || item.channel_id !== channel.id) {
+        return null;
+      }
+
+      return buildItemRowFromDto(channel, item);
+    }
+
+    const podcastQuery = input.listQuery as EmbedPodcastListQueryParams;
+
+    if (podcastQuery.type === 'clips') {
+      const clip = await getClipForSeoPage(playIdText);
+      const item = clip?.item ?? null;
+      const rowChannel = item?.channel ?? null;
+
+      if (clip === null || item === null || rowChannel === null) {
+        return null;
+      }
+
+      if (rowChannel.id !== channel.id) {
+        return null;
+      }
+
+      return buildClipRowFromDto(rowChannel, clip, item);
+    }
+
+    if (podcastQuery.type === 'soundbites') {
+      const itemSoundbite = await getItemSoundbiteForSeoPage(playIdText);
+      const item = itemSoundbite?.item ?? null;
+      const rowChannel = item?.channel ?? null;
+
+      if (itemSoundbite === null || item === null || rowChannel === null) {
+        return null;
+      }
+
+      if (rowChannel.id !== channel.id) {
+        return null;
+      }
+
+      return buildSoundbiteRowFromDto(rowChannel, itemSoundbite, item);
+    }
+
+    if (podcastQuery.type === 'boosts') {
       return null;
     }
 
@@ -111,51 +157,7 @@ export async function fetchEmbedListPlayIdTextOverrideRow(
     }
 
     return buildItemRowFromDto(channel, item);
-  }
-
-  const podcastQuery = input.listQuery as EmbedPodcastListQueryParams;
-
-  if (podcastQuery.type === 'clips') {
-    const clip = await getClipForSeoPage(playIdText);
-    const item = clip?.item ?? null;
-    const rowChannel = item?.channel ?? null;
-
-    if (clip === null || item === null || rowChannel === null) {
-      return null;
-    }
-
-    if (rowChannel.id !== channel.id) {
-      return null;
-    }
-
-    return buildClipRowFromDto(rowChannel, clip, item);
-  }
-
-  if (podcastQuery.type === 'soundbites') {
-    const itemSoundbite = await getItemSoundbiteForSeoPage(playIdText);
-    const item = itemSoundbite?.item ?? null;
-    const rowChannel = item?.channel ?? null;
-
-    if (itemSoundbite === null || item === null || rowChannel === null) {
-      return null;
-    }
-
-    if (rowChannel.id !== channel.id) {
-      return null;
-    }
-
-    return buildSoundbiteRowFromDto(rowChannel, itemSoundbite, item);
-  }
-
-  if (podcastQuery.type === 'boosts') {
+  } catch {
     return null;
   }
-
-  const item = await getItemForSeoPage(playIdText);
-
-  if (item === null || item.channel_id !== channel.id) {
-    return null;
-  }
-
-  return buildItemRowFromDto(channel, item);
 }

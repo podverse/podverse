@@ -1,5 +1,4 @@
 import type { Locator, Page, TestInfo } from '@playwright/test';
-
 import path from 'path';
 
 const stepCounters = new WeakMap<TestInfo, number>();

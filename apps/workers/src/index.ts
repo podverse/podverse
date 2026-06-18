@@ -27,7 +27,6 @@ const run = async () => {
   // Command-first bootstrap: resolve command from argv before validation or config
   const argv = process.argv.slice(2);
   const commandName = (argv[0] as string) ?? '';
-  const { LONG_RUNNING_COMMANDS } = await import('./lib/extensions/longRunningCommands.js');
   const { initWorkerExtensions, registerWorkerExtensionsShutdown } =
     await import('./lib/extensions/initWorkerExtensions.js');
 
@@ -117,6 +116,7 @@ const run = async () => {
   const { setPodcastIndexService } = await import('./factories/podcastIndexService.js');
   const { recordWorkerCommand } = await import('@podverse/extension-metrics-sdk');
   const { shouldInitWorkerExtensions } = await import('./lib/extensions/initWorkerExtensions.js');
+  const { finalizeOneShotWorkerProcess } = await import('./lib/oneShotProcessExit.js');
 
   const args = parseArgs();
   const argsCommandName = (args._ as string[])[0];
@@ -129,6 +129,8 @@ const run = async () => {
   const categories = getCategoriesForCommand(commandName);
 
   const runApp = async () => {
+    let exitCode = 0;
+
     try {
       // Base config and logger: every command needs these (validated as Base category)
       const baseConfig = getBaseConfig();
@@ -197,6 +199,15 @@ const run = async () => {
             baseUrl: podcastIndexConfig.baseUrl,
             secretKey: podcastIndexConfig.secretKey,
             loggerService: getLoggerService(),
+            ...(podcastIndexConfig.rateLimitDelay !== undefined && {
+              rateLimitDelay: podcastIndexConfig.rateLimitDelay,
+            }),
+            ...(podcastIndexConfig.maxRetries !== undefined && {
+              maxRetries: podcastIndexConfig.maxRetries,
+            }),
+            ...(podcastIndexConfig.retryBaseDelayMs !== undefined && {
+              retryBaseDelayMs: podcastIndexConfig.retryBaseDelayMs,
+            }),
           })
         );
       }
@@ -302,11 +313,12 @@ const run = async () => {
         }
       } else {
         getLoggerService().logError(`runApp: Command "${commandName}" not found.`);
+        exitCode = 1;
       }
     } catch (error) {
+      exitCode = 1;
       if (error instanceof Error && error.message.includes('FATAL:')) {
         console.error(error.message);
-        process.exit(1);
       } else {
         // Logger may not be initialized if error occurred during early bootstrap
         try {
@@ -314,12 +326,9 @@ const run = async () => {
         } catch {
           console.error('Error running app:', error);
         }
-        process.exit(1);
       }
     } finally {
-      if (!LONG_RUNNING_COMMANDS.has(commandName)) {
-        process.exit(0);
-      }
+      finalizeOneShotWorkerProcess(commandName, exitCode);
     }
   };
 

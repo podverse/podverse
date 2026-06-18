@@ -2,15 +2,15 @@ import type { Locator, Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
 import {
+  expectMediaPlayerTitleVisible,
+  waitForAudioReadyAtLeast,
+} from './helpers/mediaPlayerAssertions';
+import {
   E2E_MUSIC_QUEUE_ID_TEXT,
   E2E_MUSIC_TRACK_DURATION_SECONDS,
   E2E_MUSIC_TRACK_ONE_ID_TEXT,
   E2E_MUSIC_TRACK_TWO_ID_TEXT,
 } from './helpers/seedConstants';
-import {
-  expectMediaPlayerTitleVisible,
-  waitForAudioReadyAtLeast,
-} from './helpers/mediaPlayerAssertions';
 
 const API_BASE_URL = 'http://localhost:4030/api/v2';
 const API_LOGIN_URL = `${API_BASE_URL}/auth/login`;

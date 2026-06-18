@@ -1,7 +1,12 @@
-import { PodcastIndexService } from '@podverse/external-services-podcast-index';
+import {
+  parsePodcastIndexClientOptionsFromEnv,
+  PodcastIndexService,
+} from '@podverse/external-services-podcast-index';
 
 import { config } from '../config/index.js';
 import { loggerService } from './loggerService.js';
+
+const podcastIndexClientOptions = parsePodcastIndexClientOptionsFromEnv(process.env);
 
 export const podcastIndexService = new PodcastIndexService({
   userAgent: config.userAgent,
@@ -9,4 +14,5 @@ export const podcastIndexService = new PodcastIndexService({
   baseUrl: config.podcastIndex.baseUrl,
   secretKey: config.podcastIndex.secretKey,
   loggerService,
+  ...podcastIndexClientOptions,
 });

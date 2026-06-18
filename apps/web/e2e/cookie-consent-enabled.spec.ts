@@ -5,8 +5,8 @@ import {
   readAnonymousSnapshotFromPage,
   writeAnonymousSnapshotBeforeNavigation,
 } from './helpers/anonymousSnapshot';
-import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 import { E2E_ANON_SNAPSHOT_PODCAST_ITEM_ID_TEXT } from './helpers/seedConstants';
+import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 
 test.describe('Cookie consent banner (enabled)', () => {
   test('When the cookie consent banner is enabled, visitors can accept all cookies and load analytics.', async ({

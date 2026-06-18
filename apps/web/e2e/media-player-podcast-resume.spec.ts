@@ -1,6 +1,7 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
+import { waitForAudioReadyAtLeast } from './helpers/mediaPlayerAssertions';
 import {
   E2E_PODCAST_ITEM_RESUME_DURATION_SECONDS,
   E2E_PODCAST_ITEM_RESUME_NEAR_END_ID_TEXT,
@@ -10,7 +11,6 @@ import {
   E2E_PODCAST_ITEM_RESUME_P_POS_SECONDS,
   E2E_PODCAST_QUEUE_ID_TEXT,
 } from './helpers/seedConstants';
-import { waitForAudioReadyAtLeast } from './helpers/mediaPlayerAssertions';
 
 const API_BASE_URL = 'http://localhost:4030/api/v2';
 const API_LOGIN_URL = `${API_BASE_URL}/auth/login`;

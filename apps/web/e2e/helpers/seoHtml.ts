@@ -1,5 +1,5 @@
-import { expect } from '@playwright/test';
 import type { APIRequestContext } from '@playwright/test';
+import { expect } from '@playwright/test';
 
 export async function fetchSsrHtml(request: APIRequestContext, path: string): Promise<string> {
   const response = await request.get(path);

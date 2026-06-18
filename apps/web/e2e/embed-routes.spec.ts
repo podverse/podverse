@@ -3,7 +3,6 @@ import { expect, test } from '@playwright/test';
 import {
   EMBED_LIST_SHELL_HEIGHT,
   EMBED_LIST_SHELL_HEIGHT_WITH_SELECTOR,
-  EMBED_LIST_SHELL_RESPONSIVE_HEIGHT,
   EMBED_LIST_SHELL_RESPONSIVE_HEIGHT_WITH_SELECTOR,
   EMBED_SINGLE_SHELL_HEIGHT,
   embedTitleLocator,
@@ -16,17 +15,17 @@ import {
   expectEmbedListRegionScrollable,
   expectEmbedListRowMetadata,
   expectEmbedListShell,
-  expectEmbedResponsiveVideoElement,
   expectEmbedNotAvailableShell,
   expectEmbedNotFoundShell,
   expectEmbedPlayerDuration,
   expectEmbedPlayerProgressVisible,
-  seekEmbedPlayerToSeconds,
+  expectEmbedResponsiveVideoElement,
   expectEmbedRootVisible,
   expectEmbedShellHeightStable,
   expectEmbedSingleShell,
   expectEmbedTitleTruncated,
   expectNoEmbedChapterMarkers,
+  seekEmbedPlayerToSeconds,
 } from './helpers/embedAssertions';
 import {
   E2E_EMBED_ALBUM_LIST_DEFAULT_ITEM_ID_TEXT,

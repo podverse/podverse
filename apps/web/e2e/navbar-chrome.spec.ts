@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
+import { actionAndCapture } from './helpers/stepScreenshots';
 
 test.describe('Main layout navbar chrome', () => {
   test('the home page shows account menu and history controls on a wide viewport', async ({

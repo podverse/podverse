@@ -27,6 +27,7 @@ export * from './lib/billingDomain.js';
 export * from './lib/boolean.js';
 export * from './lib/category.js';
 export * from './lib/comparison/isEqual.js';
+export * from './lib/computeExponentialBackoffDelayMs.js';
 export * from './lib/date.js';
 export * from './lib/fileSize.js';
 export * from './lib/fileName.js';

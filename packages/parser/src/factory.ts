@@ -49,6 +49,9 @@ export function createParserContext(params: CreateParserContextParams): ParserCo
           baseUrl: config.podcastIndex.baseUrl,
           secretKey: config.podcastIndex.secretKey,
           loggerService,
+          ...(config.podcastIndex.rateLimitDelay !== undefined && {
+            rateLimitDelay: config.podcastIndex.rateLimitDelay,
+          }),
         })
       : undefined;
 

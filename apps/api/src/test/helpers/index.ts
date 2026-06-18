@@ -14,6 +14,34 @@ export type TestAppResult = {
   ormContext: ORMContext | undefined;
 };
 
+const TEST_KEYVAL_READY_MAX_WAIT_MS = 10_000;
+const TEST_KEYVAL_READY_POLL_MS = 50;
+
+async function waitForTestKeyvaldbReady(): Promise<void> {
+  const { testKeyvaldbConnection } = await import('../../lib/keyvaldb/keyvaldb.js');
+  const deadline = Date.now() + TEST_KEYVAL_READY_MAX_WAIT_MS;
+  while (Date.now() < deadline) {
+    if (await testKeyvaldbConnection(false)) {
+      return;
+    }
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, TEST_KEYVAL_READY_POLL_MS);
+    });
+  }
+  throw new Error('KeyValDB not reachable during test app startup');
+}
+
+async function closeTestKeyvaldb(): Promise<void> {
+  try {
+    const { keyvaldb } = await import('../../lib/keyvaldb/keyvaldb.js');
+    if (keyvaldb.status === 'ready' || keyvaldb.status === 'connecting') {
+      await keyvaldb.quit();
+    }
+  } catch {
+    // keyvaldb module may not have been loaded in this test file
+  }
+}
+
 export async function startTestApp(): Promise<TestAppResult> {
   // Each API integration test file provides its own @podverse/orm mock.
   // Reset modules so dynamic imports below pick up the current file's mocks and a fresh app instance.
@@ -73,6 +101,7 @@ export async function startTestApp(): Promise<TestAppResult> {
 
   const { app, startApp } = await import('../../app.js');
   const maybeServer = await startApp();
+  await waitForTestKeyvaldbReady();
 
   return { app, server: maybeServer ?? undefined, ormContext };
 }
@@ -81,6 +110,8 @@ export async function stopTestApp(
   server: Server | undefined,
   ormContext: ORMContext | undefined
 ): Promise<void> {
+  await closeTestKeyvaldb();
+
   if (server) {
     await new Promise<void>((resolve, reject) => {
       server.close((err) => (err ? reject(err) : resolve()));

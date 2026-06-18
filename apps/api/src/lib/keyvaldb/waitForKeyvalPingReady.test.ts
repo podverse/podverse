@@ -1,26 +1,32 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { testKeyvaldbConnection } from './keyvaldb.js';
-import { waitForKeyvalPingReady } from './waitForKeyvalPingReady.js';
-
-vi.mock('./keyvaldb.js', () => ({
-  testKeyvaldbConnection: vi.fn(),
-}));
-
 describe('waitForKeyvalPingReady', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetModules();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     vi.useRealTimers();
     vi.restoreAllMocks();
+    try {
+      const keyvaldbModule = await import('./keyvaldb.js');
+      if (keyvaldbModule.keyvaldb.status === 'ready' || keyvaldbModule.keyvaldb.status === 'connecting') {
+        await keyvaldbModule.keyvaldb.quit();
+      }
+    } catch {
+      // module may have been reset before teardown
+    }
   });
 
   it('calls testKeyvaldbConnection(false) when keyval becomes ready during retry loop', async () => {
     vi.useFakeTimers();
-    const testConnectionMock = vi.mocked(testKeyvaldbConnection);
-    testConnectionMock.mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+    const keyvaldbModule = await import('./keyvaldb.js');
+    const testConnectionMock = vi
+      .spyOn(keyvaldbModule, 'testKeyvaldbConnection')
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+
+    const { waitForKeyvalPingReady } = await import('./waitForKeyvalPingReady.js');
 
     const promise = waitForKeyvalPingReady();
     await vi.advanceTimersByTimeAsync(2000);
@@ -36,8 +42,12 @@ describe('waitForKeyvalPingReady', () => {
     dateNowSpy.mockReturnValueOnce(0);
     dateNowSpy.mockReturnValueOnce(120_001);
 
-    const testConnectionMock = vi.mocked(testKeyvaldbConnection);
-    testConnectionMock.mockResolvedValueOnce(false);
+    const keyvaldbModule = await import('./keyvaldb.js');
+    const testConnectionMock = vi
+      .spyOn(keyvaldbModule, 'testKeyvaldbConnection')
+      .mockResolvedValueOnce(false);
+
+    const { waitForKeyvalPingReady } = await import('./waitForKeyvalPingReady.js');
 
     const ready = await waitForKeyvalPingReady();
 

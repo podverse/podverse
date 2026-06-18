@@ -4,7 +4,7 @@ import {
   EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT,
   EMBED_SAMPLE_EPISODE_AUDIO_TITLE,
 } from './helpers/seedConstants';
-import { capturePageLoad, actionAndCapture } from './helpers/stepScreenshots';
+import { actionAndCapture, capturePageLoad } from './helpers/stepScreenshots';
 
 async function seekMainPlayerToSeconds(page: import('@playwright/test').Page, seconds: number) {
   const mediaPlayer = page.locator('aside#media-player');

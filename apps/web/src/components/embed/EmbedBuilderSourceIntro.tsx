@@ -14,7 +14,8 @@ type EmbedBuilderSourceIntroProps = {
 async function resolveEmbedBuilderTypeLabel(
   kind: EmbedBuilderSourceKind,
   tMedia: Awaited<ReturnType<typeof getTranslations<'media'>>>,
-  tFeatures: Awaited<ReturnType<typeof getTranslations<'features'>>>
+  tFeatures: Awaited<ReturnType<typeof getTranslations<'features'>>>,
+  tInfo: Awaited<ReturnType<typeof getTranslations<'info'>>>
 ): Promise<string> {
   switch (kind) {
     case 'podcast':
@@ -28,9 +29,9 @@ async function resolveEmbedBuilderTypeLabel(
     case 'clip':
       return tFeatures('clip.clip');
     case 'chapter':
-      return tFeatures('chapter.chapter');
+      return tInfo('chapter.chapter');
     case 'official_clip':
-      return tFeatures('soundbite.official_clip');
+      return tInfo('soundbite.official_clip');
     case 'playlist':
       return tFeatures('playlist.playlist');
     default:
@@ -41,7 +42,8 @@ async function resolveEmbedBuilderTypeLabel(
 export async function EmbedBuilderSourceIntro({ sourceIntro }: EmbedBuilderSourceIntroProps) {
   const tFeatures = await getTranslations('features');
   const tMedia = await getTranslations('media');
-  const typeLabel = await resolveEmbedBuilderTypeLabel(sourceIntro.kind, tMedia, tFeatures);
+  const tInfo = await getTranslations('info');
+  const typeLabel = await resolveEmbedBuilderTypeLabel(sourceIntro.kind, tMedia, tFeatures, tInfo);
   const { helpKey } = embedBuilderOrientTranslationKeys(sourceIntro.kind);
 
   return (

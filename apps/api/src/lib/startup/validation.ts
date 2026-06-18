@@ -1,5 +1,9 @@
 import { loggerService } from '@api/factories/loggerService.js';
 
+import {
+  PODCAST_INDEX_DEFAULT_MAX_RETRIES,
+  PODCAST_INDEX_DEFAULT_RETRY_BASE_DELAY_MS,
+} from '@podverse/external-services-podcast-index';
 import type { AccountSignupMode } from '@podverse/helpers';
 import {
   ACCOUNT_SIGNUP_MODE_VALUES,
@@ -196,6 +200,23 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateRequired('PODCAST_INDEX_AUTH_KEY', 'Podcast Index'));
   results.push(validateRequired('PODCAST_INDEX_BASE_URL', 'Podcast Index'));
   results.push(validateRequired('PODCAST_INDEX_SECRET_KEY', 'Podcast Index'));
+  results.push(
+    validateOptional('PODCAST_INDEX_API_RATE_LIMIT_DELAY', 'Podcast Index', 'Use Default (200)')
+  );
+  results.push(
+    validateOptional(
+      'PODCAST_INDEX_API_MAX_RETRIES',
+      'Podcast Index',
+      `Use Default (${PODCAST_INDEX_DEFAULT_MAX_RETRIES})`
+    )
+  );
+  results.push(
+    validateOptional(
+      'PODCAST_INDEX_API_RETRY_BASE_DELAY_MS',
+      'Podcast Index',
+      `Use Default (${PODCAST_INDEX_DEFAULT_RETRY_BASE_DELAY_MS})`
+    )
+  );
   results.push(validatePositiveNumber('PODCAST_INDEX_SEARCH_MAX', 'Podcast Index', false, 1));
 
   // Add-by-RSS (required: Basic Auth credentials encrypted at rest)

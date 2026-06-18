@@ -29,6 +29,10 @@ import { hasAnyImageShrinkEnvSet, SUPPORTED_BUCKET_PROVIDERS } from '@workers/co
 import { validateSpamFeedItemThresholdEnvVar } from '@workers/lib/parser/spamThresholdEnv.js';
 
 import { isBucketProvider } from '@podverse/external-services-object-storage';
+import {
+  PODCAST_INDEX_DEFAULT_MAX_RETRIES,
+  PODCAST_INDEX_DEFAULT_RETRY_BASE_DELAY_MS,
+} from '@podverse/external-services-podcast-index';
 import { DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS } from '@podverse/helpers';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
@@ -400,7 +404,21 @@ function validatePodcastIndex(): ValidationResult[] {
   results.push(validateRequired('PODCAST_INDEX_BASE_URL', 'Podcast Index'));
   results.push(validateRequired('PODCAST_INDEX_SECRET_KEY', 'Podcast Index'));
   results.push(
-    validateOptional('PODCAST_INDEX_API_RATE_LIMIT_DELAY', 'Podcast Index', 'Use Default (0)')
+    validateOptional('PODCAST_INDEX_API_RATE_LIMIT_DELAY', 'Podcast Index', 'Use Default (200)')
+  );
+  results.push(
+    validateOptional(
+      'PODCAST_INDEX_API_MAX_RETRIES',
+      'Podcast Index',
+      `Use Default (${PODCAST_INDEX_DEFAULT_MAX_RETRIES})`
+    )
+  );
+  results.push(
+    validateOptional(
+      'PODCAST_INDEX_API_RETRY_BASE_DELAY_MS',
+      'Podcast Index',
+      `Use Default (${PODCAST_INDEX_DEFAULT_RETRY_BASE_DELAY_MS})`
+    )
   );
   return results;
 }

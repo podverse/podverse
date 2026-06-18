@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 
 import {
   E2E_MUSIC_TRACK_ONE_ID_TEXT,

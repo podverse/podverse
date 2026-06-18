@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test';
 
+import { expectOverlayState } from './helpers/mediaPlayerAssertions';
 import {
   openMediaPlayerHarness,
   seekToSeconds,
   selectScenario,
 } from './helpers/mediaPlayerHarness';
-import { expectOverlayState } from './helpers/mediaPlayerAssertions';
 import { capturePageLoad } from './helpers/stepScreenshots';
 
 test.describe('Media player foundation harness', () => {

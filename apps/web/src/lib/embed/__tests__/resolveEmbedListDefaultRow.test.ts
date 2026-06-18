@@ -53,6 +53,13 @@ describe('resolveEmbedListInitialRow', () => {
     expect(resolveEmbedListInitialRow(rows, 'second', overrideRow)?.playIdText).toBe('second');
   });
 
+  it('falls back to the first row when play_id_text is invalid', () => {
+    const rows = [row('first'), row('second')];
+    const overrideRow = row('off-page');
+
+    expect(resolveEmbedListInitialRow(rows, 'missing', overrideRow)?.playIdText).toBe('first');
+  });
+
   it('returns override row when the list is empty and play_id_text is set', () => {
     const overrideRow = row('only-track');
 

@@ -217,17 +217,29 @@ export type PodcastIndexConfig = {
   baseUrl: string;
   secretKey: string;
   rateLimitDelay?: number;
+  maxRetries?: number;
+  retryBaseDelayMs?: number;
 };
 
 export function getPodcastIndexConfig(): PodcastIndexConfig {
   const rateLimitDelay = process.env.PODCAST_INDEX_API_RATE_LIMIT_DELAY
     ? parseInt(process.env.PODCAST_INDEX_API_RATE_LIMIT_DELAY, 10)
     : 0;
+  const maxRetries = process.env.PODCAST_INDEX_API_MAX_RETRIES
+    ? parseInt(process.env.PODCAST_INDEX_API_MAX_RETRIES, 10)
+    : undefined;
+  const retryBaseDelayMs = process.env.PODCAST_INDEX_API_RETRY_BASE_DELAY_MS
+    ? parseInt(process.env.PODCAST_INDEX_API_RETRY_BASE_DELAY_MS, 10)
+    : undefined;
   return {
     authKey: process.env.PODCAST_INDEX_AUTH_KEY!,
     baseUrl: process.env.PODCAST_INDEX_BASE_URL!,
     secretKey: process.env.PODCAST_INDEX_SECRET_KEY!,
     ...(rateLimitDelay > 0 && { rateLimitDelay }),
+    ...(maxRetries !== undefined && Number.isFinite(maxRetries) && { maxRetries }),
+    ...(retryBaseDelayMs !== undefined &&
+      Number.isFinite(retryBaseDelayMs) &&
+      retryBaseDelayMs > 0 && { retryBaseDelayMs }),
   };
 }
 

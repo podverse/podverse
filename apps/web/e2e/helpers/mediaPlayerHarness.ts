@@ -1,5 +1,5 @@
-import { expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 
 export async function openMediaPlayerHarness(page: Page) {
   await page.goto('/e2e/media-player-foundation');

@@ -85,9 +85,14 @@ These variables are required only for commands that include the Podcast Index ca
 - **`PODCAST_INDEX_BASE_URL`** (Required) - Podcast Index API base URL
 - **`PODCAST_INDEX_SECRET_KEY`** (Required) - Podcast Index API secret key
 - **`PODCAST_INDEX_API_RATE_LIMIT_DELAY`** (Optional) - Rate limit delay in milliseconds for
-  Podcast Index API requests. For **`devParserRSSParseTrendingFeeds`**, the same delay is also
-  applied between trending fetches and between per-feed parse steps, so long runs (many feeds)
-  stay within polite bounds when set to a non-zero value.
+  Podcast Index API requests. Default is `200`. Set to `0` to disable. For
+  **`devParserRSSParseTrendingFeeds`**, the same delay is also applied between trending fetches
+  and between per-feed parse steps, so long runs (many feeds) stay within polite bounds when set
+  to a non-zero value.
+- **`PODCAST_INDEX_API_MAX_RETRIES`** (Optional) - Retries after the first failed Podcast Index
+  API request. Default is `3` (four total attempts including the initial request).
+- **`PODCAST_INDEX_API_RETRY_BASE_DELAY_MS`** (Optional) - Base delay in milliseconds for
+  exponential backoff between Podcast Index API retries. Default is `5000`.
 
 ## Message Queue (commands that use MQ)
 

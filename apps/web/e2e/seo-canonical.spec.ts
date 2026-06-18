@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 
 import { E2E_PODCAST_CHANNEL_ID_TEXT } from './helpers/seedConstants';
 import {

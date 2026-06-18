@@ -17,16 +17,14 @@ export async function reencryptAddByRSSCredentials(): Promise<void> {
   const oldKey = config.addByRssCredentialsEncryptionKeyOld;
 
   if (!newKey || newKey.length !== KEY_LEN || !/^[0-9a-fA-F]+$/.test(newKey)) {
-    console.error(
-      'ERROR: ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY must be set and 64 hex characters (key rotation: this is the NEW key)'
+    throw new Error(
+      'ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY must be set and 64 hex characters (key rotation: this is the NEW key)'
     );
-    process.exit(1);
   }
   if (!oldKey || oldKey.length !== KEY_LEN || !/^[0-9a-fA-F]+$/.test(oldKey)) {
-    console.error(
-      'ERROR: ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD must be set and 64 hex characters (key rotation: current key)'
+    throw new Error(
+      'ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD must be set and 64 hex characters (key rotation: current key)'
     );
-    process.exit(1);
   }
 
   const ds = getDataSourceReadWrite();

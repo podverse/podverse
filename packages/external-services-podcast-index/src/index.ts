@@ -12,9 +12,16 @@ import type {
   PodcastIndexSearchPodcastsResponse,
   PodcastsByTagResponse,
 } from '@podverse/helpers';
+import { computeExponentialBackoffDelayMs, sleep } from '@podverse/helpers';
 import { type ILoggerLike, summarizeUpstreamHttpErrorForLog } from '@podverse/helpers-backend';
 import { type AxiosRequestConfig, requestWithUserAgent } from '@podverse/helpers-requests';
 
+import { isRetryablePodcastIndexError } from './isRetryablePodcastIndexError.js';
+import {
+  PODCAST_INDEX_DEFAULT_MAX_RETRIES,
+  PODCAST_INDEX_DEFAULT_RETRY_BASE_DELAY_MS,
+  type PodcastIndexClientOptions,
+} from './podcastIndexClientOptions.js';
 import {
   type PodcastIndexSearchByTermOptions,
   podcastIndexSearchByTermPath,
@@ -26,7 +33,7 @@ type Constructor = {
   baseUrl: string;
   secretKey: string;
   loggerService: ILoggerLike;
-};
+} & PodcastIndexClientOptions;
 
 /*
   NOTE!!!
@@ -41,13 +48,56 @@ export class PodcastIndexService {
   declare baseUrl: string;
   declare secretKey: string;
   declare loggerService: ILoggerLike;
+  declare maxRetries: number;
+  declare retryBaseDelayMs: number;
+  declare rateLimitDelay: number;
 
-  constructor({ userAgent, authKey, baseUrl, secretKey, loggerService }: Constructor) {
+  constructor({
+    userAgent,
+    authKey,
+    baseUrl,
+    secretKey,
+    loggerService,
+    maxRetries = PODCAST_INDEX_DEFAULT_MAX_RETRIES,
+    retryBaseDelayMs = PODCAST_INDEX_DEFAULT_RETRY_BASE_DELAY_MS,
+    rateLimitDelay = 0,
+  }: Constructor) {
     this.userAgent = userAgent;
     this.authKey = authKey;
     this.baseUrl = baseUrl;
     this.secretKey = secretKey;
     this.loggerService = loggerService;
+    this.maxRetries = maxRetries;
+    this.retryBaseDelayMs = retryBaseDelayMs;
+    this.rateLimitDelay = rateLimitDelay;
+  }
+
+  private buildAuthHeaders(): {
+    'X-Auth-Key': string;
+    'X-Auth-Date': number;
+    Authorization: string;
+  } {
+    const apiHeaderTime = Math.floor(Date.now() / 1000);
+    const hash = createHash('sha1')
+      .update(this.authKey + this.secretKey + apiHeaderTime)
+      .digest('hex');
+
+    return {
+      'X-Auth-Key': this.authKey,
+      'X-Auth-Date': apiHeaderTime,
+      Authorization: hash,
+    };
+  }
+
+  /**
+   * Short pause before successive paginated Podcast Index requests (`PODCAST_INDEX_API_RATE_LIMIT_DELAY`).
+   * Not used for retry backoff after failures (see `retryBaseDelayMs`).
+   */
+  private paginatedRequestExtraParams(isFirstPage: boolean): { delayMs: number } | undefined {
+    if (isFirstPage || this.rateLimitDelay <= 0) {
+      return undefined;
+    }
+    return { delayMs: this.rateLimitDelay };
   }
 
   // Request handler
@@ -57,36 +107,46 @@ export class PodcastIndexService {
     config?: AxiosRequestConfig,
     extraParams?: { delayMs?: number }
   ) => {
-    const apiHeaderTime = Math.floor(Date.now() / 1000);
-    const hash = createHash('sha1')
-      .update(this.authKey + this.secretKey + apiHeaderTime)
-      .digest('hex');
-
     if (extraParams?.delayMs && extraParams.delayMs > 0) {
       await new Promise((resolve) => setTimeout(resolve, extraParams.delayMs));
     }
 
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const response = await requestWithUserAgent<any>(
-        url,
-        {
-          headers: {
-            'X-Auth-Key': this.authKey,
-            'X-Auth-Date': apiHeaderTime,
-            Authorization: hash,
-          },
-          ...config,
-        },
-        this.userAgent
-      );
+    const maxAttempts = this.maxRetries + 1;
+    let lastError: unknown;
 
-      return response?.data;
-    } catch (error: unknown) {
-      const summary = summarizeUpstreamHttpErrorForLog(error, { requestUrl: url });
-      this.loggerService.logError(`[PodcastIndex] Request failed: ${JSON.stringify(summary)}`);
-      throw error;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const response = await requestWithUserAgent<any>(
+          url,
+          {
+            headers: this.buildAuthHeaders(),
+            ...config,
+          },
+          this.userAgent
+        );
+
+        return response?.data;
+      } catch (error: unknown) {
+        lastError = error;
+        const summary = summarizeUpstreamHttpErrorForLog(error, { requestUrl: url });
+        const canRetry = attempt < maxAttempts - 1 && isRetryablePodcastIndexError(error);
+
+        if (canRetry) {
+          const delayMs = computeExponentialBackoffDelayMs(attempt, this.retryBaseDelayMs);
+          this.loggerService.warn(
+            `[PodcastIndex] Request failed (attempt ${attempt + 1}/${maxAttempts}), retrying in ${delayMs}ms: ${JSON.stringify(summary)}`
+          );
+          await sleep(delayMs);
+          continue;
+        }
+
+        this.loggerService.logError(`[PodcastIndex] Request failed: ${JSON.stringify(summary)}`);
+        throw error;
+      }
     }
+
+    throw lastError;
   };
 
   // Dead Feeds
@@ -303,11 +363,19 @@ export class PodcastIndexService {
     const currentTimeInSeconds = Math.floor(Date.now() / 1000);
     const sinceTimeInSeconds = currentTimeInSeconds - sinceRange;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const fetchData = async (since: number, allData: any[] = []): Promise<any[]> => {
+    /* eslint-disable @typescript-eslint/no-explicit-any -- PI /recent/data feed shape is untyped */
+    const fetchData = async (
+      since: number,
+      allData: any[] = [],
+      isFirstPage = true
+    ): Promise<any[]> => {
       this.loggerService.info(`fetchData since: ${since}, allData.length: ${allData.length}`);
       const url = `${this.baseUrl}/recent/data?max=5000&since=${since}`;
-      const response = await this.podcastIndexAPIRequest(url);
+      const response = await this.podcastIndexAPIRequest(
+        url,
+        undefined,
+        this.paginatedRequestExtraParams(isFirstPage)
+      );
       const updatedFeeds = response.data.feeds;
       const nextSince = response.nextSince;
 
@@ -322,11 +390,12 @@ export class PodcastIndexService {
         }
         const timeLeft = currentTimeInSeconds - nextSince;
         this.loggerService.info(`Time remaining: ${timeLeft} seconds`);
-        return fetchData(nextSince, allData);
+        return fetchData(nextSince, allData, false);
       }
 
       return allData;
     };
+    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     return fetchData(sinceTimeInSeconds);
   };
@@ -459,10 +528,15 @@ export class PodcastIndexService {
 
   valueGetByPodcastIdsRecursively = async (
     accumulatedPodcastIndexIds: number[],
-    startAt = 1
+    startAt = 1,
+    isFirstPage = true
   ): Promise<number[]> => {
     const url = `${this.baseUrl}/podcasts/bytag?podcast-valueTimeSplit=true&max=5000&start_at=${startAt}`;
-    const data = (await this.podcastIndexAPIRequest(url)) as PodcastsByTagResponse;
+    const data = (await this.podcastIndexAPIRequest(
+      url,
+      undefined,
+      this.paginatedRequestExtraParams(isFirstPage)
+    )) as PodcastsByTagResponse;
 
     for (const feed of data.feeds) {
       accumulatedPodcastIndexIds.push(feed.id);
@@ -471,7 +545,8 @@ export class PodcastIndexService {
     if (data.nextStartAt) {
       return await this.valueGetByPodcastIdsRecursively(
         accumulatedPodcastIndexIds,
-        data.nextStartAt
+        data.nextStartAt,
+        false
       );
     }
 
@@ -480,3 +555,10 @@ export class PodcastIndexService {
 }
 
 export { iterateFeedsFromDb, type FeedRow } from './publicFeedsDb.js';
+export { isRetryablePodcastIndexError } from './isRetryablePodcastIndexError.js';
+export {
+  PODCAST_INDEX_DEFAULT_MAX_RETRIES,
+  PODCAST_INDEX_DEFAULT_RETRY_BASE_DELAY_MS,
+  parsePodcastIndexClientOptionsFromEnv,
+  type PodcastIndexClientOptions,
+} from './podcastIndexClientOptions.js';

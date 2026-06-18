@@ -3,11 +3,13 @@ import type { MQFeedMessage } from '@queue/types/mq.js';
 
 import type { PodcastIndexService } from '@podverse/external-services-podcast-index';
 import type { MQQueueConfigFunctionParams } from '@podverse/helpers';
+import type { ILoggerLike } from '@podverse/helpers-backend';
 import { FeedService } from '@podverse/orm';
 import type { ParseRSSFeedAndSaveToDatabaseOptions } from '@podverse/parser';
 
 type MQRSSAddAllRecentlyUpdatedFeedsOptions = MQQueueConfigFunctionParams & {
   sinceRange: number;
+  loggerService: ILoggerLike;
 };
 
 export const mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex = async (
@@ -16,19 +18,28 @@ export const mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex = async (
   options: MQRSSAddAllRecentlyUpdatedFeedsOptions,
   msgOptions: ParseRSSFeedAndSaveToDatabaseOptions
 ) => {
-  const sinceRange = options.sinceRange;
+  const { sinceRange, loggerService } = options;
   const recentlyUpdatedFeeds = await podcastIndexService.recentGetData(sinceRange);
 
   await activeMQArtemisService.initialize();
 
+  let enqueued = 0;
+  let failed = 0;
+  let skipped = 0;
+
   try {
     for (const feed of recentlyUpdatedFeeds) {
-      const feedService = new FeedService();
       const podcast_index_id = feed.feedId;
-      const dbFeed = await feedService.getByPodcastIndexId(podcast_index_id);
-      const shouldAddToQueue = !!dbFeed;
 
-      if (shouldAddToQueue) {
+      try {
+        const feedService = new FeedService();
+        const dbFeed = await feedService.getByPodcastIndexId(podcast_index_id);
+
+        if (!dbFeed) {
+          skipped += 1;
+          continue;
+        }
+
         const message: MQFeedMessage = {
           url: feed.feedUrl,
           podcast_index_id: feed.feedId,
@@ -41,6 +52,13 @@ export const mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex = async (
           priority: options.priority,
           dedupeCacheTimeMS: options.dedupeCacheTimeMS,
         });
+        enqueued += 1;
+      } catch (error) {
+        failed += 1;
+        loggerService.error(
+          `[mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex] podcast_index_id=${podcast_index_id} failed:`,
+          error
+        );
       }
     }
   } finally {
@@ -52,4 +70,8 @@ export const mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex = async (
       // swallow
     }
   }
+
+  loggerService.info(
+    `[mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex] Done. Enqueued: ${enqueued}, failed: ${failed}, skipped (not in db): ${skipped}, total feeds: ${recentlyUpdatedFeeds.length}.`
+  );
 };
