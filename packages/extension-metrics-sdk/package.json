@@ -1,6 +1,6 @@
 {
   "name": "@podverse/extension-metrics-sdk",
-  "version": "5.4.38",
+  "version": "5.4.39",
   "description": "OTEL metrics client for Podverse extension sidecars (OTLP to sidecar; not a general extension umbrella)",
   "type": "module",
   "main": "dist/index.js",
