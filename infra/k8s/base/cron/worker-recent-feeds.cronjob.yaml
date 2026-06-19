@@ -4,11 +4,15 @@ metadata:
   name: worker-recent-feeds
 spec:
   schedule: "*/5 * * * *"
+  # Forbid: skip a tick while the prior Job is Active. activeDeadlineSeconds caps hung runs so the
+  # schedule recovers; prompts 2–3 target routine completion under 5 minutes (Replace not needed).
   concurrencyPolicy: Forbid
-  successfulJobsHistoryLimit: 5
+  successfulJobsHistoryLimit: 30
   failedJobsHistoryLimit: 5
   jobTemplate:
     spec:
+      # Terminate stuck Jobs so Forbid does not block the 5-minute schedule for hours.
+      activeDeadlineSeconds: 600
       # Single attempt per cron tick: the cron schedule is the retry
       # mechanism. In-place container restarts (restartPolicy: OnFailure
       # + default backoffLimit: 6) turn a transient upstream 5xx into

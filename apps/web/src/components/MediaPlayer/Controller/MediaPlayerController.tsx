@@ -15,7 +15,8 @@ import { handleMediaPlayerWindowKeyDown } from './mediaPlayerWindowKeyDown';
 
 export const MediaPlayerController: React.FC = () => {
   const { skipMainAppLayoutMutations } = useEmbedPlaybackGuardrails();
-  const { mpAddByRSS, mpChannel, mpDuration, mpIsPlaying, mpItem, setMPIsPlaying } = useMediaPlayer();
+  const { mpAddByRSS, mpChannel, mpDuration, mpIsPlaying, mpItem, setMPIsPlaying } =
+    useMediaPlayer();
   const { seek: bridgeSeek } = useMediaPlayerControls();
   const { mpCurrentTime, setMPCurrentTime } = useMediaPlayerCurrentTime();
 
