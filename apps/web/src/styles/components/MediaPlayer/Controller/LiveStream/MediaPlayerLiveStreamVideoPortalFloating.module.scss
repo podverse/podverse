@@ -1,15 +1,30 @@
+@use '../../../../variables/breakpoints';
+
 .floatingVideoPortal {
   position: fixed;
-  bottom: calc(var(--media-player-height) + 10px);
-  right: 10px;
+  // #media-player border-top is 1px (MediaPlayer.module.scss); sit above that line.
+  bottom: calc(var(--media-player-height-mobile) + 1px);
+  right: 0;
   width: 400px;
   height: 225px;
   z-index: 1000;
   background: var(--background-color-secondary);
-  border-radius: var(--border-radius);
   overflow: hidden;
+  cursor: pointer;
+}
+
+@media (min-width: breakpoints.$breakpoint-lg-min) {
+  .floatingVideoPortal {
+    bottom: calc(var(--media-player-height) + 1px);
+  }
 }
 
 .floatingVideoPortal.hasMarquee {
-  bottom: calc(var(--media-player-height) + var(--media-player-height-top-section));
+  bottom: calc(var(--media-player-height-mobile) + var(--media-player-height-top-section) + 1px);
+}
+
+@media (min-width: breakpoints.$breakpoint-lg-min) {
+  .floatingVideoPortal.hasMarquee {
+    bottom: calc(var(--media-player-height) + var(--media-player-height-top-section) + 1px);
+  }
 }

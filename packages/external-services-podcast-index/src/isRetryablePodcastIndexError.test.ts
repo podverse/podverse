@@ -53,28 +53,19 @@ describe('isPodcastIndexClientAbortError', () => {
 describe('shouldRetryPodcastIndexRequest', () => {
   it('does not retry client abort errors when abort was requested', () => {
     expect(
-      shouldRetryPodcastIndexRequest(
-        { code: 'ECONNABORTED' },
-        { clientAbortRequested: true }
-      )
+      shouldRetryPodcastIndexRequest({ code: 'ECONNABORTED' }, { clientAbortRequested: true })
     ).toBe(false);
   });
 
   it('still retries ECONNABORTED when no client abort was requested', () => {
     expect(
-      shouldRetryPodcastIndexRequest(
-        { code: 'ECONNABORTED' },
-        { clientAbortRequested: false }
-      )
+      shouldRetryPodcastIndexRequest({ code: 'ECONNABORTED' }, { clientAbortRequested: false })
     ).toBe(true);
   });
 
   it('retries retryable errors when abort was not requested', () => {
     expect(
-      shouldRetryPodcastIndexRequest(
-        { response: { status: 500 } },
-        { clientAbortRequested: false }
-      )
+      shouldRetryPodcastIndexRequest({ response: { status: 500 } }, { clientAbortRequested: false })
     ).toBe(true);
   });
 });

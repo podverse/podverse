@@ -6,6 +6,7 @@ import ReactDOM from 'react-dom';
 import { getSelectedLabeledItemEnclosureAndSource } from '@podverse/helpers';
 
 import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
+import { useFloatingVideoPortalClick } from '../../../../hooks/useFloatingVideoPortalClick';
 import { cssClass } from '../../../../utils/cssModule';
 
 import styles from '../../../../styles/components/MediaPlayer/Controller/LiveStream/MediaPlayerLiveStreamVideoPortalFloating.module.scss';
@@ -17,6 +18,7 @@ export const MediaPlayerLivestreamVideoPortalFloating: React.FC<{ children: Reac
   useEffect(() => setMounted(true), []);
 
   const { mpItemLabeledItemEnclosures, mpEnclosureSelectedParams } = useMediaPlayer();
+  const { handlePortalClick } = useFloatingVideoPortalClick();
 
   if (!mounted || typeof document === 'undefined') {
     return null;
@@ -36,7 +38,12 @@ export const MediaPlayerLivestreamVideoPortalFloating: React.FC<{ children: Reac
   }
 
   return ReactDOM.createPortal(
-    <div className={cssClass(styles, 'floatingVideoPortal')} style={style}>
+    <div
+      className={cssClass(styles, 'floatingVideoPortal')}
+      data-testid="floating-video-portal-livestream"
+      style={style}
+      onClick={handlePortalClick}
+    >
       {children}
     </div>,
     document.body
