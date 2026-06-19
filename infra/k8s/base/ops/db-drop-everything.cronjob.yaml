@@ -9,6 +9,8 @@ spec:
   schedule: "* * * * *"
   suspend: true # <--- PREVENTS AUTOMATIC EXECUTION
   concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 5
   jobTemplate:
     spec:
       ttlSecondsAfterFinished: 60

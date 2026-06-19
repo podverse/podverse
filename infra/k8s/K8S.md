@@ -150,6 +150,13 @@ kustomize build --load-restrictor LoadRestrictionsNone infra/k8s/alpha/workers/
 
 Other overlays render the same way (e.g., `infra/k8s/alpha/api`, `infra/k8s/alpha/web`, `infra/k8s/alpha/db`). Add `| kubectl apply -f - --dry-run=client` to validate locally before pushing to Git.
 
+## CronJobs and job history
+
+Scheduled workers are under `base/cron/`; suspended manual ops jobs are under `base/ops/*.cronjob.yaml`.
+All base CronJobs set `successfulJobsHistoryLimit: 5` and `failedJobsHistoryLimit: 5` so Argo CD and
+`kubectl get jobs` show at most five recent successful and five recent failed runs per CronJob. Add the
+same pair when introducing a new CronJob (see `.cursor/skills/k8s/SKILL.md`).
+
 ## ArgoCD bootstrap (App of Apps)
 
 - Update `repoURL` and `targetRevision` in [infra/k8s/alpha-application.yaml](alpha-application.yaml) if deploying from a fork or different branch.

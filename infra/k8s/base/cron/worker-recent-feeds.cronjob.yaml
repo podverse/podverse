@@ -5,7 +5,8 @@ metadata:
 spec:
   schedule: "*/5 * * * *"
   concurrencyPolicy: Forbid
-  failedJobsHistoryLimit: 10
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 5
   jobTemplate:
     spec:
       # Single attempt per cron tick: the cron schedule is the retry
