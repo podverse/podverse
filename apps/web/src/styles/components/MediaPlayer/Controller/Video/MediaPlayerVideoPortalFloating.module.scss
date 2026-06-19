@@ -6,6 +6,7 @@
   bottom: calc(var(--media-player-height-mobile) + 1px);
   right: 0;
   width: 400px;
+  max-width: 100%;
   z-index: 1000;
   background: transparent;
   overflow: hidden;
@@ -20,6 +21,31 @@
   cursor: grabbing;
   touch-action: none;
   user-select: none;
+}
+
+.floatingVideoPortal.isResizing {
+  touch-action: none;
+  user-select: none;
+}
+
+.resizeHandle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+  z-index: 3;
+}
+
+.floatingVideoPortal:hover .resizeHandle {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+@media (pointer: coarse) {
+  .resizeHandle {
+    display: none;
+  }
 }
 
 .floatingVideoPortal video {

@@ -20,7 +20,7 @@ export const MediaPlayerLivestreamVideoPortalFloating: React.FC<{ children: Reac
   useEffect(() => setMounted(true), []);
 
   const { mpItemLabeledItemEnclosures, mpEnclosureSelectedParams } = useMediaPlayer();
-  const { containerStyle, dragHandleProps, isDragging, consumeClickAfterDrag } =
+  const { containerStyle, dragHandleProps, resizeHandleProps, isDragging, isResizing, resizeEnabled, consumeClickAfterDrag } =
     useFloatingVideoTransform(portalRef);
   const { handlePortalClick } = useFloatingVideoPortalClick({ consumeClickAfterDrag });
 
@@ -44,12 +44,21 @@ export const MediaPlayerLivestreamVideoPortalFloating: React.FC<{ children: Reac
   return ReactDOM.createPortal(
     <div
       ref={portalRef}
-      className={`${cssClass(styles, 'floatingVideoPortal')}${isDragging ? ` ${cssClass(styles, 'isDragging')}` : ''}`}
+      className={`${cssClass(styles, 'floatingVideoPortal')}${isDragging ? ` ${cssClass(styles, 'isDragging')}` : ''}${isResizing ? ` ${cssClass(styles, 'isResizing')}` : ''}`}
       data-testid="floating-video-portal-livestream"
       style={{ ...style, ...containerStyle }}
       onClick={handlePortalClick}
       {...dragHandleProps}
     >
+      {resizeEnabled && (
+        <div
+          className={cssClass(styles, 'resizeHandle')}
+          data-floating-video-ignore-drag
+          data-testid="floating-video-resize-handle"
+          {...resizeHandleProps}
+          aria-hidden="true"
+        />
+      )}
       {children}
     </div>,
     document.body

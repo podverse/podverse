@@ -16,6 +16,12 @@ import {
   shouldFloatingVideoPortalIgnoreDrag,
   type FloatingVideoPosition,
 } from '../utils/mediaPlayer/floatingVideoPortalDrag';
+import {
+  computeResizeFromBottomRightAnchor,
+  fitFloatingVideoToViewport,
+  resolveFloatingVideoAspectRatio,
+  type FloatingVideoSize,
+} from '../utils/mediaPlayer/floatingVideoPortalResize';
 
 type ActiveDragState = {
   pointerId: number;
@@ -31,38 +37,110 @@ type PendingDragState = {
   offsetY: number;
 };
 
+type ActiveResizeState = {
+  pointerId: number;
+  anchorRight: number;
+  anchorBottom: number;
+  aspectRatio: number;
+};
+
 export function useFloatingVideoTransform(containerRef: RefObject<HTMLElement | null>) {
   const [position, setPosition] = useState<FloatingVideoPosition | null>(null);
+  const [size, setSize] = useState<FloatingVideoSize | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
   const [dragEnabled, setDragEnabled] = useState(false);
+  const [resizeEnabled, setResizeEnabled] = useState(false);
   const activeDragRef = useRef<ActiveDragState | null>(null);
   const pendingDragRef = useRef<PendingDragState | null>(null);
+  const activeResizeRef = useRef<ActiveResizeState | null>(null);
   const didDragRef = useRef(false);
+  const didResizeRef = useRef(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
       return;
     }
     const mediaQuery = window.matchMedia('(pointer: fine)');
-    const updateDragEnabled = () => {
-      setDragEnabled(mediaQuery.matches);
+    const updateFinePointerEnabled = () => {
+      const enabled = mediaQuery.matches;
+      setDragEnabled(enabled);
+      setResizeEnabled(enabled);
     };
-    updateDragEnabled();
-    mediaQuery.addEventListener('change', updateDragEnabled);
+    updateFinePointerEnabled();
+    mediaQuery.addEventListener('change', updateFinePointerEnabled);
     return () => {
-      mediaQuery.removeEventListener('change', updateDragEnabled);
+      mediaQuery.removeEventListener('change', updateFinePointerEnabled);
     };
   }, []);
 
-  const containerStyle: CSSProperties =
-    position !== null
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    if (size === null && position === null) {
+      return;
+    }
+
+    const refitToViewport = () => {
+      const container = containerRef.current;
+      if (container === null) {
+        return;
+      }
+      const aspectRatio = resolveFloatingVideoAspectRatio(container);
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      if (size !== null && position !== null) {
+        const fitted = fitFloatingVideoToViewport(
+          size,
+          position,
+          aspectRatio,
+          viewportWidth,
+          viewportHeight
+        );
+        setSize(fitted.size);
+        setPosition(fitted.position);
+        return;
+      }
+
+      if (position !== null) {
+        const rect = container.getBoundingClientRect();
+        setPosition(
+          clampFloatingVideoPosition(
+            position.left,
+            position.top,
+            rect.width,
+            rect.height,
+            viewportWidth,
+            viewportHeight
+          )
+        );
+      }
+    };
+
+    window.addEventListener('resize', refitToViewport);
+    return () => {
+      window.removeEventListener('resize', refitToViewport);
+    };
+  }, [size, position, containerRef]);
+
+  const containerStyle: CSSProperties = {
+    ...(position !== null
       ? {
           left: position.left,
           top: position.top,
           right: 'auto',
           bottom: 'auto',
         }
-      : {};
+      : {}),
+    ...(size !== null
+      ? {
+          width: size.width,
+          height: size.height,
+        }
+      : {}),
+  };
 
   const updateDragPosition = useCallback(
     (event: ReactPointerEvent<HTMLElement>, dragState: ActiveDragState) => {
@@ -118,17 +196,20 @@ export function useFloatingVideoTransform(containerRef: RefObject<HTMLElement | 
     }
   }, []);
 
-  const endDrag = useCallback((event: ReactPointerEvent<HTMLElement>) => {
-    const activeDrag = activeDragRef.current;
-    if (activeDrag !== null && event.pointerId === activeDrag.pointerId) {
-      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-        event.currentTarget.releasePointerCapture(event.pointerId);
+  const endDrag = useCallback(
+    (event: ReactPointerEvent<HTMLElement>) => {
+      const activeDrag = activeDragRef.current;
+      if (activeDrag !== null && event.pointerId === activeDrag.pointerId) {
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+          event.currentTarget.releasePointerCapture(event.pointerId);
+        }
+        activeDragRef.current = null;
+        setIsDragging(false);
       }
-      activeDragRef.current = null;
-      setIsDragging(false);
-    }
-    clearPendingDrag(event);
-  }, [clearPendingDrag]);
+      clearPendingDrag(event);
+    },
+    [clearPendingDrag]
+  );
 
   const onPointerMove = useCallback(
     (event: ReactPointerEvent<HTMLElement>) => {
@@ -182,9 +263,78 @@ export function useFloatingVideoTransform(containerRef: RefObject<HTMLElement | 
     [containerRef, dragEnabled]
   );
 
+  const updateResizeFromPointer = useCallback(
+    (event: ReactPointerEvent<HTMLElement>, resizeState: ActiveResizeState) => {
+      const result = computeResizeFromBottomRightAnchor(
+        resizeState.anchorRight,
+        resizeState.anchorBottom,
+        event.clientX,
+        resizeState.aspectRatio,
+        window.innerWidth,
+        window.innerHeight
+      );
+      setSize(result.size);
+      setPosition(result.position);
+    },
+    []
+  );
+
+  const endResize = useCallback((event: ReactPointerEvent<HTMLElement>) => {
+    const activeResize = activeResizeRef.current;
+    if (activeResize !== null && event.pointerId === activeResize.pointerId) {
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+      activeResizeRef.current = null;
+      setIsResizing(false);
+    }
+  }, []);
+
+  const onResizePointerMove = useCallback(
+    (event: ReactPointerEvent<HTMLElement>) => {
+      const activeResize = activeResizeRef.current;
+      if (activeResize === null || event.pointerId !== activeResize.pointerId) {
+        return;
+      }
+      updateResizeFromPointer(event, activeResize);
+    },
+    [updateResizeFromPointer]
+  );
+
+  const onResizePointerDown = useCallback(
+    (event: ReactPointerEvent<HTMLElement>) => {
+      if (!resizeEnabled || event.pointerType === 'touch' || event.button !== 0) {
+        return;
+      }
+      event.stopPropagation();
+      event.preventDefault();
+      const container = containerRef.current;
+      if (container === null) {
+        return;
+      }
+      const rect = container.getBoundingClientRect();
+      const aspectRatio = resolveFloatingVideoAspectRatio(container);
+      activeResizeRef.current = {
+        pointerId: event.pointerId,
+        anchorRight: rect.right,
+        anchorBottom: rect.bottom,
+        aspectRatio,
+      };
+      event.currentTarget.setPointerCapture(event.pointerId);
+      setIsResizing(true);
+      didResizeRef.current = true;
+      updateResizeFromPointer(event, activeResizeRef.current);
+    },
+    [containerRef, resizeEnabled, updateResizeFromPointer]
+  );
+
   const consumeClickAfterDrag = useCallback((): boolean => {
     if (didDragRef.current) {
       didDragRef.current = false;
+      return true;
+    }
+    if (didResizeRef.current) {
+      didResizeRef.current = false;
       return true;
     }
     return false;
@@ -199,11 +349,23 @@ export function useFloatingVideoTransform(containerRef: RefObject<HTMLElement | 
       }
     : {};
 
+  const resizeHandleProps = resizeEnabled
+    ? {
+        onPointerDown: onResizePointerDown,
+        onPointerMove: onResizePointerMove,
+        onPointerUp: endResize,
+        onPointerCancel: endResize,
+      }
+    : {};
+
   return {
     containerStyle,
     dragHandleProps,
+    resizeHandleProps,
     isDragging,
+    isResizing,
     dragEnabled,
+    resizeEnabled,
     consumeClickAfterDrag,
   };
 }

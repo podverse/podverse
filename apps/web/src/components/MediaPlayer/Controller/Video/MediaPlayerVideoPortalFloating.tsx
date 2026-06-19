@@ -25,8 +25,15 @@ export const MediaPlayerVideoPortalFloating: React.FC<MediaPlayerVideoPortalFloa
   useEffect(() => setMounted(true), []);
 
   const tMisc = useTranslations('misc');
-  const { containerStyle, dragHandleProps, isDragging, consumeClickAfterDrag } =
-    useFloatingVideoTransform(portalRef);
+  const {
+    containerStyle,
+    dragHandleProps,
+    resizeHandleProps,
+    isDragging,
+    isResizing,
+    resizeEnabled,
+    consumeClickAfterDrag,
+  } = useFloatingVideoTransform(portalRef);
   const { handlePortalClick } = useFloatingVideoPortalClick({ consumeClickAfterDrag });
 
   if (!mounted || typeof document === 'undefined') {
@@ -36,7 +43,7 @@ export const MediaPlayerVideoPortalFloating: React.FC<MediaPlayerVideoPortalFloa
   return ReactDOM.createPortal(
     <div
       ref={portalRef}
-      className={`${cssClass(styles, 'floatingVideoPortal')}${isDragging ? ` ${cssClass(styles, 'isDragging')}` : ''}`}
+      className={`${cssClass(styles, 'floatingVideoPortal')}${isDragging ? ` ${cssClass(styles, 'isDragging')}` : ''}${isResizing ? ` ${cssClass(styles, 'isResizing')}` : ''}`}
       data-testid="floating-video-portal"
       style={containerStyle}
       onClick={handlePortalClick}
@@ -53,6 +60,15 @@ export const MediaPlayerVideoPortalFloating: React.FC<MediaPlayerVideoPortalFloa
       >
         <FaXmark />
       </button>
+      {resizeEnabled && (
+        <div
+          className={cssClass(styles, 'resizeHandle')}
+          data-floating-video-ignore-drag
+          data-testid="floating-video-resize-handle"
+          {...resizeHandleProps}
+          aria-hidden="true"
+        />
+      )}
       {children}
     </div>,
     document.body
