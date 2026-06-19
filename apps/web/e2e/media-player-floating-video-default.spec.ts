@@ -35,7 +35,6 @@ function floatingVideoPortalLocator(page: Page): Locator {
  */
 test.describe('Floating video default appearance', () => {
   test.beforeEach(async ({ page }) => {
-    test.setTimeout(30_000);
     await page.setViewportSize(DESKTOP_VIEWPORT);
     await loginSeedUser(page);
   });
@@ -50,7 +49,7 @@ test.describe('Floating video default appearance', () => {
     await page.getByRole('button', { name: 'Play' }).first().click();
 
     const portal = floatingVideoPortalLocator(page);
-    await expect(portal).toBeVisible({ timeout: 15_000 });
+    await expect(portal).toBeVisible();
     await expect(portal.locator('video')).toBeVisible();
 
     const computed = await portal.evaluate((el) => {

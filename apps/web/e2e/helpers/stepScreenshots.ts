@@ -100,7 +100,14 @@ export const captureVerifiedElement = async (
   const shortFileName = `step-${String(stepIndex).padStart(3, '0')}.png`;
   const screenshotPath = testInfo.outputPath(shortFileName);
   await new Promise((resolve) => setTimeout(resolve, 5));
-  await element.screenshot({ path: screenshotPath });
+  // The tight element screenshot is best-effort: a churn-prone portal (e.g. a remounting
+  // floating video) can be detached/unstable when the shot is taken. Fall back to a stable
+  // full-page screenshot so a decorative report image never fails an otherwise-passing test.
+  try {
+    await element.screenshot({ path: screenshotPath, timeout: 3_000 });
+  } catch {
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+  }
 
   await attachStepArtifacts(page, testInfo, screenshotPath, stepIndex, label);
 };

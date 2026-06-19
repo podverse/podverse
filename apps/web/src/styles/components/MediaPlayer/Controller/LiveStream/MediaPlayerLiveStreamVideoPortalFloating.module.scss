@@ -8,9 +8,34 @@
   width: 400px;
   height: 225px;
   z-index: 1000;
-  background: var(--background-color-secondary);
+  background: transparent;
   overflow: hidden;
   cursor: pointer;
+
+  @media (pointer: fine) {
+    cursor: grab;
+  }
+}
+
+.floatingVideoPortal.isDragging {
+  cursor: grabbing;
+  touch-action: none;
+  user-select: none;
+}
+
+.floatingVideoPortal video,
+.floatingVideoPortal :global(.video-js) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+  object-fit: contain;
+}
+
+@media (pointer: coarse) {
+  .floatingVideoPortal {
+    touch-action: auto;
+  }
 }
 
 @media (min-width: breakpoints.$breakpoint-lg-min) {
