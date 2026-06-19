@@ -11,6 +11,23 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => mockSearchParams,
 }));
 
+/** jsdom has no full navigation; preventDefault mirrors Next.js client Link behavior. */
+function dispatchAnchorClick(anchor: HTMLAnchorElement): void {
+  anchor.addEventListener(
+    'click',
+    (event) => {
+      event.preventDefault();
+    },
+    { once: true }
+  );
+  anchor.dispatchEvent(
+    new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+    })
+  );
+}
+
 describe('useRouteNavigationLoading', () => {
   beforeEach(() => {
     mockPathname = '/podcasts';
@@ -30,12 +47,7 @@ describe('useRouteNavigationLoading', () => {
     document.body.append(anchor);
 
     act(() => {
-      anchor.dispatchEvent(
-        new MouseEvent('click', {
-          bubbles: true,
-          cancelable: true,
-        })
-      );
+      dispatchAnchorClick(anchor);
     });
 
     expect(result.current).toBe(false);
@@ -55,12 +67,7 @@ describe('useRouteNavigationLoading', () => {
     document.body.append(anchor);
 
     act(() => {
-      anchor.dispatchEvent(
-        new MouseEvent('click', {
-          bubbles: true,
-          cancelable: true,
-        })
-      );
+      dispatchAnchorClick(anchor);
     });
 
     await act(async () => {
@@ -147,12 +154,7 @@ describe('useRouteNavigationLoading', () => {
     document.body.append(anchor);
 
     act(() => {
-      anchor.dispatchEvent(
-        new MouseEvent('click', {
-          bubbles: true,
-          cancelable: true,
-        })
-      );
+      dispatchAnchorClick(anchor);
     });
 
     await act(async () => {

@@ -1,0 +1,6 @@
+// Programmatic focus sink for media-player Space shortcut (tabIndex=-1); never show focus chrome.
+.mainOuterWrapperFocusTarget:focus,
+.mainOuterWrapperFocusTarget:focus-visible {
+  outline: none;
+  box-shadow: none;
+}

@@ -8,6 +8,7 @@ describe('handleMediaPlayerWindowKeyDown', () => {
     mpChannel: { id: 'ch' },
     mpCurrentTime: 30,
     mpDuration: 100,
+    isLiveItem: false,
   };
 
   it('Space toggles play/pause when channel is loaded and target is not interactive', () => {
@@ -128,6 +129,42 @@ describe('handleMediaPlayerWindowKeyDown', () => {
     expect(togglePlayPause).not.toHaveBeenCalled();
   });
 
+  it('Space does not toggle when focus is on a slider', () => {
+    const togglePlayPause = vi.fn();
+    const slider = document.createElement('div');
+    slider.setAttribute('role', 'slider');
+
+    handleMediaPlayerWindowKeyDown(
+      { code: 'Space', key: ' ', preventDefault: vi.fn(), repeat: false },
+      slider,
+      baseState,
+      vi.fn(),
+      togglePlayPause
+    );
+
+    expect(togglePlayPause).not.toHaveBeenCalled();
+  });
+
+  it('Space does not toggle when focus is inside a dialog on non-button content', () => {
+    const togglePlayPause = vi.fn();
+    const dialog = document.createElement('div');
+    dialog.setAttribute('role', 'dialog');
+    const content = document.createElement('div');
+    dialog.append(content);
+    document.body.append(dialog);
+
+    handleMediaPlayerWindowKeyDown(
+      { code: 'Space', key: ' ', preventDefault: vi.fn(), repeat: false },
+      content,
+      baseState,
+      vi.fn(),
+      togglePlayPause
+    );
+
+    expect(togglePlayPause).not.toHaveBeenCalled();
+    dialog.remove();
+  });
+
   it('ArrowLeft seeks and ArrowRight seeks', () => {
     const seek = vi.fn();
     const el = document.createElement('div');
@@ -149,5 +186,28 @@ describe('handleMediaPlayerWindowKeyDown', () => {
       vi.fn()
     );
     expect(seek).toHaveBeenCalledWith(40);
+  });
+
+  it('ArrowLeft and ArrowRight do not seek when a live item is active', () => {
+    const seek = vi.fn();
+    const el = document.createElement('div');
+    const liveState = { ...baseState, isLiveItem: true };
+
+    handleMediaPlayerWindowKeyDown(
+      { code: 'ArrowLeft', key: 'ArrowLeft', preventDefault: vi.fn(), repeat: false },
+      el,
+      liveState,
+      seek,
+      vi.fn()
+    );
+    handleMediaPlayerWindowKeyDown(
+      { code: 'ArrowRight', key: 'ArrowRight', preventDefault: vi.fn(), repeat: false },
+      el,
+      liveState,
+      seek,
+      vi.fn()
+    );
+
+    expect(seek).not.toHaveBeenCalled();
   });
 });

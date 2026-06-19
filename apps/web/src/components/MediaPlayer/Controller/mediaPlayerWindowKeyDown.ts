@@ -3,6 +3,7 @@ export type MediaPlayerKeyDownState = {
   mpChannel: unknown | null;
   mpCurrentTime: number;
   mpDuration: number;
+  isLiveItem: boolean;
 };
 
 /**
@@ -16,12 +17,15 @@ export function handleMediaPlayerWindowKeyDown(
   seek: (time: number) => void,
   togglePlayPause: () => void
 ): void {
-  if (target.closest('input, textarea, select, [contenteditable="true"]')) {
+  if (target.closest('input, textarea, select, [contenteditable], [contenteditable="true"]')) {
     return;
   }
 
   if (e.key === 'ArrowLeft') {
     if (e.repeat) {
+      return;
+    }
+    if (state.isLiveItem) {
       return;
     }
     const newTime = Math.max(0, state.mpCurrentTime - 10);
@@ -32,6 +36,9 @@ export function handleMediaPlayerWindowKeyDown(
 
   if (e.key === 'ArrowRight') {
     if (e.repeat) {
+      return;
+    }
+    if (state.isLiveItem) {
       return;
     }
     const newTime = Math.min(state.mpDuration, state.mpCurrentTime + 10);
@@ -49,6 +56,9 @@ export function handleMediaPlayerWindowKeyDown(
         '[role="menuitem"], [role="menu"], [role="menubar"], [role="listbox"], [role="option"]'
       )
     ) {
+      return;
+    }
+    if (target.closest('[role="slider"], [role="dialog"]')) {
       return;
     }
     if (!state.mpChannel && !state.mpAddByRSS) {

@@ -27,6 +27,16 @@ describe('MainPageScaffold', () => {
     expect(document.getElementById('mainOuterWrapper')).toBeNull();
   });
 
+  it('forwards outerTabIndex to the outer scroll container', () => {
+    render(
+      <MainPageScaffold outerTabIndex={-1} footer={<footer>f</footer>}>
+        <span>body</span>
+      </MainPageScaffold>
+    );
+    const outer = document.getElementById('mainOuterWrapper');
+    expect(outer?.getAttribute('tabindex')).toBe('-1');
+  });
+
   it('renders children inside main when children are present', () => {
     render(
       <MainPageScaffold footer={<footer data-testid="ft">foot</footer>}>

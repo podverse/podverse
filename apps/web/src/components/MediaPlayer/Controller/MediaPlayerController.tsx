@@ -15,8 +15,8 @@ import { handleMediaPlayerWindowKeyDown } from './mediaPlayerWindowKeyDown';
 
 export const MediaPlayerController: React.FC = () => {
   const { skipMainAppLayoutMutations } = useEmbedPlaybackGuardrails();
-  const { mpAddByRSS, mpChannel, mpDuration } = useMediaPlayer();
-  const { seek: bridgeSeek, togglePlay } = useMediaPlayerControls();
+  const { mpAddByRSS, mpChannel, mpDuration, mpIsPlaying, mpItem, setMPIsPlaying } = useMediaPlayer();
+  const { seek: bridgeSeek } = useMediaPlayerControls();
   const { mpCurrentTime, setMPCurrentTime } = useMediaPlayerCurrentTime();
 
   useMediaPlayerControllerQueueHeadLoading();
@@ -49,6 +49,16 @@ export const MediaPlayerController: React.FC = () => {
     mpAddByRSSRef.current = mpAddByRSS;
   }, [mpAddByRSS]);
 
+  const mpItemRef = useRef(mpItem);
+  useEffect(() => {
+    mpItemRef.current = mpItem;
+  }, [mpItem]);
+
+  const mpIsPlayingRef = useRef(mpIsPlaying);
+  useEffect(() => {
+    mpIsPlayingRef.current = mpIsPlaying;
+  }, [mpIsPlaying]);
+
   useEffect(() => {
     const listener = (e: KeyboardEvent) => {
       handleMediaPlayerWindowKeyDown(
@@ -59,17 +69,18 @@ export const MediaPlayerController: React.FC = () => {
           mpChannel: mpChannelRef.current,
           mpCurrentTime: mpCurrentTimeRef.current,
           mpDuration: mpDurationRef.current,
+          isLiveItem: !!mpItemRef.current?.live_item,
         },
         seekWithUiSync,
         () => {
-          void togglePlay();
+          setMPIsPlaying(!mpIsPlayingRef.current);
         }
       );
     };
 
     window.addEventListener('keydown', listener);
     return () => window.removeEventListener('keydown', listener);
-  }, [seekWithUiSync, togglePlay]);
+  }, [seekWithUiSync, setMPIsPlaying]);
 
   useEffect(() => {
     updateLayoutForMediaPlayer(!!mpChannel || !!mpAddByRSS, { skipMainAppLayoutMutations });
