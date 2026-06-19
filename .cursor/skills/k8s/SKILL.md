@@ -1,7 +1,7 @@
 ---
 name: podverse-k8s-patterns
 description: Common patterns for Kubernetes manifests in infra/k8s. Use when editing or adding K8s manifests, changing deployment config, adding env vars to ConfigMaps, or working with ArgoCD/Kustomize/SOPS.
-version: 1.0.5
+version: 1.0.6
 ---
 
 # Podverse K8s Development Patterns
@@ -212,6 +212,27 @@ Child applications in `alpha/apps/<component>.yaml` define:
 - `spec.source.path`: path to overlay (e.g., `k8s/alpha/api`)
 - `spec.destination.namespace`: `podverse-alpha`
 - `spec.syncPolicy.automated`: `prune: true`, `selfHeal: true`
+
+## CronJobs
+
+Scheduled worker tasks live in `base/cron/`; manual ops jobs (migrations, verify, MQ enqueue) live in
+`base/ops/*.cronjob.yaml`. Both are synced as separate Argo CD apps (`cron`, `ops`).
+
+### Job history limits (Argo CD UI)
+
+Every `CronJob` in `base/cron/` and `base/ops/` sets:
+
+```yaml
+successfulJobsHistoryLimit: 5
+failedJobsHistoryLimit: 5
+```
+
+Kubernetes keeps at most five completed Jobs per CronJob for each outcome (success and failure are
+counted separately). Older Job objects are pruned automatically. This caps clutter in the Argo CD
+resource tree and `kubectl get jobs` without hiding recent failures. API defaults are 3 (success) and
+1 (failure); do not raise these without a documented reason.
+
+When adding a new CronJob, include both fields immediately after `concurrencyPolicy`.
 
 ## Secrets and SOPS
 

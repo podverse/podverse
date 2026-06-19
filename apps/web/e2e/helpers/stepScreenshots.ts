@@ -38,6 +38,32 @@ const buildFullDescription = (testInfo: TestInfo, label: string): string => {
     .join(' – ');
 };
 
+const attachStepArtifacts = async (
+  page: Page,
+  testInfo: TestInfo,
+  screenshotPath: string,
+  stepIndex: number,
+  label: string
+): Promise<void> => {
+  const fullLabel = buildFullDescription(testInfo, label);
+  const shortCaption = truncate(label, MAX_IMAGE_ATTACH_NAME_LENGTH);
+  const imageAttachName = shortCaption ? `Step ${stepIndex}: ${shortCaption}` : `Step ${stepIndex}`;
+
+  await testInfo.attach(imageAttachName, {
+    path: screenshotPath,
+    contentType: 'image/png',
+  });
+  await testInfo.attach('Step description', {
+    body: fullLabel,
+    contentType: 'text/plain',
+  });
+  const url = page.url();
+  await testInfo.attach('Step URL', {
+    body: url,
+    contentType: 'text/plain',
+  });
+};
+
 const captureStep = async (
   page: Page,
   testInfo: TestInfo,
@@ -58,23 +84,32 @@ const captureStep = async (
   await new Promise((resolve) => setTimeout(resolve, 5));
   await page.screenshot({ path: screenshotPath, fullPage: true });
 
-  const fullLabel = buildFullDescription(testInfo, label);
-  const shortCaption = truncate(label, MAX_IMAGE_ATTACH_NAME_LENGTH);
-  const imageAttachName = shortCaption ? `Step ${stepIndex}: ${shortCaption}` : `Step ${stepIndex}`;
+  await attachStepArtifacts(page, testInfo, screenshotPath, stepIndex, label);
+};
 
-  await testInfo.attach(imageAttachName, {
-    path: screenshotPath,
-    contentType: 'image/png',
-  });
-  await testInfo.attach('Step description', {
-    body: fullLabel,
-    contentType: 'text/plain',
-  });
-  const url = page.url();
-  await testInfo.attach('Step URL', {
-    body: url,
-    contentType: 'text/plain',
-  });
+export const captureVerifiedElement = async (
+  page: Page,
+  testInfo: TestInfo,
+  element: Locator,
+  label: string
+): Promise<void> => {
+  if (!isStepScreenshotsEnabled()) {
+    return;
+  }
+  const stepIndex = nextStepIndex(testInfo);
+  const shortFileName = `step-${String(stepIndex).padStart(3, '0')}.png`;
+  const screenshotPath = testInfo.outputPath(shortFileName);
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  // The tight element screenshot is best-effort: a churn-prone portal (e.g. a remounting
+  // floating video) can be detached/unstable when the shot is taken. Fall back to a stable
+  // full-page screenshot so a decorative report image never fails an otherwise-passing test.
+  try {
+    await element.screenshot({ path: screenshotPath, timeout: 3_000 });
+  } catch {
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+  }
+
+  await attachStepArtifacts(page, testInfo, screenshotPath, stepIndex, label);
 };
 
 export const capturePageLoad = async (

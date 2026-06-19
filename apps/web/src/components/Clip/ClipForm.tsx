@@ -136,32 +136,34 @@ export const ClipForm: React.FC<ClipFormProps> = ({
             placeholder={tMisc('optional')}
             eyebrow={tMisc('title')}
           />
-          <div className={styles.timeInputs}>
-            <TextInputHHMMSS
-              value={startTimeString}
-              onChange={(val) => setStartTimeString(val)}
-              eyebrow={tFeatures('clip.start_time')}
-              name="start_time"
-              placeholder="00:00"
-              aria-label={tFeatures('clip.start_time_aria')}
-              onButtonClick={startTimeOnButtonClick}
-              buttonAriaLabel={tFeatures('clip.start_time_play_aria')}
-            />
-            <TextInputHHMMSS
-              value={endTimeString || ''}
-              onChange={(val) => setEndTimeString(val)}
-              eyebrow={tFeatures('clip.end_time')}
-              name="end_time"
-              placeholder={tMisc('optional')}
-              aria-label={tFeatures('clip.end_time_aria')}
-              onButtonClick={endTimeOnButtonClick}
-              buttonAriaLabel={tFeatures('clip.end_time_play_aria')}
+          <div className={styles.clipEditorSection}>
+            <div className={styles.timeInputs}>
+              <TextInputHHMMSS
+                value={startTimeString}
+                onChange={(val) => setStartTimeString(val)}
+                eyebrow={tFeatures('clip.start_time')}
+                name="start_time"
+                placeholder="00:00"
+                aria-label={tFeatures('clip.start_time_aria')}
+                onButtonClick={startTimeOnButtonClick}
+                buttonAriaLabel={tFeatures('clip.start_time_play_aria')}
+              />
+              <TextInputHHMMSS
+                value={endTimeString || ''}
+                onChange={(val) => setEndTimeString(val)}
+                eyebrow={tFeatures('clip.end_time')}
+                name="end_time"
+                placeholder={tMisc('optional')}
+                aria-label={tFeatures('clip.end_time_aria')}
+                onButtonClick={endTimeOnButtonClick}
+                buttonAriaLabel={tFeatures('clip.end_time_play_aria')}
+              />
+            </div>
+            <ClipEditorPlayer
+              startTime={startTimeString ? hhmmssToSecondsNumber(startTimeString) : null}
+              endTime={endTimeString ? hhmmssToSecondsNumber(endTimeString) : null}
             />
           </div>
-          <ClipEditorPlayer
-            startTime={startTimeString ? hhmmssToSecondsNumber(startTimeString) : null}
-            endTime={endTimeString ? hhmmssToSecondsNumber(endTimeString) : null}
-          />
           <ModalActions>
             <Button variant="secondary" type="button" onClick={onCancel}>
               {tMisc('cancel')}

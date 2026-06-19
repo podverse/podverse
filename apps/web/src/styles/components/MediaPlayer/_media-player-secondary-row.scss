@@ -1,0 +1,23 @@
+@mixin mediaPlayerSecondaryRowItem($size) {
+  > button {
+    flex-shrink: 0;
+    height: $size;
+    width: $size;
+    font-size: var(--font-size-md);
+  }
+
+  > div {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    height: $size;
+    width: $size;
+
+    > button {
+      height: $size;
+      width: $size;
+      font-size: var(--font-size-md);
+    }
+  }
+}

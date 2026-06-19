@@ -1,16 +1,81 @@
+@use '../../../../variables/breakpoints';
+
 .floatingVideoPortal {
   position: fixed;
-  bottom: calc(var(--media-player-height) + 10px);
-  right: 10px;
+  // #media-player border-top is 1px (MediaPlayer.module.scss); sit above that line.
+  bottom: calc(var(--media-player-height-mobile) + 1px);
+  right: 0;
   width: 400px;
+  max-width: 100%;
   z-index: 1000;
-  background: var(--background-color-secondary);
-  border-radius: var(--border-radius);
+  background: transparent;
   overflow: hidden;
+  cursor: pointer;
+
+  @media (pointer: fine) {
+    cursor: grab;
+  }
+}
+
+.floatingVideoPortal.isDragging {
+  cursor: grabbing;
+  touch-action: none;
+  user-select: none;
+}
+
+.floatingVideoPortal.isResizing {
+  touch-action: none;
+  user-select: none;
+}
+
+.resizeHandle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+  z-index: 3;
+}
+
+.floatingVideoPortal:hover .resizeHandle {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+@media (pointer: coarse) {
+  .resizeHandle {
+    display: none;
+  }
+}
+
+.floatingVideoPortal video {
+  display: block;
+  width: 100%;
+  height: auto;
+  background-color: transparent;
+  object-fit: contain;
+}
+
+@media (pointer: coarse) {
+  .floatingVideoPortal {
+    touch-action: auto;
+  }
+}
+
+@media (min-width: breakpoints.$breakpoint-lg-min) {
+  .floatingVideoPortal {
+    bottom: calc(var(--media-player-height) + 1px);
+  }
 }
 
 .floatingVideoPortal.hasMarquee {
-  bottom: calc(var(--media-player-height) + var(--media-player-height-top-section));
+  bottom: calc(var(--media-player-height-mobile) + var(--media-player-height-top-section) + 1px);
+}
+
+@media (min-width: breakpoints.$breakpoint-lg-min) {
+  .floatingVideoPortal.hasMarquee {
+    bottom: calc(var(--media-player-height) + var(--media-player-height-top-section) + 1px);
+  }
 }
 
 .closeButton {
@@ -37,4 +102,5 @@
 .floatingVideoPortal:focus-within .closeButton {
   opacity: 1;
   pointer-events: auto;
+  cursor: pointer;
 }

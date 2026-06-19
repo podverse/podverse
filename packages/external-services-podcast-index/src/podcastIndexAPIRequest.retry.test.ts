@@ -126,4 +126,82 @@ describe('PodcastIndexService.podcastIndexAPIRequest retries', () => {
     expect(loggerService.warn).not.toHaveBeenCalled();
     expect(loggerService.logError).toHaveBeenCalledTimes(1);
   });
+
+  it('passes abort options to requestWithUserAgent when provided', async () => {
+    const loggerService = createLogger();
+    const service = new PodcastIndexService({
+      userAgent: 'test-agent',
+      authKey: 'auth-key',
+      baseUrl: 'https://api.podcastindex.org/api/1.0',
+      secretKey: 'secret-key',
+      loggerService,
+      maxRetries: 3,
+      retryBaseDelayMs: 1000,
+    });
+
+    requestWithUserAgent.mockResolvedValue({ data: { ok: true } });
+
+    const abortController = new AbortController();
+    await service.podcastIndexAPIRequest(
+      'https://api.podcastindex.org/api/1.0/recent/data?max=5000&since=1',
+      undefined,
+      {
+        abort: {
+          controller: abortController,
+          timeoutMs: 5000,
+        },
+      }
+    );
+
+    expect(requestWithUserAgent).toHaveBeenCalledWith(
+      'https://api.podcastindex.org/api/1.0/recent/data?max=5000&since=1',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'X-Auth-Key': 'auth-key',
+        }),
+      }),
+      'test-agent',
+      {
+        controller: abortController,
+        timeoutMs: 5000,
+      }
+    );
+  });
+
+  it('does not retry abort or timeout failures when abort options are provided', async () => {
+    const loggerService = createLogger();
+    const service = new PodcastIndexService({
+      userAgent: 'test-agent',
+      authKey: 'auth-key',
+      baseUrl: 'https://api.podcastindex.org/api/1.0',
+      secretKey: 'secret-key',
+      loggerService,
+      maxRetries: 3,
+      retryBaseDelayMs: 1000,
+    });
+
+    requestWithUserAgent.mockRejectedValue({
+      message: 'timeout of 5000ms exceeded',
+      code: 'ECONNABORTED',
+      name: 'AxiosError',
+    });
+
+    const abortController = new AbortController();
+    await expect(
+      service.podcastIndexAPIRequest(
+        'https://api.podcastindex.org/api/1.0/recent/data?max=5000&since=1',
+        undefined,
+        {
+          abort: {
+            controller: abortController,
+            timeoutMs: 5000,
+          },
+        }
+      )
+    ).rejects.toMatchObject({ code: 'ECONNABORTED' });
+
+    expect(requestWithUserAgent).toHaveBeenCalledTimes(1);
+    expect(loggerService.warn).not.toHaveBeenCalled();
+    expect(loggerService.logError).toHaveBeenCalledTimes(1);
+  });
 });

@@ -38,6 +38,7 @@ import {
   checkIsLiveItem,
 } from '../../../utils/mediaPlayer/mediaPlayerItemEnclosureType';
 import { waitForSourceUri } from '../../../utils/mediaPlayer/mediaPlayerPlayMediaWhenReady';
+import { resolveModalVideoAspectRatio } from '../../../utils/mediaPlayer/modalVideoAspectRatio';
 import { selectItemChapterForTime } from '../../../utils/mediaPlayer/selectItemChapterForTime';
 import {
   trackStatsChannel,
@@ -93,6 +94,8 @@ export interface NonLiveMediaOrchestratorProps {
   clearNowPlaying: () => void;
   /** Set to `fresh_transition` before skip/ended queue loads so music advances start at 0. */
   pendingMusicQueueLoadIntentRef: React.RefObject<MusicItemPlaybackIntent | null>;
+  /** Called when the video element reports intrinsic dimensions (modal stage sizing). */
+  onVideoAspectRatioChange?: (ratio: number | null) => void;
 }
 
 export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> = (props) => {
@@ -146,6 +149,7 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     onAddByRSSPlayNext,
     clearNowPlaying,
     pendingMusicQueueLoadIntentRef,
+    onVideoAspectRatioChange,
   } = props;
 
   const allowVideoOnAudioOrchestrator = embedPlayerSize === 'compact';
@@ -227,6 +231,11 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
 
   const bridgeRef = useRef<MediaElementBridge | null>(null);
 
+  const onVideoAspectRatioChangeRef = useRef(onVideoAspectRatioChange);
+  useEffect(() => {
+    onVideoAspectRatioChangeRef.current = onVideoAspectRatioChange;
+  }, [onVideoAspectRatioChange]);
+
   const finishEmbedPlayback = useCallback(() => {
     const boundaryParams = {
       activePlaybackTarget: activePlaybackTargetRef.current,
@@ -252,6 +261,9 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     onLoadedMetadata(newDuration) {
       if (!mediaRef.current) {
         return;
+      }
+      if (mediaType === 'video' && mediaRef.current instanceof HTMLVideoElement) {
+        onVideoAspectRatioChangeRef.current?.(resolveModalVideoAspectRatio(mediaRef.current));
       }
       const stagedDecision = pendingPlaybackDecisionRef.current;
 
@@ -772,6 +784,37 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     typeof sourceUri === 'string' && sourceUri.trim() !== ''
       ? { kind: 'file', src: sourceUri.trim() }
       : null;
+
+  useEffect(() => {
+    if (mediaType !== 'video') {
+      return;
+    }
+
+    const reportAspectRatio = () => {
+      const el = mediaRef.current;
+      if (!(el instanceof HTMLVideoElement)) {
+        onVideoAspectRatioChangeRef.current?.(null);
+        return;
+      }
+      onVideoAspectRatioChangeRef.current?.(resolveModalVideoAspectRatio(el));
+    };
+
+    onVideoAspectRatioChangeRef.current?.(null);
+    reportAspectRatio();
+
+    const el = mediaRef.current;
+    if (!el) {
+      return;
+    }
+
+    el.addEventListener('loadedmetadata', reportAspectRatio);
+    el.addEventListener('resize', reportAspectRatio);
+
+    return () => {
+      el.removeEventListener('loadedmetadata', reportAspectRatio);
+      el.removeEventListener('resize', reportAspectRatio);
+    };
+  }, [mediaType, sourceUri]);
 
   return (
     <MediaElement

@@ -1,0 +1,54 @@
+---
+description: Test timeouts default to 10s; raise only as a documented one-off when necessary.
+globs:
+  - "apps/web/e2e/**/*.spec.ts"
+  - "apps/management-web/e2e/**/*.spec.ts"
+  - "apps/web/**/*.test.ts"
+  - "apps/web/**/*.test.tsx"
+  - "apps/management-web/**/*.test.ts"
+  - "apps/management-web/**/*.test.tsx"
+alwaysApply: false
+---
+
+# Test Timeout Budget
+
+Default test timeouts must stay at **10 seconds or less**. Longer waits waste operator time and hide real failures.
+
+## Playwright E2E
+
+- **Config default:** `apps/web/playwright.config.ts` and `apps/management-web/playwright.config.ts` use `timeout: 10_000`.
+- **Do not** add `test.setTimeout(...)` above 10s in specs unless a specific test genuinely needs it.
+- **Do not** set per-assertion `timeout:` (e.g. `toBeVisible({ timeout: 15_000 })`) above the test budget.
+- When a one-off exception is required, add a short inline comment explaining why (e.g. cold-start seed, known slow CI step).
+
+## Unit / integration (Vitest)
+
+- Prefer fast, deterministic tests. Do not add long `vi.waitFor` / polling loops to paper over flakiness.
+- Fix root causes (missing polyfills, unstable assets, remount churn) instead of raising timeouts.
+
+## When tests fail at 10s
+
+1. **Diagnose** whether the failure is slowness or instability (detached DOM, remount loops, bad fixtures).
+2. **Fix the cause** (polyfill, narrower E2E scope, stable seed asset, unit-test the interaction).
+3. **Raise timeout only** when the step is legitimately slow and stable — document it as a one-off in that test.
+
+## Examples
+
+```typescript
+// BAD — blanket override hides problems
+test.beforeEach(async () => {
+  test.setTimeout(45_000);
+});
+
+// BAD — assertion timeout exceeds test budget
+await expect(portal).toBeVisible({ timeout: 15_000 });
+
+// GOOD — rely on config default (10s)
+await expect(portal).toBeVisible();
+
+// OK — rare one-off with justification
+test('cold-start integration smoke', async () => {
+  test.setTimeout(20_000); // first-run webpack compile on CI only
+  // ...
+});
+```

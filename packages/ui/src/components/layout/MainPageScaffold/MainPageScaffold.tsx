@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import type { ReactNode } from 'react';
+import type { MouseEvent, ReactNode, Ref } from 'react';
 import React from 'react';
 
 import { Divider } from '../Divider/Divider';
@@ -16,6 +16,9 @@ export type MainPageScaffoldProps = {
    * @default 'mainOuterWrapper'
    */
   outerId?: string;
+  outerTabIndex?: number;
+  outerRef?: Ref<HTMLDivElement>;
+  onOuterMouseDown?: (event: MouseEvent<HTMLDivElement>) => void;
 };
 
 export function MainPageScaffold({
@@ -24,9 +27,18 @@ export function MainPageScaffold({
   footer,
   className,
   outerId = 'mainOuterWrapper',
+  outerTabIndex,
+  outerRef,
+  onOuterMouseDown,
 }: MainPageScaffoldProps) {
   return (
-    <div id={outerId} className={classNames(styles.mainOuterWrapper, className)}>
+    <div
+      id={outerId}
+      ref={outerRef}
+      tabIndex={outerTabIndex}
+      onMouseDown={onOuterMouseDown}
+      className={classNames(styles.mainOuterWrapper, className)}
+    >
       <main className={styles.main}>
         {React.Children.count(children) > 0 ? (
           children

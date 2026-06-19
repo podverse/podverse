@@ -50,11 +50,13 @@ export const VolumeSlider: React.FC = () => {
       setMPIsMuted(false);
       setMPVolume(Math.max(0, Number((mpVolume - 0.05).toFixed(2))));
       e.preventDefault();
+      e.stopPropagation();
     }
     if (e.key === 'ArrowRight') {
       setMPIsMuted(false);
       setMPVolume(Math.min(1, Number((mpVolume + 0.05).toFixed(2))));
       e.preventDefault();
+      e.stopPropagation();
     }
   };
 

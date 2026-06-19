@@ -12,20 +12,33 @@ import type {
   PodcastIndexSearchPodcastsResponse,
   PodcastsByTagResponse,
 } from '@podverse/helpers';
-import { computeExponentialBackoffDelayMs, sleep } from '@podverse/helpers';
+import {
+  computeExponentialBackoffDelayMs,
+  DEFAULT_HTTP_TIMEOUT_MS,
+  sleep,
+} from '@podverse/helpers';
 import { type ILoggerLike, summarizeUpstreamHttpErrorForLog } from '@podverse/helpers-backend';
 import { type AxiosRequestConfig, requestWithUserAgent } from '@podverse/helpers-requests';
 
-import { isRetryablePodcastIndexError } from './isRetryablePodcastIndexError.js';
+import { shouldRetryPodcastIndexRequest } from './isRetryablePodcastIndexError.js';
 import {
   PODCAST_INDEX_DEFAULT_MAX_RETRIES,
   PODCAST_INDEX_DEFAULT_RETRY_BASE_DELAY_MS,
   type PodcastIndexClientOptions,
 } from './podcastIndexClientOptions.js';
+import { RECENT_GET_DATA_MAX_FETCH_MS } from './recentGetDataLimits.js';
 import {
   type PodcastIndexSearchByTermOptions,
   podcastIndexSearchByTermPath,
 } from './searchByTermQuery.js';
+
+export type PodcastIndexAPIRequestExtraParams = {
+  delayMs?: number;
+  abort?: {
+    controller: AbortController;
+    timeoutMs: number;
+  };
+};
 
 type Constructor = {
   userAgent: string;
@@ -105,7 +118,7 @@ export class PodcastIndexService {
   podcastIndexAPIRequest = async (
     url: string,
     config?: AxiosRequestConfig,
-    extraParams?: { delayMs?: number }
+    extraParams?: PodcastIndexAPIRequestExtraParams
   ) => {
     if (extraParams?.delayMs && extraParams.delayMs > 0) {
       await new Promise((resolve) => setTimeout(resolve, extraParams.delayMs));
@@ -123,14 +136,19 @@ export class PodcastIndexService {
             headers: this.buildAuthHeaders(),
             ...config,
           },
-          this.userAgent
+          this.userAgent,
+          extraParams?.abort
         );
 
         return response?.data;
       } catch (error: unknown) {
         lastError = error;
         const summary = summarizeUpstreamHttpErrorForLog(error, { requestUrl: url });
-        const canRetry = attempt < maxAttempts - 1 && isRetryablePodcastIndexError(error);
+        const canRetry =
+          attempt < maxAttempts - 1 &&
+          shouldRetryPodcastIndexRequest(error, {
+            clientAbortRequested: extraParams?.abort !== undefined,
+          });
 
         if (canRetry) {
           const delayMs = computeExponentialBackoffDelayMs(attempt, this.retryBaseDelayMs);
@@ -362,6 +380,7 @@ export class PodcastIndexService {
     this.loggerService.info('recentGetData beginning...');
     const currentTimeInSeconds = Math.floor(Date.now() / 1000);
     const sinceTimeInSeconds = currentTimeInSeconds - sinceRange;
+    const paginationStartedAtMs = Date.now();
 
     /* eslint-disable @typescript-eslint/no-explicit-any -- PI /recent/data feed shape is untyped */
     const fetchData = async (
@@ -369,13 +388,24 @@ export class PodcastIndexService {
       allData: any[] = [],
       isFirstPage = true
     ): Promise<any[]> => {
+      const elapsedMs = Date.now() - paginationStartedAtMs;
+      if (elapsedMs > RECENT_GET_DATA_MAX_FETCH_MS) {
+        this.loggerService.warn(
+          `[recentGetData] Stopping pagination after ${elapsedMs}ms (cap ${RECENT_GET_DATA_MAX_FETCH_MS}ms). Returning ${allData.length} feeds collected so far.`
+        );
+        return allData;
+      }
+
       this.loggerService.info(`fetchData since: ${since}, allData.length: ${allData.length}`);
       const url = `${this.baseUrl}/recent/data?max=5000&since=${since}`;
-      const response = await this.podcastIndexAPIRequest(
-        url,
-        undefined,
-        this.paginatedRequestExtraParams(isFirstPage)
-      );
+      const abortController = new AbortController();
+      const response = await this.podcastIndexAPIRequest(url, undefined, {
+        ...this.paginatedRequestExtraParams(isFirstPage),
+        abort: {
+          controller: abortController,
+          timeoutMs: DEFAULT_HTTP_TIMEOUT_MS,
+        },
+      });
       const updatedFeeds = response.data.feeds;
       const nextSince = response.nextSince;
 

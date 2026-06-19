@@ -22,7 +22,7 @@ test.describe('Media player keyboard shortcuts', () => {
   test('Pressing Space on a Podcast Index feed preview page with no loaded media does not crash', async ({
     page,
   }) => {
-    test.setTimeout(45_000);
+    test.setTimeout(20_000);
 
     await page.goto('/podcast-index/feed/2147483640');
     await expect(page.locator('body')).toBeVisible({ timeout: 15_000 });

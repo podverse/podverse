@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 
 import { getSelectedLabeledItemEnclosureAndSource } from '@podverse/helpers';
 
 import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
+import { useFloatingVideoPortalClick } from '../../../../hooks/useFloatingVideoPortalClick';
+import { useFloatingVideoTransform } from '../../../../hooks/useFloatingVideoTransform';
 import { cssClass } from '../../../../utils/cssModule';
 
 import styles from '../../../../styles/components/MediaPlayer/Controller/LiveStream/MediaPlayerLiveStreamVideoPortalFloating.module.scss';
@@ -14,9 +16,20 @@ export const MediaPlayerLivestreamVideoPortalFloating: React.FC<{ children: Reac
   children,
 }) => {
   const [mounted, setMounted] = useState(false);
+  const portalRef = useRef<HTMLDivElement>(null);
   useEffect(() => setMounted(true), []);
 
   const { mpItemLabeledItemEnclosures, mpEnclosureSelectedParams } = useMediaPlayer();
+  const {
+    containerStyle,
+    dragHandleProps,
+    resizeHandleProps,
+    isDragging,
+    isResizing,
+    resizeEnabled,
+    consumeClickAfterDrag,
+  } = useFloatingVideoTransform(portalRef);
+  const { handlePortalClick } = useFloatingVideoPortalClick({ consumeClickAfterDrag });
 
   if (!mounted || typeof document === 'undefined') {
     return null;
@@ -36,7 +49,23 @@ export const MediaPlayerLivestreamVideoPortalFloating: React.FC<{ children: Reac
   }
 
   return ReactDOM.createPortal(
-    <div className={cssClass(styles, 'floatingVideoPortal')} style={style}>
+    <div
+      ref={portalRef}
+      className={`${cssClass(styles, 'floatingVideoPortal')}${isDragging ? ` ${cssClass(styles, 'isDragging')}` : ''}${isResizing ? ` ${cssClass(styles, 'isResizing')}` : ''}`}
+      data-testid="floating-video-portal-livestream"
+      style={{ ...style, ...containerStyle }}
+      onClick={handlePortalClick}
+      {...dragHandleProps}
+    >
+      {resizeEnabled && (
+        <div
+          className={cssClass(styles, 'resizeHandle')}
+          data-floating-video-ignore-drag
+          data-testid="floating-video-resize-handle"
+          {...resizeHandleProps}
+          aria-hidden="true"
+        />
+      )}
       {children}
     </div>,
     document.body

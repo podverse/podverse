@@ -53,13 +53,15 @@ export const MediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
   const ignoreNextClickRef = useRef(false);
 
   const chapters = Array.isArray(mpItemChapters) ? mpItemChapters : [];
+  const effectiveShowChapterMarkers = showChapterMarkers && !isClipForm;
   const chapterBoundaryRatios =
-    showChapterMarkers && mpDuration > 0 && chapters.length > 0
+    effectiveShowChapterMarkers && mpDuration > 0 && chapters.length > 0
       ? getChapterBoundaryRatios(chapters, mpDuration)
       : [];
 
   // The embed player does not show the chapter info tooltip on progress-bar hover.
-  const enableChapterHoverTooltip = showChapterHoverTooltip ?? layoutVariant !== 'embed';
+  const enableChapterHoverTooltip =
+    !isClipForm && (showChapterHoverTooltip ?? layoutVariant !== 'embed');
 
   const { highlightStartPosition, highlightEndPosition } = getHighlightPositions({
     mpDuration,
