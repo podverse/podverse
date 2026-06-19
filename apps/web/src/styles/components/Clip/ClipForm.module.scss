@@ -2,6 +2,12 @@
   max-width: var(--form-max-width);
 }
 
+.clipEditorSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
 .timeInputs {
   display: flex;
   gap: var(--spacing-2xl);

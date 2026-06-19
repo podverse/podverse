@@ -10,9 +10,7 @@ import {
 
 describe('floatingVideoPortalResize', () => {
   it('computes max width from anchor and viewport without an arbitrary cap', () => {
-    expect(
-      computeFloatingVideoMaxWidthForAnchor(1200, 900, 16 / 9, 1200, 900)
-    ).toBe(1200);
+    expect(computeFloatingVideoMaxWidthForAnchor(1200, 900, 16 / 9, 1200, 900)).toBe(1200);
     expect(computeFloatingVideoMaxWidthForAnchor(1200, 900, 16 / 9, 500, 900)).toBe(500);
     expect(computeFloatingVideoMaxWidthForAnchor(600, 400, 16 / 9, 1200, 900)).toBe(600);
   });

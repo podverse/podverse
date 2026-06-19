@@ -1,26 +1,25 @@
 'use client';
 
 import {
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+  type RefObject,
   useCallback,
   useEffect,
   useRef,
   useState,
-  type CSSProperties,
-  type PointerEvent as ReactPointerEvent,
-  type RefObject,
 } from 'react';
 
+import { useMediaPlayerVideo } from '../contexts/MediaPlayerVideo';
 import {
   clampFloatingVideoPosition,
   hasExceededFloatingVideoDragStartThreshold,
   shouldFloatingVideoPortalIgnoreDrag,
-  type FloatingVideoPosition,
 } from '../utils/mediaPlayer/floatingVideoPortalDrag';
 import {
   computeResizeFromBottomRightAnchor,
   fitFloatingVideoToViewport,
   resolveFloatingVideoAspectRatio,
-  type FloatingVideoSize,
 } from '../utils/mediaPlayer/floatingVideoPortalResize';
 
 type ActiveDragState = {
@@ -45,8 +44,12 @@ type ActiveResizeState = {
 };
 
 export function useFloatingVideoTransform(containerRef: RefObject<HTMLElement | null>) {
-  const [position, setPosition] = useState<FloatingVideoPosition | null>(null);
-  const [size, setSize] = useState<FloatingVideoSize | null>(null);
+  const { floatingPosition, setFloatingPosition, floatingSize, setFloatingSize } =
+    useMediaPlayerVideo();
+  const position = floatingPosition;
+  const setPosition = setFloatingPosition;
+  const size = floatingSize;
+  const setSize = setFloatingSize;
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragEnabled, setDragEnabled] = useState(false);

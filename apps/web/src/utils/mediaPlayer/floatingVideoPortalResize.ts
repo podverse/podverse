@@ -1,7 +1,4 @@
-import {
-  clampFloatingVideoPosition,
-  type FloatingVideoPosition,
-} from './floatingVideoPortalDrag';
+import { clampFloatingVideoPosition, type FloatingVideoPosition } from './floatingVideoPortalDrag';
 
 export type FloatingVideoSize = { width: number; height: number };
 
@@ -24,12 +21,7 @@ export function computeFloatingVideoMaxWidthForAnchor(
   const maxFromAnchorTop = anchorBottom * aspectRatio;
   const maxFromViewportWidth = viewportWidth;
   const maxFromViewportHeight = viewportHeight * aspectRatio;
-  return Math.min(
-    maxFromAnchorLeft,
-    maxFromAnchorTop,
-    maxFromViewportWidth,
-    maxFromViewportHeight
-  );
+  return Math.min(maxFromAnchorLeft, maxFromAnchorTop, maxFromViewportWidth, maxFromViewportHeight);
 }
 
 export function resolveFloatingVideoAspectRatio(container: HTMLElement): number {

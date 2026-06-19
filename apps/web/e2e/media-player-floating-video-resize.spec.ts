@@ -27,9 +27,7 @@ function floatingVideoPortalLocator(page: Page): Locator {
 
 async function startFloatingVideoPlayback(page: Page): Promise<Locator> {
   await page.goto(`/episode/${E2E_EMBED_VIDEO_ITEM_ID_TEXT}`);
-  await expect(
-    page.getByRole('heading', { name: EMBED_SAMPLE_EPISODE_VIDEO_TITLE })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: EMBED_SAMPLE_EPISODE_VIDEO_TITLE })).toBeVisible();
   await page.getByRole('button', { name: 'Play' }).first().click();
 
   const portal = floatingVideoPortalLocator(page);

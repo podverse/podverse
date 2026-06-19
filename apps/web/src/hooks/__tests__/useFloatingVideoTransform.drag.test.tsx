@@ -1,7 +1,8 @@
-import { useRef } from 'react';
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
+import { useRef } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { MediaPlayerVideoProvider } from '../../contexts/MediaPlayerVideo';
 import { useFloatingVideoTransform } from '../useFloatingVideoTransform';
 
 const consumeClickResults: boolean[] = [];
@@ -52,17 +53,21 @@ function mockBoundingClientRect(element: HTMLElement, rect: DOMRect): void {
   element.getBoundingClientRect = () => rect;
 }
 
-function pointerEvent(
-  type: string,
-  target: HTMLElement,
-  init: PointerEventInit
-): PointerEvent {
+function pointerEvent(type: string, target: HTMLElement, init: PointerEventInit): PointerEvent {
   const event = new PointerEvent(type, { bubbles: true, cancelable: true, ...init });
   // Wrap dispatch in act() so React commits state-driven style updates before assertions read the DOM.
   act(() => {
     target.dispatchEvent(event);
   });
   return event;
+}
+
+function renderDragProbe(props?: ProbeProps) {
+  render(
+    <MediaPlayerVideoProvider>
+      <FloatingVideoDragProbe {...props} />
+    </MediaPlayerVideoProvider>
+  );
 }
 
 beforeEach(() => {
@@ -99,7 +104,7 @@ afterEach(() => {
 
 describe('useFloatingVideoTransform drag', () => {
   it('updates position and containerStyle while dragging on fine pointer', async () => {
-    render(<FloatingVideoDragProbe />);
+    renderDragProbe();
     const portal = screen.getByTestId('portal');
     await waitFor(() => {
       expect(portal.dataset.dragEnabled).toBe('true');
@@ -143,7 +148,7 @@ describe('useFloatingVideoTransform drag', () => {
   });
 
   it('clamps drag position to the viewport edges', async () => {
-    render(<FloatingVideoDragProbe />);
+    renderDragProbe();
     const portal = screen.getByTestId('portal');
     await waitFor(() => {
       expect(portal.dataset.dragEnabled).toBe('true');
@@ -184,7 +189,7 @@ describe('useFloatingVideoTransform drag', () => {
   });
 
   it('does not start drag when pointerdown originates on ignore-drag chrome', async () => {
-    render(<FloatingVideoDragProbe />);
+    renderDragProbe();
     const portal = screen.getByTestId('portal');
     const closeButton = screen.getByTestId('ignore-drag');
     await waitFor(() => {
@@ -217,7 +222,7 @@ describe('useFloatingVideoTransform drag', () => {
   });
 
   it('ignores touch pointerdown and leaves position at the default anchor', () => {
-    render(<FloatingVideoDragProbe />);
+    renderDragProbe();
     const portal = screen.getByTestId('portal');
 
     mockBoundingClientRect(portal, {
@@ -253,7 +258,7 @@ describe('useFloatingVideoTransform drag', () => {
   });
 
   it('does not reposition or suppress click for pointerdown without movement past threshold', async () => {
-    render(<FloatingVideoDragProbe />);
+    renderDragProbe();
     const portal = screen.getByTestId('portal');
     const consumeButton = screen.getByTestId('consume-click');
     await waitFor(() => {
@@ -291,7 +296,7 @@ describe('useFloatingVideoTransform drag', () => {
   });
 
   it('suppresses the next click after a completed drag gesture', async () => {
-    render(<FloatingVideoDragProbe />);
+    renderDragProbe();
     const portal = screen.getByTestId('portal');
     const consumeButton = screen.getByTestId('consume-click');
     await waitFor(() => {

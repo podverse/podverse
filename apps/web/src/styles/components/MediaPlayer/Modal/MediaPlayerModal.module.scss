@@ -26,3 +26,9 @@
     margin: 0 var(--spacing-modal-side);
   }
 }
+
+@media (max-height: 520px) {
+  .mediaPlayerModalContent {
+    overflow-y: auto;
+  }
+}

@@ -1,7 +1,8 @@
-import { useRef } from 'react';
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
+import { useRef } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { MediaPlayerVideoProvider } from '../../contexts/MediaPlayerVideo';
 import { useFloatingVideoTransform } from '../useFloatingVideoTransform';
 
 const consumeClickResults: boolean[] = [];
@@ -39,11 +40,7 @@ function FloatingVideoResizeProbe({ width = 400, height = 225 }: ProbeProps) {
       {...dragHandleProps}
     >
       {resizeEnabled && (
-        <div
-          data-testid="resize-handle"
-          data-floating-video-ignore-drag
-          {...resizeHandleProps}
-        />
+        <div data-testid="resize-handle" data-floating-video-ignore-drag {...resizeHandleProps} />
       )}
       <button
         type="button"
@@ -62,16 +59,20 @@ function mockBoundingClientRect(element: HTMLElement, rect: DOMRect): void {
   element.getBoundingClientRect = () => rect;
 }
 
-function pointerEvent(
-  type: string,
-  target: HTMLElement,
-  init: PointerEventInit
-): PointerEvent {
+function pointerEvent(type: string, target: HTMLElement, init: PointerEventInit): PointerEvent {
   const event = new PointerEvent(type, { bubbles: true, cancelable: true, ...init });
   act(() => {
     target.dispatchEvent(event);
   });
   return event;
+}
+
+function renderResizeProbe(props?: ProbeProps) {
+  render(
+    <MediaPlayerVideoProvider>
+      <FloatingVideoResizeProbe {...props} />
+    </MediaPlayerVideoProvider>
+  );
 }
 
 beforeEach(() => {
@@ -108,7 +109,7 @@ afterEach(() => {
 
 describe('useFloatingVideoTransform resize', () => {
   it('increases size and updates position when dragging the top-left handle up-left', async () => {
-    render(<FloatingVideoResizeProbe />);
+    renderResizeProbe();
     const portal = screen.getByTestId('portal');
     const handle = screen.getByTestId('resize-handle');
     await waitFor(() => {
@@ -153,7 +154,7 @@ describe('useFloatingVideoTransform resize', () => {
   });
 
   it('preserves aspect ratio during resize', async () => {
-    render(<FloatingVideoResizeProbe width={400} height={225} />);
+    renderResizeProbe({ width: 400, height: 225 });
     const portal = screen.getByTestId('portal');
     const handle = screen.getByTestId('resize-handle');
     await waitFor(() => {
@@ -208,7 +209,7 @@ describe('useFloatingVideoTransform resize', () => {
       })),
     });
 
-    render(<FloatingVideoResizeProbe />);
+    renderResizeProbe();
     const portal = screen.getByTestId('portal');
     expect(screen.queryByTestId('resize-handle')).toBeNull();
 
@@ -237,7 +238,7 @@ describe('useFloatingVideoTransform resize', () => {
   });
 
   it('clamps resize width to minimum', async () => {
-    render(<FloatingVideoResizeProbe />);
+    renderResizeProbe();
     const portal = screen.getByTestId('portal');
     const handle = screen.getByTestId('resize-handle');
     await waitFor(() => {
@@ -278,7 +279,7 @@ describe('useFloatingVideoTransform resize', () => {
   });
 
   it('suppresses the next click after a completed resize gesture', async () => {
-    render(<FloatingVideoResizeProbe />);
+    renderResizeProbe();
     const portal = screen.getByTestId('portal');
     const handle = screen.getByTestId('resize-handle');
     const consumeButton = screen.getByTestId('consume-click');

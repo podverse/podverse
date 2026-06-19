@@ -4,8 +4,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  margin-top: var(--spacing-md);
+  gap: var(--spacing-md);
 }
 
 .topSection {
@@ -24,5 +23,4 @@
   display: flex;
   width: 100%;
   justify-content: center;
-  margin-top: var(--spacing-2xl);
 }

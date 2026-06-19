@@ -20,8 +20,15 @@ export const MediaPlayerLivestreamVideoPortalFloating: React.FC<{ children: Reac
   useEffect(() => setMounted(true), []);
 
   const { mpItemLabeledItemEnclosures, mpEnclosureSelectedParams } = useMediaPlayer();
-  const { containerStyle, dragHandleProps, resizeHandleProps, isDragging, isResizing, resizeEnabled, consumeClickAfterDrag } =
-    useFloatingVideoTransform(portalRef);
+  const {
+    containerStyle,
+    dragHandleProps,
+    resizeHandleProps,
+    isDragging,
+    isResizing,
+    resizeEnabled,
+    consumeClickAfterDrag,
+  } = useFloatingVideoTransform(portalRef);
   const { handlePortalClick } = useFloatingVideoPortalClick({ consumeClickAfterDrag });
 
   if (!mounted || typeof document === 'undefined') {
