@@ -366,9 +366,7 @@ export const ListClipRow: React.FC<Props> = ({
               itemTitle={itemTitle}
               ariaLabel={tMedia('more_options')}
               moreButtonMenuItems={moreButtonMenuItems}
-              onLoadInPlayerWithSource={
-                isActiveItem ? undefined : (params) => loadItem(params)
-              }
+              onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
             />
           </div>
         </div>

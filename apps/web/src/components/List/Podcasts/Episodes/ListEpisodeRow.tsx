@@ -386,9 +386,7 @@ export const ListEpisodeRow: React.FC<Props> = ({
               itemTitle={item.title}
               ariaLabel={tMedia('more_options')}
               moreButtonMenuItems={moreButtonMenuItems}
-              onLoadInPlayerWithSource={
-                isActiveItem ? undefined : (params) => loadItem(params)
-              }
+              onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
             />
           </div>
         </div>

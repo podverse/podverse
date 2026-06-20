@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import type { EnclosureSelectedParams } from '@podverse/helpers';
 import {
   addByRSSBundleEnclosuresToDTO,
   appendDistinctImageCandidate,
@@ -11,7 +12,6 @@ import {
   getQueueForMedium,
 } from '@podverse/helpers';
 import { stripAndDecodeHtml } from '@podverse/helpers';
-import type { EnclosureSelectedParams } from '@podverse/helpers';
 import { buildAddByRSSResourceData, getAddByRSSHashId } from '@podverse/parser-mapping';
 import { ImagesPerView } from '@podverse/ui';
 
@@ -288,9 +288,7 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
               itemTitle={title}
               ariaLabel={tMedia('more_options')}
               moreButtonMenuItems={moreButtonMenuItems}
-              onLoadInPlayerWithSource={
-                isActiveItem ? undefined : (params) => loadItem(params)
-              }
+              onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
             />
           </div>
         </div>

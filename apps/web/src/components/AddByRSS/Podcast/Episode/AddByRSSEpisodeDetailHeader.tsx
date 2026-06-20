@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import React, { useMemo } from 'react';
 
-import { addByRSSBundleEnclosuresToDTO, getQueueForMedium } from '@podverse/helpers';
 import type { EnclosureSelectedParams } from '@podverse/helpers';
+import { addByRSSBundleEnclosuresToDTO, getQueueForMedium } from '@podverse/helpers';
 import { buildAddByRSSResourceData, getAddByRSSHashId } from '@podverse/parser-mapping';
 
 import { IMAGES } from '../../../../constants/images';
@@ -249,9 +249,7 @@ export const AddByRSSEpisodeDetailHeader: React.FC<AddByRSSEpisodeDetailHeaderPr
               : []
           }
           itemTitle={title}
-          onLoadInPlayerWithSource={
-            isActiveItem ? undefined : (params) => loadItem(params)
-          }
+          onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
         />
       }
       imageCandidates={imageCandidates}
