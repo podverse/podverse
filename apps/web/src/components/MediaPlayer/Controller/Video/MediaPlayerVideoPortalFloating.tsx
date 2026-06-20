@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { FaXmark } from 'react-icons/fa6';
 
+import { useMediaPlayerVideo } from '../../../../contexts/MediaPlayerVideo';
 import { useFloatingVideoPortalClick } from '../../../../hooks/useFloatingVideoPortalClick';
 import { useFloatingVideoTransform } from '../../../../hooks/useFloatingVideoTransform';
 import { cssClass } from '../../../../utils/cssModule';
@@ -12,16 +13,15 @@ import { cssClass } from '../../../../utils/cssModule';
 import styles from '../../../../styles/components/MediaPlayer/Controller/Video/MediaPlayerVideoPortalFloating.module.scss';
 
 type MediaPlayerVideoPortalFloatingProps = {
-  children: React.ReactNode;
   onClose: () => void;
 };
 
 export const MediaPlayerVideoPortalFloating: React.FC<MediaPlayerVideoPortalFloatingProps> = ({
-  children,
   onClose,
 }) => {
   const [mounted, setMounted] = useState(false);
   const portalRef = useRef<HTMLDivElement>(null);
+  const { setFloatingVideoTarget } = useMediaPlayerVideo();
   useEffect(() => setMounted(true), []);
 
   const tMisc = useTranslations('misc');
@@ -69,7 +69,11 @@ export const MediaPlayerVideoPortalFloating: React.FC<MediaPlayerVideoPortalFloa
           aria-hidden="true"
         />
       )}
-      {children}
+      <div
+        ref={setFloatingVideoTarget}
+        className={cssClass(styles, 'videoSlot')}
+        data-floating-video-slot
+      />
     </div>,
     document.body
   );

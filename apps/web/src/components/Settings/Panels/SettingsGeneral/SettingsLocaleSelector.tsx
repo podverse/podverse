@@ -82,6 +82,7 @@ export const SettingsLocaleSelector: React.FC = () => {
     <FormDropdown
       id="settings_language_selector"
       eyebrow={tLanguage('language')}
+      info={tLanguage('description')}
       options={options}
       value={locale}
       onChange={handleChange}

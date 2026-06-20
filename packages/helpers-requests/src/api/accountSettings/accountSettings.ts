@@ -1,4 +1,4 @@
-import type { DTOAccount } from '@podverse/helpers';
+import type { DTOAccount, MediaTypePreference } from '@podverse/helpers';
 
 import type { ApiRequestService } from '../_request.js';
 import { reqAuthMe } from '../auth/auth.js';
@@ -20,6 +20,24 @@ export async function reqAccountSettingsListenStatsUpdate(
     method: 'PATCH',
     data: {
       allow_listen_stats: params.allow_listen_stats,
+    },
+    config: {
+      withCredentials: true,
+    },
+  });
+
+  return reqAuthMe(api);
+}
+
+export async function reqAccountSettingsPlaybackUpdate(
+  api: ApiRequestService,
+  params: { preferred_media_type: MediaTypePreference }
+): Promise<DTOAccount> {
+  await api.apiRequest({
+    path: '/account-settings/playback',
+    method: 'PATCH',
+    data: {
+      preferred_media_type: params.preferred_media_type,
     },
     config: {
       withCredentials: true,

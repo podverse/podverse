@@ -1,7 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
@@ -12,6 +11,7 @@ import { useMediaPlayerClearNowPlaying } from '../../../hooks/useMediaPlayerClea
 import { useNonLivePlaybackAvProps } from '../../../hooks/useNonLivePlaybackAvProps';
 import { useQueueResourcesMoveNowPlayingToHistory } from '../../../hooks/useQueueResourceMoveNowPlayingToHistory';
 import { isNonLiveVideoPlaying } from '../../../utils/mediaPlayer/isNonLiveVideoPlaying';
+import { resolveVideoTeleportTarget } from '../../../utils/mediaPlayer/resolveVideoTeleportTarget';
 import { NonLiveMediaOrchestrator } from '../Controller/NonLiveMediaOrchestrator';
 import { MediaPlayerVideoPortalFloating } from '../Controller/Video/MediaPlayerVideoPortalFloating';
 
@@ -21,8 +21,13 @@ import { MediaPlayerVideoPortalFloating } from '../Controller/Video/MediaPlayerV
  */
 export function NonLiveMediaMount() {
   const avProps = useNonLivePlaybackAvProps();
-  const { videoLocation, setVideoLocation, modalVideoTarget, setModalVideoAspectRatio } =
-    useMediaPlayerVideo();
+  const {
+    videoLocation,
+    setVideoLocation,
+    modalVideoTarget,
+    floatingVideoTarget,
+    setModalVideoAspectRatio,
+  } = useMediaPlayerVideo();
   const {
     mpItem,
     mpAddByRSS,
@@ -107,6 +112,58 @@ export function NonLiveMediaMount() {
     }
   }, [playerModalIsOpen, currentVideoKey, videoLocation, setVideoLocation]);
 
+  // The single, persistent video host. The orchestrator (and its `<video>`) is mounted once into
+  // this host; we only ever move the host node between the floating slot, the modal slot, and an
+  // offscreen holder via `appendChild`. Re-parenting a media element does not reset playback, so
+  // opening/closing the modal stays perfectly in sync (no remount, no `load()`, no re-seek).
+  const hostRef = useRef<HTMLDivElement | null>(null);
+  const holderRef = useRef<HTMLDivElement | null>(null);
+  const [hostReady, setHostReady] = useState(false);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return;
+    }
+    const host = document.createElement('div');
+    host.setAttribute('data-persistent-video-host', 'true');
+    // `display: contents` keeps the host layout-transparent so the floating/modal stylesheets
+    // (and the per-location inline style below) target the `<video>` exactly as a direct child.
+    host.style.display = 'contents';
+    const holder = document.createElement('div');
+    holder.setAttribute('data-persistent-video-holder', 'true');
+    holder.style.display = 'none';
+    holder.appendChild(host);
+    document.body.appendChild(holder);
+    hostRef.current = host;
+    holderRef.current = holder;
+    setHostReady(true);
+    return () => {
+      holder.remove();
+      hostRef.current = null;
+      holderRef.current = null;
+      setHostReady(false);
+    };
+  }, []);
+
+  // Teleport the persistent host into whichever slot is active for the current location. Runs after
+  // the floating chrome / modal target mount, so the host always lands in a connected node.
+  useEffect(() => {
+    const host = hostRef.current;
+    const holder = holderRef.current;
+    if (host === null || holder === null) {
+      return;
+    }
+    const target = resolveVideoTeleportTarget(
+      videoLocation,
+      floatingVideoTarget,
+      modalVideoTarget,
+      holder
+    );
+    if (host.parentElement !== target) {
+      target.appendChild(host);
+    }
+  }, [hostReady, videoLocation, floatingVideoTarget, modalVideoTarget, isVideoPlaying]);
+
   const videoStyle =
     videoLocation === 'full-modal'
       ? {
@@ -127,23 +184,21 @@ export function NonLiveMediaMount() {
     />
   );
 
-  let floatingVideo: ReactNode = null;
-  if (isVideoPlaying && currentVideoKey) {
-    if (videoLocation === 'floating') {
-      floatingVideo = (
-        <MediaPlayerVideoPortalFloating onClose={handleCloseFloating}>
-          {videoEngine}
-        </MediaPlayerVideoPortalFloating>
-      );
-    } else if (videoLocation === 'full-modal' && modalVideoTarget !== null) {
-      floatingVideo = ReactDOM.createPortal(videoEngine, modalVideoTarget);
-    }
-  }
+  const videoPortal =
+    hostReady && hostRef.current !== null && isVideoPlaying && currentVideoKey
+      ? ReactDOM.createPortal(videoEngine, hostRef.current)
+      : null;
+
+  const floatingChrome =
+    isVideoPlaying && currentVideoKey && videoLocation === 'floating' ? (
+      <MediaPlayerVideoPortalFloating onClose={handleCloseFloating} />
+    ) : null;
 
   return (
     <>
       <NonLiveMediaOrchestrator {...avProps} mediaType="audio" preload="auto" hidden={true} />
-      {floatingVideo}
+      {videoPortal}
+      {floatingChrome}
     </>
   );
 }

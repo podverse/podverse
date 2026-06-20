@@ -115,6 +115,69 @@ test.describe('Modal video desktop', () => {
     );
   });
 
+  test('reuses the same video element and keeps playback position across modal open/close', async ({
+    page,
+  }, testInfo) => {
+    await startEpisodePlayback(
+      page,
+      E2E_EMBED_VIDEO_ITEM_ID_TEXT,
+      EMBED_SAMPLE_EPISODE_VIDEO_TITLE
+    );
+    const floatingVideo = floatingVideoPortalLocator(page).locator('video');
+    await expect(floatingVideo).toBeVisible();
+
+    // Stamp the live element and seek to a known position well past the item/chapter start. A single
+    // persistent <video> is teleported between locations, so both the marker and the playhead must
+    // survive the handoff. A regression that remounts the element would drop the marker and reset to
+    // item start (0) or a chapter boundary.
+    await expect
+      .poll(async () => floatingVideo.evaluate((el: HTMLVideoElement) => el.readyState))
+      .toBeGreaterThanOrEqual(1);
+    const target = await floatingVideo.evaluate((el: HTMLVideoElement) => {
+      const duration = Number.isFinite(el.duration) ? el.duration : 60;
+      const seekTo = Math.min(25, Math.max(8, Math.round(duration / 2)));
+      el.dataset.persistMarker = 'sync-check';
+      el.pause();
+      el.currentTime = seekTo;
+      return seekTo;
+    });
+    const floor = target - 1;
+    await expect
+      .poll(async () => floatingVideo.evaluate((el: HTMLVideoElement) => el.currentTime))
+      .toBeGreaterThanOrEqual(floor);
+
+    const modal = await openFullscreenMediaPlayerModal(page);
+    const modalVideo = modal.getByTestId('modal-video-target').locator('video');
+    await expect(modalVideo).toBeVisible();
+    // Same DOM node moved into the modal (marker survives), and the playhead did not jump back.
+    await expect(modalVideo).toHaveAttribute('data-persist-marker', 'sync-check');
+    const modalTime = await modalVideo.evaluate((el: HTMLVideoElement) => el.currentTime);
+    expect(modalTime).toBeGreaterThanOrEqual(floor);
+
+    await captureVerifiedElement(
+      page,
+      testInfo,
+      modal.getByTestId('modal-video-target'),
+      'Opening the modal keeps the same video element and its playback position.'
+    );
+
+    // Closing returns the same element to the floating portal, still stamped and still in sync.
+    await modal.getByRole('button', { name: 'Close modal' }).click();
+    await expect(fullscreenModalLocator(page)).toHaveCount(0);
+    const floatingAgain = floatingVideoPortalLocator(page).locator('video');
+    await expect(floatingAgain).toBeVisible();
+    await expect(floatingAgain).toHaveAttribute('data-persist-marker', 'sync-check');
+    const floatingTime = await floatingAgain.evaluate((el: HTMLVideoElement) => el.currentTime);
+    expect(floatingTime).toBeGreaterThanOrEqual(floor);
+
+    await captureVerifiedElement(
+      page,
+      testInfo,
+      floatingVideoPortalLocator(page),
+      'Closing the modal returns the same in-sync video element to the floating portal.'
+    );
+  });
+
   test('aligns secondary control row with playback controls in the modal', async ({
     page,
   }, testInfo) => {
@@ -190,15 +253,17 @@ test.describe('Modal video desktop', () => {
     const video = videoTarget.locator('video');
     await expect(video).toBeVisible();
 
-    const metrics = await video.evaluate((el) => {
-      const rect = el.getBoundingClientRect();
-      const wrapper = el.parentElement;
-      const wrapperRect = wrapper?.getBoundingClientRect();
+    // Measure the wrapper (`modal-video-target`) directly: the persistent video host between it and
+    // the `<video>` uses `display: contents`, so it has no box of its own to measure.
+    const metrics = await videoTarget.evaluate((wrapper) => {
+      const videoEl = wrapper.querySelector('video');
+      const rect = videoEl?.getBoundingClientRect();
+      const wrapperRect = wrapper.getBoundingClientRect();
       return {
-        videoWidth: rect.width,
-        videoHeight: rect.height,
-        wrapperWidth: wrapperRect?.width ?? 0,
-        wrapperHeight: wrapperRect?.height ?? 0,
+        videoWidth: rect?.width ?? 0,
+        videoHeight: rect?.height ?? 0,
+        wrapperWidth: wrapperRect.width,
+        wrapperHeight: wrapperRect.height,
       };
     });
 

@@ -4,14 +4,16 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import type { EnclosureSelectedParams } from '@podverse/helpers';
 import {
+  addByRSSBundleEnclosuresToDTO,
   appendDistinctImageCandidate,
   buildDTOItemImageLoadCandidates,
   getQueueForMedium,
 } from '@podverse/helpers';
 import { stripAndDecodeHtml } from '@podverse/helpers';
 import { buildAddByRSSResourceData, getAddByRSSHashId } from '@podverse/parser-mapping';
-import { ImagesPerView, MoreButton } from '@podverse/ui';
+import { ImagesPerView } from '@podverse/ui';
 
 import { IMAGES } from '../../../../constants/images';
 import { useAccount } from '../../../../contexts/Account';
@@ -27,6 +29,7 @@ import type { AddByRSSItemIndexItem, AddByRSSMappedFeed } from '../../../../util
 import { downloadAddByRSSMediaWithModal } from '../../../../utils/downloadModal/downloadAddByRSSMediaWithModal';
 import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
 import type { ListEpisodeRowLike } from '../../../List/Podcasts/Episodes/ListEpisodeRow';
+import { ItemRowMoreActions } from '../../../Media/ItemRowMoreActions';
 import { PlayButtonRow } from '../../../MediaPlayer/Buttons/PlayButtonRow';
 import { ReadableDate } from '../../../Time/ReadableDate';
 import { showToastPromise, showToastPromiseWithLoading } from '../../../Toast/Toast';
@@ -148,19 +151,28 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
     );
   };
 
-  const playButtonOnClick = () => {
+  const isActiveItem = !!indexItem && indexItem.idText === mpAddByRSS?.idText;
+
+  const loadItem = (enclosureSelectedParams?: EnclosureSelectedParams) => {
     if (!indexItem) {
-      alertPlaceholder(tMediaPlayer('play'))();
-      return;
-    }
-    if (indexItem.idText === mpAddByRSS?.idText) {
-      setMPIsPlaying(!mpIsPlaying);
       return;
     }
     if (listContextProp) {
       setAddByRSSListContext(listContextProp);
     }
-    playAddByRSS(indexItem);
+    playAddByRSS(indexItem, undefined, enclosureSelectedParams);
+  };
+
+  const playButtonOnClick = () => {
+    if (!indexItem) {
+      alertPlaceholder(tMediaPlayer('play'))();
+      return;
+    }
+    if (isActiveItem) {
+      setMPIsPlaying(!mpIsPlaying);
+      return;
+    }
+    loadItem();
   };
 
   const downloadEpisode = () => {
@@ -271,9 +283,12 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
             </div>
           </div>
           <div className={styles.bottomSectionEnd}>
-            <MoreButton
+            <ItemRowMoreActions
+              enclosures={bundle.enclosures ? addByRSSBundleEnclosuresToDTO(bundle.enclosures) : []}
+              itemTitle={title}
               ariaLabel={tMedia('more_options')}
               moreButtonMenuItems={moreButtonMenuItems}
+              onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
             />
           </div>
         </div>

@@ -3,10 +3,9 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
-import type { DTOChannel, DTOItem } from '@podverse/helpers';
+import type { DTOChannel, DTOItem, EnclosureSelectedParams } from '@podverse/helpers';
 import { getQueueForMedium } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
-import { MoreButton } from '@podverse/ui';
 
 import { useAccount } from '../../../../contexts/Account';
 import { useAutoQueue } from '../../../../contexts/AutoQueue';
@@ -20,6 +19,7 @@ import { useMediaPlayerResourceUpdate } from '../../../../hooks/useMediaPlayerRe
 import { playbackTargetFromStandardLoad } from '../../../../lib/playback';
 import { downloadEpisodeWithModal } from '../../../../utils/downloadModal/downloadEpisodeWithModal';
 import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
+import { ItemRowMoreActions } from '../../../Media/ItemRowMoreActions';
 import { PlayButtonLarge } from '../../../MediaPlayer/Buttons/PlayButtonLarge';
 import { ReadableDate } from '../../../Time/ReadableDate';
 import { getDurationAndPositionStr, ReadableDuration } from '../../../Time/ReadableDuration';
@@ -62,34 +62,42 @@ export const CoreEpisodeHeaderPlaySection: React.FC<CoreEpisodeHeaderPlaySection
     void toggle(item.id_text);
   };
 
+  const isActiveItem = item.id === mpItem?.id && !mpClip && !mpItemSoundbite;
+
+  const loadItem = (
+    enclosureSelectedParams: EnclosureSelectedParams | 'use-active-item-or-default'
+  ) => {
+    mediaPlayerResourceUpdate({
+      target: playbackTargetFromStandardLoad({
+        channel,
+        clip: null,
+        item,
+        itemChapter: null,
+        itemSoundbite: null,
+        musicIntent: 'explicit_play',
+      }),
+      itemChapterShouldSeek: false,
+      shouldPlay: true,
+      enclosureSelectedParams,
+      isPlaying: true,
+      skipMoveNowPlayingToHistory: false,
+      newAutoQueueConfig: {
+        playlist_id_text: null,
+        disabled: false,
+        random: autoQueueConfig.random,
+        repeat: autoQueueConfig.repeat,
+        nextPage: 1,
+        shuffleHash: getShuffleHash(),
+      },
+      autoQueueShouldClear: true,
+    });
+  };
+
   const playButtonOnClick = () => {
-    if (item.id === mpItem?.id && !mpClip && !mpItemSoundbite) {
+    if (isActiveItem) {
       setMPIsPlaying(!mpIsPlaying);
     } else {
-      mediaPlayerResourceUpdate({
-        target: playbackTargetFromStandardLoad({
-          channel,
-          clip: null,
-          item,
-          itemChapter: null,
-          itemSoundbite: null,
-          musicIntent: 'explicit_play',
-        }),
-        itemChapterShouldSeek: false,
-        shouldPlay: true,
-        enclosureSelectedParams: 'use-active-item-or-default',
-        isPlaying: true,
-        skipMoveNowPlayingToHistory: false,
-        newAutoQueueConfig: {
-          playlist_id_text: null,
-          disabled: false,
-          random: autoQueueConfig.random,
-          repeat: autoQueueConfig.repeat,
-          nextPage: 1,
-          shuffleHash: getShuffleHash(),
-        },
-        autoQueueShouldClear: true,
-      });
+      loadItem('use-active-item-or-default');
     }
   };
 
@@ -223,10 +231,13 @@ export const CoreEpisodeHeaderPlaySection: React.FC<CoreEpisodeHeaderPlaySection
         </div>
       </div>
       <div className={styles.sectionEnd}>
-        <MoreButton
+        <ItemRowMoreActions
+          enclosures={item.item_enclosures}
+          itemTitle={item.title}
           ariaLabel={tMedia('more_options')}
           moreButtonMenuItems={moreButtonMenuItems}
           isLarge
+          onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
         />
       </div>
     </div>

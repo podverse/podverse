@@ -1,12 +1,7 @@
 import type { EnclosureSelectedParams, LabeledItemEnclosure } from '@podverse/helpers';
+import { resolvePreferredMediaTypeEnclosureSelectedParams } from '@podverse/helpers';
 
 import type { EmbedMediaType } from './embedTypes';
-
-const DEFAULT_SELECTION: EnclosureSelectedParams = {
-  type: 'default',
-  enclosureRowSelected: null,
-  sourceRowSelected: null,
-};
 
 /**
  * A sensible quality ceiling derived from the viewer's connection. `audioMaxKbps`
@@ -44,20 +39,14 @@ export function resolveEmbedBestFitEnclosureSelectedParams(
   embedMediaType: EmbedMediaType,
   options: EmbedBestFitOptions = {}
 ): EnclosureSelectedParams {
-  if (labeledItemEnclosures.length === 0) {
-    return DEFAULT_SELECTION;
-  }
+  // Embed media type may be 'unknown'; treat anything other than video as
+  // audio-first to preserve the previous preference order.
+  const preferred = embedMediaType === 'video' ? 'video' : 'audio';
 
-  const preferenceOrder: Array<'audio' | 'video'> =
-    embedMediaType === 'video' ? ['video', 'audio'] : ['audio', 'video'];
-
-  for (const mediaType of preferenceOrder) {
-    const candidates = labeledItemEnclosures.filter((entry) => entry.mediaType === mediaType);
-    if (candidates.length === 0) {
-      continue;
-    }
-
-    const enclosureRowSelected =
+  return resolvePreferredMediaTypeEnclosureSelectedParams(
+    labeledItemEnclosures,
+    preferred,
+    (candidates, mediaType) =>
       mediaType === 'audio'
         ? pickBestFitWithinType(
             candidates,
@@ -70,16 +59,8 @@ export function resolveEmbedBestFitEnclosureSelectedParams(
             getVideoHeight,
             options.connectionTarget?.videoMaxHeight,
             false
-          );
-
-    return {
-      type: mediaType,
-      enclosureRowSelected,
-      sourceRowSelected: 0,
-    };
-  }
-
-  return DEFAULT_SELECTION;
+          )
+  );
 }
 
 function getAudioKbps(entry: LabeledItemEnclosure): number | null {

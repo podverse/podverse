@@ -10,6 +10,7 @@ import type {
   DTOItemFunding,
   DTOItemSoundbite,
   DTOPlaylist,
+  EnclosureSelectedParams,
   LabeledItemEnclosure,
 } from '@podverse/helpers';
 import type { AddByRSSResourceDataPayload } from '@podverse/parser-mapping';
@@ -74,6 +75,12 @@ export type ModalSourceSelector = {
   labeledItemEnclosures: LabeledItemEnclosure[];
   actionType: SourceSelectorActionType;
   itemTitle: string | null;
+  /**
+   * Set by rows/headers when the displayed item is NOT the now-playing item, so
+   * selecting a source loads that item with the chosen enclosure (play) instead
+   * of re-pointing the now-playing item's enclosure.
+   */
+  onLoadInPlayerWithSource?: ((params: EnclosureSelectedParams) => void) | null;
 };
 
 export type ModalPlaylistAddToState = {
@@ -152,6 +159,7 @@ const defaultModalSourceSelector: ModalSourceSelector = {
   labeledItemEnclosures: [],
   actionType: null,
   itemTitle: null,
+  onLoadInPlayerWithSource: null,
 };
 
 export const defaultModalShare = {

@@ -88,6 +88,7 @@ const privateRelations: FindOptionsRelations<Account> = findOptionsRelationsFrom
   'account_terms_acceptance',
   'account_settings.account_settings_notification',
   'account_settings.account_settings_notification.account_settings_notification_types',
+  'account_settings.account_settings_playback',
   // 'account_up_device_tokens',
   // 'account_up_devices',
   // 'account_verification',

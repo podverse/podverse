@@ -1,15 +1,17 @@
 'use client';
 
+import type { EnclosureSelectedParams } from '@podverse/helpers';
 import {
   buildLabeledItemEnclosuresFromAddByRSSBundle,
-  getDefaultEnclosureSelectedParams,
   getQueueForMedium,
+  resolvePreferredMediaTypeEnclosureSelectedParams,
 } from '@podverse/helpers';
 import type { AddByRSSItemIndexItem, AddByRSSLivestreamIndexItem } from '@podverse/parser-mapping';
 import { buildAddByRSSResourceData, getAddByRSSHashId } from '@podverse/parser-mapping';
 
 import { useAccount } from '../contexts/Account';
 import { useAutoQueue } from '../contexts/AutoQueue';
+import { useLocalSettings } from '../contexts/LocalSettings';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
 import { useMediaPlayerCurrentTime } from '../contexts/MediaPlayerCurrentTime';
 import { useQueues } from '../contexts/Queue';
@@ -35,6 +37,7 @@ export function usePlayAddByRSS() {
   const { setAutoQueueResources, setAutoQueueActiveRow } = useAutoQueue();
   const { queues } = useQueues();
   const { loggedInAccount } = useAccount();
+  const { preferredMediaType } = useLocalSettings();
 
   const getDurationSecondsFromBundle = (bundle: unknown): number | null => {
     if (!bundle || typeof bundle !== 'object') {
@@ -63,7 +66,8 @@ export function usePlayAddByRSS() {
 
   return (
     indexItem: AddByRSSItemIndexItem | AddByRSSLivestreamIndexItem,
-    playbackPosition?: number
+    playbackPosition?: number,
+    enclosureSelectedParamsOverride?: EnclosureSelectedParams
   ) => {
     const apiRequestService = getApiRequestService();
     const resourceData = buildAddByRSSResourceData(indexItem);
@@ -97,7 +101,10 @@ export function usePlayAddByRSS() {
     if (bundleEnclosures && bundleEnclosures.length > 0) {
       const labeled = buildLabeledItemEnclosuresFromAddByRSSBundle(bundleEnclosures);
       setMPItemLabeledItemEnclosures(labeled);
-      setMPEnclosureSelectedParams(getDefaultEnclosureSelectedParams(labeled));
+      setMPEnclosureSelectedParams(
+        enclosureSelectedParamsOverride ??
+          resolvePreferredMediaTypeEnclosureSelectedParams(labeled, preferredMediaType)
+      );
     } else {
       setMPItemLabeledItemEnclosures([]);
       setMPEnclosureSelectedParams({

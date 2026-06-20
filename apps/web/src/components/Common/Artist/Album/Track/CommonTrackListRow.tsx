@@ -5,11 +5,11 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 import { FaGripLines } from 'react-icons/fa6';
 
-import type { DTOChannel, DTOItem } from '@podverse/helpers';
+import type { DTOChannel, DTOItem, EnclosureSelectedParams } from '@podverse/helpers';
 import { getQueueForMedium, mergeDTOItemThenChannelImageCandidates } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
 import type { MoreButtonMenuItem } from '@podverse/ui';
-import { Button, ImagesPerView, MoreButton } from '@podverse/ui';
+import { Button, ImagesPerView } from '@podverse/ui';
 
 import { IMAGES } from '../../../../../constants/images';
 import { ROUTES } from '../../../../../constants/routes';
@@ -23,6 +23,7 @@ import { useMediaPlayerResourceUpdate } from '../../../../../hooks/useMediaPlaye
 import { playbackTargetFromStandardLoad } from '../../../../../lib/playback';
 import { downloadTrackWithModal } from '../../../../../utils/downloadModal/downloadTrackWithModal';
 import { downloadAndSaveFile } from '../../../../../utils/fileDownloader';
+import { ItemRowMoreActions } from '../../../../Media/ItemRowMoreActions';
 import { showToastPromise, showToastPromiseWithLoading } from '../../../../Toast/Toast';
 
 import styles from '../../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
@@ -69,34 +70,42 @@ export const CommonTrackListRow: React.FC<CommonTrackListRowProps> = ({
   const { autoQueueConfig } = useAutoQueue();
   const apiRequestService = getApiRequestService();
 
+  const isActiveItem = item.id === mpItem?.id;
+
+  const loadItem = (
+    enclosureSelectedParams: EnclosureSelectedParams | 'use-active-item-or-default'
+  ) => {
+    mediaPlayerResourceUpdate({
+      target: playbackTargetFromStandardLoad({
+        channel,
+        clip: null,
+        item,
+        itemChapter: null,
+        itemSoundbite: null,
+        musicIntent: 'explicit_play',
+      }),
+      itemChapterShouldSeek: false,
+      shouldPlay: true,
+      enclosureSelectedParams,
+      isPlaying: true,
+      skipMoveNowPlayingToHistory: false,
+      newAutoQueueConfig: {
+        playlist_id_text,
+        disabled: false,
+        random: autoQueueConfig.random,
+        repeat: autoQueueConfig.repeat,
+        nextPage: 1,
+        shuffleHash: getShuffleHash(),
+      },
+      autoQueueShouldClear: true,
+    });
+  };
+
   const playButtonOnClick = () => {
-    if (item.id === mpItem?.id) {
+    if (isActiveItem) {
       setMPIsPlaying(!mpIsPlaying);
     } else {
-      mediaPlayerResourceUpdate({
-        target: playbackTargetFromStandardLoad({
-          channel,
-          clip: null,
-          item,
-          itemChapter: null,
-          itemSoundbite: null,
-          musicIntent: 'explicit_play',
-        }),
-        itemChapterShouldSeek: false,
-        shouldPlay: true,
-        enclosureSelectedParams: 'use-active-item-or-default',
-        isPlaying: true,
-        skipMoveNowPlayingToHistory: false,
-        newAutoQueueConfig: {
-          playlist_id_text,
-          disabled: false,
-          random: autoQueueConfig.random,
-          repeat: autoQueueConfig.repeat,
-          nextPage: 1,
-          shuffleHash: getShuffleHash(),
-        },
-        autoQueueShouldClear: true,
-      });
+      loadItem('use-active-item-or-default');
     }
   };
 
@@ -267,7 +276,13 @@ export const CommonTrackListRow: React.FC<CommonTrackListRowProps> = ({
           </div>
         </div>
       </Button>
-      <MoreButton ariaLabel={tMedia('more_options')} moreButtonMenuItems={moreButtonMenuItems} />
+      <ItemRowMoreActions
+        enclosures={item.item_enclosures}
+        itemTitle={item.title}
+        ariaLabel={tMedia('more_options')}
+        moreButtonMenuItems={moreButtonMenuItems}
+        onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
+      />
     </div>
   );
 };

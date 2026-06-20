@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import React, { useMemo } from 'react';
 
-import { getQueueForMedium } from '@podverse/helpers';
+import type { EnclosureSelectedParams } from '@podverse/helpers';
+import { addByRSSBundleEnclosuresToDTO, getQueueForMedium } from '@podverse/helpers';
 import { buildAddByRSSResourceData, getAddByRSSHashId } from '@podverse/parser-mapping';
 
 import { IMAGES } from '../../../../constants/images';
@@ -143,11 +144,20 @@ export const AddByRSSEpisodeDetailHeader: React.FC<AddByRSSEpisodeDetailHeaderPr
     );
   };
 
+  const isActiveItem =
+    indexItem !== null && indexItem !== undefined && mpAddByRSS?.idText === indexItem.idText;
+
+  const loadItem = (enclosureSelectedParams?: EnclosureSelectedParams) => {
+    if (indexItem) {
+      playAddByRSS(indexItem, undefined, enclosureSelectedParams);
+    }
+  };
+
   const onPlay = () => {
-    if (indexItem !== null && indexItem !== undefined && mpAddByRSS?.idText === indexItem.idText) {
+    if (isActiveItem) {
       setMPIsPlaying(!mpIsPlaying);
     } else if (indexItem) {
-      playAddByRSS(indexItem);
+      loadItem();
     } else {
       alertPlaceholder(tMediaPlayer('play'))();
     }
@@ -233,6 +243,13 @@ export const AddByRSSEpisodeDetailHeader: React.FC<AddByRSSEpisodeDetailHeaderPr
           onPlay={onPlay}
           addByRSSIdText={indexItem?.idText ?? undefined}
           moreButtonMenuItems={moreButtonMenuItems}
+          enclosures={
+            indexItem?.bundle?.enclosures
+              ? addByRSSBundleEnclosuresToDTO(indexItem.bundle.enclosures)
+              : []
+          }
+          itemTitle={title}
+          onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
         />
       }
       imageCandidates={imageCandidates}

@@ -54,6 +54,12 @@ function toDTOIntegrity(
   };
 }
 
+export function addByRSSBundleEnclosuresToDTO(
+  enclosures: AddByRSSCompatEnclosure[]
+): DTOItemEnclosure[] {
+  return compatEnclosuresToDTO(enclosures);
+}
+
 function compatEnclosuresToDTO(enclosures: AddByRSSCompatEnclosure[]): DTOItemEnclosure[] {
   return enclosures.map((e, idx) => {
     const sources: DTOItemEnclosureSource[] = (e.item_enclosure_sources ?? []).map(

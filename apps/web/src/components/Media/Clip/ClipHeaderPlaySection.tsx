@@ -3,10 +3,9 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
-import type { DTOChannel, DTOClip, DTOItem } from '@podverse/helpers';
+import type { DTOChannel, DTOClip, DTOItem, EnclosureSelectedParams } from '@podverse/helpers';
 import { getQueueForMedium } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
-import { MoreButton } from '@podverse/ui';
 
 import { useAccount } from '../../../contexts/Account';
 import { useAutoQueue } from '../../../contexts/AutoQueue';
@@ -23,6 +22,7 @@ import { PlayButtonLarge } from '../../MediaPlayer/Buttons/PlayButtonLarge';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableTimeRange } from '../../Time/ReadableTimeRange';
 import { showToastPromise, showToastPromiseWithLoading } from '../../Toast/Toast';
+import { ItemRowMoreActions } from '../ItemRowMoreActions';
 
 import styles from '../../../styles/components/Media/Clip/ClipHeaderPlaySection.module.scss';
 
@@ -61,34 +61,42 @@ export const ClipHeaderPlaySection: React.FC<ClipHeaderPlaySectionProps> = ({
     void toggle(clip.id_text);
   };
 
+  const isActiveItem = clip.id_text === mpClip?.id_text;
+
+  const loadItem = (
+    enclosureSelectedParams: EnclosureSelectedParams | 'use-active-item-or-default'
+  ) => {
+    mediaPlayerResourceUpdate({
+      target: playbackTargetFromStandardLoad({
+        channel,
+        clip,
+        item,
+        itemChapter: null,
+        itemSoundbite: null,
+        musicIntent: 'explicit_play',
+      }),
+      itemChapterShouldSeek: false,
+      shouldPlay: true,
+      enclosureSelectedParams,
+      isPlaying: true,
+      skipMoveNowPlayingToHistory: false,
+      newAutoQueueConfig: {
+        playlist_id_text: null,
+        disabled: false,
+        random: autoQueueConfig.random,
+        repeat: autoQueueConfig.repeat,
+        nextPage: 1,
+        shuffleHash: getShuffleHash(),
+      },
+      autoQueueShouldClear: true,
+    });
+  };
+
   const playButtonOnClick = () => {
-    if (clip.id_text === mpClip?.id_text) {
+    if (isActiveItem) {
       setMPIsPlaying(!mpIsPlaying);
     } else {
-      mediaPlayerResourceUpdate({
-        target: playbackTargetFromStandardLoad({
-          channel,
-          clip,
-          item,
-          itemChapter: null,
-          itemSoundbite: null,
-          musicIntent: 'explicit_play',
-        }),
-        itemChapterShouldSeek: false,
-        shouldPlay: true,
-        enclosureSelectedParams: 'use-active-item-or-default',
-        isPlaying: true,
-        skipMoveNowPlayingToHistory: false,
-        newAutoQueueConfig: {
-          playlist_id_text: null,
-          disabled: false,
-          random: autoQueueConfig.random,
-          repeat: autoQueueConfig.repeat,
-          nextPage: 1,
-          shuffleHash: getShuffleHash(),
-        },
-        autoQueueShouldClear: true,
-      });
+      loadItem('use-active-item-or-default');
     }
   };
 
@@ -222,10 +230,13 @@ export const ClipHeaderPlaySection: React.FC<ClipHeaderPlaySectionProps> = ({
         </div>
       </div>
       <div className={styles.sectionEnd}>
-        <MoreButton
+        <ItemRowMoreActions
+          enclosures={item.item_enclosures}
+          itemTitle={item.title}
           ariaLabel={tMedia('more_options')}
           moreButtonMenuItems={moreButtonMenuItems}
           isLarge
+          onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
         />
       </div>
     </div>

@@ -30,6 +30,7 @@ export const ModalSourceSelector: React.FC = () => {
         labeledItemEnclosures={modalSourceSelector.labeledItemEnclosures}
         actionType={modalSourceSelector.actionType}
         itemTitle={modalSourceSelector.itemTitle}
+        onLoadInPlayerWithSource={modalSourceSelector.onLoadInPlayerWithSource}
       />
     </Modal>
   );

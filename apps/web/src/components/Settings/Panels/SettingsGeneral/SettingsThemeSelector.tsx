@@ -47,6 +47,7 @@ export const SettingsThemeSelector: React.FC = () => {
     <FormDropdown
       id="settings_theme_selector"
       eyebrow={tSettings('ui_theme.theme')}
+      info={tSettings('ui_theme.description')}
       options={options}
       value={uiTheme}
       onChange={handleChange}

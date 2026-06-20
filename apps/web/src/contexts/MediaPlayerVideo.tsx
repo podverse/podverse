@@ -11,6 +11,8 @@ type MediaPlayerVideoType = {
   setVideoLocation: (val: Location) => void;
   modalVideoTarget: HTMLElement | null;
   setModalVideoTarget: (el: HTMLElement | null) => void;
+  floatingVideoTarget: HTMLElement | null;
+  setFloatingVideoTarget: (el: HTMLElement | null) => void;
   modalVideoAspectRatio: number | null;
   setModalVideoAspectRatio: (val: number | null) => void;
   floatingPosition: FloatingVideoPosition | null;
@@ -28,6 +30,7 @@ type MediaPlayerVideoProviderProps = {
 export const MediaPlayerVideoProvider = ({ children }: MediaPlayerVideoProviderProps) => {
   const [videoLocation, setVideoLocation] = useState<Location>('floating');
   const [modalVideoTarget, setModalVideoTarget] = useState<HTMLElement | null>(null);
+  const [floatingVideoTarget, setFloatingVideoTarget] = useState<HTMLElement | null>(null);
   const [modalVideoAspectRatio, setModalVideoAspectRatio] = useState<number | null>(null);
   const [floatingPosition, setFloatingPosition] = useState<FloatingVideoPosition | null>(null);
   const [floatingSize, setFloatingSize] = useState<FloatingVideoSize | null>(null);
@@ -39,6 +42,8 @@ export const MediaPlayerVideoProvider = ({ children }: MediaPlayerVideoProviderP
         setVideoLocation,
         modalVideoTarget,
         setModalVideoTarget,
+        floatingVideoTarget,
+        setFloatingVideoTarget,
         modalVideoAspectRatio,
         setModalVideoAspectRatio,
         floatingPosition,
