@@ -43,7 +43,12 @@
     },
     "updated_with_date": "",
     "image": "",
-    "more_options": ""
+    "more_options": "",
+    "enclosure_modality": {
+      "video_available": "",
+      "audio_and_video_available": "",
+      "select_source": ""
+    }
   },
   "features": {
     "search": {
@@ -794,10 +799,17 @@
     "settings": "",
     "ui_theme": {
       "theme": "",
+      "description": "",
       "light": "",
       "dark": "",
       "dracula": "",
       "violet": ""
+    },
+    "preferred_media_type": {
+      "label": "",
+      "description": "",
+      "audio": "",
+      "video": ""
     },
     "feed": {
       "check_feed_for_updates": "",
@@ -1145,6 +1157,7 @@
   },
   "language": {
     "language": "",
+    "description": "",
     "select_language": "",
     "languages": {
       "en-US": "",
