@@ -20,11 +20,17 @@ function Registrar({ bridge }: { bridge: MediaElementBridge }): null {
   return null;
 }
 
+type ControlsCapture = { current: MediaPlayerControlsContextValue | null };
+
+function createControlsCapture(): ControlsCapture {
+  return { current: null };
+}
+
 describe('MediaPlayerControlsProvider', () => {
   it('reports a detached no-op bridge when nothing is registered', () => {
-    let captured: MediaPlayerControlsContextValue | null = null;
+    const captured = createControlsCapture();
     function Consumer(): null {
-      captured = useMediaPlayerControls();
+      captured.current = useMediaPlayerControls();
       return null;
     }
 
@@ -34,9 +40,9 @@ describe('MediaPlayerControlsProvider', () => {
       </MediaPlayerControlsProvider>
     );
 
-    expect(captured).not.toBeNull();
-    expect(captured?.isAttached).toBe(false);
-    expect(captured?.seek).toBe(noopMediaElementBridge.seek);
+    expect(captured.current).not.toBeNull();
+    expect(captured.current?.isAttached).toBe(false);
+    expect(captured.current?.seek).toBe(noopMediaElementBridge.seek);
   });
 
   it('falls back to the first registrant when the most recent one unmounts', () => {
@@ -44,10 +50,10 @@ describe('MediaPlayerControlsProvider', () => {
     const seekB = vi.fn();
     const bridgeA = makeBridge(seekA);
     const bridgeB = makeBridge(seekB);
+    const captured = createControlsCapture();
 
-    let captured: MediaPlayerControlsContextValue | null = null;
     function Consumer(): null {
-      captured = useMediaPlayerControls();
+      captured.current = useMediaPlayerControls();
       return null;
     }
 
@@ -64,8 +70,8 @@ describe('MediaPlayerControlsProvider', () => {
     const { rerender } = render(<Tree showB={true} />);
 
     // Most recently registered bridge (the video orchestrator analogue) owns the controls.
-    expect(captured?.isAttached).toBe(true);
-    captured?.seek(5);
+    expect(captured.current?.isAttached).toBe(true);
+    captured.current?.seek(5);
     expect(seekB).toHaveBeenCalledWith(5);
     expect(seekA).not.toHaveBeenCalled();
 
@@ -73,19 +79,19 @@ describe('MediaPlayerControlsProvider', () => {
     // fall back to the still-mounted first registrant (the audio orchestrator analogue).
     rerender(<Tree showB={false} />);
 
-    expect(captured?.isAttached).toBe(true);
-    expect(captured?.seek).not.toBe(noopMediaElementBridge.seek);
-    captured?.seek(7);
+    expect(captured.current?.isAttached).toBe(true);
+    expect(captured.current?.seek).not.toBe(noopMediaElementBridge.seek);
+    captured.current?.seek(7);
     expect(seekA).toHaveBeenCalledWith(7);
   });
 
   it('detaches once every registrant unmounts', () => {
     const seekA = vi.fn();
     const bridgeA = makeBridge(seekA);
+    const captured = createControlsCapture();
 
-    let captured: MediaPlayerControlsContextValue | null = null;
     function Consumer(): null {
-      captured = useMediaPlayerControls();
+      captured.current = useMediaPlayerControls();
       return null;
     }
 
@@ -99,10 +105,10 @@ describe('MediaPlayerControlsProvider', () => {
     }
 
     const { rerender } = render(<Tree showA={true} />);
-    expect(captured?.isAttached).toBe(true);
+    expect(captured.current?.isAttached).toBe(true);
 
     rerender(<Tree showA={false} />);
-    expect(captured?.isAttached).toBe(false);
-    expect(captured?.seek).toBe(noopMediaElementBridge.seek);
+    expect(captured.current?.isAttached).toBe(false);
+    expect(captured.current?.seek).toBe(noopMediaElementBridge.seek);
   });
 });
