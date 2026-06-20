@@ -31,6 +31,7 @@ import {
   EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT,
   EMBED_FIXTURE_PODCAST_EPISODE_NEAR_END_ID_TEXT,
   EMBED_FIXTURE_PODCAST_EPISODE_VIDEO_ID_TEXT,
+  EMBED_FIXTURE_PODCAST_EPISODE_VIDEO_ONLY_ID_TEXT,
   EMBED_FIXTURE_PRIVATE_CHANNEL_ID_TEXT,
   EMBED_FIXTURE_PRIVATE_PLAYLIST_ID_TEXT,
   EMBED_FIXTURE_SCROLL_CHANNEL_ID_TEXT,
@@ -68,6 +69,7 @@ import {
   EMBED_SAMPLE_EPISODE_DURATION_SECONDS,
   EMBED_SAMPLE_EPISODE_NEAR_END_TITLE,
   EMBED_SAMPLE_EPISODE_VIDEO_ITEM_IMAGE_URL,
+  EMBED_SAMPLE_EPISODE_VIDEO_ONLY_TITLE,
   EMBED_SAMPLE_EPISODE_VIDEO_TITLE,
   EMBED_SAMPLE_PLAYLIST_MIXED_TITLE,
   EMBED_SAMPLE_PLAYLIST_PRIVATE_TITLE,
@@ -189,6 +191,29 @@ async function insertEmbedDemoEnclosures(client, itemId, options) {
       [enclosureId, spec.uri, spec.type]
     );
   }
+}
+
+/**
+ * Insert a single video-only enclosure (no audio alternates) so the item resolves
+ * to the `video` modality indicator (FaVideo) rather than `mixed`.
+ * @param {import('pg').Client} client
+ * @param {number} itemId
+ * @param {string} uri
+ */
+async function insertVideoOnlyEnclosure(client, itemId, uri) {
+  const enclosureResult = await client.query(
+    `INSERT INTO item_enclosure (item_id, type, length, bitrate, height, item_enclosure_default, title)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
+     RETURNING id`,
+    [itemId, 'video/mp4', 0, 2500000, 720, true, 'MP4 720p']
+  );
+  const enclosureId = enclosureResult.rows[0].id;
+
+  await client.query(
+    `INSERT INTO item_enclosure_source (item_enclosure_id, uri, content_type)
+     VALUES ($1, $2, $3)`,
+    [enclosureId, uri, 'video/mp4']
+  );
 }
 
 /** Canonical chapter ids for /embed/chapter/* E2E (global unique item_chapter.id_text). */
@@ -450,6 +475,7 @@ async function seedEmbedSampleDemoFixtures(client, { embedDemoAccountId }) {
     itemImageUrl,
     durationSeconds,
     pubDateOffsetSeconds = 0,
+    enclosureMode = 'demo',
   }) {
     const itemResult = await client.query(
       `INSERT INTO item (
@@ -488,10 +514,14 @@ async function seedEmbedSampleDemoFixtures(client, { embedDemoAccountId }) {
       [itemId, itemImageUrl]
     );
 
-    await insertEmbedDemoEnclosures(client, itemId, {
-      primaryUrl: enclosureUrl,
-      primaryType: 'audio/mpeg',
-    });
+    if (enclosureMode === 'video-only') {
+      await insertVideoOnlyEnclosure(client, itemId, enclosureUrl);
+    } else {
+      await insertEmbedDemoEnclosures(client, itemId, {
+        primaryUrl: enclosureUrl,
+        primaryType: 'audio/mpeg',
+      });
+    }
 
     return itemId;
   }
@@ -527,6 +557,17 @@ async function seedEmbedSampleDemoFixtures(client, { embedDemoAccountId }) {
     EMBED_SAMPLE_EPISODE_NEAR_END_TITLE,
     buildEmbedItemChapterRows('embSmpEp2')
   );
+
+  await insertPodcastSampleItem({
+    idText: EMBED_FIXTURE_PODCAST_EPISODE_VIDEO_ONLY_ID_TEXT,
+    guidSlug: 'episode-video-only',
+    title: EMBED_SAMPLE_EPISODE_VIDEO_ONLY_TITLE,
+    enclosureUrl: EMBED_FIXTURE_VIDEO_ENCLOSURE_URL,
+    itemImageUrl: EMBED_SAMPLE_EPISODE_VIDEO_ITEM_IMAGE_URL,
+    durationSeconds: EMBED_SAMPLE_EPISODE_DURATION_SECONDS,
+    pubDateOffsetSeconds: 1800,
+    enclosureMode: 'video-only',
+  });
 
   const episodeOlderItemId = await insertPodcastSampleItem({
     idText: 'embSmpEpAud3',

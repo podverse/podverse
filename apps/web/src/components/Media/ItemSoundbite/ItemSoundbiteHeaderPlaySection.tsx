@@ -3,10 +3,14 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
-import type { DTOChannel, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
+import type {
+  DTOChannel,
+  DTOItem,
+  DTOItemSoundbite,
+  EnclosureSelectedParams,
+} from '@podverse/helpers';
 import { getQueueForMedium } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
-import { MoreButton } from '@podverse/ui';
 
 import { useAccount } from '../../../contexts/Account';
 import { useAutoQueue } from '../../../contexts/AutoQueue';
@@ -22,6 +26,7 @@ import { PlayButtonLarge } from '../../MediaPlayer/Buttons/PlayButtonLarge';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableTimeRange } from '../../Time/ReadableTimeRange';
 import { showToastPromise, showToastPromiseWithLoading } from '../../Toast/Toast';
+import { ItemRowMoreActions } from '../ItemRowMoreActions';
 
 import styles from '../../../styles/components/Media/ItemSoundbite/ItemSoundbiteHeaderPlaySection.module.scss';
 
@@ -51,34 +56,42 @@ export const ItemSoundbiteHeaderPlaySection: React.FC<ItemSoundbiteHeaderPlaySec
   const startTime = item_soundbite.start_time;
   const endTime = `${Number(item_soundbite.start_time) + Number(item_soundbite.duration)}`;
 
+  const isActiveItem = item_soundbite.id_text === mpItemSoundbite?.id_text;
+
+  const loadItem = (
+    enclosureSelectedParams: EnclosureSelectedParams | 'use-active-item-or-default'
+  ) => {
+    mediaPlayerResourceUpdate({
+      target: playbackTargetFromStandardLoad({
+        channel,
+        clip: null,
+        item,
+        itemChapter: null,
+        itemSoundbite: item_soundbite,
+        musicIntent: 'explicit_play',
+      }),
+      itemChapterShouldSeek: false,
+      shouldPlay: true,
+      enclosureSelectedParams,
+      isPlaying: true,
+      skipMoveNowPlayingToHistory: false,
+      newAutoQueueConfig: {
+        playlist_id_text: null,
+        disabled: false,
+        random: autoQueueConfig.random,
+        repeat: autoQueueConfig.repeat,
+        nextPage: 1,
+        shuffleHash: getShuffleHash(),
+      },
+      autoQueueShouldClear: true,
+    });
+  };
+
   const playButtonOnClick = () => {
-    if (item_soundbite.id_text === mpItemSoundbite?.id_text) {
+    if (isActiveItem) {
       setMPIsPlaying(!mpIsPlaying);
     } else {
-      mediaPlayerResourceUpdate({
-        target: playbackTargetFromStandardLoad({
-          channel,
-          clip: null,
-          item,
-          itemChapter: null,
-          itemSoundbite: item_soundbite,
-          musicIntent: 'explicit_play',
-        }),
-        itemChapterShouldSeek: false,
-        shouldPlay: true,
-        enclosureSelectedParams: 'use-active-item-or-default',
-        isPlaying: true,
-        skipMoveNowPlayingToHistory: false,
-        newAutoQueueConfig: {
-          playlist_id_text: null,
-          disabled: false,
-          random: autoQueueConfig.random,
-          repeat: autoQueueConfig.repeat,
-          nextPage: 1,
-          shuffleHash: getShuffleHash(),
-        },
-        autoQueueShouldClear: true,
-      });
+      loadItem('use-active-item-or-default');
     }
   };
 
@@ -222,10 +235,13 @@ export const ItemSoundbiteHeaderPlaySection: React.FC<ItemSoundbiteHeaderPlaySec
         </div>
       </div>
       <div className={styles.sectionEnd}>
-        <MoreButton
+        <ItemRowMoreActions
+          enclosures={item.item_enclosures}
+          itemTitle={item.title}
           ariaLabel={tMedia('more_options')}
           moreButtonMenuItems={moreButtonMenuItems}
           isLarge
+          onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
         />
       </div>
     </div>

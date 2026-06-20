@@ -33,6 +33,59 @@ export type EnclosureSelectedParams = {
   sourceRowSelected: number | null;
 };
 
+/** A user's preferred media type for default enclosure selection. */
+export type MediaTypePreference = 'audio' | 'video';
+
+/**
+ * Resolve the default enclosure selection for a preferred media type.
+ *
+ * The preferred type is tried first; the other type is the fallback so a
+ * preference for video still plays audio-only feeds (and vice versa). When no
+ * enclosure of either type exists, the caller-facing `'default'` selection is
+ * returned. By default the first enclosure within the resolved media type is
+ * chosen; callers may pass `pickWithinType` to apply their own scoring (e.g.
+ * the embed best-fit connection-quality logic) without duplicating the
+ * preference-order traversal.
+ *
+ * The returned `enclosureRowSelected` is the index within the same-media-type
+ * subset, matching `getSelectedLabeledItemEnclosureAndSource`.
+ */
+export function resolvePreferredMediaTypeEnclosureSelectedParams(
+  labeledItemEnclosures: LabeledItemEnclosure[],
+  preferred: MediaTypePreference,
+  pickWithinType?: (candidates: LabeledItemEnclosure[], mediaType: MediaTypePreference) => number
+): EnclosureSelectedParams {
+  const fallback: EnclosureSelectedParams = {
+    type: 'default',
+    enclosureRowSelected: null,
+    sourceRowSelected: null,
+  };
+
+  if (!labeledItemEnclosures || labeledItemEnclosures.length === 0) {
+    return fallback;
+  }
+
+  const preferenceOrder: MediaTypePreference[] =
+    preferred === 'video' ? ['video', 'audio'] : ['audio', 'video'];
+
+  for (const mediaType of preferenceOrder) {
+    const candidates = labeledItemEnclosures.filter((entry) => entry.mediaType === mediaType);
+    if (candidates.length === 0) {
+      continue;
+    }
+
+    const enclosureRowSelected = pickWithinType ? pickWithinType(candidates, mediaType) : 0;
+
+    return {
+      type: mediaType,
+      enclosureRowSelected,
+      sourceRowSelected: 0,
+    };
+  }
+
+  return fallback;
+}
+
 export type SelectedLabeledItemEnclosureAndSource = {
   labeledItemEnclosure: LabeledItemEnclosure | null;
   source: DTOItemEnclosureSource | null;
@@ -111,6 +164,32 @@ export function getSelectedLabeledItemEnclosureAndSource({
   const sources = labeledItemEnclosure?.enclosure.item_enclosure_sources || [];
   source = sources[0] || null;
   return { labeledItemEnclosure, source };
+}
+
+export type ItemEnclosureModalityIndicator = 'none' | 'video' | 'mixed';
+
+/**
+ * Resolve whether an item's enclosures should display a modality indicator icon:
+ * - `'none'` for audio-only (no icon),
+ * - `'video'` for video-only,
+ * - `'mixed'` when both audio and video enclosures are present.
+ */
+export function resolveItemEnclosureModalityIndicator(
+  enclosures: DTOItemEnclosure[] | null | undefined
+): ItemEnclosureModalityIndicator {
+  if (!enclosures || enclosures.length === 0) {
+    return 'none';
+  }
+  const labeled = buildLabeledItemEnclosures(enclosures);
+  const hasAudio = labeled.some((e) => e.mediaType === 'audio');
+  const hasVideo = labeled.some((e) => e.mediaType === 'video');
+  if (hasVideo && hasAudio) {
+    return 'mixed';
+  }
+  if (hasVideo) {
+    return 'video';
+  }
+  return 'none';
 }
 
 export interface LabeledItemEnclosure {

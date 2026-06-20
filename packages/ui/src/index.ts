@@ -15,6 +15,8 @@ export type {
 } from './components/button/IconButton/index';
 export { MoreButton } from './components/button/MoreButton/index';
 export type { MoreButtonMenuItem, MoreButtonProps } from './components/button/MoreButton/index';
+export { ItemEnclosureModalityIcon } from './components/media/ItemEnclosureModalityIcon/index';
+export type { ItemEnclosureModalityIconProps } from './components/media/ItemEnclosureModalityIcon/index';
 export { Image } from './components/image/Image/Image';
 export type { ImageFallbackControl, ImageProps } from './components/image/Image/Image';
 export { ImageNonReact } from './components/image/ImageNonReact/ImageNonReact';

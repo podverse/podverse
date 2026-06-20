@@ -43,7 +43,12 @@
     },
     "updated_with_date": "Updated: {date}",
     "image": "Image",
-    "more_options": "More options"
+    "more_options": "More options",
+    "enclosure_modality": {
+      "video_available": "Video available",
+      "audio_and_video_available": "Audio and video available",
+      "select_source": "Select media source"
+    }
   },
   "features": {
     "search": {
@@ -794,10 +799,17 @@
     "settings": "Settings",
     "ui_theme": {
       "theme": "Theme",
+      "description": "Choose the color theme used throughout the app.",
       "light": "Light",
       "dark": "Dark",
       "dracula": "Dracula",
       "violet": "Violet"
+    },
+    "preferred_media_type": {
+      "label": "Preferred media type",
+      "description": "When an episode offers both audio and video, play this type by default.",
+      "audio": "Audio",
+      "video": "Video"
     },
     "feed": {
       "check_feed_for_updates": "Check Feed for Updates",
@@ -1145,6 +1157,7 @@
   },
   "language": {
     "language": "Language",
+    "description": "Choose the language used throughout the app.",
     "select_language": "Select Language",
     "languages": {
       "en-US": "English",

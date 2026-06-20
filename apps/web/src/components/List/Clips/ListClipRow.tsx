@@ -5,11 +5,11 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 import { FaGripLines } from 'react-icons/fa6';
 
-import type { DTOChannel, DTOClip, DTOItem } from '@podverse/helpers';
+import type { DTOChannel, DTOClip, DTOItem, EnclosureSelectedParams } from '@podverse/helpers';
 import { getQueueForMedium, mergeDTOItemThenChannelImageCandidates } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
 import type { MoreButtonMenuItem } from '@podverse/ui';
-import { ImagesPerView, MoreButton } from '@podverse/ui';
+import { ImagesPerView } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import { ROUTES } from '../../../constants/routes';
@@ -21,6 +21,7 @@ import { useQueues } from '../../../contexts/Queue';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
 import { playbackTargetFromStandardLoad } from '../../../lib/playback';
+import { ItemRowMoreActions } from '../../Media/ItemRowMoreActions';
 import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableTimeRange } from '../../Time/ReadableTimeRange';
@@ -91,37 +92,45 @@ export const ListClipRow: React.FC<Props> = ({
   const itemPubDate = item?.pub_date;
   const channelTitle = channel?.title || tMisc('untitled');
 
+  const isActiveItem = clip.id_text === mpClip?.id_text;
+
+  const loadItem = (
+    enclosureSelectedParams: EnclosureSelectedParams | 'use-active-item-or-default'
+  ) => {
+    if (!channel || !item) {
+      return;
+    }
+    mediaPlayerResourceUpdate({
+      target: playbackTargetFromStandardLoad({
+        channel,
+        clip,
+        item,
+        itemChapter: null,
+        itemSoundbite: null,
+        musicIntent: 'explicit_play',
+      }),
+      itemChapterShouldSeek: false,
+      isPlaying: true,
+      shouldPlay: true,
+      skipMoveNowPlayingToHistory: false,
+      enclosureSelectedParams,
+      newAutoQueueConfig: {
+        playlist_id_text,
+        disabled: false,
+        random: autoQueueConfig.random,
+        repeat: autoQueueConfig.repeat,
+        nextPage: 1,
+        shuffleHash: getShuffleHash(),
+      },
+      autoQueueShouldClear: true,
+    });
+  };
+
   const playButtonOnClick = () => {
-    if (clip.id_text === mpClip?.id_text) {
+    if (isActiveItem) {
       setMPIsPlaying(!mpIsPlaying);
     } else {
-      if (!channel || !item) {
-        return;
-      }
-      mediaPlayerResourceUpdate({
-        target: playbackTargetFromStandardLoad({
-          channel,
-          clip,
-          item,
-          itemChapter: null,
-          itemSoundbite: null,
-          musicIntent: 'explicit_play',
-        }),
-        itemChapterShouldSeek: false,
-        isPlaying: true,
-        shouldPlay: true,
-        skipMoveNowPlayingToHistory: false,
-        enclosureSelectedParams: 'use-active-item-or-default',
-        newAutoQueueConfig: {
-          playlist_id_text,
-          disabled: false,
-          random: autoQueueConfig.random,
-          repeat: autoQueueConfig.repeat,
-          nextPage: 1,
-          shuffleHash: getShuffleHash(),
-        },
-        autoQueueShouldClear: true,
-      });
+      loadItem('use-active-item-or-default');
     }
   };
 
@@ -352,9 +361,14 @@ export const ListClipRow: React.FC<Props> = ({
             </div>
           </div>
           <div className={styles.bottomSectionEnd}>
-            <MoreButton
+            <ItemRowMoreActions
+              enclosures={item?.item_enclosures ?? []}
+              itemTitle={itemTitle}
               ariaLabel={tMedia('more_options')}
               moreButtonMenuItems={moreButtonMenuItems}
+              onLoadInPlayerWithSource={
+                isActiveItem ? undefined : (params) => loadItem(params)
+              }
             />
           </div>
         </div>

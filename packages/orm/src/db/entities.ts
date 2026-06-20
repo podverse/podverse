@@ -21,6 +21,7 @@ import { AccountSettings } from '@orm/entities/account/accountSettings/accountSe
 import { AccountSettingsLocale } from '@orm/entities/account/accountSettings/accountSettingsLocale.js';
 import { AccountSettingsNotification } from '@orm/entities/account/accountSettings/accountSettingsNotification.js';
 import { AccountSettingsNotificationType } from '@orm/entities/account/accountSettings/accountSettingsNotificationType.js';
+import { AccountSettingsPlayback } from '@orm/entities/account/accountSettings/accountSettingsPlayback.js';
 import { AccountTermsAcceptance } from '@orm/entities/account/accountTermsAcceptance.js';
 import { AccountUPDevice } from '@orm/entities/account/accountUPDevice.js';
 import { AccountVerification } from '@orm/entities/account/accountVerification.js';
@@ -147,6 +148,7 @@ export const entities = [
   AccountSettingsLocale,
   AccountSettingsNotification,
   AccountSettingsNotificationType,
+  AccountSettingsPlayback,
   AccountUPDevice,
   AccountWebPushDevice,
   AccountVerification,

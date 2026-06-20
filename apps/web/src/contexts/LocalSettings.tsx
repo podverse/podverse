@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useLayoutEffect, useState } from 'react';
 
+import type { MediaTypePreference } from '@podverse/helpers';
+
 import type { ViewSelectedOption } from '../components/ViewSelector/ViewSelector';
 import { COOKIE_CONSENT_MODEL_VERSION } from '../lib/cookieConsent/cookieConsentPolicy';
 import { clearAnonymousPlaybackSnapshot } from '../utils/anonymousPlaybackStorage';
@@ -35,6 +37,8 @@ type LocalSettingsContextType = {
   setBoostFormDefaults: React.Dispatch<React.SetStateAction<BoostFormDefaultsByValueKey>>;
   cookieConsent: CookieConsentState | undefined;
   setCookieConsent: (choice: CookieConsentChoice) => void;
+  preferredMediaType: MediaTypePreference;
+  setPreferredMediaType: (pmt: MediaTypePreference) => void;
 };
 
 type LocalSettingsProps = {
@@ -65,6 +69,9 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
   const [cookieConsent, setCookieConsentState] = useState<CookieConsentState | undefined>(
     ssrLocalSettings.cc
   );
+  const [preferredMediaType, setPreferredMediaType] = useState<MediaTypePreference>(
+    ssrLocalSettings.pmt ?? 'video'
+  );
 
   const setCookieConsent = (choice: CookieConsentChoice) => {
     if (choice === 'none') {
@@ -91,6 +98,7 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
       metd: existingSettings.metd,
       bfd: boostFormDefaults,
       cc: cookieConsent !== undefined ? cookieConsent : existingSettings.cc,
+      pmt: preferredMediaType,
     });
   }, [
     uiTheme,
@@ -100,6 +108,7 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
     sidebarAccordion,
     boostFormDefaults,
     cookieConsent,
+    preferredMediaType,
   ]);
 
   return (
@@ -121,6 +130,8 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
         setBoostFormDefaults,
         cookieConsent,
         setCookieConsent,
+        preferredMediaType,
+        setPreferredMediaType,
       }}
     >
       {children}

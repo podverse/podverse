@@ -9,6 +9,7 @@ import { AccountSettings } from '@orm/entities/account/accountSettings/accountSe
 import { AccountSettingsLocale } from '@orm/entities/account/accountSettings/accountSettingsLocale.js';
 import { AccountSettingsNotification } from '@orm/entities/account/accountSettings/accountSettingsNotification.js';
 import { AccountSettingsNotificationType } from '@orm/entities/account/accountSettings/accountSettingsNotificationType.js';
+import { AccountSettingsPlayback } from '@orm/entities/account/accountSettings/accountSettingsPlayback.js';
 import {
   findOptionsRelationsFromPaths,
   mergeFindOptionsRelations,
@@ -55,6 +56,7 @@ const requiredRelations: FindOptionsRelations<Account> = findOptionsRelationsFro
   'account_settings.account_settings_locale',
   'account_settings.account_settings_notification',
   'account_settings.account_settings_notification.account_settings_notification_types',
+  'account_settings.account_settings_playback',
 ]);
 
 export class AccountService {
@@ -332,6 +334,7 @@ export class AccountService {
     const accountSettingsRepo = AppDataSourceReadWrite.getRepository(AccountSettings);
     const localeRepo = AppDataSourceReadWrite.getRepository(AccountSettingsLocale);
     const notificationRepo = AppDataSourceReadWrite.getRepository(AccountSettingsNotification);
+    const playbackRepo = AppDataSourceReadWrite.getRepository(AccountSettingsPlayback);
 
     // If alwaysCreate (used by create), always create new AccountSettings row linked to the account
     if (params.alwaysCreate || !account.account_settings) {
@@ -351,6 +354,12 @@ export class AccountService {
       const notification = new AccountSettingsNotification();
       notification.account_settings_id = savedAccountSettings.id;
       await notificationRepo.save(notification);
+
+      // Then create and save the playback settings with the default preferred media type
+      const playback = new AccountSettingsPlayback();
+      playback.account_settings_id = savedAccountSettings.id;
+      playback.preferred_media_type = 'video';
+      await playbackRepo.save(playback);
 
       // Finally, create and save the notification types
       const t1 = new AccountSettingsNotificationType();
@@ -376,6 +385,19 @@ export class AccountService {
       locale.account_settings_id = existingSettings.id;
       locale.locale = params.locale;
       await localeRepo.save(locale);
+    }
+
+    if (!existingSettings.account_settings_playback) {
+      // Idempotent insert: concurrent get() calls for an account that predates
+      // the playback table can race here. ON CONFLICT DO NOTHING avoids the
+      // unique-constraint crash and never overwrites an existing preference.
+      await playbackRepo
+        .createQueryBuilder()
+        .insert()
+        .into(AccountSettingsPlayback)
+        .values({ account_settings_id: existingSettings.id, preferred_media_type: 'video' })
+        .orIgnore()
+        .execute();
     }
 
     if (!existingSettings.account_settings_notification) {

@@ -1,6 +1,7 @@
 import type {
   CategoryMappingKeys,
   LiveItemStatus,
+  MediaTypePreference,
   QueryParamsMedium,
   QueryParamsQueueMedium,
 } from '@podverse/helpers';
@@ -37,6 +38,7 @@ LocalSettingsState Legend:
   - metd = membershipExpirationToastDismissed (ISO date string of last dismissal)
   - bfd = boostFormDefaults (per value type: send to creator, send to app, your name)
   - cc = cookieConsent (device-level cookie banner choice)
+  - pmt = preferredMediaType (default media player enclosure preference: 'audio' | 'video')
 */
 
 export type CookieConsentChoice = 'all' | 'essential' | 'none';
@@ -182,6 +184,7 @@ export interface LocalSettingsState {
   metd?: string; // membershipExpirationToastDismissed (ISO date string of last dismissal)
   bfd?: BoostFormDefaultsByValueKey;
   cc?: CookieConsentState;
+  pmt?: MediaTypePreference; // preferredMediaType (default media player enclosure preference)
 }
 
 export function handleLocalSettingsUpdate(newState: LocalSettingsState) {
@@ -238,7 +241,12 @@ function getDefaultLocalSettings(): LocalSettingsState {
     sba: { ...DEFAULT_SIDEBAR_ACCORDION_STATE },
     fd: {},
     bfd: {},
+    pmt: 'video',
   };
+}
+
+function isValidMediaTypePreference(pmt: unknown): pmt is MediaTypePreference {
+  return pmt === 'audio' || pmt === 'video';
 }
 
 function isValidLocalSettings(settings: unknown): settings is LocalSettingsState {
@@ -266,7 +274,8 @@ function isValidLocalSettings(settings: unknown): settings is LocalSettingsState
     (s.fd === undefined || (typeof s.fd === 'object' && s.fd !== null)) &&
     (s.metd === undefined || typeof s.metd === 'string') &&
     (s.bfd === undefined || (typeof s.bfd === 'object' && s.bfd !== null)) &&
-    (s.cc === undefined || isValidCookieConsentState(s.cc))
+    (s.cc === undefined || isValidCookieConsentState(s.cc)) &&
+    (s.pmt === undefined || isValidMediaTypePreference(s.pmt))
   );
 }
 
@@ -275,6 +284,14 @@ export function setCookieConsent(choice: CookieConsentChoice): void {
   handleLocalSettingsUpdate({
     ...settings,
     cc: { choice, at: new Date().toISOString(), v: COOKIE_CONSENT_MODEL_VERSION },
+  });
+}
+
+export function setPreferredMediaType(pmt: MediaTypePreference): void {
+  const settings = getParsedLocalSettings();
+  handleLocalSettingsUpdate({
+    ...settings,
+    pmt,
   });
 }
 

@@ -43,6 +43,7 @@ export const EMBED_SAMPLE_VIDEO_CHANNEL_IMAGE_URL = E2E_FIXTURE_ITEM_IMAGE_URL;
 export const EMBED_SAMPLE_EPISODE_AUDIO_TITLE = 'Heavenly Bodies';
 export const EMBED_SAMPLE_EPISODE_NEAR_END_TITLE = 'Constellations';
 export const EMBED_SAMPLE_EPISODE_VIDEO_TITLE = 'Episode (video)';
+export const EMBED_SAMPLE_EPISODE_VIDEO_ONLY_TITLE = 'Episode (video only)';
 export const EMBED_SAMPLE_TRACK_AUDIO_TITLE = 'Magic Flute Overture';
 export const EMBED_SAMPLE_TRACK_TWO_TITLE = 'Egmont Overture';
 export const EMBED_SAMPLE_TRACK_VIDEO_TITLE = 'Track (video)';
@@ -80,6 +81,7 @@ export const EMBED_SAMPLE_EPISODE_DURATION_SECONDS = 60;
 export const EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT = 'embSmpPodAud1';
 export const EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT = 'embSmpEpAud1';
 export const EMBED_FIXTURE_PODCAST_EPISODE_NEAR_END_ID_TEXT = 'embSmpEpAud2';
+export const EMBED_FIXTURE_PODCAST_EPISODE_VIDEO_ONLY_ID_TEXT = 'embSmpEpVid1';
 export const EMBED_FIXTURE_PODCAST_EPISODE_VIDEO_ID_TEXT = 'e2eEmbVidItem01';
 
 export const EMBED_FIXTURE_MUSIC_ALBUM_ID_TEXT = 'embSmpAlbAud1';

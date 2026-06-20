@@ -3,10 +3,14 @@
 import { useEffect, useRef } from 'react';
 
 import type { DTOQueueResource } from '@podverse/helpers';
-import { buildLabeledItemEnclosures } from '@podverse/helpers';
+import {
+  buildLabeledItemEnclosures,
+  resolvePreferredMediaTypeEnclosureSelectedParams,
+} from '@podverse/helpers';
 
 import type { AutoQueueResourcesMapRow } from '../contexts/AutoQueue';
 import { checkIsActiveRowHighestKey, useAutoQueue } from '../contexts/AutoQueue';
+import { useLocalSettings } from '../contexts/LocalSettings';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
 import { useQueues } from '../contexts/Queue';
 import { getApiRequestService } from '../factories/apiRequestService';
@@ -30,9 +34,12 @@ export function useMediaPlayerControllerQueueHeadLoading(): void {
     mpItemSoundbite,
     mpAddByRSS,
     pendingMusicQueueLoadIntentRef,
+    mpEnclosureSelectedParams,
+    setMPEnclosureSelectedParams,
     setMPItemChapters,
     setMPItemLabeledItemEnclosures,
   } = useMediaPlayer();
+  const { preferredMediaType } = useLocalSettings();
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const playAddByRSS = usePlayAddByRSS();
   const { activeQueueUpcomingResources } = useQueues();
@@ -64,6 +71,16 @@ export function useMediaPlayerControllerQueueHeadLoading(): void {
     mpItemSoundbiteRef.current = mpItemSoundbite;
   }, [mpItemSoundbite]);
 
+  const mpEnclosureSelectedParamsRef = useRef(mpEnclosureSelectedParams);
+  useEffect(() => {
+    mpEnclosureSelectedParamsRef.current = mpEnclosureSelectedParams;
+  }, [mpEnclosureSelectedParams]);
+
+  const preferredMediaTypeRef = useRef(preferredMediaType);
+  useEffect(() => {
+    preferredMediaTypeRef.current = preferredMediaType;
+  }, [preferredMediaType]);
+
   useEffect(() => {
     const fetchItemChapters = async () => {
       if (mpItem?.id_text) {
@@ -91,6 +108,24 @@ export function useMediaPlayerControllerQueueHeadLoading(): void {
     const fetchItemLabeledItemEnclosures = async () => {
       const mpItemLabeledEnclosures = buildLabeledItemEnclosures(mpItem?.item_enclosures || []);
       setMPItemLabeledItemEnclosures(mpItemLabeledEnclosures);
+
+      // On a fresh item load (params reset to the `default` selection with no row
+      // chosen), apply the viewer's preferred media type. Manual SourceSelectors
+      // overrides and same-item reloads keep non-default params and are preserved.
+      const currentParams = mpEnclosureSelectedParamsRef.current;
+      const isFreshLoadDefault =
+        currentParams.type === 'default' &&
+        currentParams.enclosureRowSelected === null &&
+        currentParams.sourceRowSelected === null;
+      if (isFreshLoadDefault && mpItemLabeledEnclosures.length > 0) {
+        const preferredParams = resolvePreferredMediaTypeEnclosureSelectedParams(
+          mpItemLabeledEnclosures,
+          preferredMediaTypeRef.current
+        );
+        if (preferredParams.type !== 'default') {
+          setMPEnclosureSelectedParams(preferredParams);
+        }
+      }
     };
 
     void fetchItemChapters();

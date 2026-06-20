@@ -1,7 +1,7 @@
 import { useTranslations } from 'next-intl';
 import { Fragment } from 'react';
 
-import type { LabeledItemEnclosure } from '@podverse/helpers';
+import type { EnclosureSelectedParams, LabeledItemEnclosure } from '@podverse/helpers';
 import { getDownloadFilenameFromSource } from '@podverse/helpers';
 import { Divider } from '@podverse/ui';
 
@@ -27,12 +27,20 @@ type SourceSelectorsProps = {
   labeledItemEnclosures: LabeledItemEnclosure[];
   actionType: SourceSelectorActionType;
   itemTitle: string | null;
+  /**
+   * When provided (the displayed item is NOT the now-playing item), selecting a
+   * source loads that item into the player with the chosen enclosure instead of
+   * re-pointing the now-playing item's enclosure. When absent, the now-playing
+   * in-place switch (preserving position) is used.
+   */
+  onLoadInPlayerWithSource?: ((params: EnclosureSelectedParams) => void) | null;
 };
 
 export const SourceSelectors = ({
   labeledItemEnclosures,
   actionType,
   itemTitle,
+  onLoadInPlayerWithSource,
 }: SourceSelectorsProps) => {
   const tFeatures = useTranslations('features');
   const {
@@ -61,22 +69,29 @@ export const SourceSelectors = ({
           enclosureRowSelected: enclosureIndex,
           sourceRowSelected: sourceIndex,
         };
-        const enclosureSwitchDecision = buildEnclosureSwitchPlaybackDecisionIfChanged({
-          labeledItemEnclosures,
-          currentEnclosureSelectedParams: mpEnclosureSelectedParams,
-          nextEnclosureSelectedParams,
-          resumeAtSeconds: resolveResumeAtSecondsForEnclosureSwitch(
-            readCurrentTimeSeconds(),
-            mpCurrentTime
-          ),
-          mpClip,
-          mpItemSoundbite,
-          mpItemChapter,
-        });
-        if (enclosureSwitchDecision !== null) {
-          setPendingPlaybackDecision(enclosureSwitchDecision);
+        if (onLoadInPlayerWithSource) {
+          // The displayed item is not the now-playing item: load it with the
+          // chosen source (acts as a play button) rather than mutating the
+          // currently-loaded item's enclosure.
+          onLoadInPlayerWithSource(nextEnclosureSelectedParams);
+        } else {
+          const enclosureSwitchDecision = buildEnclosureSwitchPlaybackDecisionIfChanged({
+            labeledItemEnclosures,
+            currentEnclosureSelectedParams: mpEnclosureSelectedParams,
+            nextEnclosureSelectedParams,
+            resumeAtSeconds: resolveResumeAtSecondsForEnclosureSwitch(
+              readCurrentTimeSeconds(),
+              mpCurrentTime
+            ),
+            mpClip,
+            mpItemSoundbite,
+            mpItemChapter,
+          });
+          if (enclosureSwitchDecision !== null) {
+            setPendingPlaybackDecision(enclosureSwitchDecision);
+          }
+          setMPEnclosureSelectedParams(nextEnclosureSelectedParams);
         }
-        setMPEnclosureSelectedParams(nextEnclosureSelectedParams);
       } else if (actionType === 'download-episode') {
         if (!source.uri) {
           showToast(tFeatures('download.episode_download_error'), 'error');

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 import { FaGripLines } from 'react-icons/fa6';
 
+import type { EnclosureSelectedParams } from '@podverse/helpers';
 import {
   getQueueForMedium,
   mergeDTOItemThenChannelImageCandidates,
@@ -12,7 +13,7 @@ import {
 } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
 import type { MoreButtonMenuItem } from '@podverse/ui';
-import { ImagesPerView, MoreButton } from '@podverse/ui';
+import { ImagesPerView } from '@podverse/ui';
 
 import { IMAGES } from '../../../../constants/images';
 import { ROUTES } from '../../../../constants/routes';
@@ -27,6 +28,7 @@ import { useMediaPlayerResourceUpdate } from '../../../../hooks/useMediaPlayerRe
 import { playbackTargetFromStandardLoad } from '../../../../lib/playback';
 import { downloadEpisodeWithModal } from '../../../../utils/downloadModal/downloadEpisodeWithModal';
 import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
+import { ItemRowMoreActions } from '../../../Media/ItemRowMoreActions';
 import { PlayButtonRow } from '../../../MediaPlayer/Buttons/PlayButtonRow';
 import { ReadableDate } from '../../../Time/ReadableDate';
 import { getDurationAndPositionStr, ReadableDuration } from '../../../Time/ReadableDuration';
@@ -66,34 +68,42 @@ export const CommonEpisodeListRow: React.FC<EpisodeListRowProps> = ({
   const { durationStr, positionStr } = getDurationAndPositionStr(item, queueResourcesAbridgedIndex);
   const { autoQueueConfig } = useAutoQueue();
 
+  const isActiveItem = item.id === mpItem?.id;
+
+  const loadItem = (
+    enclosureSelectedParams: EnclosureSelectedParams | 'use-active-item-or-default'
+  ) => {
+    mediaPlayerResourceUpdate({
+      target: playbackTargetFromStandardLoad({
+        channel,
+        clip: null,
+        item,
+        itemChapter: null,
+        itemSoundbite: null,
+        musicIntent: 'explicit_play',
+      }),
+      itemChapterShouldSeek: false,
+      shouldPlay: true,
+      enclosureSelectedParams,
+      isPlaying: true,
+      skipMoveNowPlayingToHistory: false,
+      newAutoQueueConfig: {
+        playlist_id_text,
+        disabled: false,
+        random: autoQueueConfig.random,
+        repeat: autoQueueConfig.repeat,
+        nextPage: 1,
+        shuffleHash: getShuffleHash(),
+      },
+      autoQueueShouldClear: true,
+    });
+  };
+
   const playButtonOnClick = () => {
-    if (item.id === mpItem?.id) {
+    if (isActiveItem) {
       setMPIsPlaying(!mpIsPlaying);
     } else {
-      mediaPlayerResourceUpdate({
-        target: playbackTargetFromStandardLoad({
-          channel,
-          clip: null,
-          item,
-          itemChapter: null,
-          itemSoundbite: null,
-          musicIntent: 'explicit_play',
-        }),
-        itemChapterShouldSeek: false,
-        shouldPlay: true,
-        enclosureSelectedParams: 'use-active-item-or-default',
-        isPlaying: true,
-        skipMoveNowPlayingToHistory: false,
-        newAutoQueueConfig: {
-          playlist_id_text,
-          disabled: false,
-          random: autoQueueConfig.random,
-          repeat: autoQueueConfig.repeat,
-          nextPage: 1,
-          shuffleHash: getShuffleHash(),
-        },
-        autoQueueShouldClear: true,
-      });
+      loadItem('use-active-item-or-default');
     }
   };
 
@@ -294,9 +304,14 @@ export const CommonEpisodeListRow: React.FC<EpisodeListRowProps> = ({
             </div>
           </div>
           <div className={styles.bottomSectionEnd}>
-            <MoreButton
+            <ItemRowMoreActions
+              enclosures={item.item_enclosures}
+              itemTitle={item.title}
               ariaLabel={tMedia('more_options')}
               moreButtonMenuItems={moreButtonMenuItems}
+              onLoadInPlayerWithSource={
+                isActiveItem ? undefined : (params) => loadItem(params)
+              }
             />
           </div>
         </div>

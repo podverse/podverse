@@ -4,10 +4,10 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
-import { getQueueForMedium } from '@podverse/helpers';
+import { addByRSSBundleEnclosuresToDTO, getQueueForMedium } from '@podverse/helpers';
 import { stripAndDecodeHtml } from '@podverse/helpers';
+import type { EnclosureSelectedParams } from '@podverse/helpers';
 import { buildAddByRSSResourceData, getAddByRSSHashId } from '@podverse/parser-mapping';
-import { MoreButton } from '@podverse/ui';
 
 import { useAccount } from '../../../../../contexts/Account';
 import type { AddByRSSListContextState } from '../../../../../contexts/AddByRSSListContext';
@@ -25,6 +25,7 @@ import type {
 import { downloadAddByRSSMediaWithModal } from '../../../../../utils/downloadModal/downloadAddByRSSMediaWithModal';
 import { downloadAndSaveFile } from '../../../../../utils/fileDownloader';
 import { CommonTrackRow } from '../../../../Common/Artist/Album/Track/CommonTrackRow';
+import { ItemRowMoreActions } from '../../../../Media/ItemRowMoreActions';
 import { showToastPromise, showToastPromiseWithLoading } from '../../../../Toast/Toast';
 
 const alertPlaceholder = (label: string) => () => {
@@ -137,19 +138,28 @@ export const AddByRSSTrackRow: React.FC<AddByRSSTrackRowProps> = ({
 
   const router = useRouter();
 
-  const playButtonOnClick = () => {
+  const isActiveItem = !!indexItem && indexItem.idText === mpAddByRSS?.idText;
+
+  const loadItem = (enclosureSelectedParams?: EnclosureSelectedParams) => {
     if (!indexItem) {
-      alertPlaceholder(tMediaPlayer('play'))();
-      return;
-    }
-    if (indexItem.idText === mpAddByRSS?.idText) {
-      setMPIsPlaying(!mpIsPlaying);
       return;
     }
     if (listContextProp) {
       setAddByRSSListContext(listContextProp);
     }
-    playAddByRSS(indexItem);
+    playAddByRSS(indexItem, undefined, enclosureSelectedParams);
+  };
+
+  const playButtonOnClick = () => {
+    if (!indexItem) {
+      alertPlaceholder(tMediaPlayer('play'))();
+      return;
+    }
+    if (isActiveItem) {
+      setMPIsPlaying(!mpIsPlaying);
+      return;
+    }
+    loadItem();
   };
 
   const goToTrackPage = () => {
@@ -217,7 +227,13 @@ export const AddByRSSTrackRow: React.FC<AddByRSSTrackRowProps> = ({
       subtitle={description}
       imageUrl={imageUrl}
       rightMetaNode={
-        <MoreButton ariaLabel={tMedia('more_options')} moreButtonMenuItems={moreButtonMenuItems} />
+        <ItemRowMoreActions
+          enclosures={bundle.enclosures ? addByRSSBundleEnclosuresToDTO(bundle.enclosures) : []}
+          itemTitle={title}
+          ariaLabel={tMedia('more_options')}
+          moreButtonMenuItems={moreButtonMenuItems}
+          onLoadInPlayerWithSource={isActiveItem ? undefined : (params) => loadItem(params)}
+        />
       }
     />
   );

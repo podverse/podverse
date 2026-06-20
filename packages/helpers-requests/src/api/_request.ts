@@ -1,5 +1,6 @@
 import type { QueueExtraParams } from '@podverse/helpers';
 import type { BetweenParams } from '@podverse/helpers';
+import type { MediaTypePreference } from '@podverse/helpers';
 import type { QueryParamsPodcastIndexSearchMedium } from '@podverse/helpers';
 import type {
   CreateAccountFCMDeviceParams,
@@ -77,6 +78,7 @@ import {
   reqAccountSettingsLocaleUpdate,
   reqAccountSettingsNotificationTypeCreate,
   reqAccountSettingsNotificationTypeDelete,
+  reqAccountSettingsPlaybackUpdate,
 } from './accountSettings/accountSettings.js';
 import {
   reqAuthCheckSession,
@@ -595,6 +597,10 @@ export class ApiRequestService {
 
   reqAccountSettingsListenStatsUpdate(params: { allow_listen_stats: boolean }) {
     return reqAccountSettingsListenStatsUpdate(this, params);
+  }
+
+  reqAccountSettingsPlaybackUpdate(params: { preferred_media_type: MediaTypePreference }) {
+    return reqAccountSettingsPlaybackUpdate(this, params);
   }
 
   /* ACCOUNT > SETTINGS > NOTIFICATIONS */

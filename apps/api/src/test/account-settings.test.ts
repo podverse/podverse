@@ -16,13 +16,21 @@ import {
 const TEST_EMAIL = 'settings-test@example.com';
 const TEST_USER_ID = 1;
 
-const { localeUpdateMock, notificationTypeCreateMock, notificationTypeDeleteMock } = vi.hoisted(
-  () => ({
-    localeUpdateMock: vi.fn(async () => ({ account_id: TEST_USER_ID, locale: 'en-US' })),
-    notificationTypeCreateMock: vi.fn(async () => ({ account_id: TEST_USER_ID, type: 'new-item' })),
-    notificationTypeDeleteMock: vi.fn(async () => {}),
-  })
-);
+const {
+  localeUpdateMock,
+  notificationTypeCreateMock,
+  notificationTypeDeleteMock,
+  playbackUpdateMock,
+} = vi.hoisted(() => ({
+  localeUpdateMock: vi.fn(async () => ({ account_id: TEST_USER_ID, locale: 'en-US' })),
+  notificationTypeCreateMock: vi.fn(async () => ({ account_id: TEST_USER_ID, type: 'new-item' })),
+  notificationTypeDeleteMock: vi.fn(async () => {}),
+  playbackUpdateMock: vi.fn(async () => ({
+    id: 1,
+    account_settings_id: 1,
+    preferred_media_type: 'video',
+  })),
+}));
 
 vi.mock('@podverse/orm', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@podverse/orm')>();
@@ -65,12 +73,17 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     delete = notificationTypeDeleteMock;
   }
 
+  class MockAccountSettingsPlaybackService {
+    update = playbackUpdateMock;
+  }
+
   return {
     ...actual,
     CategoryService: MockCategoryService,
     AccountService: MockAccountService,
     AccountSettingsLocaleService: MockAccountSettingsLocaleService,
     AccountSettingsNotificationTypeService: MockAccountSettingsNotificationTypeService,
+    AccountSettingsPlaybackService: MockAccountSettingsPlaybackService,
   };
 });
 
@@ -118,6 +131,55 @@ describe('account settings routes', () => {
         .patch(`${settingsBase}/locale`)
         .set(authHeaders(TEST_USER_ID))
         .send({});
+
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe('PATCH /account-settings/playback', () => {
+    it('returns 200 with valid preferred_media_type when authenticated', async () => {
+      playbackUpdateMock.mockResolvedValueOnce({
+        id: 1,
+        account_settings_id: 1,
+        preferred_media_type: 'audio',
+      });
+
+      const res = await request(app)
+        .patch(`${settingsBase}/playback`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ preferred_media_type: 'audio' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data).toBeDefined();
+      expect(res.body.data.preferred_media_type).toBe('audio');
+      expect(playbackUpdateMock).toHaveBeenCalledWith({
+        account_id: TEST_USER_ID,
+        preferred_media_type: 'audio',
+      });
+    });
+
+    it('returns 401 without auth', async () => {
+      const res = await request(app)
+        .patch(`${settingsBase}/playback`)
+        .send({ preferred_media_type: 'video' });
+
+      expect(res.status).toBe(401);
+    });
+
+    it('returns 400 with missing preferred_media_type', async () => {
+      const res = await request(app)
+        .patch(`${settingsBase}/playback`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({});
+
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 400 with an invalid preferred_media_type', async () => {
+      const res = await request(app)
+        .patch(`${settingsBase}/playback`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ preferred_media_type: 'bogus' });
 
       expect(res.status).toBe(400);
     });

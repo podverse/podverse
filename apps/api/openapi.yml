@@ -706,6 +706,32 @@ components:
             allow_listen_stats:
               type: boolean
               example: false
+    ApiPatchAccountSettingsPlaybackRequest:
+      type: object
+      required:
+        - preferred_media_type
+      properties:
+        preferred_media_type:
+          type: string
+          enum:
+            - audio
+            - video
+          description: The preferred media type used to pick the default enclosure in the player
+          example: video
+    ApiPatchAccountSettingsPlaybackResponse200:
+      type: object
+      properties:
+        data:
+          type: object
+          required:
+            - preferred_media_type
+          properties:
+            preferred_media_type:
+              type: string
+              enum:
+                - audio
+                - video
+              example: video
     ApiPostAccountAcceptTermsRequest:
       type: object
       required:
@@ -2668,6 +2694,59 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiPatchAccountSettingsListenStatsResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account-settings/playback:
+    patch:
+      operationId: apiPatchAccountSettingsPlayback
+      tags:
+        - account-settings
+      summary: PATCH /account-settings/playback
+      description: Update the preferred media type used to pick the default enclosure for the authenticated account.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiPatchAccountSettingsPlaybackRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPatchAccountSettingsPlaybackResponse200"
         "400":
           description: Bad request
           content:

@@ -4,6 +4,7 @@ import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'ty
 
 import type { AccountSettingsLocale } from './accountSettingsLocale.js';
 import type { AccountSettingsNotification } from './accountSettingsNotification.js';
+import type { AccountSettingsPlayback } from './accountSettingsPlayback.js';
 
 @Entity()
 export class AccountSettings {
@@ -34,4 +35,11 @@ export class AccountSettings {
     { cascade: ['insert'] }
   )
   account_settings_notification!: Relation<AccountSettingsNotification>;
+
+  @OneToOne(
+    'AccountSettingsPlayback',
+    (accountSettingsPlayback: AccountSettingsPlayback) => accountSettingsPlayback.account_settings,
+    { cascade: ['insert'] }
+  )
+  account_settings_playback!: Relation<AccountSettingsPlayback>;
 }
