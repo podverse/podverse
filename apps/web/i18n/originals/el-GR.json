@@ -43,7 +43,12 @@
     },
     "updated_with_date": "Ενημερώθηκε: {date}",
     "image": "Εικόνα",
-    "more_options": "Περισσότερες επιλογές"
+    "more_options": "Περισσότερες επιλογές",
+    "enclosure_modality": {
+      "video_available": "Διαθέσιμο βίντεο",
+      "audio_and_video_available": "Διαθέσιμος ήχος και βίντεο",
+      "select_source": "Επιλέξτε πηγή μέσου"
+    }
   },
   "features": {
     "search": {
@@ -794,10 +799,17 @@
     "settings": "Ρυθμίσεις",
     "ui_theme": {
       "theme": "Θέμα",
+      "description": "Επιλέξτε το χρωματικό θέμα που χρησιμοποιείται σε όλη την εφαρμογή.",
       "light": "Φωτεινό",
       "dark": "Σκοτεινό",
       "dracula": "Δράκουλας",
       "violet": "Βιολέ"
+    },
+    "preferred_media_type": {
+      "label": "Προτιμώμενος τύπος μέσου",
+      "description": "Όταν ένα επεισόδιο προσφέρει τόσο ήχο όσο και βίντεο, αναπαραγωγή αυτού του τύπου ως προεπιλογή.",
+      "audio": "Ήχος",
+      "video": "Βίντεο"
     },
     "feed": {
       "check_feed_for_updates": "Έλεγχος Ροής για Ενημερώσεις",
@@ -1145,6 +1157,7 @@
   },
   "language": {
     "language": "Γλώσσα",
+    "description": "Επιλέξτε τη γλώσσα που χρησιμοποιείται σε όλη την εφαρμογή.",
     "select_language": "Επιλέξτε Γλώσσα",
     "languages": {
       "en-US": "Αγγλικά",

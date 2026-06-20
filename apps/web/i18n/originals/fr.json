@@ -43,7 +43,12 @@
     },
     "updated_with_date": "Mis à jour : {date}",
     "image": "Image",
-    "more_options": "Plus d'options"
+    "more_options": "Plus d'options",
+    "enclosure_modality": {
+      "video_available": "Vidéo disponible",
+      "audio_and_video_available": "Audio et vidéo disponibles",
+      "select_source": "Sélectionner la source de médias"
+    }
   },
   "features": {
     "search": {
@@ -794,10 +799,17 @@
     "settings": "Paramètres",
     "ui_theme": {
       "theme": "Thème",
+      "description": "Choisissez le thème de couleur utilisé dans toute l'application.",
       "light": "Clair",
       "dark": "Sombre",
       "dracula": "Dracula",
       "violet": "Violet"
+    },
+    "preferred_media_type": {
+      "label": "Type de média préféré",
+      "description": "Lorsque qu'un épisode propose à la fois de l'audio et de la vidéo, lire ce type par défaut.",
+      "audio": "Audio",
+      "video": "Vidéo"
     },
     "feed": {
       "check_feed_for_updates": "Vérifier le flux pour les mises à jour",
@@ -1145,6 +1157,7 @@
   },
   "language": {
     "language": "Langue",
+    "description": "Choisissez la langue utilisée dans toute l'application.",
     "select_language": "Sélectionner la langue",
     "languages": {
       "en-US": "Anglais",
