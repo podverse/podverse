@@ -31,23 +31,33 @@ export const noopMediaElementBridge: MediaElementBridge = Object.freeze({
 const MediaPlayerControlsContext = createContext<MediaPlayerControlsContextValue | null>(null);
 
 type RegistrarContextType = {
-  register: (bridge: MediaElementBridge | null) => void;
+  register: (bridge: MediaElementBridge) => void;
+  unregister: (bridge: MediaElementBridge) => void;
 };
 
 const MediaPlayerControlsRegistrarContext = createContext<RegistrarContextType | null>(null);
 
 export function MediaPlayerControlsProvider({ children }: { children: ReactNode }) {
-  const [attached, setAttached] = useState<MediaElementBridge | null>(null);
-  const register = useCallback((bridge: MediaElementBridge | null) => {
-    setAttached(bridge);
+  // LIFO stack of registered bridges. Multiple non-live orchestrators (the always-mounted audio
+  // element and the conditionally-mounted video element) register at once; the most recently
+  // registered bridge owns active playback. Tracking the full stack means unmounting one
+  // orchestrator falls back to the other instead of clearing the controls (which previously left
+  // `seek`/`jumpBy` pointing at the frozen no-op bridge and broke the progress bar / jump buttons).
+  const [stack, setStack] = useState<MediaElementBridge[]>([]);
+  const register = useCallback((bridge: MediaElementBridge) => {
+    setStack((prev) => (prev.includes(bridge) ? prev : [...prev, bridge]));
   }, []);
-  const registrarValue = useMemo(() => ({ register }), [register]);
+  const unregister = useCallback((bridge: MediaElementBridge) => {
+    setStack((prev) => prev.filter((registered) => registered !== bridge));
+  }, []);
+  const registrarValue = useMemo(() => ({ register, unregister }), [register, unregister]);
   const value = useMemo((): MediaPlayerControlsContextValue => {
+    const attached = stack[stack.length - 1] ?? null;
     if (attached === null) {
       return { ...noopMediaElementBridge, isAttached: false };
     }
     return { ...attached, isAttached: true };
-  }, [attached]);
+  }, [stack]);
   return (
     <MediaPlayerControlsRegistrarContext.Provider value={registrarValue}>
       <MediaPlayerControlsContext.Provider value={value}>
@@ -65,7 +75,7 @@ export function useRegisterMediaPlayerControlsBridge(bridge: MediaElementBridge)
     }
     ctx.register(bridge);
     return () => {
-      ctx.register(null);
+      ctx.unregister(bridge);
     };
   }, [bridge, ctx]);
 }
