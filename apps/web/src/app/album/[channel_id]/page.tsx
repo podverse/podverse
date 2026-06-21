@@ -16,6 +16,7 @@ import { getChannelForSeoPage, getChannelHeroImageUrl } from '../../../lib/seo/f
 import { toSeoPlainText } from '../../../lib/seo/toSeoPlainText';
 import { truncateMetaDescription } from '../../../lib/seo/truncateMetaDescription';
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
+import { enforceCanonicalChannelRoute } from '../../../utils/redirect/enforceCanonicalMediumRoute';
 import { AlbumPageClient } from './AlbumPageClient';
 import type { AlbumPageDropdownConfigCurrentParams } from './AlbumPageDropdownConfig';
 import { getAlbumPageFilterParams } from './AlbumPageDropdownConfig';
@@ -80,6 +81,7 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
   if (ssrChannel?.feed?.podcast_index_id && ssrChannel.feed.feed_policy?.public_visible === false) {
     redirect(`/podcast-index/feed/${ssrChannel.feed.podcast_index_id}`);
   }
+  enforceCanonicalChannelRoute(ssrChannel, 'album');
 
   const ssrItemsWithLiveItem = await ssrApiRequestService.reqLiveItemGetManyByChannel(
     ssrChannel.id_text

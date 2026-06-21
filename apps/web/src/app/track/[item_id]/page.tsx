@@ -12,6 +12,7 @@ import {
 } from '../../../lib/seo/fetchers';
 import { toSeoPlainText } from '../../../lib/seo/toSeoPlainText';
 import { truncateMetaDescription } from '../../../lib/seo/truncateMetaDescription';
+import { enforceCanonicalItemRoute } from '../../../utils/redirect/enforceCanonicalMediumRoute';
 import { TrackPageClient } from './TrackPageClient';
 import type { TrackPageDropdownConfigCurrentParams } from './TrackPageDropdownConfig';
 import { getTrackPageFilterParams } from './TrackPageDropdownConfig';
@@ -56,6 +57,7 @@ export default async function TrackPage({ params, searchParams }: TrackPageProps
 
   const ssrItem = await getItemForSeoPage(item_id);
   const ssrChannel = await getChannelForSeoPage(ssrItem.channel_id);
+  enforceCanonicalItemRoute(ssrChannel.medium_id, ssrItem.id_text, 'track');
 
   const ssrHasTranscripts = ssrItem.item_transcripts && ssrItem.item_transcripts.length > 0;
 

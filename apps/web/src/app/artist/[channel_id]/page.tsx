@@ -11,6 +11,7 @@ import {
 import { toSeoPlainText } from '../../../lib/seo/toSeoPlainText';
 import { truncateMetaDescription } from '../../../lib/seo/truncateMetaDescription';
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
+import { enforceCanonicalChannelRoute } from '../../../utils/redirect/enforceCanonicalMediumRoute';
 import { ArtistPageClient } from './ArtistPageClient';
 import type { ArtistPageDropdownConfigCurrentParams } from './ArtistPageDropdownConfig';
 import { getArtistPageFilterParams } from './ArtistPageDropdownConfig';
@@ -55,6 +56,7 @@ export default async function ArtistPage({ params, searchParams }: ArtistPagePro
   const { currentType } = await parseSearchParams(queryParams);
 
   const response = await getPublisherRemoteItemsForChannelSeoPage(channel_id);
+  enforceCanonicalChannelRoute(response.channel, 'artist');
 
   let ssrPodroll = null;
   if ((response.channel?.channel_podroll?.channel_podroll_remote_items?.length ?? 0) > 0) {

@@ -8,4 +8,5 @@ apps/web/e2e/header-image-lightbox.spec.ts
 apps/web/e2e/media-player-space-shortcut.spec.ts
 apps/web/e2e/media-player-alt-enclosure-load.spec.ts
 apps/web/e2e/media-player-seek-after-video.spec.ts
+apps/web/e2e/medium-canonical-route-redirect.spec.ts
 apps/web/e2e/cloudflare-web-analytics-disabled.spec.ts

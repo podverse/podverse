@@ -16,6 +16,7 @@ import {
 } from '../../../lib/seo/fetchers';
 import { toSeoPlainText } from '../../../lib/seo/toSeoPlainText';
 import { truncateMetaDescription } from '../../../lib/seo/truncateMetaDescription';
+import { enforceCanonicalItemRoute } from '../../../utils/redirect/enforceCanonicalMediumRoute';
 import { EpisodePageClient } from './EpisodePageClient';
 import type { EpisodePageDropdownConfigCurrentParams } from './EpisodePageDropdownConfig';
 import { getEpisodePageFilterParams } from './EpisodePageDropdownConfig';
@@ -67,6 +68,7 @@ export default async function EpisodePage({ params, searchParams }: EpisodePageP
 
   const ssrItem = await getItemForSeoPage(item_id);
   const ssrChannel = await getChannelForSeoPage(ssrItem.channel_id);
+  enforceCanonicalItemRoute(ssrChannel.medium_id, ssrItem.id_text, 'episode');
 
   const ssrHasChapters = !!ssrItem.item_chapters_feed;
   const ssrHasSoundbites = !!ssrItem.item_soundbites && ssrItem.item_soundbites.length > 0;

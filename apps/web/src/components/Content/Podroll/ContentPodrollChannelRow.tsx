@@ -6,6 +6,7 @@ import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import { WEB } from '../../../constants/web';
+import { getChannelPath } from '../../../utils/redirect/redirectToChannelPageByMedium';
 import { Link } from '../../Link/Link';
 
 import styles from '../../../styles/components/Content/Podroll/ContentPodrollChannelRow.module.scss';
@@ -30,7 +31,7 @@ export const ContentPodrollChannelRow = ({ channel }: ContentPodrollChannelRowPr
     <div className={styles.row}>
       <Link
         className={styles.link}
-        href={`${WEB.origin}/podcast/${channel.id_text}`}
+        href={`${WEB.origin}${getChannelPath(channel)}`}
         color="secondary"
       >
         <SkeletonFlashImage
