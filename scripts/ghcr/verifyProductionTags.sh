@@ -10,6 +10,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # shellcheck source=lib/podverse-images.sh
 source "$SCRIPT_DIR/lib/podverse-images.sh"
+# shellcheck source=../lib/github-repo.sh
+source "$SCRIPT_DIR/../lib/github-repo.sh"
 
 cd "$REPO_ROOT"
 
@@ -54,7 +56,7 @@ if [[ -z "$TOKEN" ]]; then
 fi
 
 if command -v gh > /dev/null 2>&1; then
-  REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
+  REPO=$(podverse_github_repo_from_origin) || REPO="${GHCR_REPO:-podverse/podverse}"
 else
   REPO="${GHCR_REPO:-podverse/podverse}"
   echo "Note: gh not found; using GHCR_REPO=${REPO}" >&2

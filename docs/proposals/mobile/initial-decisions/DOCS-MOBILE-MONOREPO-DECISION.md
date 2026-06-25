@@ -28,16 +28,16 @@ to avoid.
 
 ## The real costs (and how we contain each)
 
-| Cost                                            | Containment                                                                 |
-| ----------------------------------------------- | --------------------------------------------------------------------------- |
-| Metro / Gradle / CocoaPods next to Next/Node    | Isolate in `apps/mobile`; do not couple it to the Node build order.         |
-| Large native build output (`ios/Pods`, `.gradle`) | Add to `.gitignore` and `.cursorignore` so it is never committed or indexed. |
-| iOS builds need macOS CI runners                | Separate workflow with macOS runners; do not block server CI on it.         |
-| Different test stack (Detox/Maestro vs. Playwright) | Keep mobile E2E in its own job; do not fold into web Playwright targets.    |
-| Lockfile churn / native dep platform binaries   | Mobile deps live in the mobile workspace; review lockfile diffs as usual.   |
+| Cost                                                | Containment                                                                  |
+| --------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Metro / Gradle / CocoaPods next to Next/Node        | Isolate in `apps/mobile`; do not couple it to the Node build order.          |
+| Large native build output (`ios/Pods`, `.gradle`)   | Add to `.gitignore` and `.cursorignore` so it is never committed or indexed. |
+| iOS builds need macOS CI runners                    | Separate workflow with macOS runners; do not block server CI on it.          |
+| Different test stack (Detox/Maestro vs. Playwright) | Keep mobile E2E in its own job; do not fold into web Playwright targets.     |
+| Lockfile churn / native dep platform binaries       | Mobile deps live in the mobile workspace; review lockfile diffs as usual.    |
 
 The recurring theme: **isolation, not separation.** Mobile shares source-level packages but does
-*not* share the build graph, the test runner, or the CI critical path with the servers.
+_not_ share the build graph, the test runner, or the CI critical path with the servers.
 
 ## Recommended workspace shape
 

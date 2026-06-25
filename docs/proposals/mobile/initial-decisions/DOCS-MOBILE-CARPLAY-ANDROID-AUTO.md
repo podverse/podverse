@@ -15,7 +15,7 @@ The honest summary up front:
 
 ## Why "the app had to be running" happened
 
-In a naive RN setup, the JS thread *is* the app. Playback state, the queue, and the data that feeds
+In a naive RN setup, the JS thread _is_ the app. Playback state, the queue, and the data that feeds
 car menus all live in JavaScript. The OS aggressively suspends or kills background app processes to
 save battery. So when the phone app was backgrounded or killed:
 
@@ -92,7 +92,7 @@ flowchart TD
   use.
 - **Native owns audio and the car surfaces.** The Android foreground service and the iOS CarPlay
   scene read the native cache, so they can render menus and play audio **with no JS running**.
-- When JS *is* alive, it can push richer/live data to native; when it is not, the car still works
+- When JS _is_ alive, it can push richer/live data to native; when it is not, the car still works
   from the last synced cache. This is exactly how you get "open the car, it just works."
 
 This keeps the native code to a **small, stable surface** (a service + a scene + a cache contract)

@@ -13,6 +13,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # shellcheck source=../ghcr/lib/podverse-images.sh
 source "$SCRIPT_DIR/../ghcr/lib/podverse-images.sh"
+# shellcheck source=../lib/github-repo.sh
+source "$SCRIPT_DIR/../lib/github-repo.sh"
 
 cd "$REPO_ROOT"
 
@@ -64,7 +66,11 @@ fi
 BASE=$(node -p "require('./package.json').version" | sed 's/-.*//')
 echo -e "${GREEN}Base version (package.json): ${BASE}${NC}"
 
-REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
+GH_REPO=$(podverse_github_repo_from_origin) || {
+  echo -e "${RED}Error: Could not resolve GitHub repo from git remote origin.${NC}" >&2
+  exit 1
+}
+REPO="$GH_REPO"
 echo -e "${GREEN}GHCR repo: ${REPO}${NC}"
 
 STAGING_N=$(podverse_min_staging_n "$REPO" "$BASE" "$TOKEN")
@@ -73,6 +79,7 @@ echo -e "${GREEN}Publish (main) will promote: ${STAGING_TAG} -> ${BASE} and :lat
 
 echo -e "${YELLOW}Checking green Publish (staging) for origin/staging (${ORIGIN_STAGING:0:7})...${NC}"
 RUN_JSON=$(gh run list \
+  --repo "$GH_REPO" \
   --workflow=publish-staging.yml \
   --branch=staging \
   --limit=20 \

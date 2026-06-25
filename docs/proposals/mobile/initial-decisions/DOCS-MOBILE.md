@@ -11,13 +11,13 @@ effective as the codebase grows.
 
 ## The short version
 
-| Question                          | Recommendation                                                                  |
-| --------------------------------- | ------------------------------------------------------------------------------- |
-| Monorepo or separate repo?        | **Monorepo**, as a clearly isolated `apps/mobile` workspace with its own toolchain boundary. |
-| React Native or something else?   | **React Native (Expo, with prebuild / dev client)** for ~90–95% of the app.     |
-| CarPlay / Android Auto?           | **Hybrid**: RN app + a thin **native** layer for the car experiences and background audio. **One app, not two.** |
-| Will it overwhelm Cursor?         | No, if you scope context with `.cursorignore`, app-local `AGENTS.md`, and tiering. |
-| Versioning                        | Keep the **shared `X.Y.Z`** version, but give mobile its **own store-release pipeline** decoupled from container promotion. |
+| Question                        | Recommendation                                                                                                              |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Monorepo or separate repo?      | **Monorepo**, as a clearly isolated `apps/mobile` workspace with its own toolchain boundary.                                |
+| React Native or something else? | **React Native (Expo, with prebuild / dev client)** for ~90–95% of the app.                                                 |
+| CarPlay / Android Auto?         | **Hybrid**: RN app + a thin **native** layer for the car experiences and background audio. **One app, not two.**            |
+| Will it overwhelm Cursor?       | No, if you scope context with `.cursorignore`, app-local `AGENTS.md`, and tiering.                                          |
+| Versioning                      | Keep the **shared `X.Y.Z`** version, but give mobile its **own store-release pipeline** decoupled from container promotion. |
 
 ## Why these answers (one paragraph each)
 

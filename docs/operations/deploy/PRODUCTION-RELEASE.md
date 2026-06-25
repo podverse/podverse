@@ -12,12 +12,12 @@ For staging builds and tag naming, see [PUBLISH](PUBLISH.md) and
 
 ## Tag semantics
 
-| Tag | When created | Use for |
-| --- | ------------ | ------- |
-| `X.Y.Z-staging.N` | Push to `staging` | Preprod / alpha pins |
-| `:staging` | Push to `staging` | Floating preprod |
-| `X.Y.Z` | Push to `main` (after promote) | **Reproducible production pin** |
-| `:latest` | Push to `main` (after promote) | Floating RTM (overwritten each promote) |
+| Tag               | When created                   | Use for                                 |
+| ----------------- | ------------------------------ | --------------------------------------- |
+| `X.Y.Z-staging.N` | Push to `staging`              | Preprod / alpha pins                    |
+| `:staging`        | Push to `staging`              | Floating preprod                        |
+| `X.Y.Z`           | Push to `main` (after promote) | **Reproducible production pin**         |
+| `:latest`         | Push to `main` (after promote) | Floating RTM (overwritten each promote) |
 
 Prefer immutable **`X.Y.Z`** for anything that must not move. **`:latest`** changes on every
 successful RTM promote.
@@ -44,12 +44,12 @@ Run from repo root on **`develop`**, with a clean working tree and `gh auth logi
 ./scripts/publish/sync-staging-to-main.sh
 ```
 
-| Step | Script | What happens |
-| ---- | ------ | ------------ |
-| 1 | `bump-version.sh` | Bump `X.Y.Z`, commit, push `develop` |
-| 2 | `sync-develop-to-staging.sh` | FF `staging` ← `develop`, push, wait for **Publish (staging)** |
-| 3 | `preflight-rtm-promote.sh` | Read-only checks before RTM |
-| 4 | `sync-staging-to-main.sh` | FF `main` ← `staging`, push, wait for **Publish (main)**, verify GHCR tags |
+| Step | Script                       | What happens                                                               |
+| ---- | ---------------------------- | -------------------------------------------------------------------------- |
+| 1    | `bump-version.sh`            | Bump `X.Y.Z`, commit, push `develop`                                       |
+| 2    | `sync-develop-to-staging.sh` | FF `staging` ← `develop`, push, wait for **Publish (staging)**             |
+| 3    | `preflight-rtm-promote.sh`   | Read-only checks before RTM                                                |
+| 4    | `sync-staging-to-main.sh`    | FF `main` ← `staging`, push, wait for **Publish (main)**, verify GHCR tags |
 
 No separate monitor step: the sync scripts wait for their workflows before exiting.
 
@@ -89,16 +89,16 @@ Example: base `5.4.40`, staging line `.2`.
 
 ## Troubleshooting
 
-| Symptom | Likely cause | Action |
-| ------- | ------------ | ------ |
-| Preflight: no staging run for SHA | Staging not pushed or workflow failed | Re-run sync-develop-to-staging; wait for green |
-| Preflight: missing `X.Y.Z-staging.N` | Staging publish incomplete | Check Actions logs; re-run staging publish |
-| sync script: audit gate fails | New advisories since staging CI | Run `./scripts/audit/audit.sh`; fix or allowlist per [NPM-AUDIT-ALLOWLIST](/docs/development/security/NPM-AUDIT-ALLOWLIST.md) |
-| sync script: FF not possible | `main` diverged from `staging` | Never merge `develop` → `main` directly; align `main` with process |
-| sync script: push denied | Branch protection | Use PR `staging` → `main` |
-| Publish (main): no staging tag | Wrong `X.Y.Z` in package.json vs GHCR | Ensure bump + staging sync order is correct |
-| Branches equal, no promote | Already synced without workflow | Empty push or workflow_dispatch on `main` after confirming need |
-| Verify fails after promote | GHCR propagation delay | Wait and re-run verify script |
+| Symptom                              | Likely cause                          | Action                                                                                                                        |
+| ------------------------------------ | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Preflight: no staging run for SHA    | Staging not pushed or workflow failed | Re-run sync-develop-to-staging; wait for green                                                                                |
+| Preflight: missing `X.Y.Z-staging.N` | Staging publish incomplete            | Check Actions logs; re-run staging publish                                                                                    |
+| sync script: audit gate fails        | New advisories since staging CI       | Run `./scripts/audit/audit.sh`; fix or allowlist per [NPM-AUDIT-ALLOWLIST](/docs/development/security/NPM-AUDIT-ALLOWLIST.md) |
+| sync script: FF not possible         | `main` diverged from `staging`        | Never merge `develop` → `main` directly; align `main` with process                                                            |
+| sync script: push denied             | Branch protection                     | Use PR `staging` → `main`                                                                                                     |
+| Publish (main): no staging tag       | Wrong `X.Y.Z` in package.json vs GHCR | Ensure bump + staging sync order is correct                                                                                   |
+| Branches equal, no promote           | Already synced without workflow       | Empty push or workflow_dispatch on `main` after confirming need                                                               |
+| Verify fails after promote           | GHCR propagation delay                | Wait and re-run verify script                                                                                                 |
 
 ## Rollback (operator)
 
