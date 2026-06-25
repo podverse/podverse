@@ -1,6 +1,6 @@
 {
   "name": "@podverse/extension-prometheus",
-  "version": "5.4.40",
+  "version": "5.5.0",
   "private": true,
   "type": "module",
   "description": "Prometheus extension sidecar (OTLP ingest + scrape endpoints)",

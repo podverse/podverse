@@ -1,6 +1,6 @@
 {
   "name": "@podverse/ui",
-  "version": "5.4.40",
+  "version": "5.5.0",
   "private": true,
   "type": "module",
   "sideEffects": false,

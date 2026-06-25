@@ -1,6 +1,6 @@
 {
   "name": "@podverse/helpers-browser",
-  "version": "5.4.40",
+  "version": "5.5.0",
   "sideEffects": false,
   "description": "Browser-specific utilities for Podverse web applications",
   "main": "dist/index.js",

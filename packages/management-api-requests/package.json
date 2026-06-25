@@ -1,6 +1,6 @@
 {
   "name": "@podverse/management-api-requests",
-  "version": "5.4.40",
+  "version": "5.5.0",
   "sideEffects": false,
   "description": "Typed request client for Podverse management API",
   "main": "./dist/index.js",
