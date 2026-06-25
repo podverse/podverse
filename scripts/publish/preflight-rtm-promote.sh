@@ -33,12 +33,6 @@ if ! command -v gh > /dev/null 2>&1; then
   exit 1
 fi
 
-TOKEN=$(podverse_ghcr_bearer_token || true)
-if [[ -z "$TOKEN" ]]; then
-  echo -e "${RED}Error: Set GHCR_REGISTRY_TOKEN or run gh auth login.${NC}" >&2
-  exit 1
-fi
-
 echo -e "${YELLOW}Fetching origin...${NC}"
 git fetch origin
 
@@ -71,11 +65,7 @@ GH_REPO=$(podverse_github_repo_from_origin) || {
   exit 1
 }
 REPO="$GH_REPO"
-echo -e "${GREEN}GHCR repo: ${REPO}${NC}"
-
-STAGING_N=$(podverse_min_staging_n "$REPO" "$BASE" "$TOKEN")
-STAGING_TAG="${BASE}-staging.${STAGING_N}"
-echo -e "${GREEN}Publish (main) will promote: ${STAGING_TAG} -> ${BASE} and :latest${NC}"
+echo -e "${GREEN}GitHub repo: ${GH_REPO}${NC}"
 
 echo -e "${YELLOW}Checking green Publish (staging) for origin/staging (${ORIGIN_STAGING:0:7})...${NC}"
 RUN_JSON=$(gh run list \
@@ -103,13 +93,31 @@ fi
 
 echo -e "${GREEN}Publish (staging) run ${RUN_ID} succeeded for origin/staging.${NC}"
 
-echo -e "${YELLOW}Verifying all staging tags exist in GHCR...${NC}"
-for app in "${PODVERSE_GHCR_APPS[@]}"; do
-  if ! podverse_ghcr_has_tag "$REPO" "$app" "$STAGING_TAG"; then
-    echo -e "${RED}Error: Missing ghcr.io/${REPO}/${app}:${STAGING_TAG}${NC}" >&2
-    exit 1
-  fi
-done
+STAGING_TAG=$(podverse_git_staging_tag_for_commit "$GH_REPO" "$ORIGIN_STAGING" "$BASE" || true)
+if [[ -z "$STAGING_TAG" ]]; then
+  echo -e "${RED}Error: No git tag ${BASE}-staging.N found on origin/staging (${ORIGIN_STAGING:0:7}).${NC}" >&2
+  echo -e "${YELLOW}A green publish should create refs/tags/${BASE}-staging.N on the staging commit.${NC}" >&2
+  exit 1
+fi
+
+echo -e "${GREEN}Staging git tag on this commit: ${STAGING_TAG}${NC}"
+echo -e "${GREEN}Publish (main) will promote: ${STAGING_TAG} -> ${BASE} and :latest${NC}"
+
+TOKEN=$(podverse_ghcr_bearer_token || true)
+if [[ -n "$TOKEN" ]] && podverse_ghcr_tags_accessible "$REPO" "$TOKEN"; then
+  echo -e "${YELLOW}Verifying all staging tags exist in GHCR...${NC}"
+  for app in "${PODVERSE_GHCR_APPS[@]}"; do
+    if ! podverse_ghcr_has_tag "$REPO" "$app" "$STAGING_TAG"; then
+      echo -e "${RED}Error: Missing ghcr.io/${REPO}/${app}:${STAGING_TAG}${NC}" >&2
+      exit 1
+    fi
+  done
+  echo -e "${GREEN}GHCR tags verified for ${STAGING_TAG}.${NC}"
+else
+  echo -e "${YELLOW}Skipping GHCR tag listing (HTTP 403 without read:packages).${NC}"
+  echo -e "${YELLOW}Relying on green Publish (staging) run ${RUN_ID} (includes verify-published-tags in CI).${NC}"
+  echo -e "${YELLOW}Optional: export GHCR_REGISTRY_TOKEN or run: gh auth refresh -s read:packages${NC}"
+fi
 
 echo ""
 echo -e "${GREEN}RTM preflight passed.${NC}"

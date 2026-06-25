@@ -28,7 +28,8 @@ successful RTM promote.
 - [ ] Root `package.json` base version `X.Y.Z` matches the staging line in GHCR
 - [ ] Clean working tree in your Podverse checkout
 - [ ] `gh` CLI authenticated (`gh auth status`)
-- [ ] `GHCR_REGISTRY_TOKEN` in repo secrets (recommended) or `gh auth token` locally for preflight
+- [ ] For optional local GHCR checks: `GHCR_REGISTRY_TOKEN` or `gh auth refresh -s read:packages`
+  (preflight works without GHCR access when Publish (staging) is green and the git tag exists)
 - [ ] **Publish (main)** workflow enabled under GitHub Actions (not disabled for the repo)
 - [ ] Permission to push **`main`** (bypass on protected branch) **or** ability to merge a PR
       `staging` → `main`
