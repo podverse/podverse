@@ -27,7 +27,7 @@ jobs:
       base_version: ${{ steps.version.outputs.base_version }}
       staging_n: ${{ steps.promote.outputs.staging_n }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Install crane
         run: |
@@ -152,7 +152,7 @@ jobs:
       contents: write
       packages: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Create Git tag and production release
         uses: actions/github-script@v9
