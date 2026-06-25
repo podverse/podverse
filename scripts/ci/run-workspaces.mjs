@@ -1,4 +1,4 @@
-import { execFileSync, spawn } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -41,50 +41,71 @@ const readWorkspacePatterns = () => {
   return [];
 };
 
-const resolveWorkspacesFromPatterns = (patterns) => {
+const readWorkspacePackage = (workspacePath) => {
+  const packageJsonPath = path.join(workspacePath, 'package.json');
+  if (!fs.existsSync(packageJsonPath)) {
+    return null;
+  }
+  const raw = fs.readFileSync(packageJsonPath, 'utf8');
+  const pkg = JSON.parse(raw);
+  return {
+    name: pkg.name ?? workspacePath,
+    id: workspacePath,
+  };
+};
+
+const expandWorkspacePattern = (pattern, repoRoot) => {
+  const parts = pattern.split('/');
+
+  const expandFrom = (currentPath, partIndex) => {
+    if (partIndex >= parts.length) {
+      const workspace = readWorkspacePackage(currentPath);
+      return workspace ? [workspace] : [];
+    }
+
+    const part = parts[partIndex];
+    if (part === '*') {
+      if (!fs.existsSync(currentPath)) {
+        return [];
+      }
+      const matches = [];
+      for (const entry of fs.readdirSync(currentPath, { withFileTypes: true })) {
+        if (!entry.isDirectory()) {
+          continue;
+        }
+        matches.push(...expandFrom(path.join(currentPath, entry.name), partIndex + 1));
+      }
+      return matches;
+    }
+
+    return expandFrom(path.join(currentPath, part), partIndex + 1);
+  };
+
+  return expandFrom(repoRoot, 0);
+};
+
+/** Resolve workspaces from root package.json `workspaces` entries (explicit paths and globs). */
+const resolveWorkspacesFromManifest = (patterns) => {
+  const repoRoot = process.cwd();
+  const seen = new Set();
   const resolved = [];
+
   for (const pattern of patterns) {
-    if (!pattern.endsWith('/*')) {
-      continue;
-    }
-    const baseDir = path.resolve(process.cwd(), pattern.slice(0, -2));
-    if (!fs.existsSync(baseDir)) {
-      continue;
-    }
-    const entries = fs.readdirSync(baseDir, { withFileTypes: true });
-    for (const entry of entries) {
-      if (!entry.isDirectory()) {
+    for (const workspace of expandWorkspacePattern(pattern, repoRoot)) {
+      const key = path.resolve(workspace.id);
+      if (seen.has(key)) {
         continue;
       }
-      const workspacePath = path.join(baseDir, entry.name);
-      const packageJsonPath = path.join(workspacePath, 'package.json');
-      if (!fs.existsSync(packageJsonPath)) {
-        continue;
-      }
-      const raw = fs.readFileSync(packageJsonPath, 'utf8');
-      const pkg = JSON.parse(raw);
-      resolved.push({
-        name: pkg.name ?? workspacePath,
-        id: workspacePath,
-      });
+      seen.add(key);
+      resolved.push(workspace);
     }
   }
+
   return resolved;
 };
 
 const resolveAllWorkspaces = () => {
-  try {
-    const json = execFileSync('npm', ['workspaces', 'list', '--json'], {
-      encoding: 'utf8',
-    });
-    return JSON.parse(json).map((workspace) => ({
-      name: workspace.name,
-      id: workspace.location,
-    }));
-  } catch {
-    const patterns = readWorkspacePatterns();
-    return resolveWorkspacesFromPatterns(patterns);
-  }
+  return resolveWorkspacesFromManifest(readWorkspacePatterns());
 };
 
 const resolveExplicitWorkspaces = () => {

@@ -16,13 +16,14 @@ This document describes how **Publish (staging)** and **Publish (main)** work in
 - **`verify-published-tags`** fails the workflow unless every app in the list below has both tags in the registry.
 - A **GitHub prerelease** is created for tag `X.Y.Z-staging.N` when the run succeeds.
 
-**Images in this repo (staging / main):** `web-base`, `management-web-base`, `api`, `workers`, `management-api`, `web-deploy`, `management-web-deploy`, `web-runtime-config`, `management-web-runtime-config`.
+**Images in this repo (staging / main):** `web-base`, `management-web-base`, `api`, `workers`, `management-api`, `web-deploy`, `management-web-deploy`, `web-runtime-config`, `management-web-runtime-config`, `extension-prometheus`.
 
 **Order note:** The git ref is created **before** all images finish building; a failed publish after that can leave a tag on the commit without a complete image set. Treat failed runs as unusable; orphan tags are rare in practice.
 
 ## `main` branch: promote without rebuild
 
 - **Trigger:** `push` to `main` (or `workflow_dispatch`). Merging `staging` → `main` is a normal trigger.
+- **Jobs:** `promote` (crane copy) → `verify-published-tags` → `create-release` (Git tag + GitHub Release). Verification runs before the release is created.
 - **Images:** The workflow uses **`crane copy`** in GHCR: for each app, the manifest tagged `X.Y.Z-staging.M` is copied to `X.Y.Z` and to `latest`. **No new build**; same digest, additional tag names.
 - **Choosing `M`:** For each app, the max `N` for `X.Y.Z-staging.N` is read from the registry; the workflow uses the **minimum** of those per-image maxima so every image shares one promoted line.
 - **Git:** A ref `refs/tags/X.Y.Z` is created on the **`main` push commit** (merge result), and a **production** GitHub Release may be created for that tag. The staging pre-release tag remains on the **staging** build commit. The immutable `X.Y.Z-staging.N` tag is not moved.

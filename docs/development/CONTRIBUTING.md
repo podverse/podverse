@@ -139,19 +139,31 @@ Before submitting a PR:
 
 ## Release/Deployment Process
 
-### Packages
+Podverse ships **Docker images to GHCR** via GitHub Actions (not Jenkins for app releases).
 
-1. Update version in `package.json`
-2. Build package: `npm run build -w packages/<name>`
-3. Publish via Jenkins pipeline
+### Release train
 
-### Applications
+Run from repo root on **`develop`** (requires `gh auth login`):
 
-1. Merge to main branch
-2. Jenkins pipeline builds and deploys
-3. Deployment targets configured per environment
+```bash
+./scripts/publish/bump-version.sh
+./scripts/publish/sync-develop-to-staging.sh
+./scripts/publish/preflight-rtm-promote.sh
+./scripts/publish/sync-staging-to-main.sh
+```
 
-See `infra/pipelines/` for pipeline definitions.
+The sync scripts push their branch and wait for the matching publish workflow before exiting. Do
+**not** fast-forward **`main` directly from `develop`**.
+
+### Documentation
+
+- [PUBLISH.md](/docs/operations/deploy/PUBLISH.md) — tag patterns and workflows
+- [PRODUCTION-RELEASE.md](/docs/operations/deploy/PRODUCTION-RELEASE.md) — RTM operator runbook
+- [ALPHA-DEPLOYMENT.md](/docs/operations/deploy/ALPHA-DEPLOYMENT.md) — preprod and local alpha
+
+npm packages are embedded in Docker images; they are not published separately to npm for deploys.
+
+Jenkins under `infra/pipelines/jenkins/` is for **alpha server** automation only, not GHCR RTM.
 
 ## LLM Development (Optional)
 

@@ -158,6 +158,7 @@ The script will:
 - Verify that `staging` can fast-forward merge from `develop`
 - Ensure `staging` is a perfect mirror of `develop`
 - Perform the merge and push automatically
+- Wait for **Publish (staging)** to succeed before exiting
 
 **Note:** The script uses `--no-verify` to bypass git hooks when pushing, similar to `bump-version.sh`. To push to the protected `staging` branch, your GitHub user must have "Allow specified actors to bypass required pull requests" permission configured in the repository's branch protection rules. If you don't have this permission, the script will provide guidance on creating a PR instead.
 
@@ -176,9 +177,10 @@ git push --no-verify origin staging
 
 When **Publish (staging)** has **succeeded** and you are ready to ship that same line to production, advance **`main`** to match **`staging`** (not `develop`):
 
-**Recommended: use the helper script:**
+**Recommended: use the helper scripts** (see [PRODUCTION-RELEASE.md](PRODUCTION-RELEASE.md) for the full RTM runbook):
 
 ```bash
+./scripts/publish/preflight-rtm-promote.sh
 ./scripts/publish/sync-staging-to-main.sh
 ```
 
@@ -187,6 +189,7 @@ The script:
 - Verifies a fast-forward of **`main` from `staging`** (both branches are mirrors with no long-lived feature commits; **main lags** staging in the same train)
 - Runs the same npm **audit** gate on the **staging** tree before pushing
 - Pushes **`main`**, which triggers **Publish (main)** (crane promote to **`X.Y.Z` / `:latest`**, no rebuild)
+- Waits for **Publish (main)** to succeed and runs **`verifyProductionTags.sh`**
 
 If you do not have bypass permissions for `main`, use a **Pull Request** from `staging` to `main` instead. Do **not** use the removed **`develop` → `main`** one-hop sync; the promote workflow expects images to exist from the **staging** pipeline for the `X.Y.Z` base in `package.json` on the **`main` push** commit, which is aligned with **`staging`**.
 
@@ -199,17 +202,16 @@ git merge staging --ff-only
 git push --no-verify origin main
 ```
 
-### Step 4: Monitor the workflow(s)
+### Step 4: Confirm success
+
+When you use the sync scripts, each script waits for its publish workflow before exiting. Confirm
+on GitHub **Releases** that non-prerelease **`X.Y.Z`** exists (edit release notes there if needed).
+
+If a workflow failed, open **Actions** for logs or run:
 
 ```bash
-# Watch the workflow run
-gh run watch
-
-# Or list recent staging build runs
 gh run list --workflow=publish-staging.yml
-
-# View specific run logs
-gh run view <run-id> --log
+gh run list --workflow=publish-main.yml
 ```
 
 ## Manual Trigger (Emergency/Testing)
@@ -230,8 +232,7 @@ gh workflow run publish-staging.yml
 # Trigger with custom version (staging line)
 gh workflow run publish-staging.yml -f version_override=5.2.1-staging.99
 
-# Watch the triggered run
-gh run watch
+# Confirm the run in GitHub Actions (Actions tab)
 ```
 
 ## Verifying the Deployment

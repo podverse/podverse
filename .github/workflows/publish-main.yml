@@ -18,11 +18,14 @@ permissions:
   packages: read
 
 jobs:
-  promote-and-release:
+  promote:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       packages: write
+    outputs:
+      base_version: ${{ steps.version.outputs.base_version }}
+      staging_n: ${{ steps.promote.outputs.staging_n }}
     steps:
       - uses: actions/checkout@v6
 
@@ -98,12 +101,64 @@ jobs:
           done
           echo "staging_n=$M" >> "$GITHUB_OUTPUT"
 
+  verify-published-tags:
+    needs: promote
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Verify expected RTM tags in GHCR
+        env:
+          BASE: ${{ needs.promote.outputs.base_version }}
+          GHCR_TOKEN_PRIMARY: ${{ secrets.GHCR_REGISTRY_TOKEN }}
+          GHCR_TOKEN_FALLBACK: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          GHCR_TOKEN="$GHCR_TOKEN_PRIMARY"
+          if [ -z "$GHCR_TOKEN" ]; then
+            GHCR_TOKEN="$GHCR_TOKEN_FALLBACK"
+            echo "GHCR_REGISTRY_TOKEN not set; falling back to GITHUB_TOKEN for verification."
+          fi
+
+          APPS="web-base management-web-base api workers management-api web-deploy management-web-deploy web-runtime-config management-web-runtime-config extension-prometheus"
+          for APP in $APPS; do
+            IMAGE_PATH="${{ github.repository }}/${APP}"
+            echo "Checking tags for ${IMAGE_PATH}"
+
+            TAGS_RESPONSE=$(curl -s -w "\n%{http_code}" \
+              -H "Authorization: Bearer $GHCR_TOKEN" \
+              "https://ghcr.io/v2/${IMAGE_PATH}/tags/list")
+            TAGS_JSON=$(echo "$TAGS_RESPONSE" | sed '$d')
+            TAGS_STATUS=$(echo "$TAGS_RESPONSE" | tail -n1)
+
+            if [ "$TAGS_STATUS" != "200" ]; then
+              echo "Tag verification failed for ${IMAGE_PATH} (HTTP ${TAGS_STATUS})."
+              exit 1
+            fi
+
+            for TAG in "$BASE" latest; do
+              if ! echo "$TAGS_JSON" | jq -e --arg T "$TAG" '.tags | index($T)' >/dev/null; then
+                echo "Missing tag ${TAG} for ${IMAGE_PATH}."
+                exit 1
+              fi
+            done
+          done
+
+  create-release:
+    needs: [promote, verify-published-tags]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: read
+    steps:
+      - uses: actions/checkout@v6
+
       - name: Create Git tag and production release
-        if: success()
         uses: actions/github-script@v9
         with:
           script: |
-            const base = "${{ steps.version.outputs.base_version }}";
+            const base = "${{ needs.promote.outputs.base_version }}";
             const sha = context.sha;
             const owner = context.repo.owner;
             const repo = context.repo.repo;
@@ -134,10 +189,9 @@ jobs:
             core.info("Branch-only promotion refs enabled: skipping moving refs/tags/latest.");
 
       - name: Main promotion summary
-        if: success()
         env:
-          BASE: ${{ steps.version.outputs.base_version }}
-          STAGING_N: ${{ steps.promote.outputs.staging_n }}
+          BASE: ${{ needs.promote.outputs.base_version }}
+          STAGING_N: ${{ needs.promote.outputs.staging_n }}
           REPO: ${{ github.repository }}
         run: |
           {

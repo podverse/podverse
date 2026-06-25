@@ -149,6 +149,11 @@ fi
 echo -e "${GREEN}✓ Main is now a perfect mirror of staging (RTM line)${NC}"
 echo -e "${GREEN}✓ Changes pushed to origin/main${NC}"
 
+"$SCRIPT_DIR/wait-for-workflow.sh" publish-main.yml main "$FINAL_MAIN_COMMIT"
+
+echo -e "${YELLOW}Verifying production tags in GHCR...${NC}"
+"$SCRIPT_DIR/../ghcr/verifyProductionTags.sh"
+
 if [ "$CURRENT_BRANCH" != "main" ]; then
   echo -e "${YELLOW}Returning to original branch: $CURRENT_BRANCH${NC}"
   git checkout "$CURRENT_BRANCH"

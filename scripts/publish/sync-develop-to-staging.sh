@@ -161,6 +161,8 @@ fi
 echo -e "${GREEN}✓ Staging is now a perfect mirror of develop${NC}"
 echo -e "${GREEN}✓ Changes pushed to origin/staging${NC}"
 
+"$SCRIPT_DIR/wait-for-workflow.sh" publish-staging.yml staging "$FINAL_STAGING_COMMIT"
+
 if [ "$CURRENT_BRANCH" != "staging" ]; then
   echo -e "${YELLOW}Returning to original branch: $CURRENT_BRANCH${NC}"
   git checkout "$CURRENT_BRANCH"

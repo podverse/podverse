@@ -73,15 +73,22 @@ Pushes to **`main`** do not run `docker build` for these apps. The job picks a s
 
 ## How to publish
 
-1. **Preprod (staging):** fast-forward **`staging` from `develop`** (fast-forward only):
-   - `./scripts/publish/sync-develop-to-staging.sh`
-2. Wait for **Publish (staging)** to finish and verify.
-3. **RTM (main):** when that staging line is what you want in production, fast-forward **`main` from `staging`** (not from `develop`):
-   - `./scripts/publish/sync-staging-to-main.sh`
-4. **Publish (main)** runs on the **main** push. You can also use **Run workflow** in the Actions tab for staging only.
-5. **Optional (staging only):** `version_override` on manual dispatch to reserve a specific tag (e.g. `1.0.0-staging.5`).
+Run from repo root on **`develop`** (see [PRODUCTION-RELEASE.md](PRODUCTION-RELEASE.md)):
 
-For bumping the base `X.Y.Z` on `develop`, use `./scripts/publish/bump-version.sh` (see [ALPHA-DEPLOYMENT](ALPHA-DEPLOYMENT.md)).
+```bash
+./scripts/publish/bump-version.sh
+./scripts/publish/sync-develop-to-staging.sh
+./scripts/publish/preflight-rtm-promote.sh
+./scripts/publish/sync-staging-to-main.sh
+```
+
+- **`sync-develop-to-staging.sh`** pushes `staging` and waits for **Publish (staging)** to finish.
+- **`sync-staging-to-main.sh`** pushes `main` and waits for **Publish (main)** (promote → verify →
+  release), then runs `verifyProductionTags.sh`.
+- **Optional (staging only):** `version_override` on manual **Publish (staging)** dispatch (e.g.
+  `1.0.0-staging.5`).
+
+Do **not** fast-forward **`main` directly from `develop`**.
 
 ---
 
