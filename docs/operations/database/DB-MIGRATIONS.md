@@ -10,9 +10,11 @@ Podverse uses forward-only SQL migrations with one canonical source tree:
 
 1. Bring up Postgres and `docker-entrypoint-initdb` order: `0001_` (app users) and `0002_` (management DB and users) and `0003_apply_linear_baselines.sh` + generated `0004`/`0005` (full schema; see [LINEAR-MIGRATIONS.md](LINEAR-MIGRATIONS.md)).
 2. Wait for DB readiness.
-3. If `0003` is present and matches the repo, migration jobs should be no-ops (checksums in `linear_migration_history`); otherwise run app and management migration jobs.
-4. Create or update the management superuser.
-5. Verify all steps succeed before app workload rollout.
+3. **K8s (Argo CD):** The ops Application runs a **PostSync** bootstrap Job (`ops-db-bootstrap-migrations`) that applies app and management migrations **once** per cluster/DB (gated by `podverse_k8s_bootstrap_state` in the management database). When `0004`/`0005` baselines match the release, migration steps are no-ops and the Job records the marker.
+4. Create or update the management superuser (manual; see below).
+5. Verify all steps succeed before app workload rollout (API/management-api init containers wait for `API_EXPECTED_MIGRATION_FILENAME` / `MANAGEMENT_API_EXPECTED_MIGRATION_FILENAME`).
+
+**Manual migrate CronJobs** (`ops-db-migrate-app`, `ops-db-migrate-management`) are for **schema updates** (new `0002_*.sql` and later) and **recovery** after logical wipe — not for first deploy on a fresh PVC.
 
 There is no existing-DB baseline onboarding flow in this model.
 
@@ -57,7 +59,9 @@ bash scripts/database/run-linear-migrations.sh --database app --dry-run
 
 ## K8s one-off migration jobs
 
-Suspended CronJobs are defined in:
+**First deploy:** Argo CD runs [`infra/k8s/base/ops/db-bootstrap-migrations.job.yaml`](../../../infra/k8s/base/ops/db-bootstrap-migrations.job.yaml) as a PostSync hook when the ops Application syncs. It waits for Postgres init (`0004`/`0005` baselines), runs forward migrations idempotently, verifies expected filenames, and sets the bootstrap marker. Re-syncs skip work when the marker exists.
+
+Suspended CronJobs (manual trigger) are defined in:
 
 - `infra/k8s/base/ops/db-migrate-app.cronjob.yaml`
 - `infra/k8s/base/ops/db-migrate-management.cronjob.yaml`
@@ -86,7 +90,7 @@ When adapting to other clusters/repositories, keep mounts and `LINEAR_MIGRATIONS
 
 After merging these manifests, bump the immutable `?ref=` on remote ops bases in your GitOps repository (for example `apps/<environment>/ops/kustomization.yaml` there) to a Podverse tag that includes the change.
 
-Trigger one-off jobs from those CronJobs during first deploy and on subsequent schema updates.
+Trigger one-off jobs from the migrate CronJobs on **schema updates** and after **logical wipe / rebootstrap** — not for first deploy on a fresh PVC (the bootstrap PostSync Job handles that).
 
 Example on-demand triggers:
 

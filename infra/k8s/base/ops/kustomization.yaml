@@ -2,6 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
+  - db-bootstrap-migrations.job.yaml
   - db-drop-everything.cronjob.yaml
   - db-rebootstrap-roles.cronjob.yaml
   - db-migrate-app.cronjob.yaml
@@ -23,9 +24,12 @@ configMapGenerator:
   - name: podverse-ops-migration-scripts
     literals:
       - MIGRATION_BUNDLE_SHA=linear-migrations-v1
+      - API_EXPECTED_MIGRATION_FILENAME=0001_app_schema.sql
+      - MANAGEMENT_API_EXPECTED_MIGRATION_FILENAME=0001_management_schema.sql
     files:
       - source/database/runner/run-linear-migrations.sh
       - source/database/runner/run-linear-migrations-k8s.sh
+      - source/database/runner/run-bootstrap-migrations-k8s.sh
       - source/database/runner/verify-bootstrap-contract.sh
       - source/database/runner/rebootstrap-full-bootstrap.sh
   - name: podverse-ops-app-linear-migrations
