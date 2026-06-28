@@ -179,16 +179,16 @@ Implement bearer auth for the mobile API client using AuthContext { mode: 'beare
 
 ## 9. Anti-patterns
 
-| Anti-pattern | Why it harms LLM output | Correct approach |
-| --- | --- | --- |
-| Indexing `ios/Pods`, `.gradle`, `.expo` | Pollutes retrieval; wastes context | `.cursorignore` (section 2) |
-| Importing `@podverse/ui` in mobile | Pulls Next/SCSS/react-dom; breaks Metro | Build RN components; reuse behavior only |
-| Copying web cookie auth (`withCredentials`) | Wrong auth model for native | Bearer + secure storage |
-| Editing web `useMediaElementBridge` for mobile | Wrong platform; DOM-specific | Add a native bridge in `apps/mobile` |
-| Duplicating playback policy in mobile | Drift from web semantics | Reuse `@podverse/playback-core` |
-| Running `make e2e_*` for mobile | Web/management-web only | Maestro/Detox in `apps/mobile/e2e` |
-| Mixing web + mobile in one session | Cross-toolchain confusion | Scope per app |
-| Adding mobile to `build:packages` | Breaks Node build graph | Keep mobile off the build graph |
+| Anti-pattern                                   | Why it harms LLM output                 | Correct approach                         |
+| ---------------------------------------------- | --------------------------------------- | ---------------------------------------- |
+| Indexing `ios/Pods`, `.gradle`, `.expo`        | Pollutes retrieval; wastes context      | `.cursorignore` (section 2)              |
+| Importing `@podverse/ui` in mobile             | Pulls Next/SCSS/react-dom; breaks Metro | Build RN components; reuse behavior only |
+| Copying web cookie auth (`withCredentials`)    | Wrong auth model for native             | Bearer + secure storage                  |
+| Editing web `useMediaElementBridge` for mobile | Wrong platform; DOM-specific            | Add a native bridge in `apps/mobile`     |
+| Duplicating playback policy in mobile          | Drift from web semantics                | Reuse `@podverse/playback-core`          |
+| Running `make e2e_*` for mobile                | Web/management-web only                 | Maestro/Detox in `apps/mobile/e2e`       |
+| Mixing web + mobile in one session             | Cross-toolchain confusion               | Scope per app                            |
+| Adding mobile to `build:packages`              | Breaks Node build graph                 | Keep mobile off the build graph          |
 
 ## 10. Checklist (apply when bootstrapping `apps/mobile`)
 

@@ -120,7 +120,11 @@ export const Image: React.FC<ImageProps> = ({
           className
         )}
         style={
-          isFluidGridSlot ? undefined : omitFixedHeight ? { width } : { width, height: renderedHeight }
+          isFluidGridSlot
+            ? undefined
+            : omitFixedHeight
+              ? { width }
+              : { width, height: renderedHeight }
         }
       >
         <NextImage

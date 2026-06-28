@@ -29,13 +29,13 @@ This roadmap synthesizes Track A (monorepo/LLM setup) and Track B (process docs)
 Apply Track A recommendations so the repo and Cursor are ready before any app code.
 
 - [ ] `.cursorignore` additions for native build artifacts (see
-  [DOCS-MOBILE-LLM-CURSOR-SETUP.md](/docs/proposals/mobile/monorepo-llm-setup/DOCS-MOBILE-LLM-CURSOR-SETUP.md)).
+      [DOCS-MOBILE-LLM-CURSOR-SETUP.md](/docs/proposals/mobile/monorepo-llm-setup/DOCS-MOBILE-LLM-CURSOR-SETUP.md)).
 - [ ] `apps/mobile/AGENTS.md` + `apps/mobile/APPS-MOBILE.md` stubs.
 - [ ] Tier D import-specifier docs for `apps/mobile/**`
-  ([DOCS-MOBILE-MONOREPO-TARGET-STRUCTURE.md](/docs/proposals/mobile/monorepo-llm-setup/DOCS-MOBILE-MONOREPO-TARGET-STRUCTURE.md)).
+      ([DOCS-MOBILE-MONOREPO-TARGET-STRUCTURE.md](/docs/proposals/mobile/monorepo-llm-setup/DOCS-MOBILE-MONOREPO-TARGET-STRUCTURE.md)).
 - [ ] Cursor rules + `mobile-playback` skill drafts.
 - [ ] **Optional but recommended:** extract `packages/playback-core` (pure policy) per doc 02 so
-  playback logic is reusable before mobile consumes it.
+      playback logic is reusable before mobile consumes it.
 
 **Exit:** Cursor scopes mobile correctly; agents have guidance; no native artifacts pollute context.
 
@@ -47,8 +47,8 @@ A throwaway-grade proof that the hard native pieces work. **This phase gates eve
 - [ ] **Bearer auth** to the API against dev/test env (`/auth/mobile/*`, `AuthContext` bearer mode).
 - [ ] **Background audio** survives app background **and** kill (`react-native-track-player`).
 - [ ] **Android Auto** (DHU) + **CarPlay** (simulator) minimal browse/play **with the app closed** —
-  see the spike list in
-  [DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md).
+      see the spike list in
+      [DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md).
 
 **Go/no-go:** If car-with-app-closed works via the native services + native cache approach, proceed.
 If not, revisit the framework decision before investing in the MVP.
@@ -61,7 +61,7 @@ states (loading/empty/error) match web semantics.
 - [ ] Auth (login, signup, logout, refresh, secure storage).
 - [ ] Home / subscriptions, podcast (channel) page, episode (item) page, search.
 - [ ] **Manual queue** + play + mini player (queue parity per
-  [DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md](DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md)).
+      [DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md](DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md)).
 - [ ] Stats (`reqStats*`) and account-settings sync.
 
 **Exit:** A logged-in user can browse, search, queue, and play in the foreground/background with
@@ -91,20 +91,20 @@ See [DOCS-MOBILE-PROCESS-MOBILE-ONLY-FEATURES.md](DOCS-MOBILE-PROCESS-MOBILE-ONL
 - [ ] PayPal vs **IAP** strategy (store-policy-driven; likely IAP + server receipt verification).
 - [ ] V4V boosts on mobile (where store-compliant).
 - [ ] Store release: internal → TestFlight/Closed → production, mapped to develop → staging → main per
-  [DOCS-MOBILE-VERSIONING-RELEASE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-VERSIONING-RELEASE.md).
+      [DOCS-MOBILE-VERSIONING-RELEASE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-VERSIONING-RELEASE.md).
 
 **Exit:** App is in the stores with a sustainable release train.
 
 ## 8. Testing strategy by phase
 
-| Phase | Unit | API integration | E2E (device) |
-| --- | --- | --- | --- |
-| 0 | `playback-core` policy (pure fns) | unchanged | — |
-| 1 | spike-level | reuse existing | manual (DHU/simulator) |
-| 2 | stores/reducers | unchanged | Maestro/Detox smoke |
-| 3 | full policy matrix | unchanged | Maestro/Detox playback |
-| 4 | download/queue logic | FCM routes covered | Maestro/Detox offline + links |
-| 5 | purchase/state logic | receipt verify (new) | store-build smoke |
+| Phase | Unit                              | API integration      | E2E (device)                  |
+| ----- | --------------------------------- | -------------------- | ----------------------------- |
+| 0     | `playback-core` policy (pure fns) | unchanged            | —                             |
+| 1     | spike-level                       | reuse existing       | manual (DHU/simulator)        |
+| 2     | stores/reducers                   | unchanged            | Maestro/Detox smoke           |
+| 3     | full policy matrix                | unchanged            | Maestro/Detox playback        |
+| 4     | download/queue logic              | FCM routes covered   | Maestro/Detox offline + links |
+| 5     | purchase/state logic              | receipt verify (new) | store-build smoke             |
 
 - **Unit:** Vitest for `playback-core` and pure logic (no DOM/native).
 - **API integration:** unchanged Vitest API suites; mobile reuses endpoints.
@@ -113,14 +113,14 @@ See [DOCS-MOBILE-PROCESS-MOBILE-ONLY-FEATURES.md](DOCS-MOBILE-PROCESS-MOBILE-ONL
 
 ## 9. Team / LLM workflow by phase
 
-| Phase | Docs/files agents should load |
-| --- | --- |
-| 0 | Track A docs; `.cursorignore`; root `AGENTS.md` |
-| 1 | Car doc (initial-decisions); overview; auth boundaries |
-| 2 | Overview + shared-vs-divergent; web routes/providers being mirrored |
-| 3 | Playback-queue parity doc; `playback-core`; web playback policy files |
-| 4 | Mobile-only-features doc; web Notifications/downloads/localSettings |
-| 5 | Versioning/release doc; web checkout/membership |
+| Phase | Docs/files agents should load                                         |
+| ----- | --------------------------------------------------------------------- |
+| 0     | Track A docs; `.cursorignore`; root `AGENTS.md`                       |
+| 1     | Car doc (initial-decisions); overview; auth boundaries                |
+| 2     | Overview + shared-vs-divergent; web routes/providers being mirrored   |
+| 3     | Playback-queue parity doc; `playback-core`; web playback policy files |
+| 4     | Mobile-only-features doc; web Notifications/downloads/localSettings   |
+| 5     | Versioning/release doc; web checkout/membership                       |
 
 - Break each phase into **COPY-PASTA** task sets under `.llm/plans/active/` (one screen or one bridge
   per prompt), mirroring this plan set's convention.
@@ -131,26 +131,26 @@ See [DOCS-MOBILE-PROCESS-MOBILE-ONLY-FEATURES.md](DOCS-MOBILE-PROCESS-MOBILE-ONL
 
 Ranges, **not commitments**; assume a small team leaning on LLM-driven development.
 
-| Phase | Rough effort |
-| --- | --- |
-| 0 — Prep | days |
-| 1 — Spike | 2–4 weeks (native is the long pole) |
-| 2 — MVP core | 4–8 weeks |
-| 3 — Playback sophistication | 3–6 weeks |
-| 4 — Mobile-only features | 4–8 weeks |
-| 5 — Membership + release | 3–6 weeks + store review |
+| Phase                       | Rough effort                        |
+| --------------------------- | ----------------------------------- |
+| 0 — Prep                    | days                                |
+| 1 — Spike                   | 2–4 weeks (native is the long pole) |
+| 2 — MVP core                | 4–8 weeks                           |
+| 3 — Playback sophistication | 3–6 weeks                           |
+| 4 — Mobile-only features    | 4–8 weeks                           |
+| 5 — Membership + release    | 3–6 weeks + store review            |
 
 Parallelize native car/audio against RN UI once the bridge contract is fixed (end of Phase 1).
 
 ## 11. Risk register
 
-| Risk | Impact | Mitigation |
-| --- | --- | --- |
-| Car native complexity (app-closed) | High | Front-load in Phase 1 spike; native cache design |
-| React/React Native version skew vs web | Med | Tier D isolation; pin RN deps; don't share `@podverse/ui` |
-| Store review delay (esp. IAP) | Med | Defer membership to Phase 5; build review buffer |
-| API backward-compat breakage | High | Add-only API changes; version checks; test old clients |
-| Offline storage correctness | Med | Local metadata DB + integrity checks; quota policy |
+| Risk                                   | Impact | Mitigation                                                |
+| -------------------------------------- | ------ | --------------------------------------------------------- |
+| Car native complexity (app-closed)     | High   | Front-load in Phase 1 spike; native cache design          |
+| React/React Native version skew vs web | Med    | Tier D isolation; pin RN deps; don't share `@podverse/ui` |
+| Store review delay (esp. IAP)          | Med    | Defer membership to Phase 5; build review buffer          |
+| API backward-compat breakage           | High   | Add-only API changes; version checks; test old clients    |
+| Offline storage correctness            | Med    | Local metadata DB + integrity checks; quota policy        |
 
 ## 12. Phase dependency diagram
 

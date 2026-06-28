@@ -61,16 +61,16 @@ car cache uses the same semantics.
 
 ### What moves
 
-| Source (web) | Destination (`packages/playback-core`) |
-| --- | --- |
-| `apps/web/src/lib/playback/resolvePlaybackLoadDecision.ts` | `src/resolvePlaybackLoadDecision.ts` |
-| `apps/web/src/lib/playback/playbackTarget.ts` | `src/playbackTarget.ts` |
-| `apps/web/src/lib/playback/playbackLoadRequest.ts` | `src/playbackLoadRequest.ts` |
-| `apps/web/src/lib/playback/playbackTargetFromStandardLoad.ts` | `src/playbackTargetFromStandardLoad.ts` |
-| `resumeSeekFromAbridged.ts`, `clampNearEndSeconds.ts`, `parsePlaybackSeconds.ts` | `src/` |
-| `resolveEnclosureSwitchPlaybackDecision.ts`, `stageEnclosureSwitchFromSelection.ts` | `src/` |
-| `apps/web/src/lib/queue/combineQueueNowPlayingAndUpcoming.ts` | `src/combineQueueNowPlayingAndUpcoming.ts` |
-| `apps/web/src/lib/playback/__tests__/`, `lib/queue/__tests__/` | `src/__tests__/` |
+| Source (web)                                                                        | Destination (`packages/playback-core`)     |
+| ----------------------------------------------------------------------------------- | ------------------------------------------ |
+| `apps/web/src/lib/playback/resolvePlaybackLoadDecision.ts`                          | `src/resolvePlaybackLoadDecision.ts`       |
+| `apps/web/src/lib/playback/playbackTarget.ts`                                       | `src/playbackTarget.ts`                    |
+| `apps/web/src/lib/playback/playbackLoadRequest.ts`                                  | `src/playbackLoadRequest.ts`               |
+| `apps/web/src/lib/playback/playbackTargetFromStandardLoad.ts`                       | `src/playbackTargetFromStandardLoad.ts`    |
+| `resumeSeekFromAbridged.ts`, `clampNearEndSeconds.ts`, `parsePlaybackSeconds.ts`    | `src/`                                     |
+| `resolveEnclosureSwitchPlaybackDecision.ts`, `stageEnclosureSwitchFromSelection.ts` | `src/`                                     |
+| `apps/web/src/lib/queue/combineQueueNowPlayingAndUpcoming.ts`                       | `src/combineQueueNowPlayingAndUpcoming.ts` |
+| `apps/web/src/lib/playback/__tests__/`, `lib/queue/__tests__/`                      | `src/__tests__/`                           |
 
 ### What stays put
 
@@ -103,12 +103,12 @@ consumes `@podverse/*` packages through their published `main`/`types` (`dist/`)
 
 Add **Tier D** to the documented tier system:
 
-| Tier | Locations | Import style |
-| --- | --- | --- |
-| A | `packages/*` (except ui), api, workers, sidecars, tools | NodeNext `.js` |
-| B | `apps/web/src`, `apps/management-web/src` | extensionless |
-| C | `packages/ui`, `packages/integrations-web` | extensionless |
-| **D (new)** | `apps/mobile/**` | extensionless; consumes Tier A `dist/` |
+| Tier        | Locations                                               | Import style                           |
+| ----------- | ------------------------------------------------------- | -------------------------------------- |
+| A           | `packages/*` (except ui), api, workers, sidecars, tools | NodeNext `.js`                         |
+| B           | `apps/web/src`, `apps/management-web/src`               | extensionless                          |
+| C           | `packages/ui`, `packages/integrations-web`              | extensionless                          |
+| **D (new)** | `apps/mobile/**`                                        | extensionless; consumes Tier A `dist/` |
 
 Documents/configs to update when implementing:
 
@@ -204,11 +204,11 @@ that fights NodeNext `.js` specifier semantics — not recommended initially.)
 Web sources live under `apps/web/i18n/originals/` (`en-US`, `es`, `fr`, `el-GR`); the runtime is
 `next-intl` (not usable on mobile). Options for mobile string reuse:
 
-| Option | Pros | Cons | Recommendation |
-| --- | --- | --- | --- |
-| **Shared `packages/i18n-catalog`** | Single source of truth; one translate pipeline | Refactor web/management paths + CI | **Preferred** medium-term |
-| Symlink web originals into mobile | Fast | Fragile across platforms/CI | Avoid |
-| Copy originals + CI key-parity check | Simple start | Drift risk; needs a check | Acceptable for v1 spike |
+| Option                               | Pros                                           | Cons                               | Recommendation            |
+| ------------------------------------ | ---------------------------------------------- | ---------------------------------- | ------------------------- |
+| **Shared `packages/i18n-catalog`**   | Single source of truth; one translate pipeline | Refactor web/management paths + CI | **Preferred** medium-term |
+| Symlink web originals into mobile    | Fast                                           | Fragile across platforms/CI        | Avoid                     |
+| Copy originals + CI key-parity check | Simple start                                   | Drift risk; needs a check          | Acceptable for v1 spike   |
 
 Recommendation: start by **copying** originals for the Phase 1 spike, then promote to a shared
 `packages/i18n-catalog` when mobile stabilizes. Mobile uses a RN-compatible runtime (`i18next` /
@@ -217,16 +217,16 @@ Recommendation: start by **copying** originals for the Phase 1 spike, then promo
 
 ## 11. Change magnitude
 
-| Work item | Magnitude |
-| --- | --- |
-| Add `apps/mobile` Expo prebuild skeleton | Medium |
-| Extract `packages/playback-core` | Medium |
-| Tier D docs + ESLint override | Small |
-| `.cursorignore` native excludes | Small |
-| Root `test:unit` / `lint` exclusions | Small |
-| Metro monorepo config | Medium |
-| Separate macOS CI workflows | Medium |
-| i18n shared catalog (later) | Medium |
+| Work item                                | Magnitude |
+| ---------------------------------------- | --------- |
+| Add `apps/mobile` Expo prebuild skeleton | Medium    |
+| Extract `packages/playback-core`         | Medium    |
+| Tier D docs + ESLint override            | Small     |
+| `.cursorignore` native excludes          | Small     |
+| Root `test:unit` / `lint` exclusions     | Small     |
+| Metro monorepo config                    | Medium    |
+| Separate macOS CI workflows              | Medium    |
+| i18n shared catalog (later)              | Medium    |
 
 ## 12. What we are NOT doing
 

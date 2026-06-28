@@ -20,14 +20,14 @@ first: [DOCS-MOBILE-PROCESS-OVERVIEW.md](DOCS-MOBILE-PROCESS-OVERVIEW.md) and th
 Per [media-player-architecture SKILL](/.cursor/skills/media-player-architecture/SKILL.md), non-live
 playback is layered:
 
-| Layer | Location | Role |
-| --- | --- | --- |
-| Policy (pure) | `apps/web/src/lib/playback/` | Seek/resume/auto-play/pause-at decisions |
-| Bridge (DOM) | `apps/web/src/hooks/useMediaElementBridge.ts`, `mediaElementBridgeSurface.ts` | Only place that touches `HTMLMediaElement` |
-| Controls | `apps/web/src/contexts/MediaPlayerControls.tsx` (`useMediaPlayerControls`) | UI → bridge; `seek`, `jumpBy`, `pauseAt`, `loadAndStart` |
-| Orchestration | `NonLiveMediaOrchestrator`, `NonLiveMediaMount` | Ended/next/history, stats, queue advance |
-| State | `apps/web/src/contexts/MediaPlayer.tsx` (`applyPlaybackLoad`) | Now-playing DTOs, pending decision |
-| Decision contract | `apps/web/src/components/MediaPlayer/MEDIA-PLAYER-DECISION-MATRIX.md` | Documented decision matrix |
+| Layer             | Location                                                                      | Role                                                     |
+| ----------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Policy (pure)     | `apps/web/src/lib/playback/`                                                  | Seek/resume/auto-play/pause-at decisions                 |
+| Bridge (DOM)      | `apps/web/src/hooks/useMediaElementBridge.ts`, `mediaElementBridgeSurface.ts` | Only place that touches `HTMLMediaElement`               |
+| Controls          | `apps/web/src/contexts/MediaPlayerControls.tsx` (`useMediaPlayerControls`)    | UI → bridge; `seek`, `jumpBy`, `pauseAt`, `loadAndStart` |
+| Orchestration     | `NonLiveMediaOrchestrator`, `NonLiveMediaMount`                               | Ended/next/history, stats, queue advance                 |
+| State             | `apps/web/src/contexts/MediaPlayer.tsx` (`applyPlaybackLoad`)                 | Now-playing DTOs, pending decision                       |
+| Decision contract | `apps/web/src/components/MediaPlayer/MEDIA-PLAYER-DECISION-MATRIX.md`         | Documented decision matrix                               |
 
 The architecture deliberately isolates **pure policy** from the **DOM bridge** — which is exactly
 what makes mobile reuse feasible.
@@ -48,13 +48,13 @@ The mobile hook layer and native bridge are new; the **policy** is shared.
 
 ## 4. `packages/playback-core` role
 
-| Moves to `playback-core` | Stays in `apps/web` | New in `apps/mobile` |
-| --- | --- | --- |
-| `resolvePlaybackLoadDecision.ts` + types | `useMediaElementBridge` (DOM) | Native playback bridge |
-| `playbackTarget.ts`, `playbackLoadRequest.ts` | `MediaPlayerControls` context | RN controls/store |
-| `resumeSeekFromAbridged.ts`, `clampNearEndSeconds.ts` | `NonLiveMediaMount` (portal) | RN player UI |
-| `combineQueueNowPlayingAndUpcoming.ts` | orchestrator DOM binding | RN orchestration hook |
-| enclosure-switch decision helpers | `parsePlaybackSeconds` wiring | — |
+| Moves to `playback-core`                              | Stays in `apps/web`           | New in `apps/mobile`   |
+| ----------------------------------------------------- | ----------------------------- | ---------------------- |
+| `resolvePlaybackLoadDecision.ts` + types              | `useMediaElementBridge` (DOM) | Native playback bridge |
+| `playbackTarget.ts`, `playbackLoadRequest.ts`         | `MediaPlayerControls` context | RN controls/store      |
+| `resumeSeekFromAbridged.ts`, `clampNearEndSeconds.ts` | `NonLiveMediaMount` (portal)  | RN player UI           |
+| `combineQueueNowPlayingAndUpcoming.ts`                | orchestrator DOM binding      | RN orchestration hook  |
+| enclosure-switch decision helpers                     | `parsePlaybackSeconds` wiring | —                      |
 
 Both clients call the **same** decision functions; only the binding to a media engine differs.
 
@@ -63,16 +63,16 @@ Both clients call the **same** decision functions; only the binding to a media e
 The policy is keyed on `PlaybackTarget.kind` (from
 `apps/web/src/lib/playback/playbackTarget.ts`). Mobile must handle every variant identically:
 
-| `PlaybackTarget.kind` | Meaning | Mobile handling |
-| --- | --- | --- |
-| `item-podcast` | Standard podcast episode | Resume from abridged position; auto-play per policy |
-| `item-video` | Video episode | Same resume; native video surface |
-| `item-music` | Music track (with `intent`) | Music forces `currentTime = 0`; honor `session_restore`/`explicit_play`/`fresh_transition` |
-| `clip` | Clip within an item | Start at clip start; `pauseAt` clip end |
-| `soundbite` | Soundbite | Start/`pauseAt` soundbite bounds |
-| `chapter` | Chapter | Seek to chapter start |
-| `add-by-rss` | Ad-hoc RSS resource | Load from `AddByRSSResourceData`; no server queue id |
-| `livestream` | Live | Deferred (native HLS, separate effort) |
+| `PlaybackTarget.kind` | Meaning                     | Mobile handling                                                                            |
+| --------------------- | --------------------------- | ------------------------------------------------------------------------------------------ |
+| `item-podcast`        | Standard podcast episode    | Resume from abridged position; auto-play per policy                                        |
+| `item-video`          | Video episode               | Same resume; native video surface                                                          |
+| `item-music`          | Music track (with `intent`) | Music forces `currentTime = 0`; honor `session_restore`/`explicit_play`/`fresh_transition` |
+| `clip`                | Clip within an item         | Start at clip start; `pauseAt` clip end                                                    |
+| `soundbite`           | Soundbite                   | Start/`pauseAt` soundbite bounds                                                           |
+| `chapter`             | Chapter                     | Seek to chapter start                                                                      |
+| `add-by-rss`          | Ad-hoc RSS resource         | Load from `AddByRSSResourceData`; no server queue id                                       |
+| `livestream`          | Live                        | Deferred (native HLS, separate effort)                                                     |
 
 The `intent` discriminator (`MusicItemPlaybackIntent`) must be preserved for stats/side effects, per
 the decision matrix doc.

@@ -88,11 +88,9 @@ export function reconstructAddByRSSLivestreamFromResourceData(
   resourceData: AddByRSSResourceData
 ): AddByRSSLivestreamIndexItem | null {
   const liveItem = resourceData.liveItem as
-    | AddByRSSMappedFeed['liveItems'][number]['liveItem']
-    | undefined;
+    AddByRSSMappedFeed['liveItems'][number]['liveItem'] | undefined;
   const livestreamItem = resourceData.livestream_item as
-    | AddByRSSMappedFeed['liveItems'][number]['item']
-    | undefined;
+    AddByRSSMappedFeed['liveItems'][number]['item'] | undefined;
 
   if (!liveItem || !livestreamItem) {
     return null;

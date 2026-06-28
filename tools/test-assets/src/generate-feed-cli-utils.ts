@@ -3,8 +3,7 @@ import readline from 'node:readline';
 import { faker } from '@faker-js/faker';
 
 export type MultiConfig =
-  | { kind: 'fixed'; value: number }
-  | { kind: 'range'; min: number; max: number };
+  { kind: 'fixed'; value: number } | { kind: 'range'; min: number; max: number };
 
 export function parseNumericArg(flag: string, defaultVal: number, argv: string[]): MultiConfig {
   const idx = argv.indexOf(flag);

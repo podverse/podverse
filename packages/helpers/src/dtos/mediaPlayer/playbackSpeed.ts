@@ -1,28 +1,8 @@
 export type PlaybackSpeedValue =
-  | 0.5
-  | 0.75
-  | 0.87
-  | 1.0
-  | 1.12
-  | 1.25
-  | 1.5
-  | 1.75
-  | 2.0
-  | 2.5
-  | 3.0;
+  0.5 | 0.75 | 0.87 | 1.0 | 1.12 | 1.25 | 1.5 | 1.75 | 2.0 | 2.5 | 3.0;
 
 export type PlaybackSpeedTranslationKey =
-  | '0-5'
-  | '0-75'
-  | '0-87'
-  | '1-0'
-  | '1-12'
-  | '1-25'
-  | '1-5'
-  | '1-75'
-  | '2-0'
-  | '2-5'
-  | '3-0';
+  '0-5' | '0-75' | '0-87' | '1-0' | '1-12' | '1-25' | '1-5' | '1-75' | '2-0' | '2-5' | '3-0';
 
 export function getNextPlaybackSpeed(current: PlaybackSpeedValue): PlaybackSpeedValue {
   const speeds: PlaybackSpeedValue[] = [0.5, 0.75, 0.87, 1.0, 1.12, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0];

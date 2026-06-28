@@ -33,6 +33,4 @@ export type EmbedListData = {
 };
 
 export type EmbedListFetchResult =
-  | { status: 'not_found' }
-  | { status: 'not_available' }
-  | { status: 'ok'; listData: EmbedListData };
+  { status: 'not_found' } | { status: 'not_available' } | { status: 'ok'; listData: EmbedListData };

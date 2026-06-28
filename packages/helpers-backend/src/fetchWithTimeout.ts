@@ -7,12 +7,7 @@ import { SpanKind, SpanStatusCode, trace } from '@opentelemetry/api';
 import { injectTraceContext, isObservabilityInitialized } from '@podverse/observability';
 
 export type RequestCache =
-  | 'default'
-  | 'force-cache'
-  | 'no-cache'
-  | 'no-store'
-  | 'reload'
-  | 'only-if-cached';
+  'default' | 'force-cache' | 'no-cache' | 'no-store' | 'reload' | 'only-if-cached';
 
 export type FetchWithTimeoutOptions = {
   body?: string;

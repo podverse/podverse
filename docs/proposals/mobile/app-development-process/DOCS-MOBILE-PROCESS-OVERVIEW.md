@@ -16,8 +16,8 @@ The sibling Track B docs build on this one:
 - **Same backend, same contracts.** Mobile calls the **same** `apps/api` REST endpoints via the
   same typed `@podverse/helpers-requests` `req*` wrappers and the same DTOs from `@podverse/helpers`.
   No mobile-specific API fork.
-- **Same semantics, native shell.** Playback, queue, auto-queue, and playlist *behavior* match web;
-  the *transport* (audio engine), *storage*, and *UI* are native.
+- **Same semantics, native shell.** Playback, queue, auto-queue, and playlist _behavior_ match web;
+  the _transport_ (audio engine), _storage_, and _UI_ are native.
 - **Web as instructive reference, not copy-paste.** Read web hooks/contexts to learn the data flow
   and decisions; do **not** port `@podverse/ui` components or SCSS.
 - **Bearer auth, secure storage.** Mobile authenticates with bearer tokens, not cookies (see
@@ -66,17 +66,17 @@ flowchart TB
 
 When implementing a mobile area, read these web files for **behavior and data loading** (not UI):
 
-| Web area | Mobile equivalent | Primary web files to read |
-| --- | --- | --- |
-| Provider tree | RN state providers | `apps/web/src/providers/Providers.tsx` |
-| Account/session | Auth + account store | `apps/web/src/contexts/Account.tsx` |
-| Queue | Queue store | `apps/web/src/contexts/Queue.tsx` |
-| Auto-queue | Auto-queue store | `apps/web/src/contexts/AutoQueue.tsx`, `hooks/useAutoQueueLoadResources.tsx` |
-| Media player state | Player store | `apps/web/src/contexts/MediaPlayer.tsx` |
-| Playback policy | `@podverse/playback-core` | `apps/web/src/lib/playback/` |
-| Resource load action | Play action hook | `apps/web/src/hooks/useMediaPlayerResourceUpdate.tsx` |
-| API client | Same client (bearer) | `packages/helpers-requests/src/api/_request.ts` |
-| Local settings | Device prefs | `apps/web/src/utils/localSettings/` |
+| Web area             | Mobile equivalent         | Primary web files to read                                                    |
+| -------------------- | ------------------------- | ---------------------------------------------------------------------------- |
+| Provider tree        | RN state providers        | `apps/web/src/providers/Providers.tsx`                                       |
+| Account/session      | Auth + account store      | `apps/web/src/contexts/Account.tsx`                                          |
+| Queue                | Queue store               | `apps/web/src/contexts/Queue.tsx`                                            |
+| Auto-queue           | Auto-queue store          | `apps/web/src/contexts/AutoQueue.tsx`, `hooks/useAutoQueueLoadResources.tsx` |
+| Media player state   | Player store              | `apps/web/src/contexts/MediaPlayer.tsx`                                      |
+| Playback policy      | `@podverse/playback-core` | `apps/web/src/lib/playback/`                                                 |
+| Resource load action | Play action hook          | `apps/web/src/hooks/useMediaPlayerResourceUpdate.tsx`                        |
+| API client           | Same client (bearer)      | `packages/helpers-requests/src/api/_request.ts`                              |
+| Local settings       | Device prefs              | `apps/web/src/utils/localSettings/`                                          |
 
 ## 5. Screen / route map
 
@@ -84,22 +84,22 @@ Web routes live under `apps/web/src/app/` (e.g. `podcast/`, `episode/`, `search/
 `playlist/`, `profile/`, `my-profile/`, `queues/`, `history/`, plus `album/`, `artist/`, `clip/`,
 `add-by-rss/`). Proposed mobile screen mapping:
 
-| Web route | Mobile screen | Primary data sources |
-| --- | --- | --- |
-| `/` (home) | Home / Subscriptions | `reqChannelGetMany` (subscribed) |
-| `/podcast/[channel_id]` | Podcast detail | channel + `reqItemGetManyByChannel` + live items |
-| `/episode/[item_id]` | Episode detail | item + chapter/soundbite/clip/transcript tabs |
-| `/album/[id]`, `/artist/[id]` | Album / Artist | music channel + items |
-| `/search` | Search | `reqPodcastIndexSearchPodcasts` |
-| `/playlists`, `/playlist/[id]` | Playlists / Playlist | `reqPlaylistGetMany`, playlist resources |
-| `/profile/[id]`, `/my-profile` | Profile | `reqProfile*` / `reqMyProfile*` |
-| `/queues` | Queue | `reqQueue*` now-playing + upcoming |
-| `/history` | History | history-paginated queue resources |
-| `/clip/[id]`, `/my-clips` | Clip detail / My clips | `reqClip*` |
-| `/add-by-rss` | Add-by-RSS | add-by-rss queue resource APIs |
-| Global player | Mini player + full player | queue + auto-queue + playback policy |
-| `/settings` | Settings | account-settings APIs |
-| `/checkout`, `/membership` | Membership (native strategy) | membership/PayPal APIs |
+| Web route                      | Mobile screen                | Primary data sources                             |
+| ------------------------------ | ---------------------------- | ------------------------------------------------ |
+| `/` (home)                     | Home / Subscriptions         | `reqChannelGetMany` (subscribed)                 |
+| `/podcast/[channel_id]`        | Podcast detail               | channel + `reqItemGetManyByChannel` + live items |
+| `/episode/[item_id]`           | Episode detail               | item + chapter/soundbite/clip/transcript tabs    |
+| `/album/[id]`, `/artist/[id]`  | Album / Artist               | music channel + items                            |
+| `/search`                      | Search                       | `reqPodcastIndexSearchPodcasts`                  |
+| `/playlists`, `/playlist/[id]` | Playlists / Playlist         | `reqPlaylistGetMany`, playlist resources         |
+| `/profile/[id]`, `/my-profile` | Profile                      | `reqProfile*` / `reqMyProfile*`                  |
+| `/queues`                      | Queue                        | `reqQueue*` now-playing + upcoming               |
+| `/history`                     | History                      | history-paginated queue resources                |
+| `/clip/[id]`, `/my-clips`      | Clip detail / My clips       | `reqClip*`                                       |
+| `/add-by-rss`                  | Add-by-RSS                   | add-by-rss queue resource APIs                   |
+| Global player                  | Mini player + full player    | queue + auto-queue + playback policy             |
+| `/settings`                    | Settings                     | account-settings APIs                            |
+| `/checkout`, `/membership`     | Membership (native strategy) | membership/PayPal APIs                           |
 
 Exact per-page API calls are catalogued in
 [DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md](DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md) and
@@ -140,14 +140,14 @@ MediaPlayerVideo → MediaPlayerControls → AddByRSSList → AutoQueue → Moda
 Mobile equivalents (React Context or Zustand — recommend **Zustand** for cross-screen player/queue
 state with less re-render churn):
 
-| Web provider | Mobile store | Notes |
-| --- | --- | --- |
-| `AccountProvider` | auth/account | bearer token from secure storage |
-| `LocalSettingsProvider` | device prefs | AsyncStorage/MMKV, not cookie |
-| `QueuesProvider` | queue | hydrate on launch (no SSR) |
-| `QueueResourcesAbridgedIndexProvider` | resume index | fetch on launch instead of SSR |
-| `AutoQueueProvider` | auto-queue | client-only prefetch buffer |
-| `MediaPlayer*Provider` | player | drives native bridge |
+| Web provider                          | Mobile store | Notes                            |
+| ------------------------------------- | ------------ | -------------------------------- |
+| `AccountProvider`                     | auth/account | bearer token from secure storage |
+| `LocalSettingsProvider`               | device prefs | AsyncStorage/MMKV, not cookie    |
+| `QueuesProvider`                      | queue        | hydrate on launch (no SSR)       |
+| `QueueResourcesAbridgedIndexProvider` | resume index | fetch on launch instead of SSR   |
+| `AutoQueueProvider`                   | auto-queue   | client-only prefetch buffer      |
+| `MediaPlayer*Provider`                | player       | drives native bridge             |
 
 Key difference: web hydrates several stores via **SSR** in `apps/web/src/app/layout.tsx`; mobile
 fetches the same data on **app launch** and refreshes on focus/pull-to-refresh.

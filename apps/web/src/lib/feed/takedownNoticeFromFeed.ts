@@ -4,9 +4,7 @@ import { primaryBlockReasonForUi } from '@podverse/helpers';
 export type LegalNoticeTranslationKeys = {
   policyKey: 'spam_policy' | 'archive_policy' | 'takedown_policy';
   explanationKey:
-    | 'spam_policy_explanation'
-    | 'archive_policy_explanation'
-    | 'takedown_policy_explanation';
+    'spam_policy_explanation' | 'archive_policy_explanation' | 'takedown_policy_explanation';
 };
 
 /**

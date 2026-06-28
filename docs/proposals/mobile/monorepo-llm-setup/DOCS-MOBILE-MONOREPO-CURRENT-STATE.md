@@ -31,72 +31,72 @@ Workspaces are defined in [package.json](/package.json) (`workspaces`: `packages
 
 ### Apps
 
-| Path | Package | Purpose |
-| --- | --- | --- |
-| `apps/api` | `@podverse/api` | REST API, DB migrations, backend services |
-| `apps/web` | `@podverse/web` | Main Next.js podcast client |
-| `apps/web/sidecar` | `@podverse/web-sidecar` | Runtime-config sidecar for web |
-| `apps/workers` | `@podverse/workers` | Background workers / CLI jobs |
-| `apps/management-api` | `@podverse/management-api` | Admin API |
-| `apps/management-web` | `@podverse/management-web` | Admin Next.js dashboard |
-| `apps/management-web/sidecar` | `@podverse/management-web-sidecar` | Runtime-config sidecar for admin |
+| Path                          | Package                            | Purpose                                   |
+| ----------------------------- | ---------------------------------- | ----------------------------------------- |
+| `apps/api`                    | `@podverse/api`                    | REST API, DB migrations, backend services |
+| `apps/web`                    | `@podverse/web`                    | Main Next.js podcast client               |
+| `apps/web/sidecar`            | `@podverse/web-sidecar`            | Runtime-config sidecar for web            |
+| `apps/workers`                | `@podverse/workers`                | Background workers / CLI jobs             |
+| `apps/management-api`         | `@podverse/management-api`         | Admin API                                 |
+| `apps/management-web`         | `@podverse/management-web`         | Admin Next.js dashboard                   |
+| `apps/management-web/sidecar` | `@podverse/management-web-sidecar` | Runtime-config sidecar for admin          |
 
 ### Key packages (subset)
 
-| Package | Purpose |
-| --- | --- |
-| `@podverse/helpers` | DTOs, domain enums, queue helpers, i18n time formatting |
-| `@podverse/helpers-requests` | Typed `req*` HTTP client for the main API |
-| `@podverse/http-request-core` | Framework-agnostic axios transport + `AuthContext` |
-| `@podverse/helpers-validation` | Joi (server) + `./client` validation bundle |
-| `@podverse/helpers-backend` | Node/back-end utilities (Winston logging) |
-| `@podverse/helpers-browser` | Browser-only utilities (`window`, clipboard) |
-| `@podverse/helpers-config` | Env validation, startup validation, test env |
-| `@podverse/orm` | TypeORM entities + services |
-| `@podverse/parser` | Server RSS/Atom parsing |
-| `@podverse/parser-mapping` | Browser-safe feed mapping helpers |
-| `@podverse/mq` | ActiveMQ/Artemis messaging |
-| `@podverse/notifications` | Server push delivery |
-| `@podverse/ui` | Shared **web** UI (Next/React/SCSS) |
-| `@podverse/v4v-helpers` / `v4v-metaboost` / `v4v-btc-ln` | Value-for-value math + LN |
-| `@podverse/management-api-requests` | Typed client for the admin API |
+| Package                                                  | Purpose                                                 |
+| -------------------------------------------------------- | ------------------------------------------------------- |
+| `@podverse/helpers`                                      | DTOs, domain enums, queue helpers, i18n time formatting |
+| `@podverse/helpers-requests`                             | Typed `req*` HTTP client for the main API               |
+| `@podverse/http-request-core`                            | Framework-agnostic axios transport + `AuthContext`      |
+| `@podverse/helpers-validation`                           | Joi (server) + `./client` validation bundle             |
+| `@podverse/helpers-backend`                              | Node/back-end utilities (Winston logging)               |
+| `@podverse/helpers-browser`                              | Browser-only utilities (`window`, clipboard)            |
+| `@podverse/helpers-config`                               | Env validation, startup validation, test env            |
+| `@podverse/orm`                                          | TypeORM entities + services                             |
+| `@podverse/parser`                                       | Server RSS/Atom parsing                                 |
+| `@podverse/parser-mapping`                               | Browser-safe feed mapping helpers                       |
+| `@podverse/mq`                                           | ActiveMQ/Artemis messaging                              |
+| `@podverse/notifications`                                | Server push delivery                                    |
+| `@podverse/ui`                                           | Shared **web** UI (Next/React/SCSS)                     |
+| `@podverse/v4v-helpers` / `v4v-metaboost` / `v4v-btc-ln` | Value-for-value math + LN                               |
+| `@podverse/management-api-requests`                      | Typed client for the admin API                          |
 
 ### Extensions and tools
 
-| Path | Purpose |
-| --- | --- |
+| Path                    | Purpose                          |
+| ----------------------- | -------------------------------- |
 | `extensions/prometheus` | OTLP + Prometheus scrape sidecar |
-| `tools/qa` | QA/faker utilities |
-| `tools/test-assets` | Local test asset server |
-| `tools/web-perf/*` | Bundle analyzer + Lighthouse |
+| `tools/qa`              | QA/faker utilities               |
+| `tools/test-assets`     | Local test asset server          |
+| `tools/web-perf/*`      | Bundle analyzer + Lighthouse     |
 
 ## 3. Shared package compatibility matrix
 
 This is the most important table for mobile: which `@podverse/*` packages a React Native app can
 import today.
 
-| Package | RN-safe? | Reason |
-| --- | --- | --- |
-| `@podverse/helpers` | Yes | Pure TS DTOs/enums/queue helpers; avoid env-only modules |
-| `@podverse/helpers-requests` | Yes | Axios-based typed client; supports bearer auth |
-| `@podverse/http-request-core` | Yes | Framework-agnostic axios + `AuthContext` |
-| `@podverse/helpers-validation` (`/client`) | Yes | Use the Joi-free `./client` entry only |
-| `@podverse/parser-mapping` | Yes | Browser-safe mapping; no DOM in source |
-| `@podverse/v4v-helpers` | Yes | Pure payment math |
-| `@podverse/v4v-metaboost` | Yes | Types/helpers over helpers |
-| `@podverse/v4v-btc-ln` | Yes\* | LNURL HTTP + injectable provider (web uses WebLN; mobile injects native) |
-| `@podverse/helpers-validation` (main) | No | Joi is server-only |
-| `@podverse/helpers-backend` | No | Winston, daily-rotate-file, Node logging |
-| `@podverse/helpers-browser` | No | `window` / `document` / clipboard |
-| `@podverse/helpers-config` | No | `process.env` startup validation |
-| `@podverse/orm` | No | TypeORM, `pg`, `bcrypt` |
-| `@podverse/parser` | No | Server parsing pipeline + ORM |
-| `@podverse/mq` | No | `rhea`, `ws`, server deps |
-| `@podverse/notifications` | No | Server push delivery |
-| `@podverse/ui` | No | Next peer, SCSS, `react-dom` — web-only |
-| `@podverse/observability` | No | Node OpenTelemetry SDK |
-| `@podverse/external-services-*` | No | Server credentials/SDKs |
-| `@podverse/management-api-requests` | No (consumer mobile) | Admin surface |
+| Package                                    | RN-safe?             | Reason                                                                   |
+| ------------------------------------------ | -------------------- | ------------------------------------------------------------------------ |
+| `@podverse/helpers`                        | Yes                  | Pure TS DTOs/enums/queue helpers; avoid env-only modules                 |
+| `@podverse/helpers-requests`               | Yes                  | Axios-based typed client; supports bearer auth                           |
+| `@podverse/http-request-core`              | Yes                  | Framework-agnostic axios + `AuthContext`                                 |
+| `@podverse/helpers-validation` (`/client`) | Yes                  | Use the Joi-free `./client` entry only                                   |
+| `@podverse/parser-mapping`                 | Yes                  | Browser-safe mapping; no DOM in source                                   |
+| `@podverse/v4v-helpers`                    | Yes                  | Pure payment math                                                        |
+| `@podverse/v4v-metaboost`                  | Yes                  | Types/helpers over helpers                                               |
+| `@podverse/v4v-btc-ln`                     | Yes\*                | LNURL HTTP + injectable provider (web uses WebLN; mobile injects native) |
+| `@podverse/helpers-validation` (main)      | No                   | Joi is server-only                                                       |
+| `@podverse/helpers-backend`                | No                   | Winston, daily-rotate-file, Node logging                                 |
+| `@podverse/helpers-browser`                | No                   | `window` / `document` / clipboard                                        |
+| `@podverse/helpers-config`                 | No                   | `process.env` startup validation                                         |
+| `@podverse/orm`                            | No                   | TypeORM, `pg`, `bcrypt`                                                  |
+| `@podverse/parser`                         | No                   | Server parsing pipeline + ORM                                            |
+| `@podverse/mq`                             | No                   | `rhea`, `ws`, server deps                                                |
+| `@podverse/notifications`                  | No                   | Server push delivery                                                     |
+| `@podverse/ui`                             | No                   | Next peer, SCSS, `react-dom` — web-only                                  |
+| `@podverse/observability`                  | No                   | Node OpenTelemetry SDK                                                   |
+| `@podverse/external-services-*`            | No                   | Server credentials/SDKs                                                  |
+| `@podverse/management-api-requests`        | No (consumer mobile) | Admin surface                                                            |
 
 The auth contract is already mobile-aware. `AuthContext` in
 [packages/http-request-core/src/authContext.ts](/packages/http-request-core/src/authContext.ts)
@@ -139,11 +139,11 @@ The repo documents three import-specifier tiers in
 [docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md](/docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md)
 and [.cursor/skills/import-specifiers-tiered/SKILL.md](/.cursor/skills/import-specifiers-tiered/SKILL.md):
 
-| Tier | Locations | Import style |
-| --- | --- | --- |
-| A | `packages/*` (except ui), api, workers, sidecars, tools | NodeNext `.js` specifiers |
-| B | `apps/web/src`, `apps/management-web/src`, their e2e | extensionless |
-| C | `packages/ui`, `packages/integrations-web` | extensionless |
+| Tier | Locations                                               | Import style              |
+| ---- | ------------------------------------------------------- | ------------------------- |
+| A    | `packages/*` (except ui), api, workers, sidecars, tools | NodeNext `.js` specifiers |
+| B    | `apps/web/src`, `apps/management-web/src`, their e2e    | extensionless             |
+| C    | `packages/ui`, `packages/integrations-web`              | extensionless             |
 
 Enforcement lives in [eslint.config.mjs](/eslint.config.mjs) (e.g. the `packages/ui` +
 `integrations-web` block near line 109, and the `apps/web/src` blocks near lines 116 and 145). The
@@ -168,13 +168,13 @@ web app at `apps/web/src/lib/playback/`. Directory contents include:
 Per [.cursor/skills/media-player-architecture/SKILL.md](/.cursor/skills/media-player-architecture/SKILL.md),
 the architecture separates **pure policy** from the **DOM bridge**:
 
-| Layer | Location | Reusable on mobile? |
-| --- | --- | --- |
-| Policy (decisions) | `apps/web/src/lib/playback/` | Yes (pure) — but not yet a package |
-| Element bridge | `apps/web/src/hooks/useMediaElementBridge.ts`, `mediaElementBridgeSurface.ts` | No — `HTMLMediaElement` |
-| Controls context | `apps/web/src/contexts/MediaPlayerControls.tsx` | Pattern only |
-| Orchestration | `NonLiveMediaOrchestrator`, `NonLiveMediaMount` | Logic yes, DOM binding no |
-| State | `apps/web/src/contexts/MediaPlayer.tsx` (`applyPlaybackLoad`) | Pattern only |
+| Layer              | Location                                                                      | Reusable on mobile?                |
+| ------------------ | ----------------------------------------------------------------------------- | ---------------------------------- |
+| Policy (decisions) | `apps/web/src/lib/playback/`                                                  | Yes (pure) — but not yet a package |
+| Element bridge     | `apps/web/src/hooks/useMediaElementBridge.ts`, `mediaElementBridgeSurface.ts` | No — `HTMLMediaElement`            |
+| Controls context   | `apps/web/src/contexts/MediaPlayerControls.tsx`                               | Pattern only                       |
+| Orchestration      | `NonLiveMediaOrchestrator`, `NonLiveMediaMount`                               | Logic yes, DOM binding no          |
+| State              | `apps/web/src/contexts/MediaPlayer.tsx` (`applyPlaybackLoad`)                 | Pattern only                       |
 
 Queue helpers are split similarly: pure helpers exist in `@podverse/helpers`
 (`lib/queue/queue.ts`) and `apps/web/src/lib/queue/combineQueueNowPlayingAndUpcoming.ts`, while
@@ -183,14 +183,14 @@ proposed `packages/playback-core`), detailed in the target-structure doc.
 
 ## 7. LLM / Cursor setup today
 
-| Asset | State |
-| --- | --- |
-| `.cursor/rules/*.mdc` | 45 rules |
-| `.cursor/skills/*/` | 73 skills |
-| `.cursorrules` | Root conventions (tiers, UI, no agent test runs) |
-| [AGENTS.md](/AGENTS.md) | Root agent handbook |
-| Per-app AGENTS | `apps/web/AGENTS.md`, `apps/management-web/AGENTS.md` only |
-| [.cursorignore](/.cursorignore) | Minimal — env allowlist + one archived doc |
+| Asset                           | State                                                      |
+| ------------------------------- | ---------------------------------------------------------- |
+| `.cursor/rules/*.mdc`           | 45 rules                                                   |
+| `.cursor/skills/*/`             | 73 skills                                                  |
+| `.cursorrules`                  | Root conventions (tiers, UI, no agent test runs)           |
+| [AGENTS.md](/AGENTS.md)         | Root agent handbook                                        |
+| Per-app AGENTS                  | `apps/web/AGENTS.md`, `apps/management-web/AGENTS.md` only |
+| [.cursorignore](/.cursorignore) | Minimal — env allowlist + one archived doc                 |
 
 The current [.cursorignore](/.cursorignore) does **not** exclude native build output (none exists
 yet). Per-app guidance follows a clear pattern (`apps/web/AGENTS.md`) that mobile should mirror.
@@ -218,17 +218,17 @@ target-structure doc weighs a shared catalog package vs symlink vs copy.
 
 ## 9. Gap summary
 
-| Gap / opportunity | Type | Effort |
-| --- | --- | --- |
+| Gap / opportunity                                                 | Type        | Effort |
+| ----------------------------------------------------------------- | ----------- | ------ |
 | Extract `packages/playback-core` from `apps/web/src/lib/playback` | Opportunity | Medium |
-| Add Tier D (`apps/mobile/**`) + ESLint override | Gap | Low |
-| `.cursorignore` native build excludes | Gap | Low |
-| `apps/mobile` AGENTS + APPS-MOBILE + rule | Gap | Low |
-| Exclude `apps/mobile` from root `test:unit`/`lint` until RN-ready | Gap | Low |
-| Metro monorepo config (resolve `@podverse/*` `dist/`) | Gap | Medium |
-| Separate macOS CI workflow (TestFlight/Play) | Gap | Medium |
-| i18n sharing strategy (catalog vs copy) | Opportunity | Medium |
-| Bearer auth path in `helpers-requests` (already supported) | Opportunity | Low |
+| Add Tier D (`apps/mobile/**`) + ESLint override                   | Gap         | Low    |
+| `.cursorignore` native build excludes                             | Gap         | Low    |
+| `apps/mobile` AGENTS + APPS-MOBILE + rule                         | Gap         | Low    |
+| Exclude `apps/mobile` from root `test:unit`/`lint` until RN-ready | Gap         | Low    |
+| Metro monorepo config (resolve `@podverse/*` `dist/`)             | Gap         | Medium |
+| Separate macOS CI workflow (TestFlight/Play)                      | Gap         | Medium |
+| i18n sharing strategy (catalog vs copy)                           | Opportunity | Medium |
+| Bearer auth path in `helpers-requests` (already supported)        | Opportunity | Low    |
 
 ## 10. Prior decisions
 

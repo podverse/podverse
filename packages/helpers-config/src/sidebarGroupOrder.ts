@@ -10,8 +10,7 @@ const ALLOWED = new Set<string>(SIDEBAR_GROUP_KEYS);
 export const DEFAULT_SIDEBAR_GROUP_ORDER: readonly SidebarGroupKey[] = SIDEBAR_GROUP_KEYS;
 
 export type ParsedSidebarGroupOrder =
-  | { ok: true; order: SidebarGroupKey[] }
-  | { ok: false; message: string };
+  { ok: true; order: SidebarGroupKey[] } | { ok: false; message: string };
 
 /**
  * Validates a non-empty comma-separated order string (no leading/trailing whitespace on whole string).

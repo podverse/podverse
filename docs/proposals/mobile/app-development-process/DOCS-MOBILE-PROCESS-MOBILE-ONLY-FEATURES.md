@@ -145,20 +145,20 @@ guidance.
 
 ## Feature priority (v1 MVP)
 
-| Feature | Priority | Rationale |
-| --- | --- | --- |
-| Bearer auth + secure storage | P0 | Everything authenticated depends on it |
-| Background audio + OS controls | P0 | Core podcast UX; prerequisite for car |
-| Queue + playback parity | P0 | Core product |
-| Stats | P0 | Low cost, reuse endpoints |
-| Local settings + prefs sync | P1 | Consistency with web |
-| Offline downloads | P1 | Major mobile differentiator |
-| Push notifications (FCM) | P1 | Engagement; API exists |
-| Deep links | P1 | Sharing/retention |
-| CarPlay / Android Auto | P1 | High value; after background audio |
-| Add-by-RSS | P2 | Power-user feature |
-| Membership / IAP | P2 | Revenue; policy-sensitive, do later |
-| Livestream HLS | P2 | Deferred (separate effort) |
+| Feature                        | Priority | Rationale                              |
+| ------------------------------ | -------- | -------------------------------------- |
+| Bearer auth + secure storage   | P0       | Everything authenticated depends on it |
+| Background audio + OS controls | P0       | Core podcast UX; prerequisite for car  |
+| Queue + playback parity        | P0       | Core product                           |
+| Stats                          | P0       | Low cost, reuse endpoints              |
+| Local settings + prefs sync    | P1       | Consistency with web                   |
+| Offline downloads              | P1       | Major mobile differentiator            |
+| Push notifications (FCM)       | P1       | Engagement; API exists                 |
+| Deep links                     | P1       | Sharing/retention                      |
+| CarPlay / Android Auto         | P1       | High value; after background audio     |
+| Add-by-RSS                     | P2       | Power-user feature                     |
+| Membership / IAP               | P2       | Revenue; policy-sensitive, do later    |
+| Livestream HLS                 | P2       | Deferred (separate effort)             |
 
 ## Dependencies between features
 
@@ -176,16 +176,16 @@ flowchart TD
 
 ## LLM pitfalls
 
-| Category | Common mistake | Correct approach |
-| --- | --- | --- |
-| Downloads | Reuse web `fileDownloader.ts` | Native download module + local DB |
-| Background audio | JS timers/intervals for playback | Native service (`track-player`) |
-| CarPlay/Auto | JS-only browse tree | Native services + native cache |
-| Push | Port Web Push + service worker | FCM device endpoints |
-| Auth | Cookies / AsyncStorage for tokens | Bearer + secure storage |
-| Settings | New pref keys | Reuse web keys/semantics |
-| Membership | Assume PayPal WebView passes review | Verify store policy; plan IAP |
-| Lifecycle | Assume SSR-style initial data | On-launch hydration |
+| Category         | Common mistake                      | Correct approach                  |
+| ---------------- | ----------------------------------- | --------------------------------- |
+| Downloads        | Reuse web `fileDownloader.ts`       | Native download module + local DB |
+| Background audio | JS timers/intervals for playback    | Native service (`track-player`)   |
+| CarPlay/Auto     | JS-only browse tree                 | Native services + native cache    |
+| Push             | Port Web Push + service worker      | FCM device endpoints              |
+| Auth             | Cookies / AsyncStorage for tokens   | Bearer + secure storage           |
+| Settings         | New pref keys                       | Reuse web keys/semantics          |
+| Membership       | Assume PayPal WebView passes review | Verify store policy; plan IAP     |
+| Lifecycle        | Assume SSR-style initial data       | On-launch hydration               |
 
 ## Diagram: mobile platform services
 

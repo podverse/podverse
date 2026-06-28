@@ -45,8 +45,7 @@ export type PublicBucketConversionSnapshotError = {
 };
 
 export type PublicBucketConversionSnapshotResult =
-  | PublicBucketConversionSnapshotSuccess
-  | PublicBucketConversionSnapshotError;
+  PublicBucketConversionSnapshotSuccess | PublicBucketConversionSnapshotError;
 
 export type FetchPublicBucketConversionSnapshotParams = {
   sourceCurrency: string;

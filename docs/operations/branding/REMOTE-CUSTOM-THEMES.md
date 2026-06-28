@@ -44,13 +44,13 @@ Remote packs are **JSON**, not raw CSS. The app converts each theme’s `cssVari
 }
 ```
 
-| Field                   | Rules                                                                                                                                        |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `version`               | Non-empty string (opaque to the app; bump when you change the file).                                                                         |
-| `themes`                | Non-empty array; each `id` must be unique.                                                                                                   |
+| Field                   | Rules                                                                                                                                                         |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `version`               | Non-empty string (opaque to the app; bump when you change the file).                                                                                          |
+| `themes`                | Non-empty array; each `id` must be unique.                                                                                                                    |
 | `themes[].id`           | Lowercase letters, digits, `_`, `-` only (normalized to lowercase). Must **not** match a built-in id (`dark`, `light`, `dracula`, `violet`, `ember`, `dawn`). |
-| `themes[].labels`       | Optional locale → display name map (e.g. `en-US`, `es`).                                                                                     |
-| `themes[].cssVariables` | Object of `--*` property names to CSS values (colors, gradients, shadows).                                                                   |
+| `themes[].labels`       | Optional locale → display name map (e.g. `en-US`, `es`).                                                                                                      |
+| `themes[].cssVariables` | Object of `--*` property names to CSS values (colors, gradients, shadows).                                                                                    |
 
 **Variable names:** Use the exact tokens from `_themes.scss` (for example `--background-color-primary`, `--button-primary-bg`). Do **not** invent alternate names such as `--pv-color-bg-primary`; the UI reads `var(--background-color-primary)`.
 

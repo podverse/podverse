@@ -15,8 +15,7 @@ export type V4VProviderFailure = {
 
 /** Discriminated result: success with data or failure with structured failure info. */
 export type V4VResult<T, F = V4VProviderFailure> =
-  | { ok: true; data: T }
-  | { ok: false; failure: F };
+  { ok: true; data: T } | { ok: false; failure: F };
 
 /**
  * Builds a user-facing error message from a provider failure.

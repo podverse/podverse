@@ -18,10 +18,7 @@ import { SourceSelectorRow } from './SourceSelectorRow';
 import styles from '../../styles/components/SourceSelectors/SourceSelectors.module.scss';
 
 export type SourceSelectorActionType =
-  | 'load-in-player'
-  | 'download-episode'
-  | 'download-track'
-  | null;
+  'load-in-player' | 'download-episode' | 'download-track' | null;
 
 type SourceSelectorsProps = {
   labeledItemEnclosures: LabeledItemEnclosure[];

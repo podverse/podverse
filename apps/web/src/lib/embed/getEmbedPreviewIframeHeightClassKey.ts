@@ -1,10 +1,7 @@
 import type { EmbedLayoutType, EmbedPlayerSizeQuery } from './embedTypes';
 
 export type EmbedPreviewIframeHeightClassKey =
-  | 'iframeSingleCompact'
-  | 'iframeSingleResponsive'
-  | 'iframeListCompact'
-  | 'iframeListResponsive';
+  'iframeSingleCompact' | 'iframeSingleResponsive' | 'iframeListCompact' | 'iframeListResponsive';
 
 export function getEmbedPreviewIframeHeightClassKey(
   layoutType: EmbedLayoutType,
