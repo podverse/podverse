@@ -843,7 +843,7 @@ export function validateProxyUserAgent(varName: string, category: string): Valid
 }
 
 /** Supported UI themes (keep in sync with ENV.md / frontend). */
-export const SUPPORTED_THEMES = ['dark', 'light', 'dracula', 'violet'] as const;
+export const SUPPORTED_THEMES = ['dark', 'light', 'dracula', 'violet', 'ember', 'dawn'] as const;
 
 /**
  * Validates NEXT_PUBLIC_SUPPORTED_THEMES - "all-available" or comma-delimited list of valid themes.

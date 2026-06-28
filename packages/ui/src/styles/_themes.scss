@@ -323,3 +323,161 @@
   --button-opaque-danger-border: #aa1e2b;
   --button-enabled-icon-color: var(--text-color-accent);
 }
+
+// Ember theme (warm dark: deep red shell + golden accent; aligns with red/yellow brand marks)
+[data-ui-theme='ember'] {
+  --background-color-primary: #140606;
+  --background-color-secondary: #0a0303;
+  --background-color-tertiary: #241010;
+  --background-color-quaternary: #381818;
+  --background-color-special: #2e1212;
+  --background-color-opaque: rgba(255, 184, 0, 0.12);
+  --background-color-glow: rgba(214, 40, 40, 0.28);
+  --background-color-contrast: #ffffff;
+  --background-color-error: rgba(227, 52, 47, 0.2);
+  --background-color-success: rgba(80, 250, 123, 0.18);
+  --background-color-warning: rgba(255, 184, 0, 0.2);
+
+  --border-color-primary: #ffb800;
+  --border-color-secondary: #ffffff;
+  --border-color-tertiary: #5c3030;
+  --border-color-warning: #ffb800;
+  --border-color-error: #aa1e2b;
+  --border-color-opaque: rgba(255, 184, 0, 0.18);
+
+  --box-shadow-focus: 0 0 0 4px rgba(255, 184, 0, 0.42);
+  --tab-focus-ring-color: rgba(255, 184, 0, 0.42);
+
+  --text-color-primary: #ffffff;
+  --text-color-secondary: #d4bdb0;
+  --text-color-tertiary: #140606;
+  --text-color-accent: #ffb800;
+  --text-color-link: #ffd055;
+  --text-color-link-hover: #ffe08a;
+  --text-color-contrast: #140606;
+  --text-color-highlighted: #ffb800;
+  --text-color-danger: #ff6b6b;
+  --text-color-success: #50fa7b;
+  --text-color-warning: #ffb800;
+
+  --text-line-height: 1.35;
+
+  --progress-bar-before: #ffb800;
+  --progress-bar-after: #381818;
+  --progress-bar-highlighted: rgba(255, 184, 0, 0.45);
+  --progress-chapter-marker: #ff6b4a;
+
+  --table-row-selected-bg: rgba(255, 184, 0, 0.18);
+}
+
+[data-ui-theme='ember'] {
+  --background-gradient-primary: linear-gradient(
+    90deg,
+    rgba(120, 20, 20, 0.72) -3%,
+    var(--background-color-tertiary)
+  );
+
+  --button-primary-bg: var(--border-color-primary);
+  --button-primary-color: var(--text-color-tertiary);
+  --button-primary-bg-hover: #ffc933;
+  --button-secondary-bg: var(--background-color-glow);
+  --button-secondary-color: var(--text-color-primary);
+  --button-secondary-bg-hover: #4a2020;
+  --button-success-bg: #15803d;
+  --button-success-color: var(--text-color-primary);
+  --button-success-bg-hover: #1e9c53;
+  --button-warning-bg: #ffb800;
+  --button-warning-color: var(--text-color-tertiary);
+  --button-warning-bg-hover: #ffc933;
+  --button-highlight-bg: #ffd600;
+  --button-highlight-bg-hover: #ffe066;
+  --button-danger-bg: #bd2130;
+  --button-danger-color: var(--text-color-primary);
+  --button-danger-bg-hover: #e3342f;
+  --button-outline-color: var(--border-color-primary);
+  --button-opaque-bg: rgba(255, 184, 0, 0.16);
+  --button-opaque-warning-bg: rgba(255, 184, 0, 0.16);
+  --button-opaque-warning-color: var(--text-color-primary);
+  --button-opaque-danger-bg: rgba(196, 55, 69, 0.16);
+  --button-opaque-danger-border: #aa1e2b;
+  --button-enabled-icon-color: var(--text-color-accent);
+}
+
+// Dawn theme (warm light: cream surfaces + red accent; black primary text)
+[data-ui-theme='dawn'] {
+  --background-color-primary: #fdf6ee;
+  --background-color-secondary: #ffffff;
+  --background-color-tertiary: #fce8d4;
+  --background-color-quaternary: #f0d4bc;
+  --background-color-special: #fae8dc;
+  --background-color-opaque: rgba(196, 30, 30, 0.08);
+  --background-color-glow: rgba(255, 184, 0, 0.35);
+  --background-color-contrast: #1a1a1a;
+  --background-color-error: rgba(214, 48, 49, 0.12);
+  --background-color-success: rgba(39, 174, 96, 0.12);
+  --background-color-warning: rgba(230, 168, 0, 0.14);
+
+  --border-color-primary: #c41e1e;
+  --border-color-secondary: #1a1a1a;
+  --border-color-tertiary: #e8c4b0;
+  --border-color-warning: #c98700;
+  --border-color-error: #a93226;
+  --border-color-opaque: rgba(196, 30, 30, 0.12);
+
+  --box-shadow-focus: 0 0 0 4px rgba(196, 30, 30, 0.28);
+  --tab-focus-ring-color: rgba(196, 30, 30, 0.28);
+
+  --text-color-primary: #1a1a1a;
+  --text-color-secondary: #5c4033;
+  --text-color-tertiary: #ffffff;
+  --text-color-accent: #c41e1e;
+  --text-color-link: #9a1818;
+  --text-color-link-hover: #c41e1e;
+  --text-color-contrast: #fdf6ee;
+  --text-color-highlighted: #c98700;
+  --text-color-danger: #c0392b;
+  --text-color-success: #27ae60;
+  --text-color-warning: #c98700;
+
+  --text-line-height: 1.35;
+
+  --progress-bar-before: #c41e1e;
+  --progress-bar-after: #f0d4bc;
+  --progress-bar-highlighted: rgba(196, 30, 30, 0.35);
+  --progress-chapter-marker: #e6a800;
+
+  --table-row-selected-bg: rgba(196, 30, 30, 0.12);
+}
+
+[data-ui-theme='dawn'] {
+  --background-gradient-primary: linear-gradient(
+    90deg,
+    rgba(255, 220, 170, 0.85) -3%,
+    var(--background-color-tertiary)
+  );
+
+  --button-primary-bg: var(--border-color-primary);
+  --button-primary-color: var(--text-color-tertiary);
+  --button-primary-bg-hover: #d62828;
+  --button-secondary-bg: var(--background-color-glow);
+  --button-secondary-color: var(--text-color-primary);
+  --button-secondary-bg-hover: #f5dcc8;
+  --button-success-bg: #27ae60;
+  --button-success-color: var(--text-color-tertiary);
+  --button-success-bg-hover: #2ecc71;
+  --button-warning-bg: #e6a800;
+  --button-warning-color: var(--text-color-primary);
+  --button-warning-bg-hover: #f1c40f;
+  --button-highlight-bg: #ffb800;
+  --button-highlight-bg-hover: #ffc933;
+  --button-danger-bg: #c0392b;
+  --button-danger-color: var(--text-color-tertiary);
+  --button-danger-bg-hover: #e74c3c;
+  --button-outline-color: var(--border-color-primary);
+  --button-opaque-bg: rgba(196, 30, 30, 0.1);
+  --button-opaque-warning-bg: rgba(230, 168, 0, 0.12);
+  --button-opaque-warning-color: var(--text-color-primary);
+  --button-opaque-danger-bg: rgba(192, 57, 43, 0.1);
+  --button-opaque-danger-border: #a93226;
+  --button-enabled-icon-color: var(--text-color-accent);
+}

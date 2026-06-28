@@ -19,10 +19,12 @@ export const getBrandLogoSrc = (uiTheme: UITheme) => {
   const { brand } = getConfig().public;
   switch (uiTheme) {
     case 'light':
+    case 'dawn':
       return brand.logoLight;
     case 'dark':
     case 'dracula':
     case 'violet':
+    case 'ember':
     default:
       return brand.logoDark;
   }

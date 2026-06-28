@@ -65,7 +65,9 @@ describe('brandLogo utilities', () => {
 
   it('returns horizontal wordmarks by UI theme', () => {
     expect(getBrandLogoSrc('light')).toBe('/branding/logo-rectangle.svg');
+    expect(getBrandLogoSrc('dawn')).toBe('/branding/logo-rectangle.svg');
     expect(getBrandLogoSrc('dark')).toBe('/branding/logo-rectangle-dark.svg');
+    expect(getBrandLogoSrc('ember')).toBe('/branding/logo-rectangle-dark.svg');
     expect(getBrandLogoSrc('dracula')).toBe('/branding/logo-rectangle-dark.svg');
   });
 

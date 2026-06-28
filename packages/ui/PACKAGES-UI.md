@@ -8,7 +8,7 @@ Shared UI components for Podverse applications (see `package.json` for the publi
 
 - `@podverse/ui/styles/variables` — design tokens (CSS custom properties + SCSS-mirror variables) and breakpoints
 - `@podverse/ui/styles/breakpoints` — breakpoint SCSS variables only
-- `@podverse/ui/styles/themes` — `dark` / `light` / `dracula` / `violet` theme blocks
+- `@podverse/ui/styles/themes` — `dark` / `light` / `dracula` / `violet` / `ember` / `dawn` theme blocks
 - `@podverse/ui/styles/mixins` — shared SCSS mixins (media queries, layout, form, headers, buttons, **`flexItemAllowShrink`** / **`flexItemClampToParent`** in [`mixins/_flexShrink.scss`](src/styles/mixins/_flexShrink.scss), etc.)
 - `@podverse/ui/styles/font-faces` — Roboto `@font-face` declarations + `body { font-family }`
 - `@podverse/ui/styles/globals` — shared HTML element resets (`button`, `a`, headings, `p`, etc.) aligned with `apps/web`; both apps should `@use` this after themes so `@podverse/ui` controls inherit typography on controls.

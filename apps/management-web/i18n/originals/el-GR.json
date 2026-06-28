@@ -712,7 +712,9 @@
       "light": "Φωτεινό",
       "dark": "Σκοτεινό",
       "dracula": "Dracula",
-      "violet": "Βιολέ"
+      "violet": "Βιολέ",
+      "ember": "Βράσα",
+      "dawn": "Αυγή"
     },
     "language": {
       "label": "Γλώσσα"

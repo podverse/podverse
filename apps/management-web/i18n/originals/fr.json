@@ -712,7 +712,9 @@
       "light": "Clair",
       "dark": "Sombre",
       "dracula": "Dracula",
-      "violet": "Violet"
+      "violet": "Violet",
+      "ember": "Braise",
+      "dawn": "Aurore"
     },
     "language": {
       "label": "Langue"
