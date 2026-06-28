@@ -1,6 +1,6 @@
 {
   "name": "@podverse/http-request-core",
-  "version": "5.5.0",
+  "version": "5.5.1",
   "sideEffects": false,
   "description": "Shared HTTP request transport and auth context helpers",
   "main": "./dist/index.js",
