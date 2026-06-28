@@ -1,6 +1,6 @@
 {
   "name": "@podverse/external-services-firebase",
-  "version": "5.5.1",
+  "version": "5.5.2",
   "description": "Firebase (Google) integration for Podverse",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

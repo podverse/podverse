@@ -1,6 +1,6 @@
 {
   "name": "@podverse/v4v-btc-ln",
-  "version": "5.5.1",
+  "version": "5.5.2",
   "description": "Bitcoin Lightning (LN) V4V helpers: lnaddress, keysend/blip10, web payments",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
