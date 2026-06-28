@@ -72,6 +72,7 @@ const optionalKeys = [
   'NEXT_PUBLIC_BRAND_LOGO_SQUARE',
   'NEXT_PUBLIC_BRAND_LOGO_SQUARE_100X100',
   'NEXT_PUBLIC_BRAND_NAME',
+  'NEXT_PUBLIC_BRAND_RECTANGULAR_LOGO_DISABLE_HEIGHT_ENFORCEMENT',
   'NEXT_PUBLIC_BRAND_THEME_COLOR',
   'NEXT_PUBLIC_CONTACT_EMAIL',
   'NEXT_PUBLIC_CUSTOM_THEMES_URL',
@@ -164,7 +165,8 @@ function validateOne(key: string, isRequired: boolean): ValidationResult {
   }
   if (
     key === 'NEXT_PUBLIC_IMAGE_PROXY_ENABLED' ||
-    key === 'NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED'
+    key === 'NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENABLED' ||
+    key === 'NEXT_PUBLIC_BRAND_RECTANGULAR_LOGO_DISABLE_HEIGHT_ENFORCEMENT'
   ) {
     const value = process.env[key] ?? '';
     if (value.trim() === '') {

@@ -7,6 +7,7 @@ type BrandConfigShape = {
       logoLight: string;
       logoSquare: string | null;
       logoSquare100x100: string | null;
+      rectangularLogoDisableHeightEnforcement: boolean;
     };
   };
 };
@@ -18,6 +19,7 @@ let mockConfig: BrandConfigShape = {
       logoLight: '/branding/logo-rectangle.svg',
       logoSquare: null,
       logoSquare100x100: null,
+      rectangularLogoDisableHeightEnforcement: false,
     },
   },
 };
@@ -26,7 +28,13 @@ vi.mock('../config', () => ({
   getConfig: () => mockConfig,
 }));
 
-import { getBrandLogoSquareSrc, getBrandLogoSrc } from './brandLogo';
+import {
+  BRAND_RECTANGULAR_LOGO_HEIGHT,
+  BRAND_RECTANGULAR_LOGO_WIDTH,
+  getBrandLogoSquareSrc,
+  getBrandLogoSrc,
+  getBrandRectangularLogoImageHeight,
+} from './brandLogo';
 
 describe('brandLogo utilities', () => {
   beforeEach(() => {
@@ -37,9 +45,22 @@ describe('brandLogo utilities', () => {
           logoLight: '/branding/logo-rectangle.svg',
           logoSquare: null,
           logoSquare100x100: null,
+          rectangularLogoDisableHeightEnforcement: false,
         },
       },
     };
+  });
+
+  it('exports fixed layout width and default height for rectangular wordmarks', () => {
+    expect(BRAND_RECTANGULAR_LOGO_WIDTH).toBe(144);
+    expect(BRAND_RECTANGULAR_LOGO_HEIGHT).toBe(25);
+  });
+
+  it('returns default img height unless env disables enforcement', () => {
+    expect(getBrandRectangularLogoImageHeight()).toBe(25);
+
+    mockConfig.public.brand.rectangularLogoDisableHeightEnforcement = true;
+    expect(getBrandRectangularLogoImageHeight()).toBeUndefined();
   });
 
   it('returns horizontal wordmarks by UI theme', () => {

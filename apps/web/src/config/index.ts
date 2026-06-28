@@ -38,6 +38,8 @@ const buildConfig = () => {
           optionalEnvString(env.NEXT_PUBLIC_BRAND_LOGO_LIGHT) ?? ASSETS.IMAGES.BRANDING.BRAND.LOGO,
         logoSquare: optionalEnvString(env.NEXT_PUBLIC_BRAND_LOGO_SQUARE),
         logoSquare100x100: optionalEnvString(env.NEXT_PUBLIC_BRAND_LOGO_SQUARE_100X100),
+        rectangularLogoDisableHeightEnforcement:
+          env.NEXT_PUBLIC_BRAND_RECTANGULAR_LOGO_DISABLE_HEIGHT_ENFORCEMENT === 'true',
       },
       api: {
         ssr: {
