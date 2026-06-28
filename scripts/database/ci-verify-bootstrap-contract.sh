@@ -10,8 +10,8 @@ required_files=(
   "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0001_create_app_db_users.sh"
   "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0002_create_management_db_users.sh"
   "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0003_apply_linear_baselines.sh"
-  "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0003a_app_linear_baseline.sql.gz"
-  "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0003b_management_linear_baseline.sql.gz"
+  "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0004_app_linear_baseline.sql.gz"
+  "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0005_management_linear_baseline.sql.gz"
 )
 for file in "${required_files[@]}"; do
   if [[ ! -f "$file" ]]; then
@@ -75,8 +75,8 @@ docker run -d --name "$CONTAINER_NAME" \
   -v "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0001_create_app_db_users.sh:/docker-entrypoint-initdb.d/0001_create_app_db_users.sh:ro" \
   -v "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0002_create_management_db_users.sh:/docker-entrypoint-initdb.d/0002_create_management_db_users.sh:ro" \
   -v "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0003_apply_linear_baselines.sh:/docker-entrypoint-initdb.d/0003_apply_linear_baselines.sh:ro" \
-  -v "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0003a_app_linear_baseline.sql.gz:/linear-baseline/app.sql.gz:ro" \
-  -v "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0003b_management_linear_baseline.sql.gz:/linear-baseline/management.sql.gz:ro" \
+  -v "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0004_app_linear_baseline.sql.gz:/linear-baseline/app.sql.gz:ro" \
+  -v "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0005_management_linear_baseline.sql.gz:/linear-baseline/management.sql.gz:ro" \
   postgres:18.3 >/dev/null
 
 for attempt in $(seq 1 60); do

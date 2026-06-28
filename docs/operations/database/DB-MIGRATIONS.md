@@ -4,11 +4,11 @@ Podverse uses forward-only SQL migrations with one canonical source tree:
 
 - app migrations: `infra/k8s/base/ops/source/database/linear-migrations/app`
 - management migrations: `infra/k8s/base/ops/source/database/linear-migrations/management`
-- bootstrap and generated init SQL: `infra/k8s/base/db/source/bootstrap` (see [LINEAR-MIGRATIONS.md](LINEAR-MIGRATIONS.md) for `0003a`/`0003b` baselines)
+- bootstrap and generated init SQL: `infra/k8s/base/db/source/bootstrap` (see [LINEAR-MIGRATIONS.md](LINEAR-MIGRATIONS.md) for `0004`/`0005` baselines)
 
 ## First-run contract (brand-new DB)
 
-1. Bring up Postgres and `docker-entrypoint-initdb` order: `0001_` (app users) and `0002_` (management DB and users) and `0003_apply_linear_baselines.sh` + generated `0003a`/`0003b` (full schema; see [LINEAR-MIGRATIONS.md](LINEAR-MIGRATIONS.md)).
+1. Bring up Postgres and `docker-entrypoint-initdb` order: `0001_` (app users) and `0002_` (management DB and users) and `0003_apply_linear_baselines.sh` + generated `0004`/`0005` (full schema; see [LINEAR-MIGRATIONS.md](LINEAR-MIGRATIONS.md)).
 2. Wait for DB readiness.
 3. If `0003` is present and matches the repo, migration jobs should be no-ops (checksums in `linear_migration_history`); otherwise run app and management migration jobs.
 4. Create or update the management superuser.
@@ -82,7 +82,7 @@ When adapting to other clusters/repositories, keep mounts and `LINEAR_MIGRATIONS
 
 **Privileged bootstrap:** `0003_apply_linear_baselines.sh` uses `DB_APP_OWNER_USER` / `DB_MANAGEMENT_OWNER_USER` for extension installation and then applies baseline archives as the migrator roles.
 
-**Fresh PVC / initdb:** Cluster Postgres runs `0003`, and generated `0003a`/`0003b` baselines include deterministic `linear_migration_history` rows so ops jobs start with aligned checksums (see [LINEAR-MIGRATIONS.md](LINEAR-MIGRATIONS.md)).
+**Fresh PVC / initdb:** Cluster Postgres runs `0003`, and generated `0004`/`0005` baselines include deterministic `linear_migration_history` rows so ops jobs start with aligned checksums (see [LINEAR-MIGRATIONS.md](LINEAR-MIGRATIONS.md)).
 
 After merging these manifests, bump the immutable `?ref=` on remote ops bases in your GitOps repository (for example `apps/<environment>/ops/kustomization.yaml` there) to a Podverse tag that includes the change.
 

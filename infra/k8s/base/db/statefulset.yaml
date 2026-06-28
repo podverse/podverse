@@ -117,10 +117,10 @@ spec:
               subPath: 0003_apply_linear_baselines.sh
             - name: db-init-scripts
               mountPath: /linear-baseline/app.sql.gz
-              subPath: 0003a_app_linear_baseline.sql.gz
+              subPath: 0004_app_linear_baseline.sql.gz
             - name: db-init-scripts
               mountPath: /linear-baseline/management.sql.gz
-              subPath: 0003b_management_linear_baseline.sql.gz
+              subPath: 0005_management_linear_baseline.sql.gz
 
             - name: run-dir
               mountPath: /var/run/postgresql
