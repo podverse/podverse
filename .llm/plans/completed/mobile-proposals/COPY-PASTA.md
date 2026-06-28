@@ -23,7 +23,7 @@ Generate the proposal doc at docs/proposals/mobile/monorepo-llm-setup/DOCS-MOBIL
 Explore the repo; cite real paths. Include mermaid if helpful. Docs only — no code changes.
 ```
 
-- [ ] **Prompt 1** complete
+- [x] **Prompt 1** complete
 
 ### Prompt 2
 
@@ -34,7 +34,7 @@ Generate docs/proposals/mobile/monorepo-llm-setup/DOCS-MOBILE-MONOREPO-TARGET-ST
 Build on 01 output. Docs only — no code changes.
 ```
 
-- [ ] **Prompt 2** complete
+- [x] **Prompt 2** complete
 
 ### Prompt 3
 
@@ -45,7 +45,7 @@ Generate docs/proposals/mobile/monorepo-llm-setup/DOCS-MOBILE-LLM-CURSOR-SETUP.m
 Docs only — no code changes.
 ```
 
-- [ ] **Prompt 3** complete
+- [x] **Prompt 3** complete
 
 ---
 
@@ -60,7 +60,7 @@ Generate docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-OVERV
 Heavily code-grounded; include screen map and architecture mermaid. Docs only.
 ```
 
-- [ ] **Prompt 4** complete
+- [x] **Prompt 4** complete
 
 ### Prompts 5–7 (parallel — 3 agents after Prompt 4)
 
@@ -91,9 +91,9 @@ Generate docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-MOBIL
 Docs only — no code changes.
 ```
 
-- [ ] **Prompt 5A** complete
-- [ ] **Prompt 5B** complete
-- [ ] **Prompt 5C** complete
+- [x] **Prompt 5A** complete
+- [x] **Prompt 5B** complete
+- [x] **Prompt 5C** complete
 
 ### Prompt 8 (last — after 5A–5C)
 
@@ -104,7 +104,7 @@ Generate docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-ROADM
 Read Track B docs 04–07 if present. Docs only — no code changes.
 ```
 
-- [ ] **Prompt 8** complete
+- [x] **Prompt 8** complete
 
 ---
 

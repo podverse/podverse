@@ -1,6 +1,6 @@
 # Remote custom themes (operator guide)
 
-Podverse **web** and **management-web** can load extra UI color themes from a **remote JSON file** hosted on your CDN or static site. Each theme overrides the same CSS custom properties used by built-in themes (`dark`, `light`, `dracula`, `violet`) in [`packages/ui/src/styles/_themes.scss`](/packages/ui/src/styles/_themes.scss).
+Podverse **web** and **management-web** can load extra UI color themes from a **remote JSON file** hosted on your CDN or static site. Each theme overrides the same CSS custom properties used by built-in themes (`dark`, `light`, `dracula`, `violet`, `ember`, `dawn`) in [`packages/ui/src/styles/_themes.scss`](/packages/ui/src/styles/_themes.scss).
 
 Built-in themes stay in the app image. Remote themes are **additive**: they appear in Settings → Theme alongside native options when configured.
 
@@ -48,7 +48,7 @@ Remote packs are **JSON**, not raw CSS. The app converts each theme’s `cssVari
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `version`               | Non-empty string (opaque to the app; bump when you change the file).                                                                         |
 | `themes`                | Non-empty array; each `id` must be unique.                                                                                                   |
-| `themes[].id`           | Lowercase letters, digits, `_`, `-` only (normalized to lowercase). Must **not** match a built-in id (`dark`, `light`, `dracula`, `violet`). |
+| `themes[].id`           | Lowercase letters, digits, `_`, `-` only (normalized to lowercase). Must **not** match a built-in id (`dark`, `light`, `dracula`, `violet`, `ember`, `dawn`). |
 | `themes[].labels`       | Optional locale → display name map (e.g. `en-US`, `es`).                                                                                     |
 | `themes[].cssVariables` | Object of `--*` property names to CSS values (colors, gradients, shadows).                                                                   |
 
