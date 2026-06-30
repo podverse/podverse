@@ -18,7 +18,7 @@ Linear migrations model **ordered fresh applies**: migration `NNNN` may assume t
 
 - Use plain `CREATE TABLE`, `ALTER TABLE … ADD`, `DROP …`, `INSERT`, etc., when the object or absence is guaranteed by prior migrations.
 - Keep deterministic literals for seeds when baselines must stay byte-stable (fixed timestamps, explicit UUIDs where the repo already pins them).
-- After changing SQL: `make db_regen_linear_baseline`, then `make db_verify_linear_baseline`, commit updated `0003a`/`0003b` (see [linear-baseline-0003](/.cursor/rules/linear-baseline-0003.mdc)).
+- After changing SQL: `make db_regen_linear_baseline`, then `make db_verify_linear_baseline`, commit updated `0004`/`0005` (see [linear-baseline-0004](/.cursor/rules/linear-baseline-0004.mdc)).
 
 ## Don’t (unless prior migrations make it necessary)
 

@@ -2,11 +2,11 @@
 # Rebuild generated linear baseline archives from bootstrap 0001 + 0002, then the full
 # linear app + management migration chains, then pg_dump of each database (separate files).
 # Default outputs:
-#   infra/k8s/base/db/source/bootstrap/0003a_app_linear_baseline.sql.gz
-#   infra/k8s/base/db/source/bootstrap/0003b_management_linear_baseline.sql.gz
+#   infra/k8s/base/db/source/bootstrap/0004_app_linear_baseline.sql.gz
+#   infra/k8s/base/db/source/bootstrap/0005_management_linear_baseline.sql.gz
 # Pass a directory as the first argument to write both files there (for verify-linear-baseline.sh).
 # Pass a path ending in .sql for uncompressed combined debug output.
-# Do not edit 0003a/0003b manually; re-run this script or `make db_regen_linear_baseline` after migration changes.
+# Do not edit 0004/0005 manually; re-run this script or `make db_regen_linear_baseline` after migration changes.
 #
 # Requires: docker, gzip (when writing .gz), a POSIX shell
 #
@@ -28,8 +28,8 @@ export DB_HOST="${DB_HOST:-127.0.0.1}"
 export DB_PORT="${DB_PORT:-5432}"
 
 DEFAULT_OUT_DIR="$REPO_ROOT/infra/k8s/base/db/source/bootstrap"
-OUT_APP_REL="0003a_app_linear_baseline.sql.gz"
-OUT_MGT_REL="0003b_management_linear_baseline.sql.gz"
+OUT_APP_REL="0004_app_linear_baseline.sql.gz"
+OUT_MGT_REL="0005_management_linear_baseline.sql.gz"
 
 FIRST_ARG="${1:-}"
 OUT_DIR="$DEFAULT_OUT_DIR"

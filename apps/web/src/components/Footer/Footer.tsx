@@ -18,7 +18,7 @@ import { ROUTES } from '../../constants/routes';
 import { SOCIALS } from '../../constants/socials';
 import { useConfig } from '../../contexts/Config';
 import { useLocalSettings } from '../../contexts/LocalSettings';
-import { getBrandLogoSrc } from '../../utils/brandLogo';
+import { getBrandLogoSrc, getBrandRectangularLogoImageHeight } from '../../utils/brandLogo';
 import { Link } from '../Link/Link';
 
 export const Footer: React.FC = () => {
@@ -37,6 +37,7 @@ export const Footer: React.FC = () => {
         <>
           <FooterBrand
             alt={config.public.brand.name}
+            height={getBrandRectangularLogoImageHeight() ?? null}
             LinkComponent={NextLink}
             logoSrc={getBrandLogoSrc(uiTheme)}
             skipProxy

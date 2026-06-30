@@ -288,6 +288,13 @@ end
 
 Canonical wave contract reference: [ARGOCD-SYNC-WAVE-CONTRACT.md](ARGOCD-SYNC-WAVE-CONTRACT.md).
 
+When the **ops** app syncs, Argo CD runs PostSync Job **`ops-db-bootstrap-migrations`**, which applies app and
+management linear migrations **once** per fresh cluster/DB (bootstrap marker in the management database). You do
+**not** need to manually trigger `ops-db-migrate-app` / `ops-db-migrate-management` on first deploy. Bump the
+remote ops base `?ref=` to a Podverse tag that includes
+[`db-bootstrap-migrations.job.yaml`](/infra/k8s/base/ops/db-bootstrap-migrations.job.yaml). After a migration
+squash or baseline rename, drop/recreate the DB PVC so init and the bootstrap Job run on a clean volume.
+
 Or use the Argo CD UI. Then:
 
 ```fish

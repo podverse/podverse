@@ -9,8 +9,7 @@ type BoostEligibilityInput = {
 };
 
 export type MbrssMessagesScope =
-  | { type: 'channel'; podcastGuid: string }
-  | { type: 'item'; itemGuid: string };
+  { type: 'channel'; podcastGuid: string } | { type: 'item'; itemGuid: string };
 
 export type BoostEligibility = {
   canShowBoostAction: boolean;

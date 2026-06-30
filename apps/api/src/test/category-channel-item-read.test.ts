@@ -17,12 +17,10 @@ const TEST_EMAIL = 'ccir-test@example.com';
 const TEST_USER_ID = 1;
 
 const _requestMock = vi.hoisted(() =>
-  vi.fn(
-    async (): Promise<{ status: number; data: { body: string } }> => ({
-      status: 200,
-      data: { body: 'transcript body' },
-    })
-  )
+  vi.fn(async (): Promise<{ status: number; data: { body: string } }> => ({
+    status: 200,
+    data: { body: 'transcript body' },
+  }))
 );
 
 vi.mock('../lib/_request.js', () => ({

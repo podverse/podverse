@@ -53,7 +53,7 @@ Per-job env validation, command-first bootstrap, and checklist for adding worker
 | MQ                | MESSAGE*QUEUE*\*                                    |
 | Parser            | PARSER\_\*                                          |
 | PodcastIndex      | PODCAST*INDEX*\*                                    |
-| Web/Notifications | WEB*\*, BRAND_NAME, WEBPUSH*_, GOOGLE*FIREBASE*_    |
+| Web/Notifications | WEB*\*, BRAND_NAME, WEBPUSH*\_, GOOGLE*FIREBASE*_   |
 
 Reference [ENV.md](/apps/workers/ENV.md) and
 [validation.ts](/apps/workers/src/lib/startup/validation.ts) for which commands need which

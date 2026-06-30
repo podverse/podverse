@@ -1,6 +1,6 @@
 {
   "name": "@podverse/helpers",
-  "version": "5.5.0",
+  "version": "5.5.2",
   "type": "module",
   "sideEffects": false,
   "description": "Shared utilities and DTOs for Podverse applications",
@@ -26,7 +26,7 @@
   "dependencies": {
     "date-fns": "^4.4.0",
     "he": "^1.2.0",
-    "uuid": "^14.0.0"
+    "uuid": "^14.0.1"
   },
   "devDependencies": {
     "@types/he": "^1.2.3",

@@ -31,11 +31,7 @@ export type FeedOperationsOptionsResponse = {
 export type LookupResponse = { feed: FeedOperationsLookup };
 
 export type FeedOperationsListSortKey =
-  | 'id'
-  | 'podcast_index_id'
-  | 'channel_title'
-  | 'lifecycle_state_key'
-  | 'url';
+  'id' | 'podcast_index_id' | 'channel_title' | 'lifecycle_state_key' | 'url';
 
 export type ListFeedOperationsParams = {
   page?: number;

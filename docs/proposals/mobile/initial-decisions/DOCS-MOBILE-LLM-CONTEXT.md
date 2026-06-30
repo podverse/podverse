@@ -7,13 +7,13 @@ to search, not a bigger payload per request. The real risks are narrower and eac
 
 ## What actually degrades LLM quality (and the fix)
 
-| Risk                                                      | Mitigation                                                                 |
-| --------------------------------------------------------- | -------------------------------------------------------------------------- |
-| Indexing huge native build trees (`Pods`, `.gradle`, etc.) | `.cursorignore` + `.gitignore` exclude them so they are never indexed.     |
-| Cross-toolchain confusion (RN vs. Next vs. Node patterns) | App-local `apps/mobile/APPS-MOBILE.md` with mobile-only conventions.       |
-| Wrong-tier or wrong-app edits                             | Keep tier rules explicit; mobile is a top-tier consumer only.              |
-| Generic answers that ignore the car architecture          | Point a rule/skill at the CarPlay/Android Auto doc so it is always in scope. |
-| Giant files the model must read whole                     | Keep files focused and under reasonable size, as the repo already does.    |
+| Risk                                                       | Mitigation                                                                   |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Indexing huge native build trees (`Pods`, `.gradle`, etc.) | `.cursorignore` + `.gitignore` exclude them so they are never indexed.       |
+| Cross-toolchain confusion (RN vs. Next vs. Node patterns)  | App-local `apps/mobile/APPS-MOBILE.md` with mobile-only conventions.         |
+| Wrong-tier or wrong-app edits                              | Keep tier rules explicit; mobile is a top-tier consumer only.                |
+| Generic answers that ignore the car architecture           | Point a rule/skill at the CarPlay/Android Auto doc so it is always in scope. |
+| Giant files the model must read whole                      | Keep files focused and under reasonable size, as the repo already does.      |
 
 ## Concrete actions
 
@@ -65,7 +65,7 @@ working on servers, stay in those trees. This is good practice in any large mono
 session's retrieval tight and relevant. Subagents scoped to one area (e.g. an `explore` agent for
 "how does the native cache get written?") keep the main context clean.
 
-## Why the monorepo is actually *better* for LLM workflows here
+## Why the monorepo is actually _better_ for LLM workflows here
 
 - **Shared types in context.** When the agent edits a mobile API call, the same `@podverse/helpers`
   DTO is right there — it cannot drift from a copy in another repo it cannot see.
@@ -74,12 +74,12 @@ session's retrieval tight and relevant. Subagents scoped to one area (e.g. an `e
 - **Atomic, reviewable changes.** A DTO + web + mobile change is one diff the agent can reason about
   end to end, instead of coordinating edits across repos it would have to be told about separately.
 
-A separate repo would *shrink* each repo but would also **hide the shared contracts** from the agent
+A separate repo would _shrink_ each repo but would also **hide the shared contracts** from the agent
 when working in the other repo — often a net loss for correctness.
 
 ## Bottom line
 
 Adding mobile will not overwhelm Cursor as long as you (1) `.cursorignore` the native build output,
 (2) give `apps/mobile` its own `APPS-MOBILE.md` and a car-architecture rule, and (3) keep mobile off
-the server build graph. Done this way, the monorepo is the *better* environment for LLM-driven work
+the server build graph. Done this way, the monorepo is the _better_ environment for LLM-driven work
 because the shared contracts stay visible and the conventions stay singular.

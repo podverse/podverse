@@ -79,8 +79,7 @@ type Phase6RecipientItemValueTimeSplit = Phase6ValueTimeSplitBase & {
 };
 
 export type Phase6ValueTimeSplit =
-  | Phase6RemoteItemValueTimeSplit
-  | Phase6RecipientItemValueTimeSplit;
+  Phase6RemoteItemValueTimeSplit | Phase6RecipientItemValueTimeSplit;
 
 export type Phase4ValueTimeSplitRemoteItem = Phase6RemoteItem;
 export type Phase4ValueTimeSplit = Phase6ValueTimeSplit;

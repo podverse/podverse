@@ -16,8 +16,8 @@ configMapGenerator:
   - name: podverse-db-init-scripts
     files:
       - 0003_apply_linear_baselines.sh=source/bootstrap/0003_apply_linear_baselines.sh
-      - 0003a_app_linear_baseline.sql.gz=source/bootstrap/0003a_app_linear_baseline.sql.gz
-      - 0003b_management_linear_baseline.sql.gz=source/bootstrap/0003b_management_linear_baseline.sql.gz
+      - 0004_app_linear_baseline.sql.gz=source/bootstrap/0004_app_linear_baseline.sql.gz
+      - 0005_management_linear_baseline.sql.gz=source/bootstrap/0005_management_linear_baseline.sql.gz
 
 generatorOptions:
   disableNameSuffixHash: true

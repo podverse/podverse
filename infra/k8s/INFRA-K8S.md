@@ -133,6 +133,24 @@ still have the old Secret name only:
 
 Push to the Argo CD–tracked branch so the cluster can sync.
 
+### Ops: first deploy migrations (automatic)
+
+When Argo CD syncs the **ops** Application (sync wave `-1`, before API at `0`), the PostSync hook Job
+[`db-bootstrap-migrations.job.yaml`](base/ops/db-bootstrap-migrations.job.yaml) (`ops-db-bootstrap-migrations`)
+waits for Postgres init (`0004`/`0005` baselines), runs app and management linear migrations idempotently,
+verifies `API_EXPECTED_MIGRATION_FILENAME` / `MANAGEMENT_API_EXPECTED_MIGRATION_FILENAME`, and records a
+bootstrap marker in `podverse_k8s_bootstrap_state` (management database). **Do not** manually trigger
+`ops-db-migrate-app` / `ops-db-migrate-management` on first deploy for a fresh PVC.
+
+After the marker exists, ops re-syncs skip migration work. Create the management superuser manually:
+
+```bash
+K8S_NAMESPACE=podverse-alpha npm run management:superuser:create:k8s
+```
+
+For **schema updates** (new `0002_*.sql` and later) or **recovery** after logical wipe, use the suspended
+migrate CronJobs below.
+
 ### Ops: drop schema, full bootstrap prep, then migrate
 
 [`infra/k8s/base/ops/db-drop-everything.cronjob.yaml`](base/ops/db-drop-everything.cronjob.yaml) runs

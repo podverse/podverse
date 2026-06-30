@@ -1,6 +1,6 @@
 {
   "name": "@podverse/management-web-sidecar",
-  "version": "5.5.0",
+  "version": "5.5.2",
   "private": true,
   "type": "module",
   "description": "Runtime-config sidecar for podverse-management-web",
@@ -23,6 +23,7 @@
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "sharp": "^0.35.1",
+    "uuid": "^14.0.1",
     "vitest": "4.1.9"
   },
   "devDependencies": {

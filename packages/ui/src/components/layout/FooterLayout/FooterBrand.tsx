@@ -18,7 +18,8 @@ export type FooterBrandProps = {
   alt: string;
   href?: string;
   width?: number;
-  height?: number;
+  /** Omit fixed img height when `null` (non-144×25 wordmarks). Defaults to 25 when unset. */
+  height?: number | null;
   skipProxy?: boolean;
   className?: string;
   LinkComponent?: ComponentType<FooterBrandLinkProps>;
@@ -35,16 +36,17 @@ export function FooterBrand({
   alt,
   href = '/',
   width = 144,
-  height = 25,
+  height,
   skipProxy,
   className,
   LinkComponent = DefaultLink,
 }: FooterBrandProps) {
   const LinkTag = LinkComponent;
+  const imageHeightProps = height === null ? {} : { height: height ?? 25 };
 
   return (
     <LinkTag href={href} className={classNames(styles.brand, className)}>
-      <Image alt={alt} height={height} skipProxy={skipProxy} src={logoSrc} width={width} />
+      <Image alt={alt} skipProxy={skipProxy} src={logoSrc} width={width} {...imageHeightProps} />
     </LinkTag>
   );
 }

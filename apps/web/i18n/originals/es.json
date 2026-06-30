@@ -802,8 +802,10 @@
       "description": "Elige el tema de color utilizado en toda la aplicación.",
       "light": "Claro",
       "dark": "Oscuro",
-      "dracula": "Dracula",
-      "violet": "Violeta"
+      "dracula": "Drácula",
+      "violet": "Violeta",
+      "ember": "Brasa",
+      "dawn": "Amanecer"
     },
     "preferred_media_type": {
       "label": "Tipo de medio preferido",

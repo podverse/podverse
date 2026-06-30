@@ -7,16 +7,7 @@ import {
 } from './tablePolicy.js';
 
 type FilterOperator =
-  | 'eq'
-  | 'neq'
-  | 'gt'
-  | 'gte'
-  | 'lt'
-  | 'lte'
-  | 'like'
-  | 'in'
-  | 'is_null'
-  | 'is_not_null';
+  'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'in' | 'is_null' | 'is_not_null';
 
 type FilterCondition = {
   field: string;

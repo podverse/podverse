@@ -1,8 +1,7 @@
 import { ManagementApiRequestService } from './apiRequestService.js';
 
 export type StorageFeatureResponse =
-  | { enabled: false }
-  | { enabled: true; provider: string; bucketName: string };
+  { enabled: false } | { enabled: true; provider: string; bucketName: string };
 
 export type StorageObjectListItem = {
   key: string;

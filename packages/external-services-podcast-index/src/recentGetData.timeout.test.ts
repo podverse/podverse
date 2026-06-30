@@ -58,8 +58,7 @@ describe('PodcastIndexService.recentGetData HTTP timeout', () => {
 
     expect(requestWithUserAgent).toHaveBeenCalledTimes(1);
     const abortArg = requestWithUserAgent.mock.calls[0]?.[3] as
-      | { controller: AbortController; timeoutMs: number }
-      | undefined;
+      { controller: AbortController; timeoutMs: number } | undefined;
     expect(abortArg).toEqual(
       expect.objectContaining({
         timeoutMs: DEFAULT_HTTP_TIMEOUT_MS,

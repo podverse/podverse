@@ -120,6 +120,7 @@ fi
 
 if [ "$STAGING_COMMIT" == "$DEVELOP_COMMIT" ]; then
   echo -e "${GREEN}Staging is already up to date with develop. No merge needed.${NC}"
+  "$SCRIPT_DIR/wait-for-workflow.sh" publish-staging.yml staging "$ORIGIN_STAGING_COMMIT"
   if [ "$CURRENT_BRANCH" != "staging" ]; then
     git checkout "$CURRENT_BRANCH"
   fi

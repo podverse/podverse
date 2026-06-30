@@ -27,7 +27,7 @@ export interface ImageProps {
   fallbackControl?: ImageFallbackControl;
   alt: string;
   width: number;
-  height: number;
+  height?: number;
   className?: string;
   skipProxy?: boolean;
   priority?: boolean;
@@ -97,9 +97,15 @@ export const Image: React.FC<ImageProps> = ({
     onLoad?.();
   };
 
-  const isFluidGridSlot = width === listGridSlotSize && height === listGridSlotSize;
+  const omitFixedHeight = height === undefined;
+  const renderedHeight = height ?? 1;
+  const fixedWidthAutoHeightStyle = omitFixedHeight
+    ? ({ width: `${width}px`, height: 'auto' } as React.CSSProperties)
+    : undefined;
+  const isFluidGridSlot =
+    height !== undefined && width === listGridSlotSize && height === listGridSlotSize;
   const placeholderWidth = Math.round((width * 2) / 2.5);
-  const placeholderHeight = Math.round((height * 2) / 2.5);
+  const placeholderHeight = Math.round((renderedHeight * 2) / 2.5);
 
   const rawSrc = resolvedChain[attemptIndex];
   const showPlaceholder =
@@ -113,7 +119,13 @@ export const Image: React.FC<ImageProps> = ({
           isFluidGridSlot && styles.placeholderOuterFluid,
           className
         )}
-        style={isFluidGridSlot ? undefined : { width, height }}
+        style={
+          isFluidGridSlot
+            ? undefined
+            : omitFixedHeight
+              ? { width }
+              : { width, height: renderedHeight }
+        }
       >
         <NextImage
           src={placeholderSrc}
@@ -142,7 +154,8 @@ export const Image: React.FC<ImageProps> = ({
       src={finalSrc}
       alt={alt}
       width={width}
-      height={height}
+      height={renderedHeight}
+      style={fixedWidthAutoHeightStyle}
       className={classNames(skeletonClass, className)}
       onError={onLoadFailure}
       onLoad={handleLoad}

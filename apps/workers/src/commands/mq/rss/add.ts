@@ -8,8 +8,7 @@ import { mqRSSAdd as mqRSSAddFunction } from '@podverse/mq';
 
 export const mqRSSAdd = async (args: CommandLineArgs) => {
   const mqQueueNameParamKey = (Array.isArray(args.q) ? args.q[0] : args.q) as
-    | MQQueueNameParamKey
-    | undefined;
+    MQQueueNameParamKey | undefined;
   if (!mqQueueNameParamKey) {
     throw new Error('queueName (-q) parameter is required');
   }

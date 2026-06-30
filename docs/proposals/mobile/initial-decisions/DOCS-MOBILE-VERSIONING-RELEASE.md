@@ -11,7 +11,7 @@ From [STAGING-MAIN-PROMOTION.md](/docs/development/release/STAGING-MAIN-PROMOTIO
 
 - `develop → staging → main` are fast-forward branch mirrors.
 - Staging builds images tagged `X.Y.Z-staging.N`.
-- Promotion to `main` is **`crane copy`** — the *same image digest* is retagged `X.Y.Z` and
+- Promotion to `main` is **`crane copy`** — the _same image digest_ is retagged `X.Y.Z` and
   `latest`. **No rebuild.**
 - One version line is bumped across all workspaces by `scripts/publish/bump-version.sh`.
 
@@ -19,14 +19,14 @@ The "promote without rebuild" trick is the heart of the server flow. **It does n
 
 ## Why mobile is fundamentally different
 
-| Property                   | Server (containers)                  | Mobile (App Store / Play Store)                |
-| -------------------------- | ------------------------------------ | ---------------------------------------------- |
-| Promotion mechanism        | Retag same digest (`crane copy`)     | Rebuild + re-sign per channel; store review    |
-| Who gates release          | You                                  | Apple / Google review (hours to days)          |
-| Rollback                   | Retag previous digest instantly      | Submit a new build; cannot "un-ship"           |
-| Phased rollout             | Your infra                           | Store-managed staged rollout (e.g. % of users) |
-| Version identity           | `X.Y.Z` image tag                    | Marketing version **+ monotonic build number** |
-| Old versions in the wild   | None (clients hit your servers)      | Many; users may never update                   |
+| Property                 | Server (containers)              | Mobile (App Store / Play Store)                |
+| ------------------------ | -------------------------------- | ---------------------------------------------- |
+| Promotion mechanism      | Retag same digest (`crane copy`) | Rebuild + re-sign per channel; store review    |
+| Who gates release        | You                              | Apple / Google review (hours to days)          |
+| Rollback                 | Retag previous digest instantly  | Submit a new build; cannot "un-ship"           |
+| Phased rollout           | Your infra                       | Store-managed staged rollout (e.g. % of users) |
+| Version identity         | `X.Y.Z` image tag                | Marketing version **+ monotonic build number** |
+| Old versions in the wild | None (clients hit your servers)  | Many; users may never update                   |
 
 The last row matters most architecturally: **you will always have old mobile clients in the field.**
 Your API must stay backward compatible with shipped mobile versions far longer than it must for web.
@@ -50,16 +50,16 @@ So a TestFlight build might be `5.5.0 (1042)` and the production build of the sa
 
 Reuse your branch model, but map each branch to a **store channel** instead of an image retag:
 
-| Branch    | Server result                | Mobile result                                              |
-| --------- | ---------------------------- | ---------------------------------------------------------- |
-| `develop` | dev/test images              | Internal builds (Expo dev client / internal distribution)  |
-| `staging` | `X.Y.Z-staging.N` images     | **TestFlight** (iOS) + **Play Closed/Internal testing**    |
-| `main`    | `X.Y.Z` promoted (no rebuild) | Submit build to **App Store / Play production review**     |
+| Branch    | Server result                 | Mobile result                                             |
+| --------- | ----------------------------- | --------------------------------------------------------- |
+| `develop` | dev/test images               | Internal builds (Expo dev client / internal distribution) |
+| `staging` | `X.Y.Z-staging.N` images      | **TestFlight** (iOS) + **Play Closed/Internal testing**   |
+| `main`    | `X.Y.Z` promoted (no rebuild) | Submit build to **App Store / Play production review**    |
 
 Key differences to design for:
 
 - **No fast-forward promotion of a binary.** Promoting to production is "submit the
-  already-tested build to review," not a retag. Prefer promoting the *exact binary* you tested in
+  already-tested build to review," not a retag. Prefer promoting the _exact binary_ you tested in
   TestFlight/closed testing to production (both stores support this) so you ship what you QA'd.
 - **Review latency is part of the schedule.** A `main` merge ships servers in minutes but ships
   mobile only after store approval. Plan releases so the API/web side does not assume all clients

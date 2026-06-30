@@ -1,0 +1,75 @@
+# Version: 1
+# Pattern: Argo CD PostSync hook (runs once per ops sync until bootstrap marker is set)
+# Applies app + management linear migrations on first cluster/DB bootstrap only.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ops-db-bootstrap-migrations
+  labels:
+    app: podverse-ops
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: podverse-ops
+      annotations:
+        podverse.fm/migration-job: bootstrap-linear
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: bootstrap-migrations
+          image: postgres:18.3
+          imagePullPolicy: Always
+          command:
+            - bash
+            - /opt/scripts/database/run-bootstrap-migrations-k8s.sh
+          envFrom:
+            - secretRef:
+                name: podverse-db-opaque
+            - secretRef:
+                name: podverse-management-db-opaque
+            - configMapRef:
+                name: podverse-ops-migration-scripts
+          env:
+            - name: DB_HOST
+              value: podverse-db
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_APP_MIGRATOR_USER
+              valueFrom:
+                secretKeyRef:
+                  name: podverse-db-opaque
+                  key: DB_APP_MIGRATOR_USER
+            - name: DB_APP_MIGRATOR_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: podverse-db-opaque
+                  key: DB_APP_MIGRATOR_PASSWORD
+            - name: LINEAR_MIGRATIONS_BASE_DIR
+              value: /opt/infra/k8s/base/ops/source/database/linear-migrations
+          volumeMounts:
+            - name: migration-scripts
+              mountPath: /opt/scripts/database
+              readOnly: true
+            - name: app-linear-migrations
+              mountPath: /opt/infra/k8s/base/ops/source/database/linear-migrations/app
+              readOnly: true
+            - name: management-linear-migrations
+              mountPath: /opt/infra/k8s/base/ops/source/database/linear-migrations/management
+              readOnly: true
+      volumes:
+        - name: migration-scripts
+          configMap:
+            name: podverse-ops-migration-scripts
+            defaultMode: 0555
+        - name: app-linear-migrations
+          configMap:
+            name: podverse-ops-app-linear-migrations
+        - name: management-linear-migrations
+          configMap:
+            name: podverse-ops-management-linear-migrations

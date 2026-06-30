@@ -10,6 +10,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # shellcheck source=lib/podverse-images.sh
 source "$SCRIPT_DIR/lib/podverse-images.sh"
+# shellcheck source=../lib/github-repo.sh
+source "$SCRIPT_DIR/../lib/github-repo.sh"
 
 cd "$REPO_ROOT"
 
@@ -47,17 +49,24 @@ if ! command -v jq > /dev/null 2>&1; then
   exit 1
 fi
 
+if command -v gh > /dev/null 2>&1; then
+  REPO=$(podverse_github_repo_from_origin) || REPO="${GHCR_REPO:-podverse/podverse}"
+else
+  REPO="${GHCR_REPO:-podverse/podverse}"
+  echo "Note: gh not found; using GHCR_REPO=${REPO}" >&2
+fi
+
 TOKEN=$(podverse_ghcr_bearer_token || true)
 if [[ -z "$TOKEN" ]]; then
   echo "ERROR: Set GHCR_REGISTRY_TOKEN or run gh auth login." >&2
   exit 1
 fi
 
-if command -v gh > /dev/null 2>&1; then
-  REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
-else
-  REPO="${GHCR_REPO:-podverse/podverse}"
-  echo "Note: gh not found; using GHCR_REPO=${REPO}" >&2
+if ! podverse_ghcr_tags_accessible "$REPO" "$TOKEN"; then
+  echo "ERROR: Cannot list GHCR tags (HTTP $(podverse_ghcr_tags_http_status "$REPO" api "$TOKEN"))." >&2
+  echo "Export GHCR_REGISTRY_TOKEN (packages:read) or run: gh auth refresh -s read:packages" >&2
+  echo "After Publish (main), you can also confirm tags in GitHub Actions workflow summary." >&2
+  exit 1
 fi
 
 echo "Verifying production tags for base ${BASE} in ${REPO}..."

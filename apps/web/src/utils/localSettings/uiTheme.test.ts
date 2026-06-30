@@ -42,7 +42,7 @@ describe('uiTheme utilities', () => {
   });
 
   it('returns all themes when valid theme config is blank', () => {
-    expect(getValidThemes()).toEqual(['dark', 'light', 'dracula', 'violet']);
+    expect(getValidThemes()).toEqual(['dark', 'light', 'dracula', 'violet', 'ember', 'dawn']);
   });
 
   it('filters invalid configured themes', () => {

@@ -10,7 +10,7 @@ description: Design tokens, themes, mixins, and font-faces live in @podverse/ui.
 `packages/ui/src/styles/` is the canonical home for:
 
 - Design tokens (CSS custom properties + SCSS-mirror variables): `_variables.scss`, `_breakpoints.scss`
-- Themes (dark/light/dracula on `[data-ui-theme]`): `_themes.scss`
+- Themes (dark/light/dracula/violet/ember/dawn on `[data-ui-theme]`): `_themes.scss`
 - Shared SCSS mixins: `_mixins.scss` (includes **`flexItemAllowShrink`** / **`flexItemClampToParent`** in `mixins/_flexShrink.scss` for flex/grid shrink-safe items — use instead of repeating bare `min-width: 0`). **`ellipsisSingleLineParent`** delegates to **`flexItemAllowShrink`**.
 - Roboto font-faces: `_font-faces.scss`
 
@@ -41,7 +41,7 @@ If `@use '@podverse/ui/styles/...'` does not resolve in a given app (e.g. some N
 - **Buttons and tab-like controls:** Never rely on the browser’s default `<button>` background (e.g. light system “buttonface”). Always set `background-color` (and `color`) using theme tokens so inactive/outline variants stay readable on **every** `[data-ui-theme]` (dark, light, dracula, violet). If text uses `--text-color-primary` / `--button-secondary-color`, the surface must come from `--background-color-*` or another tokenized surface — verify contrast in both dark and light themes.
 - Do NOT add new tokens to `apps/web/src/styles/...` or `apps/management-web/src/styles/...` except **forwarder shims** in `apps/web` (one-line `@forward` to `packages/ui`). Add tokens in `packages/ui/src/styles/_variables.scss` (and `_themes.scss` if theme-dependent), and they become available to both apps.
 - If page/module styles repeat across multiple pages (forms, table wrappers, badges, header action rows), prefer a reusable React component in `@podverse/ui` rather than adding more duplicated SCSS blocks.
-- Theme-dependent values (any color, any gradient, button states) MUST be defined in every built-in theme block in `packages/ui/src/styles/_themes.scss` (`dark`, `light`, `dracula`, `violet`).
+- Theme-dependent values (any color, any gradient, button states) MUST be defined in every built-in theme block in `packages/ui/src/styles/_themes.scss` (`dark`, `light`, `dracula`, `violet`, `ember`, `dawn`).
 - **Operator remote custom themes sample:** When theme-scoped `--*` keys change, also update [`docs/operations/branding/custom-themes.operator-sample.json`](/docs/operations/branding/custom-themes.operator-sample.json) (full override reference for operators). See **custom-themes-operator-sample-sync** rule and `customThemesOperatorSample.test.ts`.
 - Non-theme values (spacing, font-size, border-radius, breakpoints, etc.) live in `:root` inside `_variables.scss`.
 - The default theme (when no `data-ui-theme` is set) is `dark`. Both `:root` and `[data-ui-theme='dark']` declare the same dark palette in `_themes.scss`.

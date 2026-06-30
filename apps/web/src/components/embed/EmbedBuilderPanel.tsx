@@ -366,9 +366,7 @@ export function EmbedBuilderPanel({ initialParams }: EmbedBuilderPanelProps) {
   const listOnDisabled = listAvailability === 'forced-off';
   const listOffDisabled = listAvailability === 'forced-on';
   const listHelpKey:
-    | 'embed_list_help'
-    | 'embed_list_help_forced_on'
-    | 'embed_list_help_forced_off' =
+    'embed_list_help' | 'embed_list_help_forced_on' | 'embed_list_help_forced_off' =
     listAvailability === 'forced-on'
       ? 'embed_list_help_forced_on'
       : listAvailability === 'forced-off'

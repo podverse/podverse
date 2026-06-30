@@ -471,8 +471,7 @@ describe('feeds routes', () => {
       .send({ spam_item_limit_override: 8000 });
     expect(res.status).toBe(200);
     const auditCall = audit.mock.calls[0]?.[0] as
-      | { requestId?: string; adminAccountId?: number }
-      | undefined;
+      { requestId?: string; adminAccountId?: number } | undefined;
     expect(auditCall?.adminAccountId).toBe(1);
     expect(auditCall?.requestId).toMatch(/^[0-9a-f]{32}$/);
     expect(auditCall?.requestId).not.toBe('req-feed-ops-1');

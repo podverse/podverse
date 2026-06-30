@@ -1,8 +1,5 @@
 export type SeoRouteClass =
-  | 'rss_public_content'
-  | 'product_listing'
-  | 'conditional_public'
-  | 'noindex';
+  'rss_public_content' | 'product_listing' | 'conditional_public' | 'noindex';
 
 export type SeoRoutePolicy = {
   class: SeoRouteClass;

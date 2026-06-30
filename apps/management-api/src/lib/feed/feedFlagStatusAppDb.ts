@@ -175,11 +175,7 @@ export async function findFeedByUrl(url: string): Promise<FeedOperationsLookupRo
 }
 
 export type FeedOperationsListSortKey =
-  | 'id'
-  | 'podcast_index_id'
-  | 'channel_title'
-  | 'lifecycle_state_key'
-  | 'url';
+  'id' | 'podcast_index_id' | 'channel_title' | 'lifecycle_state_key' | 'url';
 
 export type ListFeedOperationsForTableParams = {
   page: number;

@@ -4,13 +4,13 @@ Operator and platform runbooks for Podverse deployments, data stores, and platfo
 
 ## Database
 
-| Doc                                                                                       | Purpose                                              |
-| ----------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| [DB-MIGRATIONS.md](database/DB-MIGRATIONS.md)                                             | Forward-only SQL migrations and ops jobs             |
-| [LINEAR-MIGRATIONS.md](database/LINEAR-MIGRATIONS.md)                                     | Linear migration contract, `0003a`/`0003b` baselines |
-| [DB-USERS.md](database/DB-USERS.md)                                                       | Postgres roles and bootstrap grants                  |
-| [MANAGEMENT-DATABASE-CONSOLE.md](database/MANAGEMENT-DATABASE-CONSOLE.md)                 | Management-web database console                      |
-| [MANAGEMENT-DATABASE-CONSOLE-ROLLOUT.md](database/MANAGEMENT-DATABASE-CONSOLE-ROLLOUT.md) | Console rollout checklist                            |
+| Doc                                                                                       | Purpose                                            |
+| ----------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| [DB-MIGRATIONS.md](database/DB-MIGRATIONS.md)                                             | Forward-only SQL migrations and ops jobs           |
+| [LINEAR-MIGRATIONS.md](database/LINEAR-MIGRATIONS.md)                                     | Linear migration contract, `0004`/`0005` baselines |
+| [DB-USERS.md](database/DB-USERS.md)                                                       | Postgres roles and bootstrap grants                |
+| [MANAGEMENT-DATABASE-CONSOLE.md](database/MANAGEMENT-DATABASE-CONSOLE.md)                 | Management-web database console                    |
+| [MANAGEMENT-DATABASE-CONSOLE-ROLLOUT.md](database/MANAGEMENT-DATABASE-CONSOLE-ROLLOUT.md) | Console rollout checklist                          |
 
 ## Platform capabilities
 

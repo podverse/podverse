@@ -803,7 +803,9 @@
       "light": "Clair",
       "dark": "Sombre",
       "dracula": "Dracula",
-      "violet": "Violet"
+      "violet": "Violet",
+      "ember": "Braise",
+      "dawn": "Aurore"
     },
     "preferred_media_type": {
       "label": "Type de média préféré",

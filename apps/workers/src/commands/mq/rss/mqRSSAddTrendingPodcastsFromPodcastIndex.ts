@@ -18,8 +18,7 @@ export const mqRSSAddTrendingPodcastsFromPodcastIndex = async (args: CommandLine
 
   const qRaw = 'q' in args ? (Array.isArray(args.q) ? args.q[0] : args.q) : undefined;
   const mqQueueNameParamKey = String(qRaw !== undefined && qRaw !== '' ? qRaw : 'rss-normal') as
-    | MQQueueNameParamKey
-    | string;
+    MQQueueNameParamKey | string;
 
   if (!validMQQueueNamesParamKeys.includes(mqQueueNameParamKey as MQQueueNameParamKey)) {
     throw new Error(
