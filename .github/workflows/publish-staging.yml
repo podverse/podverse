@@ -26,7 +26,7 @@ jobs:
       contents: read
       packages: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -76,7 +76,7 @@ jobs:
       float_tag: ${{ steps.reserve.outputs.float_tag }}
       is_prod: ${{ steps.reserve.outputs.is_prod }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -192,7 +192,7 @@ jobs:
           - app: management-web-base
             dockerfile: apps/management-web/Dockerfile.base
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Get unified version
         id: version
@@ -250,7 +250,7 @@ jobs:
           - app: extension-prometheus
             dockerfile: infra/docker/local/extensions/prometheus/Dockerfile
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Get unified version
         id: version
@@ -367,7 +367,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.sha }}
       - name: Create GitHub prerelease
