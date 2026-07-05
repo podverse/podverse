@@ -1,4 +1,4 @@
-# Import specifiers — Tier A (NodeNext), Tier B (Next.js src), Tier C (`packages/ui`)
+# Import specifiers — Tier A (NodeNext), Tier B (Next.js src), Tier C (`packages/ui`), Tier D (`apps/mobile`)
 
 This document describes **intentional** differences in how relative import specifiers are written across the monorepo.
 
@@ -28,9 +28,21 @@ This document describes **intentional** differences in how relative import speci
 
 This split is **intentional technical debt** until Turbopack documents parity for extension-alias-style behavior.
 
+## Tier D — React Native (`apps/mobile/**`)
+
+**Where:** `apps/mobile/**` (Metro bundler; Expo prebuild / dev client).
+
+**Rule:** Use **extensionless** relative imports in app source (same style as Tier B/C). Import workspace packages by **package name** (`@podverse/helpers`, `@podverse/helpers-requests`, etc.) — Metro resolves them via workspace symlinks to each package's built **`dist/`** (`main` / `types`), not Tier A source trees.
+
+**Why:** Metro resolves `.ts`/`.tsx` natively without NodeNext `.js` specifiers. Tier A packages stay on NodeNext for Node apps; mobile consumes their **compiled output**, so do not codemod Tier A for Metro.
+
+**Architecture:** `apps/mobile` is a **Tier 5 consumer** — it imports downward only (see module tiers in [.llm/context/architecture.md](/.llm/context/architecture.md) and the Tier D row in [DOCS-MOBILE-MONOREPO-TARGET-STRUCTURE.md §4](/docs/proposals/mobile/monorepo-llm-setup/DOCS-MOBILE-MONOREPO-TARGET-STRUCTURE.md)).
+
 ## Enforcement
 
-ESLint: local plugin **`nodeNextRelativeImports`** / rule **`require-relative-js-extension`** in root `eslint.config.mjs` — **error** on Tier A, **off** on Tier B and **off** on Tier C (`packages/ui`). Implementation: `eslint-rules/require-relative-js-extension.mjs`.
+ESLint: local plugin **`nodeNextRelativeImports`** / rule **`require-relative-js-extension`** in root `eslint.config.mjs` — **error** on Tier A, **off** on Tier B, Tier C (`packages/ui`), and **off** on Tier D (`apps/mobile/**`). Implementation: `eslint-rules/require-relative-js-extension.mjs`.
+
+Root ESLint also defines React Native globals (e.g. `__DEV__`) for `apps/mobile/**` so RN app source is not flagged before a workspace-local config exists.
 
 ## Convergence checklist
 

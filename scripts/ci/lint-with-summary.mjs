@@ -6,15 +6,30 @@
  *
  * Usage: node scripts/ci/lint-with-summary.mjs [lint|lint:fix]
  * Default: lint (use lint:fix for fix mode)
+ *
+ * Mobile lint policy: `apps/mobile` is excluded from workspace type-check and lint
+ * until RN ESLint config lands (Track 0 step 0.3). Remove from LINT_EXCLUDED_WORKSPACES
+ * once apps/mobile has eslint.config.js and passes root lint.
  */
-
-/** Non-workspace paths covered by root eslint.config.mjs (not workspace lint scripts). */
-const REPO_SCRIPT_LINT_PATHS = ['tools/web', 'tools/management-web', 'scripts'];
 
 import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+
+/** Workspaces skipped in root lint/type-check until mobile ESLint is ready. */
+const LINT_EXCLUDED_WORKSPACES = ['apps/mobile'];
+
+/** Non-workspace paths covered by root eslint.config.mjs (not workspace lint scripts). */
+const REPO_SCRIPT_LINT_PATHS = ['tools/web', 'tools/management-web', 'scripts'];
+
+const runWorkspacesArgs = (scriptName) => [
+  'scripts/ci/run-workspaces.mjs',
+  '--script',
+  scriptName,
+  '--all',
+  ...LINT_EXCLUDED_WORKSPACES.flatMap((workspace) => ['--exclude', workspace]),
+];
 
 const mode = process.argv[2] === 'lint:fix' ? 'lint:fix' : 'lint';
 const prettierScript = mode === 'lint:fix' ? 'prettier:write' : 'prettier:check';
@@ -34,8 +49,8 @@ const repoScriptLintArgs = [
 ];
 
 const steps = [
-  { name: 'type-check', cmd: 'npm', args: ['run', 'type-check', '--workspaces', '--if-present'] },
-  { name: 'lint', cmd: 'npm', args: ['run', mode, '--workspaces', '--if-present'] },
+  { name: 'type-check', cmd: 'node', args: runWorkspacesArgs('type-check') },
+  { name: 'lint', cmd: 'node', args: runWorkspacesArgs(mode) },
   { name: 'lint:repo-scripts', cmd: 'npx', args: repoScriptLintArgs },
   {
     name: 'prettier',

@@ -2,7 +2,7 @@
 
 **Master step:** 0.10
 **Model (author + implement):** Opus 4.8
-**Status:** ready
+**Status:** done
 
 ## Scope
 

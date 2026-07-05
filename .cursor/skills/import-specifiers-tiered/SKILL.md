@@ -17,6 +17,7 @@ description: Tier A NodeNext .js specifiers vs Tier B Next.js src — follow rep
 | **A** | `packages/**` except `packages/ui`, `apps/api`, `apps/management-api`, `apps/workers`, `apps/*/sidecar`, `tools/**`, `scripts/**/*.ts` | Use **`.js`** specifiers for TS modules (`./foo.js`, `./dir/index.js` for barrels). ESLint **`nodeNextRelativeImports/require-relative-js-extension`** is **on**. |
 | **C** | `packages/ui/**`                                                                                                                       | **Extensionless** relatives (same as Tier B). ESLint rule is **off**. Do not use `.js` suffix — Next bundles sources as `.tsx`.                                   |
 | **B** | `apps/web/src/**`, `apps/management-web/src/**`, those apps’ `e2e/**`                                                                  | Prefer **extensionless** relative imports; ESLint rule is **off**. Do not bulk-add `.js` without verifying **`next build`** / Turbopack.                          |
+| **D** | `apps/mobile/**`                                                                                                                       | **Extensionless** relatives (Metro). Import `@podverse/*` by package name (consumes Tier A **`dist/`**). ESLint rule is **off**; RN globals enabled in root config. |
 
 ## References
 

@@ -130,6 +130,32 @@ export default tseslint.config(
     },
   },
   {
+    files: ['apps/mobile/**/*.{ts,tsx}'],
+    languageOptions: {
+      globals: {
+        __DEV__: 'readonly',
+        ErrorUtils: 'readonly',
+        FormData: 'readonly',
+        XMLHttpRequest: 'readonly',
+        alert: 'readonly',
+        cancelAnimationFrame: 'readonly',
+        fetch: 'readonly',
+        navigator: 'readonly',
+        requestAnimationFrame: 'readonly',
+      },
+    },
+    plugins: {
+      nodeNextRelativeImports: {
+        rules: {
+          'require-relative-js-extension': requireRelativeJsExtension,
+        },
+      },
+    },
+    rules: {
+      'nodeNextRelativeImports/require-relative-js-extension': 'off',
+    },
+  },
+  {
     ignores: [
       '**/dist/**',
       '**/node_modules/**',

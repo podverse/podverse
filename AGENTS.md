@@ -172,6 +172,7 @@ apps/               # Deployable applications
   workers/          # Background job processors
   management-api/   # Admin API
   management-web/   # Admin dashboard
+  mobile/           # React Native + Expo (Tier 5 consumer; off Node build graph)
 
 extensions/         # Optional extension sidecar images (operator-selected)
   prometheus/       # @podverse/extension-prometheus — OTLP + Prometheus scrape
@@ -187,6 +188,7 @@ extensions/         # Optional extension sidecar images (operator-selected)
 | Shared types/DTOs          | `packages/helpers/src/dto/`                                                      |
 | Feed parsing               | `packages/parser/src/`                                                           |
 | Web pages                  | `apps/web/src/app/`                                                              |
+| Mobile app (RN + Expo)     | `apps/mobile/` — see [apps/mobile/AGENTS.md](apps/mobile/AGENTS.md), [APPS-MOBILE.md](apps/mobile/APPS-MOBILE.md); Tier 5 consumer (with web); separate macOS CI track |
 | Environment templates      | `infra/config/env-templates/` (app stubs link to `apps/*/.env.example`)          |
 | Workers startup validation | `apps/workers/src/lib/startup/validation.ts` (see [ENV.md](apps/workers/ENV.md)) |
 | K8s manifests              | `infra/k8s/`                                                                     |

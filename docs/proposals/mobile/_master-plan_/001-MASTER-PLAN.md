@@ -75,25 +75,25 @@ flowchart TB
 
 ## Track 0 — Monorepo, Tier D, abcmemory prep
 
-0.1. Add `.cursorignore` entries for `apps/mobile/ios/Pods/`, Android build dirs, and `.expo/`. Model: Auto. Detail: [001-cursorignore-native-artifacts](/docs/proposals/mobile/_master-plan_/details/001-cursorignore-native-artifacts.md) — planned
-0.2. Document Tier D import-specifier rules for `apps/mobile/**` in import-specifiers doc. Model: Codex 5.3. Detail: [002-tier-d-import-specifiers-doc](/docs/proposals/mobile/_master-plan_/details/002-tier-d-import-specifiers-doc.md) — planned
-0.3. Add ESLint override block for `apps/mobile/**` (extensionless imports, RN globals). Model: Codex 5.3. Detail: [003-eslint-mobile-override](/docs/proposals/mobile/_master-plan_/details/003-eslint-mobile-override.md) — planned
-0.4. Exclude `apps/mobile` from root `test:unit` until RN Vitest config is ready. Model: Auto. Detail: [004-exclude-mobile-test-unit](/docs/proposals/mobile/_master-plan_/details/004-exclude-mobile-test-unit.md) — planned
-0.5. Exclude or scope `apps/mobile` from root lint sweep until RN ESLint is configured. Model: Auto. Detail: [005-exclude-mobile-lint](/docs/proposals/mobile/_master-plan_/details/005-exclude-mobile-lint.md) — planned
-0.6. Create `apps/mobile/AGENTS.md` with allowed/forbidden `@podverse/*` imports. Model: Codex 5.3. Detail: [006-mobile-agents-md](/docs/proposals/mobile/_master-plan_/details/006-mobile-agents-md.md) — planned
-0.7. Create `apps/mobile/APPS-MOBILE.md` contributor guide (commands, layout, toolchain). Model: Codex 5.3. Detail: [007-apps-mobile-md](/docs/proposals/mobile/_master-plan_/details/007-apps-mobile-md.md) — planned
-0.8. Add `.cursor/rules/mobile-react-native.mdc` (RN boundaries, no Next/ui/orm). Model: Codex 5.3. Detail: [008-rule-mobile-react-native](/docs/proposals/mobile/_master-plan_/details/008-rule-mobile-react-native.md) — planned
-0.9. Add `.cursor/rules/mobile-carplay-android-auto.mdc` (native cache contract pointer). Model: Opus 4.8. Detail: [009-rule-mobile-car-native](/docs/proposals/mobile/_master-plan_/details/009-rule-mobile-car-native.md) — planned
-0.10. Add `.cursor/skills/mobile-playback/SKILL.md` mapping web policy to native bridge. Model: Opus 4.8. Detail: [010-skill-mobile-playback](/docs/proposals/mobile/_master-plan_/details/010-skill-mobile-playback.md) — planned
-0.11. Add `.cursor/skills/mobile-e2e-screenshots/SKILL.md` for Maestro/Detox screenshot reports. Model: Codex 5.3. Detail: [011-skill-mobile-e2e-screenshots](/docs/proposals/mobile/_master-plan_/details/011-skill-mobile-e2e-screenshots.md) — planned
-0.12. Add `.cursor/skills/mobile-fdroid-flavors/SKILL.md` documenting FOSS vs playstore flavors. Model: Codex 5.3. Detail: [012-skill-mobile-fdroid-flavors](/docs/proposals/mobile/_master-plan_/details/012-skill-mobile-fdroid-flavors.md) — planned
-0.13. Update root [AGENTS.md](/AGENTS.md) directory map with `apps/mobile` Tier 5 note. Model: Auto. Detail: [013-root-agents-mobile-entry](/docs/proposals/mobile/_master-plan_/details/013-root-agents-mobile-entry.md) — planned
-0.14. Update [.cursorrules](/.cursorrules) with mobile tier, `-w apps/mobile` commands pointer. Model: Auto. Detail: [014-cursorrules-mobile-note](/docs/proposals/mobile/_master-plan_/details/014-cursorrules-mobile-note.md) — planned
-0.15. Add `.cursor/skills/mobile-worktree-scope/SKILL.md` for parallel LLM sessions per Track. Model: Codex 5.3. Detail: [015-skill-mobile-worktree-scope](/docs/proposals/mobile/_master-plan_/details/015-skill-mobile-worktree-scope.md) — planned
-0.16. Define abcmemory checklist: when to update rules/skills vs `.llm/` plans. Model: Codex 5.3. Detail: [016-abcmemory-update-checklist](/docs/proposals/mobile/_master-plan_/details/016-abcmemory-update-checklist.md) — planned
-0.17. Add mobile package import allowlist/denylist to `apps/mobile/AGENTS.md` (mirror shared-vs-divergent). Model: Codex 5.3. Detail: [017-mobile-import-allowlist](/docs/proposals/mobile/_master-plan_/details/017-mobile-import-allowlist.md) — planned
-0.18. Document Metro monorepo resolver requirements in `APPS-MOBILE.md`. Model: Codex 5.3. Detail: [018-metro-monorepo-doc](/docs/proposals/mobile/_master-plan_/details/018-metro-monorepo-doc.md) — planned
-0.19. Add `.cursorignore` for `apps/mobile/**/*.hbc` and Xcode user data if not already covered. Model: Auto. Detail: [019-cursorignore-generated-assets](/docs/proposals/mobile/_master-plan_/details/019-cursorignore-generated-assets.md) — planned
+0.1. Add `.cursorignore` entries for `apps/mobile/ios/Pods/`, Android build dirs, and `.expo/`. Model: Auto. Detail: [001-cursorignore-native-artifacts](/docs/proposals/mobile/_master-plan_/details/001-cursorignore-native-artifacts.md) — done
+0.2. Document Tier D import-specifier rules for `apps/mobile/**` in import-specifiers doc. Model: Codex 5.3. Detail: [002-tier-d-import-specifiers-doc](/docs/proposals/mobile/_master-plan_/details/002-tier-d-import-specifiers-doc.md) — done
+0.3. Add ESLint override block for `apps/mobile/**` (extensionless imports, RN globals). Model: Codex 5.3. Detail: [003-eslint-mobile-override](/docs/proposals/mobile/_master-plan_/details/003-eslint-mobile-override.md) — done
+0.4. Exclude `apps/mobile` from root `test:unit` until RN Vitest config is ready. Model: Auto. Detail: [004-exclude-mobile-test-unit](/docs/proposals/mobile/_master-plan_/details/004-exclude-mobile-test-unit.md) — done
+0.5. Exclude or scope `apps/mobile` from root lint sweep until RN ESLint is configured. Model: Auto. Detail: [005-exclude-mobile-lint](/docs/proposals/mobile/_master-plan_/details/005-exclude-mobile-lint.md) — done
+0.6. Create `apps/mobile/AGENTS.md` with allowed/forbidden `@podverse/*` imports. Model: Codex 5.3. Detail: [006-mobile-agents-md](/docs/proposals/mobile/_master-plan_/details/006-mobile-agents-md.md) — done
+0.7. Create `apps/mobile/APPS-MOBILE.md` contributor guide (commands, layout, toolchain). Model: Codex 5.3. Detail: [007-apps-mobile-md](/docs/proposals/mobile/_master-plan_/details/007-apps-mobile-md.md) — done
+0.8. Add `.cursor/rules/mobile-react-native.mdc` (RN boundaries, no Next/ui/orm). Model: Codex 5.3. Detail: [008-rule-mobile-react-native](/docs/proposals/mobile/_master-plan_/details/008-rule-mobile-react-native.md) — done
+0.9. Add `.cursor/rules/mobile-carplay-android-auto.mdc` (native cache contract pointer). Model: Opus 4.8. Detail: [009-rule-mobile-car-native](/docs/proposals/mobile/_master-plan_/details/009-rule-mobile-car-native.md) — done
+0.10. Add `.cursor/skills/mobile-playback/SKILL.md` mapping web policy to native bridge. Model: Opus 4.8. Detail: [010-skill-mobile-playback](/docs/proposals/mobile/_master-plan_/details/010-skill-mobile-playback.md) — done
+0.11. Add `.cursor/skills/mobile-e2e-screenshots/SKILL.md` for Maestro/Detox screenshot reports. Model: Codex 5.3. Detail: [011-skill-mobile-e2e-screenshots](/docs/proposals/mobile/_master-plan_/details/011-skill-mobile-e2e-screenshots.md) — done
+0.12. Add `.cursor/skills/mobile-fdroid-flavors/SKILL.md` documenting FOSS vs playstore flavors. Model: Codex 5.3. Detail: [012-skill-mobile-fdroid-flavors](/docs/proposals/mobile/_master-plan_/details/012-skill-mobile-fdroid-flavors.md) — done
+0.13. Update root [AGENTS.md](/AGENTS.md) directory map with `apps/mobile` Tier 5 note. Model: Auto. Detail: [013-root-agents-mobile-entry](/docs/proposals/mobile/_master-plan_/details/013-root-agents-mobile-entry.md) — done
+0.14. Update [.cursorrules](/.cursorrules) with mobile tier, `-w apps/mobile` commands pointer. Model: Auto. Detail: [014-cursorrules-mobile-note](/docs/proposals/mobile/_master-plan_/details/014-cursorrules-mobile-note.md) — done
+0.15. Add `.cursor/skills/mobile-worktree-scope/SKILL.md` for parallel LLM sessions per Track. Model: Codex 5.3. Detail: [015-skill-mobile-worktree-scope](/docs/proposals/mobile/_master-plan_/details/015-skill-mobile-worktree-scope.md) — done
+0.16. Define abcmemory checklist: when to update rules/skills vs `.llm/` plans. Model: Codex 5.3. Detail: [016-abcmemory-update-checklist](/docs/proposals/mobile/_master-plan_/details/016-abcmemory-update-checklist.md) — done
+0.17. Add mobile package import allowlist/denylist to `apps/mobile/AGENTS.md` (mirror shared-vs-divergent). Model: Codex 5.3. Detail: [017-mobile-import-allowlist](/docs/proposals/mobile/_master-plan_/details/017-mobile-import-allowlist.md) — done
+0.18. Document Metro monorepo resolver requirements in `APPS-MOBILE.md`. Model: Codex 5.3. Detail: [018-metro-monorepo-doc](/docs/proposals/mobile/_master-plan_/details/018-metro-monorepo-doc.md) — done
+0.19. Add `.cursorignore` for `apps/mobile/**/*.hbc` and Xcode user data if not already covered. Model: Auto. Detail: [019-cursorignore-generated-assets](/docs/proposals/mobile/_master-plan_/details/019-cursorignore-generated-assets.md) — done
 
 ## Track 1 — Extract `packages/playback-core`
 
@@ -551,25 +551,25 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 
 | Detail ID | Track.Step | Slug | Model | Status |
 | --------- | ---------- | ---- | ----- | ------ |
-| 001-cursorignore-native-artifacts | 0.1 | 001-cursorignore-native-artifacts | Auto | planned |
-| 002-tier-d-import-specifiers-doc | 0.2 | 002-tier-d-import-specifiers-doc | Codex 5.3 | planned |
-| 003-eslint-mobile-override | 0.3 | 003-eslint-mobile-override | Codex 5.3 | planned |
-| 004-exclude-mobile-test-unit | 0.4 | 004-exclude-mobile-test-unit | Auto | planned |
-| 005-exclude-mobile-lint | 0.5 | 005-exclude-mobile-lint | Auto | planned |
-| 006-mobile-agents-md | 0.6 | 006-mobile-agents-md | Codex 5.3 | planned |
-| 007-apps-mobile-md | 0.7 | 007-apps-mobile-md | Codex 5.3 | planned |
-| 008-rule-mobile-react-native | 0.8 | 008-rule-mobile-react-native | Codex 5.3 | planned |
-| 009-rule-mobile-car-native | 0.9 | 009-rule-mobile-car-native | Opus 4.8 | planned |
-| 010-skill-mobile-playback | 0.10 | 010-skill-mobile-playback | Opus 4.8 | planned |
-| 011-skill-mobile-e2e-screenshots | 0.11 | 011-skill-mobile-e2e-screenshots | Codex 5.3 | planned |
-| 012-skill-mobile-fdroid-flavors | 0.12 | 012-skill-mobile-fdroid-flavors | Codex 5.3 | planned |
-| 013-root-agents-mobile-entry | 0.13 | 013-root-agents-mobile-entry | Auto | planned |
-| 014-cursorrules-mobile-note | 0.14 | 014-cursorrules-mobile-note | Auto | planned |
-| 015-skill-mobile-worktree-scope | 0.15 | 015-skill-mobile-worktree-scope | Codex 5.3 | planned |
-| 016-abcmemory-update-checklist | 0.16 | 016-abcmemory-update-checklist | Codex 5.3 | planned |
-| 017-mobile-import-allowlist | 0.17 | 017-mobile-import-allowlist | Codex 5.3 | planned |
-| 018-metro-monorepo-doc | 0.18 | 018-metro-monorepo-doc | Codex 5.3 | planned |
-| 019-cursorignore-generated-assets | 0.19 | 019-cursorignore-generated-assets | Auto | planned |
+| 001-cursorignore-native-artifacts | 0.1 | 001-cursorignore-native-artifacts | Auto | done |
+| 002-tier-d-import-specifiers-doc | 0.2 | 002-tier-d-import-specifiers-doc | Codex 5.3 | done |
+| 003-eslint-mobile-override | 0.3 | 003-eslint-mobile-override | Codex 5.3 | done |
+| 004-exclude-mobile-test-unit | 0.4 | 004-exclude-mobile-test-unit | Auto | done |
+| 005-exclude-mobile-lint | 0.5 | 005-exclude-mobile-lint | Auto | done |
+| 006-mobile-agents-md | 0.6 | 006-mobile-agents-md | Codex 5.3 | done |
+| 007-apps-mobile-md | 0.7 | 007-apps-mobile-md | Codex 5.3 | done |
+| 008-rule-mobile-react-native | 0.8 | 008-rule-mobile-react-native | Codex 5.3 | done |
+| 009-rule-mobile-car-native | 0.9 | 009-rule-mobile-car-native | Opus 4.8 | done |
+| 010-skill-mobile-playback | 0.10 | 010-skill-mobile-playback | Opus 4.8 | done |
+| 011-skill-mobile-e2e-screenshots | 0.11 | 011-skill-mobile-e2e-screenshots | Codex 5.3 | done |
+| 012-skill-mobile-fdroid-flavors | 0.12 | 012-skill-mobile-fdroid-flavors | Codex 5.3 | done |
+| 013-root-agents-mobile-entry | 0.13 | 013-root-agents-mobile-entry | Auto | done |
+| 014-cursorrules-mobile-note | 0.14 | 014-cursorrules-mobile-note | Auto | done |
+| 015-skill-mobile-worktree-scope | 0.15 | 015-skill-mobile-worktree-scope | Codex 5.3 | done |
+| 016-abcmemory-update-checklist | 0.16 | 016-abcmemory-update-checklist | Codex 5.3 | done |
+| 017-mobile-import-allowlist | 0.17 | 017-mobile-import-allowlist | Codex 5.3 | done |
+| 018-metro-monorepo-doc | 0.18 | 018-metro-monorepo-doc | Codex 5.3 | done |
+| 019-cursorignore-generated-assets | 0.19 | 019-cursorignore-generated-assets | Auto | done |
 | 020-playback-core-package-scaffold | 1.1 | 020-playback-core-package-scaffold | Codex 5.3 | _TBD_ |
 | 021-move-resolve-playback-decision | 1.2 | 021-move-resolve-playback-decision | Opus 4.8 | _TBD_ |
 | 022-move-playback-target-types | 1.3 | 022-move-playback-target-types | Opus 4.8 | _TBD_ |
