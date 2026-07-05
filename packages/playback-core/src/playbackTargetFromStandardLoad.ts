@@ -7,7 +7,7 @@ import type {
 } from '@podverse/helpers';
 import { MediumEnum } from '@podverse/helpers';
 
-import type { MusicItemPlaybackIntent, PlaybackTarget } from './playbackTarget';
+import type { MusicItemPlaybackIntent, PlaybackTarget } from './playbackTarget.js';
 
 export function playbackTargetLivestream(channel: DTOChannel, item: DTOItem): PlaybackTarget {
   return { kind: 'livestream', channel, item };

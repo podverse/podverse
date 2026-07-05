@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { DTOClip, DTOItemChapter, DTOItemSoundbite } from '@podverse/helpers';
 
-import { resolveEnclosureSwitchPlaybackDecision } from '../resolveEnclosureSwitchPlaybackDecision';
+import { resolveEnclosureSwitchPlaybackDecision } from '../resolveEnclosureSwitchPlaybackDecision.js';
 
 const noopClip = (startTime: number, endTime: number): DTOClip =>
   ({

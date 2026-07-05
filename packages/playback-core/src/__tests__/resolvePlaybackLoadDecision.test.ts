@@ -11,8 +11,8 @@ import type {
 } from '@podverse/helpers';
 import { MediumEnum } from '@podverse/helpers';
 
-import type { MusicItemPlaybackIntent } from '../playbackTarget';
-import { resolvePlaybackLoadDecision } from '../resolvePlaybackLoadDecision';
+import type { MusicItemPlaybackIntent } from '../playbackTarget.js';
+import { resolvePlaybackLoadDecision } from '../resolvePlaybackLoadDecision.js';
 
 const emptyAbridged: QueueResourcesAbridgedIndex = {
   add_by_rss_resource_datas: {},

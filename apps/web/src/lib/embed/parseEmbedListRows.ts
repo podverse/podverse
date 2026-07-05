@@ -1,4 +1,4 @@
-import { parsePlaybackSeconds } from '../playback/parsePlaybackSeconds';
+import { parsePlaybackSeconds } from '../playback';
 
 export const EMBED_LIST_VISIBLE_ROWS_MIN = 2;
 export const EMBED_LIST_VISIBLE_ROWS_MAX = 10;

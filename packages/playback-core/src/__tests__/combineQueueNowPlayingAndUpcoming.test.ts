@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { DTOQueueResource } from '@podverse/helpers';
 
-import { combineQueueNowPlayingAndUpcoming } from '../combineQueueNowPlayingAndUpcoming';
+import { combineQueueNowPlayingAndUpcoming } from '../combineQueueNowPlayingAndUpcoming.js';
 
 const resource = (id: number): DTOQueueResource =>
   ({

@@ -17,39 +17,39 @@
 
 ## LLM model guide
 
-| Model | Tier | Use when |
-| ----- | ---- | -------- |
-| Auto | Cheapest | Mechanical docs, operator-only steps, simple config, deferral stubs |
-| Codex 5.3 | Medium | Standard RN screens, E2E harness, auth/nav/browse mirroring web |
-| Opus 4.8 | Premium | Native engine, playback/queue parity, car layer, IAP, assembly |
+| Model     | Tier     | Use when                                                            |
+| --------- | -------- | ------------------------------------------------------------------- |
+| Auto      | Cheapest | Mechanical docs, operator-only steps, simple config, deferral stubs |
+| Codex 5.3 | Medium   | Standard RN screens, E2E harness, auth/nav/browse mirroring web     |
+| Opus 4.8  | Premium  | Native engine, playback/queue parity, car layer, IAP, assembly      |
 
 ## Open decisions
 
-| Decision | Options | Default recommendation |
-| -------- | ------- | ---------------------- |
-| CI tooling | EAS vs Fastlane | Document both; operator chooses |
-| Store identity | Separate `.next` app id vs internal track on existing | Separate app id |
-| E2E framework | Maestro vs Detox | Maestro |
-| Watch/TV v1 scope | v1 vs post-MVP | Phone+tablet v1; watch v1.1; TV v2 |
+| Decision          | Options                                               | Default recommendation             |
+| ----------------- | ----------------------------------------------------- | ---------------------------------- |
+| CI tooling        | EAS vs Fastlane                                       | Document both; operator chooses    |
+| Store identity    | Separate `.next` app id vs internal track on existing | Separate app id                    |
+| E2E framework     | Maestro vs Detox                                      | Maestro                            |
+| Watch/TV v1 scope | v1 vs post-MVP                                        | Phone+tablet v1; watch v1.1; TV v2 |
 
 ## Parallel groups (implementation order)
 
-| Group | Tracks | Can parallelize with | Prerequisites |
-| ----- | ------ | -------------------- | ------------- |
-| PG-0 | 0 | — | none |
-| PG-1 | 1 | 3 (after 0.6+) | 0 partial |
-| PG-2a | 3 | 4, 5 (after 0) | 0 |
-| PG-2b | 2 spike (2.1–2.13) | 3, 4, 5 | 0, 1 recommended |
-| PG-3 | 4, 5 | each other | 3 hello-world |
-| PG-4 | 6, 7 | each other | 3, 5 |
-| PG-5 | 2 full (2.14–2.35) | 8, 9 | 2 spike, 1 |
-| PG-6 | 8, 9 | each other | 6, 7 |
-| PG-7 | 10, 11 | each other | 1, 2, 6 |
-| PG-8 | 12 | 13, 14, 15 | 2, 10 |
-| PG-9 | 13, 14, 15, 16, 17 | each other (mostly) | 6, 10 varies |
-| PG-10 | 18 | 19, 20 | 7, 11 |
-| PG-11 | 19, 20, 21 | each other | MVP feature-complete |
-| PG-12 | 22 | — | 4, PG-11 |
+| Group | Tracks             | Can parallelize with | Prerequisites        |
+| ----- | ------------------ | -------------------- | -------------------- |
+| PG-0  | 0                  | —                    | none                 |
+| PG-1  | 1                  | 3 (after 0.6+)       | 0 partial            |
+| PG-2a | 3                  | 4, 5 (after 0)       | 0                    |
+| PG-2b | 2 spike (2.1–2.13) | 3, 4, 5              | 0, 1 recommended     |
+| PG-3  | 4, 5               | each other           | 3 hello-world        |
+| PG-4  | 6, 7               | each other           | 3, 5                 |
+| PG-5  | 2 full (2.14–2.35) | 8, 9                 | 2 spike, 1           |
+| PG-6  | 8, 9               | each other           | 6, 7                 |
+| PG-7  | 10, 11             | each other           | 1, 2, 6              |
+| PG-8  | 12                 | 13, 14, 15           | 2, 10                |
+| PG-9  | 13, 14, 15, 16, 17 | each other (mostly)  | 6, 10 varies         |
+| PG-10 | 18                 | 19, 20               | 7, 11                |
+| PG-11 | 19, 20, 21         | each other           | MVP feature-complete |
+| PG-12 | 22                 | —                    | 4, PG-11             |
 
 ```mermaid
 flowchart TB
@@ -97,20 +97,20 @@ flowchart TB
 
 ## Track 1 — Extract `packages/playback-core`
 
-1.1. Create `packages/playback-core` workspace with package.json mirroring helpers pattern. Model: Codex 5.3. Detail: [020-playback-core-package-scaffold](/docs/proposals/mobile/_master-plan_/details/020-playback-core-package-scaffold.md) — _TBD_
-1.2. Move `resolvePlaybackLoadDecision.ts` and types from web lib/playback into playback-core. Model: Opus 4.8. Detail: [021-move-resolve-playback-decision](/docs/proposals/mobile/_master-plan_/details/021-move-resolve-playback-decision.md) — _TBD_
-1.3. Move `playbackTarget.ts`, `playbackLoadRequest.ts`, and related target helpers. Model: Opus 4.8. Detail: [022-move-playback-target-types](/docs/proposals/mobile/_master-plan_/details/022-move-playback-target-types.md) — _TBD_
-1.4. Move `resumeSeekFromAbridged.ts`, `clampNearEndSeconds.ts`, `parsePlaybackSeconds.ts`. Model: Opus 4.8. Detail: [023-move-resume-seek-helpers](/docs/proposals/mobile/_master-plan_/details/023-move-resume-seek-helpers.md) — _TBD_
-1.5. Move enclosure-switch decision helpers into playback-core. Model: Opus 4.8. Detail: [024-move-enclosure-switch-policy](/docs/proposals/mobile/_master-plan_/details/024-move-enclosure-switch-policy.md) — _TBD_
-1.6. Move `combineQueueNowPlayingAndUpcoming.ts` from web lib/queue into playback-core. Model: Opus 4.8. Detail: [025-move-combine-queue-helper](/docs/proposals/mobile/_master-plan_/details/025-move-combine-queue-helper.md) — _TBD_
-1.7. Move unit tests from web lib/playback and lib/queue `__tests__/` into playback-core. Model: Opus 4.8. Detail: [026-move-playback-core-tests](/docs/proposals/mobile/_master-plan_/details/026-move-playback-core-tests.md) — _TBD_
-1.8. Export public API from `packages/playback-core/src/index.ts`. Model: Codex 5.3. Detail: [027-playback-core-index-exports](/docs/proposals/mobile/_master-plan_/details/027-playback-core-index-exports.md) — _TBD_
-1.9. Add playback-core to `build:packages` ordered list immediately after helpers. Model: Auto. Detail: [028-build-packages-playback-core](/docs/proposals/mobile/_master-plan_/details/028-build-packages-playback-core.md) — _TBD_
-1.10. Update web app to import policy from `@podverse/playback-core` (re-export or direct). Model: Opus 4.8. Detail: [029-web-consume-playback-core](/docs/proposals/mobile/_master-plan_/details/029-web-consume-playback-core.md) — _TBD_
-1.11. Verify web playback behavior unchanged after extraction (operator runs unit tests). Model: Auto. Detail: [030-web-playback-regression-verify](/docs/proposals/mobile/_master-plan_/details/030-web-playback-regression-verify.md) — _TBD_
-1.12. Document playback-core tier placement in architecture.md. Model: Auto. Detail: [031-architecture-playback-core-tier](/docs/proposals/mobile/_master-plan_/details/031-architecture-playback-core-tier.md) — _TBD_
-1.13. Add PACKAGES-PLAYBACK-CORE.md contributor doc under packages/playback-core. Model: Codex 5.3. Detail: [032-packages-playback-core-doc](/docs/proposals/mobile/_master-plan_/details/032-packages-playback-core-doc.md) — _TBD_
-1.14. Ensure playback-core depends only on `@podverse/helpers` (no DOM, no RN). Model: Codex 5.3. Detail: [033-playback-core-dependency-audit](/docs/proposals/mobile/_master-plan_/details/033-playback-core-dependency-audit.md) — _TBD_
+1.1. Create `packages/playback-core` workspace with package.json mirroring helpers pattern. Model: Codex 5.3. Detail: [020-playback-core-package-scaffold](/docs/proposals/mobile/_master-plan_/details/020-playback-core-package-scaffold.md) — done
+1.2. Move `resolvePlaybackLoadDecision.ts` and types from web lib/playback into playback-core. Model: Opus 4.8. Detail: [021-move-resolve-playback-decision](/docs/proposals/mobile/_master-plan_/details/021-move-resolve-playback-decision.md) — done
+1.3. Move `playbackTarget.ts`, `playbackLoadRequest.ts`, and related target helpers. Model: Opus 4.8. Detail: [022-move-playback-target-types](/docs/proposals/mobile/_master-plan_/details/022-move-playback-target-types.md) — done
+1.4. Move `resumeSeekFromAbridged.ts`, `clampNearEndSeconds.ts`, `parsePlaybackSeconds.ts`. Model: Opus 4.8. Detail: [023-move-resume-seek-helpers](/docs/proposals/mobile/_master-plan_/details/023-move-resume-seek-helpers.md) — done
+1.5. Move enclosure-switch decision helpers into playback-core. Model: Opus 4.8. Detail: [024-move-enclosure-switch-policy](/docs/proposals/mobile/_master-plan_/details/024-move-enclosure-switch-policy.md) — done
+1.6. Move `combineQueueNowPlayingAndUpcoming.ts` from web lib/queue into playback-core. Model: Opus 4.8. Detail: [025-move-combine-queue-helper](/docs/proposals/mobile/_master-plan_/details/025-move-combine-queue-helper.md) — done
+1.7. Move unit tests from web lib/playback and lib/queue `__tests__/` into playback-core. Model: Opus 4.8. Detail: [026-move-playback-core-tests](/docs/proposals/mobile/_master-plan_/details/026-move-playback-core-tests.md) — done
+1.8. Export public API from `packages/playback-core/src/index.ts`. Model: Codex 5.3. Detail: [027-playback-core-index-exports](/docs/proposals/mobile/_master-plan_/details/027-playback-core-index-exports.md) — done
+1.9. Add playback-core to `build:packages` ordered list immediately after helpers. Model: Auto. Detail: [028-build-packages-playback-core](/docs/proposals/mobile/_master-plan_/details/028-build-packages-playback-core.md) — done
+1.10. Update web app to import policy from `@podverse/playback-core` (re-export or direct). Model: Opus 4.8. Detail: [029-web-consume-playback-core](/docs/proposals/mobile/_master-plan_/details/029-web-consume-playback-core.md) — done
+1.11. Verify web playback behavior unchanged after extraction (operator runs unit tests). Model: Auto. Detail: [030-web-playback-regression-verify](/docs/proposals/mobile/_master-plan_/details/030-web-playback-regression-verify.md) — done
+1.12. Document playback-core tier placement in architecture.md. Model: Auto. Detail: [031-architecture-playback-core-tier](/docs/proposals/mobile/_master-plan_/details/031-architecture-playback-core-tier.md) — done
+1.13. Add PACKAGES-PLAYBACK-CORE.md contributor doc under packages/playback-core. Model: Codex 5.3. Detail: [032-packages-playback-core-doc](/docs/proposals/mobile/_master-plan_/details/032-packages-playback-core-doc.md) — done
+1.14. Ensure playback-core depends only on `@podverse/helpers` (no DOM, no RN). Model: Codex 5.3. Detail: [033-playback-core-dependency-audit](/docs/proposals/mobile/_master-plan_/details/033-playback-core-dependency-audit.md) — done
 
 ## Track 2 — Custom native media engine
 
@@ -120,16 +120,20 @@ bridge contract consumed by `@podverse/playback-core` policy.
 Reference:
 [DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md),
 [DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md)
+
 ## Seamless video architecture
+
 One **persistent native video surface** owned by the media engine for the lifetime of a playback
 session. Mini player and full player screens register **target layout rects** (x, y, width, height,
 corner radius); the engine **reparents** the same native view between containers — no tear-down on
 expand.
+
 - iOS: `AVPlayerLayer` hosted in a native overlay view managed by the engine module.
 - Android: `PlayerView` (Media3) or `SurfaceView` attached to a single ExoPlayer instance.
 - RN screens render transparent placeholders; native module positions the surface above them.
 - Audio-only items use the same engine without attaching a visible surface.
-The old app recreated the video player on full-screen open — that pattern is **explicitly forbidden**.
+  The old app recreated the video player on full-screen open — that pattern is **explicitly forbidden**.
+
 ```mermaid
 flowchart TB
   subgraph rn [React Native]
@@ -549,357 +553,357 @@ Link: [DOCS-MOBILE-PROCESS-ROADMAP](/docs/proposals/mobile/app-development-proce
 Status values: `_TBD_` (not started) → `planned` (detail + COPY-PASTA exist) → `done` (implemented).
 Agents **must** keep this column in sync with step lines in **Tracks** when status changes.
 
-| Detail ID | Track.Step | Slug | Model | Status |
-| --------- | ---------- | ---- | ----- | ------ |
-| 001-cursorignore-native-artifacts | 0.1 | 001-cursorignore-native-artifacts | Auto | done |
-| 002-tier-d-import-specifiers-doc | 0.2 | 002-tier-d-import-specifiers-doc | Codex 5.3 | done |
-| 003-eslint-mobile-override | 0.3 | 003-eslint-mobile-override | Codex 5.3 | done |
-| 004-exclude-mobile-test-unit | 0.4 | 004-exclude-mobile-test-unit | Auto | done |
-| 005-exclude-mobile-lint | 0.5 | 005-exclude-mobile-lint | Auto | done |
-| 006-mobile-agents-md | 0.6 | 006-mobile-agents-md | Codex 5.3 | done |
-| 007-apps-mobile-md | 0.7 | 007-apps-mobile-md | Codex 5.3 | done |
-| 008-rule-mobile-react-native | 0.8 | 008-rule-mobile-react-native | Codex 5.3 | done |
-| 009-rule-mobile-car-native | 0.9 | 009-rule-mobile-car-native | Opus 4.8 | done |
-| 010-skill-mobile-playback | 0.10 | 010-skill-mobile-playback | Opus 4.8 | done |
-| 011-skill-mobile-e2e-screenshots | 0.11 | 011-skill-mobile-e2e-screenshots | Codex 5.3 | done |
-| 012-skill-mobile-fdroid-flavors | 0.12 | 012-skill-mobile-fdroid-flavors | Codex 5.3 | done |
-| 013-root-agents-mobile-entry | 0.13 | 013-root-agents-mobile-entry | Auto | done |
-| 014-cursorrules-mobile-note | 0.14 | 014-cursorrules-mobile-note | Auto | done |
-| 015-skill-mobile-worktree-scope | 0.15 | 015-skill-mobile-worktree-scope | Codex 5.3 | done |
-| 016-abcmemory-update-checklist | 0.16 | 016-abcmemory-update-checklist | Codex 5.3 | done |
-| 017-mobile-import-allowlist | 0.17 | 017-mobile-import-allowlist | Codex 5.3 | done |
-| 018-metro-monorepo-doc | 0.18 | 018-metro-monorepo-doc | Codex 5.3 | done |
-| 019-cursorignore-generated-assets | 0.19 | 019-cursorignore-generated-assets | Auto | done |
-| 020-playback-core-package-scaffold | 1.1 | 020-playback-core-package-scaffold | Codex 5.3 | _TBD_ |
-| 021-move-resolve-playback-decision | 1.2 | 021-move-resolve-playback-decision | Opus 4.8 | _TBD_ |
-| 022-move-playback-target-types | 1.3 | 022-move-playback-target-types | Opus 4.8 | _TBD_ |
-| 023-move-resume-seek-helpers | 1.4 | 023-move-resume-seek-helpers | Opus 4.8 | _TBD_ |
-| 024-move-enclosure-switch-policy | 1.5 | 024-move-enclosure-switch-policy | Opus 4.8 | _TBD_ |
-| 025-move-combine-queue-helper | 1.6 | 025-move-combine-queue-helper | Opus 4.8 | _TBD_ |
-| 026-move-playback-core-tests | 1.7 | 026-move-playback-core-tests | Opus 4.8 | _TBD_ |
-| 027-playback-core-index-exports | 1.8 | 027-playback-core-index-exports | Codex 5.3 | _TBD_ |
-| 028-build-packages-playback-core | 1.9 | 028-build-packages-playback-core | Auto | _TBD_ |
-| 029-web-consume-playback-core | 1.10 | 029-web-consume-playback-core | Opus 4.8 | _TBD_ |
-| 030-web-playback-regression-verify | 1.11 | 030-web-playback-regression-verify | Auto | _TBD_ |
-| 031-architecture-playback-core-tier | 1.12 | 031-architecture-playback-core-tier | Auto | _TBD_ |
-| 032-packages-playback-core-doc | 1.13 | 032-packages-playback-core-doc | Codex 5.3 | _TBD_ |
-| 033-playback-core-dependency-audit | 1.14 | 033-playback-core-dependency-audit | Codex 5.3 | _TBD_ |
-| 040-mobile-package-json | 3.1 | 040-mobile-package-json | Codex 5.3 | _TBD_ |
-| 041-expo-config-separate-bundle-id | 3.2 | 041-expo-config-separate-bundle-id | Codex 5.3 | _TBD_ |
-| 042-metro-config-monorepo | 3.3 | 042-metro-config-monorepo | Codex 5.3 | _TBD_ |
-| 043-mobile-tsconfig | 3.4 | 043-mobile-tsconfig | Codex 5.3 | _TBD_ |
-| 044-root-mobile-npm-scripts | 3.5 | 044-root-mobile-npm-scripts | Auto | _TBD_ |
-| 045-expo-prebuild-initial | 3.6 | 045-expo-prebuild-initial | Codex 5.3 | _TBD_ |
-| 046-hello-world-screen | 3.7 | 046-hello-world-screen | Codex 5.3 | _TBD_ |
-| 047-hello-world-shared-package-smoke | 3.8 | 047-hello-world-shared-package-smoke | Auto | _TBD_ |
-| 048-native-toolchain-prerequisites | 3.9 | 048-native-toolchain-prerequisites | Auto | _TBD_ |
-| 049-mobile-gitignore | 3.10 | 049-mobile-gitignore | Auto | _TBD_ |
-| 050-ios-background-audio-plist | 3.11 | 050-ios-background-audio-plist | Codex 5.3 | _TBD_ |
-| 051-android-foreground-service-perms | 3.12 | 051-android-foreground-service-perms | Codex 5.3 | _TBD_ |
-| 052-mobile-src-scaffold | 3.13 | 052-mobile-src-scaffold | Auto | _TBD_ |
-| 053-dev-client-ios-device | 3.14 | 053-dev-client-ios-device | Auto | _TBD_ |
-| 054-dev-client-android-device | 3.15 | 054-dev-client-android-device | Auto | _TBD_ |
-| 055-track-3-exit-criteria | 3.16 | 055-track-3-exit-criteria | Auto | _TBD_ |
-| 060-e2e-framework-decision | 5.1 | 060-e2e-framework-decision | Codex 5.3 | _TBD_ |
-| 061-e2e-directory-layout | 5.2 | 061-e2e-directory-layout | Auto | _TBD_ |
-| 062-e2e-hello-world-flow | 5.3 | 062-e2e-hello-world-flow | Codex 5.3 | _TBD_ |
-| 063-e2e-screenshot-capture-config | 5.4 | 063-e2e-screenshot-capture-config | Codex 5.3 | _TBD_ |
-| 064-e2e-report-output-dir | 5.5 | 064-e2e-report-output-dir | Auto | _TBD_ |
-| 065-makefile-mobile-e2e-targets | 5.6 | 065-makefile-mobile-e2e-targets | Codex 5.3 | _TBD_ |
-| 066-e2e-operator-commands-doc | 5.7 | 066-e2e-operator-commands-doc | Auto | _TBD_ |
-| 067-rule-feature-requires-e2e | 5.8 | 067-rule-feature-requires-e2e | Codex 5.3 | _TBD_ |
-| 068-ci-e2e-stub-job | 5.9 | 068-ci-e2e-stub-job | Codex 5.3 | _TBD_ |
-| 069-e2e-test-env-doc | 5.10 | 069-e2e-test-env-doc | Codex 5.3 | _TBD_ |
-| 070-skill-e2e-screenshot-parity | 5.11 | 070-skill-e2e-screenshot-parity | Auto | _TBD_ |
-| 071-e2e-spec-naming-convention | 5.12 | 071-e2e-spec-naming-convention | Auto | _TBD_ |
-| 072-e2e-parallel-worktree-guidance | 5.13 | 072-e2e-parallel-worktree-guidance | Auto | _TBD_ |
-| 080-media-engine-module-scaffold | 2.1 | 080-media-engine-module-scaffold | Opus 4.8 | _TBD_ |
-| 081-native-playback-bridge-interface | 2.2 | 081-native-playback-bridge-interface | Opus 4.8 | _TBD_ |
-| 082-bridge-method-contract | 2.3 | 082-bridge-method-contract | Opus 4.8 | _TBD_ |
-| 083-ios-avplayer-audio | 2.4 | 083-ios-avplayer-audio | Opus 4.8 | _TBD_ |
-| 084-ios-audio-session-lifecycle | 2.5 | 084-ios-audio-session-lifecycle | Opus 4.8 | _TBD_ |
-| 085-ios-now-playing-remote-commands | 2.6 | 085-ios-now-playing-remote-commands | Opus 4.8 | _TBD_ |
-| 086-android-exoplayer-audio | 2.7 | 086-android-exoplayer-audio | Opus 4.8 | _TBD_ |
-| 087-android-foreground-media-service | 2.8 | 087-android-foreground-media-service | Opus 4.8 | _TBD_ |
-| 088-android-media-session-controls | 2.9 | 088-android-media-session-controls | Opus 4.8 | _TBD_ |
-| 089-native-to-js-events | 2.10 | 089-native-to-js-events | Opus 4.8 | _TBD_ |
-| 090-js-bridge-adapter | 2.11 | 090-js-bridge-adapter | Opus 4.8 | _TBD_ |
-| 091-spike-background-audio | 2.12 | 091-spike-background-audio | Opus 4.8 | _TBD_ |
-| 092-spike-audio-after-kill | 2.13 | 092-spike-audio-after-kill | Opus 4.8 | _TBD_ |
-| 093-ios-avplayer-video | 2.14 | 093-ios-avplayer-video | Opus 4.8 | _TBD_ |
-| 094-android-exoplayer-video | 2.15 | 094-android-exoplayer-video | Opus 4.8 | _TBD_ |
-| 095-ios-video-surface-host | 2.16 | 095-ios-video-surface-host | Opus 4.8 | _TBD_ |
-| 096-android-video-surface-host | 2.17 | 096-android-video-surface-host | Opus 4.8 | _TBD_ |
-| 097-bridge-attach-video-surface | 2.18 | 097-bridge-attach-video-surface | Opus 4.8 | _TBD_ |
-| 098-bridge-animate-video-surface | 2.19 | 098-bridge-animate-video-surface | Opus 4.8 | _TBD_ |
-| 099-surface-reparent-implementation | 2.20 | 099-surface-reparent-implementation | Opus 4.8 | _TBD_ |
-| 100-rn-mini-player-surface-target | 2.21 | 100-rn-mini-player-surface-target | Opus 4.8 | _TBD_ |
-| 101-rn-full-player-surface-target | 2.22 | 101-rn-full-player-surface-target | Opus 4.8 | _TBD_ |
-| 102-audio-only-hide-surface | 2.23 | 102-audio-only-hide-surface | Opus 4.8 | _TBD_ |
-| 103-orientation-surface-resize | 2.24 | 103-orientation-surface-resize | Opus 4.8 | _TBD_ |
-| 104-bridge-load-and-start | 2.25 | 104-bridge-load-and-start | Opus 4.8 | _TBD_ |
-| 105-engine-local-file-playback | 2.26 | 105-engine-local-file-playback | Opus 4.8 | _TBD_ |
-| 106-playback-error-mapping | 2.27 | 106-playback-error-mapping | Opus 4.8 | _TBD_ |
-| 107-bridge-command-serialization-tests | 2.28 | 107-bridge-command-serialization-tests | Codex 5.3 | _TBD_ |
-| 108-media-engine-readme | 2.29 | 108-media-engine-readme | Codex 5.3 | _TBD_ |
-| 109-abcmemory-no-track-player | 2.30 | 109-abcmemory-no-track-player | Codex 5.3 | _TBD_ |
-| 110-engine-fdroid-deps-register | 2.31 | 110-engine-fdroid-deps-register | Codex 5.3 | _TBD_ |
-| 111-e2e-audio-spike-screenshot | 2.32 | 111-e2e-audio-spike-screenshot | Codex 5.3 | _TBD_ |
-| 112-e2e-video-transition-spike | 2.33 | 112-e2e-video-transition-spike | Opus 4.8 | _TBD_ |
-| 113-engine-spike-gate | 2.34 | 113-engine-spike-gate | Codex 5.3 | _TBD_ |
-| 114-engine-native-cache-hooks | 2.35 | 114-engine-native-cache-hooks | Opus 4.8 | _TBD_ |
-| 150-ci-tooling-decision | 4.1 | 150-ci-tooling-decision | Opus 4.8 | _TBD_ |
-| 151-store-account-costs | 4.2 | 151-store-account-costs | Auto | _TBD_ |
-| 152-eas-pricing-note | 4.3 | 152-eas-pricing-note | Auto | _TBD_ |
-| 153-workflow-mobile-internal | 4.4 | 153-workflow-mobile-internal | Codex 5.3 | _TBD_ |
-| 154-workflow-mobile-staging-beta | 4.5 | 154-workflow-mobile-staging-beta | Codex 5.3 | _TBD_ |
-| 155-workflow-mobile-production | 4.6 | 155-workflow-mobile-production | Opus 4.8 | _TBD_ |
-| 156-ci-isolation-from-server | 4.7 | 156-ci-isolation-from-server | Codex 5.3 | _TBD_ |
-| 157-macos-runner-ios | 4.8 | 157-macos-runner-ios | Codex 5.3 | _TBD_ |
-| 158-android-build-runner | 4.9 | 158-android-build-runner | Codex 5.3 | _TBD_ |
-| 159-signing-secrets-setup | 4.10 | 159-signing-secrets-setup | Opus 4.8 | _TBD_ |
-| 160-separate-app-id | 4.11 | 160-separate-app-id | Opus 4.8 | _TBD_ |
-| 161-app-store-connect-next-app | 4.12 | 161-app-store-connect-next-app | Opus 4.8 | _TBD_ |
-| 162-play-console-next-app | 4.13 | 162-play-console-next-app | Opus 4.8 | _TBD_ |
-| 163-branch-develop-internal | 4.14 | 163-branch-develop-internal | Codex 5.3 | _TBD_ |
-| 164-branch-staging-beta | 4.15 | 164-branch-staging-beta | Codex 5.3 | _TBD_ |
-| 165-branch-main-production | 4.16 | 165-branch-main-production | Opus 4.8 | _TBD_ |
-| 166-monotonic-build-numbers | 4.17 | 166-monotonic-build-numbers | Codex 5.3 | _TBD_ |
-| 167-marketing-version-sync | 4.18 | 167-marketing-version-sync | Codex 5.3 | _TBD_ |
-| 168-ota-update-policy | 4.19 | 168-ota-update-policy | Codex 5.3 | _TBD_ |
-| 169-fastlane-eas-profiles | 4.20 | 169-fastlane-eas-profiles | Codex 5.3 | _TBD_ |
-| 170-store-metadata-as-code | 4.21 | 170-store-metadata-as-code | Auto | _TBD_ |
-| 171-mobile-release-runbook | 4.22 | 171-mobile-release-runbook | Codex 5.3 | _TBD_ |
-| 172-ci-artifact-retention | 4.23 | 172-ci-artifact-retention | Codex 5.3 | _TBD_ |
-| 173-beta-tester-onboarding | 4.24 | 173-beta-tester-onboarding | Auto | _TBD_ |
-| 174-prod-listing-convergence-gate | 4.25 | 174-prod-listing-convergence-gate | Opus 4.8 | _TBD_ |
-| 175-branch-store-channel-map | 22.1 | 175-branch-store-channel-map | Auto | _TBD_ |
-| 176-promote-tested-binary | 22.2 | 176-promote-tested-binary | Codex 5.3 | _TBD_ |
-| 177-store-review-buffer | 22.3 | 177-store-review-buffer | Auto | _TBD_ |
-| 178-min-supported-version-api | 22.4 | 178-min-supported-version-api | Opus 4.8 | _TBD_ |
-| 179-api-add-only-discipline | 22.5 | 179-api-add-only-discipline | Auto | _TBD_ |
-| 180-client-version-header | 22.6 | 180-client-version-header | Codex 5.3 | _TBD_ |
-| 181-phased-rollout-strategy | 22.7 | 181-phased-rollout-strategy | Codex 5.3 | _TBD_ |
-| 182-store-rollback-procedure | 22.8 | 182-store-rollback-procedure | Auto | _TBD_ |
-| 183-release-notes-generation | 22.9 | 183-release-notes-generation | Auto | _TBD_ |
-| 184-post-release-monitoring | 22.10 | 184-post-release-monitoring | Codex 5.3 | _TBD_ |
-| 185-sdk-compliance-updates | 22.11 | 185-sdk-compliance-updates | Codex 5.3 | _TBD_ |
-| 186-old-new-app-coexistence | 22.12 | 186-old-new-app-coexistence | Auto | _TBD_ |
-| 200-secure-storage-dependency | 6.1 | 200-secure-storage-dependency | Codex 5.3 | _TBD_ |
-| 201-auth-store | 6.2 | 201-auth-store | Codex 5.3 | _TBD_ |
-| 202-mobile-token-login | 6.3 | 202-mobile-token-login | Codex 5.3 | _TBD_ |
-| 203-token-refresh | 6.4 | 203-token-refresh | Opus 4.8 | _TBD_ |
-| 204-logout-revoke | 6.5 | 204-logout-revoke | Codex 5.3 | _TBD_ |
-| 205-login-screen | 6.6 | 205-login-screen | Codex 5.3 | _TBD_ |
-| 206-signup-screen | 6.7 | 206-signup-screen | Codex 5.3 | _TBD_ |
-| 207-auth-me-bootstrap | 6.8 | 207-auth-me-bootstrap | Codex 5.3 | _TBD_ |
-| 208-anonymous-mode | 6.9 | 208-anonymous-mode | Opus 4.8 | _TBD_ |
-| 209-no-cookie-auth | 6.10 | 209-no-cookie-auth | Auto | _TBD_ |
-| 210-e2e-login-screenshot | 6.11 | 210-e2e-login-screenshot | Codex 5.3 | _TBD_ |
-| 211-e2e-logout | 6.12 | 211-e2e-logout | Auto | _TBD_ |
-| 220-tab-navigator-scaffold | 7.1 | 220-tab-navigator-scaffold | Codex 5.3 | _TBD_ |
-| 221-home-stack | 7.2 | 221-home-stack | Codex 5.3 | _TBD_ |
-| 222-search-stack | 7.3 | 222-search-stack | Codex 5.3 | _TBD_ |
-| 223-library-stack | 7.4 | 223-library-stack | Codex 5.3 | _TBD_ |
-| 224-rss-tab-stack | 7.5 | 224-rss-tab-stack | Codex 5.3 | _TBD_ |
-| 225-more-stack | 7.6 | 225-more-stack | Codex 5.3 | _TBD_ |
-| 226-mini-player-slot | 7.7 | 226-mini-player-slot | Opus 4.8 | _TBD_ |
-| 227-full-player-modal | 7.8 | 227-full-player-modal | Opus 4.8 | _TBD_ |
-| 228-linking-config-stub | 7.9 | 228-linking-config-stub | Codex 5.3 | _TBD_ |
-| 229-android-back-behavior | 7.10 | 229-android-back-behavior | Codex 5.3 | _TBD_ |
-| 230-tablet-nav-adaptive | 7.11 | 230-tablet-nav-adaptive | Codex 5.3 | _TBD_ |
-| 231-e2e-tab-switch-playback | 7.12 | 231-e2e-tab-switch-playback | Codex 5.3 | _TBD_ |
-| 240-home-screen-layout | 8.1 | 240-home-screen-layout | Codex 5.3 | _TBD_ |
-| 241-media-type-selector-chips | 8.2 | 241-media-type-selector-chips | Auto | _TBD_ |
-| 242-media-type-pref-sync | 8.3 | 242-media-type-pref-sync | Codex 5.3 | _TBD_ |
-| 243-home-podcasts-feed | 8.4 | 243-home-podcasts-feed | Codex 5.3 | _TBD_ |
-| 244-home-episodes-feed | 8.5 | 244-home-episodes-feed | Codex 5.3 | _TBD_ |
-| 245-home-clips-feed | 8.6 | 245-home-clips-feed | Codex 5.3 | _TBD_ |
-| 246-home-artists-feed | 8.7 | 246-home-artists-feed | Codex 5.3 | _TBD_ |
-| 247-home-albums-feed | 8.8 | 247-home-albums-feed | Codex 5.3 | _TBD_ |
-| 248-home-tracks-feed | 8.9 | 248-home-tracks-feed | Codex 5.3 | _TBD_ |
-| 249-home-pull-to-refresh | 8.10 | 249-home-pull-to-refresh | Codex 5.3 | _TBD_ |
-| 250-home-state-handling | 8.11 | 250-home-state-handling | Codex 5.3 | _TBD_ |
-| 251-home-row-navigation | 8.12 | 251-home-row-navigation | Codex 5.3 | _TBD_ |
-| 252-home-play-action-stub | 8.13 | 252-home-play-action-stub | Codex 5.3 | _TBD_ |
-| 253-e2e-home-media-types-screenshots | 8.14 | 253-e2e-home-media-types-screenshots | Auto | _TBD_ |
-| 254-e2e-media-type-swipe | 8.15 | 254-e2e-media-type-swipe | Auto | _TBD_ |
-| 260-podcast-detail-screen | 9.1 | 260-podcast-detail-screen | Codex 5.3 | _TBD_ |
-| 261-podcast-live-items | 9.2 | 261-podcast-live-items | Codex 5.3 | _TBD_ |
-| 262-episode-detail-screen | 9.3 | 262-episode-detail-screen | Codex 5.3 | _TBD_ |
-| 263-episode-detail-tabs | 9.4 | 263-episode-detail-tabs | Codex 5.3 | _TBD_ |
-| 264-album-detail-screen | 9.5 | 264-album-detail-screen | Codex 5.3 | _TBD_ |
-| 265-artist-detail-screen | 9.6 | 265-artist-detail-screen | Codex 5.3 | _TBD_ |
-| 266-clip-detail-screen | 9.7 | 266-clip-detail-screen | Codex 5.3 | _TBD_ |
-| 267-search-screen | 9.8 | 267-search-screen | Codex 5.3 | _TBD_ |
-| 268-search-filters-sort | 9.9 | 268-search-filters-sort | Codex 5.3 | _TBD_ |
-| 269-library-playlists-list | 9.10 | 269-library-playlists-list | Codex 5.3 | _TBD_ |
-| 270-playlist-detail-screen | 9.11 | 270-playlist-detail-screen | Codex 5.3 | _TBD_ |
-| 271-library-queue-screen | 9.12 | 271-library-queue-screen | Codex 5.3 | _TBD_ |
-| 272-library-history-screen | 9.13 | 272-library-history-screen | Codex 5.3 | _TBD_ |
-| 273-library-my-clips | 9.14 | 273-library-my-clips | Codex 5.3 | _TBD_ |
-| 274-profile-screen | 9.15 | 274-profile-screen | Codex 5.3 | _TBD_ |
-| 275-my-profile-screen | 9.16 | 275-my-profile-screen | Codex 5.3 | _TBD_ |
-| 276-more-settings-entry | 9.17 | 276-more-settings-entry | Auto | _TBD_ |
-| 277-rss-add-by-rss-screen | 9.18 | 277-rss-add-by-rss-screen | Codex 5.3 | _TBD_ |
-| 278-rss-feed-add-flow | 9.19 | 278-rss-feed-add-flow | Codex 5.3 | _TBD_ |
-| 279-rss-feed-list | 9.20 | 279-rss-feed-list | Codex 5.3 | _TBD_ |
-| 280-rss-play-add-by-rss | 9.21 | 280-rss-play-add-by-rss | Opus 4.8 | _TBD_ |
-| 281-opml-import-entry-ui | 9.22 | 281-opml-import-entry-ui | Auto | _TBD_ |
-| 282-opml-export-entry-ui | 9.23 | 282-opml-export-entry-ui | Auto | _TBD_ |
-| 283-categories-browse-optional | 9.24 | 283-categories-browse-optional | Codex 5.3 | _TBD_ |
-| 284-e2e-podcast-episode-flow | 9.25 | 284-e2e-podcast-episode-flow | Codex 5.3 | _TBD_ |
-| 285-e2e-search-flow | 9.26 | 285-e2e-search-flow | Auto | _TBD_ |
-| 286-e2e-add-by-rss-flow | 9.27 | 286-e2e-add-by-rss-flow | Codex 5.3 | _TBD_ |
-| 287-screen-map-appendix-ref | 9.28 | 287-screen-map-appendix-ref | Auto | _TBD_ |
-| 310-queue-store | 10.1 | 310-queue-store | Opus 4.8 | _TBD_ |
-| 311-queue-launch-hydration | 10.2 | 311-queue-launch-hydration | Opus 4.8 | _TBD_ |
-| 312-active-queue-by-medium | 10.3 | 312-active-queue-by-medium | Codex 5.3 | _TBD_ |
-| 313-queue-now-playing-upcoming | 10.4 | 313-queue-now-playing-upcoming | Codex 5.3 | _TBD_ |
-| 314-hook-queue-load-active | 10.5 | 314-hook-queue-load-active | Opus 4.8 | _TBD_ |
-| 315-queue-add-next-last | 10.6 | 315-queue-add-next-last | Codex 5.3 | _TBD_ |
-| 316-queue-move-to-history | 10.7 | 316-queue-move-to-history | Opus 4.8 | _TBD_ |
-| 317-auto-queue-store | 10.8 | 317-auto-queue-store | Opus 4.8 | _TBD_ |
-| 318-auto-queue-playlist-sources | 10.9 | 318-auto-queue-playlist-sources | Opus 4.8 | _TBD_ |
-| 319-auto-queue-channel-sources | 10.10 | 319-auto-queue-channel-sources | Opus 4.8 | _TBD_ |
-| 320-auto-queue-prefs-storage | 10.11 | 320-auto-queue-prefs-storage | Codex 5.3 | _TBD_ |
-| 321-orchestrator-ended-advance | 10.12 | 321-orchestrator-ended-advance | Opus 4.8 | _TBD_ |
-| 322-orchestrator-playback-core | 10.13 | 322-orchestrator-playback-core | Opus 4.8 | _TBD_ |
-| 323-hook-resource-update | 10.14 | 323-hook-resource-update | Opus 4.8 | _TBD_ |
-| 324-playback-target-kinds | 10.15 | 324-playback-target-kinds | Opus 4.8 | _TBD_ |
-| 325-music-playback-intent | 10.16 | 325-music-playback-intent | Opus 4.8 | _TBD_ |
-| 326-bounded-segment-playback | 10.17 | 326-bounded-segment-playback | Opus 4.8 | _TBD_ |
-| 327-anonymous-playback-snapshot | 10.18 | 327-anonymous-playback-snapshot | Opus 4.8 | _TBD_ |
-| 328-anonymous-login-reconcile | 10.19 | 328-anonymous-login-reconcile | Opus 4.8 | _TBD_ |
-| 329-playlist-play-seed-autoqueue | 10.20 | 329-playlist-play-seed-autoqueue | Opus 4.8 | _TBD_ |
-| 330-stats-tracking | 10.21 | 330-stats-tracking | Codex 5.3 | _TBD_ |
-| 331-native-cache-queue-write | 10.22 | 331-native-cache-queue-write | Opus 4.8 | _TBD_ |
-| 332-e2e-play-mini-player | 10.23 | 332-e2e-play-mini-player | Codex 5.3 | _TBD_ |
-| 333-e2e-queue-add | 10.24 | 333-e2e-queue-add | Codex 5.3 | _TBD_ |
-| 334-e2e-auto-queue-advance | 10.25 | 334-e2e-auto-queue-advance | Opus 4.8 | _TBD_ |
-| 340-mini-player-ui | 11.1 | 340-mini-player-ui | Codex 5.3 | _TBD_ |
-| 341-mini-player-layout | 11.2 | 341-mini-player-layout | Codex 5.3 | _TBD_ |
-| 342-mini-player-video-placeholder | 11.3 | 342-mini-player-video-placeholder | Opus 4.8 | _TBD_ |
-| 343-expand-without-reload | 11.4 | 343-expand-without-reload | Opus 4.8 | _TBD_ |
-| 350-full-player-ui | 11.5 | 350-full-player-ui | Codex 5.3 | _TBD_ |
-| 351-full-player-video-surface | 11.6 | 351-full-player-video-surface | Opus 4.8 | _TBD_ |
-| 352-collapse-to-mini-animation | 11.7 | 352-collapse-to-mini-animation | Opus 4.8 | _TBD_ |
-| 353-position-continuity-verify | 11.8 | 353-position-continuity-verify | Opus 4.8 | _TBD_ |
-| 354-full-player-up-next | 11.9 | 354-full-player-up-next | Codex 5.3 | _TBD_ |
-| 355-full-player-segments | 11.10 | 355-full-player-segments | Codex 5.3 | _TBD_ |
-| 356-playback-speed-control | 11.11 | 356-playback-speed-control | Codex 5.3 | _TBD_ |
-| 357-sleep-timer-optional | 11.12 | 357-sleep-timer-optional | Auto | _TBD_ |
-| 358-share-now-playing-link | 11.13 | 358-share-now-playing-link | Codex 5.3 | _TBD_ |
-| 359-v4v-boost-entry-stub | 11.14 | 359-v4v-boost-entry-stub | Opus 4.8 | _TBD_ |
-| 360-e2e-video-mini-screenshot | 11.15 | 360-e2e-video-mini-screenshot | Codex 5.3 | _TBD_ |
-| 361-e2e-video-full-screenshot | 11.16 | 361-e2e-video-full-screenshot | Opus 4.8 | _TBD_ |
-| 362-e2e-video-collapse-screenshot | 11.17 | 362-e2e-video-collapse-screenshot | Opus 4.8 | _TBD_ |
-| 363-anti-pattern-no-second-video | 11.18 | 363-anti-pattern-no-second-video | Auto | _TBD_ |
-| 380-native-cache-schema | 12.1 | 380-native-cache-schema | Opus 4.8 | _TBD_ |
-| 381-ios-native-cache-storage | 12.2 | 381-ios-native-cache-storage | Opus 4.8 | _TBD_ |
-| 382-android-native-cache-storage | 12.3 | 382-android-native-cache-storage | Opus 4.8 | _TBD_ |
-| 383-js-cache-write-path | 12.4 | 383-js-cache-write-path | Opus 4.8 | _TBD_ |
-| 384-spike-cache-read-no-js-ios | 12.5 | 384-spike-cache-read-no-js-ios | Opus 4.8 | _TBD_ |
-| 385-spike-cache-read-no-js-android | 12.6 | 385-spike-cache-read-no-js-android | Opus 4.8 | _TBD_ |
-| 386-ios-carplay-scene-config | 12.7 | 386-ios-carplay-scene-config | Opus 4.8 | _TBD_ |
-| 387-ios-carplay-browse-templates | 12.8 | 387-ios-carplay-browse-templates | Opus 4.8 | _TBD_ |
-| 388-ios-carplay-now-playing | 12.9 | 388-ios-carplay-now-playing | Opus 4.8 | _TBD_ |
-| 389-ios-carplay-remote-commands | 12.10 | 389-ios-carplay-remote-commands | Opus 4.8 | _TBD_ |
-| 390-android-media-library-service | 12.11 | 390-android-media-library-service | Opus 4.8 | _TBD_ |
-| 391-android-auto-browse-tree | 12.12 | 391-android-auto-browse-tree | Opus 4.8 | _TBD_ |
-| 392-android-auto-app-closed | 12.13 | 392-android-auto-app-closed | Opus 4.8 | _TBD_ |
-| 393-car-offline-items-in-tree | 12.14 | 393-car-offline-items-in-tree | Opus 4.8 | _TBD_ |
-| 394-car-playback-url-resolution | 12.15 | 394-car-playback-url-resolution | Opus 4.8 | _TBD_ |
-| 395-car-entitlements-declarations | 12.16 | 395-car-entitlements-declarations | Codex 5.3 | _TBD_ |
-| 396-dhu-test-checklist | 12.17 | 396-dhu-test-checklist | Auto | _TBD_ |
-| 397-carplay-simulator-checklist | 12.18 | 397-carplay-simulator-checklist | Auto | _TBD_ |
-| 398-car-manual-qa-gate | 12.19 | 398-car-manual-qa-gate | Auto | _TBD_ |
-| 399-abcmemory-car-native-only | 12.20 | 399-abcmemory-car-native-only | Codex 5.3 | _TBD_ |
-| 400-car-parallel-worktree | 12.21 | 400-car-parallel-worktree | Auto | _TBD_ |
-| 430-download-queue-design | 13.1 | 430-download-queue-design | Opus 4.8 | _TBD_ |
-| 431-download-storage-choice | 13.2 | 431-download-storage-choice | Codex 5.3 | _TBD_ |
-| 432-download-metadata-schema | 13.3 | 432-download-metadata-schema | Codex 5.3 | _TBD_ |
-| 433-download-from-episode | 13.4 | 433-download-from-episode | Codex 5.3 | _TBD_ |
-| 434-library-downloads-list | 13.5 | 434-library-downloads-list | Codex 5.3 | _TBD_ |
-| 435-playback-from-download | 13.6 | 435-playback-from-download | Opus 4.8 | _TBD_ |
-| 436-storage-quota-policy | 13.7 | 436-storage-quota-policy | Codex 5.3 | _TBD_ |
-| 437-auto-delete-policy | 13.8 | 437-auto-delete-policy | Codex 5.3 | _TBD_ |
-| 438-cache-downloads-index | 13.9 | 438-cache-downloads-index | Opus 4.8 | _TBD_ |
-| 439-e2e-offline-play | 13.10 | 439-e2e-offline-play | Codex 5.3 | _TBD_ |
-| 440-fcm-integration-playstore | 14.1 | 440-fcm-integration-playstore | Codex 5.3 | _TBD_ |
-| 441-fcm-device-register | 14.2 | 441-fcm-device-register | Codex 5.3 | _TBD_ |
-| 442-fcm-locale-update | 14.3 | 442-fcm-locale-update | Codex 5.3 | _TBD_ |
-| 443-notification-tap-routing | 14.4 | 443-notification-tap-routing | Codex 5.3 | _TBD_ |
-| 444-notification-permission-ux | 14.5 | 444-notification-permission-ux | Auto | _TBD_ |
-| 445-unifiedpush-foss-flavor | 14.6 | 445-unifiedpush-foss-flavor | Opus 4.8 | _TBD_ |
-| 446-fcm-fdroid-register | 14.7 | 446-fcm-fdroid-register | Auto | _TBD_ |
-| 447-e2e-push-routing-stub | 14.8 | 447-e2e-push-routing-stub | Codex 5.3 | _TBD_ |
-| 450-ios-associated-domains | 15.1 | 450-ios-associated-domains | Codex 5.3 | _TBD_ |
-| 451-android-app-links | 15.2 | 451-android-app-links | Codex 5.3 | _TBD_ |
-| 452-deep-link-path-map | 15.3 | 452-deep-link-path-map | Codex 5.3 | _TBD_ |
-| 453-cold-start-deep-link | 15.4 | 453-cold-start-deep-link | Opus 4.8 | _TBD_ |
-| 454-share-url-parity | 15.5 | 454-share-url-parity | Codex 5.3 | _TBD_ |
-| 455-e2e-deep-link-screenshot | 15.6 | 455-e2e-deep-link-screenshot | Codex 5.3 | _TBD_ |
-| 460-device-prefs-store | 16.1 | 460-device-prefs-store | Codex 5.3 | _TBD_ |
-| 461-prefs-server-sync | 16.2 | 461-prefs-server-sync | Codex 5.3 | _TBD_ |
-| 462-settings-screen | 16.3 | 462-settings-screen | Codex 5.3 | _TBD_ |
-| 463-opml-import-parse | 16.4 | 463-opml-import-parse | Codex 5.3 | _TBD_ |
-| 464-opml-import-subscribe | 16.5 | 464-opml-import-subscribe | Opus 4.8 | _TBD_ |
-| 465-opml-export-generate | 16.6 | 465-opml-export-generate | Codex 5.3 | _TBD_ |
-| 466-opml-export-share | 16.7 | 466-opml-export-share | Codex 5.3 | _TBD_ |
-| 467-opml-error-handling | 16.8 | 467-opml-error-handling | Codex 5.3 | _TBD_ |
-| 468-e2e-opml-import | 16.9 | 468-e2e-opml-import | Codex 5.3 | _TBD_ |
-| 469-e2e-opml-export | 16.10 | 469-e2e-opml-export | Auto | _TBD_ |
-| 470-i18n-runtime-choice | 17.1 | 470-i18n-runtime-choice | Codex 5.3 | _TBD_ |
-| 471-i18n-copy-originals-v1 | 17.2 | 471-i18n-copy-originals-v1 | Auto | _TBD_ |
-| 472-i18n-locale-detection | 17.3 | 472-i18n-locale-detection | Codex 5.3 | _TBD_ |
-| 473-i18n-component-wiring | 17.4 | 473-i18n-component-wiring | Codex 5.3 | _TBD_ |
-| 474-i18n-time-formatter | 17.5 | 474-i18n-time-formatter | Auto | _TBD_ |
-| 475-i18n-catalog-future | 17.6 | 475-i18n-catalog-future | Auto | _TBD_ |
-| 476-i18n-key-parity-ci | 17.7 | 476-i18n-key-parity-ci | Codex 5.3 | _TBD_ |
-| 477-e2e-locale-switch | 17.8 | 477-e2e-locale-switch | Codex 5.3 | _TBD_ |
-| 510-device-matrix-doc | 18.1 | 510-device-matrix-doc | Auto | _TBD_ |
-| 511-tablet-home-grid | 18.2 | 511-tablet-home-grid | Codex 5.3 | _TBD_ |
-| 512-tablet-split-detail | 18.3 | 512-tablet-split-detail | Codex 5.3 | _TBD_ |
-| 513-tablet-player-layout | 18.4 | 513-tablet-player-layout | Codex 5.3 | _TBD_ |
-| 514-e2e-tablet-screenshots | 18.5 | 514-e2e-tablet-screenshots | Codex 5.3 | _TBD_ |
-| 520-watch-scope-decision | 18.6 | 520-watch-scope-decision | Opus 4.8 | _TBD_ |
-| 521-watch-remote-commands | 18.7 | 521-watch-remote-commands | Opus 4.8 | _TBD_ |
-| 522-watch-now-playing-complication | 18.8 | 522-watch-now-playing-complication | Opus 4.8 | _TBD_ |
-| 523-watch-apple-deferral | 18.9 | 523-watch-apple-deferral | Auto | _TBD_ |
-| 530-tv-leanback-launcher | 18.10 | 530-tv-leanback-launcher | Codex 5.3 | _TBD_ |
-| 531-tv-dpad-navigation | 18.11 | 531-tv-dpad-navigation | Codex 5.3 | _TBD_ |
-| 532-tv-full-player | 18.12 | 532-tv-full-player | Opus 4.8 | _TBD_ |
-| 533-tv-auth-flow | 18.13 | 533-tv-auth-flow | Opus 4.8 | _TBD_ |
-| 534-e2e-tv-browse-screenshot | 18.14 | 534-e2e-tv-browse-screenshot | Codex 5.3 | _TBD_ |
-| 535-device-track-scope-matrix | 18.15 | 535-device-track-scope-matrix | Auto | _TBD_ |
-| 536-ci-tablet-emulator-nightly | 18.16 | 536-ci-tablet-emulator-nightly | Codex 5.3 | _TBD_ |
-| 537-store-form-factor-screenshots | 18.17 | 537-store-form-factor-screenshots | Auto | _TBD_ |
-| 560-iap-parity-matrix | 19.1 | 560-iap-parity-matrix | Opus 4.8 | _TBD_ |
-| 561-iap-sdk-integration | 19.2 | 561-iap-sdk-integration | Opus 4.8 | _TBD_ |
-| 562-receipt-validation-api | 19.3 | 562-receipt-validation-api | Opus 4.8 | _TBD_ |
-| 563-membership-gating-ui | 19.4 | 563-membership-gating-ui | Codex 5.3 | _TBD_ |
-| 564-restore-purchases | 19.5 | 564-restore-purchases | Opus 4.8 | _TBD_ |
-| 565-v4v-lnurl-flow | 19.6 | 565-v4v-lnurl-flow | Opus 4.8 | _TBD_ |
-| 566-iap-alpha-sandbox | 19.7 | 566-iap-alpha-sandbox | Auto | _TBD_ |
-| 567-e2e-membership-gate | 19.8 | 567-e2e-membership-gate | Codex 5.3 | _TBD_ |
-| 570-foss-flavor-definition | 20.1 | 570-foss-flavor-definition | Opus 4.8 | _TBD_ |
-| 571-foss-unifiedpush | 20.2 | 571-foss-unifiedpush | Opus 4.8 | _TBD_ |
-| 572-foss-reproducibility-audit | 20.3 | 572-foss-reproducibility-audit | Codex 5.3 | _TBD_ |
-| 573-fdroid-metadata-draft | 20.4 | 573-fdroid-metadata-draft | Codex 5.3 | _TBD_ |
-| 574-foss-signing-policy | 20.5 | 574-foss-signing-policy | Auto | _TBD_ |
-| 575-foss-iap-unavailable | 20.6 | 575-foss-iap-unavailable | Auto | _TBD_ |
-| 576-fdroid-submission-operator | 20.7 | 576-fdroid-submission-operator | Auto | _TBD_ |
-| 580-defer-apple-watch | 21.1 | 580-defer-apple-watch | Auto | _TBD_ |
-| 581-defer-tvos | 21.2 | 581-defer-tvos | Auto | _TBD_ |
-| 582-defer-management-parity | 21.3 | 582-defer-management-parity | Auto | _TBD_ |
-| 583-defer-clip-authoring | 21.4 | 583-defer-clip-authoring | Auto | _TBD_ |
-| 584-defer-social | 21.5 | 584-defer-social | Auto | _TBD_ |
-| 585-defer-offline-sync-advanced | 21.6 | 585-defer-offline-sync-advanced | Auto | _TBD_ |
-| 586-defer-widgets | 21.7 | 586-defer-widgets | Auto | _TBD_ |
-| 587-defer-carplay-video | 21.8 | 587-defer-carplay-video | Auto | _TBD_ |
-| 588-deferral-issue-links | 21.9 | 588-deferral-issue-links | Auto | _TBD_ |
-| 589-deferrals-appendix | 21.10 | 589-deferrals-appendix | Auto | _TBD_ |
+| Detail ID                              | Track.Step | Slug                                   | Model     | Status |
+| -------------------------------------- | ---------- | -------------------------------------- | --------- | ------ |
+| 001-cursorignore-native-artifacts      | 0.1        | 001-cursorignore-native-artifacts      | Auto      | done   |
+| 002-tier-d-import-specifiers-doc       | 0.2        | 002-tier-d-import-specifiers-doc       | Codex 5.3 | done   |
+| 003-eslint-mobile-override             | 0.3        | 003-eslint-mobile-override             | Codex 5.3 | done   |
+| 004-exclude-mobile-test-unit           | 0.4        | 004-exclude-mobile-test-unit           | Auto      | done   |
+| 005-exclude-mobile-lint                | 0.5        | 005-exclude-mobile-lint                | Auto      | done   |
+| 006-mobile-agents-md                   | 0.6        | 006-mobile-agents-md                   | Codex 5.3 | done   |
+| 007-apps-mobile-md                     | 0.7        | 007-apps-mobile-md                     | Codex 5.3 | done   |
+| 008-rule-mobile-react-native           | 0.8        | 008-rule-mobile-react-native           | Codex 5.3 | done   |
+| 009-rule-mobile-car-native             | 0.9        | 009-rule-mobile-car-native             | Opus 4.8  | done   |
+| 010-skill-mobile-playback              | 0.10       | 010-skill-mobile-playback              | Opus 4.8  | done   |
+| 011-skill-mobile-e2e-screenshots       | 0.11       | 011-skill-mobile-e2e-screenshots       | Codex 5.3 | done   |
+| 012-skill-mobile-fdroid-flavors        | 0.12       | 012-skill-mobile-fdroid-flavors        | Codex 5.3 | done   |
+| 013-root-agents-mobile-entry           | 0.13       | 013-root-agents-mobile-entry           | Auto      | done   |
+| 014-cursorrules-mobile-note            | 0.14       | 014-cursorrules-mobile-note            | Auto      | done   |
+| 015-skill-mobile-worktree-scope        | 0.15       | 015-skill-mobile-worktree-scope        | Codex 5.3 | done   |
+| 016-abcmemory-update-checklist         | 0.16       | 016-abcmemory-update-checklist         | Codex 5.3 | done   |
+| 017-mobile-import-allowlist            | 0.17       | 017-mobile-import-allowlist            | Codex 5.3 | done   |
+| 018-metro-monorepo-doc                 | 0.18       | 018-metro-monorepo-doc                 | Codex 5.3 | done   |
+| 019-cursorignore-generated-assets      | 0.19       | 019-cursorignore-generated-assets      | Auto      | done   |
+| 020-playback-core-package-scaffold     | 1.1        | 020-playback-core-package-scaffold     | Codex 5.3 | done   |
+| 021-move-resolve-playback-decision     | 1.2        | 021-move-resolve-playback-decision     | Opus 4.8  | done   |
+| 022-move-playback-target-types         | 1.3        | 022-move-playback-target-types         | Opus 4.8  | done   |
+| 023-move-resume-seek-helpers           | 1.4        | 023-move-resume-seek-helpers           | Opus 4.8  | done   |
+| 024-move-enclosure-switch-policy       | 1.5        | 024-move-enclosure-switch-policy       | Opus 4.8  | done   |
+| 025-move-combine-queue-helper          | 1.6        | 025-move-combine-queue-helper          | Opus 4.8  | done   |
+| 026-move-playback-core-tests           | 1.7        | 026-move-playback-core-tests           | Opus 4.8  | done   |
+| 027-playback-core-index-exports        | 1.8        | 027-playback-core-index-exports        | Codex 5.3 | done   |
+| 028-build-packages-playback-core       | 1.9        | 028-build-packages-playback-core       | Auto      | done   |
+| 029-web-consume-playback-core          | 1.10       | 029-web-consume-playback-core          | Opus 4.8  | done   |
+| 030-web-playback-regression-verify     | 1.11       | 030-web-playback-regression-verify     | Auto      | done   |
+| 031-architecture-playback-core-tier    | 1.12       | 031-architecture-playback-core-tier    | Auto      | done   |
+| 032-packages-playback-core-doc         | 1.13       | 032-packages-playback-core-doc         | Codex 5.3 | done   |
+| 033-playback-core-dependency-audit     | 1.14       | 033-playback-core-dependency-audit     | Codex 5.3 | done   |
+| 040-mobile-package-json                | 3.1        | 040-mobile-package-json                | Codex 5.3 | _TBD_  |
+| 041-expo-config-separate-bundle-id     | 3.2        | 041-expo-config-separate-bundle-id     | Codex 5.3 | _TBD_  |
+| 042-metro-config-monorepo              | 3.3        | 042-metro-config-monorepo              | Codex 5.3 | _TBD_  |
+| 043-mobile-tsconfig                    | 3.4        | 043-mobile-tsconfig                    | Codex 5.3 | _TBD_  |
+| 044-root-mobile-npm-scripts            | 3.5        | 044-root-mobile-npm-scripts            | Auto      | _TBD_  |
+| 045-expo-prebuild-initial              | 3.6        | 045-expo-prebuild-initial              | Codex 5.3 | _TBD_  |
+| 046-hello-world-screen                 | 3.7        | 046-hello-world-screen                 | Codex 5.3 | _TBD_  |
+| 047-hello-world-shared-package-smoke   | 3.8        | 047-hello-world-shared-package-smoke   | Auto      | _TBD_  |
+| 048-native-toolchain-prerequisites     | 3.9        | 048-native-toolchain-prerequisites     | Auto      | _TBD_  |
+| 049-mobile-gitignore                   | 3.10       | 049-mobile-gitignore                   | Auto      | _TBD_  |
+| 050-ios-background-audio-plist         | 3.11       | 050-ios-background-audio-plist         | Codex 5.3 | _TBD_  |
+| 051-android-foreground-service-perms   | 3.12       | 051-android-foreground-service-perms   | Codex 5.3 | _TBD_  |
+| 052-mobile-src-scaffold                | 3.13       | 052-mobile-src-scaffold                | Auto      | _TBD_  |
+| 053-dev-client-ios-device              | 3.14       | 053-dev-client-ios-device              | Auto      | _TBD_  |
+| 054-dev-client-android-device          | 3.15       | 054-dev-client-android-device          | Auto      | _TBD_  |
+| 055-track-3-exit-criteria              | 3.16       | 055-track-3-exit-criteria              | Auto      | _TBD_  |
+| 060-e2e-framework-decision             | 5.1        | 060-e2e-framework-decision             | Codex 5.3 | _TBD_  |
+| 061-e2e-directory-layout               | 5.2        | 061-e2e-directory-layout               | Auto      | _TBD_  |
+| 062-e2e-hello-world-flow               | 5.3        | 062-e2e-hello-world-flow               | Codex 5.3 | _TBD_  |
+| 063-e2e-screenshot-capture-config      | 5.4        | 063-e2e-screenshot-capture-config      | Codex 5.3 | _TBD_  |
+| 064-e2e-report-output-dir              | 5.5        | 064-e2e-report-output-dir              | Auto      | _TBD_  |
+| 065-makefile-mobile-e2e-targets        | 5.6        | 065-makefile-mobile-e2e-targets        | Codex 5.3 | _TBD_  |
+| 066-e2e-operator-commands-doc          | 5.7        | 066-e2e-operator-commands-doc          | Auto      | _TBD_  |
+| 067-rule-feature-requires-e2e          | 5.8        | 067-rule-feature-requires-e2e          | Codex 5.3 | _TBD_  |
+| 068-ci-e2e-stub-job                    | 5.9        | 068-ci-e2e-stub-job                    | Codex 5.3 | _TBD_  |
+| 069-e2e-test-env-doc                   | 5.10       | 069-e2e-test-env-doc                   | Codex 5.3 | _TBD_  |
+| 070-skill-e2e-screenshot-parity        | 5.11       | 070-skill-e2e-screenshot-parity        | Auto      | _TBD_  |
+| 071-e2e-spec-naming-convention         | 5.12       | 071-e2e-spec-naming-convention         | Auto      | _TBD_  |
+| 072-e2e-parallel-worktree-guidance     | 5.13       | 072-e2e-parallel-worktree-guidance     | Auto      | _TBD_  |
+| 080-media-engine-module-scaffold       | 2.1        | 080-media-engine-module-scaffold       | Opus 4.8  | _TBD_  |
+| 081-native-playback-bridge-interface   | 2.2        | 081-native-playback-bridge-interface   | Opus 4.8  | _TBD_  |
+| 082-bridge-method-contract             | 2.3        | 082-bridge-method-contract             | Opus 4.8  | _TBD_  |
+| 083-ios-avplayer-audio                 | 2.4        | 083-ios-avplayer-audio                 | Opus 4.8  | _TBD_  |
+| 084-ios-audio-session-lifecycle        | 2.5        | 084-ios-audio-session-lifecycle        | Opus 4.8  | _TBD_  |
+| 085-ios-now-playing-remote-commands    | 2.6        | 085-ios-now-playing-remote-commands    | Opus 4.8  | _TBD_  |
+| 086-android-exoplayer-audio            | 2.7        | 086-android-exoplayer-audio            | Opus 4.8  | _TBD_  |
+| 087-android-foreground-media-service   | 2.8        | 087-android-foreground-media-service   | Opus 4.8  | _TBD_  |
+| 088-android-media-session-controls     | 2.9        | 088-android-media-session-controls     | Opus 4.8  | _TBD_  |
+| 089-native-to-js-events                | 2.10       | 089-native-to-js-events                | Opus 4.8  | _TBD_  |
+| 090-js-bridge-adapter                  | 2.11       | 090-js-bridge-adapter                  | Opus 4.8  | _TBD_  |
+| 091-spike-background-audio             | 2.12       | 091-spike-background-audio             | Opus 4.8  | _TBD_  |
+| 092-spike-audio-after-kill             | 2.13       | 092-spike-audio-after-kill             | Opus 4.8  | _TBD_  |
+| 093-ios-avplayer-video                 | 2.14       | 093-ios-avplayer-video                 | Opus 4.8  | _TBD_  |
+| 094-android-exoplayer-video            | 2.15       | 094-android-exoplayer-video            | Opus 4.8  | _TBD_  |
+| 095-ios-video-surface-host             | 2.16       | 095-ios-video-surface-host             | Opus 4.8  | _TBD_  |
+| 096-android-video-surface-host         | 2.17       | 096-android-video-surface-host         | Opus 4.8  | _TBD_  |
+| 097-bridge-attach-video-surface        | 2.18       | 097-bridge-attach-video-surface        | Opus 4.8  | _TBD_  |
+| 098-bridge-animate-video-surface       | 2.19       | 098-bridge-animate-video-surface       | Opus 4.8  | _TBD_  |
+| 099-surface-reparent-implementation    | 2.20       | 099-surface-reparent-implementation    | Opus 4.8  | _TBD_  |
+| 100-rn-mini-player-surface-target      | 2.21       | 100-rn-mini-player-surface-target      | Opus 4.8  | _TBD_  |
+| 101-rn-full-player-surface-target      | 2.22       | 101-rn-full-player-surface-target      | Opus 4.8  | _TBD_  |
+| 102-audio-only-hide-surface            | 2.23       | 102-audio-only-hide-surface            | Opus 4.8  | _TBD_  |
+| 103-orientation-surface-resize         | 2.24       | 103-orientation-surface-resize         | Opus 4.8  | _TBD_  |
+| 104-bridge-load-and-start              | 2.25       | 104-bridge-load-and-start              | Opus 4.8  | _TBD_  |
+| 105-engine-local-file-playback         | 2.26       | 105-engine-local-file-playback         | Opus 4.8  | _TBD_  |
+| 106-playback-error-mapping             | 2.27       | 106-playback-error-mapping             | Opus 4.8  | _TBD_  |
+| 107-bridge-command-serialization-tests | 2.28       | 107-bridge-command-serialization-tests | Codex 5.3 | _TBD_  |
+| 108-media-engine-readme                | 2.29       | 108-media-engine-readme                | Codex 5.3 | _TBD_  |
+| 109-abcmemory-no-track-player          | 2.30       | 109-abcmemory-no-track-player          | Codex 5.3 | _TBD_  |
+| 110-engine-fdroid-deps-register        | 2.31       | 110-engine-fdroid-deps-register        | Codex 5.3 | _TBD_  |
+| 111-e2e-audio-spike-screenshot         | 2.32       | 111-e2e-audio-spike-screenshot         | Codex 5.3 | _TBD_  |
+| 112-e2e-video-transition-spike         | 2.33       | 112-e2e-video-transition-spike         | Opus 4.8  | _TBD_  |
+| 113-engine-spike-gate                  | 2.34       | 113-engine-spike-gate                  | Codex 5.3 | _TBD_  |
+| 114-engine-native-cache-hooks          | 2.35       | 114-engine-native-cache-hooks          | Opus 4.8  | _TBD_  |
+| 150-ci-tooling-decision                | 4.1        | 150-ci-tooling-decision                | Opus 4.8  | _TBD_  |
+| 151-store-account-costs                | 4.2        | 151-store-account-costs                | Auto      | _TBD_  |
+| 152-eas-pricing-note                   | 4.3        | 152-eas-pricing-note                   | Auto      | _TBD_  |
+| 153-workflow-mobile-internal           | 4.4        | 153-workflow-mobile-internal           | Codex 5.3 | _TBD_  |
+| 154-workflow-mobile-staging-beta       | 4.5        | 154-workflow-mobile-staging-beta       | Codex 5.3 | _TBD_  |
+| 155-workflow-mobile-production         | 4.6        | 155-workflow-mobile-production         | Opus 4.8  | _TBD_  |
+| 156-ci-isolation-from-server           | 4.7        | 156-ci-isolation-from-server           | Codex 5.3 | _TBD_  |
+| 157-macos-runner-ios                   | 4.8        | 157-macos-runner-ios                   | Codex 5.3 | _TBD_  |
+| 158-android-build-runner               | 4.9        | 158-android-build-runner               | Codex 5.3 | _TBD_  |
+| 159-signing-secrets-setup              | 4.10       | 159-signing-secrets-setup              | Opus 4.8  | _TBD_  |
+| 160-separate-app-id                    | 4.11       | 160-separate-app-id                    | Opus 4.8  | _TBD_  |
+| 161-app-store-connect-next-app         | 4.12       | 161-app-store-connect-next-app         | Opus 4.8  | _TBD_  |
+| 162-play-console-next-app              | 4.13       | 162-play-console-next-app              | Opus 4.8  | _TBD_  |
+| 163-branch-develop-internal            | 4.14       | 163-branch-develop-internal            | Codex 5.3 | _TBD_  |
+| 164-branch-staging-beta                | 4.15       | 164-branch-staging-beta                | Codex 5.3 | _TBD_  |
+| 165-branch-main-production             | 4.16       | 165-branch-main-production             | Opus 4.8  | _TBD_  |
+| 166-monotonic-build-numbers            | 4.17       | 166-monotonic-build-numbers            | Codex 5.3 | _TBD_  |
+| 167-marketing-version-sync             | 4.18       | 167-marketing-version-sync             | Codex 5.3 | _TBD_  |
+| 168-ota-update-policy                  | 4.19       | 168-ota-update-policy                  | Codex 5.3 | _TBD_  |
+| 169-fastlane-eas-profiles              | 4.20       | 169-fastlane-eas-profiles              | Codex 5.3 | _TBD_  |
+| 170-store-metadata-as-code             | 4.21       | 170-store-metadata-as-code             | Auto      | _TBD_  |
+| 171-mobile-release-runbook             | 4.22       | 171-mobile-release-runbook             | Codex 5.3 | _TBD_  |
+| 172-ci-artifact-retention              | 4.23       | 172-ci-artifact-retention              | Codex 5.3 | _TBD_  |
+| 173-beta-tester-onboarding             | 4.24       | 173-beta-tester-onboarding             | Auto      | _TBD_  |
+| 174-prod-listing-convergence-gate      | 4.25       | 174-prod-listing-convergence-gate      | Opus 4.8  | _TBD_  |
+| 175-branch-store-channel-map           | 22.1       | 175-branch-store-channel-map           | Auto      | _TBD_  |
+| 176-promote-tested-binary              | 22.2       | 176-promote-tested-binary              | Codex 5.3 | _TBD_  |
+| 177-store-review-buffer                | 22.3       | 177-store-review-buffer                | Auto      | _TBD_  |
+| 178-min-supported-version-api          | 22.4       | 178-min-supported-version-api          | Opus 4.8  | _TBD_  |
+| 179-api-add-only-discipline            | 22.5       | 179-api-add-only-discipline            | Auto      | _TBD_  |
+| 180-client-version-header              | 22.6       | 180-client-version-header              | Codex 5.3 | _TBD_  |
+| 181-phased-rollout-strategy            | 22.7       | 181-phased-rollout-strategy            | Codex 5.3 | _TBD_  |
+| 182-store-rollback-procedure           | 22.8       | 182-store-rollback-procedure           | Auto      | _TBD_  |
+| 183-release-notes-generation           | 22.9       | 183-release-notes-generation           | Auto      | _TBD_  |
+| 184-post-release-monitoring            | 22.10      | 184-post-release-monitoring            | Codex 5.3 | _TBD_  |
+| 185-sdk-compliance-updates             | 22.11      | 185-sdk-compliance-updates             | Codex 5.3 | _TBD_  |
+| 186-old-new-app-coexistence            | 22.12      | 186-old-new-app-coexistence            | Auto      | _TBD_  |
+| 200-secure-storage-dependency          | 6.1        | 200-secure-storage-dependency          | Codex 5.3 | _TBD_  |
+| 201-auth-store                         | 6.2        | 201-auth-store                         | Codex 5.3 | _TBD_  |
+| 202-mobile-token-login                 | 6.3        | 202-mobile-token-login                 | Codex 5.3 | _TBD_  |
+| 203-token-refresh                      | 6.4        | 203-token-refresh                      | Opus 4.8  | _TBD_  |
+| 204-logout-revoke                      | 6.5        | 204-logout-revoke                      | Codex 5.3 | _TBD_  |
+| 205-login-screen                       | 6.6        | 205-login-screen                       | Codex 5.3 | _TBD_  |
+| 206-signup-screen                      | 6.7        | 206-signup-screen                      | Codex 5.3 | _TBD_  |
+| 207-auth-me-bootstrap                  | 6.8        | 207-auth-me-bootstrap                  | Codex 5.3 | _TBD_  |
+| 208-anonymous-mode                     | 6.9        | 208-anonymous-mode                     | Opus 4.8  | _TBD_  |
+| 209-no-cookie-auth                     | 6.10       | 209-no-cookie-auth                     | Auto      | _TBD_  |
+| 210-e2e-login-screenshot               | 6.11       | 210-e2e-login-screenshot               | Codex 5.3 | _TBD_  |
+| 211-e2e-logout                         | 6.12       | 211-e2e-logout                         | Auto      | _TBD_  |
+| 220-tab-navigator-scaffold             | 7.1        | 220-tab-navigator-scaffold             | Codex 5.3 | _TBD_  |
+| 221-home-stack                         | 7.2        | 221-home-stack                         | Codex 5.3 | _TBD_  |
+| 222-search-stack                       | 7.3        | 222-search-stack                       | Codex 5.3 | _TBD_  |
+| 223-library-stack                      | 7.4        | 223-library-stack                      | Codex 5.3 | _TBD_  |
+| 224-rss-tab-stack                      | 7.5        | 224-rss-tab-stack                      | Codex 5.3 | _TBD_  |
+| 225-more-stack                         | 7.6        | 225-more-stack                         | Codex 5.3 | _TBD_  |
+| 226-mini-player-slot                   | 7.7        | 226-mini-player-slot                   | Opus 4.8  | _TBD_  |
+| 227-full-player-modal                  | 7.8        | 227-full-player-modal                  | Opus 4.8  | _TBD_  |
+| 228-linking-config-stub                | 7.9        | 228-linking-config-stub                | Codex 5.3 | _TBD_  |
+| 229-android-back-behavior              | 7.10       | 229-android-back-behavior              | Codex 5.3 | _TBD_  |
+| 230-tablet-nav-adaptive                | 7.11       | 230-tablet-nav-adaptive                | Codex 5.3 | _TBD_  |
+| 231-e2e-tab-switch-playback            | 7.12       | 231-e2e-tab-switch-playback            | Codex 5.3 | _TBD_  |
+| 240-home-screen-layout                 | 8.1        | 240-home-screen-layout                 | Codex 5.3 | _TBD_  |
+| 241-media-type-selector-chips          | 8.2        | 241-media-type-selector-chips          | Auto      | _TBD_  |
+| 242-media-type-pref-sync               | 8.3        | 242-media-type-pref-sync               | Codex 5.3 | _TBD_  |
+| 243-home-podcasts-feed                 | 8.4        | 243-home-podcasts-feed                 | Codex 5.3 | _TBD_  |
+| 244-home-episodes-feed                 | 8.5        | 244-home-episodes-feed                 | Codex 5.3 | _TBD_  |
+| 245-home-clips-feed                    | 8.6        | 245-home-clips-feed                    | Codex 5.3 | _TBD_  |
+| 246-home-artists-feed                  | 8.7        | 246-home-artists-feed                  | Codex 5.3 | _TBD_  |
+| 247-home-albums-feed                   | 8.8        | 247-home-albums-feed                   | Codex 5.3 | _TBD_  |
+| 248-home-tracks-feed                   | 8.9        | 248-home-tracks-feed                   | Codex 5.3 | _TBD_  |
+| 249-home-pull-to-refresh               | 8.10       | 249-home-pull-to-refresh               | Codex 5.3 | _TBD_  |
+| 250-home-state-handling                | 8.11       | 250-home-state-handling                | Codex 5.3 | _TBD_  |
+| 251-home-row-navigation                | 8.12       | 251-home-row-navigation                | Codex 5.3 | _TBD_  |
+| 252-home-play-action-stub              | 8.13       | 252-home-play-action-stub              | Codex 5.3 | _TBD_  |
+| 253-e2e-home-media-types-screenshots   | 8.14       | 253-e2e-home-media-types-screenshots   | Auto      | _TBD_  |
+| 254-e2e-media-type-swipe               | 8.15       | 254-e2e-media-type-swipe               | Auto      | _TBD_  |
+| 260-podcast-detail-screen              | 9.1        | 260-podcast-detail-screen              | Codex 5.3 | _TBD_  |
+| 261-podcast-live-items                 | 9.2        | 261-podcast-live-items                 | Codex 5.3 | _TBD_  |
+| 262-episode-detail-screen              | 9.3        | 262-episode-detail-screen              | Codex 5.3 | _TBD_  |
+| 263-episode-detail-tabs                | 9.4        | 263-episode-detail-tabs                | Codex 5.3 | _TBD_  |
+| 264-album-detail-screen                | 9.5        | 264-album-detail-screen                | Codex 5.3 | _TBD_  |
+| 265-artist-detail-screen               | 9.6        | 265-artist-detail-screen               | Codex 5.3 | _TBD_  |
+| 266-clip-detail-screen                 | 9.7        | 266-clip-detail-screen                 | Codex 5.3 | _TBD_  |
+| 267-search-screen                      | 9.8        | 267-search-screen                      | Codex 5.3 | _TBD_  |
+| 268-search-filters-sort                | 9.9        | 268-search-filters-sort                | Codex 5.3 | _TBD_  |
+| 269-library-playlists-list             | 9.10       | 269-library-playlists-list             | Codex 5.3 | _TBD_  |
+| 270-playlist-detail-screen             | 9.11       | 270-playlist-detail-screen             | Codex 5.3 | _TBD_  |
+| 271-library-queue-screen               | 9.12       | 271-library-queue-screen               | Codex 5.3 | _TBD_  |
+| 272-library-history-screen             | 9.13       | 272-library-history-screen             | Codex 5.3 | _TBD_  |
+| 273-library-my-clips                   | 9.14       | 273-library-my-clips                   | Codex 5.3 | _TBD_  |
+| 274-profile-screen                     | 9.15       | 274-profile-screen                     | Codex 5.3 | _TBD_  |
+| 275-my-profile-screen                  | 9.16       | 275-my-profile-screen                  | Codex 5.3 | _TBD_  |
+| 276-more-settings-entry                | 9.17       | 276-more-settings-entry                | Auto      | _TBD_  |
+| 277-rss-add-by-rss-screen              | 9.18       | 277-rss-add-by-rss-screen              | Codex 5.3 | _TBD_  |
+| 278-rss-feed-add-flow                  | 9.19       | 278-rss-feed-add-flow                  | Codex 5.3 | _TBD_  |
+| 279-rss-feed-list                      | 9.20       | 279-rss-feed-list                      | Codex 5.3 | _TBD_  |
+| 280-rss-play-add-by-rss                | 9.21       | 280-rss-play-add-by-rss                | Opus 4.8  | _TBD_  |
+| 281-opml-import-entry-ui               | 9.22       | 281-opml-import-entry-ui               | Auto      | _TBD_  |
+| 282-opml-export-entry-ui               | 9.23       | 282-opml-export-entry-ui               | Auto      | _TBD_  |
+| 283-categories-browse-optional         | 9.24       | 283-categories-browse-optional         | Codex 5.3 | _TBD_  |
+| 284-e2e-podcast-episode-flow           | 9.25       | 284-e2e-podcast-episode-flow           | Codex 5.3 | _TBD_  |
+| 285-e2e-search-flow                    | 9.26       | 285-e2e-search-flow                    | Auto      | _TBD_  |
+| 286-e2e-add-by-rss-flow                | 9.27       | 286-e2e-add-by-rss-flow                | Codex 5.3 | _TBD_  |
+| 287-screen-map-appendix-ref            | 9.28       | 287-screen-map-appendix-ref            | Auto      | _TBD_  |
+| 310-queue-store                        | 10.1       | 310-queue-store                        | Opus 4.8  | _TBD_  |
+| 311-queue-launch-hydration             | 10.2       | 311-queue-launch-hydration             | Opus 4.8  | _TBD_  |
+| 312-active-queue-by-medium             | 10.3       | 312-active-queue-by-medium             | Codex 5.3 | _TBD_  |
+| 313-queue-now-playing-upcoming         | 10.4       | 313-queue-now-playing-upcoming         | Codex 5.3 | _TBD_  |
+| 314-hook-queue-load-active             | 10.5       | 314-hook-queue-load-active             | Opus 4.8  | _TBD_  |
+| 315-queue-add-next-last                | 10.6       | 315-queue-add-next-last                | Codex 5.3 | _TBD_  |
+| 316-queue-move-to-history              | 10.7       | 316-queue-move-to-history              | Opus 4.8  | _TBD_  |
+| 317-auto-queue-store                   | 10.8       | 317-auto-queue-store                   | Opus 4.8  | _TBD_  |
+| 318-auto-queue-playlist-sources        | 10.9       | 318-auto-queue-playlist-sources        | Opus 4.8  | _TBD_  |
+| 319-auto-queue-channel-sources         | 10.10      | 319-auto-queue-channel-sources         | Opus 4.8  | _TBD_  |
+| 320-auto-queue-prefs-storage           | 10.11      | 320-auto-queue-prefs-storage           | Codex 5.3 | _TBD_  |
+| 321-orchestrator-ended-advance         | 10.12      | 321-orchestrator-ended-advance         | Opus 4.8  | _TBD_  |
+| 322-orchestrator-playback-core         | 10.13      | 322-orchestrator-playback-core         | Opus 4.8  | _TBD_  |
+| 323-hook-resource-update               | 10.14      | 323-hook-resource-update               | Opus 4.8  | _TBD_  |
+| 324-playback-target-kinds              | 10.15      | 324-playback-target-kinds              | Opus 4.8  | _TBD_  |
+| 325-music-playback-intent              | 10.16      | 325-music-playback-intent              | Opus 4.8  | _TBD_  |
+| 326-bounded-segment-playback           | 10.17      | 326-bounded-segment-playback           | Opus 4.8  | _TBD_  |
+| 327-anonymous-playback-snapshot        | 10.18      | 327-anonymous-playback-snapshot        | Opus 4.8  | _TBD_  |
+| 328-anonymous-login-reconcile          | 10.19      | 328-anonymous-login-reconcile          | Opus 4.8  | _TBD_  |
+| 329-playlist-play-seed-autoqueue       | 10.20      | 329-playlist-play-seed-autoqueue       | Opus 4.8  | _TBD_  |
+| 330-stats-tracking                     | 10.21      | 330-stats-tracking                     | Codex 5.3 | _TBD_  |
+| 331-native-cache-queue-write           | 10.22      | 331-native-cache-queue-write           | Opus 4.8  | _TBD_  |
+| 332-e2e-play-mini-player               | 10.23      | 332-e2e-play-mini-player               | Codex 5.3 | _TBD_  |
+| 333-e2e-queue-add                      | 10.24      | 333-e2e-queue-add                      | Codex 5.3 | _TBD_  |
+| 334-e2e-auto-queue-advance             | 10.25      | 334-e2e-auto-queue-advance             | Opus 4.8  | _TBD_  |
+| 340-mini-player-ui                     | 11.1       | 340-mini-player-ui                     | Codex 5.3 | _TBD_  |
+| 341-mini-player-layout                 | 11.2       | 341-mini-player-layout                 | Codex 5.3 | _TBD_  |
+| 342-mini-player-video-placeholder      | 11.3       | 342-mini-player-video-placeholder      | Opus 4.8  | _TBD_  |
+| 343-expand-without-reload              | 11.4       | 343-expand-without-reload              | Opus 4.8  | _TBD_  |
+| 350-full-player-ui                     | 11.5       | 350-full-player-ui                     | Codex 5.3 | _TBD_  |
+| 351-full-player-video-surface          | 11.6       | 351-full-player-video-surface          | Opus 4.8  | _TBD_  |
+| 352-collapse-to-mini-animation         | 11.7       | 352-collapse-to-mini-animation         | Opus 4.8  | _TBD_  |
+| 353-position-continuity-verify         | 11.8       | 353-position-continuity-verify         | Opus 4.8  | _TBD_  |
+| 354-full-player-up-next                | 11.9       | 354-full-player-up-next                | Codex 5.3 | _TBD_  |
+| 355-full-player-segments               | 11.10      | 355-full-player-segments               | Codex 5.3 | _TBD_  |
+| 356-playback-speed-control             | 11.11      | 356-playback-speed-control             | Codex 5.3 | _TBD_  |
+| 357-sleep-timer-optional               | 11.12      | 357-sleep-timer-optional               | Auto      | _TBD_  |
+| 358-share-now-playing-link             | 11.13      | 358-share-now-playing-link             | Codex 5.3 | _TBD_  |
+| 359-v4v-boost-entry-stub               | 11.14      | 359-v4v-boost-entry-stub               | Opus 4.8  | _TBD_  |
+| 360-e2e-video-mini-screenshot          | 11.15      | 360-e2e-video-mini-screenshot          | Codex 5.3 | _TBD_  |
+| 361-e2e-video-full-screenshot          | 11.16      | 361-e2e-video-full-screenshot          | Opus 4.8  | _TBD_  |
+| 362-e2e-video-collapse-screenshot      | 11.17      | 362-e2e-video-collapse-screenshot      | Opus 4.8  | _TBD_  |
+| 363-anti-pattern-no-second-video       | 11.18      | 363-anti-pattern-no-second-video       | Auto      | _TBD_  |
+| 380-native-cache-schema                | 12.1       | 380-native-cache-schema                | Opus 4.8  | _TBD_  |
+| 381-ios-native-cache-storage           | 12.2       | 381-ios-native-cache-storage           | Opus 4.8  | _TBD_  |
+| 382-android-native-cache-storage       | 12.3       | 382-android-native-cache-storage       | Opus 4.8  | _TBD_  |
+| 383-js-cache-write-path                | 12.4       | 383-js-cache-write-path                | Opus 4.8  | _TBD_  |
+| 384-spike-cache-read-no-js-ios         | 12.5       | 384-spike-cache-read-no-js-ios         | Opus 4.8  | _TBD_  |
+| 385-spike-cache-read-no-js-android     | 12.6       | 385-spike-cache-read-no-js-android     | Opus 4.8  | _TBD_  |
+| 386-ios-carplay-scene-config           | 12.7       | 386-ios-carplay-scene-config           | Opus 4.8  | _TBD_  |
+| 387-ios-carplay-browse-templates       | 12.8       | 387-ios-carplay-browse-templates       | Opus 4.8  | _TBD_  |
+| 388-ios-carplay-now-playing            | 12.9       | 388-ios-carplay-now-playing            | Opus 4.8  | _TBD_  |
+| 389-ios-carplay-remote-commands        | 12.10      | 389-ios-carplay-remote-commands        | Opus 4.8  | _TBD_  |
+| 390-android-media-library-service      | 12.11      | 390-android-media-library-service      | Opus 4.8  | _TBD_  |
+| 391-android-auto-browse-tree           | 12.12      | 391-android-auto-browse-tree           | Opus 4.8  | _TBD_  |
+| 392-android-auto-app-closed            | 12.13      | 392-android-auto-app-closed            | Opus 4.8  | _TBD_  |
+| 393-car-offline-items-in-tree          | 12.14      | 393-car-offline-items-in-tree          | Opus 4.8  | _TBD_  |
+| 394-car-playback-url-resolution        | 12.15      | 394-car-playback-url-resolution        | Opus 4.8  | _TBD_  |
+| 395-car-entitlements-declarations      | 12.16      | 395-car-entitlements-declarations      | Codex 5.3 | _TBD_  |
+| 396-dhu-test-checklist                 | 12.17      | 396-dhu-test-checklist                 | Auto      | _TBD_  |
+| 397-carplay-simulator-checklist        | 12.18      | 397-carplay-simulator-checklist        | Auto      | _TBD_  |
+| 398-car-manual-qa-gate                 | 12.19      | 398-car-manual-qa-gate                 | Auto      | _TBD_  |
+| 399-abcmemory-car-native-only          | 12.20      | 399-abcmemory-car-native-only          | Codex 5.3 | _TBD_  |
+| 400-car-parallel-worktree              | 12.21      | 400-car-parallel-worktree              | Auto      | _TBD_  |
+| 430-download-queue-design              | 13.1       | 430-download-queue-design              | Opus 4.8  | _TBD_  |
+| 431-download-storage-choice            | 13.2       | 431-download-storage-choice            | Codex 5.3 | _TBD_  |
+| 432-download-metadata-schema           | 13.3       | 432-download-metadata-schema           | Codex 5.3 | _TBD_  |
+| 433-download-from-episode              | 13.4       | 433-download-from-episode              | Codex 5.3 | _TBD_  |
+| 434-library-downloads-list             | 13.5       | 434-library-downloads-list             | Codex 5.3 | _TBD_  |
+| 435-playback-from-download             | 13.6       | 435-playback-from-download             | Opus 4.8  | _TBD_  |
+| 436-storage-quota-policy               | 13.7       | 436-storage-quota-policy               | Codex 5.3 | _TBD_  |
+| 437-auto-delete-policy                 | 13.8       | 437-auto-delete-policy                 | Codex 5.3 | _TBD_  |
+| 438-cache-downloads-index              | 13.9       | 438-cache-downloads-index              | Opus 4.8  | _TBD_  |
+| 439-e2e-offline-play                   | 13.10      | 439-e2e-offline-play                   | Codex 5.3 | _TBD_  |
+| 440-fcm-integration-playstore          | 14.1       | 440-fcm-integration-playstore          | Codex 5.3 | _TBD_  |
+| 441-fcm-device-register                | 14.2       | 441-fcm-device-register                | Codex 5.3 | _TBD_  |
+| 442-fcm-locale-update                  | 14.3       | 442-fcm-locale-update                  | Codex 5.3 | _TBD_  |
+| 443-notification-tap-routing           | 14.4       | 443-notification-tap-routing           | Codex 5.3 | _TBD_  |
+| 444-notification-permission-ux         | 14.5       | 444-notification-permission-ux         | Auto      | _TBD_  |
+| 445-unifiedpush-foss-flavor            | 14.6       | 445-unifiedpush-foss-flavor            | Opus 4.8  | _TBD_  |
+| 446-fcm-fdroid-register                | 14.7       | 446-fcm-fdroid-register                | Auto      | _TBD_  |
+| 447-e2e-push-routing-stub              | 14.8       | 447-e2e-push-routing-stub              | Codex 5.3 | _TBD_  |
+| 450-ios-associated-domains             | 15.1       | 450-ios-associated-domains             | Codex 5.3 | _TBD_  |
+| 451-android-app-links                  | 15.2       | 451-android-app-links                  | Codex 5.3 | _TBD_  |
+| 452-deep-link-path-map                 | 15.3       | 452-deep-link-path-map                 | Codex 5.3 | _TBD_  |
+| 453-cold-start-deep-link               | 15.4       | 453-cold-start-deep-link               | Opus 4.8  | _TBD_  |
+| 454-share-url-parity                   | 15.5       | 454-share-url-parity                   | Codex 5.3 | _TBD_  |
+| 455-e2e-deep-link-screenshot           | 15.6       | 455-e2e-deep-link-screenshot           | Codex 5.3 | _TBD_  |
+| 460-device-prefs-store                 | 16.1       | 460-device-prefs-store                 | Codex 5.3 | _TBD_  |
+| 461-prefs-server-sync                  | 16.2       | 461-prefs-server-sync                  | Codex 5.3 | _TBD_  |
+| 462-settings-screen                    | 16.3       | 462-settings-screen                    | Codex 5.3 | _TBD_  |
+| 463-opml-import-parse                  | 16.4       | 463-opml-import-parse                  | Codex 5.3 | _TBD_  |
+| 464-opml-import-subscribe              | 16.5       | 464-opml-import-subscribe              | Opus 4.8  | _TBD_  |
+| 465-opml-export-generate               | 16.6       | 465-opml-export-generate               | Codex 5.3 | _TBD_  |
+| 466-opml-export-share                  | 16.7       | 466-opml-export-share                  | Codex 5.3 | _TBD_  |
+| 467-opml-error-handling                | 16.8       | 467-opml-error-handling                | Codex 5.3 | _TBD_  |
+| 468-e2e-opml-import                    | 16.9       | 468-e2e-opml-import                    | Codex 5.3 | _TBD_  |
+| 469-e2e-opml-export                    | 16.10      | 469-e2e-opml-export                    | Auto      | _TBD_  |
+| 470-i18n-runtime-choice                | 17.1       | 470-i18n-runtime-choice                | Codex 5.3 | _TBD_  |
+| 471-i18n-copy-originals-v1             | 17.2       | 471-i18n-copy-originals-v1             | Auto      | _TBD_  |
+| 472-i18n-locale-detection              | 17.3       | 472-i18n-locale-detection              | Codex 5.3 | _TBD_  |
+| 473-i18n-component-wiring              | 17.4       | 473-i18n-component-wiring              | Codex 5.3 | _TBD_  |
+| 474-i18n-time-formatter                | 17.5       | 474-i18n-time-formatter                | Auto      | _TBD_  |
+| 475-i18n-catalog-future                | 17.6       | 475-i18n-catalog-future                | Auto      | _TBD_  |
+| 476-i18n-key-parity-ci                 | 17.7       | 476-i18n-key-parity-ci                 | Codex 5.3 | _TBD_  |
+| 477-e2e-locale-switch                  | 17.8       | 477-e2e-locale-switch                  | Codex 5.3 | _TBD_  |
+| 510-device-matrix-doc                  | 18.1       | 510-device-matrix-doc                  | Auto      | _TBD_  |
+| 511-tablet-home-grid                   | 18.2       | 511-tablet-home-grid                   | Codex 5.3 | _TBD_  |
+| 512-tablet-split-detail                | 18.3       | 512-tablet-split-detail                | Codex 5.3 | _TBD_  |
+| 513-tablet-player-layout               | 18.4       | 513-tablet-player-layout               | Codex 5.3 | _TBD_  |
+| 514-e2e-tablet-screenshots             | 18.5       | 514-e2e-tablet-screenshots             | Codex 5.3 | _TBD_  |
+| 520-watch-scope-decision               | 18.6       | 520-watch-scope-decision               | Opus 4.8  | _TBD_  |
+| 521-watch-remote-commands              | 18.7       | 521-watch-remote-commands              | Opus 4.8  | _TBD_  |
+| 522-watch-now-playing-complication     | 18.8       | 522-watch-now-playing-complication     | Opus 4.8  | _TBD_  |
+| 523-watch-apple-deferral               | 18.9       | 523-watch-apple-deferral               | Auto      | _TBD_  |
+| 530-tv-leanback-launcher               | 18.10      | 530-tv-leanback-launcher               | Codex 5.3 | _TBD_  |
+| 531-tv-dpad-navigation                 | 18.11      | 531-tv-dpad-navigation                 | Codex 5.3 | _TBD_  |
+| 532-tv-full-player                     | 18.12      | 532-tv-full-player                     | Opus 4.8  | _TBD_  |
+| 533-tv-auth-flow                       | 18.13      | 533-tv-auth-flow                       | Opus 4.8  | _TBD_  |
+| 534-e2e-tv-browse-screenshot           | 18.14      | 534-e2e-tv-browse-screenshot           | Codex 5.3 | _TBD_  |
+| 535-device-track-scope-matrix          | 18.15      | 535-device-track-scope-matrix          | Auto      | _TBD_  |
+| 536-ci-tablet-emulator-nightly         | 18.16      | 536-ci-tablet-emulator-nightly         | Codex 5.3 | _TBD_  |
+| 537-store-form-factor-screenshots      | 18.17      | 537-store-form-factor-screenshots      | Auto      | _TBD_  |
+| 560-iap-parity-matrix                  | 19.1       | 560-iap-parity-matrix                  | Opus 4.8  | _TBD_  |
+| 561-iap-sdk-integration                | 19.2       | 561-iap-sdk-integration                | Opus 4.8  | _TBD_  |
+| 562-receipt-validation-api             | 19.3       | 562-receipt-validation-api             | Opus 4.8  | _TBD_  |
+| 563-membership-gating-ui               | 19.4       | 563-membership-gating-ui               | Codex 5.3 | _TBD_  |
+| 564-restore-purchases                  | 19.5       | 564-restore-purchases                  | Opus 4.8  | _TBD_  |
+| 565-v4v-lnurl-flow                     | 19.6       | 565-v4v-lnurl-flow                     | Opus 4.8  | _TBD_  |
+| 566-iap-alpha-sandbox                  | 19.7       | 566-iap-alpha-sandbox                  | Auto      | _TBD_  |
+| 567-e2e-membership-gate                | 19.8       | 567-e2e-membership-gate                | Codex 5.3 | _TBD_  |
+| 570-foss-flavor-definition             | 20.1       | 570-foss-flavor-definition             | Opus 4.8  | _TBD_  |
+| 571-foss-unifiedpush                   | 20.2       | 571-foss-unifiedpush                   | Opus 4.8  | _TBD_  |
+| 572-foss-reproducibility-audit         | 20.3       | 572-foss-reproducibility-audit         | Codex 5.3 | _TBD_  |
+| 573-fdroid-metadata-draft              | 20.4       | 573-fdroid-metadata-draft              | Codex 5.3 | _TBD_  |
+| 574-foss-signing-policy                | 20.5       | 574-foss-signing-policy                | Auto      | _TBD_  |
+| 575-foss-iap-unavailable               | 20.6       | 575-foss-iap-unavailable               | Auto      | _TBD_  |
+| 576-fdroid-submission-operator         | 20.7       | 576-fdroid-submission-operator         | Auto      | _TBD_  |
+| 580-defer-apple-watch                  | 21.1       | 580-defer-apple-watch                  | Auto      | _TBD_  |
+| 581-defer-tvos                         | 21.2       | 581-defer-tvos                         | Auto      | _TBD_  |
+| 582-defer-management-parity            | 21.3       | 582-defer-management-parity            | Auto      | _TBD_  |
+| 583-defer-clip-authoring               | 21.4       | 583-defer-clip-authoring               | Auto      | _TBD_  |
+| 584-defer-social                       | 21.5       | 584-defer-social                       | Auto      | _TBD_  |
+| 585-defer-offline-sync-advanced        | 21.6       | 585-defer-offline-sync-advanced        | Auto      | _TBD_  |
+| 586-defer-widgets                      | 21.7       | 586-defer-widgets                      | Auto      | _TBD_  |
+| 587-defer-carplay-video                | 21.8       | 587-defer-carplay-video                | Auto      | _TBD_  |
+| 588-deferral-issue-links               | 21.9       | 588-deferral-issue-links               | Auto      | _TBD_  |
+| 589-deferrals-appendix                 | 21.10      | 589-deferrals-appendix                 | Auto      | _TBD_  |
 
 ## Appendix D — Detail plan template
 

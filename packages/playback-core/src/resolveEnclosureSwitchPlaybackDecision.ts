@@ -1,7 +1,7 @@
 import type { DTOClip, DTOItemChapter, DTOItemSoundbite } from '@podverse/helpers';
 
-import { parsePlaybackSeconds } from './parsePlaybackSeconds';
-import type { PlaybackLoadDecision } from './resolvePlaybackLoadDecision';
+import { parsePlaybackSeconds } from './parsePlaybackSeconds.js';
+import type { PlaybackLoadDecision } from './resolvePlaybackLoadDecision.js';
 
 export type ResolveEnclosureSwitchPlaybackDecisionParams = {
   resumeAtSeconds: number;

@@ -1,4 +1,4 @@
-import type { PlaybackTarget } from './playbackTarget';
+import type { PlaybackTarget } from './playbackTarget.js';
 
 /**
  * Phase 2 input shape for loading a `PlaybackTarget`. The Phase 3 policy

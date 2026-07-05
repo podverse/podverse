@@ -7,8 +7,8 @@ import type {
 } from '@podverse/helpers';
 import { getSelectedLabeledItemEnclosureAndSource } from '@podverse/helpers';
 
-import { resolveEnclosureSwitchPlaybackDecision } from './resolveEnclosureSwitchPlaybackDecision';
-import type { PlaybackLoadDecision } from './resolvePlaybackLoadDecision';
+import { resolveEnclosureSwitchPlaybackDecision } from './resolveEnclosureSwitchPlaybackDecision.js';
+import type { PlaybackLoadDecision } from './resolvePlaybackLoadDecision.js';
 
 export type StageEnclosureSwitchFromSelectionParams = {
   labeledItemEnclosures: LabeledItemEnclosure[];

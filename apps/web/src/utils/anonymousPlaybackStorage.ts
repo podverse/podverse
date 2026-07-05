@@ -1,7 +1,7 @@
 import type { DTOClip, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
 
 import { LOCAL_STORAGE } from '../constants/localStorage';
-import { clampPlaybackPositionForStorage } from '../lib/playback/clampNearEndSeconds';
+import { clampPlaybackPositionForStorage } from '../lib/playback';
 
 export const ANONYMOUS_PLAYBACK_SNAPSHOT_VERSION = 1 as const;
 

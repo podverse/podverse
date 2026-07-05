@@ -11,8 +11,10 @@ import { useMediaPlayerControls } from '../../contexts/MediaPlayerControls';
 import { useMediaPlayerCurrentTime } from '../../contexts/MediaPlayerCurrentTime';
 import { formatEmbedEnclosureSourceDisplay } from '../../lib/embed/formatEmbedEnclosureSourceDisplay';
 import { buildEmbedEnclosureSelectionParams } from '../../lib/embed/setEmbedEnclosureSelection';
-import { resolveResumeAtSecondsForEnclosureSwitch } from '../../lib/playback/resolveResumeAtSecondsForEnclosureSwitch';
-import { buildEnclosureSwitchPlaybackDecisionIfChanged } from '../../lib/playback/stageEnclosureSwitchFromSelection';
+import {
+  buildEnclosureSwitchPlaybackDecisionIfChanged,
+  resolveResumeAtSecondsForEnclosureSwitch,
+} from '../../lib/playback';
 import { useEnclosureLabel } from '../../utils/itemEnclosure';
 
 import styles from '../../styles/components/embed/EmbedAlternateEnclosureModal.module.scss';

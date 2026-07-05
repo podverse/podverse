@@ -30,7 +30,7 @@ Lower tiers cannot depend on higher (see `.cursor/rules/architecture-tier-depend
 
 ## Commands / Terminal
 
-- **Commands from repo root**: When giving terminal or npm commands, always give them **relative to the monorepo root**. Use `npm run <script> -w apps/<app> -- [args]` instead of instructing users to `cd apps/workers` (or similar) first. See `.cursor/rules/commands-from-monorepo-root.mdc`.
+- **Commands from repo root**: When giving terminal or npm commands, always give them **relative to the monorepo root**. Use `npm run <script> -w apps/<app> -- [args]` instead of instructing users to `cd apps/workers` (or similar) first. **Root-only scripts** (`test:unit`, `build:packages`, `lint`, …) must not be scoped with `-w`; scoped unit tests use `npm run test -w <workspace>`. See `.cursor/rules/commands-from-monorepo-root.mdc`.
 - **Copy button**: Always put runnable commands in a **fenced code block** (e.g. `bash ... `) so the IDE shows a copy button. Do not give only inline commands when the user may want to run them.
 
 ## Formatting Rules

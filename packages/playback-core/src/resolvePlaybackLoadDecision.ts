@@ -1,9 +1,9 @@
 import type { QueueResourcesAbridgedIndex } from '@podverse/helpers';
 
-import { clampNearEndSeconds } from './clampNearEndSeconds';
-import { parsePlaybackSeconds } from './parsePlaybackSeconds';
-import type { PlaybackLoadRequest } from './playbackLoadRequest';
-import { resumeSeekFromAbridged } from './resumeSeekFromAbridged';
+import { clampNearEndSeconds } from './clampNearEndSeconds.js';
+import { parsePlaybackSeconds } from './parsePlaybackSeconds.js';
+import type { PlaybackLoadRequest } from './playbackLoadRequest.js';
+import { resumeSeekFromAbridged } from './resumeSeekFromAbridged.js';
 
 export type PlaybackLoadDecision = {
   /** Final position the bridge should seek to once loadedmetadata fires. */

@@ -34,6 +34,7 @@
     "@hello-pangea/dnd": "^18.0.1",
     "@podverse/extension-metrics-sdk": "*",
     "@podverse/helpers": "*",
+    "@podverse/playback-core": "*",
     "@podverse/helpers-backend": "*",
     "@podverse/helpers-browser": "*",
     "@podverse/helpers-config": "*",

@@ -87,11 +87,11 @@ Import style in app source is **Tier D** (extensionless relatives). See
 
 ## Testing
 
-| Tier              | Where                         | How                                      |
-| ----------------- | ----------------------------- | ---------------------------------------- |
-| Shared policy     | `packages/playback-core`      | Vitest (included in root `test:unit`)    |
-| Mobile app        | `apps/mobile`                 | Vitest when configured (excluded from root `test:unit` until ready) |
-| Mobile E2E        | `apps/mobile/e2e/`            | Maestro or Detox — **not** `make e2e_*`  |
+| Tier          | Where                    | How                                                                 |
+| ------------- | ------------------------ | ------------------------------------------------------------------- |
+| Shared policy | `packages/playback-core` | Vitest (included in root `test:unit`)                               |
+| Mobile app    | `apps/mobile`            | Vitest when configured (excluded from root `test:unit` until ready) |
+| Mobile E2E    | `apps/mobile/e2e/`       | Maestro or Detox — **not** `make e2e_*`                             |
 
 Root lint excludes `apps/mobile` until RN ESLint is fully wired; root config already defines Tier D
 overrides for when source files appear.

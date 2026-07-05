@@ -33,12 +33,12 @@ Repeat from step 1.
 
 ## Authoritative sources
 
-| Source | Path | Use for |
-| ------ | ---- | ------- |
-| Master plan | `docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md` | Steps, Model, PG table, Appendix C |
-| Detail docs (durable) | `docs/proposals/mobile/_master-plan_/details/NNN-slug.md` | Per-step design + acceptance |
-| Phase plans (transient) | `.llm/plans/active/mobile-<phase-slug>/` | COPY-PASTA execution |
-| Proposal docs | `docs/proposals/mobile/**` | Parity and architecture context |
+| Source                  | Path                                                      | Use for                            |
+| ----------------------- | --------------------------------------------------------- | ---------------------------------- |
+| Master plan             | `docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md`  | Steps, Model, PG table, Appendix C |
+| Detail docs (durable)   | `docs/proposals/mobile/_master-plan_/details/NNN-slug.md` | Per-step design + acceptance       |
+| Phase plans (transient) | `.llm/plans/active/mobile-<phase-slug>/`                  | COPY-PASTA execution               |
+| Proposal docs           | `docs/proposals/mobile/**`                                | Parity and architecture context    |
 
 Related skills: **parallel-plan-execution**, **plan-completion**, **response-ending-make-verify**.
 
@@ -48,11 +48,11 @@ Related skills: **parallel-plan-execution**, **plan-completion**, **response-end
 
 Each master-plan step line ends with a status suffix on the detail link:
 
-| Status | Meaning | Visible as |
-| ------ | ------- | ---------- |
-| `_TBD_` | Not yet detailed | Not started |
+| Status    | Meaning                                              | Visible as        |
+| --------- | ---------------------------------------------------- | ----------------- |
+| `_TBD_`   | Not yet detailed                                     | Not started       |
 | `planned` | Detail doc + phase COPY-PASTA exist; not implemented | Planned, deferred |
-| `done` | Implemented (operator may verify separately) | **Completed** |
+| `done`    | Implemented (operator may verify separately)         | **Completed**     |
 
 Step line format: `… Detail: [slug](path) — done` (suffix after em dash).
 
@@ -69,12 +69,12 @@ Status is **living state**, not write-once. Agents maintain it **as work complet
 
 ### When to update
 
-| Event | Action |
-| ----- | ------ |
-| Phase detail files created | `_TBD_` → `planned` for that phase's steps (Tracks + Appendix C) |
-| Each COPY-PASTA prompt implemented | Affected steps → `done` immediately (Tracks + Appendix C + detail doc header) |
-| Operator says work was done outside a session | Reconcile: flip matching steps to `done` before recommending next |
-| "What should we work on next in the mobile master plan?" | **Read** status first; **report** progress; then recommend |
+| Event                                                    | Action                                                                        |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Phase detail files created                               | `_TBD_` → `planned` for that phase's steps (Tracks + Appendix C)              |
+| Each COPY-PASTA prompt implemented                       | Affected steps → `done` immediately (Tracks + Appendix C + detail doc header) |
+| Operator says work was done outside a session            | Reconcile: flip matching steps to `done` before recommending next             |
+| "What should we work on next in the mobile master plan?" | **Read** status first; **report** progress; then recommend                    |
 
 ### Incremental completion (COPY-PASTA)
 
@@ -135,22 +135,22 @@ When selecting the next PG, treat a prerequisite as satisfied only when its step
 
 ### 2. Parallel group order (reference)
 
-| Group | Tracks | Prerequisites (summary) |
-| ----- | ------ | ------------------------- |
-| PG-0 | 0 | none |
-| PG-1 | 1 | 0 partial (0.6+ abcmemory) |
-| PG-2a | 3 | 0 |
-| PG-2b | 2 spike (2.1–2.13) | 0, 1 recommended |
-| PG-3 | 4, 5 | 3 hello-world |
-| PG-4 | 6, 7 | 3, 5 |
-| PG-5 | 2 full (2.14–2.35) | 2 spike, 1 |
-| PG-6 | 8, 9 | 6, 7 |
-| PG-7 | 10, 11 | 1, 2, 6 |
-| PG-8 | 12 | 2, 10 |
-| PG-9 | 13–17 | 6, 10 (varies) |
-| PG-10 | 18 | 7, 11 |
-| PG-11 | 19–21 | MVP feature-complete |
-| PG-12 | 22 | 4, PG-11 |
+| Group | Tracks             | Prerequisites (summary)    |
+| ----- | ------------------ | -------------------------- |
+| PG-0  | 0                  | none                       |
+| PG-1  | 1                  | 0 partial (0.6+ abcmemory) |
+| PG-2a | 3                  | 0                          |
+| PG-2b | 2 spike (2.1–2.13) | 0, 1 recommended           |
+| PG-3  | 4, 5               | 3 hello-world              |
+| PG-4  | 6, 7               | 3, 5                       |
+| PG-5  | 2 full (2.14–2.35) | 2 spike, 1                 |
+| PG-6  | 8, 9               | 6, 7                       |
+| PG-7  | 10, 11             | 1, 2, 6                    |
+| PG-8  | 12                 | 2, 10                      |
+| PG-9  | 13–17              | 6, 10 (varies)             |
+| PG-10 | 18                 | 7, 11                      |
+| PG-11 | 19–21              | MVP feature-complete       |
+| PG-12 | 22                 | 4, PG-11                   |
 
 PG-2a and PG-2b can overlap in time with PG-3 after PG-0; recommend **one primary PG per
 detailing batch** unless operator asks for parallel detailing of independent groups.
@@ -174,10 +174,10 @@ instead and explain why.
 Before detailing tracks that depend on unresolved choices, prompt operator to decide (or accept
 default from master plan **Open decisions**):
 
-| Decision | Blocks detailing for |
-| -------- | -------------------- |
+| Decision                         | Blocks detailing for         |
+| -------------------------------- | ---------------------------- |
 | E2E framework (Maestro vs Detox) | Track 5, all E2E-heavy steps |
-| CI tooling (EAS vs Fastlane) | Track 4, Track 22 |
+| CI tooling (EAS vs Fastlane)     | Track 4, Track 22            |
 
 Record the chosen option in the phase `00-SUMMARY.md` when detailing.
 
@@ -227,16 +227,16 @@ Use Appendix D template from master plan:
 
 ## Verification
 
-...
+...commands per **commands-from-monorepo-root** (full tier: `npm run test:unit`; scoped: `npm run test -w <workspace>` — never `test:unit -w`)...
 ```
 
 **Depth by Model tier:**
 
-| Model | Minimum content |
-| ----- | ---------------- |
-| Auto | Scope + acceptance bullets + operator-only notes |
-| Codex 5.3 | Above + web parity links + file paths + verification commands |
-| Opus 4.8 | Above + architecture notes, edge cases, spike outcomes, cross-track deps |
+| Model     | Minimum content                                                          |
+| --------- | ------------------------------------------------------------------------ |
+| Auto      | Scope + acceptance bullets + operator-only notes                         |
+| Codex 5.3 | Above + web parity links + file paths + verification commands            |
+| Opus 4.8  | Above + architecture notes, edge cases, spike outcomes, cross-track deps |
 
 Pull parity context from `docs/proposals/mobile/` and existing web code paths when known.
 
@@ -246,12 +246,12 @@ Path: `.llm/plans/active/mobile-<phase-slug>/` (kebab-case, e.g. `mobile-pg0-fou
 
 Required files:
 
-| File | Purpose |
-| ---- | ------- |
-| `00-SUMMARY.md` | Phase scope, step list, detail ID range, open decisions locked |
-| `00-EXECUTION-ORDER.md` | Sequential vs parallel prompts within phase |
-| `01-…md`, `02-…md` | Grouped implementation plans referencing detail docs |
-| `COPY-PASTA.md` | Short prompts; each references a numbered plan file + **Cursor model** |
+| File                    | Purpose                                                                |
+| ----------------------- | ---------------------------------------------------------------------- |
+| `00-SUMMARY.md`         | Phase scope, step list, detail ID range, open decisions locked         |
+| `00-EXECUTION-ORDER.md` | Sequential vs parallel prompts within phase                            |
+| `01-…md`, `02-…md`      | Grouped implementation plans referencing detail docs                   |
+| `COPY-PASTA.md`         | Short prompts; each references a numbered plan file + **Cursor model** |
 
 Follow **parallel-plan-execution** (§ Step 5 — **Cursor model** required on every prompt):
 COPY-PASTA prompts are 3–8 lines; full instructions live in numbered plan files and detail docs.
@@ -323,15 +323,16 @@ during parallel work.
 
 ## Anti-patterns
 
-| Do not | Do instead |
-| ------ | ---------- |
-| Write all `details/*.md` upfront | Detail one PG at a time |
-| Implement while "only detailing" | Stop after `planned` status |
-| Detail Track 10 before 2.34 done | Recommend Track 2 spike completion |
-| Duplicate full detail text in COPY-PASTA | Reference plan + detail paths |
-| Skip Appendix C updates | Keep master plan status in sync after **each** prompt |
-| Answer "what next" without progress counts | Always show done / planned / _TBD_ table first |
-| Batch `done` only at end of phase | Mark steps `done` as each COPY-PASTA prompt completes |
+| Do not                                                    | Do instead                                                            |
+| --------------------------------------------------------- | --------------------------------------------------------------------- |
+| Write all `details/*.md` upfront                          | Detail one PG at a time                                               |
+| Implement while "only detailing"                          | Stop after `planned` status                                           |
+| Detail Track 10 before 2.34 done                          | Recommend Track 2 spike completion                                    |
+| Duplicate full detail text in COPY-PASTA                  | Reference plan + detail paths                                         |
+| Skip Appendix C updates                                   | Keep master plan status in sync after **each** prompt                 |
+| Answer "what next" without progress counts                | Always show done / planned / _TBD_ table first                        |
+| Batch `done` only at end of phase                         | Mark steps `done` as each COPY-PASTA prompt completes                 |
+| `npm run test:unit -w <workspace>` in verification blocks | Full tier: `npm run test:unit`; scoped: `npm run test -w <workspace>` |
 
 ---
 
@@ -346,7 +347,9 @@ grep -c 'planned\|done' docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md
 
 # PG-1 playback-core — after operator runs tests
 npm run build:packages
-npm run test:unit
+npm run test -w @podverse/playback-core
+npm run test -w apps/web
+npm run lint
 ```
 
 Always end agent implementation responses with phase-appropriate commands in a fenced `bash` block.

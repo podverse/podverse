@@ -4,7 +4,7 @@
 
 | Tier | Packages                                                                                                           | Depends On                                                                |
 | ---- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| 1    | helpers, helpers-v4v                                                                                               | (none)                                                                    |
+| 1    | helpers, helpers-v4v, playback-core                                                                                | playback-core → helpers; helpers-v4v → (none)                             |
 | 2    | external-services-alby, external-services-firebase, external-services-paypal, external-services-podcast-index, orm | helpers, helpers-\*                                                       |
 | 3    | notifications, parser                                                                                              | helpers, external-services-firebase, external-services-podcast-index, orm |
 | 4    | mq                                                                                                                 | helpers, external-services-podcast-index, orm, parser                     |

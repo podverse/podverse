@@ -12,12 +12,12 @@ operator says **abcremember** during a mobile phase.
 
 Per **abcmemory-vocabulary** rule and **abcmemory** skill:
 
-| Location | Purpose | Examples |
-| -------- | ------- | -------- |
-| **abcmemory** (`.cursor/`, `.cursorrules`, `.cursorignore`) | Standing instructions Cursor loads every session | rules, skills, prompts |
-| **`.llm/plans/`** | Transient execution plans, COPY-PASTA sets | `mobile-pg0-foundation/` |
-| **`.llm/context/`**, **`.llm/history/`** | Human reference, optional notes | not agent memory |
-| **`docs/proposals/mobile/`** | Durable design + master plan details | `details/NNN-*.md` |
+| Location                                                    | Purpose                                          | Examples                 |
+| ----------------------------------------------------------- | ------------------------------------------------ | ------------------------ |
+| **abcmemory** (`.cursor/`, `.cursorrules`, `.cursorignore`) | Standing instructions Cursor loads every session | rules, skills, prompts   |
+| **`.llm/plans/`**                                           | Transient execution plans, COPY-PASTA sets       | `mobile-pg0-foundation/` |
+| **`.llm/context/`**, **`.llm/history/`**                    | Human reference, optional notes                  | not agent memory         |
+| **`docs/proposals/mobile/`**                                | Durable design + master plan details             | `details/NNN-*.md`       |
 
 **abcremember** writes to **abcmemory** unless the user explicitly asks to store something under
 `.llm/`.
@@ -27,13 +27,13 @@ Per **abcmemory-vocabulary** rule and **abcmemory** skill:
 Update **`.cursor/`** (or `.cursorrules` / `.cursorignore`) when guidance should apply to **future**
 mobile sessions without re-reading a plan:
 
-| Change type | Prefer |
-| ----------- | ------ |
-| Always-on mobile convention | `.cursorrules` short note or always-applied rule |
-| Applies only under `apps/mobile/**` | Scoped `.cursor/rules/*.mdc` with `globs` |
-| Workflow (E2E reports, flavors, worktrees, playback) | `.cursor/skills/mobile-*/SKILL.md` |
-| Ignore generated native trees | `.cursorignore` |
-| Import allowlist / app entry | `apps/mobile/AGENTS.md` (app-local, not abcmemory) |
+| Change type                                          | Prefer                                             |
+| ---------------------------------------------------- | -------------------------------------------------- |
+| Always-on mobile convention                          | `.cursorrules` short note or always-applied rule   |
+| Applies only under `apps/mobile/**`                  | Scoped `.cursor/rules/*.mdc` with `globs`          |
+| Workflow (E2E reports, flavors, worktrees, playback) | `.cursor/skills/mobile-*/SKILL.md`                 |
+| Ignore generated native trees                        | `.cursorignore`                                    |
+| Import allowlist / app entry                         | `apps/mobile/AGENTS.md` (app-local, not abcmemory) |
 
 Do **not** duplicate the same rule in abcmemory and `apps/mobile/AGENTS.md` — link between them.
 

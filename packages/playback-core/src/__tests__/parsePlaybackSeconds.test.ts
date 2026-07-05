@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { parsePlaybackSeconds } from '../parsePlaybackSeconds';
+import { parsePlaybackSeconds } from '../parsePlaybackSeconds.js';
 
 describe('parsePlaybackSeconds', () => {
   describe('valid finite non-negative numbers', () => {

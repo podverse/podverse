@@ -8,7 +8,7 @@ import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
 } from '@podverse/helpers-requests';
 
-import { parsePlaybackSeconds } from '../playback/parsePlaybackSeconds';
+import { parsePlaybackSeconds } from '../playback';
 import type {
   EmbedAlbumListQueryParams,
   EmbedEpisodeChaptersListQueryParams,

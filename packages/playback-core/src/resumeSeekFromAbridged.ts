@@ -1,5 +1,5 @@
-import { clampNearEndSeconds } from './clampNearEndSeconds';
-import { parsePlaybackSeconds } from './parsePlaybackSeconds';
+import { clampNearEndSeconds } from './clampNearEndSeconds.js';
+import { parsePlaybackSeconds } from './parsePlaybackSeconds.js';
 
 export type AbridgedSeekInput = {
   p?: unknown;

@@ -34,7 +34,7 @@ Mobile is a Tier 5 consumer: import **downward** only. Mirror
 | `@podverse/helpers-requests`                           | `@podverse/orm`                                            |
 | `@podverse/http-request-core`                          | `@podverse/parser`                                         |
 | `@podverse/helpers-validation/client`                  | `@podverse/mq`                                             |
-| `@podverse/playback-core` (when extracted)               | `@podverse/helpers-backend`                                |
+| `@podverse/playback-core`                              | `@podverse/helpers-backend`                                |
 | `@podverse/parser-mapping`                             | `@podverse/helpers-browser`                                |
 | `@podverse/v4v-helpers`, `v4v-metaboost`, `v4v-btc-ln` | `@podverse/helpers-config`                                 |
 | —                                                      | `@podverse/observability`, `@podverse/external-services-*` |

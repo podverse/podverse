@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { resolveResumeAtSecondsForEnclosureSwitch } from '../resolveResumeAtSecondsForEnclosureSwitch';
+import { resolveResumeAtSecondsForEnclosureSwitch } from '../resolveResumeAtSecondsForEnclosureSwitch.js';
 
 describe('resolveResumeAtSecondsForEnclosureSwitch', () => {
   it('prefers the live media element playhead when available', () => {

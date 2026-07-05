@@ -10,7 +10,7 @@ import { useQueues } from '../contexts/Queue';
 import { useQueueResourcesAbridgedIndex } from '../contexts/QueueResourcesAbridgedIndex';
 import { getApiRequestService } from '../factories/apiRequestService';
 import { cookieConsentAllowsAnonymousFeatureStorage } from '../lib/cookieConsent/cookieConsentPolicy';
-import { clampPlaybackPositionForStorage } from '../lib/playback/clampNearEndSeconds';
+import { clampPlaybackPositionForStorage } from '../lib/playback';
 import { writeAnonymousPlaybackSnapshotFromPlayerState } from '../utils/anonymousPlaybackStorage';
 import { buildQueueResourceAbridgedUpdatesFromNowPlayingLike } from '../utils/nowPlayingParamsToAbridgedUpdates';
 import { useQueueResourcesAbridgedIndexUpdate } from './useQueueResourcesAbridgedIndexUpdate';

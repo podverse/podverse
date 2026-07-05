@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { clampNearEndSeconds } from '../clampNearEndSeconds';
+import { clampNearEndSeconds } from '../clampNearEndSeconds.js';
 
 describe('clampNearEndSeconds', () => {
   describe('clamp does not fire', () => {

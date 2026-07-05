@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { resumeSeekFromAbridged } from '../resumeSeekFromAbridged';
+import { resumeSeekFromAbridged } from '../resumeSeekFromAbridged.js';
 
 describe('resumeSeekFromAbridged', () => {
   describe('explicit override with near-end clamp', () => {

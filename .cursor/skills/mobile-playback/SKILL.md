@@ -18,14 +18,14 @@ Use when implementing or changing **mobile playback**, **queue advance**, **auto
 
 ## Stack map (web → mobile)
 
-| Web layer | Location | Mobile equivalent |
-| --------- | -------- | ----------------- |
-| Policy (pure) | `apps/web/src/lib/playback/` → `@podverse/playback-core` | **Same** `@podverse/playback-core` functions |
-| Bridge | `useMediaElementBridge`, `mediaElementBridgeSurface.ts` | **`NativePlaybackBridge`** TS module → `podverse-media-engine` |
-| Controls | `useMediaPlayerControls()` | RN controls store/hook exposing `seek`, `loadAndStart`, `pauseAt`, etc. |
-| Orchestration | `NonLiveMediaOrchestrator`, ended handlers | RN orchestrator hook on engine **ended** events |
-| Queue load | `useQueueResourcesLoadActive`, queue wrappers | Same `req*` from `@podverse/helpers-requests` |
-| Auto-queue | `AutoQueue.tsx`, `useAutoQueueLoadResources` | Same API calls; device prefs instead of cookies (`aqc.rd` / `aqc.rp`) |
+| Web layer     | Location                                                 | Mobile equivalent                                                       |
+| ------------- | -------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Policy (pure) | `apps/web/src/lib/playback/` → `@podverse/playback-core` | **Same** `@podverse/playback-core` functions                            |
+| Bridge        | `useMediaElementBridge`, `mediaElementBridgeSurface.ts`  | **`NativePlaybackBridge`** TS module → `podverse-media-engine`          |
+| Controls      | `useMediaPlayerControls()`                               | RN controls store/hook exposing `seek`, `loadAndStart`, `pauseAt`, etc. |
+| Orchestration | `NonLiveMediaOrchestrator`, ended handlers               | RN orchestrator hook on engine **ended** events                         |
+| Queue load    | `useQueueResourcesLoadActive`, queue wrappers            | Same `req*` from `@podverse/helpers-requests`                           |
+| Auto-queue    | `AutoQueue.tsx`, `useAutoQueueLoadResources`             | Same API calls; device prefs instead of cookies (`aqc.rd` / `aqc.rp`)   |
 
 Read web hooks first for behavior; reuse wrappers and policy — replace only transport and UI.
 

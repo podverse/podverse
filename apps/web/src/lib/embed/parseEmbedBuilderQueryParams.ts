@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { QUERY_PARAMS_STATS_RANGE_VALUES } from '@podverse/helpers-requests';
 
-import { parsePlaybackSeconds } from '../playback/parsePlaybackSeconds';
+import { parsePlaybackSeconds } from '../playback';
 import { DEFAULT_EMBED_BORDER_COLOR, sanitizeEmbedBorderColor } from './embedBorderColor';
 import type { EmbedBuilderQueryParams } from './embedBuilderTypes';
 import {
