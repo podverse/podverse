@@ -8,7 +8,9 @@ alwaysApply: false
 # Mobile (React Native) boundaries
 
 - This is **React Native + Expo** (prebuild / dev client). Do **not** use `next/*`, server components,
-  SSR, Playwright, or `@podverse/ui`.
+  SSR, Playwright, or `@podverse/ui` (components/SCSS).
+- **Themes:** import `@podverse/design-tokens` and use **mobile-theme-parity** skill — same theme IDs
+  and token values as web; RN `ThemeProvider` + `StyleSheet`, not CSS.
 - Mobile is a **Tier 5 consumer** — import downward only. See
   [apps/mobile/AGENTS.md](/apps/mobile/AGENTS.md) allowlist/denylist and
   [architecture-tier-dependencies](/.cursor/rules/architecture-tier-dependencies.mdc).
@@ -20,6 +22,9 @@ alwaysApply: false
 - Reuse `@podverse/helpers-requests` `req*` wrappers and `@podverse/playback-core` policy. Implement
   transport via a **native bridge** (`NativePlaybackBridge`) — do not edit web
   `useMediaElementBridge` for mobile.
+- **`@podverse/helpers`:** do not import the package barrel on mobile — it re-exports Node-only modules
+  (`crypto`, etc.). Use documented subpath exports (e.g. `@podverse/helpers/locales`) or add new subpaths;
+  see [APPS-MOBILE.md § Troubleshooting](/apps/mobile/APPS-MOBILE.md) (Node stdlib bundling).
 - **Import specifiers (Tier D):** extensionless relative imports in app source. See
   [DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md § Tier D](/docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md).
 - **E2E:** Maestro or Detox in `apps/mobile/e2e/` — **not** `make e2e_*` (web/management-web only).

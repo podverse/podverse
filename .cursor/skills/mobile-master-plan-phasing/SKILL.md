@@ -142,9 +142,9 @@ When selecting the next PG, treat a prerequisite as satisfied only when its step
 | PG-2a | 3                  | 0                          |
 | PG-2b | 2 spike (2.1–2.13) | 0, 1 recommended           |
 | PG-3  | 4, 5               | 3 hello-world              |
-| PG-4  | 6, 7               | 3, 5                       |
+| PG-4  | 6, 7 (+ 0.20, 7.11–7.16 themes) | 3, 5; 0.20 before theme steps |
 | PG-5  | 2 full (2.14–2.35) | 2 spike, 1                 |
-| PG-6  | 8, 9               | 6, 7                       |
+| PG-6  | 8, 9               | 6, 7; **7.11–7.15** theme scaffold `done` |
 | PG-7  | 10, 11             | 1, 2, 6                    |
 | PG-8  | 12                 | 2, 10                      |
 | PG-9  | 13–17              | 6, 10 (varies)             |
@@ -201,8 +201,9 @@ implementation (COPY-PASTA).
 
 ### Artifact A — Detail docs (durable)
 
-Path: `docs/proposals/mobile/_master-plan_/details/NNN-slug.md` (path already linked from master
-plan).
+Path: `docs/proposals/mobile/_master-plan_/details/<id>-slug.md` (path already linked from master
+plan). Assign `<id>` from the track band in master plan **Appendix E**; grep Appendix C and
+`details/` for collisions before committing a new ID.
 
 Use Appendix D template from master plan:
 

@@ -1,7 +1,7 @@
 # Podverse Mobile — Master Plan
 
 > Highest-level ordered step list for building the next-generation Podverse mobile app.
-> Detail plans: `details/NNN-*.md` (_TBD_ until written).
+> Detail plans: `details/<id>-*.md` — numeric prefix, zero-padded (typically **3** digits) + slug (_TBD_ until written).
 > Source proposals: [DOCS-MOBILE](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE.md)
 >
 > **Draft source:** `_draft-tracks/*.md` fragments used to assemble this document; retain for reference.
@@ -41,9 +41,9 @@
 | PG-2a | 3                  | 4, 5 (after 0)       | 0                    |
 | PG-2b | 2 spike (2.1–2.13) | 3, 4, 5              | 0, 1 recommended     |
 | PG-3  | 4, 5               | each other           | 3 hello-world        |
-| PG-4  | 6, 7               | each other           | 3, 5                 |
+| PG-4  | 6, 7               | each other           | 3, 5; **0.20** design-tokens recommended before 7.11–7.16 |
 | PG-5  | 2 full (2.14–2.35) | 8, 9                 | 2 spike, 1           |
-| PG-6  | 8, 9               | each other           | 6, 7                 |
+| PG-6  | 8, 9               | each other           | 6, 7; **7.11–7.15** theme scaffold `done` |
 | PG-7  | 10, 11             | each other           | 1, 2, 6              |
 | PG-8  | 12                 | 13, 14, 15           | 2, 10                |
 | PG-9  | 13, 14, 15, 16, 17 | each other (mostly)  | 6, 10 varies         |
@@ -94,6 +94,7 @@ flowchart TB
 0.17. Add mobile package import allowlist/denylist to `apps/mobile/AGENTS.md` (mirror shared-vs-divergent). Model: Codex 5.3. Detail: [017-mobile-import-allowlist](/docs/proposals/mobile/_master-plan_/details/017-mobile-import-allowlist.md) — done
 0.18. Document Metro monorepo resolver requirements in `APPS-MOBILE.md`. Model: Codex 5.3. Detail: [018-metro-monorepo-doc](/docs/proposals/mobile/_master-plan_/details/018-metro-monorepo-doc.md) — done
 0.19. Add `.cursorignore` for `apps/mobile/**/*.hbc` and Xcode user data if not already covered. Model: Auto. Detail: [019-cursorignore-generated-assets](/docs/proposals/mobile/_master-plan_/details/019-cursorignore-generated-assets.md) — done
+0.20. Create `@podverse/design-tokens` package: RN-safe TS token maps synced with `packages/ui` SCSS themes. Model: Codex 5.3. Detail: [035-design-tokens-package](/docs/proposals/mobile/_master-plan_/details/035-design-tokens-package.md) — planned
 
 ## Track 1 — Extract `packages/playback-core`
 
@@ -191,22 +192,33 @@ flowchart TB
 
 ## Track 3 — App bootstrap (hello-world)
 
-3.1. Create `apps/mobile/package.json` with Expo prebuild and dev-client dependencies. Model: Codex 5.3. Detail: [040-mobile-package-json](/docs/proposals/mobile/_master-plan_/details/040-mobile-package-json.md) — _TBD_
-3.2. Add `app.json` / `app.config.ts` with **separate bundle id** (e.g. `com.podverse.app.next`). Model: Codex 5.3. Detail: [041-expo-config-separate-bundle-id](/docs/proposals/mobile/_master-plan_/details/041-expo-config-separate-bundle-id.md) — _TBD_
-3.3. Configure `metro.config.js` with repo-root `watchFolders` and workspace resolution. Model: Codex 5.3. Detail: [042-metro-config-monorepo](/docs/proposals/mobile/_master-plan_/details/042-metro-config-monorepo.md) — _TBD_
-3.4. Add `apps/mobile/tsconfig.json` extending base with RN jsx and bundler resolution. Model: Codex 5.3. Detail: [043-mobile-tsconfig](/docs/proposals/mobile/_master-plan_/details/043-mobile-tsconfig.md) — _TBD_
-3.5. Add root convenience scripts: `dev:mobile`, `mobile:ios`, `mobile:android`. Model: Auto. Detail: [044-root-mobile-npm-scripts](/docs/proposals/mobile/_master-plan_/details/044-root-mobile-npm-scripts.md) — _TBD_
-3.6. Run `expo prebuild` to generate `ios/` and `android/` native projects. Model: Codex 5.3. Detail: [045-expo-prebuild-initial](/docs/proposals/mobile/_master-plan_/details/045-expo-prebuild-initial.md) — _TBD_
-3.7. Implement hello-world screen showing app name and version on both platforms. Model: Codex 5.3. Detail: [046-hello-world-screen](/docs/proposals/mobile/_master-plan_/details/046-hello-world-screen.md) — _TBD_
-3.8. Verify Metro starts and loads `@podverse/helpers` dist after `build:packages`. Model: Auto. Detail: [047-hello-world-shared-package-smoke](/docs/proposals/mobile/_master-plan_/details/047-hello-world-shared-package-smoke.md) — _TBD_
-3.9. Document Xcode and Android SDK prerequisites in APPS-MOBILE.md (outside Nix shell). Model: Auto. Detail: [048-native-toolchain-prerequisites](/docs/proposals/mobile/_master-plan_/details/048-native-toolchain-prerequisites.md) — _TBD_
-3.10. Add `.gitignore` entries for mobile native build output and `.expo/`. Model: Auto. Detail: [049-mobile-gitignore](/docs/proposals/mobile/_master-plan_/details/049-mobile-gitignore.md) — _TBD_
-3.11. Configure iOS background audio mode placeholder in Info.plist via config plugin. Model: Codex 5.3. Detail: [050-ios-background-audio-plist](/docs/proposals/mobile/_master-plan_/details/050-ios-background-audio-plist.md) — _TBD_
-3.12. Configure Android foreground service permission placeholders for future media engine. Model: Codex 5.3. Detail: [051-android-foreground-service-perms](/docs/proposals/mobile/_master-plan_/details/051-android-foreground-service-perms.md) — _TBD_
-3.13. Add initial `src/navigation/` and `src/screens/` directory scaffold. Model: Auto. Detail: [052-mobile-src-scaffold](/docs/proposals/mobile/_master-plan_/details/052-mobile-src-scaffold.md) — _TBD_
-3.14. Create dev-client build and install on physical iOS device (operator). Model: Auto. Detail: [053-dev-client-ios-device](/docs/proposals/mobile/_master-plan_/details/053-dev-client-ios-device.md) — _TBD_
-3.15. Create dev-client build and install on physical Android device (operator). Model: Auto. Detail: [054-dev-client-android-device](/docs/proposals/mobile/_master-plan_/details/054-dev-client-android-device.md) — _TBD_
-3.16. Record hello-world success criteria in master plan exit checklist for Track 3. Model: Auto. Detail: [055-track-3-exit-criteria](/docs/proposals/mobile/_master-plan_/details/055-track-3-exit-criteria.md) — _TBD_
+3.1. Create `apps/mobile/package.json` with Expo prebuild and dev-client dependencies. Model: Codex 5.3. Detail: [040-mobile-package-json](/docs/proposals/mobile/_master-plan_/details/040-mobile-package-json.md) — done
+3.2. Add `app.json` / `app.config.ts` with **separate bundle id** (e.g. `com.podverse.app.next`). Model: Codex 5.3. Detail: [041-expo-config-separate-bundle-id](/docs/proposals/mobile/_master-plan_/details/041-expo-config-separate-bundle-id.md) — done
+3.3. Configure `metro.config.js` with repo-root `watchFolders` and workspace resolution. Model: Codex 5.3. Detail: [042-metro-config-monorepo](/docs/proposals/mobile/_master-plan_/details/042-metro-config-monorepo.md) — done
+3.4. Add `apps/mobile/tsconfig.json` extending base with RN jsx and bundler resolution. Model: Codex 5.3. Detail: [043-mobile-tsconfig](/docs/proposals/mobile/_master-plan_/details/043-mobile-tsconfig.md) — done
+3.5. Add root convenience scripts: `dev:mobile`, `mobile:ios`, `mobile:android`. Model: Auto. Detail: [044-root-mobile-npm-scripts](/docs/proposals/mobile/_master-plan_/details/044-root-mobile-npm-scripts.md) — done
+3.6. Run `expo prebuild` to generate `ios/` and `android/` native projects. Model: Codex 5.3. Detail: [045-expo-prebuild-initial](/docs/proposals/mobile/_master-plan_/details/045-expo-prebuild-initial.md) — done
+3.7. Implement hello-world screen showing app name and version on both platforms. Model: Codex 5.3. Detail: [046-hello-world-screen](/docs/proposals/mobile/_master-plan_/details/046-hello-world-screen.md) — done
+3.8. Verify Metro starts and loads `@podverse/helpers` dist after `build:packages`. Model: Auto. Detail: [047-hello-world-shared-package-smoke](/docs/proposals/mobile/_master-plan_/details/047-hello-world-shared-package-smoke.md) — done
+3.9. Document Xcode and Android SDK prerequisites in APPS-MOBILE.md (outside Nix shell). Model: Auto. Detail: [048-native-toolchain-prerequisites](/docs/proposals/mobile/_master-plan_/details/048-native-toolchain-prerequisites.md) — done
+3.10. Add `.gitignore` entries for mobile native build output and `.expo/`. Model: Auto. Detail: [049-mobile-gitignore](/docs/proposals/mobile/_master-plan_/details/049-mobile-gitignore.md) — done
+3.11. Configure iOS background audio mode placeholder in Info.plist via config plugin. Model: Codex 5.3. Detail: [050-ios-background-audio-plist](/docs/proposals/mobile/_master-plan_/details/050-ios-background-audio-plist.md) — done
+3.12. Configure Android foreground service permission placeholders for future media engine. Model: Codex 5.3. Detail: [051-android-foreground-service-perms](/docs/proposals/mobile/_master-plan_/details/051-android-foreground-service-perms.md) — done
+3.13. Add initial `src/navigation/` and `src/screens/` directory scaffold. Model: Auto. Detail: [052-mobile-src-scaffold](/docs/proposals/mobile/_master-plan_/details/052-mobile-src-scaffold.md) — done
+3.14. Create dev-client build and install on physical iOS device (operator). Model: Auto. Detail: [053-dev-client-ios-device](/docs/proposals/mobile/_master-plan_/details/053-dev-client-ios-device.md) — done
+3.15. Create dev-client build and install on physical Android device (operator). Model: Auto. Detail: [054-dev-client-android-device](/docs/proposals/mobile/_master-plan_/details/054-dev-client-android-device.md) — done
+3.16. Record hello-world success criteria in master plan exit checklist for Track 3. Model: Auto. Detail: [055-track-3-exit-criteria](/docs/proposals/mobile/_master-plan_/details/055-track-3-exit-criteria.md) — done
+
+### Track 3 exit checklist
+
+Track 3 is complete when all of the following are true:
+
+- [ ] `npm run build:packages` succeeds; Metro resolves `@podverse/helpers` from `dist/`.
+- [ ] `npm run start -w @podverse/mobile` (or `npm run dev:mobile`) starts without resolver errors.
+- [ ] Hello-world screen shows app name, version, and helpers smoke line on iOS and Android.
+- [ ] `npm run prebuild -w @podverse/mobile` generates gitignored `ios/` and `android/` with bundle id `com.podverse.app.next`.
+- [ ] Dev client installed on a physical iOS device (operator step 3.14).
+- [ ] Dev client installed on a physical Android device (operator step 3.15).
 
 ## Track 4 — CI/CD, alpha track, store safety
 
@@ -283,8 +295,14 @@ flowchart TB
 7.8. Wire full player as modal or stack screen over tabs without unmounting mini slot engine. Model: Opus 4.8. Detail: [227-full-player-modal](/docs/proposals/mobile/_master-plan_/details/227-full-player-modal.md) — _TBD_
 7.9. Define deep link route config mirroring web resource ids (placeholder for Track 15). Model: Codex 5.3. Detail: [228-linking-config-stub](/docs/proposals/mobile/_master-plan_/details/228-linking-config-stub.md) — _TBD_
 7.10. Handle Android back button: mini player → full player → tab stack pop order. Model: Codex 5.3. Detail: [229-android-back-behavior](/docs/proposals/mobile/_master-plan_/details/229-android-back-behavior.md) — _TBD_
-7.11. Support tablet: optional side rail or two-column layout at wide breakpoints. Model: Codex 5.3. Detail: [230-tablet-nav-adaptive](/docs/proposals/mobile/_master-plan_/details/230-tablet-nav-adaptive.md) — _TBD_
-7.12. E2E: tab switching preserves playback state screenshot test. Model: Codex 5.3. Detail: [231-e2e-tab-switch-playback](/docs/proposals/mobile/_master-plan_/details/231-e2e-tab-switch-playback.md) — _TBD_
+7.11. `ThemeProvider` + `useTheme()` scaffold; default `dark`; wire `StatusBar`. Model: Codex 5.3. Detail: [232-theme-provider-scaffold](/docs/proposals/mobile/_master-plan_/details/232-theme-provider-scaffold.md) — planned
+7.12. Map `@podverse/design-tokens` → RN style objects (background, text, border, button surfaces). Model: Codex 5.3. Detail: [233-theme-token-stylesheet](/docs/proposals/mobile/_master-plan_/details/233-theme-token-stylesheet.md) — planned
+7.13. Read/write `uit` theme pref in device prefs (stub ok before Track 16.1). Model: Codex 5.3. Detail: [234-theme-pref-uit-storage](/docs/proposals/mobile/_master-plan_/details/234-theme-pref-uit-storage.md) — planned
+7.14. Optional: honor `Appearance.getColorScheme()` when `uit` unset; document default-to-`dark` web parity. Model: Codex 5.3. Detail: [235-theme-system-appearance](/docs/proposals/mobile/_master-plan_/details/235-theme-system-appearance.md) — planned
+7.15. Replace hardcoded colors in hello-world / nav shell with tokenized styles. Model: Codex 5.3. Detail: [236-refactor-scaffold-screens](/docs/proposals/mobile/_master-plan_/details/236-refactor-scaffold-screens.md) — planned
+7.16. Unit test: each built-in theme resolves required token keys (no missing colors). Model: Auto. Detail: [237-theme-unit-smoke](/docs/proposals/mobile/_master-plan_/details/237-theme-unit-smoke.md) — planned
+7.17. Support tablet: optional side rail or two-column layout at wide breakpoints. Model: Codex 5.3. Detail: [230-tablet-nav-adaptive](/docs/proposals/mobile/_master-plan_/details/230-tablet-nav-adaptive.md) — _TBD_
+7.18. E2E: tab switching preserves playback state screenshot test. Model: Codex 5.3. Detail: [231-e2e-tab-switch-playback](/docs/proposals/mobile/_master-plan_/details/231-e2e-tab-switch-playback.md) — _TBD_
 
 ## Track 8 — Home screen + media-type selector
 
@@ -445,9 +463,9 @@ flowchart TB
 
 ## Track 16 — Settings, prefs sync, OPML import/export
 
-16.1. Device prefs store (MMKV or AsyncStorage) mirroring web localSettings keys. Model: Codex 5.3. Detail: [460-device-prefs-store](/docs/proposals/mobile/_master-plan_/details/460-device-prefs-store.md) — _TBD_
+16.1. Device prefs store (MMKV or AsyncStorage) mirroring web localSettings keys (incl. `uit`). Model: Codex 5.3. Detail: [460-device-prefs-store](/docs/proposals/mobile/_master-plan_/details/460-device-prefs-store.md) — planned
 16.2. Sync playback prefs to server account-settings on login. Model: Codex 5.3. Detail: [461-prefs-server-sync](/docs/proposals/mobile/_master-plan_/details/461-prefs-server-sync.md) — _TBD_
-16.3. Settings screen: locale, theme, playback defaults, notification toggles. Model: Codex 5.3. Detail: [462-settings-screen](/docs/proposals/mobile/_master-plan_/details/462-settings-screen.md) — _TBD_
+16.3. Settings screen: locale, theme selector (same ids as web), playback defaults, notification toggles. Model: Codex 5.3. Detail: [462-settings-screen](/docs/proposals/mobile/_master-plan_/details/462-settings-screen.md) — planned
 16.4. OPML import: file picker + parse OPML XML into feed URL list client-side. Model: Codex 5.3. Detail: [463-opml-import-parse](/docs/proposals/mobile/_master-plan_/details/463-opml-import-parse.md) — _TBD_
 16.5. OPML import: batch subscribe or add-by-rss each feed via API mutations. Model: Opus 4.8. Detail: [464-opml-import-subscribe](/docs/proposals/mobile/_master-plan_/details/464-opml-import-subscribe.md) — _TBD_
 16.6. OPML export: gather subscribed feed URLs and generate OPML document. Model: Codex 5.3. Detail: [465-opml-export-generate](/docs/proposals/mobile/_master-plan_/details/465-opml-export-generate.md) — _TBD_
@@ -458,14 +476,20 @@ flowchart TB
 
 ## Track 17 — RN i18n runtime
 
-17.1. Choose RN i18n runtime: i18next + expo-localization (recommended). Model: Codex 5.3. Detail: [470-i18n-runtime-choice](/docs/proposals/mobile/_master-plan_/details/470-i18n-runtime-choice.md) — _TBD_
-17.2. Copy or symlink web originals JSON for v1 (en-US, es, fr, el-GR). Model: Auto. Detail: [471-i18n-copy-originals-v1](/docs/proposals/mobile/_master-plan_/details/471-i18n-copy-originals-v1.md) — _TBD_
-17.3. Wire locale detection from device + account-settings override. Model: Codex 5.3. Detail: [472-i18n-locale-detection](/docs/proposals/mobile/_master-plan_/details/472-i18n-locale-detection.md) — _TBD_
-17.4. Pass localized strings into RN components (no copy in shared packages). Model: Codex 5.3. Detail: [473-i18n-component-wiring](/docs/proposals/mobile/_master-plan_/details/473-i18n-component-wiring.md) — _TBD_
-17.5. Reuse `@podverse/helpers` timeFormatter for duration display. Model: Auto. Detail: [474-i18n-time-formatter](/docs/proposals/mobile/_master-plan_/details/474-i18n-time-formatter.md) — _TBD_
-17.6. Plan medium-term `packages/i18n-catalog` extraction (document only). Model: Auto. Detail: [475-i18n-catalog-future](/docs/proposals/mobile/_master-plan_/details/475-i18n-catalog-future.md) — _TBD_
-17.7. CI key-parity check between web and mobile locale files (optional script). Model: Codex 5.3. Detail: [476-i18n-key-parity-ci](/docs/proposals/mobile/_master-plan_/details/476-i18n-key-parity-ci.md) — _TBD_
-17.8. E2E: switch locale in settings and screenshot Home in second locale. Model: Codex 5.3. Detail: [477-e2e-locale-switch](/docs/proposals/mobile/_master-plan_/details/477-e2e-locale-switch.md) — _TBD_
+17.0. Cross-app fix: web + management-web load `compiled/` messages (overrides apply at runtime). Model: Codex 5.3. Detail: [483-i18n-runtime-load-compiled](/docs/proposals/mobile/_master-plan_/details/483-i18n-runtime-load-compiled.md) — planned
+17.1. Choose RN i18n runtime: i18next + expo-localization (recommended). Model: Codex 5.3. Detail: [470-i18n-runtime-choice](/docs/proposals/mobile/_master-plan_/details/470-i18n-runtime-choice.md) — planned
+17.2. Copy web originals JSON for v1 spike (en-US, es, fr, el-GR); superseded by 17.13 after catalog migration. Model: Auto. Detail: [471-i18n-copy-originals-v1](/docs/proposals/mobile/_master-plan_/details/471-i18n-copy-originals-v1.md) — planned
+17.3. Wire locale detection from device + account-settings override. Model: Codex 5.3. Detail: [472-i18n-locale-detection](/docs/proposals/mobile/_master-plan_/details/472-i18n-locale-detection.md) — planned
+17.4. Pass localized strings into RN components (no copy in shared packages). Model: Codex 5.3. Detail: [473-i18n-component-wiring](/docs/proposals/mobile/_master-plan_/details/473-i18n-component-wiring.md) — planned
+17.5. Reuse `@podverse/helpers` timeFormatter for duration display. Model: Auto. Detail: [474-i18n-time-formatter](/docs/proposals/mobile/_master-plan_/details/474-i18n-time-formatter.md) — planned
+17.6. Phased `packages/i18n-catalog` migration (shared + app overlays); see steps 17.9–17.13. Model: Auto. Detail: [475-i18n-catalog-future](/docs/proposals/mobile/_master-plan_/details/475-i18n-catalog-future.md) — planned
+17.7. CI key-parity check: mobile ⊆ consumer keys (+ mobile overlay keys). Model: Codex 5.3. Detail: [476-i18n-key-parity-ci](/docs/proposals/mobile/_master-plan_/details/476-i18n-key-parity-ci.md) — planned
+17.8. E2E: switch locale in settings and screenshot Home in second locale. Model: Codex 5.3. Detail: [477-e2e-locale-switch](/docs/proposals/mobile/_master-plan_/details/477-e2e-locale-switch.md) — planned
+17.9. Create `packages/i18n-catalog` scaffold + redirect root `i18n:*` scripts. Model: Codex 5.3. Detail: [478-i18n-catalog-scaffold](/docs/proposals/mobile/_master-plan_/details/478-i18n-catalog-scaffold.md) — planned
+17.10. Extract cross-app keys into `shared/originals/`; CI guard against duplicate paths. Model: Codex 5.3. Detail: [479-i18n-extract-shared-layer](/docs/proposals/mobile/_master-plan_/details/479-i18n-extract-shared-layer.md) — planned
+17.11. Migrate web consumer namespaces to `consumer/`; web imports compiled merge. Model: Codex 5.3. Detail: [480-i18n-migrate-consumer-web](/docs/proposals/mobile/_master-plan_/details/480-i18n-migrate-consumer-web.md) — planned
+17.12. Migrate management namespaces to `management/`; management-web imports compiled merge. Model: Codex 5.3. Detail: [481-i18n-migrate-management](/docs/proposals/mobile/_master-plan_/details/481-i18n-migrate-management.md) — planned
+17.13. Mobile bundles merged `shared+consumer+mobile` JSON via i18next (replaces copy step). Model: Codex 5.3. Detail: [482-i18n-mobile-catalog-import](/docs/proposals/mobile/_master-plan_/details/482-i18n-mobile-catalog-import.md) — planned
 
 ## Track 18 — Multi-device targets
 
@@ -574,6 +598,7 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 017-mobile-import-allowlist            | 0.17       | 017-mobile-import-allowlist            | Codex 5.3 | done   |
 | 018-metro-monorepo-doc                 | 0.18       | 018-metro-monorepo-doc                 | Codex 5.3 | done   |
 | 019-cursorignore-generated-assets      | 0.19       | 019-cursorignore-generated-assets      | Auto      | done   |
+| 035-design-tokens-package              | 0.20       | 035-design-tokens-package              | Codex 5.3 | planned |
 | 020-playback-core-package-scaffold     | 1.1        | 020-playback-core-package-scaffold     | Codex 5.3 | done   |
 | 021-move-resolve-playback-decision     | 1.2        | 021-move-resolve-playback-decision     | Opus 4.8  | done   |
 | 022-move-playback-target-types         | 1.3        | 022-move-playback-target-types         | Opus 4.8  | done   |
@@ -588,22 +613,22 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 031-architecture-playback-core-tier    | 1.12       | 031-architecture-playback-core-tier    | Auto      | done   |
 | 032-packages-playback-core-doc         | 1.13       | 032-packages-playback-core-doc         | Codex 5.3 | done   |
 | 033-playback-core-dependency-audit     | 1.14       | 033-playback-core-dependency-audit     | Codex 5.3 | done   |
-| 040-mobile-package-json                | 3.1        | 040-mobile-package-json                | Codex 5.3 | _TBD_  |
-| 041-expo-config-separate-bundle-id     | 3.2        | 041-expo-config-separate-bundle-id     | Codex 5.3 | _TBD_  |
-| 042-metro-config-monorepo              | 3.3        | 042-metro-config-monorepo              | Codex 5.3 | _TBD_  |
-| 043-mobile-tsconfig                    | 3.4        | 043-mobile-tsconfig                    | Codex 5.3 | _TBD_  |
-| 044-root-mobile-npm-scripts            | 3.5        | 044-root-mobile-npm-scripts            | Auto      | _TBD_  |
-| 045-expo-prebuild-initial              | 3.6        | 045-expo-prebuild-initial              | Codex 5.3 | _TBD_  |
-| 046-hello-world-screen                 | 3.7        | 046-hello-world-screen                 | Codex 5.3 | _TBD_  |
-| 047-hello-world-shared-package-smoke   | 3.8        | 047-hello-world-shared-package-smoke   | Auto      | _TBD_  |
-| 048-native-toolchain-prerequisites     | 3.9        | 048-native-toolchain-prerequisites     | Auto      | _TBD_  |
-| 049-mobile-gitignore                   | 3.10       | 049-mobile-gitignore                   | Auto      | _TBD_  |
-| 050-ios-background-audio-plist         | 3.11       | 050-ios-background-audio-plist         | Codex 5.3 | _TBD_  |
-| 051-android-foreground-service-perms   | 3.12       | 051-android-foreground-service-perms   | Codex 5.3 | _TBD_  |
-| 052-mobile-src-scaffold                | 3.13       | 052-mobile-src-scaffold                | Auto      | _TBD_  |
-| 053-dev-client-ios-device              | 3.14       | 053-dev-client-ios-device              | Auto      | _TBD_  |
-| 054-dev-client-android-device          | 3.15       | 054-dev-client-android-device          | Auto      | _TBD_  |
-| 055-track-3-exit-criteria              | 3.16       | 055-track-3-exit-criteria              | Auto      | _TBD_  |
+| 040-mobile-package-json                | 3.1        | 040-mobile-package-json                | Codex 5.3 | done   |
+| 041-expo-config-separate-bundle-id     | 3.2        | 041-expo-config-separate-bundle-id     | Codex 5.3 | done   |
+| 042-metro-config-monorepo              | 3.3        | 042-metro-config-monorepo              | Codex 5.3 | done   |
+| 043-mobile-tsconfig                    | 3.4        | 043-mobile-tsconfig                    | Codex 5.3 | done   |
+| 044-root-mobile-npm-scripts            | 3.5        | 044-root-mobile-npm-scripts            | Auto      | done   |
+| 045-expo-prebuild-initial              | 3.6        | 045-expo-prebuild-initial              | Codex 5.3 | done   |
+| 046-hello-world-screen                 | 3.7        | 046-hello-world-screen                 | Codex 5.3 | done   |
+| 047-hello-world-shared-package-smoke   | 3.8        | 047-hello-world-shared-package-smoke   | Auto      | done   |
+| 048-native-toolchain-prerequisites     | 3.9        | 048-native-toolchain-prerequisites     | Auto      | done   |
+| 049-mobile-gitignore                   | 3.10       | 049-mobile-gitignore                   | Auto      | done   |
+| 050-ios-background-audio-plist         | 3.11       | 050-ios-background-audio-plist         | Codex 5.3 | done   |
+| 051-android-foreground-service-perms   | 3.12       | 051-android-foreground-service-perms   | Codex 5.3 | done   |
+| 052-mobile-src-scaffold                | 3.13       | 052-mobile-src-scaffold                | Auto      | done   |
+| 053-dev-client-ios-device              | 3.14       | 053-dev-client-ios-device              | Auto      | done   |
+| 054-dev-client-android-device          | 3.15       | 054-dev-client-android-device          | Auto      | done   |
+| 055-track-3-exit-criteria              | 3.16       | 055-track-3-exit-criteria              | Auto      | done   |
 | 060-e2e-framework-decision             | 5.1        | 060-e2e-framework-decision             | Codex 5.3 | _TBD_  |
 | 061-e2e-directory-layout               | 5.2        | 061-e2e-directory-layout               | Auto      | _TBD_  |
 | 062-e2e-hello-world-flow               | 5.3        | 062-e2e-hello-world-flow               | Codex 5.3 | _TBD_  |
@@ -711,8 +736,14 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 227-full-player-modal                  | 7.8        | 227-full-player-modal                  | Opus 4.8  | _TBD_  |
 | 228-linking-config-stub                | 7.9        | 228-linking-config-stub                | Codex 5.3 | _TBD_  |
 | 229-android-back-behavior              | 7.10       | 229-android-back-behavior              | Codex 5.3 | _TBD_  |
-| 230-tablet-nav-adaptive                | 7.11       | 230-tablet-nav-adaptive                | Codex 5.3 | _TBD_  |
-| 231-e2e-tab-switch-playback            | 7.12       | 231-e2e-tab-switch-playback            | Codex 5.3 | _TBD_  |
+| 232-theme-provider-scaffold            | 7.11       | 232-theme-provider-scaffold            | Codex 5.3 | planned |
+| 233-theme-token-stylesheet             | 7.12       | 233-theme-token-stylesheet             | Codex 5.3 | planned |
+| 234-theme-pref-uit-storage             | 7.13       | 234-theme-pref-uit-storage             | Codex 5.3 | planned |
+| 235-theme-system-appearance            | 7.14       | 235-theme-system-appearance            | Codex 5.3 | planned |
+| 236-refactor-scaffold-screens          | 7.15       | 236-refactor-scaffold-screens          | Codex 5.3 | planned |
+| 237-theme-unit-smoke                   | 7.16       | 237-theme-unit-smoke                   | Auto      | planned |
+| 230-tablet-nav-adaptive                | 7.17       | 230-tablet-nav-adaptive                | Codex 5.3 | _TBD_  |
+| 231-e2e-tab-switch-playback            | 7.18       | 231-e2e-tab-switch-playback            | Codex 5.3 | _TBD_  |
 | 240-home-screen-layout                 | 8.1        | 240-home-screen-layout                 | Codex 5.3 | _TBD_  |
 | 241-media-type-selector-chips          | 8.2        | 241-media-type-selector-chips          | Auto      | _TBD_  |
 | 242-media-type-pref-sync               | 8.3        | 242-media-type-pref-sync               | Codex 5.3 | _TBD_  |
@@ -844,9 +875,9 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 453-cold-start-deep-link               | 15.4       | 453-cold-start-deep-link               | Opus 4.8  | _TBD_  |
 | 454-share-url-parity                   | 15.5       | 454-share-url-parity                   | Codex 5.3 | _TBD_  |
 | 455-e2e-deep-link-screenshot           | 15.6       | 455-e2e-deep-link-screenshot           | Codex 5.3 | _TBD_  |
-| 460-device-prefs-store                 | 16.1       | 460-device-prefs-store                 | Codex 5.3 | _TBD_  |
+| 460-device-prefs-store                 | 16.1       | 460-device-prefs-store                 | Codex 5.3 | planned |
 | 461-prefs-server-sync                  | 16.2       | 461-prefs-server-sync                  | Codex 5.3 | _TBD_  |
-| 462-settings-screen                    | 16.3       | 462-settings-screen                    | Codex 5.3 | _TBD_  |
+| 462-settings-screen                    | 16.3       | 462-settings-screen                    | Codex 5.3 | planned |
 | 463-opml-import-parse                  | 16.4       | 463-opml-import-parse                  | Codex 5.3 | _TBD_  |
 | 464-opml-import-subscribe              | 16.5       | 464-opml-import-subscribe              | Opus 4.8  | _TBD_  |
 | 465-opml-export-generate               | 16.6       | 465-opml-export-generate               | Codex 5.3 | _TBD_  |
@@ -854,14 +885,20 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 467-opml-error-handling                | 16.8       | 467-opml-error-handling                | Codex 5.3 | _TBD_  |
 | 468-e2e-opml-import                    | 16.9       | 468-e2e-opml-import                    | Codex 5.3 | _TBD_  |
 | 469-e2e-opml-export                    | 16.10      | 469-e2e-opml-export                    | Auto      | _TBD_  |
-| 470-i18n-runtime-choice                | 17.1       | 470-i18n-runtime-choice                | Codex 5.3 | _TBD_  |
-| 471-i18n-copy-originals-v1             | 17.2       | 471-i18n-copy-originals-v1             | Auto      | _TBD_  |
-| 472-i18n-locale-detection              | 17.3       | 472-i18n-locale-detection              | Codex 5.3 | _TBD_  |
-| 473-i18n-component-wiring              | 17.4       | 473-i18n-component-wiring              | Codex 5.3 | _TBD_  |
-| 474-i18n-time-formatter                | 17.5       | 474-i18n-time-formatter                | Auto      | _TBD_  |
-| 475-i18n-catalog-future                | 17.6       | 475-i18n-catalog-future                | Auto      | _TBD_  |
-| 476-i18n-key-parity-ci                 | 17.7       | 476-i18n-key-parity-ci                 | Codex 5.3 | _TBD_  |
-| 477-e2e-locale-switch                  | 17.8       | 477-e2e-locale-switch                  | Codex 5.3 | _TBD_  |
+| 483-i18n-runtime-load-compiled         | 17.0       | 483-i18n-runtime-load-compiled         | Codex 5.3 | planned |
+| 470-i18n-runtime-choice                | 17.1       | 470-i18n-runtime-choice                | Codex 5.3 | planned |
+| 471-i18n-copy-originals-v1             | 17.2       | 471-i18n-copy-originals-v1             | Auto      | planned |
+| 472-i18n-locale-detection              | 17.3       | 472-i18n-locale-detection              | Codex 5.3 | planned |
+| 473-i18n-component-wiring              | 17.4       | 473-i18n-component-wiring              | Codex 5.3 | planned |
+| 474-i18n-time-formatter                | 17.5       | 474-i18n-time-formatter                | Auto      | planned |
+| 475-i18n-catalog-future                | 17.6       | 475-i18n-catalog-future                | Auto      | planned |
+| 476-i18n-key-parity-ci                 | 17.7       | 476-i18n-key-parity-ci                 | Codex 5.3 | planned |
+| 477-e2e-locale-switch                  | 17.8       | 477-e2e-locale-switch                  | Codex 5.3 | planned |
+| 478-i18n-catalog-scaffold              | 17.9       | 478-i18n-catalog-scaffold              | Codex 5.3 | planned |
+| 479-i18n-extract-shared-layer          | 17.10      | 479-i18n-extract-shared-layer          | Codex 5.3 | planned |
+| 480-i18n-migrate-consumer-web          | 17.11      | 480-i18n-migrate-consumer-web          | Codex 5.3 | planned |
+| 481-i18n-migrate-management            | 17.12      | 481-i18n-migrate-management            | Codex 5.3 | planned |
+| 482-i18n-mobile-catalog-import         | 17.13      | 482-i18n-mobile-catalog-import         | Codex 5.3 | planned |
 | 510-device-matrix-doc                  | 18.1       | 510-device-matrix-doc                  | Auto      | _TBD_  |
 | 511-tablet-home-grid                   | 18.2       | 511-tablet-home-grid                   | Codex 5.3 | _TBD_  |
 | 512-tablet-split-detail                | 18.3       | 512-tablet-split-detail                | Codex 5.3 | _TBD_  |
@@ -907,10 +944,10 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 
 ## Appendix D — Detail plan template
 
-When creating `details/NNN-slug.md`:
+When creating `details/<id>-slug.md` (see **Appendix E** for ID band rules):
 
 ```markdown
-# NNN-slug
+# <id>-slug
 
 **Master step:** Track.Step
 **Model (author + implement):** Codex 5.3
@@ -932,3 +969,27 @@ When creating `details/NNN-slug.md`:
 
 ...
 ```
+
+## Appendix E — Detail ID bands
+
+Detail file IDs are **not** one global 001…999 counter. Assign the next free number **inside the
+track’s band** (or open a new band). Slug remains descriptive (`232-theme-provider-scaffold`).
+
+| Band (approx.) | Tracks / area | Notes |
+| -------------- | ------------- | ----- |
+| 001–019 | 0 | abcmemory, monorepo prep |
+| 020–033 | 1 | playback-core |
+| 040–055 | 3 | hello-world bootstrap |
+| 080–114 | 2 | media engine |
+| 150–186 | 4, 22 | CI/CD, release train |
+| 200–211 | 6 | auth |
+| 220–237 | 7 | nav shell, themes |
+| 240–287 | 8–9 | home, browse |
+| 310–399 | 10–12 | queue, player, car |
+| 430–483 | 13–17 | downloads, push, links, settings, i18n |
+| 510–589 | 18–21 | multi-device, IAP, FOSS, deferrals |
+| **590+** | _future_ | Next band when a track’s range is full |
+
+**Do not** renumber existing files to add a fourth digit preemptively. If a band is crowded, use the
+next gap in that band or allocate from **590+**. Before adding an ID, grep Appendix C and
+`details/` for collisions (same numeric prefix, different slug).

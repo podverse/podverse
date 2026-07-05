@@ -37,6 +37,34 @@
       "command": "clear"
     },
     {
+      "name": "Mobile",
+      "description": "Setup: build:packages; build:watch -w packages/helpers when editing shared code",
+      "cwd": ".",
+      "open": false,
+      "command": "clear"
+    },
+    {
+      "name": "Mobile Metro",
+      "description": "npm run dev:mobile — keep running; does not install native dev client",
+      "cwd": ".",
+      "open": false,
+      "command": "clear"
+    },
+    {
+      "name": "Mobile iOS",
+      "description": "Metro must run in Mobile Metro tab. npm run mobile:ios -- --device (or --device \"iPhone 16 Pro\")",
+      "cwd": ".",
+      "open": false,
+      "command": "clear"
+    },
+    {
+      "name": "Mobile Android",
+      "description": "npm run mobile:android",
+      "cwd": ".",
+      "open": false,
+      "command": "clear"
+    },
+    {
       "name": "partytime",
       "description": "Partytime parser library",
       "cwd": "../partytime",

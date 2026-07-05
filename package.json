@@ -31,6 +31,27 @@
     "tools/*/*"
   ],
   "overrides": {
+    "expo": "52.0.49",
+    "react-native": "0.76.9",
+    "@expo/dom-webview": {
+      "expo": "52.0.49",
+      "react-native": "0.76.9"
+    },
+    "expo-dev-launcher": {
+      "expo": "52.0.49"
+    },
+    "expo-dev-menu": {
+      "expo": "52.0.49"
+    },
+    "expo-dev-menu-interface": {
+      "expo": "52.0.49"
+    },
+    "expo-manifests": {
+      "expo": "52.0.49"
+    },
+    "expo-updates-interface": {
+      "expo": "52.0.49"
+    },
     "ip-address": "10.2.0",
     "postcss": "8.5.10",
     "next": {
@@ -54,10 +75,23 @@
     "eslint": "^10.0.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-simple-import-sort": "^12.1.1",
+    "expo": "52.0.49",
     "globals": "^17.4.0",
+    "metro-babel-register": "0.81.5",
+    "metro-babel-transformer": "0.81.5",
+    "metro-cache": "0.81.5",
+    "metro-cache-key": "0.81.5",
+    "metro-file-map": "0.81.5",
+    "metro-minify-terser": "0.81.5",
+    "metro-resolver": "0.81.5",
+    "metro-symbolicate": "0.81.5",
+    "metro-transform-plugins": "0.81.5",
+    "metro-transform-worker": "0.81.5",
     "pg": "^8.21.0",
     "prettier": "^3.4.2",
     "prettier-plugin-sh": "^0.18.0",
+    "react": "18.3.1",
+    "react-native": "0.76.9",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.57.0"
   },
@@ -91,6 +125,11 @@
     "dev:management-api:watch": "npm run dev:watch -w apps/management-api",
     "dev:management-web": "concurrently -n test-assets,mgmt-web -c magenta,greenBright \"npm run dev:test-assets\" \"sleep 6 && npm run dev -w apps/management-web\"",
     "dev:management-web-sidecar": "(test -f apps/management-web/sidecar/dist/server.js || npm run build:sidecar:management-web) && npm run dev:sidecar -w apps/management-web",
+    "dev:mobile": "npm run start -w @podverse/mobile",
+    "mobile:prebuild": "bash scripts/mobile/prebuild-macos.sh",
+    "mobile:pod-install": "bash scripts/mobile/pod-install-macos.sh",
+    "mobile:ios": "bash scripts/mobile/run-expo-macos.sh ios",
+    "mobile:android": "bash scripts/mobile/run-expo-macos.sh android",
     "dev:workers": "npm run dev -w apps/workers",
     "check:dev-deps": "node scripts/check-dev-requirements.mjs",
     "dev:main:all": "node scripts/check-dev-requirements.mjs && concurrently -n pkg,workers,api,web-sc,test-assets,web -c gray,yellow,blue,cyan,magenta,green \"npm run watch:packages\" \"sleep 13.5 && npm run watch:workers\" \"sleep 9.5 && npm run dev:api:watch\" \"sleep 8.5 && npm run dev:web-sidecar\" \"sleep 11.5 && npm run dev:test-assets\" \"sleep 15.5 && npm run dev -w apps/web\"",

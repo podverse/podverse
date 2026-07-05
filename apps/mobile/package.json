@@ -1,0 +1,32 @@
+{
+  "name": "@podverse/mobile",
+  "version": "5.5.2",
+  "private": true,
+  "description": "Podverse next-generation mobile app (React Native + Expo prebuild)",
+  "main": "index.js",
+  "scripts": {
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "prebuild": "expo prebuild",
+    "prebuild:clean": "expo prebuild --clean"
+  },
+  "dependencies": {
+    "@podverse/helpers": "*",
+    "expo": "~52.0.46",
+    "expo-constants": "~17.0.8",
+    "expo-dev-client": "~5.0.20",
+    "expo-dev-launcher": "5.0.35",
+    "expo-dev-menu": "6.0.25",
+    "expo-dev-menu-interface": "1.9.3",
+    "expo-manifests": "~0.15.8",
+    "expo-updates-interface": "~1.0.0",
+    "expo-status-bar": "~2.0.1",
+    "react": "18.3.1",
+    "react-native": "0.76.9"
+  },
+  "devDependencies": {
+    "@types/react": "~18.3.12",
+    "typescript": "^5.9.2"
+  }
+}

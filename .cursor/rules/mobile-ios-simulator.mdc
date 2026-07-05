@@ -1,0 +1,38 @@
+---
+description: iOS simulator names for mobile dev commands — do not suggest iPhone 15 family
+globs:
+  - "apps/mobile/**"
+  - "scripts/mobile/**"
+  - ".vscode/terminals.json"
+alwaysApply: true
+---
+
+# Mobile iOS simulator examples
+
+When giving `npm run mobile:ios` or `expo run:ios` copy-paste commands:
+
+## Do
+
+- Prefer **`--device` with no name** (interactive picker) when the operator has not named a sim.
+- For a **named** example in docs or chat, use **`"iPhone 16 Pro"`** or **`"iPhone 17 Pro"`** (iOS 18+ /
+  iOS 26+ runtimes on current Xcode).
+- Tell the operator to list installed sims first:
+
+```bash
+xcrun simctl list devices available
+```
+
+- Boot before `simctl launch booted`:
+
+```bash
+xcrun simctl boot "iPhone 16 Pro"
+open -a Simulator
+```
+
+## Do not
+
+- Do **not** use **`iPhone 15`**, **`iPhone 15 Pro`**, **`iPhone 15 Plus`**, or **iOS 15** runtime names in
+  examples — not available on contributor machines with Xcode 26 (legacy iOS 17 templates only).
+- Do not assume a simulator is booted (`No devices are booted`).
+
+Contributor detail: [APPS-MOBILE.md § Dev client workflow](/apps/mobile/APPS-MOBILE.md).

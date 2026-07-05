@@ -21,7 +21,8 @@ foundation first: [DOCS-MOBILE-PROCESS-OVERVIEW.md](DOCS-MOBILE-PROCESS-OVERVIEW
 | Auth / session                | Cookie `jwt`; `apps/web/src/contexts/Account.tsx`                             | Bearer + secure storage; `/auth/mobile/*`    | Endpoints reused; transport differs |
 | API client                    | `ApiRequestService`, `req*` (`packages/helpers-requests/src/api/_request.ts`) | Same class, `AuthContext { mode: 'bearer' }` | Full                                |
 | DTOs / validation             | `@podverse/helpers`, `@podverse/helpers-validation/client`                    | Same imports                                 | Full                                |
-| i18n strings                  | `apps/web/i18n/originals/`; `next-intl`                                       | Same strings; RN runtime (i18next/expo)      | Strings reused; runtime differs     |
+| i18n strings                  | `apps/web/i18n/originals/`; `next-intl`                                       | Same strings via `packages/i18n-catalog`; i18next/expo | Strings reused; runtime differs     |
+| UI themes / design tokens     | `@podverse/ui` SCSS + `[data-ui-theme]`; cookie `uit`                           | `@podverse/design-tokens` + `ThemeProvider`; MMKV `uit` | Same theme IDs + token values; UI rebuild |
 | Channel / item / episode load | `reqChannelGet*`, `reqItemGet*`                                               | Same wrappers                                | Full                                |
 | Search                        | `reqPodcastIndexSearchPodcasts` (`externalServices`)                          | Same                                         | Full                                |
 | Playlists CRUD + resources    | `playlist/*` wrappers; `apps/web/src/app/playlist*`                           | Same wrappers; native UI                     | API full                            |

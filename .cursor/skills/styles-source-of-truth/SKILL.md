@@ -47,6 +47,18 @@ If `@use '@podverse/ui/styles/...'` does not resolve in a given app (e.g. some N
 - The default theme (when no `data-ui-theme` is set) is `dark`. Both `:root` and `[data-ui-theme='dark']` declare the same dark palette in `_themes.scss`.
 - If you need to change a value used by both apps, change it in `packages/ui/src/styles/` and verify the web and management E2E smoke targets still pass.
 
+## Mobile (React Native)
+
+Web and management-web consume tokens via SCSS/CSS custom properties. Mobile **does not** import
+`@podverse/ui` or SCSS.
+
+- **RN-safe export:** `@podverse/design-tokens` — TS maps for colors, spacing, radii per `UITheme`,
+  kept in sync with `_themes.scss` and `_variables-root.scss`.
+- **Same theme IDs:** `dark`, `light`, `dracula`, `violet`, `ember`, `dawn` — see
+  `packages/ui/src/lib/uiTheme/uiTheme.ts` and **mobile-theme-parity** skill.
+- When adding or changing a theme-scoped token, update **both** SCSS and `@podverse/design-tokens`.
+- Default theme is `dark` on mobile as on web.
+
 ## When to break this skill
 
 Never. Token duplication is the bug class this skill exists to prevent.
