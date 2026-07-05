@@ -1,6 +1,6 @@
 ---
 name: parallel-plan-execution
-description: Create decomposed, parallelizable execution plans with copy-pasta prompts for multi-agent workflows. Use when planning large migrations, refactoring tasks, or any work that can benefit from parallel execution across multiple agents.
+description: Create decomposed, parallelizable execution plans with copy-pasta prompts for multi-agent workflows. Use when planning large migrations, refactoring tasks, or any work that can benefit from parallel execution across multiple agents. Every COPY-PASTA prompt must recommend a Cursor model.
 ---
 
 # Parallel Plan Execution Strategy
@@ -156,11 +156,31 @@ Update QueryParams imports in podcast-related pages.
 
 ### Step 5: Create Copy-Pasta File
 
-File: `migration-COPY-PASTA.md`
+File: `migration-COPY-PASTA.md` (or `COPY-PASTA.md` in a plan set)
 
 **CRITICAL**: Make execution rules clear at the top:
 - Phases are SEQUENTIAL (must wait for each to complete)
 - Agents WITHIN phases run in PARALLEL
+
+**Required: Recommended Cursor model on every prompt.** Each COPY-PASTA block must state which
+model the operator should select in Cursor before pasting. Prefer these tiers (cheapest → premium):
+
+| Model | Use when |
+| ----- | -------- |
+| **Auto** | Mechanical transcription, simple config/docs, operator-only steps, low-risk edits |
+| **Codex 5.3** | Standard feature work, mirroring existing patterns, CI/E2E scaffolding, most RN/web tasks |
+| **Opus 4.8** | Native/engine work, cross-cutting architecture, assembly, store safety, playback parity |
+
+Use **one row per prompt** (or a summary table at phase top + per-prompt line). If none of the
+three fit, name the alternative model and one sentence why (e.g. a specialized subagent).
+
+Example per prompt:
+
+```markdown
+**Cursor model:** Codex 5.3
+
+- [ ] **Prompt 3** complete
+```
 
 Structure:
 ```markdown
@@ -192,6 +212,8 @@ Read and execute .llm/plans/active/feature/migration-06-critical.md
 
 Verify: [quick verification command]
 
+**Cursor model:** Opus 4.8
+
 ```
 
 ---
@@ -204,6 +226,8 @@ Verify: [quick verification command]
 Read and execute .llm/plans/active/feature/migration-08-group-a.md
 
 [1 line core rule reminder]
+
+**Cursor model:** Auto
 
 ```
 
@@ -231,6 +255,7 @@ Read and execute .llm/plans/active/feature/migration-09-group-b.md
 - Clear phase markers: "PHASE 1", "PHASE 2", etc.
 - Agent labels: "Agent 2A", "Agent 2B" for easy reference
 - Parallel indicators: "(Execute in Parallel - 4 Agents)"
+- **Recommended Cursor model** on every prompt (Auto, Codex 5.3, or Opus 4.8 preferred)
 
 ## Efficiency Metrics
 
@@ -282,6 +307,9 @@ Savings: ~70% time reduction
 - Phase 3: Tests and documentation (parallel)
 
 ## Anti-Patterns to Avoid
+
+❌ **Don't**: Skip model recommendation on COPY-PASTA prompts
+✅ **Do**: Label each prompt with **Cursor model:** Auto, Codex 5.3, or Opus 4.8 (or named alternative)
 
 ❌ **Don't**: Copy all details into copy-pasta prompts
 ✅ **Do**: Reference detailed plan files from copy-pasta prompts
@@ -338,6 +366,7 @@ Before finalizing plans:
 - [ ] Parallel groups don't have conflicts
 - [ ] Each plan has verification steps
 - [ ] Copy-pasta references plans (doesn't duplicate)
+- [ ] Every COPY-PASTA prompt includes **Cursor model:** (Auto, Codex 5.3, or Opus 4.8)
 - [ ] Execution order is clear
 - [ ] Time estimates provided
 
