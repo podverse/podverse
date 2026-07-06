@@ -58,6 +58,6 @@
     "nodemon": "^3.1.14",
     "supertest": "^7.1.4",
     "tsc-alias": "^1.8.16",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.10"
   }
 }
