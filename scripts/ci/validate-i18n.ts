@@ -7,10 +7,8 @@
 
 import { spawnSync } from 'child_process';
 
-const result = spawnSync(
-  'npm',
-  ['run', 'i18n:validate', '-w', '@podverse/i18n-catalog'],
-  { stdio: 'inherit' },
-);
+const result = spawnSync('npm', ['run', 'i18n:validate', '-w', '@podverse/i18n-catalog'], {
+  stdio: 'inherit',
+});
 
 process.exit(result.status === null ? 1 : result.status);

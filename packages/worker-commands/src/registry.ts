@@ -54,6 +54,24 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     example_cli: 'npm run image_shrink_cleanup_orphans -w apps/workers',
   },
   {
+    name: 'imageShrinkResetShrunkenDryRun',
+    label: 'Image shrink full reset (dry run)',
+    description:
+      'Report shrink-generated WebP objects and matching is_resized DB rows that would be removed by imageShrinkResetShrunken.',
+    category: 'image',
+    risk: 'normal',
+    example_cli: 'npm run image_shrink_reset_shrunken_dry_run -w apps/workers',
+  },
+  {
+    name: 'imageShrinkResetShrunken',
+    label: 'Image shrink full reset (bucket + DB)',
+    description:
+      'Delete all shrink-generated WebP objects and remove matching is_resized DB rows. Destructive.',
+    category: 'image',
+    risk: 'normal',
+    example_cli: 'npm run image_shrink_reset_shrunken -w apps/workers',
+  },
+  {
     name: 'imageShrinkRunConsumer',
     label: 'Image shrink MQ consumer',
     description: 'Long-running consumer: resize and upload list-view images from the queue.',

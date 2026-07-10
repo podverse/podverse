@@ -10,6 +10,7 @@ Key code paths:
 - Source metadata pruning: `packages/orm/src/services/imageShrinkSource.ts`
 - Storage interface (no delete method): `apps/workers/src/types/imageStorage.ts`
 - Orphan cleanup worker: `apps/workers/src/commands/imageShrink/cleanupOrphans.ts`
+- Full reset worker: `apps/workers/src/commands/imageShrink/resetShrunken.ts`
 
 ### What Happens If You Delete a Channel/Item in the DB
 
@@ -33,6 +34,11 @@ checks whether their CDN URLs are still referenced in `channel_image` or `item_i
 
 The source prune command (`imageShrinkSourcePrune`) deletes unused `image_shrink_source` rows
 based on `IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION` (seconds). It does not delete CDN objects.
+
+The full reset commands (`imageShrinkResetShrunkenDryRun`, `imageShrinkResetShrunken`) are
+operator-only: the dry-run command reports shrink-generated WebP objects and matching
+`is_resized = true` rows; the destructive command removes them, including bucket-only orphans and
+DB-only stale references. See [SERVICE.md](../SERVICE.md).
 
 ### Source Metadata Pruning
 

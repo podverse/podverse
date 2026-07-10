@@ -4,12 +4,12 @@ Layered translation **source of truth** for web, management-web, and mobile.
 
 ## Layers
 
-| Layer         | Contents                                                                              |
-| ------------- | ------------------------------------------------------------------------------------- |
-| `shared/`     | Cross-app: `language.*`, shared `errors.*`, shared `misc.*`, `settings.ui_theme.*`     |
-| `consumer/`   | Web + mobile consumer keys                                                            |
-| `management/` | Management-web-only keys                                                              |
-| `mobile/`     | Mobile-only overlay keys (may be empty `{}`)                                          |
+| Layer         | Contents                                                                           |
+| ------------- | ---------------------------------------------------------------------------------- |
+| `shared/`     | Cross-app: `language.*`, shared `errors.*`, shared `misc.*`, `settings.ui_theme.*` |
+| `consumer/`   | Web + mobile consumer keys                                                         |
+| `management/` | Management-web-only keys                                                           |
+| `mobile/`     | Mobile-only overlay keys (may be empty `{}`)                                       |
 
 Each layer has:
 
@@ -22,11 +22,11 @@ Each layer has:
 Later layers win on conflicts. Duplicate key paths between layers are rejected by
 `i18n:validate`.
 
-| App                    | Layers (later wins)                |
-| ---------------------- | ---------------------------------- |
-| `apps/web`             | `shared` → `consumer`              |
-| `apps/management-web`  | `shared` → `management`            |
-| `apps/mobile`          | `shared` → `consumer` → `mobile`   |
+| App                   | Layers (later wins)              |
+| --------------------- | -------------------------------- |
+| `apps/web`            | `shared` → `consumer`            |
+| `apps/management-web` | `shared` → `management`          |
+| `apps/mobile`         | `shared` → `consumer` → `mobile` |
 
 ## App runtime outputs (generated, not authoring)
 

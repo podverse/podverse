@@ -20,10 +20,14 @@ TEST_APP_READ_USER ?= podverse_app_read
 TEST_APP_READ_PASSWORD ?= test
 TEST_APP_READ_WRITE_USER ?= podverse_app_read_write
 TEST_APP_READ_WRITE_PASSWORD ?= test
+TEST_APP_MIGRATOR_USER ?= podverse_app_migrator
+TEST_APP_MIGRATOR_PASSWORD ?= test
 TEST_MGMT_READ_USER ?= podverse_management_read
 TEST_MGMT_READ_PASSWORD ?= test
 TEST_MGMT_READ_WRITE_USER ?= podverse_management_read_write
 TEST_MGMT_READ_WRITE_PASSWORD ?= test
+TEST_MGMT_MIGRATOR_USER ?= podverse_management_migrator
+TEST_MGMT_MIGRATOR_PASSWORD ?= test
 
 # Ensure test Postgres and Valkey are running and both test databases exist.
 test_deps: test_postgres_up test_valkey_up test_db_init test_db_init_management
@@ -105,10 +109,10 @@ test_db_init: test_postgres_up
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$(TEST_DB_NAME)' AND pid <> pg_backend_pid();" 2>/dev/null || true
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DROP DATABASE IF EXISTS $(TEST_DB_NAME);"
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "CREATE DATABASE $(TEST_DB_NAME);"
+	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DO \$$$$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_APP_MIGRATOR_USER)') THEN CREATE USER $(TEST_APP_MIGRATOR_USER) WITH PASSWORD '$(TEST_APP_MIGRATOR_PASSWORD)'; END IF; IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_APP_READ_USER)') THEN CREATE USER $(TEST_APP_READ_USER) WITH PASSWORD '$(TEST_APP_READ_PASSWORD)'; END IF; IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_APP_READ_WRITE_USER)') THEN CREATE USER $(TEST_APP_READ_WRITE_USER) WITH PASSWORD '$(TEST_APP_READ_WRITE_PASSWORD)'; END IF; END \$$$$;"
 	@LINEAR_MIGRATIONS_QUIET=1 DB_HOST="127.0.0.1" DB_PORT="$(TEST_DB_PORT)" \
 		DB_APP_MIGRATOR_USER="$(TEST_PG_USER)" DB_APP_MIGRATOR_PASSWORD="$(TEST_PG_PASSWORD)" DB_APP_NAME="$(TEST_DB_NAME)" \
 		bash scripts/database/run-linear-migrations.sh --database app
-	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DO \$$$$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_APP_READ_USER)') THEN CREATE USER $(TEST_APP_READ_USER) WITH PASSWORD '$(TEST_APP_READ_PASSWORD)'; END IF; IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_APP_READ_WRITE_USER)') THEN CREATE USER $(TEST_APP_READ_WRITE_USER) WITH PASSWORD '$(TEST_APP_READ_WRITE_PASSWORD)'; END IF; END \$$$$;"
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d $(TEST_DB_NAME) -c " \
 		GRANT CONNECT ON DATABASE $(TEST_DB_NAME) TO $(TEST_APP_READ_USER), $(TEST_APP_READ_WRITE_USER); \
 		GRANT USAGE ON SCHEMA public TO $(TEST_APP_READ_USER), $(TEST_APP_READ_WRITE_USER); \
@@ -128,7 +132,7 @@ test_db_init_management: test_db_init
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$(TEST_MANAGEMENT_DB_NAME)' AND pid <> pg_backend_pid();" 2>/dev/null || true
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DROP DATABASE IF EXISTS $(TEST_MANAGEMENT_DB_NAME);"
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "CREATE DATABASE $(TEST_MANAGEMENT_DB_NAME);"
-	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DO \$$$$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_MGMT_READ_USER)') THEN CREATE USER $(TEST_MGMT_READ_USER) WITH PASSWORD '$(TEST_MGMT_READ_PASSWORD)'; END IF; IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_MGMT_READ_WRITE_USER)') THEN CREATE USER $(TEST_MGMT_READ_WRITE_USER) WITH PASSWORD '$(TEST_MGMT_READ_WRITE_PASSWORD)'; END IF; END \$$$$;"
+	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DO \$$$$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_MGMT_MIGRATOR_USER)') THEN CREATE USER $(TEST_MGMT_MIGRATOR_USER) WITH PASSWORD '$(TEST_MGMT_MIGRATOR_PASSWORD)'; END IF; IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_MGMT_READ_USER)') THEN CREATE USER $(TEST_MGMT_READ_USER) WITH PASSWORD '$(TEST_MGMT_READ_PASSWORD)'; END IF; IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_MGMT_READ_WRITE_USER)') THEN CREATE USER $(TEST_MGMT_READ_WRITE_USER) WITH PASSWORD '$(TEST_MGMT_READ_WRITE_PASSWORD)'; END IF; END \$$$$;"
 	@LINEAR_MIGRATIONS_QUIET=1 DB_HOST="127.0.0.1" DB_PORT="$(TEST_DB_PORT)" \
 		DB_MANAGEMENT_MIGRATOR_USER="$(TEST_PG_USER)" DB_MANAGEMENT_MIGRATOR_PASSWORD="$(TEST_PG_PASSWORD)" DB_MANAGEMENT_NAME="$(TEST_MANAGEMENT_DB_NAME)" \
 		bash scripts/database/run-linear-migrations.sh --database management
