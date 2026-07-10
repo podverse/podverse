@@ -1,0 +1,38 @@
+{
+  "language": {
+    "language": "Language",
+    "description": "Choose the language used throughout the app.",
+    "select_language": "Select Language",
+    "languages": {
+      "en-US": "English",
+      "es": "Spanish",
+      "fr": "French",
+      "el-GR": "Greek"
+    }
+  },
+  "settings": {
+    "ui_theme": {
+      "theme": "Theme",
+      "description": "Choose the color theme used throughout the app.",
+      "light": "Light",
+      "dark": "Dark",
+      "dracula": "Dracula",
+      "violet": "Violet",
+      "ember": "Ember",
+      "dawn": "Dawn"
+    }
+  },
+  "errors": {
+    "boundary_title": "Something went wrong",
+    "boundary_message": "An unexpected error occurred. Please try again.",
+    "global_title": "Application Error",
+    "global_message": "A critical error occurred. Please refresh the page.",
+    "details_development_only": "Error details (development only)"
+  },
+  "misc": {
+    "loading": "Loading…",
+    "try_again": "Try again",
+    "reload_page": "Reload page",
+    "return_to_home_page": "Return to home page"
+  }
+}

@@ -24,7 +24,7 @@ export async function useLocaleDetect(ssrLoggedInAccount: DTOAccount | null): Pr
   if (accountLocale) {
     try {
       // Try exact match first
-      await import(`../../i18n/originals/${accountLocale}.json`);
+      await import(`../../i18n/compiled/${accountLocale}.json`);
       locale = accountLocale;
 
       // Sync cookie with account locale if they differ
@@ -40,7 +40,7 @@ export async function useLocaleDetect(ssrLoggedInAccount: DTOAccount | null): Pr
       try {
         const baseAccountLocale = accountLocale.split('-')[0];
         if (baseAccountLocale) {
-          await import(`../../i18n/originals/${baseAccountLocale}.json`);
+          await import(`../../i18n/compiled/${baseAccountLocale}.json`);
           locale = baseAccountLocale;
         }
 
@@ -59,7 +59,7 @@ export async function useLocaleDetect(ssrLoggedInAccount: DTOAccount | null): Pr
   } else if (cookieLocale) {
     // No account locale, use cookie if valid
     try {
-      await import(`../../i18n/originals/${cookieLocale}.json`);
+      await import(`../../i18n/compiled/${cookieLocale}.json`);
       locale = cookieLocale;
     } catch {
       // Invalid cookie locale or missing messages; use detected

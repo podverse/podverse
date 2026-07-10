@@ -17,11 +17,11 @@ Default when unset: **`dark`** (matches web `:root` / `[data-ui-theme='dark']`).
 
 ## What mobile imports
 
-| Allowed | Forbidden |
-| ------- | --------- |
-| `@podverse/design-tokens` (RN-safe TS token maps) | `@podverse/ui` components |
+| Allowed                                                                              | Forbidden                              |
+| ------------------------------------------------------------------------------------ | -------------------------------------- |
+| `@podverse/design-tokens` (RN-safe TS token maps)                                    | `@podverse/ui` components              |
 | `UITheme`, `ALL_POSSIBLE_THEMES` from design-tokens or `@podverse/ui` type re-export | SCSS, CSS custom properties at runtime |
-| Theme labels via i18n `settings.ui_theme.*` | Hardcoded hex colors in screens |
+| Theme labels via i18n `settings.ui_theme.*`                                          | Hardcoded hex colors in screens        |
 
 ## Pref storage
 

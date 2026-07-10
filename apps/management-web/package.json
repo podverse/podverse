@@ -21,8 +21,8 @@
     "clean": "rm -rf .next",
     "type-check": "tsc --noEmit -p .",
     "validate-env": "ts-node --project tsconfig.scripts.json scripts/validate-env.ts",
-    "i18n-compile": "ts-node --project tsconfig.scripts.json scripts/i18n/i18n-compile.ts",
-    "i18n-llm-translations": "ts-node --project tsconfig.scripts.json scripts/i18n/i18n-llm-translations.ts"
+    "i18n-compile": "ts-node --project ../../packages/i18n-catalog/tsconfig.scripts.json ../../packages/i18n-catalog/scripts/i18n-compile.ts",
+    "i18n-llm-translations": "ts-node --project ../../packages/i18n-catalog/tsconfig.scripts.json ../../packages/i18n-catalog/scripts/i18n-translate.ts"
   },
   "license": "AGPL-3.0",
   "dependencies": {

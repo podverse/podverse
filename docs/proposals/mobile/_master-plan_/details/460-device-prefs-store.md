@@ -12,6 +12,8 @@
   (`aqc.rd`, `aqc.rp`), and other keys from
   [`apps/web/src/utils/localSettings/localSettings.ts`](/apps/web/src/utils/localSettings/localSettings.ts).
 - Replace Track 7.13 stub with unified store API (`getPref`, `setPref`, `hydratePrefs`).
+- Build on completed Track 7 theme foundations from steps **7.11–7.16** (`ThemeProvider`,
+  design-tokens mapping, `uit` stub persistence, and tokenized scaffold styles).
 - Typed pref keys; validate enum prefs against allowed values.
 
 ## Acceptance criteria

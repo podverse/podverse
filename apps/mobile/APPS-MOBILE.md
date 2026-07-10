@@ -83,11 +83,11 @@ PATH, which direnv already provides.
 
 Install on the host machine (not provided by the repo flake):
 
-| Platform | Requirement |
-| -------- | ----------- |
-| iOS | Xcode (current stable), Xcode Command Line Tools, CocoaPods (`gem install cocoapods` or Homebrew) |
-| Android | Android Studio, Android SDK (API 35+), `ANDROID_HOME` or `ANDROID_SDK_ROOT`, platform-tools on `PATH` |
-| Both | Physical device or simulator/emulator for dev-client builds (steps 3.14–3.15) |
+| Platform | Requirement                                                                                           |
+| -------- | ----------------------------------------------------------------------------------------------------- |
+| iOS      | Xcode (current stable), Xcode Command Line Tools, CocoaPods (`gem install cocoapods` or Homebrew)     |
+| Android  | Android Studio, Android SDK (API 35+), `ANDROID_HOME` or `ANDROID_SDK_ROOT`, platform-tools on `PATH` |
+| Both     | Physical device or simulator/emulator for dev-client builds (steps 3.14–3.15)                         |
 
 After first clone or dependency change, from **monorepo root** (not `apps/` or `apps/mobile/ios`):
 
@@ -116,9 +116,9 @@ This app uses **`expo-dev-client`** (not Expo Go). Metro serves JavaScript; a **
 
 ### Two terminals (typical session)
 
-| Terminal | Command | Role |
-| -------- | ------- | ---- |
-| Mobile Metro | `npm run dev:mobile` | Keep running — Expo + Metro on `:8081` |
+| Terminal             | Command                                  | Role                                       |
+| -------------------- | ---------------------------------------- | ------------------------------------------ |
+| Mobile Metro         | `npm run dev:mobile`                     | Keep running — Expo + Metro on `:8081`     |
 | Mobile iOS / Android | `npm run mobile:ios` or `mobile:android` | First install and after native dep changes |
 
 VS Code preset tabs: [`.vscode/terminals.json`](/.vscode/terminals.json) (`Mobile`, `Mobile Metro`,
@@ -170,10 +170,10 @@ installed.
 
 ### Shared packages: build vs watch
 
-| When | Command |
-| ---- | ------- |
-| Session start / after pull | `npm run build:packages` |
-| Editing `apps/mobile/src/**` only | Metro fast refresh — no package build |
+| When                                                               | Command                                                       |
+| ------------------------------------------------------------------ | ------------------------------------------------------------- |
+| Session start / after pull                                         | `npm run build:packages`                                      |
+| Editing `apps/mobile/src/**` only                                  | Metro fast refresh — no package build                         |
 | Editing `packages/helpers` (or other `@podverse/*` mobile imports) | `npm run build:watch -w packages/helpers` in a spare terminal |
 
 Full `npm run watch:packages` watches ~20 packages (same as web `dev:main:all`) — use targeted
@@ -184,12 +184,12 @@ Full `npm run watch:packages` watches ~20 packages (same as web `dev:main:all`) 
 Mobile shares the monorepo root install with web/API. Four layers keep Expo SDK 52 and RN 0.76.9
 reliable — keep all of them; see **mobile-expo-monorepo** skill for failure modes.
 
-| Layer | Location | Role |
-| ----- | -------- | ---- |
-| 1 | [`.npmrc`](/.npmrc) `legacy-peer-deps=true` | Disable npm auto-install of `expo@*` peers (prevents root `expo@57`) |
-| 2 | Root `package.json` `overrides` | Pin `expo` / `react-native` versions across the tree |
-| 3 | Root mobile toolchain `devDependencies` | `expo`, `react-native`, `react`, Metro **0.81.5** toolchain set (`metro-cache`, `metro-transform-plugins`, `metro-resolver`, …) for hoisted plugin `require()` |
-| 4 | `apps/mobile/package.json` | Runtime deps + explicit `expo-dev-*` pins |
+| Layer | Location                                    | Role                                                                                                                                                           |
+| ----- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | [`.npmrc`](/.npmrc) `legacy-peer-deps=true` | Disable npm auto-install of `expo@*` peers (prevents root `expo@57`)                                                                                           |
+| 2     | Root `package.json` `overrides`             | Pin `expo` / `react-native` versions across the tree                                                                                                           |
+| 3     | Root mobile toolchain `devDependencies`     | `expo`, `react-native`, `react`, Metro **0.81.5** toolchain set (`metro-cache`, `metro-transform-plugins`, `metro-resolver`, …) for hoisted plugin `require()` |
+| 4     | `apps/mobile/package.json`                  | Runtime deps + explicit `expo-dev-*` pins                                                                                                                      |
 
 Layer 1 applies repo-wide (npm has no mobile-only scope). Version pinning is layers 2–4, not `.npmrc`
 alone.
@@ -399,6 +399,24 @@ Import style in app source is **Tier D** (extensionless relatives). See
 
 Root lint excludes `apps/mobile` until RN ESLint is fully wired; root config already defines Tier D
 overrides for when source files appear.
+
+## i18n runtime
+
+- Runtime: `i18next` + `react-i18next` + `expo-localization` (no `next-intl` in mobile runtime).
+- Source catalogs come from `packages/i18n-catalog` layered merge output (`shared + consumer + mobile`).
+- Mobile runtime loads generated `apps/mobile/i18n/compiled/*.json`.
+- Locale boot order:
+  1. Detect device locale with `expo-localization`
+  2. Fallback to `DEFAULT_LOCALE` from `@podverse/helpers/locales`
+  3. Apply account locale override when available (see `src/i18n/index.ts`)
+- Duration formatting uses `@podverse/helpers/timeFormatter` so mobile and web stay aligned.
+- `start` runs `prestart` → `i18n-compile` to ensure compiled catalogs exist before Metro startup.
+
+Generate mobile compiled locale catalogs from repo root:
+
+```bash
+npm run i18n:compile
+```
 
 ## Marketing version (`X.Y.Z`)
 

@@ -58,7 +58,7 @@ reuse the same wrappers; do **not** port SCSS, `@podverse/ui`, Next routing, or 
 ## i18n
 
 - Runtime: **i18next** + **expo-localization** (not next-intl).
-- v1: copy or import web consumer strings; medium-term: `packages/i18n-catalog` layered merge
-  (`shared` + `consumer` + `mobile/` overlay). See **i18n-catalog-layers** rule.
+- Catalog: `packages/i18n-catalog` layered merge (`shared` + `consumer` + `mobile/` overlay).
+  Runtime loads `apps/mobile/i18n/compiled/*.json`. See **i18n-catalog-layers** rule.
 - Duration display: `@podverse/helpers` `timeFormatter` (same as web).
 - Pass localized strings into components; no user-facing copy in shared packages.

@@ -269,7 +269,7 @@ logger.error('Feed parsing failed', { error, feedUrl });
 
 - ❌ Modify files in `i18n/compiled/` (generated at build time, not committed)
 - ❌ Add locales without updating all sync points (see `docs/localization/I18N.md`)
-- ❌ Use empty strings in `i18n/originals/` (use override files for blanks)
+- ❌ Use empty strings in catalog `originals/` (use override files for blanks)
 
 ### General
 

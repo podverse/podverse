@@ -18,20 +18,20 @@ The workers app validates environment variables **per command**. Each job only v
 
 ### Command groups and env categories
 
-| Command group                       | Categories validated                     | Commands (examples)                                                                    |
-| ----------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------- |
-| Base only                           | Base                                     | podcastIndexDeadFeedsDeleteCache                                                       |
-| Base + ORM only                     | Base, ORM                                | archiveAll, statsUpdateAggregated, orm\*                                               |
-| Base + Podcast Index                | Base, PodcastIndex                       | podcastIndexTrendingPodcastsGet, podcastIndexValueUpdateAll                            |
-| Base + ORM + Podcast Index          | Base, ORM, PodcastIndex                  | podcastIndexDeadFeedsFlagAndMerge                                                      |
-| Base + ORM + MQ                     | Base, ORM, MQ                            | mqRSSRunDlqConsumer, mqRSSAddAll                                                       |
-| Base + MQ                           | Base, MQ                                 | devPiBulkFeedsAddFromFile                                                              |
-| Base + ORM + MQ + Podcast Index     | Base, ORM, MQ, PodcastIndex              | mqRSSAdd                                                                               |
-| Base + MQ + Parser + KeyValDB       | Base, MQ, Parser, KeyValDB               | mqAddByRSSRunParser                                                                    |
-| Base + ORM + MQ + Parser + PI + Web | Base, ORM, MQ, Parser, PodcastIndex, Web | parserRSSParseFeed, devParserRSSParseTrendingFeeds, devParserRSSParsePodcasting20Feeds |
-| Base + ORM + MQ + Image Shrink      | Base, ORM, MQ, ImageShrink               | imageShrinkRunConsumer, imageShrinkBackfill                                            |
-| Base + ORM + Image Shrink           | Base, ORM, ImageShrink                   | imageShrinkCleanupOrphans, imageShrinkSourcePrune                                      |
-| Full stack                          | Base, ORM, MQ, Parser, PodcastIndex, Web | mqRSSRunParser, mqRSSRunLiveItemListener                                               |
+| Command group                       | Categories validated                     | Commands (examples)                                                                                         |
+| ----------------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Base only                           | Base                                     | podcastIndexDeadFeedsDeleteCache                                                                            |
+| Base + ORM only                     | Base, ORM                                | archiveAll, statsUpdateAggregated, orm\*                                                                    |
+| Base + Podcast Index                | Base, PodcastIndex                       | podcastIndexTrendingPodcastsGet, podcastIndexValueUpdateAll                                                 |
+| Base + ORM + Podcast Index          | Base, ORM, PodcastIndex                  | podcastIndexDeadFeedsFlagAndMerge                                                                           |
+| Base + ORM + MQ                     | Base, ORM, MQ                            | mqRSSRunDlqConsumer, mqRSSAddAll                                                                            |
+| Base + MQ                           | Base, MQ                                 | devPiBulkFeedsAddFromFile                                                                                   |
+| Base + ORM + MQ + Podcast Index     | Base, ORM, MQ, PodcastIndex              | mqRSSAdd                                                                                                    |
+| Base + MQ + Parser + KeyValDB       | Base, MQ, Parser, KeyValDB               | mqAddByRSSRunParser                                                                                         |
+| Base + ORM + MQ + Parser + PI + Web | Base, ORM, MQ, Parser, PodcastIndex, Web | parserRSSParseFeed, devParserRSSParseTrendingFeeds, devParserRSSParsePodcasting20Feeds                      |
+| Base + ORM + MQ + Image Shrink      | Base, ORM, MQ, ImageShrink               | imageShrinkRunConsumer, imageShrinkBackfill                                                                 |
+| Base + ORM + Image Shrink           | Base, ORM, ImageShrink                   | imageShrinkCleanupOrphans, imageShrinkResetShrunken, imageShrinkResetShrunkenDryRun, imageShrinkSourcePrune |
+| Full stack                          | Base, ORM, MQ, Parser, PodcastIndex, Web | mqRSSRunParser, mqRSSRunLiveItemListener                                                                    |
 
 Within each category, vars are required or optional as listed in the sections below. Only the categories for your command are validated.
 
@@ -127,6 +127,14 @@ Image shrink is optional. If **`BUCKET_PROVIDER`** is empty or unset, image shri
 - **`IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE`** (Optional) - Max deletes per run (default: none)
 - **`IMAGE_SHRINK_ORPHAN_MIN_AGE_EXPIRATION`** (Optional) - Orphan cleanup skips objects newer than this many seconds (default: 604800, 7 days)
 - **`IMAGE_SHRINK_ORPHAN_CLEANUP_PAGE_SIZE`** (Optional) - List page size (default: `500`)
+
+### Image Shrink Full Reset
+
+Two operator commands share fixed pagination (500 keys/rows per page); no dedicated env vars.
+
+- **`imageShrinkResetShrunkenDryRun`** — report bucket objects and DB rows that would be removed.
+- **`imageShrinkResetShrunken`** — destructive reset of shrink-generated WebP objects and matching
+  `is_resized` DB rows.
 
 ## KeyValDB (commands that use Redis)
 

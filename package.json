@@ -166,10 +166,10 @@
     "management:superuser:create:k8s": "bash scripts/management/run-superuser-k8s-job.sh create",
     "management:superuser:update:k8s": "bash scripts/management/run-superuser-k8s-job.sh update",
     "seed:embed-demo-showcase-feeds:k8s": "bash scripts/k8s/run-seed-embed-demo-showcase-feeds-job.sh",
-    "i18n:compile": "npm run i18n-compile -w @podverse/web && npm run i18n-compile -w @podverse/management-web",
-    "i18n:translate": "npm run i18n-llm-translations -w @podverse/web && npm run i18n-llm-translations -w @podverse/management-web",
+    "i18n:compile": "npm run i18n:compile -w @podverse/i18n-catalog",
+    "i18n:translate": "npm run i18n:translate -w @podverse/i18n-catalog",
     "i18n:all": "npm run i18n:translate && npm run i18n:compile",
-    "i18n:validate": "npx ts-node scripts/ci/validate-i18n.ts",
+    "i18n:validate": "npm run i18n:validate -w @podverse/i18n-catalog",
     "workers:parse_podcasting20_feeds": "node apps/workers/dist/index.js devParserRSSParsePodcasting20Feeds",
     "workers:parse_trending_feeds": "node apps/workers/dist/index.js devParserRSSParseTrendingFeeds"
   }

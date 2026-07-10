@@ -30,15 +30,15 @@
 
 **If you see hardcoded English strings in user-facing code, you MUST:**
 
-1. Add the translation key to `i18n/originals/en-US.json` **ONLY** - Do NOT add translations to override files or other language files. The i18n translation script handles generating overrides and alternate languages automatically.
+1. Add the translation key to the correct catalog layer `packages/i18n-catalog/<layer>/originals/en-US.json` **ONLY** - Do NOT add translations to override files or other language files. `npm run i18n:translate` generates alternate languages.
 2. Replace the hardcoded string with `useTranslations()` call
 3. This applies to ALL components, pages, error boundaries, etc.
 
 **CRITICAL**: When adding new translation keys:
 
-- **Only edit `i18n/originals/en-US.json`** - This is the source of truth
-- **Do NOT edit** override files (e.g., `i18n/overrides/en-US.json`) or other language files
-- The `i18n-compile` script automatically processes `originals/en-US.json` and generates all necessary translation files
+- **Only edit catalog layer `packages/i18n-catalog/<layer>/originals/en-US.json`** - This is the authoring source of truth
+- **Do NOT edit** override files or other language originals directly (except human corrections in `overrides/`)
+- `npm run i18n:compile` writes merged output to `apps/*/i18n/compiled/`
 
 ## Accessibility: ARIA Labels and Icons
 
@@ -46,7 +46,7 @@
 
 - Use `useTranslations()` for all `aria-label` values: `aria-label={tMisc('dismiss')}` NOT `aria-label="Dismiss"`
 - Apply to buttons, links, and any element that has `aria-label`, `aria-labelledby`, or similar
-- Add missing keys to `i18n/originals/en-US.json` (e.g. `misc.dismiss`, `misc.loading`) and use the hook in the component
+- Add missing keys to the correct catalog layer `packages/i18n-catalog/<layer>/originals/en-US.json` (e.g. `misc.dismiss`, `misc.loading`) and use the hook in the component
 
 **Use Font Awesome icons instead of symbol characters** for close/dismiss and other actions:
 

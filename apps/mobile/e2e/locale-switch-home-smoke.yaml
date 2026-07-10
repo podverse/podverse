@@ -1,0 +1,23 @@
+appId: com.podverse.app.next
+name: Locale Switch Home Smoke
+---
+# Track 17.8 locale switch smoke coverage.
+# Until Track 16 settings UI lands, this validates locale switch behavior by relaunching with a
+# different device locale and asserting localized Home copy.
+
+- launchApp:
+    clearState: true
+- assertVisible:
+    id: hello-world-screen
+- assertVisible: Hello World Testing 123
+- takeScreenshot: home-en-US
+
+- stopApp
+- launchApp:
+    clearState: true
+    language: es
+    locale: ES
+- assertVisible:
+    id: hello-world-screen
+- assertVisible: Prueba de Hola Mundo 123
+- takeScreenshot: home-es

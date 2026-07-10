@@ -10,7 +10,8 @@
   toggles.
 - Theme selector lists same ids as web: `dark`, `light`, `dracula`, `violet`, `ember`, `dawn`.
 - Labels from i18n `settings.ui_theme.*` (not hardcoded English).
-- On theme change: update `ThemeProvider`, persist `uit`, update `StatusBar`.
+- On theme change: extend completed theme scaffold from steps **7.11–7.16** (update
+  `ThemeProvider`, persist `uit`, update `StatusBar`, and reuse tokenized style semantics).
 - Locale section cross-ref Track 17; playback/notification sections cross-ref account-settings API.
 
 ## Acceptance criteria

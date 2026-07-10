@@ -25,7 +25,7 @@ const config: ExpoConfig = {
       'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
     ],
   },
-  plugins: ['expo-dev-client'],
+  plugins: ['expo-dev-client', 'expo-localization'],
 };
 
 export default config;

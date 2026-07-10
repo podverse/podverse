@@ -214,11 +214,11 @@ packages/i18n-catalog/
 └── overrides/              # Human corrections per locale
 ```
 
-| App merge order | Layers |
-| --------------- | ------ |
-| `apps/web` | `shared` → `consumer` |
-| `apps/mobile` | `shared` → `consumer` → `mobile/` |
-| `apps/management-web` | `shared` → `management/` |
+| App merge order       | Layers                            |
+| --------------------- | --------------------------------- |
+| `apps/web`            | `shared` → `consumer`             |
+| `apps/mobile`         | `shared` → `consumer` → `mobile/` |
+| `apps/management-web` | `shared` → `management/`          |
 
 | Option                               | Pros                                           | Cons                               | Recommendation            |
 | ------------------------------------ | ---------------------------------------------- | ---------------------------------- | ------------------------- |

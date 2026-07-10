@@ -12,22 +12,21 @@ alwaysApply: false
 
 When editing translation sources or the shared catalog package, follow the **layered merge** model.
 
-## Layout (target)
+## Layout
 
 ```
 packages/i18n-catalog/
-├── shared/originals/       # Cross-app: language.*, errors.*, misc.*, settings.ui_theme.*
-├── consumer/originals/     # Web + mobile consumer strings
-├── management/originals/   # Management-web only
-├── mobile/originals/       # RN-only overlay (may start empty)
-└── overrides/              # Human corrections per locale
+├── shared/{originals,overrides,compiled}/
+├── consumer/{originals,overrides,compiled}/
+├── management/{originals,overrides,compiled}/
+└── mobile/{originals,overrides,compiled}/
 ```
 
 ## Merge order (compile time)
 
 | App | Layers (later wins on key conflict) |
 | --- | ----------------------------------- |
-| `apps/web` | `shared` → `consumer` → `web/` overlay (if any) |
+| `apps/web` | `shared` → `consumer` |
 | `apps/mobile` | `shared` → `consumer` → `mobile/` |
 | `apps/management-web` | `shared` → `management/` |
 

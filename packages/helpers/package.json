@@ -14,6 +14,10 @@
     "./locales": {
       "types": "./dist/lib/constants/locales.d.ts",
       "default": "./dist/lib/constants/locales.js"
+    },
+    "./timeFormatter": {
+      "types": "./dist/lib/i18n/timeFormatter.d.ts",
+      "default": "./dist/lib/i18n/timeFormatter.js"
     }
   },
   "files": [
