@@ -11,7 +11,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
 echo "Running expo prebuild (skip auto pod install)..."
-npm run prebuild -w @podverse/mobile -- --no-install
+npm --prefix apps/mobile run prebuild -- --no-install
 
 echo "Running pod install with macOS-native toolchain..."
 bash "$SCRIPT_DIR/pod-install-macos.sh"

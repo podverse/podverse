@@ -53,7 +53,7 @@ fi
 export DEVELOPER_DIR
 
 if [[ ! -d "$IOS_DIR" ]]; then
-  echo "Error: $IOS_DIR does not exist. Run npm run mobile:prebuild or npm run prebuild -w @podverse/mobile first." >&2
+  echo "Error: $IOS_DIR does not exist. Run npm run mobile:prebuild or npm --prefix apps/mobile run prebuild first." >&2
   exit 1
 fi
 

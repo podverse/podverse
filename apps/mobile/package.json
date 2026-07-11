@@ -16,10 +16,10 @@
     "i18n-compile": "ts-node --project ../../packages/i18n-catalog/tsconfig.scripts.json ../../packages/i18n-catalog/scripts/i18n-compile.ts"
   },
   "dependencies": {
-    "@podverse/design-tokens": "*",
-    "@podverse/helpers": "*",
+    "@podverse/design-tokens": "file:../../packages/design-tokens",
+    "@podverse/helpers": "file:../../packages/helpers",
     "@react-native-async-storage/async-storage": "^2.2.0",
-    "expo": "~52.0.46",
+    "expo": "52.0.49",
     "expo-constants": "~17.0.8",
     "expo-dev-client": "~5.0.20",
     "expo-dev-launcher": "5.0.35",
@@ -36,6 +36,32 @@
   },
   "devDependencies": {
     "@types/react": "~18.3.12",
+    "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
+  },
+  "overrides": {
+    "expo": "52.0.49",
+    "react-native": "0.76.9",
+    "@expo/dom-webview": {
+      "expo": "52.0.49",
+      "react-native": "0.76.9"
+    },
+    "expo-dev-launcher": {
+      "expo": "52.0.49"
+    },
+    "expo-dev-menu": {
+      "expo": "52.0.49"
+    },
+    "expo-dev-menu-interface": {
+      "expo": "52.0.49"
+    },
+    "expo-manifests": {
+      "expo": "52.0.49"
+    },
+    "expo-updates-interface": {
+      "expo": "52.0.49"
+    },
+    "@xmldom/xmldom": "0.9.10",
+    "tar": "7.5.19"
   }
 }

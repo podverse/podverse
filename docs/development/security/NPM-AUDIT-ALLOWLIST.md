@@ -10,18 +10,17 @@ scripts and Publish (staging) validate. Root `package.json` overrides hoist `pos
 consumers, but npm does not replace `next`'s nested `node_modules/postcss@8.4.31` despite
 `"next": { "postcss": "8.5.10" }`.
 
-### Mobile isolation (not allowlisted)
+### Mobile isolation
 
-The gate **skips** findings whose installed `nodes` are exclusively under Expo / React Native tooling
-(`expo*`, `@expo/*`, `react-native*`, `@react-native/*`, `metro*`, `apps/mobile`). Mobile shares
-`develop` / `staging` / `main` for marketing version alignment but has a **separate store release
-track**; server `publish-staging` / `publish-main` must not be blocked by mobile-only deps. See
-[DOCS-MOBILE-VERSIONING-RELEASE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-VERSIONING-RELEASE.md).
+`apps/mobile` is **outside** the root npm workspace. It has its own [`apps/mobile/package-lock.json`](/apps/mobile/package-lock.json)
+and [`apps/mobile/.npmrc`](/apps/mobile/.npmrc). Root `npm ci` / server publish audit never install or
+audit Expo / React Native. Mobile shares marketing version `X.Y.Z` via `bump-version.sh` but has a
+**separate store release track**. See
+[DOCS-MOBILE-VERSIONING-RELEASE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-VERSIONING-RELEASE.md)
+and **mobile-expo-monorepo** skill.
 
-Mixed trees (same advisory present under both mobile and server packages) are **not** skipped.
-
-Root overrides also pin **`@xmldom/xmldom@0.9.10`** and **`tar@7.5.19`** so shared transitive chains
-clear those HIGH findings without allowlisting.
+Root overrides also pin **`@xmldom/xmldom@0.9.10`** so video.js / mpd-parser transitive chains clear
+those HIGH findings without allowlisting.
 
 The root **`ip-address`** override is kept because **express-rate-limit** still declares a dependency on
 **10.1.x** (moderate GHSA while **<=10.1.0**); npm resolves the hoisted package to **10.2.0** under that
@@ -54,8 +53,7 @@ invoke PostCSS stringify on untrusted CSS input outside Next's build pipeline.
 Use allowlisting only when:
 
 - No safe upgrade path exists without regressions, **and**
-- The finding is on the **server publish surface** (not mobile-only — those are skipped by the gate),
-  **and**
+- The finding is on the **server publish surface** (root lockfile — not `apps/mobile`), **and**
 - The finding is documented here with chain, rationale, risk, and revisit triggers.
 
 Pass comma-separated npm advisory `source` IDs as the first argument to `check-audit-gate.sh` in:
@@ -66,7 +64,7 @@ Pass comma-separated npm advisory `source` IDs as the first argument to `check-a
 - [.github/workflows/publish-staging.yml](/.github/workflows/publish-staging.yml) (validate → Security audit)
 
 Keep those call sites **in sync**. Do **not** use raw `npm audit --audit-level=moderate` in publish
-CI — it ignores the allowlist and mobile isolation and fails on documented transitive findings.
+CI — it ignores the allowlist and fails on documented transitive findings.
 
 Also update [.cursor/skills/npm-audit/SKILL.md](/.cursor/skills/npm-audit/SKILL.md) examples.
 
@@ -78,7 +76,7 @@ These were allowlisted until overrides and dependency layout cleared `npm audit 
 | ----------- | -------------------------- | ------------------------------------------------------------------------------- |
 | **1113977** | `uuid` \< 14.0.0 (High)    | firebase-admin / Google Cloud stack → older `uuid`                              |
 | **1116970** | `@tootallnate/once` (High) | Old proxy-agent chain (lifted via `http-proxy-agent` override on teeny-request) |
-| **1113715** | `ajv` ReDoS (`$data`)      | Was allowlisted briefly; now skipped as mobile-only (`expo-dev-launcher`)       |
+| **1113715** | `ajv` ReDoS (`$data`)      | Was under `expo-dev-launcher`; resolved by moving mobile off the root lockfile  |
 
 ## References
 

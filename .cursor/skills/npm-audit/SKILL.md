@@ -28,12 +28,12 @@ means **strict** mode (no advisories allowed).
 - `.github/workflows/publish-staging.yml` (validate → Security audit)
 
 Do **not** use raw `npm audit --omit=dev --audit-level=moderate` in publish CI; that bypasses the
-allowlist and mobile isolation. Always call `scripts/lib/check-audit-gate.sh` with the same ID list.
+allowlist. Always call `scripts/lib/check-audit-gate.sh` with the same ID list.
 
-**Mobile isolation:** The gate skips findings whose `nodes` are exclusively under Expo / React Native
-tooling. Do **not** allowlist mobile-only advisories for server publish — fix them on the mobile
-track or leave them skipped. See `docs/development/security/NPM-AUDIT-ALLOWLIST.md` and
-`DOCS-MOBILE-VERSIONING-RELEASE.md`.
+**Mobile isolation:** `apps/mobile` is outside the root workspace lockfile (own
+`apps/mobile/package-lock.json`). Root audit never sees Expo/RN. Do **not** re-add mobile to root
+`workspaces` to "fix" mobile advisories for server publish. See
+`docs/development/security/NPM-AUDIT-ALLOWLIST.md` and `DOCS-MOBILE-VERSIONING-RELEASE.md`.
 
 Document rationale in `docs/development/security/NPM-AUDIT-ALLOWLIST.md` whenever the allowlist is
 non-empty.

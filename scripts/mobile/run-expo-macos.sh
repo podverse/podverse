@@ -93,4 +93,4 @@ else
 fi
 
 cd "$REPO_ROOT"
-exec "$NPM_BIN" run "$PLATFORM" -w @podverse/mobile -- "$@"
+exec "$NPM_BIN" --prefix apps/mobile run "$PLATFORM" -- "$@"

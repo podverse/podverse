@@ -9,9 +9,9 @@ This is a proposal. No production code is changed by this document.
 
 ## 1. Recommendation summary
 
-- **Isolated `apps/mobile` workspace.** Auto-enrolls in `npm install` via the `apps/*` workspace
-  glob in [package.json](/package.json), but stays **off** the Node build graph (`build:packages`,
-  `build:apps`).
+- **Standalone `apps/mobile` install** (outside root npm workspaces). Own
+  `apps/mobile/package-lock.json` + `.npmrc`. Shared packages via `file:../../packages/…`. Server
+  `npm ci` never installs Expo/RN.
 - **Shared packages only downward.** Mobile is a Tier 5 consumer (alongside `web`) in the
   architecture graph ([.llm/context/architecture.md](/.llm/context/architecture.md),
   [architecture-tier-dependencies](/.cursor/rules/architecture-tier-dependencies.mdc)). It may import
@@ -19,7 +19,8 @@ This is a proposal. No production code is changed by this document.
 - **Extract one new package** (`packages/playback-core`) so playback/queue policy is shared instead
   of duplicated.
 - **Add a Tier D** for `apps/mobile/**` import specifiers (Metro).
-- **Separate CI track** (macOS) that never blocks server publish workflows.
+- **Separate CI track** (macOS) that never blocks server publish workflows. Deferred: `/testmobile`
+  once a mobile test harness exists; keep `/test` server-only.
 - **No repo split, no `@podverse/ui` on mobile, no ORM on mobile.**
 
 ## 2. Target directory layout
@@ -121,23 +122,28 @@ Do **not** codemod Tier A packages for Metro; keep them on NodeNext for the Node
 
 ## 5. Workspace and root `package.json`
 
-- `apps/mobile` is already covered by the `apps/*` workspace glob in [package.json](/package.json);
-  no workspaces change strictly required (the explicit sidecar entries are the only special cases).
-- **Do not** add `apps/mobile` to `build:packages` or `build:apps`.
-- Mobile dependencies live in `apps/mobile/package.json` only, to limit root lockfile churn.
-- Optional convenience scripts (kept off the build graph):
+- Root `workspaces` lists **explicit server apps** (`apps/api`, `apps/web`, …) — **not** `apps/*`, so
+  `apps/mobile` is excluded from the root lockfile.
+- Mobile has its own `apps/mobile/package-lock.json` and `apps/mobile/.npmrc`.
+- Shared packages use `file:../../packages/…` in `apps/mobile/package.json`.
+- **Do not** add `apps/mobile` to `build:apps`. `design-tokens` (and other mobile-consumed packages)
+  stay on `build:packages`.
+- Convenience scripts (repo root):
 
   ```json
   {
     "scripts": {
-      "dev:mobile": "npm run start -w apps/mobile",
-      "mobile:ios": "npm run ios -w apps/mobile",
-      "mobile:android": "npm run android -w apps/mobile"
+      "mobile:install": "npm install --prefix apps/mobile",
+      "dev:mobile": "npm --prefix apps/mobile run start",
+      "mobile:prebuild": "bash scripts/mobile/prebuild-macos.sh",
+      "mobile:ios": "bash scripts/mobile/run-expo-macos.sh ios",
+      "mobile:android": "bash scripts/mobile/run-expo-macos.sh android"
     }
   }
   ```
 
 - `build:packages` must include `playback-core` after `helpers` once extracted.
+- Deferred CI: `/testmobile` on a macOS runner; keep `/test` server-only.
 
 ## 6. Build order diagram
 

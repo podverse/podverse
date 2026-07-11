@@ -75,7 +75,7 @@ echo -e "${YELLOW}Running security audit on staging (moderate and above; low per
 npm ci
 
 # Moderate+ audit; allowlist 1117015 (next nested postcss). See NPM-AUDIT-ALLOWLIST.md.
-# Mobile-only trees are skipped by the gate (separate mobile release track).
+# apps/mobile is outside the root workspace lockfile (standalone install).
 if ! "$SCRIPT_DIR/../lib/check-audit-gate.sh" "1117015" "promote to main (staging to main)"; then
   echo -e "${RED}Error: npm audit found disallowed moderate or higher vulnerabilities. Fix them before promoting to main.${NC}"
   exit 1

@@ -24,34 +24,17 @@
   "workspaces": [
     "packages/*",
     "extensions/*",
-    "apps/*",
+    "apps/api",
+    "apps/web",
+    "apps/workers",
+    "apps/management-api",
+    "apps/management-web",
     "apps/web/sidecar",
     "apps/management-web/sidecar",
     "tools/*",
     "tools/*/*"
   ],
   "overrides": {
-    "expo": "52.0.49",
-    "react-native": "0.76.9",
-    "@expo/dom-webview": {
-      "expo": "52.0.49",
-      "react-native": "0.76.9"
-    },
-    "expo-dev-launcher": {
-      "expo": "52.0.49"
-    },
-    "expo-dev-menu": {
-      "expo": "52.0.49"
-    },
-    "expo-dev-menu-interface": {
-      "expo": "52.0.49"
-    },
-    "expo-manifests": {
-      "expo": "52.0.49"
-    },
-    "expo-updates-interface": {
-      "expo": "52.0.49"
-    },
     "@xmldom/xmldom": "0.9.10",
     "ip-address": "10.2.0",
     "postcss": "8.5.10",
@@ -60,7 +43,6 @@
     },
     "glob": "^13.0.1",
     "esbuild": "0.28.1",
-    "tar": "7.5.19",
     "uuid": "14.0.0",
     "@google-cloud/storage": {
       "teeny-request": "10.1.2"
@@ -77,23 +59,10 @@
     "eslint": "^10.0.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-simple-import-sort": "^12.1.1",
-    "expo": "52.0.49",
     "globals": "^17.4.0",
-    "metro-babel-register": "0.81.5",
-    "metro-babel-transformer": "0.81.5",
-    "metro-cache": "0.81.5",
-    "metro-cache-key": "0.81.5",
-    "metro-file-map": "0.81.5",
-    "metro-minify-terser": "0.81.5",
-    "metro-resolver": "0.81.5",
-    "metro-symbolicate": "0.81.5",
-    "metro-transform-plugins": "0.81.5",
-    "metro-transform-worker": "0.81.5",
     "pg": "^8.21.0",
     "prettier": "^3.4.2",
     "prettier-plugin-sh": "^0.18.0",
-    "react": "18.3.1",
-    "react-native": "0.76.9",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.57.0"
   },
@@ -101,8 +70,8 @@
     "prepare": "bash scripts/git-hooks/install-hooks.sh",
     "start-feature": "bash scripts/start-feature.sh",
     "build": "npm run build:packages && npm run build:apps && npm run build:tools",
-    "build:packages": "node scripts/ci/run-workspaces.mjs --script build --workspaces packages/worker-commands packages/helpers packages/playback-core packages/observability packages/extension-metrics-sdk packages/integrations-web packages/helpers-validation packages/v4v-metaboost packages/v4v-helpers packages/parser-mapping packages/http-request-core packages/helpers-requests packages/management-api-requests packages/helpers-backend packages/helpers-browser packages/helpers-config packages/external-services-firebase packages/external-services-paypal packages/external-services-object-storage packages/external-services-podcast-index packages/orm packages/notifications packages/parser packages/mq packages/v4v-btc-ln",
-    "build:packages:prod": "node scripts/ci/run-workspaces.mjs --script build:prod --workspaces packages/worker-commands packages/helpers packages/playback-core packages/observability packages/extension-metrics-sdk packages/integrations-web packages/helpers-validation packages/v4v-metaboost packages/v4v-helpers packages/parser-mapping packages/http-request-core packages/helpers-requests packages/management-api-requests packages/helpers-backend packages/helpers-browser packages/helpers-config packages/external-services-firebase packages/external-services-paypal packages/external-services-object-storage packages/external-services-podcast-index packages/orm packages/notifications packages/parser packages/mq packages/v4v-btc-ln",
+    "build:packages": "node scripts/ci/run-workspaces.mjs --script build --workspaces packages/worker-commands packages/helpers packages/design-tokens packages/playback-core packages/observability packages/extension-metrics-sdk packages/integrations-web packages/helpers-validation packages/v4v-metaboost packages/v4v-helpers packages/parser-mapping packages/http-request-core packages/helpers-requests packages/management-api-requests packages/helpers-backend packages/helpers-browser packages/helpers-config packages/external-services-firebase packages/external-services-paypal packages/external-services-object-storage packages/external-services-podcast-index packages/orm packages/notifications packages/parser packages/mq packages/v4v-btc-ln",
+    "build:packages:prod": "node scripts/ci/run-workspaces.mjs --script build:prod --workspaces packages/worker-commands packages/helpers packages/design-tokens packages/playback-core packages/observability packages/extension-metrics-sdk packages/integrations-web packages/helpers-validation packages/v4v-metaboost packages/v4v-helpers packages/parser-mapping packages/http-request-core packages/helpers-requests packages/management-api-requests packages/helpers-backend packages/helpers-browser packages/helpers-config packages/external-services-firebase packages/external-services-paypal packages/external-services-object-storage packages/external-services-podcast-index packages/orm packages/notifications packages/parser packages/mq packages/v4v-btc-ln",
     "build:apps": "node scripts/ci/run-workspaces.mjs --script build --workspaces apps/api apps/web apps/workers apps/management-api apps/management-web apps/web/sidecar apps/management-web/sidecar",
     "build:tools": "node scripts/ci/run-workspaces.mjs --script build --workspaces tools/qa tools/test-assets",
     "clean": "npm run clean --workspaces --if-present",
@@ -127,18 +96,19 @@
     "dev:management-api:watch": "npm run dev:watch -w apps/management-api",
     "dev:management-web": "concurrently -n test-assets,mgmt-web -c magenta,greenBright \"npm run dev:test-assets\" \"sleep 6 && npm run dev -w apps/management-web\"",
     "dev:management-web-sidecar": "(test -f apps/management-web/sidecar/dist/server.js || npm run build:sidecar:management-web) && npm run dev:sidecar -w apps/management-web",
-    "dev:mobile": "npm run start -w @podverse/mobile",
+    "dev:mobile": "npm --prefix apps/mobile run start",
     "mobile:prebuild": "bash scripts/mobile/prebuild-macos.sh",
     "mobile:pod-install": "bash scripts/mobile/pod-install-macos.sh",
     "mobile:ios": "bash scripts/mobile/run-expo-macos.sh ios",
     "mobile:android": "bash scripts/mobile/run-expo-macos.sh android",
+    "mobile:install": "npm install --prefix apps/mobile",
     "dev:workers": "npm run dev -w apps/workers",
     "check:dev-deps": "node scripts/check-dev-requirements.mjs",
     "dev:main:all": "node scripts/check-dev-requirements.mjs && concurrently -n pkg,workers,api,web-sc,test-assets,web -c gray,yellow,blue,cyan,magenta,green \"npm run watch:packages\" \"sleep 13.5 && npm run watch:workers\" \"sleep 9.5 && npm run dev:api:watch\" \"sleep 8.5 && npm run dev:web-sidecar\" \"sleep 11.5 && npm run dev:test-assets\" \"sleep 15.5 && npm run dev -w apps/web\"",
     "dev:management:all": "node scripts/check-dev-requirements.mjs && concurrently -n pkg,mgmt-api,mgmt-sc,test-assets,mgmt-web -c gray,magentaBright,cyan,magenta,greenBright \"npm run watch:packages\" \"sleep 9.5 && npm run dev:management-api:watch\" \"sleep 13.5 && npm run dev:management-web-sidecar\" \"sleep 11.5 && npm run dev:test-assets\" \"sleep 17.5 && npm run dev -w apps/management-web\"",
     "dev:all": "node scripts/check-dev-requirements.mjs && npm run build:packages:prod && npm run build:dev -w apps/api && npm run build:dev -w apps/management-api && npm run build:sidecar:web && npm run build:sidecar:management-web && concurrently -n workers,api,web-sc,test-assets,web,mgmt-api,mgmt-sc,mgmt-web -c yellow,blue,cyan,magenta,green,magentaBright,cyanBright,greenBright \"npm run dev:workers\" \"sleep 2 && npm run dev:api\" \"sleep 3 && npm run dev:web-sidecar\" \"sleep 4 && npm run dev:test-assets\" \"sleep 10 && npm run dev -w apps/web\" \"sleep 12 && npm run dev:management-api\" \"sleep 11 && npm run dev:management-web-sidecar\" \"sleep 18 && npm run dev -w apps/management-web\"",
     "dev:all:watch": "node scripts/check-dev-requirements.mjs && npm run build:packages:prod && npm run build:dev -w apps/api && npm run build:dev -w apps/management-api && concurrently -n pkg,workers,api,web-sc,test-assets,web,mgmt-api,mgmt-sc,mgmt-web -c gray,yellow,blue,cyan,magenta,green,magentaBright,cyanBright,greenBright \"npm run watch:packages\" \"sleep 13.5 && npm run watch:workers\" \"sleep 9.5 && npm run dev:api:watch\" \"sleep 8.5 && npm run dev:web-sidecar\" \"sleep 11.5 && npm run dev:test-assets\" \"sleep 15.5 && npm run dev -w apps/web\" \"sleep 18.5 && npm run dev:management-api:watch\" \"sleep 17.5 && npm run dev:management-web-sidecar\" \"sleep 24.5 && npm run dev -w apps/management-web\"",
-    "test:unit": "node scripts/ci/run-workspaces.mjs --script test --all --exclude apps/api --exclude apps/management-api --exclude apps/mobile",
+    "test:unit": "node scripts/ci/run-workspaces.mjs --script test --all --exclude apps/api --exclude apps/management-api",
     "test:e2e:api": "node scripts/check-test-requirements.mjs && npm run test -w apps/api && npm run test -w apps/management-api",
     "test:e2e:web": "make e2e_test_playwright",
     "test:e2e:web:reports": "make e2e_test_report",

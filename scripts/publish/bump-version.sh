@@ -18,7 +18,7 @@ cd "$REPO_ROOT"
 echo -e "${YELLOW}Running security audit (moderate and above; low permitted)...${NC}"
 
 # Advisory 1117015: next pins postcss@8.4.31 in nested node_modules; npm overrides do not replace it.
-# Mobile-only trees (Expo/RN) are skipped by check-audit-gate.sh — not part of server publish surface.
+# apps/mobile is outside the root workspace lockfile (separate install + lock).
 if ! "$SCRIPT_DIR/../lib/check-audit-gate.sh" "1117015" "release"; then
   echo -e "${RED}Error: npm audit found disallowed moderate or higher vulnerabilities. Fix them before bumping version.${NC}"
   exit 1
@@ -68,6 +68,14 @@ for ws in $WORKSPACES; do
   npm version "$VERSION" --no-git-tag-version --allow-same-version
 done
 
+# Mobile is outside the root workspace graph but shares the marketing version.
+MOBILE_PKG="$REPO_ROOT/apps/mobile/package.json"
+if [[ -f "$MOBILE_PKG" ]]; then
+  echo "  Updating apps/mobile (standalone)..."
+  cd "$REPO_ROOT/apps/mobile"
+  npm version "$VERSION" --no-git-tag-version --allow-same-version
+fi
+
 cd "$REPO_ROOT"
 
 # Regenerate lockfile under Linux so CI (Linux) gets correct optional deps
@@ -82,6 +90,12 @@ for ws in $WORKSPACES; do
     git add "$ws/package-lock.json"
   fi
 done
+if [[ -f "$MOBILE_PKG" ]]; then
+  git add apps/mobile/package.json
+  if [[ -f "$REPO_ROOT/apps/mobile/package-lock.json" ]]; then
+    git add apps/mobile/package-lock.json
+  fi
+fi
 
 # Commit (bypass hooks)
 git commit --no-verify -m "chore: bump version to $VERSION"

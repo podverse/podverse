@@ -181,21 +181,21 @@ extensions/         # Optional extension sidecar images (operator-selected)
 
 ### Where to Find Things
 
-| Looking for...             | Location                                                                                                                                                               |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| API routes                 | `apps/api/src/routes/`                                                                                                                                                 |
-| Database entities          | `packages/orm/src/entities/`                                                                                                                                           |
-| Database services          | `packages/orm/src/services/`                                                                                                                                           |
-| Shared types/DTOs          | `packages/helpers/src/dto/`                                                                                                                                            |
-| Feed parsing               | `packages/parser/src/`                                                                                                                                                 |
-| Web pages                  | `apps/web/src/app/`                                                                                                                                                    |
-| Mobile app (RN + Expo)     | `apps/mobile/` — see [apps/mobile/AGENTS.md](apps/mobile/AGENTS.md), [APPS-MOBILE.md](apps/mobile/APPS-MOBILE.md); Tier 5 consumer (with web); separate macOS CI track |
-| Environment templates      | `infra/config/env-templates/` (app stubs link to `apps/*/.env.example`)                                                                                                |
-| Workers startup validation | `apps/workers/src/lib/startup/validation.ts` (see [ENV.md](apps/workers/ENV.md))                                                                                       |
-| K8s manifests              | `infra/k8s/`                                                                                                                                                           |
-| Extension sidecar source   | `extensions/<id>/` (K8s wiring: `infra/k8s/base/common/`)                                                                                                              |
-| Jenkins pipelines          | `infra/pipelines/jenkins/`                                                                                                                                             |
-| GitHub Actions             | `.github/workflows/`                                                                                                                                                   |
+| Looking for...             | Location                                                                                                                                                                                                  |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API routes                 | `apps/api/src/routes/`                                                                                                                                                                                    |
+| Database entities          | `packages/orm/src/entities/`                                                                                                                                                                              |
+| Database services          | `packages/orm/src/services/`                                                                                                                                                                              |
+| Shared types/DTOs          | `packages/helpers/src/dto/`                                                                                                                                                                               |
+| Feed parsing               | `packages/parser/src/`                                                                                                                                                                                    |
+| Web pages                  | `apps/web/src/app/`                                                                                                                                                                                       |
+| Mobile app (RN + Expo)     | `apps/mobile/` — see [apps/mobile/AGENTS.md](apps/mobile/AGENTS.md), [APPS-MOBILE.md](apps/mobile/APPS-MOBILE.md); Tier 5 consumer (with web); standalone install (own lockfile); separate macOS CI track |
+| Environment templates      | `infra/config/env-templates/` (app stubs link to `apps/*/.env.example`)                                                                                                                                   |
+| Workers startup validation | `apps/workers/src/lib/startup/validation.ts` (see [ENV.md](apps/workers/ENV.md))                                                                                                                          |
+| K8s manifests              | `infra/k8s/`                                                                                                                                                                                              |
+| Extension sidecar source   | `extensions/<id>/` (K8s wiring: `infra/k8s/base/common/`)                                                                                                                                                 |
+| Jenkins pipelines          | `infra/pipelines/jenkins/`                                                                                                                                                                                |
+| GitHub Actions             | `.github/workflows/`                                                                                                                                                                                      |
 
 ## Coding Patterns
 

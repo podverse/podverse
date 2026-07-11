@@ -39,23 +39,27 @@ Generated trees (`ios/Pods/`, Android `build/`, `.expo/`) are gitignored and lis
 
 - **Node / npm:** from the repo Nix flake — use `./scripts/nix/with-env` from monorepo root (see
   [CURSOR-NIX-WITH-ENV.md](/docs/development/tooling/CURSOR-NIX-WITH-ENV.md)).
-- **Expo CLI:** via `apps/mobile` workspace scripts once bootstrapped.
+- **Expo CLI:** via `apps/mobile` scripts after `npm run mobile:install` (standalone install — not a
+  root workspace member).
 - **Xcode (iOS) and Android SDK:** installed locally outside Nix; required for simulators/devices and
   prebuild output.
 
 ## Commands from repo root
 
 Always run from the **monorepo root** (see
-[commands-from-monorepo-root](/.cursor/rules/commands-from-monorepo-root.mdc)). Use `-w apps/mobile`
-when the workspace defines scripts.
+[commands-from-monorepo-root](/.cursor/rules/commands-from-monorepo-root.mdc)). Mobile is **outside**
+the root npm workspace — do **not** use `-w @podverse/mobile` / `-w apps/mobile`. Use root scripts or
+`npm --prefix apps/mobile`.
 
 ```bash
-./scripts/nix/with-env npm run build:packages   # prerequisite before Metro dev
-./scripts/nix/with-env npm run start -w apps/mobile
+./scripts/nix/with-env npm ci                 # server workspaces only (no Expo)
+./scripts/nix/with-env npm run build:packages # prerequisite before Metro (shared dist/)
+./scripts/nix/with-env npm run mobile:install # apps/mobile package-lock.json
+./scripts/nix/with-env npm run dev:mobile
 ```
 
 For native iOS/Android builds use the Nix-stripping root scripts below (`npm run mobile:ios` /
-`mobile:android`) — **not** `./scripts/nix/with-env npm run ios -w apps/mobile`, which runs
+`mobile:android`) — **not** `./scripts/nix/with-env npm --prefix apps/mobile run ios`, which runs
 `xcodebuild` under the Nix toolchain and fails with the `-index-store-path` clang error.
 
 Native prebuild, CocoaPods, and native builds use root scripts with a **macOS-native PATH**
@@ -68,8 +72,8 @@ npm run mobile:ios       # expo run:ios via macOS-native toolchain
 npm run mobile:android   # expo run:android via macOS-native toolchain
 ```
 
-`dev:mobile` (Metro) is not in `apps/mobile` — run it from the **monorepo root**. Metro is pure JS
-and does not compile native code, so it runs fine under direnv:
+`dev:mobile` (Metro) is a **root** script that runs `npm --prefix apps/mobile run start`. Metro is
+pure JS and does not compile native code, so it runs fine under direnv:
 
 ```bash
 ./scripts/nix/with-env npm run dev:mobile
@@ -92,22 +96,24 @@ Install on the host machine (not provided by the repo flake):
 After first clone or dependency change, from **monorepo root** (not `apps/` or `apps/mobile/ios`):
 
 ```bash
+npm ci
 npm run build:packages
+npm run mobile:install
 npm run mobile:prebuild
 npm run dev:mobile
 ```
 
 [`mobile:prebuild`](/scripts/mobile/prebuild-macos.sh) runs `expo prebuild --no-install`, then
 [`mobile:pod-install`](/scripts/mobile/pod-install-macos.sh) with a PATH that excludes Nix — required
-when [direnv](/.envrc) (`use flake`) is active. Do **not** use `npm run dev:mobile -w @podverse/mobile`;
-that script exists only at the repo root.
+when [direnv](/.envrc) (`use flake`) is active. Do **not** use `npm run start -w @podverse/mobile`;
+mobile is not a root workspace member — use `npm run mobile:install` / `dev:mobile` / `--prefix`.
 
 Or run iOS/Android via `npm run mobile:ios` / `npm run mobile:android` after prebuild + pods.
 
 **Prerequisite:** run `npm run build:packages` before mobile dev or build. Metro consumes Tier A
-packages via their compiled **`dist/`** (`main` / `types`), not TypeScript source. Metro does **not**
-run `tsc` for you — after editing `packages/*`, rebuild or use a targeted watcher (see § Dev client
-workflow).
+packages via their compiled **`dist/`** (`main` / `types`) through `file:` links, not TypeScript
+source. Metro does **not** run `tsc` for you — after editing `packages/*`, rebuild or use a targeted
+watcher (see § Dev client workflow).
 
 ## Dev client workflow
 
@@ -179,34 +185,35 @@ installed.
 Full `npm run watch:packages` watches ~20 packages (same as web `dev:main:all`) — use targeted
 `build:watch -w …` for mobile unless you are changing many shared packages.
 
-## Dependency stack (npm workspaces)
+## Dependency stack (standalone install)
 
-Mobile shares the monorepo root install with web/API. Four layers keep Expo SDK 52 and RN 0.76.9
-reliable — keep all of them; see **mobile-expo-monorepo** skill for failure modes.
+Mobile is **outside** the root npm workspace. Server `npm ci` never installs Expo/RN. Keep the
+pieces below; see **mobile-expo-monorepo** skill for failure modes.
 
-| Layer | Location                                    | Role                                                                                                                                                           |
-| ----- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1     | [`.npmrc`](/.npmrc) `legacy-peer-deps=true` | Disable npm auto-install of `expo@*` peers (prevents root `expo@57`)                                                                                           |
-| 2     | Root `package.json` `overrides`             | Pin `expo` / `react-native` versions across the tree                                                                                                           |
-| 3     | Root mobile toolchain `devDependencies`     | `expo`, `react-native`, `react`, Metro **0.81.5** toolchain set (`metro-cache`, `metro-transform-plugins`, `metro-resolver`, …) for hoisted plugin `require()` |
-| 4     | `apps/mobile/package.json`                  | Runtime deps + explicit `expo-dev-*` pins                                                                                                                      |
+| Piece            | Location                                       | Role                                                  |
+| ---------------- | ---------------------------------------------- | ----------------------------------------------------- |
+| Mobile lockfile  | `apps/mobile/package-lock.json`                | Committed; `npm run mobile:install`                   |
+| Peer-deps policy | `apps/mobile/.npmrc` (`legacy-peer-deps=true`) | Stop `expo@*` peers pulling expo@57                   |
+| Pins             | `apps/mobile/package.json` `overrides` + deps  | Expo SDK 52 / RN 0.76.9 + expo-dev-*                  |
+| Shared packages  | `file:../../packages/helpers` (etc.)           | Symlinks into `apps/mobile/node_modules/@podverse/*`  |
+| Metro            | `apps/mobile/metro.config.js`                  | Watch `packages/`; resolve from mobile `node_modules` |
 
-Layer 1 applies repo-wide (npm has no mobile-only scope). Version pinning is layers 2–4, not `.npmrc`
-alone.
+Root `package.json` lists **explicit server apps** in `workspaces` (not `apps/*`) and must not carry
+Expo / React Native / Metro toolchain deps.
 
 ### Expo SDK upgrade
 
-When upgrading SDK, update all four layers together, then verify:
+When upgrading SDK, update **`apps/mobile` only**, then verify:
 
 ```bash
-npm install
-npm why expo
-npm why react-native
+npm run mobile:install
+npm --prefix apps/mobile why expo
+npm --prefix apps/mobile why react-native
 npm run mobile:prebuild
 npm run dev:mobile
 ```
 
-Use `npx expo install --fix` in `apps/mobile` for layer 4; bump overrides and root devDeps to match.
+Use `npx expo install --fix` from `apps/mobile` for runtime deps; keep `overrides` aligned.
 
 ## Troubleshooting
 
@@ -222,55 +229,35 @@ rm -rf apps/mobile/ios apps/mobile/android
 npm run mobile:prebuild
 ```
 
-### `Cannot find module 'expo/config-plugins'`
+### `Cannot find module '@podverse/helpers'` (or design-tokens)
 
-`expo-dev-launcher` (config plugin) was hoisted to **root** `node_modules` while `expo@52` stayed under
-`apps/mobile/node_modules`. The plugin does `require('expo/config-plugins')` from root and fails.
+Mobile `file:` links are missing or stale. From repo root:
 
-Fix: root `package.json` **mobile toolchain devDependencies** (`expo@52`, `react-native@0.76.9`,
-`react@18.3.1`, Metro **0.81.5** toolchain set) so hoisted dev-client plugins can
-`require('expo/config-plugins')`. Mobile still declares `expo` in `apps/mobile/package.json`; root
-`overrides` + `.npmrc` keep the SDK at 52 (not 57). Run `npm install` from **repo root**, then re-run
-`npm run mobile:prebuild`. Do **not** symlink `expo` into root `node_modules`.
+```bash
+npm run build:packages
+npm run mobile:install
+```
 
-### `ReactAppDependencyProvider` / Metro `ERR_PACKAGE_PATH_NOT_EXPORTED`
+### `Cannot find module 'expo/config-plugins'` / wrong Expo major
 
-npm workspaces hoisted **expo@57** and **react-native@0.86** (from `expo-dev-client` peer `expo@*`)
-to the repo root. That makes CocoaPods think RN ≥ 0.77 and makes `npm run dev:mobile` pick the wrong
-Expo CLI/Metro stack.
+Reinstall under `apps/mobile` and confirm overrides pin SDK 52. Do **not** add Expo to the root
+lockfile.
 
-Fix: root [`.npmrc`](/.npmrc) sets `legacy-peer-deps=true` and root `package.json` `overrides` pin
-`expo@52` / `react-native@0.76.9`, plus root mobile toolchain devDependencies (see **mobile-expo-monorepo**
-skill). After changing those, run `npm install` from repo root, then re-run prebuild + `pod install`.
-
-Mobile scripts use `expo` from npm workspace `PATH` (root-hoisted `expo@52`, pinned by overrides).
-
-### `react-native/package.json` not found (during prebuild / pod install)
-
-Hoisted `expo-modules-core` and `expo-dev-*` at root evaluate podspecs with
-`require('react-native/package.json')` from root `node_modules`. If `react-native` exists only under
-`apps/mobile/node_modules`, those backticks fail (non-fatal noise) and can break pod resolution.
-
-Fix: root `devDependencies` includes `react-native@0.76.9` and `react@18.3.1` (see **mobile-expo-monorepo**
-skill). Run `npm install`, then re-run prebuild / `pod install`.
-
-### `Cannot find module 'metro-cache'` / `metro-transform-plugins` / other `metro-*` (Metro / dev:mobile)
-
-`@expo/metro-config` and `@expo/cli` are hoisted to root with `expo`, but Metro sub-packages may stay
-nested under `metro/node_modules` instead of flat at root. Add the full Metro **0.81.5** toolchain set to
-root devDependencies (Metro version for RN 0.76 — `metro-cache`, `metro-transform-plugins`,
-`metro-resolver`, `metro-cache-key`, …), `npm install` from **repo root**, then retry `npm run dev:mobile`.
-Verify hoisting from repo root: `ls -d node_modules/metro-transform-plugins`.
+```bash
+npm run mobile:install
+npm run mobile:prebuild
+```
 
 ### `Unable to resolve react-native-web` / Web Bundling failed (Metro)
 
-Expo auto-enables **web** when `react-dom` resolves from the monorepo (hoisted for `apps/web`). Mobile is
-native dev-client only and does not install `react-native-web`, so web bundling fails (`Web is waiting on
-http://localhost:8081` or pressing **`w`** in Metro).
+Expo may try **web** if `react-dom` is visible from the monorepo. Mobile is native dev-client only.
+Fix: [`app.config.ts`](/apps/mobile/app.config.ts) sets `platforms: ['ios', 'android']`. Use **`i`** /
+**`a`**, or `npm run mobile:ios` / `mobile:android` — not **`w`**.
 
-Fix: [`app.config.ts`](/apps/mobile/app.config.ts) sets `platforms: ['ios', 'android']` to exclude web.
-Use **`i`** / **`a`**, dev-client QR, or `npm run mobile:ios` / `mobile:android` — not **`w`**. iOS/Android
-bundles are unaffected by this error.
+### Root `npm ci` installs Expo / audit fails on expo-dev-launcher
+
+Mobile was re-added to root `workspaces` or Expo was restored under root `devDependencies`. Remove
+it; keep the explicit server app list and standalone `apps/mobile` install.
 
 ### `pod install` / Xcode SDK errors (glog / `unable to find sdk: iphoneos`)
 

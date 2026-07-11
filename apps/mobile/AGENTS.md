@@ -22,9 +22,10 @@ Contributor guide: [`APPS-MOBILE.md`](/apps/mobile/APPS-MOBILE.md).
   [DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md).
 - **Native modules:** under `apps/mobile/modules/`, `ios/`, `android/`.
 - **E2E:** Maestro or Detox under `apps/mobile/e2e/` — **not** `make e2e_*` (web/management-web only).
-- **Expo + npm workspaces:** prebuild/Metro/pod hoisting — **mobile-expo-monorepo** skill. Prefer durable
-  layout fixes (root `expo@52` devDep for hoisted plugins, overrides, explicit dev-client deps); no symlink /
-  `NODE_PATH` workarounds.
+- **Standalone install:** `apps/mobile` is **outside** the root npm workspace. Use
+  `npm run mobile:install` (own `package-lock.json` + `.npmrc`). Shared packages via
+  `file:../../packages/…`. See **mobile-expo-monorepo** skill. Do not re-add Expo to the root
+  lockfile or use symlink / `NODE_PATH` workarounds.
 
 ## Package import allowlist / denylist
 

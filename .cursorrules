@@ -11,10 +11,11 @@ Lower tiers cannot depend on higher (see `.cursor/rules/architecture-tier-depend
 ### Mobile (`apps/mobile`)
 
 - **Tier 5 consumer** (React Native + Expo), alongside web — imports shared packages downward only; **not** on `build:packages` / `build:apps`.
+- **Standalone install** outside the root npm workspace (own `package-lock.json`); see **mobile-expo-monorepo** skill.
 - **iOS simulator examples:** use `iPhone 16 Pro` / `iPhone 17 Pro` or `--device` (interactive) — not iPhone 15 family ([mobile-ios-simulator](/.cursor/rules/mobile-ios-simulator.mdc)).
 - App-specific rules: [apps/mobile/AGENTS.md](apps/mobile/AGENTS.md), contributor guide [apps/mobile/APPS-MOBILE.md](apps/mobile/APPS-MOBILE.md).
 - Master plan phasing: **mobile-master-plan-phasing** skill. Mobile E2E uses Maestro/Detox — not `make e2e_*`.
-- Commands from repo root: `npm run <script> -w apps/mobile -- [args]` (when workspace scripts exist).
+- Commands from repo root: `npm run mobile:install`, `npm run dev:mobile`, `npm run mobile:ios` / `mobile:android` (not `-w apps/mobile`).
 
 ## Code Quality
 

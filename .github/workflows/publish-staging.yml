@@ -52,7 +52,7 @@ jobs:
           done
 
       - name: Security audit
-        # Server publish surface only. Mobile/Expo trees are skipped by the gate.
+        # Root lockfile is server-only (apps/mobile is a standalone install).
         # Allowlist 1117015 (next nested postcss) — see NPM-AUDIT-ALLOWLIST.md.
         run: bash scripts/lib/check-audit-gate.sh "1117015" "publish staging validate"
 
