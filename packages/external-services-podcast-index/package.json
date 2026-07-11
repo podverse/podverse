@@ -1,6 +1,6 @@
 {
   "name": "@podverse/external-services-podcast-index",
-  "version": "5.5.2",
+  "version": "5.5.3",
   "description": "Podcast Index API integration for Podverse",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

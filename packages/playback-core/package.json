@@ -1,6 +1,6 @@
 {
   "name": "@podverse/playback-core",
-  "version": "5.5.2",
+  "version": "5.5.3",
   "type": "module",
   "sideEffects": false,
   "description": "Shared playback and queue policy for Podverse web and mobile",

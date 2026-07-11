@@ -1,6 +1,6 @@
 {
   "name": "@podverse/mobile",
-  "version": "5.5.2",
+  "version": "5.5.3",
   "private": true,
   "description": "Podverse next-generation mobile app (React Native + Expo prebuild)",
   "main": "index.js",

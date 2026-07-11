@@ -1,6 +1,6 @@
 {
   "name": "@podverse/i18n-catalog",
-  "version": "5.5.2",
+  "version": "5.5.3",
   "private": true,
   "description": "Layered i18n catalog sources and build scripts",
   "type": "module",

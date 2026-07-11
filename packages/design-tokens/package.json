@@ -1,6 +1,6 @@
 {
   "name": "@podverse/design-tokens",
-  "version": "5.5.2",
+  "version": "5.5.3",
   "type": "module",
   "sideEffects": false,
   "description": "RN-safe design tokens for Podverse themes",
