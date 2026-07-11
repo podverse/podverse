@@ -36,7 +36,7 @@
   "devDependencies": {
     "@types/module-alias": "^2.0.4",
     "tsc-alias": "^1.8.16",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.10"
   },
   "type": "module"
 }
