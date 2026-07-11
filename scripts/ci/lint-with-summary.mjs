@@ -5,7 +5,7 @@
  * see what would change.
  *
  * i18n:compile runs first because apps/web and apps/management-web type-check
- * import generated apps/*/i18n/compiled/*.json (gitignored).
+ * import generated apps/<app>/i18n/compiled/*.json (gitignored).
  *
  * Usage: node scripts/ci/lint-with-summary.mjs [lint|lint:fix]
  * Default: lint (use lint:fix for fix mode)
@@ -53,7 +53,7 @@ const repoScriptLintArgs = [
 
 const steps = [
   // Generated catalogs are gitignored; web/management-web type-check imports
-  // apps/*/i18n/compiled/*.json, so compile before tsc (local + CI).
+  // apps/<app>/i18n/compiled/*.json, so compile before tsc (local + CI).
   { name: 'i18n:compile', cmd: 'npm', args: ['run', 'i18n:compile'] },
   { name: 'type-check', cmd: 'node', args: runWorkspacesArgs('type-check') },
   { name: 'lint', cmd: 'node', args: runWorkspacesArgs(mode) },
