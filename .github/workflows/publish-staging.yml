@@ -52,7 +52,9 @@ jobs:
           done
 
       - name: Security audit
-        run: npm audit --omit=dev --audit-level=moderate
+        # Server publish surface only. Mobile/Expo trees are skipped by the gate.
+        # Allowlist 1117015 (next nested postcss) — see NPM-AUDIT-ALLOWLIST.md.
+        run: bash scripts/lib/check-audit-gate.sh "1117015" "publish staging validate"
 
       - name: Build all packages
         run: npm run build:packages

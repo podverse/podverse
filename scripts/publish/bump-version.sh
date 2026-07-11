@@ -17,8 +17,9 @@ cd "$REPO_ROOT"
 
 echo -e "${YELLOW}Running security audit (moderate and above; low permitted)...${NC}"
 
-# 1117015: next nested postcss; 1113715: expo-dev-launcher nested ajv. See NPM-AUDIT-ALLOWLIST.md.
-if ! "$SCRIPT_DIR/../lib/check-audit-gate.sh" "1117015,1113715" "release"; then
+# Advisory 1117015: next pins postcss@8.4.31 in nested node_modules; npm overrides do not replace it.
+# Mobile-only trees (Expo/RN) are skipped by check-audit-gate.sh — not part of server publish surface.
+if ! "$SCRIPT_DIR/../lib/check-audit-gate.sh" "1117015" "release"; then
   echo -e "${RED}Error: npm audit found disallowed moderate or higher vulnerabilities. Fix them before bumping version.${NC}"
   exit 1
 fi

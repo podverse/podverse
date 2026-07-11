@@ -4,9 +4,13 @@
 # Usage: scripts/lib/check-audit-gate.sh <allowed-ids> [context-name]
 # Example: scripts/lib/check-audit-gate.sh "" "promote to alpha"
 # Example with allowlist: scripts/lib/check-audit-gate.sh "1113977" "promote to alpha"
-# 
+#
 # If no allowed-ids provided or empty string, no advisories are allowlisted (strict mode).
 # Exit code 0 = audit passed, 1 = audit failed
+#
+# Mobile isolation: findings whose installed nodes are exclusively under Expo / React Native
+# tooling are skipped. Server publish (staging/main) must not be blocked by mobile-only deps;
+# mobile has its own release track. See docs/proposals/mobile/initial-decisions/DOCS-MOBILE-VERSIONING-RELEASE.md
 
 set -e
 
@@ -44,12 +48,34 @@ const severityRank = {
   critical: 4,
 };
 
+/** Path segments that identify Expo / RN mobile tooling (not server publish surface). */
+const MOBILE_ONLY_NODE_PATTERN =
+  /(^|\/)(apps\/mobile|node_modules\/(@expo\/|@react-native\/|expo(-|$)|react-native(-|$)|metro(-|$)))/;
+
+/**
+ * True when every installed node for this vulnerability lives under mobile tooling.
+ * Mixed trees (mobile + server) are NOT skipped — those still fail the server gate.
+ */
+function isMobileOnlyVulnerability(pkg) {
+  const nodes = Array.isArray(pkg.nodes) ? pkg.nodes : [];
+  if (nodes.length === 0) {
+    return false;
+  }
+  return nodes.every((nodePath) => MOBILE_ONLY_NODE_PATTERN.test(String(nodePath)));
+}
+
 const jsonText = readFileSync(reportPath, 'utf8');
 const audit = JSON.parse(jsonText);
 const vulnerabilities = audit.vulnerabilities ?? {};
 const failures = [];
+let skippedMobileOnly = 0;
 
 for (const [pkgName, pkg] of Object.entries(vulnerabilities)) {
+  if (isMobileOnlyVulnerability(pkg)) {
+    skippedMobileOnly += 1;
+    continue;
+  }
+
   const via = Array.isArray(pkg.via) ? pkg.via : [];
   for (const advisory of via) {
     if (typeof advisory === 'string') {
@@ -88,7 +114,13 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log(`Audit gate passed. Allowed advisory IDs: ${allowedRaw || '(none)'}`);
+const mobileNote =
+  skippedMobileOnly > 0
+    ? `; skipped ${skippedMobileOnly} mobile-only package tree(s)`
+    : '';
+console.log(
+  `Audit gate passed. Allowed advisory IDs: ${allowedRaw || '(none)'}${mobileNote}`
+);
 NODE
 then
   rm -f "$AUDIT_REPORT_FILE_PATH"

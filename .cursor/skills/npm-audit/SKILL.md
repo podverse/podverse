@@ -25,6 +25,15 @@ means **strict** mode (no advisories allowed).
 - `scripts/publish/bump-version.sh`
 - `scripts/publish/sync-develop-to-staging.sh`
 - `scripts/publish/sync-staging-to-main.sh`
+- `.github/workflows/publish-staging.yml` (validate → Security audit)
+
+Do **not** use raw `npm audit --omit=dev --audit-level=moderate` in publish CI; that bypasses the
+allowlist and mobile isolation. Always call `scripts/lib/check-audit-gate.sh` with the same ID list.
+
+**Mobile isolation:** The gate skips findings whose `nodes` are exclusively under Expo / React Native
+tooling. Do **not** allowlist mobile-only advisories for server publish — fix them on the mobile
+track or leave them skipped. See `docs/development/security/NPM-AUDIT-ALLOWLIST.md` and
+`DOCS-MOBILE-VERSIONING-RELEASE.md`.
 
 Document rationale in `docs/development/security/NPM-AUDIT-ALLOWLIST.md` whenever the allowlist is
 non-empty.
@@ -201,8 +210,8 @@ If you see a nested uuid entry with version < 14, the override didn't work.
 - [ ] Attempted a fix: either package upgrade or npm override tested in package-lock.json
 - [ ] Verified no regression: `npm run build:packages && npm run build` succeeds
 - [ ] If allowlisting: documented rationale in `docs/development/security/NPM-AUDIT-ALLOWLIST.md`
-- [ ] If allowlisting: passed the same advisory IDs to all three publish scripts that call
-      `check-audit-gate.sh`
+- [ ] If allowlisting: passed the same advisory IDs to all publish scripts **and**
+      `publish-staging.yml` that call `check-audit-gate.sh`
 - [ ] LLM history updated with investigation results
 
 ## See Also
