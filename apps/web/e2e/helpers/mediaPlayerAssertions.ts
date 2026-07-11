@@ -7,10 +7,17 @@ import {
   E2E_ADD_BY_RSS_CHANNEL_ID_TEXT,
   E2E_ADD_BY_RSS_RESOURCE_FRESH_GUID,
   E2E_ADD_BY_RSS_RESOURCE_WITH_POSITION_GUID,
+  E2E_CLIP_ID_TEXT,
+  E2E_EMBED_MUSIC_TRACK_VIDEO_ID_TEXT,
+  E2E_EMBED_VIDEO_ITEM_ID_TEXT,
+  E2E_EMBED_VIDEO_ITEM_TWO_ID_TEXT,
+  E2E_MUSIC_TRACK_ONE_ID_TEXT,
+  E2E_MUSIC_TRACK_TWO_ID_TEXT,
   E2E_PODCAST_ITEM_CHAPTERED_ID_TEXT,
   E2E_PODCAST_ITEM_RESUME_NEAR_END_ID_TEXT,
   E2E_PODCAST_ITEM_RESUME_NONE_ID_TEXT,
   E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT,
+  E2E_SOUNDBITE_ID_TEXT,
 } from './seedConstants';
 
 const API_BASE_URL = 'http://localhost:4030/api/v2';
@@ -81,10 +88,11 @@ export async function waitForAudioReadyAtLeast(
 }
 
 /**
- * Removes every seeded podcast / add-by-RSS resource from every queue
- * owned by the logged-in account so that subsequent media-player E2E
- * tests start with a deterministic abridged index regardless of which
- * earlier test ran in the same Playwright invocation.
+ * Removes every seeded media-player queue resource from every queue owned
+ * by the logged-in account so that subsequent media-player E2E tests start
+ * with a deterministic abridged index regardless of which earlier test ran
+ * in the same Playwright invocation (podcast resume rows, chaptered items,
+ * embed-video episodes, music tracks, clips, soundbites, add-by-RSS).
  *
  * Why every queue and not just the seeded `E2E_PODCAST_QUEUE_ID_TEXT`:
  *   `useQueueResourceUpdateNowPlaying` looks up the active queue by
@@ -119,7 +127,14 @@ export async function clearSeededPodcastQueueResources(page: Page): Promise<void
     E2E_PODCAST_ITEM_RESUME_NEAR_END_ID_TEXT,
     E2E_PODCAST_ITEM_RESUME_NONE_ID_TEXT,
     E2E_PODCAST_ITEM_CHAPTERED_ID_TEXT,
+    E2E_EMBED_VIDEO_ITEM_ID_TEXT,
+    E2E_EMBED_VIDEO_ITEM_TWO_ID_TEXT,
+    E2E_EMBED_MUSIC_TRACK_VIDEO_ID_TEXT,
+    E2E_MUSIC_TRACK_ONE_ID_TEXT,
+    E2E_MUSIC_TRACK_TWO_ID_TEXT,
   ];
+  const clipIdTexts = [E2E_CLIP_ID_TEXT];
+  const soundbiteIdTexts = [E2E_SOUNDBITE_ID_TEXT];
   const addByRssHashIds = [
     computeAddByRssHashId(
       E2E_ADD_BY_RSS_CHANNEL_ID_TEXT,
@@ -137,6 +152,28 @@ export async function clearSeededPodcastQueueResources(page: Page): Promise<void
       if (![200, 204, 404].includes(status)) {
         throw new Error(
           `Failed to clear queue ${queueIdText} item ${itemIdText} (status=${status}): ${await response.text()}`
+        );
+      }
+    }
+    for (const clipIdText of clipIdTexts) {
+      const response = await page.request.delete(
+        `${API_BASE_URL}/queue/${queueIdText}/clip/${clipIdText}`
+      );
+      const status = response.status();
+      if (![200, 204, 404].includes(status)) {
+        throw new Error(
+          `Failed to clear queue ${queueIdText} clip ${clipIdText} (status=${status}): ${await response.text()}`
+        );
+      }
+    }
+    for (const soundbiteIdText of soundbiteIdTexts) {
+      const response = await page.request.delete(
+        `${API_BASE_URL}/queue/${queueIdText}/item-soundbite/${soundbiteIdText}`
+      );
+      const status = response.status();
+      if (![200, 204, 404].includes(status)) {
+        throw new Error(
+          `Failed to clear queue ${queueIdText} soundbite ${soundbiteIdText} (status=${status}): ${await response.text()}`
         );
       }
     }
