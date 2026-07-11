@@ -90,7 +90,7 @@ if ! docker run --rm \
   -v "$REPO_ROOT:/app" \
   -w /app \
   "$NODE_IMAGE" \
-  bash -c 'npm ci && bash scripts/lib/check-audit-gate.sh "1117015" "promote to staging"'; then
+  bash -c 'npm ci && bash scripts/lib/check-audit-gate.sh "1117015,1113715" "promote to staging"'; then
   echo -e "${RED}Error: npm ci or npm audit gate failed in Docker. Fix issues before syncing to staging.${NC}"
   exit 1
 fi

@@ -24,14 +24,14 @@
   "dependencies": {
     "@podverse/helpers": "*",
     "@podverse/observability": "*",
-    "bignumber.js": "^11.1.2",
+    "bignumber.js": "^11.1.5",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0",
     "winston-transport": "^4.9.0"
   },
   "devDependencies": {
     "@types/node": "^24.12.0",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.10"
   },
   "type": "module"
 }
