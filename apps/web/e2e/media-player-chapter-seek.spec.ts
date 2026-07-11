@@ -58,6 +58,10 @@ async function fastForwardAudioTo(page: Page, seconds: number): Promise<void> {
 async function openChapteredEpisode(page: Page): Promise<void> {
   await page.goto(`/episode/${E2E_PODCAST_ITEM_CHAPTERED_ID_TEXT}`);
   await expect(page.getByRole('heading', { name: 'E2E Podcast With Chapters' })).toBeVisible();
+  // `clearSeededPodcastQueueResources` (beforeEach) removes any now-playing row
+  // left by earlier specs (e.g. media-player-alt-enclosure-load's embed-video
+  // episodes), so QueueController's auto-load must not mount the video player.
+  await expect(page.getByTestId('floating-video-portal')).toHaveCount(0);
 }
 
 async function openChaptersTab(page: Page): Promise<void> {

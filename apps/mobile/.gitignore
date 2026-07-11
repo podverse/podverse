@@ -1,0 +1,29 @@
+# Generated native projects and Expo local state
+.expo/
+dist/
+web-build/
+
+# Native build output (prebuild generates ios/ and android/)
+ios/
+android/
+
+# Metro / bundler
+.metro-health-check*
+
+# OS / IDE
+.DS_Store
+*.pem
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# TypeScript
+*.tsbuildinfo

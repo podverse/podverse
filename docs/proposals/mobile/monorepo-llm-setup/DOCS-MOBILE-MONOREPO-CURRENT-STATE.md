@@ -207,14 +207,14 @@ These are enumerated as actionable proposals in
 
 ## 8. i18n today
 
-Translation sources live per-app under `apps/web/i18n/originals/` with committed locales
-`en-US.json`, `es.json`, `fr.json`, `el-GR.json` (compiled output is generated, not committed). Root
-scripts orchestrate compile/translate (`i18n:compile`, `i18n:translate` in [package.json](/package.json)).
-The web app consumes compiled JSON via `next-intl`.
+Translation **authoring** lives in `packages/i18n-catalog/` (`shared`, `consumer`, `management`,
+`mobile` layers). Root scripts orchestrate compile/translate (`i18n:compile`, `i18n:translate` in
+[package.json](/package.json)). Web and management-web load merged output from
+`apps/*/i18n/compiled/` via `next-intl`; mobile loads `apps/mobile/i18n/compiled/` via i18next.
 
-**Implication for mobile:** the **strings** are reusable, but the runtime (`next-intl`) is not.
-Duration formatting helpers in `@podverse/helpers` (`lib/i18n/timeFormatter.ts`) are portable. The
-target-structure doc weighs a shared catalog package vs symlink vs copy.
+**Implication for mobile:** the **strings** are reusable via the catalog, but the runtime
+(`next-intl`) is not. Duration formatting helpers in `@podverse/helpers`
+(`lib/i18n/timeFormatter.ts`) are portable.
 
 ## 9. Gap summary
 

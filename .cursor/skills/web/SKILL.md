@@ -20,7 +20,8 @@ This skill provides quick reference for common patterns used in the podverse-web
   - `@podverse/helpers-config` - Config validation (not typically used in web)
 - **API client**: Uses helper package DTOs and types
 - **Environment files**: `apps/web/env/`
-- **Translations**: `apps/web/i18n/originals/en-US.json`
+- **Translations**: `packages/i18n-catalog/consumer/originals/en-US.json` (consumer keys) and
+  `packages/i18n-catalog/shared/originals/en-US.json` (cross-app keys)
 
 ## Table of Contents
 

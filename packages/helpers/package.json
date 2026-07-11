@@ -6,6 +6,20 @@
   "description": "Shared utilities and DTOs for Podverse applications",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./locales": {
+      "types": "./dist/lib/constants/locales.d.ts",
+      "default": "./dist/lib/constants/locales.js"
+    },
+    "./timeFormatter": {
+      "types": "./dist/lib/i18n/timeFormatter.d.ts",
+      "default": "./dist/lib/i18n/timeFormatter.js"
+    }
+  },
   "files": [
     "dist/**/*"
   ],

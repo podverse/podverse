@@ -1,0 +1,69 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: worker-image-shrink-reset-shrunken-dry-run
+spec:
+  # Manual ops only: suspended until an operator triggers a one-off Job for preview counts.
+  schedule: "0 0 1 1 *"
+  suspend: true
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          annotations:
+            backup.velero.io/backup-volumes-excludes: "logs-volume"
+        spec:
+          containers:
+            - name: worker
+              image: ghcr.io/podverse/podverse/workers
+              command:
+                - "node"
+                - "apps/workers/dist/index.js"
+                - "imageShrinkResetShrunkenDryRun"
+              securityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+                runAsNonRoot: true
+                readOnlyRootFilesystem: true
+                allowPrivilegeEscalation: false
+              resources:
+                requests:
+                  memory: "512Mi"
+                  cpu: "100m"
+                limits:
+                  memory: "1Gi"
+                  cpu: "500m"
+              envFrom:
+                - configMapRef:
+                    name: podverse-workers-config
+                - secretRef:
+                    name: podverse-db-opaque
+                - secretRef:
+                    name: podverse-mq-opaque
+                - secretRef:
+                    name: podverse-workers-add-by-rss-opaque
+                - secretRef:
+                    name: podverse-workers-webpush-opaque
+                    optional: true
+                - secretRef:
+                    name: podverse-workers-storage-bucket-opaque
+              volumeMounts:
+                - name: logs-volume
+                  mountPath: /logs
+                - name: logs-volume
+                  mountPath: /opt/logs
+                - name: firebase-key
+                  mountPath: /var/secrets/firebase
+                  readOnly: true
+          volumes:
+            - name: logs-volume
+              emptyDir: {}
+            - name: firebase-key
+              secret:
+                secretName: podverse-workers-firebase-opaque
+                optional: true
+          restartPolicy: Never

@@ -58,6 +58,8 @@ const BASE_ORM_MQ_IMAGE_SHRINK_COMMANDS = [
 
 const BASE_ORM_IMAGE_SHRINK_COMMANDS = [
   'imageShrinkCleanupOrphans',
+  'imageShrinkResetShrunken',
+  'imageShrinkResetShrunkenDryRun',
   'imageShrinkSourcePrune',
 ] as const;
 

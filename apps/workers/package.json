@@ -24,6 +24,8 @@
     "seed_embed_demo_showcase_feeds": "node ./dist/index.js seedEmbedDemoShowcaseFeeds",
     "image_shrink_backfill": "node ./dist/index.js imageShrinkBackfill",
     "image_shrink_cleanup_orphans": "node ./dist/index.js imageShrinkCleanupOrphans",
+    "image_shrink_reset_shrunken": "node ./dist/index.js imageShrinkResetShrunken",
+    "image_shrink_reset_shrunken_dry_run": "node ./dist/index.js imageShrinkResetShrunkenDryRun",
     "image_shrink_run_consumer": "node ./dist/index.js imageShrinkRunConsumer",
     "image_shrink_source_prune": "node ./dist/index.js imageShrinkSourcePrune",
     "mq_rss_add": "node ./dist/index.js mqRSSAdd",

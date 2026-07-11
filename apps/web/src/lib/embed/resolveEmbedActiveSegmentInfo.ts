@@ -3,7 +3,7 @@ import type { DTOItemChapter } from '@podverse/helpers';
 import type { DTOItemSoundbite } from '@podverse/helpers';
 
 import { selectItemChapterForTime } from '../../utils/mediaPlayer/selectItemChapterForTime';
-import { parsePlaybackSeconds } from '../playback/parsePlaybackSeconds';
+import { parsePlaybackSeconds } from '../playback';
 import { resolveEmbedPlaybackSegmentRefs } from './resolveEmbedPlaybackSegmentRefs';
 
 export type EmbedActiveSegmentInfo = {

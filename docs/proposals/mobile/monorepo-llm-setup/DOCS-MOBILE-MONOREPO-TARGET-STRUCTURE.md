@@ -201,8 +201,24 @@ that fights NodeNext `.js` specifier semantics — not recommended initially.)
 
 ## 10. i18n target options
 
-Web sources live under `apps/web/i18n/originals/` (`en-US`, `es`, `fr`, `el-GR`); the runtime is
-`next-intl` (not usable on mobile). Options for mobile string reuse:
+Web and management-web sources live under per-app `i18n/` today; runtime is `next-intl` (not usable
+on mobile). **Target:** layered `packages/i18n-catalog` (see [I18N.md](/docs/localization/I18N.md) §
+Shared catalog layers and **i18n-catalog-layers** rule):
+
+```
+packages/i18n-catalog/
+├── shared/originals/       # Cross-app: language.*, errors.*, misc.*, settings.ui_theme.*
+├── consumer/originals/     # Web + mobile consumer strings
+├── management/originals/   # Management-web only
+├── mobile/originals/       # RN-only overlay (may start empty)
+└── overrides/              # Human corrections per locale
+```
+
+| App merge order       | Layers                            |
+| --------------------- | --------------------------------- |
+| `apps/web`            | `shared` → `consumer`             |
+| `apps/mobile`         | `shared` → `consumer` → `mobile/` |
+| `apps/management-web` | `shared` → `management/`          |
 
 | Option                               | Pros                                           | Cons                               | Recommendation            |
 | ------------------------------------ | ---------------------------------------------- | ---------------------------------- | ------------------------- |
@@ -210,10 +226,16 @@ Web sources live under `apps/web/i18n/originals/` (`en-US`, `es`, `fr`, `el-GR`)
 | Symlink web originals into mobile    | Fast                                           | Fragile across platforms/CI        | Avoid                     |
 | Copy originals + CI key-parity check | Simple start                                   | Drift risk; needs a check          | Acceptable for v1 spike   |
 
-Recommendation: start by **copying** originals for the Phase 1 spike, then promote to a shared
-`packages/i18n-catalog` when mobile stabilizes. Mobile uses a RN-compatible runtime (`i18next` /
-`react-intl` / `expo-localization`). Duration formatting reuses `@podverse/helpers`
-(`lib/i18n/timeFormatter.ts`).
+Recommendation: **v1 spike** — copy consumer originals (Track 17.2); **medium-term** — migrate per
+master plan Track 17.9–17.13. Mobile uses i18next + expo-localization. Duration formatting reuses
+`@podverse/helpers` (`lib/i18n/timeFormatter.ts`).
+
+## 10b. Design tokens and themes
+
+Web/management-web consume `@podverse/ui` SCSS (`[data-ui-theme]`). Mobile consumes
+`@podverse/design-tokens` (RN-safe TS maps) with the **same** built-in theme ids:
+`dark`, `light`, `dracula`, `violet`, `ember`, `dawn`. User pref key **`uit`** matches web
+`localSettings`. See **mobile-theme-parity** skill and master plan Track 0.20, 7.11–7.16.
 
 ## 11. Change magnitude
 
@@ -227,6 +249,7 @@ Recommendation: start by **copying** originals for the Phase 1 spike, then promo
 | Metro monorepo config                    | Medium    |
 | Separate macOS CI workflows              | Medium    |
 | i18n shared catalog (later)              | Medium    |
+| `@podverse/design-tokens` package        | Medium    |
 
 ## 12. What we are NOT doing
 

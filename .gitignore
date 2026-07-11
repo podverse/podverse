@@ -31,6 +31,11 @@ apps/*/.env.local
 
 # i18n compiled files (generated at build time from originals + overrides)
 apps/*/i18n/compiled/
+packages/i18n-catalog/*/compiled/
+
+# i18n authoring lives in packages/i18n-catalog only (not under apps/*/i18n)
+apps/*/i18n/originals/
+apps/*/i18n/overrides/
 
 # Infra config files (gitignored - contain secrets)
 infra/config/local/

@@ -24,6 +24,10 @@ import { billingProcessDueRenewals } from './billing/processDueRenewals.js';
 import { imageShrinkBackfill } from './imageShrink/backfill.js';
 import { imageShrinkCleanupOrphans } from './imageShrink/cleanupOrphans.js';
 import { imageShrinkSourcePrune } from './imageShrink/pruneSources.js';
+import {
+  imageShrinkResetShrunken,
+  imageShrinkResetShrunkenDryRun,
+} from './imageShrink/resetShrunken.js';
 import { imageShrinkRunConsumer } from './imageShrink/runConsumer.js';
 import { mqRSSRunDlqConsumer } from './mq/rss/dlqHandling.js';
 import { mqRSSRunLiveItemListener } from './mq/rss/runLiveItemListener.js';
@@ -59,6 +63,8 @@ export default {
   deleteOutdatedOnDemandParserEvent,
   imageShrinkBackfill,
   imageShrinkCleanupOrphans,
+  imageShrinkResetShrunken,
+  imageShrinkResetShrunkenDryRun,
   imageShrinkRunConsumer,
   imageShrinkSourcePrune,
 } as { [key: string]: (args: CommandLineArgs) => void };

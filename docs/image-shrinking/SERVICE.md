@@ -104,7 +104,43 @@ Run the source prune (cron-style, deletes unused `image_shrink_source` rows):
 npm run image_shrink_source_prune -w apps/workers
 ```
 
+Run the full reset dry run (preview counts only):
+
+```
+npm run image_shrink_reset_shrunken_dry_run -w apps/workers
+```
+
+Run the full reset (destructive — removes all shrink-generated bucket objects and matching
+`is_resized` DB rows):
+
+```
+npm run image_shrink_reset_shrunken -w apps/workers
+```
+
 ## Cleanup Behavior Details
+
+### Full Reset (Shrunken Images)
+
+Two operator commands share the same scope and fixed pagination (500 keys/rows per page):
+
+- **`imageShrinkResetShrunkenDryRun`** — lists what would be deleted; makes no changes.
+- **`imageShrinkResetShrunken`** — deletes all shrink-generated objects and matching resized DB rows.
+
+Unlike orphan cleanup, the destructive command removes **all** shrink pipeline output, including
+bucket-only orphans and DB-only stale references.
+
+Scope is strict so other bucket assets are never touched:
+
+- **Bucket:** only keys matching
+  `images/{channel|item}/{id}/{urlHash}-w{width}-c{checksumPrefix}.webp`.
+- **Database:** only `channel_image` / `item_image` rows with `is_resized = true` whose CDN URL
+  matches the same shrink key pattern for `BUCKET_CDN_BASE_URL`.
+
+**Local:** run the dry-run npm script first, then the destructive script when counts look right.
+
+**Kubernetes:** both CronJobs are **suspended by default** — trigger a one-off Job from
+`worker-image-shrink-reset-shrunken-dry-run` first, then from `worker-image-shrink-reset-shrunken`
+when ready.
 
 ### Orphan Cleanup Criteria
 
@@ -223,3 +259,7 @@ Add the secret to the `envFrom` list so the workers pod can access the bucket cr
 `infra/k8s/base/cron/worker-image-shrink-orphan-cleanup.cronjob.yaml` runs the orphan cleanup on a weekly schedule. It uses the same env/secret wiring as the backfill job.
 
 `infra/k8s/base/cron/worker-image-shrink-source-prune.cronjob.yaml` runs the source prune on a weekly schedule. It uses the same env/secret wiring as the backfill job.
+
+`infra/k8s/base/cron/worker-image-shrink-reset-shrunken-dry-run.cronjob.yaml` and
+`infra/k8s/base/cron/worker-image-shrink-reset-shrunken.cronjob.yaml` define the full reset
+preview and destructive commands for manual ops (both suspended by default).

@@ -61,7 +61,9 @@ jobs:
         run: npm run lint
 
       - name: Type check
-        run: npm run type-check
+        run: |
+          npm run i18n:compile
+          npm run type-check
 
       - name: Build all apps
         run: npm run build:apps

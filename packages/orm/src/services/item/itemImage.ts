@@ -3,7 +3,7 @@ import { ItemImage } from '@orm/entities/item/itemImage.js';
 import { filterDtosByHighestWidth } from '@orm/lib/filterImageDtosByHighestWidth.js';
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
 import type { EntityManager } from 'typeorm';
-import { In, Like } from 'typeorm';
+import { In, Like, MoreThan } from 'typeorm';
 
 import { sha256Hex } from '@podverse/helpers';
 
@@ -142,6 +142,24 @@ export class ItemImageService extends BaseManyService<ItemImage, 'item'> {
       },
     });
     return count > 0;
+  }
+
+  async findResizedRowsAfterId(lastId: number, limit: number): Promise<ItemImage[]> {
+    return this.repositoryRead.find({
+      where: {
+        is_resized: true,
+        id: MoreThan(lastId),
+      },
+      order: { id: 'ASC' },
+      take: limit,
+    });
+  }
+
+  async deleteByIds(ids: number[]): Promise<void> {
+    if (ids.length === 0) {
+      return;
+    }
+    await this.repositoryReadWrite.delete(ids);
   }
 
   async deleteAll(item: Item): Promise<void> {

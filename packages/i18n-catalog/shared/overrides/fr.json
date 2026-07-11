@@ -1,0 +1,38 @@
+{
+  "language": {
+    "language": "",
+    "description": "",
+    "select_language": "",
+    "languages": {
+      "en-US": "",
+      "es": "",
+      "fr": "",
+      "el-GR": ""
+    }
+  },
+  "settings": {
+    "ui_theme": {
+      "theme": "",
+      "description": "",
+      "light": "",
+      "dark": "",
+      "dracula": "",
+      "violet": "",
+      "ember": "",
+      "dawn": ""
+    }
+  },
+  "errors": {
+    "boundary_title": "",
+    "boundary_message": "",
+    "global_title": "",
+    "global_message": "",
+    "details_development_only": ""
+  },
+  "misc": {
+    "loading": "",
+    "try_again": "",
+    "reload_page": "",
+    "return_to_home_page": ""
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "@podverse/i18n-catalog",
+  "version": "5.5.2",
+  "private": true,
+  "description": "Layered i18n catalog sources and build scripts",
+  "type": "module",
+  "scripts": {
+    "i18n:compile": "ts-node --project tsconfig.scripts.json scripts/i18n-compile.ts",
+    "i18n:translate": "ts-node --project tsconfig.scripts.json scripts/i18n-translate.ts",
+    "i18n:validate": "ts-node --project tsconfig.scripts.json scripts/i18n-validate.ts"
+  },
+  "devDependencies": {
+    "dotenv": "^17.2.2",
+    "openai": "^6.27.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "language": {
+    "language": "Langue",
+    "description": "Choisissez la langue utilisée dans toute l'application.",
+    "select_language": "Sélectionner la langue",
+    "languages": {
+      "en-US": "Anglais",
+      "es": "Espagnol",
+      "fr": "Français",
+      "el-GR": "Grec"
+    }
+  },
+  "settings": {
+    "ui_theme": {
+      "theme": "Thème",
+      "description": "Choisissez le thème de couleur utilisé dans toute l'application.",
+      "light": "Clair",
+      "dark": "Sombre",
+      "dracula": "Dracula",
+      "violet": "Violet",
+      "ember": "Braise",
+      "dawn": "Aurore"
+    }
+  },
+  "errors": {
+    "boundary_title": "Quelque chose a mal tourné",
+    "boundary_message": "Une erreur inattendue est survenue. Veuillez réessayer.",
+    "global_title": "Erreur d'application",
+    "global_message": "Une erreur critique est survenue. Veuillez actualiser la page.",
+    "details_development_only": "Détails de l'erreur (développement uniquement)"
+  },
+  "misc": {
+    "loading": "Chargement…",
+    "try_again": "Réessayez",
+    "reload_page": "Recharger la page",
+    "return_to_home_page": "Aller à l'accueil"
+  }
+}

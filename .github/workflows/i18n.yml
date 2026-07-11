@@ -4,7 +4,7 @@ on:
   push:
     branches: [develop]
     paths:
-      - "apps/*/i18n/originals/en-US.json"
+      - "packages/i18n-catalog/*/originals/en-US.json"
 
 # Prevent concurrent pushes to develop - queue instead of cancel
 concurrency:
@@ -50,9 +50,6 @@ jobs:
             fi
           done
 
-      - name: Build packages
-        run: npm run build:packages
-
       - name: Run i18n translations
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -74,8 +71,8 @@ jobs:
           # Configure remote URL with GitHub App token for authenticated push
           git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
 
-          # Only commit originals and overrides (compiled is generated at build time)
-          git add apps/*/i18n/originals/ apps/*/i18n/overrides/
+          # Only commit catalog originals and overrides (compiled is generated at build time)
+          git add packages/i18n-catalog/*/originals/ packages/i18n-catalog/*/overrides/
 
           if git diff --staged --quiet; then
             echo "No translation changes"

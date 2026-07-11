@@ -31,7 +31,7 @@ import {
   resolveEmbedPlaybackResetSeconds,
 } from '../../../lib/embed/resolveEmbedPlaybackResetSeconds';
 import type { MusicItemPlaybackIntent, PlaybackLoadDecision } from '../../../lib/playback';
-import { clampNearEndSeconds } from '../../../lib/playback/clampNearEndSeconds';
+import { clampNearEndSeconds } from '../../../lib/playback';
 import {
   checkIfIsAudioFile,
   checkIfIsVideoFile,

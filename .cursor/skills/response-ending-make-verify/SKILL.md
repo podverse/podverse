@@ -33,13 +33,23 @@ Use this skill when answering implementation requests in this repo.
 
 E2E commands **do not run** API integration tests by default. Only add API verification commands when the change affected API code.
 
+## Unit test commands (repo root)
+
+Follow **commands-from-monorepo-root** rule:
+
+- **Full unit tier:** `npm run test:unit` (root orchestrator; do not use with `-w`)
+- **Scoped workspace:** `npm run test -w <workspace>` — verify the workspace `package.json` defines `test`
+- **Several workspaces:** `node scripts/ci/run-workspaces.mjs --script test --workspaces <paths…>`
+
+**Never** suggest `npm run test:unit -w <workspace>` — that script name exists only at repo root.
+
 ## Copy-pasta final prompt (cumulative verification)
 
 When you complete the **last** step in a plan set (`COPY-PASTA.md` / `00-EXECUTION-ORDER.md`):
 
 1. Assume the operator ran every COPY-PASTA prompt back-to-back **without** running tests until this final step.
 2. Collect **Verification** sections from each numbered plan file in the set.
-3. Merge into one fenced `bash` block for the operator: `npm run build:packages`, `npm run lint`, `npm run test:unit`, `npm run test:e2e:api`, scoped `make e2e_test_*_report_spec`, etc., as applicable to the set.
+3. Merge into one fenced `bash` block for the operator: `npm run build:packages`, `npm run lint`, `npm run test:unit` (or scoped `npm run test -w <workspace>` when the phase is narrow), `npm run test:e2e:api`, scoped `make e2e_test_*_report_spec`, etc., as applicable to the set.
 4. Deduplicate commands; order: build/lint → unit → API → E2E (scoped before full suite).
 5. For intermediate COPY-PASTA steps (not the last), end with verification commands for **that step only**.
 

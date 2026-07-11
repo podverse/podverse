@@ -91,38 +91,33 @@ export function setSSRAccountForLocale(account: DTOAccount | null) {
   cachedAccount = account;
 }
 
+async function loadCompiledMessages(locale: string) {
+  try {
+    return (await import(`../../i18n/compiled/${locale}.json`)).default;
+  } catch {
+    const base = locale.split('-')[0];
+    if (base) {
+      try {
+        return (await import(`../../i18n/compiled/${base}.json`)).default;
+      } catch {
+        // do nothing
+      }
+    }
+
+    return (await import('../../i18n/compiled/en-US.json')).default;
+  }
+}
+
 export default getRequestConfig(async () => {
   const locale = await detectLocale(cachedAccount);
   if (!locale) {
     throw new Error('Failed to detect locale');
   }
 
-  let originals;
-  try {
-    let localeOriginals;
-    try {
-      localeOriginals = (await import(`../../i18n/originals/${locale}.json`)).default;
-    } catch {
-      const base = locale.split('-')[0];
-      if (base) {
-        try {
-          localeOriginals = (await import(`../../i18n/originals/${base}.json`)).default;
-        } catch {
-          localeOriginals = null;
-        }
-      } else {
-        localeOriginals = null;
-      }
-    }
-
-    const enOriginals = (await import('../../i18n/originals/en-US.json')).default;
-    originals = localeOriginals ? { ...enOriginals, ...localeOriginals } : enOriginals;
-  } catch {
-    originals = (await import('../../i18n/originals/en-US.json')).default;
-  }
+  const messages = await loadCompiledMessages(locale);
 
   return {
     locale,
-    messages: originals,
+    messages,
   };
 });

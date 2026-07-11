@@ -18,9 +18,9 @@ alwaysApply: false
   from the app via props (or `children` / `ReactNode` already produced by the app).
 - For multi-string controls, prefer a small typed `labels` object or named string props
   (see `CursorPagination`, `CopyToClipboardButton`).
-- When adding new copy-bearing props, add keys to `apps/web` and/or
-  `apps/management-web` `i18n/originals/en-US.json` and keep other locales in sync (see
-  `i18n-management` rule).
+- When adding new copy-bearing props, add keys to the correct
+  `packages/i18n-catalog/{shared,consumer,management}/originals/en-US.json` layer and keep other
+  locales in sync via `npm run i18n:all` (see **`i18n-management`** rule).
 
 ## Do not
 

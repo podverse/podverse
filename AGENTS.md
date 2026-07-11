@@ -54,19 +54,20 @@ npm run dev_pi_bulk_feeds_add_from_file -w apps/workers -- -startId 1 -endId 10 
 Build packages in this order (dependencies must be built first):
 
 1. `helpers` (core utilities, types, DTOs) — **MUST build first**
-2. Then in parallel:
+2. `playback-core` (shared playback/queue policy) — **immediately after helpers**
+3. Then in parallel:
    - `helpers-validation` (validation utilities)
    - `helpers-requests` (API request types and utilities)
    - `helpers-backend` (backend-specific utilities)
    - `helpers-browser` (browser-specific utilities)
    - `helpers-config` (configuration validation)
-3. `external-services-firebase`, `external-services-paypal`, `external-services-podcast-index` (parallel)
-4. `orm`
-5. `notifications`
-6. `parser`
-7. `mq`
+4. `external-services-firebase`, `external-services-paypal`, `external-services-podcast-index` (parallel)
+5. `orm`
+6. `notifications`
+7. `parser`
+8. `mq`
 
-**Note:** The 5 specialized helper packages (validation, requests, backend, browser, config) all depend on core `@podverse/helpers` but don't depend on each other, so they can build in parallel after `helpers` completes.
+**Note:** `playback-core` depends only on `@podverse/helpers`. The 5 specialized helper packages (validation, requests, backend, browser, config) all depend on core `@podverse/helpers` but don't depend on each other, so they can build in parallel after `helpers` and `playback-core` complete.
 
 ## Critical Rules
 
@@ -172,6 +173,7 @@ apps/               # Deployable applications
   workers/          # Background job processors
   management-api/   # Admin API
   management-web/   # Admin dashboard
+  mobile/           # React Native + Expo (Tier 5 consumer; off Node build graph)
 
 extensions/         # Optional extension sidecar images (operator-selected)
   prometheus/       # @podverse/extension-prometheus — OTLP + Prometheus scrape
@@ -179,20 +181,21 @@ extensions/         # Optional extension sidecar images (operator-selected)
 
 ### Where to Find Things
 
-| Looking for...             | Location                                                                         |
-| -------------------------- | -------------------------------------------------------------------------------- |
-| API routes                 | `apps/api/src/routes/`                                                           |
-| Database entities          | `packages/orm/src/entities/`                                                     |
-| Database services          | `packages/orm/src/services/`                                                     |
-| Shared types/DTOs          | `packages/helpers/src/dto/`                                                      |
-| Feed parsing               | `packages/parser/src/`                                                           |
-| Web pages                  | `apps/web/src/app/`                                                              |
-| Environment templates      | `infra/config/env-templates/` (app stubs link to `apps/*/.env.example`)          |
-| Workers startup validation | `apps/workers/src/lib/startup/validation.ts` (see [ENV.md](apps/workers/ENV.md)) |
-| K8s manifests              | `infra/k8s/`                                                                     |
-| Extension sidecar source   | `extensions/<id>/` (K8s wiring: `infra/k8s/base/common/`)                        |
-| Jenkins pipelines          | `infra/pipelines/jenkins/`                                                       |
-| GitHub Actions             | `.github/workflows/`                                                             |
+| Looking for...             | Location                                                                                                                                                               |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API routes                 | `apps/api/src/routes/`                                                                                                                                                 |
+| Database entities          | `packages/orm/src/entities/`                                                                                                                                           |
+| Database services          | `packages/orm/src/services/`                                                                                                                                           |
+| Shared types/DTOs          | `packages/helpers/src/dto/`                                                                                                                                            |
+| Feed parsing               | `packages/parser/src/`                                                                                                                                                 |
+| Web pages                  | `apps/web/src/app/`                                                                                                                                                    |
+| Mobile app (RN + Expo)     | `apps/mobile/` — see [apps/mobile/AGENTS.md](apps/mobile/AGENTS.md), [APPS-MOBILE.md](apps/mobile/APPS-MOBILE.md); Tier 5 consumer (with web); separate macOS CI track |
+| Environment templates      | `infra/config/env-templates/` (app stubs link to `apps/*/.env.example`)                                                                                                |
+| Workers startup validation | `apps/workers/src/lib/startup/validation.ts` (see [ENV.md](apps/workers/ENV.md))                                                                                       |
+| K8s manifests              | `infra/k8s/`                                                                                                                                                           |
+| Extension sidecar source   | `extensions/<id>/` (K8s wiring: `infra/k8s/base/common/`)                                                                                                              |
+| Jenkins pipelines          | `infra/pipelines/jenkins/`                                                                                                                                             |
+| GitHub Actions             | `.github/workflows/`                                                                                                                                                   |
 
 ## Coding Patterns
 
@@ -266,7 +269,7 @@ logger.error('Feed parsing failed', { error, feedUrl });
 
 - ❌ Modify files in `i18n/compiled/` (generated at build time, not committed)
 - ❌ Add locales without updating all sync points (see `docs/localization/I18N.md`)
-- ❌ Use empty strings in `i18n/originals/` (use override files for blanks)
+- ❌ Use empty strings in catalog `originals/` (use override files for blanks)
 
 ### General
 

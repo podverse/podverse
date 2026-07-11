@@ -1,0 +1,38 @@
+{
+  "name": "@podverse/playback-core",
+  "version": "5.5.2",
+  "type": "module",
+  "sideEffects": false,
+  "description": "Shared playback and queue policy for Podverse web and mobile",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "npm run lint && tsc",
+    "build:prod": "tsc",
+    "build:watch": "tsc --build --watch --preserveWatchOutput",
+    "lint": "eslint ./src --max-warnings 0",
+    "lint:fix": "eslint ./src --fix",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "license": "AGPL-3.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@podverse/helpers": "*"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.9"
+  }
+}

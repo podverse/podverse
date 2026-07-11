@@ -8,6 +8,14 @@
 
 Lower tiers cannot depend on higher (see `.cursor/rules/architecture-tier-dependencies.mdc`; full table in `.llm/context/architecture.md`).
 
+### Mobile (`apps/mobile`)
+
+- **Tier 5 consumer** (React Native + Expo), alongside web — imports shared packages downward only; **not** on `build:packages` / `build:apps`.
+- **iOS simulator examples:** use `iPhone 16 Pro` / `iPhone 17 Pro` or `--device` (interactive) — not iPhone 15 family ([mobile-ios-simulator](/.cursor/rules/mobile-ios-simulator.mdc)).
+- App-specific rules: [apps/mobile/AGENTS.md](apps/mobile/AGENTS.md), contributor guide [apps/mobile/APPS-MOBILE.md](apps/mobile/APPS-MOBILE.md).
+- Master plan phasing: **mobile-master-plan-phasing** skill. Mobile E2E uses Maestro/Detox — not `make e2e_*`.
+- Commands from repo root: `npm run <script> -w apps/mobile -- [args]` (when workspace scripts exist).
+
 ## Code Quality
 
 - No `any` types
@@ -23,7 +31,7 @@ Lower tiers cannot depend on higher (see `.cursor/rules/architecture-tier-depend
 
 ## Commands / Terminal
 
-- **Commands from repo root**: When giving terminal or npm commands, always give them **relative to the monorepo root**. Use `npm run <script> -w apps/<app> -- [args]` instead of instructing users to `cd apps/workers` (or similar) first. See `.cursor/rules/commands-from-monorepo-root.mdc`.
+- **Commands from repo root**: When giving terminal or npm commands, always give them **relative to the monorepo root**. Use `npm run <script> -w apps/<app> -- [args]` instead of instructing users to `cd apps/workers` (or similar) first. **Root-only scripts** (`test:unit`, `build:packages`, `lint`, …) must not be scoped with `-w`; scoped unit tests use `npm run test -w <workspace>`. See `.cursor/rules/commands-from-monorepo-root.mdc`.
 - **Copy button**: Always put runnable commands in a **fenced code block** (e.g. `bash ... `) so the IDE shows a copy button. Do not give only inline commands when the user may want to run them.
 
 ## Formatting Rules

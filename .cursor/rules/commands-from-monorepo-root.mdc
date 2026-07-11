@@ -17,7 +17,8 @@ alwaysApply: true
 - When you change flake, env, or scripts and the user will want to run something to verify, end with a fenced code block containing the exact command(s) to run.
 - When giving verification or run instructions (smoke test, apply, confirm), always provide a final fenced code block with one command per line so the user can copy-paste.
 - Before suggesting `npm run <script> -w <workspace>`, verify that `<script>` exists in that workspace's `package.json`; root aggregate scripts are not automatically available inside workspaces.
-- Use root `npm run test:unit` for unit tests. Do **not** suggest `npm run test:unit -w apps/web` or `npm run test:unit -w apps/management-web`; `test:unit` is a root orchestration script that runs workspace `test` scripts and excludes API integration tests.
+- Use root `npm run test:unit` for the **full** unit tier (all workspaces with a `test` script, minus API/mobile exclusions). Do **not** scope `test:unit` with `-w`.
+- For **scoped** unit tests from repo root, use the workspace `test` script: `npm run test -w <workspace>` (e.g. `npm run test -w apps/web`, `npm run test -w @podverse/playback-core`).
 - From repo root: `npm run <script> -w apps/workers -- <args>`
 - From repo root: `npm run build:packages` then `npm run build -w apps/workers`
 - From repo root: `node apps/workers/dist/index.js devPiBulkFeedsAddFromFile -startId 1 -endId 10 -q rss-slow` (uses hardcoded path `infra/data/dev/podcast-index-feeds` relative to monorepo root)
@@ -27,7 +28,33 @@ alwaysApply: true
 
 - Don't say: "cd apps/workers" then "npm run dev_pi_bulk_feeds_add_from_file -- ..."
 - Don't give app-specific commands that assume the user is already inside an app directory
-- Don't scope root aggregate scripts with `-w` unless the workspace actually defines that exact script. Known bad example: `npm run test:unit -w apps/web`.
+- Don't scope **root-only** orchestration scripts with `-w`. They exist only in root `package.json`.
+
+**Root-only scripts (never use with `-w`):** `test:unit`, `build:packages`, `build:apps`, `build:tools`, `lint`, `test:e2e:api`, `test:e2e:web`, `test`, `test:reports`.
+
+**Known bad examples:**
+
+- `npm run test:unit -w apps/web` — workspaces define `test`, not `test:unit`
+- `npm run test:unit -w @podverse/playback-core` — same failure
+- `npm run build:packages -w packages/helpers` — use root `npm run build:packages` or `npm run build -w packages/helpers`
+
+## Root-only vs workspace scripts
+
+The operator runs commands from **monorepo root**. Two patterns:
+
+| Goal | Command |
+| ---- | ------- |
+| Full unit tier | `npm run test:unit` |
+| One workspace unit tests | `npm run test -w <workspace>` |
+| Several workspaces unit tests | `node scripts/ci/run-workspaces.mjs --script test --workspaces <path> <path>` |
+| Build all packages (ordered) | `npm run build:packages` |
+| Build one package | `npm run build -w packages/<name>` |
+| Lint entire repo | `npm run lint` |
+
+**Mobile (`apps/mobile`):** Still use root + `-w` when the workspace defines the script (e.g.
+`npm run start -w apps/mobile`). `apps/mobile` is excluded from root `test:unit` until RN Vitest is
+configured; mobile device E2E uses Maestro/Detox make targets (not `make e2e_*`). See
+**mobile-master-plan-phasing** and `apps/mobile/APPS-MOBILE.md`.
 
 ## Examples
 
@@ -47,6 +74,14 @@ npm run build -w apps/workers
 
 ```bash
 npm run <script-name> -w <workspace> -- [args]
+```
+
+**Unit tests — full tier vs scoped:**
+
+```bash
+npm run test:unit
+npm run test -w apps/web
+npm run test -w @podverse/playback-core
 ```
 
 This keeps instructions copy-pasteable from repo root and avoids confusion about where `.env` and default paths resolve. Using fenced code blocks ensures the UI shows a copy button for each command.

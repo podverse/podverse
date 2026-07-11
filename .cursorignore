@@ -16,3 +16,16 @@
 
 # Optional human LLM history workflow (archived policy text; not agent instructions)
 docs/development/llm/LLM-HISTORY-WORKFLOW-ARCHIVE.md
+
+# Mobile native build output (generated; never index)
+apps/mobile/ios/Pods/
+apps/mobile/ios/build/
+apps/mobile/android/.gradle/
+apps/mobile/android/build/
+apps/mobile/android/app/build/
+apps/mobile/.expo/
+apps/mobile/node_modules/
+
+# Mobile generated assets / bundles
+apps/mobile/**/*.hbc
+apps/mobile/ios/*.xcworkspace/xcuserdata/

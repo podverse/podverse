@@ -27,7 +27,7 @@ When **`actions`** is set, **`ResourceTableWithFilter`** renders **View → Edit
 1. Define routes under **`apps/management-web/src/app/(management)/…`** (App Router).
 2. Fetch list data in the **client page** (or server wrapper + client child); handle loading/error in app code.
 3. Render **`FilterTablePageLayout`** + **`ManagementPageShell`** (or existing shell pattern) + **`ResourceTableWithFilter`** with **`columns`**, **`rows`**, **`renderCells`**, **`actions`**, **`deleteConfirm`**, and filter/sort/pagination props matching the API.
-4. Add **i18n** keys under **`apps/management-web/i18n/originals/`** (and overrides); pass translated strings into **`labels`** and **`deleteConfirm`**.
+4. Add **i18n** keys under **`packages/i18n-catalog/management/originals/`** (and overrides for human fixes); pass translated strings into **`labels`** and **`deleteConfirm`**.
 
 ## References
 

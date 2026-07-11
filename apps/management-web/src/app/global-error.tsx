@@ -26,8 +26,8 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
 
   useEffect(() => {
     loadGlobalErrorTranslations({
-      loadMessages: (locale) => import(`../../i18n/originals/${locale}.json`),
-      loadFallback: () => import('../../i18n/originals/en-US.json'),
+      loadMessages: (locale) => import(`../../i18n/compiled/${locale}.json`),
+      loadFallback: () => import('../../i18n/compiled/en-US.json'),
       fallbackErrors: DEFAULT_GLOBAL_ERROR_FALLBACK_ERRORS,
       fallbackMisc: DEFAULT_GLOBAL_ERROR_FALLBACK_MISC,
     }).then(setTranslations);

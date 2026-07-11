@@ -1,0 +1,64 @@
+---
+description: Mobile car surfaces and background audio are native; JS writes a native cache
+globs:
+  - "apps/mobile/**"
+alwaysApply: false
+---
+
+# CarPlay / Android Auto native cache contract
+
+Audio and car browse/play must work when the **JS runtime is suspended or the phone app is closed**.
+That requires native platform services — not JavaScript-owned playback or car menus.
+
+## Architecture constraints
+
+- **Car browse trees are native-only.** iOS: CarPlay `CPTemplate` scene (Swift). Android: Media3
+  `MediaLibraryService` browse tree — **not** a JS/React Native car UI.
+- **Do not** implement car browsing as JS-only navigation or third-party RN car plugins. JS cannot
+  run when the app is killed; car menus must read **native** data.
+- **Do not use `react-native-track-player`** as the Podverse media engine or car architecture. Use
+  first-party **`podverse-media-engine`** (Track 2): single shared **AVPlayer** (iOS) / **ExoPlayer**
+  (Media3) instance for phone UI, lock screen, and car now-playing.
+- Car now-playing and remote commands bind to that **same engine instance** — not a separate player
+  per surface.
+
+## Native cache (JS writes, native reads)
+
+JS syncs a small cache whenever queue, downloads, or library index changes:
+
+| Payload (Track 12)              | Purpose                                      |
+| ------------------------------- | -------------------------------------------- |
+| Queue snapshot                  | Now-playing + upcoming for car skip/advance  |
+| Downloads index                 | Offline items playable from car              |
+| Library browse index            | Podcast/playlist lists for car templates     |
+
+Schema and storage are defined in **Track 12** (master plan step **12.1** —
+[380-native-cache-schema](/docs/proposals/mobile/_master-plan_/details/380-native-cache-schema.md)).
+JS write-path: steps **10.22**, **12.4**; engine hooks: **2.35**, **114-engine-native-cache-hooks**.
+
+Native car services read the cache **without starting JS**. Spikes **12.5–12.6** prove read-with-app-closed.
+
+## Platform services
+
+| Platform | Car / background owner                                      |
+| -------- | ----------------------------------------------------------- |
+| iOS      | CarPlay scene + `AVAudioSession` + `MPNowPlayingInfoCenter` |
+| Android  | Media3 `MediaLibraryService` foreground service + session  |
+
+Android Auto connects to the **service**, not the Activity. CarPlay templates are driven from **Swift**
+reading the cache.
+
+## LLM do / don't
+
+- **Do** design queue/auto-queue/download stores to call native cache writes on every mutation.
+- **Do** keep car native code in `apps/mobile/ios/`, `android/`, `modules/` — parallel worktree OK
+  (see **mobile-worktree-scope**).
+- **Don't** assume the RN app must be foreground for car playback.
+- **Don't** duplicate queue policy in native — policy stays in `@podverse/playback-core`; native
+  executes transport and displays cached state.
+
+## Related
+
+- [DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md)
+- **mobile-playback** skill — bridge + engine; cache write from queue hooks
+- Master plan **Track 12** — CarPlay / Android Auto implementation

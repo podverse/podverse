@@ -26,8 +26,8 @@
     "clean": "rm -rf .next",
     "type-check": "tsc --noEmit -p .",
     "validate-env": "ts-node --project tsconfig.scripts.json scripts/validate-env.ts",
-    "i18n-compile": "ts-node --project tsconfig.scripts.json scripts/i18n/i18n-compile.ts",
-    "i18n-llm-translations": "ts-node --project tsconfig.scripts.json scripts/i18n/i18n-llm-translations.ts"
+    "i18n-compile": "ts-node --project ../../packages/i18n-catalog/tsconfig.scripts.json ../../packages/i18n-catalog/scripts/i18n-compile.ts",
+    "i18n-llm-translations": "ts-node --project ../../packages/i18n-catalog/tsconfig.scripts.json ../../packages/i18n-catalog/scripts/i18n-translate.ts"
   },
   "license": "AGPL-3.0",
   "dependencies": {
@@ -42,6 +42,7 @@
     "@podverse/integrations-web": "*",
     "@podverse/observability": "*",
     "@podverse/parser-mapping": "*",
+    "@podverse/playback-core": "*",
     "@podverse/ui": "*",
     "@podverse/v4v-btc-ln": "*",
     "@podverse/v4v-helpers": "*",
@@ -63,6 +64,7 @@
   "devDependencies": {
     "@next/bundle-analyzer": "^16.1.6",
     "@playwright/test": "^1.59.1",
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.0",
     "@types/node": "^24.12.0",
     "@types/react": "^19.2.16",

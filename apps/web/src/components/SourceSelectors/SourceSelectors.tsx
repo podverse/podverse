@@ -9,8 +9,10 @@ import { useMediaPlayer } from '../../contexts/MediaPlayer';
 import { useMediaPlayerControls } from '../../contexts/MediaPlayerControls';
 import { useMediaPlayerCurrentTime } from '../../contexts/MediaPlayerCurrentTime';
 import { useModals } from '../../contexts/Modals';
-import { resolveResumeAtSecondsForEnclosureSwitch } from '../../lib/playback/resolveResumeAtSecondsForEnclosureSwitch';
-import { buildEnclosureSwitchPlaybackDecisionIfChanged } from '../../lib/playback/stageEnclosureSwitchFromSelection';
+import {
+  buildEnclosureSwitchPlaybackDecisionIfChanged,
+  resolveResumeAtSecondsForEnclosureSwitch,
+} from '../../lib/playback';
 import { downloadAndSaveFile } from '../../utils/fileDownloader';
 import { showToast, showToastPromiseWithLoading } from '../Toast/Toast';
 import { SourceSelectorRow } from './SourceSelectorRow';

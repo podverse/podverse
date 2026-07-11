@@ -29,11 +29,28 @@ export const metadata: Metadata = {
   },
 };
 
+async function loadCompiledMessages(locale: string) {
+  try {
+    return (await import(`../../i18n/compiled/${locale}.json`)).default;
+  } catch {
+    const base = locale.split('-')[0];
+    if (base) {
+      try {
+        return (await import(`../../i18n/compiled/${base}.json`)).default;
+      } catch {
+        // do nothing
+      }
+    }
+
+    return (await import('../../i18n/compiled/en-US.json')).default;
+  }
+}
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const runtimeConfig = await resolveManagementWebRuntimeConfigForRequest();
   const customThemeCssText = getCustomThemeCssText(runtimeConfig);
   const locale = await getLocale();
-  const messages = (await import(`../../i18n/originals/${locale}.json`)).default;
+  const messages = await loadCompiledMessages(locale);
 
   const cookieStore = await cookies();
   const ssrUITheme = toUITheme(cookieStore.get(UI_THEME_COOKIE)?.value);

@@ -1,8 +1,12 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
+import { expectMediaPlayerTitleVisible } from './helpers/mediaPlayerAssertions';
 import {
   E2E_EMBED_VIDEO_CHANNEL_ID_TEXT,
+  E2E_PODCAST_ITEM_RESUME_DURATION_SECONDS,
+  E2E_PODCAST_ITEM_RESUME_NONE_ID_TEXT,
+  E2E_PODCAST_QUEUE_ID_TEXT,
   EMBED_SAMPLE_EPISODE_VIDEO_TITLE,
 } from './helpers/seedConstants';
 import { actionAndCapture, captureVerifiedElement } from './helpers/stepScreenshots';
@@ -18,6 +22,7 @@ const DESKTOP_VIEWPORT = { width: 1200, height: 900 };
 // EMBED_FIXTURE_VIDEO_ITEM_TWO_ID_TEXT). It has the same audio+video alternate enclosures as
 // episode one, so its row shows the "Select media source" icon.
 const EMBED_SAMPLE_EPISODE_VIDEO_TWO_TITLE = 'Episode Two (video)';
+const E2E_PODCAST_RESUME_NONE_TITLE = 'E2E Podcast No Stored Position';
 const SELECT_SOURCE_LABEL = 'Select media source';
 const AUDIO_SOURCE_LABEL = 'OGG Opus';
 
@@ -26,6 +31,29 @@ async function loginSeedUser(page: Page): Promise<void> {
     data: { email: LOGIN_EMAIL, password: LOGIN_PASSWORD },
   });
   expect(loginResponse.ok(), await loginResponse.text()).toBeTruthy();
+}
+
+/**
+ * Reset podcast-queue now-playing before navigation. Earlier specs in the full
+ * E2E suite (e.g. media-player-addbyrss-resume) promote add-by-RSS rows to
+ * list_position 0; QueueController then auto-loads that resource asynchronously
+ * and can overwrite list-row playback if the fetch completes late.
+ */
+async function promotePodcastItemToNowPlaying(
+  page: Page,
+  itemIdText: string,
+  playbackPositionSeconds: number
+): Promise<void> {
+  const response = await page.request.post(
+    `${API_BASE_URL}/queue/${E2E_PODCAST_QUEUE_ID_TEXT}/item/${itemIdText}/now-playing`,
+    {
+      data: {
+        playback_position: playbackPositionSeconds,
+        media_file_duration: E2E_PODCAST_ITEM_RESUME_DURATION_SECONDS,
+      },
+    }
+  );
+  expect(response.ok(), await response.text()).toBeTruthy();
 }
 
 function fullscreenModalLocator(page: Page): Locator {
@@ -61,7 +89,11 @@ test.describe('Alt-enclosure icon loads the row item', () => {
   test('loads a non-playing row item with the chosen source instead of switching the now-playing item', async ({
     page,
   }, testInfo) => {
+    await promotePodcastItemToNowPlaying(page, E2E_PODCAST_ITEM_RESUME_NONE_ID_TEXT, 0);
+
     await page.goto(`/podcast/${E2E_EMBED_VIDEO_CHANNEL_ID_TEXT}`);
+    await expect(page.locator('#media-player').getByRole('button').first()).toBeVisible();
+    await expectMediaPlayerTitleVisible(page, E2E_PODCAST_RESUME_NONE_TITLE);
 
     const rowOne = episodeRow(page, EMBED_SAMPLE_EPISODE_VIDEO_TITLE, true);
     const rowTwo = episodeRow(page, EMBED_SAMPLE_EPISODE_VIDEO_TWO_TITLE);
@@ -99,6 +131,8 @@ test.describe('Alt-enclosure icon loads the row item', () => {
         await expect(sourceSelectorModalLocator(page)).toHaveCount(0);
       }
     );
+
+    await expectMediaPlayerTitleVisible(page, EMBED_SAMPLE_EPISODE_VIDEO_TWO_TITLE);
 
     // The now-playing item is episode two (the row we clicked), not episode one whose enclosure
     // would have been mutated by the old behavior.

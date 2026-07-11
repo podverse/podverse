@@ -28,8 +28,8 @@ When **web** (`apps/web`) and **management-web** both have a similar generic con
   into `packages/ui`. Apps own localization (`next-intl`) and pass strings in via props or
   `children`.
 - When you add or extend a shared component that needs copy, add the corresponding keys in
-  `apps/web` / `apps/management-web` `i18n/originals/en-US.json` (and keep locales aligned per
-  **`i18n-management`**).
+  `apps/web` / `apps/management-web` catalog layer originals (see **`i18n-management`** and
+  **`i18n-catalog-layers`**).
 - Follow the **`shared-ui-i18n`** workspace rule for details and review expectations.
 
 ## Prefer this order

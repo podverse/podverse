@@ -1,0 +1,26 @@
+---
+description: Every COPY-PASTA prompt must recommend a Cursor model (Auto, Codex 5.3, or Opus 4.8)
+globs:
+  - "**/COPY-PASTA.md"
+  - "**/*-COPY-PASTA.md"
+alwaysApply: false
+---
+
+# COPY-PASTA — Recommended Cursor model
+
+When creating or editing a `COPY-PASTA.md` (or `*-COPY-PASTA.md`) file, **every prompt** must tell
+the operator which Cursor model to use before pasting.
+
+## Required
+
+- Include **`Cursor model:`** (or a phase-level table with a Model column) on **each** prompt.
+- Prefer: **Auto** (cheapest), **Codex 5.3** (medium), **Opus 4.8** (premium).
+- Match tier to risk: mechanical/docs → Auto; standard features → Codex 5.3; native/engine/assembly → Opus 4.8.
+
+## When none of the three fit
+
+Name the alternative model explicitly and add one sentence explaining why (rare).
+
+## Reference
+
+Full workflow: **parallel-plan-execution** skill § Step 5. Mobile master plan phases: **mobile-master-plan-phasing** skill.
