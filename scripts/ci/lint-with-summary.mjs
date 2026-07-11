@@ -1,8 +1,11 @@
 /**
- * Runs type-check, workspace lint, repo-root script lint, and prettier; streams
- * output and prints a summary of errors/warnings at the end. When Prettier
- * fails, prints a unified diff for each failed file so you can see what would
- * change.
+ * Runs i18n compile, type-check, workspace lint, repo-root script lint, and
+ * prettier; streams output and prints a summary of errors/warnings at the end.
+ * When Prettier fails, prints a unified diff for each failed file so you can
+ * see what would change.
+ *
+ * i18n:compile runs first because apps/web and apps/management-web type-check
+ * import generated apps/*/i18n/compiled/*.json (gitignored).
  *
  * Usage: node scripts/ci/lint-with-summary.mjs [lint|lint:fix]
  * Default: lint (use lint:fix for fix mode)
@@ -49,6 +52,9 @@ const repoScriptLintArgs = [
 ];
 
 const steps = [
+  // Generated catalogs are gitignored; web/management-web type-check imports
+  // apps/*/i18n/compiled/*.json, so compile before tsc (local + CI).
+  { name: 'i18n:compile', cmd: 'npm', args: ['run', 'i18n:compile'] },
   { name: 'type-check', cmd: 'node', args: runWorkspacesArgs('type-check') },
   { name: 'lint', cmd: 'node', args: runWorkspacesArgs(mode) },
   { name: 'lint:repo-scripts', cmd: 'npx', args: repoScriptLintArgs },
@@ -166,13 +172,15 @@ for (const step of steps) {
 
 const allOutput = results.map((r) => r.output).join('');
 const summary = summarize(allOutput);
-const typeCheckFailed = results[0].code !== 0;
-const workspaceLintFailed = results[1].code !== 0;
-const repoScriptsLintFailed = results[2].code !== 0;
-const prettierFailed = results[3].code !== 0;
+const i18nCompileFailed = results[0].code !== 0;
+const typeCheckFailed = results[1].code !== 0;
+const workspaceLintFailed = results[2].code !== 0;
+const repoScriptsLintFailed = results[3].code !== 0;
+const prettierFailed = results[4].code !== 0;
 const lintFailed = workspaceLintFailed || repoScriptsLintFailed;
 
 console.log('\n--- Lint summary ---');
+console.log(`i18n:compile: ${i18nCompileFailed ? 'failed' : 'passed'}`);
 console.log(
   `Type-check: ${typeCheckFailed ? 'failed' : 'passed'}${summary.tsErrors ? ` (${summary.tsErrors} TS error(s))` : ''}`
 );
@@ -184,7 +192,7 @@ console.log(
 );
 
 if (prettierFailed && summary.prettierFiles > 0) {
-  const prettierOutput = results[3].output;
+  const prettierOutput = results[4].output;
   const failedFiles = parsePrettierFailedFiles(prettierOutput);
   if (failedFiles.length > 0) {
     console.log('\n--- Prettier (what would change) ---');
@@ -198,5 +206,5 @@ if (prettierFailed && summary.prettierFiles > 0) {
   }
 }
 
-const anyFailed = typeCheckFailed || lintFailed || prettierFailed;
+const anyFailed = i18nCompileFailed || typeCheckFailed || lintFailed || prettierFailed;
 process.exit(anyFailed ? 1 : 0);
