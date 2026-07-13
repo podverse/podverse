@@ -30,16 +30,16 @@ Prefer durable layout fixes. Do **not** recommend root-hoisting Expo, `ln -sf` i
 When telling the operator what to run for mobile deps / native setup, **prefer one root script**
 over multi-step recipes. Bundle steps that usually go together:
 
-| Goal                                         | Prefer                                      | Avoid listing by default                                      |
-| -------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------- |
-| Clean + root + packages + mobile JS install  | `npm run deps:init`                         | `clean:node_modules` → `npm ci` → `build:packages` → `mobile:install` |
-| Same + expo prebuild + CocoaPods             | `npm run deps:init:native`                  | The above plus separate `mobile:prebuild` / `mobile:pod-install` |
-| Failed prebuild / wiped ios+android recovery | `npm run mobile:reset`                      | Bare `prebuild:clean` then `mobile:pod-install`               |
-| Metro only (deps already installed)          | `npm run dev:mobile`                        | `npm --prefix apps/mobile run start`                          |
-| Native run (after prebuild exists)           | `npm run mobile:ios` / `mobile:android`     | Long `expo run:*` / `cd apps/mobile` chains                   |
-| Re-run pods only                             | `npm run mobile:pod-install`                | Raw `pod install` under Nix/direnv                            |
-| Re-generate native trees + pods              | `npm run mobile:prebuild`                   | `expo prebuild` + separate pod step                           |
-| Force clean native regen (deps already OK)   | `npm run mobile:prebuild -- --clean`        | `npm --prefix apps/mobile run prebuild:clean` alone           |
+| Goal                                         | Prefer                                  | Avoid listing by default                                              |
+| -------------------------------------------- | --------------------------------------- | --------------------------------------------------------------------- |
+| Clean + root + packages + mobile JS install  | `npm run deps:init`                     | `clean:node_modules` → `npm ci` → `build:packages` → `mobile:install` |
+| Same + expo prebuild + CocoaPods             | `npm run deps:init:native`              | The above plus separate `mobile:prebuild` / `mobile:pod-install`      |
+| Failed prebuild / wiped ios+android recovery | `npm run mobile:reset`                  | Bare `prebuild:clean` then `mobile:pod-install`                       |
+| Metro only (deps already installed)          | `npm run dev:mobile`                    | `npm --prefix apps/mobile run start`                                  |
+| Native run (after prebuild exists)           | `npm run mobile:ios` / `mobile:android` | Long `expo run:*` / `cd apps/mobile` chains                           |
+| Re-run pods only                             | `npm run mobile:pod-install`            | Raw `pod install` under Nix/direnv                                    |
+| Re-generate native trees + pods              | `npm run mobile:prebuild`               | `expo prebuild` + separate pod step                                   |
+| Force clean native regen (deps already OK)   | `npm run mobile:prebuild -- --clean`    | `npm --prefix apps/mobile run prebuild:clean` alone                   |
 
 Give the step-by-step breakdown only when debugging a specific failing stage. Wrap JS installs with
 `./scripts/nix/with-env` when the agent/sandbox needs the flake; do **not** wrap `mobile:ios` /
@@ -78,16 +78,16 @@ Do **not** add Expo back to the root lockfile.
 
 ## Common failures
 
-| Symptom                                        | Cause                                          | Fix                                                                                |
-| ---------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `Cannot find module '@podverse/helpers'`       | Forgot `mobile:install` or `file:` link broken | `npm run mobile:install` after package path changes                                |
-| Metro cannot resolve package after shared edit | Stale `dist/`                                  | `npm run build:packages` (or watch)                                                |
-| `Unable to resolve "date-fns/…"` from helpers  | Helpers dep not in mobile `node_modules`       | Add the dep to `apps/mobile/package.json`; `npm run mobile:install`                |
-| `expo/config-plugins` not found                | Incomplete mobile install / wrong expo version | Reinstall under `apps/mobile`; check overrides pin SDK 52                          |
-| `Cannot read properties of undefined (reading 'extract')` during prebuild | `tar` v7 override breaks `@expo/cli` (SDK 52 expects tar 6 default export) | Keep `overrides.tar` at `6.2.1`; then `npm run mobile:reset` |
-| glog / Nix SDK errors on pod install           | direnv/Nix `DEVELOPER_DIR`                     | Use `npm run mobile:prebuild` / `mobile:pod-install` (scripts unset Nix pollution) |
-| `Unable to resolve react-native-web`           | Expo auto web without RN-web                   | `platforms: ['ios', 'android']` in `app.config.ts`                                 |
-| Root `npm ci` installs Expo                    | Mobile re-added to root workspaces             | Keep explicit server app list in root `workspaces`                                 |
+| Symptom                                                                   | Cause                                                                      | Fix                                                                                |
+| ------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `Cannot find module '@podverse/helpers'`                                  | Forgot `mobile:install` or `file:` link broken                             | `npm run mobile:install` after package path changes                                |
+| Metro cannot resolve package after shared edit                            | Stale `dist/`                                                              | `npm run build:packages` (or watch)                                                |
+| `Unable to resolve "date-fns/…"` from helpers                             | Helpers dep not in mobile `node_modules`                                   | Add the dep to `apps/mobile/package.json`; `npm run mobile:install`                |
+| `expo/config-plugins` not found                                           | Incomplete mobile install / wrong expo version                             | Reinstall under `apps/mobile`; check overrides pin SDK 52                          |
+| `Cannot read properties of undefined (reading 'extract')` during prebuild | `tar` v7 override breaks `@expo/cli` (SDK 52 expects tar 6 default export) | Keep `overrides.tar` at `6.2.1`; then `npm run mobile:reset`                       |
+| glog / Nix SDK errors on pod install                                      | direnv/Nix `DEVELOPER_DIR`                                                 | Use `npm run mobile:prebuild` / `mobile:pod-install` (scripts unset Nix pollution) |
+| `Unable to resolve react-native-web`                                      | Expo auto web without RN-web                                               | `platforms: ['ios', 'android']` in `app.config.ts`                                 |
+| Root `npm ci` installs Expo                                               | Mobile re-added to root workspaces                                         | Keep explicit server app list in root `workspaces`                                 |
 
 ## Commands (repo root)
 
