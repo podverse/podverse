@@ -77,7 +77,8 @@ if [[ "$PLATFORM" == "ios" ]]; then
     exit 1
   fi
 else
-  # Android: keep the SDK toolchain reachable for Gradle.
+  # Android: SDK + JDK for Gradle. Prefer an existing JAVA_HOME; otherwise use Android Studio's
+  # bundled JBR (JetBrains Runtime). macOS /usr/bin/java is only a stub without a system JDK.
   if [[ -z "${ANDROID_HOME:-}" ]]; then
     if [[ -d "$HOME/Library/Android/sdk" ]]; then
       export ANDROID_HOME="$HOME/Library/Android/sdk"
@@ -85,6 +86,29 @@ else
       export ANDROID_HOME="$HOME/Android/Sdk"
     fi
   fi
+  if [[ -z "${ANDROID_HOME:-}" || ! -d "$ANDROID_HOME" ]]; then
+    echo "Error: Android SDK not found. Install Android Studio and set ANDROID_HOME (default: ~/Library/Android/sdk)." >&2
+    exit 1
+  fi
+  export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+
+  if [[ -z "${JAVA_HOME:-}" || ! -x "${JAVA_HOME}/bin/java" ]]; then
+    for jbr in \
+      "/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
+      "/Applications/Android Studio Preview.app/Contents/jbr/Contents/Home"
+    do
+      if [[ -x "$jbr/bin/java" ]]; then
+        export JAVA_HOME="$jbr"
+        break
+      fi
+    done
+  fi
+  if [[ -z "${JAVA_HOME:-}" || ! -x "${JAVA_HOME}/bin/java" ]]; then
+    echo "Error: no JDK found for Gradle. Install Android Studio (bundled JBR) or set JAVA_HOME to JDK 17+." >&2
+    exit 1
+  fi
+
+  export PATH="$JAVA_HOME/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
 
   if [[ ! -d "$REPO_ROOT/apps/mobile/android" ]]; then
     echo "Error: apps/mobile/android does not exist. Run npm run mobile:prebuild first." >&2
@@ -93,4 +117,7 @@ else
 fi
 
 cd "$REPO_ROOT"
+if [[ "$PLATFORM" == "ios" ]]; then
+  bash "$SCRIPT_DIR/patch-expo-localization-xcode26.sh" "$REPO_ROOT/apps/mobile"
+fi
 exec "$NPM_BIN" --prefix apps/mobile run "$PLATFORM" -- "$@"

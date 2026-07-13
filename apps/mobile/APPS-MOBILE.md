@@ -52,11 +52,20 @@ the root npm workspace — do **not** use `-w @podverse/mobile` / `-w apps/mobil
 `npm --prefix apps/mobile`.
 
 ```bash
+# One-shot: clean + root install + build:packages + mobile install
+./scripts/nix/with-env npm run deps:init
+# Optional iOS native trees + CocoaPods:
+./scripts/nix/with-env npm run deps:init:native
+
+# Or step-by-step:
 ./scripts/nix/with-env npm ci                 # server workspaces only (no Expo)
 ./scripts/nix/with-env npm run build:packages # prerequisite before Metro (shared dist/)
 ./scripts/nix/with-env npm run mobile:install # apps/mobile package-lock.json
 ./scripts/nix/with-env npm run dev:mobile
 ```
+
+Root `rm -rf node_modules && npm i` (or root `npm ci`) does **not** install mobile — `apps/mobile`
+is outside the npm workspaces. Use `deps:init` or `mobile:install` for that tree.
 
 For native iOS/Android builds use the Nix-stripping root scripts below (`npm run mobile:ios` /
 `mobile:android`) — **not** `./scripts/nix/with-env npm --prefix apps/mobile run ios`, which runs
@@ -90,10 +99,26 @@ Install on the host machine (not provided by the repo flake):
 | Platform | Requirement                                                                                           |
 | -------- | ----------------------------------------------------------------------------------------------------- |
 | iOS      | Xcode (current stable), Xcode Command Line Tools, CocoaPods (`gem install cocoapods` or Homebrew)     |
-| Android  | Android Studio, Android SDK (API 35+), `ANDROID_HOME` or `ANDROID_SDK_ROOT`, platform-tools on `PATH` |
+| Android  | Android Studio (SDK + emulator), `ANDROID_HOME` (default `~/Library/Android/sdk`), JDK 17+            |
 | Both     | Physical device or simulator/emulator for dev-client builds (steps 3.14–3.15)                         |
 
+**Android JDK:** `npm run mobile:android` uses [`run-expo-macos.sh`](/scripts/mobile/run-expo-macos.sh),
+which sets `JAVA_HOME` from Android Studio’s bundled JBR when unset. You do not need a separate system
+JDK if Studio is installed. Prefer a **phone** AVD (e.g. `Pixel_6_Pro_API_33`), not a tablet:
+
+```bash
+"$HOME/Library/Android/sdk/emulator/emulator" -list-avds
+npm run mobile:android -- --device Pixel_6_Pro_API_33
+```
+
 After first clone or dependency change, from **monorepo root** (not `apps/` or `apps/mobile/ios`):
+
+```bash
+npm run deps:init:native   # clean + installs + build:packages + prebuild/pods
+npm run dev:mobile
+```
+
+Equivalent step-by-step:
 
 ```bash
 npm ci
@@ -238,6 +263,37 @@ npm run build:packages
 npm run mobile:install
 ```
 
+### `DOMParser.parseFromString: mimeType "undefined" is not valid` (`expo run:ios --device`)
+
+Expo `@expo/plist` calls `parseFromString(xml)` with one argument while listing USB devices
+(usbmux). `@xmldom/xmldom@0.9.x` requires an explicit mimeType and throws. Mobile must pin
+**`@xmldom/xmldom@0.8.10`** in `apps/mobile/package.json` overrides (do **not** copy the root
+`0.9.10` pin used for video.js). After changing the override:
+
+```bash
+npm run mobile:install
+npm run mobile:ios -- --device
+```
+
+Quick unblock without reinstall: target a named simulator (may skip usbmux probing):
+
+```bash
+xcrun simctl list devices available
+npm run mobile:ios -- --device "iPhone 16 Pro"
+```
+
+### `Unable to resolve "date-fns/…"` (or `he` / `uuid`) from `@podverse/helpers`
+
+Metro only searches `apps/mobile/node_modules`. `@podverse/helpers` is a `file:` link; its
+dependencies are not auto-installed into the mobile tree. Declare the same runtime deps on
+`apps/mobile` (`date-fns`, `he`, `uuid`), then:
+
+```bash
+npm run mobile:install
+```
+
+Restart `npm run dev:mobile` and reload the sim (`r`).
+
 ### `Cannot find module 'expo/config-plugins'` / wrong Expo major
 
 Reinstall under `apps/mobile` and confirm overrides pin SDK 52. Do **not** add Expo to the root
@@ -313,6 +369,21 @@ Workaround until an Expo/RN upgrade ships fmt ≥ 12.1.0 (see
 [fmtlib/fmt#4740](https://github.com/fmtlib/fmt/issues/4740),
 [react-native#56225](https://github.com/facebook/react-native/pull/56225)).
 
+### `switch must be exhaustive` in `expo-localization` / `LocalizationModule.swift` (Xcode 26)
+
+iOS 26 added `Calendar.Identifier` cases. Expo SDK 52's `expo-localization@16.0.1` switch has no
+`@unknown default`, so Swift fails with `switch must be exhaustive` (xcodebuild exit 65). The repo
+patches that file via
+[`patch-expo-localization-xcode26.sh`](/scripts/mobile/patch-expo-localization-xcode26.sh) after
+`mobile:install` and before `mobile:ios`. From **repo root**:
+
+```bash
+npm run mobile:install
+npm run mobile:ios -- --device "iPhone 17 Pro"
+```
+
+Upstream fix is in Expo SDK 53+; do not bump Expo solely for this while mobile stays on SDK 52.
+
 ### `No development build (com.podverse.app.next) is installed` (Metro **`i`** / **`a`**)
 
 `npm run dev:mobile` starts Metro only. The dev-client native app is not Expo Go — it must be built
@@ -361,14 +432,15 @@ Do not run the script from `apps/mobile/ios` — paths are relative to the monor
 
 ## Metro monorepo configuration
 
-When `metro.config.js` is added (Track 3), it must support the npm workspace layout:
+`apps/mobile/metro.config.js` watches `packages/` and resolves modules from
+**`apps/mobile/node_modules` only** (standalone install — not root workspaces).
 
-- **`watchFolders`:** include the **repository root** so Metro resolves hoisted `@podverse/*`
-  symlinks and shared dependencies (e.g. axios, uuid, date-fns).
-- **`resolver.nodeModulesPaths`:** search `apps/mobile/node_modules` and root `node_modules`.
-- **`@podverse/*` resolution:** resolve to each package's published entry (`dist/index.js` per
-  `"main"` in package.json — e.g.
-  [packages/helpers/package.json](/packages/helpers/package.json)).
+- **`watchFolders`:** `packages/` so Metro sees shared package `dist/` after `build:packages`.
+- **`resolver.nodeModulesPaths`:** `apps/mobile/node_modules` only (keeps Expo/RN isolated from root).
+- **`@podverse/*`:** `file:` links → each package `"main"` / `exports` entry under `dist/`.
+- **Transitive deps of `file:` packages** (`date-fns`, `he`, `uuid` from `@podverse/helpers`, etc.)
+  must be listed as **direct** `apps/mobile` dependencies so they install under
+  `apps/mobile/node_modules`. Root-hoisted copies are invisible to this Metro config.
 
 Do **not** point Metro at Tier A **source** trees; NodeNext `.js` specifiers in package source are for
 Node apps only. Re-run `npm run build:packages` after changing shared packages.

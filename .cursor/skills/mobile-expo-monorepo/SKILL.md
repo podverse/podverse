@@ -17,6 +17,7 @@ description: Expo SDK 52 as a standalone install under apps/mobile — own lockf
 | Peer-deps policy   | `apps/mobile/.npmrc` (`legacy-peer-deps=true`)              | Stop `expo@*` peers pulling expo@57 / RN 0.86                                                   |
 | Shared packages    | `"@podverse/helpers": "file:../../packages/helpers"` (etc.) | Symlink into `apps/mobile/node_modules/@podverse/*`                                             |
 | Metro              | `apps/mobile/metro.config.js`                               | `watchFolders` → `packages/`; `nodeModulesPaths` → mobile `node_modules` only; symlinks enabled |
+| Helpers runtime deps | `date-fns`, `he`, `uuid` in `apps/mobile/package.json`    | `file:` packages do not install their deps into mobile; declare them on mobile for Metro       |
 
 Root `package.json` **must not** list `apps/mobile` in `workspaces`, and **must not** carry `expo` /
 `react-native` / `metro-*` deps or Expo `overrides`.
@@ -29,6 +30,12 @@ Prefer durable layout fixes. Do **not** recommend root-hoisting Expo, `ln -sf` i
 From **monorepo root**:
 
 ```bash
+# Preferred one-shot (root + mobile JS; keeps lockfiles):
+npm run deps:init
+# Or with iOS native trees + CocoaPods:
+npm run deps:init:native
+
+# Equivalent step-by-step:
 npm ci                          # server workspaces only (no Expo)
 npm run build:packages          # helpers, design-tokens, … → dist/
 npm run mobile:install          # apps/mobile package-lock.json
@@ -37,6 +44,9 @@ npm run dev:mobile              # Metro (dev client)
 # First native install:
 npm run mobile:ios -- --device
 ```
+
+Root `rm -rf node_modules && npm i` is **not** enough for mobile. Use `deps:init` (or
+`mobile:install` after a root install). Script: [`scripts/dev/deps-init.sh`](/scripts/dev/deps-init.sh).
 
 Edit a shared package → rebuild packages (or `build:watch`) → Metro reloads from `packages/*/dist`.
 
@@ -57,6 +67,7 @@ Do **not** add Expo back to the root lockfile.
 | ---------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------- |
 | `Cannot find module '@podverse/helpers'`       | Forgot `mobile:install` or `file:` link broken | `npm run mobile:install` after package path changes                                |
 | Metro cannot resolve package after shared edit | Stale `dist/`                                  | `npm run build:packages` (or watch)                                                |
+| `Unable to resolve "date-fns/…"` from helpers  | Helpers dep not in mobile `node_modules`       | Add the dep to `apps/mobile/package.json`; `npm run mobile:install`                |
 | `expo/config-plugins` not found                | Incomplete mobile install / wrong expo version | Reinstall under `apps/mobile`; check overrides pin SDK 52                          |
 | glog / Nix SDK errors on pod install           | direnv/Nix `DEVELOPER_DIR`                     | Use `npm run mobile:prebuild` / `mobile:pod-install` (scripts unset Nix pollution) |
 | `Unable to resolve react-native-web`           | Expo auto web without RN-web                   | `platforms: ['ios', 'android']` in `app.config.ts`                                 |
@@ -65,6 +76,8 @@ Do **not** add Expo back to the root lockfile.
 ## Commands (repo root)
 
 ```bash
+npm run deps:init
+npm run deps:init:native
 npm run mobile:install
 npm run build:packages
 npm run mobile:prebuild
