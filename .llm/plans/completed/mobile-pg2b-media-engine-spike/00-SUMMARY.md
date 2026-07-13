@@ -24,8 +24,8 @@ Read first: [00-CAR-FOUNDATION.md](./00-CAR-FOUNDATION.md).
 - Android `MediaLibraryService` (stub browse OK) + shared MediaSession
 - iOS shared AVPlayer + shared `MPRemoteCommandCenter`
 - Reserved cache write APIs (detail 114)
-- Spike notes for background and after-kill behavior
-- Go/no-go checklist (detail 113) including car-foundation constraints
+- Background / after-kill outcomes in module README (no permanent spike worksheet)
+- Go/no-go checklist (detail 113) including car-foundation constraints — **GO** (2026-07-13)
 
 ## Prerequisites
 
@@ -42,6 +42,5 @@ Read first: [00-CAR-FOUNDATION.md](./00-CAR-FOUNDATION.md).
 
 ## After this phase
 
-If gate **go**: continue engine remainder / video as needed, then Tracks 10+; Track 12 delivers
-seamless car using this engine + cache.
-If gate **no-go**: revise Track 2 with operator before player UI or car work.
+**Gate: GO.** Continue with PG-3 (CI + E2E) or engine remainder / video (PG-5) as sequenced; Tracks
+10+ and Track 12 may use this engine + cache when their prerequisites land.

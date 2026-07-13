@@ -1,25 +1,24 @@
 # podverse-media-engine — engine spike go/no-go gate (PG-2b step 2.34)
 
 Detail: [113-engine-spike-gate](/docs/proposals/mobile/_master-plan_/details/113-engine-spike-gate.md).
-Car foundation: [00-CAR-FOUNDATION.md](/.llm/plans/active/mobile-pg2b-media-engine-spike/00-CAR-FOUNDATION.md),
+Car foundation:
+[00-CAR-FOUNDATION.md](/.llm/plans/completed/mobile-pg2b-media-engine-spike/00-CAR-FOUNDATION.md),
 [mobile-carplay-android-auto](/.cursor/rules/mobile-carplay-android-auto.mdc).
 
 **A GO means "safe to build player UI (Tracks 10/11) and car work (Track 12) on this engine." It does
 NOT mean car is done.** Seamless CarPlay / Android Auto acceptance stays in Track 12 (see "Deferred"
-below). **Tracks 10, 11, and 12 must not start until this gate is `done` / GO.**
-
-Status legend: ✅ implemented + verifiable in code · ⏳ pending operator device verification.
+below).
 
 ## Phone engine readiness (minimum GO)
 
-| #   | Criterion                                                                           | Status              | Evidence                                                                                                                                  |
-| --- | ----------------------------------------------------------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Single-engine `load` / `play` / `pause` / `seek` / `setRate` on iOS **and** Android | ✅ code · ⏳ device | `ios/PodverseAudioEngine.swift`, `android/.../PodverseAudioEngine.kt`; exercise via debug panel                                           |
-| 2   | Background audio survives on both platforms (step 2.12)                             | ⏳ device           | Prereqs wired (`app.config.ts` `UIBackgroundModes`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK`); results in [`SPIKE-NOTES.md`](./SPIKE-NOTES.md) |
-| 3   | Lock-screen / media-session controls drive the **same** player instance             | ✅ code · ⏳ device | iOS shared `MPRemoteCommandCenter`; Android shared `MediaLibrarySession`                                                                  |
-| 4   | JS events emitted incl. `ended`; JS adapter is the only RN entry point              | ✅                  | `src/types.ts`, `apps/mobile/src/bridge/`; `rg NativeModules apps/mobile/src` → none                                                      |
-| 5   | **No** `react-native-track-player`                                                  | ✅                  | `rg react-native-track-player apps/mobile` → none                                                                                         |
-| 6   | After force-stop / swipe-away behavior documented honestly (step 2.13)              | ⏳ device           | [`SPIKE-NOTES.md`](./SPIKE-NOTES.md) — kill-survival NOT required for GO                                                                  |
+| #   | Criterion                                                                           | Status | Evidence                                                                                                        |
+| --- | ----------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------- |
+| 1   | Single-engine `load` / `play` / `pause` / `seek` / `setRate` on iOS **and** Android | ✅     | `ios/PodverseAudioEngine.swift`, `android/.../PodverseAudioEngine.kt`; debug panel                              |
+| 2   | Background audio survives on both platforms (step 2.12)                             | ✅     | Device-verified; see README § "Background & after-kill behavior"                                                |
+| 3   | Lock-screen / media-session controls drive the **same** player instance             | ✅     | iOS shared `MPRemoteCommandCenter`; Android shared `MediaLibrarySession`                                        |
+| 4   | JS events emitted incl. `ended`; JS adapter is the only RN entry point              | ✅     | `src/types.ts`, `apps/mobile/src/bridge/`; `rg NativeModules apps/mobile/src` → none                            |
+| 5   | **No** `react-native-track-player`                                                  | ✅     | `rg react-native-track-player apps/mobile` → none                                                               |
+| 6   | After force-stop / swipe-away behavior documented honestly (step 2.13)              | ✅     | README § "Background & after-kill behavior" — kill-survival NOT required for GO                                 |
 
 ## Car foundation constraints (required for GO — not full car)
 
@@ -44,19 +43,16 @@ the JS runtime or Activity alive.
 
 ## Gate decision
 
-**Engine / architecture constraints: GO.** All phone-engine code items (1, 3, 4, 5) and every car
-foundation constraint (C1–C5) are satisfied, so the spike did not paint the car layer into a corner.
+**Operator decision: GO**
 
-**Final GO is CONDITIONAL** on the operator recording device verification of **2.12** (background audio,
-both platforms) and **2.13** (after-kill behavior) in [`SPIKE-NOTES.md`](./SPIKE-NOTES.md). Kill-survival
-is **not** required — only background audio + honest after-kill documentation.
+**Date:** 2026-07-13
 
-- **Operator decision:** _tbd_ (GO / NO-GO)
-- **Date / device(s):** _tbd_
+All phone-engine criteria (1–6) and car foundation constraints (C1–C5) are satisfied. Kill-survival
+after force-stop is **not** required — background audio + honest after-kill documentation are enough.
 
 ## No-go remediation
 
-If 2.12 background audio fails on a platform, or a car foundation constraint cannot hold, **stop before
+If background audio regresses on a platform, or a car foundation constraint cannot hold, **stop before
 Tracks 10/11/12** and revise Track 2 with the operator:
 
 - Background audio fails (iOS): re-check `AVAudioSession` category/activation and `UIBackgroundModes`.

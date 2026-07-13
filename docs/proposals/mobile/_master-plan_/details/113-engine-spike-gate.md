@@ -49,7 +49,9 @@ Do **not** mark car “done” at 2.34. Operator acceptance for seamless UX rema
 
 - [mobile-master-plan-phasing](/.cursor/skills/mobile-master-plan-phasing/SKILL.md) risk-first overrides
 - [DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md)
-- Phase note: `/.llm/plans/active/mobile-pg2b-media-engine-spike/00-CAR-FOUNDATION.md`
+- Phase note: `/.llm/plans/completed/mobile-pg2b-media-engine-spike/00-CAR-FOUNDATION.md`
+- Gate decision: [`GO-NO-GO.md`](/apps/mobile/modules/podverse-media-engine/GO-NO-GO.md) — **GO**
+  (2026-07-13)
 
 ## Verification
 

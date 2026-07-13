@@ -20,6 +20,5 @@
 
 ## On completion
 
-Mark step **2.34** as `done`. Archive
-`.llm/plans/active/mobile-pg2b-media-engine-spike/` →
-`.llm/plans/completed/mobile-pg2b-media-engine-spike/`.
+Mark step **2.34** as `done`. Plan set archived to
+`.llm/plans/completed/mobile-pg2b-media-engine-spike/`. Gate decision: **GO** (2026-07-13).

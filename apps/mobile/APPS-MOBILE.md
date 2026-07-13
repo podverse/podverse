@@ -48,8 +48,8 @@ Auto now-playing. **Do not** use `react-native-track-player`.
   [mobile-carplay-android-auto](/.cursor/rules/mobile-carplay-android-auto.mdc). Seamless car
   acceptance is **Track 12** (12.5–12.6, 12.17–12.18), not PG-2b.
 - Spike go/no-go gate (step 2.34):
-  [modules/podverse-media-engine/GO-NO-GO.md](modules/podverse-media-engine/GO-NO-GO.md) — Tracks
-  10/11/12 must not start until this gate is GO.
+  [modules/podverse-media-engine/GO-NO-GO.md](modules/podverse-media-engine/GO-NO-GO.md) — **GO**
+  (2026-07-13). Seamless CarPlay / Android Auto acceptance remains Track 12.
 
 ## Toolchain
 

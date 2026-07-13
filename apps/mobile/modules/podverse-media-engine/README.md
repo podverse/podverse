@@ -9,11 +9,11 @@ screen, and future CarPlay / Android Auto now-playing. **Do not** use `react-nat
 - Policy stays in `@podverse/playback-core`; this module is **transport only**.
 
 Car foundation constraints:
-[00-CAR-FOUNDATION.md](/.llm/plans/active/mobile-pg2b-media-engine-spike/00-CAR-FOUNDATION.md) and
+[00-CAR-FOUNDATION.md](/.llm/plans/completed/mobile-pg2b-media-engine-spike/00-CAR-FOUNDATION.md) and
 [mobile-carplay-android-auto](/.cursor/rules/mobile-carplay-android-auto.mdc).
 
-**Spike gate (PG-2b step 2.34):** [`GO-NO-GO.md`](./GO-NO-GO.md) — Tracks 10/11/12 must not start until
-this gate is GO. Device spike results: [`SPIKE-NOTES.md`](./SPIKE-NOTES.md).
+**Spike gate (PG-2b step 2.34):** [`GO-NO-GO.md`](./GO-NO-GO.md) — **GO.** Tracks 10/11/12 may proceed
+on this engine (seamless car QA remains Track 12).
 
 > **Not seamless yet.** These stubs reserve the surface only. Seamless CarPlay / Android Auto
 > acceptance (native reads with JS not started / app force-stopped) is proven in **Track 12** —
@@ -66,40 +66,34 @@ The Expo module only sets an `eventSink` to forward events to JS while JS is ali
 
 ## Background & after-kill behavior (spikes 2.12–2.13)
 
-Device-verified results are recorded in
-[`SPIKE-NOTES.md`](./SPIKE-NOTES.md) — the operator runs these spikes and commits pass/fail with OS
-version + device before the go/no-go gate (2.34). This section documents the **expected** platform
-policy; it is not a claim of verified behavior.
+**Verified for GO** (operator device sign-off; gate in [`GO-NO-GO.md`](./GO-NO-GO.md)).
 
 ### Background audio (step 2.12 / detail 091)
 
 Prerequisites are wired in `app.config.ts`: iOS `UIBackgroundModes: ['audio']` (paired with the
 `AVAudioSession` `.playback` category, step 2.5), and Android `FOREGROUND_SERVICE` +
 `FOREGROUND_SERVICE_MEDIA_PLAYBACK` with `PodverseMediaLibraryService`
-(`foregroundServiceType="mediaPlayback"`, step 2.8). With these, audio is expected to continue when the
-app is backgrounded (Home / lock) on both platforms.
+(`foregroundServiceType="mediaPlayback"`, step 2.8).
 
-- **iOS:** background audio behaves consistently on device; simulator can differ (audio focus / route
-  quirks) — treat **device** as authoritative.
-- **Android:** the foreground service posts the media notification once playing; background audio and
-  notification are expected on emulator and device.
+- **Verified:** audio continues when the app is backgrounded (Home / lock) on **iOS and Android**,
+  with lock-screen / media-notification controls on the same player instance.
+- **iOS:** treat **device** as authoritative; simulator can differ (audio focus / route quirks).
+- **Android:** foreground service posts the media notification once playing.
 
 ### After force-stop / swipe-away (step 2.13 / detail 092)
 
-Documented **honestly** — kill-survival is not claimed and is **not required for go/no-go** (2.34) as
-long as background audio works:
+Documented honestly — **kill-survival is not required for GO** as long as background audio works:
 
-- **iOS:** force-quit (swipe up from the app switcher) terminates the process; **audio stops**. This is
-  expected OS behavior, not a bug.
-- **Android:** swipe-away from Recents may stop the service depending on `MediaLibraryService`
-  stop-on-task-removed behavior and OEM battery policies; audio may or may not continue. Record the
-  actual device result — do not assume.
+- **iOS:** force-quit (swipe up from the app switcher) terminates the process; **audio stops**.
+  Expected OS behavior, not a bug.
+- **Android:** swipe-away from Recents may stop the service depending on OEM / task-removed policy;
+  continuity after kill is not claimed for GO.
 
 **Important distinction:** "audio continuity after kill" is separate from **seamless CarPlay / Android
 Auto browse when JS is dead / the app is force-stopped**. The latter is proven in **Track 12**
 (12.5–12.6, 12.17–12.18) and relies on the **native cache** (`writeQueueSnapshot` /
 `writeDownloadsIndex` / `writeLibraryBrowseIndex`, durable storage 12.2–12.3) — **not** on keeping the
-JS runtime or the Activity alive. This spike does not attempt to prove car browse after kill.
+JS runtime or the Activity alive.
 
 ## JS surface
 
