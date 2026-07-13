@@ -1,13 +1,13 @@
-import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 import type { PropsWithChildren } from 'react';
+import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 import { Appearance } from 'react-native';
 
-import { getThemeTokens } from '@podverse/design-tokens';
 import type { ThemeTokens, UITheme } from '@podverse/design-tokens';
+import { getThemeTokens } from '@podverse/design-tokens';
 
 import { readUIThemePref, writeUIThemePref } from '../prefs/uiTheme';
-import { createStyles } from './createStyles';
 import type { MobileThemeStyles } from './createStyles';
+import { createStyles } from './createStyles';
 
 type MobileStatusBarStyle = 'dark' | 'light';
 

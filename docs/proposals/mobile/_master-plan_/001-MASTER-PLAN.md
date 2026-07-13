@@ -34,22 +34,22 @@
 
 ## Parallel groups (implementation order)
 
-| Group | Tracks             | Can parallelize with | Prerequisites                                             |
-| ----- | ------------------ | -------------------- | --------------------------------------------------------- |
-| PG-0  | 0                  | —                    | none                                                      |
-| PG-1  | 1                  | 3 (after 0.6+)       | 0 partial                                                 |
-| PG-2a | 3                  | 4, 5 (after 0)       | 0                                                         |
-| PG-2b | 2 spike (2.1–2.13) | 3, 4, 5              | 0, 1 recommended                                          |
-| PG-3  | 4, 5               | each other           | 3 hello-world                                             |
-| PG-4  | 6, 7               | each other           | 3, 5; **0.20** design-tokens recommended before 7.11–7.16 |
-| PG-5  | 2 full (2.14–2.35) | 8, 9                 | 2 spike, 1                                                |
-| PG-6  | 8, 9               | each other           | 6, 7; **7.11–7.15** theme scaffold `done`                 |
-| PG-7  | 10, 11             | each other           | 1, 2, 6                                                   |
-| PG-8  | 12                 | 13, 14, 15           | 2, 10                                                     |
-| PG-9  | 13, 14, 15, 16, 17 | each other (mostly)  | 6, 10 varies                                              |
-| PG-10 | 18                 | 19, 20               | 7, 11                                                     |
-| PG-11 | 19, 20, 21         | each other           | MVP feature-complete                                      |
-| PG-12 | 22                 | —                    | 4, PG-11                                                  |
+| Group | Tracks                                               | Can parallelize with | Prerequisites                                             |
+| ----- | ---------------------------------------------------- | -------------------- | --------------------------------------------------------- |
+| PG-0  | 0                                                    | —                    | none                                                      |
+| PG-1  | 1                                                    | 3 (after 0.6+)       | 0 partial                                                 |
+| PG-2a | 3                                                    | 4, 5 (after 0)       | 0                                                         |
+| PG-2b | 2 spike (2.1–2.13, 2.34, 2.35 contract)              | 3, 4, 5              | 0, 1 recommended                                          |
+| PG-3  | 4, 5                                                 | each other           | 3 hello-world                                             |
+| PG-4  | 6, 7                                                 | each other           | 3, 5; **0.20** design-tokens recommended before 7.11–7.16 |
+| PG-5  | 2 full (2.14–2.34 remainder; 2.35 storage if needed) | 8, 9                 | 2 spike, 1                                                |
+| PG-6  | 8, 9                                                 | each other           | 6, 7; **7.11–7.15** theme scaffold `done`                 |
+| PG-7  | 10, 11                                               | each other           | 1, 2, 6                                                   |
+| PG-8  | 12                                                   | 13, 14, 15           | 2, 10                                                     |
+| PG-9  | 13, 14, 15, 16, 17                                   | each other (mostly)  | 6, 10 varies                                              |
+| PG-10 | 18                                                   | 19, 20               | 7, 11                                                     |
+| PG-11 | 19, 20, 21                                           | each other           | MVP feature-complete                                      |
+| PG-12 | 22                                                   | —                    | 4, PG-11                                                  |
 
 ```mermaid
 flowchart TB
@@ -154,19 +154,19 @@ flowchart TB
   Host -->|"animate to"| Full
 ```
 
-2.1. Create `apps/mobile/modules/podverse-media-engine/` native module scaffold (iOS + Android). Model: Opus 4.8. Detail: [080-media-engine-module-scaffold](/docs/proposals/mobile/_master-plan_/details/080-media-engine-module-scaffold.md) — _TBD_
-2.2. Define TypeScript bridge interface `NativePlaybackBridge` mirroring web bridge surface API. Model: Opus 4.8. Detail: [081-native-playback-bridge-interface](/docs/proposals/mobile/_master-plan_/details/081-native-playback-bridge-interface.md) — _TBD_
-2.3. Document bridge methods: load, play, pause, seek, setRate, getPosition, getDuration, destroy. Model: Opus 4.8. Detail: [082-bridge-method-contract](/docs/proposals/mobile/_master-plan_/details/082-bridge-method-contract.md) — _TBD_
-2.4. Implement iOS Swift module wrapping AVPlayer for audio enclosure playback. Model: Opus 4.8. Detail: [083-ios-avplayer-audio](/docs/proposals/mobile/_master-plan_/details/083-ios-avplayer-audio.md) — _TBD_
-2.5. Configure iOS AVAudioSession category `.playback` with background and interrupt handling. Model: Opus 4.8. Detail: [084-ios-audio-session-lifecycle](/docs/proposals/mobile/_master-plan_/details/084-ios-audio-session-lifecycle.md) — _TBD_
-2.6. Wire iOS MPNowPlayingInfoCenter and MPRemoteCommandCenter for lock-screen controls. Model: Opus 4.8. Detail: [085-ios-now-playing-remote-commands](/docs/proposals/mobile/_master-plan_/details/085-ios-now-playing-remote-commands.md) — _TBD_
-2.7. Implement Android Kotlin module with Media3 ExoPlayer for audio playback. Model: Opus 4.8. Detail: [086-android-exoplayer-audio](/docs/proposals/mobile/_master-plan_/details/086-android-exoplayer-audio.md) — _TBD_
-2.8. Implement Android foreground MediaSessionService for background audio survival. Model: Opus 4.8. Detail: [087-android-foreground-media-service](/docs/proposals/mobile/_master-plan_/details/087-android-foreground-media-service.md) — _TBD_
-2.9. Wire Android MediaSessionCompat/Media3 session for lock-screen and BT controls. Model: Opus 4.8. Detail: [088-android-media-session-controls](/docs/proposals/mobile/_master-plan_/details/088-android-media-session-controls.md) — _TBD_
-2.10. Emit native events to JS: playbackState, progress, ended, error, stalled. Model: Opus 4.8. Detail: [089-native-to-js-events](/docs/proposals/mobile/_master-plan_/details/089-native-to-js-events.md) — _TBD_
-2.11. Implement JS `NativePlaybackBridge` adapter calling the native module from RN hooks. Model: Opus 4.8. Detail: [090-js-bridge-adapter](/docs/proposals/mobile/_master-plan_/details/090-js-bridge-adapter.md) — _TBD_
-2.12. Spike: verify background audio survives app background on iOS and Android. Model: Opus 4.8. Detail: [091-spike-background-audio](/docs/proposals/mobile/_master-plan_/details/091-spike-background-audio.md) — _TBD_
-2.13. Spike: verify audio continues after app kill where OS policy allows (document limits). Model: Opus 4.8. Detail: [092-spike-audio-after-kill](/docs/proposals/mobile/_master-plan_/details/092-spike-audio-after-kill.md) — _TBD_
+2.1. Create `apps/mobile/modules/podverse-media-engine/` native module scaffold (iOS + Android). Model: Opus 4.8. Detail: [080-media-engine-module-scaffold](/docs/proposals/mobile/_master-plan_/details/080-media-engine-module-scaffold.md) — done
+2.2. Define TypeScript bridge interface `NativePlaybackBridge` mirroring web bridge surface API. Model: Opus 4.8. Detail: [081-native-playback-bridge-interface](/docs/proposals/mobile/_master-plan_/details/081-native-playback-bridge-interface.md) — done
+2.3. Document bridge methods: load, play, pause, seek, setRate, getPosition, getDuration, destroy. Model: Opus 4.8. Detail: [082-bridge-method-contract](/docs/proposals/mobile/_master-plan_/details/082-bridge-method-contract.md) — done
+2.4. Implement iOS Swift module wrapping AVPlayer for audio enclosure playback. Model: Opus 4.8. Detail: [083-ios-avplayer-audio](/docs/proposals/mobile/_master-plan_/details/083-ios-avplayer-audio.md) — done
+2.5. Configure iOS AVAudioSession category `.playback` with background and interrupt handling. Model: Opus 4.8. Detail: [084-ios-audio-session-lifecycle](/docs/proposals/mobile/_master-plan_/details/084-ios-audio-session-lifecycle.md) — done
+2.6. Wire iOS MPNowPlayingInfoCenter and MPRemoteCommandCenter for lock-screen controls. Model: Opus 4.8. Detail: [085-ios-now-playing-remote-commands](/docs/proposals/mobile/_master-plan_/details/085-ios-now-playing-remote-commands.md) — done
+2.7. Implement Android Kotlin module with Media3 ExoPlayer for audio playback. Model: Opus 4.8. Detail: [086-android-exoplayer-audio](/docs/proposals/mobile/_master-plan_/details/086-android-exoplayer-audio.md) — done
+2.8. Implement Android foreground MediaSessionService for background audio survival. Model: Opus 4.8. Detail: [087-android-foreground-media-service](/docs/proposals/mobile/_master-plan_/details/087-android-foreground-media-service.md) — done
+2.9. Wire Android MediaSessionCompat/Media3 session for lock-screen and BT controls. Model: Opus 4.8. Detail: [088-android-media-session-controls](/docs/proposals/mobile/_master-plan_/details/088-android-media-session-controls.md) — done
+2.10. Emit native events to JS: playbackState, progress, ended, error, stalled. Model: Opus 4.8. Detail: [089-native-to-js-events](/docs/proposals/mobile/_master-plan_/details/089-native-to-js-events.md) — done
+2.11. Implement JS `NativePlaybackBridge` adapter calling the native module from RN hooks. Model: Opus 4.8. Detail: [090-js-bridge-adapter](/docs/proposals/mobile/_master-plan_/details/090-js-bridge-adapter.md) — done
+2.12. Spike: verify background audio survives app background on iOS and Android. Model: Opus 4.8. Detail: [091-spike-background-audio](/docs/proposals/mobile/_master-plan_/details/091-spike-background-audio.md) — planned
+2.13. Spike: verify audio continues after app kill where OS policy allows (document limits). Model: Opus 4.8. Detail: [092-spike-audio-after-kill](/docs/proposals/mobile/_master-plan_/details/092-spike-audio-after-kill.md) — planned
 2.14. Add iOS video: single AVPlayer instance shared for audio+video items. Model: Opus 4.8. Detail: [093-ios-avplayer-video](/docs/proposals/mobile/_master-plan_/details/093-ios-avplayer-video.md) — _TBD_
 2.15. Add Android video: single ExoPlayer instance with video surface support. Model: Opus 4.8. Detail: [094-android-exoplayer-video](/docs/proposals/mobile/_master-plan_/details/094-android-exoplayer-video.md) — _TBD_
 2.16. Implement native **VideoSurfaceHost** overlay view (iOS) for persistent surface ownership. Model: Opus 4.8. Detail: [095-ios-video-surface-host](/docs/proposals/mobile/_master-plan_/details/095-ios-video-surface-host.md) — _TBD_
@@ -187,8 +187,8 @@ flowchart TB
 2.31. Register non-FOSS deps used by engine (if any Google Play Services) in FOSS register doc stub. Model: Codex 5.3. Detail: [110-engine-fdroid-deps-register](/docs/proposals/mobile/_master-plan_/details/110-engine-fdroid-deps-register.md) — _TBD_
 2.32. E2E: spike flow plays sample audio and captures lock-screen screenshot (manual/semi-auto). Model: Codex 5.3. Detail: [111-e2e-audio-spike-screenshot](/docs/proposals/mobile/_master-plan_/details/111-e2e-audio-spike-screenshot.md) — _TBD_
 2.33. E2E: spike flow plays sample video mini→full transition without playback restart. Model: Opus 4.8. Detail: [112-e2e-video-transition-spike](/docs/proposals/mobile/_master-plan_/details/112-e2e-video-transition-spike.md) — _TBD_
-2.34. Define go/no-go gate: engine spike must pass before Track 10/11 full player UI work. Model: Codex 5.3. Detail: [113-engine-spike-gate](/docs/proposals/mobile/_master-plan_/details/113-engine-spike-gate.md) — _TBD_
-2.35. Export native cache write hooks from engine for queue snapshot (feeds Track 12 car layer). Model: Opus 4.8. Detail: [114-engine-native-cache-hooks](/docs/proposals/mobile/_master-plan_/details/114-engine-native-cache-hooks.md) — _TBD_
+2.34. Define go/no-go gate: engine spike must pass before Track 10/11 full player UI work. Model: Codex 5.3. Detail: [113-engine-spike-gate](/docs/proposals/mobile/_master-plan_/details/113-engine-spike-gate.md) — done (gate authored: `apps/mobile/modules/podverse-media-engine/GO-NO-GO.md`; final GO conditional on operator 2.12/2.13 device sign-off)
+2.35. Export native cache write hooks from engine for queue snapshot (feeds Track 12 car layer). Model: Opus 4.8. Detail: [114-engine-native-cache-hooks](/docs/proposals/mobile/_master-plan_/details/114-engine-native-cache-hooks.md) — done (contract/stubs)
 
 ## Track 3 — App bootstrap (hello-world)
 
@@ -213,10 +213,12 @@ flowchart TB
 
 Track 3 is complete when all of the following are true:
 
-- [ ] `npm run build:packages` succeeds; Metro resolves `@podverse/helpers` from `dist/`.
-- [ ] `npm run start -w @podverse/mobile` (or `npm run dev:mobile`) starts without resolver errors.
-- [ ] Hello-world screen shows app name, version, and helpers smoke line on iOS and Android.
-- [ ] `npm run prebuild -w @podverse/mobile` generates gitignored `ios/` and `android/` with bundle id `com.podverse.app.next`.
+- [x] `npm run build:packages` succeeds; Metro resolves `@podverse/helpers` from `dist/`.
+- [x] `npm run dev:mobile` starts without resolver errors.
+- [x] Hello-world screen shows app name, version, and helpers smoke line on iOS and Android
+      (simulators/emulators verified).
+- [x] `npm run mobile:prebuild` generates gitignored `ios/` and `android/` with bundle id
+      `com.podverse.app.next`.
 - [ ] Dev client installed on a physical iOS device (operator step 3.14).
 - [ ] Dev client installed on a physical Android device (operator step 3.15).
 
@@ -642,19 +644,19 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 070-skill-e2e-screenshot-parity        | 5.11       | 070-skill-e2e-screenshot-parity        | Auto      | _TBD_   |
 | 071-e2e-spec-naming-convention         | 5.12       | 071-e2e-spec-naming-convention         | Auto      | _TBD_   |
 | 072-e2e-parallel-worktree-guidance     | 5.13       | 072-e2e-parallel-worktree-guidance     | Auto      | _TBD_   |
-| 080-media-engine-module-scaffold       | 2.1        | 080-media-engine-module-scaffold       | Opus 4.8  | _TBD_   |
-| 081-native-playback-bridge-interface   | 2.2        | 081-native-playback-bridge-interface   | Opus 4.8  | _TBD_   |
-| 082-bridge-method-contract             | 2.3        | 082-bridge-method-contract             | Opus 4.8  | _TBD_   |
-| 083-ios-avplayer-audio                 | 2.4        | 083-ios-avplayer-audio                 | Opus 4.8  | _TBD_   |
-| 084-ios-audio-session-lifecycle        | 2.5        | 084-ios-audio-session-lifecycle        | Opus 4.8  | _TBD_   |
-| 085-ios-now-playing-remote-commands    | 2.6        | 085-ios-now-playing-remote-commands    | Opus 4.8  | _TBD_   |
-| 086-android-exoplayer-audio            | 2.7        | 086-android-exoplayer-audio            | Opus 4.8  | _TBD_   |
-| 087-android-foreground-media-service   | 2.8        | 087-android-foreground-media-service   | Opus 4.8  | _TBD_   |
-| 088-android-media-session-controls     | 2.9        | 088-android-media-session-controls     | Opus 4.8  | _TBD_   |
-| 089-native-to-js-events                | 2.10       | 089-native-to-js-events                | Opus 4.8  | _TBD_   |
-| 090-js-bridge-adapter                  | 2.11       | 090-js-bridge-adapter                  | Opus 4.8  | _TBD_   |
-| 091-spike-background-audio             | 2.12       | 091-spike-background-audio             | Opus 4.8  | _TBD_   |
-| 092-spike-audio-after-kill             | 2.13       | 092-spike-audio-after-kill             | Opus 4.8  | _TBD_   |
+| 080-media-engine-module-scaffold       | 2.1        | 080-media-engine-module-scaffold       | Opus 4.8  | done    |
+| 081-native-playback-bridge-interface   | 2.2        | 081-native-playback-bridge-interface   | Opus 4.8  | done    |
+| 082-bridge-method-contract             | 2.3        | 082-bridge-method-contract             | Opus 4.8  | done    |
+| 083-ios-avplayer-audio                 | 2.4        | 083-ios-avplayer-audio                 | Opus 4.8  | done    |
+| 084-ios-audio-session-lifecycle        | 2.5        | 084-ios-audio-session-lifecycle        | Opus 4.8  | done    |
+| 085-ios-now-playing-remote-commands    | 2.6        | 085-ios-now-playing-remote-commands    | Opus 4.8  | done    |
+| 086-android-exoplayer-audio            | 2.7        | 086-android-exoplayer-audio            | Opus 4.8  | done    |
+| 087-android-foreground-media-service   | 2.8        | 087-android-foreground-media-service   | Opus 4.8  | done    |
+| 088-android-media-session-controls     | 2.9        | 088-android-media-session-controls     | Opus 4.8  | done    |
+| 089-native-to-js-events                | 2.10       | 089-native-to-js-events                | Opus 4.8  | done    |
+| 090-js-bridge-adapter                  | 2.11       | 090-js-bridge-adapter                  | Opus 4.8  | done    |
+| 091-spike-background-audio             | 2.12       | 091-spike-background-audio             | Opus 4.8  | planned |
+| 092-spike-audio-after-kill             | 2.13       | 092-spike-audio-after-kill             | Opus 4.8  | planned |
 | 093-ios-avplayer-video                 | 2.14       | 093-ios-avplayer-video                 | Opus 4.8  | _TBD_   |
 | 094-android-exoplayer-video            | 2.15       | 094-android-exoplayer-video            | Opus 4.8  | _TBD_   |
 | 095-ios-video-surface-host             | 2.16       | 095-ios-video-surface-host             | Opus 4.8  | _TBD_   |
@@ -675,8 +677,8 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 110-engine-fdroid-deps-register        | 2.31       | 110-engine-fdroid-deps-register        | Codex 5.3 | _TBD_   |
 | 111-e2e-audio-spike-screenshot         | 2.32       | 111-e2e-audio-spike-screenshot         | Codex 5.3 | _TBD_   |
 | 112-e2e-video-transition-spike         | 2.33       | 112-e2e-video-transition-spike         | Opus 4.8  | _TBD_   |
-| 113-engine-spike-gate                  | 2.34       | 113-engine-spike-gate                  | Codex 5.3 | _TBD_   |
-| 114-engine-native-cache-hooks          | 2.35       | 114-engine-native-cache-hooks          | Opus 4.8  | _TBD_   |
+| 113-engine-spike-gate                  | 2.34       | 113-engine-spike-gate                  | Codex 5.3 | done    |
+| 114-engine-native-cache-hooks          | 2.35       | 114-engine-native-cache-hooks          | Opus 4.8  | done    |
 | 150-ci-tooling-decision                | 4.1        | 150-ci-tooling-decision                | Opus 4.8  | _TBD_   |
 | 151-store-account-costs                | 4.2        | 151-store-account-costs                | Auto      | _TBD_   |
 | 152-eas-pricing-note                   | 4.3        | 152-eas-pricing-note                   | Auto      | _TBD_   |

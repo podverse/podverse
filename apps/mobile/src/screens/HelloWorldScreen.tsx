@@ -6,6 +6,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { DEFAULT_LOCALE } from '@podverse/helpers/locales';
 import { formatSecondsToReadableDuration } from '@podverse/helpers/timeFormatter';
 
+import { PlaybackEngineDebugPanel } from '../debug/PlaybackEngineDebugPanel';
 import { useTheme } from '../theme/useTheme';
 
 const APP_DISPLAY_NAME = 'Podverse Next';
@@ -70,6 +71,7 @@ export function HelloWorldScreen() {
         <Text style={styles.helperSmoke} testID="hello-world-duration-smoke">
           Duration smoke: {durationSmokeValue}
         </Text>
+        <PlaybackEngineDebugPanel />
       </View>
     </View>
   );

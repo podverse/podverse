@@ -6,6 +6,9 @@ const SUPPORTED_LOCALE_SET = new Set(SUPPORTED_LOCALES);
 
 function getLanguagePrefix(localeCode: string): string {
   const [prefix] = localeCode.split('-');
+  if (prefix === undefined) {
+    return localeCode.toLowerCase();
+  }
   return prefix.toLowerCase();
 }
 

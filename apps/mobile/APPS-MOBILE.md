@@ -35,6 +35,22 @@ apps/mobile/
 Generated trees (`ios/Pods/`, Android `build/`, `.expo/`) are gitignored and listed in
 [`.cursorignore`](/.cursorignore).
 
+## Media engine (`podverse-media-engine`)
+
+First-party native media engine (PG-2b, Track 2) at `modules/podverse-media-engine/`. Single shared
+`AVPlayer` (iOS) / Media3 `ExoPlayer` (Android) for phone, lock screen, and future CarPlay / Android
+Auto now-playing. **Do not** use `react-native-track-player`.
+
+- Bridge method/event contract and reserved native-cache write hooks:
+  [modules/podverse-media-engine/README.md](modules/podverse-media-engine/README.md).
+- TypeScript `NativePlaybackBridge` interface: `modules/podverse-media-engine/src/`.
+- Car foundation constraints:
+  [mobile-carplay-android-auto](/.cursor/rules/mobile-carplay-android-auto.mdc). Seamless car
+  acceptance is **Track 12** (12.5–12.6, 12.17–12.18), not PG-2b.
+- Spike go/no-go gate (step 2.34):
+  [modules/podverse-media-engine/GO-NO-GO.md](modules/podverse-media-engine/GO-NO-GO.md) — Tracks
+  10/11/12 must not start until this gate is GO.
+
 ## Toolchain
 
 - **Node / npm:** from the repo Nix flake — use `./scripts/nix/with-env` from monorepo root (see
@@ -79,6 +95,10 @@ npm run mobile:prebuild
 npm run mobile:pod-install
 npm run mobile:ios       # expo run:ios via macOS-native toolchain
 npm run mobile:android   # expo run:android via macOS-native toolchain
+
+# ESLint (root eslint.config.mjs Tier D / RN override; also part of npm run lint)
+npm run mobile:lint
+npm run mobile:lint:fix
 ```
 
 `dev:mobile` (Metro) is a **root** script that runs `npm --prefix apps/mobile run start`. Metro is
@@ -96,11 +116,11 @@ PATH, which direnv already provides.
 
 Install on the host machine (not provided by the repo flake):
 
-| Platform | Requirement                                                                                           |
-| -------- | ----------------------------------------------------------------------------------------------------- |
-| iOS      | Xcode (current stable), Xcode Command Line Tools, CocoaPods (`gem install cocoapods` or Homebrew)     |
-| Android  | Android Studio (SDK + emulator), `ANDROID_HOME` (default `~/Library/Android/sdk`), JDK 17+            |
-| Both     | Physical device or simulator/emulator for dev-client builds (steps 3.14–3.15)                         |
+| Platform | Requirement                                                                                       |
+| -------- | ------------------------------------------------------------------------------------------------- |
+| iOS      | Xcode (current stable), Xcode Command Line Tools, CocoaPods (`gem install cocoapods` or Homebrew) |
+| Android  | Android Studio (SDK + emulator), `ANDROID_HOME` (default `~/Library/Android/sdk`), JDK 17+        |
+| Both     | Physical device or simulator/emulator for dev-client builds (steps 3.14–3.15)                     |
 
 **Android JDK:** `npm run mobile:android` uses [`run-expo-macos.sh`](/scripts/mobile/run-expo-macos.sh),
 which sets `JAVA_HOME` from Android Studio’s bundled JBR when unset. You do not need a separate system
@@ -117,6 +137,15 @@ After first clone or dependency change, from **monorepo root** (not `apps/` or `
 npm run deps:init:native   # clean + installs + build:packages + prebuild/pods
 npm run dev:mobile
 ```
+
+If `ios/` / `android/` were wiped mid-prebuild (or `prebuild:clean` failed), recover with:
+
+```bash
+npm run mobile:reset
+```
+
+That reinstalls mobile JS deps, runs `expo prebuild --clean --no-install`, then CocoaPods via the
+macOS-native helper. Prefer it over chaining bare `prebuild:clean` + `mobile:pod-install`.
 
 Equivalent step-by-step:
 
@@ -163,7 +192,7 @@ From **monorepo root**:
 npm run build:packages
 npm run mobile:prebuild          # once, or after app.config / native plugin changes
 npm run dev:mobile               # terminal 1 — leave running
-npm run mobile:ios -- --device   # terminal 2 — build + install dev client (Nix-safe toolchain)
+npm run mobile:ios -- --device "iPhone 17 Pro"   # terminal 2 — named sim (no picker)
 ```
 
 On later days (JS-only changes): start Metro; open the already-installed dev client on device/simulator.
@@ -174,13 +203,14 @@ Until then you get `No development build (com.podverse.app.next) for this projec
 
 ### iOS simulator or device selection (Expo SDK 52)
 
-Use **`--device`**, not `--simulator` (removed in current Expo CLI):
+Use **`--device` with a fixed name**, not `--simulator` (removed in current Expo CLI). Default for
+this project: **`"iPhone 17 Pro"`** (Android: **`Pixel_6_Pro_API_33`**). Avoid bare `--device`
+unless you intentionally want the interactive picker (e.g. physical USB device).
 
 ```bash
 xcrun simctl list devices available              # see what you have first
-npm run mobile:ios -- --device                   # interactive picker (preferred)
-npm run mobile:ios -- --device "iPhone 16 Pro"   # named sim (iOS 18+ example)
-npm run mobile:ios -- --device "iPhone 17 Pro"   # named sim (iOS 26+ / Xcode 26 example)
+npm run mobile:ios -- --device "iPhone 17 Pro"   # default named sim
+npm run mobile:android -- --device Pixel_6_Pro_API_33
 ```
 
 Do **not** copy-paste **`iPhone 15` / `iPhone 15 Pro`** from old guides — those are legacy templates on
@@ -190,7 +220,7 @@ model on multiple runtimes), pass the UDID from `simctl list`.
 Boot a sim before `xcrun simctl launch booted …`:
 
 ```bash
-xcrun simctl boot "iPhone 16 Pro"
+xcrun simctl boot "iPhone 17 Pro"
 open -a Simulator
 ```
 
@@ -241,6 +271,20 @@ npm run dev:mobile
 Use `npx expo install --fix` from `apps/mobile` for runtime deps; keep `overrides` aligned.
 
 ## Troubleshooting
+
+### `Cannot read properties of undefined (reading 'extract')` during prebuild
+
+Expo SDK 52 `@expo/cli` expects **`tar` v6** (CJS default export with `.extract`). A `tar@7`
+override breaks clean prebuild after wiping `ios/` / `android/`. Keep
+`apps/mobile/package.json` `overrides.tar` at **`6.2.1`**, then recover with:
+
+```bash
+npm run mobile:reset
+```
+
+Do **not** chain bare `npm --prefix apps/mobile run prebuild:clean` + `npm run mobile:pod-install`
+when native dirs were already deleted mid-failure — `mobile:reset` reinstalls mobile deps, runs
+clean prebuild non-interactively, then pods.
 
 ### `cd: apps/mobile/ios does not exist`
 
@@ -456,8 +500,10 @@ Import style in app source is **Tier D** (extensionless relatives). See
 | Mobile app    | `apps/mobile`            | Vitest when configured (excluded from root `test:unit` until ready) |
 | Mobile E2E    | `apps/mobile/e2e/`       | Maestro or Detox — **not** `make e2e_*`                             |
 
-Root lint excludes `apps/mobile` until RN ESLint is fully wired; root config already defines Tier D
-overrides for when source files appear.
+Root `npm run lint` / `npm run lint:fix` include `apps/mobile` via a dedicated ESLint step (mobile is
+outside npm workspaces). Use `npm run mobile:lint` / `mobile:lint:fix` to lint only mobile. Tier D /
+RN overrides live in root `eslint.config.mjs`. Type-check and `test:unit` still skip mobile until RN
+tsc/Vitest enrollment.
 
 ## i18n runtime
 
@@ -505,3 +551,4 @@ Gradle pick up the new marketing version.
 - [DOCS-MOBILE-LLM-CURSOR-SETUP.md](/docs/proposals/mobile/monorepo-llm-setup/DOCS-MOBILE-LLM-CURSOR-SETUP.md)
 - [DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md)
 - [001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md)
+- [podverse-media-engine README](modules/podverse-media-engine/README.md) — bridge contract + cache hooks

@@ -1,8 +1,8 @@
 /**
- * Runs i18n compile, type-check, workspace lint, repo-root script lint, and
- * prettier; streams output and prints a summary of errors/warnings at the end.
- * When Prettier fails, prints a unified diff for each failed file so you can
- * see what would change.
+ * Runs i18n compile, type-check, workspace lint, mobile lint, repo-root script
+ * lint, and prettier; streams output and prints a summary of errors/warnings at
+ * the end. When Prettier fails, prints a unified diff for each failed file so
+ * you can see what would change.
  *
  * i18n:compile runs first because apps/web and apps/management-web type-check
  * import generated apps/<app>/i18n/compiled/*.json (gitignored).
@@ -10,9 +10,9 @@
  * Usage: node scripts/ci/lint-with-summary.mjs [lint|lint:fix]
  * Default: lint (use lint:fix for fix mode)
  *
- * Mobile lint policy: `apps/mobile` is excluded from workspace type-check and lint
- * until RN ESLint config lands (Track 0 step 0.3). Remove from LINT_EXCLUDED_WORKSPACES
- * once apps/mobile has eslint.config.js and passes root lint.
+ * Mobile: `apps/mobile` is outside npm workspaces, so it is linted here via
+ * root `eslint.config.mjs` (Tier D / RN override) — same as tools/scripts paths.
+ * Type-check still skips mobile (no Vitest/tsc workspace enrollment yet).
  */
 
 import { spawn, spawnSync } from 'node:child_process';
@@ -20,18 +20,17 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-/** Workspaces skipped in root lint/type-check until mobile ESLint is ready. */
-const LINT_EXCLUDED_WORKSPACES = ['apps/mobile'];
-
 /** Non-workspace paths covered by root eslint.config.mjs (not workspace lint scripts). */
 const REPO_SCRIPT_LINT_PATHS = ['tools/web', 'tools/management-web', 'scripts'];
+
+/** Standalone mobile app (outside npm workspaces; root ESLint Tier D override). */
+const MOBILE_LINT_PATHS = ['apps/mobile'];
 
 const runWorkspacesArgs = (scriptName) => [
   'scripts/ci/run-workspaces.mjs',
   '--script',
   scriptName,
   '--all',
-  ...LINT_EXCLUDED_WORKSPACES.flatMap((workspace) => ['--exclude', workspace]),
 ];
 
 const mode = process.argv[2] === 'lint:fix' ? 'lint:fix' : 'lint';
@@ -43,9 +42,9 @@ const filterPrettierOutput = (output) =>
     .filter((line) => !line.includes('(unchanged)'))
     .join('\n');
 
-const repoScriptLintArgs = [
+const eslintPathArgs = (paths) => [
   'eslint',
-  ...REPO_SCRIPT_LINT_PATHS,
+  ...paths,
   '--max-warnings',
   '0',
   ...(mode === 'lint:fix' ? ['--fix'] : []),
@@ -57,7 +56,8 @@ const steps = [
   { name: 'i18n:compile', cmd: 'npm', args: ['run', 'i18n:compile'] },
   { name: 'type-check', cmd: 'node', args: runWorkspacesArgs('type-check') },
   { name: 'lint', cmd: 'node', args: runWorkspacesArgs(mode) },
-  { name: 'lint:repo-scripts', cmd: 'npx', args: repoScriptLintArgs },
+  { name: 'lint:mobile', cmd: 'npx', args: eslintPathArgs(MOBILE_LINT_PATHS) },
+  { name: 'lint:repo-scripts', cmd: 'npx', args: eslintPathArgs(REPO_SCRIPT_LINT_PATHS) },
   {
     name: 'prettier',
     cmd: 'npm',
@@ -170,14 +170,17 @@ for (const step of steps) {
   results.push(result);
 }
 
+const resultByName = (name) => results.find((r) => r.step === name);
+
 const allOutput = results.map((r) => r.output).join('');
 const summary = summarize(allOutput);
-const i18nCompileFailed = results[0].code !== 0;
-const typeCheckFailed = results[1].code !== 0;
-const workspaceLintFailed = results[2].code !== 0;
-const repoScriptsLintFailed = results[3].code !== 0;
-const prettierFailed = results[4].code !== 0;
-const lintFailed = workspaceLintFailed || repoScriptsLintFailed;
+const i18nCompileFailed = resultByName('i18n:compile')?.code !== 0;
+const typeCheckFailed = resultByName('type-check')?.code !== 0;
+const workspaceLintFailed = resultByName('lint')?.code !== 0;
+const mobileLintFailed = resultByName('lint:mobile')?.code !== 0;
+const repoScriptsLintFailed = resultByName('lint:repo-scripts')?.code !== 0;
+const prettierFailed = resultByName('prettier')?.code !== 0;
+const lintFailed = workspaceLintFailed || mobileLintFailed || repoScriptsLintFailed;
 
 console.log('\n--- Lint summary ---');
 console.log(`i18n:compile: ${i18nCompileFailed ? 'failed' : 'passed'}`);
@@ -192,7 +195,7 @@ console.log(
 );
 
 if (prettierFailed && summary.prettierFiles > 0) {
-  const prettierOutput = results[4].output;
+  const prettierOutput = resultByName('prettier')?.output ?? '';
   const failedFiles = parsePrettierFailedFiles(prettierOutput);
   if (failedFiles.length > 0) {
     console.log('\n--- Prettier (what would change) ---');
