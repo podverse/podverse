@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { ALL_POSSIBLE_THEMES } from '@podverse/design-tokens';
 import type { UITheme } from '@podverse/design-tokens';
+import { ALL_POSSIBLE_THEMES } from '@podverse/design-tokens';
 
 const UI_THEME_PREF_KEY = 'uit';
 

@@ -1,0 +1,51 @@
+apply plugin: 'com.android.library'
+
+group = 'expo.modules.podversemediaengine'
+version = '1.0.0'
+
+def expoModulesCorePlugin = new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
+apply from: expoModulesCorePlugin
+applyKotlinExpoModulesCorePlugin()
+// Required: pulls in expo-modules-core (Module / ModuleDefinition / Events / …). Without this,
+// Kotlin compile fails with "Unresolved reference: kotlin" / "Unresolved reference: Module".
+useCoreDependencies()
+
+// Manage the Android SDK versions locally instead of inheriting the expo-modules-core managed values,
+// so bumping the Expo SDK does not silently change this module's compile/target SDK.
+def useManagedAndroidSdkVersions = false
+if (useManagedAndroidSdkVersions) {
+  useDefaultAndroidSdkVersions()
+} else {
+  ext.safeExtGet = { prop, fallback ->
+    rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+  }
+  project.android {
+    compileSdkVersion safeExtGet("compileSdkVersion", 35)
+    defaultConfig {
+      minSdkVersion safeExtGet("minSdkVersion", 24)
+      targetSdkVersion safeExtGet("targetSdkVersion", 35)
+    }
+  }
+}
+
+android {
+  namespace "expo.modules.podversemediaengine"
+  defaultConfig {
+    versionCode 1
+    versionName "1.0.0"
+  }
+  lintOptions {
+    abortOnError false
+  }
+}
+
+// Media3 version for the shared ExoPlayer + MediaLibraryService (car foundation).
+// Overridable from the root project via ext.media3Version.
+def media3Version = rootProject.ext.has("media3Version") ? rootProject.ext.get("media3Version") : "1.4.1"
+
+dependencies {
+  // ContextCompat (used by PodverseAudioEngine to start the foreground MediaLibraryService).
+  implementation "androidx.core:core-ktx:1.13.1"
+  implementation "androidx.media3:media3-exoplayer:${media3Version}"
+  implementation "androidx.media3:media3-session:${media3Version}"
+}

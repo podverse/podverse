@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
 
 import { initializeI18n } from './src/i18n';
 import { HelloWorldScreen } from './src/screens/HelloWorldScreen';

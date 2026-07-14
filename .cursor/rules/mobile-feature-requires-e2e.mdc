@@ -1,0 +1,42 @@
+# Mobile feature PRs require E2E flow + screenshots
+
+When a change introduces or modifies user-facing behavior in `apps/mobile/src/**`, include matching
+mobile E2E coverage in the same PR — same operator habit as web UI screenshot reports.
+
+## Required for mobile UI behavior changes
+
+- Add or update a Maestro flow under `apps/mobile/e2e/<area>.yaml` that covers the changed behavior.
+- Ensure the flow captures screenshots (`takeScreenshot`) for key checkpoints.
+- After `launchApp` + `clearState`, enter Metro via `runFlow: shared/connect-dev-client.yaml` before
+  asserting app screens (Expo Dev Client launcher is not the app UI).
+- Instruct the operator to generate reports (agents do not run E2E during implementation). **End
+  the implementation response** with the most focused command (same habit as web screenshot
+  reports):
+  - `npm run mobile:e2e:test -- <area>` (narrowest flow), plus slot `open` paths
+  - Full prelude only when needed: `mobile:dev`, `mobile:e2e:ios`, `mobile:e2e:android`
+- Point at per-slot HTML (not a single combined screenshot dump):
+  - `.artifacts/mobile-e2e-reports/latest/index.html` (hub)
+  - `.artifacts/mobile-e2e-reports/latest/ios-phone/index.html`
+  - `.artifacts/mobile-e2e-reports/latest/android-phone/index.html`
+  - tablet slots (`ios-tablet`, `android-tablet`) when those devices are in the matrix
+
+## Debug with reports
+
+When diagnosing a mobile E2E failure, **read the failing slot report** (error text + screenshots)
+before changing code. See **mobile-e2e-screenshots**.
+
+## Not required
+
+- Pure docs updates with no mobile UI/runtime behavior change.
+- Refactors that do not alter user-observable behavior and already have equivalent flow coverage.
+
+## Do not
+
+- Do not use Playwright for mobile E2E.
+- Do not use web/management-web `make e2e_*` targets for mobile flows.
+
+## Related
+
+- [mobile-e2e-screenshots](/.cursor/skills/mobile-e2e-screenshots/SKILL.md)
+- [mobile-master-plan-phasing](/.cursor/skills/mobile-master-plan-phasing/SKILL.md)
+- [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md)

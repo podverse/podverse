@@ -27,29 +27,29 @@
 
 | Decision          | Options                                               | Default recommendation             |
 | ----------------- | ----------------------------------------------------- | ---------------------------------- |
-| CI tooling        | EAS vs Fastlane                                       | Document both; operator chooses    |
+| CI tooling        | EAS vs Fastlane                                       | **EAS chosen** (PG-3)              |
 | Store identity    | Separate `.next` app id vs internal track on existing | Separate app id                    |
-| E2E framework     | Maestro vs Detox                                      | Maestro                            |
+| E2E framework     | Maestro vs Detox                                      | **Maestro chosen** (PG-3)          |
 | Watch/TV v1 scope | v1 vs post-MVP                                        | Phone+tablet v1; watch v1.1; TV v2 |
 
 ## Parallel groups (implementation order)
 
-| Group | Tracks             | Can parallelize with | Prerequisites                                             |
-| ----- | ------------------ | -------------------- | --------------------------------------------------------- |
-| PG-0  | 0                  | —                    | none                                                      |
-| PG-1  | 1                  | 3 (after 0.6+)       | 0 partial                                                 |
-| PG-2a | 3                  | 4, 5 (after 0)       | 0                                                         |
-| PG-2b | 2 spike (2.1–2.13) | 3, 4, 5              | 0, 1 recommended                                          |
-| PG-3  | 4, 5               | each other           | 3 hello-world                                             |
-| PG-4  | 6, 7               | each other           | 3, 5; **0.20** design-tokens recommended before 7.11–7.16 |
-| PG-5  | 2 full (2.14–2.35) | 8, 9                 | 2 spike, 1                                                |
-| PG-6  | 8, 9               | each other           | 6, 7; **7.11–7.15** theme scaffold `done`                 |
-| PG-7  | 10, 11             | each other           | 1, 2, 6                                                   |
-| PG-8  | 12                 | 13, 14, 15           | 2, 10                                                     |
-| PG-9  | 13, 14, 15, 16, 17 | each other (mostly)  | 6, 10 varies                                              |
-| PG-10 | 18                 | 19, 20               | 7, 11                                                     |
-| PG-11 | 19, 20, 21         | each other           | MVP feature-complete                                      |
-| PG-12 | 22                 | —                    | 4, PG-11                                                  |
+| Group | Tracks                                               | Can parallelize with | Prerequisites                                             |
+| ----- | ---------------------------------------------------- | -------------------- | --------------------------------------------------------- |
+| PG-0  | 0                                                    | —                    | none                                                      |
+| PG-1  | 1                                                    | 3 (after 0.6+)       | 0 partial                                                 |
+| PG-2a | 3                                                    | 4, 5 (after 0)       | 0                                                         |
+| PG-2b | 2 spike (2.1–2.13, 2.34, 2.35 contract)              | 3, 4, 5              | 0, 1 recommended                                          |
+| PG-3  | 4, 5                                                 | each other           | 3 hello-world                                             |
+| PG-4  | 6, 7                                                 | each other           | 3, 5; **0.20** design-tokens recommended before 7.11–7.16 |
+| PG-5  | 2 full (2.14–2.34 remainder; 2.35 storage if needed) | 8, 9                 | 2 spike, 1                                                |
+| PG-6  | 8, 9                                                 | each other           | 6, 7; **7.11–7.15** theme scaffold `done`                 |
+| PG-7  | 10, 11                                               | each other           | 1, 2, 6                                                   |
+| PG-8  | 12                                                   | 13, 14, 15           | 2, 10                                                     |
+| PG-9  | 13, 14, 15, 16, 17                                   | each other (mostly)  | 6, 10 varies                                              |
+| PG-10 | 18                                                   | 19, 20               | 7, 11                                                     |
+| PG-11 | 19, 20, 21                                           | each other           | MVP feature-complete                                      |
+| PG-12 | 22                                                   | —                    | 4, PG-11                                                  |
 
 ```mermaid
 flowchart TB
@@ -154,19 +154,19 @@ flowchart TB
   Host -->|"animate to"| Full
 ```
 
-2.1. Create `apps/mobile/modules/podverse-media-engine/` native module scaffold (iOS + Android). Model: Opus 4.8. Detail: [080-media-engine-module-scaffold](/docs/proposals/mobile/_master-plan_/details/080-media-engine-module-scaffold.md) — _TBD_
-2.2. Define TypeScript bridge interface `NativePlaybackBridge` mirroring web bridge surface API. Model: Opus 4.8. Detail: [081-native-playback-bridge-interface](/docs/proposals/mobile/_master-plan_/details/081-native-playback-bridge-interface.md) — _TBD_
-2.3. Document bridge methods: load, play, pause, seek, setRate, getPosition, getDuration, destroy. Model: Opus 4.8. Detail: [082-bridge-method-contract](/docs/proposals/mobile/_master-plan_/details/082-bridge-method-contract.md) — _TBD_
-2.4. Implement iOS Swift module wrapping AVPlayer for audio enclosure playback. Model: Opus 4.8. Detail: [083-ios-avplayer-audio](/docs/proposals/mobile/_master-plan_/details/083-ios-avplayer-audio.md) — _TBD_
-2.5. Configure iOS AVAudioSession category `.playback` with background and interrupt handling. Model: Opus 4.8. Detail: [084-ios-audio-session-lifecycle](/docs/proposals/mobile/_master-plan_/details/084-ios-audio-session-lifecycle.md) — _TBD_
-2.6. Wire iOS MPNowPlayingInfoCenter and MPRemoteCommandCenter for lock-screen controls. Model: Opus 4.8. Detail: [085-ios-now-playing-remote-commands](/docs/proposals/mobile/_master-plan_/details/085-ios-now-playing-remote-commands.md) — _TBD_
-2.7. Implement Android Kotlin module with Media3 ExoPlayer for audio playback. Model: Opus 4.8. Detail: [086-android-exoplayer-audio](/docs/proposals/mobile/_master-plan_/details/086-android-exoplayer-audio.md) — _TBD_
-2.8. Implement Android foreground MediaSessionService for background audio survival. Model: Opus 4.8. Detail: [087-android-foreground-media-service](/docs/proposals/mobile/_master-plan_/details/087-android-foreground-media-service.md) — _TBD_
-2.9. Wire Android MediaSessionCompat/Media3 session for lock-screen and BT controls. Model: Opus 4.8. Detail: [088-android-media-session-controls](/docs/proposals/mobile/_master-plan_/details/088-android-media-session-controls.md) — _TBD_
-2.10. Emit native events to JS: playbackState, progress, ended, error, stalled. Model: Opus 4.8. Detail: [089-native-to-js-events](/docs/proposals/mobile/_master-plan_/details/089-native-to-js-events.md) — _TBD_
-2.11. Implement JS `NativePlaybackBridge` adapter calling the native module from RN hooks. Model: Opus 4.8. Detail: [090-js-bridge-adapter](/docs/proposals/mobile/_master-plan_/details/090-js-bridge-adapter.md) — _TBD_
-2.12. Spike: verify background audio survives app background on iOS and Android. Model: Opus 4.8. Detail: [091-spike-background-audio](/docs/proposals/mobile/_master-plan_/details/091-spike-background-audio.md) — _TBD_
-2.13. Spike: verify audio continues after app kill where OS policy allows (document limits). Model: Opus 4.8. Detail: [092-spike-audio-after-kill](/docs/proposals/mobile/_master-plan_/details/092-spike-audio-after-kill.md) — _TBD_
+2.1. Create `apps/mobile/modules/podverse-media-engine/` native module scaffold (iOS + Android). Model: Opus 4.8. Detail: [080-media-engine-module-scaffold](/docs/proposals/mobile/_master-plan_/details/080-media-engine-module-scaffold.md) — done
+2.2. Define TypeScript bridge interface `NativePlaybackBridge` mirroring web bridge surface API. Model: Opus 4.8. Detail: [081-native-playback-bridge-interface](/docs/proposals/mobile/_master-plan_/details/081-native-playback-bridge-interface.md) — done
+2.3. Document bridge methods: load, play, pause, seek, setRate, getPosition, getDuration, destroy. Model: Opus 4.8. Detail: [082-bridge-method-contract](/docs/proposals/mobile/_master-plan_/details/082-bridge-method-contract.md) — done
+2.4. Implement iOS Swift module wrapping AVPlayer for audio enclosure playback. Model: Opus 4.8. Detail: [083-ios-avplayer-audio](/docs/proposals/mobile/_master-plan_/details/083-ios-avplayer-audio.md) — done
+2.5. Configure iOS AVAudioSession category `.playback` with background and interrupt handling. Model: Opus 4.8. Detail: [084-ios-audio-session-lifecycle](/docs/proposals/mobile/_master-plan_/details/084-ios-audio-session-lifecycle.md) — done
+2.6. Wire iOS MPNowPlayingInfoCenter and MPRemoteCommandCenter for lock-screen controls. Model: Opus 4.8. Detail: [085-ios-now-playing-remote-commands](/docs/proposals/mobile/_master-plan_/details/085-ios-now-playing-remote-commands.md) — done
+2.7. Implement Android Kotlin module with Media3 ExoPlayer for audio playback. Model: Opus 4.8. Detail: [086-android-exoplayer-audio](/docs/proposals/mobile/_master-plan_/details/086-android-exoplayer-audio.md) — done
+2.8. Implement Android foreground MediaSessionService for background audio survival. Model: Opus 4.8. Detail: [087-android-foreground-media-service](/docs/proposals/mobile/_master-plan_/details/087-android-foreground-media-service.md) — done
+2.9. Wire Android MediaSessionCompat/Media3 session for lock-screen and BT controls. Model: Opus 4.8. Detail: [088-android-media-session-controls](/docs/proposals/mobile/_master-plan_/details/088-android-media-session-controls.md) — done
+2.10. Emit native events to JS: playbackState, progress, ended, error, stalled. Model: Opus 4.8. Detail: [089-native-to-js-events](/docs/proposals/mobile/_master-plan_/details/089-native-to-js-events.md) — done
+2.11. Implement JS `NativePlaybackBridge` adapter calling the native module from RN hooks. Model: Opus 4.8. Detail: [090-js-bridge-adapter](/docs/proposals/mobile/_master-plan_/details/090-js-bridge-adapter.md) — done
+2.12. Spike: verify background audio survives app background on iOS and Android. Model: Opus 4.8. Detail: [091-spike-background-audio](/docs/proposals/mobile/_master-plan_/details/091-spike-background-audio.md) — done
+2.13. Spike: verify audio continues after app kill where OS policy allows (document limits). Model: Opus 4.8. Detail: [092-spike-audio-after-kill](/docs/proposals/mobile/_master-plan_/details/092-spike-audio-after-kill.md) — done
 2.14. Add iOS video: single AVPlayer instance shared for audio+video items. Model: Opus 4.8. Detail: [093-ios-avplayer-video](/docs/proposals/mobile/_master-plan_/details/093-ios-avplayer-video.md) — _TBD_
 2.15. Add Android video: single ExoPlayer instance with video surface support. Model: Opus 4.8. Detail: [094-android-exoplayer-video](/docs/proposals/mobile/_master-plan_/details/094-android-exoplayer-video.md) — _TBD_
 2.16. Implement native **VideoSurfaceHost** overlay view (iOS) for persistent surface ownership. Model: Opus 4.8. Detail: [095-ios-video-surface-host](/docs/proposals/mobile/_master-plan_/details/095-ios-video-surface-host.md) — _TBD_
@@ -187,8 +187,8 @@ flowchart TB
 2.31. Register non-FOSS deps used by engine (if any Google Play Services) in FOSS register doc stub. Model: Codex 5.3. Detail: [110-engine-fdroid-deps-register](/docs/proposals/mobile/_master-plan_/details/110-engine-fdroid-deps-register.md) — _TBD_
 2.32. E2E: spike flow plays sample audio and captures lock-screen screenshot (manual/semi-auto). Model: Codex 5.3. Detail: [111-e2e-audio-spike-screenshot](/docs/proposals/mobile/_master-plan_/details/111-e2e-audio-spike-screenshot.md) — _TBD_
 2.33. E2E: spike flow plays sample video mini→full transition without playback restart. Model: Opus 4.8. Detail: [112-e2e-video-transition-spike](/docs/proposals/mobile/_master-plan_/details/112-e2e-video-transition-spike.md) — _TBD_
-2.34. Define go/no-go gate: engine spike must pass before Track 10/11 full player UI work. Model: Codex 5.3. Detail: [113-engine-spike-gate](/docs/proposals/mobile/_master-plan_/details/113-engine-spike-gate.md) — _TBD_
-2.35. Export native cache write hooks from engine for queue snapshot (feeds Track 12 car layer). Model: Opus 4.8. Detail: [114-engine-native-cache-hooks](/docs/proposals/mobile/_master-plan_/details/114-engine-native-cache-hooks.md) — _TBD_
+2.34. Define go/no-go gate: engine spike must pass before Track 10/11 full player UI work. Model: Codex 5.3. Detail: [113-engine-spike-gate](/docs/proposals/mobile/_master-plan_/details/113-engine-spike-gate.md) — done (GO: `apps/mobile/modules/podverse-media-engine/GO-NO-GO.md`, 2026-07-13)
+2.35. Export native cache write hooks from engine for queue snapshot (feeds Track 12 car layer). Model: Opus 4.8. Detail: [114-engine-native-cache-hooks](/docs/proposals/mobile/_master-plan_/details/114-engine-native-cache-hooks.md) — done (contract/stubs)
 
 ## Track 3 — App bootstrap (hello-world)
 
@@ -213,10 +213,12 @@ flowchart TB
 
 Track 3 is complete when all of the following are true:
 
-- [ ] `npm run build:packages` succeeds; Metro resolves `@podverse/helpers` from `dist/`.
-- [ ] `npm run start -w @podverse/mobile` (or `npm run dev:mobile`) starts without resolver errors.
-- [ ] Hello-world screen shows app name, version, and helpers smoke line on iOS and Android.
-- [ ] `npm run prebuild -w @podverse/mobile` generates gitignored `ios/` and `android/` with bundle id `com.podverse.app.next`.
+- [x] `npm run build:packages` succeeds; Metro resolves `@podverse/helpers` from `dist/`.
+- [x] `npm run dev:mobile` starts without resolver errors.
+- [x] Hello-world screen shows app name, version, and helpers smoke line on iOS and Android
+      (simulators/emulators verified).
+- [x] `npm run mobile:prebuild` generates gitignored `ios/` and `android/` with bundle id
+      `com.podverse.app.next`.
 - [ ] Dev client installed on a physical iOS device (operator step 3.14).
 - [ ] Dev client installed on a physical Android device (operator step 3.15).
 
@@ -224,47 +226,50 @@ Track 3 is complete when all of the following are true:
 
 **Store safety:** Never overwrite existing Podverse Prod/Beta store listings. Use separate `.next` app id until convergence decision (step 4.25).
 
-4.1. Record open decision: EAS Build/Submit vs self-hosted Fastlane on GitHub macOS runners. Model: Opus 4.8. Detail: [150-ci-tooling-decision](/docs/proposals/mobile/_master-plan_/details/150-ci-tooling-decision.md) — _TBD_
-4.2. Document required accounts: Apple Developer ($99/yr), Google Play ($25 one-time). Model: Auto. Detail: [151-store-account-costs](/docs/proposals/mobile/_master-plan_/details/151-store-account-costs.md) — _TBD_
-4.3. Document optional EAS paid tier costs for cloud builds and submit convenience. Model: Auto. Detail: [152-eas-pricing-note](/docs/proposals/mobile/_master-plan_/details/152-eas-pricing-note.md) — _TBD_
-4.4. Create `.github/workflows/mobile-internal.yml` triggered on `develop` (non-blocking). Model: Codex 5.3. Detail: [153-workflow-mobile-internal](/docs/proposals/mobile/_master-plan_/details/153-workflow-mobile-internal.md) — _TBD_
-4.5. Create `.github/workflows/mobile-staging-beta.yml` triggered on `staging` (TestFlight/closed). Model: Codex 5.3. Detail: [154-workflow-mobile-staging-beta](/docs/proposals/mobile/_master-plan_/details/154-workflow-mobile-staging-beta.md) — _TBD_
-4.6. Create `.github/workflows/mobile-production-submit.yml` triggered on `main` (manual approval gate). Model: Opus 4.8. Detail: [155-workflow-mobile-production](/docs/proposals/mobile/_master-plan_/details/155-workflow-mobile-production.md) — _TBD_
-4.7. Ensure mobile workflows never block `publish-staging.yml` / `publish-main.yml` server jobs. Model: Codex 5.3. Detail: [156-ci-isolation-from-server](/docs/proposals/mobile/_master-plan_/details/156-ci-isolation-from-server.md) — _TBD_
-4.8. Configure macOS GitHub Actions runner requirement for iOS builds. Model: Codex 5.3. Detail: [157-macos-runner-ios](/docs/proposals/mobile/_master-plan_/details/157-macos-runner-ios.md) — _TBD_
-4.9. Configure Android build job (macOS or Linux depending on toolchain choice). Model: Codex 5.3. Detail: [158-android-build-runner](/docs/proposals/mobile/_master-plan_/details/158-android-build-runner.md) — _TBD_
-4.10. Store signing credentials in GitHub Actions secrets (match/EAS credentials or Fastlane). Model: Opus 4.8. Detail: [159-signing-secrets-setup](/docs/proposals/mobile/_master-plan_/details/159-signing-secrets-setup.md) — _TBD_
-4.11. Use separate iOS bundle id and Android applicationId for next-gen app (`*.next` suffix). Model: Opus 4.8. Detail: [160-separate-app-id](/docs/proposals/mobile/_master-plan_/details/160-separate-app-id.md) — _TBD_
-4.12. Create separate App Store Connect app record for next-gen (do not reuse prod listing). Model: Opus 4.8. Detail: [161-app-store-connect-next-app](/docs/proposals/mobile/_master-plan_/details/161-app-store-connect-next-app.md) — _TBD_
-4.13. Create separate Google Play app entry or internal testing track isolated from prod. Model: Opus 4.8. Detail: [162-play-console-next-app](/docs/proposals/mobile/_master-plan_/details/162-play-console-next-app.md) — _TBD_
-4.14. Map `develop` branch builds to TestFlight Internal / Play internal testing only. Model: Codex 5.3. Detail: [163-branch-develop-internal](/docs/proposals/mobile/_master-plan_/details/163-branch-develop-internal.md) — _TBD_
-4.15. Map `staging` branch builds to TestFlight external beta / Play closed testing. Model: Codex 5.3. Detail: [164-branch-staging-beta](/docs/proposals/mobile/_master-plan_/details/164-branch-staging-beta.md) — _TBD_
-4.16. Map `main` branch to production submit workflow with human approval and staged rollout. Model: Opus 4.8. Detail: [165-branch-main-production](/docs/proposals/mobile/_master-plan_/details/165-branch-main-production.md) — _TBD_
-4.17. Integrate monotonic iOS `CFBundleVersion` and Android `versionCode` from CI build counter. Model: Codex 5.3. Detail: [166-monotonic-build-numbers](/docs/proposals/mobile/_master-plan_/details/166-monotonic-build-numbers.md) — _TBD_
-4.18. Sync marketing version `X.Y.Z` from root bump-version.sh to mobile app config. Model: Codex 5.3. Detail: [167-marketing-version-sync](/docs/proposals/mobile/_master-plan_/details/167-marketing-version-sync.md) — _TBD_
-4.19. Document OTA policy: EAS Update for JS-only; native changes require store build. Model: Codex 5.3. Detail: [168-ota-update-policy](/docs/proposals/mobile/_master-plan_/details/168-ota-update-policy.md) — _TBD_
-4.20. Add Fastlane lanes or EAS profiles: `internal`, `beta`, `production` per platform. Model: Codex 5.3. Detail: [169-fastlane-eas-profiles](/docs/proposals/mobile/_master-plan_/details/169-fastlane-eas-profiles.md) — _TBD_
-4.21. Version store metadata (screenshots, release notes) as code in repo. Model: Auto. Detail: [170-store-metadata-as-code](/docs/proposals/mobile/_master-plan_/details/170-store-metadata-as-code.md) — _TBD_
-4.22. Add operator runbook doc `docs/operations/mobile/MOBILE-RELEASE-RUNBOOK.md`. Model: Codex 5.3. Detail: [171-mobile-release-runbook](/docs/proposals/mobile/_master-plan_/details/171-mobile-release-runbook.md) — _TBD_
-4.23. CI artifact retention for signed IPAs/AABs and dSYM/mapping files. Model: Codex 5.3. Detail: [172-ci-artifact-retention](/docs/proposals/mobile/_master-plan_/details/172-ci-artifact-retention.md) — _TBD_
-4.24. Add beta tester onboarding doc (TestFlight link, Play internal link) for next-gen app only. Model: Auto. Detail: [173-beta-tester-onboarding](/docs/proposals/mobile/_master-plan_/details/173-beta-tester-onboarding.md) — _TBD_
-4.25. Record convergence decision gate: when/how to migrate from `.next` id to prod listing. Model: Opus 4.8. Detail: [174-prod-listing-convergence-gate](/docs/proposals/mobile/_master-plan_/details/174-prod-listing-convergence-gate.md) — _TBD_
+4.1. Record open decision: EAS Build/Submit vs self-hosted Fastlane on GitHub macOS runners. Model: Opus 4.8. Detail: [150-ci-tooling-decision](/docs/proposals/mobile/_master-plan_/details/150-ci-tooling-decision.md) — done
+4.2. Document required accounts: Apple Developer ($99/yr), Google Play ($25 one-time). Model: Auto. Detail: [151-store-account-costs](/docs/proposals/mobile/_master-plan_/details/151-store-account-costs.md) — done
+4.3. Document optional EAS paid tier costs for cloud builds and submit convenience. Model: Auto. Detail: [152-eas-pricing-note](/docs/proposals/mobile/_master-plan_/details/152-eas-pricing-note.md) — done
+4.4. Create `.github/workflows/mobile-internal.yml` triggered on `develop` (non-blocking). Model: Codex 5.3. Detail: [153-workflow-mobile-internal](/docs/proposals/mobile/_master-plan_/details/153-workflow-mobile-internal.md) — done
+4.5. Create `.github/workflows/mobile-staging-beta.yml` triggered on `staging` (TestFlight/closed). Model: Codex 5.3. Detail: [154-workflow-mobile-staging-beta](/docs/proposals/mobile/_master-plan_/details/154-workflow-mobile-staging-beta.md) — done
+4.6. Create `.github/workflows/mobile-production-submit.yml` triggered on `main` (manual approval gate). Model: Opus 4.8. Detail: [155-workflow-mobile-production](/docs/proposals/mobile/_master-plan_/details/155-workflow-mobile-production.md) — done
+4.7. Ensure mobile workflows never block `publish-staging.yml` / `publish-main.yml` server jobs. Model: Codex 5.3. Detail: [156-ci-isolation-from-server](/docs/proposals/mobile/_master-plan_/details/156-ci-isolation-from-server.md) — done
+4.8. Configure macOS GitHub Actions runner requirement for iOS builds. Model: Codex 5.3. Detail: [157-macos-runner-ios](/docs/proposals/mobile/_master-plan_/details/157-macos-runner-ios.md) — done
+4.9. Configure Android build job (macOS or Linux depending on toolchain choice). Model: Codex 5.3. Detail: [158-android-build-runner](/docs/proposals/mobile/_master-plan_/details/158-android-build-runner.md) — done
+4.10. Store signing credentials in GitHub Actions secrets (match/EAS credentials or Fastlane). Model: Opus 4.8. Detail: [159-signing-secrets-setup](/docs/proposals/mobile/_master-plan_/details/159-signing-secrets-setup.md) — done
+4.11. Use separate iOS bundle id and Android applicationId for next-gen app (`*.next` suffix). Model: Opus 4.8. Detail: [160-separate-app-id](/docs/proposals/mobile/_master-plan_/details/160-separate-app-id.md) — done
+4.12. Create separate App Store Connect app record for next-gen (do not reuse prod listing). Model: Opus 4.8. Detail: [161-app-store-connect-next-app](/docs/proposals/mobile/_master-plan_/details/161-app-store-connect-next-app.md) — done
+4.13. Create separate Google Play app entry or internal testing track isolated from prod. Model: Opus 4.8. Detail: [162-play-console-next-app](/docs/proposals/mobile/_master-plan_/details/162-play-console-next-app.md) — done
+4.14. Map `develop` branch builds to TestFlight Internal / Play internal testing only. Model: Codex 5.3. Detail: [163-branch-develop-internal](/docs/proposals/mobile/_master-plan_/details/163-branch-develop-internal.md) — done
+4.15. Map `staging` branch builds to TestFlight external beta / Play closed testing. Model: Codex 5.3. Detail: [164-branch-staging-beta](/docs/proposals/mobile/_master-plan_/details/164-branch-staging-beta.md) — done
+4.16. Map `main` branch to production submit workflow with human approval and staged rollout. Model: Opus 4.8. Detail: [165-branch-main-production](/docs/proposals/mobile/_master-plan_/details/165-branch-main-production.md) — done
+4.17. Integrate monotonic iOS `CFBundleVersion` and Android `versionCode` from CI build counter. Model: Codex 5.3. Detail: [166-monotonic-build-numbers](/docs/proposals/mobile/_master-plan_/details/166-monotonic-build-numbers.md) — done
+4.18. Sync marketing version `X.Y.Z` from root bump-version.sh to mobile app config. Model: Codex 5.3. Detail: [167-marketing-version-sync](/docs/proposals/mobile/_master-plan_/details/167-marketing-version-sync.md) — done
+4.19. Document OTA policy: EAS Update for JS-only; native changes require store build. Model: Codex 5.3. Detail: [168-ota-update-policy](/docs/proposals/mobile/_master-plan_/details/168-ota-update-policy.md) — done
+4.20. Add Fastlane lanes or EAS profiles: `internal`, `beta`, `production` per platform. Model: Codex 5.3. Detail: [169-fastlane-eas-profiles](/docs/proposals/mobile/_master-plan_/details/169-fastlane-eas-profiles.md) — done
+4.21. Version store metadata (screenshots, release notes) as code in repo. Model: Auto. Detail: [170-store-metadata-as-code](/docs/proposals/mobile/_master-plan_/details/170-store-metadata-as-code.md) — done
+4.22. Add operator runbook doc `docs/operations/mobile/MOBILE-RELEASE-RUNBOOK.md`. Model: Codex 5.3. Detail: [171-mobile-release-runbook](/docs/proposals/mobile/_master-plan_/details/171-mobile-release-runbook.md) — done
+4.23. CI artifact retention for signed IPAs/AABs and dSYM/mapping files. Model: Codex 5.3. Detail: [172-ci-artifact-retention](/docs/proposals/mobile/_master-plan_/details/172-ci-artifact-retention.md) — done
+4.24. Add beta tester onboarding doc (TestFlight link, Play internal link) for next-gen app only. Model: Auto. Detail: [173-beta-tester-onboarding](/docs/proposals/mobile/_master-plan_/details/173-beta-tester-onboarding.md) — done
+4.25. Record convergence decision gate: when/how to migrate from `.next` id to prod listing. Model: Opus 4.8. Detail: [174-prod-listing-convergence-gate](/docs/proposals/mobile/_master-plan_/details/174-prod-listing-convergence-gate.md) — done
 
 ## Track 5 — Mobile E2E + screenshots harness
 
-5.1. Decide E2E framework: Maestro (recommended default) vs Detox; record open decision if unset. Model: Codex 5.3. Detail: [060-e2e-framework-decision](/docs/proposals/mobile/_master-plan_/details/060-e2e-framework-decision.md) — _TBD_
-5.2. Create `apps/mobile/e2e/` directory and naming convention mirroring web spec paths. Model: Auto. Detail: [061-e2e-directory-layout](/docs/proposals/mobile/_master-plan_/details/061-e2e-directory-layout.md) — _TBD_
-5.3. Add hello-world Maestro/Detox flow asserting app launches and shows title. Model: Codex 5.3. Detail: [062-e2e-hello-world-flow](/docs/proposals/mobile/_master-plan_/details/062-e2e-hello-world-flow.md) — _TBD_
-5.4. Configure screenshot capture on each flow step (Maestro `takeScreenshot` or Detox artifact). Model: Codex 5.3. Detail: [063-e2e-screenshot-capture-config](/docs/proposals/mobile/_master-plan_/details/063-e2e-screenshot-capture-config.md) — _TBD_
-5.5. Define report output directory `.artifacts/mobile-e2e-reports/latest/`. Model: Auto. Detail: [064-e2e-report-output-dir](/docs/proposals/mobile/_master-plan_/details/064-e2e-report-output-dir.md) — _TBD_
-5.6. Add Makefile targets `mobile_e2e_test` and `mobile_e2e_test_report_spec` at repo root. Model: Codex 5.3. Detail: [065-makefile-mobile-e2e-targets](/docs/proposals/mobile/_master-plan_/details/065-makefile-mobile-e2e-targets.md) — _TBD_
-5.7. Document operator commands in APPS-MOBILE.md (from monorepo root). Model: Auto. Detail: [066-e2e-operator-commands-doc](/docs/proposals/mobile/_master-plan_/details/066-e2e-operator-commands-doc.md) — _TBD_
-5.8. Add abcmemory rule: every new mobile feature PR includes matching e2e flow + screenshot. Model: Codex 5.3. Detail: [067-rule-feature-requires-e2e](/docs/proposals/mobile/_master-plan_/details/067-rule-feature-requires-e2e.md) — _TBD_
-5.9. Add CI job stub (non-blocking) running hello-world e2e on simulator when macOS runner available. Model: Codex 5.3. Detail: [068-ci-e2e-stub-job](/docs/proposals/mobile/_master-plan_/details/068-ci-e2e-stub-job.md) — _TBD_
-5.10. Create e2e seed/env doc for test API base URL (reuse podverse test env patterns). Model: Codex 5.3. Detail: [069-e2e-test-env-doc](/docs/proposals/mobile/_master-plan_/details/069-e2e-test-env-doc.md) — _TBD_
-5.11. Add `.cursor/skills/mobile-e2e-screenshots/SKILL.md` cross-link to web ui-e2e-screenshot-report. Model: Auto. Detail: [070-skill-e2e-screenshot-parity](/docs/proposals/mobile/_master-plan_/details/070-skill-e2e-screenshot-parity.md) — _TBD_
-5.12. Define spec naming: `e2e/<area>.yaml` (Maestro) or `e2e/<area>.e2e.ts` (Detox). Model: Auto. Detail: [071-e2e-spec-naming-convention](/docs/proposals/mobile/_master-plan_/details/071-e2e-spec-naming-convention.md) — _TBD_
-5.13. Add parallel-worktree note: e2e specs are safe to author in isolation per feature Track. Model: Auto. Detail: [072-e2e-parallel-worktree-guidance](/docs/proposals/mobile/_master-plan_/details/072-e2e-parallel-worktree-guidance.md) — _TBD_
+5.1. Decide E2E framework: Maestro (recommended default) vs Detox; record open decision if unset. Model: Codex 5.3. Detail: [060-e2e-framework-decision](/docs/proposals/mobile/_master-plan_/details/060-e2e-framework-decision.md) — done
+5.2. Create `apps/mobile/e2e/` directory and naming convention mirroring web spec paths. Model: Auto. Detail: [061-e2e-directory-layout](/docs/proposals/mobile/_master-plan_/details/061-e2e-directory-layout.md) — done
+5.3. Add hello-world Maestro/Detox flow asserting app launches and shows title. Model: Codex 5.3. Detail: [062-e2e-hello-world-flow](/docs/proposals/mobile/_master-plan_/details/062-e2e-hello-world-flow.md) — done
+5.4. Configure screenshot capture on each flow step (Maestro `takeScreenshot` or Detox artifact). Model: Codex 5.3. Detail: [063-e2e-screenshot-capture-config](/docs/proposals/mobile/_master-plan_/details/063-e2e-screenshot-capture-config.md) — done
+5.5. Define report output directory `.artifacts/mobile-e2e-reports/latest/`. Model: Auto. Detail: [064-e2e-report-output-dir](/docs/proposals/mobile/_master-plan_/details/064-e2e-report-output-dir.md) — done
+5.6. Add Makefile targets `mobile_e2e_test` and `mobile_e2e_test_report_spec` at repo root. Model: Codex 5.3. Detail: [065-makefile-mobile-e2e-targets](/docs/proposals/mobile/_master-plan_/details/065-makefile-mobile-e2e-targets.md) — done
+5.7. Document operator commands in APPS-MOBILE.md (from monorepo root). Model: Auto. Detail: [066-e2e-operator-commands-doc](/docs/proposals/mobile/_master-plan_/details/066-e2e-operator-commands-doc.md) — done
+5.8. Add abcmemory rule: every new mobile feature PR includes matching e2e flow + screenshot. Model: Codex 5.3. Detail: [067-rule-feature-requires-e2e](/docs/proposals/mobile/_master-plan_/details/067-rule-feature-requires-e2e.md) — done
+5.9. Add CI job stub (non-blocking) running hello-world e2e on simulator when macOS runner available. Model: Codex 5.3. Detail: [068-ci-e2e-stub-job](/docs/proposals/mobile/_master-plan_/details/068-ci-e2e-stub-job.md) — done
+5.10. Create e2e seed/env doc for test API base URL (reuse podverse test env patterns). Model: Codex 5.3. Detail: [069-e2e-test-env-doc](/docs/proposals/mobile/_master-plan_/details/069-e2e-test-env-doc.md) — done
+5.11. Add `.cursor/skills/mobile-e2e-screenshots/SKILL.md` cross-link to web ui-e2e-screenshot-report. Model: Auto. Detail: [070-skill-e2e-screenshot-parity](/docs/proposals/mobile/_master-plan_/details/070-skill-e2e-screenshot-parity.md) — done
+5.12. Define spec naming: `e2e/<area>.yaml` (Maestro); Detox `.e2e.ts` naming is not used in this phase. Model: Auto. Detail: [071-e2e-spec-naming-convention](/docs/proposals/mobile/_master-plan_/details/071-e2e-spec-naming-convention.md) — done
+5.13. Add parallel-worktree note: e2e specs are safe to author in isolation per feature Track. Model: Auto. Detail: [072-e2e-parallel-worktree-guidance](/docs/proposals/mobile/_master-plan_/details/072-e2e-parallel-worktree-guidance.md) — done
+5.14. Dual device matrix: manual vs E2E simulator/AVD slots (same app id). Model: Codex 5.3. Detail: [073-e2e-device-isolation-matrix](/docs/proposals/mobile/_master-plan_/details/073-e2e-device-isolation-matrix.md) — done
+5.15. Make `mobile_e2e_*` auto-create/boot both E2E devices and run Maestro per platform. Model: Codex 5.3. Detail: [074-e2e-make-autoboot-both-platforms](/docs/proposals/mobile/_master-plan_/details/074-e2e-make-autoboot-both-platforms.md) — done
+5.16. Web-parity mobile step/screenshot HTML report under `.artifacts/mobile-e2e-reports/latest/`. Model: Codex 5.3. Detail: [075-e2e-html-step-screenshot-report](/docs/proposals/mobile/_master-plan_/details/075-e2e-html-step-screenshot-report.md) — done
 
 ## Track 6 — Bearer auth + secure storage
 
@@ -629,32 +634,35 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 053-dev-client-ios-device              | 3.14       | 053-dev-client-ios-device              | Auto      | done    |
 | 054-dev-client-android-device          | 3.15       | 054-dev-client-android-device          | Auto      | done    |
 | 055-track-3-exit-criteria              | 3.16       | 055-track-3-exit-criteria              | Auto      | done    |
-| 060-e2e-framework-decision             | 5.1        | 060-e2e-framework-decision             | Codex 5.3 | _TBD_   |
-| 061-e2e-directory-layout               | 5.2        | 061-e2e-directory-layout               | Auto      | _TBD_   |
-| 062-e2e-hello-world-flow               | 5.3        | 062-e2e-hello-world-flow               | Codex 5.3 | _TBD_   |
-| 063-e2e-screenshot-capture-config      | 5.4        | 063-e2e-screenshot-capture-config      | Codex 5.3 | _TBD_   |
-| 064-e2e-report-output-dir              | 5.5        | 064-e2e-report-output-dir              | Auto      | _TBD_   |
-| 065-makefile-mobile-e2e-targets        | 5.6        | 065-makefile-mobile-e2e-targets        | Codex 5.3 | _TBD_   |
-| 066-e2e-operator-commands-doc          | 5.7        | 066-e2e-operator-commands-doc          | Auto      | _TBD_   |
-| 067-rule-feature-requires-e2e          | 5.8        | 067-rule-feature-requires-e2e          | Codex 5.3 | _TBD_   |
-| 068-ci-e2e-stub-job                    | 5.9        | 068-ci-e2e-stub-job                    | Codex 5.3 | _TBD_   |
-| 069-e2e-test-env-doc                   | 5.10       | 069-e2e-test-env-doc                   | Codex 5.3 | _TBD_   |
-| 070-skill-e2e-screenshot-parity        | 5.11       | 070-skill-e2e-screenshot-parity        | Auto      | _TBD_   |
-| 071-e2e-spec-naming-convention         | 5.12       | 071-e2e-spec-naming-convention         | Auto      | _TBD_   |
-| 072-e2e-parallel-worktree-guidance     | 5.13       | 072-e2e-parallel-worktree-guidance     | Auto      | _TBD_   |
-| 080-media-engine-module-scaffold       | 2.1        | 080-media-engine-module-scaffold       | Opus 4.8  | _TBD_   |
-| 081-native-playback-bridge-interface   | 2.2        | 081-native-playback-bridge-interface   | Opus 4.8  | _TBD_   |
-| 082-bridge-method-contract             | 2.3        | 082-bridge-method-contract             | Opus 4.8  | _TBD_   |
-| 083-ios-avplayer-audio                 | 2.4        | 083-ios-avplayer-audio                 | Opus 4.8  | _TBD_   |
-| 084-ios-audio-session-lifecycle        | 2.5        | 084-ios-audio-session-lifecycle        | Opus 4.8  | _TBD_   |
-| 085-ios-now-playing-remote-commands    | 2.6        | 085-ios-now-playing-remote-commands    | Opus 4.8  | _TBD_   |
-| 086-android-exoplayer-audio            | 2.7        | 086-android-exoplayer-audio            | Opus 4.8  | _TBD_   |
-| 087-android-foreground-media-service   | 2.8        | 087-android-foreground-media-service   | Opus 4.8  | _TBD_   |
-| 088-android-media-session-controls     | 2.9        | 088-android-media-session-controls     | Opus 4.8  | _TBD_   |
-| 089-native-to-js-events                | 2.10       | 089-native-to-js-events                | Opus 4.8  | _TBD_   |
-| 090-js-bridge-adapter                  | 2.11       | 090-js-bridge-adapter                  | Opus 4.8  | _TBD_   |
-| 091-spike-background-audio             | 2.12       | 091-spike-background-audio             | Opus 4.8  | _TBD_   |
-| 092-spike-audio-after-kill             | 2.13       | 092-spike-audio-after-kill             | Opus 4.8  | _TBD_   |
+| 060-e2e-framework-decision             | 5.1        | 060-e2e-framework-decision             | Codex 5.3 | done    |
+| 061-e2e-directory-layout               | 5.2        | 061-e2e-directory-layout               | Auto      | done    |
+| 062-e2e-hello-world-flow               | 5.3        | 062-e2e-hello-world-flow               | Codex 5.3 | done    |
+| 063-e2e-screenshot-capture-config      | 5.4        | 063-e2e-screenshot-capture-config      | Codex 5.3 | done    |
+| 064-e2e-report-output-dir              | 5.5        | 064-e2e-report-output-dir              | Auto      | done    |
+| 065-makefile-mobile-e2e-targets        | 5.6        | 065-makefile-mobile-e2e-targets        | Codex 5.3 | done    |
+| 066-e2e-operator-commands-doc          | 5.7        | 066-e2e-operator-commands-doc          | Auto      | done    |
+| 067-rule-feature-requires-e2e          | 5.8        | 067-rule-feature-requires-e2e          | Codex 5.3 | done    |
+| 068-ci-e2e-stub-job                    | 5.9        | 068-ci-e2e-stub-job                    | Codex 5.3 | done    |
+| 069-e2e-test-env-doc                   | 5.10       | 069-e2e-test-env-doc                   | Codex 5.3 | done    |
+| 070-skill-e2e-screenshot-parity        | 5.11       | 070-skill-e2e-screenshot-parity        | Auto      | done    |
+| 071-e2e-spec-naming-convention         | 5.12       | 071-e2e-spec-naming-convention         | Auto      | done    |
+| 072-e2e-parallel-worktree-guidance     | 5.13       | 072-e2e-parallel-worktree-guidance     | Auto      | done    |
+| 073-e2e-device-isolation-matrix        | 5.14       | 073-e2e-device-isolation-matrix        | Codex 5.3 | done    |
+| 074-e2e-make-autoboot-both-platforms   | 5.15       | 074-e2e-make-autoboot-both-platforms   | Codex 5.3 | done    |
+| 075-e2e-html-step-screenshot-report    | 5.16       | 075-e2e-html-step-screenshot-report    | Codex 5.3 | done    |
+| 080-media-engine-module-scaffold       | 2.1        | 080-media-engine-module-scaffold       | Opus 4.8  | done    |
+| 081-native-playback-bridge-interface   | 2.2        | 081-native-playback-bridge-interface   | Opus 4.8  | done    |
+| 082-bridge-method-contract             | 2.3        | 082-bridge-method-contract             | Opus 4.8  | done    |
+| 083-ios-avplayer-audio                 | 2.4        | 083-ios-avplayer-audio                 | Opus 4.8  | done    |
+| 084-ios-audio-session-lifecycle        | 2.5        | 084-ios-audio-session-lifecycle        | Opus 4.8  | done    |
+| 085-ios-now-playing-remote-commands    | 2.6        | 085-ios-now-playing-remote-commands    | Opus 4.8  | done    |
+| 086-android-exoplayer-audio            | 2.7        | 086-android-exoplayer-audio            | Opus 4.8  | done    |
+| 087-android-foreground-media-service   | 2.8        | 087-android-foreground-media-service   | Opus 4.8  | done    |
+| 088-android-media-session-controls     | 2.9        | 088-android-media-session-controls     | Opus 4.8  | done    |
+| 089-native-to-js-events                | 2.10       | 089-native-to-js-events                | Opus 4.8  | done    |
+| 090-js-bridge-adapter                  | 2.11       | 090-js-bridge-adapter                  | Opus 4.8  | done    |
+| 091-spike-background-audio             | 2.12       | 091-spike-background-audio             | Opus 4.8  | done    |
+| 092-spike-audio-after-kill             | 2.13       | 092-spike-audio-after-kill             | Opus 4.8  | done    |
 | 093-ios-avplayer-video                 | 2.14       | 093-ios-avplayer-video                 | Opus 4.8  | _TBD_   |
 | 094-android-exoplayer-video            | 2.15       | 094-android-exoplayer-video            | Opus 4.8  | _TBD_   |
 | 095-ios-video-surface-host             | 2.16       | 095-ios-video-surface-host             | Opus 4.8  | _TBD_   |
@@ -675,33 +683,33 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 110-engine-fdroid-deps-register        | 2.31       | 110-engine-fdroid-deps-register        | Codex 5.3 | _TBD_   |
 | 111-e2e-audio-spike-screenshot         | 2.32       | 111-e2e-audio-spike-screenshot         | Codex 5.3 | _TBD_   |
 | 112-e2e-video-transition-spike         | 2.33       | 112-e2e-video-transition-spike         | Opus 4.8  | _TBD_   |
-| 113-engine-spike-gate                  | 2.34       | 113-engine-spike-gate                  | Codex 5.3 | _TBD_   |
-| 114-engine-native-cache-hooks          | 2.35       | 114-engine-native-cache-hooks          | Opus 4.8  | _TBD_   |
-| 150-ci-tooling-decision                | 4.1        | 150-ci-tooling-decision                | Opus 4.8  | _TBD_   |
-| 151-store-account-costs                | 4.2        | 151-store-account-costs                | Auto      | _TBD_   |
-| 152-eas-pricing-note                   | 4.3        | 152-eas-pricing-note                   | Auto      | _TBD_   |
-| 153-workflow-mobile-internal           | 4.4        | 153-workflow-mobile-internal           | Codex 5.3 | _TBD_   |
-| 154-workflow-mobile-staging-beta       | 4.5        | 154-workflow-mobile-staging-beta       | Codex 5.3 | _TBD_   |
-| 155-workflow-mobile-production         | 4.6        | 155-workflow-mobile-production         | Opus 4.8  | _TBD_   |
-| 156-ci-isolation-from-server           | 4.7        | 156-ci-isolation-from-server           | Codex 5.3 | _TBD_   |
-| 157-macos-runner-ios                   | 4.8        | 157-macos-runner-ios                   | Codex 5.3 | _TBD_   |
-| 158-android-build-runner               | 4.9        | 158-android-build-runner               | Codex 5.3 | _TBD_   |
-| 159-signing-secrets-setup              | 4.10       | 159-signing-secrets-setup              | Opus 4.8  | _TBD_   |
-| 160-separate-app-id                    | 4.11       | 160-separate-app-id                    | Opus 4.8  | _TBD_   |
-| 161-app-store-connect-next-app         | 4.12       | 161-app-store-connect-next-app         | Opus 4.8  | _TBD_   |
-| 162-play-console-next-app              | 4.13       | 162-play-console-next-app              | Opus 4.8  | _TBD_   |
-| 163-branch-develop-internal            | 4.14       | 163-branch-develop-internal            | Codex 5.3 | _TBD_   |
-| 164-branch-staging-beta                | 4.15       | 164-branch-staging-beta                | Codex 5.3 | _TBD_   |
-| 165-branch-main-production             | 4.16       | 165-branch-main-production             | Opus 4.8  | _TBD_   |
-| 166-monotonic-build-numbers            | 4.17       | 166-monotonic-build-numbers            | Codex 5.3 | _TBD_   |
-| 167-marketing-version-sync             | 4.18       | 167-marketing-version-sync             | Codex 5.3 | _TBD_   |
-| 168-ota-update-policy                  | 4.19       | 168-ota-update-policy                  | Codex 5.3 | _TBD_   |
-| 169-fastlane-eas-profiles              | 4.20       | 169-fastlane-eas-profiles              | Codex 5.3 | _TBD_   |
-| 170-store-metadata-as-code             | 4.21       | 170-store-metadata-as-code             | Auto      | _TBD_   |
-| 171-mobile-release-runbook             | 4.22       | 171-mobile-release-runbook             | Codex 5.3 | _TBD_   |
-| 172-ci-artifact-retention              | 4.23       | 172-ci-artifact-retention              | Codex 5.3 | _TBD_   |
-| 173-beta-tester-onboarding             | 4.24       | 173-beta-tester-onboarding             | Auto      | _TBD_   |
-| 174-prod-listing-convergence-gate      | 4.25       | 174-prod-listing-convergence-gate      | Opus 4.8  | _TBD_   |
+| 113-engine-spike-gate                  | 2.34       | 113-engine-spike-gate                  | Codex 5.3 | done    |
+| 114-engine-native-cache-hooks          | 2.35       | 114-engine-native-cache-hooks          | Opus 4.8  | done    |
+| 150-ci-tooling-decision                | 4.1        | 150-ci-tooling-decision                | Opus 4.8  | done    |
+| 151-store-account-costs                | 4.2        | 151-store-account-costs                | Auto      | done    |
+| 152-eas-pricing-note                   | 4.3        | 152-eas-pricing-note                   | Auto      | done    |
+| 153-workflow-mobile-internal           | 4.4        | 153-workflow-mobile-internal           | Codex 5.3 | done    |
+| 154-workflow-mobile-staging-beta       | 4.5        | 154-workflow-mobile-staging-beta       | Codex 5.3 | done    |
+| 155-workflow-mobile-production         | 4.6        | 155-workflow-mobile-production         | Opus 4.8  | done    |
+| 156-ci-isolation-from-server           | 4.7        | 156-ci-isolation-from-server           | Codex 5.3 | done    |
+| 157-macos-runner-ios                   | 4.8        | 157-macos-runner-ios                   | Codex 5.3 | done    |
+| 158-android-build-runner               | 4.9        | 158-android-build-runner               | Codex 5.3 | done    |
+| 159-signing-secrets-setup              | 4.10       | 159-signing-secrets-setup              | Opus 4.8  | done    |
+| 160-separate-app-id                    | 4.11       | 160-separate-app-id                    | Opus 4.8  | done    |
+| 161-app-store-connect-next-app         | 4.12       | 161-app-store-connect-next-app         | Opus 4.8  | done    |
+| 162-play-console-next-app              | 4.13       | 162-play-console-next-app              | Opus 4.8  | done    |
+| 163-branch-develop-internal            | 4.14       | 163-branch-develop-internal            | Codex 5.3 | done    |
+| 164-branch-staging-beta                | 4.15       | 164-branch-staging-beta                | Codex 5.3 | done    |
+| 165-branch-main-production             | 4.16       | 165-branch-main-production             | Opus 4.8  | done    |
+| 166-monotonic-build-numbers            | 4.17       | 166-monotonic-build-numbers            | Codex 5.3 | done    |
+| 167-marketing-version-sync             | 4.18       | 167-marketing-version-sync             | Codex 5.3 | done    |
+| 168-ota-update-policy                  | 4.19       | 168-ota-update-policy                  | Codex 5.3 | done    |
+| 169-fastlane-eas-profiles              | 4.20       | 169-fastlane-eas-profiles              | Codex 5.3 | done    |
+| 170-store-metadata-as-code             | 4.21       | 170-store-metadata-as-code             | Auto      | done    |
+| 171-mobile-release-runbook             | 4.22       | 171-mobile-release-runbook             | Codex 5.3 | done    |
+| 172-ci-artifact-retention              | 4.23       | 172-ci-artifact-retention              | Codex 5.3 | done    |
+| 173-beta-tester-onboarding             | 4.24       | 173-beta-tester-onboarding             | Auto      | done    |
+| 174-prod-listing-convergence-gate      | 4.25       | 174-prod-listing-convergence-gate      | Opus 4.8  | done    |
 | 175-branch-store-channel-map           | 22.1       | 175-branch-store-channel-map           | Auto      | _TBD_   |
 | 176-promote-tested-binary              | 22.2       | 176-promote-tested-binary              | Codex 5.3 | _TBD_   |
 | 177-store-review-buffer                | 22.3       | 177-store-review-buffer                | Auto      | _TBD_   |

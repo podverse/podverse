@@ -19,8 +19,10 @@ Agents do **not** run E2E during implementation. Instruct the operator to verify
 1. Pick the **narrowest** spec that covers the changed surface (add or update the spec when behavior changed; see **e2e-page-tests**).
 2. End the response with the matching make target in a fenced `bash` block (repo root).
 3. Tell the operator where to review screenshots **after they run the command**:
-   - Primary: `.artifacts/e2e-reports/latest/web/index.html` or `.artifacts/e2e-reports/latest/management-web/index.html`
-   - Also mention the concrete timestamped path printed by make (e.g. `.artifacts/e2e-reports/20260528-143022/web/index.html`).
+   - Primary: `.artifacts/e2e-reports/latest/index.html` (hub — cards open each slot in a new tab)
+   - Slot deep links still work: `.artifacts/e2e-reports/latest/web/index.html` or
+     `.artifacts/e2e-reports/latest/management-web/index.html`
+   - Also mention the concrete timestamped path printed by make when useful.
 
 ## Commands
 
@@ -41,7 +43,7 @@ Do **not** add `E2E_API_GATE_MODE=on` unless the change also requires API integr
 End the implementation response with:
 
 1. A fenced `bash` block with the exact command for the operator to run.
-2. The expected report path under `.artifacts/e2e-reports/latest/`.
+2. The expected report hub under `.artifacts/e2e-reports/latest/index.html` (slot links open in new tabs).
 
 ## When this skill does not apply
 

@@ -6,11 +6,13 @@
 .PHONY: e2e_test e2e_test_playwright e2e_test_api e2e_test_web e2e_test_management_web
 .PHONY: e2e_test_management_web_storage_enabled
 .PHONY: e2e_test_report e2e_test_web_report_spec e2e_test_web_custom_themes_report e2e_test_management_web_report_spec e2e_test_report_scoped
+.PHONY: mobile_e2e_test mobile_e2e_test_report_spec
 .PHONY: e2e_teardown
 
 # Report output directory (timestamped)
 E2E_REPORT_TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
 E2E_REPORT_BASE := .artifacts/e2e-reports/$(E2E_REPORT_TIMESTAMP)
+MOBILE_E2E_DEFAULT_SPEC ?= hello-world
 
 # Spec order files (optional; create makefiles/local/e2e-spec-order-web.txt when needed)
 E2E_SPEC_ORDER_WEB := $(shell cat makefiles/local/e2e-spec-order-web.txt 2>/dev/null | tr '\n' ';')
@@ -155,6 +157,7 @@ e2e_test_report: e2e_deps e2e_seed
 	npm run test:e2e:cloudflare-enabled -w @podverse/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts || exit_code=$$?; \
 	echo ""; \
 	echo "=== E2E reports ==="; \
+	echo "  Hub:                         $$REPORT_BASE/index.html"; \
 	echo "  Web:                         $$WEB_REPORT/index.html"; \
 	echo "  Web (Cloudflare enabled):    $$WEB_CF_REPORT/index.html"; \
 	echo "  Web (cookie consent):      $$WEB_COOKIE_REPORT/index.html"; \
@@ -176,15 +179,11 @@ e2e_test_report: e2e_deps e2e_seed
 		done; \
 		echo "Rotated old E2E reports: kept newest 10 timestamped directories."; \
 	fi; \
-	E2E_REPORT_DIRS="$$WEB_REPORT $$WEB_CF_REPORT $$WEB_COOKIE_REPORT $$WEB_SIGNUP_REPORT $$WEB_CUSTOM_THEMES_NATIVE_REPORT $$WEB_CUSTOM_THEMES_REMOTE_REPORT $$WEB_CUSTOM_THEMES_COMBO_REPORT $$MGMT_REPORT $$MGMT_CF_REPORT"; \
+	node "$$ROOT_DIR/scripts/e2e-html-hub-report.mjs" "$$REPORT_BASE"; \
 	if command -v open >/dev/null 2>&1; then \
-		for dir in $$E2E_REPORT_DIRS; do \
-			[ -f "$$dir/index.html" ] && open "$$dir/index.html" 2>/dev/null || true; \
-		done; \
+		[ -f "$$REPORT_BASE/index.html" ] && open "$$REPORT_BASE/index.html" 2>/dev/null || true; \
 	elif command -v xdg-open >/dev/null 2>&1; then \
-		for dir in $$E2E_REPORT_DIRS; do \
-			[ -f "$$dir/index.html" ] && xdg-open "$$dir/index.html" >/dev/null 2>&1 || true; \
-		done; \
+		[ -f "$$REPORT_BASE/index.html" ] && xdg-open "$$REPORT_BASE/index.html" >/dev/null 2>&1 || true; \
 	fi; \
 	exit $$exit_code
 
@@ -193,7 +192,8 @@ e2e_test_web_report_spec: e2e_deps e2e_seed_web
 	@test -n "$(SPEC)" || (echo "Usage: make e2e_test_web_report_spec SPEC=apps/web/e2e/foo.spec.ts"; exit 1)
 	@ROOT_DIR="$$(pwd)"; \
 	TS="$(E2E_REPORT_TIMESTAMP)"; \
-	WEB_REPORT="$$ROOT_DIR/.artifacts/e2e-reports/$$TS/web"; \
+	REPORT_BASE="$$ROOT_DIR/.artifacts/e2e-reports/$$TS"; \
+	WEB_REPORT="$$REPORT_BASE/web"; \
 	mkdir -p "$$WEB_REPORT"; \
 	rm -f "$$ROOT_DIR/.artifacts/e2e-reports/latest"; \
 	ln -sfn "$$TS" "$$ROOT_DIR/.artifacts/e2e-reports/latest"; \
@@ -209,11 +209,13 @@ e2e_test_web_report_spec: e2e_deps e2e_seed_web
 	E2E_STEP_SCREENSHOTS=true \
 	PLAYWRIGHT_HTML_OPEN=never \
 	$$WEB_E2E_CMD -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$(echo "$(SPEC)" | tr ',' ' '); \
+	node "$$ROOT_DIR/scripts/e2e-html-hub-report.mjs" "$$REPORT_BASE"; \
 	if command -v open >/dev/null 2>&1; then \
-		[ -f "$$WEB_REPORT/index.html" ] && open "$$WEB_REPORT/index.html" 2>/dev/null || true; \
+		[ -f "$$REPORT_BASE/index.html" ] && open "$$REPORT_BASE/index.html" 2>/dev/null || true; \
 	elif command -v xdg-open >/dev/null 2>&1; then \
-		[ -f "$$WEB_REPORT/index.html" ] && xdg-open "$$WEB_REPORT/index.html" >/dev/null 2>&1 || true; \
+		[ -f "$$REPORT_BASE/index.html" ] && xdg-open "$$REPORT_BASE/index.html" >/dev/null 2>&1 || true; \
 	fi; \
+	echo "E2E report hub: $$REPORT_BASE/index.html"; \
 	echo "E2E report: $$WEB_REPORT/index.html"
 
 # Custom themes E2E (native / remote / combo) with separate HTML reports
@@ -246,19 +248,16 @@ e2e_test_web_custom_themes_report: e2e_deps e2e_seed_web
 	npm run test:e2e:custom-themes-combo -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts || exit_code=$$?; \
 	echo ""; \
 	echo "=== Custom themes E2E reports ==="; \
+	echo "  Hub:     $$REPORT_BASE/index.html"; \
 	echo "  Native:  $$NATIVE_REPORT/index.html"; \
 	echo "  Remote:  $$REMOTE_REPORT/index.html"; \
 	echo "  Combo:   $$COMBO_REPORT/index.html"; \
 	echo "  Latest:  $$ROOT_DIR/.artifacts/e2e-reports/latest/"; \
-	CUSTOM_THEMES_REPORT_DIRS="$$NATIVE_REPORT $$REMOTE_REPORT $$COMBO_REPORT"; \
+	node "$$ROOT_DIR/scripts/e2e-html-hub-report.mjs" "$$REPORT_BASE"; \
 	if command -v open >/dev/null 2>&1; then \
-		for dir in $$CUSTOM_THEMES_REPORT_DIRS; do \
-			[ -f "$$dir/index.html" ] && open "$$dir/index.html" 2>/dev/null || true; \
-		done; \
+		[ -f "$$REPORT_BASE/index.html" ] && open "$$REPORT_BASE/index.html" 2>/dev/null || true; \
 	elif command -v xdg-open >/dev/null 2>&1; then \
-		for dir in $$CUSTOM_THEMES_REPORT_DIRS; do \
-			[ -f "$$dir/index.html" ] && xdg-open "$$dir/index.html" >/dev/null 2>&1 || true; \
-		done; \
+		[ -f "$$REPORT_BASE/index.html" ] && xdg-open "$$REPORT_BASE/index.html" >/dev/null 2>&1 || true; \
 	fi; \
 	exit $$exit_code
 
@@ -267,7 +266,8 @@ e2e_test_management_web_report_spec: e2e_deps e2e_seed_management_web
 	@test -n "$(SPEC)" || (echo "Usage: make e2e_test_management_web_report_spec SPEC=apps/management-web/e2e/foo.spec.ts"; exit 1)
 	@ROOT_DIR="$$(pwd)"; \
 	TS="$(E2E_REPORT_TIMESTAMP)"; \
-	MGMT_REPORT="$$ROOT_DIR/.artifacts/e2e-reports/$$TS/management-web"; \
+	REPORT_BASE="$$ROOT_DIR/.artifacts/e2e-reports/$$TS"; \
+	MGMT_REPORT="$$REPORT_BASE/management-web"; \
 	mkdir -p "$$MGMT_REPORT"; \
 	rm -f "$$ROOT_DIR/.artifacts/e2e-reports/latest"; \
 	ln -sfn "$$TS" "$$ROOT_DIR/.artifacts/e2e-reports/latest"; \
@@ -275,11 +275,13 @@ e2e_test_management_web_report_spec: e2e_deps e2e_seed_management_web
 	E2E_STEP_SCREENSHOTS=true \
 	PLAYWRIGHT_HTML_OPEN=never \
 	npm run test:e2e -w @podverse/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$(echo "$(SPEC)" | tr ',' ' '); \
+	node "$$ROOT_DIR/scripts/e2e-html-hub-report.mjs" "$$REPORT_BASE"; \
 	if command -v open >/dev/null 2>&1; then \
-		[ -f "$$MGMT_REPORT/index.html" ] && open "$$MGMT_REPORT/index.html" 2>/dev/null || true; \
+		[ -f "$$REPORT_BASE/index.html" ] && open "$$REPORT_BASE/index.html" 2>/dev/null || true; \
 	elif command -v xdg-open >/dev/null 2>&1; then \
-		[ -f "$$MGMT_REPORT/index.html" ] && xdg-open "$$MGMT_REPORT/index.html" >/dev/null 2>&1 || true; \
+		[ -f "$$REPORT_BASE/index.html" ] && xdg-open "$$REPORT_BASE/index.html" >/dev/null 2>&1 || true; \
 	fi; \
+	echo "E2E report hub: $$REPORT_BASE/index.html"; \
 	echo "E2E report: $$MGMT_REPORT/index.html"
 
 # Scoped both apps (WEB_SPEC=... MGMT_SPEC=...)
@@ -304,15 +306,26 @@ e2e_test_report_scoped: e2e_deps e2e_seed
 		PLAYWRIGHT_HTML_OPEN=never \
 		npm run test:e2e -w @podverse/management-web -- --reporter=../../scripts/e2e-html-steps-reporter.ts $$(echo "$(MGMT_SPEC)" | tr ',' ' ') || exit_code=$$?; \
 	fi; \
+	node "$$ROOT_DIR/scripts/e2e-html-hub-report.mjs" "$$REPORT_BASE"; \
 	if command -v open >/dev/null 2>&1; then \
-		[ -f "$$WEB_REPORT/index.html" ] && open "$$WEB_REPORT/index.html" 2>/dev/null || true; \
-		[ -f "$$MGMT_REPORT/index.html" ] && open "$$MGMT_REPORT/index.html" 2>/dev/null || true; \
+		[ -f "$$REPORT_BASE/index.html" ] && open "$$REPORT_BASE/index.html" 2>/dev/null || true; \
 	elif command -v xdg-open >/dev/null 2>&1; then \
-		[ -f "$$WEB_REPORT/index.html" ] && xdg-open "$$WEB_REPORT/index.html" >/dev/null 2>&1 || true; \
-		[ -f "$$MGMT_REPORT/index.html" ] && xdg-open "$$MGMT_REPORT/index.html" >/dev/null 2>&1 || true; \
+		[ -f "$$REPORT_BASE/index.html" ] && xdg-open "$$REPORT_BASE/index.html" >/dev/null 2>&1 || true; \
 	fi; \
+	echo "E2E report hub: $$REPORT_BASE/index.html"; \
 	echo "E2E reports: $$WEB_REPORT/index.html $$MGMT_REPORT/index.html"; \
 	exit $$exit_code
+
+# --- Mobile E2E (Maestro) ---
+# Prefer npm: mobile:dev + mobile:e2e:ios|android + mobile:e2e:test
+# Thin Make wrappers preserve muscle-memory; they do not install or start Metro.
+
+mobile_e2e_test:
+	@npm run mobile:e2e:test -- $(MOBILE_E2E_DEFAULT_SPEC)
+
+mobile_e2e_test_report_spec:
+	@test -n "$(SPEC)" || (echo "Usage: make mobile_e2e_test_report_spec SPEC=hello-world"; exit 1)
+	@npm run mobile:e2e:test -- $(SPEC)
 
 e2e_teardown:
 	@echo "To stop E2E processes, run: make test_clean"

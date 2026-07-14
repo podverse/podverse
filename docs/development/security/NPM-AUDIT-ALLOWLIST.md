@@ -20,7 +20,9 @@ audit Expo / React Native. Mobile shares marketing version `X.Y.Z` via `bump-ver
 and **mobile-expo-monorepo** skill.
 
 Root overrides also pin **`@xmldom/xmldom@0.9.10`** so video.js / mpd-parser transitive chains clear
-those HIGH findings without allowlisting.
+those HIGH findings without allowlisting. Mobile pins **`@xmldom/xmldom@0.8.10`** instead: Expo SDK 52
+`@expo/plist` calls `DOMParser.parseFromString(xml)` without a mimeType, which throws on xmldom
+**0.9.x** (`mimeType "undefined" is not valid`) and breaks `expo run:ios --device` usbmux listing.
 
 The root **`ip-address`** override is kept because **express-rate-limit** still declares a dependency on
 **10.1.x** (moderate GHSA while **<=10.1.0**); npm resolves the hoisted package to **10.2.0** under that

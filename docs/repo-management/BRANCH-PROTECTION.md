@@ -73,6 +73,7 @@ To prevent abuse of GitHub Actions by spam PRs, CI does not run automatically on
 - Collaborators with write access
 
 The workflow adds a 🚀 reaction to the `/test` comment to confirm CI has started.
+CI covers lint/type-check/builds (including mobile ESLint); unit/E2E tests stay local.
 
 ## Vendor-Specific Note
 

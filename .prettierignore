@@ -45,3 +45,15 @@ infra/config/alpha/
 *.tgz
 .cache/
 .llm/plans/
+
+# Mobile native / Expo output (also in apps/mobile/.gitignore).
+# Prettier only reads root .gitignore and .prettierignore — not nested gitignores —
+# so without these entries `prettier --write .` walks Pods, Gradle, and .cxx trees.
+apps/mobile/ios/
+apps/mobile/android/
+apps/mobile/.expo/
+apps/mobile/dist/
+apps/mobile/web-build/
+apps/mobile/modules/*/android/.gradle/
+apps/mobile/modules/*/android/build/
+apps/mobile/modules/*/ios/build/

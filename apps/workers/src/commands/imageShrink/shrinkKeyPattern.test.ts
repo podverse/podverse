@@ -6,7 +6,7 @@ describe('isShrinkGeneratedObjectKey', () => {
   it('accepts shrink pipeline keys', () => {
     expect(
       isShrinkGeneratedObjectKey(
-        'images/item/42/abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789-w400-cabcdef012345678.webp'
+        'images/item/42/abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789-w400-cabcdef0123456789.webp'
       )
     ).toBe(true);
     expect(
@@ -28,13 +28,13 @@ describe('isShrinkResizedPublicUrl', () => {
 
   it('accepts shrink CDN URLs for the configured base', () => {
     const url =
-      'https://cdn.example.com/images/item/42/abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789-w400-cabcdef012345678.webp';
+      'https://cdn.example.com/images/item/42/abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789-w400-cabcdef0123456789.webp';
     expect(isShrinkResizedPublicUrl({ url, cdnBaseUrl })).toBe(true);
   });
 
   it('rejects other CDN bases and non-shrink paths', () => {
     const url =
-      'https://cdn.example.com/images/item/42/abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789-w400-cabcdef012345678.webp';
+      'https://cdn.example.com/images/item/42/abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789-w400-cabcdef0123456789.webp';
     expect(isShrinkResizedPublicUrl({ url, cdnBaseUrl: 'https://other.example.com' })).toBe(false);
     expect(
       isShrinkResizedPublicUrl({

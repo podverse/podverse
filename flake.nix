@@ -47,6 +47,7 @@
             pwgen
             libuuid
             eslint
+            maestro
           ]
           ++ (
             if pkgs.stdenv.isLinux then

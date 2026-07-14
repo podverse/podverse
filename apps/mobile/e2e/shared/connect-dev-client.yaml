@@ -1,0 +1,44 @@
+appId: com.podverse.app.next
+---
+# Connect to Metro and get past the Expo Dev Client launcher + developer menu so
+# app testIDs are assertable.
+# iOS launcher lists http://localhost:8081; Android emulator lists http://10.0.2.2:8081.
+#
+# clearState re-triggers the first-launch developer-menu onboarding every run.
+# Tapping its "Continue" only dismisses the onboarding card and reveals the full
+# dev-menu bottom sheet (Reload / Go home / ...), which still occludes the app, so
+# we then close that sheet by tapping the dimmed app scrim above it.
+# Every step is guarded by `when: visible` so it is skipped when not applicable
+# (for example a reconnect launch that lands straight in the app).
+
+- runFlow:
+    when:
+      visible: "http://localhost:8081"
+    commands:
+      - tapOn: "http://localhost:8081"
+- runFlow:
+    when:
+      visible: "http://10.0.2.2:8081"
+    commands:
+      - tapOn: "http://10.0.2.2:8081"
+
+# First-launch onboarding card ("This is the developer menu ... Continue").
+- runFlow:
+    when:
+      visible: "Continue"
+    commands:
+      - tapOn: "Continue"
+
+# Close the dev-menu bottom sheet if it is open (Reload is a menu row). Tapping
+# the dimmed scrim above the sheet dismisses it and is locale-independent.
+- runFlow:
+    when:
+      visible: "Reload"
+    commands:
+      - tapOn:
+          point: "50%,18%"
+
+- extendedWaitUntil:
+    visible:
+      id: hello-world-screen
+    timeout: 60000

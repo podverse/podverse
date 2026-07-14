@@ -77,7 +77,8 @@ if [[ "$PLATFORM" == "ios" ]]; then
     exit 1
   fi
 else
-  # Android: keep the SDK toolchain reachable for Gradle.
+  # Android: SDK + JDK for Gradle. Prefer an existing JAVA_HOME; otherwise use Android Studio's
+  # bundled JBR (JetBrains Runtime). macOS /usr/bin/java is only a stub without a system JDK.
   if [[ -z "${ANDROID_HOME:-}" ]]; then
     if [[ -d "$HOME/Library/Android/sdk" ]]; then
       export ANDROID_HOME="$HOME/Library/Android/sdk"
@@ -85,6 +86,29 @@ else
       export ANDROID_HOME="$HOME/Android/Sdk"
     fi
   fi
+  if [[ -z "${ANDROID_HOME:-}" || ! -d "$ANDROID_HOME" ]]; then
+    echo "Error: Android SDK not found. Install Android Studio and set ANDROID_HOME (default: ~/Library/Android/sdk)." >&2
+    exit 1
+  fi
+  export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+
+  if [[ -z "${JAVA_HOME:-}" || ! -x "${JAVA_HOME}/bin/java" ]]; then
+    for jbr in \
+      "/Applications/Android Studio.app/Contents/jbr/Contents/Home" \
+      "/Applications/Android Studio Preview.app/Contents/jbr/Contents/Home"
+    do
+      if [[ -x "$jbr/bin/java" ]]; then
+        export JAVA_HOME="$jbr"
+        break
+      fi
+    done
+  fi
+  if [[ -z "${JAVA_HOME:-}" || ! -x "${JAVA_HOME}/bin/java" ]]; then
+    echo "Error: no JDK found for Gradle. Install Android Studio (bundled JBR) or set JAVA_HOME to JDK 17+." >&2
+    exit 1
+  fi
+
+  export PATH="$JAVA_HOME/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
 
   if [[ ! -d "$REPO_ROOT/apps/mobile/android" ]]; then
     echo "Error: apps/mobile/android does not exist. Run npm run mobile:prebuild first." >&2
@@ -93,4 +117,32 @@ else
 fi
 
 cd "$REPO_ROOT"
+if [[ "$PLATFORM" == "ios" ]]; then
+  bash "$SCRIPT_DIR/patch-expo-localization-xcode26.sh" "$REPO_ROOT/apps/mobile"
+fi
+
+# Default to manual device slots when the caller did not pass --device / -d.
+# Always append --device as its own argv + a separate quoted name (never unquoted spaces).
+# Extra flags (e.g. --no-bundler from e2e-device.sh) pass through via "$@".
+# E2E install uses dedicated names via npm run mobile:e2e:ios|android (see e2e-device.sh).
+MANUAL_IOS_NAME='iPhone 17 Pro'
+MANUAL_ANDROID_AVD='Pixel_6_Pro_API_33'
+HAS_DEVICE_FLAG=0
+for arg in "$@"; do
+  case "$arg" in
+    --device | -d | --device=* | -d=*)
+      HAS_DEVICE_FLAG=1
+      break
+      ;;
+  esac
+done
+if [[ "$HAS_DEVICE_FLAG" -eq 0 ]]; then
+  if [[ "$PLATFORM" == "ios" ]]; then
+    set -- "$@" --device "$MANUAL_IOS_NAME"
+  else
+    set -- "$@" --device "$MANUAL_ANDROID_AVD"
+  fi
+fi
+
+# Preserve empty "$@" safely under set -u (do not expand an unbound EXTRA_ARGS array).
 exec "$NPM_BIN" --prefix apps/mobile run "$PLATFORM" -- "$@"

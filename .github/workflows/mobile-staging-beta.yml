@@ -1,0 +1,58 @@
+# staging branch -> beta channel for .next app.
+name: Mobile Staging Beta (staging)
+
+on:
+  push:
+    branches:
+      - staging
+    paths:
+      - "apps/mobile/**"
+      - ".github/workflows/mobile-staging-beta.yml"
+  workflow_dispatch:
+
+jobs:
+  mobile-beta-build:
+    name: EAS beta build (.next)
+    runs-on: macos-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Pin npm version
+        run: npm install -g npm@11.13.0
+
+      - name: Install monorepo dependencies
+        run: npm ci
+
+      - name: Install mobile dependencies
+        run: npm run mobile:install
+
+      - name: Verify next-gen app id
+        run: |
+          set -euo pipefail
+          grep -F "com.podverse.app.next" apps/mobile/app.config.ts >/dev/null
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Run beta EAS build (staging-safe)
+        run: |
+          set -euo pipefail
+          # Configure EXPO_TOKEN in workflow runtime before enabling real builds.
+          if [ -z "${EXPO_TOKEN:-}" ]; then
+            echo "::warning::EXPO_TOKEN not set; skipping mobile staging-beta build."
+            exit 0
+          fi
+          if [ ! -f "apps/mobile/eas.json" ]; then
+            echo "::warning::apps/mobile/eas.json not present yet; skipping until profiles land."
+            exit 0
+          fi
+          eas build --non-interactive --profile beta --platform all --no-wait --cwd apps/mobile

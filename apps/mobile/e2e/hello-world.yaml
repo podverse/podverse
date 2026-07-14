@@ -1,0 +1,17 @@
+appId: com.podverse.app.next
+name: Hello World Smoke
+---
+# Track 5 hello-world flow baseline.
+# E2E devices: "iPhone 17 Pro E2E", Pixel_6_Pro_API_33_e2e
+# Manual day-to-day: "iPhone 17 Pro", Pixel_6_Pro_API_33
+
+- launchApp:
+    clearState: true
+- runFlow: shared/connect-dev-client.yaml
+- assertVisible:
+    id: hello-world-screen
+- assertVisible:
+    id: hello-world-title
+- assertVisible:
+    id: hello-world-version
+- takeScreenshot: hello-world-initial
