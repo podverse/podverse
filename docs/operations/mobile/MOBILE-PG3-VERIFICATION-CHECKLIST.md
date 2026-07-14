@@ -27,7 +27,8 @@ test -f apps/mobile/e2e/TEST-ENV.md
 test -f docs/operations/mobile/MOBILE-RELEASE-RUNBOOK.md
 test -f .github/workflows/mobile-internal.yml
 test -f .github/workflows/mobile-e2e-stub.yml
-rg -n 'iPhone 17 Pro E2E|ensure-devices' .github/workflows/mobile-e2e-stub.yml
+rg -n 'testmobile|issue_comment|iPhone 17 Pro E2E|ensure-devices' .github/workflows/mobile-e2e-stub.yml
+rg -n 'testmobile' .github/workflows/ci.yml
 ```
 
 ## 4) npm-first mobile E2E (three terminals + test)

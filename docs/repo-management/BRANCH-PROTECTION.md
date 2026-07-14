@@ -62,7 +62,7 @@ To prevent abuse of GitHub Actions by spam PRs, CI does not run automatically on
 
 1. External contributor opens PR
 2. Maintainer reviews code for obvious issues or malicious content
-3. Maintainer comments `/test` on the PR to trigger CI
+3. Maintainer comments `/test` on the PR to trigger server CI (or `/testmobile` for server CI + mobile E2E stub)
 4. CI runs and posts results as a comment
 5. If CI passes, maintainer can approve the PR
 
@@ -72,7 +72,8 @@ To prevent abuse of GitHub Actions by spam PRs, CI does not run automatically on
 - Organization members
 - Collaborators with write access
 
-The workflow adds a 🚀 reaction to the `/test` comment to confirm CI has started.
+The workflow adds a 🚀 reaction to the `/test` or `/testmobile` comment to confirm CI has started.
+`/test` does not start the mobile Maestro stub; `/testmobile` starts both.
 
 ## Vendor-Specific Note
 

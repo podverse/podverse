@@ -6,16 +6,19 @@
 
 ## Scope
 
-- Add a **non-blocking** GitHub Actions job (new workflow or job in `mobile-internal.yml`) that runs
+- Add a **non-blocking** GitHub Actions job (`.github/workflows/mobile-e2e-stub.yml`) that runs
   the hello-world Maestro flow on a macOS runner when available.
+- Trigger via maintainer `/testmobile` on a PR (same permission gate as `/test`), not on every
+  `pull_request`. `/testmobile` also runs server CI (`ci.yml`); `/test` remains server-only.
 - `continue-on-error: true` or equivalent until harness is stable.
 - Must not block server publish workflows.
 
 ## Acceptance criteria
 
-- Workflow file exists and is documented as non-blocking
+- Workflow file exists and is documented as non-blocking / comment-triggered
 - Job uses Maestro + simulator boot; skips gracefully if tooling missing (optional)
 - Isolation from `publish-staging.yml` / `publish-main.yml`
+- Does not auto-run on path-filtered PRs
 
 ## Web parity references
 
@@ -24,5 +27,5 @@
 ## Verification
 
 ```bash
-rg -n 'maestro|mobile.e2e|continue-on-error' .github/workflows/
+rg -n 'maestro|testmobile|continue-on-error|issue_comment' .github/workflows/mobile-e2e-stub.yml .github/workflows/ci.yml
 ```

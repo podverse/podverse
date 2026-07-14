@@ -19,8 +19,9 @@ This is a proposal. No production code is changed by this document.
 - **Extract one new package** (`packages/playback-core`) so playback/queue policy is shared instead
   of duplicated.
 - **Add a Tier D** for `apps/mobile/**` import specifiers (Metro).
-- **Separate CI track** (macOS) that never blocks server publish workflows. Deferred: `/testmobile`
-  once a mobile test harness exists; keep `/test` server-only.
+- **Separate CI track** (macOS) that never blocks server publish workflows. Maintainer
+  `/testmobile` on a PR runs server CI (`/test` suite) **plus** the non-blocking Maestro stub;
+  keep `/test` server-only.
 - **No repo split, no `@podverse/ui` on mobile, no ORM on mobile.**
 
 ## 2. Target directory layout
@@ -143,7 +144,7 @@ Do **not** codemod Tier A packages for Metro; keep them on NodeNext for the Node
   ```
 
 - `build:packages` must include `playback-core` after `helpers` once extracted.
-- Deferred CI: `/testmobile` on a macOS runner; keep `/test` server-only.
+- CI: `/testmobile` runs server CI + macOS Maestro stub; `/test` remains server-only.
 
 ## 6. Build order diagram
 
