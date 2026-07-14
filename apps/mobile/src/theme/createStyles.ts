@@ -1,5 +1,5 @@
-import { getThemeTokens } from '@podverse/design-tokens';
 import type { UITheme } from '@podverse/design-tokens';
+import { getThemeTokens } from '@podverse/design-tokens';
 
 export type MobileThemeStyles = {
   border: {

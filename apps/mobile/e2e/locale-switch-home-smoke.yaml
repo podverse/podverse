@@ -2,11 +2,13 @@ appId: com.podverse.app.next
 name: Locale Switch Home Smoke
 ---
 # Track 17.8 locale switch smoke coverage.
+# E2E devices: "iPhone 17 Pro E2E" / Pixel_6_Pro_API_33_e2e
 # Until Track 16 settings UI lands, this validates locale switch behavior by relaunching with a
 # different device locale and asserting localized Home copy.
 
 - launchApp:
     clearState: true
+- runFlow: shared/connect-dev-client.yaml
 - assertVisible:
     id: hello-world-screen
 - assertVisible: Hello World Testing 123
@@ -17,6 +19,7 @@ name: Locale Switch Home Smoke
     clearState: true
     language: es
     locale: ES
+- runFlow: shared/connect-dev-client.yaml
 - assertVisible:
     id: hello-world-screen
 - assertVisible: Prueba de Hola Mundo 123

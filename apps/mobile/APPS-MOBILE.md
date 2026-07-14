@@ -35,6 +35,22 @@ apps/mobile/
 Generated trees (`ios/Pods/`, Android `build/`, `.expo/`) are gitignored and listed in
 [`.cursorignore`](/.cursorignore).
 
+## Media engine (`podverse-media-engine`)
+
+First-party native media engine (PG-2b, Track 2) at `modules/podverse-media-engine/`. Single shared
+`AVPlayer` (iOS) / Media3 `ExoPlayer` (Android) for phone, lock screen, and future CarPlay / Android
+Auto now-playing. **Do not** use `react-native-track-player`.
+
+- Bridge method/event contract and reserved native-cache write hooks:
+  [modules/podverse-media-engine/README.md](modules/podverse-media-engine/README.md).
+- TypeScript `NativePlaybackBridge` interface: `modules/podverse-media-engine/src/`.
+- Car foundation constraints:
+  [mobile-carplay-android-auto](/.cursor/rules/mobile-carplay-android-auto.mdc). Seamless car
+  acceptance is **Track 12** (12.5–12.6, 12.17–12.18), not PG-2b.
+- Spike go/no-go gate (step 2.34):
+  [modules/podverse-media-engine/GO-NO-GO.md](modules/podverse-media-engine/GO-NO-GO.md) — **GO**
+  (2026-07-13). Seamless CarPlay / Android Auto acceptance remains Track 12.
+
 ## Toolchain
 
 - **Node / npm:** from the repo Nix flake — use `./scripts/nix/with-env` from monorepo root (see
@@ -52,11 +68,20 @@ the root npm workspace — do **not** use `-w @podverse/mobile` / `-w apps/mobil
 `npm --prefix apps/mobile`.
 
 ```bash
+# One-shot: clean + root install + build:packages + mobile install
+./scripts/nix/with-env npm run deps:init
+# Optional iOS native trees + CocoaPods:
+./scripts/nix/with-env npm run deps:init:native
+
+# Or step-by-step:
 ./scripts/nix/with-env npm ci                 # server workspaces only (no Expo)
 ./scripts/nix/with-env npm run build:packages # prerequisite before Metro (shared dist/)
 ./scripts/nix/with-env npm run mobile:install # apps/mobile package-lock.json
-./scripts/nix/with-env npm run dev:mobile
+./scripts/nix/with-env npm run mobile:dev
 ```
+
+Root `rm -rf node_modules && npm i` (or root `npm ci`) does **not** install mobile — `apps/mobile`
+is outside the npm workspaces. Use `deps:init` or `mobile:install` for that tree.
 
 For native iOS/Android builds use the Nix-stripping root scripts below (`npm run mobile:ios` /
 `mobile:android`) — **not** `./scripts/nix/with-env npm --prefix apps/mobile run ios`, which runs
@@ -70,13 +95,17 @@ npm run mobile:prebuild
 npm run mobile:pod-install
 npm run mobile:ios       # expo run:ios via macOS-native toolchain
 npm run mobile:android   # expo run:android via macOS-native toolchain
+
+# ESLint (root eslint.config.mjs Tier D / RN override; also part of npm run lint)
+npm run mobile:lint
+npm run mobile:lint:fix
 ```
 
-`dev:mobile` (Metro) is a **root** script that runs `npm --prefix apps/mobile run start`. Metro is
+`mobile:dev` (Metro; alias `dev:mobile`) is a **root** script that runs `npm --prefix apps/mobile run start`. Metro is
 pure JS and does not compile native code, so it runs fine under direnv:
 
 ```bash
-./scripts/nix/with-env npm run dev:mobile
+./scripts/nix/with-env npm run mobile:dev
 ```
 
 Do **not** wrap `mobile:ios` / `mobile:android` with `./scripts/nix/with-env`. They strip Nix
@@ -87,26 +116,51 @@ PATH, which direnv already provides.
 
 Install on the host machine (not provided by the repo flake):
 
-| Platform | Requirement                                                                                           |
-| -------- | ----------------------------------------------------------------------------------------------------- |
-| iOS      | Xcode (current stable), Xcode Command Line Tools, CocoaPods (`gem install cocoapods` or Homebrew)     |
-| Android  | Android Studio, Android SDK (API 35+), `ANDROID_HOME` or `ANDROID_SDK_ROOT`, platform-tools on `PATH` |
-| Both     | Physical device or simulator/emulator for dev-client builds (steps 3.14–3.15)                         |
+| Platform | Requirement                                                                                       |
+| -------- | ------------------------------------------------------------------------------------------------- |
+| iOS      | Xcode (current stable), Xcode Command Line Tools, CocoaPods (`gem install cocoapods` or Homebrew) |
+| Android  | Android Studio (SDK + emulator), `ANDROID_HOME` (default `~/Library/Android/sdk`), JDK 17+        |
+| Both     | Physical device or simulator/emulator for dev-client builds (steps 3.14–3.15)                     |
+
+**Android JDK:** `npm run mobile:android` uses [`run-expo-macos.sh`](/scripts/mobile/run-expo-macos.sh),
+which sets `JAVA_HOME` from Android Studio’s bundled JBR when unset. You do not need a separate system
+JDK if Studio is installed. Prefer a **phone** AVD (e.g. `Pixel_6_Pro_API_33`), not a tablet:
+
+```bash
+"$HOME/Library/Android/sdk/emulator/emulator" -list-avds
+npm run mobile:android -- --device Pixel_6_Pro_API_33
+```
 
 After first clone or dependency change, from **monorepo root** (not `apps/` or `apps/mobile/ios`):
+
+```bash
+npm run deps:init:native   # clean + installs + build:packages + prebuild/pods
+npm run mobile:dev
+```
+
+If `ios/` / `android/` were wiped mid-prebuild (or `prebuild:clean` failed), recover with:
+
+```bash
+npm run mobile:reset
+```
+
+That reinstalls mobile JS deps, runs `expo prebuild --clean --no-install`, then CocoaPods via the
+macOS-native helper. Prefer it over chaining bare `prebuild:clean` + `mobile:pod-install`.
+
+Equivalent step-by-step:
 
 ```bash
 npm ci
 npm run build:packages
 npm run mobile:install
 npm run mobile:prebuild
-npm run dev:mobile
+npm run mobile:dev
 ```
 
 [`mobile:prebuild`](/scripts/mobile/prebuild-macos.sh) runs `expo prebuild --no-install`, then
 [`mobile:pod-install`](/scripts/mobile/pod-install-macos.sh) with a PATH that excludes Nix — required
 when [direnv](/.envrc) (`use flake`) is active. Do **not** use `npm run start -w @podverse/mobile`;
-mobile is not a root workspace member — use `npm run mobile:install` / `dev:mobile` / `--prefix`.
+mobile is not a root workspace member — use `npm run mobile:install` / `mobile:dev` / `--prefix`.
 
 Or run iOS/Android via `npm run mobile:ios` / `npm run mobile:android` after prebuild + pods.
 
@@ -124,11 +178,11 @@ This app uses **`expo-dev-client`** (not Expo Go). Metro serves JavaScript; a **
 
 | Terminal             | Command                                  | Role                                       |
 | -------------------- | ---------------------------------------- | ------------------------------------------ |
-| Mobile Metro         | `npm run dev:mobile`                     | Keep running — Expo + Metro on `:8081`     |
+| Mobile Metro         | `npm run mobile:dev`                     | Keep running — Expo + Metro on `:8081`     |
 | Mobile iOS / Android | `npm run mobile:ios` or `mobile:android` | First install and after native dep changes |
 
 VS Code preset tabs: [`.vscode/terminals.json`](/.vscode/terminals.json) (`Mobile`, `Mobile Metro`,
-`Mobile iOS`, `Mobile Android`).
+`Mobile iOS`, `Mobile Android`, `Mobile E2E test`).
 
 ### First-time / after prebuild order
 
@@ -137,8 +191,8 @@ From **monorepo root**:
 ```bash
 npm run build:packages
 npm run mobile:prebuild          # once, or after app.config / native plugin changes
-npm run dev:mobile               # terminal 1 — leave running
-npm run mobile:ios -- --device   # terminal 2 — build + install dev client (Nix-safe toolchain)
+npm run mobile:dev               # terminal 1 — leave running
+npm run mobile:ios -- --device "iPhone 17 Pro"   # terminal 2 — named sim (no picker)
 ```
 
 On later days (JS-only changes): start Metro; open the already-installed dev client on device/simulator.
@@ -149,23 +203,33 @@ Until then you get `No development build (com.podverse.app.next) for this projec
 
 ### iOS simulator or device selection (Expo SDK 52)
 
-Use **`--device`**, not `--simulator` (removed in current Expo CLI):
+Use **`--device` with a fixed name**, not `--simulator` (removed in current Expo CLI). Manual vs
+E2E use **different device slots** (same app id `com.podverse.app.next`):
+
+| Role            | iOS                   | Android                  |
+| --------------- | --------------------- | ------------------------ |
+| Manual (dev)    | `"iPhone 17 Pro"`     | `Pixel_6_Pro_API_33`     |
+| Automated (E2E) | `"iPhone 17 Pro E2E"` | `Pixel_6_Pro_API_33_e2e` |
+
+`npm run mobile:ios` / `mobile:android` default to **manual** names when `--device` is omitted.
+`npm run mobile:e2e:*` boots and targets **E2E** names only (`bash scripts/mobile/ensure-devices.sh`).
+Avoid bare `--device` unless you intentionally want the interactive picker (e.g. physical USB device).
 
 ```bash
 xcrun simctl list devices available              # see what you have first
-npm run mobile:ios -- --device                   # interactive picker (preferred)
-npm run mobile:ios -- --device "iPhone 16 Pro"   # named sim (iOS 18+ example)
-npm run mobile:ios -- --device "iPhone 17 Pro"   # named sim (iOS 26+ / Xcode 26 example)
+npm run mobile:ios -- --device "iPhone 17 Pro"   # manual named sim
+npm run mobile:android -- --device Pixel_6_Pro_API_33
+bash scripts/mobile/ensure-devices.sh e2e        # create/boot E2E twins
 ```
 
 Do **not** copy-paste **`iPhone 15` / `iPhone 15 Pro`** from old guides — those are legacy templates on
 iOS 17 runtimes, not iOS 15 OS, and are often absent on Xcode 26 machines. If a name is ambiguous (same
 model on multiple runtimes), pass the UDID from `simctl list`.
 
-Boot a sim before `xcrun simctl launch booted …`:
+Boot a **manual** sim before `xcrun simctl launch booted …`:
 
 ```bash
-xcrun simctl boot "iPhone 16 Pro"
+xcrun simctl boot "iPhone 17 Pro"
 open -a Simulator
 ```
 
@@ -210,12 +274,26 @@ npm run mobile:install
 npm --prefix apps/mobile why expo
 npm --prefix apps/mobile why react-native
 npm run mobile:prebuild
-npm run dev:mobile
+npm run mobile:dev
 ```
 
 Use `npx expo install --fix` from `apps/mobile` for runtime deps; keep `overrides` aligned.
 
 ## Troubleshooting
+
+### `Cannot read properties of undefined (reading 'extract')` during prebuild
+
+Expo SDK 52 `@expo/cli` expects **`tar` v6** (CJS default export with `.extract`). A `tar@7`
+override breaks clean prebuild after wiping `ios/` / `android/`. Keep
+`apps/mobile/package.json` `overrides.tar` at **`6.2.1`**, then recover with:
+
+```bash
+npm run mobile:reset
+```
+
+Do **not** chain bare `npm --prefix apps/mobile run prebuild:clean` + `npm run mobile:pod-install`
+when native dirs were already deleted mid-failure — `mobile:reset` reinstalls mobile deps, runs
+clean prebuild non-interactively, then pods.
 
 ### `cd: apps/mobile/ios does not exist`
 
@@ -237,6 +315,37 @@ Mobile `file:` links are missing or stale. From repo root:
 npm run build:packages
 npm run mobile:install
 ```
+
+### `DOMParser.parseFromString: mimeType "undefined" is not valid` (`expo run:ios --device`)
+
+Expo `@expo/plist` calls `parseFromString(xml)` with one argument while listing USB devices
+(usbmux). `@xmldom/xmldom@0.9.x` requires an explicit mimeType and throws. Mobile must pin
+**`@xmldom/xmldom@0.8.10`** in `apps/mobile/package.json` overrides (do **not** copy the root
+`0.9.10` pin used for video.js). After changing the override:
+
+```bash
+npm run mobile:install
+npm run mobile:ios -- --device
+```
+
+Quick unblock without reinstall: target a named simulator (may skip usbmux probing):
+
+```bash
+xcrun simctl list devices available
+npm run mobile:ios -- --device "iPhone 16 Pro"
+```
+
+### `Unable to resolve "date-fns/…"` (or `he` / `uuid`) from `@podverse/helpers`
+
+Metro only searches `apps/mobile/node_modules`. `@podverse/helpers` is a `file:` link; its
+dependencies are not auto-installed into the mobile tree. Declare the same runtime deps on
+`apps/mobile` (`date-fns`, `he`, `uuid`), then:
+
+```bash
+npm run mobile:install
+```
+
+Restart `npm run mobile:dev` and reload the sim (`r`).
 
 ### `Cannot find module 'expo/config-plugins'` / wrong Expo major
 
@@ -285,7 +394,7 @@ Fix: import **mobile-safe subpaths** only (no Node builtins in that file), e.g.
 [`packages/helpers/package.json`](/packages/helpers/package.json) `exports` when mobile needs more symbols.
 Keep [`metro.config.js`](/apps/mobile/metro.config.js) `resolver.unstable_enablePackageExports = true`.
 
-After changing helpers exports or Tier A sources: `npm run build:packages`, restart `npm run dev:mobile`, reload
+After changing helpers exports or Tier A sources: `npm run build:packages`, restart `npm run mobile:dev`, reload
 the sim (`r` in Metro or re-open the app).
 
 ### `fmt` / `FMT_STRING` / `consteval` errors with Xcode 26+
@@ -313,9 +422,24 @@ Workaround until an Expo/RN upgrade ships fmt ≥ 12.1.0 (see
 [fmtlib/fmt#4740](https://github.com/fmtlib/fmt/issues/4740),
 [react-native#56225](https://github.com/facebook/react-native/pull/56225)).
 
+### `switch must be exhaustive` in `expo-localization` / `LocalizationModule.swift` (Xcode 26)
+
+iOS 26 added `Calendar.Identifier` cases. Expo SDK 52's `expo-localization@16.0.1` switch has no
+`@unknown default`, so Swift fails with `switch must be exhaustive` (xcodebuild exit 65). The repo
+patches that file via
+[`patch-expo-localization-xcode26.sh`](/scripts/mobile/patch-expo-localization-xcode26.sh) after
+`mobile:install` and before `mobile:ios`. From **repo root**:
+
+```bash
+npm run mobile:install
+npm run mobile:ios -- --device "iPhone 17 Pro"
+```
+
+Upstream fix is in Expo SDK 53+; do not bump Expo solely for this while mobile stays on SDK 52.
+
 ### `No development build (com.podverse.app.next) is installed` (Metro **`i`** / **`a`**)
 
-`npm run dev:mobile` starts Metro only. The dev-client native app is not Expo Go — it must be built
+`npm run mobile:dev` starts Metro only. The dev-client native app is not Expo Go — it must be built
 once with `expo run:ios` / `expo run:android` (`npm run mobile:ios` / `mobile:android`, or
 `npm run mobile:ios -- --device`). See § Dev client workflow.
 
@@ -343,10 +467,11 @@ Expo SDK 52 uses **`--device`** for simulators and physical devices, not `--simu
 npm run ios -w @podverse/mobile -- --device "iPhone 17 Pro"
 ```
 
-### `Missing script: dev:mobile`
+### `Missing script: mobile:dev`
 
-`dev:mobile` is defined in the **root** [package.json](/package.json), not in `apps/mobile/package.json`.
-Run `npm run dev:mobile` from the monorepo root. Do not use `-w @podverse/mobile` with that script name.
+`mobile:dev` is defined in the **root** [package.json](/package.json), not in `apps/mobile/package.json`
+(`dev:mobile` is a compatibility alias). Run `npm run mobile:dev` from the monorepo root. Do not use
+`-w @podverse/mobile` with that script name.
 
 ### Linux lockfile refresh
 
@@ -361,14 +486,15 @@ Do not run the script from `apps/mobile/ios` — paths are relative to the monor
 
 ## Metro monorepo configuration
 
-When `metro.config.js` is added (Track 3), it must support the npm workspace layout:
+`apps/mobile/metro.config.js` watches `packages/` and resolves modules from
+**`apps/mobile/node_modules` only** (standalone install — not root workspaces).
 
-- **`watchFolders`:** include the **repository root** so Metro resolves hoisted `@podverse/*`
-  symlinks and shared dependencies (e.g. axios, uuid, date-fns).
-- **`resolver.nodeModulesPaths`:** search `apps/mobile/node_modules` and root `node_modules`.
-- **`@podverse/*` resolution:** resolve to each package's published entry (`dist/index.js` per
-  `"main"` in package.json — e.g.
-  [packages/helpers/package.json](/packages/helpers/package.json)).
+- **`watchFolders`:** `packages/` so Metro sees shared package `dist/` after `build:packages`.
+- **`resolver.nodeModulesPaths`:** `apps/mobile/node_modules` only (keeps Expo/RN isolated from root).
+- **`@podverse/*`:** `file:` links → each package `"main"` / `exports` entry under `dist/`.
+- **Transitive deps of `file:` packages** (`date-fns`, `he`, `uuid` from `@podverse/helpers`, etc.)
+  must be listed as **direct** `apps/mobile` dependencies so they install under
+  `apps/mobile/node_modules`. Root-hoisted copies are invisible to this Metro config.
 
 Do **not** point Metro at Tier A **source** trees; NodeNext `.js` specifiers in package source are for
 Node apps only. Re-run `npm run build:packages` after changing shared packages.
@@ -382,10 +508,55 @@ Import style in app source is **Tier D** (extensionless relatives). See
 | ------------- | ------------------------ | ------------------------------------------------------------------- |
 | Shared policy | `packages/playback-core` | Vitest (included in root `test:unit`)                               |
 | Mobile app    | `apps/mobile`            | Vitest when configured (excluded from root `test:unit` until ready) |
-| Mobile E2E    | `apps/mobile/e2e/`       | Maestro or Detox — **not** `make e2e_*`                             |
+| Mobile E2E    | `apps/mobile/e2e/`       | Maestro (`e2e/<area>.yaml`) — **not** `make e2e_*`                  |
 
-Root lint excludes `apps/mobile` until RN ESLint is fully wired; root config already defines Tier D
-overrides for when source files appear.
+Track 5 locks mobile E2E on Maestro. Naming convention:
+
+- `apps/mobile/e2e/<area>.yaml` (`<area>` in kebab-case)
+- `SPEC=<area>` maps to the same basename without `.yaml` for mobile E2E targets
+
+Canonical mobile E2E report root: `.artifacts/mobile-e2e-reports/latest/` (separate from web
+`.artifacts/e2e-reports/`). Hub at `latest/index.html`; per-slot reports at
+`latest/ios-phone/index.html` and `latest/android-phone/index.html` (tablet slots reserved).
+
+**Operator how-to (shortest path):** [e2e/HOW-TO-RUN.md](./e2e/HOW-TO-RUN.md)
+
+Operator commands from monorepo root (three install/Metro terminals + one test):
+
+```bash
+# T1 — Metro (leave running)
+npm run mobile:dev
+
+# T2 / T3 — install/launch on E2E slots (--no-bundler; exits when done)
+npm run mobile:e2e:ios
+npm run mobile:e2e:android
+
+# T4 — Maestro both platforms + HTML report (strict: requires Metro + installed app)
+npm run mobile:e2e:test
+npm run mobile:e2e:test -- hello-world
+npm run mobile:e2e:test -- hello-world,locale-switch-home-smoke
+open .artifacts/mobile-e2e-reports/latest/index.html
+open .artifacts/mobile-e2e-reports/latest/ios-phone/index.html
+open .artifacts/mobile-e2e-reports/latest/android-phone/index.html
+
+# Thin Make aliases (same as mobile:e2e:test; do not auto-install or start Metro)
+make mobile_e2e_test
+make mobile_e2e_test_report_spec SPEC=hello-world
+```
+
+Manual day-to-day (separate devices; not E2E slots): `npm run mobile:ios` /
+`npm run mobile:android`.
+
+Use optional SPEC args (or Make `SPEC=<area>`) mapping to `apps/mobile/e2e/<area>.yaml`. Mobile
+E2E is Maestro-only for this track: do not use Playwright and do not use web `make e2e_*` targets.
+
+For API base URL and seed expectations (UI-only vs API-backed flows), see
+`apps/mobile/e2e/TEST-ENV.md`.
+
+Root `npm run lint` / `npm run lint:fix` include `apps/mobile` via a dedicated ESLint step (mobile is
+outside npm workspaces). Use `npm run mobile:lint` / `mobile:lint:fix` to lint only mobile. Tier D /
+RN overrides live in root `eslint.config.mjs`. Type-check and `test:unit` still skip mobile until RN
+tsc/Vitest enrollment.
 
 ## i18n runtime
 
@@ -428,8 +599,114 @@ Gradle pick up the new marketing version.
   devDependencies** (`expo`, `react`, `react-native`, Metro **0.81.5** toolchain set) exist so npm-hoisted
   Expo plugins and Metro config resolve at the repo root (see **mobile-expo-monorepo** skill).
 
+### PG-3 CI tooling and account costs
+
+- CI tooling decision for Track 4 is **EAS Build + EAS Submit**. Fastlane is documented as a future
+  escape hatch, not a PG-3 implementation target.
+- Store account prerequisites for the `.next` app remain:
+  - Apple Developer Program: approximately **$99/year**
+  - Google Play Console registration: approximately **$25 one-time**
+- EAS pricing can change; do not hardcode plan prices in repo docs. Use
+  [Expo pricing](https://expo.dev/pricing) as the source of truth for current free/paid tier limits.
+- Free tier and local `expo run:*` workflows are still valid for early internal development.
+
+### Store identity isolation (`.next`) checklists
+
+`apps/mobile/app.config.ts` is the source of truth for next-gen store identity and currently uses
+`com.podverse.app.next` for both iOS `bundleIdentifier` and Android `applicationId`.
+
+Store-safety rule for PG-3 through step 4.25: **never** upload next-gen binaries to existing
+Podverse production listings.
+
+App Store Connect checklist (operator):
+
+- Create a separate App Store Connect app record for Podverse Next.
+- Use bundle id `com.podverse.app.next` (do not reuse prod Podverse bundle id).
+- Keep TestFlight/internal/external testing scoped to the new listing only.
+- Do not connect this app record to production Podverse release pipelines.
+
+Google Play Console checklist (operator):
+
+- Create a separate Play Console app for `com.podverse.app.next` (or a clearly isolated testing app).
+- Keep internal/closed testing tracks scoped to the next-gen listing only.
+- Do not upload `com.podverse.app.next` artifacts to production Podverse listing/tracks.
+- Keep signing and release credentials isolated from existing production app workflows.
+
+### Workflow isolation from server publish
+
+Mobile release workflows are intentionally isolated from server release workflows:
+
+- Mobile: `.github/workflows/mobile-internal.yml`, `mobile-staging-beta.yml`,
+  `mobile-production-submit.yml`
+- Server publish: `.github/workflows/publish-staging.yml`, `publish-main.yml`
+
+Do not add `needs:` coupling between these groups. Mobile workflows must never block server publish
+jobs, and server publish workflows must not depend on mobile jobs.
+
+### Runner and signing guidance (PG-3)
+
+Runner choice by job type:
+
+- iOS simulator E2E and iOS-native mobile jobs use `runs-on: macos-latest` (Xcode/simulator required).
+- EAS cloud builds can run from macOS or Linux orchestration jobs because compile/signing happens in
+  EAS infrastructure; this repo currently keeps mobile workflow stubs on macOS for consistency.
+- Android emulator UI testing can run on macOS or Linux with Android SDK/AVD, but default test target
+  remains `Pixel_6_Pro_API_33` (no tablet AVD default).
+
+Signing and secrets checklist:
+
+- Use `EXPO_TOKEN` in CI runtime for authenticated EAS CLI operations.
+- Prefer EAS-managed credentials for iOS certificates/profiles and Android keystores.
+- Keep `.next` app credentials isolated from current production app credentials until convergence
+  decision step 4.25.
+- Never commit signing artifacts, keystores, `.p12`, provisioning profiles, or API keys to git.
+
+### Branch channels and versions (PG-3)
+
+Branch-to-channel mapping for the next-gen `.next` app:
+
+| Branch    | Workflow                                         | Distribution channel target                           |
+| --------- | ------------------------------------------------ | ----------------------------------------------------- |
+| `develop` | `.github/workflows/mobile-internal.yml`          | Internal-only testing (`internal` profile)            |
+| `staging` | `.github/workflows/mobile-staging-beta.yml`      | Beta channel (`beta` profile; TestFlight/Play beta)   |
+| `main`    | `.github/workflows/mobile-production-submit.yml` | Production submit (`production` profile, manual gate) |
+
+Production submit is manual-gated and should promote only QA-validated binaries. Rollouts should
+stay staged (App Store phased release / Play staged rollout), not instant 100% rollout.
+
+Versioning policy:
+
+- Marketing version (`X.Y.Z`) comes from `apps/mobile/package.json` and is synced by
+  [`scripts/publish/bump-version.sh`](/scripts/publish/bump-version.sh) (mobile included explicitly).
+- Build numbers must remain monotonic (`CFBundleVersion` / `versionCode`) for `.next` builds.
+- Preferred mechanism is EAS profile auto-increment once `apps/mobile/eas.json` profiles are fully
+  wired; do not reset build-number sequences between channels.
+
+### OTA policy and EAS profiles (PG-3)
+
+OTA policy boundary:
+
+- Use **EAS Update** only for JavaScript/content-only changes.
+- Any native-impacting change (Expo config plugins, prebuild output, native modules, iOS/Android
+  project changes, ABI-affecting deps) requires a new store build and submit flow.
+
+EAS profile source of truth:
+
+- `apps/mobile/eas.json` defines `internal`, `beta`, and `production` profiles.
+- Mobile workflows use those profiles directly for branch-channel mapping.
+- Build numbers use profile-level `autoIncrement` to keep `CFBundleVersion` / `versionCode`
+  monotonic for `.next`.
+
+Store metadata as code:
+
+- Keep next-gen listing metadata under `apps/mobile/store-metadata/`.
+- Do not sync these assets to existing Podverse production listings before step 4.25.
+
 ## Related docs
 
 - [DOCS-MOBILE-LLM-CURSOR-SETUP.md](/docs/proposals/mobile/monorepo-llm-setup/DOCS-MOBILE-LLM-CURSOR-SETUP.md)
 - [DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md)
 - [001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md)
+- [MOBILE-RELEASE-RUNBOOK.md](/docs/operations/mobile/MOBILE-RELEASE-RUNBOOK.md)
+- [MOBILE-BETA-TESTER-ONBOARDING.md](/docs/operations/mobile/MOBILE-BETA-TESTER-ONBOARDING.md)
+- [podverse-media-engine README](modules/podverse-media-engine/README.md) — bridge contract + cache hooks

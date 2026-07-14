@@ -1,0 +1,20 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!--
+    Foreground media service for background audio survival and future Android Auto (Track 12).
+    This is a Media3 MediaLibraryService (NOT a throwaway Service) so Android Auto connects to the
+    service, not the Activity (12.11-12.13). FOREGROUND_SERVICE* permissions are declared in the app
+    manifest (app.config.ts). The android.media.browse.MediaBrowserService action makes the service
+    discoverable by Android Auto / DHU; the browse tree is a stub in PG-2b.
+  -->
+  <application>
+    <service
+      android:name="expo.modules.podversemediaengine.PodverseMediaLibraryService"
+      android:exported="true"
+      android:foregroundServiceType="mediaPlayback">
+      <intent-filter>
+        <action android:name="androidx.media3.session.MediaLibraryService"/>
+        <action android:name="android.media.browse.MediaBrowserService"/>
+      </intent-filter>
+    </service>
+  </application>
+</manifest>

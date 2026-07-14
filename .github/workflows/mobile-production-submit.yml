@@ -1,0 +1,66 @@
+# main branch -> production submit for .next app (manual gate required).
+name: Mobile Production Submit (main)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/mobile/**"
+      - ".github/workflows/mobile-production-submit.yml"
+  workflow_dispatch:
+    inputs:
+      confirm_submit:
+        description: "Manual gate: set true to submit .next build"
+        required: true
+        type: boolean
+
+jobs:
+  mobile-production-submit:
+    name: EAS production submit (.next, manual gate)
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm_submit == true }}
+    runs-on: macos-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Pin npm version
+        run: npm install -g npm@11.13.0
+
+      - name: Install monorepo dependencies
+        run: npm ci
+
+      - name: Install mobile dependencies
+        run: npm run mobile:install
+
+      - name: Verify next-gen app id
+        run: |
+          set -euo pipefail
+          grep -F "com.podverse.app.next" apps/mobile/app.config.ts >/dev/null
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Submit production profile (manual-gated environment)
+        run: |
+          set -euo pipefail
+          # Configure EXPO_TOKEN in workflow runtime before enabling real submits.
+          if [ -z "${EXPO_TOKEN:-}" ]; then
+            echo "::warning::EXPO_TOKEN not set; skipping production submit."
+            exit 0
+          fi
+          if [ ! -f "apps/mobile/eas.json" ]; then
+            echo "::warning::apps/mobile/eas.json not present yet; skipping until profiles land."
+            exit 0
+          fi
+          echo "Production submits should use staged rollout in App Store Connect / Play Console."
+          eas submit --non-interactive --profile production --platform ios --latest --cwd apps/mobile
+          eas submit --non-interactive --profile production --platform android --latest --cwd apps/mobile

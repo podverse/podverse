@@ -135,22 +135,22 @@ When selecting the next PG, treat a prerequisite as satisfied only when its step
 
 ### 2. Parallel group order (reference)
 
-| Group | Tracks                          | Prerequisites (summary)                   |
-| ----- | ------------------------------- | ----------------------------------------- |
-| PG-0  | 0                               | none                                      |
-| PG-1  | 1                               | 0 partial (0.6+ abcmemory)                |
-| PG-2a | 3                               | 0                                         |
-| PG-2b | 2 spike (2.1–2.13)              | 0, 1 recommended                          |
-| PG-3  | 4, 5                            | 3 hello-world                             |
-| PG-4  | 6, 7 (+ 0.20, 7.11–7.16 themes) | 3, 5; 0.20 before theme steps             |
-| PG-5  | 2 full (2.14–2.35)              | 2 spike, 1                                |
-| PG-6  | 8, 9                            | 6, 7; **7.11–7.15** theme scaffold `done` |
-| PG-7  | 10, 11                          | 1, 2, 6                                   |
-| PG-8  | 12                              | 2, 10                                     |
-| PG-9  | 13–17                           | 6, 10 (varies)                            |
-| PG-10 | 18                              | 7, 11                                     |
-| PG-11 | 19–21                           | MVP feature-complete                      |
-| PG-12 | 22                              | 4, PG-11                                  |
+| Group | Tracks                                  | Prerequisites (summary)                   |
+| ----- | --------------------------------------- | ----------------------------------------- |
+| PG-0  | 0                                       | none                                      |
+| PG-1  | 1                                       | 0 partial (0.6+ abcmemory)                |
+| PG-2a | 3                                       | 0                                         |
+| PG-2b | 2 spike (2.1–2.13, 2.34, 2.35 contract) | 0, 1 recommended                          |
+| PG-3  | 4, 5                                    | 3 hello-world                             |
+| PG-4  | 6, 7 (+ 0.20, 7.11–7.16 themes)         | 3, 5; 0.20 before theme steps             |
+| PG-5  | 2 full (2.14–2.35)                      | 2 spike, 1                                |
+| PG-6  | 8, 9                                    | 6, 7; **7.11–7.15** theme scaffold `done` |
+| PG-7  | 10, 11                                  | 1, 2, 6                                   |
+| PG-8  | 12                                      | 2, 10                                     |
+| PG-9  | 13–17                                   | 6, 10 (varies)                            |
+| PG-10 | 18                                      | 7, 11                                     |
+| PG-11 | 19–21                                   | MVP feature-complete                      |
+| PG-12 | 22                                      | 4, PG-11                                  |
 
 PG-2a and PG-2b can overlap in time with PG-3 after PG-0; recommend **one primary PG per
 detailing batch** unless operator asks for parallel detailing of independent groups.
@@ -161,8 +161,10 @@ Apply these **before** recommending PG-7+ detailing or implementation:
 
 1. **Track 1** (`playback-core` extraction) should be `done` before Track 2 full engine and before
    Track 10/11 implementation.
-2. **Track 2 spike** (steps 2.1–2.13, 2.33) and **go/no-go gate** (step 2.34) must be `done` before
-   detailing or implementing Tracks **10, 11, 12** (queue, player, car).
+2. **Track 2 spike** (steps 2.1–2.13, 2.34, **2.35 cache-hook contract/stubs**) must be `done`
+   before Tracks 10/11/12. Spike must satisfy **car foundation** constraints (single player,
+   `MediaLibraryService`, shared remotes, reserved cache writes) even though seamless CarPlay/AA
+   QA is Track 12 (12.5–12.6, 12.17–12.18). Video E2E step 2.33 may follow the audio spike.
 3. If step 2.34 fails, stop downstream player/car detailing; revise master plan steps with operator
    before proceeding.
 
@@ -314,7 +316,7 @@ Typical early sequence (subject to Appendix C state):
 1. PG-0 — Track 0 (001–019): abcmemory, monorepo prep.
 2. PG-1 — Track 1 (020–033): `playback-core` extraction.
 3. PG-2a — Track 3 (040–055): hello-world Expo app.
-4. PG-2b — Track 2 spike (080–092, 112–113): engine proof + go/no-go.
+4. PG-2b — Track 2 spike (080–092, 113–114): engine + car foundation + go/no-go.
 5. PG-3 — Tracks 4 + 5 (150–172, 060–072): CI + mobile E2E harness.
 
 Always re-read Appendix C before recommending; operator may have completed steps out of PG order

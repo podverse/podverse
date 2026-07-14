@@ -105,11 +105,14 @@ To prevent abuse of GitHub Actions, CI does not run automatically on PRs from ex
 
 **Exception**: Dependabot PRs run CI automatically since Dependabot is a trusted GitHub bot.
 
+The `/test` CI workflow runs lint/type-check/builds (including `apps/mobile` ESLint via
+`npm run lint`) — it does **not** run unit or E2E suites (web Playwright or mobile Maestro).
+Operators run those locally before merge.
+
 The CI workflow runs:
 
 - Database migration verification
-- Linting
-- Type checking
+- Linting (workspaces + `apps/mobile` + repo scripts) and type checking
 - Package builds
 - App builds
 - OpenAPI validation/lint/bundle checks when OpenAPI-related files change (`.github/workflows/openapi-validate.yml`)

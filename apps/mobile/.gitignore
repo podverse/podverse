@@ -3,9 +3,15 @@
 dist/
 web-build/
 
-# Native build output (prebuild generates ios/ and android/)
-ios/
-android/
+# Native build output (prebuild generates apps/mobile/ios and apps/mobile/android).
+# Anchored so committed native modules under modules/*/ios and modules/*/android are NOT ignored.
+/ios/
+/android/
+
+# Local module native build caches (source under modules/*/ios|android stays tracked)
+modules/*/android/.gradle/
+modules/*/android/build/
+modules/*/ios/build/
 
 # Metro / bundler
 .metro-health-check*

@@ -1,6 +1,6 @@
 ---
 name: mobile-expo-monorepo
-description: Expo SDK 52 as a standalone install under apps/mobile — own lockfile, file: shared packages, Metro. Use when mobile npm install, prebuild, pod install, or dev:mobile fails.
+description: Expo SDK 52 as a standalone install under apps/mobile — own lockfile, file: shared packages, Metro. Use when mobile npm install, prebuild, pod install, or mobile:dev fails.
 ---
 
 # Mobile Expo (standalone install)
@@ -10,13 +10,14 @@ description: Expo SDK 52 as a standalone install under apps/mobile — own lockf
 
 ## Layout (authoritative)
 
-| Piece              | Location                                                    | Purpose                                                                                         |
-| ------------------ | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Standalone package | `apps/mobile/package.json`                                  | Expo SDK 52 / RN 0.76.9 runtime + `overrides`                                                   |
-| Mobile lockfile    | `apps/mobile/package-lock.json`                             | Committed; install with `npm install --prefix apps/mobile` or `npm run mobile:install`          |
-| Peer-deps policy   | `apps/mobile/.npmrc` (`legacy-peer-deps=true`)              | Stop `expo@*` peers pulling expo@57 / RN 0.86                                                   |
-| Shared packages    | `"@podverse/helpers": "file:../../packages/helpers"` (etc.) | Symlink into `apps/mobile/node_modules/@podverse/*`                                             |
-| Metro              | `apps/mobile/metro.config.js`                               | `watchFolders` → `packages/`; `nodeModulesPaths` → mobile `node_modules` only; symlinks enabled |
+| Piece                | Location                                                    | Purpose                                                                                         |
+| -------------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Standalone package   | `apps/mobile/package.json`                                  | Expo SDK 52 / RN 0.76.9 runtime + `overrides`                                                   |
+| Mobile lockfile      | `apps/mobile/package-lock.json`                             | Committed; install with `npm install --prefix apps/mobile` or `npm run mobile:install`          |
+| Peer-deps policy     | `apps/mobile/.npmrc` (`legacy-peer-deps=true`)              | Stop `expo@*` peers pulling expo@57 / RN 0.86                                                   |
+| Shared packages      | `"@podverse/helpers": "file:../../packages/helpers"` (etc.) | Symlink into `apps/mobile/node_modules/@podverse/*`                                             |
+| Metro                | `apps/mobile/metro.config.js`                               | `watchFolders` → `packages/`; `nodeModulesPaths` → mobile `node_modules` only; symlinks enabled |
+| Helpers runtime deps | `date-fns`, `he`, `uuid` in `apps/mobile/package.json`      | `file:` packages do not install their deps into mobile; declare them on mobile for Metro        |
 
 Root `package.json` **must not** list `apps/mobile` in `workspaces`, and **must not** carry `expo` /
 `react-native` / `metro-*` deps or Expo `overrides`.
@@ -24,19 +25,43 @@ Root `package.json` **must not** list `apps/mobile` in `workspaces`, and **must 
 Prefer durable layout fixes. Do **not** recommend root-hoisting Expo, `ln -sf` into root
 `node_modules/`, or `NODE_PATH` workarounds.
 
+## Prefer composite root scripts (agent guidance)
+
+When telling the operator what to run for mobile deps / native setup, **prefer one root script**
+over multi-step recipes. Bundle steps that usually go together:
+
+| Goal                                         | Prefer                                  | Avoid listing by default                                              |
+| -------------------------------------------- | --------------------------------------- | --------------------------------------------------------------------- |
+| Clean + root + packages + mobile JS install  | `npm run deps:init`                     | `clean:node_modules` → `npm ci` → `build:packages` → `mobile:install` |
+| Same + expo prebuild + CocoaPods             | `npm run deps:init:native`              | The above plus separate `mobile:prebuild` / `mobile:pod-install`      |
+| Failed prebuild / wiped ios+android recovery | `npm run mobile:reset`                  | Bare `prebuild:clean` then `mobile:pod-install`                       |
+| Metro only (deps already installed)          | `npm run mobile:dev`                    | `npm --prefix apps/mobile run start`                                  |
+| Native run (after prebuild exists)           | `npm run mobile:ios` / `mobile:android` | Long `expo run:*` / `cd apps/mobile` chains                           |
+| Re-run pods only                             | `npm run mobile:pod-install`            | Raw `pod install` under Nix/direnv                                    |
+| Re-generate native trees + pods              | `npm run mobile:prebuild`               | `expo prebuild` + separate pod step                                   |
+| Force clean native regen (deps already OK)   | `npm run mobile:prebuild -- --clean`    | `npm --prefix apps/mobile run prebuild:clean` alone                   |
+
+Give the step-by-step breakdown only when debugging a specific failing stage. Wrap JS installs with
+`./scripts/nix/with-env` when the agent/sandbox needs the flake; do **not** wrap `mobile:ios` /
+`mobile:android` / `mobile:prebuild` / `mobile:pod-install` (they strip Nix themselves).
+
 ## Local workflow
 
 From **monorepo root**:
 
 ```bash
-npm ci                          # server workspaces only (no Expo)
-npm run build:packages          # helpers, design-tokens, … → dist/
-npm run mobile:install          # apps/mobile package-lock.json
-npm run mobile:prebuild
-npm run dev:mobile              # Metro (dev client)
-# First native install:
-npm run mobile:ios -- --device
+# Preferred one-shot (root + mobile JS; keeps lockfiles):
+./scripts/nix/with-env npm run deps:init
+# Or with iOS native trees + CocoaPods:
+./scripts/nix/with-env npm run deps:init:native
+
+# Day-to-day after deps exist:
+./scripts/nix/with-env npm run mobile:dev
+npm run mobile:ios -- --device "iPhone 17 Pro"
 ```
+
+Root `rm -rf node_modules && npm i` is **not** enough for mobile. Use `deps:init` (or
+`mobile:install` after a root install). Script: [`scripts/dev/deps-init.sh`](/scripts/dev/deps-init.sh).
 
 Edit a shared package → rebuild packages (or `build:watch`) → Metro reloads from `packages/*/dist`.
 
@@ -53,35 +78,59 @@ Do **not** add Expo back to the root lockfile.
 
 ## Common failures
 
-| Symptom                                        | Cause                                          | Fix                                                                                |
-| ---------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `Cannot find module '@podverse/helpers'`       | Forgot `mobile:install` or `file:` link broken | `npm run mobile:install` after package path changes                                |
-| Metro cannot resolve package after shared edit | Stale `dist/`                                  | `npm run build:packages` (or watch)                                                |
-| `expo/config-plugins` not found                | Incomplete mobile install / wrong expo version | Reinstall under `apps/mobile`; check overrides pin SDK 52                          |
-| glog / Nix SDK errors on pod install           | direnv/Nix `DEVELOPER_DIR`                     | Use `npm run mobile:prebuild` / `mobile:pod-install` (scripts unset Nix pollution) |
-| `Unable to resolve react-native-web`           | Expo auto web without RN-web                   | `platforms: ['ios', 'android']` in `app.config.ts`                                 |
-| Root `npm ci` installs Expo                    | Mobile re-added to root workspaces             | Keep explicit server app list in root `workspaces`                                 |
+| Symptom                                                                   | Cause                                                                      | Fix                                                                                |
+| ------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `Cannot find module '@podverse/helpers'`                                  | Forgot `mobile:install` or `file:` link broken                             | `npm run mobile:install` after package path changes                                |
+| Metro cannot resolve package after shared edit                            | Stale `dist/`                                                              | `npm run build:packages` (or watch)                                                |
+| `Unable to resolve "date-fns/…"` from helpers                             | Helpers dep not in mobile `node_modules`                                   | Add the dep to `apps/mobile/package.json`; `npm run mobile:install`                |
+| `expo/config-plugins` not found                                           | Incomplete mobile install / wrong expo version                             | Reinstall under `apps/mobile`; check overrides pin SDK 52                          |
+| `Cannot read properties of undefined (reading 'extract')` during prebuild | `tar` v7 override breaks `@expo/cli` (SDK 52 expects tar 6 default export) | Keep `overrides.tar` at `6.2.1`; then `npm run mobile:reset`                       |
+| glog / Nix SDK errors on pod install                                      | direnv/Nix `DEVELOPER_DIR`                                                 | Use `npm run mobile:prebuild` / `mobile:pod-install` (scripts unset Nix pollution) |
+| `Unable to resolve react-native-web`                                      | Expo auto web without RN-web                                               | `platforms: ['ios', 'android']` in `app.config.ts`                                 |
+| Root `npm ci` installs Expo                                               | Mobile re-added to root workspaces                                         | Keep explicit server app list in root `workspaces`                                 |
 
 ## Commands (repo root)
 
+Prefer composites first; use the finer-grained scripts only when isolating a failure:
+
 ```bash
+# One-shots
+./scripts/nix/with-env npm run deps:init
+./scripts/nix/with-env npm run deps:init:native
+npm run mobile:reset
+
+# Day-to-day
+./scripts/nix/with-env npm run mobile:dev
+npm run mobile:ios -- --device "iPhone 17 Pro"
+npm run mobile:android -- --device Pixel_6_Pro_API_33
+
+# Finer-grained (debug / partial reruns)
 npm run mobile:install
 npm run build:packages
 npm run mobile:prebuild
+npm run mobile:prebuild -- --clean
 npm run mobile:pod-install
-npm run dev:mobile
-npm run mobile:ios -- --device
-npm run mobile:android
 ```
 
-**iOS simulator names (agents):** prefer `--device` (interactive). Named examples: `"iPhone 16 Pro"` or
-`"iPhone 17 Pro"`. Do **not** suggest iPhone 15 family — see
-[mobile-ios-simulator](/.cursor/rules/mobile-ios-simulator.mdc).
+**`tar` override (Expo SDK 52):** keep `apps/mobile/package.json` `overrides.tar` on **`6.2.1`**.
+`tar@7` breaks `expo prebuild` (`reading 'extract'`). Revisit only when upgrading past SDK 52 /
+`@expo/cli` that supports tar 7's named exports.
+
+**Default devices (agents):**
+
+- **Manual (dev):** `"iPhone 17 Pro"` and `Pixel_6_Pro_API_33` (what `mobile:ios` / `mobile:android`
+  default to when `--device` is omitted).
+- **E2E (Maestro / Make):** `"iPhone 17 Pro E2E"` and `Pixel_6_Pro_API_33_e2e` — boot via
+  `bash scripts/mobile/ensure-devices.sh e2e`; never point Make at manual slots.
+- Never bare `--device` (interactive picker) unless the operator asks to pick a physical device.
+  See [mobile-ios-simulator](/.cursor/rules/mobile-ios-simulator.mdc).
 
 ## CI / publish
 
-- Server `/test`, `publish-staging`, `publish-main`: **never** build or publish mobile.
-- Deferred: `/testmobile` (macOS runner, Vitest + Maestro) once mobile has a test harness.
+- Server `/test`, `publish-staging`, `publish-main`: **never** build or publish mobile binaries.
+- `/test` already runs `apps/mobile` ESLint via `npm run lint` (`lint-with-summary` → `lint:mobile`).
+  No Maestro / mobile unit suite in GitHub Actions — operators run `mobile:e2e:test` locally (same
+  policy as web E2E staying out of `/test`).
 - Marketing version: `bump-version.sh` bumps `apps/mobile/package.json` explicitly (not via
   `npm query .workspace`).
 

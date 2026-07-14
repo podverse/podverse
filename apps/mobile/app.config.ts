@@ -23,6 +23,7 @@ const config: ExpoConfig = {
     permissions: [
       'android.permission.FOREGROUND_SERVICE',
       'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
+      'android.permission.POST_NOTIFICATIONS',
     ],
   },
   plugins: ['expo-dev-client', 'expo-localization'],
