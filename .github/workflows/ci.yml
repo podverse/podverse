@@ -131,7 +131,7 @@ jobs:
         if: always()
         run: |
           echo "::warning::Tests are intentionally skipped in GitHub Actions for this workflow."
-          echo "::warning::Run tests locally before merge: make test_deps, then npm run test:unit, npm run test:e2e:api, and npm run test:e2e:web once those scripts exist (see AGENTS.md)."
+          echo "::warning::Before merge, run locally: make test_deps; npm run test:unit; npm run test:e2e:api; make e2e_test_report (or npm test / npm run test:reports). Mobile: npm run mobile:dev + mobile:e2e:ios + mobile:e2e:android + mobile:e2e:test (see apps/mobile/e2e/HOW-TO-RUN.md)."
 
       - name: Report success
         if: success()
@@ -154,12 +154,46 @@ jobs:
               '| Runtime CREATE EXTENSION guard | ✅ |',
               '| Dependencies installed | ✅ |',
               '| Build packages | ✅ |',
-              '| Lint (type-check, ESLint, Prettier) | ✅ |',
+              '| Lint (type-check, ESLint, Prettier; includes apps/mobile ESLint) | ✅ |',
               '| OpenAPI check | ✅ |',
               '| Build apps | ✅ |',
-              '| Test | ⏭️ Skipped in CI (run locally) |',
+              '| Test | ⏭️ Skipped in CI (run locally before merge) |',
               '',
-              '> Reminder: run `make test_deps` and full test scripts locally before merging once they are wired (see AGENTS.md).',
+              '### Local tests required before merge',
+              '',
+              'CI does **not** run unit/API/E2E/mobile suites. From the monorepo root:',
+              '',
+              '**1. Test infra (Postgres + Valkey on test ports)**',
+              '```bash',
+              'make test_deps',
+              '```',
+              '',
+              '**2. Unit + API integration + web/management Playwright**',
+              '```bash',
+              'npm run test:unit',
+              'npm run test:e2e:api',
+              'make e2e_test_report',
+              '```',
+              'Or one-shot: `npm run test:reports` (unit → API → Playwright HTML reports).',
+              'Scoped web smoke: `make e2e_test_web_report_spec SPEC=e2e/<spec>.spec.ts`.',
+              'Hub: `.artifacts/e2e-reports/latest/index.html`.',
+              '',
+              '**3. Mobile Maestro E2E** (separate terminals; see `apps/mobile/e2e/HOW-TO-RUN.md`)',
+              '```bash',
+              '# First-time devices (if needed)',
+              'bash scripts/mobile/ensure-devices.sh e2e',
+              '',
+              '# T1 — leave running',
+              'npm run mobile:dev',
+              '# T2 / T3 — install on E2E slots (--no-bundler)',
+              'npm run mobile:e2e:ios',
+              'npm run mobile:e2e:android',
+              '# T4 — run + HTML reports',
+              'npm run mobile:e2e:test',
+              '```',
+              'Open `.artifacts/mobile-e2e-reports/latest/ios-phone/index.html` and `.../android-phone/index.html`.',
+              '',
+              '**Optional local env** (day-to-day app/dev, not required for `test_deps` / API E2E): `make local_env_prepare` → `make local_env_link` → `make local_env_setup`.',
               '',
               `[View full run](${process.env.RUN_URL})`
             ].join('\n');
