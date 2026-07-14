@@ -29,10 +29,12 @@ explicitly asks to pick.
 npm run mobile:ios -- --device "iPhone 17 Pro"
 npm run mobile:android -- --device Pixel_6_Pro_API_33
 
-# E2E (separate terminals; test is strict)
-npm run mobile:dev
+# E2E — each leave-running / install step in its own terminal (see HOW-TO-RUN.md)
+# T1 leave running: npm run mobile:dev   (API-backed: mobile:dev:e2e + separate mobile:e2e:api)
+# T2 / T3 exit when done:
 npm run mobile:e2e:ios
 npm run mobile:e2e:android
+# T4 exit when done:
 npm run mobile:e2e:test
 open .artifacts/mobile-e2e-reports/latest/ios-phone/index.html
 open .artifacts/mobile-e2e-reports/latest/android-phone/index.html

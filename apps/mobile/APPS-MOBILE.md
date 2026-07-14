@@ -181,8 +181,8 @@ This app uses **`expo-dev-client`** (not Expo Go). Metro serves JavaScript; a **
 | Mobile Metro         | `npm run mobile:dev`                     | Keep running — Expo + Metro on `:8081`     |
 | Mobile iOS / Android | `npm run mobile:ios` or `mobile:android` | First install and after native dep changes |
 
-VS Code preset tabs: [`.vscode/terminals.json`](/.vscode/terminals.json) (`Mobile`, `Mobile Metro`,
-`Mobile iOS`, `Mobile Android`, `Mobile E2E test`).
+VS Code preset tabs: [`.vscode/terminals.json`](/.vscode/terminals.json) (`Mobile`, `Mobile E2E prep`,
+`Mobile Metro`, `Mobile iOS`, `Mobile Android`, `Mobile E2E API`, `Mobile E2E test`).
 
 ### First-time / after prebuild order
 
@@ -521,7 +521,10 @@ Canonical mobile E2E report root: `.artifacts/mobile-e2e-reports/latest/` (separ
 
 **Operator how-to (shortest path):** [e2e/HOW-TO-RUN.md](./e2e/HOW-TO-RUN.md)
 
-Operator commands from monorepo root (three install/Metro terminals + one test):
+Operator commands from monorepo root — **separate terminals** for leave-running processes. Full
+matrix: [e2e/HOW-TO-RUN.md](./e2e/HOW-TO-RUN.md).
+
+UI-only (four terminals):
 
 ```bash
 # T1 — Metro (leave running)
@@ -531,7 +534,7 @@ npm run mobile:dev
 npm run mobile:e2e:ios
 npm run mobile:e2e:android
 
-# T4 — Maestro both platforms + HTML report (strict: requires Metro + installed app)
+# T4 — Maestro + HTML report (strict: requires Metro + installed app)
 npm run mobile:e2e:test
 npm run mobile:e2e:test -- hello-world
 npm run mobile:e2e:test -- hello-world,locale-switch-home-smoke
@@ -544,13 +547,33 @@ make mobile_e2e_test
 make mobile_e2e_test_report_spec SPEC=hello-world
 ```
 
+API-backed (five terminals; Track 5 harness; no auth login/logout yet):
+
+```bash
+# One-shot prep (any shell; exits)
+make mobile_e2e_deps
+make mobile_e2e_seed
+
+# T1 — leave running: npm run mobile:dev:e2e
+# T2 / T3 — exits: npm run mobile:e2e:ios / mobile:e2e:android
+# T4 — leave running: npm run mobile:e2e:api
+# T5 — exits:
+npm run mobile:e2e:test -- api-health
+open .artifacts/mobile-e2e-reports/latest/ios-phone/index.html
+open .artifacts/mobile-e2e-reports/latest/android-phone/index.html
+```
+
+Do **not** paste `mobile:dev:e2e` or `mobile:e2e:api` into the same one-line shell sequence as
+Maestro — those block until stopped. Prefer `mobile:e2e:api:bg` + `mobile:e2e:api:health` only when
+you intentionally want a background API from the prep shell.
+
 Manual day-to-day (separate devices; not E2E slots): `npm run mobile:ios` /
 `npm run mobile:android`.
 
 Use optional SPEC args (or Make `SPEC=<area>`) mapping to `apps/mobile/e2e/<area>.yaml`. Mobile
 E2E is Maestro-only for this track: do not use Playwright and do not use web `make e2e_*` targets.
 
-For API base URL and seed expectations (UI-only vs API-backed flows), see
+For API base URL, seed expectations, and the API-backed smoke flow (`api-health`) see
 `apps/mobile/e2e/TEST-ENV.md`.
 
 Root `npm run lint` / `npm run lint:fix` include `apps/mobile` via a dedicated ESLint step (mobile is

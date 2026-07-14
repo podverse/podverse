@@ -40,35 +40,49 @@
       "name": "Mobile",
       "description": "Setup: build:packages; build:watch -w packages/helpers when editing shared code",
       "cwd": ".",
-      "open": false,
+      "open": true,
+      "command": "clear"
+    },
+    {
+      "name": "Mobile E2E prep",
+      "description": "One-shot: make mobile_e2e_deps; make mobile_e2e_seed; npm run mobile:e2e:api:health",
+      "cwd": ".",
+      "open": true,
       "command": "clear"
     },
     {
       "name": "Mobile Metro",
-      "description": "npm run mobile:dev — keep running; does not install native dev client",
+      "description": "T1 leave running — UI-only: npm run mobile:dev | API-backed: npm run mobile:dev:e2e",
       "cwd": ".",
-      "open": false,
+      "open": true,
       "command": "clear"
     },
     {
       "name": "Mobile iOS",
-      "description": "Manual: npm run mobile:ios (iPhone 17 Pro). E2E: npm run mobile:e2e:ios (needs Metro)",
+      "description": "T2 — Manual: npm run mobile:ios -- --device \"iPhone 17 Pro\" | E2E: npm run mobile:e2e:ios",
       "cwd": ".",
-      "open": false,
+      "open": true,
       "command": "clear"
     },
     {
       "name": "Mobile Android",
-      "description": "Manual: npm run mobile:android. E2E: npm run mobile:e2e:android (needs Metro)",
+      "description": "T3 — Manual: npm run mobile:android -- --device Pixel_6_Pro_API_33 | E2E: npm run mobile:e2e:android",
       "cwd": ".",
-      "open": false,
+      "open": true,
+      "command": "clear"
+    },
+    {
+      "name": "Mobile E2E API",
+      "description": "T4 leave running — npm run mobile:e2e:api (:4230). Or api:bg then health in Mobile E2E prep",
+      "cwd": ".",
+      "open": true,
       "command": "clear"
     },
     {
       "name": "Mobile E2E test",
-      "description": "After Metro + e2e ios/android installs: npm run mobile:e2e:test",
+      "description": "T5 Maestro — npm run mobile:e2e:test [-- api-health]. Needs Metro + installs (+ API for api-health)",
       "cwd": ".",
-      "open": false,
+      "open": true,
       "command": "clear"
     },
     {

@@ -1,0 +1,21 @@
+appId: com.podverse.app.next
+name: API Health Smoke
+---
+# Track 5.20 minimal API-backed smoke.
+# Requires:
+# - npm run mobile:dev:e2e (injects iOS localhost:4230 / Android 10.0.2.2:4230)
+# - npm run mobile:e2e:api
+
+- launchApp:
+    clearState: true
+- runFlow: shared/connect-dev-client.yaml
+- assertVisible:
+    id: hello-world-screen
+- extendedWaitUntil:
+    visible: "API health: ok"
+    timeout: 20000
+- assertVisible:
+    id: hello-world-api-base-url
+- assertVisible:
+    id: hello-world-api-health-status
+- takeScreenshot: api-health-ok

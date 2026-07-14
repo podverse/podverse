@@ -20,8 +20,8 @@ consolidates library/playlists; RSS tab is dedicated to Add-by-RSS features).
 6.8. Implement `GET /auth/me` bootstrap on app launch for session restore. Model: Codex 5.3. Detail: [207-auth-me-bootstrap](/docs/proposals/mobile/_master-plan_/details/207-auth-me-bootstrap.md) — _TBD_
 6.9. Implement anonymous mode: no token, limited features, anonymous playback snapshot. Model: Opus 4.8. Detail: [208-anonymous-mode](/docs/proposals/mobile/_master-plan_/details/208-anonymous-mode.md) — _TBD_
 6.10. Never use cookies or `withCredentials` in mobile API client configuration. Model: Auto. Detail: [209-no-cookie-auth](/docs/proposals/mobile/_master-plan_/details/209-no-cookie-auth.md) — _TBD_
-6.11. E2E: login flow with screenshot of authenticated home shell. Model: Codex 5.3. Detail: [210-e2e-login-screenshot](/docs/proposals/mobile/_master-plan_/details/210-e2e-login-screenshot.md) — _TBD_
-6.12. E2E: logout flow returning to login screen. Model: Auto. Detail: [211-e2e-logout](/docs/proposals/mobile/_master-plan_/details/211-e2e-logout.md) — _TBD_
+6.11. E2E: login flow with screenshot of authenticated home shell. **Requires 5.17–5.20 `done`.** Model: Codex 5.3. Detail: [210-e2e-login-screenshot](/docs/proposals/mobile/_master-plan_/details/210-e2e-login-screenshot.md) — _TBD_
+6.12. E2E: logout flow returning to login screen. **Requires 5.17–5.20 `done` (and 6.11).** Model: Auto. Detail: [211-e2e-logout](/docs/proposals/mobile/_master-plan_/details/211-e2e-logout.md) — _TBD_
 
 ## Track 7 — Navigation shell (tabs + stacks)
 

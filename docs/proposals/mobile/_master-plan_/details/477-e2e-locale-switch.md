@@ -9,8 +9,9 @@
 - Maestro/Detox flow: open settings, switch locale (e.g. en-US → es), navigate to Home, capture
   screenshot with localized string visible.
 - Depends on Track 16 settings + Track 17 runtime.
-- Interim implementation: `apps/mobile/e2e/locale-switch-home-smoke.yaml` relaunches with locale
-  override and asserts localized Home copy until Track 16 settings picker lands.
+- Interim implementation: `apps/mobile/e2e/locale-switch-home-smoke.yaml` taps HelloWorld
+  locale controls (`hello-world-locale-es`) and asserts localized Home copy until Track 16
+  settings picker lands. (Maestro does not support `launchApp.language` / `locale`.)
 
 ## Acceptance criteria
 

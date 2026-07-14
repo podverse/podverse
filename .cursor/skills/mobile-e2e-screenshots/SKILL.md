@@ -36,14 +36,26 @@ Same habit as web UI work (**ui-e2e-screenshot-report**): agents do **not** run 
 implementation. For mobile feature/UI PRs, instruct the operator to generate slot reports:
 
 1. Narrowest Maestro flow under `apps/mobile/e2e/<area>.yaml` (add/update when behavior changes).
-2. npm-first terminals from monorepo root:
-   - `npm run mobile:dev`
-   - `npm run mobile:e2e:ios` / `npm run mobile:e2e:android`
-   - `npm run mobile:e2e:test` or `npm run mobile:e2e:test -- <area>`
+2. Assume / point to [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md) for terminal setup:
+   - **UI-only:** Metro (`mobile:dev`) + e2e ios/android installs + Maestro — four terminals.
+   - **API-backed:** one-shot `make mobile_e2e_deps` / `make mobile_e2e_seed`, then leave-running
+     `mobile:dev:e2e` + `mobile:e2e:api`, installs, then Maestro — five terminals.
 3. Tell them where to review **after** they run:
    - Hub: `.artifacts/mobile-e2e-reports/latest/index.html`
    - iOS phone: `.artifacts/mobile-e2e-reports/latest/ios-phone/index.html`
    - Android phone: `.artifacts/mobile-e2e-reports/latest/android-phone/index.html`
+
+### Never chain leave-running processes in one verify `bash` block
+
+`npm run mobile:dev`, `npm run mobile:dev:e2e`, and `npm run mobile:e2e:api` **block the shell**.
+Do **not** put them in the same fenced `bash` block as `mobile:e2e:test` (or other one-shot
+commands) as if the operator can paste the whole list into one terminal. That forces Ctrl+C on Metro
+(“Stopped server”) before later steps run.
+
+Final response `bash` blocks should contain only **one-shot** commands (prep Make targets if
+needed, Maestro, `open` report paths). Point at HOW-TO-RUN (or labeled prose “Terminal 1 /
+Terminal 4”) for leave-running Metro/API. Optional: `mobile:e2e:api:bg` + `mobile:e2e:api:health`
+in a prep shell when background API is intentional.
 
 ## Agents: read reports when debugging
 
@@ -83,16 +95,37 @@ still occludes the app. Do not invent a parallel connect path that skips the she
    - `.artifacts/mobile-e2e-reports/latest/index.html`
    - `.artifacts/mobile-e2e-reports/latest/ios-phone/index.html`
    - `.artifacts/mobile-e2e-reports/latest/android-phone/index.html`
-3. If Metro / E2E installs are not already assumed running, point at
-   [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md) (or list the four-terminal prelude).
+3. If Metro / E2E installs / API are not already assumed running, point at
+   [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md) in prose — do not paste leave-running
+   `mobile:dev*` / `mobile:e2e:api` into the final verification block.
 
-Example ending block:
+Example ending block (UI-only area — replace `<area>` with the flow you changed; assume Metro +
+installs already up per HOW-TO-RUN):
 
 ```bash
-npm run mobile:e2e:test -- auth-login
+npm run mobile:e2e:test -- hello-world
 open .artifacts/mobile-e2e-reports/latest/ios-phone/index.html
 open .artifacts/mobile-e2e-reports/latest/android-phone/index.html
 ```
+
+Example ending block (API-backed area — assume Metro via `mobile:dev:e2e`, API on `:4230`, and E2E
+installs already up per HOW-TO-RUN):
+
+```bash
+npm run mobile:e2e:test -- api-health
+open .artifacts/mobile-e2e-reports/latest/ios-phone/index.html
+open .artifacts/mobile-e2e-reports/latest/android-phone/index.html
+```
+
+One-shot prep only (safe to paste; exits) when the operator has not seeded yet:
+
+```bash
+make mobile_e2e_deps
+make mobile_e2e_seed
+```
+
+Track **5.17–5.20** API+DB harness is complete. Auth login/logout Maestro remains Track 6
+(`210` / `211`). See [TEST-ENV.md](/apps/mobile/e2e/TEST-ENV.md).
 
 ## When this skill does not apply
 
@@ -103,6 +136,8 @@ open .artifacts/mobile-e2e-reports/latest/android-phone/index.html
 ## Related
 
 - [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md)
+- [TEST-ENV.md](/apps/mobile/e2e/TEST-ENV.md) — UI-only vs API-backed; harness 5.17–5.20
 - [APPS-MOBILE.md](/apps/mobile/APPS-MOBILE.md)
 - **mobile-feature-requires-e2e** rule
-- **mobile-master-plan-phasing** — Track 5 E2E harness
+- **mobile-master-plan-phasing** — Track 5 E2E harness (5.17–5.20 complete)
+- Completed plan: [`.llm/plans/completed/mobile-e2e-api-db-harness/`](/.llm/plans/completed/mobile-e2e-api-db-harness/)

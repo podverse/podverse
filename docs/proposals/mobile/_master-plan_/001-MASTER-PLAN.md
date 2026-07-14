@@ -34,22 +34,22 @@
 
 ## Parallel groups (implementation order)
 
-| Group | Tracks                                               | Can parallelize with | Prerequisites                                             |
-| ----- | ---------------------------------------------------- | -------------------- | --------------------------------------------------------- |
-| PG-0  | 0                                                    | —                    | none                                                      |
-| PG-1  | 1                                                    | 3 (after 0.6+)       | 0 partial                                                 |
-| PG-2a | 3                                                    | 4, 5 (after 0)       | 0                                                         |
-| PG-2b | 2 spike (2.1–2.13, 2.34, 2.35 contract)              | 3, 4, 5              | 0, 1 recommended                                          |
-| PG-3  | 4, 5                                                 | each other           | 3 hello-world                                             |
-| PG-4  | 6, 7                                                 | each other           | 3, 5; **0.20** design-tokens recommended before 7.11–7.16 |
-| PG-5  | 2 full (2.14–2.34 remainder; 2.35 storage if needed) | 8, 9                 | 2 spike, 1                                                |
-| PG-6  | 8, 9                                                 | each other           | 6, 7; **7.11–7.15** theme scaffold `done`                 |
-| PG-7  | 10, 11                                               | each other           | 1, 2, 6                                                   |
-| PG-8  | 12                                                   | 13, 14, 15           | 2, 10                                                     |
-| PG-9  | 13, 14, 15, 16, 17                                   | each other (mostly)  | 6, 10 varies                                              |
-| PG-10 | 18                                                   | 19, 20               | 7, 11                                                     |
-| PG-11 | 19, 20, 21                                           | each other           | MVP feature-complete                                      |
-| PG-12 | 22                                                   | —                    | 4, PG-11                                                  |
+| Group | Tracks                                               | Can parallelize with | Prerequisites                                                                    |
+| ----- | ---------------------------------------------------- | -------------------- | -------------------------------------------------------------------------------- |
+| PG-0  | 0                                                    | —                    | none                                                                             |
+| PG-1  | 1                                                    | 3 (after 0.6+)       | 0 partial                                                                        |
+| PG-2a | 3                                                    | 4, 5 (after 0)       | 0                                                                                |
+| PG-2b | 2 spike (2.1–2.13, 2.34, 2.35 contract)              | 3, 4, 5              | 0, 1 recommended                                                                 |
+| PG-3  | 4, 5                                                 | each other           | 3 hello-world; **5.17–5.20** API+DB harness before 6.11/6.12                     |
+| PG-4  | 6, 7                                                 | each other           | 3, 5 (incl. **5.17–5.20** `done` before auth Maestro); **0.20** before 7.11–7.16 |
+| PG-5  | 2 full (2.14–2.34 remainder; 2.35 storage if needed) | 8, 9                 | 2 spike, 1                                                                       |
+| PG-6  | 8, 9                                                 | each other           | 6, 7; **7.11–7.15** theme scaffold `done`                                        |
+| PG-7  | 10, 11                                               | each other           | 1, 2, 6                                                                          |
+| PG-8  | 12                                                   | 13, 14, 15           | 2, 10                                                                            |
+| PG-9  | 13, 14, 15, 16, 17                                   | each other (mostly)  | 6, 10 varies                                                                     |
+| PG-10 | 18                                                   | 19, 20               | 7, 11                                                                            |
+| PG-11 | 19, 20, 21                                           | each other           | MVP feature-complete                                                             |
+| PG-12 | 22                                                   | —                    | 4, PG-11                                                                         |
 
 ```mermaid
 flowchart TB
@@ -270,6 +270,10 @@ Track 3 is complete when all of the following are true:
 5.14. Dual device matrix: manual vs E2E simulator/AVD slots (same app id). Model: Codex 5.3. Detail: [073-e2e-device-isolation-matrix](/docs/proposals/mobile/_master-plan_/details/073-e2e-device-isolation-matrix.md) — done
 5.15. Make `mobile_e2e_*` auto-create/boot both E2E devices and run Maestro per platform. Model: Codex 5.3. Detail: [074-e2e-make-autoboot-both-platforms](/docs/proposals/mobile/_master-plan_/details/074-e2e-make-autoboot-both-platforms.md) — done
 5.16. Web-parity mobile step/screenshot HTML report under `.artifacts/mobile-e2e-reports/latest/`. Model: Codex 5.3. Detail: [075-e2e-html-step-screenshot-report](/docs/proposals/mobile/_master-plan_/details/075-e2e-html-step-screenshot-report.md) — done
+5.17. Add `apiMobileE2e` profile in `podverseTestEnv` (dedicated API port **4230**). Model: Codex 5.3. Detail: [076-e2e-api-mobile-profile](/docs/proposals/mobile/_master-plan_/details/076-e2e-api-mobile-profile.md) — done
+5.18. Wire mobile E2E `test_deps` + reuse web `e2e_seed_web` (Make aliases; UI-only path stays light). Model: Codex 5.3. Detail: [077-e2e-api-db-seed](/docs/proposals/mobile/_master-plan_/details/077-e2e-api-db-seed.md) — done
+5.19. Long-lived mobile E2E API start/stop scripts/Make (not Playwright webServer). Model: Codex 5.3. Detail: [078-e2e-api-lifecycle](/docs/proposals/mobile/_master-plan_/details/078-e2e-api-lifecycle.md) — done
+5.20. Expo/API base URL for iOS+Android E2E hosts + docs/skills + minimal API-health Maestro smoke. Model: Codex 5.3. Detail: [079-e2e-expo-api-url](/docs/proposals/mobile/_master-plan_/details/079-e2e-expo-api-url.md) — done
 
 ## Track 6 — Bearer auth + secure storage
 
@@ -283,8 +287,8 @@ Track 3 is complete when all of the following are true:
 6.8. Implement `GET /auth/me` bootstrap on app launch for session restore. Model: Codex 5.3. Detail: [207-auth-me-bootstrap](/docs/proposals/mobile/_master-plan_/details/207-auth-me-bootstrap.md) — _TBD_
 6.9. Implement anonymous mode: no token, limited features, anonymous playback snapshot. Model: Opus 4.8. Detail: [208-anonymous-mode](/docs/proposals/mobile/_master-plan_/details/208-anonymous-mode.md) — _TBD_
 6.10. Never use cookies or `withCredentials` in mobile API client configuration. Model: Auto. Detail: [209-no-cookie-auth](/docs/proposals/mobile/_master-plan_/details/209-no-cookie-auth.md) — _TBD_
-6.11. E2E: login flow with screenshot of authenticated home shell. Model: Codex 5.3. Detail: [210-e2e-login-screenshot](/docs/proposals/mobile/_master-plan_/details/210-e2e-login-screenshot.md) — _TBD_
-6.12. E2E: logout flow returning to login screen. Model: Auto. Detail: [211-e2e-logout](/docs/proposals/mobile/_master-plan_/details/211-e2e-logout.md) — _TBD_
+6.11. E2E: login flow with screenshot of authenticated home shell. **Requires 5.17–5.20 `done`.** Model: Codex 5.3. Detail: [210-e2e-login-screenshot](/docs/proposals/mobile/_master-plan_/details/210-e2e-login-screenshot.md) — _TBD_
+6.12. E2E: logout flow returning to login screen. **Requires 5.17–5.20 `done` (and 6.11).** Model: Auto. Detail: [211-e2e-logout](/docs/proposals/mobile/_master-plan_/details/211-e2e-logout.md) — _TBD_
 
 ## Track 7 — Navigation shell (tabs + stacks)
 
@@ -650,6 +654,10 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 073-e2e-device-isolation-matrix        | 5.14       | 073-e2e-device-isolation-matrix        | Codex 5.3 | done    |
 | 074-e2e-make-autoboot-both-platforms   | 5.15       | 074-e2e-make-autoboot-both-platforms   | Codex 5.3 | done    |
 | 075-e2e-html-step-screenshot-report    | 5.16       | 075-e2e-html-step-screenshot-report    | Codex 5.3 | done    |
+| 076-e2e-api-mobile-profile             | 5.17       | 076-e2e-api-mobile-profile             | Codex 5.3 | done    |
+| 077-e2e-api-db-seed                    | 5.18       | 077-e2e-api-db-seed                    | Codex 5.3 | done    |
+| 078-e2e-api-lifecycle                  | 5.19       | 078-e2e-api-lifecycle                  | Codex 5.3 | done    |
+| 079-e2e-expo-api-url                   | 5.20       | 079-e2e-expo-api-url                   | Codex 5.3 | done    |
 | 080-media-engine-module-scaffold       | 2.1        | 080-media-engine-module-scaffold       | Opus 4.8  | done    |
 | 081-native-playback-bridge-interface   | 2.2        | 081-native-playback-bridge-interface   | Opus 4.8  | done    |
 | 082-bridge-method-contract             | 2.3        | 082-bridge-method-contract             | Opus 4.8  | done    |
