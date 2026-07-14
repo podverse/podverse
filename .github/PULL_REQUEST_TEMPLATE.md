@@ -51,8 +51,8 @@ If you maintain optional notes under `.llm/history/`, see [.llm/LLM.md](.llm/LLM
 
 ## CI
 
-> **Note**: A maintainer will comment `/test` to run server CI on this PR. For PRs that need
-> mobile E2E as well, comment `/testmobile` (server CI + non-blocking Maestro stub).
+> **Note**: A maintainer will comment `/test` to run CI checks on this PR (lint/type-check/builds;
+> tests and E2E are run locally, including mobile Maestro).
 
 > **OpenAPI policy**: For route/contract/auth changes, OpenAPI evidence above is required before merge.
 

@@ -97,8 +97,7 @@ This runs Prettier with the plugin only on `**/*.sh`. Use it at your discretion 
 - Be constructive and specific
 - Approve when satisfied, don't over-nitpick
 - Test locally for significant changes
-- Comment `/test` to trigger server CI on external PRs
-- Comment `/testmobile` when the PR also needs the mobile E2E stub (server CI + Maestro smoke)
+- Comment `/test` to trigger CI on external PRs
 
 ### CI for External Contributors
 
@@ -106,16 +105,14 @@ To prevent abuse of GitHub Actions, CI does not run automatically on PRs from ex
 
 **Exception**: Dependabot PRs run CI automatically since Dependabot is a trusted GitHub bot.
 
-Use `/testmobile` (same permission gate: owner / member / collaborator) when the change needs
-mobile coverage as well. That runs the same server CI as `/test` **and** the non-blocking
-macOS Maestro stub (`.github/workflows/mobile-e2e-stub.yml`). The mobile stub does **not** run
-on every PR — only when `/testmobile` is commented (or via manual `workflow_dispatch`).
+The `/test` CI workflow runs lint/type-check/builds (including `apps/mobile` ESLint via
+`npm run lint`) — it does **not** run unit or E2E suites (web Playwright or mobile Maestro).
+Operators run those locally before merge.
 
-The `/test` CI workflow runs:
+The CI workflow runs:
 
 - Database migration verification
-- Linting
-- Type checking
+- Linting (workspaces + `apps/mobile` + repo scripts) and type checking
 - Package builds
 - App builds
 - OpenAPI validation/lint/bundle checks when OpenAPI-related files change (`.github/workflows/openapi-validate.yml`)

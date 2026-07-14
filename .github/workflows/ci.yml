@@ -6,20 +6,13 @@ on:
 
 jobs:
   validate:
-    # Run when a maintainer comments /test or /testmobile on a PR (manual trigger).
-    # /test = server CI only. /testmobile = server CI + mobile E2E stub (see mobile-e2e-stub.yml).
-    # Exclude bare substring matches of /test inside /testmobile via the !contains clause.
-    # Dependabot PRs: comment /test to run CI, or add a separate ci-dependabot workflow.
+    # Run when a maintainer comments /test on a PR (manual trigger for external contributors).
+    # Lint includes apps/mobile via scripts/ci/lint-with-summary.mjs (no Maestro / unit E2E in CI —
+    # operators run those locally, same policy as web). Dependabot: comment /test or add ci-dependabot.
     if: |
       github.event_name == 'issue_comment' &&
       github.event.issue.pull_request &&
-      (
-        contains(github.event.comment.body, '/testmobile') ||
-        (
-          contains(github.event.comment.body, '/test') &&
-          !contains(github.event.comment.body, '/testmobile')
-        )
-      ) &&
+      contains(github.event.comment.body, '/test') &&
       (
         github.event.comment.author_association == 'OWNER' ||
         github.event.comment.author_association == 'MEMBER' ||

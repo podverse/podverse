@@ -2,30 +2,27 @@
 
 **Master step:** 5.9
 **Model (author + implement):** Codex 5.3
-**Status:** done
+**Status:** done (superseded — no Maestro in GitHub CI)
 
-## Scope
+## Scope (final decision)
 
-- Add a **non-blocking** GitHub Actions job (`.github/workflows/mobile-e2e-stub.yml`) that runs
-  the hello-world Maestro flow on a macOS runner when available.
-- Trigger via maintainer `/testmobile` on a PR (same permission gate as `/test`), not on every
-  `pull_request`. `/testmobile` also runs server CI (`ci.yml`); `/test` remains server-only.
-- `continue-on-error: true` or equivalent until harness is stable.
-- Must not block server publish workflows.
+- Do **not** run mobile Maestro (or other test/E2E suites) in GitHub Actions `/test`.
+- Match web/server policy: CI runs lint/type-check/builds; operators run Maestro locally
+  (`npm run mobile:e2e:test`) and confirm reports before merge.
+- Mobile ESLint is already included in `npm run lint` via `scripts/ci/lint-with-summary.mjs`
+  (`lint:mobile` → `apps/mobile`).
+- No `/testmobile` slash command. No `mobile-e2e-stub.yml` workflow.
 
 ## Acceptance criteria
 
-- Workflow file exists and is documented as non-blocking / comment-triggered
-- Job uses Maestro + simulator boot; skips gracefully if tooling missing (optional)
-- Isolation from `publish-staging.yml` / `publish-main.yml`
-- Does not auto-run on path-filtered PRs
-
-## Web parity references
-
-- Track 4 workflow isolation (4.7 / 156)
+- `/test` (`ci.yml`) does not invoke Maestro or `mobile:e2e:test`
+- `npm run lint` covers `apps/mobile`
+- Isolation from `publish-staging.yml` / `publish-main.yml` (unchanged)
 
 ## Verification
 
 ```bash
-rg -n 'maestro|testmobile|continue-on-error|issue_comment' .github/workflows/mobile-e2e-stub.yml .github/workflows/ci.yml
+test ! -f .github/workflows/mobile-e2e-stub.yml
+rg -n 'lint:mobile|MOBILE_LINT' scripts/ci/lint-with-summary.mjs
+rg -n 'maestro|mobile:e2e' .github/workflows/ci.yml || true
 ```

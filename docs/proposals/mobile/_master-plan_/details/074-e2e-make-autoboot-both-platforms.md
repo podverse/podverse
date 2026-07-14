@@ -20,5 +20,5 @@
 ## Verification
 
 ```bash
-rg -n 'ensure-devices|Pro E2E|API_33_e2e' makefiles/local/Makefile.local.e2e.mk .github/workflows/mobile-e2e-stub.yml
+rg -n 'ensure-devices|Pro E2E|API_33_e2e' makefiles/local/Makefile.local.e2e.mk scripts/mobile/
 ```

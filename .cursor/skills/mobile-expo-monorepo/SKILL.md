@@ -127,8 +127,10 @@ npm run mobile:pod-install
 
 ## CI / publish
 
-- Server `/test`, `publish-staging`, `publish-main`: **never** build or publish mobile.
-- Deferred: `/testmobile` (macOS runner, Vitest + Maestro) once mobile has a test harness.
+- Server `/test`, `publish-staging`, `publish-main`: **never** build or publish mobile binaries.
+- `/test` already runs `apps/mobile` ESLint via `npm run lint` (`lint-with-summary` → `lint:mobile`).
+  No Maestro / mobile unit suite in GitHub Actions — operators run `mobile:e2e:test` locally (same
+  policy as web E2E staying out of `/test`).
 - Marketing version: `bump-version.sh` bumps `apps/mobile/package.json` explicitly (not via
   `npm query .workspace`).
 
