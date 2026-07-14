@@ -11,14 +11,14 @@ below).
 
 ## Phone engine readiness (minimum GO)
 
-| #   | Criterion                                                                           | Status | Evidence                                                                                                        |
-| --- | ----------------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------- |
-| 1   | Single-engine `load` / `play` / `pause` / `seek` / `setRate` on iOS **and** Android | ✅     | `ios/PodverseAudioEngine.swift`, `android/.../PodverseAudioEngine.kt`; debug panel                              |
-| 2   | Background audio survives on both platforms (step 2.12)                             | ✅     | Device-verified; see README § "Background & after-kill behavior"                                                |
-| 3   | Lock-screen / media-session controls drive the **same** player instance             | ✅     | iOS shared `MPRemoteCommandCenter`; Android shared `MediaLibrarySession`                                        |
-| 4   | JS events emitted incl. `ended`; JS adapter is the only RN entry point              | ✅     | `src/types.ts`, `apps/mobile/src/bridge/`; `rg NativeModules apps/mobile/src` → none                            |
-| 5   | **No** `react-native-track-player`                                                  | ✅     | `rg react-native-track-player apps/mobile` → none                                                               |
-| 6   | After force-stop / swipe-away behavior documented honestly (step 2.13)              | ✅     | README § "Background & after-kill behavior" — kill-survival NOT required for GO                                 |
+| #   | Criterion                                                                           | Status | Evidence                                                                             |
+| --- | ----------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------ |
+| 1   | Single-engine `load` / `play` / `pause` / `seek` / `setRate` on iOS **and** Android | ✅     | `ios/PodverseAudioEngine.swift`, `android/.../PodverseAudioEngine.kt`; debug panel   |
+| 2   | Background audio survives on both platforms (step 2.12)                             | ✅     | Device-verified; see README § "Background & after-kill behavior"                     |
+| 3   | Lock-screen / media-session controls drive the **same** player instance             | ✅     | iOS shared `MPRemoteCommandCenter`; Android shared `MediaLibrarySession`             |
+| 4   | JS events emitted incl. `ended`; JS adapter is the only RN entry point              | ✅     | `src/types.ts`, `apps/mobile/src/bridge/`; `rg NativeModules apps/mobile/src` → none |
+| 5   | **No** `react-native-track-player`                                                  | ✅     | `rg react-native-track-player apps/mobile` → none                                    |
+| 6   | After force-stop / swipe-away behavior documented honestly (step 2.13)              | ✅     | README § "Background & after-kill behavior" — kill-survival NOT required for GO      |
 
 ## Car foundation constraints (required for GO — not full car)
 

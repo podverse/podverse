@@ -2,14 +2,14 @@
 
 **Master step:** 5.3
 **Model (author + implement):** Codex 5.3
-**Status:** ready
+**Status:** done
 
 ## Scope
 
 - Add Maestro flow `apps/mobile/e2e/hello-world.yaml` that launches the app and asserts the hello-world
   title / visible branded text from Track 3.
-- Target canonical devices: iOS `"iPhone 17 Pro"`, Android `Pixel_6_Pro_API_33` (document in flow
-  comments / APPS-MOBILE).
+- Target **E2E** devices via Make: `"iPhone 17 Pro E2E"`, `Pixel_6_Pro_API_33_e2e` (manual day-to-day
+  remains `"iPhone 17 Pro"` / `Pixel_6_Pro_API_33`; see 073 / APPS-MOBILE).
 
 ## Acceptance criteria
 

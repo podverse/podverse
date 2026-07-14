@@ -1,27 +1,37 @@
 ---
-description: End implementation responses with targeted make screenshot-report verification commands for the operator.
+description: End implementation responses with targeted screenshot-report verification commands for the operator (web make targets; mobile npm E2E).
 alwaysApply: true
 ---
 
-# End With Targeted Make Report Verify
+# End With Targeted Report Verify
 
 For implementation responses in this repo:
 
 0. **Do not run tests during agent or plan work.** Never run test, lint, or verification commands as part of implementation. Only instruct the operator in a fenced `bash` block at the end of the response.
-1. **Give the user** one or more runnable `make` commands they can copy and run to verify the change; place them in a fenced `bash` code block at the end of your response.
-2. **UI changes (apps/web, apps/management-web, packages/ui):** Instruct the operator to run the narrowest targeted screenshot report and where to open it (`.artifacts/e2e-reports/latest/web/index.html` or `.../management-web/index.html`). See **ui-e2e-screenshot-report** skill.
-3. **MANDATORY when the change affects E2E:** If you modified UI (apps/web or apps/management-web), E2E spec files, or any code that E2E tests cover, you **MUST** end the response with a fenced `bash` block containing the **EXACT** command(s) needed to run the affected E2E test(s). Example: `make e2e_test_web_report_spec SPEC=e2e/smoke.spec.ts`.
-4. Prefer screenshot-report targets scoped to the changed feature area.
-5. Use full-suite report mode only when change scope is broad or cross-cutting.
+1. **Give the user** one or more runnable verification commands they can copy and run; place them in a fenced `bash` code block at the end of your response.
+2. **UI changes (apps/web, apps/management-web, packages/ui):** Instruct the operator to run the narrowest targeted screenshot report and open the hub at `.artifacts/e2e-reports/latest/index.html` (slot cards open each report in a new tab). See **ui-e2e-screenshot-report** skill.
+3. **Mobile changes (apps/mobile):** Same habit as web — end with the **most focused** Maestro report command(s) and slot report paths. See **mobile-e2e-screenshots**. Example:
+
+```bash
+npm run mobile:e2e:test -- <area>
+open .artifacts/mobile-e2e-reports/latest/ios-phone/index.html
+open .artifacts/mobile-e2e-reports/latest/android-phone/index.html
+```
+
+   (Omit `-- <area>` only when the default `hello-world` smoke is the right scope. Remind that Metro + `mobile:e2e:ios` / `mobile:e2e:android` must already be up — see [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md).)
+4. **MANDATORY when the change affects E2E:** If you modified UI (web, management-web, or mobile), E2E specs/flows, or any code that E2E covers, you **MUST** end the response with a fenced `bash` block containing the **EXACT** focused command(s) for the affected surface(s).
+5. Prefer screenshot-report targets scoped to the changed feature area.
+6. Use full-suite report mode only when change scope is broad or cross-cutting.
 
 Preferred commands:
 
 - Web: `make e2e_test_web_report_spec SPEC=e2e/<spec>.spec.ts`
 - Management-web: `make e2e_test_management_web_report_spec SPEC=e2e/<spec>.spec.ts`
-- Both: `make e2e_test_report_scoped WEB_SPEC=e2e/<web>.spec.ts MGMT_SPEC=e2e/<mgmt>.spec.ts`
-- Full regression: `make e2e_test_report`
+- Both web apps: `make e2e_test_report_scoped WEB_SPEC=e2e/<web>.spec.ts MGMT_SPEC=e2e/<mgmt>.spec.ts`
+- Mobile: `npm run mobile:e2e:test -- <area>` (narrowest `apps/mobile/e2e/<area>.yaml`)
+- Full web regression: `make e2e_test_report`
 - API only: `npm run test:e2e:api`
 
-**Final COPY-PASTA prompt:** When completing the last step in a plan set (`COPY-PASTA.md` / `00-EXECUTION-ORDER.md`), assume the operator ran all prompts without running tests until the end. List **all** cumulative verification commands for the whole set in one fenced `bash` block (dedupe; order: build/lint → unit → API → E2E). See **response-ending-make-verify** and **plan-completion** skills.
+**Final COPY-PASTA prompt:** When completing the last step in a plan set (`COPY-PASTA.md` / `00-EXECUTION-ORDER.md`), assume the operator ran all prompts without running tests until the end. List **all** cumulative verification commands for the whole set in one fenced `bash` block (dedupe; order: build/lint → unit → API → E2E web/mobile). See **response-ending-make-verify** and **plan-completion** skills.
 
-Extended reference: **response-ending-make-verify**, **ui-e2e-screenshot-report**, and **plan-completion** skills.
+Extended reference: **response-ending-make-verify**, **ui-e2e-screenshot-report**, **mobile-e2e-screenshots**, and **plan-completion** skills.

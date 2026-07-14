@@ -1,0 +1,92 @@
+name: Mobile E2E Stub (non-blocking)
+
+on:
+  pull_request:
+    paths:
+      - "apps/mobile/**"
+      - "scripts/mobile/**"
+      - "makefiles/local/Makefile.local.e2e.mk"
+      - ".github/workflows/mobile-e2e-stub.yml"
+      - "package.json"
+  workflow_dispatch:
+
+jobs:
+  mobile-e2e-hello-world:
+    name: Maestro hello-world smoke (stub)
+    runs-on: macos-latest
+    continue-on-error: true
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Pin npm version
+        run: npm install -g npm@11.13.0
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install mobile dependencies
+        run: npm run mobile:install
+
+      - name: Prepare E2E simulator
+        run: |
+          set -euo pipefail
+          xcrun simctl list devices available | grep -F 'iPhone 17 Pro' >/dev/null || {
+            echo "::warning::iPhone 17 Pro simulator is unavailable on this runner. Skipping stub run."
+            exit 0
+          }
+          # ensure-devices.sh clones "iPhone 17 Pro E2E" from the manual sim when missing
+          bash scripts/mobile/ensure-devices.sh e2e || {
+            echo "::warning::Failed to prepare E2E devices; continuing best-effort."
+          }
+
+      - name: Install Maestro CLI
+        run: |
+          set -euo pipefail
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Start Metro (background)
+        run: |
+          set -euo pipefail
+          mkdir -p .artifacts/mobile-e2e-reports
+          nohup npm run mobile:dev >.artifacts/mobile-e2e-reports/metro-ci.log 2>&1 &
+          echo $! >.artifacts/mobile-e2e-reports/metro.pid
+          for _ in $(seq 1 30); do
+            if lsof -nP -iTCP:8081 -sTCP:LISTEN >/dev/null 2>&1; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::warning::Metro did not listen on :8081; stub may fail."
+
+      - name: Install app on E2E iOS (--no-bundler)
+        run: |
+          set -euo pipefail
+          npm run mobile:e2e:ios || {
+            echo "::warning::E2E iOS install failed; continuing best-effort."
+          }
+
+      - name: Run non-blocking mobile E2E stub
+        run: |
+          set -euo pipefail
+          npm run mobile:e2e:test -- hello-world || {
+            echo "::warning::mobile:e2e:test failed (stub is non-blocking)."
+            exit 0
+          }
+
+      - name: Upload mobile E2E artifacts
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: mobile-e2e-report-stub
+          path: .artifacts/mobile-e2e-reports/
+          if-no-files-found: warn

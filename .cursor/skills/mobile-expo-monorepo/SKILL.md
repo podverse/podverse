@@ -1,6 +1,6 @@
 ---
 name: mobile-expo-monorepo
-description: Expo SDK 52 as a standalone install under apps/mobile — own lockfile, file: shared packages, Metro. Use when mobile npm install, prebuild, pod install, or dev:mobile fails.
+description: Expo SDK 52 as a standalone install under apps/mobile — own lockfile, file: shared packages, Metro. Use when mobile npm install, prebuild, pod install, or mobile:dev fails.
 ---
 
 # Mobile Expo (standalone install)
@@ -35,7 +35,7 @@ over multi-step recipes. Bundle steps that usually go together:
 | Clean + root + packages + mobile JS install  | `npm run deps:init`                     | `clean:node_modules` → `npm ci` → `build:packages` → `mobile:install` |
 | Same + expo prebuild + CocoaPods             | `npm run deps:init:native`              | The above plus separate `mobile:prebuild` / `mobile:pod-install`      |
 | Failed prebuild / wiped ios+android recovery | `npm run mobile:reset`                  | Bare `prebuild:clean` then `mobile:pod-install`                       |
-| Metro only (deps already installed)          | `npm run dev:mobile`                    | `npm --prefix apps/mobile run start`                                  |
+| Metro only (deps already installed)          | `npm run mobile:dev`                    | `npm --prefix apps/mobile run start`                                  |
 | Native run (after prebuild exists)           | `npm run mobile:ios` / `mobile:android` | Long `expo run:*` / `cd apps/mobile` chains                           |
 | Re-run pods only                             | `npm run mobile:pod-install`            | Raw `pod install` under Nix/direnv                                    |
 | Re-generate native trees + pods              | `npm run mobile:prebuild`               | `expo prebuild` + separate pod step                                   |
@@ -56,7 +56,7 @@ From **monorepo root**:
 ./scripts/nix/with-env npm run deps:init:native
 
 # Day-to-day after deps exist:
-./scripts/nix/with-env npm run dev:mobile
+./scripts/nix/with-env npm run mobile:dev
 npm run mobile:ios -- --device "iPhone 17 Pro"
 ```
 
@@ -100,7 +100,7 @@ Prefer composites first; use the finer-grained scripts only when isolating a fai
 npm run mobile:reset
 
 # Day-to-day
-./scripts/nix/with-env npm run dev:mobile
+./scripts/nix/with-env npm run mobile:dev
 npm run mobile:ios -- --device "iPhone 17 Pro"
 npm run mobile:android -- --device Pixel_6_Pro_API_33
 
@@ -116,9 +116,14 @@ npm run mobile:pod-install
 `tar@7` breaks `expo prebuild` (`reading 'extract'`). Revisit only when upgrading past SDK 52 /
 `@expo/cli` that supports tar 7's named exports.
 
-**Default devices (agents):** always name them — `"iPhone 17 Pro"` and `Pixel_6_Pro_API_33`. Never
-bare `--device` (interactive picker). See
-[mobile-ios-simulator](/.cursor/rules/mobile-ios-simulator.mdc).
+**Default devices (agents):**
+
+- **Manual (dev):** `"iPhone 17 Pro"` and `Pixel_6_Pro_API_33` (what `mobile:ios` / `mobile:android`
+  default to when `--device` is omitted).
+- **E2E (Maestro / Make):** `"iPhone 17 Pro E2E"` and `Pixel_6_Pro_API_33_e2e` — boot via
+  `bash scripts/mobile/ensure-devices.sh e2e`; never point Make at manual slots.
+- Never bare `--device` (interactive picker) unless the operator asks to pick a physical device.
+  See [mobile-ios-simulator](/.cursor/rules/mobile-ios-simulator.mdc).
 
 ## CI / publish
 

@@ -45,21 +45,28 @@
     },
     {
       "name": "Mobile Metro",
-      "description": "npm run dev:mobile — keep running; does not install native dev client",
+      "description": "npm run mobile:dev — keep running; does not install native dev client",
       "cwd": ".",
       "open": false,
       "command": "clear"
     },
     {
       "name": "Mobile iOS",
-      "description": "Metro must run in Mobile Metro tab. npm run mobile:ios -- --device (or --device \"iPhone 16 Pro\")",
+      "description": "Manual: npm run mobile:ios (iPhone 17 Pro). E2E: npm run mobile:e2e:ios (needs Metro)",
       "cwd": ".",
       "open": false,
       "command": "clear"
     },
     {
       "name": "Mobile Android",
-      "description": "npm run mobile:android",
+      "description": "Manual: npm run mobile:android. E2E: npm run mobile:e2e:android (needs Metro)",
+      "cwd": ".",
+      "open": false,
+      "command": "clear"
+    },
+    {
+      "name": "Mobile E2E test",
+      "description": "After Metro + e2e ios/android installs: npm run mobile:e2e:test",
       "cwd": ".",
       "open": false,
       "command": "clear"

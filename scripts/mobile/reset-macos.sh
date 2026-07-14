@@ -63,4 +63,4 @@ echo "Running pod install with macOS-native toolchain..."
 bash "$SCRIPT_DIR/pod-install-macos.sh"
 
 echo "=== mobile:reset complete ==="
-echo "Next: npm run dev:mobile  and  npm run mobile:ios -- --device \"iPhone 17 Pro\""
+echo "Next: npm run mobile:dev  and  npm run mobile:ios -- --device \"iPhone 17 Pro\""

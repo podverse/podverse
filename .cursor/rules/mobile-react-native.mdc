@@ -27,6 +27,7 @@ alwaysApply: false
   see [APPS-MOBILE.md § Troubleshooting](/apps/mobile/APPS-MOBILE.md) (Node stdlib bundling).
 - **Import specifiers (Tier D):** extensionless relative imports in app source. See
   [DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md § Tier D](/docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md).
-- **E2E:** Maestro or Detox in `apps/mobile/e2e/` — **not** `make e2e_*` (web/management-web only).
-  See **mobile-e2e-screenshots** skill.
+- **E2E:** Maestro in `apps/mobile/e2e/` — **not** `make e2e_*` (web/management-web only).
+  After mobile UI/feature work, end responses with the focused `npm run mobile:e2e:test -- <area>`
+  + slot report paths (**mobile-e2e-screenshots**, **end-with-targeted-make-report-verify**).
 - **Playback parity:** [DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md).

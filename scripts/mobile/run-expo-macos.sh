@@ -120,4 +120,29 @@ cd "$REPO_ROOT"
 if [[ "$PLATFORM" == "ios" ]]; then
   bash "$SCRIPT_DIR/patch-expo-localization-xcode26.sh" "$REPO_ROOT/apps/mobile"
 fi
+
+# Default to manual device slots when the caller did not pass --device / -d.
+# Always append --device as its own argv + a separate quoted name (never unquoted spaces).
+# Extra flags (e.g. --no-bundler from e2e-device.sh) pass through via "$@".
+# E2E install uses dedicated names via npm run mobile:e2e:ios|android (see e2e-device.sh).
+MANUAL_IOS_NAME='iPhone 17 Pro'
+MANUAL_ANDROID_AVD='Pixel_6_Pro_API_33'
+HAS_DEVICE_FLAG=0
+for arg in "$@"; do
+  case "$arg" in
+    --device | -d | --device=* | -d=*)
+      HAS_DEVICE_FLAG=1
+      break
+      ;;
+  esac
+done
+if [[ "$HAS_DEVICE_FLAG" -eq 0 ]]; then
+  if [[ "$PLATFORM" == "ios" ]]; then
+    set -- "$@" --device "$MANUAL_IOS_NAME"
+  else
+    set -- "$@" --device "$MANUAL_ANDROID_AVD"
+  fi
+fi
+
+# Preserve empty "$@" safely under set -u (do not expand an unbound EXTRA_ARGS array).
 exec "$NPM_BIN" --prefix apps/mobile run "$PLATFORM" -- "$@"

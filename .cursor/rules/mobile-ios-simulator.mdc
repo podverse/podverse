@@ -1,5 +1,5 @@
 ---
-description: Default named iOS simulator and Android AVD for mobile run commands — never interactive picker
+description: Manual vs E2E named iOS/Android device targets — never interactive picker
 globs:
   - "apps/mobile/**"
   - "scripts/mobile/**"
@@ -13,31 +13,44 @@ When giving `npm run mobile:ios`, `npm run mobile:android`, or `expo run:*` copy
 **always pass a named device**. Do **not** use bare `--device` (interactive menu) unless the operator
 explicitly asks to pick.
 
-## Canonical targets (use these every time)
+`scripts/mobile/run-expo-macos.sh` defaults to **manual** devices when `--device` is omitted.
+`npm run mobile:e2e:ios` / `mobile:e2e:android` / `mobile:e2e:test` always target **E2E** devices
+(never manual).
 
-| Platform | Flag value              | Notes                                      |
-| -------- | ----------------------- | ------------------------------------------ |
-| iOS      | `"iPhone 17 Pro"`       | Xcode 26 / iOS 26+ default on this project |
-| Android  | `Pixel_6_Pro_API_33`    | Phone AVD; not tablet                      |
+## Device matrix (same app id `com.podverse.app.next`)
+
+| Role | iOS | Android |
+| ---- | --- | ------- |
+| Manual (dev) | `"iPhone 17 Pro"` | `Pixel_6_Pro_API_33` |
+| Automated (E2E) | `"iPhone 17 Pro E2E"` | `Pixel_6_Pro_API_33_e2e` |
 
 ```bash
+# Manual day-to-day
 npm run mobile:ios -- --device "iPhone 17 Pro"
 npm run mobile:android -- --device Pixel_6_Pro_API_33
+
+# E2E (separate terminals; test is strict)
+npm run mobile:dev
+npm run mobile:e2e:ios
+npm run mobile:e2e:android
+npm run mobile:e2e:test
+open .artifacts/mobile-e2e-reports/latest/ios-phone/index.html
+open .artifacts/mobile-e2e-reports/latest/android-phone/index.html
 ```
 
 ## Do
 
-- Use the **same** names above in chat, plans, skills, and docs examples so the operator can paste
-  without choosing from a menu.
-- If those devices are missing on a machine, tell the operator to list and create/boot — then still
-  prefer the canonical names once available:
+- Use **manual** names for agent/operator `mobile:ios` / `mobile:android` examples.
+- Use **E2E** names only via `mobile:e2e:*` / Maestro / CI stub boot.
+- If devices are missing, run `bash scripts/mobile/ensure-devices.sh e2e` (creates E2E twins from
+  manual) or list/create manual devices first:
 
 ```bash
 xcrun simctl list devices available
 "$HOME/Library/Android/sdk/emulator/emulator" -list-avds
 ```
 
-- Boot before `simctl launch booted`:
+- Boot manual iOS before ad-hoc `simctl launch`:
 
 ```bash
 xcrun simctl boot "iPhone 17 Pro"
@@ -48,6 +61,7 @@ open -a Simulator
 
 - Do **not** give bare `npm run mobile:ios -- --device` or `mobile:android -- --device` as the
   default (forces a picker).
+- Do **not** point Maestro E2E at manual devices (`clearState` would wipe manual sessions).
 - Do **not** use **`iPhone 15`**, **`iPhone 15 Pro`**, **`iPhone 15 Plus`**, or **iOS 15** runtime
   names — not available on contributor machines with Xcode 26.
 - Do **not** suggest tablet AVDs (e.g. `Galaxy_Tab_*`) for day-to-day Android runs.

@@ -95,3 +95,11 @@ infra/k8s/base/db/source/bootstrap/0003b_management_linear_baseline.sql
 temp/
 
 .artifacts/
+# Mobile E2E screenshot/report output (Track 5)
+.artifacts/mobile-e2e-reports/
+
+# Mobile signing artifacts (never commit)
+*.keystore
+*.jks
+*.p12
+*.mobileprovision
