@@ -1,0 +1,51 @@
+---
+description: When giving operator commands, name the matching .vscode/terminals.json tab to run them in.
+alwaysApply: true
+---
+
+# Label commands with VS Code terminal tabs
+
+When you tell the operator to run a command (verification, setup, leave-running processes, or
+ad-hoc), **name the intended tab from [`.vscode/terminals.json`](/.vscode/terminals.json)** —
+use the exact `name` string (e.g. **Mobile Metro**, **Mobile Maestro**). Do not use only numbered
+“Terminal 1 / T4” labels unless you also give the tab name.
+
+## How to present
+
+- In prose or a short bullet before each fenced `bash` block (or group of related one-shots).
+- Prefer one block per tab when commands belong in different leave-running shells.
+- Never put leave-running Metro/API commands in the same paste block as one-shot Maestro/report
+  opens (see **mobile-e2e-screenshots**).
+
+## Mobile tab map (current `terminals.json`)
+
+| Tab | Typical commands |
+| --- | --- |
+| **Mobile** | One-shots: `build:packages`, `make mobile_e2e_deps` / `mobile_e2e_seed`, `mobile:e2e:api:health`, `open` reports, Expo peer installs (see below) |
+| **Mobile Metro** | Leave running: `npm run mobile:dev` (UI-only) or `npm run mobile:dev:e2e` (API-backed) |
+| **Mobile iOS** / **Mobile Android** | Same terminal group (Android splits from iOS). `npm run mobile:e2e:ios` / `mobile:e2e:android`, or manual `mobile:ios` / `mobile:android` with named devices. |
+| **Mobile E2E API** | Leave running: `npm run mobile:e2e:api` (skip for UI-only). Independent of Metro — no restart solely because Metro restarted if `:4230` is healthy. |
+| **Mobile Maestro** | `npm run mobile:e2e:test -- <area>` |
+
+## Expo CLI (never bare root `npx expo`)
+
+Expo lives only under `apps/mobile` (SDK 52). **Do not** tell the operator to run `npx expo …`
+from the monorepo root — that downloads a floating global Expo (e.g. 57) and fails with
+“module `expo` is not installed”.
+
+When suggesting Expo install/fix, label **Mobile** and use the local binary:
+
+```bash
+# Mobile
+npm --prefix apps/mobile exec -- expo install <packages>
+# or after editing package.json ranges:
+npm run mobile:install
+```
+
+Full SDK peer pins and troubleshooting: **mobile-expo-monorepo**.
+
+Other common tabs: **Root** (general/git/make), **Docker** (compose/infra), **Dev**
+(`dev:main:all`), **Workers**, **Tools**.
+
+If `terminals.json` is updated, match the file’s current `name` / `description` values — do not
+invent tab names that are not listed there.

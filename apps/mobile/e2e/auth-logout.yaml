@@ -1,0 +1,30 @@
+appId: com.podverse.app.next
+name: Auth Logout
+---
+# Track 6.12: login then logout (More tab), return to anonymous shell.
+
+- launchApp:
+    clearState: true
+- runFlow: shared/connect-dev-client.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- assertVisible:
+    id: authenticated-logout-cta
+- takeScreenshot: auth-logout-before-logout
+
+# Prefer More-tab logout (product shell); home CTA is also wired for smoke.
+- tapOn:
+    id: tab-more
+- assertVisible:
+    id: more-screen
+- tapOn:
+    id: more-nav-logout
+
+- extendedWaitUntil:
+    visible:
+      id: anonymous-login-cta
+    timeout: ${TIMEOUT_FAST}
+
+- assertVisible:
+    id: hello-world-screen
+- takeScreenshot: auth-logout-anonymous-shell

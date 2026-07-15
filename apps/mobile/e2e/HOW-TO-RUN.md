@@ -47,6 +47,9 @@ npm run mobile:e2e:api
 
 # Terminal 5 — Maestro (exit when done)
 npm run mobile:e2e:test -- api-health
+# or: npm run mobile:e2e:test -- auth-login
+# or: npm run mobile:e2e:test -- auth-logout
+# or: npm run mobile:e2e:test -- tab-switch-playback
 ```
 
 Optional convenience: instead of a leave-running Terminal 4, start the API in the background from
@@ -61,27 +64,37 @@ npm run mobile:e2e:api:stop
 
 Seeded login credential for future auth flows: `e2e-user@example.com` / `Test!1Aa`.
 
+**Mobile E2E API** does not need a restart when you only restart Metro / `mobile:dev:e2e`. Keep it
+leave-running; use `npm run mobile:e2e:api:health` in **Mobile** if unsure. Auth/tab flows fail
+closed if `:4230` is down (`e2e-test.sh` checks before Maestro).
+
+Maestro waits use `apps/mobile/e2e/shared/timeouts.env` (`TIMEOUT_FASTEST` … `TIMEOUT_SLOWEST`).
+Prefer the fastest tier that can work; see **mobile-maestro-timeouts**.
+
 ## Reports
 
 After Maestro finishes:
 
 ```bash
+open .artifacts/mobile-e2e-reports/latest/failures.json
 open .artifacts/mobile-e2e-reports/latest/index.html
 open .artifacts/mobile-e2e-reports/latest/ios-phone/index.html
 open .artifacts/mobile-e2e-reports/latest/android-phone/index.html
 ```
 
-Slot reports match web E2E chrome (summary + Prev/Next Error). Tablet slots (`ios-tablet`,
-`android-tablet`) appear when those devices are wired into the matrix later.
+`failures.json` is the compact fail index (best starting point when debugging). Slot pages list
+flows fails-first and link into `flows/<slug>/index.html` (error + screenshots). Hub cards open
+slot summaries in a new tab. Tablet slots (`ios-tablet`, `android-tablet`) appear when those
+devices are wired into the matrix later.
 
 ## If something fails
 
 | Message / symptom                                             | Fix                                                                                                               |
 | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Metro not listening on 8081                                   | Terminal 1: `npm run mobile:dev` (UI-only) or `npm run mobile:dev:e2e` (API-backed)                                |
+| Metro not listening on 8081                                   | Terminal 1: `npm run mobile:dev` (UI-only) or `npm run mobile:dev:e2e` (API-backed)                               |
 | App not installed on E2E iOS                                  | Terminal 2: `npm run mobile:e2e:ios`                                                                              |
 | App not installed on E2E Android                              | Terminal 3: `npm run mobile:e2e:android`                                                                          |
-| API-backed flow cannot reach API (`:4230`)                    | Terminal 4: `npm run mobile:e2e:api`; then in another shell `npm run mobile:e2e:api:health`                        |
+| API-backed flow cannot reach API (`:4230`)                    | Terminal 4: `npm run mobile:e2e:api`; then in another shell `npm run mobile:e2e:api:health`                       |
 | API start says port 4230 already in use                       | Free the port or stop managed process: `npm run mobile:e2e:api:stop`                                              |
 | Stuck on Expo “Development Build” launcher                    | Flows should run `shared/connect-dev-client.yaml` after `launchApp`                                               |
 | Assertion fails; screenshot shows “developer menu” / Continue | Same shared flow dismisses the one-time Expo dev-client menu (see below)                                          |

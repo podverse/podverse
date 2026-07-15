@@ -13,7 +13,7 @@ name: API Health Smoke
     id: hello-world-screen
 - extendedWaitUntil:
     visible: "API health: ok"
-    timeout: 20000
+    timeout: ${TIMEOUT_SLOWER}
 - assertVisible:
     id: hello-world-api-base-url
 - assertVisible:

@@ -1,7 +1,10 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
-import { waitForAudioReadyAtLeast } from './helpers/mediaPlayerAssertions';
+import {
+  clearSeededPodcastQueueResources,
+  waitForAudioReadyAtLeast,
+} from './helpers/mediaPlayerAssertions';
 import {
   E2E_PODCAST_ITEM_RESUME_DURATION_SECONDS,
   E2E_PODCAST_ITEM_RESUME_NEAR_END_ID_TEXT,
@@ -96,6 +99,7 @@ test.describe('Media player podcast resume position', () => {
   test.beforeEach(async ({ page }) => {
     test.setTimeout(20_000);
     await loginSeedUser(page);
+    await clearSeededPodcastQueueResources(page);
   });
 
   test('Loading a podcast episode with a stored mid-position seeks the player to that position', async ({

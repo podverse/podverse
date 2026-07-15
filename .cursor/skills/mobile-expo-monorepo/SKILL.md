@@ -1,6 +1,6 @@
 ---
 name: mobile-expo-monorepo
-description: Expo SDK 52 as a standalone install under apps/mobile — own lockfile, file: shared packages, Metro. Use when mobile npm install, prebuild, pod install, or mobile:dev fails.
+description: Expo SDK 52 as a standalone install under apps/mobile — own lockfile, file: shared packages, Metro. Use when mobile npm install, prebuild, pod install, mobile:dev fails, or when telling the operator how to run expo install (never bare root npx expo).
 ---
 
 # Mobile Expo (standalone install)
@@ -65,6 +65,23 @@ Root `rm -rf node_modules && npm i` is **not** enough for mobile. Use `deps:init
 
 Edit a shared package → rebuild packages (or `build:watch`) → Metro reloads from `packages/*/dist`.
 
+## Local env setup parity (mobile + web)
+
+Use the same local env pipeline as other apps:
+
+- `make local_env_prepare` seeds home override files
+- `make local_env_link` symlinks repo overrides to home files
+- `make local_env_setup` generates app env files, including `apps/mobile/.env` from
+  `apps/mobile/.env.example`
+
+For shared local API endpoint config, prefer one canonical override entry and let
+`scripts/local-env/setup.sh` derive/apply per-app values (web sidecar `NEXT_PUBLIC_API_*`,
+mobile `EXPO_PUBLIC_MOBILE_API_BASE_URL_{IOS,ANDROID}` with Android emulator host derivation).
+Avoid duplicating the same endpoint values across multiple templates.
+
+Mobile env validation should reuse the shared **value-based** helpers in `@podverse/helpers`
+with a mobile-local wrapper (Expo requires literal `process.env.EXPO_PUBLIC_*` references).
+
 ## Expo SDK upgrade checklist
 
 Update **inside `apps/mobile` only**:
@@ -78,16 +95,39 @@ Do **not** add Expo back to the root lockfile.
 
 ## Common failures
 
-| Symptom                                                                   | Cause                                                                      | Fix                                                                                |
-| ------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `Cannot find module '@podverse/helpers'`                                  | Forgot `mobile:install` or `file:` link broken                             | `npm run mobile:install` after package path changes                                |
-| Metro cannot resolve package after shared edit                            | Stale `dist/`                                                              | `npm run build:packages` (or watch)                                                |
-| `Unable to resolve "date-fns/…"` from helpers                             | Helpers dep not in mobile `node_modules`                                   | Add the dep to `apps/mobile/package.json`; `npm run mobile:install`                |
-| `expo/config-plugins` not found                                           | Incomplete mobile install / wrong expo version                             | Reinstall under `apps/mobile`; check overrides pin SDK 52                          |
-| `Cannot read properties of undefined (reading 'extract')` during prebuild | `tar` v7 override breaks `@expo/cli` (SDK 52 expects tar 6 default export) | Keep `overrides.tar` at `6.2.1`; then `npm run mobile:reset`                       |
-| glog / Nix SDK errors on pod install                                      | direnv/Nix `DEVELOPER_DIR`                                                 | Use `npm run mobile:prebuild` / `mobile:pod-install` (scripts unset Nix pollution) |
-| `Unable to resolve react-native-web`                                      | Expo auto web without RN-web                                               | `platforms: ['ios', 'android']` in `app.config.ts`                                 |
-| Root `npm ci` installs Expo                                               | Mobile re-added to root workspaces                                         | Keep explicit server app list in root `workspaces`                                 |
+| Symptom                                                                   | Cause                                                                      | Fix                                                                                      |
+| ------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `Cannot find module '@podverse/helpers'`                                  | Forgot `mobile:install` or `file:` link broken                             | `npm run mobile:install` after package path changes                                      |
+| Metro cannot resolve package after shared edit                            | Stale `dist/`                                                              | `npm run build:packages` (or watch)                                                      |
+| `Unable to resolve "date-fns/…"` from helpers                             | Helpers dep not in mobile `node_modules`                                   | Add the dep to `apps/mobile/package.json`; `npm run mobile:install`                      |
+| `Unable to resolve "@podverse/http-request-core"`                         | Transitive `file:` not installed under standalone mobile                   | Add explicit `file:` dep + commonly `axios` on mobile; `npm run mobile:install`          |
+| `Bundling failed` / Unknown prop type in `react-native-screens` fabric    | Screens (or nav peers) newer than Expo SDK 52 / RN 0.76                    | Pin SDK 52 peers (`screens ~4.4`, `gesture-handler ~2.20`, `safe-area ~4.12`); see below |
+| Root `npx expo install …` → downloads `expo@57` / “expo is not installed” | Ran Expo CLI from monorepo root; no root `expo` package                    | Use `npm --prefix apps/mobile exec -- expo install …` then `npm run mobile:install`      |
+| `expo/config-plugins` not found                                           | Incomplete mobile install / wrong expo version                             | Reinstall under `apps/mobile`; check overrides pin SDK 52                                |
+| `Cannot read properties of undefined (reading 'extract')` during prebuild | `tar` v7 override breaks `@expo/cli` (SDK 52 expects tar 6 default export) | Keep `overrides.tar` at `6.2.1`; then `npm run mobile:reset`                             |
+| glog / Nix SDK errors on pod install                                      | direnv/Nix `DEVELOPER_DIR`                                                 | Use `npm run mobile:prebuild` / `mobile:pod-install` (scripts unset Nix pollution)       |
+| `Unable to resolve react-native-web`                                      | Expo auto web without RN-web                                               | `platforms: ['ios', 'android']` in `app.config.ts`                                       |
+| Root `npm ci` installs Expo                                               | Mobile re-added to root workspaces                                         | Keep explicit server app list in root `workspaces`                                       |
+
+### Expo `install` for native peers (SDK 52)
+
+Do **not** run bare `npx expo install` from the monorepo root. Prefer:
+
+```bash
+npm --prefix apps/mobile exec -- expo install react-native-screens react-native-gesture-handler react-native-safe-area-context expo-secure-store
+# or after editing package.json ranges:
+npm run mobile:install
+```
+
+SDK 52 / RN 0.76 defaults to pin (avoid `^` that climbs to RN 0.81+ only packages):
+
+- `react-native-screens`: `~4.4.0`
+- `react-native-gesture-handler`: `~2.20.2`
+- `react-native-safe-area-context`: `~4.12.0`
+- `expo-secure-store`: `~14.0.1`
+
+After changing those native modules, rebuild E2E/manual apps (`mobile:e2e:ios` / `mobile:e2e:android`
+or `mobile:ios` / `mobile:android`).
 
 ## Commands (repo root)
 

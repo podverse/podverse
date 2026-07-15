@@ -3,15 +3,19 @@
  * Build web-parity step/screenshot HTML for mobile Maestro runs.
  * Usage: node scripts/mobile/e2e-html-report.mjs <report-root-dir>
  *
- * Report layout (one HTML report per OS + form-factor slot):
+ * Report layout (hub → slot summary → per-flow pages + failures.json):
  *   <report-root>/
  *     index.html                 # hub linking all slots
- *     ios-phone/index.html
- *     android-phone/index.html
- *     ios-tablet/index.html      # when that slot is run
- *     android-tablet/index.html
+ *     failures.json              # compact machine index of failing flows
+ *     ios-phone/
+ *       index.html               # slot summary (fails first → flow pages)
+ *       flows/<slug>/index.html  # one flow: error, steps, screenshots
+ *       maestro.html             # raw Maestro HTML (when present)
+ *     android-phone/...
+ *     ios-tablet/...             # when that slot is run
+ *     android-tablet/...
  *
- * Matches the web E2E report chrome (summary, failed sections, Shot/Test/Error nav).
+ * Matches the web E2E report chrome (summary, Shot/Test/Error nav on flow pages).
  */
 
 import fs from 'fs';
@@ -39,6 +43,14 @@ const LEGACY_DIR_TO_SLOT = {
 
 const IMAGE_EXT = new Set(['.png', '.jpg', '.jpeg', '.webp']);
 
+const STATUS_SORT_RANK = {
+  failed: 0,
+  timedOut: 1,
+  skipped: 2,
+  unknown: 3,
+  passed: 4,
+};
+
 function escapeHtml(s) {
   return String(s)
     .replace(/&/g, '&amp;')
@@ -48,12 +60,23 @@ function escapeHtml(s) {
     .replace(/'/g, '&#39;');
 }
 
+function slugifyFlowTitle(title) {
+  const slug = String(title)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return slug === '' ? 'flow' : slug;
+}
+
 function walkFiles(dir, baseRel = '') {
   if (!fs.existsSync(dir)) {
     return [];
   }
   const out = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === 'flows') {
+      continue;
+    }
     const abs = path.join(dir, entry.name);
     const rel = path.join(baseRel, entry.name);
     if (entry.isDirectory()) {
@@ -91,8 +114,13 @@ function commandLabel(command) {
   if (key === 'launchAppCommand') {
     return `launchApp${body?.clearState ? ' clearState' : ''}`;
   }
-  if (key === 'tapOnElementCommand' || key === 'tapOnPointCommand') {
-    const text = body?.selector?.textRegex ?? body?.selector?.idRegex ?? '';
+  if (
+    key === 'tapOnElement' ||
+    key === 'tapOnElementCommand' ||
+    key === 'tapOnPointCommand' ||
+    key === 'tapOnPointV2Command'
+  ) {
+    const text = body?.selector?.textRegex ?? body?.selector?.idRegex ?? body?.point ?? '';
     return `tapOn ${text}`.trim();
   }
   if (key === 'openLinkCommand') {
@@ -108,6 +136,9 @@ function commandLabel(command) {
   }
   if (key === 'stopAppCommand') {
     return 'stopApp';
+  }
+  if (key === 'inputTextCommand') {
+    return 'inputText';
   }
   return key.replace(/Command$/, '');
 }
@@ -135,6 +166,24 @@ function statusDisplayLabel(status) {
   if (status === 'skipped') return 'Skipped';
   if (status === 'timedOut') return 'Timed out';
   return status;
+}
+
+function prefixClassForStatus(status) {
+  if (status === 'passed') return 'prefix-pass';
+  if (status === 'skipped') return 'prefix-skip';
+  if (status === 'timedOut') return 'prefix-timeout';
+  return 'prefix-error';
+}
+
+function sortFlowsFailuresFirst(flows) {
+  return [...flows].sort((a, b) => {
+    const rankA = STATUS_SORT_RANK[a.status] ?? 99;
+    const rankB = STATUS_SORT_RANK[b.status] ?? 99;
+    if (rankA !== rankB) {
+      return rankA - rankB;
+    }
+    return a.title.localeCompare(b.title);
+  });
 }
 
 /**
@@ -168,7 +217,6 @@ function collectTakeScreenshotNames(commands, into = new Set()) {
  * Maestro writes:
  * - named takeScreenshot PNGs under <slot>/screenshots/<name>.png
  * - failure dumps under the per-run dir (…/screenshot-❌-….png)
- * Match both so passed and failed runs show images in the slot HTML.
  */
 function collectImagesForFlow(files, runDir, commands) {
   const namedShots = collectTakeScreenshotNames(commands);
@@ -205,7 +253,6 @@ function collectImagesForFlow(files, runDir, commands) {
     }
   }
 
-  // Fallback: slot-level screenshots/ when commands omit path metadata but files exist.
   if (images.length === 0) {
     for (const rel of files) {
       if (rel.startsWith('screenshots/')) {
@@ -224,6 +271,7 @@ function loadFlowsFromSlot(slotDir) {
     (rel) => path.basename(rel).startsWith('commands-') && rel.endsWith('.json')
   );
   const flows = [];
+  const usedSlugs = new Set();
 
   for (const commandsRel of commandFiles) {
     const abs = path.join(slotDir, commandsRel);
@@ -272,18 +320,29 @@ function loadFlowsFromSlot(slotDir) {
       flowStatus = 'failed';
     }
 
+    let slug = slugifyFlowTitle(title);
+    if (usedSlugs.has(slug)) {
+      let n = 2;
+      while (usedSlugs.has(`${slug}-${n}`)) {
+        n += 1;
+      }
+      slug = `${slug}-${n}`;
+    }
+    usedSlugs.add(slug);
+
     flows.push({
       title,
+      slug,
       status: flowStatus,
       errorMessage,
       steps,
       images,
       commandsRel,
+      href: `flows/${slug}/index.html`,
     });
   }
 
-  flows.sort((a, b) => a.title.localeCompare(b.title));
-  return flows;
+  return sortFlowsFailuresFirst(flows);
 }
 
 function reportSharedCss() {
@@ -358,6 +417,7 @@ function reportSharedCss() {
     .hub-card { border: 1px solid var(--report-border); border-radius: var(--report-radius-md); padding: var(--report-space-lg); background: var(--report-surface); }
     .hub-card.missing { opacity: 0.55; }
     .meta { color: var(--report-muted); font-size: var(--report-font-sm); margin-bottom: var(--report-space-lg); }
+    .failures-callout { margin-bottom: var(--report-space-xl); padding: var(--report-space-lg); border: 1px solid var(--report-fail); border-radius: var(--report-radius-md); background: var(--report-surface); }
   `;
 }
 
@@ -453,7 +513,9 @@ function navScript() {
         endMessageTimeout = setTimeout(function () { hideEndMessage(); endMessageTimeout = null; }, 3000);
       }
       function hideEndMessage() { endMessage.classList.remove('visible'); if (endMessageTimeout) { clearTimeout(endMessageTimeout); endMessageTimeout = null; } }
-      document.getElementById('nav-top').addEventListener('click', function () { hideEndMessage(); window.scrollTo({ top: 0, behavior: 'auto' }); });
+      var navTop = document.getElementById('nav-top');
+      if (!navTop) return;
+      navTop.addEventListener('click', function () { hideEndMessage(); window.scrollTo({ top: 0, behavior: 'auto' }); });
       document.getElementById('nav-bottom').addEventListener('click', function () { hideEndMessage(); window.scrollTo({ top: document.documentElement.scrollHeight - window.innerHeight, behavior: 'auto' }); });
       document.getElementById('nav-prev-shot').addEventListener('click', function () {
         var prevShot = findPrevShotBehind();
@@ -491,93 +553,8 @@ function navScript() {
   `;
 }
 
-function buildSlotHtml(slot, flows) {
-  const passed = flows.filter((f) => f.status === 'passed').length;
-  const failed = flows.filter((f) => f.status === 'failed').length;
-  const timedOut = flows.filter((f) => f.status === 'timedOut').length;
-  const skipped = flows.filter((f) => f.status === 'skipped').length;
-  const total = flows.length;
-
-  const parts = [];
-  parts.push(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mobile E2E – ${escapeHtml(slot.label)}</title>
-  <style>${reportSharedCss()}</style>
-</head>
-<body>
-  <div id="test-index-indicator" class="test-index-indicator" aria-live="polite" role="status">— / —</div>
-  <h1>Mobile E2E – ${escapeHtml(slot.label)}</h1>
-  <p class="meta">Slot <code>${escapeHtml(slot.id)}</code> · hub: <a href="../index.html">../index.html</a> · Maestro raw: <a href="./maestro.html">maestro.html</a></p>
-  <h2 class="section-heading">Test summary</h2>
-  <div class="summary">
-    <div class="summary-stats">${total} flow${total === 1 ? '' : 's'}: ${passed} passed${skipped > 0 ? `, ${skipped} skipped` : ''}, ${failed} failed${timedOut > 0 ? `, ${timedOut} timed out` : ''}</div>
-    <ul class="summary-list">
-`);
-
-  for (let i = 0; i < flows.length; i++) {
-    const flow = flows[i];
-    const prefixClass =
-      flow.status === 'passed'
-        ? 'prefix-pass'
-        : flow.status === 'skipped'
-          ? 'prefix-skip'
-          : flow.status === 'timedOut'
-            ? 'prefix-timeout'
-            : 'prefix-error';
-    parts.push(
-      `      <li><span class="${prefixClass}">${escapeHtml(statusDisplayLabel(flow.status))}:</span> ${i + 1}) <a href="#test-${i}">${escapeHtml(flow.title)}</a></li>\n`
-    );
-  }
-  parts.push(`    </ul>
-  </div>
-  <h2 class="section-heading">Screenshots and steps</h2>
-`);
-
-  let shotIndex = 0;
-  for (let i = 0; i < flows.length; i++) {
-    const flow = flows[i];
-    parts.push(`  <section id="test-${i}" class="test" data-test-index="${i}" data-status="${escapeHtml(flow.status)}">
-    <h2>${escapeHtml(flow.title)}</h2>
-    <div class="status ${escapeHtml(flow.status === 'timedOut' ? 'timedout' : flow.status)}">${escapeHtml(statusDisplayLabel(flow.status))}</div>
-`);
-    if (flow.errorMessage !== '') {
-      parts.push(`    <div class="error">${escapeHtml(flow.errorMessage)}</div>\n`);
-    }
-    if (flow.steps.length > 0) {
-      parts.push(`    <ol class="step-list">\n`);
-      for (const step of flow.steps) {
-        const cls = step.status === 'failed' || step.status === 'timedOut' ? ' step-failed' : '';
-        parts.push(
-          `      <li class="${cls.trim()}">${escapeHtml(step.label)} (${escapeHtml(step.status)})</li>\n`
-        );
-      }
-      parts.push(`    </ol>\n`);
-    }
-    for (const img of flow.images) {
-      parts.push(`    <hr class="step-description-hr">
-    <div class="step-block" data-shot-index="${shotIndex}">
-      <div class="step-description-text">${escapeHtml(img.base)}</div>
-      <a class="step-image-link" href="${escapeHtml(img.rel)}" target="_blank" rel="noopener noreferrer">
-        <img src="${escapeHtml(img.rel)}" alt="${escapeHtml(img.base)}">
-      </a>
-    </div>
-`);
-      shotIndex += 1;
-    }
-    if (flow.images.length === 0) {
-      parts.push(`    <p class="meta">No screenshots captured for this flow.</p>\n`);
-    }
-    parts.push(`  </section>\n`);
-  }
-
-  if (flows.length === 0) {
-    parts.push(`  <p class="meta">No Maestro command logs found in this slot yet.</p>\n`);
-  }
-
-  parts.push(`  <div class="nav-wrapper">
+function buildNavChrome() {
+  return `  <div class="nav-wrapper">
   <div id="nav-end-message" class="nav-end-message" role="status" aria-live="polite">End of list</div>
   <div class="nav-buttons" aria-label="Report navigation">
     <div class="nav-row nav-row-prev">
@@ -595,13 +572,154 @@ function buildSlotHtml(slot, flows) {
   </div>
   </div>
   <script>${navScript()}</script>
-</body>
+`;
+}
+
+/**
+ * Slot index: compact fails-first summary with links to per-flow pages (no embedded screenshots).
+ */
+function buildSlotHtml(slot, flows) {
+  const passed = flows.filter((f) => f.status === 'passed').length;
+  const failed = flows.filter((f) => f.status === 'failed').length;
+  const timedOut = flows.filter((f) => f.status === 'timedOut').length;
+  const skipped = flows.filter((f) => f.status === 'skipped').length;
+  const total = flows.length;
+  const failing = flows.filter((f) => f.status === 'failed' || f.status === 'timedOut');
+
+  const parts = [];
+  parts.push(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Every report link (other report files, JSON, screenshots) opens in a new tab. -->
+  <base target="_blank">
+  <title>Mobile E2E – ${escapeHtml(slot.label)}</title>
+  <style>${reportSharedCss()}</style>
+</head>
+<body>
+  <h1>Mobile E2E – ${escapeHtml(slot.label)}</h1>
+  <p class="meta">Slot <code>${escapeHtml(slot.id)}</code> · hub: <a href="../index.html">../index.html</a> · failures index: <a href="../failures.json">../failures.json</a> · Maestro raw: <a href="./maestro.html">maestro.html</a></p>
+`);
+
+  if (failing.length > 0) {
+    parts.push(`  <div class="failures-callout">
+    <h2 class="section-heading">Failed flows (${failing.length})</h2>
+    <ul class="summary-list">
+`);
+    for (const flow of failing) {
+      parts.push(
+        `      <li><span class="${prefixClassForStatus(flow.status)}">${escapeHtml(statusDisplayLabel(flow.status))}:</span> <a href="${escapeHtml(flow.href)}">${escapeHtml(flow.title)}</a>${flow.errorMessage !== '' ? ` — <code>${escapeHtml(flow.errorMessage)}</code>` : ''}</li>\n`
+      );
+    }
+    parts.push(`    </ul>
+  </div>
+`);
+  }
+
+  parts.push(`  <h2 class="section-heading">Test summary</h2>
+  <div class="summary">
+    <div class="summary-stats">${total} flow${total === 1 ? '' : 's'}: ${passed} passed${skipped > 0 ? `, ${skipped} skipped` : ''}, ${failed} failed${timedOut > 0 ? `, ${timedOut} timed out` : ''} · ordered fails-first</div>
+    <ul class="summary-list">
+`);
+
+  for (let i = 0; i < flows.length; i++) {
+    const flow = flows[i];
+    parts.push(
+      `      <li><span class="${prefixClassForStatus(flow.status)}">${escapeHtml(statusDisplayLabel(flow.status))}:</span> ${i + 1}) <a href="${escapeHtml(flow.href)}">${escapeHtml(flow.title)}</a></li>\n`
+    );
+  }
+  parts.push(`    </ul>
+  </div>
+`);
+
+  if (flows.length === 0) {
+    parts.push(`  <p class="meta">No Maestro command logs found in this slot yet.</p>\n`);
+  } else {
+    parts.push(
+      `  <p class="meta">Open a flow page for error text, steps, and screenshots. Agents: prefer <code>failures.json</code> then only failing flow HTML.</p>\n`
+    );
+  }
+
+  parts.push(`</body>
 </html>
 `);
   return parts.join('');
 }
 
-function buildHubHtml(slotStatuses) {
+function buildFlowHtml(slot, flow) {
+  const imgPrefix = '../../';
+  const parts = [];
+  parts.push(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Every report link (other report files, JSON, screenshots) opens in a new tab. -->
+  <base target="_blank">
+  <title>${escapeHtml(flow.title)} – ${escapeHtml(slot.label)}</title>
+  <style>${reportSharedCss()}</style>
+</head>
+<body>
+  <div id="test-index-indicator" class="test-index-indicator" aria-live="polite" role="status">— / —</div>
+  <p class="meta"><a href="../../index.html">Slot summary</a> · <a href="../../../index.html">Hub</a> · <a href="../../../failures.json">failures.json</a>${flow.commandsRel ? ` · raw: <a href="../../${escapeHtml(flow.commandsRel)}">${escapeHtml(path.basename(flow.commandsRel))}</a>` : ''}</p>
+  <section class="test" data-test-index="0" data-status="${escapeHtml(flow.status)}">
+    <h1>${escapeHtml(flow.title)}</h1>
+    <div class="status ${escapeHtml(flow.status === 'timedOut' ? 'timedout' : flow.status)}">${escapeHtml(statusDisplayLabel(flow.status))}</div>
+`);
+  if (flow.errorMessage !== '') {
+    parts.push(`    <div class="error">${escapeHtml(flow.errorMessage)}</div>\n`);
+  }
+  if (flow.primaryFailureRel !== null) {
+    parts.push(
+      `    <p class="meta">Primary failure shot: <a href="${escapeHtml(flow.primaryFailureRel)}">${escapeHtml(flow.primaryFailureRel)}</a></p>\n`
+    );
+  }
+  if (flow.steps.length > 0) {
+    parts.push(`    <h2 class="section-heading">Steps</h2>
+    <ol class="step-list">
+`);
+    for (const step of flow.steps) {
+      const cls = step.status === 'failed' || step.status === 'timedOut' ? ' step-failed' : '';
+      parts.push(
+        `      <li class="${cls.trim()}">${escapeHtml(step.label)} (${escapeHtml(step.status)})</li>\n`
+      );
+    }
+    parts.push(`    </ol>
+`);
+  }
+
+  parts.push(`    <h2 class="section-heading">Screenshots</h2>
+`);
+  let shotIndex = 0;
+  for (const img of flow.images) {
+    const href = `${imgPrefix}${img.rel}`;
+    parts.push(`    <hr class="step-description-hr">
+    <div class="step-block" data-shot-index="${shotIndex}">
+      <div class="step-description-text">${escapeHtml(img.base)}</div>
+      <a class="step-image-link" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">
+        <img src="${escapeHtml(href)}" alt="${escapeHtml(img.base)}">
+      </a>
+    </div>
+`);
+    shotIndex += 1;
+  }
+  if (flow.images.length === 0) {
+    parts.push(`    <p class="meta">No screenshots captured for this flow.</p>\n`);
+  }
+  parts.push(`  </section>
+${buildNavChrome()}</body>
+</html>
+`);
+  return parts.join('');
+}
+
+function buildHubHtml(slotStatuses, failuresDoc) {
+  const failCount = Object.values(failuresDoc.slots).reduce(
+    (sum, slot) => sum + (slot.failed?.length ?? 0),
+    0
+  );
+
   const cards = SLOT_META.map((slot) => {
     const st = slotStatuses.get(slot.id);
     if (!st) {
@@ -619,22 +737,44 @@ function buildHubHtml(slotStatuses) {
     return `    <div class="hub-card">
       <h2><a href="${escapeHtml(st.href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(slot.label)}</a></h2>
       <p class="${prefix}">${st.passed} passed, ${st.failed} failed${st.timedOut > 0 ? `, ${st.timedOut} timed out` : ''} (${st.total} flow${st.total === 1 ? '' : 's'})</p>
-      <p class="meta"><code>${escapeHtml(slot.id)}</code></p>
+      <p class="meta"><code>${escapeHtml(slot.id)}</code> · per-flow pages under <code>${escapeHtml(slot.id)}/flows/</code></p>
     </div>`;
   }).join('\n');
+
+  let failuresBlock = '';
+  if (failCount > 0) {
+    const items = [];
+    for (const [slotId, slotData] of Object.entries(failuresDoc.slots)) {
+      for (const fail of slotData.failed ?? []) {
+        items.push(
+          `      <li><code>${escapeHtml(slotId)}</code>: <a href="${escapeHtml(fail.html)}">${escapeHtml(fail.flow)}</a> — <code>${escapeHtml(fail.error)}</code></li>`
+        );
+      }
+    }
+    failuresBlock = `  <div class="failures-callout">
+    <h2 class="section-heading">Failures (${failCount})</h2>
+    <p class="meta">Machine index: <a href="./failures.json">failures.json</a> (preferred for agent triage)</p>
+    <ul class="summary-list">
+${items.join('\n')}
+    </ul>
+  </div>
+`;
+  }
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Every report link (other report files, JSON, screenshots) opens in a new tab. -->
+  <base target="_blank">
   <title>Mobile E2E report hub</title>
   <style>${reportSharedCss()}</style>
 </head>
 <body>
   <h1>Mobile E2E report hub</h1>
-  <p class="meta">One HTML report per <strong>OS + device form factor</strong>. Slot links open in a <strong>new tab</strong>. Open a card for screenshots, step lists, and Prev/Next Error navigation (same chrome as web E2E).</p>
-  <div class="hub-grid">
+  <p class="meta">One report tree per <strong>OS + device form factor</strong>. All report links open in a <strong>new tab</strong>. Each slot fans out to <code>flows/&lt;slug&gt;/index.html</code>. Agents: start at <a href="./failures.json">failures.json</a>.</p>
+${failuresBlock}  <div class="hub-grid">
 ${cards}
   </div>
 </body>
@@ -663,9 +803,42 @@ function resolveSlotDirs(root) {
   return map;
 }
 
+function writeFlowPages(slotDir, slot, flows) {
+  const flowsRoot = path.join(slotDir, 'flows');
+  fs.rmSync(flowsRoot, { recursive: true, force: true });
+  fs.mkdirSync(flowsRoot, { recursive: true });
+
+  for (const flow of flows) {
+    const flowDir = path.join(flowsRoot, flow.slug);
+    fs.mkdirSync(flowDir, { recursive: true });
+
+    let primaryFailureRel = null;
+    const failureImage = flow.images.find((img) => img.isFailure) ?? null;
+    if (failureImage !== null) {
+      const srcAbs = path.join(slotDir, failureImage.rel);
+      const destAbs = path.join(flowDir, 'failure.png');
+      if (fs.existsSync(srcAbs)) {
+        fs.copyFileSync(srcAbs, destAbs);
+        primaryFailureRel = 'failure.png';
+      }
+    }
+    flow.primaryFailureRel = primaryFailureRel;
+
+    const html = buildFlowHtml(slot, flow);
+    fs.writeFileSync(path.join(flowDir, 'index.html'), html, 'utf8');
+  }
+}
+
 const slotDirs = resolveSlotDirs(reportRoot);
 /** @type {Map<string, { total: number, passed: number, failed: number, timedOut: number, href: string }>} */
 const slotStatuses = new Map();
+
+const runId = path.basename(path.resolve(reportRoot));
+/** @type {{ runId: string, slots: Record<string, { failed: Array<{ flow: string, slug: string, error: string, html: string, screenshot: string | null }> }> }} */
+const failuresDoc = {
+  runId,
+  slots: {},
+};
 
 for (const slot of SLOT_META) {
   const resolved = slotDirs.get(slot.id);
@@ -682,8 +855,22 @@ for (const slot of SLOT_META) {
   }
 
   const flows = loadFlowsFromSlot(dir);
+  writeFlowPages(dir, slot, flows);
   const html = buildSlotHtml(slot, flows);
   fs.writeFileSync(path.join(dir, 'index.html'), html, 'utf8');
+
+  const failedEntries = flows
+    .filter((f) => f.status === 'failed' || f.status === 'timedOut')
+    .map((f) => ({
+      flow: f.title,
+      slug: f.slug,
+      error: f.errorMessage === '' ? statusDisplayLabel(f.status) : f.errorMessage,
+      html: `${resolved.rel}/${f.href}`,
+      screenshot:
+        f.primaryFailureRel !== null ? `${resolved.rel}/flows/${f.slug}/failure.png` : null,
+    }));
+
+  failuresDoc.slots[slot.id] = { failed: failedEntries };
 
   slotStatuses.set(slot.id, {
     total: flows.length,
@@ -692,10 +879,22 @@ for (const slot of SLOT_META) {
     timedOut: flows.filter((f) => f.status === 'timedOut').length,
     href: `${resolved.rel}/index.html`,
   });
-  console.log(`Wrote ${path.join(dir, 'index.html')} (${flows.length} flow(s) for ${slot.id})`);
+  console.log(
+    `Wrote ${path.join(dir, 'index.html')} + ${flows.length} flow page(s) under ${path.join(dir, 'flows')}`
+  );
 }
 
 fs.mkdirSync(reportRoot, { recursive: true });
-fs.writeFileSync(path.join(reportRoot, 'index.html'), buildHubHtml(slotStatuses), 'utf8');
+fs.writeFileSync(
+  path.join(reportRoot, 'failures.json'),
+  `${JSON.stringify(failuresDoc, null, 2)}\n`,
+  'utf8'
+);
+fs.writeFileSync(
+  path.join(reportRoot, 'index.html'),
+  buildHubHtml(slotStatuses, failuresDoc),
+  'utf8'
+);
 console.log(`Wrote hub ${path.join(reportRoot, 'index.html')}`);
+console.log(`Wrote ${path.join(reportRoot, 'failures.json')}`);
 console.log(`Slots present: ${[...slotStatuses.keys()].join(', ') || '(none)'}`);

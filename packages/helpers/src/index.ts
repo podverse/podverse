@@ -31,6 +31,7 @@ export * from './lib/computeExponentialBackoffDelayMs.js';
 export * from './lib/date.js';
 export * from './lib/fileSize.js';
 export * from './lib/fileName.js';
+export * from './lib/configValidation.js';
 export * from './lib/guid.js';
 export * from './lib/hash.js';
 export * from './lib/html.js';

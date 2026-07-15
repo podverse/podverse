@@ -38,49 +38,43 @@
     },
     {
       "name": "Mobile",
-      "description": "Setup: build:packages; build:watch -w packages/helpers when editing shared code",
-      "cwd": ".",
-      "open": true,
-      "command": "clear"
-    },
-    {
-      "name": "Mobile E2E prep",
-      "description": "One-shot: make mobile_e2e_deps; make mobile_e2e_seed; npm run mobile:e2e:api:health",
+      "description": "One-shots: build:packages; make mobile_e2e_deps; make mobile_e2e_seed; mobile:e2e:api:health; open reports. Not for Metro/API (those block).",
       "cwd": ".",
       "open": true,
       "command": "clear"
     },
     {
       "name": "Mobile Metro",
-      "description": "T1 leave running — UI-only: npm run mobile:dev | API-backed: npm run mobile:dev:e2e",
+      "description": "Leave running :8081. API-backed E2E: npm run mobile:dev:e2e. UI-only/day-to-day: npm run mobile:dev. Run only one.",
       "cwd": ".",
       "open": true,
       "command": "clear"
     },
     {
       "name": "Mobile iOS",
-      "description": "T2 — Manual: npm run mobile:ios -- --device \"iPhone 17 Pro\" | E2E: npm run mobile:e2e:ios",
+      "description": "Install/run (exits when done). E2E: npm run mobile:e2e:ios. Manual: npm run mobile:ios -- --device \"iPhone 17 Pro\"",
       "cwd": ".",
       "open": true,
       "command": "clear"
     },
     {
       "name": "Mobile Android",
-      "description": "T3 — Manual: npm run mobile:android -- --device Pixel_6_Pro_API_33 | E2E: npm run mobile:e2e:android",
+      "description": "Install/run (exits when done). E2E: npm run mobile:e2e:android. Manual: npm run mobile:android -- --device Pixel_6_Pro_API_33. Opens split with Mobile iOS.",
       "cwd": ".",
       "open": true,
+      "split": "Mobile iOS",
       "command": "clear"
     },
     {
       "name": "Mobile E2E API",
-      "description": "T4 leave running — npm run mobile:e2e:api (:4230). Or api:bg then health in Mobile E2E prep",
+      "description": "Leave running for API-backed E2E: npm run mobile:e2e:api (:4230). Skip for UI-only. No restart needed when only Metro restarts if :4230 is healthy.",
       "cwd": ".",
       "open": true,
       "command": "clear"
     },
     {
-      "name": "Mobile E2E test",
-      "description": "T5 Maestro — npm run mobile:e2e:test [-- api-health]. Needs Metro + installs (+ API for api-health)",
+      "name": "Mobile Maestro",
+      "description": "Run then exit: npm run mobile:e2e:test [-- auth-login]. Needs Metro + installs; + E2E API for auth/api flows.",
       "cwd": ".",
       "open": true,
       "command": "clear"

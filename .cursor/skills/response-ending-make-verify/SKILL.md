@@ -13,7 +13,7 @@ Use this skill when answering implementation requests in this repo.
 - **Never run** test or verification commands as part of agent or plan implementation unless the user explicitly asks.
 - **Only instruct the operator** to run those commands after your work is done. Provide exact command(s) in a fenced `bash` block.
 - For **web UI changes** (`apps/web/src`, `apps/management-web/src`, or `packages/ui/src` consumed by those apps), follow **ui-e2e-screenshot-report** to pick the narrowest `make e2e_test_*_report_spec` command and tell the operator to open the hub at `.artifacts/e2e-reports/latest/index.html` (slot cards open reports in new tabs).
-- For **mobile changes** (`apps/mobile/src/**`, `apps/mobile/e2e/**`), follow **mobile-e2e-screenshots**: end with the **most focused** `npm run mobile:e2e:test -- <area>` (or default smoke when that is the right scope) and slot HTML paths under `.artifacts/mobile-e2e-reports/latest/`. Do **not** put leave-running `mobile:dev`, `mobile:dev:e2e`, or `mobile:e2e:api` in the same fenced verification `bash` block as Maestro — those block the shell; point at [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md) instead.
+- For **mobile changes** (`apps/mobile/src/**`, `apps/mobile/e2e/**`), follow **mobile-e2e-screenshots**: end with the **most focused** `npm run mobile:e2e:test -- <area>` (or default smoke when that is the right scope) and report paths under `.artifacts/mobile-e2e-reports/latest/` (`failures.json` + slot summaries). Do **not** put leave-running `mobile:dev`, `mobile:dev:e2e`, or `mobile:e2e:api` in the same fenced verification `bash` block as Maestro — those block the shell. Name leave-running tabs from [`.vscode/terminals.json`](/.vscode/terminals.json) (**Mobile Metro**, **Mobile E2E API**) per **vscode-terminals-commands**.
 
 ## Required response behavior
 
@@ -32,7 +32,9 @@ Use this skill when answering implementation requests in this repo.
 - Broad web regression: `make e2e_test_report`
 - API-only change: `npm run test:e2e:api`
 
-Mobile operators also need Metro + E2E installs in other terminals when not already running — point at [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md) when that setup is missing.
+Mobile operators also need Metro + E2E installs in other tabs when not already running — name
+**Mobile Metro** / **Mobile iOS** / **Mobile Android** / **Mobile E2E API** (see
+**vscode-terminals-commands**) and point at [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md).
 
 ## API gate
 

@@ -277,41 +277,41 @@ Track 3 is complete when all of the following are true:
 
 ## Track 6 — Bearer auth + secure storage
 
-6.1. Add `expo-secure-store` or `react-native-keychain` for access/refresh token storage. Model: Codex 5.3. Detail: [200-secure-storage-dependency](/docs/proposals/mobile/_master-plan_/details/200-secure-storage-dependency.md) — _TBD_
-6.2. Implement auth store (Zustand or context) holding bearer token and user session state. Model: Codex 5.3. Detail: [201-auth-store](/docs/proposals/mobile/_master-plan_/details/201-auth-store.md) — _TBD_
-6.3. Wire `POST /auth/mobile/token` via `req*` wrapper with `AuthContext { mode: 'bearer' }`. Model: Codex 5.3. Detail: [202-mobile-token-login](/docs/proposals/mobile/_master-plan_/details/202-mobile-token-login.md) — _TBD_
-6.4. Implement token refresh via `POST /auth/mobile/refresh` on 401 with rotation handling. Model: Opus 4.8. Detail: [203-token-refresh](/docs/proposals/mobile/_master-plan_/details/203-token-refresh.md) — _TBD_
-6.5. Implement logout via `POST /auth/mobile/revoke` and local secure storage wipe. Model: Codex 5.3. Detail: [204-logout-revoke](/docs/proposals/mobile/_master-plan_/details/204-logout-revoke.md) — _TBD_
-6.6. Build login screen mirroring web auth fields and error states. Model: Codex 5.3. Detail: [205-login-screen](/docs/proposals/mobile/_master-plan_/details/205-login-screen.md) — _TBD_
-6.7. Build signup screen with validation from `@podverse/helpers-validation/client`. Model: Codex 5.3. Detail: [206-signup-screen](/docs/proposals/mobile/_master-plan_/details/206-signup-screen.md) — _TBD_
-6.8. Implement `GET /auth/me` bootstrap on app launch for session restore. Model: Codex 5.3. Detail: [207-auth-me-bootstrap](/docs/proposals/mobile/_master-plan_/details/207-auth-me-bootstrap.md) — _TBD_
-6.9. Implement anonymous mode: no token, limited features, anonymous playback snapshot. Model: Opus 4.8. Detail: [208-anonymous-mode](/docs/proposals/mobile/_master-plan_/details/208-anonymous-mode.md) — _TBD_
-6.10. Never use cookies or `withCredentials` in mobile API client configuration. Model: Auto. Detail: [209-no-cookie-auth](/docs/proposals/mobile/_master-plan_/details/209-no-cookie-auth.md) — _TBD_
-6.11. E2E: login flow with screenshot of authenticated home shell. **Requires 5.17–5.20 `done`.** Model: Codex 5.3. Detail: [210-e2e-login-screenshot](/docs/proposals/mobile/_master-plan_/details/210-e2e-login-screenshot.md) — _TBD_
-6.12. E2E: logout flow returning to login screen. **Requires 5.17–5.20 `done` (and 6.11).** Model: Auto. Detail: [211-e2e-logout](/docs/proposals/mobile/_master-plan_/details/211-e2e-logout.md) — _TBD_
+6.1. Add `expo-secure-store` or `react-native-keychain` for access/refresh token storage. Model: Codex 5.3. Detail: [200-secure-storage-dependency](/docs/proposals/mobile/_master-plan_/details/200-secure-storage-dependency.md) — done
+6.2. Implement auth store (Zustand or context) holding bearer token and user session state. Model: Codex 5.3. Detail: [201-auth-store](/docs/proposals/mobile/_master-plan_/details/201-auth-store.md) — done
+6.3. Wire `POST /auth/mobile/token` via `req*` wrapper with `AuthContext { mode: 'bearer' }`. Model: Codex 5.3. Detail: [202-mobile-token-login](/docs/proposals/mobile/_master-plan_/details/202-mobile-token-login.md) — done
+6.4. Implement token refresh via `POST /auth/mobile/refresh` on 401 with rotation handling. Model: Opus 4.8. Detail: [203-token-refresh](/docs/proposals/mobile/_master-plan_/details/203-token-refresh.md) — done
+6.5. Implement logout via `POST /auth/mobile/revoke` and local secure storage wipe. Model: Codex 5.3. Detail: [204-logout-revoke](/docs/proposals/mobile/_master-plan_/details/204-logout-revoke.md) — done
+6.6. Build login screen mirroring web auth fields and error states. Model: Codex 5.3. Detail: [205-login-screen](/docs/proposals/mobile/_master-plan_/details/205-login-screen.md) — done
+6.7. Build signup screen with validation from `@podverse/helpers-validation/client`. Model: Codex 5.3. Detail: [206-signup-screen](/docs/proposals/mobile/_master-plan_/details/206-signup-screen.md) — done
+6.8. Implement `GET /auth/me` bootstrap on app launch for session restore. Model: Codex 5.3. Detail: [207-auth-me-bootstrap](/docs/proposals/mobile/_master-plan_/details/207-auth-me-bootstrap.md) — done
+6.9. Implement anonymous mode: no token, limited features, anonymous playback snapshot. Model: Opus 4.8. Detail: [208-anonymous-mode](/docs/proposals/mobile/_master-plan_/details/208-anonymous-mode.md) — done
+6.10. Never use cookies or `withCredentials` in mobile API client configuration. Model: Auto. Detail: [209-no-cookie-auth](/docs/proposals/mobile/_master-plan_/details/209-no-cookie-auth.md) — done
+6.11. E2E: login flow with screenshot of authenticated home shell. **Requires 5.17–5.20 `done`.** Model: Codex 5.3. Detail: [210-e2e-login-screenshot](/docs/proposals/mobile/_master-plan_/details/210-e2e-login-screenshot.md) — done
+6.12. E2E: logout flow returning to login screen. **Requires 5.17–5.20 `done` (and 6.11).** Model: Auto. Detail: [211-e2e-logout](/docs/proposals/mobile/_master-plan_/details/211-e2e-logout.md) — done
 
 ## Track 7 — Navigation shell (tabs + stacks)
 
 **Tabs:** Home, Search, My Library, RSS, More.
 
-7.1. Add React Navigation with bottom tab navigator (5 tabs per spec). Model: Codex 5.3. Detail: [220-tab-navigator-scaffold](/docs/proposals/mobile/_master-plan_/details/220-tab-navigator-scaffold.md) — _TBD_
-7.2. Create Home tab nested stack for podcast → episode → clip push navigation. Model: Codex 5.3. Detail: [221-home-stack](/docs/proposals/mobile/_master-plan_/details/221-home-stack.md) — _TBD_
-7.3. Create Search tab nested stack for search results and detail pushes. Model: Codex 5.3. Detail: [222-search-stack](/docs/proposals/mobile/_master-plan_/details/222-search-stack.md) — _TBD_
-7.4. Create My Library tab stack: playlists, history, queues, downloads entry points. Model: Codex 5.3. Detail: [223-library-stack](/docs/proposals/mobile/_master-plan_/details/223-library-stack.md) — _TBD_
-7.5. Create RSS tab stack dedicated to Add-by-RSS flows (feeds Track 9 RSS screen). Model: Codex 5.3. Detail: [224-rss-tab-stack](/docs/proposals/mobile/_master-plan_/details/224-rss-tab-stack.md) — _TBD_
-7.6. Create More tab stack: settings, profile, about, membership links. Model: Codex 5.3. Detail: [225-more-stack](/docs/proposals/mobile/_master-plan_/details/225-more-stack.md) — _TBD_
-7.7. Implement persistent mini player slot above tab bar on all tabs. Model: Opus 4.8. Detail: [226-mini-player-slot](/docs/proposals/mobile/_master-plan_/details/226-mini-player-slot.md) — _TBD_
-7.8. Wire full player as modal or stack screen over tabs without unmounting mini slot engine. Model: Opus 4.8. Detail: [227-full-player-modal](/docs/proposals/mobile/_master-plan_/details/227-full-player-modal.md) — _TBD_
-7.9. Define deep link route config mirroring web resource ids (placeholder for Track 15). Model: Codex 5.3. Detail: [228-linking-config-stub](/docs/proposals/mobile/_master-plan_/details/228-linking-config-stub.md) — _TBD_
-7.10. Handle Android back button: mini player → full player → tab stack pop order. Model: Codex 5.3. Detail: [229-android-back-behavior](/docs/proposals/mobile/_master-plan_/details/229-android-back-behavior.md) — _TBD_
+7.1. Add React Navigation with bottom tab navigator (5 tabs per spec). Model: Codex 5.3. Detail: [220-tab-navigator-scaffold](/docs/proposals/mobile/_master-plan_/details/220-tab-navigator-scaffold.md) — done
+7.2. Create Home tab nested stack for podcast → episode → clip push navigation. Model: Codex 5.3. Detail: [221-home-stack](/docs/proposals/mobile/_master-plan_/details/221-home-stack.md) — done
+7.3. Create Search tab nested stack for search results and detail pushes. Model: Codex 5.3. Detail: [222-search-stack](/docs/proposals/mobile/_master-plan_/details/222-search-stack.md) — done
+7.4. Create My Library tab stack: playlists, history, queues, downloads entry points. Model: Codex 5.3. Detail: [223-library-stack](/docs/proposals/mobile/_master-plan_/details/223-library-stack.md) — done
+7.5. Create RSS tab stack dedicated to Add-by-RSS flows (feeds Track 9 RSS screen). Model: Codex 5.3. Detail: [224-rss-tab-stack](/docs/proposals/mobile/_master-plan_/details/224-rss-tab-stack.md) — done
+7.6. Create More tab stack: settings, profile, about, membership links. Model: Codex 5.3. Detail: [225-more-stack](/docs/proposals/mobile/_master-plan_/details/225-more-stack.md) — done
+7.7. Implement persistent mini player slot above tab bar on all tabs. Model: Opus 4.8. Detail: [226-mini-player-slot](/docs/proposals/mobile/_master-plan_/details/226-mini-player-slot.md) — done
+7.8. Wire full player as modal or stack screen over tabs without unmounting mini slot engine. Model: Opus 4.8. Detail: [227-full-player-modal](/docs/proposals/mobile/_master-plan_/details/227-full-player-modal.md) — done
+7.9. Define deep link route config mirroring web resource ids (placeholder for Track 15). Model: Codex 5.3. Detail: [228-linking-config-stub](/docs/proposals/mobile/_master-plan_/details/228-linking-config-stub.md) — done
+7.10. Handle Android back button: mini player → full player → tab stack pop order. Model: Codex 5.3. Detail: [229-android-back-behavior](/docs/proposals/mobile/_master-plan_/details/229-android-back-behavior.md) — done
 7.11. `ThemeProvider` + `useTheme()` scaffold; default `dark`; wire `StatusBar`. Model: Codex 5.3. Detail: [232-theme-provider-scaffold](/docs/proposals/mobile/_master-plan_/details/232-theme-provider-scaffold.md) — done
 7.12. Map `@podverse/design-tokens` → RN style objects (background, text, border, button surfaces). Model: Codex 5.3. Detail: [233-theme-token-stylesheet](/docs/proposals/mobile/_master-plan_/details/233-theme-token-stylesheet.md) — done
 7.13. Read/write `uit` theme pref in device prefs (stub ok before Track 16.1). Model: Codex 5.3. Detail: [234-theme-pref-uit-storage](/docs/proposals/mobile/_master-plan_/details/234-theme-pref-uit-storage.md) — done
 7.14. Optional: honor `Appearance.getColorScheme()` when `uit` unset; document default-to-`dark` web parity. Model: Codex 5.3. Detail: [235-theme-system-appearance](/docs/proposals/mobile/_master-plan_/details/235-theme-system-appearance.md) — done
 7.15. Replace hardcoded colors in hello-world / nav shell with tokenized styles. Model: Codex 5.3. Detail: [236-refactor-scaffold-screens](/docs/proposals/mobile/_master-plan_/details/236-refactor-scaffold-screens.md) — done
 7.16. Unit test: each built-in theme resolves required token keys (no missing colors). Model: Auto. Detail: [237-theme-unit-smoke](/docs/proposals/mobile/_master-plan_/details/237-theme-unit-smoke.md) — done
-7.17. Support tablet: optional side rail or two-column layout at wide breakpoints. Model: Codex 5.3. Detail: [230-tablet-nav-adaptive](/docs/proposals/mobile/_master-plan_/details/230-tablet-nav-adaptive.md) — _TBD_
-7.18. E2E: tab switching preserves playback state screenshot test. Model: Codex 5.3. Detail: [231-e2e-tab-switch-playback](/docs/proposals/mobile/_master-plan_/details/231-e2e-tab-switch-playback.md) — _TBD_
+7.17. Support tablet: optional side rail or two-column layout at wide breakpoints. Model: Codex 5.3. Detail: [230-tablet-nav-adaptive](/docs/proposals/mobile/_master-plan_/details/230-tablet-nav-adaptive.md) — done
+7.18. E2E: tab switching preserves playback state screenshot test. Model: Codex 5.3. Detail: [231-e2e-tab-switch-playback](/docs/proposals/mobile/_master-plan_/details/231-e2e-tab-switch-playback.md) — done
 
 ## Track 8 — Home screen + media-type selector
 
@@ -730,36 +730,36 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 184-post-release-monitoring            | 22.10      | 184-post-release-monitoring            | Codex 5.3 | _TBD_   |
 | 185-sdk-compliance-updates             | 22.11      | 185-sdk-compliance-updates             | Codex 5.3 | _TBD_   |
 | 186-old-new-app-coexistence            | 22.12      | 186-old-new-app-coexistence            | Auto      | _TBD_   |
-| 200-secure-storage-dependency          | 6.1        | 200-secure-storage-dependency          | Codex 5.3 | _TBD_   |
-| 201-auth-store                         | 6.2        | 201-auth-store                         | Codex 5.3 | _TBD_   |
-| 202-mobile-token-login                 | 6.3        | 202-mobile-token-login                 | Codex 5.3 | _TBD_   |
-| 203-token-refresh                      | 6.4        | 203-token-refresh                      | Opus 4.8  | _TBD_   |
-| 204-logout-revoke                      | 6.5        | 204-logout-revoke                      | Codex 5.3 | _TBD_   |
-| 205-login-screen                       | 6.6        | 205-login-screen                       | Codex 5.3 | _TBD_   |
-| 206-signup-screen                      | 6.7        | 206-signup-screen                      | Codex 5.3 | _TBD_   |
-| 207-auth-me-bootstrap                  | 6.8        | 207-auth-me-bootstrap                  | Codex 5.3 | _TBD_   |
-| 208-anonymous-mode                     | 6.9        | 208-anonymous-mode                     | Opus 4.8  | _TBD_   |
-| 209-no-cookie-auth                     | 6.10       | 209-no-cookie-auth                     | Auto      | _TBD_   |
-| 210-e2e-login-screenshot               | 6.11       | 210-e2e-login-screenshot               | Codex 5.3 | _TBD_   |
-| 211-e2e-logout                         | 6.12       | 211-e2e-logout                         | Auto      | _TBD_   |
-| 220-tab-navigator-scaffold             | 7.1        | 220-tab-navigator-scaffold             | Codex 5.3 | _TBD_   |
-| 221-home-stack                         | 7.2        | 221-home-stack                         | Codex 5.3 | _TBD_   |
-| 222-search-stack                       | 7.3        | 222-search-stack                       | Codex 5.3 | _TBD_   |
-| 223-library-stack                      | 7.4        | 223-library-stack                      | Codex 5.3 | _TBD_   |
-| 224-rss-tab-stack                      | 7.5        | 224-rss-tab-stack                      | Codex 5.3 | _TBD_   |
-| 225-more-stack                         | 7.6        | 225-more-stack                         | Codex 5.3 | _TBD_   |
-| 226-mini-player-slot                   | 7.7        | 226-mini-player-slot                   | Opus 4.8  | _TBD_   |
-| 227-full-player-modal                  | 7.8        | 227-full-player-modal                  | Opus 4.8  | _TBD_   |
-| 228-linking-config-stub                | 7.9        | 228-linking-config-stub                | Codex 5.3 | _TBD_   |
-| 229-android-back-behavior              | 7.10       | 229-android-back-behavior              | Codex 5.3 | _TBD_   |
+| 200-secure-storage-dependency          | 6.1        | 200-secure-storage-dependency          | Codex 5.3 | done    |
+| 201-auth-store                         | 6.2        | 201-auth-store                         | Codex 5.3 | done    |
+| 202-mobile-token-login                 | 6.3        | 202-mobile-token-login                 | Codex 5.3 | done    |
+| 203-token-refresh                      | 6.4        | 203-token-refresh                      | Opus 4.8  | done    |
+| 204-logout-revoke                      | 6.5        | 204-logout-revoke                      | Codex 5.3 | done    |
+| 205-login-screen                       | 6.6        | 205-login-screen                       | Codex 5.3 | done    |
+| 206-signup-screen                      | 6.7        | 206-signup-screen                      | Codex 5.3 | done    |
+| 207-auth-me-bootstrap                  | 6.8        | 207-auth-me-bootstrap                  | Codex 5.3 | done    |
+| 208-anonymous-mode                     | 6.9        | 208-anonymous-mode                     | Opus 4.8  | done    |
+| 209-no-cookie-auth                     | 6.10       | 209-no-cookie-auth                     | Auto      | done    |
+| 210-e2e-login-screenshot               | 6.11       | 210-e2e-login-screenshot               | Codex 5.3 | done    |
+| 211-e2e-logout                         | 6.12       | 211-e2e-logout                         | Auto      | done    |
+| 220-tab-navigator-scaffold             | 7.1        | 220-tab-navigator-scaffold             | Codex 5.3 | done    |
+| 221-home-stack                         | 7.2        | 221-home-stack                         | Codex 5.3 | done    |
+| 222-search-stack                       | 7.3        | 222-search-stack                       | Codex 5.3 | done    |
+| 223-library-stack                      | 7.4        | 223-library-stack                      | Codex 5.3 | done    |
+| 224-rss-tab-stack                      | 7.5        | 224-rss-tab-stack                      | Codex 5.3 | done    |
+| 225-more-stack                         | 7.6        | 225-more-stack                         | Codex 5.3 | done    |
+| 226-mini-player-slot                   | 7.7        | 226-mini-player-slot                   | Opus 4.8  | done    |
+| 227-full-player-modal                  | 7.8        | 227-full-player-modal                  | Opus 4.8  | done    |
+| 228-linking-config-stub                | 7.9        | 228-linking-config-stub                | Codex 5.3 | done    |
+| 229-android-back-behavior              | 7.10       | 229-android-back-behavior              | Codex 5.3 | done    |
 | 232-theme-provider-scaffold            | 7.11       | 232-theme-provider-scaffold            | Codex 5.3 | done    |
 | 233-theme-token-stylesheet             | 7.12       | 233-theme-token-stylesheet             | Codex 5.3 | done    |
 | 234-theme-pref-uit-storage             | 7.13       | 234-theme-pref-uit-storage             | Codex 5.3 | done    |
 | 235-theme-system-appearance            | 7.14       | 235-theme-system-appearance            | Codex 5.3 | done    |
 | 236-refactor-scaffold-screens          | 7.15       | 236-refactor-scaffold-screens          | Codex 5.3 | done    |
 | 237-theme-unit-smoke                   | 7.16       | 237-theme-unit-smoke                   | Auto      | done    |
-| 230-tablet-nav-adaptive                | 7.17       | 230-tablet-nav-adaptive                | Codex 5.3 | _TBD_   |
-| 231-e2e-tab-switch-playback            | 7.18       | 231-e2e-tab-switch-playback            | Codex 5.3 | _TBD_   |
+| 230-tablet-nav-adaptive                | 7.17       | 230-tablet-nav-adaptive                | Codex 5.3 | done    |
+| 231-e2e-tab-switch-playback            | 7.18       | 231-e2e-tab-switch-playback            | Codex 5.3 | done    |
 | 240-home-screen-layout                 | 8.1        | 240-home-screen-layout                 | Codex 5.3 | _TBD_   |
 | 241-media-type-selector-chips          | 8.2        | 241-media-type-selector-chips          | Auto      | _TBD_   |
 | 242-media-type-pref-sync               | 8.3        | 242-media-type-pref-sync               | Codex 5.3 | _TBD_   |

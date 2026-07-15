@@ -1,33 +1,28 @@
 /* eslint-disable no-console */
-import { isValidServerEnv, SERVER_ENV_VALUES, SUPPORTED_LOCALES } from '@podverse/helpers';
+import type { ValidationResult, ValidationSummary } from '@podverse/helpers';
+import {
+  isEnvVarPortName as isEnvVarPortNameValue,
+  isValidServerEnv,
+  SERVER_ENV_VALUES,
+  SUPPORTED_LOCALES,
+  validateAbsoluteHttpUrlValue,
+  validateBooleanValue,
+  validateOptionalNonEmptyValue,
+  validateOptionalValue,
+  validatePositiveNumberValue,
+  validateRequiredValue,
+} from '@podverse/helpers';
 
 /**
  * Types and functions for validating environment variables at application startup.
  * These utilities can be used across different projects to validate required and optional environment variables.
  */
 
-export type ValidationResult = {
-  name: string;
-  isSet: boolean;
-  isValid: boolean;
-  isRequired: boolean;
-  message: string;
-  category: string;
-};
-
-export type ValidationSummary = {
-  total: number;
-  passed: number;
-  failed: number;
-  requiredMissing: number;
-  skipped: number;
-  defaultsUsed: number;
-  results: ValidationResult[];
-};
+export type { ValidationResult, ValidationSummary } from '@podverse/helpers';
 
 /** True when the env var name denotes a TCP/UDP port (not e.g. OTEL_EXPORTER_*). */
 export function isEnvVarPortName(varName: string): boolean {
-  return varName === 'PORT' || varName.endsWith('_PORT');
+  return isEnvVarPortNameValue(varName);
 }
 
 /**
@@ -37,51 +32,7 @@ export function isEnvVarPortName(varName: string): boolean {
  * @returns ValidationResult indicating whether the variable is set and valid
  */
 export function validateRequired(varName: string, category: string): ValidationResult {
-  const value = process.env[varName];
-  const isSet =
-    value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
-
-  // Additional validation for numeric values
-  if (isSet && (isEnvVarPortName(varName) || varName.endsWith('_EXPIRATION'))) {
-    const numValue = Number(value);
-    if (isNaN(numValue) || numValue <= 0) {
-      return {
-        name: varName,
-        isSet: true,
-        isValid: false,
-        isRequired: true,
-        message: `Invalid number: "${value}"`,
-        category,
-      };
-    }
-  }
-
-  // Additional validation for API_ALLOWED_CORS_ORIGINS (should not be empty)
-  if (varName === 'API_ALLOWED_CORS_ORIGINS' && isSet) {
-    const origins = value
-      .split(',')
-      .map((origin) => origin.trim())
-      .filter((origin) => origin !== '');
-    if (origins.length === 0) {
-      return {
-        name: varName,
-        isSet: true,
-        isValid: false,
-        isRequired: true,
-        message: 'Empty - must contain at least one origin',
-        category,
-      };
-    }
-  }
-
-  return {
-    name: varName,
-    isSet,
-    isValid: isSet,
-    isRequired: true,
-    message: isSet ? 'Set' : 'Missing or empty',
-    category,
-  };
+  return validateRequiredValue(process.env[varName], varName, category);
 }
 
 /**
@@ -96,35 +47,8 @@ export function validateOptional(
   category: string,
   defaultMessage: string = 'Skipped'
 ): ValidationResult {
-  const value = process.env[varName] || '';
-  const isSet = value !== '';
-
-  // Additional validation for numeric values if set
-  if (isSet && (isEnvVarPortName(varName) || varName.endsWith('_EXPIRATION'))) {
-    const numValue = Number(value);
-    if (isNaN(numValue) || numValue <= 0) {
-      return {
-        name: varName,
-        isSet: true,
-        isValid: false,
-        isRequired: false,
-        message: `Invalid number: "${value}"`,
-        category,
-      };
-    }
-  }
-
-  return {
-    name: varName,
-    isSet,
-    isValid: true, // Optional vars are always valid (even if not set)
-    isRequired: false,
-    message: isSet ? 'Set' : defaultMessage,
-    category,
-  };
+  return validateOptionalValue(process.env[varName], varName, category, defaultMessage);
 }
-
-const ABSOLUTE_HTTP_URL_RE = /^https?:\/\//i;
 
 /**
  * Optional web branding image URL: if set, must be an absolute `http://` or `https://` URL
@@ -135,27 +59,10 @@ export function validateOptionalAbsoluteHttpUrlIfSet(
   category: string,
   notSetMessage: string = 'Skipped'
 ): ValidationResult {
-  const raw = process.env[varName] || '';
-  const value = raw.trim();
-  if (value === '') {
-    return {
-      name: varName,
-      isSet: false,
-      isValid: true,
-      isRequired: false,
-      message: notSetMessage,
-      category,
-    };
-  }
-  const ok = ABSOLUTE_HTTP_URL_RE.test(value);
-  return {
-    name: varName,
-    isSet: true,
-    isValid: ok,
-    isRequired: false,
-    message: ok ? 'Set' : 'Must be an absolute http:// or https:// URL',
-    category,
-  };
+  return validateAbsoluteHttpUrlValue(process.env[varName], varName, category, {
+    notSetMessage,
+    required: false,
+  });
 }
 
 /**
@@ -406,41 +313,7 @@ export function validateSupportedLocalesList(
  * @returns ValidationResult indicating whether the variable is valid (optional, but if set must not be empty)
  */
 export function validateOptionalNonEmpty(varName: string, category: string): ValidationResult {
-  const value = process.env[varName];
-
-  // If not set at all (undefined), it's valid (optional)
-  if (value === undefined || value === null) {
-    return {
-      name: varName,
-      isSet: false,
-      isValid: true,
-      isRequired: false,
-      message: 'Skipped',
-      category,
-    };
-  }
-
-  // If set but empty or only whitespace, it's invalid
-  if (typeof value === 'string' && value.trim() === '') {
-    return {
-      name: varName,
-      isSet: true,
-      isValid: false,
-      isRequired: false,
-      message: 'Empty - if set, must not be empty',
-      category,
-    };
-  }
-
-  // If set and has a value, it's valid
-  return {
-    name: varName,
-    isSet: true,
-    isValid: true,
-    isRequired: false,
-    message: 'Set',
-    category,
-  };
+  return validateOptionalNonEmptyValue(process.env[varName], varName, category);
 }
 
 /**
@@ -505,41 +378,7 @@ export function validateBoolean(
   isRequired: boolean = false,
   defaultValue?: string
 ): ValidationResult {
-  const value = process.env[varName];
-  const isSet =
-    value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
-
-  if (!isSet) {
-    return {
-      name: varName,
-      isSet: false,
-      isValid: !isRequired,
-      isRequired,
-      message: defaultValue || (isRequired ? 'Missing - must be "true" or "false"' : 'Skipped'),
-      category,
-    };
-  }
-
-  const lowerValue = value.toLowerCase().trim();
-  if (lowerValue !== 'true' && lowerValue !== 'false') {
-    return {
-      name: varName,
-      isSet: true,
-      isValid: false,
-      isRequired,
-      message: `Invalid value: "${value}" - must be "true" or "false"`,
-      category,
-    };
-  }
-
-  return {
-    name: varName,
-    isSet: true,
-    isValid: true,
-    isRequired,
-    message: `Set to ${lowerValue}`,
-    category,
-  };
+  return validateBooleanValue(process.env[varName], varName, category, isRequired, defaultValue);
 }
 
 /**
@@ -660,45 +499,7 @@ export function validatePositiveNumber(
   min: number = 1,
   max?: number
 ): ValidationResult {
-  const value = process.env[varName];
-  const isSet =
-    value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
-
-  if (!isSet) {
-    return {
-      name: varName,
-      isSet: false,
-      isValid: !isRequired,
-      isRequired,
-      message: isRequired
-        ? `Missing - must be a positive number${min > 1 ? ` (min: ${min})` : ''}${max ? ` (max: ${max})` : ''}`
-        : 'Skipped',
-      category,
-    };
-  }
-
-  const numValue = Number(value);
-  if (isNaN(numValue) || numValue < min || (max !== undefined && numValue > max)) {
-    const rangeMsg = max !== undefined ? ` between ${min} and ${max}` : ` >= ${min}`;
-    return {
-      name: varName,
-      isSet: true,
-      isValid: false,
-      isRequired,
-      message: `Invalid number: "${value}" - must be a positive number${rangeMsg}`,
-      category,
-    };
-  }
-
-  const rangeMsg = max !== undefined ? ` (${min}-${max})` : ` (min: ${min})`;
-  return {
-    name: varName,
-    isSet: true,
-    isValid: true,
-    isRequired,
-    message: `Valid number: ${numValue}${rangeMsg}`,
-    category,
-  };
+  return validatePositiveNumberValue(process.env[varName], varName, category, isRequired, min, max);
 }
 
 /** Allowed values for ACCOUNT_SIGNUP_MODE / NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE */

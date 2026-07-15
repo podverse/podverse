@@ -12,8 +12,13 @@ Contributor guide: [`APPS-MOBILE.md`](/apps/mobile/APPS-MOBILE.md).
 - **Auth:** bearer tokens in secure storage (Keychain/Keystore); **not** cookies. Use
   `AuthContext { mode: 'bearer' }` and `/auth/mobile/*` routes. See
   [API-CLIENT-BOUNDARIES.md](/docs/development/API-CLIENT-BOUNDARIES.md).
-- **API client:** reuse `@podverse/helpers-requests` `req*` wrappers with bearer auth — same as web,
-  different transport.
+- **Config:** `getMobileConfig()` from `src/config/` — sole consumer-facing env boundary
+  (`EXPO_PUBLIC_*` literals only in `src/config/env.ts`). Do not read `process.env` in screens
+  or auth factories.
+- **API client:** reuse `@podverse/helpers-requests` through **`ApiRequestService` instance
+  methods** (e.g. `createMobileApiRequestService()?.reqAuthMobileToken(...)`). Standalone `req*`
+  helpers in package source are not all re-exported from the barrel. Same bearer auth pattern as
+  web, different transport.
 - **Playback:** reuse policy from `@podverse/playback-core`; implement a **native** bridge — see
   **mobile-playback** skill and
   [DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md).

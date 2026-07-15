@@ -6,19 +6,31 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { DEFAULT_LOCALE } from '@podverse/helpers/locales';
 import { formatSecondsToReadableDuration } from '@podverse/helpers/timeFormatter';
 
-import { getMobileApiBaseUrl } from '../config/apiBaseUrl';
+import { getMobileConfig } from '../config';
 import { PlaybackEngineDebugPanel } from '../debug/PlaybackEngineDebugPanel';
 import { useTheme } from '../theme/useTheme';
 
 const APP_DISPLAY_NAME = 'Podverse Next';
 
-export function HelloWorldScreen() {
+type HelloWorldScreenProps = {
+  authMode?: 'anonymous' | 'authenticated';
+  onRequestLogin?: () => void;
+  onRequestLogout?: () => void;
+  onRequestSignUp?: () => void;
+};
+
+export function HelloWorldScreen({
+  authMode = 'anonymous',
+  onRequestLogin,
+  onRequestLogout,
+  onRequestSignUp,
+}: HelloWorldScreenProps) {
   const { i18n, t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const version = Constants.expoConfig?.version ?? 'unknown';
   const activeLocale = i18n.resolvedLanguage || i18n.language || DEFAULT_LOCALE;
   const durationSmokeValue = formatSecondsToReadableDuration('125', activeLocale);
-  const apiBaseUrl = getMobileApiBaseUrl();
+  const apiBaseUrl = getMobileConfig().api?.baseUrl ?? null;
   const [apiHealthStatus, setApiHealthStatus] = useState<
     'not-configured' | 'loading' | 'ok' | 'error'
   >(apiBaseUrl ? 'loading' : 'not-configured');
@@ -91,7 +103,8 @@ export function HelloWorldScreen() {
     }, 5000);
 
     setApiHealthStatus('loading');
-    void fetch(`${apiBaseUrl}/api/v2/health`, { signal: abortController.signal })
+    // baseUrl already includes /api/<version> (see getMobileConfig().api).
+    void fetch(`${apiBaseUrl}/health`, { signal: abortController.signal })
       .then((response) => {
         if (!response.ok) {
           throw new Error(`Unexpected status ${response.status}`);
@@ -159,6 +172,41 @@ export function HelloWorldScreen() {
         <Text style={styles.helperSmoke} testID="hello-world-api-health-status">
           API health: {apiHealthStatus}
         </Text>
+        <Text style={styles.helperSmoke} testID="hello-world-auth-mode">
+          Auth mode: {authMode}
+        </Text>
+        {authMode === 'anonymous' ? (
+          <View style={styles.localeRow}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={onRequestLogin}
+              style={styles.localeButton}
+              testID="anonymous-login-cta"
+            >
+              <Text style={styles.localeButtonLabel}>Log in</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={onRequestSignUp}
+              style={styles.localeButton}
+              testID="anonymous-signup-cta"
+            >
+              <Text style={styles.localeButtonLabel}>Sign up</Text>
+            </Pressable>
+          </View>
+        ) : null}
+        {authMode === 'authenticated' && onRequestLogout !== undefined ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              void onRequestLogout();
+            }}
+            style={styles.localeButton}
+            testID="authenticated-logout-cta"
+          >
+            <Text style={styles.localeButtonLabel}>Log out</Text>
+          </Pressable>
+        ) : null}
         <PlaybackEngineDebugPanel />
       </View>
     </View>

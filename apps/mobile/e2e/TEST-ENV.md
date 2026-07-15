@@ -22,7 +22,14 @@ Steps **5.18–5.20** are `done`:
 - long-lived API lifecycle wrappers (`mobile:e2e:api*`)
 - platform-specific E2E API URL wiring (`mobile:dev:e2e`)
 
-Login/logout Maestro remains deferred to Track 6 (6.11 / 6.12).
+Track 6 auth flows are now present:
+
+- `auth-login` (6.11)
+- `auth-logout` (6.12)
+
+Track 7 nav E2E flow is now present:
+
+- `tab-switch-playback` (7.18)
 
 Step **5.18** is now `done` for data prep wrappers:
 
@@ -41,16 +48,18 @@ Step **5.19** is now `done` for long-lived API lifecycle wrappers:
 **API server env (not a mobile `.env` file):** `scripts/mobile/e2e-api.sh` rebuilds
 `@podverse/helpers-config` + `@podverse/api`, then starts with
 `buildPodverseApiTestEnv({ profile: 'apiMobileE2e' })` + `PODVERSE_SKIP_DOTENV=true` — same
-idea as web Playwright `apiWebE2e` @ 4030. Do not rely on `make local_env_setup` or
-`apps/mobile/.env` for this process.
+idea as web Playwright `apiWebE2e` @ 4030. `make local_env_setup` / `apps/mobile/.env` only
+configure the **mobile client** base URLs; they do not configure the API process launched by
+`mobile:e2e:api`.
 
 The API starter fails clearly if port `4230` is already busy and never falls back to `4030`.
 
 Step **5.20** client URL wiring is in place for E2E dev-server startup:
 
-- `EXPO_PUBLIC_MOBILE_API_BASE_URL_IOS=http://localhost:4230`
-- `EXPO_PUBLIC_MOBILE_API_BASE_URL_ANDROID=http://10.0.2.2:4230`
-- Helper command: `npm run mobile:dev:e2e` exports both vars before `expo start`
+- `EXPO_PUBLIC_MOBILE_API_BASE_URL_IOS=http://localhost:4230/api/v2`
+- `EXPO_PUBLIC_MOBILE_API_BASE_URL_ANDROID=http://10.0.2.2:4230/api/v2`
+- `make local_env_setup` now generates `apps/mobile/.env` from `apps/mobile/.env.example`
+- Helper command: `npm run mobile:dev:e2e` still exports both vars as E2E overrides before `expo start`
 
 The app resolves base URL via `Platform.select` (`ios` localhost, `android` 10.0.2.2) and stays
 nullable when variables are unset so UI-only flows remain valid.

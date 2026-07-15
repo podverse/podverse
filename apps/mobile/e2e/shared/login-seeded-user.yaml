@@ -1,0 +1,34 @@
+appId: com.podverse.app.next
+---
+# Seeded E2E login (requires Mobile E2E API on :4230 + mobile:dev:e2e).
+# Password fields are plaintext when EXPO_PUBLIC_MOBILE_E2E=1 (see scripts/mobile/dev-e2e.sh).
+
+- tapOn:
+    id: anonymous-login-cta
+- assertVisible:
+    id: login-screen
+
+- tapOn:
+    id: login-email
+- inputText: e2e-user@example.com
+
+- tapOn:
+    id: login-password
+- inputText: "Test!1Aa"
+
+# Android often leaves the soft keyboard over Submit after inputText.
+# iOS shows Submit above the keyboard and `hideKeyboard` is flaky there
+# ("Couldn't hide the keyboard"), so only dismiss on Android.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+
+- tapOn:
+    id: login-submit
+
+- extendedWaitUntil:
+    visible:
+      id: tab-home
+    timeout: ${TIMEOUT_SLOW}

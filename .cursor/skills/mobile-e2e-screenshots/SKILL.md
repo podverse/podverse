@@ -1,6 +1,6 @@
 ---
 name: mobile-e2e-screenshots
-description: After React Native mobile UI changes, instruct the operator to run npm mobile E2E scripts and open per-slot HTML reports under .artifacts/mobile-e2e-reports/latest/{ios,android}-{phone,tablet}/. Read those reports when diagnosing failures. Not Playwright or web make e2e_* targets.
+description: After React Native mobile UI changes, instruct the operator to run npm mobile E2E scripts and open failures.json + per-slot/per-flow HTML reports under .artifacts/mobile-e2e-reports/latest/. Read those reports when diagnosing failures. Not Playwright or web make e2e_* targets.
 ---
 
 # Mobile E2E screenshot reports
@@ -13,22 +13,27 @@ Mobile E2E uses **Maestro** (Track 5 lock) — not Playwright. Do **not** sugges
 
 ## Report layout (OS + form factor)
 
-Each run writes a **hub** plus **one HTML report per OS + device form-factor slot**:
+Each run writes a **hub**, a compact **`failures.json`**, plus **slot summaries** and **per-flow pages**:
 
 ```text
 .artifacts/mobile-e2e-reports/<timestamp>/
-  index.html                 # hub
-  ios-phone/index.html       # phone matrix (current default)
-  android-phone/index.html
-  ios-tablet/index.html      # reserved; create when tablet E2E devices exist
-  android-tablet/index.html
+  index.html                 # hub (fails callout + slot cards)
+  failures.json              # machine index — preferred agent entrypoint
+  ios-phone/
+    index.html               # slot summary (fails-first links)
+    flows/<slug>/index.html  # one flow: error, steps, screenshots
+    flows/<slug>/failure.png # copy of primary ❌ shot when present
+    maestro.html             # raw Maestro HTML (optional)
+  android-phone/...
+  ios-tablet/...             # reserved; create when tablet E2E devices exist
+  android-tablet/...
 ```
 
-`latest` symlinks to the newest timestamp. Slot reports use the **same chrome as web E2E**
-(`scripts/e2e-html-steps-reporter.ts`): summary list, failed sections, screenshots, and fixed
-**Prev/Next Shot | Test | Error** navigation.
+`latest` symlinks to the newest timestamp. Flow pages keep web-parity screenshot chrome
+(**Prev/Next Shot | Test | Error**). Slot index stays concise for scanning; do **not** dump full
+Maestro accessibility hierarchies into HTML (raw `commands-*.json` remains for deep dive).
 
-Do **not** collapse platforms into a single screenshot page. Open the slot that failed.
+Do **not** collapse platforms into a single screenshot page. Open the slot / flow that failed.
 
 ## Operator verification (mobile UI / feature work)
 
@@ -36,11 +41,15 @@ Same habit as web UI work (**ui-e2e-screenshot-report**): agents do **not** run 
 implementation. For mobile feature/UI PRs, instruct the operator to generate slot reports:
 
 1. Narrowest Maestro flow under `apps/mobile/e2e/<area>.yaml` (add/update when behavior changes).
-2. Assume / point to [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md) for terminal setup:
-   - **UI-only:** Metro (`mobile:dev`) + e2e ios/android installs + Maestro — four terminals.
-   - **API-backed:** one-shot `make mobile_e2e_deps` / `make mobile_e2e_seed`, then leave-running
-     `mobile:dev:e2e` + `mobile:e2e:api`, installs, then Maestro — five terminals.
+2. Assume / point to [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md) and label tabs from
+   [`.vscode/terminals.json`](/.vscode/terminals.json) (**vscode-terminals-commands** rule):
+   - **UI-only:** **Mobile Metro** (`mobile:dev`) + **Mobile iOS** / **Mobile Android** installs +
+     **Mobile Maestro**.
+   - **API-backed:** **Mobile** one-shots (`make mobile_e2e_deps` / `mobile_e2e_seed`), then
+     leave-running **Mobile Metro** (`mobile:dev:e2e`) + **Mobile E2E API**, installs, then
+     **Mobile Maestro**.
 3. Tell them where to review **after** they run:
+   - Failures index: `.artifacts/mobile-e2e-reports/latest/failures.json`
    - Hub: `.artifacts/mobile-e2e-reports/latest/index.html`
    - iOS phone: `.artifacts/mobile-e2e-reports/latest/ios-phone/index.html`
    - Android phone: `.artifacts/mobile-e2e-reports/latest/android-phone/index.html`
@@ -52,18 +61,28 @@ Do **not** put them in the same fenced `bash` block as `mobile:e2e:test` (or oth
 commands) as if the operator can paste the whole list into one terminal. That forces Ctrl+C on Metro
 (“Stopped server”) before later steps run.
 
+**Mobile E2E API** is leave-running independently of Metro. Restarting **Mobile Metro** does **not**
+require restarting the API if `:4230` is already healthy. Auth/tab/api-health flows do need the API
+up (see **mobile-maestro-timeouts**).
+
+Timeouts: prefer the shared `TIMEOUT_*` ladder (**mobile-maestro-timeouts**); default to the fastest
+reasonable tier.
+
 Final response `bash` blocks should contain only **one-shot** commands (prep Make targets if
-needed, Maestro, `open` report paths). Point at HOW-TO-RUN (or labeled prose “Terminal 1 /
-Terminal 4”) for leave-running Metro/API. Optional: `mobile:e2e:api:bg` + `mobile:e2e:api:health`
-in a prep shell when background API is intentional.
+needed, Maestro, `open` report paths). For leave-running Metro/API, name the tabs (**Mobile Metro**,
+**Mobile E2E API**) in prose — do not paste blockers into the same verify block. Optional:
+`mobile:e2e:api:bg` + `mobile:e2e:api:health` in **Mobile** when background API is intentional.
 
 ## Agents: read reports when debugging
 
 When mobile E2E fails (operator paste, CI artifact, or local `.artifacts/mobile-e2e-reports/`):
 
-1. Open the **slot** HTML for the failing OS/form-factor (not only the hub).
-2. Read the failed section error text and open the ❌ failure screenshot(s).
-3. Use that evidence before suggesting unrelated fixes (Metro, wrong device, locator, Expo
+1. Read **`failures.json`** first (compact list of failing flows + paths).
+2. Open only the listed **flow** HTML pages (`<slot>/flows/<slug>/index.html`) and their
+   `failure.png` / ❌ screenshots.
+3. Use slot `index.html` for a fails-first overview; use raw `commands-*.json` only when hierarchy
+   / deep step detail is required.
+4. Use that evidence before suggesting unrelated fixes (Metro, wrong device, locator, Expo
    launcher still showing, etc.).
 
 ## Expo Dev Client contract (required after launchApp)
@@ -82,6 +101,42 @@ waits for `hello-world-screen` (or the flow’s root once Home replaces that scr
 **Continue** alone is insufficient — it only opens the full dev menu (Reload / Go home / …), which
 still occludes the app. Do not invent a parallel connect path that skips the sheet close.
 
+## Maestro flow authoring gotchas (keyboard, secure input, silent failures)
+
+These recur when a flow reaches a form (login/signup) and then stalls or fails on a post-submit
+assertion. Check them before blaming locators or timeouts:
+
+1. **`hideKeyboard` is flaky on iOS** — it throws `Couldn't hide the keyboard` because iOS has no
+   guaranteed dismiss affordance. On iOS the primary button is usually visible above the keyboard, so
+   you do not need it. Guard it to Android only:
+
+   ```yaml
+   - runFlow:
+       when:
+         platform: Android
+       commands:
+         - hideKeyboard
+   ```
+
+   On Android the soft keyboard often occludes the submit button after `inputText`, so Android _does_
+   need the dismiss. Prefer this platform-guarded form over an unconditional `hideKeyboard`.
+
+2. **`secureTextEntry` blocks Maestro `inputText`** — iOS Strong-Password autofill over a secure
+   field leaves the value empty. The app renders password fields as plaintext when
+   `EXPO_PUBLIC_MOBILE_E2E=1` (set by `scripts/mobile/dev-e2e.sh`); confirm the failure screenshot
+   shows the typed value before deeper debugging.
+
+3. **Silent submit = swallowed error in the screen, not a Maestro bug.** If Submit is tapped but the
+   screen stays put with **no** error text (and the assertion times out), the async handler likely
+   threw and was swallowed. Every mobile async submit/handler must `catch` and set a visible,
+   `testID`-bearing error (see **mobile-surface-async-errors** rule). A visible error turns an opaque
+   assertion timeout into a diagnosable message and lets the flow assert the failure directly.
+
+4. **Reachability differs by platform.** iOS simulator reaches the host at `localhost`; Android
+   emulator uses `10.0.2.2`. To isolate a network problem from a form/logic problem, run the
+   `api-health` flow (it hits the same base URL with a GET): health `error` on one platform points at
+   reachability/cleartext, not the form.
+
 ## Response format
 
 **Mandatory** for mobile UI / feature implementation responses (parity with web
@@ -91,35 +146,41 @@ still occludes the app. Do not invent a parallel connect path that skips the she
    surface — prefer `npm run mobile:e2e:test -- <area>` mapped to the flow you added/updated.
    Use bare `npm run mobile:e2e:test` only when the default `hello-world` smoke is truly the right
    scope.
-2. Include where to open results (hub + affected slots):
+2. Include where to open results (failures.json + hub + affected slots):
+   - `.artifacts/mobile-e2e-reports/latest/failures.json`
    - `.artifacts/mobile-e2e-reports/latest/index.html`
    - `.artifacts/mobile-e2e-reports/latest/ios-phone/index.html`
    - `.artifacts/mobile-e2e-reports/latest/android-phone/index.html`
-3. If Metro / E2E installs / API are not already assumed running, point at
-   [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md) in prose — do not paste leave-running
-   `mobile:dev*` / `mobile:e2e:api` into the final verification block.
+3. If Metro / E2E installs / API are not already assumed running, name the leave-running tabs
+   (**Mobile Metro**, **Mobile E2E API**, **Mobile iOS** / **Mobile Android**) in prose and link
+   [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md) — do not paste leave-running commands into the
+   final verification `bash` block.
 
-Example ending block (UI-only area — replace `<area>` with the flow you changed; assume Metro +
-installs already up per HOW-TO-RUN):
+Example ending (UI-only — **Mobile Maestro**; assume **Mobile Metro** + installs already up):
 
 ```bash
+# Mobile Maestro
 npm run mobile:e2e:test -- hello-world
+open .artifacts/mobile-e2e-reports/latest/failures.json
 open .artifacts/mobile-e2e-reports/latest/ios-phone/index.html
 open .artifacts/mobile-e2e-reports/latest/android-phone/index.html
 ```
 
-Example ending block (API-backed area — assume Metro via `mobile:dev:e2e`, API on `:4230`, and E2E
-installs already up per HOW-TO-RUN):
+Example ending (API-backed — **Mobile Maestro**; assume **Mobile Metro**=`mobile:dev:e2e` and
+**Mobile E2E API** already up):
 
 ```bash
+# Mobile Maestro
 npm run mobile:e2e:test -- api-health
+open .artifacts/mobile-e2e-reports/latest/failures.json
 open .artifacts/mobile-e2e-reports/latest/ios-phone/index.html
 open .artifacts/mobile-e2e-reports/latest/android-phone/index.html
 ```
 
-One-shot prep only (safe to paste; exits) when the operator has not seeded yet:
+One-shot prep (**Mobile**) when the operator has not seeded yet:
 
 ```bash
+# Mobile
 make mobile_e2e_deps
 make mobile_e2e_seed
 ```

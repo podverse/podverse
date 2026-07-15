@@ -1,0 +1,150 @@
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+
+import { loginWithMobileToken, useAuth } from '../../auth';
+import { getMobileConfig } from '../../config';
+import { useTheme } from '../../theme/useTheme';
+
+type LoginScreenProps = {
+  onSwitchToSignUp: () => void;
+};
+
+export function LoginScreen({ onSwitchToSignUp }: LoginScreenProps) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { styles: themeStyles, tokens } = useTheme();
+  const { setTokens } = useAuth();
+  const { isE2e } = getMobileConfig();
+
+  const styles = StyleSheet.create({
+    button: {
+      alignItems: 'center',
+      backgroundColor: themeStyles.buttonPrimary.backgroundColor,
+      borderRadius: tokens.radii.md,
+      paddingHorizontal: tokens.spacing.lg,
+      paddingVertical: tokens.spacing.md,
+    },
+    buttonText: {
+      color: themeStyles.buttonPrimary.color,
+      fontWeight: '600',
+    },
+    card: {
+      backgroundColor: tokens.background.secondary,
+      borderColor: themeStyles.border.borderColor,
+      borderRadius: tokens.radii.md,
+      borderWidth: 1,
+      maxWidth: 440,
+      padding: tokens.spacing['2xl'],
+      width: '100%',
+    },
+    container: {
+      alignItems: 'center',
+      backgroundColor: themeStyles.screen.backgroundColor,
+      flex: 1,
+      justifyContent: 'center',
+      padding: tokens.spacing['2xl'],
+    },
+    error: {
+      color: themeStyles.textSecondary.color,
+      marginTop: tokens.spacing.md,
+    },
+    input: {
+      borderColor: themeStyles.border.borderColor,
+      borderRadius: tokens.radii.sm,
+      borderWidth: 1,
+      color: themeStyles.textPrimary.color,
+      marginTop: tokens.spacing.sm,
+      paddingHorizontal: tokens.spacing.md,
+      paddingVertical: tokens.spacing.sm,
+    },
+    label: {
+      color: themeStyles.textPrimary.color,
+      marginTop: tokens.spacing.md,
+    },
+    title: {
+      color: themeStyles.textPrimary.color,
+      fontSize: 24,
+      fontWeight: '700',
+    },
+  });
+
+  const handleSubmit = async () => {
+    if (isLoading) {
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await loginWithMobileToken({ email, password, setTokens });
+      if (!result.ok) {
+        if (result.error === 'invalid_credentials') {
+          setError('Invalid email or password.');
+        } else {
+          setError('Mobile API is not configured.');
+        }
+      }
+    } catch {
+      // Network/unexpected errors must surface: a silent failure looks identical to
+      // "nothing happened" and is very hard to diagnose (especially in E2E).
+      setError('Could not sign in. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <View style={styles.container} testID="login-screen">
+      <View style={styles.card}>
+        <Text style={styles.title}>Log in</Text>
+        <Text style={styles.label}>Email</Text>
+        <TextInput
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="email-address"
+          onChangeText={setEmail}
+          style={styles.input}
+          testID="login-email"
+          value={email}
+        />
+        <Text style={styles.label}>Password</Text>
+        <TextInput
+          autoCapitalize="none"
+          autoCorrect={false}
+          onChangeText={setPassword}
+          // E2E: iOS Autofill + secureTextEntry blocks Maestro inputText; plaintext when isE2e.
+          secureTextEntry={!isE2e}
+          style={styles.input}
+          testID="login-password"
+          value={password}
+        />
+        <Pressable
+          accessibilityRole="button"
+          disabled={isLoading}
+          onPress={() => {
+            void handleSubmit();
+          }}
+          style={styles.button}
+          testID="login-submit"
+        >
+          <Text style={styles.buttonText}>{isLoading ? 'Loading...' : 'Submit'}</Text>
+        </Pressable>
+        {error !== null ? (
+          <Text style={styles.error} testID="login-error">
+            {error}
+          </Text>
+        ) : null}
+        <Pressable
+          accessibilityRole="button"
+          onPress={onSwitchToSignUp}
+          style={styles.button}
+          testID="auth-switch-signup"
+        >
+          <Text style={styles.buttonText}>Need an account? Sign up</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}

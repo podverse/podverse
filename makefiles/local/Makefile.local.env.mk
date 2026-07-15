@@ -34,6 +34,7 @@ local_env_clean:
 		apps/api/.env \
 		apps/workers/.env \
 		apps/management-api/.env \
+		apps/mobile/.env \
 		apps/web/.env.local \
 		apps/web/sidecar/.env \
 		apps/management-web/.env.local \
@@ -49,7 +50,7 @@ local_env_prepare:
 #   setup.sh writes .env.local (RUNTIME_CONFIG_URL + OTEL_/PROMETHEUS_ from sidecar catalog)
 # - Generate passwords/keys when empty
 # - Apply manual overrides from dev/env-overrides/local/*.env
-local_env_setup: infra/config/local/db.env infra/config/local/mq.env infra/config/local/keyvaldb.env infra/config/local/api.env infra/config/local/workers.env infra/config/local/management-api.env infra/config/local/web.env infra/config/local/web-sidecar.env infra/config/local/management-web.env infra/config/local/management-web-sidecar.env infra/config/local/extensions.env infra/config/local/extension-sidecar-otel.env infra/config/local/extension-prometheus.env apps/api/.env apps/workers/.env apps/management-api/.env apps/web/.env.local apps/web/sidecar/.env apps/management-web/.env.local apps/management-web/sidecar/.env
+local_env_setup: infra/config/local/db.env infra/config/local/mq.env infra/config/local/keyvaldb.env infra/config/local/api.env infra/config/local/workers.env infra/config/local/management-api.env infra/config/local/web.env infra/config/local/web-sidecar.env infra/config/local/management-web.env infra/config/local/management-web-sidecar.env infra/config/local/extensions.env infra/config/local/extension-sidecar-otel.env infra/config/local/extension-prometheus.env apps/api/.env apps/workers/.env apps/management-api/.env apps/mobile/.env apps/web/.env.local apps/web/sidecar/.env apps/management-web/.env.local apps/management-web/sidecar/.env
 	bash scripts/local-env/setup.sh
 	@echo "Local env setup complete."
 
@@ -149,6 +150,11 @@ apps/management-api/.env:
 	@echo "Missing: $@"
 	@echo "Copying from example file"
 	cp ./apps/management-api/.env.example ./$@
+
+apps/mobile/.env:
+	@echo "Missing: $@"
+	@echo "Copying from example file"
+	cp ./apps/mobile/.env.example ./$@
 
 apps/web/.env.local:
 	@echo "Missing: $@"

@@ -1,0 +1,30 @@
+appId: com.podverse.app.next
+name: Tab Switch Playback
+---
+# Track 7.18: preserve mini-player slot while switching tabs.
+# Playback engine assertions are stubbed for now; this validates nav shell persistence.
+
+- launchApp:
+    clearState: true
+- runFlow: shared/connect-dev-client.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- assertVisible:
+    id: mini-player
+- takeScreenshot: tab-switch-home-mini-player
+
+- tapOn:
+    id: tab-search
+- assertVisible:
+    id: search-screen
+- assertVisible:
+    id: mini-player
+- takeScreenshot: tab-switch-search-mini-player
+
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- assertVisible:
+    id: mini-player
+- takeScreenshot: tab-switch-library-mini-player

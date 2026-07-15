@@ -15,6 +15,10 @@
       "types": "./dist/lib/constants/locales.d.ts",
       "default": "./dist/lib/constants/locales.js"
     },
+    "./configValidation": {
+      "types": "./dist/lib/configValidation.d.ts",
+      "default": "./dist/lib/configValidation.js"
+    },
     "./timeFormatter": {
       "types": "./dist/lib/i18n/timeFormatter.d.ts",
       "default": "./dist/lib/i18n/timeFormatter.js"
