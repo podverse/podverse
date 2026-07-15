@@ -35,6 +35,33 @@ apps/mobile/
 Generated trees (`ios/Pods/`, Android `build/`, `.expo/`) are gitignored and listed in
 [`.cursorignore`](/.cursorignore).
 
+## Auth storage (Track 6)
+
+Mobile auth is bearer-first:
+
+- Store access and refresh tokens in `expo-secure-store` (`src/auth/secureTokenStorage.ts`).
+- Never store auth tokens in AsyncStorage/MMKV.
+- Never use cookies or `withCredentials` for mobile auth requests; use `/auth/mobile/*` and bearer
+  headers.
+- Session state lives in `src/auth/AuthProvider.tsx` (`unknown`/`anonymous`/`authenticated`).
+
+## Navigation linking and Android back (Track 7 stubs)
+
+- Navigation exports `mobileNavigationLinking` from `src/navigation/index.ts` as a Track 7 deep-link
+  stub with reserved route shapes (`/podcast/:podcastId`, `/episode/:episodeId`, `/clip/:clipId`,
+  `/add-by-rss`, etc.).
+- Prefixes are currently stubbed as `podverse://` and `https://podverse.fm`; full app scheme and
+  universal-link rollout is deferred to Track 15.
+- Android back behavior uses navigation defaults for stack pop, and an explicit
+  `BackHandler` in `FullPlayer` so hardware back dismisses full player first.
+
+## Tablet-adaptive navigation (Track 7.17)
+
+- Navigation exports `MOBILE_TABLET_NAV_MIN_WIDTH` from `src/navigation/index.ts`.
+- When `useWindowDimensions().width >= MOBILE_TABLET_NAV_MIN_WIDTH` (currently `900`), tabs adapt to
+  a side rail (`tabBarPosition: 'left'`).
+- Phone layout remains bottom tabs, including the mini-player slot above the tab bar.
+
 ## Media engine (`podverse-media-engine`)
 
 First-party native media engine (PG-2b, Track 2) at `modules/podverse-media-engine/`. Single shared
@@ -82,6 +109,20 @@ the root npm workspace — do **not** use `-w @podverse/mobile` / `-w apps/mobil
 
 Root `rm -rf node_modules && npm i` (or root `npm ci`) does **not** install mobile — `apps/mobile`
 is outside the npm workspaces. Use `deps:init` or `mobile:install` for that tree.
+
+### Local env consistency (`local_env_prepare` / `local_env_link` / `local_env_setup`)
+
+Mobile now participates in the same local env pipeline as other apps:
+
+- `make local_env_setup` generates `apps/mobile/.env` from `apps/mobile/.env.example`.
+- Shared local API endpoint values can be defined once in
+  `~/.config/podverse/local-env-overrides/api.env` (seeded by `make local_env_prepare`,
+  linked by `make local_env_link`) and are applied to both web sidecar `NEXT_PUBLIC_API_*`
+  vars and mobile `EXPO_PUBLIC_MOBILE_API_BASE_URL_{IOS,ANDROID}` (must include `/api/v2`).
+- At runtime, the app reads those vars only via `getMobileConfig()` in
+  [`apps/mobile/src/config/`](src/config/) (same single-config idea as web/API `config/index.ts`).
+- Android URL derives emulator host `10.0.2.2` automatically when local host is
+  `localhost` / `127.0.0.1`.
 
 For native iOS/Android builds use the Nix-stripping root scripts below (`npm run mobile:ios` /
 `mobile:android`) — **not** `./scripts/nix/with-env npm --prefix apps/mobile run ios`, which runs
@@ -176,13 +217,14 @@ This app uses **`expo-dev-client`** (not Expo Go). Metro serves JavaScript; a **
 
 ### Two terminals (typical session)
 
-| Terminal             | Command                                  | Role                                       |
-| -------------------- | ---------------------------------------- | ------------------------------------------ |
-| Mobile Metro         | `npm run mobile:dev`                     | Keep running — Expo + Metro on `:8081`     |
-| Mobile iOS / Android | `npm run mobile:ios` or `mobile:android` | First install and after native dep changes |
+| Terminal             | Command                                                         | Role                                       |
+| -------------------- | --------------------------------------------------------------- | ------------------------------------------ |
+| Mobile Metro         | `npm run mobile:dev` (day-to-day) or `mobile:dev:e2e` (API E2E) | Keep running — Expo + Metro on `:8081`     |
+| Mobile iOS / Android | `npm run mobile:ios` or `mobile:android`                        | First install and after native dep changes |
 
-VS Code preset tabs: [`.vscode/terminals.json`](/.vscode/terminals.json) (`Mobile`, `Mobile Metro`,
-`Mobile iOS`, `Mobile Android`, `Mobile E2E test`).
+VS Code preset tabs: [`.vscode/terminals.json`](/.vscode/terminals.json) — `Mobile` (one-shots:
+`build:packages`, `mobile_e2e_deps` / seed / health), `Mobile Metro` (`mobile:dev` or
+`mobile:dev:e2e`), `Mobile iOS`, `Mobile Android`, `Mobile E2E API`, `Mobile Maestro`.
 
 ### First-time / after prebuild order
 
@@ -277,7 +319,17 @@ npm run mobile:prebuild
 npm run mobile:dev
 ```
 
-Use `npx expo install --fix` from `apps/mobile` for runtime deps; keep `overrides` aligned.
+Use Expo CLI **from the mobile tree**, not bare root `npx expo` (that can download the latest
+global Expo and miss `apps/mobile/node_modules/expo`):
+
+```bash
+# From monorepo root — prefer this over `cd apps/mobile && npx expo install …`
+npm --prefix apps/mobile exec -- expo install --fix
+# or pin specific peers to the SDK 52 set:
+npm --prefix apps/mobile exec -- expo install react-native-screens react-native-gesture-handler react-native-safe-area-context expo-secure-store
+```
+
+Keep `overrides` aligned with Expo SDK 52.
 
 ## Troubleshooting
 
@@ -390,7 +442,9 @@ Importing the **`@podverse/helpers` barrel** (`import { … } from '@podverse/he
 for React Native — the dev client shows a **white screen** while the Metro terminal reports bundling failed.
 
 Fix: import **mobile-safe subpaths** only (no Node builtins in that file), e.g.
-`import { DEFAULT_LOCALE } from '@podverse/helpers/locales'`. Add new subpaths in
+`import { DEFAULT_LOCALE } from '@podverse/helpers/locales'`,
+`import type { DTOAccount } from '@podverse/helpers/dto'`, or
+`@podverse/helpers/timeFormatter`. Add new subpaths in
 [`packages/helpers/package.json`](/packages/helpers/package.json) `exports` when mobile needs more symbols.
 Keep [`metro.config.js`](/apps/mobile/metro.config.js) `resolver.unstable_enablePackageExports = true`.
 
@@ -492,7 +546,8 @@ Do not run the script from `apps/mobile/ios` — paths are relative to the monor
 - **`watchFolders`:** `packages/` so Metro sees shared package `dist/` after `build:packages`.
 - **`resolver.nodeModulesPaths`:** `apps/mobile/node_modules` only (keeps Expo/RN isolated from root).
 - **`@podverse/*`:** `file:` links → each package `"main"` / `exports` entry under `dist/`.
-- **Transitive deps of `file:` packages** (`date-fns`, `he`, `uuid` from `@podverse/helpers`, etc.)
+- **Transitive deps of `file:` packages** (`date-fns`, `he`, `uuid` from `@podverse/helpers`,
+  `@podverse/http-request-core` + `axios` from `@podverse/helpers-requests`, etc.)
   must be listed as **direct** `apps/mobile` dependencies so they install under
   `apps/mobile/node_modules`. Root-hoisted copies are invisible to this Metro config.
 
@@ -516,12 +571,16 @@ Track 5 locks mobile E2E on Maestro. Naming convention:
 - `SPEC=<area>` maps to the same basename without `.yaml` for mobile E2E targets
 
 Canonical mobile E2E report root: `.artifacts/mobile-e2e-reports/latest/` (separate from web
-`.artifacts/e2e-reports/`). Hub at `latest/index.html`; per-slot reports at
-`latest/ios-phone/index.html` and `latest/android-phone/index.html` (tablet slots reserved).
+`.artifacts/e2e-reports/`). Prefer `latest/failures.json` for triage; hub at `latest/index.html`;
+slot summaries at `latest/ios-phone/index.html` / `latest/android-phone/index.html` with per-flow
+pages under `…/flows/<slug>/` (tablet slots reserved).
 
 **Operator how-to (shortest path):** [e2e/HOW-TO-RUN.md](./e2e/HOW-TO-RUN.md)
 
-Operator commands from monorepo root (three install/Metro terminals + one test):
+Operator commands from monorepo root — **separate terminals** for leave-running processes. Full
+matrix: [e2e/HOW-TO-RUN.md](./e2e/HOW-TO-RUN.md).
+
+UI-only (four terminals):
 
 ```bash
 # T1 — Metro (leave running)
@@ -531,10 +590,11 @@ npm run mobile:dev
 npm run mobile:e2e:ios
 npm run mobile:e2e:android
 
-# T4 — Maestro both platforms + HTML report (strict: requires Metro + installed app)
+# T4 — Maestro + HTML report (strict: requires Metro + installed app)
 npm run mobile:e2e:test
 npm run mobile:e2e:test -- hello-world
 npm run mobile:e2e:test -- hello-world,locale-switch-home-smoke
+open .artifacts/mobile-e2e-reports/latest/failures.json
 open .artifacts/mobile-e2e-reports/latest/index.html
 open .artifacts/mobile-e2e-reports/latest/ios-phone/index.html
 open .artifacts/mobile-e2e-reports/latest/android-phone/index.html
@@ -544,13 +604,34 @@ make mobile_e2e_test
 make mobile_e2e_test_report_spec SPEC=hello-world
 ```
 
+API-backed (five terminals; Track 5 harness; no auth login/logout yet):
+
+```bash
+# One-shot prep (any shell; exits)
+make mobile_e2e_deps
+make mobile_e2e_seed
+
+# T1 — leave running: npm run mobile:dev:e2e
+# T2 / T3 — exits: npm run mobile:e2e:ios / mobile:e2e:android
+# T4 — leave running: npm run mobile:e2e:api
+# T5 — exits:
+npm run mobile:e2e:test -- api-health
+open .artifacts/mobile-e2e-reports/latest/failures.json
+open .artifacts/mobile-e2e-reports/latest/ios-phone/index.html
+open .artifacts/mobile-e2e-reports/latest/android-phone/index.html
+```
+
+Do **not** paste `mobile:dev:e2e` or `mobile:e2e:api` into the same one-line shell sequence as
+Maestro — those block until stopped. Prefer `mobile:e2e:api:bg` + `mobile:e2e:api:health` only when
+you intentionally want a background API from the prep shell.
+
 Manual day-to-day (separate devices; not E2E slots): `npm run mobile:ios` /
 `npm run mobile:android`.
 
 Use optional SPEC args (or Make `SPEC=<area>`) mapping to `apps/mobile/e2e/<area>.yaml`. Mobile
 E2E is Maestro-only for this track: do not use Playwright and do not use web `make e2e_*` targets.
 
-For API base URL and seed expectations (UI-only vs API-backed flows), see
+For API base URL, seed expectations, and the API-backed smoke flow (`api-health`) see
 `apps/mobile/e2e/TEST-ENV.md`.
 
 Root `npm run lint` / `npm run lint:fix` include `apps/mobile` via a dedicated ESLint step (mobile is

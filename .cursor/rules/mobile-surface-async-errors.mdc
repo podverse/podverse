@@ -1,0 +1,48 @@
+---
+description: Mobile screens must surface async errors (no swallowed catch / finally-only) so failures are visible and E2E-diagnosable
+globs:
+  - "apps/mobile/src/**/*.tsx"
+  - "apps/mobile/src/**/*.ts"
+alwaysApply: false
+---
+
+# Surface async errors in mobile UI
+
+In React Native screens (`apps/mobile/src/**`), every async submit/handler (login, signup, refresh,
+save, playback actions) must **surface** failures in the UI. A swallowed error looks identical to
+"nothing happened" — the screen stalls with no message — and is very hard to diagnose, especially in
+Maestro E2E where it shows up only as an assertion timeout.
+
+## Do
+
+- Wrap the awaited call in `try/catch/finally`. Set a visible, user-facing error in `catch`; reset
+  loading state in `finally`.
+- Render the error in a `Text` node with a stable `testID` (e.g. `login-error`) so E2E can assert the
+  failure directly instead of timing out on the success locator.
+
+```tsx
+setIsLoading(true);
+setError(null);
+try {
+  const result = await doThing();
+  // ...handle known result branches...
+} catch {
+  setError('Could not complete. Please try again.');
+} finally {
+  setIsLoading(false);
+}
+```
+
+## Don't
+
+- Don't use `try { ... } finally { ... }` with **no `catch`** around an `await` — a thrown
+  network/parse error is swallowed and the UI silently stays put.
+- Don't `catch` and ignore (empty block) without setting user-visible state.
+- Don't rely on the happy-path result object alone; thrown errors (network, cleartext, non-401 HTTP)
+  never reach result-branch handling.
+
+## Why
+
+Silent failures caused multi-round E2E debugging on auth flows: Submit was tapped, the request threw,
+and with no `catch` the screen stayed on the login form with no error — indistinguishable from a
+missed tap. See **mobile-e2e-screenshots** (Maestro authoring gotchas).

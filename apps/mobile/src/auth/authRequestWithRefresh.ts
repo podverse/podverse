@@ -1,0 +1,94 @@
+import type { ApiRequestService } from '@podverse/helpers-requests';
+
+import { getErrorCode, isUnauthorizedError } from '../lib/httpError';
+import { createMobileApiRequestService } from './mobileApi';
+
+type AuthRequestDeps = {
+  accessToken: string | null;
+  clearSession: () => Promise<void>;
+  refreshToken: string | null;
+  setTokens: (params: { accessToken: string; refreshToken: string }) => Promise<void>;
+};
+
+let inFlightRefresh: Promise<string | null> | null = null;
+
+export const refreshAccessTokenSingleFlight = async ({
+  clearSession,
+  refreshToken,
+  setTokens,
+}: Omit<AuthRequestDeps, 'accessToken'>): Promise<string | null> => {
+  if (refreshToken === null) {
+    return null;
+  }
+
+  if (inFlightRefresh !== null) {
+    return inFlightRefresh;
+  }
+
+  inFlightRefresh = (async () => {
+    const apiRequestService = createMobileApiRequestService();
+    if (apiRequestService === null) {
+      await clearSession();
+      return null;
+    }
+
+    try {
+      // Use ApiRequestService methods — standalone reqAuthMobileRefresh is not
+      // re-exported from @podverse/helpers-requests.
+      const refreshedTokens = await apiRequestService.reqAuthMobileRefresh(refreshToken);
+      await setTokens({
+        accessToken: refreshedTokens.access_token,
+        refreshToken: refreshedTokens.refresh_token,
+      });
+
+      return refreshedTokens.access_token;
+    } catch (error) {
+      const errorCode = getErrorCode(error);
+      if (isUnauthorizedError(error) || errorCode === 'refresh_token_reuse_detected') {
+        await clearSession();
+        return null;
+      }
+
+      throw error;
+    } finally {
+      inFlightRefresh = null;
+    }
+  })();
+
+  return inFlightRefresh;
+};
+
+export const requestWithMobileAuthRefresh = async <T>(
+  deps: AuthRequestDeps,
+  runRequest: (apiRequestService: ApiRequestService) => Promise<T>
+): Promise<T> => {
+  const initialApiRequestService = createMobileApiRequestService(deps.accessToken);
+  if (initialApiRequestService === null) {
+    throw new Error('Mobile API base URL is not configured');
+  }
+
+  try {
+    return await runRequest(initialApiRequestService);
+  } catch (error) {
+    if (!isUnauthorizedError(error)) {
+      throw error;
+    }
+
+    const refreshedAccessToken = await refreshAccessTokenSingleFlight({
+      clearSession: deps.clearSession,
+      refreshToken: deps.refreshToken,
+      setTokens: deps.setTokens,
+    });
+
+    if (refreshedAccessToken === null) {
+      throw error;
+    }
+
+    const retryApiRequestService = createMobileApiRequestService(refreshedAccessToken);
+    if (retryApiRequestService === null) {
+      throw error;
+    }
+
+    return runRequest(retryApiRequestService);
+  }
+};

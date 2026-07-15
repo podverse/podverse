@@ -13,7 +13,7 @@ Use this skill when answering implementation requests in this repo.
 - **Never run** test or verification commands as part of agent or plan implementation unless the user explicitly asks.
 - **Only instruct the operator** to run those commands after your work is done. Provide exact command(s) in a fenced `bash` block.
 - For **web UI changes** (`apps/web/src`, `apps/management-web/src`, or `packages/ui/src` consumed by those apps), follow **ui-e2e-screenshot-report** to pick the narrowest `make e2e_test_*_report_spec` command and tell the operator to open the hub at `.artifacts/e2e-reports/latest/index.html` (slot cards open reports in new tabs).
-- For **mobile changes** (`apps/mobile/src/**`, `apps/mobile/e2e/**`), follow **mobile-e2e-screenshots**: end with the **most focused** `npm run mobile:e2e:test -- <area>` (or default smoke when that is the right scope) and slot HTML paths under `.artifacts/mobile-e2e-reports/latest/`.
+- For **mobile changes** (`apps/mobile/src/**`, `apps/mobile/e2e/**`), follow **mobile-e2e-screenshots**: end with the **most focused** `npm run mobile:e2e:test -- <area>` (or default smoke when that is the right scope) and report paths under `.artifacts/mobile-e2e-reports/latest/` (`failures.json` + slot summaries). Do **not** put leave-running `mobile:dev`, `mobile:dev:e2e`, or `mobile:e2e:api` in the same fenced verification `bash` block as Maestro — those block the shell. Name leave-running tabs from [`.vscode/terminals.json`](/.vscode/terminals.json) (**Mobile Metro**, **Mobile E2E API**) per **vscode-terminals-commands**.
 
 ## Required response behavior
 
@@ -32,7 +32,9 @@ Use this skill when answering implementation requests in this repo.
 - Broad web regression: `make e2e_test_report`
 - API-only change: `npm run test:e2e:api`
 
-Mobile operators also need Metro + E2E installs in other terminals when not already running — point at [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md) when that setup is missing.
+Mobile operators also need Metro + E2E installs in other tabs when not already running — name
+**Mobile Metro** / **Mobile iOS** / **Mobile Android** / **Mobile E2E API** (see
+**vscode-terminals-commands**) and point at [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md).
 
 ## API gate
 
@@ -54,7 +56,7 @@ When you complete the **last** step in a plan set (`COPY-PASTA.md` / `00-EXECUTI
 
 1. Assume the operator ran every COPY-PASTA prompt back-to-back **without** running tests until this final step.
 2. Collect **Verification** sections from each numbered plan file in the set.
-3. Merge into one fenced `bash` block for the operator: `npm run build:packages`, `npm run lint`, `npm run test:unit` (or scoped `npm run test -w <workspace>` when the phase is narrow), `npm run test:e2e:api`, scoped `make e2e_test_*_report_spec`, scoped `npm run mobile:e2e:test -- <area>`, etc., as applicable to the set.
+3. Merge into one fenced `bash` block for the operator: `npm run build:packages`, `npm run lint`, `npm run test:unit` (or scoped `npm run test -w <workspace>` when the phase is narrow), `npm run test:e2e:api`, scoped `make e2e_test_*_report_spec`, scoped `npm run mobile:e2e:test -- <area>`, etc., as applicable to the set. For mobile API-backed sets, keep leave-running Metro/API out of that block (HOW-TO-RUN prose / comments only).
 4. Deduplicate commands; order: build/lint → unit → API → E2E web → E2E mobile (scoped before full suite).
 5. For intermediate COPY-PASTA steps (not the last), end with verification commands for **that step only**.
 

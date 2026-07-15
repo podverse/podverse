@@ -25,6 +25,7 @@ MANAGEMENT_WEB_SIDECAR_INFRA_ENV="infra/config/local/management-web-sidecar.env"
 API_APP_ENV="apps/api/.env"
 WORKERS_APP_ENV="apps/workers/.env"
 MANAGEMENT_API_APP_ENV="apps/management-api/.env"
+MOBILE_APP_ENV="apps/mobile/.env"
 WEB_APP_ENV="apps/web/.env.local"
 MANAGEMENT_WEB_APP_ENV="apps/management-web/.env.local"
 WEB_APP_SIDECAR_ENV="apps/web/sidecar/.env"
@@ -38,6 +39,7 @@ WEB_ENV_FILES=("$WEB_APP_ENV" "$WEB_INFRA_ENV" "$WEB_SIDECAR_INFRA_ENV")
 # Overrides go to infra sidecar (Docker) and app sidecar (npm run dev); app sidecar uses localhost only.
 WEB_ENV_FILES_APP_AND_SIDECAR=("$WEB_SIDECAR_INFRA_ENV" "$WEB_APP_SIDECAR_ENV")
 MANAGEMENT_API_ENV_FILES=("$MANAGEMENT_API_APP_ENV" "$MANAGEMENT_API_INFRA_ENV")
+MOBILE_ENV_FILES=("$MOBILE_APP_ENV")
 MANAGEMENT_WEB_ENV_FILES=("$MANAGEMENT_WEB_APP_ENV" "$MANAGEMENT_WEB_INFRA_ENV" "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV")
 MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR=("$MANAGEMENT_WEB_SIDECAR_INFRA_ENV" "$MANAGEMENT_WEB_APP_SIDECAR_ENV")
 
@@ -321,6 +323,26 @@ apply_override() {
 	done
 }
 
+normalize_api_prefix() {
+	local value="${1:-/api}"
+	if [ -z "$value" ]; then
+		printf '/api'
+		return 0
+	fi
+	value="/${value#/}"
+	value="${value%/}"
+	printf '%s' "$value"
+}
+
+normalize_api_version() {
+	local value="${1:-/v2}"
+	if [ -z "$value" ]; then
+		printf '/v2'
+		return 0
+	fi
+	printf '/%s' "${value#/}"
+}
+
 bash "$SCRIPT_DIR/migrate-local-secrets-to-home.sh"
 
 HOME_LOCAL_SECRETS="$(local_secrets_home_file)"
@@ -454,6 +476,57 @@ apply_override "ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY" "${API_AND_WORKERS_ENV_FI
 # From podcast-index.env (API + Workers; override generated placeholders with real keys here)
 for v in PODCAST_INDEX_AUTH_KEY PODCAST_INDEX_SECRET_KEY; do
 	apply_override "$v" "${API_AND_WORKERS_ENV_FILES[@]}"
+done
+
+# Shared local API endpoint (from api.env override when set):
+# define once and derive web sidecar + mobile platform-specific URLs.
+LOCAL_API_PROTOCOL_EFFECTIVE="$(first_non_empty_or_default "http" "$WEB_APP_SIDECAR_ENV:NEXT_PUBLIC_API_PROTOCOL" "$WEB_SIDECAR_INFRA_ENV:NEXT_PUBLIC_API_PROTOCOL")"
+LOCAL_API_HOST_EFFECTIVE="$(first_non_empty_or_default "localhost" "$WEB_APP_SIDECAR_ENV:NEXT_PUBLIC_API_HOST" "$WEB_SIDECAR_INFRA_ENV:NEXT_PUBLIC_API_HOST")"
+LOCAL_API_PORT_EFFECTIVE="$(first_non_empty_or_default "3000" "$WEB_APP_SIDECAR_ENV:NEXT_PUBLIC_API_PORT" "$WEB_SIDECAR_INFRA_ENV:NEXT_PUBLIC_API_PORT")"
+LOCAL_API_PREFIX_EFFECTIVE="$(normalize_api_prefix "$(first_non_empty_or_default "/api" "$WEB_APP_SIDECAR_ENV:NEXT_PUBLIC_API_PREFIX" "$WEB_SIDECAR_INFRA_ENV:NEXT_PUBLIC_API_PREFIX")")"
+LOCAL_API_VERSION_EFFECTIVE="$(normalize_api_version "$(first_non_empty_or_default "/v2" "$WEB_APP_SIDECAR_ENV:NEXT_PUBLIC_API_VERSION" "$WEB_SIDECAR_INFRA_ENV:NEXT_PUBLIC_API_VERSION")")"
+
+if [ -n "${LOCAL_API_PROTOCOL:-}" ]; then
+	LOCAL_API_PROTOCOL_EFFECTIVE="$LOCAL_API_PROTOCOL"
+fi
+if [ -n "${LOCAL_API_HOST:-}" ]; then
+	LOCAL_API_HOST_EFFECTIVE="$LOCAL_API_HOST"
+fi
+if [ -n "${LOCAL_API_PORT:-}" ]; then
+	LOCAL_API_PORT_EFFECTIVE="$LOCAL_API_PORT"
+fi
+if [ -n "${LOCAL_API_PREFIX:-}" ]; then
+	LOCAL_API_PREFIX_EFFECTIVE="$(normalize_api_prefix "$LOCAL_API_PREFIX")"
+fi
+if [ -n "${LOCAL_API_VERSION:-}" ]; then
+	LOCAL_API_VERSION_EFFECTIVE="$(normalize_api_version "$LOCAL_API_VERSION")"
+fi
+
+NEXT_PUBLIC_API_PROTOCOL="$LOCAL_API_PROTOCOL_EFFECTIVE"
+NEXT_PUBLIC_API_HOST="$LOCAL_API_HOST_EFFECTIVE"
+NEXT_PUBLIC_API_PORT="$LOCAL_API_PORT_EFFECTIVE"
+NEXT_PUBLIC_API_PREFIX="$LOCAL_API_PREFIX_EFFECTIVE"
+NEXT_PUBLIC_API_VERSION="$LOCAL_API_VERSION_EFFECTIVE"
+for v in NEXT_PUBLIC_API_PROTOCOL NEXT_PUBLIC_API_HOST NEXT_PUBLIC_API_PORT NEXT_PUBLIC_API_PREFIX NEXT_PUBLIC_API_VERSION; do
+	apply_override "$v" "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"
+done
+
+LOCAL_API_PORT_PART=""
+if [ -n "$LOCAL_API_PORT_EFFECTIVE" ]; then
+	LOCAL_API_PORT_PART=":${LOCAL_API_PORT_EFFECTIVE}"
+fi
+LOCAL_API_BASE_PATH="${LOCAL_API_PREFIX_EFFECTIVE}${LOCAL_API_VERSION_EFFECTIVE}"
+LOCAL_API_ANDROID_HOST="$LOCAL_API_HOST_EFFECTIVE"
+case "$LOCAL_API_HOST_EFFECTIVE" in
+localhost|127.0.0.1)
+	LOCAL_API_ANDROID_HOST="10.0.2.2"
+	;;
+esac
+
+EXPO_PUBLIC_MOBILE_API_BASE_URL_IOS="${LOCAL_API_PROTOCOL_EFFECTIVE}://${LOCAL_API_HOST_EFFECTIVE}${LOCAL_API_PORT_PART}${LOCAL_API_BASE_PATH}"
+EXPO_PUBLIC_MOBILE_API_BASE_URL_ANDROID="${LOCAL_API_PROTOCOL_EFFECTIVE}://${LOCAL_API_ANDROID_HOST}${LOCAL_API_PORT_PART}${LOCAL_API_BASE_PATH}"
+for v in EXPO_PUBLIC_MOBILE_API_BASE_URL_IOS EXPO_PUBLIC_MOBILE_API_BASE_URL_ANDROID; do
+	apply_override "$v" "${MOBILE_ENV_FILES[@]}"
 done
 
 # From app.env (LOG_DIR, ACCOUNT_SIGNUP_MODE)

@@ -2,6 +2,7 @@ import type { Locator, Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
 import {
+  clearSeededPodcastQueueResources,
   expectMediaPlayerTitleVisible,
   waitForAudioReadyAtLeast,
 } from './helpers/mediaPlayerAssertions';
@@ -97,6 +98,7 @@ test.describe('Media player music playback', () => {
   test.beforeEach(async ({ page }) => {
     test.setTimeout(20_000);
     await loginSeedUser(page);
+    await clearSeededPodcastQueueResources(page);
   });
 
   test('Explicitly playing a music track seeks the player to 0 even when a stored position exists', async ({

@@ -1,0 +1,15 @@
+appId: com.podverse.app.next
+name: Auth Login
+---
+# Track 6.11: login screenshot flow using seeded account on API 4230.
+
+- launchApp:
+    clearState: true
+- runFlow: shared/connect-dev-client.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- assertVisible:
+    id: authenticated-logout-cta
+- assertVisible:
+    id: hello-world-screen
+- takeScreenshot: auth-login-authenticated-shell

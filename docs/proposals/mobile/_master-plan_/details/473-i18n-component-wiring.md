@@ -17,6 +17,10 @@
 - At least one screen demonstrates localized string from JSON catalog
 - Rich-text next-intl tags not used on mobile — plain strings or split keys
 
+**Follow-up:** Full product UI localization (auth + nav titles) is Track **17.14** /
+[484-i18n-product-screen-localization](./484-i18n-product-screen-localization.md) and the plan set
+`.llm/plans/active/mobile-i18n-screen-localization/`.
+
 ## Web parity references
 
 - **shared-ui-i18n** rule

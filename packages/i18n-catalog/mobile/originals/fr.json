@@ -1,1 +1,18 @@
-{}
+{
+  "nav": {
+    "tab": {
+      "home": "Accueil",
+      "more": "Plus",
+      "rss": "RSS",
+      "downloads": "Téléchargements"
+    },
+    "stack": {
+      "home": "Accueil",
+      "search_result": "Résultat de recherche",
+      "rss_feeds": "Flux RSS"
+    },
+    "menu": {
+      "view_rss_feeds": "Voir les flux RSS"
+    }
+  }
+}

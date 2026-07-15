@@ -4,13 +4,14 @@ appId: com.podverse.app.next
 # app testIDs are assertable.
 # iOS launcher lists http://localhost:8081; Android emulator lists http://10.0.2.2:8081.
 #
-# clearState re-triggers the first-launch developer-menu onboarding every run.
-# Tapping its "Continue" only dismisses the onboarding card and reveals the full
-# dev-menu bottom sheet (Reload / Go home / ...), which still occludes the app, so
-# we then close that sheet by tapping the dimmed app scrim above it.
-# Every step is guarded by `when: visible` so it is skipped when not applicable
-# (for example a reconnect launch that lands straight in the app).
+# clearState re-triggers the first-launch developer-menu onboarding every run, and that
+# onboarding card appears only AFTER the JS bundle finishes loading. `when: visible` is a
+# one-shot snapshot, so guarding the dismissal races the async bundle load: the guard fires
+# before the card exists, the tap is skipped, then the card pops up and blocks the app.
+# Instead, wait for each obstruction before acting. All flows launch with clearState, so the
+# onboarding card + dev-menu sheet always appear.
 
+# Dev Client launcher: tap the Metro URL for this platform.
 - runFlow:
     when:
       visible: "http://localhost:8081"
@@ -22,23 +23,23 @@ appId: com.podverse.app.next
     commands:
       - tapOn: "http://10.0.2.2:8081"
 
-# First-launch onboarding card ("This is the developer menu ... Continue").
-- runFlow:
-    when:
-      visible: "Continue"
-    commands:
-      - tapOn: "Continue"
+# First-launch onboarding card ("This is the developer menu ... Continue"). It appears only
+# after the JS bundle loads (Android cold bundle can be slow), so wait before tapping.
+- extendedWaitUntil:
+    visible: "Continue"
+    timeout: ${TIMEOUT_SLOWEST}
+- tapOn: "Continue"
 
-# Close the dev-menu bottom sheet if it is open (Reload is a menu row). Tapping
-# the dimmed scrim above the sheet dismisses it and is locale-independent.
-- runFlow:
-    when:
-      visible: "Reload"
-    commands:
-      - tapOn:
-          point: "50%,18%"
+# Tapping Continue reveals the dev-menu bottom sheet (Reload / Go home / ...), which still
+# occludes the app. Wait for it, then close it by tapping the dimmed app scrim above it
+# (locale-independent).
+- extendedWaitUntil:
+    visible: "Reload"
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    point: "50%,18%"
 
 - extendedWaitUntil:
     visible:
       id: hello-world-screen
-    timeout: 60000
+    timeout: ${TIMEOUT_SLOW}

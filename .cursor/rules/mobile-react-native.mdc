@@ -19,14 +19,37 @@ alwaysApply: false
   `@podverse/observability`, `@podverse/external-services-*`.
 - **Auth:** bearer + secure storage; never cookies / `withCredentials`. See
   [API-CLIENT-BOUNDARIES.md](/docs/development/API-CLIENT-BOUNDARIES.md) and `/auth/mobile/*`.
-- Reuse `@podverse/helpers-requests` `req*` wrappers and `@podverse/playback-core` policy. Implement
-  transport via a **native bridge** (`NativePlaybackBridge`) — do not edit web
-  `useMediaElementBridge` for mobile.
+- **Env config:** prefer env vars over hardcoded values when practical. All
+  `EXPO_PUBLIC_*` reads live under `apps/mobile/src/config/` (`env.ts` literals;
+  `getMobileConfig()` is the consumer-facing entry). Outside `src/config/`, do **not**
+  read `process.env.EXPO_PUBLIC_*` — use `getMobileConfig()` instead. Mobile API wiring
+  uses `EXPO_PUBLIC_MOBILE_API_BASE_URL[_IOS|_ANDROID]` (must include `/api/<version>` in
+  the URL); invalid or pathless URLs fail validation (no call-site / factory path fallbacks).
+- Reuse `@podverse/helpers-requests` via **`ApiRequestService` instance methods**
+  (e.g. `createMobileApiRequestService()?.reqAuthMobileToken(...)`). Standalone `req*` helpers in
+  package source are not all re-exported from the barrel — prefer methods on the service instance.
+  Also reuse `@podverse/playback-core` policy; implement transport via a **native bridge**
+  (`NativePlaybackBridge`) — do not edit web `useMediaElementBridge` for mobile.
+- **ApiRequestService contract:** base URL is composed as `${prefix.replace(/\/$/, '')}${version}`.
+  Keep `prefix` with no trailing slash and `version` with a leading slash (`/api` + `/v2`).
+  Those fields come from `getMobileConfig().api` (parsed from the base URL env).
 - **`@podverse/helpers`:** do not import the package barrel on mobile — it re-exports Node-only modules
   (`crypto`, etc.). Use documented subpath exports (e.g. `@podverse/helpers/locales`) or add new subpaths;
   see [APPS-MOBILE.md § Troubleshooting](/apps/mobile/APPS-MOBILE.md) (Node stdlib bundling).
+- **Expo env access:** Expo inlines only literal `process.env.EXPO_PUBLIC_*` references. Never use
+  dynamic `process.env[...]` or destructuring for mobile env vars. Keep those literals in
+  `apps/mobile/src/config/env.ts` only.
+- **Validation reuse:** `@podverse/helpers-config` is backend/web focused and validates by dynamic
+  `process.env[varName]`, which is not mobile-safe. For shared validation logic, use value-based
+  helpers from `@podverse/helpers` plus a mobile-local wrapper (`validateMobileEnv.ts`).
 - **Import specifiers (Tier D):** extensionless relative imports in app source. See
   [DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md § Tier D](/docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md).
+- **Generic helpers:** if a function is not specifically tied to one screen/component (HTTP error
+  parsing, pure formatting, assertion-free error shape reads, etc.), put it in
+  `apps/mobile/src/lib/` (or the nearest domain module under `src/auth|config|i18n|…` when that
+  domain owns it) **when first written**, even with a single callsite. Do not wait for a second
+  consumer. Prefer mobile-local `src/lib/` over a new package when the helper depends on
+  mobile/request error shapes or RN-only concerns.
 - **E2E:** Maestro in `apps/mobile/e2e/` — **not** `make e2e_*` (web/management-web only).
   After mobile UI/feature work, end responses with the focused `npm run mobile:e2e:test -- <area>`
   + slot report paths (**mobile-e2e-screenshots**, **end-with-targeted-make-report-verify**).

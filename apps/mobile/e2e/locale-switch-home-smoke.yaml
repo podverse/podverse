@@ -3,8 +3,8 @@ name: Locale Switch Home Smoke
 ---
 # Track 17.8 locale switch smoke coverage.
 # E2E devices: "iPhone 17 Pro E2E" / Pixel_6_Pro_API_33_e2e
-# Until Track 16 settings UI lands, this validates locale switch behavior by relaunching with a
-# different device locale and asserting localized Home copy.
+# Maestro has no launchApp language/locale props (CLI --device-locale only at device start).
+# Until Track 16 settings UI lands, switch via HelloWorld smoke controls + i18next.
 
 - launchApp:
     clearState: true
@@ -14,13 +14,7 @@ name: Locale Switch Home Smoke
 - assertVisible: Hello World Testing 123
 - takeScreenshot: home-en-US
 
-- stopApp
-- launchApp:
-    clearState: true
-    language: es
-    locale: ES
-- runFlow: shared/connect-dev-client.yaml
-- assertVisible:
-    id: hello-world-screen
+- tapOn:
+    id: hello-world-locale-es
 - assertVisible: Prueba de Hola Mundo 123
 - takeScreenshot: home-es

@@ -25,14 +25,18 @@ explicitly asks to pick.
 | Automated (E2E) | `"iPhone 17 Pro E2E"` | `Pixel_6_Pro_API_33_e2e` |
 
 ```bash
-# Manual day-to-day
+# Manual day-to-day — Mobile iOS / Mobile Android
 npm run mobile:ios -- --device "iPhone 17 Pro"
 npm run mobile:android -- --device Pixel_6_Pro_API_33
 
-# E2E (separate terminals; test is strict)
-npm run mobile:dev
+# E2E — each leave-running / install step in its named tab
+# (see HOW-TO-RUN.md + vscode-terminals-commands):
+# Mobile Metro: npm run mobile:dev   (API-backed: mobile:dev:e2e)
+# Mobile E2E API (API-backed only): npm run mobile:e2e:api
+# Mobile iOS / Mobile Android (exit when done):
 npm run mobile:e2e:ios
 npm run mobile:e2e:android
+# Mobile Maestro (exit when done):
 npm run mobile:e2e:test
 open .artifacts/mobile-e2e-reports/latest/ios-phone/index.html
 open .artifacts/mobile-e2e-reports/latest/android-phone/index.html

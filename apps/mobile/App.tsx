@@ -1,7 +1,11 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 
+import { AuthProvider, useAuth } from './src/auth';
 import { initializeI18n } from './src/i18n';
+import { MobileTabNavigator } from './src/navigation';
+import { LoginScreen } from './src/screens/auth/LoginScreen';
+import { SignUpScreen } from './src/screens/auth/SignUpScreen';
 import { HelloWorldScreen } from './src/screens/HelloWorldScreen';
 import { ThemeProvider } from './src/theme/ThemeProvider';
 import { useTheme } from './src/theme/useTheme';
@@ -21,17 +25,54 @@ export default function App() {
 
   return (
     <ThemeProvider>
-      <AppBody />
+      <AuthProvider>
+        <AppBody />
+      </AuthProvider>
     </ThemeProvider>
   );
 }
 
 function AppBody() {
   const { statusBarStyle } = useTheme();
+  const { logout, status } = useAuth();
+  const [authMode, setAuthMode] = useState<'anonymous' | 'login' | 'signup'>('anonymous');
 
   return (
     <>
-      <HelloWorldScreen />
+      {status === 'authenticated' ? (
+        <MobileTabNavigator
+          onRequestLogout={async () => {
+            await logout();
+            setAuthMode('anonymous');
+          }}
+        />
+      ) : status === 'unknown' ? null : authMode === 'login' ? (
+        <LoginScreen
+          onSwitchToSignUp={() => {
+            setAuthMode('signup');
+          }}
+        />
+      ) : (
+        <>
+          {authMode === 'signup' ? (
+            <SignUpScreen
+              onSwitchToLogin={() => {
+                setAuthMode('login');
+              }}
+            />
+          ) : (
+            <HelloWorldScreen
+              authMode="anonymous"
+              onRequestLogin={() => {
+                setAuthMode('login');
+              }}
+              onRequestSignUp={() => {
+                setAuthMode('signup');
+              }}
+            />
+          )}
+        </>
+      )}
       <StatusBar style={statusBarStyle} />
     </>
   );

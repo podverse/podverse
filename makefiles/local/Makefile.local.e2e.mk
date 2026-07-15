@@ -6,7 +6,7 @@
 .PHONY: e2e_test e2e_test_playwright e2e_test_api e2e_test_web e2e_test_management_web
 .PHONY: e2e_test_management_web_storage_enabled
 .PHONY: e2e_test_report e2e_test_web_report_spec e2e_test_web_custom_themes_report e2e_test_management_web_report_spec e2e_test_report_scoped
-.PHONY: mobile_e2e_test mobile_e2e_test_report_spec
+.PHONY: mobile_e2e_deps mobile_e2e_seed mobile_e2e_api mobile_e2e_api_bg mobile_e2e_api_stop mobile_e2e_api_health mobile_e2e_api_status mobile_e2e_test mobile_e2e_test_report_spec
 .PHONY: e2e_teardown
 
 # Report output directory (timestamped)
@@ -319,6 +319,28 @@ e2e_test_report_scoped: e2e_deps e2e_seed
 # --- Mobile E2E (Maestro) ---
 # Prefer npm: mobile:dev + mobile:e2e:ios|android + mobile:e2e:test
 # Thin Make wrappers preserve muscle-memory; they do not install or start Metro.
+# API-backed mobile flows can opt in to shared test deps + web seed.
+
+mobile_e2e_deps: e2e_deps
+	@echo "Mobile E2E deps ready (shared test_deps: Postgres 5732, Valkey 6679)."
+
+mobile_e2e_seed: e2e_seed_web
+	@echo "Mobile E2E seed ready (reused web seed fixtures)."
+
+mobile_e2e_api:
+	@npm run mobile:e2e:api
+
+mobile_e2e_api_bg:
+	@npm run mobile:e2e:api:bg
+
+mobile_e2e_api_stop:
+	@npm run mobile:e2e:api:stop
+
+mobile_e2e_api_health:
+	@npm run mobile:e2e:api:health
+
+mobile_e2e_api_status:
+	@npm run mobile:e2e:api:status
 
 mobile_e2e_test:
 	@npm run mobile:e2e:test -- $(MOBILE_E2E_DEFAULT_SPEC)

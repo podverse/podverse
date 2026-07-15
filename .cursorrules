@@ -18,6 +18,7 @@ Lower tiers cannot depend on higher (see `.cursor/rules/architecture-tier-depend
 - App-specific rules: [apps/mobile/AGENTS.md](apps/mobile/AGENTS.md), contributor guide [apps/mobile/APPS-MOBILE.md](apps/mobile/APPS-MOBILE.md).
 - Master plan phasing: **mobile-master-plan-phasing** skill. Mobile E2E uses Maestro/Detox — not `make e2e_*`.
 - Commands from repo root: prefer composite scripts (`deps:init`, `deps:init:native`, `mobile:dev`, `mobile:ios` / `mobile:android`, `mobile:e2e:*`) over multi-step install/prebuild recipes — see **mobile-expo-monorepo**. Not `-w apps/mobile`.
+- **Expo CLI:** never bare `npx expo` from repo root (pulls wrong SDK). Use **Mobile** tab + `npm --prefix apps/mobile exec -- expo …` or `npm run mobile:install` (**vscode-terminals-commands**, **mobile-expo-monorepo**).
 
 ## Code Quality
 
@@ -36,6 +37,7 @@ Lower tiers cannot depend on higher (see `.cursor/rules/architecture-tier-depend
 
 - **Commands from repo root**: When giving terminal or npm commands, always give them **relative to the monorepo root**. Use `npm run <script> -w apps/<app> -- [args]` instead of instructing users to `cd apps/workers` (or similar) first. **Root-only scripts** (`test:unit`, `build:packages`, `lint`, …) must not be scoped with `-w`; scoped unit tests use `npm run test -w <workspace>`. See `.cursor/rules/commands-from-monorepo-root.mdc`.
 - **Copy button**: Always put runnable commands in a **fenced code block** (e.g. `bash ... `) so the IDE shows a copy button. Do not give only inline commands when the user may want to run them.
+- **Local env consistency (all apps, including mobile):** Prefer env vars over hardcoded config where practical. For local development, use the shared pipeline (`make local_env_prepare`, `make local_env_link`, `make local_env_setup`) with committed `.env.example` files. When a value is shared across surfaces (for example local API endpoint config), define it once in home overrides and derive/apply it to each app env via `scripts/local-env/setup.sh` (`apply_override`) instead of duplicating the same value across multiple templates.
 
 ## Formatting Rules
 

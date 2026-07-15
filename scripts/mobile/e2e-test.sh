@@ -15,7 +15,26 @@ cd "$REPO_ROOT"
 E2E_IOS_NAME='iPhone 17 Pro E2E'
 E2E_ANDROID_AVD='Pixel_6_Pro_API_33_e2e'
 MOBILE_METRO_PORT="${MOBILE_METRO_PORT:-8081}"
+MOBILE_E2E_API_PORT="${MOBILE_E2E_API_PORT:-4230}"
 DEFAULT_SPEC='hello-world'
+TIMEOUTS_ENV="$REPO_ROOT/apps/mobile/e2e/shared/timeouts.env"
+
+if [[ -f "$TIMEOUTS_ENV" ]]; then
+  # shellcheck disable=SC1090
+  set -a
+  # shellcheck source=apps/mobile/e2e/shared/timeouts.env
+  source "$TIMEOUTS_ENV"
+  set +a
+fi
+
+MAESTRO_TIMEOUT_ARGS=(
+  -e "TIMEOUT_FASTEST=${TIMEOUT_FASTEST:-2000}"
+  -e "TIMEOUT_FASTER=${TIMEOUT_FASTER:-3000}"
+  -e "TIMEOUT_FAST=${TIMEOUT_FAST:-5000}"
+  -e "TIMEOUT_SLOW=${TIMEOUT_SLOW:-8000}"
+  -e "TIMEOUT_SLOWER=${TIMEOUT_SLOWER:-12000}"
+  -e "TIMEOUT_SLOWEST=${TIMEOUT_SLOWEST:-20000}"
+)
 
 SPEC_RAW="${1:-$DEFAULT_SPEC}"
 TS="$(date +%Y%m%d-%H%M%S)"
@@ -38,6 +57,7 @@ if ! lsof -nP -iTCP:"$MOBILE_METRO_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
 fi
 
 FLOWS=()
+NEEDS_E2E_API=0
 SPEC_LIST="${SPEC_RAW//,/ }"
 for spec in $SPEC_LIST; do
   FLOW_PATH="apps/mobile/e2e/${spec}.yaml"
@@ -47,7 +67,21 @@ for spec in $SPEC_LIST; do
     exit 1
   fi
   FLOWS+=("$FLOW_PATH")
+  case "$spec" in
+  api-health | auth-login | auth-logout | tab-switch-playback)
+    NEEDS_E2E_API=1
+    ;;
+  esac
 done
+
+if [[ "$NEEDS_E2E_API" -eq 1 ]]; then
+  if ! lsof -nP -iTCP:"$MOBILE_E2E_API_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+    echo "Error: API-backed flows need the mobile E2E API on :${MOBILE_E2E_API_PORT}." >&2
+    echo "Start it in tab Mobile E2E API: npm run mobile:e2e:api" >&2
+    echo "(Leave-running; no need to restart when only reloading Metro.)" >&2
+    exit 1
+  fi
+fi
 
 mkdir -p "$IOS_PHONE_DIR" "$ANDROID_PHONE_DIR"
 rm -f "$LATEST_LINK"
@@ -89,7 +123,7 @@ RAN_ANY=0
 if [[ -n "$IOS_UDID" ]]; then
   RAN_ANY=1
   echo "--- Maestro iOS phone (${E2E_IOS_NAME}) → ios-phone/ ---"
-  if ! maestro --device "$IOS_UDID" test --format=HTML --output "$IOS_PHONE_DIR/maestro.html" --test-output-dir "$IOS_PHONE_DIR" "${FLOWS[@]}"; then
+  if ! maestro --device "$IOS_UDID" test --format=HTML --output "$IOS_PHONE_DIR/maestro.html" --test-output-dir "$IOS_PHONE_DIR" "${MAESTRO_TIMEOUT_ARGS[@]}" "${FLOWS[@]}"; then
     EXIT_CODE=1
   fi
 fi
@@ -97,7 +131,7 @@ fi
 if [[ -n "$ANDROID_SERIAL" ]]; then
   RAN_ANY=1
   echo "--- Maestro Android phone (${E2E_ANDROID_AVD}) → android-phone/ ---"
-  if ! maestro --device "$ANDROID_SERIAL" test --format=HTML --output "$ANDROID_PHONE_DIR/maestro.html" --test-output-dir "$ANDROID_PHONE_DIR" "${FLOWS[@]}"; then
+  if ! maestro --device "$ANDROID_SERIAL" test --format=HTML --output "$ANDROID_PHONE_DIR/maestro.html" --test-output-dir "$ANDROID_PHONE_DIR" "${MAESTRO_TIMEOUT_ARGS[@]}" "${FLOWS[@]}"; then
     EXIT_CODE=1
   fi
 fi
@@ -109,6 +143,7 @@ fi
 
 node "$SCRIPT_DIR/e2e-html-report.mjs" "$REPORT_DIR"
 echo "Mobile E2E hub: $REPORT_DIR/index.html"
+echo "  Failures JSON: $REPORT_DIR/failures.json"
 echo "  iOS phone:     $REPORT_DIR/ios-phone/index.html"
 echo "  Android phone: $REPORT_DIR/android-phone/index.html"
 echo "Latest symlink: $LATEST_LINK"
@@ -122,10 +157,13 @@ fi
 if [[ "$EXIT_CODE" -ne 0 ]]; then
   echo ""
   echo "Mobile E2E failed. Hints:"
-  echo "  - Read slot reports (screenshots + error text):"
+  echo "  - Agent/operator triage (prefer failures.json first):"
+  echo "      open $REPORT_DIR/failures.json"
   echo "      open $REPORT_DIR/ios-phone/index.html"
   echo "      open $REPORT_DIR/android-phone/index.html"
-  echo "  - Metro: npm run mobile:dev"
+  echo "  - Per-flow pages: $REPORT_DIR/<slot>/flows/<slug>/index.html"
+  echo "  - Metro: npm run mobile:dev (UI-only) or npm run mobile:dev:e2e (API-backed)"
+  echo "  - Mobile E2E API (API-backed flows): npm run mobile:e2e:api"
   echo "  - Install E2E iOS: npm run mobile:e2e:ios"
   echo "  - Install E2E Android: npm run mobile:e2e:android"
   exit 1

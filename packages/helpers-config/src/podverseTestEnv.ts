@@ -8,7 +8,7 @@ export const PODVERSE_TEST_MIN_EXPIRATION = 86400;
 
 const exp = String(PODVERSE_TEST_MIN_EXPIRATION);
 
-export type PodverseApiTestEnvProfile = 'apiVitest' | 'apiWebE2e';
+export type PodverseApiTestEnvProfile = 'apiVitest' | 'apiWebE2e' | 'apiMobileE2e';
 
 export type BuildPodverseApiTestEnvOptions = {
   profile: PodverseApiTestEnvProfile;
@@ -108,6 +108,15 @@ const apiProfileOverrides: Record<PodverseApiTestEnvProfile, Record<string, stri
     KEYVALDB_PASSWORD: 'test',
     ACCOUNT_SIGNUP_MODE: 'admin_only_email',
     API_PUBLIC_BASE_URL: 'http://localhost:4030',
+    PODVERSE_STARTUP_VALIDATION_SILENT: '1',
+  },
+  apiMobileE2e: {
+    SERVER_ENV: 'local',
+    API_PORT: '4230',
+    API_ALLOWED_CORS_ORIGINS: 'http://localhost:8081,http://localhost:19006,http://127.0.0.1:8081',
+    KEYVALDB_PASSWORD: 'test',
+    ACCOUNT_SIGNUP_MODE: 'admin_only_email',
+    API_PUBLIC_BASE_URL: 'http://localhost:4230',
     PODVERSE_STARTUP_VALIDATION_SILENT: '1',
   },
 };
