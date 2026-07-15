@@ -1,5 +1,6 @@
 import type { ApiRequestService } from '@podverse/helpers-requests';
 
+import { getErrorCode, isUnauthorizedError } from '../lib/httpError';
 import { createMobileApiRequestService } from './mobileApi';
 
 type AuthRequestDeps = {
@@ -9,59 +10,7 @@ type AuthRequestDeps = {
   setTokens: (params: { accessToken: string; refreshToken: string }) => Promise<void>;
 };
 
-type ErrorWithResponse = {
-  response?: {
-    data?: unknown;
-    status?: unknown;
-  };
-};
-
 let inFlightRefresh: Promise<string | null> | null = null;
-
-const getErrorStatusCode = (error: unknown): number | null => {
-  if (typeof error !== 'object' || error === null) {
-    return null;
-  }
-
-  const response = Reflect.get(error, 'response');
-  if (typeof response !== 'object' || response === null) {
-    return null;
-  }
-
-  const status = Reflect.get(response, 'status');
-  if (typeof status !== 'number') {
-    return null;
-  }
-
-  return status;
-};
-
-const getErrorCode = (error: unknown): string | null => {
-  if (typeof error !== 'object' || error === null) {
-    return null;
-  }
-
-  const response = Reflect.get(error, 'response');
-  if (typeof response !== 'object' || response === null) {
-    return null;
-  }
-
-  const data = Reflect.get(response, 'data');
-  if (typeof data !== 'object' || data === null) {
-    return null;
-  }
-
-  const code = Reflect.get(data, 'code');
-  if (typeof code !== 'string') {
-    return null;
-  }
-
-  return code;
-};
-
-const isUnauthorizedError = (error: unknown): error is ErrorWithResponse => {
-  return getErrorStatusCode(error) === 401;
-};
 
 export const refreshAccessTokenSingleFlight = async ({
   clearSession,

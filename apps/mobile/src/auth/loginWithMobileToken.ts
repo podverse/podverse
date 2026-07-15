@@ -1,3 +1,4 @@
+import { getErrorStatusCode } from '../lib/httpError';
 import { createMobileApiRequestService } from './mobileApi';
 
 type LoginWithMobileTokenParams = {
@@ -7,25 +8,12 @@ type LoginWithMobileTokenParams = {
 };
 
 type LoginWithMobileTokenResult =
-  { ok: true } | { error: 'invalid_credentials' | 'mobile_api_not_configured'; ok: false };
-
-const getErrorStatusCode = (error: unknown): number | null => {
-  if (typeof error !== 'object' || error === null) {
-    return null;
-  }
-
-  const response = Reflect.get(error, 'response');
-  if (typeof response !== 'object' || response === null) {
-    return null;
-  }
-
-  const status = Reflect.get(response, 'status');
-  if (typeof status !== 'number') {
-    return null;
-  }
-
-  return status;
-};
+  | {
+      accessToken: string;
+      ok: true;
+      refreshToken: string;
+    }
+  | { error: 'invalid_credentials' | 'mobile_api_not_configured'; ok: false };
 
 export const loginWithMobileToken = async ({
   email,
@@ -46,7 +34,11 @@ export const loginWithMobileToken = async ({
       refreshToken: mobileToken.refresh_token,
     });
 
-    return { ok: true };
+    return {
+      accessToken: mobileToken.access_token,
+      ok: true,
+      refreshToken: mobileToken.refresh_token,
+    };
   } catch (error) {
     if (getErrorStatusCode(error) === 401) {
       return { error: 'invalid_credentials', ok: false };

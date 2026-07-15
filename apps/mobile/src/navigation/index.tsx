@@ -4,6 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   BackHandler,
   Platform,
@@ -248,91 +249,99 @@ type RootStackParamList = {
 };
 
 function HomeStackNavigator({ onRequestLogout }: { onRequestLogout: () => Promise<void> }) {
+  const { t } = useTranslation();
+
   return (
     <HomeStack.Navigator>
-      <HomeStack.Screen name={HOME_STACK_ROUTES.HomeRoot} options={{ title: 'Home' }}>
+      <HomeStack.Screen name={HOME_STACK_ROUTES.HomeRoot} options={{ title: t('nav.stack.home') }}>
         {() => <HelloWorldScreen authMode="authenticated" onRequestLogout={onRequestLogout} />}
       </HomeStack.Screen>
       <HomeStack.Screen
         component={PodcastDetailScreen}
         name={HOME_STACK_ROUTES.PodcastDetail}
-        options={{ title: 'Podcast' }}
+        options={{ title: t('media.podcast.podcast') }}
       />
       <HomeStack.Screen
         component={EpisodeDetailScreen}
         name={HOME_STACK_ROUTES.EpisodeDetail}
-        options={{ title: 'Episode' }}
+        options={{ title: t('media.podcast.episode') }}
       />
       <HomeStack.Screen
         component={ClipDetailScreen}
         name={HOME_STACK_ROUTES.ClipDetail}
-        options={{ title: 'Clip' }}
+        options={{ title: t('features.clip.clip') }}
       />
     </HomeStack.Navigator>
   );
 }
 
 function SearchStackNavigator() {
+  const { t } = useTranslation();
+
   return (
     <SearchStack.Navigator>
       <SearchStack.Screen
         component={SearchRootScreen}
         name={SEARCH_STACK_ROUTES.SearchRoot}
-        options={{ title: 'Search' }}
+        options={{ title: t('features.search.search') }}
       />
       <SearchStack.Screen
         component={SearchResultDetailScreen}
         name={SEARCH_STACK_ROUTES.SearchResultDetail}
-        options={{ title: 'Search Result' }}
+        options={{ title: t('nav.stack.search_result') }}
       />
     </SearchStack.Navigator>
   );
 }
 
 function LibraryStackNavigator() {
+  const { t } = useTranslation();
+
   return (
     <LibraryStack.Navigator>
       <LibraryStack.Screen
         component={LibraryHubScreen}
         name={LIBRARY_STACK_ROUTES.LibraryHub}
-        options={{ title: 'My Library' }}
+        options={{ title: t('features.my_library') }}
       />
       <LibraryStack.Screen
         component={LibraryPlaylistsScreen}
         name={LIBRARY_STACK_ROUTES.LibraryPlaylists}
-        options={{ title: 'Playlists' }}
+        options={{ title: t('features.playlist.playlists') }}
       />
       <LibraryStack.Screen
         component={LibraryHistoryScreen}
         name={LIBRARY_STACK_ROUTES.LibraryHistory}
-        options={{ title: 'History' }}
+        options={{ title: t('features.history.history') }}
       />
       <LibraryStack.Screen
         component={LibraryQueueScreen}
         name={LIBRARY_STACK_ROUTES.LibraryQueue}
-        options={{ title: 'Queue' }}
+        options={{ title: t('features.queue.queue') }}
       />
       <LibraryStack.Screen
         component={LibraryDownloadsScreen}
         name={LIBRARY_STACK_ROUTES.LibraryDownloads}
-        options={{ title: 'Downloads' }}
+        options={{ title: t('nav.tab.downloads') }}
       />
     </LibraryStack.Navigator>
   );
 }
 
 function RssStackNavigator() {
+  const { t } = useTranslation();
+
   return (
     <RssStack.Navigator>
       <RssStack.Screen
         component={AddByRssRootScreen}
         name={RSS_STACK_ROUTES.AddByRssRoot}
-        options={{ title: 'Add by RSS' }}
+        options={{ title: t('features.add_by_rss.label') }}
       />
       <RssStack.Screen
         component={AddByRssFeedListScreen}
         name={RSS_STACK_ROUTES.AddByRssFeedList}
-        options={{ title: 'RSS Feeds' }}
+        options={{ title: t('nav.stack.rss_feeds') }}
       />
     </RssStack.Navigator>
   );
@@ -343,30 +352,32 @@ type MoreStackNavigatorProps = {
 };
 
 function MoreStackNavigator({ onRequestLogout }: MoreStackNavigatorProps) {
+  const { t } = useTranslation();
+
   return (
     <MoreStack.Navigator>
-      <MoreStack.Screen options={{ title: 'More' }} name={MORE_STACK_ROUTES.MoreRoot}>
+      <MoreStack.Screen options={{ title: t('nav.tab.more') }} name={MORE_STACK_ROUTES.MoreRoot}>
         {(props) => <MoreRootScreen {...props} onRequestLogout={onRequestLogout} />}
       </MoreStack.Screen>
       <MoreStack.Screen
         component={MoreSettingsScreen}
         name={MORE_STACK_ROUTES.MoreSettings}
-        options={{ title: 'Settings' }}
+        options={{ title: t('settings.settings') }}
       />
       <MoreStack.Screen
         component={MoreAboutScreen}
         name={MORE_STACK_ROUTES.MoreAbout}
-        options={{ title: 'About' }}
+        options={{ title: t('info.about') }}
       />
       <MoreStack.Screen
         component={MoreProfileScreen}
         name={MORE_STACK_ROUTES.MoreProfile}
-        options={{ title: 'Profile' }}
+        options={{ title: t('features.profile') }}
       />
       <MoreStack.Screen
         component={MoreMembershipScreen}
         name={MORE_STACK_ROUTES.MoreMembership}
-        options={{ title: 'Membership' }}
+        options={{ title: t('membership.membership') }}
       />
     </MoreStack.Navigator>
   );
@@ -397,6 +408,8 @@ function SearchResultDetailScreen() {
 function LibraryHubScreen({
   navigation,
 }: NativeStackScreenProps<LibraryStackParamList, 'LibraryHub'>) {
+  const { t } = useTranslation();
+
   return (
     <PlaceholderMenuScreen
       items={[
@@ -405,32 +418,32 @@ function LibraryHubScreen({
             navigation.navigate(LIBRARY_STACK_ROUTES.LibraryPlaylists);
           },
           testID: 'library-nav-playlists',
-          title: 'Playlists',
+          title: t('features.playlist.playlists'),
         },
         {
           onPress: () => {
             navigation.navigate(LIBRARY_STACK_ROUTES.LibraryHistory);
           },
           testID: 'library-nav-history',
-          title: 'History',
+          title: t('features.history.history'),
         },
         {
           onPress: () => {
             navigation.navigate(LIBRARY_STACK_ROUTES.LibraryQueue);
           },
           testID: 'library-nav-queue',
-          title: 'Queue',
+          title: t('features.queue.queue'),
         },
         {
           onPress: () => {
             navigation.navigate(LIBRARY_STACK_ROUTES.LibraryDownloads);
           },
           testID: 'library-nav-downloads',
-          title: 'Downloads',
+          title: t('nav.tab.downloads'),
         },
       ]}
       testID="library-hub-screen"
-      title="My Library"
+      title={t('features.my_library')}
     />
   );
 }
@@ -454,6 +467,8 @@ function LibraryDownloadsScreen() {
 function AddByRssRootScreen({
   navigation,
 }: NativeStackScreenProps<RssStackParamList, 'AddByRssRoot'>) {
+  const { t } = useTranslation();
+
   return (
     <PlaceholderMenuScreen
       items={[
@@ -462,11 +477,11 @@ function AddByRssRootScreen({
             navigation.navigate(RSS_STACK_ROUTES.AddByRssFeedList);
           },
           testID: 'rss-nav-feed-list',
-          title: 'View RSS feeds',
+          title: t('nav.menu.view_rss_feeds'),
         },
       ]}
       testID="rss-root-screen"
-      title="Add by RSS"
+      title={t('features.add_by_rss.label')}
     />
   );
 }
@@ -480,6 +495,8 @@ type MoreRootScreenProps = NativeStackScreenProps<MoreStackParamList, 'MoreRoot'
 };
 
 function MoreRootScreen({ navigation, onRequestLogout }: MoreRootScreenProps) {
+  const { t } = useTranslation();
+
   return (
     <PlaceholderMenuScreen
       items={[
@@ -488,39 +505,39 @@ function MoreRootScreen({ navigation, onRequestLogout }: MoreRootScreenProps) {
             navigation.navigate(MORE_STACK_ROUTES.MoreSettings);
           },
           testID: 'more-nav-settings',
-          title: 'Settings',
+          title: t('settings.settings'),
         },
         {
           onPress: () => {
             navigation.navigate(MORE_STACK_ROUTES.MoreAbout);
           },
           testID: 'more-nav-about',
-          title: 'About',
+          title: t('info.about'),
         },
         {
           onPress: () => {
             navigation.navigate(MORE_STACK_ROUTES.MoreProfile);
           },
           testID: 'more-nav-profile',
-          title: 'Profile',
+          title: t('features.profile'),
         },
         {
           onPress: () => {
             navigation.navigate(MORE_STACK_ROUTES.MoreMembership);
           },
           testID: 'more-nav-membership',
-          title: 'Membership',
+          title: t('membership.membership'),
         },
         {
           onPress: () => {
             void onRequestLogout();
           },
           testID: 'more-nav-logout',
-          title: 'Log out',
+          title: t('authentication.logout'),
         },
       ]}
       testID="more-screen"
-      title="More"
+      title={t('nav.tab.more')}
     />
   );
 }
@@ -591,6 +608,7 @@ type TabScaffoldProps = {
 };
 
 function TabScaffold({ onOpenFullPlayer, onRequestLogout }: TabScaffoldProps) {
+  const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const { width } = useWindowDimensions();
   const isTabletLayout = width >= MOBILE_TABLET_NAV_MIN_WIDTH;
@@ -625,6 +643,7 @@ function TabScaffold({ onOpenFullPlayer, onRequestLogout }: TabScaffoldProps) {
       <Tab.Screen
         name="Home"
         options={{
+          tabBarLabel: t('nav.tab.home'),
           tabBarButtonTestID: 'tab-home',
         }}
       >
@@ -634,6 +653,7 @@ function TabScaffold({ onOpenFullPlayer, onRequestLogout }: TabScaffoldProps) {
         component={SearchStackNavigator}
         name="Search"
         options={{
+          tabBarLabel: t('features.search.search'),
           tabBarButtonTestID: 'tab-search',
         }}
       />
@@ -641,6 +661,7 @@ function TabScaffold({ onOpenFullPlayer, onRequestLogout }: TabScaffoldProps) {
         component={LibraryStackNavigator}
         name="My Library"
         options={{
+          tabBarLabel: t('features.my_library'),
           tabBarButtonTestID: 'tab-my-library',
         }}
       />
@@ -648,10 +669,14 @@ function TabScaffold({ onOpenFullPlayer, onRequestLogout }: TabScaffoldProps) {
         component={RssStackNavigator}
         name="RSS"
         options={{
+          tabBarLabel: t('nav.tab.rss'),
           tabBarButtonTestID: 'tab-rss',
         }}
       />
-      <Tab.Screen name="More" options={{ tabBarButtonTestID: 'tab-more' }}>
+      <Tab.Screen
+        name="More"
+        options={{ tabBarButtonTestID: 'tab-more', tabBarLabel: t('nav.tab.more') }}
+      >
         {() => <MoreStackNavigator onRequestLogout={onRequestLogout} />}
       </Tab.Screen>
     </Tab.Navigator>

@@ -1,9 +1,11 @@
 import type { PropsWithChildren } from 'react';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-import type { DTOAccount } from '@podverse/helpers';
+import type { DTOAccount } from '@podverse/helpers/dto';
 
 import { getMobileConfig } from '../config';
+import { applyAccountLocaleOverride } from '../i18n';
+import { getErrorStatusCode } from '../lib/httpError';
 import {
   refreshAccessTokenSingleFlight,
   requestWithMobileAuthRefresh,
@@ -49,24 +51,6 @@ type AuthContextValue = {
 };
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
-
-const getErrorStatusCode = (error: unknown): number | null => {
-  if (typeof error !== 'object' || error === null) {
-    return null;
-  }
-
-  const response = Reflect.get(error, 'response');
-  if (typeof response !== 'object' || response === null) {
-    return null;
-  }
-
-  const status = Reflect.get(response, 'status');
-  if (typeof status !== 'number') {
-    return null;
-  }
-
-  return status;
-};
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const [accessToken, setAccessToken] = useState<string | null>(null);
@@ -137,6 +121,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
         }
       );
       setAccount(account);
+      try {
+        await applyAccountLocaleOverride(account.account_settings?.account_settings_locale?.locale);
+      } catch (error) {
+        console.warn('Failed to apply account locale during auth bootstrap', error);
+      }
       setStatus('authenticated');
       setError(null);
     } catch (error) {
@@ -145,7 +134,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
         return;
       }
 
-      setStatus('anonymous');
+      // Keep the persisted session and show authenticated shell with an error state.
+      // Falling back to anonymous here leaves a split-brain state (tokens exist, UI says anonymous).
+      setAccount(null);
+      setStatus('authenticated');
       setError('auth_bootstrap_failed');
     }
   }, [clearSession, setTokens]);

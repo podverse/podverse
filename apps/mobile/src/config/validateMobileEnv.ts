@@ -1,8 +1,8 @@
 import type { ValidationResult } from '@podverse/helpers/configValidation';
 import { validateAbsoluteHttpUrlValue } from '@podverse/helpers/configValidation';
 
-import { isMobileE2eFromEnv, selectMobileApiBaseUrl } from './env';
 import type { MobileApiEnvVarName } from './env';
+import { isMobileE2eFromEnv, selectMobileApiBaseUrl } from './env';
 import { parseMobileApiConnection } from './parseApiConnection';
 
 const validateDerivedApiPath = (

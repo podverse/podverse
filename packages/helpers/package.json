@@ -22,6 +22,10 @@
     "./timeFormatter": {
       "types": "./dist/lib/i18n/timeFormatter.d.ts",
       "default": "./dist/lib/i18n/timeFormatter.js"
+    },
+    "./dto": {
+      "types": "./dist/dtos/index.d.ts",
+      "default": "./dist/dtos/index.js"
     }
   },
   "files": [

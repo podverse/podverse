@@ -44,6 +44,12 @@ alwaysApply: false
   helpers from `@podverse/helpers` plus a mobile-local wrapper (`validateMobileEnv.ts`).
 - **Import specifiers (Tier D):** extensionless relative imports in app source. See
   [DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md § Tier D](/docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md).
+- **Generic helpers:** if a function is not specifically tied to one screen/component (HTTP error
+  parsing, pure formatting, assertion-free error shape reads, etc.), put it in
+  `apps/mobile/src/lib/` (or the nearest domain module under `src/auth|config|i18n|…` when that
+  domain owns it) **when first written**, even with a single callsite. Do not wait for a second
+  consumer. Prefer mobile-local `src/lib/` over a new package when the helper depends on
+  mobile/request error shapes or RN-only concerns.
 - **E2E:** Maestro in `apps/mobile/e2e/` — **not** `make e2e_*` (web/management-web only).
   After mobile UI/feature work, end responses with the focused `npm run mobile:e2e:test -- <area>`
   + slot report paths (**mobile-e2e-screenshots**, **end-with-targeted-make-report-verify**).

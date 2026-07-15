@@ -1,8 +1,14 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import type { DTOAccount } from '@podverse/helpers/dto';
+
 import { loginWithMobileToken, useAuth } from '../../auth';
+import { requestWithMobileAuthRefresh } from '../../auth';
 import { getMobileConfig } from '../../config';
+import { applyAccountLocaleOverride } from '../../i18n';
+import { getErrorStatusCode } from '../../lib/httpError';
 import { useTheme } from '../../theme/useTheme';
 
 type LoginScreenProps = {
@@ -10,12 +16,13 @@ type LoginScreenProps = {
 };
 
 export function LoginScreen({ onSwitchToSignUp }: LoginScreenProps) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { styles: themeStyles, tokens } = useTheme();
-  const { setTokens } = useAuth();
+  const { clearSession, setAccount, setError: setAuthError, setTokens } = useAuth();
   const { isE2e } = getMobileConfig();
 
   const styles = StyleSheet.create({
@@ -81,15 +88,50 @@ export function LoginScreen({ onSwitchToSignUp }: LoginScreenProps) {
       const result = await loginWithMobileToken({ email, password, setTokens });
       if (!result.ok) {
         if (result.error === 'invalid_credentials') {
-          setError('Invalid email or password.');
+          setError(t('authentication.invalid_email_or_password'));
         } else {
-          setError('Mobile API is not configured.');
+          setError(t('authentication.mobile_api_not_configured'));
         }
+        return;
+      }
+
+      try {
+        const account = await requestWithMobileAuthRefresh(
+          {
+            accessToken: result.accessToken,
+            clearSession,
+            refreshToken: result.refreshToken,
+            setTokens,
+          },
+          async (apiRequestService) => {
+            return apiRequestService.apiRequest<DTOAccount>({
+              method: 'GET',
+              path: '/auth/me',
+            });
+          }
+        );
+        setAccount(account);
+        try {
+          await applyAccountLocaleOverride(
+            account.account_settings?.account_settings_locale?.locale
+          );
+        } catch (error) {
+          console.warn('Failed to apply account locale after login hydrate', error);
+        }
+        setAuthError(null);
+      } catch (error) {
+        if (getErrorStatusCode(error) === 401) {
+          setError(t('authentication.session_expired'));
+          return;
+        }
+
+        setAuthError('auth_bootstrap_failed');
+        setError(t('authentication.signed_in_account_load_failed'));
       }
     } catch {
       // Network/unexpected errors must surface: a silent failure looks identical to
       // "nothing happened" and is very hard to diagnose (especially in E2E).
-      setError('Could not sign in. Please try again.');
+      setError(t('authentication.could_not_sign_in'));
     } finally {
       setIsLoading(false);
     }
@@ -98,8 +140,8 @@ export function LoginScreen({ onSwitchToSignUp }: LoginScreenProps) {
   return (
     <View style={styles.container} testID="login-screen">
       <View style={styles.card}>
-        <Text style={styles.title}>Log in</Text>
-        <Text style={styles.label}>Email</Text>
+        <Text style={styles.title}>{t('authentication.login')}</Text>
+        <Text style={styles.label}>{t('authentication.email')}</Text>
         <TextInput
           autoCapitalize="none"
           autoCorrect={false}
@@ -109,7 +151,7 @@ export function LoginScreen({ onSwitchToSignUp }: LoginScreenProps) {
           testID="login-email"
           value={email}
         />
-        <Text style={styles.label}>Password</Text>
+        <Text style={styles.label}>{t('authentication.password')}</Text>
         <TextInput
           autoCapitalize="none"
           autoCorrect={false}
@@ -129,7 +171,7 @@ export function LoginScreen({ onSwitchToSignUp }: LoginScreenProps) {
           style={styles.button}
           testID="login-submit"
         >
-          <Text style={styles.buttonText}>{isLoading ? 'Loading...' : 'Submit'}</Text>
+          <Text style={styles.buttonText}>{isLoading ? t('misc.loading') : t('misc.submit')}</Text>
         </Pressable>
         {error !== null ? (
           <Text style={styles.error} testID="login-error">
@@ -142,7 +184,7 @@ export function LoginScreen({ onSwitchToSignUp }: LoginScreenProps) {
           style={styles.button}
           testID="auth-switch-signup"
         >
-          <Text style={styles.buttonText}>Need an account? Sign up</Text>
+          <Text style={styles.buttonText}>{t('authentication.need_an_account_sign_up')}</Text>
         </Pressable>
       </View>
     </View>

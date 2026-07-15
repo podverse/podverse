@@ -26,7 +26,7 @@ npm run mobile:e2e:test
 ## API-backed (five terminals)
 
 Use this for `api-health` and future auth/home/library flows. Terminal 1 must inject E2E API hosts
-via `mobile:dev:e2e` (iOS `http://localhost:4230`, Android `http://10.0.2.2:4230`).
+via `mobile:dev:e2e` (iOS `http://localhost:4230/api/v2`, Android `http://10.0.2.2:4230/api/v2`).
 
 ```bash
 # One-shot prep (any terminal; exits)

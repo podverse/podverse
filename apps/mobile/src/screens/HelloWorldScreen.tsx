@@ -103,7 +103,8 @@ export function HelloWorldScreen({
     }, 5000);
 
     setApiHealthStatus('loading');
-    // baseUrl already includes /api/<version> (see getMobileConfig().api).
+    // Intentional smoke probe: this endpoint is unauthenticated, and apiBaseUrl already includes
+    // /api/<version> from getMobileConfig().api, so this screen can call fetch directly.
     void fetch(`${apiBaseUrl}/health`, { signal: abortController.signal })
       .then((response) => {
         if (!response.ok) {
@@ -183,7 +184,7 @@ export function HelloWorldScreen({
               style={styles.localeButton}
               testID="anonymous-login-cta"
             >
-              <Text style={styles.localeButtonLabel}>Log in</Text>
+              <Text style={styles.localeButtonLabel}>{t('authentication.login')}</Text>
             </Pressable>
             <Pressable
               accessibilityRole="button"
@@ -191,7 +192,7 @@ export function HelloWorldScreen({
               style={styles.localeButton}
               testID="anonymous-signup-cta"
             >
-              <Text style={styles.localeButtonLabel}>Sign up</Text>
+              <Text style={styles.localeButtonLabel}>{t('authentication.sign_up')}</Text>
             </Pressable>
           </View>
         ) : null}
@@ -204,7 +205,7 @@ export function HelloWorldScreen({
             style={styles.localeButton}
             testID="authenticated-logout-cta"
           >
-            <Text style={styles.localeButtonLabel}>Log out</Text>
+            <Text style={styles.localeButtonLabel}>{t('authentication.logout')}</Text>
           </Pressable>
         ) : null}
         <PlaybackEngineDebugPanel />

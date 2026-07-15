@@ -442,7 +442,9 @@ Importing the **`@podverse/helpers` barrel** (`import { … } from '@podverse/he
 for React Native — the dev client shows a **white screen** while the Metro terminal reports bundling failed.
 
 Fix: import **mobile-safe subpaths** only (no Node builtins in that file), e.g.
-`import { DEFAULT_LOCALE } from '@podverse/helpers/locales'`. Add new subpaths in
+`import { DEFAULT_LOCALE } from '@podverse/helpers/locales'`,
+`import type { DTOAccount } from '@podverse/helpers/dto'`, or
+`@podverse/helpers/timeFormatter`. Add new subpaths in
 [`packages/helpers/package.json`](/packages/helpers/package.json) `exports` when mobile needs more symbols.
 Keep [`metro.config.js`](/apps/mobile/metro.config.js) `resolver.unstable_enablePackageExports = true`.
 

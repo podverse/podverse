@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { DEFAULT_LOCALE } from '@podverse/helpers/locales';
@@ -17,8 +18,10 @@ type SignUpScreenProps = {
 };
 
 const DEFAULT_TERMS_VERSION = '1';
+const AUTHENTICATION_VALIDATION_KEY_PREFIX = 'authentication.';
 
 export function SignUpScreen({ onSwitchToLogin }: SignUpScreenProps) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
@@ -27,6 +30,15 @@ export function SignUpScreen({ onSwitchToLogin }: SignUpScreenProps) {
   const { isE2e } = getMobileConfig();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const { styles: themeStyles, tokens } = useTheme();
+
+  const resolveValidationError = (validationError: string): string => {
+    const validationErrorKeys = new Set(['invalid_email', 'invalid_password', 'password_mismatch']);
+    if (validationErrorKeys.has(validationError)) {
+      return t(`${AUTHENTICATION_VALIDATION_KEY_PREFIX}${validationError}`);
+    }
+
+    return t('authentication.invalid_email_or_password');
+  };
 
   const styles = StyleSheet.create({
     button: {
@@ -110,13 +122,13 @@ export function SignUpScreen({ onSwitchToLogin }: SignUpScreenProps) {
 
     const validationError = validateInputs();
     if (validationError !== null) {
-      setError(validationError);
+      setError(resolveValidationError(validationError));
       return;
     }
 
     const apiRequestService = createMobileApiRequestService();
     if (apiRequestService === null) {
-      setError('mobile_api_not_configured');
+      setError(t('authentication.mobile_api_not_configured'));
       return;
     }
 
@@ -131,9 +143,9 @@ export function SignUpScreen({ onSwitchToLogin }: SignUpScreenProps) {
         password,
         terms_version: DEFAULT_TERMS_VERSION,
       });
-      setSuccessMessage('account_created_message');
+      setSuccessMessage(t('authentication.account_created_message'));
     } catch {
-      setError('sign_up_failed');
+      setError(t('authentication.could_not_sign_in'));
     } finally {
       setIsLoading(false);
     }
@@ -142,8 +154,8 @@ export function SignUpScreen({ onSwitchToLogin }: SignUpScreenProps) {
   return (
     <View style={styles.container} testID="signup-screen">
       <View style={styles.card}>
-        <Text style={styles.title}>Sign up</Text>
-        <Text style={styles.label}>Email</Text>
+        <Text style={styles.title}>{t('authentication.sign_up')}</Text>
+        <Text style={styles.label}>{t('authentication.email')}</Text>
         <TextInput
           autoCapitalize="none"
           autoCorrect={false}
@@ -153,7 +165,7 @@ export function SignUpScreen({ onSwitchToLogin }: SignUpScreenProps) {
           testID="signup-email"
           value={email}
         />
-        <Text style={styles.label}>Password</Text>
+        <Text style={styles.label}>{t('authentication.password')}</Text>
         <TextInput
           autoCapitalize="none"
           autoCorrect={false}
@@ -163,7 +175,7 @@ export function SignUpScreen({ onSwitchToLogin }: SignUpScreenProps) {
           testID="signup-password"
           value={password}
         />
-        <Text style={styles.label}>Confirm password</Text>
+        <Text style={styles.label}>{t('authentication.confirm_password')}</Text>
         <TextInput
           autoCapitalize="none"
           autoCorrect={false}
@@ -182,7 +194,9 @@ export function SignUpScreen({ onSwitchToLogin }: SignUpScreenProps) {
           style={styles.button}
           testID="signup-submit"
         >
-          <Text style={styles.buttonText}>{isLoading ? 'Loading...' : 'Create account'}</Text>
+          <Text style={styles.buttonText}>
+            {isLoading ? t('misc.loading') : t('authentication.create_account')}
+          </Text>
         </Pressable>
         {error !== null ? (
           <Text style={styles.error} testID="signup-error">
@@ -200,7 +214,9 @@ export function SignUpScreen({ onSwitchToLogin }: SignUpScreenProps) {
           style={styles.button}
           testID="auth-switch-login"
         >
-          <Text style={styles.buttonText}>Already have an account? Log in</Text>
+          <Text style={styles.buttonText}>
+            {t('authentication.already_have_an_account_log_in')}
+          </Text>
         </Pressable>
       </View>
     </View>

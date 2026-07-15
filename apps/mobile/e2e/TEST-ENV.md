@@ -61,6 +61,10 @@ Step **5.20** client URL wiring is in place for E2E dev-server startup:
 - `make local_env_setup` now generates `apps/mobile/.env` from `apps/mobile/.env.example`
 - Helper command: `npm run mobile:dev:e2e` still exports both vars as E2E overrides before `expo start`
 
+`make local_env_setup` can derive day-to-day local API URLs from shared `LOCAL_API_*` values (often
+`localhost:3000`). For API-backed Maestro, use `mobile:dev:e2e` so the runtime env is explicitly
+overridden to the E2E API (`:4230/api/v2`) regardless of what `.env` contains.
+
 The app resolves base URL via `Platform.select` (`ios` localhost, `android` 10.0.2.2) and stays
 nullable when variables are unset so UI-only flows remain valid.
 

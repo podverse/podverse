@@ -141,7 +141,7 @@ Enforced by ESLint; fix with `npm run lint:fix`. Styles (CSS/SCSS) go last in co
 - When styles differ between apps, **converge on the web app’s existing baseline** unless there is a documented accessibility or product reason; express app differences with props (`variant`, `appearance`, etc.).
 - When deduplicating or promoting UI from one app to shared code, follow [`ui-component-promotion`](.cursor/skills/ui-component-promotion/SKILL.md) (inventory → api → `packages/ui` → export → thin app wrappers → tests).
 - Rule reference: [`.cursor/rules/prefer-shared-ui-web-management.mdc`](.cursor/rules/prefer-shared-ui-web-management.mdc). Skills: [`reusable-components`](.cursor/skills/reusable-components/SKILL.md), [`ui-component-promotion`](.cursor/skills/ui-component-promotion/SKILL.md).
-- **i18n:** Do not embed user-facing copy in `@podverse/ui`; apps localize and pass strings (see [`shared-ui-i18n`](.cursor/rules/shared-ui-i18n.mdc)).
+- **i18n:** Do not embed user-facing copy in `@podverse/ui`; apps localize and pass strings (see [`shared-ui-i18n`](.cursor/rules/shared-ui-i18n.mdc)). All user-facing strings on web, management-web, and mobile must resolve through i18n (see [`i18n-user-facing-strings`](.cursor/rules/i18n-user-facing-strings.mdc)).
 - **Repeated identical wiring:** If the same `@podverse/ui` + localization pattern appears twice or more in one app, use a thin app-local wrapper (see [`reusable-components`](.cursor/skills/reusable-components/SKILL.md)).
 
 ### ESM and import type
@@ -267,6 +267,7 @@ logger.error('Feed parsing failed', { error, feedUrl });
 
 ### i18n / Translations
 
+- ❌ Hardcode user-facing UI strings in `apps/web`, `apps/management-web`, or `apps/mobile` (use catalog + `t()`; see [`i18n-user-facing-strings`](.cursor/rules/i18n-user-facing-strings.mdc))
 - ❌ Modify files in `i18n/compiled/` (generated at build time, not committed)
 - ❌ Add locales without updating all sync points (see `docs/localization/I18N.md`)
 - ❌ Use empty strings in catalog `originals/` (use override files for blanks)

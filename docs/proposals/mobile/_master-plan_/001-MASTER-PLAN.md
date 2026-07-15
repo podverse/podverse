@@ -499,6 +499,7 @@ Track 3 is complete when all of the following are true:
 17.11. Migrate web consumer namespaces to `consumer/`; web imports compiled merge. Model: Codex 5.3. Detail: [480-i18n-migrate-consumer-web](/docs/proposals/mobile/_master-plan_/details/480-i18n-migrate-consumer-web.md) — done
 17.12. Migrate management namespaces to `management/`; management-web imports compiled merge. Model: Codex 5.3. Detail: [481-i18n-migrate-management](/docs/proposals/mobile/_master-plan_/details/481-i18n-migrate-management.md) — done
 17.13. Mobile bundles merged `shared+consumer+mobile` JSON via i18next (replaces copy step). Model: Codex 5.3. Detail: [482-i18n-mobile-catalog-import](/docs/proposals/mobile/_master-plan_/details/482-i18n-mobile-catalog-import.md) — done
+17.14. Localize product screens (auth + nav titles) beyond 17.4’s single-screen demo; reuse `authentication.*` / `features.*` + mobile overlay; wire account locale override. Model: Codex 5.3. Detail: [484-i18n-product-screen-localization](/docs/proposals/mobile/_master-plan_/details/484-i18n-product-screen-localization.md) — done
 
 ## Track 18 — Multi-device targets
 
@@ -915,6 +916,7 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 480-i18n-migrate-consumer-web          | 17.11      | 480-i18n-migrate-consumer-web          | Codex 5.3 | done    |
 | 481-i18n-migrate-management            | 17.12      | 481-i18n-migrate-management            | Codex 5.3 | done    |
 | 482-i18n-mobile-catalog-import         | 17.13      | 482-i18n-mobile-catalog-import         | Codex 5.3 | done    |
+| 484-i18n-product-screen-localization   | 17.14      | 484-i18n-product-screen-localization   | Codex 5.3 | done    |
 | 510-device-matrix-doc                  | 18.1       | 510-device-matrix-doc                  | Auto      | _TBD_   |
 | 511-tablet-home-grid                   | 18.2       | 511-tablet-home-grid                   | Codex 5.3 | _TBD_   |
 | 512-tablet-split-detail                | 18.3       | 512-tablet-split-detail                | Codex 5.3 | _TBD_   |
@@ -1002,7 +1004,7 @@ track’s band** (or open a new band). Slug remains descriptive (`232-theme-prov
 | 220–237        | 7             | nav shell, themes                      |
 | 240–287        | 8–9           | home, browse                           |
 | 310–399        | 10–12         | queue, player, car                     |
-| 430–483        | 13–17         | downloads, push, links, settings, i18n |
+| 430–484        | 13–17         | downloads, push, links, settings, i18n |
 | 510–589        | 18–21         | multi-device, IAP, FOSS, deferrals     |
 | **590+**       | _future_      | Next band when a track’s range is full |
 
