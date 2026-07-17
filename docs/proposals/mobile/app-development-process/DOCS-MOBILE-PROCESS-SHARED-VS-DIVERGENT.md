@@ -22,7 +22,8 @@ foundation first: [DOCS-MOBILE-PROCESS-OVERVIEW.md](DOCS-MOBILE-PROCESS-OVERVIEW
 | API client                    | `ApiRequestService`, `req*` (`packages/helpers-requests/src/api/_request.ts`) | Same class, `AuthContext { mode: 'bearer' }`                 | Full                                      |
 | DTOs / validation             | `@podverse/helpers`, `@podverse/helpers-validation/client`                    | Same imports                                                 | Full                                      |
 | i18n strings                  | `packages/i18n-catalog/{shared,consumer}/originals/`; `next-intl`             | Same catalog merge via `packages/i18n-catalog`; i18next/expo | Strings reused; runtime differs           |
-| UI themes / design tokens     | `@podverse/ui` SCSS + `[data-ui-theme]`; cookie `uit`                         | `@podverse/design-tokens` + `ThemeProvider`; MMKV `uit`      | Same theme IDs + token values; UI rebuild |
+| UI themes / design tokens     | `@podverse/ui` SCSS + `[data-ui-theme]`; cookie `uit`                         | `@podverse/design-tokens` + `ThemeProvider`; AsyncStorage `uit` | Same theme IDs + token values; UI rebuild |
+| Visual primitives / polish    | `@podverse/ui` components + SCSS                                              | Shared RN primitives now; pixel polish later                     | Tokens shared; components rebuilt         |
 | Channel / item / episode load | `reqChannelGet*`, `reqItemGet*`                                               | Same wrappers                                                | Full                                      |
 | Search                        | `reqPodcastIndexSearchPodcasts` (`externalServices`)                          | Same                                                         | Full                                      |
 | Playlists CRUD + resources    | `playlist/*` wrappers; `apps/web/src/app/playlist*`                           | Same wrappers; native UI                                     | API full                                  |
@@ -33,11 +34,11 @@ foundation first: [DOCS-MOBILE-PROCESS-OVERVIEW.md](DOCS-MOBILE-PROCESS-OVERVIEW
 | Stats tracking                | `reqStats*` (`stats`)                                                         | Same wrappers                                                | Full                                      |
 | Membership / checkout         | PayPal pages `apps/web/src/app/checkout`, `membership`                        | IAP or in-app browser                                        | API partial; UI rebuild                   |
 | Notifications                 | Web Push; `apps/web/src/contexts/Notifications.tsx`                           | FCM/APNs; `account/fcm/*`                                    | New transport; device API exists          |
-| Downloads / offline           | Browser download (`<a download>`)                                             | Native download manager + file storage                       | Rebuild                                   |
-| Local settings                | Cookie (`apps/web/src/utils/localSettings/`)                                  | AsyncStorage/MMKV                                            | Rebuild; sync prefs to server             |
+| Downloads / offline           | Browser download (`<a download>`)                                             | Offline-first DB + native download manager + files           | Rebuild                                   |
+| Local settings                | Cookie (`apps/web/src/utils/localSettings/`)                                  | AsyncStorage/MMKV for prefs; app data in local DB            | Rebuild; sync prefs to server             |
 | Deep links / routing          | Next routes (`apps/web/src/app/`)                                             | Universal/app links to same IDs                              | Rebuild mapping                           |
 | V4V / boosts                  | `@podverse/v4v-*`; `metaboost` route                                          | Same packages; native LN provider                            | Logic reused                              |
-| Add-by-RSS                    | `apps/web/src/app/add-by-rss/` + context                                      | Same add-by-rss queue APIs; native UI                        | API reused                                |
+| Add-by-RSS                    | Server parse + poll; `@podverse/parser-mapping` + IndexedDB                   | Same parse/poll APIs; adopt `parser-mapping`; local DB       | API + mapping shared; storage differs     |
 | Livestream                    | `video.js` (`MediaPlayerControllerLiveStream*`)                               | Native HLS (deferred)                                        | Rebuild later                             |
 
 ## 3. Endpoint reuse catalog
@@ -75,16 +76,43 @@ API route modules in `apps/api/src/routes/` map almost 1:1 to typed wrappers in
 | ------------------------------------------------------ | ---------------------------------------------------------- |
 | `@podverse/helpers`                                    | `@podverse/ui`                                             |
 | `@podverse/helpers-requests`                           | `@podverse/orm`                                            |
-| `@podverse/http-request-core`                          | `@podverse/parser`                                         |
+| `@podverse/http-request-core`                          | `@podverse/parser` (server/worker only — fetches + parses) |
 | `@podverse/helpers-validation/client`                  | `@podverse/mq`                                             |
-| `@podverse/playback-core` (proposed)                   | `@podverse/helpers-backend`                                |
-| `@podverse/parser-mapping`                             | `@podverse/helpers-browser`                                |
+| `@podverse/playback-core`                              | `@podverse/helpers-backend`                                |
+| `@podverse/parser-mapping` (post-parse client mapping) | `@podverse/helpers-browser`                                |
 | `@podverse/v4v-helpers`, `v4v-metaboost`, `v4v-btc-ln` | `@podverse/helpers-config`                                 |
-| —                                                      | `@podverse/observability`, `@podverse/external-services-*` |
+| `@podverse/design-tokens`                              | `@podverse/observability`, `@podverse/external-services-*` |
 
 Detail and reasons: see
 [DOCS-MOBILE-MONOREPO-CURRENT-STATE.md](/docs/proposals/mobile/monorepo-llm-setup/DOCS-MOBILE-MONOREPO-CURRENT-STATE.md)
 section 3.
+
+## 4.1 Add-by-RSS: server-side parse, client-side mapping
+
+Neither web nor mobile parses RSS XML in the client. Both use the same async API:
+
+1. `POST /account/follow/add-by-rss-channel` (follow)
+2. `POST /account/add-by-rss/parse` → `{ request_id }`
+3. Poll `GET /account/add-by-rss/parse/status/:request_id` until `parsed` / `not_modified` /
+   `failed`
+
+A **worker** runs `@podverse/parser` (`parseRSSFeedForAddByRSS` → `podverse-partytime`). The API
+returns a `FeedObject` payload in the cache entry.
+
+**After parse:**
+
+| Surface | Post-parse work                                                              | Local storage                                      |
+| ------- | ---------------------------------------------------------------------------- | -------------------------------------------------- |
+| Web     | `@podverse/parser-mapping` `convertParsedRSSFeedToCompat` + item index       | IndexedDB (`apps/web/src/utils/addByRSS/storage`)  |
+| Mobile  | Should adopt the same `parser-mapping` pipeline (today: slim `items[0]` only) | Offline-first local DB (see data-layer decision)   |
+
+Add-by-RSS items are **not** ORM entities. They use parallel types (`AddByRSSResourceData`,
+`AddByRSSMappedFeed`, `add_by_rss_hash_id`) because they lack DB channel/item IDs — that is why
+web has dedicated AddByRSS "core" components. Mobile should mirror those types via
+`@podverse/parser-mapping` + helpers DTOs, not invent a second model.
+
+Do **not** import `@podverse/parser` in mobile (Node/ORM deps). Do import
+`@podverse/parser-mapping` for post-parse mapping (browser/mobile-safe).
 
 ## 5. Data loading pattern comparison
 
@@ -107,10 +135,16 @@ When implementing a mobile screen:
 
 1. **Read the web page context + hooks first** (e.g. `apps/web/src/app/<route>/*Context.tsx`) to
    learn which `req*` calls and DTOs it uses.
-2. **Reuse the same `req*` wrappers** from `@podverse/helpers-requests`.
+2. **Reuse the same `req*` wrappers** from `@podverse/helpers-requests` — but screens/hooks should
+   read through **repositories** (offline-first data layer), not call `req*` directly. See
+   [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md).
 3. **Do not port** SCSS, `@podverse/ui` components, Next.js routing, or SSR patterns.
 4. **Use bearer auth**, never cookie/`withCredentials`.
 5. **Match behavior** (sort defaults, pagination, tab data) even when the UI looks native.
+6. **Add-by-RSS:** use the server parse + poll APIs; map with `@podverse/parser-mapping`; never
+   parse RSS XML in the app.
+7. **Visual:** prefer shared RN primitives + tokens; defer pixel polish — see
+   [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](DOCS-MOBILE-PROCESS-VISUAL-PARITY.md).
 
 ## 7. Gaps requiring API work
 

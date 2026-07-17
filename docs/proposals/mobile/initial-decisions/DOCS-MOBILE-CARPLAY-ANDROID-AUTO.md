@@ -40,8 +40,10 @@ menus driven by a long-lived service — independent of whether your UI/Activity
   supplies the browse tree (your podcasts, episodes, queue) and handles play/pause/seek/skip.
 - Because it is a foreground media service, the system keeps it alive while audio plays, and can
   start it on demand. **The phone UI never needs to be open.**
-- `react-native-track-player` is built on exactly this (it ships an Android playback service) and
-  has Android Auto support. For a rich, custom browse tree you extend the native service.
+- Industry apps often use a Media3-backed playback service for this contract. **Podverse does not
+  use `react-native-track-player`.** Use first-party **`podverse-media-engine`** (Media3 ExoPlayer +
+  foreground session on Android; AVPlayer on iOS) and extend the native service for a custom browse
+  tree.
 
 ### CarPlay (iOS)
 
@@ -98,13 +100,15 @@ flowchart TD
 This keeps the native code to a **small, stable surface** (a service + a scene + a cache contract)
 while everything else stays shared TypeScript.
 
-## Will `react-native-track-player` alone be enough?
+## Will a third-party RN player alone be enough?
 
-- **For background audio + lock screen + basic Android Auto:** largely yes, and it is the right
-  baseline. It already runs a native service and integrates with the media session.
-- **For a polished, custom CarPlay browse experience and offline-capable car menus:** plan to write
-  **some native Swift/Kotlin** on top of it. Treat the library as the foundation, not the whole
-  solution. Budget engineering time for the native car layer explicitly.
+- **Podverse decision:** do **not** use `react-native-track-player`. Use first-party
+  **`podverse-media-engine`** (AVPlayer / Media3 ExoPlayer + session) as the single audio engine for
+  phone UI, lock screen, and car now-playing.
+- **For a polished, custom CarPlay browse experience and offline-capable car menus:** still plan
+  **native Swift/Kotlin** browse templates/services that read the **native cache** (projected from
+  JS repositories). The engine owns transport; the car layer owns browse trees when JS is dead.
+  Budget engineering time for that native car layer explicitly (Track 12).
 
 ## The honest "two apps?" question
 

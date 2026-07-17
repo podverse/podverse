@@ -31,6 +31,31 @@
 | Store identity    | Separate `.next` app id vs internal track on existing | Separate app id                    |
 | E2E framework     | Maestro vs Detox                                      | **Maestro chosen** (PG-3)          |
 | Watch/TV v1 scope | v1 vs post-MVP                                        | Phone+tablet v1; watch v1.1; TV v2 |
+| Offline data      | Offline-first SQLite vs cache-later                   | **Offline-first** (expo-sqlite + Drizzle) — see [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md) |
+| Visual polish     | Polish now vs primitives now + polish later           | **Primitives now; pixel polish later** — see [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md) |
+
+## Current status / next up (2026-07)
+
+| Parallel group | Status | Notes |
+| -------------- | ------ | ----- |
+| PG-0 … PG-4    | **done** | Foundation, playback-core, hello-world, media-engine **audio** spike, CI/E2E, auth, nav, themes |
+| PG-6 (Tracks 8–9) | **done** | Home, browse/content screens, add-by-RSS (server parse + slim preview); play stubs except add-by-RSS |
+| PG-5 (Track 2 video) | **not started** | Video surface reparenting (2.14+) — after audio player UI |
+| **PG-6.5 (Track 9b)** | **next** | Offline-first data layer + add-by-RSS `parser-mapping` + shared visual primitives |
+| **PG-7 (Tracks 10–11)** | **next after 9b** | Queue + playback parity + mini/full player — **audio-first**; replace home/clip play stubs |
+| PG-8+ | later | Car, downloads (files), push, multi-device, IAP, release train |
+
+### Recommended next build sequence
+
+1. **Track 9b — Offline-first data layer** (SQLite + repository seam; account + queue repos first;
+   add-by-RSS `parser-mapping` into DB).
+2. **PG-7 audio-first** — Tracks 10–11: wire `@podverse/playback-core` + native audio bridge into
+   home/clip/library play actions; build real mini + full player; replace
+   `useHomeRowPlaybackStub` / `useClipPlaybackStub`.
+3. **Visual primitives in parallel** (9b.6–9b.7) while doing PG-7 — not a full polish pass.
+4. **Later:** Track 2 video surfaces, Track 13 episode file downloads, Track 12 car, push.
+
+Do **not** start a full look-and-feel polish phase before 9b + audio PG-7.
 
 ## Parallel groups (implementation order)
 
@@ -42,11 +67,12 @@
 | PG-2b | 2 spike (2.1–2.13, 2.34, 2.35 contract)              | 3, 4, 5              | 0, 1 recommended                                                                 |
 | PG-3  | 4, 5                                                 | each other           | 3 hello-world; **5.17–5.20** API+DB harness before 6.11/6.12                     |
 | PG-4  | 6, 7                                                 | each other           | 3, 5 (incl. **5.17–5.20** `done` before auth Maestro); **0.20** before 7.11–7.16 |
-| PG-5  | 2 full (2.14–2.34 remainder; 2.35 storage if needed) | 8, 9                 | 2 spike, 1                                                                       |
+| PG-5  | 2 full (2.14–2.34 remainder; 2.35 storage if needed) | after PG-7 audio     | 2 spike, 1; prefer after mini/full player audio shell                            |
 | PG-6  | 8, 9                                                 | each other           | 6, 7; **7.11–7.15** theme scaffold `done`                                        |
-| PG-7  | 10, 11                                               | each other           | 1, 2, 6                                                                          |
+| PG-6.5 | 9b (data layer + RSS mapping + primitives)         | 9b.6–9b.7 with PG-7  | PG-6; **before** Track 10 queue store                                            |
+| PG-7  | 10, 11 (audio-first)                                 | 9b.6–9b.7            | 1, 2 spike, 6, **9b.1–9b.4** (DB + queue repo)                                 |
 | PG-8  | 12                                                   | 13, 14, 15           | 2, 10                                                                            |
-| PG-9  | 13, 14, 15, 16, 17                                   | each other (mostly)  | 6, 10 varies                                                                     |
+| PG-9  | 13, 14, 15, 16, 17                                   | each other (mostly)  | 6, 10 varies; **9b** for downloads metadata rows                                 |
 | PG-10 | 18                                                   | 19, 20               | 7, 11                                                                            |
 | PG-11 | 19, 20, 21                                           | each other           | MVP feature-complete                                                             |
 | PG-12 | 22                                                   | —                    | 4, PG-11                                                                         |
@@ -62,7 +88,9 @@ flowchart TB
   T6 --> T7[Track 7 nav]
   T7 --> T8[Track 8 home]
   T7 --> T9[Track 9 screens]
-  T2 --> T10[Track 10 queue]
+  T9 --> T9b[Track 9b data layer]
+  T9b --> T10[Track 10 queue]
+  T2 --> T10
   T10 --> T11[Track 11 player]
   T2 --> T12[Track 12 car]
   T10 --> T13[Tracks 13-17 mobile-only]
@@ -366,7 +394,7 @@ detail doc's **Web parity references**.
 9.17. More — settings screen entry (detailed prefs in Track 16). Model: Auto. Detail: [276-more-settings-entry](/docs/proposals/mobile/_master-plan_/details/276-more-settings-entry.md) — done
 9.18. RSS tab — Add-by-RSS main screen mirroring web `/add-by-rss` UX (native simplified). Model: Codex 5.3. Detail: [277-rss-add-by-rss-screen](/docs/proposals/mobile/_master-plan_/details/277-rss-add-by-rss-screen.md) — done
 9.19. RSS tab — feed URL input, validation, and add-by-rss queue resource mutations. Model: Codex 5.3. Detail: [278-rss-feed-add-flow](/docs/proposals/mobile/_master-plan_/details/278-rss-feed-add-flow.md) — done
-9.20. RSS tab — list of added RSS feeds from local/RN state mirroring web AddByRSSList context. Model: Codex 5.3. Detail: [279-rss-feed-list](/docs/proposals/mobile/_master-plan_/details/279-rss-feed-list.md) — done
+9.20. RSS tab — list of added RSS feeds (local list; migrate to offline DB in Track 9b.5). Model: Codex 5.3. Detail: [279-rss-feed-list](/docs/proposals/mobile/_master-plan_/details/279-rss-feed-list.md) — done
 9.21. RSS tab — play add-by-rss resource using `PlaybackTarget.kind` add-by-rss policy. Model: Opus 4.8. Detail: [280-rss-play-add-by-rss](/docs/proposals/mobile/_master-plan_/details/280-rss-play-add-by-rss.md) — done
 9.22. More/ Library — OPML import entry point button (implementation Track 16). Model: Auto. Detail: [281-opml-import-entry-ui](/docs/proposals/mobile/_master-plan_/details/281-opml-import-entry-ui.md) — done
 9.23. More/ Library — OPML export entry point button (implementation Track 16). Model: Auto. Detail: [282-opml-export-entry-ui](/docs/proposals/mobile/_master-plan_/details/282-opml-export-entry-ui.md) — done
@@ -377,7 +405,35 @@ detail doc's **Web parity references**.
 9.28. Document web→mobile screen map table in master plan appendix reference. Model: Auto. Detail: [287-screen-map-appendix-ref](/docs/proposals/mobile/_master-plan_/details/287-screen-map-appendix-ref.md) — done
 9.29. E2E: add-by-RSS play against test-assets (2111) + assert playback. Model: Codex 5.3. Detail: [288-e2e-addbyrss-playback-test-assets](/docs/proposals/mobile/_master-plan_/details/288-e2e-addbyrss-playback-test-assets.md) — done
 
+## Track 9b — Offline-first data layer, add-by-RSS mapping, visual primitives
+
+**Decision docs:**
+[DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md),
+[DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md),
+[shared-vs-divergent §4.1](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md).
+
+**Parallel group:** PG-6.5. **Required before** Track 10 queue store (9b.1–9b.4). Primitives
+(9b.6–9b.7) may run in parallel with PG-7.
+
+**Native cache:** Repositories that own queue / downloads / library index must call native-cache
+**projection hooks** on mutation (stubs OK until Track 12). SQLite is phone-UI-only; car and watch
+read the native cache — see
+[DOCS-MOBILE-DATA-LAYER-OFFLINE.md §7.1](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md).
+
+9b.1. Scaffold expo-sqlite + Drizzle under `apps/mobile/src/data/db/` with migrations. Model: Opus 4.8. Detail: [490-data-layer-db-scaffold](/docs/proposals/mobile/_master-plan_/details/490-data-layer-db-scaffold.md) — planned
+9b.2. Repository + sync seam: screens read repositories, not `req*` directly; define native-cache projection call sites. Model: Opus 4.8. Detail: [491-data-layer-repository-seam](/docs/proposals/mobile/_master-plan_/details/491-data-layer-repository-seam.md) — planned
+9b.3. Account/session snapshot repository (tokens stay in SecureStore). Model: Codex 5.3. Detail: [492-data-layer-account-repo](/docs/proposals/mobile/_master-plan_/details/492-data-layer-account-repo.md) — planned
+9b.4. Queue / now-playing / history repository; migrate library queue hooks; project queue snapshot to native cache (stubs OK). Model: Opus 4.8. Detail: [493-data-layer-queue-repo](/docs/proposals/mobile/_master-plan_/details/493-data-layer-queue-repo.md) — planned
+9b.5. Add-by-RSS: adopt `@podverse/parser-mapping` post-parse; persist feeds/items in SQLite. Model: Opus 4.8. Detail: [494-data-layer-add-by-rss-parser-mapping](/docs/proposals/mobile/_master-plan_/details/494-data-layer-add-by-rss-parser-mapping.md) — planned
+9b.6. Shared visual primitives: Button, Card, ListRow, ScreenHeader + spacing/typography. Model: Codex 5.3. Detail: [495-visual-primitives-scaffold](/docs/proposals/mobile/_master-plan_/details/495-visual-primitives-scaffold.md) — planned
+9b.7. Opportunistic migrate Home/Search/Library rows to primitives (not full polish). Model: Codex 5.3. Detail: [496-visual-primitives-migrate-opportunistic](/docs/proposals/mobile/_master-plan_/details/496-visual-primitives-migrate-opportunistic.md) — planned
+
 ## Track 10 — Queue, auto-queue, playlists, history parity
+
+**Prerequisite:** Track 9b.1–9b.4 (offline-first queue repository). Queue/now-playing/history state
+flows through repositories — see
+[DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md).
+**Audio-first:** wire native audio bridge; video surface work stays Track 2 / Track 11 video steps.
 
 10.1. Implement queue store mirroring web `QueuesProvider` boundaries. Model: Opus 4.8. Detail: [310-queue-store](/docs/proposals/mobile/_master-plan_/details/310-queue-store.md) — _TBD_
 10.2. On launch fetch all queues + abridged index (same wrappers as web SSR bootstrap). Model: Opus 4.8. Detail: [311-queue-launch-hydration](/docs/proposals/mobile/_master-plan_/details/311-queue-launch-hydration.md) — _TBD_
@@ -450,7 +506,10 @@ detail doc's **Web parity references**.
 12.20. Update abcmemory rule: car surfaces are native-only, not JS track-player browse. Model: Codex 5.3. Detail: [399-abcmemory-car-native-only](/docs/proposals/mobile/_master-plan_/details/399-abcmemory-car-native-only.md) — _TBD_
 12.21. Parallel worktree: car native module (`ios/`, `android/`) isolated from RN UI worktrees. Model: Auto. Detail: [400-car-parallel-worktree](/docs/proposals/mobile/_master-plan_/details/400-car-parallel-worktree.md) — _TBD_
 
-## Track 13 — Offline downloads
+## Track 13 — Offline downloads (episode files)
+
+**Prerequisite:** Track 9b offline-first data layer. This track is **enclosure file** downloads on
+disk + download index rows in the same SQLite DB — not a substitute for the metadata/data layer.
 
 13.1. Design download job queue module (native or RN background task). Model: Opus 4.8. Detail: [430-download-queue-design](/docs/proposals/mobile/_master-plan_/details/430-download-queue-design.md) — _TBD_
 13.2. Choose storage: Expo FileSystem + background download or native download manager. Model: Codex 5.3. Detail: [431-download-storage-choice](/docs/proposals/mobile/_master-plan_/details/431-download-storage-choice.md) — _TBD_
@@ -516,6 +575,12 @@ detail doc's **Web parity references**.
 
 ## Track 18 — Multi-device targets
 
+**Storage note:** Tablets share the phone app process — they use the same SQLite repositories as
+phone. **Watches do not read SQLite.** Wear OS / Apple Watch now-playing complications and remote
+controls consume **MediaSession / native cache** (or a phone bridge), the same projection path as
+CarPlay / Android Auto. See
+[DOCS-MOBILE-DATA-LAYER-OFFLINE.md §7.1](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md).
+
 18.1. Document device matrix: phone (primary), tablet, watch, TV (Android TV / tvOS). Model: Auto. Detail: [510-device-matrix-doc](/docs/proposals/mobile/_master-plan_/details/510-device-matrix-doc.md) — _TBD_
 18.2. Tablet: responsive breakpoints for Home grid and browse lists (2-column+). Model: Codex 5.3. Detail: [511-tablet-home-grid](/docs/proposals/mobile/_master-plan_/details/511-tablet-home-grid.md) — _TBD_
 18.3. Tablet: split view optional for podcast detail + episode list side-by-side. Model: Codex 5.3. Detail: [512-tablet-split-detail](/docs/proposals/mobile/_master-plan_/details/512-tablet-split-detail.md) — _TBD_
@@ -523,7 +588,7 @@ detail doc's **Web parity references**.
 18.5. Tablet E2E: screenshot Home and podcast detail at tablet viewport. Model: Codex 5.3. Detail: [514-e2e-tablet-screenshots](/docs/proposals/mobile/_master-plan_/details/514-e2e-tablet-screenshots.md) — _TBD_
 18.6. Watch (Wear OS): scope decision — remote control only vs standalone player. Model: Opus 4.8. Detail: [520-watch-scope-decision](/docs/proposals/mobile/_master-plan_/details/520-watch-scope-decision.md) — _TBD_
 18.7. Watch: MediaSession remote commands from phone engine (play/pause/skip). Model: Opus 4.8. Detail: [521-watch-remote-commands](/docs/proposals/mobile/_master-plan_/details/521-watch-remote-commands.md) — _TBD_
-18.8. Watch: now-playing complication data from native cache or phone bridge. Model: Opus 4.8. Detail: [522-watch-now-playing-complication](/docs/proposals/mobile/_master-plan_/details/522-watch-now-playing-complication.md) — _TBD_
+18.8. Watch: now-playing complication from **native cache** (not SQLite) or MediaSession phone bridge. Model: Opus 4.8. Detail: [522-watch-now-playing-complication](/docs/proposals/mobile/_master-plan_/details/522-watch-now-playing-complication.md) — _TBD_
 18.9. Watch: document Apple Watch as post-v1 deferral if Wear-only v1. Model: Auto. Detail: [523-watch-apple-deferral](/docs/proposals/mobile/_master-plan_/details/523-watch-apple-deferral.md) — _TBD_
 18.10. TV (Android TV): leanback launcher entry and banner assets. Model: Codex 5.3. Detail: [530-tv-leanback-launcher](/docs/proposals/mobile/_master-plan_/details/530-tv-leanback-launcher.md) — _TBD_
 18.11. TV: D-pad focus navigation for Home rows and browse lists. Model: Codex 5.3. Detail: [531-tv-dpad-navigation](/docs/proposals/mobile/_master-plan_/details/531-tv-dpad-navigation.md) — _TBD_

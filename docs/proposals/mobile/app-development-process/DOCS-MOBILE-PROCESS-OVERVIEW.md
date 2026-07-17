@@ -8,8 +8,11 @@ The sibling Track B docs build on this one:
 [shared-vs-divergent](DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md),
 [playback-queue-parity](DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md),
 [mobile-only-features](DOCS-MOBILE-PROCESS-MOBILE-ONLY-FEATURES.md),
+[visual-parity](DOCS-MOBILE-PROCESS-VISUAL-PARITY.md),
 [roadmap](DOCS-MOBILE-PROCESS-ROADMAP.md). Tooling/setup lives in the Track A docs under
 [monorepo-llm-setup](/docs/proposals/mobile/monorepo-llm-setup/DOCS-MOBILE-MONOREPO-CURRENT-STATE.md).
+Offline data layer decision:
+[DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md).
 
 ## 1. Purpose and principles
 
@@ -22,6 +25,13 @@ The sibling Track B docs build on this one:
   and decisions; do **not** port `@podverse/ui` components or SCSS.
 - **Bearer auth, secure storage.** Mobile authenticates with bearer tokens, not cookies (see
   [API-CLIENT-BOUNDARIES.md](/docs/development/API-CLIENT-BOUNDARIES.md)).
+- **Offline-first data.** Screens and hooks read through **repositories** backed by a local DB;
+  the API syncs in the background. See
+  [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md).
+- **Add-by-RSS: server-side parse, client-side mapping.** Neither web nor mobile parses RSS XML in
+  the client. Both call `POST /account/add-by-rss/parse` and poll status; a worker runs
+  `@podverse/parser`. Clients then map with `@podverse/parser-mapping` (browser/mobile-safe) and
+  store locally (web: IndexedDB; mobile: offline DB). Do not import `@podverse/parser` in mobile.
 
 ## 2. Assumed stack
 
@@ -40,23 +50,29 @@ The sibling Track B docs build on this one:
 flowchart TB
   subgraph mobile [apps/mobile]
     Screens[Screens and navigation]
+    Repos[Repositories data layer]
     Hooks[RN hooks and state]
     Bridge[Native playback bridge]
     Native[Native services audio, car, downloads, push]
+    LocalDB[(Local SQLite DB)]
   end
   subgraph shared [Shared packages]
     HC[helpers DTOs and enums]
     HR[helpers-requests req wrappers]
-    PC[playback-core proposed]
+    PC[playback-core]
     HV[helpers-validation client]
+    PM[parser-mapping]
   end
   subgraph backend [apps/api]
     API[REST routes]
   end
   Screens --> Hooks
-  Hooks --> HR
+  Hooks --> Repos
+  Repos --> LocalDB
+  Repos --> HR
   Hooks --> PC
   Hooks --> HV
+  Hooks --> PM
   HR --> API
   Bridge --> Hooks
   Bridge --> Native
@@ -96,7 +112,7 @@ Web routes live under `apps/web/src/app/` (e.g. `podcast/`, `episode/`, `search/
 | `/queues`                      | Queue                        | `reqQueue*` now-playing + upcoming               | `apps/web/src/app/queues/QueuesPageClient.tsx`                                                                         |
 | `/history`                     | History                      | history-paginated queue resources                | `apps/web/src/app/history/HistoryPageClient.tsx`                                                                       |
 | `/clip/[id]`, `/my-clips`      | Clip detail / My clips       | `reqClip*`                                       | `apps/web/src/app/clip/[clip_id]/ClipPageClient.tsx`, `apps/web/src/app/my-clips/MyClipsPageClient.tsx`                |
-| `/add-by-rss`                  | Add-by-RSS                   | add-by-rss account parse/follow APIs             | `apps/web/src/app/add-by-rss/**`, `apps/web/src/components/AddByRSS/**`                                                |
+| `/add-by-rss`                  | Add-by-RSS                   | parse/poll APIs + parser-mapping + local DB  | `apps/web/src/app/add-by-rss/**`, `apps/web/src/components/AddByRSS/**`                                                |
 | Global player                  | Mini player + full player    | queue + auto-queue + playback policy             | `apps/web/src/components/MediaPlayer/**`                                                                               |
 | `/settings`                    | Settings                     | account-settings APIs                            | `apps/web/src/app/settings/**`                                                                                         |
 | `/checkout`, `/membership`     | Membership (native strategy) | membership/PayPal APIs                           | `apps/web/src/app/membership/**`                                                                                       |
@@ -180,10 +196,25 @@ in Keychain/Keystore; never cookies, never `withCredentials`.
 - [DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md](DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md)
 - [DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md](DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md)
 - [DOCS-MOBILE-PROCESS-MOBILE-ONLY-FEATURES.md](DOCS-MOBILE-PROCESS-MOBILE-ONLY-FEATURES.md)
+- [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](DOCS-MOBILE-PROCESS-VISUAL-PARITY.md)
 - [DOCS-MOBILE-PROCESS-ROADMAP.md](DOCS-MOBILE-PROCESS-ROADMAP.md)
+
+## Consistency rules (data + add-by-RSS)
+
+When implementing mobile screens or hooks:
+
+1. **Read through repositories**, not `req*` directly from screens. Repositories own local DB reads
+   and background API sync
+   ([DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md)).
+2. **Add-by-RSS:** server parse + poll only; map with `@podverse/parser-mapping`; never parse XML
+   in the app; never import `@podverse/parser`.
+3. **Visual:** prefer shared RN primitives (`Card`, `ListRow`, …) + design tokens; defer pixel
+   polish to a later phase
+   ([DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](DOCS-MOBILE-PROCESS-VISUAL-PARITY.md)).
 
 ## 11. Track A (tooling) references
 
 - [DOCS-MOBILE-MONOREPO-CURRENT-STATE.md](/docs/proposals/mobile/monorepo-llm-setup/DOCS-MOBILE-MONOREPO-CURRENT-STATE.md)
 - [DOCS-MOBILE-MONOREPO-TARGET-STRUCTURE.md](/docs/proposals/mobile/monorepo-llm-setup/DOCS-MOBILE-MONOREPO-TARGET-STRUCTURE.md)
 - [DOCS-MOBILE-LLM-CURSOR-SETUP.md](/docs/proposals/mobile/monorepo-llm-setup/DOCS-MOBILE-LLM-CURSOR-SETUP.md)
+- [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md)
