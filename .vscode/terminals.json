@@ -38,14 +38,14 @@
     },
     {
       "name": "Mobile",
-      "description": "One-shots: build:packages; make mobile_e2e_deps; make mobile_e2e_seed; mobile:e2e:api:health; open reports. Not for Metro/API (those block).",
+      "description": "One-shots: build:packages; make mobile_e2e_deps; make mobile_e2e_seed; mobile:e2e:api:health; mobile:e2e:test-assets:health; open reports. Not for Metro/API/test-assets (those block).",
       "cwd": ".",
       "open": true,
       "command": "clear"
     },
     {
       "name": "Mobile Metro",
-      "description": "Leave running :8081. API-backed E2E: npm run mobile:dev:e2e. UI-only/day-to-day: npm run mobile:dev. Run only one.",
+      "description": "Leave running :8081. API-backed E2E: npm run mobile:dev:e2e. UI-only/day-to-day: npm run mobile:dev. Cache clear: npm run mobile:dev:clear. Run only one.",
       "cwd": ".",
       "open": true,
       "command": "clear"
@@ -73,8 +73,15 @@
       "command": "clear"
     },
     {
+      "name": "Mobile E2E test-assets",
+      "description": "Leave running for playback E2E: npm run mobile:e2e:test-assets (:2111, same as web). Required for add-by-rss play. Health: mobile:e2e:test-assets:health.",
+      "cwd": ".",
+      "open": true,
+      "command": "clear"
+    },
+    {
       "name": "Mobile Maestro",
-      "description": "Run then exit: npm run mobile:e2e:test [-- auth-login]. Needs Metro + installs; + E2E API for auth/api flows.",
+      "description": "Run then exit: npm run mobile:e2e:test:all (full suite) or npm run mobile:e2e:test -- <area>. Needs Metro + installs; + E2E API for API-backed / :all; + test-assets for playback flows.",
       "cwd": ".",
       "open": true,
       "command": "clear"

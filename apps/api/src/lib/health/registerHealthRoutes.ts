@@ -1,3 +1,4 @@
+import { config } from '@api/config/index.js';
 import type { IRouter, Request, Response } from 'express';
 
 import { getDataSourceRead } from '@podverse/orm';
@@ -9,7 +10,12 @@ import { testKeyvaldbConnection } from '../keyvaldb/keyvaldb.js';
  */
 export function registerHealthRoutes(router: IRouter, apiVersionBasePath: string): void {
   router.get(`${apiVersionBasePath}/health`, (_req: Request, res: Response): void => {
-    res.json({ status: 'ok', message: 'The server is running.' });
+    res.json({
+      status: 'ok',
+      message: 'The server is running.',
+      /** True when apiMobileE2e (PODVERSE_E2E_FIXTURES=1); mobile E2E runner checks this. */
+      fixturesEnabled: config.e2e.fixturesEnabled,
+    });
   });
 
   router.get(`${apiVersionBasePath}/health/ready`, async (_req: Request, res: Response) => {

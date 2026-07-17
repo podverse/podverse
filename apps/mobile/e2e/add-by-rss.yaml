@@ -1,0 +1,40 @@
+appId: com.podverse.app.next
+name: Add By RSS Flow
+---
+# Track 9.27 list happy path + 9.29 play against tools/test-assets (:2111).
+# Fixture URL matches web e2e seed constants / accountAddByRSSParse E2E payload.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- tapOn:
+    id: tab-rss
+- assertVisible:
+    id: rss-root-screen
+- takeScreenshot: add-by-rss-screen-initial
+
+- tapOn:
+    id: rss-url-input
+- inputText: https://e2e-seed-addbyrss.example/podcast.xml
+- tapOn:
+    id: rss-add-submit
+- takeScreenshot: add-by-rss-after-submit
+
+- assertVisible:
+    id: rss-feed-play-first
+- takeScreenshot: add-by-rss-feed-listed
+
+# Real media: enclosure localhost:2111 → 127.0.0.1 (iOS) / 10.0.2.2 (Android) in E2E.
+# Android often leaves the soft keyboard covering Play after URL input.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- tapOn:
+    id: rss-feed-play-first
+- extendedWaitUntil:
+    visible:
+      id: rss-playback-active
+    timeout: ${TIMEOUT_SLOWEST}
+- takeScreenshot: add-by-rss-playback-active

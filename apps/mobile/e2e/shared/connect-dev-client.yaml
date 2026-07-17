@@ -11,6 +11,15 @@ appId: com.podverse.app.next
 # Instead, wait for each obstruction before acting. All flows launch with clearState, so the
 # onboarding card + dev-menu sheet always appear.
 
+# Wait for the Dev Client launcher list to finish rendering before the one-shot URL taps
+# below. The `when: visible` guards are single snapshots; on Android the URL row can render a
+# beat after the screen appears, so without this wait the guard misses, the tap is skipped, and
+# the bundle never loads (then "Continue" never appears and the flow times out on the launcher).
+# "Development servers" is the launcher heading on both iOS and Android.
+- extendedWaitUntil:
+    visible: "Development servers"
+    timeout: ${TIMEOUT_SLOW}
+
 # Dev Client launcher: tap the Metro URL for this platform.
 - runFlow:
     when:

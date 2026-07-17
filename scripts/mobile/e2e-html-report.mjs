@@ -217,11 +217,15 @@ function collectTakeScreenshotNames(commands, into = new Set()) {
  * Maestro writes:
  * - named takeScreenshot PNGs under <slot>/screenshots/<name>.png
  * - failure dumps under the per-run dir (…/screenshot-❌-….png)
+ * When commands-*.json are flat in the slot (runDir === '.'), only attach ❌ dumps
+ * whose filename includes `(<flowTitle>)`.
  */
-function collectImagesForFlow(files, runDir, commands) {
+function collectImagesForFlow(files, runDir, commands, flowTitle) {
   const namedShots = collectTakeScreenshotNames(commands);
   const seen = new Set();
   const images = [];
+  const failureNeedle =
+    typeof flowTitle === 'string' && flowTitle.length > 0 ? `(${flowTitle})` : null;
 
   function addImage(rel) {
     const normalized = rel.split(path.sep).join('/');
@@ -231,11 +235,16 @@ function collectImagesForFlow(files, runDir, commands) {
     if (!IMAGE_EXT.has(path.extname(normalized).toLowerCase())) {
       return;
     }
+    const isFailure = normalized.includes('❌') || normalized.toLowerCase().includes('fail');
+    // Maestro writes all flows' ❌ dumps into one run dir; only keep this flow's dump.
+    if (isFailure && failureNeedle !== null && !normalized.includes(failureNeedle)) {
+      return;
+    }
     seen.add(normalized);
     images.push({
       rel: normalized,
       base: path.basename(normalized, path.extname(normalized)),
-      isFailure: normalized.includes('❌') || normalized.toLowerCase().includes('fail'),
+      isFailure,
     });
   }
 
@@ -265,13 +274,30 @@ function collectImagesForFlow(files, runDir, commands) {
   return images;
 }
 
+/**
+ * Prefer a later retry pass of the same flow title over an earlier failure.
+ * Rank: newer mtime wins; if equal, passed > timedOut > failed > other.
+ */
+function preferFlowCandidate(a, b) {
+  if (a.mtimeMs !== b.mtimeMs) {
+    return a.mtimeMs > b.mtimeMs ? a : b;
+  }
+  const rank = (status) => {
+    if (status === 'passed') return 3;
+    if (status === 'timedOut') return 1;
+    if (status === 'failed') return 0;
+    return 2;
+  };
+  return rank(a.status) >= rank(b.status) ? a : b;
+}
+
 function loadFlowsFromSlot(slotDir) {
   const files = walkFiles(slotDir);
   const commandFiles = files.filter(
     (rel) => path.basename(rel).startsWith('commands-') && rel.endsWith('.json')
   );
-  const flows = [];
-  const usedSlugs = new Set();
+  /** @type {Map<string, object>} */
+  const byTitle = new Map();
 
   for (const commandsRel of commandFiles) {
     const abs = path.join(slotDir, commandsRel);
@@ -288,8 +314,9 @@ function loadFlowsFromSlot(slotDir) {
     const runDir = path.dirname(commandsRel);
     const flowNameMatch = path.basename(commandsRel).match(/^commands-\((.+)\)\.json$/);
     const title = flowNameMatch !== null ? flowNameMatch[1] : path.basename(runDir);
+    const mtimeMs = fs.statSync(abs).mtimeMs;
 
-    const images = collectImagesForFlow(files, runDir === '.' ? '.' : runDir, commands);
+    const images = collectImagesForFlow(files, runDir === '.' ? '.' : runDir, commands, title);
 
     let flowStatus = 'passed';
     let errorMessage = '';
@@ -316,11 +343,27 @@ function loadFlowsFromSlot(slotDir) {
       });
     }
 
-    if (images.some((img) => img.isFailure) && flowStatus === 'passed') {
-      flowStatus = 'failed';
-    }
+    // Status comes only from Maestro command metadata.status. Do not flip to failed based on
+    // failure screenshots: Maestro writes commands-*.json flat in the slot dir, so runDir is
+    // "." for every flow and collectImagesForFlow would otherwise attach other flows' ❌ dumps.
 
-    let slug = slugifyFlowTitle(title);
+    const candidate = {
+      title,
+      status: flowStatus,
+      errorMessage,
+      steps,
+      images,
+      commandsRel,
+      mtimeMs,
+    };
+    const prev = byTitle.get(title);
+    byTitle.set(title, prev === undefined ? candidate : preferFlowCandidate(prev, candidate));
+  }
+
+  const flows = [];
+  const usedSlugs = new Set();
+  for (const candidate of byTitle.values()) {
+    let slug = slugifyFlowTitle(candidate.title);
     if (usedSlugs.has(slug)) {
       let n = 2;
       while (usedSlugs.has(`${slug}-${n}`)) {
@@ -331,13 +374,13 @@ function loadFlowsFromSlot(slotDir) {
     usedSlugs.add(slug);
 
     flows.push({
-      title,
+      title: candidate.title,
       slug,
-      status: flowStatus,
-      errorMessage,
-      steps,
-      images,
-      commandsRel,
+      status: candidate.status,
+      errorMessage: candidate.errorMessage,
+      steps: candidate.steps,
+      images: candidate.images,
+      commandsRel: candidate.commandsRel,
       href: `flows/${slug}/index.html`,
     });
   }
@@ -813,13 +856,19 @@ function writeFlowPages(slotDir, slot, flows) {
     fs.mkdirSync(flowDir, { recursive: true });
 
     let primaryFailureRel = null;
-    const failureImage = flow.images.find((img) => img.isFailure) ?? null;
-    if (failureImage !== null) {
-      const srcAbs = path.join(slotDir, failureImage.rel);
-      const destAbs = path.join(flowDir, 'failure.png');
-      if (fs.existsSync(srcAbs)) {
-        fs.copyFileSync(srcAbs, destAbs);
-        primaryFailureRel = 'failure.png';
+    if (flow.status === 'failed' || flow.status === 'timedOut') {
+      const flowTitleNeedle = `(${flow.title})`;
+      const failureImage =
+        flow.images.find((img) => img.isFailure && img.rel.includes(flowTitleNeedle)) ??
+        flow.images.find((img) => img.isFailure) ??
+        null;
+      if (failureImage !== null) {
+        const srcAbs = path.join(slotDir, failureImage.rel);
+        const destAbs = path.join(flowDir, 'failure.png');
+        if (fs.existsSync(srcAbs)) {
+          fs.copyFileSync(srcAbs, destAbs);
+          primaryFailureRel = 'failure.png';
+        }
       }
     }
     flow.primaryFailureRel = primaryFailureRel;

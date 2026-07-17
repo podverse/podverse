@@ -5,9 +5,7 @@ name: Hello World Smoke
 # E2E devices: "iPhone 17 Pro E2E", Pixel_6_Pro_API_33_e2e
 # Manual day-to-day: "iPhone 17 Pro", Pixel_6_Pro_API_33
 
-- launchApp:
-    clearState: true
-- runFlow: shared/connect-dev-client.yaml
+- runFlow: shared/launch-and-connect.yaml
 - assertVisible:
     id: hello-world-screen
 - assertVisible:

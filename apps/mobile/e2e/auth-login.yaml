@@ -3,13 +3,11 @@ name: Auth Login
 ---
 # Track 6.11: login screenshot flow using seeded account on API 4230.
 
-- launchApp:
-    clearState: true
-- runFlow: shared/connect-dev-client.yaml
+- runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
 
 - assertVisible:
-    id: authenticated-logout-cta
+    id: home-screen
 - assertVisible:
-    id: hello-world-screen
+    id: tab-home
 - takeScreenshot: auth-login-authenticated-shell

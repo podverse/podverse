@@ -274,6 +274,9 @@ Track 3 is complete when all of the following are true:
 5.18. Wire mobile E2E `test_deps` + reuse web `e2e_seed_web` (Make aliases; UI-only path stays light). Model: Codex 5.3. Detail: [077-e2e-api-db-seed](/docs/proposals/mobile/_master-plan_/details/077-e2e-api-db-seed.md) — done
 5.19. Long-lived mobile E2E API start/stop scripts/Make (not Playwright webServer). Model: Codex 5.3. Detail: [078-e2e-api-lifecycle](/docs/proposals/mobile/_master-plan_/details/078-e2e-api-lifecycle.md) — done
 5.20. Expo/API base URL for iOS+Android E2E hosts + docs/skills + minimal API-health Maestro smoke. Model: Codex 5.3. Detail: [079-e2e-expo-api-url](/docs/proposals/mobile/_master-plan_/details/079-e2e-expo-api-url.md) — done
+5.21. Long-lived mobile E2E test-assets start/stop/health (port **2111**, reuse `podverse-test-assets`). Model: Codex 5.3. Detail: [335-e2e-test-assets-lifecycle](/docs/proposals/mobile/_master-plan_/details/335-e2e-test-assets-lifecycle.md) — done
+5.22. Maestro runner preflight when flows need `:2111` (fail fast; leave-running tab). Model: Codex 5.3. Detail: [336-e2e-test-assets-preflight](/docs/proposals/mobile/_master-plan_/details/336-e2e-test-assets-preflight.md) — done
+5.23. Android E2E media URL host rewrite (`localhost:2111` → `10.0.2.2:2111`). Model: Codex 5.3. Detail: [337-e2e-android-asset-host-rewrite](/docs/proposals/mobile/_master-plan_/details/337-e2e-android-asset-host-rewrite.md) — done
 
 ## Track 6 — Bearer auth + secure storage
 
@@ -317,52 +320,62 @@ Track 3 is complete when all of the following are true:
 
 **Media-type selector:** Podcasts, Episodes, Clips, Artists, Albums, Tracks.
 
-8.1. Build Home screen layout with horizontal media-type selector chip row. Model: Codex 5.3. Detail: [240-home-screen-layout](/docs/proposals/mobile/_master-plan_/details/240-home-screen-layout.md) — _TBD_
-8.2. Media-type selector options: Podcasts, Episodes, Clips, Artists, Albums, Tracks. Model: Auto. Detail: [241-media-type-selector-chips](/docs/proposals/mobile/_master-plan_/details/241-media-type-selector-chips.md) — _TBD_
-8.3. Persist selected media type in device prefs (reuse web `preferred_media_type` semantics). Model: Codex 5.3. Detail: [242-media-type-pref-sync](/docs/proposals/mobile/_master-plan_/details/242-media-type-pref-sync.md) — _TBD_
-8.4. Podcasts view: subscribed channels list via `reqChannelGetMany` (subscribed filter). Model: Codex 5.3. Detail: [243-home-podcasts-feed](/docs/proposals/mobile/_master-plan_/details/243-home-podcasts-feed.md) — _TBD_
-8.5. Episodes view: recent episodes from subscriptions (match web home episode logic). Model: Codex 5.3. Detail: [244-home-episodes-feed](/docs/proposals/mobile/_master-plan_/details/244-home-episodes-feed.md) — _TBD_
-8.6. Clips view: clip discovery feed via `reqClip*` public/list endpoints. Model: Codex 5.3. Detail: [245-home-clips-feed](/docs/proposals/mobile/_master-plan_/details/245-home-clips-feed.md) — _TBD_
-8.7. Artists view: music artist channels browse (mirror web artist routes). Model: Codex 5.3. Detail: [246-home-artists-feed](/docs/proposals/mobile/_master-plan_/details/246-home-artists-feed.md) — _TBD_
-8.8. Albums view: music album channels browse (mirror web album routes). Model: Codex 5.3. Detail: [247-home-albums-feed](/docs/proposals/mobile/_master-plan_/details/247-home-albums-feed.md) — _TBD_
-8.9. Tracks view: music tracks/items list (mirror web music item browsing). Model: Codex 5.3. Detail: [248-home-tracks-feed](/docs/proposals/mobile/_master-plan_/details/248-home-tracks-feed.md) — _TBD_
-8.10. Implement pull-to-refresh on Home for each media-type sub-feed. Model: Codex 5.3. Detail: [249-home-pull-to-refresh](/docs/proposals/mobile/_master-plan_/details/249-home-pull-to-refresh.md) — _TBD_
-8.11. Loading, empty, and error states per media type matching web semantics. Model: Codex 5.3. Detail: [250-home-state-handling](/docs/proposals/mobile/_master-plan_/details/250-home-state-handling.md) — _TBD_
-8.12. Tap row navigates to correct detail screen in Home stack. Model: Codex 5.3. Detail: [251-home-row-navigation](/docs/proposals/mobile/_master-plan_/details/251-home-row-navigation.md) — _TBD_
-8.13. Play action on row integrates with queue/player hooks (stub until Track 10). Model: Codex 5.3. Detail: [252-home-play-action-stub](/docs/proposals/mobile/_master-plan_/details/252-home-play-action-stub.md) — _TBD_
-8.14. E2E: screenshot each media-type selector state on Home. Model: Auto. Detail: [253-e2e-home-media-types-screenshots](/docs/proposals/mobile/_master-plan_/details/253-e2e-home-media-types-screenshots.md) — _TBD_
-8.15. E2E: swipe horizontal selector and verify feed content changes. Model: Auto. Detail: [254-e2e-media-type-swipe](/docs/proposals/mobile/_master-plan_/details/254-e2e-media-type-swipe.md) — _TBD_
+**Web-style parity (Tracks 8–9):** every screen with a web counterpart mirrors the web app's layout,
+information hierarchy, list-row structure, and loading/empty/error states — adapted to RN primitives
+and `@podverse/design-tokens` (no hardcoded hex). See
+[mobile-theme-parity](/.cursor/skills/mobile-theme-parity/SKILL.md) § Screen & visual parity and each
+detail doc's **Web parity references**.
+
+8.1. Build Home screen layout with horizontal media-type selector chip row. Model: Codex 5.3. Detail: [240-home-screen-layout](/docs/proposals/mobile/_master-plan_/details/240-home-screen-layout.md) — done
+8.2. Media-type selector options: Podcasts, Episodes, Clips, Artists, Albums, Tracks. Model: Auto. Detail: [241-media-type-selector-chips](/docs/proposals/mobile/_master-plan_/details/241-media-type-selector-chips.md) — done
+8.3. Persist selected media type in device prefs (reuse web `preferred_media_type` semantics). Model: Codex 5.3. Detail: [242-media-type-pref-sync](/docs/proposals/mobile/_master-plan_/details/242-media-type-pref-sync.md) — done
+8.4. Podcasts view: subscribed channels list via `reqChannelGetMany` (subscribed filter). Model: Codex 5.3. Detail: [243-home-podcasts-feed](/docs/proposals/mobile/_master-plan_/details/243-home-podcasts-feed.md) — done
+8.5. Episodes view: recent episodes from subscriptions (match web home episode logic). Model: Codex 5.3. Detail: [244-home-episodes-feed](/docs/proposals/mobile/_master-plan_/details/244-home-episodes-feed.md) — done
+8.6. Clips view: clip discovery feed via `reqClip*` public/list endpoints. Model: Codex 5.3. Detail: [245-home-clips-feed](/docs/proposals/mobile/_master-plan_/details/245-home-clips-feed.md) — done
+8.7. Artists view: music artist channels browse (mirror web artist routes). Model: Codex 5.3. Detail: [246-home-artists-feed](/docs/proposals/mobile/_master-plan_/details/246-home-artists-feed.md) — done
+8.8. Albums view: music album channels browse (mirror web album routes). Model: Codex 5.3. Detail: [247-home-albums-feed](/docs/proposals/mobile/_master-plan_/details/247-home-albums-feed.md) — done
+8.9. Tracks view: music tracks/items list (mirror web music item browsing). Model: Codex 5.3. Detail: [248-home-tracks-feed](/docs/proposals/mobile/_master-plan_/details/248-home-tracks-feed.md) — done
+8.10. Implement pull-to-refresh on Home for each media-type sub-feed. Model: Codex 5.3. Detail: [249-home-pull-to-refresh](/docs/proposals/mobile/_master-plan_/details/249-home-pull-to-refresh.md) — done
+8.11. Loading, empty, and error states per media type matching web semantics. Model: Codex 5.3. Detail: [250-home-state-handling](/docs/proposals/mobile/_master-plan_/details/250-home-state-handling.md) — done
+8.12. Tap row navigates to correct detail screen in Home stack. Model: Codex 5.3. Detail: [251-home-row-navigation](/docs/proposals/mobile/_master-plan_/details/251-home-row-navigation.md) — done
+8.13. Play action on row integrates with queue/player hooks (stub until Track 10). Model: Codex 5.3. Detail: [252-home-play-action-stub](/docs/proposals/mobile/_master-plan_/details/252-home-play-action-stub.md) — done
+8.14. E2E: screenshot each media-type selector state on Home. Model: Auto. Detail: [253-e2e-home-media-types-screenshots](/docs/proposals/mobile/_master-plan_/details/253-e2e-home-media-types-screenshots.md) — done
+8.15. E2E: swipe horizontal selector and verify feed content changes. Model: Auto. Detail: [254-e2e-media-type-swipe](/docs/proposals/mobile/_master-plan_/details/254-e2e-media-type-swipe.md) — done
 
 ## Track 9 — Browse and content screens
 
-9.1. Podcast detail screen: channel header, tabs, item list via `reqChannelGet*` + `reqItemGetManyByChannel`. Model: Codex 5.3. Detail: [260-podcast-detail-screen](/docs/proposals/mobile/_master-plan_/details/260-podcast-detail-screen.md) — _TBD_
-9.2. Podcast detail: live items section via live item endpoints where applicable. Model: Codex 5.3. Detail: [261-podcast-live-items](/docs/proposals/mobile/_master-plan_/details/261-podcast-live-items.md) — _TBD_
-9.3. Episode detail screen: metadata, enclosure, play/queue actions via `reqItemGet*`. Model: Codex 5.3. Detail: [262-episode-detail-screen](/docs/proposals/mobile/_master-plan_/details/262-episode-detail-screen.md) — _TBD_
-9.4. Episode detail tabs: chapters, soundbites, clips, transcript (parity with web tabs). Model: Codex 5.3. Detail: [263-episode-detail-tabs](/docs/proposals/mobile/_master-plan_/details/263-episode-detail-tabs.md) — _TBD_
-9.5. Album detail screen for music channels (mirror web `/album/[id]`). Model: Codex 5.3. Detail: [264-album-detail-screen](/docs/proposals/mobile/_master-plan_/details/264-album-detail-screen.md) — _TBD_
-9.6. Artist detail screen for music artists (mirror web `/artist/[id]`). Model: Codex 5.3. Detail: [265-artist-detail-screen](/docs/proposals/mobile/_master-plan_/details/265-artist-detail-screen.md) — _TBD_
-9.7. Clip detail screen via `reqClipGet*` with play-at-clip-bounds action. Model: Codex 5.3. Detail: [266-clip-detail-screen](/docs/proposals/mobile/_master-plan_/details/266-clip-detail-screen.md) — _TBD_
-9.8. Search screen: query UI and `reqPodcastIndexSearchPodcasts` results list. Model: Codex 5.3. Detail: [267-search-screen](/docs/proposals/mobile/_master-plan_/details/267-search-screen.md) — _TBD_
-9.9. Search filters and sort defaults matching web search behavior. Model: Codex 5.3. Detail: [268-search-filters-sort](/docs/proposals/mobile/_master-plan_/details/268-search-filters-sort.md) — _TBD_
-9.10. My Library — playlists list via `reqPlaylistGetMany`. Model: Codex 5.3. Detail: [269-library-playlists-list](/docs/proposals/mobile/_master-plan_/details/269-library-playlists-list.md) — _TBD_
-9.11. Playlist detail screen via playlist resource endpoints. Model: Codex 5.3. Detail: [270-playlist-detail-screen](/docs/proposals/mobile/_master-plan_/details/270-playlist-detail-screen.md) — _TBD_
-9.12. My Library — manual queue screen via queue resource endpoints. Model: Codex 5.3. Detail: [271-library-queue-screen](/docs/proposals/mobile/_master-plan_/details/271-library-queue-screen.md) — _TBD_
-9.13. My Library — history screen with history-paginated queue resources. Model: Codex 5.3. Detail: [272-library-history-screen](/docs/proposals/mobile/_master-plan_/details/272-library-history-screen.md) — _TBD_
-9.14. My Library — my clips list via `reqClip*` account endpoints. Model: Codex 5.3. Detail: [273-library-my-clips](/docs/proposals/mobile/_master-plan_/details/273-library-my-clips.md) — _TBD_
-9.15. Profile screen: public profile via `reqProfile*`. Model: Codex 5.3. Detail: [274-profile-screen](/docs/proposals/mobile/_master-plan_/details/274-profile-screen.md) — _TBD_
-9.16. My profile screen via `reqMyProfile*` for authenticated user. Model: Codex 5.3. Detail: [275-my-profile-screen](/docs/proposals/mobile/_master-plan_/details/275-my-profile-screen.md) — _TBD_
-9.17. More — settings screen entry (detailed prefs in Track 16). Model: Auto. Detail: [276-more-settings-entry](/docs/proposals/mobile/_master-plan_/details/276-more-settings-entry.md) — _TBD_
-9.18. RSS tab — Add-by-RSS main screen mirroring web `/add-by-rss` UX (native simplified). Model: Codex 5.3. Detail: [277-rss-add-by-rss-screen](/docs/proposals/mobile/_master-plan_/details/277-rss-add-by-rss-screen.md) — _TBD_
-9.19. RSS tab — feed URL input, validation, and add-by-rss queue resource mutations. Model: Codex 5.3. Detail: [278-rss-feed-add-flow](/docs/proposals/mobile/_master-plan_/details/278-rss-feed-add-flow.md) — _TBD_
-9.20. RSS tab — list of added RSS feeds from local/RN state mirroring web AddByRSSList context. Model: Codex 5.3. Detail: [279-rss-feed-list](/docs/proposals/mobile/_master-plan_/details/279-rss-feed-list.md) — _TBD_
-9.21. RSS tab — play add-by-rss resource using `PlaybackTarget.kind` add-by-rss policy. Model: Opus 4.8. Detail: [280-rss-play-add-by-rss](/docs/proposals/mobile/_master-plan_/details/280-rss-play-add-by-rss.md) — _TBD_
-9.22. More/ Library — OPML import entry point button (implementation Track 16). Model: Auto. Detail: [281-opml-import-entry-ui](/docs/proposals/mobile/_master-plan_/details/281-opml-import-entry-ui.md) — _TBD_
-9.23. More/ Library — OPML export entry point button (implementation Track 16). Model: Auto. Detail: [282-opml-export-entry-ui](/docs/proposals/mobile/_master-plan_/details/282-opml-export-entry-ui.md) — _TBD_
-9.24. Categories browse optional screen via `reqCategory*` if exposed on web home. Model: Codex 5.3. Detail: [283-categories-browse-optional](/docs/proposals/mobile/_master-plan_/details/283-categories-browse-optional.md) — _TBD_
-9.25. E2E: podcast → episode navigation with screenshots at each step. Model: Codex 5.3. Detail: [284-e2e-podcast-episode-flow](/docs/proposals/mobile/_master-plan_/details/284-e2e-podcast-episode-flow.md) — _TBD_
-9.26. E2E: search query and result tap screenshot flow. Model: Auto. Detail: [285-e2e-search-flow](/docs/proposals/mobile/_master-plan_/details/285-e2e-search-flow.md) — _TBD_
-9.27. E2E: add-by-RSS happy path screenshot flow on RSS tab. Model: Codex 5.3. Detail: [286-e2e-add-by-rss-flow](/docs/proposals/mobile/_master-plan_/details/286-e2e-add-by-rss-flow.md) — _TBD_
-9.28. Document web→mobile screen map table in master plan appendix reference. Model: Auto. Detail: [287-screen-map-appendix-ref](/docs/proposals/mobile/_master-plan_/details/287-screen-map-appendix-ref.md) — _TBD_
+**Web-style parity:** mirror the web route/component design per screen (see Track 8 note +
+[mobile-theme-parity](/.cursor/skills/mobile-theme-parity/SKILL.md) § Screen & visual parity).
+
+9.1. Podcast detail screen: channel header, tabs, item list via `reqChannelGet*` + `reqItemGetManyByChannel`. Model: Codex 5.3. Detail: [260-podcast-detail-screen](/docs/proposals/mobile/_master-plan_/details/260-podcast-detail-screen.md) — done
+9.2. Podcast detail: live items section via live item endpoints where applicable. Model: Codex 5.3. Detail: [261-podcast-live-items](/docs/proposals/mobile/_master-plan_/details/261-podcast-live-items.md) — done
+9.3. Episode detail screen: metadata, enclosure, play/queue actions via `reqItemGet*`. Model: Codex 5.3. Detail: [262-episode-detail-screen](/docs/proposals/mobile/_master-plan_/details/262-episode-detail-screen.md) — done
+9.4. Episode detail tabs: chapters, soundbites, clips, transcript (parity with web tabs). Model: Codex 5.3. Detail: [263-episode-detail-tabs](/docs/proposals/mobile/_master-plan_/details/263-episode-detail-tabs.md) — done
+9.5. Album detail screen for music channels (mirror web `/album/[id]`). Model: Codex 5.3. Detail: [264-album-detail-screen](/docs/proposals/mobile/_master-plan_/details/264-album-detail-screen.md) — done
+9.6. Artist detail screen for music artists (mirror web `/artist/[id]`). Model: Codex 5.3. Detail: [265-artist-detail-screen](/docs/proposals/mobile/_master-plan_/details/265-artist-detail-screen.md) — done
+9.7. Clip detail screen via `reqClipGet*` with play-at-clip-bounds action. Model: Codex 5.3. Detail: [266-clip-detail-screen](/docs/proposals/mobile/_master-plan_/details/266-clip-detail-screen.md) — done
+9.8. Search screen: query UI and `reqPodcastIndexSearchPodcasts` results list. Model: Codex 5.3. Detail: [267-search-screen](/docs/proposals/mobile/_master-plan_/details/267-search-screen.md) — done
+9.9. Search filters and sort defaults matching web search behavior. Model: Codex 5.3. Detail: [268-search-filters-sort](/docs/proposals/mobile/_master-plan_/details/268-search-filters-sort.md) — done
+9.10. My Library — playlists list via `reqPlaylistGetMany`. Model: Codex 5.3. Detail: [269-library-playlists-list](/docs/proposals/mobile/_master-plan_/details/269-library-playlists-list.md) — done
+9.11. Playlist detail screen via playlist resource endpoints. Model: Codex 5.3. Detail: [270-playlist-detail-screen](/docs/proposals/mobile/_master-plan_/details/270-playlist-detail-screen.md) — done
+9.12. My Library — manual queue screen via queue resource endpoints. Model: Codex 5.3. Detail: [271-library-queue-screen](/docs/proposals/mobile/_master-plan_/details/271-library-queue-screen.md) — done
+9.13. My Library — history screen with history-paginated queue resources. Model: Codex 5.3. Detail: [272-library-history-screen](/docs/proposals/mobile/_master-plan_/details/272-library-history-screen.md) — done
+9.14. My Library — my clips list via `reqClip*` account endpoints. Model: Codex 5.3. Detail: [273-library-my-clips](/docs/proposals/mobile/_master-plan_/details/273-library-my-clips.md) — done
+9.15. Profile screen: public profile via `reqProfile*`. Model: Codex 5.3. Detail: [274-profile-screen](/docs/proposals/mobile/_master-plan_/details/274-profile-screen.md) — done
+9.16. My profile screen via `reqMyProfile*` for authenticated user. Model: Codex 5.3. Detail: [275-my-profile-screen](/docs/proposals/mobile/_master-plan_/details/275-my-profile-screen.md) — done
+9.17. More — settings screen entry (detailed prefs in Track 16). Model: Auto. Detail: [276-more-settings-entry](/docs/proposals/mobile/_master-plan_/details/276-more-settings-entry.md) — done
+9.18. RSS tab — Add-by-RSS main screen mirroring web `/add-by-rss` UX (native simplified). Model: Codex 5.3. Detail: [277-rss-add-by-rss-screen](/docs/proposals/mobile/_master-plan_/details/277-rss-add-by-rss-screen.md) — done
+9.19. RSS tab — feed URL input, validation, and add-by-rss queue resource mutations. Model: Codex 5.3. Detail: [278-rss-feed-add-flow](/docs/proposals/mobile/_master-plan_/details/278-rss-feed-add-flow.md) — done
+9.20. RSS tab — list of added RSS feeds from local/RN state mirroring web AddByRSSList context. Model: Codex 5.3. Detail: [279-rss-feed-list](/docs/proposals/mobile/_master-plan_/details/279-rss-feed-list.md) — done
+9.21. RSS tab — play add-by-rss resource using `PlaybackTarget.kind` add-by-rss policy. Model: Opus 4.8. Detail: [280-rss-play-add-by-rss](/docs/proposals/mobile/_master-plan_/details/280-rss-play-add-by-rss.md) — done
+9.22. More/ Library — OPML import entry point button (implementation Track 16). Model: Auto. Detail: [281-opml-import-entry-ui](/docs/proposals/mobile/_master-plan_/details/281-opml-import-entry-ui.md) — done
+9.23. More/ Library — OPML export entry point button (implementation Track 16). Model: Auto. Detail: [282-opml-export-entry-ui](/docs/proposals/mobile/_master-plan_/details/282-opml-export-entry-ui.md) — done
+9.24. Categories browse optional screen via `reqCategory*` if exposed on web home. Model: Codex 5.3. Detail: [283-categories-browse-optional](/docs/proposals/mobile/_master-plan_/details/283-categories-browse-optional.md) — done
+9.25. E2E: podcast → episode navigation with screenshots at each step. Model: Codex 5.3. Detail: [284-e2e-podcast-episode-flow](/docs/proposals/mobile/_master-plan_/details/284-e2e-podcast-episode-flow.md) — done
+9.26. E2E: search query and result tap screenshot flow. Model: Auto. Detail: [285-e2e-search-flow](/docs/proposals/mobile/_master-plan_/details/285-e2e-search-flow.md) — done
+9.27. E2E: add-by-RSS happy path screenshot flow on RSS tab. Model: Codex 5.3. Detail: [286-e2e-add-by-rss-flow](/docs/proposals/mobile/_master-plan_/details/286-e2e-add-by-rss-flow.md) — done
+9.28. Document web→mobile screen map table in master plan appendix reference. Model: Auto. Detail: [287-screen-map-appendix-ref](/docs/proposals/mobile/_master-plan_/details/287-screen-map-appendix-ref.md) — done
+9.29. E2E: add-by-RSS play against test-assets (2111) + assert playback. Model: Codex 5.3. Detail: [288-e2e-addbyrss-playback-test-assets](/docs/proposals/mobile/_master-plan_/details/288-e2e-addbyrss-playback-test-assets.md) — done
 
 ## Track 10 — Queue, auto-queue, playlists, history parity
 
@@ -578,6 +591,24 @@ Track 3 is complete when all of the following are true:
 
 Link: [DOCS-MOBILE-PROCESS-OVERVIEW](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-OVERVIEW.md) §5
 
+| Mobile screen (Track 8/9)                | Web route parity          | Web source reference                                                    |
+| ---------------------------------------- | ------------------------- | ----------------------------------------------------------------------- |
+| Home (`HomeScreen`)                      | `/`                       | `apps/web/src/app/page.tsx`, `apps/web/src/components/List`             |
+| Podcast detail (`PodcastDetailScreen`)   | `/podcast/[channel_id]`   | `apps/web/src/app/podcast/[podcast_id]/PodcastPageClient.tsx`           |
+| Episode detail (`EpisodeDetailScreen`)   | `/episode/[item_id]`      | `apps/web/src/app/episode/[episode_id]/EpisodePageClient.tsx`           |
+| Album detail (`AlbumDetailScreen`)       | `/album/[id]`             | `apps/web/src/app/album/[album_id]/AlbumPageClient.tsx`                 |
+| Artist detail (`ArtistDetailScreen`)     | `/artist/[id]`            | `apps/web/src/app/artist/[artist_id]/ArtistPageClient.tsx`              |
+| Clip detail (`ClipDetailScreen`)         | `/clip/[id]`              | `apps/web/src/app/clip/[clip_id]/ClipPageClient.tsx`                    |
+| Search (`SearchScreen`)                  | `/search`                 | `apps/web/src/app/search/SearchPageClient.tsx`                          |
+| Playlists (`LibraryPlaylistsScreen`)     | `/playlists`              | `apps/web/src/app/playlists/PlaylistsPageClient.tsx`                    |
+| Playlist detail (`PlaylistDetailScreen`) | `/playlist/[playlist_id]` | `apps/web/src/app/playlist/[playlist_id]/PlaylistPageClient.tsx`        |
+| Queue (`LibraryQueueScreen`)             | `/queues`                 | `apps/web/src/app/queues/QueuesPageClient.tsx`                          |
+| History (`LibraryHistoryScreen`)         | `/history`                | `apps/web/src/app/history/HistoryPageClient.tsx`                        |
+| My clips (`LibraryMyClipsScreen`)        | `/my-clips`               | `apps/web/src/app/my-clips/MyClipsPageClient.tsx`                       |
+| Public profile (`ProfileScreen`)         | `/profile/[id_text]`      | `apps/web/src/app/profile/[profile_id]/ProfilePageClient.tsx`           |
+| My profile (`MyProfileScreen`)           | `/my-profile`             | `apps/web/src/app/my-profile/MyProfilePageClient.tsx`                   |
+| Add by RSS (`AddByRssRootScreen`)        | `/add-by-rss`             | `apps/web/src/app/add-by-rss/**`, `apps/web/src/components/AddByRSS/**` |
+
 ## Appendix B — Proposal doc index
 
 Link: [DOCS-MOBILE-PROCESS-ROADMAP](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-ROADMAP.md) § Index
@@ -659,6 +690,9 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 077-e2e-api-db-seed                    | 5.18       | 077-e2e-api-db-seed                    | Codex 5.3 | done    |
 | 078-e2e-api-lifecycle                  | 5.19       | 078-e2e-api-lifecycle                  | Codex 5.3 | done    |
 | 079-e2e-expo-api-url                   | 5.20       | 079-e2e-expo-api-url                   | Codex 5.3 | done    |
+| 335-e2e-test-assets-lifecycle          | 5.21       | 335-e2e-test-assets-lifecycle          | Codex 5.3 | done    |
+| 336-e2e-test-assets-preflight          | 5.22       | 336-e2e-test-assets-preflight          | Codex 5.3 | done    |
+| 337-e2e-android-asset-host-rewrite     | 5.23       | 337-e2e-android-asset-host-rewrite     | Codex 5.3 | done    |
 | 080-media-engine-module-scaffold       | 2.1        | 080-media-engine-module-scaffold       | Opus 4.8  | done    |
 | 081-native-playback-bridge-interface   | 2.2        | 081-native-playback-bridge-interface   | Opus 4.8  | done    |
 | 082-bridge-method-contract             | 2.3        | 082-bridge-method-contract             | Opus 4.8  | done    |
@@ -761,49 +795,50 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 237-theme-unit-smoke                   | 7.16       | 237-theme-unit-smoke                   | Auto      | done    |
 | 230-tablet-nav-adaptive                | 7.17       | 230-tablet-nav-adaptive                | Codex 5.3 | done    |
 | 231-e2e-tab-switch-playback            | 7.18       | 231-e2e-tab-switch-playback            | Codex 5.3 | done    |
-| 240-home-screen-layout                 | 8.1        | 240-home-screen-layout                 | Codex 5.3 | _TBD_   |
-| 241-media-type-selector-chips          | 8.2        | 241-media-type-selector-chips          | Auto      | _TBD_   |
-| 242-media-type-pref-sync               | 8.3        | 242-media-type-pref-sync               | Codex 5.3 | _TBD_   |
-| 243-home-podcasts-feed                 | 8.4        | 243-home-podcasts-feed                 | Codex 5.3 | _TBD_   |
-| 244-home-episodes-feed                 | 8.5        | 244-home-episodes-feed                 | Codex 5.3 | _TBD_   |
-| 245-home-clips-feed                    | 8.6        | 245-home-clips-feed                    | Codex 5.3 | _TBD_   |
-| 246-home-artists-feed                  | 8.7        | 246-home-artists-feed                  | Codex 5.3 | _TBD_   |
-| 247-home-albums-feed                   | 8.8        | 247-home-albums-feed                   | Codex 5.3 | _TBD_   |
-| 248-home-tracks-feed                   | 8.9        | 248-home-tracks-feed                   | Codex 5.3 | _TBD_   |
-| 249-home-pull-to-refresh               | 8.10       | 249-home-pull-to-refresh               | Codex 5.3 | _TBD_   |
-| 250-home-state-handling                | 8.11       | 250-home-state-handling                | Codex 5.3 | _TBD_   |
-| 251-home-row-navigation                | 8.12       | 251-home-row-navigation                | Codex 5.3 | _TBD_   |
-| 252-home-play-action-stub              | 8.13       | 252-home-play-action-stub              | Codex 5.3 | _TBD_   |
-| 253-e2e-home-media-types-screenshots   | 8.14       | 253-e2e-home-media-types-screenshots   | Auto      | _TBD_   |
-| 254-e2e-media-type-swipe               | 8.15       | 254-e2e-media-type-swipe               | Auto      | _TBD_   |
-| 260-podcast-detail-screen              | 9.1        | 260-podcast-detail-screen              | Codex 5.3 | _TBD_   |
-| 261-podcast-live-items                 | 9.2        | 261-podcast-live-items                 | Codex 5.3 | _TBD_   |
-| 262-episode-detail-screen              | 9.3        | 262-episode-detail-screen              | Codex 5.3 | _TBD_   |
-| 263-episode-detail-tabs                | 9.4        | 263-episode-detail-tabs                | Codex 5.3 | _TBD_   |
-| 264-album-detail-screen                | 9.5        | 264-album-detail-screen                | Codex 5.3 | _TBD_   |
-| 265-artist-detail-screen               | 9.6        | 265-artist-detail-screen               | Codex 5.3 | _TBD_   |
-| 266-clip-detail-screen                 | 9.7        | 266-clip-detail-screen                 | Codex 5.3 | _TBD_   |
-| 267-search-screen                      | 9.8        | 267-search-screen                      | Codex 5.3 | _TBD_   |
-| 268-search-filters-sort                | 9.9        | 268-search-filters-sort                | Codex 5.3 | _TBD_   |
-| 269-library-playlists-list             | 9.10       | 269-library-playlists-list             | Codex 5.3 | _TBD_   |
-| 270-playlist-detail-screen             | 9.11       | 270-playlist-detail-screen             | Codex 5.3 | _TBD_   |
-| 271-library-queue-screen               | 9.12       | 271-library-queue-screen               | Codex 5.3 | _TBD_   |
-| 272-library-history-screen             | 9.13       | 272-library-history-screen             | Codex 5.3 | _TBD_   |
-| 273-library-my-clips                   | 9.14       | 273-library-my-clips                   | Codex 5.3 | _TBD_   |
-| 274-profile-screen                     | 9.15       | 274-profile-screen                     | Codex 5.3 | _TBD_   |
-| 275-my-profile-screen                  | 9.16       | 275-my-profile-screen                  | Codex 5.3 | _TBD_   |
-| 276-more-settings-entry                | 9.17       | 276-more-settings-entry                | Auto      | _TBD_   |
-| 277-rss-add-by-rss-screen              | 9.18       | 277-rss-add-by-rss-screen              | Codex 5.3 | _TBD_   |
-| 278-rss-feed-add-flow                  | 9.19       | 278-rss-feed-add-flow                  | Codex 5.3 | _TBD_   |
-| 279-rss-feed-list                      | 9.20       | 279-rss-feed-list                      | Codex 5.3 | _TBD_   |
-| 280-rss-play-add-by-rss                | 9.21       | 280-rss-play-add-by-rss                | Opus 4.8  | _TBD_   |
-| 281-opml-import-entry-ui               | 9.22       | 281-opml-import-entry-ui               | Auto      | _TBD_   |
-| 282-opml-export-entry-ui               | 9.23       | 282-opml-export-entry-ui               | Auto      | _TBD_   |
-| 283-categories-browse-optional         | 9.24       | 283-categories-browse-optional         | Codex 5.3 | _TBD_   |
-| 284-e2e-podcast-episode-flow           | 9.25       | 284-e2e-podcast-episode-flow           | Codex 5.3 | _TBD_   |
-| 285-e2e-search-flow                    | 9.26       | 285-e2e-search-flow                    | Auto      | _TBD_   |
-| 286-e2e-add-by-rss-flow                | 9.27       | 286-e2e-add-by-rss-flow                | Codex 5.3 | _TBD_   |
-| 287-screen-map-appendix-ref            | 9.28       | 287-screen-map-appendix-ref            | Auto      | _TBD_   |
+| 240-home-screen-layout                 | 8.1        | 240-home-screen-layout                 | Codex 5.3 | done    |
+| 241-media-type-selector-chips          | 8.2        | 241-media-type-selector-chips          | Auto      | done    |
+| 242-media-type-pref-sync               | 8.3        | 242-media-type-pref-sync               | Codex 5.3 | done    |
+| 243-home-podcasts-feed                 | 8.4        | 243-home-podcasts-feed                 | Codex 5.3 | done    |
+| 244-home-episodes-feed                 | 8.5        | 244-home-episodes-feed                 | Codex 5.3 | done    |
+| 245-home-clips-feed                    | 8.6        | 245-home-clips-feed                    | Codex 5.3 | done    |
+| 246-home-artists-feed                  | 8.7        | 246-home-artists-feed                  | Codex 5.3 | done    |
+| 247-home-albums-feed                   | 8.8        | 247-home-albums-feed                   | Codex 5.3 | done    |
+| 248-home-tracks-feed                   | 8.9        | 248-home-tracks-feed                   | Codex 5.3 | done    |
+| 249-home-pull-to-refresh               | 8.10       | 249-home-pull-to-refresh               | Codex 5.3 | done    |
+| 250-home-state-handling                | 8.11       | 250-home-state-handling                | Codex 5.3 | done    |
+| 251-home-row-navigation                | 8.12       | 251-home-row-navigation                | Codex 5.3 | done    |
+| 252-home-play-action-stub              | 8.13       | 252-home-play-action-stub              | Codex 5.3 | done    |
+| 253-e2e-home-media-types-screenshots   | 8.14       | 253-e2e-home-media-types-screenshots   | Auto      | done    |
+| 254-e2e-media-type-swipe               | 8.15       | 254-e2e-media-type-swipe               | Auto      | done    |
+| 260-podcast-detail-screen              | 9.1        | 260-podcast-detail-screen              | Codex 5.3 | done    |
+| 261-podcast-live-items                 | 9.2        | 261-podcast-live-items                 | Codex 5.3 | done    |
+| 262-episode-detail-screen              | 9.3        | 262-episode-detail-screen              | Codex 5.3 | done    |
+| 263-episode-detail-tabs                | 9.4        | 263-episode-detail-tabs                | Codex 5.3 | done    |
+| 264-album-detail-screen                | 9.5        | 264-album-detail-screen                | Codex 5.3 | done    |
+| 265-artist-detail-screen               | 9.6        | 265-artist-detail-screen               | Codex 5.3 | done    |
+| 266-clip-detail-screen                 | 9.7        | 266-clip-detail-screen                 | Codex 5.3 | done    |
+| 267-search-screen                      | 9.8        | 267-search-screen                      | Codex 5.3 | done    |
+| 268-search-filters-sort                | 9.9        | 268-search-filters-sort                | Codex 5.3 | done    |
+| 269-library-playlists-list             | 9.10       | 269-library-playlists-list             | Codex 5.3 | done    |
+| 270-playlist-detail-screen             | 9.11       | 270-playlist-detail-screen             | Codex 5.3 | done    |
+| 271-library-queue-screen               | 9.12       | 271-library-queue-screen               | Codex 5.3 | done    |
+| 272-library-history-screen             | 9.13       | 272-library-history-screen             | Codex 5.3 | done    |
+| 273-library-my-clips                   | 9.14       | 273-library-my-clips                   | Codex 5.3 | done    |
+| 274-profile-screen                     | 9.15       | 274-profile-screen                     | Codex 5.3 | done    |
+| 275-my-profile-screen                  | 9.16       | 275-my-profile-screen                  | Codex 5.3 | done    |
+| 276-more-settings-entry                | 9.17       | 276-more-settings-entry                | Auto      | done    |
+| 277-rss-add-by-rss-screen              | 9.18       | 277-rss-add-by-rss-screen              | Codex 5.3 | done    |
+| 278-rss-feed-add-flow                  | 9.19       | 278-rss-feed-add-flow                  | Codex 5.3 | done    |
+| 279-rss-feed-list                      | 9.20       | 279-rss-feed-list                      | Codex 5.3 | done    |
+| 280-rss-play-add-by-rss                | 9.21       | 280-rss-play-add-by-rss                | Opus 4.8  | done    |
+| 281-opml-import-entry-ui               | 9.22       | 281-opml-import-entry-ui               | Auto      | done    |
+| 282-opml-export-entry-ui               | 9.23       | 282-opml-export-entry-ui               | Auto      | done    |
+| 283-categories-browse-optional         | 9.24       | 283-categories-browse-optional         | Codex 5.3 | done    |
+| 284-e2e-podcast-episode-flow           | 9.25       | 284-e2e-podcast-episode-flow           | Codex 5.3 | done    |
+| 285-e2e-search-flow                    | 9.26       | 285-e2e-search-flow                    | Auto      | planned |
+| 286-e2e-add-by-rss-flow                | 9.27       | 286-e2e-add-by-rss-flow                | Codex 5.3 | done    |
+| 287-screen-map-appendix-ref            | 9.28       | 287-screen-map-appendix-ref            | Auto      | planned |
+| 288-e2e-addbyrss-playback-test-assets  | 9.29       | 288-e2e-addbyrss-playback-test-assets  | Codex 5.3 | done    |
 | 310-queue-store                        | 10.1       | 310-queue-store                        | Opus 4.8  | _TBD_   |
 | 311-queue-launch-hydration             | 10.2       | 311-queue-launch-hydration             | Opus 4.8  | _TBD_   |
 | 312-active-queue-by-medium             | 10.3       | 312-active-queue-by-medium             | Codex 5.3 | _TBD_   |

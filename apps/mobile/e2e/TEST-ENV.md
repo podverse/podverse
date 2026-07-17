@@ -61,6 +61,14 @@ Step **5.20** client URL wiring is in place for E2E dev-server startup:
 - `make local_env_setup` now generates `apps/mobile/.env` from `apps/mobile/.env.example`
 - Helper command: `npm run mobile:dev:e2e` still exports both vars as E2E overrides before `expo start`
 
+Steps **5.21–5.23** (test-assets / media) are in place:
+
+- Leave-running: `npm run mobile:e2e:test-assets` (`podverse-test-assets` on **2111**, same as web)
+- Health: `npm run mobile:e2e:test-assets:health` (known fixture GET)
+- Runner `flow_needs_test_assets` fails fast when playback flows run without `:2111`
+- Android E2E rewrites enclosure hosts `localhost:2111` / `127.0.0.1:2111` → `10.0.2.2:2111`
+  via `resolveE2eMediaUrl` when `EXPO_PUBLIC_MOBILE_E2E=1`
+
 `make local_env_setup` can derive day-to-day local API URLs from shared `LOCAL_API_*` values (often
 `localhost:3000`). For API-backed Maestro, use `mobile:dev:e2e` so the runtime env is explicitly
 overridden to the E2E API (`:4230/api/v2`) regardless of what `.env` contains.
@@ -86,25 +94,29 @@ Seeded auth credential for future mobile login/logout flows (6.11 / 6.12):
 - Email: `e2e-user@example.com`
 - Password: `Test!1Aa`
 
-API-backed pre-run uses **separate terminals**. Do not chain Metro/API into one pasteable shell
-with Maestro — see [HOW-TO-RUN.md](./HOW-TO-RUN.md).
+API-backed pre-run uses **separate terminals**. Do not chain Metro/API/test-assets into one
+pasteable shell with Maestro — see [HOW-TO-RUN.md](./HOW-TO-RUN.md).
 
 ```bash
 # One-shot prep (exits)
 make mobile_e2e_deps
 make mobile_e2e_seed
 
-# Terminal 1 — leave running
+# Terminal — leave running (Mobile Metro)
 npm run mobile:dev:e2e
 
-# Terminal 4 — leave running (after installs in T2/T3, or in parallel)
+# Terminal — leave running (Mobile E2E API)
 npm run mobile:e2e:api
 
-# Other shell after API is up
-npm run mobile:e2e:api:health
+# Terminal — leave running (Mobile E2E test-assets) for playback flows
+npm run mobile:e2e:test-assets
 
-# Terminal 5 — after Metro + installs + API are up
-npm run mobile:e2e:test -- api-health
+# Other shell after API / assets are up
+npm run mobile:e2e:api:health
+npm run mobile:e2e:test-assets:health
+
+# Terminal — after Metro + installs + API (+ assets for play) are up
+npm run mobile:e2e:test -- add-by-rss
 ```
 
 Or background API from the prep shell: `npm run mobile:e2e:api:bg` then

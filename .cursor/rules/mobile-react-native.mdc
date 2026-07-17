@@ -11,6 +11,11 @@ alwaysApply: false
   SSR, Playwright, or `@podverse/ui` (components/SCSS).
 - **Themes:** import `@podverse/design-tokens` and use **mobile-theme-parity** skill — same theme IDs
   and token values as web; RN `ThemeProvider` + `StyleSheet`, not CSS.
+- **Visual parity:** when a screen has a web counterpart, reference the web design first
+  (`apps/web/src/app/<area>/` route client + `apps/web/src/components/<Area>/`) and mirror its
+  layout / information hierarchy / list-row structure / loading-empty-error states, adapted to RN
+  primitives with design tokens (no hardcoded hex). See **mobile-theme-parity** § Screen & visual
+  parity. Diverge only for platform conventions and note why.
 - Mobile is a **Tier 5 consumer** — import downward only. See
   [apps/mobile/AGENTS.md](/apps/mobile/AGENTS.md) allowlist/denylist and
   [architecture-tier-dependencies](/.cursor/rules/architecture-tier-dependencies.mdc).
@@ -50,6 +55,23 @@ alwaysApply: false
   domain owns it) **when first written**, even with a single callsite. Do not wait for a second
   consumer. Prefer mobile-local `src/lib/` over a new package when the helper depends on
   mobile/request error shapes or RN-only concerns.
+- **Reusable first (DRY):** prioritize generic reusable components, hooks, and pure functions early.
+  If two screens share the same UI/state pattern (screen scaffold + loading/error/auth-empty states,
+  section cards, row mappers, queue/history loaders, add-by-rss async flow, etc.), extract into
+  `apps/mobile/src/components/`, `apps/mobile/src/hooks/`, or `apps/mobile/src/lib/` instead of
+  duplicating logic in screen files. Prefer small composable primitives over large screen-specific
+  implementations, and keep feature behavior wired through shared abstractions whenever possible.
+- **Async naming (`fetch` vs `load`/`reload`):** split verbs by responsibility so names never collide
+  when a screen orchestrator wraps a resource hook:
+  - `fetch<Resource>` — pure data fetch (returns DTOs/rows; **no** `setState` / loading/error ownership).
+    Use in resource hooks and pure helpers (e.g. `fetchPrimaryQueue`, `fetchHistoryPage`,
+    `fetchHomeFeedRows`).
+  - `load<Resource>` — stateful orchestrator that sets `isLoading` / `errorKey` / local data (and may
+    call one or more `fetch*` helpers). Prefer this name on screens and content-load hooks.
+  - `reload<Resource>` / `refresh<Resource>` — re-run a loader (retry, pull-to-refresh, after mutate).
+  Do **not** expose a hook method named `loadX` when screens will also declare a local `loadX`
+  wrapper — that causes `Identifier already been declared` Metro failures. Prefer distinct verbs
+  over destructuring aliases (`loadHistory: loadHistoryResources`).
 - **E2E:** Maestro in `apps/mobile/e2e/` — **not** `make e2e_*` (web/management-web only).
   After mobile UI/feature work, end responses with the focused `npm run mobile:e2e:test -- <area>`
   + slot report paths (**mobile-e2e-screenshots**, **end-with-targeted-make-report-verify**).

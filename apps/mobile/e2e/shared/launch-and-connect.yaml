@@ -1,0 +1,15 @@
+appId: com.podverse.app.next
+---
+# Cold-start Dev Client + Metro connect. Wrapped in retry: iOS mid-suite clearState
+# relaunches occasionally leave SpringBoard / a blank window before "Development servers"
+# appears (Maestro: "App crashed or stopped"). Retrying launch+connect only — not the
+# full feature flow — recovers without hiding real assertion failures.
+# maxRetries is the number of retries after the first attempt (Maestro: 0–3).
+
+- retry:
+    maxRetries: 2
+    label: launch-and-connect-dev-client
+    commands:
+      - launchApp:
+          clearState: true
+      - runFlow: connect-dev-client.yaml

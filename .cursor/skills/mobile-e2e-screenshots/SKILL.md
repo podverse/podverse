@@ -35,6 +35,29 @@ Maestro accessibility hierarchies into HTML (raw `commands-*.json` remains for d
 
 Do **not** collapse platforms into a single screenshot page. Open the slot / flow that failed.
 
+## Full suite vs focused verify
+
+- **Full suite (operator regression):** `npm run mobile:e2e:test:all` — discovers every top-level
+  `apps/mobile/e2e/<area>.yaml` (not `shared/`). Documented first in
+  [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md). Requires API-backed stack
+  (`mobile:dev:e2e` + `mobile:e2e:api` + deps/seed + E2E installs).
+- **Feature / PR verify:** keep using the **narrowest** `npm run mobile:e2e:test -- <area>` (bare
+  `mobile:e2e:test` = `hello-world` only). Do **not** default agent verify endings to `:all`.
+- **UI-only Metro symptom:** API-backed / `:all` runs with `mobile:dev` (not `mobile:dev:e2e`) show
+  Network Error / “Could not sign in” / missing `tab-home` — the app still points at `:3000`.
+  `e2e-test.sh` fail-fasts when it can read Metro’s env and `EXPO_PUBLIC_MOBILE_E2E=1` is absent.
+  Fix: restart **Mobile Metro** with `npm run mobile:dev:e2e`, reload/reinstall, then re-run.
+
+### When adding a new top-level Maestro flow
+
+1. Add `apps/mobile/e2e/<area>.yaml` — it is **auto-included** in `mobile:e2e:test:all`.
+2. If the flow needs `:4230` when run alone, add `<area>` to `flow_needs_e2e_api` in
+   [`scripts/mobile/e2e-test.sh`](/scripts/mobile/e2e-test.sh).
+3. If the flow needs real media (`tools/test-assets` on `:2111`), add `<area>` to
+   `flow_needs_test_assets` in the same script.
+4. Keep [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md) § Run all as the operator entry for the
+   full process (prep + leave-running + `:all`). Update that section if prep/stack steps change.
+
 ## Operator verification (mobile UI / feature work)
 
 Same habit as web UI work (**ui-e2e-screenshot-report**): agents do **not** run E2E during
@@ -45,9 +68,10 @@ implementation. For mobile feature/UI PRs, instruct the operator to generate slo
    [`.vscode/terminals.json`](/.vscode/terminals.json) (**vscode-terminals-commands** rule):
    - **UI-only:** **Mobile Metro** (`mobile:dev`) + **Mobile iOS** / **Mobile Android** installs +
      **Mobile Maestro**.
-   - **API-backed:** **Mobile** one-shots (`make mobile_e2e_deps` / `mobile_e2e_seed`), then
-     leave-running **Mobile Metro** (`mobile:dev:e2e`) + **Mobile E2E API**, installs, then
-     **Mobile Maestro**.
+   - **API-backed / full suite:** **Mobile** one-shots (`make mobile_e2e_deps` / `mobile_e2e_seed`),
+     then leave-running **Mobile Metro** (`mobile:dev:e2e`) + **Mobile E2E API**, and for playback
+     flows also **Mobile E2E test-assets** (`mobile:e2e:test-assets` on `:2111`), installs, then
+     **Mobile Maestro** (`mobile:e2e:test -- <area>` or `mobile:e2e:test:all`).
 3. Tell them where to review **after** they run:
    - Failures index: `.artifacts/mobile-e2e-reports/latest/failures.json`
    - Hub: `.artifacts/mobile-e2e-reports/latest/index.html`
@@ -56,14 +80,16 @@ implementation. For mobile feature/UI PRs, instruct the operator to generate slo
 
 ### Never chain leave-running processes in one verify `bash` block
 
-`npm run mobile:dev`, `npm run mobile:dev:e2e`, and `npm run mobile:e2e:api` **block the shell**.
+`npm run mobile:dev`, `npm run mobile:dev:e2e`, `npm run mobile:e2e:api`, and
+`npm run mobile:e2e:test-assets` **block the shell**.
 Do **not** put them in the same fenced `bash` block as `mobile:e2e:test` (or other one-shot
 commands) as if the operator can paste the whole list into one terminal. That forces Ctrl+C on Metro
 (“Stopped server”) before later steps run.
 
 **Mobile E2E API** is leave-running independently of Metro. Restarting **Mobile Metro** does **not**
 require restarting the API if `:4230` is already healthy. Auth/tab/api-health flows do need the API
-up (see **mobile-maestro-timeouts**).
+up (see **mobile-maestro-timeouts**). **Mobile E2E test-assets** (`:2111`) is leave-running the same
+way for playback flows (add-by-rss play).
 
 Timeouts: prefer the shared `TIMEOUT_*` ladder (**mobile-maestro-timeouts**); default to the fastest
 reasonable tier.
@@ -93,13 +119,18 @@ When mobile E2E fails (operator paste, CI artifact, or local `.artifacts/mobile-
 2. After the JS bundle loads, re-shows the one-time **developer menu** (“Continue”) because
    clearState resets Expo’s “seen menu” flag. That sheet occludes app UI.
 
-Every Maestro flow that needs app UI must `runFlow: shared/connect-dev-client.yaml` **after**
-each such `launchApp` and **before** asserting app `testID`s. That shared flow taps the Metro URL
-(iOS `localhost` / Android `10.0.2.2`), taps **Continue** to dismiss the onboarding card, then
-**closes the dev-menu bottom sheet** it reveals (tapping the dimmed scrim above the sheet), then
-waits for `hello-world-screen` (or the flow’s root once Home replaces that screen). Tapping
-**Continue** alone is insufficient — it only opens the full dev menu (Reload / Go home / …), which
-still occludes the app. Do not invent a parallel connect path that skips the sheet close.
+Every Maestro flow that needs app UI must use `runFlow: shared/launch-and-connect.yaml` **before**
+asserting app `testID`s. That shared flow wraps `launchApp` + `shared/connect-dev-client.yaml` in a
+Maestro `retry` (iOS mid-suite relaunches can blank out before “Development servers”). The connect
+steps tap the Metro URL (iOS `localhost` / Android `10.0.2.2`), tap **Continue** to dismiss the
+onboarding card, then **close the dev-menu bottom sheet** it reveals (tapping the dimmed scrim above
+the sheet), then wait for `hello-world-screen` (or the flow’s root once Home replaces that screen).
+Tapping **Continue** alone is insufficient — it only opens the full dev menu (Reload / Go home / …),
+which still occludes the app. Do not invent a parallel connect path that skips the sheet close.
+
+The runner also re-runs **only failed** flow YAMLs once per platform by default
+(`MOBILE_E2E_FLOW_RETRIES=1`; set `0` to disable). HTML reports prefer the latest pass for a flow
+title when both failed and retry `commands-*.json` exist.
 
 ## Maestro flow authoring gotchas (keyboard, secure input, silent failures)
 

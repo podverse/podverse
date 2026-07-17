@@ -17,6 +17,12 @@
 - Flow runs on E2E iOS + Android devices
 - Screenshots in HTML report show mini slot across at least two tabs
 
+## Follow-up (Track 10 / 10.23)
+
+When mini-player reflects real bridge now-playing state, upgrade this flow from stub to assert
+playback continuity across tabs. Depends on [332-e2e-play-mini-player](./332-e2e-play-mini-player.md)
+and test-assets harness (5.21–5.23 / 335–337).
+
 ## Prerequisites
 
 - Tab navigator (7.1+) implemented

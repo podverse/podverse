@@ -28,7 +28,8 @@ export async function reqChannelGetByPodcastIndexId(
   api: ApiRequestService,
   podcast_index_id: number | string
 ) {
-  return api.apiRequest<DTOChannel>({
+  // API returns the channel or `null` when it is not parsed-ready (see ChannelController.getbyPodcastIndexId).
+  return api.apiRequest<DTOChannel | null>({
     path: `/channel/podcast-index/${podcast_index_id}`,
     method: 'GET',
   });
