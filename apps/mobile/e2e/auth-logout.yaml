@@ -3,16 +3,14 @@ name: Auth Logout
 ---
 # Track 6.12: login then logout (More tab), return to anonymous shell.
 
-- launchApp:
-    clearState: true
-- runFlow: shared/connect-dev-client.yaml
+- runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
 
 - assertVisible:
-    id: authenticated-logout-cta
+    id: home-screen
 - takeScreenshot: auth-logout-before-logout
 
-# Prefer More-tab logout (product shell); home CTA is also wired for smoke.
+# Prefer More-tab logout (product shell).
 - tapOn:
     id: tab-more
 - assertVisible:

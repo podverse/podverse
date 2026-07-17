@@ -26,6 +26,10 @@
     "./dto": {
       "types": "./dist/dtos/index.d.ts",
       "default": "./dist/dtos/index.js"
+    },
+    "./addByRSS/ids": {
+      "types": "./dist/lib/addByRSS/ids.d.ts",
+      "default": "./dist/lib/addByRSS/ids.js"
     }
   },
   "files": [

@@ -123,6 +123,10 @@ type Config = {
     signupMode: AccountSignupMode;
     freeTrialExpiration: number;
   };
+  e2e: {
+    /** When true (apiMobileE2e), use deterministic local fixtures instead of live PI / MQ. */
+    fixturesEnabled: boolean;
+  };
 };
 
 export const config: Config = {
@@ -267,5 +271,8 @@ export const config: Config = {
       'MEMBERSHIP_FREE_TRIAL_EXPIRATION',
       DEFAULT_FREE_TRIAL_EXPIRATION
     ),
+  },
+  e2e: {
+    fixturesEnabled: process.env.PODVERSE_E2E_FIXTURES === '1',
   },
 };

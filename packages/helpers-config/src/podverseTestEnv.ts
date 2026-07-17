@@ -118,6 +118,8 @@ const apiProfileOverrides: Record<PodverseApiTestEnvProfile, Record<string, stri
     ACCOUNT_SIGNUP_MODE: 'admin_only_email',
     API_PUBLIC_BASE_URL: 'http://localhost:4230',
     PODVERSE_STARTUP_VALIDATION_SILENT: '1',
+    // Deterministic Podcast Index search + add-by-RSS parse (no live PI / MQ).
+    PODVERSE_E2E_FIXTURES: '1',
   },
 };
 

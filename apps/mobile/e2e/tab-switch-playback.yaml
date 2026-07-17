@@ -4,9 +4,7 @@ name: Tab Switch Playback
 # Track 7.18: preserve mini-player slot while switching tabs.
 # Playback engine assertions are stubbed for now; this validates nav shell persistence.
 
-- launchApp:
-    clearState: true
-- runFlow: shared/connect-dev-client.yaml
+- runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
 
 - assertVisible:

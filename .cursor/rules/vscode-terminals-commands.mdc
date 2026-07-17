@@ -25,7 +25,8 @@ use the exact `name` string (e.g. **Mobile Metro**, **Mobile Maestro**). Do not 
 | **Mobile Metro** | Leave running: `npm run mobile:dev` (UI-only) or `npm run mobile:dev:e2e` (API-backed) |
 | **Mobile iOS** / **Mobile Android** | Same terminal group (Android splits from iOS). `npm run mobile:e2e:ios` / `mobile:e2e:android`, or manual `mobile:ios` / `mobile:android` with named devices. |
 | **Mobile E2E API** | Leave running: `npm run mobile:e2e:api` (skip for UI-only). Independent of Metro — no restart solely because Metro restarted if `:4230` is healthy. |
-| **Mobile Maestro** | `npm run mobile:e2e:test -- <area>` |
+| **Mobile E2E test-assets** | Leave running: `npm run mobile:e2e:test-assets` (`:2111`, same as web). Required for add-by-RSS play / real media flows. |
+| **Mobile Maestro** | `npm run mobile:e2e:test -- <area>` (focused); `npm run mobile:e2e:test:all` (full suite) |
 
 ## Expo CLI (never bare root `npx expo`)
 

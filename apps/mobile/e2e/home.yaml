@@ -1,0 +1,55 @@
+appId: com.podverse.app.next
+name: Home Media Types
+---
+# Track 8.14 + 8.15:
+# - screenshot each Home media-type selector state
+# - verify selector swipe/scroll interaction changes feed content
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- tapOn:
+    id: tab-home
+- assertVisible:
+    id: home-screen
+
+# Podcasts (default)
+- assertVisible:
+    id: home-media-type-podcasts
+- assertVisible: Podcasts
+- takeScreenshot: home-media-type-podcasts
+
+# Episodes
+- tapOn:
+    id: home-media-type-episodes
+- assertVisible: Episodes
+- takeScreenshot: home-media-type-episodes
+
+# Clips
+- tapOn:
+    id: home-media-type-clips
+- assertVisible: Clips
+- takeScreenshot: home-media-type-clips
+
+# Swipe selector to verify horizontal interaction before selecting tracks.
+- swipe:
+    start: 85%, 16%
+    end: 20%, 16%
+
+# Artists
+- tapOn:
+    id: home-media-type-artists
+- assertVisible: Artists
+- takeScreenshot: home-media-type-artists
+
+# Albums
+- tapOn:
+    id: home-media-type-albums
+- assertVisible: Albums
+- takeScreenshot: home-media-type-albums
+
+# Tracks
+- tapOn:
+    id: home-media-type-tracks
+- assertVisible: Tracks
+- takeScreenshot: home-media-type-tracks

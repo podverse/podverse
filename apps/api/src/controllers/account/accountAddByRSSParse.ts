@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { config } from '@api/config/index.js';
 import { activeMQArtemisService } from '@api/factories/activeMQArtemisService.js';
 import { loggerService } from '@api/factories/loggerService.js';
+import type { AddByRSSParseCacheEntry } from '@api/lib/addByRSSParseCache.js';
 import {
   getAddByRSSParseCacheEntry,
   setAddByRSSParseCacheEntry,
@@ -30,6 +31,31 @@ import { AccountFollowingAddByRSSChannelService } from '@podverse/orm';
 import { handleGenericErrorResponse } from '../helpers/error.js';
 
 type FeedHashMap = Record<string, string>;
+
+/** Sync with apps/web/e2e/helpers/seedConstants.ts / tools/web/seed-e2e.mjs (mobile E2E fixtures). */
+const E2E_ADD_BY_RSS_CHANNEL_TITLE = 'E2E Add-by-RSS Channel';
+const E2E_ADD_BY_RSS_ITEM_IMAGE_URL = 'https://e2e-seed-addbyrss.example/item-art.png';
+const E2E_ADDBYRSS_FRESH_ENCLOSURE_URL =
+  'http://localhost:2111/e2e/audio/e2e-addbyrss-fresh-60s-440hz.mp3';
+
+/**
+ * Minimal payload for mobile `extractPreviewFromParsePayload`. Cache entry is typed as
+ * partytime FeedObject; E2E only needs items[0] title / enclosure.url / image.url.
+ * Cast via unknown: fixture is intentionally not a full FeedObject.
+ */
+const buildE2eParsedFeedPayload = (): NonNullable<AddByRSSParseCacheEntry['payload']> => {
+  const fixture = {
+    items: [
+      {
+        title: E2E_ADD_BY_RSS_CHANNEL_TITLE,
+        enclosure: { url: E2E_ADDBYRSS_FRESH_ENCLOSURE_URL },
+        image: { url: E2E_ADD_BY_RSS_ITEM_IMAGE_URL },
+        playback_position: '0',
+      },
+    ],
+  };
+  return fixture as unknown as NonNullable<AddByRSSParseCacheEntry['payload']>;
+};
 
 const enqueueRateLimit = rateLimitAuthEndpoint({
   windowMs: 60 * 60 * 1000,
@@ -85,6 +111,25 @@ class AccountAddByRSSParseController {
                 });
               }
 
+              if (config.e2e.fixturesEnabled) {
+                // Mobile E2E stack has no MQ/worker — resolve parse synchronously.
+                await setAddByRSSParseCacheEntry({
+                  requestId,
+                  accountId: account.id,
+                  feedUrl: feed_url,
+                  status: 'parsed',
+                  cache: {
+                    feedHash: feed_hash || undefined,
+                    etag: etag || undefined,
+                    lastModified: last_modified || undefined,
+                  },
+                  payload: buildE2eParsedFeedPayload(),
+                  updatedAt: new Date().toISOString(),
+                });
+                res.status(201).json({ request_id: requestId });
+                return;
+              }
+
               await mqAddByRSSAdd(activeMQArtemisService, {
                 ...mqConstantMessageOptions,
                 accountId: account.id,
@@ -118,7 +163,11 @@ class AccountAddByRSSParseController {
       },
       {
         skipMembershipStatus: false,
-        requiredCapability: ACCOUNT_ENTITLEMENT_CAPABILITY.maxAddByRSSFeeds,
+        // Mobile E2E seeds a trial user whose Add-by-RSS cap can resolve to 0; skip the
+        // capability gate under deterministic fixtures so parse + poll succeed.
+        requiredCapability: config.e2e.fixturesEnabled
+          ? undefined
+          : ACCOUNT_ENTITLEMENT_CAPABILITY.maxAddByRSSFeeds,
       }
     );
   }
@@ -204,7 +253,11 @@ class AccountAddByRSSParseController {
       },
       {
         skipMembershipStatus: false,
-        requiredCapability: ACCOUNT_ENTITLEMENT_CAPABILITY.maxAddByRSSFeeds,
+        // Mobile E2E seeds a trial user whose Add-by-RSS cap can resolve to 0; skip the
+        // capability gate under deterministic fixtures so parse + poll succeed.
+        requiredCapability: config.e2e.fixturesEnabled
+          ? undefined
+          : ACCOUNT_ENTITLEMENT_CAPABILITY.maxAddByRSSFeeds,
       }
     );
   }
@@ -238,7 +291,11 @@ class AccountAddByRSSParseController {
       },
       {
         skipMembershipStatus: false,
-        requiredCapability: ACCOUNT_ENTITLEMENT_CAPABILITY.maxAddByRSSFeeds,
+        // Mobile E2E seeds a trial user whose Add-by-RSS cap can resolve to 0; skip the
+        // capability gate under deterministic fixtures so parse + poll succeed.
+        requiredCapability: config.e2e.fixturesEnabled
+          ? undefined
+          : ACCOUNT_ENTITLEMENT_CAPABILITY.maxAddByRSSFeeds,
       }
     );
   }

@@ -15,7 +15,22 @@ import {
   View,
 } from 'react-native';
 
-import { HelloWorldScreen } from '../screens/HelloWorldScreen';
+import { AlbumDetailScreen } from '../screens/album/AlbumDetailScreen';
+import { ArtistDetailScreen } from '../screens/artist/ArtistDetailScreen';
+import { ClipDetailScreen } from '../screens/clip/ClipDetailScreen';
+import { EpisodeDetailScreen } from '../screens/episode/EpisodeDetailScreen';
+import { HomeScreen } from '../screens/home/HomeScreen';
+import { LibraryHistoryScreen } from '../screens/library/LibraryHistoryScreen';
+import { LibraryMyClipsScreen } from '../screens/library/LibraryMyClipsScreen';
+import { LibraryPlaylistsScreen } from '../screens/library/LibraryPlaylistsScreen';
+import { LibraryQueueScreen } from '../screens/library/LibraryQueueScreen';
+import { PlaylistDetailScreen } from '../screens/library/PlaylistDetailScreen';
+import { PodcastDetailScreen } from '../screens/podcast/PodcastDetailScreen';
+import { MyProfileScreen } from '../screens/profile/MyProfileScreen';
+import { ProfileScreen } from '../screens/profile/ProfileScreen';
+import { AddByRssFeedListScreen } from '../screens/rss/AddByRssFeedListScreen';
+import { AddByRssRootScreen } from '../screens/rss/AddByRssRootScreen';
+import { SearchScreen } from '../screens/search/SearchScreen';
 import { useTheme } from '../theme/useTheme';
 
 type MobileTabNavigatorProps = {
@@ -119,10 +134,13 @@ function PlaceholderMenuScreen({ items, testID, title }: PlaceholderMenuScreenPr
 }
 
 export const HOME_STACK_ROUTES = {
+  AlbumDetail: 'AlbumDetail',
+  ArtistDetail: 'ArtistDetail',
   ClipDetail: 'ClipDetail',
   EpisodeDetail: 'EpisodeDetail',
   HomeRoot: 'HomeRoot',
   PodcastDetail: 'PodcastDetail',
+  TrackDetail: 'TrackDetail',
 } as const;
 
 export const SEARCH_STACK_ROUTES = {
@@ -131,9 +149,12 @@ export const SEARCH_STACK_ROUTES = {
 } as const;
 
 export const LIBRARY_STACK_ROUTES = {
+  LibraryClipDetail: 'LibraryClipDetail',
   LibraryDownloads: 'LibraryDownloads',
   LibraryHistory: 'LibraryHistory',
   LibraryHub: 'LibraryHub',
+  LibraryMyClips: 'LibraryMyClips',
+  PlaylistDetail: 'PlaylistDetail',
   LibraryPlaylists: 'LibraryPlaylists',
   LibraryQueue: 'LibraryQueue',
 } as const;
@@ -146,6 +167,9 @@ export const RSS_STACK_ROUTES = {
 export const MORE_STACK_ROUTES = {
   MoreAbout: 'MoreAbout',
   MoreMembership: 'MoreMembership',
+  MoreOpmlExport: 'MoreOpmlExport',
+  MoreOpmlImport: 'MoreOpmlImport',
+  MorePublicProfile: 'MorePublicProfile',
   MoreProfile: 'MoreProfile',
   MoreRoot: 'MoreRoot',
   MoreSettings: 'MoreSettings',
@@ -167,16 +191,22 @@ export const mobileNavigationLinking: LinkingOptions<RootStackParamList> = {
         screens: {
           Home: {
             screens: {
+              AlbumDetail: 'album/:albumId',
+              ArtistDetail: 'artist/:artistId',
               ClipDetail: 'clip/:clipId',
               EpisodeDetail: 'episode/:episodeId',
               HomeRoot: 'home',
               PodcastDetail: 'podcast/:podcastId',
+              TrackDetail: 'track/:trackId',
             },
           },
           More: {
             screens: {
               MoreAbout: 'more/about',
               MoreMembership: 'more/membership',
+              MoreOpmlExport: 'more/opml/export',
+              MoreOpmlImport: 'more/opml/import',
+              MorePublicProfile: 'more/profile/:accountIdText',
               MoreProfile: 'more/profile',
               MoreRoot: 'more',
               MoreSettings: 'more/settings',
@@ -184,9 +214,12 @@ export const mobileNavigationLinking: LinkingOptions<RootStackParamList> = {
           },
           'My Library': {
             screens: {
+              LibraryClipDetail: 'my-library/clip/:clipId',
               LibraryDownloads: 'my-library/downloads',
               LibraryHistory: 'my-library/history',
               LibraryHub: 'my-library',
+              LibraryMyClips: 'my-library/my-clips',
+              PlaylistDetail: 'my-library/playlist/:playlistId',
               LibraryPlaylists: 'my-library/playlists',
               LibraryQueue: 'my-library/queue',
             },
@@ -210,34 +243,43 @@ export const mobileNavigationLinking: LinkingOptions<RootStackParamList> = {
   prefixes: ['podverse://', 'https://podverse.fm'],
 };
 
-type HomeStackParamList = {
+export type HomeStackParamList = {
+  AlbumDetail: { albumId: string };
+  ArtistDetail: { artistId: string };
   ClipDetail: { clipId: string };
   EpisodeDetail: { episodeId: string };
   HomeRoot: undefined;
   PodcastDetail: { podcastId: string };
+  TrackDetail: { trackId: string };
 };
 
-type SearchStackParamList = {
+export type SearchStackParamList = {
   SearchResultDetail: { resultId: string };
   SearchRoot: undefined;
 };
 
-type LibraryStackParamList = {
+export type LibraryStackParamList = {
+  LibraryClipDetail: { clipId: string };
   LibraryDownloads: undefined;
   LibraryHistory: undefined;
   LibraryHub: undefined;
+  LibraryMyClips: undefined;
+  PlaylistDetail: { playlistId: string };
   LibraryPlaylists: undefined;
   LibraryQueue: undefined;
 };
 
-type RssStackParamList = {
+export type RssStackParamList = {
   AddByRssFeedList: undefined;
   AddByRssRoot: undefined;
 };
 
-type MoreStackParamList = {
+export type MoreStackParamList = {
   MoreAbout: undefined;
   MoreMembership: undefined;
+  MoreOpmlExport: undefined;
+  MoreOpmlImport: undefined;
+  MorePublicProfile: { accountIdText: string };
   MoreProfile: undefined;
   MoreRoot: undefined;
   MoreSettings: undefined;
@@ -248,14 +290,16 @@ type RootStackParamList = {
   MainTabs: undefined;
 };
 
-function HomeStackNavigator({ onRequestLogout }: { onRequestLogout: () => Promise<void> }) {
+function HomeStackNavigator() {
   const { t } = useTranslation();
 
   return (
     <HomeStack.Navigator>
-      <HomeStack.Screen name={HOME_STACK_ROUTES.HomeRoot} options={{ title: t('nav.stack.home') }}>
-        {() => <HelloWorldScreen authMode="authenticated" onRequestLogout={onRequestLogout} />}
-      </HomeStack.Screen>
+      <HomeStack.Screen
+        component={HomeScreen}
+        name={HOME_STACK_ROUTES.HomeRoot}
+        options={{ title: t('nav.stack.home') }}
+      />
       <HomeStack.Screen
         component={PodcastDetailScreen}
         name={HOME_STACK_ROUTES.PodcastDetail}
@@ -271,6 +315,21 @@ function HomeStackNavigator({ onRequestLogout }: { onRequestLogout: () => Promis
         name={HOME_STACK_ROUTES.ClipDetail}
         options={{ title: t('features.clip.clip') }}
       />
+      <HomeStack.Screen
+        component={ArtistDetailScreen}
+        name={HOME_STACK_ROUTES.ArtistDetail}
+        options={{ title: t('media.music.artist') }}
+      />
+      <HomeStack.Screen
+        component={AlbumDetailScreen}
+        name={HOME_STACK_ROUTES.AlbumDetail}
+        options={{ title: t('media.music.album') }}
+      />
+      <HomeStack.Screen
+        component={TrackDetailScreen}
+        name={HOME_STACK_ROUTES.TrackDetail}
+        options={{ title: t('media.music.track') }}
+      />
     </HomeStack.Navigator>
   );
 }
@@ -281,7 +340,7 @@ function SearchStackNavigator() {
   return (
     <SearchStack.Navigator>
       <SearchStack.Screen
-        component={SearchRootScreen}
+        component={SearchScreen}
         name={SEARCH_STACK_ROUTES.SearchRoot}
         options={{ title: t('features.search.search') }}
       />
@@ -310,6 +369,11 @@ function LibraryStackNavigator() {
         options={{ title: t('features.playlist.playlists') }}
       />
       <LibraryStack.Screen
+        component={PlaylistDetailScreen}
+        name={LIBRARY_STACK_ROUTES.PlaylistDetail}
+        options={{ title: t('features.playlist.playlist') }}
+      />
+      <LibraryStack.Screen
         component={LibraryHistoryScreen}
         name={LIBRARY_STACK_ROUTES.LibraryHistory}
         options={{ title: t('features.history.history') }}
@@ -318,6 +382,16 @@ function LibraryStackNavigator() {
         component={LibraryQueueScreen}
         name={LIBRARY_STACK_ROUTES.LibraryQueue}
         options={{ title: t('features.queue.queue') }}
+      />
+      <LibraryStack.Screen
+        component={LibraryMyClipsScreen}
+        name={LIBRARY_STACK_ROUTES.LibraryMyClips}
+        options={{ title: t('features.clip.clips') }}
+      />
+      <LibraryStack.Screen
+        component={ClipDetailScreen}
+        name={LIBRARY_STACK_ROUTES.LibraryClipDetail}
+        options={{ title: t('features.clip.clip') }}
       />
       <LibraryStack.Screen
         component={LibraryDownloadsScreen}
@@ -370,8 +444,13 @@ function MoreStackNavigator({ onRequestLogout }: MoreStackNavigatorProps) {
         options={{ title: t('info.about') }}
       />
       <MoreStack.Screen
-        component={MoreProfileScreen}
+        component={MyProfileScreen}
         name={MORE_STACK_ROUTES.MoreProfile}
+        options={{ title: t('features.profile') }}
+      />
+      <MoreStack.Screen
+        component={ProfileScreen}
+        name={MORE_STACK_ROUTES.MorePublicProfile}
         options={{ title: t('features.profile') }}
       />
       <MoreStack.Screen
@@ -379,24 +458,22 @@ function MoreStackNavigator({ onRequestLogout }: MoreStackNavigatorProps) {
         name={MORE_STACK_ROUTES.MoreMembership}
         options={{ title: t('membership.membership') }}
       />
+      <MoreStack.Screen
+        component={MoreOpmlImportScreen}
+        name={MORE_STACK_ROUTES.MoreOpmlImport}
+        options={{ title: t('settings.settings') }}
+      />
+      <MoreStack.Screen
+        component={MoreOpmlExportScreen}
+        name={MORE_STACK_ROUTES.MoreOpmlExport}
+        options={{ title: t('settings.settings') }}
+      />
     </MoreStack.Navigator>
   );
 }
 
-function PodcastDetailScreen() {
-  return <PlaceholderScreen testID="podcast-detail-screen" title="Podcast Detail Placeholder" />;
-}
-
-function EpisodeDetailScreen() {
-  return <PlaceholderScreen testID="episode-detail-screen" title="Episode Detail Placeholder" />;
-}
-
-function ClipDetailScreen() {
-  return <PlaceholderScreen testID="clip-detail-screen" title="Clip Detail Placeholder" />;
-}
-
-function SearchRootScreen() {
-  return <PlaceholderScreen testID="search-screen" title="Search Placeholder" />;
+function TrackDetailScreen() {
+  return <PlaceholderScreen testID="track-detail-screen" title="Track Detail Placeholder" />;
 }
 
 function SearchResultDetailScreen() {
@@ -441,6 +518,27 @@ function LibraryHubScreen({
           testID: 'library-nav-downloads',
           title: t('nav.tab.downloads'),
         },
+        {
+          onPress: () => {
+            navigation.navigate(LIBRARY_STACK_ROUTES.LibraryMyClips);
+          },
+          testID: 'library-nav-my-clips',
+          title: t('features.clip.clips'),
+        },
+        {
+          onPress: () => {
+            navigation.navigate(MORE_STACK_ROUTES.MoreOpmlImport);
+          },
+          testID: 'library-nav-opml-import',
+          title: t('settings.settings'),
+        },
+        {
+          onPress: () => {
+            navigation.navigate(MORE_STACK_ROUTES.MoreOpmlExport);
+          },
+          testID: 'library-nav-opml-export',
+          title: t('settings.settings'),
+        },
       ]}
       testID="library-hub-screen"
       title={t('features.my_library')}
@@ -448,46 +546,8 @@ function LibraryHubScreen({
   );
 }
 
-function LibraryPlaylistsScreen() {
-  return <PlaceholderScreen testID="library-playlists-screen" title="Playlists Placeholder" />;
-}
-
-function LibraryHistoryScreen() {
-  return <PlaceholderScreen testID="library-history-screen" title="History Placeholder" />;
-}
-
-function LibraryQueueScreen() {
-  return <PlaceholderScreen testID="library-queue-screen" title="Queue Placeholder" />;
-}
-
 function LibraryDownloadsScreen() {
   return <PlaceholderScreen testID="library-downloads-screen" title="Downloads Placeholder" />;
-}
-
-function AddByRssRootScreen({
-  navigation,
-}: NativeStackScreenProps<RssStackParamList, 'AddByRssRoot'>) {
-  const { t } = useTranslation();
-
-  return (
-    <PlaceholderMenuScreen
-      items={[
-        {
-          onPress: () => {
-            navigation.navigate(RSS_STACK_ROUTES.AddByRssFeedList);
-          },
-          testID: 'rss-nav-feed-list',
-          title: t('nav.menu.view_rss_feeds'),
-        },
-      ]}
-      testID="rss-root-screen"
-      title={t('features.add_by_rss.label')}
-    />
-  );
-}
-
-function AddByRssFeedListScreen() {
-  return <PlaceholderScreen testID="rss-feed-list-screen" title="RSS Feed List Placeholder" />;
 }
 
 type MoreRootScreenProps = NativeStackScreenProps<MoreStackParamList, 'MoreRoot'> & {
@@ -504,7 +564,7 @@ function MoreRootScreen({ navigation, onRequestLogout }: MoreRootScreenProps) {
           onPress: () => {
             navigation.navigate(MORE_STACK_ROUTES.MoreSettings);
           },
-          testID: 'more-nav-settings',
+          testID: 'more-settings',
           title: t('settings.settings'),
         },
         {
@@ -530,6 +590,20 @@ function MoreRootScreen({ navigation, onRequestLogout }: MoreRootScreenProps) {
         },
         {
           onPress: () => {
+            navigation.navigate(MORE_STACK_ROUTES.MoreOpmlImport);
+          },
+          testID: 'opml-import-entry',
+          title: t('settings.settings'),
+        },
+        {
+          onPress: () => {
+            navigation.navigate(MORE_STACK_ROUTES.MoreOpmlExport);
+          },
+          testID: 'opml-export-entry',
+          title: t('settings.settings'),
+        },
+        {
+          onPress: () => {
             void onRequestLogout();
           },
           testID: 'more-nav-logout',
@@ -550,12 +624,18 @@ function MoreAboutScreen() {
   return <PlaceholderScreen testID="more-about-screen" title="About Placeholder" />;
 }
 
-function MoreProfileScreen() {
-  return <PlaceholderScreen testID="more-profile-screen" title="Profile Placeholder" />;
-}
-
 function MoreMembershipScreen() {
   return <PlaceholderScreen testID="more-membership-screen" title="Membership Placeholder" />;
+}
+
+function MoreOpmlImportScreen() {
+  const { t } = useTranslation();
+  return <PlaceholderScreen testID="more-opml-import-screen" title={t('settings.settings')} />;
+}
+
+function MoreOpmlExportScreen() {
+  const { t } = useTranslation();
+  return <PlaceholderScreen testID="more-opml-export-screen" title={t('settings.settings')} />;
 }
 
 type MiniPlayerSlotProps = {
@@ -646,9 +726,8 @@ function TabScaffold({ onOpenFullPlayer, onRequestLogout }: TabScaffoldProps) {
           tabBarLabel: t('nav.tab.home'),
           tabBarButtonTestID: 'tab-home',
         }}
-      >
-        {() => <HomeStackNavigator onRequestLogout={onRequestLogout} />}
-      </Tab.Screen>
+        component={HomeStackNavigator}
+      />
       <Tab.Screen
         component={SearchStackNavigator}
         name="Search"

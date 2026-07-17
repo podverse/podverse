@@ -5,10 +5,9 @@ name: Locale Switch Home Smoke
 # E2E devices: "iPhone 17 Pro E2E" / Pixel_6_Pro_API_33_e2e
 # Maestro has no launchApp language/locale props (CLI --device-locale only at device start).
 # Until Track 16 settings UI lands, switch via HelloWorld smoke controls + i18next.
+# Cold start via shared/launch-and-connect.yaml (retries Dev Client connect).
 
-- launchApp:
-    clearState: true
-- runFlow: shared/connect-dev-client.yaml
+- runFlow: shared/launch-and-connect.yaml
 - assertVisible:
     id: hello-world-screen
 - assertVisible: Hello World Testing 123

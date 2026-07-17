@@ -1,0 +1,34 @@
+appId: com.podverse.app.next
+name: Podcast Episode Flow
+---
+# Track 9.25: Home/Search -> podcast detail -> episode detail screenshot flow.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- tapOn:
+    id: tab-search
+- assertVisible:
+    id: search-screen
+- takeScreenshot: podcast-episode-search-tab
+
+- tapOn:
+    id: search-input
+- inputText: podcast
+- assertVisible:
+    id: search-result-row-0
+- takeScreenshot: podcast-episode-search-results
+
+- tapOn:
+    id: search-result-row-0
+- assertVisible:
+    id: podcast-detail-screen
+- takeScreenshot: podcast-episode-podcast-detail
+
+- assertVisible:
+    id: podcast-episode-row-0
+- tapOn:
+    id: podcast-episode-row-0
+- assertVisible:
+    id: episode-detail-screen
+- takeScreenshot: podcast-episode-episode-detail

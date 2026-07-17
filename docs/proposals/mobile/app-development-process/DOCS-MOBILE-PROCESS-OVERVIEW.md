@@ -84,22 +84,22 @@ Web routes live under `apps/web/src/app/` (e.g. `podcast/`, `episode/`, `search/
 `playlist/`, `profile/`, `my-profile/`, `queues/`, `history/`, plus `album/`, `artist/`, `clip/`,
 `add-by-rss/`). Proposed mobile screen mapping:
 
-| Web route                      | Mobile screen                | Primary data sources                             |
-| ------------------------------ | ---------------------------- | ------------------------------------------------ |
-| `/` (home)                     | Home / Subscriptions         | `reqChannelGetMany` (subscribed)                 |
-| `/podcast/[channel_id]`        | Podcast detail               | channel + `reqItemGetManyByChannel` + live items |
-| `/episode/[item_id]`           | Episode detail               | item + chapter/soundbite/clip/transcript tabs    |
-| `/album/[id]`, `/artist/[id]`  | Album / Artist               | music channel + items                            |
-| `/search`                      | Search                       | `reqPodcastIndexSearchPodcasts`                  |
-| `/playlists`, `/playlist/[id]` | Playlists / Playlist         | `reqPlaylistGetMany`, playlist resources         |
-| `/profile/[id]`, `/my-profile` | Profile                      | `reqProfile*` / `reqMyProfile*`                  |
-| `/queues`                      | Queue                        | `reqQueue*` now-playing + upcoming               |
-| `/history`                     | History                      | history-paginated queue resources                |
-| `/clip/[id]`, `/my-clips`      | Clip detail / My clips       | `reqClip*`                                       |
-| `/add-by-rss`                  | Add-by-RSS                   | add-by-rss queue resource APIs                   |
-| Global player                  | Mini player + full player    | queue + auto-queue + playback policy             |
-| `/settings`                    | Settings                     | account-settings APIs                            |
-| `/checkout`, `/membership`     | Membership (native strategy) | membership/PayPal APIs                           |
+| Web route                      | Mobile screen                | Primary data sources                             | Web source reference                                                                                                   |
+| ------------------------------ | ---------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| `/` (home)                     | Home / Subscriptions         | `reqChannelGetMany` (subscribed)                 | `apps/web/src/app/page.tsx`, `apps/web/src/components/List`                                                            |
+| `/podcast/[channel_id]`        | Podcast detail               | channel + `reqItemGetManyByChannel` + live items | `apps/web/src/app/podcast/[podcast_id]/PodcastPageClient.tsx`                                                          |
+| `/episode/[item_id]`           | Episode detail               | item + chapter/soundbite/clip/transcript tabs    | `apps/web/src/app/episode/[episode_id]/EpisodePageClient.tsx`                                                          |
+| `/album/[id]`, `/artist/[id]`  | Album / Artist               | music channel + items                            | `apps/web/src/app/album/[album_id]/AlbumPageClient.tsx`, `apps/web/src/app/artist/[artist_id]/ArtistPageClient.tsx`    |
+| `/search`                      | Search                       | `reqPodcastIndexSearchPodcasts`                  | `apps/web/src/app/search/SearchPageClient.tsx`                                                                         |
+| `/playlists`, `/playlist/[id]` | Playlists / Playlist         | `reqPlaylistGetMany`, playlist resources         | `apps/web/src/app/playlists/PlaylistsPageClient.tsx`, `apps/web/src/app/playlist/[playlist_id]/PlaylistPageClient.tsx` |
+| `/profile/[id]`, `/my-profile` | Profile                      | `reqProfile*` / `reqMyProfile*`                  | `apps/web/src/app/profile/[profile_id]/ProfilePageClient.tsx`, `apps/web/src/app/my-profile/MyProfilePageClient.tsx`   |
+| `/queues`                      | Queue                        | `reqQueue*` now-playing + upcoming               | `apps/web/src/app/queues/QueuesPageClient.tsx`                                                                         |
+| `/history`                     | History                      | history-paginated queue resources                | `apps/web/src/app/history/HistoryPageClient.tsx`                                                                       |
+| `/clip/[id]`, `/my-clips`      | Clip detail / My clips       | `reqClip*`                                       | `apps/web/src/app/clip/[clip_id]/ClipPageClient.tsx`, `apps/web/src/app/my-clips/MyClipsPageClient.tsx`                |
+| `/add-by-rss`                  | Add-by-RSS                   | add-by-rss account parse/follow APIs             | `apps/web/src/app/add-by-rss/**`, `apps/web/src/components/AddByRSS/**`                                                |
+| Global player                  | Mini player + full player    | queue + auto-queue + playback policy             | `apps/web/src/components/MediaPlayer/**`                                                                               |
+| `/settings`                    | Settings                     | account-settings APIs                            | `apps/web/src/app/settings/**`                                                                                         |
+| `/checkout`, `/membership`     | Membership (native strategy) | membership/PayPal APIs                           | `apps/web/src/app/membership/**`                                                                                       |
 
 Exact per-page API calls are catalogued in
 [DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md](DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md) and

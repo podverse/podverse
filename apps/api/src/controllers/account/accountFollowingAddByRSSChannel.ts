@@ -1,3 +1,4 @@
+import { config } from '@api/config/index.js';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
 import { getParamRequired } from '@api/lib/params.js';
 import {
@@ -112,7 +113,9 @@ class AccountFollowingAddByRSSChannelController {
           };
 
           try {
-            if (entitlements) {
+            // Mobile E2E stack seeds a trial user whose Add-by-RSS cap can resolve to 0;
+            // skip the entitlement limit gate under deterministic fixtures.
+            if (entitlements && !config.e2e.fixturesEnabled) {
               const alreadySaved =
                 await AccountFollowingAddByRSSChannelController.accountFollowingAddByRSSChannelService.hasFollowedAddByRSSChannel(
                   account.id,

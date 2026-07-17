@@ -65,29 +65,22 @@ flow for day-to-day Metro E2E.
 
 ## Current flows
 
-- `hello-world.yaml` (Track 5 baseline)
-- `locale-switch-home-smoke.yaml` (Track 17.8)
+Top-level `apps/mobile/e2e/<area>.yaml` files (examples): `hello-world`, `locale-switch-home-smoke`,
+`api-health`, `auth-login`, `auth-logout`, `tab-switch-playback`, `home`, `search`,
+`podcast-episode`, `add-by-rss`. New top-level YAML is auto-included in the full suite.
 
-Run from monorepo root:
+**Start here for how to run:** [HOW-TO-RUN.md](./HOW-TO-RUN.md) (§ Run all → `npm run mobile:e2e:test:all`).
 
 ```bash
-# T1
-npm run mobile:dev
-# T2
-npm run mobile:e2e:ios
-# T3
-npm run mobile:e2e:android
-# T4
-npm run mobile:e2e:test
+# Full suite (after API-backed prep in HOW-TO-RUN)
+npm run mobile:e2e:test:all
+
+# Focused
 npm run mobile:e2e:test -- hello-world
-npm run mobile:e2e:test -- locale-switch-home-smoke
-open .artifacts/mobile-e2e-reports/latest/index.html
-open .artifacts/mobile-e2e-reports/latest/ios-phone/index.html
-open .artifacts/mobile-e2e-reports/latest/android-phone/index.html
 ```
 
 Thin Make aliases: `make mobile_e2e_test` / `make mobile_e2e_test_report_spec SPEC=…` call the same
-npm test script.
+npm test script (`SPEC=all` for the full suite).
 
 ## Parallel worktree guidance
 

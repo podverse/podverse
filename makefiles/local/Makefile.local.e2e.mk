@@ -6,7 +6,7 @@
 .PHONY: e2e_test e2e_test_playwright e2e_test_api e2e_test_web e2e_test_management_web
 .PHONY: e2e_test_management_web_storage_enabled
 .PHONY: e2e_test_report e2e_test_web_report_spec e2e_test_web_custom_themes_report e2e_test_management_web_report_spec e2e_test_report_scoped
-.PHONY: mobile_e2e_deps mobile_e2e_seed mobile_e2e_api mobile_e2e_api_bg mobile_e2e_api_stop mobile_e2e_api_health mobile_e2e_api_status mobile_e2e_test mobile_e2e_test_report_spec
+.PHONY: mobile_e2e_deps mobile_e2e_seed mobile_e2e_api mobile_e2e_api_bg mobile_e2e_api_stop mobile_e2e_api_health mobile_e2e_api_status mobile_e2e_test_assets mobile_e2e_test_assets_bg mobile_e2e_test_assets_stop mobile_e2e_test_assets_health mobile_e2e_test_assets_status mobile_e2e_test mobile_e2e_test_all mobile_e2e_test_report_spec
 .PHONY: e2e_teardown
 
 # Report output directory (timestamped)
@@ -342,11 +342,29 @@ mobile_e2e_api_health:
 mobile_e2e_api_status:
 	@npm run mobile:e2e:api:status
 
+mobile_e2e_test_assets:
+	@npm run mobile:e2e:test-assets
+
+mobile_e2e_test_assets_bg:
+	@npm run mobile:e2e:test-assets:bg
+
+mobile_e2e_test_assets_stop:
+	@npm run mobile:e2e:test-assets:stop
+
+mobile_e2e_test_assets_health:
+	@npm run mobile:e2e:test-assets:health
+
+mobile_e2e_test_assets_status:
+	@npm run mobile:e2e:test-assets:status
+
 mobile_e2e_test:
 	@npm run mobile:e2e:test -- $(MOBILE_E2E_DEFAULT_SPEC)
 
+mobile_e2e_test_all:
+	@npm run mobile:e2e:test:all
+
 mobile_e2e_test_report_spec:
-	@test -n "$(SPEC)" || (echo "Usage: make mobile_e2e_test_report_spec SPEC=hello-world"; exit 1)
+	@test -n "$(SPEC)" || (echo "Usage: make mobile_e2e_test_report_spec SPEC=hello-world (or SPEC=all)"; exit 1)
 	@npm run mobile:e2e:test -- $(SPEC)
 
 e2e_teardown:
