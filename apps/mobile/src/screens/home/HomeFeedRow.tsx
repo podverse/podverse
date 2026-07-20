@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { GestureResponderEvent } from 'react-native';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { Button } from '../../components/primitives';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from './homeFeedData';
@@ -45,22 +46,9 @@ export function HomeFeedRow({
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        actionButton: {
-          backgroundColor: themeStyles.buttonSecondary.backgroundColor,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.full,
-          borderWidth: 1,
-          marginRight: tokens.spacing.sm,
-          paddingHorizontal: tokens.spacing.sm,
-          paddingVertical: 4,
-        },
-        actionButtonLabel: {
-          color: themeStyles.buttonSecondary.color,
-          fontSize: 12,
-          fontWeight: '600',
-        },
         actionRow: {
           flexDirection: 'row',
+          gap: tokens.spacing.sm,
           marginTop: tokens.spacing.sm,
         },
         image: {
@@ -89,7 +77,7 @@ export function HomeFeedRow({
           alignSelf: 'flex-start',
           backgroundColor: themeStyles.buttonSecondary.backgroundColor,
           borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.full,
+          borderRadius: tokens.radii.round,
           borderWidth: 1,
           marginBottom: tokens.spacing.xs,
           paddingHorizontal: tokens.spacing.sm,
@@ -157,28 +145,26 @@ export function HomeFeedRow({
         ) : null}
         {isPlayable ? (
           <View style={styles.actionRow}>
-            <Pressable
-              accessibilityRole="button"
+            <Button
+              label={t('media_player.play')}
               onPress={(event) => {
                 stopPressPropagation(event);
                 onPlayPress(row);
               }}
-              style={styles.actionButton}
+              size="sm"
               testID={`home-row-play-${row.id}`}
-            >
-              <Text style={styles.actionButtonLabel}>{t('media_player.play')}</Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
+              variant="secondary"
+            />
+            <Button
+              label={t('features.queue.queue_next')}
               onPress={(event) => {
                 stopPressPropagation(event);
                 onQueuePress(row);
               }}
-              style={styles.actionButton}
+              size="sm"
               testID={`home-row-queue-${row.id}`}
-            >
-              <Text style={styles.actionButtonLabel}>{t('features.queue.queue_next')}</Text>
-            </Pressable>
+              variant="secondary"
+            />
           </View>
         ) : null}
       </View>

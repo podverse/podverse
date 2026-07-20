@@ -19,6 +19,17 @@ Contributor guide: [`APPS-MOBILE.md`](/apps/mobile/APPS-MOBILE.md).
   methods** (e.g. `createMobileApiRequestService()?.reqAuthMobileToken(...)`). Standalone `req*`
   helpers in package source are not all re-exported from the barrel. Same bearer auth pattern as
   web, different transport.
+- **Data layer (offline-first):** local SQLite (expo-sqlite + Drizzle) is the source of truth.
+  Screens/hooks **read through repositories** under `src/data/` — do **not** call
+  `ApiRequestService` / `req*` directly for product data. Repositories own background sync.
+  See [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md)
+  and the **mobile-data-layer** skill.
+- **Storage boundaries:** SecureStore = auth tokens only; AsyncStorage/MMKV = tiny prefs (`uit`,
+  media type); SQLite = app entities (queue, history, add-by-RSS, downloads index); filesystem =
+  downloaded media files; **native cache** = CarPlay / Android Auto / watch projections (not
+  SQLite — see data-layer doc §7.1).
+- **Add-by-RSS:** server-side parse + poll only (`/account/add-by-rss/parse`); map with
+  `@podverse/parser-mapping`; never import `@podverse/parser`; persist mapped feeds/items in SQLite.
 - **Helpers / lib:** put generic (non-screen-specific) helpers in `src/lib/` when first written —
   even with one callsite. Prefer domain modules (`src/auth`, `src/config`, …) when the domain owns
   the helper. See **mobile-react-native** rule.
@@ -40,17 +51,17 @@ Contributor guide: [`APPS-MOBILE.md`](/apps/mobile/APPS-MOBILE.md).
 Mobile is a Tier 5 consumer: import **downward** only. Mirror
 [DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md §4](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md).
 
-| Allowed (mobile-safe)                                  | Forbidden (web/server-only)                                |
-| ------------------------------------------------------ | ---------------------------------------------------------- |
-| `@podverse/helpers`                                    | `@podverse/ui` (components, SCSS)                          |
-| `@podverse/design-tokens` (RN theme/token maps)        | —                                                          |
-| `@podverse/helpers-requests`                           | `@podverse/orm`                                            |
-| `@podverse/http-request-core`                          | `@podverse/parser`                                         |
-| `@podverse/helpers-validation/client`                  | `@podverse/mq`                                             |
-| `@podverse/playback-core`                              | `@podverse/helpers-backend`                                |
-| `@podverse/parser-mapping`                             | `@podverse/helpers-browser`                                |
-| `@podverse/v4v-helpers`, `v4v-metaboost`, `v4v-btc-ln` | `@podverse/helpers-config`                                 |
-| —                                                      | `@podverse/observability`, `@podverse/external-services-*` |
+| Allowed (mobile-safe)                                      | Forbidden (web/server-only)                                |
+| ---------------------------------------------------------- | ---------------------------------------------------------- |
+| `@podverse/helpers`                                        | `@podverse/ui` (components, SCSS)                          |
+| `@podverse/design-tokens` (RN theme/token maps)            | —                                                          |
+| `@podverse/helpers-requests`                               | `@podverse/orm`                                            |
+| `@podverse/http-request-core`                              | `@podverse/parser`                                         |
+| `@podverse/helpers-validation/client`                      | `@podverse/mq`                                             |
+| `@podverse/playback-core`                                  | `@podverse/helpers-backend`                                |
+| `@podverse/parser-mapping` (post-parse add-by-RSS mapping) | `@podverse/helpers-browser`                                |
+| `@podverse/v4v-helpers`, `v4v-metaboost`, `v4v-btc-ln`     | `@podverse/helpers-config`                                 |
+| —                                                          | `@podverse/observability`, `@podverse/external-services-*` |
 
 When implementing a screen: read the matching web route context/hooks first for `req*` and DTO usage;
 reuse the same wrappers; do **not** port SCSS, `@podverse/ui`, Next routing, or SSR patterns.

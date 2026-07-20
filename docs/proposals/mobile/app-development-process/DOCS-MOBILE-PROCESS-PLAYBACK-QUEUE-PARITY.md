@@ -90,12 +90,16 @@ Server endpoints live in `apps/api/src/routes/queue.ts`; typed wrappers in
 
 **Mobile flow (parallel):**
 
-1. On launch, fetch all queues + abridged index (same wrappers web uses in SSR).
+1. On launch, hydrate queue state from the **offline-first repository** (SQLite), then background-sync
+   all queues + abridged index (same wrappers web uses in SSR). Screens must not call `req*`
+   directly — see
+   [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md).
 2. Resolve the active queue by `medium_id` (reuse `getQueueForMedium` from `@podverse/helpers`).
-3. Load now-playing + upcoming via the same `queueResource` wrappers.
+3. Load now-playing + upcoming via the repository (which uses the same `queueResource` wrappers).
 4. On play action → run `playback-core` decision → native bridge `loadAndStart`.
-5. On add-to-queue (next/last) → same POST wrappers; update local queue store.
-6. On ended/skip → move now-playing to history (same wrapper), advance head.
+5. On add-to-queue (next/last) → optimistic local write + same POST wrappers; update queue store.
+6. On ended/skip → move now-playing to history (same wrapper), advance head; write native cache when
+   Track 12 is ready.
 
 ## 7. Abridged index / resume
 
@@ -104,8 +108,9 @@ in `apps/web/src/app/layout.tsx` (`reqQueueResourcesGetAllByAccountAbridged`), t
 `useQueueResourcesAbridgedIndexLoad.tsx` / `useQueueResourcesAbridgedIndexUpdate.tsx`. Resume seek is
 computed by `resumeSeekFromAbridged` (moving to `playback-core`).
 
-**Mobile:** fetch the abridged index **on app launch** (no SSR), keep it in the queue store, and
-update it on now-playing changes — same DTO shape, same resume math.
+**Mobile:** hydrate the abridged index from the **local DB** on launch, soft-refresh from the API
+via the queue repository (no SSR), keep it in the queue store, and update it on now-playing
+changes — same DTO shape, same resume math.
 
 ## 8. Auto-queue parity
 

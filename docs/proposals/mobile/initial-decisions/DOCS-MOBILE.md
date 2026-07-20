@@ -16,6 +16,7 @@ effective as the codebase grows.
 | Monorepo or separate repo?      | **Monorepo**, as a clearly isolated `apps/mobile` workspace with its own toolchain boundary.                                |
 | React Native or something else? | **React Native (Expo, with prebuild / dev client)** for ~90–95% of the app.                                                 |
 | CarPlay / Android Auto?         | **Hybrid**: RN app + a thin **native** layer for the car experiences and background audio. **One app, not two.**            |
+| Offline / local data?           | **Offline-first SQLite** (expo-sqlite + Drizzle) as source of truth; screens read **repositories**, not `req*` directly.    |
 | Will it overwhelm Cursor?       | No, if you scope context with `.cursorignore`, app-local `AGENTS.md`, and tiering.                                          |
 | Versioning                      | Keep the **shared `X.Y.Z`** version, but give mobile its **own store-release pipeline** decoupled from container promotion. |
 
@@ -36,6 +37,10 @@ effective as the codebase grows.
   suspended or was never opened. You can still ship **one** RN app; the car layer is a native module
   inside it, not a second app. Full detail, including when you would be forced into two apps, is in
   [DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md](DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md).
+- **Offline-first data.** Mobile must work without the network. Use a local SQLite DB as the
+  source of truth and sync from the same API in the background. Screens read **repositories**, not
+  `req*` directly. Episode **file** downloads are a later layer on the same DB. See
+  [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](DOCS-MOBILE-DATA-LAYER-OFFLINE.md).
 - **Versioning / release.** Container images promote `develop → staging → main` by retagging the
   same digest. Mobile cannot work that way — App Store / Play Store review gates every release and
   binaries are rebuilt, not retagged. Keep the **same version number** for human sanity, but run a
@@ -53,9 +58,19 @@ effective as the codebase grows.
   KMP, native, and web wrappers.
 - [DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md](DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md) — the
   background-execution problem and how to get a flawless car experience.
+- [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](DOCS-MOBILE-DATA-LAYER-OFFLINE.md) — offline-first local DB,
+  repository seam, background sync.
 - [DOCS-MOBILE-VERSIONING-RELEASE.md](DOCS-MOBILE-VERSIONING-RELEASE.md) — fitting mobile into
   `develop → staging → main` and the app stores.
 - [DOCS-MOBILE-LLM-CONTEXT.md](DOCS-MOBILE-LLM-CONTEXT.md) — keeping Cursor effective at scale.
+
+## Related process docs
+
+- [DOCS-MOBILE-PROCESS-OVERVIEW.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-OVERVIEW.md)
+- [DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md)
+- [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md)
+  — primitives now, full pixel polish later
+- [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](DOCS-MOBILE-DATA-LAYER-OFFLINE.md)
 
 ## Related existing docs
 

@@ -451,6 +451,22 @@ Keep [`metro.config.js`](/apps/mobile/metro.config.js) `resolver.unstable_enable
 After changing helpers exports or Tier A sources: `npm run build:packages`, restart `npm run mobile:dev`, reload
 the sim (`r` in Metro or re-open the app).
 
+### Metro resolving Node `crypto` / `node:crypto` (parser-mapping hash path)
+
+Some mobile-required code legitimately needs the helpers **hash** path: add-by-RSS uses
+`@podverse/parser-mapping`, which pulls `@podverse/v4v-metaboost` → `@podverse/helpers` `hash.js`
+(`crypto` `createHash` md5/sha256). That subpath cannot be avoided the way the barrel can, so instead
+of dropping the import we resolve Node `crypto` to a pure-JS React Native shim.
+
+- Shim: [`apps/mobile/src/shims/node-crypto.js`](/apps/mobile/src/shims/node-crypto.js) — pure-JS md5 +
+  sha256 exposing `createHash(algorithm).update(...).digest(...)` (the only surface helpers hash uses).
+- Wiring: [`metro.config.js`](/apps/mobile/metro.config.js) `resolver.resolveRequest` redirects
+  `crypto` and `node:crypto` to that shim (all other modules fall through to `context.resolveRequest`).
+
+If Metro reports `Unable to resolve "crypto"` (or `node:crypto`) from a helpers/parser-mapping module,
+confirm that `resolveRequest` hook is present and points at the shim, then restart Metro. Do **not**
+add a Node `crypto` polyfill package for this — the shim is intentionally minimal.
+
 ### `fmt` / `FMT_STRING` / `consteval` errors with Xcode 26+
 
 React Native 0.76 bundles **fmt 11.0.2** (via `RCT-Folly`). **Xcode 26+** (Apple clang 21) enforces

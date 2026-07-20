@@ -41,7 +41,7 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
         addButton: {
           alignItems: 'center',
           backgroundColor: tokens.text.action,
-          borderRadius: tokens.radii.full,
+          borderRadius: tokens.radii.round,
           marginTop: tokens.spacing.sm,
           paddingHorizontal: tokens.spacing.md,
           paddingVertical: tokens.spacing.sm,
@@ -68,7 +68,7 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
         },
         feedButton: {
           borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.full,
+          borderRadius: tokens.radii.round,
           borderWidth: 1,
           marginRight: tokens.spacing.sm,
           paddingHorizontal: tokens.spacing.sm,

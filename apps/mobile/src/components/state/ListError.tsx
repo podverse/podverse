@@ -23,7 +23,7 @@ export function ListError({
       StyleSheet.create({
         button: {
           backgroundColor: themeStyles.buttonPrimary.backgroundColor,
-          borderRadius: tokens.radii.full,
+          borderRadius: tokens.radii.round,
           marginTop: tokens.spacing.sm,
           paddingHorizontal: tokens.spacing.md,
           paddingVertical: tokens.spacing.sm,

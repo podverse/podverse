@@ -1,17 +1,13 @@
 import { useCallback } from 'react';
 
-import type { DTOQueue } from '@podverse/helpers';
+import type { DTOQueue } from '@podverse/helpers/dto';
 
-import { requestWithMobileAuthRefresh } from '../auth';
 import { useAuth } from '../auth/AuthProvider';
+import { queueRepository, selectPrimaryQueue } from '../data';
 
+/** Re-exported for backward compatibility; selection now lives in the queue repository. */
 export function getPrimaryQueue(queues: DTOQueue[]): DTOQueue | null {
-  const activeQueue = queues.find((queue) => queue.is_active_queue);
-  if (activeQueue) {
-    return activeQueue;
-  }
-
-  return queues[0] ?? null;
+  return selectPrimaryQueue(queues);
 }
 
 export function usePrimaryQueue() {
@@ -22,16 +18,7 @@ export function usePrimaryQueue() {
       return null;
     }
 
-    const queues = await requestWithMobileAuthRefresh(
-      {
-        accessToken,
-        clearSession,
-        refreshToken,
-        setTokens,
-      },
-      async (api) => api.reqQueueGetAllForAccountPrivate()
-    );
-    return getPrimaryQueue(queues);
+    return queueRepository.getPrimaryQueue({ accessToken, clearSession, refreshToken, setTokens });
   }, [accessToken, clearSession, refreshToken, setTokens, status]);
 
   return {

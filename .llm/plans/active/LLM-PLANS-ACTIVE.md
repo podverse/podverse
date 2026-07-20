@@ -8,3 +8,7 @@ In-progress multi-step plan sets (one directory per feature or initiative). **No
 - See [LLM.md](/.llm/LLM.md).
 
 ## Indexed sets (non-exhaustive)
+
+_No active plan sets. Recently completed:_
+[mobile-addbyrss-mapped-playback](/.llm/plans/completed/mobile-addbyrss-mapped-playback/) — closed
+detail 494 mapped playback + `radii.full` → `round` hygiene (after Track 9b / PG-6.5).

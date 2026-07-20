@@ -35,6 +35,15 @@ alwaysApply: false
   package source are not all re-exported from the barrel — prefer methods on the service instance.
   Also reuse `@podverse/playback-core` policy; implement transport via a **native bridge**
   (`NativePlaybackBridge`) — do not edit web `useMediaElementBridge` for mobile.
+- **Data layer (offline-first):** after Track 9b, screens/hooks **read through repositories** under
+  `apps/mobile/src/data/` — do not call `ApiRequestService` / `req*` directly for product data.
+  See [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md)
+  and **mobile-data-layer** skill. Storage: SecureStore = tokens; AsyncStorage = tiny prefs;
+  SQLite = entities; filesystem = downloaded media.
+- **Add-by-RSS:** server parse + poll only; map with `@podverse/parser-mapping`; never import
+  `@podverse/parser`.
+- **Visual:** prefer shared RN primitives (`components/primitives/`) + tokens; defer pixel polish —
+  [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md).
 - **ApiRequestService contract:** base URL is composed as `${prefix.replace(/\/$/, '')}${version}`.
   Keep `prefix` with no trailing slash and `version` with a leading slash (`/api` + `/v2`).
   Those fields come from `getMobileConfig().api` (parsed from the base URL env).
