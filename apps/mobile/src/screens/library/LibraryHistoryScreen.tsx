@@ -45,7 +45,7 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
         resumeButton: {
           alignSelf: 'flex-end',
           borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.full,
+          borderRadius: tokens.radii.round,
           borderWidth: 1,
           marginBottom: tokens.spacing.sm,
           paddingHorizontal: tokens.spacing.sm,

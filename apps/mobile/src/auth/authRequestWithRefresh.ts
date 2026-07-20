@@ -3,7 +3,7 @@ import type { ApiRequestService } from '@podverse/helpers-requests';
 import { getErrorCode, isUnauthorizedError } from '../lib/httpError';
 import { createMobileApiRequestService } from './mobileApi';
 
-type AuthRequestDeps = {
+export type AuthRequestDeps = {
   accessToken: string | null;
   clearSession: () => Promise<void>;
   refreshToken: string | null;

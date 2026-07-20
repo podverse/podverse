@@ -27,7 +27,7 @@ export function MyProfileScreen({ navigation }: MyProfileScreenProps) {
         profileButton: {
           alignSelf: 'flex-start',
           borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.full,
+          borderRadius: tokens.radii.round,
           borderWidth: 1,
           marginTop: tokens.spacing.sm,
           paddingHorizontal: tokens.spacing.md,

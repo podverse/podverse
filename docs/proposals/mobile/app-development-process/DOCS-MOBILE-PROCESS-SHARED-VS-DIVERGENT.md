@@ -16,30 +16,30 @@ foundation first: [DOCS-MOBILE-PROCESS-OVERVIEW.md](DOCS-MOBILE-PROCESS-OVERVIEW
 
 ## 2. Parity matrix
 
-| Concern                       | Web implementation (paths)                                                    | Mobile approach                                              | Reuse level                               |
-| ----------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------ | ----------------------------------------- |
-| Auth / session                | Cookie `jwt`; `apps/web/src/contexts/Account.tsx`                             | Bearer + secure storage; `/auth/mobile/*`                    | Endpoints reused; transport differs       |
-| API client                    | `ApiRequestService`, `req*` (`packages/helpers-requests/src/api/_request.ts`) | Same class, `AuthContext { mode: 'bearer' }`                 | Full                                      |
-| DTOs / validation             | `@podverse/helpers`, `@podverse/helpers-validation/client`                    | Same imports                                                 | Full                                      |
-| i18n strings                  | `packages/i18n-catalog/{shared,consumer}/originals/`; `next-intl`             | Same catalog merge via `packages/i18n-catalog`; i18next/expo | Strings reused; runtime differs           |
+| Concern                       | Web implementation (paths)                                                    | Mobile approach                                                 | Reuse level                               |
+| ----------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------- |
+| Auth / session                | Cookie `jwt`; `apps/web/src/contexts/Account.tsx`                             | Bearer + secure storage; `/auth/mobile/*`                       | Endpoints reused; transport differs       |
+| API client                    | `ApiRequestService`, `req*` (`packages/helpers-requests/src/api/_request.ts`) | Same class, `AuthContext { mode: 'bearer' }`                    | Full                                      |
+| DTOs / validation             | `@podverse/helpers`, `@podverse/helpers-validation/client`                    | Same imports                                                    | Full                                      |
+| i18n strings                  | `packages/i18n-catalog/{shared,consumer}/originals/`; `next-intl`             | Same catalog merge via `packages/i18n-catalog`; i18next/expo    | Strings reused; runtime differs           |
 | UI themes / design tokens     | `@podverse/ui` SCSS + `[data-ui-theme]`; cookie `uit`                         | `@podverse/design-tokens` + `ThemeProvider`; AsyncStorage `uit` | Same theme IDs + token values; UI rebuild |
-| Visual primitives / polish    | `@podverse/ui` components + SCSS                                              | Shared RN primitives now; pixel polish later                     | Tokens shared; components rebuilt         |
-| Channel / item / episode load | `reqChannelGet*`, `reqItemGet*`                                               | Same wrappers                                                | Full                                      |
-| Search                        | `reqPodcastIndexSearchPodcasts` (`externalServices`)                          | Same                                                         | Full                                      |
-| Playlists CRUD + resources    | `playlist/*` wrappers; `apps/web/src/app/playlist*`                           | Same wrappers; native UI                                     | API full                                  |
-| Queue (manual)                | `queue/*` wrappers; `apps/web/src/contexts/Queue.tsx`                         | Same wrappers; RN state                                      | API full                                  |
-| Auto-queue (prefetch)         | `apps/web/src/contexts/AutoQueue.tsx` + loader hook                           | Same API calls; RN state                                     | Logic reused                              |
-| Playback policy               | `apps/web/src/lib/playback/`                                                  | `@podverse/playback-core`                                    | Full (after extraction)                   |
-| Playback transport            | `useMediaElementBridge` (`HTMLMediaElement`)                                  | Native bridge (TrackPlayer/AVPlayer/Media3)                  | Rebuild                                   |
-| Stats tracking                | `reqStats*` (`stats`)                                                         | Same wrappers                                                | Full                                      |
-| Membership / checkout         | PayPal pages `apps/web/src/app/checkout`, `membership`                        | IAP or in-app browser                                        | API partial; UI rebuild                   |
-| Notifications                 | Web Push; `apps/web/src/contexts/Notifications.tsx`                           | FCM/APNs; `account/fcm/*`                                    | New transport; device API exists          |
-| Downloads / offline           | Browser download (`<a download>`)                                             | Offline-first DB + native download manager + files           | Rebuild                                   |
-| Local settings                | Cookie (`apps/web/src/utils/localSettings/`)                                  | AsyncStorage/MMKV for prefs; app data in local DB            | Rebuild; sync prefs to server             |
-| Deep links / routing          | Next routes (`apps/web/src/app/`)                                             | Universal/app links to same IDs                              | Rebuild mapping                           |
-| V4V / boosts                  | `@podverse/v4v-*`; `metaboost` route                                          | Same packages; native LN provider                            | Logic reused                              |
-| Add-by-RSS                    | Server parse + poll; `@podverse/parser-mapping` + IndexedDB                   | Same parse/poll APIs; adopt `parser-mapping`; local DB       | API + mapping shared; storage differs     |
-| Livestream                    | `video.js` (`MediaPlayerControllerLiveStream*`)                               | Native HLS (deferred)                                        | Rebuild later                             |
+| Visual primitives / polish    | `@podverse/ui` components + SCSS                                              | Shared RN primitives now; pixel polish later                    | Tokens shared; components rebuilt         |
+| Channel / item / episode load | `reqChannelGet*`, `reqItemGet*`                                               | Same wrappers                                                   | Full                                      |
+| Search                        | `reqPodcastIndexSearchPodcasts` (`externalServices`)                          | Same                                                            | Full                                      |
+| Playlists CRUD + resources    | `playlist/*` wrappers; `apps/web/src/app/playlist*`                           | Same wrappers; native UI                                        | API full                                  |
+| Queue (manual)                | `queue/*` wrappers; `apps/web/src/contexts/Queue.tsx`                         | Same wrappers; RN state                                         | API full                                  |
+| Auto-queue (prefetch)         | `apps/web/src/contexts/AutoQueue.tsx` + loader hook                           | Same API calls; RN state                                        | Logic reused                              |
+| Playback policy               | `apps/web/src/lib/playback/`                                                  | `@podverse/playback-core`                                       | Full (after extraction)                   |
+| Playback transport            | `useMediaElementBridge` (`HTMLMediaElement`)                                  | Native bridge (TrackPlayer/AVPlayer/Media3)                     | Rebuild                                   |
+| Stats tracking                | `reqStats*` (`stats`)                                                         | Same wrappers                                                   | Full                                      |
+| Membership / checkout         | PayPal pages `apps/web/src/app/checkout`, `membership`                        | IAP or in-app browser                                           | API partial; UI rebuild                   |
+| Notifications                 | Web Push; `apps/web/src/contexts/Notifications.tsx`                           | FCM/APNs; `account/fcm/*`                                       | New transport; device API exists          |
+| Downloads / offline           | Browser download (`<a download>`)                                             | Offline-first DB + native download manager + files              | Rebuild                                   |
+| Local settings                | Cookie (`apps/web/src/utils/localSettings/`)                                  | AsyncStorage/MMKV for prefs; app data in local DB               | Rebuild; sync prefs to server             |
+| Deep links / routing          | Next routes (`apps/web/src/app/`)                                             | Universal/app links to same IDs                                 | Rebuild mapping                           |
+| V4V / boosts                  | `@podverse/v4v-*`; `metaboost` route                                          | Same packages; native LN provider                               | Logic reused                              |
+| Add-by-RSS                    | Server parse + poll; `@podverse/parser-mapping` + IndexedDB                   | Same parse/poll APIs; adopt `parser-mapping`; local DB          | API + mapping shared; storage differs     |
+| Livestream                    | `video.js` (`MediaPlayerControllerLiveStream*`)                               | Native HLS (deferred)                                           | Rebuild later                             |
 
 ## 3. Endpoint reuse catalog
 
@@ -101,10 +101,10 @@ returns a `FeedObject` payload in the cache entry.
 
 **After parse:**
 
-| Surface | Post-parse work                                                              | Local storage                                      |
-| ------- | ---------------------------------------------------------------------------- | -------------------------------------------------- |
-| Web     | `@podverse/parser-mapping` `convertParsedRSSFeedToCompat` + item index       | IndexedDB (`apps/web/src/utils/addByRSS/storage`)  |
-| Mobile  | Should adopt the same `parser-mapping` pipeline (today: slim `items[0]` only) | Offline-first local DB (see data-layer decision)   |
+| Surface | Post-parse work                                                               | Local storage                                     |
+| ------- | ----------------------------------------------------------------------------- | ------------------------------------------------- |
+| Web     | `@podverse/parser-mapping` `convertParsedRSSFeedToCompat` + item index        | IndexedDB (`apps/web/src/utils/addByRSS/storage`) |
+| Mobile  | Should adopt the same `parser-mapping` pipeline (today: slim `items[0]` only) | Offline-first local DB (see data-layer decision)  |
 
 Add-by-RSS items are **not** ORM entities. They use parallel types (`AddByRSSResourceData`,
 `AddByRSSMappedFeed`, `add_by_rss_hash_id`) because they lack DB channel/item IDs — that is why

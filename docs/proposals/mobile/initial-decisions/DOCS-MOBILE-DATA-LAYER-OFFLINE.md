@@ -28,14 +28,14 @@ queue/player parity consumes it.
 
 ## 2. Recommended stack
 
-| Layer              | Recommendation                                         | Notes                                                                 |
-| ------------------ | ------------------------------------------------------ | --------------------------------------------------------------------- |
-| Local DB           | **SQLite** via `expo-sqlite` + **Drizzle ORM**         | Expo-native; typed schema; migrations as SQL; no Watermelon sync tax |
-| Alternative        | WatermelonDB                                           | Stronger reactive sync story; heavier; prefer only if sync needs grow |
-| Prefs (tiny keys)  | AsyncStorage (or MMKV later)                           | Theme `uit`, preferred media type — **not** app entities              |
-| Auth tokens        | `expo-secure-store` only                               | Never AsyncStorage; never the SQLite DB                               |
-| API                | Existing `ApiRequestService` + bearer refresh          | Unchanged contract; repositories own when to call                     |
-| Observability      | Soft failures on sync; stale UI + error affordances    | Match web loading/empty/error semantics                               |
+| Layer             | Recommendation                                      | Notes                                                                 |
+| ----------------- | --------------------------------------------------- | --------------------------------------------------------------------- |
+| Local DB          | **SQLite** via `expo-sqlite` + **Drizzle ORM**      | Expo-native; typed schema; migrations as SQL; no Watermelon sync tax  |
+| Alternative       | WatermelonDB                                        | Stronger reactive sync story; heavier; prefer only if sync needs grow |
+| Prefs (tiny keys) | AsyncStorage (or MMKV later)                        | Theme `uit`, preferred media type — **not** app entities              |
+| Auth tokens       | `expo-secure-store` only                            | Never AsyncStorage; never the SQLite DB                               |
+| API               | Existing `ApiRequestService` + bearer refresh       | Unchanged contract; repositories own when to call                     |
+| Observability     | Soft failures on sync; stale UI + error affordances | Match web loading/empty/error semantics                               |
 
 **Default: expo-sqlite + Drizzle.** Revisit WatermelonDB only if multi-writer sync or heavy
 observable query graphs become blockers.
@@ -86,14 +86,14 @@ apps/mobile/src/data/
 
 ## 5. Per-domain rollout (order)
 
-| Phase | Domain                         | Why first                                                          |
-| ----- | ------------------------------ | ------------------------------------------------------------------ |
-| A     | Schema + DB client + seam      | Foundation                                                         |
-| B     | Auth/account snapshot          | Session hydrate without full re-fetch every cold start             |
-| C     | Queue / now-playing / history  | PG-7 depends on it; car cache later                                |
-| D     | Add-by-RSS feeds + mapped items | `parser-mapping` output; leave AsyncStorage feed prefs behind     |
-| E     | Home feeds / search cache      | Optional warm cache; can stay network-first longer                 |
-| F     | Downloads index (file rows)    | Track 13; same DB, file paths on disk                              |
+| Phase | Domain                          | Why first                                                     |
+| ----- | ------------------------------- | ------------------------------------------------------------- |
+| A     | Schema + DB client + seam       | Foundation                                                    |
+| B     | Auth/account snapshot           | Session hydrate without full re-fetch every cold start        |
+| C     | Queue / now-playing / history   | PG-7 depends on it; car cache later                           |
+| D     | Add-by-RSS feeds + mapped items | `parser-mapping` output; leave AsyncStorage feed prefs behind |
+| E     | Home feeds / search cache       | Optional warm cache; can stay network-first longer            |
+| F     | Downloads index (file rows)     | Track 13; same DB, file paths on disk                         |
 
 Do **not** migrate every screen in one PR. Land A→C before PG-7 queue/player work; D with add-by-RSS
 parity; E/F as follow-ons.
@@ -117,22 +117,22 @@ Migration pattern per domain:
 
 ## 7. Storage boundaries (enforced)
 
-| Kind                         | Store                         | Examples                                      |
-| ---------------------------- | ----------------------------- | --------------------------------------------- |
-| Auth tokens                  | SecureStore                   | access + refresh                              |
-| Tiny UI prefs                | AsyncStorage / MMKV           | `uit`, preferred media type                   |
-| App entities + sync metadata | SQLite (Drizzle)              | queues, history, add-by-RSS, downloads index  |
-| Media files                  | App filesystem                | downloaded enclosures                         |
-| Car / watch browse cache     | Native cache (Track 12)       | JS writes from repositories on mutation       |
+| Kind                         | Store                   | Examples                                     |
+| ---------------------------- | ----------------------- | -------------------------------------------- |
+| Auth tokens                  | SecureStore             | access + refresh                             |
+| Tiny UI prefs                | AsyncStorage / MMKV     | `uit`, preferred media type                  |
+| App entities + sync metadata | SQLite (Drizzle)        | queues, history, add-by-RSS, downloads index |
+| Media files                  | App filesystem          | downloaded enclosures                        |
+| Car / watch browse cache     | Native cache (Track 12) | JS writes from repositories on mutation      |
 
 ## 7.1 Dual-store model (phone UI vs car / watch)
 
 Two different “offline” problems — do not conflate them:
 
-| Store | Who reads it | When JS is dead / never started |
-| ----- | ------------ | ------------------------------- |
-| **SQLite (Drizzle)** | RN screens, hooks, repositories | **Unavailable** — Expo SQLite lives in the JS process |
-| **Native cache** | CarPlay templates, Android Auto `MediaLibraryService`, watch complications | **Required** — only store native code can read |
+| Store                | Who reads it                                                               | When JS is dead / never started                       |
+| -------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------- |
+| **SQLite (Drizzle)** | RN screens, hooks, repositories                                            | **Unavailable** — Expo SQLite lives in the JS process |
+| **Native cache**     | CarPlay templates, Android Auto `MediaLibraryService`, watch complications | **Required** — only store native code can read        |
 
 ```mermaid
 flowchart LR

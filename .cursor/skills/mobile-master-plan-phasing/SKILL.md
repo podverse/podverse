@@ -135,23 +135,23 @@ When selecting the next PG, treat a prerequisite as satisfied only when its step
 
 ### 2. Parallel group order (reference)
 
-| Group | Tracks                                  | Prerequisites (summary)                                                     |
-| ----- | --------------------------------------- | --------------------------------------------------------------------------- |
-| PG-0  | 0                                       | none                                                                        |
-| PG-1  | 1                                       | 0 partial (0.6+ abcmemory)                                                  |
-| PG-2a | 3                                       | 0                                                                           |
-| PG-2b | 2 spike (2.1–2.13, 2.34, 2.35 contract) | 0, 1 recommended                                                            |
-| PG-3  | 4, 5                                    | 3 hello-world; **5.17–5.20** before auth Maestro                            |
-| PG-4  | 6, 7 (+ 0.20, 7.11–7.16 themes)         | 3, 5 (incl. **5.17–5.20** `done` before 6.11/6.12); 0.20 before theme steps |
-| PG-5  | 2 full (2.14–2.35)                      | 2 spike, 1; prefer after PG-7 audio player shell                            |
-| PG-6  | 8, 9                                    | 6, 7; **7.11–7.15** theme scaffold `done`                                   |
-| PG-6.5 | 9b (data layer + RSS mapping + primitives) | PG-6; **before** Track 10 (9b.1–9b.4 required)                           |
-| PG-7  | 10, 11 (audio-first)                    | 1, 2 spike, 6, **9b.1–9b.4**; primitives 9b.6–9b.7 may parallel         |
-| PG-8  | 12                                      | 2, 10                                                                       |
-| PG-9  | 13–17                                   | 6, 10 (varies); **9b** for downloads metadata rows                          |
-| PG-10 | 18                                      | 7, 11                                                                       |
-| PG-11 | 19–21                                   | MVP feature-complete                                                        |
-| PG-12 | 22                                      | 4, PG-11                                                                    |
+| Group  | Tracks                                     | Prerequisites (summary)                                                     |
+| ------ | ------------------------------------------ | --------------------------------------------------------------------------- |
+| PG-0   | 0                                          | none                                                                        |
+| PG-1   | 1                                          | 0 partial (0.6+ abcmemory)                                                  |
+| PG-2a  | 3                                          | 0                                                                           |
+| PG-2b  | 2 spike (2.1–2.13, 2.34, 2.35 contract)    | 0, 1 recommended                                                            |
+| PG-3   | 4, 5                                       | 3 hello-world; **5.17–5.20** before auth Maestro                            |
+| PG-4   | 6, 7 (+ 0.20, 7.11–7.16 themes)            | 3, 5 (incl. **5.17–5.20** `done` before 6.11/6.12); 0.20 before theme steps |
+| PG-5   | 2 full (2.14–2.35)                         | 2 spike, 1; prefer after PG-7 audio player shell                            |
+| PG-6   | 8, 9                                       | 6, 7; **7.11–7.15** theme scaffold `done`                                   |
+| PG-6.5 | 9b (data layer + RSS mapping + primitives) | PG-6; **before** Track 10 (9b.1–9b.4 required)                              |
+| PG-7   | 10, 11 (audio-first)                       | 1, 2 spike, 6, **9b.1–9b.4**; primitives 9b.6–9b.7 may parallel             |
+| PG-8   | 12                                         | 2, 10                                                                       |
+| PG-9   | 13–17                                      | 6, 10 (varies); **9b** for downloads metadata rows                          |
+| PG-10  | 18                                         | 7, 11                                                                       |
+| PG-11  | 19–21                                      | MVP feature-complete                                                        |
+| PG-12  | 22                                         | 4, PG-11                                                                    |
 
 PG-2a and PG-2b can overlap in time with PG-3 after PG-0; recommend **one primary PG per
 detailing batch** unless operator asks for parallel detailing of independent groups.
@@ -180,11 +180,11 @@ instead and explain why.
 Before detailing tracks that depend on unresolved choices, prompt operator to decide (or accept
 default from master plan **Open decisions**):
 
-| Decision                         | Blocks detailing for         |
-| -------------------------------- | ---------------------------- |
-| E2E framework (Maestro vs Detox) | Track 5, all E2E-heavy steps |
-| CI tooling (EAS vs Fastlane)     | Track 4, Track 22            |
-| Offline data (decided)           | Track 9b — offline-first SQLite + repositories |
+| Decision                         | Blocks detailing for                              |
+| -------------------------------- | ------------------------------------------------- |
+| E2E framework (Maestro vs Detox) | Track 5, all E2E-heavy steps                      |
+| CI tooling (EAS vs Fastlane)     | Track 4, Track 22                                 |
+| Offline data (decided)           | Track 9b — offline-first SQLite + repositories    |
 | Visual polish (decided)          | Track 9b.6–9b.7 primitives now; full polish later |
 
 Record the chosen option in the phase `00-SUMMARY.md` when detailing.

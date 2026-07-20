@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 
 import { AuthProvider, useAuth } from './src/auth';
+import { initializeDatabase } from './src/data/db';
 import { initializeI18n } from './src/i18n';
 import { MobileTabNavigator } from './src/navigation';
 import { LoginScreen } from './src/screens/auth/LoginScreen';
@@ -14,6 +15,12 @@ export default function App() {
   const [isI18nReady, setIsI18nReady] = useState(false);
 
   useEffect(() => {
+    // Open the offline-first DB in the background; do not gate render on it so a migration
+    // failure never blocks the UI. Repositories `await initializeDatabase()` before querying.
+    void initializeDatabase().catch((error) => {
+      console.warn('[data] database initialization failed', error);
+    });
+
     void initializeI18n().finally(() => {
       setIsI18nReady(true);
     });

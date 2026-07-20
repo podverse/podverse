@@ -8,6 +8,7 @@ import { formatSecondsToReadableDuration } from '@podverse/helpers/timeFormatter
 
 import { getMobileConfig } from '../config';
 import { PlaybackEngineDebugPanel } from '../debug/PlaybackEngineDebugPanel';
+import { PrimitivesDebugPanel } from '../debug/PrimitivesDebugPanel';
 import { useTheme } from '../theme/useTheme';
 
 const APP_DISPLAY_NAME = 'Podverse Next';
@@ -209,6 +210,7 @@ export function HelloWorldScreen({
           </Pressable>
         ) : null}
         <PlaybackEngineDebugPanel />
+        {__DEV__ && !getMobileConfig().isE2e ? <PrimitivesDebugPanel /> : null}
       </View>
     </View>
   );

@@ -157,23 +157,23 @@ guidance.
 
 ## Feature priority (v1 MVP)
 
-| Feature                              | Priority | Rationale                                              |
-| ------------------------------------ | -------- | ------------------------------------------------------ |
-| Bearer auth + secure storage         | P0       | Everything authenticated depends on it                 |
-| Offline-first data layer (local DB)  | P0       | Screens read repositories; foundation for queue/offline |
-| Background audio + OS controls       | P0       | Core podcast UX; prerequisite for car                  |
-| Queue + playback parity              | P0       | Core product; consumes data layer                      |
-| Stats                                | P0       | Low cost, reuse endpoints                              |
-| Shared visual primitives             | P1       | Layout/spacing convergence; polish deferred            |
-| Local settings + prefs sync          | P1       | Consistency with web                                   |
-| Add-by-RSS parser-mapping + DB       | P1       | Parity with web mapping; local DB storage              |
-| Offline episode downloads (files)    | P1       | Major differentiator; builds on data layer             |
-| Push notifications (FCM)             | P1       | Engagement; API exists                                 |
-| Deep links                           | P1       | Sharing/retention                                      |
-| CarPlay / Android Auto               | P1       | High value; after background audio + native cache      |
-| Membership / IAP                     | P2       | Revenue; policy-sensitive, do later                    |
-| Full visual polish (pixel parity)    | P2       | After primitives + feature-complete                    |
-| Livestream HLS                       | P2       | Deferred (separate effort)                             |
+| Feature                             | Priority | Rationale                                               |
+| ----------------------------------- | -------- | ------------------------------------------------------- |
+| Bearer auth + secure storage        | P0       | Everything authenticated depends on it                  |
+| Offline-first data layer (local DB) | P0       | Screens read repositories; foundation for queue/offline |
+| Background audio + OS controls      | P0       | Core podcast UX; prerequisite for car                   |
+| Queue + playback parity             | P0       | Core product; consumes data layer                       |
+| Stats                               | P0       | Low cost, reuse endpoints                               |
+| Shared visual primitives            | P1       | Layout/spacing convergence; polish deferred             |
+| Local settings + prefs sync         | P1       | Consistency with web                                    |
+| Add-by-RSS parser-mapping + DB      | P1       | Parity with web mapping; local DB storage               |
+| Offline episode downloads (files)   | P1       | Major differentiator; builds on data layer              |
+| Push notifications (FCM)            | P1       | Engagement; API exists                                  |
+| Deep links                          | P1       | Sharing/retention                                       |
+| CarPlay / Android Auto              | P1       | High value; after background audio + native cache       |
+| Membership / IAP                    | P2       | Revenue; policy-sensitive, do later                     |
+| Full visual polish (pixel parity)   | P2       | After primitives + feature-complete                     |
+| Livestream HLS                      | P2       | Deferred (separate effort)                              |
 
 ## Dependencies between features
 
@@ -194,18 +194,18 @@ flowchart TD
 
 ## LLM pitfalls
 
-| Category         | Common mistake                      | Correct approach                          |
-| ---------------- | ----------------------------------- | ----------------------------------------- |
-| Data layer       | Call `req*` from screens directly   | Repositories + local DB + background sync |
-| Downloads        | Reuse web `fileDownloader.ts`       | Native download module + local DB rows    |
-| Background audio | JS timers/intervals for playback    | Native service (`podverse-media-engine`)  |
-| CarPlay/Auto     | JS-only browse tree                 | Native services + native cache            |
-| Push             | Port Web Push + service worker      | FCM device endpoints                      |
-| Auth             | Cookies / AsyncStorage for tokens   | Bearer + secure storage                   |
-| Settings         | New pref keys                       | Reuse web keys/semantics                  |
+| Category         | Common mistake                       | Correct approach                          |
+| ---------------- | ------------------------------------ | ----------------------------------------- |
+| Data layer       | Call `req*` from screens directly    | Repositories + local DB + background sync |
+| Downloads        | Reuse web `fileDownloader.ts`        | Native download module + local DB rows    |
+| Background audio | JS timers/intervals for playback     | Native service (`podverse-media-engine`)  |
+| CarPlay/Auto     | JS-only browse tree                  | Native services + native cache            |
+| Push             | Port Web Push + service worker       | FCM device endpoints                      |
+| Auth             | Cookies / AsyncStorage for tokens    | Bearer + secure storage                   |
+| Settings         | New pref keys                        | Reuse web keys/semantics                  |
 | Add-by-RSS       | Client-side XML parse / invent types | Server parse + `@podverse/parser-mapping` |
-| Membership       | Assume PayPal WebView passes review | Verify store policy; plan IAP             |
-| Lifecycle        | Assume SSR-style initial data       | On-launch hydration from local DB + sync  |
+| Membership       | Assume PayPal WebView passes review  | Verify store policy; plan IAP             |
+| Lifecycle        | Assume SSR-style initial data        | On-launch hydration from local DB + sync  |
 
 ## Diagram: mobile platform services
 

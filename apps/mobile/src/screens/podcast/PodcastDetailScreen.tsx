@@ -159,7 +159,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
         subscribeButton: {
           alignSelf: 'flex-start',
           backgroundColor: themeStyles.buttonPrimary.backgroundColor,
-          borderRadius: tokens.radii.full,
+          borderRadius: tokens.radii.round,
           marginTop: tokens.spacing.md,
           opacity: isSavingSubscription ? 0.65 : 1,
           paddingHorizontal: tokens.spacing.lg,

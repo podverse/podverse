@@ -13,11 +13,11 @@ Foundation:
 
 ## 1. Decision
 
-| Phase                         | When                         | Scope                                                                 |
-| ----------------------------- | ---------------------------- | --------------------------------------------------------------------- |
-| Design tokens + ThemeProvider | Done (PG-4 themes)           | Same theme IDs + token values as web via `@podverse/design-tokens`    |
+| Phase                         | When                          | Scope                                                                |
+| ----------------------------- | ----------------------------- | -------------------------------------------------------------------- |
+| Design tokens + ThemeProvider | Done (PG-4 themes)            | Same theme IDs + token values as web via `@podverse/design-tokens`   |
 | Shared visual primitives      | **Next / parallel with PG-7** | Mobile analog to `@podverse/ui`: reusable RN components + type/space |
-| Full pixel / layout polish    | **Later phase**              | Screen-by-screen visual parity pass after feature-complete            |
+| Full pixel / layout polish    | **Later phase**               | Screen-by-screen visual parity pass after feature-complete           |
 
 **Rationale:** Screens already have behavior but ad-hoc `StyleSheet`s. Extracting primitives now
 centralizes restyle later. Spending a full polish cycle before queue/player and the offline data
@@ -31,7 +31,15 @@ exists.
 
 - Tokens: `packages/design-tokens`; `apps/mobile/src/theme/{ThemeProvider,useTheme,createStyles}`.
 - Pref key `uit` matches web.
-- No shared `Card` / `ListRow` / `Button` library yet — each screen builds styles inline.
+- **Shared primitives scaffold landed (Track 9b.6):** `apps/mobile/src/components/primitives/`
+  (`Button`, `Card`, `ListRow`, `ScreenHeader`, `index.ts`) + `apps/mobile/src/theme/spacing.ts`
+  and `typography.ts`, all token-driven. Dev-only smoke via `src/debug/PrimitivesDebugPanel` on the
+  hello-world screen (skipped under E2E).
+- **Opportunistic migration landed (Track 9b.7):** primary lists now consume primitives —
+  `Button` (compact `size="sm"`) for Home/Search feed-row actions (`HomeFeedRow`, shared by Home,
+  Search, and Library Queue), `Card` around Search results (`search-results-card`), and
+  `Card` + `ListRow` for Library Playlists rows. Web information architecture preserved; no full
+  polish pass. Remaining screens migrate opportunistically as they are touched.
 - `@podverse/ui` remains **forbidden** on mobile (web SCSS components).
 
 ## 3. Shared RN primitives (do now)
@@ -54,13 +62,13 @@ apps/mobile/src/theme/
 
 Minimum set:
 
-| Primitive       | Web reference (intent)                         | Notes                                      |
-| --------------- | ---------------------------------------------- | ------------------------------------------ |
-| `Button`        | Primary / secondary / danger actions           | Loading state; token colors only           |
-| `Card`          | Section / feed card chrome                     | Padding + radius from tokens               |
-| `ListRow`       | Artwork + title + meta + trailing actions      | Home / search / library rows               |
-| `ScreenHeader`  | Title + optional actions                       | Safe-area aware                            |
-| Spacing/type    | Match web density where practical              | No hardcoded hex; prefer token maps        |
+| Primitive      | Web reference (intent)                    | Notes                               |
+| -------------- | ----------------------------------------- | ----------------------------------- |
+| `Button`       | Primary / secondary / danger actions      | Loading state; token colors only    |
+| `Card`         | Section / feed card chrome                | Padding + radius from tokens        |
+| `ListRow`      | Artwork + title + meta + trailing actions | Home / search / library rows        |
+| `ScreenHeader` | Title + optional actions                  | Safe-area aware                     |
+| Spacing/type   | Match web density where practical         | No hardcoded hex; prefer token maps |
 
 Rules:
 

@@ -4,12 +4,12 @@ import type { AddByRSSParseCacheEntry } from '@podverse/helpers';
 
 import { requestWithMobileAuthRefresh } from '../auth';
 import { useAuth } from '../auth/AuthProvider';
+import { addByRssRepository } from '../data';
 import {
   buildAddByRssFeedRecord,
   isValidAddByRssFeedUrl,
   pollAddByRssParseStatus,
 } from '../lib/addByRss/domain';
-import { readAddByRSSFeeds, writeAddByRSSFeeds } from '../prefs/addByRSSFeeds';
 
 type UseAddByRssAddFlowOptions = {
   inputValue: string;
@@ -79,30 +79,30 @@ export function useAddByRssAddFlow({
           })
       );
 
-      const preview = await pollAddByRssParseStatus(parseRequest.request_id, async (requestId) =>
-        requestWithMobileAuthRefresh(
-          {
-            accessToken,
-            clearSession,
-            refreshToken,
-            setTokens,
-          },
-          async (api) =>
-            api.apiRequest<AddByRSSParseCacheEntry<unknown>>({
-              path: `/account/add-by-rss/parse/status/${requestId}`,
-              method: 'GET',
-              config: {
-                withCredentials: true,
-              },
-            })
-        )
+      const { mappedFeed, preview } = await pollAddByRssParseStatus(
+        parseRequest.request_id,
+        async (requestId) =>
+          requestWithMobileAuthRefresh(
+            {
+              accessToken,
+              clearSession,
+              refreshToken,
+              setTokens,
+            },
+            async (api) =>
+              api.apiRequest<AddByRSSParseCacheEntry<unknown>>({
+                path: `/account/add-by-rss/parse/status/${requestId}`,
+                method: 'GET',
+                config: {
+                  withCredentials: true,
+                },
+              })
+          )
       );
 
-      const localFeeds = await readAddByRSSFeeds();
-      const existingFeed = localFeeds.find((feed) => feed.feedUrl === feedUrl);
-      const nextRecord = buildAddByRssFeedRecord(feedUrl, existingFeed, preview);
-      const nextFeeds = [...localFeeds.filter((feed) => feed.feedUrl !== feedUrl), nextRecord];
-      await writeAddByRSSFeeds(nextFeeds);
+      const existingFeed = await addByRssRepository.getFeedByUrl(feedUrl);
+      const nextRecord = buildAddByRssFeedRecord(feedUrl, existingFeed ?? undefined, preview);
+      await addByRssRepository.upsertFeed(nextRecord, mappedFeed);
       setInputValue('');
       onNotice('features.add_by_rss.status_parsed');
       await onAfterAdd();

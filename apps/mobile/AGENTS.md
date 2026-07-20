@@ -51,17 +51,17 @@ Contributor guide: [`APPS-MOBILE.md`](/apps/mobile/APPS-MOBILE.md).
 Mobile is a Tier 5 consumer: import **downward** only. Mirror
 [DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md §4](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md).
 
-| Allowed (mobile-safe)                                  | Forbidden (web/server-only)                                |
-| ------------------------------------------------------ | ---------------------------------------------------------- |
-| `@podverse/helpers`                                    | `@podverse/ui` (components, SCSS)                          |
-| `@podverse/design-tokens` (RN theme/token maps)        | —                                                          |
-| `@podverse/helpers-requests`                           | `@podverse/orm`                                            |
-| `@podverse/http-request-core`                          | `@podverse/parser`                                         |
-| `@podverse/helpers-validation/client`                  | `@podverse/mq`                                             |
-| `@podverse/playback-core`                              | `@podverse/helpers-backend`                                |
+| Allowed (mobile-safe)                                      | Forbidden (web/server-only)                                |
+| ---------------------------------------------------------- | ---------------------------------------------------------- |
+| `@podverse/helpers`                                        | `@podverse/ui` (components, SCSS)                          |
+| `@podverse/design-tokens` (RN theme/token maps)            | —                                                          |
+| `@podverse/helpers-requests`                               | `@podverse/orm`                                            |
+| `@podverse/http-request-core`                              | `@podverse/parser`                                         |
+| `@podverse/helpers-validation/client`                      | `@podverse/mq`                                             |
+| `@podverse/playback-core`                                  | `@podverse/helpers-backend`                                |
 | `@podverse/parser-mapping` (post-parse add-by-RSS mapping) | `@podverse/helpers-browser`                                |
-| `@podverse/v4v-helpers`, `v4v-metaboost`, `v4v-btc-ln` | `@podverse/helpers-config`                                 |
-| —                                                      | `@podverse/observability`, `@podverse/external-services-*` |
+| `@podverse/v4v-helpers`, `v4v-metaboost`, `v4v-btc-ln`     | `@podverse/helpers-config`                                 |
+| —                                                          | `@podverse/observability`, `@podverse/external-services-*` |
 
 When implementing a screen: read the matching web route context/hooks first for `req*` and DTO usage;
 reuse the same wrappers; do **not** port SCSS, `@podverse/ui`, Next routing, or SSR patterns.

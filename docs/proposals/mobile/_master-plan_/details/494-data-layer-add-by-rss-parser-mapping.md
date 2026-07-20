@@ -2,7 +2,7 @@
 
 **Master step:** 9b.5
 **Model (author + implement):** Opus 4.8
-**Status:** planned
+**Status:** done
 
 ## Scope
 
@@ -12,7 +12,10 @@
   `src/prefs/addByRSSFeeds.ts` as the source of truth (may keep prefs for non-entity keys).
 - Update `useAddByRssAddFlow` / `useAddByRssFeeds` / domain helpers to use the repository.
 - Playback continues via `PlaybackTarget.kind: 'add-by-rss'` with full
-  `AddByRSSResourceData` from mapped data (not only `items[0]` preview).
+  `AddByRSSResourceData` from mapped data (not only `items[0]` preview). Wired via
+  `toAddByRssPlaybackResourceData` (reads `addByRssRepository.getMappedFeedByUrl`, builds the index
+  item with parser-mapping `toIndexItem` + `buildAddByRSSResourceData`, merges the SQLite
+  `playback_position`) consumed by `useAddByRssPlayback`; slim record is the offline fallback.
 
 ## Acceptance criteria
 

@@ -16,7 +16,7 @@ effective as the codebase grows.
 | Monorepo or separate repo?      | **Monorepo**, as a clearly isolated `apps/mobile` workspace with its own toolchain boundary.                                |
 | React Native or something else? | **React Native (Expo, with prebuild / dev client)** for ~90–95% of the app.                                                 |
 | CarPlay / Android Auto?         | **Hybrid**: RN app + a thin **native** layer for the car experiences and background audio. **One app, not two.**            |
-| Offline / local data?           | **Offline-first SQLite** (expo-sqlite + Drizzle) as source of truth; screens read **repositories**, not `req*` directly.   |
+| Offline / local data?           | **Offline-first SQLite** (expo-sqlite + Drizzle) as source of truth; screens read **repositories**, not `req*` directly.    |
 | Will it overwhelm Cursor?       | No, if you scope context with `.cursorignore`, app-local `AGENTS.md`, and tiering.                                          |
 | Versioning                      | Keep the **shared `X.Y.Z`** version, but give mobile its **own store-release pipeline** decoupled from container promotion. |
 

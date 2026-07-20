@@ -36,9 +36,9 @@ Authoritative decision:
 
 ## Dual-store (phone vs car/watch)
 
-| Store | Readers |
-| ----- | ------- |
-| SQLite | RN UI only |
+| Store        | Readers                                    |
+| ------------ | ------------------------------------------ |
+| SQLite       | RN UI only                                 |
 | Native cache | CarPlay, Android Auto, watch complications |
 
 ## Sync sketch

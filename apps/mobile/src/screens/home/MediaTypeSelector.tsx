@@ -38,7 +38,7 @@ export function MediaTypeSelector({ onChange, selectedMediaType }: MediaTypeSele
         chip: {
           backgroundColor: tokens.background.secondary,
           borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.full,
+          borderRadius: tokens.radii.round,
           borderWidth: 1,
           marginRight: tokens.spacing.sm,
           paddingHorizontal: tokens.spacing.md,

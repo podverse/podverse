@@ -4,12 +4,13 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { DTOAccount } from '@podverse/helpers/dto';
 
 import { getMobileConfig } from '../config';
+// Import the repository from its module (not the data barrel) to avoid an import cycle through
+// the auth barrel.
+import { accountRepository } from '../data/repositories/accountRepository';
+import { addByRssRepository } from '../data/repositories/addByRssRepository';
 import { applyAccountLocaleOverride } from '../i18n';
 import { getErrorStatusCode } from '../lib/httpError';
-import {
-  refreshAccessTokenSingleFlight,
-  requestWithMobileAuthRefresh,
-} from './authRequestWithRefresh';
+import { refreshAccessTokenSingleFlight } from './authRequestWithRefresh';
 import { logoutWithMobileRevoke } from './logoutWithMobileRevoke';
 import { clearAllSecureTokens, readSecureToken, writeSecureToken } from './secureTokenStorage';
 
@@ -73,6 +74,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const clearSession = useCallback(async () => {
     await clearAllSecureTokens();
+    try {
+      await accountRepository.clearSnapshot();
+      await addByRssRepository.clear();
+    } catch (snapshotError) {
+      console.warn('Failed to clear cached account data during session reset', snapshotError);
+    }
 
     setAccessToken(null);
     setRefreshToken(null);
@@ -99,26 +106,39 @@ export function AuthProvider({ children }: PropsWithChildren) {
       return;
     }
 
+    // Offline-first: render the cached account immediately when present so a logged-in cold start
+    // shows the account while the soft-refresh runs (or when offline).
+    let hasCachedAccount = false;
     try {
-      const account = await requestWithMobileAuthRefresh(
+      const cachedAccount = await accountRepository.getSnapshot();
+      if (cachedAccount !== null) {
+        hasCachedAccount = true;
+        setAccount(cachedAccount);
+        setStatus('authenticated');
+        setError(null);
+        try {
+          await applyAccountLocaleOverride(
+            cachedAccount.account_settings?.account_settings_locale?.locale
+          );
+        } catch (localeError) {
+          console.warn('Failed to apply cached account locale during auth bootstrap', localeError);
+        }
+      }
+    } catch (snapshotError) {
+      console.warn('Failed to read cached account snapshot during auth bootstrap', snapshotError);
+    }
+
+    // Soft-refresh from the API through the repository (which persists the snapshot for next cold
+    // start). The timeout cancels the in-flight request so hydrate never hangs on `unknown`.
+    try {
+      const account = await accountRepository.refresh(
         {
           accessToken: storedAccessToken,
           clearSession,
           refreshToken: storedRefreshToken,
           setTokens,
         },
-        async (apiRequestService) => {
-          return apiRequestService.apiRequest<DTOAccount>({
-            path: '/auth/me',
-            method: 'GET',
-            // Cancel the in-flight request (and its refresh retry) once the budget
-            // elapses so hydrate never hangs on `status === 'unknown'`.
-            abort: {
-              controller: new AbortController(),
-              timeoutMs: AUTH_BOOTSTRAP_TIMEOUT_MS,
-            },
-          });
-        }
+        { timeoutMs: AUTH_BOOTSTRAP_TIMEOUT_MS }
       );
       setAccount(account);
       try {
@@ -134,11 +154,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
         return;
       }
 
-      // Keep the persisted session and show authenticated shell with an error state.
-      // Falling back to anonymous here leaves a split-brain state (tokens exist, UI says anonymous).
-      setAccount(null);
-      setStatus('authenticated');
-      setError('auth_bootstrap_failed');
+      if (!hasCachedAccount) {
+        // No cached account to show — keep the persisted session and surface the error rather than
+        // falling back to anonymous (a split-brain: tokens exist but UI says anonymous).
+        setAccount(null);
+        setStatus('authenticated');
+        setError('auth_bootstrap_failed');
+      }
+      // With a cached account we stay on it; the soft-refresh failure is silent (likely offline).
     }
   }, [clearSession, setTokens]);
 
