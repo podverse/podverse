@@ -1,12 +1,13 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import type { DTOPlaylist } from '@podverse/helpers';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
+import { Card, ListRow } from '../../components/primitives';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
 import type { LibraryStackParamList } from '../../navigation';
@@ -22,7 +23,7 @@ const FIRST_PAGE = 1;
 
 export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenProps) {
   const { t } = useTranslation();
-  const { styles: themeStyles, tokens } = useTheme();
+  const { tokens } = useTheme();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const [playlists, setPlaylists] = useState<DTOPlaylist[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -31,26 +32,11 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        card: {
-          backgroundColor: tokens.background.secondary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
+        rowSpacing: {
           marginTop: tokens.spacing.sm,
-          padding: tokens.spacing.md,
-        },
-        cardSubtitle: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          marginTop: tokens.spacing.xs,
-        },
-        cardTitle: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 16,
-          fontWeight: '600',
         },
       }),
-    [themeStyles, tokens]
+    [tokens]
   );
 
   const loadPlaylists = useCallback(async () => {
@@ -112,28 +98,33 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
         showAuthRequired={status !== 'authenticated'}
         showEmpty={status === 'authenticated' && playlists.length === 0}
       >
-        {playlists.map((playlist) => (
-          <Pressable
-            key={playlist.id_text}
-            onPress={() => {
-              navigation.navigate(LIBRARY_STACK_ROUTES.PlaylistDetail, {
-                playlistId: playlist.id_text,
-              });
-            }}
-            style={styles.card}
-            testID={`library-playlist-row-${playlist.id_text}`}
-          >
-            <Text style={styles.cardTitle}>{playlist.title ?? playlist.id_text}</Text>
-            <Text style={styles.cardSubtitle}>
-              {t('features.playlist.item_count', { count: playlist.item_count })}
-            </Text>
-            {playlist.account?.account_profile?.display_name ? (
-              <Text style={styles.cardSubtitle}>
-                {playlist.account.account_profile.display_name}
-              </Text>
-            ) : null}
-          </Pressable>
-        ))}
+        {playlists.map((playlist) => {
+          const itemCountLabel = t('features.playlist.item_count', {
+            count: playlist.item_count,
+          });
+          const displayName = playlist.account?.account_profile?.display_name;
+          const subtitle =
+            displayName !== undefined && displayName.length > 0
+              ? `${itemCountLabel} · ${displayName}`
+              : itemCountLabel;
+
+          return (
+            <View key={playlist.id_text} style={styles.rowSpacing}>
+              <Card>
+                <ListRow
+                  onPress={() => {
+                    navigation.navigate(LIBRARY_STACK_ROUTES.PlaylistDetail, {
+                      playlistId: playlist.id_text,
+                    });
+                  }}
+                  subtitle={subtitle}
+                  testID={`library-playlist-row-${playlist.id_text}`}
+                  title={playlist.title ?? playlist.id_text}
+                />
+              </Card>
+            </View>
+          );
+        })}
       </AuthAwareLoadState>
     </MobileScreenContainer>
   );

@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { requestWithMobileAuthRefresh } from '../auth';
 import { useAuth } from '../auth/AuthProvider';
+import { addByRssRepository } from '../data';
 import { mergeLocalAndRemoteAddByRssFeeds } from '../lib/addByRss/domain';
 import type { MobileAddByRSSFeedRecord } from '../prefs/addByRSSFeeds';
-import { readAddByRSSFeeds, writeAddByRSSFeeds } from '../prefs/addByRSSFeeds';
 
 type UseAddByRssFeedsOptions = {
   onNotice: (messageKey: string | null) => void;
@@ -26,8 +26,8 @@ export function useAddByRssFeeds({ onNotice }: UseAddByRssFeedsOptions) {
 
     setIsLoading(true);
     setErrorKey(null);
+    const localFeeds = await addByRssRepository.listFeeds();
     try {
-      const localFeeds = await readAddByRSSFeeds();
       const remoteFeeds = await requestWithMobileAuthRefresh(
         {
           accessToken,
@@ -43,10 +43,19 @@ export function useAddByRssFeeds({ onNotice }: UseAddByRssFeedsOptions) {
 
       const mergedFeeds = mergeLocalAndRemoteAddByRssFeeds(localFeeds, remoteFeeds);
       setFeeds(mergedFeeds);
-      await writeAddByRSSFeeds(mergedFeeds);
+      // Persist merged records without a bundle so any previously parsed mapped feed is preserved.
+      for (const feed of mergedFeeds) {
+        await addByRssRepository.upsertFeed(feed);
+      }
     } catch {
-      setErrorKey('errors.generic');
-      setFeeds([]);
+      // Offline / API error: fall back to the last-synced feeds from SQLite so the list still renders.
+      if (localFeeds.length > 0) {
+        setFeeds(localFeeds);
+        setErrorKey(null);
+      } else {
+        setErrorKey('errors.generic');
+        setFeeds([]);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -75,9 +84,8 @@ export function useAddByRssFeeds({ onNotice }: UseAddByRssFeedsOptions) {
         onNotice('errors.generic');
       }
 
-      const localFeeds = await readAddByRSSFeeds();
-      const nextFeeds = localFeeds.filter((feed) => feed.feedUrl !== feedUrl);
-      await writeAddByRSSFeeds(nextFeeds);
+      await addByRssRepository.removeFeed(feedUrl);
+      const nextFeeds = await addByRssRepository.listFeeds();
       setFeeds(nextFeeds);
     },
     [accessToken, clearSession, onNotice, refreshToken, setTokens]

@@ -2,11 +2,9 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import type { DTOAccount } from '@podverse/helpers/dto';
-
 import { loginWithMobileToken, useAuth } from '../../auth';
-import { requestWithMobileAuthRefresh } from '../../auth';
 import { getMobileConfig } from '../../config';
+import { accountRepository } from '../../data';
 import { applyAccountLocaleOverride } from '../../i18n';
 import { getErrorStatusCode } from '../../lib/httpError';
 import { useTheme } from '../../theme/useTheme';
@@ -96,20 +94,12 @@ export function LoginScreen({ onSwitchToSignUp }: LoginScreenProps) {
       }
 
       try {
-        const account = await requestWithMobileAuthRefresh(
-          {
-            accessToken: result.accessToken,
-            clearSession,
-            refreshToken: result.refreshToken,
-            setTokens,
-          },
-          async (apiRequestService) => {
-            return apiRequestService.apiRequest<DTOAccount>({
-              method: 'GET',
-              path: '/auth/me',
-            });
-          }
-        );
+        const account = await accountRepository.refresh({
+          accessToken: result.accessToken,
+          clearSession,
+          refreshToken: result.refreshToken,
+          setTokens,
+        });
         setAccount(account);
         try {
           await applyAccountLocaleOverride(

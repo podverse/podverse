@@ -41,7 +41,7 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
       StyleSheet.create({
         actionButton: {
           borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.full,
+          borderRadius: tokens.radii.round,
           borderWidth: 1,
           marginLeft: tokens.spacing.sm,
           paddingHorizontal: tokens.spacing.sm,

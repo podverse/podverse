@@ -73,7 +73,7 @@ export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
         boundedButton: {
           alignSelf: 'flex-start',
           backgroundColor: themeStyles.buttonPrimary.backgroundColor,
-          borderRadius: tokens.radii.full,
+          borderRadius: tokens.radii.round,
           marginTop: tokens.spacing.md,
           paddingHorizontal: tokens.spacing.lg,
           paddingVertical: tokens.spacing.sm,

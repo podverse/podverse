@@ -12,17 +12,21 @@ guidance.
 
 - **Web:** Browser download only — `apps/web/src/utils/fileDownloader.ts` and
   `apps/web/src/utils/downloadModal/`. No persistent app storage; playback streams enclosure URLs.
-- **Mobile requirement:** Download episodes to app storage, track progress, play from local files
-  offline, manage storage quota, and auto-delete policies.
-- **Recommended approach:** A native **download job queue** (e.g. `react-native-blob-util` or Expo
-  FileSystem + background downloads), a local **metadata DB** (SQLite/WatermelonDB/MMKV) tracking
-  `item_id`, file path, size, status, and integration with the playback bridge so a downloaded item
-  plays from `file://` instead of the enclosure URL.
+- **Mobile requirement (two layers):**
+  1. **Offline-first data layer (P0):** local DB as source of truth for browse/queue/add-by-RSS
+     metadata, with background sync from the API. See
+     [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md).
+  2. **Episode file downloads (P1):** download enclosure media to app storage, track progress,
+     play from local files offline, manage quota / auto-delete.
+- **Recommended approach (files):** A native **download job queue** (e.g. `react-native-blob-util`
+  or Expo FileSystem + background downloads), metadata rows in the local DB tracking `item_id`,
+  file path, size, status, and integration with the playback bridge so a downloaded item plays
+  from `file://` instead of the enclosure URL.
 - **API:** None new for the file itself (enclosure URLs come from item DTOs); reuse item/queue
   endpoints for metadata.
-- **LLM guidance:** Do not reuse `fileDownloader.ts` (DOM `<a download>`); design a native module.
-  The downloads index is also part of the **native car cache** (offline items must appear in
-  CarPlay/Android Auto).
+- **LLM guidance:** Do not reuse `fileDownloader.ts` (DOM `<a download>`). Do not call `req*`
+  directly from screens — use repositories. The downloads index is also part of the **native car
+  cache** (offline items must appear in CarPlay/Android Auto).
 
 ## 2. Background audio and OS media controls
 
@@ -136,56 +140,72 @@ guidance.
 
 ## 12. Add-by-RSS on mobile
 
-- **Web:** `apps/web/src/app/add-by-rss/` + `AddByRSSListContext`; add-by-rss queue resource types.
-- **Mobile requirement:** Add an arbitrary RSS feed and play/queue its items.
-- **Recommended approach:** Simplified native UX; reuse the same add-by-rss queue resource mutations
-  and the `add-by-rss` `PlaybackTarget` kind (see playback parity doc).
-- **LLM guidance:** Reuse the API mutations; the local add-by-rss list can mirror the web context's
-  shape in RN state.
+- **Web:** Server-side parse via `POST /account/add-by-rss/parse` + status poll; then
+  `@podverse/parser-mapping` (`convertParsedRSSFeedToCompat`) and IndexedDB for the feed/item
+  index. Dedicated AddByRSS UI because items are not DB entities (`AddByRSSResourceData`,
+  `add_by_rss_hash_id`). See
+  [DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md §4.1](DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md).
+- **Mobile requirement:** Same parse/poll contract; play/queue add-by-RSS items offline-capable;
+  rich item index (not only a slim `items[0]` preview).
+- **Recommended approach:**
+  1. Follow + enqueue parse + poll (already shared with web — no client XML parse).
+  2. On `parsed`, run `@podverse/parser-mapping` to build the same mapped feed / item index as web.
+  3. Persist feeds + mapped items in the **offline-first local DB** (not AsyncStorage-only prefs).
+  4. Play via `PlaybackTarget.kind: 'add-by-rss'` from `@podverse/playback-core` + native bridge.
+- **LLM guidance:** Never import `@podverse/parser` in mobile. Do use `@podverse/parser-mapping`.
+  Do not invent a second add-by-RSS type model — reuse helpers DTOs + parser-mapping outputs.
 
 ## Feature priority (v1 MVP)
 
-| Feature                        | Priority | Rationale                              |
-| ------------------------------ | -------- | -------------------------------------- |
-| Bearer auth + secure storage   | P0       | Everything authenticated depends on it |
-| Background audio + OS controls | P0       | Core podcast UX; prerequisite for car  |
-| Queue + playback parity        | P0       | Core product                           |
-| Stats                          | P0       | Low cost, reuse endpoints              |
-| Local settings + prefs sync    | P1       | Consistency with web                   |
-| Offline downloads              | P1       | Major mobile differentiator            |
-| Push notifications (FCM)       | P1       | Engagement; API exists                 |
-| Deep links                     | P1       | Sharing/retention                      |
-| CarPlay / Android Auto         | P1       | High value; after background audio     |
-| Add-by-RSS                     | P2       | Power-user feature                     |
-| Membership / IAP               | P2       | Revenue; policy-sensitive, do later    |
-| Livestream HLS                 | P2       | Deferred (separate effort)             |
+| Feature                             | Priority | Rationale                                               |
+| ----------------------------------- | -------- | ------------------------------------------------------- |
+| Bearer auth + secure storage        | P0       | Everything authenticated depends on it                  |
+| Offline-first data layer (local DB) | P0       | Screens read repositories; foundation for queue/offline |
+| Background audio + OS controls      | P0       | Core podcast UX; prerequisite for car                   |
+| Queue + playback parity             | P0       | Core product; consumes data layer                       |
+| Stats                               | P0       | Low cost, reuse endpoints                               |
+| Shared visual primitives            | P1       | Layout/spacing convergence; polish deferred             |
+| Local settings + prefs sync         | P1       | Consistency with web                                    |
+| Add-by-RSS parser-mapping + DB      | P1       | Parity with web mapping; local DB storage               |
+| Offline episode downloads (files)   | P1       | Major differentiator; builds on data layer              |
+| Push notifications (FCM)            | P1       | Engagement; API exists                                  |
+| Deep links                          | P1       | Sharing/retention                                       |
+| CarPlay / Android Auto              | P1       | High value; after background audio + native cache       |
+| Membership / IAP                    | P2       | Revenue; policy-sensitive, do later                     |
+| Full visual polish (pixel parity)   | P2       | After primitives + feature-complete                     |
+| Livestream HLS                      | P2       | Deferred (separate effort)                              |
 
 ## Dependencies between features
 
 ```mermaid
 flowchart TD
-  Auth[Bearer auth + secure storage] --> Core[Queue + playback parity]
+  Auth[Bearer auth + secure storage] --> DataLayer[Offline-first data layer]
+  DataLayer --> Core[Queue + playback parity]
   Core --> BG[Background audio + OS controls]
   BG --> Car[CarPlay / Android Auto]
-  Core --> DL[Offline downloads]
+  DataLayer --> DL[Offline episode downloads]
   DL --> Car
+  DataLayer --> AddByRss[Add-by-RSS parser-mapping]
   Auth --> Push[Push notifications]
   Core --> Stats[Stats]
   Auth --> Member[Membership / IAP]
+  Primitives[Shared visual primitives] --> Polish[Pixel polish later]
 ```
 
 ## LLM pitfalls
 
-| Category         | Common mistake                      | Correct approach                  |
-| ---------------- | ----------------------------------- | --------------------------------- |
-| Downloads        | Reuse web `fileDownloader.ts`       | Native download module + local DB |
-| Background audio | JS timers/intervals for playback    | Native service (`track-player`)   |
-| CarPlay/Auto     | JS-only browse tree                 | Native services + native cache    |
-| Push             | Port Web Push + service worker      | FCM device endpoints              |
-| Auth             | Cookies / AsyncStorage for tokens   | Bearer + secure storage           |
-| Settings         | New pref keys                       | Reuse web keys/semantics          |
-| Membership       | Assume PayPal WebView passes review | Verify store policy; plan IAP     |
-| Lifecycle        | Assume SSR-style initial data       | On-launch hydration               |
+| Category         | Common mistake                       | Correct approach                          |
+| ---------------- | ------------------------------------ | ----------------------------------------- |
+| Data layer       | Call `req*` from screens directly    | Repositories + local DB + background sync |
+| Downloads        | Reuse web `fileDownloader.ts`        | Native download module + local DB rows    |
+| Background audio | JS timers/intervals for playback     | Native service (`podverse-media-engine`)  |
+| CarPlay/Auto     | JS-only browse tree                  | Native services + native cache            |
+| Push             | Port Web Push + service worker       | FCM device endpoints                      |
+| Auth             | Cookies / AsyncStorage for tokens    | Bearer + secure storage                   |
+| Settings         | New pref keys                        | Reuse web keys/semantics                  |
+| Add-by-RSS       | Client-side XML parse / invent types | Server parse + `@podverse/parser-mapping` |
+| Membership       | Assume PayPal WebView passes review  | Verify store policy; plan IAP             |
+| Lifecycle        | Assume SSR-style initial data        | On-launch hydration from local DB + sync  |
 
 ## Diagram: mobile platform services
 

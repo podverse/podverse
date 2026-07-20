@@ -4,8 +4,28 @@ import type {
   QueueResourcesAbridgedIndex,
 } from '@podverse/helpers';
 import { createAddByRSSId, createAddByRSSIdText } from '@podverse/helpers/addByRSS/ids';
+import type { AddByRSSMappedFeed } from '@podverse/parser-mapping';
+import {
+  buildAddByRSSResourceData,
+  convertParsedRSSFeedToCompat,
+  toIndexItem,
+} from '@podverse/parser-mapping';
 
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
+
+type AddByRssParsePreview = {
+  enclosureUrl: string | null;
+  imageUrl: string | null;
+  playbackPosition: string | null;
+  title: string | null;
+};
+
+const EMPTY_PREVIEW: AddByRssParsePreview = {
+  enclosureUrl: null,
+  imageUrl: null,
+  playbackPosition: null,
+  title: null,
+};
 
 type FollowedAddByRssFeed = {
   feed_url: string;
@@ -95,15 +115,57 @@ const delay = async (ms: number): Promise<void> => {
   });
 };
 
+/**
+ * Derive the slim feed preview (enclosure/image/title) from the mapped `parser-mapping` bundle so
+ * the feed record + playback use the same richly-parsed data as web (not the raw `items[0]`).
+ */
+export function mapParsedFeedToPreview(mappedFeed: AddByRSSMappedFeed): AddByRssParsePreview {
+  const firstItem = mappedFeed.items[0];
+  const enclosureUrl = firstItem?.enclosures[0]?.item_enclosure_sources[0]?.uri ?? null;
+  const imageUrl = firstItem?.images[0]?.url ?? mappedFeed.channel.images[0]?.url ?? null;
+  const title = firstItem?.item.title ?? mappedFeed.channel.channel.title ?? null;
+
+  return {
+    enclosureUrl,
+    imageUrl,
+    // The compat bundle carries no per-account playback position; it comes from queue/history sync.
+    playbackPosition: null,
+    title,
+  };
+}
+
+export type AddByRssPollResult = {
+  mappedFeed: AddByRSSMappedFeed | null;
+  preview: AddByRssParsePreview;
+};
+
+function resolveParseResult(statusResponse: ParseStatusPayload): AddByRssPollResult {
+  const payload = statusResponse.payload;
+  if (
+    (statusResponse.status === 'parsed' || statusResponse.status === 'not_modified') &&
+    payload !== undefined &&
+    payload !== null
+  ) {
+    try {
+      const mappedFeed = convertParsedRSSFeedToCompat(
+        // The server parse payload is a partytime FeedObject; it arrives typed as `unknown`.
+        // Single documented assertion (see avoid-type-assertions rule).
+        payload as Parameters<typeof convertParsedRSSFeedToCompat>[0]
+      );
+      return { mappedFeed, preview: mapParsedFeedToPreview(mappedFeed) };
+    } catch {
+      // Unexpected payload shape — fall back to slim raw extraction so the add still lands.
+      return { mappedFeed: null, preview: extractPreviewFromParsePayload(payload) };
+    }
+  }
+
+  return { mappedFeed: null, preview: { ...EMPTY_PREVIEW } };
+}
+
 export async function pollAddByRssParseStatus(
   requestId: string,
   fetchStatus: (requestId: string) => Promise<ParseStatusPayload>
-): Promise<{
-  enclosureUrl: string | null;
-  imageUrl: string | null;
-  playbackPosition: string | null;
-  title: string | null;
-}> {
+): Promise<AddByRssPollResult> {
   for (let index = 0; index < STATUS_POLL_ATTEMPTS; index += 1) {
     const statusResponse = await fetchStatus(requestId);
     if (
@@ -111,18 +173,13 @@ export async function pollAddByRssParseStatus(
       statusResponse.status === 'not_modified' ||
       statusResponse.status === 'failed'
     ) {
-      return extractPreviewFromParsePayload(statusResponse.payload);
+      return resolveParseResult(statusResponse);
     }
 
     await delay(STATUS_POLL_DELAY_MS);
   }
 
-  return {
-    enclosureUrl: null,
-    imageUrl: null,
-    playbackPosition: null,
-    title: null,
-  };
+  return { mappedFeed: null, preview: { ...EMPTY_PREVIEW } };
 }
 
 export function isValidAddByRssFeedUrl(value: string): boolean {
@@ -140,6 +197,40 @@ export function toAddByRssResourceData(record: MobileAddByRSSFeedRecord): AddByR
     feed_url: record.feedUrl,
     playback_position: record.playbackPosition ?? '0',
     title: record.title ?? record.feedUrl,
+  };
+}
+
+/**
+ * Build the full add-by-RSS `AddByRSSResourceData` for playback from the persisted
+ * `@podverse/parser-mapping` bundle (same shape web uses via `buildAddByRSSResourceData`), merging
+ * the per-account `playback_position` from the SQLite record (the compat bundle carries none). Falls
+ * back to the slim record payload when no mapped bundle is available (offline / pre-mapping feeds).
+ */
+export function toAddByRssPlaybackResourceData(
+  record: MobileAddByRSSFeedRecord,
+  mappedFeed: AddByRSSMappedFeed | null
+): AddByRSSResourceData {
+  const firstItemBundle = mappedFeed?.items[0];
+  if (mappedFeed === null || firstItemBundle === undefined) {
+    return toAddByRssResourceData(record);
+  }
+
+  const feedForIndex = {
+    id: record.id,
+    idText: record.idText,
+    feedUrl: record.feedUrl,
+    title: record.title,
+    imageUrl: record.imageUrl,
+    mappedFeed,
+  };
+
+  const indexItem = toIndexItem(feedForIndex, firstItemBundle, 0, record.idText);
+  const mappedResourceData = buildAddByRSSResourceData(indexItem);
+
+  return {
+    ...mappedResourceData,
+    feed_url: record.feedUrl,
+    playback_position: record.playbackPosition ?? '0',
   };
 }
 
@@ -174,12 +265,7 @@ export function mergeLocalAndRemoteAddByRssFeeds(
 export function buildAddByRssFeedRecord(
   feedUrl: string,
   existingFeed: MobileAddByRSSFeedRecord | undefined,
-  preview: {
-    enclosureUrl: string | null;
-    imageUrl: string | null;
-    playbackPosition: string | null;
-    title: string | null;
-  }
+  preview: AddByRssParsePreview
 ): MobileAddByRSSFeedRecord {
   const idText = existingFeed?.idText ?? createAddByRSSIdText();
   return {

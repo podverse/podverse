@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
 
-import type { DTOQueueResource } from '@podverse/helpers';
+import type { DTOQueueResource } from '@podverse/helpers/dto';
 
-import { requestWithMobileAuthRefresh } from '../auth';
 import { useAuth } from '../auth/AuthProvider';
+import { queueRepository } from '../data';
 
 export function useQueueResources() {
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
@@ -14,14 +14,9 @@ export function useQueueResources() {
         return null;
       }
 
-      return requestWithMobileAuthRefresh(
-        {
-          accessToken,
-          clearSession,
-          refreshToken,
-          setTokens,
-        },
-        async (api) => api.reqQueueResourcesGetNowPlayingByQueueIdText(queueIdText)
+      return queueRepository.getNowPlaying(
+        { accessToken, clearSession, refreshToken, setTokens },
+        queueIdText
       );
     },
     [accessToken, clearSession, refreshToken, setTokens, status]
@@ -33,14 +28,9 @@ export function useQueueResources() {
         return [];
       }
 
-      return requestWithMobileAuthRefresh(
-        {
-          accessToken,
-          clearSession,
-          refreshToken,
-          setTokens,
-        },
-        async (api) => api.reqQueueResourcesGetAllUpcomingByQueueIdText(queueIdText)
+      return queueRepository.getUpcoming(
+        { accessToken, clearSession, refreshToken, setTokens },
+        queueIdText
       );
     },
     [accessToken, clearSession, refreshToken, setTokens, status]
@@ -52,16 +42,11 @@ export function useQueueResources() {
         return [];
       }
 
-      const response = await requestWithMobileAuthRefresh(
-        {
-          accessToken,
-          clearSession,
-          refreshToken,
-          setTokens,
-        },
-        async (api) => api.reqQueueResourcesGetHistoryByQueueIdTextPaginated(queueIdText, page)
+      return queueRepository.getHistoryPage(
+        { accessToken, clearSession, refreshToken, setTokens },
+        queueIdText,
+        page
       );
-      return response.data;
     },
     [accessToken, clearSession, refreshToken, setTokens, status]
   );

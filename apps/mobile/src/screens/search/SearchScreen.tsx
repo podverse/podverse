@@ -7,6 +7,7 @@ import type { SearchPodcastsFeed } from '@podverse/helpers';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
+import { Card } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
@@ -132,7 +133,7 @@ export function SearchScreen() {
       StyleSheet.create({
         chip: {
           borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.full,
+          borderRadius: tokens.radii.round,
           borderWidth: 1,
           marginRight: tokens.spacing.sm,
           paddingHorizontal: tokens.spacing.md,
@@ -189,13 +190,8 @@ export function SearchScreen() {
           fontSize: 13,
           marginTop: tokens.spacing.sm,
         },
-        resultsCard: {
-          backgroundColor: tokens.background.secondary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
+        resultsSpacing: {
           marginTop: tokens.spacing.md,
-          padding: tokens.spacing.md,
         },
       }),
     [themeStyles, tokens]
@@ -309,39 +305,43 @@ export function SearchScreen() {
           })}
         </View>
 
-        <View style={styles.resultsCard}>
-          {isLoading ? <ListLoading testID="search-loading" /> : null}
-          {!isLoading && errorKey !== null ? (
-            <ListError
-              messageKey={errorKey}
-              onRetry={() => {
-                setDebouncedQuery(query.trim());
-              }}
-              testID="search-error"
-            />
-          ) : null}
-          {!isLoading && errorKey === null && debouncedQuery.length === 0 ? (
-            <ListEmpty messageKey="features.search.search_by_title" testID="search-empty-query" />
-          ) : null}
-          {!isLoading && errorKey === null && debouncedQuery.length > 0 && feeds.length === 0 ? (
-            <ListEmpty messageKey="misc.info" testID="search-empty-results" />
-          ) : null}
-          {!isLoading && errorKey === null
-            ? feeds.map((feed, index) => (
-                <HomeFeedRow
-                  key={feed.id}
-                  mediaType="podcasts"
-                  onPlayPress={(_row) => {}}
-                  onPress={() => {
-                    void handleFeedPress(feed);
-                  }}
-                  onQueuePress={(_row) => {}}
-                  row={feedToRow(feed)}
-                  testID={`search-result-row-${index}`}
-                />
-              ))
-            : null}
-          {resolvingFeedId !== null ? <Text style={styles.notice}>{t('misc.loading')}</Text> : null}
+        <View style={styles.resultsSpacing}>
+          <Card testID="search-results-card">
+            {isLoading ? <ListLoading testID="search-loading" /> : null}
+            {!isLoading && errorKey !== null ? (
+              <ListError
+                messageKey={errorKey}
+                onRetry={() => {
+                  setDebouncedQuery(query.trim());
+                }}
+                testID="search-error"
+              />
+            ) : null}
+            {!isLoading && errorKey === null && debouncedQuery.length === 0 ? (
+              <ListEmpty messageKey="features.search.search_by_title" testID="search-empty-query" />
+            ) : null}
+            {!isLoading && errorKey === null && debouncedQuery.length > 0 && feeds.length === 0 ? (
+              <ListEmpty messageKey="misc.info" testID="search-empty-results" />
+            ) : null}
+            {!isLoading && errorKey === null
+              ? feeds.map((feed, index) => (
+                  <HomeFeedRow
+                    key={feed.id}
+                    mediaType="podcasts"
+                    onPlayPress={(_row) => {}}
+                    onPress={() => {
+                      void handleFeedPress(feed);
+                    }}
+                    onQueuePress={(_row) => {}}
+                    row={feedToRow(feed)}
+                    testID={`search-result-row-${index}`}
+                  />
+                ))
+              : null}
+            {resolvingFeedId !== null ? (
+              <Text style={styles.notice}>{t('misc.loading')}</Text>
+            ) : null}
+          </Card>
         </View>
       </ScrollView>
     </View>

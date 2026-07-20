@@ -50,10 +50,14 @@ reading the cache.
 
 ## LLM do / don't
 
-- **Do** design queue/auto-queue/download stores to call native cache writes on every mutation.
+- **Do** design queue/auto-queue/download **repositories** to call native cache projection writes on
+  every mutation (stubs OK until Track 12 storage). SQLite is phone-UI-only — car/watch cannot read
+  Drizzle when JS is dead. See
+  [DOCS-MOBILE-DATA-LAYER-OFFLINE.md §7.1](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md).
 - **Do** keep car native code in `apps/mobile/ios/`, `android/`, `modules/` — parallel worktree OK
   (see **mobile-worktree-scope**).
 - **Don't** assume the RN app must be foreground for car playback.
+- **Don't** assume CarPlay / Android Auto / watch complications read SQLite.
 - **Don't** duplicate queue policy in native — policy stays in `@podverse/playback-core`; native
   executes transport and displays cached state.
 
