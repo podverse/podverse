@@ -33,7 +33,7 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "express-rate-limit": "^8.5.2",
+    "express-rate-limit": "^8.6.0",
     "joi": "^18.0.1",
     "jsonwebtoken": "^9.0.2",
     "nanoid": "^5.1.7",
@@ -42,7 +42,7 @@
     "passport-local": "^1.0.0",
     "pg": "^8.21.0",
     "reflect-metadata": "^0.2.2",
-    "typeorm": "^1.0.0"
+    "typeorm": "^1.1.0"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.54.1",

@@ -30,7 +30,7 @@
     "module-alias": "^2.3.3",
     "nanoid": "^5.1.7",
     "pg": "^8.21.0",
-    "typeorm": "^1.0.0"
+    "typeorm": "^1.1.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
