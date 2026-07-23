@@ -10,15 +10,16 @@ import { SectionCard } from '../../components/section/SectionCard';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
 import { usePrimaryQueue } from '../../hooks/usePrimaryQueue';
 import { useQueueResources } from '../../hooks/useQueueResources';
+import type { QueueResourceHomeRow } from '../../lib/rows/homeRowMappers';
 import { queueResourceToHomeRow } from '../../lib/rows/homeRowMappers';
 import type { LibraryStackParamList } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
 import { HomeFeedRow } from '../home/HomeFeedRow';
-import { useHomeRowPlaybackStub } from '../home/useHomeRowPlaybackStub';
+import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 
 type LibraryHistoryScreenProps = NativeStackScreenProps<LibraryStackParamList, 'LibraryHistory'>;
 
-type HistoryRow = ReturnType<typeof queueResourceToHomeRow>;
+type HistoryRow = QueueResourceHomeRow;
 
 const FIRST_PAGE = 1;
 
@@ -32,7 +33,7 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [resumeNoticeKey, setResumeNoticeKey] = useState<string | null>(null);
-  const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlaybackStub();
+  const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
 
   const styles = useMemo(
     () =>
@@ -81,7 +82,10 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
       const historyResources = await fetchHistoryPage(selectedQueue.id_text, FIRST_PAGE);
 
       setHistoryRows(
-        historyResources.map((resource) => queueResourceToHomeRow(resource, 'history'))
+        historyResources.flatMap((resource) => {
+          const row = queueResourceToHomeRow(resource, 'history');
+          return row === null ? [] : [row];
+        })
       );
     } catch {
       setErrorKey('errors.generic');
@@ -132,8 +136,8 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
                     runPlayAction(nextRow, row.mediaType);
                   }}
                   onPress={() => {}}
-                  onQueuePress={(nextRow) => {
-                    runQueueAction(nextRow, row.mediaType);
+                  onQueuePress={(nextRow, position) => {
+                    runQueueAction(nextRow, row.mediaType, position);
                   }}
                   row={row}
                 />

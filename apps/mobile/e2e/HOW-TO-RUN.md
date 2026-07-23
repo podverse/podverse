@@ -130,6 +130,15 @@ npm run mobile:e2e:test -- api-health
 # or: npm run mobile:e2e:test -- auth-login
 # or: npm run mobile:e2e:test -- auth-logout
 # or: npm run mobile:e2e:test -- tab-switch-playback
+# or: npm run mobile:e2e:test -- queue-add
+```
+
+Playback flows (`play-mini-player`, `auto-queue-advance`) additionally need **Mobile E2E
+test-assets** (`npm run mobile:e2e:test-assets` on `:2111`) leave-running for real media:
+
+```bash
+npm run mobile:e2e:test -- play-mini-player
+# or: npm run mobile:e2e:test -- auto-queue-advance
 ```
 
 Optional convenience: instead of leave-running **Mobile E2E API**, start the API in the background
@@ -186,6 +195,7 @@ devices are wired into the matrix later.
 | Assertion fails; screenshot shows “developer menu” / Continue                              | Same shared flow dismisses the one-time Expo dev-client menu (see below)                                                                                                                                                                            |
 | `App crashed or stopped` / fail on “Development servers” mid-suite; SpringBoard screenshot | Dev Client relaunch flake after `clearState` (not a feature bug). `launch-and-connect` retries connect; runner re-runs only failed flows once (`MOBILE_E2E_FLOW_RETRIES`, default `1`). Focused check: `npm run mobile:e2e:test -- podcast-episode` |
 | Maestro missing                                                                            | Install via repo flake (`maestro`) or [Maestro docs](https://docs.maestro.dev/getting-started/installing-maestro)                                                                                                                                   |
+| `play-mini-player` Android: Maestro `full-player-close` tap does not dismiss               | Expected for now — the flow uses `pressKey: Back` on Android (same `onClose` / `BackHandler` path). **Manually tap Close once** on an Android AVD/device before release to confirm real input dismisses the full player.                            |
 
 ### Dev-client developer menu
 

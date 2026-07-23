@@ -13,9 +13,13 @@ alwaysApply: false
   and token values as web; RN `ThemeProvider` + `StyleSheet`, not CSS.
 - **Visual parity:** when a screen has a web counterpart, reference the web design first
   (`apps/web/src/app/<area>/` route client + `apps/web/src/components/<Area>/`) and mirror its
-  layout / information hierarchy / list-row structure / loading-empty-error states, adapted to RN
-  primitives with design tokens (no hardcoded hex). See **mobile-theme-parity** § Screen & visual
-  parity. Diverge only for platform conventions and note why.
+  layout / information hierarchy / list-row structure / **action affordances** (Play, queue
+  next/last, more-menu items, subscribe/unsubscribe — same intents and shared i18n keys) /
+  loading-empty-error states, adapted to RN primitives with design tokens (no hardcoded hex).
+  Pixel polish may defer; mismatched or mislabeled primary actions must not. See
+  **mobile-theme-parity** § Screen & visual parity and
+  [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md §4](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md).
+  Diverge only for platform conventions and note why.
 - Mobile is a **Tier 5 consumer** — import downward only. See
   [apps/mobile/AGENTS.md](/apps/mobile/AGENTS.md) allowlist/denylist and
   [architecture-tier-dependencies](/.cursor/rules/architecture-tier-dependencies.mdc).

@@ -392,6 +392,23 @@
       "audio_with_bitrate_mbps": "",
       "audio_with_ext_bitrate_kbps": "",
       "audio_with_ext_bitrate_mbps": ""
+    },
+    "no_media": "",
+    "livestream_unavailable": "",
+    "seek": "",
+    "skip_to_next": "",
+    "up_next": "",
+    "up_next_empty": "",
+    "auto_queue": "Αυτόματη Ουρά",
+    "share": "",
+    "value_for_value": "",
+    "coming_soon": "",
+    "sleep_timer": {
+      "sleep_timer": "",
+      "off": "",
+      "minutes_15": "",
+      "minutes_30": "",
+      "minutes_60": ""
     }
   },
   "value": {

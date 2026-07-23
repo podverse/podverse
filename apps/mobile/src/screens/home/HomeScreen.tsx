@@ -20,7 +20,7 @@ import { useTheme } from '../../theme/useTheme';
 import { fetchHomeFeedRows, type HomeFeedRowData } from './homeFeedData';
 import { HomeFeedRow } from './HomeFeedRow';
 import { MediaTypeSelector } from './MediaTypeSelector';
-import { useHomeRowPlaybackStub } from './useHomeRowPlaybackStub';
+import { useHomeRowPlayback } from './useHomeRowPlayback';
 
 const MEDIA_TYPE_TITLE_KEYS: Record<HomeMediaType, string> = {
   albums: 'media.music.albums',
@@ -42,7 +42,7 @@ export function HomeScreen() {
   const [isFeedLoading, setIsFeedLoading] = useState<boolean>(true);
   const [isFeedRefreshing, setIsFeedRefreshing] = useState<boolean>(false);
   const [feedErrorKey, setFeedErrorKey] = useState<string | null>(null);
-  const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlaybackStub();
+  const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
 
   useEffect(() => {
     let isMounted = true;
@@ -251,8 +251,8 @@ export function HomeScreen() {
                     runPlayAction(nextRow, selectedMediaType);
                   }}
                   onPress={handleRowPress}
-                  onQueuePress={(nextRow) => {
-                    runQueueAction(nextRow, selectedMediaType);
+                  onQueuePress={(nextRow, position) => {
+                    runQueueAction(nextRow, selectedMediaType, position);
                   }}
                   row={row}
                 />
