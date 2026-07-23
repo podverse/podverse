@@ -16,7 +16,7 @@ import type { LibraryStackParamList } from '../../navigation';
 import { LIBRARY_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
 import { HomeFeedRow } from '../home/HomeFeedRow';
-import { useHomeRowPlaybackStub } from '../home/useHomeRowPlaybackStub';
+import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 
 type LibraryMyClipsScreenProps = NativeStackScreenProps<LibraryStackParamList, 'LibraryMyClips'>;
 
@@ -29,7 +29,7 @@ export function LibraryMyClipsScreen({ navigation }: LibraryMyClipsScreenProps) 
   const [clips, setClips] = useState<DTOClip[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorKey, setErrorKey] = useState<string | null>(null);
-  const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlaybackStub();
+  const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
 
   const styles = useMemo(
     () =>
@@ -111,8 +111,8 @@ export function LibraryMyClipsScreen({ navigation }: LibraryMyClipsScreenProps) 
                     clipId: clip.id_text,
                   });
                 }}
-                onQueuePress={(nextRow) => {
-                  runQueueAction(nextRow, 'clips');
+                onQueuePress={(nextRow, position) => {
+                  runQueueAction(nextRow, 'clips', position);
                 }}
                 row={clipToHomeRow(clip)}
               />

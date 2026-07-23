@@ -15,11 +15,20 @@ export type {
 export {
   accountRepository,
   addByRssRepository,
+  autoQueueRepository,
   exampleRepository,
+  playbackContentRepository,
   queueRepository,
+  segmentsRepository,
   selectPrimaryQueue,
+  statsRepository,
 } from './repositories';
-export type { ExampleSnapshot, MobileAuthRequestContext } from './repositories';
+export type {
+  ExampleSnapshot,
+  MobileAuthRequestContext,
+  MoveNowPlayingToHistoryTarget,
+  PlaybackStatsTargets,
+} from './repositories';
 
 export {
   isWatermarkStale,

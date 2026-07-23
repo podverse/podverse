@@ -13,10 +13,25 @@ import { SectionCard } from '../../components/section/SectionCard';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
 import { playlistResourceToHomeRow } from '../../lib/rows/homeRowMappers';
 import type { LibraryStackParamList } from '../../navigation';
+import { usePlayback } from '../../playback/PlaybackProvider';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
-import { useHomeRowPlaybackStub } from '../home/useHomeRowPlaybackStub';
+import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
+
+// Playlist rows are prefixed by `playlistResourceToHomeRow` (`item-<id>` / `clip-<id>`); resolve the
+// underlying kind + id so playing seeds the auto-queue with this playlist (web list-row parity).
+const resolvePlaylistRowTarget = (
+  rowId: string
+): { idText: string; kind: 'item' | 'clip' } | null => {
+  if (rowId.startsWith('clip-')) {
+    return { idText: rowId.slice('clip-'.length), kind: 'clip' };
+  }
+  if (rowId.startsWith('item-')) {
+    return { idText: rowId.slice('item-'.length), kind: 'item' };
+  }
+  return null;
+};
 
 type PlaylistDetailScreenProps = NativeStackScreenProps<LibraryStackParamList, 'PlaylistDetail'>;
 
@@ -32,7 +47,8 @@ export function PlaylistDetailScreen({ route }: PlaylistDetailScreenProps) {
   const [resourceRows, setResourceRows] = useState<PlaylistResourceRow[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorKey, setErrorKey] = useState<string | null>(null);
-  const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlaybackStub();
+  const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
+  const { playPlaylistRowById } = usePlayback();
   const { playlistId } = route.params;
 
   const styles = useMemo(
@@ -138,11 +154,20 @@ export function PlaylistDetailScreen({ route }: PlaylistDetailScreenProps) {
                   key={row.id}
                   mediaType={row.mediaType}
                   onPlayPress={(nextRow) => {
+                    const playlistTarget = resolvePlaylistRowTarget(nextRow.id);
+                    if (playlistTarget !== null) {
+                      void playPlaylistRowById(
+                        playlistTarget.idText,
+                        playlistTarget.kind,
+                        playlistId
+                      );
+                      return;
+                    }
                     runPlayAction(nextRow, row.mediaType);
                   }}
                   onPress={() => {}}
-                  onQueuePress={(nextRow) => {
-                    runQueueAction(nextRow, row.mediaType);
+                  onQueuePress={(nextRow, position) => {
+                    runQueueAction(nextRow, row.mediaType, position);
                   }}
                   row={row}
                 />

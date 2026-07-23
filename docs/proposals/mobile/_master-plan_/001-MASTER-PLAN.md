@@ -11,6 +11,9 @@
 - Steps use **Track.Step** numbering (e.g. `2.15`).
 - Tracks run in numeric order unless noted in **Parallel groups** below.
 - Each step links to a detail plan file with a **status suffix**: `_TBD_`, `planned`, or `done` (completed).
+- **Track headings:** when every step in a track is `done`, the section title ends with
+  `(DONE)` (e.g. `## Track 6 — Bearer auth + secure storage (DONE)`). Incomplete tracks have no
+  suffix — scroll the outline to see what is finished.
 - Each step includes **Model:** — recommended Cursor model for authoring and implementing that step (Auto, Codex 5.3, or Opus 4.8).
 - **Do not use react-native-track-player** — use custom `podverse-media-engine` (Track 2).
 - **Phasing workflow:** Just-in-time detailing and implementation one parallel group at a time — see [.cursor/skills/mobile-master-plan-phasing/SKILL.md](/.cursor/skills/mobile-master-plan-phasing/SKILL.md).
@@ -25,37 +28,40 @@
 
 ## Open decisions
 
-| Decision          | Options                                               | Default recommendation                                                                                                                                                   |
-| ----------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| CI tooling        | EAS vs Fastlane                                       | **EAS chosen** (PG-3)                                                                                                                                                    |
-| Store identity    | Separate `.next` app id vs internal track on existing | Separate app id                                                                                                                                                          |
-| E2E framework     | Maestro vs Detox                                      | **Maestro chosen** (PG-3)                                                                                                                                                |
-| Watch/TV v1 scope | v1 vs post-MVP                                        | Phone+tablet v1; watch v1.1; TV v2                                                                                                                                       |
-| Offline data      | Offline-first SQLite vs cache-later                   | **Offline-first** (expo-sqlite + Drizzle) — see [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md)          |
-| Visual polish     | Polish now vs primitives now + polish later           | **Primitives now; pixel polish later** — see [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md) |
+| Decision          | Options                                               | Default recommendation                                                                                                                                                                                          |
+| ----------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CI tooling        | EAS vs Fastlane                                       | **EAS chosen** (PG-3)                                                                                                                                                                                           |
+| Store identity    | Separate `.next` app id vs internal track on existing | Separate app id                                                                                                                                                                                                 |
+| E2E framework     | Maestro vs Detox                                      | **Maestro chosen** (PG-3)                                                                                                                                                                                       |
+| Watch/TV v1 scope | v1 vs post-MVP                                        | Phone+tablet v1; watch v1.1; TV v2                                                                                                                                                                              |
+| Offline data      | Offline-first SQLite vs cache-later                   | **Offline-first** (expo-sqlite + Drizzle) — see [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md)                                                 |
+| Visual polish     | Polish now vs primitives now + polish later           | **Primitives now; pixel polish later** — **action affordances now** (Track 9c); see [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md) |
 
 ## Current status / next up (2026-07)
 
-| Parallel group          | Status            | Notes                                                                                                |
-| ----------------------- | ----------------- | ---------------------------------------------------------------------------------------------------- |
-| PG-0 … PG-4             | **done**          | Foundation, playback-core, hello-world, media-engine **audio** spike, CI/E2E, auth, nav, themes      |
-| PG-6 (Tracks 8–9)       | **done**          | Home, browse/content screens, add-by-RSS (server parse + slim preview); play stubs except add-by-RSS |
-| PG-5 (Track 2 video)    | **not started**   | Video surface reparenting (2.14+) — after audio player UI                                            |
-| **PG-6.5 (Track 9b)**   | **next**          | Offline-first data layer + add-by-RSS `parser-mapping` + shared visual primitives                    |
-| **PG-7 (Tracks 10–11)** | **next after 9b** | Queue + playback parity + mini/full player — **audio-first**; replace home/clip play stubs           |
-| PG-8+                   | later             | Car, downloads (files), push, multi-device, IAP, release train                                       |
+| Parallel group          | Status                    | Notes                                                                                                |
+| ----------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------- |
+| PG-0 … PG-4             | **done**                  | Foundation, playback-core, hello-world, media-engine **audio** spike, CI/E2E, auth, nav, themes      |
+| PG-6 (Tracks 8–9)       | **done**                  | Home, browse/content screens, add-by-RSS (server parse + slim preview); play stubs except add-by-RSS |
+| PG-6.5 (Track 9b)       | **done**                  | Offline-first data layer + add-by-RSS `parser-mapping` + shared visual primitives                    |
+| **PG-7 (Tracks 10–11)** | **in progress (planned)** | Queue + playback parity + mini/full player — **audio-first**; replace home/clip play stubs           |
+| PG-6.6 (Track 9c)       | **done**                  | Media row **action affordance** parity (Play + more sheet); parallel with PG-7                       |
+| PG-5 (Track 2 video)    | **not started**           | Video surface reparenting (2.14+) — after audio player UI                                            |
+| PG-8+                   | later                     | Car, downloads (files), push, multi-device, IAP, release train                                       |
 
 ### Recommended next build sequence
 
-1. **Track 9b — Offline-first data layer** (SQLite + repository seam; account + queue repos first;
-   add-by-RSS `parser-mapping` into DB).
-2. **PG-7 audio-first** — Tracks 10–11: wire `@podverse/playback-core` + native audio bridge into
-   home/clip/library play actions; build real mini + full player; replace
-   `useHomeRowPlaybackStub` / `useClipPlaybackStub`.
-3. **Visual primitives in parallel** (9b.6–9b.7) while doing PG-7 — not a full polish pass.
-4. **Later:** Track 2 video surfaces, Track 13 episode file downloads, Track 12 car, push.
+1. **PG-7 audio-first (active)** — Tracks 10–11: wire `@podverse/playback-core` + native audio
+   bridge into home/clip/library play actions; build real mini + full player; replace
+   `useHomeRowPlaybackStub` / `useClipPlaybackStub`. Detail + COPY-PASTA:
+   `.llm/plans/active/mobile-pg7a-queue/` then `.llm/plans/active/mobile-pg7b-player/`.
+2. **PG-6.6 Track 9c (parallel OK)** — shared media-row actions matching web Play + more menus;
+   `.llm/plans/active/mobile-media-row-actions/`. Wire handlers to PG-7 queue/play hooks when ready.
+3. **Defer video player steps** (11.3, 11.6–11.8, 11.15–11.17) until after PG-5 / Track 2 video.
+4. **Later:** Track 2 video surfaces (PG-5), Track 13 episode file downloads, Track 12 car, push.
+   Full **pixel** polish still later — not a substitute for action-affordance parity.
 
-Do **not** start a full look-and-feel polish phase before 9b + audio PG-7.
+Do **not** start a full look-and-feel polish phase before audio PG-7 lands.
 
 ## Parallel groups (implementation order)
 
@@ -70,7 +76,8 @@ Do **not** start a full look-and-feel polish phase before 9b + audio PG-7.
 | PG-5   | 2 full (2.14–2.34 remainder; 2.35 storage if needed) | after PG-7 audio     | 2 spike, 1; prefer after mini/full player audio shell                            |
 | PG-6   | 8, 9                                                 | each other           | 6, 7; **7.11–7.15** theme scaffold `done`                                        |
 | PG-6.5 | 9b (data layer + RSS mapping + primitives)           | 9b.6–9b.7 with PG-7  | PG-6; **before** Track 10 queue store                                            |
-| PG-7   | 10, 11 (audio-first)                                 | 9b.6–9b.7            | 1, 2 spike, 6, **9b.1–9b.4** (DB + queue repo)                                   |
+| PG-6.6 | 9c (media row action chrome parity)                  | PG-7                 | PG-6; prefer after 9b.6 primitives; handlers → Track 10 when ready               |
+| PG-7   | 10, 11 (audio-first)                                 | 9b.6–9b.7, 9c        | 1, 2 spike, 6, **9b.1–9b.4** (DB + queue repo)                                   |
 | PG-8   | 12                                                   | 13, 14, 15           | 2, 10                                                                            |
 | PG-9   | 13, 14, 15, 16, 17                                   | each other (mostly)  | 6, 10 varies; **9b** for downloads metadata rows                                 |
 | PG-10  | 18                                                   | 19, 20               | 7, 11                                                                            |
@@ -90,6 +97,8 @@ flowchart TB
   T7 --> T9[Track 9 screens]
   T9 --> T9b[Track 9b data layer]
   T9b --> T10[Track 10 queue]
+  T9b --> T9c[Track 9c row actions]
+  T9c -.-> T10
   T2 --> T10
   T10 --> T11[Track 11 player]
   T2 --> T12[Track 12 car]
@@ -101,7 +110,7 @@ flowchart TB
 
 ## Tracks
 
-## Track 0 — Monorepo, Tier D, abcmemory prep
+## Track 0 — Monorepo, Tier D, abcmemory prep (DONE)
 
 0.1. Add `.cursorignore` entries for `apps/mobile/ios/Pods/`, Android build dirs, and `.expo/`. Model: Auto. Detail: [001-cursorignore-native-artifacts](/docs/proposals/mobile/_master-plan_/details/001-cursorignore-native-artifacts.md) — done
 0.2. Document Tier D import-specifier rules for `apps/mobile/**` in import-specifiers doc. Model: Codex 5.3. Detail: [002-tier-d-import-specifiers-doc](/docs/proposals/mobile/_master-plan_/details/002-tier-d-import-specifiers-doc.md) — done
@@ -124,7 +133,7 @@ flowchart TB
 0.19. Add `.cursorignore` for `apps/mobile/**/*.hbc` and Xcode user data if not already covered. Model: Auto. Detail: [019-cursorignore-generated-assets](/docs/proposals/mobile/_master-plan_/details/019-cursorignore-generated-assets.md) — done
 0.20. Create `@podverse/design-tokens` package: RN-safe TS token maps synced with `packages/ui` SCSS themes. Model: Codex 5.3. Detail: [035-design-tokens-package](/docs/proposals/mobile/_master-plan_/details/035-design-tokens-package.md) — done
 
-## Track 1 — Extract `packages/playback-core`
+## Track 1 — Extract `packages/playback-core` (DONE)
 
 1.1. Create `packages/playback-core` workspace with package.json mirroring helpers pattern. Model: Codex 5.3. Detail: [020-playback-core-package-scaffold](/docs/proposals/mobile/_master-plan_/details/020-playback-core-package-scaffold.md) — done
 1.2. Move `resolvePlaybackLoadDecision.ts` and types from web lib/playback into playback-core. Model: Opus 4.8. Detail: [021-move-resolve-playback-decision](/docs/proposals/mobile/_master-plan_/details/021-move-resolve-playback-decision.md) — done
@@ -218,7 +227,7 @@ flowchart TB
 2.34. Define go/no-go gate: engine spike must pass before Track 10/11 full player UI work. Model: Codex 5.3. Detail: [113-engine-spike-gate](/docs/proposals/mobile/_master-plan_/details/113-engine-spike-gate.md) — done (GO: `apps/mobile/modules/podverse-media-engine/GO-NO-GO.md`, 2026-07-13)
 2.35. Export native cache write hooks from engine for queue snapshot (feeds Track 12 car layer). Model: Opus 4.8. Detail: [114-engine-native-cache-hooks](/docs/proposals/mobile/_master-plan_/details/114-engine-native-cache-hooks.md) — done (contract/stubs)
 
-## Track 3 — App bootstrap (hello-world)
+## Track 3 — App bootstrap (hello-world) (DONE)
 
 3.1. Create `apps/mobile/package.json` with Expo prebuild and dev-client dependencies. Model: Codex 5.3. Detail: [040-mobile-package-json](/docs/proposals/mobile/_master-plan_/details/040-mobile-package-json.md) — done
 3.2. Add `app.json` / `app.config.ts` with **separate bundle id** (e.g. `com.podverse.app.next`). Model: Codex 5.3. Detail: [041-expo-config-separate-bundle-id](/docs/proposals/mobile/_master-plan_/details/041-expo-config-separate-bundle-id.md) — done
@@ -250,7 +259,7 @@ Track 3 is complete when all of the following are true:
 - [ ] Dev client installed on a physical iOS device (operator step 3.14).
 - [ ] Dev client installed on a physical Android device (operator step 3.15).
 
-## Track 4 — CI/CD, alpha track, store safety
+## Track 4 — CI/CD, alpha track, store safety (DONE)
 
 **Store safety:** Never overwrite existing Podverse Prod/Beta store listings. Use separate `.next` app id until convergence decision (step 4.25).
 
@@ -280,7 +289,7 @@ Track 3 is complete when all of the following are true:
 4.24. Add beta tester onboarding doc (TestFlight link, Play internal link) for next-gen app only. Model: Auto. Detail: [173-beta-tester-onboarding](/docs/proposals/mobile/_master-plan_/details/173-beta-tester-onboarding.md) — done
 4.25. Record convergence decision gate: when/how to migrate from `.next` id to prod listing. Model: Opus 4.8. Detail: [174-prod-listing-convergence-gate](/docs/proposals/mobile/_master-plan_/details/174-prod-listing-convergence-gate.md) — done
 
-## Track 5 — Mobile E2E + screenshots harness
+## Track 5 — Mobile E2E + screenshots harness (DONE)
 
 5.1. Decide E2E framework: Maestro (recommended default) vs Detox; record open decision if unset. Model: Codex 5.3. Detail: [060-e2e-framework-decision](/docs/proposals/mobile/_master-plan_/details/060-e2e-framework-decision.md) — done
 5.2. Create `apps/mobile/e2e/` directory and naming convention mirroring web spec paths. Model: Auto. Detail: [061-e2e-directory-layout](/docs/proposals/mobile/_master-plan_/details/061-e2e-directory-layout.md) — done
@@ -306,7 +315,7 @@ Track 3 is complete when all of the following are true:
 5.22. Maestro runner preflight when flows need `:2111` (fail fast; leave-running tab). Model: Codex 5.3. Detail: [336-e2e-test-assets-preflight](/docs/proposals/mobile/_master-plan_/details/336-e2e-test-assets-preflight.md) — done
 5.23. Android E2E media URL host rewrite (`localhost:2111` → `10.0.2.2:2111`). Model: Codex 5.3. Detail: [337-e2e-android-asset-host-rewrite](/docs/proposals/mobile/_master-plan_/details/337-e2e-android-asset-host-rewrite.md) — done
 
-## Track 6 — Bearer auth + secure storage
+## Track 6 — Bearer auth + secure storage (DONE)
 
 6.1. Add `expo-secure-store` or `react-native-keychain` for access/refresh token storage. Model: Codex 5.3. Detail: [200-secure-storage-dependency](/docs/proposals/mobile/_master-plan_/details/200-secure-storage-dependency.md) — done
 6.2. Implement auth store (Zustand or context) holding bearer token and user session state. Model: Codex 5.3. Detail: [201-auth-store](/docs/proposals/mobile/_master-plan_/details/201-auth-store.md) — done
@@ -321,7 +330,7 @@ Track 3 is complete when all of the following are true:
 6.11. E2E: login flow with screenshot of authenticated home shell. **Requires 5.17–5.20 `done`.** Model: Codex 5.3. Detail: [210-e2e-login-screenshot](/docs/proposals/mobile/_master-plan_/details/210-e2e-login-screenshot.md) — done
 6.12. E2E: logout flow returning to login screen. **Requires 5.17–5.20 `done` (and 6.11).** Model: Auto. Detail: [211-e2e-logout](/docs/proposals/mobile/_master-plan_/details/211-e2e-logout.md) — done
 
-## Track 7 — Navigation shell (tabs + stacks)
+## Track 7 — Navigation shell (tabs + stacks) (DONE)
 
 **Tabs:** Home, Search, My Library, RSS, More.
 
@@ -344,7 +353,7 @@ Track 3 is complete when all of the following are true:
 7.17. Support tablet: optional side rail or two-column layout at wide breakpoints. Model: Codex 5.3. Detail: [230-tablet-nav-adaptive](/docs/proposals/mobile/_master-plan_/details/230-tablet-nav-adaptive.md) — done
 7.18. E2E: tab switching preserves playback state screenshot test. Model: Codex 5.3. Detail: [231-e2e-tab-switch-playback](/docs/proposals/mobile/_master-plan_/details/231-e2e-tab-switch-playback.md) — done
 
-## Track 8 — Home screen + media-type selector
+## Track 8 — Home screen + media-type selector (DONE)
 
 **Media-type selector:** Podcasts, Episodes, Clips, Artists, Albums, Tracks.
 
@@ -370,7 +379,7 @@ detail doc's **Web parity references**.
 8.14. E2E: screenshot each media-type selector state on Home. Model: Auto. Detail: [253-e2e-home-media-types-screenshots](/docs/proposals/mobile/_master-plan_/details/253-e2e-home-media-types-screenshots.md) — done
 8.15. E2E: swipe horizontal selector and verify feed content changes. Model: Auto. Detail: [254-e2e-media-type-swipe](/docs/proposals/mobile/_master-plan_/details/254-e2e-media-type-swipe.md) — done
 
-## Track 9 — Browse and content screens
+## Track 9 — Browse and content screens (DONE)
 
 **Web-style parity:** mirror the web route/component design per screen (see Track 8 note +
 [mobile-theme-parity](/.cursor/skills/mobile-theme-parity/SKILL.md) § Screen & visual parity).
@@ -405,7 +414,7 @@ detail doc's **Web parity references**.
 9.28. Document web→mobile screen map table in master plan appendix reference. Model: Auto. Detail: [287-screen-map-appendix-ref](/docs/proposals/mobile/_master-plan_/details/287-screen-map-appendix-ref.md) — done
 9.29. E2E: add-by-RSS play against test-assets (2111) + assert playback. Model: Codex 5.3. Detail: [288-e2e-addbyrss-playback-test-assets](/docs/proposals/mobile/_master-plan_/details/288-e2e-addbyrss-playback-test-assets.md) — done
 
-## Track 9b — Offline-first data layer, add-by-RSS mapping, visual primitives
+## Track 9b — Offline-first data layer, add-by-RSS mapping, visual primitives (DONE)
 
 **Decision docs:**
 [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md),
@@ -428,59 +437,79 @@ read the native cache — see
 9b.6. Shared visual primitives: Button, Card, ListRow, ScreenHeader + spacing/typography. Model: Codex 5.3. Detail: [495-visual-primitives-scaffold](/docs/proposals/mobile/_master-plan_/details/495-visual-primitives-scaffold.md) — done
 9b.7. Opportunistic migrate Home/Search/Library rows to primitives (not full polish). Model: Codex 5.3. Detail: [496-visual-primitives-migrate-opportunistic](/docs/proposals/mobile/_master-plan_/details/496-visual-primitives-migrate-opportunistic.md) — done
 
-## Track 10 — Queue, auto-queue, playlists, history parity
+## Track 9c — Media row action affordance parity (DONE)
+
+**Parallel group:** PG-6.6. May run **in parallel with PG-7**. Ensures mobile list/header controls
+match web **action inventory** (Play + more-menu intents), not pixel polish.
+See [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md §4](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md).
+
+9c.1. Inventory web vs mobile media-row / header actions (episode, clip, track, add-by-RSS item,
+feed/channel subscribe) and document required affordances + exceptions. Model: Auto. Detail:
+[497-media-row-actions-inventory](/docs/proposals/mobile/_master-plan_/details/497-media-row-actions-inventory.md)
+— done
+9c.2. Shared RN `MediaRowActions` (play + more/action-sheet) mirroring web `PlayButtonRow` +
+`ItemRowMoreActions` intents; i18n via shared/consumer keys. Model: Codex 5.3. Detail:
+[498-media-row-actions-component](/docs/proposals/mobile/_master-plan_/details/498-media-row-actions-component.md)
+— done
+9c.3. Migrate Home, Episode/Clip/Album rows, and Add-by-RSS item/feed chrome to shared actions;
+wire play/queue handlers to Track 10 when available (stubs OK until then). Fix mislabeled
+controls (never queue copy for unfollow/remove-feed). Model: Codex 5.3. Detail:
+[499-media-row-actions-migrate](/docs/proposals/mobile/_master-plan_/details/499-media-row-actions-migrate.md)
+— done
+
+## Track 10 — Queue, auto-queue, playlists, history parity (DONE)
 
 **Prerequisite:** Track 9b.1–9b.4 (offline-first queue repository). Queue/now-playing/history state
 flows through repositories — see
 [DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md).
 **Audio-first:** wire native audio bridge; video surface work stays Track 2 / Track 11 video steps.
 
-10.1. Implement queue store mirroring web `QueuesProvider` boundaries. Model: Opus 4.8. Detail: [310-queue-store](/docs/proposals/mobile/_master-plan_/details/310-queue-store.md) — _TBD_
-10.2. On launch fetch all queues + abridged index (same wrappers as web SSR bootstrap). Model: Opus 4.8. Detail: [311-queue-launch-hydration](/docs/proposals/mobile/_master-plan_/details/311-queue-launch-hydration.md) — _TBD_
-10.3. Resolve active queue by medium via `getQueueForMedium` from `@podverse/helpers`. Model: Codex 5.3. Detail: [312-active-queue-by-medium](/docs/proposals/mobile/_master-plan_/details/312-active-queue-by-medium.md) — _TBD_
-10.4. Load now-playing + upcoming via queue resource `req*` wrappers. Model: Codex 5.3. Detail: [313-queue-now-playing-upcoming](/docs/proposals/mobile/_master-plan_/details/313-queue-now-playing-upcoming.md) — _TBD_
-10.5. Implement `useQueueResourcesLoadActive` equivalent RN hook. Model: Opus 4.8. Detail: [314-hook-queue-load-active](/docs/proposals/mobile/_master-plan_/details/314-hook-queue-load-active.md) — _TBD_
-10.6. Implement add-to-queue next/last via same POST wrappers as web. Model: Codex 5.3. Detail: [315-queue-add-next-last](/docs/proposals/mobile/_master-plan_/details/315-queue-add-next-last.md) — _TBD_
-10.7. Implement move now-playing to history on ended/skip. Model: Opus 4.8. Detail: [316-queue-move-to-history](/docs/proposals/mobile/_master-plan_/details/316-queue-move-to-history.md) — _TBD_
-10.8. Implement auto-queue store mirroring web `AutoQueueProvider`. Model: Opus 4.8. Detail: [317-auto-queue-store](/docs/proposals/mobile/_master-plan_/details/317-auto-queue-store.md) — _TBD_
-10.9. Implement auto-queue loader hook with playlist sequential/random sources. Model: Opus 4.8. Detail: [318-auto-queue-playlist-sources](/docs/proposals/mobile/_master-plan_/details/318-auto-queue-playlist-sources.md) — _TBD_
-10.10. Implement auto-queue channel mode sources (pub-date, season, shuffle). Model: Opus 4.8. Detail: [319-auto-queue-channel-sources](/docs/proposals/mobile/_master-plan_/details/319-auto-queue-channel-sources.md) — _TBD_
-10.11. Persist auto-queue shuffle/repeat prefs in device storage (web cookie keys `aqc.rd`/`aqc.rp`). Model: Codex 5.3. Detail: [320-auto-queue-prefs-storage](/docs/proposals/mobile/_master-plan_/details/320-auto-queue-prefs-storage.md) — _TBD_
-10.12. Orchestrate ended event: manual upcoming first, else auto-queue row advance. Model: Opus 4.8. Detail: [321-orchestrator-ended-advance](/docs/proposals/mobile/_master-plan_/details/321-orchestrator-ended-advance.md) — _TBD_
-10.13. Wire orchestrator to `@podverse/playback-core` `resolvePlaybackLoadDecision`. Model: Opus 4.8. Detail: [322-orchestrator-playback-core](/docs/proposals/mobile/_master-plan_/details/322-orchestrator-playback-core.md) — _TBD_
-10.14. Implement `useMediaPlayerResourceUpdate` equivalent calling native bridge `loadAndStart`. Model: Opus 4.8. Detail: [323-hook-resource-update](/docs/proposals/mobile/_master-plan_/details/323-hook-resource-update.md) — _TBD_
-10.15. Handle all `PlaybackTarget.kind` variants per parity checklist. Model: Opus 4.8. Detail: [324-playback-target-kinds](/docs/proposals/mobile/_master-plan_/details/324-playback-target-kinds.md) — _TBD_
-10.16. Implement music `intent` discriminator for stats side effects. Model: Opus 4.8. Detail: [325-music-playback-intent](/docs/proposals/mobile/_master-plan_/details/325-music-playback-intent.md) — _TBD_
-10.17. Implement clip/soundbite/chapter bounded play with pauseAt. Model: Opus 4.8. Detail: [326-bounded-segment-playback](/docs/proposals/mobile/_master-plan_/details/326-bounded-segment-playback.md) — _TBD_
-10.18. Implement anonymous playback snapshot persist (mirror web anonymousPlaybackStorage). Model: Opus 4.8. Detail: [327-anonymous-playback-snapshot](/docs/proposals/mobile/_master-plan_/details/327-anonymous-playback-snapshot.md) — _TBD_
-10.19. Reconcile anonymous snapshot to server queue on login. Model: Opus 4.8. Detail: [328-anonymous-login-reconcile](/docs/proposals/mobile/_master-plan_/details/328-anonymous-login-reconcile.md) — _TBD_
-10.20. Playlist row play seeds auto-queue config like web list rows. Model: Opus 4.8. Detail: [329-playlist-play-seed-autoqueue](/docs/proposals/mobile/_master-plan_/details/329-playlist-play-seed-autoqueue.md) — _TBD_
-10.21. Stats: wire `reqStats*` on play/page events from mobile client. Model: Codex 5.3. Detail: [330-stats-tracking](/docs/proposals/mobile/_master-plan_/details/330-stats-tracking.md) — _TBD_
-10.22. Write native cache snapshot on queue/auto-queue changes (feeds Track 12). Model: Opus 4.8. Detail: [331-native-cache-queue-write](/docs/proposals/mobile/_master-plan_/details/331-native-cache-queue-write.md) — _TBD_
-10.23. E2E: play episode, verify mini player appears (screenshot). Model: Codex 5.3. Detail: [332-e2e-play-mini-player](/docs/proposals/mobile/_master-plan_/details/332-e2e-play-mini-player.md) — _TBD_
-10.24. E2E: add to queue and verify queue screen row (screenshot). Model: Codex 5.3. Detail: [333-e2e-queue-add](/docs/proposals/mobile/_master-plan_/details/333-e2e-queue-add.md) — _TBD_
-10.25. E2E: auto-queue advance after track ended (screenshot or state assert). Model: Opus 4.8. Detail: [334-e2e-auto-queue-advance](/docs/proposals/mobile/_master-plan_/details/334-e2e-auto-queue-advance.md) — _TBD_
+10.1. Implement queue store mirroring web `QueuesProvider` boundaries. Model: Opus 4.8. Detail: [310-queue-store](/docs/proposals/mobile/_master-plan_/details/310-queue-store.md) — done
+10.2. On launch fetch all queues + abridged index (same wrappers as web SSR bootstrap). Model: Opus 4.8. Detail: [311-queue-launch-hydration](/docs/proposals/mobile/_master-plan_/details/311-queue-launch-hydration.md) — done
+10.3. Resolve active queue by medium via `getQueueForMedium` from `@podverse/helpers`. Model: Codex 5.3. Detail: [312-active-queue-by-medium](/docs/proposals/mobile/_master-plan_/details/312-active-queue-by-medium.md) — done
+10.4. Load now-playing + upcoming via queue resource `req*` wrappers. Model: Codex 5.3. Detail: [313-queue-now-playing-upcoming](/docs/proposals/mobile/_master-plan_/details/313-queue-now-playing-upcoming.md) — done
+10.5. Implement `useQueueResourcesLoadActive` equivalent RN hook. Model: Opus 4.8. Detail: [314-hook-queue-load-active](/docs/proposals/mobile/_master-plan_/details/314-hook-queue-load-active.md) — done
+10.6. Implement add-to-queue next/last via same POST wrappers as web. Model: Codex 5.3. Detail: [315-queue-add-next-last](/docs/proposals/mobile/_master-plan_/details/315-queue-add-next-last.md) — done
+10.7. Implement move now-playing to history on ended/skip. Model: Opus 4.8. Detail: [316-queue-move-to-history](/docs/proposals/mobile/_master-plan_/details/316-queue-move-to-history.md) — done
+10.8. Implement auto-queue store mirroring web `AutoQueueProvider`. Model: Opus 4.8. Detail: [317-auto-queue-store](/docs/proposals/mobile/_master-plan_/details/317-auto-queue-store.md) — done
+10.9. Implement auto-queue loader hook with playlist sequential/random sources. Model: Opus 4.8. Detail: [318-auto-queue-playlist-sources](/docs/proposals/mobile/_master-plan_/details/318-auto-queue-playlist-sources.md) — done
+10.10. Implement auto-queue channel mode sources (pub-date, season, shuffle). Model: Opus 4.8. Detail: [319-auto-queue-channel-sources](/docs/proposals/mobile/_master-plan_/details/319-auto-queue-channel-sources.md) — done
+10.11. Persist auto-queue shuffle/repeat prefs in device storage (web cookie keys `aqc.rd`/`aqc.rp`). Model: Codex 5.3. Detail: [320-auto-queue-prefs-storage](/docs/proposals/mobile/_master-plan_/details/320-auto-queue-prefs-storage.md) — done
+10.12. Orchestrate ended event: manual upcoming first, else auto-queue row advance. Model: Opus 4.8. Detail: [321-orchestrator-ended-advance](/docs/proposals/mobile/_master-plan_/details/321-orchestrator-ended-advance.md) — done
+10.13. Wire orchestrator to `@podverse/playback-core` `resolvePlaybackLoadDecision`. Model: Opus 4.8. Detail: [322-orchestrator-playback-core](/docs/proposals/mobile/_master-plan_/details/322-orchestrator-playback-core.md) — done
+10.14. Implement `useMediaPlayerResourceUpdate` equivalent calling native bridge `loadAndStart`. Model: Opus 4.8. Detail: [323-hook-resource-update](/docs/proposals/mobile/_master-plan_/details/323-hook-resource-update.md) — done
+10.15. Handle all `PlaybackTarget.kind` variants per parity checklist. Model: Opus 4.8. Detail: [324-playback-target-kinds](/docs/proposals/mobile/_master-plan_/details/324-playback-target-kinds.md) — done
+10.16. Implement music `intent` discriminator for stats side effects. Model: Opus 4.8. Detail: [325-music-playback-intent](/docs/proposals/mobile/_master-plan_/details/325-music-playback-intent.md) — done
+10.17. Implement clip/soundbite/chapter bounded play with pauseAt. Model: Opus 4.8. Detail: [326-bounded-segment-playback](/docs/proposals/mobile/_master-plan_/details/326-bounded-segment-playback.md) — done
+10.18. Implement anonymous playback snapshot persist (mirror web anonymousPlaybackStorage). Model: Opus 4.8. Detail: [327-anonymous-playback-snapshot](/docs/proposals/mobile/_master-plan_/details/327-anonymous-playback-snapshot.md) — done
+10.19. Reconcile anonymous snapshot to server queue on login. Model: Opus 4.8. Detail: [328-anonymous-login-reconcile](/docs/proposals/mobile/_master-plan_/details/328-anonymous-login-reconcile.md) — done
+10.20. Playlist row play seeds auto-queue config like web list rows. Model: Opus 4.8. Detail: [329-playlist-play-seed-autoqueue](/docs/proposals/mobile/_master-plan_/details/329-playlist-play-seed-autoqueue.md) — done
+10.21. Stats: wire `reqStats*` on play/page events from mobile client. Model: Codex 5.3. Detail: [330-stats-tracking](/docs/proposals/mobile/_master-plan_/details/330-stats-tracking.md) — done
+10.22. Write native cache snapshot on queue/auto-queue changes (feeds Track 12). Model: Opus 4.8. Detail: [331-native-cache-queue-write](/docs/proposals/mobile/_master-plan_/details/331-native-cache-queue-write.md) — done
+10.23. E2E: play episode, verify mini player appears (screenshot). Model: Codex 5.3. Detail: [332-e2e-play-mini-player](/docs/proposals/mobile/_master-plan_/details/332-e2e-play-mini-player.md) — done
+10.24. E2E: add to queue and verify queue screen row (screenshot). Model: Codex 5.3. Detail: [333-e2e-queue-add](/docs/proposals/mobile/_master-plan_/details/333-e2e-queue-add.md) — done
+10.25. E2E: auto-queue advance after track ended (screenshot or state assert). Model: Opus 4.8. Detail: [334-e2e-auto-queue-advance](/docs/proposals/mobile/_master-plan_/details/334-e2e-auto-queue-advance.md) — done
 
 ## Track 11 — Mini player, full player, seamless video
 
-11.1. Build mini player UI: artwork, title, play/pause, progress bar, expand affordance. Model: Codex 5.3. Detail: [340-mini-player-ui](/docs/proposals/mobile/_master-plan_/details/340-mini-player-ui.md) — _TBD_
-11.2. Mini player fixed above tab bar; respects safe area and keyboard inset. Model: Codex 5.3. Detail: [341-mini-player-layout](/docs/proposals/mobile/_master-plan_/details/341-mini-player-layout.md) — _TBD_
-11.3. Mini player video mode: transparent placeholder + `targetId=mini` surface registration. Model: Opus 4.8. Detail: [342-mini-player-video-placeholder](/docs/proposals/mobile/_master-plan_/details/342-mini-player-video-placeholder.md) — _TBD_
-11.4. Tap mini player expands to full player without calling engine destroy/reload. Model: Opus 4.8. Detail: [343-expand-without-reload](/docs/proposals/mobile/_master-plan_/details/343-expand-without-reload.md) — _TBD_
-11.5. Build full player screen: large artwork/video, scrubber, skip, speed, queue peek. Model: Codex 5.3. Detail: [350-full-player-ui](/docs/proposals/mobile/_master-plan_/details/350-full-player-ui.md) — _TBD_
-11.6. Full player video mode: `targetId=full` surface + animateVideoSurface from mini. Model: Opus 4.8. Detail: [351-full-player-video-surface](/docs/proposals/mobile/_master-plan_/details/351-full-player-video-surface.md) — _TBD_
-11.7. Collapse full player animates surface back to mini target. Model: Opus 4.8. Detail: [352-collapse-to-mini-animation](/docs/proposals/mobile/_master-plan_/details/352-collapse-to-mini-animation.md) — _TBD_
-11.8. Verify playback position continuous across mini↔full transitions (no restart). Model: Opus 4.8. Detail: [353-position-continuity-verify](/docs/proposals/mobile/_master-plan_/details/353-position-continuity-verify.md) — _TBD_
-11.9. Full player queue/up-next sheet showing manual + auto-queue rows. Model: Codex 5.3. Detail: [354-full-player-up-next](/docs/proposals/mobile/_master-plan_/details/354-full-player-up-next.md) — _TBD_
-11.10. Full player chapter/soundbite list when applicable to now-playing item. Model: Codex 5.3. Detail: [355-full-player-segments](/docs/proposals/mobile/_master-plan_/details/355-full-player-segments.md) — _TBD_
-11.11. Playback speed control wired to engine setRate. Model: Codex 5.3. Detail: [356-playback-speed-control](/docs/proposals/mobile/_master-plan_/details/356-playback-speed-control.md) — _TBD_
-11.12. Sleep timer optional feature stub (mobile-only nice-to-have). Model: Auto. Detail: [357-sleep-timer-optional](/docs/proposals/mobile/_master-plan_/details/357-sleep-timer-optional.md) — _TBD_
-11.13. Share now-playing deep link action (integrates Track 15). Model: Codex 5.3. Detail: [358-share-now-playing-link](/docs/proposals/mobile/_master-plan_/details/358-share-now-playing-link.md) — _TBD_
-11.14. Boost/V4V entry on full player where store-compliant (integrates Track 19). Model: Opus 4.8. Detail: [359-v4v-boost-entry-stub](/docs/proposals/mobile/_master-plan_/details/359-v4v-boost-entry-stub.md) — _TBD_
-11.15. E2E: video item mini player screenshot. Model: Codex 5.3. Detail: [360-e2e-video-mini-screenshot](/docs/proposals/mobile/_master-plan_/details/360-e2e-video-mini-screenshot.md) — _TBD_
-11.16. E2E: expand to full player screenshot mid-playback (same position). Model: Opus 4.8. Detail: [361-e2e-video-full-screenshot](/docs/proposals/mobile/_master-plan_/details/361-e2e-video-full-screenshot.md) — _TBD_
-11.17. E2E: collapse to mini screenshot without black flash or reload spinner. Model: Opus 4.8. Detail: [362-e2e-video-collapse-screenshot](/docs/proposals/mobile/_master-plan_/details/362-e2e-video-collapse-screenshot.md) — _TBD_
-11.18. Document anti-pattern: never mount second Video component on full screen open. Model: Auto. Detail: [363-anti-pattern-no-second-video](/docs/proposals/mobile/_master-plan_/details/363-anti-pattern-no-second-video.md) — _TBD_
+11.1. Build mini player UI: artwork, title, play/pause, progress bar, expand affordance. Model: Codex 5.3. Detail: [340-mini-player-ui](/docs/proposals/mobile/_master-plan_/details/340-mini-player-ui.md) — done
+11.2. Mini player fixed above tab bar; respects safe area and keyboard inset. Model: Codex 5.3. Detail: [341-mini-player-layout](/docs/proposals/mobile/_master-plan_/details/341-mini-player-layout.md) — done
+11.3. Mini player video mode: transparent placeholder + `targetId=mini` surface registration. Model: Opus 4.8. Detail: [342-mini-player-video-placeholder](/docs/proposals/mobile/_master-plan_/details/342-mini-player-video-placeholder.md) — planned
+11.4. Tap mini player expands to full player without calling engine destroy/reload. Model: Opus 4.8. Detail: [343-expand-without-reload](/docs/proposals/mobile/_master-plan_/details/343-expand-without-reload.md) — done
+11.5. Build full player screen: large artwork/video, scrubber, skip, speed, queue peek. Model: Codex 5.3. Detail: [350-full-player-ui](/docs/proposals/mobile/_master-plan_/details/350-full-player-ui.md) — done
+11.6. Full player video mode: `targetId=full` surface + animateVideoSurface from mini. Model: Opus 4.8. Detail: [351-full-player-video-surface](/docs/proposals/mobile/_master-plan_/details/351-full-player-video-surface.md) — planned
+11.7. Collapse full player animates surface back to mini target. Model: Opus 4.8. Detail: [352-collapse-to-mini-animation](/docs/proposals/mobile/_master-plan_/details/352-collapse-to-mini-animation.md) — planned
+11.8. Verify playback position continuous across mini↔full transitions (no restart). Model: Opus 4.8. Detail: [353-position-continuity-verify](/docs/proposals/mobile/_master-plan_/details/353-position-continuity-verify.md) — planned
+11.9. Full player queue/up-next sheet showing manual + auto-queue rows. Model: Codex 5.3. Detail: [354-full-player-up-next](/docs/proposals/mobile/_master-plan_/details/354-full-player-up-next.md) — done
+11.10. Full player chapter/soundbite list when applicable to now-playing item. Model: Codex 5.3. Detail: [355-full-player-segments](/docs/proposals/mobile/_master-plan_/details/355-full-player-segments.md) — done
+11.11. Playback speed control wired to engine setRate. Model: Codex 5.3. Detail: [356-playback-speed-control](/docs/proposals/mobile/_master-plan_/details/356-playback-speed-control.md) — done
+11.12. Sleep timer optional feature stub (mobile-only nice-to-have). Model: Auto. Detail: [357-sleep-timer-optional](/docs/proposals/mobile/_master-plan_/details/357-sleep-timer-optional.md) — done
+11.13. Share now-playing deep link action (integrates Track 15). Model: Codex 5.3. Detail: [358-share-now-playing-link](/docs/proposals/mobile/_master-plan_/details/358-share-now-playing-link.md) — done
+11.14. Boost/V4V entry on full player where store-compliant (integrates Track 19). Model: Opus 4.8. Detail: [359-v4v-boost-entry-stub](/docs/proposals/mobile/_master-plan_/details/359-v4v-boost-entry-stub.md) — done
+11.15. E2E: video item mini player screenshot. Model: Codex 5.3. Detail: [360-e2e-video-mini-screenshot](/docs/proposals/mobile/_master-plan_/details/360-e2e-video-mini-screenshot.md) — planned
+11.16. E2E: expand to full player screenshot mid-playback (same position). Model: Opus 4.8. Detail: [361-e2e-video-full-screenshot](/docs/proposals/mobile/_master-plan_/details/361-e2e-video-full-screenshot.md) — planned
+11.17. E2E: collapse to mini screenshot without black flash or reload spinner. Model: Opus 4.8. Detail: [362-e2e-video-collapse-screenshot](/docs/proposals/mobile/_master-plan_/details/362-e2e-video-collapse-screenshot.md) — planned
+11.18. Document anti-pattern: never mount second Video component on full screen open. Model: Auto. Detail: [363-anti-pattern-no-second-video](/docs/proposals/mobile/_master-plan_/details/363-anti-pattern-no-second-video.md) — done
 
 ## Track 12 — CarPlay / Android Auto
 
@@ -555,7 +584,7 @@ disk + download index rows in the same SQLite DB — not a substitute for the me
 16.9. E2E: OPML import smoke with fixture file screenshot of results list. Model: Codex 5.3. Detail: [468-e2e-opml-import](/docs/proposals/mobile/_master-plan_/details/468-e2e-opml-import.md) — _TBD_
 16.10. E2E: OPML export produces file and shows success state screenshot. Model: Auto. Detail: [469-e2e-opml-export](/docs/proposals/mobile/_master-plan_/details/469-e2e-opml-export.md) — _TBD_
 
-## Track 17 — RN i18n runtime
+## Track 17 — RN i18n runtime (DONE)
 
 17.0. Cross-app fix: web + management-web load `compiled/` messages (overrides apply at runtime). Model: Codex 5.3. Detail: [483-i18n-runtime-load-compiled](/docs/proposals/mobile/_master-plan_/details/483-i18n-runtime-load-compiled.md) — done
 17.1. Choose RN i18n runtime: i18next + expo-localization (recommended). Model: Codex 5.3. Detail: [470-i18n-runtime-choice](/docs/proposals/mobile/_master-plan_/details/470-i18n-runtime-choice.md) — done
@@ -911,49 +940,52 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 494-data-layer-add-by-rss-parser-mapping    | 9b.5       | 494-data-layer-add-by-rss-parser-mapping    | Opus 4.8  | done    |
 | 495-visual-primitives-scaffold              | 9b.6       | 495-visual-primitives-scaffold              | Codex 5.3 | done    |
 | 496-visual-primitives-migrate-opportunistic | 9b.7       | 496-visual-primitives-migrate-opportunistic | Codex 5.3 | done    |
-| 310-queue-store                             | 10.1       | 310-queue-store                             | Opus 4.8  | _TBD_   |
-| 311-queue-launch-hydration                  | 10.2       | 311-queue-launch-hydration                  | Opus 4.8  | _TBD_   |
-| 312-active-queue-by-medium                  | 10.3       | 312-active-queue-by-medium                  | Codex 5.3 | _TBD_   |
-| 313-queue-now-playing-upcoming              | 10.4       | 313-queue-now-playing-upcoming              | Codex 5.3 | _TBD_   |
-| 314-hook-queue-load-active                  | 10.5       | 314-hook-queue-load-active                  | Opus 4.8  | _TBD_   |
-| 315-queue-add-next-last                     | 10.6       | 315-queue-add-next-last                     | Codex 5.3 | _TBD_   |
-| 316-queue-move-to-history                   | 10.7       | 316-queue-move-to-history                   | Opus 4.8  | _TBD_   |
-| 317-auto-queue-store                        | 10.8       | 317-auto-queue-store                        | Opus 4.8  | _TBD_   |
-| 318-auto-queue-playlist-sources             | 10.9       | 318-auto-queue-playlist-sources             | Opus 4.8  | _TBD_   |
-| 319-auto-queue-channel-sources              | 10.10      | 319-auto-queue-channel-sources              | Opus 4.8  | _TBD_   |
-| 320-auto-queue-prefs-storage                | 10.11      | 320-auto-queue-prefs-storage                | Codex 5.3 | _TBD_   |
-| 321-orchestrator-ended-advance              | 10.12      | 321-orchestrator-ended-advance              | Opus 4.8  | _TBD_   |
-| 322-orchestrator-playback-core              | 10.13      | 322-orchestrator-playback-core              | Opus 4.8  | _TBD_   |
-| 323-hook-resource-update                    | 10.14      | 323-hook-resource-update                    | Opus 4.8  | _TBD_   |
-| 324-playback-target-kinds                   | 10.15      | 324-playback-target-kinds                   | Opus 4.8  | _TBD_   |
-| 325-music-playback-intent                   | 10.16      | 325-music-playback-intent                   | Opus 4.8  | _TBD_   |
-| 326-bounded-segment-playback                | 10.17      | 326-bounded-segment-playback                | Opus 4.8  | _TBD_   |
-| 327-anonymous-playback-snapshot             | 10.18      | 327-anonymous-playback-snapshot             | Opus 4.8  | _TBD_   |
-| 328-anonymous-login-reconcile               | 10.19      | 328-anonymous-login-reconcile               | Opus 4.8  | _TBD_   |
-| 329-playlist-play-seed-autoqueue            | 10.20      | 329-playlist-play-seed-autoqueue            | Opus 4.8  | _TBD_   |
-| 330-stats-tracking                          | 10.21      | 330-stats-tracking                          | Codex 5.3 | _TBD_   |
-| 331-native-cache-queue-write                | 10.22      | 331-native-cache-queue-write                | Opus 4.8  | _TBD_   |
-| 332-e2e-play-mini-player                    | 10.23      | 332-e2e-play-mini-player                    | Codex 5.3 | _TBD_   |
-| 333-e2e-queue-add                           | 10.24      | 333-e2e-queue-add                           | Codex 5.3 | _TBD_   |
-| 334-e2e-auto-queue-advance                  | 10.25      | 334-e2e-auto-queue-advance                  | Opus 4.8  | _TBD_   |
-| 340-mini-player-ui                          | 11.1       | 340-mini-player-ui                          | Codex 5.3 | _TBD_   |
-| 341-mini-player-layout                      | 11.2       | 341-mini-player-layout                      | Codex 5.3 | _TBD_   |
-| 342-mini-player-video-placeholder           | 11.3       | 342-mini-player-video-placeholder           | Opus 4.8  | _TBD_   |
-| 343-expand-without-reload                   | 11.4       | 343-expand-without-reload                   | Opus 4.8  | _TBD_   |
-| 350-full-player-ui                          | 11.5       | 350-full-player-ui                          | Codex 5.3 | _TBD_   |
-| 351-full-player-video-surface               | 11.6       | 351-full-player-video-surface               | Opus 4.8  | _TBD_   |
-| 352-collapse-to-mini-animation              | 11.7       | 352-collapse-to-mini-animation              | Opus 4.8  | _TBD_   |
-| 353-position-continuity-verify              | 11.8       | 353-position-continuity-verify              | Opus 4.8  | _TBD_   |
-| 354-full-player-up-next                     | 11.9       | 354-full-player-up-next                     | Codex 5.3 | _TBD_   |
-| 355-full-player-segments                    | 11.10      | 355-full-player-segments                    | Codex 5.3 | _TBD_   |
-| 356-playback-speed-control                  | 11.11      | 356-playback-speed-control                  | Codex 5.3 | _TBD_   |
-| 357-sleep-timer-optional                    | 11.12      | 357-sleep-timer-optional                    | Auto      | _TBD_   |
-| 358-share-now-playing-link                  | 11.13      | 358-share-now-playing-link                  | Codex 5.3 | _TBD_   |
-| 359-v4v-boost-entry-stub                    | 11.14      | 359-v4v-boost-entry-stub                    | Opus 4.8  | _TBD_   |
-| 360-e2e-video-mini-screenshot               | 11.15      | 360-e2e-video-mini-screenshot               | Codex 5.3 | _TBD_   |
-| 361-e2e-video-full-screenshot               | 11.16      | 361-e2e-video-full-screenshot               | Opus 4.8  | _TBD_   |
-| 362-e2e-video-collapse-screenshot           | 11.17      | 362-e2e-video-collapse-screenshot           | Opus 4.8  | _TBD_   |
-| 363-anti-pattern-no-second-video            | 11.18      | 363-anti-pattern-no-second-video            | Auto      | _TBD_   |
+| 497-media-row-actions-inventory             | 9c.1       | 497-media-row-actions-inventory             | Auto      | done    |
+| 498-media-row-actions-component             | 9c.2       | 498-media-row-actions-component             | Codex 5.3 | done    |
+| 499-media-row-actions-migrate               | 9c.3       | 499-media-row-actions-migrate               | Codex 5.3 | done    |
+| 310-queue-store                             | 10.1       | 310-queue-store                             | Opus 4.8  | done    |
+| 311-queue-launch-hydration                  | 10.2       | 311-queue-launch-hydration                  | Opus 4.8  | done    |
+| 312-active-queue-by-medium                  | 10.3       | 312-active-queue-by-medium                  | Codex 5.3 | done    |
+| 313-queue-now-playing-upcoming              | 10.4       | 313-queue-now-playing-upcoming              | Codex 5.3 | done    |
+| 314-hook-queue-load-active                  | 10.5       | 314-hook-queue-load-active                  | Opus 4.8  | done    |
+| 315-queue-add-next-last                     | 10.6       | 315-queue-add-next-last                     | Codex 5.3 | done    |
+| 316-queue-move-to-history                   | 10.7       | 316-queue-move-to-history                   | Opus 4.8  | done    |
+| 317-auto-queue-store                        | 10.8       | 317-auto-queue-store                        | Opus 4.8  | done    |
+| 318-auto-queue-playlist-sources             | 10.9       | 318-auto-queue-playlist-sources             | Opus 4.8  | done    |
+| 319-auto-queue-channel-sources              | 10.10      | 319-auto-queue-channel-sources              | Opus 4.8  | done    |
+| 320-auto-queue-prefs-storage                | 10.11      | 320-auto-queue-prefs-storage                | Codex 5.3 | done    |
+| 321-orchestrator-ended-advance              | 10.12      | 321-orchestrator-ended-advance              | Opus 4.8  | done    |
+| 322-orchestrator-playback-core              | 10.13      | 322-orchestrator-playback-core              | Opus 4.8  | done    |
+| 323-hook-resource-update                    | 10.14      | 323-hook-resource-update                    | Opus 4.8  | done    |
+| 324-playback-target-kinds                   | 10.15      | 324-playback-target-kinds                   | Opus 4.8  | done    |
+| 325-music-playback-intent                   | 10.16      | 325-music-playback-intent                   | Opus 4.8  | done    |
+| 326-bounded-segment-playback                | 10.17      | 326-bounded-segment-playback                | Opus 4.8  | done    |
+| 327-anonymous-playback-snapshot             | 10.18      | 327-anonymous-playback-snapshot             | Opus 4.8  | done    |
+| 328-anonymous-login-reconcile               | 10.19      | 328-anonymous-login-reconcile               | Opus 4.8  | done    |
+| 329-playlist-play-seed-autoqueue            | 10.20      | 329-playlist-play-seed-autoqueue            | Opus 4.8  | done    |
+| 330-stats-tracking                          | 10.21      | 330-stats-tracking                          | Codex 5.3 | done    |
+| 331-native-cache-queue-write                | 10.22      | 331-native-cache-queue-write                | Opus 4.8  | done    |
+| 332-e2e-play-mini-player                    | 10.23      | 332-e2e-play-mini-player                    | Codex 5.3 | done    |
+| 333-e2e-queue-add                           | 10.24      | 333-e2e-queue-add                           | Codex 5.3 | done    |
+| 334-e2e-auto-queue-advance                  | 10.25      | 334-e2e-auto-queue-advance                  | Opus 4.8  | done    |
+| 340-mini-player-ui                          | 11.1       | 340-mini-player-ui                          | Codex 5.3 | done    |
+| 341-mini-player-layout                      | 11.2       | 341-mini-player-layout                      | Codex 5.3 | done    |
+| 342-mini-player-video-placeholder           | 11.3       | 342-mini-player-video-placeholder           | Opus 4.8  | planned |
+| 343-expand-without-reload                   | 11.4       | 343-expand-without-reload                   | Opus 4.8  | done    |
+| 350-full-player-ui                          | 11.5       | 350-full-player-ui                          | Codex 5.3 | done    |
+| 351-full-player-video-surface               | 11.6       | 351-full-player-video-surface               | Opus 4.8  | planned |
+| 352-collapse-to-mini-animation              | 11.7       | 352-collapse-to-mini-animation              | Opus 4.8  | planned |
+| 353-position-continuity-verify              | 11.8       | 353-position-continuity-verify              | Opus 4.8  | planned |
+| 354-full-player-up-next                     | 11.9       | 354-full-player-up-next                     | Codex 5.3 | done    |
+| 355-full-player-segments                    | 11.10      | 355-full-player-segments                    | Codex 5.3 | done    |
+| 356-playback-speed-control                  | 11.11      | 356-playback-speed-control                  | Codex 5.3 | done    |
+| 357-sleep-timer-optional                    | 11.12      | 357-sleep-timer-optional                    | Auto      | done    |
+| 358-share-now-playing-link                  | 11.13      | 358-share-now-playing-link                  | Codex 5.3 | done    |
+| 359-v4v-boost-entry-stub                    | 11.14      | 359-v4v-boost-entry-stub                    | Opus 4.8  | done    |
+| 360-e2e-video-mini-screenshot               | 11.15      | 360-e2e-video-mini-screenshot               | Codex 5.3 | planned |
+| 361-e2e-video-full-screenshot               | 11.16      | 361-e2e-video-full-screenshot               | Opus 4.8  | planned |
+| 362-e2e-video-collapse-screenshot           | 11.17      | 362-e2e-video-collapse-screenshot           | Opus 4.8  | planned |
+| 363-anti-pattern-no-second-video            | 11.18      | 363-anti-pattern-no-second-video            | Auto      | done    |
 | 380-native-cache-schema                     | 12.1       | 380-native-cache-schema                     | Opus 4.8  | _TBD_   |
 | 381-ios-native-cache-storage                | 12.2       | 381-ios-native-cache-storage                | Opus 4.8  | _TBD_   |
 | 382-android-native-cache-storage            | 12.3       | 382-android-native-cache-storage            | Opus 4.8  | _TBD_   |
@@ -1110,6 +1142,7 @@ track’s band** (or open a new band). Slug remains descriptive (`232-theme-prov
 | 200–211        | 6             | auth                                   |
 | 220–237        | 7             | nav shell, themes                      |
 | 240–287        | 8–9           | home, browse                           |
+| 490–499        | 9b–9c         | data layer, primitives, row actions    |
 | 310–399        | 10–12         | queue, player, car                     |
 | 430–484        | 13–17         | downloads, push, links, settings, i18n |
 | 510–589        | 18–21         | multi-device, IAP, FOSS, deferrals     |

@@ -1,0 +1,58 @@
+appId: com.podverse.app.next
+name: Auto Queue Advance
+---
+# Track 10.25 (detail 334): assert the orchestrator advances now-playing after a track finishes.
+#
+# Timing constraint: the committed E2E audio fixtures are 30s / 60s, which exceeds the Maestro
+# timeout ladder cap (TIMEOUT_SLOWEST = 20s; see mobile-maestro-timeouts). Waiting for a *natural*
+# `ended` event would require an ad-hoc >30s wait the ladder forbids, and emulator `ended` delivery
+# is flaky. Instead we trigger `advance()` via the E2E skip control — `skipToNext` is defined as
+# `advance` in PlaybackProvider, so this exercises the identical advance decision path
+# (advance-auto-queue vs play-next-manual via resolveQueueAdvance) that the native `ended` handler
+# calls. With a fresh seed the manual queue is empty, so skip fills from the podcast channel
+# auto-queue (not leftover suite queue rows). Natural-ended timing verification is deferred until a
+# short (<20s) fixture or a fixture-duration timeout tier exists (follow-up in detail 334).
+#
+# Requires flow_needs_test_assets + flow_needs_e2e_api (real media + server queue/auto-queue).
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- tapOn:
+    id: tab-search
+- assertVisible:
+    id: search-screen
+- tapOn:
+    id: search-input
+- inputText: podcast
+- assertVisible:
+    id: search-result-row-0
+- tapOn:
+    id: search-result-row-0
+- assertVisible:
+    id: podcast-detail-screen
+- assertVisible:
+    id: podcast-episode-row-0
+- tapOn:
+    id: podcast-episode-row-0
+- assertVisible:
+    id: episode-detail-screen
+
+- tapOn:
+    id: "home-row-play-.*"
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: auto-queue-advance-first-now-playing
+
+# Trigger advance() (same code path as the native `ended` handler). After advancing, the
+# orchestrator loads the next resource (auto-queue seed or manual queue-next) and keeps a target
+# active; if nothing were queued it would clear now-playing and this assertion would fail.
+- tapOn:
+    id: playback-skip-next-e2e
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: auto-queue-advance-next-now-playing

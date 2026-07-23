@@ -11,6 +11,16 @@
  * (`380-native-cache-schema`) + media-engine write hooks (step 2.35). They log in `__DEV__` and
  * no-op in production. Keeping the call sites here now means car/watch work does not have to
  * rewrite repositories later.
+ *
+ * Queue projection call-site audit (master step 10.22 / detail 331): every persistent server-queue
+ * mutation projects exactly once per commit via `queueRepository` — add item/clip next & last,
+ * move-now-playing-to-history, and the now-playing / upcoming background syncs (see
+ * `projectQueueForQueue`). There is no server `update-is-active` write on mobile yet (the active
+ * queue is only in-memory store state in `QueuesProvider` / `useQueueResourcesLoadActive`), and the
+ * auto-queue store is in-memory/transient (no persistent commit for car/watch to read); an
+ * auto-queue advance materializes a manual-queue move-to-history (which projects) plus a transient
+ * now-playing that the Track 12 native-cache now-playing hook will own. Do not project from React
+ * providers/screens — projection stays in the data layer.
  */
 
 /** Minimal browse-shaped entry — the real (denormalized) schema is owned by Track 12. */

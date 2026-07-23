@@ -64,11 +64,16 @@ and mirror its design, adapted to React Native:
 2. **Mirror the information hierarchy and layout** — header/hero, section order, list vs grid, row
    card structure (artwork + title + metadata + actions), selector/tab placement, and
    loading / empty / error states. Match web semantics; do not invent a different IA.
-3. **Adapt, don't port** — use RN primitives (`View`, `FlatList`, `Pressable`, `Image`) and
+3. **Mirror action affordances (not just layout)** — same primary controls as the web counterpart
+   (Play; Queue next/last; more-menu items; Subscribe/Unsubscribe). Adapt presentation (icon +
+   action sheet vs hover menu). **Do not** reuse unrelated i18n keys (e.g. queue copy for remove
+   feed). See [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md §4](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md)
+   and master-plan **Track 9c**. Pixel polish may wait; **which buttons exist may not**.
+4. **Adapt, don't port** — use RN primitives (`View`, `FlatList`, `Pressable`, `Image`) and
    `StyleSheet` factories from `createStyles.ts`; never import `@podverse/ui` or SCSS.
-4. **Tokens only** — all colors, spacing, and radii come from `@podverse/design-tokens` via the
+5. **Tokens only** — all colors, spacing, and radii come from `@podverse/design-tokens` via the
    theme. **No hardcoded hex** in screens (enforced by this skill + `mobile-react-native` rule).
-5. **Diverge only with reason** — platform conventions (native back, pull-to-refresh, bottom sheets,
+6. **Diverge only with reason** — platform conventions (native back, pull-to-refresh, bottom sheets,
    safe-area, tab bar) win over pixel-copying the web chrome. Note intentional divergences in the
    detail doc.
 

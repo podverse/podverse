@@ -1,18 +1,18 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { GestureResponderEvent } from 'react-native';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Button } from '../../components/primitives';
+import { buildMediaRowMoreActions, MediaRowActions } from '../../components/player/MediaRowActions';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from './homeFeedData';
-import { isPlayableHomeMediaType } from './useHomeRowPlaybackStub';
+import type { QueueActionPosition } from './useHomeRowPlayback';
+import { isPlayableHomeMediaType } from './useHomeRowPlayback';
 
 type HomeFeedRowProps = {
   mediaType: HomeMediaType;
   onPress: (row: HomeFeedRowData) => void;
-  onQueuePress: (row: HomeFeedRowData) => void;
+  onQueuePress: (row: HomeFeedRowData, position: QueueActionPosition) => void;
   onPlayPress: (row: HomeFeedRowData) => void;
   row: HomeFeedRowData;
   testID?: string;
@@ -25,10 +25,6 @@ const MEDIA_TYPE_LABEL_KEYS: Record<HomeMediaType, string> = {
   episodes: 'media.podcast.episodes',
   podcasts: 'media.podcast.podcasts',
   tracks: 'media.music.tracks',
-};
-
-const stopPressPropagation = (event: GestureResponderEvent) => {
-  event.stopPropagation();
 };
 
 export function HomeFeedRow({
@@ -145,25 +141,26 @@ export function HomeFeedRow({
         ) : null}
         {isPlayable ? (
           <View style={styles.actionRow}>
-            <Button
-              label={t('media_player.play')}
-              onPress={(event) => {
-                stopPressPropagation(event);
+            <MediaRowActions
+              idSuffix={`-${row.id}`}
+              moreActions={buildMediaRowMoreActions(
+                t,
+                {
+                  onQueueLast: () => {
+                    onQueuePress(row, 'last');
+                  },
+                  onQueueNext: () => {
+                    onQueuePress(row, 'next');
+                  },
+                },
+                { idSuffix: `-${row.id}` }
+              )}
+              moreTestID={`home-row-more-${row.id}`}
+              onPlayPress={() => {
                 onPlayPress(row);
               }}
-              size="sm"
-              testID={`home-row-play-${row.id}`}
-              variant="secondary"
-            />
-            <Button
-              label={t('features.queue.queue_next')}
-              onPress={(event) => {
-                stopPressPropagation(event);
-                onQueuePress(row);
-              }}
-              size="sm"
-              testID={`home-row-queue-${row.id}`}
-              variant="secondary"
+              playLabel={t('media_player.play')}
+              playTestID={`home-row-play-${row.id}`}
             />
           </View>
         ) : null}

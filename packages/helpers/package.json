@@ -27,6 +27,18 @@
       "types": "./dist/dtos/index.d.ts",
       "default": "./dist/dtos/index.js"
     },
+    "./medium": {
+      "types": "./dist/lib/medium.d.ts",
+      "default": "./dist/lib/medium.js"
+    },
+    "./queue": {
+      "types": "./dist/lib/queue/queue.d.ts",
+      "default": "./dist/lib/queue/queue.js"
+    },
+    "./queue/abridged": {
+      "types": "./dist/lib/queue/queueResourceAbridged.d.ts",
+      "default": "./dist/lib/queue/queueResourceAbridged.js"
+    },
     "./addByRSS/ids": {
       "types": "./dist/lib/addByRSS/ids.d.ts",
       "default": "./dist/lib/addByRSS/ids.js"

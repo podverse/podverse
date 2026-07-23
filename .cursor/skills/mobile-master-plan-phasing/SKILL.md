@@ -61,6 +61,28 @@ step line in **Tracks** whenever status changes. Never leave implemented work at
 
 Detail doc header uses its own field: `**Status:** draft | ready | done` (file-level).
 
+### Track section headers — `(DONE)` marker
+
+Each `## Track N — …` heading in
+[001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md) must show whether the
+**entire track** is complete when scrolling the outline / document:
+
+| Header form                      | When                                             |
+| -------------------------------- | ------------------------------------------------ |
+| `## Track N — Title (DONE)`      | **Every** step in that track section is `— done` |
+| `## Track N — Title` (no suffix) | Any step still `_TBD_` or `planned`              |
+
+Rules:
+
+- Append exactly ` (DONE)` (space + parentheses + DONE) at the **end** of the heading text.
+- Do **not** use partial markers (`(PARTIAL)`, `(IN PROGRESS)`) on track headers — only full-track
+  `(DONE)` or nothing.
+- When the **last** remaining non-`done` step in a track flips to `done`, add `(DONE)` to that
+  track’s `##` heading in the same edit.
+- If a track is reopened (a step moves off `done`), **remove** `(DONE)` from the heading.
+- Track 2 spike-complete-but-video-remaining stays **without** `(DONE)` until 2.14+ (and any other
+  open steps) are `done`.
+
 ---
 
 ## Progress tracking (mandatory)
@@ -73,6 +95,7 @@ Status is **living state**, not write-once. Agents maintain it **as work complet
 | -------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | Phase detail files created                               | `_TBD_` → `planned` for that phase's steps (Tracks + Appendix C)              |
 | Each COPY-PASTA prompt implemented                       | Affected steps → `done` immediately (Tracks + Appendix C + detail doc header) |
+| Last step in a track becomes `done`                      | Append ` (DONE)` to that track’s `## Track …` heading                         |
 | Operator says work was done outside a session            | Reconcile: flip matching steps to `done` before recommending next             |
 | "What should we work on next in the mobile master plan?" | **Read** status first; **report** progress; then recommend                    |
 
@@ -86,6 +109,8 @@ After **each** COPY-PASTA prompt in `mobile-<phase-slug>/COPY-PASTA.md`:
 2. Flip every master-plan step implemented by that prompt: `planned` or `_TBD_` → `done`.
 3. Update **Appendix C** `Status` for those detail IDs.
 4. Set matching `details/NNN-slug.md` headers to `**Status:** done` when detail files exist.
+5. If that track now has **all** steps `done`, append ` (DONE)` to its `## Track …` heading
+   (see § Track section headers).
 
 On the **last** prompt: archive `.llm/plans/active/mobile-<phase-slug>/` per **plan-completion**.
 
@@ -146,7 +171,8 @@ When selecting the next PG, treat a prerequisite as satisfied only when its step
 | PG-5   | 2 full (2.14–2.35)                         | 2 spike, 1; prefer after PG-7 audio player shell                            |
 | PG-6   | 8, 9                                       | 6, 7; **7.11–7.15** theme scaffold `done`                                   |
 | PG-6.5 | 9b (data layer + RSS mapping + primitives) | PG-6; **before** Track 10 (9b.1–9b.4 required)                              |
-| PG-7   | 10, 11 (audio-first)                       | 1, 2 spike, 6, **9b.1–9b.4**; primitives 9b.6–9b.7 may parallel             |
+| PG-6.6 | 9c (media row action chrome)               | PG-6; prefer after 9b.6; may parallel PG-7; handlers → Track 10 when ready  |
+| PG-7   | 10, 11 (audio-first)                       | 1, 2 spike, 6, **9b.1–9b.4**; primitives 9b.6–9b.7 and 9c may parallel      |
 | PG-8   | 12                                         | 2, 10                                                                       |
 | PG-9   | 13–17                                      | 6, 10 (varies); **9b** for downloads metadata rows                          |
 | PG-10  | 18                                         | 7, 11                                                                       |

@@ -13,8 +13,8 @@ import type { HomeStackParamList } from '../../navigation';
 import { HOME_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
 import { HomeFeedRow } from '../home/HomeFeedRow';
-import { useHomeRowPlaybackStub } from '../home/useHomeRowPlaybackStub';
-import { useClipPlaybackStub } from './useClipPlaybackStub';
+import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
+import { useClipPlayback } from './useClipPlayback';
 
 type ClipDetailScreenProps = NativeStackScreenProps<HomeStackParamList, 'ClipDetail'>;
 
@@ -58,8 +58,8 @@ export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
-  const { playbackNoticeKey, runBoundedClipPlay } = useClipPlaybackStub();
-  const { runQueueAction } = useHomeRowPlaybackStub();
+  const { playbackNoticeKey, runBoundedClipPlay } = useClipPlayback();
+  const { runQueueAction } = useHomeRowPlayback();
   const [clip, setClip] = useState<DTOClip | null>(null);
   const [item, setItem] = useState<DTOItem | null>(null);
   const [channel, setChannel] = useState<DTOChannel | null>(null);
@@ -260,8 +260,8 @@ export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
                   episodeId: item.id_text,
                 });
               }}
-              onQueuePress={(row) => {
-                runQueueAction(row, 'clips');
+              onQueuePress={(row, position) => {
+                runQueueAction(row, 'clips', position);
               }}
               row={{
                 id: clip.id_text,

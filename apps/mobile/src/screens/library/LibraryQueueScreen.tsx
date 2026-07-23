@@ -12,15 +12,16 @@ import { SectionCard } from '../../components/section/SectionCard';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
 import { usePrimaryQueue } from '../../hooks/usePrimaryQueue';
 import { useQueueResources } from '../../hooks/useQueueResources';
+import type { QueueResourceHomeRow } from '../../lib/rows/homeRowMappers';
 import { queueResourceToHomeRow } from '../../lib/rows/homeRowMappers';
 import type { LibraryStackParamList } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
 import { HomeFeedRow } from '../home/HomeFeedRow';
-import { useHomeRowPlaybackStub } from '../home/useHomeRowPlaybackStub';
+import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 
 type LibraryQueueScreenProps = NativeStackScreenProps<LibraryStackParamList, 'LibraryQueue'>;
 
-type QueueRow = ReturnType<typeof queueResourceToHomeRow>;
+type QueueRow = QueueResourceHomeRow;
 
 export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
   const { t } = useTranslation();
@@ -34,7 +35,7 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [queueNoticeKey, setQueueNoticeKey] = useState<string | null>(null);
-  const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlaybackStub();
+  const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
 
   const styles = useMemo(
     () =>
@@ -96,7 +97,12 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
       ]);
 
       setNowPlayingRow(nowPlaying ? queueResourceToHomeRow(nowPlaying, 'queue') : null);
-      setUpcomingRows(upcoming.map((resource) => queueResourceToHomeRow(resource, 'queue')));
+      setUpcomingRows(
+        upcoming.flatMap((resource) => {
+          const row = queueResourceToHomeRow(resource, 'queue');
+          return row === null ? [] : [row];
+        })
+      );
     } catch {
       setErrorKey('errors.generic');
       setQueue(null);
@@ -143,8 +149,8 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
                       runPlayAction(row, nowPlayingRow.mediaType);
                     }}
                     onPress={() => {}}
-                    onQueuePress={(row) => {
-                      runQueueAction(row, nowPlayingRow.mediaType);
+                    onQueuePress={(row, position) => {
+                      runQueueAction(row, nowPlayingRow.mediaType, position);
                     }}
                     row={nowPlayingRow}
                   />
@@ -187,8 +193,8 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
                       runPlayAction(nextRow, row.mediaType);
                     }}
                     onPress={() => {}}
-                    onQueuePress={(nextRow) => {
-                      runQueueAction(nextRow, row.mediaType);
+                    onQueuePress={(nextRow, position) => {
+                      runQueueAction(nextRow, row.mediaType, position);
                     }}
                     row={row}
                   />

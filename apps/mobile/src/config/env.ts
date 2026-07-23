@@ -46,3 +46,11 @@ export const selectMobileApiBaseUrl = (): SelectedMobileApiBaseUrl => {
 };
 
 export const isMobileE2eFromEnv = (): boolean => process.env.EXPO_PUBLIC_MOBILE_E2E === '1';
+
+/**
+ * Value-for-value (boost) entry is opt-in and hidden by default (Track 11.14 stub). Store-restricted
+ * builds (e.g. F-Droid / Google Play where bitcoin UX is not permitted) simply never set the flag,
+ * so the entry stays hidden unless a build explicitly enables it. Full LNURL lands with Track 19.
+ */
+export const isMobileV4vEnabledFromEnv = (): boolean =>
+  process.env.EXPO_PUBLIC_MOBILE_V4V_ENABLED === '1';

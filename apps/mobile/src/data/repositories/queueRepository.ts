@@ -1,6 +1,11 @@
-import { eq } from 'drizzle-orm';
+import { eq, like } from 'drizzle-orm';
 
-import type { DTOQueue, DTOQueueResource } from '@podverse/helpers/dto';
+import type {
+  DTOQueue,
+  DTOQueueResource,
+  DTOQueueResourceAbridgedResponseData,
+  QueueExtraParams,
+} from '@podverse/helpers/dto';
 
 // Import from the request module (not the auth barrel) to keep the React AuthProvider out of the
 // data-layer module graph.
@@ -14,6 +19,7 @@ import type { MobileAuthRequestContext } from './types';
 const QUEUE_TTL_MS = 5 * 60 * 1000;
 
 const CACHE_KEY_QUEUES = 'queues';
+const CACHE_KEY_ABRIDGED_INDEX = 'queue-resources-abridged';
 const nowPlayingCacheKey = (queueIdText: string): string => `now-playing:${queueIdText}`;
 const upcomingCacheKey = (queueIdText: string): string => `upcoming:${queueIdText}`;
 const historyCacheKey = (queueIdText: string, page: number): string =>
@@ -54,6 +60,18 @@ const writeQueueCache = async (cacheKey: string, value: unknown): Promise<void> 
     });
 };
 
+const deleteQueueCache = async (cacheKey: string): Promise<void> => {
+  await initializeDatabase();
+  await getDb().delete(schema.queueCache).where(eq(schema.queueCache.cacheKey, cacheKey));
+};
+
+const deleteQueueCacheByPrefix = async (cacheKeyPrefix: string): Promise<void> => {
+  await initializeDatabase();
+  await getDb()
+    .delete(schema.queueCache)
+    .where(like(schema.queueCache.cacheKey, `${cacheKeyPrefix}%`));
+};
+
 const isCacheStale = (hit: QueueCacheHit<unknown> | null): boolean => {
   if (hit === null) {
     return true;
@@ -72,8 +90,11 @@ export const selectPrimaryQueue = (queues: DTOQueue[]): DTOQueue | null => {
   return queues[0] ?? null;
 };
 
-const toNativeCacheEntry = (resource: DTOQueueResource): NativeCacheQueueEntry => {
+const toNativeCacheEntry = (resource: DTOQueueResource): NativeCacheQueueEntry | null => {
   const item = resource.item;
+  if (item === null || item === undefined) {
+    return null;
+  }
   return {
     idText: item.id_text,
     title: item.title ?? item.id_text,
@@ -95,19 +116,70 @@ const projectQueueForQueue = async (queueIdText: string): Promise<void> => {
     (await readQueueCache<DTOQueueResource[]>(upcomingCacheKey(queueIdText)))?.value ?? [];
 
   await projectQueueSnapshotToNativeCache({
-    nowPlayingIdText: nowPlaying?.item.id_text ?? null,
-    entries: upcoming.map(toNativeCacheEntry),
+    nowPlayingIdText: nowPlaying?.item?.id_text ?? null,
+    entries: upcoming.flatMap((resource) => {
+      const entry = toNativeCacheEntry(resource);
+      return entry === null ? [] : [entry];
+    }),
   });
+};
+
+/**
+ * Force-refresh now-playing from the server after a mutation and reconcile the SQLite cache
+ * (write when present, delete when the server reports no now-playing). Returns the fresh value.
+ */
+const forceRefreshNowPlaying = async (
+  context: MobileAuthRequestContext,
+  queueIdText: string
+): Promise<DTOQueueResource | null> => {
+  const cacheKey = nowPlayingCacheKey(queueIdText);
+  const fetched = await requestWithMobileAuthRefresh(context, async (api) =>
+    api.reqQueueResourcesGetNowPlayingByQueueIdText(queueIdText)
+  );
+  if (fetched === null) {
+    await deleteQueueCache(cacheKey);
+  } else {
+    await writeQueueCache(cacheKey, fetched);
+  }
+  return fetched;
+};
+
+/** Force-refresh upcoming from the server after a mutation and rewrite the SQLite cache. */
+const forceRefreshUpcoming = async (
+  context: MobileAuthRequestContext,
+  queueIdText: string
+): Promise<DTOQueueResource[]> => {
+  const fetched = await requestWithMobileAuthRefresh(context, async (api) =>
+    api.reqQueueResourcesGetAllUpcomingByQueueIdText(queueIdText)
+  );
+  await writeQueueCache(upcomingCacheKey(queueIdText), fetched);
+  return fetched;
+};
+
+/**
+ * A now-playing resource targeted by a move-to-history mutation. Mirrors the web
+ * `useQueueResourcesMoveNowPlayingToHistory` clip / soundbite / item branches.
+ */
+export type MoveNowPlayingToHistoryTarget = {
+  kind: 'item' | 'clip' | 'soundbite';
+  idText: string;
+  playbackPosition?: string;
+  completed?: boolean;
 };
 
 /**
  * Queue / now-playing / upcoming / history repository. Reads SQLite first (offline-first); a
  * missing/stale cache triggers a background sync via the queue `req*` wrappers, which live here —
- * not in screens/hooks. DTO shapes match web (`@podverse/helpers/dto`). Mutations arrive in Track
- * 10 and will write local → sync → project to the native cache.
+ * not in screens/hooks. DTO shapes match web (`@podverse/helpers/dto`). Mutations write to the
+ * server, force-refresh the affected SQLite caches, then project the snapshot to the native cache.
  */
 export const queueRepository = {
-  getPrimaryQueue: async (context: MobileAuthRequestContext): Promise<DTOQueue | null> => {
+  /**
+   * All queues for the account (offline-first read-through). Mirrors the web bootstrap
+   * `reqQueueGetAllForAccountPrivate` load; the queue store / load-active hook select the active
+   * queue from this list (never call `req*` from screens).
+   */
+  getQueues: async (context: MobileAuthRequestContext): Promise<DTOQueue[]> => {
     const queues = await readThroughOrFetch<DTOQueue[]>({
       readLocal: async () => (await readQueueCache<DTOQueue[]>(CACHE_KEY_QUEUES))?.value ?? null,
       isStale: async () => isCacheStale(await readQueueCache<DTOQueue[]>(CACHE_KEY_QUEUES)),
@@ -120,7 +192,38 @@ export const queueRepository = {
       },
     });
 
-    return queues === null ? null : selectPrimaryQueue(queues);
+    return queues ?? [];
+  },
+
+  getPrimaryQueue: async (context: MobileAuthRequestContext): Promise<DTOQueue | null> => {
+    return selectPrimaryQueue(await queueRepository.getQueues(context));
+  },
+
+  /**
+   * Abridged queue-resource index across all queues (web SSR bootstrap parity). Cached in SQLite so
+   * a cold start can render the last snapshot offline while a background sync refreshes.
+   */
+  getAbridgedIndex: async (
+    context: MobileAuthRequestContext
+  ): Promise<DTOQueueResourceAbridgedResponseData[]> => {
+    const abridged = await readThroughOrFetch<DTOQueueResourceAbridgedResponseData[]>({
+      readLocal: async () =>
+        (await readQueueCache<DTOQueueResourceAbridgedResponseData[]>(CACHE_KEY_ABRIDGED_INDEX))
+          ?.value ?? null,
+      isStale: async () =>
+        isCacheStale(
+          await readQueueCache<DTOQueueResourceAbridgedResponseData[]>(CACHE_KEY_ABRIDGED_INDEX)
+        ),
+      fetchRemote: async () => {
+        const fetched = await requestWithMobileAuthRefresh(context, async (api) =>
+          api.reqQueueResourcesGetAllByAccountAbridged()
+        );
+        await writeQueueCache(CACHE_KEY_ABRIDGED_INDEX, fetched);
+        return fetched;
+      },
+    });
+
+    return abridged ?? [];
   },
 
   getNowPlaying: async (
@@ -204,5 +307,97 @@ export const queueRepository = {
     });
 
     return history ?? [];
+  },
+
+  /** Add an episode/track next in the queue, then refresh + project. Returns fresh upcoming. */
+  addItemNext: async (
+    context: MobileAuthRequestContext,
+    queueIdText: string,
+    itemIdText: string
+  ): Promise<DTOQueueResource[]> => {
+    await requestWithMobileAuthRefresh(context, async (api) =>
+      api.reqQueueResourceItemAddNext(queueIdText, itemIdText)
+    );
+    const upcoming = await forceRefreshUpcoming(context, queueIdText);
+    await projectQueueForQueue(queueIdText);
+    return upcoming;
+  },
+
+  /** Add an episode/track last in the queue, then refresh + project. Returns fresh upcoming. */
+  addItemLast: async (
+    context: MobileAuthRequestContext,
+    queueIdText: string,
+    itemIdText: string
+  ): Promise<DTOQueueResource[]> => {
+    await requestWithMobileAuthRefresh(context, async (api) =>
+      api.reqQueueResourceItemAddLast(queueIdText, itemIdText)
+    );
+    const upcoming = await forceRefreshUpcoming(context, queueIdText);
+    await projectQueueForQueue(queueIdText);
+    return upcoming;
+  },
+
+  /** Add a clip next in the queue, then refresh + project. Returns fresh upcoming. */
+  addClipNext: async (
+    context: MobileAuthRequestContext,
+    queueIdText: string,
+    clipIdText: string
+  ): Promise<DTOQueueResource[]> => {
+    await requestWithMobileAuthRefresh(context, async (api) =>
+      api.reqQueueResourceClipAddNext(queueIdText, clipIdText)
+    );
+    const upcoming = await forceRefreshUpcoming(context, queueIdText);
+    await projectQueueForQueue(queueIdText);
+    return upcoming;
+  },
+
+  /** Add a clip last in the queue, then refresh + project. Returns fresh upcoming. */
+  addClipLast: async (
+    context: MobileAuthRequestContext,
+    queueIdText: string,
+    clipIdText: string
+  ): Promise<DTOQueueResource[]> => {
+    await requestWithMobileAuthRefresh(context, async (api) =>
+      api.reqQueueResourceClipAddLast(queueIdText, clipIdText)
+    );
+    const upcoming = await forceRefreshUpcoming(context, queueIdText);
+    await projectQueueForQueue(queueIdText);
+    return upcoming;
+  },
+
+  /**
+   * Move the now-playing resource to history (ended / skip), matching the web queue lifecycle.
+   * Force-refreshes now-playing + upcoming, invalidates cached history pages, and projects the
+   * native cache. Consumers (orchestrator, Track 10.12) advance via the load-active hook after.
+   */
+  moveNowPlayingToHistory: async (
+    context: MobileAuthRequestContext,
+    queueIdText: string,
+    target: MoveNowPlayingToHistoryTarget
+  ): Promise<{ nowPlaying: DTOQueueResource | null; upcoming: DTOQueueResource[] }> => {
+    const params: QueueExtraParams = {
+      ...(target.playbackPosition !== undefined
+        ? { playback_position: target.playbackPosition }
+        : {}),
+      ...(target.completed !== undefined ? { completed: target.completed } : {}),
+    };
+
+    await requestWithMobileAuthRefresh(context, async (api) => {
+      if (target.kind === 'clip') {
+        return api.reqQueueResourceClipAddHistory(queueIdText, target.idText, params);
+      }
+      if (target.kind === 'soundbite') {
+        return api.reqQueueResourceItemSoundbiteAddHistory(queueIdText, target.idText, params);
+      }
+      return api.reqQueueResourceItemAddHistory(queueIdText, target.idText, params);
+    });
+
+    await deleteQueueCacheByPrefix(`history:${queueIdText}:`);
+    const [nowPlaying, upcoming] = await Promise.all([
+      forceRefreshNowPlaying(context, queueIdText),
+      forceRefreshUpcoming(context, queueIdText),
+    ]);
+    await projectQueueForQueue(queueIdText);
+    return { nowPlaying, upcoming };
   },
 };
