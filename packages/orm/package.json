@@ -28,7 +28,7 @@
     "async-mutex": "^0.5.0",
     "bcrypt": "^6.0.0",
     "module-alias": "^2.3.3",
-    "nanoid": "^5.1.7",
+    "nanoid": "^6.0.0",
     "pg": "^8.21.0",
     "typeorm": "^1.0.0"
   },
