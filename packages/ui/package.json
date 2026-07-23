@@ -39,7 +39,7 @@
   "peerDependencies": {
     "next": "^16.2.10",
     "react": "^19.2.7",
-    "react-virtuoso": "^4.18.3"
+    "react-virtuoso": "^4.18.11"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.1",
@@ -52,7 +52,7 @@
     "next": "^16.2.10",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "react-virtuoso": "^4.18.3",
+    "react-virtuoso": "^4.18.11",
     "sass": "^1.98.0",
     "typescript": "^5.9.2",
     "vitest": "^4.1.10"
