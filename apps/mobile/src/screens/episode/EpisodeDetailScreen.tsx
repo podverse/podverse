@@ -3,7 +3,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import type { DTOClip, DTOItem, DTOItemChapter, DTOItemSoundbite } from '@podverse/helpers';
+import type {
+  DTOChannel,
+  DTOClip,
+  DTOItem,
+  DTOItemChapter,
+  DTOItemSoundbite,
+} from '@podverse/helpers';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
@@ -12,10 +18,11 @@ import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
 import type { HomeStackParamList } from '../../navigation';
 import { HOME_STACK_ROUTES } from '../../navigation';
+import { usePlayback } from '../../playback/PlaybackProvider';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
-import { useHomeRowPlaybackStub } from '../home/useHomeRowPlaybackStub';
+import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 
 type EpisodeDetailScreenProps = NativeStackScreenProps<HomeStackParamList, 'EpisodeDetail'>;
 
@@ -91,6 +98,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
   const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
   const { episodeId } = route.params;
   const [episode, setEpisode] = useState<DTOItem | null>(null);
+  const [channel, setChannel] = useState<DTOChannel | null>(null);
   const [channelTitle, setChannelTitle] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorKey, setErrorKey] = useState<string | null>(null);
@@ -109,7 +117,8 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
     transcript: false,
   });
   const [descriptionExpanded, setDescriptionExpanded] = useState<boolean>(false);
-  const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlaybackStub();
+  const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
+  const { playItem, playSoundbite } = usePlayback();
 
   const styles = useMemo(
     () =>
@@ -196,10 +205,11 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
       );
       setEpisode(response);
 
-      if (response.channel?.title) {
+      if (response.channel) {
+        setChannel(response.channel);
         setChannelTitle(response.channel.title);
       } else {
-        const channel = await requestWithMobileAuthRefresh(
+        const channelResponse = await requestWithMobileAuthRefresh(
           {
             accessToken,
             clearSession,
@@ -208,11 +218,13 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
           },
           async (api) => api.reqChannelGetByIdOrIdText(response.channel_id)
         );
-        setChannelTitle(channel.title);
+        setChannel(channelResponse);
+        setChannelTitle(channelResponse.title);
       }
     } catch {
       setErrorKey('errors.generic');
       setEpisode(null);
+      setChannel(null);
       setChannelTitle(null);
     } finally {
       setIsLoading(false);
@@ -415,14 +427,18 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
         <HomeFeedRow
           key={soundbite.id_text}
           mediaType="clips"
-          onPlayPress={(row) => {
-            runPlayAction(row, 'clips');
+          onPlayPress={() => {
+            if (episode !== null && channel !== null) {
+              void playSoundbite(soundbite, episode, channel);
+            }
           }}
-          onPress={(row) => {
-            runPlayAction(row, 'clips');
+          onPress={() => {
+            if (episode !== null && channel !== null) {
+              void playSoundbite(soundbite, episode, channel);
+            }
           }}
-          onQueuePress={(row) => {
-            runQueueAction(row, 'clips');
+          onQueuePress={(row, position) => {
+            runQueueAction(row, 'clips', position);
           }}
           row={toSoundbiteRow(soundbite, index, t('info.soundbite.official_clip'))}
         />
@@ -446,8 +462,8 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
               clipId: clip.id_text,
             });
           }}
-          onQueuePress={(row) => {
-            runQueueAction(row, 'clips');
+          onQueuePress={(row, position) => {
+            runQueueAction(row, 'clips', position);
           }}
           row={toClipRow(clip)}
         />
@@ -504,14 +520,18 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
               <>
                 <HomeFeedRow
                   mediaType="episodes"
-                  onPlayPress={(row) => {
-                    runPlayAction(row, 'episodes');
+                  onPlayPress={() => {
+                    if (episode !== null && channel !== null) {
+                      void playItem(episode, channel);
+                    }
                   }}
-                  onPress={(row) => {
-                    runPlayAction(row, 'episodes');
+                  onPress={() => {
+                    if (episode !== null && channel !== null) {
+                      void playItem(episode, channel);
+                    }
                   }}
-                  onQueuePress={(row) => {
-                    runQueueAction(row, 'episodes');
+                  onQueuePress={(row, position) => {
+                    runQueueAction(row, 'episodes', position);
                   }}
                   row={episodeRow}
                 />

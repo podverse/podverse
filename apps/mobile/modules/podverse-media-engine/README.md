@@ -161,9 +161,32 @@ JS mirrors state into native storage so Track 12 car surfaces read queue / downl
 Each takes a single JSON-string payload and returns `Promise<void>`. Native stores an opaque snapshot
 and does not re-decide queue rules (policy stays in `@podverse/playback-core`).
 
+## Player UI single-surface ownership (Track 11.18 — anti-pattern)
+
+The mini player and full player (Track 11) are two React views over **one** engine. They read the
+shared `PlaybackProvider` (`usePlayback()`, app root) and drive the single process-wide
+`nativePlaybackBridge`. Expanding to the full player is a navigation event only — it must **never**
+call `bridge.load` / `bridge.destroy`, so audio position and play/pause stay continuous (Track 11.4).
+
+**Anti-pattern: never mount a second `Video` component or a second engine on full-screen open.**
+When video lands (Track 11.3 / 11.6–11.8):
+
+- There is exactly **one** native video surface (`VideoSurfaceHost`). Opening the full player
+  **re-parents / attaches** that same surface from the `mini` target to the `full` target
+  (`animateVideoSurface` bridge attach) — it does **not** create a second `<Video>` / `expo-video`
+  view or a second player.
+- Collapsing animates the same surface back to the `mini` target (Track 11.7). No teardown, no
+  reload, no duplicate audio/video engine.
+- Policy stays in `@podverse/playback-core`; this module remains transport + single-surface owner.
+
+This mirrors web's "no remounting the media element" rule. Cross-linked from
+[apps/mobile/APPS-MOBILE.md § Player UI](/apps/mobile/APPS-MOBILE.md) and the module comments in
+`apps/mobile/src/screens/player/FullPlayerScreen.tsx` / `apps/mobile/src/components/player/MiniPlayer.tsx`.
+
 ## Verify (operator)
 
 ```bash
 test -d apps/mobile/modules/podverse-media-engine
 ! rg -q 'react-native-track-player' apps/mobile/package.json apps/mobile/modules
+rg -n "second Video|VideoSurfaceHost|anti-pattern" apps/mobile
 ```

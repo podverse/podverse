@@ -1,0 +1,56 @@
+appId: com.podverse.app.next
+name: Queue Add
+---
+# Track 10.24 (detail 333): add a seeded episode to the server queue (queue-next) and verify it
+# lands on the Library queue screen. Queue-add mutates the server queue via :4230 but does not play
+# media, so this flow needs flow_needs_e2e_api only (no test-assets).
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- tapOn:
+    id: tab-search
+- assertVisible:
+    id: search-screen
+- tapOn:
+    id: search-input
+- inputText: podcast
+- assertVisible:
+    id: search-result-row-0
+- tapOn:
+    id: search-result-row-0
+- assertVisible:
+    id: podcast-detail-screen
+- assertVisible:
+    id: podcast-episode-row-0
+- tapOn:
+    id: podcast-episode-row-0
+- assertVisible:
+    id: episode-detail-screen
+
+# Track 9c.3: queue actions now live in the shared MediaRowActions "More" action sheet. Open the
+# more menu (home-row-more-<id_text>, dynamic) then tap Queue: Last (media-row-action-queue-last-*).
+- tapOn:
+    id: "home-row-more-.*"
+- assertVisible:
+    id: "media-row-sheet-.*"
+- takeScreenshot: queue-add-more-sheet
+- tapOn:
+    id: "media-row-action-queue-last-.*"
+- takeScreenshot: queue-add-after-queue-tap
+
+# Navigate to the Library queue screen and confirm the item is present as an upcoming row.
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-queue
+- assertVisible:
+    id: library-queue-screen
+# Each upcoming row renders a remove control keyed by queueResourceId (dynamic); match by regex.
+- extendedWaitUntil:
+    visible:
+      id: "library-queue-remove-.*"
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: queue-add-library-queue-row

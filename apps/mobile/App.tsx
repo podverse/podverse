@@ -2,9 +2,12 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 
 import { AuthProvider, useAuth } from './src/auth';
+import { AutoQueueProvider } from './src/contexts/AutoQueueProvider';
+import { QueuesProvider } from './src/contexts/QueuesProvider';
 import { initializeDatabase } from './src/data/db';
 import { initializeI18n } from './src/i18n';
 import { MobileTabNavigator } from './src/navigation';
+import { PlaybackProvider } from './src/playback';
 import { LoginScreen } from './src/screens/auth/LoginScreen';
 import { SignUpScreen } from './src/screens/auth/SignUpScreen';
 import { HelloWorldScreen } from './src/screens/HelloWorldScreen';
@@ -33,7 +36,13 @@ export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <AppBody />
+        <AutoQueueProvider>
+          <QueuesProvider>
+            <PlaybackProvider>
+              <AppBody />
+            </PlaybackProvider>
+          </QueuesProvider>
+        </AutoQueueProvider>
       </AuthProvider>
     </ThemeProvider>
   );

@@ -12,6 +12,11 @@ export {
   type PlaybackLoadDecisionReason,
 } from './resolvePlaybackLoadDecision.js';
 export {
+  resolveQueueAdvance,
+  type QueueAdvanceDecision,
+  type QueueAdvanceInput,
+} from './resolveQueueAdvance.js';
+export {
   resolveEnclosureSwitchPlaybackDecision,
   type ResolveEnclosureSwitchPlaybackDecisionParams,
 } from './resolveEnclosureSwitchPlaybackDecision.js';

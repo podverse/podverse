@@ -355,7 +355,7 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     }
 
     return this.repositoryRead.find({
-      where: { queue, list_position: position },
+      where: { queue: { id: queue.id }, list_position: position },
     });
   }
 
@@ -367,13 +367,15 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
       throw new Error('Queue not found.');
     }
 
+    // Use `{ id }` — not the full entity. Passing `where: { queue }` expands unloaded
+    // relations (e.g. `account: undefined`) and TypeORM rejects the undefined nested value.
     const firstQueued = await this.repositoryRead.findOne({
-      where: { queue, list_position: listPositionMoreThan(0) },
+      where: { queue: { id: queue.id }, list_position: listPositionMoreThan(0) },
       order: { list_position: 'ASC' },
     });
 
     const lastQueued = await this.repositoryRead.findOne({
-      where: { queue },
+      where: { queue: { id: queue.id } },
       order: { list_position: 'DESC' },
     });
 
@@ -389,7 +391,7 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     }
 
     const mostRecentHistoryItem = await this.repositoryRead.findOne({
-      where: { queue, list_position: listPositionLessThan(0) },
+      where: { queue: { id: queue.id }, list_position: listPositionLessThan(0) },
       order: { list_position: 'DESC' },
     });
 

@@ -392,6 +392,23 @@
       "audio_with_bitrate_mbps": "Audio {bitrate}Mbps",
       "audio_with_ext_bitrate_kbps": "Audio {ext} {bitrate}kbps",
       "audio_with_ext_bitrate_mbps": "Audio {ext} {bitrate}Mbps"
+    },
+    "no_media": "No se encontró media reproducible",
+    "livestream_unavailable": "La reproducción de livestream no está disponible aún",
+    "seek": "Buscar",
+    "skip_to_next": "Saltar al siguiente",
+    "up_next": "Próximo",
+    "up_next_empty": "Nada próximo",
+    "auto_queue": "Cola automática",
+    "share": "Compartir",
+    "value_for_value": "Valor por valor",
+    "coming_soon": "Próximamente",
+    "sleep_timer": {
+      "sleep_timer": "Temporizador de sueño",
+      "off": "Apagar",
+      "minutes_15": "15 min",
+      "minutes_30": "30 min",
+      "minutes_60": "60 min"
     }
   },
   "value": {

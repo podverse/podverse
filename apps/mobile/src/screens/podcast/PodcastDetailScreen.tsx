@@ -17,7 +17,7 @@ import { HOME_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
-import { useHomeRowPlaybackStub } from '../home/useHomeRowPlaybackStub';
+import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 
 type PodcastDetailScreenProps = NativeStackScreenProps<HomeStackParamList, 'PodcastDetail'>;
 
@@ -103,7 +103,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
   const [isSavingSubscription, setIsSavingSubscription] = useState<boolean>(false);
   const [subscriptionNoticeKey, setSubscriptionNoticeKey] = useState<string | null>(null);
-  const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlaybackStub();
+  const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
   const { podcastId } = route.params;
 
   const styles = useMemo(
@@ -420,8 +420,8 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
                   runPlayAction(row, 'episodes');
                 }}
                 onPress={handleEpisodePress}
-                onQueuePress={(row) => {
-                  runQueueAction(row, 'episodes');
+                onQueuePress={(row, position) => {
+                  runQueueAction(row, 'episodes', position);
                 }}
                 row={{
                   id: liveRow.id,
@@ -446,8 +446,8 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
                 runPlayAction(episodeRow, 'episodes');
               }}
               onPress={handleEpisodePress}
-              onQueuePress={(episodeRow) => {
-                runQueueAction(episodeRow, 'episodes');
+              onQueuePress={(episodeRow, position) => {
+                runQueueAction(episodeRow, 'episodes', position);
               }}
               row={row}
               testID={`podcast-episode-row-${index}`}

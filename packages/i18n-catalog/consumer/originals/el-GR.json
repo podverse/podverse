@@ -392,6 +392,23 @@
       "audio_with_bitrate_mbps": "Ήχος {bitrate}Mbps",
       "audio_with_ext_bitrate_kbps": "Ήχος {ext} {bitrate}kbps",
       "audio_with_ext_bitrate_mbps": "Ήχος {ext} {bitrate}Mbps"
+    },
+    "no_media": "Δεν βρέθηκε αναπαίξιμο μέσο",
+    "livestream_unavailable": "Η ζωντανή μετάδοση δεν είναι διαθέσιμη ακόμη",
+    "seek": "Αναζήτηση",
+    "skip_to_next": "Παράλειψη στην επόμενη",
+    "up_next": "Επόμενο",
+    "up_next_empty": "Δεν υπάρχει τίποτα επόμενο",
+    "auto_queue": "Αυτόματη Ουσία",
+    "share": "Κοινή χρήση",
+    "value_for_value": "Αξία για Αξία",
+    "coming_soon": "Έρχεται σύντομα",
+    "sleep_timer": {
+      "sleep_timer": "Χρονόμετρο Ύπνου",
+      "off": "Απενεργοποιημένο",
+      "minutes_15": "15 λ.",
+      "minutes_30": "30 λ.",
+      "minutes_60": "60 λ."
     }
   },
   "value": {

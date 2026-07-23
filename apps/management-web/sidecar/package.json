@@ -14,7 +14,7 @@
     "@podverse/helpers": "*",
     "@podverse/helpers-config": "*",
     "@podverse/integrations-web": "*",
-    "@tanstack/react-query": "^5.100.11",
+    "@tanstack/react-query": "^5.101.3",
     "@tanstack/react-table": "^8.21.3",
     "@types/react": "^19.2.16",
     "axios": "^1.16.1",
@@ -22,6 +22,7 @@
     "next-intl": "^4.13.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-virtuoso": "^4.18.11",
     "sharp": "^0.35.3",
     "uuid": "^14.0.1",
     "vitest": "4.1.10"

@@ -75,4 +75,5 @@ Will every future mobile agent need this?
 
 - **abcmemory** — placement guide and abcremember workflow
 - **llm-cursor-source** — commit policy for `.cursor/` changes
-- **mobile-master-plan-phasing** — PG operator loop
+- **mobile-master-plan-phasing** — PG operator loop; track `##` headings get ` (DONE)` when
+  every step in that track is `done` (see that skill § Track section headers)
