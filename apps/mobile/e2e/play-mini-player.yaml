@@ -1,0 +1,118 @@
+appId: com.podverse.app.next
+name: Play Mini Player
+---
+# Track 10.23 (detail 332): play a seeded podcast episode via the real Track 10 orchestrator
+# (not the add-by-RSS stub) and assert live now-playing state.
+#
+# Enclosures for the seeded podcast channel (e2ePodChnl001 resume items) resolve to the
+# test-assets server on :2111; the orchestrator rewrites localhost -> 127.0.0.1 (iOS) /
+# 10.0.2.2 (Android) via resolveE2eMediaUrl. Requires flow_needs_test_assets + flow_needs_e2e_api.
+#
+# The mini player (Track 11.1) now renders real now-playing state and is hidden when idle, so
+# asserting `mini-player` after play is meaningful. `playback-active-e2e` (PlaybackE2eStatus)
+# remains the title-agnostic orchestrator signal used across playback flows.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- tapOn:
+    id: tab-search
+- assertVisible:
+    id: search-screen
+- tapOn:
+    id: search-input
+- inputText: podcast
+- assertVisible:
+    id: search-result-row-0
+- tapOn:
+    id: search-result-row-0
+- assertVisible:
+    id: podcast-detail-screen
+- assertVisible:
+    id: podcast-episode-row-0
+- tapOn:
+    id: podcast-episode-row-0
+- assertVisible:
+    id: episode-detail-screen
+- takeScreenshot: play-mini-player-episode-detail
+
+# Episode HomeFeedRow play button testID is home-row-play-<id_text> (dynamic id); match by regex.
+- tapOn:
+    id: "home-row-play-.*"
+
+# Network + media load, then the orchestrator sets the active target synchronously in JS state.
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: mini-player
+- takeScreenshot: play-mini-player-now-playing
+
+# Track 11.4: expand to full player without reload, then collapse back to the mini player.
+# Playback stays continuous (shared engine) — playback-active-e2e never disappears.
+- tapOn:
+    id: mini-player
+- assertVisible:
+    id: full-player-screen
+- assertVisible:
+    id: full-player-title
+- assertVisible:
+    id: full-player-scrubber
+- assertVisible:
+    id: full-player-play-pause
+- assertVisible:
+    id: full-player-skip-next
+- takeScreenshot: play-mini-player-full-player
+
+# Seeded resume fixtures are ~60s. Android panel checks can run long enough for natural `ended`
+# → stop → clearNowPlaying (idle full player). Pause so Track 11.9–11.12 asserts are not racing EOF.
+# Do not wait on `playback-active-e2e` here — it sits under the nav tree and is not visible while
+# the full player covers the screen.
+- tapOn:
+    id: full-player-play-pause
+- assertVisible:
+    id: full-player-play-pause
+    text: Play
+
+# Track 11.9 / 11.11: up-next sheet and speed control toggles open inline (no reload).
+- tapOn:
+    id: full-player-up-next
+- assertVisible:
+    id: full-player-up-next-sheet
+- takeScreenshot: play-mini-player-up-next
+- tapOn:
+    id: full-player-speed
+- assertVisible:
+    id: full-player-speed-control
+- takeScreenshot: play-mini-player-speed
+
+# Track 11.12: sleep timer panel toggles (session-only; does not auto-pause here).
+- tapOn:
+    id: full-player-sleep-timer
+- assertVisible:
+    id: full-player-sleep-timer-control
+- takeScreenshot: play-mini-player-sleep-timer
+
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          id: full-player-close
+# Android native-stack modals: Maestro Close taps complete without dismissing. Hardware Back
+# hits the same `onClose` path via BackHandler in FullPlayerScreen.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - pressKey: Back
+- extendedWaitUntil:
+    notVisible:
+      id: full-player-screen
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: mini-player
+- assertVisible:
+    id: playback-active-e2e
+- takeScreenshot: play-mini-player-collapsed

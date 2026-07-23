@@ -98,7 +98,13 @@ export function playlistResourceToHomeRow(
 export function queueResourceToHomeRow(
   resource: DTOQueueResource,
   idPrefix: 'history' | 'queue'
-): QueueResourceHomeRow {
+): QueueResourceHomeRow | null {
+  // Clip / soundbite rows may arrive with `item: null` from the API; skip rather than throw so a
+  // single incomplete resource cannot blank the whole Library Queue screen (errors.generic).
+  if (resource.item === null || resource.item === undefined) {
+    return null;
+  }
+
   const itemRow = itemToHomeRow(resource.item);
   return {
     id: `${idPrefix}-${resource.id}`,

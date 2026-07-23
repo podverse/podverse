@@ -192,9 +192,7 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
                   style={styles.feedButton}
                   testID={index === 0 ? 'rss-feed-remove-first' : `rss-feed-remove-${feed.idText}`}
                 >
-                  <Text style={styles.feedButtonLabel}>
-                    {t('features.queue.remove_from_queue')}
-                  </Text>
+                  <Text style={styles.feedButtonLabel}>{t('features.unsubscribe')}</Text>
                 </Pressable>
               </View>
             </View>

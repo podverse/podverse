@@ -1,12 +1,45 @@
 appId: com.podverse.app.next
 name: Tab Switch Playback
 ---
-# Track 7.18: preserve mini-player slot while switching tabs.
-# Playback engine assertions are stubbed for now; this validates nav shell persistence.
+# Track 7.18 + Track 11.1-11.2: the mini player persists across tab switches.
+# The mini player now reflects real now-playing state (Track 11) and is hidden when nothing is
+# playing, so we first start playback via the Track 10 orchestrator (real :2111 media) before
+# asserting the mini player survives tab navigation. Needs flow_needs_test_assets + flow_needs_e2e_api.
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
 
+# Start playback so the mini player has now-playing state to render.
+- tapOn:
+    id: tab-search
+- assertVisible:
+    id: search-screen
+- tapOn:
+    id: search-input
+- inputText: podcast
+- assertVisible:
+    id: search-result-row-0
+- tapOn:
+    id: search-result-row-0
+- assertVisible:
+    id: podcast-detail-screen
+- assertVisible:
+    id: podcast-episode-row-0
+- tapOn:
+    id: podcast-episode-row-0
+- assertVisible:
+    id: episode-detail-screen
+- tapOn:
+    id: "home-row-play-.*"
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+    timeout: ${TIMEOUT_SLOW}
+
+- tapOn:
+    id: tab-home
+- assertVisible:
+    id: home-screen
 - assertVisible:
     id: mini-player
 - takeScreenshot: tab-switch-home-mini-player

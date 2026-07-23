@@ -3,18 +3,11 @@ import type { LinkingOptions } from '@react-navigation/native';
 import { NavigationContainer } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  BackHandler,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
+import { MiniPlayer } from '../components/player/MiniPlayer';
+import { PlaybackE2eStatus } from '../playback/PlaybackE2eStatus';
 import { AlbumDetailScreen } from '../screens/album/AlbumDetailScreen';
 import { ArtistDetailScreen } from '../screens/artist/ArtistDetailScreen';
 import { ClipDetailScreen } from '../screens/clip/ClipDetailScreen';
@@ -25,6 +18,7 @@ import { LibraryMyClipsScreen } from '../screens/library/LibraryMyClipsScreen';
 import { LibraryPlaylistsScreen } from '../screens/library/LibraryPlaylistsScreen';
 import { LibraryQueueScreen } from '../screens/library/LibraryQueueScreen';
 import { PlaylistDetailScreen } from '../screens/library/PlaylistDetailScreen';
+import { FullPlayerScreen } from '../screens/player/FullPlayerScreen';
 import { PodcastDetailScreen } from '../screens/podcast/PodcastDetailScreen';
 import { MyProfileScreen } from '../screens/profile/MyProfileScreen';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
@@ -638,50 +632,6 @@ function MoreOpmlExportScreen() {
   return <PlaceholderScreen testID="more-opml-export-screen" title={t('settings.settings')} />;
 }
 
-type MiniPlayerSlotProps = {
-  onExpand: () => void;
-};
-
-function MiniPlayerSlot({ onExpand }: MiniPlayerSlotProps) {
-  const { styles: themeStyles, tokens } = useTheme();
-  const [slotHeight, setSlotHeight] = useState<number | null>(null);
-  const styles = StyleSheet.create({
-    container: {
-      backgroundColor: tokens.background.secondary,
-      borderTopColor: themeStyles.border.borderColor,
-      borderTopWidth: 1,
-      paddingHorizontal: tokens.spacing.lg,
-      paddingVertical: tokens.spacing.sm,
-    },
-    subtitle: {
-      color: themeStyles.textSecondary.color,
-      fontSize: 12,
-      marginTop: tokens.spacing.xs,
-    },
-    title: {
-      color: themeStyles.textPrimary.color,
-      fontSize: 14,
-      fontWeight: '600',
-    },
-  });
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onLayout={(event) => {
-        setSlotHeight(event.nativeEvent.layout.height);
-      }}
-      onPress={onExpand}
-      style={styles.container}
-      testID="mini-player"
-    >
-      <Text style={styles.title}>Mini Player Placeholder</Text>
-      <Text style={styles.subtitle}>Tap to expand full player</Text>
-      <Text style={styles.subtitle}>Mini slot height: {slotHeight ?? 0}</Text>
-    </Pressable>
-  );
-}
-
 type TabScaffoldProps = {
   onOpenFullPlayer: () => void;
   onRequestLogout: () => Promise<void>;
@@ -714,7 +664,8 @@ function TabScaffold({ onOpenFullPlayer, onRequestLogout }: TabScaffoldProps) {
           <BottomTabBar {...props} />
         ) : (
           <View>
-            <MiniPlayerSlot onExpand={onOpenFullPlayer} />
+            <PlaybackE2eStatus />
+            <MiniPlayer onExpand={onOpenFullPlayer} />
             <BottomTabBar {...props} />
           </View>
         )
@@ -762,74 +713,6 @@ function TabScaffold({ onOpenFullPlayer, onRequestLogout }: TabScaffoldProps) {
   );
 }
 
-function FullPlayerScreen({
-  navigation,
-}: NativeStackScreenProps<RootStackParamList, 'FullPlayer'>) {
-  useEffect(() => {
-    if (Platform.OS !== 'android') {
-      return;
-    }
-
-    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      navigation.goBack();
-      return true;
-    });
-
-    return () => {
-      subscription.remove();
-    };
-  }, [navigation]);
-
-  const { styles: themeStyles, tokens } = useTheme();
-  const styles = StyleSheet.create({
-    closeButton: {
-      borderColor: themeStyles.border.borderColor,
-      borderRadius: tokens.radii.sm,
-      borderWidth: 1,
-      marginTop: tokens.spacing.lg,
-      paddingHorizontal: tokens.spacing.lg,
-      paddingVertical: tokens.spacing.sm,
-    },
-    closeText: {
-      color: themeStyles.textPrimary.color,
-      fontWeight: '600',
-    },
-    container: {
-      alignItems: 'center',
-      backgroundColor: themeStyles.screen.backgroundColor,
-      flex: 1,
-      justifyContent: 'center',
-      padding: tokens.spacing['2xl'],
-    },
-    subtitle: {
-      color: themeStyles.textSecondary.color,
-      marginTop: tokens.spacing.sm,
-    },
-    title: {
-      color: themeStyles.textPrimary.color,
-      fontSize: 24,
-      fontWeight: '700',
-    },
-  });
-
-  return (
-    <View style={styles.container} testID="full-player-screen">
-      <Text style={styles.title}>Full Player Placeholder</Text>
-      <Text style={styles.subtitle}>Reserved route: FullPlayer</Text>
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => {
-          navigation.goBack();
-        }}
-        style={styles.closeButton}
-        testID="full-player-close"
-      >
-        <Text style={styles.closeText}>Close</Text>
-      </Pressable>
-    </View>
-  );
-}
-
 export function MobileTabNavigator({ onRequestLogout }: MobileTabNavigatorProps) {
   return (
     <NavigationContainer linking={mobileNavigationLinking}>
@@ -844,11 +727,19 @@ export function MobileTabNavigator({ onRequestLogout }: MobileTabNavigatorProps)
             />
           )}
         </RootStack.Screen>
-        <RootStack.Screen
-          component={FullPlayerScreen}
-          name={ROOT_STACK_ROUTES.FullPlayer}
-          options={{ presentation: 'modal' }}
-        />
+        <RootStack.Screen name={ROOT_STACK_ROUTES.FullPlayer} options={{ presentation: 'modal' }}>
+          {(props) => (
+            <FullPlayerScreen
+              onClose={() => {
+                if (props.navigation.canGoBack()) {
+                  props.navigation.goBack();
+                  return;
+                }
+                props.navigation.navigate(ROOT_STACK_ROUTES.MainTabs);
+              }}
+            />
+          )}
+        </RootStack.Screen>
       </RootStack.Navigator>
     </NavigationContainer>
   );

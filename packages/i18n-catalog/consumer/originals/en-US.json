@@ -347,9 +347,26 @@
   "media_player": {
     "play": "Play",
     "pause": "Pause",
+    "no_media": "No playable media found",
+    "livestream_unavailable": "Livestream playback is not available yet",
     "show_fullscreen_media_player": "Show the fullscreen media player",
     "fullscreen_media_player": "Fullscreen media player",
     "media_player_image": "Media player image",
+    "seek": "Seek",
+    "skip_to_next": "Skip to next",
+    "up_next": "Up Next",
+    "up_next_empty": "Nothing up next",
+    "auto_queue": "Auto Queue",
+    "share": "Share",
+    "value_for_value": "Value for Value",
+    "coming_soon": "Coming soon",
+    "sleep_timer": {
+      "sleep_timer": "Sleep Timer",
+      "off": "Off",
+      "minutes_15": "15 min",
+      "minutes_30": "30 min",
+      "minutes_60": "60 min"
+    },
     "repeat": {
       "toggle_repeat": "Toggle repeat",
       "repeat_enabled": "Repeat enabled",

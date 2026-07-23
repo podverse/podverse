@@ -15,7 +15,7 @@ import { HOME_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
-import { useHomeRowPlaybackStub } from '../home/useHomeRowPlaybackStub';
+import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 
 type ArtistDetailScreenProps = NativeStackScreenProps<HomeStackParamList, 'ArtistDetail'>;
 
@@ -39,7 +39,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
   const [trackRows, setTrackRows] = useState<HomeFeedRowData[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorKey, setErrorKey] = useState<string | null>(null);
-  const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlaybackStub();
+  const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
   const { artistId } = route.params;
 
   const styles = useMemo(
@@ -199,8 +199,8 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
                       trackId: nextRow.id,
                     });
                   }}
-                  onQueuePress={(nextRow) => {
-                    runQueueAction(nextRow, 'tracks');
+                  onQueuePress={(nextRow, position) => {
+                    runQueueAction(nextRow, 'tracks', position);
                   }}
                   row={row}
                 />

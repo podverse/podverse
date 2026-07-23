@@ -78,6 +78,29 @@ Auto now-playing. **Do not** use `react-native-track-player`.
   [modules/podverse-media-engine/GO-NO-GO.md](modules/podverse-media-engine/GO-NO-GO.md) — **GO**
   (2026-07-13). Seamless CarPlay / Android Auto acceptance remains Track 12.
 
+## Player UI (Track 11)
+
+Mini player (`src/components/player/MiniPlayer.tsx`) and full player
+(`src/screens/player/FullPlayerScreen.tsx` + `FullPlayerUpNext` / `FullPlayerSegments` /
+`FullPlayerSpeedControl` / `FullPlayerSleepTimer`) both read the **shared** `PlaybackProvider`
+(`usePlayback()`) hosted at the app root and drive the one process-wide `nativePlaybackBridge`
+singleton. Expanding the mini player to the full player modal must **never** call `bridge.load` /
+`bridge.destroy` — position and play/pause stay continuous across expand/collapse (Track 11.4).
+
+**Anti-pattern — never mount a second Video / engine on full-screen open.** When video lands (Track
+11.3 / 11.6–11.8), a single native `VideoSurfaceHost` surface is **re-parented** (bridge attach /
+`animateVideoSurface` from the `mini` target to the `full` target) — do **not** render a second
+`<Video>` / `expo-video` view or spin up a second engine when opening the full player. One player,
+one video surface, re-parented between mini and full. See
+[modules/podverse-media-engine/README.md § Player UI](modules/podverse-media-engine/README.md) and
+the module comments in `FullPlayerScreen.tsx` / `MiniPlayer.tsx`.
+
+**Close vs hardware Back (Android):** the full-player Close button and Android `BackHandler` both
+call the same `onClose` → `navigation.goBack()` path. Maestro on Android often completes a
+`full-player-close` tap without dismissing the modal, so `play-mini-player` dismisses via
+`pressKey: Back` on Android (see [e2e/HOW-TO-RUN.md](e2e/HOW-TO-RUN.md)). Manually tap Close once
+on an Android AVD/device before release to confirm real input dismisses the player.
+
 ## Toolchain
 
 - **Node / npm:** from the repo Nix flake — use `./scripts/nix/with-env` from monorepo root (see
