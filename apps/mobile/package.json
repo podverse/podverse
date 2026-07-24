@@ -15,7 +15,8 @@
     "ios": "expo run:ios",
     "prebuild": "expo prebuild",
     "prebuild:clean": "expo prebuild --clean",
-    "i18n-compile": "ts-node --project ../../packages/i18n-catalog/tsconfig.scripts.json ../../packages/i18n-catalog/scripts/i18n-compile.ts"
+    "i18n-compile": "ts-node --project ../../packages/i18n-catalog/tsconfig.scripts.json ../../packages/i18n-catalog/scripts/i18n-compile.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@podverse/design-tokens": "file:../../packages/design-tokens",
@@ -59,7 +60,8 @@
   "devDependencies": {
     "@types/react": "~18.3.12",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^4.1.10"
   },
   "overrides": {
     "expo": "52.0.49",

@@ -36,6 +36,12 @@ jobs:
       - name: Install mobile dependencies
         run: npm run mobile:install
 
+      # Pure-TS unit tests (bridge command serialization + playback error taxonomy). apps/mobile is a
+      # standalone install (own lockfile), so it is excluded from root `npm run test:unit`; this is the
+      # automated touchpoint for the mobile unit suite. Node-only (no Expo import) — see vitest.config.ts.
+      - name: Mobile unit tests
+        run: npm --prefix apps/mobile run test
+
       - name: Verify next-gen app id
         run: |
           set -euo pipefail

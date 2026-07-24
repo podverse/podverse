@@ -116,6 +116,21 @@ const E2E_MUSIC_TRACK_TWO_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track
 const E2E_ADDBYRSS_WITH_POSITION_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-addbyrss-with-position-60s-440hz.mp3`;
 const E2E_ADDBYRSS_FRESH_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-addbyrss-fresh-60s-440hz.mp3`;
 
+// Real video fixture (h264 video track) for the mobile video mini->full transition E2E
+// (master step 2.33 / detail 112). Standalone video-medium channel; not added to any queue, so
+// web media-player queue specs are unaffected. Mirror of apps/web/e2e/helpers/seedConstants.ts.
+// PI id must NOT collide with embed fixtures (`EMBED_FIXTURE_VIDEO_FEED_PI_ID` = 876543213 in
+// embed-fixture-constants.mjs) — those run after this block and DELETE BY podcast_index_id, which
+// cascade-wipes the mobile video channel and breaks video-transition E2E (item not found).
+const E2E_VIDEO_FEED_URL = 'https://e2e-seed-mobile-video.example/podcast.xml';
+const E2E_VIDEO_FEED_PI_ID = 876543217;
+const E2E_VIDEO_ASSET_BASE_URL = 'http://localhost:2111/e2e/videos';
+const E2E_VIDEO_SHORT_ENCLOSURE_URL = `${E2E_VIDEO_ASSET_BASE_URL}/e2e-video-short-30s.mp4`;
+const E2E_VIDEO_CHANNEL_ID_TEXT = 'e2eVideoChnl01';
+const E2E_VIDEO_ITEM_ID_TEXT = 'e2eVideoItm001';
+const E2E_VIDEO_CHANNEL_TITLE = 'E2E Video Transition Channel';
+const E2E_VIDEO_ITEM_DURATION_SECONDS = 30;
+
 const E2E_EMBED_VIDEO_ITEM_ID_TEXT = 'e2eEmbVidItem01';
 
 const E2E_ITEM_CHAPTER_INTRO_ID_TEXT = 'e2eChapIntro01';
@@ -907,6 +922,104 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
 
   console.log(
     `Seeded add-by-RSS media-player E2E resources (${E2E_ADD_BY_RSS_RESOURCE_WITH_POSITION_ID_TEXT} at list_position 3 with playback_position=${E2E_ADD_BY_RSS_RESOURCE_WITH_POSITION_SECONDS}, ${E2E_ADD_BY_RSS_RESOURCE_FRESH_ID_TEXT} at list_position 4 with playback_position=0)`
+  );
+
+  // Standalone video-medium channel + item for the mobile video mini->full transition E2E
+  // (master step 2.33 / detail 112). Deliberately NOT added to any queue and NOT reachable from
+  // web search/home assertions, so existing web media-player specs are unaffected. The mobile app
+  // reaches it via an EXPO_PUBLIC_MOBILE_E2E-gated affordance that calls playItemById on this item.
+  await client.query(`DELETE FROM feed WHERE podcast_index_id = $1 OR url = $2`, [
+    E2E_VIDEO_FEED_PI_ID,
+    E2E_VIDEO_FEED_URL,
+  ]);
+
+  const videoFeedResult = await client.query(
+    `INSERT INTO feed (url, podcast_index_id)
+     VALUES ($1, $2)
+     RETURNING id`,
+    [E2E_VIDEO_FEED_URL, E2E_VIDEO_FEED_PI_ID]
+  );
+  const videoFeedId = videoFeedResult.rows[0].id;
+
+  await client.query(`INSERT INTO feed_log (feed_id) VALUES ($1)`, [videoFeedId]);
+
+  await client.query(
+    `INSERT INTO feed_policy (feed_id, parse_allowed, public_visible, add_allowed)
+     VALUES ($1, true, true, true)`,
+    [videoFeedId]
+  );
+
+  const videoChannelResult = await client.query(
+    `INSERT INTO channel (id_text, feed_id, medium_id, title)
+     VALUES (
+       $1,
+       $2,
+       (SELECT id FROM medium WHERE value = 'video' LIMIT 1),
+       $3
+     )
+     RETURNING id`,
+    [E2E_VIDEO_CHANNEL_ID_TEXT, videoFeedId, E2E_VIDEO_CHANNEL_TITLE]
+  );
+  const videoChannelId = videoChannelResult.rows[0].id;
+
+  await client.query(`INSERT INTO channel_about (channel_id) VALUES ($1)`, [videoChannelId]);
+  await client.query(
+    `INSERT INTO channel_description (channel_id, value)
+     VALUES ($1, $2)`,
+    [videoChannelId, 'E2E seeded video-medium channel for the mobile video-transition spike.']
+  );
+  await client.query(
+    `INSERT INTO channel_image (channel_id, url, image_width_size)
+     VALUES ($1, $2, 1400)`,
+    [videoChannelId, E2E_FIXTURE_CHANNEL_IMAGE_URL]
+  );
+
+  const videoItemResult = await client.query(
+    `INSERT INTO item (
+       id_text,
+       channel_id,
+       guid,
+       pub_date,
+       title,
+       item_flag_status_id
+     )
+     VALUES ($1, $2, $3, NOW(), 'E2E Video Transition Episode', 1)
+     RETURNING id`,
+    [E2E_VIDEO_ITEM_ID_TEXT, videoChannelId, `${E2E_VIDEO_FEED_URL}#video-transition`]
+  );
+  const videoItemId = videoItemResult.rows[0].id;
+
+  await client.query(`INSERT INTO item_about (item_id, duration) VALUES ($1, $2)`, [
+    videoItemId,
+    E2E_VIDEO_ITEM_DURATION_SECONDS,
+  ]);
+  await client.query(
+    `INSERT INTO item_description (item_id, value)
+     VALUES ($1, $2)`,
+    [videoItemId, 'E2E Video Transition Episode deterministic video fixture.']
+  );
+  await client.query(
+    `INSERT INTO item_image (item_id, url, image_width_size)
+     VALUES ($1, $2, 1400)`,
+    [videoItemId, E2E_FIXTURE_ITEM_IMAGE_URL]
+  );
+
+  const videoEnclosureResult = await client.query(
+    `INSERT INTO item_enclosure (item_id, type, length, bitrate, item_enclosure_default)
+     VALUES ($1, 'video/mp4', 0, 0, true)
+     RETURNING id`,
+    [videoItemId]
+  );
+  const videoEnclosureId = videoEnclosureResult.rows[0].id;
+
+  await client.query(
+    `INSERT INTO item_enclosure_source (item_enclosure_id, uri, content_type)
+     VALUES ($1, $2, 'video/mp4')`,
+    [videoEnclosureId, E2E_VIDEO_SHORT_ENCLOSURE_URL]
+  );
+
+  console.log(
+    `Seeded video-medium E2E channel ${E2E_VIDEO_CHANNEL_ID_TEXT} (item ${E2E_VIDEO_ITEM_ID_TEXT}, enclosure ${E2E_VIDEO_SHORT_ENCLOSURE_URL})`
   );
 
   await seedEmbedFixtures(client, { accountId });

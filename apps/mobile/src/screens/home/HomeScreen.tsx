@@ -10,6 +10,7 @@ import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
 import type { HomeStackParamList } from '../../navigation';
 import { HOME_STACK_ROUTES } from '../../navigation';
+import { E2ePlayVideoButton } from '../../playback/E2ePlayVideoButton';
 import {
   DEFAULT_HOME_MEDIA_TYPE,
   type HomeMediaType,
@@ -224,6 +225,7 @@ export function HomeScreen() {
         testID="home-feed-list"
       >
         <Text style={styles.heading}>{t('nav.tab.home')}</Text>
+        <E2ePlayVideoButton />
         <View style={styles.feedCard}>
           <Text style={styles.feedTitle}>{t(MEDIA_TYPE_TITLE_KEYS[selectedMediaType])}</Text>
           <Text style={styles.feedSummary}>

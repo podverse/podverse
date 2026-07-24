@@ -11,7 +11,7 @@
 
 import { requireNativeModule } from 'expo-modules-core';
 
-import type { NativePlaybackEvents } from './types';
+import type { NativeRawPlaybackEvents } from './types';
 
 /**
  * Raw native module surface as exposed by the Swift/Kotlin `Module` definition. Note this uses the
@@ -20,6 +20,8 @@ import type { NativePlaybackEvents } from './types';
  */
 export type PodverseMediaEngineNativeModule = {
   load(url: string, initialSeekSeconds?: number): Promise<void>;
+  /** Positional `load` + `play` in one native hop (step 2.25). Adapter wraps the object form. */
+  loadAndStart(url: string, initialSeekSeconds?: number): Promise<void>;
   play(): Promise<void>;
   pause(): void;
   seek(seconds: number): void;
@@ -27,12 +29,28 @@ export type PodverseMediaEngineNativeModule = {
   getPosition(): Promise<number>;
   getDuration(): Promise<number>;
   destroy(): void;
+  /**
+   * Positional video-surface attach (step 2.18). The object-based `attachVideoSurface(targetId, rect)`
+   * on the JS adapter wraps this; `cornerRadius` is `0` when unspecified.
+   */
+  attachVideoSurface(
+    targetId: string,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    cornerRadius: number
+  ): void;
+  /** Move the single surface to `toTargetId` over `durationMs` (step 2.19). */
+  animateVideoSurface(toTargetId: string, durationMs: number): void;
+  /** JS-desired video-surface visibility (step 2.23); gated by native video capability. */
+  setVideoSurfaceVisible(visible: boolean): void;
   writeQueueSnapshot(payloadJson: string): Promise<void>;
   writeDownloadsIndex(payloadJson: string): Promise<void>;
   writeLibraryBrowseIndex(payloadJson: string): Promise<void>;
-  addListener<Event extends keyof NativePlaybackEvents>(
+  addListener<Event extends keyof NativeRawPlaybackEvents>(
     eventName: Event,
-    listener: NativePlaybackEvents[Event]
+    listener: NativeRawPlaybackEvents[Event]
   ): { remove: () => void };
 };
 

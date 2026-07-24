@@ -39,29 +39,26 @@
 
 ## Current status / next up (2026-07)
 
-| Parallel group          | Status                    | Notes                                                                                                |
-| ----------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------- |
-| PG-0 … PG-4             | **done**                  | Foundation, playback-core, hello-world, media-engine **audio** spike, CI/E2E, auth, nav, themes      |
-| PG-6 (Tracks 8–9)       | **done**                  | Home, browse/content screens, add-by-RSS (server parse + slim preview); play stubs except add-by-RSS |
-| PG-6.5 (Track 9b)       | **done**                  | Offline-first data layer + add-by-RSS `parser-mapping` + shared visual primitives                    |
-| **PG-7 (Tracks 10–11)** | **in progress (planned)** | Queue + playback parity + mini/full player — **audio-first**; replace home/clip play stubs           |
-| PG-6.6 (Track 9c)       | **done**                  | Media row **action affordance** parity (Play + more sheet); parallel with PG-7                       |
-| PG-5 (Track 2 video)    | **not started**           | Video surface reparenting (2.14+) — after audio player UI                                            |
-| PG-8+                   | later                     | Car, downloads (files), push, multi-device, IAP, release train                                       |
+| Parallel group           | Status               | Notes                                                                                           |
+| ------------------------ | -------------------- | ----------------------------------------------------------------------------------------------- |
+| PG-0 … PG-4              | **done**             | Foundation, playback-core, hello-world, media-engine **audio** spike, CI/E2E, auth, nav, themes |
+| PG-6 (Tracks 8–9)        | **done**             | Home, browse/content screens, add-by-RSS                                                        |
+| PG-6.5 (Track 9b)        | **done**             | Offline-first data layer + add-by-RSS `parser-mapping` + shared visual primitives               |
+| PG-6.6 (Track 9c)        | **done**             | Media row **action affordance** parity (Play + more sheet)                                      |
+| PG-7 (Tracks 10–11)      | **audio done**       | Track 10 DONE; Track 11 audio UI done; video steps 11.3 / 11.6–11.8 / 11.15–11.17 still planned |
+| **PG-5 (Track 2 video)** | **planned (active)** | Seamless VideoSurfaceHost + bridge attach/animate — `.llm/plans/active/mobile-pg5-video/`       |
+| PG-8+                    | later                | Car, downloads (files), push, multi-device, IAP, release train                                  |
 
 ### Recommended next build sequence
 
-1. **PG-7 audio-first (active)** — Tracks 10–11: wire `@podverse/playback-core` + native audio
-   bridge into home/clip/library play actions; build real mini + full player; replace
-   `useHomeRowPlaybackStub` / `useClipPlaybackStub`. Detail + COPY-PASTA:
-   `.llm/plans/active/mobile-pg7a-queue/` then `.llm/plans/active/mobile-pg7b-player/`.
-2. **PG-6.6 Track 9c (parallel OK)** — shared media-row actions matching web Play + more menus;
-   `.llm/plans/active/mobile-media-row-actions/`. Wire handlers to PG-7 queue/play hooks when ready.
-3. **Defer video player steps** (11.3, 11.6–11.8, 11.15–11.17) until after PG-5 / Track 2 video.
-4. **Later:** Track 2 video surfaces (PG-5), Track 13 episode file downloads, Track 12 car, push.
-   Full **pixel** polish still later — not a substitute for action-affordance parity.
+1. **PG-5 video (active)** — Track 2 steps 2.14–2.28, 2.31–2.33 (2.29–2.30 already `done`).
+   Detail + COPY-PASTA: `.llm/plans/active/mobile-pg5-video/`.
+2. **Track 11 video UI/E2E follow-on** — 11.3, 11.6–11.8, 11.15–11.17 (details already `planned`)
+   after native surface APIs land.
+3. **Later:** Track 13 episode file downloads, Track 12 car, push. Full **pixel** polish still later.
 
-Do **not** start a full look-and-feel polish phase before audio PG-7 lands.
+Paste COPY-PASTA prompts from `mobile-pg5-video/COPY-PASTA.md` to implement (docs-only detailing
+is complete).
 
 ## Parallel groups (implementation order)
 
@@ -204,26 +201,26 @@ flowchart TB
 2.11. Implement JS `NativePlaybackBridge` adapter calling the native module from RN hooks. Model: Opus 4.8. Detail: [090-js-bridge-adapter](/docs/proposals/mobile/_master-plan_/details/090-js-bridge-adapter.md) — done
 2.12. Spike: verify background audio survives app background on iOS and Android. Model: Opus 4.8. Detail: [091-spike-background-audio](/docs/proposals/mobile/_master-plan_/details/091-spike-background-audio.md) — done
 2.13. Spike: verify audio continues after app kill where OS policy allows (document limits). Model: Opus 4.8. Detail: [092-spike-audio-after-kill](/docs/proposals/mobile/_master-plan_/details/092-spike-audio-after-kill.md) — done
-2.14. Add iOS video: single AVPlayer instance shared for audio+video items. Model: Opus 4.8. Detail: [093-ios-avplayer-video](/docs/proposals/mobile/_master-plan_/details/093-ios-avplayer-video.md) — _TBD_
-2.15. Add Android video: single ExoPlayer instance with video surface support. Model: Opus 4.8. Detail: [094-android-exoplayer-video](/docs/proposals/mobile/_master-plan_/details/094-android-exoplayer-video.md) — _TBD_
-2.16. Implement native **VideoSurfaceHost** overlay view (iOS) for persistent surface ownership. Model: Opus 4.8. Detail: [095-ios-video-surface-host](/docs/proposals/mobile/_master-plan_/details/095-ios-video-surface-host.md) — _TBD_
-2.17. Implement native **VideoSurfaceHost** overlay view (Android) for persistent surface ownership. Model: Opus 4.8. Detail: [096-android-video-surface-host](/docs/proposals/mobile/_master-plan_/details/096-android-video-surface-host.md) — _TBD_
-2.18. Add bridge API `attachVideoSurface(targetId, layoutRect)` for mini/full player targets. Model: Opus 4.8. Detail: [097-bridge-attach-video-surface](/docs/proposals/mobile/_master-plan_/details/097-bridge-attach-video-surface.md) — _TBD_
-2.19. Add bridge API `animateVideoSurface(toTargetId, durationMs)` for mini↔full transition. Model: Opus 4.8. Detail: [098-bridge-animate-video-surface](/docs/proposals/mobile/_master-plan_/details/098-bridge-animate-video-surface.md) — _TBD_
-2.20. Implement reparenting logic: same native view moves between registered layout targets. Model: Opus 4.8. Detail: [099-surface-reparent-implementation](/docs/proposals/mobile/_master-plan_/details/099-surface-reparent-implementation.md) — _TBD_
-2.21. RN mini player registers `targetId=mini` rect updated on layout and keyboard events. Model: Opus 4.8. Detail: [100-rn-mini-player-surface-target](/docs/proposals/mobile/_master-plan_/details/100-rn-mini-player-surface-target.md) — _TBD_
-2.22. RN full player registers `targetId=full` rect; expand triggers animate, not remount. Model: Opus 4.8. Detail: [101-rn-full-player-surface-target](/docs/proposals/mobile/_master-plan_/details/101-rn-full-player-surface-target.md) — _TBD_
-2.23. Hide video surface when item is audio-only; show when `PlaybackTarget` is video kind. Model: Opus 4.8. Detail: [102-audio-only-hide-surface](/docs/proposals/mobile/_master-plan_/details/102-audio-only-hide-surface.md) — _TBD_
-2.24. Handle orientation change by updating target rects without resetting player. Model: Opus 4.8. Detail: [103-orientation-surface-resize](/docs/proposals/mobile/_master-plan_/details/103-orientation-surface-resize.md) — _TBD_
-2.25. Implement `loadAndStart` bridge method accepting enclosure URL and initial seek seconds. Model: Opus 4.8. Detail: [104-bridge-load-and-start](/docs/proposals/mobile/_master-plan_/details/104-bridge-load-and-start.md) — _TBD_
-2.26. Support `file://` local paths for offline playback through same engine. Model: Opus 4.8. Detail: [105-engine-local-file-playback](/docs/proposals/mobile/_master-plan_/details/105-engine-local-file-playback.md) — _TBD_
-2.27. Define error taxonomy and map native errors to `@podverse/helpers` playback error shapes. Model: Opus 4.8. Detail: [106-playback-error-mapping](/docs/proposals/mobile/_master-plan_/details/106-playback-error-mapping.md) — _TBD_
-2.28. Add unit-testable pure TS layer for bridge command serialization (no native in Vitest). Model: Codex 5.3. Detail: [107-bridge-command-serialization-tests](/docs/proposals/mobile/_master-plan_/details/107-bridge-command-serialization-tests.md) — _TBD_
-2.29. Document engine architecture in `apps/mobile/modules/podverse-media-engine/README.md`. Model: Codex 5.3. Detail: [108-media-engine-readme](/docs/proposals/mobile/_master-plan_/details/108-media-engine-readme.md) — _TBD_
-2.30. Add abcmemory skill update: replace any track-player references with podverse-media-engine. Model: Codex 5.3. Detail: [109-abcmemory-no-track-player](/docs/proposals/mobile/_master-plan_/details/109-abcmemory-no-track-player.md) — _TBD_
-2.31. Register non-FOSS deps used by engine (if any Google Play Services) in FOSS register doc stub. Model: Codex 5.3. Detail: [110-engine-fdroid-deps-register](/docs/proposals/mobile/_master-plan_/details/110-engine-fdroid-deps-register.md) — _TBD_
-2.32. E2E: spike flow plays sample audio and captures lock-screen screenshot (manual/semi-auto). Model: Codex 5.3. Detail: [111-e2e-audio-spike-screenshot](/docs/proposals/mobile/_master-plan_/details/111-e2e-audio-spike-screenshot.md) — _TBD_
-2.33. E2E: spike flow plays sample video mini→full transition without playback restart. Model: Opus 4.8. Detail: [112-e2e-video-transition-spike](/docs/proposals/mobile/_master-plan_/details/112-e2e-video-transition-spike.md) — _TBD_
+2.14. Add iOS video: single AVPlayer instance shared for audio+video items. Model: Opus 4.8. Detail: [093-ios-avplayer-video](/docs/proposals/mobile/_master-plan_/details/093-ios-avplayer-video.md) — done
+2.15. Add Android video: single ExoPlayer instance with video surface support. Model: Opus 4.8. Detail: [094-android-exoplayer-video](/docs/proposals/mobile/_master-plan_/details/094-android-exoplayer-video.md) — done
+2.16. Implement native **VideoSurfaceHost** overlay view (iOS) for persistent surface ownership. Model: Opus 4.8. Detail: [095-ios-video-surface-host](/docs/proposals/mobile/_master-plan_/details/095-ios-video-surface-host.md) — done
+2.17. Implement native **VideoSurfaceHost** overlay view (Android) for persistent surface ownership. Model: Opus 4.8. Detail: [096-android-video-surface-host](/docs/proposals/mobile/_master-plan_/details/096-android-video-surface-host.md) — done
+2.18. Add bridge API `attachVideoSurface(targetId, layoutRect)` for mini/full player targets. Model: Opus 4.8. Detail: [097-bridge-attach-video-surface](/docs/proposals/mobile/_master-plan_/details/097-bridge-attach-video-surface.md) — done
+2.19. Add bridge API `animateVideoSurface(toTargetId, durationMs)` for mini↔full transition. Model: Opus 4.8. Detail: [098-bridge-animate-video-surface](/docs/proposals/mobile/_master-plan_/details/098-bridge-animate-video-surface.md) — done
+2.20. Implement reparenting logic: same native view moves between registered layout targets. Model: Opus 4.8. Detail: [099-surface-reparent-implementation](/docs/proposals/mobile/_master-plan_/details/099-surface-reparent-implementation.md) — done
+2.21. RN mini player registers `targetId=mini` rect updated on layout and keyboard events. Model: Opus 4.8. Detail: [100-rn-mini-player-surface-target](/docs/proposals/mobile/_master-plan_/details/100-rn-mini-player-surface-target.md) — done
+2.22. RN full player registers `targetId=full` rect; expand triggers animate, not remount. Model: Opus 4.8. Detail: [101-rn-full-player-surface-target](/docs/proposals/mobile/_master-plan_/details/101-rn-full-player-surface-target.md) — done
+2.23. Hide video surface when item is audio-only; show when `PlaybackTarget` is video kind. Model: Opus 4.8. Detail: [102-audio-only-hide-surface](/docs/proposals/mobile/_master-plan_/details/102-audio-only-hide-surface.md) — done
+2.24. Handle orientation change by updating target rects without resetting player. Model: Opus 4.8. Detail: [103-orientation-surface-resize](/docs/proposals/mobile/_master-plan_/details/103-orientation-surface-resize.md) — done
+2.25. Implement `loadAndStart` bridge method accepting enclosure URL and initial seek seconds. Model: Opus 4.8. Detail: [104-bridge-load-and-start](/docs/proposals/mobile/_master-plan_/details/104-bridge-load-and-start.md) — done
+2.26. Support `file://` local paths for offline playback through same engine. Model: Opus 4.8. Detail: [105-engine-local-file-playback](/docs/proposals/mobile/_master-plan_/details/105-engine-local-file-playback.md) — done
+2.27. Define error taxonomy and map native errors to `@podverse/helpers` playback error shapes. Model: Opus 4.8. Detail: [106-playback-error-mapping](/docs/proposals/mobile/_master-plan_/details/106-playback-error-mapping.md) — done
+2.28. Add unit-testable pure TS layer for bridge command serialization (no native in Vitest). Model: Codex 5.3. Detail: [107-bridge-command-serialization-tests](/docs/proposals/mobile/_master-plan_/details/107-bridge-command-serialization-tests.md) — done
+2.29. Document engine architecture in `apps/mobile/modules/podverse-media-engine/README.md`. Model: Codex 5.3. Detail: [108-media-engine-readme](/docs/proposals/mobile/_master-plan_/details/108-media-engine-readme.md) — done
+2.30. Add abcmemory skill update: replace any track-player references with podverse-media-engine. Model: Codex 5.3. Detail: [109-abcmemory-no-track-player](/docs/proposals/mobile/_master-plan_/details/109-abcmemory-no-track-player.md) — done
+2.31. Register non-FOSS deps used by engine (if any Google Play Services) in FOSS register doc stub. Model: Codex 5.3. Detail: [110-engine-fdroid-deps-register](/docs/proposals/mobile/_master-plan_/details/110-engine-fdroid-deps-register.md) — done
+2.32. E2E: spike flow plays sample audio and captures lock-screen screenshot (manual/semi-auto). Model: Codex 5.3. Detail: [111-e2e-audio-spike-screenshot](/docs/proposals/mobile/_master-plan_/details/111-e2e-audio-spike-screenshot.md) — done
+2.33. E2E: spike flow plays sample video mini→full transition without playback restart. Model: Opus 4.8. Detail: [112-e2e-video-transition-spike](/docs/proposals/mobile/_master-plan_/details/112-e2e-video-transition-spike.md) — done
 2.34. Define go/no-go gate: engine spike must pass before Track 10/11 full player UI work. Model: Codex 5.3. Detail: [113-engine-spike-gate](/docs/proposals/mobile/_master-plan_/details/113-engine-spike-gate.md) — done (GO: `apps/mobile/modules/podverse-media-engine/GO-NO-GO.md`, 2026-07-13)
 2.35. Export native cache write hooks from engine for queue snapshot (feeds Track 12 car layer). Model: Opus 4.8. Detail: [114-engine-native-cache-hooks](/docs/proposals/mobile/_master-plan_/details/114-engine-native-cache-hooks.md) — done (contract/stubs)
 
@@ -800,26 +797,26 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 090-js-bridge-adapter                       | 2.11       | 090-js-bridge-adapter                       | Opus 4.8  | done    |
 | 091-spike-background-audio                  | 2.12       | 091-spike-background-audio                  | Opus 4.8  | done    |
 | 092-spike-audio-after-kill                  | 2.13       | 092-spike-audio-after-kill                  | Opus 4.8  | done    |
-| 093-ios-avplayer-video                      | 2.14       | 093-ios-avplayer-video                      | Opus 4.8  | _TBD_   |
-| 094-android-exoplayer-video                 | 2.15       | 094-android-exoplayer-video                 | Opus 4.8  | _TBD_   |
-| 095-ios-video-surface-host                  | 2.16       | 095-ios-video-surface-host                  | Opus 4.8  | _TBD_   |
-| 096-android-video-surface-host              | 2.17       | 096-android-video-surface-host              | Opus 4.8  | _TBD_   |
-| 097-bridge-attach-video-surface             | 2.18       | 097-bridge-attach-video-surface             | Opus 4.8  | _TBD_   |
-| 098-bridge-animate-video-surface            | 2.19       | 098-bridge-animate-video-surface            | Opus 4.8  | _TBD_   |
-| 099-surface-reparent-implementation         | 2.20       | 099-surface-reparent-implementation         | Opus 4.8  | _TBD_   |
-| 100-rn-mini-player-surface-target           | 2.21       | 100-rn-mini-player-surface-target           | Opus 4.8  | _TBD_   |
-| 101-rn-full-player-surface-target           | 2.22       | 101-rn-full-player-surface-target           | Opus 4.8  | _TBD_   |
-| 102-audio-only-hide-surface                 | 2.23       | 102-audio-only-hide-surface                 | Opus 4.8  | _TBD_   |
-| 103-orientation-surface-resize              | 2.24       | 103-orientation-surface-resize              | Opus 4.8  | _TBD_   |
-| 104-bridge-load-and-start                   | 2.25       | 104-bridge-load-and-start                   | Opus 4.8  | _TBD_   |
-| 105-engine-local-file-playback              | 2.26       | 105-engine-local-file-playback              | Opus 4.8  | _TBD_   |
-| 106-playback-error-mapping                  | 2.27       | 106-playback-error-mapping                  | Opus 4.8  | _TBD_   |
-| 107-bridge-command-serialization-tests      | 2.28       | 107-bridge-command-serialization-tests      | Codex 5.3 | _TBD_   |
-| 108-media-engine-readme                     | 2.29       | 108-media-engine-readme                     | Codex 5.3 | _TBD_   |
-| 109-abcmemory-no-track-player               | 2.30       | 109-abcmemory-no-track-player               | Codex 5.3 | _TBD_   |
-| 110-engine-fdroid-deps-register             | 2.31       | 110-engine-fdroid-deps-register             | Codex 5.3 | _TBD_   |
-| 111-e2e-audio-spike-screenshot              | 2.32       | 111-e2e-audio-spike-screenshot              | Codex 5.3 | _TBD_   |
-| 112-e2e-video-transition-spike              | 2.33       | 112-e2e-video-transition-spike              | Opus 4.8  | _TBD_   |
+| 093-ios-avplayer-video                      | 2.14       | 093-ios-avplayer-video                      | Opus 4.8  | done    |
+| 094-android-exoplayer-video                 | 2.15       | 094-android-exoplayer-video                 | Opus 4.8  | done    |
+| 095-ios-video-surface-host                  | 2.16       | 095-ios-video-surface-host                  | Opus 4.8  | done    |
+| 096-android-video-surface-host              | 2.17       | 096-android-video-surface-host              | Opus 4.8  | done    |
+| 097-bridge-attach-video-surface             | 2.18       | 097-bridge-attach-video-surface             | Opus 4.8  | done    |
+| 098-bridge-animate-video-surface            | 2.19       | 098-bridge-animate-video-surface            | Opus 4.8  | done    |
+| 099-surface-reparent-implementation         | 2.20       | 099-surface-reparent-implementation         | Opus 4.8  | done    |
+| 100-rn-mini-player-surface-target           | 2.21       | 100-rn-mini-player-surface-target           | Opus 4.8  | done    |
+| 101-rn-full-player-surface-target           | 2.22       | 101-rn-full-player-surface-target           | Opus 4.8  | done    |
+| 102-audio-only-hide-surface                 | 2.23       | 102-audio-only-hide-surface                 | Opus 4.8  | done    |
+| 103-orientation-surface-resize              | 2.24       | 103-orientation-surface-resize              | Opus 4.8  | done    |
+| 104-bridge-load-and-start                   | 2.25       | 104-bridge-load-and-start                   | Opus 4.8  | done    |
+| 105-engine-local-file-playback              | 2.26       | 105-engine-local-file-playback              | Opus 4.8  | done    |
+| 106-playback-error-mapping                  | 2.27       | 106-playback-error-mapping                  | Opus 4.8  | done    |
+| 107-bridge-command-serialization-tests      | 2.28       | 107-bridge-command-serialization-tests      | Codex 5.3 | done    |
+| 108-media-engine-readme                     | 2.29       | 108-media-engine-readme                     | Codex 5.3 | done    |
+| 109-abcmemory-no-track-player               | 2.30       | 109-abcmemory-no-track-player               | Codex 5.3 | done    |
+| 110-engine-fdroid-deps-register             | 2.31       | 110-engine-fdroid-deps-register             | Codex 5.3 | done    |
+| 111-e2e-audio-spike-screenshot              | 2.32       | 111-e2e-audio-spike-screenshot              | Codex 5.3 | done    |
+| 112-e2e-video-transition-spike              | 2.33       | 112-e2e-video-transition-spike              | Opus 4.8  | done    |
 | 113-engine-spike-gate                       | 2.34       | 113-engine-spike-gate                       | Codex 5.3 | done    |
 | 114-engine-native-cache-hooks               | 2.35       | 114-engine-native-cache-hooks               | Opus 4.8  | done    |
 | 150-ci-tooling-decision                     | 4.1        | 150-ci-tooling-decision                     | Opus 4.8  | done    |

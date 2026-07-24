@@ -78,10 +78,46 @@ the **fixture-enabled mobile E2E API** (`PODVERSE_E2E_FIXTURES=1` on `:4230`). L
 seed and add-by-RSS fixtures already point at `http://localhost:2111/e2e/audio/...`. On Android
 E2E, the app rewrites that host to `10.0.2.2`.
 
+The **`video-transition`** flow (real video mini→full) needs the committed video fixture
+`tools/test-assets/assets/e2e/videos/e2e-video-short-30s.mp4`. If it is missing, regenerate the
+E2E media fixtures once (idempotent, skip-if-exists) and reseed:
+
+```bash
+npm run generate:e2e-media -w podverse-test-assets
+make mobile_e2e_seed
+```
+
+It plays via the `EXPO_PUBLIC_MOBILE_E2E`-gated **Play E2E video** button on Home
+(`testID=e2e-play-video-item`) because there is no video browse/search UI yet.
+
+> **Structural only — verify frames on-device.** `video-transition` (and `engine-audio-spike`) assert
+> RN placeholder `testID`s + screenshots; Maestro **cannot** confirm that live video frames rendered
+> or detect surface occlusion. After changing the native `PodverseVideoSurfaceView` / surface host,
+> manually verify on an iOS simulator, Android emulator, **and** a physical device: play the video
+> item, expand to the full player, and confirm live frames (not the static artwork) with no reload /
+> playhead jump on expand and collapse. See
+> `.llm/plans/completed/mobile-pg5-video-gaps/01-video-surface-reparent.md`.
+
 New top-level `apps/mobile/e2e/<area>.yaml` files are included automatically. If a new flow needs
 the E2E API when run alone, add its basename to `flow_needs_e2e_api` in
 [`scripts/mobile/e2e-test.sh`](../../../scripts/mobile/e2e-test.sh). If it needs `:2111`, add it to
 `flow_needs_test_assets` in the same script.
+
+## Unit tests (pure modules — no device)
+
+Separate from Maestro E2E: the `podverse-media-engine` pure-TS suites (bridge command serialization
+
+- playback error taxonomy) run under Vitest with no React Native / Expo imports. `apps/mobile` is a
+  standalone install (own lockfile, not a root workspace), so it is **excluded** from root
+  `npm run test:unit` — run it with `--prefix`:
+
+```bash
+npm --prefix apps/mobile run test
+```
+
+Config: [`apps/mobile/vitest.config.ts`](../vitest.config.ts) (Node env; `include` scoped to
+`modules/podverse-media-engine/src/**/*.test.ts`). Also runs non-blocking in CI on `develop` pushes
+that touch `apps/mobile/**` (`.github/workflows/mobile-internal.yml`).
 
 ## Scoped / UI-only runs
 

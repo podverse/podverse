@@ -53,12 +53,16 @@ export function useMediaPlayerResourceUpdate() {
       }
 
       const decision = resolvePlaybackLoadDecision(request, { abridged });
-      await nativePlaybackBridge.load({ initialSeekSeconds: decision.initialSeekSeconds, url });
-      nativePlaybackBridge.setRate(playbackRate);
       const shouldAutoPlay = autoPlayOverride ?? decision.shouldAutoPlay;
+      const source = { initialSeekSeconds: decision.initialSeekSeconds, url };
+      // Autoplay uses the atomic `loadAndStart` (2.25); session restore stays load-only (paused) so a
+      // cold start never surprises with audio. Rate is applied right after the item is prepared.
       if (shouldAutoPlay) {
-        await nativePlaybackBridge.play();
+        await nativePlaybackBridge.loadAndStart(source);
+      } else {
+        await nativePlaybackBridge.load(source);
       }
+      nativePlaybackBridge.setRate(playbackRate);
       return decision;
     },
     []

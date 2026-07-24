@@ -131,7 +131,7 @@ jobs:
         if: always()
         run: |
           echo "::warning::Tests are intentionally skipped in GitHub Actions for this workflow."
-          echo "::warning::Before merge, run locally: make test_deps; npm run test:unit; npm run test:e2e:api; make e2e_test_report (or npm test / npm run test:reports). Mobile: npm run mobile:dev + mobile:e2e:ios + mobile:e2e:android + mobile:e2e:test (see apps/mobile/e2e/HOW-TO-RUN.md)."
+          echo "::warning::Before merge, run locally: make test_deps; npm run test:unit; npm run test:e2e:api; make e2e_test_report (or npm test / npm run test:reports). Mobile unit (standalone install): npm --prefix apps/mobile run test. Mobile E2E: npm run mobile:dev + mobile:e2e:ios + mobile:e2e:android + mobile:e2e:test (see apps/mobile/e2e/HOW-TO-RUN.md)."
 
       - name: Report success
         if: success()
@@ -178,7 +178,12 @@ jobs:
               'Scoped web smoke: `make e2e_test_web_report_spec SPEC=e2e/<spec>.spec.ts`.',
               'Hub: `.artifacts/e2e-reports/latest/index.html`.',
               '',
-              '**3. Mobile Maestro E2E** (separate terminals; see `apps/mobile/e2e/HOW-TO-RUN.md`)',
+              '**3. Mobile unit tests** (pure modules; `apps/mobile` is a standalone install)',
+              '```bash',
+              'npm --prefix apps/mobile run test',
+              '```',
+              '',
+              '**4. Mobile Maestro E2E** (separate terminals; see `apps/mobile/e2e/HOW-TO-RUN.md`)',
               '```bash',
               '# First-time devices (if needed)',
               'bash scripts/mobile/ensure-devices.sh e2e',

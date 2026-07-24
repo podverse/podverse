@@ -37,6 +37,11 @@ async function main(): Promise<void> {
   await generator.generateMP3('e2e-music-track-two-30s-294hz.mp3', 30, 294, COMMON_OPTIONS);
   await generator.generateMP3('e2e-addbyrss-with-position-60s-440hz.mp3', 60, 440, COMMON_OPTIONS);
   await generator.generateMP3('e2e-addbyrss-fresh-60s-440hz.mp3', 60, 440, COMMON_OPTIONS);
+  // Real video fixture (has an h264 video track) for the mobile video mini->full transition E2E
+  // (master step 2.33 / detail 112). Written to assets/e2e/videos/; served as video/mp4 on :2111.
+  // 320x240 @ 1 fps keeps the committed binary tiny while still giving AVPlayer / ExoPlayer a real
+  // video track so the native VideoSurfaceHost reports currentItemHasVideo=true (surface visible).
+  await generator.generateMP4('e2e-video-short-30s.mp4', 30, 440);
   console.log('E2E media fixtures ready.');
 }
 

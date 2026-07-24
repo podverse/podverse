@@ -2,6 +2,7 @@ package expo.modules.podversemediaengine
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import androidx.media3.common.AudioAttributes
@@ -10,7 +11,10 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
+import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
+import android.view.TextureView
+import java.io.File
 import java.util.concurrent.CountDownLatch
 
 // PG-2b steps 2.7-2.9 (details 086-088).
@@ -28,6 +32,13 @@ object PodverseAudioEngine {
    * media notification without JS.
    */
   var eventSink: ((String, Map<String, Any?>) -> Unit)? = null
+
+  /**
+   * Notified on the main thread whenever the current item's video capability changes (video frames
+   * available vs audio-only). Set by [PodverseVideoSurfaceHost] (2.17) so it can keep the surface
+   * hidden for audio-only items without the engine depending on the host. Visibility policy: 2.23.
+   */
+  var onVideoCapabilityChanged: ((Boolean) -> Unit)? = null
 
   private var player: ExoPlayer? = null
   private var appContext: Context? = null
@@ -71,10 +82,45 @@ object PodverseAudioEngine {
     }
   }
 
+  // MARK: - Shared video surface (steps 2.15 + 2.17 / details 094, 096)
+
+  /**
+   * Bind the ONE video texture view (owned by [PodverseVideoSurfaceHost]) to the single shared
+   * ExoPlayer. Media3 decodes video for the current item; frames render only once a surface is
+   * attached. TextureView (not SurfaceView) is required so the host can reparent the same view
+   * between mini/full RN targets without `IllegalStateException: child already has a parent`
+   * (SurfaceView has a separate compositor window and does not reparent cleanly during modal
+   * fragment transitions). There is never a second player — audio and video items use this instance.
+   */
+  fun attachVideoTextureView(view: android.view.TextureView) {
+    onMain { getOrCreatePlayer(view.context).setVideoTextureView(view) }
+  }
+
+  /** Detach the video surface (audio keeps playing on the same player). */
+  fun clearVideoSurfaceView() {
+    onMain { player?.clearVideoSurface() }
+  }
+
+  /** True when the current item exposes video (non-unknown video size). Used by the surface host. */
+  fun currentItemHasVideo(): Boolean = onMainSync {
+    player?.videoSize?.let { it != VideoSize.UNKNOWN && it.width > 0 && it.height > 0 } ?: false
+  }
+
   // MARK: - Transport (called by the Expo module; the service reuses the same player)
 
+  /**
+   * Prepare [url] on the single shared player. Accepts remote http(s), `file://`, and `content://`
+   * sources (offline playback, 2.26) — Media3 [MediaItem.fromUri] handles all three; there is never
+   * a second player for local files. Missing `file://` targets fail fast with a `file_not_found`
+   * error (2.27) instead of surfacing a late/opaque decode failure.
+   */
   fun load(context: Context, url: String, initialSeekSeconds: Double?) {
     onMain {
+      if (isMissingLocalFile(url)) {
+        publish(PlaybackState.ERROR)
+        emit("error", mapOf("code" to "file_not_found", "message" to "File not found: $url"))
+        return@onMain
+      }
       val p = getOrCreatePlayer(context)
       publish(PlaybackState.LOADING)
       p.setMediaItem(MediaItem.fromUri(url))
@@ -83,6 +129,15 @@ object PodverseAudioEngine {
         p.seekTo((initialSeekSeconds * 1000).toLong())
       }
     }
+  }
+
+  /**
+   * Atomic load + play (step 2.25 / detail 104). Both hops run on the main thread in order on the
+   * single player, so the item is prepared before playback starts. Used by the primary autoplay path.
+   */
+  fun loadAndStart(context: Context, url: String, initialSeekSeconds: Double?) {
+    load(context, url, initialSeekSeconds)
+    play(context)
   }
 
   fun play(context: Context) {
@@ -140,6 +195,7 @@ object PodverseAudioEngine {
       player?.clearMediaItems()
       player?.stop()
       publish(PlaybackState.IDLE)
+      onVideoCapabilityChanged?.invoke(false)
     }
   }
 
@@ -184,6 +240,12 @@ object PodverseAudioEngine {
       emit(
         "error",
         mapOf("code" to error.errorCodeName, "message" to (error.message ?: "Playback error")))
+    }
+
+    override fun onVideoSizeChanged(videoSize: VideoSize) {
+      // Report capability so the surface host hides itself for audio-only items (policy: 2.23).
+      val hasVideo = videoSize != VideoSize.UNKNOWN && videoSize.width > 0 && videoSize.height > 0
+      onMain { onVideoCapabilityChanged?.invoke(hasVideo) }
     }
   }
 
@@ -234,6 +296,16 @@ object PodverseAudioEngine {
   private fun getDurationUnsafe(): Double {
     val d = player?.duration ?: C.TIME_UNSET
     return if (d == C.TIME_UNSET || d < 0) 0.0 else d / 1000.0
+  }
+
+  /**
+   * True when [url] points to a `file://` target that does not exist. Only `file://` is checked;
+   * `content://` URIs are resolved by the platform and remote URLs are not local files (2.26/2.27).
+   */
+  private fun isMissingLocalFile(url: String): Boolean {
+    if (!url.startsWith("file://")) return false
+    val path = Uri.parse(url).path ?: return true
+    return !File(path).exists()
   }
 
   private fun clampToDuration(seconds: Double, p: ExoPlayer): Double {

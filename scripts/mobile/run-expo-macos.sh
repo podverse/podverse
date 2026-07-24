@@ -144,5 +144,10 @@ if [[ "$HAS_DEVICE_FLAG" -eq 0 ]]; then
   fi
 fi
 
+# Keep AVD performance profile consistent before Expo may cold-start the emulator.
+if [[ "$PLATFORM" == "android" ]]; then
+  bash "$SCRIPT_DIR/ensure-devices.sh" tune-android >/dev/null 2>&1 || true
+fi
+
 # Preserve empty "$@" safely under set -u (do not expand an unbound EXTRA_ARGS array).
 exec "$NPM_BIN" --prefix apps/mobile run "$PLATFORM" -- "$@"

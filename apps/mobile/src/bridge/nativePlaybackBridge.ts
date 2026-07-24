@@ -13,24 +13,41 @@ import type {
   MediaEngineSource,
   NativeCacheWriteBridge,
   NativePlaybackBridge,
-  NativePlaybackEvents,
+  NativeRawPlaybackEvents,
+  VideoSurfaceRect,
+  VideoSurfaceTargetId,
+} from '../../modules/podverse-media-engine';
+import {
+  serializeAnimateVideoSurfaceCommand,
+  serializeAttachVideoSurfaceCommand,
+  serializeLoadCommand,
 } from '../../modules/podverse-media-engine';
 import { getPodverseMediaEngineModule } from '../../modules/podverse-media-engine/src/PodverseMediaEngineModule';
 
 export type PlaybackEventSubscription = { remove: () => void };
 
-/** High-level bridge = transport (`NativePlaybackBridge`) + reserved cache writes + event subscribe. */
+/**
+ * High-level bridge = transport (`NativePlaybackBridge`) + reserved cache writes + event subscribe.
+ *
+ * `addListener` delivers **raw** native events (the `error` payload has no normalized `kind`); the
+ * `useNativePlaybackBridge` hook is the sanctioned consumer path and runs errors through
+ * `normalizePlaybackError` (2.27). Direct `addListener('error', …)` callers can normalize themselves.
+ */
 export type PodversePlaybackBridge = NativePlaybackBridge &
   NativeCacheWriteBridge & {
-    addListener<Event extends keyof NativePlaybackEvents>(
+    addListener<Event extends keyof NativeRawPlaybackEvents>(
       event: Event,
-      listener: NativePlaybackEvents[Event]
+      listener: NativeRawPlaybackEvents[Event]
     ): PlaybackEventSubscription;
   };
 
 class NativePlaybackBridgeAdapter implements PodversePlaybackBridge {
   async load(source: MediaEngineSource): Promise<void> {
-    await getPodverseMediaEngineModule().load(source.url, source.initialSeekSeconds);
+    await getPodverseMediaEngineModule().load(...serializeLoadCommand(source));
+  }
+
+  async loadAndStart(source: MediaEngineSource): Promise<void> {
+    await getPodverseMediaEngineModule().loadAndStart(...serializeLoadCommand(source));
   }
 
   async play(): Promise<void> {
@@ -61,6 +78,22 @@ class NativePlaybackBridgeAdapter implements PodversePlaybackBridge {
     getPodverseMediaEngineModule().destroy();
   }
 
+  attachVideoSurface(targetId: VideoSurfaceTargetId, rect: VideoSurfaceRect): void {
+    getPodverseMediaEngineModule().attachVideoSurface(
+      ...serializeAttachVideoSurfaceCommand(targetId, rect)
+    );
+  }
+
+  animateVideoSurface(toTargetId: VideoSurfaceTargetId, durationMs: number): void {
+    getPodverseMediaEngineModule().animateVideoSurface(
+      ...serializeAnimateVideoSurfaceCommand(toTargetId, durationMs)
+    );
+  }
+
+  setVideoSurfaceVisible(visible: boolean): void {
+    getPodverseMediaEngineModule().setVideoSurfaceVisible(visible);
+  }
+
   writeQueueSnapshot(payloadJson: string): Promise<void> {
     return getPodverseMediaEngineModule().writeQueueSnapshot(payloadJson);
   }
@@ -73,9 +106,9 @@ class NativePlaybackBridgeAdapter implements PodversePlaybackBridge {
     return getPodverseMediaEngineModule().writeLibraryBrowseIndex(payloadJson);
   }
 
-  addListener<Event extends keyof NativePlaybackEvents>(
+  addListener<Event extends keyof NativeRawPlaybackEvents>(
     event: Event,
-    listener: NativePlaybackEvents[Event]
+    listener: NativeRawPlaybackEvents[Event]
   ): PlaybackEventSubscription {
     return getPodverseMediaEngineModule().addListener(event, listener);
   }

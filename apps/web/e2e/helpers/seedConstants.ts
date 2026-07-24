@@ -157,6 +157,20 @@ export const E2E_MUSIC_TRACK_TWO_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-musi
 export const E2E_ADDBYRSS_WITH_POSITION_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-addbyrss-with-position-60s-440hz.mp3`;
 export const E2E_ADDBYRSS_FRESH_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-addbyrss-fresh-60s-440hz.mp3`;
 
+/**
+ * Real video fixture (has an h264 video track) for the mobile video mini->full transition E2E
+ * (master step 2.33 / detail 112). Regenerate via `npm run generate:e2e-media -w podverse-test-assets`
+ * (writes `tools/test-assets/assets/e2e/videos/e2e-video-short-30s.mp4`, served as video/mp4 on :2111).
+ * Seeded as a standalone video-medium channel by `tools/web/seed-e2e.mjs`; not added to any queue,
+ * so web media-player queue specs are unaffected.
+ */
+export const E2E_VIDEO_ASSET_BASE_URL = 'http://localhost:2111/e2e/videos';
+export const E2E_VIDEO_SHORT_ENCLOSURE_URL = `${E2E_VIDEO_ASSET_BASE_URL}/e2e-video-short-30s.mp4`;
+export const E2E_VIDEO_CHANNEL_ID_TEXT = 'e2eVideoChnl01';
+export const E2E_VIDEO_ITEM_ID_TEXT = 'e2eVideoItm001';
+export const E2E_VIDEO_CHANNEL_TITLE = 'E2E Video Transition Channel';
+export const E2E_VIDEO_ITEM_DURATION_SECONDS = 30;
+
 /** Embed player E2E fixtures — sync with `tools/web/seed-e2e.mjs`. */
 export const E2E_EMBED_VIDEO_CHANNEL_ID_TEXT = 'e2eEmbedVidCh01';
 export const E2E_EMBED_VIDEO_ITEM_ID_TEXT = 'e2eEmbVidItem01';
