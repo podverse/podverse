@@ -6,6 +6,8 @@
 
 **Implementation deferral (PG-7b audio-first):** Detail now; implement after PG-5 / Track 2 video (2.14+).
 
+**Ship bar:** functional video surface / E2E smoke only — no player layout redesign or transcript chrome (Track 21.11 / Track 23).
+
 ## Scope
 
 - E2E: video item mini player screenshot.

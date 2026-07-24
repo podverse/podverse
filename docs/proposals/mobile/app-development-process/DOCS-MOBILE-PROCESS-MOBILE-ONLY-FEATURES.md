@@ -172,7 +172,7 @@ guidance.
 | Deep links                          | P1       | Sharing/retention                                       |
 | CarPlay / Android Auto              | P1       | High value; after background audio + native cache       |
 | Membership / IAP                    | P2       | Revenue; policy-sensitive, do later                     |
-| Full visual polish (pixel parity)   | P2       | After primitives + feature-complete                     |
+| Full visual polish (pixel parity)   | P2 / Track 23 | **Operator** screen-by-screen after feature bulk        |
 | Livestream HLS                      | P2       | Deferred (separate effort)                              |
 
 ## Dependencies between features

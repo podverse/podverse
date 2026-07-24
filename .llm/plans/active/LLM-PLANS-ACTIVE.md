@@ -12,9 +12,11 @@ templates are blanks; this directory holds real plan instances.
 
 _(none currently indexed)_
 
-_Recently completed (archives may have been cleaned):_
-[mobile-pg5-video-gaps](../completed/mobile-pg5-video-gaps/) — PG-5 gap remediation: (01)
-true surface reparent into RN-mounted view (modal z-order), (02) mobile Vitest docs + CI gate.
-PG-5 build set: `plans/completed/mobile-pg5-video`. PG-7a/7b audio + media-row actions +
-pg7-pr-prep — Tracks 10 / 11 audio / 9c done; Track 11 video steps remain `planned` until after
-PG-5.
+_Recently completed:_
+[mobile-pg5-video](../completed/mobile-pg5-video/) +
+[mobile-pg5-video-gaps](../completed/mobile-pg5-video-gaps/) — Track 2 video + reparent/Vitest gaps.
+
+**Next (not detailed yet):** Track 11 video leftover (11.3 / 11.6–11.8 / 11.15–11.17) and Track 9d
+playlist authoring sketches — see master plan **Ship bar** / **Current status**. Operator visual
+polish is **Track 23** only (after feature bulk + operator briefs). Do not open freestyle layout
+plan sets before then.

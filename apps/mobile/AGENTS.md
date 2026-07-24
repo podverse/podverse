@@ -66,6 +66,11 @@ Mobile is a Tier 5 consumer: import **downward** only. Mirror
 When implementing a screen: read the matching web route context/hooks first for `req*` and DTO usage;
 reuse the same wrappers; do **not** port SCSS, `@podverse/ui`, Next routing, or SSR patterns.
 
+**Ship bar:** feature work delivers **functionality + screen sketches** (IA, affordances, wiring,
+`testID`s). Do **not** thrash on final layout, player-integrated transcripts, clip authoring, or
+pixel DnD — see master plan **Ship bar** / Track **23** and
+[DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md).
+
 ## Themes
 
 - Same supported theme IDs as web: `dark`, `light`, `dracula`, `violet`, `ember`, `dawn` (default
