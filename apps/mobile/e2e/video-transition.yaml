@@ -51,6 +51,10 @@ name: Video Transition
     id: full-player-title
 - assertVisible:
     id: full-player-scrubber
+# 11.8 continuity: expand reparents the surface, it does NOT reload the engine — the JS playback
+# state (playback-active-e2e) must never drop across the mini->full transition.
+- assertVisible:
+    id: playback-active-e2e
 - takeScreenshot: video-transition-full
 
 # Collapse back to the mini player. Playback stays continuous (surface reparents mini<-full).

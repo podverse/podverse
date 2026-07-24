@@ -14,6 +14,8 @@ type HomeFeedRowProps = {
   onPress: (row: HomeFeedRowData) => void;
   onQueuePress: (row: HomeFeedRowData, position: QueueActionPosition) => void;
   onPlayPress: (row: HomeFeedRowData) => void;
+  /** When provided, adds an "Add to playlist" more-action (9d.4). Omit for unsupported kinds. */
+  onAddToPlaylistPress?: (row: HomeFeedRowData) => void;
   row: HomeFeedRowData;
   testID?: string;
 };
@@ -32,6 +34,7 @@ export function HomeFeedRow({
   onPress,
   onPlayPress,
   onQueuePress,
+  onAddToPlaylistPress,
   row,
   testID,
 }: HomeFeedRowProps) {
@@ -146,6 +149,12 @@ export function HomeFeedRow({
               moreActions={buildMediaRowMoreActions(
                 t,
                 {
+                  onAddToPlaylist:
+                    onAddToPlaylistPress !== undefined
+                      ? () => {
+                          onAddToPlaylistPress(row);
+                        }
+                      : undefined,
                   onQueueLast: () => {
                     onQueuePress(row, 'last');
                   },

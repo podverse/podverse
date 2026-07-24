@@ -157,23 +157,23 @@ guidance.
 
 ## Feature priority (v1 MVP)
 
-| Feature                             | Priority | Rationale                                               |
-| ----------------------------------- | -------- | ------------------------------------------------------- |
-| Bearer auth + secure storage        | P0       | Everything authenticated depends on it                  |
-| Offline-first data layer (local DB) | P0       | Screens read repositories; foundation for queue/offline |
-| Background audio + OS controls      | P0       | Core podcast UX; prerequisite for car                   |
-| Queue + playback parity             | P0       | Core product; consumes data layer                       |
-| Stats                               | P0       | Low cost, reuse endpoints                               |
-| Shared visual primitives            | P1       | Layout/spacing convergence; polish deferred             |
-| Local settings + prefs sync         | P1       | Consistency with web                                    |
-| Add-by-RSS parser-mapping + DB      | P1       | Parity with web mapping; local DB storage               |
-| Offline episode downloads (files)   | P1       | Major differentiator; builds on data layer              |
-| Push notifications (FCM)            | P1       | Engagement; API exists                                  |
-| Deep links                          | P1       | Sharing/retention                                       |
-| CarPlay / Android Auto              | P1       | High value; after background audio + native cache       |
-| Membership / IAP                    | P2       | Revenue; policy-sensitive, do later                     |
+| Feature                             | Priority      | Rationale                                               |
+| ----------------------------------- | ------------- | ------------------------------------------------------- |
+| Bearer auth + secure storage        | P0            | Everything authenticated depends on it                  |
+| Offline-first data layer (local DB) | P0            | Screens read repositories; foundation for queue/offline |
+| Background audio + OS controls      | P0            | Core podcast UX; prerequisite for car                   |
+| Queue + playback parity             | P0            | Core product; consumes data layer                       |
+| Stats                               | P0            | Low cost, reuse endpoints                               |
+| Shared visual primitives            | P1            | Layout/spacing convergence; polish deferred             |
+| Local settings + prefs sync         | P1            | Consistency with web                                    |
+| Add-by-RSS parser-mapping + DB      | P1            | Parity with web mapping; local DB storage               |
+| Offline episode downloads (files)   | P1            | Major differentiator; builds on data layer              |
+| Push notifications (FCM)            | P1            | Engagement; API exists                                  |
+| Deep links                          | P1            | Sharing/retention                                       |
+| CarPlay / Android Auto              | P1            | High value; after background audio + native cache       |
+| Membership / IAP                    | P2            | Revenue; policy-sensitive, do later                     |
 | Full visual polish (pixel parity)   | P2 / Track 23 | **Operator** screen-by-screen after feature bulk        |
-| Livestream HLS                      | P2       | Deferred (separate effort)                              |
+| Livestream HLS                      | P2            | Deferred (separate effort)                              |
 
 ## Dependencies between features
 

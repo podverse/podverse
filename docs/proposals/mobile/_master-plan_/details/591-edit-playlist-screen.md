@@ -2,11 +2,12 @@
 
 **Master step:** 9d.2
 **Model (author + implement):** Codex 5.3
-**Status:** draft
+**Status:** done
 
 ## Scope
 
-- Functional sketch: edit playlist metadata (owner-only) via playlist update API.
+- Functional sketch: edit playlist metadata (owner-only) via `reqPlaylistEdit`
+  (`PATCH /playlist/:id_text`).
 - Sketch only — Track 23 for visual polish.
 
 ## Acceptance criteria

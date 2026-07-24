@@ -18,6 +18,7 @@ import { LibraryMyClipsScreen } from '../screens/library/LibraryMyClipsScreen';
 import { LibraryPlaylistsScreen } from '../screens/library/LibraryPlaylistsScreen';
 import { LibraryQueueScreen } from '../screens/library/LibraryQueueScreen';
 import { PlaylistDetailScreen } from '../screens/library/PlaylistDetailScreen';
+import { PlaylistFormScreen } from '../screens/library/PlaylistFormScreen';
 import { FullPlayerScreen } from '../screens/player/FullPlayerScreen';
 import { PodcastDetailScreen } from '../screens/podcast/PodcastDetailScreen';
 import { MyProfileScreen } from '../screens/profile/MyProfileScreen';
@@ -148,7 +149,9 @@ export const LIBRARY_STACK_ROUTES = {
   LibraryHistory: 'LibraryHistory',
   LibraryHub: 'LibraryHub',
   LibraryMyClips: 'LibraryMyClips',
+  PlaylistCreate: 'PlaylistCreate',
   PlaylistDetail: 'PlaylistDetail',
+  PlaylistEdit: 'PlaylistEdit',
   LibraryPlaylists: 'LibraryPlaylists',
   LibraryQueue: 'LibraryQueue',
 } as const;
@@ -213,7 +216,9 @@ export const mobileNavigationLinking: LinkingOptions<RootStackParamList> = {
               LibraryHistory: 'my-library/history',
               LibraryHub: 'my-library',
               LibraryMyClips: 'my-library/my-clips',
+              PlaylistCreate: 'my-library/playlist/create',
               PlaylistDetail: 'my-library/playlist/:playlistId',
+              PlaylistEdit: 'my-library/playlist/:playlistId/edit',
               LibraryPlaylists: 'my-library/playlists',
               LibraryQueue: 'my-library/queue',
             },
@@ -258,7 +263,9 @@ export type LibraryStackParamList = {
   LibraryHistory: undefined;
   LibraryHub: undefined;
   LibraryMyClips: undefined;
+  PlaylistCreate: undefined;
   PlaylistDetail: { playlistId: string };
+  PlaylistEdit: { playlistId: string };
   LibraryPlaylists: undefined;
   LibraryQueue: undefined;
 };
@@ -366,6 +373,16 @@ function LibraryStackNavigator() {
         component={PlaylistDetailScreen}
         name={LIBRARY_STACK_ROUTES.PlaylistDetail}
         options={{ title: t('features.playlist.playlist') }}
+      />
+      <LibraryStack.Screen
+        component={PlaylistFormScreen}
+        name={LIBRARY_STACK_ROUTES.PlaylistCreate}
+        options={{ title: t('features.playlist.create_playlist') }}
+      />
+      <LibraryStack.Screen
+        component={PlaylistFormScreen}
+        name={LIBRARY_STACK_ROUTES.PlaylistEdit}
+        options={{ title: t('features.playlist.edit_playlist') }}
       />
       <LibraryStack.Screen
         component={LibraryHistoryScreen}

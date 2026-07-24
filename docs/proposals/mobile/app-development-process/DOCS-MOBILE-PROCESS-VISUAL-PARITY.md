@@ -16,13 +16,13 @@ master plan **Ship bar** in
 
 ## 1. Decision
 
-| Phase                            | When                         | Scope                                                                  |
-| -------------------------------- | ---------------------------- | ---------------------------------------------------------------------- |
-| Design tokens + ThemeProvider    | Done (PG-4 themes)           | Same theme IDs + token values as web via `@podverse/design-tokens`     |
-| Shared visual primitives         | Done (Track 9b.6–9b.7)       | RN Button / Card / ListRow / ScreenHeader + type/space                 |
-| Media row action affordances     | Done (Track 9c)              | Same Play + more-menu **intents** as web                               |
-| Feature screens (Tracks 8–22)    | In progress / remaining      | **Functional sketch** — IA, affordances, wiring, `testID`s, E2E smoke  |
-| Operator visual polish           | **Track 23 / PG-13**         | Screen-by-screen briefs from operator; agents apply only those notes   |
+| Phase                         | When                    | Scope                                                                 |
+| ----------------------------- | ----------------------- | --------------------------------------------------------------------- |
+| Design tokens + ThemeProvider | Done (PG-4 themes)      | Same theme IDs + token values as web via `@podverse/design-tokens`    |
+| Shared visual primitives      | Done (Track 9b.6–9b.7)  | RN Button / Card / ListRow / ScreenHeader + type/space                |
+| Media row action affordances  | Done (Track 9c)         | Same Play + more-menu **intents** as web                              |
+| Feature screens (Tracks 8–22) | In progress / remaining | **Functional sketch** — IA, affordances, wiring, `testID`s, E2E smoke |
+| Operator visual polish        | **Track 23 / PG-13**    | Screen-by-screen briefs from operator; agents apply only those notes  |
 
 **Rationale:** The master-plan goal is a sensible bulk of functionality and screens with a sketch of
 components — not production-perfect chrome. Layout debates and design-heavy player surfaces

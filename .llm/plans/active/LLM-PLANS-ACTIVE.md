@@ -8,15 +8,15 @@ templates are blanks; this directory holds real plan instances.
 - When finished, move the set to `plans/completed/` (see **plan-completion** skill).
 - See [LLM.md](/.llm/LLM.md).
 
-## Indexed sets (non-exhaustive)
+## Indexed sets
 
-_(none currently indexed)_
+_None active._
 
 _Recently completed:_
+[mobile-track9d-playlist-authoring](../completed/mobile-track9d-playlist-authoring/)
+(9d.1–9d.5: create/edit/reorder/add-to-playlist + header back),
+[mobile-track11-video](../completed/mobile-track11-video/) (11.3 / 11.6–11.8 / 11.15–11.17),
 [mobile-pg5-video](../completed/mobile-pg5-video/) +
-[mobile-pg5-video-gaps](../completed/mobile-pg5-video-gaps/) — Track 2 video + reparent/Vitest gaps.
+[mobile-pg5-video-gaps](../completed/mobile-pg5-video-gaps/).
 
-**Next (not detailed yet):** Track 11 video leftover (11.3 / 11.6–11.8 / 11.15–11.17) and Track 9d
-playlist authoring sketches — see master plan **Ship bar** / **Current status**. Operator visual
-polish is **Track 23** only (after feature bulk + operator briefs). Do not open freestyle layout
-plan sets before then.
+Operator visual polish remains **Track 23** only (after feature bulk + operator briefs).

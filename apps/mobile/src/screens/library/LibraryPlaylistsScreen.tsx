@@ -7,7 +7,7 @@ import type { DTOPlaylist } from '@podverse/helpers';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
-import { Card, ListRow } from '../../components/primitives';
+import { Button, Card, ListRow } from '../../components/primitives';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
 import type { LibraryStackParamList } from '../../navigation';
@@ -32,6 +32,9 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
   const styles = useMemo(
     () =>
       StyleSheet.create({
+        createButton: {
+          marginBottom: tokens.spacing.md,
+        },
         rowSpacing: {
           marginTop: tokens.spacing.sm,
         },
@@ -84,6 +87,17 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
       heading={t('features.playlist.playlists')}
       testID="library-playlists-screen"
     >
+      {status === 'authenticated' ? (
+        <View style={styles.createButton}>
+          <Button
+            label={t('features.playlist.create_playlist')}
+            onPress={() => {
+              navigation.navigate(LIBRARY_STACK_ROUTES.PlaylistCreate);
+            }}
+            testID="library-playlists-create"
+          />
+        </View>
+      ) : null}
       <AuthAwareLoadState
         emptyTestID={
           status !== 'authenticated' ? 'library-playlists-auth-required' : 'library-playlists-empty'

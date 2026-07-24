@@ -2,7 +2,7 @@
 
 **Master step:** 11.15
 **Model (author + implement):** Codex 5.3
-**Status:** draft
+**Status:** done
 
 **Implementation deferral (PG-7b audio-first):** Detail now; implement after PG-5 / Track 2 video (2.14+).
 
@@ -18,12 +18,12 @@
 
 ## Web parity references
 
-- Track 2 video + 11.3
+- Track 2 video + 11.3; `apps/mobile/e2e/video-transition.yaml`
 
 ## Verification
 
 ```bash
-npm run mobile:e2e:test -- play-mini-player
+npm run mobile:e2e:test -- video-transition
 ```
 
 ## Depends on

@@ -2,11 +2,12 @@
 
 **Master step:** 9d.1
 **Model (author + implement):** Codex 5.3
-**Status:** draft
+**Status:** done
 
 ## Scope
 
-- Functional sketch: create playlist (title / privacy) via existing playlist create API.
+- Functional sketch: create playlist (title / privacy) via existing playlist create API
+  (`reqPlaylistCreate` / `POST /playlist`).
 - Entry from library playlists list; navigate to detail on success.
 - Use primitives + tokens; **not** Track 23 polish.
 

@@ -2,7 +2,7 @@
 
 **Master step:** 11.8
 **Model (author + implement):** Opus 4.8
-**Status:** draft
+**Status:** done
 
 **Implementation deferral (PG-7b audio-first):** Detail now; implement after PG-5 / Track 2 video (2.14+). Do not block audio mini/full player COPY-PASTA.
 
@@ -25,6 +25,19 @@ Audio path covered in 11.4; this step gates video continuity after PG-5.
 
 - Position delta across transition within tolerance
 - Automated assert where harness allows; else checklist
+
+## Continuity checks (implemented)
+
+- **Automated (Maestro):** `apps/mobile/e2e/video-transition.yaml` asserts `playback-active-e2e`
+  at the mini state, again in the full state (mid-transition), and after collapse. Because that
+  status is driven purely by JS playback state — not by which screen is mounted — a reload/destroy
+  on expand would flip it and fail the flow. This proves the engine is not remounted across
+  mini↔full.
+- **Operator on-device check (Maestro cannot prove pixels/occlusion):** on a real device/simulator,
+  play the seeded video item, expand to full, then collapse. Confirm: (a) the moving frame keeps
+  advancing with no reload spinner, (b) the on-screen clock does not jump back to `00:00`, and
+  (c) the surface is not occluded by the modal (renders inside the full-player tree). Pixel-level
+  polish of the surface is Track 23, not this step.
 
 ## Web parity references
 

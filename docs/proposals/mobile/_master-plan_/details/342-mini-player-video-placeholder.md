@@ -2,7 +2,7 @@
 
 **Master step:** 11.3
 **Model (author + implement):** Opus 4.8
-**Status:** draft
+**Status:** done
 
 **Implementation deferral (PG-7b audio-first):** Detail now; implement after PG-5 / Track 2 video
 (2.14+). Do not block audio mini/full player COPY-PASTA.
