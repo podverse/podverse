@@ -39,15 +39,15 @@
 
 ## Current status / next up (2026-07)
 
-| Parallel group          | Status                   | Notes                                                                                           |
-| ----------------------- | ------------------------ | ----------------------------------------------------------------------------------------------- |
-| PG-0 … PG-4             | **done**                 | Foundation, playback-core, hello-world, media-engine **audio** spike, CI/E2E, auth, nav, themes |
-| PG-6 (Tracks 8–9)       | **done**                 | Home, browse/content screens, add-by-RSS                                                        |
-| PG-6.5 (Track 9b)       | **done**                 | Offline-first data layer + add-by-RSS `parser-mapping` + shared visual primitives               |
-| PG-6.6 (Track 9c)       | **done**                 | Media row **action affordance** parity (Play + more sheet)                                      |
-| PG-7 (Tracks 10–11)     | **audio done**           | Track 10 DONE; Track 11 audio UI done; video steps 11.3 / 11.6–11.8 / 11.15–11.17 still planned |
-| **PG-5 (Track 2 video)** | **planned (active)**    | Seamless VideoSurfaceHost + bridge attach/animate — `.llm/plans/active/mobile-pg5-video/`       |
-| PG-8+                   | later                    | Car, downloads (files), push, multi-device, IAP, release train                                  |
+| Parallel group           | Status               | Notes                                                                                           |
+| ------------------------ | -------------------- | ----------------------------------------------------------------------------------------------- |
+| PG-0 … PG-4              | **done**             | Foundation, playback-core, hello-world, media-engine **audio** spike, CI/E2E, auth, nav, themes |
+| PG-6 (Tracks 8–9)        | **done**             | Home, browse/content screens, add-by-RSS                                                        |
+| PG-6.5 (Track 9b)        | **done**             | Offline-first data layer + add-by-RSS `parser-mapping` + shared visual primitives               |
+| PG-6.6 (Track 9c)        | **done**             | Media row **action affordance** parity (Play + more sheet)                                      |
+| PG-7 (Tracks 10–11)      | **audio done**       | Track 10 DONE; Track 11 audio UI done; video steps 11.3 / 11.6–11.8 / 11.15–11.17 still planned |
+| **PG-5 (Track 2 video)** | **planned (active)** | Seamless VideoSurfaceHost + bridge attach/animate — `.llm/plans/active/mobile-pg5-video/`       |
+| PG-8+                    | later                | Car, downloads (files), push, multi-device, IAP, release train                                  |
 
 ### Recommended next build sequence
 
@@ -797,26 +797,26 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 090-js-bridge-adapter                       | 2.11       | 090-js-bridge-adapter                       | Opus 4.8  | done    |
 | 091-spike-background-audio                  | 2.12       | 091-spike-background-audio                  | Opus 4.8  | done    |
 | 092-spike-audio-after-kill                  | 2.13       | 092-spike-audio-after-kill                  | Opus 4.8  | done    |
-| 093-ios-avplayer-video                      | 2.14       | 093-ios-avplayer-video                      | Opus 4.8  | done   |
-| 094-android-exoplayer-video                 | 2.15       | 094-android-exoplayer-video                 | Opus 4.8  | done   |
-| 095-ios-video-surface-host                  | 2.16       | 095-ios-video-surface-host                  | Opus 4.8  | done   |
-| 096-android-video-surface-host              | 2.17       | 096-android-video-surface-host              | Opus 4.8  | done   |
-| 097-bridge-attach-video-surface             | 2.18       | 097-bridge-attach-video-surface             | Opus 4.8  | done      |
-| 098-bridge-animate-video-surface            | 2.19       | 098-bridge-animate-video-surface            | Opus 4.8  | done      |
-| 099-surface-reparent-implementation         | 2.20       | 099-surface-reparent-implementation         | Opus 4.8  | done      |
-| 100-rn-mini-player-surface-target           | 2.21       | 100-rn-mini-player-surface-target           | Opus 4.8  | done      |
-| 101-rn-full-player-surface-target           | 2.22       | 101-rn-full-player-surface-target           | Opus 4.8  | done      |
-| 102-audio-only-hide-surface                 | 2.23       | 102-audio-only-hide-surface                 | Opus 4.8  | done      |
-| 103-orientation-surface-resize              | 2.24       | 103-orientation-surface-resize              | Opus 4.8  | done      |
-| 104-bridge-load-and-start                   | 2.25       | 104-bridge-load-and-start                   | Opus 4.8  | done      |
-| 105-engine-local-file-playback              | 2.26       | 105-engine-local-file-playback              | Opus 4.8  | done      |
-| 106-playback-error-mapping                  | 2.27       | 106-playback-error-mapping                  | Opus 4.8  | done      |
-| 107-bridge-command-serialization-tests      | 2.28       | 107-bridge-command-serialization-tests      | Codex 5.3 | done      |
-| 108-media-engine-readme                     | 2.29       | 108-media-engine-readme                     | Codex 5.3 | done   |
-| 109-abcmemory-no-track-player               | 2.30       | 109-abcmemory-no-track-player               | Codex 5.3 | done   |
-| 110-engine-fdroid-deps-register             | 2.31       | 110-engine-fdroid-deps-register             | Codex 5.3 | done      |
-| 111-e2e-audio-spike-screenshot              | 2.32       | 111-e2e-audio-spike-screenshot              | Codex 5.3 | done      |
-| 112-e2e-video-transition-spike              | 2.33       | 112-e2e-video-transition-spike              | Opus 4.8  | done      |
+| 093-ios-avplayer-video                      | 2.14       | 093-ios-avplayer-video                      | Opus 4.8  | done    |
+| 094-android-exoplayer-video                 | 2.15       | 094-android-exoplayer-video                 | Opus 4.8  | done    |
+| 095-ios-video-surface-host                  | 2.16       | 095-ios-video-surface-host                  | Opus 4.8  | done    |
+| 096-android-video-surface-host              | 2.17       | 096-android-video-surface-host              | Opus 4.8  | done    |
+| 097-bridge-attach-video-surface             | 2.18       | 097-bridge-attach-video-surface             | Opus 4.8  | done    |
+| 098-bridge-animate-video-surface            | 2.19       | 098-bridge-animate-video-surface            | Opus 4.8  | done    |
+| 099-surface-reparent-implementation         | 2.20       | 099-surface-reparent-implementation         | Opus 4.8  | done    |
+| 100-rn-mini-player-surface-target           | 2.21       | 100-rn-mini-player-surface-target           | Opus 4.8  | done    |
+| 101-rn-full-player-surface-target           | 2.22       | 101-rn-full-player-surface-target           | Opus 4.8  | done    |
+| 102-audio-only-hide-surface                 | 2.23       | 102-audio-only-hide-surface                 | Opus 4.8  | done    |
+| 103-orientation-surface-resize              | 2.24       | 103-orientation-surface-resize              | Opus 4.8  | done    |
+| 104-bridge-load-and-start                   | 2.25       | 104-bridge-load-and-start                   | Opus 4.8  | done    |
+| 105-engine-local-file-playback              | 2.26       | 105-engine-local-file-playback              | Opus 4.8  | done    |
+| 106-playback-error-mapping                  | 2.27       | 106-playback-error-mapping                  | Opus 4.8  | done    |
+| 107-bridge-command-serialization-tests      | 2.28       | 107-bridge-command-serialization-tests      | Codex 5.3 | done    |
+| 108-media-engine-readme                     | 2.29       | 108-media-engine-readme                     | Codex 5.3 | done    |
+| 109-abcmemory-no-track-player               | 2.30       | 109-abcmemory-no-track-player               | Codex 5.3 | done    |
+| 110-engine-fdroid-deps-register             | 2.31       | 110-engine-fdroid-deps-register             | Codex 5.3 | done    |
+| 111-e2e-audio-spike-screenshot              | 2.32       | 111-e2e-audio-spike-screenshot              | Codex 5.3 | done    |
+| 112-e2e-video-transition-spike              | 2.33       | 112-e2e-video-transition-spike              | Opus 4.8  | done    |
 | 113-engine-spike-gate                       | 2.34       | 113-engine-spike-gate                       | Codex 5.3 | done    |
 | 114-engine-native-cache-hooks               | 2.35       | 114-engine-native-cache-hooks               | Opus 4.8  | done    |
 | 150-ci-tooling-decision                     | 4.1        | 150-ci-tooling-decision                     | Opus 4.8  | done    |

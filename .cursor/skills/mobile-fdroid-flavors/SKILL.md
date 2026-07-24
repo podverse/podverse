@@ -42,10 +42,10 @@ Examples called out in the master plan: FCM/Firebase (14.7), media engine Play S
 
 ### Register (running list)
 
-| Component / dep                                            | License / source            | FOSS status               | Flavor gating                     |
-| ---------------------------------------------------------- | --------------------------- | ------------------------- | --------------------------------- |
-| `podverse-media-engine` — Android (Media3 **ExoPlayer**)  | Apache-2.0 (`androidx.media3`) | **FOSS-clean**            | None — ships in both flavors      |
-| `podverse-media-engine` — iOS (AVFoundation / AVPlayer)    | Apple system framework      | n/a (iOS only)            | None                              |
+| Component / dep                                          | License / source               | FOSS status    | Flavor gating                |
+| -------------------------------------------------------- | ------------------------------ | -------------- | ---------------------------- |
+| `podverse-media-engine` — Android (Media3 **ExoPlayer**) | Apache-2.0 (`androidx.media3`) | **FOSS-clean** | None — ships in both flavors |
+| `podverse-media-engine` — iOS (AVFoundation / AVPlayer)  | Apple system framework         | n/a (iOS only) | None                         |
 
 **Media engine (step 2.31):** the first-party engine uses **Media3 ExoPlayer** on Android and
 **AVFoundation** on iOS. It links **no Google Play Services, no Firebase, no `react-native-track-player`**,

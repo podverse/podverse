@@ -106,9 +106,10 @@ the E2E API when run alone, add its basename to `flow_needs_e2e_api` in
 ## Unit tests (pure modules — no device)
 
 Separate from Maestro E2E: the `podverse-media-engine` pure-TS suites (bridge command serialization
-+ playback error taxonomy) run under Vitest with no React Native / Expo imports. `apps/mobile` is a
-standalone install (own lockfile, not a root workspace), so it is **excluded** from root
-`npm run test:unit` — run it with `--prefix`:
+
+- playback error taxonomy) run under Vitest with no React Native / Expo imports. `apps/mobile` is a
+  standalone install (own lockfile, not a root workspace), so it is **excluded** from root
+  `npm run test:unit` — run it with `--prefix`:
 
 ```bash
 npm --prefix apps/mobile run test

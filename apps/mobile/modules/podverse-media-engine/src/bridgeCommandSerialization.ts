@@ -23,7 +23,10 @@ export type AttachVideoSurfaceCommandArgs = readonly [
 ];
 
 /** Positional args for the native `animateVideoSurface` function. */
-export type AnimateVideoSurfaceCommandArgs = readonly [toTargetId: VideoSurfaceTargetId, durationMs: number];
+export type AnimateVideoSurfaceCommandArgs = readonly [
+  toTargetId: VideoSurfaceTargetId,
+  durationMs: number,
+];
 
 function assertFiniteNumber(value: number, label: string): void {
   if (!Number.isFinite(value)) {

@@ -200,16 +200,17 @@ npm run mobile:android -- --device Pixel_6_Pro_API_33
 ```
 
 **Android emulator performance (macOS / Apple Silicon):** Create the AVD as **API 33 + Google APIs
-+ `arm64-v8a`** (not x86_64). `scripts/mobile/ensure-devices.sh` then applies a shared profile on
-every ensure/boot (and via `tune-android`):
 
-| Setting                         | Value                                      |
-| ------------------------------- | ------------------------------------------ |
-| `hw.ramSize`                    | `4096` MB                                  |
-| `hw.cpu.ncore`                  | `6`                                        |
-| `hw.gpu.mode` / launch `-gpu`   | `host`                                     |
-| `vm.heapSize`                   | `512` MB                                   |
-| Extra launch flags              | `-no-boot-anim -netdelay none -netspeed full` |
+- `arm64-v8a`** (not x86_64). `scripts/mobile/ensure-devices.sh` then applies a shared profile on
+  every ensure/boot (and via `tune-android`):
+
+| Setting                       | Value                                         |
+| ----------------------------- | --------------------------------------------- |
+| `hw.ramSize`                  | `4096` MB                                     |
+| `hw.cpu.ncore`                | `6`                                           |
+| `hw.gpu.mode` / launch `-gpu` | `host`                                        |
+| `vm.heapSize`                 | `512` MB                                      |
+| Extra launch flags            | `-no-boot-anim -netdelay none -netspeed full` |
 
 Pixel 6 Pro LCD size is left unchanged for screenshot parity. After `tune-android`, **quit and
 re-launch** the emulator so RAM/CPU/GPU take effect. iOS Simulator will still feel snappier — that

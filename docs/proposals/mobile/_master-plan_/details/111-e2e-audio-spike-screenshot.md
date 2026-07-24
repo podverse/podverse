@@ -8,7 +8,7 @@
 
 - Add a Maestro (or documented semi-auto) flow that plays sample audio and captures evidence of
   lock-screen / now-playing controls (screenshot where automatable; otherwise operator checklist
-  + screenshot path).
+  - screenshot path).
 - Background audio was already verified for GO; this step **captures durable E2E/report evidence**
   in the Maestro report slots.
 

@@ -4,7 +4,6 @@ import { Pressable, StyleSheet, Text } from 'react-native';
 import { isMobileE2eFromEnv } from '../config/env';
 import { E2E_VIDEO_ITEM_ID_TEXT } from '../lib/e2e/e2eSeedConstants';
 import { useTheme } from '../theme/useTheme';
-
 import { usePlayback } from './PlaybackProvider';
 
 /**

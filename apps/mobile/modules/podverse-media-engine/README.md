@@ -110,17 +110,17 @@ and `destroy` are synchronous native functions; `load`, `play`, `getPosition`, a
 async (resolve on the JS thread after the native call). All methods run against the single shared
 player instance.
 
-| Method                | Args                                           | Returns           | Errors / notes                                                                          |
-| --------------------- | ---------------------------------------------- | ----------------- | --------------------------------------------------------------------------------------- |
-| `load(source)`        | `{ url: string; initialSeekSeconds?: number }` | `Promise<void>`   | Prepares URL + initial seek. Does **not** start playback. Rejects on load failure.      |
+| Method                 | Args                                           | Returns           | Errors / notes                                                                                                           |
+| ---------------------- | ---------------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `load(source)`         | `{ url: string; initialSeekSeconds?: number }` | `Promise<void>`   | Prepares URL + initial seek. Does **not** start playback. Rejects on load failure.                                       |
 | `loadAndStart(source)` | `{ url: string; initialSeekSeconds?: number }` | `Promise<void>`   | Atomic `load` + `play` (2.25). Used by the primary autoplay path; keep `load`/`play` for prepare-without-play (restore). |
-| `play()`              | —                                              | `Promise<void>`   | Activates audio session (iOS 2.5) / foreground service (Android 2.8) then plays.        |
-| `pause()`             | —                                              | `void`            | Keeps current item and position.                                                        |
-| `seek(seconds)`       | `number` (seconds)                             | `void`            | Absolute seek. Clamping owned by native.                                                |
-| `setRate(rate)`       | `number` (e.g. `1.0`, `1.5`)                   | `void`            | Sets playback rate.                                                                     |
-| `getPosition()`       | —                                              | `Promise<number>` | Current playhead in seconds.                                                            |
-| `getDuration()`       | —                                              | `Promise<number>` | Duration in seconds; `0` when unknown/live.                                             |
-| `destroy()`           | —                                              | `void`            | Tears down current item/observers. Shared player/command-center ownership stays native. |
+| `play()`               | —                                              | `Promise<void>`   | Activates audio session (iOS 2.5) / foreground service (Android 2.8) then plays.                                         |
+| `pause()`              | —                                              | `void`            | Keeps current item and position.                                                                                         |
+| `seek(seconds)`        | `number` (seconds)                             | `void`            | Absolute seek. Clamping owned by native.                                                                                 |
+| `setRate(rate)`        | `number` (e.g. `1.0`, `1.5`)                   | `void`            | Sets playback rate.                                                                                                      |
+| `getPosition()`        | —                                              | `Promise<number>` | Current playhead in seconds.                                                                                             |
+| `getDuration()`        | —                                              | `Promise<number>` | Duration in seconds; `0` when unknown/live.                                                                              |
+| `destroy()`            | —                                              | `void`            | Tears down current item/observers. Shared player/command-center ownership stays native.                                  |
 
 ### Source URLs (`load` / `loadAndStart`) — remote + local files (step 2.26 / detail 105)
 
@@ -139,13 +139,13 @@ Event names are stable — they are the input to future RN queue orchestrators. 
 to ~500 ms (within the 250–1000 ms guidance) on both platforms. Subscribe via the JS adapter
 (`useNativePlaybackBridge`), not the native module.
 
-| Event           | Payload                                                | When                                    |
-| --------------- | ------------------------------------------------------ | --------------------------------------- |
-| `playbackState` | `{ state: PlaybackStateValue }`                        | Lifecycle transitions (idle…error).     |
-| `progress`      | `{ positionSeconds: number; durationSeconds: number }` | ~500 ms while playing.                  |
-| `ended`         | `{ positionSeconds: number }`                          | Item played to natural end.             |
+| Event           | Payload                                                      | When                                                        |
+| --------------- | ------------------------------------------------------------ | ----------------------------------------------------------- |
+| `playbackState` | `{ state: PlaybackStateValue }`                              | Lifecycle transitions (idle…error).                         |
+| `progress`      | `{ positionSeconds: number; durationSeconds: number }`       | ~500 ms while playing.                                      |
+| `ended`         | `{ positionSeconds: number }`                                | Item played to natural end.                                 |
 | `error`         | `{ code: string; message: string; kind: PlaybackErrorKind }` | Playback/load failure. `kind` is normalized (see taxonomy). |
-| `stalled`       | `{ positionSeconds: number }`                          | Buffer underrun / rebuffering.          |
+| `stalled`       | `{ positionSeconds: number }`                                | Buffer underrun / rebuffering.                              |
 
 ### Error taxonomy (step 2.27 / detail 106)
 
@@ -157,14 +157,14 @@ for logs (including for `unknown`). `useNativePlaybackBridge` delivers the norma
 the transport adapter delivers raw and direct `addListener('error', …)` callers can normalize
 themselves. Mapper is native-free so Vitest covers the table without a device (pairs with 2.28).
 
-| `kind`           | Example native codes                                                                   |
-| ---------------- | -------------------------------------------------------------------------------------- |
-| `network`        | Android `ERROR_CODE_IO_NETWORK_CONNECTION_FAILED`, `…_TIMEOUT`, `…_BAD_HTTP_STATUS`     |
-| `file-not-found` | iOS `file_not_found`, Android `ERROR_CODE_IO_FILE_NOT_FOUND`                            |
-| `decode`         | Android `ERROR_CODE_DECODING_FAILED`, `ERROR_CODE_DECODER_INIT_FAILED`                  |
-| `unsupported`    | Android `ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED`, `…_MANIFEST_UNSUPPORTED`            |
-| `invalid-source` | iOS `invalid_url`                                                                      |
-| `audio-session`  | iOS `audio_session`, `audio_session_activate`                                          |
+| `kind`           | Example native codes                                                                      |
+| ---------------- | ----------------------------------------------------------------------------------------- |
+| `network`        | Android `ERROR_CODE_IO_NETWORK_CONNECTION_FAILED`, `…_TIMEOUT`, `…_BAD_HTTP_STATUS`       |
+| `file-not-found` | iOS `file_not_found`, Android `ERROR_CODE_IO_FILE_NOT_FOUND`                              |
+| `decode`         | Android `ERROR_CODE_DECODING_FAILED`, `ERROR_CODE_DECODER_INIT_FAILED`                    |
+| `unsupported`    | Android `ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED`, `…_MANIFEST_UNSUPPORTED`              |
+| `invalid-source` | iOS `invalid_url`                                                                         |
+| `audio-session`  | iOS `audio_session`, `audio_session_activate`                                             |
 | `unknown`        | anything not enumerated (iOS `item_failed`, unmatched native codes) — detail kept in logs |
 
 ### JS adapter (step 2.11 / detail 090)
@@ -231,7 +231,7 @@ The shared engine is video-capable and owns exactly **one** native video surface
 Both hosts expose an internal `registerTargetView` / `setActiveTarget` / `setVisible` API. The single
 surface is **reparented into the RN-mounted `PodverseVideoSurfaceView`** for the active target (see
 "RN registration path" below) — not into a process-global window/content overlay. This is the
-**Plan 01 / detail 099 addendum** fix: the earlier overlay was drawn *behind* the React Navigation
+**Plan 01 / detail 099 addendum** fix: the earlier overlay was drawn _behind_ the React Navigation
 native-stack modal full player, so the full player only showed the artwork fallback. Reparenting into
 the RN view keeps correct z-order and coordinate space in both the base tab view and the modal. There
 is always one surface, re-parented between `mini` and `full` — never a second `<Video>` / player
@@ -244,11 +244,11 @@ never the native module directly). Both are synchronous and dispatch to the nati
 **never** call `load` / `destroy` and never reset the playhead — only surface geometry/parenting
 changes, so audio/video stays continuous across mini↔full.
 
-| Method                             | Args                                                        | Returns | Notes                                                                                                    |
-| ---------------------------------- | ----------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------- |
-| `attachVideoSurface(targetId, rect)` | `targetId: 'mini' \| 'full'`, `rect: VideoSurfaceRect`     | `void`  | Registers/updates a target's rect (idempotent). First registered target becomes active. Unknown id no-ops. |
-| `animateVideoSurface(toTargetId, durationMs)` | `toTargetId: 'mini' \| 'full'`, `durationMs: number` | `void`  | Moves the one surface to `toTargetId` over `durationMs` (`<= 0` snaps). Overlapping calls coalesce to latest.  |
-| `setVideoSurfaceVisible(visible)`  | `visible: boolean`                                          | `void`  | JS-desired visibility (RN drives from target kind). Actual show = `visible && item-has-video-frames` (2.23). |
+| Method                                        | Args                                                   | Returns | Notes                                                                                                         |
+| --------------------------------------------- | ------------------------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------- |
+| `attachVideoSurface(targetId, rect)`          | `targetId: 'mini' \| 'full'`, `rect: VideoSurfaceRect` | `void`  | Registers/updates a target's rect (idempotent). First registered target becomes active. Unknown id no-ops.    |
+| `animateVideoSurface(toTargetId, durationMs)` | `toTargetId: 'mini' \| 'full'`, `durationMs: number`   | `void`  | Moves the one surface to `toTargetId` over `durationMs` (`<= 0` snaps). Overlapping calls coalesce to latest. |
+| `setVideoSurfaceVisible(visible)`             | `visible: boolean`                                     | `void`  | JS-desired visibility (RN drives from target kind). Actual show = `visible && item-has-video-frames` (2.23).  |
 
 **`VideoSurfaceRect` coordinate space:** `{ x, y, width, height, cornerRadius? }` in
 **density-independent window coordinates** — the same units RN `measureInWindow` returns (iOS
