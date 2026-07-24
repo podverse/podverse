@@ -56,6 +56,11 @@ public final class PodverseAudioEngine: NSObject {
   /// runtime is not running (e.g. future CarPlay-only launch). Reads/writes are hopped to main.
   var eventSink: ((PodverseMediaEngineEvent, [String: Any]) -> Void)?
 
+  /// Notified on main whenever the current item's video capability changes (ready with video vs
+  /// audio-only or torn down). Set by `PodverseVideoSurfaceHost` (2.16) so it can hide the surface
+  /// for audio-only items without the engine importing UIKit. Visibility policy: 2.23 (prompt 03).
+  var onVideoCapabilityChanged: ((Bool) -> Void)?
+
   private var currentItem: AVPlayerItem?
   private var nowPlaying = PodverseNowPlayingInfo()
 
@@ -75,17 +80,45 @@ public final class PodverseAudioEngine: NSObject {
     addPeriodicTimeObserver()
   }
 
+  // MARK: - Shared surface access (step 2.14 / detail 093)
+
+  /// Internal accessor for the single shared `AVPlayer` so the `PodverseVideoSurfaceHost` (2.16) can
+  /// bind exactly one `AVPlayerLayer` to it. There is still one and only one `AVPlayer` for the
+  /// process — video and audio items both play through this instance (no second player, no RN
+  /// `<Video>`; see Track 11.18 anti-pattern).
+  var sharedPlayer: AVPlayer { player }
+
+  /// True when the current item exposes at least one video track. The surface host uses this to
+  /// decide whether it has frames to present; the show/hide policy for audio-only items lands in
+  /// 2.23 (prompt 03). Returns `false` before the item is ready or for audio-only enclosures.
+  func currentItemHasVideoTracks() -> Bool {
+    guard let item = currentItem else { return false }
+    return item.tracks.contains { $0.assetTrack?.mediaType == .video }
+  }
+
   // MARK: - Public transport API (called by the Expo module and future CarPlay scene)
 
   /// Replace the current item with `url` and optionally seek to `initialSeekSeconds`. Does not start
   /// playback. Rapid loads cancel the prior item cleanly by replacing it on the single player.
+  ///
+  /// Accepts remote http(s) URLs, `file://` URLs, and absolute filesystem paths (offline playback,
+  /// 2.26) — all play through this one shared player, never a second player or RN `<Video>`. Missing
+  /// local files fail fast with a `file_not_found` error (2.27) instead of hanging.
   func load(url: String, initialSeekSeconds: Double?) throws {
-    guard let parsed = URL(string: url) else {
+    guard let parsed = resolveSourceURL(url) else {
       let payload: [String: Any] = ["code": "invalid_url", "message": "Invalid URL: \(url)"]
       emit(.error, payload)
       throw NSError(
         domain: "PodverseMediaEngine", code: 1,
         userInfo: [NSLocalizedDescriptionKey: "Invalid URL: \(url)"])
+    }
+
+    if parsed.isFileURL, !FileManager.default.fileExists(atPath: parsed.path) {
+      publish(state: .error)
+      emit(.error, ["code": "file_not_found", "message": "File not found: \(parsed.path)"])
+      throw NSError(
+        domain: "PodverseMediaEngine", code: 2,
+        userInfo: [NSLocalizedDescriptionKey: "File not found: \(parsed.path)"])
     }
 
     publish(state: .loading)
@@ -117,6 +150,14 @@ public final class PodverseAudioEngine: NSObject {
       }
       self.updateNowPlayingInfo()
     }
+  }
+
+  /// Convenience combining `load` + `play` (step 2.25 / detail 104). If `load` throws (invalid URL /
+  /// missing file), the error is already emitted and playback does not start. Once the item is
+  /// prepared, `play` is issued; the item may be prepared even if playback fails to begin.
+  func loadAndStart(url: String, initialSeekSeconds: Double?) throws {
+    try load(url: url, initialSeekSeconds: initialSeekSeconds)
+    play()
   }
 
   func play() {
@@ -186,6 +227,7 @@ public final class PodverseAudioEngine: NSObject {
       self.clearNowPlayingInfo()
       self.deactivateAudioSession()
       self.publish(state: .idle)
+      self.emitVideoCapability()
     }
   }
 
@@ -200,6 +242,15 @@ public final class PodverseAudioEngine: NSObject {
   private func publish(state: PodversePlaybackState) {
     lastPublishedState = state
     emit(.playbackState, ["state": state.rawValue])
+  }
+
+  /// Push the current video capability to the surface host (2.16). Hopped to main; safe no-op when
+  /// no host is attached.
+  private func emitVideoCapability() {
+    let hasVideo = currentItemHasVideoTracks()
+    onMain { [weak self] in
+      self?.onVideoCapabilityChanged?(hasVideo)
+    }
   }
 
   // MARK: - AVAudioSession (step 2.5)
@@ -392,6 +443,7 @@ public final class PodverseAudioEngine: NSObject {
       case .readyToPlay:
         self.publish(state: .ready)
         self.updateNowPlayingInfo()
+        self.emitVideoCapability()
       case .failed:
         let message = item.error?.localizedDescription ?? "Playback item failed"
         self.publish(state: .error)
@@ -425,6 +477,16 @@ public final class PodverseAudioEngine: NSObject {
   }
 
   // MARK: - Helpers
+
+  /// Resolve a load `url` string into a `URL`, supporting remote http(s), `file://` URLs, and bare
+  /// absolute filesystem paths (offline downloads, 2.26). Returns `nil` for unparseable input so the
+  /// caller can emit `invalid_url`.
+  private func resolveSourceURL(_ url: String) -> URL? {
+    if url.hasPrefix("/") {
+      return URL(fileURLWithPath: url)
+    }
+    return URL(string: url)
+  }
 
   private func clampToDuration(_ seconds: Double) -> Double {
     let lower = max(0, seconds)

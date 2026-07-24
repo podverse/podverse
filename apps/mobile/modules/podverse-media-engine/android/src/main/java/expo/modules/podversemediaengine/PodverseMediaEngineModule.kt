@@ -35,6 +35,11 @@ class PodverseMediaEngineModule : Module() {
       PodverseAudioEngine.load(reactContext(), url, initialSeekSeconds)
     }
 
+    // Atomic load + play (step 2.25 / detail 104). Used by the primary autoplay path.
+    AsyncFunction("loadAndStart") { url: String, initialSeekSeconds: Double? ->
+      PodverseAudioEngine.loadAndStart(reactContext(), url, initialSeekSeconds)
+    }
+
     AsyncFunction("play") {
       PodverseAudioEngine.play(reactContext())
     }
@@ -61,6 +66,33 @@ class PodverseMediaEngineModule : Module() {
 
     Function("destroy") {
       PodverseAudioEngine.release()
+    }
+
+    // --- Video surface (PG-5 steps 2.18-2.20 / details 097-099 + Plan 01 reparent). The ONE
+    // SurfaceView is reparented between RN-mounted `PodverseVideoSurfaceView`s (registered via the
+    // `View` below); never loads/releases the player or creates a second surface. ---
+
+    // RN-mounted target view; registers itself with the host by `targetId` (`mini` / `full`).
+    View(PodverseVideoSurfaceView::class) {
+      Prop("targetId") { view: PodverseVideoSurfaceView, targetId: String ->
+        view.setTargetId(targetId)
+      }
+    }
+
+    // Retained for the JS bridge/serialization contract + unit tests. Placement is now driven by the
+    // reparent into `PodverseVideoSurfaceView` (above), so rects no longer position the surface.
+    Function("attachVideoSurface") {
+        _: String, _: Double, _: Double, _: Double, _: Double, _: Double ->
+      // No-op: superseded by native-view reparent (Plan 01). See PodverseVideoSurfaceHost.
+    }
+
+    Function("animateVideoSurface") { toTargetId: String, durationMs: Double ->
+      PodverseVideoSurfaceHost.setActiveTarget(toTargetId, durationMs.toLong())
+    }
+
+    // JS-desired visibility (2.23); the host only shows when the item also has video frames.
+    Function("setVideoSurfaceVisible") { visible: Boolean ->
+      PodverseVideoSurfaceHost.setVisible(visible)
     }
 
     // --- Native-cache write hooks (step 2.35 / detail 114). Stubs OK in PG-2b; signatures reserved

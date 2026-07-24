@@ -21,6 +21,15 @@ EMULATOR_BIN="${ANDROID_HOME}/emulator/emulator"
 ADB_BIN="${ANDROID_HOME}/platform-tools/adb"
 AVD_HOME="${ANDROID_AVD_HOME:-$HOME/.android/avd}"
 
+# Podverse Android AVD performance profile (Apple Silicon + HVF). Applied on every ensure/boot
+# so manual + E2E slots stay consistent. Keeps Pixel_6_Pro LCD size for screenshot parity.
+ANDROID_AVD_RAM_MB=4096
+ANDROID_AVD_CPU_CORES=6
+ANDROID_AVD_HEAP_MB=512
+ANDROID_AVD_GPU_MODE=host
+# Launch flags: host GPU + no boot anim + full network (matches AVD runtime.network.*).
+ANDROID_EMULATOR_EXTRA_FLAGS=(-gpu host -no-boot-anim -netdelay none -netspeed full)
+
 die() {
   echo "Error: $*" >&2
   exit 1
@@ -125,6 +134,52 @@ android_avd_exists() {
   fi
 }
 
+tune_android_avd_config() {
+  local name="$1"
+  local config="${AVD_HOME}/${name}.avd/config.ini"
+  [[ -f "$config" ]] || die "AVD config missing: ${config}"
+  python3 - "$config" "$name" "$ANDROID_AVD_RAM_MB" "$ANDROID_AVD_CPU_CORES" "$ANDROID_AVD_HEAP_MB" "$ANDROID_AVD_GPU_MODE" <<'PY'
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+avd_name = sys.argv[2]
+ram_mb, cpu_cores, heap_mb, gpu_mode = sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6]
+updates = {
+  'AvdId': avd_name,
+  'avd.ini.displayname': avd_name,
+  'hw.ramSize': ram_mb,
+  'hw.cpu.ncore': cpu_cores,
+  'vm.heapSize': heap_mb,
+  'hw.gpu.enabled': 'yes',
+  'hw.gpu.mode': gpu_mode,
+  'runtime.network.latency': 'none',
+  'runtime.network.speed': 'full',
+  'fastboot.forceFastBoot': 'yes',
+  'fastboot.forceColdBoot': 'no',
+}
+seen = set()
+lines = []
+for raw in path.read_text().splitlines():
+  if '=' not in raw:
+    lines.append(raw)
+    continue
+  key, _, _rest = raw.partition('=')
+  key_stripped = key.strip()
+  if key_stripped in updates:
+    sep = ' = ' if ' = ' in raw else '='
+    lines.append(f'{key_stripped}{sep}{updates[key_stripped]}')
+    seen.add(key_stripped)
+  else:
+    lines.append(raw)
+for key, value in updates.items():
+  if key not in seen:
+    lines.append(f'{key} = {value}')
+path.write_text('\n'.join(lines) + '\n')
+PY
+  echo "Tuned Android AVD ${name}: ram=${ANDROID_AVD_RAM_MB}MB cores=${ANDROID_AVD_CPU_CORES} gpu=${ANDROID_AVD_GPU_MODE} heap=${ANDROID_AVD_HEAP_MB}MB" >&2
+}
+
 clone_android_avd() {
   local src="$1"
   local dest="$2"
@@ -137,11 +192,6 @@ clone_android_avd() {
   mkdir -p "$AVD_HOME"
   rm -rf "$dest_avd" "$dest_ini"
   cp -R "$src_avd" "$dest_avd"
-  # Rewrite paths inside cloned config
-  if [[ -f "${dest_avd}/config.ini" ]]; then
-    # AvdId / path.avd will be fixed via dest.ini
-    true
-  fi
   {
     echo "avd.ini.encoding=UTF-8"
     echo "path=${dest_avd}"
@@ -156,28 +206,35 @@ name = sys.argv[2]
 text = path.read_text()
 lines = []
 for line in text.splitlines():
-  if line.startswith('AvdId='):
-    lines.append(f'AvdId={name}')
-  elif line.startswith('avd.ini.displayname='):
-    lines.append(f'avd.ini.displayname={name}')
+  stripped = line.replace(' ', '')
+  if stripped.startswith('AvdId='):
+    sep = ' = ' if ' = ' in line else '='
+    lines.append(f'AvdId{sep}{name}')
+  elif stripped.startswith('avd.ini.displayname='):
+    sep = ' = ' if ' = ' in line else '='
+    lines.append(f'avd.ini.displayname{sep}{name}')
   else:
     lines.append(line)
 path.write_text('\n'.join(lines) + '\n')
 PY
   fi
+  tune_android_avd_config "$dest"
 }
 
 ensure_android_avd() {
   local name="$1"
   if android_avd_exists "$name"; then
+    tune_android_avd_config "$name"
     return 0
   fi
   if [[ "$name" == "$E2E_ANDROID_AVD" ]]; then
     android_avd_exists "$MANUAL_ANDROID_AVD" || die "Manual AVD ${MANUAL_ANDROID_AVD} not found; create it before E2E clone."
+    # Clone from a tuned manual AVD so E2E inherits the same performance profile.
+    tune_android_avd_config "$MANUAL_ANDROID_AVD"
     clone_android_avd "$MANUAL_ANDROID_AVD" "$E2E_ANDROID_AVD"
     return 0
   fi
-  die "Android AVD missing: ${name}. Create it in Android Studio (phone AVD, API 33)."
+  die "Android AVD missing: ${name}. Create it in Android Studio (phone AVD, API 33, arm64-v8a)."
 }
 
 android_serial_for_avd() {
@@ -206,8 +263,9 @@ boot_android_avd() {
     printf '%s\n' "$serial"
     return 0
   fi
-  echo "Starting Android AVD: ${name}" >&2
-  nohup "$EMULATOR_BIN" -avd "$name" -netdelay none -netspeed full >/tmp/podverse-emulator-"${name}".log 2>&1 &
+  echo "Starting Android AVD: ${name} (${ANDROID_EMULATOR_EXTRA_FLAGS[*]})" >&2
+  nohup "$EMULATOR_BIN" -avd "$name" "${ANDROID_EMULATOR_EXTRA_FLAGS[@]}" \
+    >/tmp/podverse-emulator-"${name}".log 2>&1 &
   local waited=0
   while (( waited < 180 )); do
     if serial="$(android_serial_for_avd "$name")"; then
@@ -272,6 +330,18 @@ case "$MODE" in
   manual-android)
     boot_android_avd "$MANUAL_ANDROID_AVD" >/dev/null
     ;;
+  tune-android)
+    # Re-apply performance profile to manual + E2E AVDs without booting.
+    # Restart any running emulator afterward for RAM/CPU/GPU changes to take effect.
+    android_avd_exists "$MANUAL_ANDROID_AVD" || die "Manual AVD ${MANUAL_ANDROID_AVD} not found."
+    tune_android_avd_config "$MANUAL_ANDROID_AVD"
+    if android_avd_exists "$E2E_ANDROID_AVD"; then
+      tune_android_avd_config "$E2E_ANDROID_AVD"
+    else
+      echo "E2E AVD ${E2E_ANDROID_AVD} missing; will be cloned+tuned on next e2e-android boot." >&2
+    fi
+    echo "Android AVD tune complete. Quit and re-launch the emulator to apply RAM/CPU/GPU."
+    ;;
   resolve-e2e-ios-udid)
     ensure_ios_sim "$E2E_IOS_NAME"
     ios_udid_by_name "$E2E_IOS_NAME"
@@ -304,6 +374,7 @@ case "$MODE" in
     cat <<EOF >&2
 Usage: bash scripts/mobile/ensure-devices.sh <command>
   print-matrix | e2e | e2e-ios | e2e-android | manual-ios | manual-android
+  tune-android
   resolve-e2e-ios-udid | resolve-e2e-android-serial
   check-e2e-app-ios | check-e2e-app-android
 EOF

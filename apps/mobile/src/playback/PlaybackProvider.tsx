@@ -771,6 +771,14 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     },
   });
 
+  // Drive the video surface's JS-desired visibility from the playback target kind (2.23): only
+  // full video items request the surface; clips/soundbites/chapters and audio podcasts keep it
+  // hidden. The native host additionally gates on real video frames, so a video-medium item playing
+  // an audio enclosure never leaves a black rectangle. No `load`/`destroy` — playhead is untouched.
+  useEffect(() => {
+    nativePlaybackBridge.setVideoSurfaceVisible(activeTarget?.kind === 'item-video');
+  }, [activeTarget]);
+
   const pause = useCallback(() => {
     nativePlaybackBridge.pause();
     setIsPlaying(false);

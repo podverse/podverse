@@ -7,12 +7,20 @@
  * intent as the web ESLint boundary around `useMediaElementBridge`.
  */
 
-import type { MediaEngineSource } from './types';
+import type { MediaEngineSource, VideoSurfaceRect, VideoSurfaceTargetId } from './types';
 
 /** Imperative transport contract. See `../README.md` for per-method args, returns, errors, threading. */
 export interface NativePlaybackBridge {
   /** Prepare `source.url` and apply `source.initialSeekSeconds`. Does not start playback. */
   load(source: MediaEngineSource): Promise<void>;
+  /**
+   * Convenience that combines {@link load} + {@link play} in a single native round-trip (step 2.25 /
+   * detail 104): prepare `source.url`, apply `source.initialSeekSeconds`, then start playback.
+   * Atomicity: if `play` fails after a successful `load`, the item may still be prepared and the
+   * error surfaces via the `error` event. Use {@link load} + {@link play} for prepare-without-play
+   * (e.g. cold-start session restore).
+   */
+  loadAndStart(source: MediaEngineSource): Promise<void>;
   /** Start (or resume) playback of the loaded item. */
   play(): Promise<void>;
   /** Pause playback; keeps the current item and position. */
@@ -27,6 +35,27 @@ export interface NativePlaybackBridge {
   getDuration(): Promise<number>;
   /** Tear down the current item/observers. The shared player/session ownership stays native. */
   destroy(): void;
+  /**
+   * Register or update the layout rect for a video surface target (`mini` / `full`) — step 2.18 /
+   * detail 097. **Superseded (Plan 01 / detail 099 addendum):** placement is now driven by
+   * reparenting the single surface into the RN-mounted `PodverseVideoSurfaceView` for each target,
+   * so the native side treats this as a no-op. The method + rect serialization are retained for the
+   * bridge contract and unit tests. Never loads/destroys the player; visibility is owned by 2.23.
+   */
+  attachVideoSurface(targetId: VideoSurfaceTargetId, rect: VideoSurfaceRect): void;
+  /**
+   * Move the single video surface to `toTargetId` over `durationMs` — step 2.19 / detail 098. Never
+   * reloads media or resets the playhead; only surface geometry/parenting changes (2.20).
+   * `durationMs <= 0` snaps without animation; overlapping calls coalesce to the latest target.
+   */
+  animateVideoSurface(toTargetId: VideoSurfaceTargetId, durationMs: number): void;
+  /**
+   * JS-desired visibility for the video surface — step 2.23 / detail 102. RN drives this from the
+   * playback target kind (video vs audio-only). The surface only actually shows when the current
+   * item **also** has video frames (native capability), so a video-medium item playing an audio
+   * enclosure never leaves a black rectangle. Never loads/destroys or resets the playhead.
+   */
+  setVideoSurfaceVisible(visible: boolean): void;
 }
 
 /**

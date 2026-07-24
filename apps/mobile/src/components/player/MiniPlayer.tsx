@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { GestureResponderEvent } from 'react-native';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { PodverseVideoSurfaceView } from '../../../modules/podverse-media-engine';
 import { usePlayback } from '../../playback/PlaybackProvider';
 import { useTheme } from '../../theme/useTheme';
 import { Button } from '../primitives/Button';
@@ -92,6 +93,10 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
           fontSize: 14,
           fontWeight: '600',
         },
+        videoSurface: {
+          height: 40,
+          width: 40,
+        },
       }),
     [themeStyles, tokens]
   );
@@ -127,15 +132,19 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
         <View style={{ flex: 1 - progressRatio }} />
       </View>
       <View style={styles.row}>
-        {nowPlaying.imageUrl !== null ? (
-          <Image
-            accessibilityLabel={t('media_player.media_player_image')}
-            source={{ uri: nowPlaying.imageUrl }}
-            style={styles.artwork}
-          />
-        ) : (
-          <View style={styles.artworkFallback} />
-        )}
+        <View style={styles.videoSurface} testID="mini-player-video-surface">
+          {nowPlaying.imageUrl !== null ? (
+            <Image
+              accessibilityLabel={t('media_player.media_player_image')}
+              source={{ uri: nowPlaying.imageUrl }}
+              style={styles.artwork}
+            />
+          ) : (
+            <View style={styles.artworkFallback} />
+          )}
+          {/* Single shared native surface; hidden for audio-only so the artwork shows (2.23). */}
+          <PodverseVideoSurfaceView style={StyleSheet.absoluteFill} targetId="mini" />
+        </View>
         <View style={styles.textColumn}>
           <Text numberOfLines={1} style={styles.title} testID="mini-player-title">
             {nowPlaying.title}

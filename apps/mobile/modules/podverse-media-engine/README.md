@@ -110,18 +110,28 @@ and `destroy` are synchronous native functions; `load`, `play`, `getPosition`, a
 async (resolve on the JS thread after the native call). All methods run against the single shared
 player instance.
 
-| Method          | Args                                           | Returns           | Errors / notes                                                                          |
-| --------------- | ---------------------------------------------- | ----------------- | --------------------------------------------------------------------------------------- |
-| `load(source)`  | `{ url: string; initialSeekSeconds?: number }` | `Promise<void>`   | Prepares URL + initial seek. Does **not** start playback. Rejects on load failure.      |
-| `play()`        | —                                              | `Promise<void>`   | Activates audio session (iOS 2.5) / foreground service (Android 2.8) then plays.        |
-| `pause()`       | —                                              | `void`            | Keeps current item and position.                                                        |
-| `seek(seconds)` | `number` (seconds)                             | `void`            | Absolute seek. Clamping owned by native.                                                |
-| `setRate(rate)` | `number` (e.g. `1.0`, `1.5`)                   | `void`            | Sets playback rate.                                                                     |
-| `getPosition()` | —                                              | `Promise<number>` | Current playhead in seconds.                                                            |
-| `getDuration()` | —                                              | `Promise<number>` | Duration in seconds; `0` when unknown/live.                                             |
-| `destroy()`     | —                                              | `void`            | Tears down current item/observers. Shared player/command-center ownership stays native. |
+| Method                | Args                                           | Returns           | Errors / notes                                                                          |
+| --------------------- | ---------------------------------------------- | ----------------- | --------------------------------------------------------------------------------------- |
+| `load(source)`        | `{ url: string; initialSeekSeconds?: number }` | `Promise<void>`   | Prepares URL + initial seek. Does **not** start playback. Rejects on load failure.      |
+| `loadAndStart(source)` | `{ url: string; initialSeekSeconds?: number }` | `Promise<void>`   | Atomic `load` + `play` (2.25). Used by the primary autoplay path; keep `load`/`play` for prepare-without-play (restore). |
+| `play()`              | —                                              | `Promise<void>`   | Activates audio session (iOS 2.5) / foreground service (Android 2.8) then plays.        |
+| `pause()`             | —                                              | `void`            | Keeps current item and position.                                                        |
+| `seek(seconds)`       | `number` (seconds)                             | `void`            | Absolute seek. Clamping owned by native.                                                |
+| `setRate(rate)`       | `number` (e.g. `1.0`, `1.5`)                   | `void`            | Sets playback rate.                                                                     |
+| `getPosition()`       | —                                              | `Promise<number>` | Current playhead in seconds.                                                            |
+| `getDuration()`       | —                                              | `Promise<number>` | Duration in seconds; `0` when unknown/live.                                             |
+| `destroy()`           | —                                              | `void`            | Tears down current item/observers. Shared player/command-center ownership stays native. |
 
-A later `loadAndStart` convenience (step 2.25 / detail 104) will combine `load` + `play`.
+### Source URLs (`load` / `loadAndStart`) — remote + local files (step 2.26 / detail 105)
+
+`source.url` accepts remote `http(s)` URLs and **local files** for offline playback (Track 13). Local
+files play through the **same single engine** — never a second player or RN `<Video>`:
+
+- **iOS:** `file://` URLs and absolute filesystem paths (`/…`, resolved via `URL(fileURLWithPath:)`).
+- **Android:** `file://` and `content://` URIs (Media3 `MediaItem.fromUri`).
+
+A missing `file://` target fails fast with a `file-not-found` error (see taxonomy below) instead of
+hanging. Local files emit the same `progress` / `ended` / `error` events as remote sources.
 
 ## Native → JS events (step 2.10 / detail 089)
 
@@ -134,15 +144,37 @@ to ~500 ms (within the 250–1000 ms guidance) on both platforms. Subscribe via 
 | `playbackState` | `{ state: PlaybackStateValue }`                        | Lifecycle transitions (idle…error).     |
 | `progress`      | `{ positionSeconds: number; durationSeconds: number }` | ~500 ms while playing.                  |
 | `ended`         | `{ positionSeconds: number }`                          | Item played to natural end.             |
-| `error`         | `{ code: string; message: string }`                    | Playback/load failure (mapped in 2.27). |
+| `error`         | `{ code: string; message: string; kind: PlaybackErrorKind }` | Playback/load failure. `kind` is normalized (see taxonomy). |
 | `stalled`       | `{ positionSeconds: number }`                          | Buffer underrun / rebuffering.          |
+
+### Error taxonomy (step 2.27 / detail 106)
+
+Native `code` strings differ per platform (iOS custom codes; Android Media3 `errorCodeName`). The
+pure TS mapper `mapPlaybackErrorKind` / `normalizePlaybackError`
+(`src/playbackErrorTaxonomy.ts`) collapses them into a stable `PlaybackErrorKind` so RN shows an i18n
+message keyed off the enum instead of raw native text. The **raw** `code` + `message` are preserved
+for logs (including for `unknown`). `useNativePlaybackBridge` delivers the normalized `error` event;
+the transport adapter delivers raw and direct `addListener('error', …)` callers can normalize
+themselves. Mapper is native-free so Vitest covers the table without a device (pairs with 2.28).
+
+| `kind`           | Example native codes                                                                   |
+| ---------------- | -------------------------------------------------------------------------------------- |
+| `network`        | Android `ERROR_CODE_IO_NETWORK_CONNECTION_FAILED`, `…_TIMEOUT`, `…_BAD_HTTP_STATUS`     |
+| `file-not-found` | iOS `file_not_found`, Android `ERROR_CODE_IO_FILE_NOT_FOUND`                            |
+| `decode`         | Android `ERROR_CODE_DECODING_FAILED`, `ERROR_CODE_DECODER_INIT_FAILED`                  |
+| `unsupported`    | Android `ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED`, `…_MANIFEST_UNSUPPORTED`            |
+| `invalid-source` | iOS `invalid_url`                                                                      |
+| `audio-session`  | iOS `audio_session`, `audio_session_activate`                                          |
+| `unknown`        | anything not enumerated (iOS `item_failed`, unmatched native codes) — detail kept in logs |
 
 ### JS adapter (step 2.11 / detail 090)
 
 `apps/mobile/src/bridge/` — `nativePlaybackBridge` implements the high-level `NativePlaybackBridge`
-(object-based `load({ url, initialSeekSeconds })`) over the raw native module, and
-`useNativePlaybackBridge(handlers?)` returns the bridge and subscribes to events with cleanup. This is
-the ONLY place RN drives the engine (parallels web's `useMediaElementBridge` boundary). A temporary
+(object-based `load({ url, initialSeekSeconds })` and `loadAndStart({ … })`) over the raw native
+module, and `useNativePlaybackBridge(handlers?)` returns the bridge and subscribes to events with
+cleanup (normalizing `error` through the taxonomy mapper). This is the ONLY place RN drives the engine
+(parallels web's `useMediaElementBridge` boundary). The primary autoplay path
+(`useMediaPlayerResourceUpdate`) uses `loadAndStart`; session restore stays `load`-only (paused). A temporary
 spike debug panel (`src/debug/PlaybackEngineDebugPanel.tsx`) exercises the bridge from the Hello World
 screen and may be removed once player UI (Tracks 10–11) lands.
 
@@ -183,10 +215,117 @@ This mirrors web's "no remounting the media element" rule. Cross-linked from
 [apps/mobile/APPS-MOBILE.md § Player UI](/apps/mobile/APPS-MOBILE.md) and the module comments in
 `apps/mobile/src/screens/player/FullPlayerScreen.tsx` / `apps/mobile/src/components/player/MiniPlayer.tsx`.
 
+## Video surface hosts (PG-5 steps 2.14–2.17)
+
+The shared engine is video-capable and owns exactly **one** native video surface per platform:
+
+- **iOS:** `PodverseVideoSurfaceHost.shared` (`ios/PodverseVideoSurfaceHost.swift`) owns a single
+  `AVPlayerLayer` bound to `PodverseAudioEngine.shared.sharedPlayer`. Audio and video items use the
+  same `AVPlayer` (no second player). `currentItemHasVideoTracks()` +
+  `onVideoCapabilityChanged` report whether frames exist.
+- **Android:** `PodverseVideoSurfaceHost` (`android/.../PodverseVideoSurfaceHost.kt`) owns a single
+  `TextureView` bound to the shared `ExoPlayer` via `attachVideoTextureView`. (`TextureView`, not
+  `SurfaceView` — SurfaceView does not reparent cleanly during native-stack modal fragment
+  transitions.) `currentItemHasVideo()` + `onVideoSizeChanged` report capability.
+
+Both hosts expose an internal `registerTargetView` / `setActiveTarget` / `setVisible` API. The single
+surface is **reparented into the RN-mounted `PodverseVideoSurfaceView`** for the active target (see
+"RN registration path" below) — not into a process-global window/content overlay. This is the
+**Plan 01 / detail 099 addendum** fix: the earlier overlay was drawn *behind* the React Navigation
+native-stack modal full player, so the full player only showed the artwork fallback. Reparenting into
+the RN view keeps correct z-order and coordinate space in both the base tab view and the modal. There
+is always one surface, re-parented between `mini` and `full` — never a second `<Video>` / player
+(Track 11.18).
+
+### Video surface bridge contract (steps 2.18–2.20 / details 097–099)
+
+Registered on `NativePlaybackBridge` (call via `nativePlaybackBridge` / `useNativePlaybackBridge`,
+never the native module directly). Both are synchronous and dispatch to the native main thread; they
+**never** call `load` / `destroy` and never reset the playhead — only surface geometry/parenting
+changes, so audio/video stays continuous across mini↔full.
+
+| Method                             | Args                                                        | Returns | Notes                                                                                                    |
+| ---------------------------------- | ----------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------- |
+| `attachVideoSurface(targetId, rect)` | `targetId: 'mini' \| 'full'`, `rect: VideoSurfaceRect`     | `void`  | Registers/updates a target's rect (idempotent). First registered target becomes active. Unknown id no-ops. |
+| `animateVideoSurface(toTargetId, durationMs)` | `toTargetId: 'mini' \| 'full'`, `durationMs: number` | `void`  | Moves the one surface to `toTargetId` over `durationMs` (`<= 0` snaps). Overlapping calls coalesce to latest.  |
+| `setVideoSurfaceVisible(visible)`  | `visible: boolean`                                          | `void`  | JS-desired visibility (RN drives from target kind). Actual show = `visible && item-has-video-frames` (2.23). |
+
+**`VideoSurfaceRect` coordinate space:** `{ x, y, width, height, cornerRadius? }` in
+**density-independent window coordinates** — the same units RN `measureInWindow` returns (iOS
+points; Android **dp**). iOS uses the values as points directly; Android multiplies by
+`displayMetrics.density` to position the surface in device pixels. A zero-size rect is treated as
+hidden for that target. `cornerRadius` is applied to the layer on **iOS**; Android surface clipping
+is refined with the RN targets in prompt 03.
+
+**Reparent invariant (2.20):** there is exactly one surface owner for the session. `attach` places the
+one layer/`SurfaceView`; `animate` moves the **same** view between the registered `mini` / `full`
+rects. Anti-pattern (never a second video view):
+[363-anti-pattern-no-second-video](/docs/proposals/mobile/_master-plan_/details/363-anti-pattern-no-second-video.md).
+
+**Audio-only hide (2.23):** final surface visibility is `setVideoSurfaceVisible(visible)` **AND** the
+current item actually having video frames (native `onVideoCapabilityChanged`). So a video-medium item
+that plays its audio enclosure never leaves a black rectangle, and audio podcasts/clips stay hidden.
+Hide/show never calls `load`/`destroy` or resets the playhead.
+
+### RN registration path (steps 2.21–2.24 + Plan 01 reparent)
+
+RN mounts the **native** `PodverseVideoSurfaceView` inside each player; the native surface is
+reparented into whichever is active. There is no `measureInWindow`/rect publishing — the surface
+fills the RN view directly, so it lives in the correct window (including the modal) and z-order.
+
+- **Component:** `modules/podverse-media-engine/src/PodverseVideoSurfaceView.tsx` — wraps the native
+  view (`requireNativeView('PodverseMediaEngine')`) with a `targetId` prop. The native view
+  (`ios/PodverseVideoSurfaceView.swift`, `android/.../PodverseVideoSurfaceView.kt`) registers itself
+  with the host on attach and unregisters on detach; `onLayout`/`layoutSubviews` keeps the surface
+  filling its bounds (rotation, split view, mini↔full).
+- **Mini (2.21):** `MiniPlayer` overlays `<PodverseVideoSurfaceView targetId="mini" />` on its
+  artwork inside `testID="mini-player-video-surface"` (artwork shows through when hidden).
+- **Full (2.22):** `FullPlayerScreen` overlays `<PodverseVideoSurfaceView targetId="full" />` inside
+  `testID="full-player-video-surface"` and, on mount/unmount, calls
+  `animateVideoSurface('full' | 'mini')` — expand/collapse flips the active reparent target only
+  (Track 11.4), never `load`/`destroy`.
+- **Visibility (2.23):** `PlaybackProvider` calls `setVideoSurfaceVisible(activeTarget.kind === 'item-video')`
+  whenever the active target changes.
+
+## Bridge command serialization + unit tests (step 2.28 / detail 107)
+
+Native functions take **positional** args (`load(url, seek?)`, `attachVideoSurface(targetId, x, y,
+width, height, cornerRadius)`, `animateVideoSurface(toTargetId, durationMs)`). `src/bridgeCommandSerialization.ts`
+is a pure module that converts the object-based bridge inputs into those exact tuples and validates
+them (rejects empty `url`, negative/`NaN` seek, malformed rects, negative duration). The JS adapter
+(`apps/mobile/src/bridge/nativePlaybackBridge.ts`) uses these serializers, so the arg order is proven
+in one place and malformed payloads never reach native.
+
+Vitest covers the serializers and the error taxonomy (2.27) with **no native / Expo imports**
+(`src/bridgeCommandSerialization.test.ts`, `src/playbackErrorTaxonomy.test.ts`). `apps/mobile` is a
+standalone install (own lockfile, not a root workspace), so run tests with `--prefix`:
+
+```bash
+npm --prefix apps/mobile run test
+```
+
+Config: `apps/mobile/vitest.config.ts` (Node env; `include` scoped to
+`modules/podverse-media-engine/src/**/*.test.ts` so no RN/Expo module is loaded). The adapter itself
+is intentionally **not** unit-tested here because it imports `expo-modules-core`.
+
+## FOSS / F-Droid dependencies (step 2.31 / detail 110)
+
+The engine is **FOSS-clean** and ships in both the playstore and FOSS Android flavors unchanged:
+
+- **Android:** Media3 **ExoPlayer** (`androidx.media3`, Apache-2.0). **No** Google Play Services, **no**
+  Firebase, **no** `react-native-track-player`.
+- **iOS:** AVFoundation / `AVPlayer` + `MPRemoteCommandCenter` (Apple system frameworks).
+
+No playstore-flavor gating is required for playback. If later video/DRM/cast work introduces a
+proprietary SDK (e.g. Play Services Cast), gate it to the playstore flavor and record it in the
+running register in [`.cursor/skills/mobile-fdroid-flavors/SKILL.md`](/.cursor/skills/mobile-fdroid-flavors/SKILL.md)
+in the same PR. Do not add Play Services solely to satisfy a feature.
+
 ## Verify (operator)
 
 ```bash
 test -d apps/mobile/modules/podverse-media-engine
 ! rg -q 'react-native-track-player' apps/mobile/package.json apps/mobile/modules
 rg -n "second Video|VideoSurfaceHost|anti-pattern" apps/mobile
+npm --prefix apps/mobile run test
 ```

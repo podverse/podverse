@@ -54,6 +54,10 @@ xcrun simctl list devices available
 "$HOME/Library/Android/sdk/emulator/emulator" -list-avds
 ```
 
+- Prefer Android phone AVDs as **API 33 + Google APIs + arm64-v8a**. `ensure-devices.sh` tunes
+  ram/CPU/host GPU on ensure/boot (`tune-android` to re-apply without booting). See
+  [APPS-MOBILE.md](/apps/mobile/APPS-MOBILE.md).
+
 - Boot manual iOS before ad-hoc `simctl launch`:
 
 ```bash
@@ -69,6 +73,7 @@ open -a Simulator
 - Do **not** use **`iPhone 15`**, **`iPhone 15 Pro`**, **`iPhone 15 Plus`**, or **iOS 15** runtime
   names — not available on contributor machines with Xcode 26.
 - Do **not** suggest tablet AVDs (e.g. `Galaxy_Tab_*`) for day-to-day Android runs.
+- Do **not** recommend x86_64 Android system images on Apple Silicon.
 - Do not assume a simulator/emulator is already booted (`No devices are booted`).
 
 Contributor detail: [APPS-MOBILE.md § Dev client workflow](/apps/mobile/APPS-MOBILE.md).

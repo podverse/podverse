@@ -43,7 +43,7 @@ export function PlaybackEngineDebugPanel() {
       setLastEvent('ended');
     },
     error: (event) => {
-      setLastEvent(`error: ${event.code}`);
+      setLastEvent(`error: ${event.kind} (${event.code})`);
       setError(event.message);
     },
     stalled: () => {

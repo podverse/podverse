@@ -40,6 +40,19 @@ SDKs):
 
 Examples called out in the master plan: FCM/Firebase (14.7), media engine Play Services (2.31).
 
+### Register (running list)
+
+| Component / dep                                            | License / source            | FOSS status               | Flavor gating                     |
+| ---------------------------------------------------------- | --------------------------- | ------------------------- | --------------------------------- |
+| `podverse-media-engine` — Android (Media3 **ExoPlayer**)  | Apache-2.0 (`androidx.media3`) | **FOSS-clean**            | None — ships in both flavors      |
+| `podverse-media-engine` — iOS (AVFoundation / AVPlayer)    | Apple system framework      | n/a (iOS only)            | None                              |
+
+**Media engine (step 2.31):** the first-party engine uses **Media3 ExoPlayer** on Android and
+**AVFoundation** on iOS. It links **no Google Play Services, no Firebase, no `react-native-track-player`**,
+so it is FOSS-clean and needs **no playstore-flavor gating**. If later video/DRM/cast work pulls a
+proprietary SDK (e.g. Play Services Cast, Widevine modular beyond system), gate it to the playstore
+flavor and add a row here in the same PR — do not add Play Services solely to satisfy a feature.
+
 ## LLM guidance
 
 - Prefer **interfaces + flavor-specific implementations** over `#ifdef`-style copy-paste.

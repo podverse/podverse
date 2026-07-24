@@ -71,6 +71,10 @@ Auto now-playing. **Do not** use `react-native-track-player`.
 - Bridge method/event contract and reserved native-cache write hooks:
   [modules/podverse-media-engine/README.md](modules/podverse-media-engine/README.md).
 - TypeScript `NativePlaybackBridge` interface: `modules/podverse-media-engine/src/`.
+- **Unit tests (pure modules, no device):** the bridge command serialization + playback error
+  taxonomy suites run under Vitest. `apps/mobile` is a standalone install (excluded from root
+  `npm run test:unit`), so run them with `npm --prefix apps/mobile run test` (config:
+  [vitest.config.ts](vitest.config.ts); CI touchpoint: `mobile-internal.yml` on `apps/mobile/**`).
 - Car foundation constraints:
   [mobile-carplay-android-auto](/.cursor/rules/mobile-carplay-android-auto.mdc). Seamless car
   acceptance is **Track 12** (12.5–12.6, 12.17–12.18), not PG-2b.
@@ -193,6 +197,26 @@ JDK if Studio is installed. Prefer a **phone** AVD (e.g. `Pixel_6_Pro_API_33`), 
 ```bash
 "$HOME/Library/Android/sdk/emulator/emulator" -list-avds
 npm run mobile:android -- --device Pixel_6_Pro_API_33
+```
+
+**Android emulator performance (macOS / Apple Silicon):** Create the AVD as **API 33 + Google APIs
++ `arm64-v8a`** (not x86_64). `scripts/mobile/ensure-devices.sh` then applies a shared profile on
+every ensure/boot (and via `tune-android`):
+
+| Setting                         | Value                                      |
+| ------------------------------- | ------------------------------------------ |
+| `hw.ramSize`                    | `4096` MB                                  |
+| `hw.cpu.ncore`                  | `6`                                        |
+| `hw.gpu.mode` / launch `-gpu`   | `host`                                     |
+| `vm.heapSize`                   | `512` MB                                   |
+| Extra launch flags              | `-no-boot-anim -netdelay none -netspeed full` |
+
+Pixel 6 Pro LCD size is left unchanged for screenshot parity. After `tune-android`, **quit and
+re-launch** the emulator so RAM/CPU/GPU take effect. iOS Simulator will still feel snappier — that
+gap is normal (host process vs full VM).
+
+```bash
+bash scripts/mobile/ensure-devices.sh tune-android
 ```
 
 After first clone or dependency change, from **monorepo root** (not `apps/` or `apps/mobile/ios`):

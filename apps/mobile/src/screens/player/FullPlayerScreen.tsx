@@ -16,6 +16,8 @@ import {
 import type { DTOChannel, DTOItem } from '@podverse/helpers/dto';
 import type { PlaybackTarget } from '@podverse/playback-core';
 
+import { PodverseVideoSurfaceView } from '../../../modules/podverse-media-engine';
+import { nativePlaybackBridge } from '../../bridge/nativePlaybackBridge';
 import { Button } from '../../components/primitives/Button';
 import { getMobileConfig } from '../../config';
 import { buildNowPlayingShareUrl } from '../../lib/playback/shareNowPlaying';
@@ -31,6 +33,9 @@ type FullPlayerScreenProps = {
 };
 
 type FullPlayerPanel = 'sleep' | 'speed' | 'up-next' | null;
+
+/** Mini↔full surface reparent animation (ms). Geometry only — never reloads the engine (2.19). */
+const VIDEO_SURFACE_ANIMATE_MS = 250;
 
 /** Extract the now-playing item/channel for the segments list (add-by-RSS has none). */
 const segmentContentFromTarget = (
@@ -104,6 +109,17 @@ export function FullPlayerScreen({ onClose }: FullPlayerScreenProps) {
   const [isV4vNoticeVisible, setIsV4vNoticeVisible] = useState(false);
 
   const isV4vEnabled = getMobileConfig().isV4vEnabled;
+
+  // Expand re-parents the single native surface to the `full` target; collapse (unmount) animates it
+  // back to `mini`. Reparenting + geometry only — never `load`/`destroy`, so playback stays
+  // continuous (Track 11.4 / master 2.22). The `full` target view is the `PodverseVideoSurfaceView`
+  // rendered below, which registers itself with the host; this only flips which target is active.
+  useEffect(() => {
+    nativePlaybackBridge.animateVideoSurface('full', VIDEO_SURFACE_ANIMATE_MS);
+    return () => {
+      nativePlaybackBridge.animateVideoSurface('mini', VIDEO_SURFACE_ANIMATE_MS);
+    };
+  }, []);
 
   useEffect(() => {
     if (Platform.OS !== 'android') {
@@ -201,6 +217,13 @@ export function FullPlayerScreen({ onClose }: FullPlayerScreenProps) {
           fontWeight: '700',
           textAlign: 'center',
         },
+        videoSurface: {
+          alignSelf: 'center',
+          aspectRatio: 1,
+          maxHeight: 320,
+          maxWidth: 320,
+          width: '100%',
+        },
       }),
     [themeStyles, tokens]
   );
@@ -261,15 +284,19 @@ export function FullPlayerScreen({ onClose }: FullPlayerScreenProps) {
       <ScrollView contentContainerStyle={styles.content} style={styles.scroll}>
         {isPlaybackActive ? (
           <>
-            {nowPlaying.imageUrl !== null ? (
-              <Image
-                accessibilityLabel={t('media_player.media_player_image')}
-                source={{ uri: nowPlaying.imageUrl }}
-                style={styles.artwork}
-              />
-            ) : (
-              <View style={styles.artworkFallback} />
-            )}
+            <View style={styles.videoSurface} testID="full-player-video-surface">
+              {nowPlaying.imageUrl !== null ? (
+                <Image
+                  accessibilityLabel={t('media_player.media_player_image')}
+                  source={{ uri: nowPlaying.imageUrl }}
+                  style={styles.artwork}
+                />
+              ) : (
+                <View style={styles.artworkFallback} />
+              )}
+              {/* Single shared native surface; hidden for audio-only so the artwork shows (2.23). */}
+              <PodverseVideoSurfaceView style={StyleSheet.absoluteFill} targetId="full" />
+            </View>
 
             <View>
               <Text style={styles.title} testID="full-player-title">

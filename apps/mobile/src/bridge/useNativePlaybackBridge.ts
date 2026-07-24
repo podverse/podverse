@@ -8,6 +8,7 @@
 import { useEffect, useRef } from 'react';
 
 import type { NativePlaybackEvents } from '../../modules/podverse-media-engine';
+import { normalizePlaybackError } from '../../modules/podverse-media-engine';
 import type { PlaybackEventSubscription, PodversePlaybackBridge } from './nativePlaybackBridge';
 import { nativePlaybackBridge } from './nativePlaybackBridge';
 
@@ -29,8 +30,10 @@ export function useNativePlaybackBridge(
       nativePlaybackBridge.addListener('ended', (event) => {
         handlersRef.current?.ended?.(event);
       }),
-      nativePlaybackBridge.addListener('error', (event) => {
-        handlersRef.current?.error?.(event);
+      // The adapter delivers raw native errors; normalize to a stable `kind` here (2.27) so RN
+      // consumers can pick an i18n message off the enum instead of raw native text.
+      nativePlaybackBridge.addListener('error', (payload) => {
+        handlersRef.current?.error?.(normalizePlaybackError(payload));
       }),
       nativePlaybackBridge.addListener('stalled', (event) => {
         handlersRef.current?.stalled?.(event);

@@ -164,6 +164,11 @@ npm run mobile:pod-install
   `bash scripts/mobile/ensure-devices.sh e2e`; never point Make at manual slots.
 - Never bare `--device` (interactive picker) unless the operator asks to pick a physical device.
   See [mobile-ios-simulator](/.cursor/rules/mobile-ios-simulator.mdc).
+- **Android AVD tune:** Prefer API 33 `google_apis` **arm64-v8a**. `ensure-devices.sh` applies
+  ram=4096 / cores=6 / `hw.gpu.mode=host` / heap=512 and boots with `-gpu host -no-boot-anim`.
+  Re-apply without boot: `bash scripts/mobile/ensure-devices.sh tune-android` (then restart the
+  emulator). Do not recommend x86_64 images on Apple Silicon. Details:
+  [APPS-MOBILE.md](/apps/mobile/APPS-MOBILE.md) § Dev client workflow.
 
 ## CI / publish
 

@@ -18,8 +18,29 @@ export type {
   ProgressEvent,
   EndedEvent,
   PlaybackErrorEvent,
+  PlaybackErrorKind,
+  NativePlaybackErrorPayload,
   StalledEvent,
   NativePlaybackEvents,
+  NativeRawPlaybackEvents,
+  VideoSurfaceTargetId,
+  VideoSurfaceRect,
 } from './src/types';
 
+export { mapPlaybackErrorKind, normalizePlaybackError } from './src/playbackErrorTaxonomy';
+
+export {
+  serializeAnimateVideoSurfaceCommand,
+  serializeAttachVideoSurfaceCommand,
+  serializeLoadCommand,
+} from './src/bridgeCommandSerialization';
+export type {
+  AnimateVideoSurfaceCommandArgs,
+  AttachVideoSurfaceCommandArgs,
+  LoadCommandArgs,
+} from './src/bridgeCommandSerialization';
+
 export type { PodverseMediaEngineNativeModule } from './src/PodverseMediaEngineModule';
+
+export { PodverseVideoSurfaceView } from './src/PodverseVideoSurfaceView';
+export type { PodverseVideoSurfaceViewProps } from './src/PodverseVideoSurfaceView';

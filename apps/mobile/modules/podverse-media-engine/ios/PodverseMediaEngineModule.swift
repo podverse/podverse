@@ -33,6 +33,11 @@ public class PodverseMediaEngineModule: Module {
       try PodverseAudioEngine.shared.load(url: url, initialSeekSeconds: initialSeekSeconds)
     }
 
+    // Atomic load + play (step 2.25 / detail 104). Used by the primary autoplay path.
+    AsyncFunction("loadAndStart") { (url: String, initialSeekSeconds: Double?) in
+      try PodverseAudioEngine.shared.loadAndStart(url: url, initialSeekSeconds: initialSeekSeconds)
+    }
+
     AsyncFunction("play") {
       PodverseAudioEngine.shared.play()
     }
@@ -59,6 +64,34 @@ public class PodverseMediaEngineModule: Module {
 
     Function("destroy") {
       PodverseAudioEngine.shared.destroy()
+    }
+
+    // --- Video surface (PG-5 steps 2.18–2.20 / details 097–099 + Plan 01 reparent). The ONE
+    // `AVPlayerLayer` is reparented between RN-mounted `PodverseVideoSurfaceView`s (registered via
+    // the `View` below); never loads/destroys the player or creates a second surface. ---
+
+    // RN-mounted target view; registers itself with the host by `targetId` (`mini` / `full`).
+    View(PodverseVideoSurfaceView.self) {
+      Prop("targetId") { (view: PodverseVideoSurfaceView, targetId: String) in
+        view.setTargetId(targetId)
+      }
+    }
+
+    // Retained for the JS bridge/serialization contract + unit tests. Placement is now driven by the
+    // reparent into `PodverseVideoSurfaceView` (above), so rects no longer position the surface.
+    Function("attachVideoSurface") {
+      (_: String, _: Double, _: Double, _: Double, _: Double, _: Double) in
+      // No-op: superseded by native-view reparent (Plan 01). See PodverseVideoSurfaceHost.
+    }
+
+    Function("animateVideoSurface") { (toTargetId: String, durationMs: Double) in
+      guard let target = PodverseVideoTargetId(rawValue: toTargetId) else { return }
+      PodverseVideoSurfaceHost.shared.setActiveTarget(target, animatedDuration: durationMs / 1000.0)
+    }
+
+    // JS-desired visibility (2.23); the host only shows when the item also has video frames.
+    Function("setVideoSurfaceVisible") { (visible: Bool) in
+      PodverseVideoSurfaceHost.shared.setVisible(visible)
     }
 
     // --- Native-cache write hooks (step 2.35 / detail 114). Stubs OK in PG-2b; signatures reserved

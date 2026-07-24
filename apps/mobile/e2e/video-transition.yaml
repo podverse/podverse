@@ -1,0 +1,78 @@
+appId: com.podverse.app.next
+name: Video Transition
+---
+# Master step 2.33 (detail 112): play a real video item on the first-party media engine and prove
+# the seamless mini->full player transition does NOT reload playback (single persistent native
+# VideoSurfaceHost reparented between the mini and full surfaces — anti-pattern 11.18 is a second
+# video mount / reload spinner). Feeds Track 11.15–11.17 once video list/browse UI lands.
+#
+# Real video: the seeded video-medium item (E2E_VIDEO_ITEM_ID_TEXT / e2eVideoChnl01) has an
+# h264 enclosure served as video/mp4 on :2111 (tools/test-assets/assets/e2e/videos/
+# e2e-video-short-30s.mp4 — regenerate via `npm run generate:e2e-media -w podverse-test-assets`).
+# The orchestrator rewrites localhost -> 127.0.0.1 (iOS) / 10.0.2.2 (Android) via resolveE2eMediaUrl
+# (Android media host rewrite, detail 337 / 5.23). Requires flow_needs_test_assets + flow_needs_e2e_api.
+#
+# There is no video browse/search UI yet (mobile search + home use medium 'podcasts' = [Podcast]),
+# so the flow starts playback via the EXPO_PUBLIC_MOBILE_E2E-gated `e2e-play-video-item` affordance
+# on Home, which calls playItemById on the seeded video item. That yields an `item-video` active
+# target, so PlaybackProvider drives setVideoSurfaceVisible(true) and the native surface renders.
+#
+# If the video fixture is missing the enclosure 404s and playback never goes active: this flow then
+# fails at the playback-active-e2e wait (no soft-pass) — generate the fixture + reseed first.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- assertVisible:
+    id: home-screen
+- tapOn:
+    id: e2e-play-video-item
+
+# Network + video load, then the orchestrator sets the item-video active target synchronously.
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+    timeout: ${TIMEOUT_SLOWEST}
+- assertVisible:
+    id: mini-player
+- assertVisible:
+    id: mini-player-video-surface
+- takeScreenshot: video-transition-mini
+
+# Expand to the full player. The shared engine keeps playing (no reload) — the native video surface
+# animates from the mini rect to the full rect; playback-active-e2e never disappears from JS state.
+- tapOn:
+    id: mini-player
+- assertVisible:
+    id: full-player-screen
+- assertVisible:
+    id: full-player-video-surface
+- assertVisible:
+    id: full-player-title
+- assertVisible:
+    id: full-player-scrubber
+- takeScreenshot: video-transition-full
+
+# Collapse back to the mini player. Playback stays continuous (surface reparents mini<-full).
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          id: full-player-close
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - pressKey: Back
+- extendedWaitUntil:
+    notVisible:
+      id: full-player-screen
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: mini-player
+- assertVisible:
+    id: mini-player-video-surface
+- assertVisible:
+    id: playback-active-e2e
+- takeScreenshot: video-transition-collapsed
