@@ -61,6 +61,29 @@ export const MIGRATIONS: Migration[] = [
       );`,
     ],
   },
+  {
+    version: 5,
+    statements: [
+      `CREATE TABLE IF NOT EXISTS download (
+        item_id_text TEXT PRIMARY KEY NOT NULL,
+        enclosure_uri TEXT NOT NULL,
+        enclosure_url_hash TEXT NOT NULL,
+        enclosure_mime TEXT,
+        media_type TEXT NOT NULL,
+        file_extension TEXT,
+        file_path TEXT,
+        byte_size INTEGER,
+        bytes_downloaded INTEGER NOT NULL,
+        status TEXT NOT NULL,
+        title TEXT,
+        artwork_url TEXT,
+        error_reason TEXT,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );`,
+      `CREATE INDEX IF NOT EXISTS idx_download_status ON download (status);`,
+    ],
+  },
 ];
 
 export const LATEST_MIGRATION_VERSION: number = MIGRATIONS.reduce(

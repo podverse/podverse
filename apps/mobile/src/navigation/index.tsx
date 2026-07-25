@@ -13,6 +13,7 @@ import { ArtistDetailScreen } from '../screens/artist/ArtistDetailScreen';
 import { ClipDetailScreen } from '../screens/clip/ClipDetailScreen';
 import { EpisodeDetailScreen } from '../screens/episode/EpisodeDetailScreen';
 import { HomeScreen } from '../screens/home/HomeScreen';
+import { LibraryDownloadsScreen } from '../screens/library/LibraryDownloadsScreen';
 import { LibraryHistoryScreen } from '../screens/library/LibraryHistoryScreen';
 import { LibraryMyClipsScreen } from '../screens/library/LibraryMyClipsScreen';
 import { LibraryPlaylistsScreen } from '../screens/library/LibraryPlaylistsScreen';
@@ -555,10 +556,6 @@ function LibraryHubScreen({
       title={t('features.my_library')}
     />
   );
-}
-
-function LibraryDownloadsScreen() {
-  return <PlaceholderScreen testID="library-downloads-screen" title="Downloads Placeholder" />;
 }
 
 type MoreRootScreenProps = NativeStackScreenProps<MoreStackParamList, 'MoreRoot'> & {

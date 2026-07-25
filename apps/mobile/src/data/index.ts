@@ -16,6 +16,7 @@ export {
   accountRepository,
   addByRssRepository,
   autoQueueRepository,
+  downloadsRepository,
   exampleRepository,
   playbackContentRepository,
   queueRepository,
@@ -24,6 +25,7 @@ export {
   statsRepository,
 } from './repositories';
 export type {
+  DownloadPatch,
   ExampleSnapshot,
   MobileAuthRequestContext,
   MoveNowPlayingToHistoryTarget,

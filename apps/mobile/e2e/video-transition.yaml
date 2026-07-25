@@ -40,7 +40,7 @@ name: Video Transition
 - takeScreenshot: video-transition-mini
 
 # Expand to the full player. The shared engine keeps playing (no reload) — the native video surface
-# animates from the mini rect to the full rect; playback-active-e2e never disappears from JS state.
+# reparents from the mini rect to the full rect (Track 11.8 continuity).
 - tapOn:
     id: mini-player
 - assertVisible:
@@ -51,10 +51,10 @@ name: Video Transition
     id: full-player-title
 - assertVisible:
     id: full-player-scrubber
-# 11.8 continuity: expand reparents the surface, it does NOT reload the engine — the JS playback
-# state (playback-active-e2e) must never drop across the mini->full transition.
-- assertVisible:
-    id: playback-active-e2e
+# Do not assert `playback-active-e2e` here — like play-mini-player, the PlaybackE2eStatus marker sits
+# under the nav tree (tab bar) and is not visible while the full player modal covers the screen. The
+# full-player-video-surface / title / scrubber above prove the session stays live across the expand;
+# the marker is re-asserted after collapse (below) to prove playback never dropped (11.8 continuity).
 - takeScreenshot: video-transition-full
 
 # Collapse back to the mini player. Playback stays continuous (surface reparents mini<-full).

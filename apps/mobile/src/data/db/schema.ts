@@ -68,3 +68,31 @@ export const addByRssFeed = sqliteTable('add_by_rss_feed', {
 
 export type AddByRssFeedRow = typeof addByRssFeed.$inferSelect;
 export type AddByRssFeedInsert = typeof addByRssFeed.$inferInsert;
+
+/**
+ * Offline downloads index (Track 13, Phase F). Source of truth for the phone Downloads library and
+ * for local-file playback. One row per downloadable item, keyed by `item_id_text`. Only progressive
+ * (non-live, non-HLS) items get a row — eligibility is gated by `isItemDownloadable` before insert
+ * (see src/downloads/README.md). `file_path` / `byte_size` fill in as the transfer completes.
+ * Repositories that own this index project it to the native cache on every mutation (car/watch).
+ */
+export const download = sqliteTable('download', {
+  itemIdText: text('item_id_text').primaryKey(),
+  enclosureUri: text('enclosure_uri').notNull(),
+  enclosureUrlHash: text('enclosure_url_hash').notNull(),
+  enclosureMime: text('enclosure_mime'),
+  mediaType: text('media_type').notNull(),
+  fileExtension: text('file_extension'),
+  filePath: text('file_path'),
+  byteSize: integer('byte_size'),
+  bytesDownloaded: integer('bytes_downloaded').notNull(),
+  status: text('status').notNull(),
+  title: text('title'),
+  artworkUrl: text('artwork_url'),
+  errorReason: text('error_reason'),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+export type DownloadRow = typeof download.$inferSelect;
+export type DownloadInsert = typeof download.$inferInsert;

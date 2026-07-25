@@ -62,20 +62,23 @@ those briefs in Track 23 — not earlier.
 
 ## Current status / next up (2026-07)
 
-| Parallel group              | Status   | Notes                                                                                           |
-| --------------------------- | -------- | ----------------------------------------------------------------------------------------------- |
-| PG-0 … PG-4                 | **done** | Foundation, playback-core, hello-world, media-engine **audio** spike, CI/E2E, auth, nav, themes |
-| PG-5 (Track 2 video)        | **done** | Video surface + reparent gaps archived under `.llm/plans/completed/mobile-pg5-*`                |
-| PG-6 / 6.5 / 6.6            | **done** | Home/browse, data layer + primitives, media-row actions                                         |
-| PG-7 (Tracks 10–11)         | **done** | Track 10 DONE; Track 11 audio + video done (11.3 / 11.6–11.8 / 11.15–11.17)                     |
-| **Track 11 video leftover** | **done** | Archived under `.llm/plans/completed/mobile-track11-video/`                                     |
-| **PG-6.7 (Track 9d)**       | **done** | Archived under `.llm/plans/completed/mobile-track9d-playlist-authoring/` (9d.1–9d.5)            |
-| PG-8+                       | later    | Car, downloads, push, settings remainder, multi-device, IAP                                     |
-| PG-13 (Track 23)            | later    | **Operator** screen-by-screen visual polish — after feature bulk                                |
+| Parallel group              | Status      | Notes                                                                                           |
+| --------------------------- | ----------- | ----------------------------------------------------------------------------------------------- |
+| PG-0 … PG-4                 | **done**    | Foundation, playback-core, hello-world, media-engine **audio** spike, CI/E2E, auth, nav, themes |
+| PG-5 (Track 2 video)        | **done**    | Video surface + reparent gaps archived under `.llm/plans/completed/mobile-pg5-*`                |
+| PG-6 / 6.5 / 6.6            | **done**    | Home/browse, data layer + primitives, media-row actions                                         |
+| PG-7 (Tracks 10–11)         | **done**    | Track 10 DONE; Track 11 audio + video done (11.3 / 11.6–11.8 / 11.15–11.17)                     |
+| **Track 11 video leftover** | **done**    | Archived under `.llm/plans/completed/mobile-track11-video/`                                     |
+| **PG-6.7 (Track 9d)**       | **done**    | Archived under `.llm/plans/completed/mobile-track9d-playlist-authoring/` (9d.1–9d.5)            |
+| **PG-9 Track 13 downloads** | **planned** | Detail 430–439 + `.llm/plans/active/mobile-track13-downloads/` — implement via COPY-PASTA       |
+| PG-8 / rest of PG-9         | later       | Car, push, deep links, settings/OPML remainder                                                  |
+| PG-13 (Track 23)            | later       | **Operator** screen-by-screen visual polish — after feature bulk                                |
 
 ### Recommended next build sequence
 
-1. **Track 13 downloads, Track 12 car, Track 16 settings/OPML, push** — next functional-sketch bulk.
+1. **Implement Track 13** — paste prompts from
+   `.llm/plans/active/mobile-track13-downloads/COPY-PASTA.md`.
+2. Then **Track 12 car**, **Track 16 settings/OPML**, **push** — next functional-sketch bulk.
    **Track 23** only after the feature bulk is in place and the operator has reviewed screens.
 
 _Done:_ **Track 9d playlist authoring** — archived under
@@ -541,7 +544,7 @@ flows through repositories — see
 10.24. E2E: add to queue and verify queue screen row (screenshot). Model: Codex 5.3. Detail: [333-e2e-queue-add](/docs/proposals/mobile/_master-plan_/details/333-e2e-queue-add.md) — done
 10.25. E2E: auto-queue advance after track ended (screenshot or state assert). Model: Opus 4.8. Detail: [334-e2e-auto-queue-advance](/docs/proposals/mobile/_master-plan_/details/334-e2e-auto-queue-advance.md) — done
 
-## Track 11 — Mini player, full player, seamless video
+## Track 11 — Mini player, full player, seamless video (DONE)
 
 **Ship bar:** Audio full player is **done** as a functional sketch. Remaining video steps wire the
 native surface — do **not** redesign player layout or add transcript/clip-authoring chrome here
@@ -594,17 +597,21 @@ native surface — do **not** redesign player layout or add transcript/clip-auth
 
 **Prerequisite:** Track 9b offline-first data layer. This track is **enclosure file** downloads on
 disk + download index rows in the same SQLite DB — not a substitute for the metadata/data layer.
+**Eligibility:** progressive media only — reject `item.live_item` and HLS/m3u8; formats from
+helpers `itemEnclosure` maps. See
+[DOCS-MOBILE-PROCESS-MOBILE-ONLY-FEATURES.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-MOBILE-ONLY-FEATURES.md)
+§1.1–1.2 and detail [430-download-queue-design](/docs/proposals/mobile/_master-plan_/details/430-download-queue-design.md).
 
-13.1. Design download job queue module (native or RN background task). Model: Opus 4.8. Detail: [430-download-queue-design](/docs/proposals/mobile/_master-plan_/details/430-download-queue-design.md) — _TBD_
-13.2. Choose storage: Expo FileSystem + background download or native download manager. Model: Codex 5.3. Detail: [431-download-storage-choice](/docs/proposals/mobile/_master-plan_/details/431-download-storage-choice.md) — _TBD_
-13.3. Local metadata DB schema: item_id, path, size, status, enclosure URL hash. Model: Codex 5.3. Detail: [432-download-metadata-schema](/docs/proposals/mobile/_master-plan_/details/432-download-metadata-schema.md) — _TBD_
-13.4. Download action from episode detail enqueues job and shows progress. Model: Codex 5.3. Detail: [433-download-from-episode](/docs/proposals/mobile/_master-plan_/details/433-download-from-episode.md) — _TBD_
-13.5. My Library downloads section lists completed and in-progress items. Model: Codex 5.3. Detail: [434-library-downloads-list](/docs/proposals/mobile/_master-plan_/details/434-library-downloads-list.md) — _TBD_
-13.6. Play downloaded item via engine `file://` path (Track 2.26). Model: Opus 4.8. Detail: [435-playback-from-download](/docs/proposals/mobile/_master-plan_/details/435-playback-from-download.md) — _TBD_
-13.7. Storage quota policy and user-facing manage-storage screen. Model: Codex 5.3. Detail: [436-storage-quota-policy](/docs/proposals/mobile/_master-plan_/details/436-storage-quota-policy.md) — _TBD_
-13.8. Auto-delete rules optional (oldest first when quota exceeded). Model: Codex 5.3. Detail: [437-auto-delete-policy](/docs/proposals/mobile/_master-plan_/details/437-auto-delete-policy.md) — _TBD_
-13.9. Update native cache downloads index on download complete (Track 12). Model: Opus 4.8. Detail: [438-cache-downloads-index](/docs/proposals/mobile/_master-plan_/details/438-cache-downloads-index.md) — _TBD_
-13.10. E2E: download episode offline mode play screenshot (network disabled). Model: Codex 5.3. Detail: [439-e2e-offline-play](/docs/proposals/mobile/_master-plan_/details/439-e2e-offline-play.md) — _TBD_
+13.1. Design download job queue module (native or RN background task). Model: Opus 4.8. Detail: [430-download-queue-design](/docs/proposals/mobile/_master-plan_/details/430-download-queue-design.md) — done
+13.2. Choose storage: Expo FileSystem + background download or native download manager. Model: Codex 5.3. Detail: [431-download-storage-choice](/docs/proposals/mobile/_master-plan_/details/431-download-storage-choice.md) — done
+13.3. Local metadata DB schema: item_id, path, size, status, enclosure URL hash. Model: Codex 5.3. Detail: [432-download-metadata-schema](/docs/proposals/mobile/_master-plan_/details/432-download-metadata-schema.md) — done
+13.4. Download action from episode detail enqueues job and shows progress. Model: Codex 5.3. Detail: [433-download-from-episode](/docs/proposals/mobile/_master-plan_/details/433-download-from-episode.md) — done
+13.5. My Library downloads section lists completed and in-progress items. Model: Codex 5.3. Detail: [434-library-downloads-list](/docs/proposals/mobile/_master-plan_/details/434-library-downloads-list.md) — done
+13.6. Play downloaded item via engine `file://` path (Track 2.26). Model: Opus 4.8. Detail: [435-playback-from-download](/docs/proposals/mobile/_master-plan_/details/435-playback-from-download.md) — done
+13.7. Storage quota policy and user-facing manage-storage screen. Model: Codex 5.3. Detail: [436-storage-quota-policy](/docs/proposals/mobile/_master-plan_/details/436-storage-quota-policy.md) — done
+13.8. Auto-delete rules optional (oldest first when quota exceeded). Model: Codex 5.3. Detail: [437-auto-delete-policy](/docs/proposals/mobile/_master-plan_/details/437-auto-delete-policy.md) — done
+13.9. Update native cache downloads index on download complete (Track 12). Model: Opus 4.8. Detail: [438-cache-downloads-index](/docs/proposals/mobile/_master-plan_/details/438-cache-downloads-index.md) — done
+13.10. E2E: download episode offline mode play screenshot (network disabled). Model: Codex 5.3. Detail: [439-e2e-offline-play](/docs/proposals/mobile/_master-plan_/details/439-e2e-offline-play.md) — done
 
 ## Track 14 — Push notifications (FCM + UnifiedPush)
 
@@ -1011,9 +1018,9 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 282-opml-export-entry-ui                    | 9.23       | 282-opml-export-entry-ui                    | Auto      | done    |
 | 283-categories-browse-optional              | 9.24       | 283-categories-browse-optional              | Codex 5.3 | done    |
 | 284-e2e-podcast-episode-flow                | 9.25       | 284-e2e-podcast-episode-flow                | Codex 5.3 | done    |
-| 285-e2e-search-flow                         | 9.26       | 285-e2e-search-flow                         | Auto      | planned |
+| 285-e2e-search-flow                         | 9.26       | 285-e2e-search-flow                         | Auto      | done    |
 | 286-e2e-add-by-rss-flow                     | 9.27       | 286-e2e-add-by-rss-flow                     | Codex 5.3 | done    |
-| 287-screen-map-appendix-ref                 | 9.28       | 287-screen-map-appendix-ref                 | Auto      | planned |
+| 287-screen-map-appendix-ref                 | 9.28       | 287-screen-map-appendix-ref                 | Auto      | done    |
 | 288-e2e-addbyrss-playback-test-assets       | 9.29       | 288-e2e-addbyrss-playback-test-assets       | Codex 5.3 | done    |
 | 490-data-layer-db-scaffold                  | 9b.1       | 490-data-layer-db-scaffold                  | Opus 4.8  | done    |
 | 491-data-layer-repository-seam              | 9b.2       | 491-data-layer-repository-seam              | Opus 4.8  | done    |
@@ -1089,16 +1096,16 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 398-car-manual-qa-gate                      | 12.19      | 398-car-manual-qa-gate                      | Auto      | _TBD_   |
 | 399-abcmemory-car-native-only               | 12.20      | 399-abcmemory-car-native-only               | Codex 5.3 | _TBD_   |
 | 400-car-parallel-worktree                   | 12.21      | 400-car-parallel-worktree                   | Auto      | _TBD_   |
-| 430-download-queue-design                   | 13.1       | 430-download-queue-design                   | Opus 4.8  | _TBD_   |
-| 431-download-storage-choice                 | 13.2       | 431-download-storage-choice                 | Codex 5.3 | _TBD_   |
-| 432-download-metadata-schema                | 13.3       | 432-download-metadata-schema                | Codex 5.3 | _TBD_   |
-| 433-download-from-episode                   | 13.4       | 433-download-from-episode                   | Codex 5.3 | _TBD_   |
-| 434-library-downloads-list                  | 13.5       | 434-library-downloads-list                  | Codex 5.3 | _TBD_   |
-| 435-playback-from-download                  | 13.6       | 435-playback-from-download                  | Opus 4.8  | _TBD_   |
-| 436-storage-quota-policy                    | 13.7       | 436-storage-quota-policy                    | Codex 5.3 | _TBD_   |
-| 437-auto-delete-policy                      | 13.8       | 437-auto-delete-policy                      | Codex 5.3 | _TBD_   |
-| 438-cache-downloads-index                   | 13.9       | 438-cache-downloads-index                   | Opus 4.8  | _TBD_   |
-| 439-e2e-offline-play                        | 13.10      | 439-e2e-offline-play                        | Codex 5.3 | _TBD_   |
+| 430-download-queue-design                   | 13.1       | 430-download-queue-design                   | Opus 4.8  | done    |
+| 431-download-storage-choice                 | 13.2       | 431-download-storage-choice                 | Codex 5.3 | done    |
+| 432-download-metadata-schema                | 13.3       | 432-download-metadata-schema                | Codex 5.3 | done    |
+| 433-download-from-episode                   | 13.4       | 433-download-from-episode                   | Codex 5.3 | done    |
+| 434-library-downloads-list                  | 13.5       | 434-library-downloads-list                  | Codex 5.3 | done    |
+| 435-playback-from-download                  | 13.6       | 435-playback-from-download                  | Opus 4.8  | done    |
+| 436-storage-quota-policy                    | 13.7       | 436-storage-quota-policy                    | Codex 5.3 | done    |
+| 437-auto-delete-policy                      | 13.8       | 437-auto-delete-policy                      | Codex 5.3 | done    |
+| 438-cache-downloads-index                   | 13.9       | 438-cache-downloads-index                   | Opus 4.8  | done    |
+| 439-e2e-offline-play                        | 13.10      | 439-e2e-offline-play                        | Codex 5.3 | done    |
 | 440-fcm-integration-playstore               | 14.1       | 440-fcm-integration-playstore               | Codex 5.3 | _TBD_   |
 | 441-fcm-device-register                     | 14.2       | 441-fcm-device-register                     | Codex 5.3 | _TBD_   |
 | 442-fcm-locale-update                       | 14.3       | 442-fcm-locale-update                       | Codex 5.3 | _TBD_   |

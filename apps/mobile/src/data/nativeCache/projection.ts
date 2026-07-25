@@ -21,7 +21,17 @@
  * auto-queue advance materializes a manual-queue move-to-history (which projects) plus a transient
  * now-playing that the Track 12 native-cache now-playing hook will own. Do not project from React
  * providers/screens — projection stays in the data layer.
+ *
+ * Downloads projection (master step 13.9 / detail 438): `downloadsRepository` rebuilds the full
+ * completed-downloads set and calls `projectDownloadsIndexToNativeCache` on every mutation
+ * (complete / delete / clear). That now also forwards to the media-engine `writeDownloadsIndex`
+ * bridge so offline car browse (Track 12.14) reads local `file://` paths without SQLite. The engine
+ * write is best-effort: a projection/bridge failure must never roll back a successful download
+ * mutation. Durable native-cache storage still lands in Track 12; the bridge is a logging stub until
+ * then (see podverse-media-engine README §native cache).
  */
+
+import { nativePlaybackBridge } from '../../bridge/nativePlaybackBridge';
 
 /** Minimal browse-shaped entry — the real (denormalized) schema is owned by Track 12. */
 export type NativeCacheQueueEntry = {
@@ -75,6 +85,16 @@ export const projectDownloadsIndexToNativeCache = async (
   index: DownloadsIndexProjection
 ): Promise<void> => {
   logProjectionStub('downloads', index);
+  // Forward to the engine's reserved native-cache write (114 / 2.35). Best-effort: never let a
+  // bridge failure (or a JS-only context where the native module is not linked) roll back the
+  // successful download mutation that triggered this projection.
+  try {
+    await nativePlaybackBridge.writeDownloadsIndex(JSON.stringify(index));
+  } catch (error) {
+    if (__DEV__) {
+      console.warn('[native-cache] writeDownloadsIndex bridge unavailable (soft-fail)', error);
+    }
+  }
 };
 
 export const projectLibraryBrowseIndexToNativeCache = async (

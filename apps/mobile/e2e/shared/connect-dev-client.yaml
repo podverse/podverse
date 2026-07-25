@@ -16,9 +16,12 @@ appId: com.podverse.app.next
 # beat after the screen appears, so without this wait the guard misses, the tap is skipped, and
 # the bundle never loads (then "Continue" never appears and the flow times out on the launcher).
 # "Development servers" is the launcher heading on both iOS and Android.
+# Use the slowest timeout: the FIRST flow of each platform in a full suite run is a cold Dev Client
+# launch where Metro has not yet cached that platform's bundle, so the launcher heading can take
+# well over TIMEOUT_SLOW to render (observed on Android add-by-rss/api-health mid-suite).
 - extendedWaitUntil:
     visible: "Development servers"
-    timeout: ${TIMEOUT_SLOW}
+    timeout: ${TIMEOUT_SLOWEST}
 
 # Dev Client launcher: tap the Metro URL for this platform.
 - runFlow:

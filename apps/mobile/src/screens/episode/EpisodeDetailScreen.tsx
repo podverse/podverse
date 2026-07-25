@@ -13,6 +13,7 @@ import type {
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
+import { DownloadControl } from '../../components/download/DownloadControl';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
@@ -538,6 +539,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
                 {playbackNoticeKey !== null ? (
                   <Text style={styles.notice}>{t(playbackNoticeKey)}</Text>
                 ) : null}
+                <DownloadControl item={episode} />
               </>
             ) : null}
           </View>

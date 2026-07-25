@@ -25,8 +25,8 @@ Never write auth tokens to SQLite or AsyncStorage.
 ## `db/` — SQLite + Drizzle
 
 - `client.ts` — lazily opens `expo-sqlite` and exposes the Drizzle client (`getDb()`).
-- `schema.ts` — Drizzle table definitions. Scaffold ships `kv_meta` (sync metadata); domain tables
-  are added by later Track 9b steps.
+- `schema.ts` — Drizzle table definitions (`kv_meta`, `account_snapshot`, `queue_cache`,
+  `add_by_rss_feed`, `download`). Domain tables arrive as forward-only migrations.
 - `migrations.ts` — forward-only migration list (append-only; strictly increasing integer
   `version`).
 - `runMigrations.ts` — applies pending migrations in a transaction, tracked via
@@ -56,7 +56,10 @@ Screen / hook  →  repository  →  SQLite (source of truth for phone UI)
   `addByRssRepository` (followed add-by-RSS feeds in `add_by_rss_feed`, offline-capable list;
   persists the last `@podverse/parser-mapping` compat bundle per feed for full-resource playback —
   the follow/parse/unfollow API calls stay in the add-by-RSS hooks that orchestrate the flow).
-  `exampleRepository` is a scaffold proving the pattern.
+  `downloadsRepository` (Phase F offline downloads index in `download`; source of truth for the
+  Downloads library + local-file playback — **progressive only**, eligibility gated by
+  `isItemDownloadable` in `src/downloads/` before insert; projects the completed set to the native
+  cache on every mutation). `exampleRepository` is a scaffold proving the pattern.
 - `sync/` — generic `readThrough` / `writeBehind` primitives + `kv_meta` watermark helpers
   (`readSyncWatermark`, `writeSyncWatermark`, `isWatermarkStale`).
 - `nativeCache/` — `projectQueueSnapshotToNativeCache`, `projectDownloadsIndexToNativeCache`,

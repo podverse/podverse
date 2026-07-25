@@ -107,7 +107,9 @@ test_valkey_up:
 test_db_init: test_postgres_up
 	@echo "Creating test database and users..."
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$(TEST_DB_NAME)' AND pid <> pg_backend_pid();" 2>/dev/null || true
-	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DROP DATABASE IF EXISTS $(TEST_DB_NAME);"
+	@# WITH (FORCE) terminates any connections that reconnected after the terminate above (e.g. the
+	@# leave-running E2E API pool), avoiding the "database is being accessed by other users" race.
+	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DROP DATABASE IF EXISTS $(TEST_DB_NAME) WITH (FORCE);"
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "CREATE DATABASE $(TEST_DB_NAME);"
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DO \$$$$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_APP_MIGRATOR_USER)') THEN CREATE USER $(TEST_APP_MIGRATOR_USER) WITH PASSWORD '$(TEST_APP_MIGRATOR_PASSWORD)'; END IF; IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_APP_READ_USER)') THEN CREATE USER $(TEST_APP_READ_USER) WITH PASSWORD '$(TEST_APP_READ_PASSWORD)'; END IF; IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_APP_READ_WRITE_USER)') THEN CREATE USER $(TEST_APP_READ_WRITE_USER) WITH PASSWORD '$(TEST_APP_READ_WRITE_PASSWORD)'; END IF; END \$$$$;"
 	@LINEAR_MIGRATIONS_QUIET=1 DB_HOST="127.0.0.1" DB_PORT="$(TEST_DB_PORT)" \
@@ -130,7 +132,9 @@ test_db_init: test_postgres_up
 test_db_init_management: test_db_init
 	@echo "Creating management test database..."
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$(TEST_MANAGEMENT_DB_NAME)' AND pid <> pg_backend_pid();" 2>/dev/null || true
-	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DROP DATABASE IF EXISTS $(TEST_MANAGEMENT_DB_NAME);"
+	@# WITH (FORCE) terminates any connections that reconnected after the terminate above,
+	@# avoiding the "database is being accessed by other users" race with leave-running services.
+	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DROP DATABASE IF EXISTS $(TEST_MANAGEMENT_DB_NAME) WITH (FORCE);"
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "CREATE DATABASE $(TEST_MANAGEMENT_DB_NAME);"
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DO \$$$$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_MGMT_MIGRATOR_USER)') THEN CREATE USER $(TEST_MGMT_MIGRATOR_USER) WITH PASSWORD '$(TEST_MGMT_MIGRATOR_PASSWORD)'; END IF; IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_MGMT_READ_USER)') THEN CREATE USER $(TEST_MGMT_READ_USER) WITH PASSWORD '$(TEST_MGMT_READ_PASSWORD)'; END IF; IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_MGMT_READ_WRITE_USER)') THEN CREATE USER $(TEST_MGMT_READ_WRITE_USER) WITH PASSWORD '$(TEST_MGMT_READ_WRITE_PASSWORD)'; END IF; END \$$$$;"
 	@LINEAR_MIGRATIONS_QUIET=1 DB_HOST="127.0.0.1" DB_PORT="$(TEST_DB_PORT)" \

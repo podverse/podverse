@@ -10,9 +10,12 @@ templates are blanks; this directory holds real plan instances.
 
 ## Indexed sets
 
-_None active._
+_No active plan sets._
 
 _Recently completed:_
+[mobile-track13-downloads](../completed/mobile-track13-downloads/) (13.1–13.10: eligibility/schema,
+episode download + library list, local-file playback + native-cache projection, quota + auto-delete,
+E2E offline play; details 430–439),
 [mobile-track9d-playlist-authoring](../completed/mobile-track9d-playlist-authoring/)
 (9d.1–9d.5: create/edit/reorder/add-to-playlist + header back),
 [mobile-track11-video](../completed/mobile-track11-video/) (11.3 / 11.6–11.8 / 11.15–11.17),

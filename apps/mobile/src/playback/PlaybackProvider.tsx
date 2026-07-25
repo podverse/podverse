@@ -48,7 +48,7 @@ import {
   playbackTargetToHistoryTarget,
   playbackTargetToStatsTargets,
 } from '../lib/playback/buildPlaybackTarget';
-import { resolveItemAudioEnclosureUrl } from '../lib/playback/resolveEnclosureUrl';
+import { resolvePlaybackUrl } from '../lib/playback/resolvePlaybackUrl';
 import { useMediaPlayerResourceUpdate } from './useMediaPlayerResourceUpdate';
 
 export type PlaybackNowPlaying = {
@@ -311,7 +311,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         setNoticeKey('media_player.livestream_unavailable');
         return;
       }
-      const url = resolveItemAudioEnclosureUrl(item);
+      const url = await resolvePlaybackUrl(item);
       if (url === null) {
         setNoticeKey('media_player.no_media');
         return;
@@ -341,7 +341,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         autoPlayOverride?: boolean;
       }
     ): Promise<void> => {
-      const url = resolveItemAudioEnclosureUrl(item);
+      const url = await resolvePlaybackUrl(item);
       if (url === null) {
         setNoticeKey('media_player.no_media');
         return;
@@ -371,7 +371,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         autoPlayOverride?: boolean;
       }
     ): Promise<void> => {
-      const url = resolveItemAudioEnclosureUrl(item);
+      const url = await resolvePlaybackUrl(item);
       if (url === null) {
         setNoticeKey('media_player.no_media');
         return;
@@ -419,7 +419,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
 
   const playChapter = useCallback(
     async (chapter: DTOItemChapter, item: DTOItem, channel: DTOChannel): Promise<void> => {
-      const url = resolveItemAudioEnclosureUrl(item);
+      const url = await resolvePlaybackUrl(item);
       if (url === null) {
         setNoticeKey('media_player.no_media');
         return;
