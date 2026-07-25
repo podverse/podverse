@@ -42,6 +42,10 @@
     "./addByRSS/ids": {
       "types": "./dist/lib/addByRSS/ids.d.ts",
       "default": "./dist/lib/addByRSS/ids.js"
+    },
+    "./item/itemEnclosure": {
+      "types": "./dist/lib/item/itemEnclosure.d.ts",
+      "default": "./dist/lib/item/itemEnclosure.js"
     }
   },
   "files": [

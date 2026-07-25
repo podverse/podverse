@@ -57,18 +57,19 @@ When adding or changing theme-scoped tokens:
 ## Screen & visual parity — reference the web app
 
 When building **any** `apps/mobile` screen that has a web counterpart, **look at the web app first**
-and mirror its design, adapted to React Native:
+and mirror its **information architecture and actions**, adapted to React Native — as a
+**functional sketch**, not final polish (master plan **Ship bar** + Track **23**):
 
 1. **Find the web source** — the route client under `apps/web/src/app/<area>/` and/or the component
    under `apps/web/src/components/<Area>/`. Cite it in the detail doc's **Web parity references**.
-2. **Mirror the information hierarchy and layout** — header/hero, section order, list vs grid, row
-   card structure (artwork + title + metadata + actions), selector/tab placement, and
-   loading / empty / error states. Match web semantics; do not invent a different IA.
+2. **Mirror the information hierarchy** — header/hero, section order, list vs grid, row structure
+   (artwork + title + metadata + actions), selector/tab placement, and loading / empty / error
+   states. Match web semantics; do not invent a different IA. Pixel spacing may stay rough.
 3. **Mirror action affordances (not just layout)** — same primary controls as the web counterpart
    (Play; Queue next/last; more-menu items; Subscribe/Unsubscribe). Adapt presentation (icon +
    action sheet vs hover menu). **Do not** reuse unrelated i18n keys (e.g. queue copy for remove
    feed). See [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md §4](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md)
-   and master-plan **Track 9c**. Pixel polish may wait; **which buttons exist may not**.
+   and master-plan **Track 9c**. **Which buttons exist** matters; pixel polish waits for Track 23.
 4. **Adapt, don't port** — use RN primitives (`View`, `FlatList`, `Pressable`, `Image`) and
    `StyleSheet` factories from `createStyles.ts`; never import `@podverse/ui` or SCSS.
 5. **Tokens only** — all colors, spacing, and radii come from `@podverse/design-tokens` via the
@@ -76,12 +77,17 @@ and mirror its design, adapted to React Native:
 6. **Diverge only with reason** — platform conventions (native back, pull-to-refresh, bottom sheets,
    safe-area, tab bar) win over pixel-copying the web chrome. Note intentional divergences in the
    detail doc.
+7. **Hard stop** — do not redesign the full player, add player-integrated transcripts, clip
+   authoring UI, or pixel DnD unless a master-plan step explicitly asks for that **sketch** (or
+   Track 23 brief). Prefer a working stub + `testID` over thrashing on aesthetics.
 
 Reference this section from screen detail docs (e.g. Tracks 8–9 home/browse screens) instead of
 re-describing the rule per screen.
 
-## Deferred (post-v1)
+## Deferred (operator / post-feature)
 
+- **Track 23** — operator screen-by-screen visual polish (agents apply briefs only).
+- Player-integrated transcript chrome, clip authoring, pixel DnD — Track **21** deferrals.
 - Operator **remote custom themes** (`NEXT_PUBLIC_CUSTOM_THEMES_URL`) — web-only until mobile step lands.
 - Brand logo variant by theme (web: `getBrandLogoSrc(uiTheme)`).
 
@@ -89,4 +95,4 @@ re-describing the rule per screen.
 
 - **styles-source-of-truth** — SCSS + design-tokens sync
 - [DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md) — theme row in parity matrix
-- Master plan Track 7.11–7.16 (PG-4), Track 16.1/16.3
+- Master plan **Ship bar**, Track 7.11–7.16 (PG-4), Track 9d, Track 16.1/16.3, Track 23

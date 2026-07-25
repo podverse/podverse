@@ -27,8 +27,8 @@ TIMEOUTS_ENV="$E2E_DIR/shared/timeouts.env"
 flow_needs_e2e_api() {
   case "$1" in
   add-by-rss | api-health | auth-login | auth-logout | auto-queue-advance | \
-  engine-audio-spike | home | play-mini-player | podcast-episode | queue-add | search | \
-  tab-switch-playback | video-transition)
+  engine-audio-spike | home | library-downloads | library-playlists | play-mini-player | \
+  podcast-episode | queue-add | search | tab-switch-playback | video-transition)
     return 0
     ;;
   *)
@@ -40,8 +40,8 @@ flow_needs_e2e_api() {
 # Basename list of flows that need tools/test-assets on :2111 (real media / play asserts).
 flow_needs_test_assets() {
   case "$1" in
-  add-by-rss | auto-queue-advance | engine-audio-spike | play-mini-player | tab-switch-playback | \
-  video-transition)
+  add-by-rss | auto-queue-advance | engine-audio-spike | library-downloads | play-mini-player | \
+  tab-switch-playback | video-transition)
     return 0
     ;;
   *)

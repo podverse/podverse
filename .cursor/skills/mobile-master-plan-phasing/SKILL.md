@@ -172,12 +172,14 @@ When selecting the next PG, treat a prerequisite as satisfied only when its step
 | PG-6   | 8, 9                                       | 6, 7; **7.11–7.15** theme scaffold `done`                                   |
 | PG-6.5 | 9b (data layer + RSS mapping + primitives) | PG-6; **before** Track 10 (9b.1–9b.4 required)                              |
 | PG-6.6 | 9c (media row action chrome)               | PG-6; prefer after 9b.6; may parallel PG-7; handlers → Track 10 when ready  |
+| PG-6.7 | 9d (playlist create/edit/reorder sketches) | PG-6.6; Track 9.10–9.11; may parallel Track 11 video                        |
 | PG-7   | 10, 11 (audio-first)                       | 1, 2 spike, 6, **9b.1–9b.4**; primitives 9b.6–9b.7 and 9c may parallel      |
 | PG-8   | 12                                         | 2, 10                                                                       |
 | PG-9   | 13–17                                      | 6, 10 (varies); **9b** for downloads metadata rows                          |
 | PG-10  | 18                                         | 7, 11                                                                       |
 | PG-11  | 19–21                                      | MVP feature-complete                                                        |
 | PG-12  | 22                                         | 4, PG-11                                                                    |
+| PG-13  | 23 (operator visual polish)                | Feature bulk + **operator** screen briefs — not before                      |
 
 PG-2a and PG-2b can overlap in time with PG-3 after PG-0; recommend **one primary PG per
 detailing batch** unless operator asks for parallel detailing of independent groups.
@@ -206,12 +208,19 @@ instead and explain why.
 Before detailing tracks that depend on unresolved choices, prompt operator to decide (or accept
 default from master plan **Open decisions**):
 
-| Decision                         | Blocks detailing for                              |
-| -------------------------------- | ------------------------------------------------- |
-| E2E framework (Maestro vs Detox) | Track 5, all E2E-heavy steps                      |
-| CI tooling (EAS vs Fastlane)     | Track 4, Track 22                                 |
-| Offline data (decided)           | Track 9b — offline-first SQLite + repositories    |
-| Visual polish (decided)          | Track 9b.6–9b.7 primitives now; full polish later |
+| Decision                         | Blocks detailing for                                               |
+| -------------------------------- | ------------------------------------------------------------------ |
+| E2E framework (Maestro vs Detox) | Track 5, all E2E-heavy steps                                       |
+| CI tooling (EAS vs Fastlane)     | Track 4, Track 22                                                  |
+| Offline data (decided)           | Track 9b — offline-first SQLite + repositories                     |
+| Visual polish (decided)          | Track 9b.6–9b.7 primitives now; **Track 23** operator polish later |
+
+### Ship bar (always apply)
+
+Before recommending or detailing a phase, re-read master plan **Ship bar**: agents deliver
+**functionality + screens + component sketches**. Do **not** recommend freestyle layout polish,
+player-integrated transcript chrome, clip authoring, or pixel DnD as part of feature PGs — those
+are Track **21** deferrals or Track **23** operator work.
 
 Record the chosen option in the phase `00-SUMMARY.md` when detailing.
 

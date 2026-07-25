@@ -16,6 +16,8 @@
   suffix — scroll the outline to see what is finished.
 - Each step includes **Model:** — recommended Cursor model for authoring and implementing that step (Auto, Codex 5.3, or Opus 4.8).
 - **Do not use react-native-track-player** — use custom `podverse-media-engine` (Track 2).
+- **Ship bar:** feature tracks deliver functionality + screen **sketches**; final layout is
+  operator-led **Track 23** — see **Ship bar** section below.
 - **Phasing workflow:** Just-in-time detailing and implementation one parallel group at a time — see [.cursor/skills/mobile-master-plan-phasing/SKILL.md](/.cursor/skills/mobile-master-plan-phasing/SKILL.md).
 
 ## LLM model guide
@@ -28,37 +30,60 @@
 
 ## Open decisions
 
-| Decision          | Options                                               | Default recommendation                                                                                                                                                                                          |
-| ----------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CI tooling        | EAS vs Fastlane                                       | **EAS chosen** (PG-3)                                                                                                                                                                                           |
-| Store identity    | Separate `.next` app id vs internal track on existing | Separate app id                                                                                                                                                                                                 |
-| E2E framework     | Maestro vs Detox                                      | **Maestro chosen** (PG-3)                                                                                                                                                                                       |
-| Watch/TV v1 scope | v1 vs post-MVP                                        | Phone+tablet v1; watch v1.1; TV v2                                                                                                                                                                              |
-| Offline data      | Offline-first SQLite vs cache-later                   | **Offline-first** (expo-sqlite + Drizzle) — see [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md)                                                 |
-| Visual polish     | Polish now vs primitives now + polish later           | **Primitives now; pixel polish later** — **action affordances now** (Track 9c); see [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md) |
+| Decision          | Options                                               | Default recommendation                                                                                                                                                                                           |
+| ----------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CI tooling        | EAS vs Fastlane                                       | **EAS chosen** (PG-3)                                                                                                                                                                                            |
+| Store identity    | Separate `.next` app id vs internal track on existing | Separate app id                                                                                                                                                                                                  |
+| E2E framework     | Maestro vs Detox                                      | **Maestro chosen** (PG-3)                                                                                                                                                                                        |
+| Watch/TV v1 scope | v1 vs post-MVP                                        | Phone+tablet v1; watch v1.1; TV v2                                                                                                                                                                               |
+| Offline data      | Offline-first SQLite vs cache-later                   | **Offline-first** (expo-sqlite + Drizzle) — see [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md)                                                  |
+| Visual polish     | Polish now vs primitives now + polish later           | **Ship sketches now; operator polish later (Track 23)** — see **Ship bar** below and [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md) |
+
+## Ship bar (agents stop here)
+
+**Goal of the master plan:** deliver a sensible bulk of **functionality**, **screens**, and a
+**sketch of components** — not final visual design.
+
+| In scope for agent tracks                                                  | Out of scope until Track 23 (operator)                                    |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Routes, navigation, data wiring, `testID`s, E2E smoke                      | Pixel spacing, typography rhythm, artwork sizes, empty-state chrome       |
+| Action inventory parity (Play, more-sheet intents)                         | Inventing new player chrome (transcripts panel, fancy DnD, new IA)        |
+| Primitives + tokens (no hardcoded hex)                                     | Screen-by-screen “make it look like production” without an operator brief |
+| Long lists via `FlatList` / `SectionList` (or FlashList if already chosen) | Virtualization tuning / list performance polish passes                    |
+| Stack back that works (React Navigation default + Android 7.10)            | Perfect header/back iconography per screen                                |
+
+**Hard stop for agents:** Do **not** thrash on layout debates, redesign the full player, or add
+design-heavy surfaces (player-integrated transcript sync, clip authoring UI, pixel-perfect
+drag-and-drop) unless a master-plan step **explicitly** asks for a **functional sketch**. When
+uncertain, prefer a working stub + `testID` and leave polish notes for **Track 23**.
+
+Operator path after feature tracks: walk **screen by screen**, write briefs, then agents apply
+those briefs in Track 23 — not earlier.
 
 ## Current status / next up (2026-07)
 
-| Parallel group           | Status               | Notes                                                                                           |
-| ------------------------ | -------------------- | ----------------------------------------------------------------------------------------------- |
-| PG-0 … PG-4              | **done**             | Foundation, playback-core, hello-world, media-engine **audio** spike, CI/E2E, auth, nav, themes |
-| PG-6 (Tracks 8–9)        | **done**             | Home, browse/content screens, add-by-RSS                                                        |
-| PG-6.5 (Track 9b)        | **done**             | Offline-first data layer + add-by-RSS `parser-mapping` + shared visual primitives               |
-| PG-6.6 (Track 9c)        | **done**             | Media row **action affordance** parity (Play + more sheet)                                      |
-| PG-7 (Tracks 10–11)      | **audio done**       | Track 10 DONE; Track 11 audio UI done; video steps 11.3 / 11.6–11.8 / 11.15–11.17 still planned |
-| **PG-5 (Track 2 video)** | **planned (active)** | Seamless VideoSurfaceHost + bridge attach/animate — `.llm/plans/active/mobile-pg5-video/`       |
-| PG-8+                    | later                | Car, downloads (files), push, multi-device, IAP, release train                                  |
+| Parallel group              | Status      | Notes                                                                                           |
+| --------------------------- | ----------- | ----------------------------------------------------------------------------------------------- |
+| PG-0 … PG-4                 | **done**    | Foundation, playback-core, hello-world, media-engine **audio** spike, CI/E2E, auth, nav, themes |
+| PG-5 (Track 2 video)        | **done**    | Video surface + reparent gaps archived under `.llm/plans/completed/mobile-pg5-*`                |
+| PG-6 / 6.5 / 6.6            | **done**    | Home/browse, data layer + primitives, media-row actions                                         |
+| PG-7 (Tracks 10–11)         | **done**    | Track 10 DONE; Track 11 audio + video done (11.3 / 11.6–11.8 / 11.15–11.17)                     |
+| **Track 11 video leftover** | **done**    | Archived under `.llm/plans/completed/mobile-track11-video/`                                     |
+| **PG-6.7 (Track 9d)**       | **done**    | Archived under `.llm/plans/completed/mobile-track9d-playlist-authoring/` (9d.1–9d.5)            |
+| **PG-9 Track 13 downloads** | **planned** | Detail 430–439 + `.llm/plans/active/mobile-track13-downloads/` — implement via COPY-PASTA       |
+| PG-8 / rest of PG-9         | later       | Car, push, deep links, settings/OPML remainder                                                  |
+| PG-13 (Track 23)            | later       | **Operator** screen-by-screen visual polish — after feature bulk                                |
 
 ### Recommended next build sequence
 
-1. **PG-5 video (active)** — Track 2 steps 2.14–2.28, 2.31–2.33 (2.29–2.30 already `done`).
-   Detail + COPY-PASTA: `.llm/plans/active/mobile-pg5-video/`.
-2. **Track 11 video UI/E2E follow-on** — 11.3, 11.6–11.8, 11.15–11.17 (details already `planned`)
-   after native surface APIs land.
-3. **Later:** Track 13 episode file downloads, Track 12 car, push. Full **pixel** polish still later.
+1. **Implement Track 13** — paste prompts from
+   `.llm/plans/active/mobile-track13-downloads/COPY-PASTA.md`.
+2. Then **Track 12 car**, **Track 16 settings/OPML**, **push** — next functional-sketch bulk.
+   **Track 23** only after the feature bulk is in place and the operator has reviewed screens.
 
-Paste COPY-PASTA prompts from `mobile-pg5-video/COPY-PASTA.md` to implement (docs-only detailing
-is complete).
+_Done:_ **Track 9d playlist authoring** — archived under
+`.llm/plans/completed/mobile-track9d-playlist-authoring/` (create/edit/reorder/add-to-playlist +
+header back). **Track 11 video** — archived under `.llm/plans/completed/mobile-track11-video/`.
 
 ## Parallel groups (implementation order)
 
@@ -74,12 +99,14 @@ is complete).
 | PG-6   | 8, 9                                                 | each other           | 6, 7; **7.11–7.15** theme scaffold `done`                                        |
 | PG-6.5 | 9b (data layer + RSS mapping + primitives)           | 9b.6–9b.7 with PG-7  | PG-6; **before** Track 10 queue store                                            |
 | PG-6.6 | 9c (media row action chrome parity)                  | PG-7                 | PG-6; prefer after 9b.6 primitives; handlers → Track 10 when ready               |
-| PG-7   | 10, 11 (audio-first)                                 | 9b.6–9b.7, 9c        | 1, 2 spike, 6, **9b.1–9b.4** (DB + queue repo)                                   |
+| PG-6.7 | 9d (playlist create/edit/reorder sketches)           | Track 11 video       | PG-6.6; Track 9.10–9.11 done                                                     |
+| PG-7   | 10, 11 (audio-first; video leftover)                 | 9b.6–9b.7, 9c, 9d    | 1, 2 spike, 6, **9b.1–9b.4** (DB + queue repo)                                   |
 | PG-8   | 12                                                   | 13, 14, 15           | 2, 10                                                                            |
 | PG-9   | 13, 14, 15, 16, 17                                   | each other (mostly)  | 6, 10 varies; **9b** for downloads metadata rows                                 |
 | PG-10  | 18                                                   | 19, 20               | 7, 11                                                                            |
 | PG-11  | 19, 20, 21                                           | each other           | MVP feature-complete                                                             |
 | PG-12  | 22                                                   | —                    | 4, PG-11                                                                         |
+| PG-13  | 23 (operator visual polish)                          | —                    | Feature bulk + **operator** screen briefs                                        |
 
 ```mermaid
 flowchart TB
@@ -95,7 +122,9 @@ flowchart TB
   T9 --> T9b[Track 9b data layer]
   T9b --> T10[Track 10 queue]
   T9b --> T9c[Track 9c row actions]
+  T9c --> T9d[Track 9d playlist authoring]
   T9c -.-> T10
+  T9d -.-> T10
   T2 --> T10
   T10 --> T11[Track 11 player]
   T2 --> T12[Track 12 car]
@@ -103,6 +132,7 @@ flowchart TB
   T11 --> T18[Track 18 multi-device]
   T13 --> T19[Tracks 19-21]
   T4 --> T22[Track 22 release train]
+  T19 --> T23[Track 23 operator polish]
 ```
 
 ## Tracks
@@ -354,10 +384,11 @@ Track 3 is complete when all of the following are true:
 
 **Media-type selector:** Podcasts, Episodes, Clips, Artists, Albums, Tracks.
 
-**Web-style parity (Tracks 8–9):** every screen with a web counterpart mirrors the web app's layout,
-information hierarchy, list-row structure, and loading/empty/error states — adapted to RN primitives
-and `@podverse/design-tokens` (no hardcoded hex). See
-[mobile-theme-parity](/.cursor/skills/mobile-theme-parity/SKILL.md) § Screen & visual parity and each
+**Web-style parity (Tracks 8–9):** every screen with a web counterpart mirrors the web app's
+**information hierarchy**, list-row structure, **action affordances**, and loading/empty/error
+states — adapted to RN primitives and `@podverse/design-tokens` (no hardcoded hex). This is a
+**functional sketch**, not pixel polish (Track 23). See **Ship bar**,
+[mobile-theme-parity](/.cursor/skills/mobile-theme-parity/SKILL.md) § Screen & visual parity, and each
 detail doc's **Web parity references**.
 
 8.1. Build Home screen layout with horizontal media-type selector chip row. Model: Codex 5.3. Detail: [240-home-screen-layout](/docs/proposals/mobile/_master-plan_/details/240-home-screen-layout.md) — done
@@ -454,6 +485,32 @@ controls (never queue copy for unfollow/remove-feed). Model: Codex 5.3. Detail:
 [499-media-row-actions-migrate](/docs/proposals/mobile/_master-plan_/details/499-media-row-actions-migrate.md)
 — done
 
+## Track 9d — Playlist / library authoring (functional sketch)
+
+**Parallel group:** PG-6.7. **Ship bar:** working screens + API wiring + `testID`s — not pixel
+polish or fancy drag chrome (Track 23 / deferrals 21.12). Clip **create/edit** stays deferred
+(**21.4**).
+
+9d.1. Create playlist screen (title/privacy) via playlist create API; navigate from library list.
+Model: Codex 5.3. Detail:
+[590-create-playlist-screen](/docs/proposals/mobile/_master-plan_/details/590-create-playlist-screen.md)
+— done
+9d.2. Edit playlist metadata screen (owner-only). Model: Codex 5.3. Detail:
+[591-edit-playlist-screen](/docs/proposals/mobile/_master-plan_/details/591-edit-playlist-screen.md)
+— done
+9d.3. Reorder playlist items (functional: up/down or basic drag — not pixel DnD polish). Model:
+Codex 5.3. Detail:
+[592-reorder-playlist-items](/docs/proposals/mobile/_master-plan_/details/592-reorder-playlist-items.md)
+— done
+9d.4. Wire “add to playlist” from media-row more sheet to existing playlist APIs. Model: Codex 5.3.
+Detail:
+[593-add-to-playlist-more-sheet](/docs/proposals/mobile/_master-plan_/details/593-add-to-playlist-more-sheet.md)
+— done
+9d.5. Ensure nested stacks expose a usable header back (React Navigation default /
+`ScreenHeader`) — sketch only. Model: Auto. Detail:
+[594-stack-header-back-sketch](/docs/proposals/mobile/_master-plan_/details/594-stack-header-back-sketch.md)
+— done
+
 ## Track 10 — Queue, auto-queue, playlists, history parity (DONE)
 
 **Prerequisite:** Track 9b.1–9b.4 (offline-first queue repository). Queue/now-playing/history state
@@ -487,25 +544,29 @@ flows through repositories — see
 10.24. E2E: add to queue and verify queue screen row (screenshot). Model: Codex 5.3. Detail: [333-e2e-queue-add](/docs/proposals/mobile/_master-plan_/details/333-e2e-queue-add.md) — done
 10.25. E2E: auto-queue advance after track ended (screenshot or state assert). Model: Opus 4.8. Detail: [334-e2e-auto-queue-advance](/docs/proposals/mobile/_master-plan_/details/334-e2e-auto-queue-advance.md) — done
 
-## Track 11 — Mini player, full player, seamless video
+## Track 11 — Mini player, full player, seamless video (DONE)
+
+**Ship bar:** Audio full player is **done** as a functional sketch. Remaining video steps wire the
+native surface — do **not** redesign player layout or add transcript/clip-authoring chrome here
+(see Track 21.4 / 21.11 and Track 23).
 
 11.1. Build mini player UI: artwork, title, play/pause, progress bar, expand affordance. Model: Codex 5.3. Detail: [340-mini-player-ui](/docs/proposals/mobile/_master-plan_/details/340-mini-player-ui.md) — done
 11.2. Mini player fixed above tab bar; respects safe area and keyboard inset. Model: Codex 5.3. Detail: [341-mini-player-layout](/docs/proposals/mobile/_master-plan_/details/341-mini-player-layout.md) — done
-11.3. Mini player video mode: transparent placeholder + `targetId=mini` surface registration. Model: Opus 4.8. Detail: [342-mini-player-video-placeholder](/docs/proposals/mobile/_master-plan_/details/342-mini-player-video-placeholder.md) — planned
+11.3. Mini player video mode: transparent placeholder + `targetId=mini` surface registration. Model: Opus 4.8. Detail: [342-mini-player-video-placeholder](/docs/proposals/mobile/_master-plan_/details/342-mini-player-video-placeholder.md) — done
 11.4. Tap mini player expands to full player without calling engine destroy/reload. Model: Opus 4.8. Detail: [343-expand-without-reload](/docs/proposals/mobile/_master-plan_/details/343-expand-without-reload.md) — done
 11.5. Build full player screen: large artwork/video, scrubber, skip, speed, queue peek. Model: Codex 5.3. Detail: [350-full-player-ui](/docs/proposals/mobile/_master-plan_/details/350-full-player-ui.md) — done
-11.6. Full player video mode: `targetId=full` surface + animateVideoSurface from mini. Model: Opus 4.8. Detail: [351-full-player-video-surface](/docs/proposals/mobile/_master-plan_/details/351-full-player-video-surface.md) — planned
-11.7. Collapse full player animates surface back to mini target. Model: Opus 4.8. Detail: [352-collapse-to-mini-animation](/docs/proposals/mobile/_master-plan_/details/352-collapse-to-mini-animation.md) — planned
-11.8. Verify playback position continuous across mini↔full transitions (no restart). Model: Opus 4.8. Detail: [353-position-continuity-verify](/docs/proposals/mobile/_master-plan_/details/353-position-continuity-verify.md) — planned
+11.6. Full player video mode: `targetId=full` surface + animateVideoSurface from mini. Model: Opus 4.8. Detail: [351-full-player-video-surface](/docs/proposals/mobile/_master-plan_/details/351-full-player-video-surface.md) — done
+11.7. Collapse full player animates surface back to mini target. Model: Opus 4.8. Detail: [352-collapse-to-mini-animation](/docs/proposals/mobile/_master-plan_/details/352-collapse-to-mini-animation.md) — done
+11.8. Verify playback position continuous across mini↔full transitions (no restart). Model: Opus 4.8. Detail: [353-position-continuity-verify](/docs/proposals/mobile/_master-plan_/details/353-position-continuity-verify.md) — done
 11.9. Full player queue/up-next sheet showing manual + auto-queue rows. Model: Codex 5.3. Detail: [354-full-player-up-next](/docs/proposals/mobile/_master-plan_/details/354-full-player-up-next.md) — done
 11.10. Full player chapter/soundbite list when applicable to now-playing item. Model: Codex 5.3. Detail: [355-full-player-segments](/docs/proposals/mobile/_master-plan_/details/355-full-player-segments.md) — done
 11.11. Playback speed control wired to engine setRate. Model: Codex 5.3. Detail: [356-playback-speed-control](/docs/proposals/mobile/_master-plan_/details/356-playback-speed-control.md) — done
 11.12. Sleep timer optional feature stub (mobile-only nice-to-have). Model: Auto. Detail: [357-sleep-timer-optional](/docs/proposals/mobile/_master-plan_/details/357-sleep-timer-optional.md) — done
 11.13. Share now-playing deep link action (integrates Track 15). Model: Codex 5.3. Detail: [358-share-now-playing-link](/docs/proposals/mobile/_master-plan_/details/358-share-now-playing-link.md) — done
 11.14. Boost/V4V entry on full player where store-compliant (integrates Track 19). Model: Opus 4.8. Detail: [359-v4v-boost-entry-stub](/docs/proposals/mobile/_master-plan_/details/359-v4v-boost-entry-stub.md) — done
-11.15. E2E: video item mini player screenshot. Model: Codex 5.3. Detail: [360-e2e-video-mini-screenshot](/docs/proposals/mobile/_master-plan_/details/360-e2e-video-mini-screenshot.md) — planned
-11.16. E2E: expand to full player screenshot mid-playback (same position). Model: Opus 4.8. Detail: [361-e2e-video-full-screenshot](/docs/proposals/mobile/_master-plan_/details/361-e2e-video-full-screenshot.md) — planned
-11.17. E2E: collapse to mini screenshot without black flash or reload spinner. Model: Opus 4.8. Detail: [362-e2e-video-collapse-screenshot](/docs/proposals/mobile/_master-plan_/details/362-e2e-video-collapse-screenshot.md) — planned
+11.15. E2E: video item mini player screenshot. Model: Codex 5.3. Detail: [360-e2e-video-mini-screenshot](/docs/proposals/mobile/_master-plan_/details/360-e2e-video-mini-screenshot.md) — done
+11.16. E2E: expand to full player screenshot mid-playback (same position). Model: Opus 4.8. Detail: [361-e2e-video-full-screenshot](/docs/proposals/mobile/_master-plan_/details/361-e2e-video-full-screenshot.md) — done
+11.17. E2E: collapse to mini screenshot without black flash or reload spinner. Model: Opus 4.8. Detail: [362-e2e-video-collapse-screenshot](/docs/proposals/mobile/_master-plan_/details/362-e2e-video-collapse-screenshot.md) — done
 11.18. Document anti-pattern: never mount second Video component on full screen open. Model: Auto. Detail: [363-anti-pattern-no-second-video](/docs/proposals/mobile/_master-plan_/details/363-anti-pattern-no-second-video.md) — done
 
 ## Track 12 — CarPlay / Android Auto
@@ -536,17 +597,21 @@ flows through repositories — see
 
 **Prerequisite:** Track 9b offline-first data layer. This track is **enclosure file** downloads on
 disk + download index rows in the same SQLite DB — not a substitute for the metadata/data layer.
+**Eligibility:** progressive media only — reject `item.live_item` and HLS/m3u8; formats from
+helpers `itemEnclosure` maps. See
+[DOCS-MOBILE-PROCESS-MOBILE-ONLY-FEATURES.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-MOBILE-ONLY-FEATURES.md)
+§1.1–1.2 and detail [430-download-queue-design](/docs/proposals/mobile/_master-plan_/details/430-download-queue-design.md).
 
-13.1. Design download job queue module (native or RN background task). Model: Opus 4.8. Detail: [430-download-queue-design](/docs/proposals/mobile/_master-plan_/details/430-download-queue-design.md) — _TBD_
-13.2. Choose storage: Expo FileSystem + background download or native download manager. Model: Codex 5.3. Detail: [431-download-storage-choice](/docs/proposals/mobile/_master-plan_/details/431-download-storage-choice.md) — _TBD_
-13.3. Local metadata DB schema: item_id, path, size, status, enclosure URL hash. Model: Codex 5.3. Detail: [432-download-metadata-schema](/docs/proposals/mobile/_master-plan_/details/432-download-metadata-schema.md) — _TBD_
-13.4. Download action from episode detail enqueues job and shows progress. Model: Codex 5.3. Detail: [433-download-from-episode](/docs/proposals/mobile/_master-plan_/details/433-download-from-episode.md) — _TBD_
-13.5. My Library downloads section lists completed and in-progress items. Model: Codex 5.3. Detail: [434-library-downloads-list](/docs/proposals/mobile/_master-plan_/details/434-library-downloads-list.md) — _TBD_
-13.6. Play downloaded item via engine `file://` path (Track 2.26). Model: Opus 4.8. Detail: [435-playback-from-download](/docs/proposals/mobile/_master-plan_/details/435-playback-from-download.md) — _TBD_
-13.7. Storage quota policy and user-facing manage-storage screen. Model: Codex 5.3. Detail: [436-storage-quota-policy](/docs/proposals/mobile/_master-plan_/details/436-storage-quota-policy.md) — _TBD_
-13.8. Auto-delete rules optional (oldest first when quota exceeded). Model: Codex 5.3. Detail: [437-auto-delete-policy](/docs/proposals/mobile/_master-plan_/details/437-auto-delete-policy.md) — _TBD_
-13.9. Update native cache downloads index on download complete (Track 12). Model: Opus 4.8. Detail: [438-cache-downloads-index](/docs/proposals/mobile/_master-plan_/details/438-cache-downloads-index.md) — _TBD_
-13.10. E2E: download episode offline mode play screenshot (network disabled). Model: Codex 5.3. Detail: [439-e2e-offline-play](/docs/proposals/mobile/_master-plan_/details/439-e2e-offline-play.md) — _TBD_
+13.1. Design download job queue module (native or RN background task). Model: Opus 4.8. Detail: [430-download-queue-design](/docs/proposals/mobile/_master-plan_/details/430-download-queue-design.md) — done
+13.2. Choose storage: Expo FileSystem + background download or native download manager. Model: Codex 5.3. Detail: [431-download-storage-choice](/docs/proposals/mobile/_master-plan_/details/431-download-storage-choice.md) — done
+13.3. Local metadata DB schema: item_id, path, size, status, enclosure URL hash. Model: Codex 5.3. Detail: [432-download-metadata-schema](/docs/proposals/mobile/_master-plan_/details/432-download-metadata-schema.md) — done
+13.4. Download action from episode detail enqueues job and shows progress. Model: Codex 5.3. Detail: [433-download-from-episode](/docs/proposals/mobile/_master-plan_/details/433-download-from-episode.md) — done
+13.5. My Library downloads section lists completed and in-progress items. Model: Codex 5.3. Detail: [434-library-downloads-list](/docs/proposals/mobile/_master-plan_/details/434-library-downloads-list.md) — done
+13.6. Play downloaded item via engine `file://` path (Track 2.26). Model: Opus 4.8. Detail: [435-playback-from-download](/docs/proposals/mobile/_master-plan_/details/435-playback-from-download.md) — done
+13.7. Storage quota policy and user-facing manage-storage screen. Model: Codex 5.3. Detail: [436-storage-quota-policy](/docs/proposals/mobile/_master-plan_/details/436-storage-quota-policy.md) — done
+13.8. Auto-delete rules optional (oldest first when quota exceeded). Model: Codex 5.3. Detail: [437-auto-delete-policy](/docs/proposals/mobile/_master-plan_/details/437-auto-delete-policy.md) — done
+13.9. Update native cache downloads index on download complete (Track 12). Model: Opus 4.8. Detail: [438-cache-downloads-index](/docs/proposals/mobile/_master-plan_/details/438-cache-downloads-index.md) — done
+13.10. E2E: download episode offline mode play screenshot (network disabled). Model: Codex 5.3. Detail: [439-e2e-offline-play](/docs/proposals/mobile/_master-plan_/details/439-e2e-offline-play.md) — done
 
 ## Track 14 — Push notifications (FCM + UnifiedPush)
 
@@ -653,13 +718,21 @@ CarPlay / Android Auto. See
 21.1. Defer: Apple Watch standalone app (if Wear-only v1). Model: Auto. Detail: [580-defer-apple-watch](/docs/proposals/mobile/_master-plan_/details/580-defer-apple-watch.md) — _TBD_
 21.2. Defer: tvOS native app (Android TV first). Model: Auto. Detail: [581-defer-tvos](/docs/proposals/mobile/_master-plan_/details/581-defer-tvos.md) — _TBD_
 21.3. Defer: full management-web parity on mobile. Model: Auto. Detail: [582-defer-management-parity](/docs/proposals/mobile/_master-plan_/details/582-defer-management-parity.md) — _TBD_
-21.4. Defer: clip authoring / upload from mobile. Model: Auto. Detail: [583-defer-clip-authoring](/docs/proposals/mobile/_master-plan_/details/583-defer-clip-authoring.md) — _TBD_
+21.4. Defer: clip authoring / upload from mobile (create/edit clip screens). Model: Auto. Detail: [583-defer-clip-authoring](/docs/proposals/mobile/_master-plan_/details/583-defer-clip-authoring.md) — _TBD_
 21.5. Defer: social features beyond share links. Model: Auto. Detail: [584-defer-social](/docs/proposals/mobile/_master-plan_/details/584-defer-social.md) — _TBD_
 21.6. Defer: offline playlist sync conflict resolution advanced cases. Model: Auto. Detail: [585-defer-offline-sync-advanced](/docs/proposals/mobile/_master-plan_/details/585-defer-offline-sync-advanced.md) — _TBD_
 21.7. Defer: widget / Live Activities / Dynamic Island v1. Model: Auto. Detail: [586-defer-widgets](/docs/proposals/mobile/_master-plan_/details/586-defer-widgets.md) — _TBD_
 21.8. Defer: CarPlay video (audio-only in car v1). Model: Auto. Detail: [587-defer-carplay-video](/docs/proposals/mobile/_master-plan_/details/587-defer-carplay-video.md) — _TBD_
 21.9. Link each deferral to GitHub issue placeholder `_TBD_` issue number. Model: Auto. Detail: [588-deferral-issue-links](/docs/proposals/mobile/_master-plan_/details/588-deferral-issue-links.md) — _TBD_
 21.10. Master plan appendix: deferrals table with rationale and revisit trigger. Model: Auto. Detail: [589-deferrals-appendix](/docs/proposals/mobile/_master-plan_/details/589-deferrals-appendix.md) — _TBD_
+21.11. Defer: full-player / mini-player **integrated transcript** UI (sync highlight, scrubber
+coupling). Episode-detail transcript **tab** (9.4) remains the MVP sketch. Model: Auto. Detail:
+[598-defer-player-transcript-chrome](/docs/proposals/mobile/_master-plan_/details/598-defer-player-transcript-chrome.md)
+— _TBD_
+21.12. Defer: pixel-perfect drag-and-drop chrome (handles, haptics, animations). Functional reorder
+lives in Track **9d.3**. Model: Auto. Detail:
+[599-defer-pixel-dnd-polish](/docs/proposals/mobile/_master-plan_/details/599-defer-pixel-dnd-polish.md)
+— _TBD_
 
 ## Track 22 — Store release train and API backward compatibility
 
@@ -678,6 +751,24 @@ CarPlay / Android Auto. See
 22.11. Schedule periodic dependency and SDK compliance updates (iOS/Android target SDK). Model: Codex 5.3. Detail: [185-sdk-compliance-updates](/docs/proposals/mobile/_master-plan_/details/185-sdk-compliance-updates.md) — _TBD_
 22.12. Document coexistence period: old-gen and next-gen apps in field simultaneously. Model: Auto. Detail: [186-old-new-app-coexistence](/docs/proposals/mobile/_master-plan_/details/186-old-new-app-coexistence.md) — _TBD_
 
+## Track 23 — Operator visual polish (after feature bulk)
+
+**Parallel group:** PG-13. **Operator-led.** Agents implement **only** from written operator briefs —
+do not invent final layouts during Tracks 0–22.
+
+23.1. Operator: screen-by-screen review checklist (home, podcast, episode, search, library,
+player, add-by-RSS, settings, …) capturing layout notes. Model: Auto. Detail:
+[595-operator-polish-checklist](/docs/proposals/mobile/_master-plan_/details/595-operator-polish-checklist.md)
+— _TBD_
+23.2. Apply operator polish briefs screen-by-screen (agents follow notes; no freestyle redesign).
+Model: Codex 5.3. Detail:
+[596-operator-polish-apply-briefs](/docs/proposals/mobile/_master-plan_/details/596-operator-polish-apply-briefs.md)
+— _TBD_
+23.3. Optional list virtualization / density pass only if operator flags jank (FlashList or
+FlatList tuning). Model: Codex 5.3. Detail:
+[597-list-virtualization-polish](/docs/proposals/mobile/_master-plan_/details/597-list-virtualization-polish.md)
+— _TBD_
+
 ## Appendix A — Screen map
 
 Link: [DOCS-MOBILE-PROCESS-OVERVIEW](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-OVERVIEW.md) §5
@@ -692,6 +783,7 @@ Link: [DOCS-MOBILE-PROCESS-OVERVIEW](/docs/proposals/mobile/app-development-proc
 | Clip detail (`ClipDetailScreen`)         | `/clip/[id]`              | `apps/web/src/app/clip/[clip_id]/ClipPageClient.tsx`                    |
 | Search (`SearchScreen`)                  | `/search`                 | `apps/web/src/app/search/SearchPageClient.tsx`                          |
 | Playlists (`LibraryPlaylistsScreen`)     | `/playlists`              | `apps/web/src/app/playlists/PlaylistsPageClient.tsx`                    |
+| Playlist create/edit (Track 9d sketches) | `/playlists` create/edit  | Same playlist APIs; **functional sketch** until Track 23                |
 | Playlist detail (`PlaylistDetailScreen`) | `/playlist/[playlist_id]` | `apps/web/src/app/playlist/[playlist_id]/PlaylistPageClient.tsx`        |
 | Queue (`LibraryQueueScreen`)             | `/queues`                 | `apps/web/src/app/queues/QueuesPageClient.tsx`                          |
 | History (`LibraryHistoryScreen`)         | `/history`                | `apps/web/src/app/history/HistoryPageClient.tsx`                        |
@@ -926,9 +1018,9 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 282-opml-export-entry-ui                    | 9.23       | 282-opml-export-entry-ui                    | Auto      | done    |
 | 283-categories-browse-optional              | 9.24       | 283-categories-browse-optional              | Codex 5.3 | done    |
 | 284-e2e-podcast-episode-flow                | 9.25       | 284-e2e-podcast-episode-flow                | Codex 5.3 | done    |
-| 285-e2e-search-flow                         | 9.26       | 285-e2e-search-flow                         | Auto      | planned |
+| 285-e2e-search-flow                         | 9.26       | 285-e2e-search-flow                         | Auto      | done    |
 | 286-e2e-add-by-rss-flow                     | 9.27       | 286-e2e-add-by-rss-flow                     | Codex 5.3 | done    |
-| 287-screen-map-appendix-ref                 | 9.28       | 287-screen-map-appendix-ref                 | Auto      | planned |
+| 287-screen-map-appendix-ref                 | 9.28       | 287-screen-map-appendix-ref                 | Auto      | done    |
 | 288-e2e-addbyrss-playback-test-assets       | 9.29       | 288-e2e-addbyrss-playback-test-assets       | Codex 5.3 | done    |
 | 490-data-layer-db-scaffold                  | 9b.1       | 490-data-layer-db-scaffold                  | Opus 4.8  | done    |
 | 491-data-layer-repository-seam              | 9b.2       | 491-data-layer-repository-seam              | Opus 4.8  | done    |
@@ -967,21 +1059,21 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 334-e2e-auto-queue-advance                  | 10.25      | 334-e2e-auto-queue-advance                  | Opus 4.8  | done    |
 | 340-mini-player-ui                          | 11.1       | 340-mini-player-ui                          | Codex 5.3 | done    |
 | 341-mini-player-layout                      | 11.2       | 341-mini-player-layout                      | Codex 5.3 | done    |
-| 342-mini-player-video-placeholder           | 11.3       | 342-mini-player-video-placeholder           | Opus 4.8  | planned |
+| 342-mini-player-video-placeholder           | 11.3       | 342-mini-player-video-placeholder           | Opus 4.8  | done    |
 | 343-expand-without-reload                   | 11.4       | 343-expand-without-reload                   | Opus 4.8  | done    |
 | 350-full-player-ui                          | 11.5       | 350-full-player-ui                          | Codex 5.3 | done    |
-| 351-full-player-video-surface               | 11.6       | 351-full-player-video-surface               | Opus 4.8  | planned |
-| 352-collapse-to-mini-animation              | 11.7       | 352-collapse-to-mini-animation              | Opus 4.8  | planned |
-| 353-position-continuity-verify              | 11.8       | 353-position-continuity-verify              | Opus 4.8  | planned |
+| 351-full-player-video-surface               | 11.6       | 351-full-player-video-surface               | Opus 4.8  | done    |
+| 352-collapse-to-mini-animation              | 11.7       | 352-collapse-to-mini-animation              | Opus 4.8  | done    |
+| 353-position-continuity-verify              | 11.8       | 353-position-continuity-verify              | Opus 4.8  | done    |
 | 354-full-player-up-next                     | 11.9       | 354-full-player-up-next                     | Codex 5.3 | done    |
 | 355-full-player-segments                    | 11.10      | 355-full-player-segments                    | Codex 5.3 | done    |
 | 356-playback-speed-control                  | 11.11      | 356-playback-speed-control                  | Codex 5.3 | done    |
 | 357-sleep-timer-optional                    | 11.12      | 357-sleep-timer-optional                    | Auto      | done    |
 | 358-share-now-playing-link                  | 11.13      | 358-share-now-playing-link                  | Codex 5.3 | done    |
 | 359-v4v-boost-entry-stub                    | 11.14      | 359-v4v-boost-entry-stub                    | Opus 4.8  | done    |
-| 360-e2e-video-mini-screenshot               | 11.15      | 360-e2e-video-mini-screenshot               | Codex 5.3 | planned |
-| 361-e2e-video-full-screenshot               | 11.16      | 361-e2e-video-full-screenshot               | Opus 4.8  | planned |
-| 362-e2e-video-collapse-screenshot           | 11.17      | 362-e2e-video-collapse-screenshot           | Opus 4.8  | planned |
+| 360-e2e-video-mini-screenshot               | 11.15      | 360-e2e-video-mini-screenshot               | Codex 5.3 | done    |
+| 361-e2e-video-full-screenshot               | 11.16      | 361-e2e-video-full-screenshot               | Opus 4.8  | done    |
+| 362-e2e-video-collapse-screenshot           | 11.17      | 362-e2e-video-collapse-screenshot           | Opus 4.8  | done    |
 | 363-anti-pattern-no-second-video            | 11.18      | 363-anti-pattern-no-second-video            | Auto      | done    |
 | 380-native-cache-schema                     | 12.1       | 380-native-cache-schema                     | Opus 4.8  | _TBD_   |
 | 381-ios-native-cache-storage                | 12.2       | 381-ios-native-cache-storage                | Opus 4.8  | _TBD_   |
@@ -1004,16 +1096,16 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 398-car-manual-qa-gate                      | 12.19      | 398-car-manual-qa-gate                      | Auto      | _TBD_   |
 | 399-abcmemory-car-native-only               | 12.20      | 399-abcmemory-car-native-only               | Codex 5.3 | _TBD_   |
 | 400-car-parallel-worktree                   | 12.21      | 400-car-parallel-worktree                   | Auto      | _TBD_   |
-| 430-download-queue-design                   | 13.1       | 430-download-queue-design                   | Opus 4.8  | _TBD_   |
-| 431-download-storage-choice                 | 13.2       | 431-download-storage-choice                 | Codex 5.3 | _TBD_   |
-| 432-download-metadata-schema                | 13.3       | 432-download-metadata-schema                | Codex 5.3 | _TBD_   |
-| 433-download-from-episode                   | 13.4       | 433-download-from-episode                   | Codex 5.3 | _TBD_   |
-| 434-library-downloads-list                  | 13.5       | 434-library-downloads-list                  | Codex 5.3 | _TBD_   |
-| 435-playback-from-download                  | 13.6       | 435-playback-from-download                  | Opus 4.8  | _TBD_   |
-| 436-storage-quota-policy                    | 13.7       | 436-storage-quota-policy                    | Codex 5.3 | _TBD_   |
-| 437-auto-delete-policy                      | 13.8       | 437-auto-delete-policy                      | Codex 5.3 | _TBD_   |
-| 438-cache-downloads-index                   | 13.9       | 438-cache-downloads-index                   | Opus 4.8  | _TBD_   |
-| 439-e2e-offline-play                        | 13.10      | 439-e2e-offline-play                        | Codex 5.3 | _TBD_   |
+| 430-download-queue-design                   | 13.1       | 430-download-queue-design                   | Opus 4.8  | done    |
+| 431-download-storage-choice                 | 13.2       | 431-download-storage-choice                 | Codex 5.3 | done    |
+| 432-download-metadata-schema                | 13.3       | 432-download-metadata-schema                | Codex 5.3 | done    |
+| 433-download-from-episode                   | 13.4       | 433-download-from-episode                   | Codex 5.3 | done    |
+| 434-library-downloads-list                  | 13.5       | 434-library-downloads-list                  | Codex 5.3 | done    |
+| 435-playback-from-download                  | 13.6       | 435-playback-from-download                  | Opus 4.8  | done    |
+| 436-storage-quota-policy                    | 13.7       | 436-storage-quota-policy                    | Codex 5.3 | done    |
+| 437-auto-delete-policy                      | 13.8       | 437-auto-delete-policy                      | Codex 5.3 | done    |
+| 438-cache-downloads-index                   | 13.9       | 438-cache-downloads-index                   | Opus 4.8  | done    |
+| 439-e2e-offline-play                        | 13.10      | 439-e2e-offline-play                        | Codex 5.3 | done    |
 | 440-fcm-integration-playstore               | 14.1       | 440-fcm-integration-playstore               | Codex 5.3 | _TBD_   |
 | 441-fcm-device-register                     | 14.2       | 441-fcm-device-register                     | Codex 5.3 | _TBD_   |
 | 442-fcm-locale-update                       | 14.3       | 442-fcm-locale-update                       | Codex 5.3 | _TBD_   |
@@ -1095,6 +1187,16 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 587-defer-carplay-video                     | 21.8       | 587-defer-carplay-video                     | Auto      | _TBD_   |
 | 588-deferral-issue-links                    | 21.9       | 588-deferral-issue-links                    | Auto      | _TBD_   |
 | 589-deferrals-appendix                      | 21.10      | 589-deferrals-appendix                      | Auto      | _TBD_   |
+| 590-create-playlist-screen                  | 9d.1       | 590-create-playlist-screen                  | Codex 5.3 | done    |
+| 591-edit-playlist-screen                    | 9d.2       | 591-edit-playlist-screen                    | Codex 5.3 | done    |
+| 592-reorder-playlist-items                  | 9d.3       | 592-reorder-playlist-items                  | Codex 5.3 | done    |
+| 593-add-to-playlist-more-sheet              | 9d.4       | 593-add-to-playlist-more-sheet              | Codex 5.3 | done    |
+| 594-stack-header-back-sketch                | 9d.5       | 594-stack-header-back-sketch                | Auto      | done    |
+| 595-operator-polish-checklist               | 23.1       | 595-operator-polish-checklist               | Auto      | _TBD_   |
+| 596-operator-polish-apply-briefs            | 23.2       | 596-operator-polish-apply-briefs            | Codex 5.3 | _TBD_   |
+| 597-list-virtualization-polish              | 23.3       | 597-list-virtualization-polish              | Codex 5.3 | _TBD_   |
+| 598-defer-player-transcript-chrome          | 21.11      | 598-defer-player-transcript-chrome          | Auto      | _TBD_   |
+| 599-defer-pixel-dnd-polish                  | 21.12      | 599-defer-pixel-dnd-polish                  | Auto      | _TBD_   |
 
 ## Appendix D — Detail plan template
 
@@ -1143,8 +1245,9 @@ track’s band** (or open a new band). Slug remains descriptive (`232-theme-prov
 | 310–399        | 10–12         | queue, player, car                     |
 | 430–484        | 13–17         | downloads, push, links, settings, i18n |
 | 510–589        | 18–21         | multi-device, IAP, FOSS, deferrals     |
-| **590+**       | _future_      | Next band when a track’s range is full |
+| 590–599        | 9d, 21, 23    | playlist authoring, deferrals, polish  |
+| **600+**       | _future_      | Next band when a track’s range is full |
 
 **Do not** renumber existing files to add a fourth digit preemptively. If a band is crowded, use the
-next gap in that band or allocate from **590+**. Before adding an ID, grep Appendix C and
+next gap in that band or allocate from **600+**. Before adding an ID, grep Appendix C and
 `details/` for collisions (same numeric prefix, different slug).

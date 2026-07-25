@@ -86,14 +86,14 @@ apps/mobile/src/data/
 
 ## 5. Per-domain rollout (order)
 
-| Phase | Domain                          | Why first                                                     |
-| ----- | ------------------------------- | ------------------------------------------------------------- |
-| A     | Schema + DB client + seam       | Foundation                                                    |
-| B     | Auth/account snapshot           | Session hydrate without full re-fetch every cold start        |
-| C     | Queue / now-playing / history   | PG-7 depends on it; car cache later                           |
-| D     | Add-by-RSS feeds + mapped items | `parser-mapping` output; leave AsyncStorage feed prefs behind |
-| E     | Home feeds / search cache       | Optional warm cache; can stay network-first longer            |
-| F     | Downloads index (file rows)     | Track 13; same DB, file paths on disk                         |
+| Phase | Domain                          | Why first                                                                                                                                                                                                                     |
+| ----- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A     | Schema + DB client + seam       | Foundation                                                                                                                                                                                                                    |
+| B     | Auth/account snapshot           | Session hydrate without full re-fetch every cold start                                                                                                                                                                        |
+| C     | Queue / now-playing / history   | PG-7 depends on it; car cache later                                                                                                                                                                                           |
+| D     | Add-by-RSS feeds + mapped items | `parser-mapping` output; leave AsyncStorage feed prefs behind                                                                                                                                                                 |
+| E     | Home feeds / search cache       | Optional warm cache; can stay network-first longer                                                                                                                                                                            |
+| F     | Downloads index (file rows)     | Track 13; same DB, file paths on disk; **progressive only** — reject `live_item` + HLS/m3u8 (see [MOBILE-ONLY-FEATURES §1.1–1.2](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-MOBILE-ONLY-FEATURES.md)) |
 
 Do **not** migrate every screen in one PR. Land A→C before PG-7 queue/player work; D with add-by-RSS
 parity; E/F as follow-ons.

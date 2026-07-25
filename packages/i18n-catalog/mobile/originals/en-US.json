@@ -14,5 +14,19 @@
     "menu": {
       "view_rss_feeds": "View RSS feeds"
     }
+  },
+  "features": {
+    "download": {
+      "queued": "Queued",
+      "remove": "Remove",
+      "empty": "No downloads yet",
+      "not_downloadable": "This episode can't be downloaded for offline play",
+      "storage_used": "Storage used",
+      "auto_delete_label": "Auto-delete oldest when storage is full",
+      "delete_all_label": "Delete all downloads",
+      "delete_all": "Delete all",
+      "auto_removed_notice": "Removed the oldest downloads to free up space",
+      "dismiss": "Dismiss"
+    }
   }
 }

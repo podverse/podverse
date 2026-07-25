@@ -28,6 +28,58 @@ guidance.
   directly from screens — use repositories. The downloads index is also part of the **native car
   cache** (offline items must appear in CarPlay/Android Auto).
 
+### 1.1 Livestream vs downloadable (must gate)
+
+Livestream vs on-demand is **structural**, not “guess from MIME alone”:
+
+| Signal                                                      | Meaning                                     |
+| ----------------------------------------------------------- | ------------------------------------------- |
+| `item.live_item` present (`DTOItem.live_item`)              | Livestream row (Podcasting 2.0 liveItem)    |
+| `live_item.live_item_status_id` (`LiveItemStatusEnum`)      | Pending / Live / Ended                      |
+| Separate web UI (`LivestreamHeaderPlaySection`, live lists) | **No Download** affordance on web           |
+| Mobile `PlaybackProvider`                                   | Already blocks play when `live_item` is set |
+
+**Mobile download rules (Track 13):**
+
+1. **Never enqueue** when `item.live_item !== null && item.live_item !== undefined` (any status).
+2. Hide / disable Download on livestream detail and live media rows (match web: no download menu).
+3. Do **not** treat Ended liveItems as downloadable VOD unless product later maps them to a
+   progressive enclosure — v1: still no download.
+4. Reject HLS / playlist URLs even on non-live items: URI ends with `.m3u8` (ignore query), or
+   enclosure `type` is `application/x-mpegurl` / `application/vnd.apple.mpegurl` (case-insensitive).
+   Saving an m3u8 playlist is not offline media playback.
+
+Eligibility helpers should live in `apps/mobile/src/lib/` or the downloads module (pure, unit-tested)
+and be called from the manager **and** UI — not only hidden in the button.
+
+### 1.2 Progressive formats (first-class)
+
+Reuse `@podverse/helpers` enclosure labeling — do not invent a parallel MIME table:
+
+- `buildLabeledItemEnclosures` / `getMediaTypeFromSource` /
+  `resolvePreferredMediaTypeEnclosureSelectedParams` in
+  [`packages/helpers/src/lib/item/itemEnclosure.ts`](/packages/helpers/src/lib/item/itemEnclosure.ts)
+- Extension → kind map (first-class progressive files):
+
+  | Audio                                     | Video                              |
+  | ----------------------------------------- | ---------------------------------- |
+  | `mp3`, `aac`, `opus`, `m4a`, `ogg`, `wav` | `mp4`, `m4v`, `webm`, `mov`, `mkv` |
+
+- MIME → extension map in the same module (filename / on-disk ext): `audio/mpeg`→mp3,
+  `audio/opus`, `audio/aac`, `audio/ogg`, `audio/wav`, `video/mp4`, `video/quicktime`→mov,
+  `video/x-matroska`→mkv; **`application/x-mpegurl`→m3u8 is stream-only — not downloadable**.
+
+**Web today:** download helpers do **not** MIME-allowlist; they save whatever URI the modal
+selects. Livestreams are excluded because live UI never offers Download. Mobile must be **stricter**
+for offline: only progressive file URLs that the engine can play from `file://`.
+
+**Selection:** prefer user media-type preference (same as playback) via labeled enclosures +
+alternate enclosures (Podcasting 2.0); store the chosen source URI, MIME/`type`, and derived
+extension on the downloads row. Unknown MIME that is still a progressive URL may download with a
+best-effort extension; HLS / live remain rejected.
+
+**Out of v1:** ice/icecast schemes, DASH manifests, DRM, offline HLS segment caching.
+
 ## 2. Background audio and OS media controls
 
 - **Web:** `<audio>` element + Page Visibility; limited lock-screen control via the browser.
@@ -157,23 +209,23 @@ guidance.
 
 ## Feature priority (v1 MVP)
 
-| Feature                             | Priority | Rationale                                               |
-| ----------------------------------- | -------- | ------------------------------------------------------- |
-| Bearer auth + secure storage        | P0       | Everything authenticated depends on it                  |
-| Offline-first data layer (local DB) | P0       | Screens read repositories; foundation for queue/offline |
-| Background audio + OS controls      | P0       | Core podcast UX; prerequisite for car                   |
-| Queue + playback parity             | P0       | Core product; consumes data layer                       |
-| Stats                               | P0       | Low cost, reuse endpoints                               |
-| Shared visual primitives            | P1       | Layout/spacing convergence; polish deferred             |
-| Local settings + prefs sync         | P1       | Consistency with web                                    |
-| Add-by-RSS parser-mapping + DB      | P1       | Parity with web mapping; local DB storage               |
-| Offline episode downloads (files)   | P1       | Major differentiator; builds on data layer              |
-| Push notifications (FCM)            | P1       | Engagement; API exists                                  |
-| Deep links                          | P1       | Sharing/retention                                       |
-| CarPlay / Android Auto              | P1       | High value; after background audio + native cache       |
-| Membership / IAP                    | P2       | Revenue; policy-sensitive, do later                     |
-| Full visual polish (pixel parity)   | P2       | After primitives + feature-complete                     |
-| Livestream HLS                      | P2       | Deferred (separate effort)                              |
+| Feature                             | Priority      | Rationale                                               |
+| ----------------------------------- | ------------- | ------------------------------------------------------- |
+| Bearer auth + secure storage        | P0            | Everything authenticated depends on it                  |
+| Offline-first data layer (local DB) | P0            | Screens read repositories; foundation for queue/offline |
+| Background audio + OS controls      | P0            | Core podcast UX; prerequisite for car                   |
+| Queue + playback parity             | P0            | Core product; consumes data layer                       |
+| Stats                               | P0            | Low cost, reuse endpoints                               |
+| Shared visual primitives            | P1            | Layout/spacing convergence; polish deferred             |
+| Local settings + prefs sync         | P1            | Consistency with web                                    |
+| Add-by-RSS parser-mapping + DB      | P1            | Parity with web mapping; local DB storage               |
+| Offline episode downloads (files)   | P1            | Major differentiator; builds on data layer              |
+| Push notifications (FCM)            | P1            | Engagement; API exists                                  |
+| Deep links                          | P1            | Sharing/retention                                       |
+| CarPlay / Android Auto              | P1            | High value; after background audio + native cache       |
+| Membership / IAP                    | P2            | Revenue; policy-sensitive, do later                     |
+| Full visual polish (pixel parity)   | P2 / Track 23 | **Operator** screen-by-screen after feature bulk        |
+| Livestream HLS                      | P2            | Deferred (separate effort)                              |
 
 ## Dependencies between features
 

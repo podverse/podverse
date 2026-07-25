@@ -2,9 +2,13 @@
 
 **Master step:** 11.17
 **Model (author + implement):** Opus 4.8
-**Status:** draft
+**Status:** done
 
-**Implementation deferral (PG-7b audio-first):** Detail now; implement after PG-5 / Track 2 video (2.14+). Do not block audio mini/full player COPY-PASTA.
+**Implementation deferral (PG-7b audio-first):** Detail now; implement after PG-5 / Track 2 video
+(2.14+). Do not block audio mini/full player COPY-PASTA.
+
+**Ship bar:** functional video surface / E2E smoke only — no player layout redesign or transcript
+chrome (Track 21.11 / Track 23).
 
 ## Scope
 
@@ -12,23 +16,28 @@
 
 ## Architecture notes
 
-- 11.7
+- Depends on 11.7; may share `apps/mobile/e2e/video-transition.yaml`.
 
 ## Edge cases / cross-track deps
 
-- Engine single-instance invariant
+- Engine single-instance invariant; Maestro cannot prove “no black flash” visually — assert
+  `playback-active-e2e` + mini surface `testID`s; operator on-device check for flash.
 
 ## Acceptance criteria
 
-- Collapse screenshot shows continuous playback chrome
-- No reload spinner assert
+- Collapse screenshot flow: full player dismissed; mini + playback still active
+- No reload spinner assert where harness allows
 
 ## Web parity references
 
-npm run mobile:e2e:test -- play-mini-player
+- Single native surface reparent
 
 ## Verification
 
 ```bash
-- 11.7
+npm run mobile:e2e:test -- video-transition
 ```
+
+## Depends on
+
+- 11.7

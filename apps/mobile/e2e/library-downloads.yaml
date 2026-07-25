@@ -1,0 +1,76 @@
+appId: com.podverse.app.next
+name: Library Downloads Offline Play
+---
+# Track 13.10: download a seeded progressive episode, wait for complete, then play it — playback
+# resolves the completed local `file://` via resolvePlaybackUrl (13.6) — and confirm it appears in
+# the My Library -> Downloads list with the storage usage summary (13.5 / 13.7).
+#
+# Fixture: a seeded podcast episode with a progressive mp3 enclosure on the test-assets server
+# (:2111), non-live and non-HLS (livestream / m3u8 items never render the Download control). The
+# download runner applies the same loopback-host rewrite as playback (resolveE2eMediaUrl) so the
+# transfer works on the iOS simulator (127.0.0.1) and Android emulator (10.0.2.2).
+#
+# Limitation: Maestro cannot reliably toggle airplane mode, so this proves the
+# download -> complete -> play path (which uses the local file once complete) rather than literally
+# cutting the network. True offline playback is verified manually (airplane mode) per detail 435.
+# Needs flow_needs_e2e_api + flow_needs_test_assets (registered in scripts/mobile/e2e-test.sh).
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+# Navigate to a seeded podcast episode.
+- tapOn:
+    id: tab-search
+- assertVisible:
+    id: search-screen
+- tapOn:
+    id: search-input
+- inputText: podcast
+- assertVisible:
+    id: search-result-row-0
+- tapOn:
+    id: search-result-row-0
+- assertVisible:
+    id: podcast-detail-screen
+- assertVisible:
+    id: podcast-episode-row-0
+- tapOn:
+    id: podcast-episode-row-0
+- assertVisible:
+    id: episode-detail-screen
+- takeScreenshot: library-downloads-episode-detail
+
+# Start the offline download; the Download control is only present for eligible (progressive) items.
+- assertVisible:
+    id: episode-download-button
+- tapOn:
+    id: episode-download-button
+- extendedWaitUntil:
+    visible:
+      id: episode-download-complete
+    timeout: ${TIMEOUT_SLOWEST}
+- takeScreenshot: library-downloads-episode-downloaded
+
+# Play the episode — the completed local file is preferred over the remote enclosure (13.6).
+- tapOn:
+    id: "home-row-play-.*"
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: mini-player
+- takeScreenshot: library-downloads-offline-now-playing
+
+# The completed download appears in My Library -> Downloads with the storage usage summary.
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-downloads
+- assertVisible:
+    id: library-downloads-screen
+- assertVisible:
+    id: library-downloads-usage
+- takeScreenshot: library-downloads-list

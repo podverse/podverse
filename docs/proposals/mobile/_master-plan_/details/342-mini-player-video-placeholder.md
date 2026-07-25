@@ -2,9 +2,13 @@
 
 **Master step:** 11.3
 **Model (author + implement):** Opus 4.8
-**Status:** draft
+**Status:** done
 
-**Implementation deferral (PG-7b audio-first):** Detail now; implement after PG-5 / Track 2 video (2.14+). Do not block audio mini/full player COPY-PASTA.
+**Implementation deferral (PG-7b audio-first):** Detail now; implement after PG-5 / Track 2 video
+(2.14+). Do not block audio mini/full player COPY-PASTA.
+
+**Ship bar:** functional video surface wiring only — no player layout redesign or transcript chrome
+(Track 21.11 / Track 23).
 
 ## Scope
 

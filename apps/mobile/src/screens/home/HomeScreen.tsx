@@ -18,6 +18,8 @@ import {
   writePreferredMediaType,
 } from '../../prefs/preferredMediaType';
 import { useTheme } from '../../theme/useTheme';
+import type { AddToPlaylistTarget } from '../library/useAddToPlaylist';
+import { useAddToPlaylist } from '../library/useAddToPlaylist';
 import { fetchHomeFeedRows, type HomeFeedRowData } from './homeFeedData';
 import { HomeFeedRow } from './HomeFeedRow';
 import { MediaTypeSelector } from './MediaTypeSelector';
@@ -44,6 +46,19 @@ export function HomeScreen() {
   const [isFeedRefreshing, setIsFeedRefreshing] = useState<boolean>(false);
   const [feedErrorKey, setFeedErrorKey] = useState<string | null>(null);
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
+  const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();
+
+  // Only episodes/tracks (item) and clips (clip) can be appended to a playlist today; other media
+  // types are not playlist resources (9d.4). null means the row gets no add-to-playlist action.
+  const addToPlaylistKind = useMemo<AddToPlaylistTarget['kind'] | null>(() => {
+    if (selectedMediaType === 'clips') {
+      return 'clip';
+    }
+    if (selectedMediaType === 'episodes' || selectedMediaType === 'tracks') {
+      return 'item';
+    }
+    return null;
+  }, [selectedMediaType]);
 
   useEffect(() => {
     let isMounted = true;
@@ -249,6 +264,13 @@ export function HomeScreen() {
                 <HomeFeedRow
                   key={row.id}
                   mediaType={selectedMediaType}
+                  onAddToPlaylistPress={
+                    status === 'authenticated' && addToPlaylistKind !== null
+                      ? (nextRow) => {
+                          requestAddToPlaylist({ idText: nextRow.id, kind: addToPlaylistKind });
+                        }
+                      : undefined
+                  }
                   onPlayPress={(nextRow) => {
                     runPlayAction(nextRow, selectedMediaType);
                   }}
@@ -265,6 +287,7 @@ export function HomeScreen() {
           ) : null}
         </View>
       </ScrollView>
+      {addToPlaylistSheet}
     </View>
   );
 }

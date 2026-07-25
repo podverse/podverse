@@ -1,0 +1,70 @@
+appId: com.podverse.app.next
+name: Library Playlists Authoring
+---
+# Track 9d (details 590–594): authenticated playlist authoring smoke + back navigation.
+# Path: Library -> Playlists -> create (9d.1) -> detail -> edit (9d.2) -> save/goBack -> detail (9d.5).
+# Needs Mobile E2E API (:4230) only (no media playback / test-assets). Reorder (9d.3, needs >1
+# resource) and add-to-playlist from Home rows (9d.4) depend on seeded playlist/feed content and are
+# verified manually on device — see apps/mobile/e2e/HOW-TO-RUN.md.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+# Library hub -> playlists list.
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-playlists
+- assertVisible:
+    id: library-playlists-screen
+
+# 9d.1 create: open the create form, fill title, exercise the sharable-status chips, submit.
+- tapOn:
+    id: library-playlists-create
+- assertVisible:
+    id: playlist-form-screen
+- tapOn:
+    id: playlist-form-title
+- inputText: "E2E Playlist"
+# Android often leaves the soft keyboard over Submit after inputText (mirrors login flow).
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- tapOn:
+    id: playlist-form-sharable-unlisted
+- takeScreenshot: library-playlists-create-form
+- tapOn:
+    id: playlist-form-submit
+# create replaces the form with the new playlist's detail (navigation.replace).
+- extendedWaitUntil:
+    visible:
+      id: library-playlist-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: library-playlists-created-detail
+
+# 9d.2 edit (owner-only edit button) + 9d.5 back: save calls navigation.goBack() -> detail again,
+# proving the pushed edit screen is not a dead-end.
+- tapOn:
+    id: library-playlist-detail-edit
+- assertVisible:
+    id: playlist-form-screen
+- tapOn:
+    id: playlist-form-title
+- inputText: " Edited"
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- takeScreenshot: library-playlists-edit-form
+- tapOn:
+    id: playlist-form-submit
+- extendedWaitUntil:
+    visible:
+      id: library-playlist-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: library-playlists-edit-back-to-detail

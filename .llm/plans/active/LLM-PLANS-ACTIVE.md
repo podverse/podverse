@@ -8,13 +8,18 @@ templates are blanks; this directory holds real plan instances.
 - When finished, move the set to `plans/completed/` (see **plan-completion** skill).
 - See [LLM.md](/.llm/LLM.md).
 
-## Indexed sets (non-exhaustive)
+## Indexed sets
 
-_(none currently indexed)_
+_No active plan sets._
 
-_Recently completed (archives may have been cleaned):_
-[mobile-pg5-video-gaps](../completed/mobile-pg5-video-gaps/) — PG-5 gap remediation: (01)
-true surface reparent into RN-mounted view (modal z-order), (02) mobile Vitest docs + CI gate.
-PG-5 build set: `plans/completed/mobile-pg5-video`. PG-7a/7b audio + media-row actions +
-pg7-pr-prep — Tracks 10 / 11 audio / 9c done; Track 11 video steps remain `planned` until after
-PG-5.
+_Recently completed:_
+[mobile-track13-downloads](../completed/mobile-track13-downloads/) (13.1–13.10: eligibility/schema,
+episode download + library list, local-file playback + native-cache projection, quota + auto-delete,
+E2E offline play; details 430–439),
+[mobile-track9d-playlist-authoring](../completed/mobile-track9d-playlist-authoring/)
+(9d.1–9d.5: create/edit/reorder/add-to-playlist + header back),
+[mobile-track11-video](../completed/mobile-track11-video/) (11.3 / 11.6–11.8 / 11.15–11.17),
+[mobile-pg5-video](../completed/mobile-pg5-video/) +
+[mobile-pg5-video-gaps](../completed/mobile-pg5-video-gaps/).
+
+Operator visual polish remains **Track 23** only (after feature bulk + operator briefs).
