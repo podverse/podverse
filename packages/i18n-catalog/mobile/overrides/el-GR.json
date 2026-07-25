@@ -14,5 +14,19 @@
     "menu": {
       "view_rss_feeds": ""
     }
+  },
+  "features": {
+    "download": {
+      "queued": "",
+      "remove": "",
+      "empty": "",
+      "not_downloadable": "",
+      "storage_used": "",
+      "auto_delete_label": "",
+      "delete_all_label": "",
+      "delete_all": "",
+      "auto_removed_notice": "",
+      "dismiss": ""
+    }
   }
 }

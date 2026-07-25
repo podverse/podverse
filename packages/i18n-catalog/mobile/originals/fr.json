@@ -14,5 +14,19 @@
     "menu": {
       "view_rss_feeds": "Voir les flux RSS"
     }
+  },
+  "features": {
+    "download": {
+      "queued": "En file d'attente",
+      "remove": "Supprimer",
+      "empty": "Aucun téléchargement pour le moment",
+      "not_downloadable": "Cet épisode ne peut pas être téléchargé pour une écoute hors ligne",
+      "storage_used": "Espace de stockage utilisé",
+      "auto_delete_label": "Suppression automatique des plus anciens lorsque le stockage est plein",
+      "delete_all_label": "Supprimer tous les téléchargements",
+      "delete_all": "Tout supprimer",
+      "auto_removed_notice": "Les téléchargements les plus anciens ont été supprimés pour libérer de l'espace",
+      "dismiss": "Fermer"
+    }
   }
 }

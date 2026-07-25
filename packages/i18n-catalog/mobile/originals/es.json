@@ -14,5 +14,19 @@
     "menu": {
       "view_rss_feeds": "Ver feeds RSS"
     }
+  },
+  "features": {
+    "download": {
+      "queued": "En cola",
+      "remove": "Eliminar",
+      "empty": "Aún no hay descargas",
+      "not_downloadable": "Este episodio no se puede descargar para reproducir sin conexión",
+      "storage_used": "Almacenamiento utilizado",
+      "auto_delete_label": "Eliminar automáticamente los más antiguos cuando el almacenamiento esté lleno",
+      "delete_all_label": "Eliminar todas las descargas",
+      "delete_all": "Eliminar todo",
+      "auto_removed_notice": "Se eliminaron las descargas más antiguas para liberar espacio",
+      "dismiss": "Descartar"
+    }
   }
 }
