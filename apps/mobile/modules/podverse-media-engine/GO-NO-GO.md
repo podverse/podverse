@@ -30,13 +30,23 @@ below).
 | C4  | Native cache write hooks reserved (stubs OK)                                 | ✅     | `writeQueueSnapshot` / `writeDownloadsIndex` / `writeLibraryBrowseIndex` — 114 / 2.35 → 12.1–12.4 |
 | C5  | iOS shared-player accessor usable without starting JS                        | ✅     | `PodverseAudioEngine.shared`, independent of Expo module lifecycle — 12.7–12.10                   |
 
+## Native cache read spikes (Track 12.1–12.6 — landed)
+
+| #    | Criterion                                                            | Status | Evidence                                                                                                          |
+| ---- | ------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------- |
+| 12.5 | iOS native code reads durable cache with JS not started            | ✅\*   | `ios/PodverseNativeCache.swift` `read` / `debugDump`; [NATIVE-CACHE-SPIKE-IOS.md](./NATIVE-CACHE-SPIKE-IOS.md)   |
+| 12.6 | Android native code reads durable cache with app force-stopped      | ✅     | `PodverseMediaLibraryService.onCreate` → `PodverseNativeCache.debugDump`; [NATIVE-CACHE-SPIKE-ANDROID.md](./NATIVE-CACHE-SPIKE-ANDROID.md) |
+
+\* iOS proof is file-level (container read, Metro not attached). In-scene CarPlay `debugDump` proof
+is pending the CarPlay scene (12.7) + entitlement (12.16); the Swift reader is wired and ready.
+
 ## Deferred — seamless car (NOT this gate)
 
 These remain Track 12 operator acceptance; do **not** mark car "done" at 2.34:
 
-- **12.5 / 12.6** — native cache read with JS not started / app force-stopped
+- **12.7–12.15** — full CarPlay / Android Auto browse trees, now-playing bind, offline items in tree
+- **12.16** — CarPlay entitlement + App Group provisioning
 - **12.17 / 12.18** — Android Auto DHU + CarPlay simulator manual checklists
-- Full Track 12 browse trees, entitlements, offline items in tree
 
 Seamless car browse when JS is dead depends on the **native cache** (12.1–12.4 storage), not on keeping
 the JS runtime or Activity alive.

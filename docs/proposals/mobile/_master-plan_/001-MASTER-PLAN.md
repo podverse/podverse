@@ -62,28 +62,33 @@ those briefs in Track 23 — not earlier.
 
 ## Current status / next up (2026-07)
 
-| Parallel group              | Status      | Notes                                                                                           |
-| --------------------------- | ----------- | ----------------------------------------------------------------------------------------------- |
-| PG-0 … PG-4                 | **done**    | Foundation, playback-core, hello-world, media-engine **audio** spike, CI/E2E, auth, nav, themes |
-| PG-5 (Track 2 video)        | **done**    | Video surface + reparent gaps archived under `.llm/plans/completed/mobile-pg5-*`                |
-| PG-6 / 6.5 / 6.6            | **done**    | Home/browse, data layer + primitives, media-row actions                                         |
-| PG-7 (Tracks 10–11)         | **done**    | Track 10 DONE; Track 11 audio + video done (11.3 / 11.6–11.8 / 11.15–11.17)                     |
-| **Track 11 video leftover** | **done**    | Archived under `.llm/plans/completed/mobile-track11-video/`                                     |
-| **PG-6.7 (Track 9d)**       | **done**    | Archived under `.llm/plans/completed/mobile-track9d-playlist-authoring/` (9d.1–9d.5)            |
-| **PG-9 Track 13 downloads** | **planned** | Detail 430–439 + `.llm/plans/active/mobile-track13-downloads/` — implement via COPY-PASTA       |
-| PG-8 / rest of PG-9         | later       | Car, push, deep links, settings/OPML remainder                                                  |
-| PG-13 (Track 23)            | later       | **Operator** screen-by-screen visual polish — after feature bulk                                |
+| Parallel group                       | Status      | Notes                                                                                           |
+| ------------------------------------ | ----------- | ----------------------------------------------------------------------------------------------- |
+| PG-0 … PG-4                          | **done**    | Foundation, playback-core, hello-world, media-engine **audio** spike, CI/E2E, auth, nav, themes |
+| PG-5 (Track 2 video)                 | **done**    | Video surface + reparent gaps archived under `.llm/plans/completed/mobile-pg5-*`                |
+| PG-6 / 6.5 / 6.6                     | **done**    | Home/browse, data layer + primitives, media-row actions                                         |
+| PG-7 (Tracks 10–11)                  | **done**    | Track 10 DONE; Track 11 audio + video done (11.3 / 11.6–11.8 / 11.15–11.17)                     |
+| **Track 11 video leftover**          | **done**    | Archived under `.llm/plans/completed/mobile-track11-video/`                                     |
+| **PG-6.7 (Track 9d)**                | **done**    | Archived under `.llm/plans/completed/mobile-track9d-playlist-authoring/` (9d.1–9d.5)            |
+| **PG-9 Track 13 downloads**          | **done**    | Archived under `.llm/plans/completed/mobile-track13-downloads/` (13.1–13.10)                    |
+| **PG-8 native cache (12.1–12.6)**    | **done**    | Archived under `.llm/plans/completed/mobile-pg8-car-native-cache/` (schema, iOS/Android storage, JS write path, read spikes) |
+| **PG-8 car surfaces (12.7+)**        | **next up** | CarPlay scene + Android Auto browse trees over the native cache — build on 12.1–12.6            |
+| PG-9 rest                            | later       | Push, deep links, settings/OPML                                                                 |
+| PG-13 (Track 23)                     | later       | **Operator** screen-by-screen visual polish — after feature bulk                                |
 
 ### Recommended next build sequence
 
-1. **Implement Track 13** — paste prompts from
-   `.llm/plans/active/mobile-track13-downloads/COPY-PASTA.md`.
-2. Then **Track 12 car**, **Track 16 settings/OPML**, **push** — next functional-sketch bulk.
-   **Track 23** only after the feature bulk is in place and the operator has reviewed screens.
+1. **Track 12 car surfaces (12.7–12.21)** — CarPlay scene + Android Auto browse trees reading the
+   durable native cache (12.1–12.6, now landed). Also **Track 16 settings/OPML** and **push** —
+   next functional-sketch bulk. **Track 23** only after the feature bulk is in place and the
+   operator has reviewed screens.
 
-_Done:_ **Track 9d playlist authoring** — archived under
-`.llm/plans/completed/mobile-track9d-playlist-authoring/` (create/edit/reorder/add-to-playlist +
-header back). **Track 11 video** — archived under `.llm/plans/completed/mobile-track11-video/`.
+_Done:_ **PG-8 native cache (12.1–12.6)** — schema, iOS/Android durable storage, JS write path, and
+read-with-JS-dead spikes; archived under `.llm/plans/completed/mobile-pg8-car-native-cache/`.
+**Track 13 downloads** — archived under `.llm/plans/completed/mobile-track13-downloads/`.
+**Track 9d playlist authoring** — archived under
+`.llm/plans/completed/mobile-track9d-playlist-authoring/`. **Track 11 video** — archived under
+`.llm/plans/completed/mobile-track11-video/`.
 
 ## Parallel groups (implementation order)
 
@@ -485,7 +490,7 @@ controls (never queue copy for unfollow/remove-feed). Model: Codex 5.3. Detail:
 [499-media-row-actions-migrate](/docs/proposals/mobile/_master-plan_/details/499-media-row-actions-migrate.md)
 — done
 
-## Track 9d — Playlist / library authoring (functional sketch)
+## Track 9d — Playlist / library authoring (functional sketch) (DONE)
 
 **Parallel group:** PG-6.7. **Ship bar:** working screens + API wiring + `testID`s — not pixel
 polish or fancy drag chrome (Track 23 / deferrals 21.12). Clip **create/edit** stays deferred
@@ -571,12 +576,12 @@ native surface — do **not** redesign player layout or add transcript/clip-auth
 
 ## Track 12 — CarPlay / Android Auto
 
-12.1. Define native cache schema: queue snapshot, downloads index, library browse index JSON. Model: Opus 4.8. Detail: [380-native-cache-schema](/docs/proposals/mobile/_master-plan_/details/380-native-cache-schema.md) — _TBD_
-12.2. Implement iOS native cache storage (App Group or file container) writable from JS bridge. Model: Opus 4.8. Detail: [381-ios-native-cache-storage](/docs/proposals/mobile/_master-plan_/details/381-ios-native-cache-storage.md) — _TBD_
-12.3. Implement Android native cache storage (SharedPreferences or Room) writable from JS bridge. Model: Opus 4.8. Detail: [382-android-native-cache-storage](/docs/proposals/mobile/_master-plan_/details/382-android-native-cache-storage.md) — _TBD_
-12.4. JS queue store calls cache write on every queue/auto-queue/download change. Model: Opus 4.8. Detail: [383-js-cache-write-path](/docs/proposals/mobile/_master-plan_/details/383-js-cache-write-path.md) — _TBD_
-12.5. Spike: verify native reads cache with JS runtime not started (CarPlay simulator). Model: Opus 4.8. Detail: [384-spike-cache-read-no-js-ios](/docs/proposals/mobile/_master-plan_/details/384-spike-cache-read-no-js-ios.md) — _TBD_
-12.6. Spike: verify native reads cache with app force-stopped (Android DHU). Model: Opus 4.8. Detail: [385-spike-cache-read-no-js-android](/docs/proposals/mobile/_master-plan_/details/385-spike-cache-read-no-js-android.md) — _TBD_
+12.1. Define native cache schema: queue snapshot, downloads index, library browse index JSON. Model: Opus 4.8. Detail: [380-native-cache-schema](/docs/proposals/mobile/_master-plan_/details/380-native-cache-schema.md) — done
+12.2. Implement iOS native cache storage (App Group or file container) writable from JS bridge. Model: Opus 4.8. Detail: [381-ios-native-cache-storage](/docs/proposals/mobile/_master-plan_/details/381-ios-native-cache-storage.md) — done
+12.3. Implement Android native cache storage (SharedPreferences or Room) writable from JS bridge. Model: Opus 4.8. Detail: [382-android-native-cache-storage](/docs/proposals/mobile/_master-plan_/details/382-android-native-cache-storage.md) — done
+12.4. JS queue store calls cache write on every queue/auto-queue/download change. Model: Opus 4.8. Detail: [383-js-cache-write-path](/docs/proposals/mobile/_master-plan_/details/383-js-cache-write-path.md) — done
+12.5. Spike: verify native reads cache with JS runtime not started (CarPlay simulator). Model: Opus 4.8. Detail: [384-spike-cache-read-no-js-ios](/docs/proposals/mobile/_master-plan_/details/384-spike-cache-read-no-js-ios.md) — done ([NATIVE-CACHE-SPIKE-IOS.md](/apps/mobile/modules/podverse-media-engine/NATIVE-CACHE-SPIKE-IOS.md))
+12.6. Spike: verify native reads cache with app force-stopped (Android DHU). Model: Opus 4.8. Detail: [385-spike-cache-read-no-js-android](/docs/proposals/mobile/_master-plan_/details/385-spike-cache-read-no-js-android.md) — done ([NATIVE-CACHE-SPIKE-ANDROID.md](/apps/mobile/modules/podverse-media-engine/NATIVE-CACHE-SPIKE-ANDROID.md))
 12.7. iOS: add CarPlay scene configuration in Info.plist and entitlements. Model: Opus 4.8. Detail: [386-ios-carplay-scene-config](/docs/proposals/mobile/_master-plan_/details/386-ios-carplay-scene-config.md) — _TBD_
 12.8. iOS: implement CarPlay `CPListTemplate` browse tree from native cache. Model: Opus 4.8. Detail: [387-ios-carplay-browse-templates](/docs/proposals/mobile/_master-plan_/details/387-ios-carplay-browse-templates.md) — _TBD_
 12.9. iOS: bind CarPlay now-playing to shared AVPlayer instance from media engine. Model: Opus 4.8. Detail: [388-ios-carplay-now-playing](/docs/proposals/mobile/_master-plan_/details/388-ios-carplay-now-playing.md) — _TBD_
@@ -593,7 +598,7 @@ native surface — do **not** redesign player layout or add transcript/clip-auth
 12.20. Update abcmemory rule: car surfaces are native-only, not JS track-player browse. Model: Codex 5.3. Detail: [399-abcmemory-car-native-only](/docs/proposals/mobile/_master-plan_/details/399-abcmemory-car-native-only.md) — _TBD_
 12.21. Parallel worktree: car native module (`ios/`, `android/`) isolated from RN UI worktrees. Model: Auto. Detail: [400-car-parallel-worktree](/docs/proposals/mobile/_master-plan_/details/400-car-parallel-worktree.md) — _TBD_
 
-## Track 13 — Offline downloads (episode files)
+## Track 13 — Offline downloads (episode files) (DONE)
 
 **Prerequisite:** Track 9b offline-first data layer. This track is **enclosure file** downloads on
 disk + download index rows in the same SQLite DB — not a substitute for the metadata/data layer.
@@ -1075,12 +1080,12 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 361-e2e-video-full-screenshot               | 11.16      | 361-e2e-video-full-screenshot               | Opus 4.8  | done    |
 | 362-e2e-video-collapse-screenshot           | 11.17      | 362-e2e-video-collapse-screenshot           | Opus 4.8  | done    |
 | 363-anti-pattern-no-second-video            | 11.18      | 363-anti-pattern-no-second-video            | Auto      | done    |
-| 380-native-cache-schema                     | 12.1       | 380-native-cache-schema                     | Opus 4.8  | _TBD_   |
-| 381-ios-native-cache-storage                | 12.2       | 381-ios-native-cache-storage                | Opus 4.8  | _TBD_   |
-| 382-android-native-cache-storage            | 12.3       | 382-android-native-cache-storage            | Opus 4.8  | _TBD_   |
-| 383-js-cache-write-path                     | 12.4       | 383-js-cache-write-path                     | Opus 4.8  | _TBD_   |
-| 384-spike-cache-read-no-js-ios              | 12.5       | 384-spike-cache-read-no-js-ios              | Opus 4.8  | _TBD_   |
-| 385-spike-cache-read-no-js-android          | 12.6       | 385-spike-cache-read-no-js-android          | Opus 4.8  | _TBD_   |
+| 380-native-cache-schema                     | 12.1       | 380-native-cache-schema                     | Opus 4.8  | done    |
+| 381-ios-native-cache-storage                | 12.2       | 381-ios-native-cache-storage                | Opus 4.8  | done    |
+| 382-android-native-cache-storage            | 12.3       | 382-android-native-cache-storage            | Opus 4.8  | done    |
+| 383-js-cache-write-path                     | 12.4       | 383-js-cache-write-path                     | Opus 4.8  | done    |
+| 384-spike-cache-read-no-js-ios              | 12.5       | 384-spike-cache-read-no-js-ios              | Opus 4.8  | done    |
+| 385-spike-cache-read-no-js-android          | 12.6       | 385-spike-cache-read-no-js-android          | Opus 4.8  | done    |
 | 386-ios-carplay-scene-config                | 12.7       | 386-ios-carplay-scene-config                | Opus 4.8  | _TBD_   |
 | 387-ios-carplay-browse-templates            | 12.8       | 387-ios-carplay-browse-templates            | Opus 4.8  | _TBD_   |
 | 388-ios-carplay-now-playing                 | 12.9       | 388-ios-carplay-now-playing                 | Opus 4.8  | _TBD_   |

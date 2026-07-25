@@ -181,17 +181,54 @@ screen and may be removed once player UI (Tracks 10–11) lands.
 ## Reserved native-cache write methods (step 2.35 / detail 114)
 
 JS mirrors state into native storage so Track 12 car surfaces read queue / downloads / library
-**without JS running**. Signatures are reserved now; native persist is a **no-op stub** in PG-2b.
-**Schema owned by Track 12.1** — do not invent a throwaway schema here.
+**without JS running**. Signatures are reserved now; native persist is a **no-op stub** until
+durable storage lands (12.2–12.3) and the JS write path is wired (12.4).
 
-| Method (JS → native)      | Payload (v0 draft, final list owned by 12.1)    | Reader                        |
+**Authoritative schema:** master step **12.1** —
+[380-native-cache-schema](/docs/proposals/mobile/_master-plan_/details/380-native-cache-schema.md).
+TypeScript source of truth: `apps/mobile/src/data/nativeCache/projection.ts` (envelope +
+`NATIVE_CACHE_SCHEMA_VERSION`, currently `1`). Do not invent a competing schema here.
+
+| Method (JS → native)      | Payload (schema owned by 12.1 / detail 380)     | Reader                        |
 | ------------------------- | ----------------------------------------------- | ----------------------------- |
 | `writeQueueSnapshot`      | now-playing + upcoming item ids / titles / urls | car skip/advance, now-playing |
 | `writeDownloadsIndex`     | local `file://` paths + metadata                | offline car browse            |
 | `writeLibraryBrowseIndex` | podcast / playlist list for templates           | car browse roots              |
 
-Each takes a single JSON-string payload and returns `Promise<void>`. Native stores an opaque snapshot
-and does not re-decide queue rules (policy stays in `@podverse/playback-core`).
+Each takes a single JSON-string payload and returns `Promise<void>`. Every payload carries a
+`schemaVersion` + `updatedAtMs` envelope (see `build*Payload` in `projection.ts`). Native stores an
+opaque snapshot, ignores unknown keys, and does not re-decide queue rules (policy stays in
+`@podverse/playback-core`).
+
+### Durable storage + read helpers (steps 12.2–12.3 / details 381–382)
+
+The bridge write methods persist each payload as JSON via a small per-platform cache module. Native
+car surfaces (CarPlay scene 12.7+, Android Auto `MediaLibraryService` 12.11+) and the read spikes
+(12.5–12.6) load these files **with the JS runtime not running**. Writes are atomic (temp + rename)
+and best-effort — a failed write never rolls back the phone-side mutation.
+
+| Platform | Module (read/write API)                         | Location                                   | Filenames                                                              |
+| -------- | ----------------------------------------------- | ------------------------------------------ | --------------------------------------------------------------------- |
+| iOS      | `PodverseNativeCache.write(_:json:)` / `read(_:)` | Application Support `/native-cache/` (App Group when provisioned — 12.16) | `queue-snapshot.json`, `downloads-index.json`, `library-browse-index.json` |
+| Android  | `PodverseNativeCache.write(context,kind,json)` / `read(context,kind)` | `context.filesDir/native-cache/`           | same three filenames                                                   |
+
+- iOS uses the app container now; `PodverseNativeCache.appGroupIdentifier` is reserved (`nil`) until
+  the CarPlay entitlement + App Group land (12.16) — setting it migrates storage transparently.
+- Android uses app-private `filesDir`, readable by the media-library service process (same app UID);
+  no Google Play Services dependency.
+- Missing / corrupt payloads read back as `nil`/`null`; callers render an empty tree, never crash.
+- Kinds: `PodverseNativeCacheKind` (`queue` / `downloads` / `libraryBrowse`). Payload shapes are
+  owned by [380-native-cache-schema](/docs/proposals/mobile/_master-plan_/details/380-native-cache-schema.md).
+
+#### Read-with-JS-dead spikes (steps 12.5–12.6)
+
+Both cache modules expose a `debugDump()` that reads all three payloads and logs a one-line summary
+(presence, byte size, parsed `schemaVersion`). On Android, `PodverseMediaLibraryService.onCreate`
+calls it so Android Auto / DHU — which starts the **service, not the Activity** — proves a native
+read with the app force-stopped. On iOS the same helper is reserved for the CarPlay scene (12.7);
+the current proof is a container file read with Metro not attached (CarPlay entitlement lands 12.16).
+Operator procedures + GO/NO-GO: [`NATIVE-CACHE-SPIKE-IOS.md`](./NATIVE-CACHE-SPIKE-IOS.md),
+[`NATIVE-CACHE-SPIKE-ANDROID.md`](./NATIVE-CACHE-SPIKE-ANDROID.md).
 
 ## Player UI single-surface ownership (Track 11.18 — anti-pattern)
 

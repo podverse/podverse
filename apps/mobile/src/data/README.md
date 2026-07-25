@@ -63,7 +63,11 @@ Screen / hook  →  repository  →  SQLite (source of truth for phone UI)
 - `sync/` — generic `readThrough` / `writeBehind` primitives + `kv_meta` watermark helpers
   (`readSyncWatermark`, `writeSyncWatermark`, `isWatermarkStale`).
 - `nativeCache/` — `projectQueueSnapshotToNativeCache`, `projectDownloadsIndexToNativeCache`,
-  `projectLibraryBrowseIndexToNativeCache`. **Stubs** until Track 12, but repositories that own
+  `projectLibraryBrowseIndexToNativeCache`. Each stamps the versioned envelope (schema 12.1 /
+  `380`) and forwards to the media-engine bridge, which persists durably on device (iOS/Android
+  `PodverseNativeCache`, 12.2–12.3) so car/watch read it with JS dead. Repositories that own
   queue / downloads / library-index state **must** call the matching projection helper on every
   successful mutation and after sync reconcile — car/watch cannot read SQLite (see §7.1 of the
-  decision doc). This keeps call sites in place so Track 12 does not rewrite repositories.
+  decision doc). Bridge writes are best-effort (soft-fail) and never roll back the SQLite mutation.
+  Call sites: `queueRepository` (queue), `downloadsRepository` (downloads), `accountRepository`
+  (library browse from add-by-RSS subscriptions).

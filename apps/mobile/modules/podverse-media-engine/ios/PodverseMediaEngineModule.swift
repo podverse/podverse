@@ -94,20 +94,22 @@ public class PodverseMediaEngineModule: Module {
       PodverseVideoSurfaceHost.shared.setVisible(visible)
     }
 
-    // --- Native-cache write hooks (step 2.35 / detail 114). Stubs OK in PG-2b; signatures reserved
-    // so phone UI cannot invent a parallel cache. Schema owned by Track 12.1. Native reads must work
-    // with JS not running (seamless CarPlay proof deferred to 12.5 / 12.18). ---
+    // --- Native-cache write hooks (step 2.35 / detail 114; durable storage 12.2 / detail 381).
+    // JS mirrors state here; `PodverseNativeCache` persists JSON so a CarPlay scene / spike (12.5)
+    // reads it with the JS runtime not running. Schema owned by Track 12.1 (envelope in
+    // `src/data/nativeCache/projection.ts`). Best-effort: a failed write must not surface as a JS
+    // error that rolls back the phone-side mutation. ---
 
     AsyncFunction("writeQueueSnapshot") { (payloadJson: String) in
-      // TODO(12.2): persist to App Group container. No-op stub in PG-2b.
+      PodverseNativeCache.write(.queue, json: payloadJson)
     }
 
     AsyncFunction("writeDownloadsIndex") { (payloadJson: String) in
-      // TODO(12.2): persist to App Group container. No-op stub in PG-2b.
+      PodverseNativeCache.write(.downloads, json: payloadJson)
     }
 
     AsyncFunction("writeLibraryBrowseIndex") { (payloadJson: String) in
-      // TODO(12.2): persist to App Group container. No-op stub in PG-2b.
+      PodverseNativeCache.write(.libraryBrowse, json: payloadJson)
     }
   }
 }
