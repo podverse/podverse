@@ -10,14 +10,14 @@ templates are blanks; this directory holds real plan instances.
 
 ## Indexed sets
 
-_No mobile sets currently active._ Next up: **Track 12 car surfaces (12.7+)** — CarPlay scene +
-Android Auto browse trees over the native cache landed in PG-8.
-
-_Other active (non-mobile):_ `media-player-livestream-hls-migration/`,
+_Active (non-mobile):_ `media-player-livestream-hls-migration/`,
 `web-e2e-coverage-high-level/`, `route-navigation-loading-warning/`,
 `web-404-hardening-deferred/`, `doc-link-path-missed-followup/`.
 
 _Recently completed (mobile):_
+[mobile-pg8-car-android-auto](../completed/mobile-pg8-car-android-auto/) (12.11–12.17, 12.19, 12.20 —
+Android Auto native browse + play from cache; iOS CarPlay 12.7–12.10 / 12.18 is a later slice pending
+the Apple CarPlay entitlement),
 [mobile-pg8-car-native-cache](../completed/mobile-pg8-car-native-cache/) (12.1–12.6),
 [mobile-track13-downloads](../completed/mobile-track13-downloads/) (13.1–13.10),
 [mobile-track9d-playlist-authoring](../completed/mobile-track9d-playlist-authoring/)

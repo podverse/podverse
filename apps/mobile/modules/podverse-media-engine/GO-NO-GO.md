@@ -36,6 +36,7 @@ below).
 | ---- | ------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------- |
 | 12.5 | iOS native code reads durable cache with JS not started            | ✅\*   | `ios/PodverseNativeCache.swift` `read` / `debugDump`; [NATIVE-CACHE-SPIKE-IOS.md](./NATIVE-CACHE-SPIKE-IOS.md)   |
 | 12.6 | Android native code reads durable cache with app force-stopped      | ✅     | `PodverseMediaLibraryService.onCreate` → `PodverseNativeCache.debugDump`; [NATIVE-CACHE-SPIKE-ANDROID.md](./NATIVE-CACHE-SPIKE-ANDROID.md) |
+| 12.11–12.15 | Android Auto browses the native cache (Library + Downloads) and plays via the shared engine app-closed | ✅ pending operator DHU | `PodverseMediaLibraryService` (`onConnect` / `onGetChildren` / `onAddMediaItems` / `onPlaybackResumption`) + `PodverseNativeCacheModel`; operator proof [ANDROID-AUTO-DHU-CHECKLIST.md](./ANDROID-AUTO-DHU-CHECKLIST.md), declaration [ANDROID-AUTO-DECLARATION.md](./ANDROID-AUTO-DECLARATION.md) |
 
 \* iOS proof is file-level (container read, Metro not attached). In-scene CarPlay `debugDump` proof
 is pending the CarPlay scene (12.7) + entitlement (12.16); the Swift reader is wired and ready.

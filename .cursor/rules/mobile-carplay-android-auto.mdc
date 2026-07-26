@@ -48,6 +48,28 @@ Native car services read the cache **without starting JS**. Spikes **12.5–12.6
 Android Auto connects to the **service**, not the Activity. CarPlay templates are driven from **Swift**
 reading the cache.
 
+## Android Auto: implemented natively from the cache (12.11–12.15)
+
+The Android Auto browse tree **and** play are implemented in the native media-engine module — never
+in JS / `react-native-track-player`:
+
+- **Service + callers (12.11 / 12.13):** `PodverseMediaLibraryService` (Media3 `MediaLibraryService`)
+  validates allowed callers in `onConnect` (Media3's signature-checked Auto / Automotive / media
+  notification controllers) and serves a stable browsable root **with the app force-stopped**. The
+  `com.google.android.gms.car.application` media-app descriptor ships in the module manifest.
+- **Browse tree (12.12 / 12.14):** `onGetChildren` projects the durable native cache
+  (`PodverseNativeCacheModel` parses `library-browse` + `downloads`) into **Library** + **Downloads**
+  nodes. No SQLite; tolerant parsing → empty tree, never crash.
+- **Play (12.15):** `onAddMediaItems` / `onPlaybackResumption` resolve a mediaId against the cache and
+  play through the **one** shared `PodverseAudioEngine` — offline `file://` first, else remote
+  enclosure. Queue/auto-queue policy stays in `@podverse/playback-core`.
+
+When changing car browse/play, edit the **native** module (`android/.../PodverseMediaLibraryService.kt`,
+`PodverseNativeCacheModel.kt`) — do **not** add a JS/track-player car browser. Prove changes with the
+operator DHU gate:
+[ANDROID-AUTO-DHU-CHECKLIST.md](/apps/mobile/modules/podverse-media-engine/ANDROID-AUTO-DHU-CHECKLIST.md).
+iOS CarPlay (12.7–12.10) is a later slice pending the Apple CarPlay entitlement.
+
 ## LLM do / don't
 
 - **Do** design queue/auto-queue/download **repositories** to call native cache projection writes on
