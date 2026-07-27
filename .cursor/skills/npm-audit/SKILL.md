@@ -164,7 +164,7 @@ Then pass the same comma-separated IDs from **each** publish script that invokes
 for example:
 
 ```bash
-"$SCRIPT_DIR/../lib/check-audit-gate.sh" "1113977" "release"
+"$SCRIPT_DIR/../lib/check-audit-gate.sh" "" "release"
 ```
 
 ### Step 6: Track revisit criteria
@@ -174,27 +174,16 @@ allowlist can shrink again later.
 
 ## Common Patterns
 
-### Pattern: npm Overrides Not Cascading
+### Pattern: Nested next installs ignore flat overrides
 
-**Symptom:** Root `package.json` has `"uuid": "14.0.0"` override, but `npm audit` still reports uuid@9.0.1 in the output.
+**Symptom:** Root override pins `postcss@8.5.23` / `sharp@0.35.3`, but
+`node_modules/next/node_modules/{postcss,sharp}` stay at Next's older pins after a normal
+`npm install`.
 
-**Why:** Optional dependencies get their own node_modules folder, and npm doesn't always apply overrides there.
-
-**Verification:**
-
-```bash
-# Check the lockfile for nested node_modules
-
-grep -A2 'node_modules/teeny-request/node_modules/uuid' package-lock.json
-```
-
-If you see a nested uuid entry with version < 14, the override didn't work.
-
-**Options:**
-
-1. Try pinning the parent package instead: `"teeny-request": "11.x"`
-2. Force a major version of the upstream: `"@google-cloud/storage": "8.0.0"`
-3. Accept the allowlist if neither works
+**Fix:** Declare the patched versions as **root `dependencies`**, reference them with `$postcss` /
+`$sharp` in `overrides` (including under `"next": { ... }`), then **regenerate the lockfile**
+(`rm package-lock.json` + `npm install`, or `./scripts/development/update-lockfile-linux.sh`).
+Incremental installs often leave nested paths stale.
 
 ### Pattern: npm audit fix --force Causes Regressions
 

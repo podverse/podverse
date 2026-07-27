@@ -5,10 +5,20 @@
 Release and promote scripts call [scripts/lib/check-audit-gate.sh](/scripts/lib/check-audit-gate.sh),
 which fails on **moderate and higher** npm audit findings unless an advisory ID allowlist is passed.
 
-**Current state:** Advisory **1117015** (`postcss` via `next`) is allowlisted in all release/promote
-scripts and Publish (staging) validate. Root `package.json` overrides hoist `postcss@8.5.10` for most
-consumers, but npm does not replace `next`'s nested `node_modules/postcss@8.4.31` despite
-`"next": { "postcss": "8.5.10" }`.
+**Current state:** Allowlist is **empty** (strict). Root `package.json` uses dependency + `$`-reference
+overrides so nested installs (including `next` optional/`postcss`) resolve to patched versions:
+
+| Override (via root dep + `$`) | Pinned version | Clears |
+| ----------------------------- | -------------- | ------ |
+| `postcss` / `next.postcss`    | `8.5.23`       | PostCSS XSS / sourceMappingURL HIGH+moderate |
+| `sharp` / `next.sharp`        | `0.35.3`       | libvips HIGH via nested Next sharp           |
+| `uuid` (+ storage/teeny)      | `14.0.0`       | uuid buffer bounds moderate                  |
+| `fast-xml-parser`             | `5.10.1`       | DOCTYPE entity-expansion HIGH                |
+| `brace-expansion`             | `5.0.8`        | unbounded expansion DoS HIGH                 |
+
+After changing overrides, regenerate the lockfile cleanly (`rm package-lock.json` then `npm install`,
+or `./scripts/development/update-lockfile-linux.sh`) so nested `next/node_modules/*` entries are not
+left stale. Incremental `npm install` alone often fails to replace those nested paths.
 
 ### Mobile isolation
 
@@ -30,25 +40,7 @@ override.
 
 ## Active allowlist
 
-### Advisory 1117015: PostCSS XSS via unescaped `</style>` (moderate)
-
-**Affected chain:** `next@16.2.x` → nested `postcss@8.4.31` (`node_modules/next/node_modules/postcss`)
-
-**Why it's allowlisted:**
-
-- `next@16.2.x` (latest stable) pins `postcss@8.4.31` as an exact dependency in its own `node_modules`.
-- Root overrides (`postcss@8.5.10`, `next.postcss@8.5.10`) do not update the nested lockfile entry after
-  `npm install`.
-- `npm audit fix --force` proposes downgrading to `next@9.3.3`, which is not acceptable.
-
-**Risk level:** Transitive-only; PostCSS stringify XSS in Next's bundled toolchain. Podverse does not
-invoke PostCSS stringify on untrusted CSS input outside Next's build pipeline.
-
-**When to revisit:**
-
-- When `next` releases a version that depends on `postcss@>=8.5.10` natively (remove override attempt
-  and allowlist entry).
-- Re-test with `bash scripts/lib/check-audit-gate.sh "" "release"` after upgrading `next`.
+None. Call sites pass an empty string to `check-audit-gate.sh`.
 
 ## When to Add an Allowlist Entry
 
@@ -76,6 +68,7 @@ These were allowlisted until overrides and dependency layout cleared `npm audit 
 
 | Advisory    | Topic                      | Former chain (summary)                                                          |
 | ----------- | -------------------------- | ------------------------------------------------------------------------------- |
+| **1117015** | `postcss` XSS (`</style>`) | `next` nested `postcss@8.4.31`; cleared via root `postcss@8.5.23` + `$postcss`  |
 | **1113977** | `uuid` \< 14.0.0 (High)    | firebase-admin / Google Cloud stack → older `uuid`                              |
 | **1116970** | `@tootallnate/once` (High) | Old proxy-agent chain (lifted via `http-proxy-agent` override on teeny-request) |
 | **1113715** | `ajv` ReDoS (`$data`)      | Was under `expo-dev-launcher`; resolved by moving mobile off the root lockfile  |

@@ -53,8 +53,8 @@ jobs:
 
       - name: Security audit
         # Root lockfile is server-only (apps/mobile is a standalone install).
-        # Allowlist 1117015 (next nested postcss) — see NPM-AUDIT-ALLOWLIST.md.
-        run: bash scripts/lib/check-audit-gate.sh "1117015" "publish staging validate"
+        # Strict moderate+: no allowlist — see NPM-AUDIT-ALLOWLIST.md.
+        run: bash scripts/lib/check-audit-gate.sh "" "publish staging validate"
 
       - name: Build all packages
         run: npm run build:packages

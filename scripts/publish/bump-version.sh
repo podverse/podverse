@@ -17,9 +17,8 @@ cd "$REPO_ROOT"
 
 echo -e "${YELLOW}Running security audit (moderate and above; low permitted)...${NC}"
 
-# Advisory 1117015: next pins postcss@8.4.31 in nested node_modules; npm overrides do not replace it.
-# apps/mobile is outside the root workspace lockfile (separate install + lock).
-if ! "$SCRIPT_DIR/../lib/check-audit-gate.sh" "1117015" "release"; then
+# Strict moderate+: no allowlist. apps/mobile is outside the root workspace lockfile.
+if ! "$SCRIPT_DIR/../lib/check-audit-gate.sh" "" "release"; then
   echo -e "${RED}Error: npm audit found disallowed moderate or higher vulnerabilities. Fix them before bumping version.${NC}"
   exit 1
 fi
