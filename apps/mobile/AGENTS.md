@@ -39,6 +39,8 @@ Contributor guide: [`APPS-MOBILE.md`](/apps/mobile/APPS-MOBILE.md).
 - **CarPlay / Android Auto:** native layer + native cache contract — see **mobile-carplay-android-auto**
   rule and
   [DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md).
+- **Tab navigation:** each bottom-tab stack is self-contained — do not jump cross-tab for in-flow
+  detail (duplicate detail routes per stack is OK). See **mobile-tab-stack-isolation**.
 - **Native modules:** under `apps/mobile/modules/`, `ios/`, `android/`.
 - **E2E:** Maestro or Detox under `apps/mobile/e2e/` — **not** `make e2e_*` (web/management-web only).
 - **Standalone install:** `apps/mobile` is **outside** the root npm workspace. Use

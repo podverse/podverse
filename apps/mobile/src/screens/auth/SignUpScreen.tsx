@@ -14,13 +14,15 @@ import { getMobileConfig } from '../../config';
 import { useTheme } from '../../theme/useTheme';
 
 type SignUpScreenProps = {
+  /** Return to the anonymous tab shell without creating an account (guest skip). */
+  onDismiss?: () => void;
   onSwitchToLogin: () => void;
 };
 
 const DEFAULT_TERMS_VERSION = '1';
 const AUTHENTICATION_VALIDATION_KEY_PREFIX = 'authentication.';
 
-export function SignUpScreen({ onSwitchToLogin }: SignUpScreenProps) {
+export function SignUpScreen({ onDismiss, onSwitchToLogin }: SignUpScreenProps) {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -218,6 +220,16 @@ export function SignUpScreen({ onSwitchToLogin }: SignUpScreenProps) {
             {t('authentication.already_have_an_account_log_in')}
           </Text>
         </Pressable>
+        {onDismiss !== undefined ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={onDismiss}
+            style={styles.button}
+            testID="auth-dismiss"
+          >
+            <Text style={styles.buttonText}>{t('misc.cancel')}</Text>
+          </Pressable>
+        ) : null}
       </View>
     </View>
   );

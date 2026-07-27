@@ -12,14 +12,18 @@ import { useAuth } from '../../auth/AuthProvider';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
-import type { HomeStackParamList } from '../../navigation';
-import { HOME_STACK_ROUTES } from '../../navigation';
+import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
+import type { ChannelBrowseStackParamList } from '../../navigation';
+import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 
-type PodcastDetailScreenProps = NativeStackScreenProps<HomeStackParamList, 'PodcastDetail'>;
+type PodcastDetailScreenProps = NativeStackScreenProps<
+  ChannelBrowseStackParamList,
+  'PodcastDetail'
+>;
 
 type PodcastLiveRow = HomeFeedRowData & {
   liveStatusId: LiveItemStatusEnum | null;
@@ -283,7 +287,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
 
   const handleEpisodePress = useCallback(
     (row: HomeFeedRowData) => {
-      navigation.navigate(HOME_STACK_ROUTES.EpisodeDetail, {
+      navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.EpisodeDetail, {
         episodeId: row.id,
       });
     },
@@ -325,6 +329,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
               (followingChannel) => followingChannel.channel_id === channel.id
             ) === true;
       setIsSubscribed(nextSubscribed);
+      homeFeedRefresh.notify();
     } catch {
       setSubscriptionNoticeKey('errors.generic');
     } finally {

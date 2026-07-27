@@ -10,14 +10,14 @@ import { useAuth } from '../../auth/AuthProvider';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
-import type { HomeStackParamList } from '../../navigation';
-import { HOME_STACK_ROUTES } from '../../navigation';
+import type { ChannelBrowseStackParamList } from '../../navigation';
+import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 
-type AlbumDetailScreenProps = NativeStackScreenProps<HomeStackParamList, 'AlbumDetail'>;
+type AlbumDetailScreenProps = NativeStackScreenProps<ChannelBrowseStackParamList, 'AlbumDetail'>;
 
 const FIRST_PAGE = 1;
 
@@ -167,7 +167,7 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
                     runPlayAction(nextRow, 'tracks');
                   }}
                   onPress={(nextRow) => {
-                    navigation.navigate(HOME_STACK_ROUTES.TrackDetail, {
+                    navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.TrackDetail, {
                       trackId: nextRow.id,
                     });
                   }}

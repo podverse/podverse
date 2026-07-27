@@ -7,10 +7,13 @@
  * that own queue / downloads / library-index state MUST call the matching projection helper on
  * every successful local mutation (and after sync reconcile) so the native cache stays coherent.
  *
- * These are **stubs** until the native cache storage lands in Track 12
- * (`380-native-cache-schema`) + media-engine write hooks (step 2.35). They log in `__DEV__` and
- * no-op in production. Keeping the call sites here now means car/watch work does not have to
- * rewrite repositories later.
+ * Write path (master step 12.4): each helper stamps the versioned envelope (12.1 / `380`) and
+ * forwards the JSON to the media-engine bridge (`writeQueueSnapshot` / `writeDownloadsIndex` /
+ * `writeLibraryBrowseIndex`, step 2.35 / detail 114), which persists durably on device (iOS
+ * `PodverseNativeCache` 12.2 / Android `PodverseNativeCache` 12.3). Bridge writes are **best-effort
+ * and soft-fail**: a failure (or a JS-only context where the native module is not linked, e.g.
+ * unit tests) must never roll back the SQLite mutation that triggered the projection. In `__DEV__`
+ * a failure logs once.
  *
  * Queue projection call-site audit (master step 10.22 / detail 331): every persistent server-queue
  * mutation projects exactly once per commit via `queueRepository` — add item/clip next & last,
@@ -24,21 +27,39 @@
  *
  * Downloads projection (master step 13.9 / detail 438): `downloadsRepository` rebuilds the full
  * completed-downloads set and calls `projectDownloadsIndexToNativeCache` on every mutation
- * (complete / delete / clear). That now also forwards to the media-engine `writeDownloadsIndex`
- * bridge so offline car browse (Track 12.14) reads local `file://` paths without SQLite. The engine
- * write is best-effort: a projection/bridge failure must never roll back a successful download
- * mutation. Durable native-cache storage still lands in Track 12; the bridge is a logging stub until
- * then (see podverse-media-engine README §native cache).
+ * (complete / delete / clear) so offline car browse (Track 12.14) reads local `file://` paths
+ * without SQLite.
+ *
+ * Library-browse projection (master step 12.4): `accountRepository` projects a browse index derived
+ * from the account's add-by-RSS followed channels on snapshot save/clear. Followed
+ * channel/playlist entities (numeric-id-only in `DTOAccount`) need hydration before they can be
+ * browse nodes — a fuller library index store is future work (Track 12.12).
  */
 
 import { nativePlaybackBridge } from '../../bridge/nativePlaybackBridge';
 
-/** Minimal browse-shaped entry — the real (denormalized) schema is owned by Track 12. */
+/**
+ * Canonical native-cache schema version (master step 12.1 / detail 380). Bump only on a
+ * **breaking** payload change (removing or repurposing a required field). Native readers ignore
+ * unknown keys, so additive optional fields do **not** require a bump. Track 12 durable storage
+ * (12.2–12.3) and native car readers consume payloads tagged with this version.
+ */
+export const NATIVE_CACHE_SCHEMA_VERSION = 1 as const;
+
+export type NativeCacheSchemaVersion = typeof NATIVE_CACHE_SCHEMA_VERSION;
+
+/**
+ * Denormalized queue entry for car/watch now-playing + skip/advance. Required fields must always be
+ * present; optional fields are additive (see schema versioning above). No SQLite/Drizzle types.
+ */
 export type NativeCacheQueueEntry = {
   idText: string;
   title: string;
   artworkUrl: string | null;
+  /** Remote enclosure or local `file://` playback URL; `null` until resolved (Track 12.15). */
   mediaUrl: string | null;
+  durationMs?: number | null;
+  podcastTitle?: string | null;
 };
 
 export type QueueSnapshotProjection = {
@@ -49,7 +70,11 @@ export type QueueSnapshotProjection = {
 export type NativeCacheDownloadEntry = {
   idText: string;
   title: string;
+  /** Absolute sandbox path readable by the native car process (see Track 13 / detail 438). */
   filePath: string;
+  artworkUrl?: string | null;
+  mediaUrl?: string | null;
+  bytes?: number | null;
 };
 
 export type DownloadsIndexProjection = {
@@ -60,45 +85,93 @@ export type NativeCacheBrowseNode = {
   idText: string;
   title: string;
   kind: 'podcast' | 'playlist' | 'category';
+  artworkUrl?: string | null;
+  childCount?: number | null;
 };
 
 export type LibraryBrowseIndexProjection = {
   nodes: NativeCacheBrowseNode[];
 };
 
-const logProjectionStub = (domain: string, payload: unknown): void => {
-  if (__DEV__) {
-    console.warn(
-      `[native-cache] projection stub (${domain}) — Track 12 storage not wired yet`,
-      payload
-    );
+/** Common envelope stamped on every persisted payload so native readers can validate the shape. */
+type NativeCacheEnvelope = {
+  schemaVersion: NativeCacheSchemaVersion;
+  /** Epoch millis when JS produced the snapshot (native staleness / ordering). */
+  updatedAtMs: number;
+};
+
+export type QueueSnapshotCachePayload = NativeCacheEnvelope & QueueSnapshotProjection;
+export type DownloadsIndexCachePayload = NativeCacheEnvelope & DownloadsIndexProjection;
+export type LibraryBrowseIndexCachePayload = NativeCacheEnvelope & LibraryBrowseIndexProjection;
+
+const nowMs = (updatedAtMs?: number): number =>
+  updatedAtMs !== undefined ? updatedAtMs : Date.now();
+
+/** Wrap a queue snapshot in the versioned native-cache envelope (pure). */
+export const buildQueueSnapshotPayload = (
+  snapshot: QueueSnapshotProjection,
+  updatedAtMs?: number
+): QueueSnapshotCachePayload => ({
+  schemaVersion: NATIVE_CACHE_SCHEMA_VERSION,
+  updatedAtMs: nowMs(updatedAtMs),
+  ...snapshot,
+});
+
+/** Wrap a downloads index in the versioned native-cache envelope (pure). */
+export const buildDownloadsIndexPayload = (
+  index: DownloadsIndexProjection,
+  updatedAtMs?: number
+): DownloadsIndexCachePayload => ({
+  schemaVersion: NATIVE_CACHE_SCHEMA_VERSION,
+  updatedAtMs: nowMs(updatedAtMs),
+  ...index,
+});
+
+/** Wrap a library browse index in the versioned native-cache envelope (pure). */
+export const buildLibraryBrowseIndexPayload = (
+  index: LibraryBrowseIndexProjection,
+  updatedAtMs?: number
+): LibraryBrowseIndexCachePayload => ({
+  schemaVersion: NATIVE_CACHE_SCHEMA_VERSION,
+  updatedAtMs: nowMs(updatedAtMs),
+  ...index,
+});
+
+type NativeCacheWriteMethod =
+  'writeQueueSnapshot' | 'writeDownloadsIndex' | 'writeLibraryBrowseIndex';
+
+/**
+ * Serialize + forward a versioned payload to the durable native-cache bridge write. Best-effort:
+ * a bridge failure (or unlinked native module in a JS-only context) is swallowed after a single
+ * `__DEV__` warning so the caller's SQLite mutation is never rolled back.
+ */
+const writeToNativeCache = async (
+  method: NativeCacheWriteMethod,
+  payload: unknown
+): Promise<void> => {
+  try {
+    await nativePlaybackBridge[method](JSON.stringify(payload));
+  } catch (error) {
+    if (__DEV__) {
+      console.warn(`[native-cache] ${method} bridge unavailable (soft-fail)`, error);
+    }
   }
 };
 
 export const projectQueueSnapshotToNativeCache = async (
   snapshot: QueueSnapshotProjection
 ): Promise<void> => {
-  logProjectionStub('queue', snapshot);
+  await writeToNativeCache('writeQueueSnapshot', buildQueueSnapshotPayload(snapshot));
 };
 
 export const projectDownloadsIndexToNativeCache = async (
   index: DownloadsIndexProjection
 ): Promise<void> => {
-  logProjectionStub('downloads', index);
-  // Forward to the engine's reserved native-cache write (114 / 2.35). Best-effort: never let a
-  // bridge failure (or a JS-only context where the native module is not linked) roll back the
-  // successful download mutation that triggered this projection.
-  try {
-    await nativePlaybackBridge.writeDownloadsIndex(JSON.stringify(index));
-  } catch (error) {
-    if (__DEV__) {
-      console.warn('[native-cache] writeDownloadsIndex bridge unavailable (soft-fail)', error);
-    }
-  }
+  await writeToNativeCache('writeDownloadsIndex', buildDownloadsIndexPayload(index));
 };
 
 export const projectLibraryBrowseIndexToNativeCache = async (
   index: LibraryBrowseIndexProjection
 ): Promise<void> => {
-  logProjectionStub('library-browse', index);
+  await writeToNativeCache('writeLibraryBrowseIndex', buildLibraryBrowseIndexPayload(index));
 };

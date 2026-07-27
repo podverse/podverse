@@ -58,6 +58,7 @@
     "add_feed": {
       "add_feed": "",
       "add_feed_explanation": "",
+      "add_feed_timed_out": "",
       "rss_link": "",
       "blocked_feed_banner": "",
       "blocked_reason_spam_detected": "",

@@ -2,7 +2,12 @@ appId: com.podverse.app.next
 ---
 # Seeded E2E login (requires Mobile E2E API on :4230 + mobile:dev:e2e).
 # Password fields are plaintext when EXPO_PUBLIC_MOBILE_E2E=1 (see scripts/mobile/dev-e2e.sh).
+# Anonymous cold start lands on the tab shell; login is reached from More.
 
+- tapOn:
+    id: tab-more
+- assertVisible:
+    id: more-screen
 - tapOn:
     id: anonymous-login-cta
 - assertVisible:

@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -11,9 +12,11 @@ import { Card } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
-import { HOME_STACK_ROUTES } from '../../navigation';
+import type { SearchStackParamList } from '../../navigation';
+import { SEARCH_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
 import { HomeFeedRow } from '../home/HomeFeedRow';
+import { getChannelDetailRouteKind } from './podcastIndexFeedPreview';
 
 type SearchFilterMedium = 'all' | 'music';
 type SearchSort = 'a_z' | 'recent' | 'relevance';
@@ -55,7 +58,7 @@ const sortFeeds = (feeds: SearchPodcastsFeed[], sort: SearchSort): SearchPodcast
 
 export function SearchScreen() {
   const { t } = useTranslation();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<SearchStackParamList, 'SearchRoot'>>();
   const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
   const { styles: themeStyles, tokens } = useTheme();
   const [query, setQuery] = useState<string>('');
@@ -216,25 +219,36 @@ export function SearchScreen() {
         async (api) => api.reqChannelGetByPodcastIndexId(feedId)
       );
 
-      // Endpoint returns null when the channel is not parsed-ready; surface an error
-      // instead of throwing on channel.id_text and silently aborting navigation.
-      if (channel === null || channel.id_text.length === 0) {
-        setErrorKey('errors.generic');
+      // Endpoint returns null when the channel is not parsed-ready. Mirror web: open the
+      // Podcast Index preview/add screen instead of a generic "Try again" dead-end.
+      if (channel === null || channel.id_text.length === 0 || !channel.medium_id) {
+        const imageUrl =
+          feed.image.length > 0 ? feed.image : feed.artwork.length > 0 ? feed.artwork : null;
+        navigation.navigate(SEARCH_STACK_ROUTES.SearchResultDetail, {
+          author: feed.author,
+          description: feed.description,
+          feedUrl: feed.url,
+          imageUrl,
+          resultId: feedId,
+          title: feed.title,
+        });
         return;
       }
 
-      const podcastDetailTarget = {
-        screen: HOME_STACK_ROUTES.PodcastDetail,
-        params: { podcastId: channel.id_text },
-      };
-
-      // PodcastDetail lives in the Home tab's stack; navigate the parent (tab) navigator
-      // explicitly so the cross-tab navigation is reliable from the Search stack.
-      const parentNavigation = navigation.getParent();
-      if (parentNavigation !== undefined) {
-        parentNavigation.navigate('Home', podcastDetailTarget);
+      const kind = getChannelDetailRouteKind(channel.medium_id);
+      // Stay on the Search stack (tab isolation) — do not jump to Home for detail.
+      if (kind === 'artist') {
+        navigation.navigate(SEARCH_STACK_ROUTES.ArtistDetail, {
+          artistId: channel.id_text,
+        });
+      } else if (kind === 'album') {
+        navigation.navigate(SEARCH_STACK_ROUTES.AlbumDetail, {
+          albumId: channel.id_text,
+        });
       } else {
-        navigation.navigate('Home', podcastDetailTarget);
+        navigation.navigate(SEARCH_STACK_ROUTES.PodcastDetail, {
+          podcastId: channel.id_text,
+        });
       }
     } catch {
       setErrorKey('errors.generic');

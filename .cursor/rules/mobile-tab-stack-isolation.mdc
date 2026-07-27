@@ -1,0 +1,39 @@
+---
+description: Mobile tab stacks are self-contained — do not jump cross-tab for in-flow detail
+globs: apps/mobile/src/navigation/**/*.{ts,tsx},apps/mobile/src/screens/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Mobile tab stack isolation
+
+Each bottom-tab root owns its **own** native stack. Flows that start in a tab must push (or
+replace) screens **on that tab’s stack**, even when that means registering the same detail screen
+components on more than one stack (duplicative route registration is intentional).
+
+## Do
+
+- Keep Search → preview/add → channel/episode detail **inside the Search stack**.
+- Keep Home feed → channel/episode detail **inside the Home stack**.
+- Prefer `navigation.replace(...)` when leaving a stale intermediate screen (e.g. Podcast Index
+  “Add podcast” preview after the feed is parsed-ready) so Back does not reopen an invalid state,
+  while still leaving the user on the **same tab’s** detail screen.
+- Preserve stack state when the user switches tabs (returning to Search should restore Search’s
+  hierarchy, not reset to Search root because detail was opened under Home).
+
+## Don't
+
+- Do **not** `parentNavigation.navigate('Home', { screen: 'PodcastDetail', ... })` (or similar
+  cross-tab jumps) merely to reuse Home’s detail routes when the user is mid-flow in Search,
+  Library, RSS, or More.
+- Do **not** clear or reset another tab’s stack as a shortcut for “show this entity.”
+
+## Why
+
+Users expect tab bars to remember where they left off in that tab. Cross-tab navigation makes
+Back and tab-return feel broken (e.g. Search add completes on Home detail; returning to Search
+lands on Search root instead of the channel they just opened).
+
+## Related
+
+- Contributor note: [apps/mobile/APPS-MOBILE.md](/apps/mobile/APPS-MOBILE.md) (navigation / search)
+- App entry: [apps/mobile/AGENTS.md](/apps/mobile/AGENTS.md)

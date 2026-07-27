@@ -1,0 +1,32 @@
+appId: com.podverse.app.next
+name: Search Unparsed Feed Preview
+---
+# Smoke: Podcast Index search result that is NOT parsed-ready must open the
+# preview/add screen (not the generic search-error "Try again" dead-end).
+# Uses fixtures sentinel query `unparsedfixture` (see e2eUnparsedSearchFixture.ts).
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- tapOn:
+    id: tab-search
+- assertVisible:
+    id: search-screen
+- takeScreenshot: search-unparsed-screen-initial
+
+- tapOn:
+    id: search-input
+- inputText: unparsedfixture
+- assertVisible:
+    id: search-result-row-0
+- takeScreenshot: search-unparsed-results
+
+- tapOn:
+    id: search-result-row-0
+- assertVisible:
+    id: pi-feed-preview-screen
+- assertVisible:
+    id: pi-feed-add-button
+- assertNotVisible:
+    id: search-error
+- takeScreenshot: search-unparsed-preview

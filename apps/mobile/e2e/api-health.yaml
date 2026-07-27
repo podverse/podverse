@@ -7,6 +7,10 @@ name: API Health Smoke
 # - npm run mobile:e2e:api
 
 - runFlow: shared/launch-and-connect.yaml
+- tapOn:
+    id: tab-more
+- tapOn:
+    id: more-nav-smoke
 - assertVisible:
     id: hello-world-screen
 - extendedWaitUntil:

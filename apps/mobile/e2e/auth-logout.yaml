@@ -1,7 +1,7 @@
 appId: com.podverse.app.next
 name: Auth Logout
 ---
-# Track 6.12: login then logout (More tab), return to anonymous shell.
+# Track 6.12: login then logout (More tab), return to anonymous tab shell.
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
@@ -20,9 +20,13 @@ name: Auth Logout
 
 - extendedWaitUntil:
     visible:
-      id: anonymous-login-cta
+      id: tab-home
     timeout: ${TIMEOUT_FAST}
 
 - assertVisible:
-    id: hello-world-screen
+    id: home-screen
+- tapOn:
+    id: tab-more
+- assertVisible:
+    id: anonymous-login-cta
 - takeScreenshot: auth-logout-anonymous-shell

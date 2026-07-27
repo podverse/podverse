@@ -95,20 +95,22 @@ class PodverseMediaEngineModule : Module() {
       PodverseVideoSurfaceHost.setVisible(visible)
     }
 
-    // --- Native-cache write hooks (step 2.35 / detail 114). Stubs OK in PG-2b; signatures reserved
-    // so phone UI cannot invent a parallel cache. Schema owned by Track 12.1. Native reads must work
-    // with the app force-stopped (seamless Android Auto proof deferred to 12.6 / 12.17). ---
+    // --- Native-cache write hooks (step 2.35 / detail 114; durable storage 12.3 / detail 382).
+    // JS mirrors state here; `PodverseNativeCache` persists JSON to app-private files so
+    // PodverseMediaLibraryService and the force-stop spike (12.6) read it with the app killed and JS
+    // not running. Schema owned by Track 12.1 (envelope in `src/data/nativeCache/projection.ts`).
+    // Best-effort: a failed write must not surface as a JS error that rolls back the mutation. ---
 
     AsyncFunction("writeQueueSnapshot") { payloadJson: String ->
-      // TODO(12.3): persist to Room/SharedPreferences. No-op stub in PG-2b.
+      PodverseNativeCache.write(reactContext(), PodverseNativeCacheKind.QUEUE, payloadJson)
     }
 
     AsyncFunction("writeDownloadsIndex") { payloadJson: String ->
-      // TODO(12.3): persist to Room/SharedPreferences. No-op stub in PG-2b.
+      PodverseNativeCache.write(reactContext(), PodverseNativeCacheKind.DOWNLOADS, payloadJson)
     }
 
     AsyncFunction("writeLibraryBrowseIndex") { payloadJson: String ->
-      // TODO(12.3): persist to Room/SharedPreferences. No-op stub in PG-2b.
+      PodverseNativeCache.write(reactContext(), PodverseNativeCacheKind.LIBRARY_BROWSE, payloadJson)
     }
   }
 

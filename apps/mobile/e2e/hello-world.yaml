@@ -1,11 +1,17 @@
 appId: com.podverse.app.next
 name: Hello World Smoke
 ---
-# Track 5 hello-world flow baseline.
+# Track 5 hello-world flow baseline (smoke controls live under More → Smoke).
 # E2E devices: "iPhone 17 Pro E2E", Pixel_6_Pro_API_33_e2e
 # Manual day-to-day: "iPhone 17 Pro", Pixel_6_Pro_API_33
 
 - runFlow: shared/launch-and-connect.yaml
+- assertVisible:
+    id: home-screen
+- tapOn:
+    id: tab-more
+- tapOn:
+    id: more-nav-smoke
 - assertVisible:
     id: hello-world-screen
 - assertVisible:

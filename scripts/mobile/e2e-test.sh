@@ -28,7 +28,7 @@ flow_needs_e2e_api() {
   case "$1" in
   add-by-rss | api-health | auth-login | auth-logout | auto-queue-advance | \
   engine-audio-spike | home | library-downloads | library-playlists | play-mini-player | \
-  podcast-episode | queue-add | search | tab-switch-playback | video-transition)
+  podcast-episode | queue-add | search | search-unparsed | tab-switch-playback | video-transition)
     return 0
     ;;
   *)

@@ -15,6 +15,12 @@
   gap: var(--spacing-lg);
 }
 
+.pollTimedOut {
+  color: var(--text-color-secondary);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-md);
+}
+
 .addFeedButton {
   min-width: 142px;
 }

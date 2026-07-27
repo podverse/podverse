@@ -123,16 +123,22 @@ fi
 
 # Default to manual device slots when the caller did not pass --device / -d.
 # Always append --device as its own argv + a separate quoted name (never unquoted spaces).
-# Extra flags (e.g. --no-bundler from e2e-device.sh) pass through via "$@".
+# Extra flags pass through via "$@".
 # E2E install uses dedicated names via npm run mobile:e2e:ios|android (see e2e-device.sh).
+#
+# Always pass --no-bundler unless the caller already did. Metro must run in its own terminal
+# (npm run mobile:dev / mobile:dev:e2e) — install/launch never starts a second bundler.
 MANUAL_IOS_NAME='iPhone 17 Pro'
 MANUAL_ANDROID_AVD='Pixel_6_Pro_API_33'
 HAS_DEVICE_FLAG=0
+HAS_NO_BUNDLER=0
 for arg in "$@"; do
   case "$arg" in
     --device | -d | --device=* | -d=*)
       HAS_DEVICE_FLAG=1
-      break
+      ;;
+    --no-bundler)
+      HAS_NO_BUNDLER=1
       ;;
   esac
 done
@@ -142,6 +148,9 @@ if [[ "$HAS_DEVICE_FLAG" -eq 0 ]]; then
   else
     set -- "$@" --device "$MANUAL_ANDROID_AVD"
   fi
+fi
+if [[ "$HAS_NO_BUNDLER" -eq 0 ]]; then
+  set -- "$@" --no-bundler
 fi
 
 # Keep AVD performance profile consistent before Expo may cold-start the emulator.
