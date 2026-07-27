@@ -17,15 +17,18 @@ import { DownloadControl } from '../../components/download/DownloadControl';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
-import type { HomeStackParamList } from '../../navigation';
-import { HOME_STACK_ROUTES } from '../../navigation';
+import type { ChannelBrowseStackParamList } from '../../navigation';
+import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
 import { usePlayback } from '../../playback/PlaybackProvider';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 
-type EpisodeDetailScreenProps = NativeStackScreenProps<HomeStackParamList, 'EpisodeDetail'>;
+type EpisodeDetailScreenProps = NativeStackScreenProps<
+  ChannelBrowseStackParamList,
+  'EpisodeDetail'
+>;
 
 type EpisodeTab = 'chapters' | 'clips' | 'soundbites' | 'summary' | 'transcript';
 
@@ -459,7 +462,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
             runPlayAction(row, 'clips');
           }}
           onPress={() => {
-            navigation.navigate(HOME_STACK_ROUTES.ClipDetail, {
+            navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.ClipDetail, {
               clipId: clip.id_text,
             });
           }}

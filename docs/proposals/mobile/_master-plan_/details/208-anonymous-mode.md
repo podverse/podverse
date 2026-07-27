@@ -2,7 +2,7 @@
 
 **Master step:** 6.9
 **Model (author + implement):** Opus 4.8
-**Status:** done
+**Status:** done (shell completion 2026-07 — anonymous mounts the same tab navigator)
 
 ## Scope
 
@@ -16,12 +16,15 @@
 
 ## Architecture notes
 
-- Keep anonymous and authenticated sharing the same navigation shell when Track 7 arrives.
-- Maestro hello-world / locale / api-health must remain green without logging in.
+- Anonymous and authenticated share the **same** `MobileTabNavigator` shell (`App.tsx`). Login and
+  sign-up are optional full-screen overlays with Cancel (`auth-dismiss`) back to tabs. More shows
+  Login / Sign up (`anonymous-login-cta` / `anonymous-signup-cta`) when anonymous, Logout when
+  authenticated. Track 5 smoke UI lives under More → Smoke (`more-nav-smoke` → `HelloWorldScreen`).
+- Maestro hello-world / locale / api-health remain green without logging in (via More → Smoke).
 
 ## Edge cases
 
-- Logout → anonymous (not forced blank)
+- Logout → anonymous tab shell (not forced blank / not HelloWorld-only)
 - Failed bootstrap → anonymous + optional banner
 - Switching anonymous → authenticated must not leave stale private cache (clear later in Track 10)
 
@@ -30,6 +33,7 @@
 - UI-only Maestro flows pass without credentials
 - Authenticated-only affordances redirect/prompt to login
 - Status enum includes `anonymous`
+- Cold start with no tokens shows the tab shell (Home), not a login wall
 
 ## Web parity references
 
@@ -39,5 +43,9 @@
 ## Verification
 
 ```bash
-npm run mobile:e2e:test -- hello-world,api-health
+npm run mobile:e2e:test -- hello-world,api-health,auth-logout,home
 ```
+
+## Depends on
+
+- 6.1–6.8 auth store / screens

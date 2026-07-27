@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { loginWithMobileToken, useAuth } from '../../auth';
+import { resolveLocalDevLoginPrefill } from '../../auth/localDevLoginPrefill';
 import { getMobileConfig } from '../../config';
 import { accountRepository } from '../../data';
 import { applyAccountLocaleOverride } from '../../i18n';
@@ -10,18 +11,21 @@ import { getErrorStatusCode } from '../../lib/httpError';
 import { useTheme } from '../../theme/useTheme';
 
 type LoginScreenProps = {
+  /** Return to the anonymous tab shell without signing in (guest skip). */
+  onDismiss?: () => void;
   onSwitchToSignUp: () => void;
 };
 
-export function LoginScreen({ onSwitchToSignUp }: LoginScreenProps) {
+export function LoginScreen({ onDismiss, onSwitchToSignUp }: LoginScreenProps) {
   const { t } = useTranslation();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { isE2e } = getMobileConfig();
+  const localDevPrefill = resolveLocalDevLoginPrefill({ isDev: __DEV__, isE2e });
+  const [email, setEmail] = useState(localDevPrefill?.email ?? '');
+  const [password, setPassword] = useState(localDevPrefill?.password ?? '');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { styles: themeStyles, tokens } = useTheme();
   const { clearSession, setAccount, setError: setAuthError, setTokens } = useAuth();
-  const { isE2e } = getMobileConfig();
 
   const styles = StyleSheet.create({
     button: {
@@ -176,6 +180,16 @@ export function LoginScreen({ onSwitchToSignUp }: LoginScreenProps) {
         >
           <Text style={styles.buttonText}>{t('authentication.need_an_account_sign_up')}</Text>
         </Pressable>
+        {onDismiss !== undefined ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={onDismiss}
+            style={styles.button}
+            testID="auth-dismiss"
+          >
+            <Text style={styles.buttonText}>{t('misc.cancel')}</Text>
+          </Pressable>
+        ) : null}
       </View>
     </View>
   );

@@ -27,6 +27,15 @@
       "delete_all": "Eliminar todo",
       "auto_removed_notice": "Se eliminaron las descargas más antiguas para liberar espacio",
       "dismiss": "Descartar"
+    },
+    "search": {
+      "add_podcast": "Añadir podcast",
+      "adding": "Añadiendo podcast…",
+      "not_available_yet": "Este podcast aún no está en nuestro directorio. Añádelo para que esté disponible.",
+      "add_needs_login": "Inicia sesión para añadir podcasts desde la búsqueda.",
+      "add_needs_membership": "Tu cuenta no tiene acceso para añadir podcasts desde la búsqueda.",
+      "add_failed": "No se pudo añadir este podcast. Inténtalo de nuevo más tarde.",
+      "add_timed_out": "Aún se está procesando tras varios minutos. Vuelve a buscar en breve para abrir este podcast — añadir no te suscribe automáticamente."
     }
   }
 }

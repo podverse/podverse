@@ -2,13 +2,21 @@ export { getDb, getSqlite, initializeDatabase, schema } from './db';
 export type { AppDatabase } from './db';
 
 export {
+  buildDownloadsIndexPayload,
+  buildLibraryBrowseIndexPayload,
+  buildQueueSnapshotPayload,
+  NATIVE_CACHE_SCHEMA_VERSION,
   projectDownloadsIndexToNativeCache,
   projectLibraryBrowseIndexToNativeCache,
   projectQueueSnapshotToNativeCache,
 } from './nativeCache';
 export type {
+  DownloadsIndexCachePayload,
   DownloadsIndexProjection,
+  LibraryBrowseIndexCachePayload,
   LibraryBrowseIndexProjection,
+  NativeCacheSchemaVersion,
+  QueueSnapshotCachePayload,
   QueueSnapshotProjection,
 } from './nativeCache';
 

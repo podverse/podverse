@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 
-import { AuthProvider, useAuth } from './src/auth';
+import { AuthPromptProvider, AuthProvider, useAuth } from './src/auth';
 import { AutoQueueProvider } from './src/contexts/AutoQueueProvider';
 import { QueuesProvider } from './src/contexts/QueuesProvider';
 import { initializeDatabase } from './src/data/db';
@@ -10,7 +10,6 @@ import { MobileTabNavigator } from './src/navigation';
 import { PlaybackProvider } from './src/playback';
 import { LoginScreen } from './src/screens/auth/LoginScreen';
 import { SignUpScreen } from './src/screens/auth/SignUpScreen';
-import { HelloWorldScreen } from './src/screens/HelloWorldScreen';
 import { ThemeProvider } from './src/theme/ThemeProvider';
 import { useTheme } from './src/theme/useTheme';
 
@@ -51,43 +50,51 @@ export default function App() {
 function AppBody() {
   const { statusBarStyle } = useTheme();
   const { logout, status } = useAuth();
+  // Login/signup are optional overlays for anonymous users; authenticated users always see tabs.
   const [authMode, setAuthMode] = useState<'anonymous' | 'login' | 'signup'>('anonymous');
 
   return (
     <>
-      {status === 'authenticated' ? (
-        <MobileTabNavigator
-          onRequestLogout={async () => {
-            await logout();
+      {status === 'unknown' ? null : status === 'anonymous' && authMode === 'login' ? (
+        <LoginScreen
+          onDismiss={() => {
             setAuthMode('anonymous');
           }}
-        />
-      ) : status === 'unknown' ? null : authMode === 'login' ? (
-        <LoginScreen
           onSwitchToSignUp={() => {
             setAuthMode('signup');
           }}
         />
+      ) : status === 'anonymous' && authMode === 'signup' ? (
+        <SignUpScreen
+          onDismiss={() => {
+            setAuthMode('anonymous');
+          }}
+          onSwitchToLogin={() => {
+            setAuthMode('login');
+          }}
+        />
       ) : (
-        <>
-          {authMode === 'signup' ? (
-            <SignUpScreen
-              onSwitchToLogin={() => {
-                setAuthMode('login');
-              }}
-            />
-          ) : (
-            <HelloWorldScreen
-              authMode="anonymous"
-              onRequestLogin={() => {
-                setAuthMode('login');
-              }}
-              onRequestSignUp={() => {
-                setAuthMode('signup');
-              }}
-            />
-          )}
-        </>
+        <AuthPromptProvider
+          onRequestLogin={() => {
+            setAuthMode('login');
+          }}
+          onRequestSignUp={() => {
+            setAuthMode('signup');
+          }}
+        >
+          <MobileTabNavigator
+            onRequestLogin={() => {
+              setAuthMode('login');
+            }}
+            onRequestLogout={async () => {
+              await logout();
+              setAuthMode('anonymous');
+            }}
+            onRequestSignUp={() => {
+              setAuthMode('signup');
+            }}
+          />
+        </AuthPromptProvider>
       )}
       <StatusBar style={statusBarStyle} />
     </>

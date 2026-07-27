@@ -45,21 +45,21 @@
     },
     {
       "name": "Mobile Metro",
-      "description": "Leave running :8081. API-backed E2E: npm run mobile:dev:e2e. UI-only/day-to-day: npm run mobile:dev. Cache clear: npm run mobile:dev:clear. Run only one.",
+      "description": "Leave running :8081. Emulator/day-to-day: npm run mobile:dev. USB Android phone: npm run mobile:dev:device (LAN API IP). API-backed E2E: npm run mobile:dev:e2e. Cache clear: npm run mobile:dev:clear. Run only one.",
       "cwd": ".",
       "open": true,
       "command": "clear"
     },
     {
       "name": "Mobile iOS",
-      "description": "Install/run (exits when done). E2E: npm run mobile:e2e:ios. Manual: npm run mobile:ios -- --device \"iPhone 17 Pro\"",
+      "description": "Install/run (exits when done; --no-bundler always). E2E: npm run mobile:e2e:ios. Manual: npm run mobile:ios. Keep Metro in Mobile Metro.",
       "cwd": ".",
       "open": true,
       "command": "clear"
     },
     {
       "name": "Mobile Android",
-      "description": "Install/run (exits when done). E2E: npm run mobile:e2e:android. Manual: npm run mobile:android -- --device Pixel_6_Pro_API_33. Opens split with Mobile iOS.",
+      "description": "Install/run (exits when done; --no-bundler always). E2E: npm run mobile:e2e:android. Manual emulator: npm run mobile:android. USB phone: npm run mobile:android:device. Keep Metro in Mobile Metro.",
       "cwd": ".",
       "open": true,
       "split": "Mobile iOS",

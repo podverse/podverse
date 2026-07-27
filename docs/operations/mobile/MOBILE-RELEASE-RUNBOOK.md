@@ -67,6 +67,21 @@ Retention baseline:
 Use `docs/operations/mobile/MOBILE-BETA-TESTER-ONBOARDING.md` for operator-facing onboarding steps and
 placeholder link management.
 
+## Manual car QA gate — Android Auto (Track 12)
+
+Car browse+play is **not fully automatable** (no Maestro/DHU in CI), so it is a **manual acceptance
+gate** for any release that ships or changes the Android Auto surface (`podverse-media-engine`
+native code, the browse tree, or the media service).
+
+- **Gate:** run the Android Auto **DHU browse+play** checklist with the phone app **force-stopped** —
+  browse Library + Downloads and play an offline and a streamed item, app never opened.
+- **Steps + evidence:** follow
+  [`apps/mobile/modules/podverse-media-engine/ANDROID-AUTO-DHU-CHECKLIST.md`](/apps/mobile/modules/podverse-media-engine/ANDROID-AUTO-DHU-CHECKLIST.md)
+  (do not duplicate steps here); record the result in the release ticket.
+- **Play Console declaration:** before shipping Android Auto to users, complete
+  [`ANDROID-AUTO-DECLARATION.md`](/apps/mobile/modules/podverse-media-engine/ANDROID-AUTO-DECLARATION.md).
+- iOS CarPlay QA is a later slice (CarPlay entitlement not provisioned yet).
+
 ## Production convergence gate (`4.25`)
 
 Convergence from `.next` to production listing is a separate decision gate and is **not executed in

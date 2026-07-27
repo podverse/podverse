@@ -6,6 +6,8 @@ import type { DTOAccount } from '@podverse/helpers/dto';
 // AuthProvider → accountRepository → auth barrel → AuthProvider.
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
 import { getDb, initializeDatabase, schema } from '../db';
+import type { NativeCacheBrowseNode } from '../nativeCache';
+import { projectLibraryBrowseIndexToNativeCache } from '../nativeCache';
 import type { MobileAuthRequestContext } from './types';
 
 const ACCOUNT_SNAPSHOT_ID = 'current';
@@ -50,6 +52,31 @@ const fetchAccountFromApi = async (
 };
 
 /**
+ * Build the car/watch library-browse nodes from an account snapshot. Only add-by-RSS followed
+ * channels carry a title + image in `DTOAccount`, so they map cleanly to browse nodes now; numeric
+ * `account_following_channels` / `account_following_playlists` need entity hydration before they can
+ * be nodes (future Track 12.12). `feed_url` is the stable node id for add-by-RSS subscriptions.
+ */
+const toLibraryBrowseNodes = (account: DTOAccount): NativeCacheBrowseNode[] => {
+  const followedRss = account.account_following_add_by_rss_channels ?? [];
+  return followedRss.map((channel) => ({
+    idText: channel.feed_url,
+    title: channel.title ?? channel.feed_url,
+    kind: 'podcast',
+    artworkUrl: channel.image_url ?? null,
+  }));
+};
+
+/**
+ * Project the library-browse index to the native cache so CarPlay / Android Auto can list
+ * subscriptions with the app closed. Repository-owned (never called from screens); best-effort via
+ * the projection helper (soft-fail, never blocks the snapshot write).
+ */
+const projectLibraryBrowseForAccount = async (account: DTOAccount): Promise<void> => {
+  await projectLibraryBrowseIndexToNativeCache({ nodes: toLibraryBrowseNodes(account) });
+};
+
+/**
  * Account/session snapshot repository. Reads/writes the cached `/auth/me` payload in SQLite for
  * cold-start display; the network fetch (and bearer refresh) lives here, not in screens. Tokens
  * remain in SecureStore only.
@@ -80,12 +107,18 @@ export const accountRepository = {
         target: schema.accountSnapshot.id,
         set: { payloadJson, updatedAt },
       });
+
+    // Mirror subscriptions into the native cache for car/watch browse (soft-fail).
+    await projectLibraryBrowseForAccount(account);
   },
 
   /** Clear account rows on logout / session reset (tokens are cleared via SecureStore path). */
   clearSnapshot: async (): Promise<void> => {
     await initializeDatabase();
     await getDb().delete(schema.accountSnapshot);
+
+    // Clear the car/watch browse index on logout so no stale subscriptions remain readable.
+    await projectLibraryBrowseIndexToNativeCache({ nodes: [] });
   },
 
   /** Fetch `/auth/me`, persist the snapshot, and return the account. */

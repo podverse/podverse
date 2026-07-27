@@ -13,21 +13,26 @@ When giving `npm run mobile:ios`, `npm run mobile:android`, or `expo run:*` copy
 **always pass a named device**. Do **not** use bare `--device` (interactive menu) unless the operator
 explicitly asks to pick.
 
-`scripts/mobile/run-expo-macos.sh` defaults to **manual** devices when `--device` is omitted.
-`npm run mobile:e2e:ios` / `mobile:e2e:android` / `mobile:e2e:test` always target **E2E** devices
-(never manual).
+`scripts/mobile/run-expo-macos.sh` defaults to **manual** devices when `--device` is omitted,
+and **always** passes `--no-bundler` (Metro stays in **Mobile Metro** via `npm run mobile:dev` /
+`mobile:dev:e2e`). `npm run mobile:e2e:ios` / `mobile:e2e:android` / `mobile:e2e:test` always
+target **E2E** devices (never manual).
 
 ## Device matrix (same app id `com.podverse.app.next`)
 
 | Role | iOS | Android |
 | ---- | --- | ------- |
 | Manual (dev) | `"iPhone 17 Pro"` | `Pixel_6_Pro_API_33` |
+| Manual (USB phone) | — | `npm run mobile:android:device` + Metro `npm run mobile:dev:device` (LAN API host; skips `emulator-*`) |
 | Automated (E2E) | `"iPhone 17 Pro E2E"` | `Pixel_6_Pro_API_33_e2e` |
 
 ```bash
 # Manual day-to-day — Mobile iOS / Mobile Android
 npm run mobile:ios -- --device "iPhone 17 Pro"
 npm run mobile:android -- --device Pixel_6_Pro_API_33
+# Physical USB phone (not the emulator default):
+npm run mobile:dev:device
+npm run mobile:android:device
 
 # E2E — each leave-running / install step in its named tab
 # (see HOW-TO-RUN.md + vscode-terminals-commands):

@@ -29,6 +29,7 @@ export * from './lib/category.js';
 export * from './lib/comparison/isEqual.js';
 export * from './lib/computeExponentialBackoffDelayMs.js';
 export * from './lib/date.js';
+export * from './lib/directoryAddPoll.js';
 export * from './lib/fileSize.js';
 export * from './lib/fileName.js';
 export * from './lib/configValidation.js';

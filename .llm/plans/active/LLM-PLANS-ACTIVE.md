@@ -10,15 +10,19 @@ templates are blanks; this directory holds real plan instances.
 
 ## Indexed sets
 
-_No active plan sets._
+_Active (non-mobile):_ `media-player-livestream-hls-migration/`,
+`web-e2e-coverage-high-level/`, `route-navigation-loading-warning/`,
+`web-404-hardening-deferred/`, `doc-link-path-missed-followup/`.
 
-_Recently completed:_
-[mobile-track13-downloads](../completed/mobile-track13-downloads/) (13.1–13.10: eligibility/schema,
-episode download + library list, local-file playback + native-cache projection, quota + auto-delete,
-E2E offline play; details 430–439),
+_Recently completed (mobile):_
+[mobile-pg8-car-android-auto](../completed/mobile-pg8-car-android-auto/) (12.11–12.17, 12.19, 12.20 —
+Android Auto native browse + play from cache; iOS CarPlay 12.7–12.10 / 12.18 is a later slice pending
+the Apple CarPlay entitlement),
+[mobile-pg8-car-native-cache](../completed/mobile-pg8-car-native-cache/) (12.1–12.6),
+[mobile-track13-downloads](../completed/mobile-track13-downloads/) (13.1–13.10),
 [mobile-track9d-playlist-authoring](../completed/mobile-track9d-playlist-authoring/)
-(9d.1–9d.5: create/edit/reorder/add-to-playlist + header back),
-[mobile-track11-video](../completed/mobile-track11-video/) (11.3 / 11.6–11.8 / 11.15–11.17),
+(9d.1–9d.5),
+[mobile-track11-video](../completed/mobile-track11-video/),
 [mobile-pg5-video](../completed/mobile-pg5-video/) +
 [mobile-pg5-video-gaps](../completed/mobile-pg5-video-gaps/).
 

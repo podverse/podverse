@@ -9,14 +9,14 @@ import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
-import type { HomeStackParamList } from '../../navigation';
-import { HOME_STACK_ROUTES } from '../../navigation';
+import type { ChannelBrowseStackParamList } from '../../navigation';
+import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 import { useClipPlayback } from './useClipPlayback';
 
-type ClipDetailScreenProps = NativeStackScreenProps<HomeStackParamList, 'ClipDetail'>;
+type ClipDetailScreenProps = NativeStackScreenProps<ChannelBrowseStackParamList, 'ClipDetail'>;
 
 const formatPlaybackTime = (rawValue: string | null | undefined): string => {
   if (!rawValue) {
@@ -256,7 +256,7 @@ export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
                 });
               }}
               onPress={() => {
-                navigation.navigate(HOME_STACK_ROUTES.EpisodeDetail, {
+                navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.EpisodeDetail, {
                   episodeId: item.id_text,
                 });
               }}
