@@ -8,8 +8,8 @@ which fails on **moderate and higher** npm audit findings unless an advisory ID 
 **Current state:** Allowlist is **empty** (strict). Root `package.json` uses dependency + `$`-reference
 overrides so nested installs (including `next` optional/`postcss`) resolve to patched versions:
 
-| Override (via root dep + `$`) | Pinned version | Clears |
-| ----------------------------- | -------------- | ------ |
+| Override (via root dep + `$`) | Pinned version | Clears                                       |
+| ----------------------------- | -------------- | -------------------------------------------- |
 | `postcss` / `next.postcss`    | `8.5.23`       | PostCSS XSS / sourceMappingURL HIGH+moderate |
 | `sharp` / `next.sharp`        | `0.35.3`       | libvips HIGH via nested Next sharp           |
 | `uuid` (+ storage/teeny)      | `14.0.0`       | uuid buffer bounds moderate                  |
