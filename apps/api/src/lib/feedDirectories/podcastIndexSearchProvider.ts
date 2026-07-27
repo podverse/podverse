@@ -1,6 +1,5 @@
 import { config } from '@api/config/index.js';
 import { podcastIndexService } from '@api/factories/podcastIndexService.js';
-import { ILike, In, IsNull, Not } from 'typeorm';
 
 import type { PodcastIndexSearchPodcastsResponse, SearchPodcastsFeed } from '@podverse/helpers';
 import { getMediumIdArrayFromType, MediumEnum } from '@podverse/helpers';
@@ -68,6 +67,10 @@ const toSearchFeed = (channel: Channel): SearchPodcastsFeed | null => {
   };
 };
 
+/**
+ * Local DB search used when E2E fixtures are enabled (no Podcast Index network).
+ * Do not import `typeorm` FindOperators — apps/api does not declare typeorm; use QueryBuilder.
+ */
 const searchLocalChannels = async (
   params: FeedDirectorySearchParams
 ): Promise<PodcastIndexSearchPodcastsResponse> => {
@@ -76,29 +79,26 @@ const searchLocalChannels = async (
   const trimmedQuery = params.q.trim();
   const take = config.podcastIndex.searchMax;
 
-  const channels = await AppDataSourceRead.getRepository(Channel).find({
-    where: {
-      ...(trimmedQuery.length > 0 ? { title: ILike(`%${trimmedQuery}%`) } : {}),
-      ...(mediumIds !== null ? { medium_id: In(mediumIds) } : {}),
-      channel_about: {
-        id: Not(IsNull()),
-      },
-      feed: {
-        podcast_index_id: Not(IsNull()),
-        feed_policy: {
-          public_visible: true,
-        },
-      },
-    },
-    relations: {
-      feed: true,
-      channel_images: true,
-    },
-    take,
-    order: {
-      title: 'ASC',
-    },
-  });
+  const qb = AppDataSourceRead.getRepository(Channel)
+    .createQueryBuilder('channel')
+    .innerJoinAndSelect('channel.channel_about', 'channel_about')
+    .innerJoinAndSelect('channel.feed', 'feed')
+    .leftJoinAndSelect('channel.channel_images', 'channel_images')
+    .innerJoin('feed.feed_policy', 'feed_policy')
+    .where('feed_policy.public_visible = :publicVisible', { publicVisible: true })
+    .andWhere('feed.podcast_index_id IS NOT NULL')
+    .orderBy('channel.title', 'ASC')
+    .take(take);
+
+  if (trimmedQuery.length > 0) {
+    qb.andWhere('channel.title ILIKE :q', { q: `%${trimmedQuery}%` });
+  }
+
+  if (mediumIds !== null) {
+    qb.andWhere('channel.medium_id IN (:...mediumIds)', { mediumIds });
+  }
+
+  const channels = await qb.getMany();
 
   const feeds = channels
     .map((channel) => toSearchFeed(channel))
