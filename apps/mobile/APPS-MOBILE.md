@@ -44,6 +44,37 @@ Mobile auth is bearer-first:
 - Never use cookies or `withCredentials` for mobile auth requests; use `/auth/mobile/*` and bearer
   headers.
 - Session state lives in `src/auth/AuthProvider.tsx` (`unknown`/`anonymous`/`authenticated`).
+- Optional login/signup overlays are triggered via `AuthPromptProvider`
+  (`src/auth/AuthPromptContext.tsx`) so screens outside More (e.g. Podcast Index search preview)
+  can request login without prop-drilling through navigators.
+- **Local-dev only:** when Metro `__DEV__` is on and `EXPO_PUBLIC_MOBILE_E2E` is not `1`, the login
+  screen prefills `local-premium@example.com` / `Test!1Aa` (see
+  `infra/development/seeds/local-dev-accounts.sql`). E2E and production builds leave fields empty.
+
+## Home feed (subscribed)
+
+Authenticated Home loads `type: 'subscribed'` via `fetchHomeFeedRows`. After any successful channel
+follow/unfollow, call `homeFeedRefresh.notify()` (`src/lib/home/homeFeedRefresh.ts`) so Home
+reloads without pull-to-refresh. Same pattern as `downloadManager.subscribe`.
+
+## Podcast Index search → preview/add
+
+Search results come from Podcast Index (`reqPodcastIndexSearchPodcasts`). Tapping a result calls
+`reqChannelGetByPodcastIndexId`:
+
+- **Parsed-ready** (`channel` with `id_text` + `medium_id`): push channel detail **on the Search
+  stack** (`PodcastDetail` / `AlbumDetail` / `ArtistDetail` — same screen components as Home).
+- **Not in local DB** (`null`): navigate to Search → `PodcastIndexFeedPreviewScreen` (route
+  `SearchResultDetail`), which mirrors web's `/podcast-index/feed/:id` preview. Authenticated users
+  with directory-add entitlement can tap **Add podcast** (`reqMQRSSAddOnDemand`) and the screen
+  polls until the channel is parsed-ready, then **`replace`s the preview** with Search-stack channel
+  detail (so Back skips the stale Add screen, and switching Home ↔ Search preserves Search’s
+  hierarchy). Anonymous users are prompted to log in.
+
+Tab stacks stay self-contained — see `.cursor/rules/mobile-tab-stack-isolation.mdc`.
+
+Maestro: `search` covers the parsed-ready path; `search-unparsed` covers the not-parsed-ready
+preview path via the fixtures sentinel query `unparsedfixture`.
 
 ## Navigation linking and Android back (Track 7 stubs)
 
@@ -149,7 +180,9 @@ Mobile now participates in the same local env pipeline as other apps:
 - At runtime, the app reads those vars only via `getMobileConfig()` in
   [`apps/mobile/src/config/`](src/config/) (same single-config idea as web/API `config/index.ts`).
 - Android URL derives emulator host `10.0.2.2` automatically when local host is
-  `localhost` / `127.0.0.1`.
+  `localhost` / `127.0.0.1`. For a **physical** Android phone, start Metro with
+  `npm run mobile:dev:device` (exports LAN IPv4 for
+  `EXPO_PUBLIC_MOBILE_API_BASE_URL_ANDROID` without rewriting `.env`).
 
 For native iOS/Android builds use the Nix-stripping root scripts below (`npm run mobile:ios` /
 `mobile:android`) — **not** `./scripts/nix/with-env npm --prefix apps/mobile run ios`, which runs
@@ -265,10 +298,10 @@ This app uses **`expo-dev-client`** (not Expo Go). Metro serves JavaScript; a **
 
 ### Two terminals (typical session)
 
-| Terminal             | Command                                                         | Role                                       |
-| -------------------- | --------------------------------------------------------------- | ------------------------------------------ |
-| Mobile Metro         | `npm run mobile:dev` (day-to-day) or `mobile:dev:e2e` (API E2E) | Keep running — Expo + Metro on `:8081`     |
-| Mobile iOS / Android | `npm run mobile:ios` or `mobile:android`                        | First install and after native dep changes |
+| Terminal             | Command                                                                                      | Role                                                                     |
+| -------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Mobile Metro         | `npm run mobile:dev` (emulator) / `mobile:dev:device` (USB phone LAN API) / `mobile:dev:e2e` | Keep running — Expo + Metro on `:8081`                                   |
+| Mobile iOS / Android | `npm run mobile:ios` / `mobile:android` / `mobile:android:device`                            | Install/launch only (`--no-bundler` always); Metro stays in Mobile Metro |
 
 VS Code preset tabs: [`.vscode/terminals.json`](/.vscode/terminals.json) — `Mobile` (one-shots:
 `build:packages`, `mobile_e2e_deps` / seed / health), `Mobile Metro` (`mobile:dev` or
@@ -296,12 +329,15 @@ Until then you get `No development build (com.podverse.app.next) for this projec
 Use **`--device` with a fixed name**, not `--simulator` (removed in current Expo CLI). Manual vs
 E2E use **different device slots** (same app id `com.podverse.app.next`):
 
-| Role            | iOS                   | Android                  |
-| --------------- | --------------------- | ------------------------ |
-| Manual (dev)    | `"iPhone 17 Pro"`     | `Pixel_6_Pro_API_33`     |
-| Automated (E2E) | `"iPhone 17 Pro E2E"` | `Pixel_6_Pro_API_33_e2e` |
+| Role               | iOS                   | Android                                                                                   |
+| ------------------ | --------------------- | ----------------------------------------------------------------------------------------- |
+| Manual (dev)       | `"iPhone 17 Pro"`     | `Pixel_6_Pro_API_33`                                                                      |
+| Manual (USB phone) | —                     | `npm run mobile:android:device` (auto-picks one physical `adb` serial; ignores emulators) |
+| Automated (E2E)    | `"iPhone 17 Pro E2E"` | `Pixel_6_Pro_API_33_e2e`                                                                  |
 
 `npm run mobile:ios` / `mobile:android` default to **manual** names when `--device` is omitted.
+For a plugged-in phone, use `npm run mobile:android:device` (or
+`MOBILE_ANDROID_DEVICE=<serial>` when more than one USB device is attached).
 `npm run mobile:e2e:*` boots and targets **E2E** names only (`bash scripts/mobile/ensure-devices.sh`).
 Avoid bare `--device` unless you intentionally want the interactive picker (e.g. physical USB device).
 

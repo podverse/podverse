@@ -8,6 +8,7 @@ import { useAuth } from '../../auth/AuthProvider';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
+import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import type { HomeStackParamList } from '../../navigation';
 import { HOME_STACK_ROUTES } from '../../navigation';
 import { E2ePlayVideoButton } from '../../playback/E2ePlayVideoButton';
@@ -129,6 +130,12 @@ export function HomeScreen() {
 
   useEffect(() => {
     void loadFeed('initial');
+  }, [loadFeed]);
+
+  useEffect(() => {
+    return homeFeedRefresh.subscribe(() => {
+      void loadFeed('refresh');
+    });
   }, [loadFeed]);
 
   const handleRowPress = useCallback(

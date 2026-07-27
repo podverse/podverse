@@ -27,7 +27,7 @@
   rather than a hard reject.
 - **Media-app declaration:** `com.google.android.gms.car.application` `<meta-data>` in the module
   `AndroidManifest.xml` pointing at `res/xml/automotive_app_desc.xml` (`<automotiveApp><uses
-  name="media"/></automotiveApp>`). The module manifest + resources merge into the app manifest at
+name="media"/></automotiveApp>`). The module manifest + resources merge into the app manifest at
   prebuild, so no hand-edit of the generated app manifest is required.
 - **Foreground timing:** keep `Context.startService` (not `startForegroundService`). Media3 promotes
   to a `mediaPlayback` foreground service + notification once playback is ongoing; starting

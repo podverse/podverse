@@ -18,7 +18,7 @@
   (`PodverseNativeCache.debugDump`, spike 12.6) with JS dead; this step adds the connect + root
   serving on the same app-closed path.
 - **Proof hook:** `onGetLibraryRoot` logs `Log.i("PodverseMediaLibrary", "onGetLibraryRoot served
-  root=… caller=…")`, and `onConnect` logs when it denies commands to an unknown caller. With the
+root=… caller=…")`, and `onConnect` logs when it denies commands to an unknown caller. With the
   app force-stopped these lines fire from the service process, proving the root is served without
   the Activity / JS.
 - The service must **not** depend on any JS bridge state to serve the root — no `eventSink`, no

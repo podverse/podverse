@@ -28,8 +28,13 @@
     payload is empty.
   - `Library` → one browsable `MediaItem` per node; mediaId `library/<kind>/<idText>`.
   - `Downloads` → playable items (detail 393); mediaId `download/<idText>`.
+  - The `library-browse` index today only carries **add-by-RSS** follows
+    (`account_following_add_by_rss_channels`); directory subscriptions (`account_following_channels`)
+    and followed playlists are **not** projected yet, so the **Library** node is absent when a user
+    only follows directory channels (root then shows Downloads alone). Tracked as **12.22** /
+    [401-car-library-directory-follows](/docs/proposals/mobile/_master-plan_/details/401-car-library-directory-follows.md).
   - Deeper hydration (episodes under a podcast, items under a playlist) needs a richer cached index
-    than today's follows-derived browse index — future 12.12 follow-up (returns empty for now).
+    than today's follows-derived browse index — also part of 12.22 (returns empty for now).
 - **Metadata:** set title + `artworkUri` from cached `artworkUrl` only. Never fetch network to build
   the tree.
 - **Paging:** honor Media3 `page`/`pageSize` by slicing the mapped list.

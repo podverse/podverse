@@ -236,10 +236,10 @@ car surfaces (CarPlay scene 12.7+, Android Auto `MediaLibraryService` 12.11+) an
 (12.5–12.6) load these files **with the JS runtime not running**. Writes are atomic (temp + rename)
 and best-effort — a failed write never rolls back the phone-side mutation.
 
-| Platform | Module (read/write API)                         | Location                                   | Filenames                                                              |
-| -------- | ----------------------------------------------- | ------------------------------------------ | --------------------------------------------------------------------- |
-| iOS      | `PodverseNativeCache.write(_:json:)` / `read(_:)` | Application Support `/native-cache/` (App Group when provisioned — 12.16) | `queue-snapshot.json`, `downloads-index.json`, `library-browse-index.json` |
-| Android  | `PodverseNativeCache.write(context,kind,json)` / `read(context,kind)` | `context.filesDir/native-cache/`           | same three filenames                                                   |
+| Platform | Module (read/write API)                                               | Location                                                                  | Filenames                                                                  |
+| -------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| iOS      | `PodverseNativeCache.write(_:json:)` / `read(_:)`                     | Application Support `/native-cache/` (App Group when provisioned — 12.16) | `queue-snapshot.json`, `downloads-index.json`, `library-browse-index.json` |
+| Android  | `PodverseNativeCache.write(context,kind,json)` / `read(context,kind)` | `context.filesDir/native-cache/`                                          | same three filenames                                                       |
 
 - iOS uses the app container now; `PodverseNativeCache.appGroupIdentifier` is reserved (`nil`) until
   the CarPlay entitlement + App Group land (12.16) — setting it migrates storage transparently.

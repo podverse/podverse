@@ -27,6 +27,15 @@
       "delete_all": "Delete all",
       "auto_removed_notice": "Removed the oldest downloads to free up space",
       "dismiss": "Dismiss"
+    },
+    "search": {
+      "add_podcast": "Add podcast",
+      "adding": "Adding podcast…",
+      "not_available_yet": "This podcast is not in our directory yet. Add it to make it available.",
+      "add_needs_login": "Please log in to add podcasts from search.",
+      "add_needs_membership": "Your account does not currently have access to add podcasts from search.",
+      "add_failed": "Could not add this podcast. Please try again later.",
+      "add_timed_out": "Still processing after several minutes. Search again shortly to open this podcast — adding does not subscribe you automatically."
     }
   }
 }

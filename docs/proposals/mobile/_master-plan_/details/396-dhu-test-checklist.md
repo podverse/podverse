@@ -16,7 +16,7 @@
 - `apps/mobile/modules/podverse-media-engine/ANDROID-AUTO-DHU-CHECKLIST.md` covering:
   - Prerequisites (DHU install, dev-client build, seed the cache once).
   - `adb shell am force-stop com.podverse.app.next` then `adb logcat -s PodverseNativeCache:I
-    PodverseMediaLibrary:I`.
+PodverseMediaLibrary:I`.
   - Connect the DHU; browse **Library** + **Downloads**; play an **offline** item and a **streamed**
     item with the phone app **never opened**; confirm now-playing + skip.
   - Fallback (no DHU): force-stop + service-bind + logcat, plus on-disk `run-as` file check.

@@ -6,6 +6,10 @@ import type { PodcastIndexSearchPodcastsResponse, SearchPodcastsFeed } from '@po
 import { getMediumIdArrayFromType, MediumEnum } from '@podverse/helpers';
 import { AppDataSourceRead, Channel } from '@podverse/orm';
 
+import {
+  buildE2eUnparsedSearchResponse,
+  isE2eUnparsedSearchQuery,
+} from './e2eUnparsedSearchFixture.js';
 import type { FeedDirectorySearchParams, FeedDirectorySearchProvider } from './types.js';
 
 const EMPTY_FUNDING = { url: '', message: '' };
@@ -114,6 +118,9 @@ export const podcastIndexSearchProvider: FeedDirectorySearchProvider = {
 
   async search(params: FeedDirectorySearchParams) {
     if (config.e2e.fixturesEnabled) {
+      if (isE2eUnparsedSearchQuery(params.q)) {
+        return buildE2eUnparsedSearchResponse(params.q);
+      }
       return searchLocalChannels(params);
     }
 

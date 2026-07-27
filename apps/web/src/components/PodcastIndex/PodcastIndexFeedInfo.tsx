@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FaPlus, FaRss } from 'react-icons/fa6';
 
 import type { PodcastByIdFeed } from '@podverse/helpers';
-import { formatDateAbbrev } from '@podverse/helpers';
+import { DIRECTORY_ADD_POLL_TIMEOUT_MS, formatDateAbbrev } from '@podverse/helpers';
 import { Button, ImageLightboxModal, SkeletonFlashImage } from '@podverse/ui';
 
 import { getContactEmail } from '../../constants/contact';
@@ -35,6 +35,7 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
   const tInstructions = useTranslations('instructions');
   const tMembership = useTranslations('membership');
   const [isLoading, setIsLoading] = useState(false);
+  const [pollTimedOut, setPollTimedOut] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const feedImageCandidates = dedupedTrimmedUrlCandidates([
     podcastIndexFeed.image,
@@ -50,23 +51,34 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
   const locale = useLocale();
   const router = useRouter();
   const redirectToChannel = redirectToChannelPageByMediumClient(router);
-  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasRedirectedRef = useRef(false);
   const { loggedInAccount } = useAccount();
   const { setModalLoginRequired } = useModals();
 
+  const clearPolling = () => {
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+    if (pollTimeoutRef.current) {
+      clearTimeout(pollTimeoutRef.current);
+      pollTimeoutRef.current = null;
+    }
+  };
+
   useEffect(() => {
     return () => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-      }
+      clearPolling();
     };
   }, []);
 
   const startPollingForChannel = (podcast_index_id: string | number) => {
-    if (pollIntervalRef.current) {
-      clearInterval(pollIntervalRef.current);
-    }
+    clearPolling();
+    hasRedirectedRef.current = false;
+    setPollTimedOut(false);
+
     const idText = String(podcast_index_id);
     pollIntervalRef.current = setInterval(async () => {
       if (hasRedirectedRef.current) {
@@ -76,15 +88,22 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
         const ssrChannel = await apiRequestService.reqChannelGetByPodcastIndexId(idText);
         if (ssrChannel?.medium_id && ssrChannel?.id_text) {
           hasRedirectedRef.current = true;
-          if (pollIntervalRef.current) {
-            clearInterval(pollIntervalRef.current);
-          }
+          clearPolling();
           redirectToChannel(ssrChannel.medium_id, ssrChannel.id_text);
         }
       } catch {
         console.warn('Checking for channel...not found yet.');
       }
     }, config.public.polling.interval_ms);
+
+    pollTimeoutRef.current = setTimeout(() => {
+      if (hasRedirectedRef.current) {
+        return;
+      }
+      clearPolling();
+      setIsLoading(false);
+      setPollTimedOut(true);
+    }, DIRECTORY_ADD_POLL_TIMEOUT_MS);
   };
 
   const addFeedOnClick = async () => {
@@ -97,6 +116,7 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
     }
 
     setIsLoading(true);
+    setPollTimedOut(false);
 
     if (podcastIndexFeed?.url && podcastIndexFeed?.id) {
       try {
@@ -153,6 +173,11 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
             {tFeatures('add_feed.rss_link')}
           </Button>
         </div>
+        {pollTimedOut ? (
+          <p className={styles.pollTimedOut} role="status">
+            {tFeatures('add_feed.add_feed_timed_out')}
+          </p>
+        ) : null}
       </div>
       {feedImageCandidates.length > 0 && (
         <>

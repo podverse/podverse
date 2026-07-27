@@ -14,5 +14,28 @@
     "menu": {
       "view_rss_feeds": "Voir les flux RSS"
     }
+  },
+  "features": {
+    "download": {
+      "queued": "En file",
+      "remove": "Supprimer",
+      "empty": "Aucun téléchargement pour le moment",
+      "not_downloadable": "Cet épisode ne peut pas être téléchargé pour une lecture hors ligne",
+      "storage_used": "Stockage utilisé",
+      "auto_delete_label": "Supprimer automatiquement les plus anciens lorsque le stockage est plein",
+      "delete_all_label": "Supprimer tous les téléchargements",
+      "delete_all": "Tout supprimer",
+      "auto_removed_notice": "Les téléchargements les plus anciens ont été supprimés pour libérer de l’espace",
+      "dismiss": "Fermer"
+    },
+    "search": {
+      "add_podcast": "Ajouter le podcast",
+      "adding": "Ajout du podcast…",
+      "not_available_yet": "Ce podcast n’est pas encore dans notre annuaire. Ajoutez-le pour le rendre disponible.",
+      "add_needs_login": "Connectez-vous pour ajouter des podcasts depuis la recherche.",
+      "add_needs_membership": "Votre compte n’a pas accès pour ajouter des podcasts depuis la recherche.",
+      "add_failed": "Impossible d’ajouter ce podcast. Réessayez plus tard.",
+      "add_timed_out": "Traitement toujours en cours après plusieurs minutes. Recherchez à nouveau sous peu pour ouvrir ce podcast — l’ajout ne vous abonne pas automatiquement."
+    }
   }
 }

@@ -14,5 +14,28 @@
     "menu": {
       "view_rss_feeds": ""
     }
+  },
+  "features": {
+    "download": {
+      "queued": "",
+      "remove": "",
+      "empty": "",
+      "not_downloadable": "",
+      "storage_used": "",
+      "auto_delete_label": "",
+      "delete_all_label": "",
+      "delete_all": "",
+      "auto_removed_notice": "",
+      "dismiss": ""
+    },
+    "search": {
+      "add_podcast": "",
+      "adding": "",
+      "not_available_yet": "",
+      "add_needs_login": "",
+      "add_needs_membership": "",
+      "add_failed": "",
+      "add_timed_out": ""
+    }
   }
 }

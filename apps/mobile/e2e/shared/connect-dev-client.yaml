@@ -53,5 +53,5 @@ appId: com.podverse.app.next
 
 - extendedWaitUntil:
     visible:
-      id: hello-world-screen
+      id: home-screen
     timeout: ${TIMEOUT_SLOW}

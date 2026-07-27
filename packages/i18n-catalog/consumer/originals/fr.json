@@ -58,6 +58,7 @@
     "add_feed": {
       "add_feed": "Ajouter un flux",
       "add_feed_explanation": "Ce flux n'est pas dans notre annuaire. Si vous souhaitez l'ajouter, appuyez sur le bouton \"Ajouter un flux\".",
+      "add_feed_timed_out": "Traitement toujours en cours après plusieurs minutes. Actualisez cette page ou recherchez à nouveau sous peu — l’ajout ne vous abonne pas automatiquement.",
       "rss_link": "Lien RSS",
       "blocked_feed_banner": "Ce flux ne peut pas être ajouté pour le moment dans {brand_name} ({reason}). Si vous pensez qu'il s'agit d'une erreur, veuillez contacter",
       "blocked_reason_spam_detected": "des restrictions liées à la détection de spam",

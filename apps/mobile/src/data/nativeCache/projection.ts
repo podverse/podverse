@@ -138,9 +138,7 @@ export const buildLibraryBrowseIndexPayload = (
 });
 
 type NativeCacheWriteMethod =
-  | 'writeQueueSnapshot'
-  | 'writeDownloadsIndex'
-  | 'writeLibraryBrowseIndex';
+  'writeQueueSnapshot' | 'writeDownloadsIndex' | 'writeLibraryBrowseIndex';
 
 /**
  * Serialize + forward a versioned payload to the durable native-cache bridge write. Best-effort:

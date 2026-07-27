@@ -58,6 +58,7 @@
     "add_feed": {
       "add_feed": "Agregar Feed",
       "add_feed_explanation": "Este feed no está en nuestro directorio. Si deseas agregarlo, presiona el botón \"Agregar Feed\".",
+      "add_feed_timed_out": "Aún se está procesando tras varios minutos. Actualiza esta página o vuelve a buscar en breve — añadir no te suscribe automáticamente.",
       "rss_link": "Enlace RSS",
       "blocked_feed_banner": "Este feed no se puede añadir actualmente en {brand_name} ({reason}). Si crees que es un error, contacta con",
       "blocked_reason_spam_detected": "restricciones por detección de spam",

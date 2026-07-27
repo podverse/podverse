@@ -91,6 +91,20 @@ Record the DHU result (or fallback logcat) here for the release ticket:
 # paste the PodverseMediaLibrary / PodverseNativeCache logcat lines + browse/play pass/fail
 ```
 
+### 2026-07-27 — Pixel 4a (sunfish), DHU 2.1-mac-arm64
+
+- **Browse (app force-stopped):** Downloads node listed 3 downloaded episodes as playable. **PASS**.
+- **Play (app force-stopped):** offline Download item played from local file; play/pause/skip worked
+  from the head unit; single media session. **PASS**.
+- **Library node:** **absent** — the only subscription was a **directory** follow
+  (`account_following_channels`), which is not projected into `library-browse` yet (add-by-RSS only).
+  Root therefore showed Downloads alone (back from Downloads is a no-op — it is the effective root).
+  **Known limitation**, tracked as **12.22** /
+  [401-car-library-directory-follows](/docs/proposals/mobile/_master-plan_/details/401-car-library-directory-follows.md).
+  To exercise a Library node today, follow a feed via **Add by RSS**, then re-open Podverse in DHU.
+- **Verdict:** 12.17 ship-bar (browse + play native cache, app-closed) **met** for Downloads; Library
+  breadth deferred to 12.22.
+
 ## Cross-links
 
 - App-closed cache read spike: [`NATIVE-CACHE-SPIKE-ANDROID.md`](./NATIVE-CACHE-SPIKE-ANDROID.md)

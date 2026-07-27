@@ -6,12 +6,14 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
+import { useAuth } from '../auth/AuthProvider';
 import { MiniPlayer } from '../components/player/MiniPlayer';
 import { PlaybackE2eStatus } from '../playback/PlaybackE2eStatus';
 import { AlbumDetailScreen } from '../screens/album/AlbumDetailScreen';
 import { ArtistDetailScreen } from '../screens/artist/ArtistDetailScreen';
 import { ClipDetailScreen } from '../screens/clip/ClipDetailScreen';
 import { EpisodeDetailScreen } from '../screens/episode/EpisodeDetailScreen';
+import { HelloWorldScreen } from '../screens/HelloWorldScreen';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { LibraryDownloadsScreen } from '../screens/library/LibraryDownloadsScreen';
 import { LibraryHistoryScreen } from '../screens/library/LibraryHistoryScreen';
@@ -26,11 +28,14 @@ import { MyProfileScreen } from '../screens/profile/MyProfileScreen';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
 import { AddByRssFeedListScreen } from '../screens/rss/AddByRssFeedListScreen';
 import { AddByRssRootScreen } from '../screens/rss/AddByRssRootScreen';
+import { PodcastIndexFeedPreviewScreen } from '../screens/search/PodcastIndexFeedPreviewScreen';
 import { SearchScreen } from '../screens/search/SearchScreen';
 import { useTheme } from '../theme/useTheme';
 
 type MobileTabNavigatorProps = {
+  onRequestLogin: () => void;
   onRequestLogout: () => Promise<void>;
+  onRequestSignUp: () => void;
 };
 
 const Tab = createBottomTabNavigator();
@@ -139,7 +144,18 @@ export const HOME_STACK_ROUTES = {
   TrackDetail: 'TrackDetail',
 } as const;
 
+/** Shared channel/item detail route names (registered on Home and Search stacks). */
+export const CHANNEL_BROWSE_STACK_ROUTES = {
+  AlbumDetail: 'AlbumDetail',
+  ArtistDetail: 'ArtistDetail',
+  ClipDetail: 'ClipDetail',
+  EpisodeDetail: 'EpisodeDetail',
+  PodcastDetail: 'PodcastDetail',
+  TrackDetail: 'TrackDetail',
+} as const;
+
 export const SEARCH_STACK_ROUTES = {
+  ...CHANNEL_BROWSE_STACK_ROUTES,
   SearchResultDetail: 'SearchResultDetail',
   SearchRoot: 'SearchRoot',
 } as const;
@@ -171,6 +187,7 @@ export const MORE_STACK_ROUTES = {
   MoreProfile: 'MoreProfile',
   MoreRoot: 'MoreRoot',
   MoreSettings: 'MoreSettings',
+  MoreSmoke: 'MoreSmoke',
 } as const;
 
 export const ROOT_STACK_ROUTES = {
@@ -208,6 +225,7 @@ export const mobileNavigationLinking: LinkingOptions<RootStackParamList> = {
               MoreProfile: 'more/profile',
               MoreRoot: 'more',
               MoreSettings: 'more/settings',
+              MoreSmoke: 'more/smoke',
             },
           },
           'My Library': {
@@ -232,8 +250,14 @@ export const mobileNavigationLinking: LinkingOptions<RootStackParamList> = {
           },
           Search: {
             screens: {
+              AlbumDetail: 'search/album/:albumId',
+              ArtistDetail: 'search/artist/:artistId',
+              ClipDetail: 'search/clip/:clipId',
+              EpisodeDetail: 'search/episode/:episodeId',
+              PodcastDetail: 'search/podcast/:podcastId',
               SearchResultDetail: 'search/result/:resultId',
               SearchRoot: 'search',
+              TrackDetail: 'search/track/:trackId',
             },
           },
         },
@@ -243,18 +267,30 @@ export const mobileNavigationLinking: LinkingOptions<RootStackParamList> = {
   prefixes: ['podverse://', 'https://podverse.fm'],
 };
 
-export type HomeStackParamList = {
+/** Channel/item detail params shared by Home and Search stacks (tab isolation). */
+export type ChannelBrowseStackParamList = {
   AlbumDetail: { albumId: string };
   ArtistDetail: { artistId: string };
   ClipDetail: { clipId: string };
   EpisodeDetail: { episodeId: string };
-  HomeRoot: undefined;
   PodcastDetail: { podcastId: string };
   TrackDetail: { trackId: string };
 };
 
-export type SearchStackParamList = {
-  SearchResultDetail: { resultId: string };
+export type HomeStackParamList = ChannelBrowseStackParamList & {
+  HomeRoot: undefined;
+};
+
+export type SearchStackParamList = ChannelBrowseStackParamList & {
+  SearchResultDetail: {
+    /** Podcast Index feed id (also used by deep link `search/result/:resultId`). */
+    resultId: string;
+    author?: string;
+    description?: string;
+    feedUrl?: string;
+    imageUrl?: string | null;
+    title?: string;
+  };
   SearchRoot: undefined;
 };
 
@@ -285,6 +321,7 @@ export type MoreStackParamList = {
   MoreProfile: undefined;
   MoreRoot: undefined;
   MoreSettings: undefined;
+  MoreSmoke: undefined;
 };
 
 type RootStackParamList = {
@@ -347,9 +384,39 @@ function SearchStackNavigator() {
         options={{ title: t('features.search.search') }}
       />
       <SearchStack.Screen
-        component={SearchResultDetailScreen}
+        component={PodcastIndexFeedPreviewScreen}
         name={SEARCH_STACK_ROUTES.SearchResultDetail}
         options={{ title: t('nav.stack.search_result') }}
+      />
+      <SearchStack.Screen
+        component={PodcastDetailScreen}
+        name={SEARCH_STACK_ROUTES.PodcastDetail}
+        options={{ title: t('media.podcast.podcast') }}
+      />
+      <SearchStack.Screen
+        component={EpisodeDetailScreen}
+        name={SEARCH_STACK_ROUTES.EpisodeDetail}
+        options={{ title: t('media.podcast.episode') }}
+      />
+      <SearchStack.Screen
+        component={ClipDetailScreen}
+        name={SEARCH_STACK_ROUTES.ClipDetail}
+        options={{ title: t('features.clip.clip') }}
+      />
+      <SearchStack.Screen
+        component={ArtistDetailScreen}
+        name={SEARCH_STACK_ROUTES.ArtistDetail}
+        options={{ title: t('media.music.artist') }}
+      />
+      <SearchStack.Screen
+        component={AlbumDetailScreen}
+        name={SEARCH_STACK_ROUTES.AlbumDetail}
+        options={{ title: t('media.music.album') }}
+      />
+      <SearchStack.Screen
+        component={TrackDetailScreen}
+        name={SEARCH_STACK_ROUTES.TrackDetail}
+        options={{ title: t('media.music.track') }}
       />
     </SearchStack.Navigator>
   );
@@ -434,16 +501,29 @@ function RssStackNavigator() {
 }
 
 type MoreStackNavigatorProps = {
+  onRequestLogin: () => void;
   onRequestLogout: () => Promise<void>;
+  onRequestSignUp: () => void;
 };
 
-function MoreStackNavigator({ onRequestLogout }: MoreStackNavigatorProps) {
+function MoreStackNavigator({
+  onRequestLogin,
+  onRequestLogout,
+  onRequestSignUp,
+}: MoreStackNavigatorProps) {
   const { t } = useTranslation();
 
   return (
     <MoreStack.Navigator>
       <MoreStack.Screen options={{ title: t('nav.tab.more') }} name={MORE_STACK_ROUTES.MoreRoot}>
-        {(props) => <MoreRootScreen {...props} onRequestLogout={onRequestLogout} />}
+        {(props) => (
+          <MoreRootScreen
+            {...props}
+            onRequestLogin={onRequestLogin}
+            onRequestLogout={onRequestLogout}
+            onRequestSignUp={onRequestSignUp}
+          />
+        )}
       </MoreStack.Screen>
       <MoreStack.Screen
         component={MoreSettingsScreen}
@@ -480,18 +560,21 @@ function MoreStackNavigator({ onRequestLogout }: MoreStackNavigatorProps) {
         name={MORE_STACK_ROUTES.MoreOpmlExport}
         options={{ title: t('settings.settings') }}
       />
+      <MoreStack.Screen name={MORE_STACK_ROUTES.MoreSmoke} options={{ title: 'Smoke' }}>
+        {() => (
+          <HelloWorldScreen
+            authMode="anonymous"
+            onRequestLogin={onRequestLogin}
+            onRequestSignUp={onRequestSignUp}
+          />
+        )}
+      </MoreStack.Screen>
     </MoreStack.Navigator>
   );
 }
 
 function TrackDetailScreen() {
   return <PlaceholderScreen testID="track-detail-screen" title="Track Detail Placeholder" />;
-}
-
-function SearchResultDetailScreen() {
-  return (
-    <PlaceholderScreen testID="search-result-detail-screen" title="Search Result Placeholder" />
-  );
 }
 
 function LibraryHubScreen({
@@ -559,11 +642,43 @@ function LibraryHubScreen({
 }
 
 type MoreRootScreenProps = NativeStackScreenProps<MoreStackParamList, 'MoreRoot'> & {
+  onRequestLogin: () => void;
   onRequestLogout: () => Promise<void>;
+  onRequestSignUp: () => void;
 };
 
-function MoreRootScreen({ navigation, onRequestLogout }: MoreRootScreenProps) {
+function MoreRootScreen({
+  navigation,
+  onRequestLogin,
+  onRequestLogout,
+  onRequestSignUp,
+}: MoreRootScreenProps) {
   const { t } = useTranslation();
+  const { status } = useAuth();
+  const isAuthenticated = status === 'authenticated';
+
+  const authItems: PlaceholderMenuItem[] = isAuthenticated
+    ? [
+        {
+          onPress: () => {
+            void onRequestLogout();
+          },
+          testID: 'more-nav-logout',
+          title: t('authentication.logout'),
+        },
+      ]
+    : [
+        {
+          onPress: onRequestLogin,
+          testID: 'anonymous-login-cta',
+          title: t('authentication.login'),
+        },
+        {
+          onPress: onRequestSignUp,
+          testID: 'anonymous-signup-cta',
+          title: t('authentication.sign_up'),
+        },
+      ];
 
   return (
     <PlaceholderMenuScreen
@@ -612,11 +727,12 @@ function MoreRootScreen({ navigation, onRequestLogout }: MoreRootScreenProps) {
         },
         {
           onPress: () => {
-            void onRequestLogout();
+            navigation.navigate(MORE_STACK_ROUTES.MoreSmoke);
           },
-          testID: 'more-nav-logout',
-          title: t('authentication.logout'),
+          testID: 'more-nav-smoke',
+          title: 'Smoke',
         },
+        ...authItems,
       ]}
       testID="more-screen"
       title={t('nav.tab.more')}
@@ -648,10 +764,17 @@ function MoreOpmlExportScreen() {
 
 type TabScaffoldProps = {
   onOpenFullPlayer: () => void;
+  onRequestLogin: () => void;
   onRequestLogout: () => Promise<void>;
+  onRequestSignUp: () => void;
 };
 
-function TabScaffold({ onOpenFullPlayer, onRequestLogout }: TabScaffoldProps) {
+function TabScaffold({
+  onOpenFullPlayer,
+  onRequestLogin,
+  onRequestLogout,
+  onRequestSignUp,
+}: TabScaffoldProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const { width } = useWindowDimensions();
@@ -721,13 +844,23 @@ function TabScaffold({ onOpenFullPlayer, onRequestLogout }: TabScaffoldProps) {
         name="More"
         options={{ tabBarButtonTestID: 'tab-more', tabBarLabel: t('nav.tab.more') }}
       >
-        {() => <MoreStackNavigator onRequestLogout={onRequestLogout} />}
+        {() => (
+          <MoreStackNavigator
+            onRequestLogin={onRequestLogin}
+            onRequestLogout={onRequestLogout}
+            onRequestSignUp={onRequestSignUp}
+          />
+        )}
       </Tab.Screen>
     </Tab.Navigator>
   );
 }
 
-export function MobileTabNavigator({ onRequestLogout }: MobileTabNavigatorProps) {
+export function MobileTabNavigator({
+  onRequestLogin,
+  onRequestLogout,
+  onRequestSignUp,
+}: MobileTabNavigatorProps) {
   return (
     <NavigationContainer linking={mobileNavigationLinking}>
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
@@ -737,7 +870,9 @@ export function MobileTabNavigator({ onRequestLogout }: MobileTabNavigatorProps)
               onOpenFullPlayer={() => {
                 props.navigation.navigate(ROOT_STACK_ROUTES.FullPlayer);
               }}
+              onRequestLogin={onRequestLogin}
               onRequestLogout={onRequestLogout}
+              onRequestSignUp={onRequestSignUp}
             />
           )}
         </RootStack.Screen>
