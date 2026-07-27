@@ -1,7 +1,7 @@
 ---
 name: podverse-k8s-patterns
 description: Common patterns for Kubernetes manifests in infra/k8s. Use when editing or adding K8s manifests, changing deployment config, adding env vars to ConfigMaps, or working with ArgoCD/Kustomize/SOPS.
-version: 1.0.6
+version: 1.0.7
 ---
 
 # Podverse K8s Development Patterns
@@ -217,6 +217,26 @@ Child applications in `alpha/apps/<component>.yaml` define:
 
 Scheduled worker tasks live in `base/cron/`; manual ops jobs (migrations, verify, MQ enqueue) live in
 `base/ops/*.cronjob.yaml`. Both are synced as separate Argo CD apps (`cron`, `ops`).
+
+### No automatic retries
+
+Every `CronJob` in `base/cron/` and `base/ops/` must run **once per schedule (or manual
+trigger)** — no Job-level pod retries:
+
+```yaml
+jobTemplate:
+  spec:
+    backoffLimit: 0
+    template:
+      spec:
+        restartPolicy: Never
+```
+
+`restartPolicy: Never` alone is not enough: the Job controller default is `backoffLimit: 6`, which
+creates replacement pods after failure. Scheduled worker CronJobs treat the cron schedule as the
+retry mechanism; suspended ops CronJobs fail once until the operator re-triggers.
+
+When adding a new CronJob, set `backoffLimit: 0` and `restartPolicy: Never`.
 
 ### Job history limits (Argo CD UI)
 

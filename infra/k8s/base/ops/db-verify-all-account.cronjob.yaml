@@ -13,6 +13,8 @@ spec:
   failedJobsHistoryLimit: 5
   jobTemplate:
     spec:
+      # Single attempt: Job default backoffLimit is 6 (creates new pods on failure).
+      backoffLimit: 0
       ttlSecondsAfterFinished: 60
       template:
         spec:
