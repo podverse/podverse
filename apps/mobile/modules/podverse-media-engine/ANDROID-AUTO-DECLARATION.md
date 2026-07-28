@@ -8,9 +8,10 @@ test with the Desktop Head Unit (DHU). What Google requires is a **Play Console 
 adherence to the media-app quality guidelines before the Android Auto experience is visible to users
 in production. This doc lists what is already wired in code vs. what the **operator** submits.
 
-> iOS CarPlay entitlement + App Group provisioning is a **separate later slice** (12.7–12.10 / 12.16
-> iOS portion) and is intentionally **not** covered here — the CarPlay entitlement is not provisioned
-> yet.
+> iOS CarPlay entitlement + App Group provisioning is a **separate slice** (12.7–12.10 / 12.16 iOS
+> portion). Operator runbook:
+> [`CARPLAY-ENTITLEMENT.md`](./CARPLAY-ENTITLEMENT.md). Simulator browse+play gate:
+> [`CARPLAY-SIMULATOR-CHECKLIST.md`](./CARPLAY-SIMULATOR-CHECKLIST.md).
 
 ## Already wired in code (no operator action)
 

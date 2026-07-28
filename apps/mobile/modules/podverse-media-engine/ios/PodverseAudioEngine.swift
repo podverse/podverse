@@ -160,6 +160,19 @@ public final class PodverseAudioEngine: NSObject {
     play()
   }
 
+  /// Override the Now Playing title/artist for the current item (lock screen + CarPlay). The CarPlay
+  /// browse scene (12.9) calls this right after `loadAndStart` so the car shows the cache entry's real
+  /// title instead of the file name (`load` seeds a placeholder from `lastPathComponent`). Metadata
+  /// only — it never creates a second `AVPlayer` or `MPRemoteCommandCenter`; the one shared command
+  /// center from `registerRemoteCommands` still drives all transport.
+  func setNowPlayingMetadata(title: String?, artist: String? = nil) {
+    onMain { [weak self] in
+      guard let self = self else { return }
+      self.nowPlaying = PodverseNowPlayingInfo(title: title, artist: artist)
+      self.updateNowPlayingInfo()
+    }
+  }
+
   func play() {
     onMain { [weak self] in
       guard let self = self else { return }

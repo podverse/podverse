@@ -82,16 +82,37 @@ filters) that wraps **that same player** in the one `MediaLibrarySession`.
 
 `PodverseAudioEngine.shared` is a process-wide singleton that owns the one `AVPlayer`, the one
 `AVAudioSession` configuration, and the one `MPRemoteCommandCenter` registration. It is intentionally
-independent of the Expo module lifecycle: a future CarPlay scene (Track **12.9–12.10**) binds
+independent of the Expo module lifecycle: the CarPlay scene (Track **12.9–12.10**) binds
 now-playing and remote commands to `PodverseAudioEngine.shared` **without starting the JS runtime**.
 The Expo module only sets an `eventSink` to forward events to JS while JS is alive.
 
-- **One player, one command center.** Lock screen, Control Center, and future CarPlay all drive the
+- **One player, one command center.** Lock screen, Control Center, and CarPlay all drive the
   same `AVPlayer` via the same command center — never a second registration path.
 - **`destroy()` keeps** the shared player, session config, and command-center registration so car
   surfaces can rebind; it only tears down the current item/observers.
 - **Interruptions:** pause on `.began`; resume only when the system sets `.shouldResume`.
 - **Route changes:** pause when the previous output becomes unavailable (headphones unplugged).
+
+### iOS CarPlay scene (12.7–12.10)
+
+`PodverseCarPlaySceneDelegate` (`@objc`, referenced by name from the `UIApplicationSceneManifest`
+CarPlay scene in `app.config.ts`) is the car entry point; iOS instantiates it even when the phone app
+is force-quit.
+
+- **Browse (12.8):** builds a `CPListTemplate` root of **Library** + **Downloads** from
+  `PodverseNativeCache` (shared App Group `group.com.podverse.app.next`) via
+  `PodverseCarPlayCacheModel` — the Swift mirror of Android's `PodverseNativeCacheModel`. No SQLite,
+  no network, JS may be dead.
+- **Play (12.9 / 12.15):** selecting a download resolves its URL with the same preference as Android
+  (`file://` local first, else remote `mediaUrl`), calls `PodverseAudioEngine.shared.loadAndStart` +
+  `setNowPlayingMetadata(title:)`, and presents `CPNowPlayingTemplate.shared`.
+- **Remotes (12.10):** `CPNowPlayingTemplate` / `MPRemoteCommandCenter` bind to the **one** command
+  center registered by the engine — the CarPlay scene adds **no** second command center or player.
+- **Known gap:** app-closed skip/advance uses engine/session behavior only; full auto-queue refill
+  stays in `@podverse/playback-core` (JS) and is not reimplemented in Swift.
+- **Operator:** entitlement/App Group runbook
+  [`CARPLAY-ENTITLEMENT.md`](./CARPLAY-ENTITLEMENT.md); Simulator browse+play gate
+  [`CARPLAY-SIMULATOR-CHECKLIST.md`](./CARPLAY-SIMULATOR-CHECKLIST.md).
 
 ## Background & after-kill behavior (spikes 2.12–2.13)
 

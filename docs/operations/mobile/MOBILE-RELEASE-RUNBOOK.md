@@ -80,7 +80,20 @@ native code, the browse tree, or the media service).
   (do not duplicate steps here); record the result in the release ticket.
 - **Play Console declaration:** before shipping Android Auto to users, complete
   [`ANDROID-AUTO-DECLARATION.md`](/apps/mobile/modules/podverse-media-engine/ANDROID-AUTO-DECLARATION.md).
-- iOS CarPlay QA is a later slice (CarPlay entitlement not provisioned yet).
+
+## Manual car QA gate — iOS CarPlay (Track 12)
+
+CarPlay browse+play is a **manual acceptance gate** for any release that ships or changes the CarPlay
+surface (`podverse-media-engine` native code, the CarPlay scene/templates, or the media engine).
+
+- **Gate:** run the CarPlay **Simulator browse+play** checklist with the phone app **force-quit** —
+  browse Library + Downloads and play an offline (and, when present, a streamed) item, app never
+  opened, one shared engine.
+- **Steps + evidence:** follow
+  [`apps/mobile/modules/podverse-media-engine/CARPLAY-SIMULATOR-CHECKLIST.md`](/apps/mobile/modules/podverse-media-engine/CARPLAY-SIMULATOR-CHECKLIST.md)
+  (do not duplicate steps here); record the result in the release ticket.
+- **Entitlement / App Group:** provisioned for `com.podverse.app.next` — see
+  [`CARPLAY-ENTITLEMENT.md`](/apps/mobile/modules/podverse-media-engine/CARPLAY-ENTITLEMENT.md).
 
 ## Production convergence gate (`4.25`)
 

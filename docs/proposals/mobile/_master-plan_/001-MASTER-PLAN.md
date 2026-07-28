@@ -73,16 +73,18 @@ those briefs in Track 23 — not earlier.
 | **PG-9 Track 13 downloads**                       | **done**    | Archived under `.llm/plans/completed/mobile-track13-downloads/` (13.1–13.10)                                                                                                               |
 | **PG-8 native cache (12.1–12.6)**                 | **done**    | Archived under `.llm/plans/completed/mobile-pg8-car-native-cache/` (schema, iOS/Android storage, JS write path, read spikes)                                                               |
 | **PG-8 Android Auto (12.11–12.17, 12.19, 12.20)** | **done**    | Native browse (Library + Downloads) + play from the cache, app-closed; archived under `.llm/plans/completed/mobile-pg8-car-android-auto/`. Operator DHU + Play Console declaration pending |
-| **PG-8 iOS CarPlay (12.7–12.10, 12.18)**          | **next up** | CarPlay scene + templates + now-playing + remote commands over the native cache — pending the Apple CarPlay entitlement (12.16 iOS)                                                        |
+| **PG-8 iOS CarPlay (12.7–12.10, 12.16 iOS, 12.18–12.19 iOS)** | **done** | AA-parity Library + Downloads + play from the cache, app-closed; App ID/App Group + entitlements wired; archived under `.llm/plans/completed/mobile-pg8-car-carplay/`. Operator CarPlay Simulator proof pending |
 | PG-9 rest                                         | later       | Push, deep links, settings/OPML                                                                                                                                                            |
 | PG-13 (Track 23)                                  | later       | **Operator** screen-by-screen visual polish — after feature bulk                                                                                                                           |
 
 ### Recommended next build sequence
 
-1. **Track 12 car surfaces (12.7–12.21)** — CarPlay scene + Android Auto browse trees reading the
-   durable native cache (12.1–12.6, now landed). Also **Track 16 settings/OPML** and **push** —
-   next functional-sketch bulk. **Track 23** only after the feature bulk is in place and the
-   operator has reviewed screens.
+1. **Track 12 car surfaces** — **PG-8 iOS CarPlay** implemented (AA-parity Library + Downloads +
+   play), archived under `.llm/plans/completed/mobile-pg8-car-carplay/`; **operator** CarPlay
+   Simulator proof pending ([CARPLAY-SIMULATOR-CHECKLIST.md](/apps/mobile/modules/podverse-media-engine/CARPLAY-SIMULATOR-CHECKLIST.md)).
+   Remaining car follow-ons: **12.22** library directory-follows and **12.21** parallel worktree.
+   Next functional-sketch bulk: **Track 16 settings/OPML** and **push**. **Track 23** only after the
+   feature bulk is in place and the operator has reviewed screens.
 
 _Done:_ **PG-8 native cache (12.1–12.6)** — schema, iOS/Android durable storage, JS write path, and
 read-with-JS-dead spikes; archived under `.llm/plans/completed/mobile-pg8-car-native-cache/`.
@@ -583,19 +585,19 @@ native surface — do **not** redesign player layout or add transcript/clip-auth
 12.4. JS queue store calls cache write on every queue/auto-queue/download change. Model: Opus 4.8. Detail: [383-js-cache-write-path](/docs/proposals/mobile/_master-plan_/details/383-js-cache-write-path.md) — done
 12.5. Spike: verify native reads cache with JS runtime not started (CarPlay simulator). Model: Opus 4.8. Detail: [384-spike-cache-read-no-js-ios](/docs/proposals/mobile/_master-plan_/details/384-spike-cache-read-no-js-ios.md) — done ([NATIVE-CACHE-SPIKE-IOS.md](/apps/mobile/modules/podverse-media-engine/NATIVE-CACHE-SPIKE-IOS.md))
 12.6. Spike: verify native reads cache with app force-stopped (Android DHU). Model: Opus 4.8. Detail: [385-spike-cache-read-no-js-android](/docs/proposals/mobile/_master-plan_/details/385-spike-cache-read-no-js-android.md) — done ([NATIVE-CACHE-SPIKE-ANDROID.md](/apps/mobile/modules/podverse-media-engine/NATIVE-CACHE-SPIKE-ANDROID.md))
-12.7. iOS: add CarPlay scene configuration in Info.plist and entitlements. Model: Opus 4.8. Detail: [386-ios-carplay-scene-config](/docs/proposals/mobile/_master-plan_/details/386-ios-carplay-scene-config.md) — _TBD_
-12.8. iOS: implement CarPlay `CPListTemplate` browse tree from native cache. Model: Opus 4.8. Detail: [387-ios-carplay-browse-templates](/docs/proposals/mobile/_master-plan_/details/387-ios-carplay-browse-templates.md) — _TBD_
-12.9. iOS: bind CarPlay now-playing to shared AVPlayer instance from media engine. Model: Opus 4.8. Detail: [388-ios-carplay-now-playing](/docs/proposals/mobile/_master-plan_/details/388-ios-carplay-now-playing.md) — _TBD_
-12.10. iOS: handle CarPlay remote commands via MPRemoteCommandCenter shared with engine. Model: Opus 4.8. Detail: [389-ios-carplay-remote-commands](/docs/proposals/mobile/_master-plan_/details/389-ios-carplay-remote-commands.md) — _TBD_
+12.7. iOS: add CarPlay scene configuration in Info.plist and entitlements. Model: Opus 4.8. Detail: [386-ios-carplay-scene-config](/docs/proposals/mobile/_master-plan_/details/386-ios-carplay-scene-config.md) — done
+12.8. iOS: implement CarPlay `CPListTemplate` browse tree from native cache. Model: Opus 4.8. Detail: [387-ios-carplay-browse-templates](/docs/proposals/mobile/_master-plan_/details/387-ios-carplay-browse-templates.md) — done
+12.9. iOS: bind CarPlay now-playing to shared AVPlayer instance from media engine. Model: Opus 4.8. Detail: [388-ios-carplay-now-playing](/docs/proposals/mobile/_master-plan_/details/388-ios-carplay-now-playing.md) — done
+12.10. iOS: handle CarPlay remote commands via MPRemoteCommandCenter shared with engine. Model: Opus 4.8. Detail: [389-ios-carplay-remote-commands](/docs/proposals/mobile/_master-plan_/details/389-ios-carplay-remote-commands.md) — done
 12.11. Android: implement Media3 `MediaLibraryService` foreground service. Model: Opus 4.8. Detail: [390-android-media-library-service](/docs/proposals/mobile/_master-plan_/details/390-android-media-library-service.md) — done
 12.12. Android: expose browse tree MediaItems from native cache for Android Auto. Model: Opus 4.8. Detail: [391-android-auto-browse-tree](/docs/proposals/mobile/_master-plan_/details/391-android-auto-browse-tree.md) — done
 12.13. Android: connect Android Auto to service not Activity (app-closed requirement). Model: Opus 4.8. Detail: [392-android-auto-app-closed](/docs/proposals/mobile/_master-plan_/details/392-android-auto-app-closed.md) — done
 12.14. Include offline/downloaded items in car browse tree from cache downloads index. Model: Opus 4.8. Detail: [393-car-offline-items-in-tree](/docs/proposals/mobile/_master-plan_/details/393-car-offline-items-in-tree.md) — done
 12.15. Car play action uses same enclosure/file URL resolution as phone engine. Model: Opus 4.8. Detail: [394-car-playback-url-resolution](/docs/proposals/mobile/_master-plan_/details/394-car-playback-url-resolution.md) — done
-12.16. Document CarPlay/Android Auto entitlement and Play Console declaration steps. Model: Codex 5.3. Detail: [395-car-entitlements-declarations](/docs/proposals/mobile/_master-plan_/details/395-car-entitlements-declarations.md) — Android done; iOS CarPlay entitlement _TBD_ ([ANDROID-AUTO-DECLARATION.md](/apps/mobile/modules/podverse-media-engine/ANDROID-AUTO-DECLARATION.md))
+12.16. Document CarPlay/Android Auto entitlement and Play Console declaration steps. Model: Codex 5.3. Detail: [395-car-entitlements-declarations](/docs/proposals/mobile/_master-plan_/details/395-car-entitlements-declarations.md) — Android done; iOS portal + code wiring done ([CARPLAY-ENTITLEMENT.md](/apps/mobile/modules/podverse-media-engine/CARPLAY-ENTITLEMENT.md))
 12.17. Manual test checklist: DHU browse+play with phone app never opened. Model: Auto. Detail: [396-dhu-test-checklist](/docs/proposals/mobile/_master-plan_/details/396-dhu-test-checklist.md) — done ([ANDROID-AUTO-DHU-CHECKLIST.md](/apps/mobile/modules/podverse-media-engine/ANDROID-AUTO-DHU-CHECKLIST.md))
-12.18. Manual test checklist: CarPlay simulator launch from background. Model: Auto. Detail: [397-carplay-simulator-checklist](/docs/proposals/mobile/_master-plan_/details/397-carplay-simulator-checklist.md) — _TBD_
-12.19. E2E not fully automatable — document manual car QA gate in release runbook. Model: Auto. Detail: [398-car-manual-qa-gate](/docs/proposals/mobile/_master-plan_/details/398-car-manual-qa-gate.md) — Android done; iOS CarPlay QA _TBD_
+12.18. Manual test checklist: CarPlay simulator launch from background. Model: Auto. Detail: [397-carplay-simulator-checklist](/docs/proposals/mobile/_master-plan_/details/397-carplay-simulator-checklist.md) — done ([CARPLAY-SIMULATOR-CHECKLIST.md](/apps/mobile/modules/podverse-media-engine/CARPLAY-SIMULATOR-CHECKLIST.md))
+12.19. E2E not fully automatable — document manual car QA gate in release runbook. Model: Auto. Detail: [398-car-manual-qa-gate](/docs/proposals/mobile/_master-plan_/details/398-car-manual-qa-gate.md) — Android done; iOS CarPlay done
 12.20. Update abcmemory rule: car surfaces are native-only, not JS track-player browse. Model: Codex 5.3. Detail: [399-abcmemory-car-native-only](/docs/proposals/mobile/_master-plan_/details/399-abcmemory-car-native-only.md) — done
 12.21. Parallel worktree: car native module (`ios/`, `android/`) isolated from RN UI worktrees. Model: Auto. Detail: [400-car-parallel-worktree](/docs/proposals/mobile/_master-plan_/details/400-car-parallel-worktree.md) — _TBD_
 12.22. Project directory follows (`account_following_channels`) + followed playlists into the car Library browse index (today only add-by-RSS follows appear). Model: Opus 4.8. Detail: [401-car-library-directory-follows](/docs/proposals/mobile/_master-plan_/details/401-car-library-directory-follows.md) — _TBD_
@@ -1088,19 +1090,19 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 383-js-cache-write-path                     | 12.4       | 383-js-cache-write-path                     | Opus 4.8  | done                    |
 | 384-spike-cache-read-no-js-ios              | 12.5       | 384-spike-cache-read-no-js-ios              | Opus 4.8  | done                    |
 | 385-spike-cache-read-no-js-android          | 12.6       | 385-spike-cache-read-no-js-android          | Opus 4.8  | done                    |
-| 386-ios-carplay-scene-config                | 12.7       | 386-ios-carplay-scene-config                | Opus 4.8  | _TBD_                   |
-| 387-ios-carplay-browse-templates            | 12.8       | 387-ios-carplay-browse-templates            | Opus 4.8  | _TBD_                   |
-| 388-ios-carplay-now-playing                 | 12.9       | 388-ios-carplay-now-playing                 | Opus 4.8  | _TBD_                   |
-| 389-ios-carplay-remote-commands             | 12.10      | 389-ios-carplay-remote-commands             | Opus 4.8  | _TBD_                   |
+| 386-ios-carplay-scene-config                | 12.7       | 386-ios-carplay-scene-config                | Opus 4.8  | done                    |
+| 387-ios-carplay-browse-templates            | 12.8       | 387-ios-carplay-browse-templates            | Opus 4.8  | done                    |
+| 388-ios-carplay-now-playing                 | 12.9       | 388-ios-carplay-now-playing                 | Opus 4.8  | done                    |
+| 389-ios-carplay-remote-commands             | 12.10      | 389-ios-carplay-remote-commands             | Opus 4.8  | done                    |
 | 390-android-media-library-service           | 12.11      | 390-android-media-library-service           | Opus 4.8  | done                    |
 | 391-android-auto-browse-tree                | 12.12      | 391-android-auto-browse-tree                | Opus 4.8  | done                    |
 | 392-android-auto-app-closed                 | 12.13      | 392-android-auto-app-closed                 | Opus 4.8  | done                    |
 | 393-car-offline-items-in-tree               | 12.14      | 393-car-offline-items-in-tree               | Opus 4.8  | done                    |
 | 394-car-playback-url-resolution             | 12.15      | 394-car-playback-url-resolution             | Opus 4.8  | done                    |
-| 395-car-entitlements-declarations           | 12.16      | 395-car-entitlements-declarations           | Codex 5.3 | Android done; iOS _TBD_ |
+| 395-car-entitlements-declarations           | 12.16      | 395-car-entitlements-declarations           | Codex 5.3 | Android done; iOS portal + code done |
 | 396-dhu-test-checklist                      | 12.17      | 396-dhu-test-checklist                      | Auto      | done                    |
-| 397-carplay-simulator-checklist             | 12.18      | 397-carplay-simulator-checklist             | Auto      | _TBD_                   |
-| 398-car-manual-qa-gate                      | 12.19      | 398-car-manual-qa-gate                      | Auto      | Android done; iOS _TBD_ |
+| 397-carplay-simulator-checklist             | 12.18      | 397-carplay-simulator-checklist             | Auto      | done                    |
+| 398-car-manual-qa-gate                      | 12.19      | 398-car-manual-qa-gate                      | Auto      | Android + iOS done      |
 | 399-abcmemory-car-native-only               | 12.20      | 399-abcmemory-car-native-only               | Codex 5.3 | done                    |
 | 401-car-library-directory-follows           | 12.22      | 401-car-library-directory-follows           | Opus 4.8  | _TBD_                   |
 | 400-car-parallel-worktree                   | 12.21      | 400-car-parallel-worktree                   | Auto      | _TBD_                   |

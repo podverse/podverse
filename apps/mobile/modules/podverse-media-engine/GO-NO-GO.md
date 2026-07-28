@@ -37,17 +37,23 @@ below).
 | 12.5        | iOS native code reads durable cache with JS not started                                                | ✅\*                    | `ios/PodverseNativeCache.swift` `read` / `debugDump`; [NATIVE-CACHE-SPIKE-IOS.md](./NATIVE-CACHE-SPIKE-IOS.md)                                                                                                                                                                                     |
 | 12.6        | Android native code reads durable cache with app force-stopped                                         | ✅                      | `PodverseMediaLibraryService.onCreate` → `PodverseNativeCache.debugDump`; [NATIVE-CACHE-SPIKE-ANDROID.md](./NATIVE-CACHE-SPIKE-ANDROID.md)                                                                                                                                                         |
 | 12.11–12.15 | Android Auto browses the native cache (Library + Downloads) and plays via the shared engine app-closed | ✅ pending operator DHU | `PodverseMediaLibraryService` (`onConnect` / `onGetChildren` / `onAddMediaItems` / `onPlaybackResumption`) + `PodverseNativeCacheModel`; operator proof [ANDROID-AUTO-DHU-CHECKLIST.md](./ANDROID-AUTO-DHU-CHECKLIST.md), declaration [ANDROID-AUTO-DECLARATION.md](./ANDROID-AUTO-DECLARATION.md) |
+| 12.7–12.10  | CarPlay browses the native cache (Library + Downloads) and plays via the shared engine app-closed       | ✅ pending operator Simulator | `PodverseCarPlaySceneDelegate` (scene connect → `debugDump`, Library/Downloads templates, download play → `CPNowPlayingTemplate`) + `PodverseCarPlayCacheModel`; entitlement + App Group in `app.config.ts` / `PodverseNativeCache.appGroupIdentifier`; operator proof [CARPLAY-SIMULATOR-CHECKLIST.md](./CARPLAY-SIMULATOR-CHECKLIST.md), entitlement [CARPLAY-ENTITLEMENT.md](./CARPLAY-ENTITLEMENT.md) |
 
-\* iOS proof is file-level (container read, Metro not attached). In-scene CarPlay `debugDump` proof
-is pending the CarPlay scene (12.7) + entitlement (12.16); the Swift reader is wired and ready.
+\* iOS file-level proof (container read, Metro not attached) landed first; the in-scene CarPlay
+`debugDump` proof now runs from `PodverseCarPlaySceneDelegate` on scene connect (operator Simulator
+run pending).
 
 ## Deferred — seamless car (NOT this gate)
 
 These remain Track 12 operator acceptance; do **not** mark car "done" at 2.34:
 
 - **12.7–12.15** — full CarPlay / Android Auto browse trees, now-playing bind, offline items in tree
-- **12.16** — CarPlay entitlement + App Group provisioning
-- **12.17 / 12.18** — Android Auto DHU + CarPlay simulator manual checklists
+  (Android Auto **and** CarPlay Library+Downloads scaffolds landed; both pending operator car proof)
+- **12.16** — CarPlay entitlement + App Group provisioning (done for `com.podverse.app.next`) —
+  operator: [CARPLAY-ENTITLEMENT.md](./CARPLAY-ENTITLEMENT.md)
+- **12.17 / 12.18** — Android Auto DHU + CarPlay simulator manual checklists —
+  [ANDROID-AUTO-DHU-CHECKLIST.md](./ANDROID-AUTO-DHU-CHECKLIST.md),
+  [CARPLAY-SIMULATOR-CHECKLIST.md](./CARPLAY-SIMULATOR-CHECKLIST.md)
 
 Seamless car browse when JS is dead depends on the **native cache** (12.1–12.4 storage), not on keeping
 the JS runtime or Activity alive.

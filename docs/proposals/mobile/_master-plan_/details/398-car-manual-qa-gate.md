@@ -2,7 +2,7 @@
 
 **Master step:** 12.19
 **Model (author + implement):** Auto
-**Status:** Android done; iOS CarPlay _TBD_
+**Status:** Android done; iOS CarPlay done
 
 ## Scope
 
@@ -20,17 +20,22 @@ gate follows with the CarPlay slice.
 - Gate applies to any release that ships/changes the Android Auto surface (media-engine native code,
   browse tree, or media service).
 
-## iOS CarPlay (TBD — later slice)
+## iOS CarPlay (done)
 
-- CarPlay simulator launch-from-background QA (12.18 / detail 397) added to the runbook once the
-  CarPlay scene + entitlement land (12.7–12.10 / 12.16 iOS).
+- Added a **Manual car QA gate — iOS CarPlay** section to
+  `docs/operations/mobile/MOBILE-RELEASE-RUNBOOK.md`, a **pointer** to the CarPlay Simulator
+  browse+play checklist (`CARPLAY-SIMULATOR-CHECKLIST.md`, detail 397) and the entitlement runbook —
+  steps are **not** duplicated.
+- Gate applies to any release that ships/changes the CarPlay surface (media-engine native code,
+  CarPlay scene/templates, or the engine).
 
 ## Acceptance criteria
 
 - Release runbook has an Android Auto manual QA gate that points at the DHU checklist (no duplicated
   steps).
+- Release runbook has an iOS CarPlay manual QA gate that points at the Simulator checklist (no
+  duplicated steps).
 - Marked as required when the car surface changes.
-- iOS CarPlay gate flagged TBD.
 
 ## Web parity references
 

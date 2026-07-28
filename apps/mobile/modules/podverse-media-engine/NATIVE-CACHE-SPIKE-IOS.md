@@ -39,7 +39,10 @@ do not fork the schema when that happens.
 ### Preferred — CarPlay Simulator (requires CarPlay entitlement)
 
 The CarPlay entitlement is **not yet provisioned** on this app (12.16), so this path is currently
-**blocked**. When it lands and a CarPlay scene exists (12.7), the operator re-runs:
+**blocked**. Operator steps: [`CARPLAY-ENTITLEMENT.md`](./CARPLAY-ENTITLEMENT.md). When the
+entitlement lands and a CarPlay scene exists (12.7), use the full browse+play gate
+[`CARPLAY-SIMULATOR-CHECKLIST.md`](./CARPLAY-SIMULATOR-CHECKLIST.md), or re-run the connect proof
+below:
 
 1. Build a dev client and run the phone app once so JS writes the cache (add items to the queue,
    download an episode, sign in so the library-browse index is written).
@@ -104,5 +107,7 @@ entitlement (12.16).
 ## Cross-links
 
 - GO/NO-GO gate: [GO-NO-GO.md](./GO-NO-GO.md) (rows 12.5 / 12.6)
+- CarPlay entitlement (operator): [CARPLAY-ENTITLEMENT.md](./CARPLAY-ENTITLEMENT.md)
+- CarPlay Simulator checklist: [CARPLAY-SIMULATOR-CHECKLIST.md](./CARPLAY-SIMULATOR-CHECKLIST.md)
 - Android counterpart: [NATIVE-CACHE-SPIKE-ANDROID.md](./NATIVE-CACHE-SPIKE-ANDROID.md)
 - Storage detail: [381-ios-native-cache-storage](/docs/proposals/mobile/_master-plan_/details/381-ios-native-cache-storage.md)
