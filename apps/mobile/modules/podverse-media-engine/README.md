@@ -95,9 +95,11 @@ The Expo module only sets an `eventSink` to forward events to JS while JS is ali
 
 ### iOS CarPlay scene (12.7–12.10)
 
-`PodverseCarPlaySceneDelegate` (`@objc`, referenced by name from the `UIApplicationSceneManifest`
-CarPlay scene in `app.config.ts`) is the car entry point; iOS instantiates it even when the phone app
-is force-quit.
+`PodverseCarPlaySceneDelegate` (`@objc`) is the car entry point. It is connected from AppDelegate via
+the Expo config plugin `apps/mobile/plugins/withPodverseCarPlay.js`
+(`configurationForConnectingSceneSession`) — **not** via a CarPlay-only
+`UIApplicationSceneManifest` in Info.plist (that suppresses the phone `UIWindowScene` and blacks out
+the phone UI on this Expo/RN stack).
 
 - **Browse (12.8):** builds a `CPListTemplate` root of **Library** + **Downloads** from
   `PodverseNativeCache` (shared App Group `group.com.podverse.app.next`) via

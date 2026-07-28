@@ -33,26 +33,44 @@
 
 - `app.config.ts` → `ios.entitlements` (`com.apple.developer.carplay-audio`,
   `com.apple.security.application-groups` = `[group.com.podverse.app.next]`).
-- `app.config.ts` → `ios.infoPlist.UIApplicationSceneManifest` declares only the CarPlay audio scene
-  role (`CPTemplateApplicationSceneSessionRoleApplication` → `CPTemplateApplicationScene` /
-  `PodverseCarPlaySceneDelegate`); phone app keeps its legacy AppDelegate window lifecycle.
+- **CarPlay scene declared dynamically** via Expo config plugin
+  [`withPodverseCarPlay.js`](/apps/mobile/plugins/withPodverseCarPlay.js), which injects
+  `application:configurationForConnectingSceneSession:options:` into AppDelegate to return the
+  `PodverseCarPlaySceneDelegate` config for `CPTemplateApplicationSceneSessionRoleApplication`.
+  **No `UIApplicationSceneManifest`** — a CarPlay-only manifest suppressed the phone `UIWindowScene`
+  (`RCTKeyWindow()` nil → `RNCSafeAreaProvider` crash → black phone screen). The `carplay-audio`
+  entitlement (not a manifest) registers the CarPlay Home icon and cold-launches the app.
 - `PodverseCarPlaySceneDelegate.swift` (compiled into the PodverseMediaEngine pod, `@objc` name)
-  connects, calls `PodverseNativeCache.debugDump()`, and sets a placeholder root template.
+  connects, calls `PodverseNativeCache.debugDump()`, and builds Library/Downloads + play templates;
+  `CarPlay` framework linked via the podspec.
 - `PodverseNativeCache.appGroupIdentifier = "group.com.podverse.app.next"`.
-- Browse (12.8) and now-playing/remotes/play (12.9–12.10) intentionally deferred.
+
+## App-closed proof (2026-07-28)
+
+App-closed cold-launch **smoke-tested PASS**: phone app force-quit → tap Podverse on CarPlay Home →
+`PodverseNext` cold-launches (new pid, phone not foregrounded), App Group container resolves, root
+template renders. See [.llm/plans/completed/mobile-carplay-app-closed-scene](/.llm/plans/completed/mobile-carplay-app-closed-scene/).
+Visual browse-row render + playback with real content deferred to
+[car-ux-parity](/docs/proposals/mobile/car-ux-parity/000-OVERVIEW.md) (empty root = empty cache; the
+UX-parity set restructures the root IA to Podcasts | Music | Queue | History anyway).
 
 ## Acceptance criteria
 
 - Built app’s entitlements include CarPlay audio + App Group `group.com.podverse.app.next`.
-- Info.plist declares CarPlay scene configuration.
+- AppDelegate returns the CarPlay scene config dynamically (via `withPodverseCarPlay.js`); **no**
+  `UIApplicationSceneManifest` in Info.plist.
 - `PodverseNativeCache.appGroupIdentifier == "group.com.podverse.app.next"`.
-- App still builds/runs on Simulator without requiring JS for scene registration.
+- App still builds/runs on Simulator without requiring JS for scene registration, and the phone app
+  launches with no black screen (SafeArea intact).
 
 ## Verification
 
 ```bash
 npm run mobile:prebuild
-rg -n 'carplay-audio|application-groups|group.com.podverse.app.next|UIApplicationSceneManifest|CPTemplateApplicationScene' apps/mobile/ios apps/mobile/app.config.ts apps/mobile/plugins 2>/dev/null || true
+# expect: carplay-audio + application-groups entitlements, the injected AppDelegate scene method,
+# and NO UIApplicationSceneManifest
+rg -n 'carplay-audio|application-groups|group.com.podverse.app.next|configurationForConnectingSceneSession|CPTemplateApplicationScene' apps/mobile/ios apps/mobile/app.config.ts apps/mobile/plugins 2>/dev/null || true
+rg -n 'UIApplicationSceneManifest' apps/mobile/ios apps/mobile/app.config.ts 2>/dev/null && echo 'WARN: manifest present (regression)' || echo 'ok: no scene manifest'
 rg -n 'appGroupIdentifier' apps/mobile/modules/podverse-media-engine/ios
 ```
 

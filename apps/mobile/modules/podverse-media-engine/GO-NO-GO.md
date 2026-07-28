@@ -37,7 +37,7 @@ below).
 | 12.5        | iOS native code reads durable cache with JS not started                                                | ✅\*                    | `ios/PodverseNativeCache.swift` `read` / `debugDump`; [NATIVE-CACHE-SPIKE-IOS.md](./NATIVE-CACHE-SPIKE-IOS.md)                                                                                                                                                                                     |
 | 12.6        | Android native code reads durable cache with app force-stopped                                         | ✅                      | `PodverseMediaLibraryService.onCreate` → `PodverseNativeCache.debugDump`; [NATIVE-CACHE-SPIKE-ANDROID.md](./NATIVE-CACHE-SPIKE-ANDROID.md)                                                                                                                                                         |
 | 12.11–12.15 | Android Auto browses the native cache (Library + Downloads) and plays via the shared engine app-closed | ✅ pending operator DHU | `PodverseMediaLibraryService` (`onConnect` / `onGetChildren` / `onAddMediaItems` / `onPlaybackResumption`) + `PodverseNativeCacheModel`; operator proof [ANDROID-AUTO-DHU-CHECKLIST.md](./ANDROID-AUTO-DHU-CHECKLIST.md), declaration [ANDROID-AUTO-DECLARATION.md](./ANDROID-AUTO-DECLARATION.md) |
-| 12.7–12.10  | CarPlay browses the native cache (Library + Downloads) and plays via the shared engine app-closed       | ✅ pending operator Simulator | `PodverseCarPlaySceneDelegate` (scene connect → `debugDump`, Library/Downloads templates, download play → `CPNowPlayingTemplate`) + `PodverseCarPlayCacheModel`; entitlement + App Group in `app.config.ts` / `PodverseNativeCache.appGroupIdentifier`; operator proof [CARPLAY-SIMULATOR-CHECKLIST.md](./CARPLAY-SIMULATOR-CHECKLIST.md), entitlement [CARPLAY-ENTITLEMENT.md](./CARPLAY-ENTITLEMENT.md) |
+| 12.7–12.10  | CarPlay browses the native cache (Library + Downloads) and plays via the shared engine app-closed       | ✅ app-closed cold-launch smoke-tested (2026-07-28) | `PodverseCarPlaySceneDelegate` (scene connect → `debugDump`, Library/Downloads templates, download play → `CPNowPlayingTemplate`) + `PodverseCarPlayCacheModel`; entitlement + App Group in `app.config.ts` / `PodverseNativeCache.appGroupIdentifier`. **App-closed cold-launch + scene connect + App Group cache read proven** (phone force-quit → tap Podverse on CarPlay Home → cold-launch, container resolved, root template rendered) via dynamic AppDelegate scene ([withPodverseCarPlay.js](/apps/mobile/plugins/withPodverseCarPlay.js), no Info.plist manifest — see [.llm/plans/completed/mobile-carplay-app-closed-scene](/.llm/plans/completed/mobile-carplay-app-closed-scene/)). Visual browse-row render + playback with real content deferred to [car-ux-parity](/docs/proposals/mobile/car-ux-parity/000-OVERVIEW.md) (empty root = empty cache, not a defect). Runbook [CARPLAY-SIMULATOR-CHECKLIST.md](./CARPLAY-SIMULATOR-CHECKLIST.md), entitlement [CARPLAY-ENTITLEMENT.md](./CARPLAY-ENTITLEMENT.md) |
 
 \* iOS file-level proof (container read, Metro not attached) landed first; the in-scene CarPlay
 `debugDump` proof now runs from `PodverseCarPlaySceneDelegate` on scene connect (operator Simulator
@@ -48,7 +48,10 @@ run pending).
 These remain Track 12 operator acceptance; do **not** mark car "done" at 2.34:
 
 - **12.7–12.15** — full CarPlay / Android Auto browse trees, now-playing bind, offline items in tree
-  (Android Auto **and** CarPlay Library+Downloads scaffolds landed; both pending operator car proof)
+  (Android Auto **and** CarPlay Library+Downloads scaffolds landed; CarPlay app-closed cold-launch
+  smoke-tested 2026-07-28, Android Auto pending operator DHU proof). Full browse-tree / tabbed UX
+  parity with podverse-rn (Podcasts | Music | Queue | History) deferred to
+  [car-ux-parity](/docs/proposals/mobile/car-ux-parity/000-OVERVIEW.md).
 - **12.16** — CarPlay entitlement + App Group provisioning (done for `com.podverse.app.next`) —
   operator: [CARPLAY-ENTITLEMENT.md](./CARPLAY-ENTITLEMENT.md)
 - **12.17 / 12.18** — Android Auto DHU + CarPlay simulator manual checklists —

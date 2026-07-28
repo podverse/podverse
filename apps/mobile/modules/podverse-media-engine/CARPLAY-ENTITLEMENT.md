@@ -117,11 +117,15 @@ source.
 - iOS cache read spike (file-level): [`NATIVE-CACHE-SPIKE-IOS.md`](./NATIVE-CACHE-SPIKE-IOS.md)
 - **CarPlay scene wired (12.7 / 12.16 iOS):**
   - `app.config.ts` → `ios.entitlements` (`com.apple.developer.carplay-audio`,
-    `com.apple.security.application-groups`) + `ios.infoPlist.UIApplicationSceneManifest` (CarPlay
-    audio scene → `PodverseCarPlaySceneDelegate`)
-  - `PodverseCarPlaySceneDelegate.swift` connects, calls `PodverseNativeCache.debugDump()`, and sets
-    a placeholder root template
-- **Not yet:** Library/Downloads browse templates (12.8), now-playing + remotes + play (12.9–12.10)
+    `com.apple.security.application-groups`)
+  - `plugins/withPodverseCarPlay.js` patches AppDelegate
+    `configurationForConnectingSceneSession` → `PodverseCarPlaySceneDelegate` (do **not** put a
+    CarPlay-only `UIApplicationSceneManifest` in Info.plist — that blacks out the phone UI on
+    Expo SDK 52 / RN New Arch by suppressing the phone `UIWindowScene` / `RCTKeyWindow`)
+  - `PodverseCarPlaySceneDelegate.swift` connects, builds Library/Downloads, plays via shared engine
+- **Known follow-up:** Apple’s CarPlay guide also shows an Info.plist scene manifest; adding that
+  without a phone `UIWindowSceneDelegate` regresses the phone to a black screen. AppDelegate
+  configuration is the current working path; revisit Info.plist once a phone SceneDelegate exists.
 
 ## Recommended sequence (operator + agent)
 

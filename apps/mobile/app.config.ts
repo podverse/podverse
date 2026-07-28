@@ -28,21 +28,11 @@ const config: ExpoConfig = {
       NSAppTransportSecurity: {
         NSAllowsLocalNetworking: true,
       },
-      // CarPlay audio scene (12.7 / detail 386). Only the CarPlay scene role is declared — the phone
-      // app keeps its legacy UIApplicationDelegate window lifecycle. iOS instantiates
-      // PodverseCarPlaySceneDelegate (compiled into the PodverseMediaEngine pod, referenced by ObjC
-      // name) for the car even when the phone app is force-quit.
-      UIApplicationSceneManifest: {
-        UISceneConfigurations: {
-          CPTemplateApplicationSceneSessionRoleApplication: [
-            {
-              UISceneClassName: 'CPTemplateApplicationScene',
-              UISceneConfigurationName: 'PodverseCarPlay',
-              UISceneDelegateClassName: 'PodverseCarPlaySceneDelegate',
-            },
-          ],
-        },
-      },
+      // Do NOT declare a CarPlay-only UIApplicationSceneManifest here. On Expo SDK 52 /
+      // RN New Arch that suppresses the phone UIWindowScene → RCTKeyWindow() nil →
+      // SafeAreaProvider `width` of undefined → black phone screen. CarPlay scene
+      // connection is wired in AppDelegate via `./plugins/withPodverseCarPlay`
+      // (`configurationForConnectingSceneSession` → PodverseCarPlaySceneDelegate).
     },
   },
   android: {
@@ -55,7 +45,7 @@ const config: ExpoConfig = {
       'android.permission.POST_NOTIFICATIONS',
     ],
   },
-  plugins: ['expo-dev-client', 'expo-localization'],
+  plugins: ['expo-dev-client', 'expo-localization', './plugins/withPodverseCarPlay'],
 };
 
 export default config;
