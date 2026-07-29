@@ -83,8 +83,8 @@ those briefs in Track 23 — not earlier.
 1. **Track 12 car surfaces** — **PG-8 iOS CarPlay** implemented (AA-parity Library + Downloads +
    play), archived under `.llm/plans/completed/mobile-pg8-car-carplay/`; **operator** CarPlay
    Simulator proof pending ([CARPLAY-SIMULATOR-CHECKLIST.md](/apps/mobile/modules/podverse-media-engine/CARPLAY-SIMULATOR-CHECKLIST.md)).
-   Remaining car follow-ons: **12.22** library directory-follows and **12.21** parallel worktree.
-   Next functional-sketch bulk: **Track 16 settings/OPML** and **push**. **Track 23** only after the
+   Car follow-ons **12.22** library directory-follows and **12.21** parallel worktree are done —
+   **Track 12 complete**. Next functional-sketch bulk: **Track 16 settings/OPML** and **push**. **Track 23** only after the
    feature bulk is in place and the operator has reviewed screens.
 
 _Done:_ **PG-8 native cache (12.1–12.6)** — schema, iOS/Android durable storage, JS write path, and
@@ -581,7 +581,7 @@ native surface — do **not** redesign player layout or add transcript/clip-auth
 11.17. E2E: collapse to mini screenshot without black flash or reload spinner. Model: Opus 4.8. Detail: [362-e2e-video-collapse-screenshot](/docs/proposals/mobile/_master-plan_/details/362-e2e-video-collapse-screenshot.md) — done
 11.18. Document anti-pattern: never mount second Video component on full screen open. Model: Auto. Detail: [363-anti-pattern-no-second-video](/docs/proposals/mobile/_master-plan_/details/363-anti-pattern-no-second-video.md) — done
 
-## Track 12 — CarPlay / Android Auto
+## Track 12 — CarPlay / Android Auto (DONE)
 
 12.1. Define native cache schema: queue snapshot, downloads index, library browse index JSON. Model: Opus 4.8. Detail: [380-native-cache-schema](/docs/proposals/mobile/_master-plan_/details/380-native-cache-schema.md) — done
 12.2. Implement iOS native cache storage (App Group or file container) writable from JS bridge. Model: Opus 4.8. Detail: [381-ios-native-cache-storage](/docs/proposals/mobile/_master-plan_/details/381-ios-native-cache-storage.md) — done
@@ -603,8 +603,8 @@ native surface — do **not** redesign player layout or add transcript/clip-auth
 12.18. Manual test checklist: CarPlay simulator launch from background. Model: Auto. Detail: [397-carplay-simulator-checklist](/docs/proposals/mobile/_master-plan_/details/397-carplay-simulator-checklist.md) — done ([CARPLAY-SIMULATOR-CHECKLIST.md](/apps/mobile/modules/podverse-media-engine/CARPLAY-SIMULATOR-CHECKLIST.md))
 12.19. E2E not fully automatable — document manual car QA gate in release runbook. Model: Auto. Detail: [398-car-manual-qa-gate](/docs/proposals/mobile/_master-plan_/details/398-car-manual-qa-gate.md) — Android done; iOS CarPlay done
 12.20. Update abcmemory rule: car surfaces are native-only, not JS track-player browse. Model: Codex 5.3. Detail: [399-abcmemory-car-native-only](/docs/proposals/mobile/_master-plan_/details/399-abcmemory-car-native-only.md) — done
-12.21. Parallel worktree: car native module (`ios/`, `android/`) isolated from RN UI worktrees. Model: Auto. Detail: [400-car-parallel-worktree](/docs/proposals/mobile/_master-plan_/details/400-car-parallel-worktree.md) — _TBD_
-12.22. Project the merged subscriptions (via 9b.8 repo: directory follows + add-by-RSS) + followed playlists into the car Library browse index (today only add-by-RSS follows appear). **Depends on 9b.8.** Model: Opus 4.8. Detail: [401-car-library-directory-follows](/docs/proposals/mobile/_master-plan_/details/401-car-library-directory-follows.md) — planned
+12.21. Parallel worktree: car native module (`ios/`, `android/`) isolated from RN UI worktrees. Model: Auto. Detail: [400-car-parallel-worktree](/docs/proposals/mobile/_master-plan_/details/400-car-parallel-worktree.md) — done
+12.22. Project the merged subscriptions (via 9b.8 repo: directory follows + add-by-RSS) + followed playlists into the car Library browse index (today only add-by-RSS follows appear). **Depends on 9b.8.** Model: Opus 4.8. Detail: [401-car-library-directory-follows](/docs/proposals/mobile/_master-plan_/details/401-car-library-directory-follows.md) — done
 
 ## Track 13 — Offline downloads (episode files) (DONE)
 
@@ -1108,8 +1108,8 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 397-carplay-simulator-checklist             | 12.18      | 397-carplay-simulator-checklist             | Auto      | done                    |
 | 398-car-manual-qa-gate                      | 12.19      | 398-car-manual-qa-gate                      | Auto      | Android + iOS done      |
 | 399-abcmemory-car-native-only               | 12.20      | 399-abcmemory-car-native-only               | Codex 5.3 | done                    |
-| 401-car-library-directory-follows           | 12.22      | 401-car-library-directory-follows           | Opus 4.8  | planned                 |
-| 400-car-parallel-worktree                   | 12.21      | 400-car-parallel-worktree                   | Auto      | _TBD_                   |
+| 401-car-library-directory-follows           | 12.22      | 401-car-library-directory-follows           | Opus 4.8  | done                    |
+| 400-car-parallel-worktree                   | 12.21      | 400-car-parallel-worktree                   | Auto      | done                    |
 | 430-download-queue-design                   | 13.1       | 430-download-queue-design                   | Opus 4.8  | done                    |
 | 431-download-storage-choice                 | 13.2       | 431-download-storage-choice                 | Codex 5.3 | done                    |
 | 432-download-metadata-schema                | 13.3       | 432-download-metadata-schema                | Codex 5.3 | done                    |

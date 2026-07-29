@@ -2,7 +2,7 @@
 
 **Master step:** 12.22
 **Model (author + implement):** Opus 4.8
-**Status:** planned
+**Status:** done
 **Depends on:** 9b.8 / [600 unified subscriptions repository](/docs/proposals/mobile/_master-plan_/details/600-unified-subscriptions-repository.md)
 
 ## Problem
