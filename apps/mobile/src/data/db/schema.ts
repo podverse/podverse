@@ -96,3 +96,22 @@ export const download = sqliteTable('download', {
 
 export type DownloadRow = typeof download.$inferSelect;
 export type DownloadInsert = typeof download.$inferInsert;
+
+/**
+ * Offline cache of hydrated **directory** channel follows (9b.8). `DTOAccount.account_following_channels`
+ * carries only numeric ids, so `subscriptionsRepository.syncFromAccount` fetches display fields once
+ * (subscribed list endpoint) and persists them here, keyed by channel `id_text`. This lets the merged
+ * subscriptions list (directory + add-by-RSS) render offline. Add-by-RSS feeds are NOT duplicated here
+ * — they stay in `add_by_rss_feed`. Cleared on logout; replaced wholesale on each successful sync.
+ */
+export const subscribedChannel = sqliteTable('subscribed_channel', {
+  idText: text('id_text').primaryKey(),
+  title: text('title').notNull(),
+  imageUrl: text('image_url'),
+  source: text('source').notNull(),
+  medium: text('medium').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+export type SubscribedChannelRow = typeof subscribedChannel.$inferSelect;
+export type SubscribedChannelInsert = typeof subscribedChannel.$inferInsert;

@@ -2,7 +2,8 @@
 
 **Master step:** 12.22
 **Model (author + implement):** Opus 4.8
-**Status:** TBD
+**Status:** done
+**Depends on:** 9b.8 / [600 unified subscriptions repository](/docs/proposals/mobile/_master-plan_/details/600-unified-subscriptions-repository.md)
 
 ## Problem
 
@@ -27,14 +28,16 @@ absent because the only subscription was a directory follow.
 
 ## Scope
 
-- Project `account_following_channels` (directory podcasts/music) into the `library-browse` index as
-  browse nodes with a stable `idText` (channel `id_text`) + title + artwork.
-- Project `account_following_playlists` as playlist nodes.
-- Keep add-by-RSS follows (existing behavior); merge all sources into one node list.
-- Numeric follows in `DTOAccount` may lack title/artwork — decide between (a) hydrating via
-  `reqChannelGetMany` / entity lookup in the repository before projecting, or (b) extending the
-  account snapshot payload so follows carry display fields. Prefer the smallest change that yields a
-  usable car node (title required; artwork optional).
+- **Consume the shared `subscriptionsRepository` (600)** as the source of merged follows instead of
+  re-implementing hydration here. The car library-browse projection maps
+  `subscriptionsRepository.list()` (directory + add-by-RSS, already deduped/sorted/hydrated) →
+  `NativeCacheBrowseNode[]`. This guarantees car parity with Home (601) and Library (602).
+- Project `account_following_playlists` as playlist nodes (playlists are not part of 600's channel
+  list; hydrate via `reqPlaylistGetMany` in the repository or extend the snapshot).
+- Keep add-by-RSS follows appearing (now delivered via 600's merge, not a car-only branch).
+- Numeric directory follows lacking title/artwork are handled by 600's hydration + cache (title
+  required; artwork optional). If 600 is not yet implemented, that repository work is the
+  prerequisite — do not duplicate the merge logic in `accountRepository`.
 - Optional: deeper hydration (episodes under a podcast, items under a playlist) once a richer cached
   index exists — was previously mislabeled a "12.12 follow-up"; it belongs here.
 
@@ -46,7 +49,9 @@ absent because the only subscription was a directory follow.
 
 ## Files (anticipated)
 
-- `apps/mobile/src/data/repositories/accountRepository.ts` (`toLibraryBrowseNodes` + hydration)
+- `apps/mobile/src/data/repositories/subscriptionsRepository.ts` (600 — merged source; consumed here)
+- `apps/mobile/src/data/repositories/accountRepository.ts` (`toLibraryBrowseNodes` now maps the
+  shared list; playlist projection + write path)
 - Possibly `apps/mobile/src/data/nativeCache/projection.ts` (node shape if childCount/kind extended)
 
 ## Acceptance criteria

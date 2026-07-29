@@ -11,6 +11,9 @@ Pod::Spec.new do |s|
 
   s.dependency 'ExpoModulesCore'
 
+  # CarPlay templates (12.7–12.10). Linked so PodverseCarPlaySceneDelegate can import CarPlay.
+  s.frameworks = 'CarPlay'
+
   # Swift/Objective-C compatibility
   s.pod_target_xcconfig = {
     'DEFINES_MODULE' => 'YES',

@@ -66,6 +66,21 @@
       "command": "clear"
     },
     {
+      "name": "Mobile CarPlay",
+      "description": "Car group anchor. iOS CarPlay Simulator car checks: force-quit app (xcrun simctl terminate booted com.podverse.app.next), log stream (native-cache/carplay), App Group cache inspection. Enable the CarPlay window via Simulator I/O ▸ External Displays ▸ CarPlay. App must be built/installed from Mobile iOS; Metro in Mobile Metro.",
+      "cwd": ".",
+      "open": true,
+      "command": "clear"
+    },
+    {
+      "name": "Mobile Android Auto",
+      "description": "Android Auto DHU car checks (splits from Mobile CarPlay): launch desktop-head-unit, adb forward tcp:5277, logcat for PodverseMediaLibraryService. Emulator/phone from Mobile Android + Metro in Mobile Metro must already be running.",
+      "cwd": ".",
+      "open": true,
+      "split": "Mobile CarPlay",
+      "command": "clear"
+    },
+    {
       "name": "Mobile E2E API",
       "description": "Leave running for API-backed E2E: npm run mobile:e2e:api (:4230). Skip for UI-only. No restart needed when only Metro restarts if :4230 is healthy.",
       "cwd": ".",
