@@ -22,8 +22,8 @@ import {
 } from '../../prefs/preferredMediaType';
 import {
   DEFAULT_SUBSCRIPTION_FILTER,
-  type SubscriptionListFilter,
   readHomeSubscriptionFilter,
+  type SubscriptionListFilter,
   writeHomeSubscriptionFilter,
 } from '../../prefs/subscriptionFilter';
 import { useTheme } from '../../theme/useTheme';
@@ -43,7 +43,6 @@ const MEDIA_TYPE_TITLE_KEYS: Record<HomeMediaType, string> = {
   tracks: 'media.music.tracks',
 };
 
-
 export function HomeScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
@@ -62,8 +61,7 @@ export function HomeScreen() {
   const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();
 
   // The All / Add-by-RSS filter only applies to the authenticated Podcasts subscribed view.
-  const isSubscribedPodcastsView =
-    selectedMediaType === 'podcasts' && status === 'authenticated';
+  const isSubscribedPodcastsView = selectedMediaType === 'podcasts' && status === 'authenticated';
 
   // Only episodes/tracks (item) and clips (clip) can be appended to a playlist today; other media
   // types are not playlist resources (9d.4). null means the row gets no add-to-playlist action.

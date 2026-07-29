@@ -20,10 +20,7 @@
  * phone `UIWindowScene` → black screen). If a future SDK needs a manifest, it MUST also declare the
  * phone `UIWindowScene` (dual-scene) — see `.llm/plans/completed/mobile-carplay-app-closed-scene/`.
  */
-const {
-  withAppDelegate,
-  createRunOncePlugin,
-} = require('expo/config-plugins');
+const { withAppDelegate, createRunOncePlugin } = require('expo/config-plugins');
 
 const MARKER_BEGIN = '// @generated begin podverse-carplay-scene';
 const MARKER_END = '// @generated end podverse-carplay-scene';

@@ -22,12 +22,12 @@ Old: three tabs — Podcasts, Queue, History (`TabBarTemplate`).
 
 New (parity + music):
 
-| Tab        | System image (parity)   | Template type   |
-| ---------- | ----------------------- | --------------- |
-| Podcasts   | `music.note.list`       | `CPListTemplate` |
-| Music      | e.g. `music.note`       | `CPListTemplate` |
-| Queue      | `list.bullet`           | `CPListTemplate` |
-| History    | `timer`                 | `CPListTemplate` |
+| Tab      | System image (parity) | Template type    |
+| -------- | --------------------- | ---------------- |
+| Podcasts | `music.note.list`     | `CPListTemplate` |
+| Music    | e.g. `music.note`     | `CPListTemplate` |
+| Queue    | `list.bullet`         | `CPListTemplate` |
+| History  | `timer`               | `CPListTemplate` |
 
 `onTemplateSelect` / `onAppear` equivalents:
 
@@ -74,10 +74,10 @@ Old: one flat list from `session.userInfo.queueItems`.
 
 New: **two sections** in one `CPListTemplate`:
 
-| Section | Source                         |
-| ------- | ------------------------------ |
-| AV      | AV queue snapshot entries      |
-| Music   | Music queue snapshot entries   |
+| Section | Source                       |
+| ------- | ---------------------------- |
+| AV      | AV queue snapshot entries    |
+| Music   | Music queue snapshot entries |
 
 Row fields (match old NPI rows):
 
@@ -117,17 +117,17 @@ New:
 
 ## Field-by-field parity checklist
 
-| Old behavior                                      | New CarPlay                                              |
-| ------------------------------------------------- | -------------------------------------------------------- |
-| Root tab bar Podcasts / Queue / History           | Same + **Music** tab                                     |
-| Now Playing section on Podcasts                   | Same for AV; optional Now Playing on Music when music NP |
-| Podcast → episodes list                           | Same; children from native cache                         |
-| Episode / queue / history → play                  | Same; URL from cache, shared AVPlayer                    |
-| History limit 20                                  | Same                                                     |
-| Empty strings for podcasts / queue / history      | Same copy (via i18n keys later)                          |
-| Loading empty view while network fetch            | Replaced by cache (no JS fetch); show empty if missing   |
-| `enableNowPlaying(true)`                          | Engine + CarPlay now-playing enabled                     |
-| App must be running                               | **Must not** — scene reads cache only                    |
+| Old behavior                                 | New CarPlay                                              |
+| -------------------------------------------- | -------------------------------------------------------- |
+| Root tab bar Podcasts / Queue / History      | Same + **Music** tab                                     |
+| Now Playing section on Podcasts              | Same for AV; optional Now Playing on Music when music NP |
+| Podcast → episodes list                      | Same; children from native cache                         |
+| Episode / queue / history → play             | Same; URL from cache, shared AVPlayer                    |
+| History limit 20                             | Same                                                     |
+| Empty strings for podcasts / queue / history | Same copy (via i18n keys later)                          |
+| Loading empty view while network fetch       | Replaced by cache (no JS fetch); show empty if missing   |
+| `enableNowPlaying(true)`                     | Engine + CarPlay now-playing enabled                     |
+| App must be running                          | **Must not** — scene reads cache only                    |
 
 ## Files / integration points (when implementing)
 

@@ -46,7 +46,9 @@ export const firstChannelImageUrl = (channel: DTOChannel): string | null => {
   return null;
 };
 
-const mediumIsMusicResourceType = (resourceType: MobileAddByRSSFeedRecord['resourceType']): boolean => {
+const mediumIsMusicResourceType = (
+  resourceType: MobileAddByRSSFeedRecord['resourceType']
+): boolean => {
   return resourceType === 'artists' || resourceType === 'albums' || resourceType === 'tracks';
 };
 

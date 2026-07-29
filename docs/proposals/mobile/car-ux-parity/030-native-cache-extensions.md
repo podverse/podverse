@@ -22,11 +22,11 @@ demo, not for Podcasts → episodes / Music / Queue / History parity.
 
 ## Current payloads (baseline)
 
-| File                        | Role                         | Gaps vs parity UX                                      |
-| --------------------------- | ---------------------------- | ------------------------------------------------------ |
-| `queue-snapshot.json`       | nowPlayingIdText + upcoming  | Single queue; no `medium_id`; `mediaUrl` always null   |
-| `downloads-index.json`      | completed downloads          | Missing artwork / enclosure fallback on some writers   |
-| `library-browse-index.json` | flat follow nodes            | RSS-only; no directory follows; no episode/track children |
+| File                        | Role                        | Gaps vs parity UX                                         |
+| --------------------------- | --------------------------- | --------------------------------------------------------- |
+| `queue-snapshot.json`       | nowPlayingIdText + upcoming | Single queue; no `medium_id`; `mediaUrl` always null      |
+| `downloads-index.json`      | completed downloads         | Missing artwork / enclosure fallback on some writers      |
+| `library-browse-index.json` | flat follow nodes           | RSS-only; no directory follows; no episode/track children |
 
 Envelope (keep): `schemaVersion`, `updatedAtMs`.
 
@@ -156,18 +156,18 @@ the phone engine (Track 12.15 intent).
 
 ## Reader / writer matrix
 
-| Layer | Work |
-| ----- | ---- |
-| TS `projection.ts` | New types, project helpers, schemaVersion |
-| `accountRepository` | Medium-split nodes + directory/playlist hydration |
-| `queueRepository` | Dual snapshots + resolved mediaUrl |
-| History repository | New history projection |
-| Channel/item sync or detail loaders | Write `library-children` windows |
-| `downloadsRepository` | Artwork + keep complete-only filter |
-| Kotlin `PodverseNativeCache` / `PodverseNativeCacheModel` | Parse new files; empty-safe |
-| Swift `PodverseNativeCache` | Same files for CarPlay scene |
-| `PodverseMediaLibraryService` | Map four roots → payloads (see 020) |
-| CarPlay scene | Same payloads (see 010) |
+| Layer                                                     | Work                                              |
+| --------------------------------------------------------- | ------------------------------------------------- |
+| TS `projection.ts`                                        | New types, project helpers, schemaVersion         |
+| `accountRepository`                                       | Medium-split nodes + directory/playlist hydration |
+| `queueRepository`                                         | Dual snapshots + resolved mediaUrl                |
+| History repository                                        | New history projection                            |
+| Channel/item sync or detail loaders                       | Write `library-children` windows                  |
+| `downloadsRepository`                                     | Artwork + keep complete-only filter               |
+| Kotlin `PodverseNativeCache` / `PodverseNativeCacheModel` | Parse new files; empty-safe                       |
+| Swift `PodverseNativeCache`                               | Same files for CarPlay scene                      |
+| `PodverseMediaLibraryService`                             | Map four roots → payloads (see 020)               |
+| CarPlay scene                                             | Same payloads (see 010)                           |
 
 ## Soft-fail and privacy
 
@@ -186,12 +186,12 @@ the phone engine (Track 12.15 intent).
 
 ## Relationship to master plan
 
-| Step   | Note |
-| ------ | ---- |
-| 12.1–12.6 | Schema/storage/spikes done — **extend**, do not replace wholesale |
-| 12.12–12.15 | Browse/play scaffold — restructure per 020 |
-| 12.22 | Directory follows — folded into library-browse extension here |
-| 12.7–12.10 | CarPlay — depends on these payloads |
+| Step        | Note                                                              |
+| ----------- | ----------------------------------------------------------------- |
+| 12.1–12.6   | Schema/storage/spikes done — **extend**, do not replace wholesale |
+| 12.12–12.15 | Browse/play scaffold — restructure per 020                        |
+| 12.22       | Directory follows — folded into library-browse extension here     |
+| 12.7–12.10  | CarPlay — depends on these payloads                               |
 
 This proposal set does **not** replace Track 12 detail files; it is the UX parity brief those
 details should implement against.

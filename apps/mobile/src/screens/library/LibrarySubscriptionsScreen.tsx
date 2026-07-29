@@ -9,14 +9,14 @@ import { Card, ListRow } from '../../components/primitives';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
 import { SubscriptionFilterControl } from '../../components/subscriptions/SubscriptionFilterControl';
-import { subscriptionsRepository } from '../../data/repositories';
 import type { SubscribedChannel } from '../../data/repositories';
+import { subscriptionsRepository } from '../../data/repositories';
 import type { LibraryStackParamList, MobileTabParamList } from '../../navigation';
 import { LIBRARY_STACK_ROUTES } from '../../navigation';
 import {
   DEFAULT_SUBSCRIPTION_FILTER,
-  type SubscriptionListFilter,
   readLibrarySubscriptionFilter,
+  type SubscriptionListFilter,
   writeLibrarySubscriptionFilter,
 } from '../../prefs/subscriptionFilter';
 import { useTheme } from '../../theme/useTheme';
@@ -144,9 +144,7 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
                   handleRowPress(channel);
                 }}
                 subtitle={
-                  channel.source === 'addByRss'
-                    ? t('subscriptions.filter.add_by_rss')
-                    : undefined
+                  channel.source === 'addByRss' ? t('subscriptions.filter.add_by_rss') : undefined
                 }
                 testID={`library-subscription-row-${channel.idText}`}
                 title={channel.title}

@@ -47,10 +47,10 @@ Old: `setBrowseTreeStyle(CategoryGrid, List)` — categories/podcasts as grid, c
 
 New (Media3 equivalents):
 
-| Level                         | Style intent                          |
-| ----------------------------- | ------------------------------------- |
-| Root / Podcasts / Music       | Grid / category style when supported  |
-| Episodes / tracks / queue / history | List style                       |
+| Level                               | Style intent                         |
+| ----------------------------------- | ------------------------------------ |
+| Root / Podcasts / Music             | Grid / category style when supported |
+| Episodes / tracks / queue / history | List style                           |
 
 ## Podcasts node
 
@@ -117,31 +117,31 @@ Do **not** start the RN Activity or wake JS for play.
 
 ## mediaId scheme (proposed)
 
-| mediaId                                         | Role                    |
-| ----------------------------------------------- | ----------------------- |
-| `podcasts` / `music` / `queue` / `history`      | Root section nodes      |
-| `podcast/{channelIdText}`                       | Browsable podcast       |
-| `album/{channelIdText}`                         | Browsable album         |
-| `episode/{channelIdText}/{itemIdText}`          | Playable episode        |
-| `track/{channelIdText}/{itemIdText}`            | Playable track          |
-| `queue/av/{itemIdText}` / `queue/music/{...}`   | Playable queue item     |
-| `history/{itemIdText}`                          | Playable history item   |
-| `nowplaying/av` / `nowplaying/music`            | Optional NP shortcut    |
-| `download/{itemIdText}`                         | Keep for nested offline |
+| mediaId                                       | Role                    |
+| --------------------------------------------- | ----------------------- |
+| `podcasts` / `music` / `queue` / `history`    | Root section nodes      |
+| `podcast/{channelIdText}`                     | Browsable podcast       |
+| `album/{channelIdText}`                       | Browsable album         |
+| `episode/{channelIdText}/{itemIdText}`        | Playable episode        |
+| `track/{channelIdText}/{itemIdText}`          | Playable track          |
+| `queue/av/{itemIdText}` / `queue/music/{...}` | Playable queue item     |
+| `history/{itemIdText}`                        | Playable history item   |
+| `nowplaying/av` / `nowplaying/music`          | Optional NP shortcut    |
+| `download/{itemIdText}`                       | Keep for nested offline |
 
 Stable `idText` replaces old `Podcast-{index}` / `Episode-{id}-{index}` fragility.
 
 ## Diff vs current `PodverseMediaLibraryService.kt`
 
-| Area              | Today                         | After parity                                      |
-| ----------------- | ----------------------------- | ------------------------------------------------- |
-| Root children     | Library, Downloads            | Podcasts, Music, Queue, History                   |
-| Library depth     | Flat nodes, empty grandchildren | Channel → episode/track children from cache     |
-| Queue / History   | Absent                        | Present from new cache payloads                   |
-| Now Playing row   | Absent                        | Optional under Podcasts (and Music)               |
-| Downloads root    | Top-level                     | Demote; use `file://` on playable ids (optional nested) |
-| mediaId           | `library/...`, `download/...` | Scheme above                                      |
-| Allowed callers   | Auto / Automotive (keep)      | Unchanged                                         |
+| Area            | Today                           | After parity                                            |
+| --------------- | ------------------------------- | ------------------------------------------------------- |
+| Root children   | Library, Downloads              | Podcasts, Music, Queue, History                         |
+| Library depth   | Flat nodes, empty grandchildren | Channel → episode/track children from cache             |
+| Queue / History | Absent                          | Present from new cache payloads                         |
+| Now Playing row | Absent                          | Optional under Podcasts (and Music)                     |
+| Downloads root  | Top-level                       | Demote; use `file://` on playable ids (optional nested) |
+| mediaId         | `library/...`, `download/...`   | Scheme above                                            |
+| Allowed callers | Auto / Automotive (keep)        | Unchanged                                               |
 
 Update [ANDROID-AUTO-DHU-CHECKLIST.md](/apps/mobile/modules/podverse-media-engine/ANDROID-AUTO-DHU-CHECKLIST.md)
 when implementing: force-stop, browse four roots, podcast→episode play, queue/history play,

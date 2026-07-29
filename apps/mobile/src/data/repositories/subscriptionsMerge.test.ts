@@ -1,5 +1,6 @@
-import type { DTOChannel } from '@podverse/helpers';
 import { describe, expect, it } from 'vitest';
+
+import type { DTOChannel } from '@podverse/helpers';
 
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 import type { SubscribedChannel } from './subscriptionsMerge';
@@ -60,7 +61,13 @@ describe('mapDirectoryChannelToSubscribed', () => {
         title: 'My Podcast',
         channel_images: [
           { id: 1, channel_id: 1, url: '  ', image_width_size: null, is_resized: false },
-          { id: 2, channel_id: 1, url: 'https://img/p.jpg', image_width_size: null, is_resized: false },
+          {
+            id: 2,
+            channel_id: 1,
+            url: 'https://img/p.jpg',
+            image_width_size: null,
+            is_resized: false,
+          },
         ],
       })
     );

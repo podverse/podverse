@@ -21,12 +21,12 @@ platform.
 
 **Team already has CarPlay Audio** (enabled on production `com.podverse.fm`). For Next:
 
-| Portal item | Status |
-| ----------- | ------ |
-| App ID `com.podverse.app.next` | Created |
-| CarPlay Audio App + CarPlay framework toggles | Enabled on App ID |
-| App Group `group.com.podverse.app.next` | Created + assigned to App ID |
-| Contact form re-request | **Not required** (team capability already granted) |
+| Portal item                                   | Status                                             |
+| --------------------------------------------- | -------------------------------------------------- |
+| App ID `com.podverse.app.next`                | Created                                            |
+| CarPlay Audio App + CarPlay framework toggles | Enabled on App ID                                  |
+| App Group `group.com.podverse.app.next`       | Created + assigned to App ID                       |
+| Contact form re-request                       | **Not required** (team capability already granted) |
 
 Operator runbook: [`CARPLAY-ENTITLEMENT.md`](/apps/mobile/modules/podverse-media-engine/CARPLAY-ENTITLEMENT.md).
 

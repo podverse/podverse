@@ -43,10 +43,10 @@ populated; full auto-queue refill without JS is a follow-on (document as known g
 
 ## Auto-queue fill order (behavioral split)
 
-| Medium  | Channel auto-queue source                         | Web/mobile reference |
-| ------- | ------------------------------------------------- | -------------------- |
-| Music   | Items by **season forward** (album track order)   | `reqItemGetManyForQueueBySeason` |
-| Podcast / Video (AV) | Items by **pub-date forward**            | `reqItemGetManyForQueueByPubDate` |
+| Medium               | Channel auto-queue source                       | Web/mobile reference              |
+| -------------------- | ----------------------------------------------- | --------------------------------- |
+| Music                | Items by **season forward** (album track order) | `reqItemGetManyForQueueBySeason`  |
+| Podcast / Video (AV) | Items by **pub-date forward**                   | `reqItemGetManyForQueueByPubDate` |
 
 Car must not invent a third ordering. When the phone projects auto-queue into the native queue
 snapshot, ordering is already correct; car just plays the next cached entry.
@@ -56,11 +56,11 @@ snapshot, ordering is already correct; car just plays the next cached entry.
 [`playbackTargetFromStandardLoad`](/packages/playback-core/src/playbackTargetFromStandardLoad.ts) /
 [`resolvePlaybackLoadDecision`](/packages/playback-core/src/resolvePlaybackLoadDecision.ts):
 
-| Kind            | Explicit play / fresh auto-queue advance | Session restore      |
-| --------------- | ---------------------------------------- | -------------------- |
-| `item-podcast`  | Resume from abridged position when appropriate | Resume         |
-| `item-music`    | **Seek 0** on explicit play and auto-queue advance | Resume on session_restore |
-| `item-video`    | Video surface (phone); car is **audio-only** v1 | —              |
+| Kind           | Explicit play / fresh auto-queue advance           | Session restore           |
+| -------------- | -------------------------------------------------- | ------------------------- |
+| `item-podcast` | Resume from abridged position when appropriate     | Resume                    |
+| `item-music`   | **Seek 0** on explicit play and auto-queue advance | Resume on session_restore |
+| `item-video`   | Video surface (phone); car is **audio-only** v1    | —                         |
 
 CarPlay video deferred (master plan 21.8). Video medium channels in the Podcasts (AV) tab play
 **audio** enclosure in the car if present.
@@ -84,12 +84,12 @@ should branch on `mediumBucket` from the active now-playing cache entry.
 
 ## Row / list labeling (layout parity)
 
-| Surface            | Podcast (AV)              | Music                         |
-| ------------------ | ------------------------- | ----------------------------- |
-| Channel list       | Podcast title + artwork   | Album (or artist) + artwork   |
-| Item list subtitle | Readable **pub date**     | Track/season label (not date-first) |
-| Queue subtitle     | Podcast/channel title     | Album/artist title            |
-| Item type language | Episode                   | Track                         |
+| Surface            | Podcast (AV)            | Music                               |
+| ------------------ | ----------------------- | ----------------------------------- |
+| Channel list       | Podcast title + artwork | Album (or artist) + artwork         |
+| Item list subtitle | Readable **pub date**   | Track/season label (not date-first) |
+| Queue subtitle     | Podcast/channel title   | Album/artist title                  |
+| Item type language | Episode                 | Track                               |
 
 Use `getItemTypeFromMedium` / `isAlbumMediumId` / `isPodcastMediumId` from
 [`packages/helpers/src/lib/medium.ts`](/packages/helpers/src/lib/medium.ts) when writing cache

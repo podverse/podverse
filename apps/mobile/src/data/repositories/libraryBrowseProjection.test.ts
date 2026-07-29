@@ -1,5 +1,6 @@
-import type { DTOPlaylist } from '@podverse/helpers/dto';
 import { describe, expect, it } from 'vitest';
+
+import type { DTOPlaylist } from '@podverse/helpers/dto';
 
 import type { NativeCacheBrowseNode } from '../nativeCache';
 import {
@@ -92,9 +93,7 @@ describe('mergeLibraryBrowseNodes', () => {
   });
 
   it('dedupes by idText keeping the first (channel) occurrence', () => {
-    const channels = [
-      mapSubscribedChannelToNode(subscribed({ idText: 'dupe', title: 'Channel' })),
-    ];
+    const channels = [mapSubscribedChannelToNode(subscribed({ idText: 'dupe', title: 'Channel' }))];
     const playlists = [
       requireNode(mapPlaylistToNode(playlist({ id_text: 'dupe', title: 'Playlist' }))),
     ];

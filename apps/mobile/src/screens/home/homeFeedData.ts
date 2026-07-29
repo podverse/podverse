@@ -1,7 +1,7 @@
 import { createMobileApiRequestService, requestWithMobileAuthRefresh } from '../../auth';
 import type { AuthStatus } from '../../auth/AuthProvider';
-import { subscriptionsRepository } from '../../data/repositories';
 import type { SubscribedChannel, SubscriptionSource } from '../../data/repositories';
+import { subscriptionsRepository } from '../../data/repositories';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
 import type { SubscriptionListFilter } from '../../prefs/subscriptionFilter';
 

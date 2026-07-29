@@ -16,10 +16,10 @@
 Match Android Auto scaffold — **not** the later Podcasts/Music/Queue/History UX-parity redesign
 ([car-ux-parity](/docs/proposals/mobile/car-ux-parity/000-OVERVIEW.md)).
 
-| Root node   | Source cache              | Behavior                                      |
-| ----------- | ------------------------- | --------------------------------------------- |
-| Library     | `library-browse-index`    | Browsable nodes (add-by-RSS follows today)    |
-| Downloads   | `downloads-index`         | Playable offline items                        |
+| Root node | Source cache           | Behavior                                   |
+| --------- | ---------------------- | ------------------------------------------ |
+| Library   | `library-browse-index` | Browsable nodes (add-by-RSS follows today) |
+| Downloads | `downloads-index`      | Playable offline items                     |
 
 Omit a root node when its payload is empty (same as Android).
 

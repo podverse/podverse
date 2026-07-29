@@ -26,10 +26,10 @@ Naming may differ (old `NowPlayingItem` / `subscribedPodcasts` vs new DTOs / `id
 
 ## Hard constraint: native, app-closed
 
-| Era              | Stack                                                                 | Limitation                                              |
-| ---------------- | --------------------------------------------------------------------- | ------------------------------------------------------- |
-| Old (`podverse-rn`) | JS: `react-native-carplay` + `react-native-track-player` browse tree | Car menus/play needed the JS runtime alive              |
-| New (monorepo)   | Native: Swift CarPlay scene + Kotlin `MediaLibraryService`            | Must work with Activity/JS **force-stopped**            |
+| Era                 | Stack                                                                | Limitation                                   |
+| ------------------- | -------------------------------------------------------------------- | -------------------------------------------- |
+| Old (`podverse-rn`) | JS: `react-native-carplay` + `react-native-track-player` browse tree | Car menus/play needed the JS runtime alive   |
+| New (monorepo)      | Native: Swift CarPlay scene + Kotlin `MediaLibraryService`           | Must work with Activity/JS **force-stopped** |
 
 The new surfaces read a **durable native cache** that JS writes while the phone app is open.
 Car services never start JS to browse or play. See the architecture doc linked above.
@@ -82,13 +82,13 @@ podcast.
 
 ### Android mediaId scheme (old)
 
-| Prefix / key              | Meaning                                      |
-| ------------------------- | -------------------------------------------- |
-| `PodcastTab` / `QueueTab` / `HistoryTab` | Root browse nodes                   |
-| `Podcast-{index}`         | Subscribed podcast by list index             |
-| `Episode-{podcastId}-{index}` | Episode under a podcast (cached)         |
-| `Queue-{episodeId}`       | Queue item                                   |
-| `History-{episodeId}`     | History item                                 |
+| Prefix / key                             | Meaning                          |
+| ---------------------------------------- | -------------------------------- |
+| `PodcastTab` / `QueueTab` / `HistoryTab` | Root browse nodes                |
+| `Podcast-{index}`                        | Subscribed podcast by list index |
+| `Episode-{podcastId}-{index}`            | Episode under a podcast (cached) |
+| `Queue-{episodeId}`                      | Queue item                       |
+| `History-{episodeId}`                    | History item                     |
 
 Content styles: root/podcasts = `CategoryGrid`; episode lists = `List`.
 
@@ -100,17 +100,17 @@ appears.
 
 ## Old → new naming map
 
-| Old (`podverse-rn`)                         | New (monorepo)                                                                 |
-| ------------------------------------------- | ------------------------------------------------------------------------------ |
-| `reactn` `subscribedPodcasts`               | Account follows + add-by-RSS → **library browse** native-cache nodes           |
-| `session.userInfo.queueItems`               | Queue repositories → **queue snapshot(s)** in native cache                     |
-| `session.userInfo.historyItems`             | History repository → **history** native-cache payload (new)                    |
-| `downloadedPodcasts` / downloads            | `downloadsRepository` → **downloads index** native cache                       |
-| `PVAudioPlayer.setBrowseTree(...)`          | `PodverseMediaLibraryService` (`onGetChildren` / playable `MediaItem`s)        |
-| `react-native-carplay` templates            | Native Swift `CPTabBarTemplate` / `CPListTemplate` / `CPNowPlayingTemplate`    |
-| `react-native-track-player`                 | **Forbidden** — first-party `podverse-media-engine` only                       |
-| `TabKeys` / `MediaKeys`                     | Stable `mediaId` / CarPlay item ids (see [020](./020-android-auto-ux.md))      |
-| `NowPlayingItem`                            | `DTOQueueResource` / item + channel DTOs; car cache uses `idText` + URLs       |
+| Old (`podverse-rn`)                | New (monorepo)                                                              |
+| ---------------------------------- | --------------------------------------------------------------------------- |
+| `reactn` `subscribedPodcasts`      | Account follows + add-by-RSS → **library browse** native-cache nodes        |
+| `session.userInfo.queueItems`      | Queue repositories → **queue snapshot(s)** in native cache                  |
+| `session.userInfo.historyItems`    | History repository → **history** native-cache payload (new)                 |
+| `downloadedPodcasts` / downloads   | `downloadsRepository` → **downloads index** native cache                    |
+| `PVAudioPlayer.setBrowseTree(...)` | `PodverseMediaLibraryService` (`onGetChildren` / playable `MediaItem`s)     |
+| `react-native-carplay` templates   | Native Swift `CPTabBarTemplate` / `CPListTemplate` / `CPNowPlayingTemplate` |
+| `react-native-track-player`        | **Forbidden** — first-party `podverse-media-engine` only                    |
+| `TabKeys` / `MediaKeys`            | Stable `mediaId` / CarPlay item ids (see [020](./020-android-auto-ux.md))   |
+| `NowPlayingItem`                   | `DTOQueueResource` / item + channel DTOs; car cache uses `idText` + URLs    |
 
 ## Medium model (new schema — UX must honor it)
 
@@ -133,12 +133,12 @@ Four root sections (CarPlay allows up to five tabs; four is safe):
 Podcasts | Music | Queue | History
 ```
 
-| Section    | Contents (parity intent)                                                                 |
-| ---------- | ---------------------------------------------------------------------------------------- |
-| **Podcasts** | Pinned **Now Playing** (when AV item playing) + subscribed AV channels → episodes → play |
-| **Music**    | Followed albums/artists (music medium) → tracks → play (new “extra tab”)                 |
+| Section      | Contents (parity intent)                                                                    |
+| ------------ | ------------------------------------------------------------------------------------------- |
+| **Podcasts** | Pinned **Now Playing** (when AV item playing) + subscribed AV channels → episodes → play    |
+| **Music**    | Followed albums/artists (music medium) → tracks → play (new “extra tab”)                    |
 | **Queue**    | Two sections: **AV** and **Music** (closest to old single Queue while honoring dual queues) |
-| **History**  | Recent ~20 items (same cap as old)                                                       |
+| **History**  | Recent ~20 items (same cap as old)                                                          |
 
 **Downloads:** old car did not expose a top-level Downloads tab; offline playback appeared when
 browsing a podcast with no network (downloaded episodes). New proposal: keep offline via
@@ -171,13 +171,13 @@ Enabling work is documented in [030-native-cache-extensions.md](./030-native-cac
 
 ## Proposal set index
 
-| Doc                                                         | Focus                                      |
-| ----------------------------------------------------------- | ------------------------------------------ |
-| [000-OVERVIEW.md](./000-OVERVIEW.md)                        | This document                              |
-| [010-carplay-ios-ux.md](./010-carplay-ios-ux.md)            | iOS CarPlay templates + parity             |
-| [020-android-auto-ux.md](./020-android-auto-ux.md)          | Android Auto browse tree + parity          |
+| Doc                                                                | Focus                               |
+| ------------------------------------------------------------------ | ----------------------------------- |
+| [000-OVERVIEW.md](./000-OVERVIEW.md)                               | This document                       |
+| [010-carplay-ios-ux.md](./010-carplay-ios-ux.md)                   | iOS CarPlay templates + parity      |
+| [020-android-auto-ux.md](./020-android-auto-ux.md)                 | Android Auto browse tree + parity   |
 | [030-native-cache-extensions.md](./030-native-cache-extensions.md) | Cache schema so UX works app-closed |
-| [040-player-medium-parity.md](./040-player-medium-parity.md) | Podcast vs music player/autoqueue         |
+| [040-player-medium-parity.md](./040-player-medium-parity.md)       | Podcast vs music player/autoqueue   |
 
 ## Open questions (operator)
 

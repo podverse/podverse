@@ -66,8 +66,8 @@ export const subscriptionsRepository = {
      written by `syncFromAccount` (add-by-RSS rows already live in `addByRssFeed`; the table only
      needs to cache **directory** channel display fields), or
   2. Extend the account snapshot with hydrated follow display fields.
-  Prefer (1): a dedicated cache table keeps `addByRssRepository` untouched and mirrors the
-  existing repository pattern.
+     Prefer (1): a dedicated cache table keeps `addByRssRepository` untouched and mirrors the
+     existing repository pattern.
 - Hydrate directory follows via the `ApiRequestService` method **`reqChannelGetMany`** with
   `type: 'subscribed'` — the subscribed-list endpoint returns exactly the account's directory
   follows with display fields (`id_text`, `title`, images), so numeric `account_following_channels`
