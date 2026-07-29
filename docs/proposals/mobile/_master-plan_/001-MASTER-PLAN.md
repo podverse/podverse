@@ -38,6 +38,7 @@
 | Watch/TV v1 scope | v1 vs post-MVP                                        | Phone+tablet v1; watch v1.1; TV v2                                                                                                                                                                               |
 | Offline data      | Offline-first SQLite vs cache-later                   | **Offline-first** (expo-sqlite + Drizzle) — see [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md)                                                  |
 | Visual polish     | Polish now vs primitives now + polish later           | **Ship sketches now; operator polish later (Track 23)** — see **Ship bar** below and [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md) |
+| Subscriptions view | Merge add-by-RSS with directory follows vs keep separate | **Merge by default** in every subscribed view (Home, Library, car), like legacy podverse-rn; **filter** to view add-by-RSS only. Shared source of truth: [600 unified subscriptions repository](/docs/proposals/mobile/_master-plan_/details/600-unified-subscriptions-repository.md) (steps 9b.8, 8.16, 9.30, 12.22) |
 
 ## Ship bar (agents stop here)
 
@@ -414,6 +415,7 @@ detail doc's **Web parity references**.
 8.13. Play action on row integrates with queue/player hooks (stub until Track 10). Model: Codex 5.3. Detail: [252-home-play-action-stub](/docs/proposals/mobile/_master-plan_/details/252-home-play-action-stub.md) — done
 8.14. E2E: screenshot each media-type selector state on Home. Model: Auto. Detail: [253-e2e-home-media-types-screenshots](/docs/proposals/mobile/_master-plan_/details/253-e2e-home-media-types-screenshots.md) — done
 8.15. E2E: swipe horizontal selector and verify feed content changes. Model: Auto. Detail: [254-e2e-media-type-swipe](/docs/proposals/mobile/_master-plan_/details/254-e2e-media-type-swipe.md) — done
+8.16. Home authenticated Podcasts subscribed view mixes directory follows + add-by-RSS by default (via 9b.8 repo) with an add-by-RSS filter chip; persist filter pref. Model: Codex 5.3. Detail: [601-home-subscribed-mixed-filter](/docs/proposals/mobile/_master-plan_/details/601-home-subscribed-mixed-filter.md) — done
 
 ## Track 9 — Browse and content screens (DONE)
 
@@ -449,6 +451,7 @@ detail doc's **Web parity references**.
 9.27. E2E: add-by-RSS happy path screenshot flow on RSS tab. Model: Codex 5.3. Detail: [286-e2e-add-by-rss-flow](/docs/proposals/mobile/_master-plan_/details/286-e2e-add-by-rss-flow.md) — done
 9.28. Document web→mobile screen map table in master plan appendix reference. Model: Auto. Detail: [287-screen-map-appendix-ref](/docs/proposals/mobile/_master-plan_/details/287-screen-map-appendix-ref.md) — done
 9.29. E2E: add-by-RSS play against test-assets (2111) + assert playback. Model: Codex 5.3. Detail: [288-e2e-addbyrss-playback-test-assets](/docs/proposals/mobile/_master-plan_/details/288-e2e-addbyrss-playback-test-assets.md) — done
+9.30. My Library — Subscriptions list screen: merged directory follows + add-by-RSS (via 9b.8 repo), filterable, alphabetical. Model: Codex 5.3. Detail: [602-library-subscriptions-list](/docs/proposals/mobile/_master-plan_/details/602-library-subscriptions-list.md) — done
 
 ## Track 9b — Offline-first data layer, add-by-RSS mapping, visual primitives (DONE)
 
@@ -472,6 +475,7 @@ read the native cache — see
 9b.5. Add-by-RSS: adopt `@podverse/parser-mapping` post-parse; persist feeds/items in SQLite. Model: Opus 4.8. Detail: [494-data-layer-add-by-rss-parser-mapping](/docs/proposals/mobile/_master-plan_/details/494-data-layer-add-by-rss-parser-mapping.md) — done
 9b.6. Shared visual primitives: Button, Card, ListRow, ScreenHeader + spacing/typography. Model: Codex 5.3. Detail: [495-visual-primitives-scaffold](/docs/proposals/mobile/_master-plan_/details/495-visual-primitives-scaffold.md) — done
 9b.7. Opportunistic migrate Home/Search/Library rows to primitives (not full polish). Model: Codex 5.3. Detail: [496-visual-primitives-migrate-opportunistic](/docs/proposals/mobile/_master-plan_/details/496-visual-primitives-migrate-opportunistic.md) — done
+9b.8. Unified subscriptions repository: merge directory follows + add-by-RSS into one deduped/sorted/filterable list (offline cache; hydrate directory display fields). Single source for Home (8.16), Library (9.30), car (12.22). Model: Opus 4.8. Detail: [600-unified-subscriptions-repository](/docs/proposals/mobile/_master-plan_/details/600-unified-subscriptions-repository.md) — done
 
 ## Track 9c — Media row action affordance parity (DONE)
 
@@ -600,7 +604,7 @@ native surface — do **not** redesign player layout or add transcript/clip-auth
 12.19. E2E not fully automatable — document manual car QA gate in release runbook. Model: Auto. Detail: [398-car-manual-qa-gate](/docs/proposals/mobile/_master-plan_/details/398-car-manual-qa-gate.md) — Android done; iOS CarPlay done
 12.20. Update abcmemory rule: car surfaces are native-only, not JS track-player browse. Model: Codex 5.3. Detail: [399-abcmemory-car-native-only](/docs/proposals/mobile/_master-plan_/details/399-abcmemory-car-native-only.md) — done
 12.21. Parallel worktree: car native module (`ios/`, `android/`) isolated from RN UI worktrees. Model: Auto. Detail: [400-car-parallel-worktree](/docs/proposals/mobile/_master-plan_/details/400-car-parallel-worktree.md) — _TBD_
-12.22. Project directory follows (`account_following_channels`) + followed playlists into the car Library browse index (today only add-by-RSS follows appear). Model: Opus 4.8. Detail: [401-car-library-directory-follows](/docs/proposals/mobile/_master-plan_/details/401-car-library-directory-follows.md) — _TBD_
+12.22. Project the merged subscriptions (via 9b.8 repo: directory follows + add-by-RSS) + followed playlists into the car Library browse index (today only add-by-RSS follows appear). **Depends on 9b.8.** Model: Opus 4.8. Detail: [401-car-library-directory-follows](/docs/proposals/mobile/_master-plan_/details/401-car-library-directory-follows.md) — planned
 
 ## Track 13 — Offline downloads (episode files) (DONE)
 
@@ -1104,7 +1108,7 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 397-carplay-simulator-checklist             | 12.18      | 397-carplay-simulator-checklist             | Auto      | done                    |
 | 398-car-manual-qa-gate                      | 12.19      | 398-car-manual-qa-gate                      | Auto      | Android + iOS done      |
 | 399-abcmemory-car-native-only               | 12.20      | 399-abcmemory-car-native-only               | Codex 5.3 | done                    |
-| 401-car-library-directory-follows           | 12.22      | 401-car-library-directory-follows           | Opus 4.8  | _TBD_                   |
+| 401-car-library-directory-follows           | 12.22      | 401-car-library-directory-follows           | Opus 4.8  | planned                 |
 | 400-car-parallel-worktree                   | 12.21      | 400-car-parallel-worktree                   | Auto      | _TBD_                   |
 | 430-download-queue-design                   | 13.1       | 430-download-queue-design                   | Opus 4.8  | done                    |
 | 431-download-storage-choice                 | 13.2       | 431-download-storage-choice                 | Codex 5.3 | done                    |
@@ -1207,6 +1211,9 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 597-list-virtualization-polish              | 23.3       | 597-list-virtualization-polish              | Codex 5.3 | _TBD_                   |
 | 598-defer-player-transcript-chrome          | 21.11      | 598-defer-player-transcript-chrome          | Auto      | _TBD_                   |
 | 599-defer-pixel-dnd-polish                  | 21.12      | 599-defer-pixel-dnd-polish                  | Auto      | _TBD_                   |
+| 600-unified-subscriptions-repository        | 9b.8       | 600-unified-subscriptions-repository        | Opus 4.8  | done                    |
+| 601-home-subscribed-mixed-filter            | 8.16       | 601-home-subscribed-mixed-filter            | Codex 5.3 | done                    |
+| 602-library-subscriptions-list              | 9.30       | 602-library-subscriptions-list              | Codex 5.3 | done                    |
 
 ## Appendix D — Detail plan template
 
@@ -1256,7 +1263,8 @@ track’s band** (or open a new band). Slug remains descriptive (`232-theme-prov
 | 430–484        | 13–17         | downloads, push, links, settings, i18n |
 | 510–589        | 18–21         | multi-device, IAP, FOSS, deferrals     |
 | 590–599        | 9d, 21, 23    | playlist authoring, deferrals, polish  |
-| **600+**       | _future_      | Next band when a track’s range is full |
+| 600–602        | 8, 9, 9b      | unified subscriptions (directory + add-by-RSS) |
+| **603+**       | _future_      | Next band when a track’s range is full |
 
 **Do not** renumber existing files to add a fourth digit preemptively. If a band is crowded, use the
 next gap in that band or allocate from **600+**. Before adding an ID, grep Appendix C and

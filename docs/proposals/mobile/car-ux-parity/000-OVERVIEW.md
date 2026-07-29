@@ -6,6 +6,14 @@
 master plan Track 12 ([001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md)),
 [mobile-carplay-android-auto](/.cursor/rules/mobile-carplay-android-auto.mdc)
 
+**Subscriptions source:** the car **Podcasts** section lists the **merged** subscribed list
+(directory follows + add-by-RSS), matching legacy `subscribedPodcasts` (which combined add-by-RSS
+via `combineWithAddByRSSPodcasts`). That merged list is the shared
+[600 unified subscriptions repository](/docs/proposals/mobile/_master-plan_/details/600-unified-subscriptions-repository.md)
+(step 9b.8), consumed by car step 12.22
+([401](/docs/proposals/mobile/_master-plan_/details/401-car-library-directory-follows.md)) as well
+as Home (8.16) and Library (9.30) — do not build a car-only merge.
+
 ## Goal
 
 Make **CarPlay and Android Auto** in the new monorepo as identical as possible to the old
@@ -38,7 +46,8 @@ Primary sources in `podverse-rn` (branch `develop`):
 
 Three top-level sections:
 
-1. **Podcasts** — subscribed podcasts (grid on Android)
+1. **Podcasts** — subscribed podcasts (grid on Android); **merged** directory follows + add-by-RSS
+   (see **Subscriptions source** above)
 2. **Queue** — upcoming queue items
 3. **History** — recent history (capped at **20** items)
 

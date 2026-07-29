@@ -3,8 +3,10 @@ import { defineConfig } from 'vitest/config';
 /**
  * Node-only unit tests for the mobile app's **pure** modules (no React Native / Expo). Covers the
  * `podverse-media-engine` bridge command serialization and error taxonomy (steps 2.27, 2.28),
- * the Track 13 download eligibility / storage helpers (`src/downloads`, pure logic only), and the
- * Podcast Index search preview poll helper (`src/screens/search/podcastIndexFeedPreview.ts`). Scope
+ * the Track 13 download eligibility / storage helpers (`src/downloads`, pure logic only), the unified
+ * subscriptions merge/map/filter/sort helpers (`src/data/repositories/subscriptionsMerge.ts` — the
+ * pure sibling of the SQLite-backed `subscriptionsRepository`, so it pulls in no `expo-sqlite`), and
+ * the Podcast Index search preview poll helper (`src/screens/search/podcastIndexFeedPreview.ts`). Scope
  * the `include` narrowly so tests never pull in native/Expo modules — the excluded adapter
  * (`src/bridge/nativePlaybackBridge.ts`) imports `expo-modules-core`, and repositories import
  * `expo-sqlite`, so neither is tested here. `apps/mobile` is a standalone install; run with
@@ -16,6 +18,7 @@ export default defineConfig({
     include: [
       'modules/podverse-media-engine/src/**/*.test.ts',
       'src/auth/localDevLoginPrefill.test.ts',
+      'src/data/repositories/subscriptionsMerge.test.ts',
       'src/downloads/**/*.test.ts',
       'src/lib/home/homeFeedRefresh.test.ts',
       'src/screens/search/podcastIndexFeedPreview.test.ts',

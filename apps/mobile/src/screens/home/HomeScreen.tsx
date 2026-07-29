@@ -1,3 +1,4 @@
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -8,8 +9,9 @@ import { useAuth } from '../../auth/AuthProvider';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
+import { SubscriptionFilterControl } from '../../components/subscriptions/SubscriptionFilterControl';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
-import type { HomeStackParamList } from '../../navigation';
+import type { HomeStackParamList, MobileTabParamList } from '../../navigation';
 import { HOME_STACK_ROUTES } from '../../navigation';
 import { E2ePlayVideoButton } from '../../playback/E2ePlayVideoButton';
 import {
@@ -18,6 +20,12 @@ import {
   readPreferredMediaType,
   writePreferredMediaType,
 } from '../../prefs/preferredMediaType';
+import {
+  DEFAULT_SUBSCRIPTION_FILTER,
+  type SubscriptionListFilter,
+  readHomeSubscriptionFilter,
+  writeHomeSubscriptionFilter,
+} from '../../prefs/subscriptionFilter';
 import { useTheme } from '../../theme/useTheme';
 import type { AddToPlaylistTarget } from '../library/useAddToPlaylist';
 import { useAddToPlaylist } from '../library/useAddToPlaylist';
@@ -35,6 +43,7 @@ const MEDIA_TYPE_TITLE_KEYS: Record<HomeMediaType, string> = {
   tracks: 'media.music.tracks',
 };
 
+
 export function HomeScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
@@ -42,12 +51,19 @@ export function HomeScreen() {
   const { styles: themeStyles, tokens } = useTheme();
   const [selectedMediaType, setSelectedMediaType] =
     useState<HomeMediaType>(DEFAULT_HOME_MEDIA_TYPE);
+  const [subscriptionFilter, setSubscriptionFilter] = useState<SubscriptionListFilter>(
+    DEFAULT_SUBSCRIPTION_FILTER
+  );
   const [feedRows, setFeedRows] = useState<HomeFeedRowData[]>([]);
   const [isFeedLoading, setIsFeedLoading] = useState<boolean>(true);
   const [isFeedRefreshing, setIsFeedRefreshing] = useState<boolean>(false);
   const [feedErrorKey, setFeedErrorKey] = useState<string | null>(null);
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
   const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();
+
+  // The All / Add-by-RSS filter only applies to the authenticated Podcasts subscribed view.
+  const isSubscribedPodcastsView =
+    selectedMediaType === 'podcasts' && status === 'authenticated';
 
   // Only episodes/tracks (item) and clips (clip) can be appended to a playlist today; other media
   // types are not playlist resources (9d.4). null means the row gets no add-to-playlist action.
@@ -65,12 +81,20 @@ export function HomeScreen() {
     let isMounted = true;
 
     void (async () => {
-      const storedMediaType = await readPreferredMediaType();
-      if (!isMounted || storedMediaType === null) {
+      const [storedMediaType, storedFilter] = await Promise.all([
+        readPreferredMediaType(),
+        readHomeSubscriptionFilter(),
+      ]);
+      if (!isMounted) {
         return;
       }
 
-      setSelectedMediaType(storedMediaType);
+      if (storedMediaType !== null) {
+        setSelectedMediaType(storedMediaType);
+      }
+      if (storedFilter !== null) {
+        setSubscriptionFilter(storedFilter);
+      }
     })();
 
     return () => {
@@ -81,6 +105,11 @@ export function HomeScreen() {
   const handleMediaTypeChange = useCallback((mediaType: HomeMediaType) => {
     setSelectedMediaType(mediaType);
     void writePreferredMediaType(mediaType);
+  }, []);
+
+  const handleSubscriptionFilterChange = useCallback((filter: SubscriptionListFilter) => {
+    setSubscriptionFilter(filter);
+    void writeHomeSubscriptionFilter(filter);
   }, []);
 
   const loadFeed = useCallback(
@@ -96,13 +125,17 @@ export function HomeScreen() {
 
       setFeedErrorKey(null);
       try {
-        const rows = await fetchHomeFeedRows(selectedMediaType, {
-          accessToken,
-          clearSession,
-          refreshToken,
-          setTokens,
-          status,
-        });
+        const rows = await fetchHomeFeedRows(
+          selectedMediaType,
+          {
+            accessToken,
+            clearSession,
+            refreshToken,
+            setTokens,
+            status,
+          },
+          { subscriptionFilter }
+        );
         setFeedRows(rows);
       } catch {
         if (source === 'initial' || source === 'retry') {
@@ -125,6 +158,7 @@ export function HomeScreen() {
       selectedMediaType,
       setTokens,
       status,
+      subscriptionFilter,
     ]
   );
 
@@ -141,6 +175,13 @@ export function HomeScreen() {
   const handleRowPress = useCallback(
     (row: HomeFeedRowData) => {
       if (selectedMediaType === 'podcasts') {
+        // Add-by-RSS feeds have no directory channel id; route to the RSS tab (its initial
+        // AddByRssRoot screen) where the feed can be played/managed. Directory follows open
+        // the standard Podcast detail.
+        if (row.source === 'addByRss') {
+          navigation.getParent<BottomTabNavigationProp<MobileTabParamList>>()?.navigate('RSS');
+          return;
+        }
         navigation.navigate(HOME_STACK_ROUTES.PodcastDetail, {
           podcastId: row.id,
         });
@@ -250,6 +291,13 @@ export function HomeScreen() {
         <E2ePlayVideoButton />
         <View style={styles.feedCard}>
           <Text style={styles.feedTitle}>{t(MEDIA_TYPE_TITLE_KEYS[selectedMediaType])}</Text>
+          {isSubscribedPodcastsView ? (
+            <SubscriptionFilterControl
+              onChange={handleSubscriptionFilterChange}
+              selectedFilter={subscriptionFilter}
+              testID="home-subscription-filter"
+            />
+          ) : null}
           <Text style={styles.feedSummary}>
             {t('misc.items')}: {feedRows.length}
           </Text>

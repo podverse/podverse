@@ -8,6 +8,7 @@ import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh'
 import { getDb, initializeDatabase, schema } from '../db';
 import type { NativeCacheBrowseNode } from '../nativeCache';
 import { projectLibraryBrowseIndexToNativeCache } from '../nativeCache';
+import { subscriptionsRepository } from './subscriptionsRepository';
 import type { MobileAuthRequestContext } from './types';
 
 const ACCOUNT_SNAPSHOT_ID = 'current';
@@ -119,6 +120,9 @@ export const accountRepository = {
 
     // Clear the car/watch browse index on logout so no stale subscriptions remain readable.
     await projectLibraryBrowseIndexToNativeCache({ nodes: [] });
+
+    // Clear the unified subscriptions directory cache (add-by-RSS is cleared via its own repo).
+    await subscriptionsRepository.clearCache();
   },
 
   /** Fetch `/auth/me`, persist the snapshot, and return the account. */
@@ -128,6 +132,15 @@ export const accountRepository = {
   ): Promise<DTOAccount> => {
     const account = await fetchAccountFromApi(context, options);
     await accountRepository.saveSnapshot(account);
+
+    // Refresh the unified subscriptions directory cache (hydrates numeric follows for offline +
+    // car/Home/Library). Soft-fail so a hydration error never breaks the authenticated refresh.
+    try {
+      await subscriptionsRepository.syncFromAccount(account, context);
+    } catch (error) {
+      console.warn('[subscriptions] syncFromAccount failed (soft-fail)', error);
+    }
+
     return account;
   },
 };

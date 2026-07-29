@@ -1,12 +1,22 @@
 import { createMobileApiRequestService, requestWithMobileAuthRefresh } from '../../auth';
 import type { AuthStatus } from '../../auth/AuthProvider';
+import { subscriptionsRepository } from '../../data/repositories';
+import type { SubscribedChannel, SubscriptionSource } from '../../data/repositories';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
+import type { SubscriptionListFilter } from '../../prefs/subscriptionFilter';
 
 export type HomeFeedRowData = {
   id: string;
   imageUrl: string | null;
   subtitle: string | null;
   title: string;
+  /** Set only for the authenticated Podcasts subscribed view so taps can route by origin. */
+  source?: SubscriptionSource;
+};
+
+type HomeFeedOptions = {
+  /** Applies only to the authenticated Podcasts subscribed view (mixed by default). */
+  subscriptionFilter?: SubscriptionListFilter;
 };
 
 type HomeFeedAuthDeps = {
@@ -177,9 +187,20 @@ const normalizeClipRows = (items: unknown[]): HomeFeedRowData[] => {
   return rows;
 };
 
+const mapSubscribedChannelToRow = (channel: SubscribedChannel): HomeFeedRowData => {
+  return {
+    id: channel.idText,
+    imageUrl: channel.imageUrl,
+    source: channel.source,
+    subtitle: null,
+    title: channel.title,
+  };
+};
+
 export const fetchHomeFeedRows = async (
   mediaType: HomeMediaType,
-  authDeps: HomeFeedAuthDeps
+  authDeps: HomeFeedAuthDeps,
+  options: HomeFeedOptions = {}
 ): Promise<HomeFeedRowData[]> => {
   const apiRequestService = createMobileApiRequestService(authDeps.accessToken);
   if (apiRequestService === null) {
@@ -189,6 +210,15 @@ export const fetchHomeFeedRows = async (
   const listType = authDeps.status === 'authenticated' ? 'subscribed' : 'global';
 
   if (mediaType === 'podcasts') {
+    // Authenticated Podcasts subscribed view mixes directory follows + add-by-RSS from the shared
+    // offline-first cache (9b.8 / 8.16); anonymous still shows the global directory list.
+    if (authDeps.status === 'authenticated') {
+      const subscribed = await subscriptionsRepository.list({
+        filter: options.subscriptionFilter ?? 'all',
+      });
+      return subscribed.map(mapSubscribedChannelToRow);
+    }
+
     const response = await requestWithMobileAuthRefresh(authDeps, async (api) =>
       api.reqChannelGetMany({
         category: null,
