@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head>
+    <title>Podverse E2E OPML Import</title>
+  </head>
+  <body>
+    <outline type="rss" text="E2E Directory Feed" title="E2E Directory Feed" xmlUrl="https://example.com/e2e-directory.xml" />
+    <outline type="rss" text="E2E Unknown Feed" title="E2E Unknown Feed" xmlUrl="https://example.com/e2e-unknown.xml" />
+  </body>
+</opml>

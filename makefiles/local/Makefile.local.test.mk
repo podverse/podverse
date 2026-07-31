@@ -2,7 +2,7 @@
 #     Metaboost test stack uses 5632/6579; Podverse dev uses 5432/6379. No overlaps.
 #     Schema bootstrapped by forward-only linear migrations. ---
 
-.PHONY: test_deps test_postgres_up test_valkey_up test_db_init test_db_init_management test_db_list help_test test_clean
+.PHONY: test_deps test_deps_mq test_postgres_up test_valkey_up test_mq_up test_mq_provision test_db_init test_db_init_management test_db_list help_test test_clean
 
 # Default test ports (must match apps/api/src/test/setup.ts and apps/management-api/vitest.setup.ts defaults)
 TEST_DB_PORT ?= 5732
@@ -14,6 +14,10 @@ TEST_MANAGEMENT_DB_NAME ?= podverse_management_test
 
 TEST_PG_CONTAINER := podverse_test_postgres
 TEST_VALKEY_CONTAINER := podverse_test_valkey
+TEST_MQ_CONTAINER := podverse_test_mq
+TEST_MQ_PORT ?= 61616
+TEST_MQ_USER ?= test
+TEST_MQ_PASSWORD ?= test
 
 # Test DB user names match local dev naming convention
 TEST_APP_READ_USER ?= podverse_app_read
@@ -32,6 +36,10 @@ TEST_MGMT_MIGRATOR_PASSWORD ?= test
 # Ensure test Postgres and Valkey are running and both test databases exist.
 test_deps: test_postgres_up test_valkey_up test_db_init test_db_init_management
 	@echo "Test dependencies ready: $(TEST_DB_NAME), $(TEST_MANAGEMENT_DB_NAME), Valkey on $(TEST_VALKEY_PORT)."
+
+# Optional broker dependency for MQ-backed integration tests.
+test_deps_mq: test_mq_up
+	@echo "Test MQ dependency ready on port $(TEST_MQ_PORT)."
 
 # List test databases inside the running Postgres container.
 test_db_list: test_postgres_up
@@ -101,6 +109,43 @@ test_valkey_up:
 		echo "Test Valkey ready on port $(TEST_VALKEY_PORT)."; \
 	fi
 
+# Start ActiveMQ Artemis on port $(TEST_MQ_PORT) for broker-backed tests (idempotent).
+test_mq_up:
+	@if docker ps -q -f name=^/$(TEST_MQ_CONTAINER)$$ | grep -q .; then \
+		echo "Test MQ already running ($(TEST_MQ_CONTAINER))."; \
+	elif docker ps -aq -f name=^/$(TEST_MQ_CONTAINER)$$ | grep -q .; then \
+		echo "Starting existing test MQ container..."; \
+		docker start $(TEST_MQ_CONTAINER); \
+	else \
+		echo "Starting test MQ on port $(TEST_MQ_PORT)..."; \
+		docker run -d --name $(TEST_MQ_CONTAINER) \
+			-p 127.0.0.1:$(TEST_MQ_PORT):61616 \
+			-e ARTEMIS_USER=$(TEST_MQ_USER) \
+			-e ARTEMIS_PASSWORD=$(TEST_MQ_PASSWORD) \
+			-e ANONYMOUS_LOGIN=false \
+			apache/activemq-artemis:2.37.0 \
+		|| (echo "If bind failed: free port $(TEST_MQ_PORT) or set TEST_MQ_PORT."; exit 1); \
+	fi
+	@echo "Waiting for test MQ to be ready..."
+	@for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do \
+		if docker exec $(TEST_MQ_CONTAINER) test -d /var/lib/artemis-instance/bin >/dev/null 2>&1; then break; fi; \
+		sleep 1; \
+		if [ $$i -eq 20 ]; then echo "MQ did not become ready (run: docker logs $(TEST_MQ_CONTAINER))."; exit 1; fi; \
+	done
+	@$(MAKE) test_mq_provision
+	@echo "Test MQ ready on port $(TEST_MQ_PORT)."
+
+test_mq_provision:
+	@echo "Ensuring test MQ queues exist..."
+	@for q in opml-import rss-on-demand add-by-rss-on-demand; do \
+		docker exec $(TEST_MQ_CONTAINER) bash -c "/var/lib/artemis-instance/bin/artemis queue create \
+			--user '$(TEST_MQ_USER)' --password '$(TEST_MQ_PASSWORD)' --url tcp://localhost:61616 \
+			--name '$$q' --address '$$q' --anycast --durable --auto-create-address --silent >/dev/null 2>&1 || true"; \
+		docker exec $(TEST_MQ_CONTAINER) bash -c "/var/lib/artemis-instance/bin/artemis queue create \
+			--user '$(TEST_MQ_USER)' --password '$(TEST_MQ_PASSWORD)' --url tcp://localhost:61616 \
+			--name 'DLQ.$$q' --address 'DLQ.$$q' --anycast --durable --auto-create-address --silent >/dev/null 2>&1 || true"; \
+	done
+
 # Create test database, apply linear migrations, create DB users and grants.
 # Drops and recreates the test DB each run so schema stays in sync with migrations.
 # Forward-only migrations are validated/applied via scripts/database/run-linear-migrations.sh.
@@ -157,11 +202,13 @@ test_db_init_management: test_db_init
 test_clean:
 	@docker rm -f $(TEST_PG_CONTAINER) 2>/dev/null || true
 	@docker rm -f $(TEST_VALKEY_CONTAINER) 2>/dev/null || true
-	@echo "Test containers removed (Postgres, Valkey)."
+	@docker rm -f $(TEST_MQ_CONTAINER) 2>/dev/null || true
+	@echo "Test containers removed (Postgres, Valkey, MQ)."
 
 # Print instructions for meeting test requirements.
 help_test:
 	@echo "Test requirements: Postgres on port $(TEST_DB_PORT) and Valkey on port $(TEST_VALKEY_PORT)."
+	@echo "Optional broker-backed test dependency: ActiveMQ Artemis on port $(TEST_MQ_PORT)."
 	@echo "Databases: $(TEST_DB_NAME), $(TEST_MANAGEMENT_DB_NAME)."
 	@echo "Users: $(TEST_APP_READ_USER), $(TEST_APP_READ_WRITE_USER), $(TEST_MGMT_READ_USER), $(TEST_MGMT_READ_WRITE_USER)."
 	@echo ""
@@ -170,6 +217,8 @@ help_test:
 	@echo ""
 	@echo "From repo root, run:"
 	@echo "  make test_deps"
+	@echo "Optional (broker-backed MQ integration tests):"
+	@echo "  make test_deps_mq"
 	@echo ""
 	@echo "This will:"
 	@echo "  1. Start Postgres on port $(TEST_DB_PORT) (if not already running)."
@@ -181,7 +230,7 @@ help_test:
 	@echo "Forward-only migration apply:  scripts/database/run-linear-migrations.sh --database app|management"
 	@echo ""
 	@echo "Port coexistence: Metaboost test uses 5632/6579. Podverse dev uses 5432/6379."
-	@echo "Podverse test uses $(TEST_DB_PORT)/$(TEST_VALKEY_PORT) — no conflicts."
+	@echo "Podverse test uses $(TEST_DB_PORT)/$(TEST_VALKEY_PORT), optional MQ $(TEST_MQ_PORT) — no conflicts."
 	@echo ""
 	@echo "Then run:  npm run test:e2e:api  (or npm test for full suite)."
 	@echo ""

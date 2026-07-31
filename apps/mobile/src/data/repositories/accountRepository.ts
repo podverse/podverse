@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm';
 
 import type { DTOAccount } from '@podverse/helpers/dto';
+import { isObjectLike } from '@podverse/helpers/guards';
 
 // Import directly from the request module (not the auth barrel) to avoid a cycle:
 // AuthProvider → accountRepository → auth barrel → AuthProvider.
@@ -23,14 +24,10 @@ type RefreshOptions = {
   timeoutMs?: number;
 };
 
-const isRecord = (value: unknown): value is Record<string, unknown> => {
-  return typeof value === 'object' && value !== null;
-};
-
 const parseAccountSnapshot = (raw: string): DTOAccount | null => {
   try {
     const parsed: unknown = JSON.parse(raw);
-    if (!isRecord(parsed)) {
+    if (!isObjectLike(parsed)) {
       return null;
     }
 

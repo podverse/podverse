@@ -42,7 +42,13 @@ app.use(
   })
 );
 
-app.use(bodyParser.json());
+app.use(
+  bodyParser.text({
+    type: ['text/x-opml', 'text/xml', 'application/xml', 'text/plain'],
+    limit: '1mb',
+  })
+);
+app.use(bodyParser.json({ limit: '1mb' }));
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(cookieParser());

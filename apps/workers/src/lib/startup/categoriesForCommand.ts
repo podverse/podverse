@@ -78,6 +78,8 @@ const FULL_STACK_COMMANDS = [
 
 const BASE_ORM_MQ_PARSER_KEYVALDB_COMMANDS = ['mqAddByRSSRunParser'] as const;
 
+const BASE_ORM_MQ_KEYVALDB_PODCAST_INDEX_COMMANDS = ['mqOpmlImportRun'] as const;
+
 /**
  * Returns the set of config categories required for the given command.
  * Used by validation (to validate only those env vars) and index (to build
@@ -189,6 +191,18 @@ export function getCategoriesForCommand(commandName: string): Set<ConfigCategory
     categories.add(CATEGORY_MQ);
     categories.add(CATEGORY_PARSER);
     categories.add(CATEGORY_KEYVALDB);
+    return categories;
+  }
+
+  if (
+    BASE_ORM_MQ_KEYVALDB_PODCAST_INDEX_COMMANDS.includes(
+      commandName as (typeof BASE_ORM_MQ_KEYVALDB_PODCAST_INDEX_COMMANDS)[number]
+    )
+  ) {
+    categories.add(CATEGORY_ORM);
+    categories.add(CATEGORY_MQ);
+    categories.add(CATEGORY_KEYVALDB);
+    categories.add(CATEGORY_PODCAST_INDEX);
     return categories;
   }
 

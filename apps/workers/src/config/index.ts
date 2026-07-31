@@ -12,6 +12,7 @@ import {
 } from '@podverse/external-services-object-storage';
 import {
   DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS,
+  parseCountPerWindowEnvFromKey,
   readOptionalPositiveExpirationEnv,
   readRequiredPositiveExpirationEnv,
 } from '@podverse/helpers';
@@ -209,6 +210,20 @@ export function getKeyvaldbConfig(): KeyvaldbConfig {
     port: Number(process.env.KEYVALDB_PORT!),
     password: process.env.KEYVALDB_PASSWORD!,
     cacheExpiration: readRequiredPositiveExpirationEnv('KEYVALDB_CACHE_EXPIRATION'),
+  };
+}
+
+export type OpmlImportConfig = {
+  maxFeedsPerHour: number;
+};
+
+export function getOpmlImportConfig(): OpmlImportConfig {
+  return {
+    maxFeedsPerHour: parseCountPerWindowEnvFromKey({
+      envValue: process.env.OPML_IMPORT_MAX_FEEDS_PER_HOUR,
+      key: 'OPML_IMPORT_MAX_FEEDS_PER_HOUR',
+      defaultMax: 50,
+    }).max,
   };
 }
 

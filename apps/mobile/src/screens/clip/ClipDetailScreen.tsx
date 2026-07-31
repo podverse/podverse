@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOChannel, DTOClip, DTOItem } from '@podverse/helpers';
+import { htmlToPlainText } from '@podverse/helpers/html';
+import { formatPlaybackTime } from '@podverse/helpers/time';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
@@ -17,42 +19,6 @@ import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 import { useClipPlayback } from './useClipPlayback';
 
 type ClipDetailScreenProps = NativeStackScreenProps<ChannelBrowseStackParamList, 'ClipDetail'>;
-
-const formatPlaybackTime = (rawValue: string | null | undefined): string => {
-  if (!rawValue) {
-    return '00:00';
-  }
-
-  const seconds = Math.floor(Number.parseFloat(rawValue));
-  if (!Number.isFinite(seconds) || seconds < 0) {
-    return '00:00';
-  }
-
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const remainingSeconds = seconds % 60;
-
-  if (hours > 0) {
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds
-      .toString()
-      .padStart(2, '0')}`;
-  }
-
-  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-};
-
-const stripHtmlToText = (value: string): string => {
-  return value
-    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ')
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>')
-    .replace(/\s+/g, ' ')
-    .trim();
-};
 
 export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
   const { t } = useTranslation();
@@ -177,11 +143,11 @@ export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
 
   const clipDescription = useMemo(() => {
     if (clip?.description) {
-      return stripHtmlToText(clip.description);
+      return htmlToPlainText(clip.description);
     }
 
     if (item?.item_description?.value) {
-      return stripHtmlToText(item.item_description.value);
+      return htmlToPlainText(item.item_description.value);
     }
 
     return '';

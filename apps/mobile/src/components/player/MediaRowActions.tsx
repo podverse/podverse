@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { GestureResponderEvent } from 'react-native';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { stopPropagation } from '../../lib/gesture/stopPropagation';
 import { useTheme } from '../../theme/useTheme';
 import type { ButtonSize, ButtonVariant } from '../primitives';
 import { Button } from '../primitives';
@@ -92,10 +92,6 @@ export const buildMediaRowMoreActions = (
       },
     ];
   });
-};
-
-const stopPropagation = (event: GestureResponderEvent) => {
-  event.stopPropagation();
 };
 
 /**

@@ -3,12 +3,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { getErrorResponseStatus } from '@podverse/helpers/error';
+import { toNonEmptyTrimmedString } from '@podverse/helpers/guards';
+
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
 import { Button } from '../../components/primitives';
 import { ListLoading } from '../../components/state/ListLoading';
-import { getErrorStatusCode } from '../../lib/httpError';
 import type { SearchStackParamList } from '../../navigation';
 import { SEARCH_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
@@ -37,13 +39,6 @@ type AddErrorKey =
   | 'features.search.add_needs_membership'
   | 'features.search.add_timed_out'
   | null;
-
-const resolveImageUrl = (imageUrl: string | null | undefined): string | null => {
-  if (imageUrl === undefined || imageUrl === null || imageUrl.length === 0) {
-    return null;
-  }
-  return imageUrl;
-};
 
 /** Replace the stale Add preview with channel detail on the Search stack. */
 const replaceWithSearchChannelDetail = (
@@ -89,7 +84,7 @@ export function PodcastIndexFeedPreviewScreen({
         author: params.author ?? '',
         description: params.description ?? '',
         feedUrl: params.feedUrl,
-        imageUrl: resolveImageUrl(params.imageUrl),
+        imageUrl: toNonEmptyTrimmedString(params.imageUrl),
         podcastIndexId,
         title: params.title,
       };
@@ -145,7 +140,8 @@ export function PodcastIndexFeedPreviewScreen({
           author: piFeed.author,
           description: piFeed.description,
           feedUrl: piFeed.url,
-          imageUrl: resolveImageUrl(piFeed.image.length > 0 ? piFeed.image : piFeed.artwork),
+          imageUrl:
+            toNonEmptyTrimmedString(piFeed.image) ?? toNonEmptyTrimmedString(piFeed.artwork),
           podcastIndexId: String(piFeed.id),
           title: piFeed.title,
         });
@@ -240,7 +236,7 @@ export function PodcastIndexFeedPreviewScreen({
       if (!isMountedRef.current) {
         return;
       }
-      if (getErrorStatusCode(error) === 403) {
+      if (getErrorResponseStatus(error) === 403) {
         setAddErrorKey('features.search.add_needs_membership');
       } else {
         setAddErrorKey('features.search.add_failed');

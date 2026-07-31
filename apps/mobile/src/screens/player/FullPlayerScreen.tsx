@@ -14,6 +14,8 @@ import {
 } from 'react-native';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers/dto';
+import { clampRatio } from '@podverse/helpers/math';
+import { formatClock } from '@podverse/helpers/time';
 import type { PlaybackTarget } from '@podverse/playback-core';
 
 import { PodverseVideoSurfaceView } from '../../../modules/podverse-media-engine';
@@ -54,26 +56,6 @@ const segmentContentFromTarget = (
     case 'add-by-rss':
       return null;
   }
-};
-
-const clampRatio = (value: number): number => {
-  if (!Number.isFinite(value) || value <= 0) {
-    return 0;
-  }
-  if (value >= 1) {
-    return 1;
-  }
-  return value;
-};
-
-const formatClock = (seconds: number): string => {
-  if (!Number.isFinite(seconds) || seconds <= 0) {
-    return '00:00';
-  }
-  const whole = Math.floor(seconds);
-  const minutes = Math.floor(whole / 60);
-  const remaining = whole % 60;
-  return `${minutes.toString().padStart(2, '0')}:${remaining.toString().padStart(2, '0')}`;
 };
 
 /**

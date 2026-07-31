@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { isPlainObject } from '@podverse/helpers/guards';
 import type { PlaybackTarget } from '@podverse/playback-core';
 import { clampPlaybackPositionForStorage } from '@podverse/playback-core/clampNearEndSeconds';
 
@@ -25,10 +26,6 @@ export type AnonymousPlaybackSnapshotV1 = {
 
 export type AnonymousPlaybackSnapshot = AnonymousPlaybackSnapshotV1;
 
-const isRecord = (value: unknown): value is Record<string, unknown> => {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-};
-
 export function parseAnonymousPlaybackSnapshot(
   raw: string | null
 ): AnonymousPlaybackSnapshot | null {
@@ -37,7 +34,7 @@ export function parseAnonymousPlaybackSnapshot(
   }
   try {
     const parsed: unknown = JSON.parse(raw);
-    if (!isRecord(parsed)) {
+    if (!isPlainObject(parsed)) {
       return null;
     }
     if (parsed.v !== 1) {

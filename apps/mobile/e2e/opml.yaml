@@ -1,0 +1,44 @@
+appId: com.podverse.app.next
+name: OPML Export Screen
+---
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- tapOn:
+    id: tab-more
+- tapOn:
+    id: more-nav-opml
+- assertVisible:
+    id: more-opml-screen
+- assertVisible:
+    id: opml-export-button
+- assertVisible:
+    id: opml-import-button
+- takeScreenshot: opml-screen-initial
+
+# Native OS share sheet is out of Maestro scope; in mobile E2E env the app skips it and
+# still runs the export handler so we can assert the wiring.
+- tapOn:
+    id: opml-export-button
+- assertVisible:
+    id: opml-export-notice
+- takeScreenshot: opml-export-triggered
+
+# Native document picker is out of Maestro scope; in mobile E2E env Import uses an embedded
+# sample OPML and the fixtures sync path on Mobile E2E API.
+- tapOn:
+    id: opml-import-button
+- extendedWaitUntil:
+    visible:
+      id: opml-import-results
+    timeout: ${TIMEOUT_SLOWEST}
+- assertVisible:
+    id: opml-import-notice
+# The embedded sample OPML has a directory feed (resolves via the fixture Podcast Index
+# id -> enqueued_indexed) and an unknown feed (-> added_by_rss). Assert both real-backend
+# resolution outcomes rendered so the 3-tier import is verified end-to-end.
+- assertVisible:
+    id: opml-import-result-enqueued_indexed
+- assertVisible:
+    id: opml-import-result-added_by_rss
+- takeScreenshot: opml-import-results

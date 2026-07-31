@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { getErrorResponseStatus } from '@podverse/helpers/error';
+
 import { loginWithMobileToken, useAuth } from '../../auth';
 import { resolveLocalDevLoginPrefill } from '../../auth/localDevLoginPrefill';
 import { getMobileConfig } from '../../config';
 import { accountRepository } from '../../data';
 import { applyAccountLocaleOverride } from '../../i18n';
-import { getErrorStatusCode } from '../../lib/httpError';
 import { useTheme } from '../../theme/useTheme';
 
 type LoginScreenProps = {
@@ -114,7 +115,7 @@ export function LoginScreen({ onDismiss, onSwitchToSignUp }: LoginScreenProps) {
         }
         setAuthError(null);
       } catch (error) {
-        if (getErrorStatusCode(error) === 401) {
+        if (getErrorResponseStatus(error) === 401) {
           setError(t('authentication.session_expired'));
           return;
         }

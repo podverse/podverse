@@ -40,6 +40,7 @@
     "expo-dev-launcher": "5.0.35",
     "expo-dev-menu": "6.0.25",
     "expo-dev-menu-interface": "1.9.3",
+    "expo-document-picker": "~13.0.3",
     "expo-file-system": "~18.0.12",
     "expo-localization": "~16.0.1",
     "expo-manifests": "~0.15.8",

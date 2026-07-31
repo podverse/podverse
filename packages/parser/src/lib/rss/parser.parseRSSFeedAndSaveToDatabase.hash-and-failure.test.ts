@@ -28,6 +28,9 @@ const {
   feedServiceUpdateMock,
   onDemandCreateMock,
   onDemandGetCountMock,
+  pendingFollowGetMock,
+  pendingFollowRemoveMock,
+  followChannelMock,
   accountGetMock,
   logErrorMock,
 } = vi.hoisted(() => ({
@@ -46,6 +49,9 @@ const {
   feedServiceUpdateMock: vi.fn(),
   onDemandCreateMock: vi.fn(),
   onDemandGetCountMock: vi.fn(),
+  pendingFollowGetMock: vi.fn(),
+  pendingFollowRemoveMock: vi.fn(),
+  followChannelMock: vi.fn(),
   accountGetMock: vi.fn(),
   logErrorMock: vi.fn(),
 }));
@@ -193,6 +199,13 @@ vi.mock('@podverse/orm', () => ({
     getCountByAccountIdAndTypeSince = onDemandGetCountMock;
     create = onDemandCreateMock;
   },
+  AccountPendingFollowingChannelService: class AccountPendingFollowingChannelService {
+    getPendingFollowsForChannel = pendingFollowGetMock;
+    removePendingFollow = pendingFollowRemoveMock;
+  },
+  AccountFollowingChannelService: class AccountFollowingChannelService {
+    followChannel = followChannelMock;
+  },
   resolveSpamFeedItemThresholds: vi.fn((t: unknown) => t),
   shouldAttemptFeedParseFromLifecycleAndPolicy:
     conditionMocks.shouldAttemptFeedParseFromLifecycleAndPolicy,
@@ -248,6 +261,9 @@ describe('parseRSSFeedAndSaveToDatabase failure timestamp and hash-on-success', 
     });
     handleAllRemoteItemsFeedParsingMock.mockResolvedValue([]);
     feedServiceUpdateMock.mockImplementation(async (_id: number, dto: unknown) => dto);
+    pendingFollowGetMock.mockResolvedValue([]);
+    pendingFollowRemoveMock.mockResolvedValue(undefined);
+    followChannelMock.mockResolvedValue(undefined);
   });
 
   it('records last_failed_parse_time when handleParsedLiveItems throws', async () => {
@@ -291,6 +307,36 @@ describe('parseRSSFeedAndSaveToDatabase failure timestamp and hash-on-success', 
       baseFeed.id,
       expect.objectContaining({ last_parsed_file_hash: expect.any(String) })
     );
+  });
+
+  it('resolves pending follows into directory follows after channel upsert', async () => {
+    pendingFollowGetMock.mockResolvedValueOnce([
+      {
+        id: 17,
+        account_id: 10,
+        podcast_index_id: baseFeed.podcast_index_id,
+        feed_url: baseFeed.url,
+      },
+      {
+        id: 18,
+        account_id: 11,
+        podcast_index_id: baseFeed.podcast_index_id,
+        feed_url: baseFeed.url,
+      },
+    ]);
+
+    await parseRSSFeedAndSaveToDatabase(baseFeed.url, baseFeed.podcast_index_id, parseOptions);
+
+    expect(pendingFollowGetMock).toHaveBeenCalledWith({
+      podcast_index_id: baseFeed.podcast_index_id,
+      feed_url: baseFeed.url,
+    });
+    expect(followChannelMock).toHaveBeenCalledTimes(2);
+    expect(followChannelMock).toHaveBeenNthCalledWith(1, 10, 'c1');
+    expect(followChannelMock).toHaveBeenNthCalledWith(2, 11, 'c1');
+    expect(pendingFollowRemoveMock).toHaveBeenCalledTimes(2);
+    expect(pendingFollowRemoveMock).toHaveBeenNthCalledWith(1, 17);
+    expect(pendingFollowRemoveMock).toHaveBeenNthCalledWith(2, 18);
   });
 
   it('does not write last_parsed_file_hash when last_finished_parse_time update fails', async () => {
