@@ -42,6 +42,7 @@ const {
   followingAccountGetAllWithCountMock,
   hasFollowedAddByRSSChannelMock,
   getFollowedAddByRSSChannelCountMock,
+  getFollowedChannelsMock,
 } = vi.hoisted(() => ({
   followAccountMock: vi.fn(async () => {}),
   unfollowAccountMock: vi.fn(async () => {}),
@@ -93,6 +94,7 @@ const {
   followingAccountGetAllWithCountMock: vi.fn(async () => ({ results: [], count: 0 })),
   hasFollowedAddByRSSChannelMock: vi.fn(async () => false),
   getFollowedAddByRSSChannelCountMock: vi.fn(async () => 0),
+  getFollowedChannelsMock: vi.fn(async () => []),
 }));
 
 vi.mock('@podverse/orm', async (importOriginal) => {
@@ -120,6 +122,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
   class MockAccountFollowingChannelService {
     followChannel = followChannelMock;
     unfollowChannel = unfollowChannelMock;
+    getFollowedChannels = getFollowedChannelsMock;
   }
 
   class MockAccountFollowingPlaylistService {
@@ -718,6 +721,44 @@ describe('account follows and notification routes', () => {
     it('returns 401 without auth', async () => {
       const res = await request(app).get(`${accountBase}/add-by-rss/parse/status/some-request-id`);
 
+      expect(res.status).toBe(401);
+    });
+  });
+
+  describe('GET /opml/export', () => {
+    it('returns 200 with OPML payload when authenticated', async () => {
+      getFollowedChannelsMock.mockResolvedValueOnce([
+        {
+          channel: {
+            title: 'Directory Feed',
+            feed: {
+              url: 'https://example.com/directory.xml',
+            },
+          },
+        },
+      ]);
+      getFollowedAddByRSSChannelsMock.mockResolvedValueOnce([
+        {
+          feed_url: 'https://example.com/add-by-rss.xml',
+          title: 'Add by RSS Feed',
+        },
+      ]);
+
+      const res = await request(app)
+        .get(`${accountBase}/opml/export`)
+        .set(authHeaders(TEST_USER_ID));
+
+      expect(res.status).toBe(200);
+      expect(res.headers['content-type']).toContain('text/x-opml');
+      expect(res.headers['content-disposition']).toContain('podverse-opml-export-');
+      expect(res.headers['content-disposition']).toContain('.opml');
+      expect(res.text).toContain('<opml version="2.0">');
+      expect(res.text).toContain('xmlUrl="https://example.com/directory.xml"');
+      expect(res.text).toContain('xmlUrl="https://example.com/add-by-rss.xml"');
+    });
+
+    it('returns 401 without auth', async () => {
+      const res = await request(app).get(`${accountBase}/opml/export`);
       expect(res.status).toBe(401);
     });
   });

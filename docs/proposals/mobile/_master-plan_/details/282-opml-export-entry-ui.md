@@ -7,7 +7,8 @@
 ## Scope
 
 - OPML export entry-point button in More/Library (UI + navigation only).
-- Actual OPML generation + share is Track 16.6–16.7; this step just adds the entry point.
+- Actual OPML generation + share delivered in Track 16.6–16.7; see
+  `.llm/plans/completed/opml-import-export/` and [OPML](/docs/features/OPML.md).
 
 ## Acceptance criteria
 
@@ -17,7 +18,7 @@
 
 ## Web parity references
 
-- Web OPML export affordance (settings/library area); implementation deferred to Track 16
+- Web OPML export: Settings → OPML (`SettingsOpml`)
 - More stack: [`225-more-stack`](/docs/proposals/mobile/_master-plan_/details/225-more-stack.md)
 
 ## Verification

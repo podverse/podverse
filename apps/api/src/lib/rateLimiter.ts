@@ -36,21 +36,36 @@ function createLimiter(options: RateLimiterOptions) {
   });
 }
 
+export interface AuthRateLimitMiddleware {
+  (req: Request, res: Response, next: NextFunction): void;
+  /**
+   * Reset the accumulated request count for a single user. Primarily for tests:
+   * the default express-rate-limit store is in-memory and persists for the
+   * process lifetime, so a test that intentionally exhausts the limiter would
+   * otherwise bleed 429s into every later test for the same user.
+   */
+  resetForUser: (userId: number | string) => void;
+}
+
 /**
  * Per-user rate limiting requiring authentication.
  * Returns JSON when limit reached.
  */
-export function rateLimitAuthEndpoint(options: { windowMs: number; max: number }) {
+export function rateLimitAuthEndpoint(options: {
+  windowMs: number;
+  max: number;
+}): AuthRateLimitMiddleware {
+  const buildUserKey = (userId: number | string) => `user:${userId}`;
   const keyGenerator = (req: Request) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const userId = (req as any).user?.id || (req as any).user?.userId;
     if (!userId) {
       throw new Error('Authentication required');
     }
-    return `user:${userId}`;
+    return buildUserKey(userId);
   };
   const limiter = createLimiter({ ...options, keyGenerator });
-  return (req: Request, res: Response, next: NextFunction) => {
+  const middleware = (req: Request, res: Response, next: NextFunction): void => {
     ensureAuthenticated(
       req,
       res,
@@ -64,6 +79,11 @@ export function rateLimitAuthEndpoint(options: { windowMs: number; max: number }
       { skipMembershipStatus: true }
     );
   };
+  return Object.assign(middleware, {
+    resetForUser: (userId: number | string) => {
+      limiter.resetKey(buildUserKey(userId));
+    },
+  });
 }
 
 /**

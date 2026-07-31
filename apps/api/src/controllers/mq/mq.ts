@@ -1,3 +1,4 @@
+import { config } from '@api/config/index.js';
 import { activeMQArtemisService } from '@api/factories/activeMQArtemisService.js';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
 import { cacheGetJson, cacheSetJson } from '@api/lib/keyvaldb/keyvaldb.js';
@@ -25,8 +26,8 @@ const buildRSSOnDemandHourlyKey = (accountId: number, type: OnDemandParserEventT
 
 export class MQController {
   static rssOnDemandMiddleware = rateLimitAuthEndpoint({
-    windowMs: 60 * 60 * 1000,
-    max: 20,
+    windowMs: config.rateLimits.mqRssOnDemand.windowMs,
+    max: config.rateLimits.mqRssOnDemand.max,
   });
 
   static rssAddToOnDemandMQ(type: OnDemandParserEventType) {

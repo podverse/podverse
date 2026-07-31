@@ -1,4 +1,5 @@
-import { getErrorStatusCode } from '../lib/httpError';
+import { getErrorResponseStatus } from '@podverse/helpers/error';
+
 import { createMobileApiRequestService } from './mobileApi';
 
 type LoginWithMobileTokenParams = {
@@ -40,7 +41,7 @@ export const loginWithMobileToken = async ({
       refreshToken: mobileToken.refresh_token,
     };
   } catch (error) {
-    if (getErrorStatusCode(error) === 401) {
+    if (getErrorResponseStatus(error) === 401) {
       return { error: 'invalid_credentials', ok: false };
     }
 

@@ -25,6 +25,7 @@ import type { AccountMembershipStatus } from './accountMembershipStatus.js';
 import type { AccountMetaboost } from './accountMetaboost.js';
 import type { AccountNotificationChannel } from './accountNotificationChannel.js';
 import type { AccountPayPalOrder } from './accountPayPalOrder.js';
+import type { AccountPendingFollowingChannel } from './accountPendingFollowingChannel.js';
 import type { AccountProfile } from './accountProfile.js';
 import type { AccountResetPassword } from './accountResetPassword.js';
 import type { AccountSettings } from './accountSettings/accountSettings.js';
@@ -97,6 +98,13 @@ export class Account {
     (accountFollowingPlaylist: AccountFollowingPlaylist) => accountFollowingPlaylist.account
   )
   account_following_playlists!: AccountFollowingPlaylist[];
+
+  @OneToMany(
+    'AccountPendingFollowingChannel',
+    (accountPendingFollowingChannel: AccountPendingFollowingChannel) =>
+      accountPendingFollowingChannel.account
+  )
+  account_pending_following_channels!: AccountPendingFollowingChannel[];
 
   @OneToMany(
     'AccountGooglePlayPurchase',

@@ -5,7 +5,7 @@ import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'r
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { LiveItemStatusEnum } from '@podverse/helpers/dto';
-import type { ApiListResponse } from '@podverse/helpers-requests';
+import { getTotalPages } from '@podverse/helpers/pagination';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
@@ -74,15 +74,6 @@ const toLiveRows = (items: DTOItem[]): PodcastLiveRow[] => {
       };
     })
     .filter((row) => row.id.length > 0);
-};
-
-const getHasMorePages = (response: ApiListResponse<DTOItem>): boolean => {
-  const nextCount = (response.meta.page ?? FIRST_PAGE) * response.meta.limit;
-  if (response.meta.count === null) {
-    return response.data.length >= response.meta.limit && response.meta.limit > 0;
-  }
-
-  return nextCount < response.meta.count;
 };
 
 const LIVE_STATUS_KEYS: Record<LiveItemStatusEnum, string> = {
@@ -251,7 +242,14 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
         }
         setLiveRows(toLiveRows(liveResponse));
         setCurrentPage(page);
-        setHasMorePages(getHasMorePages(itemResponse));
+        const responsePage = itemResponse.meta.page ?? FIRST_PAGE;
+        const totalPages = getTotalPages(
+          itemResponse.meta.count,
+          itemResponse.meta.limit,
+          itemResponse.data.length,
+          responsePage
+        );
+        setHasMorePages(itemResponse.meta.limit > 0 && responsePage < totalPages);
 
         const normalizedEpisodes = toEpisodeRows(itemResponse.data);
         if (source === 'loadMore') {

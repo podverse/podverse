@@ -35,6 +35,7 @@
     "mq_rss_run_live_item_listener": "node ./dist/index.js mqRSSRunLiveItemListener",
     "mq_rss_run_parser": "node ./dist/index.js mqRSSRunParser",
     "mq_add_by_rss_run_parser": "node ./dist/index.js mqAddByRSSRunParser",
+    "mq_opml_import_run": "node ./dist/index.js mqOpmlImportRun",
     "mq_rss_run_dlq_consumer": "node ./dist/index.js mqRSSRunDlqConsumer",
     "orm_on_demand_parser_event_delete_outdated": "node ./dist/index.js deleteOutdatedOnDemandParserEvent",
     "orm_on_demand_parser_event_generate_reports": "node ./dist/index.js generateOnDemandParserEventReports",

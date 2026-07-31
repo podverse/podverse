@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { GestureResponderEvent } from 'react-native';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOPlaylist } from '@podverse/helpers';
@@ -9,6 +8,7 @@ import type { DTOPlaylist } from '@podverse/helpers';
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
 import { Button } from '../../components/primitives';
+import { stopPropagation } from '../../lib/gesture/stopPropagation';
 import { useTheme } from '../../theme/useTheme';
 
 /**
@@ -25,10 +25,6 @@ type UseAddToPlaylist = {
   requestAddToPlaylist: (target: AddToPlaylistTarget) => void;
   /** Render once in the host screen tree; drives the picker sheet + notices. */
   addToPlaylistSheet: ReactNode;
-};
-
-const stopPropagation = (event: GestureResponderEvent) => {
-  event.stopPropagation();
 };
 
 /**

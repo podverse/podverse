@@ -162,6 +162,14 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     example_cli: 'npm run mq_add_by_rss_run_parser -w apps/workers',
   },
   {
+    name: 'mqOpmlImportRun',
+    label: 'MQ: OPML import consumer',
+    description: 'Long-running consumer for async OPML import (3-tier feed resolution).',
+    category: 'mq',
+    risk: 'long_running',
+    example_cli: 'npm run mq_opml_import_run -w apps/workers -- -q opml-import',
+  },
+  {
     name: 'reencryptAddByRSSCredentials',
     label: 'ORM: re-encrypt Add-by-RSS credentials',
     description: 'Re-encrypt stored Add-by-RSS credentials (maintenance / rotation).',

@@ -157,6 +157,7 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
       'Blank/false: omit token from login JSON; true: allow token when client sends includeTokenInResponseBody'
     )
   );
+  results.push(validateOptional('AUTH_LOGIN_MAX_PER_MINUTE', 'Auth & Security', 'Use Default (5)'));
   results.push(validateRequired('BRAND_NAME', 'Auth & Security'));
   results.push(validateUserAgent());
 
@@ -221,6 +222,73 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
 
   // Add-by-RSS (required: Basic Auth credentials encrypted at rest)
   results.push(validateRequired('ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY', 'Add-by-RSS'));
+  results.push(
+    validateOptional(
+      'ACCOUNT_ADD_BY_RSS_PARSE_ENQUEUE_MAX_PER_HOUR',
+      'Add-by-RSS',
+      'Use Default (20)'
+    )
+  );
+  results.push(
+    validateOptional(
+      'ACCOUNT_ADD_BY_RSS_CHAPTERS_TRANSCRIPT_MAX_PER_MINUTE',
+      'Add-by-RSS',
+      'Use Default (30)'
+    )
+  );
+
+  // OPML import (optional; default 50 new feeds/hour)
+  results.push(
+    validateOptional('OPML_IMPORT_MAX_FEEDS_PER_HOUR', 'OPML Import', 'Use Default (50)')
+  );
+  results.push(
+    validateOptional('ACCOUNT_OPML_IMPORT_ENQUEUE_MAX_PER_HOUR', 'OPML Import', 'Use Default (10)')
+  );
+  results.push(
+    validateOptional('ACCOUNT_OPML_EXPORT_MAX_PER_HOUR', 'OPML Import', 'Use Default (10)')
+  );
+
+  // Account rate limits (optional)
+  results.push(validateOptional('ACCOUNT_CREATE_MAX_PER_10_MINUTES', 'Account', 'Use Default (3)'));
+  results.push(
+    validateOptional(
+      'ACCOUNT_SEND_VERIFICATION_EMAIL_MAX_PER_10_MINUTES',
+      'Account',
+      'Use Default (4)'
+    )
+  );
+  results.push(
+    validateOptional('ACCOUNT_VERIFY_EMAIL_MAX_PER_10_MINUTES', 'Account', 'Use Default (10)')
+  );
+  results.push(
+    validateOptional('ACCOUNT_SEND_CHANGE_EMAIL_MAX_PER_10_MINUTES', 'Account', 'Use Default (4)')
+  );
+  results.push(
+    validateOptional(
+      'ACCOUNT_VERIFY_EMAIL_CHANGE_MAX_PER_10_MINUTES',
+      'Account',
+      'Use Default (10)'
+    )
+  );
+  results.push(
+    validateOptional(
+      'ACCOUNT_SEND_RESET_PASSWORD_EMAIL_MAX_PER_10_MINUTES',
+      'Account',
+      'Use Default (4)'
+    )
+  );
+  results.push(
+    validateOptional('ACCOUNT_RESET_PASSWORD_MAX_PER_10_MINUTES', 'Account', 'Use Default (4)')
+  );
+  results.push(
+    validateOptional('ACCOUNT_SET_PASSWORD_MAX_PER_10_MINUTES', 'Account', 'Use Default (4)')
+  );
+  results.push(validateOptional('ACCOUNT_DOWNLOAD_DATA_MAX_PER_DAY', 'Account', 'Use Default (3)'));
+
+  // MQ rate limits (optional)
+  results.push(
+    validateOptional('MQ_RSS_ON_DEMAND_MAX_PER_HOUR', 'Message Queue', 'Use Default (20)')
+  );
 
   // Premium/Membership
   // Note: validateSignupMode() is called earlier to determine conditional requirements

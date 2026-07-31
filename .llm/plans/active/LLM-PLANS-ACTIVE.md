@@ -16,6 +16,14 @@ _Active (non-mobile):_ `media-player-livestream-hls-migration/`,
 `web-e2e-coverage-high-level/`, `route-navigation-loading-warning/`,
 `web-404-hardening-deferred/`, `doc-link-path-missed-followup/`.
 
+_Recently completed (non-mobile):_
+[opml-test-hardening](../completed/opml-test-hardening/) (deferred OPML confidence work: HTTP 429
+burn-in tests, broker-backed worker integration + `requestId` dedupe regression, E2E hourly-counter
+determinism),
+[rate-limit-env-tunable](../completed/rate-limit-env-tunable/) (API HTTP + OPML soft-cap env
+knobs with `_PER_MINUTE` / `_PER_10_MINUTES` / `_PER_HOUR` / `_PER_DAY`, plus local
+`rate-limit.env` override wiring).
+
 _Recently completed (mobile):_
 [mobile-pg8-car-library-follows](../completed/mobile-pg8-car-library-follows/) (12.22, 12.21 — car
 Library browse projects the merged subscriptions list + followed playlists; parallel-worktree

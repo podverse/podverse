@@ -306,6 +306,7 @@ When implementing features or executing plans that touch **api** or **management
 
 - **Test env (no `local_env_setup`)** — API integration tests and Playwright E2E use deterministic env from [`packages/helpers-config/src/podverseTestEnv.ts`](packages/helpers-config/src/podverseTestEnv.ts). E2E servers set `PODVERSE_SKIP_DOTENV=true` so missing `apps/api/.env` does not fail startup. **`make local_env_setup` is for local dev only**, not required for `make test_deps`, `npm run test:e2e:api`, or `make e2e_test_*`.
 - **`make test_deps`** — starts Postgres (port **5732**), Valkey (port **6679**), creates test DBs (`podverse_app_test`, `podverse_management_test`), applies schema. Port coexistence: Podverse dev uses 5432/6379; the dedicated test ports avoid clashing with those and with other local toolchains that may use different test ports.
+- **`make test_deps_mq`** — optional broker-backed integration dependency: starts ActiveMQ Artemis on port **61616** and provisions `opml-import`, `rss-on-demand`, and `add-by-rss-on-demand` (+ DLQs). Use with `PODVERSE_RUN_MQ_INTEGRATION=1` for MQ-backed worker integration tests.
 - **`scripts/check-test-requirements.mjs`** — TCP check for 5732/6679; exits with instructions if unreachable.
 - **`make help_test`** — prints test ports, container names, and instructions.
 - **Playwright browsers:** one-time install: `npx playwright install chromium`.

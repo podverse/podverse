@@ -9,6 +9,8 @@ import { AccountFollowingChannelController } from '@api/controllers/account/acco
 import { AccountFollowingPlaylistController } from '@api/controllers/account/accountFollowingPlaylist.js';
 import { AccountNotificationChannelController } from '@api/controllers/account/accountNotificationChannel.js';
 import { AccountNotificationChannelTypeController } from '@api/controllers/account/accountNotificationChannelType.js';
+import { AccountOpmlExportController } from '@api/controllers/account/accountOpmlExport.js';
+import { AccountOpmlImportController } from '@api/controllers/account/accountOpmlImport.js';
 import { AccountUPDeviceController } from '@api/controllers/account/accountUPDevice.js';
 import { AccountWebPushDeviceController } from '@api/controllers/account/accountWebPushDevice.js';
 import { rateLimitAuthEndpoint, rateLimitEndpoint } from '@api/lib/rateLimiter.js';
@@ -42,7 +44,7 @@ router.get('/subscribed/top', asyncHandler(AccountController.getManySubscribedTo
 
 router.post(
   '/',
-  rateLimitEndpoint({ windowMs: 10 * 60 * 1000, max: 3 }),
+  rateLimitEndpoint(config.rateLimits.accountCreate),
   asyncHandler(AccountController.create)
 );
 router.post('/accept-terms', asyncHandler(AccountController.acceptTerms));
@@ -50,49 +52,59 @@ router.put('/', asyncHandler(AccountController.update));
 router.post(
   '/send-verification-email',
   requireEmailFlows,
-  rateLimitEndpoint({ windowMs: 10 * 60 * 1000, max: 4 }),
+  rateLimitEndpoint(config.rateLimits.accountSendVerificationEmail),
   asyncHandler(AccountController.sendVerificationEmail)
 );
 router.post(
   '/verify-email',
   requireEmailFlows,
-  rateLimitEndpoint({ windowMs: 10 * 60 * 1000, max: 10 }),
+  rateLimitEndpoint(config.rateLimits.accountVerifyEmail),
   asyncHandler(AccountController.verifyEmail)
 );
 router.post(
   '/send-change-email-address-email',
   requireEmailFlows,
-  rateLimitEndpoint({ windowMs: 10 * 60 * 1000, max: 4 }),
+  rateLimitEndpoint(config.rateLimits.accountSendChangeEmail),
   asyncHandler(AccountController.sendEmailChangeVerificationEmail)
 );
 router.post(
   '/verify-email-change',
   requireEmailFlows,
-  rateLimitEndpoint({ windowMs: 10 * 60 * 1000, max: 10 }),
+  rateLimitEndpoint(config.rateLimits.accountVerifyEmailChange),
   asyncHandler(AccountController.verifyEmailChange)
 );
 router.post(
   '/send-reset-password-email',
   requireEmailFlows,
-  rateLimitEndpoint({ windowMs: 10 * 60 * 1000, max: 4 }),
+  rateLimitEndpoint(config.rateLimits.accountSendResetPasswordEmail),
   asyncHandler(AccountController.sendResetPasswordEmail)
 );
 router.post(
   '/reset-password',
   requireEmailFlows,
-  rateLimitEndpoint({ windowMs: 10 * 60 * 1000, max: 4 }),
+  rateLimitEndpoint(config.rateLimits.accountResetPassword),
   asyncHandler(AccountController.resetPassword)
 );
 router.post(
   '/set-password',
-  rateLimitEndpoint({ windowMs: 10 * 60 * 1000, max: 4 }),
+  rateLimitEndpoint(config.rateLimits.accountSetPassword),
   asyncHandler(AccountController.setPassword)
 );
 router.delete('/delete', asyncHandler(AccountController.delete));
 router.get(
   '/download-data',
-  rateLimitAuthEndpoint({ windowMs: 24 * 60 * 60 * 1000, max: 3 }),
+  rateLimitAuthEndpoint(config.rateLimits.accountDownloadData),
   asyncHandler(AccountController.downloadData)
+);
+router.get(
+  '/opml/export',
+  rateLimitAuthEndpoint(config.rateLimits.accountOpmlExport),
+  asyncHandler(AccountOpmlExportController.exportOpml)
+);
+router.post('/opml/import', asyncHandler(AccountOpmlImportController.enqueueImport));
+router.get(
+  '/opml/import/status/:request_id',
+  asyncHandler(AccountOpmlImportController.getImportStatus)
 );
 
 router.post('/fcm-device/create', asyncHandler(AccountFCMDeviceController.create));
@@ -146,7 +158,7 @@ router.post(
 );
 router.post(
   '/add-by-rss/chapters-transcript',
-  rateLimitEndpoint({ windowMs: 60 * 1000, max: 30 }),
+  rateLimitEndpoint(config.rateLimits.accountAddByRssChaptersTranscript),
   asyncHandler(AccountAddByRSSChaptersTranscriptController.getChaptersAndTranscript)
 );
 router.post('/add-by-rss/parse', asyncHandler(AccountAddByRSSParseController.enqueueParse));

@@ -89,6 +89,21 @@ export class AccountFollowingChannelService extends BaseManyService<
     return this._getAllWithCount(account, finalConfig);
   }
 
+  async hasFollowedChannel(account_id: number, channel_id_text: string): Promise<boolean> {
+    const account = await this.accountService.get(account_id);
+    if (!account) {
+      throw new Error('Account not found.');
+    }
+
+    const channel = await this.channelService.getByIdText(channel_id_text);
+    if (!channel) {
+      throw new Error('Channel not found.');
+    }
+
+    const existing = await this._get(account, { channel_id: channel.id });
+    return !!existing;
+  }
+
   async followChannel(
     account_id: number,
     channel_id_text: string

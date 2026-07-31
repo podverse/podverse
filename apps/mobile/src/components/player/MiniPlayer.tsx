@@ -3,23 +3,16 @@ import { useTranslation } from 'react-i18next';
 import type { GestureResponderEvent } from 'react-native';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { clampRatio } from '@podverse/helpers/math';
+
 import { PodverseVideoSurfaceView } from '../../../modules/podverse-media-engine';
+import { stopPropagation } from '../../lib/gesture/stopPropagation';
 import { usePlayback } from '../../playback/PlaybackProvider';
 import { useTheme } from '../../theme/useTheme';
 import { Button } from '../primitives/Button';
 
 type MiniPlayerProps = {
   onExpand: () => void;
-};
-
-const clampRatio = (value: number): number => {
-  if (!Number.isFinite(value) || value <= 0) {
-    return 0;
-  }
-  if (value >= 1) {
-    return 1;
-  }
-  return value;
 };
 
 /**
@@ -108,7 +101,7 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
   const progressRatio = durationSeconds > 0 ? clampRatio(positionSeconds / durationSeconds) : 0;
 
   const handleToggle = (event: GestureResponderEvent) => {
-    event.stopPropagation();
+    stopPropagation(event);
     if (isPlaying) {
       pause();
     } else {

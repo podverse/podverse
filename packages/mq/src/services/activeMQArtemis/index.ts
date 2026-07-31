@@ -1,4 +1,8 @@
-import type { MQAddByRSSMessage, MQImageShrinkHintMessage } from '@queue/types/mq.js';
+import type {
+  MQAddByRSSMessage,
+  MQImageShrinkHintMessage,
+  MQOpmlImportMessage,
+} from '@queue/types/mq.js';
 import crypto from 'crypto';
 import type { Connection, EventContext, Receiver, Sender } from 'rhea';
 import rhea from 'rhea';
@@ -8,6 +12,7 @@ import type { ILoggerLike } from '@podverse/helpers-backend';
 import { getContainerIpPart } from '@podverse/helpers-backend';
 import type { ParseRSSFeedAndSaveToDatabaseOptions } from '@podverse/parser';
 
+import { computeMqDuplicateId } from '../../lib/computeMqDuplicateId.js';
 import { attachMqTraceContext, withMqConsumerSpan } from '../../lib/traceEnvelope.js';
 
 export type MQQueueName =
@@ -16,9 +21,10 @@ export type MQQueueName =
   | 'rss-live'
   | 'add-by-rss-on-demand'
   | 'add-by-rss-background'
+  | 'opml-import'
   | 'image-shrinking-hints'
   | `DLQ.${'rss-normal' | 'rss-on-demand' | 'rss-live'}`
-  | `DLQ.${'add-by-rss-on-demand' | 'add-by-rss-background'}`
+  | `DLQ.${'add-by-rss-on-demand' | 'add-by-rss-background' | 'opml-import'}`
   | 'DLQ.image-shrinking-hints';
 
 type MQRSSMessage = {
@@ -27,7 +33,7 @@ type MQRSSMessage = {
   options: ParseRSSFeedAndSaveToDatabaseOptions;
 };
 
-type Message = MQRSSMessage | MQAddByRSSMessage | MQImageShrinkHintMessage;
+type Message = MQRSSMessage | MQAddByRSSMessage | MQImageShrinkHintMessage | MQOpmlImportMessage;
 
 type SendMessageParams = {
   queueName: MQQueueName;
@@ -315,33 +321,13 @@ export class ActiveMQArtemisService {
     });
   }
 
-  private computeDuplicateId(
-    queueName: MQQueueName,
-    message: Message,
-    dedupeCacheTimeMS: number | null
-  ): string | null {
-    if (!dedupeCacheTimeMS || dedupeCacheTimeMS <= 0) {
-      return null;
-    }
-    const dedupeValue =
-      'podcast_index_id' in message
-        ? (message.podcast_index_id ?? message.url)
-        : 'feedUrl' in message
-          ? message.feedUrl
-          : message.url;
-    const baseHash = crypto.createHash('sha256').update(String(dedupeValue)).digest('hex');
-    const now = Date.now();
-    const bucketStart = Math.floor(now / dedupeCacheTimeMS) * dedupeCacheTimeMS;
-    return `${queueName}:${bucketStart}:${baseHash}`;
-  }
-
   async sendMessage(params: SendMessageParams): Promise<void> {
     const { queueName, message, priority, dedupeCacheTimeMS, amqpPriority } = params;
     try {
       const sender = await this.ensureSender(queueName);
       const messageWithTrace = attachMqTraceContext(message);
       const bodyString = JSON.stringify(messageWithTrace);
-      const duplicateId = this.computeDuplicateId(queueName, message, dedupeCacheTimeMS);
+      const duplicateId = computeMqDuplicateId(queueName, message, dedupeCacheTimeMS);
       if (process.env.MQ_DEBUG === 'true') {
         this.logger.info('MQ send debug', {
           queueName,

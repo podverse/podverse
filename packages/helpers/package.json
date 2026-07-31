@@ -23,6 +23,34 @@
       "types": "./dist/lib/i18n/timeFormatter.d.ts",
       "default": "./dist/lib/i18n/timeFormatter.js"
     },
+    "./error": {
+      "types": "./dist/lib/error/index.d.ts",
+      "default": "./dist/lib/error/index.js"
+    },
+    "./guards": {
+      "types": "./dist/lib/guards.d.ts",
+      "default": "./dist/lib/guards.js"
+    },
+    "./html": {
+      "types": "./dist/lib/html.d.ts",
+      "default": "./dist/lib/html.js"
+    },
+    "./math": {
+      "types": "./dist/lib/math.d.ts",
+      "default": "./dist/lib/math.js"
+    },
+    "./pagination": {
+      "types": "./dist/lib/pagination.d.ts",
+      "default": "./dist/lib/pagination.js"
+    },
+    "./opml": {
+      "types": "./dist/lib/opml/opmlImportErrors.d.ts",
+      "default": "./dist/lib/opml/opmlImportErrors.js"
+    },
+    "./time": {
+      "types": "./dist/lib/time.d.ts",
+      "default": "./dist/lib/time.js"
+    },
     "./dto": {
       "types": "./dist/dtos/index.d.ts",
       "default": "./dist/dtos/index.js"

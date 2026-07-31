@@ -12,13 +12,15 @@ import { SettingsAccount } from './Panels/SettingsAccount/SettingsAccount';
 import { SettingsGeneral } from './Panels/SettingsGeneral/SettingsGeneral';
 import { SettingsKeyboard } from './Panels/SettingsKeyboard/SettingsKeyboard';
 import { SettingsNotifications } from './Panels/SettingsNotifications/SettingsNotifications';
+import { SettingsOpml } from './Panels/SettingsOpml/SettingsOpml';
 import { SettingsProfile } from './Panels/SettingsProfile/SettingsProfile';
 import { SettingsWrapper } from './SettingsWrapper';
 
-type TabKey = 'account' | 'general' | 'keyboard' | 'notifications' | 'profile';
+type TabKey = 'account' | 'general' | 'keyboard' | 'notifications' | 'opml' | 'profile';
 
 function tabFromQueryParam(value: string | null): TabKey | null {
-  if (value === 'account' || value === 'profile' || value === 'notifications') return value;
+  if (value === 'account' || value === 'profile' || value === 'notifications' || value === 'opml')
+    return value;
   if (value === 'general') return 'general';
   if (value === 'keyboard') return 'keyboard';
   return null;
@@ -108,6 +110,13 @@ export function Settings() {
         zIndex: z,
       });
       z -= 1;
+      rows.push({
+        key: 'opml',
+        label: tSettings('opml.opml'),
+        onClick: () => handleTabChange('opml'),
+        zIndex: z,
+      });
+      z -= 1;
     }
     rows.push({
       key: 'keyboard',
@@ -127,6 +136,7 @@ export function Settings() {
         {loggedInAccount && tab === 'account' && <SettingsAccount />}
         {loggedInAccount && tab === 'profile' && <SettingsProfile />}
         {loggedInAccount && tab === 'notifications' && <SettingsNotifications />}
+        {loggedInAccount && tab === 'opml' && <SettingsOpml />}
       </SettingsWrapper>
     </div>
   );

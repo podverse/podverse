@@ -9,10 +9,12 @@
     "stack": {
       "home": "Αρχική",
       "search_result": "Αποτέλεσμα αναζήτησης",
-      "rss_feeds": "Ροές RSS"
+      "rss_feeds": "Ροές RSS",
+      "opml": "OPML"
     },
     "menu": {
-      "view_rss_feeds": "Προβολή ροών RSS"
+      "view_rss_feeds": "Προβολή ροών RSS",
+      "opml": "OPML"
     }
   },
   "features": {
@@ -36,6 +38,10 @@
       "add_needs_membership": "Ο λογαριασμός σας δεν έχει πρόσβαση για προσθήκη podcast από την αναζήτηση.",
       "add_failed": "Δεν ήταν δυνατή η προσθήκη αυτού του podcast. Δοκιμάστε ξανά αργότερα.",
       "add_timed_out": "Ακόμα επεξεργάζεται μετά από αρκετά λεπτά. Αναζητήστε ξανά σύντομα για να ανοίξετε αυτό το podcast — η προσθήκη δεν σας εγγράφει αυτόματα."
+    },
+    "opml": {
+      "rate_limited_time_one": "1 minute",
+      "rate_limited_time_other": "{minutes} minutes"
     }
   }
 }

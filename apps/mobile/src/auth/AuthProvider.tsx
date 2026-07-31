@@ -2,6 +2,7 @@ import type { PropsWithChildren } from 'react';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import type { DTOAccount } from '@podverse/helpers/dto';
+import { getErrorResponseStatus } from '@podverse/helpers/error';
 
 import { getMobileConfig } from '../config';
 // Import the repository from its module (not the data barrel) to avoid an import cycle through
@@ -9,7 +10,6 @@ import { getMobileConfig } from '../config';
 import { accountRepository } from '../data/repositories/accountRepository';
 import { addByRssRepository } from '../data/repositories/addByRssRepository';
 import { applyAccountLocaleOverride } from '../i18n';
-import { getErrorStatusCode } from '../lib/httpError';
 import { refreshAccessTokenSingleFlight } from './authRequestWithRefresh';
 import { logoutWithMobileRevoke } from './logoutWithMobileRevoke';
 import { clearAllSecureTokens, readSecureToken, writeSecureToken } from './secureTokenStorage';
@@ -149,7 +149,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       setStatus('authenticated');
       setError(null);
     } catch (error) {
-      if (getErrorStatusCode(error) === 401) {
+      if (getErrorResponseStatus(error) === 401) {
         await clearSession();
         return;
       }

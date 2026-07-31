@@ -19,6 +19,7 @@ import {
 } from '@podverse/helpers';
 import { type ILoggerLike, summarizeUpstreamHttpErrorForLog } from '@podverse/helpers-backend';
 import { type AxiosRequestConfig, requestWithUserAgent } from '@podverse/helpers-requests';
+import { canonicalHttpOrHttpsUrl } from '@podverse/helpers-validation';
 
 import { shouldRetryPodcastIndexRequest } from './isRetryablePodcastIndexError.js';
 import {
@@ -121,7 +122,7 @@ export class PodcastIndexService {
     extraParams?: PodcastIndexAPIRequestExtraParams
   ) => {
     if (extraParams?.delayMs && extraParams.delayMs > 0) {
-      await new Promise((resolve) => setTimeout(resolve, extraParams.delayMs));
+      await sleep(extraParams.delayMs);
     }
 
     const maxAttempts = this.maxRetries + 1;
@@ -223,6 +224,41 @@ export class PodcastIndexService {
 
   // Test podcast_index_id range (only active in non-production)
   private readonly TEST_PODCAST_INDEX_ID_MIN = 2147483640;
+
+  private deriveHttpsAndHttpUrlsFromInput(inputUrl: string): {
+    httpsUrl: string;
+    httpUrl: string;
+  } | null {
+    const normalized = canonicalHttpOrHttpsUrl(inputUrl);
+    if (normalized === null) {
+      return null;
+    }
+    const base = normalized.replace(/^https?:\/\//i, '');
+    return {
+      httpsUrl: `https://${base}`,
+      httpUrl: `http://${base}`,
+    };
+  }
+
+  private normalizePodcastFeed(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    feed: any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): any | null {
+    if (!feed || typeof feed !== 'object') {
+      return null;
+    }
+
+    const rawId = feed.id;
+    const idNumber = typeof rawId === 'number' ? rawId : Number.parseInt(String(rawId), 10);
+    const normalizedId = Number.isFinite(idNumber) ? idNumber : null;
+
+    return {
+      ...feed,
+      feedId: normalizedId,
+      podcast_index_id: normalizedId,
+    };
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private getMockTestFeed(podcast_index_id: number): any | null {
@@ -354,6 +390,30 @@ export class PodcastIndexService {
     }
 
     return podcastIndexPodcast || null;
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  podcastGetByFeedUrl = async (feedUrl: string): Promise<any | null> => {
+    const urlVariants = this.deriveHttpsAndHttpUrlsFromInput(feedUrl);
+    if (urlVariants === null) {
+      return null;
+    }
+
+    const lookupUrls = [urlVariants.httpsUrl, urlVariants.httpUrl];
+    for (const lookupUrl of lookupUrls) {
+      const url = `${this.baseUrl}/podcasts/byfeedurl?url=${encodeURIComponent(lookupUrl)}`;
+      try {
+        const response = await this.podcastIndexAPIRequest(url);
+        const normalizedFeed = this.normalizePodcastFeed(response?.feed);
+        if (normalizedFeed !== null) {
+          return normalizedFeed;
+        }
+      } catch {
+        // assume a 404 / not found; fallback to the next scheme variant.
+      }
+    }
+
+    return null;
   };
 
   podcastsByMedium = async (medium: string, max: number = 100) => {

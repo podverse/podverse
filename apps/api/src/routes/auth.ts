@@ -15,14 +15,7 @@ const router = Router();
 
 router.use(`${config.api.prefix}${config.api.version}/auth`, router);
 
-/** Integration tests issue many sequential POST /login calls; production stays strict. */
-const loginRateLimitMax = config.nodeEnv === 'test' ? 100 : 5;
-
-router.post(
-  '/login',
-  rateLimitEndpoint({ windowMs: 60 * 1000, max: loginRateLimitMax }),
-  authenticate
-);
+router.post('/login', rateLimitEndpoint(config.rateLimits.authLogin), authenticate);
 router.post('/logout', logout);
 router.post('/mobile/token', asyncHandler(issueMobileToken));
 router.post('/mobile/refresh', asyncHandler(refreshMobileToken));

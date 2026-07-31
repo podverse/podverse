@@ -6,6 +6,7 @@ import { devPiBulkFeedsAddFromFile } from '@workers/commands/mq/rss/devPiBulkFee
 import { mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex } from '@workers/commands/mq/rss/mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex.js';
 import { mqRSSAddTrendingPodcastsFromPodcastIndex } from '@workers/commands/mq/rss/mqRSSAddTrendingPodcastsFromPodcastIndex.js';
 import { mqAddByRSSRunParser } from '@workers/commands/mq/rss/runAddByRSSParser.js';
+import { mqOpmlImportRun } from '@workers/commands/mq/rss/runOpmlImport.js';
 import { mqRSSRunParser } from '@workers/commands/mq/rss/runParser.js';
 import { reencryptAddByRSSCredentials } from '@workers/commands/orm/addByRSS/reencryptCredentials.js';
 import { parserRSSParseFeed } from '@workers/commands/parser/rss/parseFeed.js';
@@ -52,6 +53,7 @@ export default {
   mqRSSRunDlqConsumer,
   mqRSSRunParser,
   mqAddByRSSRunParser,
+  mqOpmlImportRun,
   mqRSSRunLiveItemListener,
   devPiBulkFeedsAddFromFile,
   mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex,

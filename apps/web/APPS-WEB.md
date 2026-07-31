@@ -108,6 +108,7 @@ Copy the appropriate file to `.env.local` for your environment.
 - Episode playback with custom player
 - Clip creation and sharing
 - User playlists
+- OPML import/export (Settings → OPML; see [docs/features/OPML.md](/docs/features/OPML.md))
 - Premium membership features
 - Value-for-value (V4V) payments
 - Multi-language support (i18n)

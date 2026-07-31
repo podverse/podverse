@@ -802,6 +802,33 @@ components:
       type: object
       description: Operation-specific response payload for GET /account/download-data (200).
       additionalProperties: true
+    ApiGetAccountOpmlExportResponse200:
+      type: string
+      format: binary
+      description: OPML export file payload for GET /account/opml/export (200).
+    ApiPostAccountOpmlImportRequest:
+      type: object
+      description: Operation-specific request payload for POST /account/opml/import.
+      required:
+        - opml
+      properties:
+        opml:
+          type: string
+          description: OPML 2.0 XML document text.
+      additionalProperties: false
+    ApiPostAccountOpmlImportResponse201:
+      type: object
+      description: Operation-specific response payload for POST /account/opml/import (201).
+      required:
+        - request_id
+      properties:
+        request_id:
+          type: string
+      additionalProperties: false
+    ApiGetAccountOpmlImportStatusRequestIdResponse200:
+      type: object
+      description: Operation-specific response payload for GET /account/opml/import/status/{request_id} (200).
+      additionalProperties: true
     ApiGetAccountFcmDeviceAllForAccountResponse200:
       type: object
       description: Operation-specific response payload for GET /account/fcm-device/all-for-account (200).
@@ -3284,6 +3311,160 @@ paths:
                 $ref: "#/components/schemas/AuthorizationErrorResponse"
         "404":
           description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/opml/export:
+    get:
+      operationId: apiGetAccountOpmlExport
+      tags:
+        - account
+      summary: GET /account/opml/export
+      description: Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth).
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            text/x-opml:
+              schema:
+                $ref: "#/components/schemas/ApiGetAccountOpmlExportResponse200"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/ApiGetAccountOpmlExportResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/opml/import:
+    post:
+      operationId: apiPostAccountOpmlImport
+      tags:
+        - account
+      summary: POST /account/opml/import
+      description: Enqueue an async OPML import job. Authenticated endpoint (cookieAuth or bearerAuth).
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiPostAccountOpmlImportRequest"
+          text/x-opml:
+            schema:
+              type: string
+          text/xml:
+            schema:
+              type: string
+          application/xml:
+            schema:
+              type: string
+      responses:
+        "201":
+          description: Import job accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPostAccountOpmlImportResponse201"
+        "400":
+          description: >
+            Bad request. OPML validation failures may include a stable `code`
+            (`OPML_BODY_REQUIRED`, `OPML_NO_VALID_FEEDS`, `OPML_BODY_TOO_LARGE`,
+            `OPML_TOO_MANY_FEEDS`) plus an English `message`. Size/count errors
+            also include limit fields (`opml_max_body_chars`, `opml_received_body_chars`,
+            `opml_max_feeds`, `opml_received_feeds`).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/opml/import/status/{request_id}:
+    get:
+      operationId: apiGetAccountOpmlImportStatusRequestId
+      tags:
+        - account
+      summary: GET /account/opml/import/status/{request_id}
+      description: Poll OPML import job status/report. Authenticated endpoint (cookieAuth or bearerAuth).
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: request_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiGetAccountOpmlImportStatusRequestIdResponse200"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "404":
+          description: >
+            Not found. Unknown or unauthorized request ids return
+            `code` `OPML_REQUEST_NOT_FOUND` with an English `message`.
           content:
             application/json:
               schema:

@@ -4,6 +4,7 @@ import type {
   QueueResourcesAbridgedIndex,
 } from '@podverse/helpers';
 import { createAddByRSSId, createAddByRSSIdText } from '@podverse/helpers/addByRSS/ids';
+import { isObjectLike, toNonEmptyTrimmedString } from '@podverse/helpers/guards';
 import type { AddByRSSMappedFeed } from '@podverse/parser-mapping';
 import {
   buildAddByRSSResourceData,
@@ -45,21 +46,13 @@ export const EMPTY_ABRIDGED_INDEX: QueueResourcesAbridgedIndex = {
   item_soundbites: {},
 };
 
-const isRecord = (value: unknown): value is Record<string, unknown> => {
-  return typeof value === 'object' && value !== null;
-};
-
-const readString = (value: unknown): string | null => {
-  return typeof value === 'string' && value.trim() !== '' ? value : null;
-};
-
 export function extractPreviewFromParsePayload(payload: unknown): {
   enclosureUrl: string | null;
   imageUrl: string | null;
   playbackPosition: string | null;
   title: string | null;
 } {
-  if (!isRecord(payload)) {
+  if (!isObjectLike(payload)) {
     return {
       enclosureUrl: null,
       imageUrl: null,
@@ -79,7 +72,7 @@ export function extractPreviewFromParsePayload(payload: unknown): {
   }
 
   const firstItem = items[0];
-  if (!isRecord(firstItem)) {
+  if (!isObjectLike(firstItem)) {
     return {
       enclosureUrl: null,
       imageUrl: null,
@@ -88,17 +81,17 @@ export function extractPreviewFromParsePayload(payload: unknown): {
     };
   }
 
-  const title = readString(firstItem.title);
-  const playbackPosition = readString(firstItem.playback_position);
+  const title = toNonEmptyTrimmedString(firstItem.title);
+  const playbackPosition = toNonEmptyTrimmedString(firstItem.playback_position);
 
   let enclosureUrl: string | null = null;
-  if (isRecord(firstItem.enclosure)) {
-    enclosureUrl = readString(firstItem.enclosure.url);
+  if (isObjectLike(firstItem.enclosure)) {
+    enclosureUrl = toNonEmptyTrimmedString(firstItem.enclosure.url);
   }
 
   let imageUrl: string | null = null;
-  if (isRecord(firstItem.image)) {
-    imageUrl = readString(firstItem.image.url);
+  if (isObjectLike(firstItem.image)) {
+    imageUrl = toNonEmptyTrimmedString(firstItem.image.url);
   }
 
   return {

@@ -93,6 +93,33 @@ These variables are **always required** regardless of configuration:
 - **`PODCAST_INDEX_SEARCH_MAX`** (Optional) - Maximum results per Podcast Index search request.
   Default is `50`.
 
+### API Rate Limits (Optional)
+
+HTTP endpoint rate limits are configurable by env var name suffix; each var controls one action and
+encodes the time window in the suffix (`_PER_MINUTE`, `_PER_10_MINUTES`, `_PER_HOUR`, `_PER_DAY`).
+When unset/invalid, each uses its code default listed below.
+
+- **`AUTH_LOGIN_MAX_PER_MINUTE`** (default `5`)
+- **`ACCOUNT_CREATE_MAX_PER_10_MINUTES`** (default `3`)
+- **`ACCOUNT_SEND_VERIFICATION_EMAIL_MAX_PER_10_MINUTES`** (default `4`)
+- **`ACCOUNT_VERIFY_EMAIL_MAX_PER_10_MINUTES`** (default `10`)
+- **`ACCOUNT_SEND_CHANGE_EMAIL_MAX_PER_10_MINUTES`** (default `4`)
+- **`ACCOUNT_VERIFY_EMAIL_CHANGE_MAX_PER_10_MINUTES`** (default `10`)
+- **`ACCOUNT_SEND_RESET_PASSWORD_EMAIL_MAX_PER_10_MINUTES`** (default `4`)
+- **`ACCOUNT_RESET_PASSWORD_MAX_PER_10_MINUTES`** (default `4`)
+- **`ACCOUNT_SET_PASSWORD_MAX_PER_10_MINUTES`** (default `4`)
+- **`ACCOUNT_DOWNLOAD_DATA_MAX_PER_DAY`** (default `3`)
+- **`ACCOUNT_OPML_EXPORT_MAX_PER_HOUR`** (default `10`)
+- **`ACCOUNT_OPML_IMPORT_ENQUEUE_MAX_PER_HOUR`** (default `10`)
+- **`ACCOUNT_ADD_BY_RSS_PARSE_ENQUEUE_MAX_PER_HOUR`** (default `20`)
+- **`ACCOUNT_ADD_BY_RSS_CHAPTERS_TRANSCRIPT_MAX_PER_MINUTE`** (default `30`)
+- **`MQ_RSS_ON_DEMAND_MAX_PER_HOUR`** (default `20`)
+
+Related soft cap:
+
+- **`OPML_IMPORT_MAX_FEEDS_PER_HOUR`** (default `50`) limits new-feed work inside OPML import jobs
+  and is separate from HTTP enqueue 429 limits.
+
 ### Premium/Membership
 
 - **`ACCOUNT_SIGNUP_MODE`** (Required) - Must be `'admin_only_username'`, `'admin_only_email'`, or `'user_signup_email'` (no default value)
