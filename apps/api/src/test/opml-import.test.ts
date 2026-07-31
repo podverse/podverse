@@ -151,9 +151,8 @@ describe('OPML import endpoints', () => {
     // which persists for the whole process. The burn-in test intentionally
     // exhausts it, so reset the per-user counter before each test to keep
     // budget-dependent cases (201/400 outcomes) deterministic.
-    const { opmlImportEnqueueRateLimit } = await import(
-      '@api/controllers/account/accountOpmlImport.js'
-    );
+    const { opmlImportEnqueueRateLimit } =
+      await import('@api/controllers/account/accountOpmlImport.js');
     opmlImportEnqueueRateLimit.resetForUser(TEST_USER_ID);
 
     feedGetByUrlMock.mockReset();

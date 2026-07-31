@@ -88,7 +88,7 @@ Deterministic, branch-related failures fixed directly during Run 1:
   reachable, with a **silent fallback to `http`** (no visible app error) when the https
   probe fails and http succeeds. This is an **async fetch/lookup-time** concern, not a
   parse-time one. Must also coordinate with the Podcast Index lookup, which may need to
-  try **both** `https` and `http`.   Suggested home: the feed fetch/resolve path (and a
+  try **both** `https` and `http`. Suggested home: the feed fetch/resolve path (and a
   note in [docs/features/OPML.md](/docs/features/OPML.md)). Needs its own design + tests;
   do not fold into `parseOpml`.
 
@@ -182,7 +182,7 @@ Both were **flow-logic** mismatches (no app bug); confirmed against the app sour
 - **`tab-switch-playback.yaml`.** After drilling Search → Podcast → Episode to start playback, the
   Search tab retains its own stack. Which screen it shows on return is **platform-dependent** (iOS
   keeps the Episode detail; Android reset to SearchRoot — Android passed, iOS failed on
-  `search-screen`). The invariant under test is *mini-player persistence across tab switches*, so the
+  `search-screen`). The invariant under test is _mini-player persistence across tab switches_, so the
   flow now asserts only `mini-player` after re-selecting Search (no screen-id assert).
 
 ---
@@ -194,7 +194,7 @@ iOS + Android E2E share **one** Mobile E2E API account (`:4230`). The embedded s
 (`e2e-unknown.xml`). The `added_by_rss` branch immediately subscribes the account
 (`AccountFollowingAddByRSSChannelService.addOrUpdateRSSChannel`), so whichever platform imported
 **second** got `already_subscribed` and the flow's `opml-import-result-added_by_rss` assertion
-failed (seen on Android; iOS ran first and passed). The directory feed only records a *pending*
+failed (seen on Android; iOS ran first and passed). The directory feed only records a _pending_
 follow, so it correctly stayed `enqueued_indexed` on re-import.
 
 - **Fix (E2E fixture determinism):** `e2eSampleOpml` is now a builder

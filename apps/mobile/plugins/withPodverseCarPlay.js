@@ -139,9 +139,7 @@ function withPodverseCarPlayAppDelegate(config) {
     const appImplToken = '@implementation AppDelegate';
     const appImplIdx = contents.indexOf(appImplToken);
     if (appImplIdx === -1) {
-      throw new Error(
-        'withPodverseCarPlayAppDelegate: could not find @implementation AppDelegate'
-      );
+      throw new Error('withPodverseCarPlayAppDelegate: could not find @implementation AppDelegate');
     }
     contents = `${contents.slice(0, appImplIdx)}${PHONE_SCENE_CLASS}\n${contents.slice(appImplIdx)}`;
 
