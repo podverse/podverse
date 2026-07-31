@@ -199,6 +199,84 @@ export async function reqAccountDownloadData(api: ApiRequestService): Promise<Bl
   return result;
 }
 
+export async function reqAccountOpmlExport(
+  api: ApiRequestService,
+  options?: { responseType?: 'blob' | 'text' }
+): Promise<Blob | string> {
+  return api.apiRequest<Blob | string>({
+    path: '/account/opml/export',
+    method: 'GET',
+    config: {
+      withCredentials: true,
+      responseType: options?.responseType ?? 'blob',
+    },
+  });
+}
+
+export type ReqAccountOpmlImportResponse = {
+  request_id: string;
+};
+
+export type OpmlImportStatusResponse = {
+  requestId: string;
+  accountId: number;
+  status: 'queued' | 'processing' | 'completed' | 'failed';
+  totals: {
+    total: number;
+    subscribed: number;
+    enqueuedIndexed: number;
+    addedByRss: number;
+    failed: number;
+    skippedExisting: number;
+    rateLimited: number;
+  };
+  rateLimited?: {
+    limit: number;
+    retryAfterSeconds: number;
+  };
+  results: Array<{
+    feedUrl: string;
+    title?: string;
+    outcome:
+      | 'subscribed'
+      | 'enqueued_indexed'
+      | 'added_by_rss'
+      | 'already_subscribed'
+      | 'rate_limited'
+      | 'failed';
+    error?: string;
+  }>;
+  error?: string;
+  updatedAt: string;
+};
+
+export async function reqAccountOpmlImport(
+  api: ApiRequestService,
+  params: { opml: string }
+): Promise<ReqAccountOpmlImportResponse> {
+  return api.apiRequest<ReqAccountOpmlImportResponse>({
+    path: '/account/opml/import',
+    method: 'POST',
+    data: params,
+    config: {
+      withCredentials: true,
+    },
+  });
+}
+
+export async function reqAccountOpmlImportStatus(
+  api: ApiRequestService,
+  requestId: string
+): Promise<OpmlImportStatusResponse> {
+  return api.apiRequest<OpmlImportStatusResponse>({
+    path: `/account/opml/import/status/${encodeURIComponent(requestId)}`,
+    method: 'GET',
+    config: {
+      withCredentials: true,
+    },
+  });
+}
+
 export async function reqAccountGetManyPublicTop(
   api: ApiRequestService,
   params: QueryParamsAccountGlobalTop

@@ -75,7 +75,8 @@ those briefs in Track 23 — not earlier.
 | **PG-8 native cache (12.1–12.6)**                             | **done** | Archived under `.llm/plans/completed/mobile-pg8-car-native-cache/` (schema, iOS/Android storage, JS write path, read spikes)                                                                                    |
 | **PG-8 Android Auto (12.11–12.17, 12.19, 12.20)**             | **done** | Native browse (Library + Downloads) + play from the cache, app-closed; archived under `.llm/plans/completed/mobile-pg8-car-android-auto/`. Operator DHU + Play Console declaration pending                      |
 | **PG-8 iOS CarPlay (12.7–12.10, 12.16 iOS, 12.18–12.19 iOS)** | **done** | AA-parity Library + Downloads + play from the cache, app-closed; App ID/App Group + entitlements wired; archived under `.llm/plans/completed/mobile-pg8-car-carplay/`. Operator CarPlay Simulator proof pending |
-| PG-9 rest                                                     | later    | Push, deep links, settings/OPML                                                                                                                                                                                 |
+| **PG-9 Track 16 OPML**                                        | **done** | Import/export archived under `.llm/plans/completed/opml-import-export/` (16.4–16.10). Remaining Track 16: prefs store / settings screen (16.1–16.3)                                                             |
+| PG-9 rest                                                     | later    | Push, deep links; Track 16 prefs/settings screen (16.1–16.3)                                                                                                                                                    |
 | PG-13 (Track 23)                                              | later    | **Operator** screen-by-screen visual polish — after feature bulk                                                                                                                                                |
 
 ### Recommended next build sequence
@@ -84,8 +85,10 @@ those briefs in Track 23 — not earlier.
    play), archived under `.llm/plans/completed/mobile-pg8-car-carplay/`; **operator** CarPlay
    Simulator proof pending ([CARPLAY-SIMULATOR-CHECKLIST.md](/apps/mobile/modules/podverse-media-engine/CARPLAY-SIMULATOR-CHECKLIST.md)).
    Car follow-ons **12.22** library directory-follows and **12.21** parallel worktree are done —
-   **Track 12 complete**. Next functional-sketch bulk: **Track 16 settings/OPML** and **push**. **Track 23** only after the
-   feature bulk is in place and the operator has reviewed screens.
+   **Track 12 complete**. **Track 16 OPML** (16.4–16.10) done — see
+   `.llm/plans/completed/opml-import-export/`. Next functional-sketch bulk: **Track 16 prefs/settings
+   screen** (16.1–16.3) and **push**. **Track 23** only after the feature bulk is in place and the
+   operator has reviewed screens.
 
 _Done:_ **PG-8 native cache (12.1–12.6)** — schema, iOS/Android durable storage, JS write path, and
 read-with-JS-dead spikes; archived under `.llm/plans/completed/mobile-pg8-car-native-cache/`.
@@ -651,13 +654,13 @@ helpers `itemEnclosure` maps. See
 16.1. Device prefs store (MMKV or AsyncStorage) mirroring web localSettings keys (incl. `uit`). Model: Codex 5.3. Detail: [460-device-prefs-store](/docs/proposals/mobile/_master-plan_/details/460-device-prefs-store.md) — planned
 16.2. Sync playback prefs to server account-settings on login. Model: Codex 5.3. Detail: [461-prefs-server-sync](/docs/proposals/mobile/_master-plan_/details/461-prefs-server-sync.md) — _TBD_
 16.3. Settings screen: locale, theme selector (same ids as web), playback defaults, notification toggles. Model: Codex 5.3. Detail: [462-settings-screen](/docs/proposals/mobile/_master-plan_/details/462-settings-screen.md) — planned
-16.4. OPML import: file picker + parse OPML XML into feed URL list client-side. Model: Codex 5.3. Detail: [463-opml-import-parse](/docs/proposals/mobile/_master-plan_/details/463-opml-import-parse.md) — _TBD_
-16.5. OPML import: batch subscribe or add-by-rss each feed via API mutations. Model: Opus 4.8. Detail: [464-opml-import-subscribe](/docs/proposals/mobile/_master-plan_/details/464-opml-import-subscribe.md) — _TBD_
-16.6. OPML export: gather subscribed feed URLs and generate OPML document. Model: Codex 5.3. Detail: [465-opml-export-generate](/docs/proposals/mobile/_master-plan_/details/465-opml-export-generate.md) — _TBD_
-16.7. OPML export: share sheet save/send file to user-chosen destination. Model: Codex 5.3. Detail: [466-opml-export-share](/docs/proposals/mobile/_master-plan_/details/466-opml-export-share.md) — _TBD_
-16.8. OPML error handling: invalid file, partial import report UI. Model: Codex 5.3. Detail: [467-opml-error-handling](/docs/proposals/mobile/_master-plan_/details/467-opml-error-handling.md) — _TBD_
-16.9. E2E: OPML import smoke with fixture file screenshot of results list. Model: Codex 5.3. Detail: [468-e2e-opml-import](/docs/proposals/mobile/_master-plan_/details/468-e2e-opml-import.md) — _TBD_
-16.10. E2E: OPML export produces file and shows success state screenshot. Model: Auto. Detail: [469-e2e-opml-export](/docs/proposals/mobile/_master-plan_/details/469-e2e-opml-export.md) — _TBD_
+16.4. OPML import: client uploads OPML; **server** parses XML (`parseOpml`) into feed URLs (async MQ job). Model: Codex 5.3. Detail: [463-opml-import-parse](/docs/proposals/mobile/_master-plan_/details/463-opml-import-parse.md) — done
+16.5. OPML import: server 3-tier resolve per feed (DB follow → PI + pending-follow → add-by-RSS); client polls Valkey report. Model: Opus 4.8. Detail: [464-opml-import-subscribe](/docs/proposals/mobile/_master-plan_/details/464-opml-import-subscribe.md) — done
+16.6. OPML export: server `GET /account/opml/export` gathers directory + add-by-RSS follows and generates OPML. Model: Codex 5.3. Detail: [465-opml-export-generate](/docs/proposals/mobile/_master-plan_/details/465-opml-export-generate.md) — done
+16.7. OPML export: web download; mobile write cache file + share sheet (skipped in E2E). Model: Codex 5.3. Detail: [466-opml-export-share](/docs/proposals/mobile/_master-plan_/details/466-opml-export-share.md) — done
+16.8. OPML error handling: per-feed isolation, partial import report UI, 50/hr new-work rate-limit modal. Model: Codex 5.3. Detail: [467-opml-error-handling](/docs/proposals/mobile/_master-plan_/details/467-opml-error-handling.md) — done
+16.9. E2E: OPML import smoke (web Playwright + mobile Maestro with E2E sample OPML) screenshot of results. Model: Codex 5.3. Detail: [468-e2e-opml-import](/docs/proposals/mobile/_master-plan_/details/468-e2e-opml-import.md) — done
+16.10. E2E: OPML export produces file / success state screenshot (web + mobile). Model: Auto. Detail: [469-e2e-opml-export](/docs/proposals/mobile/_master-plan_/details/469-e2e-opml-export.md) — done
 
 ## Track 17 — RN i18n runtime (DONE)
 
@@ -1137,13 +1140,13 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 460-device-prefs-store                      | 16.1       | 460-device-prefs-store                      | Codex 5.3 | planned                              |
 | 461-prefs-server-sync                       | 16.2       | 461-prefs-server-sync                       | Codex 5.3 | _TBD_                                |
 | 462-settings-screen                         | 16.3       | 462-settings-screen                         | Codex 5.3 | planned                              |
-| 463-opml-import-parse                       | 16.4       | 463-opml-import-parse                       | Codex 5.3 | _TBD_                                |
-| 464-opml-import-subscribe                   | 16.5       | 464-opml-import-subscribe                   | Opus 4.8  | _TBD_                                |
-| 465-opml-export-generate                    | 16.6       | 465-opml-export-generate                    | Codex 5.3 | _TBD_                                |
-| 466-opml-export-share                       | 16.7       | 466-opml-export-share                       | Codex 5.3 | _TBD_                                |
-| 467-opml-error-handling                     | 16.8       | 467-opml-error-handling                     | Codex 5.3 | _TBD_                                |
-| 468-e2e-opml-import                         | 16.9       | 468-e2e-opml-import                         | Codex 5.3 | _TBD_                                |
-| 469-e2e-opml-export                         | 16.10      | 469-e2e-opml-export                         | Auto      | _TBD_                                |
+| 463-opml-import-parse                       | 16.4       | 463-opml-import-parse                       | Codex 5.3 | done                                 |
+| 464-opml-import-subscribe                   | 16.5       | 464-opml-import-subscribe                   | Opus 4.8  | done                                 |
+| 465-opml-export-generate                    | 16.6       | 465-opml-export-generate                    | Codex 5.3 | done                                 |
+| 466-opml-export-share                       | 16.7       | 466-opml-export-share                       | Codex 5.3 | done                                 |
+| 467-opml-error-handling                     | 16.8       | 467-opml-error-handling                     | Codex 5.3 | done                                 |
+| 468-e2e-opml-import                         | 16.9       | 468-e2e-opml-import                         | Codex 5.3 | done                                 |
+| 469-e2e-opml-export                         | 16.10      | 469-e2e-opml-export                         | Auto      | done                                 |
 | 483-i18n-runtime-load-compiled              | 17.0       | 483-i18n-runtime-load-compiled              | Codex 5.3 | done                                 |
 | 470-i18n-runtime-choice                     | 17.1       | 470-i18n-runtime-choice                     | Codex 5.3 | done                                 |
 | 471-i18n-copy-originals-v1                  | 17.2       | 471-i18n-copy-originals-v1                  | Auto      | done                                 |

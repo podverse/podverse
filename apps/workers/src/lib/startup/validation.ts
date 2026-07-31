@@ -176,6 +176,9 @@ function validateKeyvaldb(): ValidationResult[] {
   results.push(validateRequired('KEYVALDB_PORT', 'KeyValDB'));
   results.push(validateRequired('KEYVALDB_PASSWORD', 'KeyValDB'));
   results.push(validateRequired('KEYVALDB_CACHE_EXPIRATION', 'KeyValDB'));
+  results.push(
+    validateOptional('OPML_IMPORT_MAX_FEEDS_PER_HOUR', 'OPML Import', 'Use Default (50)')
+  );
   return results;
 }
 

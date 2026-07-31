@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import type { SearchPodcastsFeed } from '@podverse/helpers';
+import { toNonEmptyTrimmedString } from '@podverse/helpers/guards';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
@@ -39,8 +40,8 @@ const SEARCH_SORT_LABEL_KEYS: Record<SearchSort, string> = {
 
 const feedToRow = (feed: SearchPodcastsFeed) => ({
   id: String(feed.id),
-  imageUrl: feed.image.length > 0 ? feed.image : feed.artwork.length > 0 ? feed.artwork : null,
-  subtitle: feed.author.length > 0 ? feed.author : null,
+  imageUrl: toNonEmptyTrimmedString(feed.image) ?? toNonEmptyTrimmedString(feed.artwork),
+  subtitle: toNonEmptyTrimmedString(feed.author),
   title: feed.title,
 });
 

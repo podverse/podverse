@@ -6,24 +6,28 @@ export const getErrorResponseStatus = (error: unknown): number | undefined => {
   return typeof status === 'number' ? status : undefined;
 };
 
-export const getErrorResponseBodyMessage = (error: unknown): string | undefined => {
+export const getErrorResponseBody = (error: unknown): Record<string, unknown> | undefined => {
   const response = getOwnPropertyValue(error, 'response');
   const data = getOwnPropertyValue(response, 'data');
-  if (!isObjectLike(data)) {
+  return isObjectLike(data) ? data : undefined;
+};
+
+export const getErrorResponseBodyMessage = (error: unknown): string | undefined => {
+  const responseBody = getErrorResponseBody(error);
+  if (responseBody === undefined) {
     return undefined;
   }
-  const message = toNonEmptyTrimmedString(data.message);
+  const message = toNonEmptyTrimmedString(responseBody.message);
   return message ?? undefined;
 };
 
 /** When response.data is JSON with a string `code` (e.g. MetaBoost `sender_blocked`). */
 export const getErrorResponseBodyCode = (error: unknown): string | undefined => {
-  const response = getOwnPropertyValue(error, 'response');
-  const data = getOwnPropertyValue(response, 'data');
-  if (!isObjectLike(data)) {
+  const responseBody = getErrorResponseBody(error);
+  if (responseBody === undefined) {
     return undefined;
   }
-  const code = getOwnPropertyValue(data, 'code');
+  const code = getOwnPropertyValue(responseBody, 'code');
   return typeof code === 'string' ? code : undefined;
 };
 

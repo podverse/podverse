@@ -44,10 +44,12 @@ name: Tab Switch Playback
     id: mini-player
 - takeScreenshot: tab-switch-home-mini-player
 
+# Each tab owns its own navigation stack. We drilled Search -> Podcast -> Episode above to start
+# playback, so which screen the Search tab shows on return is platform-dependent (iOS retains the
+# Episode detail; Android may reset to SearchRoot) — do NOT assert a screen id here. The invariant
+# under test is that the mini player persists across tab switches, so assert only the mini player.
 - tapOn:
     id: tab-search
-- assertVisible:
-    id: search-screen
 - assertVisible:
     id: mini-player
 - takeScreenshot: tab-switch-search-mini-player

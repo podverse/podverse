@@ -2,6 +2,7 @@ import {
   DEDUPE_WINDOW_ADD_BY_RSS_BACKGROUND_MS,
   DEDUPE_WINDOW_ADD_BY_RSS_ON_DEMAND_MS,
   DEDUPE_WINDOW_IMAGE_SHRINK_HINTS_MS,
+  DEDUPE_WINDOW_OPML_IMPORT_MS,
   DEDUPE_WINDOW_RSS_NORMAL_MS,
   DEDUPE_WINDOW_RSS_ON_DEMAND_MS,
   DEDUPE_WINDOW_RSS_SLOW_MS,
@@ -13,7 +14,8 @@ export type MQQueueNameParamKey =
   | 'rss-on-demand'
   | 'rss-live'
   | 'add-by-rss-on-demand'
-  | 'add-by-rss-background';
+  | 'add-by-rss-background'
+  | 'opml-import';
 
 export const validMQQueueNamesParamKeys: MQQueueNameParamKey[] = [
   'rss-slow',
@@ -22,6 +24,7 @@ export const validMQQueueNamesParamKeys: MQQueueNameParamKey[] = [
   'rss-live',
   'add-by-rss-on-demand',
   'add-by-rss-background',
+  'opml-import',
 ];
 
 type MQQueueName =
@@ -30,6 +33,7 @@ type MQQueueName =
   | 'rss-live'
   | 'add-by-rss-on-demand'
   | 'add-by-rss-background'
+  | 'opml-import'
   | 'image-shrinking-hints';
 
 export type MQQueueConfig = {
@@ -71,6 +75,11 @@ export const MQ_QUEUES: Record<MQQueueNameParamKey, MQQueueConfig> = {
   'add-by-rss-background': {
     queueName: 'add-by-rss-background',
     dedupeCacheTimeMS: DEDUPE_WINDOW_ADD_BY_RSS_BACKGROUND_MS,
+    priority: 'normal',
+  },
+  'opml-import': {
+    queueName: 'opml-import',
+    dedupeCacheTimeMS: DEDUPE_WINDOW_OPML_IMPORT_MS,
     priority: 'normal',
   },
 };

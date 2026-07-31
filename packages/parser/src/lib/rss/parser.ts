@@ -32,6 +32,8 @@ import {
 import { getStatusCodeFromError, isTlsOrProtocolError } from '@podverse/helpers-requests';
 import { canonicalHttpOrHttpsUrl } from '@podverse/helpers-validation';
 import {
+  AccountFollowingChannelService,
+  AccountPendingFollowingChannelService,
   AccountService,
   ChannelSeasonService,
   ChannelService,
@@ -114,6 +116,53 @@ async function handleRateLimitRequestDelay(url: string) {
       await sleep(delay);
       break;
     }
+  }
+}
+
+async function resolvePendingChannelFollows({
+  channelIdText,
+  feedUrl,
+  podcastIndexId,
+}: {
+  channelIdText: string | null | undefined;
+  feedUrl: string;
+  podcastIndexId: number;
+}): Promise<void> {
+  if (!channelIdText) {
+    return;
+  }
+
+  if (
+    typeof AccountPendingFollowingChannelService !== 'function' ||
+    typeof AccountFollowingChannelService !== 'function'
+  ) {
+    return;
+  }
+
+  try {
+    const accountPendingFollowingChannelService = new AccountPendingFollowingChannelService();
+    const accountFollowingChannelService = new AccountFollowingChannelService();
+    const pendingFollows = await accountPendingFollowingChannelService.getPendingFollowsForChannel({
+      podcast_index_id: podcastIndexId,
+      feed_url: feedUrl,
+    });
+
+    for (const pendingFollow of pendingFollows) {
+      try {
+        await accountFollowingChannelService.followChannel(pendingFollow.account_id, channelIdText);
+        await accountPendingFollowingChannelService.removePendingFollow(pendingFollow.id);
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        loggerService.warn(
+          `resolvePendingChannelFollows: failed pending_follow_id=${pendingFollow.id} account_id=${pendingFollow.account_id} channel_id_text=${channelIdText} reason=${reason}`
+        );
+      }
+    }
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    loggerService.warn(
+      `resolvePendingChannelFollows: lookup failed for podcast_index_id=${podcastIndexId} feed_url=${feedUrl} reason=${reason}`
+    );
   }
 }
 
@@ -299,6 +348,11 @@ export const parseRSSFeedAndSaveToDatabase = async (
     const channelSeasonIndex = await channelSeasonService.getChannelSeasonIndex(channel);
 
     await handleParsedChannel(parsedFeed, channel, channelSeasonIndex);
+    await resolvePendingChannelFollows({
+      channelIdText: channel.id_text,
+      feedUrl: feed.url,
+      podcastIndexId: feed.podcast_index_id,
+    });
 
     const hintCreatedAt = new Date().toISOString();
     const channelImageDtos = compatChannelImageDtos(parsedFeed);

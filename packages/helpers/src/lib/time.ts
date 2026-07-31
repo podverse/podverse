@@ -30,6 +30,50 @@ export function formatNumericToHHMMSS(sec: string): string {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
+export type FormatClockOptions = {
+  fallback?: string;
+};
+
+/** Format seconds as a zero-padded player clock (`MM:SS`). */
+export function formatClock(
+  seconds: number | null | undefined,
+  options?: FormatClockOptions
+): string {
+  const fallback = options?.fallback ?? '00:00';
+  if (seconds === null || seconds === undefined || !Number.isFinite(seconds) || seconds < 0) {
+    return fallback;
+  }
+
+  const whole = Math.floor(seconds);
+  const minutes = Math.floor(whole / 60);
+  const remaining = whole % 60;
+  return `${minutes.toString().padStart(2, '0')}:${remaining.toString().padStart(2, '0')}`;
+}
+
+/** Format string-encoded seconds as a zero-padded `MM:SS` or `HH:MM:SS` player clock. */
+export function formatPlaybackTime(rawValue: string | null | undefined): string {
+  if (!rawValue) {
+    return '00:00';
+  }
+
+  const seconds = Math.floor(Number.parseFloat(rawValue));
+  if (!Number.isFinite(seconds) || seconds < 0) {
+    return '00:00';
+  }
+
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
+
+  if (hours > 0) {
+    return `${hours.toString().padStart(2, '0')}:${minutes
+      .toString()
+      .padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  }
+
+  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
 export function formatInputToHHMMSS(input: string): string {
   const sanitized = input.replace(/[^0-9:]/g, '');
   const digits = sanitized.replace(/:/g, '');

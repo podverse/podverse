@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers/dto';
+import { formatClock } from '@podverse/helpers/time';
 
 import { useAuth } from '../../auth/AuthProvider';
 import { segmentsRepository } from '../../data';
@@ -12,16 +13,6 @@ import { useTheme } from '../../theme/useTheme';
 type FullPlayerSegmentsProps = {
   item: DTOItem;
   channel: DTOChannel;
-};
-
-const formatClock = (seconds: number | null | undefined): string => {
-  if (seconds === null || seconds === undefined || !Number.isFinite(seconds) || seconds < 0) {
-    return '';
-  }
-  const whole = Math.floor(seconds);
-  const minutes = Math.floor(whole / 60);
-  const remaining = whole % 60;
-  return `${minutes.toString().padStart(2, '0')}:${remaining.toString().padStart(2, '0')}`;
 };
 
 /**
@@ -121,7 +112,9 @@ export function FullPlayerSegments({ channel, item }: FullPlayerSegmentsProps) {
               <Text numberOfLines={1} style={styles.rowTitle}>
                 {chapter.title ?? chapter.id_text}
               </Text>
-              <Text style={styles.rowTime}>{formatClock(chapter.start_time)}</Text>
+              <Text style={styles.rowTime}>
+                {formatClock(chapter.start_time, { fallback: '' })}
+              </Text>
             </Pressable>
           ))}
         </View>
@@ -143,7 +136,9 @@ export function FullPlayerSegments({ channel, item }: FullPlayerSegmentsProps) {
               <Text numberOfLines={1} style={styles.rowTitle}>
                 {soundbite.title ?? `${t('info.soundbite.official_clip')} ${index + 1}`}
               </Text>
-              <Text style={styles.rowTime}>{formatClock(soundbite.start_time)}</Text>
+              <Text style={styles.rowTime}>
+                {formatClock(soundbite.start_time, { fallback: '' })}
+              </Text>
             </Pressable>
           ))}
         </View>

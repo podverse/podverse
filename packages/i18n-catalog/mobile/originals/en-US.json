@@ -8,14 +8,20 @@
     },
     "stack": {
       "home": "Home",
+      "opml": "OPML",
       "search_result": "Search Result",
       "rss_feeds": "RSS Feeds"
     },
     "menu": {
+      "opml": "OPML",
       "view_rss_feeds": "View RSS feeds"
     }
   },
   "features": {
+    "opml": {
+      "rate_limited_time_one": "1 minute",
+      "rate_limited_time_other": "{minutes} minutes"
+    },
     "download": {
       "queued": "Queued",
       "remove": "Remove",

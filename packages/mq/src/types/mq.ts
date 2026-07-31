@@ -24,6 +24,17 @@ export type MQAddByRSSMessage = {
   lastModified?: string;
 } & MQTraceEnvelopeFields;
 
+export type MQOpmlImportFeed = {
+  title?: string;
+  feedUrl: string;
+};
+
+export type MQOpmlImportMessage = {
+  accountId: number;
+  requestId: string;
+  feeds: MQOpmlImportFeed[];
+} & MQTraceEnvelopeFields;
+
 export type MQImageShrinkHintMessage = {
   url: string;
   entityType: 'channel' | 'item';

@@ -9,10 +9,12 @@
     "stack": {
       "home": "Inicio",
       "search_result": "Resultado de búsqueda",
-      "rss_feeds": "Feeds RSS"
+      "rss_feeds": "Feeds RSS",
+      "opml": "OPML"
     },
     "menu": {
-      "view_rss_feeds": "Ver feeds RSS"
+      "view_rss_feeds": "Ver feeds RSS",
+      "opml": "OPML"
     }
   },
   "features": {
@@ -36,6 +38,10 @@
       "add_needs_membership": "Tu cuenta no tiene acceso para añadir podcasts desde la búsqueda.",
       "add_failed": "No se pudo añadir este podcast. Inténtalo de nuevo más tarde.",
       "add_timed_out": "Aún se está procesando tras varios minutos. Vuelve a buscar en breve para abrir este podcast — añadir no te suscribe automáticamente."
+    },
+    "opml": {
+      "rate_limited_time_one": "1 minute",
+      "rate_limited_time_other": "{minutes} minutes"
     }
   }
 }

@@ -1,5 +1,6 @@
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { BottomTabBar, createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import type { LinkingOptions } from '@react-navigation/native';
+import type { LinkingOptions, NavigatorScreenParams } from '@react-navigation/native';
 import { NavigationContainer } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -23,6 +24,7 @@ import { LibraryQueueScreen } from '../screens/library/LibraryQueueScreen';
 import { LibrarySubscriptionsScreen } from '../screens/library/LibrarySubscriptionsScreen';
 import { PlaylistDetailScreen } from '../screens/library/PlaylistDetailScreen';
 import { PlaylistFormScreen } from '../screens/library/PlaylistFormScreen';
+import { MoreOpmlScreen } from '../screens/more/MoreOpmlScreen';
 import { FullPlayerScreen } from '../screens/player/FullPlayerScreen';
 import { PodcastDetailScreen } from '../screens/podcast/PodcastDetailScreen';
 import { MyProfileScreen } from '../screens/profile/MyProfileScreen';
@@ -184,8 +186,7 @@ export const RSS_STACK_ROUTES = {
 export const MORE_STACK_ROUTES = {
   MoreAbout: 'MoreAbout',
   MoreMembership: 'MoreMembership',
-  MoreOpmlExport: 'MoreOpmlExport',
-  MoreOpmlImport: 'MoreOpmlImport',
+  MoreOpml: 'MoreOpml',
   MorePublicProfile: 'MorePublicProfile',
   MoreProfile: 'MoreProfile',
   MoreRoot: 'MoreRoot',
@@ -222,8 +223,7 @@ export const mobileNavigationLinking: LinkingOptions<RootStackParamList> = {
             screens: {
               MoreAbout: 'more/about',
               MoreMembership: 'more/membership',
-              MoreOpmlExport: 'more/opml/export',
-              MoreOpmlImport: 'more/opml/import',
+              MoreOpml: 'more/opml',
               MorePublicProfile: 'more/profile/:accountIdText',
               MoreProfile: 'more/profile',
               MoreRoot: 'more',
@@ -322,8 +322,7 @@ export type RssStackParamList = {
 export type MoreStackParamList = {
   MoreAbout: undefined;
   MoreMembership: undefined;
-  MoreOpmlExport: undefined;
-  MoreOpmlImport: undefined;
+  MoreOpml: undefined;
   MorePublicProfile: { accountIdText: string };
   MoreProfile: undefined;
   MoreRoot: undefined;
@@ -342,7 +341,7 @@ export type MobileTabParamList = {
   Search: undefined;
   'My Library': undefined;
   RSS: undefined;
-  More: undefined;
+  More: NavigatorScreenParams<MoreStackParamList> | undefined;
 };
 
 function HomeStackNavigator() {
@@ -577,14 +576,9 @@ function MoreStackNavigator({
         options={{ title: t('membership.membership') }}
       />
       <MoreStack.Screen
-        component={MoreOpmlImportScreen}
-        name={MORE_STACK_ROUTES.MoreOpmlImport}
-        options={{ title: t('settings.settings') }}
-      />
-      <MoreStack.Screen
-        component={MoreOpmlExportScreen}
-        name={MORE_STACK_ROUTES.MoreOpmlExport}
-        options={{ title: t('settings.settings') }}
+        component={MoreOpmlScreen}
+        name={MORE_STACK_ROUTES.MoreOpml}
+        options={{ title: t('nav.stack.opml') }}
       />
       <MoreStack.Screen name={MORE_STACK_ROUTES.MoreSmoke} options={{ title: 'Smoke' }}>
         {() => (
@@ -655,17 +649,12 @@ function LibraryHubScreen({
         },
         {
           onPress: () => {
-            navigation.navigate(MORE_STACK_ROUTES.MoreOpmlImport);
+            navigation
+              .getParent<BottomTabNavigationProp<MobileTabParamList>>()
+              ?.navigate('More', { screen: MORE_STACK_ROUTES.MoreOpml });
           },
-          testID: 'library-nav-opml-import',
-          title: t('settings.settings'),
-        },
-        {
-          onPress: () => {
-            navigation.navigate(MORE_STACK_ROUTES.MoreOpmlExport);
-          },
-          testID: 'library-nav-opml-export',
-          title: t('settings.settings'),
+          testID: 'library-nav-opml',
+          title: t('nav.menu.opml'),
         },
       ]}
       testID="library-hub-screen"
@@ -746,17 +735,10 @@ function MoreRootScreen({
         },
         {
           onPress: () => {
-            navigation.navigate(MORE_STACK_ROUTES.MoreOpmlImport);
+            navigation.navigate(MORE_STACK_ROUTES.MoreOpml);
           },
-          testID: 'opml-import-entry',
-          title: t('settings.settings'),
-        },
-        {
-          onPress: () => {
-            navigation.navigate(MORE_STACK_ROUTES.MoreOpmlExport);
-          },
-          testID: 'opml-export-entry',
-          title: t('settings.settings'),
+          testID: 'more-nav-opml',
+          title: t('nav.menu.opml'),
         },
         {
           onPress: () => {
@@ -783,16 +765,6 @@ function MoreAboutScreen() {
 
 function MoreMembershipScreen() {
   return <PlaceholderScreen testID="more-membership-screen" title="Membership Placeholder" />;
-}
-
-function MoreOpmlImportScreen() {
-  const { t } = useTranslation();
-  return <PlaceholderScreen testID="more-opml-import-screen" title={t('settings.settings')} />;
-}
-
-function MoreOpmlExportScreen() {
-  const { t } = useTranslation();
-  return <PlaceholderScreen testID="more-opml-export-screen" title={t('settings.settings')} />;
 }
 
 type TabScaffoldProps = {

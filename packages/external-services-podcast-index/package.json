@@ -25,6 +25,7 @@
     "@podverse/helpers": "*",
     "@podverse/helpers-backend": "*",
     "@podverse/helpers-requests": "*",
+    "@podverse/helpers-validation": "*",
     "csv-parser": "^3.2.0"
   },
   "devDependencies": {

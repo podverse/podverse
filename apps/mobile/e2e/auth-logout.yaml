@@ -18,15 +18,16 @@ name: Auth Logout
 - tapOn:
     id: more-nav-logout
 
+# Logout keeps you on the current (More) tab and re-renders it in place as the anonymous shell
+# (Login / Sign Up). It does NOT route to Home: App.tsx `onRequestLogout` only calls `logout()` +
+# `setAuthMode('anonymous')`, so the mounted tab navigator stays on More. Assert the anonymous
+# More shell directly instead of a Home round-trip.
 - extendedWaitUntil:
     visible:
-      id: tab-home
+      id: anonymous-login-cta
     timeout: ${TIMEOUT_FAST}
-
 - assertVisible:
-    id: home-screen
-- tapOn:
-    id: tab-more
+    id: more-screen
 - assertVisible:
     id: anonymous-login-cta
 - takeScreenshot: auth-logout-anonymous-shell

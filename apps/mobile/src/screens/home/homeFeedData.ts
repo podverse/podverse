@@ -1,3 +1,5 @@
+import { getNonEmptyTrimmedStringProperty, isObjectLike } from '@podverse/helpers/guards';
+
 import { createMobileApiRequestService, requestWithMobileAuthRefresh } from '../../auth';
 import type { AuthStatus } from '../../auth/AuthProvider';
 import type { SubscribedChannel, SubscriptionSource } from '../../data/repositories';
@@ -29,34 +31,25 @@ type HomeFeedAuthDeps = {
 
 const HOME_FEED_PAGE = 1;
 
-const isRecord = (value: unknown): value is Record<string, unknown> => {
-  return typeof value === 'object' && value !== null;
-};
-
-const readString = (record: Record<string, unknown>, key: string): string | null => {
-  const value = record[key];
-  return typeof value === 'string' && value.trim().length > 0 ? value : null;
-};
-
 const readStringFromNestedRecord = (
   record: Record<string, unknown>,
   nestedKey: string,
   fieldKey: string
 ): string | null => {
   const nestedValue = record[nestedKey];
-  if (!isRecord(nestedValue)) {
+  if (!isObjectLike(nestedValue)) {
     return null;
   }
 
-  return readString(nestedValue, fieldKey);
+  return getNonEmptyTrimmedStringProperty(nestedValue, fieldKey);
 };
 
 const readImageUrl = (record: Record<string, unknown>): string | null => {
   const directImage =
-    readString(record, 'image') ??
-    readString(record, 'artwork') ??
-    readString(record, 'image_url') ??
-    readString(record, 'imageUrl');
+    getNonEmptyTrimmedStringProperty(record, 'image') ??
+    getNonEmptyTrimmedStringProperty(record, 'artwork') ??
+    getNonEmptyTrimmedStringProperty(record, 'image_url') ??
+    getNonEmptyTrimmedStringProperty(record, 'imageUrl');
   if (directImage !== null) {
     return directImage;
   }
@@ -69,11 +62,11 @@ const readImageUrl = (record: Record<string, unknown>): string | null => {
     }
 
     for (const maybeImage of maybeImages) {
-      if (!isRecord(maybeImage)) {
+      if (!isObjectLike(maybeImage)) {
         continue;
       }
 
-      const url = readString(maybeImage, 'url');
+      const url = getNonEmptyTrimmedStringProperty(maybeImage, 'url');
       if (url !== null) {
         return url;
       }
@@ -84,7 +77,9 @@ const readImageUrl = (record: Record<string, unknown>): string | null => {
 };
 
 const normalizeId = (record: Record<string, unknown>): string | null => {
-  const idText = readString(record, 'id_text') ?? readString(record, 'idText');
+  const idText =
+    getNonEmptyTrimmedStringProperty(record, 'id_text') ??
+    getNonEmptyTrimmedStringProperty(record, 'idText');
   if (idText !== null) {
     return idText;
   }
@@ -101,19 +96,21 @@ const normalizeChannelRows = (items: unknown[]): HomeFeedRowData[] => {
   const rows: HomeFeedRowData[] = [];
 
   for (const item of items) {
-    if (!isRecord(item)) {
+    if (!isObjectLike(item)) {
       continue;
     }
 
     const id = normalizeId(item);
-    const title = readString(item, 'title') ?? readString(item, 'slug');
+    const title =
+      getNonEmptyTrimmedStringProperty(item, 'title') ??
+      getNonEmptyTrimmedStringProperty(item, 'slug');
     if (id === null || title === null) {
       continue;
     }
 
     const subtitle =
-      readString(item, 'author') ??
-      readString(item, 'link') ??
+      getNonEmptyTrimmedStringProperty(item, 'author') ??
+      getNonEmptyTrimmedStringProperty(item, 'link') ??
       readStringFromNestedRecord(item, 'owner', 'name');
 
     rows.push({
@@ -131,20 +128,20 @@ const normalizeItemRows = (items: unknown[]): HomeFeedRowData[] => {
   const rows: HomeFeedRowData[] = [];
 
   for (const item of items) {
-    if (!isRecord(item)) {
+    if (!isObjectLike(item)) {
       continue;
     }
 
     const id = normalizeId(item);
-    const title = readString(item, 'title');
+    const title = getNonEmptyTrimmedStringProperty(item, 'title');
     if (id === null || title === null) {
       continue;
     }
 
     const subtitle =
-      readString(item, 'podcast_title') ??
-      readString(item, 'channel_title') ??
-      readString(item, 'author');
+      getNonEmptyTrimmedStringProperty(item, 'podcast_title') ??
+      getNonEmptyTrimmedStringProperty(item, 'channel_title') ??
+      getNonEmptyTrimmedStringProperty(item, 'author');
 
     rows.push({
       id,
@@ -161,20 +158,20 @@ const normalizeClipRows = (items: unknown[]): HomeFeedRowData[] => {
   const rows: HomeFeedRowData[] = [];
 
   for (const item of items) {
-    if (!isRecord(item)) {
+    if (!isObjectLike(item)) {
       continue;
     }
 
     const id = normalizeId(item);
-    const title = readString(item, 'title');
+    const title = getNonEmptyTrimmedStringProperty(item, 'title');
     if (id === null || title === null) {
       continue;
     }
 
     const subtitle =
-      readString(item, 'podcast_title') ??
-      readString(item, 'channel_title') ??
-      readString(item, 'item_title');
+      getNonEmptyTrimmedStringProperty(item, 'podcast_title') ??
+      getNonEmptyTrimmedStringProperty(item, 'channel_title') ??
+      getNonEmptyTrimmedStringProperty(item, 'item_title');
 
     rows.push({
       id,

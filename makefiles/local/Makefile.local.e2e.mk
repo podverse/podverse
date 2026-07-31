@@ -2,7 +2,7 @@
 #     Same overall shape as the shared Makefile.local.e2e pattern; Podverse-specific ports and paths.
 #     Depends on Makefile.local.test.mk (test_deps, test containers). ---
 
-.PHONY: e2e_deps e2e_seed e2e_seed_web e2e_seed_management_web
+.PHONY: e2e_deps e2e_seed e2e_seed_web e2e_seed_management_web e2e_build_packages
 .PHONY: e2e_test e2e_test_playwright e2e_test_api e2e_test_web e2e_test_management_web
 .PHONY: e2e_test_management_web_storage_enabled
 .PHONY: e2e_test_report e2e_test_web_report_spec e2e_test_web_custom_themes_report e2e_test_management_web_report_spec e2e_test_report_scoped
@@ -17,6 +17,14 @@ MOBILE_E2E_DEFAULT_SPEC ?= hello-world
 # Spec order files (optional; create makefiles/local/e2e-spec-order-web.txt when needed)
 E2E_SPEC_ORDER_WEB := $(shell cat makefiles/local/e2e-spec-order-web.txt 2>/dev/null | tr '\n' ';')
 E2E_SPEC_ORDER_MANAGEMENT_WEB := $(shell cat makefiles/local/e2e-spec-order-management-web.txt 2>/dev/null | tr '\n' ';')
+
+# Rebuild workspace packages before report runs so Playwright config-load imports
+# fresh @podverse/* dist (e.g. helpers-config apiWebE2e AUTH_LOGIN_MAX_PER_MINUTE).
+# The API webServer recipe also rebuilds helpers-config, but that is too late: the
+# env prefix is already baked from dist at Playwright config-load time.
+e2e_build_packages:
+	@echo "Building packages before E2E report run..."
+	@npm run build:packages
 
 # Ensure test DBs exist
 e2e_deps: test_deps
@@ -86,7 +94,7 @@ e2e_test: e2e_deps e2e_seed
 # --- Report targets (HTML step reporter with screenshots) ---
 
 # Full E2E with HTML reports
-e2e_test_report: e2e_deps e2e_seed
+e2e_test_report: e2e_build_packages e2e_deps e2e_seed
 	@echo "=== Full E2E report suite ==="
 	@ROOT_DIR="$$(pwd)"; \
 	TS="$(E2E_REPORT_TIMESTAMP)"; \
@@ -188,7 +196,7 @@ e2e_test_report: e2e_deps e2e_seed
 	exit $$exit_code
 
 # Scoped web report for one spec (SPEC=apps/web/e2e/foo.spec.ts)
-e2e_test_web_report_spec: e2e_deps e2e_seed_web
+e2e_test_web_report_spec: e2e_build_packages e2e_deps e2e_seed_web
 	@test -n "$(SPEC)" || (echo "Usage: make e2e_test_web_report_spec SPEC=apps/web/e2e/foo.spec.ts"; exit 1)
 	@ROOT_DIR="$$(pwd)"; \
 	TS="$(E2E_REPORT_TIMESTAMP)"; \
@@ -219,7 +227,7 @@ e2e_test_web_report_spec: e2e_deps e2e_seed_web
 	echo "E2E report: $$WEB_REPORT/index.html"
 
 # Custom themes E2E (native / remote / combo) with separate HTML reports
-e2e_test_web_custom_themes_report: e2e_deps e2e_seed_web
+e2e_test_web_custom_themes_report: e2e_build_packages e2e_deps e2e_seed_web
 	@echo "=== Web custom themes E2E reports ==="
 	@ROOT_DIR="$$(pwd)"; \
 	TS="$(E2E_REPORT_TIMESTAMP)"; \
@@ -262,7 +270,7 @@ e2e_test_web_custom_themes_report: e2e_deps e2e_seed_web
 	exit $$exit_code
 
 # Scoped management-web report for one spec (SPEC=apps/management-web/e2e/foo.spec.ts)
-e2e_test_management_web_report_spec: e2e_deps e2e_seed_management_web
+e2e_test_management_web_report_spec: e2e_build_packages e2e_deps e2e_seed_management_web
 	@test -n "$(SPEC)" || (echo "Usage: make e2e_test_management_web_report_spec SPEC=apps/management-web/e2e/foo.spec.ts"; exit 1)
 	@ROOT_DIR="$$(pwd)"; \
 	TS="$(E2E_REPORT_TIMESTAMP)"; \
@@ -285,7 +293,7 @@ e2e_test_management_web_report_spec: e2e_deps e2e_seed_management_web
 	echo "E2E report: $$MGMT_REPORT/index.html"
 
 # Scoped both apps (WEB_SPEC=... MGMT_SPEC=...)
-e2e_test_report_scoped: e2e_deps e2e_seed
+e2e_test_report_scoped: e2e_build_packages e2e_deps e2e_seed
 	@test -n "$(WEB_SPEC)" || (echo "Usage: make e2e_test_report_scoped WEB_SPEC=... MGMT_SPEC=..."; exit 1)
 	@ROOT_DIR="$$(pwd)"; \
 	TS="$(E2E_REPORT_TIMESTAMP)"; \

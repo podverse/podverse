@@ -27,7 +27,7 @@ TIMEOUTS_ENV="$E2E_DIR/shared/timeouts.env"
 flow_needs_e2e_api() {
   case "$1" in
   add-by-rss | api-health | auth-login | auth-logout | auto-queue-advance | \
-  engine-audio-spike | home | library-downloads | library-playlists | play-mini-player | \
+  engine-audio-spike | home | library-downloads | library-playlists | opml | play-mini-player | \
   podcast-episode | queue-add | search | search-unparsed | tab-switch-playback | video-transition)
     return 0
     ;;

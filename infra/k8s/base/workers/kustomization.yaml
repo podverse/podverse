@@ -8,6 +8,7 @@ resources:
   - listener-live.deployment.yaml
   - parser-add-by-rss-ondemand.deployment.yaml
   - parser-add-by-rss-ondemand-background.deployment.yaml
+  - parser-opml-import.deployment.yaml
   - parser-live.deployment.yaml
   - parser-normal.deployment.yaml
   - parser-ondemand.deployment.yaml

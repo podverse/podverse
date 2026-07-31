@@ -28,6 +28,9 @@ import {
   reqAccountDownloadData,
   reqAccountGetByIdText,
   reqAccountGetMany,
+  reqAccountOpmlExport,
+  reqAccountOpmlImport,
+  reqAccountOpmlImportStatus,
   reqAccountResetPassword,
   reqAccountSendChangeEmailAddressEmail,
   reqAccountSendResetPasswordEmail,
@@ -459,6 +462,18 @@ export class ApiRequestService {
 
   reqAccountDownloadData() {
     return reqAccountDownloadData(this);
+  }
+
+  reqAccountOpmlExport(options?: { responseType?: 'blob' | 'text' }) {
+    return reqAccountOpmlExport(this, options);
+  }
+
+  reqAccountOpmlImport(params: { opml: string }) {
+    return reqAccountOpmlImport(this, params);
+  }
+
+  reqAccountOpmlImportStatus(requestId: string) {
+    return reqAccountOpmlImportStatus(this, requestId);
   }
 
   /* ACCOUNT > FCM DEVICE */

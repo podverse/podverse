@@ -28,6 +28,7 @@ The workers app validates environment variables **per command**. Each job only v
 | Base + MQ                           | Base, MQ                                 | devPiBulkFeedsAddFromFile                                                                                   |
 | Base + ORM + MQ + Podcast Index     | Base, ORM, MQ, PodcastIndex              | mqRSSAdd                                                                                                    |
 | Base + MQ + Parser + KeyValDB       | Base, MQ, Parser, KeyValDB               | mqAddByRSSRunParser                                                                                         |
+| Base + ORM + MQ + KeyValDB + PI     | Base, ORM, MQ, KeyValDB, PodcastIndex    | mqOpmlImportRun                                                                                             |
 | Base + ORM + MQ + Parser + PI + Web | Base, ORM, MQ, Parser, PodcastIndex, Web | parserRSSParseFeed, devParserRSSParseTrendingFeeds, devParserRSSParsePodcasting20Feeds                      |
 | Base + ORM + MQ + Image Shrink      | Base, ORM, MQ, ImageShrink               | imageShrinkRunConsumer, imageShrinkBackfill                                                                 |
 | Base + ORM + Image Shrink           | Base, ORM, ImageShrink                   | imageShrinkCleanupOrphans, imageShrinkResetShrunken, imageShrinkResetShrunkenDryRun, imageShrinkSourcePrune |

@@ -6,7 +6,7 @@ import {
   E2E_UNPARSED_PODCAST_INDEX_ID,
   E2E_UNPARSED_SEARCH_QUERY,
   isE2eUnparsedSearchQuery,
-} from '../e2eUnparsedSearchFixture.js';
+} from './e2eUnparsedSearchFixture.js';
 
 describe('e2eUnparsedSearchFixture', () => {
   it('matches the reserved sentinel query case-insensitively', () => {

@@ -2,6 +2,7 @@
 export const LONG_RUNNING_COMMANDS = new Set([
   'mqRSSRunParser',
   'mqAddByRSSRunParser',
+  'mqOpmlImportRun',
   'mqRSSRunLiveItemListener',
   'mqRSSRunDlqConsumer',
   'imageShrinkRunConsumer',

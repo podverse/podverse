@@ -14,6 +14,7 @@ import { AccountMetaboost } from '@orm/entities/account/accountMetaboost.js';
 import { AccountNotificationChannel } from '@orm/entities/account/accountNotificationChannel.js';
 import { AccountNotificationChannelType } from '@orm/entities/account/accountNotificationChannelType.js';
 import { AccountPayPalOrder } from '@orm/entities/account/accountPayPalOrder.js';
+import { AccountPendingFollowingChannel } from '@orm/entities/account/accountPendingFollowingChannel.js';
 import { AccountProfile } from '@orm/entities/account/accountProfile.js';
 import { AccountResetPassword } from '@orm/entities/account/accountResetPassword.js';
 import { AccountSetPassword } from '@orm/entities/account/accountSetPassword.js';
@@ -133,6 +134,7 @@ export const entities = [
   AccountFollowingAddByRSSChannel,
   AccountFollowingChannel,
   AccountFollowingPlaylist,
+  AccountPendingFollowingChannel,
   AccountGooglePlayPurchase,
   AccountMembership,
   AccountMembershipStatus,

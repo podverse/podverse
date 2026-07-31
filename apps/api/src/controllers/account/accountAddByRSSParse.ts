@@ -58,8 +58,8 @@ const buildE2eParsedFeedPayload = (): NonNullable<AddByRSSParseCacheEntry['paylo
 };
 
 const enqueueRateLimit = rateLimitAuthEndpoint({
-  windowMs: 60 * 60 * 1000,
-  max: 20,
+  windowMs: config.rateLimits.accountAddByRssParseEnqueue.windowMs,
+  max: config.rateLimits.accountAddByRssParseEnqueue.max,
 });
 
 class AccountAddByRSSParseController {

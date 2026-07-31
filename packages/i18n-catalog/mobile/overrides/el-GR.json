@@ -9,10 +9,12 @@
     "stack": {
       "home": "",
       "search_result": "",
-      "rss_feeds": ""
+      "rss_feeds": "",
+      "opml": ""
     },
     "menu": {
-      "view_rss_feeds": ""
+      "view_rss_feeds": "",
+      "opml": ""
     }
   },
   "features": {
@@ -36,6 +38,10 @@
       "add_needs_membership": "",
       "add_failed": "",
       "add_timed_out": ""
+    },
+    "opml": {
+      "rate_limited_time_one": "",
+      "rate_limited_time_other": ""
     }
   }
 }

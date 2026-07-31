@@ -10,6 +10,8 @@ import type {
   DTOItemChapter,
   DTOItemSoundbite,
 } from '@podverse/helpers';
+import { htmlToPlainText } from '@podverse/helpers/html';
+import { formatPlaybackTime } from '@podverse/helpers/time';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
@@ -31,42 +33,6 @@ type EpisodeDetailScreenProps = NativeStackScreenProps<
 >;
 
 type EpisodeTab = 'chapters' | 'clips' | 'soundbites' | 'summary' | 'transcript';
-
-const stripHtmlToText = (value: string): string => {
-  return value
-    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ')
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>')
-    .replace(/\s+/g, ' ')
-    .trim();
-};
-
-const formatPlaybackTime = (rawValue: string | null | undefined): string => {
-  if (!rawValue) {
-    return '00:00';
-  }
-
-  const seconds = Math.floor(Number.parseFloat(rawValue));
-  if (!Number.isFinite(seconds) || seconds < 0) {
-    return '00:00';
-  }
-
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const remainingSeconds = seconds % 60;
-
-  if (hours > 0) {
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds
-      .toString()
-      .padStart(2, '0')}`;
-  }
-
-  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-};
 
 const toClipRow = (clip: DTOClip): HomeFeedRowData => {
   const imageUrl =
@@ -358,7 +324,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
       return '';
     }
 
-    return stripHtmlToText(episode.item_description.value);
+    return htmlToPlainText(episode.item_description.value);
   }, [episode]);
 
   const displayDescription = useMemo(() => {

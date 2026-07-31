@@ -23,8 +23,16 @@ export const toNonEmptyTrimmedString = (value: unknown): string | null => {
   return trimmed !== null && trimmed.length > 0 ? trimmed : null;
 };
 
+export const getNonEmptyTrimmedStringProperty = (value: unknown, key: string): string | null =>
+  toNonEmptyTrimmedString(getOwnPropertyValue(value, key));
+
 export const isFiniteNumber = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value);
+
+export const getFiniteNumberProperty = (value: unknown, key: string): number | null => {
+  const propertyValue = getOwnPropertyValue(value, key);
+  return isFiniteNumber(propertyValue) ? propertyValue : null;
+};
 
 export const toPositiveFiniteNumber = (value: unknown): number | null =>
   isFiniteNumber(value) && value > 0 ? value : null;

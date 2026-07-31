@@ -15,6 +15,7 @@
 import crypto from 'node:crypto';
 
 import bcrypt from 'bcrypt';
+import { Redis } from 'ioredis';
 import pg from 'pg';
 
 import {
@@ -28,6 +29,9 @@ const DB_PORT = Number(process.env.DB_PORT ?? '5732');
 const DB_USER = process.env.SEED_DB_USER ?? 'podverse_app_read_write';
 const DB_PASSWORD = process.env.SEED_DB_PASSWORD ?? 'test';
 const DB_NAME = process.env.DB_APP_NAME ?? 'podverse_app_test';
+const KEYVALDB_HOST = process.env.KEYVALDB_HOST ?? '127.0.0.1';
+const KEYVALDB_PORT = Number(process.env.KEYVALDB_PORT ?? '6679');
+const KEYVALDB_PASSWORD = process.env.KEYVALDB_PASSWORD ?? 'test';
 
 const TEST_PASSWORD = 'Test!1Aa';
 
@@ -139,6 +143,85 @@ const E2E_ITEM_CHAPTER_TOPIC_ID_TEXT = 'e2eChapTopic01';
 
 const SEED_MEDIA_FIXTURES_ONLY = process.env.SEED_MEDIA_FIXTURES_ONLY === 'true';
 const E2E_USER_EMAIL = 'e2e-user@example.com';
+
+const OPML_IMPORT_KEY_PREFIX = 'opml:import:';
+const OPML_IMPORT_HOURLY_KEY_PREFIX = 'opml:import:hourly:';
+
+async function scanKeysByMatch(redis, match) {
+  const keys = [];
+  let cursor = '0';
+  do {
+    const [nextCursor, batch] = await redis.scan(cursor, 'MATCH', match, 'COUNT', '200');
+    cursor = nextCursor;
+    if (batch.length > 0) {
+      keys.push(...batch);
+    }
+  } while (cursor !== '0');
+  return keys;
+}
+
+async function clearOpmlImportKeyvalState(accountId) {
+  const redis = new Redis({
+    host: KEYVALDB_HOST,
+    port: KEYVALDB_PORT,
+    password: KEYVALDB_PASSWORD || undefined,
+    maxRetriesPerRequest: 1,
+    enableOfflineQueue: false,
+    lazyConnect: true,
+  });
+
+  try {
+    // With enableOfflineQueue:false, a command issued before the socket is
+    // connected throws "Stream isn't writeable". lazyConnect + an awaited
+    // connect() guarantees readiness first while keeping fail-fast semantics.
+    await redis.connect();
+
+    // 1) Remove all hourly-cap keys for this account.
+    const hourlyKeys = await scanKeysByMatch(
+      redis,
+      `${OPML_IMPORT_HOURLY_KEY_PREFIX}${accountId}:*`
+    );
+    if (hourlyKeys.length > 0) {
+      await redis.del(...hourlyKeys);
+    }
+
+    // 2) Remove report/status entries for this account (requestId-keyed) without touching
+    // other accounts. Keep this scoped by checking cached JSON.accountId.
+    const allOpmlKeys = await scanKeysByMatch(redis, `${OPML_IMPORT_KEY_PREFIX}*`);
+    const accountScopedReportKeys = [];
+    for (const key of allOpmlKeys) {
+      if (key.startsWith(OPML_IMPORT_HOURLY_KEY_PREFIX)) {
+        continue;
+      }
+      const raw = await redis.get(key);
+      if (!raw) {
+        continue;
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        if (
+          parsed &&
+          typeof parsed === 'object' &&
+          'accountId' in parsed &&
+          parsed.accountId === accountId
+        ) {
+          accountScopedReportKeys.push(key);
+        }
+      } catch {
+        // Non-JSON / unexpected shape: ignore.
+      }
+    }
+    if (accountScopedReportKeys.length > 0) {
+      await redis.del(...accountScopedReportKeys);
+    }
+
+    console.log(
+      `Cleared OPML Valkey state for account ${accountId} (hourly=${hourlyKeys.length}, reports=${accountScopedReportKeys.length})`
+    );
+  } finally {
+    redis.disconnect();
+  }
+}
 
 async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPasswordHash) {
   if (SEED_MEDIA_FIXTURES_ONLY) {
@@ -1041,6 +1124,7 @@ async function main() {
   console.log(`Connected to ${DB_NAME} on ${DB_HOST}:${DB_PORT}`);
 
   const accountId = await resolveSeedAccountId(client, passwordHash, invitePlaceholderPasswordHash);
+  await clearOpmlImportKeyvalState(accountId);
   await seedMediaPlayerAndEmbedFixtures(client, accountId);
 
   await client.end();

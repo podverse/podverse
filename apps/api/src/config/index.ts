@@ -7,6 +7,7 @@ import {
   DEFAULT_RESET_PASSWORD_TOKEN_EXPIRATION,
   DEFAULT_VERIFY_AND_EMAIL_CHANGE_TOKEN_EXPIRATION,
   MS_PER_SECOND,
+  parseCountPerWindowEnvFromKey,
   readOptionalPositiveExpirationEnv,
   readRequiredPositiveExpirationEnv,
 } from '@podverse/helpers';
@@ -19,6 +20,23 @@ type SocialConfig = {
 };
 
 type Config = {
+  rateLimits: {
+    authLogin: { windowMs: number; max: number };
+    accountCreate: { windowMs: number; max: number };
+    accountSendVerificationEmail: { windowMs: number; max: number };
+    accountVerifyEmail: { windowMs: number; max: number };
+    accountSendChangeEmail: { windowMs: number; max: number };
+    accountVerifyEmailChange: { windowMs: number; max: number };
+    accountSendResetPasswordEmail: { windowMs: number; max: number };
+    accountResetPassword: { windowMs: number; max: number };
+    accountSetPassword: { windowMs: number; max: number };
+    accountDownloadData: { windowMs: number; max: number };
+    accountOpmlExport: { windowMs: number; max: number };
+    accountOpmlImportEnqueue: { windowMs: number; max: number };
+    accountAddByRssParseEnqueue: { windowMs: number; max: number };
+    accountAddByRssChaptersTranscript: { windowMs: number; max: number };
+    mqRssOnDemand: { windowMs: number; max: number };
+  };
   nodeEnv: string;
   serverEnv: string;
   userAgent: string;
@@ -127,9 +145,90 @@ type Config = {
     /** When true (apiMobileE2e), use deterministic local fixtures instead of live PI / MQ. */
     fixturesEnabled: boolean;
   };
+  opmlImport: {
+    /** Max new (PI enqueue / add-by-RSS) feeds per account per hour. */
+    maxFeedsPerHour: number;
+  };
 };
 
 export const config: Config = {
+  rateLimits: {
+    authLogin: parseCountPerWindowEnvFromKey({
+      envValue: process.env.AUTH_LOGIN_MAX_PER_MINUTE,
+      key: 'AUTH_LOGIN_MAX_PER_MINUTE',
+      defaultMax: 5,
+    }),
+    accountCreate: parseCountPerWindowEnvFromKey({
+      envValue: process.env.ACCOUNT_CREATE_MAX_PER_10_MINUTES,
+      key: 'ACCOUNT_CREATE_MAX_PER_10_MINUTES',
+      defaultMax: 3,
+    }),
+    accountSendVerificationEmail: parseCountPerWindowEnvFromKey({
+      envValue: process.env.ACCOUNT_SEND_VERIFICATION_EMAIL_MAX_PER_10_MINUTES,
+      key: 'ACCOUNT_SEND_VERIFICATION_EMAIL_MAX_PER_10_MINUTES',
+      defaultMax: 4,
+    }),
+    accountVerifyEmail: parseCountPerWindowEnvFromKey({
+      envValue: process.env.ACCOUNT_VERIFY_EMAIL_MAX_PER_10_MINUTES,
+      key: 'ACCOUNT_VERIFY_EMAIL_MAX_PER_10_MINUTES',
+      defaultMax: 10,
+    }),
+    accountSendChangeEmail: parseCountPerWindowEnvFromKey({
+      envValue: process.env.ACCOUNT_SEND_CHANGE_EMAIL_MAX_PER_10_MINUTES,
+      key: 'ACCOUNT_SEND_CHANGE_EMAIL_MAX_PER_10_MINUTES',
+      defaultMax: 4,
+    }),
+    accountVerifyEmailChange: parseCountPerWindowEnvFromKey({
+      envValue: process.env.ACCOUNT_VERIFY_EMAIL_CHANGE_MAX_PER_10_MINUTES,
+      key: 'ACCOUNT_VERIFY_EMAIL_CHANGE_MAX_PER_10_MINUTES',
+      defaultMax: 10,
+    }),
+    accountSendResetPasswordEmail: parseCountPerWindowEnvFromKey({
+      envValue: process.env.ACCOUNT_SEND_RESET_PASSWORD_EMAIL_MAX_PER_10_MINUTES,
+      key: 'ACCOUNT_SEND_RESET_PASSWORD_EMAIL_MAX_PER_10_MINUTES',
+      defaultMax: 4,
+    }),
+    accountResetPassword: parseCountPerWindowEnvFromKey({
+      envValue: process.env.ACCOUNT_RESET_PASSWORD_MAX_PER_10_MINUTES,
+      key: 'ACCOUNT_RESET_PASSWORD_MAX_PER_10_MINUTES',
+      defaultMax: 4,
+    }),
+    accountSetPassword: parseCountPerWindowEnvFromKey({
+      envValue: process.env.ACCOUNT_SET_PASSWORD_MAX_PER_10_MINUTES,
+      key: 'ACCOUNT_SET_PASSWORD_MAX_PER_10_MINUTES',
+      defaultMax: 4,
+    }),
+    accountDownloadData: parseCountPerWindowEnvFromKey({
+      envValue: process.env.ACCOUNT_DOWNLOAD_DATA_MAX_PER_DAY,
+      key: 'ACCOUNT_DOWNLOAD_DATA_MAX_PER_DAY',
+      defaultMax: 3,
+    }),
+    accountOpmlExport: parseCountPerWindowEnvFromKey({
+      envValue: process.env.ACCOUNT_OPML_EXPORT_MAX_PER_HOUR,
+      key: 'ACCOUNT_OPML_EXPORT_MAX_PER_HOUR',
+      defaultMax: 10,
+    }),
+    accountOpmlImportEnqueue: parseCountPerWindowEnvFromKey({
+      envValue: process.env.ACCOUNT_OPML_IMPORT_ENQUEUE_MAX_PER_HOUR,
+      key: 'ACCOUNT_OPML_IMPORT_ENQUEUE_MAX_PER_HOUR',
+      defaultMax: 10,
+    }),
+    accountAddByRssParseEnqueue: parseCountPerWindowEnvFromKey({
+      envValue: process.env.ACCOUNT_ADD_BY_RSS_PARSE_ENQUEUE_MAX_PER_HOUR,
+      key: 'ACCOUNT_ADD_BY_RSS_PARSE_ENQUEUE_MAX_PER_HOUR',
+      defaultMax: 20,
+    }),
+    accountAddByRssChaptersTranscript: parseCountPerWindowEnvFromKey({
+      envValue: process.env.ACCOUNT_ADD_BY_RSS_CHAPTERS_TRANSCRIPT_MAX_PER_MINUTE,
+      key: 'ACCOUNT_ADD_BY_RSS_CHAPTERS_TRANSCRIPT_MAX_PER_MINUTE',
+      defaultMax: 30,
+    }),
+    mqRssOnDemand: parseCountPerWindowEnvFromKey({
+      envValue: process.env.MQ_RSS_ON_DEMAND_MAX_PER_HOUR,
+      key: 'MQ_RSS_ON_DEMAND_MAX_PER_HOUR',
+      defaultMax: 20,
+    }),
+  },
   nodeEnv: process.env.NODE_ENV!,
   serverEnv: process.env.SERVER_ENV!,
   userAgent: process.env.USER_AGENT!,
@@ -274,5 +373,15 @@ export const config: Config = {
   },
   e2e: {
     fixturesEnabled: process.env.PODVERSE_E2E_FIXTURES === '1',
+  },
+  opmlImport: {
+    maxFeedsPerHour: (() => {
+      const raw = process.env.OPML_IMPORT_MAX_FEEDS_PER_HOUR;
+      if (raw === undefined || raw.trim() === '') {
+        return 50;
+      }
+      const parsed = Number.parseInt(raw, 10);
+      return Number.isFinite(parsed) && parsed >= 1 ? parsed : 50;
+    })(),
   },
 };

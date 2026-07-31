@@ -7,7 +7,8 @@
 ## Scope
 
 - OPML import entry-point button in More/Library (UI + navigation only).
-- Actual OPML parse + subscribe is Track 16.4–16.5; this step just adds the discoverable entry point.
+- Actual OPML parse + subscribe delivered in Track 16.4–16.5 (server async job); see
+  `.llm/plans/completed/opml-import-export/` and [OPML](/docs/features/OPML.md).
 
 ## Acceptance criteria
 
@@ -17,7 +18,7 @@
 
 ## Web parity references
 
-- Web OPML import affordance (settings/library area); implementation deferred to Track 16
+- Web OPML import: Settings → OPML (`SettingsOpml`)
 - More stack: [`225-more-stack`](/docs/proposals/mobile/_master-plan_/details/225-more-stack.md)
 
 ## Verification

@@ -62,6 +62,7 @@ const apiTestEnvBase = (): Record<string, string> => ({
   BRAND_COLOR_PRIMARY: '#000000',
   BRAND_BANNER_IMAGE_3X1_URL: 'https://example.test/brand-banner-3x1.png',
   ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY: 'test-e2e-encryption-key',
+  OPML_IMPORT_MAX_FEEDS_PER_HOUR: '50',
   EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION: exp,
   LEGAL_NAME: 'Test Legal',
   LEGAL_ADDRESS: 'Test Address',
@@ -99,6 +100,7 @@ const apiProfileOverrides: Record<PodverseApiTestEnvProfile, Record<string, stri
     API_ALLOWED_CORS_ORIGINS: 'http://localhost:3000',
     KEYVALDB_PASSWORD: 'test',
     ACCOUNT_SIGNUP_MODE: 'user_signup_email',
+    AUTH_LOGIN_MAX_PER_MINUTE: '100',
     API_PUBLIC_BASE_URL: 'http://localhost:29999',
   },
   apiWebE2e: {
@@ -109,6 +111,10 @@ const apiProfileOverrides: Record<PodverseApiTestEnvProfile, Record<string, stri
     ACCOUNT_SIGNUP_MODE: 'admin_only_email',
     API_PUBLIC_BASE_URL: 'http://localhost:4030',
     PODVERSE_STARTUP_VALIDATION_SILENT: '1',
+    // Effectively disable the /auth/login IP limiter for the full web E2E suite: every spec logs
+    // in from the same localhost IP, so the production default (5/min) 429s the whole login-heavy
+    // cluster. Login-429 behavior is covered by auth.test.ts under the apiVitest profile.
+    AUTH_LOGIN_MAX_PER_MINUTE: '100000',
   },
   apiMobileE2e: {
     SERVER_ENV: 'local',
@@ -118,8 +124,14 @@ const apiProfileOverrides: Record<PodverseApiTestEnvProfile, Record<string, stri
     ACCOUNT_SIGNUP_MODE: 'admin_only_email',
     API_PUBLIC_BASE_URL: 'http://localhost:4230',
     PODVERSE_STARTUP_VALIDATION_SILENT: '1',
+    // Same reason as apiWebE2e: all Maestro flows log in from one host, so keep the login limiter
+    // effectively off (sparse mobile logins only avoided the 5/min default by luck).
+    AUTH_LOGIN_MAX_PER_MINUTE: '100000',
     // Deterministic Podcast Index search + add-by-RSS parse (no live PI / MQ).
     PODVERSE_E2E_FIXTURES: '1',
+    // Keep parity with production/default policy. E2E seed now clears OPML hourly
+    // counter state in Valkey, so same-hour reruns remain deterministic at this cap.
+    OPML_IMPORT_MAX_FEEDS_PER_HOUR: '50',
   },
 };
 

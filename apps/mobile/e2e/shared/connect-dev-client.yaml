@@ -35,23 +35,36 @@ appId: com.podverse.app.next
     commands:
       - tapOn: "http://10.0.2.2:8081"
 
-# First-launch onboarding card ("This is the developer menu ... Continue"). It appears only
-# after the JS bundle loads (Android cold bundle can be slow), so wait before tapping.
-- extendedWaitUntil:
-    visible: "Continue"
-    timeout: ${TIMEOUT_SLOWEST}
-- tapOn: "Continue"
-
-# Tapping Continue reveals the dev-menu bottom sheet (Reload / Go home / ...), which still
-# occludes the app. Wait for it, then close it by tapping the dimmed app scrim above it
-# (locale-independent).
-- extendedWaitUntil:
-    visible: "Reload"
-    timeout: ${TIMEOUT_SLOW}
-- tapOn:
-    point: "50%,18%"
-
+# After tapping the Metro URL the JS bundle loads asynchronously and the app either:
+#   (a) lands directly on home-screen (no dev-client onboarding card — observed on the current
+#       Expo dev-client / iOS 26 build, which connects straight through), or
+#   (b) shows the first-launch onboarding card ("This is the developer menu ... Continue") that
+#       overlays the app and must be dismissed.
+# Do NOT hard-wait for "Continue": on path (a) it never appears and the flow fails in this shared
+# step before its own assertions. Instead, try home-screen directly first (optional). If the
+# onboarding card is blocking it, that optional wait times out — by which point the bundle has
+# loaded and the card has rendered — then dismiss the card and require home-screen.
 - extendedWaitUntil:
     visible:
       id: home-screen
     timeout: ${TIMEOUT_SLOW}
+    optional: true
+
+# Dismiss the onboarding card only if it actually appeared (path b). Tapping Continue reveals the
+# dev-menu bottom sheet (Reload / Go home / ...), which still occludes the app; close it by tapping
+# the dimmed app scrim above it (locale-independent).
+- runFlow:
+    when:
+      visible: "Continue"
+    commands:
+      - tapOn: "Continue"
+      - extendedWaitUntil:
+          visible: "Reload"
+          timeout: ${TIMEOUT_SLOW}
+      - tapOn:
+          point: "50%,18%"
+
+- extendedWaitUntil:
+    visible:
+      id: home-screen
+    timeout: ${TIMEOUT_SLOWEST}

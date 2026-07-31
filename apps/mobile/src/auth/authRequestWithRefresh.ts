@@ -1,6 +1,6 @@
+import { getErrorResponseBodyCode, getErrorResponseStatus } from '@podverse/helpers/error';
 import type { ApiRequestService } from '@podverse/helpers-requests';
 
-import { getErrorCode, isUnauthorizedError } from '../lib/httpError';
 import { createMobileApiRequestService } from './mobileApi';
 
 export type AuthRequestDeps = {
@@ -43,8 +43,8 @@ export const refreshAccessTokenSingleFlight = async ({
 
       return refreshedTokens.access_token;
     } catch (error) {
-      const errorCode = getErrorCode(error);
-      if (isUnauthorizedError(error) || errorCode === 'refresh_token_reuse_detected') {
+      const errorCode = getErrorResponseBodyCode(error);
+      if (getErrorResponseStatus(error) === 401 || errorCode === 'refresh_token_reuse_detected') {
         await clearSession();
         return null;
       }
@@ -70,7 +70,7 @@ export const requestWithMobileAuthRefresh = async <T>(
   try {
     return await runRequest(initialApiRequestService);
   } catch (error) {
-    if (!isUnauthorizedError(error)) {
+    if (getErrorResponseStatus(error) !== 401) {
       throw error;
     }
 
