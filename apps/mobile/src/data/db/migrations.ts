@@ -84,6 +84,19 @@ export const MIGRATIONS: Migration[] = [
       `CREATE INDEX IF NOT EXISTS idx_download_status ON download (status);`,
     ],
   },
+  {
+    version: 6,
+    statements: [
+      `CREATE TABLE IF NOT EXISTS subscribed_channel (
+        id_text TEXT PRIMARY KEY NOT NULL,
+        title TEXT NOT NULL,
+        image_url TEXT,
+        source TEXT NOT NULL,
+        medium TEXT NOT NULL,
+        updated_at INTEGER NOT NULL
+      );`,
+    ],
+  },
 ];
 
 export const LATEST_MIGRATION_VERSION: number = MIGRATIONS.reduce(

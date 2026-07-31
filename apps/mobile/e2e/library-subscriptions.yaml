@@ -1,0 +1,30 @@
+appId: com.podverse.app.next
+name: Library Subscriptions List
+---
+# Track 9.30 (detail 602): authenticated My Library Subscriptions list mixes directory follows +
+# add-by-RSS from the shared subscriptionsRepository (9b.8), with the All / Add-by-RSS filter reused
+# from Home (8.16). Path: Library -> Subscriptions -> filter toggle. Needs Mobile E2E API (:4230).
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+# Library hub -> subscriptions list.
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-subscriptions
+- assertVisible:
+    id: library-subscriptions-screen
+- takeScreenshot: library-subscriptions-all
+
+# Filter to add-by-RSS only, then back to the mixed (All) list; the choice persists in device prefs.
+- assertVisible:
+    id: library-subscriptions-filter
+- tapOn:
+    id: library-subscriptions-filter-addByRss
+- takeScreenshot: library-subscriptions-add-by-rss
+- tapOn:
+    id: library-subscriptions-filter-all
+- takeScreenshot: library-subscriptions-all-restored

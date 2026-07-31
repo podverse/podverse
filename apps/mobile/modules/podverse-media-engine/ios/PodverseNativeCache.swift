@@ -25,11 +25,11 @@ enum PodverseNativeCacheKind: String, CaseIterable {
 }
 
 enum PodverseNativeCache {
-  // App Group container id for sharing the cache with a future CarPlay scene / extension (12.7+).
-  // Nil until the CarPlay entitlement + App Group are provisioned (12.16). v1 uses the app's
-  // Application Support container; setting this later transparently migrates reads/writes to the
-  // shared group — do not introduce a second competing schema when that happens.
-  static let appGroupIdentifier: String? = nil
+  // App Group container id for sharing the cache with the CarPlay scene (12.7). The App ID
+  // `com.podverse.app.next` has this group provisioned (12.16 iOS portal). JS writes and the
+  // CarPlay scene read from the same shared container, so browse/play work with the phone app
+  // force-quit. Keep this in sync with `com.apple.security.application-groups` in app.config.ts.
+  static let appGroupIdentifier: String? = "group.com.podverse.app.next"
 
   private static let directoryName = "native-cache"
 

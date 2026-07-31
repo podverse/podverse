@@ -672,7 +672,11 @@
   },
   "subscriptions": {
     "subscriptions": "",
-    "how_to_start_message": ""
+    "how_to_start_message": "",
+    "filter": {
+      "all": "",
+      "add_by_rss": ""
+    }
   },
   "authentication": {
     "login": "",

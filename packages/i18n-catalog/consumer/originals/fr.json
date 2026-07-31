@@ -672,7 +672,11 @@
   },
   "subscriptions": {
     "subscriptions": "Abonnements",
-    "how_to_start_message": "Essayez <searchLink>de rechercher</searchLink> votre contenu préféré, ou parcourez <podcastsLink>les podcasts</podcastsLink>, <videosLink>les vidéos</videosLink> ou <musicLink>la musique</musicLink>. Vos abonnements apparaîtront ici."
+    "how_to_start_message": "Essayez <searchLink>de rechercher</searchLink> votre contenu préféré, ou parcourez <podcastsLink>les podcasts</podcastsLink>, <videosLink>les vidéos</videosLink> ou <musicLink>la musique</musicLink>. Vos abonnements apparaîtront ici.",
+    "filter": {
+      "all": "Tous",
+      "add_by_rss": "Ajouter par RSS"
+    }
   },
   "authentication": {
     "login": "Connexion",

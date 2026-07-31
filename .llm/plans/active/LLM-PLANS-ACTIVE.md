@@ -10,11 +10,18 @@ templates are blanks; this directory holds real plan instances.
 
 ## Indexed sets
 
+_Active (mobile):_ none — Track 12 (CarPlay / Android Auto) is complete.
+
 _Active (non-mobile):_ `media-player-livestream-hls-migration/`,
 `web-e2e-coverage-high-level/`, `route-navigation-loading-warning/`,
 `web-404-hardening-deferred/`, `doc-link-path-missed-followup/`.
 
 _Recently completed (mobile):_
+[mobile-pg8-car-library-follows](../completed/mobile-pg8-car-library-follows/) (12.22, 12.21 — car
+Library browse projects the merged subscriptions list + followed playlists; parallel-worktree
+operator doc; **Track 12 complete**),
+[mobile-unified-subscriptions](../completed/mobile-unified-subscriptions/) (9b.8, 8.16, 9.30 — merged
+directory follows + add-by-RSS into one filterable subscribed list; Home + My Library),
 [mobile-pg8-car-android-auto](../completed/mobile-pg8-car-android-auto/) (12.11–12.17, 12.19, 12.20 —
 Android Auto native browse + play from cache; iOS CarPlay 12.7–12.10 / 12.18 is a later slice pending
 the Apple CarPlay entitlement),

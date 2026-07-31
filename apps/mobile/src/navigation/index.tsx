@@ -20,6 +20,7 @@ import { LibraryHistoryScreen } from '../screens/library/LibraryHistoryScreen';
 import { LibraryMyClipsScreen } from '../screens/library/LibraryMyClipsScreen';
 import { LibraryPlaylistsScreen } from '../screens/library/LibraryPlaylistsScreen';
 import { LibraryQueueScreen } from '../screens/library/LibraryQueueScreen';
+import { LibrarySubscriptionsScreen } from '../screens/library/LibrarySubscriptionsScreen';
 import { PlaylistDetailScreen } from '../screens/library/PlaylistDetailScreen';
 import { PlaylistFormScreen } from '../screens/library/PlaylistFormScreen';
 import { FullPlayerScreen } from '../screens/player/FullPlayerScreen';
@@ -166,11 +167,13 @@ export const LIBRARY_STACK_ROUTES = {
   LibraryHistory: 'LibraryHistory',
   LibraryHub: 'LibraryHub',
   LibraryMyClips: 'LibraryMyClips',
+  LibrarySubscriptions: 'LibrarySubscriptions',
   PlaylistCreate: 'PlaylistCreate',
   PlaylistDetail: 'PlaylistDetail',
   PlaylistEdit: 'PlaylistEdit',
   LibraryPlaylists: 'LibraryPlaylists',
   LibraryQueue: 'LibraryQueue',
+  PodcastDetail: 'PodcastDetail',
 } as const;
 
 export const RSS_STACK_ROUTES = {
@@ -235,11 +238,13 @@ export const mobileNavigationLinking: LinkingOptions<RootStackParamList> = {
               LibraryHistory: 'my-library/history',
               LibraryHub: 'my-library',
               LibraryMyClips: 'my-library/my-clips',
+              LibrarySubscriptions: 'my-library/subscriptions',
               PlaylistCreate: 'my-library/playlist/create',
               PlaylistDetail: 'my-library/playlist/:playlistId',
               PlaylistEdit: 'my-library/playlist/:playlistId/edit',
               LibraryPlaylists: 'my-library/playlists',
               LibraryQueue: 'my-library/queue',
+              PodcastDetail: 'my-library/podcast/:podcastId',
             },
           },
           RSS: {
@@ -300,11 +305,13 @@ export type LibraryStackParamList = {
   LibraryHistory: undefined;
   LibraryHub: undefined;
   LibraryMyClips: undefined;
+  LibrarySubscriptions: undefined;
   PlaylistCreate: undefined;
   PlaylistDetail: { playlistId: string };
   PlaylistEdit: { playlistId: string };
   LibraryPlaylists: undefined;
   LibraryQueue: undefined;
+  PodcastDetail: { podcastId: string };
 };
 
 export type RssStackParamList = {
@@ -327,6 +334,15 @@ export type MoreStackParamList = {
 type RootStackParamList = {
   FullPlayer: undefined;
   MainTabs: undefined;
+};
+
+/** Bottom-tab route names, used for type-safe cross-tab navigation (e.g. Home → RSS). */
+export type MobileTabParamList = {
+  Home: undefined;
+  Search: undefined;
+  'My Library': undefined;
+  RSS: undefined;
+  More: undefined;
 };
 
 function HomeStackNavigator() {
@@ -431,6 +447,16 @@ function LibraryStackNavigator() {
         component={LibraryHubScreen}
         name={LIBRARY_STACK_ROUTES.LibraryHub}
         options={{ title: t('features.my_library') }}
+      />
+      <LibraryStack.Screen
+        component={LibrarySubscriptionsScreen}
+        name={LIBRARY_STACK_ROUTES.LibrarySubscriptions}
+        options={{ title: t('subscriptions.subscriptions') }}
+      />
+      <LibraryStack.Screen
+        component={PodcastDetailScreen}
+        name={LIBRARY_STACK_ROUTES.PodcastDetail}
+        options={{ title: t('media.podcast.podcast') }}
       />
       <LibraryStack.Screen
         component={LibraryPlaylistsScreen}
@@ -585,6 +611,13 @@ function LibraryHubScreen({
   return (
     <PlaceholderMenuScreen
       items={[
+        {
+          onPress: () => {
+            navigation.navigate(LIBRARY_STACK_ROUTES.LibrarySubscriptions);
+          },
+          testID: 'library-nav-subscriptions',
+          title: t('subscriptions.subscriptions'),
+        },
         {
           onPress: () => {
             navigation.navigate(LIBRARY_STACK_ROUTES.LibraryPlaylists);
