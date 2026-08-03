@@ -37,7 +37,7 @@
     "@podverse/ui": "*",
     "@tanstack/react-query": "^5.101.4",
     "@tanstack/react-table": "^8.21.3",
-    "axios": "^1.16.1",
+    "axios": "^1.19.0",
     "classnames": "^2.5.1",
     "next": "^16.2.11",
     "next-intl": "^4.13.4",
