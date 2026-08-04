@@ -10,7 +10,15 @@ templates are blanks; this directory holds real plan instances.
 
 ## Indexed sets
 
-_Active (mobile):_ none — Track 12 (CarPlay / Android Auto) is complete.
+_Active (mobile):_
+
+- `mobile-track14-16-unit-tests/` (node-only vitest coverage for the Track 14–16 pure logic:
+  deep-link path map 15.3, notification tap-routing target 14.4/14.8, share-URL parity 15.5, unified
+  prefs store 16.1; includes behavior-preserving pure-core extractions so tests stay out of the
+  RN/Expo import graph).
+
+PG-9 feature tracks (14, 15, 16) are functionally complete; this set closes the unit-test gap.
+Track 12 (CarPlay / Android Auto) is complete.
 
 _Active (non-mobile):_ `media-player-livestream-hls-migration/`,
 `web-e2e-coverage-high-level/`, `route-navigation-loading-warning/`,
@@ -25,6 +33,13 @@ knobs with `_PER_MINUTE` / `_PER_10_MINUTES` / `_PER_HOUR` / `_PER_DAY`, plus lo
 `rate-limit.env` override wiring).
 
 _Recently completed (mobile):_
+[mobile-track14-push](../completed/mobile-track14-push/) (14.1–14.8 — FCM playstore transport +
+device register/locale/permission UX, UnifiedPush FOSS transport + wrappers, notification tap
+routing via the 452/453 deep-link path, FOSS register doc + push-routing E2E; **Track 14 complete**),
+[mobile-track15-deep-links](../completed/mobile-track15-deep-links/) (15.1–15.6 — native
+universal/App Links config, path map + cold-start replay, share URL parity, deep-link E2E),
+[mobile-track16-prefs-settings](../completed/mobile-track16-prefs-settings/) (16.1–16.3 — unified
+device prefs store, prefs server sync, settings screen; **Track 16 now complete**),
 [mobile-pg8-car-library-follows](../completed/mobile-pg8-car-library-follows/) (12.22, 12.21 — car
 Library browse projects the merged subscriptions list + followed playlists; parallel-worktree
 operator doc; **Track 12 complete**),

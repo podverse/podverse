@@ -6,9 +6,9 @@ import { getErrorResponseStatus } from '@podverse/helpers/error';
 
 import { loginWithMobileToken, useAuth } from '../../auth';
 import { resolveLocalDevLoginPrefill } from '../../auth/localDevLoginPrefill';
+import { runPostAuthAccountSync } from '../../auth/syncAccountPrefs';
 import { getMobileConfig } from '../../config';
 import { accountRepository } from '../../data';
-import { applyAccountLocaleOverride } from '../../i18n';
 import { useTheme } from '../../theme/useTheme';
 
 type LoginScreenProps = {
@@ -107,11 +107,12 @@ export function LoginScreen({ onDismiss, onSwitchToSignUp }: LoginScreenProps) {
         });
         setAccount(account);
         try {
-          await applyAccountLocaleOverride(
-            account.account_settings?.account_settings_locale?.locale
-          );
+          await runPostAuthAccountSync({
+            accessToken: result.accessToken,
+            account,
+          });
         } catch (error) {
-          console.warn('Failed to apply account locale after login hydrate', error);
+          console.warn('Failed to reconcile account prefs after login hydrate', error);
         }
         setAuthError(null);
       } catch (error) {

@@ -1,0 +1,18 @@
+appId: com.podverse.app.next
+name: Deep Link Podcast
+---
+# Track 15.6: prove deep-link routing to a tab-scoped detail screen.
+# E2E-safe id_text seeded by tools/web/seed-e2e.mjs.
+
+- runFlow: shared/launch-and-connect.yaml
+
+# Route through the app's native scheme (deterministic in Maestro).
+- openLink: podverse-next://podcast/e2ePodChnl001
+
+# The detail screen container is stable even while data is loading/refetching.
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-screen
+    timeout: ${TIMEOUT_SLOWEST}
+
+- takeScreenshot: deep-link-podcast-detail

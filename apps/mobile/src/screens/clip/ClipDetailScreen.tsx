@@ -1,4 +1,4 @@
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -11,14 +11,16 @@ import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
-import type { ChannelBrowseStackParamList } from '../../navigation';
 import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 import { useClipPlayback } from './useClipPlayback';
 
-type ClipDetailScreenProps = NativeStackScreenProps<ChannelBrowseStackParamList, 'ClipDetail'>;
+type ClipDetailScreenProps = {
+  navigation: NativeStackNavigationProp<Record<string, object | undefined>>;
+  route: { params: { clipId: string } };
+};
 
 export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
   const { t } = useTranslation();

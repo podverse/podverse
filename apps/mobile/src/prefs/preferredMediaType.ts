@@ -1,30 +1,31 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { MediaTypePreference } from '@podverse/helpers';
 
-const PREFERRED_MEDIA_TYPE_KEY = 'preferred_media_type';
+import type { HomeMediaType } from './prefsStore';
+import {
+  DEFAULT_HOME_MEDIA_TYPE,
+  DEFAULT_PLAYBACK_MEDIA_TYPE,
+  getPref,
+  setPref,
+} from './prefsStore';
 
-const HOME_MEDIA_TYPES = ['podcasts', 'episodes', 'clips', 'artists', 'albums', 'tracks'] as const;
-
-export type HomeMediaType = (typeof HOME_MEDIA_TYPES)[number];
-
-const isHomeMediaType = (value: string): value is HomeMediaType => {
-  return HOME_MEDIA_TYPES.some((mediaType) => mediaType === value);
-};
-
-export const DEFAULT_HOME_MEDIA_TYPE: HomeMediaType = 'podcasts';
+const HOME_MEDIA_TYPE_PREF_KEY = 'preferred_media_type';
+const PLAYBACK_MEDIA_TYPE_PREF_KEY = 'pmt';
 
 export const readPreferredMediaType = async (): Promise<HomeMediaType | null> => {
-  const value = await AsyncStorage.getItem(PREFERRED_MEDIA_TYPE_KEY);
-  if (value === null) {
-    return null;
-  }
-
-  if (!isHomeMediaType(value)) {
-    return null;
-  }
-
-  return value;
+  return getPref(HOME_MEDIA_TYPE_PREF_KEY);
 };
 
 export const writePreferredMediaType = async (mediaType: HomeMediaType): Promise<void> => {
-  await AsyncStorage.setItem(PREFERRED_MEDIA_TYPE_KEY, mediaType);
+  await setPref(HOME_MEDIA_TYPE_PREF_KEY, mediaType);
+};
+
+export type { HomeMediaType } from './prefsStore';
+export { DEFAULT_HOME_MEDIA_TYPE, DEFAULT_PLAYBACK_MEDIA_TYPE };
+
+export const readPlaybackMediaTypePref = async (): Promise<MediaTypePreference | null> => {
+  return getPref(PLAYBACK_MEDIA_TYPE_PREF_KEY);
+};
+
+export const writePlaybackMediaTypePref = async (mediaType: MediaTypePreference): Promise<void> => {
+  await setPref(PLAYBACK_MEDIA_TYPE_PREF_KEY, mediaType);
 };

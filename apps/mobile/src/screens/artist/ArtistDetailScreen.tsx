@@ -53,11 +53,6 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
           marginTop: tokens.spacing.sm,
           padding: tokens.spacing.md,
         },
-        albumSubtitle: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          marginTop: tokens.spacing.xs,
-        },
         albumTitle: {
           color: themeStyles.textPrimary.color,
           fontSize: 16,
@@ -174,9 +169,6 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
                   testID={`artist-album-row-${album.id_text}`}
                 >
                   <Text style={styles.albumTitle}>{album.title ?? album.id_text}</Text>
-                  {album.channel_publisher?.name ? (
-                    <Text style={styles.albumSubtitle}>{album.channel_publisher.name}</Text>
-                  ) : null}
                 </Pressable>
               ))
             )}

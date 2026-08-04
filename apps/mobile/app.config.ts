@@ -2,6 +2,53 @@ import type { ExpoConfig } from 'expo/config';
 
 import packageJson from './package.json';
 
+// Expo reads this config by sucrase-transpiling ONLY this entry file and evaluating it via
+// `require-from-string`; nested imports then fall through to Node's plain CJS loader, which has no
+// `.ts` handler (Expo registers none). Register a lightweight TS require hook (sucrase is already an
+// Expo dependency) and load the shared scheme helper with `require` — not `import`, which sucrase
+// would hoist above this call — so native scheme registration stays a single source of truth with
+// the RN linking prefixes. See the `mobile-deep-links-and-prod-cutover` rule.
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- TS require hook must run before the nested .ts import below
+require('sucrase/register/ts');
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- loaded via require (after the hook) instead of a hoisted import
+const {
+  parseMobileDeepLinkSchemes,
+}: typeof import('./src/config/deepLinkSchemes') = require('./src/config/deepLinkSchemes');
+
+const DEFAULT_UNIVERSAL_LINK_HOST = 'podverse.fm';
+
+const trimToNull = (value: string | undefined): string | null => {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+};
+
+/** Resolve a hostname from a value that may be a full URL (`https://podverse.fm`) or a bare host. */
+const resolveHost = (value: string | null): string | null => {
+  if (value === null) {
+    return null;
+  }
+  try {
+    return new URL(value).hostname;
+  } catch {
+    return value;
+  }
+};
+
+// Custom URL schemes registered natively (CFBundleURLTypes / Android intent filters). Env-driven and
+// shared with the RN linking prefixes via `src/config/deepLinkSchemes.ts` so native registration and
+// the JS `prefixes` list never drift. Beta ships `podverse-next` + legacy `podverse`; a fork sets
+// EXPO_PUBLIC_MOBILE_DEEP_LINK_SCHEMES to its own scheme(s).
+const deepLinkSchemes = parseMobileDeepLinkSchemes(
+  process.env.EXPO_PUBLIC_MOBILE_DEEP_LINK_SCHEMES
+);
+
+const universalLinkHost =
+  resolveHost(trimToNull(process.env.EXPO_PUBLIC_MOBILE_WEB_BASE_URL)) ??
+  resolveHost(trimToNull(process.env.WEB_BASE_URL)) ??
+  DEFAULT_UNIVERSAL_LINK_HOST;
+
+const universalLinkPathPrefixes = ['/podcast/', '/episode/', '/playlist/', '/clip/', '/profile/'];
+
 const config: ExpoConfig = {
   name: 'Podverse Next',
   slug: 'podverse-next',
@@ -9,7 +56,7 @@ const config: ExpoConfig = {
   orientation: 'portrait',
   userInterfaceStyle: 'automatic',
   newArchEnabled: true,
-  scheme: 'podverse-next',
+  scheme: deepLinkSchemes,
   platforms: ['ios', 'android'],
   ios: {
     supportsTablet: true,
@@ -37,15 +84,40 @@ const config: ExpoConfig = {
   },
   android: {
     package: 'com.podverse.app.next',
-    // ExoPlayer needs cleartext for E2E test-assets at http://10.0.2.2:2111 (and local API).
-    usesCleartextTraffic: true,
     permissions: [
       'android.permission.FOREGROUND_SERVICE',
       'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
       'android.permission.POST_NOTIFICATIONS',
     ],
+    intentFilters: [
+      {
+        action: 'VIEW',
+        autoVerify: true,
+        category: ['BROWSABLE', 'DEFAULT'],
+        data: universalLinkPathPrefixes.map((pathPrefix) => ({
+          host: universalLinkHost,
+          pathPrefix,
+          scheme: 'https',
+        })),
+      },
+    ],
   },
-  plugins: ['expo-dev-client', 'expo-localization', './plugins/withPodverseCarPlay'],
+  plugins: [
+    'expo-dev-client',
+    'expo-localization',
+    'expo-notifications',
+    [
+      'expo-build-properties',
+      {
+        // ExoPlayer needs cleartext for E2E test-assets at http://10.0.2.2:2111 (and local API).
+        android: {
+          usesCleartextTraffic: true,
+        },
+      },
+    ],
+    './plugins/withPodverseCarPlay',
+    ['./plugins/withPodverseAssociatedDomains', { host: universalLinkHost }],
+  ],
 };
 
 export default config;

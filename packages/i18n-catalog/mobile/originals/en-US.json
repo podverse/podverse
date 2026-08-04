@@ -43,5 +43,11 @@
       "add_failed": "Could not add this podcast. Please try again later.",
       "add_timed_out": "Still processing after several minutes. Search again shortly to open this podcast — adding does not subscribe you automatically."
     }
+  },
+  "settings": {
+    "notifications": {
+      "open_system_settings": "Open system settings",
+      "permission_required": "Notification permission is required to enable this setting."
+    }
   }
 }

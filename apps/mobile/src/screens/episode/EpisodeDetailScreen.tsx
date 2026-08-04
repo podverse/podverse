@@ -16,9 +16,11 @@ import { formatPlaybackTime } from '@podverse/helpers/time';
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
 import { DownloadControl } from '../../components/download/DownloadControl';
+import { Button } from '../../components/primitives/Button';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
+import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import type { ChannelBrowseStackParamList } from '../../navigation';
 import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
 import { usePlayback } from '../../playback/PlaybackProvider';
@@ -155,6 +157,10 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
         tabsRow: {
           flexDirection: 'row',
           marginTop: tokens.spacing.md,
+        },
+        titleActions: {
+          flexDirection: 'row',
+          marginBottom: tokens.spacing.md,
         },
       }),
     [themeStyles, tokens]
@@ -451,6 +457,10 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
     );
   };
 
+  const handleShare = useCallback(() => {
+    shareResolvedUrl(buildPublicShareUrl('episode', episodeId));
+  }, [episodeId]);
+
   return (
     <ScrollView
       contentContainerStyle={styles.content}
@@ -471,6 +481,14 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
       {!isLoading && errorKey === null && episode !== null ? (
         <>
           <Text style={styles.heading}>{episode.title ?? t('media.podcast.episode')}</Text>
+          <View style={styles.titleActions}>
+            <Button
+              label={t('features.share')}
+              onPress={handleShare}
+              testID="episode-detail-share"
+              variant="secondary"
+            />
+          </View>
           <View style={styles.card}>
             <Text style={styles.label}>{t('media.podcast.podcast')}</Text>
             <Text style={styles.metadataValue}>{channelTitle ?? t('media.podcast.podcast')}</Text>

@@ -26,9 +26,10 @@ TIMEOUTS_ENV="$E2E_DIR/shared/timeouts.env"
 # API-backed apps/mobile/e2e/<area>.yaml — full suite (`all`) always requires the API.
 flow_needs_e2e_api() {
   case "$1" in
-  add-by-rss | api-health | auth-login | auth-logout | auto-queue-advance | \
+  add-by-rss | api-health | auth-login | auth-logout | auto-queue-advance | deep-link | \
   engine-audio-spike | home | library-downloads | library-playlists | opml | play-mini-player | \
-  podcast-episode | queue-add | search | search-unparsed | tab-switch-playback | video-transition)
+  podcast-episode | push | queue-add | search | search-unparsed | tab-switch-playback | \
+  video-transition)
     return 0
     ;;
   *)

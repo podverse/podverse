@@ -88,6 +88,10 @@ export const isItemDownloadable = (item: DTOItem): DownloadEligibility => {
   const chosen =
     progressive.find((candidate) => candidate.labeled.mediaType === 'audio') ?? progressive[0];
 
+  if (chosen === undefined) {
+    return { ok: false, reason: 'no_enclosure' };
+  }
+
   return {
     ok: true,
     source: {
