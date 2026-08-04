@@ -50,3 +50,23 @@ export async function reqAccountUPDeviceGetForAccount(api: ApiRequestService) {
     config: { withCredentials: true },
   });
 }
+
+export async function reqAccountUPDeviceUpdateLocale(
+  api: ApiRequestService,
+  params: { locale: string }
+) {
+  return api.apiRequest<{ message: string }>({
+    path: '/account/up-device/update-locale',
+    method: 'PUT',
+    data: params,
+    config: { withCredentials: true },
+  });
+}
+
+export async function reqAccountUPDeviceDeleteAll(api: ApiRequestService) {
+  return api.apiRequest<{ message: string }>({
+    path: '/account/up-device/delete-all',
+    method: 'DELETE',
+    config: { withCredentials: true },
+  });
+}

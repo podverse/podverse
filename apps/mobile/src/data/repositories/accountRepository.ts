@@ -33,7 +33,7 @@ const parseAccountSnapshot = (raw: string): DTOAccount | null => {
 
     // The snapshot is the exact DTOAccount we persisted from `/auth/me`; validated as an object
     // above. Single documented assertion (see avoid-type-assertions rule).
-    return parsed as DTOAccount;
+    return parsed as unknown as DTOAccount;
   } catch {
     return null;
   }

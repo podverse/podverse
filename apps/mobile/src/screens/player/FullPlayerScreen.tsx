@@ -7,7 +7,6 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  Share,
   StyleSheet,
   Text,
   View,
@@ -22,7 +21,7 @@ import { PodverseVideoSurfaceView } from '../../../modules/podverse-media-engine
 import { nativePlaybackBridge } from '../../bridge/nativePlaybackBridge';
 import { Button } from '../../components/primitives/Button';
 import { getMobileConfig } from '../../config';
-import { buildNowPlayingShareUrl } from '../../lib/playback/shareNowPlaying';
+import { buildNowPlayingShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import { usePlayback } from '../../playback/PlaybackProvider';
 import { useTheme } from '../../theme/useTheme';
 import { FullPlayerSegments } from './FullPlayerSegments';
@@ -220,12 +219,7 @@ export function FullPlayerScreen({ onClose }: FullPlayerScreenProps) {
   };
 
   const handleShare = () => {
-    if (shareUrl === null) {
-      return;
-    }
-    void Share.share({ message: shareUrl, url: shareUrl }).catch(() => {
-      // Share dismissal / unavailable share sheet is a safe no-op.
-    });
+    shareResolvedUrl(shareUrl);
   };
 
   const handleScrubberLayout = (event: LayoutChangeEvent) => {

@@ -40,7 +40,7 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
       StyleSheet.create({
         addButton: {
           alignItems: 'center',
-          backgroundColor: tokens.text.action,
+          backgroundColor: tokens.button.primaryBg,
           borderRadius: tokens.radii.round,
           marginTop: tokens.spacing.sm,
           paddingHorizontal: tokens.spacing.md,
@@ -50,7 +50,7 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
           opacity: 0.6,
         },
         addButtonLabel: {
-          color: tokens.text.inverse,
+          color: tokens.button.primaryColor,
           fontSize: 14,
           fontWeight: '600',
         },

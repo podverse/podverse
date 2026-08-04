@@ -288,7 +288,9 @@ export function HomeScreen() {
         <Text style={styles.heading}>{t('nav.tab.home')}</Text>
         <E2ePlayVideoButton />
         <View style={styles.feedCard}>
-          <Text style={styles.feedTitle}>{t(MEDIA_TYPE_TITLE_KEYS[selectedMediaType])}</Text>
+          <Text style={styles.feedTitle}>
+            {t(MEDIA_TYPE_TITLE_KEYS[selectedMediaType] ?? MEDIA_TYPE_TITLE_KEYS.podcasts)}
+          </Text>
           {isSubscribedPodcastsView ? (
             <SubscriptionFilterControl
               onChange={handleSubscriptionFilterChange}

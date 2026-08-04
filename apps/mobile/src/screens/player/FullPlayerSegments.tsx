@@ -113,7 +113,7 @@ export function FullPlayerSegments({ channel, item }: FullPlayerSegmentsProps) {
                 {chapter.title ?? chapter.id_text}
               </Text>
               <Text style={styles.rowTime}>
-                {formatClock(chapter.start_time, { fallback: '' })}
+                {formatClock(Number(chapter.start_time), { fallback: '' })}
               </Text>
             </Pressable>
           ))}
@@ -137,7 +137,7 @@ export function FullPlayerSegments({ channel, item }: FullPlayerSegmentsProps) {
                 {soundbite.title ?? `${t('info.soundbite.official_clip')} ${index + 1}`}
               </Text>
               <Text style={styles.rowTime}>
-                {formatClock(soundbite.start_time, { fallback: '' })}
+                {formatClock(Number(soundbite.start_time), { fallback: '' })}
               </Text>
             </Pressable>
           ))}

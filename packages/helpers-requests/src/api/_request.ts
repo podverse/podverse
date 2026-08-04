@@ -47,6 +47,7 @@ import {
   reqAccountFCMDeviceDelete,
   reqAccountFCMDeviceGetAllForAccount,
   reqAccountFCMDeviceUpdate,
+  reqAccountFCMDeviceUpdateLocale,
 } from './account/fcm/fcm.js';
 import { reqAccountFollowAccount, reqAccountUnfollowAccount } from './account/follow/account.js';
 import {
@@ -67,8 +68,10 @@ import {
 import {
   reqAccountUPDeviceCreate,
   reqAccountUPDeviceDelete,
+  reqAccountUPDeviceDeleteAll,
   reqAccountUPDeviceGetForAccount,
   reqAccountUPDeviceUpdate,
+  reqAccountUPDeviceUpdateLocale,
 } from './account/unifiedpush/unifiedpush.js';
 import {
   reqAccountWebPushDeviceCreate,
@@ -494,6 +497,10 @@ export class ApiRequestService {
     return reqAccountFCMDeviceGetAllForAccount(this);
   }
 
+  reqAccountFCMDeviceUpdateLocale(params: { locale: string }) {
+    return reqAccountFCMDeviceUpdateLocale(this, params);
+  }
+
   /* ACCOUNT > WEBPUSH DEVICE */
 
   reqAccountWebPushDeviceCreate(params: CreateAccountWebPushDeviceParams) {
@@ -528,6 +535,14 @@ export class ApiRequestService {
 
   reqAccountUPDeviceGetForAccount() {
     return reqAccountUPDeviceGetForAccount(this);
+  }
+
+  reqAccountUPDeviceUpdateLocale(params: { locale: string }) {
+    return reqAccountUPDeviceUpdateLocale(this, params);
+  }
+
+  reqAccountUPDeviceDeleteAll() {
+    return reqAccountUPDeviceDeleteAll(this);
   }
 
   /* ACCOUNT > FOLLOW > CHANNEL */

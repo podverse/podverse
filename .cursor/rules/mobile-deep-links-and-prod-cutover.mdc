@@ -1,0 +1,54 @@
+---
+description: Mobile deep-link scheme/host config policy and the v4 -> v5 production cutover (graceful in-place upgrade) plan.
+globs: apps/mobile/app.config.ts,apps/mobile/src/config/deepLinkSchemes.ts,apps/mobile/src/navigation/deepLinking.ts,apps/mobile/src/navigation/index.tsx,apps/mobile/plugins/withPodverseAssociatedDomains.js,apps/mobile/APPS-MOBILE.md
+alwaysApply: false
+---
+
+# Mobile deep links + v5 production cutover
+
+## Deep-link schemes / host are env-driven (open-source friendly)
+
+- Custom URL schemes come from `EXPO_PUBLIC_MOBILE_DEEP_LINK_SCHEMES` (comma/space-delimited, no
+  `://`); universal / app link host comes from `EXPO_PUBLIC_MOBILE_WEB_BASE_URL` (full URL).
+- Single source of truth is the **pure** module `apps/mobile/src/config/deepLinkSchemes.ts`
+  (`parseMobileDeepLinkSchemes`, `buildMobileLinkPrefixes`, `DEFAULT_MOBILE_DEEP_LINK_SCHEMES`). It has
+  **no** React Native / Expo imports so both the Node Vitest env and the Expo config loader can use it.
+- Both sides must derive from it and never hardcode a scheme/domain:
+  - Native registration: `app.config.ts` `scheme` array + associated-domains / Android intent-filter host.
+  - JS linking: `MOBILE_LINK_PREFIXES` in `src/navigation/index.tsx` (via `getMobileConfig()`).
+- Default schemes are `['podverse-next', 'podverse']`. Keep `podverse` as a **legacy alias** (safety
+  net) so an eventual in-place upgrade still resolves existing `podverse://` links. Do not add
+  compatibility with the v4 *backend* protocol — schemes are only routing prefixes.
+
+## The scheme does NOT decide "same app" upgrades — identity does
+
+Whether stores treat v5 as an in-place update of v4 is determined by **app identity + signing**, not
+the URL scheme:
+
+- iOS: same `bundleIdentifier` + same App Store Connect record + same signing team.
+- Android: same `applicationId` (package) + same Play App Signing key.
+
+Today mobile ships isolated as `com.podverse.app.next` (see `APPS-MOBILE.md` "Store identity
+isolation") so it can never in-place-upgrade v4. Renaming the scheme to `podverse` will not change
+this.
+
+## v4 -> v5 production cutover checklist (graceful upgrade = Option A)
+
+When cutting over to prod, to make users' v4 apps upgrade in place:
+
+1. Ship the v5 prod build under the **existing v4 production bundle id / package** (drop `.next`).
+2. Reuse v4 **signing** (iOS dist cert/provisioning; Android Play signing key) and the **same store
+   listing** (new listing = no auto-update).
+3. Provide a **first-launch local data migration** (v5 reads different storage: SQLite schema,
+   `expo-secure-store` keys, queue/downloads/prefs) or explicitly accept a reset.
+4. Plan a **re-auth path** against v5 infra (v4 sessions won't carry over) — friendly "sign in again".
+5. Keep `podverse://` registered and publish prod **AASA** (`apple-app-site-association`) +
+   `.well-known/assetlinks.json` for the prod id; list **both** `com.podverse.app` and
+   `com.podverse.app.next` during the transition so beta and prod builds verify.
+6. Use a **phased / staged rollout** with a rollback plan (this is effectively a full app replacement).
+
+## Open decisions to confirm with the operator (do not assume)
+
+- The exact **v4 production** bundle id / package name.
+- Option A (in-place upgrade under the v4 id) vs Option B (new listing; manual migration).
+- Whether a first-launch data migration from v4 storage is in scope.

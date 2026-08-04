@@ -117,6 +117,26 @@ best-effort extension; HLS / live remain rejected.
   notifications. UnifiedPush is available for de-Googled Android if desired.
 - **LLM guidance:** Reuse the FCM wrappers; do **not** port the Web Push/service-worker path.
 
+### 4.1 FOSS register — FCM/Firebase is playstore-only (Track 14.7)
+
+FCM depends on **Google Play Services / Firebase**, which are **not FOSS** and must be excluded from
+the F-Droid flavor. Track 20 owns the flavor split; this register records the dependency and its
+replacement so the FOSS reproducibility audit (Track 20.3) can assert the exclusion.
+
+| Concern            | Playstore flavor                           | FOSS (F-Droid) flavor                                |
+| ------------------ | ------------------------------------------ | ---------------------------------------------------- |
+| Push transport     | **FCM** (`expo-notifications` device push) | **UnifiedPush** via `/account/up-device/*` (445)     |
+| Native dependency  | Firebase / Google Play Services (non-FOSS) | None (no Firebase/GMS symbols in the FOSS transport) |
+| Provider selection | `EXPO_PUBLIC_MOBILE_PUSH_PROVIDER="fcm"`   | `EXPO_PUBLIC_MOBILE_PUSH_PROVIDER="unifiedpush"`     |
+| Config plugin      | `expo-notifications` + `google-services`   | Excluded — no Google services plugin                 |
+
+- The push boundary (`apps/mobile/src/push/`) is provider-swappable: `fcmTransport` / `fcmDeviceSync`
+  vs `unifiedPushTransport` / `unifiedPushDeviceSync`, selected by `getMobileConfig().pushProvider`.
+  No Firebase symbol is imported on the UnifiedPush path.
+- **Track 20.3 audit must verify:** the FOSS build contains no Firebase/GMS artifacts and ships the
+  UnifiedPush transport instead. Cross-refs: detail 445 (UnifiedPush replacement), Track 20 details
+  570 (foss-flavor-definition), 572 (foss-reproducibility-audit).
+
 ## 5. Secure auth token storage
 
 - **Web:** HttpOnly `jwt` cookie.

@@ -9,10 +9,12 @@ import { getTotalPages } from '@podverse/helpers/pagination';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
+import { Button } from '../../components/primitives/Button';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
+import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import type { ChannelBrowseStackParamList } from '../../navigation';
 import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
@@ -152,18 +154,17 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
           marginTop: tokens.spacing.sm,
         },
         subscribeButton: {
-          alignSelf: 'flex-start',
-          backgroundColor: themeStyles.buttonPrimary.backgroundColor,
-          borderRadius: tokens.radii.round,
           marginTop: tokens.spacing.md,
-          opacity: isSavingSubscription ? 0.65 : 1,
-          paddingHorizontal: tokens.spacing.lg,
-          paddingVertical: tokens.spacing.sm,
         },
         subscribeButtonLabel: {
-          color: themeStyles.buttonPrimary.color,
+          color: themeStyles.textPrimary.color,
           fontSize: 14,
-          fontWeight: '700',
+          fontWeight: '600',
+        },
+        subscribeActions: {
+          flexDirection: 'row',
+          gap: tokens.spacing.sm,
+          marginTop: tokens.spacing.md,
         },
       }),
     [isSavingSubscription, themeStyles, tokens]
@@ -345,6 +346,10 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     status,
   ]);
 
+  const handleShare = useCallback(() => {
+    shareResolvedUrl(buildPublicShareUrl('podcast', podcastId));
+  }, [podcastId]);
+
   return (
     <ScrollView
       contentContainerStyle={styles.content}
@@ -373,17 +378,23 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
             {t('misc.items')}: {episodeRows.length}
           </Text>
         </View>
-        <Pressable
-          onPress={() => {
-            void handleSubscriptionToggle();
-          }}
-          style={styles.subscribeButton}
-          testID="podcast-detail-subscribe-toggle"
-        >
-          <Text style={styles.subscribeButtonLabel}>
-            {t(isSubscribed ? 'features.unsubscribe' : 'features.subscribe')}
-          </Text>
-        </Pressable>
+        <View style={styles.subscribeActions}>
+          <Button
+            label={t(isSubscribed ? 'features.unsubscribe' : 'features.subscribe')}
+            loading={isSavingSubscription}
+            onPress={() => {
+              void handleSubscriptionToggle();
+            }}
+            testID="podcast-detail-subscribe-toggle"
+            variant="primary"
+          />
+          <Button
+            label={t('features.share')}
+            onPress={handleShare}
+            testID="podcast-detail-share"
+            variant="secondary"
+          />
+        </View>
         {subscriptionNoticeKey !== null ? (
           <Text style={styles.statusNotice}>{t(subscriptionNoticeKey)}</Text>
         ) : null}

@@ -75,8 +75,9 @@ those briefs in Track 23 — not earlier.
 | **PG-8 native cache (12.1–12.6)**                             | **done** | Archived under `.llm/plans/completed/mobile-pg8-car-native-cache/` (schema, iOS/Android storage, JS write path, read spikes)                                                                                    |
 | **PG-8 Android Auto (12.11–12.17, 12.19, 12.20)**             | **done** | Native browse (Library + Downloads) + play from the cache, app-closed; archived under `.llm/plans/completed/mobile-pg8-car-android-auto/`. Operator DHU + Play Console declaration pending                      |
 | **PG-8 iOS CarPlay (12.7–12.10, 12.16 iOS, 12.18–12.19 iOS)** | **done** | AA-parity Library + Downloads + play from the cache, app-closed; App ID/App Group + entitlements wired; archived under `.llm/plans/completed/mobile-pg8-car-carplay/`. Operator CarPlay Simulator proof pending |
-| **PG-9 Track 16 OPML**                                        | **done** | Import/export archived under `.llm/plans/completed/opml-import-export/` (16.4–16.10). Remaining Track 16: prefs store / settings screen (16.1–16.3)                                                             |
-| PG-9 rest                                                     | later    | Push, deep links; Track 16 prefs/settings screen (16.1–16.3)                                                                                                                                                    |
+| **PG-9 Track 16 OPML**                                        | **done** | Import/export archived under `.llm/plans/completed/opml-import-export/` (16.4–16.10).                                                                                                                           |
+| **PG-9 Track 16 prefs/settings**                              | **done** | Unified prefs store + server sync + settings screen archived under `.llm/plans/completed/mobile-track16-prefs-settings/` (16.1–16.3).                                                                           |
+| PG-9 rest                                                     | later    | Push, deep links                                                                                                                                                                                                |
 | PG-13 (Track 23)                                              | later    | **Operator** screen-by-screen visual polish — after feature bulk                                                                                                                                                |
 
 ### Recommended next build sequence
@@ -86,8 +87,8 @@ those briefs in Track 23 — not earlier.
    Simulator proof pending ([CARPLAY-SIMULATOR-CHECKLIST.md](/apps/mobile/modules/podverse-media-engine/CARPLAY-SIMULATOR-CHECKLIST.md)).
    Car follow-ons **12.22** library directory-follows and **12.21** parallel worktree are done —
    **Track 12 complete**. **Track 16 OPML** (16.4–16.10) done — see
-   `.llm/plans/completed/opml-import-export/`. Next functional-sketch bulk: **Track 16 prefs/settings
-   screen** (16.1–16.3) and **push**. **Track 23** only after the feature bulk is in place and the
+   `.llm/plans/completed/opml-import-export/`. **Track 16 prefs/settings screen**
+   (16.1–16.3) is now done and archived. Next functional-sketch bulk: **push**. **Track 23** only after the feature bulk is in place and the
    operator has reviewed screens.
 
 _Done:_ **PG-8 native cache (12.1–12.6)** — schema, iOS/Android durable storage, JS write path, and
@@ -629,31 +630,31 @@ helpers `itemEnclosure` maps. See
 13.9. Update native cache downloads index on download complete (Track 12). Model: Opus 4.8. Detail: [438-cache-downloads-index](/docs/proposals/mobile/_master-plan_/details/438-cache-downloads-index.md) — done
 13.10. E2E: download episode offline mode play screenshot (network disabled). Model: Codex 5.3. Detail: [439-e2e-offline-play](/docs/proposals/mobile/_master-plan_/details/439-e2e-offline-play.md) — done
 
-## Track 14 — Push notifications (FCM + UnifiedPush)
+## Track 14 — Push notifications (FCM + UnifiedPush) (DONE)
 
-14.1. Integrate FCM for playstore flavor via `@react-native-firebase/messaging` or Expo notifications. Model: Codex 5.3. Detail: [440-fcm-integration-playstore](/docs/proposals/mobile/_master-plan_/details/440-fcm-integration-playstore.md) — _TBD_
-14.2. Register device via existing `/account/fcm-device/create` wrapper on login. Model: Codex 5.3. Detail: [441-fcm-device-register](/docs/proposals/mobile/_master-plan_/details/441-fcm-device-register.md) — _TBD_
-14.3. Update FCM device locale via `/account/fcm-device/update-locale` on locale change. Model: Codex 5.3. Detail: [442-fcm-locale-update](/docs/proposals/mobile/_master-plan_/details/442-fcm-locale-update.md) — _TBD_
-14.4. Handle notification tap routing to episode/podcast screens (Track 15). Model: Codex 5.3. Detail: [443-notification-tap-routing](/docs/proposals/mobile/_master-plan_/details/443-notification-tap-routing.md) — _TBD_
-14.5. Request notification permission contextually after user action. Model: Auto. Detail: [444-notification-permission-ux](/docs/proposals/mobile/_master-plan_/details/444-notification-permission-ux.md) — _TBD_
-14.6. FOSS flavor: integrate UnifiedPush via existing `/account/up-device/*` endpoints. Model: Opus 4.8. Detail: [445-unifiedpush-foss-flavor](/docs/proposals/mobile/_master-plan_/details/445-unifiedpush-foss-flavor.md) — _TBD_
-14.7. Document FCM as non-FOSS dependency in FOSS register (Track 20). Model: Auto. Detail: [446-fcm-fdroid-register](/docs/proposals/mobile/_master-plan_/details/446-fcm-fdroid-register.md) — _TBD_
-14.8. E2E: mock push handler opens correct screen (where test harness allows). Model: Codex 5.3. Detail: [447-e2e-push-routing-stub](/docs/proposals/mobile/_master-plan_/details/447-e2e-push-routing-stub.md) — _TBD_
+14.1. Integrate FCM for playstore flavor via `@react-native-firebase/messaging` or Expo notifications. Model: Codex 5.3. Detail: [440-fcm-integration-playstore](/docs/proposals/mobile/_master-plan_/details/440-fcm-integration-playstore.md) — done
+14.2. Register device via existing `/account/fcm-device/create` wrapper on login. Model: Codex 5.3. Detail: [441-fcm-device-register](/docs/proposals/mobile/_master-plan_/details/441-fcm-device-register.md) — done
+14.3. Update FCM device locale via `/account/fcm-device/update-locale` on locale change. Model: Codex 5.3. Detail: [442-fcm-locale-update](/docs/proposals/mobile/_master-plan_/details/442-fcm-locale-update.md) — done
+14.4. Handle notification tap routing to episode/podcast screens (Track 15). Model: Codex 5.3. Detail: [443-notification-tap-routing](/docs/proposals/mobile/_master-plan_/details/443-notification-tap-routing.md) — done
+14.5. Request notification permission contextually after user action. Model: Auto. Detail: [444-notification-permission-ux](/docs/proposals/mobile/_master-plan_/details/444-notification-permission-ux.md) — done
+14.6. FOSS flavor: integrate UnifiedPush via existing `/account/up-device/*` endpoints. Model: Opus 4.8. Detail: [445-unifiedpush-foss-flavor](/docs/proposals/mobile/_master-plan_/details/445-unifiedpush-foss-flavor.md) — done
+14.7. Document FCM as non-FOSS dependency in FOSS register (Track 20). Model: Auto. Detail: [446-fcm-fdroid-register](/docs/proposals/mobile/_master-plan_/details/446-fcm-fdroid-register.md) — done
+14.8. E2E: mock push handler opens correct screen (where test harness allows). Model: Codex 5.3. Detail: [447-e2e-push-routing-stub](/docs/proposals/mobile/_master-plan_/details/447-e2e-push-routing-stub.md) — done
 
-## Track 15 — Deep links / universal links
+## Track 15 — Deep links / universal links (DONE)
 
-15.1. Configure iOS Associated Domains for podverse web URLs. Model: Codex 5.3. Detail: [450-ios-associated-domains](/docs/proposals/mobile/_master-plan_/details/450-ios-associated-domains.md) — _TBD_
-15.2. Configure Android App Links intent filters for same URL patterns. Model: Codex 5.3. Detail: [451-android-app-links](/docs/proposals/mobile/_master-plan_/details/451-android-app-links.md) — _TBD_
-15.3. Map URL paths to screens: podcast, episode, playlist, clip, profile by id. Model: Codex 5.3. Detail: [452-deep-link-path-map](/docs/proposals/mobile/_master-plan_/details/452-deep-link-path-map.md) — _TBD_
-15.4. Handle cold-start deep link before auth bootstrap completes. Model: Opus 4.8. Detail: [453-cold-start-deep-link](/docs/proposals/mobile/_master-plan_/details/453-cold-start-deep-link.md) — _TBD_
-15.5. Share sheet generates same URLs as web for cross-platform sharing. Model: Codex 5.3. Detail: [454-share-url-parity](/docs/proposals/mobile/_master-plan_/details/454-share-url-parity.md) — _TBD_
-15.6. E2E: open app via test deep link and screenshot target screen. Model: Codex 5.3. Detail: [455-e2e-deep-link-screenshot](/docs/proposals/mobile/_master-plan_/details/455-e2e-deep-link-screenshot.md) — _TBD_
+15.1. Configure iOS Associated Domains for podverse web URLs. Model: Codex 5.3. Detail: [450-ios-associated-domains](/docs/proposals/mobile/_master-plan_/details/450-ios-associated-domains.md) — done
+15.2. Configure Android App Links intent filters for same URL patterns. Model: Codex 5.3. Detail: [451-android-app-links](/docs/proposals/mobile/_master-plan_/details/451-android-app-links.md) — done
+15.3. Map URL paths to screens: podcast, episode, playlist, clip, profile by id. Model: Codex 5.3. Detail: [452-deep-link-path-map](/docs/proposals/mobile/_master-plan_/details/452-deep-link-path-map.md) — done
+15.4. Handle cold-start deep link before auth bootstrap completes. Model: Opus 4.8. Detail: [453-cold-start-deep-link](/docs/proposals/mobile/_master-plan_/details/453-cold-start-deep-link.md) — done
+15.5. Share sheet generates same URLs as web for cross-platform sharing. Model: Codex 5.3. Detail: [454-share-url-parity](/docs/proposals/mobile/_master-plan_/details/454-share-url-parity.md) — done
+15.6. E2E: open app via test deep link and screenshot target screen. Model: Codex 5.3. Detail: [455-e2e-deep-link-screenshot](/docs/proposals/mobile/_master-plan_/details/455-e2e-deep-link-screenshot.md) — done
 
-## Track 16 — Settings, prefs sync, OPML import/export
+## Track 16 — Settings, prefs sync, OPML import/export (DONE)
 
-16.1. Device prefs store (MMKV or AsyncStorage) mirroring web localSettings keys (incl. `uit`). Model: Codex 5.3. Detail: [460-device-prefs-store](/docs/proposals/mobile/_master-plan_/details/460-device-prefs-store.md) — planned
-16.2. Sync playback prefs to server account-settings on login. Model: Codex 5.3. Detail: [461-prefs-server-sync](/docs/proposals/mobile/_master-plan_/details/461-prefs-server-sync.md) — _TBD_
-16.3. Settings screen: locale, theme selector (same ids as web), playback defaults, notification toggles. Model: Codex 5.3. Detail: [462-settings-screen](/docs/proposals/mobile/_master-plan_/details/462-settings-screen.md) — planned
+16.1. Device prefs store (MMKV or AsyncStorage) mirroring web localSettings keys (incl. `uit`). Model: Codex 5.3. Detail: [460-device-prefs-store](/docs/proposals/mobile/_master-plan_/details/460-device-prefs-store.md) — done
+16.2. Sync playback prefs to server account-settings on login. Model: Codex 5.3. Detail: [461-prefs-server-sync](/docs/proposals/mobile/_master-plan_/details/461-prefs-server-sync.md) — done
+16.3. Settings screen: locale, theme selector (same ids as web), playback defaults, notification toggles. Model: Codex 5.3. Detail: [462-settings-screen](/docs/proposals/mobile/_master-plan_/details/462-settings-screen.md) — done
 16.4. OPML import: client uploads OPML; **server** parses XML (`parseOpml`) into feed URLs (async MQ job). Model: Codex 5.3. Detail: [463-opml-import-parse](/docs/proposals/mobile/_master-plan_/details/463-opml-import-parse.md) — done
 16.5. OPML import: server 3-tier resolve per feed (DB follow → PI + pending-follow → add-by-RSS); client polls Valkey report. Model: Opus 4.8. Detail: [464-opml-import-subscribe](/docs/proposals/mobile/_master-plan_/details/464-opml-import-subscribe.md) — done
 16.6. OPML export: server `GET /account/opml/export` gathers directory + add-by-RSS follows and generates OPML. Model: Codex 5.3. Detail: [465-opml-export-generate](/docs/proposals/mobile/_master-plan_/details/465-opml-export-generate.md) — done
@@ -1123,23 +1124,23 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 437-auto-delete-policy                      | 13.8       | 437-auto-delete-policy                      | Codex 5.3 | done                                 |
 | 438-cache-downloads-index                   | 13.9       | 438-cache-downloads-index                   | Opus 4.8  | done                                 |
 | 439-e2e-offline-play                        | 13.10      | 439-e2e-offline-play                        | Codex 5.3 | done                                 |
-| 440-fcm-integration-playstore               | 14.1       | 440-fcm-integration-playstore               | Codex 5.3 | _TBD_                                |
-| 441-fcm-device-register                     | 14.2       | 441-fcm-device-register                     | Codex 5.3 | _TBD_                                |
-| 442-fcm-locale-update                       | 14.3       | 442-fcm-locale-update                       | Codex 5.3 | _TBD_                                |
-| 443-notification-tap-routing                | 14.4       | 443-notification-tap-routing                | Codex 5.3 | _TBD_                                |
-| 444-notification-permission-ux              | 14.5       | 444-notification-permission-ux              | Auto      | _TBD_                                |
-| 445-unifiedpush-foss-flavor                 | 14.6       | 445-unifiedpush-foss-flavor                 | Opus 4.8  | _TBD_                                |
-| 446-fcm-fdroid-register                     | 14.7       | 446-fcm-fdroid-register                     | Auto      | _TBD_                                |
-| 447-e2e-push-routing-stub                   | 14.8       | 447-e2e-push-routing-stub                   | Codex 5.3 | _TBD_                                |
-| 450-ios-associated-domains                  | 15.1       | 450-ios-associated-domains                  | Codex 5.3 | _TBD_                                |
-| 451-android-app-links                       | 15.2       | 451-android-app-links                       | Codex 5.3 | _TBD_                                |
-| 452-deep-link-path-map                      | 15.3       | 452-deep-link-path-map                      | Codex 5.3 | _TBD_                                |
-| 453-cold-start-deep-link                    | 15.4       | 453-cold-start-deep-link                    | Opus 4.8  | _TBD_                                |
-| 454-share-url-parity                        | 15.5       | 454-share-url-parity                        | Codex 5.3 | _TBD_                                |
-| 455-e2e-deep-link-screenshot                | 15.6       | 455-e2e-deep-link-screenshot                | Codex 5.3 | _TBD_                                |
-| 460-device-prefs-store                      | 16.1       | 460-device-prefs-store                      | Codex 5.3 | planned                              |
-| 461-prefs-server-sync                       | 16.2       | 461-prefs-server-sync                       | Codex 5.3 | _TBD_                                |
-| 462-settings-screen                         | 16.3       | 462-settings-screen                         | Codex 5.3 | planned                              |
+| 440-fcm-integration-playstore               | 14.1       | 440-fcm-integration-playstore               | Codex 5.3 | done                                 |
+| 441-fcm-device-register                     | 14.2       | 441-fcm-device-register                     | Codex 5.3 | done                                 |
+| 442-fcm-locale-update                       | 14.3       | 442-fcm-locale-update                       | Codex 5.3 | done                                 |
+| 443-notification-tap-routing                | 14.4       | 443-notification-tap-routing                | Codex 5.3 | done                                 |
+| 444-notification-permission-ux              | 14.5       | 444-notification-permission-ux              | Auto      | done                                 |
+| 445-unifiedpush-foss-flavor                 | 14.6       | 445-unifiedpush-foss-flavor                 | Opus 4.8  | done                                 |
+| 446-fcm-fdroid-register                     | 14.7       | 446-fcm-fdroid-register                     | Auto      | done                                 |
+| 447-e2e-push-routing-stub                   | 14.8       | 447-e2e-push-routing-stub                   | Codex 5.3 | done                                 |
+| 450-ios-associated-domains                  | 15.1       | 450-ios-associated-domains                  | Codex 5.3 | done                                 |
+| 451-android-app-links                       | 15.2       | 451-android-app-links                       | Codex 5.3 | done                                 |
+| 452-deep-link-path-map                      | 15.3       | 452-deep-link-path-map                      | Codex 5.3 | done                                 |
+| 453-cold-start-deep-link                    | 15.4       | 453-cold-start-deep-link                    | Opus 4.8  | done                                 |
+| 454-share-url-parity                        | 15.5       | 454-share-url-parity                        | Codex 5.3 | done                                 |
+| 455-e2e-deep-link-screenshot                | 15.6       | 455-e2e-deep-link-screenshot                | Codex 5.3 | done                                 |
+| 460-device-prefs-store                      | 16.1       | 460-device-prefs-store                      | Codex 5.3 | done                                 |
+| 461-prefs-server-sync                       | 16.2       | 461-prefs-server-sync                       | Codex 5.3 | done                                 |
+| 462-settings-screen                         | 16.3       | 462-settings-screen                         | Codex 5.3 | done                                 |
 | 463-opml-import-parse                       | 16.4       | 463-opml-import-parse                       | Codex 5.3 | done                                 |
 | 464-opml-import-subscribe                   | 16.5       | 464-opml-import-subscribe                   | Opus 4.8  | done                                 |
 | 465-opml-export-generate                    | 16.6       | 465-opml-export-generate                    | Codex 5.3 | done                                 |
