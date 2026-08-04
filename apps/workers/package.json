@@ -64,7 +64,7 @@
     "@podverse/parser": "*",
     "@podverse/worker-commands": "*",
     "amqplib": "^2.0.1",
-    "axios": "^1.16.1",
+    "axios": "^1.19.0",
     "ioredis": "^5.10.0",
     "pg": "^8.21.0",
     "sharp": "^0.35.3",
