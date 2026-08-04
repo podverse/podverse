@@ -13,6 +13,7 @@ import { ListSection } from '../../components/section/ListSection';
 import { SectionCard } from '../../components/section/SectionCard';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
 import { playlistResourceToHomeRow } from '../../lib/rows/homeRowMappers';
+import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import type { LibraryStackParamList } from '../../navigation';
 import { LIBRARY_STACK_ROUTES } from '../../navigation';
 import { usePlayback } from '../../playback/PlaybackProvider';
@@ -283,6 +284,10 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
     [authArgs, isSavingOrder, loadPlaylist, playlistId, reorderableResources]
   );
 
+  const handleShare = useCallback(() => {
+    shareResolvedUrl(buildPublicShareUrl('playlist', playlistId));
+  }, [playlistId]);
+
   return (
     <MobileScreenContainer
       heading={playlist?.title ?? t('features.playlist.playlist')}
@@ -309,6 +314,15 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
             {playlist?.account?.account_profile?.display_name ? (
               <Text style={styles.cardText}>{playlist.account.account_profile.display_name}</Text>
             ) : null}
+            <View style={styles.headerActions}>
+              <Button
+                label={t('features.share')}
+                onPress={handleShare}
+                size="sm"
+                testID="library-playlist-detail-share"
+                variant="secondary"
+              />
+            </View>
             {isOwner ? (
               <View style={styles.headerActions}>
                 <Button

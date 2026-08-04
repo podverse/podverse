@@ -1,7 +1,7 @@
 import type {
   DTOChannel,
   DTOClip,
-  DTOItem,
+  DTOItemImage,
   DTOItemSoundbite,
   DTOPlaylistResource,
   DTOQueueResource,
@@ -22,11 +22,19 @@ export type QueueResourceHomeRow = HomeFeedRowData & {
   queueResourceId: number;
 };
 
+/** Structural subset shared by `DTOItem` and `DTOItemQueueItem` for home-row mapping. */
+type ItemHomeRowSource = {
+  channel?: DTOChannel;
+  id_text: string;
+  item_images: DTOItemImage[];
+  title?: string | null;
+};
+
 export function channelToHomeRow(channel: DTOChannel): HomeFeedRowData {
   return {
     id: channel.id_text,
     imageUrl: channel.channel_images?.[0]?.url ?? null,
-    subtitle: channel.channel_publisher?.name ?? null,
+    subtitle: null,
     title: channel.title ?? channel.id_text,
   };
 }
@@ -40,7 +48,7 @@ export function clipToHomeRow(clip: DTOClip): HomeFeedRowData {
   };
 }
 
-export function itemToHomeRow(item: DTOItem): ItemHomeRow {
+export function itemToHomeRow(item: ItemHomeRowSource): ItemHomeRow {
   const mediumId = item.channel?.medium_id ?? null;
   return {
     id: item.id_text,
@@ -51,15 +59,17 @@ export function itemToHomeRow(item: DTOItem): ItemHomeRow {
   };
 }
 
-function itemSoundbiteToHomeRow(itemSoundbite: DTOItemSoundbite): PlaylistResourceHomeRow {
+function itemSoundbiteToHomeRow(itemSoundbite: DTOItemSoundbite): PlaylistResourceHomeRow | null {
+  const item = itemSoundbite.item;
+  if (item === null || item === undefined) {
+    return null;
+  }
+
   return {
     id: `soundbite-${itemSoundbite.id_text}`,
-    imageUrl:
-      itemSoundbite.item.item_images[0]?.url ??
-      itemSoundbite.item.channel?.channel_images?.[0]?.url ??
-      null,
+    imageUrl: item.item_images[0]?.url ?? item.channel?.channel_images?.[0]?.url ?? null,
     mediaType: 'clips',
-    subtitle: itemSoundbite.item.channel?.title ?? null,
+    subtitle: item.channel?.title ?? null,
     title: itemSoundbite.title ?? itemSoundbite.id_text,
   };
 }

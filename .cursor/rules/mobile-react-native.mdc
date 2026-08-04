@@ -70,7 +70,12 @@ alwaysApply: false
   `apps/mobile/src/lib/` (or the nearest domain module under `src/auth|config|i18n|…` when that
   domain owns it) **when first written**, even with a single callsite. Do not wait for a second
   consumer. Prefer mobile-local `src/lib/` over a new package when the helper depends on
-  mobile/request error shapes or RN-only concerns.
+  mobile/request error shapes or RN-only concerns. Place domain-generic helpers in the matching
+  `src/lib/<domain>/` (e.g. `src/lib/share/`), not under an unrelated domain like `lib/playback/`.
+  Promote to a shared cross-platform package **only** when the helper is framework-free **and** a
+  non-mobile surface (web/api) actually consumes it or imminently will. API request wrappers belong
+  in `@podverse/helpers-requests`. Otherwise keep it mobile-local even if conceptually generic; the
+  `@podverse/helpers` barrel is not mobile-importable (subpath exports only).
 - **Reusable first (DRY):** prioritize generic reusable components, hooks, and pure functions early.
   If two screens share the same UI/state pattern (screen scaffold + loading/error/auth-empty states,
   section cards, row mappers, queue/history loaders, add-by-rss async flow, etc.), extract into

@@ -81,8 +81,14 @@ preview path via the fixtures sentinel query `unparsedfixture`.
 - Navigation exports `mobileNavigationLinking` from `src/navigation/index.ts` as a Track 7 deep-link
   stub with reserved route shapes (`/podcast/:podcastId`, `/episode/:episodeId`, `/clip/:clipId`,
   `/add-by-rss`, etc.).
-- Prefixes are currently stubbed as `podverse://` and `https://podverse.fm`; full app scheme and
-  universal-link rollout is deferred to Track 15.
+- Deep-link prefixes are **env-driven**, not hardcoded: the custom scheme(s) come from
+  `EXPO_PUBLIC_MOBILE_DEEP_LINK_SCHEMES` (default `podverse-next podverse`) and the universal /
+  app link host from `EXPO_PUBLIC_MOBILE_WEB_BASE_URL` (default `https://podverse.fm`). Native
+  registration (`app.config.ts` `scheme` array + associated-domains/intent-filter host) and the JS
+  `MOBILE_LINK_PREFIXES` both derive from the same pure `src/config/deepLinkSchemes.ts`, so a fork
+  can rebuild with its own scheme/domain and nothing drifts. `podverse` is kept as a legacy alias so
+  an eventual in-place v4 → v5 upgrade still resolves old `podverse://` links — see the
+  `mobile-deep-links-and-prod-cutover` rule for the production cutover plan.
 - Android back behavior uses navigation defaults for stack pop, and an explicit
   `BackHandler` in `FullPlayer` so hardware back dismisses full player first.
 

@@ -8,12 +8,12 @@ and the **mobile-data-layer** skill.
 
 Pick the store by what the data _is_ — do not mix responsibilities:
 
-| Store                        | Use for                                                      | Not for                    |
-| ---------------------------- | ------------------------------------------------------------ | -------------------------- |
-| **SecureStore**              | Auth tokens (access / refresh)                               | Entities, prefs            |
-| **AsyncStorage**             | Tiny key/value prefs (e.g. `uit` UI theme)                   | Tokens, entity collections |
-| **SQLite** (`db/`)           | App entities + sync metadata (account, queue, add-by-rss, …) | Tokens                     |
-| **Native cache** (car/watch) | Projected read model for CarPlay / Android Auto / watch      | Source of truth            |
+| Store                        | Use for                                                           | Not for                    |
+| ---------------------------- | ----------------------------------------------------------------- | -------------------------- |
+| **SecureStore**              | Auth tokens (access / refresh)                                    | Entities, prefs            |
+| **AsyncStorage**             | Tiny key/value prefs (e.g. `uit`, playback `pmt`, home media tab) | Tokens, entity collections |
+| **SQLite** (`db/`)           | App entities + sync metadata (account, queue, add-by-rss, …)      | Tokens                     |
+| **Native cache** (car/watch) | Projected read model for CarPlay / Android Auto / watch           | Source of truth            |
 
 **SQLite is phone-UI-only.** CarPlay, Android Auto, and watch surfaces read a separate native
 cache because the JS runtime may be suspended; repositories that own queue / downloads / library
@@ -21,6 +21,14 @@ index project their state to that native cache on mutation (stubs until Track 12
 [DOCS-MOBILE-DATA-LAYER-OFFLINE.md §7.1](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md).
 
 Never write auth tokens to SQLite or AsyncStorage.
+
+## Prefs store notes (Track 16.1)
+
+- Unified prefs store lives in `src/prefs/prefsStore.ts` and exposes typed `getPref`, `setPref`,
+  and `hydratePrefs`.
+- Playback preference key is **`pmt`** (`audio` | `video`) for web parity.
+- Home-tab media selection remains **`preferred_media_type`** (`podcasts` / `episodes` / `clips` /
+  `artists` / `albums` / `tracks`) and is intentionally separate from `pmt`.
 
 ## `db/` — SQLite + Drizzle
 

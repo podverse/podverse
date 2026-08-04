@@ -165,6 +165,8 @@ Prep + leave-running Metro / API / installs: same as [Run all E2E](#run-all-e2e-
 npm run mobile:e2e:test -- api-health
 # or: npm run mobile:e2e:test -- auth-login
 # or: npm run mobile:e2e:test -- auth-logout
+# or: npm run mobile:e2e:test -- deep-link
+# or: npm run mobile:e2e:test -- push
 # or: npm run mobile:e2e:test -- tab-switch-playback
 # or: npm run mobile:e2e:test -- queue-add
 ```

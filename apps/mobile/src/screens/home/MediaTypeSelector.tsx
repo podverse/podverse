@@ -89,7 +89,7 @@ export function MediaTypeSelector({ onChange, selectedMediaType }: MediaTypeSele
               testID={`home-media-type-${mediaType}`}
             >
               <Text style={[styles.chipLabel, isSelected ? styles.chipLabelActive : null]}>
-                {t(MEDIA_TYPE_LABEL_KEYS[mediaType])}
+                {t(MEDIA_TYPE_LABEL_KEYS[mediaType] ?? MEDIA_TYPE_LABEL_KEYS.podcasts)}
               </Text>
             </Pressable>
           );

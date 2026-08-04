@@ -1,14 +1,22 @@
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { BottomTabBar, createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { LinkingOptions, NavigatorScreenParams } from '@react-navigation/native';
-import { NavigationContainer } from '@react-navigation/native';
+import {
+  createNavigationContainerRef,
+  getPathFromState as getDefaultPathFromState,
+  getStateFromPath as getDefaultStateFromPath,
+  NavigationContainer,
+} from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { useAuth } from '../auth/AuthProvider';
 import { MiniPlayer } from '../components/player/MiniPlayer';
+import { getMobileConfig } from '../config';
+import { buildMobileLinkPrefixes } from '../config/deepLinkSchemes';
 import { PlaybackE2eStatus } from '../playback/PlaybackE2eStatus';
 import { AlbumDetailScreen } from '../screens/album/AlbumDetailScreen';
 import { ArtistDetailScreen } from '../screens/artist/ArtistDetailScreen';
@@ -25,6 +33,7 @@ import { LibrarySubscriptionsScreen } from '../screens/library/LibrarySubscripti
 import { PlaylistDetailScreen } from '../screens/library/PlaylistDetailScreen';
 import { PlaylistFormScreen } from '../screens/library/PlaylistFormScreen';
 import { MoreOpmlScreen } from '../screens/more/MoreOpmlScreen';
+import { MoreSettingsScreen } from '../screens/more/MoreSettingsScreen';
 import { FullPlayerScreen } from '../screens/player/FullPlayerScreen';
 import { PodcastDetailScreen } from '../screens/podcast/PodcastDetailScreen';
 import { MyProfileScreen } from '../screens/profile/MyProfileScreen';
@@ -34,8 +43,11 @@ import { AddByRssRootScreen } from '../screens/rss/AddByRssRootScreen';
 import { PodcastIndexFeedPreviewScreen } from '../screens/search/PodcastIndexFeedPreviewScreen';
 import { SearchScreen } from '../screens/search/SearchScreen';
 import { useTheme } from '../theme/useTheme';
+import { mapIncomingPathToScopedPath, mapScopedPathToFlatPath } from './deepLinking';
 
 type MobileTabNavigatorProps = {
+  onConsumePendingDeepLink: () => void;
+  pendingDeepLinkUrl: string | null;
   onRequestLogin: () => void;
   onRequestLogout: () => Promise<void>;
   onRequestSignUp: () => void;
@@ -48,6 +60,7 @@ const LibraryStack = createNativeStackNavigator<LibraryStackParamList>();
 const RssStack = createNativeStackNavigator<RssStackParamList>();
 const MoreStack = createNativeStackNavigator<MoreStackParamList>();
 const RootStack = createNativeStackNavigator<RootStackParamList>();
+const rootNavigationRef = createNavigationContainerRef<RootStackParamList>();
 
 type PlaceholderScreenProps = {
   testID: string;
@@ -202,74 +215,101 @@ export const ROOT_STACK_ROUTES = {
 // Tablet breakpoint for adaptive tab rail in Track 7.17.
 export const MOBILE_TABLET_NAV_MIN_WIDTH = 900;
 
-export const mobileNavigationLinking: LinkingOptions<RootStackParamList> = {
-  config: {
+const mobileNavigationScreens = {
+  FullPlayer: 'player',
+  MainTabs: {
     screens: {
-      FullPlayer: 'player',
-      MainTabs: {
+      Home: {
         screens: {
-          Home: {
-            screens: {
-              AlbumDetail: 'album/:albumId',
-              ArtistDetail: 'artist/:artistId',
-              ClipDetail: 'clip/:clipId',
-              EpisodeDetail: 'episode/:episodeId',
-              HomeRoot: 'home',
-              PodcastDetail: 'podcast/:podcastId',
-              TrackDetail: 'track/:trackId',
-            },
-          },
-          More: {
-            screens: {
-              MoreAbout: 'more/about',
-              MoreMembership: 'more/membership',
-              MoreOpml: 'more/opml',
-              MorePublicProfile: 'more/profile/:accountIdText',
-              MoreProfile: 'more/profile',
-              MoreRoot: 'more',
-              MoreSettings: 'more/settings',
-              MoreSmoke: 'more/smoke',
-            },
-          },
-          'My Library': {
-            screens: {
-              LibraryClipDetail: 'my-library/clip/:clipId',
-              LibraryDownloads: 'my-library/downloads',
-              LibraryHistory: 'my-library/history',
-              LibraryHub: 'my-library',
-              LibraryMyClips: 'my-library/my-clips',
-              LibrarySubscriptions: 'my-library/subscriptions',
-              PlaylistCreate: 'my-library/playlist/create',
-              PlaylistDetail: 'my-library/playlist/:playlistId',
-              PlaylistEdit: 'my-library/playlist/:playlistId/edit',
-              LibraryPlaylists: 'my-library/playlists',
-              LibraryQueue: 'my-library/queue',
-              PodcastDetail: 'my-library/podcast/:podcastId',
-            },
-          },
-          RSS: {
-            screens: {
-              AddByRssFeedList: 'add-by-rss/feeds',
-              AddByRssRoot: 'add-by-rss',
-            },
-          },
-          Search: {
-            screens: {
-              AlbumDetail: 'search/album/:albumId',
-              ArtistDetail: 'search/artist/:artistId',
-              ClipDetail: 'search/clip/:clipId',
-              EpisodeDetail: 'search/episode/:episodeId',
-              PodcastDetail: 'search/podcast/:podcastId',
-              SearchResultDetail: 'search/result/:resultId',
-              SearchRoot: 'search',
-              TrackDetail: 'search/track/:trackId',
-            },
-          },
+          AlbumDetail: 'album/:albumId',
+          ArtistDetail: 'artist/:artistId',
+          ClipDetail: 'clip/:clipId',
+          EpisodeDetail: 'episode/:episodeId',
+          HomeRoot: 'home',
+          PodcastDetail: 'podcast/:podcastId',
+          TrackDetail: 'track/:trackId',
+        },
+      },
+      More: {
+        screens: {
+          MoreAbout: 'more/about',
+          MoreMembership: 'more/membership',
+          MoreOpml: 'more/opml',
+          MorePublicProfile: 'more/profile/:accountIdText',
+          MoreProfile: 'more/profile',
+          MoreRoot: 'more',
+          MoreSettings: 'more/settings',
+          MoreSmoke: 'more/smoke',
+        },
+      },
+      'My Library': {
+        screens: {
+          LibraryClipDetail: 'my-library/clip/:clipId',
+          LibraryDownloads: 'my-library/downloads',
+          LibraryHistory: 'my-library/history',
+          LibraryHub: 'my-library',
+          LibraryMyClips: 'my-library/my-clips',
+          LibrarySubscriptions: 'my-library/subscriptions',
+          PlaylistCreate: 'my-library/playlist/create',
+          PlaylistDetail: 'my-library/playlist/:playlistId',
+          PlaylistEdit: 'my-library/playlist/:playlistId/edit',
+          LibraryPlaylists: 'my-library/playlists',
+          LibraryQueue: 'my-library/queue',
+          PodcastDetail: 'my-library/podcast/:podcastId',
+        },
+      },
+      RSS: {
+        screens: {
+          AddByRssFeedList: 'add-by-rss/feeds',
+          AddByRssRoot: 'add-by-rss',
+        },
+      },
+      Search: {
+        screens: {
+          AlbumDetail: 'search/album/:albumId',
+          ArtistDetail: 'search/artist/:artistId',
+          ClipDetail: 'search/clip/:clipId',
+          EpisodeDetail: 'search/episode/:episodeId',
+          PodcastDetail: 'search/podcast/:podcastId',
+          SearchResultDetail: 'search/result/:resultId',
+          SearchRoot: 'search',
+          TrackDetail: 'search/track/:trackId',
         },
       },
     },
   },
-  prefixes: ['podverse://', 'https://podverse.fm'],
+} as const;
+
+/**
+ * Deep-link prefixes derived from build config: the custom scheme(s) (`podverse-next://`,
+ * `podverse://`, …) plus the public web base URL for universal / app links. Env-driven via
+ * `EXPO_PUBLIC_MOBILE_DEEP_LINK_SCHEMES` / `EXPO_PUBLIC_MOBILE_WEB_BASE_URL` so forks can rebuild
+ * without any hardcoded Podverse scheme or domain. Kept in sync with native registration in
+ * `app.config.ts` (both parse the same env via `config/deepLinkSchemes.ts`).
+ */
+const mobileLinkConfig = getMobileConfig();
+export const MOBILE_LINK_PREFIXES = buildMobileLinkPrefixes(
+  mobileLinkConfig.deepLinkSchemes,
+  mobileLinkConfig.webBaseUrl
+);
+
+export const mobileNavigationLinking: LinkingOptions<RootStackParamList> = {
+  config: {
+    screens: mobileNavigationScreens,
+  },
+  getPathFromState: (state, options) => {
+    const scopedPath = getDefaultPathFromState(state, options);
+    return mapScopedPathToFlatPath(scopedPath);
+  },
+  getStateFromPath: (path, options) => {
+    const scopedPath = mapIncomingPathToScopedPath(path);
+    return (
+      getDefaultStateFromPath(scopedPath, options) ??
+      getDefaultStateFromPath('/home', options) ??
+      undefined
+    );
+  },
+  prefixes: MOBILE_LINK_PREFIXES,
 };
 
 /** Channel/item detail params shared by Home and Search stacks (tab isolation). */
@@ -755,10 +795,6 @@ function MoreRootScreen({
   );
 }
 
-function MoreSettingsScreen() {
-  return <PlaceholderScreen testID="more-settings-screen" title="Settings Placeholder" />;
-}
-
 function MoreAboutScreen() {
   return <PlaceholderScreen testID="more-about-screen" title="About Placeholder" />;
 }
@@ -862,12 +898,29 @@ function TabScaffold({
 }
 
 export function MobileTabNavigator({
+  onConsumePendingDeepLink,
+  pendingDeepLinkUrl,
   onRequestLogin,
   onRequestLogout,
   onRequestSignUp,
 }: MobileTabNavigatorProps) {
+  useEffect(() => {
+    if (pendingDeepLinkUrl === null || !rootNavigationRef.isReady()) {
+      return;
+    }
+
+    const scopedPath = mapIncomingPathToScopedPath(pendingDeepLinkUrl);
+    const nextState = getDefaultStateFromPath(scopedPath, mobileNavigationLinking.config);
+    if (nextState !== undefined) {
+      rootNavigationRef.resetRoot(nextState);
+    } else {
+      rootNavigationRef.navigate(ROOT_STACK_ROUTES.MainTabs);
+    }
+    onConsumePendingDeepLink();
+  }, [onConsumePendingDeepLink, pendingDeepLinkUrl]);
+
   return (
-    <NavigationContainer linking={mobileNavigationLinking}>
+    <NavigationContainer linking={mobileNavigationLinking} ref={rootNavigationRef}>
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
         <RootStack.Screen name={ROOT_STACK_ROUTES.MainTabs}>
           {(props) => (

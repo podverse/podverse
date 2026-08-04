@@ -89,6 +89,9 @@ export function FullPlayerUpNext() {
             },
           ];
         }
+        if (resource.item === null || resource.item === undefined) {
+          return [];
+        }
         const itemRow = itemToHomeRow(resource.item);
         return [
           {

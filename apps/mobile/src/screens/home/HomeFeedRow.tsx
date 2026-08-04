@@ -132,7 +132,9 @@ export function HomeFeedRow({
       )}
       <View style={styles.rowContent}>
         <View style={styles.mediaTypeBadge}>
-          <Text style={styles.mediaTypeBadgeLabel}>{t(MEDIA_TYPE_LABEL_KEYS[mediaType])}</Text>
+          <Text style={styles.mediaTypeBadgeLabel}>
+            {t(MEDIA_TYPE_LABEL_KEYS[mediaType] ?? MEDIA_TYPE_LABEL_KEYS.podcasts)}
+          </Text>
         </View>
         <Text numberOfLines={2} style={styles.title}>
           {row.title}

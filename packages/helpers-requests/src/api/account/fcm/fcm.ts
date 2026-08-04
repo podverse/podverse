@@ -50,3 +50,15 @@ export async function reqAccountFCMDeviceGetAllForAccount(api: ApiRequestService
     config: { withCredentials: true },
   });
 }
+
+export async function reqAccountFCMDeviceUpdateLocale(
+  api: ApiRequestService,
+  params: { locale: string }
+) {
+  return api.apiRequest<{ message: string }>({
+    path: '/account/fcm-device/update-locale',
+    method: 'PUT',
+    data: params,
+    config: { withCredentials: true },
+  });
+}

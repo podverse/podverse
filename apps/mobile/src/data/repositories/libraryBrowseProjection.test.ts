@@ -99,8 +99,10 @@ describe('mergeLibraryBrowseNodes', () => {
     ];
     const merged = mergeLibraryBrowseNodes(channels, playlists);
     expect(merged).toHaveLength(1);
-    expect(merged[0].kind).toBe('podcast');
-    expect(merged[0].title).toBe('Channel');
+    const first = merged[0];
+    expect(first).toBeDefined();
+    expect(first?.kind).toBe('podcast');
+    expect(first?.title).toBe('Channel');
   });
 
   it('returns an empty list when both inputs are empty', () => {

@@ -82,8 +82,8 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
           marginTop: tokens.spacing.sm,
         },
         chipSelected: {
-          backgroundColor: tokens.text.action,
-          borderColor: tokens.text.action,
+          backgroundColor: tokens.button.primaryBg,
+          borderColor: tokens.button.primaryBg,
         },
         chipLabel: {
           color: themeStyles.textPrimary.color,
@@ -91,7 +91,7 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
           fontWeight: '600',
         },
         chipLabelSelected: {
-          color: tokens.text.inverse,
+          color: tokens.button.primaryColor,
         },
         actions: {
           flexDirection: 'row',

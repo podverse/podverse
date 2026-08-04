@@ -118,7 +118,7 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
           });
           const displayName = playlist.account?.account_profile?.display_name;
           const subtitle =
-            displayName !== undefined && displayName.length > 0
+            displayName !== undefined && displayName !== null && displayName.length > 0
               ? `${itemCountLabel} · ${displayName}`
               : itemCountLabel;
 

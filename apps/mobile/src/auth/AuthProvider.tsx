@@ -9,10 +9,12 @@ import { getMobileConfig } from '../config';
 // the auth barrel.
 import { accountRepository } from '../data/repositories/accountRepository';
 import { addByRssRepository } from '../data/repositories/addByRssRepository';
-import { applyAccountLocaleOverride } from '../i18n';
+import { resolveSupportedLocale } from '../i18n/locale';
+import { startFcmTokenRefreshSync, stopFcmTokenRefreshSync } from '../push/fcmDeviceSync';
 import { refreshAccessTokenSingleFlight } from './authRequestWithRefresh';
 import { logoutWithMobileRevoke } from './logoutWithMobileRevoke';
 import { clearAllSecureTokens, readSecureToken, writeSecureToken } from './secureTokenStorage';
+import { runPostAuthAccountSync } from './syncAccountPrefs';
 
 export type AuthStatus = 'unknown' | 'anonymous' | 'authenticated';
 
@@ -117,11 +119,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
         setStatus('authenticated');
         setError(null);
         try {
-          await applyAccountLocaleOverride(
-            cachedAccount.account_settings?.account_settings_locale?.locale
-          );
+          await runPostAuthAccountSync({
+            accessToken: storedAccessToken,
+            account: cachedAccount,
+          });
         } catch (localeError) {
-          console.warn('Failed to apply cached account locale during auth bootstrap', localeError);
+          console.warn(
+            'Failed to reconcile cached account prefs during auth bootstrap',
+            localeError
+          );
         }
       }
     } catch (snapshotError) {
@@ -142,9 +148,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
       );
       setAccount(account);
       try {
-        await applyAccountLocaleOverride(account.account_settings?.account_settings_locale?.locale);
+        await runPostAuthAccountSync({
+          accessToken: storedAccessToken,
+          account,
+        });
       } catch (error) {
-        console.warn('Failed to apply account locale during auth bootstrap', error);
+        console.warn('Failed to reconcile account prefs during auth bootstrap', error);
       }
       setStatus('authenticated');
       setError(null);
@@ -175,14 +184,36 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const logout = useCallback(async () => {
     await logoutWithMobileRevoke({
+      accessToken,
       clearSession,
       refreshToken,
     });
-  }, [clearSession, refreshToken]);
+  }, [accessToken, clearSession, refreshToken]);
 
   useEffect(() => {
     void hydrateFromSecureStorage();
   }, [hydrateFromSecureStorage]);
+
+  useEffect(() => {
+    if (status !== 'authenticated') {
+      stopFcmTokenRefreshSync();
+      return;
+    }
+
+    if (getMobileConfig().pushProvider !== 'fcm') {
+      stopFcmTokenRefreshSync();
+      return;
+    }
+
+    const locale = resolveSupportedLocale(
+      account?.account_settings?.account_settings_locale?.locale
+    );
+    startFcmTokenRefreshSync({ accessToken, locale });
+
+    return () => {
+      stopFcmTokenRefreshSync();
+    };
+  }, [accessToken, account, status]);
 
   const value = useMemo<AuthContextValue>(() => {
     return {
