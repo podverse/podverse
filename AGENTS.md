@@ -348,6 +348,7 @@ Operators and PR authors verify locally:
 - **response-ending-make-verify** (skill + rule) — agents end implementation responses with operator verification commands in a fenced `bash` block; agents do not run tests during implementation
 - **ui-e2e-screenshot-report** (skill + rule) — for UI changes, instruct the operator to run the narrowest scoped screenshot report and where to open `.artifacts/e2e-reports/latest/.../index.html`
 - **e2e-run-with-make-only** (rule) — always use make targets for E2E
+- **mobile-list-virtualization** (rule) — for `apps/mobile/src/**/*.tsx`, user-data lists use `FlatList` / `SectionList` (not `ScrollView` + `.map()`), list owns scroll via `ListHeaderComponent`/`ListFooterComponent`
 
 ## References
 
