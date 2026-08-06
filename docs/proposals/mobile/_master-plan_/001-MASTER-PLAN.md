@@ -787,7 +787,7 @@ unbounded `ScrollView` + `.map()` list to `FlatList` / `SectionList` (not jank-g
 independently of operator visual polish); **(b)** optional FlashList adoption / windowing *tuning*
 only if the operator flags jank. Model: Codex 5.3. Detail:
 [597-list-virtualization-polish](/docs/proposals/mobile/_master-plan_/details/597-list-virtualization-polish.md)
-— _TBD_ (baseline remediation tracked under `.llm/plans/active/mobile-list-virtualization/`)
+— _TBD_ (baseline remediation tracked under `.llm/plans/completed/mobile-list-virtualization/`)
 
 ## Appendix A — Screen map
 

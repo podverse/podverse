@@ -16,8 +16,8 @@ must be virtualized, **not** rendered with `ScrollView` + `.map()`. Several scre
 this was enforced and need remediation. This part is a correctness/perf baseline and can run
 **independently of** the operator visual-polish pass (23.1/23.2).
 
-Concrete near-term remediation is tracked as an active plan set:
-`.llm/plans/active/mobile-list-virtualization/`.
+Concrete near-term remediation is tracked as a completed plan set:
+`.llm/plans/completed/mobile-list-virtualization/`.
 
 ### (b) FlashList adoption / windowing tuning — **optional, jank-gated**
 
@@ -30,9 +30,9 @@ if the operator flags jank on a specific large feed. Not required for MVP.
 | --- | --- | --- | --- |
 | `HomeScreen` | `FlatList` (+ `numColumns`) | feed page | ✅ compliant |
 | `LibraryDownloadsScreen` | `FlatList` | downloads | ✅ compliant |
-| `LibrarySubscriptionsScreen` | `ScrollView` + `.map()` | **all** subs, no limit | ❌ **(a) convert** — highest priority |
-| `PlaylistDetailScreen` | `MobileScreenContainer` (ScrollView) + `.map()` | all playlist items | ❌ **(a) convert** (non-reorder path) |
-| `PodcastDetailScreen` episodes | `ScrollView` + `.map()`, "Show more" appends | accumulates pages | ⚠️ **(a) convert** (FlatList + `ListHeaderComponent`, split-aware) |
+| `LibrarySubscriptionsScreen` | `FlatList` (grid-aware) | **all** subs, no limit | ✅ compliant |
+| `PlaylistDetailScreen` | `FlatList` for browse path (reorder path intentionally mapped) | all playlist items | ✅ compliant for baseline scope |
+| `PodcastDetailScreen` episodes | `FlatList` + `ListHeaderComponent`/`ListFooterComponent` (split-aware right pane list) | accumulates pages | ✅ compliant |
 | `SearchScreen` | `ScrollView` + `.map()` | ~1 API page (~60) | ✅ acceptable (bounded); revisit only if paginated later |
 | `FullPlayerUpNext` | `.map()` in player sheet | queue window | ✅ acceptable (small, bounded) |
 | `LibraryPlaylistsScreen` | `.map()` | user's playlists | ✅ acceptable (small) |

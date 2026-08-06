@@ -1,17 +1,16 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOPlaylist, DTOPlaylistResource } from '@podverse/helpers';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
 import { Button } from '../../components/primitives';
-import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
-import { ListSection } from '../../components/section/ListSection';
 import { SectionCard } from '../../components/section/SectionCard';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
+import { ListEmpty } from '../../components/state/ListEmpty';
 import { playlistResourceToHomeRow } from '../../lib/rows/homeRowMappers';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import type { LibraryStackParamList } from '../../navigation';
@@ -110,10 +109,24 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
           fontSize: 14,
           marginTop: tokens.spacing.sm,
         },
+        container: {
+          backgroundColor: themeStyles.screen.backgroundColor,
+          flex: 1,
+        },
+        content: {
+          padding: tokens.spacing.lg,
+          paddingBottom: tokens.spacing['2xl'],
+        },
         headerActions: {
           flexDirection: 'row',
           gap: tokens.spacing.sm,
           marginTop: tokens.spacing.md,
+        },
+        heading: {
+          color: themeStyles.textPrimary.color,
+          fontSize: 28,
+          fontWeight: '700',
+          marginBottom: tokens.spacing.md,
         },
         notice: {
           color: themeStyles.textSecondary.color,
@@ -288,11 +301,110 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
     shareResolvedUrl(buildPublicShareUrl('playlist', playlistId));
   }, [playlistId]);
 
+  const listHeader = (
+    <>
+      <Text style={styles.heading}>{playlist?.title ?? t('features.playlist.playlist')}</Text>
+      <SectionCard heading={playlist?.title ?? t('features.playlist.playlist')}>
+        <Text style={styles.cardText}>
+          {t('features.playlist.item_count', {
+            count: playlist?.item_count ?? resourceRows.length,
+          })}
+        </Text>
+        {playlist?.account?.account_profile?.display_name ? (
+          <Text style={styles.cardText}>{playlist.account.account_profile.display_name}</Text>
+        ) : null}
+        <View style={styles.headerActions}>
+          <Button
+            label={t('features.share')}
+            onPress={handleShare}
+            size="sm"
+            testID="library-playlist-detail-share"
+            variant="secondary"
+          />
+        </View>
+        {isOwner ? (
+          <View style={styles.headerActions}>
+            <Button
+              disabled={isReordering}
+              label={t('features.playlist.edit_playlist')}
+              onPress={() => {
+                navigation.navigate(LIBRARY_STACK_ROUTES.PlaylistEdit, { playlistId });
+              }}
+              size="sm"
+              testID="library-playlist-detail-edit"
+              variant="secondary"
+            />
+            {reorderableResources.length > 1 ? (
+              <Button
+                label={isReordering ? t('misc.done') : t('features.playlist.reorder')}
+                onPress={() => {
+                  setReorderErrorKey(null);
+                  setIsReordering((previous) => !previous);
+                }}
+                size="sm"
+                testID="library-playlist-detail-reorder-toggle"
+                variant="secondary"
+              />
+            ) : null}
+          </View>
+        ) : null}
+      </SectionCard>
+      {isReordering && isOwner ? (
+        <SectionCard>
+          <View testID="library-playlist-reorder-list">
+            {reorderableResources.map((entry, index) => (
+              <View
+                key={entry.resource.id}
+                style={styles.reorderRow}
+                testID={`playlist-reorder-row-${index}`}
+              >
+                <Text numberOfLines={2} style={styles.reorderTitle}>
+                  {entry.title}
+                </Text>
+                <View style={styles.reorderControls}>
+                  <Button
+                    accessibilityLabel={t('misc.move_up')}
+                    disabled={index === 0 || isSavingOrder}
+                    label={t('misc.move_up')}
+                    onPress={() => {
+                      void moveResource(index, 'up');
+                    }}
+                    size="sm"
+                    testID={`playlist-reorder-up-${index}`}
+                    variant="secondary"
+                  />
+                  <Button
+                    accessibilityLabel={t('misc.move_down')}
+                    disabled={index === reorderableResources.length - 1 || isSavingOrder}
+                    label={t('misc.move_down')}
+                    onPress={() => {
+                      void moveResource(index, 'down');
+                    }}
+                    size="sm"
+                    testID={`playlist-reorder-down-${index}`}
+                    variant="secondary"
+                  />
+                </View>
+              </View>
+            ))}
+            {reorderErrorKey !== null ? (
+              <Text style={styles.notice} testID="library-playlist-reorder-error">
+                {t(reorderErrorKey)}
+              </Text>
+            ) : null}
+          </View>
+        </SectionCard>
+      ) : null}
+    </>
+  );
+
+  const listFooter =
+    !isReordering && playbackNoticeKey !== null ? (
+      <Text style={styles.notice}>{t(playbackNoticeKey)}</Text>
+    ) : null;
+
   return (
-    <MobileScreenContainer
-      heading={playlist?.title ?? t('features.playlist.playlist')}
-      testID="library-playlist-detail-screen"
-    >
+    <View style={styles.container} testID="library-playlist-detail-screen">
       <AuthAwareLoadState
         emptyTestID="library-playlist-detail-auth-required"
         errorKey={errorKey}
@@ -304,133 +416,35 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
         }}
         showAuthRequired={status !== 'authenticated'}
       >
-        <>
-          <SectionCard heading={playlist?.title ?? t('features.playlist.playlist')}>
-            <Text style={styles.cardText}>
-              {t('features.playlist.item_count', {
-                count: playlist?.item_count ?? resourceRows.length,
-              })}
-            </Text>
-            {playlist?.account?.account_profile?.display_name ? (
-              <Text style={styles.cardText}>{playlist.account.account_profile.display_name}</Text>
-            ) : null}
-            <View style={styles.headerActions}>
-              <Button
-                label={t('features.share')}
-                onPress={handleShare}
-                size="sm"
-                testID="library-playlist-detail-share"
-                variant="secondary"
-              />
-            </View>
-            {isOwner ? (
-              <View style={styles.headerActions}>
-                <Button
-                  disabled={isReordering}
-                  label={t('features.playlist.edit_playlist')}
-                  onPress={() => {
-                    navigation.navigate(LIBRARY_STACK_ROUTES.PlaylistEdit, { playlistId });
-                  }}
-                  size="sm"
-                  testID="library-playlist-detail-edit"
-                  variant="secondary"
-                />
-                {reorderableResources.length > 1 ? (
-                  <Button
-                    label={isReordering ? t('misc.done') : t('features.playlist.reorder')}
-                    onPress={() => {
-                      setReorderErrorKey(null);
-                      setIsReordering((previous) => !previous);
-                    }}
-                    size="sm"
-                    testID="library-playlist-detail-reorder-toggle"
-                    variant="secondary"
-                  />
-                ) : null}
-              </View>
-            ) : null}
-          </SectionCard>
-          <SectionCard>
-            {isReordering && isOwner ? (
-              <View testID="library-playlist-reorder-list">
-                {reorderableResources.map((entry, index) => (
-                  <View
-                    key={entry.resource.id}
-                    style={styles.reorderRow}
-                    testID={`playlist-reorder-row-${index}`}
-                  >
-                    <Text numberOfLines={2} style={styles.reorderTitle}>
-                      {entry.title}
-                    </Text>
-                    <View style={styles.reorderControls}>
-                      <Button
-                        accessibilityLabel={t('misc.move_up')}
-                        disabled={index === 0 || isSavingOrder}
-                        label={t('misc.move_up')}
-                        onPress={() => {
-                          void moveResource(index, 'up');
-                        }}
-                        size="sm"
-                        testID={`playlist-reorder-up-${index}`}
-                        variant="secondary"
-                      />
-                      <Button
-                        accessibilityLabel={t('misc.move_down')}
-                        disabled={index === reorderableResources.length - 1 || isSavingOrder}
-                        label={t('misc.move_down')}
-                        onPress={() => {
-                          void moveResource(index, 'down');
-                        }}
-                        size="sm"
-                        testID={`playlist-reorder-down-${index}`}
-                        variant="secondary"
-                      />
-                    </View>
-                  </View>
-                ))}
-                {reorderErrorKey !== null ? (
-                  <Text style={styles.notice} testID="library-playlist-reorder-error">
-                    {t(reorderErrorKey)}
-                  </Text>
-                ) : null}
-              </View>
-            ) : (
-              <>
-                <ListSection
-                  emptyTestID="library-playlist-detail-empty"
-                  items={resourceRows}
-                  renderItem={(row: PlaylistResourceRow) => (
-                    <HomeFeedRow
-                      key={row.id}
-                      mediaType={row.mediaType}
-                      onPlayPress={(nextRow) => {
-                        const playlistTarget = resolvePlaylistRowTarget(nextRow.id);
-                        if (playlistTarget !== null) {
-                          void playPlaylistRowById(
-                            playlistTarget.idText,
-                            playlistTarget.kind,
-                            playlistId
-                          );
-                          return;
-                        }
-                        runPlayAction(nextRow, row.mediaType);
-                      }}
-                      onPress={() => {}}
-                      onQueuePress={(nextRow, position) => {
-                        runQueueAction(nextRow, row.mediaType, position);
-                      }}
-                      row={row}
-                    />
-                  )}
-                />
-                {playbackNoticeKey !== null ? (
-                  <Text style={styles.notice}>{t(playbackNoticeKey)}</Text>
-                ) : null}
-              </>
-            )}
-          </SectionCard>
-        </>
+        <FlatList
+          ListEmptyComponent={
+            !isReordering ? <ListEmpty messageKey="misc.info" testID="library-playlist-detail-empty" /> : null
+          }
+          ListFooterComponent={listFooter}
+          ListHeaderComponent={listHeader}
+          contentContainerStyle={styles.content}
+          data={isReordering ? [] : resourceRows}
+          keyExtractor={(row) => row.id}
+          renderItem={({ item: row }) => (
+            <HomeFeedRow
+              mediaType={row.mediaType}
+              onPlayPress={(nextRow) => {
+                const playlistTarget = resolvePlaylistRowTarget(nextRow.id);
+                if (playlistTarget !== null) {
+                  void playPlaylistRowById(playlistTarget.idText, playlistTarget.kind, playlistId);
+                  return;
+                }
+                runPlayAction(nextRow, row.mediaType);
+              }}
+              onPress={() => {}}
+              onQueuePress={(nextRow, position) => {
+                runQueueAction(nextRow, row.mediaType, position);
+              }}
+              row={row}
+            />
+          )}
+        />
       </AuthAwareLoadState>
-    </MobileScreenContainer>
+    </View>
   );
 }

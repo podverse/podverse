@@ -2,12 +2,13 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 
 import { useAuth } from '../../auth/AuthProvider';
 import { Card, ListRow } from '../../components/primitives';
-import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
-import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
+import { ListEmpty } from '../../components/state/ListEmpty';
+import { ListLoading } from '../../components/state/ListLoading';
+import { RetryableError } from '../../components/state/RetryableError';
 import { SubscriptionFilterControl } from '../../components/subscriptions/SubscriptionFilterControl';
 import type { SubscribedChannel } from '../../data/repositories';
 import { subscriptionsRepository } from '../../data/repositories';
@@ -30,7 +31,7 @@ type LibrarySubscriptionsScreenProps = NativeStackScreenProps<
 export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsScreenProps) {
   const { t } = useTranslation();
   const { columns } = useResponsive();
-  const { tokens } = useTheme();
+  const { styles: themeStyles, tokens } = useTheme();
   const { status } = useAuth();
   const [subscriptions, setSubscriptions] = useState<SubscribedChannel[]>([]);
   const [subscriptionFilter, setSubscriptionFilter] = useState<SubscriptionListFilter>(
@@ -42,21 +43,32 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        grid: {
-          flexDirection: 'row',
-          flexWrap: 'wrap',
+        content: {
+          padding: tokens.spacing.lg,
         },
-        // flexBasis + maxWidth (no parent gap) so N columns fit without wrapping early.
+        container: {
+          backgroundColor: themeStyles.screen.backgroundColor,
+          flex: 1,
+        },
+        heading: {
+          color: themeStyles.textPrimary.color,
+          fontSize: 28,
+          fontWeight: '700',
+          marginBottom: tokens.spacing.md,
+        },
         gridCell: {
           flexBasis: `${100 / columns}%`,
+          flex: 1,
           maxWidth: `${100 / columns}%`,
-          paddingRight: tokens.spacing.sm,
+        },
+        gridRow: {
+          columnGap: tokens.spacing.sm,
         },
         rowSpacing: {
           marginTop: tokens.spacing.sm,
         },
       }),
-    [columns, tokens]
+    [columns, themeStyles, tokens]
   );
 
   useEffect(() => {
@@ -120,11 +132,38 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
     [navigation]
   );
 
-  return (
-    <MobileScreenContainer
-      heading={t('subscriptions.subscriptions')}
-      testID="library-subscriptions-screen"
-    >
+  const statusOverlay = useMemo(() => {
+    if (isLoading) {
+      return <ListLoading testID="library-subscriptions-loading" />;
+    }
+    if (errorKey !== null) {
+      return (
+        <RetryableError
+          errorKey={errorKey}
+          onRetry={() => {
+            void loadSubscriptions();
+          }}
+          testID="library-subscriptions-error"
+        />
+      );
+    }
+    if (status !== 'authenticated') {
+      return (
+        <ListEmpty
+          messageKey="authentication.login_required"
+          testID="library-subscriptions-auth-required"
+        />
+      );
+    }
+    if (subscriptions.length === 0) {
+      return <ListEmpty messageKey="misc.info" testID="library-subscriptions-empty" />;
+    }
+    return null;
+  }, [errorKey, isLoading, loadSubscriptions, status, subscriptions.length]);
+
+  const renderHeader = (
+    <>
+      <Text style={styles.heading}>{t('subscriptions.subscriptions')}</Text>
       {status === 'authenticated' ? (
         <SubscriptionFilterControl
           onChange={handleSubscriptionFilterChange}
@@ -132,44 +171,35 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
           testID="library-subscriptions-filter"
         />
       ) : null}
-      <AuthAwareLoadState
-        emptyTestID={
-          status !== 'authenticated'
-            ? 'library-subscriptions-auth-required'
-            : 'library-subscriptions-empty'
-        }
-        errorKey={errorKey}
-        errorTestID="library-subscriptions-error"
-        isLoading={isLoading}
-        loadingTestID="library-subscriptions-loading"
-        onRetry={() => {
-          void loadSubscriptions();
-        }}
-        showAuthRequired={status !== 'authenticated'}
-        showEmpty={status === 'authenticated' && subscriptions.length === 0}
-      >
-        <View style={columns > 1 ? styles.grid : undefined}>
-          {subscriptions.map((channel) => (
-            <View
-              key={`${channel.source}-${channel.idText}`}
-              style={[styles.rowSpacing, columns > 1 ? styles.gridCell : undefined]}
-            >
-              <Card>
-                <ListRow
-                  onPress={() => {
-                    handleRowPress(channel);
-                  }}
-                  subtitle={
-                    channel.source === 'addByRss' ? t('subscriptions.filter.add_by_rss') : undefined
-                  }
-                  testID={`library-subscription-row-${channel.idText}`}
-                  title={channel.title}
-                />
-              </Card>
-            </View>
-          ))}
-        </View>
-      </AuthAwareLoadState>
-    </MobileScreenContainer>
+    </>
+  );
+
+  return (
+    <View style={styles.container} testID="library-subscriptions-screen">
+      <FlatList
+        ListEmptyComponent={statusOverlay}
+        ListHeaderComponent={renderHeader}
+        columnWrapperStyle={columns > 1 ? styles.gridRow : undefined}
+        contentContainerStyle={styles.content}
+        data={statusOverlay === null ? subscriptions : []}
+        key={`subs-cols-${columns}`}
+        keyExtractor={(channel) => `${channel.source}-${channel.idText}`}
+        numColumns={columns}
+        renderItem={({ item: channel }) => (
+          <View style={[styles.rowSpacing, columns > 1 ? styles.gridCell : undefined]}>
+            <Card>
+              <ListRow
+                onPress={() => {
+                  handleRowPress(channel);
+                }}
+                subtitle={channel.source === 'addByRss' ? t('subscriptions.filter.add_by_rss') : undefined}
+                testID={`library-subscription-row-${channel.idText}`}
+                title={channel.title}
+              />
+            </Card>
+          </View>
+        )}
+      />
+    </View>
   );
 }

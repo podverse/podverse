@@ -1,7 +1,7 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { breakpoints } from '@podverse/design-tokens';
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
@@ -419,7 +419,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     </>
   );
 
-  const listPane = (
+  const listStatus = (
     <>
       {isInitialLoading ? <ListLoading testID="podcast-detail-loading" /> : null}
       {!isInitialLoading && errorKey !== null ? (
@@ -434,7 +434,12 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
       {!isInitialLoading && errorKey === null && episodeRows.length === 0 ? (
         <ListEmpty messageKey="misc.info" testID="podcast-detail-empty" />
       ) : null}
+    </>
+  );
 
+  const listHeader = (
+    <>
+      {listStatus}
       {liveRows.length > 0 ? (
         <View style={styles.rowSurface}>
           <Text style={styles.feedHeading}>{t('media.livestream.livestreams')}</Text>
@@ -469,51 +474,42 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
           })}
         </View>
       ) : null}
-
       {!isInitialLoading && errorKey === null ? (
         <View style={styles.rowSurface}>
           <Text style={styles.feedHeading}>{t('media.podcast.episodes')}</Text>
-          {episodeRows.map((row, index) => (
-            <HomeFeedRow
-              key={row.id}
-              mediaType="episodes"
-              onPlayPress={(episodeRow) => {
-                runPlayAction(episodeRow, 'episodes');
-              }}
-              onPress={handleEpisodePress}
-              onQueuePress={(episodeRow, position) => {
-                runQueueAction(episodeRow, 'episodes', position);
-              }}
-              row={row}
-              testID={`podcast-episode-row-${index}`}
-            />
-          ))}
-          {hasMorePages ? (
-            <Pressable
-              onPress={() => {
-                if (isLoadingMore) {
-                  return;
-                }
-                void loadPodcastData({
-                  page: currentPage + 1,
-                  source: 'loadMore',
-                });
-              }}
-              style={styles.subscribeButton}
-              testID="podcast-detail-load-more"
-            >
-              <Text style={styles.subscribeButtonLabel}>
-                {isLoadingMore ? t('misc.loading') : t('info.show_more')}
-              </Text>
-            </Pressable>
-          ) : null}
-          {playbackNoticeKey !== null ? (
-            <Text style={styles.statusNotice}>{t(playbackNoticeKey)}</Text>
-          ) : null}
         </View>
       ) : null}
     </>
   );
+
+  const listFooter = (
+    <>
+      {!isInitialLoading && errorKey === null && hasMorePages ? (
+        <Pressable
+          onPress={() => {
+            if (isLoadingMore) {
+              return;
+            }
+            void loadPodcastData({
+              page: currentPage + 1,
+              source: 'loadMore',
+            });
+          }}
+          style={styles.subscribeButton}
+          testID="podcast-detail-load-more"
+        >
+          <Text style={styles.subscribeButtonLabel}>
+            {isLoadingMore ? t('misc.loading') : t('info.show_more')}
+          </Text>
+        </Pressable>
+      ) : null}
+      {!isInitialLoading && errorKey === null && playbackNoticeKey !== null ? (
+        <Text style={styles.statusNotice}>{t(playbackNoticeKey)}</Text>
+      ) : null}
+    </>
+  );
+
+  const episodeListData = !isInitialLoading && errorKey === null ? episodeRows : [];
 
   if (showSplitLayout) {
     return (
@@ -526,22 +522,64 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
         >
           {headerPane}
         </ScrollView>
-        <ScrollView contentContainerStyle={styles.content} style={styles.splitRightPane}>
-          {listPane}
-        </ScrollView>
+        <FlatList
+          ListEmptyComponent={listStatus}
+          ListFooterComponent={listFooter}
+          ListHeaderComponent={listHeader}
+          contentContainerStyle={styles.content}
+          data={episodeListData}
+          keyExtractor={(row) => row.id}
+          refreshControl={refreshControl}
+          renderItem={({ item: row, index }) => (
+            <HomeFeedRow
+              mediaType="episodes"
+              onPlayPress={(episodeRow) => {
+                runPlayAction(episodeRow, 'episodes');
+              }}
+              onPress={handleEpisodePress}
+              onQueuePress={(episodeRow, position) => {
+                runQueueAction(episodeRow, 'episodes', position);
+              }}
+              row={row}
+              testID={`podcast-episode-row-${index}`}
+            />
+          )}
+          style={styles.splitRightPane}
+        />
       </View>
     );
   }
 
   return (
-    <ScrollView
+    <FlatList
+      ListEmptyComponent={listStatus}
+      ListFooterComponent={listFooter}
+      ListHeaderComponent={
+        <>
+          {headerPane}
+          {listHeader}
+        </>
+      }
       contentContainerStyle={styles.content}
+      data={episodeListData}
+      keyExtractor={(row) => row.id}
       refreshControl={refreshControl}
+      renderItem={({ item: row, index }) => (
+        <HomeFeedRow
+          mediaType="episodes"
+          onPlayPress={(episodeRow) => {
+            runPlayAction(episodeRow, 'episodes');
+          }}
+          onPress={handleEpisodePress}
+          onQueuePress={(episodeRow, position) => {
+            runQueueAction(episodeRow, 'episodes', position);
+          }}
+          row={row}
+          testID={`podcast-episode-row-${index}`}
+        />
+      )}
       style={{ backgroundColor: themeStyles.screen.backgroundColor }}
       testID="podcast-detail-screen"
-    >
-      {headerPane}
-      {listPane}
-    </ScrollView>
+    />
   );
 }
