@@ -30,6 +30,7 @@ export default defineConfig({
       'src/navigation/deepLinking.test.ts',
       'src/push/notificationTarget.test.ts',
       'src/screens/search/podcastIndexFeedPreview.test.ts',
+      'src/theme/resolveColumns.test.ts',
     ],
   },
 });

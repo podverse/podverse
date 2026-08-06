@@ -77,7 +77,8 @@ those briefs in Track 23 — not earlier.
 | **PG-8 iOS CarPlay (12.7–12.10, 12.16 iOS, 12.18–12.19 iOS)** | **done** | AA-parity Library + Downloads + play from the cache, app-closed; App ID/App Group + entitlements wired; archived under `.llm/plans/completed/mobile-pg8-car-carplay/`. Operator CarPlay Simulator proof pending |
 | **PG-9 Track 16 OPML**                                        | **done** | Import/export archived under `.llm/plans/completed/opml-import-export/` (16.4–16.10).                                                                                                                           |
 | **PG-9 Track 16 prefs/settings**                              | **done** | Unified prefs store + server sync + settings screen archived under `.llm/plans/completed/mobile-track16-prefs-settings/` (16.1–16.3).                                                                           |
-| PG-9 rest                                                     | later    | Push, deep links                                                                                                                                                                                                |
+| **PG-9 Track 14 push / Track 15 deep links / Track 17 i18n**  | **done** | Push (FCM + UnifiedPush) archived under `.llm/plans/completed/mobile-track14-push/`; deep links under `.llm/plans/completed/mobile-track15-deep-links/`; RN i18n runtime done. Unit-test backfill in-flight under `.llm/plans/active/mobile-track14-16-unit-tests/` (step 2 pending) |
+| **PG-10 Track 18 tablet (18.1–18.5, 18.15)**                 | **done** | Tablet responsive slice archived under `.llm/plans/completed/mobile-pg10-tablet/`. Watch (18.6–18.9) / TV (18.10–18.14) not yet detailed |
 | PG-13 (Track 23)                                              | later    | **Operator** screen-by-screen visual polish — after feature bulk                                                                                                                                                |
 
 ### Recommended next build sequence
@@ -689,11 +690,11 @@ controls consume **MediaSession / native cache** (or a phone bridge), the same p
 CarPlay / Android Auto. See
 [DOCS-MOBILE-DATA-LAYER-OFFLINE.md §7.1](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md).
 
-18.1. Document device matrix: phone (primary), tablet, watch, TV (Android TV / tvOS). Model: Auto. Detail: [510-device-matrix-doc](/docs/proposals/mobile/_master-plan_/details/510-device-matrix-doc.md) — _TBD_
-18.2. Tablet: responsive breakpoints for Home grid and browse lists (2-column+). Model: Codex 5.3. Detail: [511-tablet-home-grid](/docs/proposals/mobile/_master-plan_/details/511-tablet-home-grid.md) — _TBD_
-18.3. Tablet: split view optional for podcast detail + episode list side-by-side. Model: Codex 5.3. Detail: [512-tablet-split-detail](/docs/proposals/mobile/_master-plan_/details/512-tablet-split-detail.md) — _TBD_
-18.4. Tablet: mini player width constraint and full player two-column layout. Model: Codex 5.3. Detail: [513-tablet-player-layout](/docs/proposals/mobile/_master-plan_/details/513-tablet-player-layout.md) — _TBD_
-18.5. Tablet E2E: screenshot Home and podcast detail at tablet viewport. Model: Codex 5.3. Detail: [514-e2e-tablet-screenshots](/docs/proposals/mobile/_master-plan_/details/514-e2e-tablet-screenshots.md) — _TBD_
+18.1. Document device matrix: phone (primary), tablet, watch, TV (Android TV / tvOS). Model: Auto. Detail: [510-device-matrix-doc](/docs/proposals/mobile/_master-plan_/details/510-device-matrix-doc.md) — done
+18.2. Tablet: responsive breakpoints for Home grid and browse lists (2-column+). Model: Codex 5.3. Detail: [511-tablet-home-grid](/docs/proposals/mobile/_master-plan_/details/511-tablet-home-grid.md) — done
+18.3. Tablet: split view optional for podcast detail + episode list side-by-side. Model: Codex 5.3. Detail: [512-tablet-split-detail](/docs/proposals/mobile/_master-plan_/details/512-tablet-split-detail.md) — done
+18.4. Tablet: mini player width constraint and full player two-column layout. Model: Codex 5.3. Detail: [513-tablet-player-layout](/docs/proposals/mobile/_master-plan_/details/513-tablet-player-layout.md) — done
+18.5. Tablet E2E: screenshot Home and podcast detail at tablet viewport. Model: Codex 5.3. Detail: [514-e2e-tablet-screenshots](/docs/proposals/mobile/_master-plan_/details/514-e2e-tablet-screenshots.md) — done
 18.6. Watch (Wear OS): scope decision — remote control only vs standalone player. Model: Opus 4.8. Detail: [520-watch-scope-decision](/docs/proposals/mobile/_master-plan_/details/520-watch-scope-decision.md) — _TBD_
 18.7. Watch: MediaSession remote commands from phone engine (play/pause/skip). Model: Opus 4.8. Detail: [521-watch-remote-commands](/docs/proposals/mobile/_master-plan_/details/521-watch-remote-commands.md) — _TBD_
 18.8. Watch: now-playing complication from **native cache** (not SQLite) or MediaSession phone bridge. Model: Opus 4.8. Detail: [522-watch-now-playing-complication](/docs/proposals/mobile/_master-plan_/details/522-watch-now-playing-complication.md) — _TBD_
@@ -703,7 +704,7 @@ CarPlay / Android Auto. See
 18.12. TV: full-screen player with remote-friendly controls (no mini player). Model: Opus 4.8. Detail: [532-tv-full-player](/docs/proposals/mobile/_master-plan_/details/532-tv-full-player.md) — _TBD_
 18.13. TV: sign-in flow adapted for TV input (QR code or device code OAuth). Model: Opus 4.8. Detail: [533-tv-auth-flow](/docs/proposals/mobile/_master-plan_/details/533-tv-auth-flow.md) — _TBD_
 18.14. TV E2E: screenshot browse row focus state (emulator). Model: Codex 5.3. Detail: [534-e2e-tv-browse-screenshot](/docs/proposals/mobile/_master-plan_/details/534-e2e-tv-browse-screenshot.md) — _TBD_
-18.15. Document which tracks are phone-only vs shared native modules per device. Model: Auto. Detail: [535-device-track-scope-matrix](/docs/proposals/mobile/_master-plan_/details/535-device-track-scope-matrix.md) — _TBD_
+18.15. Document which tracks are phone-only vs shared native modules per device. Model: Auto. Detail: [535-device-track-scope-matrix](/docs/proposals/mobile/_master-plan_/details/535-device-track-scope-matrix.md) — done
 18.16. CI: add tablet emulator matrix job (optional nightly, not PR gate v1). Model: Codex 5.3. Detail: [536-ci-tablet-emulator-nightly](/docs/proposals/mobile/_master-plan_/details/536-ci-tablet-emulator-nightly.md) — _TBD_
 18.17. Store listings: separate screenshots per form factor where stores require. Model: Auto. Detail: [537-store-form-factor-screenshots](/docs/proposals/mobile/_master-plan_/details/537-store-form-factor-screenshots.md) — _TBD_
 
@@ -1163,11 +1164,11 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 481-i18n-migrate-management                 | 17.12      | 481-i18n-migrate-management                 | Codex 5.3 | done                                 |
 | 482-i18n-mobile-catalog-import              | 17.13      | 482-i18n-mobile-catalog-import              | Codex 5.3 | done                                 |
 | 484-i18n-product-screen-localization        | 17.14      | 484-i18n-product-screen-localization        | Codex 5.3 | done                                 |
-| 510-device-matrix-doc                       | 18.1       | 510-device-matrix-doc                       | Auto      | _TBD_                                |
-| 511-tablet-home-grid                        | 18.2       | 511-tablet-home-grid                        | Codex 5.3 | _TBD_                                |
-| 512-tablet-split-detail                     | 18.3       | 512-tablet-split-detail                     | Codex 5.3 | _TBD_                                |
-| 513-tablet-player-layout                    | 18.4       | 513-tablet-player-layout                    | Codex 5.3 | _TBD_                                |
-| 514-e2e-tablet-screenshots                  | 18.5       | 514-e2e-tablet-screenshots                  | Codex 5.3 | _TBD_                                |
+| 510-device-matrix-doc                       | 18.1       | 510-device-matrix-doc                       | Auto      | done                                 |
+| 511-tablet-home-grid                        | 18.2       | 511-tablet-home-grid                        | Codex 5.3 | done                                 |
+| 512-tablet-split-detail                     | 18.3       | 512-tablet-split-detail                     | Codex 5.3 | done                                 |
+| 513-tablet-player-layout                    | 18.4       | 513-tablet-player-layout                    | Codex 5.3 | done                                 |
+| 514-e2e-tablet-screenshots                  | 18.5       | 514-e2e-tablet-screenshots                  | Codex 5.3 | done                                 |
 | 520-watch-scope-decision                    | 18.6       | 520-watch-scope-decision                    | Opus 4.8  | _TBD_                                |
 | 521-watch-remote-commands                   | 18.7       | 521-watch-remote-commands                   | Opus 4.8  | _TBD_                                |
 | 522-watch-now-playing-complication          | 18.8       | 522-watch-now-playing-complication          | Opus 4.8  | _TBD_                                |
@@ -1177,7 +1178,7 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 532-tv-full-player                          | 18.12      | 532-tv-full-player                          | Opus 4.8  | _TBD_                                |
 | 533-tv-auth-flow                            | 18.13      | 533-tv-auth-flow                            | Opus 4.8  | _TBD_                                |
 | 534-e2e-tv-browse-screenshot                | 18.14      | 534-e2e-tv-browse-screenshot                | Codex 5.3 | _TBD_                                |
-| 535-device-track-scope-matrix               | 18.15      | 535-device-track-scope-matrix               | Auto      | _TBD_                                |
+| 535-device-track-scope-matrix               | 18.15      | 535-device-track-scope-matrix               | Auto      | done                                 |
 | 536-ci-tablet-emulator-nightly              | 18.16      | 536-ci-tablet-emulator-nightly              | Codex 5.3 | _TBD_                                |
 | 537-store-form-factor-screenshots           | 18.17      | 537-store-form-factor-screenshots           | Auto      | _TBD_                                |
 | 560-iap-parity-matrix                       | 19.1       | 560-iap-parity-matrix                       | Opus 4.8  | _TBD_                                |

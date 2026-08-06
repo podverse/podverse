@@ -3,11 +3,13 @@ import { useTranslation } from 'react-i18next';
 import type { GestureResponderEvent } from 'react-native';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { breakpoints } from '@podverse/design-tokens';
 import { clampRatio } from '@podverse/helpers/math';
 
 import { PodverseVideoSurfaceView } from '../../../modules/podverse-media-engine';
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
 import { usePlayback } from '../../playback/PlaybackProvider';
+import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
 import { Button } from '../primitives/Button';
 
@@ -29,6 +31,7 @@ type MiniPlayerProps = {
  */
 export function MiniPlayer({ onExpand }: MiniPlayerProps) {
   const { t } = useTranslation();
+  const { isTablet } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
   const { activeTarget, durationSeconds, isPlaying, nowPlaying, pause, positionSeconds, resume } =
     usePlayback();
@@ -56,6 +59,12 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
           borderTopWidth: 1,
           paddingHorizontal: tokens.spacing.lg,
           paddingVertical: tokens.spacing.sm,
+        },
+        // Tablet: cap width at `lg` and center so controls are not edge-stretched (18.4).
+        containerTablet: {
+          alignSelf: 'center',
+          maxWidth: breakpoints.lg,
+          width: '100%',
         },
         progressFill: {
           backgroundColor: tokens.text.accent,
@@ -114,7 +123,7 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
       accessibilityLabel={t('media_player.show_fullscreen_media_player')}
       accessibilityRole="button"
       onPress={onExpand}
-      style={styles.container}
+      style={[styles.container, isTablet ? styles.containerTablet : undefined]}
       testID="mini-player"
     >
       <View style={styles.progressTrack}>

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { breakpoints } from '@podverse/design-tokens';
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { LiveItemStatusEnum } from '@podverse/helpers/dto';
 import { getTotalPages } from '@podverse/helpers/pagination';
@@ -17,6 +18,7 @@ import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import type { ChannelBrowseStackParamList } from '../../navigation';
 import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
+import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
@@ -86,6 +88,7 @@ const LIVE_STATUS_KEYS: Record<LiveItemStatusEnum, string> = {
 
 export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenProps) {
   const { t } = useTranslation();
+  const { isLandscape, isTablet, width } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const [channel, setChannel] = useState<DTOChannel | null>(null);
@@ -102,6 +105,9 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const [subscriptionNoticeKey, setSubscriptionNoticeKey] = useState<string | null>(null);
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
   const { podcastId } = route.params;
+
+  // Split when tablet and either landscape or wide enough for two panes (≥ lg).
+  const showSplitLayout = isTablet && (isLandscape || width >= breakpoints.lg);
 
   const styles = useMemo(
     () =>
@@ -148,6 +154,20 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
           marginTop: tokens.spacing.sm,
           paddingHorizontal: tokens.spacing.md,
         },
+        splitContainer: {
+          backgroundColor: themeStyles.screen.backgroundColor,
+          flex: 1,
+          flexDirection: 'row',
+        },
+        splitLeftPane: {
+          borderRightColor: themeStyles.border.borderColor,
+          borderRightWidth: 1,
+          maxWidth: breakpoints.lg,
+          width: '40%',
+        },
+        splitRightPane: {
+          flex: 1,
+        },
         statusNotice: {
           color: themeStyles.textSecondary.color,
           fontSize: 13,
@@ -167,7 +187,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
           marginTop: tokens.spacing.md,
         },
       }),
-    [isSavingSubscription, themeStyles, tokens]
+    [themeStyles, tokens]
   );
 
   const loadPodcastData = useCallback(
@@ -350,21 +370,18 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     shareResolvedUrl(buildPublicShareUrl('podcast', podcastId));
   }, [podcastId]);
 
-  return (
-    <ScrollView
-      contentContainerStyle={styles.content}
-      refreshControl={
-        <RefreshControl
-          onRefresh={() => {
-            void loadPodcastData({ page: FIRST_PAGE, source: 'refresh' });
-          }}
-          refreshing={isRefreshing}
-          tintColor={themeStyles.buttonPrimary.backgroundColor}
-        />
-      }
-      style={{ backgroundColor: themeStyles.screen.backgroundColor }}
-      testID="podcast-detail-screen"
-    >
+  const refreshControl = (
+    <RefreshControl
+      onRefresh={() => {
+        void loadPodcastData({ page: FIRST_PAGE, source: 'refresh' });
+      }}
+      refreshing={isRefreshing}
+      tintColor={themeStyles.buttonPrimary.backgroundColor}
+    />
+  );
+
+  const headerPane = (
+    <>
       <Text style={styles.heading}>{channel?.title ?? t('media.podcast.podcast')}</Text>
       <View style={styles.headerCard}>
         <Text style={styles.headerTitle}>{channel?.title ?? t('media.podcast.podcast')}</Text>
@@ -399,7 +416,11 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
           <Text style={styles.statusNotice}>{t(subscriptionNoticeKey)}</Text>
         ) : null}
       </View>
+    </>
+  );
 
+  const listPane = (
+    <>
       {isInitialLoading ? <ListLoading testID="podcast-detail-loading" /> : null}
       {!isInitialLoading && errorKey !== null ? (
         <ListError
@@ -491,6 +512,36 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
           ) : null}
         </View>
       ) : null}
+    </>
+  );
+
+  if (showSplitLayout) {
+    return (
+      <View style={styles.splitContainer} testID="podcast-detail-split">
+        <ScrollView
+          contentContainerStyle={styles.content}
+          refreshControl={refreshControl}
+          style={styles.splitLeftPane}
+          testID="podcast-detail-screen"
+        >
+          {headerPane}
+        </ScrollView>
+        <ScrollView contentContainerStyle={styles.content} style={styles.splitRightPane}>
+          {listPane}
+        </ScrollView>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView
+      contentContainerStyle={styles.content}
+      refreshControl={refreshControl}
+      style={{ backgroundColor: themeStyles.screen.backgroundColor }}
+      testID="podcast-detail-screen"
+    >
+      {headerPane}
+      {listPane}
     </ScrollView>
   );
 }

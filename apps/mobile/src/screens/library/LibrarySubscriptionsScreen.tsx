@@ -19,6 +19,7 @@ import {
   type SubscriptionListFilter,
   writeLibrarySubscriptionFilter,
 } from '../../prefs/subscriptionFilter';
+import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
 
 type LibrarySubscriptionsScreenProps = NativeStackScreenProps<
@@ -28,6 +29,7 @@ type LibrarySubscriptionsScreenProps = NativeStackScreenProps<
 
 export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsScreenProps) {
   const { t } = useTranslation();
+  const { columns } = useResponsive();
   const { tokens } = useTheme();
   const { status } = useAuth();
   const [subscriptions, setSubscriptions] = useState<SubscribedChannel[]>([]);
@@ -40,11 +42,21 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
   const styles = useMemo(
     () =>
       StyleSheet.create({
+        grid: {
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+        },
+        // flexBasis + maxWidth (no parent gap) so N columns fit without wrapping early.
+        gridCell: {
+          flexBasis: `${100 / columns}%`,
+          maxWidth: `${100 / columns}%`,
+          paddingRight: tokens.spacing.sm,
+        },
         rowSpacing: {
           marginTop: tokens.spacing.sm,
         },
       }),
-    [tokens]
+    [columns, tokens]
   );
 
   useEffect(() => {
@@ -136,22 +148,27 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
         showAuthRequired={status !== 'authenticated'}
         showEmpty={status === 'authenticated' && subscriptions.length === 0}
       >
-        {subscriptions.map((channel) => (
-          <View key={`${channel.source}-${channel.idText}`} style={styles.rowSpacing}>
-            <Card>
-              <ListRow
-                onPress={() => {
-                  handleRowPress(channel);
-                }}
-                subtitle={
-                  channel.source === 'addByRss' ? t('subscriptions.filter.add_by_rss') : undefined
-                }
-                testID={`library-subscription-row-${channel.idText}`}
-                title={channel.title}
-              />
-            </Card>
-          </View>
-        ))}
+        <View style={columns > 1 ? styles.grid : undefined}>
+          {subscriptions.map((channel) => (
+            <View
+              key={`${channel.source}-${channel.idText}`}
+              style={[styles.rowSpacing, columns > 1 ? styles.gridCell : undefined]}
+            >
+              <Card>
+                <ListRow
+                  onPress={() => {
+                    handleRowPress(channel);
+                  }}
+                  subtitle={
+                    channel.source === 'addByRss' ? t('subscriptions.filter.add_by_rss') : undefined
+                  }
+                  testID={`library-subscription-row-${channel.idText}`}
+                  title={channel.title}
+                />
+              </Card>
+            </View>
+          ))}
+        </View>
       </AuthAwareLoadState>
     </MobileScreenContainer>
   );

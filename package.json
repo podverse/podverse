@@ -123,6 +123,8 @@
     "mobile:android:device": "bash scripts/mobile/run-android-physical.sh",
     "mobile:e2e:ios": "bash scripts/mobile/e2e-device.sh ios",
     "mobile:e2e:android": "bash scripts/mobile/e2e-device.sh android",
+    "mobile:e2e:ios:tablet": "bash scripts/mobile/e2e-device.sh ios-tablet",
+    "mobile:e2e:android:tablet": "bash scripts/mobile/e2e-device.sh android-tablet",
     "mobile:e2e:api": "bash scripts/mobile/e2e-api.sh start",
     "mobile:e2e:api:bg": "bash scripts/mobile/e2e-api.sh start-bg",
     "mobile:e2e:api:stop": "bash scripts/mobile/e2e-api.sh stop",

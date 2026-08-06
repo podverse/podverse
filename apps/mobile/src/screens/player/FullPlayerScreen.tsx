@@ -23,6 +23,7 @@ import { Button } from '../../components/primitives/Button';
 import { getMobileConfig } from '../../config';
 import { buildNowPlayingShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import { usePlayback } from '../../playback/PlaybackProvider';
+import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
 import { FullPlayerSegments } from './FullPlayerSegments';
 import { FullPlayerSleepTimer } from './FullPlayerSleepTimer';
@@ -72,6 +73,7 @@ const segmentContentFromTarget = (
  */
 export function FullPlayerScreen({ onClose }: FullPlayerScreenProps) {
   const { t } = useTranslation();
+  const { isTablet } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
   const {
     activeTarget,
@@ -145,6 +147,15 @@ export function FullPlayerScreen({ onClose }: FullPlayerScreenProps) {
           paddingBottom: tokens.spacing['2xl'],
           paddingHorizontal: tokens.spacing['2xl'],
         },
+        contentTablet: {
+          alignItems: 'flex-start',
+          flexDirection: 'row',
+        },
+        controlsColumn: {
+          flex: 1,
+          gap: tokens.spacing.xl,
+          minWidth: 0,
+        },
         controlsRow: {
           alignItems: 'center',
           flexDirection: 'row',
@@ -205,6 +216,14 @@ export function FullPlayerScreen({ onClose }: FullPlayerScreenProps) {
           maxWidth: 320,
           width: '100%',
         },
+        // Tablet left column: keep artwork from stretching full width of the row.
+        videoSurfaceTablet: {
+          alignSelf: 'flex-start',
+          flexShrink: 0,
+          marginRight: tokens.spacing.xl,
+          maxWidth: 360,
+          width: '42%',
+        },
       }),
     [themeStyles, tokens]
   );
@@ -257,10 +276,18 @@ export function FullPlayerScreen({ onClose }: FullPlayerScreenProps) {
         />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} style={styles.scroll}>
+      <ScrollView
+        contentContainerStyle={[styles.content, isTablet ? styles.contentTablet : undefined]}
+        style={styles.scroll}
+        testID={isTablet ? 'full-player-two-column' : undefined}
+      >
         {isPlaybackActive ? (
           <>
-            <View style={styles.videoSurface} testID="full-player-video-surface">
+            {/* Style-only tablet branch — same surface node so rotation does not remount the engine. */}
+            <View
+              style={[styles.videoSurface, isTablet ? styles.videoSurfaceTablet : undefined]}
+              testID="full-player-video-surface"
+            >
               {nowPlaying.imageUrl !== null ? (
                 <Image
                   accessibilityLabel={t('media_player.media_player_image')}
@@ -274,118 +301,120 @@ export function FullPlayerScreen({ onClose }: FullPlayerScreenProps) {
               <PodverseVideoSurfaceView style={StyleSheet.absoluteFill} targetId="full" />
             </View>
 
-            <View>
-              <Text style={styles.title} testID="full-player-title">
-                {nowPlaying.title}
-              </Text>
-              {nowPlaying.channelTitle !== null ? (
-                <Text style={styles.subtitle}>{nowPlaying.channelTitle}</Text>
-              ) : null}
-            </View>
-
-            <View>
-              <Pressable
-                accessibilityLabel={t('media_player.seek')}
-                accessibilityRole="adjustable"
-                onLayout={handleScrubberLayout}
-                onPress={handleScrubberSeek}
-                testID="full-player-scrubber"
-              >
-                <View style={styles.scrubberTrack}>
-                  <View
-                    style={[styles.scrubberFill, { flex: progressRatio }]}
-                    testID="full-player-scrubber-fill"
-                  />
-                  <View style={{ flex: 1 - progressRatio }} />
-                </View>
-              </Pressable>
-              <View style={styles.timeRow}>
-                <Text style={styles.timeText} testID="full-player-position">
-                  {formatClock(positionSeconds)}
+            <View style={isTablet ? styles.controlsColumn : undefined}>
+              <View>
+                <Text style={styles.title} testID="full-player-title">
+                  {nowPlaying.title}
                 </Text>
-                <Text style={styles.timeText}>{formatClock(durationSeconds)}</Text>
+                {nowPlaying.channelTitle !== null ? (
+                  <Text style={styles.subtitle}>{nowPlaying.channelTitle}</Text>
+                ) : null}
               </View>
-            </View>
 
-            <View style={styles.controlsRow}>
-              <Button
-                label={isPlaying ? t('media_player.pause') : t('media_player.play')}
-                onPress={handleTogglePlay}
-                testID="full-player-play-pause"
-                variant="primary"
-              />
-              <Button
-                label={t('media_player.skip_to_next')}
-                onPress={() => {
-                  void skipToNext();
-                }}
-                testID="full-player-skip-next"
-                variant="secondary"
-              />
-            </View>
+              <View>
+                <Pressable
+                  accessibilityLabel={t('media_player.seek')}
+                  accessibilityRole="adjustable"
+                  onLayout={handleScrubberLayout}
+                  onPress={handleScrubberSeek}
+                  testID="full-player-scrubber"
+                >
+                  <View style={styles.scrubberTrack}>
+                    <View
+                      style={[styles.scrubberFill, { flex: progressRatio }]}
+                      testID="full-player-scrubber-fill"
+                    />
+                    <View style={{ flex: 1 - progressRatio }} />
+                  </View>
+                </Pressable>
+                <View style={styles.timeRow}>
+                  <Text style={styles.timeText} testID="full-player-position">
+                    {formatClock(positionSeconds)}
+                  </Text>
+                  <Text style={styles.timeText}>{formatClock(durationSeconds)}</Text>
+                </View>
+              </View>
 
-            <View style={styles.entriesRow}>
-              <Button
-                label={t('media_player.up_next')}
-                onPress={() => {
-                  togglePanel('up-next');
-                }}
-                testID="full-player-up-next"
-                variant={openPanel === 'up-next' ? 'primary' : 'secondary'}
-              />
-              <Button
-                label={t('media_player.playback_speed.playback_speed')}
-                onPress={() => {
-                  togglePanel('speed');
-                }}
-                testID="full-player-speed"
-                variant={openPanel === 'speed' ? 'primary' : 'secondary'}
-              />
-            </View>
-
-            <View style={styles.entriesRow}>
-              <Button
-                label={t('media_player.sleep_timer.sleep_timer')}
-                onPress={() => {
-                  togglePanel('sleep');
-                }}
-                size="sm"
-                testID="full-player-sleep-timer"
-                variant={openPanel === 'sleep' ? 'primary' : 'secondary'}
-              />
-              <Button
-                disabled={shareUrl === null}
-                label={t('media_player.share')}
-                onPress={handleShare}
-                size="sm"
-                testID="full-player-share"
-                variant="secondary"
-              />
-              {isV4vEnabled ? (
+              <View style={styles.controlsRow}>
                 <Button
-                  label={t('media_player.value_for_value')}
+                  label={isPlaying ? t('media_player.pause') : t('media_player.play')}
+                  onPress={handleTogglePlay}
+                  testID="full-player-play-pause"
+                  variant="primary"
+                />
+                <Button
+                  label={t('media_player.skip_to_next')}
                   onPress={() => {
-                    setIsV4vNoticeVisible((current) => !current);
+                    void skipToNext();
+                  }}
+                  testID="full-player-skip-next"
+                  variant="secondary"
+                />
+              </View>
+
+              <View style={styles.entriesRow}>
+                <Button
+                  label={t('media_player.up_next')}
+                  onPress={() => {
+                    togglePanel('up-next');
+                  }}
+                  testID="full-player-up-next"
+                  variant={openPanel === 'up-next' ? 'primary' : 'secondary'}
+                />
+                <Button
+                  label={t('media_player.playback_speed.playback_speed')}
+                  onPress={() => {
+                    togglePanel('speed');
+                  }}
+                  testID="full-player-speed"
+                  variant={openPanel === 'speed' ? 'primary' : 'secondary'}
+                />
+              </View>
+
+              <View style={styles.entriesRow}>
+                <Button
+                  label={t('media_player.sleep_timer.sleep_timer')}
+                  onPress={() => {
+                    togglePanel('sleep');
                   }}
                   size="sm"
-                  testID="full-player-v4v"
-                  variant={isV4vNoticeVisible ? 'primary' : 'secondary'}
+                  testID="full-player-sleep-timer"
+                  variant={openPanel === 'sleep' ? 'primary' : 'secondary'}
                 />
+                <Button
+                  disabled={shareUrl === null}
+                  label={t('media_player.share')}
+                  onPress={handleShare}
+                  size="sm"
+                  testID="full-player-share"
+                  variant="secondary"
+                />
+                {isV4vEnabled ? (
+                  <Button
+                    label={t('media_player.value_for_value')}
+                    onPress={() => {
+                      setIsV4vNoticeVisible((current) => !current);
+                    }}
+                    size="sm"
+                    testID="full-player-v4v"
+                    variant={isV4vNoticeVisible ? 'primary' : 'secondary'}
+                  />
+                ) : null}
+              </View>
+
+              {openPanel === 'up-next' ? <FullPlayerUpNext /> : null}
+              {openPanel === 'speed' ? <FullPlayerSpeedControl /> : null}
+              {openPanel === 'sleep' ? <FullPlayerSleepTimer /> : null}
+              {isV4vEnabled && isV4vNoticeVisible ? (
+                <Text style={styles.subtitle} testID="full-player-v4v-notice">
+                  {t('media_player.coming_soon')}
+                </Text>
+              ) : null}
+
+              {segmentContent !== null ? (
+                <FullPlayerSegments channel={segmentContent.channel} item={segmentContent.item} />
               ) : null}
             </View>
-
-            {openPanel === 'up-next' ? <FullPlayerUpNext /> : null}
-            {openPanel === 'speed' ? <FullPlayerSpeedControl /> : null}
-            {openPanel === 'sleep' ? <FullPlayerSleepTimer /> : null}
-            {isV4vEnabled && isV4vNoticeVisible ? (
-              <Text style={styles.subtitle} testID="full-player-v4v-notice">
-                {t('media_player.coming_soon')}
-              </Text>
-            ) : null}
-
-            {segmentContent !== null ? (
-              <FullPlayerSegments channel={segmentContent.channel} item={segmentContent.item} />
-            ) : null}
           </>
         ) : (
           <Text style={styles.title} testID="full-player-idle">

@@ -60,6 +60,8 @@ effective as the codebase grows.
   background-execution problem and how to get a flawless car experience.
 - [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](DOCS-MOBILE-DATA-LAYER-OFFLINE.md) — offline-first local DB,
   repository seam, background sync.
+- [DOCS-MOBILE-DEVICE-MATRIX.md](DOCS-MOBILE-DEVICE-MATRIX.md) — phone / tablet / watch / TV
+  targets and which tracks are shared vs phone-only.
 - [DOCS-MOBILE-VERSIONING-RELEASE.md](DOCS-MOBILE-VERSIONING-RELEASE.md) — fitting mobile into
   `develop → staging → main` and the app stores.
 - [DOCS-MOBILE-LLM-CONTEXT.md](DOCS-MOBILE-LLM-CONTEXT.md) — keeping Cursor effective at scale.

@@ -95,9 +95,19 @@ preview path via the fixtures sentinel query `unparsedfixture`.
 ## Tablet-adaptive navigation (Track 7.17)
 
 - Navigation exports `MOBILE_TABLET_NAV_MIN_WIDTH` from `src/navigation/index.ts`.
-- When `useWindowDimensions().width >= MOBILE_TABLET_NAV_MIN_WIDTH` (currently `900`), tabs adapt to
-  a side rail (`tabBarPosition: 'left'`).
+- When `useWindowDimensions().width >= MOBILE_TABLET_NAV_MIN_WIDTH` (currently design-tokens
+  `breakpoints.lg` = `900`), tabs adapt to a side rail (`tabBarPosition: 'left'`).
 - Phone layout remains bottom tabs, including the mini-player slot above the tab bar.
+- Home / browse column grids and tablet layout branching use `useResponsive()`
+  (`src/theme/useResponsive.ts`) driven by the same `breakpoints` tokens (`md: 600`, `lg: 900`).
+
+## Device matrix (Track 18)
+
+Phone (primary), tablet (responsive, shared SQLite), Wear OS (remote/complication via native cache),
+Android TV (leanback), with Apple Watch / tvOS deferred. Per-device subsystem scope (phone-only vs
+shared native modules) lives in the same doc:
+
+[DOCS-MOBILE-DEVICE-MATRIX.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DEVICE-MATRIX.md)
 
 ## Media engine (`podverse-media-engine`)
 
@@ -335,11 +345,12 @@ Until then you get `No development build (com.podverse.app.next) for this projec
 Use **`--device` with a fixed name**, not `--simulator` (removed in current Expo CLI). Manual vs
 E2E use **different device slots** (same app id `com.podverse.app.next`):
 
-| Role               | iOS                   | Android                                                                                   |
-| ------------------ | --------------------- | ----------------------------------------------------------------------------------------- |
-| Manual (dev)       | `"iPhone 17 Pro"`     | `Pixel_6_Pro_API_33`                                                                      |
-| Manual (USB phone) | —                     | `npm run mobile:android:device` (auto-picks one physical `adb` serial; ignores emulators) |
-| Automated (E2E)    | `"iPhone 17 Pro E2E"` | `Pixel_6_Pro_API_33_e2e`                                                                  |
+| Role                   | iOS                             | Android                                                                                   |
+| ---------------------- | ------------------------------- | ----------------------------------------------------------------------------------------- |
+| Manual (dev)           | `"iPhone 17 Pro"`               | `Pixel_6_Pro_API_33`                                                                      |
+| Manual (USB phone)     | —                               | `npm run mobile:android:device` (auto-picks one physical `adb` serial; ignores emulators) |
+| Automated (E2E phone)  | `"iPhone 17 Pro E2E"`           | `Pixel_6_Pro_API_33_e2e`                                                                  |
+| Automated (E2E tablet) | `"iPad Pro 13-inch (M4) E2E"`   | `Pixel_Tablet_API_33_e2e` (opt-in; `mobile:e2e:test -- tablet`)                           |
 
 `npm run mobile:ios` / `mobile:android` default to **manual** names when `--device` is omitted.
 For a plugged-in phone, use `npm run mobile:android:device` (or
@@ -891,6 +902,8 @@ Store metadata as code:
 
 ## Related docs
 
+- [DOCS-MOBILE-DEVICE-MATRIX.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DEVICE-MATRIX.md)
+  — Track 18 form factors + phone-only vs shared subsystem scope
 - [DOCS-MOBILE-LLM-CURSOR-SETUP.md](/docs/proposals/mobile/monorepo-llm-setup/DOCS-MOBILE-LLM-CURSOR-SETUP.md)
 - [DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md)
 - [001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md)

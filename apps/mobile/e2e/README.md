@@ -9,10 +9,14 @@ Track 5 locks mobile E2E on **Maestro**.
 
 ## Device matrix
 
-| Role            | iOS                   | Android                  |
-| --------------- | --------------------- | ------------------------ |
-| Manual (dev)    | `"iPhone 17 Pro"`     | `Pixel_6_Pro_API_33`     |
-| Automated (E2E) | `"iPhone 17 Pro E2E"` | `Pixel_6_Pro_API_33_e2e` |
+| Role                   | iOS                             | Android                    |
+| ---------------------- | ------------------------------- | -------------------------- |
+| Manual (dev)           | `"iPhone 17 Pro"`               | `Pixel_6_Pro_API_33`       |
+| Automated (E2E phone)  | `"iPhone 17 Pro E2E"`           | `Pixel_6_Pro_API_33_e2e`   |
+| Automated (E2E tablet) | `"iPad Pro 13-inch (M4) E2E"`   | `Pixel_Tablet_API_33_e2e`  |
+
+Tablet slots are **opt-in** (`npm run mobile:e2e:test -- tablet`); see
+[HOW-TO-RUN.md § Tablet screenshots](./HOW-TO-RUN.md#tablet-screenshots-opt-in).
 
 ## Report slots (OS + form factor)
 
@@ -21,8 +25,8 @@ Track 5 locks mobile E2E on **Maestro**.
   index.html              # hub
   ios-phone/index.html
   android-phone/index.html
-  ios-tablet/             # reserved
-  android-tablet/         # reserved
+  ios-tablet/index.html   # when tablet flow runs
+  android-tablet/index.html
 ```
 
 Each slot HTML matches web E2E chrome (summary + Prev/Next Shot/Test/Error).

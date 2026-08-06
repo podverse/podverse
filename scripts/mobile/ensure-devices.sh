@@ -14,6 +14,10 @@ MANUAL_IOS_NAME='iPhone 17 Pro'
 MANUAL_ANDROID_AVD='Pixel_6_Pro_API_33'
 E2E_IOS_NAME='iPhone 17 Pro E2E'
 E2E_ANDROID_AVD='Pixel_6_Pro_API_33_e2e'
+# Opt-in Track 18 tablet E2E slots (not used by default phone matrix / mobile:e2e:test:all).
+MANUAL_IOS_TABLET_NAME='iPad Pro 13-inch (M4)'
+E2E_IOS_TABLET_NAME='iPad Pro 13-inch (M4) E2E'
+E2E_ANDROID_TABLET_AVD='Pixel_Tablet_API_33_e2e'
 APP_ID='com.podverse.app.next'
 
 ANDROID_HOME="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}}"
@@ -38,10 +42,13 @@ die() {
 print_matrix() {
   cat <<EOF
 Podverse mobile device matrix (same app id: ${APP_ID})
-  Manual iOS:     ${MANUAL_IOS_NAME}
-  Manual Android: ${MANUAL_ANDROID_AVD}
-  E2E iOS:        ${E2E_IOS_NAME}
-  E2E Android:    ${E2E_ANDROID_AVD}
+  Manual iOS:           ${MANUAL_IOS_NAME}
+  Manual Android:       ${MANUAL_ANDROID_AVD}
+  E2E iOS phone:        ${E2E_IOS_NAME}
+  E2E Android phone:    ${E2E_ANDROID_AVD}
+  Manual iOS tablet:    ${MANUAL_IOS_TABLET_NAME} (optional)
+  E2E iOS tablet:       ${E2E_IOS_TABLET_NAME} (opt-in)
+  E2E Android tablet:   ${E2E_ANDROID_TABLET_AVD} (opt-in)
 EOF
 }
 
@@ -61,7 +68,8 @@ raise SystemExit(1)
 ' "$name"
 }
 
-ios_device_type_and_runtime_from_manual() {
+ios_device_type_and_runtime_from_name() {
+  local source_name="$1"
   xcrun simctl list devices available -j 2>/dev/null \
     | python3 -c '
 import json, sys
@@ -74,26 +82,77 @@ for runtime, devices in data.get("devices", {}).items():
       print(runtime)
       raise SystemExit(0)
 raise SystemExit(1)
-' "$MANUAL_IOS_NAME"
+' "$source_name"
+}
+
+ios_device_type_and_runtime_from_manual() {
+  ios_device_type_and_runtime_from_name "$MANUAL_IOS_NAME"
+}
+
+# Prefer a matching manual iPad; otherwise pick an available iPad Pro device type + runtime.
+ios_tablet_device_type_and_runtime() {
+  if ios_udid_by_name "$MANUAL_IOS_TABLET_NAME" >/dev/null 2>&1; then
+    ios_device_type_and_runtime_from_name "$MANUAL_IOS_TABLET_NAME"
+    return 0
+  fi
+  xcrun simctl list -j 2>/dev/null \
+    | python3 -c '
+import json, sys
+data = json.load(sys.stdin)
+runtimes = [
+  r["identifier"]
+  for r in data.get("runtimes", [])
+  if r.get("isAvailable", True) and "iOS" in r.get("name", "")
+]
+if not runtimes:
+  raise SystemExit(1)
+# Prefer larger iPad Pro identifiers when present.
+preferred_substrings = (
+  "iPad-Pro-13-inch",
+  "iPad-Pro-12-9",
+  "iPad-Pro-11",
+  "iPad-Air",
+  "iPad",
+)
+types = data.get("devicetypes", [])
+chosen = None
+for needle in preferred_substrings:
+  for dt in types:
+    ident = dt.get("identifier", "")
+    if needle in ident:
+      chosen = ident
+      break
+  if chosen is not None:
+    break
+if chosen is None:
+  raise SystemExit(1)
+print(chosen)
+print(runtimes[0])
+'
 }
 
 ensure_ios_sim() {
   local name="$1"
+  local source_name="${2:-$MANUAL_IOS_NAME}"
   if ios_udid_by_name "$name" >/dev/null 2>&1; then
     return 0
   fi
   if [[ "$(uname -s)" != "Darwin" ]]; then
     die "iOS simulator create requires macOS (wanted: ${name})"
   fi
-  if ! ios_udid_by_name "$MANUAL_IOS_NAME" >/dev/null 2>&1; then
-    die "Manual simulator \"${MANUAL_IOS_NAME}\" not found. Create it in Xcode first, then re-run."
-  fi
   local device_type runtime meta
-  meta="$(ios_device_type_and_runtime_from_manual)"
+  if [[ "$name" == "$E2E_IOS_TABLET_NAME" || "$name" == "$MANUAL_IOS_TABLET_NAME" ]]; then
+    meta="$(ios_tablet_device_type_and_runtime)" || die "Could not resolve an iPad device type/runtime for ${name}"
+  else
+    if ! ios_udid_by_name "$source_name" >/dev/null 2>&1; then
+      die "Manual simulator \"${source_name}\" not found. Create it in Xcode first, then re-run."
+    fi
+    meta="$(ios_device_type_and_runtime_from_name "$source_name")"
+  fi
   device_type="$(printf '%s\n' "$meta" | sed -n '1p')"
   runtime="$(printf '%s\n' "$meta" | sed -n '2p')"
-  [[ -n "$device_type" && -n "$runtime" ]] || die "Could not resolve device type/runtime from \"${MANUAL_IOS_NAME}\""
-  echo "Creating iOS simulator: ${name}" >&2
+  [[ -n "$device_type" && -n "$runtime" ]] || die "Could not resolve device type/runtime for \"${name}\""
+  echo "Creating iOS simulator: ${name} (${device_type})" >&2
   xcrun simctl create "$name" "$device_type" "$runtime" >/dev/null
 }
 
@@ -221,10 +280,55 @@ PY
   tune_android_avd_config "$dest"
 }
 
+# After cloning a phone AVD for the tablet E2E slot, widen the LCD so portrait width ≥ md
+# and landscape (or wide portrait) can hit the split-detail threshold (≥ lg dp).
+tune_android_tablet_avd_display() {
+  local name="$1"
+  local config="${AVD_HOME}/${name}.avd/config.ini"
+  [[ -f "$config" ]] || die "AVD config missing: ${config}"
+  python3 - "$config" <<'PY'
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+# ~900+ dp portrait at density 320 (1800 / (320/160) = 900).
+updates = {
+  'hw.lcd.density': '320',
+  'hw.lcd.width': '1800',
+  'hw.lcd.height': '2880',
+  'skin.name': '1800x2880',
+  'skin.path': '_no_skin',
+  'showDeviceFrame': 'no',
+}
+seen = set()
+lines = []
+for raw in path.read_text().splitlines():
+  if '=' not in raw:
+    lines.append(raw)
+    continue
+  key, _, _rest = raw.partition('=')
+  key_stripped = key.strip()
+  if key_stripped in updates:
+    sep = ' = ' if ' = ' in raw else '='
+    lines.append(f'{key_stripped}{sep}{updates[key_stripped]}')
+    seen.add(key_stripped)
+  else:
+    lines.append(raw)
+for key, value in updates.items():
+  if key not in seen:
+    lines.append(f'{key} = {value}')
+path.write_text('\n'.join(lines) + '\n')
+PY
+  echo "Tuned Android tablet AVD ${name}: lcd=1800x2880 density=320" >&2
+}
+
 ensure_android_avd() {
   local name="$1"
   if android_avd_exists "$name"; then
     tune_android_avd_config "$name"
+    if [[ "$name" == "$E2E_ANDROID_TABLET_AVD" ]]; then
+      tune_android_tablet_avd_display "$name"
+    fi
     return 0
   fi
   if [[ "$name" == "$E2E_ANDROID_AVD" ]]; then
@@ -232,6 +336,13 @@ ensure_android_avd() {
     # Clone from a tuned manual AVD so E2E inherits the same performance profile.
     tune_android_avd_config "$MANUAL_ANDROID_AVD"
     clone_android_avd "$MANUAL_ANDROID_AVD" "$E2E_ANDROID_AVD"
+    return 0
+  fi
+  if [[ "$name" == "$E2E_ANDROID_TABLET_AVD" ]]; then
+    android_avd_exists "$MANUAL_ANDROID_AVD" || die "Manual AVD ${MANUAL_ANDROID_AVD} not found; create it before tablet E2E clone."
+    tune_android_avd_config "$MANUAL_ANDROID_AVD"
+    clone_android_avd "$MANUAL_ANDROID_AVD" "$E2E_ANDROID_TABLET_AVD"
+    tune_android_tablet_avd_display "$E2E_ANDROID_TABLET_AVD"
     return 0
   fi
   die "Android AVD missing: ${name}. Create it in Android Studio (phone AVD, API 33, arm64-v8a)."
@@ -310,6 +421,17 @@ case "$MODE" in
     boot_android_avd "$E2E_ANDROID_AVD" >/dev/null
     echo "E2E Android ready: ${E2E_ANDROID_AVD}"
     ;;
+  e2e-ios-tablet)
+    boot_ios_sim "$E2E_IOS_TABLET_NAME" >/dev/null
+    echo "E2E iOS tablet ready: ${E2E_IOS_TABLET_NAME}"
+    ;;
+  e2e-android-tablet)
+    if [[ ! -x "$EMULATOR_BIN" ]]; then
+      die "Android emulator not found at ${EMULATOR_BIN}"
+    fi
+    boot_android_avd "$E2E_ANDROID_TABLET_AVD" >/dev/null
+    echo "E2E Android tablet ready: ${E2E_ANDROID_TABLET_AVD}"
+    ;;
   e2e)
     print_matrix
     if [[ "$(uname -s)" == "Darwin" ]]; then
@@ -322,7 +444,21 @@ case "$MODE" in
     else
       echo "Warning: Android emulator not found at ${EMULATOR_BIN}; skipping E2E Android boot."
     fi
-    echo "E2E devices ready."
+    echo "E2E phone devices ready."
+    ;;
+  e2e-tablet)
+    print_matrix
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+      boot_ios_sim "$E2E_IOS_TABLET_NAME" >/dev/null
+    else
+      echo "Skipping iOS tablet E2E boot (not Darwin)."
+    fi
+    if [[ -x "$EMULATOR_BIN" ]]; then
+      boot_android_avd "$E2E_ANDROID_TABLET_AVD" >/dev/null
+    else
+      echo "Warning: Android emulator not found at ${EMULATOR_BIN}; skipping E2E Android tablet boot."
+    fi
+    echo "E2E tablet devices ready."
     ;;
   manual-ios)
     boot_ios_sim "$MANUAL_IOS_NAME" >/dev/null
@@ -340,6 +476,10 @@ case "$MODE" in
     else
       echo "E2E AVD ${E2E_ANDROID_AVD} missing; will be cloned+tuned on next e2e-android boot." >&2
     fi
+    if android_avd_exists "$E2E_ANDROID_TABLET_AVD"; then
+      tune_android_avd_config "$E2E_ANDROID_TABLET_AVD"
+      tune_android_tablet_avd_display "$E2E_ANDROID_TABLET_AVD"
+    fi
     echo "Android AVD tune complete. Quit and re-launch the emulator to apply RAM/CPU/GPU."
     ;;
   resolve-e2e-ios-udid)
@@ -351,6 +491,16 @@ case "$MODE" in
       die "Android emulator not found at ${EMULATOR_BIN}"
     fi
     boot_android_avd "$E2E_ANDROID_AVD"
+    ;;
+  resolve-e2e-ios-tablet-udid)
+    ensure_ios_sim "$E2E_IOS_TABLET_NAME"
+    ios_udid_by_name "$E2E_IOS_TABLET_NAME"
+    ;;
+  resolve-e2e-android-tablet-serial)
+    if [[ ! -x "$EMULATOR_BIN" ]]; then
+      die "Android emulator not found at ${EMULATOR_BIN}"
+    fi
+    boot_android_avd "$E2E_ANDROID_TABLET_AVD"
     ;;
   check-e2e-app-ios)
     udid="$(ios_udid_by_name "$E2E_IOS_NAME")" || die "E2E iOS sim missing"
@@ -370,13 +520,33 @@ case "$MODE" in
       exit 2
     fi
     ;;
+  check-e2e-app-ios-tablet)
+    udid="$(ios_udid_by_name "$E2E_IOS_TABLET_NAME")" || die "E2E iOS tablet sim missing"
+    if app_installed_ios "$udid"; then
+      echo "installed"
+    else
+      echo "missing"
+      exit 2
+    fi
+    ;;
+  check-e2e-app-android-tablet)
+    serial="$(android_serial_for_avd "$E2E_ANDROID_TABLET_AVD")" || die "E2E Android tablet not running"
+    if app_installed_android "$serial"; then
+      echo "installed"
+    else
+      echo "missing"
+      exit 2
+    fi
+    ;;
   *)
     cat <<EOF >&2
 Usage: bash scripts/mobile/ensure-devices.sh <command>
-  print-matrix | e2e | e2e-ios | e2e-android | manual-ios | manual-android
-  tune-android
+  print-matrix | e2e | e2e-ios | e2e-android | e2e-tablet | e2e-ios-tablet | e2e-android-tablet
+  manual-ios | manual-android | tune-android
   resolve-e2e-ios-udid | resolve-e2e-android-serial
+  resolve-e2e-ios-tablet-udid | resolve-e2e-android-tablet-serial
   check-e2e-app-ios | check-e2e-app-android
+  check-e2e-app-ios-tablet | check-e2e-app-android-tablet
 EOF
     exit 1
     ;;
