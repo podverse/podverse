@@ -18,6 +18,10 @@ Track 5 locks mobile E2E on **Maestro**.
 Tablet slots are **opt-in** (`npm run mobile:e2e:test -- tablet`); see
 [HOW-TO-RUN.md § Tablet screenshots](./HOW-TO-RUN.md#tablet-screenshots-opt-in).
 
+Rendered tablet E2E intentionally targets the wide-tablet endpoints (iPad Pro 13" + Pixel Tablet).
+The 600–899dp mid-band is covered by breakpoint unit tests and remains out of the default rendered
+PR matrix; an optional nightly-only mid-band emulator can be added under master-plan 18.16.
+
 ## Report slots (OS + form factor)
 
 ```text

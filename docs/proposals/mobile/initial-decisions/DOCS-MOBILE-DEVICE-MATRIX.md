@@ -48,6 +48,27 @@ SQLite on the watch.
 **Phone-only** here means “shipped and validated on phone first”; tablet reuses the same RN screens
 with responsive layout. Watch never mounts RN screens — remote / complication only in v1.
 
+## Tablet breakpoint decision (Decision A)
+
+Track 18 tablet uses an intentional three-band responsive split (Decision A — keep as-is):
+
+| Width band | Expected layout |
+| --- | --- |
+| `< md` (`< 600dp`) | Phone baseline: 1-column feeds, bottom tab bar, no split detail |
+| `md..(lg-1)` (`600..899dp`) | Mid-band: 2-column-capable grids (`isTablet=true`), bottom tab bar, split detail only in landscape |
+| `>= lg` (`>= 900dp`) | Tablet-wide: up to 3 columns, left tab rail (`tabBarPosition: left`), split detail allowed in portrait |
+
+Rationale: density increases at `md`, but rail/split stay reserved for wider `lg` layouts. This
+avoids over-promoting large-phone / small-tablet portrait widths into sidebar UX too early.
+
+Coverage note: this mid-band is currently validated at the **logic level** (breakpoint unit tests)
+rather than as a dedicated rendered E2E slot. The rendered matrix intentionally focuses on phone and
+wide-tablet endpoints.
+
+Optional follow-up (not a PR gate): if we want rendered proof of the 600–899dp band, add a
+nightly-only small-tablet emulator under master-plan **18.16** (CI tablet-emulator nightly), not to
+`mobile:e2e:test -- tablet`.
+
 ## Related
 
 - Master plan Track 18:

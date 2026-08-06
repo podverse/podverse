@@ -317,6 +317,8 @@ export function HomeScreen() {
   return (
     <View style={styles.container} testID="home-screen">
       <MediaTypeSelector onChange={handleMediaTypeChange} selectedMediaType={selectedMediaType} />
+      {/* Intentional: keep header controls/summary inside the card via ListHeaderComponent while rows */}
+      {/* render as FlatList items so tablet grid columns can virtualize with numColumns. */}
       <FlatList
         ListFooterComponent={listFooter}
         ListHeaderComponent={listHeader}

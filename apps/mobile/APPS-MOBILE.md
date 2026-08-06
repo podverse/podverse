@@ -352,6 +352,9 @@ E2E use **different device slots** (same app id `com.podverse.app.next`):
 | Automated (E2E phone)  | `"iPhone 17 Pro E2E"`           | `Pixel_6_Pro_API_33_e2e`                                                                  |
 | Automated (E2E tablet) | `"iPad Pro 13-inch (M4) E2E"`   | `Pixel_Tablet_API_33_e2e` (opt-in; `mobile:e2e:test -- tablet`)                           |
 
+Tablet flow now includes real playback + full-player checks, so keep **Mobile E2E test-assets**
+leave-running (`npm run mobile:e2e:test-assets`) before `npm run mobile:e2e:test -- tablet`.
+
 `npm run mobile:ios` / `mobile:android` default to **manual** names when `--device` is omitted.
 For a plugged-in phone, use `npm run mobile:android:device` (or
 `MOBILE_ANDROID_DEVICE=<serial>` when more than one USB device is attached).

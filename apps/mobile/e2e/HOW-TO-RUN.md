@@ -236,6 +236,12 @@ npm run mobile:dev:e2e
 npm run mobile:e2e:api
 ```
 
+**Mobile E2E test-assets** (leave running — tablet now opens real playback in full-player):
+
+```bash
+npm run mobile:e2e:test-assets
+```
+
 **Mobile iOS** / **Mobile Android** (install on tablet slots; exit when done):
 
 ```bash

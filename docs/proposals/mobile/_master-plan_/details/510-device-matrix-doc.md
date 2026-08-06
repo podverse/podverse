@@ -30,6 +30,9 @@ Matrix rows (at minimum):
   (MediaSession / native cache only), matching
   [DOCS-MOBILE-DATA-LAYER-OFFLINE.md §7.1](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md).
 - Linked from Track 18 in the master plan and from 535 (track scope matrix).
+- Records the tablet breakpoint decision (Decision A) and the rendered-coverage note:
+  600–899dp remains a logic-level-tested mid-band by default, with any rendered proof scoped as an
+  optional nightly follow-up under **18.16** (not a PR gate).
 
 ## Verification
 

@@ -56,7 +56,7 @@ flow_needs_tablet() {
 flow_needs_test_assets() {
   case "$1" in
   add-by-rss | auto-queue-advance | engine-audio-spike | library-downloads | play-mini-player | \
-  tab-switch-playback | video-transition)
+  tab-switch-playback | tablet | video-transition)
     return 0
     ;;
   *)
