@@ -1,5 +1,14 @@
 # Route Navigation Loading Warning
 
+> **Resolution (2026-08-05): OBSOLETE — superseded by a better fix.** The plan proposed deferring the
+> synchronous `setIsNavigating(true)` React setter to a microtask. Since then,
+> `packages/ui/src/hooks/useRouteNavigationLoading.ts` was rewritten to use `useSyncExternalStore`
+> with a plain external store (`store.set(...)`): history patches and DOM listeners mutate the store
+> directly with **no React setter**, so the `useInsertionEffect must not schedule updates` warning
+> can no longer occur during `history.pushState` in React's insertion-effect commit (see the store
+> docstring). The root cause the plan targeted is gone. Archived to `completed/`; the microtask-defer
+> approach here is no longer needed.
+
 This plan set is saved for later implementation.
 
 ## Context

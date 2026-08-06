@@ -192,7 +192,9 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
                 onPress={() => {
                   handleRowPress(channel);
                 }}
-                subtitle={channel.source === 'addByRss' ? t('subscriptions.filter.add_by_rss') : undefined}
+                subtitle={
+                  channel.source === 'addByRss' ? t('subscriptions.filter.add_by_rss') : undefined
+                }
                 testID={`library-subscription-row-${channel.idText}`}
                 title={channel.title}
               />

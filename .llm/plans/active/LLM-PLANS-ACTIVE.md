@@ -10,21 +10,25 @@ templates are blanks; this directory holds real plan instances.
 
 ## Indexed sets
 
-_Active (mobile):_
+_Active (mobile):_ none. Track 23 visual/UX polish is now **operator-manual** (the checklist/apply
+phase `mobile-pg13-operator-polish/` was declined and archived; agent-assist is optional). Remaining
+`_TBD_` mobile steps are Track 18.6–18.17 (Watch/TV/store), Track 19 (IAP/V4V monetization), Track 20
+(FOSS/F-Droid), Track 21 (deferral docs), Track 22 (release process) — most are operator/store-gated
+or post-v1. See master plan [001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md).
+**Publish hold:** no alpha/internal test-track publish until the operator finishes manual polish.
 
-- `mobile-track14-16-unit-tests/` (node-only vitest coverage for the Track 14–16 pure logic:
-  deep-link path map 15.3, notification tap-routing target 14.4/14.8, share-URL parity 15.5, unified
-  prefs store 16.1; includes behavior-preserving pure-core extractions so tests stay out of the
-  RN/Expo import graph).
-
-PG-9 feature tracks (14, 15, 16) are functionally complete; this set closes the unit-test gap.
-Track 12 (CarPlay / Android Auto) is complete.
-
-_Active (non-mobile):_ `media-player-livestream-hls-migration/`,
-`web-e2e-coverage-high-level/`, `route-navigation-loading-warning/`,
-`web-404-hardening-deferred/`, `doc-link-path-missed-followup/`.
+_Active (non-mobile):_ `media-player-livestream-hls-migration/` (blocked on the media-player
+architecture refactor; `video.js` + the `Controller/LiveStream/` tree are still present),
+`web-404-hardening-deferred/` (deferred; no `isApiRequestNotFoundError` helper or SEO-fetcher
+404→`notFound()` wrapper exists yet), `web-e2e-coverage-high-level/` (planning-only baseline).
 
 _Recently completed (non-mobile):_
+[doc-link-path-missed-followup](../completed/doc-link-path-missed-followup/) (**obsolete** — the
+optional-extension-metrics README already uses the canonical repo-root link; no `../../` link
+remained),
+[route-navigation-loading-warning](../completed/route-navigation-loading-warning/) (**obsolete /
+superseded** — `useRouteNavigationLoading` was rewritten to `useSyncExternalStore` with no React
+setter, so the `useInsertionEffect` warning root cause is gone),
 [opml-test-hardening](../completed/opml-test-hardening/) (deferred OPML confidence work: HTTP 429
 burn-in tests, broker-backed worker integration + `requestId` dedupe regression, E2E hourly-counter
 determinism),
@@ -33,6 +37,18 @@ knobs with `_PER_MINUTE` / `_PER_10_MINUTES` / `_PER_HOUR` / `_PER_DAY`, plus lo
 `rate-limit.env` override wiring).
 
 _Recently completed (mobile):_
+[mobile-list-virtualization](../completed/mobile-list-virtualization/) (Subscriptions, PlaylistDetail,
+PodcastDetail converted to `FlatList`; virtualization baseline audit + `mobile-list-virtualization`
+abcmemory rule),
+[mobile-pg10-tablet](../completed/mobile-pg10-tablet/) +
+[mobile-pg10-tablet-followups](../completed/mobile-pg10-tablet-followups/) (responsive tablet
+home grid, split detail + player layout, tablet E2E incl. FullPlayer two-column, mid-band breakpoint
+decision docs, phone-Home `FlatList` intent lock),
+[mobile-e2e-green](../completed/mobile-e2e-green/) (all mobile Maestro flows green: iOS open-dialog
+handling, custom-scheme deep-link path fix, tablet tab-bar + orientation stabilization),
+[mobile-track14-16-unit-tests](../completed/mobile-track14-16-unit-tests/) (node-only vitest coverage
+for Track 14–16 pure logic: deep-link path map, notification tap-routing target, share-URL parity,
+unified prefs store),
 [mobile-track14-push](../completed/mobile-track14-push/) (14.1–14.8 — FCM playstore transport +
 device register/locale/permission UX, UnifiedPush FOSS transport + wrappers, notification tap
 routing via the 452/453 deep-link path, FOSS register doc + push-routing E2E; **Track 14 complete**),

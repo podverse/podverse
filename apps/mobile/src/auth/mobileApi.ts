@@ -1,6 +1,10 @@
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
+
 import { ApiRequestService } from '@podverse/helpers-requests';
 
 import { getMobileConfig } from '../config';
+import { buildMobileClientHeaders } from './mobileClientHeaders';
 
 /**
  * Builds an ApiRequestService from getMobileConfig().api.
@@ -21,6 +25,7 @@ export const createMobileApiRequestService = (
     prefix: api.prefix,
     protocol: api.protocol,
     version: api.version,
+    defaultHeaders: buildMobileClientHeaders(Constants.expoConfig?.version, Platform.OS),
     ...(accessToken
       ? {
           authContext: {

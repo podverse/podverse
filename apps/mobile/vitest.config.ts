@@ -10,8 +10,9 @@ import { defineConfig } from 'vitest/config';
  * no native imports), the env-driven deep-link scheme / prefix helpers
  * (`src/config/deepLinkSchemes.ts`), deep-link path mapping (`src/navigation/deepLinking.ts`), pure notification
  * payload target extraction (`src/push/notificationTarget.ts`), share URL mapping (`src/lib/share/shareUrl.ts`),
- * prefs storage guards/hydration (`src/prefs/prefsStore.ts`), and the Podcast Index search preview poll helper
- * (`src/screens/search/podcastIndexFeedPreview.ts`). Scope
+ * prefs storage guards/hydration (`src/prefs/prefsStore.ts`), the Podcast Index search preview poll helper
+ * (`src/screens/search/podcastIndexFeedPreview.ts`), and the client-version/platform header builder
+ * (`src/auth/mobileClientHeaders.ts` — pure; the RN-coupled resolution stays in `mobileApi.ts`). Scope
  * the `include` narrowly so tests never pull in native/Expo modules — the excluded adapter
  * (`src/bridge/nativePlaybackBridge.ts`) imports `expo-modules-core`, and repositories import
  * `expo-sqlite`, so neither is tested here. `apps/mobile` is a standalone install; run with
@@ -23,6 +24,7 @@ export default defineConfig({
     include: [
       'modules/podverse-media-engine/src/**/*.test.ts',
       'src/auth/localDevLoginPrefill.test.ts',
+      'src/auth/mobileClientHeaders.test.ts',
       'src/config/deepLinkSchemes.test.ts',
       'src/data/repositories/libraryBrowseProjection.test.ts',
       'src/data/repositories/subscriptionsMerge.test.ts',

@@ -12,14 +12,14 @@ matrix doc (510) with a per-track column.
 
 Produce a table mapping tracks/subsystems to each device target:
 
-| Subsystem                         | Phone | Tablet          | Wear/Watch          | TV (Android TV)      |
-| --------------------------------- | ----- | --------------- | ------------------- | -------------------- |
-| RN screens / navigation           | Yes   | Yes (responsive)| No (remote only)    | Yes (D-pad focus)    |
-| SQLite repositories (Track 9b)    | Yes   | Yes (shared)    | No (native cache)   | Yes                  |
-| Media engine (Track 2)            | Yes   | Yes             | Remote commands     | Yes                  |
-| Native cache / MediaSession (12)  | Yes   | Yes             | **Source of truth** | Yes                  |
-| Downloads (Track 13)              | Yes   | Yes             | No                  | Optional             |
-| Mini/full player (Track 11)       | Yes   | Yes (two-col)   | Complication only   | Full-screen, no mini |
+| Subsystem                        | Phone | Tablet           | Wear/Watch          | TV (Android TV)      |
+| -------------------------------- | ----- | ---------------- | ------------------- | -------------------- |
+| RN screens / navigation          | Yes   | Yes (responsive) | No (remote only)    | Yes (D-pad focus)    |
+| SQLite repositories (Track 9b)   | Yes   | Yes (shared)     | No (native cache)   | Yes                  |
+| Media engine (Track 2)           | Yes   | Yes              | Remote commands     | Yes                  |
+| Native cache / MediaSession (12) | Yes   | Yes              | **Source of truth** | Yes                  |
+| Downloads (Track 13)             | Yes   | Yes              | No                  | Optional             |
+| Mini/full player (Track 11)      | Yes   | Yes (two-col)    | Complication only   | Full-screen, no mini |
 
 ## Acceptance criteria
 

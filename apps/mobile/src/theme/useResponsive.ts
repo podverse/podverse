@@ -1,5 +1,6 @@
-import { breakpoints } from '@podverse/design-tokens';
 import { useWindowDimensions } from 'react-native';
+
+import { breakpoints } from '@podverse/design-tokens';
 
 import { resolveColumns, resolveIsTablet } from './resolveColumns';
 

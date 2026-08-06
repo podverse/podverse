@@ -14,10 +14,7 @@ export const buildPublicShareUrl = (
   return `${trimTrailingSlashes(webBaseUrl)}/${resource}/${idText}`;
 };
 
-export function buildNowPlayingShareUrl(
-  webBaseUrl: string,
-  target: PlaybackTarget
-): string | null {
+export function buildNowPlayingShareUrl(webBaseUrl: string, target: PlaybackTarget): string | null {
   switch (target.kind) {
     case 'clip':
       return buildPublicShareUrl(webBaseUrl, 'clip', target.clip.id_text);

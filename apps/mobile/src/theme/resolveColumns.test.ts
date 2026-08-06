@@ -1,5 +1,6 @@
-import { breakpoints } from '@podverse/design-tokens';
 import { describe, expect, it } from 'vitest';
+
+import { breakpoints } from '@podverse/design-tokens';
 
 import { resolveColumns, resolveIsTablet } from './resolveColumns';
 

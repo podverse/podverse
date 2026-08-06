@@ -9,14 +9,14 @@ watch, TV) and agents implementing them should use this doc — not invent per-d
 
 ## Device matrix
 
-| Device       | v1 status                | Input        | Process / data source                   |
-| ------------ | ------------------------ | ------------ | --------------------------------------- |
-| Phone        | Primary                  | Touch        | RN app + SQLite repositories            |
-| Tablet       | Supported (responsive)   | Touch        | Same RN app process + SQLite (shared)   |
-| Wear OS      | Remote/complication only | Touch/rotary | MediaSession / native cache (no SQLite) |
-| Apple Watch  | Deferred (post-v1)       | Touch/crown  | MediaSession bridge (if adopted)        |
-| Android TV   | Supported (leanback)     | D-pad        | RN app process, D-pad focus nav         |
-| tvOS         | Deferred (post-v1)       | Remote       | —                                       |
+| Device      | v1 status                | Input        | Process / data source                   |
+| ----------- | ------------------------ | ------------ | --------------------------------------- |
+| Phone       | Primary                  | Touch        | RN app + SQLite repositories            |
+| Tablet      | Supported (responsive)   | Touch        | Same RN app process + SQLite (shared)   |
+| Wear OS     | Remote/complication only | Touch/rotary | MediaSession / native cache (no SQLite) |
+| Apple Watch | Deferred (post-v1)       | Touch/crown  | MediaSession bridge (if adopted)        |
+| Android TV  | Supported (leanback)     | D-pad        | RN app process, D-pad focus nav         |
+| tvOS        | Deferred (post-v1)       | Remote       | —                                       |
 
 ### Storage note (phone UI vs car / watch)
 
@@ -52,11 +52,11 @@ with responsive layout. Watch never mounts RN screens — remote / complication 
 
 Track 18 tablet uses an intentional three-band responsive split (Decision A — keep as-is):
 
-| Width band | Expected layout |
-| --- | --- |
-| `< md` (`< 600dp`) | Phone baseline: 1-column feeds, bottom tab bar, no split detail |
-| `md..(lg-1)` (`600..899dp`) | Mid-band: 2-column-capable grids (`isTablet=true`), bottom tab bar, split detail only in landscape |
-| `>= lg` (`>= 900dp`) | Tablet-wide: up to 3 columns, left tab rail (`tabBarPosition: left`), split detail allowed in portrait |
+| Width band                  | Expected layout                                                                                        |
+| --------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `< md` (`< 600dp`)          | Phone baseline: 1-column feeds, bottom tab bar, no split detail                                        |
+| `md..(lg-1)` (`600..899dp`) | Mid-band: 2-column-capable grids (`isTablet=true`), bottom tab bar, split detail only in landscape     |
+| `>= lg` (`>= 900dp`)        | Tablet-wide: up to 3 columns, left tab rail (`tabBarPosition: left`), split detail allowed in portrait |
 
 Rationale: density increases at `md`, but rail/split stay reserved for wider `lg` layouts. This
 avoids over-promoting large-phone / small-tablet portrait widths into sidebar UX too early.

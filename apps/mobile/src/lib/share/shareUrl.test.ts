@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import type { AddByRSSResourceData, DTOChannel, DTOClip, DTOItem, DTOItemChapter, DTOItemSoundbite } from '@podverse/helpers';
+import type {
+  AddByRSSResourceData,
+  DTOChannel,
+  DTOClip,
+  DTOItem,
+  DTOItemChapter,
+  DTOItemSoundbite,
+} from '@podverse/helpers';
 import type { PlaybackTarget } from '@podverse/playback-core';
 
 import { buildNowPlayingShareUrl, buildPublicShareUrl } from './shareUrl';

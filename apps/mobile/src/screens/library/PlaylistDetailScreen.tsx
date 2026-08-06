@@ -418,7 +418,9 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
       >
         <FlatList
           ListEmptyComponent={
-            !isReordering ? <ListEmpty messageKey="misc.info" testID="library-playlist-detail-empty" /> : null
+            !isReordering ? (
+              <ListEmpty messageKey="misc.info" testID="library-playlist-detail-empty" />
+            ) : null
           }
           ListFooterComponent={listFooter}
           ListHeaderComponent={listHeader}

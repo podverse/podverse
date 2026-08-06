@@ -8,12 +8,13 @@ import packageJson from './package.json';
 // Expo dependency) and load the shared scheme helper with `require` — not `import`, which sucrase
 // would hoist above this call — so native scheme registration stays a single source of truth with
 // the RN linking prefixes. See the `mobile-deep-links-and-prod-cutover` rule.
-// eslint-disable-next-line @typescript-eslint/no-require-imports -- TS require hook must run before the nested .ts import below
+/* eslint-disable @typescript-eslint/no-require-imports -- register must run before nested .ts require; ESM import would hoist above register */
 require('sucrase/register/ts');
-// eslint-disable-next-line @typescript-eslint/no-require-imports -- loaded via require (after the hook) instead of a hoisted import
+
 const {
   parseMobileDeepLinkSchemes,
 }: typeof import('./src/config/deepLinkSchemes') = require('./src/config/deepLinkSchemes');
+/* eslint-enable @typescript-eslint/no-require-imports */
 
 const DEFAULT_UNIVERSAL_LINK_HOST = 'podverse.fm';
 

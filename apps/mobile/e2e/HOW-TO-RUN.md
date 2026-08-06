@@ -219,10 +219,10 @@ the opt-in tablet flow (see [Tablet screenshots](#tablet-screenshots-opt-in) bel
 Track 18.5 — verifies multi-column Home and podcast split detail on tablet viewports. **Not** part
 of `mobile:e2e:test:all` (phone matrix stays unchanged). Uses dedicated E2E tablet devices:
 
-| Slot           | Device                          |
-| -------------- | ------------------------------- |
-| iOS tablet     | `iPad Pro 13-inch (M4) E2E`     |
-| Android tablet | `Pixel_Tablet_API_33_e2e`       |
+| Slot           | Device                      |
+| -------------- | --------------------------- |
+| iOS tablet     | `iPad Pro 13-inch (M4) E2E` |
+| Android tablet | `Pixel_Tablet_API_33_e2e`   |
 
 **Mobile Metro** (leave running, API-backed):
 
@@ -271,7 +271,7 @@ open .artifacts/mobile-e2e-reports/latest/android-tablet/index.html
 | App not installed on E2E iOS                                                               | **Mobile iOS**: `npm run mobile:e2e:ios`                                                                                                                                                                                                            |
 | App not installed on E2E Android                                                           | **Mobile Android**: `npm run mobile:e2e:android`                                                                                                                                                                                                    |
 | App not installed on E2E iOS / Android tablet                                              | **Mobile iOS** / **Mobile Android**: `npm run mobile:e2e:ios:tablet` / `npm run mobile:e2e:android:tablet`                                                                                                                                          |
-| `podcast-detail-split` missing on tablet flow                                              | Flow sets landscape; ensure tablet device is wide enough (`iPad Pro 13-inch (M4) E2E` / `Pixel_Tablet_API_33_e2e`). Re-run `ensure-devices.sh e2e-tablet`                                                                                            |
+| `podcast-detail-split` missing on tablet flow                                              | Flow sets landscape; ensure tablet device is wide enough (`iPad Pro 13-inch (M4) E2E` / `Pixel_Tablet_API_33_e2e`). Re-run `ensure-devices.sh e2e-tablet`                                                                                           |
 | API-backed flow cannot reach API (`:4230`)                                                 | **Mobile E2E API**: `npm run mobile:e2e:api`; then in **Mobile** `npm run mobile:e2e:api:health`                                                                                                                                                    |
 | Runner exits: “Mobile E2E API … is stale (no fixtures)”                                    | API was started before fixture code. **Mobile E2E API**: stop and `npm run mobile:e2e:api` (rebuilds; health must show `fixturesEnabled: true`)                                                                                                     |
 | Runner exits: playback flows need tools/test-assets on :2111                               | **Mobile E2E test-assets**: `npm run mobile:e2e:test-assets`; health: `npm run mobile:e2e:test-assets:health`                                                                                                                                       |

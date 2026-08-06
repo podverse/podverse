@@ -282,6 +282,7 @@ export interface ApiRequestParams {
 export class ApiRequestService {
   private apiBase: string;
   private authContext?: AuthContext;
+  private defaultHeaders?: Record<string, string>;
 
   constructor(params: {
     protocol: string;
@@ -291,12 +292,18 @@ export class ApiRequestService {
     version: string;
     jwt?: string;
     authContext?: AuthContext;
+    /**
+     * Headers applied to every request from this service (e.g. a mobile client-version header).
+     * Per-request `config.headers` and auth headers take precedence over these.
+     */
+    defaultHeaders?: Record<string, string>;
   }) {
-    const { protocol, host, port, prefix, version, jwt, authContext } = params;
+    const { protocol, host, port, prefix, version, jwt, authContext, defaultHeaders } = params;
     const portPart = port ? `:${port}` : '';
     this.apiBase = `${protocol}://${host}${portPart}${prefix.replace(/\/$/, '')}${version}`;
     this.authContext =
       authContext ?? (jwt ? { mode: 'cookie', cookieName: 'jwt', token: jwt } : undefined);
+    this.defaultHeaders = defaultHeaders;
   }
 
   async apiRequest<T>({
@@ -315,6 +322,7 @@ export class ApiRequestService {
         ...config,
         ...(userAgent ? { userAgent } : {}),
         headers: {
+          ...(this.defaultHeaders ?? {}),
           ...((config.headers as Record<string, string> | undefined) ?? {}),
           ...toAuthHeaders(this.authContext),
         },

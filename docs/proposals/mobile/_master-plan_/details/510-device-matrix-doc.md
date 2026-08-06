@@ -14,14 +14,14 @@ its v1 status, primary input model, and which app process it runs in.
 
 Matrix rows (at minimum):
 
-| Device       | v1 status                 | Input        | Process / data source                        |
-| ------------ | ------------------------- | ------------ | -------------------------------------------- |
-| Phone        | Primary                   | Touch        | RN app + SQLite repositories                 |
-| Tablet       | Supported (responsive)    | Touch        | Same RN app process + SQLite (shared)        |
-| Wear OS      | Remote/complication only  | Touch/rotary | MediaSession / native cache (no SQLite)      |
-| Apple Watch  | Deferred (post-v1)        | Touch/crown  | MediaSession bridge (if adopted)             |
-| Android TV   | Supported (leanback)      | D-pad        | RN app process, D-pad focus nav              |
-| tvOS         | Deferred (post-v1)        | Remote       | —                                            |
+| Device      | v1 status                | Input        | Process / data source                   |
+| ----------- | ------------------------ | ------------ | --------------------------------------- |
+| Phone       | Primary                  | Touch        | RN app + SQLite repositories            |
+| Tablet      | Supported (responsive)   | Touch        | Same RN app process + SQLite (shared)   |
+| Wear OS     | Remote/complication only | Touch/rotary | MediaSession / native cache (no SQLite) |
+| Apple Watch | Deferred (post-v1)       | Touch/crown  | MediaSession bridge (if adopted)        |
+| Android TV  | Supported (leanback)     | D-pad        | RN app process, D-pad focus nav         |
+| tvOS        | Deferred (post-v1)       | Remote       | —                                       |
 
 ## Acceptance criteria
 

@@ -345,12 +345,12 @@ Until then you get `No development build (com.podverse.app.next) for this projec
 Use **`--device` with a fixed name**, not `--simulator` (removed in current Expo CLI). Manual vs
 E2E use **different device slots** (same app id `com.podverse.app.next`):
 
-| Role                   | iOS                             | Android                                                                                   |
-| ---------------------- | ------------------------------- | ----------------------------------------------------------------------------------------- |
-| Manual (dev)           | `"iPhone 17 Pro"`               | `Pixel_6_Pro_API_33`                                                                      |
-| Manual (USB phone)     | —                               | `npm run mobile:android:device` (auto-picks one physical `adb` serial; ignores emulators) |
-| Automated (E2E phone)  | `"iPhone 17 Pro E2E"`           | `Pixel_6_Pro_API_33_e2e`                                                                  |
-| Automated (E2E tablet) | `"iPad Pro 13-inch (M4) E2E"`   | `Pixel_Tablet_API_33_e2e` (opt-in; `mobile:e2e:test -- tablet`)                           |
+| Role                   | iOS                           | Android                                                                                   |
+| ---------------------- | ----------------------------- | ----------------------------------------------------------------------------------------- |
+| Manual (dev)           | `"iPhone 17 Pro"`             | `Pixel_6_Pro_API_33`                                                                      |
+| Manual (USB phone)     | —                             | `npm run mobile:android:device` (auto-picks one physical `adb` serial; ignores emulators) |
+| Automated (E2E phone)  | `"iPhone 17 Pro E2E"`         | `Pixel_6_Pro_API_33_e2e`                                                                  |
+| Automated (E2E tablet) | `"iPad Pro 13-inch (M4) E2E"` | `Pixel_Tablet_API_33_e2e` (opt-in; `mobile:e2e:test -- tablet`)                           |
 
 Tablet flow now includes real playback + full-player checks, so keep **Mobile E2E test-assets**
 leave-running (`npm run mobile:e2e:test-assets`) before `npm run mobile:e2e:test -- tablet`.
