@@ -50,7 +50,7 @@
 | Routes, navigation, data wiring, `testID`s, E2E smoke                      | Pixel spacing, typography rhythm, artwork sizes, empty-state chrome       |
 | Action inventory parity (Play, more-sheet intents)                         | Inventing new player chrome (transcripts panel, fancy DnD, new IA)        |
 | Primitives + tokens (no hardcoded hex)                                     | Screen-by-screen “make it look like production” without an operator brief |
-| Long lists via `FlatList` / `SectionList` (or FlashList if already chosen) | Virtualization tuning / list performance polish passes                    |
+| Long / unbounded lists via `FlatList` / `SectionList` — **not** `ScrollView` + `.map()` (baseline, required; see 23.3 / [597](/docs/proposals/mobile/_master-plan_/details/597-list-virtualization-polish.md)) | FlashList adoption / virtualization *tuning* (windowing props, cell recycling) — jank-gated polish |
 | Stack back that works (React Navigation default + Android 7.10)            | Perfect header/back iconography per screen                                |
 
 **Hard stop for agents:** Do **not** thrash on layout debates, redesign the full player, or add
@@ -782,10 +782,12 @@ player, add-by-RSS, settings, …) capturing layout notes. Model: Auto. Detail:
 Model: Codex 5.3. Detail:
 [596-operator-polish-apply-briefs](/docs/proposals/mobile/_master-plan_/details/596-operator-polish-apply-briefs.md)
 — _TBD_
-23.3. Optional list virtualization / density pass only if operator flags jank (FlashList or
-FlatList tuning). Model: Codex 5.3. Detail:
+23.3. List virtualization: **(a)** required baseline audit + remediation — convert any long /
+unbounded `ScrollView` + `.map()` list to `FlatList` / `SectionList` (not jank-gated; can run
+independently of operator visual polish); **(b)** optional FlashList adoption / windowing *tuning*
+only if the operator flags jank. Model: Codex 5.3. Detail:
 [597-list-virtualization-polish](/docs/proposals/mobile/_master-plan_/details/597-list-virtualization-polish.md)
-— _TBD_
+— _TBD_ (baseline remediation tracked under `.llm/plans/active/mobile-list-virtualization/`)
 
 ## Appendix A — Screen map
 

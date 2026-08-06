@@ -9,8 +9,9 @@ import { defineConfig } from 'vitest/config';
  * car library-browse mappers/merge (`src/data/repositories/libraryBrowseProjection.ts` — types only,
  * no native imports), the env-driven deep-link scheme / prefix helpers
  * (`src/config/deepLinkSchemes.ts`), deep-link path mapping (`src/navigation/deepLinking.ts`), pure notification
- * payload target extraction (`src/push/notificationTarget.ts`), and the Podcast Index search preview
- * poll helper (`src/screens/search/podcastIndexFeedPreview.ts`). Scope
+ * payload target extraction (`src/push/notificationTarget.ts`), share URL mapping (`src/lib/share/shareUrl.ts`),
+ * prefs storage guards/hydration (`src/prefs/prefsStore.ts`), and the Podcast Index search preview poll helper
+ * (`src/screens/search/podcastIndexFeedPreview.ts`). Scope
  * the `include` narrowly so tests never pull in native/Expo modules — the excluded adapter
  * (`src/bridge/nativePlaybackBridge.ts`) imports `expo-modules-core`, and repositories import
  * `expo-sqlite`, so neither is tested here. `apps/mobile` is a standalone install; run with
@@ -27,7 +28,9 @@ export default defineConfig({
       'src/data/repositories/subscriptionsMerge.test.ts',
       'src/downloads/**/*.test.ts',
       'src/lib/home/homeFeedRefresh.test.ts',
+      'src/lib/share/shareUrl.test.ts',
       'src/navigation/deepLinking.test.ts',
+      'src/prefs/prefsStore.test.ts',
       'src/push/notificationTarget.test.ts',
       'src/screens/search/podcastIndexFeedPreview.test.ts',
       'src/theme/resolveColumns.test.ts',
