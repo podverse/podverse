@@ -44,7 +44,7 @@
     "@podverse/http-request-core": "*",
     "@podverse/observability": "*",
     "axios": "^1.19.0",
-    "ipaddr.js": "^2.3.0"
+    "ipaddr.js": "^2.5.0"
   },
   "type": "module",
   "devDependencies": {
