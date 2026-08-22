@@ -59,6 +59,17 @@ const config: ExpoConfig = {
   newArchEnabled: true,
   scheme: deepLinkSchemes,
   platforms: ['ios', 'android'],
+  // Native cold-start splash (legacy wordmark on black). Kept visible in JS until i18n + auth
+  // bootstrap finish — see App.tsx SplashHideGate. Top-level `splash` + plugin keep prebuild in sync.
+  splash: {
+    backgroundColor: '#000000',
+    image: './assets/splash/banner.png',
+    resizeMode: 'contain',
+  },
+  androidStatusBar: {
+    backgroundColor: '#000000',
+    barStyle: 'light-content',
+  },
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.podverse.app.next',
@@ -107,6 +118,18 @@ const config: ExpoConfig = {
     'expo-dev-client',
     'expo-localization',
     'expo-notifications',
+    [
+      'expo-splash-screen',
+      {
+        backgroundColor: '#000000',
+        image: './assets/splash/banner.png',
+        // Wide wordmark; default 100 is for square icons and looks tiny.
+        imageWidth: 300,
+        resizeMode: 'contain',
+      },
+    ],
+    // Must run after expo-splash-screen — repairs empty <subviews/> so the logo ImageView exists.
+    './plugins/withPodverseSplashScreen',
     [
       'expo-build-properties',
       {
