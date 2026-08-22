@@ -362,6 +362,7 @@
     "share": "Share",
     "value_for_value": "Value for Value",
     "coming_soon": "Coming soon",
+    "value_for_value_body": "Value-for-value boosts are coming soon. You'll be able to send sats to the podcasts you love, right from the player.",
     "sleep_timer": {
       "sleep_timer": "Sleep Timer",
       "off": "Off",
@@ -791,7 +792,20 @@
     "trial_limitations_add_by_rss_feed_limit": "Add by RSS library size uses a lower Trial limit than Premium.",
     "trial_limitations_manual_refresh_limit": "Manual refresh actions use tighter hourly limits while on Trial.",
     "trial_limitations_stats_tracking": "Stats tracking is reduced for Trial status by default.",
-    "trial_limitations_notifications": "Notification features may be reduced for Trial status and expire with membership."
+    "trial_limitations_notifications": "Notification features may be reduced for Trial status and expire with membership.",
+    "gate": {
+      "cancel": "Cancel",
+      "renew": "Renew Membership",
+      "sign_up": "Sign Up",
+      "title_expired": "Membership expired",
+      "title_premium": "Premium feature",
+      "title_limit": "Limit reached",
+      "body_expired": "Your membership has expired. Renew to use this feature.",
+      "body_premium": "This is a Premium feature. Renew your membership to Premium to use it.",
+      "body_limit": "You've reached the limit for this feature on your current plan.",
+      "banner_message": "Your membership has expired.",
+      "banner_action": "Renew"
+    }
   },
   "about": {
     "title": "About",

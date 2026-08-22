@@ -9,6 +9,10 @@ name: Deep Link Podcast
 # Route through the app's native scheme (deterministic in Maestro).
 - openLink: podverse-next://podcast/e2ePodChnl001
 
+# iOS pops a native "Open in "Podverse Next"?" confirmation for own-scheme openLink; confirm it
+# (no-op on Android) so the URL reaches the running app.
+- runFlow: shared/confirm-ios-open-dialog.yaml
+
 # The detail screen container is stable even while data is loading/refetching.
 - extendedWaitUntil:
     visible:

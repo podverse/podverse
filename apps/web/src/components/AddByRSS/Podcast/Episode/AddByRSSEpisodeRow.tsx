@@ -24,6 +24,7 @@ import { useModals } from '../../../../contexts/Modals';
 import { useQueues } from '../../../../contexts/Queue';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { usePlayAddByRSS } from '../../../../hooks/usePlayAddByRSS';
+import { useQueueAddWithGate } from '../../../../hooks/useQueueAddWithGate';
 import { getAddByRSSItemPath } from '../../../../utils/addByRSS/itemPath';
 import type { AddByRSSItemIndexItem, AddByRSSMappedFeed } from '../../../../utils/addByRSS/types';
 import { downloadAddByRSSMediaWithModal } from '../../../../utils/downloadModal/downloadAddByRSSMediaWithModal';
@@ -71,6 +72,7 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
   const { queues } = useQueues();
   const playAddByRSS = usePlayAddByRSS();
   const apiRequestService = getApiRequestService();
+  const { runQueueAdd } = useQueueAddWithGate();
   const title = bundle.item.title ?? tMedia('podcast.episode_image');
   const description = bundle.description?.value
     ? stripAndDecodeHtml(bundle.description.value)
@@ -99,10 +101,11 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
   const addToQueueNext = () => {
     if (!queue || !indexItem) return;
     const add_by_rss_resource_data = buildAddByRSSResourceData(indexItem);
-    showToastPromise(
-      apiRequestService.reqQueueResourceItemAddByRSSAddNext(queue.id_text, {
-        add_by_rss_resource_data,
-      }),
+    void runQueueAdd(
+      () =>
+        apiRequestService.reqQueueResourceItemAddByRSSAddNext(queue.id_text, {
+          add_by_rss_resource_data,
+        }),
       {
         success: tFeatures('queue.added_to_queue'),
         error: tFeatures('queue.add_error'),
@@ -113,10 +116,11 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
   const addToQueueLast = () => {
     if (!queue || !indexItem) return;
     const add_by_rss_resource_data = buildAddByRSSResourceData(indexItem);
-    showToastPromise(
-      apiRequestService.reqQueueResourceItemAddByRSSAddLast(queue.id_text, {
-        add_by_rss_resource_data,
-      }),
+    void runQueueAdd(
+      () =>
+        apiRequestService.reqQueueResourceItemAddByRSSAddLast(queue.id_text, {
+          add_by_rss_resource_data,
+        }),
       {
         success: tFeatures('queue.added_to_queue'),
         error: tFeatures('queue.add_error'),

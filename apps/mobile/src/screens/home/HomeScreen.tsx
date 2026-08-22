@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { useAuth } from '../../auth/AuthProvider';
 import { ListEmpty } from '../../components/state/ListEmpty';
@@ -26,6 +26,7 @@ import {
   type SubscriptionListFilter,
   writeHomeSubscriptionFilter,
 } from '../../prefs/subscriptionFilter';
+import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
 import type { AddToPlaylistTarget } from '../library/useAddToPlaylist';
 import { useAddToPlaylist } from '../library/useAddToPlaylist';
@@ -47,6 +48,7 @@ export function HomeScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
+  const { columns } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
   const [selectedMediaType, setSelectedMediaType] =
     useState<HomeMediaType>(DEFAULT_HOME_MEDIA_TYPE);
@@ -224,6 +226,12 @@ export function HomeScreen() {
   const styles = useMemo(
     () =>
       StyleSheet.create({
+        columnCell: {
+          flex: 1,
+        },
+        columnWrapper: {
+          gap: tokens.spacing.md,
+        },
         container: {
           backgroundColor: themeStyles.screen.backgroundColor,
           flex: 1,
@@ -239,14 +247,9 @@ export function HomeScreen() {
           marginTop: tokens.spacing.lg,
           padding: tokens.spacing.lg,
         },
-        feedTitle: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 20,
-          fontWeight: '700',
-        },
-        feedSubtitle: {
+        feedNotice: {
           color: themeStyles.textSecondary.color,
-          fontSize: 14,
+          fontSize: 13,
           marginTop: tokens.spacing.sm,
         },
         feedSummary: {
@@ -254,10 +257,10 @@ export function HomeScreen() {
           fontSize: 13,
           marginBottom: tokens.spacing.md,
         },
-        feedNotice: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          marginTop: tokens.spacing.sm,
+        feedTitle: {
+          color: themeStyles.textPrimary.color,
+          fontSize: 20,
+          fontWeight: '700',
         },
         heading: {
           color: themeStyles.textPrimary.color,
@@ -269,11 +272,62 @@ export function HomeScreen() {
     [themeStyles, tokens]
   );
 
+  const showFeedRows = !isFeedLoading && feedErrorKey === null;
+
+  const listHeader = (
+    <>
+      <Text style={styles.heading}>{t('nav.tab.home')}</Text>
+      <E2ePlayVideoButton />
+      <View style={styles.feedCard}>
+        <Text style={styles.feedTitle}>
+          {t(MEDIA_TYPE_TITLE_KEYS[selectedMediaType] ?? MEDIA_TYPE_TITLE_KEYS.podcasts)}
+        </Text>
+        {isSubscribedPodcastsView ? (
+          <SubscriptionFilterControl
+            onChange={handleSubscriptionFilterChange}
+            selectedFilter={subscriptionFilter}
+            testID="home-subscription-filter"
+          />
+        ) : null}
+        <Text style={styles.feedSummary}>
+          {t('misc.items')}: {feedRows.length}
+        </Text>
+        {isFeedLoading ? <ListLoading testID="home-list-loading" /> : null}
+        {!isFeedLoading && feedErrorKey !== null ? (
+          <ListError
+            messageKey={feedErrorKey}
+            onRetry={() => {
+              void loadFeed('retry');
+            }}
+            testID="home-list-error"
+          />
+        ) : null}
+        {!isFeedLoading && feedErrorKey === null && feedRows.length === 0 ? (
+          <ListEmpty messageKey="misc.info" testID="home-list-empty" />
+        ) : null}
+      </View>
+    </>
+  );
+
+  const listFooter =
+    playbackNoticeKey !== null ? (
+      <Text style={styles.feedNotice}>{t(playbackNoticeKey)}</Text>
+    ) : null;
+
   return (
     <View style={styles.container} testID="home-screen">
       <MediaTypeSelector onChange={handleMediaTypeChange} selectedMediaType={selectedMediaType} />
-      <ScrollView
+      {/* Intentional: keep header controls/summary inside the card via ListHeaderComponent while rows */}
+      {/* render as FlatList items so tablet grid columns can virtualize with numColumns. */}
+      <FlatList
+        ListFooterComponent={listFooter}
+        ListHeaderComponent={listHeader}
+        columnWrapperStyle={columns > 1 ? styles.columnWrapper : undefined}
         contentContainerStyle={styles.content}
+        data={showFeedRows ? feedRows : []}
+        key={`cols-${columns}`}
+        keyExtractor={(row) => row.id}
+        numColumns={columns}
         refreshControl={
           <RefreshControl
             onRefresh={() => {
@@ -283,65 +337,30 @@ export function HomeScreen() {
             tintColor={themeStyles.buttonPrimary.backgroundColor}
           />
         }
-        testID="home-feed-list"
-      >
-        <Text style={styles.heading}>{t('nav.tab.home')}</Text>
-        <E2ePlayVideoButton />
-        <View style={styles.feedCard}>
-          <Text style={styles.feedTitle}>
-            {t(MEDIA_TYPE_TITLE_KEYS[selectedMediaType] ?? MEDIA_TYPE_TITLE_KEYS.podcasts)}
-          </Text>
-          {isSubscribedPodcastsView ? (
-            <SubscriptionFilterControl
-              onChange={handleSubscriptionFilterChange}
-              selectedFilter={subscriptionFilter}
-              testID="home-subscription-filter"
-            />
-          ) : null}
-          <Text style={styles.feedSummary}>
-            {t('misc.items')}: {feedRows.length}
-          </Text>
-          {isFeedLoading ? <ListLoading testID="home-list-loading" /> : null}
-          {!isFeedLoading && feedErrorKey !== null ? (
-            <ListError
-              messageKey={feedErrorKey}
-              onRetry={() => {
-                void loadFeed('retry');
+        renderItem={({ item: row }) => (
+          <View style={columns > 1 ? styles.columnCell : undefined}>
+            <HomeFeedRow
+              mediaType={selectedMediaType}
+              onAddToPlaylistPress={
+                status === 'authenticated' && addToPlaylistKind !== null
+                  ? (nextRow) => {
+                      requestAddToPlaylist({ idText: nextRow.id, kind: addToPlaylistKind });
+                    }
+                  : undefined
+              }
+              onPlayPress={(nextRow) => {
+                runPlayAction(nextRow, selectedMediaType);
               }}
-              testID="home-list-error"
+              onPress={handleRowPress}
+              onQueuePress={(nextRow, position) => {
+                runQueueAction(nextRow, selectedMediaType, position);
+              }}
+              row={row}
             />
-          ) : null}
-          {!isFeedLoading && feedErrorKey === null && feedRows.length === 0 ? (
-            <ListEmpty messageKey="misc.info" testID="home-list-empty" />
-          ) : null}
-          {!isFeedLoading && feedErrorKey === null
-            ? feedRows.map((row) => (
-                <HomeFeedRow
-                  key={row.id}
-                  mediaType={selectedMediaType}
-                  onAddToPlaylistPress={
-                    status === 'authenticated' && addToPlaylistKind !== null
-                      ? (nextRow) => {
-                          requestAddToPlaylist({ idText: nextRow.id, kind: addToPlaylistKind });
-                        }
-                      : undefined
-                  }
-                  onPlayPress={(nextRow) => {
-                    runPlayAction(nextRow, selectedMediaType);
-                  }}
-                  onPress={handleRowPress}
-                  onQueuePress={(nextRow, position) => {
-                    runQueueAction(nextRow, selectedMediaType, position);
-                  }}
-                  row={row}
-                />
-              ))
-            : null}
-          {playbackNoticeKey !== null ? (
-            <Text style={styles.feedNotice}>{t(playbackNoticeKey)}</Text>
-          ) : null}
-        </View>
-      </ScrollView>
+          </View>
+        )}
+        testID="home-feed-list"
+      />
       {addToPlaylistSheet}
     </View>
   );

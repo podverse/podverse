@@ -45,40 +45,49 @@
 **Goal of the master plan:** deliver a sensible bulk of **functionality**, **screens**, and a
 **sketch of components** — not final visual design.
 
-| In scope for agent tracks                                                  | Out of scope until Track 23 (operator)                                    |
-| -------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Routes, navigation, data wiring, `testID`s, E2E smoke                      | Pixel spacing, typography rhythm, artwork sizes, empty-state chrome       |
-| Action inventory parity (Play, more-sheet intents)                         | Inventing new player chrome (transcripts panel, fancy DnD, new IA)        |
-| Primitives + tokens (no hardcoded hex)                                     | Screen-by-screen “make it look like production” without an operator brief |
-| Long lists via `FlatList` / `SectionList` (or FlashList if already chosen) | Virtualization tuning / list performance polish passes                    |
-| Stack back that works (React Navigation default + Android 7.10)            | Perfect header/back iconography per screen                                |
+| In scope for agent tracks                                                                                                                                                                                      | Out of scope until Track 23 (operator)                                                             |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Routes, navigation, data wiring, `testID`s, E2E smoke                                                                                                                                                          | Pixel spacing, typography rhythm, artwork sizes, empty-state chrome                                |
+| Action inventory parity (Play, more-sheet intents)                                                                                                                                                             | Inventing new player chrome (transcripts panel, fancy DnD, new IA)                                 |
+| Primitives + tokens (no hardcoded hex)                                                                                                                                                                         | Screen-by-screen “make it look like production” without an operator brief                          |
+| Long / unbounded lists via `FlatList` / `SectionList` — **not** `ScrollView` + `.map()` (baseline, required; see 23.3 / [597](/docs/proposals/mobile/_master-plan_/details/597-list-virtualization-polish.md)) | FlashList adoption / virtualization _tuning_ (windowing props, cell recycling) — jank-gated polish |
+| Stack back that works (React Navigation default + Android 7.10)                                                                                                                                                | Perfect header/back iconography per screen                                                         |
 
 **Hard stop for agents:** Do **not** thrash on layout debates, redesign the full player, or add
 design-heavy surfaces (player-integrated transcript sync, clip authoring UI, pixel-perfect
 drag-and-drop) unless a master-plan step **explicitly** asks for a **functional sketch**. When
 uncertain, prefer a working stub + `testID` and leave polish notes for **Track 23**.
 
-Operator path after feature tracks: walk **screen by screen**, write briefs, then agents apply
-those briefs in Track 23 — not earlier.
+Operator path after feature tracks: the **operator polishes the app manually, screen by screen**
+(layout, styles, UX). The agent **does not** produce a polish checklist or apply visual briefs unless
+the operator explicitly asks for help on a specific screen. Track 23 agent steps (23.1 checklist /
+23.2 apply-briefs) are therefore **optional agent-assist**, not required.
+
+**Publish hold (v1, MANDATORY):** Do **not** publish or promote to any **alpha / internal /
+pre-beta** test track (TestFlight internal or external, Play internal/closed testing) until the
+**operator has finished manual visual polish**. Feature work and agent-only steps may continue on
+branches, but **no test-track promotion** happens before the operator signs off. Enforced in Track 4
+(CI/store safety) and Track 22 (release process).
 
 ## Current status / next up (2026-07)
 
-| Parallel group                                                | Status   | Notes                                                                                                                                                                                                           |
-| ------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| PG-0 … PG-4                                                   | **done** | Foundation, playback-core, hello-world, media-engine **audio** spike, CI/E2E, auth, nav, themes                                                                                                                 |
-| PG-5 (Track 2 video)                                          | **done** | Video surface + reparent gaps archived under `.llm/plans/completed/mobile-pg5-*`                                                                                                                                |
-| PG-6 / 6.5 / 6.6                                              | **done** | Home/browse, data layer + primitives, media-row actions                                                                                                                                                         |
-| PG-7 (Tracks 10–11)                                           | **done** | Track 10 DONE; Track 11 audio + video done (11.3 / 11.6–11.8 / 11.15–11.17)                                                                                                                                     |
-| **Track 11 video leftover**                                   | **done** | Archived under `.llm/plans/completed/mobile-track11-video/`                                                                                                                                                     |
-| **PG-6.7 (Track 9d)**                                         | **done** | Archived under `.llm/plans/completed/mobile-track9d-playlist-authoring/` (9d.1–9d.5)                                                                                                                            |
-| **PG-9 Track 13 downloads**                                   | **done** | Archived under `.llm/plans/completed/mobile-track13-downloads/` (13.1–13.10)                                                                                                                                    |
-| **PG-8 native cache (12.1–12.6)**                             | **done** | Archived under `.llm/plans/completed/mobile-pg8-car-native-cache/` (schema, iOS/Android storage, JS write path, read spikes)                                                                                    |
-| **PG-8 Android Auto (12.11–12.17, 12.19, 12.20)**             | **done** | Native browse (Library + Downloads) + play from the cache, app-closed; archived under `.llm/plans/completed/mobile-pg8-car-android-auto/`. Operator DHU + Play Console declaration pending                      |
-| **PG-8 iOS CarPlay (12.7–12.10, 12.16 iOS, 12.18–12.19 iOS)** | **done** | AA-parity Library + Downloads + play from the cache, app-closed; App ID/App Group + entitlements wired; archived under `.llm/plans/completed/mobile-pg8-car-carplay/`. Operator CarPlay Simulator proof pending |
-| **PG-9 Track 16 OPML**                                        | **done** | Import/export archived under `.llm/plans/completed/opml-import-export/` (16.4–16.10).                                                                                                                           |
-| **PG-9 Track 16 prefs/settings**                              | **done** | Unified prefs store + server sync + settings screen archived under `.llm/plans/completed/mobile-track16-prefs-settings/` (16.1–16.3).                                                                           |
-| PG-9 rest                                                     | later    | Push, deep links                                                                                                                                                                                                |
-| PG-13 (Track 23)                                              | later    | **Operator** screen-by-screen visual polish — after feature bulk                                                                                                                                                |
+| Parallel group                                                                    | Status   | Notes                                                                                                                                                                                                                                                                                                                                                                                                              |
+| --------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| PG-0 … PG-4                                                                       | **done** | Foundation, playback-core, hello-world, media-engine **audio** spike, CI/E2E, auth, nav, themes                                                                                                                                                                                                                                                                                                                    |
+| PG-5 (Track 2 video)                                                              | **done** | Video surface + reparent gaps archived under `.llm/plans/completed/mobile-pg5-*`                                                                                                                                                                                                                                                                                                                                   |
+| PG-6 / 6.5 / 6.6                                                                  | **done** | Home/browse, data layer + primitives, media-row actions                                                                                                                                                                                                                                                                                                                                                            |
+| PG-7 (Tracks 10–11)                                                               | **done** | Track 10 DONE; Track 11 audio + video done (11.3 / 11.6–11.8 / 11.15–11.17)                                                                                                                                                                                                                                                                                                                                        |
+| **Track 11 video leftover**                                                       | **done** | Archived under `.llm/plans/completed/mobile-track11-video/`                                                                                                                                                                                                                                                                                                                                                        |
+| **PG-6.7 (Track 9d)**                                                             | **done** | Archived under `.llm/plans/completed/mobile-track9d-playlist-authoring/` (9d.1–9d.5)                                                                                                                                                                                                                                                                                                                               |
+| **PG-9 Track 13 downloads**                                                       | **done** | Archived under `.llm/plans/completed/mobile-track13-downloads/` (13.1–13.10)                                                                                                                                                                                                                                                                                                                                       |
+| **PG-8 native cache (12.1–12.6)**                                                 | **done** | Archived under `.llm/plans/completed/mobile-pg8-car-native-cache/` (schema, iOS/Android storage, JS write path, read spikes)                                                                                                                                                                                                                                                                                       |
+| **PG-8 Android Auto (12.11–12.17, 12.19, 12.20)**                                 | **done** | Native browse (Library + Downloads) + play from the cache, app-closed; archived under `.llm/plans/completed/mobile-pg8-car-android-auto/`. Operator DHU + Play Console declaration pending                                                                                                                                                                                                                         |
+| **PG-8 iOS CarPlay (12.7–12.10, 12.16 iOS, 12.18–12.19 iOS)**                     | **done** | AA-parity Library + Downloads + play from the cache, app-closed; App ID/App Group + entitlements wired; archived under `.llm/plans/completed/mobile-pg8-car-carplay/`. Operator CarPlay Simulator proof pending                                                                                                                                                                                                    |
+| **PG-9 Track 16 OPML**                                                            | **done** | Import/export archived under `.llm/plans/completed/opml-import-export/` (16.4–16.10).                                                                                                                                                                                                                                                                                                                              |
+| **PG-9 Track 16 prefs/settings**                                                  | **done** | Unified prefs store + server sync + settings screen archived under `.llm/plans/completed/mobile-track16-prefs-settings/` (16.1–16.3).                                                                                                                                                                                                                                                                              |
+| **PG-9 Track 14 push / Track 15 deep links / Track 17 i18n**                      | **done** | Push (FCM + UnifiedPush) archived under `.llm/plans/completed/mobile-track14-push/`; deep links under `.llm/plans/completed/mobile-track15-deep-links/`; RN i18n runtime done. Unit-test backfill done under `.llm/plans/completed/mobile-track14-16-unit-tests/`                                                                                                                                                  |
+| **PG-10 Track 18 tablet (18.1–18.5, 18.15, 18.4 FullPlayer E2E, 18.16 mid-band)** | **done** | Tablet responsive slice archived under `.llm/plans/completed/mobile-pg10-tablet/`; hardening follow-ups (FullPlayer two-column E2E, mid-band breakpoint decision docs, phone-Home `FlatList` intent lock) under `.llm/plans/completed/mobile-pg10-tablet-followups/`; list-virtualization baseline under `.llm/plans/completed/mobile-list-virtualization/`. Watch (18.6–18.9) / TV (18.10–18.14) not yet detailed |
+| PG-13 (Track 23)                                                                  | later    | **Operator** screen-by-screen visual polish — after feature bulk                                                                                                                                                                                                                                                                                                                                                   |
 
 ### Recommended next build sequence
 
@@ -302,6 +311,8 @@ Track 3 is complete when all of the following are true:
 ## Track 4 — CI/CD, alpha track, store safety (DONE)
 
 **Store safety:** Never overwrite existing Podverse Prod/Beta store listings. Use separate `.next` app id until convergence decision (step 4.25).
+
+**Publish hold (v1):** Even on the isolated `.next` app id, do **not** promote builds to any alpha / internal / pre-beta test track (TestFlight internal/external, Play internal/closed) until the operator finishes manual visual polish (Track 23). CI may build/sign on branches; it must not auto-submit to a tester track before operator sign-off. See **Ship bar** § Publish hold.
 
 4.1. Record open decision: EAS Build/Submit vs self-hosted Fastlane on GitHub macOS runners. Model: Opus 4.8. Detail: [150-ci-tooling-decision](/docs/proposals/mobile/_master-plan_/details/150-ci-tooling-decision.md) — done
 4.2. Document required accounts: Apple Developer ($99/yr), Google Play ($25 one-time). Model: Auto. Detail: [151-store-account-costs](/docs/proposals/mobile/_master-plan_/details/151-store-account-costs.md) — done
@@ -689,11 +700,11 @@ controls consume **MediaSession / native cache** (or a phone bridge), the same p
 CarPlay / Android Auto. See
 [DOCS-MOBILE-DATA-LAYER-OFFLINE.md §7.1](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md).
 
-18.1. Document device matrix: phone (primary), tablet, watch, TV (Android TV / tvOS). Model: Auto. Detail: [510-device-matrix-doc](/docs/proposals/mobile/_master-plan_/details/510-device-matrix-doc.md) — _TBD_
-18.2. Tablet: responsive breakpoints for Home grid and browse lists (2-column+). Model: Codex 5.3. Detail: [511-tablet-home-grid](/docs/proposals/mobile/_master-plan_/details/511-tablet-home-grid.md) — _TBD_
-18.3. Tablet: split view optional for podcast detail + episode list side-by-side. Model: Codex 5.3. Detail: [512-tablet-split-detail](/docs/proposals/mobile/_master-plan_/details/512-tablet-split-detail.md) — _TBD_
-18.4. Tablet: mini player width constraint and full player two-column layout. Model: Codex 5.3. Detail: [513-tablet-player-layout](/docs/proposals/mobile/_master-plan_/details/513-tablet-player-layout.md) — _TBD_
-18.5. Tablet E2E: screenshot Home and podcast detail at tablet viewport. Model: Codex 5.3. Detail: [514-e2e-tablet-screenshots](/docs/proposals/mobile/_master-plan_/details/514-e2e-tablet-screenshots.md) — _TBD_
+18.1. Document device matrix: phone (primary), tablet, watch, TV (Android TV / tvOS). Model: Auto. Detail: [510-device-matrix-doc](/docs/proposals/mobile/_master-plan_/details/510-device-matrix-doc.md) — done
+18.2. Tablet: responsive breakpoints for Home grid and browse lists (2-column+). Model: Codex 5.3. Detail: [511-tablet-home-grid](/docs/proposals/mobile/_master-plan_/details/511-tablet-home-grid.md) — done
+18.3. Tablet: split view optional for podcast detail + episode list side-by-side. Model: Codex 5.3. Detail: [512-tablet-split-detail](/docs/proposals/mobile/_master-plan_/details/512-tablet-split-detail.md) — done
+18.4. Tablet: mini player width constraint and full player two-column layout. Model: Codex 5.3. Detail: [513-tablet-player-layout](/docs/proposals/mobile/_master-plan_/details/513-tablet-player-layout.md) — done
+18.5. Tablet E2E: screenshot Home and podcast detail at tablet viewport. Model: Codex 5.3. Detail: [514-e2e-tablet-screenshots](/docs/proposals/mobile/_master-plan_/details/514-e2e-tablet-screenshots.md) — done
 18.6. Watch (Wear OS): scope decision — remote control only vs standalone player. Model: Opus 4.8. Detail: [520-watch-scope-decision](/docs/proposals/mobile/_master-plan_/details/520-watch-scope-decision.md) — _TBD_
 18.7. Watch: MediaSession remote commands from phone engine (play/pause/skip). Model: Opus 4.8. Detail: [521-watch-remote-commands](/docs/proposals/mobile/_master-plan_/details/521-watch-remote-commands.md) — _TBD_
 18.8. Watch: now-playing complication from **native cache** (not SQLite) or MediaSession phone bridge. Model: Opus 4.8. Detail: [522-watch-now-playing-complication](/docs/proposals/mobile/_master-plan_/details/522-watch-now-playing-complication.md) — _TBD_
@@ -703,45 +714,60 @@ CarPlay / Android Auto. See
 18.12. TV: full-screen player with remote-friendly controls (no mini player). Model: Opus 4.8. Detail: [532-tv-full-player](/docs/proposals/mobile/_master-plan_/details/532-tv-full-player.md) — _TBD_
 18.13. TV: sign-in flow adapted for TV input (QR code or device code OAuth). Model: Opus 4.8. Detail: [533-tv-auth-flow](/docs/proposals/mobile/_master-plan_/details/533-tv-auth-flow.md) — _TBD_
 18.14. TV E2E: screenshot browse row focus state (emulator). Model: Codex 5.3. Detail: [534-e2e-tv-browse-screenshot](/docs/proposals/mobile/_master-plan_/details/534-e2e-tv-browse-screenshot.md) — _TBD_
-18.15. Document which tracks are phone-only vs shared native modules per device. Model: Auto. Detail: [535-device-track-scope-matrix](/docs/proposals/mobile/_master-plan_/details/535-device-track-scope-matrix.md) — _TBD_
+18.15. Document which tracks are phone-only vs shared native modules per device. Model: Auto. Detail: [535-device-track-scope-matrix](/docs/proposals/mobile/_master-plan_/details/535-device-track-scope-matrix.md) — done
 18.16. CI: add tablet emulator matrix job (optional nightly, not PR gate v1). Model: Codex 5.3. Detail: [536-ci-tablet-emulator-nightly](/docs/proposals/mobile/_master-plan_/details/536-ci-tablet-emulator-nightly.md) — _TBD_
 18.17. Store listings: separate screenshots per form factor where stores require. Model: Auto. Detail: [537-store-form-factor-screenshots](/docs/proposals/mobile/_master-plan_/details/537-store-form-factor-screenshots.md) — _TBD_
 
 ## Track 19 — Membership / IAP / V4V
 
-19.1. Document store IAP vs web PayPal parity matrix (what mobile can sell). Model: Opus 4.8. Detail: [560-iap-parity-matrix](/docs/proposals/mobile/_master-plan_/details/560-iap-parity-matrix.md) — _TBD_
+19.1. Document store IAP vs web PayPal parity matrix (what mobile can sell). Model: Opus 4.8. Detail: [560-iap-parity-matrix](/docs/proposals/mobile/_master-plan_/details/560-iap-parity-matrix.md) — done
 19.2. Integrate RevenueCat or native StoreKit/Billing for subscription SKUs. Model: Opus 4.8. Detail: [561-iap-sdk-integration](/docs/proposals/mobile/_master-plan_/details/561-iap-sdk-integration.md) — _TBD_
 19.3. Server receipt validation endpoint contract (reuse or extend API). Model: Opus 4.8. Detail: [562-receipt-validation-api](/docs/proposals/mobile/_master-plan_/details/562-receipt-validation-api.md) — _TBD_
-19.4. Membership gating UI mirrors web entitlement checks via `@podverse/helpers`. Model: Codex 5.3. Detail: [563-membership-gating-ui](/docs/proposals/mobile/_master-plan_/details/563-membership-gating-ui.md) — _TBD_
+19.4. Membership gating UI mirrors web entitlement checks via `@podverse/helpers`. Model: Codex 5.3. Detail: [563-membership-gating-ui](/docs/proposals/mobile/_master-plan_/details/563-membership-gating-ui.md) — done
 19.5. Restore purchases flow and account linking on login. Model: Opus 4.8. Detail: [564-restore-purchases](/docs/proposals/mobile/_master-plan_/details/564-restore-purchases.md) — _TBD_
 19.6. V4V boost entry on full player (Track 11.14) with LNURL flow from web parity. Model: Opus 4.8. Detail: [565-v4v-lnurl-flow](/docs/proposals/mobile/_master-plan_/details/565-v4v-lnurl-flow.md) — _TBD_
-19.7. Document alpha/beta: IAP disabled or sandbox-only per Track 4 alpha app id. Model: Auto. Detail: [566-iap-alpha-sandbox](/docs/proposals/mobile/_master-plan_/details/566-iap-alpha-sandbox.md) — _TBD_
-19.8. E2E: membership gate screenshot for locked content (mock entitlement). Model: Codex 5.3. Detail: [567-e2e-membership-gate](/docs/proposals/mobile/_master-plan_/details/567-e2e-membership-gate.md) — _TBD_
+19.7. Document alpha/beta: IAP disabled or sandbox-only per Track 4 alpha app id. Model: Auto. Detail: [566-iap-alpha-sandbox](/docs/proposals/mobile/_master-plan_/details/566-iap-alpha-sandbox.md) — done
+19.8. E2E: membership gate screenshot for locked content (mock entitlement). Model: Codex 5.3. Detail: [567-e2e-membership-gate](/docs/proposals/mobile/_master-plan_/details/567-e2e-membership-gate.md) — done
+19.9. Mobile Membership screen (real): explain tiers (Free vs Premium, web parity), Sign Up (logged-out) / Extend (logged-in) CTA. Model: Opus 4.8. Detail: [568-mobile-membership-screen](/docs/proposals/mobile/_master-plan_/details/568-mobile-membership-screen.md) — done
+19.10. Mobile checkout entry: open web sign-up/checkout (in-app browser) until native IAP (19.2); isolated swap seam. Model: Codex 5.3. Detail: [569-mobile-checkout-entry](/docs/proposals/mobile/_master-plan_/details/569-mobile-checkout-entry.md) — done
+19.11. Shared membership-403 parser (`@podverse/helpers-requests`) + OpenAPI docs + regression tests for the existing 403 contract (`i18nKey`/`renewPath`) — **no API behavior change**; web + mobile consume it for parity. Model: Opus 4.8. Detail: [563-membership-gating-ui](/docs/proposals/mobile/_master-plan_/details/563-membership-gating-ui.md) — done
+19.12. V4V full-player button → placeholder screen (placeholder slice; full LNURL flow remains 19.6). Model: Auto. Detail: [565-v4v-lnurl-flow](/docs/proposals/mobile/_master-plan_/details/565-v4v-lnurl-flow.md) — done
+
+**Mobile + web membership parity & V4V placeholder (added 2026-08-05; completed 2026-08-05):** detailed and executed via
+[`.llm/plans/completed/mobile-membership-and-v4v/`](/.llm/plans/completed/mobile-membership-and-v4v/COPY-PASTA.md).
+Step map: 19.11 → plan 01 (shared `parseMembershipGateError` + OpenAPI docs; **no API shape change**);
+19.4 → plan 02–03 (mobile `useMembership`, premium gate modal + expired banner) **and** plan 08 (web
+parity — broaden the membership modal to the full member-only action set; web app only, management-web
+excluded as admin-only); 19.9 → 04 (Membership screen); 19.10 → 05 (web-link checkout); 19.12 → 06
+(V4V placeholder); 19.8 → 07 (mobile E2E gate + renew nav + V4V; web E2E in 08). The API already sends
+distinguishing 403s (`i18nKey`/`renewPath`), so parity = both clients consuming the same contract via
+one parser. Full store IAP (19.2/19.3/19.5) and the V4V LNURL flow (19.6) remain `_TBD_` and are **not**
+in this set. The **publish hold** still applies.
 
 ## Track 20 — F-Droid / FOSS flavor
 
 **Note:** F-Droid submission is operator-driven when ready; not required for MVP.
 
-20.1. Define FOSS product flavor: no Google Play Services, no Firebase, no proprietary blobs. Model: Opus 4.8. Detail: [570-foss-flavor-definition](/docs/proposals/mobile/_master-plan_/details/570-foss-flavor-definition.md) — _TBD_
-20.2. UnifiedPush replaces FCM in FOSS flavor (cross-ref Track 14.6). Model: Opus 4.8. Detail: [571-foss-unifiedpush](/docs/proposals/mobile/_master-plan_/details/571-foss-unifiedpush.md) — _TBD_
-20.3. FOSS build reproducibility: document dependency audit checklist. Model: Codex 5.3. Detail: [572-foss-reproducibility-audit](/docs/proposals/mobile/_master-plan_/details/572-foss-reproducibility-audit.md) — _TBD_
-20.4. Prepare F-Droid metadata: summary, license, source URL, build recipe draft. Model: Codex 5.3. Detail: [573-fdroid-metadata-draft](/docs/proposals/mobile/_master-plan_/details/573-fdroid-metadata-draft.md) — _TBD_
-20.5. FOSS signing key policy separate from Play upload key. Model: Auto. Detail: [574-foss-signing-policy](/docs/proposals/mobile/_master-plan_/details/574-foss-signing-policy.md) — _TBD_
-20.6. Document IAP unavailable in FOSS flavor; link to web membership instead. Model: Auto. Detail: [575-foss-iap-unavailable](/docs/proposals/mobile/_master-plan_/details/575-foss-iap-unavailable.md) — _TBD_
+20.1. Define FOSS product flavor: no Google Play Services, no Firebase, no proprietary blobs. Model: Opus 4.8. Detail: [570-foss-flavor-definition](/docs/proposals/mobile/_master-plan_/details/570-foss-flavor-definition.md) — done
+20.2. UnifiedPush replaces FCM in FOSS flavor (cross-ref Track 14.6). Model: Opus 4.8. Detail: [571-foss-unifiedpush](/docs/proposals/mobile/_master-plan_/details/571-foss-unifiedpush.md) — done
+20.3. FOSS build reproducibility: document dependency audit checklist. Model: Codex 5.3. Detail: [572-foss-reproducibility-audit](/docs/proposals/mobile/_master-plan_/details/572-foss-reproducibility-audit.md) — done
+20.4. Prepare F-Droid metadata: summary, license, source URL, build recipe draft. Model: Codex 5.3. Detail: [573-fdroid-metadata-draft](/docs/proposals/mobile/_master-plan_/details/573-fdroid-metadata-draft.md) — done
+20.5. FOSS signing key policy separate from Play upload key. Model: Auto. Detail: [574-foss-signing-policy](/docs/proposals/mobile/_master-plan_/details/574-foss-signing-policy.md) — done
+20.6. Document IAP unavailable in FOSS flavor; link to web membership instead. Model: Auto. Detail: [575-foss-iap-unavailable](/docs/proposals/mobile/_master-plan_/details/575-foss-iap-unavailable.md) — done
 20.7. Submit to metaboost-registry or F-Droid request issue (operator step). Model: Auto. Detail: [576-fdroid-submission-operator](/docs/proposals/mobile/_master-plan_/details/576-fdroid-submission-operator.md) — _TBD_
 
-## Track 21 — Explicit deferrals and post-v1 backlog
+## Track 21 — Explicit deferrals and post-v1 backlog (DONE)
 
-21.1. Defer: Apple Watch standalone app (if Wear-only v1). Model: Auto. Detail: [580-defer-apple-watch](/docs/proposals/mobile/_master-plan_/details/580-defer-apple-watch.md) — _TBD_
-21.2. Defer: tvOS native app (Android TV first). Model: Auto. Detail: [581-defer-tvos](/docs/proposals/mobile/_master-plan_/details/581-defer-tvos.md) — _TBD_
-21.3. Defer: full management-web parity on mobile. Model: Auto. Detail: [582-defer-management-parity](/docs/proposals/mobile/_master-plan_/details/582-defer-management-parity.md) — _TBD_
-21.4. Defer: clip authoring / upload from mobile (create/edit clip screens). Model: Auto. Detail: [583-defer-clip-authoring](/docs/proposals/mobile/_master-plan_/details/583-defer-clip-authoring.md) — _TBD_
-21.5. Defer: social features beyond share links. Model: Auto. Detail: [584-defer-social](/docs/proposals/mobile/_master-plan_/details/584-defer-social.md) — _TBD_
-21.6. Defer: offline playlist sync conflict resolution advanced cases. Model: Auto. Detail: [585-defer-offline-sync-advanced](/docs/proposals/mobile/_master-plan_/details/585-defer-offline-sync-advanced.md) — _TBD_
-21.7. Defer: widget / Live Activities / Dynamic Island v1. Model: Auto. Detail: [586-defer-widgets](/docs/proposals/mobile/_master-plan_/details/586-defer-widgets.md) — _TBD_
-21.8. Defer: CarPlay video (audio-only in car v1). Model: Auto. Detail: [587-defer-carplay-video](/docs/proposals/mobile/_master-plan_/details/587-defer-carplay-video.md) — _TBD_
-21.9. Link each deferral to GitHub issue placeholder `_TBD_` issue number. Model: Auto. Detail: [588-deferral-issue-links](/docs/proposals/mobile/_master-plan_/details/588-deferral-issue-links.md) — _TBD_
-21.10. Master plan appendix: deferrals table with rationale and revisit trigger. Model: Auto. Detail: [589-deferrals-appendix](/docs/proposals/mobile/_master-plan_/details/589-deferrals-appendix.md) — _TBD_
+21.1. Defer: Apple Watch standalone app (if Wear-only v1). Model: Auto. Detail: [580-defer-apple-watch](/docs/proposals/mobile/_master-plan_/details/580-defer-apple-watch.md) — done
+21.2. Defer: tvOS native app (Android TV first). Model: Auto. Detail: [581-defer-tvos](/docs/proposals/mobile/_master-plan_/details/581-defer-tvos.md) — done
+21.3. Defer: full management-web parity on mobile. Model: Auto. Detail: [582-defer-management-parity](/docs/proposals/mobile/_master-plan_/details/582-defer-management-parity.md) — done
+21.4. Defer: clip authoring / upload from mobile (create/edit clip screens). Model: Auto. Detail: [583-defer-clip-authoring](/docs/proposals/mobile/_master-plan_/details/583-defer-clip-authoring.md) — done
+21.5. Defer: social features beyond share links. Model: Auto. Detail: [584-defer-social](/docs/proposals/mobile/_master-plan_/details/584-defer-social.md) — done
+21.6. Defer: offline playlist sync conflict resolution advanced cases. Model: Auto. Detail: [585-defer-offline-sync-advanced](/docs/proposals/mobile/_master-plan_/details/585-defer-offline-sync-advanced.md) — done
+21.7. Defer: widget / Live Activities / Dynamic Island v1. Model: Auto. Detail: [586-defer-widgets](/docs/proposals/mobile/_master-plan_/details/586-defer-widgets.md) — done
+21.8. Defer: CarPlay video (audio-only in car v1). Model: Auto. Detail: [587-defer-carplay-video](/docs/proposals/mobile/_master-plan_/details/587-defer-carplay-video.md) — done
+21.9. Link each deferral to GitHub issue placeholder `_TBD_` issue number. Model: Auto. Detail: [588-deferral-issue-links](/docs/proposals/mobile/_master-plan_/details/588-deferral-issue-links.md) — done
+21.10. Master plan appendix: deferrals table with rationale and revisit trigger. Model: Auto. Detail: [589-deferrals-appendix](/docs/proposals/mobile/_master-plan_/details/589-deferrals-appendix.md) — done
 21.11. Defer: full-player / mini-player **integrated transcript** UI (sync highlight, scrubber
 coupling). Episode-detail transcript **tab** (9.4) remains the MVP sketch. Model: Auto. Detail:
 [598-defer-player-transcript-chrome](/docs/proposals/mobile/_master-plan_/details/598-defer-player-transcript-chrome.md)
@@ -755,36 +781,45 @@ lives in Track **9d.3**. Model: Auto. Detail:
 
 **Store safety:** Production submit uses human approval; same binary promoted from beta (step 22.2).
 
-22.1. Document branch → store channel mapping aligned with STAGING-MAIN-PROMOTION server flow. Model: Auto. Detail: [175-branch-store-channel-map](/docs/proposals/mobile/_master-plan_/details/175-branch-store-channel-map.md) — _TBD_
-22.2. Define release checklist: same binary tested in beta promoted to production submit. Model: Codex 5.3. Detail: [176-promote-tested-binary](/docs/proposals/mobile/_master-plan_/details/176-promote-tested-binary.md) — _TBD_
-22.3. Plan review latency buffer in release schedule (Apple/Google approval days). Model: Auto. Detail: [177-store-review-buffer](/docs/proposals/mobile/_master-plan_/details/177-store-review-buffer.md) — _TBD_
+**Publish hold (v1):** The release pipeline must not promote to alpha / internal / pre-beta tester tracks until the operator completes manual visual polish (Track 23). This gate precedes the normal beta→prod promotion flow. See **Ship bar** § Publish hold.
+
+22.1. Document branch → store channel mapping aligned with STAGING-MAIN-PROMOTION server flow. Model: Auto. Detail: [175-branch-store-channel-map](/docs/proposals/mobile/_master-plan_/details/175-branch-store-channel-map.md) — done
+22.2. Define release checklist: same binary tested in beta promoted to production submit. Model: Codex 5.3. Detail: [176-promote-tested-binary](/docs/proposals/mobile/_master-plan_/details/176-promote-tested-binary.md) — done
+22.3. Plan review latency buffer in release schedule (Apple/Google approval days). Model: Auto. Detail: [177-store-review-buffer](/docs/proposals/mobile/_master-plan_/details/177-store-review-buffer.md) — done
 22.4. Implement minimum-supported-client-version API signal for forced upgrade prompts. Model: Opus 4.8. Detail: [178-min-supported-version-api](/docs/proposals/mobile/_master-plan_/details/178-min-supported-version-api.md) — _TBD_
-22.5. Document API add-only discipline for mobile DTO compatibility. Model: Auto. Detail: [179-api-add-only-discipline](/docs/proposals/mobile/_master-plan_/details/179-api-add-only-discipline.md) — _TBD_
-22.6. Add mobile client version header on all API requests for server logging. Model: Codex 5.3. Detail: [180-client-version-header](/docs/proposals/mobile/_master-plan_/details/180-client-version-header.md) — _TBD_
-22.7. Define phased rollout strategy using store percentage rollout controls. Model: Codex 5.3. Detail: [181-phased-rollout-strategy](/docs/proposals/mobile/_master-plan_/details/181-phased-rollout-strategy.md) — _TBD_
-22.8. Document rollback procedure: submit previous build, cannot un-ship. Model: Auto. Detail: [182-store-rollback-procedure](/docs/proposals/mobile/_master-plan_/details/182-store-rollback-procedure.md) — _TBD_
-22.9. Align release notes generation with monorepo changelog or bump-version output. Model: Auto. Detail: [183-release-notes-generation](/docs/proposals/mobile/_master-plan_/details/183-release-notes-generation.md) — _TBD_
-22.10. Add post-release monitoring checklist (crash analytics, API error rates). Model: Codex 5.3. Detail: [184-post-release-monitoring](/docs/proposals/mobile/_master-plan_/details/184-post-release-monitoring.md) — _TBD_
-22.11. Schedule periodic dependency and SDK compliance updates (iOS/Android target SDK). Model: Codex 5.3. Detail: [185-sdk-compliance-updates](/docs/proposals/mobile/_master-plan_/details/185-sdk-compliance-updates.md) — _TBD_
-22.12. Document coexistence period: old-gen and next-gen apps in field simultaneously. Model: Auto. Detail: [186-old-new-app-coexistence](/docs/proposals/mobile/_master-plan_/details/186-old-new-app-coexistence.md) — _TBD_
+22.5. Document API add-only discipline for mobile DTO compatibility. Model: Auto. Detail: [179-api-add-only-discipline](/docs/proposals/mobile/_master-plan_/details/179-api-add-only-discipline.md) — done
+22.6. Add mobile client version header on all API requests for server logging. Model: Codex 5.3. Detail: [180-client-version-header](/docs/proposals/mobile/_master-plan_/details/180-client-version-header.md) — done
+22.7. Define phased rollout strategy using store percentage rollout controls. Model: Codex 5.3. Detail: [181-phased-rollout-strategy](/docs/proposals/mobile/_master-plan_/details/181-phased-rollout-strategy.md) — done
+22.8. Document rollback procedure: submit previous build, cannot un-ship. Model: Auto. Detail: [182-store-rollback-procedure](/docs/proposals/mobile/_master-plan_/details/182-store-rollback-procedure.md) — done
+22.9. Align release notes generation with monorepo changelog or bump-version output. Model: Auto. Detail: [183-release-notes-generation](/docs/proposals/mobile/_master-plan_/details/183-release-notes-generation.md) — done
+22.10. Add post-release monitoring checklist (crash analytics, API error rates). Model: Codex 5.3. Detail: [184-post-release-monitoring](/docs/proposals/mobile/_master-plan_/details/184-post-release-monitoring.md) — done
+22.11. Schedule periodic dependency and SDK compliance updates (iOS/Android target SDK). Model: Codex 5.3. Detail: [185-sdk-compliance-updates](/docs/proposals/mobile/_master-plan_/details/185-sdk-compliance-updates.md) — done
+22.12. Document coexistence period: old-gen and next-gen apps in field simultaneously. Model: Auto. Detail: [186-old-new-app-coexistence](/docs/proposals/mobile/_master-plan_/details/186-old-new-app-coexistence.md) — done
 
 ## Track 23 — Operator visual polish (after feature bulk)
 
-**Parallel group:** PG-13. **Operator-led.** Agents implement **only** from written operator briefs —
-do not invent final layouts during Tracks 0–22.
+**Parallel group:** PG-13. **Operator-led, manual.** The operator improves layout / styles / UX
+**by hand, screen by screen**. Agents implement **only** from written operator briefs and only when
+the operator explicitly asks — the 23.1 checklist and 23.2 apply-briefs steps below are **optional
+agent-assist**, not prerequisites. Agents do **not** invent final layouts during Tracks 0–22.
+
+**Publish hold:** No alpha / internal / pre-beta test-track publish until this manual polish is
+complete (see **Ship bar** § Publish hold, Track 4 store-safety, Track 22).
 
 23.1. Operator: screen-by-screen review checklist (home, podcast, episode, search, library,
 player, add-by-RSS, settings, …) capturing layout notes. Model: Auto. Detail:
 [595-operator-polish-checklist](/docs/proposals/mobile/_master-plan_/details/595-operator-polish-checklist.md)
-— _TBD_
+— planned
 23.2. Apply operator polish briefs screen-by-screen (agents follow notes; no freestyle redesign).
 Model: Codex 5.3. Detail:
 [596-operator-polish-apply-briefs](/docs/proposals/mobile/_master-plan_/details/596-operator-polish-apply-briefs.md)
-— _TBD_
-23.3. Optional list virtualization / density pass only if operator flags jank (FlashList or
-FlatList tuning). Model: Codex 5.3. Detail:
+— planned
+23.3. List virtualization: **(a)** required baseline audit + remediation — convert any long /
+unbounded `ScrollView` + `.map()` list to `FlatList` / `SectionList` (not jank-gated; can run
+independently of operator visual polish); **(b)** optional FlashList adoption / windowing _tuning_
+only if the operator flags jank. Model: Codex 5.3. Detail:
 [597-list-virtualization-polish](/docs/proposals/mobile/_master-plan_/details/597-list-virtualization-polish.md)
-— _TBD_
+— _TBD_ (baseline remediation tracked under `.llm/plans/completed/mobile-list-virtualization/`)
 
 ## Appendix A — Screen map
 
@@ -953,18 +988,18 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 172-ci-artifact-retention                   | 4.23       | 172-ci-artifact-retention                   | Codex 5.3 | done                                 |
 | 173-beta-tester-onboarding                  | 4.24       | 173-beta-tester-onboarding                  | Auto      | done                                 |
 | 174-prod-listing-convergence-gate           | 4.25       | 174-prod-listing-convergence-gate           | Opus 4.8  | done                                 |
-| 175-branch-store-channel-map                | 22.1       | 175-branch-store-channel-map                | Auto      | _TBD_                                |
-| 176-promote-tested-binary                   | 22.2       | 176-promote-tested-binary                   | Codex 5.3 | _TBD_                                |
-| 177-store-review-buffer                     | 22.3       | 177-store-review-buffer                     | Auto      | _TBD_                                |
+| 175-branch-store-channel-map                | 22.1       | 175-branch-store-channel-map                | Auto      | done                                 |
+| 176-promote-tested-binary                   | 22.2       | 176-promote-tested-binary                   | Codex 5.3 | done                                 |
+| 177-store-review-buffer                     | 22.3       | 177-store-review-buffer                     | Auto      | done                                 |
 | 178-min-supported-version-api               | 22.4       | 178-min-supported-version-api               | Opus 4.8  | _TBD_                                |
-| 179-api-add-only-discipline                 | 22.5       | 179-api-add-only-discipline                 | Auto      | _TBD_                                |
-| 180-client-version-header                   | 22.6       | 180-client-version-header                   | Codex 5.3 | _TBD_                                |
-| 181-phased-rollout-strategy                 | 22.7       | 181-phased-rollout-strategy                 | Codex 5.3 | _TBD_                                |
-| 182-store-rollback-procedure                | 22.8       | 182-store-rollback-procedure                | Auto      | _TBD_                                |
-| 183-release-notes-generation                | 22.9       | 183-release-notes-generation                | Auto      | _TBD_                                |
-| 184-post-release-monitoring                 | 22.10      | 184-post-release-monitoring                 | Codex 5.3 | _TBD_                                |
-| 185-sdk-compliance-updates                  | 22.11      | 185-sdk-compliance-updates                  | Codex 5.3 | _TBD_                                |
-| 186-old-new-app-coexistence                 | 22.12      | 186-old-new-app-coexistence                 | Auto      | _TBD_                                |
+| 179-api-add-only-discipline                 | 22.5       | 179-api-add-only-discipline                 | Auto      | done                                 |
+| 180-client-version-header                   | 22.6       | 180-client-version-header                   | Codex 5.3 | done                                 |
+| 181-phased-rollout-strategy                 | 22.7       | 181-phased-rollout-strategy                 | Codex 5.3 | done                                 |
+| 182-store-rollback-procedure                | 22.8       | 182-store-rollback-procedure                | Auto      | done                                 |
+| 183-release-notes-generation                | 22.9       | 183-release-notes-generation                | Auto      | done                                 |
+| 184-post-release-monitoring                 | 22.10      | 184-post-release-monitoring                 | Codex 5.3 | done                                 |
+| 185-sdk-compliance-updates                  | 22.11      | 185-sdk-compliance-updates                  | Codex 5.3 | done                                 |
+| 186-old-new-app-coexistence                 | 22.12      | 186-old-new-app-coexistence                 | Auto      | done                                 |
 | 200-secure-storage-dependency               | 6.1        | 200-secure-storage-dependency               | Codex 5.3 | done                                 |
 | 201-auth-store                              | 6.2        | 201-auth-store                              | Codex 5.3 | done                                 |
 | 202-mobile-token-login                      | 6.3        | 202-mobile-token-login                      | Codex 5.3 | done                                 |
@@ -1163,11 +1198,11 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 481-i18n-migrate-management                 | 17.12      | 481-i18n-migrate-management                 | Codex 5.3 | done                                 |
 | 482-i18n-mobile-catalog-import              | 17.13      | 482-i18n-mobile-catalog-import              | Codex 5.3 | done                                 |
 | 484-i18n-product-screen-localization        | 17.14      | 484-i18n-product-screen-localization        | Codex 5.3 | done                                 |
-| 510-device-matrix-doc                       | 18.1       | 510-device-matrix-doc                       | Auto      | _TBD_                                |
-| 511-tablet-home-grid                        | 18.2       | 511-tablet-home-grid                        | Codex 5.3 | _TBD_                                |
-| 512-tablet-split-detail                     | 18.3       | 512-tablet-split-detail                     | Codex 5.3 | _TBD_                                |
-| 513-tablet-player-layout                    | 18.4       | 513-tablet-player-layout                    | Codex 5.3 | _TBD_                                |
-| 514-e2e-tablet-screenshots                  | 18.5       | 514-e2e-tablet-screenshots                  | Codex 5.3 | _TBD_                                |
+| 510-device-matrix-doc                       | 18.1       | 510-device-matrix-doc                       | Auto      | done                                 |
+| 511-tablet-home-grid                        | 18.2       | 511-tablet-home-grid                        | Codex 5.3 | done                                 |
+| 512-tablet-split-detail                     | 18.3       | 512-tablet-split-detail                     | Codex 5.3 | done                                 |
+| 513-tablet-player-layout                    | 18.4       | 513-tablet-player-layout                    | Codex 5.3 | done                                 |
+| 514-e2e-tablet-screenshots                  | 18.5       | 514-e2e-tablet-screenshots                  | Codex 5.3 | done                                 |
 | 520-watch-scope-decision                    | 18.6       | 520-watch-scope-decision                    | Opus 4.8  | _TBD_                                |
 | 521-watch-remote-commands                   | 18.7       | 521-watch-remote-commands                   | Opus 4.8  | _TBD_                                |
 | 522-watch-now-playing-complication          | 18.8       | 522-watch-now-playing-complication          | Opus 4.8  | _TBD_                                |
@@ -1177,41 +1212,43 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 532-tv-full-player                          | 18.12      | 532-tv-full-player                          | Opus 4.8  | _TBD_                                |
 | 533-tv-auth-flow                            | 18.13      | 533-tv-auth-flow                            | Opus 4.8  | _TBD_                                |
 | 534-e2e-tv-browse-screenshot                | 18.14      | 534-e2e-tv-browse-screenshot                | Codex 5.3 | _TBD_                                |
-| 535-device-track-scope-matrix               | 18.15      | 535-device-track-scope-matrix               | Auto      | _TBD_                                |
+| 535-device-track-scope-matrix               | 18.15      | 535-device-track-scope-matrix               | Auto      | done                                 |
 | 536-ci-tablet-emulator-nightly              | 18.16      | 536-ci-tablet-emulator-nightly              | Codex 5.3 | _TBD_                                |
 | 537-store-form-factor-screenshots           | 18.17      | 537-store-form-factor-screenshots           | Auto      | _TBD_                                |
-| 560-iap-parity-matrix                       | 19.1       | 560-iap-parity-matrix                       | Opus 4.8  | _TBD_                                |
+| 560-iap-parity-matrix                       | 19.1       | 560-iap-parity-matrix                       | Opus 4.8  | done                                 |
 | 561-iap-sdk-integration                     | 19.2       | 561-iap-sdk-integration                     | Opus 4.8  | _TBD_                                |
 | 562-receipt-validation-api                  | 19.3       | 562-receipt-validation-api                  | Opus 4.8  | _TBD_                                |
-| 563-membership-gating-ui                    | 19.4       | 563-membership-gating-ui                    | Codex 5.3 | _TBD_                                |
+| 563-membership-gating-ui                    | 19.4       | 563-membership-gating-ui                    | Codex 5.3 | done                                 |
 | 564-restore-purchases                       | 19.5       | 564-restore-purchases                       | Opus 4.8  | _TBD_                                |
 | 565-v4v-lnurl-flow                          | 19.6       | 565-v4v-lnurl-flow                          | Opus 4.8  | _TBD_                                |
-| 566-iap-alpha-sandbox                       | 19.7       | 566-iap-alpha-sandbox                       | Auto      | _TBD_                                |
-| 567-e2e-membership-gate                     | 19.8       | 567-e2e-membership-gate                     | Codex 5.3 | _TBD_                                |
-| 570-foss-flavor-definition                  | 20.1       | 570-foss-flavor-definition                  | Opus 4.8  | _TBD_                                |
-| 571-foss-unifiedpush                        | 20.2       | 571-foss-unifiedpush                        | Opus 4.8  | _TBD_                                |
-| 572-foss-reproducibility-audit              | 20.3       | 572-foss-reproducibility-audit              | Codex 5.3 | _TBD_                                |
-| 573-fdroid-metadata-draft                   | 20.4       | 573-fdroid-metadata-draft                   | Codex 5.3 | _TBD_                                |
-| 574-foss-signing-policy                     | 20.5       | 574-foss-signing-policy                     | Auto      | _TBD_                                |
-| 575-foss-iap-unavailable                    | 20.6       | 575-foss-iap-unavailable                    | Auto      | _TBD_                                |
+| 566-iap-alpha-sandbox                       | 19.7       | 566-iap-alpha-sandbox                       | Auto      | done                                 |
+| 567-e2e-membership-gate                     | 19.8       | 567-e2e-membership-gate                     | Codex 5.3 | done                                 |
+| 568-mobile-membership-screen                | 19.9       | 568-mobile-membership-screen                | Opus 4.8  | done                                 |
+| 569-mobile-checkout-entry                   | 19.10      | 569-mobile-checkout-entry                   | Codex 5.3 | done                                 |
+| 570-foss-flavor-definition                  | 20.1       | 570-foss-flavor-definition                  | Opus 4.8  | done                                 |
+| 571-foss-unifiedpush                        | 20.2       | 571-foss-unifiedpush                        | Opus 4.8  | done                                 |
+| 572-foss-reproducibility-audit              | 20.3       | 572-foss-reproducibility-audit              | Codex 5.3 | done                                 |
+| 573-fdroid-metadata-draft                   | 20.4       | 573-fdroid-metadata-draft                   | Codex 5.3 | done                                 |
+| 574-foss-signing-policy                     | 20.5       | 574-foss-signing-policy                     | Auto      | done                                 |
+| 575-foss-iap-unavailable                    | 20.6       | 575-foss-iap-unavailable                    | Auto      | done                                 |
 | 576-fdroid-submission-operator              | 20.7       | 576-fdroid-submission-operator              | Auto      | _TBD_                                |
-| 580-defer-apple-watch                       | 21.1       | 580-defer-apple-watch                       | Auto      | _TBD_                                |
-| 581-defer-tvos                              | 21.2       | 581-defer-tvos                              | Auto      | _TBD_                                |
-| 582-defer-management-parity                 | 21.3       | 582-defer-management-parity                 | Auto      | _TBD_                                |
-| 583-defer-clip-authoring                    | 21.4       | 583-defer-clip-authoring                    | Auto      | _TBD_                                |
-| 584-defer-social                            | 21.5       | 584-defer-social                            | Auto      | _TBD_                                |
-| 585-defer-offline-sync-advanced             | 21.6       | 585-defer-offline-sync-advanced             | Auto      | _TBD_                                |
-| 586-defer-widgets                           | 21.7       | 586-defer-widgets                           | Auto      | _TBD_                                |
-| 587-defer-carplay-video                     | 21.8       | 587-defer-carplay-video                     | Auto      | _TBD_                                |
-| 588-deferral-issue-links                    | 21.9       | 588-deferral-issue-links                    | Auto      | _TBD_                                |
-| 589-deferrals-appendix                      | 21.10      | 589-deferrals-appendix                      | Auto      | _TBD_                                |
+| 580-defer-apple-watch                       | 21.1       | 580-defer-apple-watch                       | Auto      | done                                 |
+| 581-defer-tvos                              | 21.2       | 581-defer-tvos                              | Auto      | done                                 |
+| 582-defer-management-parity                 | 21.3       | 582-defer-management-parity                 | Auto      | done                                 |
+| 583-defer-clip-authoring                    | 21.4       | 583-defer-clip-authoring                    | Auto      | done                                 |
+| 584-defer-social                            | 21.5       | 584-defer-social                            | Auto      | done                                 |
+| 585-defer-offline-sync-advanced             | 21.6       | 585-defer-offline-sync-advanced             | Auto      | done                                 |
+| 586-defer-widgets                           | 21.7       | 586-defer-widgets                           | Auto      | done                                 |
+| 587-defer-carplay-video                     | 21.8       | 587-defer-carplay-video                     | Auto      | done                                 |
+| 588-deferral-issue-links                    | 21.9       | 588-deferral-issue-links                    | Auto      | done                                 |
+| 589-deferrals-appendix                      | 21.10      | 589-deferrals-appendix                      | Auto      | done                                 |
 | 590-create-playlist-screen                  | 9d.1       | 590-create-playlist-screen                  | Codex 5.3 | done                                 |
 | 591-edit-playlist-screen                    | 9d.2       | 591-edit-playlist-screen                    | Codex 5.3 | done                                 |
 | 592-reorder-playlist-items                  | 9d.3       | 592-reorder-playlist-items                  | Codex 5.3 | done                                 |
 | 593-add-to-playlist-more-sheet              | 9d.4       | 593-add-to-playlist-more-sheet              | Codex 5.3 | done                                 |
 | 594-stack-header-back-sketch                | 9d.5       | 594-stack-header-back-sketch                | Auto      | done                                 |
-| 595-operator-polish-checklist               | 23.1       | 595-operator-polish-checklist               | Auto      | _TBD_                                |
-| 596-operator-polish-apply-briefs            | 23.2       | 596-operator-polish-apply-briefs            | Codex 5.3 | _TBD_                                |
+| 595-operator-polish-checklist               | 23.1       | 595-operator-polish-checklist               | Auto      | planned                              |
+| 596-operator-polish-apply-briefs            | 23.2       | 596-operator-polish-apply-briefs            | Codex 5.3 | planned                              |
 | 597-list-virtualization-polish              | 23.3       | 597-list-virtualization-polish              | Codex 5.3 | _TBD_                                |
 | 598-defer-player-transcript-chrome          | 21.11      | 598-defer-player-transcript-chrome          | Auto      | _TBD_                                |
 | 599-defer-pixel-dnd-polish                  | 21.12      | 599-defer-pixel-dnd-polish                  | Auto      | _TBD_                                |

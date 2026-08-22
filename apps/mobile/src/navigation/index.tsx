@@ -13,6 +13,8 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
+import { breakpoints } from '@podverse/design-tokens';
+
 import { useAuth } from '../auth/AuthProvider';
 import { MiniPlayer } from '../components/player/MiniPlayer';
 import { getMobileConfig } from '../config';
@@ -32,6 +34,7 @@ import { LibraryQueueScreen } from '../screens/library/LibraryQueueScreen';
 import { LibrarySubscriptionsScreen } from '../screens/library/LibrarySubscriptionsScreen';
 import { PlaylistDetailScreen } from '../screens/library/PlaylistDetailScreen';
 import { PlaylistFormScreen } from '../screens/library/PlaylistFormScreen';
+import { MoreMembershipScreen } from '../screens/more/MoreMembershipScreen';
 import { MoreOpmlScreen } from '../screens/more/MoreOpmlScreen';
 import { MoreSettingsScreen } from '../screens/more/MoreSettingsScreen';
 import { FullPlayerScreen } from '../screens/player/FullPlayerScreen';
@@ -42,6 +45,7 @@ import { AddByRssFeedListScreen } from '../screens/rss/AddByRssFeedListScreen';
 import { AddByRssRootScreen } from '../screens/rss/AddByRssRootScreen';
 import { PodcastIndexFeedPreviewScreen } from '../screens/search/PodcastIndexFeedPreviewScreen';
 import { SearchScreen } from '../screens/search/SearchScreen';
+import { V4vInfoScreen } from '../screens/v4v/V4vInfoScreen';
 import { useTheme } from '../theme/useTheme';
 import { mapIncomingPathToScopedPath, mapScopedPathToFlatPath } from './deepLinking';
 
@@ -210,24 +214,30 @@ export const MORE_STACK_ROUTES = {
 export const ROOT_STACK_ROUTES = {
   FullPlayer: 'FullPlayer',
   MainTabs: 'MainTabs',
+  V4vInfo: 'V4vInfo',
 } as const;
 
-// Tablet breakpoint for adaptive tab rail in Track 7.17.
-export const MOBILE_TABLET_NAV_MIN_WIDTH = 900;
+// Tablet breakpoint for adaptive tab rail (Track 7.17) — same `lg` token as useResponsive.
+export const MOBILE_TABLET_NAV_MIN_WIDTH = breakpoints.lg;
 
 const mobileNavigationScreens = {
   FullPlayer: 'player',
+  V4vInfo: 'v4v',
   MainTabs: {
     screens: {
       Home: {
+        // Home content routes carry the `home/` prefix so they match the scoped paths produced by
+        // `mapIncomingPathToScopedPath` (and consumed back by `mapScopedPathToFlatPath`). Without
+        // it, `getStateFromPath('/home/podcast/:id')` returns undefined and deep links fall back
+        // to Home. HomeRoot stays the bare `home` segment.
         screens: {
-          AlbumDetail: 'album/:albumId',
-          ArtistDetail: 'artist/:artistId',
-          ClipDetail: 'clip/:clipId',
-          EpisodeDetail: 'episode/:episodeId',
+          AlbumDetail: 'home/album/:albumId',
+          ArtistDetail: 'home/artist/:artistId',
+          ClipDetail: 'home/clip/:clipId',
+          EpisodeDetail: 'home/episode/:episodeId',
           HomeRoot: 'home',
-          PodcastDetail: 'podcast/:podcastId',
-          TrackDetail: 'track/:trackId',
+          PodcastDetail: 'home/podcast/:podcastId',
+          TrackDetail: 'home/track/:trackId',
         },
       },
       More: {
@@ -372,7 +382,10 @@ export type MoreStackParamList = {
 
 type RootStackParamList = {
   FullPlayer: undefined;
-  MainTabs: undefined;
+  // Nested params so the global membership gate/banner (mounted above the navigator) can deep-navigate
+  // to More ▸ Membership via `navigateToMembershipScreen()`.
+  MainTabs: NavigatorScreenParams<MobileTabParamList> | undefined;
+  V4vInfo: undefined;
 };
 
 /** Bottom-tab route names, used for type-safe cross-tab navigation (e.g. Home → RSS). */
@@ -383,6 +396,21 @@ export type MobileTabParamList = {
   RSS: undefined;
   More: NavigatorScreenParams<MoreStackParamList> | undefined;
 };
+
+/**
+ * Navigate to More ▸ Membership from anywhere — used by the app-wide membership gate modal and the
+ * expired banner, which live above the navigator (so they cannot use `useNavigation`). No-op until
+ * the navigation container is ready.
+ */
+export function navigateToMembershipScreen(): void {
+  if (!rootNavigationRef.isReady()) {
+    return;
+  }
+  rootNavigationRef.navigate(ROOT_STACK_ROUTES.MainTabs, {
+    screen: 'More',
+    params: { screen: MORE_STACK_ROUTES.MoreMembership },
+  });
+}
 
 function HomeStackNavigator() {
   const { t } = useTranslation();
@@ -799,10 +827,6 @@ function MoreAboutScreen() {
   return <PlaceholderScreen testID="more-about-screen" title="About Placeholder" />;
 }
 
-function MoreMembershipScreen() {
-  return <PlaceholderScreen testID="more-membership-screen" title="Membership Placeholder" />;
-}
-
 type TabScaffoldProps = {
   onOpenFullPlayer: () => void;
   onRequestLogin: () => void;
@@ -827,7 +851,11 @@ function TabScaffold({
         headerShown: false,
         tabBarActiveTintColor: themeStyles.buttonPrimary.color,
         tabBarInactiveTintColor: themeStyles.textSecondary.color,
-        tabBarLabelPosition: isTabletLayout ? 'below-icon' : 'beside-icon',
+        // `below-icon` is only valid for top/bottom bars under the default `uikit` variant; the
+        // tablet rail uses `tabBarPosition: 'left'`, so it must use `beside-icon` (label beside the
+        // icon, iPad-sidebar style) or `<BottomTabBar>` throws a render error. Phone keeps its
+        // existing `beside-icon` bottom bar, so both layouts share this value.
+        tabBarLabelPosition: 'beside-icon',
         tabBarPosition: isTabletLayout ? 'left' : 'bottom',
         tabBarStyle: {
           backgroundColor: tokens.background.secondary,
@@ -944,9 +972,17 @@ export function MobileTabNavigator({
                 }
                 props.navigation.navigate(ROOT_STACK_ROUTES.MainTabs);
               }}
+              onOpenV4v={() => {
+                props.navigation.navigate(ROOT_STACK_ROUTES.V4vInfo);
+              }}
             />
           )}
         </RootStack.Screen>
+        <RootStack.Screen
+          component={V4vInfoScreen}
+          name={ROOT_STACK_ROUTES.V4vInfo}
+          options={{ presentation: 'modal' }}
+        />
       </RootStack.Navigator>
     </NavigationContainer>
   );

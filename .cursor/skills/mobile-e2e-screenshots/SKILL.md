@@ -25,7 +25,7 @@ Each run writes a **hub**, a compact **`failures.json`**, plus **slot summaries*
     flows/<slug>/failure.png # copy of primary ❌ shot when present
     maestro.html             # raw Maestro HTML (optional)
   android-phone/...
-  ios-tablet/...             # reserved; create when tablet E2E devices exist
+  ios-tablet/...             # when `npm run mobile:e2e:test -- tablet` runs
   android-tablet/...
 ```
 

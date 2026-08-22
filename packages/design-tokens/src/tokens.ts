@@ -84,6 +84,13 @@ type RadiiScaleTokens = {
   round: number;
 };
 
+/** Shared layout breakpoints (dp). Not theme-specific — used by mobile `useResponsive`. */
+export type Breakpoints = {
+  sm: number;
+  md: number;
+  lg: number;
+};
+
 export type ThemeTokens = {
   background: BackgroundTokens;
   text: TextTokens;
@@ -111,6 +118,13 @@ const RADII_SCALE: RadiiScaleTokens = {
   md: 10,
   artwork: 0,
   round: 1600,
+};
+
+/** Layout breakpoints in density-independent pixels (dp). */
+export const breakpoints: Breakpoints = {
+  sm: 0,
+  md: 600,
+  lg: 900,
 };
 
 const THEME_TOKENS_BY_THEME: Record<UITheme, Omit<ThemeTokens, 'spacing' | 'radii'>> = {

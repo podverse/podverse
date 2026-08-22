@@ -1,0 +1,20 @@
+appId: com.podverse.app.next
+---
+# iOS shows a native "Open in "Podverse Next"?" confirmation when Maestro `openLink` opens the
+# app's OWN custom scheme (podverse-next://) via `simctl openurl`. Android delivers the intent to
+# the running app with no prompt, so this helper is a no-op there. While the alert is up it occludes
+# Maestro's accessibility hierarchy (so a later `assertVisible` for app testIDs — or a relaunch's
+# "Development servers" wait — times out even though the app is fine underneath). Confirm it so the
+# URL is delivered to the running app and routing proceeds.
+#
+# Optional + guarded: the wait is a short optional window so platforms/paths with no prompt fall
+# straight through; the tap only fires when the button actually rendered.
+- extendedWaitUntil:
+    visible: "Open"
+    timeout: ${TIMEOUT_FAST}
+    optional: true
+- runFlow:
+    when:
+      visible: "Open"
+    commands:
+      - tapOn: "Open"

@@ -17,6 +17,7 @@ import { useModals } from '../../../../../contexts/Modals';
 import { useQueues } from '../../../../../contexts/Queue';
 import { getApiRequestService } from '../../../../../factories/apiRequestService';
 import { usePlayAddByRSS } from '../../../../../hooks/usePlayAddByRSS';
+import { useQueueAddWithGate } from '../../../../../hooks/useQueueAddWithGate';
 import { getAddByRSSItemPath } from '../../../../../utils/addByRSS/itemPath';
 import type {
   AddByRSSItemIndexItem,
@@ -61,6 +62,7 @@ export const AddByRSSTrackRow: React.FC<AddByRSSTrackRowProps> = ({
   const { queues } = useQueues();
   const playAddByRSS = usePlayAddByRSS();
   const apiRequestService = getApiRequestService();
+  const { runQueueAdd } = useQueueAddWithGate();
   const title = bundle.item.title ?? tMedia('music.track_image');
   const description = bundle.description?.value
     ? stripAndDecodeHtml(bundle.description.value)
@@ -84,10 +86,11 @@ export const AddByRSSTrackRow: React.FC<AddByRSSTrackRowProps> = ({
   const addToQueueNext = () => {
     if (!queue || !indexItem) return;
     const add_by_rss_resource_data = buildAddByRSSResourceData(indexItem);
-    showToastPromise(
-      apiRequestService.reqQueueResourceItemAddByRSSAddNext(queue.id_text, {
-        add_by_rss_resource_data,
-      }),
+    void runQueueAdd(
+      () =>
+        apiRequestService.reqQueueResourceItemAddByRSSAddNext(queue.id_text, {
+          add_by_rss_resource_data,
+        }),
       {
         success: tFeatures('queue.added_to_queue'),
         error: tFeatures('queue.add_error'),
@@ -98,10 +101,11 @@ export const AddByRSSTrackRow: React.FC<AddByRSSTrackRowProps> = ({
   const addToQueueLast = () => {
     if (!queue || !indexItem) return;
     const add_by_rss_resource_data = buildAddByRSSResourceData(indexItem);
-    showToastPromise(
-      apiRequestService.reqQueueResourceItemAddByRSSAddLast(queue.id_text, {
-        add_by_rss_resource_data,
-      }),
+    void runQueueAdd(
+      () =>
+        apiRequestService.reqQueueResourceItemAddByRSSAddLast(queue.id_text, {
+          add_by_rss_resource_data,
+        }),
       {
         success: tFeatures('queue.added_to_queue'),
         error: tFeatures('queue.add_error'),

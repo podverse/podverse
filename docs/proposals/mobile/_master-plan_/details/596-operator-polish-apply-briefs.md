@@ -2,7 +2,7 @@
 
 **Master step:** 23.2
 **Model (author + implement):** Codex 5.3
-**Status:** draft
+**Status:** ready
 
 ## Scope
 

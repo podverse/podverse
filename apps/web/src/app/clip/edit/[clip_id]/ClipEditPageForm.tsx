@@ -9,6 +9,7 @@ import { hhmmssToSecondsNumeric } from '@podverse/helpers';
 import { ClipForm } from '../../../../components/Clip/ClipForm';
 import { useAutoQueue } from '../../../../contexts/AutoQueue';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
+import { useMembershipGate } from '../../../../hooks/useMembershipGate';
 import { useClipEditPageContext } from './ClipEditPageContext';
 
 type ClipEditPageFormProps = {
@@ -17,6 +18,7 @@ type ClipEditPageFormProps = {
 
 export const ClipEditPageForm: React.FC<ClipEditPageFormProps> = ({ ssrClip }) => {
   const router = useRouter();
+  const { tryHandleMembershipGateError } = useMembershipGate();
   const {
     sharableStatus,
     setSharableStatus,
@@ -52,27 +54,33 @@ export const ClipEditPageForm: React.FC<ClipEditPageFormProps> = ({ ssrClip }) =
     const finalStartTime = hhmmssToSecondsNumeric(startTimeString);
     const finalEndTime = endTimeString ? hhmmssToSecondsNumeric(endTimeString) : null;
 
-    const clip = await getApiRequestService().reqClipUpdate(ssrClip.id_text, {
-      item_id_text: ssrClip.item.id_text,
-      sharable_status_id: finalSharableStatusId,
-      title: finalTitle,
-      description: '',
-      start_time: finalStartTime,
-      end_time: finalEndTime,
-    });
+    try {
+      const clip = await getApiRequestService().reqClipUpdate(ssrClip.id_text, {
+        item_id_text: ssrClip.item.id_text,
+        sharable_status_id: finalSharableStatusId,
+        title: finalTitle,
+        description: '',
+        start_time: finalStartTime,
+        end_time: finalEndTime,
+      });
 
-    setIsUpdating(false);
+      setAutoQueueConfig({
+        playlist_id_text: autoQueueConfig.playlist_id_text,
+        disabled: false,
+        random: autoQueueConfig.random,
+        repeat: autoQueueConfig.repeat,
+        nextPage: autoQueueConfig.nextPage,
+        shuffleHash: autoQueueConfig.shuffleHash,
+      });
 
-    setAutoQueueConfig({
-      playlist_id_text: autoQueueConfig.playlist_id_text,
-      disabled: false,
-      random: autoQueueConfig.random,
-      repeat: autoQueueConfig.repeat,
-      nextPage: autoQueueConfig.nextPage,
-      shuffleHash: autoQueueConfig.shuffleHash,
-    });
-
-    router.push(`/clip/${clip.id_text}`);
+      router.push(`/clip/${clip.id_text}`);
+    } catch (error) {
+      if (!tryHandleMembershipGateError(error)) {
+        throw error;
+      }
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const channel = ssrClip.item.channel;

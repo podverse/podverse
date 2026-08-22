@@ -9,6 +9,7 @@ import { Button } from '@podverse/ui';
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
 import { getApiRequestService } from '../../../factories/apiRequestService';
+import { useMembershipGate } from '../../../hooks/useMembershipGate';
 
 import styles from '../../../styles/components/Common/Media/Header/SubscribeButton.module.scss';
 
@@ -25,6 +26,7 @@ export const SubscribeButton: React.FC<SubscribeButtonProps> = ({ entity, kind, 
   const tMisc = useTranslations('misc');
   const { loggedInAccount, setLoggedInAccount } = useAccount();
   const { setModalLoginRequired } = useModals();
+  const { tryHandleMembershipGateError } = useMembershipGate();
 
   if (kind === 'podcast' || kind === 'artist' || kind === 'album') {
     const channel = entity as DTOChannel;
@@ -38,16 +40,22 @@ export const SubscribeButton: React.FC<SubscribeButtonProps> = ({ entity, kind, 
         return;
       }
 
-      if (isSubscribed) {
-        const updatedAccount = await apiRequestService.reqAccountUnfollowChannel({
-          channel_id_text: channel.id_text,
-        });
-        await setLoggedInAccount(updatedAccount);
-      } else {
-        const updatedAccount = await apiRequestService.reqAccountFollowChannel({
-          channel_id_text: channel.id_text,
-        });
-        await setLoggedInAccount(updatedAccount);
+      try {
+        if (isSubscribed) {
+          const updatedAccount = await apiRequestService.reqAccountUnfollowChannel({
+            channel_id_text: channel.id_text,
+          });
+          await setLoggedInAccount(updatedAccount);
+        } else {
+          const updatedAccount = await apiRequestService.reqAccountFollowChannel({
+            channel_id_text: channel.id_text,
+          });
+          await setLoggedInAccount(updatedAccount);
+        }
+      } catch (error) {
+        if (!tryHandleMembershipGateError(error)) {
+          throw error;
+        }
       }
     };
 
@@ -70,16 +78,22 @@ export const SubscribeButton: React.FC<SubscribeButtonProps> = ({ entity, kind, 
         return;
       }
 
-      if (isSubscribedPlaylist) {
-        const updatedAccount = await apiRequestService.reqAccountUnfollowPlaylist({
-          playlist_id_text: playlist.id_text,
-        });
-        await setLoggedInAccount(updatedAccount);
-      } else {
-        const updatedAccount = await apiRequestService.reqAccountFollowPlaylist({
-          playlist_id_text: playlist.id_text,
-        });
-        await setLoggedInAccount(updatedAccount);
+      try {
+        if (isSubscribedPlaylist) {
+          const updatedAccount = await apiRequestService.reqAccountUnfollowPlaylist({
+            playlist_id_text: playlist.id_text,
+          });
+          await setLoggedInAccount(updatedAccount);
+        } else {
+          const updatedAccount = await apiRequestService.reqAccountFollowPlaylist({
+            playlist_id_text: playlist.id_text,
+          });
+          await setLoggedInAccount(updatedAccount);
+        }
+      } catch (error) {
+        if (!tryHandleMembershipGateError(error)) {
+          throw error;
+        }
       }
     };
 
@@ -110,16 +124,22 @@ export const SubscribeButton: React.FC<SubscribeButtonProps> = ({ entity, kind, 
         return;
       }
 
-      if (isFollowingAccount) {
-        const updatedAccount = await apiRequestService.reqAccountUnfollowAccount({
-          following_account_id_text: account.id_text,
-        });
-        await setLoggedInAccount(updatedAccount);
-      } else {
-        const updatedAccount = await apiRequestService.reqAccountFollowAccount({
-          following_account_id_text: account.id_text,
-        });
-        await setLoggedInAccount(updatedAccount);
+      try {
+        if (isFollowingAccount) {
+          const updatedAccount = await apiRequestService.reqAccountUnfollowAccount({
+            following_account_id_text: account.id_text,
+          });
+          await setLoggedInAccount(updatedAccount);
+        } else {
+          const updatedAccount = await apiRequestService.reqAccountFollowAccount({
+            following_account_id_text: account.id_text,
+          });
+          await setLoggedInAccount(updatedAccount);
+        }
+      } catch (error) {
+        if (!tryHandleMembershipGateError(error)) {
+          throw error;
+        }
       }
     };
 

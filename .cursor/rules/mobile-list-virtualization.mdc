@@ -1,0 +1,31 @@
+# Mobile list virtualization baseline
+
+For files under `apps/mobile/src/**/*.tsx`:
+
+## Baseline
+
+- User-data-driven / potentially unbounded lists (for example subscriptions, playlist resources,
+  episode lists, search results, queue rows) must render with `FlatList` or `SectionList`.
+- Do not render those lists with `ScrollView` + `.map()`.
+
+## Scroll ownership
+
+- The virtualized list owns scroll.
+- Put headings, filters, and header cards into `ListHeaderComponent`/`ListFooterComponent`.
+- Do not nest `FlatList`/`SectionList` inside `ScrollView` (including `MobileScreenContainer`).
+
+## Grid rules
+
+- Use `useResponsive().columns` for `numColumns` when the screen is grid-capable.
+- Guard `columnWrapperStyle` for `numColumns > 1`.
+- Change list `key` when column count changes (for example `key={`cols-${columns}`}`) so RN can remount safely.
+
+## Exceptions
+
+- Small/fixed lists (chips, short settings groups, bounded control panels) may stay simple `.map()`.
+- Functional-sketch reorder paths may remain non-virtualized unless requested otherwise.
+
+## Reference
+
+- See `apps/mobile/src/screens/home/HomeScreen.tsx` for the canonical pattern.
+- Proposal detail: `docs/proposals/mobile/_master-plan_/details/597-list-virtualization-polish.md`.

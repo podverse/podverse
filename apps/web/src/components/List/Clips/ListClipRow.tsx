@@ -20,6 +20,7 @@ import { useModals } from '../../../contexts/Modals';
 import { useQueues } from '../../../contexts/Queue';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
+import { useQueueAddWithGate } from '../../../hooks/useQueueAddWithGate';
 import { playbackTargetFromStandardLoad } from '../../../lib/playback';
 import { ItemRowMoreActions } from '../../Media/ItemRowMoreActions';
 import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
@@ -60,6 +61,7 @@ export const ListClipRow: React.FC<Props> = ({
   likeRow,
 }) => {
   const apiRequestService = getApiRequestService();
+  const { runQueueAdd } = useQueueAddWithGate();
   const url = `${ROUTES.CLIP}/${clip.id_text}`;
 
   channel = clip.item?.channel || item?.channel || channel || null;
@@ -146,8 +148,8 @@ export const ListClipRow: React.FC<Props> = ({
     if (channel) {
       const queue = getQueueForMedium(queues, channel.medium_id);
       if (queue) {
-        showToastPromise(
-          apiRequestService.reqQueueResourceClipAddNext(queue.id_text, clip.id_text),
+        void runQueueAdd(
+          () => apiRequestService.reqQueueResourceClipAddNext(queue.id_text, clip.id_text),
           {
             success: tFeatures('queue.added_to_queue'),
             error: tFeatures('queue.add_error'),
@@ -169,8 +171,8 @@ export const ListClipRow: React.FC<Props> = ({
     if (channel) {
       const queue = getQueueForMedium(queues, channel.medium_id);
       if (queue) {
-        showToastPromise(
-          apiRequestService.reqQueueResourceClipAddLast(queue.id_text, clip.id_text),
+        void runQueueAdd(
+          () => apiRequestService.reqQueueResourceClipAddLast(queue.id_text, clip.id_text),
           {
             success: tFeatures('queue.added_to_queue'),
             error: tFeatures('queue.add_error'),

@@ -1,13 +1,15 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { Linking } from 'react-native';
+import { Linking, StyleSheet, View } from 'react-native';
 
 import { AuthPromptProvider, AuthProvider, useAuth } from './src/auth';
+import { MembershipExpiredBanner } from './src/components/feedback/MembershipExpiredBanner';
 import { AutoQueueProvider } from './src/contexts/AutoQueueProvider';
 import { QueuesProvider } from './src/contexts/QueuesProvider';
 import { initializeDatabase } from './src/data/db';
 import { initializeI18n } from './src/i18n';
-import { MobileTabNavigator } from './src/navigation';
+import { MembershipGateProvider } from './src/membership/MembershipGateProvider';
+import { MobileTabNavigator, navigateToMembershipScreen } from './src/navigation';
 import { isAuthGatedDeepLink } from './src/navigation/deepLinking';
 import { PlaybackProvider } from './src/playback';
 import {
@@ -154,23 +156,34 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
             setAuthMode('signup');
           }}
         >
-          <MobileTabNavigator
-            onConsumePendingDeepLink={onConsumePendingDeepLink}
-            pendingDeepLinkUrl={pendingDeepLinkUrl}
-            onRequestLogin={() => {
-              setAuthMode('login');
-            }}
-            onRequestLogout={async () => {
-              await logout();
-              setAuthMode('anonymous');
-            }}
-            onRequestSignUp={() => {
-              setAuthMode('signup');
-            }}
-          />
+          <MembershipGateProvider onNavigateToMembership={navigateToMembershipScreen}>
+            <View style={styles.appRoot}>
+              <MembershipExpiredBanner onRenew={navigateToMembershipScreen} />
+              <MobileTabNavigator
+                onConsumePendingDeepLink={onConsumePendingDeepLink}
+                pendingDeepLinkUrl={pendingDeepLinkUrl}
+                onRequestLogin={() => {
+                  setAuthMode('login');
+                }}
+                onRequestLogout={async () => {
+                  await logout();
+                  setAuthMode('anonymous');
+                }}
+                onRequestSignUp={() => {
+                  setAuthMode('signup');
+                }}
+              />
+            </View>
+          </MembershipGateProvider>
         </AuthPromptProvider>
       )}
       <StatusBar style={statusBarStyle} />
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  appRoot: {
+    flex: 1,
+  },
+});

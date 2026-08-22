@@ -169,15 +169,27 @@ npm run mobile:e2e:test -- api-health
 # or: npm run mobile:e2e:test -- push
 # or: npm run mobile:e2e:test -- tab-switch-playback
 # or: npm run mobile:e2e:test -- queue-add
+# or: npm run mobile:e2e:test -- membership-gate
 ```
 
-Playback flows (`play-mini-player`, `auto-queue-advance`) additionally need **Mobile E2E
+The **`membership-gate`** flow needs the API only (no `:2111`). It logs in as the seeded **Trial**
+`e2e-user`, taps Podcast Index directory **Add** (`unparsedfixture`), and asserts the real
+`membership.feature_not_available_for_account_type` **403** surfaces the premium gate modal →
+**Renew** → Membership screen (and the logged-out Membership screen shows the **Sign Up** CTA).
+
+Playback flows (`play-mini-player`, `auto-queue-advance`, `v4v`) additionally need **Mobile E2E
 test-assets** (`npm run mobile:e2e:test-assets` on `:2111`) leave-running for real media:
 
 ```bash
 npm run mobile:e2e:test -- play-mini-player
 # or: npm run mobile:e2e:test -- auto-queue-advance
+# or: npm run mobile:e2e:test -- v4v
 ```
+
+The **`v4v`** flow plays a seeded episode to reach the full player, then taps the Value-for-Value
+button and asserts the placeholder screen. The V4V button is **hidden by default** (store policy,
+detail 359); `mobile:dev:e2e` sets `EXPO_PUBLIC_MOBILE_V4V_ENABLED=1` so the button renders for E2E.
+After changing that flag you must **reload/reinstall** the app so Metro rebundles the new value.
 
 Optional convenience: instead of leave-running **Mobile E2E API**, start the API in the background
 from **Mobile**, then health-check:
@@ -211,8 +223,57 @@ open .artifacts/mobile-e2e-reports/latest/android-phone/index.html
 
 `failures.json` is the compact fail index (best starting point when debugging). Slot pages list
 flows fails-first and link into `flows/<slug>/index.html` (error + screenshots). Hub cards open
-slot summaries in a new tab. Tablet slots (`ios-tablet`, `android-tablet`) appear when those
-devices are wired into the matrix later.
+slot summaries in a new tab. Tablet slots (`ios-tablet`, `android-tablet`) appear when you run
+the opt-in tablet flow (see [Tablet screenshots](#tablet-screenshots-opt-in) below).
+
+## Tablet screenshots (opt-in)
+
+Track 18.5 — verifies multi-column Home and podcast split detail on tablet viewports. **Not** part
+of `mobile:e2e:test:all` (phone matrix stays unchanged). Uses dedicated E2E tablet devices:
+
+| Slot           | Device                      |
+| -------------- | --------------------------- |
+| iOS tablet     | `iPad Pro 13-inch (M4) E2E` |
+| Android tablet | `Pixel_Tablet_API_33_e2e`   |
+
+**Mobile Metro** (leave running, API-backed):
+
+```bash
+npm run mobile:dev:e2e
+```
+
+**Mobile E2E API** (leave running):
+
+```bash
+npm run mobile:e2e:api
+```
+
+**Mobile E2E test-assets** (leave running — tablet now opens real playback in full-player):
+
+```bash
+npm run mobile:e2e:test-assets
+```
+
+**Mobile iOS** / **Mobile Android** (install on tablet slots; exit when done):
+
+```bash
+npm run mobile:e2e:ios:tablet
+npm run mobile:e2e:android:tablet
+```
+
+**Mobile Maestro** (exit when done):
+
+```bash
+npm run mobile:e2e:test -- tablet
+```
+
+Then open:
+
+```bash
+open .artifacts/mobile-e2e-reports/latest/failures.json
+open .artifacts/mobile-e2e-reports/latest/ios-tablet/index.html
+open .artifacts/mobile-e2e-reports/latest/android-tablet/index.html
+```
 
 ## If something fails
 
@@ -221,6 +282,8 @@ devices are wired into the matrix later.
 | Metro not listening on 8081                                                                | **Mobile Metro**: `npm run mobile:dev` (UI-only) or `npm run mobile:dev:e2e` (API-backed / full suite)                                                                                                                                              |
 | App not installed on E2E iOS                                                               | **Mobile iOS**: `npm run mobile:e2e:ios`                                                                                                                                                                                                            |
 | App not installed on E2E Android                                                           | **Mobile Android**: `npm run mobile:e2e:android`                                                                                                                                                                                                    |
+| App not installed on E2E iOS / Android tablet                                              | **Mobile iOS** / **Mobile Android**: `npm run mobile:e2e:ios:tablet` / `npm run mobile:e2e:android:tablet`                                                                                                                                          |
+| `podcast-detail-split` missing on tablet flow                                              | Flow sets landscape; ensure tablet device is wide enough (`iPad Pro 13-inch (M4) E2E` / `Pixel_Tablet_API_33_e2e`). Re-run `ensure-devices.sh e2e-tablet`                                                                                           |
 | API-backed flow cannot reach API (`:4230`)                                                 | **Mobile E2E API**: `npm run mobile:e2e:api`; then in **Mobile** `npm run mobile:e2e:api:health`                                                                                                                                                    |
 | Runner exits: “Mobile E2E API … is stale (no fixtures)”                                    | API was started before fixture code. **Mobile E2E API**: stop and `npm run mobile:e2e:api` (rebuilds; health must show `fixturesEnabled: true`)                                                                                                     |
 | Runner exits: playback flows need tools/test-assets on :2111                               | **Mobile E2E test-assets**: `npm run mobile:e2e:test-assets`; health: `npm run mobile:e2e:test-assets:health`                                                                                                                                       |

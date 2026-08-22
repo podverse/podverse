@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 
-import { AccountMembershipEnum } from '@podverse/helpers';
+import { deriveMembershipState } from '@podverse/helpers';
 
 import { ROUTES } from '../../constants/routes';
 import { useAccount } from '../../contexts/Account';
@@ -31,8 +31,8 @@ export function MembershipExpirationToast() {
       return;
     }
 
-    const accountMembershipStatus = loggedInAccount?.account_membership_status;
-    if (!accountMembershipStatus) {
+    const membership = deriveMembershipState(loggedInAccount);
+    if (!membership.expiresAt) {
       if (toastIdRef.current) {
         dismissToast(toastIdRef.current);
         toastIdRef.current = null;
@@ -40,22 +40,12 @@ export function MembershipExpirationToast() {
       return;
     }
 
-    const membershipExpiresAt = accountMembershipStatus.membership_expires_at;
-    if (!membershipExpiresAt) {
-      if (toastIdRef.current) {
-        dismissToast(toastIdRef.current);
-        toastIdRef.current = null;
-      }
-      return;
-    }
+    const isFreeTrial = membership.tier === 'trial';
+    const autoRenew = loggedInAccount.account_membership_status?.auto_renew || false;
 
-    const membershipId = accountMembershipStatus.account_membership_id;
-    const isFreeTrial = membershipId === AccountMembershipEnum.Trial;
-    const autoRenew = accountMembershipStatus.auto_renew || false;
-
-    const expirationDate = new Date(membershipExpiresAt);
+    const expirationDate = new Date(membership.expiresAt);
     const now = new Date();
-    const isExpired = expirationDate.getTime() < now.getTime();
+    const isExpired = membership.isExpired;
     const daysUntilExpiration = Math.ceil(
       (expirationDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
     );

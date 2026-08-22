@@ -32,13 +32,13 @@
     "@podverse/parser": "*",
     "module-alias": "^2.3.3",
     "rhea": "^3.0.4",
-    "ws": "^8.21.1"
+    "ws": "^8.21.3"
   },
   "devDependencies": {
     "@types/module-alias": "^2.0.4",
     "@types/ws": "^8.18.1",
     "tsc-alias": "^1.8.16",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   },
   "type": "module"
 }

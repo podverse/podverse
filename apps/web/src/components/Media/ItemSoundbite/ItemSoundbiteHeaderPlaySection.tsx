@@ -19,6 +19,7 @@ import { useModals } from '../../../contexts/Modals';
 import { useQueues } from '../../../contexts/Queue';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
+import { useQueueAddWithGate } from '../../../hooks/useQueueAddWithGate';
 import { playbackTargetFromStandardLoad } from '../../../lib/playback';
 import { downloadEpisodeWithModal } from '../../../utils/downloadModal/downloadEpisodeWithModal';
 import { downloadAndSaveFile } from '../../../utils/fileDownloader';
@@ -42,6 +43,7 @@ export const ItemSoundbiteHeaderPlaySection: React.FC<ItemSoundbiteHeaderPlaySec
   channel,
 }) => {
   const apiRequestService = getApiRequestService();
+  const { runQueueAdd } = useQueueAddWithGate();
   const tFeatures = useTranslations('features');
   const tMedia = useTranslations('media');
   const tMediaPlayer = useTranslations('media_player');
@@ -106,11 +108,12 @@ export const ItemSoundbiteHeaderPlaySection: React.FC<ItemSoundbiteHeaderPlaySec
 
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
-      showToastPromise(
-        apiRequestService.reqQueueResourceItemSoundbiteAddNext(
-          queue.id_text,
-          item_soundbite.id_text
-        ),
+      void runQueueAdd(
+        () =>
+          apiRequestService.reqQueueResourceItemSoundbiteAddNext(
+            queue.id_text,
+            item_soundbite.id_text
+          ),
         {
           success: tFeatures('queue.added_to_queue'),
           error: tFeatures('queue.add_error'),
@@ -130,11 +133,12 @@ export const ItemSoundbiteHeaderPlaySection: React.FC<ItemSoundbiteHeaderPlaySec
 
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
-      showToastPromise(
-        apiRequestService.reqQueueResourceItemSoundbiteAddLast(
-          queue.id_text,
-          item_soundbite.id_text
-        ),
+      void runQueueAdd(
+        () =>
+          apiRequestService.reqQueueResourceItemSoundbiteAddLast(
+            queue.id_text,
+            item_soundbite.id_text
+          ),
         {
           success: tFeatures('queue.added_to_queue'),
           error: tFeatures('queue.add_error'),

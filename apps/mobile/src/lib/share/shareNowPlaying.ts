@@ -3,12 +3,15 @@ import { Share } from 'react-native';
 import type { PlaybackTarget } from '@podverse/playback-core';
 
 import { getMobileConfig } from '../../config';
+import {
+  buildNowPlayingShareUrl as buildNowPlayingShareUrlFromWebBaseUrl,
+  buildPublicShareUrl as buildPublicShareUrlFromWebBaseUrl,
+} from './shareUrl';
 
 type ShareResource = 'clip' | 'episode' | 'playlist' | 'podcast' | 'profile';
 
 export const buildPublicShareUrl = (resource: ShareResource, idText: string): string => {
-  const webBaseUrl = getMobileConfig().webBaseUrl;
-  return `${webBaseUrl}/${resource}/${idText}`;
+  return buildPublicShareUrlFromWebBaseUrl(getMobileConfig().webBaseUrl, resource, idText);
 };
 
 /**
@@ -31,18 +34,5 @@ export const shareResolvedUrl = (url: string | null): void => {
  * routes (`/episode`, `/clip`, `/podcast`).
  */
 export function buildNowPlayingShareUrl(target: PlaybackTarget): string | null {
-  switch (target.kind) {
-    case 'clip':
-      return buildPublicShareUrl('clip', target.clip.id_text);
-    case 'soundbite':
-    case 'chapter':
-    case 'item-podcast':
-    case 'item-video':
-    case 'item-music':
-      return buildPublicShareUrl('episode', target.item.id_text);
-    case 'livestream':
-      return buildPublicShareUrl('podcast', target.channel.id_text);
-    case 'add-by-rss':
-      return null;
-  }
+  return buildNowPlayingShareUrlFromWebBaseUrl(getMobileConfig().webBaseUrl, target);
 }

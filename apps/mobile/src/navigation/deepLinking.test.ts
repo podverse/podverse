@@ -36,6 +36,23 @@ describe('mapIncomingPathToScopedPath', () => {
     );
   });
 
+  it('handles full custom-scheme deep links (host is a route segment, not a domain)', () => {
+    // The buffer path (App.tsx pending-deep-link + notification open) forwards the full scheme
+    // URL, so the leading route segment arrives as the URL "host" and must be preserved.
+    expect(mapIncomingPathToScopedPath('podverse-next://podcast/pod123')).toBe(
+      '/home/podcast/pod123'
+    );
+    expect(mapIncomingPathToScopedPath('podverse://podcast/pod123')).toBe('/home/podcast/pod123');
+    expect(mapIncomingPathToScopedPath('podverse-next://podcast/pod123?foo=1#bar')).toBe(
+      '/home/podcast/pod123'
+    );
+    expect(mapIncomingPathToScopedPath('podverse-next://home')).toBe('/home');
+    expect(mapIncomingPathToScopedPath('podverse-next://more/settings')).toBe('/more/settings');
+    expect(mapIncomingPathToScopedPath('podverse-next://playlist/plst123')).toBe(
+      '/my-library/playlist/plst123'
+    );
+  });
+
   it('falls back to home for empty or unknown routes', () => {
     expect(mapIncomingPathToScopedPath('')).toBe('/home');
     expect(mapIncomingPathToScopedPath('/not-a-route')).toBe('/home');

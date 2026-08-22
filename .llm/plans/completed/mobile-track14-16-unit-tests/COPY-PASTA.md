@@ -28,7 +28,7 @@ them in apps/mobile/vitest.config.ts include. Mark done when finished. Do not ru
 
 ## Step 2 — Share-URL parity + prefs store tests (15.5, 16.1)
 
-- [ ] done
+- [x] done
 
 **Cursor model:** Codex 5.3
 

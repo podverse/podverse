@@ -1,8 +1,17 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  FlatList,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
+import { breakpoints } from '@podverse/design-tokens';
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { LiveItemStatusEnum } from '@podverse/helpers/dto';
 import { getTotalPages } from '@podverse/helpers/pagination';
@@ -15,8 +24,10 @@ import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
+import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import type { ChannelBrowseStackParamList } from '../../navigation';
 import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
+import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
@@ -86,6 +97,7 @@ const LIVE_STATUS_KEYS: Record<LiveItemStatusEnum, string> = {
 
 export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenProps) {
   const { t } = useTranslation();
+  const { isLandscape, isTablet, width } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const [channel, setChannel] = useState<DTOChannel | null>(null);
@@ -102,6 +114,9 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const [subscriptionNoticeKey, setSubscriptionNoticeKey] = useState<string | null>(null);
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
   const { podcastId } = route.params;
+
+  // Split when tablet and either landscape or wide enough for two panes (≥ lg).
+  const showSplitLayout = isTablet && (isLandscape || width >= breakpoints.lg);
 
   const styles = useMemo(
     () =>
@@ -148,6 +163,20 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
           marginTop: tokens.spacing.sm,
           paddingHorizontal: tokens.spacing.md,
         },
+        splitContainer: {
+          backgroundColor: themeStyles.screen.backgroundColor,
+          flex: 1,
+          flexDirection: 'row',
+        },
+        splitLeftPane: {
+          borderRightColor: themeStyles.border.borderColor,
+          borderRightWidth: 1,
+          maxWidth: breakpoints.lg,
+          width: '40%',
+        },
+        splitRightPane: {
+          flex: 1,
+        },
         statusNotice: {
           color: themeStyles.textSecondary.color,
           fontSize: 13,
@@ -167,7 +196,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
           marginTop: tokens.spacing.md,
         },
       }),
-    [isSavingSubscription, themeStyles, tokens]
+    [themeStyles, tokens]
   );
 
   const loadPodcastData = useCallback(
@@ -293,6 +322,8 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     [navigation]
   );
 
+  const { handleGateError } = useMembershipGate();
+
   const handleSubscriptionToggle = useCallback(async () => {
     if (status !== 'authenticated') {
       setSubscriptionNoticeKey('authentication.login_required');
@@ -329,7 +360,10 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
             ) === true;
       setIsSubscribed(nextSubscribed);
       homeFeedRefresh.notify();
-    } catch {
+    } catch (error) {
+      if (handleGateError(error)) {
+        return;
+      }
       setSubscriptionNoticeKey('errors.generic');
     } finally {
       setIsSavingSubscription(false);
@@ -338,6 +372,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     accessToken,
     clearSession,
     channel?.id,
+    handleGateError,
     isSavingSubscription,
     isSubscribed,
     podcastId,
@@ -350,21 +385,18 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     shareResolvedUrl(buildPublicShareUrl('podcast', podcastId));
   }, [podcastId]);
 
-  return (
-    <ScrollView
-      contentContainerStyle={styles.content}
-      refreshControl={
-        <RefreshControl
-          onRefresh={() => {
-            void loadPodcastData({ page: FIRST_PAGE, source: 'refresh' });
-          }}
-          refreshing={isRefreshing}
-          tintColor={themeStyles.buttonPrimary.backgroundColor}
-        />
-      }
-      style={{ backgroundColor: themeStyles.screen.backgroundColor }}
-      testID="podcast-detail-screen"
-    >
+  const refreshControl = (
+    <RefreshControl
+      onRefresh={() => {
+        void loadPodcastData({ page: FIRST_PAGE, source: 'refresh' });
+      }}
+      refreshing={isRefreshing}
+      tintColor={themeStyles.buttonPrimary.backgroundColor}
+    />
+  );
+
+  const headerPane = (
+    <>
       <Text style={styles.heading}>{channel?.title ?? t('media.podcast.podcast')}</Text>
       <View style={styles.headerCard}>
         <Text style={styles.headerTitle}>{channel?.title ?? t('media.podcast.podcast')}</Text>
@@ -399,7 +431,11 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
           <Text style={styles.statusNotice}>{t(subscriptionNoticeKey)}</Text>
         ) : null}
       </View>
+    </>
+  );
 
+  const listStatus = (
+    <>
       {isInitialLoading ? <ListLoading testID="podcast-detail-loading" /> : null}
       {!isInitialLoading && errorKey !== null ? (
         <ListError
@@ -413,7 +449,12 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
       {!isInitialLoading && errorKey === null && episodeRows.length === 0 ? (
         <ListEmpty messageKey="misc.info" testID="podcast-detail-empty" />
       ) : null}
+    </>
+  );
 
+  const listHeader = (
+    <>
+      {listStatus}
       {liveRows.length > 0 ? (
         <View style={styles.rowSurface}>
           <Text style={styles.feedHeading}>{t('media.livestream.livestreams')}</Text>
@@ -448,13 +489,64 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
           })}
         </View>
       ) : null}
-
       {!isInitialLoading && errorKey === null ? (
         <View style={styles.rowSurface}>
           <Text style={styles.feedHeading}>{t('media.podcast.episodes')}</Text>
-          {episodeRows.map((row, index) => (
+        </View>
+      ) : null}
+    </>
+  );
+
+  const listFooter = (
+    <>
+      {!isInitialLoading && errorKey === null && hasMorePages ? (
+        <Pressable
+          onPress={() => {
+            if (isLoadingMore) {
+              return;
+            }
+            void loadPodcastData({
+              page: currentPage + 1,
+              source: 'loadMore',
+            });
+          }}
+          style={styles.subscribeButton}
+          testID="podcast-detail-load-more"
+        >
+          <Text style={styles.subscribeButtonLabel}>
+            {isLoadingMore ? t('misc.loading') : t('info.show_more')}
+          </Text>
+        </Pressable>
+      ) : null}
+      {!isInitialLoading && errorKey === null && playbackNoticeKey !== null ? (
+        <Text style={styles.statusNotice}>{t(playbackNoticeKey)}</Text>
+      ) : null}
+    </>
+  );
+
+  const episodeListData = !isInitialLoading && errorKey === null ? episodeRows : [];
+
+  if (showSplitLayout) {
+    return (
+      <View style={styles.splitContainer} testID="podcast-detail-split">
+        <ScrollView
+          contentContainerStyle={styles.content}
+          refreshControl={refreshControl}
+          style={styles.splitLeftPane}
+          testID="podcast-detail-screen"
+        >
+          {headerPane}
+        </ScrollView>
+        <FlatList
+          ListEmptyComponent={listStatus}
+          ListFooterComponent={listFooter}
+          ListHeaderComponent={listHeader}
+          contentContainerStyle={styles.content}
+          data={episodeListData}
+          keyExtractor={(row) => row.id}
+          refreshControl={refreshControl}
+          renderItem={({ item: row, index }) => (
             <HomeFeedRow
-              key={row.id}
               mediaType="episodes"
               onPlayPress={(episodeRow) => {
                 runPlayAction(episodeRow, 'episodes');
@@ -466,31 +558,43 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
               row={row}
               testID={`podcast-episode-row-${index}`}
             />
-          ))}
-          {hasMorePages ? (
-            <Pressable
-              onPress={() => {
-                if (isLoadingMore) {
-                  return;
-                }
-                void loadPodcastData({
-                  page: currentPage + 1,
-                  source: 'loadMore',
-                });
-              }}
-              style={styles.subscribeButton}
-              testID="podcast-detail-load-more"
-            >
-              <Text style={styles.subscribeButtonLabel}>
-                {isLoadingMore ? t('misc.loading') : t('info.show_more')}
-              </Text>
-            </Pressable>
-          ) : null}
-          {playbackNoticeKey !== null ? (
-            <Text style={styles.statusNotice}>{t(playbackNoticeKey)}</Text>
-          ) : null}
-        </View>
-      ) : null}
-    </ScrollView>
+          )}
+          style={styles.splitRightPane}
+        />
+      </View>
+    );
+  }
+
+  return (
+    <FlatList
+      ListEmptyComponent={listStatus}
+      ListFooterComponent={listFooter}
+      ListHeaderComponent={
+        <>
+          {headerPane}
+          {listHeader}
+        </>
+      }
+      contentContainerStyle={styles.content}
+      data={episodeListData}
+      keyExtractor={(row) => row.id}
+      refreshControl={refreshControl}
+      renderItem={({ item: row, index }) => (
+        <HomeFeedRow
+          mediaType="episodes"
+          onPlayPress={(episodeRow) => {
+            runPlayAction(episodeRow, 'episodes');
+          }}
+          onPress={handleEpisodePress}
+          onQueuePress={(episodeRow, position) => {
+            runQueueAction(episodeRow, 'episodes', position);
+          }}
+          row={row}
+          testID={`podcast-episode-row-${index}`}
+        />
+      )}
+      style={{ backgroundColor: themeStyles.screen.backgroundColor }}
+      testID="podcast-detail-screen"
+    />
   );
 }

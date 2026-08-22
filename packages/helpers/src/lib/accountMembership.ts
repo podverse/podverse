@@ -46,3 +46,60 @@ export function isMembershipExpiredAt(membershipExpiresAt: MembershipExpiresAtIn
 
   return !hasValidMembership({ membership_expires_at: membershipExpiresAt });
 }
+
+export type MembershipTier = 'trial' | 'premium';
+
+/** Normalized membership snapshot shared by every JS client surface (web + mobile/tablet RN). */
+export interface MembershipState {
+  isLoggedIn: boolean;
+  isMember: boolean;
+  isExpired: boolean;
+  tier: MembershipTier | null;
+  expiresAt: string | null;
+}
+
+// Permissive input: the DTO exposes `account_membership_id`; some SSR/populated payloads expose the
+// membership id under `account_membership.id`. Accept both without a type assertion.
+type MembershipStatusInput =
+  | {
+      account_membership_id?: number;
+      account_membership?: { id?: number };
+      membership_expires_at?: Date | string | null;
+    }
+  | null
+  | undefined;
+
+type AccountLike = { account_membership_status?: MembershipStatusInput } | null | undefined;
+
+function tierFromMembershipId(membershipId: number | undefined): MembershipTier | null {
+  if (membershipId === AccountMembershipEnum.Premium) {
+    return 'premium';
+  }
+  if (membershipId === AccountMembershipEnum.Trial) {
+    return 'trial';
+  }
+  return null;
+}
+
+/**
+ * Pure derivation of the current user's membership state from the `/auth/me` account snapshot. Shared
+ * by web and mobile so the surfaces cannot drift. The renew/sign-up button label at call sites is
+ * auth-based (`isLoggedIn`); `isExpired` / `tier` drive banner + message copy only.
+ */
+export function deriveMembershipState(account: AccountLike): MembershipState {
+  if (account === null || account === undefined) {
+    return { isLoggedIn: false, isMember: false, isExpired: false, tier: null, expiresAt: null };
+  }
+
+  const status = account.account_membership_status ?? null;
+  const membershipId = status?.account_membership_id ?? status?.account_membership?.id;
+  const rawExpiresAt = status?.membership_expires_at ?? null;
+
+  return {
+    isLoggedIn: true,
+    isMember: hasValidMembership(status),
+    isExpired: isMembershipExpiredAt(rawExpiresAt),
+    tier: tierFromMembershipId(membershipId),
+    expiresAt: typeof rawExpiresAt === 'string' ? rawExpiresAt : null,
+  };
+}

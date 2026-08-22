@@ -19,6 +19,7 @@ import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
 import { useQueues } from '../../../contexts/Queue';
 import { getApiRequestService } from '../../../factories/apiRequestService';
+import { useQueueAddWithGate } from '../../../hooks/useQueueAddWithGate';
 import { getAddByRSSItemPath } from '../../../utils/addByRSS/itemPath';
 import { loadAddByRSSIndexItemFromResourceData } from '../../../utils/addByRSS/playFromQueueResource';
 import { downloadAddByRSSMediaWithModal } from '../../../utils/downloadModal/downloadAddByRSSMediaWithModal';
@@ -50,6 +51,7 @@ export const ListPlaylistResourceRow: React.FC<Props> = ({
   onPlay,
 }) => {
   const apiRequestService = getApiRequestService();
+  const { runQueueAdd } = useQueueAddWithGate();
   const tFeatures = useTranslations('features');
   const tMedia = useTranslations('media');
   const tMediaPlayer = useTranslations('media_player');
@@ -126,10 +128,11 @@ export const ListPlaylistResourceRow: React.FC<Props> = ({
 
     const addToQueueNext = () => {
       if (!queue || !resourceData) return;
-      showToastPromise(
-        apiRequestService.reqQueueResourceItemAddByRSSAddNext(queue.id_text, {
-          add_by_rss_resource_data: resourceData,
-        }),
+      void runQueueAdd(
+        () =>
+          apiRequestService.reqQueueResourceItemAddByRSSAddNext(queue.id_text, {
+            add_by_rss_resource_data: resourceData,
+          }),
         {
           success: tFeatures('queue.added_to_queue'),
           error: tFeatures('queue.add_error'),
@@ -139,10 +142,11 @@ export const ListPlaylistResourceRow: React.FC<Props> = ({
 
     const addToQueueLast = () => {
       if (!queue || !resourceData) return;
-      showToastPromise(
-        apiRequestService.reqQueueResourceItemAddByRSSAddLast(queue.id_text, {
-          add_by_rss_resource_data: resourceData,
-        }),
+      void runQueueAdd(
+        () =>
+          apiRequestService.reqQueueResourceItemAddByRSSAddLast(queue.id_text, {
+            add_by_rss_resource_data: resourceData,
+          }),
         {
           success: tFeatures('queue.added_to_queue'),
           error: tFeatures('queue.add_error'),

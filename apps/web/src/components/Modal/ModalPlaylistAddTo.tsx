@@ -20,10 +20,11 @@ import { useAccount } from '../../contexts/Account';
 import type { ModalPlaylistAddToState } from '../../contexts/Modals';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
+import { useMembershipGate } from '../../hooks/useMembershipGate';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 import { ListPlaylists } from '../List/Playlists/ListPlaylists';
 import { MediaHeaderMini } from '../MediaHeaderMini/MediaHeaderMini';
-import { showToastPromise } from '../Toast/Toast';
+import { showToast } from '../Toast/Toast';
 
 import styles from '../../styles/components/Modal/ModalPlaylistAddTo.module.scss';
 
@@ -58,6 +59,7 @@ export const ModalPlaylistAddTo: React.FC = () => {
   const [playlists, setPlaylists] = React.useState<DTOPlaylist[]>([]);
   const [totalPages, setTotalPages] = React.useState(0);
   const { loggedInAccount } = useAccount();
+  const { tryHandleMembershipGateError } = useMembershipGate();
 
   const [filterParams, setFilterParams] = React.useState<FilterParams>({
     medium: null,
@@ -144,46 +146,37 @@ export const ModalPlaylistAddTo: React.FC = () => {
 
   const onClick = async (playlist: DTOPlaylist) => {
     const { item, clip, item_soundbite, addByRSSResourceData } = modalPlaylistAddTo;
-    if (addByRSSResourceData) {
-      showToastPromise(
-        apiRequestService.reqPlaylistResourceItemAddByRSSAddFirst(playlist.id_text, {
+    const request = addByRSSResourceData
+      ? apiRequestService.reqPlaylistResourceItemAddByRSSAddFirst(playlist.id_text, {
           add_by_rss_resource_data: addByRSSResourceData,
-        }),
-        {
-          success: tFeatures('playlist.added_to_playlist'),
-          error: tFeatures('playlist.add_error'),
-        }
-      );
-    } else if (clip) {
-      showToastPromise(
-        apiRequestService.reqPlaylistResourceClipAddFirst(playlist.id_text, clip.id_text),
-        {
-          success: tFeatures('playlist.added_to_playlist'),
-          error: tFeatures('playlist.add_error'),
-        }
-      );
-    } else if (item_soundbite) {
-      showToastPromise(
-        apiRequestService.reqPlaylistResourceItemSoundbiteAddFirst(
-          playlist.id_text,
-          item_soundbite.id_text
-        ),
-        {
-          success: tFeatures('playlist.added_to_playlist'),
-          error: tFeatures('playlist.add_error'),
-        }
-      );
-    } else if (item) {
-      showToastPromise(
-        apiRequestService.reqPlaylistResourceItemAddFirst(playlist.id_text, item.id_text),
-        {
-          success: tFeatures('playlist.added_to_playlist'),
-          error: tFeatures('playlist.add_error'),
-        }
-      );
+        })
+      : clip
+        ? apiRequestService.reqPlaylistResourceClipAddFirst(playlist.id_text, clip.id_text)
+        : item_soundbite
+          ? apiRequestService.reqPlaylistResourceItemSoundbiteAddFirst(
+              playlist.id_text,
+              item_soundbite.id_text
+            )
+          : item
+            ? apiRequestService.reqPlaylistResourceItemAddFirst(playlist.id_text, item.id_text)
+            : null;
+
+    // Close the modal immediately (unchanged UX), then resolve the add. A membership 403 shows the
+    // gate modal via `tryHandleMembershipGateError` instead of the generic error toast (no double-show).
+    clearModalPlaylistAddTo();
+
+    if (request === null) {
+      return;
     }
 
-    clearModalPlaylistAddTo();
+    try {
+      await request;
+      showToast(tFeatures('playlist.added_to_playlist'), 'success');
+    } catch (error) {
+      if (!tryHandleMembershipGateError(error)) {
+        showToast(tFeatures('playlist.add_error'), 'error');
+      }
+    }
   };
 
   const hasNoPlaylists = loggedInAccount && playlists.length === 0;

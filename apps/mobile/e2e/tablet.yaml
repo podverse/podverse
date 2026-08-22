@@ -1,0 +1,95 @@
+appId: com.podverse.app.next
+name: Tablet Home And Podcast Detail
+---
+# Track 18.5: opt-in tablet viewport screenshots (Home multi-column + podcast split).
+# Runs only on ios-tablet / android-tablet slots (`npm run mobile:e2e:test -- tablet`).
+# Excluded from `mobile:e2e:test:all` (phone matrix).
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+# The split needs tablet layout AND (landscape OR width ≥ lg=900). The iPad Pro 13" is ~1032dp wide
+# in portrait (already ≥ lg → left rail + split render without rotating), but the Pixel Tablet E2E
+# AVD is ~800dp in portrait (< lg), so only Android must rotate to cross lg. Rotating the iPad dev
+# client mid-flow destabilizes it (the Expo launcher reappears and `tab-home` disappears), so gate
+# the rotation to Android; iOS stays portrait and still exercises the tablet layout.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - setOrientation: LANDSCAPE_LEFT
+
+- tapOn:
+    id: tab-home
+- extendedWaitUntil:
+    visible:
+      id: home-screen
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    id: home-screen
+- takeScreenshot: tablet-home
+
+- tapOn:
+    id: tab-search
+- assertVisible:
+    id: search-screen
+- tapOn:
+    id: search-input
+- inputText: podcast
+- extendedWaitUntil:
+    visible:
+      id: search-result-row-0
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: search-result-row-0
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-split
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    id: podcast-detail-split
+- assertVisible:
+    id: podcast-detail-screen
+- takeScreenshot: tablet-podcast-detail
+
+- assertVisible:
+    id: podcast-episode-row-0
+- tapOn:
+    id: podcast-episode-row-0
+- assertVisible:
+    id: episode-detail-screen
+
+# Episode play button testID is dynamic (`home-row-play-<id_text>`); regex match like play-mini-player.
+- tapOn:
+    id: "home-row-play-.*"
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: mini-player
+- tapOn:
+    id: mini-player
+- assertVisible:
+    id: full-player-screen
+- assertVisible:
+    id: full-player-two-column
+- assertVisible:
+    id: full-player-title
+- takeScreenshot: tablet-full-player
+
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          id: full-player-close
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - pressKey: Back
+- extendedWaitUntil:
+    notVisible:
+      id: full-player-screen
+    timeout: ${TIMEOUT_SLOW}

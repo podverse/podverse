@@ -25,6 +25,7 @@ import { useQueues } from '../../../../contexts/Queue';
 import { useQueueResourcesAbridgedIndex } from '../../../../contexts/QueueResourcesAbridgedIndex';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { useMediaPlayerResourceUpdate } from '../../../../hooks/useMediaPlayerResourceUpdate';
+import { useQueueAddWithGate } from '../../../../hooks/useQueueAddWithGate';
 import { playbackTargetFromStandardLoad } from '../../../../lib/playback';
 import { downloadEpisodeWithModal } from '../../../../utils/downloadModal/downloadEpisodeWithModal';
 import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
@@ -48,6 +49,7 @@ export const CommonEpisodeListRow: React.FC<EpisodeListRowProps> = ({
   playlist_id_text,
 }) => {
   const apiRequestService = getApiRequestService();
+  const { runQueueAdd } = useQueueAddWithGate();
   const url = `${ROUTES.EPISODE}/${item.id_text}`;
   const episodeArtworkCandidates = mergeDTOItemThenChannelImageCandidates(
     item.item_images,
@@ -118,10 +120,13 @@ export const CommonEpisodeListRow: React.FC<EpisodeListRowProps> = ({
 
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
-      showToastPromise(apiRequestService.reqQueueResourceItemAddNext(queue.id_text, item.id_text), {
-        success: tFeatures('queue.added_to_queue'),
-        error: tFeatures('queue.add_error'),
-      });
+      void runQueueAdd(
+        () => apiRequestService.reqQueueResourceItemAddNext(queue.id_text, item.id_text),
+        {
+          success: tFeatures('queue.added_to_queue'),
+          error: tFeatures('queue.add_error'),
+        }
+      );
     }
   };
 
@@ -136,10 +141,13 @@ export const CommonEpisodeListRow: React.FC<EpisodeListRowProps> = ({
 
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
-      showToastPromise(apiRequestService.reqQueueResourceItemAddLast(queue.id_text, item.id_text), {
-        success: tFeatures('queue.added_to_queue'),
-        error: tFeatures('queue.add_error'),
-      });
+      void runQueueAdd(
+        () => apiRequestService.reqQueueResourceItemAddLast(queue.id_text, item.id_text),
+        {
+          success: tFeatures('queue.added_to_queue'),
+          error: tFeatures('queue.add_error'),
+        }
+      );
     }
   };
 

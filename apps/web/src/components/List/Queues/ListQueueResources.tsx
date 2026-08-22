@@ -15,6 +15,7 @@ import { useModals } from '../../../contexts/Modals';
 import { useQueues } from '../../../contexts/Queue';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
+import { useMembershipGate } from '../../../hooks/useMembershipGate';
 import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
 import { useQueueResourcesLoadActive } from '../../../hooks/useQueueResourcesLoadActive';
 import { parsePlaybackSeconds, playbackTargetFromStandardLoad } from '../../../lib/playback';
@@ -38,6 +39,7 @@ export const ListQueueResources: React.FC<Props> = ({
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
   const { setModalAuthLogin } = useModals();
+  const { tryHandleMembershipGateError } = useMembershipGate();
   const { activeQueue } = useQueues();
   const queueResourcesLoadActive = useQueueResourcesLoadActive();
   const [resources, setResources] = React.useState(queueResources);
@@ -374,8 +376,10 @@ export const ListQueueResources: React.FC<Props> = ({
       setResources(updatedReordered);
 
       await queueResourcesLoadActive();
-    } catch (err) {
-      console.error('Error updating queue order', err);
+    } catch (error) {
+      if (!tryHandleMembershipGateError(error)) {
+        console.error('Error updating queue order', error);
+      }
     }
   };
 

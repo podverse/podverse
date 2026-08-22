@@ -12,7 +12,15 @@ const normalizePath = (path: string): string => {
 const tryParseUrlPath = (value: string): string => {
   try {
     const parsed = new URL(value);
-    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    // Web / universal links (https://podverse.fm/podcast/<id>): the origin is a real network
+    // host, so keep only the pathname (+ query/hash) and drop the domain.
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    }
+    // Custom app scheme (podverse-next://podcast/<id>): there is no network host. The URL parser
+    // treats the first segment (`podcast`) as the host, so it must be re-joined as the leading
+    // path segment — otherwise the resource type is lost and every deep link collapses to Home.
+    return `/${parsed.host}${parsed.pathname}${parsed.search}${parsed.hash}`;
   } catch {
     return value;
   }

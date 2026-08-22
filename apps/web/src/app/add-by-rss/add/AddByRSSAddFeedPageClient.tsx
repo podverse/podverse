@@ -23,6 +23,7 @@ import {
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
+import { useMembershipGate } from '../../../hooks/useMembershipGate';
 import {
   applyAddByRSSParseStatus,
   followAddByRSSChannelAndQueue,
@@ -50,6 +51,7 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
   const router = useRouter();
   const { loggedInAccount, setLoggedInAccount } = useAccount();
   const { setModalAuthLogin } = useModals();
+  const { tryHandleMembershipGateError } = useMembershipGate();
 
   const [newFeedUrl, setNewFeedUrl] = useState('');
   const [isAddingFeed, setIsAddingFeed] = useState(false);
@@ -218,6 +220,10 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
           await runParseAndRedirect(response.request_id, feedUrl, existing);
           return;
         }
+      }
+
+      if (tryHandleMembershipGateError(error)) {
+        return;
       }
 
       const handled = await handleRateLimitAlert(error, undefined, tMisc, {

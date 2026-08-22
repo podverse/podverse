@@ -15,6 +15,8 @@ cd "$REPO_ROOT"
 
 E2E_IOS_NAME='iPhone 17 Pro E2E'
 E2E_ANDROID_AVD='Pixel_6_Pro_API_33_e2e'
+E2E_IOS_TABLET_NAME='iPad Pro 13-inch (M4) E2E'
+E2E_ANDROID_TABLET_AVD='Pixel_Tablet_API_33_e2e'
 MOBILE_METRO_PORT="${MOBILE_METRO_PORT:-8081}"
 MOBILE_E2E_API_PORT="${MOBILE_E2E_API_PORT:-4230}"
 MOBILE_E2E_TEST_ASSETS_PORT="${MOBILE_E2E_TEST_ASSETS_PORT:-2111}"
@@ -27,9 +29,21 @@ TIMEOUTS_ENV="$E2E_DIR/shared/timeouts.env"
 flow_needs_e2e_api() {
   case "$1" in
   add-by-rss | api-health | auth-login | auth-logout | auto-queue-advance | deep-link | \
-  engine-audio-spike | home | library-downloads | library-playlists | opml | play-mini-player | \
-  podcast-episode | push | queue-add | search | search-unparsed | tab-switch-playback | \
-  video-transition)
+  engine-audio-spike | home | library-downloads | library-playlists | membership-gate | opml | \
+  play-mini-player | podcast-episode | push | queue-add | search | search-unparsed | \
+  tab-switch-playback | tablet | v4v | video-transition)
+    return 0
+    ;;
+  *)
+    return 1
+    ;;
+  esac
+}
+
+# Flows that must run on tablet devices (ios-tablet / android-tablet slots), not phones.
+flow_needs_tablet() {
+  case "$1" in
+  tablet)
     return 0
     ;;
   *)
@@ -42,7 +56,7 @@ flow_needs_e2e_api() {
 flow_needs_test_assets() {
   case "$1" in
   add-by-rss | auto-queue-advance | engine-audio-spike | library-downloads | play-mini-player | \
-  tab-switch-playback | video-transition)
+  tab-switch-playback | tablet | v4v | video-transition)
     return 0
     ;;
   *)
@@ -71,9 +85,11 @@ MAESTRO_TIMEOUT_ARGS=(
 SPEC_RAW="${1:-$DEFAULT_SPEC}"
 TS="$(date +%Y%m%d-%H%M%S)"
 REPORT_DIR="$REPO_ROOT/.artifacts/mobile-e2e-reports/$TS"
-# One Maestro output dir per OS + form-factor slot (phone today; tablet slots reserved).
+# One Maestro output dir per OS + form-factor slot.
 IOS_PHONE_DIR="$REPORT_DIR/ios-phone"
 ANDROID_PHONE_DIR="$REPORT_DIR/android-phone"
+IOS_TABLET_DIR="$REPORT_DIR/ios-tablet"
+ANDROID_TABLET_DIR="$REPORT_DIR/android-tablet"
 LATEST_LINK="$REPO_ROOT/.artifacts/mobile-e2e-reports/latest"
 
 if ! command -v maestro >/dev/null 2>&1; then
@@ -91,10 +107,16 @@ fi
 FLOWS=()
 NEEDS_E2E_API=0
 NEEDS_TEST_ASSETS=0
+NEEDS_TABLET=0
 
 if [[ "$SPEC_RAW" == "all" ]]; then
   # Auto-discover top-level flows so new apps/mobile/e2e/<area>.yaml joins the suite.
+  # Exclude tablet-only flows — they need opt-in tablet devices (`npm run mobile:e2e:test -- tablet`).
   while IFS= read -r flow_path; do
+    base="$(basename "$flow_path" .yaml)"
+    if flow_needs_tablet "$base"; then
+      continue
+    fi
     FLOWS+=("$flow_path")
   done < <(find "$E2E_DIR" -maxdepth 1 -type f -name '*.yaml' | LC_ALL=C sort)
   if [[ "${#FLOWS[@]}" -eq 0 ]]; then
@@ -119,6 +141,20 @@ else
     fi
     if flow_needs_test_assets "$spec"; then
       NEEDS_TEST_ASSETS=1
+    fi
+    if flow_needs_tablet "$spec"; then
+      NEEDS_TABLET=1
+    fi
+  done
+fi
+
+if [[ "$NEEDS_TABLET" -eq 1 ]]; then
+  for flow_path in "${FLOWS[@]}"; do
+    base="$(basename "$flow_path" .yaml)"
+    if ! flow_needs_tablet "$base"; then
+      echo "Error: tablet flows cannot be mixed with phone flows in one run (${base})." >&2
+      echo "Run tablet alone: npm run mobile:e2e:test -- tablet" >&2
+      exit 1
     fi
   done
 fi
@@ -184,38 +220,76 @@ if [[ "$NEEDS_TEST_ASSETS" -eq 1 ]]; then
   fi
 fi
 
-mkdir -p "$IOS_PHONE_DIR" "$ANDROID_PHONE_DIR"
 rm -f "$LATEST_LINK"
 ln -sfn "$TS" "$LATEST_LINK"
 
 echo "=== Mobile E2E report run ==="
 echo "Flows: ${FLOWS[*]}"
 echo "Report dir: $REPORT_DIR"
-echo "Booting E2E devices (no install)..."
-bash "$SCRIPT_DIR/ensure-devices.sh" e2e
 
 IOS_UDID=""
 ANDROID_SERIAL=""
-if [[ "$(uname -s)" == "Darwin" ]]; then
-  IOS_UDID="$(bash "$SCRIPT_DIR/ensure-devices.sh" resolve-e2e-ios-udid)"
-  echo "E2E iOS UDID: $IOS_UDID"
-  if ! bash "$SCRIPT_DIR/ensure-devices.sh" check-e2e-app-ios >/dev/null 2>&1; then
-    echo "Error: app not installed on E2E iOS (${E2E_IOS_NAME})." >&2
-    echo "In another terminal: npm run mobile:e2e:ios" >&2
-    exit 1
-  fi
-fi
+IOS_SLOT_DIR="$IOS_PHONE_DIR"
+ANDROID_SLOT_DIR="$ANDROID_PHONE_DIR"
+IOS_DEVICE_LABEL="$E2E_IOS_NAME"
+ANDROID_DEVICE_LABEL="$E2E_ANDROID_AVD"
+IOS_SLOT_NAME="ios-phone"
+ANDROID_SLOT_NAME="android-phone"
 
-if ANDROID_SERIAL="$(bash "$SCRIPT_DIR/ensure-devices.sh" resolve-e2e-android-serial 2>/dev/null)"; then
-  echo "E2E Android serial: $ANDROID_SERIAL"
-  if ! bash "$SCRIPT_DIR/ensure-devices.sh" check-e2e-app-android >/dev/null 2>&1; then
-    echo "Error: app not installed on E2E Android (${E2E_ANDROID_AVD})." >&2
-    echo "In another terminal: npm run mobile:e2e:android" >&2
-    exit 1
+if [[ "$NEEDS_TABLET" -eq 1 ]]; then
+  mkdir -p "$IOS_TABLET_DIR" "$ANDROID_TABLET_DIR"
+  IOS_SLOT_DIR="$IOS_TABLET_DIR"
+  ANDROID_SLOT_DIR="$ANDROID_TABLET_DIR"
+  IOS_DEVICE_LABEL="$E2E_IOS_TABLET_NAME"
+  ANDROID_DEVICE_LABEL="$E2E_ANDROID_TABLET_AVD"
+  IOS_SLOT_NAME="ios-tablet"
+  ANDROID_SLOT_NAME="android-tablet"
+  echo "Booting E2E tablet devices (no install)..."
+  bash "$SCRIPT_DIR/ensure-devices.sh" e2e-tablet
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    IOS_UDID="$(bash "$SCRIPT_DIR/ensure-devices.sh" resolve-e2e-ios-tablet-udid)"
+    echo "E2E iOS tablet UDID: $IOS_UDID"
+    if ! bash "$SCRIPT_DIR/ensure-devices.sh" check-e2e-app-ios-tablet >/dev/null 2>&1; then
+      echo "Error: app not installed on E2E iOS tablet (${E2E_IOS_TABLET_NAME})." >&2
+      echo "In another terminal: npm run mobile:e2e:ios:tablet" >&2
+      exit 1
+    fi
+  fi
+  if ANDROID_SERIAL="$(bash "$SCRIPT_DIR/ensure-devices.sh" resolve-e2e-android-tablet-serial 2>/dev/null)"; then
+    echo "E2E Android tablet serial: $ANDROID_SERIAL"
+    if ! bash "$SCRIPT_DIR/ensure-devices.sh" check-e2e-app-android-tablet >/dev/null 2>&1; then
+      echo "Error: app not installed on E2E Android tablet (${E2E_ANDROID_TABLET_AVD})." >&2
+      echo "In another terminal: npm run mobile:e2e:android:tablet" >&2
+      exit 1
+    fi
+  else
+    echo "Warning: E2E Android tablet not available; iOS-tablet-only Maestro run this pass."
+    ANDROID_SERIAL=""
   fi
 else
-  echo "Warning: E2E Android not available; iOS-only Maestro run this pass."
-  ANDROID_SERIAL=""
+  mkdir -p "$IOS_PHONE_DIR" "$ANDROID_PHONE_DIR"
+  echo "Booting E2E phone devices (no install)..."
+  bash "$SCRIPT_DIR/ensure-devices.sh" e2e
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    IOS_UDID="$(bash "$SCRIPT_DIR/ensure-devices.sh" resolve-e2e-ios-udid)"
+    echo "E2E iOS UDID: $IOS_UDID"
+    if ! bash "$SCRIPT_DIR/ensure-devices.sh" check-e2e-app-ios >/dev/null 2>&1; then
+      echo "Error: app not installed on E2E iOS (${E2E_IOS_NAME})." >&2
+      echo "In another terminal: npm run mobile:e2e:ios" >&2
+      exit 1
+    fi
+  fi
+  if ANDROID_SERIAL="$(bash "$SCRIPT_DIR/ensure-devices.sh" resolve-e2e-android-serial 2>/dev/null)"; then
+    echo "E2E Android serial: $ANDROID_SERIAL"
+    if ! bash "$SCRIPT_DIR/ensure-devices.sh" check-e2e-app-android >/dev/null 2>&1; then
+      echo "Error: app not installed on E2E Android (${E2E_ANDROID_AVD})." >&2
+      echo "In another terminal: npm run mobile:e2e:android" >&2
+      exit 1
+    fi
+  else
+    echo "Warning: E2E Android not available; iOS-only Maestro run this pass."
+    ANDROID_SERIAL=""
+  fi
 fi
 
 # Flow-scoped retries after the initial suite pass (not a full-suite re-run).
@@ -282,16 +356,16 @@ RAN_ANY=0
 
 if [[ -n "$IOS_UDID" ]]; then
   RAN_ANY=1
-  echo "--- Maestro iOS phone (${E2E_IOS_NAME}) → ios-phone/ ---"
-  if ! run_maestro_slot "$IOS_UDID" "$IOS_PHONE_DIR" "iOS" "${FLOWS[@]}"; then
+  echo "--- Maestro ${IOS_SLOT_NAME} (${IOS_DEVICE_LABEL}) → ${IOS_SLOT_NAME}/ ---"
+  if ! run_maestro_slot "$IOS_UDID" "$IOS_SLOT_DIR" "iOS" "${FLOWS[@]}"; then
     EXIT_CODE=1
   fi
 fi
 
 if [[ -n "$ANDROID_SERIAL" ]]; then
   RAN_ANY=1
-  echo "--- Maestro Android phone (${E2E_ANDROID_AVD}) → android-phone/ ---"
-  if ! run_maestro_slot "$ANDROID_SERIAL" "$ANDROID_PHONE_DIR" "Android" "${FLOWS[@]}"; then
+  echo "--- Maestro ${ANDROID_SLOT_NAME} (${ANDROID_DEVICE_LABEL}) → ${ANDROID_SLOT_NAME}/ ---"
+  if ! run_maestro_slot "$ANDROID_SERIAL" "$ANDROID_SLOT_DIR" "Android" "${FLOWS[@]}"; then
     EXIT_CODE=1
   fi
 fi
@@ -304,8 +378,13 @@ fi
 node "$SCRIPT_DIR/e2e-html-report.mjs" "$REPORT_DIR"
 echo "Mobile E2E hub: $REPORT_DIR/index.html"
 echo "  Failures JSON: $REPORT_DIR/failures.json"
-echo "  iOS phone:     $REPORT_DIR/ios-phone/index.html"
-echo "  Android phone: $REPORT_DIR/android-phone/index.html"
+if [[ "$NEEDS_TABLET" -eq 1 ]]; then
+  echo "  iOS tablet:     $REPORT_DIR/ios-tablet/index.html"
+  echo "  Android tablet: $REPORT_DIR/android-tablet/index.html"
+else
+  echo "  iOS phone:     $REPORT_DIR/ios-phone/index.html"
+  echo "  Android phone: $REPORT_DIR/android-phone/index.html"
+fi
 echo "Latest symlink: $LATEST_LINK"
 
 if command -v open >/dev/null 2>&1; then
@@ -319,12 +398,19 @@ if [[ "$EXIT_CODE" -ne 0 ]]; then
   echo "Mobile E2E failed. Hints:"
   echo "  - Agent/operator triage (prefer failures.json first):"
   echo "      open $REPORT_DIR/failures.json"
-  echo "      open $REPORT_DIR/ios-phone/index.html"
-  echo "      open $REPORT_DIR/android-phone/index.html"
+  if [[ "$NEEDS_TABLET" -eq 1 ]]; then
+    echo "      open $REPORT_DIR/ios-tablet/index.html"
+    echo "      open $REPORT_DIR/android-tablet/index.html"
+    echo "  - Install E2E iOS tablet: npm run mobile:e2e:ios:tablet"
+    echo "  - Install E2E Android tablet: npm run mobile:e2e:android:tablet"
+  else
+    echo "      open $REPORT_DIR/ios-phone/index.html"
+    echo "      open $REPORT_DIR/android-phone/index.html"
+    echo "  - Install E2E iOS: npm run mobile:e2e:ios"
+    echo "  - Install E2E Android: npm run mobile:e2e:android"
+  fi
   echo "  - Per-flow pages: $REPORT_DIR/<slot>/flows/<slug>/index.html"
   echo "  - Metro: npm run mobile:dev (UI-only) or npm run mobile:dev:e2e (API-backed)"
   echo "  - Mobile E2E API (API-backed flows): npm run mobile:e2e:api"
-  echo "  - Install E2E iOS: npm run mobile:e2e:ios"
-  echo "  - Install E2E Android: npm run mobile:e2e:android"
   exit 1
 fi

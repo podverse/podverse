@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { getErrorResponseStatus } from '@podverse/helpers/error';
 import { toNonEmptyTrimmedString } from '@podverse/helpers/guards';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
@@ -11,6 +10,7 @@ import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
 import { Button } from '../../components/primitives';
 import { ListLoading } from '../../components/state/ListLoading';
+import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import type { SearchStackParamList } from '../../navigation';
 import { SEARCH_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
@@ -34,11 +34,7 @@ type PreviewFeedState = {
   title: string;
 };
 
-type AddErrorKey =
-  | 'features.search.add_failed'
-  | 'features.search.add_needs_membership'
-  | 'features.search.add_timed_out'
-  | null;
+type AddErrorKey = 'features.search.add_failed' | 'features.search.add_timed_out' | null;
 
 /** Replace the stale Add preview with channel detail on the Search stack. */
 const replaceWithSearchChannelDetail = (
@@ -66,6 +62,7 @@ export function PodcastIndexFeedPreviewScreen({
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { onRequestLogin } = useAuthPrompt();
   const { styles: themeStyles, tokens } = useTheme();
+  const { handleGateError } = useMembershipGate();
   const isMountedRef = useRef(true);
 
   const [feed, setFeed] = useState<PreviewFeedState | null>(() => {
@@ -236,11 +233,10 @@ export function PodcastIndexFeedPreviewScreen({
       if (!isMountedRef.current) {
         return;
       }
-      if (getErrorResponseStatus(error) === 403) {
-        setAddErrorKey('features.search.add_needs_membership');
-      } else {
-        setAddErrorKey('features.search.add_failed');
+      if (handleGateError(error)) {
+        return;
       }
+      setAddErrorKey('features.search.add_failed');
     } finally {
       if (isMountedRef.current) {
         setIsAdding(false);
@@ -250,6 +246,7 @@ export function PodcastIndexFeedPreviewScreen({
     accessToken,
     clearSession,
     feed,
+    handleGateError,
     isAdding,
     navigateToChannelDetail,
     onRequestLogin,

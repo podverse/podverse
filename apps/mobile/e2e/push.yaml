@@ -13,6 +13,10 @@ name: Push Notification Tap Routing
 # Mimics the notification payload target `/podcast/<id_text>` resolved by extractNotificationTargetPath.
 - openLink: podverse-next://podcast/e2ePodChnl001
 
+# iOS pops a native "Open in "Podverse Next"?" confirmation for own-scheme openLink; confirm it
+# (no-op on Android) so the URL reaches the running app.
+- runFlow: shared/confirm-ios-open-dialog.yaml
+
 - extendedWaitUntil:
     visible:
       id: podcast-detail-screen

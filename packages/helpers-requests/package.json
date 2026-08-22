@@ -44,10 +44,10 @@
     "@podverse/http-request-core": "*",
     "@podverse/observability": "*",
     "axios": "^1.19.0",
-    "ipaddr.js": "^2.3.0"
+    "ipaddr.js": "^2.5.0"
   },
   "type": "module",
   "devDependencies": {
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   }
 }

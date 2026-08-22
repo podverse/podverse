@@ -10,21 +10,26 @@ templates are blanks; this directory holds real plan instances.
 
 ## Indexed sets
 
-_Active (mobile):_
+_Active (mobile):_ Track 23 visual/UX polish is **operator-manual** (the checklist/apply
+phase `mobile-pg13-operator-polish/` was declined and archived; agent-assist is optional). Other
+remaining `_TBD_` mobile steps are Track 18.6–18.17 (Watch/TV/store), Track 19.2/19.3/19.5 (full store
+IAP), Track 19.6 (V4V LNURL — mobile approach operator-TBD), Track 20 (FOSS/F-Droid), Track 21
+(deferral docs), Track 22 (release process) — most are operator/store-gated or post-v1. See master plan
+[001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md).
+**Publish hold:** no alpha/internal test-track publish until the operator finishes manual polish.
 
-- `mobile-track14-16-unit-tests/` (node-only vitest coverage for the Track 14–16 pure logic:
-  deep-link path map 15.3, notification tap-routing target 14.4/14.8, share-URL parity 15.5, unified
-  prefs store 16.1; includes behavior-preserving pure-core extractions so tests stay out of the
-  RN/Expo import graph).
-
-PG-9 feature tracks (14, 15, 16) are functionally complete; this set closes the unit-test gap.
-Track 12 (CarPlay / Android Auto) is complete.
-
-_Active (non-mobile):_ `media-player-livestream-hls-migration/`,
-`web-e2e-coverage-high-level/`, `route-navigation-loading-warning/`,
-`web-404-hardening-deferred/`, `doc-link-path-missed-followup/`.
+_Active (non-mobile):_ `media-player-livestream-hls-migration/` (blocked on the media-player
+architecture refactor; `video.js` + the `Controller/LiveStream/` tree are still present),
+`web-404-hardening-deferred/` (deferred; no `isApiRequestNotFoundError` helper or SEO-fetcher
+404→`notFound()` wrapper exists yet), `web-e2e-coverage-high-level/` (planning-only baseline).
 
 _Recently completed (non-mobile):_
+[doc-link-path-missed-followup](../completed/doc-link-path-missed-followup/) (**obsolete** — the
+optional-extension-metrics README already uses the canonical repo-root link; no `../../` link
+remained),
+[route-navigation-loading-warning](../completed/route-navigation-loading-warning/) (**obsolete /
+superseded** — `useRouteNavigationLoading` was rewritten to `useSyncExternalStore` with no React
+setter, so the `useInsertionEffect` warning root cause is gone),
 [opml-test-hardening](../completed/opml-test-hardening/) (deferred OPML confidence work: HTTP 429
 burn-in tests, broker-backed worker integration + `requestId` dedupe regression, E2E hourly-counter
 determinism),
@@ -32,7 +37,39 @@ determinism),
 knobs with `_PER_MINUTE` / `_PER_10_MINUTES` / `_PER_HOUR` / `_PER_DAY`, plus local
 `rate-limit.env` override wiring).
 
-_Recently completed (mobile):_
+_Recently completed (mobile + web):_
+[membership-shared-helpers](../completed/membership-shared-helpers/) (pure DRY refactor of this branch's
+membership work — moved `deriveMembershipState` into `@podverse/helpers` (web dropped 3 inline
+derivations in `membership/page.tsx` / `MembershipExpiredBanner` / `MembershipExpirationToast`; mobile
+`membershipStatus.ts` is a thin re-export), and `MEMBERSHIP_GATE_I18N_KEYS` + `membershipDenialReason`
+into `@podverse/helpers-requests` beside `parseMembershipGateError` (mobile `membershipDenial.ts` + web
+`modalForMembership403.tsx` consume them). No behavior change; also documented that membership gating is
+RN-only and car/watch are ungated by design — `535-device-track-scope-matrix` + `car-ux-parity` overview.
+`shareUrl`/`useResponsive`/`mobileClientHeaders`/`checkoutUrl` reviewed and intentionally kept mobile-only),
+[web-membership-gate-parity-followups](../completed/web-membership-gate-parity-followups/) (completed
+web↔mobile membership-gating parity left open by `mobile-membership-and-v4v` Step 8: a shared
+`useQueueAddWithGate` routes member-gated **Add to Queue** row/header actions through the membership modal
+instead of the generic `queue.add_error` toast across 15 components; `requestNotificationPermission` now
+rethrows the member-gated webpush-device-register 403 so **enable web push** shows the membership modal.
+Added web E2E queue-add case + a `requestNotificationPermission` unit test),
+[mobile-membership-and-v4v](../completed/mobile-membership-and-v4v/) (web/mobile **membership-gating
+parity**: shared `parseMembershipGateError` in `@podverse/helpers-requests` — no API shape change;
+mobile premium blocked-action modal + expired banner + `useMembership`; a real Membership screen +
+web-link checkout; V4V placeholder screen; and **web** broadening its membership modal from 2 to the
+full member-only action set via a centralized `useMembershipGate` hook, with a `membership-gating`
+Playwright spec. Track 19.4/19.8/19.9/19.10/19.11/19.12; management-web excluded),
+[mobile-list-virtualization](../completed/mobile-list-virtualization/) (Subscriptions, PlaylistDetail,
+PodcastDetail converted to `FlatList`; virtualization baseline audit + `mobile-list-virtualization`
+abcmemory rule),
+[mobile-pg10-tablet](../completed/mobile-pg10-tablet/) +
+[mobile-pg10-tablet-followups](../completed/mobile-pg10-tablet-followups/) (responsive tablet
+home grid, split detail + player layout, tablet E2E incl. FullPlayer two-column, mid-band breakpoint
+decision docs, phone-Home `FlatList` intent lock),
+[mobile-e2e-green](../completed/mobile-e2e-green/) (all mobile Maestro flows green: iOS open-dialog
+handling, custom-scheme deep-link path fix, tablet tab-bar + orientation stabilization),
+[mobile-track14-16-unit-tests](../completed/mobile-track14-16-unit-tests/) (node-only vitest coverage
+for Track 14–16 pure logic: deep-link path map, notification tap-routing target, share-URL parity,
+unified prefs store),
 [mobile-track14-push](../completed/mobile-track14-push/) (14.1–14.8 — FCM playstore transport +
 device register/locale/permission UX, UnifiedPush FOSS transport + wrappers, notification tap
 routing via the 452/453 deep-link path, FOSS register doc + push-routing E2E; **Track 14 complete**),

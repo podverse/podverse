@@ -45,5 +45,15 @@ bitcoin UX.
 - Config-gated stub: `isMobileV4vEnabledFromEnv()` (`EXPO_PUBLIC_MOBILE_V4V_ENABLED === '1'`)
   surfaced as `getMobileConfig().isV4vEnabled`. Hidden by default, so store-restricted builds
   (F-Droid / Play) simply never set the flag — no non-compliant bitcoin UX ships.
-- When enabled, the full player shows a `full-player-v4v` button that toggles a "coming soon" notice
-  (`full-player-v4v-notice`). No LNURL / payment flow (deferred to Track 19); press never crashes.
+- When enabled, the full player shows a `full-player-v4v` button that navigates to the dedicated V4V
+  placeholder screen `V4vInfoScreen` (`v4v-info-screen`, root route `V4vInfo`, deep link `v4v`) — the
+  earlier inline `full-player-v4v-notice` toggle was removed (Track 19.6 placeholder slice, detail 565).
+  No LNURL / payment flow (deferred to Track 19); press never crashes.
+- **Visibility default (decided): hidden by default.** The button stays gated by
+  `EXPO_PUBLIC_MOBILE_V4V_ENABLED=1` (never flipped), keeping store-compliance acceptance criteria
+  intact. Enable per build/E2E by setting the flag; Track 19.8 E2E sets it to prove the button →
+  placeholder route.
+- **Real V4V implementation is operator-TBD.** Web uses a browser-extension flow that does not
+  translate to mobile; the mobile approach (native wallet / LNURL / other) has **not** been decided and
+  will be defined manually by the operator later. This slice ships only the **placeholder screen + env
+  gating + E2E** — no LNURL / wallet / payment logic — until that decision is made.
