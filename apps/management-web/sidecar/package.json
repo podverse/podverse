@@ -16,7 +16,7 @@
     "@podverse/integrations-web": "*",
     "@tanstack/react-query": "^5.101.4",
     "@tanstack/react-table": "^8.21.3",
-    "@types/react": "^19.2.16",
+    "@types/react": "^19.2.18",
     "axios": "^1.19.0",
     "next": "^16.2.11",
     "next-intl": "^4.13.4",
