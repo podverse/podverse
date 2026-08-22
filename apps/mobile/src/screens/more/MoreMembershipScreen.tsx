@@ -139,7 +139,7 @@ export function MoreMembershipScreen() {
   );
 
   return (
-    <MobileScreenContainer heading={t('membership.membership')} testID="more-membership-screen">
+    <MobileScreenContainer testID="more-membership-screen">
       {statusLines.length > 0 ? (
         <View style={styles.section} testID="more-membership-status">
           {statusLines.map((line, index) => (

@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useMemo } from 'react';
+import { useLayoutEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
@@ -45,8 +45,12 @@ export function MyProfileScreen({ navigation }: MyProfileScreenProps) {
   const profileTitle =
     account?.account_profile?.display_name ?? account?.id_text ?? t('features.my_profile');
 
+  useLayoutEffect(() => {
+    navigation.setOptions({ title: profileTitle });
+  }, [navigation, profileTitle]);
+
   return (
-    <MobileScreenContainer heading={profileTitle} testID="my-profile-screen">
+    <MobileScreenContainer testID="my-profile-screen">
       <AuthAwareLoadState
         emptyTestID="my-profile-auth-required"
         errorKey={errorKey}

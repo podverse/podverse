@@ -6,7 +6,8 @@ import { useTheme } from '../../theme/useTheme';
 
 type MobileScreenContainerProps = {
   children: ReactNode;
-  heading: string;
+  /** Omit on pushed stack screens — the native nav title is the heading (iOS Settings style). */
+  heading?: string;
   testID: string;
 };
 
@@ -24,7 +25,7 @@ export function MobileScreenContainer({ children, heading, testID }: MobileScree
           color: themeStyles.textPrimary.color,
           fontSize: 28,
           fontWeight: '700',
-          marginBottom: tokens.spacing.md,
+          marginBottom: tokens.spacing.lg,
         },
       }),
     [themeStyles, tokens]
@@ -37,7 +38,7 @@ export function MobileScreenContainer({ children, heading, testID }: MobileScree
       style={{ backgroundColor: themeStyles.screen.backgroundColor }}
       testID={testID}
     >
-      <Text style={styles.heading}>{heading}</Text>
+      {heading !== undefined ? <Text style={styles.heading}>{heading}</Text> : null}
       {children}
     </ScrollView>
   );

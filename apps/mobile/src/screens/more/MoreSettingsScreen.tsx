@@ -2,24 +2,25 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
-import type { UITheme } from '@podverse/design-tokens';
-import { ALL_POSSIBLE_THEMES } from '@podverse/design-tokens';
 import type { MediaTypePreference } from '@podverse/helpers';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { useAuth } from '../../auth/AuthProvider';
 import {
-  type SyncedNotificationType,
-  syncLocaleToAccountSettings,
   syncNotificationTypeToAccountSettings,
   syncPlaybackPreferenceToAccount,
 } from '../../auth/syncAccountPrefs';
+import type { SyncedNotificationType } from '../../auth/syncAccountPrefs';
+import { OptionChipGroup, SettingsOptionNavRow } from '../../components/form';
 import { Card } from '../../components/primitives/Card';
 import { ListRow } from '../../components/primitives/ListRow';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { getMobileConfig } from '../../config';
-import { applyAccountLocaleOverride } from '../../i18n';
 import { resolveSupportedLocale } from '../../i18n/locale';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
+import type { MoreStackParamList } from '../../navigation';
+import { MORE_STACK_ROUTES } from '../../navigation';
 import {
   readAutoQueuePrefs,
   writeAutoQueueRandomPref,
@@ -38,6 +39,7 @@ import {
 } from '../../push/fcmTransport';
 import { registerUnifiedPushDeviceForAccount } from '../../push/unifiedPushDeviceSync';
 import { useTheme } from '../../theme/useTheme';
+import type { SettingsLocaleOption } from './settingsLocaleOptions';
 
 const NOTIFICATION_TYPES: readonly SyncedNotificationType[] = [
   'new-item',
@@ -45,7 +47,6 @@ const NOTIFICATION_TYPES: readonly SyncedNotificationType[] = [
   'livestream-started',
 ];
 
-const LOCALE_OPTIONS = ['en-US', 'es', 'fr', 'el-GR'] as const;
 const PLAYBACK_MEDIA_OPTIONS: readonly MediaTypePreference[] = ['audio', 'video'];
 
 type ToggleMap = Record<SyncedNotificationType, boolean>;
@@ -66,14 +67,15 @@ const getAccountLocale = (accountLocale: string | null | undefined): string => {
 
 export function MoreSettingsScreen() {
   const { t, i18n } = useTranslation();
+  const navigation = useNavigation<NativeStackNavigationProp<MoreStackParamList>>();
   const { account, accessToken, setAccount, status } = useAuth();
   const { handleGateError } = useMembershipGate();
-  const { setUITheme, styles: themeStyles, tokens, uiTheme } = useTheme();
+  const { styles: themeStyles, tokens, uiTheme } = useTheme();
   const [playbackMediaType, setPlaybackMediaType] = useState<MediaTypePreference>(
     DEFAULT_PLAYBACK_MEDIA_TYPE
   );
-  const [selectedLocale, setSelectedLocale] = useState<string>(
-    resolveSupportedLocale(i18n.language)
+  const [selectedLocale, setSelectedLocale] = useState<SettingsLocaleOption>(
+    resolveSupportedLocale(i18n.language) as SettingsLocaleOption
   );
   const [notificationToggles, setNotificationToggles] = useState<ToggleMap>({
     'livestream-scheduled': false,
@@ -129,7 +131,7 @@ export function MoreSettingsScreen() {
         return;
       }
 
-      setSelectedLocale(targetLocale);
+      setSelectedLocale(targetLocale as SettingsLocaleOption);
       await setPref('locale', targetLocale);
     })();
 
@@ -147,32 +149,6 @@ export function MoreSettingsScreen() {
   }, [notificationTypeSet]);
 
   const isAuthenticated = status === 'authenticated';
-
-  const handleThemeChange = useCallback(
-    (theme: UITheme) => {
-      setUITheme(theme);
-    },
-    [setUITheme]
-  );
-
-  const handleLocaleChange = useCallback(
-    async (locale: string) => {
-      setErrorMessageKey(null);
-      setSelectedLocale(locale);
-      try {
-        await setPref('locale', locale);
-        await applyAccountLocaleOverride(locale);
-        await syncLocaleToAccountSettings({
-          accessToken,
-          locale,
-          setAccount,
-        });
-      } catch {
-        setErrorMessageKey('errors.generic');
-      }
-    },
-    [accessToken, setAccount]
-  );
 
   const handlePlaybackMediaTypeChange = useCallback(
     async (mediaType: MediaTypePreference) => {
@@ -260,37 +236,21 @@ export function MoreSettingsScreen() {
     await writeAutoQueueRepeatPref(enabled);
   }, []);
 
+  const playbackMediaOptions = useMemo(
+    () =>
+      PLAYBACK_MEDIA_OPTIONS.map((mediaTypeOption) => ({
+        label: t(`settings.preferred_media_type.${mediaTypeOption}`),
+        testID: `more-settings-playback-${mediaTypeOption}`,
+        value: mediaTypeOption,
+      })),
+    [t]
+  );
+
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        cardSpacing: {
-          marginTop: tokens.spacing.lg,
-        },
-        controlRow: {
-          alignItems: 'center',
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          gap: tokens.spacing.sm,
-          marginTop: tokens.spacing.sm,
-        },
-        optionButton: {
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.round,
-          borderWidth: 1,
-          paddingHorizontal: tokens.spacing.md,
-          paddingVertical: tokens.spacing.sm,
-        },
-        optionButtonActive: {
-          backgroundColor: themeStyles.buttonPrimary.backgroundColor,
-          borderColor: themeStyles.buttonPrimary.backgroundColor,
-        },
-        optionButtonText: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 14,
-          fontWeight: '600',
-        },
-        optionButtonTextActive: {
-          color: themeStyles.buttonPrimary.color,
+        cardStack: {
+          gap: tokens.spacing.base,
         },
         sectionDescription: {
           color: themeStyles.textSecondary.color,
@@ -309,10 +269,8 @@ export function MoreSettingsScreen() {
         sectionStack: {
           marginTop: tokens.spacing.md,
         },
-        warningText: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          marginTop: tokens.spacing.sm,
+        sectionStackAfterDescription: {
+          marginTop: tokens.spacing.lg,
         },
         warningLinkButton: {
           borderColor: themeStyles.border.borderColor,
@@ -328,73 +286,46 @@ export function MoreSettingsScreen() {
           fontSize: 13,
           fontWeight: '600',
         },
+        warningText: {
+          color: themeStyles.textSecondary.color,
+          fontSize: 13,
+          marginTop: tokens.spacing.sm,
+        },
       }),
     [themeStyles, tokens]
   );
 
+  const themeValueLabel = t(`settings.ui_theme.${uiTheme}`);
+  const localeValueLabel = t(`language.languages.${selectedLocale}`);
+
   return (
-    <MobileScreenContainer heading={t('settings.settings')} testID="more-settings-screen">
+    <MobileScreenContainer testID="more-settings-screen">
+      <View style={styles.cardStack}>
       <Card padded={false} testID="more-settings-theme-card">
         <View style={styles.sectionInner}>
-          <Text style={styles.sectionHeading}>{t('settings.ui_theme.theme')}</Text>
-          <Text style={styles.sectionDescription}>{t('settings.ui_theme.description')}</Text>
-          <View style={styles.controlRow}>
-            {ALL_POSSIBLE_THEMES.map((themeOption) => {
-              const isActive = uiTheme === themeOption;
-              return (
-                <Pressable
-                  accessibilityRole="button"
-                  key={themeOption}
-                  onPress={() => {
-                    handleThemeChange(themeOption);
-                  }}
-                  style={[styles.optionButton, isActive ? styles.optionButtonActive : null]}
-                  testID={`more-settings-theme-${themeOption}`}
-                >
-                  <Text
-                    style={[
-                      styles.optionButtonText,
-                      isActive ? styles.optionButtonTextActive : null,
-                    ]}
-                  >
-                    {t(`settings.ui_theme.${themeOption}`)}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+          <SettingsOptionNavRow
+            description={t('settings.ui_theme.description')}
+            onPress={() => {
+              navigation.navigate(MORE_STACK_ROUTES.MoreSettingsTheme);
+            }}
+            testID="more-settings-theme-select"
+            title={t('settings.ui_theme.theme')}
+            valueLabel={themeValueLabel}
+          />
         </View>
       </Card>
 
       <Card padded={false} testID="more-settings-locale-card">
         <View style={styles.sectionInner}>
-          <Text style={styles.sectionHeading}>{t('language.select_language')}</Text>
-          <Text style={styles.sectionDescription}>{t('language.description')}</Text>
-          <View style={styles.controlRow}>
-            {LOCALE_OPTIONS.map((localeOption) => {
-              const isActive = selectedLocale === localeOption;
-              return (
-                <Pressable
-                  accessibilityRole="button"
-                  key={localeOption}
-                  onPress={() => {
-                    void handleLocaleChange(localeOption);
-                  }}
-                  style={[styles.optionButton, isActive ? styles.optionButtonActive : null]}
-                  testID={`more-settings-locale-${localeOption}`}
-                >
-                  <Text
-                    style={[
-                      styles.optionButtonText,
-                      isActive ? styles.optionButtonTextActive : null,
-                    ]}
-                  >
-                    {t(`language.languages.${localeOption}`)}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+          <SettingsOptionNavRow
+            description={t('language.description')}
+            onPress={() => {
+              navigation.navigate(MORE_STACK_ROUTES.MoreSettingsLocale);
+            }}
+            testID="more-settings-locale-select"
+            title={t('language.select_language')}
+            valueLabel={localeValueLabel}
+          />
         </View>
       </Card>
 
@@ -404,30 +335,15 @@ export function MoreSettingsScreen() {
           <Text style={styles.sectionDescription}>
             {t('settings.preferred_media_type.description')}
           </Text>
-          <View style={styles.controlRow}>
-            {PLAYBACK_MEDIA_OPTIONS.map((mediaTypeOption) => {
-              const isActive = playbackMediaType === mediaTypeOption;
-              return (
-                <Pressable
-                  accessibilityRole="button"
-                  key={mediaTypeOption}
-                  onPress={() => {
-                    void handlePlaybackMediaTypeChange(mediaTypeOption);
-                  }}
-                  style={[styles.optionButton, isActive ? styles.optionButtonActive : null]}
-                  testID={`more-settings-playback-${mediaTypeOption}`}
-                >
-                  <Text
-                    style={[
-                      styles.optionButtonText,
-                      isActive ? styles.optionButtonTextActive : null,
-                    ]}
-                  >
-                    {t(`settings.preferred_media_type.${mediaTypeOption}`)}
-                  </Text>
-                </Pressable>
-              );
-            })}
+          <View style={styles.sectionStackAfterDescription}>
+            <OptionChipGroup
+              onChange={(mediaType) => {
+                void handlePlaybackMediaTypeChange(mediaType);
+              }}
+              options={playbackMediaOptions}
+              testID="more-settings-playback-chips"
+              value={playbackMediaType}
+            />
           </View>
         </View>
       </Card>
@@ -524,6 +440,7 @@ export function MoreSettingsScreen() {
           {t(errorMessageKey)}
         </Text>
       ) : null}
+      </View>
     </MobileScreenContainer>
   );
 }

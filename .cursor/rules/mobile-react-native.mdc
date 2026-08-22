@@ -50,7 +50,7 @@ alwaysApply: false
 - **Visual:** prefer shared RN primitives (`components/primitives/`) + tokens; ship **sketches** —
   operator pixel polish is Track **23** only —
   [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md)
-  and master plan **Ship bar**.
+  and master plan **Ship bar**. Full DRY rubric: **mobile-reusable-components** skill.
 - **ApiRequestService contract:** base URL is composed as `${prefix.replace(/\/$/, '')}${version}`.
   Keep `prefix` with no trailing slash and `version` with a leading slash (`/api` + `/v2`).
   Those fields come from `getMobileConfig().api` (parsed from the base URL env).
@@ -76,12 +76,20 @@ alwaysApply: false
   non-mobile surface (web/api) actually consumes it or imminently will. API request wrappers belong
   in `@podverse/helpers-requests`. Otherwise keep it mobile-local even if conceptually generic; the
   `@podverse/helpers` barrel is not mobile-importable (subpath exports only).
-- **Reusable first (DRY):** prioritize generic reusable components, hooks, and pure functions early.
-  If two screens share the same UI/state pattern (screen scaffold + loading/error/auth-empty states,
-  section cards, row mappers, queue/history loaders, add-by-rss async flow, etc.), extract into
-  `apps/mobile/src/components/`, `apps/mobile/src/hooks/`, or `apps/mobile/src/lib/` instead of
-  duplicating logic in screen files. Prefer small composable primitives over large screen-specific
-  implementations, and keep feature behavior wired through shared abstractions whenever possible.
+- **Reusable first (DRY) — mandatory for screens:** Do **not** rebuild loading/empty/error chrome,
+  list rows, section cards, screen scaffolds, or play/queue action rows from raw `View`/`Text`/
+  `Pressable` when a shared component already exists. Prefer this order:
+
+  1. Reuse `apps/mobile/src/components/**` (primitives, state, screen, section, player, feedback).
+  2. If missing but the pattern appears (or will appear) on **two+ screens**, extract into
+     `components/` (or a shared hook under `hooks/`) **before** duplicating JSX in a second screen;
+     extract on first write when the pattern is clearly generic (same bar as `src/lib/` helpers).
+  3. Keep screen files as orchestration (data hooks + wiring). Put presentation in shared components.
+
+  Inventory (extend here when adding new shared UI): `Button`, `Card`, `ListRow`, `ScreenHeader`,
+  `MobileScreenContainer`, `SectionCard`, `ListSection`, `ListLoading` / `ListEmpty` / `ListError`,
+  `AuthAwareLoadState`, `RetryableError`, `MediaRowActions`, `MiniPlayer`, gate/banner feedback.
+  Do **not** use `@podverse/ui` (web/SCSS). Details: **mobile-reusable-components** skill.
 - **Async naming (`fetch` vs `load`/`reload`):** split verbs by responsibility so names never collide
   when a screen orchestrator wraps a resource hook:
   - `fetch<Resource>` — pure data fetch (returns DTOs/rows; **no** `setState` / loading/error ownership).

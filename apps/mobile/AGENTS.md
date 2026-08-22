@@ -33,6 +33,8 @@ Contributor guide: [`APPS-MOBILE.md`](/apps/mobile/APPS-MOBILE.md).
 - **Helpers / lib:** put generic (non-screen-specific) helpers in `src/lib/` when first written —
   even with one callsite. Prefer domain modules (`src/auth`, `src/config`, …) when the domain owns
   the helper. See **mobile-react-native** rule.
+- **Reusable UI (DRY):** prefer `src/components/**` (primitives, state, screen, section, player)
+  over per-screen one-offs — see **mobile-reusable-components** skill and **mobile-react-native**.
 - **Playback:** reuse policy from `@podverse/playback-core`; implement a **native** bridge — see
   **mobile-playback** skill and
   [DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md).

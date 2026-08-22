@@ -11,6 +11,9 @@ version: 1.0.0
 - Building or refactoring UI in `apps/web` or `apps/management-web`.
 - You see repeated `page.module.scss` patterns for headers, forms, table shells, badges, loading/error text, or action rows.
 
+For **`apps/mobile`**, use **mobile-reusable-components** instead (RN primitives under
+`apps/mobile/src/components/**` — not `@podverse/ui`).
+
 ## Core rule
 
 Use `@podverse/ui` first for generic UI behavior. Add app-local components only when the behavior is truly product-specific.

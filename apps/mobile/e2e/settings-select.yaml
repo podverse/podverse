@@ -1,0 +1,53 @@
+appId: com.podverse.app.next
+name: Settings Select Pages
+---
+# Theme / language use pushed option-list screens (4+ → OptionListScreen). Preferred media stays chips.
+# Cold start via shared/launch-and-connect.yaml (retries Dev Client connect).
+
+- runFlow: shared/launch-and-connect.yaml
+- tapOn:
+    id: tab-more
+- assertVisible:
+    id: more-screen
+- tapOn:
+    id: more-settings
+- assertVisible:
+    id: more-settings-screen
+- takeScreenshot: settings-select-initial
+
+# Theme: push list screen, pick Light, back on settings with Light shown.
+- tapOn:
+    id: more-settings-theme-select
+- assertVisible:
+    id: more-settings-theme-screen
+- takeScreenshot: settings-theme-list
+- tapOn:
+    id: more-settings-theme-light
+- assertVisible:
+    id: more-settings-screen
+- assertVisible:
+    id: more-settings-theme-select
+- takeScreenshot: settings-theme-light
+
+# Language: push list screen, pick Spanish, back on settings.
+- tapOn:
+    id: more-settings-locale-select
+- assertVisible:
+    id: more-settings-locale-screen
+- takeScreenshot: settings-locale-list
+- tapOn:
+    id: more-settings-locale-es
+- assertVisible:
+    id: more-settings-screen
+- assertVisible:
+    id: more-settings-locale-select
+- takeScreenshot: settings-locale-es
+
+# Preferred media type remains chips (2 options).
+- assertVisible:
+    id: more-settings-playback-chips
+- assertVisible:
+    id: more-settings-playback-audio
+- tapOn:
+    id: more-settings-playback-video
+- takeScreenshot: settings-playback-video
