@@ -57,7 +57,7 @@
     "@playwright/test": "^1.59.1",
     "@podverse/helpers-config": "*",
     "@types/node": "^24.12.0",
-    "@types/react": "^19.2.16",
+    "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.2",
     "@types/video.js": "^7.3.58",
     "dotenv": "^17.2.2",
