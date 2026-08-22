@@ -10,6 +10,7 @@ import { PlaylistForm } from '../../../../components/Playlist/PlaylistForm';
 import { MEDIUM } from '../../../../constants/medium';
 import { SHARABLE_STATUS } from '../../../../constants/sharableStatus';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
+import { useMembershipGate } from '../../../../hooks/useMembershipGate';
 import { usePlaylistEditPageContext } from './PlaylistEditPageContext';
 
 type PlaylistEditPageFormProps = {
@@ -21,6 +22,7 @@ export const PlaylistEditPageForm: React.FC<PlaylistEditPageFormProps> = ({ ssrP
   const tFeatures = useTranslations('features');
   const tMisc = useTranslations('misc');
   const router = useRouter();
+  const { tryHandleMembershipGateError } = useMembershipGate();
   const {
     medium,
     setMedium,
@@ -49,16 +51,21 @@ export const PlaylistEditPageForm: React.FC<PlaylistEditPageFormProps> = ({ ssrP
   const onSubmit = async () => {
     setIsUpdating(true);
 
-    const playlist = await getApiRequestService().reqPlaylistEdit({
-      id_text: ssrPlaylist.id_text,
-      title,
-      description,
-      sharable_status_id: Number(sharableStatus),
-    });
-
-    setIsUpdating(false);
-
-    router.push(`/playlist/${playlist.id_text}`);
+    try {
+      const playlist = await getApiRequestService().reqPlaylistEdit({
+        id_text: ssrPlaylist.id_text,
+        title,
+        description,
+        sharable_status_id: Number(sharableStatus),
+      });
+      router.push(`/playlist/${playlist.id_text}`);
+    } catch (error) {
+      if (!tryHandleMembershipGateError(error)) {
+        throw error;
+      }
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const isValidSubmit = () => {

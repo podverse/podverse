@@ -1,0 +1,67 @@
+appId: com.podverse.app.next
+name: Membership Gate
+---
+# Track 19.8 (567): a Trial member attempting a Premium-only action (Podcast Index directory add)
+# gets a REAL membership.feature_not_available_for_account_type 403, which the app surfaces as the
+# premium gate modal; "Renew" routes to the Membership screen. Also asserts the auth-based CTA:
+# logged-out shows "Sign Up", logged-in shows "Extend My Membership".
+#
+# API-backed only (no test-assets). The seeded e2e-user is a valid Trial member, so subscribe/playlist
+# would NOT 403 — the directory-add capability gate (allowDirectoryAddByRSS=false for Trial, and NOT
+# bypassed by PODVERSE_E2E_FIXTURES) is the deterministic trigger. Fixture query `unparsedfixture`
+# opens the PI preview/add screen (see search-unparsed.yaml / e2eUnparsedSearchFixture.ts).
+
+- runFlow: shared/launch-and-connect.yaml
+
+# Logged-out: the Membership screen (reachable from More) shows the auth-based Sign Up CTA.
+- tapOn:
+    id: tab-more
+- assertVisible:
+    id: more-screen
+- tapOn:
+    id: more-nav-membership
+- assertVisible:
+    id: more-membership-screen
+- assertVisible:
+    id: more-membership-cta
+    text: "Sign Up"
+- takeScreenshot: membership-gate-signup-cta
+
+# Log in as the seeded Trial user (tapping the active More tab pops back to the More root first).
+- runFlow: shared/login-seeded-user.yaml
+
+# Trigger the Premium-only directory-add capability gate.
+- tapOn:
+    id: tab-search
+- assertVisible:
+    id: search-screen
+- tapOn:
+    id: search-input
+- inputText: unparsedfixture
+- assertVisible:
+    id: search-result-row-0
+- tapOn:
+    id: search-result-row-0
+- assertVisible:
+    id: pi-feed-preview-screen
+- tapOn:
+    id: pi-feed-add-button
+
+# The 403 opens the premium gate modal instead of a raw error.
+- extendedWaitUntil:
+    visible:
+      id: premium-gate-modal
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: membership-gate-modal
+
+# Renew (logged-in) routes to the Membership screen with the "Extend My Membership" CTA.
+- tapOn:
+    id: premium-gate-renew
+- extendedWaitUntil:
+    visible:
+      id: more-membership-screen
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    id: more-membership-cta
+    text: "Extend My Membership"
+- takeScreenshot: membership-gate-membership-screen

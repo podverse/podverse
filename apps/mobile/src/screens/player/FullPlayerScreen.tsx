@@ -32,6 +32,8 @@ import { FullPlayerUpNext } from './FullPlayerUpNext';
 
 type FullPlayerScreenProps = {
   onClose: () => void;
+  /** Navigate to the V4V placeholder screen (Track 19.6). */
+  onOpenV4v: () => void;
 };
 
 type FullPlayerPanel = 'sleep' | 'speed' | 'up-next' | null;
@@ -71,7 +73,7 @@ const segmentContentFromTarget = (
  * video lands, the single native `VideoSurfaceHost` is re-parented (bridge attach) from the `mini`
  * to the `full` target — see media-engine README § "Player UI single-surface ownership".
  */
-export function FullPlayerScreen({ onClose }: FullPlayerScreenProps) {
+export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) {
   const { t } = useTranslation();
   const { isTablet } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
@@ -89,7 +91,6 @@ export function FullPlayerScreen({ onClose }: FullPlayerScreenProps) {
 
   const [scrubberWidth, setScrubberWidth] = useState(0);
   const [openPanel, setOpenPanel] = useState<FullPlayerPanel>(null);
-  const [isV4vNoticeVisible, setIsV4vNoticeVisible] = useState(false);
 
   const isV4vEnabled = getMobileConfig().isV4vEnabled;
 
@@ -392,12 +393,10 @@ export function FullPlayerScreen({ onClose }: FullPlayerScreenProps) {
                 {isV4vEnabled ? (
                   <Button
                     label={t('media_player.value_for_value')}
-                    onPress={() => {
-                      setIsV4vNoticeVisible((current) => !current);
-                    }}
+                    onPress={onOpenV4v}
                     size="sm"
                     testID="full-player-v4v"
-                    variant={isV4vNoticeVisible ? 'primary' : 'secondary'}
+                    variant="secondary"
                   />
                 ) : null}
               </View>
@@ -405,11 +404,6 @@ export function FullPlayerScreen({ onClose }: FullPlayerScreenProps) {
               {openPanel === 'up-next' ? <FullPlayerUpNext /> : null}
               {openPanel === 'speed' ? <FullPlayerSpeedControl /> : null}
               {openPanel === 'sleep' ? <FullPlayerSleepTimer /> : null}
-              {isV4vEnabled && isV4vNoticeVisible ? (
-                <Text style={styles.subtitle} testID="full-player-v4v-notice">
-                  {t('media_player.coming_soon')}
-                </Text>
-              ) : null}
 
               {segmentContent !== null ? (
                 <FullPlayerSegments channel={segmentContent.channel} item={segmentContent.item} />

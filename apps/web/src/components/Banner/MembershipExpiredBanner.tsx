@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 
-import { isMembershipExpiredAt } from '@podverse/helpers';
+import { deriveMembershipState } from '@podverse/helpers';
 import { Banner } from '@podverse/ui';
 
 import { ROUTES } from '../../constants/routes';
@@ -13,12 +13,7 @@ export const MembershipExpiredBanner = () => {
   const t = useTranslations('membership');
   const { loggedInAccount } = useAccount();
 
-  const membershipExpiresAt = loggedInAccount?.account_membership_status?.membership_expires_at;
-  if (!membershipExpiresAt) {
-    return null;
-  }
-
-  if (!isMembershipExpiredAt(membershipExpiresAt)) {
+  if (!deriveMembershipState(loggedInAccount).isExpired) {
     return null;
   }
 

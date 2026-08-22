@@ -20,6 +20,7 @@ import { useModals } from '../../../../../contexts/Modals';
 import { useQueues } from '../../../../../contexts/Queue';
 import { getApiRequestService } from '../../../../../factories/apiRequestService';
 import { useMediaPlayerResourceUpdate } from '../../../../../hooks/useMediaPlayerResourceUpdate';
+import { useQueueAddWithGate } from '../../../../../hooks/useQueueAddWithGate';
 import { playbackTargetFromStandardLoad } from '../../../../../lib/playback';
 import { downloadTrackWithModal } from '../../../../../utils/downloadModal/downloadTrackWithModal';
 import { downloadAndSaveFile } from '../../../../../utils/fileDownloader';
@@ -55,6 +56,7 @@ export const ListTrackRow: React.FC<Props> = ({
   likeRow,
 }) => {
   const apiRequestService = getApiRequestService();
+  const { runQueueAdd } = useQueueAddWithGate();
   const router = useRouter();
   const url = `${ROUTES.TRACK}/${item.id_text}`;
   const imageSizeTarget = IMAGES.LIST.TRACKS.DESKTOP.SIZE_FIND_TARGET;
@@ -125,10 +127,13 @@ export const ListTrackRow: React.FC<Props> = ({
 
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
-      showToastPromise(apiRequestService.reqQueueResourceItemAddNext(queue.id_text, item.id_text), {
-        success: tFeatures('queue.added_to_queue'),
-        error: tFeatures('queue.add_error'),
-      });
+      void runQueueAdd(
+        () => apiRequestService.reqQueueResourceItemAddNext(queue.id_text, item.id_text),
+        {
+          success: tFeatures('queue.added_to_queue'),
+          error: tFeatures('queue.add_error'),
+        }
+      );
     }
   };
 
@@ -143,10 +148,13 @@ export const ListTrackRow: React.FC<Props> = ({
 
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
-      showToastPromise(apiRequestService.reqQueueResourceItemAddLast(queue.id_text, item.id_text), {
-        success: tFeatures('queue.added_to_queue'),
-        error: tFeatures('queue.add_error'),
-      });
+      void runQueueAdd(
+        () => apiRequestService.reqQueueResourceItemAddLast(queue.id_text, item.id_text),
+        {
+          success: tFeatures('queue.added_to_queue'),
+          error: tFeatures('queue.add_error'),
+        }
+      );
     }
   };
 

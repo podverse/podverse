@@ -547,6 +547,9 @@ describe('account follows and notification routes', () => {
       expect(res.status).toBe(403);
       expect(res.body.message).toBe('Your membership has expired. Renew to use this feature.');
       expect(res.body.code).toBe('membership_expired');
+      // Contract consumed by web + mobile via the shared parseMembershipGateError parser.
+      expect(res.body.i18nKey).toBe('membership.membership_expired');
+      expect(res.body.renewPath).toBe('/membership/renew');
     });
   });
 

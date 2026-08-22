@@ -6,9 +6,11 @@ export * from './lib/i18n/index.js';
 export * from './lib/constants/index.js';
 export {
   AccountMembershipEnum,
+  deriveMembershipState,
   hasValidMembership,
   isMembershipExpiredAt,
 } from './lib/accountMembership.js';
+export type { MembershipState, MembershipTier } from './lib/accountMembership.js';
 export * from './lib/accountTrust.js';
 export * from './lib/accountSignupMode.js';
 export * from './lib/adminAccountCredentialsLimits.js';

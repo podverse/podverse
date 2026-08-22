@@ -9,14 +9,13 @@ import type { PodcastByIdFeed } from '@podverse/helpers';
 import { DIRECTORY_ADD_POLL_TIMEOUT_MS, formatDateAbbrev } from '@podverse/helpers';
 import { Button, ImageLightboxModal, SkeletonFlashImage } from '@podverse/ui';
 
-import { getContactEmail } from '../../constants/contact';
 import { IMAGES } from '../../constants/images';
 import { useAccount } from '../../contexts/Account';
 import { useConfig } from '../../contexts/Config';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
+import { useMembershipGate } from '../../hooks/useMembershipGate';
 import { dedupedTrimmedUrlCandidates } from '../../utils/image/dedupedTrimmedUrlCandidates';
-import { getMembership403ModalProps } from '../../utils/membership/modalForMembership403';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 import { redirectToChannelPageByMediumClient } from '../../utils/redirect/redirectToChannelPageByMedium';
 
@@ -33,7 +32,6 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
   const tMedia = useTranslations('media');
   const tMisc = useTranslations('misc');
   const tInstructions = useTranslations('instructions');
-  const tMembership = useTranslations('membership');
   const [isLoading, setIsLoading] = useState(false);
   const [pollTimedOut, setPollTimedOut] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -56,6 +54,7 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
   const hasRedirectedRef = useRef(false);
   const { loggedInAccount } = useAccount();
   const { setModalLoginRequired } = useModals();
+  const { tryHandleMembershipGateError } = useMembershipGate();
 
   const clearPolling = () => {
     if (pollIntervalRef.current) {
@@ -128,19 +127,12 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
         startPollingForChannel(podcastIndexFeed.id);
       } catch (error: unknown) {
         const rateLimitErrorHandled = await handleRateLimitAlert(error, locale, tMisc);
-        if (!rateLimitErrorHandled) {
-          const membershipModal = getMembership403ModalProps({
-            error,
-            contactEmail: getContactEmail(),
-            featureContext: 'directory_add_by_rss',
-            tMembership,
-          });
-          if (membershipModal !== null) {
-            setModalLoginRequired(membershipModal);
-          } else {
-            console.error(error);
-            alert('Error performing action.');
-          }
+        if (
+          !rateLimitErrorHandled &&
+          !tryHandleMembershipGateError(error, { featureContext: 'directory_add_by_rss' })
+        ) {
+          console.error(error);
+          alert('Error performing action.');
         }
         setIsLoading(false);
       }

@@ -9,6 +9,7 @@ import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
 import { Button } from '../../components/primitives';
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
+import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useTheme } from '../../theme/useTheme';
 
 /**
@@ -38,6 +39,7 @@ export function useAddToPlaylist(): UseAddToPlaylist {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
+  const { handleGateError } = useMembershipGate();
 
   const [target, setTarget] = useState<AddToPlaylistTarget | null>(null);
   const [playlists, setPlaylists] = useState<DTOPlaylist[]>([]);
@@ -103,13 +105,17 @@ export function useAddToPlaylist(): UseAddToPlaylist {
             : api.reqPlaylistResourceItemAddLast(playlist.id_text, target.idText)
         );
         setNoticeKey('features.playlist.added_to_playlist');
-      } catch {
+      } catch (error) {
+        if (handleGateError(error)) {
+          closeSheet();
+          return;
+        }
         setNoticeKey('features.playlist.add_error');
       } finally {
         setIsSaving(false);
       }
     },
-    [authArgs, isSaving, target]
+    [authArgs, closeSheet, handleGateError, isSaving, target]
   );
 
   const styles = useMemo(

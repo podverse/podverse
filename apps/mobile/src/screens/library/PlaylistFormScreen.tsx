@@ -10,6 +10,7 @@ import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
 import { Button } from '../../components/primitives';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
+import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import type { LibraryStackParamList } from '../../navigation';
 import { LIBRARY_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
@@ -169,6 +170,7 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
     void loadPlaylist();
   }, [loadPlaylist]);
 
+  const { handleGateError } = useMembershipGate();
   const trimmedTitle = title.trim();
   const canSubmit = status === 'authenticated' && trimmedTitle.length > 0 && !isSubmitting;
 
@@ -203,7 +205,10 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
         })
       );
       navigation.replace(LIBRARY_STACK_ROUTES.PlaylistDetail, { playlistId: created.id_text });
-    } catch {
+    } catch (error) {
+      if (handleGateError(error)) {
+        return;
+      }
       setErrorKey('errors.generic');
     } finally {
       setIsSubmitting(false);
@@ -213,6 +218,7 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
     canSubmit,
     description,
     editPlaylistId,
+    handleGateError,
     navigation,
     sharableStatusId,
     trimmedTitle,

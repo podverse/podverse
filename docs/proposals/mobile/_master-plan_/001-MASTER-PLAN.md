@@ -723,11 +723,26 @@ CarPlay / Android Auto. See
 19.1. Document store IAP vs web PayPal parity matrix (what mobile can sell). Model: Opus 4.8. Detail: [560-iap-parity-matrix](/docs/proposals/mobile/_master-plan_/details/560-iap-parity-matrix.md) — done
 19.2. Integrate RevenueCat or native StoreKit/Billing for subscription SKUs. Model: Opus 4.8. Detail: [561-iap-sdk-integration](/docs/proposals/mobile/_master-plan_/details/561-iap-sdk-integration.md) — _TBD_
 19.3. Server receipt validation endpoint contract (reuse or extend API). Model: Opus 4.8. Detail: [562-receipt-validation-api](/docs/proposals/mobile/_master-plan_/details/562-receipt-validation-api.md) — _TBD_
-19.4. Membership gating UI mirrors web entitlement checks via `@podverse/helpers`. Model: Codex 5.3. Detail: [563-membership-gating-ui](/docs/proposals/mobile/_master-plan_/details/563-membership-gating-ui.md) — _TBD_
+19.4. Membership gating UI mirrors web entitlement checks via `@podverse/helpers`. Model: Codex 5.3. Detail: [563-membership-gating-ui](/docs/proposals/mobile/_master-plan_/details/563-membership-gating-ui.md) — done
 19.5. Restore purchases flow and account linking on login. Model: Opus 4.8. Detail: [564-restore-purchases](/docs/proposals/mobile/_master-plan_/details/564-restore-purchases.md) — _TBD_
 19.6. V4V boost entry on full player (Track 11.14) with LNURL flow from web parity. Model: Opus 4.8. Detail: [565-v4v-lnurl-flow](/docs/proposals/mobile/_master-plan_/details/565-v4v-lnurl-flow.md) — _TBD_
 19.7. Document alpha/beta: IAP disabled or sandbox-only per Track 4 alpha app id. Model: Auto. Detail: [566-iap-alpha-sandbox](/docs/proposals/mobile/_master-plan_/details/566-iap-alpha-sandbox.md) — done
-19.8. E2E: membership gate screenshot for locked content (mock entitlement). Model: Codex 5.3. Detail: [567-e2e-membership-gate](/docs/proposals/mobile/_master-plan_/details/567-e2e-membership-gate.md) — _TBD_
+19.8. E2E: membership gate screenshot for locked content (mock entitlement). Model: Codex 5.3. Detail: [567-e2e-membership-gate](/docs/proposals/mobile/_master-plan_/details/567-e2e-membership-gate.md) — done
+19.9. Mobile Membership screen (real): explain tiers (Free vs Premium, web parity), Sign Up (logged-out) / Extend (logged-in) CTA. Model: Opus 4.8. Detail: [568-mobile-membership-screen](/docs/proposals/mobile/_master-plan_/details/568-mobile-membership-screen.md) — done
+19.10. Mobile checkout entry: open web sign-up/checkout (in-app browser) until native IAP (19.2); isolated swap seam. Model: Codex 5.3. Detail: [569-mobile-checkout-entry](/docs/proposals/mobile/_master-plan_/details/569-mobile-checkout-entry.md) — done
+19.11. Shared membership-403 parser (`@podverse/helpers-requests`) + OpenAPI docs + regression tests for the existing 403 contract (`i18nKey`/`renewPath`) — **no API behavior change**; web + mobile consume it for parity. Model: Opus 4.8. Detail: [563-membership-gating-ui](/docs/proposals/mobile/_master-plan_/details/563-membership-gating-ui.md) — done
+19.12. V4V full-player button → placeholder screen (placeholder slice; full LNURL flow remains 19.6). Model: Auto. Detail: [565-v4v-lnurl-flow](/docs/proposals/mobile/_master-plan_/details/565-v4v-lnurl-flow.md) — done
+
+**Mobile + web membership parity & V4V placeholder (added 2026-08-05; completed 2026-08-05):** detailed and executed via
+[`.llm/plans/completed/mobile-membership-and-v4v/`](/.llm/plans/completed/mobile-membership-and-v4v/COPY-PASTA.md).
+Step map: 19.11 → plan 01 (shared `parseMembershipGateError` + OpenAPI docs; **no API shape change**);
+19.4 → plan 02–03 (mobile `useMembership`, premium gate modal + expired banner) **and** plan 08 (web
+parity — broaden the membership modal to the full member-only action set; web app only, management-web
+excluded as admin-only); 19.9 → 04 (Membership screen); 19.10 → 05 (web-link checkout); 19.12 → 06
+(V4V placeholder); 19.8 → 07 (mobile E2E gate + renew nav + V4V; web E2E in 08). The API already sends
+distinguishing 403s (`i18nKey`/`renewPath`), so parity = both clients consuming the same contract via
+one parser. Full store IAP (19.2/19.3/19.5) and the V4V LNURL flow (19.6) remain `_TBD_` and are **not**
+in this set. The **publish hold** still applies.
 
 ## Track 20 — F-Droid / FOSS flavor
 
@@ -1203,11 +1218,13 @@ Agents **must** keep this column in sync with step lines in **Tracks** when stat
 | 560-iap-parity-matrix                       | 19.1       | 560-iap-parity-matrix                       | Opus 4.8  | done                                 |
 | 561-iap-sdk-integration                     | 19.2       | 561-iap-sdk-integration                     | Opus 4.8  | _TBD_                                |
 | 562-receipt-validation-api                  | 19.3       | 562-receipt-validation-api                  | Opus 4.8  | _TBD_                                |
-| 563-membership-gating-ui                    | 19.4       | 563-membership-gating-ui                    | Codex 5.3 | _TBD_                                |
+| 563-membership-gating-ui                    | 19.4       | 563-membership-gating-ui                    | Codex 5.3 | done                                 |
 | 564-restore-purchases                       | 19.5       | 564-restore-purchases                       | Opus 4.8  | _TBD_                                |
 | 565-v4v-lnurl-flow                          | 19.6       | 565-v4v-lnurl-flow                          | Opus 4.8  | _TBD_                                |
 | 566-iap-alpha-sandbox                       | 19.7       | 566-iap-alpha-sandbox                       | Auto      | done                                 |
-| 567-e2e-membership-gate                     | 19.8       | 567-e2e-membership-gate                     | Codex 5.3 | _TBD_                                |
+| 567-e2e-membership-gate                     | 19.8       | 567-e2e-membership-gate                     | Codex 5.3 | done                                 |
+| 568-mobile-membership-screen                | 19.9       | 568-mobile-membership-screen                | Opus 4.8  | done                                 |
+| 569-mobile-checkout-entry                   | 19.10      | 569-mobile-checkout-entry                   | Codex 5.3 | done                                 |
 | 570-foss-flavor-definition                  | 20.1       | 570-foss-flavor-definition                  | Opus 4.8  | done                                 |
 | 571-foss-unifiedpush                        | 20.2       | 571-foss-unifiedpush                        | Opus 4.8  | done                                 |
 | 572-foss-reproducibility-audit              | 20.3       | 572-foss-reproducibility-audit              | Codex 5.3 | done                                 |

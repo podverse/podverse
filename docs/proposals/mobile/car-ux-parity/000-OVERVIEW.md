@@ -34,6 +34,15 @@ Naming may differ (old `NowPlayingItem` / `subscribedPodcasts` vs new DTOs / `id
 The new surfaces read a **durable native cache** that JS writes while the phone app is open.
 Car services never start JS to browse or play. See the architecture doc linked above.
 
+**Membership never gates car browse or play.** Membership entitlement gates only premium _mutations_
+(queue add, playlists, notifications, directory add-by-RSS, clips), which are RN-screen actions
+enforced by the API. The car only **browses cached content and plays it as a direct transport action**
+([394](/docs/proposals/mobile/_master-plan_/details/394-car-playback-url-resolution.md)) — playback is
+not a gated feature — so no 403 can originate here and cached content plays regardless of current
+membership state. **Do not add an entitlement check to the native browse/play path**; it would couple
+cached playback to membership and break the app-closed constraint. Scope table:
+[535-device-track-scope-matrix](/docs/proposals/mobile/_master-plan_/details/535-device-track-scope-matrix.md).
+
 ## Old UX summary (source of truth)
 
 Primary sources in `podverse-rn` (branch `develop`):

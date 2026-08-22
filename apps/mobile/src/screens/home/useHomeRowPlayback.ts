@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 
 import type { QueueMutationKind, QueueMutationMediaType } from '../../hooks/useQueueMutations';
 import { useQueueMutations } from '../../hooks/useQueueMutations';
+import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { usePlayback } from '../../playback/PlaybackProvider';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
 import type { HomeFeedRowData } from './homeFeedData';
@@ -51,6 +52,7 @@ export type QueueActionPosition = 'next' | 'last';
 export function useHomeRowPlayback() {
   const [queueNoticeKey, setQueueNoticeKey] = useState<QueueNoticeKey | null>(null);
   const { addToQueueLast, addToQueueNext } = useQueueMutations();
+  const { handleGateError } = useMembershipGate();
   const { noticeKey: playbackNoticeKeyFromEngine, playClipById, playItemById } = usePlayback();
 
   const runPlayAction = useCallback(
@@ -95,12 +97,15 @@ export function useHomeRowPlayback() {
             ? addToQueueNext(target.idText, target.kind, mediaType)
             : addToQueueLast(target.idText, target.kind, mediaType));
           setQueueNoticeKey(added ? 'features.queue.added_to_queue' : 'features.queue.add_error');
-        } catch {
+        } catch (error) {
+          if (handleGateError(error)) {
+            return;
+          }
           setQueueNoticeKey('features.queue.add_error');
         }
       })();
     },
-    [addToQueueLast, addToQueueNext]
+    [addToQueueLast, addToQueueNext, handleGateError]
   );
 
   return {

@@ -19,6 +19,7 @@ import { MobileScreenContainer } from '../../components/screen/MobileScreenConta
 import { getMobileConfig } from '../../config';
 import { applyAccountLocaleOverride } from '../../i18n';
 import { resolveSupportedLocale } from '../../i18n/locale';
+import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import {
   readAutoQueuePrefs,
   writeAutoQueueRandomPref,
@@ -66,6 +67,7 @@ const getAccountLocale = (accountLocale: string | null | undefined): string => {
 export function MoreSettingsScreen() {
   const { t, i18n } = useTranslation();
   const { account, accessToken, setAccount, status } = useAuth();
+  const { handleGateError } = useMembershipGate();
   const { setUITheme, styles: themeStyles, tokens, uiTheme } = useTheme();
   const [playbackMediaType, setPlaybackMediaType] = useState<MediaTypePreference>(
     DEFAULT_PLAYBACK_MEDIA_TYPE
@@ -234,15 +236,18 @@ export function MoreSettingsScreen() {
           setAccount,
           type,
         });
-      } catch {
+      } catch (error) {
         setNotificationToggles((prev) => ({
           ...prev,
           [type]: previousValue,
         }));
+        if (handleGateError(error)) {
+          return;
+        }
         setErrorMessageKey('errors.generic');
       }
     },
-    [accessToken, notificationToggles, selectedLocale, setAccount]
+    [accessToken, handleGateError, notificationToggles, selectedLocale, setAccount]
   );
 
   const handleAutoQueueRandomToggle = useCallback(async (enabled: boolean) => {

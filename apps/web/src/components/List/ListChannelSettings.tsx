@@ -5,13 +5,12 @@ import { DEDUPE_WINDOW_RSS_ON_DEMAND_MS } from '@podverse/helpers';
 import { getStatusCodeFromError } from '@podverse/helpers-requests';
 import { Divider, SwitchButton } from '@podverse/ui';
 
-import { getContactEmail } from '../../constants/contact';
 import { useAccount } from '../../contexts/Account';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { useLoadingMap } from '../../hooks/useLoadingMap';
+import { useMembershipGate } from '../../hooks/useMembershipGate';
 import { buildLocalizedFeedParseStatusLines } from '../../lib/feed/buildLocalizedFeedParseStatusLines';
-import { getMembership403ModalProps } from '../../utils/membership/modalForMembership403';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 import { RSSFeedSettingsSection } from '../Settings/RSSFeedSettingsSection';
 import { SettingsSection } from '../Settings/SettingsSection';
@@ -27,9 +26,9 @@ export const ListChannelSettings = ({ channel }: ListChannelSettingsProps) => {
   const tSettings = useTranslations('settings');
   const tInstructions = useTranslations('instructions');
   const tMisc = useTranslations('misc');
-  const tMembership = useTranslations('membership');
   const { loggedInAccount, setLoggedInAccount } = useAccount();
   const { setModalLoginRequired } = useModals();
+  const { tryHandleMembershipGateError } = useMembershipGate();
   const { loadingMap, withLoading, setLoadingFor } = useLoadingMap();
   const locale = useLocale();
   const feedLog = channel.feed?.feed_log;
@@ -72,19 +71,12 @@ export const ListChannelSettings = ({ channel }: ListChannelSettingsProps) => {
           return;
         }
         const rateLimitErrorHandled = await handleRateLimitAlert(error, locale, tMisc);
-        if (!rateLimitErrorHandled) {
-          const membershipModal = getMembership403ModalProps({
-            error,
-            contactEmail: getContactEmail(),
-            featureContext: 'manual_refresh',
-            tMembership,
-          });
-          if (membershipModal !== null) {
-            setModalLoginRequired(membershipModal);
-          } else {
-            console.error(error);
-            alert('Error performing action.');
-          }
+        if (
+          !rateLimitErrorHandled &&
+          !tryHandleMembershipGateError(error, { featureContext: 'manual_refresh' })
+        ) {
+          console.error(error);
+          alert('Error performing action.');
         }
       }
     }
@@ -145,8 +137,10 @@ export const ListChannelSettings = ({ channel }: ListChannelSettingsProps) => {
           });
           setLoggedInAccount(updated as DTOAccount);
         }
-      } catch (e) {
-        console.warn('Could not toggle channel notification type', type, e);
+      } catch (error) {
+        if (!tryHandleMembershipGateError(error)) {
+          console.warn('Could not toggle channel notification type', type, error);
+        }
       }
     });
 

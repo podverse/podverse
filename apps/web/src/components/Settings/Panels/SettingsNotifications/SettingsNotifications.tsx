@@ -20,6 +20,7 @@ import { useModals } from '../../../../contexts/Modals';
 import { useNotifications } from '../../../../contexts/Notifications';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { useLoadingMap } from '../../../../hooks/useLoadingMap';
+import { useMembershipGate } from '../../../../hooks/useMembershipGate';
 import { disableNotificationPermission } from '../../../../lib/notifications/webpush/disableNotificationPermission';
 import { requestNotificationPermission } from '../../../../lib/notifications/webpush/requestNotificationPermission';
 import { SettingsSection } from '../../SettingsSection';
@@ -39,6 +40,7 @@ export function SettingsNotifications() {
   const { loadingMap, withLoading, setLoadingFor } = useLoadingMap();
   const { loggedInAccount, setLoggedInAccount } = useAccount();
   const { setModalLoginRequired } = useModals();
+  const { tryHandleMembershipGateError } = useMembershipGate();
   const tInstructions = useTranslations('instructions');
   const tMisc = useTranslations('misc');
   const tSettings = useTranslations('settings');
@@ -70,6 +72,13 @@ export function SettingsNotifications() {
       await withLoading('webpush', async () => {
         await requestNotificationPermission();
       });
+    } catch (error) {
+      // requestNotificationPermission rethrows a membership 403 (member-gated device register) so we
+      // can surface the shared membership modal instead of its generic alert; other errors it handles
+      // internally and does not throw.
+      if (!tryHandleMembershipGateError(error)) {
+        console.warn('Could not enable web push', error);
+      }
     } finally {
       if (typeof window !== 'undefined' && 'Notification' in window) {
         const p = Notification.permission;
@@ -182,9 +191,11 @@ export function SettingsNotifications() {
         setShowUPForm(false);
         setUPAuthKeyInput('');
       });
-    } catch (e) {
-      console.warn('Could not enable Unified Push', e);
-      setUPEndpointError(tSettings('notifications.up_enable_error'));
+    } catch (error) {
+      if (!tryHandleMembershipGateError(error)) {
+        console.warn('Could not enable Unified Push', error);
+        setUPEndpointError(tSettings('notifications.up_enable_error'));
+      }
     } finally {
       setLoadingFor('unifiedpush', false);
     }
@@ -257,8 +268,10 @@ export function SettingsNotifications() {
           });
           setLoggedInAccount(updated as unknown as typeof loggedInAccount);
         }
-      } catch (e) {
-        console.warn('Could not toggle notification type', type, e);
+      } catch (error) {
+        if (!tryHandleMembershipGateError(error)) {
+          console.warn('Could not toggle notification type', type, error);
+        }
       }
     });
 

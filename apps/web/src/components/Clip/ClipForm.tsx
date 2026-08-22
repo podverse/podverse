@@ -23,6 +23,7 @@ import { useMediaPlayerControls } from '../../contexts/MediaPlayerControls';
 import { useMediaPlayerCurrentTime } from '../../contexts/MediaPlayerCurrentTime';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
+import { useMembershipGate } from '../../hooks/useMembershipGate';
 import { MediaHeaderMini } from '../MediaHeaderMini/MediaHeaderMini';
 import { ClipEditorPlayer } from './ClipEditorPlayer';
 
@@ -72,6 +73,7 @@ export const ClipForm: React.FC<ClipFormProps> = ({
   const tMisc = useTranslations('misc');
   const router = useRouter();
   const apiRequestService = getApiRequestService();
+  const { tryHandleMembershipGateError } = useMembershipGate();
 
   const sharableStatusDropdownMenuItems = SHARABLE_STATUS.menuItems(tMisc);
 
@@ -99,8 +101,14 @@ export const ClipForm: React.FC<ClipFormProps> = ({
 
   const handleDelete = async () => {
     if (edit_clip_id_text && window.confirm(tFeatures('clip.delete_clip_confirm'))) {
-      await apiRequestService.reqClipDelete(edit_clip_id_text);
-      router.push('/clips');
+      try {
+        await apiRequestService.reqClipDelete(edit_clip_id_text);
+        router.push('/clips');
+      } catch (error) {
+        if (!tryHandleMembershipGateError(error)) {
+          throw error;
+        }
+      }
     }
   };
 

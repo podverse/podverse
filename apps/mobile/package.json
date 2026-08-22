@@ -51,6 +51,7 @@
     "expo-sqlite": "~15.1.4",
     "expo-status-bar": "~2.0.1",
     "expo-updates-interface": "~1.0.0",
+    "expo-web-browser": "~14.0.2",
     "he": "^1.2.0",
     "i18next": "^26.3.4",
     "joi": "^18.0.1",

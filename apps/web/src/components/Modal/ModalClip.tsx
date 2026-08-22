@@ -8,6 +8,7 @@ import { Modal } from '@podverse/ui';
 
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
+import { useMembershipGate } from '../../hooks/useMembershipGate';
 import { ClipForm } from '../Clip/ClipForm';
 
 export const ModalClip: React.FC = () => {
@@ -15,6 +16,7 @@ export const ModalClip: React.FC = () => {
   const tMisc = useTranslations('misc');
   const header = tFeatures('clip.create_clip');
   const { modalClip, setModalClip, setModalClipCreated } = useModals();
+  const { tryHandleMembershipGateError } = useMembershipGate();
 
   const [sharableStatus, setSharableStatus] = React.useState<string>(
     `${SharableStatusEnum.Private}`
@@ -48,17 +50,22 @@ export const ModalClip: React.FC = () => {
       const finalStartTime = hhmmssToSecondsNumeric(startTimeString);
       const finalEndTime = endTimeString ? hhmmssToSecondsNumeric(endTimeString) : null;
 
-      const clip = await getApiRequestService().reqClipCreate({
-        item_id_text: modalClip.item.id_text,
-        sharable_status_id: finalSharableStatusId,
-        title: finalTitle.length > 0 ? finalTitle : null,
-        start_time: finalStartTime,
-        end_time: finalEndTime,
-      });
-
-      setIsUpdating(false);
-      clearModalClip();
-      setModalClipCreated({ clip });
+      try {
+        const clip = await getApiRequestService().reqClipCreate({
+          item_id_text: modalClip.item.id_text,
+          sharable_status_id: finalSharableStatusId,
+          title: finalTitle.length > 0 ? finalTitle : null,
+          start_time: finalStartTime,
+          end_time: finalEndTime,
+        });
+        clearModalClip();
+        setModalClipCreated({ clip });
+      } catch (error) {
+        setIsUpdating(false);
+        if (!tryHandleMembershipGateError(error)) {
+          throw error;
+        }
+      }
     }
   };
 

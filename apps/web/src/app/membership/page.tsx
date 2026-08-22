@@ -2,11 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import React from 'react';
 
 import type { DTOAccount } from '@podverse/helpers';
-import {
-  AccountMembershipEnum,
-  calculateTimeRemaining,
-  isMembershipExpiredAt,
-} from '@podverse/helpers';
+import { calculateTimeRemaining, deriveMembershipState } from '@podverse/helpers';
 import { MainColumnStack, MainHeader, MainSidebarLayout, SideContent } from '@podverse/ui';
 
 import { FeatureComparison } from '../../components/FeatureComparison/FeatureComparison';
@@ -76,24 +72,13 @@ export default async function MembershipPage() {
     }
   }
 
-  // Determine user status
-  const accountMembershipStatus = ssrLoggedInAccount?.account_membership_status;
-  // Handle both DTO structure (account_membership_id) and populated structure (account_membership.id)
-  type MembershipStatusWithPopulated = typeof accountMembershipStatus & {
-    account_membership?: { id?: number };
-  };
-  const membershipId =
-    accountMembershipStatus?.account_membership_id ??
-    (accountMembershipStatus as MembershipStatusWithPopulated)?.account_membership?.id;
-  const isTrialStatus = membershipId === AccountMembershipEnum.Trial;
-  const isPremiumStatus = membershipId === AccountMembershipEnum.Premium;
-  const membershipExpiresAt = accountMembershipStatus?.membership_expires_at;
-
-  // Check if membership has expired
-  const isMembershipExpired =
-    membershipExpiresAt !== null &&
-    membershipExpiresAt !== undefined &&
-    isMembershipExpiredAt(membershipExpiresAt);
+  // Determine user status (shared derivation — tolerant of both the DTO `account_membership_id` and a
+  // populated `account_membership.id`).
+  const membership = deriveMembershipState(ssrLoggedInAccount);
+  const isTrialStatus = membership.tier === 'trial';
+  const isPremiumStatus = membership.tier === 'premium';
+  const membershipExpiresAt = membership.expiresAt;
+  const isMembershipExpired = membership.isExpired;
 
   // Calculate time left in membership if active
   const { daysLeft, hoursLeft, minutesLeft } =

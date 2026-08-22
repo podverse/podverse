@@ -15,6 +15,7 @@ import { useQueues } from '../../../contexts/Queue';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useLikesClipBatch } from '../../../hooks/useLikesClipBatch';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
+import { useQueueAddWithGate } from '../../../hooks/useQueueAddWithGate';
 import { playbackTargetFromStandardLoad } from '../../../lib/playback';
 import { downloadEpisodeWithModal } from '../../../utils/downloadModal/downloadEpisodeWithModal';
 import { downloadAndSaveFile } from '../../../utils/fileDownloader';
@@ -38,6 +39,7 @@ export const ClipHeaderPlaySection: React.FC<ClipHeaderPlaySectionProps> = ({
   channel,
 }) => {
   const apiRequestService = getApiRequestService();
+  const { runQueueAdd } = useQueueAddWithGate();
   const tFeatures = useTranslations('features');
   const tMedia = useTranslations('media');
   const tMediaPlayer = useTranslations('media_player');
@@ -111,10 +113,13 @@ export const ClipHeaderPlaySection: React.FC<ClipHeaderPlaySectionProps> = ({
 
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
-      showToastPromise(apiRequestService.reqQueueResourceClipAddNext(queue.id_text, clip.id_text), {
-        success: tFeatures('queue.added_to_queue'),
-        error: tFeatures('queue.add_error'),
-      });
+      void runQueueAdd(
+        () => apiRequestService.reqQueueResourceClipAddNext(queue.id_text, clip.id_text),
+        {
+          success: tFeatures('queue.added_to_queue'),
+          error: tFeatures('queue.add_error'),
+        }
+      );
     }
   };
 
@@ -129,10 +134,13 @@ export const ClipHeaderPlaySection: React.FC<ClipHeaderPlaySectionProps> = ({
 
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
-      showToastPromise(apiRequestService.reqQueueResourceClipAddLast(queue.id_text, clip.id_text), {
-        success: tFeatures('queue.added_to_queue'),
-        error: tFeatures('queue.add_error'),
-      });
+      void runQueueAdd(
+        () => apiRequestService.reqQueueResourceClipAddLast(queue.id_text, clip.id_text),
+        {
+          success: tFeatures('queue.added_to_queue'),
+          error: tFeatures('queue.add_error'),
+        }
+      );
     }
   };
 

@@ -11,8 +11,12 @@ import { defineConfig } from 'vitest/config';
  * (`src/config/deepLinkSchemes.ts`), deep-link path mapping (`src/navigation/deepLinking.ts`), pure notification
  * payload target extraction (`src/push/notificationTarget.ts`), share URL mapping (`src/lib/share/shareUrl.ts`),
  * prefs storage guards/hydration (`src/prefs/prefsStore.ts`), the Podcast Index search preview poll helper
- * (`src/screens/search/podcastIndexFeedPreview.ts`), and the client-version/platform header builder
- * (`src/auth/mobileClientHeaders.ts` — pure; the RN-coupled resolution stays in `mobileApi.ts`). Scope
+ * (`src/screens/search/podcastIndexFeedPreview.ts`), the client-version/platform header builder
+ * (`src/auth/mobileClientHeaders.ts` — pure; the RN-coupled resolution stays in `mobileApi.ts`), the
+ * membership denial mapping (`src/membership/membershipDenial.ts` — pure; note the membership-state
+ * derivation now lives in `@podverse/helpers` `deriveMembershipState`, tested there, and the RN-coupled
+ * `useMembership` hook is excluded), and the membership checkout URL builder
+ * (`src/membership/checkoutUrl.ts` — pure; the RN `Linking` opener stays in `checkoutEntry.ts`). Scope
  * the `include` narrowly so tests never pull in native/Expo modules — the excluded adapter
  * (`src/bridge/nativePlaybackBridge.ts`) imports `expo-modules-core`, and repositories import
  * `expo-sqlite`, so neither is tested here. `apps/mobile` is a standalone install; run with
@@ -31,6 +35,8 @@ export default defineConfig({
       'src/downloads/**/*.test.ts',
       'src/lib/home/homeFeedRefresh.test.ts',
       'src/lib/share/shareUrl.test.ts',
+      'src/membership/checkoutUrl.test.ts',
+      'src/membership/membershipDenial.test.ts',
       'src/navigation/deepLinking.test.ts',
       'src/prefs/prefsStore.test.ts',
       'src/push/notificationTarget.test.ts',

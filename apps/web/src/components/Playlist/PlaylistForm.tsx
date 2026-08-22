@@ -7,6 +7,7 @@ import type { FormDropdownOption } from '@podverse/ui';
 import { Button, Divider, FormDropdown, FormTextArea, StackForm, TextInput } from '@podverse/ui';
 
 import { getApiRequestService } from '../../factories/apiRequestService';
+import { useMembershipGate } from '../../hooks/useMembershipGate';
 
 import styles from '../../styles/components/Playlist/PlaylistForm.module.scss';
 
@@ -53,11 +54,18 @@ export const PlaylistForm: React.FC<PlaylistFormProps> = ({
 }) => {
   const router = useRouter();
   const apiRequestService = getApiRequestService();
+  const { tryHandleMembershipGateError } = useMembershipGate();
 
   const handleDelete = async () => {
     if (edit_playlist_id_text && window.confirm(tFeatures('playlist.delete_playlist_confirm'))) {
-      await apiRequestService.reqPlaylistDelete(edit_playlist_id_text);
-      router.push('/playlists');
+      try {
+        await apiRequestService.reqPlaylistDelete(edit_playlist_id_text);
+        router.push('/playlists');
+      } catch (error) {
+        if (!tryHandleMembershipGateError(error)) {
+          throw error;
+        }
+      }
     }
   };
 

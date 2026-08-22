@@ -34,6 +34,7 @@ import { LibraryQueueScreen } from '../screens/library/LibraryQueueScreen';
 import { LibrarySubscriptionsScreen } from '../screens/library/LibrarySubscriptionsScreen';
 import { PlaylistDetailScreen } from '../screens/library/PlaylistDetailScreen';
 import { PlaylistFormScreen } from '../screens/library/PlaylistFormScreen';
+import { MoreMembershipScreen } from '../screens/more/MoreMembershipScreen';
 import { MoreOpmlScreen } from '../screens/more/MoreOpmlScreen';
 import { MoreSettingsScreen } from '../screens/more/MoreSettingsScreen';
 import { FullPlayerScreen } from '../screens/player/FullPlayerScreen';
@@ -44,6 +45,7 @@ import { AddByRssFeedListScreen } from '../screens/rss/AddByRssFeedListScreen';
 import { AddByRssRootScreen } from '../screens/rss/AddByRssRootScreen';
 import { PodcastIndexFeedPreviewScreen } from '../screens/search/PodcastIndexFeedPreviewScreen';
 import { SearchScreen } from '../screens/search/SearchScreen';
+import { V4vInfoScreen } from '../screens/v4v/V4vInfoScreen';
 import { useTheme } from '../theme/useTheme';
 import { mapIncomingPathToScopedPath, mapScopedPathToFlatPath } from './deepLinking';
 
@@ -212,6 +214,7 @@ export const MORE_STACK_ROUTES = {
 export const ROOT_STACK_ROUTES = {
   FullPlayer: 'FullPlayer',
   MainTabs: 'MainTabs',
+  V4vInfo: 'V4vInfo',
 } as const;
 
 // Tablet breakpoint for adaptive tab rail (Track 7.17) — same `lg` token as useResponsive.
@@ -219,6 +222,7 @@ export const MOBILE_TABLET_NAV_MIN_WIDTH = breakpoints.lg;
 
 const mobileNavigationScreens = {
   FullPlayer: 'player',
+  V4vInfo: 'v4v',
   MainTabs: {
     screens: {
       Home: {
@@ -378,7 +382,10 @@ export type MoreStackParamList = {
 
 type RootStackParamList = {
   FullPlayer: undefined;
-  MainTabs: undefined;
+  // Nested params so the global membership gate/banner (mounted above the navigator) can deep-navigate
+  // to More ▸ Membership via `navigateToMembershipScreen()`.
+  MainTabs: NavigatorScreenParams<MobileTabParamList> | undefined;
+  V4vInfo: undefined;
 };
 
 /** Bottom-tab route names, used for type-safe cross-tab navigation (e.g. Home → RSS). */
@@ -389,6 +396,21 @@ export type MobileTabParamList = {
   RSS: undefined;
   More: NavigatorScreenParams<MoreStackParamList> | undefined;
 };
+
+/**
+ * Navigate to More ▸ Membership from anywhere — used by the app-wide membership gate modal and the
+ * expired banner, which live above the navigator (so they cannot use `useNavigation`). No-op until
+ * the navigation container is ready.
+ */
+export function navigateToMembershipScreen(): void {
+  if (!rootNavigationRef.isReady()) {
+    return;
+  }
+  rootNavigationRef.navigate(ROOT_STACK_ROUTES.MainTabs, {
+    screen: 'More',
+    params: { screen: MORE_STACK_ROUTES.MoreMembership },
+  });
+}
 
 function HomeStackNavigator() {
   const { t } = useTranslation();
@@ -805,10 +827,6 @@ function MoreAboutScreen() {
   return <PlaceholderScreen testID="more-about-screen" title="About Placeholder" />;
 }
 
-function MoreMembershipScreen() {
-  return <PlaceholderScreen testID="more-membership-screen" title="Membership Placeholder" />;
-}
-
 type TabScaffoldProps = {
   onOpenFullPlayer: () => void;
   onRequestLogin: () => void;
@@ -954,9 +972,17 @@ export function MobileTabNavigator({
                 }
                 props.navigation.navigate(ROOT_STACK_ROUTES.MainTabs);
               }}
+              onOpenV4v={() => {
+                props.navigation.navigate(ROOT_STACK_ROUTES.V4vInfo);
+              }}
             />
           )}
         </RootStack.Screen>
+        <RootStack.Screen
+          component={V4vInfoScreen}
+          name={ROOT_STACK_ROUTES.V4vInfo}
+          options={{ presentation: 'modal' }}
+        />
       </RootStack.Navigator>
     </NavigationContainer>
   );

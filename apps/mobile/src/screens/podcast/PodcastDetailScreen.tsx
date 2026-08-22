@@ -24,6 +24,7 @@ import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
+import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import type { ChannelBrowseStackParamList } from '../../navigation';
 import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
 import { useResponsive } from '../../theme/useResponsive';
@@ -321,6 +322,8 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     [navigation]
   );
 
+  const { handleGateError } = useMembershipGate();
+
   const handleSubscriptionToggle = useCallback(async () => {
     if (status !== 'authenticated') {
       setSubscriptionNoticeKey('authentication.login_required');
@@ -357,7 +360,10 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
             ) === true;
       setIsSubscribed(nextSubscribed);
       homeFeedRefresh.notify();
-    } catch {
+    } catch (error) {
+      if (handleGateError(error)) {
+        return;
+      }
       setSubscriptionNoticeKey('errors.generic');
     } finally {
       setIsSavingSubscription(false);
@@ -366,6 +372,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     accessToken,
     clearSession,
     channel?.id,
+    handleGateError,
     isSavingSubscription,
     isSubscribed,
     podcastId,

@@ -10,6 +10,7 @@ import {
   isValidAddByRssFeedUrl,
   pollAddByRssParseStatus,
 } from '../lib/addByRss/domain';
+import { useMembershipGate } from '../membership/MembershipGateProvider';
 
 type UseAddByRssAddFlowOptions = {
   inputValue: string;
@@ -25,6 +26,7 @@ export function useAddByRssAddFlow({
   setInputValue,
 }: UseAddByRssAddFlowOptions) {
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
+  const { handleGateError } = useMembershipGate();
   const [isAdding, setIsAdding] = useState<boolean>(false);
   const [addErrorKey, setAddErrorKey] = useState<string | null>(null);
 
@@ -106,7 +108,10 @@ export function useAddByRssAddFlow({
       setInputValue('');
       onNotice('features.add_by_rss.status_parsed');
       await onAfterAdd();
-    } catch {
+    } catch (error) {
+      if (handleGateError(error)) {
+        return;
+      }
       setAddErrorKey('errors.generic');
     } finally {
       setIsAdding(false);
@@ -114,6 +119,7 @@ export function useAddByRssAddFlow({
   }, [
     accessToken,
     clearSession,
+    handleGateError,
     inputValue,
     onAfterAdd,
     onNotice,

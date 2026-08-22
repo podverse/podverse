@@ -8,6 +8,7 @@ import type { DTOChannel } from '@podverse/helpers';
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
 import { getApiRequestService } from '../../../factories/apiRequestService';
+import { useMembershipGate } from '../../../hooks/useMembershipGate';
 import { requestNotificationPermission } from '../../../lib/notifications/webpush/requestNotificationPermission';
 import { IconButton } from '../Header/IconButton';
 
@@ -29,6 +30,7 @@ export const NotificationIconButton: React.FC<NotificationIconButtonProps> = ({
   const tInstructions = useTranslations('instructions');
   const { loggedInAccount, setLoggedInAccount } = useAccount();
   const { setModalLoginRequired } = useModals();
+  const { tryHandleMembershipGateError } = useMembershipGate();
 
   const isSubscribed = loggedInAccount?.account_notification_channels?.some(
     (account_notification_channel) => account_notification_channel.channel_id === channel.id
@@ -43,32 +45,38 @@ export const NotificationIconButton: React.FC<NotificationIconButtonProps> = ({
       return;
     }
 
-    if (isSubscribed) {
-      const updatedAccount = await apiRequestService.reqAccountNotificationChannelDelete({
-        channel_id_text: channel.id_text,
-      });
-      await setLoggedInAccount(updatedAccount);
-    } else {
-      // Read permission into a fresh variable to avoid TypeScript narrowing issues
-      const permissionBefore =
-        typeof Notification !== 'undefined' ? Notification.permission : undefined;
+    try {
+      if (isSubscribed) {
+        const updatedAccount = await apiRequestService.reqAccountNotificationChannelDelete({
+          channel_id_text: channel.id_text,
+        });
+        await setLoggedInAccount(updatedAccount);
+      } else {
+        // Read permission into a fresh variable to avoid TypeScript narrowing issues
+        const permissionBefore =
+          typeof Notification !== 'undefined' ? Notification.permission : undefined;
 
-      if (permissionBefore !== 'granted') {
-        // Request permission first
-        await requestNotificationPermission();
+        if (permissionBefore !== 'granted') {
+          // Request permission first
+          await requestNotificationPermission();
+        }
+
+        // Re-read permission after the async call
+        const permissionAfterRequest =
+          typeof Notification !== 'undefined' ? Notification.permission : undefined;
+        if (permissionAfterRequest !== 'granted') {
+          return;
+        }
+
+        const updatedAccount = await apiRequestService.reqAccountNotificationChannelCreate({
+          channel_id_text: channel.id_text,
+        });
+        await setLoggedInAccount(updatedAccount);
       }
-
-      // Re-read permission after the async call
-      const permissionAfterRequest =
-        typeof Notification !== 'undefined' ? Notification.permission : undefined;
-      if (permissionAfterRequest !== 'granted') {
-        return;
+    } catch (error) {
+      if (!tryHandleMembershipGateError(error)) {
+        throw error;
       }
-
-      const updatedAccount = await apiRequestService.reqAccountNotificationChannelCreate({
-        channel_id_text: channel.id_text,
-      });
-      await setLoggedInAccount(updatedAccount);
     }
   };
 

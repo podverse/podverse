@@ -169,15 +169,27 @@ npm run mobile:e2e:test -- api-health
 # or: npm run mobile:e2e:test -- push
 # or: npm run mobile:e2e:test -- tab-switch-playback
 # or: npm run mobile:e2e:test -- queue-add
+# or: npm run mobile:e2e:test -- membership-gate
 ```
 
-Playback flows (`play-mini-player`, `auto-queue-advance`) additionally need **Mobile E2E
+The **`membership-gate`** flow needs the API only (no `:2111`). It logs in as the seeded **Trial**
+`e2e-user`, taps Podcast Index directory **Add** (`unparsedfixture`), and asserts the real
+`membership.feature_not_available_for_account_type` **403** surfaces the premium gate modal →
+**Renew** → Membership screen (and the logged-out Membership screen shows the **Sign Up** CTA).
+
+Playback flows (`play-mini-player`, `auto-queue-advance`, `v4v`) additionally need **Mobile E2E
 test-assets** (`npm run mobile:e2e:test-assets` on `:2111`) leave-running for real media:
 
 ```bash
 npm run mobile:e2e:test -- play-mini-player
 # or: npm run mobile:e2e:test -- auto-queue-advance
+# or: npm run mobile:e2e:test -- v4v
 ```
+
+The **`v4v`** flow plays a seeded episode to reach the full player, then taps the Value-for-Value
+button and asserts the placeholder screen. The V4V button is **hidden by default** (store policy,
+detail 359); `mobile:dev:e2e` sets `EXPO_PUBLIC_MOBILE_V4V_ENABLED=1` so the button renders for E2E.
+After changing that flag you must **reload/reinstall** the app so Metro rebundles the new value.
 
 Optional convenience: instead of leave-running **Mobile E2E API**, start the API in the background
 from **Mobile**, then health-check:

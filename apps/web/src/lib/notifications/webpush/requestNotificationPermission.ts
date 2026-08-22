@@ -1,4 +1,5 @@
 import { urlBase64ToUint8Array } from '@podverse/helpers-browser';
+import { parseMembershipGateError } from '@podverse/helpers-requests';
 
 import { getConfig } from '../../../config';
 import { getApiRequestService } from '../../../factories/apiRequestService';
@@ -71,6 +72,13 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
 
     return true;
   } catch (error) {
+    // The web-push device register (reqAccountWebPushDeviceCreate/Update) is member-gated
+    // (skipMembershipStatus: false), so an expired/insufficient member gets a `membership.*` 403.
+    // Make that observable so callers can show the shared membership modal (via useMembershipGate)
+    // instead of this generic alert. Non-membership failures keep the existing alert + console behavior.
+    if (parseMembershipGateError(error) !== null) {
+      throw error;
+    }
     alert('Error requesting notification permission. See console for details.');
     console.error('Error Requesting Notification Permission:', error);
     return false;
