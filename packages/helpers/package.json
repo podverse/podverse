@@ -96,11 +96,11 @@
   "dependencies": {
     "date-fns": "^4.4.0",
     "he": "^1.2.0",
-    "uuid": "^14.0.1"
+    "uuid": "^14.0.2"
   },
   "devDependencies": {
     "@types/he": "^1.2.3",
     "@types/node": "^24.12.0",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   }
 }

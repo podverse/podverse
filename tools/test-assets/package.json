@@ -25,7 +25,7 @@
     "generate_and_parse": "tsx src/generate-and-parse.ts"
   },
   "dependencies": {
-    "@faker-js/faker": "^10.3.0",
+    "@faker-js/faker": "^10.6.0",
     "@podverse/helpers": "*",
     "@podverse/helpers-backend": "*",
     "@podverse/orm": "*",
