@@ -27,3 +27,14 @@ Also not abcmemory unless you explicitly ask: `docs/`, `.github/`, and ad-hoc pa
 When the user says **abcremember**, **create or update** the best-fit abcmemory file(s) under **`.cursor/`** (or `.cursorrules` / `.cursorignore`): prefer updating existing guidance when the instruction extends the same topic; create a new skill, rule, or prompt only when no suitable file exists. Then follow that guidance in future work. Do **not** write to `.llm/` unless they explicitly say to remember something there.
 
 For placement and workflow details, see `.cursor/skills/abcmemory/SKILL.md`.
+
+## legacy app
+
+**legacy app** (also **podverse-rn**, **v4 mobile**) means the React Native app in the sibling
+checkout **`../podverse-rn`** relative to this monorepo root (typically
+`/Users/mitcheldowney/repos/pv/podverse-rn`).
+
+**Nextgen** / **this monorepo** (`podverse`) is the current product codebase, including
+`apps/mobile`.
+
+See **legacy-app-reference** for when and how to open that checkout.
