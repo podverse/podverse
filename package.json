@@ -58,9 +58,9 @@
     }
   },
   "dependencies": {
-    "postcss": "8.5.25",
+    "postcss": "8.5.26",
     "sharp": "0.35.3",
-    "uuid": "14.0.1"
+    "uuid": "14.0.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -71,7 +71,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "globals": "^17.4.0",
-    "pg": "^8.21.0",
+    "pg": "^8.23.0",
     "prettier": "^3.4.2",
     "prettier-plugin-sh": "^0.18.0",
     "typescript": "^5.9.2",

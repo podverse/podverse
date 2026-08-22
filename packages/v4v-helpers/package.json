@@ -22,7 +22,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   },
   "type": "module",
   "sideEffects": false

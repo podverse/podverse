@@ -37,9 +37,9 @@
   },
   "license": "AGPL-3.0",
   "peerDependencies": {
-    "next": "^16.2.11",
+    "next": "^16.3.1",
     "react": "^19.2.8",
-    "react-virtuoso": "^4.18.11"
+    "react-virtuoso": "^4.18.12"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.1",
@@ -49,13 +49,13 @@
     "@types/sanitize-html": "^2.16.0",
     "@vitejs/plugin-react": "^5.1.1",
     "jsdom": "^26.1.0",
-    "next": "^16.2.11",
+    "next": "^16.3.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "react-virtuoso": "^4.18.11",
+    "react-virtuoso": "^4.18.12",
     "sass": "^1.102.0",
     "typescript": "^5.9.2",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   },
   "dependencies": {
     "@podverse/helpers": "*",
@@ -64,6 +64,6 @@
     "react-hot-toast": "^2.6.0",
     "react-icons": "^5.7.0",
     "recharts": "^3.10.0",
-    "sanitize-html": "^2.17.4"
+    "sanitize-html": "^2.17.7"
   }
 }
