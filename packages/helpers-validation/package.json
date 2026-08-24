@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@podverse/helpers": "*",
-    "joi": "^18.0.1"
+    "joi": "^18.2.5"
   },
   "devDependencies": {
     "vitest": "^4.1.11"
