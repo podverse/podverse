@@ -1,10 +1,12 @@
 import {
   canReadEmbedDemo,
   canReadFeeds,
+  canReadNotifications,
   canReadStats,
   canReadStorage,
 } from './managementPermissions';
 import type { CurrentUser } from './requests/auth';
+import { ROUTES } from './routes';
 
 export type ManagementNavSection =
   | 'feedFlagStatus'
@@ -12,6 +14,7 @@ export type ManagementNavSection =
   | 'database'
   | 'products'
   | 'web'
+  | 'notifications'
   | 'admins'
   | 'users'
   | 'workers'
@@ -45,22 +48,27 @@ const isUsersReadable = (user: CurrentUser): boolean => user.role === 'superuser
 
 const isProductsReadable = (user: CurrentUser): boolean => user.role === 'superuser';
 
-const ROUTES: ManagementNavRoute[] = [
+const ROUTES_LIST: ManagementNavRoute[] = [
   {
     section: 'feedFlagStatus',
-    href: '/feeds',
+    href: ROUTES.FEEDS,
     visible: (user) => canReadFeeds(user),
   },
-  { section: 'stats', href: '/stats', visible: (user) => canReadStats(user) },
-  { section: 'database', href: '/database', visible: (user) => isDatabaseReadable(user) },
-  { section: 'products', href: '/products', visible: (user) => isProductsReadable(user) },
-  { section: 'web', href: '/web', visible: (user) => canReadEmbedDemo(user) },
-  { section: 'admins', href: '/admins', visible: (user) => isAdminsReadable(user) },
-  { section: 'users', href: '/users', visible: (user) => isUsersReadable(user) },
-  { section: 'workers', href: '/workers', visible: () => true },
+  { section: 'stats', href: ROUTES.STATS, visible: (user) => canReadStats(user) },
+  { section: 'database', href: ROUTES.DATABASE, visible: (user) => isDatabaseReadable(user) },
+  { section: 'products', href: ROUTES.PRODUCTS, visible: (user) => isProductsReadable(user) },
+  { section: 'web', href: ROUTES.WEB, visible: (user) => canReadEmbedDemo(user) },
+  {
+    section: 'notifications',
+    href: ROUTES.NOTIFICATIONS,
+    visible: (user) => canReadNotifications(user),
+  },
+  { section: 'admins', href: ROUTES.ADMINS, visible: (user) => isAdminsReadable(user) },
+  { section: 'users', href: ROUTES.USERS, visible: (user) => isUsersReadable(user) },
+  { section: 'workers', href: ROUTES.WORKERS, visible: () => true },
   {
     section: 'storage',
-    href: '/storage',
+    href: ROUTES.STORAGE,
     visible: (user, ctx) => canReadStorage(user) && ctx.bucketStorageEnabled,
   },
 ];
@@ -69,7 +77,7 @@ export function getManagementAppRoutesForUser(
   user: CurrentUser,
   ctx: ManagementAppNavContext = defaultNavContext
 ): ManagementNavRoute[] {
-  return ROUTES.filter((r) => r.visible(user, ctx));
+  return ROUTES_LIST.filter((r) => r.visible(user, ctx));
 }
 
 export type DashboardI18nTitleKey =
@@ -78,6 +86,7 @@ export type DashboardI18nTitleKey =
   | 'database.title'
   | 'products.title'
   | 'web.title'
+  | 'notifications.title'
   | 'admins.title'
   | 'users.title'
   | 'workers.title'
@@ -89,6 +98,7 @@ export type DashboardI18nDescriptionKey =
   | 'database.description'
   | 'products.description'
   | 'web.description'
+  | 'notifications.description'
   | 'admins.description'
   | 'users.description'
   | 'workers.description'
@@ -100,6 +110,7 @@ const titleKeys: Record<ManagementNavSection, DashboardI18nTitleKey> = {
   database: 'database.title',
   products: 'products.title',
   web: 'web.title',
+  notifications: 'notifications.title',
   admins: 'admins.title',
   users: 'users.title',
   workers: 'workers.title',
@@ -112,6 +123,7 @@ const descriptionKeys: Record<ManagementNavSection, DashboardI18nDescriptionKey>
   database: 'database.description',
   products: 'products.description',
   web: 'web.description',
+  notifications: 'notifications.description',
   admins: 'admins.description',
   users: 'users.description',
   workers: 'workers.description',

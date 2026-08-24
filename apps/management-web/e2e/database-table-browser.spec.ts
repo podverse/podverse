@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 
+import { buildDatabaseTablePath, ROUTES } from './helpers/routes';
 import { capturePageLoad } from './helpers/stepScreenshots';
 
 /**
@@ -65,13 +66,13 @@ test.describe('Management-web database table browser', () => {
       });
     });
 
-    await page.goto('/');
+    await page.goto(ROUTES.HOME);
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
     await page.getByRole('button', { name: 'Sign In' }).click();
     await page.waitForURL('**/dashboard');
 
-    await page.goto('/database/feed');
+    await page.goto(buildDatabaseTablePath('feed'));
     await expect(page).toHaveURL(/\/database\/feed$/);
 
     await expect(page.getByRole('button', { name: 'Sort by url' })).toBeVisible();

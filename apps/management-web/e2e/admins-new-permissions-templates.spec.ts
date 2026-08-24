@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 
+import { ROUTES } from './helpers/routes';
 import { capturePageLoad } from './helpers/stepScreenshots';
 
 /**
@@ -57,13 +58,13 @@ test.describe('Create admin page for the authenticated superuser', () => {
       });
     });
 
-    await page.goto('/');
+    await page.goto(ROUTES.HOME);
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
     await page.getByRole('button', { name: 'Sign In' }).click();
     await page.waitForURL('**/dashboard');
 
-    await page.goto('/admins/new');
+    await page.goto(ROUTES.ADMINS_NEW);
     await expect(page.getByRole('heading', { name: 'Create Admin', level: 1 })).toBeVisible();
 
     await expect(page.getByText('Permission template')).toBeVisible();

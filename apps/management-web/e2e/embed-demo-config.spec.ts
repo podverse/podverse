@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 
+import { ROUTES } from './helpers/routes';
 import { capturePageLoad } from './helpers/stepScreenshots';
 
 /**
@@ -12,7 +13,7 @@ test.describe('Management-web embed demo config', () => {
   }, testInfo) => {
     test.setTimeout(30_000);
 
-    await page.goto('/');
+    await page.goto(ROUTES.HOME);
 
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
@@ -20,7 +21,7 @@ test.describe('Management-web embed demo config', () => {
 
     await page.waitForURL('**/dashboard');
 
-    await page.goto('/web/embed-demo');
+    await page.goto(ROUTES.WEB_EMBED_DEMO);
 
     const title = page.getByRole('heading', { name: 'Embed demo', level: 1 });
     await expect(title).toBeVisible();

@@ -1,10 +1,11 @@
 import { expect, test } from '@playwright/test';
 
+import { ROUTES } from './helpers/routes';
 import { capturePageLoad } from './helpers/stepScreenshots';
 
 test.describe('Management-web feeds flag status', () => {
   test('dashboard shows a Feeds card linking to the feeds hub', async ({ page }, testInfo) => {
-    await page.goto('/');
+    await page.goto(ROUTES.HOME);
 
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
@@ -108,14 +109,14 @@ test.describe('Management-web feeds flag status', () => {
       });
     });
 
-    await page.goto('/');
+    await page.goto(ROUTES.HOME);
 
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
     await page.getByRole('button', { name: 'Sign In' }).click();
     await page.waitForURL('**/dashboard');
 
-    await page.goto('/feeds');
+    await page.goto(ROUTES.FEEDS);
     await expect(page.getByRole('heading', { name: 'Feeds', level: 1 })).toBeVisible();
     await page.getByRole('link', { name: 'Flag status' }).click();
     await expect(page).toHaveURL(/\/feeds\/flag-status$/);
@@ -272,14 +273,14 @@ test.describe('Management-web feeds flag status', () => {
       });
     });
 
-    await page.goto('/');
+    await page.goto(ROUTES.HOME);
 
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
     await page.getByRole('button', { name: 'Sign In' }).click();
     await page.waitForURL('**/dashboard');
 
-    await page.goto('/feeds');
+    await page.goto(ROUTES.FEEDS);
     await page.getByRole('link', { name: 'Flag status' }).click();
     await expect(page).toHaveURL(/\/feeds\/flag-status$/);
     await expect(page.getByRole('heading', { name: 'Search Feeds', level: 2 })).toBeVisible();
@@ -336,14 +337,14 @@ test.describe('Management-web feeds flag status', () => {
       });
     });
 
-    await page.goto('/');
+    await page.goto(ROUTES.HOME);
 
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
     await page.getByRole('button', { name: 'Sign In' }).click();
     await page.waitForURL('**/dashboard');
 
-    await page.goto('/feeds');
+    await page.goto(ROUTES.FEEDS);
     await page.getByRole('link', { name: 'Flag status' }).click();
     await expect(page).toHaveURL(/\/feeds\/flag-status$/);
     await expect(page.getByRole('heading', { name: 'Set feed status', level: 1 })).toBeVisible();

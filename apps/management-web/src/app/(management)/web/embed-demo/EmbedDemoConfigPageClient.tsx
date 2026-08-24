@@ -23,6 +23,7 @@ import {
   listEmbedDemoShowcaseSlots,
   upsertEmbedDemoShowcaseSlot,
 } from '../../../../lib/requests/embedDemo';
+import { ROUTES } from '../../../../lib/routes';
 
 import styles from './EmbedDemoConfigPageClient.module.scss';
 
@@ -168,8 +169,8 @@ export function EmbedDemoConfigPageClient() {
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
           items={[
-            { href: '/dashboard', label: tNav('dashboard') },
-            { href: '/web', label: tWeb('pageTitle') },
+            { href: ROUTES.DASHBOARD, label: tNav('dashboard') },
+            { href: ROUTES.WEB, label: tWeb('pageTitle') },
             { label: t('pageTitle') },
           ]}
         />

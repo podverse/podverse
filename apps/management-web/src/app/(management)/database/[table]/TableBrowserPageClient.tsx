@@ -23,6 +23,12 @@ import { useManagementTableChrome } from '../../../../components/Table/managemen
 import { ManagementIconButtonLink } from '../../../../lib/ManagementIconButtonLink';
 import { managementSearchParamsObject } from '../../../../lib/managementTableUrl';
 import { getTableMeta, queryTable, type TableMeta } from '../../../../lib/requests/database';
+import {
+  buildDatabaseRowPath,
+  buildDatabaseTableNewPath,
+  buildDatabaseTablePath,
+  ROUTES,
+} from '../../../../lib/routes';
 import { resolveManagementTableEmptyState } from '../../../../lib/tableEmptyState';
 
 import dataSurfaceBusyStyles from '../../../../styles/managementDataSurfaceBusy.module.scss';
@@ -62,7 +68,8 @@ export function TableBrowserPageClient({ tableName }: TableBrowserPageClientProp
 
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const basePath = pathname !== null && pathname !== '' ? pathname : `/database/${tableName}`;
+  const basePath =
+    pathname !== null && pathname !== '' ? pathname : buildDatabaseTablePath(tableName);
   const currentQueryParams = useMemo(
     () => managementSearchParamsObject(searchParams),
     [searchParams]
@@ -216,8 +223,8 @@ export function TableBrowserPageClient({ tableName }: TableBrowserPageClientProp
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
           items={[
-            { href: '/dashboard', label: tNav('dashboard') },
-            { href: '/database', label: t('title') },
+            { href: ROUTES.DASHBOARD, label: tNav('dashboard') },
+            { href: ROUTES.DATABASE, label: t('title') },
             { label: tableName },
           ]}
         />
@@ -226,7 +233,11 @@ export function TableBrowserPageClient({ tableName }: TableBrowserPageClientProp
         meta !== null ? (
           <PageHeaderActions>
             {!meta.readOnly && (
-              <ActionLink href={`/database/${tableName}/new`} variant="inline" LinkComponent={Link}>
+              <ActionLink
+                href={buildDatabaseTableNewPath(tableName)}
+                variant="inline"
+                LinkComponent={Link}
+              >
                 {tc('createNew')}
               </ActionLink>
             )}
@@ -270,7 +281,7 @@ export function TableBrowserPageClient({ tableName }: TableBrowserPageClientProp
                     <Table.IconViewLink
                       LinkComponent={ManagementIconButtonLink}
                       ariaLabel={`${tc('view')} ${String(row[meta.primaryKeyField])}`}
-                      href={`/database/${tableName}/${String(row[meta.primaryKeyField])}`}
+                      href={buildDatabaseRowPath(tableName, String(row[meta.primaryKeyField]))}
                       title={tc('view')}
                     />
                   </Table.RowActions>

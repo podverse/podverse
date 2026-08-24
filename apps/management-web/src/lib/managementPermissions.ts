@@ -114,6 +114,30 @@ export function canUpdateEmbedDemo(user: CurrentUser): boolean {
   return user.permissions !== null && user.permissions !== undefined && (crud & CRUD_UPDATE) !== 0;
 }
 
+export function canReadNotifications(user: CurrentUser): boolean {
+  if (user.role === 'superuser') {
+    return true;
+  }
+  const crud = user.permissions?.notifications_crud ?? 0;
+  return user.permissions !== null && user.permissions !== undefined && (crud & CRUD_READ) !== 0;
+}
+
+export function canCreateNotifications(user: CurrentUser): boolean {
+  if (user.role === 'superuser') {
+    return true;
+  }
+  const crud = user.permissions?.notifications_crud ?? 0;
+  return user.permissions !== null && user.permissions !== undefined && (crud & CRUD_CREATE) !== 0;
+}
+
+export function canUpdateNotifications(user: CurrentUser): boolean {
+  if (user.role === 'superuser') {
+    return true;
+  }
+  const crud = user.permissions?.notifications_crud ?? 0;
+  return user.permissions !== null && user.permissions !== undefined && (crud & CRUD_UPDATE) !== 0;
+}
+
 /** Matches feed lifecycle `takedown` from management feeds API. */
 export const LIFECYCLE_TAKEDOWN_KEY = 'takedown';
 

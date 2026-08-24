@@ -33,6 +33,7 @@ import {
   type ProductPricingRow,
   scheduleProductPricing,
 } from '../../../../lib/requests/productPricing';
+import { ROUTES } from '../../../../lib/routes';
 import { resolveManagementTableEmptyState } from '../../../../lib/tableEmptyState';
 
 import dataSurfaceBusyStyles from '../../../../styles/managementDataSurfaceBusy.module.scss';
@@ -363,8 +364,8 @@ export function ProductMembershipsPageClient() {
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
           items={[
-            { href: '/dashboard', label: tNav('dashboard') },
-            { href: '/products', label: t('breadcrumbProducts') },
+            { href: ROUTES.DASHBOARD, label: tNav('dashboard') },
+            { href: ROUTES.PRODUCTS, label: t('breadcrumbProducts') },
             { label: t('pageTitle') },
           ]}
         />

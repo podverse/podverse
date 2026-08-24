@@ -100,6 +100,7 @@
     "dashboard": "Dashboard",
     "users": "Users",
     "content": "Content",
+    "notifications": "Notifications",
     "settings": "Settings",
     "userMenu": "Account menu",
     "userRole": "Role: {role}",
@@ -127,6 +128,10 @@
     "web": {
       "title": "Web",
       "description": "Configure public web surfaces such as the embed demo page"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Compose and schedule account notification campaigns"
     },
     "admins": {
       "title": "Admins",
@@ -482,6 +487,7 @@
       "billingPrices": "Billing prices",
       "bucket": "Object storage",
       "embedDemo": "Embed demo",
+      "notifications": "Notifications",
       "roleTemplateLabel": "Permission template",
       "roleTemplateHint": "Pick a saved template to fill the grid. You can still adjust individual boxes afterward.",
       "roleCustom": "Custom (manual)",
@@ -512,6 +518,37 @@
       "saveTemplate": "Save template",
       "createFailed": "Could not save template",
       "nameRequired": "Enter a template name"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "newTitle": "New notification campaign",
+    "detailTitle": "Notification campaign details",
+    "create": "Create campaign",
+    "backToList": "Back to list",
+    "cancelCampaign": "Cancel scheduled campaign",
+    "failedToLoad": "Failed to load notification campaigns.",
+    "failedToCreate": "Failed to create notification campaign.",
+    "failedToCancel": "Failed to cancel notification campaign.",
+    "empty": "No notification campaigns found.",
+    "table": {
+      "id": "ID",
+      "title": "Title",
+      "category": "Category",
+      "status": "Status",
+      "scheduledAt": "Scheduled at",
+      "sentAt": "Sent at"
+    },
+    "fields": {
+      "title": "Title",
+      "body": "Body",
+      "linkPath": "Link path",
+      "category": "Category",
+      "sendPush": "Send push notification",
+      "sendAt": "Send at (leave blank to send now)"
+    },
+    "validation": {
+      "titleRequired": "Title is required."
     }
   },
   "users": {

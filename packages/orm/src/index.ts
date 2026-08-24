@@ -44,6 +44,7 @@ export * from './entities/account/accountGooglePlayPurchase.js';
 export * from './entities/account/accountMembership.js';
 export * from './entities/account/accountMembershipStatus.js';
 export * from './entities/account/accountMetaboost.js';
+export * from './entities/account/adminNotificationCampaign.js';
 export * from './entities/account/accountNotification.js';
 export * from './entities/account/accountTermsAcceptance.js';
 export * from './entities/account/accountNotificationChannel.js';
@@ -184,6 +185,9 @@ export * from './services/billingMembershipExtension.js';
 export * from './services/billingRenewalOrchestrator.js';
 
 export * from './services/account/account.js';
+export * from './services/account/adminNotificationCampaign.js';
+export * from './services/account/adminNotificationCampaignDispatch.js';
+export * from './services/account/adminNotificationCampaignScheduler.js';
 export * from './services/account/createAccountNotificationWithOptionalPush.js';
 export * from './services/account/accountCredentials.js';
 export * from './services/account/accountDataExport.js';

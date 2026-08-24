@@ -16,6 +16,7 @@ type CrudPermissions = {
   billing_prices_crud?: number;
   bucket_crud?: number;
   embed_demo_crud?: number;
+  notifications_crud?: number;
 };
 
 type CreateAdminAccountDto = {
@@ -173,6 +174,7 @@ export class AdminAccountService {
       billingPricesCrud: dto.permissions?.billing_prices_crud ?? 0,
       bucketCrud: dto.permissions?.bucket_crud ?? 0,
       embedDemoCrud: dto.permissions?.embed_demo_crud ?? 0,
+      notificationsCrud: dto.permissions?.notifications_crud ?? 0,
     });
     await this.permissionsRepositoryReadWrite.save(permissions);
 
@@ -264,6 +266,9 @@ export class AdminAccountService {
         if (dto.permissions.embed_demo_crud !== undefined) {
           adminAccount.permissions.embedDemoCrud = dto.permissions.embed_demo_crud;
         }
+        if (dto.permissions.notifications_crud !== undefined) {
+          adminAccount.permissions.notificationsCrud = dto.permissions.notifications_crud;
+        }
         await this.permissionsRepositoryReadWrite.save(adminAccount.permissions);
       } else {
         const permissions = this.permissionsRepositoryReadWrite.create({
@@ -275,6 +280,7 @@ export class AdminAccountService {
           billingPricesCrud: dto.permissions.billing_prices_crud ?? 0,
           bucketCrud: dto.permissions.bucket_crud ?? 0,
           embedDemoCrud: dto.permissions.embed_demo_crud ?? 0,
+          notificationsCrud: dto.permissions.notifications_crud ?? 0,
         });
         await this.permissionsRepositoryReadWrite.save(permissions);
       }

@@ -33,6 +33,7 @@ import {
   revokeAdminInviteLink,
 } from '../../../../lib/requests/admins';
 import type { CurrentUser } from '../../../../lib/requests/auth';
+import { buildAdminEditPath, ROUTES } from '../../../../lib/routes';
 
 import styles from './AdminDetailPageClient.module.scss';
 
@@ -102,7 +103,7 @@ export function AdminDetailPageClient({ adminId, initialUser }: Props) {
     setError(null);
     try {
       await deleteAdmin(adminId);
-      window.location.href = '/admins';
+      window.location.href = ROUTES.ADMINS;
     } catch {
       setError(t('failedToDeleteAdmin'));
       setDeleteConfirmOpen(false);
@@ -143,8 +144,8 @@ export function AdminDetailPageClient({ adminId, initialUser }: Props) {
               LinkComponent={Link}
               navAriaLabel={tc('breadcrumbNav')}
               items={[
-                { href: '/dashboard', label: tNav('dashboard') },
-                { href: '/admins', label: t('title') },
+                { href: ROUTES.DASHBOARD, label: tNav('dashboard') },
+                { href: ROUTES.ADMINS, label: t('title') },
                 { label: admin.id_text },
               ]}
             />
@@ -171,7 +172,7 @@ export function AdminDetailPageClient({ adminId, initialUser }: Props) {
 
           <PageHeaderActions>
             {canEdit ? (
-              <ActionLink href={`/admins/${adminId}/edit`} variant="primary" LinkComponent={Link}>
+              <ActionLink href={buildAdminEditPath(adminId)} variant="primary" LinkComponent={Link}>
                 {tc('edit')}
               </ActionLink>
             ) : null}

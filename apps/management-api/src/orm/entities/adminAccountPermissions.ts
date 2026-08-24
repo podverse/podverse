@@ -43,6 +43,9 @@ export class AdminAccountPermissions {
   @Column({ name: 'embed_demo_crud', type: 'integer', default: 0 })
   embedDemoCrud!: number;
 
+  @Column({ name: 'notifications_crud', type: 'integer', default: 0 })
+  notificationsCrud!: number;
+
   @CreateDateColumn({ type: 'timestamp', default: () => 'NOW()' })
   created_at!: Date;
 

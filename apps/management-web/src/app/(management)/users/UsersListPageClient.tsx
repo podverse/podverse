@@ -22,6 +22,7 @@ import { useManagementTableChrome } from '../../../components/Table/managementTa
 import { ManagementIconButtonLink } from '../../../lib/ManagementIconButtonLink';
 import { managementSearchParamsObject } from '../../../lib/managementTableUrl';
 import { deleteUser, listUsers, probeUsersExist, type User } from '../../../lib/requests/users';
+import { buildUserEditPath, buildUserPath, ROUTES } from '../../../lib/routes';
 import { resolveManagementTableEmptyState } from '../../../lib/tableEmptyState';
 
 const USER_COLUMN_IDS = ['id_text', 'email', 'username', 'verified', 'created_at'] as const;
@@ -60,7 +61,7 @@ export function UsersListPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const basePath = pathname !== null && pathname !== '' ? pathname : '/users';
+  const basePath = pathname !== null && pathname !== '' ? pathname : ROUTES.USERS;
   const currentQueryParams = useMemo(
     () => managementSearchParamsObject(searchParams),
     [searchParams]
@@ -213,7 +214,7 @@ export function UsersListPageClient() {
         <Breadcrumbs
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
-          items={[{ href: '/dashboard', label: tNav('dashboard') }, { label: t('title') }]}
+          items={[{ href: ROUTES.DASHBOARD, label: tNav('dashboard') }, { label: t('title') }]}
         />
       }
       title={t('title')}
@@ -236,7 +237,7 @@ export function UsersListPageClient() {
             <ResourceTableWithFilter<User>
               actions={{
                 LinkComponent: ManagementIconButtonLink,
-                editHref: (userRow) => `/users/${userRow.id}/edit`,
+                editHref: (userRow) => buildUserEditPath(userRow.id),
                 labels: {
                   delete: tc('delete'),
                   edit: tc('edit'),
@@ -246,7 +247,7 @@ export function UsersListPageClient() {
                   await deleteUser(userRow.id);
                   await loadUsers(pageFromUrl, urlSearch);
                 },
-                viewHref: (userRow) => `/users/${userRow.id}`,
+                viewHref: (userRow) => buildUserPath(userRow.id),
               }}
               allColumnIds={[...USER_COLUMN_IDS]}
               basePath={basePath}

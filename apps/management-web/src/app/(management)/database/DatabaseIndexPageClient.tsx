@@ -9,6 +9,7 @@ import { Alert, Breadcrumbs, ManagementPageShell, NavCardGrid } from '@podverse/
 
 import { ManagementLoadingSpinnerOverlayStatus } from '../../../components/LoadingSpinner/ManagementLoadingSpinnerOverlay';
 import { getDatabaseTables, type TableMeta } from '../../../lib/requests/database';
+import { buildDatabaseTablePath, ROUTES } from '../../../lib/routes';
 
 import dataSurfaceBusyStyles from '../../../styles/managementDataSurfaceBusy.module.scss';
 
@@ -66,7 +67,7 @@ export function DatabaseIndexPageClient() {
     metaParts.push(t('fieldCount', { count: table.fields.length }));
     metaParts.push(getTableDescription(table.tableName));
     return {
-      href: `/database/${table.tableName}`,
+      href: buildDatabaseTablePath(table.tableName),
       title: table.tableName,
       description: metaParts.join(' · '),
     };
@@ -78,7 +79,7 @@ export function DatabaseIndexPageClient() {
         <Breadcrumbs
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
-          items={[{ href: '/dashboard', label: tNav('dashboard') }, { label: t('title') }]}
+          items={[{ href: ROUTES.DASHBOARD, label: tNav('dashboard') }, { label: t('title') }]}
         />
       }
       title={t('title')}

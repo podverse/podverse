@@ -22,6 +22,7 @@ import {
   type TableFieldMeta,
   type TableMeta,
 } from '../../../../../lib/requests/database';
+import { buildDatabaseRowPath, buildDatabaseTablePath, ROUTES } from '../../../../../lib/routes';
 
 const TABLE_SINGULAR_LABEL_KEYS: Record<string, string> = {
   feed: 'tables.feed.labelSingular',
@@ -85,7 +86,10 @@ export function CreateRowPageClient({ tableName }: CreateRowPageClientProps) {
         }
       }
       const result = await createTableRow(tableName, data);
-      router.push(`/database/${tableName}/${result[meta?.primaryKeyField ?? 'id']}`);
+      const rowIdRaw = result[meta?.primaryKeyField ?? 'id'];
+      if (typeof rowIdRaw === 'string' || typeof rowIdRaw === 'number') {
+        router.push(buildDatabaseRowPath(tableName, rowIdRaw));
+      }
     } catch (err) {
       const raw =
         err && typeof err === 'object' && 'response' in err
@@ -113,9 +117,9 @@ export function CreateRowPageClient({ tableName }: CreateRowPageClientProps) {
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
           items={[
-            { href: '/dashboard', label: tNav('dashboard') },
-            { href: '/database', label: t('title') },
-            { href: `/database/${tableName}`, label: tableName },
+            { href: ROUTES.DASHBOARD, label: tNav('dashboard') },
+            { href: ROUTES.DATABASE, label: t('title') },
+            { href: buildDatabaseTablePath(tableName), label: tableName },
             { label: tc('new') },
           ]}
         />
@@ -141,7 +145,7 @@ export function CreateRowPageClient({ tableName }: CreateRowPageClientProps) {
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => router.push(`/database/${tableName}`)}
+                onClick={() => router.push(buildDatabaseTablePath(tableName))}
               >
                 {tc('cancel')}
               </Button>

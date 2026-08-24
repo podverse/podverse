@@ -24,8 +24,8 @@ configMapGenerator:
   - name: podverse-ops-migration-scripts
     literals:
       - MIGRATION_BUNDLE_SHA=linear-migrations-v1
-      - API_EXPECTED_MIGRATION_FILENAME=0003_notifications_foundation.sql
-      - MANAGEMENT_API_EXPECTED_MIGRATION_FILENAME=0001_management_schema.sql
+      - API_EXPECTED_MIGRATION_FILENAME=0004_admin_notification_campaign.sql
+      - MANAGEMENT_API_EXPECTED_MIGRATION_FILENAME=0002_notifications_permissions.sql
     files:
       - source/database/runner/run-linear-migrations.sh
       - source/database/runner/run-linear-migrations-k8s.sh
@@ -38,10 +38,12 @@ configMapGenerator:
       - source/database/linear-migrations/app/0001_app_schema.sql
       - source/database/linear-migrations/app/0002_account_pending_following_channel.sql
       - source/database/linear-migrations/app/0003_notifications_foundation.sql
+      - source/database/linear-migrations/app/0004_admin_notification_campaign.sql
   - name: podverse-ops-management-linear-migrations
     files:
       - source/database/linear-migrations/management/0000_init_helpers.sql
       - source/database/linear-migrations/management/0001_management_schema.sql
+      - source/database/linear-migrations/management/0002_notifications_permissions.sql
   - name: podverse-ops-management-superuser-scripts
     files:
       - source/database/management-superuser/package.json

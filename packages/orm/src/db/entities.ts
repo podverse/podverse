@@ -29,6 +29,7 @@ import { AccountTermsAcceptance } from '@orm/entities/account/accountTermsAccept
 import { AccountUPDevice } from '@orm/entities/account/accountUPDevice.js';
 import { AccountVerification } from '@orm/entities/account/accountVerification.js';
 import { AccountWebPushDevice } from '@orm/entities/account/accountWebPushDevice.js';
+import { AdminNotificationCampaign } from '@orm/entities/account/adminNotificationCampaign.js';
 import { ScheduledJob } from '@orm/entities/account/scheduledJob.js';
 import { BillingDomainEvent } from '@orm/entities/billingDomainEvent.js';
 import { BillingPrice } from '@orm/entities/billingPrice.js';
@@ -142,6 +143,7 @@ export const entities = [
   AccountMembership,
   AccountMembershipStatus,
   AccountMetaboost,
+  AdminNotificationCampaign,
   AccountNotification,
   AccountTermsAcceptance,
   AccountNotificationChannel,

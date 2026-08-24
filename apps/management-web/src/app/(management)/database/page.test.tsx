@@ -13,6 +13,7 @@ vi.mock('../../../lib/auth/serverManagementSession', () => ({
 import { redirect } from 'next/navigation';
 
 import { getManagementSessionUser } from '../../../lib/auth/serverManagementSession';
+import { ROUTES } from '../../../lib/routes';
 import DatabaseIndexPage from './page.js';
 
 const mockUser = {
@@ -40,7 +41,7 @@ describe('DatabaseIndexPage (server)', () => {
       await DatabaseIndexPage();
     }).rejects.toThrow('redirect_called');
 
-    expect(vi.mocked(redirect)).toHaveBeenCalledWith('/');
+    expect(vi.mocked(redirect)).toHaveBeenCalledWith(ROUTES.HOME);
   });
 
   it('renders the database index client when the session is valid', async () => {

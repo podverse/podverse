@@ -2,12 +2,16 @@ import type { CommandLineArgs } from '@workers/commands/index.js';
 import { getLogger } from '@workers/factories/logger.js';
 
 import { APP_ROUTES, hasValidMembership, NotificationCategoryEnum } from '@podverse/helpers';
+import type { ScheduledJob } from '@podverse/orm';
 import {
   AccountService,
+  ADMIN_NOTIFICATION_SEND_JOB_TYPE,
+  AdminNotificationCampaignService,
   createAccountNotificationWithOptionalPush,
+  dispatchAdminNotificationCampaign,
   MEMBERSHIP_EXPIRY_REMINDER_JOB_TYPE,
+  parseAdminNotificationSendPayload,
   parseMembershipExpiryReminderPayload,
-  type ScheduledJob,
   ScheduledJobService,
 } from '@podverse/orm';
 
@@ -25,7 +29,6 @@ type JobHandler = (job: ScheduledJob, context: JobHandlerContext) => Promise<Job
 const DEFAULT_CLAIM_LIMIT = 50;
 const STALE_LOCK_MINUTES = 15;
 const BASE_BACKOFF_MS = 5 * 60 * 1000;
-const ADMIN_NOTIFICATION_SEND_JOB_TYPE = 'admin-notification-send';
 
 function parseLimit(args: CommandLineArgs): number {
   const rawLimit = args.limit;
@@ -113,8 +116,22 @@ const handleMembershipExpiryReminder: JobHandler = async (job, context) => {
   return { outcome: 'completed' };
 };
 
-const handleAdminNotificationSend: JobHandler = async () => {
-  throw new Error('admin-notification-send handler is not implemented yet');
+const handleAdminNotificationSend: JobHandler = async (job) => {
+  const payload = parseAdminNotificationSendPayload(job.payload);
+  if (payload === null) {
+    throw new Error('Invalid admin-notification-send payload');
+  }
+
+  const campaignService = new AdminNotificationCampaignService();
+  const campaign = await campaignService.getByIdText(payload.campaignIdText);
+  if (campaign === null) {
+    return { outcome: 'cancelled', reason: 'Notification campaign not found' };
+  }
+
+  await campaignService.markSending(campaign.id);
+  await dispatchAdminNotificationCampaign(campaign);
+  await campaignService.markSent(campaign.id, new Date());
+  return { outcome: 'completed' };
 };
 
 const jobHandlers: Record<string, JobHandler> = {

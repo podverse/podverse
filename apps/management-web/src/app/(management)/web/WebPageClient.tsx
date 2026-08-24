@@ -6,6 +6,8 @@ import { useTranslations } from 'next-intl';
 import type { NavCard } from '@podverse/ui';
 import { Breadcrumbs, ManagementPageShell, NavCardGrid } from '@podverse/ui';
 
+import { ROUTES } from '../../../lib/routes';
+
 export function WebPageClient() {
   const t = useTranslations('webHub');
   const tc = useTranslations('common');
@@ -13,7 +15,7 @@ export function WebPageClient() {
 
   const cards: NavCard[] = [
     {
-      href: '/web/embed-demo',
+      href: ROUTES.WEB_EMBED_DEMO,
       title: t('embedDemoCardTitle'),
       description: t('embedDemoCardDescription'),
     },
@@ -25,7 +27,7 @@ export function WebPageClient() {
         <Breadcrumbs
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
-          items={[{ href: '/dashboard', label: tNav('dashboard') }, { label: t('pageTitle') }]}
+          items={[{ href: ROUTES.DASHBOARD, label: tNav('dashboard') }, { label: t('pageTitle') }]}
         />
       }
       title={t('pageTitle')}

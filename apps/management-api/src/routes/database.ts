@@ -433,6 +433,8 @@ function getCrudForResource(
       return permissions.bucket_crud ?? 0;
     case 'embed_demo':
       return permissions.embed_demo_crud ?? 0;
+    case 'notifications':
+      return permissions.notifications_crud ?? 0;
   }
 }
 

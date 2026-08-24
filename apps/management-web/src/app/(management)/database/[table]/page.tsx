@@ -1,12 +1,13 @@
 import { redirect } from 'next/navigation';
 
 import { getManagementSessionUser } from '../../../../lib/auth/serverManagementSession';
+import { ROUTES } from '../../../../lib/routes';
 import { TableBrowserPageClient } from './TableBrowserPageClient';
 
 export default async function TableBrowserPage({ params }: { params: Promise<{ table: string }> }) {
   const user = await getManagementSessionUser();
   if (!user) {
-    redirect('/');
+    redirect(ROUTES.HOME);
   }
 
   const { table } = await params;

@@ -28,6 +28,7 @@ import {
 } from '../../../../components/admins/adminPermissionModel';
 import { AdminPermissionsSection } from '../../../../components/admins/AdminPermissionsSection';
 import { createAdmin, type CreateAdminResponse } from '../../../../lib/requests/admins';
+import { ROUTES } from '../../../../lib/routes';
 
 const ADMIN_USERNAME_PATTERN = /^[a-zA-Z0-9._-]+$/;
 
@@ -115,7 +116,7 @@ export function NewAdminPageClient() {
         setPermissionsReady(false);
         setPermSectionKey((k) => k + 1);
       } else {
-        router.push('/admins');
+        router.push(ROUTES.ADMINS);
         router.refresh();
       }
     } catch (err) {
@@ -138,8 +139,8 @@ export function NewAdminPageClient() {
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
           items={[
-            { href: '/dashboard', label: tNav('dashboard') },
-            { href: '/admins', label: t('title') },
+            { href: ROUTES.DASHBOARD, label: tNav('dashboard') },
+            { href: ROUTES.ADMINS, label: t('title') },
             { label: tc('new') },
           ]}
         />
@@ -211,7 +212,7 @@ export function NewAdminPageClient() {
             </FormGroup>
           ) : null}
           <FormPrimaryActions>
-            <Button type="button" variant="secondary" onClick={() => router.push('/admins')}>
+            <Button type="button" variant="secondary" onClick={() => router.push(ROUTES.ADMINS)}>
               {tc('cancel')}
             </Button>
             <Button type="submit" disabled={loading || !permissionsReady}>

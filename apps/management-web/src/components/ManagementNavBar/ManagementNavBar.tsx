@@ -10,6 +10,7 @@ import { NavBar } from '@podverse/ui';
 
 import { ManagementApiRequestService } from '../../lib/requests/apiRequestService';
 import type { CurrentUser } from '../../lib/requests/auth';
+import { ROUTES } from '../../lib/routes';
 
 import layoutStyles from '../ManagementAppLayout/managementAppLayout.module.scss';
 
@@ -30,7 +31,7 @@ export function ManagementNavBar({ brandName, user }: ManagementNavBarProps) {
     } catch {
       // proceed with redirect even if logout API fails
     }
-    router.replace('/');
+    router.replace(ROUTES.HOME);
   }, [router]);
 
   const displayName = (user.email || user.username || user.id_text).trim() || '—';
@@ -42,7 +43,7 @@ export function ManagementNavBar({ brandName, user }: ManagementNavBarProps) {
       type: 'meta',
     },
     {
-      href: '/settings',
+      href: ROUTES.SETTINGS,
       key: 'settings',
       label: tNav('mySettings'),
       type: 'link',
@@ -66,7 +67,7 @@ export function ManagementNavBar({ brandName, user }: ManagementNavBarProps) {
       }}
       brand={{
         children: brandName,
-        href: '/dashboard',
+        href: ROUTES.DASHBOARD,
         linkClassName: layoutStyles.brandLink,
         LinkComponent: NextLink,
       }}
