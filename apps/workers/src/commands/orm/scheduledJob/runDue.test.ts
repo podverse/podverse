@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const {
   accountGetMock,
   claimDueBatchMock,
-  createManyMock,
+  createAccountNotificationWithOptionalPushMock,
   listDuePendingBatchMock,
   loggerErrorMock,
   loggerInfoMock,
@@ -16,7 +16,7 @@ const {
 } = vi.hoisted(() => ({
   accountGetMock: vi.fn(),
   claimDueBatchMock: vi.fn(),
-  createManyMock: vi.fn(),
+  createAccountNotificationWithOptionalPushMock: vi.fn(),
   listDuePendingBatchMock: vi.fn(),
   loggerErrorMock: vi.fn(),
   loggerInfoMock: vi.fn(),
@@ -51,15 +51,21 @@ vi.mock('@podverse/orm', () => {
     get = accountGetMock;
   }
 
-  class MockAccountNotificationService {
-    createMany = createManyMock;
+  class MockAdminNotificationCampaignService {
+    getByIdText = vi.fn();
+    markSending = vi.fn();
+    markSent = vi.fn();
   }
 
   return {
-    AccountNotificationService: MockAccountNotificationService,
+    ADMIN_NOTIFICATION_SEND_JOB_TYPE: 'admin-notification-send',
     AccountService: MockAccountService,
+    AdminNotificationCampaignService: MockAdminNotificationCampaignService,
     MEMBERSHIP_EXPIRY_REMINDER_JOB_TYPE: 'membership-expiry-reminder',
     ScheduledJobService: MockScheduledJobService,
+    createAccountNotificationWithOptionalPush: createAccountNotificationWithOptionalPushMock,
+    dispatchAdminNotificationCampaign: vi.fn(),
+    parseAdminNotificationSendPayload: () => null,
     parseMembershipExpiryReminderPayload: (payload: Record<string, unknown>) => {
       const accountId = payload.accountId;
       const expiresAt = payload.expiresAt;
@@ -85,7 +91,7 @@ describe('scheduledJobsRunDue', () => {
   beforeEach(() => {
     accountGetMock.mockReset();
     claimDueBatchMock.mockReset();
-    createManyMock.mockReset();
+    createAccountNotificationWithOptionalPushMock.mockReset();
     listDuePendingBatchMock.mockReset();
     loggerErrorMock.mockReset();
     loggerInfoMock.mockReset();
@@ -144,7 +150,7 @@ describe('scheduledJobsRunDue', () => {
       17,
       'Membership expiration changed before reminder execution'
     );
-    expect(createManyMock).not.toHaveBeenCalled();
+    expect(createAccountNotificationWithOptionalPushMock).not.toHaveBeenCalled();
     expect(markCompletedMock).not.toHaveBeenCalled();
   });
 
@@ -168,11 +174,11 @@ describe('scheduledJobsRunDue', () => {
       },
       id: 8,
     });
-    createManyMock.mockResolvedValue([]);
+    createAccountNotificationWithOptionalPushMock.mockResolvedValue([]);
 
     await scheduledJobsRunDue({ _: [] });
 
-    expect(createManyMock).toHaveBeenCalledTimes(1);
+    expect(createAccountNotificationWithOptionalPushMock).toHaveBeenCalledTimes(1);
     expect(markCompletedMock).toHaveBeenCalledWith(18);
     expect(markCancelledMock).not.toHaveBeenCalled();
   });

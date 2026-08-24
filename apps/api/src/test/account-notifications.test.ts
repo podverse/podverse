@@ -203,7 +203,9 @@ describe('account notifications routes', () => {
   });
 
   it('GET /account/notifications/unseen-count returns unseen count', async () => {
-    accountGetMock.mockResolvedValueOnce({
+    // ensureAuthenticated fetches the account once, then the controller fetches it again;
+    // queue the same account for both calls so the controller reads notifications_last_seen_at.
+    const seenAccount = {
       id: TEST_USER_ID,
       id_text: TEST_USER_ACCOUNT_ID_TEXT,
       account_credentials: { email: TEST_EMAIL },
@@ -213,7 +215,8 @@ describe('account notifications routes', () => {
         allow_notifications: true,
       },
       notifications_last_seen_at: new Date('2026-08-01T00:00:00.000Z'),
-    });
+    };
+    accountGetMock.mockResolvedValueOnce(seenAccount).mockResolvedValueOnce(seenAccount);
 
     const response = await request(app)
       .get(`${accountBase}/notifications/unseen-count`)

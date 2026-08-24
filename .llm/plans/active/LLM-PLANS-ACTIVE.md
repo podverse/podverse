@@ -24,6 +24,10 @@ architecture refactor; `video.js` + the `Controller/LiveStream/` tree are still 
 404→`notFound()` wrapper exists yet), `web-e2e-coverage-high-level/` (planning-only baseline).
 
 _Recently completed (non-mobile):_
+[notifications-platform](../completed/notifications-platform/) (completed 01–08: in-app feed + global
+seen state, generic `scheduled_job` runner, membership-expiry reminders, admin compose/schedule,
+web bell + inbox, mobile Notifications tab with RSS folded into My Library, and dual local CLI + K8s
+Cron docs/checklists),
 [doc-link-path-missed-followup](../completed/doc-link-path-missed-followup/) (**obsolete** — the
 optional-extension-metrics README already uses the canonical repo-root link; no `../../` link
 remained),

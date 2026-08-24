@@ -185,7 +185,9 @@ describe('management-api notification campaigns routes', () => {
   });
 
   it('creates scheduled campaigns and enqueues a scheduled job', async () => {
-    const scheduledAt = '2026-08-24T00:00:00.000Z';
+    // Must be in the future relative to the real wall clock so the route treats it as scheduled
+    // (not immediate). Compute dynamically so the test does not rot as time passes.
+    const scheduledAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     createCampaignMock.mockResolvedValue({
       ...mockCampaign,
       status: 'scheduled',

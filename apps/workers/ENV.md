@@ -36,6 +36,12 @@ The workers app validates environment variables **per command**. Each job only v
 
 Within each category, vars are required or optional as listed in the sections below. Only the categories for your command are validated.
 
+### Notifications platform command note
+
+`scheduledJobsRunDue` and `notificationsPlatformPurge` both validate **Base + ORM** only. That means
+contributors can exercise notification scheduling and retention locally after database migration
+without requiring MQ/Parser categories.
+
 ### Adding a new command
 
 When you add a new worker command: (1) add it to `KNOWN_COMMANDS` in

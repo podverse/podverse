@@ -60,6 +60,8 @@ npm run build -w apps/workers
 | `npm run dev_parser_rss_parse_trending_feeds`             | Trending PI feeds → parse/save to DB (default 50, cap 1000)                          |
 | `npm run podcast_index_trending_podcasts_get`             | Get trending podcasts (list only)                                                    |
 | `npm run podcast_index_value_update_all`                  | Update all value blocks                                                              |
+| `npm run scheduled_jobs_run_due`                          | Run due rows from `scheduled_job` (`-dry-run`, `-limit N`)                           |
+| `npm run notifications_platform_purge`                    | Purge expired `account_notification` rows and stale terminal `scheduled_job` rows    |
 | `npm run stats_update_aggregated`                         | Update aggregated statistics                                                         |
 
 Run commands from the monorepo root with workspace flag:
@@ -133,6 +135,40 @@ One-off commands typically run via cron:
 - `stats_update_aggregated` - Updates statistics
 - `podcast_index_*` - Podcast Index integrations
 - `orm_*` - Database maintenance tasks
+
+## Notifications platform scheduling (local vs K8s)
+
+- **Local contributor flow:** use on-demand CLI from the monorepo root (no always-on local Cron
+  loop required for day-to-day development).
+- **K8s flow:** use CronJobs in `infra/k8s/base/cron` with the same worker commands:
+  `worker-scheduled-jobs` (`scheduledJobsRunDue`, every 5 minutes) and
+  `worker-notifications-purge` (`notificationsPlatformPurge`, daily at 04:00).
+
+### Local smoke checklist
+
+**Root** tab:
+
+```bash
+npm run build:packages
+npm run build -w apps/workers
+bash scripts/database/run-linear-migrations.sh --database app
+```
+
+**Workers** tab:
+
+```bash
+npm run scheduled_jobs_run_due -w apps/workers -- -dry-run
+npm run notifications_platform_purge -w apps/workers
+```
+
+### K8s / GitOps checklist
+
+1. Confirm both CronJob manifests are in `infra/k8s/base/cron/` and listed in
+   `infra/k8s/base/cron/kustomization.yaml`.
+2. Keep overlays pointing at base cron resources (no duplicate CronJob YAML in overlays).
+3. After image/ref bump + Argo sync, confirm both CronJobs exist and at least one Job run succeeds.
+4. Existing clusters apply the latest linear migration with ops migrate jobs; fresh PVC bootstrap
+   uses regenerated `0004_app_linear_baseline.sql.gz`.
 
 ## Environment configuration
 
