@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { useTheme } from '../../theme/useTheme';
 import { Card } from '../primitives/Card';
 import { ListRow } from '../primitives/ListRow';
 import { MobileScreenContainer } from './MobileScreenContainer';
-import { useTheme } from '../../theme/useTheme';
 
 export type MenuListItem = {
   onPress: () => void;

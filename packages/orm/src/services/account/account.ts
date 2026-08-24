@@ -21,6 +21,7 @@ import { In, IsNull, Not } from 'typeorm';
 import {
   AccountMembershipEnum,
   AccountNotificationTypeEnum,
+  DEFAULT_MEDIA_TYPE_PREFERENCE,
   ERROR_MESSAGES,
   getSharableStatusIdsForProfileType,
   SharableStatusEnum,
@@ -358,7 +359,7 @@ export class AccountService {
       // Then create and save the playback settings with the default preferred media type
       const playback = new AccountSettingsPlayback();
       playback.account_settings_id = savedAccountSettings.id;
-      playback.preferred_media_type = 'video';
+      playback.preferred_media_type = DEFAULT_MEDIA_TYPE_PREFERENCE;
       await playbackRepo.save(playback);
 
       // Finally, create and save the notification types
@@ -395,7 +396,10 @@ export class AccountService {
         .createQueryBuilder()
         .insert()
         .into(AccountSettingsPlayback)
-        .values({ account_settings_id: existingSettings.id, preferred_media_type: 'video' })
+        .values({
+          account_settings_id: existingSettings.id,
+          preferred_media_type: DEFAULT_MEDIA_TYPE_PREFERENCE,
+        })
         .orIgnore()
         .execute();
     }

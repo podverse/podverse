@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useLayoutEffect, useState } from 'react';
 
 import type { MediaTypePreference } from '@podverse/helpers';
+import { DEFAULT_MEDIA_TYPE_PREFERENCE } from '@podverse/helpers';
 
 import type { ViewSelectedOption } from '../components/ViewSelector/ViewSelector';
 import { COOKIE_CONSENT_MODEL_VERSION } from '../lib/cookieConsent/cookieConsentPolicy';
@@ -70,7 +71,7 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
     ssrLocalSettings.cc
   );
   const [preferredMediaType, setPreferredMediaType] = useState<MediaTypePreference>(
-    ssrLocalSettings.pmt ?? 'video'
+    ssrLocalSettings.pmt ?? DEFAULT_MEDIA_TYPE_PREFERENCE
   );
 
   const setCookieConsent = (choice: CookieConsentChoice) => {

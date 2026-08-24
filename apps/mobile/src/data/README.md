@@ -26,7 +26,7 @@ Never write auth tokens to SQLite or AsyncStorage.
 
 - Unified prefs store lives in `src/prefs/prefsStore.ts` and exposes typed `getPref`, `setPref`,
   and `hydratePrefs`.
-- Playback preference key is **`pmt`** (`audio` | `video`) for web parity.
+- Playback preference key is **`pmt`** (`audio` | `video`; default **`video`**) for web parity.
 - Home-tab media selection remains **`preferred_media_type`** (`podcasts` / `episodes` / `clips` /
   `artists` / `albums` / `tracks`) and is intentionally separate from `pmt`.
 

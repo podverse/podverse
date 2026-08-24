@@ -11,13 +11,15 @@ type TabBarIconProps = {
 
 type TabIconKey = 'home' | 'library' | 'more' | 'rss' | 'search';
 
-const TAB_ICON_NAMES: Record<Exclude<TabIconKey, 'rss'>, { outline: IoniconName; filled: IoniconName }> =
-  {
-    home: { filled: 'home', outline: 'home-outline' },
-    library: { filled: 'albums', outline: 'albums-outline' },
-    more: { filled: 'ellipsis-horizontal', outline: 'ellipsis-horizontal' },
-    search: { filled: 'search', outline: 'search-outline' },
-  };
+const TAB_ICON_NAMES: Record<
+  Exclude<TabIconKey, 'rss'>,
+  { outline: IoniconName; filled: IoniconName }
+> = {
+  home: { filled: 'home', outline: 'home-outline' },
+  library: { filled: 'albums', outline: 'albums-outline' },
+  more: { filled: 'ellipsis-horizontal', outline: 'ellipsis-horizontal' },
+  search: { filled: 'search', outline: 'search-outline' },
+};
 
 export function tabBarIcon(key: TabIconKey) {
   if (key === 'rss') {

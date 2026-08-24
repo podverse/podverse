@@ -1,5 +1,5 @@
-import { DarkTheme, DefaultTheme } from '@react-navigation/native';
 import type { Theme } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { useMemo } from 'react';
 
 import type { UITheme } from '@podverse/design-tokens';

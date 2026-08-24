@@ -1,17 +1,17 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
 import type { MediaTypePreference } from '@podverse/helpers';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { useAuth } from '../../auth/AuthProvider';
+import type { SyncedNotificationType } from '../../auth/syncAccountPrefs';
 import {
   syncNotificationTypeToAccountSettings,
   syncPlaybackPreferenceToAccount,
 } from '../../auth/syncAccountPrefs';
-import type { SyncedNotificationType } from '../../auth/syncAccountPrefs';
 import { OptionChipGroup, SettingsOptionNavRow } from '../../components/form';
 import { Card } from '../../components/primitives/Card';
 import { ListRow } from '../../components/primitives/ListRow';
@@ -47,7 +47,7 @@ const NOTIFICATION_TYPES: readonly SyncedNotificationType[] = [
   'livestream-started',
 ];
 
-const PLAYBACK_MEDIA_OPTIONS: readonly MediaTypePreference[] = ['audio', 'video'];
+const PLAYBACK_MEDIA_OPTIONS: readonly MediaTypePreference[] = ['video', 'audio'];
 
 type ToggleMap = Record<SyncedNotificationType, boolean>;
 
@@ -108,7 +108,7 @@ export function MoreSettingsScreen() {
         return;
       }
 
-      setPlaybackMediaType(storedPlaybackMediaType ?? DEFAULT_PLAYBACK_MEDIA_TYPE);
+      setPlaybackMediaType(storedPlaybackMediaType);
       setAutoQueueRandom(autoQueuePrefs.random);
       setAutoQueueRepeat(autoQueuePrefs.repeat);
     })();
@@ -301,145 +301,148 @@ export function MoreSettingsScreen() {
   return (
     <MobileScreenContainer testID="more-settings-screen">
       <View style={styles.cardStack}>
-      <Card padded={false} testID="more-settings-theme-card">
-        <View style={styles.sectionInner}>
-          <SettingsOptionNavRow
-            description={t('settings.ui_theme.description')}
-            onPress={() => {
-              navigation.navigate(MORE_STACK_ROUTES.MoreSettingsTheme);
-            }}
-            testID="more-settings-theme-select"
-            title={t('settings.ui_theme.theme')}
-            valueLabel={themeValueLabel}
-          />
-        </View>
-      </Card>
-
-      <Card padded={false} testID="more-settings-locale-card">
-        <View style={styles.sectionInner}>
-          <SettingsOptionNavRow
-            description={t('language.description')}
-            onPress={() => {
-              navigation.navigate(MORE_STACK_ROUTES.MoreSettingsLocale);
-            }}
-            testID="more-settings-locale-select"
-            title={t('language.select_language')}
-            valueLabel={localeValueLabel}
-          />
-        </View>
-      </Card>
-
-      <Card padded={false} testID="more-settings-playback-card">
-        <View style={styles.sectionInner}>
-          <Text style={styles.sectionHeading}>{t('settings.preferred_media_type.label')}</Text>
-          <Text style={styles.sectionDescription}>
-            {t('settings.preferred_media_type.description')}
-          </Text>
-          <View style={styles.sectionStackAfterDescription}>
-            <OptionChipGroup
-              onChange={(mediaType) => {
-                void handlePlaybackMediaTypeChange(mediaType);
+        <Card padded={false} testID="more-settings-theme-card">
+          <View style={styles.sectionInner}>
+            <SettingsOptionNavRow
+              description={t('settings.ui_theme.description')}
+              onPress={() => {
+                navigation.navigate(MORE_STACK_ROUTES.MoreSettingsTheme);
               }}
-              options={playbackMediaOptions}
-              testID="more-settings-playback-chips"
-              value={playbackMediaType}
+              testID="more-settings-theme-select"
+              title={t('settings.ui_theme.theme')}
+              valueLabel={themeValueLabel}
             />
           </View>
-        </View>
-      </Card>
+        </Card>
 
-      <Card padded={false} testID="more-settings-auto-queue-card">
-        <View style={styles.sectionInner}>
-          <Text style={styles.sectionHeading}>{t('media_player.auto_queue')}</Text>
-          <View style={styles.sectionStack}>
-            <ListRow
-              testID="more-settings-auto-queue-random"
-              title={t('media_player.shuffle.toggle_shuffle')}
-              trailing={
-                <Switch
-                  onValueChange={(nextValue) => {
-                    void handleAutoQueueRandomToggle(nextValue);
-                  }}
-                  value={autoQueueRandom}
-                />
-              }
+        <Card padded={false} testID="more-settings-locale-card">
+          <View style={styles.sectionInner}>
+            <SettingsOptionNavRow
+              description={t('language.description')}
+              onPress={() => {
+                navigation.navigate(MORE_STACK_ROUTES.MoreSettingsLocale);
+              }}
+              testID="more-settings-locale-select"
+              title={t('language.select_language')}
+              valueLabel={localeValueLabel}
             />
           </View>
-          <View style={styles.sectionStack}>
-            <ListRow
-              testID="more-settings-auto-queue-repeat"
-              title={t('media_player.repeat.toggle_repeat')}
-              trailing={
-                <Switch
-                  onValueChange={(nextValue) => {
-                    void handleAutoQueueRepeatToggle(nextValue);
-                  }}
-                  value={autoQueueRepeat}
-                />
-              }
-            />
-          </View>
-        </View>
-      </Card>
+        </Card>
 
-      <Card padded={false} testID="more-settings-notifications-card">
-        <View style={styles.sectionInner}>
-          <Text style={styles.sectionHeading}>{t('settings.notifications.notifications')}</Text>
-          <View style={styles.sectionStack}>
-            {NOTIFICATION_TYPES.map((notificationType) => (
+        <Card padded={false} testID="more-settings-playback-card">
+          <View style={styles.sectionInner}>
+            <Text style={styles.sectionHeading}>{t('settings.preferred_media_type.label')}</Text>
+            <Text style={styles.sectionDescription}>
+              {t('settings.preferred_media_type.description')}
+            </Text>
+            <View style={styles.sectionStackAfterDescription}>
+              <OptionChipGroup
+                onChange={(mediaType) => {
+                  void handlePlaybackMediaTypeChange(mediaType);
+                }}
+                options={playbackMediaOptions}
+                testID="more-settings-playback-chips"
+                value={playbackMediaType}
+              />
+            </View>
+          </View>
+        </Card>
+
+        <Card padded={false} testID="more-settings-auto-queue-card">
+          <View style={styles.sectionInner}>
+            <Text style={styles.sectionHeading}>{t('media_player.auto_queue')}</Text>
+            <View style={styles.sectionStack}>
               <ListRow
-                key={notificationType}
-                subtitle={t(`settings.notifications.default_${notificationType}_help`)}
-                testID={`more-settings-notification-${notificationType}`}
-                title={t(getNotificationLabelKey(notificationType))}
+                testID="more-settings-auto-queue-random"
+                title={t('media_player.shuffle.toggle_shuffle')}
                 trailing={
                   <Switch
-                    disabled={!isAuthenticated}
                     onValueChange={(nextValue) => {
-                      void handleNotificationToggle(notificationType, nextValue);
+                      void handleAutoQueueRandomToggle(nextValue);
                     }}
-                    value={notificationToggles[notificationType]}
+                    value={autoQueueRandom}
                   />
                 }
               />
-            ))}
-          </View>
-          {!isAuthenticated ? (
-            <Text style={styles.warningText}>
-              {t('instructions.login_to_enable_notifications')}
-            </Text>
-          ) : null}
-          {showNotificationPermissionHint ? (
-            <View style={styles.sectionStack}>
-              <Text style={styles.warningText} testID="more-settings-notification-permission-hint">
-                {t('settings.notifications.permission_required')}
-              </Text>
-              {notificationPermissionBlocked ? (
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => {
-                    void openSystemNotificationSettings().catch(() => {
-                      setErrorMessageKey('errors.generic');
-                    });
-                  }}
-                  style={styles.warningLinkButton}
-                  testID="more-settings-open-notification-settings"
-                >
-                  <Text style={styles.warningLinkButtonText}>
-                    {t('settings.notifications.open_system_settings')}
-                  </Text>
-                </Pressable>
-              ) : null}
             </View>
-          ) : null}
-        </View>
-      </Card>
+            <View style={styles.sectionStack}>
+              <ListRow
+                testID="more-settings-auto-queue-repeat"
+                title={t('media_player.repeat.toggle_repeat')}
+                trailing={
+                  <Switch
+                    onValueChange={(nextValue) => {
+                      void handleAutoQueueRepeatToggle(nextValue);
+                    }}
+                    value={autoQueueRepeat}
+                  />
+                }
+              />
+            </View>
+          </View>
+        </Card>
 
-      {errorMessageKey !== null ? (
-        <Text style={styles.warningText} testID="more-settings-error">
-          {t(errorMessageKey)}
-        </Text>
-      ) : null}
+        <Card padded={false} testID="more-settings-notifications-card">
+          <View style={styles.sectionInner}>
+            <Text style={styles.sectionHeading}>{t('settings.notifications.notifications')}</Text>
+            <View style={styles.sectionStack}>
+              {NOTIFICATION_TYPES.map((notificationType) => (
+                <ListRow
+                  key={notificationType}
+                  subtitle={t(`settings.notifications.default_${notificationType}_help`)}
+                  testID={`more-settings-notification-${notificationType}`}
+                  title={t(getNotificationLabelKey(notificationType))}
+                  trailing={
+                    <Switch
+                      disabled={!isAuthenticated}
+                      onValueChange={(nextValue) => {
+                        void handleNotificationToggle(notificationType, nextValue);
+                      }}
+                      value={notificationToggles[notificationType]}
+                    />
+                  }
+                />
+              ))}
+            </View>
+            {!isAuthenticated ? (
+              <Text style={styles.warningText}>
+                {t('instructions.login_to_enable_notifications')}
+              </Text>
+            ) : null}
+            {showNotificationPermissionHint ? (
+              <View style={styles.sectionStack}>
+                <Text
+                  style={styles.warningText}
+                  testID="more-settings-notification-permission-hint"
+                >
+                  {t('settings.notifications.permission_required')}
+                </Text>
+                {notificationPermissionBlocked ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => {
+                      void openSystemNotificationSettings().catch(() => {
+                        setErrorMessageKey('errors.generic');
+                      });
+                    }}
+                    style={styles.warningLinkButton}
+                    testID="more-settings-open-notification-settings"
+                  >
+                    <Text style={styles.warningLinkButtonText}>
+                      {t('settings.notifications.open_system_settings')}
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            ) : null}
+          </View>
+        </Card>
+
+        {errorMessageKey !== null ? (
+          <Text style={styles.warningText} testID="more-settings-error">
+            {t(errorMessageKey)}
+          </Text>
+        ) : null}
       </View>
     </MobileScreenContainer>
   );

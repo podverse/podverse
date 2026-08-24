@@ -17,8 +17,8 @@ import { breakpoints } from '@podverse/design-tokens';
 
 import { useAuth } from '../auth/AuthProvider';
 import { MiniPlayer } from '../components/player/MiniPlayer';
-import { MenuListScreen } from '../components/screen/MenuListScreen';
 import type { MenuListItem } from '../components/screen/MenuListScreen';
+import { MenuListScreen } from '../components/screen/MenuListScreen';
 import { getMobileConfig } from '../config';
 import { buildMobileLinkPrefixes } from '../config/deepLinkSchemes';
 import { PlaybackE2eStatus } from '../playback/PlaybackE2eStatus';
@@ -50,9 +50,9 @@ import { AddByRssRootScreen } from '../screens/rss/AddByRssRootScreen';
 import { PodcastIndexFeedPreviewScreen } from '../screens/search/PodcastIndexFeedPreviewScreen';
 import { SearchScreen } from '../screens/search/SearchScreen';
 import { V4vInfoScreen } from '../screens/v4v/V4vInfoScreen';
-import { useThemedNativeStackScreenOptions } from '../theme/useThemedNativeStackScreenOptions';
 import { useNavigationTheme } from '../theme/useNavigationTheme';
 import { useTheme } from '../theme/useTheme';
+import { useThemedNativeStackScreenOptions } from '../theme/useThemedNativeStackScreenOptions';
 import { mapIncomingPathToScopedPath, mapScopedPathToFlatPath } from './deepLinking';
 import { tabBarIcon } from './tabBarIcon';
 
@@ -923,7 +923,11 @@ export function MobileTabNavigator({
   }, [onConsumePendingDeepLink, pendingDeepLinkUrl]);
 
   return (
-    <NavigationContainer linking={mobileNavigationLinking} ref={rootNavigationRef} theme={navigationTheme}>
+    <NavigationContainer
+      linking={mobileNavigationLinking}
+      ref={rootNavigationRef}
+      theme={navigationTheme}
+    >
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
         <RootStack.Screen name={ROOT_STACK_ROUTES.MainTabs}>
           {(props) => (

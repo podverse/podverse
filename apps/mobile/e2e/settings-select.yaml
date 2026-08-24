@@ -43,10 +43,10 @@ name: Settings Select Pages
     id: more-settings-locale-select
 - takeScreenshot: settings-locale-es
 
-# Preferred media type remains chips (2 options).
+# Preferred media type defaults to video; tap audio then back to video to verify chip persistence.
 - assertVisible:
-    id: more-settings-playback-chips
-- assertVisible:
+    id: more-settings-playback-video
+- tapOn:
     id: more-settings-playback-audio
 - tapOn:
     id: more-settings-playback-video

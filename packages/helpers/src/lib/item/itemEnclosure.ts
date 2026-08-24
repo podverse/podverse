@@ -36,6 +36,9 @@ export type EnclosureSelectedParams = {
 /** A user's preferred media type for default enclosure selection. */
 export type MediaTypePreference = 'audio' | 'video';
 
+/** Default preferred media type for new accounts and unset device prefs (matches DB column default). */
+export const DEFAULT_MEDIA_TYPE_PREFERENCE: MediaTypePreference = 'video';
+
 /**
  * Resolve the default enclosure selection for a preferred media type.
  *

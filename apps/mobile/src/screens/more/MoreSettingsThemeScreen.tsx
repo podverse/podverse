@@ -1,9 +1,9 @@
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ALL_POSSIBLE_THEMES } from '@podverse/design-tokens';
 import type { UITheme } from '@podverse/design-tokens';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { ALL_POSSIBLE_THEMES } from '@podverse/design-tokens';
 
 import { OptionListScreen } from '../../components/form';
 import type { MoreStackParamList } from '../../navigation';

@@ -56,12 +56,7 @@ export function SettingsOptionNavRow({
   );
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={styles.row}
-      testID={testID}
-    >
+    <Pressable accessibilityRole="button" onPress={onPress} style={styles.row} testID={testID}>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.description}>{description}</Text>
       <View style={styles.valueWrap}>

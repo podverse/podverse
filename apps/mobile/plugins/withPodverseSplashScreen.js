@@ -78,8 +78,4 @@ function withPodverseSplashScreen(config) {
   ]);
 }
 
-module.exports = createRunOncePlugin(
-  withPodverseSplashScreen,
-  'withPodverseSplashScreen',
-  '1.0.0'
-);
+module.exports = createRunOncePlugin(withPodverseSplashScreen, 'withPodverseSplashScreen', '1.0.0');
