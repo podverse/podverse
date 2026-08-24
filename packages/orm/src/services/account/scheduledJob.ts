@@ -1,7 +1,7 @@
 import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
 import { ScheduledJob } from '@orm/entities/account/scheduledJob.js';
 import type { FindOptionsWhere, Repository } from 'typeorm';
-import { LessThanOrEqual } from 'typeorm';
+import { In, LessThan, LessThanOrEqual } from 'typeorm';
 
 import { ScheduledJobStatusEnum } from '@podverse/helpers';
 
@@ -19,8 +19,18 @@ type ClaimDueBatchParams = {
   worker_id: string;
 };
 
+type ListDuePendingBatchParams = {
+  limit: number;
+  now?: Date;
+};
+
 const DEFAULT_MAX_ATTEMPTS = 5;
 const DEFAULT_CLAIM_BATCH_LIMIT = 100;
+const TERMINAL_JOB_STATUSES = [
+  ScheduledJobStatusEnum.Completed,
+  ScheduledJobStatusEnum.Cancelled,
+  ScheduledJobStatusEnum.Failed,
+] as const;
 
 export class ScheduledJobService {
   protected repositoryRead: Repository<ScheduledJob>;
@@ -80,6 +90,23 @@ export class ScheduledJobService {
     return this.repositoryReadWrite.save(existing);
   }
 
+  async listDuePendingBatch(params: ListDuePendingBatchParams): Promise<ScheduledJob[]> {
+    const now = params.now ?? new Date();
+    const limit = Math.max(1, Math.min(params.limit, DEFAULT_CLAIM_BATCH_LIMIT));
+
+    return this.repositoryRead.find({
+      order: {
+        id: 'ASC',
+        run_after: 'ASC',
+      },
+      take: limit,
+      where: {
+        run_after: LessThanOrEqual(now),
+        status: ScheduledJobStatusEnum.Pending,
+      },
+    });
+  }
+
   async claimDueBatch(params: ClaimDueBatchParams): Promise<ScheduledJob[]> {
     const now = params.now ?? new Date();
     const limit = Math.max(1, Math.min(params.limit, DEFAULT_CLAIM_BATCH_LIMIT));
@@ -126,6 +153,19 @@ export class ScheduledJobService {
     return this.repositoryReadWrite.save(job);
   }
 
+  async markCancelled(job_id: number, reason?: string): Promise<ScheduledJob | null> {
+    const job = await this.repositoryReadWrite.findOne({ where: { id: job_id } });
+    if (!job) {
+      return null;
+    }
+
+    job.last_error = reason ?? null;
+    job.locked_at = null;
+    job.locked_by = null;
+    job.status = ScheduledJobStatusEnum.Cancelled;
+    return this.repositoryReadWrite.save(job);
+  }
+
   async markFailed(job_id: number, error_message: string): Promise<ScheduledJob | null> {
     const job = await this.repositoryReadWrite.findOne({ where: { id: job_id } });
     if (!job) {
@@ -158,5 +198,30 @@ export class ScheduledJobService {
     job.run_after = new Date(now + normalizedBackoffMs);
     job.status = ScheduledJobStatusEnum.Pending;
     return this.repositoryReadWrite.save(job);
+  }
+
+  async releaseStaleRunningBefore(cutoff: Date): Promise<number> {
+    const result = await this.repositoryReadWrite.update(
+      {
+        status: ScheduledJobStatusEnum.Running,
+        locked_at: LessThan(cutoff),
+      },
+      {
+        locked_at: null,
+        locked_by: null,
+        status: ScheduledJobStatusEnum.Pending,
+      }
+    );
+
+    return result.affected ?? 0;
+  }
+
+  async deleteTerminalBefore(cutoff: Date): Promise<number> {
+    const result = await this.repositoryReadWrite.delete({
+      status: In([...TERMINAL_JOB_STATUSES]),
+      updated_at: LessThan(cutoff),
+    });
+
+    return result.affected ?? 0;
   }
 }

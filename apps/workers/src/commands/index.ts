@@ -32,8 +32,10 @@ import {
 import { imageShrinkRunConsumer } from './imageShrink/runConsumer.js';
 import { mqRSSRunDlqConsumer } from './mq/rss/dlqHandling.js';
 import { mqRSSRunLiveItemListener } from './mq/rss/runLiveItemListener.js';
+import { notificationsPlatformPurge } from './orm/notifications/platformPurge.js';
 import { deleteOutdatedOnDemandParserEvent } from './orm/onDemandParserEvent/deleteOutdatedOnDemandParserEvent.js';
 import { generateOnDemandParserEventReports } from './orm/onDemandParserEvent/generateOnDemandParserEventReports.js';
+import { scheduledJobsRunDue } from './orm/scheduledJob/runDue.js';
 
 export type CommandLineArgs = { [key: string]: string | string[] };
 
@@ -61,6 +63,8 @@ export default {
   statsUpdateAggregated,
   statsUpdateAggregatedRolling,
   billingProcessDueRenewals,
+  scheduledJobsRunDue,
+  notificationsPlatformPurge,
   generateOnDemandParserEventReports,
   deleteOutdatedOnDemandParserEvent,
   imageShrinkBackfill,

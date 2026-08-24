@@ -6,6 +6,7 @@ import type { EntityManager } from 'typeorm';
 import type { AccountMembershipEnum, BillingCadence } from '@podverse/helpers';
 
 import { AccountMembershipService } from './accountMembership.js';
+import { MembershipExpiryReminderSchedulerService } from './membershipExpiryReminderScheduler.js';
 
 export type AccountMembershipStatusDto = {
   account_membership_id: AccountMembershipEnum;
@@ -30,8 +31,11 @@ export class AccountMembershipStatusService extends BaseOneService<
   AccountMembershipStatus,
   'account'
 > {
+  private membershipExpiryReminderSchedulerService: MembershipExpiryReminderSchedulerService;
+
   constructor(transactionalEntityManager?: EntityManager) {
     super(AccountMembershipStatus, 'account', transactionalEntityManager);
+    this.membershipExpiryReminderSchedulerService = new MembershipExpiryReminderSchedulerService();
   }
 
   async update(
@@ -118,6 +122,23 @@ export class AccountMembershipStatusService extends BaseOneService<
             : (account.account_membership_status?.allow_notifications ?? null),
     };
 
-    return super._update(account, finalDto);
+    const previousMembershipExpiresAt =
+      account.account_membership_status?.membership_expires_at ?? null;
+    const updated = await super._update(account, finalDto);
+    const nextMembershipExpiresAt = updated.membership_expires_at ?? null;
+
+    const previousMembershipExpiresAtMs =
+      previousMembershipExpiresAt !== null ? previousMembershipExpiresAt.getTime() : null;
+    const nextMembershipExpiresAtMs =
+      nextMembershipExpiresAt !== null ? nextMembershipExpiresAt.getTime() : null;
+
+    if (previousMembershipExpiresAtMs !== nextMembershipExpiresAtMs) {
+      await this.membershipExpiryReminderSchedulerService.syncAccountReminder({
+        accountId: account.id,
+        membershipExpiresAt: nextMembershipExpiresAt,
+      });
+    }
+
+    return updated;
   }
 }
