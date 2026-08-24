@@ -31,6 +31,7 @@ import { validateEmail, validatePassword, validateUsername } from '@podverse/hel
 import { BillingPriceCatalogService } from '../billingPriceCatalog.js';
 import { AccountCredentialsService } from './accountCredentials.js';
 import { AccountMembershipStatusService } from './accountMembershipStatus.js';
+import { AccountNotificationPreferenceService } from './accountNotificationPreference.js';
 import { AccountProfileService } from './accountProfile.js';
 import { AccountResetPasswordService } from './accountResetPassword.js';
 import { AccountTermsAcceptanceService } from './accountTermsAcceptance.js';
@@ -335,6 +336,7 @@ export class AccountService {
     const accountSettingsRepo = AppDataSourceReadWrite.getRepository(AccountSettings);
     const localeRepo = AppDataSourceReadWrite.getRepository(AccountSettingsLocale);
     const notificationRepo = AppDataSourceReadWrite.getRepository(AccountSettingsNotification);
+    const notificationPreferenceService = new AccountNotificationPreferenceService();
     const playbackRepo = AppDataSourceReadWrite.getRepository(AccountSettingsPlayback);
 
     // If alwaysCreate (used by create), always create new AccountSettings row linked to the account
@@ -374,6 +376,8 @@ export class AccountService {
         AccountSettingsNotificationType
       );
       await notificationTypeRepo.save([t1, t2]);
+
+      await notificationPreferenceService.seedDefaultsForAccount(account.id);
 
       return;
     }
@@ -427,5 +431,7 @@ export class AccountService {
       notification.account_settings_notification_types = [t1, t2];
       await notificationRepo.save(notification);
     }
+
+    await notificationPreferenceService.seedDefaultsForAccount(account.id);
   }
 }

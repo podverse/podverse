@@ -11,8 +11,10 @@ import { AccountGooglePlayPurchase } from '@orm/entities/account/accountGooglePl
 import { AccountMembership } from '@orm/entities/account/accountMembership.js';
 import { AccountMembershipStatus } from '@orm/entities/account/accountMembershipStatus.js';
 import { AccountMetaboost } from '@orm/entities/account/accountMetaboost.js';
+import { AccountNotification } from '@orm/entities/account/accountNotification.js';
 import { AccountNotificationChannel } from '@orm/entities/account/accountNotificationChannel.js';
 import { AccountNotificationChannelType } from '@orm/entities/account/accountNotificationChannelType.js';
+import { AccountNotificationPreference } from '@orm/entities/account/accountNotificationPreference.js';
 import { AccountPayPalOrder } from '@orm/entities/account/accountPayPalOrder.js';
 import { AccountPendingFollowingChannel } from '@orm/entities/account/accountPendingFollowingChannel.js';
 import { AccountProfile } from '@orm/entities/account/accountProfile.js';
@@ -27,6 +29,7 @@ import { AccountTermsAcceptance } from '@orm/entities/account/accountTermsAccept
 import { AccountUPDevice } from '@orm/entities/account/accountUPDevice.js';
 import { AccountVerification } from '@orm/entities/account/accountVerification.js';
 import { AccountWebPushDevice } from '@orm/entities/account/accountWebPushDevice.js';
+import { ScheduledJob } from '@orm/entities/account/scheduledJob.js';
 import { BillingDomainEvent } from '@orm/entities/billingDomainEvent.js';
 import { BillingPrice } from '@orm/entities/billingPrice.js';
 import { BillingPriceChangeAudit } from '@orm/entities/billingPriceChangeAudit.js';
@@ -139,9 +142,11 @@ export const entities = [
   AccountMembership,
   AccountMembershipStatus,
   AccountMetaboost,
+  AccountNotification,
   AccountTermsAcceptance,
   AccountNotificationChannel,
   AccountNotificationChannelType,
+  AccountNotificationPreference,
   AccountPayPalOrder,
   AccountProfile,
   AccountResetPassword,
@@ -237,6 +242,7 @@ export const entities = [
   ProductMembershipSettings,
   Queue,
   QueueResource,
+  ScheduledJob,
   SharableStatus,
   StatsAggregatedAccount,
   StatsAggregatedChannel,

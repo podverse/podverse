@@ -23,6 +23,8 @@ export * from './account/accountMembership.js';
 export * from './account/accountMembershipStatus.js';
 export * from './account/accountNotificationChannel.js';
 export * from './account/accountNotificationChannelType.js';
+export * from './account/accountNotification.js';
+export * from './account/accountNotificationPreference.js';
 export * from './account/accountPayPalOrder.js';
 export * from './account/accountProfile.js';
 export * from './account/accountResetPassword.js';

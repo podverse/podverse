@@ -290,11 +290,11 @@ Path: `.llm/plans/active/mobile-<phase-slug>/` (kebab-case, e.g. `mobile-pg0-fou
 
 Required files:
 
-| File                    | Purpose                                                                |
-| ----------------------- | ---------------------------------------------------------------------- |
-| `00-SUMMARY.md`         | Phase scope, step list, detail ID range, open decisions locked         |
-| `00-EXECUTION-ORDER.md` | Sequential vs parallel prompts within phase                            |
-| `01-…md`, `02-…md`      | Grouped implementation plans referencing detail docs                   |
+| File                    | Purpose                                                                                |
+| ----------------------- | -------------------------------------------------------------------------------------- |
+| `00-SUMMARY.md`         | Phase scope, step list, detail ID range, open decisions locked                         |
+| `00-EXECUTION-ORDER.md` | Sequential vs parallel prompts within phase                                            |
+| `01-…md`, `02-…md`      | Grouped implementation plans referencing detail docs                                   |
 | `COPY-PASTA.md`         | Short prompts; each references a numbered plan file + **Cursor model** + **Reasoning** |
 
 Follow **parallel-plan-execution** (§ Step 5 — **Cursor model** and **Reasoning** required on every prompt):

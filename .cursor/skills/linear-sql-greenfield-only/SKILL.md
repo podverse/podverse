@@ -19,6 +19,7 @@ Linear migrations model **ordered fresh applies**: migration `NNNN` may assume t
 - Use plain `CREATE TABLE`, `ALTER TABLE … ADD`, `DROP …`, `INSERT`, etc., when the object or absence is guaranteed by prior migrations.
 - Keep deterministic literals for seeds when baselines must stay byte-stable (fixed timestamps, explicit UUIDs where the repo already pins them).
 - After changing SQL: `make db_regen_linear_baseline`, then `make db_verify_linear_baseline`, commit updated `0004`/`0005` (see [linear-baseline-0004](/.cursor/rules/linear-baseline-0004.mdc)).
+- For post-squash evolution, add a new highest-numbered `NNNN_*.sql` migration (for example `0003_...sql`) instead of editing consolidated `0001_*_schema.sql`.
 
 ## Don’t (unless prior migrations make it necessary)
 
@@ -26,6 +27,7 @@ Linear migrations model **ordered fresh applies**: migration `NNNN` may assume t
 - `INSERT … ON CONFLICT DO NOTHING` (or `UPDATE`) solely to tolerate duplicate applies or unknown pre-state.
 - `INSERT … WHERE NOT EXISTS (SELECT …)` guards when uniqueness is already guaranteed by chain order.
 - Large `DO $$` blocks that introspect `information_schema` / `pg_catalog` to branch for upgrades.
+- Don’t hand-edit consolidated `0001_*_schema.sql` for routine feature migrations; only touch `0001` when intentionally executing the squash workflow.
 
 ## Exceptions
 
