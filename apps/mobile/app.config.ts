@@ -13,6 +13,7 @@ require('sucrase/register/ts');
 
 const {
   parseMobileDeepLinkSchemes,
+  MOBILE_UNIVERSAL_LINK_PATH_PREFIXES,
 }: typeof import('./src/config/deepLinkSchemes') = require('./src/config/deepLinkSchemes');
 /* eslint-enable @typescript-eslint/no-require-imports */
 
@@ -48,7 +49,7 @@ const universalLinkHost =
   resolveHost(trimToNull(process.env.WEB_BASE_URL)) ??
   DEFAULT_UNIVERSAL_LINK_HOST;
 
-const universalLinkPathPrefixes = ['/podcast/', '/episode/', '/playlist/', '/clip/', '/profile/'];
+const universalLinkPathPrefixes = [...MOBILE_UNIVERSAL_LINK_PATH_PREFIXES];
 
 const config: ExpoConfig = {
   name: 'Podverse Next',

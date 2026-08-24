@@ -5,7 +5,13 @@ import type {
   DTOItemChapter,
   DTOItemSoundbite,
 } from '@podverse/helpers';
-import { MediumEnum } from '@podverse/helpers';
+import {
+  buildAlbumPath,
+  buildEpisodePath,
+  buildPodcastPath,
+  buildTrackPath,
+  MediumEnum,
+} from '@podverse/helpers';
 
 import type { MediaPlayerAddByRSSState } from '../../contexts/MediaPlayer';
 import { getAddByRSSItemPath, getAddByRSSLivestreamPath } from '../addByRSS/itemPath';
@@ -113,15 +119,15 @@ const resolveDefaultLinks = (
 
   if (mpChannel.medium_id === MediumEnum.Podcast || mpChannel.medium_id === MediumEnum.Video) {
     return {
-      channelLinkUrl: `/podcast/${mpChannel.id_text}`,
-      itemLinkUrl: mpItem ? `/episode/${mpItem.id_text}` : '',
+      channelLinkUrl: buildPodcastPath(mpChannel.id_text),
+      itemLinkUrl: mpItem ? buildEpisodePath(mpItem.id_text) : '',
     };
   }
 
   if (mpChannel.medium_id === MediumEnum.Music) {
     return {
-      channelLinkUrl: `/album/${mpChannel.id_text}`,
-      itemLinkUrl: mpItem ? `/track/${mpItem.id_text}` : '',
+      channelLinkUrl: buildAlbumPath(mpChannel.id_text),
+      itemLinkUrl: mpItem ? buildTrackPath(mpItem.id_text) : '',
     };
   }
 

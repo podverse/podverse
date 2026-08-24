@@ -10,6 +10,7 @@ import { Strategy as LocalStrategy } from 'passport-local';
 
 import {
   type AccountEntitlementCapability,
+  APP_ROUTES,
   AuthCookieName,
   ERROR_MESSAGES,
   hasValidMembership,
@@ -435,7 +436,7 @@ const verifyTokenAndMembership = (
             message: 'Your membership has expired. Renew to use this feature.',
             code: 'membership_expired',
             i18nKey: MEMBERSHIP_EXPIRED_I18N_KEY,
-            renewPath: '/membership/renew',
+            renewPath: APP_ROUTES.MEMBERSHIP_RENEW,
           });
           return;
         }
@@ -453,7 +454,7 @@ const verifyTokenAndMembership = (
             message: 'Your account does not currently have access to this feature.',
             code: 'feature_not_available_for_account_type',
             i18nKey: 'membership.feature_not_available_for_account_type',
-            renewPath: '/membership/renew',
+            renewPath: APP_ROUTES.MEMBERSHIP_RENEW,
           });
           return;
         }

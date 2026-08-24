@@ -5,6 +5,8 @@
  * Expo config loader. See the `mobile-deep-links-and-prod-cutover` rule.
  */
 
+import { APP_ROUTES } from '@podverse/helpers';
+
 /**
  * Custom URL schemes the app registers, most-specific first. `podverse-next` is the beta scheme;
  * `podverse` is kept as a legacy alias so an eventual in-place v4 → v5 upgrade (same bundle id /
@@ -43,3 +45,12 @@ export const buildMobileLinkPrefixes = (schemes: string[], webBaseUrl: string): 
   const schemePrefixes = schemes.map((scheme) => `${scheme}://`);
   return [...schemePrefixes, normalizeBaseUrl(webBaseUrl)];
 };
+
+/** Path prefixes registered for iOS universal links / Android app links (must match web routes). */
+export const MOBILE_UNIVERSAL_LINK_PATH_PREFIXES = [
+  `${APP_ROUTES.PODCAST}/`,
+  `${APP_ROUTES.EPISODE}/`,
+  `${APP_ROUTES.PLAYLIST}/`,
+  `${APP_ROUTES.CLIP}/`,
+  `${APP_ROUTES.PROFILE}/`,
+] as const;

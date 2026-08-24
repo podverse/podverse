@@ -1,15 +1,22 @@
 import { loggerService } from '@parser/factories/loggerService.js';
 import type { HandleParsedItemsResult } from '@parser/lib/rss/item/item.js';
 
-import { AccountNotificationTypeEnum, MediumEnum } from '@podverse/helpers';
+import {
+  AccountNotificationTypeEnum,
+  MediumEnum,
+  NotificationCategoryEnum,
+} from '@podverse/helpers';
 import type { NotificationMessageType } from '@podverse/notifications';
 import type { Channel, ChannelImage } from '@podverse/orm';
 import { ItemService } from '@podverse/orm';
 
 import type { ItemNotificationData } from './sharedNotificationHelpers.js';
 import {
+  createInAppNotificationsForAccounts,
   getBestImageUrl,
   getDevicesForNotificationType,
+  getInAppNotificationLinkPath,
+  getInAppNotificationTitle,
   groupDevicesByLocaleAndPlatform,
   loadChannelImages,
   sendItemNotifications,
@@ -61,14 +68,20 @@ export async function handleNewItemNotifications(
     // Get devices for accounts that have new-item notifications enabled
     const devicesResult = await getDevicesForNotificationType(
       channel.id_text,
-      AccountNotificationTypeEnum.NewItem
+      AccountNotificationTypeEnum.NewItem,
+      NotificationCategoryEnum.NewContent
     );
 
     if (!devicesResult) {
       return;
     }
 
-    const { devices: allDevices, webPushSubscriptions, upSubscriptions } = devicesResult;
+    const {
+      devices: allDevices,
+      inAppEnabledAccountIds,
+      webPushSubscriptions,
+      upSubscriptions,
+    } = devicesResult;
 
     // Get the items to send notifications for using batch queries
     const itemService = new ItemService();
@@ -124,6 +137,21 @@ export async function handleNewItemNotifications(
       messageType,
       mediumId: channel.medium_id,
     }));
+
+    for (const itemNotification of itemNotifications) {
+      await createInAppNotificationsForAccounts({
+        accountIds: inAppEnabledAccountIds,
+        body: itemNotification.channelTitle,
+        category: NotificationCategoryEnum.NewContent,
+        linkPath: getInAppNotificationLinkPath(itemNotification),
+        payload: {
+          channelIdText: itemNotification.channelIdText,
+          itemIdText: itemNotification.itemIdText,
+          type: itemNotification.messageType,
+        },
+        title: getInAppNotificationTitle(itemNotification.messageType, itemNotification.itemTitle),
+      });
+    }
 
     // Group devices by locale and platform
     const groupedDevices = groupDevicesByLocaleAndPlatform(allDevices);

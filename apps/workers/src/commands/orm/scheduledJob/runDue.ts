@@ -1,10 +1,10 @@
 import type { CommandLineArgs } from '@workers/commands/index.js';
 import { getLogger } from '@workers/factories/logger.js';
 
-import { hasValidMembership, NotificationCategoryEnum } from '@podverse/helpers';
+import { APP_ROUTES, hasValidMembership, NotificationCategoryEnum } from '@podverse/helpers';
 import {
-  AccountNotificationService,
   AccountService,
+  createAccountNotificationWithOptionalPush,
   MEMBERSHIP_EXPIRY_REMINDER_JOB_TYPE,
   parseMembershipExpiryReminderPayload,
   type ScheduledJob,
@@ -17,7 +17,6 @@ type JobHandlerResult = {
 };
 
 type JobHandlerContext = {
-  accountNotificationService: AccountNotificationService;
   accountService: AccountService;
 };
 
@@ -98,12 +97,12 @@ const handleMembershipExpiryReminder: JobHandler = async (job, context) => {
     };
   }
 
-  await context.accountNotificationService.createMany([
+  await createAccountNotificationWithOptionalPush([
     {
       account_id: account.id,
       body: 'Your membership will expire soon. Renew now to keep your premium benefits.',
       category: NotificationCategoryEnum.MembershipExpiry,
-      link_path: '/membership/renew',
+      link_path: APP_ROUTES.MEMBERSHIP_RENEW,
       payload: {
         membershipExpiresAt: membershipExpiresAt.toISOString(),
       },
@@ -165,7 +164,6 @@ export const scheduledJobsRunDue = async (args: CommandLineArgs) => {
   }
 
   const context: JobHandlerContext = {
-    accountNotificationService: new AccountNotificationService(),
     accountService: new AccountService(),
   };
 

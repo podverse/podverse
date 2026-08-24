@@ -1,10 +1,9 @@
 import type { NotificationCategoryValues } from '@podverse/helpers';
 import { hasValidMembership } from '@podverse/helpers';
-import {
-  AccountNotificationPreferenceService,
-  AccountNotificationService,
-  AccountService,
-} from '@podverse/orm';
+
+import { AccountService } from './account.js';
+import { AccountNotificationService } from './accountNotification.js';
+import { AccountNotificationPreferenceService } from './accountNotificationPreference.js';
 
 type NotificationCreateInput = {
   account_id: number;
@@ -24,7 +23,7 @@ type PushEvaluation = {
   has_allow_notifications_entitlement: boolean;
 };
 
-type CreateAccountNotificationWithOptionalPushResult = {
+export type CreateAccountNotificationWithOptionalPushResult = {
   notifications_created: number;
   push_evaluation: PushEvaluation[];
 };

@@ -10,6 +10,7 @@ import {
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 
+import { APP_ROUTES } from '@podverse/helpers';
 import { AccountFollowingAddByRSSChannelService, AccountService } from '@podverse/orm';
 
 import { handleGenericErrorResponse } from '../helpers/error.js';
@@ -135,7 +136,7 @@ class AccountFollowingAddByRSSChannelController {
                   message: `Your account can only save up to ${entitlements.maxAddByRSSFeeds} Add by RSS feeds. Renew your membership to raise this limit to ${premiumLimit}.`,
                   code: 'add_by_rss_feed_limit_reached',
                   i18nKey: 'membership.add_by_rss_feed_limit_reached',
-                  renewPath: '/membership/renew',
+                  renewPath: APP_ROUTES.MEMBERSHIP_RENEW,
                 });
                 return;
               }

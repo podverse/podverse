@@ -2,7 +2,7 @@ import type { Server } from 'http';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { AccountMembershipEnum } from '@podverse/helpers';
+import { AccountMembershipEnum, APP_ROUTES } from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
 
 import {
@@ -50,7 +50,7 @@ const {
       category: 'product-update',
       title: 'New feature',
       body: 'Try the new queue controls.',
-      link_path: '/settings',
+      link_path: APP_ROUTES.SETTINGS,
       payload: null,
       created_at: new Date('2026-08-01T00:00:00.000Z'),
       expires_at: new Date('2026-09-01T00:00:00.000Z'),

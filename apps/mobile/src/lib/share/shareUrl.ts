@@ -1,6 +1,15 @@
+import { APP_ROUTES, buildAppRoutePath } from '@podverse/helpers';
 import type { PlaybackTarget } from '@podverse/playback-core';
 
 export type ShareResource = 'clip' | 'episode' | 'playlist' | 'podcast' | 'profile';
+
+const SHARE_RESOURCE_ROUTES: Record<ShareResource, (typeof APP_ROUTES)[keyof typeof APP_ROUTES]> = {
+  clip: APP_ROUTES.CLIP,
+  episode: APP_ROUTES.EPISODE,
+  playlist: APP_ROUTES.PLAYLIST,
+  podcast: APP_ROUTES.PODCAST,
+  profile: APP_ROUTES.PROFILE,
+};
 
 const trimTrailingSlashes = (value: string): string => {
   return value.replace(/\/+$/, '');
@@ -11,7 +20,7 @@ export const buildPublicShareUrl = (
   resource: ShareResource,
   idText: string
 ): string => {
-  return `${trimTrailingSlashes(webBaseUrl)}/${resource}/${idText}`;
+  return `${trimTrailingSlashes(webBaseUrl)}${buildAppRoutePath(SHARE_RESOURCE_ROUTES[resource], idText)}`;
 };
 
 export function buildNowPlayingShareUrl(webBaseUrl: string, target: PlaybackTarget): string | null {

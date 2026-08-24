@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOChannel, RemoteItemsResponse } from '@podverse/helpers';
+import { buildAlbumPath, buildTrackPath } from '@podverse/helpers';
 
 import { BoostMessagesSection } from '../../../components/Boost/messages/BoostMessagesSection';
 import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
@@ -34,8 +35,8 @@ export const AlbumPageList: React.FC<AlbumPageListProps> = ({
     scopeType: 'album',
     channelIdText: ssrChannel.id_text ?? null,
     ssrCanShowBoosts,
-    resolveChannelHref: (channelIdText) => `/album/${channelIdText}`,
-    resolveItemHref: (itemIdText) => `/track/${itemIdText}`,
+    resolveChannelHref: buildAlbumPath,
+    resolveItemHref: buildTrackPath,
   });
 
   return (

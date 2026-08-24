@@ -1,6 +1,7 @@
 'use client';
 
 import type { DTOItem } from '@podverse/helpers';
+import { buildEpisodePath, buildPodcastPath } from '@podverse/helpers';
 import type { PublicBoostMessage } from '@podverse/v4v-metaboost';
 
 import { getApiRequestService } from '../../../factories/apiRequestService';
@@ -50,9 +51,9 @@ const findItemIdTextByGuid = async (
 export const createMbrssBoostBreadcrumbLinkResolver = ({
   channelIdText,
   podcastGuid,
-  resolveChannelHref = (resolvedChannelIdText) => `/podcast/${resolvedChannelIdText}`,
+  resolveChannelHref = (resolvedChannelIdText) => buildPodcastPath(resolvedChannelIdText),
   resolveItemIdTextByGuid,
-  resolveItemHref = (resolvedItemIdText) => `/episode/${resolvedItemIdText}`,
+  resolveItemHref = (resolvedItemIdText) => buildEpisodePath(resolvedItemIdText),
 }: ResolverParams): BoostBreadcrumbLinkResolver => {
   const itemHrefCache = new Map<string, string | null>();
   const itemPendingMap = new Map<string, Promise<string | null>>();

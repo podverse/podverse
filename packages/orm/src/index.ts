@@ -184,6 +184,7 @@ export * from './services/billingMembershipExtension.js';
 export * from './services/billingRenewalOrchestrator.js';
 
 export * from './services/account/account.js';
+export * from './services/account/createAccountNotificationWithOptionalPush.js';
 export * from './services/account/accountCredentials.js';
 export * from './services/account/accountDataExport.js';
 export * from './services/account/accountEmailChangeVerification.js';

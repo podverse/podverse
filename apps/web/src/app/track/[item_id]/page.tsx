@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { z } from 'zod';
 
+import { buildTrackPath } from '@podverse/helpers';
 import { QUERY_PARAMS_ITEM_MUSIC_TYPE_VALUES } from '@podverse/helpers-requests';
 
 import { buildContentMetadata } from '../../../lib/seo/buildContentMetadata';
@@ -40,7 +41,7 @@ export async function generateMetadata({ params }: TrackPageProps): Promise<Meta
     return buildContentMetadata({
       title: item.title,
       descriptionPlain,
-      pathname: `/track/${item.id_text}`,
+      pathname: buildTrackPath(item.id_text),
       imageUrl: getItemThenChannelHeroImageUrl(item.item_images, channel.channel_images),
       type: 'article',
     });
