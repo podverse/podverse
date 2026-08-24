@@ -25,6 +25,7 @@ export const ROUTES = {
   MOBILE_APP: '/mobile-app',
   MUSIC_LIVESTREAMS: '/music/livestreams',
   MY_CLIPS: '/my-clips',
+  NOTIFICATIONS: '/notifications',
   MY_PROFILE: '/my-profile',
   OFFICIAL_CLIP: '/official-clip',
   PLAYLISTS: '/playlists',

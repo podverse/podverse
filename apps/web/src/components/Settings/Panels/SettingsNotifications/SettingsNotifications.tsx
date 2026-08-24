@@ -1,11 +1,17 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import type {
+  DTOAccountNotificationPreference,
+  NotificationCategoryEnum,
+} from '@podverse/helpers';
+import { NotificationCategoryEnum as NotificationCategoryEnumValues } from '@podverse/helpers';
 import { validateHttpsUrl } from '@podverse/helpers-validation/client';
 import {
   Button,
+  CheckboxField,
   Divider,
   InlineForm,
   InlineFormButtons,
@@ -38,7 +44,7 @@ export function SettingsNotifications() {
     setUPEndpoint,
   } = useNotifications();
   const { loadingMap, withLoading, setLoadingFor } = useLoadingMap();
-  const { loggedInAccount, setLoggedInAccount } = useAccount();
+  const { loggedInAccount } = useAccount();
   const { setModalLoginRequired } = useModals();
   const { tryHandleMembershipGateError } = useMembershipGate();
   const tInstructions = useTranslations('instructions');
@@ -50,6 +56,82 @@ export function SettingsNotifications() {
   const [upEndpointInput, setUPEndpointInput] = useState('');
   const [upAuthKeyInput, setUPAuthKeyInput] = useState('');
   const [upEndpointError, setUPEndpointError] = useState<string | undefined>(undefined);
+  const [preferences, setPreferences] = useState<DTOAccountNotificationPreference[]>([]);
+
+  const pushMethodRegistered = registered || upRegistered;
+
+  type PreferenceMetaRow = {
+    category: NotificationCategoryEnum;
+    titleKey: string;
+    descriptionKey: string;
+    forceInAppEnabled: boolean;
+  };
+
+  const preferenceRows = useMemo<PreferenceMetaRow[]>(
+    () => [
+      {
+        category: NotificationCategoryEnumValues.NewContent,
+        titleKey: 'category_new_content',
+        descriptionKey: 'category_new_content_description',
+        forceInAppEnabled: false,
+      },
+      {
+        category: NotificationCategoryEnumValues.Livestream,
+        titleKey: 'category_livestream',
+        descriptionKey: 'category_livestream_description',
+        forceInAppEnabled: false,
+      },
+      {
+        category: NotificationCategoryEnumValues.MembershipExpiry,
+        titleKey: 'category_membership_expiry',
+        descriptionKey: 'category_membership_expiry_description',
+        forceInAppEnabled: false,
+      },
+      {
+        category: NotificationCategoryEnumValues.ProductUpdate,
+        titleKey: 'category_product_update',
+        descriptionKey: 'category_product_update_description',
+        forceInAppEnabled: false,
+      },
+      {
+        category: NotificationCategoryEnumValues.Maintenance,
+        titleKey: 'category_maintenance',
+        descriptionKey: 'category_maintenance_description',
+        forceInAppEnabled: true,
+      },
+      {
+        category: NotificationCategoryEnumValues.TermsOfService,
+        titleKey: 'category_terms_of_service',
+        descriptionKey: 'category_terms_of_service_description',
+        forceInAppEnabled: true,
+      },
+      {
+        category: NotificationCategoryEnumValues.General,
+        titleKey: 'category_general',
+        descriptionKey: 'category_general_description',
+        forceInAppEnabled: true,
+      },
+    ],
+    []
+  );
+
+  const loadPreferences = useCallback(async () => {
+    if (!loggedInAccount) {
+      setPreferences([]);
+      return;
+    }
+    try {
+      const rows = await getApiRequestService().reqNotificationPreferencesGet();
+      setPreferences(rows);
+    } catch (error) {
+      console.warn('Could not load notification preferences', error);
+      setPreferences([]);
+    }
+  }, [loggedInAccount]);
+
+  useEffect(() => {
+    void loadPreferences();
+  }, [loadPreferences]);
 
   // Web Push functions
   const enableWebPush = async () => {
@@ -235,51 +317,55 @@ export function SettingsNotifications() {
     setUPEndpointError(undefined);
   };
 
-  // Default notification types switches
-  const defaultTypes = [
-    { key: 'new-item', label: tSettings('notifications.default_new_item') },
-    { key: 'livestream-scheduled', label: tSettings('notifications.default_livestream_scheduled') },
-    { key: 'livestream-started', label: tSettings('notifications.default_livestream_started') },
-  ];
-
-  const toggleDefaultType = async (type: string, next: boolean) => {
-    setLoadingFor(`notifications.${type}`, true);
+  const updatePreference = async (params: {
+    category: NotificationCategoryEnum;
+    nextInAppEnabled?: boolean;
+    nextPushEnabled?: boolean;
+    forceInAppEnabled: boolean;
+  }) => {
+    const loadingKey = `notification-preferences.${params.category}`;
+    setLoadingFor(loadingKey, true);
     if (!loggedInAccount) {
       setModalLoginRequired({
         title: null,
-        message: tInstructions(
-          next ? 'login_to_enable_notifications' : 'login_to_disable_notifications'
-        ),
+        message: tInstructions('login_to_enable_notifications'),
       });
-      setLoadingFor(`notifications.${type}`, false);
+      setLoadingFor(loadingKey, false);
       return;
     }
 
-    await withLoading(`notifications.${type}`, async () => {
+    const existing = preferences.find((row) => row.category === params.category);
+    if (!existing) {
+      setLoadingFor(loadingKey, false);
+      return;
+    }
+
+    const nextInAppEnabled = params.forceInAppEnabled
+      ? true
+      : (params.nextInAppEnabled ?? existing.in_app_enabled);
+    const nextPushEnabled = params.nextPushEnabled ?? existing.push_enabled;
+
+    await withLoading(loadingKey, async () => {
       try {
-        if (next) {
-          const updated = await getApiRequestService().reqAccountSettingsNotificationTypeCreate({
-            type,
-          });
-          setLoggedInAccount(updated as unknown as typeof loggedInAccount);
-        } else {
-          const updated = await getApiRequestService().reqAccountSettingsNotificationTypeDelete({
-            type,
-          });
-          setLoggedInAccount(updated as unknown as typeof loggedInAccount);
-        }
+        const updated = await getApiRequestService().reqNotificationPreferencesUpdate({
+          preferences: [
+            {
+              category: params.category,
+              in_app_enabled: nextInAppEnabled,
+              push_enabled: nextPushEnabled,
+            },
+          ],
+        });
+        setPreferences(updated);
       } catch (error) {
         if (!tryHandleMembershipGateError(error)) {
-          console.warn('Could not toggle notification type', type, error);
+          console.warn('Could not update notification preferences', params.category, error);
         }
       }
     });
 
-    setLoadingFor(`notifications.${type}`, false);
+    setLoadingFor(loadingKey, false);
   };
-
-  // Check if any notification method is enabled
-  const anyNotificationEnabled = registered || upRegistered;
 
   return (
     <>
@@ -373,33 +459,72 @@ export function SettingsNotifications() {
         )}
       </SettingsSection>
 
-      {/* Default notification types - only show when a notification method is enabled */}
-      {anyNotificationEnabled && (
-        <>
-          <Divider withSpacing />
-          <SettingsSection>
-            {defaultTypes.map((dt) => (
-              <SwitchButton
-                key={dt.key}
-                id={`notifications-${dt.key}`}
-                label={dt.label}
-                checked={
-                  !!loggedInAccount?.account_settings?.account_settings_notification?.account_settings_notification_types?.find(
-                    (t) => t.type === dt.key
-                  )
-                }
-                onChange={async (next) => await toggleDefaultType(dt.key, next)}
-                loading={!!loadingMap[`notifications.${dt.key}`]}
-                helpAriaLabel={tMisc('more_info')}
-                helpText={tSettings(`notifications.default_${dt.key}_help`)}
-                aria-describedby={`notifications-help-${dt.key}`}
-                stateOffLabel={tMisc('off')}
-                stateOnLabel={tMisc('on')}
-              />
-            ))}
-          </SettingsSection>
-        </>
-      )}
+      <Divider withSpacing />
+
+      <SettingsSection>
+        <h3 className={styles.preferencesHeading}>
+          {tSettings('notifications.preference_section')}
+        </h3>
+        <p className={styles.preferencesSubheading}>
+          {tSettings('notifications.preference_section_help')}
+        </p>
+        {preferenceRows.map((row) => {
+          const pref = preferences.find((p) => p.category === row.category);
+          const preferenceLoadingKey = `notification-preferences.${row.category}`;
+          const inAppChecked = row.forceInAppEnabled ? true : (pref?.in_app_enabled ?? true);
+          const pushChecked = pref?.push_enabled ?? false;
+
+          return (
+            <div className={styles.preferenceRow} key={row.category}>
+              <div className={styles.preferenceRowHeader}>
+                <h4 className={styles.preferenceTitle}>
+                  {tSettings(`notifications.${row.titleKey}`)}
+                </h4>
+                <p className={styles.preferenceDescription}>
+                  {tSettings(`notifications.${row.descriptionKey}`)}
+                </p>
+                {row.category === NotificationCategoryEnumValues.ProductUpdate ? (
+                  <p className={styles.preferenceHint}>
+                    {tSettings('notifications.product_update_disable_hint')}
+                  </p>
+                ) : null}
+              </div>
+              <div className={styles.preferenceControls}>
+                <CheckboxField
+                  id={`notifications-${row.category}-in-app`}
+                  checked={inAppChecked}
+                  disabled={row.forceInAppEnabled || !!loadingMap[preferenceLoadingKey]}
+                  label={tSettings('notifications.preference_in_app')}
+                  onChange={(checked) =>
+                    void updatePreference({
+                      category: row.category,
+                      nextInAppEnabled: checked,
+                      forceInAppEnabled: row.forceInAppEnabled,
+                    })
+                  }
+                />
+                <CheckboxField
+                  id={`notifications-${row.category}-push`}
+                  checked={pushChecked}
+                  disabled={!pushMethodRegistered || !!loadingMap[preferenceLoadingKey]}
+                  label={
+                    pushMethodRegistered
+                      ? tSettings('notifications.preference_push')
+                      : tSettings('notifications.preference_push_disabled')
+                  }
+                  onChange={(checked) =>
+                    void updatePreference({
+                      category: row.category,
+                      nextPushEnabled: checked,
+                      forceInAppEnabled: row.forceInAppEnabled,
+                    })
+                  }
+                />
+              </div>
+            </div>
+          );
+        })}
+      </SettingsSection>
     </>
   );
 }
