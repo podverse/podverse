@@ -29,18 +29,18 @@ Consistency and DRYness across tabs/screens matter as much as on web. Rebuilding
 
 ## Where things live
 
-| Kind                                         | Path                                      |
-| -------------------------------------------- | ----------------------------------------- |
-| Low-level controls                           | `components/primitives/` (`Button`, `Card`, `ListRow`, `ScreenHeader`) |
-| Screen scaffold                              | `components/screen/MobileScreenContainer` |
-| Section / list grouping                      | `components/section/` (`SectionCard`, `ListSection`) |
-| Loading / empty / error / auth-gated chrome  | `components/state/` (`ListLoading`, `ListEmpty`, `ListError`, `AuthAwareLoadState`, `RetryableError`) |
-| Playback row actions / mini player           | `components/player/`                      |
-| Membership / gate feedback                   | `components/feedback/`                    |
-| Form / settings selects                      | `components/form/` (`OptionChipGroup`, `SettingsOptionNavRow`, `OptionListScreen`) |
-| Domain controls (download, filters)          | `components/download/`, `components/subscriptions/` |
-| Shared stateful logic                        | `hooks/`                                  |
-| Pure helpers                                 | `lib/`                                    |
+| Kind                                        | Path                                                                                                  |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Low-level controls                          | `components/primitives/` (`Button`, `Card`, `ListRow`, `ScreenHeader`)                                |
+| Screen scaffold                             | `components/screen/MobileScreenContainer`                                                             |
+| Section / list grouping                     | `components/section/` (`SectionCard`, `ListSection`)                                                  |
+| Loading / empty / error / auth-gated chrome | `components/state/` (`ListLoading`, `ListEmpty`, `ListError`, `AuthAwareLoadState`, `RetryableError`) |
+| Playback row actions / mini player          | `components/player/`                                                                                  |
+| Membership / gate feedback                  | `components/feedback/`                                                                                |
+| Form / settings selects                     | `components/form/` (`OptionChipGroup`, `SettingsOptionNavRow`, `OptionListScreen`)                    |
+| Domain controls (download, filters)         | `components/download/`, `components/subscriptions/`                                                   |
+| Shared stateful logic                       | `hooks/`                                                                                              |
+| Pure helpers                                | `lib/`                                                                                                |
 
 Do **not** import `@podverse/ui` (web components / SCSS). Tokens come from `@podverse/design-tokens`
 via **mobile-theme-parity**.

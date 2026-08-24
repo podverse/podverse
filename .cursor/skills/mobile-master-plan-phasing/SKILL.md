@@ -295,15 +295,16 @@ Required files:
 | `00-SUMMARY.md`         | Phase scope, step list, detail ID range, open decisions locked         |
 | `00-EXECUTION-ORDER.md` | Sequential vs parallel prompts within phase                            |
 | `01-…md`, `02-…md`      | Grouped implementation plans referencing detail docs                   |
-| `COPY-PASTA.md`         | Short prompts; each references a numbered plan file + **Cursor model** |
+| `COPY-PASTA.md`         | Short prompts; each references a numbered plan file + **Cursor model** + **Reasoning** |
 
-Follow **parallel-plan-execution** (§ Step 5 — **Cursor model** required on every prompt):
+Follow **parallel-plan-execution** (§ Step 5 — **Cursor model** and **Reasoning** required on every prompt):
 COPY-PASTA prompts are 3–8 lines; full instructions live in numbered plan files and detail docs.
 
 Each COPY-PASTA prompt must include:
 
 - `Read and execute .llm/plans/active/mobile-<phase-slug>/<NN-plan>.md`
 - **Cursor model:** Auto | Codex 5.3 | Opus 4.8 (match highest-risk step in that prompt; see **copy-pasta-recommend-model** rule)
+- **Reasoning:** low | medium | high | extra high (thinking depth for that model; see **copy-pasta-recommend-model** rule)
 - Reminder: do not run tests during agent work; operator verifies at end
 
 Keep each numbered plan file **under 300 lines**; split if larger.
