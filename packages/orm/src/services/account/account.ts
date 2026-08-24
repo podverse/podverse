@@ -329,6 +329,21 @@ export class AccountService {
     await this.repositoryReadWrite.remove(account);
   }
 
+  async updateNotificationsLastSeenAt(account_id: number, seenAt: Date): Promise<Date> {
+    const account = await this.repositoryReadWrite.findOne({
+      where: { id: account_id },
+    });
+
+    if (!account) {
+      throw new Error('Account not found');
+    }
+
+    account.notifications_last_seen_at = seenAt;
+    await this.repositoryReadWrite.save(account);
+
+    return seenAt;
+  }
+
   private async ensureAccountSettings(
     account: Account,
     params: { alwaysCreate: boolean; locale: string; allow_listen_stats?: boolean }

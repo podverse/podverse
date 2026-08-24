@@ -21,7 +21,7 @@ The workers app validates environment variables **per command**. Each job only v
 | Command group                       | Categories validated                     | Commands (examples)                                                                                         |
 | ----------------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Base only                           | Base                                     | podcastIndexDeadFeedsDeleteCache                                                                            |
-| Base + ORM only                     | Base, ORM                                | archiveAll, statsUpdateAggregated, scheduledJobsRunDue, notificationsPlatformPurge, orm\*                  |
+| Base + ORM only                     | Base, ORM                                | archiveAll, statsUpdateAggregated, scheduledJobsRunDue, notificationsPlatformPurge, orm\*                   |
 | Base + Podcast Index                | Base, PodcastIndex                       | podcastIndexTrendingPodcastsGet, podcastIndexValueUpdateAll                                                 |
 | Base + ORM + Podcast Index          | Base, ORM, PodcastIndex                  | podcastIndexDeadFeedsFlagAndMerge                                                                           |
 | Base + ORM + MQ                     | Base, ORM, MQ                            | mqRSSRunDlqConsumer, mqRSSAddAll                                                                            |

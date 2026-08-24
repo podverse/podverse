@@ -7,6 +7,7 @@ import { AccountFollowingAccountController } from '@api/controllers/account/acco
 import { AccountFollowingAddByRSSChannelController } from '@api/controllers/account/accountFollowingAddByRSSChannel.js';
 import { AccountFollowingChannelController } from '@api/controllers/account/accountFollowingChannel.js';
 import { AccountFollowingPlaylistController } from '@api/controllers/account/accountFollowingPlaylist.js';
+import { AccountNotificationController } from '@api/controllers/account/accountNotification.js';
 import { AccountNotificationChannelController } from '@api/controllers/account/accountNotificationChannel.js';
 import { AccountNotificationChannelTypeController } from '@api/controllers/account/accountNotificationChannelType.js';
 import { AccountOpmlExportController } from '@api/controllers/account/accountOpmlExport.js';
@@ -184,6 +185,17 @@ router.get(
 router.get(
   '/notification/channels',
   asyncHandler(AccountNotificationChannelController.getAllByAccount)
+);
+router.get('/notifications', asyncHandler(AccountNotificationController.getNotifications));
+router.get(
+  '/notifications/unseen-count',
+  asyncHandler(AccountNotificationController.getUnseenCount)
+);
+router.post('/notifications/mark-seen', asyncHandler(AccountNotificationController.markSeen));
+router.get('/notification-preferences', asyncHandler(AccountNotificationController.getPreferences));
+router.put(
+  '/notification-preferences',
+  asyncHandler(AccountNotificationController.updatePreferences)
 );
 router.post('/notification/channel', asyncHandler(AccountNotificationChannelController.create));
 router.delete(

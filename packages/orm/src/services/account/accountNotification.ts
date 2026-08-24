@@ -16,6 +16,7 @@ type CreateAccountNotificationDto = {
 
 type ListPaginatedForAccountParams = {
   before_created_at?: Date;
+  offset?: number;
   limit?: number;
 };
 
@@ -57,6 +58,7 @@ export class AccountNotificationService {
     params?: ListPaginatedForAccountParams
   ): Promise<AccountNotification[]> {
     const limit = Math.max(1, Math.min(params?.limit ?? DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE));
+    const offset = Math.max(0, params?.offset ?? 0);
     const where: FindOptionsWhere<AccountNotification> = { account_id };
 
     if (params?.before_created_at !== undefined) {
@@ -68,6 +70,7 @@ export class AccountNotificationService {
         created_at: 'DESC',
         id: 'DESC',
       },
+      skip: offset,
       take: limit,
       where,
     });

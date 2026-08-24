@@ -1005,6 +1005,183 @@ components:
       type: array
       items:
         $ref: "#/components/schemas/AccountNotificationChannel"
+    ApiGetAccountNotificationsResponse200:
+      type: object
+      properties:
+        data:
+          type: object
+          required:
+            - items
+            - last_seen_at
+            - pagination
+            - sections
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/AccountNotificationItem"
+            last_seen_at:
+              type: string
+              format: date-time
+              nullable: true
+            pagination:
+              type: object
+              required:
+                - page
+                - total_pages
+                - total_count
+              properties:
+                page:
+                  type: integer
+                total_pages:
+                  type: integer
+                total_count:
+                  type: integer
+            sections:
+              type: object
+              required:
+                - new_count
+              properties:
+                new_count:
+                  type: integer
+    ApiGetAccountNotificationsUnseenCountResponse200:
+      type: object
+      properties:
+        data:
+          type: object
+          required:
+            - unseen_count
+          properties:
+            unseen_count:
+              type: integer
+    ApiPostAccountNotificationsMarkSeenResponse200:
+      type: object
+      properties:
+        data:
+          type: object
+          required:
+            - last_seen_at
+          properties:
+            last_seen_at:
+              type: string
+              format: date-time
+    ApiGetAccountNotificationPreferencesResponse200:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountNotificationPreference"
+    ApiPutAccountNotificationPreferencesRequest:
+      type: object
+      required:
+        - preferences
+      properties:
+        preferences:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/AccountNotificationPreferenceWrite"
+    ApiPutAccountNotificationPreferencesResponse200:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountNotificationPreference"
+    AccountNotificationItem:
+      type: object
+      required:
+        - id
+        - account_id
+        - category
+        - title
+        - created_at
+        - expires_at
+        - is_new
+      properties:
+        id:
+          type: integer
+        account_id:
+          type: integer
+        category:
+          type: string
+          enum:
+            - new-content
+            - livestream
+            - membership-expiry
+            - product-update
+            - maintenance
+            - terms-of-service
+            - general
+        title:
+          type: string
+        body:
+          type: string
+          nullable: true
+        link_path:
+          type: string
+          nullable: true
+        payload:
+          type: object
+          nullable: true
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+        is_new:
+          type: boolean
+    AccountNotificationPreference:
+      type: object
+      required:
+        - id
+        - account_id
+        - category
+        - in_app_enabled
+        - push_enabled
+      properties:
+        id:
+          type: integer
+        account_id:
+          type: integer
+        category:
+          type: string
+          enum:
+            - new-content
+            - livestream
+            - membership-expiry
+            - product-update
+            - maintenance
+            - terms-of-service
+            - general
+        in_app_enabled:
+          type: boolean
+        push_enabled:
+          type: boolean
+    AccountNotificationPreferenceWrite:
+      type: object
+      required:
+        - category
+        - in_app_enabled
+        - push_enabled
+      properties:
+        category:
+          type: string
+          enum:
+            - new-content
+            - livestream
+            - membership-expiry
+            - product-update
+            - maintenance
+            - terms-of-service
+            - general
+        in_app_enabled:
+          type: boolean
+        push_enabled:
+          type: boolean
     ApiGetAccountRecentResponse200:
       type: object
       description: Operation-specific response payload for GET /account/recent (200).
@@ -4337,6 +4514,202 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/notification-preferences:
+    get:
+      operationId: apiGetAccountNotificationPreferences
+      tags:
+        - account
+      summary: GET /account/notification-preferences
+      description: Returns category-level notification preferences for the authenticated account.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiGetAccountNotificationPreferencesResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+    put:
+      operationId: apiPutAccountNotificationPreferences
+      tags:
+        - account
+      summary: PUT /account/notification-preferences
+      description: Bulk upserts category-level notification preferences for the authenticated account.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiPutAccountNotificationPreferencesRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPutAccountNotificationPreferencesResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/notifications:
+    get:
+      operationId: apiGetAccountNotifications
+      tags:
+        - account
+      summary: GET /account/notifications
+      description: Returns a paginated notification feed for the authenticated account.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiGetAccountNotificationsResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/notifications/mark-seen:
+    post:
+      operationId: apiPostAccountNotificationsMarkSeen
+      tags:
+        - account
+      summary: POST /account/notifications/mark-seen
+      description: Updates the authenticated account's notifications_last_seen_at timestamp.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPostAccountNotificationsMarkSeenResponse200"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/notifications/unseen-count:
+    get:
+      operationId: apiGetAccountNotificationsUnseenCount
+      tags:
+        - account
+      summary: GET /account/notifications/unseen-count
+      description: Returns the unseen notification count for the authenticated account.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiGetAccountNotificationsUnseenCountResponse200"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
         "500":
           description: Internal server error
           content:
