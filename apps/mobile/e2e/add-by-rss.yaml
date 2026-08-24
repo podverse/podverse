@@ -8,7 +8,11 @@ name: Add By RSS Flow
 - runFlow: shared/login-seeded-user.yaml
 
 - tapOn:
-    id: tab-rss
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-add-by-rss
 - assertVisible:
     id: rss-root-screen
 - takeScreenshot: add-by-rss-screen-initial

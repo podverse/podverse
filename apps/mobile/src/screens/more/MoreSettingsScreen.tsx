@@ -2,21 +2,19 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
-import type { MediaTypePreference } from '@podverse/helpers';
+import type { DTOAccountNotificationPreference, MediaTypePreference } from '@podverse/helpers';
+import { NotificationCategoryEnum } from '@podverse/helpers';
 
 import { useAuth } from '../../auth/AuthProvider';
-import type { SyncedNotificationType } from '../../auth/syncAccountPrefs';
-import {
-  syncNotificationTypeToAccountSettings,
-  syncPlaybackPreferenceToAccount,
-} from '../../auth/syncAccountPrefs';
+import { syncPlaybackPreferenceToAccount } from '../../auth/syncAccountPrefs';
 import { OptionChipGroup, SettingsOptionNavRow } from '../../components/form';
 import { Card } from '../../components/primitives/Card';
 import { ListRow } from '../../components/primitives/ListRow';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { getMobileConfig } from '../../config';
+import { notificationsRepository } from '../../data/repositories';
 import { resolveSupportedLocale } from '../../i18n/locale';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import type { MoreStackParamList } from '../../navigation';
@@ -41,25 +39,59 @@ import { registerUnifiedPushDeviceForAccount } from '../../push/unifiedPushDevic
 import { useTheme } from '../../theme/useTheme';
 import type { SettingsLocaleOption } from './settingsLocaleOptions';
 
-const NOTIFICATION_TYPES: readonly SyncedNotificationType[] = [
-  'new-item',
-  'livestream-scheduled',
-  'livestream-started',
+type NotificationPreferenceRow = {
+  category: NotificationCategoryEnum;
+  descriptionKey: string;
+  forceInAppEnabled: boolean;
+  labelKey: string;
+};
+
+const NOTIFICATION_PREFERENCE_ROWS: readonly NotificationPreferenceRow[] = [
+  {
+    category: NotificationCategoryEnum.NewContent,
+    descriptionKey: 'settings.notifications.category_new_content_description',
+    forceInAppEnabled: false,
+    labelKey: 'settings.notifications.category_new_content',
+  },
+  {
+    category: NotificationCategoryEnum.Livestream,
+    descriptionKey: 'settings.notifications.category_livestream_description',
+    forceInAppEnabled: false,
+    labelKey: 'settings.notifications.category_livestream',
+  },
+  {
+    category: NotificationCategoryEnum.MembershipExpiry,
+    descriptionKey: 'settings.notifications.category_membership_expiry_description',
+    forceInAppEnabled: false,
+    labelKey: 'settings.notifications.category_membership_expiry',
+  },
+  {
+    category: NotificationCategoryEnum.ProductUpdate,
+    descriptionKey: 'settings.notifications.category_product_update_description',
+    forceInAppEnabled: false,
+    labelKey: 'settings.notifications.category_product_update',
+  },
+  {
+    category: NotificationCategoryEnum.Maintenance,
+    descriptionKey: 'settings.notifications.category_maintenance_description',
+    forceInAppEnabled: true,
+    labelKey: 'settings.notifications.category_maintenance',
+  },
+  {
+    category: NotificationCategoryEnum.TermsOfService,
+    descriptionKey: 'settings.notifications.category_terms_of_service_description',
+    forceInAppEnabled: true,
+    labelKey: 'settings.notifications.category_terms_of_service',
+  },
+  {
+    category: NotificationCategoryEnum.General,
+    descriptionKey: 'settings.notifications.category_general_description',
+    forceInAppEnabled: true,
+    labelKey: 'settings.notifications.category_general',
+  },
 ];
 
 const PLAYBACK_MEDIA_OPTIONS: readonly MediaTypePreference[] = ['video', 'audio'];
-
-type ToggleMap = Record<SyncedNotificationType, boolean>;
-
-const getNotificationLabelKey = (type: SyncedNotificationType): string => {
-  if (type === 'new-item') {
-    return 'settings.notifications.new_item';
-  }
-  if (type === 'livestream-scheduled') {
-    return 'settings.notifications.livestream_scheduled';
-  }
-  return 'settings.notifications.livestream_started';
-};
 
 const getAccountLocale = (accountLocale: string | null | undefined): string => {
   return resolveSupportedLocale(accountLocale);
@@ -68,7 +100,9 @@ const getAccountLocale = (accountLocale: string | null | undefined): string => {
 export function MoreSettingsScreen() {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<MoreStackParamList>>();
-  const { account, accessToken, setAccount, status } = useAuth();
+  const { account, accessToken, clearSession, refreshToken, setAccount, setTokens, status } =
+    useAuth();
+  const isAuthenticated = status === 'authenticated';
   const { handleGateError } = useMembershipGate();
   const { styles: themeStyles, tokens, uiTheme } = useTheme();
   const [playbackMediaType, setPlaybackMediaType] = useState<MediaTypePreference>(
@@ -77,11 +111,9 @@ export function MoreSettingsScreen() {
   const [selectedLocale, setSelectedLocale] = useState<SettingsLocaleOption>(
     resolveSupportedLocale(i18n.language) as SettingsLocaleOption
   );
-  const [notificationToggles, setNotificationToggles] = useState<ToggleMap>({
-    'livestream-scheduled': false,
-    'livestream-started': false,
-    'new-item': false,
-  });
+  const [notificationPreferences, setNotificationPreferences] = useState<
+    DTOAccountNotificationPreference[]
+  >([]);
   const [autoQueueRandom, setAutoQueueRandom] = useState<boolean>(false);
   const [autoQueueRepeat, setAutoQueueRepeat] = useState<boolean>(false);
   const [errorMessageKey, setErrorMessageKey] = useState<string | null>(null);
@@ -90,11 +122,15 @@ export function MoreSettingsScreen() {
   const [showNotificationPermissionHint, setShowNotificationPermissionHint] =
     useState<boolean>(false);
 
-  const notificationTypeSet = useMemo<Set<string>>(() => {
-    const types =
-      account?.account_settings?.account_settings_notification?.account_settings_notification_types;
-    return new Set(types?.map((type) => type.type) ?? []);
-  }, [account]);
+  const requestContext = useMemo(
+    () => ({
+      accessToken,
+      clearSession,
+      refreshToken,
+      setTokens,
+    }),
+    [accessToken, clearSession, refreshToken, setTokens]
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -141,14 +177,32 @@ export function MoreSettingsScreen() {
   }, [account, i18n.language, status]);
 
   useEffect(() => {
-    setNotificationToggles({
-      'livestream-scheduled': notificationTypeSet.has('livestream-scheduled'),
-      'livestream-started': notificationTypeSet.has('livestream-started'),
-      'new-item': notificationTypeSet.has('new-item'),
-    });
-  }, [notificationTypeSet]);
+    let isMounted = true;
+    void (async () => {
+      if (!isAuthenticated) {
+        setNotificationPreferences([]);
+        return;
+      }
 
-  const isAuthenticated = status === 'authenticated';
+      try {
+        const rows = await notificationsRepository.listPreferences(requestContext);
+        if (!isMounted) {
+          return;
+        }
+        setNotificationPreferences(rows);
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+        console.warn('Could not load notification preferences', error);
+        setNotificationPreferences([]);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, requestContext]);
 
   const handlePlaybackMediaTypeChange = useCallback(
     async (mediaType: MediaTypePreference) => {
@@ -168,11 +222,42 @@ export function MoreSettingsScreen() {
     [accessToken, setAccount]
   );
 
-  const handleNotificationToggle = useCallback(
-    async (type: SyncedNotificationType, enabled: boolean) => {
+  const showNotificationLoginAlert = useCallback(() => {
+    Alert.alert(
+      t('settings.notifications.login_required_title'),
+      t('settings.notifications.login_required_message'),
+      [{ text: t('misc.ok') }]
+    );
+  }, [t]);
+
+  const handleNotificationPreferenceToggle = useCallback(
+    async (params: {
+      category: NotificationCategoryEnum;
+      channel: 'in_app' | 'push';
+      enabled: boolean;
+      forceInAppEnabled: boolean;
+    }) => {
       setErrorMessageKey(null);
 
-      if (enabled) {
+      if (!isAuthenticated) {
+        showNotificationLoginAlert();
+        return;
+      }
+
+      const existing = notificationPreferences.find((row) => row.category === params.category);
+      if (existing === undefined) {
+        return;
+      }
+
+      const nextInAppEnabled =
+        params.forceInAppEnabled || params.channel === 'in_app'
+          ? params.forceInAppEnabled
+            ? true
+            : params.enabled
+          : existing.in_app_enabled;
+      const nextPushEnabled = params.channel === 'push' ? params.enabled : existing.push_enabled;
+
+      if (params.channel === 'push' && params.enabled) {
         const pushProvider = getMobileConfig().pushProvider;
         if (pushProvider === 'fcm') {
           const permissionResult = await requestFcmPermissionAfterUserAction();
@@ -199,31 +284,46 @@ export function MoreSettingsScreen() {
         }
       }
 
-      const previousValue = notificationToggles[type];
-      setNotificationToggles((prev) => ({
-        ...prev,
-        [type]: enabled,
-      }));
+      const optimisticPreferences = notificationPreferences.map((row) => {
+        if (row.category !== params.category) {
+          return row;
+        }
+        return {
+          ...row,
+          in_app_enabled: nextInAppEnabled,
+          push_enabled: nextPushEnabled,
+        };
+      });
+      setNotificationPreferences(optimisticPreferences);
 
       try {
-        await syncNotificationTypeToAccountSettings({
-          accessToken,
-          enabled,
-          setAccount,
-          type,
+        const updated = await notificationsRepository.updatePreferences(requestContext, {
+          preferences: [
+            {
+              category: params.category,
+              in_app_enabled: nextInAppEnabled,
+              push_enabled: nextPushEnabled,
+            },
+          ],
         });
+        setNotificationPreferences(updated);
       } catch (error) {
-        setNotificationToggles((prev) => ({
-          ...prev,
-          [type]: previousValue,
-        }));
+        setNotificationPreferences(notificationPreferences);
         if (handleGateError(error)) {
           return;
         }
         setErrorMessageKey('errors.generic');
       }
     },
-    [accessToken, handleGateError, notificationToggles, selectedLocale, setAccount]
+    [
+      accessToken,
+      handleGateError,
+      isAuthenticated,
+      notificationPreferences,
+      requestContext,
+      selectedLocale,
+      showNotificationLoginAlert,
+    ]
   );
 
   const handleAutoQueueRandomToggle = useCallback(async (enabled: boolean) => {
@@ -251,6 +351,18 @@ export function MoreSettingsScreen() {
       StyleSheet.create({
         cardStack: {
           gap: tokens.spacing.base,
+        },
+        preferenceRow: {
+          borderColor: themeStyles.border.borderColor,
+          borderRadius: tokens.radii.sm,
+          borderWidth: 1,
+          marginBottom: tokens.spacing.sm,
+          padding: tokens.spacing.sm,
+        },
+        preferenceDescription: {
+          color: themeStyles.textSecondary.color,
+          fontSize: 12,
+          marginBottom: tokens.spacing.sm,
         },
         sectionDescription: {
           color: themeStyles.textSecondary.color,
@@ -385,30 +497,73 @@ export function MoreSettingsScreen() {
         <Card padded={false} testID="more-settings-notifications-card">
           <View style={styles.sectionInner}>
             <Text style={styles.sectionHeading}>{t('settings.notifications.notifications')}</Text>
+            <Text style={styles.sectionDescription}>
+              {t('settings.notifications.preference_section_help')}
+            </Text>
             <View style={styles.sectionStack}>
-              {NOTIFICATION_TYPES.map((notificationType) => (
-                <ListRow
-                  key={notificationType}
-                  subtitle={t(`settings.notifications.default_${notificationType}_help`)}
-                  testID={`more-settings-notification-${notificationType}`}
-                  title={t(getNotificationLabelKey(notificationType))}
-                  trailing={
-                    <Switch
-                      disabled={!isAuthenticated}
-                      onValueChange={(nextValue) => {
-                        void handleNotificationToggle(notificationType, nextValue);
-                      }}
-                      value={notificationToggles[notificationType]}
+              {NOTIFICATION_PREFERENCE_ROWS.map((row) => {
+                const preference =
+                  notificationPreferences.find(
+                    (candidate) => candidate.category === row.category
+                  ) ?? null;
+                const inAppEnabled = row.forceInAppEnabled
+                  ? true
+                  : (preference?.in_app_enabled ?? true);
+                const pushEnabled = preference?.push_enabled ?? false;
+                const canTogglePush = isAuthenticated;
+
+                return (
+                  <View key={row.category} style={styles.preferenceRow}>
+                    <Text style={styles.preferenceDescription}>{t(row.descriptionKey)}</Text>
+                    <ListRow
+                      testID={`more-settings-notification-${row.category}-in-app`}
+                      title={t(row.labelKey)}
+                      trailing={
+                        <Switch
+                          disabled={row.forceInAppEnabled}
+                          onValueChange={(nextValue) => {
+                            void handleNotificationPreferenceToggle({
+                              category: row.category,
+                              channel: 'in_app',
+                              enabled: nextValue,
+                              forceInAppEnabled: row.forceInAppEnabled,
+                            });
+                          }}
+                          value={inAppEnabled}
+                        />
+                      }
                     />
-                  }
-                />
-              ))}
+                    <ListRow
+                      testID={`more-settings-notification-${row.category}-push`}
+                      title={
+                        canTogglePush
+                          ? t('settings.notifications.preference_push')
+                          : t('settings.notifications.preference_push_disabled')
+                      }
+                      trailing={
+                        <Switch
+                          disabled={!canTogglePush}
+                          onValueChange={(nextValue) => {
+                            void handleNotificationPreferenceToggle({
+                              category: row.category,
+                              channel: 'push',
+                              enabled: nextValue,
+                              forceInAppEnabled: row.forceInAppEnabled,
+                            });
+                          }}
+                          value={pushEnabled}
+                        />
+                      }
+                    />
+                    {row.category === NotificationCategoryEnum.ProductUpdate ? (
+                      <Text style={styles.warningText}>
+                        {t('settings.notifications.product_update_disable_hint')}
+                      </Text>
+                    ) : null}
+                  </View>
+                );
+              })}
             </View>
-            {!isAuthenticated ? (
-              <Text style={styles.warningText}>
-                {t('instructions.login_to_enable_notifications')}
-              </Text>
-            ) : null}
             {showNotificationPermissionHint ? (
               <View style={styles.sectionStack}>
                 <Text

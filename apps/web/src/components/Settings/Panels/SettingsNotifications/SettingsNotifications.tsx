@@ -3,10 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import type {
-  DTOAccountNotificationPreference,
-  NotificationCategoryEnum,
-} from '@podverse/helpers';
+import type { DTOAccountNotificationPreference, NotificationCategoryEnum } from '@podverse/helpers';
 import { NotificationCategoryEnum as NotificationCategoryEnumValues } from '@podverse/helpers';
 import { validateHttpsUrl } from '@podverse/helpers-validation/client';
 import {

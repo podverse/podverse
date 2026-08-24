@@ -1,5 +1,5 @@
 const FLAT_CONTENT_PATHS = new Set(['album', 'artist', 'clip', 'episode', 'podcast', 'track']);
-const NAV_SCOPED_PREFIXES = ['/add-by-rss', '/home', '/more', '/my-library', '/search'];
+const NAV_SCOPED_PREFIXES = ['/home', '/more', '/my-library', '/notifications', '/search'];
 const AUTH_GATED_PATHS = new Set(['/history', '/my-profile', '/queues', '/settings']);
 
 const normalizePath = (path: string): string => {
@@ -52,6 +52,22 @@ export const mapIncomingPathToScopedPath = (input: string): string => {
   const segments = getPathSegments(basePath);
   if (segments.length === 0) {
     return '/home';
+  }
+
+  if (basePath === '/add-by-rss') {
+    return '/my-library/add-by-rss';
+  }
+
+  if (basePath === '/add-by-rss/feeds') {
+    return '/my-library/add-by-rss/feeds';
+  }
+
+  if (segments.length >= 1 && segments[0] === 'notifications') {
+    return '/notifications';
+  }
+
+  if (segments.length === 2 && segments[0] === 'membership' && segments[1] === 'renew') {
+    return '/more/membership';
   }
 
   if (hasNavScopedPrefix(basePath)) {

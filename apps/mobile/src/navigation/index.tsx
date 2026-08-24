@@ -21,6 +21,7 @@ import type { MenuListItem } from '../components/screen/MenuListScreen';
 import { MenuListScreen } from '../components/screen/MenuListScreen';
 import { getMobileConfig } from '../config';
 import { buildMobileLinkPrefixes } from '../config/deepLinkSchemes';
+import { useNotificationsUnseenCount } from '../hooks/useNotificationsUnseenCount';
 import { PlaybackE2eStatus } from '../playback/PlaybackE2eStatus';
 import { AlbumDetailScreen } from '../screens/album/AlbumDetailScreen';
 import { ArtistDetailScreen } from '../screens/artist/ArtistDetailScreen';
@@ -41,6 +42,7 @@ import { MoreOpmlScreen } from '../screens/more/MoreOpmlScreen';
 import { MoreSettingsLocaleScreen } from '../screens/more/MoreSettingsLocaleScreen';
 import { MoreSettingsScreen } from '../screens/more/MoreSettingsScreen';
 import { MoreSettingsThemeScreen } from '../screens/more/MoreSettingsThemeScreen';
+import { NotificationsInboxScreen } from '../screens/notifications/NotificationsInboxScreen';
 import { FullPlayerScreen } from '../screens/player/FullPlayerScreen';
 import { PodcastDetailScreen } from '../screens/podcast/PodcastDetailScreen';
 import { MyProfileScreen } from '../screens/profile/MyProfileScreen';
@@ -67,8 +69,8 @@ type MobileTabNavigatorProps = {
 const Tab = createBottomTabNavigator();
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 const SearchStack = createNativeStackNavigator<SearchStackParamList>();
+const NotificationsStack = createNativeStackNavigator<NotificationsStackParamList>();
 const LibraryStack = createNativeStackNavigator<LibraryStackParamList>();
-const RssStack = createNativeStackNavigator<RssStackParamList>();
 const MoreStack = createNativeStackNavigator<MoreStackParamList>();
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const rootNavigationRef = createNavigationContainerRef<RootStackParamList>();
@@ -129,6 +131,8 @@ export const SEARCH_STACK_ROUTES = {
 } as const;
 
 export const LIBRARY_STACK_ROUTES = {
+  AddByRssFeedList: 'AddByRssFeedList',
+  AddByRssRoot: 'AddByRssRoot',
   LibraryClipDetail: 'LibraryClipDetail',
   LibraryDownloads: 'LibraryDownloads',
   LibraryHistory: 'LibraryHistory',
@@ -143,9 +147,8 @@ export const LIBRARY_STACK_ROUTES = {
   PodcastDetail: 'PodcastDetail',
 } as const;
 
-export const RSS_STACK_ROUTES = {
-  AddByRssFeedList: 'AddByRssFeedList',
-  AddByRssRoot: 'AddByRssRoot',
+export const NOTIFICATIONS_STACK_ROUTES = {
+  NotificationsInbox: 'NotificationsInbox',
 } as const;
 
 export const MORE_STACK_ROUTES = {
@@ -206,6 +209,8 @@ const mobileNavigationScreens = {
       },
       'My Library': {
         screens: {
+          AddByRssFeedList: 'my-library/add-by-rss/feeds',
+          AddByRssRoot: 'my-library/add-by-rss',
           LibraryClipDetail: 'my-library/clip/:clipId',
           LibraryDownloads: 'my-library/downloads',
           LibraryHistory: 'my-library/history',
@@ -220,10 +225,9 @@ const mobileNavigationScreens = {
           PodcastDetail: 'my-library/podcast/:podcastId',
         },
       },
-      RSS: {
+      Notifications: {
         screens: {
-          AddByRssFeedList: 'add-by-rss/feeds',
-          AddByRssRoot: 'add-by-rss',
+          NotificationsInbox: 'notifications',
         },
       },
       Search: {
@@ -302,6 +306,8 @@ export type SearchStackParamList = ChannelBrowseStackParamList & {
 };
 
 export type LibraryStackParamList = {
+  AddByRssFeedList: undefined;
+  AddByRssRoot: undefined;
   LibraryClipDetail: { clipId: string };
   LibraryDownloads: undefined;
   LibraryHistory: undefined;
@@ -316,9 +322,8 @@ export type LibraryStackParamList = {
   PodcastDetail: { podcastId: string };
 };
 
-export type RssStackParamList = {
-  AddByRssFeedList: undefined;
-  AddByRssRoot: undefined;
+export type NotificationsStackParamList = {
+  NotificationsInbox: undefined;
 };
 
 export type MoreStackParamList = {
@@ -342,12 +347,12 @@ type RootStackParamList = {
   V4vInfo: undefined;
 };
 
-/** Bottom-tab route names, used for type-safe cross-tab navigation (e.g. Home → RSS). */
+/** Bottom-tab route names, used for type-safe cross-tab navigation (e.g. Home → My Library). */
 export type MobileTabParamList = {
   Home: undefined;
   Search: undefined;
-  'My Library': undefined;
-  RSS: undefined;
+  Notifications: undefined;
+  'My Library': NavigatorScreenParams<LibraryStackParamList> | undefined;
   More: NavigatorScreenParams<MoreStackParamList> | undefined;
 };
 
@@ -473,6 +478,16 @@ function LibraryStackNavigator() {
         options={{ title: t('features.my_library') }}
       />
       <LibraryStack.Screen
+        component={AddByRssRootScreen}
+        name={LIBRARY_STACK_ROUTES.AddByRssRoot}
+        options={{ title: t('features.add_by_rss.label') }}
+      />
+      <LibraryStack.Screen
+        component={AddByRssFeedListScreen}
+        name={LIBRARY_STACK_ROUTES.AddByRssFeedList}
+        options={{ title: t('nav.stack.rss_feeds') }}
+      />
+      <LibraryStack.Screen
         component={LibrarySubscriptionsScreen}
         name={LIBRARY_STACK_ROUTES.LibrarySubscriptions}
         options={{ title: t('subscriptions.subscriptions') }}
@@ -531,23 +546,18 @@ function LibraryStackNavigator() {
   );
 }
 
-function RssStackNavigator() {
+function NotificationsStackNavigator() {
   const { t } = useTranslation();
   const screenOptions = useThemedNativeStackScreenOptions();
 
   return (
-    <RssStack.Navigator screenOptions={screenOptions}>
-      <RssStack.Screen
-        component={AddByRssRootScreen}
-        name={RSS_STACK_ROUTES.AddByRssRoot}
-        options={{ title: t('features.add_by_rss.label') }}
+    <NotificationsStack.Navigator screenOptions={screenOptions}>
+      <NotificationsStack.Screen
+        component={NotificationsInboxScreen}
+        name={NOTIFICATIONS_STACK_ROUTES.NotificationsInbox}
+        options={{ title: t('nav.tab.notifications') }}
       />
-      <RssStack.Screen
-        component={AddByRssFeedListScreen}
-        name={RSS_STACK_ROUTES.AddByRssFeedList}
-        options={{ title: t('nav.stack.rss_feeds') }}
-      />
-    </RssStack.Navigator>
+    </NotificationsStack.Navigator>
   );
 }
 
@@ -686,6 +696,13 @@ function LibraryHubScreen({
         },
         {
           onPress: () => {
+            navigation.navigate(LIBRARY_STACK_ROUTES.AddByRssRoot);
+          },
+          testID: 'library-nav-add-by-rss',
+          title: t('features.add_by_rss.label'),
+        },
+        {
+          onPress: () => {
             navigation
               .getParent<BottomTabNavigationProp<MobileTabParamList>>()
               ?.navigate('More', { screen: MORE_STACK_ROUTES.MoreOpml });
@@ -809,6 +826,7 @@ function TabScaffold({
 }: TabScaffoldProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
+  const notificationsUnseenCount = useNotificationsUnseenCount({ enabled: true });
   const { width } = useWindowDimensions();
   const isTabletLayout = width >= MOBILE_TABLET_NAV_MIN_WIDTH;
 
@@ -861,21 +879,22 @@ function TabScaffold({
         }}
       />
       <Tab.Screen
+        component={NotificationsStackNavigator}
+        name="Notifications"
+        options={{
+          tabBarBadge: notificationsUnseenCount > 0 ? notificationsUnseenCount : undefined,
+          tabBarIcon: tabBarIcon('notifications'),
+          tabBarLabel: t('nav.tab.notifications'),
+          tabBarButtonTestID: 'tab-notifications',
+        }}
+      />
+      <Tab.Screen
         component={LibraryStackNavigator}
         name="My Library"
         options={{
           tabBarIcon: tabBarIcon('library'),
           tabBarLabel: t('features.my_library'),
           tabBarButtonTestID: 'tab-my-library',
-        }}
-      />
-      <Tab.Screen
-        component={RssStackNavigator}
-        name="RSS"
-        options={{
-          tabBarIcon: tabBarIcon('rss'),
-          tabBarLabel: t('nav.tab.rss'),
-          tabBarButtonTestID: 'tab-rss',
         }}
       />
       <Tab.Screen

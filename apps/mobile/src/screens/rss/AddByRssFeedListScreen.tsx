@@ -3,10 +3,13 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, Text } from 'react-native';
 
-import type { RssStackParamList } from '../../navigation';
+import type { LibraryStackParamList } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
 
-type AddByRssFeedListScreenProps = NativeStackScreenProps<RssStackParamList, 'AddByRssFeedList'>;
+type AddByRssFeedListScreenProps = NativeStackScreenProps<
+  LibraryStackParamList,
+  'AddByRssFeedList'
+>;
 
 export function AddByRssFeedListScreen(_props: AddByRssFeedListScreenProps) {
   const { t } = useTranslation();

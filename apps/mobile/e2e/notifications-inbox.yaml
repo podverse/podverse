@@ -1,0 +1,13 @@
+appId: com.podverse.app.next
+name: Notifications Inbox
+---
+# Validate the notifications tab shell and inbox screen on an authenticated session.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- tapOn:
+    id: tab-notifications
+- assertVisible:
+    id: notifications-inbox-screen
+- takeScreenshot: notifications-inbox-initial
