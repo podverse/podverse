@@ -1,16 +1,12 @@
-import type { SyncJobPriority } from './syncQueue';
 import type { SyncJobKind } from './syncJobKinds';
+import type { SyncJobPriority } from './syncQueue';
 
 /**
  * What causes a sync run. A trigger only ever enqueues — it never runs work inline, or the thing it
  * fired from (a foreground transition, a pull gesture) ends up waiting on the network.
  */
 export type SyncTrigger =
-  | 'app-foreground'
-  | 'app-start'
-  | 'connectivity-restored'
-  | 'pull-to-refresh'
-  | 'sign-in';
+  'app-foreground' | 'app-start' | 'connectivity-restored' | 'pull-to-refresh' | 'sign-in';
 
 export type PlannedSyncJob = {
   kind: SyncJobKind;

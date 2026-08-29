@@ -14,7 +14,6 @@ import {
   UI_THEME_COOKIE,
 } from '../../utils/uiTheme';
 
-
 export type ManagementThemeSwitcherProps = {
   className?: string;
   id?: string;

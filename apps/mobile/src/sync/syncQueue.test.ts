@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { planSyncRun } from './syncJobPlan';
 import type { SyncJobKind } from './syncJobKinds';
+import { planSyncRun } from './syncJobPlan';
 import type { SyncJob, SyncJobFailure, SyncJobPriority, SyncQueueState } from './syncQueue';
 import { createSyncQueue } from './syncQueue';
 

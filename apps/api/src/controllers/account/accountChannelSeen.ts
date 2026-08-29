@@ -13,7 +13,10 @@ import {
   CHANNEL_SEEN_READ_PAGE_LIMIT,
 } from '@podverse/helpers';
 import type { ChannelSeenRow } from '@podverse/orm';
-import { AccountFollowingAddByRSSChannelService, AccountFollowingChannelService } from '@podverse/orm';
+import {
+  AccountFollowingAddByRSSChannelService,
+  AccountFollowingChannelService,
+} from '@podverse/orm';
 
 /**
  * Per-channel seen state for the signed-in account.

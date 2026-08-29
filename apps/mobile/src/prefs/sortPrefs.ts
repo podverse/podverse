@@ -1,7 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type { SortPrefScope, SortPrefValue } from '@podverse/helpers';
-import { buildSortPrefScopeKey, mergeSortPrefValue, sanitizeSortPrefValue } from '@podverse/helpers';
+import {
+  buildSortPrefScopeKey,
+  mergeSortPrefValue,
+  sanitizeSortPrefValue,
+} from '@podverse/helpers';
 
 /**
  * Remembered filter and sort selections, keyed per screen instance.

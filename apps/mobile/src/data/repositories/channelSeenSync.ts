@@ -79,9 +79,7 @@ export type StoredAddByRssBundle = {
  * A missing or unparseable date becomes `null`, which counts as seen. A feed with sloppy dates
  * should under-report rather than permanently claim unseen episodes the user cannot clear.
  */
-export const readAddByRssPubDatesMs = (
-  bundle: StoredAddByRssBundle | null
-): (number | null)[] => {
+export const readAddByRssPubDatesMs = (bundle: StoredAddByRssBundle | null): (number | null)[] => {
   const items = bundle?.items;
   if (items === null || items === undefined) {
     return [];

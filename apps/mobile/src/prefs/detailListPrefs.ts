@@ -49,13 +49,7 @@ export type EpisodeClipSort = (typeof EPISODE_CLIP_SORT_OPTIONS)[number];
 export const DEFAULT_EPISODE_CLIP_SORT: EpisodeClipSort = 'recent';
 
 /** Every tab an episode can offer. Which are actually shown depends on what the episode carries. */
-export const EPISODE_TABS = [
-  'summary',
-  'clips',
-  'chapters',
-  'soundbites',
-  'transcript',
-] as const;
+export const EPISODE_TABS = ['summary', 'clips', 'chapters', 'soundbites', 'transcript'] as const;
 
 export type EpisodeTab = (typeof EPISODE_TABS)[number];
 
@@ -141,10 +135,7 @@ export const readEpisodeDetailPrefs = async (itemIdText: string): Promise<Episod
   };
 };
 
-export const writeEpisodeDetailTab = async (
-  itemIdText: string,
-  tab: EpisodeTab
-): Promise<void> => {
+export const writeEpisodeDetailTab = async (itemIdText: string, tab: EpisodeTab): Promise<void> => {
   await writeSortPref(itemScope(itemIdText), { tab });
 };
 

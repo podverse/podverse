@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  buildSortPrefScopeKey,
-  mergeSortPrefValue,
-  sanitizeSortPrefValue,
-} from './sortPrefs.js';
+import { buildSortPrefScopeKey, mergeSortPrefValue, sanitizeSortPrefValue } from './sortPrefs.js';
 
 describe('buildSortPrefScopeKey', () => {
   it('uses the list name as the whole key for a global list', () => {

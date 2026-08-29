@@ -5,7 +5,8 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOLiveItem } from '@podverse/helpers';
-import { dedupedTrimmedUrlCandidates,
+import {
+  dedupedTrimmedUrlCandidates,
   getQueryParamFromQueueMediumId,
   LiveItemStatusEnum,
   stripAndDecodeHtml,

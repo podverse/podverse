@@ -8,12 +8,7 @@ import {
 import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService.js';
 import { getLoggerService } from '@workers/factories/loggerService.js';
 
-import {
-  isObjectLike,
-  MQ_IMAGE_SHRINK_HINTS_CONFIG,
-  ONE_DAY_MS,
-  sleep,
-} from '@podverse/helpers';
+import { isObjectLike, MQ_IMAGE_SHRINK_HINTS_CONFIG, ONE_DAY_MS, sleep } from '@podverse/helpers';
 import { createActiveMQShutdown } from '@podverse/mq';
 import { ChannelImageService, ImageShrinkSourceService, ItemImageService } from '@podverse/orm';
 

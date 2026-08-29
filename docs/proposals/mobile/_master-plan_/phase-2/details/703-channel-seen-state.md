@@ -51,13 +51,13 @@ ceiling is required — an uncapped query fails review.
 
 As built, under `/account/channel-seen`:
 
-| Route                            | Method | Purpose                                                        |
-| -------------------------------- | ------ | -------------------------------------------------------------- |
-| `/account/channel-seen`          | GET    | Paged directory-channel state with bounded unseen counts        |
-| `/account/channel-seen/add-by-rss` | GET  | Paged add-by-RSS state — timestamps only                        |
-| `/account/channel-seen/mark`     | POST   | Mark named channels seen                                        |
-| `/account/channel-seen/mark-add-by-rss` | POST | Mark named add-by-RSS feeds seen                          |
-| `/account/channel-seen/mark-all` | POST   | Sweep every follow of both kinds                                |
+| Route                                   | Method | Purpose                                                  |
+| --------------------------------------- | ------ | -------------------------------------------------------- |
+| `/account/channel-seen`                 | GET    | Paged directory-channel state with bounded unseen counts |
+| `/account/channel-seen/add-by-rss`      | GET    | Paged add-by-RSS state — timestamps only                 |
+| `/account/channel-seen/mark`            | POST   | Mark named channels seen                                 |
+| `/account/channel-seen/mark-add-by-rss` | POST   | Mark named add-by-RSS feeds seen                         |
+| `/account/channel-seen/mark-all`        | POST   | Sweep every follow of both kinds                         |
 
 Add-by-RSS is split out and carries **no count** because the server stores no add-by-RSS items and
 so cannot derive one. The device holding the parsed feed counts its own. Both kinds still sync their

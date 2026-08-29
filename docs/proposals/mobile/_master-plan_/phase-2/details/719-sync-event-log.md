@@ -90,12 +90,12 @@ An offline failure is stored as `skipped`. The queue parks on unreachability rat
 rest of the run into the same wall, so an offline stretch produces roughly one entry per run, and
 calling it a failure would report the user's train tunnel as a fault.
 
-| Module | Role |
-| ------ | ---- |
-| `src/data/repositories/syncEventLog.ts` | Pure: cap, eviction rule, export format |
-| `src/data/repositories/syncEventLogRepository.ts` | SQLite append / list / clear |
-| `src/sync/syncEventLogSink.ts` | Bridges `syncQueue.subscribeToFailures` to the repository |
-| `src/screens/more/MoreSyncLogScreen.tsx` | More ▸ Sync log |
+| Module                                            | Role                                                      |
+| ------------------------------------------------- | --------------------------------------------------------- |
+| `src/data/repositories/syncEventLog.ts`           | Pure: cap, eviction rule, export format                   |
+| `src/data/repositories/syncEventLogRepository.ts` | SQLite append / list / clear                              |
+| `src/sync/syncEventLogSink.ts`                    | Bridges `syncQueue.subscribeToFailures` to the repository |
+| `src/screens/more/MoreSyncLogScreen.tsx`          | More ▸ Sync log                                           |
 
 The sink attaches from `SyncProvider` and changes nothing about how the queue treats a failure: it
 still skips the job, finishes the run, and shows nothing. `append` swallows its own errors, since a
@@ -104,7 +104,7 @@ log that cannot be written is a worse thing to surface than the failure it was d
 ### Retention
 
 `selectSyncEventEvictions` evicts oldest first but drops non-failures before it touches a failure, so
-only a flood of *other failures* can push a failure out — which is a report in itself. The rule is
+only a flood of _other failures_ can push a failure out — which is a report in itself. The rule is
 pure and unit-tested, and holds regardless of the decision not to store successes today.
 
 Trimming reads `id` / `occurred_at` / `outcome` for every row and applies the rule in TypeScript

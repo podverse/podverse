@@ -42,7 +42,10 @@ describe('buildHomeRowMetadata', () => {
   });
 
   it('treats a subscription missing from every source as quietly empty rather than as a gap', () => {
-    const metadata = buildHomeRowMetadata([{ idText: 'new-follow', latestItemPubDateMs: null }], emptySources());
+    const metadata = buildHomeRowMetadata(
+      [{ idText: 'new-follow', latestItemPubDateMs: null }],
+      emptySources()
+    );
 
     expect(metadata.get('new-follow')).toEqual({
       downloadedCount: 0,

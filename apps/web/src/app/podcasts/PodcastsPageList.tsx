@@ -83,16 +83,16 @@ export const PodcastsPageList: React.FC = () => {
 
   return (
     <>
-      {isSubscribed && (
-        <HowToStartInfo rows={channels} totalPages={totalPages} />
-      )}
+      {isSubscribed && <HowToStartInfo rows={channels} totalPages={totalPages} />}
       {isSubscribed && (
         <p
           className={isFiltering ? styles.resultsCount : styles.resultsCountIdle}
           data-testid="podcasts-filter-results-count"
           role="status"
         >
-          {isFiltering ? tSubscriptions('filter.results_count', { count: filtered.matchCount }) : ''}
+          {isFiltering
+            ? tSubscriptions('filter.results_count', { count: filtered.matchCount })
+            : ''}
         </p>
       )}
       {showNoFilterMatches && (

@@ -197,8 +197,16 @@ describe('account channel seen routes', () => {
         count: 3,
         results: [
           // The ORM stops counting one past the cap, so 21 is what "more than 20" looks like here.
-          { channel_id_text: 'busy', last_seen_at: new Date('2026-01-01T00:00:00.000Z'), raw_unseen_count: 21 },
-          { channel_id_text: 'exactly-cap', last_seen_at: new Date('2026-01-01T00:00:00.000Z'), raw_unseen_count: 20 },
+          {
+            channel_id_text: 'busy',
+            last_seen_at: new Date('2026-01-01T00:00:00.000Z'),
+            raw_unseen_count: 21,
+          },
+          {
+            channel_id_text: 'exactly-cap',
+            last_seen_at: new Date('2026-01-01T00:00:00.000Z'),
+            raw_unseen_count: 20,
+          },
           { channel_id_text: 'never-opened', last_seen_at: null, raw_unseen_count: 0 },
         ],
       });
@@ -297,14 +305,15 @@ describe('account channel seen routes', () => {
       listAddByRssSeenStateMock.mockResolvedValueOnce({
         count: 2,
         results: [
-          { feed_url: 'https://example.com/a.xml', last_seen_at: new Date('2026-02-02T00:00:00.000Z') },
+          {
+            feed_url: 'https://example.com/a.xml',
+            last_seen_at: new Date('2026-02-02T00:00:00.000Z'),
+          },
           { feed_url: 'https://example.com/b.xml', last_seen_at: null },
         ],
       });
 
-      const res = await request(app)
-        .get(`${seenBase}/add-by-rss`)
-        .set(authHeaders(TEST_USER_ID));
+      const res = await request(app).get(`${seenBase}/add-by-rss`).set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
       expect(res.body.data).toEqual([
@@ -390,9 +399,12 @@ describe('account channel seen routes', () => {
     });
 
     it('rejects a batch larger than the write cap rather than accepting an unbounded write', async () => {
-      const entries = Array.from({ length: CHANNEL_SEEN_MARK_BATCH_LIMIT + 1 }, (_value, index) => ({
-        channel_id_text: `show-${index}`,
-      }));
+      const entries = Array.from(
+        { length: CHANNEL_SEEN_MARK_BATCH_LIMIT + 1 },
+        (_value, index) => ({
+          channel_id_text: `show-${index}`,
+        })
+      );
 
       const res = await request(app)
         .post(`${seenBase}/mark`)

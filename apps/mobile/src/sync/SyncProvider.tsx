@@ -1,6 +1,14 @@
 import NetInfo from '@react-native-community/netinfo';
 import type { PropsWithChildren } from 'react';
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { AppState } from 'react-native';
 
 import { useAuth } from '../auth/AuthProvider';
@@ -116,7 +124,9 @@ export function SyncProvider({ children }: PropsWithChildren) {
       return;
     }
 
-    requestSync(status === 'authenticated' && previousStatus === 'anonymous' ? 'sign-in' : 'app-start');
+    requestSync(
+      status === 'authenticated' && previousStatus === 'anonymous' ? 'sign-in' : 'app-start'
+    );
   }, [requestSync, status]);
 
   useEffect(() => {

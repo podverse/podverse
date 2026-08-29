@@ -94,7 +94,9 @@ describe('formatSyncEventLogExport', () => {
 
   it('renders a missing code and message without leaving a ragged line', () => {
     const text = formatSyncEventLogExport([entry({ outcome: 'skipped' })]);
-    expect(text).toBe('Podverse sync log (1)\n2026-08-29T06:00:00.000Z  skipped  account-refresh  -');
+    expect(text).toBe(
+      'Podverse sync log (1)\n2026-08-29T06:00:00.000Z  skipped  account-refresh  -'
+    );
   });
 
   it('exports a header on its own when there is nothing to report', () => {

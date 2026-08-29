@@ -70,7 +70,7 @@ What you **do** still owe the operator:
   `npm run mobile:install` (see **mobile-expo-monorepo**).
 - Keep the dependency justified on its merits — the wrong library is still the wrong library.
 
-Ask about a native dependency only when the *choice between libraries* is genuinely open, never to
+Ask about a native dependency only when the _choice between libraries_ is genuinely open, never to
 get permission to incur a rebuild.
 
 ## Package import allowlist / denylist

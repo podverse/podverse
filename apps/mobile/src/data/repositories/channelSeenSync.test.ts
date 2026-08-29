@@ -56,7 +56,11 @@ describe('reconcileSeenState', () => {
   it('settles after one pass, so repeated syncs stop asking', () => {
     const local = new Map([['show', at('2026-01-01T00:00:00.000Z')]]);
 
-    const first = reconcileSeenState([remote('show', '2026-05-01T00:00:00.000Z')], 'channel', local);
+    const first = reconcileSeenState(
+      [remote('show', '2026-05-01T00:00:00.000Z')],
+      'channel',
+      local
+    );
     for (const entry of first.adopt) {
       local.set(entry.subscriptionKey, entry.lastSeenAtMs);
     }

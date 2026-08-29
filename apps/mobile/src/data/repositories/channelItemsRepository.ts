@@ -409,7 +409,9 @@ export const channelItemsRepository = {
   /** Forget a channel entirely, on unsubscribe. */
   removeChannel: async (channelIdText: string): Promise<void> => {
     await initializeDatabase();
-    await getDb().delete(schema.channelItem).where(eq(schema.channelItem.channelIdText, channelIdText));
+    await getDb()
+      .delete(schema.channelItem)
+      .where(eq(schema.channelItem.channelIdText, channelIdText));
     await getDb()
       .delete(schema.channelItemWindow)
       .where(eq(schema.channelItemWindow.channelIdText, channelIdText));
@@ -439,7 +441,9 @@ export const channelItemsRepository = {
       .filter((channelIdText) => !keep.has(channelIdText));
 
     for (const chunk of chunked(drop, DELETE_CHUNK_SIZE)) {
-      await getDb().delete(schema.channelItem).where(inArray(schema.channelItem.channelIdText, chunk));
+      await getDb()
+        .delete(schema.channelItem)
+        .where(inArray(schema.channelItem.channelIdText, chunk));
       await getDb()
         .delete(schema.channelItemWindow)
         .where(inArray(schema.channelItemWindow.channelIdText, chunk));

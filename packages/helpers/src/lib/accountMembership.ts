@@ -56,7 +56,6 @@ export function isMembershipExpiredAt(membershipExpiresAt: MembershipExpiresAtIn
  */
 export const MEMBERSHIP_EXPIRY_WARNING_DAYS = 14;
 
-
 export type MembershipExpiryStatus = 'none' | 'expiring_soon' | 'expired';
 
 export interface MembershipExpiryNotice {

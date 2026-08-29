@@ -42,7 +42,9 @@ export const resolveStoredRange = (
 };
 
 /** True when the URL named any control, which is what makes the resolved values worth writing back. */
-export const hasExplicitControlParams = (values: readonly (string | null | undefined)[]): boolean => {
+export const hasExplicitControlParams = (
+  values: readonly (string | null | undefined)[]
+): boolean => {
   return values.some((value) => value !== null && value !== undefined);
 };
 

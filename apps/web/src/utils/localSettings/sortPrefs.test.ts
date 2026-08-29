@@ -93,7 +93,10 @@ describe('sort preference store', () => {
 
   it('forgets a field when a control returns to storing nothing', () => {
     let store = writeSortPrefIntoStore([], channelScope('abc'), { range: 'week', sort: 'top' });
-    store = writeSortPrefIntoStore(store, channelScope('abc'), { range: undefined, sort: 'recent' });
+    store = writeSortPrefIntoStore(store, channelScope('abc'), {
+      range: undefined,
+      sort: 'recent',
+    });
 
     expect(readSortPrefFromStore(store, channelScope('abc'))).toEqual({ sort: 'recent' });
   });

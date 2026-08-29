@@ -105,23 +105,21 @@ export function useFullSubscribedChannels(
     let cancelled = false;
 
     (async () => {
-      let channels: readonly DTOChannel[] = EMPTY_CHANNELS;
       try {
-        channels = await readAllPages(params);
+        const channels = await readAllPages(params);
+        if (!cancelled) {
+          setCache({ key: cacheKey, channels });
+        }
       } catch {
-        channels = EMPTY_CHANNELS;
-      }
-
-      if (!cancelled) {
-        setCache({ key: cacheKey, channels });
+        if (!cancelled) {
+          setCache({ key: cacheKey, channels: EMPTY_CHANNELS });
+        }
       }
     })();
 
     return () => {
       cancelled = true;
     };
-    // `params` is rebuilt on every render; `cacheKey` is the value that decides whether it changed.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cacheKey, isActive, isCached]);
 
   return {

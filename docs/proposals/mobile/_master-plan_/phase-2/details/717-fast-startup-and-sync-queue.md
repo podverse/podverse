@@ -128,14 +128,14 @@ download queue (already serial — `downloadManager.ts:157-175`).
 `apps/mobile/src/sync/` is the orchestration layer; the data-layer primitives it was expected to
 reuse stay at `apps/mobile/src/data/sync/`, reached through the repositories the jobs call.
 
-| Module                      | Role                                                                                          |
-| --------------------------- | --------------------------------------------------------------------------------------------- |
-| `syncQueue.ts`              | The runner. No React Native or Expo imports, so its semantics are unit-testable in node        |
-| `syncJobKinds.ts`           | The job kinds and their i18n label keys                                                        |
-| `syncJobPlan.ts`            | Trigger + auth status → which root jobs to enqueue. Pure, and tested                          |
-| `syncJobs.ts`               | Job bodies. Orchestration only; every request and write belongs to a repository                |
-| `syncErrorClassification.ts`| Failure → stable error code plus whether it means offline                                     |
-| `SyncProvider.tsx`          | Wires `AppState` and NetInfo to the queue and publishes its state                              |
+| Module                       | Role                                                                                    |
+| ---------------------------- | --------------------------------------------------------------------------------------- |
+| `syncQueue.ts`               | The runner. No React Native or Expo imports, so its semantics are unit-testable in node |
+| `syncJobKinds.ts`            | The job kinds and their i18n label keys                                                 |
+| `syncJobPlan.ts`             | Trigger + auth status → which root jobs to enqueue. Pure, and tested                    |
+| `syncJobs.ts`                | Job bodies. Orchestration only; every request and write belongs to a repository         |
+| `syncErrorClassification.ts` | Failure → stable error code plus whether it means offline                               |
+| `SyncProvider.tsx`           | Wires `AppState` and NetInfo to the queue and publishes its state                       |
 
 Root jobs are account refresh, queue hydrate, and push registration. Everything else — the
 subscription pages, the commit, followed playlists, the library projection — is enqueued by the job

@@ -1,5 +1,9 @@
 import type { SortPrefScope, SortPrefValue } from '@podverse/helpers';
-import { buildSortPrefScopeKey, mergeSortPrefValue, sanitizeSortPrefValue } from '@podverse/helpers';
+import {
+  buildSortPrefScopeKey,
+  mergeSortPrefValue,
+  sanitizeSortPrefValue,
+} from '@podverse/helpers';
 
 /**
  * Per-instance list preferences, held in the `local-settings` cookie under `sp`.
@@ -149,7 +153,10 @@ export const writeSortPrefIntoStore = (
   }
 
   const existing = store.find(([storedKey]) => storedKey === key);
-  const merged = mergeSortPrefValue(existing === undefined ? null : expandValue(existing[1]), patch);
+  const merged = mergeSortPrefValue(
+    existing === undefined ? null : expandValue(existing[1]),
+    patch
+  );
   const withoutKey = store.filter(([storedKey]) => storedKey !== key);
 
   if (merged === null) {
