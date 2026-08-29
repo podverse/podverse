@@ -1,10 +1,8 @@
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 /**
- * Generic key/value metadata for the sync layer (per-domain watermarks, last-synced-at,
- * small flags). Domain tables (account, queue, add-by-rss) are added by later Track 9b steps
- * via their own forward-only migrations — this scaffold table just proves the pattern and gives
- * the sync layer a home before the first repository lands.
+ * Generic key/value metadata for the sync layer (per-domain watermarks, last-synced-at, and small
+ * flags). Domain-specific metadata can use forward-only migrations alongside this table.
  *
  * Never store auth tokens here — tokens live in SecureStore only (see src/data/README.md).
  */
@@ -34,8 +32,8 @@ export type AccountSnapshotInsert = typeof accountSnapshot.$inferInsert;
 /**
  * Last-synced queue data cached as JSON, keyed by a domain cache key (e.g. `queues`,
  * `now-playing:{queueIdText}`, `upcoming:{queueIdText}`, `history:{queueIdText}:{page}`). This
- * keeps the phone UI working offline with last-synced data. Track 10 adds mutations; Track 12
- * normalizes for the native cache. `updated_at` drives staleness (TTL) for read-through.
+ * keeps the phone UI working offline with last-synced data. `updated_at` drives staleness (TTL) for
+ * read-through, while native-cache projections are maintained by the repositories.
  */
 export const queueCache = sqliteTable('queue_cache', {
   cacheKey: text('cache_key').primaryKey(),
@@ -70,7 +68,7 @@ export type AddByRssFeedRow = typeof addByRssFeed.$inferSelect;
 export type AddByRssFeedInsert = typeof addByRssFeed.$inferInsert;
 
 /**
- * Offline downloads index (Track 13, Phase F). Source of truth for the phone Downloads library and
+ * Offline downloads index. Source of truth for the phone Downloads library and
  * for local-file playback. One row per downloadable item, keyed by `item_id_text`. Only progressive
  * (non-live, non-HLS) items get a row — eligibility is gated by `isItemDownloadable` before insert
  * (see src/downloads/README.md). `file_path` / `byte_size` fill in as the transfer completes.

@@ -1,7 +1,7 @@
 appId: com.podverse.app.next
 name: Membership Gate
 ---
-# Track 19.8 (567): a Trial member attempting a Premium-only action (Podcast Index directory add)
+# A Trial member attempting a Premium-only action (Podcast Index directory add)
 # gets a REAL membership.feature_not_available_for_account_type 403, which the app surfaces as the
 # premium gate modal; "Renew" routes to the Membership screen. Also asserts the auth-based CTA:
 # logged-out shows "Sign Up", logged-in shows "Extend My Membership".
@@ -27,7 +27,7 @@ name: Membership Gate
     text: "Sign Up"
 - takeScreenshot: membership-gate-signup-cta
 
-# Anonymous tier, proactive path (700): the shared tier model resolves `add_by_rss_add` as
+# Anonymous tier, proactive path: the shared tier model resolves `add_by_rss_add` as
 # membership-tier, so a signed-out user sees the gate notice up front instead of tapping Add and
 # waiting for a 401/403. Asserted on Add by RSS rather than the PI preview screen so the Search
 # stack stays at its root for the reactive check below.

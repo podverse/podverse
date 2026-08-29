@@ -7,7 +7,7 @@ import { usePlayback } from '../../playback/PlaybackProvider';
 import { useTheme } from '../../theme/useTheme';
 
 /**
- * Playback speed control (Track 11.11). Wired to the engine via `usePlayback().setRate`, which calls
+ * Playback speed control. Wired to the engine via `usePlayback().setRate`, which calls
  * `NativePlaybackBridge.setRate` — no reload. Reflects the current rate from context (`playbackRate`)
  * and persists for the session (provider state). Rates and their labels mirror the web speed menu
  * (`media_player.playback_speed.speeds.*`).

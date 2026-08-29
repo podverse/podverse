@@ -15,7 +15,7 @@ import type { AccessDenialReason } from '@podverse/helpers';
 export interface MembershipGateError {
   /** Machine-readable code (e.g. `membership_expired`, `feature_not_available_for_account_type`). */
   code?: string;
-  /** Namespaced i18n key under `membership.*` used to localise the user-facing message. */
+  /** Namespaced i18n key under `membership.*` for the user-facing localized message. */
   i18nKey: string;
   /** Server message (American English structural text); clients prefer their localised copy. */
   message?: string;

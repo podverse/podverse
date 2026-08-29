@@ -4,12 +4,11 @@ import type { NativeCacheBrowseNode } from '../nativeCache';
 import type { SubscribedChannel } from './subscriptionsMerge';
 
 /**
- * Pure mappers + merge for the car/watch `library-browse` projection (12.22). Kept free of
- * `expo-sqlite` / native imports (types only) so the mobile node-only Vitest suite can cover them;
+ * Pure mappers + merge for the car/watch `library-browse` projection. Kept free of `expo-sqlite` /
+ * native imports (types only) so the mobile node-only Vitest suite can cover them;
  * `accountRepository` owns the impure orchestration (reads `subscriptionsRepository.list()`,
  * hydrates followed playlists, then projects). Channel merge/hydration lives in the shared
- * `subscriptionsRepository` (9b.8 / 600) and is deliberately not duplicated here.
- * Detail: docs/proposals/mobile/_master-plan_/phase-1/details/401-car-library-directory-follows.md
+ * `subscriptionsRepository` and is deliberately not duplicated here.
  */
 
 const trimToNull = (value: string | null | undefined): string | null => {

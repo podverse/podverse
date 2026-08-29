@@ -4,10 +4,10 @@ import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
-// PG-2b steps 2.7-2.9 (details 086-088). This Expo module is a thin transport surface over the
-// process-wide `PodverseAudioEngine` object. It does NOT own the ExoPlayer, MediaSession, or
-// foreground service - the engine + PodverseMediaLibraryService do, so Android Auto (Track 12,
-// 12.11-12.13) binds to the same player/session without a second path.
+// This Expo module is a thin transport surface over the process-wide `PodverseAudioEngine` object.
+// It does NOT own the ExoPlayer, MediaSession, or foreground service; the engine and
+// PodverseMediaLibraryService do, so Android Auto binds to the same player/session without a second
+// path.
 //
 // Car foundation (00-CAR-FOUNDATION.md): one ExoPlayer, one MediaSession, one MediaLibraryService.
 // Do NOT use react-native-track-player.
@@ -16,7 +16,7 @@ class PodverseMediaEngineModule : Module() {
     // Must match requireNativeModule('PodverseMediaEngine') on the JS side.
     Name("PodverseMediaEngine")
 
-    // Native → JS events (contract aligns with step 2.10 / detail 089).
+    // Native → JS events.
     Events("playbackState", "progress", "ended", "error", "stalled")
 
     // Forward engine events to JS while this module (and the JS runtime) is alive. When JS is not
@@ -29,13 +29,13 @@ class PodverseMediaEngineModule : Module() {
       PodverseAudioEngine.eventSink = null
     }
 
-    // --- Playback transport (contract: detail 082) ---
+    // --- Playback transport ---
 
     AsyncFunction("load") { url: String, initialSeekSeconds: Double? ->
       PodverseAudioEngine.load(reactContext(), url, initialSeekSeconds)
     }
 
-    // Atomic load + play (step 2.25 / detail 104). Used by the primary autoplay path.
+    // Atomic load + play. Used by the primary autoplay path.
     AsyncFunction("loadAndStart") { url: String, initialSeekSeconds: Double? ->
       PodverseAudioEngine.loadAndStart(reactContext(), url, initialSeekSeconds)
     }
@@ -68,7 +68,7 @@ class PodverseMediaEngineModule : Module() {
       PodverseAudioEngine.release()
     }
 
-    // --- Video surface (PG-5 steps 2.18-2.20 / details 097-099 + Plan 01 reparent). The ONE
+    // --- Video surface. The ONE
     // SurfaceView is reparented between RN-mounted `PodverseVideoSurfaceView`s (registered via the
     // `View` below); never loads/releases the player or creates a second surface. ---
 
@@ -79,26 +79,26 @@ class PodverseMediaEngineModule : Module() {
       }
     }
 
-    // Retained for the JS bridge/serialization contract + unit tests. Placement is now driven by the
-    // reparent into `PodverseVideoSurfaceView` (above), so rects no longer position the surface.
+    // Retained for the JS bridge/serialization contract + unit tests. Placement is driven by the
+      // reparent into `PodverseVideoSurfaceView` (above), so rects do not position the surface.
     Function("attachVideoSurface") {
         _: String, _: Double, _: Double, _: Double, _: Double, _: Double ->
-      // No-op: superseded by native-view reparent (Plan 01). See PodverseVideoSurfaceHost.
+      // No-op: placement is handled by native-view reparent. See PodverseVideoSurfaceHost.
     }
 
     Function("animateVideoSurface") { toTargetId: String, durationMs: Double ->
       PodverseVideoSurfaceHost.setActiveTarget(toTargetId, durationMs.toLong())
     }
 
-    // JS-desired visibility (2.23); the host only shows when the item also has video frames.
+    // JS-desired visibility; the host only shows when the item also has video frames.
     Function("setVideoSurfaceVisible") { visible: Boolean ->
       PodverseVideoSurfaceHost.setVisible(visible)
     }
 
-    // --- Native-cache write hooks (step 2.35 / detail 114; durable storage 12.3 / detail 382).
+    // --- Native-cache write hooks.
     // JS mirrors state here; `PodverseNativeCache` persists JSON to app-private files so
-    // PodverseMediaLibraryService and the force-stop spike (12.6) read it with the app killed and JS
-    // not running. Schema owned by Track 12.1 (envelope in `src/data/nativeCache/projection.ts`).
+    // PodverseMediaLibraryService reads it with the app killed and JS not running. The envelope is
+    // defined in `src/data/nativeCache/projection.ts`.
     // Best-effort: a failed write must not surface as a JS error that rolls back the mutation. ---
 
     AsyncFunction("writeQueueSnapshot") { payloadJson: String ->

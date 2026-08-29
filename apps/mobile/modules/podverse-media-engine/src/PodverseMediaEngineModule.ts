@@ -1,9 +1,9 @@
 /**
- * Typed accessor for the native `PodverseMediaEngine` module (step 2.1 scaffold).
+ * Typed accessor for the native `PodverseMediaEngine` module.
  *
  * This resolves the native module registered by `PodverseMediaEngineModule` (Swift/Kotlin). The RN
- * hook adapter that subscribes to events and maps them to `@podverse/playback-core` policy lands in
- * step 2.11 (detail 090) — this file only exposes the typed native surface.
+ * hook adapter that subscribes to events and maps them to `@podverse/playback-core` policy is
+ * separate; this file only exposes the typed native surface.
  *
  * `requireNativeModule` throws if the native module is not linked, so import this only from code that
  * runs on a device/simulator with the module built in (not from pure-JS unit tests).
@@ -16,11 +16,11 @@ import type { NativeRawPlaybackEvents } from './types';
 /**
  * Raw native module surface as exposed by the Swift/Kotlin `Module` definition. Note this uses the
  * native **positional** `load(url, initialSeekSeconds?)` signature — the higher-level, object-based
- * `NativePlaybackBridge.load(source)` is provided by the JS adapter (step 2.11), which wraps this.
+ * `NativePlaybackBridge.load(source)` is provided by the JS adapter, which wraps this.
  */
 export type PodverseMediaEngineNativeModule = {
   load(url: string, initialSeekSeconds?: number): Promise<void>;
-  /** Positional `load` + `play` in one native hop (step 2.25). Adapter wraps the object form. */
+  /** Positional `load` + `play` in one native hop. The adapter wraps the object form. */
   loadAndStart(url: string, initialSeekSeconds?: number): Promise<void>;
   play(): Promise<void>;
   pause(): void;
@@ -30,7 +30,7 @@ export type PodverseMediaEngineNativeModule = {
   getDuration(): Promise<number>;
   destroy(): void;
   /**
-   * Positional video-surface attach (step 2.18). The object-based `attachVideoSurface(targetId, rect)`
+   * Positional video-surface attach. The object-based `attachVideoSurface(targetId, rect)`
    * on the JS adapter wraps this; `cornerRadius` is `0` when unspecified.
    */
   attachVideoSurface(
@@ -41,9 +41,9 @@ export type PodverseMediaEngineNativeModule = {
     height: number,
     cornerRadius: number
   ): void;
-  /** Move the single surface to `toTargetId` over `durationMs` (step 2.19). */
+  /** Move the single surface to `toTargetId` over `durationMs`. */
   animateVideoSurface(toTargetId: string, durationMs: number): void;
-  /** JS-desired video-surface visibility (step 2.23); gated by native video capability. */
+  /** JS-desired video-surface visibility; gated by native video capability. */
   setVideoSurfaceVisible(visible: boolean): void;
   writeQueueSnapshot(payloadJson: string): Promise<void>;
   writeDownloadsIndex(payloadJson: string): Promise<void>;

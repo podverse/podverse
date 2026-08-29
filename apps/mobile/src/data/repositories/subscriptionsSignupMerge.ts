@@ -10,7 +10,7 @@ import type { MobileAuthRequestContext } from './types';
 
 /**
  * Local subscriptions cross over to a server account exactly once: when the user creates an account
- * from this device (701). A later sign-in never pushes local subscriptions up — after sign-up the
+ * from this device. A later sign-in never pushes local subscriptions up — after sign-up the
  * account is the source of truth, so uploading whatever accumulated on the device since would let a
  * phone silently rewrite an account the user also uses on the web.
  *

@@ -1,9 +1,9 @@
 import type { PlaybackTarget } from './playbackTarget.js';
 
 /**
- * Phase 2 input shape for loading a `PlaybackTarget`. The Phase 3 policy
- * composes the pure helpers in this module to derive the final seek
- * seconds, pause-at-time, and side effects from one of these.
+ * Input shape for loading a `PlaybackTarget`. The playback policy composes the
+ * pure helpers in this module to derive the final seek seconds, pause-at-time,
+ * and side effects from one of these.
  *
  * `explicitPlaybackSeconds` — typically the anonymous-snapshot
  * `playback_position_seconds` or a queue resource's `playback_position`.

@@ -2,13 +2,11 @@ import AVFoundation
 import Foundation
 import MediaPlayer
 
-// PG-2b steps 2.4–2.6 (details 083–085).
-//
-// Car foundation (00-CAR-FOUNDATION.md): this is the single, process-wide audio engine. It owns the
-// one `AVPlayer`, the one `AVAudioSession` configuration, and the one `MPRemoteCommandCenter`
-// registration for phone, lock screen, and future CarPlay now-playing (12.9–12.10). A future CarPlay
-// scene binds now-playing to `PodverseAudioEngine.shared` WITHOUT starting the JS runtime — do not
-// require the RN bridge to be alive, and do not add a second player or command center for "car later".
+// This is the single, process-wide audio engine. It owns the one `AVPlayer`, the one
+// `AVAudioSession` configuration, and the one `MPRemoteCommandCenter` registration for phone, lock
+// screen, and CarPlay now-playing. CarPlay binds now-playing to `PodverseAudioEngine.shared`
+// WITHOUT starting the JS runtime — do not require the RN bridge to be alive, and do not add a
+// second player or command center.
 // Do NOT use react-native-track-player.
 
 /// Native → JS event names. Kept in one place so the engine and the Expo module agree.
@@ -32,7 +30,7 @@ enum PodversePlaybackState: String {
   case error
 }
 
-/// Now-playing metadata supplied with a load. Fields are optional; the spike may use placeholders.
+/// Now-playing metadata supplied with a load. Fields are optional.
 struct PodverseNowPlayingInfo {
   var title: String?
   var artist: String?
@@ -40,9 +38,9 @@ struct PodverseNowPlayingInfo {
 
 /// Process-wide shared audio engine. Access via `PodverseAudioEngine.shared`.
 ///
-/// This singleton is intentionally independent of the Expo module lifecycle: a future CarPlay scene
-/// (Track 12) can reference `PodverseAudioEngine.shared` to render now-playing and issue transport
-/// commands even when the JS runtime has not started. The Expo module registers an `eventSink` to
+/// This singleton is intentionally independent of the Expo module lifecycle: CarPlay can reference
+/// `PodverseAudioEngine.shared` to render now-playing and issue transport commands even when the JS
+/// runtime has not started. The Expo module registers an `eventSink` to
 /// forward events to JS while it is alive; when JS is absent, the engine still plays and updates the
 /// lock screen / car now-playing.
 public final class PodverseAudioEngine: NSObject {
@@ -52,13 +50,13 @@ public final class PodverseAudioEngine: NSObject {
   /// The single shared player. Do not create parallel `AVPlayer` instances anywhere in the app.
   private let player = AVPlayer()
 
-  /// Sink used to forward events to JS. Set by the Expo module while it is alive; `nil` when the JS
-  /// runtime is not running (e.g. future CarPlay-only launch). Reads/writes are hopped to main.
+  /// Sink that forwards events to JS. Set by the Expo module while it is alive; `nil` when the JS
+  /// runtime is not running (e.g. a CarPlay-only launch). Reads/writes are hopped to main.
   var eventSink: ((PodverseMediaEngineEvent, [String: Any]) -> Void)?
 
   /// Notified on main whenever the current item's video capability changes (ready with video vs
-  /// audio-only or torn down). Set by `PodverseVideoSurfaceHost` (2.16) so it can hide the surface
-  /// for audio-only items without the engine importing UIKit. Visibility policy: 2.23 (prompt 03).
+  /// audio-only or torn down). Set by `PodverseVideoSurfaceHost` so it can hide the surface for
+  /// audio-only items without the engine importing UIKit.
   var onVideoCapabilityChanged: ((Bool) -> Void)?
 
   private var currentItem: AVPlayerItem?
@@ -80,30 +78,30 @@ public final class PodverseAudioEngine: NSObject {
     addPeriodicTimeObserver()
   }
 
-  // MARK: - Shared surface access (step 2.14 / detail 093)
+  // MARK: - Shared surface access
 
-  /// Internal accessor for the single shared `AVPlayer` so the `PodverseVideoSurfaceHost` (2.16) can
+  /// Internal accessor for the single shared `AVPlayer` so the `PodverseVideoSurfaceHost` can
   /// bind exactly one `AVPlayerLayer` to it. There is still one and only one `AVPlayer` for the
   /// process — video and audio items both play through this instance (no second player, no RN
-  /// `<Video>`; see Track 11.18 anti-pattern).
+  /// `<Video>`).
   var sharedPlayer: AVPlayer { player }
 
   /// True when the current item exposes at least one video track. The surface host uses this to
-  /// decide whether it has frames to present; the show/hide policy for audio-only items lands in
-  /// 2.23 (prompt 03). Returns `false` before the item is ready or for audio-only enclosures.
+  /// decide whether it has frames to present; the show/hide policy applies to audio-only items.
+  /// Returns `false` before the item is ready or for audio-only enclosures.
   func currentItemHasVideoTracks() -> Bool {
     guard let item = currentItem else { return false }
     return item.tracks.contains { $0.assetTrack?.mediaType == .video }
   }
 
-  // MARK: - Public transport API (called by the Expo module and future CarPlay scene)
+  // MARK: - Public transport API (called by the Expo module and CarPlay scene)
 
   /// Replace the current item with `url` and optionally seek to `initialSeekSeconds`. Does not start
   /// playback. Rapid loads cancel the prior item cleanly by replacing it on the single player.
   ///
-  /// Accepts remote http(s) URLs, `file://` URLs, and absolute filesystem paths (offline playback,
-  /// 2.26) — all play through this one shared player, never a second player or RN `<Video>`. Missing
-  /// local files fail fast with a `file_not_found` error (2.27) instead of hanging.
+  /// Accepts remote http(s) URLs, `file://` URLs, and absolute filesystem paths (offline playback) —
+  /// all play through this one shared player, never a second player or RN `<Video>`. Missing local
+  /// files fail fast with a `file_not_found` error instead of hanging.
   func load(url: String, initialSeekSeconds: Double?) throws {
     guard let parsed = resolveSourceURL(url) else {
       let payload: [String: Any] = ["code": "invalid_url", "message": "Invalid URL: \(url)"]
@@ -137,7 +135,7 @@ public final class PodverseAudioEngine: NSObject {
     observeItemEnd(item)
     observeItemStalled(item)
 
-    // Placeholder now-playing metadata for the spike; queue-driven metadata lands with Track 10/11.
+    // Seed now-playing metadata from the source URL until the caller supplies item metadata.
     nowPlaying = PodverseNowPlayingInfo(title: parsed.lastPathComponent, artist: nil)
     lastPublishedState = .loading
     currentItem = item
@@ -152,17 +150,17 @@ public final class PodverseAudioEngine: NSObject {
     }
   }
 
-  /// Convenience combining `load` + `play` (step 2.25 / detail 104). If `load` throws (invalid URL /
-  /// missing file), the error is already emitted and playback does not start. Once the item is
-  /// prepared, `play` is issued; the item may be prepared even if playback fails to begin.
+  /// Convenience combining `load` + `play`. If `load` throws (invalid URL / missing file), the error
+  /// is already emitted and playback does not start. Once the item is prepared, `play` is issued; the
+  /// item may be prepared even if playback fails to begin.
   func loadAndStart(url: String, initialSeekSeconds: Double?) throws {
     try load(url: url, initialSeekSeconds: initialSeekSeconds)
     play()
   }
 
   /// Override the Now Playing title/artist for the current item (lock screen + CarPlay). The CarPlay
-  /// browse scene (12.9) calls this right after `loadAndStart` so the car shows the cache entry's real
-  /// title instead of the file name (`load` seeds a placeholder from `lastPathComponent`). Metadata
+  /// browse scene calls this right after `loadAndStart` so the car shows the cache entry's real title
+  /// instead of the file name (`load` seeds a value from `lastPathComponent`). Metadata
   /// only — it never creates a second `AVPlayer` or `MPRemoteCommandCenter`; the one shared command
   /// center from `registerRemoteCommands` still drives all transport.
   func setNowPlayingMetadata(title: String?, artist: String? = nil) {
@@ -228,7 +226,7 @@ public final class PodverseAudioEngine: NSObject {
   }
 
   /// Tear down the current item and observers. The shared player, audio-session configuration, and
-  /// remote-command registration are intentionally KEPT so a future CarPlay scene can rebind without
+  /// remote-command registration remain available so a CarPlay scene can rebind without
   /// re-registering a competing command center or a second player.
   func destroy() {
     onMain { [weak self] in
@@ -257,7 +255,7 @@ public final class PodverseAudioEngine: NSObject {
     emit(.playbackState, ["state": state.rawValue])
   }
 
-  /// Push the current video capability to the surface host (2.16). Hopped to main; safe no-op when
+  /// Push the current video capability to the surface host. Hopped to main; safe no-op when
   /// no host is attached.
   private func emitVideoCapability() {
     let hasVideo = currentItemHasVideoTracks()
@@ -266,7 +264,7 @@ public final class PodverseAudioEngine: NSObject {
     }
   }
 
-  // MARK: - AVAudioSession (step 2.5)
+  // MARK: - AVAudioSession
 
   private func configureAudioSession() {
     do {
@@ -337,7 +335,7 @@ public final class PodverseAudioEngine: NSObject {
     }
   }
 
-  // MARK: - Now Playing + remote commands (step 2.6)
+  // MARK: - Now Playing + remote commands
 
   private func updateNowPlayingInfo() {
     var info: [String: Any] = [:]
@@ -365,7 +363,7 @@ public final class PodverseAudioEngine: NSObject {
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
   }
 
-  /// Register the ONE shared `MPRemoteCommandCenter`. CarPlay now-playing and remotes (12.9–12.10)
+  /// Register the ONE shared `MPRemoteCommandCenter`. CarPlay now-playing and remotes
   /// must reuse this registration and this player — never add a second command center path.
   private func registerRemoteCommands() {
     guard !remoteCommandsRegistered else { return }
@@ -492,7 +490,7 @@ public final class PodverseAudioEngine: NSObject {
   // MARK: - Helpers
 
   /// Resolve a load `url` string into a `URL`, supporting remote http(s), `file://` URLs, and bare
-  /// absolute filesystem paths (offline downloads, 2.26). Returns `nil` for unparseable input so the
+  /// absolute filesystem paths (offline downloads). Returns `nil` for unparseable input so the
   /// caller can emit `invalid_url`.
   private func resolveSourceURL(_ url: String) -> URL? {
     if url.hasPrefix("/") {

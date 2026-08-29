@@ -6,9 +6,8 @@
  * `npm run generate:e2e-media -w podverse-test-assets`). The asset server
  * auto-starts on port 2111 via `apps/web/playwright.e2e-webservers.ts`.
  *
- * Anonymous snapshot helper lands later in
- * `apps/web/e2e/helpers/anonymousSnapshot.ts` (step 5 of
- * `.llm/plans/active/media-player-e2e-seed-expansion/`).
+ * Anonymous snapshot data is initialized by
+ * `apps/web/e2e/helpers/anonymousSnapshot.ts`.
  */
 
 export const E2E_PODCAST_CHANNEL_ID_TEXT = 'e2ePodChnl001';
@@ -51,7 +50,7 @@ export const E2E_ADD_BY_RSS_RESOURCE_FRESH_GUID =
 /**
  * Anonymous snapshot ids reuse stable item ids but the snapshot itself is
  * written via `page.addInitScript` — see
- * `apps/web/e2e/helpers/anonymousSnapshot.ts` (added in step 5).
+ * `apps/web/e2e/helpers/anonymousSnapshot.ts`.
  */
 export const E2E_ANON_SNAPSHOT_PODCAST_ITEM_ID_TEXT = E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT;
 export const E2E_ANON_SNAPSHOT_MUSIC_ITEM_ID_TEXT = E2E_MUSIC_TRACK_ONE_ID_TEXT;
@@ -59,7 +58,7 @@ export const E2E_ANON_SNAPSHOT_MUSIC_ITEM_ID_TEXT = E2E_MUSIC_TRACK_ONE_ID_TEXT;
 /**
  * Deterministic playback positions in seconds, kept here so the specs and the
  * seed agree on the same numeric assertions. Durations match the committed
- * fixtures in `tools/test-assets/assets/e2e/audio/` (see step 1b).
+ * fixtures in `tools/test-assets/assets/e2e/audio/`.
  */
 export const E2E_PODCAST_ITEM_RESUME_P_POS_SECONDS = 5;
 export const E2E_PODCAST_ITEM_RESUME_DURATION_SECONDS = 60;
@@ -85,9 +84,7 @@ export const E2E_ADD_BY_RSS_ITEM_DURATION_SECONDS = 60;
 
 /**
  * Asset-server enclosure URLs for the seeded items. The asset server is
- * auto-started by the Playwright webServer config (port 2111). See step 1b
- * (`01b-test-audio-fixtures-and-asset-server.md`) for fixture generation
- * and the gitignore exception that pins them.
+ * auto-started by the Playwright webServer config (port 2111).
  */
 export const E2E_ASSET_BASE_URL = 'http://localhost:2111/e2e/audio';
 export const E2E_IMAGE_ASSET_BASE_URL = 'http://localhost:2111/e2e/images';
@@ -158,8 +155,8 @@ export const E2E_ADDBYRSS_WITH_POSITION_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e
 export const E2E_ADDBYRSS_FRESH_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-addbyrss-fresh-60s-440hz.mp3`;
 
 /**
- * Real video fixture (has an h264 video track) for the mobile video mini->full transition E2E
- * (master step 2.33 / detail 112). Regenerate via `npm run generate:e2e-media -w podverse-test-assets`
+ * Real video fixture (has an h264 video track) for the mobile video mini->full transition E2E.
+ * Regenerate via `npm run generate:e2e-media -w podverse-test-assets`
  * (writes `tools/test-assets/assets/e2e/videos/e2e-video-short-30s.mp4`, served as video/mp4 on :2111).
  * Seeded as a standalone video-medium channel by `tools/web/seed-e2e.mjs`; not added to any queue,
  * so web media-player queue specs are unaffected.

@@ -94,7 +94,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     }
 
     try {
-      // Only the account snapshot goes. Subscriptions and add-by-RSS feeds are retained (701) —
+      // Only the account snapshot goes. Subscriptions and add-by-RSS feeds are retained —
       // they are the device's data, and a signed-out user keeps browsing and playing them.
       await accountRepository.clearSnapshot();
     } catch (snapshotError) {

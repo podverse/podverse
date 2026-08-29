@@ -5,15 +5,14 @@ import android.util.Log
 import java.io.File
 import org.json.JSONObject
 
-// Durable native-cache storage (master step 12.3 / detail 382).
+// Durable native-cache storage.
 //
 // JS mirrors queue / downloads / library-browse snapshots into app-private files whenever phone-side
-// state changes (write path 12.4). Android Auto connects to PodverseMediaLibraryService (NOT the
-// Activity), so the service and the force-stop spike (12.6) read these files with the app process
-// killed and JS not running (DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md). Schema is owned by Track 12.1 /
-// detail 380 (each payload carries a schemaVersion + updatedAtMs envelope); this layer stores opaque
-// JSON and never re-decides queue policy (that stays in @podverse/playback-core). No Google Play
-// Services dependency.
+// state changes. Android Auto connects to PodverseMediaLibraryService (NOT the Activity), so the
+// service reads these files with the app process killed and JS not running
+// (DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md). Each payload carries a schemaVersion + updatedAtMs
+// envelope; this layer stores opaque JSON and never re-decides queue policy (that stays in
+// @podverse/playback-core). No Google Play Services dependency.
 
 /** One persisted payload kind; [fileName] is the on-disk name under the cache directory. */
 enum class PodverseNativeCacheKind(val fileName: String) {
@@ -62,7 +61,7 @@ object PodverseNativeCache {
   }
 
   /**
-   * Read a persisted JSON payload with the app force-stopped (spike 12.6, Auto browse 12.12).
+   * Read a persisted JSON payload with the app force-stopped for Android Auto browse.
    * Returns `null` when missing or unreadable; callers render an empty browse tree and never crash.
    */
   fun read(context: Context, kind: PodverseNativeCacheKind): String? {
@@ -76,10 +75,9 @@ object PodverseNativeCache {
   }
 
   /**
-   * Spike helper (step 12.6): read every payload and log a one-line summary (presence, byte size,
-   * parsed `schemaVersion`). Called from [PodverseMediaLibraryService.onCreate], which Android Auto /
-   * DHU starts WITHOUT the Activity or JS runtime — proving the cache is readable with the app
-   * force-stopped. Never throws.
+   * Read every payload and log a one-line summary (presence, byte size, parsed `schemaVersion`).
+   * Called from [PodverseMediaLibraryService.onCreate], which Android Auto / DHU starts WITHOUT the
+   * Activity or JS runtime. Never throws.
    */
   fun debugDump(context: Context): String {
     val parts =

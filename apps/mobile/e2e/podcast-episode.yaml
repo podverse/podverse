@@ -1,7 +1,7 @@
 appId: com.podverse.app.next
 name: Podcast Episode Flow
 ---
-# Track 9.25: Home/Search -> podcast detail -> episode detail screenshot flow.
+# Home/Search -> podcast detail -> episode detail screenshot flow.
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml

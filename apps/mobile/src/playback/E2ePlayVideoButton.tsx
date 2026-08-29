@@ -7,8 +7,8 @@ import { useTheme } from '../theme/useTheme';
 import { usePlayback } from './PlaybackProvider';
 
 /**
- * E2E-only affordance (master step 2.33 / detail 112): start playback of the seeded video-medium
- * item through the real orchestrator so it becomes an `item-video` active target — the mini player
+ * E2E-only affordance: start playback of the seeded video-medium item through the real orchestrator
+ * so it becomes an `item-video` active target — the mini player
  * renders and the native `VideoSurfaceHost` shows. There is no video browse/search UI yet, so the
  * video-transition Maestro flow needs this deterministic entry point. Renders only when
  * `EXPO_PUBLIC_MOBILE_E2E=1`; it is never present in production builds. Precedent:

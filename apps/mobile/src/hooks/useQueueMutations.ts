@@ -27,8 +27,8 @@ const mediumIdForMutation = (
  * Queue mutation hook (add next/last, move now-playing to history). Resolves the target queue by
  * medium via `getQueueForMedium` from the store, delegates the write to `queueRepository` (which
  * force-refreshes SQLite + projects the native cache), then refreshes the store through the
- * load-active hook. Screens call this — never `req*` directly. Anonymous callers are no-ops
- * (server-backed queues require auth; anonymous snapshot rules land with Track 10.18).
+ * load-active hook. Screens call this — never `req*` directly. Anonymous callers are no-ops because
+ * server-backed queues require authentication.
  */
 export function useQueueMutations() {
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();

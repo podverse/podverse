@@ -3,13 +3,13 @@ package expo.modules.podversemediaengine
 import android.util.Log
 import org.json.JSONObject
 
-// Native-cache payload parser for the Android Auto browse tree (master steps 12.12 / 12.14, details
-// 391 / 393). Decodes the opaque JSON strings returned by PodverseNativeCache.read into typed nodes
-// the MediaLibraryService maps to Media3 MediaItems.
+// Native-cache payload parser for the Android Auto browse tree. Decodes the opaque JSON strings
+// returned by PodverseNativeCache.read into typed nodes the MediaLibraryService maps to Media3
+// MediaItems.
 //
 // JS-dead contract: these payloads are the ONLY browse source in the car (SQLite is phone-UI-only).
-// The TypeScript source of truth is apps/mobile/src/data/nativeCache/projection.ts (schema 12.1 /
-// detail 380). Parsing is deliberately tolerant: unknown keys are ignored, a missing or mismatched
+// The TypeScript source of truth is apps/mobile/src/data/nativeCache/projection.ts. Parsing is
+// deliberately tolerant: unknown keys are ignored, a missing or mismatched
 // schemaVersion yields an empty list, and any malformed entry is skipped rather than throwing — the
 // service must render an empty tree, never crash, when the cache is absent/corrupt.
 object PodverseNativeCacheModel {

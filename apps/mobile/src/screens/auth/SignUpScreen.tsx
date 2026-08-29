@@ -147,7 +147,7 @@ export function SignUpScreen({ onDismiss, onSwitchToLogin }: SignUpScreenProps) 
         terms_version: DEFAULT_TERMS_VERSION,
       });
       // Sign-up does not sign the user in, so subscriptions made while signed out are pushed up by
-      // the login that follows. Recording the email here is what authorizes that one merge (701).
+      // the login that follows. Recording the email here authorizes that one merge.
       await writeSignupMergeEmail(email);
       setSuccessMessage(t('authentication.account_created_message'));
     } catch {

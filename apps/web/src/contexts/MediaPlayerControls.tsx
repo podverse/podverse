@@ -41,8 +41,8 @@ export function MediaPlayerControlsProvider({ children }: { children: ReactNode 
   // LIFO stack of registered bridges. Multiple non-live orchestrators (the always-mounted audio
   // element and the conditionally-mounted video element) register at once; the most recently
   // registered bridge owns active playback. Tracking the full stack means unmounting one
-  // orchestrator falls back to the other instead of clearing the controls (which previously left
-  // `seek`/`jumpBy` pointing at the frozen no-op bridge and broke the progress bar / jump buttons).
+  // orchestrator falls back to the other instead of clearing the controls or leaving `seek`/`jumpBy`
+  // pointed at a no-op bridge.
   const [stack, setStack] = useState<MediaElementBridge[]>([]);
   const register = useCallback((bridge: MediaElementBridge) => {
     setStack((prev) => (prev.includes(bridge) ? prev : [...prev, bridge]));

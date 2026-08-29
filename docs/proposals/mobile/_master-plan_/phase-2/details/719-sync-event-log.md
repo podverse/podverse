@@ -12,21 +12,21 @@ indicator deliberately stays quiet about
 ([718](/docs/proposals/mobile/_master-plan_/phase-2/details/718-sync-progress-indicator.md)) still
 leaves the user something to point at.
 
-Without this, "quiet failure" means "invisible failure" and a user reporting *my podcasts aren't
-updating* has nothing to give support.
+Without this, "quiet failure" means "invisible failure" and a user reporting _my podcasts aren't
+updating_ has nothing to give support.
 
 ## Storage
 
 A SQLite table under `apps/mobile/src/data/db/`, capped at **500 entries**, oldest evicted first.
 Rows are small — the cap is about staying invisible in device storage, not about retention policy.
 
-| Field        | Notes                                                            |
-| ------------ | ---------------------------------------------------------------- |
-| `occurred_at` | Timestamp                                                        |
-| `job_kind`   | The queue job identifier from 717                                |
-| `outcome`    | `success` / `failure` / `skipped`                                |
-| `error_code` | Machine-readable code, when the failure carried one              |
-| `message`    | Human-readable detail                                            |
+| Field         | Notes                                               |
+| ------------- | --------------------------------------------------- |
+| `occurred_at` | Timestamp                                           |
+| `job_kind`    | The queue job identifier from 717                   |
+| `outcome`     | `success` / `failure` / `skipped`                   |
+| `error_code`  | Machine-readable code, when the failure carried one |
+| `message`     | Human-readable detail                               |
 
 Whether successes are recorded at all, or only failures and skips, is an implementation call — but
 if successes are stored they must not crowd failures out of the 500. A log that evicted the only

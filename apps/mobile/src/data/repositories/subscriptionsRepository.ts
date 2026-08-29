@@ -9,7 +9,6 @@ import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh'
 import { getDb, initializeDatabase, schema } from '../db';
 import type { SubscribedChannelRow } from '../db/schema';
 import { addByRssRepository } from './addByRssRepository';
-import { hasPendingSignupMerge } from './subscriptionsSignupMarker';
 import type {
   SubscribedChannel,
   SubscriptionFilter,
@@ -24,6 +23,7 @@ import {
   mergeSubscriptions,
   sortSubscriptions,
 } from './subscriptionsMerge';
+import { hasPendingSignupMerge } from './subscriptionsSignupMarker';
 import type { MobileAuthRequestContext } from './types';
 
 export type {
@@ -138,10 +138,10 @@ const hydrateDirectoryChannels = async (
 };
 
 /**
- * Unified subscriptions repository (9b.8, 701) — the single source of truth for "channels I follow".
+ * Unified subscriptions repository — the single source of truth for "channels I follow".
  * Merges directory follows (`subscribed_channel`) with add-by-RSS follows (`addByRssRepository`)
  * into one deduped, sorted, filterable list, offline-first and **correct while signed out**.
- * Consumed by Home (8.16), My Library (9.30), and the car library-browse projection (12.22). All
+ * Consumed by Home, My Library, and the car library-browse projection. All
  * follows-related API calls stay here (never in screens); see the mobile-data-layer skill.
  *
  * Ownership of the directory rows depends on auth state:
@@ -178,7 +178,7 @@ export const subscriptionsRepository = {
     return sortSubscriptions(applySubscriptionFilter(merged, filter), sort);
   },
 
-  /** Whether this channel is currently shown as subscribed on this device. */
+  /** Whether this channel is shown as subscribed on this device. */
   isSubscribed: async (idText: string): Promise<boolean> => {
     await initializeDatabase();
     const rows = await getDb()
@@ -279,7 +279,7 @@ export const subscriptionsRepository = {
   /**
    * Drop every local directory follow, for explicit resets: E2E fixtures and account deletion.
    *
-   * Signing out is not one of them — a signed-out device keeps its subscriptions (701).
+   * Signing out is not one of them — a signed-out device keeps its subscriptions.
    */
   clearCache: async (): Promise<void> => {
     await initializeDatabase();

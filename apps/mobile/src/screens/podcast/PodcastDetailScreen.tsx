@@ -24,12 +24,12 @@ import { Button } from '../../components/primitives/Button';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
-import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
 import { mapDirectoryChannelToSubscribed } from '../../data/repositories/subscriptionsMerge';
+import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
-import { useAccessTier } from '../../membership/useAccessTier';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
+import { useAccessTier } from '../../membership/useAccessTier';
 import type { ChannelBrowseStackParamList } from '../../navigation';
 import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
 import { useResponsive } from '../../theme/useResponsive';
@@ -321,7 +321,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const { evaluateFeature } = useAccessTier();
 
   /**
-   * Subscribing has three behaviors and unsubscribing has one (701).
+   * Subscribing has three behaviors and unsubscribing has one.
    *
    * Signed out, the local write *is* the subscription and nothing reaches the server. Signed in the
    * account is the source of truth, so the follow goes to the server first and the local row is

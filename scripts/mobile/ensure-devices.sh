@@ -14,7 +14,7 @@ MANUAL_IOS_NAME='iPhone 17 Pro'
 MANUAL_ANDROID_AVD='Pixel_6_Pro_API_33'
 E2E_IOS_NAME='iPhone 17 Pro E2E'
 E2E_ANDROID_AVD='Pixel_6_Pro_API_33_e2e'
-# Opt-in Track 18 tablet E2E slots (not used by default phone matrix / mobile:e2e:test:all).
+# Opt-in tablet E2E slots (not used by default phone matrix / mobile:e2e:test:all).
 MANUAL_IOS_TABLET_NAME='iPad Pro 13-inch (M4)'
 E2E_IOS_TABLET_NAME='iPad Pro 13-inch (M4) E2E'
 E2E_ANDROID_TABLET_AVD='Pixel_Tablet_API_33_e2e'

@@ -388,7 +388,6 @@ export function PodcastIndexFeedPreviewScreen({
           testID="pi-feed-add-gate"
         />
 
-
         <Button
           fullWidth
           label={t('features.search.add_podcast')}

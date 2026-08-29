@@ -161,7 +161,7 @@ export class ApiManager {
       }
     });
 
-    // Track if process exited with error
+    // Record whether the process exited with an error.
     let processExitedWithError = false;
     let exitCode: number | null = null;
 

@@ -1,11 +1,11 @@
 appId: com.podverse.app.next
 name: Library Playlists Authoring
 ---
-# Track 9d (details 590–594): authenticated playlist authoring smoke + back navigation.
-# Path: Library -> Playlists -> create (9d.1) -> detail -> edit (9d.2) -> save/goBack -> detail (9d.5).
-# Needs Mobile E2E API (:4230) only (no media playback / test-assets). Reorder (9d.3, needs >1
-# resource) and add-to-playlist from Home rows (9d.4) depend on seeded playlist/feed content and are
-# verified manually on device — see apps/mobile/e2e/HOW-TO-RUN.md.
+# Authenticated playlist authoring smoke + back navigation.
+# Path: Library -> Playlists -> create -> detail -> edit -> save/goBack -> detail.
+# Needs Mobile E2E API (:4230) only (no media playback / test-assets). Reorder and add-to-playlist
+# from Home rows depend on seeded playlist/feed content and are verified manually on device — see
+# apps/mobile/e2e/HOW-TO-RUN.md.
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
@@ -46,7 +46,7 @@ name: Library Playlists Authoring
     timeout: ${TIMEOUT_SLOW}
 - takeScreenshot: library-playlists-created-detail
 
-# 9d.2 edit (owner-only edit button) + 9d.5 back: save calls navigation.goBack() -> detail again,
+# Edit (owner-only edit button) + back: save calls navigation.goBack() -> detail again,
 # proving the pushed edit screen is not a dead-end.
 - tapOn:
     id: library-playlist-detail-edit

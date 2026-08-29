@@ -84,7 +84,7 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
     };
   }, []);
 
-  // No auth check: subscriptions are device-local (701), so this list is the same read signed in or
+  // No auth check: subscriptions are device-local, so this list is the same read signed in or
   // out. Gating it on `status` would show "log in" to a signed-out user who has subscriptions.
   const loadSubscriptions = useCallback(async () => {
     setIsLoading(true);

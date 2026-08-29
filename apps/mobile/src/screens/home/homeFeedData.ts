@@ -207,8 +207,8 @@ export const fetchHomeFeedRows = async (
   const listType = authDeps.status === 'authenticated' ? 'subscribed' : 'global';
 
   if (mediaType === 'podcasts') {
-    // The Podcasts view mixes directory follows + add-by-RSS from the shared offline-first store
-    // (9b.8 / 8.16). Read regardless of auth state: subscriptions are device-local (701), so a
+    // The Podcasts view mixes directory follows + add-by-RSS from the shared offline-first store.
+    // Read regardless of auth state: subscriptions are device-local, so a
     // signed-out user with subscriptions sees them here exactly as a signed-in one does.
     const subscribed = await subscriptionsRepository.list({
       filter: options.subscriptionFilter ?? 'all',

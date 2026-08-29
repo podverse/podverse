@@ -1,7 +1,7 @@
 appId: com.podverse.app.next
 name: API Health Smoke
 ---
-# Track 5.20 minimal API-backed smoke.
+# Minimal API-backed smoke.
 # Requires:
 # - npm run mobile:dev:e2e (injects iOS localhost:4230 / Android 10.0.2.2:4230)
 # - npm run mobile:e2e:api

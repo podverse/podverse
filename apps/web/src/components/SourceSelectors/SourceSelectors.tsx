@@ -71,7 +71,7 @@ export const SourceSelectors = ({
         if (onLoadInPlayerWithSource) {
           // The displayed item is not the now-playing item: load it with the
           // chosen source (acts as a play button) rather than mutating the
-          // currently-loaded item's enclosure.
+          // loaded item's enclosure.
           onLoadInPlayerWithSource(nextEnclosureSelectedParams);
         } else {
           const enclosureSwitchDecision = buildEnclosureSwitchPlaybackDecisionIfChanged({

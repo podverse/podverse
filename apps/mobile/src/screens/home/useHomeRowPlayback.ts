@@ -19,8 +19,7 @@ export const isPlayableHomeMediaType = (mediaType: HomeMediaType): boolean => {
  * Resolve a row into a queue-mutation / play target. Content rows (Home / detail lists) carry the
  * resource `id_text` directly; playlist rows are prefixed (`item-` / `clip-`). Collection rows that
  * are not an "add new item" target (`queue-` / `history-` now-playing/upcoming rows, and
- * `soundbite-` playlist rows) return `null` — their remove/reorder + queue-resource play land with
- * Track 9c media-row actions / Track 11 player UI.
+ * `soundbite-` playlist rows) return `null` because they do not represent direct content targets.
  */
 const resolveRowTarget = (
   row: HomeFeedRowData,
@@ -45,9 +44,8 @@ export type QueueActionPosition = 'next' | 'last';
  * Home/detail row actions. `runPlayAction` starts real audio playback through the playback
  * orchestrator (episodes/tracks → item, clips → bounded clip); `runQueueAction` performs a real
  * add-to-queue via `useQueueMutations`, honoring the requested `position` (`next` inserts after
- * now-playing, `last` appends) — Track 9c.3 exposes both as distinct, correctly-keyed actions.
- * Rows whose id is not a direct content target (`queue-` / `history-` / `soundbite-`) are skipped
- * until Track 11 wires queue-resource play.
+ * now-playing, `last` appends) — exposes both as distinct, correctly-keyed actions. Rows whose id is
+ * not a direct content target (`queue-` / `history-` / `soundbite-`) are skipped.
  */
 export function useHomeRowPlayback() {
   const [queueNoticeKey, setQueueNoticeKey] = useState<QueueNoticeKey | null>(null);

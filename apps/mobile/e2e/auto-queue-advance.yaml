@@ -1,7 +1,7 @@
 appId: com.podverse.app.next
 name: Auto Queue Advance
 ---
-# Track 10.25 (detail 334): assert the orchestrator advances now-playing after a track finishes.
+# Assert the orchestrator advances now-playing after a track finishes.
 #
 # Timing constraint: the committed E2E audio fixtures are 30s / 60s, which exceeds the Maestro
 # timeout ladder cap (TIMEOUT_SLOWEST = 20s; see mobile-maestro-timeouts). Waiting for a *natural*
@@ -10,8 +10,8 @@ name: Auto Queue Advance
 # `advance` in PlaybackProvider, so this exercises the identical advance decision path
 # (advance-auto-queue vs play-next-manual via resolveQueueAdvance) that the native `ended` handler
 # calls. With a fresh seed the manual queue is empty, so skip fills from the podcast channel
-# auto-queue (not leftover suite queue rows). Natural-ended timing verification is deferred until a
-# short (<20s) fixture or a fixture-duration timeout tier exists (follow-up in detail 334).
+# auto-queue (not leftover suite queue rows). The flow uses the skip control because the committed
+# fixtures exceed the Maestro timeout ladder.
 #
 # Requires flow_needs_test_assets + flow_needs_e2e_api (real media + server queue/auto-queue).
 

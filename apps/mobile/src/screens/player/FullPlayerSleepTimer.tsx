@@ -7,10 +7,9 @@ import { usePlayback } from '../../playback/PlaybackProvider';
 import { useTheme } from '../../theme/useTheme';
 
 /**
- * Optional sleep timer (Track 11.12). Minimal, session-only: choosing a duration schedules a single
- * `pause()` after N minutes; "Off" cancels. It never auto-plays and does nothing until the user
- * picks a duration, so idle playback is not regressed. Full parity (fade-out, end-of-episode) can
- * follow — this is intentionally a lightweight stub.
+ * Optional sleep timer. It is session-only: choosing a duration schedules a single `pause()` after
+ * N minutes; "Off" cancels. It never auto-plays and does nothing until the user picks a duration,
+ * so idle playback is not affected. The timer intentionally has no fade-out or end-of-episode mode.
  */
 const SLEEP_OPTIONS: { minutes: number; labelKey: string }[] = [
   { labelKey: 'media_player.sleep_timer.minutes_15', minutes: 15 },

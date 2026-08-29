@@ -1,7 +1,7 @@
 appId: com.podverse.app.next
 name: Queue Add
 ---
-# Track 10.24 (detail 333): add a seeded episode to the server queue (queue-next) and verify it
+# Add a seeded episode to the server queue (queue-next) and verify it
 # lands on the Library queue screen. Queue-add mutates the server queue via :4230 but does not play
 # media, so this flow needs flow_needs_e2e_api only (no test-assets).
 
@@ -28,7 +28,7 @@ name: Queue Add
 - assertVisible:
     id: episode-detail-screen
 
-# Track 9c.3: queue actions now live in the shared MediaRowActions "More" action sheet. Open the
+# Queue actions live in the shared MediaRowActions "More" action sheet. Open the
 # more menu (home-row-more-<id_text>, dynamic) then tap Queue: Last (media-row-action-queue-last-*).
 - tapOn:
     id: "home-row-more-.*"

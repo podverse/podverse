@@ -39,12 +39,12 @@ keeps what is genuinely HTTP-shaped: `parseMembershipGateError` plus a new
 `accessDenialReasonFromGate` that maps a server 403 onto the shared `AccessDenialReason`, so a
 proactive client check and a reactive server denial describe themselves identically.
 
-| Surface | Consumes the seam via                                                                  |
-| ------- | -------------------------------------------------------------------------------------- |
-| Shared  | `packages/helpers` — `AccessTier`, `GatedFeature`, `evaluateFeatureAccess`               |
+| Surface | Consumes the seam via                                                                   |
+| ------- | --------------------------------------------------------------------------------------- |
+| Shared  | `packages/helpers` — `AccessTier`, `GatedFeature`, `evaluateFeatureAccess`              |
 | Shared  | `packages/helpers-requests` — `accessDenialReasonFromGate` bridges 403s onto that model |
-| Mobile  | `useAccessTier` hook; `GatedFeatureNotice` renders the denial                            |
-| Web     | `useMembershipGate` refactored onto the shared resolver                                  |
+| Mobile  | `useAccessTier` hook; `GatedFeatureNotice` renders the denial                           |
+| Web     | `useMembershipGate` refactored onto the shared resolver                                 |
 
 Web's refactor must be behavior-preserving: existing login modals and 403 membership modals keep
 working, now derived from one tier model instead of two independent checks.

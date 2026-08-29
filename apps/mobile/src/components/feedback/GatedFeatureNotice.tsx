@@ -8,7 +8,7 @@ import { useTheme } from '../../theme/useTheme';
 import { Button } from '../primitives';
 
 /**
- * The one inline presentation for a capability the user cannot currently use. A gated control shows
+ * The one inline presentation for a capability the user cannot use. A gated control shows
  * this instead of disappearing or failing silently: the user always learns what is missing and gets
  * the action that fixes it.
  *

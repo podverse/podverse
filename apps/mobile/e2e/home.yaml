@@ -1,7 +1,7 @@
 appId: com.podverse.app.next
 name: Home Media Types
 ---
-# Track 8.14 + 8.15:
+# Home media-type selector:
 # - screenshot each Home media-type selector state
 # - verify selector swipe/scroll interaction changes feed content
 
@@ -19,7 +19,7 @@ name: Home Media Types
 - assertVisible: Podcasts
 - takeScreenshot: home-media-type-podcasts
 
-# Track 8.16: authenticated Podcasts subscribed view mixes directory follows + add-by-RSS,
+# Authenticated Podcasts subscribed view mixes directory follows + add-by-RSS,
 # with an All / Add-by-RSS filter that persists.
 - assertVisible:
     id: home-subscription-filter

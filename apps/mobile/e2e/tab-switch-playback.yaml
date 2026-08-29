@@ -1,10 +1,9 @@
 appId: com.podverse.app.next
 name: Tab Switch Playback
 ---
-# Track 7.18 + Track 11.1-11.2: the mini player persists across tab switches.
-# The mini player now reflects real now-playing state (Track 11) and is hidden when nothing is
-# playing, so we first start playback via the Track 10 orchestrator (real :2111 media) before
-# asserting the mini player survives tab navigation. Needs flow_needs_test_assets + flow_needs_e2e_api.
+# The mini player persists across tab switches and is hidden when nothing is playing, so playback is
+# started via the orchestrator (real :2111 media) before asserting that the mini player survives tab
+# navigation. Needs flow_needs_test_assets + flow_needs_e2e_api.
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml

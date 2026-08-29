@@ -1,8 +1,8 @@
 /**
- * Storage quota policy for offline downloads (master steps 13.7–13.8). Pure logic only — no React
- * Native / Expo imports — so it stays unit-testable in the node vitest project (see
- * vitest.config.ts). The manage-storage UI (LibraryDownloadsScreen), the auto-delete toggle pref
- * (`prefs/downloadPrefs`), and the download runner (`downloadManager`) all consume these helpers.
+ * Storage quota policy for offline downloads. Pure logic only — no React Native / Expo imports — so
+ * it stays unit-testable in the node vitest project (see vitest.config.ts). The manage-storage UI
+ * (LibraryDownloadsScreen), the auto-delete toggle pref (`prefs/downloadPrefs`), and the download
+ * runner (`downloadManager`) all consume these helpers.
  */
 
 import type { DownloadRecord } from './downloadTypes';
@@ -12,9 +12,8 @@ const BYTES_PER_MIB = 1024 * 1024;
 const BYTES_PER_KIB = 1024;
 
 /**
- * Default on-device cap for completed downloads. Fixed for the v1 sketch (detail 436 allows a fixed
- * default); a user-adjustable cap can layer on later via `prefs/downloadPrefs`. 3 GiB balances a
- * useful offline library against phone storage.
+ * Default on-device cap for completed downloads. A user-adjustable cap can layer on via
+ * `prefs/downloadPrefs`. 3 GiB balances a useful offline library against phone storage.
  */
 export const DEFAULT_DOWNLOAD_QUOTA_BYTES = 3 * BYTES_PER_GIB;
 

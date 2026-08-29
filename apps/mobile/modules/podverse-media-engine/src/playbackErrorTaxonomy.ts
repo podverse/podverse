@@ -1,12 +1,12 @@
 /**
- * Playback error taxonomy (step 2.27 / detail 106).
+ * Playback error taxonomy.
  *
  * Native engines emit platform-specific `code` strings: iOS custom codes (`invalid_url`,
  * `item_failed`, `file_not_found`, `audio_session*`) and Android Media3 `errorCodeName` values
  * (`ERROR_CODE_IO_NETWORK_CONNECTION_FAILED`, `ERROR_CODE_IO_FILE_NOT_FOUND`,
  * `ERROR_CODE_DECODING_FAILED`, …). This pure module maps those to a small, stable
  * {@link PlaybackErrorKind} so RN shows an i18n message keyed off the `kind` instead of raw native
- * text. Kept free of native/`expo` imports so Vitest can cover the table without a device (2.28).
+ * text. Kept free of native/`expo` imports so the table can be covered without a device.
  */
 import type { NativePlaybackErrorPayload, PlaybackErrorEvent, PlaybackErrorKind } from './types';
 

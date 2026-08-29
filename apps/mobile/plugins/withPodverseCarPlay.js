@@ -22,14 +22,12 @@
  * AppDelegate to return that configuration for CarPlay sessions and the phone scene delegate for
  * the phone window.
  *
- * REGRESSION GUARD — do NOT reintroduce a CarPlay-only `UIApplicationSceneManifest`:
- * app-closed CarPlay is proven with this dynamic path (2026-07-28: phone force-quit → tap Podverse
- * on CarPlay Home → app cold-launches, App Group cache read, root template renders). The
- * `com.apple.developer.carplay-audio` entitlement — not a scene manifest — registers the CarPlay
- * Home icon and triggers cold-launch, so a manifest is unnecessary AND harmful (it suppresses the
- * phone `UIWindowScene` → black screen). Implementation/verification history is retained in the
- * Phase 1 mobile master plan and result [4] of the iOS 26 scene write-up (window.windowScene
- * re-attach).
+ * REGRESSION GUARD — do NOT reintroduce a CarPlay-only `UIApplicationSceneManifest`.
+ * App-closed CarPlay uses this dynamic path: the phone is force-quit, Podverse is selected from
+ * CarPlay Home, and the app cold-launches before reading the App Group cache and rendering the root
+ * template. The `com.apple.developer.carplay-audio` entitlement — not a scene manifest — registers
+ * the CarPlay Home icon and triggers cold launch. A manifest suppresses the phone `UIWindowScene`,
+ * which produces a black phone screen.
  */
 const { withAppDelegate, createRunOncePlugin } = require('expo/config-plugins');
 

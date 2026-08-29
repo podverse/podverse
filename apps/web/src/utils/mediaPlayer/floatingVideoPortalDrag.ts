@@ -1,6 +1,6 @@
 /**
  * Returns whether a pointerdown on the floating video portal should start a drag.
- * Close chrome and plan 03 resize handles use `data-floating-video-ignore-drag`.
+ * Close chrome and resize handles use `data-floating-video-ignore-drag`.
  */
 export function shouldFloatingVideoPortalIgnoreDrag(target: EventTarget | null): boolean {
   if (!(target instanceof Element)) {

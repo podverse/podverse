@@ -76,7 +76,7 @@ export type PlaybackContextValue = {
   positionSeconds: number;
   durationSeconds: number;
   playbackRate: number;
-  /** Audio-first play notice key (e.g. missing enclosure, livestream deferred). */
+  /** Audio-first play notice key (e.g. missing enclosure, unavailable livestream). */
   noticeKey: string | null;
   playItem: (
     item: DTOItem,
@@ -307,7 +307,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       }
     ): Promise<void> => {
       if (item.live_item !== null && item.live_item !== undefined) {
-        // Livestream is deferred (native HLS); audio-first PG-7a surfaces a notice instead.
+        // Livestream playback is unavailable in the native engine; surface a localized notice.
         setNoticeKey('media_player.livestream_unavailable');
         return;
       }
@@ -771,7 +771,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     },
   });
 
-  // Drive the video surface's JS-desired visibility from the playback target kind (2.23): only
+  // Drive the video surface's JS-desired visibility from the playback target kind: only
   // full video items request the surface; clips/soundbites/chapters and audio podcasts keep it
   // hidden. The native host additionally gates on real video frames, so a video-medium item playing
   // an audio enclosure never leaves a black rectangle. No `load`/`destroy` — playhead is untouched.

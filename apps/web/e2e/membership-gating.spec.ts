@@ -2,10 +2,10 @@ import { expect, test } from '@playwright/test';
 
 import { capturePageLoad } from './helpers/stepScreenshots';
 
-// Track 19.4 (web parity): a logged-in but EXPIRED member attempting a member-only action (here:
-// creating a playlist) must see the shared membership modal (Cancel + auth-based Renew) instead of a
-// generic error — matching mobile. The 403 is mocked with the real membership-expired payload
-// (i18nKey + renewPath) that `parseMembershipGateError` interprets, so we don't need an expired seed.
+// A logged-in but EXPIRED member attempting a member-only action (here: creating a playlist) must
+// see the shared membership modal (Cancel + auth-based Renew) instead of a generic error. The 403 is
+// mocked with the real membership-expired payload (i18nKey + renewPath) that
+// `parseMembershipGateError` interprets, so no expired seed is needed.
 test.describe('Membership gate on member-only actions', () => {
   test.beforeEach(async ({ page }) => {
     await page.route('**/playlist', async (route) => {

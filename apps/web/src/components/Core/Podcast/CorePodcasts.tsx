@@ -40,7 +40,7 @@ export const CorePodcasts: React.FC<Props> = ({
   const tAuthentication = useTranslations('authentication');
   const { setModalAuthLogin } = useModals();
 
-  // Track if we should skip scroll on the first effect run (back navigation case)
+  // Skip scroll on the first effect run when returning via back navigation.
   // Check synchronously during render to capture the flag before it's cleared
   const skipScrollOnceRef = useRef(checkBackNavFlag());
 

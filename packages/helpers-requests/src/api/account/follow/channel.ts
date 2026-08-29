@@ -27,14 +27,14 @@ export async function reqAccountFollowChannel(
  * Follow many channels in one request, for mobile's sign-up merge.
  *
  * Unlike the single-follow helpers this returns the per-channel outcomes rather than refetching the
- * account: the caller needs to know which channels were actually followed and which no longer exist,
+ * account: the caller needs to know which channels were actually followed and which are unavailable,
  * and a merge of hundreds should not also pay for a full account hydration it may not use.
  */
 export async function reqAccountFollowChannelsBulk(
   api: ApiRequestService,
   params: { channel_id_texts: string[] }
 ): Promise<BulkFollowChannelsResponse> {
-  const response = await api.apiRequest({
+  return api.apiRequest<BulkFollowChannelsResponse>({
     path: '/account/follow/channel/bulk',
     method: 'POST',
     data: {
@@ -42,8 +42,6 @@ export async function reqAccountFollowChannelsBulk(
     },
     config: { withCredentials: true },
   });
-
-  return response.data;
 }
 
 export async function reqAccountUnfollowChannel(

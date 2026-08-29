@@ -1,7 +1,7 @@
 #!/usr/bin/env npx ts-node
 
 /**
- * Thin entrypoint for historical CI invocations.
+ * Thin entrypoint for CI invocations.
  * Authoritative validation lives in packages/i18n-catalog.
  */
 

@@ -6,7 +6,7 @@ import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
  * Pure merge/map/filter/sort helpers for the unified subscriptions list (directory follows +
  * add-by-RSS). Kept free of `expo-sqlite` / Expo imports so the mobile node-only Vitest suite can
  * cover them (see subscriptionsRepository.ts for the SQLite cache + API hydration that consume
- * these). Detail: docs/proposals/mobile/_master-plan_/phase-1/details/600-unified-subscriptions-repository.md
+ * these).
  */
 
 export type SubscriptionSource = 'directory' | 'addByRss';
@@ -122,7 +122,7 @@ export const applySubscriptionFilter = (
 
 const LEADING_ARTICLE = /^(the|a|an)\s+/;
 
-/** Sort key: lowercase, trimmed, leading article stripped (mirrors legacy alphabetical sort). */
+/** Sort key: lowercase, trimmed, with a leading article stripped. */
 const sortableTitle = (title: string): string => {
   return title.trim().toLowerCase().replace(LEADING_ARTICLE, '');
 };
@@ -132,8 +132,8 @@ export const compareSubscribedByTitle = (a: SubscribedChannel, b: SubscribedChan
 };
 
 /**
- * Sort the merged list. `alphabetical` (default) mirrors legacy podverse-rn. `recent` is accepted
- * for API stability but currently falls back to alphabetical (per-source recency is a follow-on).
+ * Sort the merged list. `alphabetical` is the default. `recent` is accepted for API stability and
+ * uses the same alphabetical ordering because the merged entries do not include per-source recency.
  */
 export const sortSubscriptions = (
   list: SubscribedChannel[],

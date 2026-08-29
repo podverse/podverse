@@ -6,7 +6,7 @@ import { clearPref, getPref, setPref } from '../prefs/prefsStore';
  *
  * The distinction exists because a silent sign-out is dangerous: subscriptions made on a signed-out
  * device are local-only, and signing back into an existing account replaces the local list with the
- * account's (701). A user who keeps subscribing without realising they were signed out loses that
+ * account's. A user who keeps subscribing without realising they were signed out loses that
  * work at the next login, so they have to be told.
  */
 export type SessionEndReason =

@@ -69,14 +69,10 @@ export const FEATURE_REQUIRED_TIER: Readonly<Record<GatedFeature, AccessTier>> =
  * the client cannot predict); the other three are resolvable from the account snapshot alone.
  */
 export type AccessDenialReason =
-  | 'limit_reached'
-  | 'membership_expired'
-  | 'needs_account'
-  | 'needs_membership';
+  'limit_reached' | 'membership_expired' | 'needs_account' | 'needs_membership';
 
 export type FeatureAccess =
-  | { allowed: true }
-  | { allowed: false; reason: AccessDenialReason; requiredTier: AccessTier };
+  { allowed: true } | { allowed: false; reason: AccessDenialReason; requiredTier: AccessTier };
 
 const ALLOWED: FeatureAccess = { allowed: true };
 

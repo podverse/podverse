@@ -1,18 +1,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
   <!--
-    Foreground media service for background audio survival and Android Auto (Track 12).
+    Foreground media service for background audio survival and Android Auto.
     This is a Media3 MediaLibraryService (NOT a throwaway Service) so Android Auto connects to the
-    service, not the Activity (12.11-12.13). FOREGROUND_SERVICE* permissions are declared in the app
-    manifest (app.config.ts). The android.media.browse.MediaBrowserService action makes the service
-    discoverable by Android Auto / DHU; the browse tree grows from the native cache in 12.12-12.14.
+    service, not the Activity. FOREGROUND_SERVICE* permissions are declared in the app manifest
+    (app.config.ts). The android.media.browse.MediaBrowserService action makes the service
+    discoverable by Android Auto / DHU; the browse tree reads from the native cache.
   -->
   <application>
     <!--
-      12.11 — declares Podverse as an Android Auto MEDIA app. This module manifest merges into the
+      Declares Podverse as an Android Auto MEDIA app. This module manifest merges into the
       app manifest at prebuild, so the app is recognized as a media app for Android Auto / the DHU
       without hand-editing the generated app manifest. The res/xml/automotive_app_desc.xml resource
       ships with this module. The Play Console "Android Auto" declaration is a separate operator
-      step (12.16 / ANDROID-AUTO-DECLARATION.md).
+      declaration.
     -->
     <meta-data
       android:name="com.google.android.gms.car.application"

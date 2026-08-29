@@ -11,7 +11,7 @@ import {
 } from '@podverse/helpers';
 import type { AccountMembershipStatus } from '@podverse/orm';
 
-/** Trust-tier fields used to resolve entitlements (matches ORM `AccountMembershipStatus` columns). */
+/** Trust-tier fields for resolving entitlements (matches ORM `AccountMembershipStatus` columns). */
 export type MembershipStatusForEntitlements = Pick<
   AccountMembershipStatus,
   | 'account_membership'

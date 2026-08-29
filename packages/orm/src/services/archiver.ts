@@ -216,9 +216,9 @@ export class ArchiverService {
   }
 
   /**
-   * Removes `Archived` items that no longer have `Clip` or `playlist_resource` rows.
-   * Retention at archive time (`processItems`) keeps items only for those relationships; this second pass
-   * drops stale archived rows after users remove clips/playlists.
+   * Removes `Archived` items without `Clip` or `playlist_resource` rows.
+   * Retention at archive time (`processItems`) keeps items only for those relationships; this pass
+   * drops archived rows after users remove clips or playlists.
    */
   async deleteArchivedItemsWithoutClipOrPlaylist(): Promise<void> {
     const archivedId = ItemFlagStatusStatusEnum.Archived;

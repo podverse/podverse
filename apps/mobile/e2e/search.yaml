@@ -1,7 +1,7 @@
 appId: com.podverse.app.next
 name: Search Flow
 ---
-# Track 9.26: search query -> results -> result detail screenshots.
+# Search query -> results -> result detail screenshots.
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml

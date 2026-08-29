@@ -17,7 +17,7 @@ type AddByRSSItemHeaderPlaySectionProps = {
   addByRSSIdText?: string;
   /** When empty or omitted, no more button is shown (e.g. add-by-RSS livestream: play/pause only). */
   moreButtonMenuItems?: MoreButtonMenuItem[];
-  /** Item enclosures (DTO shape) used to show the audio/video modality icon. */
+  /** Item enclosures (DTO shape) for showing the audio/video modality icon. */
   enclosures?: DTOItemEnclosure[];
   itemTitle?: string | null;
   /** Provide when this item is NOT the now-playing item: selecting a source loads it (play). */

@@ -30,7 +30,7 @@ export const CoreCombinedChannels: React.FC<CoreCombinedChannelsProps> = ({
   filterMedium,
   viewSelected,
 }) => {
-  // Track if we should skip scroll on the first effect run (back navigation case)
+  // Skip scroll on the first effect run when returning via back navigation.
   const skipScrollOnceRef = useRef(checkBackNavFlag());
 
   useSkipInitialEffect(() => {

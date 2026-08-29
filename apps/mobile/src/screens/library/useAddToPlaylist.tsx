@@ -14,8 +14,8 @@ import { useTheme } from '../../theme/useTheme';
 
 /**
  * A resource the user wants to append to a playlist. `kind` selects the correct playlist-resource
- * API (item vs clip); mobile only sketches the two playable kinds that Home / detail lists expose
- * today (9d.4). Soundbite / add-by-RSS add-to-playlist is deferred to operator polish (Track 23).
+ * API (item vs clip); mobile supports the two playable kinds that Home / detail lists expose.
+ * Soundbite and add-by-RSS resources are not valid targets for this action.
  */
 export type AddToPlaylistTarget = { kind: 'item' | 'clip'; idText: string };
 
@@ -31,9 +31,8 @@ type UseAddToPlaylist = {
 /**
  * Shared "Add to playlist" affordance (9d.4). Returns an imperative opener plus a bottom-sheet
  * element the caller renders once. The sheet lists the account's private playlists and appends the
- * target to the chosen playlist via the `*AddLast` resource API (web-default position). Functional
- * sketch only — polished modal chrome / medium filtering is Track 23. Copy resolves through i18n
- * (`features.playlist.*`); errors are surfaced (no silent catch).
+ * target to the chosen playlist via the `*AddLast` resource API (web-default position). Copy
+ * resolves through i18n (`features.playlist.*`); errors are surfaced (no silent catch).
  */
 export function useAddToPlaylist(): UseAddToPlaylist {
   const { t } = useTranslation();

@@ -226,9 +226,7 @@ describe('getMembershipExpiryNotice', () => {
   });
 
   it('warns on the boundary day rather than one day late', () => {
-    const boundary = new Date(
-      NOW.getTime() + MEMBERSHIP_EXPIRY_WARNING_DAYS * 24 * 60 * 60 * 1000
-    );
+    const boundary = new Date(NOW.getTime() + MEMBERSHIP_EXPIRY_WARNING_DAYS * 24 * 60 * 60 * 1000);
 
     expect(getMembershipExpiryNotice(member(boundary.toISOString()), NOW)).toEqual({
       status: 'expiring_soon',

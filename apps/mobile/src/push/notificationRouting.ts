@@ -4,11 +4,9 @@ import { getMobileConfig } from '../config';
 import { extractNotificationTargetPath, HOME_FALLBACK_PATH } from './notificationTarget';
 
 /**
- * Track 14.4 — notification tap routing.
- *
  * Notification payloads carry either a target `url` (custom-scheme or `https://podverse.fm/...`) or a
  * `{ type, id_text }` pair. We translate those to a flat web-style path and feed them through the same
- * pending-deep-link buffer (453) + `getStateFromPath` mapping (452) used for universal links, so warm,
+ * pending-deep-link buffer + `getStateFromPath` mapping used for universal links, so warm,
  * background, and cold-start taps all route identically. Malformed/unknown payloads fall back to Home.
  */
 

@@ -133,8 +133,8 @@ else
   echo -e "${YELLOW}Nix not in PATH; used system npm. For flake tools, run 'direnv allow' and use the Nix shell.${NC}"
 fi
 
-# Optional LLM history file in work tree disabled (same template as start-feature.sh used to write).
-# See docs/development/llm/LLM-HISTORY-WORKFLOW-ARCHIVE.md if you maintain notes manually.
+# Feature worktrees do not create LLM history files automatically.
+# Add notes manually when the work benefits from a durable history.
 
 echo ""
 echo -e "${GREEN}Work tree ready.${NC}"

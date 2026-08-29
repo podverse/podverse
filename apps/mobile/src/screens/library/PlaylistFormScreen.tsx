@@ -20,8 +20,8 @@ type PlaylistFormScreenProps = NativeStackScreenProps<
   'PlaylistCreate' | 'PlaylistEdit'
 >;
 
-// Functional sketch (9d.1 / 9d.2): mobile playlists default to the AV medium like the web create
-// form's default. A medium picker is deferred to operator polish (Track 23) — not required here.
+// Mobile playlists default to the AV medium, matching the web create form. The form does not expose
+// a medium picker.
 const CREATE_MEDIUM = 'av';
 
 const SHARABLE_STATUS_OPTIONS: { id: SharableStatusEnum; labelKey: string; testId: string }[] = [

@@ -4,7 +4,7 @@ import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh'
 import type { MobileAuthRequestContext } from './types';
 
 /**
- * Segment metadata for the full player (Track 11.10). Soundbites are embedded on the item DTO
+ * Segment metadata for the full player. Soundbites are embedded on the item DTO
  * (`item.item_soundbites`), so only chapters need a fetch. Repository-mediated so player components
  * never call `req*` directly (parallels `playbackContentRepository`). Table-of-contents-suppressed
  * chapters (`table_of_contents === false`) are filtered out, matching the episode detail screen.

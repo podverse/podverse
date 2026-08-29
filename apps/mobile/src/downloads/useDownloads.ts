@@ -84,7 +84,7 @@ export const useItemDownload = (itemIdText: string): DownloadRecord | null => {
 export type DownloadStorage = {
   /** Total on-disk bytes of completed downloads. */
   usedBytes: number;
-  /** Storage cap (fixed default for the v1 sketch). */
+  /** Storage cap. */
   quotaBytes: number;
   autoDeleteEnabled: boolean;
   setAutoDeleteEnabled: (enabled: boolean) => Promise<void>;
@@ -94,7 +94,7 @@ export type DownloadStorage = {
 };
 
 /**
- * Manage-storage state for the Downloads screen (13.7–13.8): usage total, the fixed quota, the
+ * Manage-storage state for the Downloads screen: usage total, the fixed quota, the
  * auto-delete toggle, and a one-shot "removed N to free space" notice. Re-reads on every
  * `downloadManager` change so usage and the banner stay live.
  */

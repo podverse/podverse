@@ -107,7 +107,7 @@ export function LoginScreen({ onDismiss, onSwitchToSignUp }: LoginScreenProps) {
       };
 
       // Before the refresh below, which makes the account authoritative over local subscriptions.
-      // Only does anything when this device just created this account (701); never throws.
+      // Only does anything when this device just created this account; never throws.
       await runSignupSubscriptionMerge(email, authContext);
 
       try {

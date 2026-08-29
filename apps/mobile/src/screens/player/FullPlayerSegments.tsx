@@ -16,10 +16,10 @@ type FullPlayerSegmentsProps = {
 };
 
 /**
- * Full player chapter/soundbite segments (Track 11.10). Soundbites come embedded on the item DTO;
- * chapters are fetched once via `segmentsRepository` when the item advertises a chapters feed. Tap
- * a segment to start bounded playback (Track 10.17) through `playChapter` / `playSoundbite`. Renders
- * nothing when the item has neither chapters nor soundbites.
+ * Full player chapter/soundbite segments. Soundbites come embedded on the item DTO; chapters are
+ * fetched once via `segmentsRepository` when the item advertises a chapters feed. Tap a segment to
+ * start bounded playback through `playChapter` / `playSoundbite`. Renders nothing when the item has
+ * neither chapters nor soundbites.
  */
 export function FullPlayerSegments({ channel, item }: FullPlayerSegmentsProps) {
   const { t } = useTranslation();

@@ -1,10 +1,9 @@
 /**
- * TEMPORARY spike debug panel (PG-2b, step 2.11 / detail 090).
+ * Dev-only playback engine debug panel.
  *
  * Exercises the native playback bridge end-to-end (load / play / pause / seek / destroy) and shows
- * the latest engine events. This is debug-only scaffolding for the audio spike and may be removed
- * once real player UI (Tracks 10–11) lands. It talks ONLY through `useNativePlaybackBridge` — never
- * the native module directly.
+ * the latest engine events. It talks ONLY through `useNativePlaybackBridge` — never the native module
+ * directly.
  */
 
 import { useMemo, useState } from 'react';

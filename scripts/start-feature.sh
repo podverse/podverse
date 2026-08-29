@@ -87,8 +87,8 @@ fi
 
 git checkout -b "$BRANCH"
 
-# Optional LLM history scaffold disabled (previously wrote .llm/history/active/$NAME/$NAME-part-01.md).
-# See docs/development/llm/LLM-HISTORY-WORKFLOW-ARCHIVE.md if you maintain notes manually.
+# Feature branches do not create LLM history files automatically.
+# Add notes manually when the work benefits from a durable history.
 
 echo ""
 echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"

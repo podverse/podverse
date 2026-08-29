@@ -16,8 +16,8 @@ import {
 } from './downloadStorage';
 
 /**
- * Download runner for Track 13. Owns the Expo FileSystem transfer, a **single-concurrency** queue,
- * and duplicate-tap de-dupe; `downloadsRepository` is the source of truth for state. Screens observe
+ * Download runner. Owns the Expo FileSystem transfer, a **single-concurrency** queue, and
+ * duplicate-tap de-dupe; `downloadsRepository` is the source of truth for state. Screens observe
  * changes via `subscribe` (they re-read the repository) and never touch Expo FileSystem directly.
  *
  * Livestreams and HLS/m3u8 are rejected by `isItemDownloadable` before any row is created — this
@@ -28,7 +28,7 @@ export type EnqueueResult = { ok: true } | { ok: false; reason: DownloadIneligib
 
 type Listener = () => void;
 
-/** Last auto-delete result, surfaced as a manage-storage banner (13.8). `at` lets a subscriber
+/** Last auto-delete result, surfaced as a manage-storage banner. `at` lets a subscriber
  * show each event once without a consume/reset race. */
 export type AutoDeleteNotice = { count: number; at: number };
 
@@ -227,12 +227,12 @@ export const downloadManager = {
     return { ok: true };
   },
 
-  /** Most recent auto-delete result (or `null`); drives the manage-storage banner (13.8). */
+  /** Most recent auto-delete result (or `null`); drives the manage-storage banner. */
   getAutoDeleteNotice: (): AutoDeleteNotice | null => autoDeleteNotice,
 
   /**
    * Cancel an in-progress or queued download and remove its row (and any partial/complete file).
-   * Also used to delete a completed download from the library.
+   * A completed download can be removed from the library through the same operation.
    */
   remove: async (itemIdText: string): Promise<void> => {
     const resumable = inFlight.get(itemIdText);
@@ -252,7 +252,7 @@ export const downloadManager = {
 
   /**
    * Delete every download (manage-storage "delete all"): cancel any in-flight transfers, remove all
-   * files and rows. The repository projects an empty native-cache index (13.9).
+   * files and rows. The repository projects an empty native-cache index.
    */
   removeAll: async (): Promise<void> => {
     for (const [itemIdText, resumable] of inFlight) {

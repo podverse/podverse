@@ -2,8 +2,8 @@ import { defineConfig } from 'vitest/config';
 
 /**
  * Node-only unit tests for the mobile app's **pure** modules (no React Native / Expo). Covers the
- * `podverse-media-engine` bridge command serialization and error taxonomy (steps 2.27, 2.28),
- * the Track 13 download eligibility / storage helpers (`src/downloads`, pure logic only), the unified
+ * `podverse-media-engine` bridge command serialization and error taxonomy,
+ * the download eligibility / storage helpers (`src/downloads`, pure logic only), the unified
  * subscriptions merge/map/filter/sort helpers (`src/data/repositories/subscriptionsMerge.ts` — the
  * pure sibling of the SQLite-backed `subscriptionsRepository`, so it pulls in no `expo-sqlite`), the
  * sign-up subscription merge decision (`src/data/repositories/subscriptionsSignupPlan.ts` — pure; the

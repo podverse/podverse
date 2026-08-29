@@ -14,8 +14,8 @@ import { ConfirmDialog } from './ConfirmDialog';
  *
  * Worth interrupting for because the failure is silent otherwise: a signed-out device still browses
  * and subscribes normally, but those subscriptions are local-only, and signing back into an existing
- * account replaces the local list with the account's (701). Someone who carries on unaware loses
- * that work at the next login.
+ * account replaces the local list with the account's. Someone who carries on unaware loses that work
+ * at the next login.
  *
  * The marker is written by `clearSession` and only ever for a server 401, so this cannot fire for a
  * device that is merely offline.

@@ -248,8 +248,8 @@ export function mergeLocalAndRemoteAddByRssFeeds(
     };
   });
 
-  // Include locally added feeds not yet reflected in the remote followed list so a
-  // just-added feed renders immediately even if the remote list lags.
+  // Include locally added feeds absent from the remote followed list so a just-added feed renders
+  // immediately even if the remote list lags.
   const localOnly = localFeeds.filter((feed) => !remoteUrls.has(feed.feedUrl));
 
   return [...mergedRemote, ...localOnly];

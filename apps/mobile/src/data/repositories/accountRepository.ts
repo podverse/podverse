@@ -157,7 +157,7 @@ export const accountRepository = {
    * the SecureStore path.
    *
    * Subscriptions, add-by-RSS feeds, and the car/watch browse index survive: they are the device's
-   * own data, not an account cache (701). Signing out drops the identity and leaves the library
+   * own data, not an account cache. Signing out drops the identity and leaves the library
    * usable offline, which is also what makes signing back in a no-op for local content.
    */
   clearSnapshot: async (): Promise<void> => {

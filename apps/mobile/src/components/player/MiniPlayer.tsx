@@ -18,16 +18,15 @@ type MiniPlayerProps = {
 };
 
 /**
- * Mini player fixed above the tab bar (Track 11.1–11.2). Binds to the Track 10 orchestrator via
+ * Mini player fixed above the tab bar. Binds to the playback orchestrator via
  * `usePlayback()`: shows the current now-playing audio artwork/title, toggles the native bridge
  * (play/pause), reflects position as a thin progress bar, and expands to the full player route.
  * Hidden entirely when nothing is now-playing (no `activeTarget`). It renders inside the phone tab
  * bar column above `BottomTabBar`, so the tab bar below still owns the safe-area bottom inset and
  * tab labels stay uncovered.
  *
- * Anti-pattern (Track 11.18): the mini and full player share one engine and (when video lands) one
- * native `VideoSurfaceHost` — never mount a second `Video`/engine on expand. See media-engine
- * README § "Player UI single-surface ownership".
+ * The mini and full player share one engine and one native `VideoSurfaceHost` — never mount a
+ * second `Video`/engine on expand. See media-engine README § "Player UI single-surface ownership".
  */
 export function MiniPlayer({ onExpand }: MiniPlayerProps) {
   const { t } = useTranslation();
@@ -60,7 +59,7 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
           paddingHorizontal: tokens.spacing.lg,
           paddingVertical: tokens.spacing.sm,
         },
-        // Tablet: cap width at `lg` and center so controls are not edge-stretched (18.4).
+        // Tablet: cap width at `lg` and center so controls are not edge-stretched.
         containerTablet: {
           alignSelf: 'center',
           maxWidth: breakpoints.lg,
@@ -144,7 +143,7 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
           ) : (
             <View style={styles.artworkFallback} />
           )}
-          {/* Single shared native surface; hidden for audio-only so the artwork shows (2.23). */}
+          {/* Single shared native surface; hidden for audio-only so the artwork shows. */}
           <PodverseVideoSurfaceView style={StyleSheet.absoluteFill} targetId="mini" />
         </View>
         <View style={styles.textColumn}>

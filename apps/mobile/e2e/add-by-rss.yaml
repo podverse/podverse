@@ -1,7 +1,7 @@
 appId: com.podverse.app.next
 name: Add By RSS Flow
 ---
-# Track 9.27 list happy path + 9.29 play against tools/test-assets (:2111).
+# Add-by-RSS list happy path and playback against tools/test-assets (:2111).
 # Fixture URL matches web e2e seed constants / accountAddByRSSParse E2E payload.
 
 - runFlow: shared/launch-and-connect.yaml

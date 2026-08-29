@@ -14,16 +14,14 @@ import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 
-// PG-2b step 2.8 (detail 087). Media3 MediaLibraryService that wraps the single shared ExoPlayer
-// (PodverseAudioEngine) in the one MediaLibrarySession.
+// Media3 MediaLibraryService that wraps the single shared ExoPlayer (PodverseAudioEngine) in the
+// one MediaLibrarySession.
 //
 // Car foundation (00-CAR-FOUNDATION.md): this is deliberately a MediaLibraryService (not a throwaway
 // Service) so Android Auto connects to the service, not the Activity, and can browse the native
-// cache with the app force-stopped (Track 12 / 12.11-12.13). onConnect validates allowed callers
-// (12.13) and onGetLibraryRoot serves a stable browsable root with a readable app-closed log
-// (12.13). The browse tree is an empty stub here; Track 12.12 fills onGetChildren by reading the
-// durable native cache via PodverseNativeCache.read(context, PodverseNativeCacheKind.LIBRARY_BROWSE)
-// (storage landed in 12.3). JS must never own the browse tree. Operator DHU proof is 12.17.
+// cache with the app force-stopped. onConnect validates allowed callers and onGetLibraryRoot serves
+// a stable browsable root. onGetChildren reads the durable native cache. JS must never own the browse
+// tree.
 //
 // Foreground: the app starts this with Context.startService (not startForegroundService). Media3
 // MediaSessionService promotes to a mediaPlayback foreground service + notification once playback
@@ -33,10 +31,9 @@ class PodverseMediaLibraryService : MediaLibraryService() {
 
   override fun onCreate() {
     super.onCreate()
-    // Spike 12.6: Android Auto / DHU starts THIS service (not the Activity), so this read runs with
-    // the Activity + JS runtime dead. Logs a one-line summary proving the durable native cache is
-    // readable with the app force-stopped. Best-effort; never blocks session setup. See
-    // NATIVE-CACHE-SPIKE-ANDROID.md. Track 12.12 will use the same reader to populate onGetChildren.
+    // Android Auto / DHU starts THIS service (not the Activity), so this read runs with the Activity
+    // and JS runtime dead. It logs a one-line summary of the durable native cache. Best-effort;
+    // never blocks session setup.
     PodverseNativeCache.debugDump(this)
     // Wrap the SAME shared player as the module — no second player/session for "car later".
     val player = PodverseAudioEngine.getOrCreatePlayer(this)
@@ -57,10 +54,10 @@ class PodverseMediaLibraryService : MediaLibraryService() {
     super.onDestroy()
   }
 
-  // Stub browse tree: a browsable root with no children. Safe if Auto/DHU connects early.
+  // Empty browse tree: a browsable root with no children. Safe if Auto/DHU connects early.
   private inner class LibraryCallback : MediaLibrarySession.Callback {
-    // 12.13 — allowed callers. Android Auto connects to THIS service (not the Activity), so this
-    // runs with the JS runtime dead. Trust only signature-checked callers: Media3's own helpers
+    // Allowed callers. Android Auto connects to THIS service (not the Activity), so this runs with
+    // the JS runtime dead. Trust only signature-checked callers: Media3's own helpers
     // (media notification controller on the phone, the Android Auto companion, and Android
     // Automotive OS) plus our own package. Media3's isAuto*/isAutomotive helpers verify the caller
     // signature — safer than a package-name allowlist (which is spoofable). Unknown callers connect
@@ -99,10 +96,9 @@ class PodverseMediaLibraryService : MediaLibraryService() {
           .setTitle("Podverse")
           .build()
       val root = MediaItem.Builder().setMediaId(ROOT_ID).setMediaMetadata(rootMetadata).build()
-      // 12.13 — readable proof that the root is served with the app force-stopped (Activity + JS
-      // dead). The browse tree in step 2 (12.12) relies on this connection path being live app-
-      // closed. `params` (offline / suggested / recent) is honored minimally in v1: one stable
-      // root is returned for every LibraryParams; the children (12.12) read the durable cache.
+      // The root is served with the app force-stopped (Activity + JS dead). `params` (offline /
+      // suggested / recent) is honored minimally: one stable root is returned for every
+      // LibraryParams, and children read the durable cache.
       Log.i(TAG, "onGetLibraryRoot served root=$ROOT_ID caller=${browser.packageName}")
       return Futures.immediateFuture(LibraryResult.ofItem(root, params))
     }
@@ -115,16 +111,16 @@ class PodverseMediaLibraryService : MediaLibraryService() {
       pageSize: Int,
       params: LibraryParams?
     ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
-      // 12.12 / 12.14 — project the durable native cache into the browse tree. Read runs on the
-      // service process with JS possibly dead; a missing/corrupt payload yields an empty list (the
-      // parser never throws). SQLite is never read here (JS-dead contract).
+      // Project the durable native cache into the browse tree. Read runs on the service process with
+      // JS possibly dead; a missing/corrupt payload yields an empty list (the parser never throws).
+      // SQLite is never read here (JS-dead contract).
       val children =
         when (parentId) {
           ROOT_ID -> rootChildren()
           LIBRARY_ID -> libraryChildren()
           DOWNLOADS_ID -> downloadChildren()
           // Deeper hydration (a podcast's episodes, a playlist's items) needs a richer cached index
-          // than the current library-browse projection — future work (12.12 hydration follow-up).
+          // than the library-browse projection.
           else -> emptyList()
         }
       val paged = pageSlice(children, page, pageSize)
@@ -132,8 +128,8 @@ class PodverseMediaLibraryService : MediaLibraryService() {
         LibraryResult.ofItemList(ImmutableList.copyOf(paged), params))
     }
 
-    // 12.15 — resolve playable browse items to a real URL before they reach the shared player. Auto
-    // hands us MediaItems carrying only a mediaId (no localConfiguration); we look the id up in the
+    // Resolve playable browse items to a real URL before they reach the shared player. Auto hands us
+    // MediaItems carrying only a mediaId (no localConfiguration); we look the id up in the
     // durable cache and attach a URI + now-playing metadata. Same resolution as the phone: prefer
     // the offline file:// path, else the remote enclosure URL. Unresolvable items are dropped.
     // Playback runs on the single shared PodverseAudioEngine player wrapped by this session — never
@@ -148,7 +144,7 @@ class PodverseMediaLibraryService : MediaLibraryService() {
       return Futures.immediateFuture(resolved)
     }
 
-    // 12.15 — car "resume" (or the head unit auto-resuming) app-closed: return the last cached
+    // Car resume (or the head unit auto-resuming) while app-closed: return the last cached
     // now-playing item so playback can start without opening the phone. Minimal + tolerant: resolve
     // from the queue snapshot, fall back to the first entry, and fail the future when nothing is
     // resumable (Media3 then simply does not resume).
@@ -177,13 +173,13 @@ class PodverseMediaLibraryService : MediaLibraryService() {
     }
   }
 
-  // MARK: - Browse tree projection (12.12 / 12.14)
+  // MARK: - Browse tree projection
 
   /** Root children: a `Library` node and/or a `Downloads` node, each omitted when its cache is empty. */
   private fun rootChildren(): List<MediaItem> {
     val items = ArrayList<MediaItem>(2)
-    // NOTE: root node titles are native car labels; there is no i18next runtime in the service when
-    // JS is dead. Localizing these means projecting localized labels into the cache (future work).
+    // Root node titles are native car labels; there is no i18next runtime in the service when JS is
+    // dead.
     if (readBrowseNodes().isNotEmpty()) {
       items.add(browsableItem(LIBRARY_ID, "Library", null))
     }
@@ -193,13 +189,13 @@ class PodverseMediaLibraryService : MediaLibraryService() {
     return items
   }
 
-  /** One browsable MediaItem per cached library node; mediaId encodes kind + idText for step 3. */
+  /** One browsable MediaItem per cached library node; mediaId encodes kind + idText. */
   private fun libraryChildren(): List<MediaItem> =
     readBrowseNodes().map { node ->
       browsableItem("$LIBRARY_ID/${node.kind}/${node.idText}", node.title, node.artworkUrl)
     }
 
-  /** One playable MediaItem per offline download; mediaId `download/<idText>` resolves to a file (12.15). */
+  /** One playable MediaItem per offline download; mediaId `download/<idText>` resolves to a file. */
   private fun downloadChildren(): List<MediaItem> =
     readDownloadEntries().map { entry ->
       playableItem("$DOWNLOAD_ITEM_PREFIX${entry.idText}", entry.title, entry.artworkUrl)
@@ -234,7 +230,7 @@ class PodverseMediaLibraryService : MediaLibraryService() {
       .setMediaMetadata(playableMetadata(title, artworkUrl))
       .build()
 
-  // MARK: - Play URL resolution (12.15)
+  // MARK: - Play URL resolution
 
   private data class ResolvedMedia(val uri: String, val title: String, val artworkUrl: String?)
 

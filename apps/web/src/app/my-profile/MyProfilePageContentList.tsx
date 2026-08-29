@@ -39,7 +39,7 @@ export const MyProfilePageContentList: React.FC = () => {
   } = useMyProfilePageContentContext();
 
   if (selectedTab === 'podcasts') {
-    // Show loading spinner if currently loading and data hasn't been loaded yet
+    // Show the loading spinner when data has not loaded yet.
     if (isLoading && !podcastsLoaded) {
       return <WebLoadingSpinnerOverlay isLoading />;
     }
@@ -70,7 +70,7 @@ export const MyProfilePageContentList: React.FC = () => {
   }
 
   if (selectedTab === 'albums') {
-    // Show loading spinner if currently loading and data hasn't been loaded yet
+    // Show the loading spinner when data has not loaded yet.
     if (isLoading && !albumsLoaded) {
       return <WebLoadingSpinnerOverlay isLoading />;
     }
@@ -99,7 +99,7 @@ export const MyProfilePageContentList: React.FC = () => {
   }
 
   if (selectedTab === 'playlists') {
-    // Show loading spinner if currently loading and data hasn't been loaded yet
+    // Show the loading spinner when data has not loaded yet.
     if (isLoading && !playlistsLoaded) {
       return <WebLoadingSpinnerOverlay isLoading />;
     }
@@ -128,7 +128,7 @@ export const MyProfilePageContentList: React.FC = () => {
   }
 
   if (selectedTab === 'clips') {
-    // Show loading spinner if currently loading and data hasn't been loaded yet
+    // Show the loading spinner when data has not loaded yet.
     if (isLoading && !clipsLoaded) {
       return <WebLoadingSpinnerOverlay isLoading />;
     }

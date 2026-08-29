@@ -28,14 +28,14 @@ Only an explicit **HTTP 401 from the API** on this device's own credentials:
 
 Everything else leaves the session intact, which is what keeps **offline ≠ logged out**:
 
-| Condition                          | Session      | Notice |
-| ---------------------------------- | ------------ | ------ |
-| 401 on refresh or bootstrap        | ended        | shown  |
-| Timeout, network error, 5xx        | kept         | —      |
-| Cold start with no network         | kept, cached | —      |
-| API base URL not configured        | kept         | —      |
-| User taps Logout                   | ended        | —      |
-| E2E/fixture reset                  | ended        | —      |
+| Condition                   | Session      | Notice |
+| --------------------------- | ------------ | ------ |
+| 401 on refresh or bootstrap | ended        | shown  |
+| Timeout, network error, 5xx | kept         | —      |
+| Cold start with no network  | kept, cached | —      |
+| API base URL not configured | kept         | —      |
+| User taps Logout            | ended        | —      |
+| E2E/fixture reset           | ended        | —      |
 
 The config-failure row is a behaviour change: `refreshAccessTokenSingleFlight` used to end the
 session when `createMobileApiRequestService()` returned `null`. A missing base URL is a build fault
@@ -48,12 +48,12 @@ like any other unavailable-API error.
 there and the type makes it unskippable — `SessionEndReason` is a required parameter, and there is
 no default that could quietly mean "expired".
 
-| Caller                                     | Reason            |
-| ------------------------------------------ | ----------------- |
-| `logoutWithMobileRevoke`                   | `user_logout`     |
-| `refreshAccessTokenSingleFlight` (401)     | `session_expired` |
-| `hydrateFromSecureStorage` (401)           | `session_expired` |
-| `shouldResetSessionForE2e`                 | `reset`           |
+| Caller                                 | Reason            |
+| -------------------------------------- | ----------------- |
+| `logoutWithMobileRevoke`               | `user_logout`     |
+| `refreshAccessTokenSingleFlight` (401) | `session_expired` |
+| `hydrateFromSecureStorage` (401)       | `session_expired` |
+| `shouldResetSessionForE2e`             | `reset`           |
 
 Only `session_expired` writes the marker (`auth.forced_logout_at`, an ISO timestamp in
 AsyncStorage via `prefsStore`). It is **persisted rather than held in memory** because the rejecting

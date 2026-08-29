@@ -9,7 +9,7 @@ import { getShuffleHash } from '@podverse/helpers-requests';
 /**
  * Auto-queue types + pure helpers, ported from web `apps/web/src/contexts/AutoQueue.tsx`. Auto-queue
  * fills the "up next" list from a playlist or channel source when the manual queue is empty; the
- * orchestrator (Track 10.12) advances through it. Kept framework-free so it is unit-testable.
+ * orchestrator advances through it. Kept framework-free so it is unit-testable.
  */
 export type AutoQueueResourcesMapRow = {
   item: DTOItemQueueItem;

@@ -2,7 +2,7 @@
  * The decision half of the sign-up subscription merge, kept free of `expo-sqlite` so the node-only
  * Vitest suite can cover it — the same split as `subscriptionsMerge` vs `subscriptionsRepository`.
  *
- * The rule this encodes (701): local subscriptions are pushed to a server account **only** by the
+ * The rule this encodes: local subscriptions are pushed to a server account **only** by the
  * login immediately following a sign-up on this device. Any other login consumes the marker without
  * uploading, because after sign-up the account is the source of truth and a phone must not be able
  * to rewrite an account the user also uses elsewhere.
@@ -22,7 +22,7 @@ export function resolveSignupMergePlan(params: {
   pendingEmail: string | null;
   /** Email that just logged in. */
   loginEmail: string;
-  /** Channel `id_text`s currently subscribed locally. */
+  /** Channel `id_text`s subscribed locally. */
   localChannelIdTexts: string[];
 }): SignupMergePlan {
   const { loginEmail, localChannelIdTexts, pendingEmail } = params;

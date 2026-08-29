@@ -1,8 +1,8 @@
 /**
- * `podverse-media-engine` — first-party Podverse native media engine (PG-2b, Track 2).
+ * `podverse-media-engine` — first-party Podverse native media engine.
  *
  * Public TypeScript surface only. See `./README.md` for the bridge method/event contract and the
- * reserved native-cache write hooks (step 2.35 / detail 114). Do not use react-native-track-player.
+ * reserved native-cache write hooks. Do not use react-native-track-player.
  */
 
 export type {

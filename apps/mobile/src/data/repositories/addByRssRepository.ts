@@ -78,7 +78,7 @@ export const addByRssRepository = {
   /**
    * Upsert a feed record. When `mappedFeed` is provided (a fresh successful parse) its bundle is
    * persisted; when omitted (e.g. a followed-list merge), the existing `mapped_feed_json` is left
-   * untouched so a previously parsed bundle is not clobbered.
+   * untouched so the parsed bundle is preserved.
    */
   upsertFeed: async (
     record: MobileAddByRSSFeedRecord,

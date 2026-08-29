@@ -172,7 +172,7 @@ export const ROOT_STACK_ROUTES = {
   V4vInfo: 'V4vInfo',
 } as const;
 
-// Tablet breakpoint for adaptive tab rail (Track 7.17) — same `lg` token as useResponsive.
+// Tablet breakpoint for adaptive tab rail — same `lg` token as useResponsive.
 export const MOBILE_TABLET_NAV_MIN_WIDTH = breakpoints.lg;
 
 const mobileNavigationScreens = {

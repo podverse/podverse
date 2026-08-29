@@ -16,9 +16,8 @@ import { autoQueueRepository } from '../data';
 import type { AutoQueueResourcesMap } from '../lib/autoQueue/autoQueue';
 
 /**
- * The currently-playing resource that seeds the auto-queue fill. On web this is read from the
- * MediaPlayer context; on mobile that context lands with Track 11, so the orchestrator passes the
- * seed in explicitly.
+ * The active resource that seeds the auto-queue fill. On web this is read from the
+ * MediaPlayer context; the orchestrator passes the seed in explicitly.
  */
 export type AutoQueueSeed = {
   item: DTOItemQueueItem;

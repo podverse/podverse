@@ -1,5 +1,5 @@
 /**
- * Pure bridge command serialization (step 2.28 / detail 107).
+ * Pure bridge command serialization.
  *
  * The native module takes **positional** args (`load(url, seek?)`, `attachVideoSurface(targetId, x,
  * y, width, height, cornerRadius)`, …). This module converts the object-based bridge inputs into the

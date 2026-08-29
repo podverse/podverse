@@ -25,7 +25,7 @@ export type MobileConfig = {
   pushProvider: 'fcm' | 'none' | 'unifiedpush';
   unifiedPushAuthKey: string | null;
   unifiedPushEndpoint: string | null;
-  /** Value-for-value boost entry enabled (Track 11.14 stub; hidden by default). */
+  /** Value-for-value boost entry enabled; hidden by default. */
   isV4vEnabled: boolean;
   webBaseUrl: string;
 };

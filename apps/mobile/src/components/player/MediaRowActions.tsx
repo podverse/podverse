@@ -41,8 +41,8 @@ export type MediaRowTranslate = (key: string) => string;
 
 /**
  * Handlers for the standard web-parity intents. Only intents with a handler are emitted, so a call
- * site advertises exactly what mobile can do today (Track 9c.1 inventory). Play stays inline (not in
- * this list). Order mirrors the web `ItemRowMoreActions` menu.
+ * site advertises exactly what mobile supports. Play stays inline (not in this list). Order mirrors
+ * the web `ItemRowMoreActions` menu.
  */
 export type MediaRowMoreActionHandlers = {
   onQueueNext?: () => void;
@@ -68,9 +68,9 @@ const MORE_ACTION_SPECS: {
 
 /**
  * Pure builder that maps intent handlers to localized `MediaRowMoreAction`s with the **correct**
- * `features.*` i18n keys (fixing the Track 9c.1 mislabel where a single Queue button carried
- * `queue_next` copy but appended to the end). Kept side-effect free for unit tests: pass a translate
- * fn and the handlers you support; only those are returned, in web-menu order.
+ * `features.*` i18n keys, with separate queue-next and queue-last actions. Kept side-effect free for
+ * unit tests: pass a translate fn and the handlers you support; only those are returned, in web-menu
+ * order.
  */
 export const buildMediaRowMoreActions = (
   translate: MediaRowTranslate,
@@ -95,13 +95,12 @@ export const buildMediaRowMoreActions = (
 };
 
 /**
- * Shared media-row action affordance (Track 9c.2) mirroring web `PlayButtonRow` + `ItemRowMoreActions`
+ * Shared media-row action affordance mirroring web `PlayButtonRow` + `ItemRowMoreActions`
  * intents: an inline Play/Pause button plus an optional "More options" trigger that opens a native
  * bottom action sheet (RN `Modal`) — not a web hover-menu port. All copy is localized by the caller
  * (per-action labels) or via i18n for the generic chrome. Presses stop propagation so the control
  * works inside a row `Pressable` without triggering row navigation. Consumed by ≥2 call sites in
- * Track 9c.3 (Home / detail lists) so queue-next vs queue-last become distinct, correctly-keyed
- * actions.
+ * Home and detail lists use distinct, correctly-keyed queue-next and queue-last actions.
  */
 export function MediaRowActions({
   playLabel,

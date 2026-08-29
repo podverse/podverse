@@ -15,7 +15,7 @@ export type MQDedupeMessage =
   MQRSSDedupeMessage | MQAddByRSSMessage | MQImageShrinkHintMessage | MQOpmlImportMessage;
 
 /**
- * Resolve the value used to dedupe an MQ message. Each message shape has a
+ * Resolve the value for deduping an MQ message. Each message shape has a
  * different stable identity: RSS parse jobs dedupe on the Podcast Index id (or
  * feed url), add-by-rss jobs on the feed url, OPML import jobs on the per-batch
  * requestId, and everything else on the url. OPML import batches contain many

@@ -2,7 +2,11 @@ import { useTranslations } from 'next-intl';
 import { useCallback, useMemo } from 'react';
 
 import type { AccessTier, FeatureAccess, GatedFeature } from '@podverse/helpers';
-import { accessTierFromMembership, deriveMembershipState, evaluateFeatureAccess } from '@podverse/helpers';
+import {
+  accessTierFromMembership,
+  deriveMembershipState,
+  evaluateFeatureAccess,
+} from '@podverse/helpers';
 
 import { getContactEmail } from '../constants/contact';
 import { useAccount } from '../contexts/Account';

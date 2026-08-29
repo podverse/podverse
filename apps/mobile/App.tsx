@@ -73,8 +73,8 @@ export default function App() {
   useEffect(() => {
     let isMounted = true;
 
-    // Cold-start tap: app launched from a notification. Feeds the same pending-URL buffer (453),
-    // so it replays through the 452 mapping after the auth gate resolves.
+    // Cold-start tap: app launched from a notification. Feeds the same pending-URL buffer, so it
+    // replays through the navigation mapping after the auth gate resolves.
     void getInitialNotificationDeepLinkUrl().then((url) => {
       if (isMounted && url !== null) {
         setPendingDeepLinkUrl(url);

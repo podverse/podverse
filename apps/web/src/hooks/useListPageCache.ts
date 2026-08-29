@@ -78,10 +78,10 @@ export function useListPageCache<TParams, TData>({
   // Check for cached state on back navigation
   const cachedState = isBackNav ? getPageState<TParams, ListPageCachedData<TData>>(routeKey) : null;
 
-  // Track if we restored from cache to skip fetch
+  // Skip the fetch when the list was restored from cache.
   const shouldSkipFetch = useRef(!!cachedState?.data);
 
-  // Track if this render is from cache restoration (for list components to skip scroll-to-top)
+  // Skip scroll-to-top when this render restores the list from cache.
   const isRestoredFromCache = useRef(!!cachedState?.data);
 
   // Initialize state from cache or SSR

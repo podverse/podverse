@@ -6,7 +6,7 @@
  *   a migration that has shipped.
  * - `version` is applied via `PRAGMA user_version` (see runMigrations); values MUST be integer
  *   literals authored here, never user input.
- * - Domain tables (account, queue, add-by-rss) arrive in later Track 9b steps as new migrations.
+ * - Domain tables use new migrations appended after the existing versions.
  */
 export type Migration = {
   version: number;

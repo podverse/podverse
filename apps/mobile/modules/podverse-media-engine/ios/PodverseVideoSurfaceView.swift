@@ -1,13 +1,12 @@
 import ExpoModulesCore
 import UIKit
 
-// PG-5 gap remediation (Plan 01, detail 099 addendum). The RN-mounted host for the ONE shared video
-// surface. Mini player and full player each mount one `PodverseVideoSurfaceView` with a `targetId`;
-// the single `AVPlayerLayer`-backed surface owned by `PodverseVideoSurfaceHost` is **reparented**
-// into whichever view is the active target (2.20). Because these views live inside the RN tree — the
-// full player is a React Navigation native-stack modal (its own view controller / z-order) — the
-// surface renders correctly in both states instead of being occluded by the modal (the original
-// window/content overlay was drawn behind the modal). Still one player, one layer (Track 11.18).
+// The RN-mounted host for the ONE shared video surface. Mini player and full player each mount one
+// `PodverseVideoSurfaceView` with a `targetId`; the single `AVPlayerLayer`-backed surface owned by
+// `PodverseVideoSurfaceHost` is **reparented** into whichever view is the active target. Because
+// these views live inside the RN tree — the full player is a React Navigation native-stack modal
+// (its own view controller / z-order) — the surface renders correctly in both states. The process
+// uses one player and one layer.
 public final class PodverseVideoSurfaceView: ExpoView {
   private var targetId: PodverseVideoTargetId?
 
@@ -44,7 +43,7 @@ public final class PodverseVideoSurfaceView: ExpoView {
   public override func layoutSubviews() {
     super.layoutSubviews()
     guard let targetId = targetId else { return }
-    // Track size changes (rotation, split view, mini↔full) so the reparented surface fills us.
+    // Observe size changes (rotation, split view, mini↔full) so the reparented surface fills us.
     PodverseVideoSurfaceHost.shared.layoutSurface(in: self, for: targetId)
   }
 }

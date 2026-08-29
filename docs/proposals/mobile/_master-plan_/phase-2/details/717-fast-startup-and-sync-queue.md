@@ -45,12 +45,12 @@ user-triggered refresh jumps ahead of an opportunistic background pass.
 
 A job declares:
 
-| Field       | Purpose                                                                     |
-| ----------- | --------------------------------------------------------------------------- |
-| `kind`      | Stable identifier, used for dedupe and for the log                          |
-| `label`     | i18n key for the indicator — what the user is told is happening             |
-| `run`       | The work; may enqueue follow-up jobs as it discovers them                   |
-| `dedupeKey` | Collapses an already-queued equivalent rather than queueing a second copy   |
+| Field       | Purpose                                                                   |
+| ----------- | ------------------------------------------------------------------------- |
+| `kind`      | Stable identifier, used for dedupe and for the log                        |
+| `label`     | i18n key for the indicator — what the user is told is happening           |
+| `run`       | The work; may enqueue follow-up jobs as it discovers them                 |
+| `dedupeKey` | Collapses an already-queued equivalent rather than queueing a second copy |
 
 **Dynamic totals are expected.** A subscriptions job discovers N channels and enqueues N item-fetch
 jobs, so the denominator grows mid-run. Model progress as completed/total where total may increase;

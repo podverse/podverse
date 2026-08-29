@@ -5,9 +5,8 @@ import type { CheckoutMode } from './checkoutUrl';
 import { buildCheckoutUrl } from './checkoutUrl';
 
 /**
- * Membership purchase hand-off (Track 19). Until native store IAP (master plan 19.2–19.5, gated by the
- * publish hold), the Membership screen routes purchases to the **web** flow. This module is the single
- * web-vs-native seam so a later native-IAP swap is one edit; URL building lives in `checkoutUrl` (pure).
+ * Membership purchase hand-off. The Membership screen routes purchases to the **web** flow. This
+ * module is the single web-vs-native seam; URL building lives in `checkoutUrl` (pure).
  *
  * Opens in an in-app browser (`expo-web-browser`); falls back to the system browser (`Linking`) if the
  * in-app browser is unavailable.

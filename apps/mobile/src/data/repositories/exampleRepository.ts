@@ -4,13 +4,11 @@ import { isWatermarkStale, readSyncWatermark, readThrough, writeSyncWatermark } 
 import type { MobileAuthRequestContext } from './types';
 
 /**
- * Example repository — proves the offline-first seam end to end. It is **not** a product domain:
- * the real domains land in 9b.3 (account), 9b.4 (queue), 9b.5 (add-by-rss) and will replace this.
- *
+ * Example repository — demonstrates the offline-first seam without representing a product domain.
  * It demonstrates the required shape every repository follows:
  * - read-through: return a local value immediately; trigger a background fetch when stale
  * - API access lives here (via `requestWithMobileAuthRefresh`), never in screens/hooks
- * - project to the native cache after a successful sync so car/watch stay coherent (stub for now)
+ * - project to the native cache after a successful sync so car/watch stay coherent
  */
 
 const EXAMPLE_WATERMARK_KEY = 'example.lastSyncedAt';
@@ -28,7 +26,7 @@ const syncExample = async (context: MobileAuthRequestContext): Promise<void> => 
   await writeSyncWatermark(EXAMPLE_WATERMARK_KEY, Date.now());
 
   // Car/watch cannot read SQLite — project a browse snapshot after every successful sync/mutation.
-  // Real entries come from the queue repository in 9b.4; Track 12 wires real native storage.
+  // The product queue repository supplies real entries; this example uses an empty snapshot.
   await projectQueueSnapshotToNativeCache({ nowPlayingIdText: null, entries: [] });
 };
 
