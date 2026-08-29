@@ -1,3 +1,6 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
 import { FaPlus } from 'react-icons/fa6';
 
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
@@ -8,6 +11,7 @@ import styles from '../../../styles/components/MediaPlayer/Buttons/PlaylistAddTo
 export const PlaylistAddToButton = () => {
   const { mpChannel, mpItem, mpClip, mpItemSoundbite } = useMediaPlayer();
   const { setModalPlaylistAddTo } = useModals();
+  const tFeatures = useTranslations('features');
 
   const onClick = () => {
     setModalPlaylistAddTo({
@@ -19,8 +23,13 @@ export const PlaylistAddToButton = () => {
   };
 
   return (
-    <button className={styles.playlistAddToButton} onClick={onClick} type="button">
-      <FaPlus />
+    <button
+      className={styles.playlistAddToButton}
+      aria-label={tFeatures('playlist.add_to_playlist')}
+      onClick={onClick}
+      type="button"
+    >
+      <FaPlus aria-hidden />
     </button>
   );
 };

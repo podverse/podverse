@@ -316,6 +316,15 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
                 <Pressable
                   accessibilityLabel={t('media_player.seek')}
                   accessibilityRole="adjustable"
+                  accessibilityValue={{
+                    max: Math.round(durationSeconds),
+                    min: 0,
+                    now: Math.round(positionSeconds),
+                    text: t('media_player.position_of_duration', {
+                      duration: formatClock(durationSeconds),
+                      position: formatClock(positionSeconds),
+                    }),
+                  }}
                   onLayout={handleScrubberLayout}
                   onPress={handleScrubberSeek}
                   testID="full-player-scrubber"

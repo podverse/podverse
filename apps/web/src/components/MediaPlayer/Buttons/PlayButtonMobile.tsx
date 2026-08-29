@@ -1,3 +1,6 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
 import { FaPause, FaPlay } from 'react-icons/fa6';
 
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
@@ -6,7 +9,8 @@ import styles from '../../../styles/components/MediaPlayer/Buttons/PlayButtonMob
 
 export const PlayButtonMobile = () => {
   const { mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
-  const icon = mpIsPlaying ? <FaPause /> : <FaPlay />;
+  const tMediaPlayer = useTranslations('media_player');
+  const icon = mpIsPlaying ? <FaPause aria-hidden /> : <FaPlay aria-hidden />;
 
   const handleClick = () => {
     setMPIsPlaying(!mpIsPlaying);
@@ -15,6 +19,7 @@ export const PlayButtonMobile = () => {
   return (
     <button
       className={styles.playButtonMobile}
+      aria-label={mpIsPlaying ? tMediaPlayer('pause') : tMediaPlayer('play')}
       data-media-player-playing={mpIsPlaying ? 'true' : undefined}
       onClick={handleClick}
       type="button"

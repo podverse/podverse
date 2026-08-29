@@ -12,23 +12,38 @@ nextgen plans. This skill defines that loop.
 Phase index: [PHASES.md](/docs/proposals/mobile/_master-plan_/PHASES.md).
 Active plan: [Phase 2 master plan](/docs/proposals/mobile/_master-plan_/phase-2/001-MASTER-PLAN-PHASE-2.md).
 
+## The premise
+
+Nextgen mobile is built by **aligning nextgen web features with previous-generation mobile
+behavior**. Previous-gen mobile supplies the feature inventory and interaction model; nextgen web
+supplies the current data contracts, i18n keys, and product decisions. Phase 2 work is the
+reconciliation of those two, captured as planned work in the Phase 2 plans.
+
+Because the two sources disagree in places, **incongruency is the normal case, not the exception**.
+Filters, sort options, tab layout, and screen boundaries are the usual offenders. When previous-gen
+and nextgen web differ — or when a previous-gen control has no nextgen equivalent — **stop and ask**.
+A wrong guess here becomes a wrong plan, then wrong code.
+
 ## Non-negotiables
 
 1. **Ask before planning.** Screenshots are a prompt for questions, not a spec. Never jump straight
    to writing plan files. See § Question checklist.
-2. **Never store the images.** Screenshots stay in chat. Do not write image files into `docs/`,
+2. **Ask as many questions as it takes.** The operator has explicitly asked for aggressive
+   clarification over speed. There is no question budget. Asking one more question is always
+   cheaper than reproducing the wrong behavior.
+3. **Never store the images.** Screenshots stay in chat. Do not write image files into `docs/`,
    `.llm/`, or `.artifacts/`, and do not ask the operator to commit them. Convert what you see into
    **written** observations and plan text.
-3. **Legacy is inspiration, not a port target.** Per
+4. **Legacy is inspiration, not a port target.** Per
    [`legacy-app-reference`](/.cursor/rules/legacy-app-reference.mdc), do not assume legacy
    navigation, storage, API shapes, or UX are right for nextgen. Say when nextgen already has a
    better pattern.
-4. **Bottom-tab layouts intentionally differ.** A screenshot from the previous-generation app shows
-the previous-generation bottom tabs; that tab arrangement is not a nextgen navigation
-specification. Nextgen is expected to use a different bottom-tab layout, so do not classify tab
-differences as a parity gap or port the previous-generation tabs without an explicit product
-decision.
-5. **One area at a time.** The operator batches screenshots per screen area (Home & browse, Player,
+5. **Bottom-tab layouts intentionally differ.** A screenshot from the previous-generation app shows
+   the previous-generation bottom tabs; that tab arrangement is not a nextgen navigation
+   specification. Nextgen is expected to use a different bottom-tab layout, so do not classify tab
+   differences as a parity gap or port the previous-generation tabs without an explicit product
+   decision.
+6. **One area at a time.** The operator batches screenshots per screen area (Home & browse, Player,
    Library, …). Do not expand scope into adjacent areas without asking.
 
 ## The loop
@@ -66,6 +81,22 @@ you before any planning happens.
 Then ask. Prefer `AskQuestion` with concrete options over open prose questions, and lead each option
 list with your recommendation. **Ask generously** — the operator has explicitly asked for more
 questions rather than fewer. The cost of a wrong assumption here is a wasted plan set.
+
+**Mandatory question triggers.** Always ask, never assume, when any of these appear:
+
+- A previous-gen **filter or sort control** whose options do not match what nextgen web or nextgen
+  mobile currently offers (option list, defaults, persistence, scope of what is filtered).
+- A previous-gen control with **no nextgen equivalent at all** (view toggles, bulk actions, badges).
+- A control that exists in **both** previous-gen mobile and nextgen web but with **different
+  options or semantics** — say which two versions disagree and ask which one wins.
+- Anything the operator's screenshots show only partially (a sheet, menu, or state you cannot fully
+  read from the image).
+- A mobile change that **may require matching web, API, or ORM work** — especially cross-device
+  state, new endpoints, or renamed fields. See
+  [`cross-surface-change-impact`](/.cursor/rules/cross-surface-change-impact.mdc).
+
+Multiple rounds of questions are expected and welcome. Do not batch a decision into an assumption to
+avoid a follow-up round.
 
 ### Question checklist
 

@@ -98,7 +98,9 @@ export function FullPlayerSegments({ channel, item }: FullPlayerSegmentsProps) {
     <View testID="full-player-segments">
       {chapters.length > 0 ? (
         <View testID="full-player-chapters">
-          <Text style={styles.heading}>{t('info.chapter.chapters')}</Text>
+          <Text accessibilityRole="header" style={styles.heading}>
+            {t('info.chapter.chapters')}
+          </Text>
           {chapters.map((chapter) => (
             <Pressable
               accessibilityRole="button"
@@ -122,7 +124,9 @@ export function FullPlayerSegments({ channel, item }: FullPlayerSegmentsProps) {
 
       {soundbites.length > 0 ? (
         <View testID="full-player-soundbites">
-          <Text style={styles.heading}>{t('info.soundbite.official_clips')}</Text>
+          <Text accessibilityRole="header" style={styles.heading}>
+            {t('info.soundbite.official_clips')}
+          </Text>
           {soundbites.map((soundbite, index) => (
             <Pressable
               accessibilityRole="button"

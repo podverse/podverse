@@ -278,6 +278,7 @@ logger.error('Feed parsing failed', { error, feedUrl });
 - ❌ Import from package `src/` directly (use `@podverse/package-name`)
 - ❌ Add features beyond what was requested (keep changes focused)
 - ❌ Create abstractions for one-time operations
+- ❌ Ship an interactive control without an accessible name, role, and state — a `testID` is not a label (see [`screen-reader-accessibility`](.cursor/rules/screen-reader-accessibility.mdc))
 
 ## Testing and Verification
 
@@ -349,6 +350,9 @@ Operators and PR authors verify locally:
 - **ui-e2e-screenshot-report** (skill + rule) — for UI changes, instruct the operator to run the narrowest scoped screenshot report and where to open `.artifacts/e2e-reports/latest/.../index.html`
 - **e2e-run-with-make-only** (rule) — always use make targets for E2E
 - **mobile-list-virtualization** (rule) — for `apps/mobile/src/**/*.tsx`, user-data lists use `FlatList` / `SectionList` (not `ScrollView` + `.map()`), list owns scroll via `ListHeaderComponent`/`ListFooterComponent`
+- **screen-reader-accessibility** (rule) — every screen and component must be usable with VoiceOver, TalkBack, and desktop screen readers; new work ships accessible, and labeling improvements are in scope for code you already touch. Existing-surface audit is deferred to [899-defer-accessibility-audit](docs/proposals/mobile/_master-plan_/phase-2/details/899-defer-accessibility-audit.md)
+- **cross-surface-change-impact** (rule) — work focused on one surface must assess whether web, API, or ORM need matching changes; cross-device state must be written by every surface that can change it
+- **filter-sort-persistence** (rule) — every screen with a filter or sort control remembers the last selection **per instance** (per channel, per item) and restores it on load, on web and mobile; stored device-locally (web: bounded LRU in the `local-settings` cookie so SSR can read it; mobile: AsyncStorage), never server-synced; free-text filters are excluded
 
 ## References
 

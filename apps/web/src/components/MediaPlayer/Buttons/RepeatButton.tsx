@@ -31,13 +31,14 @@ export const RepeatButton = () => {
       onClick={onClick}
       type="button"
       aria-label={tMediaPlayer('repeat.toggle_repeat')}
+      aria-pressed={autoQueueConfig.repeat}
       title={
         autoQueueConfig.repeat
           ? tMediaPlayer('repeat.repeat_enabled')
           : tMediaPlayer('repeat.repeat_disabled')
       }
     >
-      <FaRepeat />
+      <FaRepeat aria-hidden />
     </button>
   );
 };

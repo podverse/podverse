@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { FaChevronRight } from 'react-icons/fa6';
 
 import { MEDIA_JUMP_INCREMENT_SECONDS } from '@podverse/helpers';
@@ -12,6 +13,7 @@ import styles from '../../../styles/components/MediaPlayer/Buttons/IncrementForw
 export const IncrementForwardButton = () => {
   const { jumpBy } = useMediaPlayerControls();
   const { setMPCurrentTime } = useMediaPlayerCurrentTime();
+  const tMediaPlayer = useTranslations('media_player');
 
   const handleClick = () => {
     const t = jumpBy(MEDIA_JUMP_INCREMENT_SECONDS);
@@ -19,8 +21,13 @@ export const IncrementForwardButton = () => {
   };
 
   return (
-    <button className={styles.incrementForwardButton} onClick={handleClick} type="button">
-      <FaChevronRight />
+    <button
+      className={styles.incrementForwardButton}
+      aria-label={tMediaPlayer('step_forward')}
+      onClick={handleClick}
+      type="button"
+    >
+      <FaChevronRight aria-hidden />
     </button>
   );
 };

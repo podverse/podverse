@@ -1,0 +1,96 @@
+---
+description: Filter and sort selections persist locally per instance and restore on load, on web and mobile
+globs:
+  - "apps/web/src/**/*.{ts,tsx}"
+  - "apps/mobile/src/**/*.{ts,tsx}"
+  - "packages/helpers/src/**/*.ts"
+alwaysApply: false
+---
+
+# Filter and sort selections are remembered
+
+Any screen that lets a user change **filter** or **sort** must remember the last selection and
+restore it on the next load, without the user re-applying it. This applies to **both `apps/web` and
+`apps/mobile`**, and the behavior must match on the two surfaces.
+
+## Per instance, not per screen type
+
+A user may want one sort for one podcast and a different sort for another. Persistence is keyed by
+the **specific instance**, not the route shape.
+
+| Correct                                    | Wrong                                              |
+| ------------------------------------------ | -------------------------------------------------- |
+| `/podcast/abc` and `/podcast/xyz` differ    | One remembered sort shared by all podcast pages    |
+| Each episode page keeps its own tab + sort  | One bucket for "episode detail"                    |
+| Global lists keyed by list (`podcasts`)     | —                                                  |
+
+Global list routes (`/podcasts`, `/episodes`, `/clips`, …) have exactly one instance, so their list
+name **is** the scope. Detail routes must include the channel or item identifier.
+
+## Local to the device, never the server
+
+These preferences are **device-local**. Do not add a column, endpoint, or account-synced field for
+them. A user's phone and their laptop may legitimately disagree, and that is fine.
+
+| Surface  | Store                                                      |
+| -------- | ---------------------------------------------------------- |
+| `apps/web`    | The `local-settings` cookie — cookies are readable during SSR |
+| `apps/mobile` | AsyncStorage via `src/prefs/` |
+
+**Web uses a cookie rather than `localStorage` on purpose.** Web list and detail pages fetch with a
+sort parameter during server rendering, and `localStorage` is invisible to the server. Storing the
+pref anywhere the server cannot read produces a default-sorted first paint that visibly re-sorts
+after hydration, plus a duplicated request.
+
+### The web store is a bounded LRU
+
+Cookies cap at 4KB and ride along on every same-origin request, so web keeps only the **30 most
+recently used** instance entries and evicts least-recently-used beyond that. Mobile has no such
+constraint and stores entries unbounded.
+
+The eviction is acceptable because a sort you care about belongs to a podcast you keep returning to,
+which keeps it at the top of the LRU. Beyond the window, fall back to the normal default — never to
+a stale or arbitrary sort.
+
+## What persists and what does not
+
+| Persist                                                   | Do not persist                               |
+| --------------------------------------------------------- | -------------------------------------------- |
+| Sort selection                                            | **Free-text filter or search input**         |
+| Structured filters — type, range, category, media type    | Page number / pagination offset              |
+| Tab selection on detail screens                           | Scroll position (separate concern)           |
+| View mode (grid / list)                                   | Transient loading or error state             |
+
+**Free text is deliberately excluded.** A restored text filter hides most of the list and reads as
+missing data rather than as a remembered preference. Text filters clear on reload and restart.
+
+## URL parameters win, and they update the stored preference
+
+On web, an explicit query parameter is a deliberate act — a shared link, a bookmark, a back
+navigation. It takes precedence over the stored preference **and overwrites it** for that instance,
+so a subsequent visit to the clean URL keeps what the user just saw.
+
+Resolution order on load:
+
+1. Explicit URL parameter, if present — and write it to the store
+2. Stored preference for this instance
+3. The screen's documented default
+
+Do **not** write defaults into the URL to make persistence work; that violates
+[`routing-url-params`](/.cursor/rules/routing-url-params.mdc). The store holds the preference and the
+URL stays clean.
+
+## Shared key derivation
+
+The **scope key builder and the stored value shape** live in `@podverse/helpers` so web and mobile
+cannot drift. The **storage** is per-surface (cookie vs AsyncStorage) because mobile may not import
+`@podverse/helpers-browser` and web has no AsyncStorage.
+
+Do not invent a second key format in one app. If a new scope is needed, add it to the shared builder.
+
+## Related
+
+- **routing-url-params** — do not auto-insert default query params
+- **sort-prefs-cookie-by-path** — the `@podverse/ui` table cookies used by management-web admin tables
+- **table-sort-defaults** — which direction a column sorts by default
+- **mobile-data-layer** — mobile prefs live in `src/prefs/`, not SQLite

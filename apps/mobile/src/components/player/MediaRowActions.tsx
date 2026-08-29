@@ -209,6 +209,7 @@ export function MediaRowActions({
             testID={`media-row-sheet-backdrop${idSuffix}`}
           >
             <Pressable
+              accessible={false}
               onPress={stopPropagation}
               style={styles.sheet}
               testID={`media-row-sheet${idSuffix}`}

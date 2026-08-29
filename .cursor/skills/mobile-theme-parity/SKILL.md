@@ -9,6 +9,17 @@ Mobile and web share **supported theme IDs and semantic token values**, not the 
 Mobile screens should also **mirror the web app's visual design** where a counterpart exists (see
 § Screen & visual parity below).
 
+## Legacy app: match layout, not color
+
+When Phase 2 work is driven by previous-generation (`../podverse-rn`) screenshots, align the
+**layout and information architecture** — row structure, control placement, screen boundaries,
+what metadata appears where. Do **not** align the **color scheme**. Nextgen has its own themes, and
+legacy's palette is not a target. Sampling colors out of a legacy screenshot is always wrong; use
+`@podverse/design-tokens` through the active theme.
+
+If a legacy screenshot shows a color-carried meaning (a live badge, an unseen count, a disabled
+state), reproduce the **meaning** with nextgen tokens, not the legacy hue.
+
 ## Supported themes
 
 Same as web — from `@podverse/ui` / `@podverse/design-tokens`:

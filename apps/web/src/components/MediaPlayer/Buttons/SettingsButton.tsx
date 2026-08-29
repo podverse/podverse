@@ -44,13 +44,14 @@ export const SettingsButton = () => {
       <button
         ref={buttonRef}
         className={styles.settingsButton}
-        aria-haspopup="menu"
         aria-expanded={open}
+        aria-haspopup="menu"
+        aria-label={tMediaPlayer('player_settings')}
         onClick={() => setOpen((v) => !v)}
         onKeyDown={handleButtonKeyDown}
         type="button"
       >
-        <FaGear />
+        <FaGear aria-hidden />
       </button>
       <DropdownMenuPanel
         menuItems={menuItems}
