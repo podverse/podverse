@@ -1,13 +1,12 @@
 import Joi from 'joi';
 
-export const MIN_FREE_TRIAL_EXPIRATION_SECONDS = 60;
-export const MAX_FREE_TRIAL_EXPIRATION_SECONDS = 31536000;
+import { MAX_FREE_TRIAL_EXPIRATION, MIN_FREE_TRIAL_EXPIRATION } from '@podverse/helpers';
 
 export const updateProductMembershipSettingsBodySchema = Joi.object({
   freeTrialExpirationSeconds: Joi.number()
     .integer()
-    .min(MIN_FREE_TRIAL_EXPIRATION_SECONDS)
-    .max(MAX_FREE_TRIAL_EXPIRATION_SECONDS)
+    .min(MIN_FREE_TRIAL_EXPIRATION)
+    .max(MAX_FREE_TRIAL_EXPIRATION)
     .optional(),
   trialMaxAddByRSSFeeds: Joi.number().integer().min(0).optional(),
   trialMaxManualRefreshesPerHour: Joi.number().integer().min(0).optional(),

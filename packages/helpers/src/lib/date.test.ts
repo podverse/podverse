@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { addUtcMonthsClamped, formatDateTimeAbbrevOrFallback, laterOfDates } from './date.js';
+import {
+  addUtcMonthsClamped,
+  formatDateTimeAbbrevOrFallback,
+  getRelativeTimeParts,
+  laterOfDates,
+  toEpochMsOrNull,
+} from './date.js';
 
 describe('addUtcMonthsClamped', () => {
   it('adds whole calendar months in UTC', () => {
@@ -72,5 +78,47 @@ describe('laterOfDates', () => {
     const a = new Date('2026-01-01T00:00:00.000Z');
     const b = new Date('2026-01-01T00:00:00.000Z');
     expect(laterOfDates(a, b)).toBe(a);
+  });
+});
+
+describe('toEpochMsOrNull', () => {
+  it('parses an ISO timestamp', () => {
+    expect(toEpochMsOrNull('2026-01-01T00:00:00.000Z')).toBe(Date.UTC(2026, 0, 1));
+  });
+
+  it.each([
+    ['null', null],
+    ['undefined', undefined],
+    ['empty', ''],
+    ['whitespace', '   '],
+    ['unparseable', 'not a date'],
+  ])('reads %s as an absence rather than NaN', (_label, value) => {
+    expect(toEpochMsOrNull(value)).toBeNull();
+  });
+});
+
+describe('getRelativeTimeParts', () => {
+  const nowMs = Date.UTC(2026, 0, 15, 12, 0, 0);
+  const agoBy = (ms: number) => new Date(nowMs - ms).toISOString();
+
+  it.each([
+    ['seconds under a minute', agoBy(30_000), 'second', -30],
+    ['minutes at the one-minute boundary', agoBy(60_000), 'minute', -1],
+    ['hours at the one-hour boundary', agoBy(60 * 60_000), 'hour', -1],
+    ['days at the one-day boundary', agoBy(24 * 60 * 60_000), 'day', -1],
+    ['days for a week-old timestamp', agoBy(7 * 24 * 60 * 60_000), 'day', -7],
+  ])('reports %s', (_label, iso, unit, value) => {
+    expect(getRelativeTimeParts(iso, nowMs)).toEqual({ unit, value });
+  });
+
+  it('signs a future timestamp positively', () => {
+    expect(getRelativeTimeParts(new Date(nowMs + 2 * 60 * 60_000).toISOString(), nowMs)).toEqual({
+      unit: 'hour',
+      value: 2,
+    });
+  });
+
+  it('returns null for an unparseable date so no caller formats NaN', () => {
+    expect(getRelativeTimeParts('not a date', nowMs)).toBeNull();
   });
 });

@@ -2,7 +2,7 @@
 
 **Master step:** P2.3.9
 **Model (author + implement):** Codex 5.3
-**Status:** draft — deferred to a future phase
+**Status:** deferred to a future phase
 
 ## Scope
 
@@ -24,6 +24,17 @@ authoritative, and no payment flow to make either trustworthy.
 Deferred until payment lands. Detail 700 leaves the seam: `shouldSuppressExpiryReminder` in
 `@podverse/helpers` is consulted by every reminder surface and returns `false` today, so enabling
 this is a change in that one function.
+
+## Confirmed against what shipped
+
+The seam holds. `shouldSuppressExpiryReminder` still returns `false` unconditionally, and mobile's two
+expiring-soon surfaces both consult it: `MembershipExpiredBanner` and the persistent renewal row in
+`apps/mobile/src/navigation/index.tsx`. `GatedFeatureNotice` deliberately does not — it explains a
+membership that has already lapsed, and lapsed messaging stays on for enrolled users whose renewal
+failed. Web's `MembershipExpirationToast` still reads `auto_renew` directly; folding that into the
+predicate is the first task when this is picked up, exactly as recorded below.
+
+No push, email, or scheduled job for expiry exists on any surface.
 
 When this is picked up:
 
@@ -56,5 +67,5 @@ When this is picked up:
 ```bash
 npm run lint
 npm run test:unit
-npm run mobile:e2e:test -- membership
+npm run mobile:e2e:test -- membership-gate
 ```

@@ -3,6 +3,8 @@ import { FeedLog } from '@orm/entities/feed/feedLog.js';
 import { isPostgresUniqueViolation } from '@orm/lib/postgresUniqueViolation.js';
 import { BaseOneService } from '@orm/services/base/baseOneService.js';
 
+import { sleep } from '@podverse/helpers';
+
 /** Short delay before retry so the other transaction can commit (ms). */
 const RETRY_DELAY_MS = 25;
 
@@ -34,7 +36,7 @@ export class FeedLogService extends BaseOneService<FeedLog, 'feed'> {
       if (!isPostgresUniqueViolation(error)) {
         throw error;
       }
-      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+      await sleep(RETRY_DELAY_MS);
       return super._update(feed, dto);
     }
   }

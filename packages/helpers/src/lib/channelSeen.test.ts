@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  CHANNEL_UNSEEN_COUNT_CAP,
   capUnseenCount,
+  CHANNEL_UNSEEN_COUNT_CAP,
   countUnseenByPubDate,
   describeUnseenBadge,
   isLaterLastSeenAt,

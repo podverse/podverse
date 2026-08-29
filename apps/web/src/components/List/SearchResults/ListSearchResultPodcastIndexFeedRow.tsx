@@ -5,13 +5,12 @@ import { useLocale, useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { SearchPodcastsFeed } from '@podverse/helpers';
-import { formatDateAbbrev } from '@podverse/helpers';
+import { dedupedTrimmedUrlCandidates, formatDateAbbrev } from '@podverse/helpers';
 import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import { ROUTES } from '../../../constants/routes';
 import { getApiRequestService } from '../../../factories/apiRequestService';
-import { dedupedTrimmedUrlCandidates } from '../../../utils/image/dedupedTrimmedUrlCandidates';
 import { redirectToChannelPageByMediumClient } from '../../../utils/redirect/redirectToChannelPageByMedium';
 import { Link } from '../../Link/Link';
 

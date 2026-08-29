@@ -11,6 +11,7 @@ import { EpisodePageList } from './EpisodePageList';
 import { EpisodePageListHeader } from './EpisodePageListHeader';
 
 interface EpisodePageClientProps {
+  hasExplicitUrlParams: boolean;
   initialQueryParams: QueryParamsItem;
   ssrChannel: DTOChannel;
   ssrItem: DTOItem;
@@ -21,6 +22,7 @@ interface EpisodePageClientProps {
 
 export function EpisodePageClient(props: EpisodePageClientProps) {
   const {
+    hasExplicitUrlParams,
     initialQueryParams,
     ssrItem,
     ssrChannel,
@@ -34,7 +36,11 @@ export function EpisodePageClient(props: EpisodePageClientProps) {
   });
 
   return (
-    <EpisodePageContextProvider initialQueryParams={initialQueryParams}>
+    <EpisodePageContextProvider
+      hasExplicitUrlParams={hasExplicitUrlParams}
+      initialQueryParams={initialQueryParams}
+      ssrItemIdText={ssrItem.id_text}
+    >
       <MainWrapper>
         <CorePodcastHeader channel={ssrChannel} item={ssrItem} />
         <MainSidebarLayout>

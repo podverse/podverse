@@ -14,6 +14,8 @@ import {
   AuthCookieName,
   ERROR_MESSAGES,
   hasValidMembership,
+  MOBILE_ACCESS_TOKEN_TTL_SECONDS,
+  MOBILE_REFRESH_TOKEN_TTL_SECONDS,
 } from '@podverse/helpers';
 import type { Account, FindOptionsRelations } from '@podverse/orm';
 import {
@@ -33,8 +35,6 @@ import { verifyPassword } from './password.js';
  */
 const isProduction = config.nodeEnv === 'production';
 const MEMBERSHIP_EXPIRED_I18N_KEY = 'membership.membership_expired';
-const MOBILE_ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
-const MOBILE_REFRESH_TOKEN_TTL_SECONDS = 30 * 24 * 60 * 60;
 
 type MobileRefreshRecord = {
   accountId: number;

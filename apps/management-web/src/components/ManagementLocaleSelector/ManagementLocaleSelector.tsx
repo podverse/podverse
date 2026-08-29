@@ -4,12 +4,10 @@ import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { SUPPORTED_LOCALES } from '@podverse/helpers';
+import { ONE_YEAR_SECONDS, SUPPORTED_LOCALES } from '@podverse/helpers';
 import { FormDropdown } from '@podverse/ui';
 
 import { getConfig } from '../../config';
-
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 const LOCALE_COOKIE = 'NEXT_LOCALE';
 
@@ -78,7 +76,7 @@ export function ManagementLocaleSelector({
         return;
       }
       setValue(next);
-      document.cookie = `${LOCALE_COOKIE}=${next}; path=/; max-age=${COOKIE_MAX_AGE}; samesite=lax`;
+      document.cookie = `${LOCALE_COOKIE}=${next}; path=/; max-age=${ONE_YEAR_SECONDS}; samesite=lax`;
       void router.refresh();
     },
     [intlLocale, router]

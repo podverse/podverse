@@ -14,7 +14,10 @@ import { getCuratedStaticPageMetadata } from '../../lib/seo/curatedPageMetadata'
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import type { TracksFilterDefaults } from '../../utils/localSettings/localSettings';
-import { getParsedLocalSettings } from '../../utils/localSettings/localSettings';
+import {
+  getFilterDefaultsForPage,
+  getParsedLocalSettings,
+} from '../../utils/localSettings/localSettings';
 import { TracksPageClient } from './TracksPageClient';
 import type { TracksPageDropdownConfigCurrentParams } from './TracksPageDropdownConfig';
 import { getTracksPageFilterParams } from './TracksPageDropdownConfig';
@@ -45,7 +48,7 @@ export default async function TracksPage({ searchParams }: TracksPageProps) {
 
   const cookieStore = await cookies();
   const ssrLocalSettings = getParsedLocalSettings(cookieStore);
-  const ssrFilterDefaults = ssrLocalSettings.fd?.tracks;
+  const ssrFilterDefaults = getFilterDefaultsForPage(ssrLocalSettings, 'tracks');
 
   const queryParams = await searchParams;
   const { currentType, currentSort, currentRange, currentPage } = await parseSearchParams(

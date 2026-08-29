@@ -2,7 +2,7 @@ import type { CommandLineArgs } from '@workers/commands/index.js';
 import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService.js';
 
 import type { MQQueueNameParamKey } from '@podverse/helpers';
-import { MQ_QUEUES, validMQQueueNamesParamKeys } from '@podverse/helpers';
+import { MQ_QUEUES, sleep, validMQQueueNamesParamKeys } from '@podverse/helpers';
 import { createActiveMQShutdown, mqRSSRunParser as mqRSSRunParserFunction } from '@podverse/mq';
 
 export const mqRSSRunParser = async (args: CommandLineArgs) => {
@@ -30,7 +30,7 @@ export const mqRSSRunParser = async (args: CommandLineArgs) => {
   });
 
   while (keepRunning) {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await sleep(1000);
   }
 
   unregister();

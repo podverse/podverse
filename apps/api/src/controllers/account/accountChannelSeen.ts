@@ -8,9 +8,9 @@ import Joi from 'joi';
 
 import type { AddByRssSeenState, ChannelSeenMarkEntry, ChannelSeenState } from '@podverse/helpers';
 import {
+  capUnseenCount,
   CHANNEL_SEEN_MARK_BATCH_LIMIT,
   CHANNEL_SEEN_READ_PAGE_LIMIT,
-  capUnseenCount,
 } from '@podverse/helpers';
 import type { ChannelSeenRow } from '@podverse/orm';
 import { AccountFollowingAddByRSSChannelService, AccountFollowingChannelService } from '@podverse/orm';

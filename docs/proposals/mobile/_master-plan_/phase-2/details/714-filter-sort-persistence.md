@@ -2,8 +2,7 @@
 
 **Master step:** P2.4.6
 **Model (author + implement):** Opus 5
-**Status:** in progress — shared contract and mobile module built; detail screens and Library
-outstanding
+**Status:** done — shared contract, mobile module, Home, detail screens, and Library all on it
 
 ## What the operator asked for
 
@@ -29,13 +28,14 @@ and a fourth when detail screens gain sort controls.
 | Surface               | What persists today                                                                                                                               |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Mobile Home           | Subscription filter chip and preferred media type, via `src/prefs/prefsStore.ts` (AsyncStorage)                                                   |
-| Mobile detail screens | Nothing — `sort: 'recent'` is hardcoded and there is no sort control at all                                                                       |
+| Mobile detail screens | Sort per channel or item, plus the episode's open tab, via `src/prefs/detailListPrefs.ts`                                                         |
 | Mobile Search         | Nothing — chips are `useState` only, and [709](/docs/proposals/mobile/_master-plan_/phase-2/details/709-search-tab-web-alignment.md) removes them |
 | Web global lists      | Filter and sort in the `local-settings` cookie under `fd.<page>`, keyed by **page type**                                                          |
 | Web detail pages      | 30-minute `sessionStorage` cache restored on browser **back** only, never on cold load                                                            |
 
-The gap is per-instance scope. Web's `fd` bucket is one entry for all podcast pages, so `/podcast/abc`
-and `/podcast/xyz` cannot hold different sorts. Mobile has no sort persistence outside Home.
+The gap is per-instance scope, which is what mobile's rows above now have and web's do not. Web's
+`fd` bucket is one entry for all podcast pages, so `/podcast/abc` and `/podcast/xyz` cannot hold
+different sorts; closing that is 715's job.
 
 ## The shared piece
 
@@ -66,11 +66,15 @@ Then apply it:
 1. **Home** — built. Sort and the subscription scope chip both read and write through this module,
    one scope per media type, and the previous `home.subscriptionFilter` value is carried over on
    first read so no device loses its chip choice. The view mode from 708 joins them when it lands.
-2. **Detail screens** — `PodcastDetailScreen`, `EpisodeDetailScreen`, and `AlbumDetailScreen`
-   currently hardcode their sort. Give each a sort control and persist the selection per instance.
-   This is new UI, so it ships screen reader accessible per
+2. **Detail screens** — built. `PodcastDetailScreen` (recent / A-Z), `AlbumDetailScreen` (authored
+   order / reversed), and `EpisodeDetailScreen` (clip order, plus which tab the episode opens on)
+   each carry a sort control scoped to that instance, via `apps/mobile/src/prefs/detailListPrefs.ts`.
+   The control is a shared `SortSelectRow` — a pill showing the current order, disclosing the same
+   checkmarked option rows Home uses, in place rather than as a pushed screen. It ships screen reader
+   accessible per
    [`screen-reader-accessibility`](/.cursor/rules/screen-reader-accessibility.mdc).
-3. **Library** — the subscription filter already persists; move it onto the shared module.
+3. **Library** — built. The subscription filter reads and writes through the shared module, carrying
+   the previous `library.subscriptionFilter` value over on first read.
 
 Restore happens before the first data read, so the screen fetches with the remembered sort rather
 than fetching a default and re-sorting.
@@ -102,8 +106,9 @@ legitimately disagree about sort.
 ## Verification
 
 ```bash
+npm --prefix apps/mobile run test
+npm run mobile:e2e:test -- detail-sort-prefs
 npm run mobile:e2e:test -- home
-npm run mobile:e2e:test -- podcast
 open .artifacts/mobile-e2e-reports/latest/ios-phone/index.html
 ```
 

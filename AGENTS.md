@@ -340,6 +340,7 @@ Operators and PR authors verify locally:
 - **api-testing** — how to write API integration tests
 - **e2e-page-tests** — how to write E2E Playwright specs
 - **ui-component-promotion** — promote shared UI across web and management-web via `packages/ui`
+- **reuse-beyond-components** (rule) — the reuse habit covers hooks and plain functions, not just components; search for an existing implementation before writing one, and when the same logic already exists on the other surface, collapse the two rather than adding a third copy
 - **modal-layout-contract** — `Modal`, `Modal.Body`, `Modal.Actions`; no overflow masking; modal footers match web (right-aligned, wrap)
 - **management-post-save-navigation** — after successful create or primary save on management-web New/Edit (one row), navigate to the list unless an exception applies (invite link, password-only update, detail-first flows)
 - **css-custom-properties-no-var-fallbacks** — never `var(--token, fallback)` in SCSS/CSS or inline styles; fix tokens or set vars at source
@@ -352,6 +353,7 @@ Operators and PR authors verify locally:
 - **mobile-list-virtualization** (rule) — for `apps/mobile/src/**/*.tsx`, user-data lists use `FlatList` / `SectionList` (not `ScrollView` + `.map()`), list owns scroll via `ListHeaderComponent`/`ListFooterComponent`
 - **screen-reader-accessibility** (rule) — every screen and component must be usable with VoiceOver, TalkBack, and desktop screen readers; new work ships accessible, and labeling improvements are in scope for code you already touch. Existing-surface audit is deferred to [899-defer-accessibility-audit](docs/proposals/mobile/_master-plan_/phase-2/details/899-defer-accessibility-audit.md)
 - **cross-surface-change-impact** (rule) — work focused on one surface must assess whether web, API, or ORM need matching changes; cross-device state must be written by every surface that can change it
+- **dto-changes-are-device-data-migrations** (rule) — mobile SQLite does not mirror Postgres, but it stores whole DTOs as JSON (`account_snapshot`, `channel_item`, `queue_cache`, `add_by_rss_feed`), so changing a shared DTO rewrites data already on installed phones; TypeScript cannot see those rows
 - **filter-sort-persistence** (rule) — every screen with a filter or sort control remembers the last selection **per instance** (per channel, per item) and restores it on load, on web and mobile; stored device-locally (web: bounded LRU in the `local-settings` cookie so SSR can read it; mobile: AsyncStorage), never server-synced; free-text filters are excluded
 
 ## References

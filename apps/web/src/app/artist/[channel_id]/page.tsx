@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import { z } from 'zod';
 
+import type { SortPrefScope, SortPrefValue } from '@podverse/helpers';
 import { buildArtistPath } from '@podverse/helpers';
 import { QUERY_PARAMS_CHANNEL_MUSIC_ARTIST_TYPE_VALUES } from '@podverse/helpers-requests';
 
@@ -12,13 +14,26 @@ import {
 import { toSeoPlainText } from '../../../lib/seo/toSeoPlainText';
 import { truncateMetaDescription } from '../../../lib/seo/truncateMetaDescription';
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
+import {
+  hasExplicitControlParams,
+  resolveStoredToken,
+} from '../../../utils/localSettings/detailSortPrefs';
+import {
+  getParsedLocalSettings,
+  getStoredSortPref,
+} from '../../../utils/localSettings/localSettings';
 import { enforceCanonicalChannelRoute } from '../../../utils/redirect/enforceCanonicalMediumRoute';
 import { ArtistPageClient } from './ArtistPageClient';
 import type { ArtistPageDropdownConfigCurrentParams } from './ArtistPageDropdownConfig';
 import { getArtistPageFilterParams } from './ArtistPageDropdownConfig';
 
+/**
+ * `type` carries no schema default, so an absent parameter stays `undefined` and this artist's
+ * remembered tab is reachable. A default applied here would win before the stored preference was
+ * ever consulted.
+ */
 const searchParamsSchema = z.object({
-  type: z.enum(QUERY_PARAMS_CHANNEL_MUSIC_ARTIST_TYPE_VALUES).optional().default('albums'),
+  type: z.enum(QUERY_PARAMS_CHANNEL_MUSIC_ARTIST_TYPE_VALUES).optional(),
 });
 
 type SearchParams = z.infer<typeof searchParamsSchema>;
@@ -54,10 +69,15 @@ export default async function ArtistPage({ params, searchParams }: ArtistPagePro
 
   const { ssrApiRequestService } = await getSSRAuthService();
 
-  const { currentType } = await parseSearchParams(queryParams);
-
   const response = await getPublisherRemoteItemsForChannelSeoPage(channel_id);
   enforceCanonicalChannelRoute(response.channel, 'artist');
+
+  // Keyed on the resolved `id_text` rather than the route segment, so a channel reached by numeric
+  // id and one reached by its slug are the same instance to the store.
+  const sortPrefScope: SortPrefScope = { idText: response.channel.id_text, kind: 'channel' };
+  const storedSortPref = getStoredSortPref(getParsedLocalSettings(await cookies()), sortPrefScope);
+
+  const { currentType, hasExplicitUrlParams } = parseSearchParams(queryParams, storedSortPref);
 
   let ssrPodroll = null;
   if ((response.channel?.channel_podroll?.channel_podroll_remote_items?.length ?? 0) > 0) {
@@ -66,6 +86,7 @@ export default async function ArtistPage({ params, searchParams }: ArtistPagePro
 
   return (
     <ArtistPageClient
+      hasExplicitUrlParams={hasExplicitUrlParams}
       initialQueryParams={{
         type: currentType,
       }}
@@ -79,16 +100,26 @@ export default async function ArtistPage({ params, searchParams }: ArtistPagePro
   );
 }
 
-function parseSearchParams(queryParams: SearchParams): ArtistPageDropdownConfigCurrentParams {
+type ArtistPageResolvedParams = ArtistPageDropdownConfigCurrentParams & {
+  hasExplicitUrlParams: boolean;
+};
+
+function parseSearchParams(
+  queryParams: SearchParams,
+  storedSortPref: SortPrefValue | null
+): ArtistPageResolvedParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
+  const data = parsed.success ? parsed.data : null;
 
-  if (!parsed.success) {
-    return {
-      currentType: 'albums',
-    };
-  }
-
-  const data = parsed.data;
-
-  return getArtistPageFilterParams(data);
+  return {
+    ...getArtistPageFilterParams({
+      type: resolveStoredToken(
+        data?.type,
+        storedSortPref?.tab,
+        QUERY_PARAMS_CHANNEL_MUSIC_ARTIST_TYPE_VALUES,
+        'albums'
+      ),
+    }),
+    hasExplicitUrlParams: hasExplicitControlParams([data?.type]),
+  };
 }

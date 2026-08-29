@@ -2,7 +2,7 @@
 
 **Master step:** P2.3.12
 **Model (author + implement):** Opus 5
-**Status:** draft — deferred until the phone UX is settled
+**Status:** deferred until the phone UX is settled
 
 ## The intended rule
 
@@ -44,3 +44,20 @@ Anything added to the phone `tabBar` column must also be added to the tablet bra
 disappears on tablet. The sync indicator
 ([718](/docs/proposals/mobile/_master-plan_/phase-2/details/718-sync-progress-indicator.md)) is the
 first case of this and calls it out explicitly.
+
+## Confirmed against what shipped
+
+Both divergences are still present: `tabBarPosition: 'left'` at `>= lg`, and a tablet `tabBar` that
+returns a bare `<BottomTabBar />` with no mini player.
+
+The sync indicator did reach tablet. `SyncProgressBar` renders twice over: inside the phone `tabBar`
+column, and as a full-width strip beneath the whole navigator on tablet, carrying the home-indicator
+inset itself. No other phone-only chrome landed without a tablet equivalent — the only things left in
+the phone column are the mini player and `PlaybackE2eStatus`, both of which this deferral already
+owns.
+
+**The opt-in tablet Maestro flow cannot pass today.** `apps/mobile/e2e/tablet.yaml` plays an episode
+and then waits on `playback-active-e2e` and `mini-player`, neither of which is mounted on the tablet
+branch. It is excluded from the phone matrix so nothing goes red on a normal run, but anyone invoking
+`npm run mobile:e2e:test -- tablet` will see it fail there, and that failure is this deferral rather
+than a regression. Mounting the mini player fixes the flow and the missing functionality together.

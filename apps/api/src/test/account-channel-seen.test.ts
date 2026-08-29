@@ -47,7 +47,8 @@ const {
   markAddByRSSChannelsSeenMock,
   markAllAddByRSSChannelsSeenMock,
   notificationListPaginatedMock,
-  notificationCountUnseenMock,
+  notificationCountUnreadMock,
+  updateNotificationsLastReadAtMock,
 } = vi.hoisted(() => ({
   getAccountMock: vi.fn(async () => ({
     id: 1,
@@ -98,7 +99,8 @@ const {
     async (_accountId: number, _seenAt: Date): Promise<number> => 0
   ),
   notificationListPaginatedMock: vi.fn(async (): Promise<unknown[]> => []),
-  notificationCountUnseenMock: vi.fn(async (): Promise<number> => 0),
+  notificationCountUnreadMock: vi.fn(async (): Promise<number> => 0),
+  updateNotificationsLastReadAtMock: vi.fn(async (_accountId: number, readAt: Date) => readAt),
 }));
 
 vi.mock('@podverse/orm', async (importOriginal) => {
@@ -110,6 +112,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
 
   class MockAccountService {
     get = getAccountMock;
+    updateNotificationsLastReadAt = updateNotificationsLastReadAtMock;
   }
 
   class MockAccountFollowingChannelService {
@@ -127,7 +130,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
   // Present only so "nothing here is touched" can be asserted.
   class MockAccountNotificationService {
     listPaginatedForAccount = notificationListPaginatedMock;
-    countUnseen = notificationCountUnseenMock;
+    countUnread = notificationCountUnreadMock;
   }
 
   return {
@@ -250,7 +253,7 @@ describe('account channel seen routes', () => {
       await request(app).get(seenBase).set(authHeaders(TEST_USER_ID));
 
       expect(notificationListPaginatedMock).not.toHaveBeenCalled();
-      expect(notificationCountUnseenMock).not.toHaveBeenCalled();
+      expect(notificationCountUnreadMock).not.toHaveBeenCalled();
     });
 
     /**
@@ -483,13 +486,48 @@ describe('account channel seen routes', () => {
       await request(app).post(`${seenBase}/mark-all`).set(authHeaders(TEST_USER_ID));
 
       expect(notificationListPaginatedMock).not.toHaveBeenCalled();
-      expect(notificationCountUnseenMock).not.toHaveBeenCalled();
+      expect(notificationCountUnreadMock).not.toHaveBeenCalled();
     });
 
     it('returns 401 without auth', async () => {
       const res = await request(app).post(`${seenBase}/mark-all`);
 
       expect(res.status).toBe(401);
+    });
+  });
+
+  /**
+   * The two indicators answer different questions — how much of a show you have not looked at, and
+   * how many inbox rows you have not opened — so clearing one must never clear the other. Asserted
+   * from both directions because either one alone would let the coupling back in.
+   */
+  describe('read state and seen state do not touch each other', () => {
+    it('opening the inbox leaves every channel where it was', async () => {
+      const notificationsBase = (await getBaseApiUrl()) + '/account/notifications';
+
+      const res = await request(app)
+        .post(`${notificationsBase}/mark-read`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({});
+
+      expect(res.status).toBe(200);
+      expect(updateNotificationsLastReadAtMock).toHaveBeenCalledTimes(1);
+      expect(markChannelsSeenMock).not.toHaveBeenCalled();
+      expect(markAllChannelsSeenMock).not.toHaveBeenCalled();
+      expect(markAddByRSSChannelsSeenMock).not.toHaveBeenCalled();
+      expect(markAllAddByRSSChannelsSeenMock).not.toHaveBeenCalled();
+    });
+
+    it('opening a channel leaves the inbox unread', async () => {
+      const res = await request(app)
+        .post(`${seenBase}/mark`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ entries: [{ channel_id_text: 'a-channel' }] });
+
+      expect(res.status).toBe(200);
+      expect(markChannelsSeenMock).toHaveBeenCalledTimes(1);
+      expect(updateNotificationsLastReadAtMock).not.toHaveBeenCalled();
+      expect(notificationCountUnreadMock).not.toHaveBeenCalled();
     });
   });
 });

@@ -89,13 +89,17 @@ the Home work assumes anonymous subscriptions, local content storage, and per-ch
 exist. **Track P2.5 web counterparts** follow, since some of this work changes account-synced state
 that web also reads and writes.
 
-| Step   | Detail                                                                                                                                   | Model     | Status  |
-| ------ | ---------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------- |
-| P2.1.1 | [705-home-subscribed-list-and-filter](/docs/proposals/mobile/_master-plan_/phase-2/details/705-home-subscribed-list-and-filter.md)       | Codex 5.3 | implemented |
-| P2.1.1 | [707-home-row-metadata](/docs/proposals/mobile/_master-plan_/phase-2/details/707-home-row-metadata.md)                                   | Codex 5.3 | implemented |
-| P2.1.1 | [708-home-view-toggle-and-overflow-menu](/docs/proposals/mobile/_master-plan_/phase-2/details/708-home-view-toggle-and-overflow-menu.md) | Codex 5.3 | implemented |
-| P2.1.3 | [706-home-filter-sort-screen](/docs/proposals/mobile/_master-plan_/phase-2/details/706-home-filter-sort-screen.md)                       | Codex 5.3 | implemented |
-| P2.1.3 | [709-search-tab-web-alignment](/docs/proposals/mobile/_master-plan_/phase-2/details/709-search-tab-web-alignment.md)                     | Codex 5.3 | implemented |
+| Step   | Detail                                                                                                                                   | Model     | Status |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------ |
+| P2.1.1 | [705-home-subscribed-list-and-filter](/docs/proposals/mobile/_master-plan_/phase-2/details/705-home-subscribed-list-and-filter.md)       | Codex 5.3 | done   |
+| P2.1.1 | [707-home-row-metadata](/docs/proposals/mobile/_master-plan_/phase-2/details/707-home-row-metadata.md)                                   | Codex 5.3 | done   |
+| P2.1.1 | [708-home-view-toggle-and-overflow-menu](/docs/proposals/mobile/_master-plan_/phase-2/details/708-home-view-toggle-and-overflow-menu.md) | Codex 5.3 | done   |
+| P2.1.3 | [706-home-filter-sort-screen](/docs/proposals/mobile/_master-plan_/phase-2/details/706-home-filter-sort-screen.md)                       | Codex 5.3 | done   |
+| P2.1.3 | [709-search-tab-web-alignment](/docs/proposals/mobile/_master-plan_/phase-2/details/709-search-tab-web-alignment.md)                     | Codex 5.3 | done   |
+
+Every step above is implemented and its plan is archived. The **areas** P2.1.1 and P2.1.3 stay open in
+the table above until the operator verifies the screens on a device — in Phase 2 an area closes on the
+operator's eye, not on a passing test run.
 
 Locked decisions for this area live in `.llm/plans/active/mobile-p2-home-podcasts/00-SUMMARY.md`.
 
@@ -139,10 +143,11 @@ doc written except where noted.
 | P2.3.10                                                                                           | new          | [899-defer-accessibility-audit](/docs/proposals/mobile/_master-plan_/phase-2/details/899-defer-accessibility-audit.md) — full screen reader audit across all four surfaces | Opus 5    |
 | P2.3.11                                                                                           | new          | [897-defer-mobile-schema-drift-checks](/docs/proposals/mobile/_master-plan_/phase-2/details/897-defer-mobile-schema-drift-checks.md) — evaluate after Phase 2 closes       | Auto      |
 | P2.3.12                                                                                           | new          | [896-defer-tablet-layout-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/896-defer-tablet-layout-parity.md) — tablet left rail and missing mini player        | Opus 5    |
-| **P2.3.10 is a deferral of the _existing_ surface area only.** All **new** screens and components |
-| must be screen reader accessible when they land, per                                              |
-| [`screen-reader-accessibility`](/.cursor/rules/screen-reader-accessibility.mdc). Do not cite the  |
-| audit deferral as a reason to ship a new unlabeled control.                                       |
+
+**P2.3.10 is a deferral of the _existing_ surface area only.** All **new** screens and components must
+be screen reader accessible when they land, per
+[`screen-reader-accessibility`](/.cursor/rules/screen-reader-accessibility.mdc). Do not cite the audit
+deferral as a reason to ship a new unlabeled control.
 
 ### Open items needing an operator decision
 
@@ -165,18 +170,18 @@ Not a legacy screen area. These emerged from the P2.1.1 screenshot review as pre
 screen work depends on, and they change contracts beyond `apps/mobile` (API, ORM, workers).
 **Sequence P2.4 before the P2.1.1 / P2.1.3 steps.**
 
-| Step    | Detail                                                                                                                                   | Model  | Status      |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------ | ----------- |
-| P2.4.1  | [700-access-tiers-and-membership-gating](/docs/proposals/mobile/_master-plan_/phase-2/details/700-access-tiers-and-membership-gating.md) | Opus 5 | planned     |
-| P2.4.2  | [701-anonymous-subscriptions](/docs/proposals/mobile/_master-plan_/phase-2/details/701-anonymous-subscriptions.md)                       | Opus 5 | planned     |
-| P2.4.3  | [702-offline-content-sync](/docs/proposals/mobile/_master-plan_/phase-2/details/702-offline-content-sync.md)                             | Opus 5 | implemented |
-| P2.4.4  | [703-channel-seen-state](/docs/proposals/mobile/_master-plan_/phase-2/details/703-channel-seen-state.md)                                 | Opus 5 | implemented |
-| P2.4.5  | [704-notifications-read-unread-rename](/docs/proposals/mobile/_master-plan_/phase-2/details/704-notifications-read-unread-rename.md)     | Opus 5 | planned     |
-| P2.4.6  | [714-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/714-filter-sort-persistence.md)                       | Opus 5 | planned     |
-| P2.4.7  | [716-forced-logout-notice](/docs/proposals/mobile/_master-plan_/phase-2/details/716-forced-logout-notice.md)                             | Opus 5 | implemented |
-| P2.4.8  | [717-fast-startup-and-sync-queue](/docs/proposals/mobile/_master-plan_/phase-2/details/717-fast-startup-and-sync-queue.md)               | Opus 5 | done        |
-| P2.4.9  | [718-sync-progress-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/718-sync-progress-indicator.md)                       | Opus 5 | done        |
-| P2.4.10 | [719-sync-event-log](/docs/proposals/mobile/_master-plan_/phase-2/details/719-sync-event-log.md)                                         | Opus 5 | done        |
+| Step    | Detail                                                                                                                                   | Model  | Status |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| P2.4.1  | [700-access-tiers-and-membership-gating](/docs/proposals/mobile/_master-plan_/phase-2/details/700-access-tiers-and-membership-gating.md) | Opus 5 | done   |
+| P2.4.2  | [701-anonymous-subscriptions](/docs/proposals/mobile/_master-plan_/phase-2/details/701-anonymous-subscriptions.md)                       | Opus 5 | done   |
+| P2.4.3  | [702-offline-content-sync](/docs/proposals/mobile/_master-plan_/phase-2/details/702-offline-content-sync.md)                             | Opus 5 | done   |
+| P2.4.4  | [703-channel-seen-state](/docs/proposals/mobile/_master-plan_/phase-2/details/703-channel-seen-state.md)                                 | Opus 5 | done   |
+| P2.4.5  | [704-notifications-read-unread-rename](/docs/proposals/mobile/_master-plan_/phase-2/details/704-notifications-read-unread-rename.md)     | Opus 5 | done   |
+| P2.4.6  | [714-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/714-filter-sort-persistence.md)                       | Opus 5 | done   |
+| P2.4.7  | [716-forced-logout-notice](/docs/proposals/mobile/_master-plan_/phase-2/details/716-forced-logout-notice.md)                             | Opus 5 | done   |
+| P2.4.8  | [717-fast-startup-and-sync-queue](/docs/proposals/mobile/_master-plan_/phase-2/details/717-fast-startup-and-sync-queue.md)               | Opus 5 | done   |
+| P2.4.9  | [718-sync-progress-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/718-sync-progress-indicator.md)                       | Opus 5 | done   |
+| P2.4.10 | [719-sync-event-log](/docs/proposals/mobile/_master-plan_/phase-2/details/719-sync-event-log.md)                                         | Opus 5 | done   |
 
 **Step numbers are identifiers, not the run order.** Within P2.4 the run order is the plan set's —
 see [00-EXECUTION-ORDER.md](/.llm/plans/active/mobile-p2-home-podcasts/00-EXECUTION-ORDER.md).
@@ -210,8 +215,8 @@ Two indicators, two verb pairs. Do not mix them:
 | New content per channel | seen / unseen | Anonymous locally; Account to sync |
 | Notification inbox      | read / unread | Membership                         |
 
-Notifications ship today using seen/unseen, so P2.4.5 is a **breaking rename** across the ORM, API,
-request helpers, web, and i18n — not a copy tweak.
+P2.4.5 carried that split through the ORM, API, request helpers, web, and i18n as a **breaking
+rename** rather than a copy tweak, so each word now names exactly one indicator.
 
 ## Track P2.5 — Web counterparts
 
@@ -222,11 +227,11 @@ deliberate parity choice rather than a correctness requirement.
 
 **Sequence P2.5 after the P2.4 foundations it depends on.**
 
-| Step   | Detail                                                                                                                       | Model     | Status  | Depends on |
-| ------ | ---------------------------------------------------------------------------------------------------------------------------- | --------- | ------- | ---------- |
-| P2.5.1 | [712-web-unseen-episode-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/712-web-unseen-episode-indicator.md) | Opus 5    | implemented | P2.4.4     |
-| P2.5.2 | [713-web-subscribed-filter-input](/docs/proposals/mobile/_master-plan_/phase-2/details/713-web-subscribed-filter-input.md)   | Codex 5.3 | implemented | P2.1.1     |
-| P2.5.3 | [715-web-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/715-web-filter-sort-persistence.md)   | Opus 5    | planned | P2.4.6     |
+| Step   | Detail                                                                                                                       | Model     | Status | Depends on |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------- | --------- | ------ | ---------- |
+| P2.5.1 | [712-web-unseen-episode-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/712-web-unseen-episode-indicator.md) | Opus 5    | done   | P2.4.4     |
+| P2.5.2 | [713-web-subscribed-filter-input](/docs/proposals/mobile/_master-plan_/phase-2/details/713-web-subscribed-filter-input.md)   | Codex 5.3 | done   | P2.1.1     |
+| P2.5.3 | [715-web-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/715-web-filter-sort-persistence.md)   | Opus 5    | done   | P2.4.6     |
 
 Web changes also live inside two P2.4 steps rather than as separate entries: the shared tier resolver
 in P2.4.1 refactors web's `useMembershipGate`, and the notifications rename in P2.4.5 touches web's
@@ -238,8 +243,10 @@ keeps its type selector and server pagination. Neither is a parity gap.
 
 ## Appendix — Phase 2 detail index
 
-Status values: `not started` → `questions asked` → `planned` → `done`. Keep this table in sync with
-the track tables above whenever status changes, per
+Status values: `not started` → `questions asked` → `planned` → `done`, plus two terminal values that
+sit outside that progression — `deferred` (recorded on purpose, picked up in a later phase) and
+`superseded` (the work is now handled somewhere else). Keep this table in sync with the track tables
+above whenever status changes, per
 [`mobile-master-plan-phasing`](/.cursor/skills/mobile-master-plan-phasing/SKILL.md).
 
 | Detail                                                                                                                                   | Step    | Model     | Status        |
@@ -250,22 +257,22 @@ the track tables above whenever status changes, per
 | [598-defer-player-transcript-chrome](/docs/proposals/mobile/_master-plan_/phase-2/details/598-defer-player-transcript-chrome.md)         | P2.3.5  | Auto      | not started   |
 | [599-defer-pixel-dnd-polish](/docs/proposals/mobile/_master-plan_/phase-2/details/599-defer-pixel-dnd-polish.md)                         | P2.3.6  | Auto      | not started   |
 | [700-access-tiers-and-membership-gating](/docs/proposals/mobile/_master-plan_/phase-2/details/700-access-tiers-and-membership-gating.md) | P2.4.1  | Opus 5    | done          |
-| [701-anonymous-subscriptions](/docs/proposals/mobile/_master-plan_/phase-2/details/701-anonymous-subscriptions.md)                       | P2.4.2  | Opus 5    | planned       |
-| [702-offline-content-sync](/docs/proposals/mobile/_master-plan_/phase-2/details/702-offline-content-sync.md)                             | P2.4.3  | Opus 5    | implemented   |
-| [703-channel-seen-state](/docs/proposals/mobile/_master-plan_/phase-2/details/703-channel-seen-state.md)                                 | P2.4.4  | Opus 5    | implemented   |
-| [704-notifications-read-unread-rename](/docs/proposals/mobile/_master-plan_/phase-2/details/704-notifications-read-unread-rename.md)     | P2.4.5  | Opus 5    | planned       |
-| [705-home-subscribed-list-and-filter](/docs/proposals/mobile/_master-plan_/phase-2/details/705-home-subscribed-list-and-filter.md)       | P2.1.1  | Codex 5.3 | implemented   |
-| [706-home-filter-sort-screen](/docs/proposals/mobile/_master-plan_/phase-2/details/706-home-filter-sort-screen.md)                       | P2.1.3  | Codex 5.3 | implemented   |
-| [707-home-row-metadata](/docs/proposals/mobile/_master-plan_/phase-2/details/707-home-row-metadata.md)                                   | P2.1.1  | Codex 5.3 | implemented   |
-| [708-home-view-toggle-and-overflow-menu](/docs/proposals/mobile/_master-plan_/phase-2/details/708-home-view-toggle-and-overflow-menu.md) | P2.1.1  | Codex 5.3 | implemented   |
-| [709-search-tab-web-alignment](/docs/proposals/mobile/_master-plan_/phase-2/details/709-search-tab-web-alignment.md)                     | P2.1.3  | Codex 5.3 | implemented   |
+| [701-anonymous-subscriptions](/docs/proposals/mobile/_master-plan_/phase-2/details/701-anonymous-subscriptions.md)                       | P2.4.2  | Opus 5    | done          |
+| [702-offline-content-sync](/docs/proposals/mobile/_master-plan_/phase-2/details/702-offline-content-sync.md)                             | P2.4.3  | Opus 5    | done          |
+| [703-channel-seen-state](/docs/proposals/mobile/_master-plan_/phase-2/details/703-channel-seen-state.md)                                 | P2.4.4  | Opus 5    | done          |
+| [704-notifications-read-unread-rename](/docs/proposals/mobile/_master-plan_/phase-2/details/704-notifications-read-unread-rename.md)     | P2.4.5  | Opus 5    | done          |
+| [705-home-subscribed-list-and-filter](/docs/proposals/mobile/_master-plan_/phase-2/details/705-home-subscribed-list-and-filter.md)       | P2.1.1  | Codex 5.3 | done          |
+| [706-home-filter-sort-screen](/docs/proposals/mobile/_master-plan_/phase-2/details/706-home-filter-sort-screen.md)                       | P2.1.3  | Codex 5.3 | done          |
+| [707-home-row-metadata](/docs/proposals/mobile/_master-plan_/phase-2/details/707-home-row-metadata.md)                                   | P2.1.1  | Codex 5.3 | done          |
+| [708-home-view-toggle-and-overflow-menu](/docs/proposals/mobile/_master-plan_/phase-2/details/708-home-view-toggle-and-overflow-menu.md) | P2.1.1  | Codex 5.3 | done          |
+| [709-search-tab-web-alignment](/docs/proposals/mobile/_master-plan_/phase-2/details/709-search-tab-web-alignment.md)                     | P2.1.3  | Codex 5.3 | done          |
 | [710-defer-filter-pull-down-reveal](/docs/proposals/mobile/_master-plan_/phase-2/details/710-defer-filter-pull-down-reveal.md)           | P2.3.8  | Codex 5.3 | deferred      |
 | [711-defer-auto-renew-aware-reminders](/docs/proposals/mobile/_master-plan_/phase-2/details/711-defer-auto-renew-aware-reminders.md)     | P2.3.9  | Codex 5.3 | deferred      |
-| [712-web-unseen-episode-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/712-web-unseen-episode-indicator.md)             | P2.5.1  | Opus 5    | implemented   |
-| [713-web-subscribed-filter-input](/docs/proposals/mobile/_master-plan_/phase-2/details/713-web-subscribed-filter-input.md)               | P2.5.2  | Codex 5.3 | implemented   |
-| [714-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/714-filter-sort-persistence.md)                       | P2.4.6  | Opus 5    | planned       |
-| [715-web-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/715-web-filter-sort-persistence.md)               | P2.5.3  | Opus 5    | planned       |
-| [716-forced-logout-notice](/docs/proposals/mobile/_master-plan_/phase-2/details/716-forced-logout-notice.md)                             | P2.4.7  | Opus 5    | implemented   |
+| [712-web-unseen-episode-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/712-web-unseen-episode-indicator.md)             | P2.5.1  | Opus 5    | done          |
+| [713-web-subscribed-filter-input](/docs/proposals/mobile/_master-plan_/phase-2/details/713-web-subscribed-filter-input.md)               | P2.5.2  | Codex 5.3 | done          |
+| [714-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/714-filter-sort-persistence.md)                       | P2.4.6  | Opus 5    | done          |
+| [715-web-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/715-web-filter-sort-persistence.md)               | P2.5.3  | Opus 5    | done          |
+| [716-forced-logout-notice](/docs/proposals/mobile/_master-plan_/phase-2/details/716-forced-logout-notice.md)                             | P2.4.7  | Opus 5    | done          |
 | [717-fast-startup-and-sync-queue](/docs/proposals/mobile/_master-plan_/phase-2/details/717-fast-startup-and-sync-queue.md)               | P2.4.8  | Opus 5    | done          |
 | [718-sync-progress-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/718-sync-progress-indicator.md)                       | P2.4.9  | Opus 5    | done          |
 | [719-sync-event-log](/docs/proposals/mobile/_master-plan_/phase-2/details/719-sync-event-log.md)                                         | P2.4.10 | Opus 5    | done          |

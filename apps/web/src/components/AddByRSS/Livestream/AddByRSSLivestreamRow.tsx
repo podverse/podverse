@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOLiveItem } from '@podverse/helpers';
-import {
+import { dedupedTrimmedUrlCandidates,
   getQueryParamFromQueueMediumId,
   LiveItemStatusEnum,
   stripAndDecodeHtml,
@@ -20,7 +20,6 @@ import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
 import { getAddByRSSLivestreamPath } from '../../../utils/addByRSS/itemPath';
 import type { AddByRSSLivestreamIndexItem } from '../../../utils/addByRSS/types';
-import { dedupedTrimmedUrlCandidates } from '../../../utils/image/dedupedTrimmedUrlCandidates';
 import { LiveItemStatus } from '../../LiveItem/LiveItemStatus';
 import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
 import { ReadableDate } from '../../Time/ReadableDate';

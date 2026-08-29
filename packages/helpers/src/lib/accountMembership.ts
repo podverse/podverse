@@ -1,3 +1,5 @@
+import { ONE_DAY_MS } from './timeConstants.js';
+
 export enum AccountMembershipEnum {
   Trial = 1,
   Premium = 2,
@@ -54,7 +56,6 @@ export function isMembershipExpiredAt(membershipExpiresAt: MembershipExpiresAtIn
  */
 export const MEMBERSHIP_EXPIRY_WARNING_DAYS = 14;
 
-const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export type MembershipExpiryStatus = 'none' | 'expiring_soon' | 'expired';
 
@@ -91,7 +92,7 @@ export function getMembershipExpiryNotice(
     return { status: 'expired', daysRemaining: 0 };
   }
 
-  const daysRemaining = Math.ceil(remainingMs / MILLISECONDS_PER_DAY);
+  const daysRemaining = Math.ceil(remainingMs / ONE_DAY_MS);
   if (daysRemaining > MEMBERSHIP_EXPIRY_WARNING_DAYS) {
     return { status: 'none', daysRemaining };
   }

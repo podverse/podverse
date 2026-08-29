@@ -6,20 +6,20 @@ import { notificationsRepository } from '../data/repositories';
 
 const DEFAULT_POLL_INTERVAL_MS = 60000;
 
-const seenEventListeners = new Set<() => void>();
+const readEventListeners = new Set<() => void>();
 
-export const emitNotificationsSeenEvent = (): void => {
-  for (const notify of seenEventListeners) {
+export const emitNotificationsReadEvent = (): void => {
+  for (const notify of readEventListeners) {
     notify();
   }
 };
 
-export const useNotificationsUnseenCount = (
+export const useNotificationsUnreadCount = (
   params: { enabled: boolean; pollIntervalMs?: number } = { enabled: true }
 ): number => {
   const { enabled, pollIntervalMs = DEFAULT_POLL_INTERVAL_MS } = params;
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
-  const [unseenCount, setUnseenCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const requestContext = useMemo(() => {
     return {
@@ -30,28 +30,28 @@ export const useNotificationsUnseenCount = (
     };
   }, [accessToken, clearSession, refreshToken, setTokens]);
 
-  const refreshUnseenCount = useCallback(async () => {
+  const refreshUnreadCount = useCallback(async () => {
     if (!enabled || status !== 'authenticated') {
-      setUnseenCount(0);
+      setUnreadCount(0);
       return;
     }
 
     try {
-      const nextCount = await notificationsRepository.getUnseenCount(requestContext);
-      setUnseenCount(Math.max(0, nextCount));
+      const nextCount = await notificationsRepository.getUnreadCount(requestContext);
+      setUnreadCount(Math.max(0, nextCount));
     } catch (error) {
-      console.warn('Could not refresh mobile notifications unseen count', error);
+      console.warn('Could not refresh mobile notifications unread count', error);
     }
   }, [enabled, requestContext, status]);
 
   useEffect(() => {
-    void refreshUnseenCount();
-  }, [refreshUnseenCount]);
+    void refreshUnreadCount();
+  }, [refreshUnreadCount]);
 
   useFocusEffect(
     useCallback(() => {
-      void refreshUnseenCount();
-    }, [refreshUnseenCount])
+      void refreshUnreadCount();
+    }, [refreshUnreadCount])
   );
 
   useEffect(() => {
@@ -60,24 +60,24 @@ export const useNotificationsUnseenCount = (
     }
 
     const intervalId = setInterval(() => {
-      void refreshUnseenCount();
+      void refreshUnreadCount();
     }, pollIntervalMs);
 
     return () => {
       clearInterval(intervalId);
     };
-  }, [enabled, pollIntervalMs, refreshUnseenCount, status]);
+  }, [enabled, pollIntervalMs, refreshUnreadCount, status]);
 
   useEffect(() => {
-    const onSeenEvent = () => {
-      void refreshUnseenCount();
+    const onReadEvent = () => {
+      void refreshUnreadCount();
     };
 
-    seenEventListeners.add(onSeenEvent);
+    readEventListeners.add(onReadEvent);
     return () => {
-      seenEventListeners.delete(onSeenEvent);
+      readEventListeners.delete(onReadEvent);
     };
-  }, [refreshUnseenCount]);
+  }, [refreshUnreadCount]);
 
-  return unseenCount;
+  return unreadCount;
 };

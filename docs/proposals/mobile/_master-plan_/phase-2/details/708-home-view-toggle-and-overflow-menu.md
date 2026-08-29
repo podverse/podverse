@@ -85,7 +85,7 @@ than by asking storage again.
 
 ```bash
 npm run lint
-npm run test -w apps/mobile
+npm --prefix apps/mobile run test
 npm run mobile:e2e:test -- home
 npm run mobile:e2e:test -- subscriptions-anonymous
 ```

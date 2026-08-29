@@ -77,6 +77,8 @@ Signed-out users get this too; see
 
 ## Related
 
+- [`dto-changes-are-device-data-migrations`](/.cursor/rules/dto-changes-are-device-data-migrations.mdc)
+  — `payload_json` columns hold whole DTOs, so changing one rewrites data already on phones
 - **mobile-playback** — playback policy + native bridge
 - **mobile-carplay-android-auto** rule — native cache fed from repository writes
 - [DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md §4.1](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md)

@@ -14,7 +14,10 @@ import { getCuratedStaticPageMetadata } from '../../lib/seo/curatedPageMetadata'
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import type { ArtistsFilterDefaults } from '../../utils/localSettings/localSettings';
-import { getParsedLocalSettings } from '../../utils/localSettings/localSettings';
+import {
+  getFilterDefaultsForPage,
+  getParsedLocalSettings,
+} from '../../utils/localSettings/localSettings';
 import { ArtistsPageClient } from './ArtistsPageClient';
 import type { ArtistsPageDropdownConfigCurrentParams } from './ArtistsPageDropdownConfig';
 import { getArtistsPageFilterParams } from './ArtistsPageDropdownConfig';
@@ -45,7 +48,7 @@ export default async function ArtistsPage({ searchParams }: ArtistsPageProps) {
 
   const cookieStore = await cookies();
   const ssrLocalSettings = getParsedLocalSettings(cookieStore);
-  const ssrFilterDefaults = ssrLocalSettings.fd?.artists;
+  const ssrFilterDefaults = getFilterDefaultsForPage(ssrLocalSettings, 'artists');
 
   const queryParams = await searchParams;
   const { currentType, currentSort, currentRange, currentPage } = await parseSearchParams(

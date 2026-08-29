@@ -2,20 +2,21 @@
 
 **Master step:** P2.4.5
 **Model (author + implement):** Opus 5
-**Status:** planned
+**Status:** done — column, endpoints, DTO, helpers, hooks, components, i18n and event renamed;
+retention env-configurable and applied to stored rows
 
 ## Scope
 
-Notifications currently use **seen/unseen** vocabulary across the ORM, API, request helpers, and web.
-Channel content is taking over "seen"
+Notifications used **seen/unseen** vocabulary across the ORM, API, request helpers, and web. Channel
+content is taking over "seen"
 ([703-channel-seen-state](/docs/proposals/mobile/_master-plan_/phase-2/details/703-channel-seen-state.md)),
 so notifications move to **read/unread**.
 
 This is a **breaking cross-surface rename**, not a copy change. It touches every layer.
 
-### What exists today
+### What the rename covered
 
-| Layer             | Current name                                                                        |
+| Layer             | Former name                                                                         |
 | ----------------- | ----------------------------------------------------------------------------------- |
 | ORM               | `Account.notifications_last_seen_at`                                                |
 | API routes        | `GET /account/notifications/unseen-count`, `POST /account/notifications/mark-seen`  |
@@ -29,9 +30,14 @@ This is a **breaking cross-surface rename**, not a copy change. It touches every
 ### Rename
 
 Every one of the above moves to read/unread — column, endpoints, DTO field, helpers, hooks,
-components, i18n keys, and the browser event name. Coordinate the API change with clients so an
-older mobile build does not break: version or dual-serve the endpoints through one release, then
-retire the old names.
+components, i18n keys, and the browser event name.
+
+**The API speaks one vocabulary.** `GET /account/notifications/unread-count` and
+`POST /account/notifications/mark-read` are the endpoints; the list response carries `unread_count`,
+`last_read_at`, and `is_unread` per item. No compatibility aliases were kept: nothing was deployed
+under the old names, so there is no client to carry and no second spelling for a future reader to
+wonder about. Notifications are the only thing that is read/unread and channels are the only thing
+that is seen/unseen, which is what makes either word unambiguous in a field name or a log line.
 
 ### Retention — verify, do not rebuild
 
@@ -43,6 +49,15 @@ Retention **already exists** and does not need to be created:
 In scope here: confirm the window is right, make it **env-configurable** rather than hardcoded, with
 startup validation and documentation in the relevant `.env.example`. Present the inbox as a **recent
 activity** view so pruning is not perceived as data loss.
+
+**What confirming it found.** The purge asked for rows whose `expires_at` was more than a month in
+the past, so a row created with the default one-month expiry survived roughly two months rather than
+one — the window was being applied twice. The purge now deletes anything past its own `expires_at`,
+which is what that column is for, plus anything older than `NOTIFICATION_RETENTION_DAYS` (default 30,
+validated at startup, documented in `apps/workers/.env.example`). The window applies to rows already
+stored, so shortening it takes effect on the next run instead of only on rows inserted afterwards.
+Terminal scheduled jobs keep their own separate month: they are an operational record, not something
+a user reads.
 
 ### Decoupling
 
@@ -57,7 +72,7 @@ Notifications remain **membership** tier, inbox and push alike.
 - No seen/unseen vocabulary remains in notification code paths on any surface; read/unread is used
   consistently in the column, endpoints, DTO, helpers, hooks, components, i18n, and events.
 - A linear migration renames the column; the ORM entity and DTO match.
-- The API transition does not break an older mobile client mid-rollout.
+- The API exposes read/unread only — no seen-named notification route or response field.
 - Retention window is env-configured with startup validation and documented; no default in
   `config/index.ts`.
 - The purge job still deletes expired rows and is safe to re-run.
@@ -72,7 +87,7 @@ Notifications remain **membership** tier, inbox and push alike.
 - `apps/api/src/routes/account.ts`, `apps/api/src/controllers/account/accountNotification.ts`,
   `apps/api/src/lib/accountNotificationApiSerialization.ts`
 - `packages/helpers-requests/src/api/account/notification/notifications.ts`
-- `apps/web/src/app/notifications/`, `apps/web/src/hooks/useNotificationsUnseenCount.ts`,
+- `apps/web/src/app/notifications/`, `apps/web/src/hooks/useNotificationsUnreadCount.ts`,
   `apps/web/src/components/NavBar/NotificationBellButton.tsx`
 - `apps/workers/src/commands/orm/notifications/platformPurge.ts`
 - Skills: **linear-db-migrations**, **swagger-openapi**, **i18n**
@@ -83,6 +98,6 @@ Notifications remain **membership** tier, inbox and push alike.
 npm run lint
 npm run test:unit
 npm run test:e2e:api
-make e2e_test_web_report_spec SPEC=e2e/notifications.spec.ts
-npm run mobile:e2e:test -- push
+make e2e_test_web_report_spec SPEC=e2e/notifications-inbox.spec.ts
+npm run mobile:e2e:test -- notifications-inbox
 ```

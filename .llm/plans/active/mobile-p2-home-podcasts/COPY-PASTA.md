@@ -197,7 +197,7 @@ page — resolve that explicitly and say which approach you chose and why.
 Verify with Playwright, not Maestro. Do not run tests; end with operator verification commands.
 ```
 
-- [ ] **15 — Mobile per-instance sort preferences**
+- [x] **15 — Mobile per-instance sort preferences**
 
 **Cursor model:** Opus 5 · **Reasoning:** high
 
@@ -209,7 +209,7 @@ hold two different sorts. Device-local only — no column, no endpoint. Free tex
 Do not run tests; end with operator verification commands.
 ```
 
-- [ ] **16 — Web filter and sort persistence**
+- [x] **16 — Web filter and sort persistence**
 
 **Cursor model:** Opus 5 · **Reasoning:** high
 
@@ -223,7 +223,7 @@ unreachable on SSR.
 Verify with Playwright, not Maestro. Do not run tests; end with operator verification commands.
 ```
 
-- [ ] **17 — Notifications read/unread rename**
+- [x] **17 — Notifications read/unread rename**
 
 **Cursor model:** Opus 5 · **Reasoning:** extra high
 
@@ -236,12 +236,34 @@ env-configurable rather than building it.
 Do not run tests; end with operator verification commands.
 ```
 
-- [ ] **18 — Record deferrals and close the set**
+- [x] **18 — Record deferrals and close the set** — done, plan archived to
+      `.llm/plans/completed/mobile-p2-home-podcasts/18-record-deferrals.md`
 
-**Cursor model:** Auto · **Reasoning:** low
+All four deferrals (710, 711, 896, 897) were checked against the code and still describe it. Every
+detail doc for prompts 01–17 now reads `**Status:** done`, and the P2.1, P2.4, P2.5, and appendix
+tables in the Phase 2 master plan agree with them; `implemented` and `complete` were normalized away,
+and the deferral docs moved from `draft` to `deferred`. The **areas** P2.1.1 and P2.1.3 stay open
+because an area closes on the operator's device review, not on implemented steps. Verifying 896 turned
+up that `tablet.yaml` asserts a mini player the tablet branch never mounts, which is recorded there
+rather than fixed.
 
-```text
-Read and execute .llm/plans/active/mobile-p2-home-podcasts/18-record-deferrals.md
-Documentation only. Reconcile all statuses, then end with the cumulative verification commands
-for the entire set in one fenced bash block, covering both web (Playwright) and mobile (Maestro).
+---
+
+## What is left
+
+All eighteen prompts are implemented. Two things remain, and both are the operator's:
+
+1. **Run the verification commands** at the end of the prompt-18 response. Nothing in this set was
+   tested during implementation, by design.
+2. **Review the Home (podcasts) and Search screens on a device.** In Phase 2 an area closes on that
+   review, not on a passing suite — which is why P2.1.1 and P2.1.3 are still open in the master plan
+   while every step under them reads `done`.
+
+Once the area is signed off, retire this directory. The durable record is already in the Phase 2
+detail docs and the master plan, so nothing is lost:
+
+```bash
+git mv .llm/plans/active/mobile-p2-home-podcasts .llm/plans/completed/
 ```
+
+`00-SUMMARY.md` is linked from the Phase 2 master plan, so update that link in the same commit.

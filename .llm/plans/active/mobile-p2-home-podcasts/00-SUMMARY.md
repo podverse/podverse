@@ -258,8 +258,8 @@ This set is mobile-focused but is **not** mobile-only. Per
 | -------------------------- | --------------------------------------------------------------------------------------- |
 | `packages/orm`             | Per-channel seen state; notifications column rename + linear migration                   |
 | `apps/api`                 | Seen-state endpoints, bulk follow endpoint, renamed notification endpoints               |
-| `packages/helpers`         | DTO field rename; seen-count DTOs; **sort-pref scope key builder** shared with web        |
-| `packages/helpers-requests`| Shared tier resolver; renamed notification request helpers                               |
+| `packages/helpers`         | **Access-tier resolver**; DTO field rename; seen-count DTOs; **sort-pref scope key builder** shared with web |
+| `packages/helpers-requests`| `accessDenialReasonFromGate`, the HTTP-shaped half of the tier seam; renamed notification request helpers |
 | `apps/web`                 | Writes seen state, displays unseen counts, gains the filter input, notifications rename, `useMembershipGate` refactor, **per-instance filter/sort persistence** |
 | `apps/workers`             | Retention window becomes env-configurable                                                |
 | `packages/i18n-catalog`    | New shared keys in `consumer`; renamed notification keys                                 |

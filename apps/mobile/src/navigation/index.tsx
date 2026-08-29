@@ -24,7 +24,7 @@ import type { MenuListItem } from '../components/screen/MenuListScreen';
 import { MenuListScreen } from '../components/screen/MenuListScreen';
 import { getMobileConfig } from '../config';
 import { buildMobileLinkPrefixes } from '../config/deepLinkSchemes';
-import { useNotificationsUnseenCount } from '../hooks/useNotificationsUnseenCount';
+import { useNotificationsUnreadCount } from '../hooks/useNotificationsUnreadCount';
 import { useMembership } from '../membership/useMembership';
 import { PlaybackE2eStatus } from '../playback/PlaybackE2eStatus';
 import type { HomeMediaType } from '../prefs/preferredMediaType';
@@ -880,7 +880,7 @@ function TabScaffold({
 }: TabScaffoldProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
-  const notificationsUnseenCount = useNotificationsUnseenCount({ enabled: true });
+  const notificationsUnreadCount = useNotificationsUnreadCount({ enabled: true });
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isTabletLayout = width >= MOBILE_TABLET_NAV_MIN_WIDTH;
@@ -940,7 +940,7 @@ function TabScaffold({
         component={NotificationsStackNavigator}
         name="Notifications"
         options={{
-          tabBarBadge: notificationsUnseenCount > 0 ? notificationsUnseenCount : undefined,
+          tabBarBadge: notificationsUnreadCount > 0 ? notificationsUnreadCount : undefined,
           tabBarIcon: tabBarIcon('notifications'),
           tabBarLabel: t('nav.tab.notifications'),
           tabBarButtonTestID: 'tab-notifications',

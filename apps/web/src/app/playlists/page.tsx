@@ -18,7 +18,10 @@ import { getCuratedStaticPageMetadata } from '../../lib/seo/curatedPageMetadata'
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import type { PlaylistsFilterDefaults } from '../../utils/localSettings/localSettings';
-import { getParsedLocalSettings } from '../../utils/localSettings/localSettings';
+import {
+  getFilterDefaultsForPage,
+  getParsedLocalSettings,
+} from '../../utils/localSettings/localSettings';
 import { PlaylistsPageClient } from './PlaylistsPageClient';
 import { getPlaylistsPageFilterParams } from './PlaylistsPageDropdownConfig';
 
@@ -49,7 +52,7 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
 
   const cookieStore = await cookies();
   const ssrLocalSettings = getParsedLocalSettings(cookieStore);
-  const ssrFilterDefaults = ssrLocalSettings.fd?.playlists;
+  const ssrFilterDefaults = getFilterDefaultsForPage(ssrLocalSettings, 'playlists');
 
   const queryParams = await searchParams;
   const { currentType, currentSort, currentRange, currentMedium, currentPage } =

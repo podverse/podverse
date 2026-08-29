@@ -18,6 +18,7 @@ import { PodcastPageListHeader } from './PodcastPageListHeader';
 import { PodcastPageSideContent } from './PodcastPageSideContent';
 
 interface PodcastPageClientProps {
+  hasExplicitUrlParams: boolean;
   initialQueryParams: QueryParamsChannel;
   ssrChannel: DTOChannel;
   ssrItemsWithLiveItem: DTOItem[];
@@ -31,6 +32,7 @@ interface PodcastPageClientProps {
 
 export function PodcastPageClient(props: PodcastPageClientProps) {
   const {
+    hasExplicitUrlParams,
     initialQueryParams,
     ssrChannel,
     ssrItemsWithLiveItem,
@@ -48,7 +50,9 @@ export function PodcastPageClient(props: PodcastPageClientProps) {
 
   return (
     <PodcastPageContextProvider
+      hasExplicitUrlParams={hasExplicitUrlParams}
       initialQueryParams={initialQueryParams}
+      ssrChannelIdText={ssrChannel.id_text}
       ssrItemsWithLiveItem={ssrItemsWithLiveItem}
       ssrItems={ssrItems}
       ssrClips={ssrClips}

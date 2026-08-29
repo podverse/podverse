@@ -1,6 +1,11 @@
 import type { CommandLineArgs } from '@workers/commands/index.js';
 import { getLogger } from '@workers/factories/logger.js';
 
+import {
+  computeExponentialBackoffDelayMs,
+  FIVE_MINUTES_MS,
+  getErrorMessage,
+} from '@podverse/helpers';
 import type { ScheduledJob } from '@podverse/orm';
 import {
   ADMIN_NOTIFICATION_SEND_JOB_TYPE,
@@ -19,7 +24,7 @@ type JobHandler = (job: ScheduledJob) => Promise<JobHandlerResult>;
 
 const DEFAULT_CLAIM_LIMIT = 50;
 const STALE_LOCK_MINUTES = 15;
-const BASE_BACKOFF_MS = 5 * 60 * 1000;
+const BASE_BACKOFF_MS = FIVE_MINUTES_MS;
 
 function parseLimit(args: CommandLineArgs): number {
   const rawLimit = args.limit;
@@ -46,18 +51,6 @@ function resolveWorkerId(): string {
   }
 
   return `local-${process.pid}`;
-}
-
-function calculateBackoffMs(attempts: number): number {
-  return BASE_BACKOFF_MS * Math.pow(2, attempts);
-}
-
-function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return String(error);
 }
 
 const handleAdminNotificationSend: JobHandler = async (job) => {
@@ -148,9 +141,9 @@ export const scheduledJobsRunDue = async (args: CommandLineArgs) => {
         logger.info(`scheduledJobsRunDue completed id=${job.id} dedupe_key=${job.dedupe_key}`);
       }
     } catch (error) {
-      const errorMessage = getErrorMessage(error);
+      const errorMessage = getErrorMessage(error, 'Unknown error');
       if (job.attempts < job.max_attempts) {
-        const backoffMs = calculateBackoffMs(job.attempts);
+        const backoffMs = computeExponentialBackoffDelayMs(job.attempts, BASE_BACKOFF_MS);
         await scheduledJobService.requeueWithBackoff(job.id, errorMessage, backoffMs);
         logger.warn(
           `scheduledJobsRunDue requeued id=${job.id} dedupe_key=${job.dedupe_key} attempts=${job.attempts}/${job.max_attempts} backoff_ms=${backoffMs} error="${errorMessage}"`

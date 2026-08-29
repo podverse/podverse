@@ -1,4 +1,5 @@
 import type { SortPrefScope } from '@podverse/helpers';
+import { pickSortPrefToken } from '@podverse/helpers';
 
 import { readSortPref, writeSortPref } from './sortPrefs';
 
@@ -68,24 +69,6 @@ const itemScope = (itemIdText: string): SortPrefScope => {
   return { idText: itemIdText, kind: 'item' };
 };
 
-/**
- * A stored token, or the default when it is missing or not one this build offers.
- *
- * Storage outlives the code that wrote it, so a value from an older build — or one hand-edited on a
- * rooted device — has to read as "no preference" rather than reach a query. Falling back is silent
- * on purpose: the screen has a documented default and the next selection overwrites the entry.
- */
-const pickStoredToken = <T extends string>(
-  stored: string | undefined,
-  allowed: readonly T[],
-  fallback: T
-): T => {
-  if (stored === undefined) {
-    return fallback;
-  }
-  return allowed.find((option) => option === stored) ?? fallback;
-};
-
 export type PodcastDetailPrefs = {
   sort: PodcastEpisodeSort;
 };
@@ -102,7 +85,7 @@ export const readPodcastDetailPrefs = async (
 ): Promise<PodcastDetailPrefs> => {
   const stored = await readSortPref(channelScope(channelIdText));
   return {
-    sort: pickStoredToken(
+    sort: pickSortPrefToken(
       stored?.sort,
       PODCAST_EPISODE_SORT_OPTIONS,
       DEFAULT_PODCAST_EPISODE_SORT
@@ -124,7 +107,7 @@ export type AlbumDetailPrefs = {
 export const readAlbumDetailPrefs = async (channelIdText: string): Promise<AlbumDetailPrefs> => {
   const stored = await readSortPref(channelScope(channelIdText));
   return {
-    sort: pickStoredToken(stored?.sort, ALBUM_TRACK_SORT_OPTIONS, DEFAULT_ALBUM_TRACK_SORT),
+    sort: pickSortPrefToken(stored?.sort, ALBUM_TRACK_SORT_OPTIONS, DEFAULT_ALBUM_TRACK_SORT),
   };
 };
 
@@ -153,8 +136,8 @@ export type EpisodeDetailPrefs = {
 export const readEpisodeDetailPrefs = async (itemIdText: string): Promise<EpisodeDetailPrefs> => {
   const stored = await readSortPref(itemScope(itemIdText));
   return {
-    clipSort: pickStoredToken(stored?.sort, EPISODE_CLIP_SORT_OPTIONS, DEFAULT_EPISODE_CLIP_SORT),
-    tab: pickStoredToken(stored?.tab, EPISODE_TABS, DEFAULT_EPISODE_TAB),
+    clipSort: pickSortPrefToken(stored?.sort, EPISODE_CLIP_SORT_OPTIONS, DEFAULT_EPISODE_CLIP_SORT),
+    tab: pickSortPrefToken(stored?.tab, EPISODE_TABS, DEFAULT_EPISODE_TAB),
   };
 };
 

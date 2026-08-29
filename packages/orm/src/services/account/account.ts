@@ -329,7 +329,7 @@ export class AccountService {
     await this.repositoryReadWrite.remove(account);
   }
 
-  async updateNotificationsLastSeenAt(account_id: number, seenAt: Date): Promise<Date> {
+  async updateNotificationsLastReadAt(account_id: number, readAt: Date): Promise<Date> {
     const account = await this.repositoryReadWrite.findOne({
       where: { id: account_id },
     });
@@ -338,10 +338,10 @@ export class AccountService {
       throw new Error('Account not found');
     }
 
-    account.notifications_last_seen_at = seenAt;
+    account.notifications_last_read_at = readAt;
     await this.repositoryReadWrite.save(account);
 
-    return seenAt;
+    return readAt;
   }
 
   private async ensureAccountSettings(

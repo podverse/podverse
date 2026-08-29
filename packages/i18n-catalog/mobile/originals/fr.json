@@ -46,7 +46,7 @@
   "notifications": {
     "section": {
       "earlier": "Plus anciennes",
-      "new": "Nouvelles"
+      "unread": "Non lues"
     }
   },
   "settings": {

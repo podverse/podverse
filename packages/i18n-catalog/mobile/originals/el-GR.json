@@ -46,7 +46,7 @@
   "notifications": {
     "section": {
       "earlier": "Παλαιότερες",
-      "new": "Νέες"
+      "unread": "Μη αναγνωσμένες"
     }
   },
   "settings": {

@@ -13,6 +13,8 @@ import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import { usePageStateCache } from '../../../hooks/usePageStateCache';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
+import { useSortPref } from '../../../hooks/useSortPref';
+import { buildDetailSortPrefPatch } from '../../../utils/localSettings/detailSortPrefs';
 import { definedProps, getPageState } from '../../../utils/pageStateCache';
 import { getAlbumPageFilterParams } from './AlbumPageDropdownConfig';
 
@@ -37,7 +39,9 @@ const AlbumPageContext = createContext<AlbumPageContextType | undefined>(undefin
 
 interface AlbumPageContextProviderProps {
   children: ReactNode;
+  hasExplicitUrlParams: boolean;
   initialQueryParams: QueryParamsChannelMusicAlbum;
+  ssrChannelIdText: string;
   ssrItemsWithLiveItem: DTOItem[];
   ssrItems: DTOItem[];
   ssrTotalPages: number;
@@ -45,7 +49,9 @@ interface AlbumPageContextProviderProps {
 
 export const AlbumPageContextProvider = ({
   children,
+  hasExplicitUrlParams,
   initialQueryParams,
+  ssrChannelIdText,
   ssrItemsWithLiveItem,
   ssrItems,
   ssrTotalPages,
@@ -76,6 +82,16 @@ export const AlbumPageContextProvider = ({
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { loggedInAccount } = useAccount();
+
+  useSortPref({
+    hasExplicitUrlParams,
+    scope: { idText: ssrChannelIdText, kind: 'channel' },
+    values: buildDetailSortPrefPatch({
+      range: filterParams.range,
+      sort: filterParams.sort,
+      tab: filterParams.type,
+    }),
+  });
 
   // Hook to save/restore page state for back navigation
   usePageStateCache<QueryParamsChannelMusicAlbum, AlbumPageCachedData>({

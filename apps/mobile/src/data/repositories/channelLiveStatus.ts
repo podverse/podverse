@@ -1,3 +1,4 @@
+import { ONE_HOUR_MS } from '@podverse/helpers';
 import { LiveItemStatusEnum } from '@podverse/helpers/dto';
 
 import type { SubscriptionKind } from './types';
@@ -18,7 +19,7 @@ import type { SubscriptionKind } from './types';
  * Monday still insisting three shows are live. An hour comfortably outlasts the gap between
  * foreground syncs while being far shorter than the mistake it prevents.
  */
-export const LIVE_STATUS_MAX_AGE_MS = 60 * 60 * 1000;
+export const LIVE_STATUS_MAX_AGE_MS = ONE_HOUR_MS;
 
 export type ChannelLiveStatusEntry = {
   subscriptionKey: string;

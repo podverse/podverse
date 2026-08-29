@@ -25,6 +25,7 @@ the reverse is equally true.
 | Change to a **shared package**            | All dependents — check the dependency graph, not just your app           |
 | **Cross-device state** of any kind        | Every device is a client; if one device can change it, all must read it  |
 | New **vocabulary** in a shared DTO or API | Renaming a shipped field is a breaking change across all surfaces        |
+| Any change to a **persisted DTO**         | Mobile stored it on disk — see `dto-changes-are-device-data-migrations` |
 | New user-facing **string**                | Catalog layer choice: `shared` / `consumer` vs mobile-only `mobile`      |
 | New **entitlement or gate**               | The gate must agree on every surface, or users see contradictory access  |
 | **Feature parity** decisions              | Diverging is fine; diverging *accidentally* is not                       |
@@ -56,6 +57,8 @@ is a mandatory question trigger, not a judgment call to make quietly.
 
 ## Related
 
+- [`dto-changes-are-device-data-migrations`](/.cursor/rules/dto-changes-are-device-data-migrations.mdc)
+  — why a DTO rename outlives the build that made it
 - **mobile-legacy-screenshot-planning** — mandatory question triggers during Phase 2 planning
 - **architecture-tier-dependencies** — which packages may depend on which
 - **swagger-openapi** / **openapi-sync** — API surface changes

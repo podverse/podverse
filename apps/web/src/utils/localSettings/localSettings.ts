@@ -4,8 +4,11 @@ import type {
   MediaTypePreference,
   QueryParamsMedium,
   QueryParamsQueueMedium,
+  SortPrefScope,
+  SortPrefValue,
 } from '@podverse/helpers';
-import { DEFAULT_MEDIA_TYPE_PREFERENCE } from '@podverse/helpers';
+import { buildSortPrefScopeKey, DEFAULT_MEDIA_TYPE_PREFERENCE } from '@podverse/helpers';
+import { clearCookie, readCookie, writeCookie } from '@podverse/helpers-browser';
 import type {
   QueryParamsHomeSort,
   QueryParamsPlaylistsType,
@@ -21,7 +24,14 @@ import {
   COOKIE_CONSENT_MODEL_VERSION,
   normalizeCookieConsentState,
 } from '../../lib/cookieConsent/cookieConsentPolicy';
-import { clearCookie, readCookie, writeCookie } from '../cookie';
+import type { SortPrefStore } from './sortPrefs';
+import {
+  parseSortPrefStore,
+  readSortPrefFromStore,
+  touchSortPrefInStore,
+  trimSortPrefStoreToFit,
+  writeSortPrefIntoStore,
+} from './sortPrefs';
 import type { UITheme } from './uiTheme';
 import { getDefaultTheme, setUIThemeOnDocument, toUITheme } from './uiTheme';
 
@@ -40,6 +50,7 @@ LocalSettingsState Legend:
   - bfd = boostFormDefaults (per value type: send to creator, send to app, your name)
   - cc = cookieConsent (device-level cookie banner choice)
   - pmt = preferredMediaType (default media player enclosure preference: 'audio' | 'video')
+  - sp = sortPrefs (per-instance list preferences, MRU-ordered — see ./sortPrefs.ts)
 */
 
 export type CookieConsentChoice = 'all' | 'essential' | 'none';
@@ -186,6 +197,7 @@ export interface LocalSettingsState {
   bfd?: BoostFormDefaultsByValueKey;
   cc?: CookieConsentState;
   pmt?: MediaTypePreference; // preferredMediaType (default media player enclosure preference)
+  sp?: SortPrefStore; // sortPrefs (per-instance list preferences, MRU-ordered)
 }
 
 export function handleLocalSettingsUpdate(newState: LocalSettingsState) {
@@ -243,6 +255,7 @@ function getDefaultLocalSettings(): LocalSettingsState {
     fd: {},
     bfd: {},
     pmt: DEFAULT_MEDIA_TYPE_PREFERENCE,
+    sp: [],
   };
 }
 
@@ -335,6 +348,9 @@ export function getParsedLocalSettings(cookieStore?: CookieStore): LocalSettings
       },
       bfd: parsed.bfd !== undefined ? (parsed.bfd as BoostFormDefaultsByValueKey) : defaults.bfd,
       cc,
+      // Sanitized rather than validated: a hand-edited or outdated entry should cost that one
+      // screen its memory, not invalidate the cookie and reset the user's theme along with it.
+      sp: parseSortPrefStore(parsed.sp),
     };
   } catch {
     if (!isServer) {
@@ -365,19 +381,89 @@ export type FilterDefaultsForPage<T extends FilterDefaultsPage> = T extends 'hom
                   ? ArtistsFilterDefaults
                   : T extends 'clips'
                     ? ClipsFilterDefaults
-                    : never;
+                    : T extends 'profiles'
+                      ? ProfilesFilterDefaults
+                      : never;
 
+/**
+ * The `fd` bucket key for a global list, derived by the shared builder.
+ *
+ * A global list has exactly one instance, so its name is the whole scope. Routing it through the
+ * builder rather than indexing `fd` directly is what keeps web and mobile deriving keys the same
+ * way, and it rejects a name that could not make a usable key.
+ */
+function getFilterDefaultsKey<T extends FilterDefaultsPage>(page: T): T | null {
+  return buildSortPrefScopeKey({ kind: 'list', name: page }) === page ? page : null;
+}
+
+export function getFilterDefaultsForPage<T extends FilterDefaultsPage>(
+  settings: LocalSettingsState,
+  page: T
+): FilterDefaults[T] {
+  const key = getFilterDefaultsKey(page);
+  return key === null ? undefined : settings.fd?.[key];
+}
+
+/**
+ * Persist a global list's filter and sort selections.
+ *
+ * Generic over the page so the stored value is checked against that page's own shape: the eleven
+ * lists do not share a control set, and a plain record here would let `albums` be written with a
+ * `category` no reader ever looks for.
+ */
 export function updateFilterDefaults<T extends FilterDefaultsPage>(
   page: T,
-  filters: FilterDefaultsForPage<T>
+  filters: FilterDefaults[T]
 ) {
-  const settings = getParsedLocalSettings();
-  // Create a shallow copy to avoid mutating the reference
-  const newSettings = { ...settings };
-
-  if (!newSettings.fd) {
-    newSettings.fd = {};
+  const key = getFilterDefaultsKey(page);
+  if (key === null) {
+    return;
   }
-  (newSettings.fd as Record<FilterDefaultsPage, FilterDefaultsForPage<T>>)[page] = filters;
-  handleLocalSettingsUpdate(newSettings);
+
+  const settings = getParsedLocalSettings();
+  const fd: FilterDefaults = { ...settings.fd };
+  fd[key] = filters;
+  handleLocalSettingsUpdate({ ...settings, fd });
+}
+
+/**
+ * What this instance remembers, or `null` when it has nothing stored.
+ *
+ * Takes the already-parsed settings so a server render reads the cookie once and answers for
+ * whichever scopes the page needs.
+ */
+export function getStoredSortPref(
+  settings: LocalSettingsState,
+  scope: SortPrefScope
+): SortPrefValue | null {
+  return readSortPrefFromStore(settings.sp ?? [], scope);
+}
+
+function persistSortPrefStore(settings: LocalSettingsState, store: SortPrefStore): void {
+  const trimmed = trimSortPrefStoreToFit(store, (candidate) =>
+    encodeURIComponent(JSON.stringify({ ...settings, sp: candidate }))
+  );
+  handleLocalSettingsUpdate({ ...settings, sp: trimmed });
+}
+
+/** Remember a selection for one instance, promoting it to the front of the recency window. */
+export function updateStoredSortPref(scope: SortPrefScope, patch: SortPrefValue): void {
+  const settings = getParsedLocalSettings();
+  persistSortPrefStore(settings, writeSortPrefIntoStore(settings.sp ?? [], scope, patch));
+}
+
+/**
+ * Mark an instance as recently used, so revisiting a screen keeps it in the window.
+ *
+ * A no-op when nothing is stored for the scope, which keeps screens the user has never customised
+ * from taking a slot away from ones they have.
+ */
+export function touchStoredSortPref(scope: SortPrefScope): void {
+  const settings = getParsedLocalSettings();
+  const store = settings.sp ?? [];
+  const touched = touchSortPrefInStore(store, scope);
+  if (touched === store) {
+    return;
+  }
+  persistSortPrefStore(settings, touched);
 }

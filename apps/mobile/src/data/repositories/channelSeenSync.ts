@@ -1,3 +1,5 @@
+import { toEpochMsOrNull } from '@podverse/helpers';
+
 import type { SubscriptionKind } from './types';
 
 /**
@@ -47,7 +49,7 @@ export const reconcileSeenState = (
   const push: SeenEntry[] = [];
 
   for (const { remoteLastSeenAt, subscriptionKey } of remote) {
-    const remoteMs = parseTimestampMs(remoteLastSeenAt);
+    const remoteMs = toEpochMsOrNull(remoteLastSeenAt);
     const localMs = localByKey.get(subscriptionKey) ?? null;
 
     if (remoteMs !== null && (localMs === null || remoteMs > localMs)) {
@@ -85,14 +87,5 @@ export const readAddByRssPubDatesMs = (
     return [];
   }
 
-  return items.map((entry) => parseTimestampMs(entry?.item?.pub_date));
-};
-
-const parseTimestampMs = (value: string | null | undefined): number | null => {
-  if (value === null || value === undefined || value === '') {
-    return null;
-  }
-
-  const parsed = Date.parse(value);
-  return Number.isNaN(parsed) ? null : parsed;
+  return items.map((entry) => toEpochMsOrNull(entry?.item?.pub_date));
 };

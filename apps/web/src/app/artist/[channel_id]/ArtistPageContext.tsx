@@ -8,6 +8,8 @@ import type { QueryParamsChannelMusicArtist } from '@podverse/helpers-requests';
 
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { usePageStateCache } from '../../../hooks/usePageStateCache';
+import { useSortPref } from '../../../hooks/useSortPref';
+import { buildDetailSortPrefPatch } from '../../../utils/localSettings/detailSortPrefs';
 import { definedProps, getPageState } from '../../../utils/pageStateCache';
 
 interface ArtistPageContextType {
@@ -19,12 +21,16 @@ const ArtistPageContext = createContext<ArtistPageContextType | undefined>(undef
 
 interface ArtistPageContextProviderProps {
   children: ReactNode;
+  hasExplicitUrlParams: boolean;
   initialQueryParams: QueryParamsChannelMusicArtist;
+  ssrChannelIdText: string;
 }
 
 export const ArtistPageContextProvider = ({
   children,
+  hasExplicitUrlParams,
   initialQueryParams,
+  ssrChannelIdText,
 }: ArtistPageContextProviderProps) => {
   const params = useParams();
 
@@ -40,6 +46,12 @@ export const ArtistPageContextProvider = ({
   const [filterParams, setFilterParams] = useState<QueryParamsChannelMusicArtist>(
     cachedState?.filterParams ?? initialQueryParams
   );
+
+  useSortPref({
+    hasExplicitUrlParams,
+    scope: { idText: ssrChannelIdText, kind: 'channel' },
+    values: buildDetailSortPrefPatch({ tab: filterParams.type }),
+  });
 
   // Hook to save/restore page state for back navigation (filterParams only)
   usePageStateCache<QueryParamsChannelMusicArtist>({

@@ -14,7 +14,10 @@ import { getCuratedStaticPageMetadata } from '../../lib/seo/curatedPageMetadata'
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import type { ProfilesFilterDefaults } from '../../utils/localSettings/localSettings';
-import { getParsedLocalSettings } from '../../utils/localSettings/localSettings';
+import {
+  getFilterDefaultsForPage,
+  getParsedLocalSettings,
+} from '../../utils/localSettings/localSettings';
 import { ProfilesPageClient } from './ProfilesPageClient';
 import type { ProfilesPageDropdownConfigCurrentParams } from './ProfilesPageDropdownConfig';
 import { getProfilesPageFilterParams } from './ProfilesPageDropdownConfig';
@@ -45,7 +48,7 @@ export default async function ProfilesPage({ searchParams }: ProfilesPageProps) 
 
   const cookieStore = await cookies();
   const ssrLocalSettings = getParsedLocalSettings(cookieStore);
-  const ssrFilterDefaults = ssrLocalSettings.fd?.profiles;
+  const ssrFilterDefaults = getFilterDefaultsForPage(ssrLocalSettings, 'profiles');
 
   const queryParams = await searchParams;
   const { currentType, currentSort, currentRange, currentPage } = await parseSearchParams(

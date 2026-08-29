@@ -1078,7 +1078,7 @@ components:
           type: object
           required:
             - items
-            - last_seen_at
+            - last_read_at
             - pagination
             - sections
           properties:
@@ -1086,7 +1086,7 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/AccountNotificationItem"
-            last_seen_at:
+            last_read_at:
               type: string
               format: date-time
               nullable: true
@@ -1106,29 +1106,29 @@ components:
             sections:
               type: object
               required:
-                - new_count
+                - unread_count
               properties:
-                new_count:
+                unread_count:
                   type: integer
-    ApiGetAccountNotificationsUnseenCountResponse200:
+    ApiGetAccountNotificationsUnreadCountResponse200:
       type: object
       properties:
         data:
           type: object
           required:
-            - unseen_count
+            - unread_count
           properties:
-            unseen_count:
+            unread_count:
               type: integer
-    ApiPostAccountNotificationsMarkSeenResponse200:
+    ApiPostAccountNotificationsMarkReadResponse200:
       type: object
       properties:
         data:
           type: object
           required:
-            - last_seen_at
+            - last_read_at
           properties:
-            last_seen_at:
+            last_read_at:
               type: string
               format: date-time
     ChannelSeenState:
@@ -1261,7 +1261,7 @@ components:
         - title
         - created_at
         - expires_at
-        - is_new
+        - is_unread
       properties:
         id:
           type: integer
@@ -1294,8 +1294,11 @@ components:
         expires_at:
           type: string
           format: date-time
-        is_new:
+        is_unread:
           type: boolean
+          description: >-
+            True until the account opens its inbox after this row was created. Derived per response
+            from the account's last_read_at rather than stored per row.
     AccountNotificationPreference:
       type: object
       required:
@@ -5106,13 +5109,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalServerErrorResponse"
-  /account/notifications/mark-seen:
+  /account/notifications/mark-read:
     post:
-      operationId: apiPostAccountNotificationsMarkSeen
+      operationId: apiPostAccountNotificationsMarkRead
       tags:
         - account
-      summary: POST /account/notifications/mark-seen
-      description: Updates the authenticated account's notifications_last_seen_at timestamp.
+      summary: POST /account/notifications/mark-read
+      description: Updates the authenticated account's notifications_last_read_at timestamp.
       security:
         - bearerAuth: []
         - cookieAuth: []
@@ -5122,7 +5125,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiPostAccountNotificationsMarkSeenResponse200"
+                $ref: "#/components/schemas/ApiPostAccountNotificationsMarkReadResponse200"
         "401":
           description: Unauthorized
           content:
@@ -5135,13 +5138,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalServerErrorResponse"
-  /account/notifications/unseen-count:
+  /account/notifications/unread-count:
     get:
-      operationId: apiGetAccountNotificationsUnseenCount
+      operationId: apiGetAccountNotificationsUnreadCount
       tags:
         - account
-      summary: GET /account/notifications/unseen-count
-      description: Returns the unseen notification count for the authenticated account.
+      summary: GET /account/notifications/unread-count
+      description: Returns the unread notification count for the authenticated account.
       security:
         - bearerAuth: []
         - cookieAuth: []
@@ -5151,7 +5154,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiGetAccountNotificationsUnseenCountResponse200"
+                $ref: "#/components/schemas/ApiGetAccountNotificationsUnreadCountResponse200"
         "401":
           description: Unauthorized
           content:

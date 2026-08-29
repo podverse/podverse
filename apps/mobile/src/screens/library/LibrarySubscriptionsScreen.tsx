@@ -31,9 +31,8 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
   const { columns } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
   const [subscriptions, setSubscriptions] = useState<SubscribedChannel[]>([]);
-  const [subscriptionFilter, setSubscriptionFilter] = useState<SubscriptionListFilter>(
-    DEFAULT_SUBSCRIPTION_FILTER
-  );
+  /** `null` until the remembered chip is in hand, which is what the first read waits on. */
+  const [subscriptionFilter, setSubscriptionFilter] = useState<SubscriptionListFilter | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorKey, setErrorKey] = useState<string | null>(null);
 
@@ -73,10 +72,9 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
 
     void (async () => {
       const storedFilter = await readLibrarySubscriptionFilter();
-      if (!isMounted || storedFilter === null) {
-        return;
+      if (isMounted) {
+        setSubscriptionFilter(storedFilter);
       }
-      setSubscriptionFilter(storedFilter);
     })();
 
     return () => {
@@ -86,11 +84,11 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
 
   // No auth check: subscriptions are device-local, so this list is the same read signed in or
   // out. Gating it on `status` would show "log in" to a signed-out user who has subscriptions.
-  const loadSubscriptions = useCallback(async () => {
+  const loadSubscriptions = useCallback(async (filter: SubscriptionListFilter) => {
     setIsLoading(true);
     setErrorKey(null);
     try {
-      const rows = await subscriptionsRepository.list({ filter: subscriptionFilter });
+      const rows = await subscriptionsRepository.list({ filter });
       setSubscriptions(rows);
     } catch {
       setErrorKey('errors.generic');
@@ -98,11 +96,16 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
     } finally {
       setIsLoading(false);
     }
-  }, [subscriptionFilter]);
+  }, []);
 
+  // Waits on the remembered chip rather than reading with the default and correcting itself, which
+  // would show the wrong list first and read it twice.
   useEffect(() => {
-    void loadSubscriptions();
-  }, [loadSubscriptions]);
+    if (subscriptionFilter === null) {
+      return;
+    }
+    void loadSubscriptions(subscriptionFilter);
+  }, [loadSubscriptions, subscriptionFilter]);
 
   const handleSubscriptionFilterChange = useCallback((filter: SubscriptionListFilter) => {
     setSubscriptionFilter(filter);
@@ -133,7 +136,7 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
         <RetryableError
           errorKey={errorKey}
           onRetry={() => {
-            void loadSubscriptions();
+            void loadSubscriptions(subscriptionFilter ?? DEFAULT_SUBSCRIPTION_FILTER);
           }}
           testID="library-subscriptions-error"
         />
@@ -143,14 +146,14 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
       return <ListEmpty messageKey="misc.info" testID="library-subscriptions-empty" />;
     }
     return null;
-  }, [errorKey, isLoading, loadSubscriptions, subscriptions.length]);
+  }, [errorKey, isLoading, loadSubscriptions, subscriptionFilter, subscriptions.length]);
 
   const renderHeader = (
     <>
       <Text style={styles.heading}>{t('subscriptions.subscriptions')}</Text>
       <SubscriptionFilterControl
         onChange={handleSubscriptionFilterChange}
-        selectedFilter={subscriptionFilter}
+        selectedFilter={subscriptionFilter ?? DEFAULT_SUBSCRIPTION_FILTER}
         testID="library-subscriptions-filter"
       />
     </>

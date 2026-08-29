@@ -114,6 +114,24 @@ export const sanitizeSortPrefValue = (value: unknown): SortPrefValue | null => {
 };
 
 /**
+ * A stored token, or the default when it is missing or not one this build offers.
+ *
+ * Storage outlives the code that wrote it, so a value from an older build — or one hand-edited in a
+ * cookie — has to read as "no preference" rather than reach a query. Falling back is silent on
+ * purpose: the screen has a documented default and the next selection overwrites the entry.
+ */
+export const pickSortPrefToken = <T extends string>(
+  stored: string | undefined,
+  allowed: readonly T[],
+  fallback: T
+): T => {
+  if (stored === undefined) {
+    return fallback;
+  }
+  return allowed.find((option) => option === stored) ?? fallback;
+};
+
+/**
  * Fold a change into an existing preference.
  *
  * Screens write one control at a time — a sort here, a scope chip there — so a write has to leave

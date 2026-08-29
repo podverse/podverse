@@ -11,17 +11,17 @@ const DEFAULT_NOTIFICATIONS_PAGE_LIMIT = 20;
 
 export type NotificationsPage = {
   items: DTOAccountNotification[];
-  newCount: number;
+  unreadCount: number;
   page: number;
   totalPages: number;
 };
 
 export const notificationsRepository = {
-  getUnseenCount: async (context: MobileAuthRequestContext): Promise<number> => {
+  getUnreadCount: async (context: MobileAuthRequestContext): Promise<number> => {
     const response = await requestWithMobileAuthRefresh(context, async (apiRequestService) =>
-      apiRequestService.reqNotificationsUnseenCount()
+      apiRequestService.reqNotificationsUnreadCount()
     );
-    return response.unseen_count;
+    return response.unread_count;
   },
 
   list: async (
@@ -36,15 +36,15 @@ export const notificationsRepository = {
     );
     return {
       items: response.items,
-      newCount: response.sections.new_count,
+      unreadCount: response.sections.unread_count,
       page: response.pagination.page,
       totalPages: response.pagination.total_pages,
     };
   },
 
-  markSeen: async (context: MobileAuthRequestContext): Promise<void> => {
+  markRead: async (context: MobileAuthRequestContext): Promise<void> => {
     await requestWithMobileAuthRefresh(context, async (apiRequestService) =>
-      apiRequestService.reqNotificationsMarkSeen()
+      apiRequestService.reqNotificationsMarkRead()
     );
   },
 

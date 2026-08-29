@@ -52,6 +52,13 @@ The eviction is acceptable because a sort you care about belongs to a podcast yo
 which keeps it at the top of the LRU. Beyond the window, fall back to the normal default — never to
 a stale or arbitrary sort.
 
+**The LRU holds detail instances only.** Global lists live in their own unbounded bucket in the same
+cookie, keyed by the same shared builder. There is a fixed, small number of them and a user returns
+to them constantly, so putting them in the same window would let ordinary browsing evict the home
+page's own sort. A count of entries is also not a size guarantee: trim from the least-recently-used
+end until the whole serialized cookie value fits, because a browser that finds the cookie over 4KB
+drops all of it rather than one entry.
+
 ## What persists and what does not
 
 | Persist                                                   | Do not persist                               |

@@ -213,10 +213,10 @@ router.get(
 );
 router.get('/notifications', asyncHandler(AccountNotificationController.getNotifications));
 router.get(
-  '/notifications/unseen-count',
-  asyncHandler(AccountNotificationController.getUnseenCount)
+  '/notifications/unread-count',
+  asyncHandler(AccountNotificationController.getUnreadCount)
 );
-router.post('/notifications/mark-seen', asyncHandler(AccountNotificationController.markSeen));
+router.post('/notifications/mark-read', asyncHandler(AccountNotificationController.markRead));
 router.get('/notification-preferences', asyncHandler(AccountNotificationController.getPreferences));
 router.put(
   '/notification-preferences',

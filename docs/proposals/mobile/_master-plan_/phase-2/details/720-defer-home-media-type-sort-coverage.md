@@ -2,7 +2,7 @@
 
 **Master step:** P2.1.3
 **Model (author + implement):** Codex 5.3
-**Status:** draft — deferred to a future phase
+**Status:** deferred to a future phase
 
 ## Scope
 

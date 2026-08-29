@@ -1,3 +1,4 @@
+import { FIFTEEN_MINUTES_MS, toEpochMsOrNull } from '@podverse/helpers';
 import type { DTOItem } from '@podverse/helpers/dto';
 
 /**
@@ -31,7 +32,7 @@ export const CHANNEL_ITEM_WINDOW_MAX_DEPTH = 500;
  * Without this, every foreground transition would re-fetch every subscription. A pull gesture is
  * somebody asking on purpose and ignores it.
  */
-export const CHANNEL_ITEM_STALE_AFTER_MS = 15 * 60 * 1000;
+export const CHANNEL_ITEM_STALE_AFTER_MS = FIFTEEN_MINUTES_MS;
 
 export type ChannelItemWindow = {
   channelIdText: string;
@@ -213,14 +214,6 @@ export const getItemPrimaryImageUrl = (item: ChannelItemArtworkSource): string |
   return null;
 };
 
-const toPubDateMs = (pubDate: string | null | undefined): number | null => {
-  if (pubDate === null || pubDate === undefined) {
-    return null;
-  }
-  const parsed = Date.parse(pubDate);
-  return Number.isNaN(parsed) ? null : parsed;
-};
-
 /**
  * Flatten an item into the row it is stored as: indexed columns for ordering and display, plus the
  * payload itself so an offline reader gets the description, enclosures, and artwork it needs
@@ -242,7 +235,7 @@ export const toChannelItemRecord = (
     imageUrl: getItemPrimaryImageUrl(item),
     itemIdText,
     payload: item,
-    pubDateMs: toPubDateMs(item.pub_date),
+    pubDateMs: toEpochMsOrNull(item.pub_date),
     title: item.title ?? null,
   };
 };

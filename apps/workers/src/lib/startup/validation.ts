@@ -33,7 +33,12 @@ import {
   PODCAST_INDEX_DEFAULT_MAX_RETRIES,
   PODCAST_INDEX_DEFAULT_RETRY_BASE_DELAY_MS,
 } from '@podverse/external-services-podcast-index';
-import { DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS } from '@podverse/helpers';
+import {
+  DEFAULT_NOTIFICATION_RETENTION_DAYS,
+  DEFAULT_ON_DEMAND_PARSER_EVENT_RETENTION_DAYS,
+  DEFAULT_SCHEDULED_JOB_RETENTION_DAYS,
+  DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS,
+} from '@podverse/helpers';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
   displayValidationResults,
@@ -102,8 +107,21 @@ function validateUserAgentEffective(): ValidationResult {
   };
 }
 
-function validateStatsTrackEventRetentionDays(): ValidationResult {
-  const key = 'STATS_TRACK_EVENT_RETENTION_DAYS';
+/**
+ * A day is the smallest window worth expressing and ten years is past the point where a retention
+ * setting is doing anything, so a value outside that is a unit mistake — seconds or milliseconds
+ * pasted into a field counted in days — rather than a deliberate choice.
+ */
+const RETENTION_DAYS_MIN = 1;
+const RETENTION_DAYS_MAX = 3650;
+
+/**
+ * Every retention window is optional and falls back to a shared default, so the check is the same
+ * shape each time: blank reports which default will apply, and anything else must be a plausible
+ * number of days. The category is what differs, because an operator scanning startup output looks
+ * for the subsystem rather than the variable.
+ */
+function validateRetentionDays(key: string, category: string, fallback: number): ValidationResult {
   const value = process.env[key] ?? '';
   if (value.trim() === '') {
     return {
@@ -111,11 +129,11 @@ function validateStatsTrackEventRetentionDays(): ValidationResult {
       isSet: false,
       isValid: true,
       isRequired: false,
-      message: `Use Default (${DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS} days)`,
-      category: 'Stats',
+      message: `Use Default (${fallback} days)`,
+      category,
     };
   }
-  return validatePositiveNumber(key, 'Stats', false, 1, 3650);
+  return validatePositiveNumber(key, category, false, RETENTION_DAYS_MIN, RETENTION_DAYS_MAX);
 }
 
 /** Category: Config/Base — every command needs at least these */
@@ -128,7 +146,34 @@ function validateBase(): ValidationResult[] {
   );
   results.push(validateOptional('LOG_TIMER', 'Config', 'Use Default (false)'));
   results.push(validateOptional('NODE_ENV', 'General', 'Use Default (development)'));
-  results.push(validateStatsTrackEventRetentionDays());
+  results.push(
+    validateRetentionDays(
+      'STATS_TRACK_EVENT_RETENTION_DAYS',
+      'Stats',
+      DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS
+    )
+  );
+  results.push(
+    validateRetentionDays(
+      'NOTIFICATION_RETENTION_DAYS',
+      'Notifications',
+      DEFAULT_NOTIFICATION_RETENTION_DAYS
+    )
+  );
+  results.push(
+    validateRetentionDays(
+      'SCHEDULED_JOB_RETENTION_DAYS',
+      'Scheduled Jobs',
+      DEFAULT_SCHEDULED_JOB_RETENTION_DAYS
+    )
+  );
+  results.push(
+    validateRetentionDays(
+      'ON_DEMAND_PARSER_EVENT_RETENTION_DAYS',
+      'Parser',
+      DEFAULT_ON_DEMAND_PARSER_EVENT_RETENTION_DAYS
+    )
+  );
   results.push(
     validateOptional('BILLING_RENEWAL_RETRY_DELAY_MINUTES', 'Billing', 'Use Default (60 minutes)')
   );

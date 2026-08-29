@@ -5,12 +5,12 @@ import { useLocale, useTranslations } from 'next-intl';
 import React from 'react';
 
 import { SharableStatusEnum } from '@podverse/helpers';
+import { writeCookie } from '@podverse/helpers-browser';
 import { FormDropdown } from '@podverse/ui';
 
 import { useAccount } from '../../../../contexts/Account';
 import { useConfig } from '../../../../contexts/Config';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
-import { writeCookie } from '../../../../utils/cookie';
 
 export const SettingsLocaleSelector: React.FC = () => {
   const config = useConfig();

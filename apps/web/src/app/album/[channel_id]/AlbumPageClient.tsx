@@ -12,6 +12,7 @@ import { AlbumPageListHeader } from './AlbumPageListHeader';
 import { AlbumPageSideContent } from './AlbumPageSideContent';
 
 interface AlbumPageClientProps {
+  hasExplicitUrlParams: boolean;
   initialQueryParams: QueryParamsChannelMusicAlbum;
   ssrChannel: DTOChannel;
   ssrItemsWithLiveItem: DTOItem[];
@@ -22,6 +23,7 @@ interface AlbumPageClientProps {
 
 export function AlbumPageClient(props: AlbumPageClientProps) {
   const {
+    hasExplicitUrlParams,
     initialQueryParams,
     ssrChannel,
     ssrItemsWithLiveItem,
@@ -36,7 +38,9 @@ export function AlbumPageClient(props: AlbumPageClientProps) {
 
   return (
     <AlbumPageContextProvider
+      hasExplicitUrlParams={hasExplicitUrlParams}
       initialQueryParams={initialQueryParams}
+      ssrChannelIdText={ssrChannel.id_text}
       ssrItemsWithLiveItem={ssrItemsWithLiveItem}
       ssrItems={ssrItems}
       ssrTotalPages={ssrTotalPages}

@@ -2,6 +2,7 @@ import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisSer
 import { getLogger } from '@workers/factories/logger.js';
 import { createDailyRotateLogger } from '@workers/lib/winston.js';
 
+import { sleep } from '@podverse/helpers';
 import { createActiveMQShutdown, mqRSSSetupDlqConsumers } from '@podverse/mq';
 
 export const mqRSSRunDlqConsumer = async () => {
@@ -32,7 +33,7 @@ export const mqRSSRunDlqConsumer = async () => {
   });
 
   while (keepRunning) {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await sleep(1000);
   }
 
   unregister();

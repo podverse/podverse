@@ -14,16 +14,19 @@ import {
 import { breakpoints } from '@podverse/design-tokens';
 import type { DTOChannel, DTOItem, FeatureAccess } from '@podverse/helpers';
 import { LiveItemStatusEnum } from '@podverse/helpers/dto';
-import { getTotalPages } from '@podverse/helpers/pagination';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
 import { GatedFeatureNotice } from '../../components/feedback/GatedFeatureNotice';
+import type { OptionListItem } from '../../components/form/OptionListGroup';
+import { SortSelectRow } from '../../components/form/SortSelectRow';
 import { Button } from '../../components/primitives/Button';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
+import { channelItemsRepository } from '../../data/repositories/channelItemsRepository';
+import { channelSeenRepository } from '../../data/repositories/channelSeenRepository';
 import { mapDirectoryChannelToSubscribed } from '../../data/repositories/subscriptionsMerge';
 import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
@@ -32,9 +35,17 @@ import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
 import type { ChannelBrowseStackParamList } from '../../navigation';
 import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
+import type { PodcastEpisodeSort } from '../../prefs/detailListPrefs';
+import {
+  DEFAULT_PODCAST_EPISODE_SORT,
+  PODCAST_EPISODE_SORT_OPTIONS,
+  readPodcastDetailPrefs,
+  writePodcastDetailSort,
+} from '../../prefs/detailListPrefs';
 import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
+import { mapItemsToHomeFeedRows, mapItemToHomeFeedRow } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 
@@ -47,50 +58,12 @@ type PodcastLiveRow = HomeFeedRowData & {
   liveStatusId: LiveItemStatusEnum | null;
 };
 
-const FIRST_PAGE = 1;
-
-const getPrimaryImageUrl = (item: DTOItem): string | null => {
-  const firstItemImage = item.item_images[0];
-  if (firstItemImage) {
-    return firstItemImage.url;
-  }
-
-  const firstChannelImage = item.channel?.channel_images?.[0];
-  if (firstChannelImage) {
-    return firstChannelImage.url;
-  }
-
-  return null;
-};
-
-const toEpisodeRows = (items: DTOItem[]): HomeFeedRowData[] => {
-  return items
-    .map((item) => {
-      const title = item.title ?? item.id_text;
-      const subtitle = item.channel?.title ?? null;
-      return {
-        id: item.id_text,
-        imageUrl: getPrimaryImageUrl(item),
-        subtitle,
-        title,
-      };
-    })
-    .filter((row) => row.id.length > 0);
-};
-
 const toLiveRows = (items: DTOItem[]): PodcastLiveRow[] => {
   return items
-    .map((item) => {
-      const title = item.title ?? item.id_text;
-      const subtitle = item.channel?.title ?? null;
-      return {
-        id: item.id_text,
-        imageUrl: getPrimaryImageUrl(item),
-        liveStatusId: item.live_item?.live_item_status_id ?? null,
-        subtitle,
-        title,
-      };
-    })
+    .map((item) => ({
+      ...mapItemToHomeFeedRow(item),
+      liveStatusId: item.live_item?.live_item_status_id ?? null,
+    }))
     .filter((row) => row.id.length > 0);
 };
 
@@ -98,6 +71,11 @@ const LIVE_STATUS_KEYS: Record<LiveItemStatusEnum, string> = {
   [LiveItemStatusEnum.Ended]: 'media.livestream.ended',
   [LiveItemStatusEnum.Live]: 'media.livestream.live',
   [LiveItemStatusEnum.Pending]: 'media.livestream.pending',
+};
+
+const EPISODE_SORT_LABEL_KEYS: Record<PodcastEpisodeSort, string> = {
+  alphabetical: 'filters.sort.a_z',
+  recent: 'filters.sort.recent',
 };
 
 export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenProps) {
@@ -112,13 +90,17 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState<number>(FIRST_PAGE);
   const [hasMorePages, setHasMorePages] = useState<boolean>(false);
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
   const [isSavingSubscription, setIsSavingSubscription] = useState<boolean>(false);
   const [subscriptionNoticeKey, setSubscriptionNoticeKey] = useState<string | null>(null);
   /** Set only when a signed-in user's membership blocks the server follow; cleared on each attempt. */
   const [subscriptionDenial, setSubscriptionDenial] = useState<FeatureAccess | null>(null);
+  /**
+   * What the pill shows. The list itself does not read this — it re-reads the stored preference —
+   * so the two cannot drift into disagreeing about which order is selected.
+   */
+  const [episodeSort, setEpisodeSort] = useState<PodcastEpisodeSort>(DEFAULT_PODCAST_EPISODE_SORT);
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
   const { podcastId } = route.params;
 
@@ -170,6 +152,9 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
           marginTop: tokens.spacing.sm,
           paddingHorizontal: tokens.spacing.md,
         },
+        sortRow: {
+          marginTop: tokens.spacing.sm,
+        },
         splitContainer: {
           backgroundColor: themeStyles.screen.backgroundColor,
           flex: 1,
@@ -206,106 +191,160 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     [themeStyles, tokens]
   );
 
+  const authContext = useMemo(
+    () => ({ accessToken, clearSession, refreshToken, setTokens }),
+    [accessToken, clearSession, refreshToken, setTokens]
+  );
+
+  /**
+   * The stored preference is read here rather than passed in, so the very first read of this
+   * channel already carries the remembered order. Fetching in the default order and re-sorting
+   * afterwards would show a list the user did not ask for, however briefly.
+   *
+   * It also means the order has one source. The pill mirrors the preference for display; nothing
+   * hands a sort to this function, so nothing can hand it a stale one.
+   */
+  const readStoredEpisodes = useCallback(async () => {
+    const { sort } = await readPodcastDetailPrefs(podcastId);
+    const stored = await channelItemsRepository.listByChannel(podcastId, { sort });
+    setEpisodeRows(mapItemsToHomeFeedRows(stored));
+    return stored.length;
+  }, [podcastId]);
+
+  /**
+   * Paint from the device, then reconcile.
+   *
+   * The stored window renders immediately and is the whole answer offline. The refresh that follows
+   * runs directly rather than through the sync queue: somebody opened this screen and is waiting on
+   * it, and queued work is for passes nobody asked for (`mobile-sync-orchestration`).
+   *
+   * A refresh that fails is only surfaced when the user asked for one. On open it is silent,
+   * because what is stored is still worth reading and an error over the top of a working list would
+   * say nothing useful.
+   */
   const loadPodcastData = useCallback(
-    async ({
-      page,
-      source,
-    }: {
-      page: number;
-      source: 'initial' | 'refresh' | 'retry' | 'loadMore';
-    }) => {
-      if (source === 'loadMore') {
-        setIsLoadingMore(true);
-      } else if (source === 'refresh') {
+    async ({ source }: { source: 'initial' | 'refresh' | 'retry' }) => {
+      if (source === 'refresh') {
         setIsRefreshing(true);
       } else {
         setIsInitialLoading(true);
       }
-
       setErrorKey(null);
+
       try {
-        const channelResponse = await requestWithMobileAuthRefresh(
-          {
-            accessToken,
-            clearSession,
-            refreshToken,
-            setTokens,
-          },
-          async (api) => api.reqChannelGetByIdOrIdText(podcastId)
-        );
+        const [subscribed, storedCount] = await Promise.all([
+          subscriptionsRepository.isSubscribed(podcastId),
+          readStoredEpisodes(),
+        ]);
+        setIsSubscribed(subscribed);
 
-        const itemResponse = await requestWithMobileAuthRefresh(
-          {
-            accessToken,
-            clearSession,
-            refreshToken,
-            setTokens,
-          },
-          async (api) =>
-            api.reqItemGetManyByChannel({
-              idOrIdText: podcastId,
-              page,
-              range: null,
-              sort: 'recent',
-            })
-        );
+        if (storedCount > 0) {
+          setIsInitialLoading(false);
+        }
 
-        const liveResponse = await requestWithMobileAuthRefresh(
-          {
-            accessToken,
-            clearSession,
-            refreshToken,
-            setTokens,
-          },
-          async (api) => api.reqLiveItemGetManyByChannel(podcastId)
-        );
+        try {
+          const channelResponse = await requestWithMobileAuthRefresh(authContext, async (api) =>
+            api.reqChannelGetByIdOrIdText(podcastId)
+          );
+          setChannel(channelResponse);
 
-        setChannel(channelResponse);
-        // Read the subscription from the repository rather than refetching the account: it is
-        // correct signed out, works offline, and drops a per-open `/auth/me` round trip.
-        setIsSubscribed(await subscriptionsRepository.isSubscribed(podcastId));
-        setLiveRows(toLiveRows(liveResponse));
-        setCurrentPage(page);
-        const responsePage = itemResponse.meta.page ?? FIRST_PAGE;
-        const totalPages = getTotalPages(
-          itemResponse.meta.count,
-          itemResponse.meta.limit,
-          itemResponse.data.length,
-          responsePage
-        );
-        setHasMorePages(itemResponse.meta.limit > 0 && responsePage < totalPages);
+          const result = await channelItemsRepository.syncChannel(authContext, podcastId);
+          setHasMorePages(result.hasMore);
+          await readStoredEpisodes();
 
-        const normalizedEpisodes = toEpisodeRows(itemResponse.data);
-        if (source === 'loadMore') {
-          setEpisodeRows((previousRows) => [...previousRows, ...normalizedEpisodes]);
-        } else {
-          setEpisodeRows(normalizedEpisodes);
+          // Live items are a real-time surface with nothing to store, so they simply stay empty
+          // when there is no connection.
+          const liveResponse = await requestWithMobileAuthRefresh(authContext, async (api) =>
+            api.reqLiveItemGetManyByChannel(podcastId)
+          );
+          setLiveRows(toLiveRows(liveResponse));
+        } catch (error) {
+          if (storedCount === 0 || source !== 'initial') {
+            throw error;
+          }
         }
       } catch {
         setErrorKey('errors.generic');
-        if (source !== 'loadMore') {
-          setEpisodeRows([]);
-          setLiveRows([]);
-        }
       } finally {
-        if (source === 'loadMore') {
-          setIsLoadingMore(false);
-        } else if (source === 'refresh') {
-          setIsRefreshing(false);
-        } else {
-          setIsInitialLoading(false);
-        }
+        setIsRefreshing(false);
+        setIsInitialLoading(false);
       }
     },
-    [accessToken, clearSession, podcastId, refreshToken, setTokens, status]
+    [authContext, podcastId, readStoredEpisodes]
   );
 
+  /**
+   * Reach further back into the feed and keep it there, so the next visit opens at the same depth.
+   *
+   * Needs a connection by definition: offline the window stays where it is and the list keeps
+   * showing what is stored.
+   */
+  const loadMoreEpisodes = useCallback(async () => {
+    setIsLoadingMore(true);
+    try {
+      const result = await channelItemsRepository.extendWindow(authContext, podcastId);
+      setHasMorePages(result.hasMore);
+      await readStoredEpisodes();
+    } catch {
+      setErrorKey('errors.generic');
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [authContext, podcastId, readStoredEpisodes]);
+
   useEffect(() => {
-    void loadPodcastData({
-      page: FIRST_PAGE,
-      source: 'initial',
-    });
+    void loadPodcastData({ source: 'initial' });
   }, [loadPodcastData]);
+
+  // Keyed on the channel, so arriving at a second podcast shows that podcast's order rather than
+  // whatever the previous one was left on.
+  useEffect(() => {
+    let isMounted = true;
+
+    void (async () => {
+      const { sort } = await readPodcastDetailPrefs(podcastId);
+      if (isMounted) {
+        setEpisodeSort(sort);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [podcastId]);
+
+  const handleSortSelect = useCallback(
+    (sort: PodcastEpisodeSort) => {
+      setEpisodeSort(sort);
+      void (async () => {
+        await writePodcastDetailSort(podcastId, sort);
+        // Re-orders what is already stored; no request, so it works offline and costs nothing.
+        await readStoredEpisodes();
+      })();
+    },
+    [podcastId, readStoredEpisodes]
+  );
+
+  const episodeSortOptions = useMemo<OptionListItem<PodcastEpisodeSort>[]>(() => {
+    return PODCAST_EPISODE_SORT_OPTIONS.map((option) => ({
+      label: t(EPISODE_SORT_LABEL_KEYS[option]),
+      testID: `podcast-detail-sort-${option}`,
+      value: option,
+    }));
+  }, [t]);
+
+  /**
+   * Opening the channel is what marks it seen — there is no per-episode seen state.
+   *
+   * Written straight to the device rather than through the sync queue, so the badge clears as the
+   * screen appears whatever the network is doing. The next reconciliation carries the timestamp to
+   * the account, and because seen state only moves forward, a failed one costs nothing.
+   *
+   * Keyed on the channel alone so returning from an episode does not re-stamp it.
+   */
+  useEffect(() => {
+    void channelSeenRepository.markSeen(podcastId, 'channel');
+  }, [podcastId]);
 
   const handleEpisodePress = useCallback(
     (row: HomeFeedRowData) => {
@@ -414,7 +453,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const refreshControl = (
     <RefreshControl
       onRefresh={() => {
-        void loadPodcastData({ page: FIRST_PAGE, source: 'refresh' });
+        void loadPodcastData({ source: 'refresh' });
       }}
       refreshing={isRefreshing}
       tintColor={themeStyles.buttonPrimary.backgroundColor}
@@ -475,7 +514,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
         <ListError
           messageKey={errorKey}
           onRetry={() => {
-            void loadPodcastData({ page: FIRST_PAGE, source: 'retry' });
+            void loadPodcastData({ source: 'retry' });
           }}
           testID="podcast-detail-error"
         />
@@ -524,9 +563,20 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
         </View>
       ) : null}
       {!isInitialLoading && errorKey === null ? (
-        <View style={styles.rowSurface}>
-          <Text style={styles.feedHeading}>{t('media.podcast.episodes')}</Text>
-        </View>
+        <>
+          <View style={styles.rowSurface}>
+            <Text style={styles.feedHeading}>{t('media.podcast.episodes')}</Text>
+          </View>
+          <View style={styles.sortRow}>
+            <SortSelectRow
+              heading={t('filters.screen.sort_heading')}
+              onSelect={handleSortSelect}
+              options={episodeSortOptions}
+              testID="podcast-detail-sort"
+              value={episodeSort}
+            />
+          </View>
+        </>
       ) : null}
     </>
   );
@@ -539,10 +589,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
             if (isLoadingMore) {
               return;
             }
-            void loadPodcastData({
-              page: currentPage + 1,
-              source: 'loadMore',
-            });
+            void loadMoreEpisodes();
           }}
           style={styles.subscribeButton}
           testID="podcast-detail-load-more"

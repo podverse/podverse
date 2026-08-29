@@ -27,6 +27,7 @@ Lower tiers cannot depend on higher (see `.cursor/rules/architecture-tier-depend
 
 - No `any` types
 - **Shared UI:** Prefer `@podverse/ui` for reusable primitives in web and management-web. When both apps overlap, implement once in `packages/ui` and **prefer the web app’s existing visual baseline** when merging styles unless a11y/product docs say otherwise (see `.cursor/rules/prefer-shared-ui-web-management.mdc`, **`reusable-components`**, and **`ui-component-promotion`** when extracting between apps).
+- **Shared logic:** The same habit applies past components. While building a mobile or web feature, look for reuse in **hooks** and **plain functions** too — search for an existing implementation before writing one, and when the logic already exists on the other surface, collapse the two instead of adding a third copy. See **`reuse-beyond-components`**.
 - DTOs from `@podverse/helpers`
 - Follow `tsconfig.base.json`
 - Use ESM formatting: **Tier A** uses `.js` specifiers on relative TS imports (NodeNext); **Tier B** (`apps/web/src`, `apps/management-web/src`) stays extensionless until Turbopack parity — [docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md](docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md). Prefer `"type": "module"` where applicable.

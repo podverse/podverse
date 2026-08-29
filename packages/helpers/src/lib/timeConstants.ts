@@ -34,12 +34,20 @@ export const FIFTEEN_MINUTES_MS = 15 * ONE_MINUTE_MS;
 /** One hour in ms. */
 export const ONE_HOUR_MS = MINUTES_PER_HOUR * ONE_MINUTE_MS;
 
+/** One day in ms (e.g. retention cutoffs, staleness windows, max age). */
+export const ONE_DAY_MS = HOURS_PER_DAY * ONE_HOUR_MS;
+
 /** One day in seconds (e.g. free trial expiration from env days, webpush TTL). */
 export const ONE_DAY_SECONDS = SECONDS_PER_DAY;
 
+/** Days per (non-leap) year, for durations expressed as "a year" rather than a calendar date. */
+export const DAYS_PER_YEAR = 365;
+
+/** One year in seconds (e.g. auth cookie max age, longest offerable trial). */
+export const ONE_YEAR_SECONDS = DAYS_PER_YEAR * SECONDS_PER_DAY;
+
 /** One year in ms (e.g. auth cookie max age). */
-export const ONE_YEAR_MS =
-  365 * HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MS_PER_SECOND;
+export const ONE_YEAR_MS = DAYS_PER_YEAR * ONE_DAY_MS;
 
 /** Default HTTP request timeout in ms. */
 export const DEFAULT_HTTP_TIMEOUT_MS = 5000;

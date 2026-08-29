@@ -11,6 +11,9 @@ import {
   readBucketStorageConfig,
 } from '@podverse/external-services-object-storage';
 import {
+  DEFAULT_NOTIFICATION_RETENTION_DAYS,
+  DEFAULT_ON_DEMAND_PARSER_EVENT_RETENTION_DAYS,
+  DEFAULT_SCHEDULED_JOB_RETENTION_DAYS,
   DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS,
   parseCountPerWindowEnvFromKey,
   readOptionalPositiveExpirationEnv,
@@ -344,14 +347,69 @@ export function getExtensionsConfig(): ExtensionsConfig {
   };
 }
 
+/**
+ * A retention window in days, or the default when the variable is absent or blank.
+ *
+ * Blank is treated as absent because a template ships these keys empty; a deployment that has not
+ * filled one in wants the default, not `NaN` days of retention silently deleting everything or
+ * nothing. A value that is present but unparseable is left as `NaN` for startup validation to
+ * reject, so a typo fails loudly at boot rather than quietly reverting to the default.
+ */
+const resolveRetentionDays = (raw: string | undefined, fallback: number): number => {
+  if (raw === undefined || raw.trim() === '') {
+    return fallback;
+  }
+  return Number.parseInt(raw, 10);
+};
+
 export type StatsConfig = {
   trackEventRetentionDays: number;
 };
 
 export function getStatsConfig(): StatsConfig {
-  const raw = process.env.STATS_TRACK_EVENT_RETENTION_DAYS;
-  if (raw === undefined || raw.trim() === '') {
-    return { trackEventRetentionDays: DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS };
-  }
-  return { trackEventRetentionDays: Number.parseInt(raw, 10) };
+  return {
+    trackEventRetentionDays: resolveRetentionDays(
+      process.env.STATS_TRACK_EVENT_RETENTION_DAYS,
+      DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS
+    ),
+  };
+}
+
+export type NotificationsRetentionConfig = {
+  retentionDays: number;
+};
+
+export function getNotificationsRetentionConfig(): NotificationsRetentionConfig {
+  return {
+    retentionDays: resolveRetentionDays(
+      process.env.NOTIFICATION_RETENTION_DAYS,
+      DEFAULT_NOTIFICATION_RETENTION_DAYS
+    ),
+  };
+}
+
+export type ScheduledJobRetentionConfig = {
+  retentionDays: number;
+};
+
+export function getScheduledJobRetentionConfig(): ScheduledJobRetentionConfig {
+  return {
+    retentionDays: resolveRetentionDays(
+      process.env.SCHEDULED_JOB_RETENTION_DAYS,
+      DEFAULT_SCHEDULED_JOB_RETENTION_DAYS
+    ),
+  };
+}
+
+export type OnDemandParserEventRetentionConfig = {
+  retentionDays: number;
+};
+
+export function getOnDemandParserEventRetentionConfig(): OnDemandParserEventRetentionConfig {
+  return {
+    retentionDays: resolveRetentionDays(
+      process.env.ON_DEMAND_PARSER_EVENT_RETENTION_DAYS,
+      DEFAULT_ON_DEMAND_PARSER_EVENT_RETENTION_DAYS
+    ),
+  };
 }

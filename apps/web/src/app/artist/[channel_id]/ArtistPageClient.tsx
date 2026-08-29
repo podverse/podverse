@@ -18,6 +18,7 @@ import { ArtistPageListHeader } from './ArtistPageListHeader';
 import { ArtistPageSideContent } from './ArtistPageSideContent';
 
 interface ArtistPageClientProps {
+  hasExplicitUrlParams: boolean;
   initialQueryParams: QueryParamsChannelMusicArtist;
   ssrChannel: DTOChannel;
   ssrChannelsAdded: DTOChannel[];
@@ -29,6 +30,7 @@ interface ArtistPageClientProps {
 
 export function ArtistPageClient(props: ArtistPageClientProps) {
   const {
+    hasExplicitUrlParams,
     initialQueryParams,
     ssrChannel,
     ssrChannelsAdded,
@@ -47,7 +49,11 @@ export function ArtistPageClient(props: ArtistPageClientProps) {
   });
 
   return (
-    <ArtistPageContextProvider initialQueryParams={initialQueryParams}>
+    <ArtistPageContextProvider
+      hasExplicitUrlParams={hasExplicitUrlParams}
+      initialQueryParams={initialQueryParams}
+      ssrChannelIdText={ssrChannel.id_text}
+    >
       <MainWrapper>
         <ChannelSeenPageView channelIdText={ssrChannel.id_text} />
         <CoreArtistHeader channel={ssrChannel} />

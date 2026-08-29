@@ -16,6 +16,8 @@ import { formatPlaybackTime } from '@podverse/helpers/time';
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
 import { DownloadControl } from '../../components/download/DownloadControl';
+import type { OptionListItem } from '../../components/form/OptionListGroup';
+import { SortSelectRow } from '../../components/form/SortSelectRow';
 import { Button } from '../../components/primitives/Button';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
@@ -25,6 +27,15 @@ import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowP
 import type { ChannelBrowseStackParamList } from '../../navigation';
 import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
 import { usePlayback } from '../../playback/PlaybackProvider';
+import type { EpisodeClipSort, EpisodeTab } from '../../prefs/detailListPrefs';
+import {
+  DEFAULT_EPISODE_CLIP_SORT,
+  DEFAULT_EPISODE_TAB,
+  EPISODE_CLIP_SORT_OPTIONS,
+  readEpisodeDetailPrefs,
+  writeEpisodeDetailClipSort,
+  writeEpisodeDetailTab,
+} from '../../prefs/detailListPrefs';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
@@ -35,7 +46,10 @@ type EpisodeDetailScreenProps = NativeStackScreenProps<
   'EpisodeDetail'
 >;
 
-type EpisodeTab = 'chapters' | 'clips' | 'soundbites' | 'summary' | 'transcript';
+const CLIP_SORT_LABEL_KEYS: Record<EpisodeClipSort, string> = {
+  oldest: 'filters.sort.oldest',
+  recent: 'filters.sort.recent',
+};
 
 const toClipRow = (clip: DTOClip): HomeFeedRowData => {
   const imageUrl =
@@ -75,7 +89,8 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
   const [channelTitle, setChannelTitle] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorKey, setErrorKey] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<EpisodeTab>('summary');
+  const [activeTab, setActiveTab] = useState<EpisodeTab>(DEFAULT_EPISODE_TAB);
+  const [clipSort, setClipSort] = useState<EpisodeClipSort>(DEFAULT_EPISODE_CLIP_SORT);
   const [isTabLoading, setIsTabLoading] = useState<boolean>(false);
   const [tabErrorKey, setTabErrorKey] = useState<string | null>(null);
   const [chapterRows, setChapterRows] = useState<DTOItemChapter[]>([]);
@@ -238,11 +253,43 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
     return tabs;
   }, [episode]);
 
+  /**
+   * A remembered tab still has to exist on this episode — one with no transcript cannot open on
+   * one. The stored preference is left alone, so the tab comes back if the episode later gains it.
+   *
+   * Held until the episode has loaded, because until then every tab looks unsupported and a
+   * restored choice would be thrown away before the screen could honour it.
+   */
   useEffect(() => {
-    if (!supportedTabs.some((tabId) => tabId === activeTab)) {
-      setActiveTab('summary');
+    if (episode === null) {
+      return;
     }
-  }, [activeTab, supportedTabs]);
+    if (!supportedTabs.some((tabId) => tabId === activeTab)) {
+      setActiveTab(DEFAULT_EPISODE_TAB);
+    }
+  }, [activeTab, episode, supportedTabs]);
+
+  /**
+   * Restored before any tab request goes out: the tab decides which one the screen makes, so
+   * applying it afterwards would mean fetching Summary's pane and then immediately fetching
+   * another.
+   */
+  useEffect(() => {
+    let isMounted = true;
+
+    void (async () => {
+      const stored = await readEpisodeDetailPrefs(episodeId);
+      if (!isMounted) {
+        return;
+      }
+      setActiveTab(stored.tab);
+      setClipSort(stored.clipSort);
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [episodeId]);
 
   const loadTab = useCallback(
     async (tab: EpisodeTab) => {
@@ -280,6 +327,9 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
           );
           setSoundbiteRows(response.data);
         } else if (tab === 'clips') {
+          // The order is decided by the endpoint, so the remembered sort is read before the
+          // request rather than applied to what comes back.
+          const { clipSort: storedClipSort } = await readEpisodeDetailPrefs(episodeId);
           const response = await requestWithMobileAuthRefresh(
             {
               accessToken,
@@ -292,7 +342,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
                 idOrIdText: episodeId,
                 page: 1,
                 range: null,
-                sort: 'recent',
+                sort: storedClipSort,
               })
           );
           setClipRows(response.data);
@@ -329,6 +379,38 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
 
     void loadTab(activeTab);
   }, [activeTab, loadTab]);
+
+  const handleTabPress = useCallback(
+    (tab: EpisodeTab) => {
+      setActiveTab(tab);
+      void writeEpisodeDetailTab(episodeId, tab);
+    },
+    [episodeId]
+  );
+
+  /**
+   * Marking the tab unloaded is what triggers the refetch: the tab loader skips a pane it has
+   * already fetched, so clearing the flag is how a new order gets asked for without a second code
+   * path that fetches clips.
+   */
+  const handleClipSortSelect = useCallback(
+    (sort: EpisodeClipSort) => {
+      setClipSort(sort);
+      void (async () => {
+        await writeEpisodeDetailClipSort(episodeId, sort);
+        setLoadedTabs((previous) => ({ ...previous, clips: false }));
+      })();
+    },
+    [episodeId]
+  );
+
+  const clipSortOptions = useMemo<OptionListItem<EpisodeClipSort>[]>(() => {
+    return EPISODE_CLIP_SORT_OPTIONS.map((option) => ({
+      label: t(CLIP_SORT_LABEL_KEYS[option]),
+      testID: `episode-detail-clip-sort-${option}`,
+      value: option,
+    }));
+  }, [t]);
 
   const descriptionValue = useMemo(() => {
     if (
@@ -430,28 +512,39 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
     }
 
     if (activeTab === 'clips') {
-      if (clipRows.length === 0) {
-        return <ListEmpty messageKey="misc.info" testID="episode-detail-tab-empty-clips" />;
-      }
-
-      return clipRows.map((clip) => (
-        <HomeFeedRow
-          key={clip.id_text}
-          mediaType="clips"
-          onPlayPress={(row) => {
-            runPlayAction(row, 'clips');
-          }}
-          onPress={() => {
-            navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.ClipDetail, {
-              clipId: clip.id_text,
-            });
-          }}
-          onQueuePress={(row, position) => {
-            runQueueAction(row, 'clips', position);
-          }}
-          row={toClipRow(clip)}
-        />
-      ));
+      return (
+        <>
+          <SortSelectRow
+            heading={t('filters.screen.sort_heading')}
+            onSelect={handleClipSortSelect}
+            options={clipSortOptions}
+            testID="episode-detail-clip-sort"
+            value={clipSort}
+          />
+          {clipRows.length === 0 ? (
+            <ListEmpty messageKey="misc.info" testID="episode-detail-tab-empty-clips" />
+          ) : (
+            clipRows.map((clip) => (
+              <HomeFeedRow
+                key={clip.id_text}
+                mediaType="clips"
+                onPlayPress={(row) => {
+                  runPlayAction(row, 'clips');
+                }}
+                onPress={() => {
+                  navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.ClipDetail, {
+                    clipId: clip.id_text,
+                  });
+                }}
+                onQueuePress={(row, position) => {
+                  runQueueAction(row, 'clips', position);
+                }}
+                row={toClipRow(clip)}
+              />
+            ))
+          )}
+        </>
+      );
     }
 
     if (transcriptText.length === 0) {
@@ -556,7 +649,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
             ) : null}
           </View>
 
-          <View style={styles.tabsRow}>
+          <View accessibilityRole="tablist" style={styles.tabsRow}>
             {supportedTabs.map((tabId) => {
               const labelKey =
                 tabId === 'summary'
@@ -571,9 +664,11 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
               const isActive = tabId === activeTab;
               return (
                 <Pressable
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: isActive }}
                   key={tabId}
                   onPress={() => {
-                    setActiveTab(tabId);
+                    handleTabPress(tabId);
                   }}
                   style={[styles.tab, isActive ? styles.tabActive : null]}
                   testID={`episode-detail-tab-${tabId}`}

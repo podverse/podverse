@@ -2,7 +2,7 @@
 
 **Master step:** P2.4.7
 **Model (author + implement):** Claude Opus 4.5
-**Status:** implemented
+**Status:** done
 
 ## Scope
 

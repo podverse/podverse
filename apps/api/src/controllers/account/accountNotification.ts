@@ -33,6 +33,11 @@ const notificationPreferenceSchema = Joi.object({
   push_enabled: Joi.boolean().required(),
 });
 
+/**
+ * Notifications are **read/unread**; channel content is **seen/unseen**. Both indicators are
+ * timestamps a badge counts against, so they use different verbs on purpose — a field or a log line
+ * naming one is never ambiguous about which badge it belongs to.
+ */
 export class AccountNotificationController {
   private static accountService = new AccountService();
   private static accountNotificationService = new AccountNotificationService();
@@ -66,7 +71,7 @@ export class AccountNotificationController {
               return;
             }
 
-            const lastSeenAt = account.notifications_last_seen_at ?? null;
+            const lastReadAt = account.notifications_last_read_at ?? null;
             const notifications =
               await AccountNotificationController.accountNotificationService.listPaginatedForAccount(
                 account_id,
@@ -76,30 +81,30 @@ export class AccountNotificationController {
                 }
               );
             const totalCount =
-              await AccountNotificationController.accountNotificationService.countUnseen(
+              await AccountNotificationController.accountNotificationService.countUnread(
                 account_id,
                 null
               );
-            const newCount =
-              await AccountNotificationController.accountNotificationService.countUnseen(
+            const unreadCount =
+              await AccountNotificationController.accountNotificationService.countUnread(
                 account_id,
-                lastSeenAt
+                lastReadAt
               );
             const totalPages = totalCount === 0 ? 0 : Math.ceil(totalCount / limit);
 
             res.json({
               data: {
                 items: notifications.map((notification) =>
-                  accountNotificationToJson(notification, lastSeenAt)
+                  accountNotificationToJson(notification, lastReadAt)
                 ),
-                last_seen_at: lastSeenAt?.toISOString() ?? null,
+                last_read_at: lastReadAt?.toISOString() ?? null,
                 pagination: {
                   page,
                   total_count: totalCount,
                   total_pages: totalPages,
                 },
                 sections: {
-                  new_count: newCount,
+                  unread_count: unreadCount,
                 },
               },
             });
@@ -112,7 +117,7 @@ export class AccountNotificationController {
     });
   }
 
-  static async getUnseenCount(req: Request, res: Response): Promise<void> {
+  static async getUnreadCount(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(
       req,
       res,
@@ -125,16 +130,16 @@ export class AccountNotificationController {
             res.status(404).json({ message: 'Account not found' });
             return;
           }
-          const lastSeenAt = account.notifications_last_seen_at ?? null;
-          const unseenCount =
-            await AccountNotificationController.accountNotificationService.countUnseen(
+          const lastReadAt = account.notifications_last_read_at ?? null;
+          const unreadCount =
+            await AccountNotificationController.accountNotificationService.countUnread(
               account_id,
-              lastSeenAt
+              lastReadAt
             );
 
           res.json({
             data: {
-              unseen_count: unseenCount,
+              unread_count: unreadCount,
             },
           });
         } catch (error) {
@@ -145,7 +150,12 @@ export class AccountNotificationController {
     );
   }
 
-  static async markSeen(req: Request, res: Response): Promise<void> {
+  /**
+   * Marks the whole inbox read by moving one timestamp, rather than writing a row per notification.
+   * Nothing published before that moment can become unread again, so there is no per-row state to
+   * keep and the cost does not grow with how much the account has received.
+   */
+  static async markRead(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(
       req,
       res,
@@ -153,16 +163,15 @@ export class AccountNotificationController {
         try {
           const jwtUser = getAuthenticatedUser(req);
           const account_id = jwtUser.id;
-          const now = new Date();
-          const lastSeenAt =
-            await AccountNotificationController.accountService.updateNotificationsLastSeenAt(
+          const lastReadAt =
+            await AccountNotificationController.accountService.updateNotificationsLastReadAt(
               account_id,
-              now
+              new Date()
             );
 
           res.json({
             data: {
-              last_seen_at: lastSeenAt.toISOString(),
+              last_read_at: lastReadAt.toISOString(),
             },
           });
         } catch (error) {

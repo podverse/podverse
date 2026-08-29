@@ -8,7 +8,7 @@ import { setOpmlImportCacheEntry } from '@workers/lib/opmlImportCache.js';
 import type { EventContext, Receiver } from 'rhea';
 
 import type { CacheSetJson, MQQueueNameParamKey } from '@podverse/helpers';
-import { emptyOpmlImportTotals, MQ_QUEUES } from '@podverse/helpers';
+import { emptyOpmlImportTotals, MQ_QUEUES, sleep } from '@podverse/helpers';
 import type { MQOpmlImportMessage } from '@podverse/mq';
 import { createActiveMQShutdown, processOpmlImportJob } from '@podverse/mq';
 
@@ -165,7 +165,7 @@ export const mqOpmlImportRun = async (args: CommandLineArgs) => {
   });
 
   while (keepRunning) {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await sleep(1000);
   }
 
   unregister();

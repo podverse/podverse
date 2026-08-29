@@ -2,7 +2,7 @@
 
 **Master step:** P2.3.8
 **Model (author + implement):** Codex 5.3
-**Status:** draft — deferred to a future phase
+**Status:** deferred to a future phase
 
 ## Scope
 
@@ -25,6 +25,15 @@ When this is picked up:
 
 Because the filter input already exists and works, this is a presentation change with no data or API
 impact.
+
+## Confirmed against what shipped
+
+Home renders the input inside `ListHeaderComponent`, always visible, and Library Subscriptions does
+the same. Nothing in `apps/mobile/src` implements a reveal gesture, so the deferral is intact.
+
+**Still open for the operator:** whether Android mirrors the iOS hidden-search convention or keeps the
+input visible. Nothing was decided while the input shipped always-visible on both platforms, so
+picking this up starts with that answer.
 
 ## Acceptance criteria
 

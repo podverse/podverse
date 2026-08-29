@@ -83,8 +83,8 @@ import {
   type ReqNotificationPreferenceUpdateInput,
   reqNotificationsList,
   type ReqNotificationsListResponse,
-  reqNotificationsMarkSeen,
-  reqNotificationsUnseenCount,
+  reqNotificationsMarkRead,
+  reqNotificationsUnreadCount,
 } from './account/notification/notifications.js';
 import {
   reqAccountUPDeviceCreate,
@@ -681,12 +681,12 @@ export class ApiRequestService {
     return reqNotificationsList(this, params);
   }
 
-  reqNotificationsUnseenCount(): Promise<{ unseen_count: number }> {
-    return reqNotificationsUnseenCount(this);
+  reqNotificationsUnreadCount(): Promise<{ unread_count: number }> {
+    return reqNotificationsUnreadCount(this);
   }
 
-  reqNotificationsMarkSeen(): Promise<{ last_seen_at: string }> {
-    return reqNotificationsMarkSeen(this);
+  reqNotificationsMarkRead(): Promise<{ last_read_at: string }> {
+    return reqNotificationsMarkRead(this);
   }
 
   reqNotificationPreferencesGet() {

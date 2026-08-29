@@ -655,8 +655,13 @@ if [ -n "${TERMS_OF_SERVICE_VERSION:-}" ]; then
 	done
 fi
 
-apply_override "STATS_TRACK_EVENT_RETENTION_DAYS" "${WORKERS_ENV_FILES[@]}"
+# Retention windows (all worker-side; see apps/workers/ENV.md)
+for v in STATS_TRACK_EVENT_RETENTION_DAYS NOTIFICATION_RETENTION_DAYS SCHEDULED_JOB_RETENTION_DAYS ON_DEMAND_PARSER_EVENT_RETENTION_DAYS; do
+	apply_override "$v" "${WORKERS_ENV_FILES[@]}"
+done
 
+# Stats retention is the only window the web app displays (terms, signup consent, settings help),
+# so it is the only one mirrored into the web env as a NEXT_PUBLIC_ value.
 if [ -n "${STATS_TRACK_EVENT_RETENTION_DAYS:-}" ]; then
 	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
 		[ -f "$file" ] && upsert_var "$file" "NEXT_PUBLIC_STATS_TRACK_EVENT_RETENTION_DAYS" "$STATS_TRACK_EVENT_RETENTION_DAYS"

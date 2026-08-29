@@ -8,19 +8,27 @@ import { QUERY_PARAMS_HOME_SORT_VALUES } from '@podverse/helpers-requests';
 import { getCuratedStaticPageMetadata } from '../lib/seo/curatedPageMetadata';
 import { getSSRAuthService } from '../utils/auth/ssrAuth';
 import type { HomeFilterDefaults } from '../utils/localSettings/localSettings';
-import { getParsedLocalSettings } from '../utils/localSettings/localSettings';
+import {
+  getFilterDefaultsForPage,
+  getParsedLocalSettings,
+} from '../utils/localSettings/localSettings';
 import { HomePageClient } from './HomePageClient';
 import type { HomePageDropdownConfigCurrentParams } from './HomePageDropdownConfig';
 import { getHomePageFilterParams } from './HomePageDropdownConfig';
 
+/**
+ * `medium` and `sort` carry no schema default, so an absent parameter stays `undefined` and the
+ * stored preference below is reachable. A default applied here would win the `??` chain before the
+ * cookie was ever consulted, which is how a remembered home sort gets written and never read.
+ */
 const searchParamsSchema = z.object({
   page: z
     .string()
     .transform((v) => parseInt(v, 10))
     .optional()
     .default(1),
-  medium: z.enum(QUERY_PARAMS_MEDIUMS).optional().default('all'),
-  sort: z.enum(QUERY_PARAMS_HOME_SORT_VALUES).optional().default('recent'),
+  medium: z.enum(QUERY_PARAMS_MEDIUMS).optional(),
+  sort: z.enum(QUERY_PARAMS_HOME_SORT_VALUES).optional(),
 });
 
 type SearchParams = z.infer<typeof searchParamsSchema>;
@@ -38,7 +46,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   const cookieStore = await cookies();
   const ssrLocalSettings = getParsedLocalSettings(cookieStore);
-  const ssrFilterDefaults = ssrLocalSettings.fd?.home;
+  const ssrFilterDefaults = getFilterDefaultsForPage(ssrLocalSettings, 'home');
 
   const queryParams = await searchParams;
   const { currentPage, currentMedium, currentSort } = await parseSearchParams(

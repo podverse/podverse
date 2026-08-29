@@ -51,10 +51,13 @@ The operator runs commands from **monorepo root**. Two patterns:
 | Build one package | `npm run build -w packages/<name>` |
 | Lint entire repo | `npm run lint` |
 
-**Mobile (`apps/mobile`):** Still use root + `-w` when the workspace defines the script (e.g.
-`npm run start -w apps/mobile`). `apps/mobile` is excluded from root `test:unit` until RN Vitest is
-configured; mobile device E2E uses Maestro/Detox make targets (not `make e2e_*`). See
-**mobile-master-plan-phasing** and `apps/mobile/APPS-MOBILE.md`.
+**Mobile (`apps/mobile`):** `-w apps/mobile` **fails** — mobile is a standalone install outside the
+root npm workspaces, so npm answers `No workspaces found`. Reach it with a root composite script
+(`mobile:dev`, `mobile:ios`, `mobile:e2e:test`, `mobile:install`, `type-check:mobile`) or, when no
+composite exists, `npm --prefix apps/mobile run <script>` — mobile unit tests are
+`npm --prefix apps/mobile run test`. Being outside the workspaces is also why root `test:unit` does
+not reach mobile. Mobile device E2E uses Maestro/Detox (not `make e2e_*`). See
+**mobile-expo-monorepo**, **mobile-master-plan-phasing**, and `apps/mobile/APPS-MOBILE.md`.
 
 ## Examples
 

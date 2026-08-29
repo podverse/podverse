@@ -8,7 +8,7 @@ import type { IconButtonLinkComponentProps } from '@podverse/ui';
 import { CountBadge, IconButton } from '@podverse/ui';
 
 import { ROUTES } from '../../constants/routes';
-import { useNotificationsUnseenCount } from '../../hooks/useNotificationsUnseenCount';
+import { useNotificationsUnreadCount } from '../../hooks/useNotificationsUnreadCount';
 
 import styles from './NotificationBellButton.module.scss';
 
@@ -33,7 +33,7 @@ function NotificationBellLink({
 
 export function NotificationBellButton() {
   const tSettings = useTranslations('settings');
-  const unseenCount = useNotificationsUnseenCount({ enabled: true });
+  const unreadCount = useNotificationsUnreadCount({ enabled: true });
 
   return (
     <span className={styles.bellLinkWrap}>
@@ -48,8 +48,8 @@ export function NotificationBellButton() {
       </IconButton>
       <span className={styles.badgeWrap}>
         <CountBadge
-          ariaLabel={tSettings('notifications.unseen_count_aria', { count: unseenCount })}
-          count={unseenCount}
+          ariaLabel={tSettings('notifications.unread_count_aria', { count: unreadCount })}
+          count={unreadCount}
         />
       </span>
     </span>

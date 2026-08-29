@@ -2,7 +2,7 @@
 
 **Master step:** P2.5.3
 **Model (author + implement):** Opus 5
-**Status:** planned
+**Status:** done — detail instances in a bounded LRU bucket, global lists on the shared key builder, home SSR merge fixed
 
 Web half of [714-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/714-filter-sort-persistence.md).
 Same product behavior, different storage, because web renders on the server.
@@ -100,7 +100,7 @@ Page number, scroll position, and the search query on `/search` are likewise exc
 ## Verification
 
 ```bash
-make e2e_test_web_report_spec SPEC=e2e/podcast-page.spec.ts,e2e/podcasts-list.spec.ts
+make e2e_test_web_report_spec SPEC=e2e/detail-sort-persistence.spec.ts
 open .artifacts/e2e-reports/latest/index.html
 ```
 

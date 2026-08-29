@@ -2,7 +2,7 @@
 
 **Master step:** P2.3.10
 **Model (author + implement):** Opus 5
-**Status:** draft — deferred to a future phase
+**Status:** deferred to a future phase
 
 ## Why deferred
 

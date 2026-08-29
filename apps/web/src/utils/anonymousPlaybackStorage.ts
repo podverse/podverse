@@ -1,4 +1,5 @@
 import type { DTOClip, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
+import { isPlainObject } from '@podverse/helpers';
 
 import { LOCAL_STORAGE } from '../constants/localStorage';
 import { clampPlaybackPositionForStorage } from '../lib/playback';
@@ -26,10 +27,6 @@ export type AnonymousPlaybackWriteInput = {
   mpDuration?: number;
 };
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
 export function parseAnonymousPlaybackSnapshot(
   raw: string | null
 ): AnonymousPlaybackSnapshot | null {
@@ -38,7 +35,7 @@ export function parseAnonymousPlaybackSnapshot(
   }
   try {
     const parsed: unknown = JSON.parse(raw);
-    if (!isRecord(parsed)) {
+    if (!isPlainObject(parsed)) {
       return null;
     }
     if (parsed.v !== 1) {

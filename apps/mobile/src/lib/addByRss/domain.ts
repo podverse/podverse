@@ -3,6 +3,7 @@ import type {
   AddByRSSResourceData,
   QueueResourcesAbridgedIndex,
 } from '@podverse/helpers';
+import { sleep } from '@podverse/helpers';
 import { createAddByRSSId, createAddByRSSIdText } from '@podverse/helpers/addByRSS/ids';
 import { isObjectLike, toNonEmptyTrimmedString } from '@podverse/helpers/guards';
 import type { AddByRSSMappedFeed } from '@podverse/parser-mapping';
@@ -87,12 +88,6 @@ export function extractPreviewFromParsePayload(payload: unknown): AddByRssParseP
     title,
   };
 }
-
-const delay = async (ms: number): Promise<void> => {
-  await new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-};
 
 /**
  * The newest publish date in a parsed feed, or null when no item carries a usable one.
@@ -183,7 +178,7 @@ export async function pollAddByRssParseStatus(
       return resolveParseResult(statusResponse);
     }
 
-    await delay(STATUS_POLL_DELAY_MS);
+    await sleep(STATUS_POLL_DELAY_MS);
   }
 
   return { mappedFeed: null, preview: { ...EMPTY_PREVIEW } };

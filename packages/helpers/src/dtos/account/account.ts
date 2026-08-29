@@ -24,7 +24,7 @@ export interface DTOAccount {
   /** Present only on `GET /auth/me` for the logged-in user. Omitted on all other account responses. */
   sender_guid?: string;
   sharable_status_id?: number;
-  notifications_last_seen_at?: string | null;
+  notifications_last_read_at?: string | null;
   account_app_store_purchases?: DTOAccountAppStorePurchase[];
   account_credentials?: DTOAccountCredentials;
   account_email_change_verification?: DTOAccountEmailChangeVerification;

@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-import type { DTOItem } from '@podverse/helpers';
+import type { DTOItem, SortPrefScope, SortPrefValue } from '@podverse/helpers';
 import { buildAlbumPath, getTotalPages } from '@podverse/helpers';
 import type { ApiListResponse } from '@podverse/helpers-requests';
 import {
@@ -16,20 +17,34 @@ import { getChannelForSeoPage, getChannelHeroImageUrl } from '../../../lib/seo/f
 import { toSeoPlainText } from '../../../lib/seo/toSeoPlainText';
 import { truncateMetaDescription } from '../../../lib/seo/truncateMetaDescription';
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
+import {
+  hasExplicitControlParams,
+  resolveStoredRange,
+  resolveStoredToken,
+} from '../../../utils/localSettings/detailSortPrefs';
+import {
+  getParsedLocalSettings,
+  getStoredSortPref,
+} from '../../../utils/localSettings/localSettings';
 import { enforceCanonicalChannelRoute } from '../../../utils/redirect/enforceCanonicalMediumRoute';
 import { AlbumPageClient } from './AlbumPageClient';
 import type { AlbumPageDropdownConfigCurrentParams } from './AlbumPageDropdownConfig';
 import { getAlbumPageFilterParams } from './AlbumPageDropdownConfig';
 
+/**
+ * The control fields carry no schema default, so an absent parameter stays `undefined` and this
+ * album's remembered selection is reachable. A default applied here would win before the stored
+ * preference was ever consulted.
+ */
 const searchParamsSchema = z.object({
   page: z
     .string()
     .transform((v) => parseInt(v, 10))
     .optional()
     .default(1),
-  type: z.enum(QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_TYPE_VALUES).optional().default('tracks'),
-  sort: z.enum(QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_SORT_VALUES).optional().default('forward'),
-  range: z.enum(QUERY_PARAMS_STATS_RANGE_VALUES).optional().nullable().default(null),
+  type: z.enum(QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_TYPE_VALUES).optional(),
+  sort: z.enum(QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_SORT_VALUES).optional(),
+  range: z.enum(QUERY_PARAMS_STATS_RANGE_VALUES).optional().nullable(),
 });
 
 type SearchParams = z.infer<typeof searchParamsSchema>;
@@ -74,14 +89,19 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
 
   const { ssrApiRequestService } = await getSSRAuthService();
 
-  const { currentPage, currentType, currentSort, currentRange } =
-    await parseSearchParams(queryParams);
-
   const ssrChannel = await getChannelForSeoPage(channel_id);
   if (ssrChannel?.feed?.podcast_index_id && ssrChannel.feed.feed_policy?.public_visible === false) {
     redirect(`/podcast-index/feed/${ssrChannel.feed.podcast_index_id}`);
   }
   enforceCanonicalChannelRoute(ssrChannel, 'album');
+
+  // Keyed on the resolved `id_text` rather than the route segment, so a channel reached by numeric
+  // id and one reached by its slug are the same instance to the store.
+  const sortPrefScope: SortPrefScope = { idText: ssrChannel.id_text, kind: 'channel' };
+  const storedSortPref = getStoredSortPref(getParsedLocalSettings(await cookies()), sortPrefScope);
+
+  const { currentPage, currentType, currentSort, currentRange, hasExplicitUrlParams } =
+    parseSearchParams(queryParams, storedSortPref);
 
   const ssrItemsWithLiveItem = await ssrApiRequestService.reqLiveItemGetManyByChannel(
     ssrChannel.id_text
@@ -104,6 +124,7 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
 
   return (
     <AlbumPageClient
+      hasExplicitUrlParams={hasExplicitUrlParams}
       initialQueryParams={{
         page: currentPage,
         type: currentType,
@@ -142,19 +163,36 @@ const getCurrentTotalPages = ({
   return 1;
 };
 
-function parseSearchParams(queryParams: SearchParams): AlbumPageDropdownConfigCurrentParams {
+type AlbumPageResolvedParams = AlbumPageDropdownConfigCurrentParams & {
+  hasExplicitUrlParams: boolean;
+};
+
+function parseSearchParams(
+  queryParams: SearchParams,
+  storedSortPref: SortPrefValue | null
+): AlbumPageResolvedParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
+  const data = parsed.success ? parsed.data : null;
 
-  if (!parsed.success) {
-    return {
-      currentType: 'tracks',
-      currentSort: 'forward',
-      currentRange: null,
-      currentPage: 1,
-    };
-  }
+  const filterParams = getAlbumPageFilterParams({
+    page: data?.page ?? 1,
+    range: resolveStoredRange(data?.range, storedSortPref?.range),
+    sort: resolveStoredToken(
+      data?.sort,
+      storedSortPref?.sort,
+      QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_SORT_VALUES,
+      'forward'
+    ),
+    type: resolveStoredToken(
+      data?.type,
+      storedSortPref?.tab,
+      QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_TYPE_VALUES,
+      'tracks'
+    ),
+  });
 
-  const data = parsed.data;
-
-  return getAlbumPageFilterParams(data);
+  return {
+    ...filterParams,
+    hasExplicitUrlParams: hasExplicitControlParams([data?.type, data?.sort, data?.range]),
+  };
 }

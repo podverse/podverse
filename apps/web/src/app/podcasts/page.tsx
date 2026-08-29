@@ -14,7 +14,10 @@ import { getCuratedStaticPageMetadata } from '../../lib/seo/curatedPageMetadata'
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import type { PodcastsFilterDefaults } from '../../utils/localSettings/localSettings';
-import { getParsedLocalSettings } from '../../utils/localSettings/localSettings';
+import {
+  getFilterDefaultsForPage,
+  getParsedLocalSettings,
+} from '../../utils/localSettings/localSettings';
 import { clampFilterTerm } from './podcastsFilter';
 import { PodcastsPageClient } from './PodcastsPageClient';
 import type { PodcastsPageDropdownConfigCurrentParams } from './PodcastsPageDropdownConfig';
@@ -52,7 +55,7 @@ export default async function PodcastsPage({ searchParams }: PodcastsPageProps) 
 
   const cookieStore = await cookies();
   const ssrLocalSettings = getParsedLocalSettings(cookieStore);
-  const ssrFilterDefaults = ssrLocalSettings.fd?.podcasts;
+  const ssrFilterDefaults = getFilterDefaultsForPage(ssrLocalSettings, 'podcasts');
 
   const queryParams = await searchParams;
   const { currentType, currentSort, currentRange, currentCategory, currentPage } =

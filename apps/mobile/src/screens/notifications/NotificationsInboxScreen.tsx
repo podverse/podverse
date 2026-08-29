@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { FlatList, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOAccountNotification } from '@podverse/helpers';
-import { NotificationCategoryEnum } from '@podverse/helpers';
+import { getRelativeTimeParts, NotificationCategoryEnum } from '@podverse/helpers';
 
 import { useAuth } from '../../auth/AuthProvider';
 import { Card } from '../../components/primitives/Card';
@@ -14,7 +14,7 @@ import { ListLoading } from '../../components/state/ListLoading';
 import { RetryableError } from '../../components/state/RetryableError';
 import { getMobileConfig } from '../../config';
 import { notificationsRepository } from '../../data/repositories';
-import { emitNotificationsSeenEvent } from '../../hooks/useNotificationsUnseenCount';
+import { emitNotificationsReadEvent } from '../../hooks/useNotificationsUnreadCount';
 import type { NotificationsStackParamList } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
 
@@ -41,7 +41,7 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
-  const [newCount, setNewCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [page, setPage] = useState(FIRST_PAGE);
   const [totalPages, setTotalPages] = useState(FIRST_PAGE);
 
@@ -97,6 +97,11 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
           fontSize: 14,
           fontWeight: '600',
         },
+        recentActivityNote: {
+          color: themeStyles.textSecondary.color,
+          fontSize: 13,
+          marginBottom: tokens.spacing.md,
+        },
         rowCard: {
           marginBottom: tokens.spacing.sm,
         },
@@ -125,7 +130,7 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
     async (nextPage: number, mode: 'replace' | 'append') => {
       if (status !== 'authenticated') {
         setNotifications([]);
-        setNewCount(0);
+        setUnreadCount(0);
         setPage(FIRST_PAGE);
         setTotalPages(FIRST_PAGE);
         setErrorKey(null);
@@ -146,7 +151,7 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
         setNotifications((previous) =>
           mode === 'replace' ? nextData.items : [...previous, ...nextData.items]
         );
-        setNewCount(nextData.newCount);
+        setUnreadCount(nextData.unreadCount);
         setPage(nextData.page);
         setTotalPages(nextData.totalPages);
       } catch (error) {
@@ -166,10 +171,10 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
     [requestContext, status]
   );
 
-  const loadFirstPageAndMarkSeen = useCallback(async () => {
+  const loadFirstPageAndMarkRead = useCallback(async () => {
     if (status !== 'authenticated') {
       setNotifications([]);
-      setNewCount(0);
+      setUnreadCount(0);
       setPage(FIRST_PAGE);
       setTotalPages(FIRST_PAGE);
       setErrorKey(null);
@@ -180,11 +185,11 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
     setIsLoading(true);
     setErrorKey(null);
     try {
-      await notificationsRepository.markSeen(requestContext);
-      emitNotificationsSeenEvent();
+      await notificationsRepository.markRead(requestContext);
+      emitNotificationsReadEvent();
       const nextData = await notificationsRepository.list(requestContext, { page: FIRST_PAGE });
       setNotifications(nextData.items);
-      setNewCount(nextData.newCount);
+      setUnreadCount(nextData.unreadCount);
       setPage(nextData.page);
       setTotalPages(nextData.totalPages);
     } catch (error) {
@@ -198,8 +203,8 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
 
   useFocusEffect(
     useCallback(() => {
-      void loadFirstPageAndMarkSeen();
-    }, [loadFirstPageAndMarkSeen])
+      void loadFirstPageAndMarkRead();
+    }, [loadFirstPageAndMarkRead])
   );
 
   const handleNotificationPress = useCallback(async (notification: DTOAccountNotification) => {
@@ -235,49 +240,29 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
 
   const formatRelativeTime = useCallback(
     (isoDate: string): string => {
-      const createdAtMs = Date.parse(isoDate);
-      if (Number.isNaN(createdAtMs)) {
-        return '';
-      }
-
-      const deltaSeconds = Math.round((createdAtMs - Date.now()) / 1000);
-      const absSeconds = Math.abs(deltaSeconds);
-      if (absSeconds < 60) {
-        return relativeTimeFormatter.format(deltaSeconds, 'second');
-      }
-
-      const deltaMinutes = Math.round(deltaSeconds / 60);
-      if (Math.abs(deltaMinutes) < 60) {
-        return relativeTimeFormatter.format(deltaMinutes, 'minute');
-      }
-
-      const deltaHours = Math.round(deltaMinutes / 60);
-      if (Math.abs(deltaHours) < 24) {
-        return relativeTimeFormatter.format(deltaHours, 'hour');
-      }
-
-      const deltaDays = Math.round(deltaHours / 24);
-      return relativeTimeFormatter.format(deltaDays, 'day');
+      const parts = getRelativeTimeParts(isoDate);
+      return parts === null ? '' : relativeTimeFormatter.format(parts.value, parts.unit);
     },
     [relativeTimeFormatter]
   );
 
   const canLoadMore = page < totalPages;
-  const clampedNewCount = Math.min(newCount, notifications.length);
-  const newItems = notifications.slice(0, clampedNewCount);
-  const earlierItems = notifications.slice(clampedNewCount);
+  const clampedUnreadCount = Math.min(unreadCount, notifications.length);
+  const unreadItems = notifications.slice(0, clampedUnreadCount);
+  const earlierItems = notifications.slice(clampedUnreadCount);
 
   const sectionHeader = (
     <>
       <Text style={styles.heading}>{t('settings.notifications.notifications')}</Text>
-      {newItems.length > 0 ? (
-        <Text style={styles.sectionHeading}>{t('notifications.section.new')}</Text>
+      <Text style={styles.recentActivityNote}>{t('notifications_page.recent_activity_note')}</Text>
+      {unreadItems.length > 0 ? (
+        <Text style={styles.sectionHeading}>{t('notifications.section.unread')}</Text>
       ) : null}
     </>
   );
 
-  const sectionedRows = [...newItems, ...earlierItems];
-  const earlierSectionStartIndex = newItems.length;
+  const sectionedRows = [...unreadItems, ...earlierItems];
+  const earlierSectionStartIndex = unreadItems.length;
 
   return (
     <View style={styles.container} testID="notifications-inbox-screen">
@@ -294,7 +279,7 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
             <RetryableError
               errorKey={errorKey}
               onRetry={() => {
-                void loadFirstPageAndMarkSeen();
+                void loadFirstPageAndMarkRead();
               }}
               testID="notifications-inbox-error"
             />

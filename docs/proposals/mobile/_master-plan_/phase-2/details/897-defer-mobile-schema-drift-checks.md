@@ -2,7 +2,7 @@
 
 **Master step:** P2.3.11
 **Model (author + implement):** Auto
-**Status:** draft — deferred until after Phase 2
+**Status:** deferred until after Phase 2
 
 ## Scope
 
@@ -25,6 +25,13 @@ The current mobile schema is small, migrations are explicit, and Phase 2 is focu
 features and visual resolution. A drift check becomes more valuable as more mobile domains and
 contributors add tables, indexes, and migrations. Revisit it after Phase 2 when the schema has enough
 surface area to judge the maintenance cost and failure modes.
+
+## Confirmed against what shipped
+
+This area added migrations by hand and they held — most recently `sync_event_log` as migration 7. The
+schema is bigger than it was, which moves the evaluation closer without changing the reasoning: it is
+still small enough that a missing forward migration would be caught in review, and Phase 2 has more
+areas to work through. Deferral stands until the phase closes.
 
 ## Acceptance criteria
 

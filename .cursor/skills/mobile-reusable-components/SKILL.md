@@ -69,6 +69,8 @@ Root row stacks label / description / current value (not trailing). See
 
 ## Related
 
+- Rule: **reuse-beyond-components** — the same habit for hooks and pure functions, including logic
+  mobile shares with web through `@podverse/helpers`
 - Rule: **mobile-react-native** (boundaries + DRY bullet)
 - Theme: **mobile-theme-parity**
 - Web counterpart (not for mobile imports): **reusable-components**

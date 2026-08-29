@@ -126,6 +126,6 @@ drops in later without rework — see
 ```bash
 npm run lint
 npm run test:unit
-make e2e_test_web_report_spec SPEC=e2e/membership.spec.ts
-npm run mobile:e2e:test -- membership
+make e2e_test_web_report_spec SPEC=e2e/membership-gating.spec.ts
+npm run mobile:e2e:test -- membership-gate
 ```

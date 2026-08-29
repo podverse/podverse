@@ -2,7 +2,7 @@
 
 **Master step:** P2.4.4
 **Model (author + implement):** Opus 5
-**Status:** implemented
+**Status:** done
 
 ## Scope
 
@@ -34,8 +34,8 @@ This is O(1) per subscription rather than O(items), syncs as a single value per 
 unseen counts independent of notification rows entirely.
 
 **Precedent to follow:** nextgen already does exactly this one level up —
-`Account.notifications_last_seen_at` is a single account-level timestamp, and `is_new` /
-`unseen_count` are derived by comparing `created_at` against it (see
+`Account.notifications_last_read_at` is a single account-level timestamp, and `is_unread` /
+`unread_count` are derived by comparing `created_at` against it (see
 `apps/api/src/lib/accountNotificationApiSerialization.ts`). Reuse that shape rather than inventing a
 new one.
 
@@ -123,8 +123,8 @@ That is deliberate: the badge describes what the user can actually open offline.
 
 ## Web parity references
 
-- Precedent: `packages/orm/src/entities/account/account.ts` (`notifications_last_seen_at`),
-  `apps/api/src/lib/accountNotificationApiSerialization.ts` (`countUnseen`, `is_new`)
+- Precedent: `packages/orm/src/entities/account/account.ts` (`notifications_last_read_at`),
+  `apps/api/src/lib/accountNotificationApiSerialization.ts` (`countUnread`, `is_unread`)
 - `apps/api/src/routes/account.ts`, `apps/api/src/controllers/account/accountNotification.ts`
 - `apps/web/src/app/podcasts/` — where web displays the counts
 - Legacy model deliberately **not** reproduced: `podverse-rn` `services/newEpisodesCount.ts`
@@ -136,6 +136,6 @@ That is deliberate: the badge describes what the user can actually open offline.
 npm run lint
 npm run test:unit
 npm run test:e2e:api
-make e2e_test_web_report_spec SPEC=e2e/podcasts.spec.ts
+make e2e_test_web_report_spec SPEC=e2e/podcasts-unseen-badges.spec.ts
 npm run mobile:e2e:test -- home
 ```

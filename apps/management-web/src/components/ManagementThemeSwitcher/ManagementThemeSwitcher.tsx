@@ -3,9 +3,9 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 
+import { writeCookie } from '@podverse/helpers-browser';
 import { ALL_POSSIBLE_THEMES, FormDropdown } from '@podverse/ui';
 
-import { writeCookie } from '../../utils/cookie';
 import type { UITheme } from '../../utils/uiTheme';
 import {
   getCustomThemeById,
@@ -14,7 +14,6 @@ import {
   UI_THEME_COOKIE,
 } from '../../utils/uiTheme';
 
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 export type ManagementThemeSwitcherProps = {
   className?: string;
@@ -68,7 +67,7 @@ export const ManagementThemeSwitcher = ({
   const handleChange = (next: string) => {
     const uiTheme = toUITheme(next);
     document.documentElement.setAttribute('data-ui-theme', uiTheme);
-    writeCookie(UI_THEME_COOKIE, uiTheme, COOKIE_MAX_AGE);
+    writeCookie(UI_THEME_COOKIE, uiTheme);
     setTheme(uiTheme);
   };
 

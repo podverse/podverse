@@ -14,6 +14,8 @@
  * timestamps the same way — a rule implemented three times is a rule that will disagree three ways.
  */
 
+import { toEpochMsOrNull } from './date.js';
+
 /**
  * Highest count a badge states exactly. Past this the answer is `20+`, because the difference
  * between 21 and 200 does not change what anyone does next, and bounding it is what keeps the count
@@ -213,8 +215,8 @@ export const mergeLastSeenAt = (
   left: string | null | undefined,
   right: string | null | undefined
 ): string | null => {
-  const leftMs = toEpochMs(left);
-  const rightMs = toEpochMs(right);
+  const leftMs = toEpochMsOrNull(left);
+  const rightMs = toEpochMsOrNull(right);
 
   if (leftMs === null) {
     return rightMs === null ? null : (right ?? null);
@@ -231,20 +233,11 @@ export const isLaterLastSeenAt = (
   candidate: string | null | undefined,
   stored: string | null | undefined
 ): boolean => {
-  const candidateMs = toEpochMs(candidate);
+  const candidateMs = toEpochMsOrNull(candidate);
   if (candidateMs === null) {
     return false;
   }
 
-  const storedMs = toEpochMs(stored);
+  const storedMs = toEpochMsOrNull(stored);
   return storedMs === null || candidateMs > storedMs;
-};
-
-const toEpochMs = (value: string | null | undefined): number | null => {
-  if (value === null || value === undefined || value.length === 0) {
-    return null;
-  }
-
-  const parsed = Date.parse(value);
-  return Number.isNaN(parsed) ? null : parsed;
 };

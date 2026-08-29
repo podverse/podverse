@@ -1,10 +1,133 @@
 # Implementation divergences from the locked decisions
 
 Where an implementation had to depart from a decision locked in [00-SUMMARY.md](00-SUMMARY.md), and
-why. Recorded as it happens rather than at the end, per prompt 18 step 4. Do not silently diverge
-from a locked decision — add an entry here instead.
+why. Recorded as it happens rather than at the end, not reconstructed when the set closes. Do not
+silently diverge from a locked decision — add an entry here instead.
 
-Recorded as they happen rather than at the end, per prompt 18 step 4.
+**Prompt 18 — the P2.1.1 and P2.1.3 *areas* are left open even though every step under them is done.**
+Work item 2 says everything implemented in prompts 01–17 flips to `done`. Every step row and detail
+header did. The two area rows in the P2.1 table did not, because Phase 2 defines an area as closed
+when the operator says the screens look right, not when the steps are implemented — flipping them
+here would have closed an area on an agent's word and removed the operator's own gate. The master plan
+now states that distinction next to the step table so the mismatch is legible rather than looking like
+a missed edit.
+
+**Prompt 18 — status vocabulary was normalized, not just advanced.** The docs had accumulated
+`implemented`, `complete`, and `draft — deferred` alongside the `not started → questions asked →
+planned → done` scale the appendix declares. Three words for one state make the appendix and the track
+tables impossible to compare, which is the specific thing this prompt exists to fix. `implemented` and
+`complete` became `done`, and the deferral docs became `deferred` rather than `draft`, since a
+recorded deferral is a decision rather than an unfinished draft. The appendix legend now names
+`deferred` and `superseded` as terminal values so the table is readable against its own key.
+
+**Prompt 18 — verifying deferral 896 found the tablet Maestro flow asserts chrome that is not
+mounted.** Work item 1 asks only to confirm the tablet branch still diverges and that the sync
+indicator reached it. Both held. It also turned up that `apps/mobile/e2e/tablet.yaml` waits on
+`playback-active-e2e` and `mini-player` after starting playback, and the tablet branch mounts neither,
+so the opt-in tablet flow cannot pass today. Nothing was changed to fix it — mounting the mini player
+is the deferred work itself, and doing it here would be building 896 rather than recording it. The
+consequence is written into 896 so the next person to run the tablet slot knows the red is the
+deferral rather than a regression.
+
+**Prompt 17 — no compatibility layer, because there is no client to be compatible with.** Work item 3
+asks to version or dual-serve the endpoints so an older mobile build does not break mid-rollout. That
+work item assumes a deployed client, and none exists: this infrastructure has never gone live, so the
+only builds that call these endpoints are the ones in this repository, which move with it. The API
+therefore ships read/unread alone — no seen-named notification route, no duplicated response key, no
+`is_new` beside `is_unread`.
+
+Serving both would have cost more than it saved. A compatibility alias reads as a deliberate contract
+to whoever finds it next, so every future reader has to establish that it is dead before touching it,
+and every schema, test, and doc carries two spellings of one idea in the meantime. Notifications are
+read/unread and channels are seen/unseen, with nothing in between — which is the property that makes
+either word unambiguous wherever it appears.
+
+**Prompt 17 — verifying retention found the window applied twice, and fixing it changed which column
+decides.** Decision 24 and work item 5 say retention already exists and the scope is to confirm the
+window and make it configurable. Confirming it turned up a real defect: rows default to
+`expires_at = created_at + 1 month` and the purge deleted rows whose `expires_at` was already a month
+in the past, so a notification lived about two months. The purge now deletes anything past its own
+`expires_at` — cutoff `now`, which is what that column means — and separately anything older than
+`NOTIFICATION_RETENTION_DAYS`. That second rule is the divergence: the configured window is enforced
+against `created_at` on rows already in the table, so an operator who shortens it sees it take effect
+on the next run rather than only on notifications created afterwards. A setting that only applied
+going forward would not be a retention window in any useful sense.
+
+**Prompt 17 — the recent-activity framing is a line of copy on the inbox, not a restructured view.**
+Work item 6 asks for the inbox to be presented as a recent activity view on web and mobile. Both
+surfaces already sort newest first and section into unread and earlier, which is what a recent
+activity view looks like; what was missing was the app saying so, since a user who cannot see why a
+notification vanished reads it as a bug. Implemented as one localized line under the header on both
+surfaces rather than a new layout.
+
+**Prompt 16 — global lists keep their own bucket; only detail instances go in the LRU.** Work items
+1 and 5 read as one namespace holding everything, with the global lists moved into it. Implemented as
+two buckets in the same cookie: `fd` for the twelve global list routes, unbounded, and `sp` for
+detail instances, capped at 30 with LRU eviction. Both derive their key from the same shared builder,
+so the "one key format" requirement holds. The split exists because the two have opposite lifetimes —
+there are twelve global lists and a user returns to them constantly, while detail instances arrive
+without limit. Sharing a 30-entry window would let an afternoon of browsing podcasts evict the home
+page's own sort, which is the one preference guaranteed to be wanted again.
+
+**Prompt 16 — the cap is 30 entries *and* a byte ceiling, because a count is not a size.** The plan
+sets the bound at 30 entries against a ~1KB budget. An entry's key is a scope kind plus an `id_text`
+and its value is up to three fields, so 30 of them can exceed that budget once `encodeURIComponent`
+and the cookie's other fields are counted — and the browser silently drops a cookie that overruns
+4KB, which would lose every setting in it rather than one sort. The store therefore trims from the
+least-recently-used end until the whole serialized cookie value fits 3800 characters, with the
+30-entry cap as the ordinary limit and the byte ceiling as the guarantee.
+
+**Prompt 16 — `/playlist/[playlist_id]` gained nothing, because it has nothing to remember.** The
+plan and detail both list it among the detail routes. That page renders playlist resources in the
+order the playlist author put them in, with pagination and no sort, tab, or range control — and page
+number is excluded by the plan's own constraints. Adding a store entry there would have meant first
+inventing a control for it. Podcast, episode, album, and artist carry the work.
+
+**Prompt 16 — the cold-load proof turns scripting off rather than watching for a reshuffle.** The
+acceptance criterion is that the remembered sort renders in the server HTML "with no visible re-sort
+after hydration". Asserting the absence of a reshuffle from a live page is a race: a passing run
+cannot distinguish HTML that was already correct from a client pass that landed before the
+assertion. `detail-sort-persistence.spec.ts` loads the page in a second context with
+`javaScriptEnabled: false`, carrying the cookie over, so the ordering it asserts can only have come
+from the server. It is a new spec rather than an extension of an existing one because no current spec
+exercises a podcast detail page's sort control.
+
+**Prompt 15 — detail-screen sort discloses in place instead of pushing a Filter & Sort screen.**
+Home's control opens a dedicated screen because it has two controls scoped by media type, and the
+plan's wording pointed at the same treatment for the detail screens. A detail screen has one control
+with two options, so a push plus a Done is a screen for a decision that takes one tap. It is also
+structurally worse: podcast, album, and episode detail are each registered on the Home, Search, and
+Library stacks, so a pushed sort screen would need registering on all three or the control would work
+from one entry point and not another. `SortSelectRow` therefore keeps the same pill and the same
+checkmarked `OptionListGroup` rows, disclosed under the list header. Home is unchanged and still
+pushes, and both now render the pill through a shared `SortPill`.
+
+**Prompt 15 — per-instance sort gets its own Maestro flow reached by deep link, rather than an
+extension of `podcast-episode`.** That flow arrives at a podcast through search, and search returns
+whatever Podcast Index ranked first — which is enough to prove a detail screen renders, but not
+enough to say "these two specific channels hold two different sorts". `detail-sort-prefs.yaml` opens
+each instance by its seeded `id_text` so the two podcasts, the album, and the episode are all named
+rather than whichever happened to come back.
+
+**Prompt 15 — the episode's open tab is remembered alongside its clip sort.** The plan named sort.
+The tab is the same kind of decision on that screen and a stronger one: it selects which request the
+screen makes, so restoring it after Summary had already loaded would mean fetching twice and showing
+the wrong pane in between. It is stored under the item scope's `tab` field, which the shared value
+shape already defines. A remembered tab is still subject to what the episode carries — one with no
+transcript cannot open on it — and the stored value is left alone in that case so the tab returns if
+the episode later gains one.
+
+**Prompt 15 — clips offer recent and oldest, not top.** The clips endpoint also takes `top`, but
+`top` is only meaningful next to a range ("top of what"), and a second control to answer that is more
+than an episode's clip list is worth. Podcast detail offers recent and A-Z; album detail offers the
+authored order and its reverse. Chapters, soundbites, and transcript get no control at all — their
+order is authored or positional, so a sort would be offering a choice that should not exist.
+
+**Prompt 15 — alphabetical ordering of stored episodes happens in memory, not in SQL.** The stored
+episode query orders in SQLite, but sorting by title there would sort on the raw title, so every
+podcast whose episodes start with "The" would collapse into one alphabetical clump. The rows are
+already in hand and page-sized, so the alphabetical case is applied after the read using the same
+article-stripping comparison the rest of the app uses. Recent stays in SQL, where the index is.
 
 **Prompt 14 — the whole subscribed list is read into the browser and filtered there, under a
 1000-channel ceiling.** Detail 713 offered two resolutions and preferred reading the full list "if
@@ -37,7 +160,10 @@ strips a **leading article** — "The Daily" answers to `daily` — and leaves p
 in place, because the sortable-title form that removes them also removes the spaces a user is still
 typing, so "daily show" would fail against `dailyshow`. Rather than write a second answer to the same
 question, `matchesTitleFilter` moved out of `apps/mobile` into `@podverse/helpers` and both surfaces
-call it, so which shows a user can find does not depend on the device in their hand. Prompt 07 set a single page limit of 60 for both reading seen state and marking it. Web
+call it, so which shows a user can find does not depend on the device in their hand.
+
+**Prompt 13 — the seen-state page limit split in two, and the larger read is rate limited.** Prompt 07
+set a single page limit of 60 for both reading seen state and marking it. Web
 cannot use a 60-channel page the way mobile can: mobile pages the whole list during background sync,
 but the web list is ordered by the user's chosen sort while the endpoint returns channels ordered by
 `id_text`, so a partial read badges an arbitrary subset of the visible page. Reading is an index
@@ -351,8 +477,8 @@ put it beside `parseMembershipGateError`. But its only input, `deriveMembershipS
 in `@podverse/helpers` and is already consumed by both surfaces, so `helpers-requests` would have
 split membership derivation across two packages. Tier resolution is pure account derivation with no
 HTTP in it. `helpers-requests` keeps the genuinely HTTP-shaped part: `accessDenialReasonFromGate`,
-mapping a 403 onto the shared `AccessDenialReason`. Update the cross-surface table row above when
-prompt 18 reconciles status.
+mapping a 403 onto the shared `AccessDenialReason`. The cross-surface table in
+[00-SUMMARY.md](00-SUMMARY.md) now names both halves accordingly.
 
 **Prompt 01 — membership expiry is not a notification at all.** Detail 700 named four reminder
 surfaces, the fourth being a push near expiry. That was over-engineering, and a scheduled
