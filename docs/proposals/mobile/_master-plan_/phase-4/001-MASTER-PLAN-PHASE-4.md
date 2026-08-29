@@ -18,22 +18,22 @@ CarPlay / Android Auto. See
 
 ### Watch (Wear OS)
 
-| Step | Carried from | What | Model |
-| --- | --- | --- | --- |
-| P4.1 | 18.6 | Scope decision: remote control only vs standalone player | Opus 5 |
-| P4.2 | 18.7 | MediaSession remote commands from phone engine (play/pause/skip) | Opus 5 |
-| P4.3 | 18.8 | Now-playing complication from native cache or MediaSession phone bridge | Opus 5 |
-| P4.4 | 18.9 | Document Apple Watch as post-v1 deferral if Wear-only v1 | Auto |
+| Step | Carried from | What                                                                    | Model  |
+| ---- | ------------ | ----------------------------------------------------------------------- | ------ |
+| P4.1 | 18.6         | Scope decision: remote control only vs standalone player                | Opus 5 |
+| P4.2 | 18.7         | MediaSession remote commands from phone engine (play/pause/skip)        | Opus 5 |
+| P4.3 | 18.8         | Now-playing complication from native cache or MediaSession phone bridge | Opus 5 |
+| P4.4 | 18.9         | Document Apple Watch as post-v1 deferral if Wear-only v1                | Auto   |
 
 ### TV (Android TV)
 
-| Step | Carried from | What | Model |
-| --- | --- | --- | --- |
-| P4.5 | 18.10 | Leanback launcher entry and banner assets | Codex 5.3 |
-| P4.6 | 18.11 | D-pad focus navigation for Home rows and browse lists | Codex 5.3 |
-| P4.7 | 18.12 | Full-screen player with remote-friendly controls (no mini player) | Opus 5 |
-| P4.8 | 18.13 | Sign-in flow adapted for TV input (QR code or device code OAuth) | Opus 5 |
-| P4.9 | 18.14 | TV E2E: screenshot browse row focus state (emulator) | Codex 5.3 |
+| Step | Carried from | What                                                              | Model     |
+| ---- | ------------ | ----------------------------------------------------------------- | --------- |
+| P4.5 | 18.10        | Leanback launcher entry and banner assets                         | Codex 5.3 |
+| P4.6 | 18.11        | D-pad focus navigation for Home rows and browse lists             | Codex 5.3 |
+| P4.7 | 18.12        | Full-screen player with remote-friendly controls (no mini player) | Opus 5    |
+| P4.8 | 18.13        | Sign-in flow adapted for TV input (QR code or device code OAuth)  | Opus 5    |
+| P4.9 | 18.14        | TV E2E: screenshot browse row focus state (emulator)              | Codex 5.3 |
 
 ## Related deferrals
 

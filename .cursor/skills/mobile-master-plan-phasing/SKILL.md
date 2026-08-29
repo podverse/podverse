@@ -14,13 +14,13 @@ The master plan is split into phases under
 [`docs/proposals/mobile/_master-plan_/`](/docs/proposals/mobile/_master-plan_/PHASES.md), each with
 its own plan document and `details/` directory:
 
-| Phase | Plan | Theme | State |
-| ----- | ---- | ----- | ----- |
-| 1 | [phase-1/001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md) | Framework build-out, Tracks 0–23 | **closed** — history only, do not add steps |
-| 2 | [phase-2/001-MASTER-PLAN-PHASE-2.md](/docs/proposals/mobile/_master-plan_/phase-2/001-MASTER-PLAN-PHASE-2.md) | Legacy-parity features + visual polish | **active** |
-| 3 | [phase-3/001-MASTER-PLAN-PHASE-3.md](/docs/proposals/mobile/_master-plan_/phase-3/001-MASTER-PLAN-PHASE-3.md) | V4V | not started |
-| 4 | [phase-4/001-MASTER-PLAN-PHASE-4.md](/docs/proposals/mobile/_master-plan_/phase-4/001-MASTER-PLAN-PHASE-4.md) | Watch + TV | not started |
-| 5 | [phase-5/001-MASTER-PLAN-PHASE-5.md](/docs/proposals/mobile/_master-plan_/phase-5/001-MASTER-PLAN-PHASE-5.md) | Native store IAP | not started |
+| Phase | Plan                                                                                                          | Theme                                  | State                                       |
+| ----- | ------------------------------------------------------------------------------------------------------------- | -------------------------------------- | ------------------------------------------- |
+| 1     | [phase-1/001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md)                 | Framework build-out, Tracks 0–23       | **closed** — history only, do not add steps |
+| 2     | [phase-2/001-MASTER-PLAN-PHASE-2.md](/docs/proposals/mobile/_master-plan_/phase-2/001-MASTER-PLAN-PHASE-2.md) | Legacy-parity features + visual polish | **active**                                  |
+| 3     | [phase-3/001-MASTER-PLAN-PHASE-3.md](/docs/proposals/mobile/_master-plan_/phase-3/001-MASTER-PLAN-PHASE-3.md) | V4V                                    | not started                                 |
+| 4     | [phase-4/001-MASTER-PLAN-PHASE-4.md](/docs/proposals/mobile/_master-plan_/phase-4/001-MASTER-PLAN-PHASE-4.md) | Watch + TV                             | not started                                 |
+| 5     | [phase-5/001-MASTER-PLAN-PHASE-5.md](/docs/proposals/mobile/_master-plan_/phase-5/001-MASTER-PLAN-PHASE-5.md) | Native store IAP                       | not started                                 |
 
 **Phase 1 was agent-led; Phase 2 onward is operator-guided.** In Phase 2 the operator drives with
 **legacy app screenshots** and the agent asks questions before proposing anything — see
@@ -54,12 +54,12 @@ Repeat from step 1.
 
 ## Authoritative sources
 
-| Source                  | Path                                                      | Use for                            |
-| ----------------------- | --------------------------------------------------------- | ---------------------------------- |
+| Source                  | Path                                                              | Use for                            |
+| ----------------------- | ----------------------------------------------------------------- | ---------------------------------- |
 | Master plan             | `docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md`  | Steps, Model, PG table, Appendix C |
 | Detail docs (durable)   | `docs/proposals/mobile/_master-plan_/phase-1/details/NNN-slug.md` | Per-step design + acceptance       |
-| Phase plans (transient) | `.llm/plans/active/mobile-<phase-slug>/`                  | COPY-PASTA execution               |
-| Proposal docs           | `docs/proposals/mobile/**`                                | Parity and architecture context    |
+| Phase plans (transient) | `.llm/plans/active/mobile-<phase-slug>/`                          | COPY-PASTA execution               |
+| Proposal docs           | `docs/proposals/mobile/**`                                        | Parity and architecture context    |
 
 Related skills: **parallel-plan-execution**, **plan-completion**, **response-ending-make-verify**.
 

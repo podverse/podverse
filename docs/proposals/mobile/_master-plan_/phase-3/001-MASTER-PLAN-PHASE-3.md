@@ -12,9 +12,9 @@ button to a stub screen
 
 ## Carried from Phase 1
 
-| Step | Carried from | What | Model |
-| --- | --- | --- | --- |
-| P3.1 | 19.6 | V4V boost entry on full player with LNURL flow, mirroring web parity | Opus 5 |
+| Step | Carried from | What                                                                 | Model  |
+| ---- | ------------ | -------------------------------------------------------------------- | ------ |
+| P3.1 | 19.6         | V4V boost entry on full player with LNURL flow, mirroring web parity | Opus 5 |
 
 ## Legacy reference screens
 

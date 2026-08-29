@@ -49,10 +49,10 @@ real gap analysis.
 
 Then open with a short read-back structured as **three lists**:
 
-| List | Contents |
-| --- | --- |
-| **Already have** | Nextgen features present and working |
-| **Legacy has, nextgen doesn't** | The actual gap — the candidate work |
+| List                            | Contents                                        |
+| ------------------------------- | ----------------------------------------------- |
+| **Already have**                | Nextgen features present and working            |
+| **Legacy has, nextgen doesn't** | The actual gap — the candidate work             |
 | **Nextgen has, legacy doesn't** | Deliberate improvements to protect, not regress |
 
 This proves you read both the images and the code, and gives the operator a cheap chance to correct
@@ -67,17 +67,17 @@ questions rather than fewer. The cost of a wrong assumption here is a wasted pla
 Work through these categories and ask about everything genuinely undecided. Skip what the screenshot
 plus existing nextgen code already answers.
 
-| Category | Ask about |
-| --- | --- |
-| **Keep / drop / change** | Which visible features carry over? Which were legacy mistakes? Anything missing that should be added? |
-| **Information architecture** | Does nextgen keep the same screen boundaries and navigation depth, or collapse/split them? |
-| **Actions inventory** | Every button, row action, long-press, and overflow-sheet item — which survive? |
-| **Empty / loading / error states** | What shows with no data, while loading, offline, or on failure? |
-| **Auth gating** | Logged-out behavior, and anything gated behind membership |
-| **Data source** | Existing API endpoint, existing repository, or new work? Offline behavior? |
-| **Web parity** | Should this match `apps/web`, match legacy, or diverge deliberately? |
-| **Visual specifics** | Density, ordering, iconography, artwork sizes — only where the screenshot is ambiguous |
-| **Scope boundary** | What is explicitly out of scope for this area? |
+| Category                           | Ask about                                                                                             |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| **Keep / drop / change**           | Which visible features carry over? Which were legacy mistakes? Anything missing that should be added? |
+| **Information architecture**       | Does nextgen keep the same screen boundaries and navigation depth, or collapse/split them?            |
+| **Actions inventory**              | Every button, row action, long-press, and overflow-sheet item — which survive?                        |
+| **Empty / loading / error states** | What shows with no data, while loading, offline, or on failure?                                       |
+| **Auth gating**                    | Logged-out behavior, and anything gated behind membership                                             |
+| **Data source**                    | Existing API endpoint, existing repository, or new work? Offline behavior?                            |
+| **Web parity**                     | Should this match `apps/web`, match legacy, or diverge deliberately?                                  |
+| **Visual specifics**               | Density, ordering, iconography, artwork sizes — only where the screenshot is ambiguous                |
+| **Scope boundary**                 | What is explicitly out of scope for this area?                                                        |
 
 Two anti-patterns to avoid: asking about things you could determine by reading nextgen code, and
 bundling several real decisions into one vague question.
@@ -120,7 +120,7 @@ feature changes ([`mobile-feature-requires-e2e`](/.cursor/rules/mobile-feature-r
 
 ## Reading the legacy source
 
-Screenshots show *what*; the legacy source shows *why*. When a screenshot raises a behavior question,
+Screenshots show _what_; the legacy source shows _why_. When a screenshot raises a behavior question,
 it is fine to read `../podverse-rn/src/screens/<Name>Screen.tsx` — the operator sharing screenshots
 counts as the explicit legacy-reference request that
 [`legacy-app-reference`](/.cursor/rules/legacy-app-reference.mdc) requires. Do not edit or publish

@@ -15,11 +15,11 @@ membership-gate flow (19.8). Users can pay today — through the web checkout, n
 
 ## Carried from Phase 1
 
-| Step | Carried from | What | Model |
-| --- | --- | --- | --- |
-| P5.1 | 19.2 | Integrate RevenueCat or native StoreKit / Play Billing for subscription SKUs | Opus 5 |
-| P5.2 | 19.3 | Server receipt validation endpoint contract (reuse or extend API) | Opus 5 |
-| P5.3 | 19.5 | Restore purchases flow and account linking on login | Opus 5 |
+| Step | Carried from | What                                                                         | Model  |
+| ---- | ------------ | ---------------------------------------------------------------------------- | ------ |
+| P5.1 | 19.2         | Integrate RevenueCat or native StoreKit / Play Billing for subscription SKUs | Opus 5 |
+| P5.2 | 19.3         | Server receipt validation endpoint contract (reuse or extend API)            | Opus 5 |
+| P5.3 | 19.5         | Restore purchases flow and account linking on login                          | Opus 5 |
 
 The swap seam from 19.10 is the intended integration point — native IAP should replace the web-link
 checkout behind that seam rather than adding a parallel path.
