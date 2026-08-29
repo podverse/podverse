@@ -152,16 +152,17 @@ export const accountRepository = {
       });
   },
 
-  /** Clear account rows on logout / session reset (tokens are cleared via SecureStore path). */
+  /**
+   * Forget who is signed in, without forgetting what is on the device. Tokens are cleared through
+   * the SecureStore path.
+   *
+   * Subscriptions, add-by-RSS feeds, and the car/watch browse index survive: they are the device's
+   * own data, not an account cache (701). Signing out drops the identity and leaves the library
+   * usable offline, which is also what makes signing back in a no-op for local content.
+   */
   clearSnapshot: async (): Promise<void> => {
     await initializeDatabase();
     await getDb().delete(schema.accountSnapshot);
-
-    // Clear the car/watch browse index on logout so no stale subscriptions remain readable.
-    await projectLibraryBrowseIndexToNativeCache({ nodes: [] });
-
-    // Clear the unified subscriptions directory cache (add-by-RSS is cleared via its own repo).
-    await subscriptionsRepository.clearCache();
   },
 
   /** Fetch `/auth/me`, persist the snapshot, and return the account. */

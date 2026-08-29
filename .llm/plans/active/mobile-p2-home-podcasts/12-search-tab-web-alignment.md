@@ -1,4 +1,4 @@
-# 09 — Search tab web alignment
+# 12 — Search tab web alignment
 
 **Cursor model:** Codex 5.3
 **Reasoning:** medium
@@ -24,7 +24,7 @@ mode toggles and no client sort.
    navigation to channel detail **on the Search stack** when parsed-ready.
 3. Keep the unparsed-feed preview and add flow in `PodcastIndexFeedPreviewScreen.tsx`, gated at
    **membership** tier through the seam from prompt 01, since adding triggers server-side parsing.
-4. Handle being opened programmatically from Home's empty state (prompt 05): land on the Search root
+4. Handle being opened programmatically from Home's empty state (prompt 08): land on the Search root
    with a focused, empty field.
 5. Clean up i18n keys that become unused, and remove orphaned `testID`s.
 6. Update `apps/mobile/e2e/search.yaml` and `apps/mobile/e2e/search-unparsed.yaml` for the removed

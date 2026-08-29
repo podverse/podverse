@@ -1,4 +1,7 @@
+import { eq } from 'drizzle-orm';
+
 import type { DTOAccount } from '@podverse/helpers/dto';
+import { getTotalPages } from '@podverse/helpers/pagination';
 
 // Import directly from the request module (not the auth barrel) to avoid a cycle, mirroring
 // accountRepository (AuthProvider → accountRepository → auth barrel → AuthProvider).
@@ -6,6 +9,7 @@ import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh'
 import { getDb, initializeDatabase, schema } from '../db';
 import type { SubscribedChannelRow } from '../db/schema';
 import { addByRssRepository } from './addByRssRepository';
+import { hasPendingSignupMerge } from './subscriptionsSignupMarker';
 import type {
   SubscribedChannel,
   SubscriptionFilter,
@@ -74,39 +78,80 @@ const replaceDirectoryCache = async (entries: SubscribedChannel[]): Promise<void
     );
 };
 
+/**
+ * Ceiling on pages walked during a sync, so a malformed `meta` can never spin forever. At the
+ * endpoint's page size this covers far more subscriptions than any real account has.
+ */
+const MAX_SYNC_PAGES = 25;
+
+/** Add or refresh entries without removing anything already present. */
+const upsertDirectoryEntries = async (entries: SubscribedChannel[]): Promise<void> => {
+  for (const entry of entries) {
+    await subscriptionsRepository.subscribeLocal(entry);
+  }
+};
+
 const hydrateDirectoryChannels = async (
   context: MobileAuthRequestContext
 ): Promise<SubscribedChannel[]> => {
   // The subscribed list endpoint returns exactly the account's directory follows with display
   // fields (id_text, title, images) — the numeric ids in account_following_channels hydrated.
-  const response = await requestWithMobileAuthRefresh(context, async (apiRequestService) =>
-    apiRequestService.reqChannelGetMany({
-      category: null,
-      medium: 'podcasts',
-      page: 1,
-      range: null,
-      sort: 'a_z',
-      type: 'subscribed',
-    })
-  );
-
+  //
+  // Paged through to the end rather than taking page 1: these rows decide whether a channel shows
+  // as subscribed, so stopping at the first page would make everything past it look unsubscribed.
   const hydrated: SubscribedChannel[] = [];
-  for (const channel of response.data) {
-    const mapped = mapDirectoryChannelToSubscribed(channel);
-    if (mapped !== null) {
-      hydrated.push(mapped);
+  let page = 1;
+
+  while (page <= MAX_SYNC_PAGES) {
+    const response = await requestWithMobileAuthRefresh(context, async (apiRequestService) =>
+      apiRequestService.reqChannelGetMany({
+        category: null,
+        medium: 'podcasts',
+        page,
+        range: null,
+        sort: 'a_z',
+        type: 'subscribed',
+      })
+    );
+
+    for (const channel of response.data) {
+      const mapped = mapDirectoryChannelToSubscribed(channel);
+      if (mapped !== null) {
+        hydrated.push(mapped);
+      }
     }
+
+    const responsePage = response.meta.page ?? page;
+    const totalPages = getTotalPages(
+      response.meta.count,
+      response.meta.limit,
+      response.data.length,
+      responsePage
+    );
+    if (response.meta.limit <= 0 || responsePage >= totalPages) {
+      break;
+    }
+    page = responsePage + 1;
   }
+
   return hydrated;
 };
 
 /**
- * Unified subscriptions repository (9b.8) — the single source of truth for "channels I follow".
- * Merges directory follows (hydrated + cached in `subscribed_channel`) with add-by-RSS follows
- * (from `addByRssRepository`) into one deduped, sorted, filterable list, offline-first. Consumed by
- * Home (8.16), My Library (9.30), and the car library-browse projection (12.22). All follows-related
- * API calls stay here (never in screens); see the mobile-data-layer skill.
- * Detail: docs/proposals/mobile/_master-plan_/phase-1/details/600-unified-subscriptions-repository.md
+ * Unified subscriptions repository (9b.8, 701) — the single source of truth for "channels I follow".
+ * Merges directory follows (`subscribed_channel`) with add-by-RSS follows (`addByRssRepository`)
+ * into one deduped, sorted, filterable list, offline-first and **correct while signed out**.
+ * Consumed by Home (8.16), My Library (9.30), and the car library-browse projection (12.22). All
+ * follows-related API calls stay here (never in screens); see the mobile-data-layer skill.
+ *
+ * Ownership of the directory rows depends on auth state:
+ * - **Signed out** — local writes are the truth. `subscribeLocal` / `unsubscribeLocal` are the whole
+ *   operation; nothing reaches the server.
+ * - **Signed in** — the account is the truth. `syncFromAccount` replaces the rows on every refresh,
+ *   and callers push the follow to the server themselves (membership-gated) before writing locally.
+ *
+ * Local subscriptions cross over to an account **only** through the sign-up merge
+ * (`signupMerge.ts`); a later sign-in never pushes them up.
  */
 export const subscriptionsRepository = {
   /** Merged directory + add-by-RSS follows (default: all, alphabetical). Offline-capable. */
@@ -133,11 +178,72 @@ export const subscriptionsRepository = {
     return sortSubscriptions(applySubscriptionFilter(merged, filter), sort);
   },
 
+  /** Whether this channel is currently shown as subscribed on this device. */
+  isSubscribed: async (idText: string): Promise<boolean> => {
+    await initializeDatabase();
+    const rows = await getDb()
+      .select({ idText: schema.subscribedChannel.idText })
+      .from(schema.subscribedChannel)
+      .where(eq(schema.subscribedChannel.idText, idText))
+      .limit(1);
+    return rows.length > 0;
+  },
+
   /**
-   * Refresh the directory follows cache from the account. Best-effort and **soft-fail**: on a
-   * hydration error the previous cache is left intact for offline reads and no error propagates
-   * (must never break the account snapshot write in accountRepository.refresh). When the account has
-   * no directory follows, the cache is cleared.
+   * Record a directory subscription locally. Safe to call repeatedly — the row is upserted, so a
+   * re-subscribe refreshes the display fields rather than failing on the primary key.
+   *
+   * Signed out this is the entire operation. Signed in, callers push the follow to the server first
+   * so a membership denial never leaves a local row the account does not have.
+   */
+  subscribeLocal: async (entry: SubscribedChannel): Promise<void> => {
+    await initializeDatabase();
+    await getDb()
+      .insert(schema.subscribedChannel)
+      .values({
+        idText: entry.idText,
+        title: entry.title,
+        imageUrl: entry.imageUrl,
+        source: entry.source,
+        medium: entry.medium,
+        updatedAt: Date.now(),
+      })
+      .onConflictDoUpdate({
+        target: schema.subscribedChannel.idText,
+        set: {
+          title: entry.title,
+          imageUrl: entry.imageUrl,
+          medium: entry.medium,
+          updatedAt: Date.now(),
+        },
+      });
+  },
+
+  /** Remove a directory subscription locally. Never gated — unsubscribe works in every state. */
+  unsubscribeLocal: async (idText: string): Promise<void> => {
+    await initializeDatabase();
+    await getDb()
+      .delete(schema.subscribedChannel)
+      .where(eq(schema.subscribedChannel.idText, idText));
+  },
+
+  /**
+   * Channel `id_text`s of the local directory follows, for the sign-up merge. Add-by-RSS feeds are
+   * excluded — they are followed through their own endpoint, not by channel id.
+   */
+  listDirectoryIdTexts: async (): Promise<string[]> => {
+    await initializeDatabase();
+    const rows = await getDb()
+      .select({ idText: schema.subscribedChannel.idText })
+      .from(schema.subscribedChannel);
+    return rows.map((row) => row.idText);
+  },
+
+  /**
+   * Replace the directory follows with the account's, because while signed in the account is the
+   * source of truth. Best-effort and **soft-fail**: on a hydration error the existing rows are left
+   * intact for offline reads and no error propagates (must never break the account snapshot write in
+   * accountRepository.refresh). When the account has no directory follows, the rows are cleared.
    */
   syncFromAccount: async (
     account: DTOAccount,
@@ -146,20 +252,35 @@ export const subscriptionsRepository = {
     await initializeDatabase();
     const followingChannels = account.account_following_channels ?? [];
 
+    // A sign-up merge that has not landed yet means these local rows still need to go up. Letting
+    // the account overwrite them here would delete exactly the subscriptions the merge owes, so
+    // while one is outstanding the account is additive instead of authoritative.
+    const mergePending = await hasPendingSignupMerge();
+
     if (followingChannels.length === 0) {
-      await replaceDirectoryCache([]);
+      if (!mergePending) {
+        await replaceDirectoryCache([]);
+      }
       return;
     }
 
     try {
       const hydrated = await hydrateDirectoryChannels(context);
+      if (mergePending) {
+        await upsertDirectoryEntries(hydrated);
+        return;
+      }
       await replaceDirectoryCache(hydrated);
     } catch (error) {
       console.warn('[subscriptions] directory hydration failed (soft-fail)', error);
     }
   },
 
-  /** Clear the directory follows cache (logout / session reset). */
+  /**
+   * Drop every local directory follow, for explicit resets: E2E fixtures and account deletion.
+   *
+   * Signing out is not one of them — a signed-out device keeps its subscriptions (701).
+   */
   clearCache: async (): Promise<void> => {
     await initializeDatabase();
     await getDb().delete(schema.subscribedChannel);

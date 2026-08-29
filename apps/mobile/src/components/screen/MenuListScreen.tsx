@@ -8,6 +8,7 @@ import { MobileScreenContainer } from './MobileScreenContainer';
 
 export type MenuListItem = {
   onPress: () => void;
+  subtitle?: string;
   testID: string;
   title: string;
 };
@@ -46,6 +47,7 @@ function MenuListGroup({ items }: { items: readonly MenuListItem[] }) {
           <ListRow
             onPress={item.onPress}
             paddingVertical={tokens.spacing.lg}
+            subtitle={item.subtitle}
             testID={item.testID}
             title={item.title}
             trailing={<Text style={styles.chevron}>›</Text>}

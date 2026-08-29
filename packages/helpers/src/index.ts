@@ -4,13 +4,22 @@ export * from './lib/auth.js';
 export * from './lib/error/index.js';
 export * from './lib/i18n/index.js';
 export * from './lib/constants/index.js';
+export * from './lib/accessTier.js';
 export {
   AccountMembershipEnum,
   deriveMembershipState,
+  getMembershipExpiryNotice,
   hasValidMembership,
   isMembershipExpiredAt,
+  MEMBERSHIP_EXPIRY_WARNING_DAYS,
 } from './lib/accountMembership.js';
-export type { MembershipState, MembershipTier } from './lib/accountMembership.js';
+export type {
+  MembershipExpiryNotice,
+  MembershipExpiryStatus,
+  MembershipState,
+  MembershipTier,
+} from './lib/accountMembership.js';
+export * from './lib/followChannelsBulk.js';
 export * from './lib/accountTrust.js';
 export * from './lib/accountSignupMode.js';
 export * from './lib/adminAccountCredentialsLimits.js';

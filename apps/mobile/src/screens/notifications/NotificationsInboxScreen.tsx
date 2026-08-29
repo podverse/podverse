@@ -23,7 +23,6 @@ const CATEGORY_LABEL_KEYS: Record<NotificationCategoryEnum, string> = {
   [NotificationCategoryEnum.General]: 'settings.notifications.category_general',
   [NotificationCategoryEnum.Livestream]: 'settings.notifications.category_livestream',
   [NotificationCategoryEnum.Maintenance]: 'settings.notifications.category_maintenance',
-  [NotificationCategoryEnum.MembershipExpiry]: 'settings.notifications.category_membership_expiry',
   [NotificationCategoryEnum.NewContent]: 'settings.notifications.category_new_content',
   [NotificationCategoryEnum.ProductUpdate]: 'settings.notifications.category_product_update',
   [NotificationCategoryEnum.TermsOfService]: 'settings.notifications.category_terms_of_service',
@@ -204,10 +203,7 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
   );
 
   const handleNotificationPress = useCallback(async (notification: DTOAccountNotification) => {
-    const linkPath =
-      notification.category === NotificationCategoryEnum.MembershipExpiry
-        ? '/membership/renew'
-        : notification.link_path;
+    const linkPath = notification.link_path;
 
     if (linkPath === null || linkPath === '') {
       return;

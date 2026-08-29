@@ -34,29 +34,25 @@ yet, so it sits at the end where a late change of mind is still cheap.
 
 ---
 
-- [ ] **01 — Access tiers and shared gating seam**
+- [x] **01 — Access tiers and shared gating seam** — done, plan archived to
+      `.llm/plans/completed/mobile-p2-home-podcasts/01-access-tiers-and-gating.md`
 
-**Cursor model:** Opus 5 · **Reasoning:** high
+Landed as `packages/helpers/src/lib/accessTier.ts` (**not** `helpers-requests` as the prompt
+assumed — the resolver is pure account derivation and belongs next to `deriveMembershipState`;
+`helpers-requests` keeps only the HTTP-shaped `accessDenialReasonFromGate` bridge). Membership expiry
+is in-app and on demand only — the previously built `membership-expiry-reminder` scheduled job and
+worker handler were removed (rule `no-membership-expiry-notifications`). Auto-renew suppression stays
+deferred (711).
 
-```text
-Read and execute .llm/plans/active/mobile-p2-home-podcasts/01-access-tiers-and-gating.md
-Follow the locked decisions in 00-SUMMARY.md and the rule mobile-anonymous-vs-account-features.
-The tier seam is shared: it lives in packages/helpers-requests and web's useMembershipGate
-refactors onto it, behavior-preserving. Not a mobile-only change.
-Do not run tests; end with operator verification commands.
-```
+- [x] **02 — Anonymous subscriptions and bulk follow endpoint** — done, plan archived to
+      `.llm/plans/completed/mobile-p2-home-podcasts/02-anonymous-subscriptions.md`
 
-- [ ] **02 — Anonymous subscriptions and bulk follow endpoint**
-
-**Cursor model:** Opus 5 · **Reasoning:** high
-
-```text
-Read and execute .llm/plans/active/mobile-p2-home-podcasts/02-anonymous-subscriptions.md
-Local subscriptions become the source of truth. Signed out subscribes locally only; a signed-in
-member syncs; a signed-in non-member is blocked with an explanation. Unsubscribe is never gated.
-Add a new idempotent bulk follow endpoint for sign-in merge. Web is unchanged by design.
-Do not run tests; end with operator verification commands.
-```
+The merge model changed during execution on operator instruction: local subscriptions are pushed to
+an account **only at sign-up**, never on a later sign-in, and after that the account is the source of
+truth. That removed the additive merge (and with it the unsubscribe-resurrection problem) but means a
+sign-in to an existing account replaces local rows with the account's. Sign-out now retains **all**
+local data — subscriptions, add-by-RSS feeds, and the car browse index. New endpoint is
+`POST /account/follow/channel/bulk`.
 
 - [ ] **03 — Offline content sync**
 

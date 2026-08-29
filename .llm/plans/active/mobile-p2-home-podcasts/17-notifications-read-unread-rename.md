@@ -1,10 +1,10 @@
-# 14 — Notifications read/unread rename
+# 17 — Notifications read/unread rename
 
 **Cursor model:** Opus 5
 **Reasoning:** extra high
 **Detail:** [704-notifications-read-unread-rename](/docs/proposals/mobile/_master-plan_/phase-2/details/704-notifications-read-unread-rename.md)
 **Master step:** P2.4.5
-**Depends on:** 04
+**Depends on:** 07
 **May run parallel with:** 06–09
 
 Read [00-SUMMARY.md](00-SUMMARY.md) decisions 19 and 24 before starting.

@@ -12,18 +12,23 @@ import {
 } from 'react-native';
 
 import { breakpoints } from '@podverse/design-tokens';
-import type { DTOChannel, DTOItem } from '@podverse/helpers';
+import type { DTOChannel, DTOItem, FeatureAccess } from '@podverse/helpers';
 import { LiveItemStatusEnum } from '@podverse/helpers/dto';
 import { getTotalPages } from '@podverse/helpers/pagination';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
+import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
+import { GatedFeatureNotice } from '../../components/feedback/GatedFeatureNotice';
 import { Button } from '../../components/primitives/Button';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
+import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
+import { mapDirectoryChannelToSubscribed } from '../../data/repositories/subscriptionsMerge';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
+import { useAccessTier } from '../../membership/useAccessTier';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import type { ChannelBrowseStackParamList } from '../../navigation';
 import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
@@ -112,6 +117,8 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
   const [isSavingSubscription, setIsSavingSubscription] = useState<boolean>(false);
   const [subscriptionNoticeKey, setSubscriptionNoticeKey] = useState<string | null>(null);
+  /** Set only when a signed-in user's membership blocks the server follow; cleared on each attempt. */
+  const [subscriptionDenial, setSubscriptionDenial] = useState<FeatureAccess | null>(null);
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
   const { podcastId } = route.params;
 
@@ -254,22 +261,9 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
         );
 
         setChannel(channelResponse);
-        if (status === 'authenticated') {
-          const account = await requestWithMobileAuthRefresh(
-            {
-              accessToken,
-              clearSession,
-              refreshToken,
-              setTokens,
-            },
-            async (api) => api.reqAuthMe()
-          );
-          const nextSubscribed =
-            account.account_following_channels?.some(
-              (followingChannel) => followingChannel.channel_id === channelResponse.id
-            ) === true;
-          setIsSubscribed(nextSubscribed);
-        }
+        // Read the subscription from the repository rather than refetching the account: it is
+        // correct signed out, works offline, and drops a per-open `/auth/me` round trip.
+        setIsSubscribed(await subscriptionsRepository.isSubscribed(podcastId));
         setLiveRows(toLiveRows(liveResponse));
         setCurrentPage(page);
         const responsePage = itemResponse.meta.page ?? FIRST_PAGE;
@@ -322,56 +316,88 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     [navigation]
   );
 
-  const { handleGateError } = useMembershipGate();
+  const { goToMembership, handleGateError } = useMembershipGate();
+  const { onRequestLogin } = useAuthPrompt();
+  const { evaluateFeature } = useAccessTier();
 
+  /**
+   * Subscribing has three behaviors and unsubscribing has one (701).
+   *
+   * Signed out, the local write *is* the subscription and nothing reaches the server. Signed in the
+   * account is the source of truth, so the follow goes to the server first and the local row is
+   * written only once it sticks — otherwise the next account sync would silently erase it. A
+   * membership denial is definitive and leaves nothing behind locally.
+   *
+   * Unsubscribing is never gated, in any tier or membership state. The local removal happens first
+   * and stands even if the server call fails.
+   */
   const handleSubscriptionToggle = useCallback(async () => {
-    if (status !== 'authenticated') {
-      setSubscriptionNoticeKey('authentication.login_required');
-      return;
-    }
-
     if (isSavingSubscription) {
       return;
     }
 
+    const isSignedIn = status === 'authenticated';
+    const authContext = { accessToken, clearSession, refreshToken, setTokens };
+
     setIsSavingSubscription(true);
     setSubscriptionNoticeKey(null);
+    setSubscriptionDenial(null);
     try {
-      const account = await requestWithMobileAuthRefresh(
-        {
-          accessToken,
-          clearSession,
-          refreshToken,
-          setTokens,
-        },
-        async (api) => {
-          if (isSubscribed) {
-            return api.reqAccountUnfollowChannel({ channel_id_text: podcastId });
-          }
+      if (isSubscribed) {
+        await subscriptionsRepository.unsubscribeLocal(podcastId);
+        setIsSubscribed(false);
+        homeFeedRefresh.notify();
 
-          return api.reqAccountFollowChannel({ channel_id_text: podcastId });
+        if (isSignedIn) {
+          try {
+            await requestWithMobileAuthRefresh(authContext, async (api) =>
+              api.reqAccountUnfollowChannel({ channel_id_text: podcastId })
+            );
+          } catch {
+            // The local removal stands; the account catches up on the next successful unsubscribe.
+            setSubscriptionNoticeKey('errors.generic');
+          }
         }
-      );
-      const nextSubscribed =
-        channel?.id === undefined
-          ? !isSubscribed
-          : account.account_following_channels?.some(
-              (followingChannel) => followingChannel.channel_id === channel.id
-            ) === true;
-      setIsSubscribed(nextSubscribed);
-      homeFeedRefresh.notify();
-    } catch (error) {
-      if (handleGateError(error)) {
         return;
       }
-      setSubscriptionNoticeKey('errors.generic');
+
+      const entry = channel === null ? null : mapDirectoryChannelToSubscribed(channel);
+      if (entry === null) {
+        setSubscriptionNoticeKey('errors.generic');
+        return;
+      }
+
+      if (isSignedIn) {
+        const access = evaluateFeature('subscribe_sync');
+        if (!access.allowed) {
+          setSubscriptionDenial(access);
+          return;
+        }
+
+        try {
+          await requestWithMobileAuthRefresh(authContext, async (api) =>
+            api.reqAccountFollowChannel({ channel_id_text: podcastId })
+          );
+        } catch (error) {
+          if (handleGateError(error)) {
+            return;
+          }
+          setSubscriptionNoticeKey('errors.generic');
+          return;
+        }
+      }
+
+      await subscriptionsRepository.subscribeLocal(entry);
+      setIsSubscribed(true);
+      homeFeedRefresh.notify();
     } finally {
       setIsSavingSubscription(false);
     }
   }, [
     accessToken,
+    channel,
     clearSession,
-    channel?.id,
+    evaluateFeature,
     handleGateError,
     isSavingSubscription,
     isSubscribed,
@@ -429,6 +455,14 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
         </View>
         {subscriptionNoticeKey !== null ? (
           <Text style={styles.statusNotice}>{t(subscriptionNoticeKey)}</Text>
+        ) : null}
+        {subscriptionDenial !== null ? (
+          <GatedFeatureNotice
+            access={subscriptionDenial}
+            onRequestLogin={onRequestLogin}
+            onRequestMembership={goToMembership}
+            testID="podcast-detail-subscribe-gate"
+          />
         ) : null}
       </View>
     </>

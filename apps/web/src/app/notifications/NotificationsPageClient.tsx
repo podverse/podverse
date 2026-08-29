@@ -30,7 +30,6 @@ const INITIAL_STATE: NotificationsListState = {
 const CATEGORY_LABEL_KEYS: Record<NotificationCategoryValues, string> = {
   'new-content': 'category_new_content',
   livestream: 'category_livestream',
-  'membership-expiry': 'category_membership_expiry',
   'product-update': 'category_product_update',
   maintenance: 'category_maintenance',
   'terms-of-service': 'category_terms_of_service',

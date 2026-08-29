@@ -8,10 +8,15 @@ import { getMobileConfig } from '../config';
 // Import the repository from its module (not the data barrel) to avoid an import cycle through
 // the auth barrel.
 import { accountRepository } from '../data/repositories/accountRepository';
-import { addByRssRepository } from '../data/repositories/addByRssRepository';
 import { resolveSupportedLocale } from '../i18n/locale';
 import { startFcmTokenRefreshSync, stopFcmTokenRefreshSync } from '../push/fcmDeviceSync';
 import { refreshAccessTokenSingleFlight } from './authRequestWithRefresh';
+import type { SessionEndReason } from './forcedLogoutNotice';
+import {
+  clearForcedLogoutNotice,
+  markForcedLogout,
+  shouldNotifyForcedLogout,
+} from './forcedLogoutNotice';
 import { logoutWithMobileRevoke } from './logoutWithMobileRevoke';
 import { clearAllSecureTokens, readSecureToken, writeSecureToken } from './secureTokenStorage';
 import { runPostAuthAccountSync } from './syncAccountPrefs';
@@ -41,7 +46,7 @@ type SetTokensInput = {
 type AuthContextValue = {
   account: DTOAccount | null;
   accessToken: string | null;
-  clearSession: () => Promise<void>;
+  clearSession: (reason: SessionEndReason) => Promise<void>;
   error: string | null;
   hydrateFromSecureStorage: () => Promise<void>;
   logout: () => Promise<void>;
@@ -66,6 +71,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
     await Promise.all([
       writeSecureToken('accessToken', accessToken),
       writeSecureToken('refreshToken', refreshToken),
+      // Holding valid credentials again settles the question, whether the user acted on the notice
+      // or logged in without ever seeing it.
+      clearForcedLogoutNotice(),
     ]);
 
     setAccessToken(accessToken);
@@ -74,11 +82,21 @@ export function AuthProvider({ children }: PropsWithChildren) {
     setError(null);
   }, []);
 
-  const clearSession = useCallback(async () => {
+  const clearSession = useCallback(async (reason: SessionEndReason) => {
     await clearAllSecureTokens();
+
+    if (shouldNotifyForcedLogout(reason)) {
+      try {
+        await markForcedLogout();
+      } catch (markError) {
+        console.warn('Failed to record the forced-logout notice', markError);
+      }
+    }
+
     try {
+      // Only the account snapshot goes. Subscriptions and add-by-RSS feeds are retained (701) —
+      // they are the device's data, and a signed-out user keeps browsing and playing them.
       await accountRepository.clearSnapshot();
-      await addByRssRepository.clear();
     } catch (snapshotError) {
       console.warn('Failed to clear cached account data during session reset', snapshotError);
     }
@@ -92,7 +110,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const hydrateFromSecureStorage = useCallback(async () => {
     if (shouldResetSessionForE2e()) {
-      await clearSession();
+      await clearSession('reset');
       return;
     }
 
@@ -159,7 +177,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
       setError(null);
     } catch (error) {
       if (getErrorResponseStatus(error) === 401) {
-        await clearSession();
+        // The stored credentials were refused outright. Any other failure falls through below and
+        // keeps the session, so a cold start with no network stays signed in.
+        await clearSession('session_expired');
         return;
       }
 

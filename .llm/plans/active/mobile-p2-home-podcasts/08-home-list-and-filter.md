@@ -1,10 +1,10 @@
-# 05 — Home subscribed list and filter input
+# 08 — Home subscribed list and filter input
 
 **Cursor model:** Codex 5.3
 **Reasoning:** high
 **Detail:** [705-home-subscribed-list-and-filter](/docs/proposals/mobile/_master-plan_/phase-2/details/705-home-subscribed-list-and-filter.md)
 **Master step:** P2.1.1
-**Depends on:** 02, 03
+**Depends on:** 02, 06
 
 Read [00-SUMMARY.md](00-SUMMARY.md) decisions 2, 4–10, 17–18 before starting.
 
@@ -41,7 +41,7 @@ Home becomes subscribed-only with a local **`Filter…`** input at the top of th
 
 - All copy through i18n; no hardcoded strings or hex. Put the `Filter…` placeholder and both empty
   states in the **`consumer`** catalog, not the mobile overlay — web reuses these exact keys in
-  prompt 11, and a key may not exist in both `consumer` and `mobile`.
+  prompt 14, and a key may not exist in both `consumer` and `mobile`.
 - **Screen reader** per [`screen-reader-accessibility`](/.cursor/rules/screen-reader-accessibility.mdc):
   the filter input has an `accessibilityLabel`, the clear affordance is labeled, and the result count
   change is announced rather than silently re-rendering. The `all | add-by-RSS` chips need

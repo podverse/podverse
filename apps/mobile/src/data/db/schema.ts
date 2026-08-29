@@ -98,11 +98,17 @@ export type DownloadRow = typeof download.$inferSelect;
 export type DownloadInsert = typeof download.$inferInsert;
 
 /**
- * Offline cache of hydrated **directory** channel follows (9b.8). `DTOAccount.account_following_channels`
- * carries only numeric ids, so `subscriptionsRepository.syncFromAccount` fetches display fields once
- * (subscribed list endpoint) and persists them here, keyed by channel `id_text`. This lets the merged
- * subscriptions list (directory + add-by-RSS) render offline. Add-by-RSS feeds are NOT duplicated here
- * — they stay in `add_by_rss_feed`. Cleared on logout; replaced wholesale on each successful sync.
+ * The device's **directory** channel follows, keyed by channel `id_text` (9b.8, 701).
+ *
+ * This is the source of truth for what the app displays as subscribed, so a signed-out user can
+ * subscribe and keep it. It is **not** cleared on logout — the device keeps what it had.
+ *
+ * While signed in the account wins: `subscriptionsRepository.syncFromAccount` replaces these rows
+ * wholesale with the account's follows (`DTOAccount.account_following_channels` carries only numeric
+ * ids, so display fields are hydrated once from the subscribed list endpoint). Local subscriptions
+ * made while signed out are pushed up **only** by the sign-up merge, never by a later sign-in.
+ *
+ * Add-by-RSS feeds are NOT duplicated here — they stay in `add_by_rss_feed`.
  */
 export const subscribedChannel = sqliteTable('subscribed_channel', {
   idText: text('id_text').primaryKey(),

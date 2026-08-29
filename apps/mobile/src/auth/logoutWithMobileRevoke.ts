@@ -1,11 +1,12 @@
 import { getMobileConfig } from '../config';
 import { unregisterFcmDeviceForAccount } from '../push/fcmDeviceSync';
 import { unregisterUnifiedPushDeviceForAccount } from '../push/unifiedPushDeviceSync';
+import type { SessionEndReason } from './forcedLogoutNotice';
 import { createMobileApiRequestService } from './mobileApi';
 
 type LogoutWithMobileRevokeParams = {
   accessToken: string | null;
-  clearSession: () => Promise<void>;
+  clearSession: (reason: SessionEndReason) => Promise<void>;
   refreshToken: string | null;
 };
 
@@ -35,6 +36,6 @@ export const logoutWithMobileRevoke = async ({
       }
     }
   } finally {
-    await clearSession();
+    await clearSession('user_logout');
   }
 };

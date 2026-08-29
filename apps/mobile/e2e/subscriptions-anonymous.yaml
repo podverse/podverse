@@ -1,0 +1,62 @@
+appId: com.podverse.app.next
+name: Anonymous Subscriptions Persist
+---
+# Subscriptions are device-local, so a signed-out user can subscribe and keep it.
+# Deliberately never runs shared/login-seeded-user.yaml — the whole point is the anonymous path.
+# Needs Mobile E2E API (:4230) for search results.
+
+- runFlow: shared/launch-and-connect.yaml
+
+# Signed out, the subscribe control works rather than telling the user to log in.
+- tapOn:
+    id: tab-search
+- assertVisible:
+    id: search-screen
+- tapOn:
+    id: search-input
+- inputText: podcast
+- assertVisible:
+    id: search-result-row-0
+- tapOn:
+    id: search-result-row-0
+- assertVisible:
+    id: podcast-detail-screen
+- takeScreenshot: subscriptions-anonymous-detail-before
+
+- assertVisible: "Subscribe"
+- tapOn:
+    id: podcast-detail-subscribe-toggle
+# Flipping to "Unsubscribe" is the proof the local write landed; signed out there is no server
+# round trip behind it.
+- assertVisible: "Unsubscribe"
+- takeScreenshot: subscriptions-anonymous-detail-after
+
+# Still signed out, the library lists it instead of showing a login prompt.
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-subscriptions
+- assertVisible:
+    id: library-subscriptions-screen
+- assertNotVisible:
+    id: library-subscriptions-empty
+- takeScreenshot: subscriptions-anonymous-library
+
+# Relaunch WITHOUT clearState — this is the persistence assertion the flow exists for.
+- launchApp:
+    clearState: false
+- runFlow: shared/connect-dev-client.yaml
+
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-subscriptions
+- assertVisible:
+    id: library-subscriptions-screen
+- assertNotVisible:
+    id: library-subscriptions-empty
+- takeScreenshot: subscriptions-anonymous-after-relaunch

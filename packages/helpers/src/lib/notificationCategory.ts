@@ -1,7 +1,6 @@
 export enum NotificationCategoryEnum {
   NewContent = 'new-content',
   Livestream = 'livestream',
-  MembershipExpiry = 'membership-expiry',
   ProductUpdate = 'product-update',
   Maintenance = 'maintenance',
   TermsOfService = 'terms-of-service',
@@ -23,10 +22,6 @@ export const DEFAULT_NOTIFICATION_CATEGORY_PREFERENCES = {
     push_enabled: true,
   },
   [NotificationCategoryEnum.Livestream]: {
-    in_app_enabled: true,
-    push_enabled: true,
-  },
-  [NotificationCategoryEnum.MembershipExpiry]: {
     in_app_enabled: true,
     push_enabled: true,
   },

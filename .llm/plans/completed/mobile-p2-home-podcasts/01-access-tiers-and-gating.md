@@ -45,9 +45,15 @@ working, now derived from one tier model instead of two independent checks.
 6. Migrate existing ad-hoc checks to the seam — start with the add-by-RSS strings
    `features.search.add_needs_login` and `add_needs_membership`, which currently imply a two-state
    model.
-7. Build the four renewal reminder surfaces: at the gated feature, a persistent row in More/settings,
-   a dismissible Home banner, and a push notification near expiry. Leave the auto-renew suppression
-   as a single named predicate that currently returns `false`, so detail 711 is a one-line change.
+7. Build the renewal reminder surfaces: at the gated feature, a persistent row in More/settings, and
+   a dismissible Home banner. Leave the auto-renew suppression as a single named predicate that
+   currently returns `false`, so detail 711 is a one-line change.
+
+   > **Superseded after execution:** this step originally listed a fourth surface, a push
+   > notification near expiry. That was rejected as over-engineering, and the already-built
+   > `membership-expiry-reminder` scheduled job, ORM scheduler, and worker handler were removed with
+   > it. Expiry is in-app and on demand only — see
+   > [`no-membership-expiry-notifications`](/.cursor/rules/no-membership-expiry-notifications.mdc).
 8. Lapsed behavior for add-by-RSS: existing feeds stay visible and playable, refresh stops, adding is
    blocked.
 9. i18n: mobile-chrome strings go in the mobile overlay; anything web could reuse goes in

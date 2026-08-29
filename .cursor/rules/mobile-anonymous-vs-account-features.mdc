@@ -52,9 +52,11 @@ others disappear behind an upgrade affordance. Say which in the plan.
 Current lapsed behavior for add-by-RSS: existing feeds stay visible and playable but **stop
 refreshing** until renewal; adding new feeds is blocked behind the renewal prompt.
 
-**Do not send "membership expiring soon" reminders to users enrolled in auto-renew.** Payment
-functionality does not exist yet, so any reminder logic that depends on knowing auto-renew status
-is deferred until it does — plan the reminder surface so that check can be added without rework.
+Expiry is surfaced **in-app only**, derived on demand — never push, email, or a scheduled job. See
+[`no-membership-expiry-notifications`](/.cursor/rules/no-membership-expiry-notifications.mdc).
+
+**Do not tell users enrolled in auto-renew that they are expiring soon.** Payment functionality does
+not exist yet, so that check is deferred — build the surfaces so it drops in without rework.
 
 ## Tier assignments
 
@@ -83,10 +85,19 @@ is deferred until it does — plan the reminder surface so that check can be add
 **Unsubscribing is never blocked** — not by tier, not by an expired membership. A user can always
 remove something they no longer want.
 
-Signed-out local state is **not discarded** on sign-in. When a user creates an account or signs in,
-local subscriptions sync up to the server account. Queue, history, and per-channel seen state
-reconcile the same way. Seen state reconciles by taking the **later** timestamp per channel, so it
-only ever moves forward.
+**Local subscriptions are pushed to a server account at sign-up only.** Creating an account from the
+device uploads what is already subscribed locally. From then on the **account is the source of
+truth**: a later sign-in does *not* push local subscriptions up, because a phone must not be able to
+silently rewrite an account the user also uses on the web. Signing into a pre-existing account
+therefore replaces the local rows with the account's.
+
+**Signing out discards nothing local.** Subscriptions, add-by-RSS feeds, and the car/watch browse
+index are all retained — this is the same data offline mode depends on. Only the account identity is
+cleared.
+
+Queue, history, and per-channel seen state reconcile on sign-in rather than following the sign-up-only
+rule above, because they are per-device activity rather than a library the account owns. Seen state
+reconciles by taking the **later** timestamp per channel, so it only ever moves forward.
 
 ## Do
 

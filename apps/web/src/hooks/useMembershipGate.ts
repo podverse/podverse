@@ -1,25 +1,33 @@
 import { useTranslations } from 'next-intl';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
+
+import type { AccessTier, FeatureAccess, GatedFeature } from '@podverse/helpers';
+import { accessTierFromMembership, deriveMembershipState, evaluateFeatureAccess } from '@podverse/helpers';
 
 import { getContactEmail } from '../constants/contact';
+import { useAccount } from '../contexts/Account';
 import { useModals } from '../contexts/Modals';
 import type { Membership403FeatureContext } from '../utils/membership/modalForMembership403';
 import { getMembership403ModalProps } from '../utils/membership/modalForMembership403';
 
 /**
- * Centralized web membership-gate handler (Track 19.4 — parity with mobile `useMembershipGate`).
+ * Centralized web membership gate, resolving both halves of gating through the shared access-tier
+ * model in `@podverse/helpers` so web and mobile cannot drift.
  *
- * A logged-in but expired/insufficient user attempting a member-only action gets a `membership.*`
- * 403 (detected by the shared `parseMembershipGateError`). This hook turns that into the consistent
- * membership modal (message + auth-based Renew → `renewPath`) via the existing `modalLoginRequired`
- * slot, instead of a raw error/toast. Logged-out users are still handled by each caller's existing
- * login-required guard *before* the API call — this hook only handles logged-in denials in `catch`.
+ * - `accessTier` / `evaluateFeature` answer "can this user do this" *before* a request, using the
+ *   same tier table mobile uses, so a call site does not have to re-derive gating from auth state
+ *   plus membership fields. A caller may still keep its own `loggedInAccount` login guard.
+ * - `tryHandleMembershipGateError` handles the denial *after* a request: a logged-in but expired or
+ *   insufficient user gets the consistent membership modal (message + auth-based Renew →
+ *   `renewPath`) through the `modalLoginRequired` slot instead of a raw error. Returns `true` when
+ *   it opened the modal, so callers skip their generic error path.
  *
- * Returns `true` when it opened the membership modal, so callers skip their generic error path.
  * Pass a `featureContext` only where bespoke copy exists (`directory_add_by_rss`, `manual_refresh`);
  * otherwise the default `generic` uses the shared expired / premium-required copy.
  */
 export function useMembershipGate(): {
+  accessTier: AccessTier;
+  evaluateFeature: (feature: GatedFeature) => FeatureAccess;
   tryHandleMembershipGateError: (
     error: unknown,
     options?: { featureContext?: Membership403FeatureContext }
@@ -27,6 +35,15 @@ export function useMembershipGate(): {
 } {
   const tMembership = useTranslations('membership');
   const { setModalLoginRequired } = useModals();
+  const { loggedInAccount } = useAccount();
+
+  const membership = useMemo(() => deriveMembershipState(loggedInAccount), [loggedInAccount]);
+  const accessTier = useMemo(() => accessTierFromMembership(membership), [membership]);
+
+  const evaluateFeature = useCallback(
+    (feature: GatedFeature): FeatureAccess => evaluateFeatureAccess(feature, membership),
+    [membership]
+  );
 
   const tryHandleMembershipGateError = useCallback(
     (error: unknown, options?: { featureContext?: Membership403FeatureContext }): boolean => {
@@ -45,5 +62,5 @@ export function useMembershipGate(): {
     [setModalLoginRequired, tMembership]
   );
 
-  return { tryHandleMembershipGateError };
+  return { accessTier, evaluateFeature, tryHandleMembershipGateError };
 }

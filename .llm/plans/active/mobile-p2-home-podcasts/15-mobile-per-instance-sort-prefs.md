@@ -1,27 +1,27 @@
-# 12 — Mobile per-instance sort preferences
+# 15 — Mobile per-instance sort preferences
 
 **Cursor model:** Opus 5
 **Reasoning:** high
 **Detail:** [714-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/714-filter-sort-persistence.md)
 **Master step:** P2.4.6
-**Depends on:** 06
+**Depends on:** 09
 
 Read [00-SUMMARY.md](00-SUMMARY.md) decisions 46–50 and the
 [`filter-sort-persistence`](/.cursor/rules/filter-sort-persistence.mdc) rule before starting.
 
 ## Goal
 
-Extend the sort-preference contract that prompt 06 established on Home to the rest of the mobile app,
+Extend the sort-preference contract that prompt 09 established on Home to the rest of the mobile app,
 so every screen with a filter or sort control remembers the last selection **per instance** and
 restores it on the next load.
 
-Prompt 06 built the shared key builder in `@podverse/helpers` and the AsyncStorage-backed
+Prompt 09 built the shared key builder in `@podverse/helpers` and the AsyncStorage-backed
 `sortPrefs` module in `apps/mobile/src/prefs/`. Reuse both. Do not create a parallel scheme.
 
 ## Work
 
 1. **Podcast detail** — `PodcastDetailScreen` currently hardcodes `sort: 'recent'` with no control at
-   all. Add a sort control matching the Home pill pattern from prompt 06, and persist the selection
+   all. Add a sort control matching the Home pill pattern from prompt 09, and persist the selection
    under `channel:<id_text>` so two different podcasts hold two different sorts. Also persist the
    episode/clips tab selection under the same scope.
 2. **Episode detail** — `EpisodeDetailScreen` hardcodes sort for its related lists. Persist its tab
@@ -51,7 +51,7 @@ Prompt 06 built the shared key builder in `@podverse/helpers` and the AsyncStora
 - Reuse the option-list presentation from
   [`mobile-settings-option-density`](/.cursor/rules/mobile-settings-option-density.mdc) rather than a
   bottom sheet.
-- Search is out of scope — prompt 09 removes its sort chips to match web.
+- Search is out of scope — prompt 12 removes its sort chips to match web.
 - Do not run tests during implementation.
 
 ## Done when

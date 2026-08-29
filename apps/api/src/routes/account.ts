@@ -170,6 +170,10 @@ router.get(
 );
 
 router.post('/follow/channel', asyncHandler(AccountFollowingChannelController.followChannel));
+router.post(
+  '/follow/channel/bulk',
+  asyncHandler(AccountFollowingChannelController.followChannelsBulk)
+);
 router.post('/unfollow/channel', asyncHandler(AccountFollowingChannelController.unfollowChannel));
 
 router.post('/follow/playlist', asyncHandler(AccountFollowingPlaylistController.followPlaylist));

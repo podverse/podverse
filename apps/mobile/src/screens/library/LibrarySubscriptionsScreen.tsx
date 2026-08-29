@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 
-import { useAuth } from '../../auth/AuthProvider';
 import { Card, ListRow } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListLoading } from '../../components/state/ListLoading';
@@ -31,7 +30,6 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
   const { t } = useTranslation();
   const { columns } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
-  const { status } = useAuth();
   const [subscriptions, setSubscriptions] = useState<SubscribedChannel[]>([]);
   const [subscriptionFilter, setSubscriptionFilter] = useState<SubscriptionListFilter>(
     DEFAULT_SUBSCRIPTION_FILTER
@@ -86,14 +84,9 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
     };
   }, []);
 
+  // No auth check: subscriptions are device-local (701), so this list is the same read signed in or
+  // out. Gating it on `status` would show "log in" to a signed-out user who has subscriptions.
   const loadSubscriptions = useCallback(async () => {
-    if (status !== 'authenticated') {
-      setSubscriptions([]);
-      setErrorKey(null);
-      setIsLoading(false);
-      return;
-    }
-
     setIsLoading(true);
     setErrorKey(null);
     try {
@@ -105,7 +98,7 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
     } finally {
       setIsLoading(false);
     }
-  }, [status, subscriptionFilter]);
+  }, [subscriptionFilter]);
 
   useEffect(() => {
     void loadSubscriptions();
@@ -146,30 +139,20 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
         />
       );
     }
-    if (status !== 'authenticated') {
-      return (
-        <ListEmpty
-          messageKey="authentication.login_required"
-          testID="library-subscriptions-auth-required"
-        />
-      );
-    }
     if (subscriptions.length === 0) {
       return <ListEmpty messageKey="misc.info" testID="library-subscriptions-empty" />;
     }
     return null;
-  }, [errorKey, isLoading, loadSubscriptions, status, subscriptions.length]);
+  }, [errorKey, isLoading, loadSubscriptions, subscriptions.length]);
 
   const renderHeader = (
     <>
       <Text style={styles.heading}>{t('subscriptions.subscriptions')}</Text>
-      {status === 'authenticated' ? (
-        <SubscriptionFilterControl
-          onChange={handleSubscriptionFilterChange}
-          selectedFilter={subscriptionFilter}
-          testID="library-subscriptions-filter"
-        />
-      ) : null}
+      <SubscriptionFilterControl
+        onChange={handleSubscriptionFilterChange}
+        selectedFilter={subscriptionFilter}
+        testID="library-subscriptions-filter"
+      />
     </>
   );
 

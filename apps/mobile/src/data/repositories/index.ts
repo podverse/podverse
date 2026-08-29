@@ -20,4 +20,7 @@ export type {
   SubscriptionSort,
   SubscriptionSource,
 } from './subscriptionsRepository';
+export { writeSignupMergeEmail } from './subscriptionsSignupMarker';
+export { runSignupSubscriptionMerge } from './subscriptionsSignupMerge';
+export type { SignupMergeOutcome } from './subscriptionsSignupMerge';
 export type { MobileAuthRequestContext } from './types';

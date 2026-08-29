@@ -11,6 +11,9 @@ vi.mock('@react-native-async-storage/async-storage', () => {
       getItem: vi.fn(async (key: string) => {
         return inMemoryStore.has(key) ? (inMemoryStore.get(key) ?? null) : null;
       }),
+      removeItem: vi.fn(async (key: string) => {
+        inMemoryStore.delete(key);
+      }),
       setItem: vi.fn(async (key: string, value: string) => {
         inMemoryStore.set(key, value);
       }),
@@ -70,10 +73,12 @@ describe('prefsStore', () => {
     await expect(hydratePrefs()).resolves.toEqual({
       'aqc.rd': true,
       'aqc.rp': null,
+      'auth.forced_logout_at': null,
       'downloads.auto_delete': null,
       'home.subscriptionFilter': null,
       'library.subscriptionFilter': null,
       locale: 'es',
+      'membership.expiry_dismissed_for': null,
       pmt: null,
       preferred_media_type: null,
       uit: null,

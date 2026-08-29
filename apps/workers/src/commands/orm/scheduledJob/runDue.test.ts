@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
-  accountGetMock,
+  campaignGetByIdTextMock,
+  campaignMarkSendingMock,
+  campaignMarkSentMock,
   claimDueBatchMock,
-  createAccountNotificationWithOptionalPushMock,
+  dispatchAdminNotificationCampaignMock,
   listDuePendingBatchMock,
   loggerErrorMock,
   loggerInfoMock,
@@ -11,12 +13,15 @@ const {
   markCancelledMock,
   markCompletedMock,
   markFailedMock,
+  parseAdminNotificationSendPayloadMock,
   releaseStaleRunningBeforeMock,
   requeueWithBackoffMock,
 } = vi.hoisted(() => ({
-  accountGetMock: vi.fn(),
+  campaignGetByIdTextMock: vi.fn(),
+  campaignMarkSendingMock: vi.fn(),
+  campaignMarkSentMock: vi.fn(),
   claimDueBatchMock: vi.fn(),
-  createAccountNotificationWithOptionalPushMock: vi.fn(),
+  dispatchAdminNotificationCampaignMock: vi.fn(),
   listDuePendingBatchMock: vi.fn(),
   loggerErrorMock: vi.fn(),
   loggerInfoMock: vi.fn(),
@@ -24,6 +29,7 @@ const {
   markCancelledMock: vi.fn(),
   markCompletedMock: vi.fn(),
   markFailedMock: vi.fn(),
+  parseAdminNotificationSendPayloadMock: vi.fn(),
   releaseStaleRunningBeforeMock: vi.fn(),
   requeueWithBackoffMock: vi.fn(),
 }));
@@ -47,51 +53,39 @@ vi.mock('@podverse/orm', () => {
     requeueWithBackoff = requeueWithBackoffMock;
   }
 
-  class MockAccountService {
-    get = accountGetMock;
-  }
-
   class MockAdminNotificationCampaignService {
-    getByIdText = vi.fn();
-    markSending = vi.fn();
-    markSent = vi.fn();
+    getByIdText = campaignGetByIdTextMock;
+    markSending = campaignMarkSendingMock;
+    markSent = campaignMarkSentMock;
   }
 
   return {
     ADMIN_NOTIFICATION_SEND_JOB_TYPE: 'admin-notification-send',
-    AccountService: MockAccountService,
     AdminNotificationCampaignService: MockAdminNotificationCampaignService,
-    MEMBERSHIP_EXPIRY_REMINDER_JOB_TYPE: 'membership-expiry-reminder',
     ScheduledJobService: MockScheduledJobService,
-    createAccountNotificationWithOptionalPush: createAccountNotificationWithOptionalPushMock,
-    dispatchAdminNotificationCampaign: vi.fn(),
-    parseAdminNotificationSendPayload: () => null,
-    parseMembershipExpiryReminderPayload: (payload: Record<string, unknown>) => {
-      const accountId = payload.accountId;
-      const expiresAt = payload.expiresAt;
-      if (typeof accountId !== 'number' || typeof expiresAt !== 'string') {
-        return null;
-      }
-      const parsedDate = new Date(expiresAt);
-      if (Number.isNaN(parsedDate.getTime())) {
-        return null;
-      }
-      return {
-        accountId,
-        expiresAt: parsedDate,
-        expiresAtIso: expiresAt,
-      };
-    },
+    dispatchAdminNotificationCampaign: dispatchAdminNotificationCampaignMock,
+    parseAdminNotificationSendPayload: parseAdminNotificationSendPayloadMock,
   };
 });
 
 import { scheduledJobsRunDue } from './runDue.js';
 
+const campaignJob = {
+  attempts: 1,
+  dedupe_key: 'admin-notification:campaign:abc',
+  id: 18,
+  job_type: 'admin-notification-send',
+  max_attempts: 5,
+  payload: { campaignIdText: 'abc' },
+};
+
 describe('scheduledJobsRunDue', () => {
   beforeEach(() => {
-    accountGetMock.mockReset();
+    campaignGetByIdTextMock.mockReset();
+    campaignMarkSendingMock.mockReset();
+    campaignMarkSentMock.mockReset();
     claimDueBatchMock.mockReset();
-    createAccountNotificationWithOptionalPushMock.mockReset();
+    dispatchAdminNotificationCampaignMock.mockReset();
     listDuePendingBatchMock.mockReset();
     loggerErrorMock.mockReset();
     loggerInfoMock.mockReset();
@@ -99,11 +93,13 @@ describe('scheduledJobsRunDue', () => {
     markCancelledMock.mockReset();
     markCompletedMock.mockReset();
     markFailedMock.mockReset();
+    parseAdminNotificationSendPayloadMock.mockReset();
     releaseStaleRunningBeforeMock.mockReset();
     requeueWithBackoffMock.mockReset();
 
     releaseStaleRunningBeforeMock.mockResolvedValue(0);
     claimDueBatchMock.mockResolvedValue([]);
+    parseAdminNotificationSendPayloadMock.mockReturnValue({ campaignIdText: 'abc' });
   });
 
   it('runs dry-run listing without claiming jobs', async () => {
@@ -111,7 +107,7 @@ describe('scheduledJobsRunDue', () => {
       {
         attempts: 0,
         id: 9,
-        job_type: 'membership-expiry-reminder',
+        job_type: 'admin-notification-send',
         max_attempts: 5,
         run_after: new Date('2026-03-01T00:00:00.000Z'),
       },
@@ -123,63 +119,56 @@ describe('scheduledJobsRunDue', () => {
     expect(claimDueBatchMock).not.toHaveBeenCalled();
   });
 
-  it('cancels stale membership reminder when expiry changed', async () => {
-    claimDueBatchMock.mockResolvedValue([
-      {
-        attempts: 1,
-        dedupe_key: 'membership-expiry:account:7',
-        id: 17,
-        job_type: 'membership-expiry-reminder',
-        max_attempts: 5,
-        payload: {
-          accountId: 7,
-          expiresAt: '2099-03-10T00:00:00.000Z',
-        },
-      },
-    ]);
-    accountGetMock.mockResolvedValue({
-      account_membership_status: {
-        membership_expires_at: new Date('2099-03-12T00:00:00.000Z'),
-      },
-      id: 7,
-    });
+  it('cancels rather than retries when the handler reports the work is moot', async () => {
+    claimDueBatchMock.mockResolvedValue([campaignJob]);
+    campaignGetByIdTextMock.mockResolvedValue(null);
 
     await scheduledJobsRunDue({ _: [] });
 
-    expect(markCancelledMock).toHaveBeenCalledWith(
-      17,
-      'Membership expiration changed before reminder execution'
-    );
-    expect(createAccountNotificationWithOptionalPushMock).not.toHaveBeenCalled();
+    expect(markCancelledMock).toHaveBeenCalledWith(18, 'Notification campaign not found');
+    expect(dispatchAdminNotificationCampaignMock).not.toHaveBeenCalled();
     expect(markCompletedMock).not.toHaveBeenCalled();
+    expect(requeueWithBackoffMock).not.toHaveBeenCalled();
   });
 
-  it('creates in-app reminder and marks completed when membership still matches payload', async () => {
-    claimDueBatchMock.mockResolvedValue([
-      {
-        attempts: 1,
-        dedupe_key: 'membership-expiry:account:8',
-        id: 18,
-        job_type: 'membership-expiry-reminder',
-        max_attempts: 5,
-        payload: {
-          accountId: 8,
-          expiresAt: '2099-03-10T00:00:00.000Z',
-        },
-      },
-    ]);
-    accountGetMock.mockResolvedValue({
-      account_membership_status: {
-        membership_expires_at: new Date('2099-03-10T00:00:00.000Z'),
-      },
-      id: 8,
-    });
-    createAccountNotificationWithOptionalPushMock.mockResolvedValue([]);
+  it('marks completed after the handler succeeds', async () => {
+    claimDueBatchMock.mockResolvedValue([campaignJob]);
+    campaignGetByIdTextMock.mockResolvedValue({ id: 3 });
 
     await scheduledJobsRunDue({ _: [] });
 
-    expect(createAccountNotificationWithOptionalPushMock).toHaveBeenCalledTimes(1);
+    expect(dispatchAdminNotificationCampaignMock).toHaveBeenCalledTimes(1);
     expect(markCompletedMock).toHaveBeenCalledWith(18);
     expect(markCancelledMock).not.toHaveBeenCalled();
+  });
+
+  it('fails a job whose type has no registered handler', async () => {
+    claimDueBatchMock.mockResolvedValue([
+      {
+        attempts: 0,
+        dedupe_key: 'unrecognized:account:7',
+        id: 21,
+        job_type: 'not-a-real-job-type',
+        max_attempts: 5,
+        payload: {},
+      },
+    ]);
+
+    await scheduledJobsRunDue({ _: [] });
+
+    expect(markFailedMock).toHaveBeenCalledWith(
+      21,
+      'No handler registered for job_type=not-a-real-job-type'
+    );
+  });
+
+  it('requeues with backoff when the handler throws and attempts remain', async () => {
+    claimDueBatchMock.mockResolvedValue([campaignJob]);
+    campaignGetByIdTextMock.mockRejectedValue(new Error('database unavailable'));
+
+    await scheduledJobsRunDue({ _: [] });
+
+    expect(requeueWithBackoffMock).toHaveBeenCalledWith(18, 'database unavailable', 10 * 60 * 1000);
+    expect(markFailedMock).not.toHaveBeenCalled();
   });
 });

@@ -5,6 +5,7 @@ import { Image, Linking, StyleSheet, View } from 'react-native';
 
 import splashBanner from './assets/splash/banner.png';
 import { AuthPromptProvider, AuthProvider, useAuth } from './src/auth';
+import { ForcedLogoutNotice } from './src/components/feedback/ForcedLogoutNotice';
 import { MembershipExpiredBanner } from './src/components/feedback/MembershipExpiredBanner';
 import { AutoQueueProvider } from './src/contexts/AutoQueueProvider';
 import { QueuesProvider } from './src/contexts/QueuesProvider';
@@ -209,6 +210,7 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
           }}
         >
           <MembershipGateProvider onNavigateToMembership={navigateToMembershipScreen}>
+            <ForcedLogoutNotice />
             <View style={styles.appRoot}>
               <MembershipExpiredBanner onRenew={navigateToMembershipScreen} />
               <MobileTabNavigator

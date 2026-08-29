@@ -1,10 +1,10 @@
-# 06 — Home filter/sort screen
+# 09 — Home filter/sort screen
 
 **Cursor model:** Codex 5.3
 **Reasoning:** medium
 **Detail:** [706-home-filter-sort-screen](/docs/proposals/mobile/_master-plan_/phase-2/details/706-home-filter-sort-screen.md)
 **Master step:** P2.1.3
-**Depends on:** 05
+**Depends on:** 08
 
 Read [00-SUMMARY.md](00-SUMMARY.md) decisions 11–12, 14 before starting.
 
@@ -33,12 +33,12 @@ previous generation's layout.
    halves:
    - **Shared, in `@podverse/helpers`:** the scope key builder (`podcasts`, `channel:<id_text>`,
      `item:<id_text>`, `playlist:<id_text>`) and the stored value shape. Web imports the same builder
-     in prompt 13, so do not make it mobile-specific.
+     in prompt 16, so do not make it mobile-specific.
    - **Mobile, in `apps/mobile/src/prefs/`:** a `sortPrefs` module backed by AsyncStorage using those
      keys, unbounded. Restore **before** the first data read so the list fetches already sorted rather
      than re-sorting after paint.
    Persist the Home sort through this module. Filter scope keeps following the chip behavior from
-   prompt 05, migrated onto the same module without changing current values. Prompt 12 extends it to
+   prompt 08, migrated onto the same module without changing current values. Prompt 15 extends it to
    the detail screens; do not try to cover them here.
 7. Do **not** add the legacy directory filters (All, Category) or the top past day/week/month/year/
    all-time sorts. Home is subscribed-only.
@@ -59,7 +59,7 @@ previous generation's layout.
 - Do not run tests during implementation.
 
 - Preferences are **device-local**. No column, endpoint, or account-synced field for sort or filter.
-- The free-text filter from prompt 05 is **not** persisted and keeps clearing on restart.
+- The free-text filter from prompt 08 is **not** persisted and keeps clearing on restart.
 
 ## Done when
 

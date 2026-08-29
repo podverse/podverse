@@ -1,10 +1,10 @@
-# 13 — Web per-instance filter and sort persistence
+# 16 — Web per-instance filter and sort persistence
 
 **Cursor model:** Opus 5
 **Reasoning:** high
 **Detail:** [715-web-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/715-web-filter-sort-persistence.md)
 **Master step:** P2.5.3
-**Depends on:** 06 (shared key builder), 12
+**Depends on:** 09 (shared key builder), 15
 
 This is a **web** prompt. Verify with Playwright, not Maestro.
 
@@ -13,7 +13,7 @@ Read [00-SUMMARY.md](00-SUMMARY.md) decisions 46–50 and the
 
 ## Goal
 
-Give `apps/web` the same behavior mobile got in prompts 06 and 12: every screen with a filter or sort
+Give `apps/web` the same behavior mobile got in prompts 09 and 12: every screen with a filter or sort
 control remembers the last selection **per instance** and restores it on the next load, including a
 cold load from a bookmark.
 
@@ -26,7 +26,7 @@ expires in 30 minutes and only restores on browser **back**. The work merges tho
 ## Work
 
 1. Add a per-instance namespace to the existing `local-settings` cookie, keyed by the **shared builder
-   from `@podverse/helpers`** that prompt 06 created. One key format across both apps — do not invent
+   from `@podverse/helpers`** that prompt 09 created. One key format across both apps — do not invent
    a web-only one, and do not adopt `@podverse/ui`'s `podverse_table_sort_prefs` here without
    reconciling it against that builder.
 2. Cap it at the **30 most recently used** entries with LRU eviction. Cookies max out at 4KB and ride
@@ -58,7 +58,7 @@ expires in 30 minutes and only restores on browser **back**. The work merges tho
 ## Constraints
 
 - **Device-local only.** No ORM column, no endpoint, no account-synced field.
-- **Structured selections only.** The `/podcasts` filter input from prompt 11 keeps its URL round-trip
+- **Structured selections only.** The `/podcasts` filter input from prompt 14 keeps its URL round-trip
   so links stay shareable, but it is **not** written to the preference store. Page number, scroll
   position, and the `/search` query are likewise excluded.
 - Strict equality, no type assertions, `import type` on separate lines.

@@ -2,7 +2,7 @@
 
 **Master step:** P2.4.2
 **Model (author + implement):** Opus 5
-**Status:** planned
+**Status:** done
 
 ## Scope
 
@@ -25,32 +25,47 @@ changes is that mobile no longer needs the server in order to subscribe at all.
 **Unsubscribing is never gated.** Not by tier, not by an expired membership. `unfollowChannel`
 already skips the membership check server-side; mobile must not add one on top.
 
-### Sign-in sync
+### Sign-up merge
 
-When a signed-out user creates an account or signs in, their local subscriptions sync up to the
-server account. Merge is **additive and idempotent** — a channel present on either side ends up
-subscribed, and repeat sign-ins change nothing.
+Local subscriptions cross over to a server account **exactly once**: when the user creates an account
+from this device. After that the **account is the source of truth**, and a later sign-in never pushes
+local subscriptions up — otherwise a phone could silently rewrite an account the user also uses on
+the web with whatever accumulated on the device since.
+
+This also removes a contradiction in the original design. An additive sign-in merge ("a channel on
+either side ends up subscribed") combined with retain-on-sign-out resurrects unsubscribes: sign in,
+subscribe, sign out, unsubscribe locally, sign in again, and the channel comes back because the
+server still has it. Narrowing the merge to sign-up removes that case entirely, without needing
+unsubscribe tombstones.
+
+The consequence to accept: signing into an **existing** account replaces local rows with the
+account's, so subscriptions made anonymously before signing into a pre-existing account are not
+carried over. That is the deliberate reading of "the account is the source of truth".
+
+Sign-up does not sign the user in, so the merge runs on the login that immediately follows it: sign-up
+records the email it created, and that one login claims it. Any login consumes the marker, so the
+window cannot fire later by accident.
 
 No bulk endpoint exists today; the nearest thing is the async OPML import job. This step adds a
 **new bulk follow endpoint** that accepts a list of channel ids, is idempotent, and reports
 per-channel outcomes. Sequential single-follow calls are not acceptable — a large local list would
 hit rate limits.
 
-The bulk endpoint follows the same membership rule as single follow. **Open assumption for operator
-review:** if a user signs into an account whose membership is invalid, the sync is blocked; local
-subscriptions are retained on the device and sync when the membership becomes valid. The user is
-told this rather than silently losing the merge. If new accounts always begin with a valid trial,
-this path is rare but still needs defined behavior.
+The bulk endpoint follows the same membership rule as single follow. If the merge cannot go through,
+local subscriptions are **retained** and the marker is kept, so it retries on the next login; while a
+merge is outstanding the account sync is additive rather than authoritative, so it cannot delete the
+very rows the merge still owes. New accounts begin with a valid trial, so this path is rare.
 
 ### Also in scope
 
 - A local subscription record written on subscribe/unsubscribe regardless of auth state, stored in
   SQLite alongside the existing add-by-RSS feeds.
-- `subscriptionsRepository.list()` reads local records first and stays correct offline and signed
-  out; account hydration becomes a **sync input**, not the source.
-- **Sign-out:** local subscriptions are retained, not cleared.
-- Add-by-RSS remains **membership** tier and is unavailable signed out, because it needs server-side
-  parsing. The add-by-RSS list itself still renders from local storage.
+- `subscriptionsRepository.list()` reads local records and stays correct offline and signed out.
+- **Sign-out:** all local data is retained, not cleared — subscriptions, add-by-RSS feeds, and the
+  car/watch browse index. This is the same data offline mode depends on.
+- **Adding** and **refreshing** add-by-RSS remain **membership** tier, because they need server-side
+  parsing. **Viewing** is anonymous tier: feeds already on the device stay listed and playable signed
+  out, rendered from local storage.
 
 ### Intentional divergence from web
 
@@ -72,6 +87,7 @@ early.
   integration tests including repeat submission.
 - Creating an account from a signed-out session syncs local subscriptions up; nothing subscribed
   anonymously is lost.
+- Signing into a **pre-existing** account does not push local subscriptions up.
 - Signing out leaves the local subscription list intact.
 - Screens continue to read through repositories; no screen calls `req*` for subscription data.
 - Unit tests cover merge behavior (local-only, remote-only, both, repeat merges) and the blocked-sync
@@ -95,5 +111,5 @@ early.
 npm run lint
 npm run test:unit
 npm run test:e2e:api
-npm run mobile:e2e:test -- library-subscriptions
+npm run mobile:e2e:test -- subscriptions-anonymous,library-subscriptions
 ```

@@ -8,9 +8,11 @@ import { toNonEmptyTrimmedString } from '@podverse/helpers/guards';
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
+import { GatedFeatureNotice } from '../../components/feedback/GatedFeatureNotice';
 import { Button } from '../../components/primitives';
 import { ListLoading } from '../../components/state/ListLoading';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
+import { useAccessTier } from '../../membership/useAccessTier';
 import type { SearchStackParamList } from '../../navigation';
 import { SEARCH_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
@@ -59,11 +61,16 @@ export function PodcastIndexFeedPreviewScreen({
   route,
 }: PodcastIndexFeedPreviewScreenProps) {
   const { t } = useTranslation();
-  const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
+  const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
   const { onRequestLogin } = useAuthPrompt();
   const { styles: themeStyles, tokens } = useTheme();
-  const { handleGateError } = useMembershipGate();
+  const { goToMembership, handleGateError, openGate } = useMembershipGate();
+  const { evaluateFeature } = useAccessTier();
   const isMountedRef = useRef(true);
+
+  // Membership tier is only the floor: the server also refuses directory adds for Trial accounts,
+  // which no client-side check can predict, so `handleGateError` below still matters.
+  const addAccess = evaluateFeature('directory_add_by_rss');
 
   const [feed, setFeed] = useState<PreviewFeedState | null>(() => {
     const params = route.params;
@@ -171,7 +178,16 @@ export function PodcastIndexFeedPreviewScreen({
       return;
     }
 
-    if (status !== 'authenticated' || accessToken === null) {
+    if (!addAccess.allowed) {
+      if (addAccess.reason === 'needs_account') {
+        onRequestLogin();
+      } else {
+        openGate(addAccess.reason);
+      }
+      return;
+    }
+
+    if (accessToken === null) {
       onRequestLogin();
       return;
     }
@@ -244,15 +260,16 @@ export function PodcastIndexFeedPreviewScreen({
     }
   }, [
     accessToken,
+    addAccess,
     clearSession,
     feed,
     handleGateError,
     isAdding,
     navigateToChannelDetail,
     onRequestLogin,
+    openGate,
     refreshToken,
     setTokens,
-    status,
   ]);
 
   const styles = useMemo(
@@ -364,11 +381,13 @@ export function PodcastIndexFeedPreviewScreen({
 
         <Text style={styles.explanation}>{t('features.search.not_available_yet')}</Text>
 
-        {status !== 'authenticated' ? (
-          <Text style={styles.explanation} testID="pi-feed-add-needs-login">
-            {t('features.search.add_needs_login')}
-          </Text>
-        ) : null}
+        <GatedFeatureNotice
+          access={addAccess}
+          onRequestLogin={onRequestLogin}
+          onRequestMembership={goToMembership}
+          testID="pi-feed-add-gate"
+        />
+
 
         <Button
           fullWidth

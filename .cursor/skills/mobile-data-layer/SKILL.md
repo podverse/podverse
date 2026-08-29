@@ -31,6 +31,10 @@ A background sync reconciles local storage with the server and with add-by-RSS f
 network is available, so what is stored converges on what is current. Plan that sync explicitly when
 adding a new locally-backed surface — do not assume a one-time fetch is enough.
 
+That sync runs through the app's serial queue, one job at a time, with a user-facing label — it does
+not schedule itself and it never sits on the startup path. Interactive work stays out of the queue.
+See [`mobile-sync-orchestration`](/.cursor/rules/mobile-sync-orchestration.mdc).
+
 Signed-out users get this too; see
 [`mobile-anonymous-vs-account-features`](/.cursor/rules/mobile-anonymous-vs-account-features.mdc).
 

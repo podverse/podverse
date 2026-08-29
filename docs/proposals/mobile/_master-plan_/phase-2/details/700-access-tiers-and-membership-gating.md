@@ -2,7 +2,7 @@
 
 **Master step:** P2.4.1
 **Model (author + implement):** Opus 5
-**Status:** planned
+**Status:** done
 
 ## Scope
 
@@ -29,18 +29,40 @@ notifications are **membership**.
 
 Web today splits gating in two places: call sites check `loggedInAccount` before an API call, and
 `useMembershipGate` handles the resulting 403. There is no single tier concept. Both surfaces should
-resolve tiers the same way, so the seam lives in **`packages/helpers-requests`**, extending the
-existing shared `parseMembershipGateError` / `MembershipDenialReason` types rather than adding a
-second parallel model.
+resolve tiers the same way, so one shared seam replaces the two parallel models.
 
-| Surface | Consumes the seam via                                                   |
-| ------- | ----------------------------------------------------------------------- |
-| Shared  | `packages/helpers-requests` — tier resolution and denial-reason parsing |
-| Mobile  | A hook/selector answering "what tier is this user in"                   |
-| Web     | `useMembershipGate` refactored onto the shared resolver                 |
+**Implemented in `packages/helpers` (`src/lib/accessTier.ts`), not `helpers-requests`.** Tier
+resolution is pure account derivation, and its only input — `deriveMembershipState` — already lives
+in `@podverse/helpers` and is already consumed by both surfaces. Putting the resolver in
+`helpers-requests` would have split membership derivation across two packages. `helpers-requests`
+keeps what is genuinely HTTP-shaped: `parseMembershipGateError` plus a new
+`accessDenialReasonFromGate` that maps a server 403 onto the shared `AccessDenialReason`, so a
+proactive client check and a reactive server denial describe themselves identically.
+
+| Surface | Consumes the seam via                                                                  |
+| ------- | -------------------------------------------------------------------------------------- |
+| Shared  | `packages/helpers` — `AccessTier`, `GatedFeature`, `evaluateFeatureAccess`               |
+| Shared  | `packages/helpers-requests` — `accessDenialReasonFromGate` bridges 403s onto that model |
+| Mobile  | `useAccessTier` hook; `GatedFeatureNotice` renders the denial                            |
+| Web     | `useMembershipGate` refactored onto the shared resolver                                  |
 
 Web's refactor must be behavior-preserving: existing login modals and 403 membership modals keep
 working, now derived from one tier model instead of two independent checks.
+
+### What the three tiers deliberately do not model
+
+`hasValidMembership` is true for **Trial** as well as Premium, so a Trial holder resolves to
+`membership` tier. The server draws a further line the client model does not: Trial accounts are
+blocked from some Premium capabilities (directory add-by-RSS, tighter refresh and feed limits).
+
+That is intentional. The tier model answers "is this capability plausibly available to this user",
+and Trial-vs-Premium capability differences stay **server-authoritative** — a Trial user's request
+goes out and the 403 surfaces through `accessDenialReasonFromGate` and the existing gate modal, the
+same as before this detail. Adding a fourth tier would duplicate a policy the API already owns and
+would drift from it.
+
+Consequence to be aware of when reading gating code: `evaluateFeature(...).allowed === true` means
+"not blocked by tier", not "will succeed". Call sites must still handle a 403.
 
 ### Lapsed membership
 
@@ -49,18 +71,29 @@ Membership features present a renewal affordance rather than a dead or missing c
 add-by-RSS specifically: existing feeds stay visible and playable but **stop refreshing**, and
 adding new feeds is blocked.
 
-Renewal reminders appear at four points: when the user touches a membership feature, as a persistent
-row in More/settings, as a dismissible Home banner, and as a push notification near expiry.
+`add_by_rss_refresh` is assigned membership tier in the shared feature table, but **mobile has no
+manual refresh control today** — web's refresh lives in `AddByRSSListClient` / `ListChannelSettings`
+and is gated reactively by the 403 modal. When mobile grows a refresh control it must consult
+`evaluateFeature('add_by_rss_refresh')` rather than inventing a new check.
 
-**Auto-renew carve-out is deferred.** Users enrolled in auto-renew should not receive
-"expiring soon" reminders, but payment functionality does not exist yet. Build the reminder surface
-so that check drops in later without rework — see
+Renewal reminders appear at three points: when the user touches a membership feature, as a
+persistent row in More/settings, and as a dismissible banner on Home.
+
+**Expiry is never a notification.** No push, no email, no scheduled job — see the rule
+[`no-membership-expiry-notifications`](/.cursor/rules/no-membership-expiry-notifications.mdc). Each
+surface derives "expiring soon" and "expired" on demand from the account snapshot it already holds
+(`getMembershipExpiryNotice` in `@podverse/helpers`), so there is nothing to schedule, nothing to
+deliver, and nothing for the user to unsubscribe from.
+
+**Auto-renew carve-out is deferred.** Users enrolled in auto-renew should not be told they are
+expiring soon, but payment functionality does not exist yet. Build the in-app surfaces so that check
+drops in later without rework — see
 [711-defer-auto-renew-aware-reminders](/docs/proposals/mobile/_master-plan_/phase-2/details/711-defer-auto-renew-aware-reminders.md).
 
 ## Acceptance criteria
 
-- A shared tier resolver in `packages/helpers-requests` reports the active tier and denial reason;
-  mobile and web both consume it and neither re-derives gating from auth state plus membership fields
+- A shared tier resolver in `packages/helpers` reports the active tier and denial reason; mobile and
+  web both consume it and neither re-derives gating from auth state plus membership fields
   independently.
 - Web's `useMembershipGate` is refactored onto the shared resolver with no user-visible behavior
   change.
@@ -69,7 +102,9 @@ so that check drops in later without rework — see
 - Anonymous and account tiers are fully usable with no membership present.
 - A lapsed member can still browse, subscribe, filter, sort, download, and play, and still sees
   previously added add-by-RSS feeds.
-- Renewal reminders render at the four points above and the Home banner is dismissible.
+- Renewal reminders render at the three points above and the banner is dismissible; the dismissal is
+  remembered against the expiry it was dismissed for, so a later lapse shows it again.
+- No expiry reminder is delivered by push, email, or a scheduled job.
 - All user-facing copy resolves through i18n; no hardcoded strings.
 - Unit tests cover tier resolution including the lapsed case, and E2E covers at least one gated
   control in each tier.
@@ -82,7 +117,8 @@ so that check drops in later without rework — see
   `apps/web/src/utils/membership/modalForMembership403.tsx` (`Membership403FeatureContext`)
 - `apps/web/src/components/Media/Header/SubscribeButton.tsx` — current login-then-403 split
 - `apps/mobile/src/screens/more/MoreMembershipScreen.tsx`
-- Existing mobile strings `features.search.add_needs_login` / `add_needs_membership`
+- Existing mobile strings `features.search.add_needs_login` / `add_needs_membership` (removed by this
+  detail; superseded by the shared `membership.gate.*` keys in the `consumer` catalog)
 - Skill: **entitlement-gating-rollout**
 
 ## Verification

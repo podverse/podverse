@@ -3,7 +3,8 @@
 Area: **P2.1.1 Home & browse** (podcasts media type) + **P2.1.3 Search & filter**, plus the new
 **Track P2.4** cross-cutting foundations those screens depend on and **Track P2.5** web counterparts.
 
-Detail docs: `docs/proposals/mobile/_master-plan_/phase-2/details/700`–`713`.
+Detail docs: `docs/proposals/mobile/_master-plan_/phase-2/details/700`–`713`, plus deferred follow-ups
+`897`–`899`.
 Phase plan: [001-MASTER-PLAN-PHASE-2.md](/docs/proposals/mobile/_master-plan_/phase-2/001-MASTER-PLAN-PHASE-2.md).
 
 Source: operator screenshots of the previous-generation Podcasts screen (subscribed list, header
@@ -105,13 +106,16 @@ Each entry is the question, the decision, and why.
 30. **Signed-out subscriptions** — Must work, and this is a **foundational step sequenced first**
     (detail 701). Local records are the source of truth; account hydration becomes a sync input.
     Creating an account syncs local subscriptions up to the server.
-31. **Sign-in merge needs a new endpoint** — no bulk follow endpoint exists today, and sequential
+31. **Sign-up merge needs a new endpoint** — no bulk follow endpoint exists today, and sequential
     single-follow calls would hit rate limits. A **new idempotent bulk follow endpoint** reporting
-    per-channel outcomes is in scope for detail 701.
+    per-channel outcomes is in scope for detail 701. **Revised during prompt 02:** the merge runs at
+    **sign-up only**, not on every sign-in, and the account is the source of truth afterwards — see
+    the divergences below.
 32. **Lapsed membership** — Degraded, never frozen. Existing add-by-RSS feeds stay visible and
     playable but **stop refreshing**; adding new ones is blocked. Reminders appear at the feature, in
-    More/settings, as a dismissible Home banner, and via push near expiry.
-33. **Auto-renew carve-out** — Enrolled users should not get "expiring soon" reminders, but payment
+    More/settings, and as a dismissible Home banner — all **in-app**, derived on demand. Never push,
+    email, or a scheduled job (rule `no-membership-expiry-notifications`).
+33. **Auto-renew carve-out** — Enrolled users should not be told they are expiring soon, but payment
     functionality does not exist yet, so that predicate is **deferred** (detail 711).
 34. **The tier seam is shared, not mobile-only** — it lives in `packages/helpers-requests`, extending
     the existing `parseMembershipGateError` / `MembershipDenialReason` types. Web's
@@ -186,6 +190,26 @@ Each entry is the question, the decision, and why.
     applies.
 52. **Mobile detail screens gain sort controls they do not have today.** Podcast, episode, and album
     detail currently hardcode their sort with no UI at all.
+53. **Nothing network-bound blocks first paint.** The splash waits for SQLite and i18n only. The auth
+    hydrate chain — `/auth/me`, the up-to-25-page subscription loop, playlist hydration, native
+    projection — moves off the startup path into queued jobs (detail 717).
+54. **Background sync is serial; interactive work is not.** One background job at a time so sync
+    cannot saturate the network or the JS thread. Tapping Subscribe, opening a screen, search, and
+    playback stay immediate — a user must never wait behind a library sync (detail 717).
+55. **Progress counts discrete jobs and the total may grow mid-run.** A subscriptions job discovers
+    N channels and enqueues N more jobs. The denominator increasing is honest; a fixed fake
+    denominator is not (detail 718).
+56. **The indicator sits above the mini player, and above the tab bar when it is hidden.** Both come
+    from one insertion point in the phone `tabBar` column, because `MiniPlayer` returns `null` when
+    idle. It must also be added to the tablet branch or it vanishes at ≥900dp (detail 718).
+57. **Failures are silent on the bar and durable in a log.** A failed job is skipped and the run
+    continues; offline is expected behavior and must not produce a red bar. The failure goes to a
+    500-entry capped log reachable from More (details 718, 719).
+58. **Logged entries must carry the machine-readable error code.** The message is localized, so the
+    code is the only part a user can quote to support (detail 719).
+59. **The missing bottom content inset is fixed with the indicator, not deferred.** There is no
+    `MINI_PLAYER_HEIGHT` or `useBottomTabBarHeight` today, so lists already slide under the mini
+    player; adding a bar without a shared bottom-chrome height makes a live bug worse (detail 718).
 
 ## Standing policy captured as abcmemory
 
@@ -209,6 +233,10 @@ Several decisions were general enough to become guidance rather than plan text:
 - [`filter-sort-persistence`](/.cursor/rules/filter-sort-persistence.mdc) — new rule: filter and sort
   selections are remembered per instance, stored on the device, restored before the first data read;
   URL parameters win and overwrite; free text never persists.
+- [`mobile-sync-orchestration`](/.cursor/rules/mobile-sync-orchestration.mdc) — new rule: nothing
+  network-bound blocks first paint; background sync is serial and interactive work is not; every
+  queued job is visible in the indicator; failures are quiet on screen and logged with their error
+  code.
 
 ## Deferred out of this set
 
@@ -218,6 +246,8 @@ Several decisions were general enough to become guidance rather than plan text:
 | Auto-renew-aware expiry reminders     | 711    | Needs payment functionality that is absent      |
 | Theme grouping by dark/light mode     | 898    | Cross-surface token work, unrelated area        |
 | Full screen reader audit of all apps  | 899    | Program-sized; new work stays accessible anyway |
+| Mobile SQLite schema/migration drift checks | 897 | Valuable after Phase 2 as the local schema grows |
+| Tablet layout parity (left rail, no mini player) | 896 | Converging on a phone UX that is still changing means doing it twice |
 
 ## What changes outside `apps/mobile`
 
@@ -239,6 +269,10 @@ invalid, the bulk sign-in sync is blocked by the same membership rule as single 
 subscriptions are retained on the device and sync when membership becomes valid, and the user is told
 so rather than silently losing the merge. If new accounts always start with a valid trial this path
 is rare, but it still needs defined behavior. Correct this if the intent differs.
+
+## Implementation divergences from the locked decisions
+
+Recorded as they happen, in [00-DIVERGENCES.md](00-DIVERGENCES.md).
 
 ## Out of scope
 

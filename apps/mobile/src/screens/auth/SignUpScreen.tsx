@@ -11,6 +11,7 @@ import {
 
 import { createMobileApiRequestService } from '../../auth';
 import { getMobileConfig } from '../../config';
+import { writeSignupMergeEmail } from '../../data/repositories/subscriptionsSignupMarker';
 import { useTheme } from '../../theme/useTheme';
 
 type SignUpScreenProps = {
@@ -145,6 +146,9 @@ export function SignUpScreen({ onDismiss, onSwitchToLogin }: SignUpScreenProps) 
         password,
         terms_version: DEFAULT_TERMS_VERSION,
       });
+      // Sign-up does not sign the user in, so subscriptions made while signed out are pushed up by
+      // the login that follows. Recording the email here is what authorizes that one merge (701).
+      await writeSignupMergeEmail(email);
       setSuccessMessage(t('authentication.account_created_message'));
     } catch {
       setError(t('authentication.could_not_sign_in'));

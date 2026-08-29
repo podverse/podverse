@@ -1,17 +1,12 @@
 import type { CommandLineArgs } from '@workers/commands/index.js';
 import { getLogger } from '@workers/factories/logger.js';
 
-import { APP_ROUTES, hasValidMembership, NotificationCategoryEnum } from '@podverse/helpers';
 import type { ScheduledJob } from '@podverse/orm';
 import {
-  AccountService,
   ADMIN_NOTIFICATION_SEND_JOB_TYPE,
   AdminNotificationCampaignService,
-  createAccountNotificationWithOptionalPush,
   dispatchAdminNotificationCampaign,
-  MEMBERSHIP_EXPIRY_REMINDER_JOB_TYPE,
   parseAdminNotificationSendPayload,
-  parseMembershipExpiryReminderPayload,
   ScheduledJobService,
 } from '@podverse/orm';
 
@@ -20,11 +15,7 @@ type JobHandlerResult = {
   reason?: string;
 };
 
-type JobHandlerContext = {
-  accountService: AccountService;
-};
-
-type JobHandler = (job: ScheduledJob, context: JobHandlerContext) => Promise<JobHandlerResult>;
+type JobHandler = (job: ScheduledJob) => Promise<JobHandlerResult>;
 
 const DEFAULT_CLAIM_LIMIT = 50;
 const STALE_LOCK_MINUTES = 15;
@@ -69,53 +60,6 @@ function getErrorMessage(error: unknown): string {
   return String(error);
 }
 
-const handleMembershipExpiryReminder: JobHandler = async (job, context) => {
-  const payload = parseMembershipExpiryReminderPayload(job.payload);
-  if (payload === null) {
-    throw new Error('Invalid membership-expiry reminder payload');
-  }
-
-  const account = await context.accountService.get(payload.accountId, {
-    relations: {
-      account_membership_status: { account_membership: true },
-    },
-  });
-  if (!account || !account.account_membership_status) {
-    return { outcome: 'cancelled', reason: 'Account or membership status not found' };
-  }
-
-  const membershipExpiresAt = account.account_membership_status.membership_expires_at;
-  if (
-    membershipExpiresAt === null ||
-    membershipExpiresAt === undefined ||
-    !hasValidMembership(account.account_membership_status)
-  ) {
-    return { outcome: 'cancelled', reason: 'Membership is no longer valid' };
-  }
-
-  if (membershipExpiresAt.toISOString() !== payload.expiresAtIso) {
-    return {
-      outcome: 'cancelled',
-      reason: 'Membership expiration changed before reminder execution',
-    };
-  }
-
-  await createAccountNotificationWithOptionalPush([
-    {
-      account_id: account.id,
-      body: 'Your membership will expire soon. Renew now to keep your premium benefits.',
-      category: NotificationCategoryEnum.MembershipExpiry,
-      link_path: APP_ROUTES.MEMBERSHIP_RENEW,
-      payload: {
-        membershipExpiresAt: membershipExpiresAt.toISOString(),
-      },
-      title: 'Membership expiring soon',
-    },
-  ]);
-
-  return { outcome: 'completed' };
-};
-
 const handleAdminNotificationSend: JobHandler = async (job) => {
   const payload = parseAdminNotificationSendPayload(job.payload);
   if (payload === null) {
@@ -135,7 +79,6 @@ const handleAdminNotificationSend: JobHandler = async (job) => {
 };
 
 const jobHandlers: Record<string, JobHandler> = {
-  [MEMBERSHIP_EXPIRY_REMINDER_JOB_TYPE]: handleMembershipExpiryReminder,
   [ADMIN_NOTIFICATION_SEND_JOB_TYPE]: handleAdminNotificationSend,
 };
 
@@ -180,10 +123,6 @@ export const scheduledJobsRunDue = async (args: CommandLineArgs) => {
     return;
   }
 
-  const context: JobHandlerContext = {
-    accountService: new AccountService(),
-  };
-
   for (const job of claimedJobs) {
     const handler = jobHandlers[job.job_type];
     if (!handler) {
@@ -198,7 +137,7 @@ export const scheduledJobsRunDue = async (args: CommandLineArgs) => {
     }
 
     try {
-      const result = await handler(job, context);
+      const result = await handler(job);
       if (result.outcome === 'cancelled') {
         await scheduledJobService.markCancelled(job.id, result.reason);
         logger.info(

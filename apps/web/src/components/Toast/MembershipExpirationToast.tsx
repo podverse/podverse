@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 
-import { deriveMembershipState } from '@podverse/helpers';
+import { deriveMembershipState, getMembershipExpiryNotice } from '@podverse/helpers';
 
 import { ROUTES } from '../../constants/routes';
 import { useAccount } from '../../contexts/Account';
@@ -45,11 +45,10 @@ export function MembershipExpirationToast() {
 
     const expirationDate = new Date(membership.expiresAt);
     const now = new Date();
-    const isExpired = membership.isExpired;
-    const daysUntilExpiration = Math.ceil(
-      (expirationDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-    );
-    const isExpiringSoon = daysUntilExpiration <= 14 && daysUntilExpiration > 0;
+    // Shared with mobile's expiry banner so the two surfaces warn on the same window.
+    const expiryNotice = getMembershipExpiryNotice(membership, now);
+    const isExpired = expiryNotice.status === 'expired';
+    const isExpiringSoon = expiryNotice.status === 'expiring_soon';
 
     const localSettings = getParsedLocalSettings();
     const dismissedTimestamp = localSettings.metd;

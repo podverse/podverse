@@ -1,17 +1,17 @@
-# 11 — Web subscribed filter input
+# 14 — Web subscribed filter input
 
 **Cursor model:** Codex 5.3
 **Reasoning:** high
 **Detail:** [713-web-subscribed-filter-input](/docs/proposals/mobile/_master-plan_/phase-2/details/713-web-subscribed-filter-input.md)
 **Master step:** P2.5.2
-**Depends on:** 05
+**Depends on:** 08
 
 Read [00-SUMMARY.md](00-SUMMARY.md) decisions 41–42 before starting. This is a **web** prompt inside
 a mobile-focused set — verify with Playwright, not Maestro.
 
 ## Goal
 
-`/podcasts` gets the same `Filter…` input mobile's Home gained in prompt 05, so the two surfaces
+`/podcasts` gets the same `Filter…` input mobile's Home gained in prompt 08, so the two surfaces
 behave alike.
 
 ## Behavior
@@ -46,7 +46,7 @@ pagination reflects filtered results. A page-local filter fails review.
    and survives reload. Follow **routing-url-params** and **e2e-url-state-contracts**.
 4. Distinct empty states: "no matches for this filter" is not the same as "no subscriptions".
 5. **i18n:** placeholder and empty-state strings come from the **`consumer`** catalog, shared with
-   mobile. Reuse the keys prompt 05 created rather than adding web-only duplicates.
+   mobile. Reuse the keys prompt 08 created rather than adding web-only duplicates.
 6. Extend the `/podcasts` E2E spec: filtering narrows results, the no-match empty state renders, and
    the term round-trips through the URL.
 

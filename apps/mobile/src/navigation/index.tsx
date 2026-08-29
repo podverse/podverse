@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { breakpoints } from '@podverse/design-tokens';
+import { shouldSuppressExpiryReminder } from '@podverse/helpers';
 
 import { useAuth } from '../auth/AuthProvider';
 import { MiniPlayer } from '../components/player/MiniPlayer';
@@ -22,6 +23,7 @@ import { MenuListScreen } from '../components/screen/MenuListScreen';
 import { getMobileConfig } from '../config';
 import { buildMobileLinkPrefixes } from '../config/deepLinkSchemes';
 import { useNotificationsUnseenCount } from '../hooks/useNotificationsUnseenCount';
+import { useMembership } from '../membership/useMembership';
 import { PlaybackE2eStatus } from '../playback/PlaybackE2eStatus';
 import { AlbumDetailScreen } from '../screens/album/AlbumDetailScreen';
 import { ArtistDetailScreen } from '../screens/artist/ArtistDetailScreen';
@@ -357,9 +359,9 @@ export type MobileTabParamList = {
 };
 
 /**
- * Navigate to More ▸ Membership from anywhere — used by the app-wide membership gate modal and the
- * expired banner, which live above the navigator (so they cannot use `useNavigation`). No-op until
- * the navigation container is ready.
+ * Navigate to More ▸ Membership from anywhere — used by the app-wide membership gate modal (which
+ * lives above the navigator and so cannot use `useNavigation`) and by the Home expiry banner, whose
+ * target sits in a different tab's stack. No-op until the navigation container is ready.
  */
 export function navigateToMembershipScreen(): void {
   if (!rootNavigationRef.isReady()) {
@@ -730,7 +732,24 @@ function MoreRootScreen({
 }: MoreRootScreenProps) {
   const { t } = useTranslation();
   const { status } = useAuth();
+  const { isExpired } = useMembership();
   const isAuthenticated = status === 'authenticated';
+
+  // One of the four renewal reminder surfaces: a persistent row a lapsed member can always find,
+  // as opposed to the dismissible banner and the at-the-feature notice.
+  const renewalItems: MenuListItem[] =
+    isExpired && !shouldSuppressExpiryReminder()
+      ? [
+          {
+            onPress: () => {
+              navigation.navigate(MORE_STACK_ROUTES.MoreMembership);
+            },
+            subtitle: t('membership.gate.settings_row_subtitle'),
+            testID: 'more-nav-membership-renew',
+            title: t('membership.gate.settings_row_title'),
+          },
+        ]
+      : [];
 
   const authItems: MenuListItem[] = isAuthenticated
     ? [
@@ -758,6 +777,7 @@ function MoreRootScreen({
   return (
     <MenuListScreen
       items={[
+        ...renewalItems,
         {
           onPress: () => {
             navigation.navigate(MORE_STACK_ROUTES.MoreSettings);

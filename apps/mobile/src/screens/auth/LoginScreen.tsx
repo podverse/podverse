@@ -9,6 +9,7 @@ import { resolveLocalDevLoginPrefill } from '../../auth/localDevLoginPrefill';
 import { runPostAuthAccountSync } from '../../auth/syncAccountPrefs';
 import { getMobileConfig } from '../../config';
 import { accountRepository } from '../../data';
+import { runSignupSubscriptionMerge } from '../../data/repositories/subscriptionsSignupMerge';
 import { useTheme } from '../../theme/useTheme';
 
 type LoginScreenProps = {
@@ -98,13 +99,19 @@ export function LoginScreen({ onDismiss, onSwitchToSignUp }: LoginScreenProps) {
         return;
       }
 
+      const authContext = {
+        accessToken: result.accessToken,
+        clearSession,
+        refreshToken: result.refreshToken,
+        setTokens,
+      };
+
+      // Before the refresh below, which makes the account authoritative over local subscriptions.
+      // Only does anything when this device just created this account (701); never throws.
+      await runSignupSubscriptionMerge(email, authContext);
+
       try {
-        const account = await accountRepository.refresh({
-          accessToken: result.accessToken,
-          clearSession,
-          refreshToken: result.refreshToken,
-          setTokens,
-        });
+        const account = await accountRepository.refresh(authContext);
         setAccount(account);
         try {
           await runPostAuthAccountSync({

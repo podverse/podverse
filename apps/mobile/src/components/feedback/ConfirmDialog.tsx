@@ -6,12 +6,12 @@ import { useTheme } from '../../theme/useTheme';
 import { Button } from '../primitives';
 
 /**
- * Presentational premium-gate dialog (Track 19.4). All copy is passed in **already localized** —
- * the component holds no strings — so the `MembershipGateProvider` owns the reason→copy mapping and
- * the auth-based confirm label ("Renew" for logged-in, "Sign Up" for logged-out). Centered RN `Modal`
- * dialog (parity with the app's existing `Modal` sheets, but centered rather than bottom-anchored).
+ * Presentational two-action dialog: a title, a body, and a dismiss/confirm pair. All copy arrives
+ * **already localized** — the component holds no strings — so each host owns its own wording and
+ * its own test IDs. Centered RN `Modal` (parity with the app's other sheets, but centered rather
+ * than bottom-anchored).
  */
-export type PremiumGateModalProps = {
+export type ConfirmDialogProps = {
   visible: boolean;
   title: string;
   body: string;
@@ -19,9 +19,12 @@ export type PremiumGateModalProps = {
   confirmLabel: string;
   onCancel: () => void;
   onConfirm: () => void;
+  testID: string;
+  cancelTestID: string;
+  confirmTestID: string;
 };
 
-export function PremiumGateModal({
+export function ConfirmDialog({
   visible,
   title,
   body,
@@ -29,7 +32,10 @@ export function PremiumGateModal({
   confirmLabel,
   onCancel,
   onConfirm,
-}: PremiumGateModalProps) {
+  testID,
+  cancelTestID,
+  confirmTestID,
+}: ConfirmDialogProps) {
   const { styles: themeStyles, tokens } = useTheme();
 
   const styles = useMemo(
@@ -74,21 +80,30 @@ export function PremiumGateModal({
 
   return (
     <Modal animationType="fade" onRequestClose={onCancel} transparent visible={visible}>
-      <Pressable accessibilityLabel={cancelLabel} onPress={onCancel} style={styles.backdrop}>
-        <Pressable onPress={stopPropagation} style={styles.dialog} testID="premium-gate-modal">
+      {/* The scrim is a sighted-only shortcut for the cancel button, so it stays out of the
+          accessibility tree; `accessibilityViewIsModal` keeps VoiceOver inside the dialog rather
+          than letting it wander onto the screen behind. */}
+      <Pressable accessible={false} onPress={onCancel} style={styles.backdrop}>
+        <Pressable
+          accessibilityViewIsModal
+          accessibilityRole="alert"
+          onPress={stopPropagation}
+          style={styles.dialog}
+          testID={testID}
+        >
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.body}>{body}</Text>
           <View style={styles.actions}>
             <Button
               label={cancelLabel}
               onPress={onCancel}
-              testID="premium-gate-cancel"
+              testID={cancelTestID}
               variant="secondary"
             />
             <Button
               label={confirmLabel}
               onPress={onConfirm}
-              testID="premium-gate-renew"
+              testID={confirmTestID}
               variant="primary"
             />
           </View>

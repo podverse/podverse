@@ -47,9 +47,19 @@ Two distinct empty states:
 | No subscriptions at all | Guidance copy plus a **Search** button that opens the Search tab |
 | Filter matches nothing  | A plain "no matches" message — **no** Search button              |
 
+### Carried over from detail 700
+
+`App.tsx` renders `<MembershipExpiredBanner onRenew={navigateToMembershipScreen} />` above the tab
+navigator — one of the three renewal reminder surfaces from
+[700](/docs/proposals/mobile/_master-plan_/phase-2/details/700-access-tiers-and-membership-gating.md).
+It is mounted app-wide, not per screen, so this rebuild must **not** add a second copy to
+`HomeScreen`; a lapsed member would see the banner twice on Home.
+
 ## Acceptance criteria
 
 - Home lists only subscribed content; no global/directory rows appear for any auth state.
+- The membership expiry banner still renders once above Home for a lapsed member and is still
+  dismissible.
 - The filter input is visible at the top of the list and scrolls with content.
 - Filtering matches titles case-insensitively, including article-stripped forms, across directory
   subscriptions and add-by-RSS feeds together.

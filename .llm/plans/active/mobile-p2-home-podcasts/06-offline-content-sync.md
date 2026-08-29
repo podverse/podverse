@@ -1,12 +1,13 @@
-# 03 — Offline content sync
+# 06 — Offline content sync
 
 **Cursor model:** Opus 5
 **Reasoning:** high
 **Detail:** [702-offline-content-sync](/docs/proposals/mobile/_master-plan_/phase-2/details/702-offline-content-sync.md)
 **Master step:** P2.4.3
-**Depends on:** 02
+**Depends on:** 02, 03
 
-Read [00-SUMMARY.md](00-SUMMARY.md) decisions 31–33 before starting.
+Read [00-SUMMARY.md](00-SUMMARY.md) decisions 31–33 and
+[`mobile-sync-orchestration`](/.cursor/rules/mobile-sync-orchestration.mdc) before starting.
 
 ## Goal
 
@@ -23,7 +24,10 @@ not only downloaded media files.
    - Add-by-RSS feeds: the **entire feed, no cap**.
 3. Build the background sync that reconciles local storage with the server and with add-by-RSS feeds:
    new items, channel metadata changes, removals, and re-parse results.
-4. Trigger sync on app foreground, on manual pull-to-refresh, and when connectivity returns.
+4. Trigger sync on app foreground, on manual pull-to-refresh, and when connectivity returns —
+   by **enqueuing jobs on the serial queue from prompt 03**, never by running a pass inline. This is
+   the largest producer of sync work in the app; a per-channel pass enqueues as it discovers
+   channels, so the indicator's total grows mid-run. Give every job a user-facing label.
 5. Make sync idempotent — repeated runs must not duplicate rows.
 6. Degrade quietly on failure: keep the last known local state, and surface an error only where the
    user explicitly asked to refresh.

@@ -1,10 +1,10 @@
-# 04 — Channel seen state
+# 07 — Channel seen state
 
 **Cursor model:** Opus 5
 **Reasoning:** extra high
 **Detail:** [703-channel-seen-state](/docs/proposals/mobile/_master-plan_/phase-2/details/703-channel-seen-state.md)
 **Master step:** P2.4.4
-**Depends on:** 03
+**Depends on:** 06
 
 Read [00-SUMMARY.md](00-SUMMARY.md) decisions 19–23 and 39–40 before starting. This prompt crosses
 `apps/mobile`, `apps/api`, and `packages/orm` — treat the API contract as the risky part.
@@ -17,11 +17,11 @@ subscribed lists can show unseen counts without unbounded storage.
 ## Vocabulary
 
 Content is **seen / unseen**. Notifications are **read / unread**. Never mix the verbs. Notifications
-still use seen/unseen in code until prompt 14 renames them — do not let that leak into this work.
+still use seen/unseen in code until prompt 17 renames them — do not let that leak into this work.
 
 ## Cross-surface note
 
-This state is account-synced, so **web is a client of it too**. Prompt 10 makes web read and write
+This state is account-synced, so **web is a client of it too**. Prompt 13 makes web read and write
 it. Design the endpoints for both callers now rather than retrofitting: nothing here may assume a
 mobile-only caller.
 
@@ -50,7 +50,7 @@ mobile-only caller.
    merge into the account on sign-in by the same rule, idempotently.
 8. **Independence:** assert in tests that no unseen count reads notification rows.
 9. **i18n:** any new user-facing strings go in the **`consumer`** catalog, not the mobile overlay,
-   because web reuses them in prompt 10.
+   because web reuses them in prompt 13.
 10. Integration tests for the endpoint including the cap and the bound; unit tests for count
     derivation, merge-by-later, and monotonicity.
 

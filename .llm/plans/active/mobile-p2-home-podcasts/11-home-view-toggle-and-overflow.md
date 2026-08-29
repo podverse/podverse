@@ -1,10 +1,10 @@
-# 08 — Home view toggle and overflow menu
+# 11 — Home view toggle and overflow menu
 
 **Cursor model:** Codex 5.3
 **Reasoning:** medium
 **Detail:** [708-home-view-toggle-and-overflow-menu](/docs/proposals/mobile/_master-plan_/phase-2/details/708-home-view-toggle-and-overflow-menu.md)
 **Master step:** P2.1.1
-**Depends on:** 04, 07
+**Depends on:** 07, 10
 
 Read [00-SUMMARY.md](00-SUMMARY.md) decisions 15–16, 20–23 before starting.
 
@@ -25,7 +25,7 @@ A header overflow menu on Home with a persisted grid/list toggle and Mark All As
    - Keep the existing responsive column logic (`resolveColumns.ts`) rather than a fixed three, and
      keep the list virtualized.
 3. **Mark All As Seen:**
-   - Sets every subscribed channel's last-seen timestamp to now using the repository from prompt 04.
+   - Sets every subscribed channel's last-seen timestamp to now using the repository from prompt 07.
    - Works signed out against local timestamps; for signed-in users it syncs like any other seen-state
      change and never moves seen state backward.
    - Hide or disable the item when nothing is unseen rather than presenting a no-op.
@@ -36,7 +36,7 @@ A header overflow menu on Home with a persisted grid/list toggle and Mark All As
 
 ## Constraints
 
-- No hardcoded hex; badge treatment matches prompt 07.
+- No hardcoded hex; badge treatment matches prompt 10.
 - Reuse existing menu/action-sheet components per **mobile-reusable-components**.
 - **Screen reader** per [`screen-reader-accessibility`](/.cursor/rules/screen-reader-accessibility.mdc):
   the overflow control is icon-only and **must** have an `accessibilityLabel`. Menu items need

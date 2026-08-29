@@ -137,7 +137,8 @@ doc written except where noted.
 | P2.3.8  | new          | [710-defer-filter-pull-down-reveal](/docs/proposals/mobile/_master-plan_/phase-2/details/710-defer-filter-pull-down-reveal.md)                                             | Codex 5.3 |
 | P2.3.9  | new          | [711-defer-auto-renew-aware-reminders](/docs/proposals/mobile/_master-plan_/phase-2/details/711-defer-auto-renew-aware-reminders.md)                                       | Codex 5.3 |
 | P2.3.10 | new          | [899-defer-accessibility-audit](/docs/proposals/mobile/_master-plan_/phase-2/details/899-defer-accessibility-audit.md) — full screen reader audit across all four surfaces | Opus 5    |
-
+| P2.3.11 | new          | [897-defer-mobile-schema-drift-checks](/docs/proposals/mobile/_master-plan_/phase-2/details/897-defer-mobile-schema-drift-checks.md) — evaluate after Phase 2 closes | Auto      |
+| P2.3.12 | new          | [896-defer-tablet-layout-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/896-defer-tablet-layout-parity.md) — tablet left rail and missing mini player | Opus 5    |
 **P2.3.10 is a deferral of the _existing_ surface area only.** All **new** screens and components
 must be screen reader accessible when they land, per
 [`screen-reader-accessibility`](/.cursor/rules/screen-reader-accessibility.mdc). Do not cite the
@@ -172,6 +173,16 @@ screen work depends on, and they change contracts beyond `apps/mobile` (API, ORM
 | P2.4.4 | [703-channel-seen-state](/docs/proposals/mobile/_master-plan_/phase-2/details/703-channel-seen-state.md)                                 | Opus 5 | planned |
 | P2.4.5 | [704-notifications-read-unread-rename](/docs/proposals/mobile/_master-plan_/phase-2/details/704-notifications-read-unread-rename.md)     | Opus 5 | planned |
 | P2.4.6 | [714-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/714-filter-sort-persistence.md)                       | Opus 5 | planned |
+| P2.4.7 | [716-forced-logout-notice](/docs/proposals/mobile/_master-plan_/phase-2/details/716-forced-logout-notice.md)                             | Opus 5 | implemented |
+| P2.4.8 | [717-fast-startup-and-sync-queue](/docs/proposals/mobile/_master-plan_/phase-2/details/717-fast-startup-and-sync-queue.md)               | Opus 5 | planned |
+| P2.4.9 | [718-sync-progress-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/718-sync-progress-indicator.md)                       | Opus 5 | planned |
+| P2.4.10 | [719-sync-event-log](/docs/proposals/mobile/_master-plan_/phase-2/details/719-sync-event-log.md)                                        | Opus 5 | planned |
+
+**Step numbers are identifiers, not the run order.** Within P2.4 the run order is the plan set's —
+see [00-EXECUTION-ORDER.md](/.llm/plans/active/mobile-p2-home-podcasts/00-EXECUTION-ORDER.md).
+**P2.4.8–P2.4.10 run before P2.4.3**: offline content sync is the largest producer of sync work, so
+the queue and its indicator must exist before it is built, or it ships with no orchestration and is
+reworked immediately after.
 
 Five standing policies came out of this track and are now abcmemory rather than plan text:
 
@@ -238,7 +249,7 @@ the track tables above whenever status changes, per
 | [597-list-virtualization-polish](/docs/proposals/mobile/_master-plan_/phase-2/details/597-list-virtualization-polish.md)                 | P2.2.3  | Codex 5.3 | part (a) done |
 | [598-defer-player-transcript-chrome](/docs/proposals/mobile/_master-plan_/phase-2/details/598-defer-player-transcript-chrome.md)         | P2.3.5  | Auto      | not started   |
 | [599-defer-pixel-dnd-polish](/docs/proposals/mobile/_master-plan_/phase-2/details/599-defer-pixel-dnd-polish.md)                         | P2.3.6  | Auto      | not started   |
-| [700-access-tiers-and-membership-gating](/docs/proposals/mobile/_master-plan_/phase-2/details/700-access-tiers-and-membership-gating.md) | P2.4.1  | Opus 5    | planned       |
+| [700-access-tiers-and-membership-gating](/docs/proposals/mobile/_master-plan_/phase-2/details/700-access-tiers-and-membership-gating.md) | P2.4.1  | Opus 5    | done          |
 | [701-anonymous-subscriptions](/docs/proposals/mobile/_master-plan_/phase-2/details/701-anonymous-subscriptions.md)                       | P2.4.2  | Opus 5    | planned       |
 | [702-offline-content-sync](/docs/proposals/mobile/_master-plan_/phase-2/details/702-offline-content-sync.md)                             | P2.4.3  | Opus 5    | planned       |
 | [703-channel-seen-state](/docs/proposals/mobile/_master-plan_/phase-2/details/703-channel-seen-state.md)                                 | P2.4.4  | Opus 5    | planned       |
@@ -254,8 +265,14 @@ the track tables above whenever status changes, per
 | [713-web-subscribed-filter-input](/docs/proposals/mobile/_master-plan_/phase-2/details/713-web-subscribed-filter-input.md)               | P2.5.2  | Codex 5.3 | planned       |
 | [714-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/714-filter-sort-persistence.md)                       | P2.4.6  | Opus 5    | planned       |
 | [715-web-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/715-web-filter-sort-persistence.md)               | P2.5.3  | Opus 5    | planned       |
+| [716-forced-logout-notice](/docs/proposals/mobile/_master-plan_/phase-2/details/716-forced-logout-notice.md)                             | P2.4.7  | Opus 5    | implemented   |
+| [717-fast-startup-and-sync-queue](/docs/proposals/mobile/_master-plan_/phase-2/details/717-fast-startup-and-sync-queue.md)               | P2.4.8  | Opus 5    | planned       |
+| [718-sync-progress-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/718-sync-progress-indicator.md)                       | P2.4.9  | Opus 5    | planned       |
+| [719-sync-event-log](/docs/proposals/mobile/_master-plan_/phase-2/details/719-sync-event-log.md)                                         | P2.4.10 | Opus 5    | planned       |
+| [896-defer-tablet-layout-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/896-defer-tablet-layout-parity.md)                 | P2.3.12 | Opus 5    | deferred      |
 | [898-defer-theme-mode-grouping](/docs/proposals/mobile/_master-plan_/phase-2/details/898-defer-theme-mode-grouping.md)                   | P2.3.7  | Codex 5.3 | deferred      |
 | [899-defer-accessibility-audit](/docs/proposals/mobile/_master-plan_/phase-2/details/899-defer-accessibility-audit.md)                   | P2.3.10 | Opus 5    | deferred      |
+| [897-defer-mobile-schema-drift-checks](/docs/proposals/mobile/_master-plan_/phase-2/details/897-defer-mobile-schema-drift-checks.md)   | P2.3.11 | Auto      | deferred      |
 
 New Phase 2 detail docs use the **700–899** ID band (see
 [PHASES.md](/docs/proposals/mobile/_master-plan_/PHASES.md) § Detail ID bands).

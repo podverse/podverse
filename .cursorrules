@@ -15,6 +15,9 @@ Lower tiers cannot depend on higher (see `.cursor/rules/architecture-tier-depend
 - **iOS / Android device targets:** manual — `"iPhone 17 Pro"` / `Pixel_6_Pro_API_33`; E2E/Make —
   `"iPhone 17 Pro E2E"` / `Pixel_6_Pro_API_33_e2e`. Never bare `--device` (picker). See
   [mobile-ios-simulator](/.cursor/rules/mobile-ios-simulator.mdc).
+- **Startup and sync:** nothing network-bound blocks first paint; background sync runs one job at a
+  time behind a visible indicator, and failures are logged rather than shown — see
+  [mobile-sync-orchestration](/.cursor/rules/mobile-sync-orchestration.mdc).
 - App-specific rules: [apps/mobile/AGENTS.md](apps/mobile/AGENTS.md), contributor guide [apps/mobile/APPS-MOBILE.md](apps/mobile/APPS-MOBILE.md).
 - Master plan phasing: **mobile-master-plan-phasing** skill. The master plan is split into phases under [`docs/proposals/mobile/_master-plan_/`](docs/proposals/mobile/_master-plan_/PHASES.md) — **Phase 1 is closed** (agent-led framework build-out); **Phase 2 is active** and **operator-guided** from legacy-app screenshots, see **mobile-legacy-screenshot-planning**. Mobile E2E uses Maestro/Detox — not `make e2e_*`.
 - Commands from repo root: prefer composite scripts (`deps:init`, `deps:init:native`, `mobile:dev`, `mobile:ios` / `mobile:android`, `mobile:e2e:*`) over multi-step install/prebuild recipes — see **mobile-expo-monorepo**. Not `-w apps/mobile`.
@@ -32,6 +35,7 @@ Lower tiers cannot depend on higher (see `.cursor/rules/architecture-tier-depend
 - **Avoid type assertions (`as`)**: Prefer proper types, optional chaining, type guards, or narrowing so the type system enforces correctness. Use `as` only when there is no better way (e.g. necessary escape hatch); keep such use minimal and documented.
 - **Named exports**: Prefer named `export` in TypeScript modules; avoid `export default` when a named export works. Framework-required defaults (e.g. Next.js `page.tsx`) are the exception. See `.cursor/skills/prefer-named-exports/SKILL.md`.
 - **CSS `var()`:** Do not use fallback arguments in SCSS/CSS (`var(--token, …)`); see `.cursor/rules/css-custom-properties-no-var-fallbacks.mdc`.
+- **Comments are future-forward**: Describe the code as it stands, never what it used to be, what was removed, or which plan/detail/step number asked for it — plans get archived and deleted, leaving a dead reference. Clean these up in files you touch; see `.cursor/rules/comments-future-forward.mdc`.
 
 ## Commands / Terminal
 

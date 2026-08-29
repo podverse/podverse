@@ -1,17 +1,17 @@
-# 10 — Web unseen episode indicator
+# 13 — Web unseen episode indicator
 
 **Cursor model:** Opus 5
 **Reasoning:** high
 **Detail:** [712-web-unseen-episode-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/712-web-unseen-episode-indicator.md)
 **Master step:** P2.5.1
-**Depends on:** 04
+**Depends on:** 07
 
 Read [00-SUMMARY.md](00-SUMMARY.md) decisions 39–40 and 42 before starting. This is a **web** prompt
 inside a mobile-focused set — verify with Playwright, not Maestro.
 
 ## Goal
 
-Web becomes a full client of the per-channel seen state created in prompt 04: it **writes** the
+Web becomes a full client of the per-channel seen state created in prompt 07: it **writes** the
 timestamp and **displays** unseen counts.
 
 ## Why the write half is not optional
@@ -29,11 +29,11 @@ devices must be written by every device that can change it.
    - Nothing renders for signed-out visitors.
    - Works in both `grid` and `rows` modes from `ViewSelector`.
 3. Fetch counts in **one bounded request** for the list — never one request per channel. The endpoint
-   from prompt 04 is already capped and bounded; use it as designed.
+   from prompt 07 is already capped and bounded; use it as designed.
 4. Reuse the existing `CountBadge` precedent from `NotificationBellButton` rather than inventing a
    second badge.
 5. **i18n:** strings come from the **`consumer`** catalog and are shared with mobile. A key may not
-   exist in both `consumer` and `mobile`; if prompt 04 or 07 put one in the mobile overlay, move it.
+   exist in both `consumer` and `mobile`; if prompt 07 or 07 put one in the mobile overlay, move it.
 6. **Screen reader** per [`screen-reader-accessibility`](/.cursor/rules/screen-reader-accessibility.mdc):
    the count carries meaning, so do not rely on color or position alone. Give the badge an accessible
    label that names the channel and the count, mark the decorative icon `aria-hidden`, and make sure

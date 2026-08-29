@@ -60,12 +60,6 @@ const NOTIFICATION_PREFERENCE_ROWS: readonly NotificationPreferenceRow[] = [
     labelKey: 'settings.notifications.category_livestream',
   },
   {
-    category: NotificationCategoryEnum.MembershipExpiry,
-    descriptionKey: 'settings.notifications.category_membership_expiry_description',
-    forceInAppEnabled: false,
-    labelKey: 'settings.notifications.category_membership_expiry',
-  },
-  {
     category: NotificationCategoryEnum.ProductUpdate,
     descriptionKey: 'settings.notifications.category_product_update_description',
     forceInAppEnabled: false,

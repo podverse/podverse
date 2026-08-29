@@ -207,15 +207,21 @@ export const fetchHomeFeedRows = async (
   const listType = authDeps.status === 'authenticated' ? 'subscribed' : 'global';
 
   if (mediaType === 'podcasts') {
-    // Authenticated Podcasts subscribed view mixes directory follows + add-by-RSS from the shared
-    // offline-first cache (9b.8 / 8.16); anonymous still shows the global directory list.
-    if (authDeps.status === 'authenticated') {
-      const subscribed = await subscriptionsRepository.list({
-        filter: options.subscriptionFilter ?? 'all',
-      });
+    // The Podcasts view mixes directory follows + add-by-RSS from the shared offline-first store
+    // (9b.8 / 8.16). Read regardless of auth state: subscriptions are device-local (701), so a
+    // signed-out user with subscriptions sees them here exactly as a signed-in one does.
+    const subscribed = await subscriptionsRepository.list({
+      filter: options.subscriptionFilter ?? 'all',
+    });
+    if (subscribed.length > 0) {
       return subscribed.map(mapSubscribedChannelToRow);
     }
+    if (authDeps.status === 'authenticated') {
+      return [];
+    }
 
+    // Nothing subscribed yet and no account — fall back to the global directory so a fresh install
+    // has something to browse rather than an empty Home.
     const response = await requestWithMobileAuthRefresh(authDeps, async (api) =>
       api.reqChannelGetMany({
         category: null,

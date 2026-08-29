@@ -27,10 +27,28 @@ name: Membership Gate
     text: "Sign Up"
 - takeScreenshot: membership-gate-signup-cta
 
+# Anonymous tier, proactive path (700): the shared tier model resolves `add_by_rss_add` as
+# membership-tier, so a signed-out user sees the gate notice up front instead of tapping Add and
+# waiting for a 401/403. Asserted on Add by RSS rather than the PI preview screen so the Search
+# stack stays at its root for the reactive check below.
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-add-by-rss
+- assertVisible:
+    id: rss-root-screen
+- assertVisible:
+    id: rss-add-gate
+- takeScreenshot: membership-gate-anonymous-add-by-rss
+
 # Log in as the seeded Trial user (tapping the active More tab pops back to the More root first).
 - runFlow: shared/login-seeded-user.yaml
 
-# Trigger the Premium-only directory-add capability gate.
+# Membership tier, reactive path: the seeded user holds a valid Trial membership, so the shared tier
+# model resolves `directory_add_by_rss` as allowed and lets the request through. Trial-vs-Premium
+# capability differences stay server-authoritative, so the real 403 is still what gates this.
 - tapOn:
     id: tab-search
 - assertVisible:

@@ -6,6 +6,8 @@ import { defineConfig } from 'vitest/config';
  * the Track 13 download eligibility / storage helpers (`src/downloads`, pure logic only), the unified
  * subscriptions merge/map/filter/sort helpers (`src/data/repositories/subscriptionsMerge.ts` — the
  * pure sibling of the SQLite-backed `subscriptionsRepository`, so it pulls in no `expo-sqlite`), the
+ * sign-up subscription merge decision (`src/data/repositories/subscriptionsSignupPlan.ts` — pure; the
+ * SQLite/API half stays in `subscriptionsSignupMerge.ts`), the
  * car library-browse mappers/merge (`src/data/repositories/libraryBrowseProjection.ts` — types only,
  * no native imports), the env-driven deep-link scheme / prefix helpers
  * (`src/config/deepLinkSchemes.ts`), deep-link path mapping (`src/navigation/deepLinking.ts`), pure notification
@@ -13,6 +15,8 @@ import { defineConfig } from 'vitest/config';
  * prefs storage guards/hydration (`src/prefs/prefsStore.ts`), the Podcast Index search preview poll helper
  * (`src/screens/search/podcastIndexFeedPreview.ts`), the client-version/platform header builder
  * (`src/auth/mobileClientHeaders.ts` — pure; the RN-coupled resolution stays in `mobileApi.ts`), the
+ * forced-logout notice marker (`src/auth/forcedLogoutNotice.ts` — AsyncStorage-backed, and
+ * AsyncStorage mocks cleanly in node; the RN modal that renders it stays untested here), the
  * membership denial mapping (`src/membership/membershipDenial.ts` — pure; note the membership-state
  * derivation now lives in `@podverse/helpers` `deriveMembershipState`, tested there, and the RN-coupled
  * `useMembership` hook is excluded), and the membership checkout URL builder
@@ -27,11 +31,13 @@ export default defineConfig({
     environment: 'node',
     include: [
       'modules/podverse-media-engine/src/**/*.test.ts',
+      'src/auth/forcedLogoutNotice.test.ts',
       'src/auth/localDevLoginPrefill.test.ts',
       'src/auth/mobileClientHeaders.test.ts',
       'src/config/deepLinkSchemes.test.ts',
       'src/data/repositories/libraryBrowseProjection.test.ts',
       'src/data/repositories/subscriptionsMerge.test.ts',
+      'src/data/repositories/subscriptionsSignupPlan.test.ts',
       'src/downloads/**/*.test.ts',
       'src/lib/home/homeFeedRefresh.test.ts',
       'src/lib/share/shareUrl.test.ts',

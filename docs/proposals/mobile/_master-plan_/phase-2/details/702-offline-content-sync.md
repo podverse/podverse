@@ -31,6 +31,17 @@ network is available, so what is stored converges on what is current. It covers 
 subscribed channels, channel metadata changes, removals, and add-by-RSS re-parse results. It runs on
 app foreground, on manual pull-to-refresh, and opportunistically when connectivity returns.
 
+**This sync does not own its own scheduling.** It registers jobs with the serial queue from
+[717](/docs/proposals/mobile/_master-plan_/phase-2/details/717-fast-startup-and-sync-queue.md), which
+runs one at a time and reports them through the indicator in
+[718](/docs/proposals/mobile/_master-plan_/phase-2/details/718-sync-progress-indicator.md). This is
+the largest producer of sync work in the app — a channel-item pass over a full subscription list is
+exactly the case the queue exists to keep off the boot path and out of parallel execution.
+
+Each job carries a user-facing label and contributes to the indicator's remaining count. A
+per-channel pass enqueues work as it discovers channels, so the total grows mid-run; that is
+expected and handled by the queue's progress model.
+
 Screens that browse, filter, or sort **subscribed** content read local storage exclusively, so they
 behave identically offline. Network search and directory browse stay online-only surfaces.
 
@@ -43,8 +54,11 @@ behave identically offline. Network search and directory browse stay online-only
 - Add-by-RSS feeds store every item in the feed.
 - Sync runs on foreground, pull-to-refresh, and connectivity restore, and converges without
   duplicating rows on repeated runs.
+- Every sync pass runs through the serial queue — never in parallel with another sync pass, and
+  never on the startup path — and is visible in the sync indicator while it runs.
 - Sync failures degrade quietly — the user keeps the last known local state and sees an error only
-  where they explicitly asked to refresh.
+  where they explicitly asked to refresh — and are appended to the sync event log with their error
+  code ([719](/docs/proposals/mobile/_master-plan_/phase-2/details/719-sync-event-log.md)).
 - Storage growth is bounded for server-backed feeds and measured in a test with a large fixture.
 - Unit tests cover window extension, sync idempotency, and removal reconciliation.
 

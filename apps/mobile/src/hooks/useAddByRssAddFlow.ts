@@ -11,6 +11,7 @@ import {
   pollAddByRssParseStatus,
 } from '../lib/addByRss/domain';
 import { useMembershipGate } from '../membership/MembershipGateProvider';
+import { useAccessTier } from '../membership/useAccessTier';
 
 type UseAddByRssAddFlowOptions = {
   inputValue: string;
@@ -25,14 +26,23 @@ export function useAddByRssAddFlow({
   onNotice,
   setInputValue,
 }: UseAddByRssAddFlowOptions) {
-  const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
-  const { handleGateError } = useMembershipGate();
+  const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
+  const { handleGateError, openGate } = useMembershipGate();
+  const { evaluateFeature } = useAccessTier();
   const [isAdding, setIsAdding] = useState<boolean>(false);
   const [addErrorKey, setAddErrorKey] = useState<string | null>(null);
 
+  // Adding requires server-side feed parsing, so it is membership-tier. Feeds already added stay
+  // visible and playable when a membership lapses — only adding stops.
+  const addAccess = evaluateFeature('add_by_rss_add');
+
   const addFeed = useCallback(async () => {
-    if (status !== 'authenticated') {
-      setAddErrorKey('authentication.login_required');
+    if (!addAccess.allowed) {
+      if (addAccess.reason === 'needs_account') {
+        setAddErrorKey('authentication.login_required');
+      } else {
+        openGate(addAccess.reason);
+      }
       return;
     }
 
@@ -118,18 +128,20 @@ export function useAddByRssAddFlow({
     }
   }, [
     accessToken,
+    addAccess,
     clearSession,
     handleGateError,
     inputValue,
     onAfterAdd,
     onNotice,
+    openGate,
     refreshToken,
     setInputValue,
     setTokens,
-    status,
   ]);
 
   return {
+    addAccess,
     addErrorKey,
     addFeed,
     isAdding,

@@ -8,34 +8,44 @@
 
 Membership renewal reminders land in
 [700-access-tiers-and-membership-gating](/docs/proposals/mobile/_master-plan_/phase-2/details/700-access-tiers-and-membership-gating.md)
-at four points: when the user touches a membership feature, a persistent row in More/settings, a
-dismissible Home banner, and a push notification near expiry.
+at three **in-app** points: when the user touches a membership feature, a persistent row in
+More/settings, and a dismissible banner on Home. There is no push and no email — see the rule
+[`no-membership-expiry-notifications`](/.cursor/rules/no-membership-expiry-notifications.mdc).
 
-A user enrolled in **auto-renew** should not receive "expiring soon" reminders — their membership is
-not actually about to lapse. Suppressing those requires knowing auto-renew status, which requires
-payment functionality that does not exist yet.
+A user enrolled in **auto-renew** should not be told their membership is expiring soon — it is not
+actually about to lapse.
 
-Deferred until payment lands. The reminder surface built in detail 700 must leave a clean seam for
-this check so adding it later is a predicate change, not a rework.
+**Correction to the original premise:** this is not blocked on the field existing.
+`account_membership_status.auto_renew` is already on the account DTO and web's
+`MembershipExpirationToast` already consults it to suppress the expiring-soon toast. What is missing
+is that the status carries both `auto_renew` and `auto_renew_mode` with no settled rule for which is
+authoritative, and no payment flow to make either trustworthy.
+
+Deferred until payment lands. Detail 700 leaves the seam: `shouldSuppressExpiryReminder` in
+`@podverse/helpers` is consulted by every reminder surface and returns `false` today, so enabling
+this is a change in that one function.
 
 When this is picked up:
 
-- Resolve auto-renew enrollment for the current account.
-- Suppress **expiry-approaching** reminders for enrolled users across all four surfaces.
-- Keep **lapsed** reminders for enrolled users whose renewal actually failed — auto-renew enrollment
+- Settle whether `auto_renew` or `auto_renew_mode` is authoritative, and fold web's existing
+  ad-hoc `auto_renew` read in `MembershipExpirationToast` into the shared predicate.
+- Suppress **expiring-soon** messaging for enrolled users on every surface.
+- Keep **lapsed** messaging for enrolled users whose renewal actually failed — auto-renew enrollment
   is not a guarantee of successful payment.
 - Decide whether an auto-renew user sees any positive confirmation instead of a reminder.
 
 ## Acceptance criteria
 
-- Auto-renew status is resolvable for the signed-in account.
-- Expiry-approaching reminders are suppressed for enrolled users on all four surfaces.
-- A failed auto-renewal still produces lapsed-state reminders.
-- The suppression is a single predicate consulted by every reminder surface, not four copies.
+- Expiring-soon messaging is suppressed for enrolled users on every surface, web included.
+- A failed auto-renewal still produces lapsed-state messaging.
+- The suppression is a single predicate consulted by every surface, not one copy per surface.
 - Unit tests cover enrolled, not enrolled, and enrolled-but-payment-failed.
+- Nothing added here introduces a push, email, or scheduled job for membership expiry.
 
 ## Web parity references
 
+- `apps/web/src/components/Toast/MembershipExpirationToast.tsx` — the existing `auto_renew` read
+- `packages/helpers/src/lib/accessTier.ts` — `shouldSuppressExpiryReminder`, the seam
 - `apps/mobile/src/screens/more/MoreMembershipScreen.tsx`
 - Detail 700 — reminder surfaces this modifies
 - Rule: [`mobile-anonymous-vs-account-features`](/.cursor/rules/mobile-anonymous-vs-account-features.mdc)

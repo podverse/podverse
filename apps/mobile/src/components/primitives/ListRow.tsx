@@ -82,9 +82,12 @@ export function ListRow({
     );
   }
 
+  // The explicit label replaces the children, so fold the subtitle in or a screen reader loses it.
+  const defaultLabel = subtitle === undefined ? title : `${title}. ${subtitle}`;
+
   return (
     <Pressable
-      accessibilityLabel={accessibilityLabel ?? title}
+      accessibilityLabel={accessibilityLabel ?? defaultLabel}
       accessibilityRole="button"
       onPress={onPress}
       style={styles.container}

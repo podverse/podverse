@@ -1,10 +1,10 @@
-# 07 — Home row metadata
+# 10 — Home row metadata
 
 **Cursor model:** Codex 5.3
 **Reasoning:** medium
 **Detail:** [707-home-row-metadata](/docs/proposals/mobile/_master-plan_/phase-2/details/707-home-row-metadata.md)
 **Master step:** P2.1.1
-**Depends on:** 04, 05
+**Depends on:** 07, 08
 
 Read [00-SUMMARY.md](00-SUMMARY.md) decisions 13–14 before starting.
 
@@ -18,12 +18,12 @@ from local storage.
 1. Extend `apps/mobile/src/screens/home/HomeFeedRow.tsx` (and the shared row components it uses) with
    four elements:
    - **`Latest episode: <date>`** — the channel's latest item publish date.
-   - **Unseen count badge** — derived from the last-seen timestamp in prompt 04; renders `20+` at the cap and
+   - **Unseen count badge** — derived from the last-seen timestamp in prompt 07; renders `20+` at the cap and
      is absent at zero.
    - **`N downloaded`** — from the local download index in `downloadsRepository`.
    - **Live badge** — from the channel's live-item status.
 2. Every element reads local storage so a fully offline row renders correctly. Where a field is not
-   yet stored locally, extend the schema and sync from prompt 03 rather than fetching per row.
+   yet stored locally, extend the schema and sync from prompt 06 rather than fetching per row.
 3. **Live status dependency:** if the API does not expose live-item status and it cannot be stored
    locally, **stop and raise it with the operator**. Do not invent a client-side approximation.
 4. Layout mirrors the previous generation — artwork, latest-episode line, title, download count, and
@@ -41,7 +41,7 @@ from local storage.
 
 - No hardcoded hex anywhere in the row.
 - All copy through i18n, including the `20+` presentation and the download-count label. The unseen
-  badge strings go in the **`consumer`** catalog because web reuses them in prompt 10; the
+  badge strings go in the **`consumer`** catalog because web reuses them in prompt 13; the
   download-count label is mobile-only and belongs in the mobile overlay.
 - **Screen reader** per [`screen-reader-accessibility`](/.cursor/rules/screen-reader-accessibility.mdc):
   the row reads as **one** item, not five fragments — group it and give it a composed

@@ -1,0 +1,82 @@
+---
+description: Code comments describe the code as it is now, never what it used to be, what was removed, or which plan asked for it.
+alwaysApply: true
+---
+
+# Comments are future-forward
+
+A comment is for the next person reading this file, who has never seen any earlier version of it.
+Write only what is true of the code **as it stands**. The history of how it got here belongs in the
+commit message and the PR, which is where someone goes when they actually want it.
+
+## Don't
+
+- Narrate a removal: "no longer produced", "this used to call X", "the old per-screen strings",
+  "retained so historical rows still render".
+- Explain an absence created by an edit: "No membership-expiry row here", "not offerable as a
+  category", "we removed the scheduler".
+- Date the code against itself: "now", "currently", "as of this change", "going forward".
+- Justify the diff to a reviewer: "changed this because…", "this is the new approach".
+
+## Do
+
+- State the constraint or intent positively: what this code guarantees, what a caller must handle,
+  what would break if it changed.
+- When something must **not** be added, put it in a rule under `.cursor/rules/` and let the rule
+  carry it. A rule is enforced on future work; a comment in one file is not.
+- Name a `.cursor/rules/` rule when the reasoning is larger than a sentence. Rules are durable and
+  named, so the reference survives.
+
+## Never cite a plan, detail, or step number
+
+Plans and proposal docs are working material. They get renumbered, archived, and deleted — plan sets
+are removed outright once their work lands. A comment pointing at `detail 711`, `master step 2.11`,
+`P2.4.3`, `Track 9b.6`, or a path under `.llm/plans/` or `docs/proposals/` is a reference that will
+outlive what it points to, leaving the next reader with a number that means nothing.
+
+Write the reasoning agnostically, or leave it out. If the point is worth keeping, it is worth
+stating in the file; if it is only a breadcrumb back to a plan, it is not worth keeping at all.
+
+```typescript
+// BAD — the number is a dead end once the plan is archived
+// Suppression is deferred until payment functionality exists — see detail 711.
+
+// GOOD — the same constraint, legible on its own
+// Suppression waits on payment functionality. Every reminder surface calls this, so enabling it
+// later is a change here and nowhere else.
+```
+
+```typescript
+// BAD — a path into working material
+// Detail: docs/proposals/mobile/_master-plan_/phase-2/details/701-anonymous-subscriptions.md
+
+// GOOD — omit it; the doc comment above already states the ownership rules.
+```
+
+This applies to test names, E2E flow comments, and SQL migration headers as much as to source
+comments. Commit messages and PR descriptions are the right place for "which plan asked for this".
+
+## Examples
+
+```typescript
+// BAD — only meaningful to someone who saw the previous version
+// The reason→copy mapping lives here rather than at call sites, which is the difference between one
+// consistent affordance and the previous per-screen "needs login" strings.
+
+// GOOD — same point, true on its own
+// The reason→copy mapping lives here rather than at call sites so every gated control explains
+// itself the same way.
+```
+
+```typescript
+// BAD — documents a hole left by an edit
+// No membership-expiry category: expiry is shown in-app now, never delivered as a notification.
+
+// GOOD — omit it; `no-membership-expiry-notifications` is the durable home for that constraint.
+```
+
+## Cleaning up
+
+When you touch a file that already has a backward-looking comment, or one citing a plan or step
+number, rewrite or delete it as part of the change. Leaving it is how a file accumulates a changelog
+in its margins and a trail of references to documents nobody can find.

@@ -55,7 +55,11 @@ import {
   reqAccountGetFollowedAddByRSSChannels,
   reqAccountUnfollowAddByRSSChannel,
 } from './account/follow/addByRSSChannel.js';
-import { reqAccountFollowChannel, reqAccountUnfollowChannel } from './account/follow/channel.js';
+import {
+  reqAccountFollowChannel,
+  reqAccountFollowChannelsBulk,
+  reqAccountUnfollowChannel,
+} from './account/follow/channel.js';
 import { reqAccountFollowPlaylist, reqAccountUnfollowPlaylist } from './account/follow/playlist.js';
 import {
   reqAccountNotificationChannelCreate,
@@ -566,6 +570,10 @@ export class ApiRequestService {
 
   reqAccountFollowChannel(params: { channel_id_text: string }) {
     return reqAccountFollowChannel(this, params);
+  }
+
+  reqAccountFollowChannelsBulk(params: { channel_id_texts: string[] }) {
+    return reqAccountFollowChannelsBulk(this, params);
   }
 
   reqAccountUnfollowChannel(params: { channel_id_text: string }) {
