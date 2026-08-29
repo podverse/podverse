@@ -84,10 +84,9 @@ and ask before matching legacy.
 
 ## Track P2.2 — Visual polish (absorbs Phase 1 Track 23)
 
-Phase 1's Track 23 was **declined as a standalone agent phase** (see
-[`.llm/plans/completed/phase-1/mobile-pg13-operator-polish/00-SUMMARY.md`](/.llm/plans/completed/phase-1/mobile-pg13-operator-polish/00-SUMMARY.md))
-because the operator planned to polish by hand. The screenshot-driven loop supersedes that: polish is
-now part of each P2.1 area rather than a separate pass.
+Phase 1's Track 23 was **declined as a standalone agent phase** because the operator planned to
+polish by hand. The screenshot-driven loop supersedes that: polish is now part of each P2.1 area
+rather than a separate pass.
 
 | Step | Detail | Model | Status |
 | --- | --- | --- | --- |

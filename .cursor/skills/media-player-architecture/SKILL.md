@@ -45,5 +45,7 @@ flowchart LR
 
 ## Related
 
-- Plan set: `.llm/plans/completed/media-player-architecture-refactor/` (archived; Phases 0–6 complete on `refactor/media-player`). Livestream/HLS work is tracked separately in `.llm/plans/active/media-player-livestream-hls-migration/`.
+- Phases 0–6 of the media-player architecture refactor are complete on `refactor/media-player`;
+  durable implementation state is in the code and related documentation. Livestream/HLS work is
+  tracked separately in `.llm/plans/active/media-player-livestream-hls-migration/`.
 - E2E: media-player specs under `apps/web/e2e/media-player-*.spec.ts`.

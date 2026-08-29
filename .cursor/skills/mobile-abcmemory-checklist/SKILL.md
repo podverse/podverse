@@ -59,7 +59,8 @@ Follow **plan-completion** and **mobile-master-plan-phasing** when archiving.
 2. Detail docs + COPY-PASTA set created under `.llm/plans/active/` (defer implementation).
 3. Operator pastes COPY-PASTA → agent implements; marks master-plan steps **done**.
 4. Standing lessons (new rule, skill tweak) → **abcremember** into `.cursor/` using this checklist.
-5. Archive plan set to `.llm/plans/completed/` when phase finishes.
+5. Remove the completed plan set after the operator confirms the phase is finished; retain durable
+   outcomes in the phase master plan and detail docs.
 
 ## Quick decision tree
 

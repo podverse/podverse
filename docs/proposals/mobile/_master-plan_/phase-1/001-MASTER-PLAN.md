@@ -31,9 +31,9 @@ owning phase plan; the detail doc is authored just-in-time when that phase start
 have detail docs and moved to `phase-2/details/`.
 
 **Known bookkeeping gap:** steps 19.4, 19.8, 19.9, 19.10, 19.11 are marked `done` but never had
-detail docs (563, 567, 568, 569); that work was executed through
-[`.llm/plans/completed/phase-1/mobile-membership-and-v4v/`](/.llm/plans/completed/phase-1/mobile-membership-and-v4v/COPY-PASTA.md)
-instead. Those links are dangling and are left as-is rather than fabricating retroactive docs.
+detail docs (563, 567, 568, 569); that work was executed through an archived plan set instead.
+The plan archive was removed after its outcomes were captured here rather than fabricating
+retroactive detail docs.
 
 ## How to read this document
 
@@ -762,8 +762,8 @@ CarPlay / Android Auto. See
 19.11. Shared membership-403 parser (`@podverse/helpers-requests`) + OpenAPI docs + regression tests for the existing 403 contract (`i18nKey`/`renewPath`) — **no API behavior change**; web + mobile consume it for parity. Model: Opus 4.8. Detail: [563-membership-gating-ui](/docs/proposals/mobile/_master-plan_/phase-1/details/563-membership-gating-ui.md) — done
 19.12. V4V full-player button → placeholder screen (placeholder slice; full LNURL flow remains 19.6). Model: Auto. Detail: [565-v4v-lnurl-flow](/docs/proposals/mobile/_master-plan_/phase-3/001-MASTER-PLAN-PHASE-3.md) — done
 
-**Mobile + web membership parity & V4V placeholder (added 2026-08-05; completed 2026-08-05):** detailed and executed via
-[`.llm/plans/completed/phase-1/mobile-membership-and-v4v/`](/.llm/plans/completed/phase-1/mobile-membership-and-v4v/COPY-PASTA.md).
+**Mobile + web membership parity & V4V placeholder (added 2026-08-05; completed 2026-08-05):**
+detailed and executed via a plan set whose archive was removed after completion.
 Step map: 19.11 → plan 01 (shared `parseMembershipGateError` + OpenAPI docs; **no API shape change**);
 19.4 → plan 02–03 (mobile `useMembership`, premium gate modal + expired banner) **and** plan 08 (web
 parity — broaden the membership modal to the full member-only action set; web app only, management-web
@@ -848,7 +848,7 @@ unbounded `ScrollView` + `.map()` list to `FlatList` / `SectionList` (not jank-g
 independently of operator visual polish); **(b)** optional FlashList adoption / windowing _tuning_
 only if the operator flags jank. Model: Codex 5.3. Detail:
 [597-list-virtualization-polish](/docs/proposals/mobile/_master-plan_/phase-2/details/597-list-virtualization-polish.md)
-— _TBD_ (baseline remediation tracked under `.llm/plans/completed/phase-1/mobile-list-virtualization/`)
+— _TBD_ (baseline remediation was completed in Phase 1; its plan archive was removed)
 
 ## Appendix A — Screen map
 

@@ -28,9 +28,8 @@ its own plan document and `details/` directory:
 Sections below describing the Phase 1 status lifecycle and ship bar are **Phase 1 history**; use the
 screenshot skill for Phase 2 work.
 
-Phase 1 execution archives live in
-[`.llm/plans/completed/phase-1/`](/.llm/plans/completed/phase-1/); Phase 2 sets go to
-`.llm/plans/active/mobile-p2-<area>/` and archive to `.llm/plans/completed/phase-2/`.
+Phase 1 execution plan sets were removed after their outcomes were captured in the phase plans.
+Phase 2 sets go to `.llm/plans/active/mobile-p2-<area>/` and are removed when the area closes.
 
 ## Operator loop (Phase 1 pattern — see the screenshot skill for Phase 2)
 
@@ -134,7 +133,8 @@ After **each** COPY-PASTA prompt in `mobile-<phase-slug>/COPY-PASTA.md`:
 5. If that track now has **all** steps `done`, append ` (DONE)` to its `## Track …` heading
    (see § Track section headers).
 
-On the **last** prompt: archive `.llm/plans/active/mobile-<phase-slug>/` per **plan-completion**.
+On the **last** prompt: remove `.llm/plans/active/mobile-<phase-slug>/` after the operator confirms
+the phase is complete. Preserve durable outcomes in the phase plan and detail docs.
 
 ### "What next" response — required progress block
 
@@ -360,7 +360,8 @@ When operator pastes COPY-PASTA from `mobile-<phase-slug>/`:
 
 When the **last** prompt in the set finishes (all steps in phase `done`):
 
-1. Archive `.llm/plans/active/mobile-<phase-slug>/` → `.llm/plans/completed/` per **plan-completion**.
+1. Remove `.llm/plans/active/mobile-<phase-slug>/` after operator confirmation; do not retain a
+   completed-plan archive.
 2. If spike gate (2.34) or open decisions changed reality, propose master-plan step edits to
    operator before next phase.
 

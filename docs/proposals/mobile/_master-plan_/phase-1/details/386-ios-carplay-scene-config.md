@@ -49,7 +49,7 @@
 
 App-closed cold-launch **smoke-tested PASS**: phone app force-quit → tap Podverse on CarPlay Home →
 `PodverseNext` cold-launches (new pid, phone not foregrounded), App Group container resolves, root
-template renders. See [.llm/plans/completed/phase-1/mobile-carplay-app-closed-scene](/.llm/plans/completed/phase-1/mobile-carplay-app-closed-scene/).
+template renders. See the Phase 1 mobile master plan for the implementation and verification history.
 Visual browse-row render + playback with real content deferred to
 [car-ux-parity](/docs/proposals/mobile/car-ux-parity/000-OVERVIEW.md) (empty root = empty cache; the
 UX-parity set restructures the root IA to Podcasts | Music | Queue | History anyway).

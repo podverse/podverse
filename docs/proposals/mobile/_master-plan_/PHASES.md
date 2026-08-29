@@ -44,9 +44,8 @@ docs/proposals/mobile/_master-plan_/
   phase-3/ phase-4/ phase-5/       # plan stubs; details authored when the phase starts
 ```
 
-Completed Phase 1 execution plan sets are archived under
-[`.llm/plans/completed/phase-1/`](/.llm/plans/completed/phase-1/). Phase 2 sets go to
-`.llm/plans/active/mobile-p2-<area>/` and archive to `.llm/plans/completed/phase-2/`.
+Completed Phase 1 execution plan sets were removed after their outcomes were captured in the phase
+plans. Phase 2 sets go to `.llm/plans/active/mobile-p2-<area>/` and are removed when the area closes.
 
 ## Detail ID bands
 

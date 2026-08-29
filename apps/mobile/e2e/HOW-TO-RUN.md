@@ -95,8 +95,7 @@ It plays via the `EXPO_PUBLIC_MOBILE_E2E`-gated **Play E2E video** button on Hom
 > or detect surface occlusion. After changing the native `PodverseVideoSurfaceView` / surface host,
 > manually verify on an iOS simulator, Android emulator, **and** a physical device: play the video
 > item, expand to the full player, and confirm live frames (not the static artwork) with no reload /
-> playhead jump on expand and collapse. See
-> `.llm/plans/completed/phase-1/mobile-pg5-video-gaps/01-video-surface-reparent.md`.
+> playhead jump on expand and collapse. See the Phase 1 mobile master plan's Track 2 video notes.
 
 New top-level `apps/mobile/e2e/<area>.yaml` files are included automatically. If a new flow needs
 the E2E API when run alone, add its basename to `flow_needs_e2e_api` in

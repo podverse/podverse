@@ -8,9 +8,9 @@ screen, and future CarPlay / Android Auto now-playing. **Do not** use `react-nat
   (steps 2.7–2.9).
 - Policy stays in `@podverse/playback-core`; this module is **transport only**.
 
-Car foundation constraints:
-[00-CAR-FOUNDATION.md](/.llm/plans/completed/phase-1/mobile-pg2b-media-engine-spike/00-CAR-FOUNDATION.md) and
-[mobile-carplay-android-auto](/.cursor/rules/mobile-carplay-android-auto.mdc).
+Car foundation constraints are retained in
+[mobile-carplay-android-auto](/.cursor/rules/mobile-carplay-android-auto.mdc); the completed plan
+archive was removed after its decisions were captured in this module and the Phase 1 master plan.
 
 **Spike gate (PG-2b step 2.34):** [`GO-NO-GO.md`](./GO-NO-GO.md) — **GO.** Tracks 10/11/12 may proceed
 on this engine (seamless car QA remains Track 12).
