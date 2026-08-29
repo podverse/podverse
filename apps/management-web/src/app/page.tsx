@@ -18,6 +18,7 @@ import {
 import { ManagementLoadingSpinnerOverlay } from '../components/LoadingSpinner/ManagementLoadingSpinnerOverlay';
 import { getConfig } from '../config';
 import { getCurrentUser, login } from '../lib/requests/auth';
+import { ROUTES } from '../lib/routes';
 
 export default function HomePage() {
   const t = useTranslations('auth');
@@ -33,7 +34,7 @@ export default function HomePage() {
       const currentUser = await getCurrentUser();
       if (currentUser) {
         // User is already logged in, redirect to dashboard
-        router.push('/dashboard');
+        router.push(ROUTES.DASHBOARD);
         return;
       }
       // getCurrentUser returns null if not authenticated - this is expected behavior
@@ -53,7 +54,7 @@ export default function HomePage() {
 
       // The cookie is set automatically by the API response via Set-Cookie header
       // Redirect to dashboard on success
-      router.push('/dashboard');
+      router.push(ROUTES.DASHBOARD);
     } catch (err: unknown) {
       // Handle axios errors - they may have response.data.message
       let errorMessage = t('invalidCredentialsDefault');

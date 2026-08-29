@@ -22,8 +22,9 @@ export const writePreferredMediaType = async (mediaType: HomeMediaType): Promise
 export type { HomeMediaType } from './prefsStore';
 export { DEFAULT_HOME_MEDIA_TYPE, DEFAULT_PLAYBACK_MEDIA_TYPE };
 
-export const readPlaybackMediaTypePref = async (): Promise<MediaTypePreference | null> => {
-  return getPref(PLAYBACK_MEDIA_TYPE_PREF_KEY);
+export const readPlaybackMediaTypePref = async (): Promise<MediaTypePreference> => {
+  const stored = await getPref(PLAYBACK_MEDIA_TYPE_PREF_KEY);
+  return stored ?? DEFAULT_PLAYBACK_MEDIA_TYPE;
 };
 
 export const writePlaybackMediaTypePref = async (mediaType: MediaTypePreference): Promise<void> => {

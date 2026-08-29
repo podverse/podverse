@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { z } from 'zod';
 
+import { buildPodcastLivestreamPath } from '@podverse/helpers';
 import { QUERY_PARAMS_LIVE_ITEM_TYPE_VALUES } from '@podverse/helpers-requests';
 
 import { buildContentMetadata } from '../../../../lib/seo/buildContentMetadata';
@@ -38,7 +39,7 @@ export async function generateMetadata({ params }: LivestreamPageProps): Promise
     return buildContentMetadata({
       title: item.title,
       descriptionPlain,
-      pathname: `/podcast/livestream/${item.id_text}`,
+      pathname: buildPodcastLivestreamPath(item.id_text),
       imageUrl: getItemThenChannelHeroImageUrl(item.item_images, channel.channel_images),
       type: 'article',
     });

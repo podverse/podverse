@@ -6,6 +6,8 @@ import { useTranslations } from 'next-intl';
 import type { NavCard } from '@podverse/ui';
 import { Breadcrumbs, ManagementPageShell, NavCardGrid } from '@podverse/ui';
 
+import { ROUTES } from '../../../lib/routes';
+
 export function FeedsPageClient() {
   const t = useTranslations('feedsHub');
   const tc = useTranslations('common');
@@ -13,7 +15,7 @@ export function FeedsPageClient() {
 
   const cards: NavCard[] = [
     {
-      href: '/feeds/flag-status',
+      href: ROUTES.FEEDS_FLAG_STATUS,
       title: t('flagStatusCardTitle'),
       description: t('flagStatusCardDescription'),
     },
@@ -25,7 +27,7 @@ export function FeedsPageClient() {
         <Breadcrumbs
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
-          items={[{ href: '/dashboard', label: tNav('dashboard') }, { label: t('pageTitle') }]}
+          items={[{ href: ROUTES.DASHBOARD, label: tNav('dashboard') }, { label: t('pageTitle') }]}
         />
       }
       title={t('pageTitle')}

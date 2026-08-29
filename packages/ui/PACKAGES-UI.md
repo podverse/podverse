@@ -20,9 +20,11 @@ See [`.cursor/skills/styles-source-of-truth/SKILL.md`](/.cursor/skills/styles-so
 ## Navigation — NavBar
 
 [`NavBar`](src/components/navigation/NavBar/NavBar.tsx) is a structured composite: apps pass localized
-strings, optional regions (`accountMenu`, `backForward`, `brand`, `mobileToggle`, `search`), and
-branding via `brand.children`. Exported types (`NavBarCompositeProps`, `NavBarBrandProps`, etc.) live
-in that module and the package barrel — do not duplicate them in prose docs.
+strings, optional regions (`accountMenu`, `backForward`, `brand`, `mobileToggle`, `search`,
+`trailingActions`), and branding via `brand.children`. `trailingActions` renders in the right cluster
+before the account menu (for app-level controls like a notifications bell). Exported types
+(`NavBarCompositeProps`, `NavBarBrandProps`, etc.) live in that module and the package barrel — do not
+duplicate them in prose docs.
 
 **Rules:** No user-visible English defaults in `@podverse/ui`. See
 [`.cursor/rules/shared-ui-i18n.mdc`](/.cursor/rules/shared-ui-i18n.mdc).

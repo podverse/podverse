@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 
-import { SharableStatusEnum } from '@podverse/helpers';
+import { buildProfilePath, SharableStatusEnum } from '@podverse/helpers';
 
 import { buildNoindexMetadata } from '../../../lib/seo/buildNoindexMetadata';
 import { buildStaticPageMetadata } from '../../../lib/seo/buildStaticPageMetadata';
@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: ProfilePageProps): Promise<Me
     return buildStaticPageMetadata({
       title,
       descriptionPlain,
-      pathname: `/profile/${account.id_text}`,
+      pathname: buildProfilePath(account.id_text),
     });
   } catch {
     return buildNoindexMetadata('Profile');

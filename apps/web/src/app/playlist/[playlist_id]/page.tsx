@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
-import { SharableStatusEnum } from '@podverse/helpers';
+import { buildPlaylistPath, SharableStatusEnum } from '@podverse/helpers';
 
 import { buildNoindexMetadata } from '../../../lib/seo/buildNoindexMetadata';
 import { buildStaticPageMetadata } from '../../../lib/seo/buildStaticPageMetadata';
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: PlaylistPageProps): Promise<M
     return buildStaticPageMetadata({
       title: playlist.title?.trim() || 'Playlist',
       descriptionPlain: toSeoPlainText(playlist.description || 'Podverse playlist page'),
-      pathname: `/playlist/${playlist.id_text}`,
+      pathname: buildPlaylistPath(playlist.id_text),
     });
   } catch {
     return buildNoindexMetadata('Playlist');

@@ -1,6 +1,6 @@
 ---
 name: parallel-plan-execution
-description: Create decomposed, parallelizable execution plans with copy-pasta prompts for multi-agent workflows. Use when planning large migrations, refactoring tasks, or any work that can benefit from parallel execution across multiple agents. Every COPY-PASTA prompt must recommend a Cursor model.
+description: Create decomposed, parallelizable execution plans with copy-pasta prompts for multi-agent workflows. Use when planning large migrations, refactoring tasks, or any work that can benefit from parallel execution across multiple agents. Every COPY-PASTA prompt must recommend a Cursor model and reasoning level.
 ---
 
 # Parallel Plan Execution Strategy
@@ -162,22 +162,35 @@ File: `migration-COPY-PASTA.md` (or `COPY-PASTA.md` in a plan set)
 - Phases are SEQUENTIAL (must wait for each to complete)
 - Agents WITHIN phases run in PARALLEL
 
-**Required: Recommended Cursor model on every prompt.** Each COPY-PASTA block must state which
-model the operator should select in Cursor before pasting. Prefer these tiers (cheapest → premium):
+**Required: Recommended Cursor model and reasoning on every prompt.** Each COPY-PASTA block must state
+which model the operator should select in Cursor before pasting, plus a **Reasoning:** line (`low` |
+`medium` | `high` | `extra high`). Reasoning is thinking depth for that model (not the model name);
+defaults like Codex 5.3 + medium or Opus 5 + high are fine — use lower when work is mechanical,
+higher when schema/workers/cross-package risk warrants it.
+
+Prefer these model tiers (cheapest → premium):
 
 | Model | Use when |
 | ----- | -------- |
 | **Auto** | Mechanical transcription, simple config/docs, operator-only steps, low-risk edits |
 | **Codex 5.3** | Standard feature work, mirroring existing patterns, CI/E2E scaffolding, most RN/web tasks |
-| **Opus 4.8** | Native/engine work, cross-cutting architecture, assembly, store safety, playback parity |
+| **Opus 5** | Native/engine work, cross-cutting architecture, assembly, store safety, playback parity |
 
-Use **one row per prompt** (or a summary table at phase top + per-prompt line). If none of the
-three fit, name the alternative model and one sentence why (e.g. a specialized subagent).
+| Reasoning | Use when |
+| --------- | -------- |
+| **low** | Copy-paste docs, checkbox updates, trivial renames |
+| **medium** | Standard CRUD/UI following existing patterns |
+| **high** | New schema, workers, multi-package refactors, subtle auth/gating |
+| **extra high** | Rare: concurrency, billing/safety-critical, large ambiguous design |
+
+Use **one row per prompt** (or a summary table at phase top + per-prompt lines). If none of the
+three models fit, name the alternative model and one sentence why (e.g. a specialized subagent).
 
 Example per prompt:
 
 ```markdown
 **Cursor model:** Codex 5.3
+**Reasoning:** high
 
 - [ ] **Prompt 3** complete
 ```
@@ -212,7 +225,8 @@ Read and execute .llm/plans/active/feature/migration-06-critical.md
 
 Verify: [quick verification command]
 
-**Cursor model:** Opus 4.8
+**Cursor model:** Opus 5
+**Reasoning:** high
 
 ```
 
@@ -228,6 +242,7 @@ Read and execute .llm/plans/active/feature/migration-08-group-a.md
 [1 line core rule reminder]
 
 **Cursor model:** Auto
+**Reasoning:** low
 
 ```
 
@@ -237,6 +252,9 @@ Read and execute .llm/plans/active/feature/migration-08-group-a.md
 Read and execute .llm/plans/active/feature/migration-09-group-b.md
 
 [1 line core rule reminder]
+
+**Cursor model:** Codex 5.3
+**Reasoning:** medium
 
 ```
 [... etc for all parallel groups ...]
@@ -255,7 +273,7 @@ Read and execute .llm/plans/active/feature/migration-09-group-b.md
 - Clear phase markers: "PHASE 1", "PHASE 2", etc.
 - Agent labels: "Agent 2A", "Agent 2B" for easy reference
 - Parallel indicators: "(Execute in Parallel - 4 Agents)"
-- **Recommended Cursor model** on every prompt (Auto, Codex 5.3, or Opus 4.8 preferred)
+- **Recommended Cursor model** and **Reasoning** on every prompt (Auto, Codex 5.3, or Opus 5 preferred)
 
 ## Efficiency Metrics
 
@@ -308,8 +326,8 @@ Savings: ~70% time reduction
 
 ## Anti-Patterns to Avoid
 
-❌ **Don't**: Skip model recommendation on COPY-PASTA prompts
-✅ **Do**: Label each prompt with **Cursor model:** Auto, Codex 5.3, or Opus 4.8 (or named alternative)
+❌ **Don't**: Skip model or reasoning recommendation on COPY-PASTA prompts
+✅ **Do**: Label each prompt with **Cursor model:** and **Reasoning:** (low | medium | high | extra high)
 
 ❌ **Don't**: Copy all details into copy-pasta prompts
 ✅ **Do**: Reference detailed plan files from copy-pasta prompts
@@ -366,7 +384,7 @@ Before finalizing plans:
 - [ ] Parallel groups don't have conflicts
 - [ ] Each plan has verification steps
 - [ ] Copy-pasta references plans (doesn't duplicate)
-- [ ] Every COPY-PASTA prompt includes **Cursor model:** (Auto, Codex 5.3, or Opus 4.8)
+- [ ] Every COPY-PASTA prompt includes **Cursor model:** and **Reasoning:**
 - [ ] Execution order is clear
 - [ ] Time estimates provided
 

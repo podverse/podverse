@@ -3,6 +3,7 @@ export { addByRssRepository } from './addByRssRepository';
 export { autoQueueRepository } from './autoQueueRepository';
 export { downloadsRepository } from './downloadsRepository';
 export type { DownloadPatch } from './downloadsRepository';
+export { notificationsRepository } from './notificationsRepository';
 export { playbackContentRepository } from './playbackContentRepository';
 export { exampleRepository } from './exampleRepository';
 export type { ExampleSnapshot } from './exampleRepository';

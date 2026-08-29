@@ -8,7 +8,12 @@ import type { Request, Response } from 'express';
 import Joi from 'joi';
 
 import type { OnDemandParserEventType } from '@podverse/helpers';
-import { ACCOUNT_ENTITLEMENT_CAPABILITY, getDedupeTTLSeconds, MQ_QUEUES } from '@podverse/helpers';
+import {
+  ACCOUNT_ENTITLEMENT_CAPABILITY,
+  APP_ROUTES,
+  getDedupeTTLSeconds,
+  MQ_QUEUES,
+} from '@podverse/helpers';
 import { mqRSSAdd } from '@podverse/mq';
 
 import { handleGenericErrorResponse } from '../helpers/error.js';
@@ -68,7 +73,7 @@ export class MQController {
                       message: `You can refresh feeds up to ${hourlyRefreshLimit} time(s) per hour with your current account.`,
                       code: 'manual_refresh_hourly_limit_reached',
                       i18nKey: 'membership.manual_refresh_hourly_limit_reached',
-                      renewPath: '/membership/renew',
+                      renewPath: APP_ROUTES.MEMBERSHIP_RENEW,
                     });
                     return;
                   }

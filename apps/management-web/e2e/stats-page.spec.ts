@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 
+import { ROUTES } from './helpers/routes';
 import { capturePageLoad } from './helpers/stepScreenshots';
 
 /**
@@ -65,13 +66,13 @@ test.describe('Management-web stats page', () => {
       });
     });
 
-    await page.goto('/');
+    await page.goto(ROUTES.HOME);
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
     await page.getByRole('button', { name: 'Sign In' }).click();
     await page.waitForURL('**/dashboard');
 
-    await page.goto('/stats');
+    await page.goto(ROUTES.STATS);
     await expect(page).toHaveURL(/\/stats$/);
 
     await expect(page.getByRole('heading', { name: 'Stats', level: 1 })).toBeVisible();

@@ -1,12 +1,13 @@
 import { expect, test } from '@playwright/test';
 
+import { ROUTES } from './helpers/routes';
 import { capturePageLoad } from './helpers/stepScreenshots';
 
 test.describe('Cloudflare Web Analytics integration (disabled)', () => {
   test('When Cloudflare Web Analytics is disabled, the home page does not load the beacon script', async ({
     page,
   }, testInfo) => {
-    await page.goto('/');
+    await page.goto(ROUTES.HOME);
 
     await expect(page).toHaveURL('/');
 

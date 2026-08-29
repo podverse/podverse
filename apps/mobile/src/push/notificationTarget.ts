@@ -1,3 +1,5 @@
+import { APP_ROUTES, NotificationCategoryEnum } from '@podverse/helpers';
+
 const asNonEmptyString = (value: unknown): string | null => {
   if (typeof value !== 'string') {
     return null;
@@ -34,6 +36,16 @@ export const extractNotificationTargetPath = (
   const url = asNonEmptyString(data.url);
   if (url !== null) {
     return url;
+  }
+
+  const linkPath = asNonEmptyString(data.link_path);
+  if (linkPath !== null) {
+    return linkPath;
+  }
+
+  const category = asNonEmptyString(data.category);
+  if (category === NotificationCategoryEnum.MembershipExpiry) {
+    return APP_ROUTES.MEMBERSHIP_RENEW;
   }
 
   const type = asNonEmptyString(data.type);

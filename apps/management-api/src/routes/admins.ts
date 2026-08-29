@@ -42,6 +42,7 @@ const createAdminSchema = Joi.object({
     billing_prices_crud: crudSchema,
     bucket_crud: crudSchema,
     embed_demo_crud: crudSchema,
+    notifications_crud: crudSchema,
   }).optional(),
 }).required();
 
@@ -58,6 +59,7 @@ const updateAdminSchema = Joi.object({
     billing_prices_crud: crudSchema,
     bucket_crud: crudSchema,
     embed_demo_crud: crudSchema,
+    notifications_crud: crudSchema,
   }),
 })
   .min(1)
@@ -77,6 +79,7 @@ function adminAccountToJson(admin: {
     billingPricesCrud: number;
     bucketCrud: number;
     embedDemoCrud: number;
+    notificationsCrud: number;
   } | null;
   created_at: Date;
 }) {
@@ -95,6 +98,7 @@ function adminAccountToJson(admin: {
           billing_prices_crud: admin.permissions.billingPricesCrud,
           bucket_crud: admin.permissions.bucketCrud,
           embed_demo_crud: admin.permissions.embedDemoCrud,
+          notifications_crud: admin.permissions.notificationsCrud,
         }
       : null,
     created_at: admin.created_at,
@@ -356,6 +360,7 @@ router.patch(
           billing_prices_crud?: number;
           bucket_crud?: number;
           embed_demo_crud?: number;
+          notifications_crud?: number;
         };
       } = {};
 

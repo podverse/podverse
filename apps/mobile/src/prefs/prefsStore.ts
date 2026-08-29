@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { UITheme } from '@podverse/design-tokens';
 import { ALL_POSSIBLE_THEMES } from '@podverse/design-tokens';
 import type { MediaTypePreference } from '@podverse/helpers';
+import { DEFAULT_MEDIA_TYPE_PREFERENCE } from '@podverse/helpers';
 
 const HOME_MEDIA_TYPES = ['podcasts', 'episodes', 'clips', 'artists', 'albums', 'tracks'] as const;
 const SUBSCRIPTION_FILTERS = ['all', 'addByRss'] as const;
@@ -47,7 +48,7 @@ const PREF_KEYS: readonly PrefKey[] = [
   'downloads.auto_delete',
 ];
 
-export const DEFAULT_PLAYBACK_MEDIA_TYPE: MediaTypePreference = 'video';
+export const DEFAULT_PLAYBACK_MEDIA_TYPE: MediaTypePreference = DEFAULT_MEDIA_TYPE_PREFERENCE;
 export const DEFAULT_HOME_MEDIA_TYPE: HomeMediaType = 'podcasts';
 export const DEFAULT_SUBSCRIPTION_FILTER: SubscriptionListFilter = 'all';
 export const DEFAULT_DOWNLOAD_AUTO_DELETE = false;

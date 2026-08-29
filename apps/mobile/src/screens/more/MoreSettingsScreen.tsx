@@ -1,25 +1,24 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
-import type { UITheme } from '@podverse/design-tokens';
-import { ALL_POSSIBLE_THEMES } from '@podverse/design-tokens';
-import type { MediaTypePreference } from '@podverse/helpers';
+import type { DTOAccountNotificationPreference, MediaTypePreference } from '@podverse/helpers';
+import { NotificationCategoryEnum } from '@podverse/helpers';
 
 import { useAuth } from '../../auth/AuthProvider';
-import {
-  type SyncedNotificationType,
-  syncLocaleToAccountSettings,
-  syncNotificationTypeToAccountSettings,
-  syncPlaybackPreferenceToAccount,
-} from '../../auth/syncAccountPrefs';
+import { syncPlaybackPreferenceToAccount } from '../../auth/syncAccountPrefs';
+import { OptionChipGroup, SettingsOptionNavRow } from '../../components/form';
 import { Card } from '../../components/primitives/Card';
 import { ListRow } from '../../components/primitives/ListRow';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { getMobileConfig } from '../../config';
-import { applyAccountLocaleOverride } from '../../i18n';
+import { notificationsRepository } from '../../data/repositories';
 import { resolveSupportedLocale } from '../../i18n/locale';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
+import type { MoreStackParamList } from '../../navigation';
+import { MORE_STACK_ROUTES } from '../../navigation';
 import {
   readAutoQueuePrefs,
   writeAutoQueueRandomPref,
@@ -38,27 +37,61 @@ import {
 } from '../../push/fcmTransport';
 import { registerUnifiedPushDeviceForAccount } from '../../push/unifiedPushDeviceSync';
 import { useTheme } from '../../theme/useTheme';
+import type { SettingsLocaleOption } from './settingsLocaleOptions';
 
-const NOTIFICATION_TYPES: readonly SyncedNotificationType[] = [
-  'new-item',
-  'livestream-scheduled',
-  'livestream-started',
+type NotificationPreferenceRow = {
+  category: NotificationCategoryEnum;
+  descriptionKey: string;
+  forceInAppEnabled: boolean;
+  labelKey: string;
+};
+
+const NOTIFICATION_PREFERENCE_ROWS: readonly NotificationPreferenceRow[] = [
+  {
+    category: NotificationCategoryEnum.NewContent,
+    descriptionKey: 'settings.notifications.category_new_content_description',
+    forceInAppEnabled: false,
+    labelKey: 'settings.notifications.category_new_content',
+  },
+  {
+    category: NotificationCategoryEnum.Livestream,
+    descriptionKey: 'settings.notifications.category_livestream_description',
+    forceInAppEnabled: false,
+    labelKey: 'settings.notifications.category_livestream',
+  },
+  {
+    category: NotificationCategoryEnum.MembershipExpiry,
+    descriptionKey: 'settings.notifications.category_membership_expiry_description',
+    forceInAppEnabled: false,
+    labelKey: 'settings.notifications.category_membership_expiry',
+  },
+  {
+    category: NotificationCategoryEnum.ProductUpdate,
+    descriptionKey: 'settings.notifications.category_product_update_description',
+    forceInAppEnabled: false,
+    labelKey: 'settings.notifications.category_product_update',
+  },
+  {
+    category: NotificationCategoryEnum.Maintenance,
+    descriptionKey: 'settings.notifications.category_maintenance_description',
+    forceInAppEnabled: true,
+    labelKey: 'settings.notifications.category_maintenance',
+  },
+  {
+    category: NotificationCategoryEnum.TermsOfService,
+    descriptionKey: 'settings.notifications.category_terms_of_service_description',
+    forceInAppEnabled: true,
+    labelKey: 'settings.notifications.category_terms_of_service',
+  },
+  {
+    category: NotificationCategoryEnum.General,
+    descriptionKey: 'settings.notifications.category_general_description',
+    forceInAppEnabled: true,
+    labelKey: 'settings.notifications.category_general',
+  },
 ];
 
-const LOCALE_OPTIONS = ['en-US', 'es', 'fr', 'el-GR'] as const;
-const PLAYBACK_MEDIA_OPTIONS: readonly MediaTypePreference[] = ['audio', 'video'];
-
-type ToggleMap = Record<SyncedNotificationType, boolean>;
-
-const getNotificationLabelKey = (type: SyncedNotificationType): string => {
-  if (type === 'new-item') {
-    return 'settings.notifications.new_item';
-  }
-  if (type === 'livestream-scheduled') {
-    return 'settings.notifications.livestream_scheduled';
-  }
-  return 'settings.notifications.livestream_started';
-};
+const PLAYBACK_MEDIA_OPTIONS: readonly MediaTypePreference[] = ['video', 'audio'];
 
 const getAccountLocale = (accountLocale: string | null | undefined): string => {
   return resolveSupportedLocale(accountLocale);
@@ -66,20 +99,21 @@ const getAccountLocale = (accountLocale: string | null | undefined): string => {
 
 export function MoreSettingsScreen() {
   const { t, i18n } = useTranslation();
-  const { account, accessToken, setAccount, status } = useAuth();
+  const navigation = useNavigation<NativeStackNavigationProp<MoreStackParamList>>();
+  const { account, accessToken, clearSession, refreshToken, setAccount, setTokens, status } =
+    useAuth();
+  const isAuthenticated = status === 'authenticated';
   const { handleGateError } = useMembershipGate();
-  const { setUITheme, styles: themeStyles, tokens, uiTheme } = useTheme();
+  const { styles: themeStyles, tokens, uiTheme } = useTheme();
   const [playbackMediaType, setPlaybackMediaType] = useState<MediaTypePreference>(
     DEFAULT_PLAYBACK_MEDIA_TYPE
   );
-  const [selectedLocale, setSelectedLocale] = useState<string>(
-    resolveSupportedLocale(i18n.language)
+  const [selectedLocale, setSelectedLocale] = useState<SettingsLocaleOption>(
+    resolveSupportedLocale(i18n.language) as SettingsLocaleOption
   );
-  const [notificationToggles, setNotificationToggles] = useState<ToggleMap>({
-    'livestream-scheduled': false,
-    'livestream-started': false,
-    'new-item': false,
-  });
+  const [notificationPreferences, setNotificationPreferences] = useState<
+    DTOAccountNotificationPreference[]
+  >([]);
   const [autoQueueRandom, setAutoQueueRandom] = useState<boolean>(false);
   const [autoQueueRepeat, setAutoQueueRepeat] = useState<boolean>(false);
   const [errorMessageKey, setErrorMessageKey] = useState<string | null>(null);
@@ -88,11 +122,15 @@ export function MoreSettingsScreen() {
   const [showNotificationPermissionHint, setShowNotificationPermissionHint] =
     useState<boolean>(false);
 
-  const notificationTypeSet = useMemo<Set<string>>(() => {
-    const types =
-      account?.account_settings?.account_settings_notification?.account_settings_notification_types;
-    return new Set(types?.map((type) => type.type) ?? []);
-  }, [account]);
+  const requestContext = useMemo(
+    () => ({
+      accessToken,
+      clearSession,
+      refreshToken,
+      setTokens,
+    }),
+    [accessToken, clearSession, refreshToken, setTokens]
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -106,7 +144,7 @@ export function MoreSettingsScreen() {
         return;
       }
 
-      setPlaybackMediaType(storedPlaybackMediaType ?? DEFAULT_PLAYBACK_MEDIA_TYPE);
+      setPlaybackMediaType(storedPlaybackMediaType);
       setAutoQueueRandom(autoQueuePrefs.random);
       setAutoQueueRepeat(autoQueuePrefs.repeat);
     })();
@@ -129,7 +167,7 @@ export function MoreSettingsScreen() {
         return;
       }
 
-      setSelectedLocale(targetLocale);
+      setSelectedLocale(targetLocale as SettingsLocaleOption);
       await setPref('locale', targetLocale);
     })();
 
@@ -139,40 +177,32 @@ export function MoreSettingsScreen() {
   }, [account, i18n.language, status]);
 
   useEffect(() => {
-    setNotificationToggles({
-      'livestream-scheduled': notificationTypeSet.has('livestream-scheduled'),
-      'livestream-started': notificationTypeSet.has('livestream-started'),
-      'new-item': notificationTypeSet.has('new-item'),
-    });
-  }, [notificationTypeSet]);
-
-  const isAuthenticated = status === 'authenticated';
-
-  const handleThemeChange = useCallback(
-    (theme: UITheme) => {
-      setUITheme(theme);
-    },
-    [setUITheme]
-  );
-
-  const handleLocaleChange = useCallback(
-    async (locale: string) => {
-      setErrorMessageKey(null);
-      setSelectedLocale(locale);
-      try {
-        await setPref('locale', locale);
-        await applyAccountLocaleOverride(locale);
-        await syncLocaleToAccountSettings({
-          accessToken,
-          locale,
-          setAccount,
-        });
-      } catch {
-        setErrorMessageKey('errors.generic');
+    let isMounted = true;
+    void (async () => {
+      if (!isAuthenticated) {
+        setNotificationPreferences([]);
+        return;
       }
-    },
-    [accessToken, setAccount]
-  );
+
+      try {
+        const rows = await notificationsRepository.listPreferences(requestContext);
+        if (!isMounted) {
+          return;
+        }
+        setNotificationPreferences(rows);
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+        console.warn('Could not load notification preferences', error);
+        setNotificationPreferences([]);
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, requestContext]);
 
   const handlePlaybackMediaTypeChange = useCallback(
     async (mediaType: MediaTypePreference) => {
@@ -192,11 +222,42 @@ export function MoreSettingsScreen() {
     [accessToken, setAccount]
   );
 
-  const handleNotificationToggle = useCallback(
-    async (type: SyncedNotificationType, enabled: boolean) => {
+  const showNotificationLoginAlert = useCallback(() => {
+    Alert.alert(
+      t('settings.notifications.login_required_title'),
+      t('settings.notifications.login_required_message'),
+      [{ text: t('misc.ok') }]
+    );
+  }, [t]);
+
+  const handleNotificationPreferenceToggle = useCallback(
+    async (params: {
+      category: NotificationCategoryEnum;
+      channel: 'in_app' | 'push';
+      enabled: boolean;
+      forceInAppEnabled: boolean;
+    }) => {
       setErrorMessageKey(null);
 
-      if (enabled) {
+      if (!isAuthenticated) {
+        showNotificationLoginAlert();
+        return;
+      }
+
+      const existing = notificationPreferences.find((row) => row.category === params.category);
+      if (existing === undefined) {
+        return;
+      }
+
+      const nextInAppEnabled =
+        params.forceInAppEnabled || params.channel === 'in_app'
+          ? params.forceInAppEnabled
+            ? true
+            : params.enabled
+          : existing.in_app_enabled;
+      const nextPushEnabled = params.channel === 'push' ? params.enabled : existing.push_enabled;
+
+      if (params.channel === 'push' && params.enabled) {
         const pushProvider = getMobileConfig().pushProvider;
         if (pushProvider === 'fcm') {
           const permissionResult = await requestFcmPermissionAfterUserAction();
@@ -223,31 +284,46 @@ export function MoreSettingsScreen() {
         }
       }
 
-      const previousValue = notificationToggles[type];
-      setNotificationToggles((prev) => ({
-        ...prev,
-        [type]: enabled,
-      }));
+      const optimisticPreferences = notificationPreferences.map((row) => {
+        if (row.category !== params.category) {
+          return row;
+        }
+        return {
+          ...row,
+          in_app_enabled: nextInAppEnabled,
+          push_enabled: nextPushEnabled,
+        };
+      });
+      setNotificationPreferences(optimisticPreferences);
 
       try {
-        await syncNotificationTypeToAccountSettings({
-          accessToken,
-          enabled,
-          setAccount,
-          type,
+        const updated = await notificationsRepository.updatePreferences(requestContext, {
+          preferences: [
+            {
+              category: params.category,
+              in_app_enabled: nextInAppEnabled,
+              push_enabled: nextPushEnabled,
+            },
+          ],
         });
+        setNotificationPreferences(updated);
       } catch (error) {
-        setNotificationToggles((prev) => ({
-          ...prev,
-          [type]: previousValue,
-        }));
+        setNotificationPreferences(notificationPreferences);
         if (handleGateError(error)) {
           return;
         }
         setErrorMessageKey('errors.generic');
       }
     },
-    [accessToken, handleGateError, notificationToggles, selectedLocale, setAccount]
+    [
+      accessToken,
+      handleGateError,
+      isAuthenticated,
+      notificationPreferences,
+      requestContext,
+      selectedLocale,
+      showNotificationLoginAlert,
+    ]
   );
 
   const handleAutoQueueRandomToggle = useCallback(async (enabled: boolean) => {
@@ -260,37 +336,33 @@ export function MoreSettingsScreen() {
     await writeAutoQueueRepeatPref(enabled);
   }, []);
 
+  const playbackMediaOptions = useMemo(
+    () =>
+      PLAYBACK_MEDIA_OPTIONS.map((mediaTypeOption) => ({
+        label: t(`settings.preferred_media_type.${mediaTypeOption}`),
+        testID: `more-settings-playback-${mediaTypeOption}`,
+        value: mediaTypeOption,
+      })),
+    [t]
+  );
+
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        cardSpacing: {
-          marginTop: tokens.spacing.lg,
+        cardStack: {
+          gap: tokens.spacing.base,
         },
-        controlRow: {
-          alignItems: 'center',
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          gap: tokens.spacing.sm,
-          marginTop: tokens.spacing.sm,
-        },
-        optionButton: {
+        preferenceRow: {
           borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.round,
+          borderRadius: tokens.radii.sm,
           borderWidth: 1,
-          paddingHorizontal: tokens.spacing.md,
-          paddingVertical: tokens.spacing.sm,
+          marginBottom: tokens.spacing.sm,
+          padding: tokens.spacing.sm,
         },
-        optionButtonActive: {
-          backgroundColor: themeStyles.buttonPrimary.backgroundColor,
-          borderColor: themeStyles.buttonPrimary.backgroundColor,
-        },
-        optionButtonText: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 14,
-          fontWeight: '600',
-        },
-        optionButtonTextActive: {
-          color: themeStyles.buttonPrimary.color,
+        preferenceDescription: {
+          color: themeStyles.textSecondary.color,
+          fontSize: 12,
+          marginBottom: tokens.spacing.sm,
         },
         sectionDescription: {
           color: themeStyles.textSecondary.color,
@@ -309,10 +381,8 @@ export function MoreSettingsScreen() {
         sectionStack: {
           marginTop: tokens.spacing.md,
         },
-        warningText: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          marginTop: tokens.spacing.sm,
+        sectionStackAfterDescription: {
+          marginTop: tokens.spacing.lg,
         },
         warningLinkButton: {
           borderColor: themeStyles.border.borderColor,
@@ -328,202 +398,207 @@ export function MoreSettingsScreen() {
           fontSize: 13,
           fontWeight: '600',
         },
+        warningText: {
+          color: themeStyles.textSecondary.color,
+          fontSize: 13,
+          marginTop: tokens.spacing.sm,
+        },
       }),
     [themeStyles, tokens]
   );
 
+  const themeValueLabel = t(`settings.ui_theme.${uiTheme}`);
+  const localeValueLabel = t(`language.languages.${selectedLocale}`);
+
   return (
-    <MobileScreenContainer heading={t('settings.settings')} testID="more-settings-screen">
-      <Card padded={false} testID="more-settings-theme-card">
-        <View style={styles.sectionInner}>
-          <Text style={styles.sectionHeading}>{t('settings.ui_theme.theme')}</Text>
-          <Text style={styles.sectionDescription}>{t('settings.ui_theme.description')}</Text>
-          <View style={styles.controlRow}>
-            {ALL_POSSIBLE_THEMES.map((themeOption) => {
-              const isActive = uiTheme === themeOption;
-              return (
-                <Pressable
-                  accessibilityRole="button"
-                  key={themeOption}
-                  onPress={() => {
-                    handleThemeChange(themeOption);
-                  }}
-                  style={[styles.optionButton, isActive ? styles.optionButtonActive : null]}
-                  testID={`more-settings-theme-${themeOption}`}
-                >
-                  <Text
-                    style={[
-                      styles.optionButtonText,
-                      isActive ? styles.optionButtonTextActive : null,
-                    ]}
-                  >
-                    {t(`settings.ui_theme.${themeOption}`)}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-      </Card>
-
-      <Card padded={false} testID="more-settings-locale-card">
-        <View style={styles.sectionInner}>
-          <Text style={styles.sectionHeading}>{t('language.select_language')}</Text>
-          <Text style={styles.sectionDescription}>{t('language.description')}</Text>
-          <View style={styles.controlRow}>
-            {LOCALE_OPTIONS.map((localeOption) => {
-              const isActive = selectedLocale === localeOption;
-              return (
-                <Pressable
-                  accessibilityRole="button"
-                  key={localeOption}
-                  onPress={() => {
-                    void handleLocaleChange(localeOption);
-                  }}
-                  style={[styles.optionButton, isActive ? styles.optionButtonActive : null]}
-                  testID={`more-settings-locale-${localeOption}`}
-                >
-                  <Text
-                    style={[
-                      styles.optionButtonText,
-                      isActive ? styles.optionButtonTextActive : null,
-                    ]}
-                  >
-                    {t(`language.languages.${localeOption}`)}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-      </Card>
-
-      <Card padded={false} testID="more-settings-playback-card">
-        <View style={styles.sectionInner}>
-          <Text style={styles.sectionHeading}>{t('settings.preferred_media_type.label')}</Text>
-          <Text style={styles.sectionDescription}>
-            {t('settings.preferred_media_type.description')}
-          </Text>
-          <View style={styles.controlRow}>
-            {PLAYBACK_MEDIA_OPTIONS.map((mediaTypeOption) => {
-              const isActive = playbackMediaType === mediaTypeOption;
-              return (
-                <Pressable
-                  accessibilityRole="button"
-                  key={mediaTypeOption}
-                  onPress={() => {
-                    void handlePlaybackMediaTypeChange(mediaTypeOption);
-                  }}
-                  style={[styles.optionButton, isActive ? styles.optionButtonActive : null]}
-                  testID={`more-settings-playback-${mediaTypeOption}`}
-                >
-                  <Text
-                    style={[
-                      styles.optionButtonText,
-                      isActive ? styles.optionButtonTextActive : null,
-                    ]}
-                  >
-                    {t(`settings.preferred_media_type.${mediaTypeOption}`)}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-      </Card>
-
-      <Card padded={false} testID="more-settings-auto-queue-card">
-        <View style={styles.sectionInner}>
-          <Text style={styles.sectionHeading}>{t('media_player.auto_queue')}</Text>
-          <View style={styles.sectionStack}>
-            <ListRow
-              testID="more-settings-auto-queue-random"
-              title={t('media_player.shuffle.toggle_shuffle')}
-              trailing={
-                <Switch
-                  onValueChange={(nextValue) => {
-                    void handleAutoQueueRandomToggle(nextValue);
-                  }}
-                  value={autoQueueRandom}
-                />
-              }
+    <MobileScreenContainer testID="more-settings-screen">
+      <View style={styles.cardStack}>
+        <Card padded={false} testID="more-settings-theme-card">
+          <View style={styles.sectionInner}>
+            <SettingsOptionNavRow
+              description={t('settings.ui_theme.description')}
+              onPress={() => {
+                navigation.navigate(MORE_STACK_ROUTES.MoreSettingsTheme);
+              }}
+              testID="more-settings-theme-select"
+              title={t('settings.ui_theme.theme')}
+              valueLabel={themeValueLabel}
             />
           </View>
-          <View style={styles.sectionStack}>
-            <ListRow
-              testID="more-settings-auto-queue-repeat"
-              title={t('media_player.repeat.toggle_repeat')}
-              trailing={
-                <Switch
-                  onValueChange={(nextValue) => {
-                    void handleAutoQueueRepeatToggle(nextValue);
-                  }}
-                  value={autoQueueRepeat}
-                />
-              }
+        </Card>
+
+        <Card padded={false} testID="more-settings-locale-card">
+          <View style={styles.sectionInner}>
+            <SettingsOptionNavRow
+              description={t('language.description')}
+              onPress={() => {
+                navigation.navigate(MORE_STACK_ROUTES.MoreSettingsLocale);
+              }}
+              testID="more-settings-locale-select"
+              title={t('language.select_language')}
+              valueLabel={localeValueLabel}
             />
           </View>
-        </View>
-      </Card>
+        </Card>
 
-      <Card padded={false} testID="more-settings-notifications-card">
-        <View style={styles.sectionInner}>
-          <Text style={styles.sectionHeading}>{t('settings.notifications.notifications')}</Text>
-          <View style={styles.sectionStack}>
-            {NOTIFICATION_TYPES.map((notificationType) => (
+        <Card padded={false} testID="more-settings-playback-card">
+          <View style={styles.sectionInner}>
+            <Text style={styles.sectionHeading}>{t('settings.preferred_media_type.label')}</Text>
+            <Text style={styles.sectionDescription}>
+              {t('settings.preferred_media_type.description')}
+            </Text>
+            <View style={styles.sectionStackAfterDescription}>
+              <OptionChipGroup
+                onChange={(mediaType) => {
+                  void handlePlaybackMediaTypeChange(mediaType);
+                }}
+                options={playbackMediaOptions}
+                testID="more-settings-playback-chips"
+                value={playbackMediaType}
+              />
+            </View>
+          </View>
+        </Card>
+
+        <Card padded={false} testID="more-settings-auto-queue-card">
+          <View style={styles.sectionInner}>
+            <Text style={styles.sectionHeading}>{t('media_player.auto_queue')}</Text>
+            <View style={styles.sectionStack}>
               <ListRow
-                key={notificationType}
-                subtitle={t(`settings.notifications.default_${notificationType}_help`)}
-                testID={`more-settings-notification-${notificationType}`}
-                title={t(getNotificationLabelKey(notificationType))}
+                testID="more-settings-auto-queue-random"
+                title={t('media_player.shuffle.toggle_shuffle')}
                 trailing={
                   <Switch
-                    disabled={!isAuthenticated}
                     onValueChange={(nextValue) => {
-                      void handleNotificationToggle(notificationType, nextValue);
+                      void handleAutoQueueRandomToggle(nextValue);
                     }}
-                    value={notificationToggles[notificationType]}
+                    value={autoQueueRandom}
                   />
                 }
               />
-            ))}
-          </View>
-          {!isAuthenticated ? (
-            <Text style={styles.warningText}>
-              {t('instructions.login_to_enable_notifications')}
-            </Text>
-          ) : null}
-          {showNotificationPermissionHint ? (
-            <View style={styles.sectionStack}>
-              <Text style={styles.warningText} testID="more-settings-notification-permission-hint">
-                {t('settings.notifications.permission_required')}
-              </Text>
-              {notificationPermissionBlocked ? (
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => {
-                    void openSystemNotificationSettings().catch(() => {
-                      setErrorMessageKey('errors.generic');
-                    });
-                  }}
-                  style={styles.warningLinkButton}
-                  testID="more-settings-open-notification-settings"
-                >
-                  <Text style={styles.warningLinkButtonText}>
-                    {t('settings.notifications.open_system_settings')}
-                  </Text>
-                </Pressable>
-              ) : null}
             </View>
-          ) : null}
-        </View>
-      </Card>
+            <View style={styles.sectionStack}>
+              <ListRow
+                testID="more-settings-auto-queue-repeat"
+                title={t('media_player.repeat.toggle_repeat')}
+                trailing={
+                  <Switch
+                    onValueChange={(nextValue) => {
+                      void handleAutoQueueRepeatToggle(nextValue);
+                    }}
+                    value={autoQueueRepeat}
+                  />
+                }
+              />
+            </View>
+          </View>
+        </Card>
 
-      {errorMessageKey !== null ? (
-        <Text style={styles.warningText} testID="more-settings-error">
-          {t(errorMessageKey)}
-        </Text>
-      ) : null}
+        <Card padded={false} testID="more-settings-notifications-card">
+          <View style={styles.sectionInner}>
+            <Text style={styles.sectionHeading}>{t('settings.notifications.notifications')}</Text>
+            <Text style={styles.sectionDescription}>
+              {t('settings.notifications.preference_section_help')}
+            </Text>
+            <View style={styles.sectionStack}>
+              {NOTIFICATION_PREFERENCE_ROWS.map((row) => {
+                const preference =
+                  notificationPreferences.find(
+                    (candidate) => candidate.category === row.category
+                  ) ?? null;
+                const inAppEnabled = row.forceInAppEnabled
+                  ? true
+                  : (preference?.in_app_enabled ?? true);
+                const pushEnabled = preference?.push_enabled ?? false;
+                const canTogglePush = isAuthenticated;
+
+                return (
+                  <View key={row.category} style={styles.preferenceRow}>
+                    <Text style={styles.preferenceDescription}>{t(row.descriptionKey)}</Text>
+                    <ListRow
+                      testID={`more-settings-notification-${row.category}-in-app`}
+                      title={t(row.labelKey)}
+                      trailing={
+                        <Switch
+                          disabled={row.forceInAppEnabled}
+                          onValueChange={(nextValue) => {
+                            void handleNotificationPreferenceToggle({
+                              category: row.category,
+                              channel: 'in_app',
+                              enabled: nextValue,
+                              forceInAppEnabled: row.forceInAppEnabled,
+                            });
+                          }}
+                          value={inAppEnabled}
+                        />
+                      }
+                    />
+                    <ListRow
+                      testID={`more-settings-notification-${row.category}-push`}
+                      title={
+                        canTogglePush
+                          ? t('settings.notifications.preference_push')
+                          : t('settings.notifications.preference_push_disabled')
+                      }
+                      trailing={
+                        <Switch
+                          disabled={!canTogglePush}
+                          onValueChange={(nextValue) => {
+                            void handleNotificationPreferenceToggle({
+                              category: row.category,
+                              channel: 'push',
+                              enabled: nextValue,
+                              forceInAppEnabled: row.forceInAppEnabled,
+                            });
+                          }}
+                          value={pushEnabled}
+                        />
+                      }
+                    />
+                    {row.category === NotificationCategoryEnum.ProductUpdate ? (
+                      <Text style={styles.warningText}>
+                        {t('settings.notifications.product_update_disable_hint')}
+                      </Text>
+                    ) : null}
+                  </View>
+                );
+              })}
+            </View>
+            {showNotificationPermissionHint ? (
+              <View style={styles.sectionStack}>
+                <Text
+                  style={styles.warningText}
+                  testID="more-settings-notification-permission-hint"
+                >
+                  {t('settings.notifications.permission_required')}
+                </Text>
+                {notificationPermissionBlocked ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => {
+                      void openSystemNotificationSettings().catch(() => {
+                        setErrorMessageKey('errors.generic');
+                      });
+                    }}
+                    style={styles.warningLinkButton}
+                    testID="more-settings-open-notification-settings"
+                  >
+                    <Text style={styles.warningLinkButtonText}>
+                      {t('settings.notifications.open_system_settings')}
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            ) : null}
+          </View>
+        </Card>
+
+        {errorMessageKey !== null ? (
+          <Text style={styles.warningText} testID="more-settings-error">
+            {t(errorMessageKey)}
+          </Text>
+        ) : null}
+      </View>
     </MobileScreenContainer>
   );
 }

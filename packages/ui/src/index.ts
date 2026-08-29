@@ -470,6 +470,8 @@ export { CodeText } from './components/layout/CodeText/index';
 export type { CodeTextProps } from './components/layout/CodeText/index';
 export { ConfirmPanel } from './components/layout/ConfirmPanel/index';
 export type { ConfirmPanelProps } from './components/layout/ConfirmPanel/index';
+export { CountBadge } from './components/layout/CountBadge/index';
+export type { CountBadgeProps } from './components/layout/CountBadge/index';
 export { DeleteConfirmModalShell } from './components/layout/DeleteConfirmModalShell/DeleteConfirmModalShell';
 export type { DeleteConfirmModalShellProps } from './components/layout/DeleteConfirmModalShell/DeleteConfirmModalShell';
 export { EmptyStateText } from './components/layout/EmptyStateText/index';

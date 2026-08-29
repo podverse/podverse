@@ -119,8 +119,10 @@ describe('OPML import endpoints', () => {
   let server: Server | undefined;
   let ormContext: ORMContext | undefined;
   let accountBase = '';
+  let previousFixturesEnv: string | undefined;
 
   beforeAll(async () => {
+    previousFixturesEnv = process.env.PODVERSE_E2E_FIXTURES;
     process.env.PODVERSE_E2E_FIXTURES = '1';
     const started = await startTestApp();
     app = started.app;
@@ -130,7 +132,11 @@ describe('OPML import endpoints', () => {
   });
 
   afterAll(async () => {
-    delete process.env.PODVERSE_E2E_FIXTURES;
+    if (previousFixturesEnv === undefined) {
+      delete process.env.PODVERSE_E2E_FIXTURES;
+    } else {
+      process.env.PODVERSE_E2E_FIXTURES = previousFixturesEnv;
+    }
     await stopTestApp(server, ormContext);
   });
 

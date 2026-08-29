@@ -56,5 +56,5 @@ E2E stacks).
 | Web     | `apps/web/.../SettingsOpml` (`?tab=opml`) | `apps/web/e2e/settings-opml-export.spec.ts` |
 | Mobile  | `apps/mobile/.../MoreOpmlScreen`          | `apps/mobile/e2e/opml.yaml`                 |
 
-Plan archive: `.llm/plans/completed/opml-import-export/`.
+Implementation plan archive removed after the OPML work was completed.
 Related: [ADD-BY-RSS](/docs/features/ADD-BY-RSS.md).

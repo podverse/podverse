@@ -38,7 +38,7 @@ import {
   listStorageObjects,
   probeStorageBucketHasObjects,
 } from '../../../lib/requests/storage';
-import { encodeStorageObjectKeyForPathSegment } from '../../../lib/storageObjectPath';
+import { buildStorageObjectPath, ROUTES } from '../../../lib/routes';
 import { resolveManagementTableEmptyState } from '../../../lib/tableEmptyState';
 
 const LIST_MAX_KEYS = 50;
@@ -62,7 +62,7 @@ export function StoragePageClient({ initialUser }: StoragePageClientProps) {
   const tNav = useTranslations('nav');
   const chrome = useManagementTableChrome();
 
-  const basePath = pathname !== null && pathname !== '' ? pathname : '/storage';
+  const basePath = pathname !== null && pathname !== '' ? pathname : ROUTES.STORAGE;
   const currentQueryParams = useMemo(
     () => managementSearchParamsObject(searchParams),
     [searchParams]
@@ -275,7 +275,7 @@ export function StoragePageClient({ initialUser }: StoragePageClientProps) {
         <Breadcrumbs
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
-          items={[{ href: '/dashboard', label: tNav('dashboard') }, { label: t('title') }]}
+          items={[{ href: ROUTES.DASHBOARD, label: tNav('dashboard') }, { label: t('title') }]}
         />
       }
       subtitle={t('subtitle')}
@@ -307,7 +307,7 @@ export function StoragePageClient({ initialUser }: StoragePageClientProps) {
                       await deleteStorageObject(row.key);
                       await pagination.refetch();
                     },
-                    viewHref: (row) => `/storage/${encodeStorageObjectKeyForPathSegment(row.key)}`,
+                    viewHref: (row) => buildStorageObjectPath(row.key),
                   }
                 : {
                     LinkComponent: ManagementIconButtonLink,
@@ -316,7 +316,7 @@ export function StoragePageClient({ initialUser }: StoragePageClientProps) {
                       edit: tc('edit'),
                       view: t('view'),
                     },
-                    viewHref: (row) => `/storage/${encodeStorageObjectKeyForPathSegment(row.key)}`,
+                    viewHref: (row) => buildStorageObjectPath(row.key),
                   }
             }
             allColumnIds={[...STORAGE_COLUMN_IDS]}

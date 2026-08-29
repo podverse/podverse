@@ -2,17 +2,18 @@ import { redirect } from 'next/navigation';
 
 import { getManagementSession } from '../../../lib/auth/serverManagementSession';
 import { canReadStorage } from '../../../lib/managementPermissions';
+import { ROUTES } from '../../../lib/routes';
 import { StoragePageClient } from './StoragePageClient';
 
 export default async function StoragePage() {
   const session = await getManagementSession();
   if (!session) {
-    redirect('/');
+    redirect(ROUTES.HOME);
   }
 
   const { user, service } = session;
   if (!canReadStorage(user)) {
-    redirect('/dashboard');
+    redirect(ROUTES.DASHBOARD);
   }
 
   try {
@@ -21,10 +22,10 @@ export default async function StoragePage() {
       method: 'GET',
     });
     if (probe.enabled !== true) {
-      redirect('/dashboard');
+      redirect(ROUTES.DASHBOARD);
     }
   } catch {
-    redirect('/dashboard');
+    redirect(ROUTES.DASHBOARD);
   }
 
   return <StoragePageClient initialUser={user} />;

@@ -12,6 +12,7 @@ export type ListRowProps = {
   trailing?: ReactNode;
   onPress?: () => void;
   accessibilityLabel?: string;
+  paddingVertical?: number;
   testID?: string;
 };
 
@@ -27,6 +28,7 @@ export function ListRow({
   trailing,
   onPress,
   accessibilityLabel,
+  paddingVertical,
   testID,
 }: ListRowProps) {
   const { styles: themeStyles, tokens } = useTheme();
@@ -37,7 +39,7 @@ export function ListRow({
         container: {
           alignItems: 'center',
           flexDirection: 'row',
-          paddingVertical: tokens.spacing.md,
+          paddingVertical: paddingVertical ?? tokens.spacing.md,
         },
         content: {
           flex: 1,
@@ -58,7 +60,7 @@ export function ListRow({
           marginLeft: tokens.spacing.md,
         },
       }),
-    [themeStyles, tokens]
+    [paddingVertical, themeStyles, tokens]
   );
 
   const body = (

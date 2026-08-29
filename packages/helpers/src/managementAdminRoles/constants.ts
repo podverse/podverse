@@ -23,6 +23,7 @@ export type PredefinedManagementAdminRole = {
   billingPricesCrud: number;
   bucketCrud: number;
   embedDemoCrud: number;
+  notificationsCrud: number;
 };
 
 export const PREDEFINED_MANAGEMENT_ADMIN_ROLES: PredefinedManagementAdminRole[] = [
@@ -36,6 +37,7 @@ export const PREDEFINED_MANAGEMENT_ADMIN_ROLES: PredefinedManagementAdminRole[] 
     billingPricesCrud: 15,
     bucketCrud: 15,
     embedDemoCrud: 15,
+    notificationsCrud: 15,
   },
   {
     id: 'read_everything',
@@ -47,6 +49,7 @@ export const PREDEFINED_MANAGEMENT_ADMIN_ROLES: PredefinedManagementAdminRole[] 
     billingPricesCrud: 2,
     bucketCrud: 2,
     embedDemoCrud: 2,
+    notificationsCrud: 2,
   },
   {
     id: 'feeds_moderation',
@@ -58,6 +61,7 @@ export const PREDEFINED_MANAGEMENT_ADMIN_ROLES: PredefinedManagementAdminRole[] 
     billingPricesCrud: 0,
     bucketCrud: 0,
     embedDemoCrud: 0,
+    notificationsCrud: 0,
   },
   {
     id: 'admins_stats_read',
@@ -69,6 +73,7 @@ export const PREDEFINED_MANAGEMENT_ADMIN_ROLES: PredefinedManagementAdminRole[] 
     billingPricesCrud: 2,
     bucketCrud: 2,
     embedDemoCrud: 2,
+    notificationsCrud: 2,
   },
   {
     id: 'storage_full',
@@ -80,6 +85,7 @@ export const PREDEFINED_MANAGEMENT_ADMIN_ROLES: PredefinedManagementAdminRole[] 
     billingPricesCrud: 0,
     bucketCrud: 15,
     embedDemoCrud: 0,
+    notificationsCrud: 0,
   },
 ];
 

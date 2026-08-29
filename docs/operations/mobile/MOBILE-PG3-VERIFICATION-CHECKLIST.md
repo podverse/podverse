@@ -5,8 +5,8 @@ Use this checklist to confirm PG-3 artifacts plus dual-device E2E automation (st
 ## 1) Confirm master-plan completion status
 
 ```bash
-rg -n '^5\.(14|15|16)\..*— done$' docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md
-rg -n '\| (073|074|075)-[^|]*\|[^|]*\|[^|]*\|[^|]*\| done' docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md
+rg -n '^5\.(14|15|16)\..*— done$' docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md
+rg -n '\| (073|074|075)-[^|]*\|[^|]*\|[^|]*\|[^|]*\| done' docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md
 ```
 
 ## 2) Device matrix + helpers

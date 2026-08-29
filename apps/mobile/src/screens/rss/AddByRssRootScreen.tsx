@@ -10,11 +10,11 @@ import { isMobileE2eFromEnv } from '../../config/env';
 import { useAddByRssAddFlow } from '../../hooks/useAddByRssAddFlow';
 import { useAddByRssFeeds } from '../../hooks/useAddByRssFeeds';
 import { useAddByRssPlayback } from '../../hooks/useAddByRssPlayback';
-import type { RssStackParamList } from '../../navigation';
-import { RSS_STACK_ROUTES } from '../../navigation';
+import type { LibraryStackParamList } from '../../navigation';
+import { LIBRARY_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
 
-type AddByRssRootScreenProps = NativeStackScreenProps<RssStackParamList, 'AddByRssRoot'>;
+type AddByRssRootScreenProps = NativeStackScreenProps<LibraryStackParamList, 'AddByRssRoot'>;
 
 export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
   const { t } = useTranslation();
@@ -147,7 +147,7 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
       <View style={styles.card}>
         <Pressable
           onPress={() => {
-            navigation.navigate(RSS_STACK_ROUTES.AddByRssFeedList);
+            navigation.navigate(LIBRARY_STACK_ROUTES.AddByRssFeedList);
           }}
           style={styles.feedButton}
           testID="rss-nav-feed-list"

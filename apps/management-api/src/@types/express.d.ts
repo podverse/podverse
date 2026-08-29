@@ -13,6 +13,7 @@ export type AuthenticatedAdmin = {
     billing_prices_crud?: number;
     bucket_crud?: number;
     embed_demo_crud?: number;
+    notifications_crud?: number;
   } | null;
 };
 

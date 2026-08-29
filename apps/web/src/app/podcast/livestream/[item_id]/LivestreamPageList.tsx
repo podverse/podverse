@@ -4,6 +4,12 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOChannel, DTOItem, QueryParamsQueueMedium } from '@podverse/helpers';
+import {
+  buildArtistPath,
+  buildMusicLivestreamPath,
+  buildPodcastLivestreamPath,
+  buildPodcastPath,
+} from '@podverse/helpers';
 
 import { BoostMessagesSection } from '../../../../components/Boost/messages/BoostMessagesSection';
 import { useBoostMessagesView } from '../../../../components/Boost/messages/useBoostMessagesView';
@@ -35,9 +41,11 @@ export const LivestreamPageList: React.FC<LivestreamPageListProps> = ({
     channelIdText: ssrChannel.id_text ?? null,
     ssrCanShowBoosts,
     resolveChannelHref: (channelIdText) =>
-      medium === 'music' ? `/artist/${channelIdText}` : `/podcast/${channelIdText}`,
+      medium === 'music' ? buildArtistPath(channelIdText) : buildPodcastPath(channelIdText),
     resolveItemHref: (itemIdText) =>
-      medium === 'music' ? `/music/livestream/${itemIdText}` : `/podcast/livestream/${itemIdText}`,
+      medium === 'music'
+        ? buildMusicLivestreamPath(itemIdText)
+        : buildPodcastLivestreamPath(itemIdText),
   });
 
   return (

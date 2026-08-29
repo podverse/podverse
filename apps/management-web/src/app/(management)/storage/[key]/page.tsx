@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 
 import { getManagementSession } from '../../../../lib/auth/serverManagementSession';
 import { canReadStorage } from '../../../../lib/managementPermissions';
+import { ROUTES } from '../../../../lib/routes';
 import { decodeStorageObjectKeyFromPathSegment } from '../../../../lib/storageObjectPath';
 import { StorageObjectDetailPageClient } from './StorageObjectDetailPageClient';
 
@@ -13,17 +14,17 @@ export default async function StorageObjectDetailPage({
   const { key: encoded } = await params;
   const objectKey = decodeStorageObjectKeyFromPathSegment(encoded);
   if (objectKey === null) {
-    redirect('/dashboard');
+    redirect(ROUTES.DASHBOARD);
   }
 
   const session = await getManagementSession();
   if (!session) {
-    redirect('/');
+    redirect(ROUTES.HOME);
   }
 
   const { user, service } = session;
   if (!canReadStorage(user)) {
-    redirect('/dashboard');
+    redirect(ROUTES.DASHBOARD);
   }
 
   try {
@@ -32,10 +33,10 @@ export default async function StorageObjectDetailPage({
       method: 'GET',
     });
     if (probe.enabled !== true) {
-      redirect('/dashboard');
+      redirect(ROUTES.DASHBOARD);
     }
   } catch {
-    redirect('/dashboard');
+    redirect(ROUTES.DASHBOARD);
   }
 
   return <StorageObjectDetailPageClient objectKey={objectKey} />;

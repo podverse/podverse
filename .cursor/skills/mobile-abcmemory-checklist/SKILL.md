@@ -47,9 +47,9 @@ Use **`.llm/plans/active/mobile-<phase-slug>/`** for:
 
 Follow **plan-completion** and **mobile-master-plan-phasing** when archiving.
 
-## When to use `docs/proposals/mobile/_master-plan_/details/`
+## When to use `docs/proposals/mobile/_master-plan_/phase-1/details/`
 
-- Per-step **durable** design + acceptance criteria linked from [001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md)
+- Per-step **durable** design + acceptance criteria linked from [001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md)
 - Status lifecycle: `draft` → `planned` → `done` on the detail doc header
 - Not loaded as Cursor memory — agents reach them via master plan links or explicit `@` paths
 
@@ -59,7 +59,8 @@ Follow **plan-completion** and **mobile-master-plan-phasing** when archiving.
 2. Detail docs + COPY-PASTA set created under `.llm/plans/active/` (defer implementation).
 3. Operator pastes COPY-PASTA → agent implements; marks master-plan steps **done**.
 4. Standing lessons (new rule, skill tweak) → **abcremember** into `.cursor/` using this checklist.
-5. Archive plan set to `.llm/plans/completed/` when phase finishes.
+5. Remove the completed plan set after the operator confirms the phase is finished; retain durable
+   outcomes in the phase master plan and detail docs.
 
 ## Quick decision tree
 

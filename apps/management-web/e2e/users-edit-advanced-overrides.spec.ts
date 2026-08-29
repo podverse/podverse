@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 
+import { buildUserEditPath, ROUTES } from './helpers/routes';
 import { capturePageLoad } from './helpers/stepScreenshots';
 
 /**
@@ -70,13 +71,13 @@ test.describe('Management-web user edit advanced overrides', () => {
       });
     });
 
-    await page.goto('/');
+    await page.goto(ROUTES.HOME);
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
     await page.getByRole('button', { name: 'Sign In' }).click();
     await page.waitForURL('**/dashboard');
 
-    await page.goto('/users/9001/edit?tab=profile');
+    await page.goto(buildUserEditPath('9001', 'profile'));
 
     await expect(page.getByRole('heading', { name: 'Edit User', level: 1 })).toBeVisible();
     await page.getByRole('checkbox', { name: 'Configure advanced feature overrides' }).check();

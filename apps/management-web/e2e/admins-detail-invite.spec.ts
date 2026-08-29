@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 
+import { ROUTES } from './helpers/routes';
 import { capturePageLoad } from './helpers/stepScreenshots';
 
 /**
@@ -81,13 +82,13 @@ test.describe('Management-web admins detail and invite controls', () => {
       await route.continue();
     });
 
-    await page.goto('/');
+    await page.goto(ROUTES.HOME);
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
     await page.getByRole('button', { name: 'Sign In' }).click();
     await page.waitForURL('**/dashboard');
 
-    await page.goto('/admins');
+    await page.goto(ROUTES.ADMINS);
     await expect(page.getByRole('heading', { name: 'Admins', level: 1 })).toBeVisible();
 
     await page.getByRole('link', { name: 'View' }).click();

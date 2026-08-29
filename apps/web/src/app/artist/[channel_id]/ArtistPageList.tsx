@@ -10,6 +10,7 @@ import type {
   PodcastBatchByFeedGuidResponse,
   RemoteItemsResponse,
 } from '@podverse/helpers';
+import { buildArtistPath, buildTrackPath } from '@podverse/helpers';
 
 import { BoostMessagesSection } from '../../../components/Boost/messages/BoostMessagesSection';
 import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
@@ -48,8 +49,8 @@ export const ArtistPageList: React.FC<ArtistPageListProps> = ({
     scopeType: 'artist',
     channelIdText: ssrChannel.id_text ?? null,
     ssrCanShowBoosts,
-    resolveChannelHref: (channelIdText) => `/artist/${channelIdText}`,
-    resolveItemHref: (itemIdText) => `/track/${itemIdText}`,
+    resolveChannelHref: buildArtistPath,
+    resolveItemHref: buildTrackPath,
   });
 
   return (

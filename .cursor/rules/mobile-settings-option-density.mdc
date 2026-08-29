@@ -1,0 +1,43 @@
+---
+description: Mobile settings option density — chips for 2–3 choices; push list for 4+
+globs:
+  - apps/mobile/src/screens/**/*.tsx
+  - apps/mobile/src/components/form/**/*
+  - apps/mobile/src/components/settings/**/*
+alwaysApply: false
+---
+
+# Mobile settings option density
+
+When a **user-configurable setting** presents a fixed list of choices:
+
+| Option count | Control                                                                 |
+| ------------ | ----------------------------------------------------------------------- |
+| **2–3**      | Chip / pill buttons (`OptionChipGroup`) — all choices visible           |
+| **4+**       | Settings row → **push** an option-list screen (`OptionListScreen`) — iOS Settings style |
+
+## Do
+
+- Prefer shared components under `apps/mobile/src/components/form/` over per-screen pill grids.
+- Pass already-localized labels; keep i18n in the screen / caller.
+- Keep binary prefs (on/off) as `Switch`, not chips or list pages.
+- For 4+ options, navigate to a dedicated list screen (checkmark on current, Back returns). Do
+  **not** use a bottom-sheet modal with a sliding scrim for primary preference pickers.
+- On the settings root row (`SettingsOptionNavRow`), stack **label → description → current value +
+  chevron** vertically. Do **not** put the current value in a trailing/right column (it squeezes
+  the description).
+
+## Don't
+
+- Do not use wrapping pill grids for Theme, Language, or other lists that already have 4+ values
+  (or will grow).
+- Do not import web `@podverse/ui` dropdowns on mobile.
+- Do not use iOS-only `ActionSheetIOS` as the cross-platform select.
+- Do not use `OptionSelectSheet` / settings bottom sheets for Theme, Language, or similar prefs
+  (sheets remain for contextual actions like media-row More / add-to-playlist).
+- Do not place the selected value as `ListRow` `trailing` next to a multi-line description.
+
+## Related
+
+- Skill: **mobile-reusable-components**
+- Rule: **mobile-react-native**

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 
 import { getManagementSessionUser } from '../../../../../lib/auth/serverManagementSession';
 import { canCreateAdmins } from '../../../../../lib/managementPermissions';
+import { ROUTES } from '../../../../../lib/routes';
 import { AdminRoleTemplatePageClient } from './AdminRoleTemplatePageClient';
 
 export default async function NewAdminRoleTemplatePage({
@@ -11,11 +12,11 @@ export default async function NewAdminRoleTemplatePage({
 }) {
   const user = await getManagementSessionUser();
   if (!user) {
-    redirect('/');
+    redirect(ROUTES.HOME);
   }
 
   if (!canCreateAdmins(user)) {
-    redirect('/admins');
+    redirect(ROUTES.ADMINS);
   }
 
   const sp = await searchParams;
@@ -26,7 +27,7 @@ export default async function NewAdminRoleTemplatePage({
     returnUrlCandidate.startsWith('/') &&
     !returnUrlCandidate.startsWith('//')
       ? returnUrlCandidate
-      : '/admins';
+      : ROUTES.ADMINS;
 
   return <AdminRoleTemplatePageClient returnUrl={returnUrl} />;
 }

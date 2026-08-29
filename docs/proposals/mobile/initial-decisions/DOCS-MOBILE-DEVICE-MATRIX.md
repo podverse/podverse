@@ -72,9 +72,9 @@ nightly-only small-tablet emulator under master-plan **18.16** (CI tablet-emulat
 ## Related
 
 - Master plan Track 18:
-  [001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md)
-- Detail steps: [510-device-matrix-doc](/docs/proposals/mobile/_master-plan_/details/510-device-matrix-doc.md),
-  [535-device-track-scope-matrix](/docs/proposals/mobile/_master-plan_/details/535-device-track-scope-matrix.md)
+  [001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md)
+- Detail steps: [510-device-matrix-doc](/docs/proposals/mobile/_master-plan_/phase-1/details/510-device-matrix-doc.md),
+  [535-device-track-scope-matrix](/docs/proposals/mobile/_master-plan_/phase-1/details/535-device-track-scope-matrix.md)
 - Offline data layer:
   [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md)
 - Car surfaces:

@@ -31,6 +31,23 @@ describe('extractNotificationTargetPath', () => {
     );
   });
 
+  it('uses explicit link_path payload targets', () => {
+    expect(
+      extractNotificationTargetPath({
+        category: 'general',
+        link_path: '/notifications',
+      })
+    ).toBe('/notifications');
+  });
+
+  it('maps membership-expiry category to renew path when no explicit path is provided', () => {
+    expect(
+      extractNotificationTargetPath({
+        category: 'membership-expiry',
+      })
+    ).toBe('/membership/renew');
+  });
+
   it('returns null for unknown type', () => {
     expect(extractNotificationTargetPath({ id_text: 'whatever', type: 'unknown' })).toBeNull();
   });

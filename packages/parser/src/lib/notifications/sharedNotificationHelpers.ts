@@ -2,19 +2,26 @@ import { config as projectConfig } from '@parser/config/index.js';
 import { getFirebaseContext, getNotificationsContext } from '@parser/context.js';
 import { loggerService } from '@parser/factories/loggerService.js';
 
-import type { AccountNotificationTypeEnum } from '@podverse/helpers';
-import { AccountFCMDevicePlatformEnum, hasValidMembership } from '@podverse/helpers';
+import type { AccountNotificationTypeEnum, NotificationCategoryValues } from '@podverse/helpers';
+import {
+  AccountFCMDevicePlatformEnum,
+  buildNotificationLinkPath,
+  getDefaultNotificationCategoryPreference,
+  hasValidMembership,
+} from '@podverse/helpers';
 import type {
   NotificationMessageType,
   NotificationPlatform,
   UPSubscription,
   WebPushSubscription,
 } from '@podverse/notifications';
-import { notificationOrchestrator } from '@podverse/notifications';
+import { i18nNotifications, notificationOrchestrator } from '@podverse/notifications';
 import type { AccountNotificationChannelType, Channel, ChannelImage, Item } from '@podverse/orm';
 import {
   AccountFCMDeviceService,
   AccountNotificationChannelService,
+  AccountNotificationPreferenceService,
+  AccountNotificationService,
   AccountUPDeviceService,
   AccountWebPushDeviceService,
   ChannelService,
@@ -170,18 +177,12 @@ export async function loadChannelImages(channel: Channel): Promise<ChannelImage[
 }
 
 /**
- * Gets devices for accounts that have a specific notification type enabled for a channel
+ * Gets account IDs for a channel + legacy notification type after entitlement gating.
  */
-export async function getDevicesForNotificationType(
+export async function getAccountIdsForChannelNotification(
   channelIdText: string,
   notificationType: AccountNotificationTypeEnum
-): Promise<{
-  devices: DeviceWithLocale[];
-  webPushSubscriptions: Map<string, WebPushSubscription[]>;
-  upSubscriptions: Map<string, UPSubscription[]>;
-  accountLocaleMap: Map<number, string>;
-} | null> {
-  // Get all account notification channels for this channel with their types
+): Promise<{ accountIdsWithTypeEnabled: number[]; accountLocaleMap: Map<number, string> } | null> {
   const accountNotificationChannelService = new AccountNotificationChannelService();
   const notificationChannels = await accountNotificationChannelService.getAllByChannelIdText(
     channelIdText,
@@ -198,7 +199,6 @@ export async function getDevicesForNotificationType(
     }
   );
 
-  // Filter to only accounts that have the specified notification type enabled
   const accountIdsWithTypeEnabled: number[] = [];
   const accountLocaleMap = new Map<number, string>();
 
@@ -206,51 +206,102 @@ export async function getDevicesForNotificationType(
     const hasType = notificationChannel.account_notification_channel_types?.some(
       (type: AccountNotificationChannelType) => type.type === notificationType
     );
-
-    if (hasType) {
-      // Check if account has a valid, non-expired membership
-      const membershipStatus = notificationChannel.account?.account_membership_status;
-
-      if (hasValidMembership(membershipStatus)) {
-        accountIdsWithTypeEnabled.push(notificationChannel.account_id);
-
-        // Store the locale for each account
-        const locale =
-          notificationChannel.account?.account_settings?.account_settings_locale?.locale ||
-          getDefaultLocale();
-        accountLocaleMap.set(notificationChannel.account_id, locale);
-      }
+    if (!hasType) {
+      continue;
     }
+
+    const membershipStatus = notificationChannel.account?.account_membership_status;
+    if (!hasValidMembership(membershipStatus)) {
+      continue;
+    }
+    if (membershipStatus?.allow_notifications === false) {
+      continue;
+    }
+
+    accountIdsWithTypeEnabled.push(notificationChannel.account_id);
+    const locale =
+      notificationChannel.account?.account_settings?.account_settings_locale?.locale ||
+      getDefaultLocale();
+    accountLocaleMap.set(notificationChannel.account_id, locale);
   }
 
-  // Early return if no accounts have this notification type enabled
   if (accountIdsWithTypeEnabled.length === 0) {
     return null;
   }
 
-  // Get all FCM devices for the filtered account IDs in a single batch query
-  const accountFCMDeviceService = new AccountFCMDeviceService();
-  const deviceResults =
-    await accountFCMDeviceService.getAllForAccountIds(accountIdsWithTypeEnabled);
+  return { accountIdsWithTypeEnabled, accountLocaleMap };
+}
 
-  // Get all Web Push devices for the filtered account IDs in a single batch query
-  const accountWebPushDeviceService = new AccountWebPushDeviceService();
-  const webPushDeviceResults =
-    await accountWebPushDeviceService.getAllForAccountIds(accountIdsWithTypeEnabled);
-
-  // Get all Unified Push devices for the filtered account IDs in a single batch query
-  const accountUPDeviceService = new AccountUPDeviceService();
-  const upDeviceResults =
-    await accountUPDeviceService.getAllForAccountIds(accountIdsWithTypeEnabled);
-
-  // Early return if no devices to send to (FCM, Web Push, or UP)
-  if (
-    deviceResults.length === 0 &&
-    webPushDeviceResults.length === 0 &&
-    upDeviceResults.length === 0
-  ) {
+/**
+ * Gets push/in-app recipients and device payloads for a channel notification type.
+ */
+export async function getDevicesForNotificationType(
+  channelIdText: string,
+  notificationType: AccountNotificationTypeEnum,
+  category: NotificationCategoryValues
+): Promise<{
+  devices: DeviceWithLocale[];
+  webPushSubscriptions: Map<string, WebPushSubscription[]>;
+  upSubscriptions: Map<string, UPSubscription[]>;
+  accountLocaleMap: Map<number, string>;
+  inAppEnabledAccountIds: number[];
+  pushEnabledAccountIds: number[];
+} | null> {
+  const accountRecipients = await getAccountIdsForChannelNotification(
+    channelIdText,
+    notificationType
+  );
+  if (!accountRecipients) {
     return null;
   }
+  const { accountIdsWithTypeEnabled, accountLocaleMap } = accountRecipients;
+
+  const accountNotificationPreferenceService = new AccountNotificationPreferenceService();
+  const defaultPreference = getDefaultNotificationCategoryPreference(category);
+  const inAppEnabledAccountIds: number[] = [];
+  const pushEnabledAccountIds: number[] = [];
+
+  for (const accountId of accountIdsWithTypeEnabled) {
+    const preferences = await accountNotificationPreferenceService.getForAccount(accountId);
+    const categoryPreference = preferences.find((preference) => preference.category === category);
+    const inAppEnabled = categoryPreference?.in_app_enabled ?? defaultPreference.in_app_enabled;
+    const pushEnabled = categoryPreference?.push_enabled ?? defaultPreference.push_enabled;
+
+    if (inAppEnabled) {
+      inAppEnabledAccountIds.push(accountId);
+    }
+    if (pushEnabled) {
+      pushEnabledAccountIds.push(accountId);
+    }
+  }
+
+  if (inAppEnabledAccountIds.length === 0 && pushEnabledAccountIds.length === 0) {
+    return null;
+  }
+
+  if (pushEnabledAccountIds.length === 0) {
+    return {
+      devices: [],
+      webPushSubscriptions: new Map(),
+      upSubscriptions: new Map(),
+      accountLocaleMap,
+      inAppEnabledAccountIds,
+      pushEnabledAccountIds,
+    };
+  }
+
+  // Get all FCM devices for push-enabled accounts in a single batch query
+  const accountFCMDeviceService = new AccountFCMDeviceService();
+  const deviceResults = await accountFCMDeviceService.getAllForAccountIds(pushEnabledAccountIds);
+
+  // Get all Web Push devices for push-enabled accounts in a single batch query
+  const accountWebPushDeviceService = new AccountWebPushDeviceService();
+  const webPushDeviceResults =
+    await accountWebPushDeviceService.getAllForAccountIds(pushEnabledAccountIds);
+
+  // Get all Unified Push devices for push-enabled accounts in a single batch query
+  const accountUPDeviceService = new AccountUPDeviceService();
+  const upDeviceResults = await accountUPDeviceService.getAllForAccountIds(pushEnabledAccountIds);
 
   // Map FCM devices to DeviceWithLocale format
   const devices: DeviceWithLocale[] = deviceResults.map((device) => ({
@@ -289,7 +340,60 @@ export async function getDevicesForNotificationType(
     });
   }
 
-  return { devices, webPushSubscriptions, upSubscriptions, accountLocaleMap };
+  return {
+    devices,
+    webPushSubscriptions,
+    upSubscriptions,
+    accountLocaleMap,
+    inAppEnabledAccountIds,
+    pushEnabledAccountIds,
+  };
+}
+
+export function getInAppNotificationTitle(
+  messageType: NotificationMessageType,
+  messageText: string
+): string {
+  const localeMap = i18nNotifications['en-US'];
+  const prefix = localeMap ? localeMap[messageType] : '';
+  return `${prefix}${messageText}`;
+}
+
+export function getInAppNotificationLinkPath(
+  itemNotification: ItemNotificationData
+): string | null {
+  return buildNotificationLinkPath({
+    channelIdText: itemNotification.channelIdText,
+    itemIdText: itemNotification.itemIdText,
+    mediumId: itemNotification.mediumId,
+    messageType: itemNotification.messageType,
+  });
+}
+
+export async function createInAppNotificationsForAccounts(params: {
+  accountIds: number[];
+  category: NotificationCategoryValues;
+  title: string;
+  body: string | null;
+  linkPath: string | null;
+  payload: Record<string, unknown> | null;
+}): Promise<number> {
+  if (params.accountIds.length === 0) {
+    return 0;
+  }
+
+  const accountNotificationService = new AccountNotificationService();
+  const createdRows = await accountNotificationService.createMany(
+    params.accountIds.map((accountId) => ({
+      account_id: accountId,
+      body: params.body,
+      category: params.category,
+      link_path: params.linkPath,
+      payload: params.payload,
+      title: params.title,
+    }))
+  );
+  return createdRows.length;
 }
 
 /**

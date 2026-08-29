@@ -1,7 +1,7 @@
 # Android Auto — DHU browse+play manual checklist (operator)
 
 **Master step:** 12.17. **Audience:** operator / QA.
-**Detail:** [396-dhu-test-checklist](/docs/proposals/mobile/_master-plan_/details/396-dhu-test-checklist.md).
+**Detail:** [396-dhu-test-checklist](/docs/proposals/mobile/_master-plan_/phase-1/details/396-dhu-test-checklist.md).
 
 Proves the ship bar: **Android Auto browses the native cache (Library + Downloads) and plays through
 the shared engine with the phone app force-stopped.** Car E2E is not fully automatable, so this is a
@@ -100,7 +100,7 @@ Record the DHU result (or fallback logcat) here for the release ticket:
   (`account_following_channels`), which is not projected into `library-browse` yet (add-by-RSS only).
   Root therefore showed Downloads alone (back from Downloads is a no-op — it is the effective root).
   **Known limitation**, tracked as **12.22** /
-  [401-car-library-directory-follows](/docs/proposals/mobile/_master-plan_/details/401-car-library-directory-follows.md).
+  [401-car-library-directory-follows](/docs/proposals/mobile/_master-plan_/phase-1/details/401-car-library-directory-follows.md).
   To exercise a Library node today, follow a feed via **Add by RSS**, then re-open Podverse in DHU.
 - **Verdict:** 12.17 ship-bar (browse + play native cache, app-closed) **met** for Downloads; Library
   breadth deferred to 12.22.

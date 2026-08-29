@@ -21,6 +21,7 @@ import { In, IsNull, Not } from 'typeorm';
 import {
   AccountMembershipEnum,
   AccountNotificationTypeEnum,
+  DEFAULT_MEDIA_TYPE_PREFERENCE,
   ERROR_MESSAGES,
   getSharableStatusIdsForProfileType,
   SharableStatusEnum,
@@ -30,6 +31,7 @@ import { validateEmail, validatePassword, validateUsername } from '@podverse/hel
 import { BillingPriceCatalogService } from '../billingPriceCatalog.js';
 import { AccountCredentialsService } from './accountCredentials.js';
 import { AccountMembershipStatusService } from './accountMembershipStatus.js';
+import { AccountNotificationPreferenceService } from './accountNotificationPreference.js';
 import { AccountProfileService } from './accountProfile.js';
 import { AccountResetPasswordService } from './accountResetPassword.js';
 import { AccountTermsAcceptanceService } from './accountTermsAcceptance.js';
@@ -327,6 +329,21 @@ export class AccountService {
     await this.repositoryReadWrite.remove(account);
   }
 
+  async updateNotificationsLastSeenAt(account_id: number, seenAt: Date): Promise<Date> {
+    const account = await this.repositoryReadWrite.findOne({
+      where: { id: account_id },
+    });
+
+    if (!account) {
+      throw new Error('Account not found');
+    }
+
+    account.notifications_last_seen_at = seenAt;
+    await this.repositoryReadWrite.save(account);
+
+    return seenAt;
+  }
+
   private async ensureAccountSettings(
     account: Account,
     params: { alwaysCreate: boolean; locale: string; allow_listen_stats?: boolean }
@@ -334,6 +351,7 @@ export class AccountService {
     const accountSettingsRepo = AppDataSourceReadWrite.getRepository(AccountSettings);
     const localeRepo = AppDataSourceReadWrite.getRepository(AccountSettingsLocale);
     const notificationRepo = AppDataSourceReadWrite.getRepository(AccountSettingsNotification);
+    const notificationPreferenceService = new AccountNotificationPreferenceService();
     const playbackRepo = AppDataSourceReadWrite.getRepository(AccountSettingsPlayback);
 
     // If alwaysCreate (used by create), always create new AccountSettings row linked to the account
@@ -358,7 +376,7 @@ export class AccountService {
       // Then create and save the playback settings with the default preferred media type
       const playback = new AccountSettingsPlayback();
       playback.account_settings_id = savedAccountSettings.id;
-      playback.preferred_media_type = 'video';
+      playback.preferred_media_type = DEFAULT_MEDIA_TYPE_PREFERENCE;
       await playbackRepo.save(playback);
 
       // Finally, create and save the notification types
@@ -373,6 +391,8 @@ export class AccountService {
         AccountSettingsNotificationType
       );
       await notificationTypeRepo.save([t1, t2]);
+
+      await notificationPreferenceService.seedDefaultsForAccount(account.id);
 
       return;
     }
@@ -395,7 +415,10 @@ export class AccountService {
         .createQueryBuilder()
         .insert()
         .into(AccountSettingsPlayback)
-        .values({ account_settings_id: existingSettings.id, preferred_media_type: 'video' })
+        .values({
+          account_settings_id: existingSettings.id,
+          preferred_media_type: DEFAULT_MEDIA_TYPE_PREFERENCE,
+        })
         .orIgnore()
         .execute();
     }
@@ -423,5 +446,7 @@ export class AccountService {
       notification.account_settings_notification_types = [t1, t2];
       await notificationRepo.save(notification);
     }
+
+    await notificationPreferenceService.seedDefaultsForAccount(account.id);
   }
 }

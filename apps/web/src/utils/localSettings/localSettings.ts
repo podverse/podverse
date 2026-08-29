@@ -5,6 +5,7 @@ import type {
   QueryParamsMedium,
   QueryParamsQueueMedium,
 } from '@podverse/helpers';
+import { DEFAULT_MEDIA_TYPE_PREFERENCE } from '@podverse/helpers';
 import type {
   QueryParamsHomeSort,
   QueryParamsPlaylistsType,
@@ -241,7 +242,7 @@ function getDefaultLocalSettings(): LocalSettingsState {
     sba: { ...DEFAULT_SIDEBAR_ACCORDION_STATE },
     fd: {},
     bfd: {},
-    pmt: 'video',
+    pmt: DEFAULT_MEDIA_TYPE_PREFERENCE,
   };
 }
 

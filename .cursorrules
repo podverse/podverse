@@ -16,7 +16,7 @@ Lower tiers cannot depend on higher (see `.cursor/rules/architecture-tier-depend
   `"iPhone 17 Pro E2E"` / `Pixel_6_Pro_API_33_e2e`. Never bare `--device` (picker). See
   [mobile-ios-simulator](/.cursor/rules/mobile-ios-simulator.mdc).
 - App-specific rules: [apps/mobile/AGENTS.md](apps/mobile/AGENTS.md), contributor guide [apps/mobile/APPS-MOBILE.md](apps/mobile/APPS-MOBILE.md).
-- Master plan phasing: **mobile-master-plan-phasing** skill. Mobile E2E uses Maestro/Detox — not `make e2e_*`.
+- Master plan phasing: **mobile-master-plan-phasing** skill. The master plan is split into phases under [`docs/proposals/mobile/_master-plan_/`](docs/proposals/mobile/_master-plan_/PHASES.md) — **Phase 1 is closed** (agent-led framework build-out); **Phase 2 is active** and **operator-guided** from legacy-app screenshots, see **mobile-legacy-screenshot-planning**. Mobile E2E uses Maestro/Detox — not `make e2e_*`.
 - Commands from repo root: prefer composite scripts (`deps:init`, `deps:init:native`, `mobile:dev`, `mobile:ios` / `mobile:android`, `mobile:e2e:*`) over multi-step install/prebuild recipes — see **mobile-expo-monorepo**. Not `-w apps/mobile`.
 - **Expo CLI:** never bare `npx expo` from repo root (pulls wrong SDK). Use **Mobile** tab + `npm --prefix apps/mobile exec -- expo …` or `npm run mobile:install` (**vscode-terminals-commands**, **mobile-expo-monorepo**).
 

@@ -1,12 +1,13 @@
 import { expect, test } from '@playwright/test';
 
+import { ROUTES } from './helpers/routes';
 import { capturePageLoad } from './helpers/stepScreenshots';
 
 test.describe('Cloudflare Web Analytics integration (enabled)', () => {
   test('When Cloudflare Web Analytics is enabled, the home page loads the beacon script with the configured token', async ({
     page,
   }, testInfo) => {
-    await page.goto('/');
+    await page.goto(ROUTES.HOME);
 
     await expect(page).toHaveURL('/');
 

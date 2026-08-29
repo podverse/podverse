@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { z } from 'zod';
 
+import { buildEpisodePath } from '@podverse/helpers';
 import {
   QUERY_PARAMS_ITEM_SORT_VALUES,
   QUERY_PARAMS_ITEM_TYPE_VALUES,
@@ -51,7 +52,7 @@ export async function generateMetadata({ params }: EpisodePageProps): Promise<Me
     return buildContentMetadata({
       title: item.title,
       descriptionPlain,
-      pathname: `/episode/${item.id_text}`,
+      pathname: buildEpisodePath(item.id_text),
       imageUrl: getItemThenChannelHeroImageUrl(item.item_images, channel.channel_images),
       type: 'article',
     });

@@ -1,0 +1,38 @@
+---
+description: When and how to use the sibling podverse-rn legacy app as inspiration
+alwaysApply: true
+---
+
+# Legacy app reference (`podverse-rn`)
+
+## Vocabulary
+
+- **legacy app** / **podverse-rn** / **v4 mobile** = sibling checkout at `../podverse-rn`
+  (absolute typical path: `/Users/mitcheldowney/repos/pv/podverse-rn`).
+- **Nextgen** = this monorepo (`podverse`), including `apps/mobile`.
+
+## When to look
+
+**Only** open, search, or cite `podverse-rn` when the operator **explicitly** asks for legacy /
+podverse-rn / “look at the legacy app” (or equivalent). Do not browse it for ordinary nextgen
+tasks.
+
+**Mobile master plan Phase 2 carve-out:** when the operator pastes **legacy app screenshots** to
+drive Phase 2 planning, that counts as an explicit request — reading
+`../podverse-rn/src/screens/<Name>Screen.tsx` to answer a behavior question about those screenshots
+is expected. Follow
+[mobile-legacy-screenshot-planning](/.cursor/skills/mobile-legacy-screenshot-planning/SKILL.md).
+**Never store the screenshots** in the repo (not `docs/`, `.llm/`, or `.artifacts/`) — convert them
+to written notes and plan text.
+
+## How to look
+
+- Prefer the **local sibling** checkout over GitHub remote when the directory exists.
+- Treat legacy as **inspiration and guidance**, not a port checklist or source of truth.
+- Do **not** assume legacy APIs, navigation, storage, or UX are correct for nextgen.
+- Prefer modern Expo / nextgen patterns; call out improvements when reusing ideas or assets.
+- Do not edit or publish from `podverse-rn` unless the operator explicitly asks.
+
+## Related
+
+- Vocabulary: [abcmemory-vocabulary](/.cursor/rules/abcmemory-vocabulary.mdc)

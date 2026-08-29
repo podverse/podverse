@@ -199,7 +199,7 @@ export function MoreOpmlScreen() {
       importReport.results.length > 0);
 
   return (
-    <MobileScreenContainer heading={t('nav.stack.opml')} testID="more-opml-screen">
+    <MobileScreenContainer testID="more-opml-screen">
       <Card>
         <Text style={styles.sectionTitle}>{t('settings.opml.export_title')}</Text>
         <Text style={styles.description}>{t('settings.opml.export_description')}</Text>

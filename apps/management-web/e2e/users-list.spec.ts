@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 
+import { ROUTES } from './helpers/routes';
 import { capturePageLoad } from './helpers/stepScreenshots';
 
 /**
@@ -63,13 +64,13 @@ test.describe('Management-web users list', () => {
       });
     });
 
-    await page.goto('/');
+    await page.goto(ROUTES.HOME);
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
     await page.getByRole('button', { name: 'Sign In' }).click();
     await page.waitForURL('**/dashboard');
 
-    await page.goto('/users');
+    await page.goto(ROUTES.USERS);
     await expect(page).toHaveURL(/\/users$/);
     await expect(page.getByRole('heading', { name: 'Users', level: 1 })).toBeVisible();
 
@@ -126,13 +127,13 @@ test.describe('Management-web users list', () => {
       });
     });
 
-    await page.goto('/');
+    await page.goto(ROUTES.HOME);
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
     await page.getByRole('button', { name: 'Sign In' }).click();
     await page.waitForURL('**/dashboard');
 
-    await page.goto('/users');
+    await page.goto(ROUTES.USERS);
     await expect(page.getByRole('heading', { name: 'Users', level: 1 })).toBeVisible();
 
     await expect(page.getByPlaceholder('Search')).not.toBeVisible();
@@ -182,13 +183,13 @@ test.describe('Management-web users list', () => {
       });
     });
 
-    await page.goto('/');
+    await page.goto(ROUTES.HOME);
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
     await page.getByRole('button', { name: 'Sign In' }).click();
     await page.waitForURL('**/dashboard');
 
-    await page.goto('/users');
+    await page.goto(ROUTES.USERS);
     await expect(page.getByRole('button', { name: 'Sort by Email' })).toBeVisible();
 
     await page.getByPlaceholder('Search').fill('refetch-trigger');

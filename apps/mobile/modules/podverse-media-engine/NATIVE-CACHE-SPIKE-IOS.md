@@ -1,6 +1,6 @@
 # Native cache read spike — iOS (master step 12.5)
 
-**Detail:** [384-spike-cache-read-no-js-ios](/docs/proposals/mobile/_master-plan_/details/384-spike-cache-read-no-js-ios.md)
+**Detail:** [384-spike-cache-read-no-js-ios](/docs/proposals/mobile/_master-plan_/phase-1/details/384-spike-cache-read-no-js-ios.md)
 **Goal:** prove iOS native code can read the durable native cache (queue / downloads /
 library-browse) **with the JS runtime not started** — the "get in the car, browse and play, never
 open the phone app" contract from
@@ -110,4 +110,4 @@ entitlement (12.16).
 - CarPlay entitlement (operator): [CARPLAY-ENTITLEMENT.md](./CARPLAY-ENTITLEMENT.md)
 - CarPlay Simulator checklist: [CARPLAY-SIMULATOR-CHECKLIST.md](./CARPLAY-SIMULATOR-CHECKLIST.md)
 - Android counterpart: [NATIVE-CACHE-SPIKE-ANDROID.md](./NATIVE-CACHE-SPIKE-ANDROID.md)
-- Storage detail: [381-ios-native-cache-storage](/docs/proposals/mobile/_master-plan_/details/381-ios-native-cache-storage.md)
+- Storage detail: [381-ios-native-cache-storage](/docs/proposals/mobile/_master-plan_/phase-1/details/381-ios-native-cache-storage.md)

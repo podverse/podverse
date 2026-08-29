@@ -1,4 +1,5 @@
-import { type CrudOp, hasCrud } from '@management-api/lib/crud.js';
+import type { CrudOp } from '@management-api/lib/crud.js';
+import { hasCrud } from '@management-api/lib/crud.js';
 import type { NextFunction, Request, Response } from 'express';
 
 type PermissionResource =
@@ -8,7 +9,8 @@ type PermissionResource =
   | 'stats'
   | 'billing_prices'
   | 'bucket'
-  | 'embed_demo';
+  | 'embed_demo'
+  | 'notifications';
 
 function getCrudForResource(
   permissions: NonNullable<Express.User['permissions']>,
@@ -29,6 +31,8 @@ function getCrudForResource(
       return permissions.bucket_crud ?? 0;
     case 'embed_demo':
       return permissions.embed_demo_crud ?? 0;
+    case 'notifications':
+      return permissions.notifications_crud ?? 0;
   }
 }
 

@@ -33,6 +33,8 @@ Contributor guide: [`APPS-MOBILE.md`](/apps/mobile/APPS-MOBILE.md).
 - **Helpers / lib:** put generic (non-screen-specific) helpers in `src/lib/` when first written —
   even with one callsite. Prefer domain modules (`src/auth`, `src/config`, …) when the domain owns
   the helper. See **mobile-react-native** rule.
+- **Reusable UI (DRY):** prefer `src/components/**` (primitives, state, screen, section, player)
+  over per-screen one-offs — see **mobile-reusable-components** skill and **mobile-react-native**.
 - **Playback:** reuse policy from `@podverse/playback-core`; implement a **native** bridge — see
   **mobile-playback** skill and
   [DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-PLAYBACK-QUEUE-PARITY.md).
@@ -68,10 +70,15 @@ Mobile is a Tier 5 consumer: import **downward** only. Mirror
 When implementing a screen: read the matching web route context/hooks first for `req*` and DTO usage;
 reuse the same wrappers; do **not** port SCSS, `@podverse/ui`, Next routing, or SSR patterns.
 
-**Ship bar:** feature work delivers **functionality + screen sketches** (IA, affordances, wiring,
-`testID`s). Do **not** thrash on final layout, player-integrated transcripts, clip authoring, or
-pixel DnD — see master plan **Ship bar** / Track **23** and
-[DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md).
+**Ship bar (Phase 2):** the master plan is now in **Phase 2**, which is **operator-guided** from
+legacy-app screenshots — visual resolution is part of each area's definition of done, so the Phase 1
+"functional sketch only, polish deferred to Track 23" bar **no longer applies**. Agents still do not
+invent visual direction: it comes from the operator's screenshots and answers, and you ask when
+they don't settle a question. See
+[PHASES.md](/docs/proposals/mobile/_master-plan_/PHASES.md), the
+**mobile-legacy-screenshot-planning** skill, and
+[DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md)
+(written for Phase 1). Player-integrated transcripts and pixel DnD remain explicit deferrals.
 
 ## Themes
 

@@ -84,6 +84,7 @@ export type NavBarProps = {
   brand: NavBarBrandProps;
   mobileToggle?: NavBarMobileToggleProps;
   search?: NavBarSearchProps;
+  trailingActions?: ReactNode;
 };
 
 function DefaultNavBarLink({ children, className, href }: NavBarLinkComponentProps) {
@@ -124,6 +125,7 @@ export function NavBar({
   brand,
   mobileToggle,
   search,
+  trailingActions,
 }: NavBarProps) {
   const BrandLink = brand.LinkComponent ?? DefaultNavBarLink;
   const visibility = brand.visibility ?? 'always';
@@ -158,6 +160,7 @@ export function NavBar({
 
       <div className={styles.rightCluster}>
         {search !== undefined ? <NavBarSearchControl search={search} /> : null}
+        {trailingActions}
 
         {accountMenu !== undefined ? (
           <DropdownMenu

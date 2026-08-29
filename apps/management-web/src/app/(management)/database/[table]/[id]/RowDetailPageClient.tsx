@@ -31,6 +31,7 @@ import {
   type TableMeta,
   updateTableRow,
 } from '../../../../../lib/requests/database';
+import { buildDatabaseTablePath, ROUTES } from '../../../../../lib/routes';
 
 const TABLE_SINGULAR_LABEL_KEYS: Record<string, string> = {
   feed: 'tables.feed.labelSingular',
@@ -131,7 +132,7 @@ export function RowDetailPageClient({ tableName, rowId, initialRow }: RowDetailP
 
     try {
       await deleteTableRow(tableName, rowId);
-      router.push(`/database/${tableName}`);
+      router.push(buildDatabaseTablePath(tableName));
     } catch (err) {
       const raw =
         err && typeof err === 'object' && 'response' in err
@@ -172,9 +173,9 @@ export function RowDetailPageClient({ tableName, rowId, initialRow }: RowDetailP
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
           items={[
-            { href: '/dashboard', label: tNav('dashboard') },
-            { href: '/database', label: t('title') },
-            { href: `/database/${tableName}`, label: tableName },
+            { href: ROUTES.DASHBOARD, label: tNav('dashboard') },
+            { href: ROUTES.DATABASE, label: t('title') },
+            { href: buildDatabaseTablePath(tableName), label: tableName },
             { label: `#${rowId}` },
           ]}
         />
@@ -213,7 +214,11 @@ export function RowDetailPageClient({ tableName, rowId, initialRow }: RowDetailP
                 </Button>
               )}
               {meta?.readOnly && <StatusBadge variant="warning">{tc('readOnlyTable')}</StatusBadge>}
-              <ActionLink href={`/database/${tableName}`} variant="subtle" LinkComponent={Link}>
+              <ActionLink
+                href={buildDatabaseTablePath(tableName)}
+                variant="subtle"
+                LinkComponent={Link}
+              >
                 {tc('back')}
               </ActionLink>
             </PageHeaderActions>

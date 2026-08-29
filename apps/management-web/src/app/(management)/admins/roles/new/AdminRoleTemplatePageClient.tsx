@@ -23,6 +23,7 @@ import {
 } from '../../../../../components/admins/adminPermissionModel';
 import { AdminPermissionsSection } from '../../../../../components/admins/AdminPermissionsSection';
 import { createManagementAdminRole } from '../../../../../lib/requests/adminRoles';
+import { ROUTES } from '../../../../../lib/routes';
 
 export function AdminRoleTemplatePageClient({ returnUrl }: { returnUrl: string }) {
   const router = useRouter();
@@ -55,6 +56,7 @@ export function AdminRoleTemplatePageClient({ returnUrl }: { returnUrl: string }
         billing_prices_crud: permissions.billing_prices_crud,
         bucket_crud: permissions.bucket_crud,
         embed_demo_crud: permissions.embed_demo_crud,
+        notifications_crud: permissions.notifications_crud,
       });
       router.push(returnUrl);
       router.refresh();
@@ -78,8 +80,8 @@ export function AdminRoleTemplatePageClient({ returnUrl }: { returnUrl: string }
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
           items={[
-            { href: '/dashboard', label: tNav('dashboard') },
-            { href: '/admins', label: tAdmins('title') },
+            { href: ROUTES.DASHBOARD, label: tNav('dashboard') },
+            { href: ROUTES.ADMINS, label: tAdmins('title') },
             { label: t('pageTitle') },
           ]}
         />

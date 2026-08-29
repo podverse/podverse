@@ -6,6 +6,8 @@ import { useTranslations } from 'next-intl';
 import type { NavCard } from '@podverse/ui';
 import { Breadcrumbs, ManagementPageShell, NavCardGrid } from '@podverse/ui';
 
+import { ROUTES } from '../../../lib/routes';
+
 export function ProductsPageClient() {
   const t = useTranslations('products');
   const tc = useTranslations('common');
@@ -13,7 +15,7 @@ export function ProductsPageClient() {
 
   const cards: NavCard[] = [
     {
-      href: '/products/memberships',
+      href: ROUTES.PRODUCTS_MEMBERSHIPS,
       title: t('membershipsCardTitle'),
       description: t('membershipsCardDescription'),
     },
@@ -25,7 +27,7 @@ export function ProductsPageClient() {
         <Breadcrumbs
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
-          items={[{ href: '/dashboard', label: tNav('dashboard') }, { label: t('pageTitle') }]}
+          items={[{ href: ROUTES.DASHBOARD, label: tNav('dashboard') }, { label: t('pageTitle') }]}
         />
       }
       title={t('pageTitle')}

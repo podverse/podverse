@@ -23,6 +23,7 @@ import { redirect } from 'next/navigation';
 
 import { getManagementAuthService } from '../../../lib/auth/serverManagementSession.js';
 import type { ManagementApiRequestService } from '../../../lib/requests/apiRequestService.js';
+import { ROUTES } from '../../../lib/routes';
 import { fetchBucketStorageEnabledForDashboard } from '../../../lib/server/bucketStorageDashboard.js';
 import DashboardPage from './page.js';
 
@@ -51,7 +52,7 @@ describe('DashboardPage (server)', () => {
       await DashboardPage();
     }).rejects.toThrow('redirect_called');
 
-    expect(vi.mocked(redirect)).toHaveBeenCalledWith('/');
+    expect(vi.mocked(redirect)).toHaveBeenCalledWith(ROUTES.HOME);
   });
 
   it('renders the dashboard client when the session is valid', async () => {

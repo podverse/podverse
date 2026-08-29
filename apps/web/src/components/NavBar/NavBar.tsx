@@ -14,6 +14,7 @@ import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { NavBarBrand } from './NavBarBrand';
+import { NotificationBellButton } from './NotificationBellButton';
 
 export const NavBar = () => {
   const router = useRouter();
@@ -115,6 +116,11 @@ export const NavBar = () => {
         href: ROUTES.SEARCH,
         LinkComponent: NextLink,
       }}
+      trailingActions={
+        loggedInAccount !== null && loggedInAccount !== undefined ? (
+          <NotificationBellButton />
+        ) : null
+      }
     />
   );
 };

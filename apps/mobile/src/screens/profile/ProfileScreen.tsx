@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useCallback } from 'react';
+import { useCallback, useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '../../components/primitives/Button';
@@ -12,18 +12,24 @@ import { ProfileContentSections } from './ProfileContentSections';
 
 type ProfileScreenProps = NativeStackScreenProps<MoreStackParamList, 'MorePublicProfile'>;
 
-export function ProfileScreen({ route }: ProfileScreenProps) {
+export function ProfileScreen({ navigation, route }: ProfileScreenProps) {
   const { t } = useTranslation();
   const { accountIdText } = route.params;
   const { content, displayName, errorKey, isLoading, reload } =
     usePublicProfileContentLoad(accountIdText);
+
+  const headerTitle = displayName ?? accountIdText;
+
+  useLayoutEffect(() => {
+    navigation.setOptions({ title: headerTitle });
+  }, [headerTitle, navigation]);
 
   const handleShare = useCallback(() => {
     shareResolvedUrl(buildPublicShareUrl('profile', accountIdText));
   }, [accountIdText]);
 
   return (
-    <MobileScreenContainer heading={displayName ?? accountIdText} testID="profile-screen">
+    <MobileScreenContainer testID="profile-screen">
       <Button
         label={t('features.share')}
         onPress={handleShare}

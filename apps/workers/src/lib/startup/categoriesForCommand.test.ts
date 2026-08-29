@@ -15,6 +15,12 @@ function sortCategories(set: ReadonlySet<string>): string[] {
 }
 
 describe('getCategoriesForCommand', () => {
+  it('maps scheduledJobsRunDue to Base and ORM', () => {
+    expect(sortCategories(getCategoriesForCommand('scheduledJobsRunDue'))).toEqual(
+      sortCategories(new Set([CATEGORY_BASE, CATEGORY_ORM]))
+    );
+  });
+
   it('maps archiveAll to Base and ORM', () => {
     expect(sortCategories(getCategoriesForCommand('archiveAll'))).toEqual(
       sortCategories(new Set([CATEGORY_BASE, CATEGORY_ORM]))
