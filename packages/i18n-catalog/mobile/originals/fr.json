@@ -3,21 +3,26 @@
     "tab": {
       "home": "Accueil",
       "more": "Plus",
+      "notifications": "Notifications",
       "rss": "RSS",
       "downloads": "Téléchargements"
     },
     "stack": {
       "home": "Accueil",
+      "opml": "OPML",
       "search_result": "Résultat de recherche",
-      "rss_feeds": "Flux RSS",
-      "opml": "OPML"
+      "rss_feeds": "Flux RSS"
     },
     "menu": {
-      "view_rss_feeds": "Voir les flux RSS",
-      "opml": "OPML"
+      "opml": "OPML",
+      "view_rss_feeds": "Voir les flux RSS"
     }
   },
   "features": {
+    "opml": {
+      "rate_limited_time_one": "1 minute",
+      "rate_limited_time_other": "{minutes} minutes"
+    },
     "download": {
       "queued": "En file d'attente",
       "remove": "Supprimer",
@@ -36,10 +41,20 @@
       "not_available_yet": "Ce podcast n’est pas encore dans notre annuaire. Ajoutez-le pour le rendre disponible.",
       "add_failed": "Impossible d’ajouter ce podcast. Réessayez plus tard.",
       "add_timed_out": "Traitement toujours en cours après plusieurs minutes. Recherchez à nouveau sous peu pour ouvrir ce podcast — l’ajout ne vous abonne pas automatiquement."
-    },
-    "opml": {
-      "rate_limited_time_one": "1 minute",
-      "rate_limited_time_other": "{minutes} minutes"
+    }
+  },
+  "notifications": {
+    "section": {
+      "earlier": "Plus anciennes",
+      "new": "Nouvelles"
+    }
+  },
+  "settings": {
+    "notifications": {
+      "login_required_title": "Connexion requise",
+      "login_required_message": "Connectez-vous pour modifier les préférences de notification.",
+      "open_system_settings": "Ouvrir les paramètres du système",
+      "permission_required": "L'autorisation de notification est requise pour activer ce paramètre."
     }
   }
 }

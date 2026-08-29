@@ -100,6 +100,7 @@
     "dashboard": "Tableau de bord",
     "users": "Utilisateurs",
     "content": "Contenu",
+    "notifications": "Notifications",
     "settings": "Paramètres",
     "userMenu": "Menu du compte",
     "userRole": "Rôle : {role}",
@@ -127,6 +128,10 @@
     "web": {
       "title": "Web",
       "description": "Configurer les surfaces web publiques telles que la page de démonstration intégrée"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Rédigez et planifiez des campagnes de notification pour les comptes"
     },
     "admins": {
       "title": "Administrateurs",
@@ -426,7 +431,7 @@
     "adminDetail": "Détail de l'administrateur",
     "createAdmin": "Créer un administrateur",
     "editAdmin": "Modifier un administrateur",
-    "editAdminItem": "Modifier {email}",
+    "editAdminItem": "Modifier {identifier}",
     "failedToLoad": "Échec du chargement des comptes administrateurs",
     "failedToCreate": "Échec de la création de l'administrateur",
     "failedToUpdate": "Échec de la mise à jour de l'administrateur",
@@ -482,6 +487,7 @@
       "billingPrices": "Prix de facturation",
       "bucket": "Stockage d'objets",
       "embedDemo": "Démonstration intégrée",
+      "notifications": "Notifications",
       "roleTemplateLabel": "Modèle de permission",
       "roleTemplateHint": "Choisissez un modèle enregistré pour remplir la grille. Vous pouvez toujours ajuster les cases individuelles par la suite.",
       "roleCustom": "Personnalisé (manuel)",
@@ -512,6 +518,37 @@
       "saveTemplate": "Enregistrer le modèle",
       "createFailed": "Échec de l'enregistrement du modèle",
       "nameRequired": "Entrez un nom de modèle"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "newTitle": "Nouvelle campagne de notification",
+    "detailTitle": "Détails de la campagne de notification",
+    "create": "Créer la campagne",
+    "backToList": "Retour à la liste",
+    "cancelCampaign": "Annuler la campagne programmée",
+    "failedToLoad": "Échec du chargement des campagnes de notification.",
+    "failedToCreate": "Échec de la création de la campagne de notification.",
+    "failedToCancel": "Échec de l'annulation de la campagne de notification.",
+    "empty": "Aucune campagne de notification trouvée.",
+    "table": {
+      "id": "ID",
+      "title": "Titre",
+      "category": "Catégorie",
+      "status": "Statut",
+      "scheduledAt": "Programmée le",
+      "sentAt": "Envoyée le"
+    },
+    "fields": {
+      "title": "Titre",
+      "body": "Corps",
+      "linkPath": "Chemin du lien",
+      "category": "Catégorie",
+      "sendPush": "Envoyer une notification push",
+      "sendAt": "Envoyer le (laisser vide pour envoyer maintenant)"
+    },
+    "validation": {
+      "titleRequired": "Le titre est obligatoire."
     }
   },
   "users": {

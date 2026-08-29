@@ -3,21 +3,26 @@
     "tab": {
       "home": "Αρχική",
       "more": "Περισσότερα",
+      "notifications": "Ειδοποιήσεις",
       "rss": "RSS",
       "downloads": "Λήψεις"
     },
     "stack": {
       "home": "Αρχική",
+      "opml": "OPML",
       "search_result": "Αποτέλεσμα αναζήτησης",
-      "rss_feeds": "Ροές RSS",
-      "opml": "OPML"
+      "rss_feeds": "Ροές RSS"
     },
     "menu": {
-      "view_rss_feeds": "Προβολή ροών RSS",
-      "opml": "OPML"
+      "opml": "OPML",
+      "view_rss_feeds": "Προβολή ροών RSS"
     }
   },
   "features": {
+    "opml": {
+      "rate_limited_time_one": "1 minute",
+      "rate_limited_time_other": "{minutes} minutes"
+    },
     "download": {
       "queued": "Σε ουρά",
       "remove": "Αφαίρεση",
@@ -36,10 +41,20 @@
       "not_available_yet": "Αυτό το podcast δεν είναι ακόμη στον κατάλογό μας. Προσθέστε το για να γίνει διαθέσιμο.",
       "add_failed": "Δεν ήταν δυνατή η προσθήκη αυτού του podcast. Δοκιμάστε ξανά αργότερα.",
       "add_timed_out": "Ακόμα επεξεργάζεται μετά από αρκετά λεπτά. Αναζητήστε ξανά σύντομα για να ανοίξετε αυτό το podcast — η προσθήκη δεν σας εγγράφει αυτόματα."
-    },
-    "opml": {
-      "rate_limited_time_one": "1 minute",
-      "rate_limited_time_other": "{minutes} minutes"
+    }
+  },
+  "notifications": {
+    "section": {
+      "earlier": "Παλαιότερες",
+      "new": "Νέες"
+    }
+  },
+  "settings": {
+    "notifications": {
+      "login_required_title": "Απαιτείται σύνδεση",
+      "login_required_message": "Συνδεθείτε για να αλλάξετε τις προτιμήσεις ειδοποιήσεων.",
+      "open_system_settings": "Άνοιγμα ρυθμίσεων συστήματος",
+      "permission_required": "Απαιτείται άδεια ειδοποιήσεων για την ενεργοποίηση αυτής της ρύθμισης."
     }
   }
 }
