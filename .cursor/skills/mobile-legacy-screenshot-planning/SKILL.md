@@ -23,7 +23,12 @@ Active plan: [Phase 2 master plan](/docs/proposals/mobile/_master-plan_/phase-2/
    [`legacy-app-reference`](/.cursor/rules/legacy-app-reference.mdc), do not assume legacy
    navigation, storage, API shapes, or UX are right for nextgen. Say when nextgen already has a
    better pattern.
-4. **One area at a time.** The operator batches screenshots per screen area (Home & browse, Player,
+4. **Bottom-tab layouts intentionally differ.** A screenshot from the previous-generation app shows
+the previous-generation bottom tabs; that tab arrangement is not a nextgen navigation
+specification. Nextgen is expected to use a different bottom-tab layout, so do not classify tab
+differences as a parity gap or port the previous-generation tabs without an explicit product
+decision.
+5. **One area at a time.** The operator batches screenshots per screen area (Home & browse, Player,
    Library, …). Do not expand scope into adjacent areas without asking.
 
 ## The loop
