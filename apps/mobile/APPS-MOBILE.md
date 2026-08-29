@@ -909,7 +909,10 @@ Store metadata as code:
   — Track 18 form factors + phone-only vs shared subsystem scope
 - [DOCS-MOBILE-LLM-CURSOR-SETUP.md](/docs/proposals/mobile/monorepo-llm-setup/DOCS-MOBILE-LLM-CURSOR-SETUP.md)
 - [DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md)
-- [001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md)
+- [PHASES.md](/docs/proposals/mobile/_master-plan_/PHASES.md) — master plan phase index (Phase 1
+  closed, Phase 2 active)
+- [001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md) — Phase 1
+  (historical)
 - [MOBILE-RELEASE-RUNBOOK.md](/docs/operations/mobile/MOBILE-RELEASE-RUNBOOK.md)
 - [MOBILE-BETA-TESTER-ONBOARDING.md](/docs/operations/mobile/MOBILE-BETA-TESTER-ONBOARDING.md)
 - [podverse-media-engine README](modules/podverse-media-engine/README.md) — bridge contract + cache hooks

@@ -47,9 +47,9 @@ Use **`.llm/plans/active/mobile-<phase-slug>/`** for:
 
 Follow **plan-completion** and **mobile-master-plan-phasing** when archiving.
 
-## When to use `docs/proposals/mobile/_master-plan_/details/`
+## When to use `docs/proposals/mobile/_master-plan_/phase-1/details/`
 
-- Per-step **durable** design + acceptance criteria linked from [001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md)
+- Per-step **durable** design + acceptance criteria linked from [001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md)
 - Status lifecycle: `draft` → `planned` → `done` on the detail doc header
 - Not loaded as Cursor memory — agents reach them via master plan links or explicit `@` paths
 

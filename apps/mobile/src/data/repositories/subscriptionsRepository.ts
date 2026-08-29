@@ -106,7 +106,7 @@ const hydrateDirectoryChannels = async (
  * (from `addByRssRepository`) into one deduped, sorted, filterable list, offline-first. Consumed by
  * Home (8.16), My Library (9.30), and the car library-browse projection (12.22). All follows-related
  * API calls stay here (never in screens); see the mobile-data-layer skill.
- * Detail: docs/proposals/mobile/_master-plan_/details/600-unified-subscriptions-repository.md
+ * Detail: docs/proposals/mobile/_master-plan_/phase-1/details/600-unified-subscriptions-repository.md
  */
 export const subscriptionsRepository = {
   /** Merged directory + add-by-RSS follows (default: all, alphabetical). Offline-capable. */

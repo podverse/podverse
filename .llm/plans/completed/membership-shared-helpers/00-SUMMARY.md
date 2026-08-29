@@ -78,7 +78,7 @@ is correct and complete:
   member-gated mutation API calls and playback is not a gated feature, so no membership handling is
   needed (or wanted) there. Adding an entitlement check to the native car/watch path would break the
   app-closed constraint. Documented in
-  [535-device-track-scope-matrix](/docs/proposals/mobile/_master-plan_/details/535-device-track-scope-matrix.md)
+  [535-device-track-scope-matrix](/docs/proposals/mobile/_master-plan_/phase-1/details/535-device-track-scope-matrix.md)
   and [car-ux-parity/000-OVERVIEW](/docs/proposals/mobile/car-ux-parity/000-OVERVIEW.md).
 
 Therefore this plan deliberately keeps everything in the shared TS packages and adds **no** native code.

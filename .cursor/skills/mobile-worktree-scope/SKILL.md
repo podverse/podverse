@@ -36,7 +36,7 @@ Scope each session to **one Track or PG group** plus the shared packages that Tr
 | PG-10 | 18      | 19, 20                | 7, 11                |
 | PG-11 | 19–21   | **each other**        | MVP feature-complete |
 
-Re-read Appendix C in [001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md)
+Re-read Appendix C in [001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md)
 before recommending; completed steps may unlock groups early.
 
 ## Native vs RN UI isolation

@@ -165,7 +165,7 @@ File: `migration-COPY-PASTA.md` (or `COPY-PASTA.md` in a plan set)
 **Required: Recommended Cursor model and reasoning on every prompt.** Each COPY-PASTA block must state
 which model the operator should select in Cursor before pasting, plus a **Reasoning:** line (`low` |
 `medium` | `high` | `extra high`). Reasoning is thinking depth for that model (not the model name);
-defaults like Codex 5.3 + medium or Opus 4.8 + high are fine — use lower when work is mechanical,
+defaults like Codex 5.3 + medium or Opus 5 + high are fine — use lower when work is mechanical,
 higher when schema/workers/cross-package risk warrants it.
 
 Prefer these model tiers (cheapest → premium):
@@ -174,7 +174,7 @@ Prefer these model tiers (cheapest → premium):
 | ----- | -------- |
 | **Auto** | Mechanical transcription, simple config/docs, operator-only steps, low-risk edits |
 | **Codex 5.3** | Standard feature work, mirroring existing patterns, CI/E2E scaffolding, most RN/web tasks |
-| **Opus 4.8** | Native/engine work, cross-cutting architecture, assembly, store safety, playback parity |
+| **Opus 5** | Native/engine work, cross-cutting architecture, assembly, store safety, playback parity |
 
 | Reasoning | Use when |
 | --------- | -------- |
@@ -225,7 +225,7 @@ Read and execute .llm/plans/active/feature/migration-06-critical.md
 
 Verify: [quick verification command]
 
-**Cursor model:** Opus 4.8
+**Cursor model:** Opus 5
 **Reasoning:** high
 
 ```
@@ -273,7 +273,7 @@ Read and execute .llm/plans/active/feature/migration-09-group-b.md
 - Clear phase markers: "PHASE 1", "PHASE 2", etc.
 - Agent labels: "Agent 2A", "Agent 2B" for easy reference
 - Parallel indicators: "(Execute in Parallel - 4 Agents)"
-- **Recommended Cursor model** and **Reasoning** on every prompt (Auto, Codex 5.3, or Opus 4.8 preferred)
+- **Recommended Cursor model** and **Reasoning** on every prompt (Auto, Codex 5.3, or Opus 5 preferred)
 
 ## Efficiency Metrics
 

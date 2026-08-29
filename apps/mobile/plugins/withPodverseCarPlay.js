@@ -27,7 +27,7 @@
  * on CarPlay Home → app cold-launches, App Group cache read, root template renders). The
  * `com.apple.developer.carplay-audio` entitlement — not a scene manifest — registers the CarPlay
  * Home icon and triggers cold-launch, so a manifest is unnecessary AND harmful (it suppresses the
- * phone `UIWindowScene` → black screen). See `.llm/plans/completed/mobile-carplay-app-closed-scene/`
+ * phone `UIWindowScene` → black screen). See `.llm/plans/completed/phase-1/mobile-carplay-app-closed-scene/`
  * and result [4] of the iOS 26 scene write-up (window.windowScene re-attach).
  */
 const { withAppDelegate, createRunOncePlugin } = require('expo/config-plugins');

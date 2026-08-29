@@ -9,7 +9,7 @@ Update planning docs and abcmemory to reflect delivered OPML import/export and c
 ## Tasks
 
 1. **Master plan Track 16** in
-   [docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md):
+   [docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md):
    mark the OPML steps done and adjust statuses:
    - 16.4 OPML import parse, 16.5 batch subscribe, 16.6 export generate, 16.7 export share,
      16.8 error handling, 16.9 E2E import, 16.10 E2E export.
@@ -17,7 +17,7 @@ Update planning docs and abcmemory to reflect delivered OPML import/export and c
      step text to match the shipped architecture.
    - Update the "Current status / next up" table (PG-9 rest → OPML done).
 2. **Detail files**: touch
-   [details/463-opml-import-parse.md](/docs/proposals/mobile/_master-plan_/details/463-opml-import-parse.md)
+   [details/463-opml-import-parse.md](/docs/proposals/mobile/_master-plan_/phase-1/details/463-opml-import-parse.md)
    … `469` to reflect the server-job design (or add a short note pointing at this plan set).
 3. **Web docs**: add a short OPML section where settings features are documented (find the settings
    doc under `docs/` or `apps/web`); note server endpoints `GET /account/opml/export`,

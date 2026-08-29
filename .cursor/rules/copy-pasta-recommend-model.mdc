@@ -15,17 +15,20 @@ the operator which Cursor model **and reasoning level** to use before pasting.
 
 - Include **`Cursor model:`** and **`Reasoning:`** on **each** prompt (or a phase-level table with
   Model + Reasoning columns).
-- Prefer models: **Auto** (cheapest), **Codex 5.3** (medium), **Opus 4.8** (premium).
+- Prefer models: **Auto** (cheapest), **Codex 5.3** (medium), **Opus 5** (premium).
+- When a newer, higher comparable model is available, prefer it over the older model tier for
+  new recommendations, even when the cost is modestly higher. Do not switch to an unrelated
+  specialized model solely because it is newer.
 - Prefer reasoning: **low**, **medium**, **high**, **extra high** (Cursor thinking depth for that
-  model — independent of model choice; e.g. Codex 5.3 + high, Opus 4.8 + medium).
+  model — independent of model choice; e.g. Codex 5.3 + high, Opus 5 + medium).
 - Match tier to risk: mechanical/docs → Auto + low; standard features → Codex 5.3 + medium; schema /
-  workers / cross-package → Codex 5.3 + high; native/engine/assembly → Opus 4.8 + high (or extra
+  workers / cross-package → Codex 5.3 + high; native/engine/assembly → Opus 5 + high (or extra
   high when concurrency or safety-critical).
 
 Numbered plan files (`01-*.md`, …) in the same plan set should repeat the same **Cursor model** and
 **Reasoning** lines at the top so operators see them when opening the plan directly.
 
-## When none of the three models fit
+## When none of the preferred models fit
 
 Name the alternative model explicitly and add one sentence explaining why (rare).
 

@@ -96,7 +96,7 @@ It plays via the `EXPO_PUBLIC_MOBILE_E2E`-gated **Play E2E video** button on Hom
 > manually verify on an iOS simulator, Android emulator, **and** a physical device: play the video
 > item, expand to the full player, and confirm live frames (not the static artwork) with no reload /
 > playhead jump on expand and collapse. See
-> `.llm/plans/completed/mobile-pg5-video-gaps/01-video-surface-reparent.md`.
+> `.llm/plans/completed/phase-1/mobile-pg5-video-gaps/01-video-surface-reparent.md`.
 
 New top-level `apps/mobile/e2e/<area>.yaml` files are included automatically. If a new flow needs
 the E2E API when run alone, add its basename to `flow_needs_e2e_api` in

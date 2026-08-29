@@ -17,6 +17,14 @@ alwaysApply: true
 podverse-rn / “look at the legacy app” (or equivalent). Do not browse it for ordinary nextgen
 tasks.
 
+**Mobile master plan Phase 2 carve-out:** when the operator pastes **legacy app screenshots** to
+drive Phase 2 planning, that counts as an explicit request — reading
+`../podverse-rn/src/screens/<Name>Screen.tsx` to answer a behavior question about those screenshots
+is expected. Follow
+[mobile-legacy-screenshot-planning](/.cursor/skills/mobile-legacy-screenshot-planning/SKILL.md).
+**Never store the screenshots** in the repo (not `docs/`, `.llm/`, or `.artifacts/`) — convert them
+to written notes and plan text.
+
 ## How to look
 
 - Prefer the **local sibling** checkout over GitHub remote when the directory exists.

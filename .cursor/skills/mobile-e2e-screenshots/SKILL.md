@@ -232,4 +232,4 @@ Track **5.17–5.20** API+DB harness is complete. Auth login/logout Maestro rema
 - [APPS-MOBILE.md](/apps/mobile/APPS-MOBILE.md)
 - **mobile-feature-requires-e2e** rule
 - **mobile-master-plan-phasing** — Track 5 E2E harness (5.17–5.20 complete)
-- Completed plan: [`.llm/plans/completed/mobile-e2e-api-db-harness/`](/.llm/plans/completed/mobile-e2e-api-db-harness/)
+- Completed plan: [`.llm/plans/completed/phase-1/mobile-e2e-api-db-harness/`](/.llm/plans/completed/phase-1/mobile-e2e-api-db-harness/)

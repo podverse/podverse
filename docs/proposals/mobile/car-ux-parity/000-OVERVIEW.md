@@ -3,15 +3,15 @@
 **Status:** proposal (docs only; not yet implemented)
 **Audience:** operators and agents detailing Track 12 CarPlay / Android Auto follow-on work
 **Related:** [DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md),
-master plan Track 12 ([001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md)),
+master plan Track 12 ([001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md)),
 [mobile-carplay-android-auto](/.cursor/rules/mobile-carplay-android-auto.mdc)
 
 **Subscriptions source:** the car **Podcasts** section lists the **merged** subscribed list
 (directory follows + add-by-RSS), matching legacy `subscribedPodcasts` (which combined add-by-RSS
 via `combineWithAddByRSSPodcasts`). That merged list is the shared
-[600 unified subscriptions repository](/docs/proposals/mobile/_master-plan_/details/600-unified-subscriptions-repository.md)
+[600 unified subscriptions repository](/docs/proposals/mobile/_master-plan_/phase-1/details/600-unified-subscriptions-repository.md)
 (step 9b.8), consumed by car step 12.22
-([401](/docs/proposals/mobile/_master-plan_/details/401-car-library-directory-follows.md)) as well
+([401](/docs/proposals/mobile/_master-plan_/phase-1/details/401-car-library-directory-follows.md)) as well
 as Home (8.16) and Library (9.30) — do not build a car-only merge.
 
 ## Goal
@@ -37,11 +37,11 @@ Car services never start JS to browse or play. See the architecture doc linked a
 **Membership never gates car browse or play.** Membership entitlement gates only premium _mutations_
 (queue add, playlists, notifications, directory add-by-RSS, clips), which are RN-screen actions
 enforced by the API. The car only **browses cached content and plays it as a direct transport action**
-([394](/docs/proposals/mobile/_master-plan_/details/394-car-playback-url-resolution.md)) — playback is
+([394](/docs/proposals/mobile/_master-plan_/phase-1/details/394-car-playback-url-resolution.md)) — playback is
 not a gated feature — so no 403 can originate here and cached content plays regardless of current
 membership state. **Do not add an entitlement check to the native browse/play path**; it would couple
 cached playback to membership and break the app-closed constraint. Scope table:
-[535-device-track-scope-matrix](/docs/proposals/mobile/_master-plan_/details/535-device-track-scope-matrix.md).
+[535-device-track-scope-matrix](/docs/proposals/mobile/_master-plan_/phase-1/details/535-device-track-scope-matrix.md).
 
 ## Old UX summary (source of truth)
 
@@ -172,9 +172,9 @@ This proposal **restructures** that browse tree to the four-section layout above
 Library/Downloads v1 as a **scaffold** that proved app-closed browse+play; UX parity work
 supersedes the root IA. Detail docs to expand or revise when implementing:
 
-- [386–389](/docs/proposals/mobile/_master-plan_/details/386-ios-carplay-scene-config.md) (CarPlay)
-- [391–394](/docs/proposals/mobile/_master-plan_/details/391-android-auto-browse-tree.md) (Android Auto)
-- [401](/docs/proposals/mobile/_master-plan_/details/401-car-library-directory-follows.md) (directory follows — absorbed into library-browse split)
+- [386–389](/docs/proposals/mobile/_master-plan_/phase-1/details/386-ios-carplay-scene-config.md) (CarPlay)
+- [391–394](/docs/proposals/mobile/_master-plan_/phase-1/details/391-android-auto-browse-tree.md) (Android Auto)
+- [401](/docs/proposals/mobile/_master-plan_/phase-1/details/401-car-library-directory-follows.md) (directory follows — absorbed into library-browse split)
 
 Enabling work is documented in [030-native-cache-extensions.md](./030-native-cache-extensions.md).
 

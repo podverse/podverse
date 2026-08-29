@@ -28,4 +28,4 @@ For files under `apps/mobile/src/**/*.tsx`:
 ## Reference
 
 - See `apps/mobile/src/screens/home/HomeScreen.tsx` for the canonical pattern.
-- Proposal detail: `docs/proposals/mobile/_master-plan_/details/597-list-virtualization-polish.md`.
+- Proposal detail: `docs/proposals/mobile/_master-plan_/phase-2/details/597-list-virtualization-polish.md`.

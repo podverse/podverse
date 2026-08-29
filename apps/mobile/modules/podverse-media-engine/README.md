@@ -9,7 +9,7 @@ screen, and future CarPlay / Android Auto now-playing. **Do not** use `react-nat
 - Policy stays in `@podverse/playback-core`; this module is **transport only**.
 
 Car foundation constraints:
-[00-CAR-FOUNDATION.md](/.llm/plans/completed/mobile-pg2b-media-engine-spike/00-CAR-FOUNDATION.md) and
+[00-CAR-FOUNDATION.md](/.llm/plans/completed/phase-1/mobile-pg2b-media-engine-spike/00-CAR-FOUNDATION.md) and
 [mobile-carplay-android-auto](/.cursor/rules/mobile-carplay-android-auto.mdc).
 
 **Spike gate (PG-2b step 2.34):** [`GO-NO-GO.md`](./GO-NO-GO.md) — **GO.** Tracks 10/11/12 may proceed
@@ -237,7 +237,7 @@ JS mirrors state into native storage so Track 12 car surfaces read queue / downl
 durable storage lands (12.2–12.3) and the JS write path is wired (12.4).
 
 **Authoritative schema:** master step **12.1** —
-[380-native-cache-schema](/docs/proposals/mobile/_master-plan_/details/380-native-cache-schema.md).
+[380-native-cache-schema](/docs/proposals/mobile/_master-plan_/phase-1/details/380-native-cache-schema.md).
 TypeScript source of truth: `apps/mobile/src/data/nativeCache/projection.ts` (envelope +
 `NATIVE_CACHE_SCHEMA_VERSION`, currently `1`). Do not invent a competing schema here.
 
@@ -270,7 +270,7 @@ and best-effort — a failed write never rolls back the phone-side mutation.
   no Google Play Services dependency.
 - Missing / corrupt payloads read back as `nil`/`null`; callers render an empty tree, never crash.
 - Kinds: `PodverseNativeCacheKind` (`queue` / `downloads` / `libraryBrowse`). Payload shapes are
-  owned by [380-native-cache-schema](/docs/proposals/mobile/_master-plan_/details/380-native-cache-schema.md).
+  owned by [380-native-cache-schema](/docs/proposals/mobile/_master-plan_/phase-1/details/380-native-cache-schema.md).
 
 #### Read-with-JS-dead spikes (steps 12.5–12.6)
 
@@ -349,7 +349,7 @@ is refined with the RN targets in prompt 03.
 **Reparent invariant (2.20):** there is exactly one surface owner for the session. `attach` places the
 one layer/`SurfaceView`; `animate` moves the **same** view between the registered `mini` / `full`
 rects. Anti-pattern (never a second video view):
-[363-anti-pattern-no-second-video](/docs/proposals/mobile/_master-plan_/details/363-anti-pattern-no-second-video.md).
+[363-anti-pattern-no-second-video](/docs/proposals/mobile/_master-plan_/phase-1/details/363-anti-pattern-no-second-video.md).
 
 **Audio-only hide (2.23):** final surface visibility is `setVideoSurfaceVisible(visible)` **AND** the
 current item actually having video frames (native `onVideoCapabilityChanged`). So a video-medium item

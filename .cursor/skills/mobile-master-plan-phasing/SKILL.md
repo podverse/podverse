@@ -1,16 +1,38 @@
 ---
 name: mobile-master-plan-phasing
-description: Just-in-time phase workflow for the Podverse mobile master plan. Use when the operator asks what to work on next in the mobile master plan, to plan or detail the next mobile phase, to create deferred detail docs and COPY-PASTA sets, or to implement a mobile master-plan phase.
+description: Phase structure and just-in-time workflow for the Podverse mobile master plan (Phase 1 closed, Phase 2 active). Use when the operator asks what to work on next in the mobile master plan, to plan or detail the next mobile phase, to create deferred detail docs and COPY-PASTA sets, or to implement a mobile master-plan phase.
 ---
 
 # Mobile master plan — just-in-time phasing
 
-This skill governs **how** to advance
-[001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md) in small phases.
-It does **not** replace the master plan; it orchestrates detailing and implementation one parallel
-group at a time.
+This skill governs **how** to advance the mobile master plan in small phases. It does **not** replace
+the master plan; it orchestrates detailing and implementation one parallel group at a time.
 
-## Operator loop
+## Phase model (read first)
+
+The master plan is split into phases under
+[`docs/proposals/mobile/_master-plan_/`](/docs/proposals/mobile/_master-plan_/PHASES.md), each with
+its own plan document and `details/` directory:
+
+| Phase | Plan | Theme | State |
+| ----- | ---- | ----- | ----- |
+| 1 | [phase-1/001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md) | Framework build-out, Tracks 0–23 | **closed** — history only, do not add steps |
+| 2 | [phase-2/001-MASTER-PLAN-PHASE-2.md](/docs/proposals/mobile/_master-plan_/phase-2/001-MASTER-PLAN-PHASE-2.md) | Legacy-parity features + visual polish | **active** |
+| 3 | [phase-3/001-MASTER-PLAN-PHASE-3.md](/docs/proposals/mobile/_master-plan_/phase-3/001-MASTER-PLAN-PHASE-3.md) | V4V | not started |
+| 4 | [phase-4/001-MASTER-PLAN-PHASE-4.md](/docs/proposals/mobile/_master-plan_/phase-4/001-MASTER-PLAN-PHASE-4.md) | Watch + TV | not started |
+| 5 | [phase-5/001-MASTER-PLAN-PHASE-5.md](/docs/proposals/mobile/_master-plan_/phase-5/001-MASTER-PLAN-PHASE-5.md) | Native store IAP | not started |
+
+**Phase 1 was agent-led; Phase 2 onward is operator-guided.** In Phase 2 the operator drives with
+**legacy app screenshots** and the agent asks questions before proposing anything — see
+[`mobile-legacy-screenshot-planning`](/.cursor/skills/mobile-legacy-screenshot-planning/SKILL.md).
+Sections below describing the Phase 1 status lifecycle and ship bar are **Phase 1 history**; use the
+screenshot skill for Phase 2 work.
+
+Phase 1 execution archives live in
+[`.llm/plans/completed/phase-1/`](/.llm/plans/completed/phase-1/); Phase 2 sets go to
+`.llm/plans/active/mobile-p2-<area>/` and archive to `.llm/plans/completed/phase-2/`.
+
+## Operator loop (Phase 1 pattern — see the screenshot skill for Phase 2)
 
 ```text
 1. Ask: "What should we work on next in the mobile master plan?"
@@ -35,8 +57,8 @@ Repeat from step 1.
 
 | Source                  | Path                                                      | Use for                            |
 | ----------------------- | --------------------------------------------------------- | ---------------------------------- |
-| Master plan             | `docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md`  | Steps, Model, PG table, Appendix C |
-| Detail docs (durable)   | `docs/proposals/mobile/_master-plan_/details/NNN-slug.md` | Per-step design + acceptance       |
+| Master plan             | `docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md`  | Steps, Model, PG table, Appendix C |
+| Detail docs (durable)   | `docs/proposals/mobile/_master-plan_/phase-1/details/NNN-slug.md` | Per-step design + acceptance       |
 | Phase plans (transient) | `.llm/plans/active/mobile-<phase-slug>/`                  | COPY-PASTA execution               |
 | Proposal docs           | `docs/proposals/mobile/**`                                | Parity and architecture context    |
 
@@ -64,7 +86,7 @@ Detail doc header uses its own field: `**Status:** draft | ready | done` (file-l
 ### Track section headers — `(DONE)` marker
 
 Each `## Track N — …` heading in
-[001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md) must show whether the
+[001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md) must show whether the
 **entire track** is complete when scrolling the outline / document:
 
 | Header form                      | When                                             |
@@ -117,26 +139,31 @@ On the **last** prompt: archive `.llm/plans/active/mobile-<phase-slug>/` per **p
 ### "What next" response — required progress block
 
 When the operator asks what to work on next in the **mobile master plan**, **always** include this
-before the recommendation (use `grep`/Appendix C; do not guess):
+before the recommendation (use `grep` against the active phase plan; do not guess):
 
 ```markdown
-## Mobile master plan — progress
+## Mobile master plan — progress (Phase 2)
 
-| Metric | Count |
-| ------ | ----- |
-| Completed (`done`) | N |
-| Planned, not implemented (`planned`) | N |
-| Not started (`_TBD_`) | N |
+| Area / track | Status |
+| ------------ | ------ |
+| P2.1.N …     | not started / questions asked / planned / done |
 
-**Recently completed:** Track.Step, … (or "none yet")
+**Recently completed:** area or step names (or "none yet")
 
-**Active phase plan:** `.llm/plans/active/mobile-<slug>/` (or "none")
+**Active phase plan:** `.llm/plans/active/mobile-p2-<area>/` (or "none")
 
-**Next recommended:** PG-N — …
+**Open items needing an operator decision:** list from Phase 2 § Track P2.3
+
+**Next recommended:** area — and what screenshots would unblock it
 ```
 
-If counts show zero `done` but repo evidence shows work landed (e.g. `apps/mobile/` exists),
-**reconcile** with the operator: list mismatched steps and offer to mark them `done`.
+Always surface the **open items needing an operator decision** from
+[Phase 2 § Track P2.3](/docs/proposals/mobile/_master-plan_/phase-2/001-MASTER-PLAN-PHASE-2.md) —
+they are easy to lose because they need manual device work or a product call, not code.
+
+Phase 1 counts (`done` / `planned` / `_TBD_`) are **frozen history**; do not re-report them as
+outstanding work. If repo evidence contradicts a recorded status, **reconcile** with the operator:
+list mismatched steps and offer to correct them.
 
 ### Prerequisite checks use `done`
 
@@ -231,7 +258,7 @@ Respond with:
 - **Recommended PG** and human-readable phase name (e.g. `PG-0 — foundation / abcmemory`).
 - **Tracks and step ranges** (e.g. 0.1–0.19, detail IDs 001–019).
 - **Prerequisites** satisfied / outstanding.
-- **Model mix** (count of Auto / Codex 5.3 / Opus 4.8 steps).
+- **Model mix** (count of Auto / Codex 5.3 / Opus 5 steps).
 - **Risk notes** (spike gates, open decisions).
 - **Do not** create files until operator confirms (unless they already asked to detail this phase).
 
@@ -244,7 +271,7 @@ implementation (COPY-PASTA).
 
 ### Artifact A — Detail docs (durable)
 
-Path: `docs/proposals/mobile/_master-plan_/details/<id>-slug.md` (path already linked from master
+Path: `docs/proposals/mobile/_master-plan_/phase-1/details/<id>-slug.md` (path already linked from master
 plan). Assign `<id>` from the track band in master plan **Appendix E**; grep Appendix C and
 `details/` for collisions before committing a new ID.
 
@@ -280,7 +307,7 @@ Use Appendix D template from master plan:
 | --------- | ------------------------------------------------------------------------ |
 | Auto      | Scope + acceptance bullets + operator-only notes                         |
 | Codex 5.3 | Above + web parity links + file paths + verification commands            |
-| Opus 4.8  | Above + architecture notes, edge cases, spike outcomes, cross-track deps |
+| Opus 5    | Above + architecture notes, edge cases, spike outcomes, cross-track deps |
 
 Pull parity context from `docs/proposals/mobile/` and existing web code paths when known.
 
@@ -303,7 +330,8 @@ COPY-PASTA prompts are 3–8 lines; full instructions live in numbered plan file
 Each COPY-PASTA prompt must include:
 
 - `Read and execute .llm/plans/active/mobile-<phase-slug>/<NN-plan>.md`
-- **Cursor model:** Auto | Codex 5.3 | Opus 4.8 (match highest-risk step in that prompt; see **copy-pasta-recommend-model** rule)
+- **Cursor model:** Auto | Codex 5.3 | Opus 5 (match highest-risk step in that prompt; see
+  **copy-pasta-recommend-model** rule)
 - **Reasoning:** low | medium | high | extra high (thinking depth for that model; see **copy-pasta-recommend-model** rule)
 - Reminder: do not run tests during agent work; operator verifies at end
 
@@ -388,7 +416,7 @@ Commands depend on phase scope. Examples:
 ```bash
 # PG-0 / docs-only phase — confirm files exist
 test -f apps/mobile/AGENTS.md
-grep -c 'planned\|done' docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md
+grep -c 'planned\|done' docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md
 
 # PG-1 playback-core — after operator runs tests
 npm run build:packages

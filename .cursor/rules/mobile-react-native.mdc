@@ -16,9 +16,12 @@ alwaysApply: false
   **information hierarchy** / list-row structure / **action affordances** (Play, queue next/last,
   more-menu items, subscribe/unsubscribe — same intents and shared i18n keys) /
   loading-empty-error states, adapted to RN primitives with design tokens (no hardcoded hex).
-  Ship a **functional sketch** — pixel polish is Track **23** (operator briefs only). Do not
-  invent player-integrated transcripts, clip authoring UI, or pixel DnD without a master-plan
-  step. See master plan **Ship bar**, **mobile-theme-parity** § Screen & visual parity, and
+  **Phase 2 ship bar:** visual resolution is part of done, driven by the operator's legacy-app
+  screenshots and answers (**mobile-legacy-screenshot-planning**); the Phase 1 "sketch only, polish
+  in Track 23" bar no longer applies. Agents still do not invent visual direction — ask when the
+  screenshots and answers don't settle it. Do not invent player-integrated transcripts, clip
+  authoring UI, or pixel DnD without a master-plan step. See
+  [PHASES.md](/docs/proposals/mobile/_master-plan_/PHASES.md), **mobile-theme-parity** § Screen & visual parity, and
   [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md).
   Diverge only for platform conventions and note why.
 - Mobile is a **Tier 5 consumer** — import downward only. See
@@ -47,10 +50,12 @@ alwaysApply: false
   SQLite = entities; filesystem = downloaded media.
 - **Add-by-RSS:** server parse + poll only; map with `@podverse/parser-mapping`; never import
   `@podverse/parser`.
-- **Visual:** prefer shared RN primitives (`components/primitives/`) + tokens; ship **sketches** —
-  operator pixel polish is Track **23** only —
+- **Visual:** prefer shared RN primitives (`components/primitives/`) + tokens. In **Phase 2**, polish
+  is done per screen area from operator screenshots — see
+  [PHASES.md](/docs/proposals/mobile/_master-plan_/PHASES.md) and
+  **mobile-legacy-screenshot-planning**;
   [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md)
-  and master plan **Ship bar**. Full DRY rubric: **mobile-reusable-components** skill.
+  describes the superseded Phase 1 policy. Full DRY rubric: **mobile-reusable-components** skill.
 - **ApiRequestService contract:** base URL is composed as `${prefix.replace(/\/$/, '')}${version}`.
   Keep `prefix` with no trailing slash and `version` with a leading slash (`/api` + `/v2`).
   Those fields come from `getMobileConfig().api` (parsed from the base URL env).

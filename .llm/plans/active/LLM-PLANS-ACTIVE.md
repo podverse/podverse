@@ -10,13 +10,18 @@ templates are blanks; this directory holds real plan instances.
 
 ## Indexed sets
 
-_Active (mobile):_ Track 23 visual/UX polish is **operator-manual** (the checklist/apply
-phase `mobile-pg13-operator-polish/` was declined and archived; agent-assist is optional). Other
-remaining `_TBD_` mobile steps are Track 18.6–18.17 (Watch/TV/store), Track 19.2/19.3/19.5 (full store
-IAP), Track 19.6 (V4V LNURL — mobile approach operator-TBD), Track 20 (FOSS/F-Droid), Track 21
-(deferral docs), Track 22 (release process) — most are operator/store-gated or post-v1. See master plan
-[001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md).
-**Publish hold:** no alpha/internal test-track publish until the operator finishes manual polish.
+_Active (mobile):_ The mobile master plan is split into **phases** — see
+[PHASES.md](/docs/proposals/mobile/_master-plan_/PHASES.md). **Phase 1** (agent-led framework
+build-out) is **closed**: 376 steps done, its execution sets archived under
+[`.llm/plans/completed/phase-1/`](../completed/phase-1/). **Phase 2** is **active** and
+**operator-guided** — the operator pastes legacy-app screenshots per screen area and the agent asks
+questions before planning (**mobile-legacy-screenshot-planning** skill). Phase 2 plan sets live at
+`.llm/plans/active/mobile-p2-<area>/` and absorb the old Track 23 visual polish. Carried forward:
+**Phase 3** V4V (19.6), **Phase 4** watch + TV (18.6–18.14), **Phase 5** native store IAP
+(19.2/19.3/19.5). Operational leftovers and three open operator-decision items (CarPlay Simulator
+proof, Android Auto DHU + Play Console declaration, `deep-link`/`push` E2E harness) are tracked in
+[Phase 2 § Track P2.3](/docs/proposals/mobile/_master-plan_/phase-2/001-MASTER-PLAN-PHASE-2.md).
+**Publish hold:** no alpha/internal test-track publish until the operator signs off on visual polish.
 
 _Active (non-mobile):_ `media-player-livestream-hls-migration/` (blocked on the media-player
 architecture refactor; `video.js` + the `Controller/LiveStream/` tree are still present),
@@ -56,45 +61,45 @@ web↔mobile membership-gating parity left open by `mobile-membership-and-v4v` S
 instead of the generic `queue.add_error` toast across 15 components; `requestNotificationPermission` now
 rethrows the member-gated webpush-device-register 403 so **enable web push** shows the membership modal.
 Added web E2E queue-add case + a `requestNotificationPermission` unit test),
-[mobile-membership-and-v4v](../completed/mobile-membership-and-v4v/) (web/mobile **membership-gating
+[mobile-membership-and-v4v](../completed/phase-1/mobile-membership-and-v4v/) (web/mobile **membership-gating
 parity**: shared `parseMembershipGateError` in `@podverse/helpers-requests` — no API shape change;
 mobile premium blocked-action modal + expired banner + `useMembership`; a real Membership screen +
 web-link checkout; V4V placeholder screen; and **web** broadening its membership modal from 2 to the
 full member-only action set via a centralized `useMembershipGate` hook, with a `membership-gating`
 Playwright spec. Track 19.4/19.8/19.9/19.10/19.11/19.12; management-web excluded),
-[mobile-list-virtualization](../completed/mobile-list-virtualization/) (Subscriptions, PlaylistDetail,
+[mobile-list-virtualization](../completed/phase-1/mobile-list-virtualization/) (Subscriptions, PlaylistDetail,
 PodcastDetail converted to `FlatList`; virtualization baseline audit + `mobile-list-virtualization`
 abcmemory rule),
-[mobile-pg10-tablet](../completed/mobile-pg10-tablet/) +
-[mobile-pg10-tablet-followups](../completed/mobile-pg10-tablet-followups/) (responsive tablet
+[mobile-pg10-tablet](../completed/phase-1/mobile-pg10-tablet/) +
+[mobile-pg10-tablet-followups](../completed/phase-1/mobile-pg10-tablet-followups/) (responsive tablet
 home grid, split detail + player layout, tablet E2E incl. FullPlayer two-column, mid-band breakpoint
 decision docs, phone-Home `FlatList` intent lock),
-[mobile-e2e-green](../completed/mobile-e2e-green/) (all mobile Maestro flows green: iOS open-dialog
+[mobile-e2e-green](../completed/phase-1/mobile-e2e-green/) (all mobile Maestro flows green: iOS open-dialog
 handling, custom-scheme deep-link path fix, tablet tab-bar + orientation stabilization),
-[mobile-track14-16-unit-tests](../completed/mobile-track14-16-unit-tests/) (node-only vitest coverage
+[mobile-track14-16-unit-tests](../completed/phase-1/mobile-track14-16-unit-tests/) (node-only vitest coverage
 for Track 14–16 pure logic: deep-link path map, notification tap-routing target, share-URL parity,
 unified prefs store),
-[mobile-track14-push](../completed/mobile-track14-push/) (14.1–14.8 — FCM playstore transport +
+[mobile-track14-push](../completed/phase-1/mobile-track14-push/) (14.1–14.8 — FCM playstore transport +
 device register/locale/permission UX, UnifiedPush FOSS transport + wrappers, notification tap
 routing via the 452/453 deep-link path, FOSS register doc + push-routing E2E; **Track 14 complete**),
-[mobile-track15-deep-links](../completed/mobile-track15-deep-links/) (15.1–15.6 — native
+[mobile-track15-deep-links](../completed/phase-1/mobile-track15-deep-links/) (15.1–15.6 — native
 universal/App Links config, path map + cold-start replay, share URL parity, deep-link E2E),
-[mobile-track16-prefs-settings](../completed/mobile-track16-prefs-settings/) (16.1–16.3 — unified
+[mobile-track16-prefs-settings](../completed/phase-1/mobile-track16-prefs-settings/) (16.1–16.3 — unified
 device prefs store, prefs server sync, settings screen; **Track 16 now complete**),
-[mobile-pg8-car-library-follows](../completed/mobile-pg8-car-library-follows/) (12.22, 12.21 — car
+[mobile-pg8-car-library-follows](../completed/phase-1/mobile-pg8-car-library-follows/) (12.22, 12.21 — car
 Library browse projects the merged subscriptions list + followed playlists; parallel-worktree
 operator doc; **Track 12 complete**),
-[mobile-unified-subscriptions](../completed/mobile-unified-subscriptions/) (9b.8, 8.16, 9.30 — merged
+[mobile-unified-subscriptions](../completed/phase-1/mobile-unified-subscriptions/) (9b.8, 8.16, 9.30 — merged
 directory follows + add-by-RSS into one filterable subscribed list; Home + My Library),
-[mobile-pg8-car-android-auto](../completed/mobile-pg8-car-android-auto/) (12.11–12.17, 12.19, 12.20 —
+[mobile-pg8-car-android-auto](../completed/phase-1/mobile-pg8-car-android-auto/) (12.11–12.17, 12.19, 12.20 —
 Android Auto native browse + play from cache; iOS CarPlay 12.7–12.10 / 12.18 is a later slice pending
 the Apple CarPlay entitlement),
-[mobile-pg8-car-native-cache](../completed/mobile-pg8-car-native-cache/) (12.1–12.6),
-[mobile-track13-downloads](../completed/mobile-track13-downloads/) (13.1–13.10),
-[mobile-track9d-playlist-authoring](../completed/mobile-track9d-playlist-authoring/)
+[mobile-pg8-car-native-cache](../completed/phase-1/mobile-pg8-car-native-cache/) (12.1–12.6),
+[mobile-track13-downloads](../completed/phase-1/mobile-track13-downloads/) (13.1–13.10),
+[mobile-track9d-playlist-authoring](../completed/phase-1/mobile-track9d-playlist-authoring/)
 (9d.1–9d.5),
-[mobile-track11-video](../completed/mobile-track11-video/),
-[mobile-pg5-video](../completed/mobile-pg5-video/) +
-[mobile-pg5-video-gaps](../completed/mobile-pg5-video-gaps/).
+[mobile-track11-video](../completed/phase-1/mobile-track11-video/),
+[mobile-pg5-video](../completed/phase-1/mobile-pg5-video/) +
+[mobile-pg5-video-gaps](../completed/phase-1/mobile-pg5-video-gaps/).
 
 Operator visual polish remains **Track 23** only (after feature bulk + operator briefs).

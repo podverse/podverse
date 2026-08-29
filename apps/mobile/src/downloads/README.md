@@ -2,7 +2,7 @@
 
 Track 13 — download episode files for offline playback. Pure logic + shared contract live here; the
 SQLite index and API access live in `src/data/` (`downloadsRepository`). See the master plan
-[Track 13](/docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md) and
+[Track 13](/docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md) and
 [DOCS-MOBILE-PROCESS-MOBILE-ONLY-FEATURES.md §1–1.2](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-MOBILE-ONLY-FEATURES.md).
 
 ## Eligibility gate (13.1)
