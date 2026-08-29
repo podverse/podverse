@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { DTOChannel } from '@podverse/helpers';
+import { matchesTitleFilter } from '@podverse/helpers';
 
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 import type { SubscribedChannel } from './subscriptionsMerge';
@@ -43,8 +44,18 @@ const rssFeed = (partial: Partial<MobileAddByRSSFeedRecord>): MobileAddByRSSFeed
   imageUrl: null,
   updatedAt: '2026-01-01T00:00:00.000Z',
   enclosureUrl: null,
+  latestItemPubDateMs: null,
   playbackPosition: null,
   ...partial,
+});
+
+/** A directory entry with the recency the repository attaches after reading the item store. */
+const directoryEntryPublishedAt = (
+  partial: Partial<DTOChannel>,
+  latestItemPubDateMs: number | null
+): SubscribedChannel => ({
+  ...requireMapped(mapDirectoryChannelToSubscribed(channel(partial))),
+  latestItemPubDateMs,
 });
 
 const directoryEntry = (partial: Partial<DTOChannel>): SubscribedChannel =>
@@ -78,6 +89,7 @@ describe('mapDirectoryChannelToSubscribed', () => {
       imageUrl: 'https://img/p.jpg',
       source: 'directory',
       medium: 'podcasts',
+      latestItemPubDateMs: null,
     });
   });
 
@@ -96,7 +108,14 @@ describe('mapAddByRssToSubscribed', () => {
       imageUrl: null,
       source: 'addByRss',
       medium: 'podcasts',
+      latestItemPubDateMs: null,
     });
+  });
+
+  it('carries the stored publish date so recency ordering never re-parses the bundle', () => {
+    expect(rssEntry({ latestItemPubDateMs: 1_700_000_000_000 }).latestItemPubDateMs).toBe(
+      1_700_000_000_000
+    );
   });
 
   it('marks music resource types as music medium', () => {
@@ -152,6 +171,65 @@ describe('sortSubscriptions', () => {
       'Banana Time',
       'The Zebra Show',
     ]);
+  });
+
+  it('sorts by latest publish date descending, mixing both sources', () => {
+    const list = [
+      directoryEntryPublishedAt({ id_text: '1', title: 'Older Directory' }, 1_000),
+      rssEntry({ feedUrl: '2', title: 'Newest RSS', latestItemPubDateMs: 3_000 }),
+      directoryEntryPublishedAt({ id_text: '3', title: 'Middle Directory' }, 2_000),
+    ];
+
+    expect(sortSubscriptions(list, 'recent').map((entry) => entry.title)).toEqual([
+      'Newest RSS',
+      'Middle Directory',
+      'Older Directory',
+    ]);
+  });
+
+  it('puts subscriptions with no known date after those that have one', () => {
+    const list = [
+      directoryEntryPublishedAt({ id_text: '1', title: 'Never Synced' }, null),
+      directoryEntryPublishedAt({ id_text: '2', title: 'Has Episodes' }, 1_000),
+    ];
+
+    expect(sortSubscriptions(list, 'recent').map((entry) => entry.title)).toEqual([
+      'Has Episodes',
+      'Never Synced',
+    ]);
+  });
+
+  it('breaks ties by title so the order is stable across re-sorts', () => {
+    const list = [
+      directoryEntryPublishedAt({ id_text: '1', title: 'Zebra' }, 1_000),
+      directoryEntryPublishedAt({ id_text: '2', title: 'Apple' }, 1_000),
+      directoryEntryPublishedAt({ id_text: '3', title: 'The Banana' }, null),
+      directoryEntryPublishedAt({ id_text: '4', title: 'Anchovy' }, null),
+    ];
+
+    expect(sortSubscriptions(list, 'recent').map((entry) => entry.title)).toEqual([
+      'Apple',
+      'Zebra',
+      'Anchovy',
+      'The Banana',
+    ]);
+  });
+
+  it('does not mutate the list it was given', () => {
+    const list = [
+      directoryEntryPublishedAt({ id_text: '1', title: 'Zebra' }, 1_000),
+      directoryEntryPublishedAt({ id_text: '2', title: 'Apple' }, 2_000),
+    ];
+
+    sortSubscriptions(list, 'recent');
+    expect(list.map((entry) => entry.title)).toEqual(['Zebra', 'Apple']);
+  });
+});
+
+describe('filtering a mapped subscription by title', () => {
+  it('finds an add-by-RSS entry that fell back to its feed URL for a title', () => {
+    const entry = rssEntry({ feedUrl: 'https://example.com/great-show.xml', title: null });
+    expect(matchesTitleFilter(entry.title, 'great-show')).toBe(true);
   });
 });
 

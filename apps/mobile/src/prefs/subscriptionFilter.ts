@@ -1,17 +1,12 @@
 import type { SubscriptionListFilter } from './prefsStore';
 import { DEFAULT_SUBSCRIPTION_FILTER, getPref, setPref } from './prefsStore';
 
-const HOME_SUBSCRIPTION_FILTER_KEY = 'home.subscriptionFilter';
 const LIBRARY_SUBSCRIPTION_FILTER_KEY = 'library.subscriptionFilter';
 
-export const readHomeSubscriptionFilter = (): Promise<SubscriptionListFilter | null> => {
-  return getPref(HOME_SUBSCRIPTION_FILTER_KEY);
-};
-
-export const writeHomeSubscriptionFilter = (filter: SubscriptionListFilter): Promise<void> => {
-  return setPref(HOME_SUBSCRIPTION_FILTER_KEY, filter);
-};
-
+/**
+ * Library's scope chip. Home's equivalent is in `homeListPrefs`, held under the scope-keyed
+ * contract alongside Home's sort so the two travel together.
+ */
 export const readLibrarySubscriptionFilter = (): Promise<SubscriptionListFilter | null> => {
   return getPref(LIBRARY_SUBSCRIPTION_FILTER_KEY);
 };

@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
 import { useTheme } from '../../theme/useTheme';
 import type { ButtonSize, ButtonVariant } from '../primitives';
-import { Button } from '../primitives';
+import { ActionSheet, Button } from '../primitives';
 
 /**
  * One "more" menu entry. `label` is passed **already localized** by the caller (or produced by
@@ -95,12 +95,13 @@ export const buildMediaRowMoreActions = (
 };
 
 /**
- * Shared media-row action affordance mirroring web `PlayButtonRow` + `ItemRowMoreActions`
- * intents: an inline Play/Pause button plus an optional "More options" trigger that opens a native
- * bottom action sheet (RN `Modal`) — not a web hover-menu port. All copy is localized by the caller
- * (per-action labels) or via i18n for the generic chrome. Presses stop propagation so the control
- * works inside a row `Pressable` without triggering row navigation. Consumed by ≥2 call sites in
- * Home and detail lists use distinct, correctly-keyed queue-next and queue-last actions.
+ * Shared media-row action affordance mirroring web `PlayButtonRow` + `ItemRowMoreActions` intents:
+ * an inline Play/Pause button plus an optional "More options" trigger opening the shared bottom
+ * `ActionSheet` — a native menu rather than a port of the web hover menu. Per-action copy is
+ * localized by the caller; the generic chrome uses i18n here.
+ *
+ * Presses stop propagation so the control works inside a row `Pressable` without also triggering
+ * row navigation.
  */
 export function MediaRowActions({
   playLabel,
@@ -114,7 +115,7 @@ export function MediaRowActions({
   idSuffix = '',
 }: MediaRowActionsProps) {
   const { t } = useTranslation();
-  const { styles: themeStyles, tokens } = useTheme();
+  const { tokens } = useTheme();
   const [isSheetVisible, setIsSheetVisible] = useState(false);
 
   const hasMoreActions = moreActions !== undefined && moreActions.length > 0;
@@ -122,46 +123,13 @@ export function MediaRowActions({
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        actionRow: {
-          borderTopColor: themeStyles.border.borderColor,
-          borderTopWidth: 1,
-          paddingHorizontal: tokens.spacing.lg,
-          paddingVertical: tokens.spacing.md,
-        },
-        actionRowDisabled: {
-          opacity: 0.5,
-        },
-        actionRowLabel: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 16,
-        },
-        // Neutral dimming scrim (not a theme color); mirrors the standard RN modal backdrop.
-        backdrop: {
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          flex: 1,
-          justifyContent: 'flex-end',
-        },
         container: {
           alignItems: 'center',
           flexDirection: 'row',
           gap: tokens.spacing.sm,
         },
-        sheet: {
-          backgroundColor: themeStyles.screen.backgroundColor,
-          borderTopLeftRadius: tokens.radii.md,
-          borderTopRightRadius: tokens.radii.md,
-          paddingBottom: tokens.spacing['2xl'],
-          paddingTop: tokens.spacing.sm,
-        },
-        sheetTitle: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          fontWeight: '600',
-          paddingHorizontal: tokens.spacing.lg,
-          paddingVertical: tokens.spacing.md,
-        },
       }),
-    [themeStyles, tokens]
+    [tokens]
   );
 
   const closeSheet = () => {
@@ -195,49 +163,24 @@ export function MediaRowActions({
       ) : null}
 
       {hasMoreActions ? (
-        <Modal
-          animationType="slide"
+        <ActionSheet
           onRequestClose={closeSheet}
-          transparent
+          sections={[
+            {
+              items: (moreActions ?? []).map((action) => ({
+                disabled: action.disabled,
+                key: action.key,
+                label: action.label,
+                onPress: action.onPress,
+                testID: action.testID ?? `media-row-action-${action.key}${idSuffix}`,
+              })),
+              key: 'actions',
+              title: sheetTitle,
+            },
+          ]}
+          testID={`media-row-sheet${idSuffix}`}
           visible={isSheetVisible}
-        >
-          <Pressable
-            accessibilityLabel={t('misc.close')}
-            onPress={closeSheet}
-            style={styles.backdrop}
-            testID={`media-row-sheet-backdrop${idSuffix}`}
-          >
-            <Pressable
-              accessible={false}
-              onPress={stopPropagation}
-              style={styles.sheet}
-              testID={`media-row-sheet${idSuffix}`}
-            >
-              {sheetTitle !== undefined ? (
-                <Text style={styles.sheetTitle}>{sheetTitle}</Text>
-              ) : null}
-              {moreActions?.map((action) => (
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityState={{ disabled: action.disabled ?? false }}
-                  disabled={action.disabled ?? false}
-                  key={action.key}
-                  onPress={() => {
-                    closeSheet();
-                    action.onPress();
-                  }}
-                  style={[
-                    styles.actionRow,
-                    action.disabled === true ? styles.actionRowDisabled : null,
-                  ]}
-                  testID={action.testID ?? `media-row-action-${action.key}${idSuffix}`}
-                >
-                  <Text style={styles.actionRowLabel}>{action.label}</Text>
-                </Pressable>
-              ))}
-            </Pressable>
-          </Pressable>
-        </Modal>
+        />
       ) : null}
     </View>
   );

@@ -10,11 +10,13 @@ import {
 import { MainHeader } from '@podverse/ui';
 
 import { useSubscribedListHeader } from '../../hooks/useSubscribedListHeader';
+import { PodcastsFilterInput } from './PodcastsFilterInput';
 import { usePodcastsPageContext } from './PodcastsPageContext';
 import { getPodcastsPageDropdownConfig } from './PodcastsPageDropdownConfig';
 
 export const PodcastsPageHeader: React.FC = () => {
-  const { filterParams, setFilterParams, setShowCategoriesModal } = usePodcastsPageContext();
+  const { filterParams, filterTerm, setFilterParams, setFilterTerm, setShowCategoriesModal } =
+    usePodcastsPageContext();
   const { type, sort, range } = filterParams;
   const tMedia = useTranslations('media');
   const tFilters = useTranslations('filters');
@@ -37,5 +39,17 @@ export const PodcastsPageHeader: React.FC = () => {
   const title = filterParams.category
     ? `${tMedia('podcast.podcasts')} > ${tCategories(filterParams.category)}`
     : tMedia('podcast.podcasts');
-  return <MainHeader title={title} buttonsNode={buttonsNode} />;
+
+  // Only the subscribed list can be filtered. Global and category lists are directory queries the
+  // server pages through, where search rather than a local narrowing is the right tool.
+  const controls = (
+    <>
+      {type === 'subscribed' ? (
+        <PodcastsFilterInput value={filterTerm} onChange={setFilterTerm} />
+      ) : null}
+      {buttonsNode}
+    </>
+  );
+
+  return <MainHeader title={title} buttonsNode={controls} />;
 };

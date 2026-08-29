@@ -2,7 +2,12 @@
 
 **Master step:** 9.9
 **Model (author + implement):** Codex 5.3
-**Status:** done
+**Status:** done — superseded by
+[709-search-tab-web-alignment](/docs/proposals/mobile/_master-plan_/phase-2/details/709-search-tab-web-alignment.md)
+
+The medium and sort chips this step added were removed in Phase 2: web `/search` has neither, and
+Podcast Index decides what comes back and in what order, so the controls could only reorder what
+that API already chose. The scope below is kept as the record of what shipped in Phase 1.
 
 ## Scope
 

@@ -2,7 +2,8 @@
 
 **Master step:** P2.4.6
 **Model (author + implement):** Opus 5
-**Status:** planned
+**Status:** in progress — shared contract and mobile module built; detail screens and Library
+outstanding
 
 ## What the operator asked for
 
@@ -54,15 +55,17 @@ view mode. It never holds free text, page number, or scroll position.
 
 ## Mobile implementation
 
-Add a `sortPrefs` module under `apps/mobile/src/prefs/` backed by AsyncStorage, using the shared key
+A `sortPrefs` module under `apps/mobile/src/prefs/` backed by AsyncStorage, using the shared key
 builder. Mobile stores entries **unbounded** — AsyncStorage has no meaningful size pressure here and
-is read before first render, so there is no flash and no cap.
+is read before first render, so there is no flash and no cap. Writes notify subscribers, which is
+what lets a control on one screen reorder a list on another without either holding a copy of the
+value.
 
 Then apply it:
 
-1. **Home** — the sort selection from 706 and the view mode from 708 both read and write through this
-   module rather than inventing keys. The existing subscription filter chip and media type migrate to
-   the same module, preserving current values.
+1. **Home** — built. Sort and the subscription scope chip both read and write through this module,
+   one scope per media type, and the previous `home.subscriptionFilter` value is carried over on
+   first read so no device loses its chip choice. The view mode from 708 joins them when it lands.
 2. **Detail screens** — `PodcastDetailScreen`, `EpisodeDetailScreen`, and `AlbumDetailScreen`
    currently hardcode their sort. Give each a sort control and persist the selection per instance.
    This is new UI, so it ships screen reader accessible per

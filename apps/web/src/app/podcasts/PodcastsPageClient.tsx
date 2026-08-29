@@ -10,16 +10,18 @@ import { PodcastsPageHeader } from './PodcastsPageHeader';
 import { PodcastsPageList } from './PodcastsPageList';
 
 interface PodcastsPageClientProps {
+  initialFilterTerm: string;
   initialQueryParams: QueryParamsGetMany;
   ssrChannels: DTOChannel[];
   ssrTotalPages: number;
 }
 
 export function PodcastsPageClient(props: PodcastsPageClientProps) {
-  const { initialQueryParams, ssrChannels, ssrTotalPages } = props;
+  const { initialFilterTerm, initialQueryParams, ssrChannels, ssrTotalPages } = props;
 
   return (
     <PodcastsPageContextProvider
+      initialFilterTerm={initialFilterTerm}
       initialQueryParams={initialQueryParams}
       ssrChannels={ssrChannels}
       ssrTotalPages={ssrTotalPages}

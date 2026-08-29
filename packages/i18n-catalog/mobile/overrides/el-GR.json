@@ -56,5 +56,32 @@
       "open_system_settings": "",
       "permission_required": ""
     }
+  },
+  "sync": {
+    "job": {
+      "account": "",
+      "subscriptions": "",
+      "playlists": "",
+      "queue": "",
+      "library": "",
+      "notifications": "",
+      "episodes": "",
+      "rss_feeds": "",
+      "seen_state": "",
+      "live_status": ""
+    },
+    "progress": "",
+    "log": {
+      "title": "",
+      "intro": "",
+      "empty": "",
+      "export": "",
+      "clear": "",
+      "clear_confirm_title": "",
+      "clear_confirm_body": "",
+      "outcome_failure": "",
+      "outcome_skipped": "",
+      "outcome_success": ""
+    }
   }
 }

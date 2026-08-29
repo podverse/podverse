@@ -2,7 +2,7 @@
 
 **Master step:** P2.5.1
 **Model (author + implement):** Opus 5
-**Status:** planned
+**Status:** implemented
 
 ## Scope
 
@@ -70,5 +70,5 @@ duplicating keys. Per the catalog rules, a key may not exist in both `consumer` 
 npm run lint
 npm run test:unit
 npm run test:e2e:api
-make e2e_test_web_report_spec SPEC=e2e/podcasts.spec.ts
+make e2e_test_web_report_spec SPEC=e2e/podcasts-unseen-badges.spec.ts
 ```

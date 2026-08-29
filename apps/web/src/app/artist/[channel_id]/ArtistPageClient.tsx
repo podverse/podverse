@@ -8,6 +8,7 @@ import type {
 import type { QueryParamsChannelMusicArtist } from '@podverse/helpers-requests';
 import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
+import { ChannelSeenPageView } from '../../../components/ChannelSeen/ChannelSeenPageView';
 import { CoreArtistHeader } from '../../../components/Core/Artist/CoreArtistHeader';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
@@ -48,6 +49,7 @@ export function ArtistPageClient(props: ArtistPageClientProps) {
   return (
     <ArtistPageContextProvider initialQueryParams={initialQueryParams}>
       <MainWrapper>
+        <ChannelSeenPageView channelIdText={ssrChannel.id_text} />
         <CoreArtistHeader channel={ssrChannel} />
         <MainSidebarLayout>
           <ArtistPageSideContent channel={ssrChannel} podroll={ssrPodroll} />

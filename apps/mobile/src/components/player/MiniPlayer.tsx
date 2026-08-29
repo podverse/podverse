@@ -12,6 +12,7 @@ import { usePlayback } from '../../playback/PlaybackProvider';
 import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
 import { Button } from '../primitives/Button';
+import { ProgressTrack } from '../primitives/ProgressTrack';
 
 type MiniPlayerProps = {
   onExpand: () => void;
@@ -65,16 +66,8 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
           maxWidth: breakpoints.lg,
           width: '100%',
         },
-        progressFill: {
-          backgroundColor: tokens.text.accent,
-        },
         progressTrack: {
-          backgroundColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.round,
-          flexDirection: 'row',
-          height: 2,
           marginBottom: tokens.spacing.sm,
-          overflow: 'hidden',
         },
         row: {
           alignItems: 'center',
@@ -125,13 +118,11 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
       style={[styles.container, isTablet ? styles.containerTablet : undefined]}
       testID="mini-player"
     >
-      <View style={styles.progressTrack}>
-        <View
-          style={[styles.progressFill, { flex: progressRatio }]}
-          testID="mini-player-progress"
-        />
-        <View style={{ flex: 1 - progressRatio }} />
-      </View>
+      <ProgressTrack
+        fillTestID="mini-player-progress"
+        ratio={progressRatio}
+        style={styles.progressTrack}
+      />
       <View style={styles.row}>
         <View style={styles.videoSurface} testID="mini-player-video-surface">
           {nowPlaying.imageUrl !== null ? (

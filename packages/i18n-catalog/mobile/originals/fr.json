@@ -56,5 +56,32 @@
       "open_system_settings": "Ouvrir les paramètres du système",
       "permission_required": "L'autorisation de notification est requise pour activer ce paramètre."
     }
+  },
+  "sync": {
+    "job": {
+      "account": "Mise à jour de votre compte",
+      "subscriptions": "Mise à jour de vos podcasts",
+      "playlists": "Mise à jour de vos playlists",
+      "queue": "Mise à jour de votre file d'attente",
+      "library": "Mise à jour de votre bibliothèque hors ligne",
+      "notifications": "Configuration des notifications",
+      "episodes": "Mise à jour de vos épisodes",
+      "rss_feeds": "Mise à jour de vos flux RSS",
+      "seen_state": "Mise à jour des nouveautés",
+      "live_status": "Vérification des directs"
+    },
+    "progress": "{completed} sur {total}",
+    "log": {
+      "title": "Journal de synchronisation",
+      "intro": "Problèmes de synchronisation en arrière-plan enregistrés sur cet appareil. Partagez-le avec l'assistance si vos podcasts, playlists ou file d'attente cessent de se mettre à jour.",
+      "empty": "Aucun problème de synchronisation enregistré",
+      "export": "Partager",
+      "clear": "Effacer",
+      "clear_confirm_title": "Effacer le journal de synchronisation ?",
+      "clear_confirm_body": "Cela supprime toutes les entrées enregistrées sur cet appareil.",
+      "outcome_failure": "Échec",
+      "outcome_skipped": "Ignoré — hors ligne",
+      "outcome_success": "Réussi"
+    }
   }
 }

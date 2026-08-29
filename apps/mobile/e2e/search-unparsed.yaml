@@ -4,6 +4,7 @@ name: Search Unparsed Feed Preview
 # Smoke: Podcast Index search result that is NOT parsed-ready must open the
 # preview/add screen (not the generic search-error "Try again" dead-end).
 # Uses fixtures sentinel query `unparsedfixture` (see e2eUnparsedSearchFixture.ts).
+# The single-field layout (no medium or sort chips) is asserted in search.yaml.
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml

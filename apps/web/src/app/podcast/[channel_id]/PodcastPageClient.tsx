@@ -8,6 +8,7 @@ import type {
 import type { QueryParamsChannel } from '@podverse/helpers-requests';
 import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
+import { ChannelSeenPageView } from '../../../components/ChannelSeen/ChannelSeenPageView';
 import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
@@ -55,6 +56,7 @@ export function PodcastPageClient(props: PodcastPageClientProps) {
       ssrTotalPages={ssrTotalPages}
     >
       <MainWrapper>
+        <ChannelSeenPageView channelIdText={ssrChannel.id_text} />
         <CorePodcastHeader channel={ssrChannel} />
         <MainSidebarLayout>
           <PodcastPageSideContent channel={ssrChannel} podroll={ssrPodroll} />

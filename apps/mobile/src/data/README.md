@@ -34,7 +34,9 @@ Never write auth tokens to SQLite or AsyncStorage.
 
 - `client.ts` — lazily opens `expo-sqlite` and exposes the Drizzle client (`getDb()`).
 - `schema.ts` — Drizzle table definitions (`kv_meta`, `account_snapshot`, `queue_cache`,
-  `add_by_rss_feed`, `download`). Domain tables arrive as forward-only migrations.
+  `add_by_rss_feed`, `download`, `subscribed_channel`, `channel_item`, `channel_item_window`,
+  `channel_seen`, `channel_live_status`, `sync_event_log`). Domain tables arrive as forward-only
+  migrations.
 - `migrations.ts` — forward-only migration list (append-only; strictly increasing integer
   `version`).
 - `runMigrations.ts` — applies pending migrations in a transaction, tracked via
@@ -64,10 +66,24 @@ Screen / hook  →  repository  →  SQLite (source of truth for phone UI)
   `addByRssRepository` (followed add-by-RSS feeds in `add_by_rss_feed`, offline-capable list;
   persists the last `@podverse/parser-mapping` compat bundle per feed for full-resource playback —
   the follow/parse/unfollow API calls stay in the add-by-RSS hooks that orchestrate the flow).
+  `channelItemsRepository` (episodes for followed directory channels in `channel_item`, so a
+  subscription browses and plays with no connection — not only the episodes downloaded as media
+  files; each channel keeps a bounded window tracked in `channel_item_window`, with the depth,
+  staleness, and reconciliation rules in the pure sibling `channelItemWindow.ts`).
   `downloadsRepository` (Phase F offline downloads index in `download`; source of truth for the
   Downloads library + local-file playback — **progressive only**, eligibility gated by
   `isItemDownloadable` in `src/downloads/` before insert; projects the completed set to the native
-  cache on every mutation). `exampleRepository` is a scaffold proving the pattern.
+  cache on every mutation). `channelSeenRepository` (one `last_seen_at` per subscription in
+  `channel_seen`, plus the unseen counts derived from the episodes already stored, so badges work
+  signed out and offline; reconciles with the account in both directions, later timestamp winning,
+  with the pure rules in `channelSeenSync.ts`). `channelLiveStatusRepository` (which subscriptions
+  are broadcasting, in `channel_live_status` — the one row element the device cannot derive, since
+  live items are excluded from every regular item query; directory statuses come from one queued
+  call to the subscribed live-item endpoint, add-by-RSS from the parsed bundle already on disk, with
+  the trust window and status-ranking rules in `channelLiveStatus.ts`). `syncEventLogRepository`
+  (capped diagnostic record of background sync
+  failures in `sync_event_log`, surfaced at More ▸ Sync log; local-only, with the cap and eviction
+  rule in the pure sibling `syncEventLog.ts`). `exampleRepository` is a scaffold proving the pattern.
 - `sync/` — generic `readThrough` / `writeBehind` primitives + `kv_meta` watermark helpers
   (`readSyncWatermark`, `writeSyncWatermark`, `isWatermarkStale`).
 - `nativeCache/` — `projectQueueSnapshotToNativeCache`, `projectDownloadsIndexToNativeCache`,

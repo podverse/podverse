@@ -618,6 +618,19 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
     pubDateOffsetSeconds: 10800,
   });
 
+  // Subscriptions, so the /podcasts subscribed list has rows to render. The podcast channel's items
+  // sit at 0, 1, 2, and 3 hours old and its timestamp lands at ninety minutes, which leaves part of
+  // the channel unseen and part of it caught up; the livestream follow is fully caught up.
+  await client.query(
+    `INSERT INTO account_following_channel (account_id, channel_id, last_seen_at)
+     VALUES
+       ($1, $2, NOW() - INTERVAL '90 minutes'),
+       ($1, $3, NOW())
+     ON CONFLICT (account_id, channel_id)
+     DO UPDATE SET last_seen_at = EXCLUDED.last_seen_at`,
+    [accountId, podcastChannelId, channelId]
+  );
+
   await client.query(
     `INSERT INTO clip (
        id_text,

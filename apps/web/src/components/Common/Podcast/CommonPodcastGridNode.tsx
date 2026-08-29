@@ -9,6 +9,7 @@ import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import { listItemImageCandidates } from '../../../utils/image/listItemImageCandidates';
+import { ChannelUnseenCountBadge } from '../../ChannelSeen/ChannelUnseenCountBadge';
 import type { PodcastListItem } from './types';
 
 import styles from '../../../styles/components/Common/List/ListGridNode.module.scss';
@@ -31,6 +32,7 @@ export const CommonPodcastListGridNode: React.FC<CommonPodcastListGridNodeProps>
           height={IMAGES.LIST.GRID.SIZE}
           className={styles.image}
         />
+        <ChannelUnseenCountBadge badge={item.unseenBadge} className={styles.unseenBadge} />
         <div className={styles.title}>{item.title}</div>
         {item.lastPubDate && (
           <span className={styles.lastPubDate}>{formatDateAbbrev(item.lastPubDate, locale)}</span>

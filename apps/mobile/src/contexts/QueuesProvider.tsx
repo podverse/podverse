@@ -1,17 +1,14 @@
 import type { PropsWithChildren } from 'react';
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, useContext, useMemo, useState } from 'react';
 
 import type { DTOQueue, DTOQueueResource } from '@podverse/helpers/dto';
-
-import { useAuth } from '../auth/AuthProvider';
-import type { MobileAuthRequestContext } from '../data';
-import { queueRepository } from '../data';
-import { useQueueResourcesLoadActive } from '../hooks/useQueueResourcesLoadActive';
 
 /**
  * Mobile queue store — mirrors web `apps/web/src/contexts/Queue.tsx` boundaries. The provider owns
  * only in-memory UI state (queues / activeQueue / upcoming); persistence + sync live in
  * `queueRepository`. Screens read this store and call repository-backed hooks — never `req*`.
+ *
+ * Filling the store at launch is a queued sync job, so this holds no effects of its own.
  */
 type QueuesContextType = {
   queues: DTOQueue[];
@@ -43,12 +40,7 @@ export function QueuesProvider({ children }: PropsWithChildren) {
     [activeQueue, activeQueueUpcomingResources, queues]
   );
 
-  return (
-    <QueuesContext.Provider value={value}>
-      <QueueLaunchHydrator />
-      {children}
-    </QueuesContext.Provider>
-  );
+  return <QueuesContext.Provider value={value}>{children}</QueuesContext.Provider>;
 }
 
 export function useQueues(): QueuesContextType {
@@ -57,62 +49,4 @@ export function useQueues(): QueuesContextType {
     throw new Error('useQueues must be used within a QueuesProvider');
   }
   return context;
-}
-
-/**
- * Launch hydration: once auth resolves to authenticated, sync all queues + the abridged index into
- * the repository (SQLite) and populate the store via the load-active hook. Anonymous launches never
- * hit the authenticated queue endpoints — they clear the store instead. Renders nothing.
- */
-function QueueLaunchHydrator() {
-  const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
-  const { setQueues, setActiveQueue, setActiveQueueUpcomingResources } = useQueues();
-  const loadActive = useQueueResourcesLoadActive();
-
-  const authRef = useRef<MobileAuthRequestContext>({
-    accessToken,
-    clearSession,
-    refreshToken,
-    setTokens,
-  });
-  const hasHydratedRef = useRef(false);
-
-  useEffect(() => {
-    authRef.current = { accessToken, clearSession, refreshToken, setTokens };
-  }, [accessToken, clearSession, refreshToken, setTokens]);
-
-  useEffect(() => {
-    if (status === 'anonymous') {
-      hasHydratedRef.current = false;
-      setQueues([]);
-      setActiveQueue(null);
-      setActiveQueueUpcomingResources([]);
-      return;
-    }
-
-    if (status !== 'authenticated' || hasHydratedRef.current) {
-      return;
-    }
-    hasHydratedRef.current = true;
-
-    void (async () => {
-      try {
-        await queueRepository.getAbridgedIndex(authRef.current);
-      } catch (error) {
-        if (__DEV__) {
-          console.warn('[queue] abridged index hydrate failed', error);
-        }
-      }
-
-      try {
-        await loadActive();
-      } catch (error) {
-        if (__DEV__) {
-          console.warn('[queue] launch hydrate failed', error);
-        }
-      }
-    })();
-  }, [loadActive, setActiveQueue, setActiveQueueUpcomingResources, setQueues, status]);
-
-  return null;
 }

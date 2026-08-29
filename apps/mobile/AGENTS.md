@@ -43,12 +43,35 @@ Contributor guide: [`APPS-MOBILE.md`](/apps/mobile/APPS-MOBILE.md).
   [DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md).
 - **Tab navigation:** each bottom-tab stack is self-contained — do not jump cross-tab for in-flow
   detail (duplicate detail routes per stack is OK). See **mobile-tab-stack-isolation**.
-- **Native modules:** under `apps/mobile/modules/`, `ios/`, `android/`.
+- **Native modules:** under `apps/mobile/modules/`, `ios/`, `android/`. Needing a rebuild is not a
+  reason to avoid one — see **Native dependencies** below.
 - **E2E:** Maestro or Detox under `apps/mobile/e2e/` — **not** `make e2e_*` (web/management-web only).
 - **Standalone install:** `apps/mobile` is **outside** the root npm workspace. Use
   `npm run mobile:install` (own `package-lock.json` + `.npmrc`). Shared packages via
   `file:../../packages/…`. See **mobile-expo-monorepo** skill. Do not re-add Expo to the root
   lockfile or use symlink / `NODE_PATH` workarounds.
+
+## Native dependencies
+
+**A required native rebuild is never a reason to avoid, defer, or water down a change.** Assume
+every contributor and CI will run `npm run mobile:prebuild` and rebuild their dev client. `ios/` and
+`android/` are generated and gitignored, so this is the normal cost of the platform, not an
+exceptional event.
+
+Pick the right dependency for the feature and add it. Do not propose a degraded design, a
+placeholder seam, or a deferral because the module is native, because the plan set is mid-flight, or
+because someone might be holding a stale dev client. The app's capability is what matters; a stale
+build is the holder's problem to resolve with one command.
+
+What you **do** still owe the operator:
+
+- Say plainly in your summary that a rebuild is required and which command produces it.
+- Use `npm --prefix apps/mobile exec -- expo install <pkg>` so the version matches the SDK, then
+  `npm run mobile:install` (see **mobile-expo-monorepo**).
+- Keep the dependency justified on its merits — the wrong library is still the wrong library.
+
+Ask about a native dependency only when the *choice between libraries* is genuinely open, never to
+get permission to incur a rebuild.
 
 ## Package import allowlist / denylist
 

@@ -2,7 +2,6 @@ import type { PropsWithChildren } from 'react';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import type { DTOAccount } from '@podverse/helpers/dto';
-import { getErrorResponseStatus } from '@podverse/helpers/error';
 
 import { getMobileConfig } from '../config';
 // Import the repository from its module (not the data barrel) to avoid an import cycle through
@@ -19,14 +18,9 @@ import {
 } from './forcedLogoutNotice';
 import { logoutWithMobileRevoke } from './logoutWithMobileRevoke';
 import { clearAllSecureTokens, readSecureToken, writeSecureToken } from './secureTokenStorage';
-import { runPostAuthAccountSync } from './syncAccountPrefs';
+import { reconcileAccountPrefsFromAccount } from './syncAccountPrefs';
 
 export type AuthStatus = 'unknown' | 'anonymous' | 'authenticated';
-
-// Bootstrap `/auth/me` must never leave the app stuck on the `status === 'unknown'`
-// blank render when the network is slow/unreachable; the request layer aborts the
-// in-flight call after this budget so hydrate always resolves to a real status.
-const AUTH_BOOTSTRAP_TIMEOUT_MS = 8000;
 
 // E2E flows must always start from a clean anonymous session. Maestro
 // `launchApp: clearState` does not clear expo-secure-store (iOS Keychain /
@@ -126,73 +120,25 @@ export function AuthProvider({ children }: PropsWithChildren) {
       return;
     }
 
-    // Offline-first: render the cached account immediately when present so a logged-in cold start
-    // shows the account while the soft-refresh runs (or when offline).
-    let hasCachedAccount = false;
+    // Both sources here are local — SecureStore for the tokens, SQLite for the account — so the
+    // shell renders at the correct signed-in state without a single request. `SyncProvider` sees
+    // the resolved status and queues the refresh behind the app being usable.
     try {
       const cachedAccount = await accountRepository.getSnapshot();
       if (cachedAccount !== null) {
-        hasCachedAccount = true;
         setAccount(cachedAccount);
-        setStatus('authenticated');
-        setError(null);
-        try {
-          await runPostAuthAccountSync({
-            accessToken: storedAccessToken,
-            account: cachedAccount,
-          });
-        } catch (localeError) {
-          console.warn(
-            'Failed to reconcile cached account prefs during auth bootstrap',
-            localeError
-          );
-        }
+        await reconcileAccountPrefsFromAccount(cachedAccount);
       }
     } catch (snapshotError) {
       console.warn('Failed to read cached account snapshot during auth bootstrap', snapshotError);
     }
 
-    // Soft-refresh from the API through the repository (which persists the snapshot for next cold
-    // start). The timeout cancels the in-flight request so hydrate never hangs on `unknown`.
-    try {
-      const account = await accountRepository.refresh(
-        {
-          accessToken: storedAccessToken,
-          clearSession,
-          refreshToken: storedRefreshToken,
-          setTokens,
-        },
-        { timeoutMs: AUTH_BOOTSTRAP_TIMEOUT_MS }
-      );
-      setAccount(account);
-      try {
-        await runPostAuthAccountSync({
-          accessToken: storedAccessToken,
-          account,
-        });
-      } catch (error) {
-        console.warn('Failed to reconcile account prefs during auth bootstrap', error);
-      }
-      setStatus('authenticated');
-      setError(null);
-    } catch (error) {
-      if (getErrorResponseStatus(error) === 401) {
-        // The stored credentials were refused outright. Any other failure falls through below and
-        // keeps the session, so a cold start with no network stays signed in.
-        await clearSession('session_expired');
-        return;
-      }
-
-      if (!hasCachedAccount) {
-        // No cached account to show — keep the persisted session and surface the error rather than
-        // falling back to anonymous (a split-brain: tokens exist but UI says anonymous).
-        setAccount(null);
-        setStatus('authenticated');
-        setError('auth_bootstrap_failed');
-      }
-      // With a cached account we stay on it; the soft-refresh failure is silent (likely offline).
-    }
-  }, [clearSession, setTokens]);
+    // Holding tokens is what makes a session, not having fetched the account. A first launch after
+    // login has no snapshot yet and still belongs in the authenticated shell; the account details
+    // arrive behind the sync indicator.
+    setStatus('authenticated');
+    setError(null);
+  }, [clearSession]);
 
   const refreshWithStoredToken = useCallback(async () => {
     return refreshAccessTokenSingleFlight({

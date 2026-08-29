@@ -2,6 +2,10 @@ import { config } from '@api/config/index.js';
 import { AccountController } from '@api/controllers/account/account.js';
 import { AccountAddByRSSChaptersTranscriptController } from '@api/controllers/account/accountAddByRSSChaptersTranscript.js';
 import { AccountAddByRSSParseController } from '@api/controllers/account/accountAddByRSSParse.js';
+import {
+  AccountChannelSeenController,
+  channelSeenReadRateLimit,
+} from '@api/controllers/account/accountChannelSeen.js';
 import { AccountFCMDeviceController } from '@api/controllers/account/accountFCMDevice.js';
 import { AccountFollowingAccountController } from '@api/controllers/account/accountFollowingAccount.js';
 import { AccountFollowingAddByRSSChannelController } from '@api/controllers/account/accountFollowingAddByRSSChannel.js';
@@ -175,6 +179,23 @@ router.post(
   asyncHandler(AccountFollowingChannelController.followChannelsBulk)
 );
 router.post('/unfollow/channel', asyncHandler(AccountFollowingChannelController.unfollowChannel));
+
+router.get(
+  '/channel-seen',
+  channelSeenReadRateLimit,
+  asyncHandler(AccountChannelSeenController.getChannelSeen)
+);
+router.get(
+  '/channel-seen/add-by-rss',
+  channelSeenReadRateLimit,
+  asyncHandler(AccountChannelSeenController.getAddByRssSeen)
+);
+router.post('/channel-seen/mark', asyncHandler(AccountChannelSeenController.markSeen));
+router.post('/channel-seen/mark-all', asyncHandler(AccountChannelSeenController.markAllSeen));
+router.post(
+  '/channel-seen/mark-add-by-rss',
+  asyncHandler(AccountChannelSeenController.markAddByRssSeen)
+);
 
 router.post('/follow/playlist', asyncHandler(AccountFollowingPlaylistController.followPlaylist));
 router.post(

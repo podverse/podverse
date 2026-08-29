@@ -1,4 +1,5 @@
 import type { DTOChannel } from '@podverse/helpers';
+import { articleStrippedTitle } from '@podverse/helpers';
 
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 
@@ -21,6 +22,11 @@ export type SubscribedChannel = {
   imageUrl: string | null;
   source: SubscriptionSource;
   medium: SubscriptionMedium;
+  /**
+   * When this subscription last published, from local storage. Null when nothing is stored for it
+   * yet, which orders as unknown rather than as long ago.
+   */
+  latestItemPubDateMs: number | null;
 };
 
 export type SubscriptionFilter = 'all' | 'addByRss' | 'directory';
@@ -69,6 +75,9 @@ export const mapDirectoryChannelToSubscribed = (channel: DTOChannel): Subscribed
     imageUrl: firstChannelImageUrl(channel),
     source: 'directory',
     medium: 'podcasts',
+    // A directory channel's recency comes from the items stored for it, which this mapping does not
+    // see. The repository fills it in from `channelItemsRepository`.
+    latestItemPubDateMs: null,
   };
 };
 
@@ -90,6 +99,7 @@ export const mapAddByRssToSubscribed = (
     imageUrl: trimToNull(record.imageUrl),
     source: 'addByRss',
     medium: mediumIsMusicResourceType(record.resourceType) ? 'music' : 'podcasts',
+    latestItemPubDateMs: record.latestItemPubDateMs,
   };
 };
 
@@ -120,24 +130,42 @@ export const applySubscriptionFilter = (
   return list;
 };
 
-const LEADING_ARTICLE = /^(the|a|an)\s+/;
-
-/** Sort key: lowercase, trimmed, with a leading article stripped. */
-const sortableTitle = (title: string): string => {
-  return title.trim().toLowerCase().replace(LEADING_ARTICLE, '');
-};
-
 export const compareSubscribedByTitle = (a: SubscribedChannel, b: SubscribedChannel): number => {
-  return sortableTitle(a.title).localeCompare(sortableTitle(b.title));
+  return articleStrippedTitle(a.title).localeCompare(articleStrippedTitle(b.title));
 };
 
 /**
- * Sort the merged list. `alphabetical` is the default. `recent` is accepted for API stability and
- * uses the same alphabetical ordering because the merged entries do not include per-source recency.
+ * Newest first, with subscriptions whose date is unknown after those whose date is known.
+ *
+ * An unknown date is a subscription nothing has been stored for yet, usually a follow the item sync
+ * has not reached. Sorting those to the bottom keeps a brand new follow from claiming the top of the
+ * list on the strength of having no information at all, and they settle into place once their items
+ * arrive. Equal dates fall back to title so the order is total and a re-sort cannot shuffle rows.
  */
+export const compareSubscribedByRecency = (a: SubscribedChannel, b: SubscribedChannel): number => {
+  const aMs = a.latestItemPubDateMs;
+  const bMs = b.latestItemPubDateMs;
+
+  if (aMs === null && bMs === null) {
+    return compareSubscribedByTitle(a, b);
+  }
+  if (aMs === null) {
+    return 1;
+  }
+  if (bMs === null) {
+    return -1;
+  }
+  if (aMs === bMs) {
+    return compareSubscribedByTitle(a, b);
+  }
+  return bMs - aMs;
+};
+
+/** Order the merged list. `alphabetical` is the default. */
 export const sortSubscriptions = (
   list: SubscribedChannel[],
-  _sort: SubscriptionSort = 'alphabetical'
+  sort: SubscriptionSort = 'alphabetical'
 ): SubscribedChannel[] => {
-  return [...list].sort(compareSubscribedByTitle);
+  const comparator = sort === 'recent' ? compareSubscribedByRecency : compareSubscribedByTitle;
+  return [...list].sort(comparator);
 };

@@ -12,11 +12,13 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { breakpoints } from '@podverse/design-tokens';
 import { shouldSuppressExpiryReminder } from '@podverse/helpers';
 
 import { useAuth } from '../auth/AuthProvider';
+import { SyncProgressBar } from '../components/feedback/SyncProgressBar';
 import { MiniPlayer } from '../components/player/MiniPlayer';
 import type { MenuListItem } from '../components/screen/MenuListScreen';
 import { MenuListScreen } from '../components/screen/MenuListScreen';
@@ -25,11 +27,13 @@ import { buildMobileLinkPrefixes } from '../config/deepLinkSchemes';
 import { useNotificationsUnseenCount } from '../hooks/useNotificationsUnseenCount';
 import { useMembership } from '../membership/useMembership';
 import { PlaybackE2eStatus } from '../playback/PlaybackE2eStatus';
+import type { HomeMediaType } from '../prefs/preferredMediaType';
 import { AlbumDetailScreen } from '../screens/album/AlbumDetailScreen';
 import { ArtistDetailScreen } from '../screens/artist/ArtistDetailScreen';
 import { ClipDetailScreen } from '../screens/clip/ClipDetailScreen';
 import { EpisodeDetailScreen } from '../screens/episode/EpisodeDetailScreen';
 import { HelloWorldScreen } from '../screens/HelloWorldScreen';
+import { HomeFilterSortScreen } from '../screens/home/HomeFilterSortScreen';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { LibraryDownloadsScreen } from '../screens/library/LibraryDownloadsScreen';
 import { LibraryHistoryScreen } from '../screens/library/LibraryHistoryScreen';
@@ -44,6 +48,7 @@ import { MoreOpmlScreen } from '../screens/more/MoreOpmlScreen';
 import { MoreSettingsLocaleScreen } from '../screens/more/MoreSettingsLocaleScreen';
 import { MoreSettingsScreen } from '../screens/more/MoreSettingsScreen';
 import { MoreSettingsThemeScreen } from '../screens/more/MoreSettingsThemeScreen';
+import { MoreSyncLogScreen } from '../screens/more/MoreSyncLogScreen';
 import { NotificationsInboxScreen } from '../screens/notifications/NotificationsInboxScreen';
 import { FullPlayerScreen } from '../screens/player/FullPlayerScreen';
 import { PodcastDetailScreen } from '../screens/podcast/PodcastDetailScreen';
@@ -111,6 +116,7 @@ export const HOME_STACK_ROUTES = {
   ArtistDetail: 'ArtistDetail',
   ClipDetail: 'ClipDetail',
   EpisodeDetail: 'EpisodeDetail',
+  HomeFilterSort: 'HomeFilterSort',
   HomeRoot: 'HomeRoot',
   PodcastDetail: 'PodcastDetail',
   TrackDetail: 'TrackDetail',
@@ -164,6 +170,7 @@ export const MORE_STACK_ROUTES = {
   MoreSettingsLocale: 'MoreSettingsLocale',
   MoreSettingsTheme: 'MoreSettingsTheme',
   MoreSmoke: 'MoreSmoke',
+  MoreSyncLog: 'MoreSyncLog',
 } as const;
 
 export const ROOT_STACK_ROUTES = {
@@ -207,6 +214,7 @@ const mobileNavigationScreens = {
           MoreSettingsLocale: 'more/settings/locale',
           MoreSettingsTheme: 'more/settings/theme',
           MoreSmoke: 'more/smoke',
+          MoreSyncLog: 'more/sync-log',
         },
       },
       'My Library': {
@@ -291,6 +299,8 @@ export type ChannelBrowseStackParamList = {
 };
 
 export type HomeStackParamList = ChannelBrowseStackParamList & {
+  /** Which Home list the choices apply to, so each media type keeps its own. */
+  HomeFilterSort: { mediaType: HomeMediaType };
   HomeRoot: undefined;
 };
 
@@ -304,7 +314,12 @@ export type SearchStackParamList = ChannelBrowseStackParamList & {
     imageUrl?: string | null;
     title?: string;
   };
-  SearchRoot: undefined;
+  /**
+   * `autoFocus` is a request from another tab (Home's empty state) to start a fresh search: the
+   * field is cleared and focused so the user can type straight away. Tapping the Search tab
+   * directly omits it and keeps whatever was already there.
+   */
+  SearchRoot: { autoFocus?: boolean } | undefined;
 };
 
 export type LibraryStackParamList = {
@@ -339,6 +354,7 @@ export type MoreStackParamList = {
   MoreSettingsLocale: undefined;
   MoreSettingsTheme: undefined;
   MoreSmoke: undefined;
+  MoreSyncLog: undefined;
 };
 
 type RootStackParamList = {
@@ -352,7 +368,7 @@ type RootStackParamList = {
 /** Bottom-tab route names, used for type-safe cross-tab navigation (e.g. Home → My Library). */
 export type MobileTabParamList = {
   Home: undefined;
-  Search: undefined;
+  Search: NavigatorScreenParams<SearchStackParamList> | undefined;
   Notifications: undefined;
   'My Library': NavigatorScreenParams<LibraryStackParamList> | undefined;
   More: NavigatorScreenParams<MoreStackParamList> | undefined;
@@ -383,6 +399,11 @@ function HomeStackNavigator() {
         component={HomeScreen}
         name={HOME_STACK_ROUTES.HomeRoot}
         options={{ title: t('nav.stack.home') }}
+      />
+      <HomeStack.Screen
+        component={HomeFilterSortScreen}
+        name={HOME_STACK_ROUTES.HomeFilterSort}
+        options={{ title: t('filters.screen.title') }}
       />
       <HomeStack.Screen
         component={PodcastDetailScreen}
@@ -629,6 +650,11 @@ function MoreStackNavigator({
         name={MORE_STACK_ROUTES.MoreOpml}
         options={{ title: t('nav.stack.opml') }}
       />
+      <MoreStack.Screen
+        component={MoreSyncLogScreen}
+        name={MORE_STACK_ROUTES.MoreSyncLog}
+        options={{ title: t('sync.log.title') }}
+      />
       <MoreStack.Screen name={MORE_STACK_ROUTES.MoreSmoke} options={{ title: 'Smoke' }}>
         {() => (
           <HelloWorldScreen
@@ -813,6 +839,14 @@ function MoreRootScreen({
           testID: 'more-nav-opml',
           title: t('nav.menu.opml'),
         },
+        // Low in the list on purpose: nobody goes looking for this until sync is already misbehaving.
+        {
+          onPress: () => {
+            navigation.navigate(MORE_STACK_ROUTES.MoreSyncLog);
+          },
+          testID: 'more-nav-sync-log',
+          title: t('sync.log.title'),
+        },
         {
           onPress: () => {
             navigation.navigate(MORE_STACK_ROUTES.MoreSmoke);
@@ -847,10 +881,11 @@ function TabScaffold({
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const notificationsUnseenCount = useNotificationsUnseenCount({ enabled: true });
+  const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isTabletLayout = width >= MOBILE_TABLET_NAV_MIN_WIDTH;
 
-  return (
+  const navigator = (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
@@ -874,6 +909,9 @@ function TabScaffold({
         ) : (
           <View>
             <PlaybackE2eStatus />
+            {/* Above the mini player, which renders nothing when idle — so the bar lands on the tab
+                bar by itself, with no conditional placement. */}
+            <SyncProgressBar />
             <MiniPlayer onExpand={onOpenFullPlayer} />
             <BottomTabBar {...props} />
           </View>
@@ -935,7 +973,27 @@ function TabScaffold({
       </Tab.Screen>
     </Tab.Navigator>
   );
+
+  if (!isTabletLayout) {
+    return navigator;
+  }
+
+  // The tablet tab bar is a left rail, so there is no bottom column for the bar to sit above. A
+  // full-width strip under the whole navigator is the equivalent position, and it carries the
+  // home-indicator inset itself because nothing sits beneath it here.
+  return (
+    <View style={tabScaffoldStyles.tabletRoot}>
+      {navigator}
+      <SyncProgressBar bottomInset={insets.bottom} />
+    </View>
+  );
 }
+
+const tabScaffoldStyles = StyleSheet.create({
+  tabletRoot: {
+    flex: 1,
+  },
+});
 
 export function MobileTabNavigator({
   onConsumePendingDeepLink,

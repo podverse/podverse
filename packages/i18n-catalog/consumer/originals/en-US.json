@@ -557,6 +557,11 @@
       "week": "Week",
       "month": "Month",
       "all_time": "All Time"
+    },
+    "screen": {
+      "title": "Filter & Sort",
+      "filter_heading": "Filter",
+      "sort_heading": "Sort"
     }
   },
   "legal": {
@@ -688,10 +693,26 @@
   "subscriptions": {
     "subscriptions": "Subscriptions",
     "how_to_start_message": "Try <searchLink>searching</searchLink> for your favorite content, or browse <podcastsLink>podcasts</podcastsLink>, <videosLink>videos</videosLink>, or <musicLink>music</musicLink>. Your subscriptions will appear here.",
+    "empty_message": "You are not subscribed to anything yet. Search to find something to listen to.",
+    "no_filter_matches": "No subscriptions match your filter.",
     "filter": {
       "all": "All",
-      "add_by_rss": "Add by RSS"
-    }
+      "add_by_rss": "Add by RSS",
+      "label": "Filter",
+      "placeholder": "Filter...",
+      "clear": "Clear",
+      "results_count": "Showing {count}"
+    },
+    "row": {
+      "latest_episode": "Latest: {date}",
+      "unseen_count": "{count} new",
+      "unseen_count_capped": "{count}+ new",
+      "unseen_count_aria": "{count} new episodes",
+      "unseen_count_capped_aria": "More than {count} new episodes",
+      "downloaded_count": "{count} downloaded"
+    },
+    "mark_all_seen": "Mark All As Seen",
+    "mark_all_seen_done": "All subscriptions marked as seen"
   },
   "authentication": {
     "login": "Login",

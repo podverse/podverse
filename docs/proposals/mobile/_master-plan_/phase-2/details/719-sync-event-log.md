@@ -2,7 +2,7 @@
 
 **Master step:** P2.4.10
 **Model (author + implement):** Opus 5
-**Status:** planned
+**Status:** done
 **Depends on:** [717-fast-startup-and-sync-queue](/docs/proposals/mobile/_master-plan_/phase-2/details/717-fast-startup-and-sync-queue.md)
 
 ## Scope
@@ -73,10 +73,72 @@ rows is past the point where a `ScrollView` and `.map()` is acceptable.
 - Unit tests cover the cap and eviction order, code extraction from a failure, and the retention
   rule protecting failures.
 
+## As built
+
+### Storage
+
+`sync_event_log` (migration 7) in the mobile SQLite database, with an autoincrement `id` that also
+serves as the tiebreaker for two entries sharing a millisecond — both newest-first display and
+oldest-first eviction need a total order.
+
+**Only failures and skips are written.** A single library pass settles dozens of jobs, so storing
+successes would make 500 rows represent minutes of normal operation rather than months of problems,
+and the entries worth keeping would be the ones squeezed out. Leaving them out means the cap can
+only be reached by things that went wrong.
+
+An offline failure is stored as `skipped`. The queue parks on unreachability rather than working the
+rest of the run into the same wall, so an offline stretch produces roughly one entry per run, and
+calling it a failure would report the user's train tunnel as a fault.
+
+| Module | Role |
+| ------ | ---- |
+| `src/data/repositories/syncEventLog.ts` | Pure: cap, eviction rule, export format |
+| `src/data/repositories/syncEventLogRepository.ts` | SQLite append / list / clear |
+| `src/sync/syncEventLogSink.ts` | Bridges `syncQueue.subscribeToFailures` to the repository |
+| `src/screens/more/MoreSyncLogScreen.tsx` | More ▸ Sync log |
+
+The sink attaches from `SyncProvider` and changes nothing about how the queue treats a failure: it
+still skips the job, finishes the run, and shows nothing. `append` swallows its own errors, since a
+log that cannot be written is a worse thing to surface than the failure it was describing.
+
+### Retention
+
+`selectSyncEventEvictions` evicts oldest first but drops non-failures before it touches a failure, so
+only a flood of *other failures* can push a failure out — which is a report in itself. The rule is
+pure and unit-tested, and holds regardless of the decision not to store successes today.
+
+Trimming reads `id` / `occurred_at` / `outcome` for every row and applies the rule in TypeScript
+rather than expressing it a second time in SQL. At 500 narrow rows, on an event that only fires when
+something failed, one source of truth is worth more than the query.
+
+### Error codes
+
+`classifySyncError` composes the HTTP status with the API body code when the body names its own
+failure: `http_403:membership_required`, falling back to `http_403`. Picking one or the other loses a
+question support would then have to ask. Extraction uses `getErrorResponseStatus` and
+`getErrorResponseBodyCode` from `@podverse/helpers/error`.
+
+The screen renders the code `selectable` and unmodified, and the share export repeats it on every
+line alongside an ISO timestamp — the reader there is a support conversation, not the device owner,
+so a locale-formatted `03/08` would be ambiguous.
+
+### Surface
+
+More ▸ Sync log, low in the list. `FlatList`, newest first, with share and clear (clear behind
+`ConfirmDialog`). Export goes through the existing `Share.share` idiom rather than adding a clipboard
+dependency; the share sheet offers Copy. Each row is one `accessible` node whose label reads job,
+outcome, timestamp, code, and message in sequence.
+
+Row timestamps use `Intl.DateTimeFormat` component options rather than `dateStyle` / `timeStyle`,
+which are the parts of ECMA-402 Hermes has been least consistent about across platforms.
+
 ## Verification
 
+`apps/mobile` is a standalone install outside the root npm workspaces, so root `test:unit` does not
+reach its Vitest suite — run it with the `--prefix` form.
+
 ```bash
-npm run lint
-npm run test:unit
-npm run mobile:e2e:test -- settings-select
+npm run mobile:lint
+npm --prefix apps/mobile run test
+npm run mobile:e2e:test -- sync-log
 ```

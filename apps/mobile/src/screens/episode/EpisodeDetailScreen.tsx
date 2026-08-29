@@ -20,6 +20,7 @@ import { Button } from '../../components/primitives/Button';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
+import { channelItemsRepository } from '../../data/repositories/channelItemsRepository';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import type { ChannelBrowseStackParamList } from '../../navigation';
 import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
@@ -166,19 +167,26 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
     [themeStyles, tokens]
   );
 
+  /**
+   * The stored copy is the whole item as the feed delivered it, so an episode from a subscribed
+   * channel opens and plays with no connection. Episodes reached from search or a channel the
+   * device does not follow have nothing stored and are fetched.
+   */
   const loadEpisode = useCallback(async () => {
     setIsLoading(true);
     setErrorKey(null);
     try {
-      const response = await requestWithMobileAuthRefresh(
-        {
-          accessToken,
-          clearSession,
-          refreshToken,
-          setTokens,
-        },
-        async (api) => api.reqItemGetByIdOrIdText(episodeId)
-      );
+      const response =
+        (await channelItemsRepository.getByIdText(episodeId)) ??
+        (await requestWithMobileAuthRefresh(
+          {
+            accessToken,
+            clearSession,
+            refreshToken,
+            setTokens,
+          },
+          async (api) => api.reqItemGetByIdOrIdText(episodeId)
+        ));
       setEpisode(response);
 
       if (response.channel) {

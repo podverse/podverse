@@ -36,6 +36,19 @@ is interactive.
 Auth token refresh (`refreshAccessTokenSingleFlight`) stays orthogonal to the queue. It is a
 prerequisite of individual requests in both lanes, not a sync job.
 
+## Subscribed content is read from the device
+
+Every screen that browses, filters, or sorts **subscribed** content reads local storage and nothing
+else, so it behaves the same with no connection. Channels come from `subscriptionsRepository`,
+their episodes from `channelItemsRepository`, and add-by-RSS feeds from `addByRssRepository`.
+
+- A screen that reads subscribed content from the network is a bug, even when the network is up.
+- Network search and directory browse are separate, online-only surfaces and do not read this store.
+- The one-time fallback for a screen with nothing stored yet is acceptable; a fallback that runs
+  whenever the network happens to be available is not, because it hides the offline path breaking.
+- Refreshing a screen the user just opened runs directly rather than through the queue. Queued work
+  is for passes nobody asked for.
+
 ## Every queued job is visible
 
 While the queue is non-empty, a sync indicator bar reports **what** is syncing and **how many steps
@@ -65,6 +78,7 @@ translated sentence and no code is not diagnosable.
 
 ## Related
 
+- [702-offline-content-sync](/docs/proposals/mobile/_master-plan_/phase-2/details/702-offline-content-sync.md)
 - [717-fast-startup-and-sync-queue](/docs/proposals/mobile/_master-plan_/phase-2/details/717-fast-startup-and-sync-queue.md)
 - [718-sync-progress-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/718-sync-progress-indicator.md)
 - [719-sync-event-log](/docs/proposals/mobile/_master-plan_/phase-2/details/719-sync-event-log.md)

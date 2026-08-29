@@ -557,6 +557,11 @@
       "week": "Semana",
       "month": "Mes",
       "all_time": "Todo el Tiempo"
+    },
+    "screen": {
+      "title": "Filtrar y Ordenar",
+      "filter_heading": "Filtrar",
+      "sort_heading": "Ordenar"
     }
   },
   "legal": {
@@ -688,10 +693,26 @@
   "subscriptions": {
     "subscriptions": "Suscripciones",
     "how_to_start_message": "Prueba <searchLink>buscar</searchLink> tu contenido favorito, o explora <podcastsLink>podcasts</podcastsLink>, <videosLink>videos</videosLink>, o <musicLink>música</musicLink>. Tus suscripciones aparecerán aquí.",
+    "empty_message": "Aún no tienes suscripciones. Busca algo para escuchar.",
+    "no_filter_matches": "Ninguna suscripción coincide con tu filtro.",
     "filter": {
       "all": "Todos",
-      "add_by_rss": "Añadir por RSS"
-    }
+      "add_by_rss": "Añadir por RSS",
+      "label": "Filtrar",
+      "placeholder": "Filtrar...",
+      "clear": "Borrar",
+      "results_count": "Mostrando {count}"
+    },
+    "row": {
+      "latest_episode": "Último: {date}",
+      "unseen_count": "{count} nuevos",
+      "unseen_count_capped": "{count}+ nuevos",
+      "unseen_count_aria": "{count} episodios nuevos",
+      "unseen_count_capped_aria": "Más de {count} episodios nuevos",
+      "downloaded_count": "{count} descargados"
+    },
+    "mark_all_seen": "Marcar Todo Como Visto",
+    "mark_all_seen_done": "Todas las suscripciones marcadas como vistas"
   },
   "authentication": {
     "login": "Iniciar Sesión",

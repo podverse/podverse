@@ -56,5 +56,32 @@
       "open_system_settings": "Abrir los ajustes del sistema",
       "permission_required": "Se necesita permiso de notificaciones para activar este ajuste."
     }
+  },
+  "sync": {
+    "job": {
+      "account": "Actualizando tu cuenta",
+      "subscriptions": "Actualizando tus podcasts",
+      "playlists": "Actualizando tus listas de reproducción",
+      "queue": "Actualizando tu cola",
+      "library": "Actualizando tu biblioteca sin conexión",
+      "notifications": "Configurando las notificaciones",
+      "episodes": "Actualizando tus episodios",
+      "rss_feeds": "Actualizando tus fuentes RSS",
+      "seen_state": "Actualizando las novedades",
+      "live_status": "Comprobando qué está en directo"
+    },
+    "progress": "{completed} de {total}",
+    "log": {
+      "title": "Registro de sincronización",
+      "intro": "Problemas de sincronización en segundo plano registrados en este dispositivo. Compártelo con el soporte si tus podcasts, listas de reproducción o cola dejan de actualizarse.",
+      "empty": "No se han registrado problemas de sincronización",
+      "export": "Compartir",
+      "clear": "Borrar",
+      "clear_confirm_title": "¿Borrar el registro de sincronización?",
+      "clear_confirm_body": "Esto elimina todas las entradas registradas en este dispositivo.",
+      "outcome_failure": "Error",
+      "outcome_skipped": "Omitido: sin conexión",
+      "outcome_success": "Correcto"
+    }
   }
 }

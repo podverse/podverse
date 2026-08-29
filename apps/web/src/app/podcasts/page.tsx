@@ -15,6 +15,7 @@ import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import type { PodcastsFilterDefaults } from '../../utils/localSettings/localSettings';
 import { getParsedLocalSettings } from '../../utils/localSettings/localSettings';
+import { clampFilterTerm } from './podcastsFilter';
 import { PodcastsPageClient } from './PodcastsPageClient';
 import type { PodcastsPageDropdownConfigCurrentParams } from './PodcastsPageDropdownConfig';
 import { getPodcastsPageFilterParams } from './PodcastsPageDropdownConfig';
@@ -33,6 +34,7 @@ const searchParamsSchema = z.object({
     .optional()
     .nullable()
     .default(null),
+  filter: z.string().optional().nullable().default(null),
 });
 
 type SearchParams = z.infer<typeof searchParamsSchema>;
@@ -55,6 +57,12 @@ export default async function PodcastsPage({ searchParams }: PodcastsPageProps) 
   const queryParams = await searchParams;
   const { currentType, currentSort, currentRange, currentCategory, currentPage } =
     await parseSearchParams(queryParams, isValidAuthSession, ssrFilterDefaults);
+
+  // The filter narrows the whole subscribed list client-side, so the server renders the unfiltered
+  // page and the term takes effect once that list is in hand. A shared link therefore paints the
+  // list first and narrows a moment later, rather than waiting on the server to read every page.
+  const initialFilterTerm =
+    currentType === 'subscribed' ? clampFilterTerm(queryParams?.filter) : '';
 
   const medium: QueryParamsMedium = 'av';
   const response: ApiListResponse<DTOChannel> = await safeSsrListRequest(
@@ -88,6 +96,7 @@ export default async function PodcastsPage({ searchParams }: PodcastsPageProps) 
         category: currentCategory,
         medium,
       }}
+      initialFilterTerm={initialFilterTerm}
       ssrChannels={ssrChannels}
       ssrTotalPages={ssrTotalPages}
     />

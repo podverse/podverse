@@ -557,6 +557,11 @@
       "week": "Semaine",
       "month": "Mois",
       "all_time": "Tout le temps"
+    },
+    "screen": {
+      "title": "Filtrer et trier",
+      "filter_heading": "Filtrer",
+      "sort_heading": "Trier"
     }
   },
   "legal": {
@@ -688,10 +693,26 @@
   "subscriptions": {
     "subscriptions": "Abonnements",
     "how_to_start_message": "Essayez <searchLink>de rechercher</searchLink> votre contenu préféré, ou parcourez <podcastsLink>les podcasts</podcastsLink>, <videosLink>les vidéos</videosLink> ou <musicLink>la musique</musicLink>. Vos abonnements apparaîtront ici.",
+    "empty_message": "Vous n'avez encore aucun abonnement. Recherchez quelque chose à écouter.",
+    "no_filter_matches": "Aucun abonnement ne correspond à votre filtre.",
     "filter": {
       "all": "Tous",
-      "add_by_rss": "Ajouter par RSS"
-    }
+      "add_by_rss": "Ajouter par RSS",
+      "label": "Filtrer",
+      "placeholder": "Filtrer...",
+      "clear": "Effacer",
+      "results_count": "Affichage de {count}"
+    },
+    "row": {
+      "latest_episode": "Dernier : {date}",
+      "unseen_count": "{count} nouveaux",
+      "unseen_count_capped": "{count}+ nouveaux",
+      "unseen_count_aria": "{count} nouveaux épisodes",
+      "unseen_count_capped_aria": "Plus de {count} nouveaux épisodes",
+      "downloaded_count": "{count} téléchargés"
+    },
+    "mark_all_seen": "Tout Marquer Comme Vu",
+    "mark_all_seen_done": "Tous les abonnements marqués comme vus"
   },
   "authentication": {
     "login": "Connexion",

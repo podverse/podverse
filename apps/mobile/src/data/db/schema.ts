@@ -50,6 +50,11 @@ export type QueueCacheInsert = typeof queueCache.$inferInsert;
  * holds the full `@podverse/parser-mapping` compat bundle from the last successful server parse, so
  * playback can build full `AddByRSSResourceData` and the list works offline. Scalar columns mirror
  * `MobileAddByRSSFeedRecord` for direct row→record mapping without re-parsing the bundle.
+ *
+ * `latest_item_pub_date_ms` is one of those scalars, extracted from the bundle when a parse lands.
+ * It is what lets the subscription list order add-by-RSS feeds by recency beside directory channels
+ * without deserializing a whole feed per row. `updated_at` cannot stand in: it says when this device
+ * last refreshed the feed, not when the feed last published.
  */
 export const addByRssFeed = sqliteTable('add_by_rss_feed', {
   feedUrl: text('feed_url').primaryKey(),
@@ -60,6 +65,7 @@ export const addByRssFeed = sqliteTable('add_by_rss_feed', {
   imageUrl: text('image_url'),
   enclosureUrl: text('enclosure_url'),
   playbackPosition: text('playback_position'),
+  latestItemPubDateMs: integer('latest_item_pub_date_ms'),
   mappedFeedJson: text('mapped_feed_json'),
   updatedAt: text('updated_at').notNull(),
 });
@@ -119,3 +125,117 @@ export const subscribedChannel = sqliteTable('subscribed_channel', {
 
 export type SubscribedChannelRow = typeof subscribedChannel.$inferSelect;
 export type SubscribedChannelInsert = typeof subscribedChannel.$inferInsert;
+
+/**
+ * Items (episodes) for the directory channels this device follows, so a subscribed user can browse,
+ * filter, sort, and play with no connection — not only the episodes downloaded as media files.
+ *
+ * `payload_json` holds the item exactly as the list endpoint delivered it, which is what lets an
+ * episode open and play offline without a second request. The scalar columns beside it are the
+ * ordering and display keys, so a list query never has to parse every payload to sort by date.
+ *
+ * How much is kept is decided per channel in `channel_item_window`; the rules live in the pure
+ * `channelItemWindow.ts`. Add-by-RSS items are **not** duplicated here — those feeds are stored
+ * whole in `add_by_rss_feed.mapped_feed_json`, which has no window to enforce.
+ */
+export const channelItem = sqliteTable('channel_item', {
+  itemIdText: text('item_id_text').primaryKey(),
+  channelIdText: text('channel_id_text').notNull(),
+  title: text('title'),
+  imageUrl: text('image_url'),
+  pubDateMs: integer('pub_date_ms'),
+  payloadJson: text('payload_json').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+export type ChannelItemRow = typeof channelItem.$inferSelect;
+export type ChannelItemInsert = typeof channelItem.$inferInsert;
+
+/**
+ * How deep into each channel this device stores, and when that depth was last reconciled.
+ *
+ * `depth` grows only when the user scrolls past what is stored while online, and the extension
+ * persists so the next launch opens at the same reach. `synced_at` is what keeps an opportunistic
+ * pass from re-fetching every subscription on every foreground transition.
+ */
+export const channelItemWindow = sqliteTable('channel_item_window', {
+  channelIdText: text('channel_id_text').primaryKey(),
+  depth: integer('depth').notNull(),
+  syncedAt: integer('synced_at'),
+});
+
+export type ChannelItemWindowRow = typeof channelItemWindow.$inferSelect;
+export type ChannelItemWindowInsert = typeof channelItemWindow.$inferInsert;
+
+/**
+ * Diagnostic record of background sync outcomes, capped so it stays invisible in device storage.
+ *
+ * The sync indicator deliberately says nothing when a job fails, so this is the only place a user
+ * reporting "my podcasts aren't updating" can point at. `error_code` is the load-bearing column:
+ * `message` is whatever the failure carried and may be in any language, while the code is stable
+ * enough to read aloud to support.
+ *
+ * The autoincrement id is also the tiebreaker for ordering — two entries can share a millisecond,
+ * and both newest-first display and oldest-first eviction need a total order.
+ */
+export const syncEventLog = sqliteTable('sync_event_log', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  occurredAt: integer('occurred_at').notNull(),
+  jobKind: text('job_kind').notNull(),
+  outcome: text('outcome').notNull(),
+  errorCode: text('error_code'),
+  message: text('message'),
+});
+
+export type SyncEventLogRow = typeof syncEventLog.$inferSelect;
+export type SyncEventLogInsert = typeof syncEventLog.$inferInsert;
+
+/**
+ * When each subscription was last opened, which is what makes an unseen count derivable without
+ * storing a flag per episode.
+ *
+ * Kept locally for every user, signed in or not, so a signed-out device still shows badges. For a
+ * signed-in account the same value lives server-side and the two reconcile by keeping whichever is
+ * later — the timestamp only ever moves forward.
+ *
+ * Directory channels and add-by-RSS feeds share one table because they answer the same question and
+ * appear in the same list. `subscription_key` is the channel `id_text` or the feed URL, and `kind`
+ * says which, since the two id spaces are unrelated and a feed URL is not an `id_text`.
+ *
+ * A missing row means never opened, which reads as nothing unseen.
+ */
+export const channelSeen = sqliteTable('channel_seen', {
+  subscriptionKey: text('subscription_key').primaryKey(),
+  kind: text('kind').notNull(),
+  lastSeenAt: integer('last_seen_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+export type ChannelSeenRow = typeof channelSeen.$inferSelect;
+export type ChannelSeenInsert = typeof channelSeen.$inferInsert;
+
+/**
+ * Which subscriptions are broadcasting, so the live badge draws from the device like every other
+ * part of the row.
+ *
+ * Nothing else on the device can answer this. Live items are excluded from every regular item query
+ * on the server, so the items stored for a channel never contain one, and the channel record itself
+ * carries no live field.
+ *
+ * Keyed like `channel_seen` — the channel `id_text` or the feed URL, with `kind` saying which —
+ * because the two arrive from different places. Directory statuses are replaced wholesale by the
+ * live-item sync, while an add-by-RSS feed declares its own inside the bundle and is written when
+ * that feed is parsed.
+ *
+ * `updated_at` is load-bearing rather than bookkeeping: a broadcast ends whether or not this device
+ * is online to hear about it, so a status is only trusted while it is recent.
+ */
+export const channelLiveStatus = sqliteTable('channel_live_status', {
+  subscriptionKey: text('subscription_key').primaryKey(),
+  kind: text('kind').notNull(),
+  statusId: integer('status_id').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+});
+
+export type ChannelLiveStatusRow = typeof channelLiveStatus.$inferSelect;
+export type ChannelLiveStatusInsert = typeof channelLiveStatus.$inferInsert;

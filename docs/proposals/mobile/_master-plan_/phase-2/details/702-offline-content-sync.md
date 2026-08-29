@@ -2,7 +2,7 @@
 
 **Master step:** P2.4.3
 **Model (author + implement):** Opus 5
-**Status:** planned
+**Status:** implemented
 
 ## Scope
 
@@ -62,10 +62,28 @@ behave identically offline. Network search and directory browse stay online-only
 - Storage growth is bounded for server-backed feeds and measured in a test with a large fixture.
 - Unit tests cover window extension, sync idempotency, and removal reconciliation.
 
+## As implemented
+
+- `channel_item` stores each item's **full payload** alongside the columns it is ordered and
+  rendered by, so an episode opens and plays offline without a second request. `channel_item_window`
+  records how deep each channel reaches and when it was last reconciled.
+- The rules that decide growth and deletion live in the pure
+  `apps/mobile/src/data/repositories/channelItemWindow.ts`, unit-tested in node. A walk covers the
+  channel's whole stored depth and replaces what was stored, which is what makes repeated runs
+  idempotent, retires pulled items, and bounds growth without three separate passes.
+- Add-by-RSS items stay in `add_by_rss_feed.mapped_feed_json` rather than being duplicated into
+  `channel_item`. A background job asks the server to re-parse followed feeds and adopts each result;
+  a lapsed membership skips the request entirely, so those feeds stay readable and simply stop
+  updating.
+- Episode syncing runs signed out as well. Which follows exist is an account question; what those
+  follows have published is not.
+- Opening a channel refreshes it directly rather than through the queue — somebody is waiting on it.
+  Only the passes nobody asked for are queued.
+
 ## Web parity references
 
-- `apps/mobile/src/data/repositories/` — `subscriptionsRepository`, `addByRssRepository`,
-  `playbackContentRepository`
+- `apps/mobile/src/data/repositories/` — `channelItemsRepository`, `channelItemWindow`,
+  `subscriptionsRepository`, `addByRssRepository`, `playbackContentRepository`
 - `apps/mobile/src/data/db/` — schema and migrations
 - [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md)
 - Skill: **mobile-data-layer**

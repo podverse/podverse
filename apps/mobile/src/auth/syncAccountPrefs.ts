@@ -45,29 +45,27 @@ export const reconcileAccountPrefsFromAccount = async (account: DTOAccount): Pro
   await applyAccountLocaleOverride(account.account_settings?.account_settings_locale?.locale);
 };
 
-export const runPostAuthAccountSync = async ({
+/**
+ * Hand this device's push token to the account.
+ *
+ * Network-bound, so it belongs to the sync queue rather than to any path a user is waiting on.
+ * Errors propagate: the queue records them against the job, which is what puts the failure in front
+ * of a support conversation instead of only in a console nobody reads.
+ */
+export const registerPushDeviceForAccount = async ({
   accessToken,
   account,
 }: {
   accessToken: string | null;
   account: DTOAccount;
 }): Promise<void> => {
-  await reconcileAccountPrefsFromAccount(account);
-
   const locale = resolveSupportedLocale(account.account_settings?.account_settings_locale?.locale);
   const pushProvider = getMobileConfig().pushProvider;
-  try {
-    if (pushProvider === 'fcm') {
-      await registerFcmDeviceForAccount({ accessToken, locale });
-    } else if (pushProvider === 'unifiedpush') {
-      await registerUnifiedPushDeviceForAccount({ accessToken, locale });
-    }
-  } catch (error) {
-    if (pushProvider === 'fcm') {
-      console.warn('Failed to register FCM device after authentication', error);
-    } else if (pushProvider === 'unifiedpush') {
-      console.warn('Failed to register UnifiedPush device after authentication', error);
-    }
+
+  if (pushProvider === 'fcm') {
+    await registerFcmDeviceForAccount({ accessToken, locale });
+  } else if (pushProvider === 'unifiedpush') {
+    await registerUnifiedPushDeviceForAccount({ accessToken, locale });
   }
 };
 

@@ -3,9 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { buildMediaRowMoreActions, MediaRowActions } from '../../components/player/MediaRowActions';
+import { Badge } from '../../components/primitives';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from './homeFeedData';
+import type { HomeRowMetadata } from './homeRowMetadata';
 import type { QueueActionPosition } from './useHomeRowPlayback';
 import { isPlayableHomeMediaType } from './useHomeRowPlayback';
 
@@ -29,6 +31,71 @@ const MEDIA_TYPE_LABEL_KEYS: Record<HomeMediaType, string> = {
   tracks: 'media.music.tracks',
 };
 
+/**
+ * One piece of the metadata line: the text, how it draws, and the name its `testID` ends in.
+ *
+ * `emphasis` is what a badge is for — something to notice — versus a fact to read. The badges say
+ * "there is something here for you now"; the date and the download count describe the row.
+ */
+type MetadataSegment = {
+  emphasis: boolean;
+  name: string;
+  text: string;
+};
+
+/**
+ * What the metadata line says, in reading order, already localized.
+ *
+ * Built once and used for both the visible pills and the row's `accessibilityLabel`, so a screen
+ * reader hears the same facts in the same order a sighted user reads them — rather than four
+ * unattached fragments ("Live", "3 new", "2 downloaded") announced with no idea what they belong to.
+ */
+const useMetadataSegments = (metadata: HomeRowMetadata | undefined): MetadataSegment[] => {
+  const { i18n, t } = useTranslation();
+
+  return useMemo(() => {
+    if (metadata === undefined) {
+      return [];
+    }
+
+    const segments: MetadataSegment[] = [];
+
+    if (metadata.isLive) {
+      segments.push({ emphasis: true, name: 'live', text: t('media.livestream.live') });
+    }
+    if (metadata.unseenBadge !== null) {
+      segments.push({
+        emphasis: true,
+        name: 'unseen',
+        text: t(
+          metadata.unseenBadge.isCapped
+            ? 'subscriptions.row.unseen_count_capped'
+            : 'subscriptions.row.unseen_count',
+          { count: metadata.unseenBadge.count }
+        ),
+      });
+    }
+    if (metadata.latestItemPubDateMs !== null) {
+      segments.push({
+        emphasis: false,
+        name: 'latest',
+        text: t('subscriptions.row.latest_episode', {
+          date: new Date(metadata.latestItemPubDateMs).toLocaleDateString(i18n.language),
+        }),
+      });
+    }
+    if (metadata.downloadedCount > 0) {
+      segments.push({
+        emphasis: false,
+        name: 'downloaded',
+        text: t('subscriptions.row.downloaded_count', { count: metadata.downloadedCount }),
+      });
+    }
+
+    return segments;
+  }, [i18n.language, metadata, t]);
+};
+
 export function HomeFeedRow({
   mediaType,
   onPress,
@@ -41,6 +108,7 @@ export function HomeFeedRow({
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const isPlayable = isPlayableHomeMediaType(mediaType);
+  const metadataSegments = useMetadataSegments(row.metadata);
 
   const styles = useMemo(
     () =>
@@ -73,19 +141,18 @@ export function HomeFeedRow({
           textAlign: 'center',
         },
         mediaTypeBadge: {
-          alignSelf: 'flex-start',
-          backgroundColor: themeStyles.buttonSecondary.backgroundColor,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.round,
-          borderWidth: 1,
           marginBottom: tokens.spacing.xs,
-          paddingHorizontal: tokens.spacing.sm,
-          paddingVertical: 2,
         },
-        mediaTypeBadgeLabel: {
-          color: themeStyles.buttonSecondary.color,
-          fontSize: 11,
-          fontWeight: '600',
+        metadataRow: {
+          alignItems: 'center',
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          gap: tokens.spacing.sm,
+          marginTop: tokens.spacing.xs,
+        },
+        metadataText: {
+          color: themeStyles.textSecondary.color,
+          fontSize: 12,
         },
         row: {
           alignItems: 'center',
@@ -116,6 +183,11 @@ export function HomeFeedRow({
 
   return (
     <Pressable
+      // Composed rather than left to the default child walk, so the badges are heard as part of a
+      // sentence about this show instead of as loose fragments after its title.
+      accessibilityLabel={[row.title, row.subtitle, ...metadataSegments.map((s) => s.text)]
+        .filter((part) => part !== null && part.length > 0)
+        .join(', ')}
       accessibilityRole="button"
       onPress={() => {
         onPress(row);
@@ -131,18 +203,41 @@ export function HomeFeedRow({
         </View>
       )}
       <View style={styles.rowContent}>
-        <View style={styles.mediaTypeBadge}>
-          <Text style={styles.mediaTypeBadgeLabel}>
-            {t(MEDIA_TYPE_LABEL_KEYS[mediaType] ?? MEDIA_TYPE_LABEL_KEYS.podcasts)}
-          </Text>
-        </View>
-        <Text numberOfLines={2} style={styles.title}>
+        <Badge
+          label={t(MEDIA_TYPE_LABEL_KEYS[mediaType] ?? MEDIA_TYPE_LABEL_KEYS.podcasts)}
+          style={styles.mediaTypeBadge}
+        />
+        {/* The title carries its own testID because it is what the Home filter matches on, so a
+            test needs to read the text it is about to type. */}
+        <Text numberOfLines={2} style={styles.title} testID={`home-feed-row-title-${row.id}`}>
           {row.title}
         </Text>
         {row.subtitle !== null ? (
           <Text numberOfLines={1} style={styles.subtitle}>
             {row.subtitle}
           </Text>
+        ) : null}
+        {metadataSegments.length > 0 ? (
+          <View style={styles.metadataRow}>
+            {metadataSegments.map((segment) =>
+              segment.emphasis ? (
+                <Badge
+                  key={segment.name}
+                  label={segment.text}
+                  testID={`home-feed-row-${segment.name}-${row.id}`}
+                  tone="accent"
+                />
+              ) : (
+                <Text
+                  key={segment.name}
+                  style={styles.metadataText}
+                  testID={`home-feed-row-${segment.name}-${row.id}`}
+                >
+                  {segment.text}
+                </Text>
+              )
+            )}
+          </View>
         ) : null}
         {isPlayable ? (
           <View style={styles.actionRow}>

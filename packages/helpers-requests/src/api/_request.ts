@@ -1,5 +1,6 @@
 import type { QueueExtraParams } from '@podverse/helpers';
 import type { BetweenParams } from '@podverse/helpers';
+import type { AddByRssSeenMarkEntry, ChannelSeenMarkEntry } from '@podverse/helpers';
 import type { MediaTypePreference } from '@podverse/helpers';
 import type { QueryParamsPodcastIndexSearchMedium } from '@podverse/helpers';
 import type {
@@ -42,6 +43,13 @@ import {
   reqAccountAddByRSSChaptersTranscript,
   type ReqAccountAddByRSSChaptersTranscriptParams,
 } from './account/addByRSSChaptersTranscript.js';
+import {
+  reqAccountChannelSeenList,
+  reqAccountChannelSeenListAddByRss,
+  reqAccountChannelSeenMark,
+  reqAccountChannelSeenMarkAddByRss,
+  reqAccountChannelSeenMarkAll,
+} from './account/channelSeen.js';
 import {
   reqAccountFCMDeviceCreate,
   reqAccountFCMDeviceDelete,
@@ -578,6 +586,28 @@ export class ApiRequestService {
 
   reqAccountUnfollowChannel(params: { channel_id_text: string }) {
     return reqAccountUnfollowChannel(this, params);
+  }
+
+  /* ACCOUNT > CHANNEL SEEN */
+
+  reqAccountChannelSeenList(params?: { page?: number }) {
+    return reqAccountChannelSeenList(this, params);
+  }
+
+  reqAccountChannelSeenListAddByRss(params?: { page?: number }) {
+    return reqAccountChannelSeenListAddByRss(this, params);
+  }
+
+  reqAccountChannelSeenMark(params: { entries: ChannelSeenMarkEntry[] }) {
+    return reqAccountChannelSeenMark(this, params);
+  }
+
+  reqAccountChannelSeenMarkAll() {
+    return reqAccountChannelSeenMarkAll(this);
+  }
+
+  reqAccountChannelSeenMarkAddByRss(params: { entries: AddByRssSeenMarkEntry[] }) {
+    return reqAccountChannelSeenMarkAddByRss(this, params);
   }
 
   /* ACCOUNT > FOLLOW > ADD BY RSS CHANNEL */

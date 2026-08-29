@@ -57,42 +57,42 @@ sign-in to an existing account replaces local rows with the account's. Sign-out 
 local data — subscriptions, add-by-RSS feeds, and the car browse index. New endpoint is
 `POST /account/follow/channel/bulk`.
 
-- [ ] **03 — Fast startup and the serial sync queue**
+- [x] **03 — Fast startup and the serial sync queue** — done, plan archived to
+      `.llm/plans/completed/mobile-p2-home-podcasts/03-fast-startup-and-sync-queue.md`
 
-**Cursor model:** Opus 5 · **Reasoning:** extra high
+The queue is `apps/mobile/src/sync/`, kept free of React Native imports so serialization, dedupe,
+growing totals, and failure isolation are unit-tested in node; `SyncProvider` owns the triggers.
+Bootstrap now reads SecureStore and the SQLite account snapshot only, so the 8s auth budget is gone
+and a 20s per-job budget replaces it. The 401 that ends a dead session moved into the account-refresh
+job. **Prompt 04 consumes `useSync().state`** — `activeLabelKey`, `completedCount`, `totalCount`,
+`status` — and **prompt 05 attaches to `syncQueue.subscribeToFailures`**. Adds
+`@react-native-community/netinfo`, so a dev client rebuild is required.
 
-```text
-Read and execute .llm/plans/active/mobile-p2-home-podcasts/03-fast-startup-and-sync-queue.md
-Nothing network-bound may block first paint — the splash waits for SQLite and i18n only, and the
-auth hydrate chain moves into queued jobs. One background job runs at a time; interactive work
-(Subscribe, opening a screen, search, playback) is never queued.
-Do not run tests; end with operator verification commands.
-```
+- [x] **04 — Sync progress indicator** — done, plan archived to
+      `.llm/plans/completed/mobile-p2-home-podcasts/04-sync-progress-indicator.md`
 
-- [ ] **04 — Sync progress indicator**
+`SyncProgressBar` reads `useSync().state` and renders only while the queue is `running`. Two of the
+prompt's premises were wrong and are recorded in [00-DIVERGENCES.md](00-DIVERGENCES.md): **the
+content inset needed no fixing** (the navigator already reduces the screen area by the whole tab bar
+column, mini player included), and **the tablet branch is a left rail**, so the bar goes full-width
+beneath the navigator rather than inside the rail. The track/fill pair is now the shared
+`ProgressTrack` primitive, also used by the mini player and the full-player scrubber. **Prompt 05
+attaches to `syncQueue.subscribeToFailures`** — nothing about failures surfaces in this bar. Also
+fixes mobile i18next interpolation, which was rendering every `{placeholder}` verbatim.
 
-**Cursor model:** Opus 5 · **Reasoning:** high
+- [x] **05 — Sync event log** — done, plan archived to
+      `.llm/plans/completed/mobile-p2-home-podcasts/05-sync-event-log.md`
 
-```text
-Read and execute .llm/plans/active/mobile-p2-home-podcasts/04-sync-progress-indicator.md
-A bar above the mini player, falling to the tab bar when nothing is playing. Mount it in the tablet
-navigator branch too or it silently vanishes there. Fix the missing bottom content inset while you
-are in that layout — lists already slide under the mini player today.
-Do not run tests; end with operator verification commands.
-```
+`sync_event_log` (migration 7) holds 500 entries; `syncEventLogSink` attaches to
+`syncQueue.subscribeToFailures` and changes nothing about how the queue treats a failure.
+**Successes are not stored** — a single library pass settles dozens of jobs, so recording them would
+turn a diagnostic log into a transcript and squeeze out the entries worth keeping. Offline failures
+land as `skipped` rather than `failure`, since the queue parks and retries and the user did nothing
+wrong. `classifySyncError` now keeps the API body code alongside the status
+(`http_403:membership_required`), because `http_403` alone leaves support asking which 403 it was.
+More ▸ Sync log lists newest first with share and clear.
 
-- [ ] **05 — Sync event log**
-
-**Cursor model:** Opus 5 · **Reasoning:** high
-
-```text
-Read and execute .llm/plans/active/mobile-p2-home-podcasts/05-sync-event-log.md
-Capped at 500, reachable from More, exportable. The stored entry must carry the machine-readable
-error code — the message is localized, so the code is the only part a user can quote to support.
-Do not run tests; end with operator verification commands.
-```
-
-- [ ] **06 — Offline content sync**
+- [x] **06 — Offline content sync**
 
 **Cursor model:** Opus 5 · **Reasoning:** high
 
@@ -104,7 +104,7 @@ never run a pass inline.
 Do not run tests; end with operator verification commands.
 ```
 
-- [ ] **07 — Channel seen state**
+- [x] **07 — Channel seen state**
 
 **Cursor model:** Opus 5 · **Reasoning:** extra high
 
@@ -116,7 +116,7 @@ Design the endpoints for both mobile and web callers — prompt 13 makes web a c
 Do not run tests; end with operator verification commands.
 ```
 
-- [ ] **08 — Home subscribed list and filter input**
+- [x] **08 — Home subscribed list and filter input**
 
 **Cursor model:** Codex 5.3 · **Reasoning:** high
 
@@ -128,7 +128,7 @@ Put new strings in the consumer i18n catalog — web reuses them in prompt 14.
 Do not run tests; end with operator verification commands.
 ```
 
-- [ ] **09 — Home filter/sort screen**
+- [x] **09 — Home filter/sort screen**
 
 **Cursor model:** Codex 5.3 · **Reasoning:** medium
 
@@ -142,7 +142,7 @@ sortPrefs module in apps/mobile/src/prefs. Restore before the first data read. D
 Do not run tests; end with operator verification commands.
 ```
 
-- [ ] **10 — Home row metadata**
+- [x] **10 — Home row metadata**
 
 **Cursor model:** Codex 5.3 · **Reasoning:** medium
 
@@ -153,7 +153,7 @@ If live status is unavailable from the API, stop and raise it rather than approx
 Do not run tests; end with operator verification commands.
 ```
 
-- [ ] **11 — Home view toggle and overflow menu**
+- [x] **11 — Home view toggle and overflow menu**
 
 **Cursor model:** Codex 5.3 · **Reasoning:** medium
 
@@ -163,7 +163,7 @@ Overflow menu with Grid View / List View (persisted, defaults to list) and Mark 
 Do not run tests; end with operator verification commands.
 ```
 
-- [ ] **12 — Search tab web alignment**
+- [x] **12 — Search tab web alignment**
 
 **Cursor model:** Codex 5.3 · **Reasoning:** medium
 
@@ -173,7 +173,7 @@ Remove the medium and sort chip rows so mobile search matches apps/web /search.
 Do not run tests; end with operator verification commands.
 ```
 
-- [ ] **13 — Web unseen episode indicator**
+- [x] **13 — Web unseen episode indicator**
 
 **Cursor model:** Opus 5 · **Reasoning:** high
 
@@ -185,7 +185,7 @@ it, a user who listens on the website keeps a stale badge on their phone.
 Verify with Playwright, not Maestro. Do not run tests; end with operator verification commands.
 ```
 
-- [ ] **14 — Web subscribed filter input**
+- [x] **14 — Web subscribed filter input**
 
 **Cursor model:** Codex 5.3 · **Reasoning:** high
 

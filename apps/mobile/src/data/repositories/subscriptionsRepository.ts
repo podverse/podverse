@@ -1,6 +1,5 @@
 import { eq } from 'drizzle-orm';
 
-import type { DTOAccount } from '@podverse/helpers/dto';
 import { getTotalPages } from '@podverse/helpers/pagination';
 
 // Import directly from the request module (not the auth barrel) to avoid a cycle, mirroring
@@ -9,6 +8,9 @@ import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh'
 import { getDb, initializeDatabase, schema } from '../db';
 import type { SubscribedChannelRow } from '../db/schema';
 import { addByRssRepository } from './addByRssRepository';
+import { channelItemsRepository } from './channelItemsRepository';
+import { channelLiveStatusRepository } from './channelLiveStatusRepository';
+import { channelSeenRepository } from './channelSeenRepository';
 import type {
   SubscribedChannel,
   SubscriptionFilter,
@@ -49,6 +51,7 @@ const rowToSubscribed = (row: SubscribedChannelRow): SubscribedChannel => {
     imageUrl: row.imageUrl,
     source: isSubscriptionSource(row.source) ? row.source : 'directory',
     medium: isSubscriptionMedium(row.medium) ? row.medium : 'podcasts',
+    latestItemPubDateMs: null,
   };
 };
 
@@ -91,50 +94,11 @@ const upsertDirectoryEntries = async (entries: SubscribedChannel[]): Promise<voi
   }
 };
 
-const hydrateDirectoryChannels = async (
-  context: MobileAuthRequestContext
-): Promise<SubscribedChannel[]> => {
-  // The subscribed list endpoint returns exactly the account's directory follows with display
-  // fields (id_text, title, images) — the numeric ids in account_following_channels hydrated.
-  //
-  // Paged through to the end rather than taking page 1: these rows decide whether a channel shows
-  // as subscribed, so stopping at the first page would make everything past it look unsubscribed.
-  const hydrated: SubscribedChannel[] = [];
-  let page = 1;
-
-  while (page <= MAX_SYNC_PAGES) {
-    const response = await requestWithMobileAuthRefresh(context, async (apiRequestService) =>
-      apiRequestService.reqChannelGetMany({
-        category: null,
-        medium: 'podcasts',
-        page,
-        range: null,
-        sort: 'a_z',
-        type: 'subscribed',
-      })
-    );
-
-    for (const channel of response.data) {
-      const mapped = mapDirectoryChannelToSubscribed(channel);
-      if (mapped !== null) {
-        hydrated.push(mapped);
-      }
-    }
-
-    const responsePage = response.meta.page ?? page;
-    const totalPages = getTotalPages(
-      response.meta.count,
-      response.meta.limit,
-      response.data.length,
-      responsePage
-    );
-    if (response.meta.limit <= 0 || responsePage >= totalPages) {
-      break;
-    }
-    page = responsePage + 1;
-  }
-
-  return hydrated;
+/** One page of directory follows, plus where the walk goes next. */
+export type DirectoryPageResult = {
+  entries: SubscribedChannel[];
+  /** `null` when this was the last page. */
+  nextPage: number | null;
 };
 
 /**
@@ -147,8 +111,8 @@ const hydrateDirectoryChannels = async (
  * Ownership of the directory rows depends on auth state:
  * - **Signed out** — local writes are the truth. `subscribeLocal` / `unsubscribeLocal` are the whole
  *   operation; nothing reaches the server.
- * - **Signed in** — the account is the truth. `syncFromAccount` replaces the rows on every refresh,
- *   and callers push the follow to the server themselves (membership-gated) before writing locally.
+ * - **Signed in** — the account is the truth. A queued directory walk replaces the rows, and callers
+ *   push the follow to the server themselves (membership-gated) before writing locally.
  *
  * Local subscriptions cross over to an account **only** through the sign-up merge
  * (`signupMerge.ts`); a later sign-in never pushes them up.
@@ -161,9 +125,14 @@ export const subscriptionsRepository = {
     await initializeDatabase();
     const { filter = 'all', sort = 'alphabetical' } = params;
 
-    const [addByRssRecords, directory] = await Promise.all([
+    // The publish dates come from the item store for directory channels and from a column on the
+    // feed row for add-by-RSS, so both are read here and attached before the two sets are merged.
+    // Always read, not only when ordering by recency: a subscription row states when its channel
+    // last published, so the date is part of the answer whichever order it comes back in.
+    const [addByRssRecords, directory, latestPubDateByChannel] = await Promise.all([
       addByRssRepository.listFeeds(),
       readDirectoryCache(),
+      channelItemsRepository.latestPubDateByChannel(),
     ]);
 
     const addByRss: SubscribedChannel[] = [];
@@ -174,7 +143,12 @@ export const subscriptionsRepository = {
       }
     }
 
-    const merged = mergeSubscriptions(directory, addByRss);
+    const directoryWithRecency = directory.map((entry) => ({
+      ...entry,
+      latestItemPubDateMs: latestPubDateByChannel.get(entry.idText) ?? null,
+    }));
+
+    const merged = mergeSubscriptions(directoryWithRecency, addByRss);
     return sortSubscriptions(applySubscriptionFilter(merged, filter), sort);
   },
 
@@ -225,6 +199,13 @@ export const subscriptionsRepository = {
     await getDb()
       .delete(schema.subscribedChannel)
       .where(eq(schema.subscribedChannel.idText, idText));
+    // Drop the stored episodes with the follow rather than waiting for the next reconciliation
+    // pass, so an unfollowed channel leaves the episode lists as soon as the user asks it to.
+    await channelItemsRepository.removeChannel(idText);
+    // Seen state has no meaning without a follow, and keeping it would make a re-follow open with a
+    // badge answering a question about a subscription the user already ended.
+    await channelSeenRepository.remove(idText);
+    await channelLiveStatusRepository.remove(idText);
   },
 
   /**
@@ -240,40 +221,85 @@ export const subscriptionsRepository = {
   },
 
   /**
-   * Replace the directory follows with the account's, because while signed in the account is the
-   * source of truth. Best-effort and **soft-fail**: on a hydration error the existing rows are left
-   * intact for offline reads and no error propagates (must never break the account snapshot write in
-   * accountRepository.refresh). When the account has no directory follows, the rows are cleared.
+   * Fetch one page of the account's directory follows.
+   *
+   * The subscribed list endpoint returns exactly those follows with display fields (id_text, title,
+   * images) — the numeric ids in `account_following_channels` hydrated.
+   *
+   * A page at a time rather than a loop: these rows decide whether a channel reads as subscribed,
+   * so the walk must reach the end, and a walk that can run to twenty-five requests has no business
+   * occupying a single slot in a serial queue. The caller drives the pages the result points at.
    */
-  syncFromAccount: async (
-    account: DTOAccount,
-    context: MobileAuthRequestContext
-  ): Promise<void> => {
-    await initializeDatabase();
-    const followingChannels = account.account_following_channels ?? [];
+  fetchDirectoryPage: async (
+    context: MobileAuthRequestContext,
+    page: number
+  ): Promise<DirectoryPageResult> => {
+    const response = await requestWithMobileAuthRefresh(context, async (apiRequestService) =>
+      apiRequestService.reqChannelGetMany({
+        category: null,
+        medium: 'podcasts',
+        page,
+        range: null,
+        sort: 'a_z',
+        type: 'subscribed',
+      })
+    );
 
-    // A sign-up merge that has not landed yet means these local rows still need to go up. Letting
-    // the account overwrite them here would delete exactly the subscriptions the merge owes, so
-    // while one is outstanding the account is additive instead of authoritative.
-    const mergePending = await hasPendingSignupMerge();
-
-    if (followingChannels.length === 0) {
-      if (!mergePending) {
-        await replaceDirectoryCache([]);
+    const entries: SubscribedChannel[] = [];
+    for (const channel of response.data) {
+      const mapped = mapDirectoryChannelToSubscribed(channel);
+      if (mapped !== null) {
+        entries.push(mapped);
       }
+    }
+
+    const responsePage = response.meta.page ?? page;
+    const totalPages = getTotalPages(
+      response.meta.count,
+      response.meta.limit,
+      response.data.length,
+      responsePage
+    );
+    const isLastPage =
+      response.meta.limit <= 0 || responsePage >= totalPages || responsePage >= MAX_SYNC_PAGES;
+
+    return { entries, nextPage: isLastPage ? null : responsePage + 1 };
+  },
+
+  /**
+   * Adopt a completed directory walk as the local truth, because while signed in the account is the
+   * source of truth.
+   *
+   * Only call this with the **whole** set. Replacement is all-or-nothing by design: committing a
+   * partial walk would delete every follow the pages that failed would have carried, so an
+   * interrupted sync leaves the previous rows in place and waits for the next trigger.
+   *
+   * A sign-up merge that has not landed yet is the one exception. Those local rows still owe
+   * themselves to the account, and letting the account overwrite them here would delete exactly the
+   * subscriptions the merge is about to push, so the account is additive until it lands.
+   */
+  commitDirectoryHydration: async (entries: SubscribedChannel[]): Promise<void> => {
+    await initializeDatabase();
+
+    if (await hasPendingSignupMerge()) {
+      await upsertDirectoryEntries(entries);
       return;
     }
 
-    try {
-      const hydrated = await hydrateDirectoryChannels(context);
-      if (mergePending) {
-        await upsertDirectoryEntries(hydrated);
-        return;
-      }
-      await replaceDirectoryCache(hydrated);
-    } catch (error) {
-      console.warn('[subscriptions] directory hydration failed (soft-fail)', error);
+    await replaceDirectoryCache(entries);
+  },
+
+  /**
+   * Drop the directory follows for an account that has none, so unfollowing on another device is
+   * reflected here. Held back while a sign-up merge is outstanding, for the same reason
+   * `commitDirectoryHydration` holds back replacement.
+   */
+  clearDirectoryForEmptyAccount: async (): Promise<void> => {
+    await initializeDatabase();
+    if (await hasPendingSignupMerge()) {
+      return;
     }
+    await replaceDirectoryCache([]);
   },
 
   /**
@@ -284,5 +310,8 @@ export const subscriptionsRepository = {
   clearCache: async (): Promise<void> => {
     await initializeDatabase();
     await getDb().delete(schema.subscribedChannel);
+    await channelItemsRepository.clear();
+    await channelSeenRepository.clear();
+    await channelLiveStatusRepository.clear();
   },
 };

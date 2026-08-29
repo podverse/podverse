@@ -11,6 +11,10 @@
  */
 
 export const E2E_PODCAST_CHANNEL_ID_TEXT = 'e2ePodChnl001';
+export const E2E_PODCAST_CHANNEL_TITLE = 'E2E Podcast Seed Channel';
+
+export const E2E_LIVESTREAM_CHANNEL_ID_TEXT = 'v5fCrIj9Io';
+export const E2E_LIVESTREAM_CHANNEL_TITLE = 'E2E Livestream Channel';
 
 /** Sync with tools/web/seed-e2e.mjs (SEO profile specs). */
 export const E2E_SEO_PUBLIC_PROFILE_ID_TEXT = 'e2eSeoPublic01';

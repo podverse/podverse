@@ -1,8 +1,8 @@
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useEffect, useMemo, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { AccessibilityInfo, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import type { SearchPodcastsFeed } from '@podverse/helpers';
 import { toNonEmptyTrimmedString } from '@podverse/helpers/guards';
@@ -19,24 +19,12 @@ import { useTheme } from '../../theme/useTheme';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import { getChannelDetailRouteKind } from './podcastIndexFeedPreview';
 
-type SearchFilterMedium = 'all' | 'music';
-type SearchSort = 'a_z' | 'recent' | 'relevance';
+type SearchScreenProps = NativeStackScreenProps<
+  SearchStackParamList,
+  typeof SEARCH_STACK_ROUTES.SearchRoot
+>;
 
 const SEARCH_DEBOUNCE_MS = 450;
-
-const SEARCH_MEDIUMS: SearchFilterMedium[] = ['all', 'music'];
-const SEARCH_SORTS: SearchSort[] = ['relevance', 'recent', 'a_z'];
-
-const SEARCH_MEDIUM_LABEL_KEYS: Record<SearchFilterMedium, string> = {
-  all: 'filters.type.all',
-  music: 'media.music.music',
-};
-
-const SEARCH_SORT_LABEL_KEYS: Record<SearchSort, string> = {
-  a_z: 'filters.sort.a_z',
-  recent: 'filters.sort.recent',
-  relevance: 'features.search.search',
-};
 
 const feedToRow = (feed: SearchPodcastsFeed) => ({
   id: String(feed.id),
@@ -45,31 +33,40 @@ const feedToRow = (feed: SearchPodcastsFeed) => ({
   title: feed.title,
 });
 
-const sortFeeds = (feeds: SearchPodcastsFeed[], sort: SearchSort): SearchPodcastsFeed[] => {
-  if (sort === 'relevance') {
-    return feeds;
-  }
-
-  if (sort === 'recent') {
-    return [...feeds].sort((a, b) => b.newestItemPubdate - a.newestItemPubdate);
-  }
-
-  return [...feeds].sort((a, b) => a.title.localeCompare(b.title));
-};
-
-export function SearchScreen() {
+/**
+ * Discovery, matching web `/search`: one debounced field against Podcast Index, results in the
+ * order that API returns them. Filtering or sorting here could only reflect the fields Podcast
+ * Index happens to send back, so the screen offers neither.
+ */
+export function SearchScreen({ navigation, route }: SearchScreenProps) {
   const { t } = useTranslation();
-  const navigation = useNavigation<NativeStackNavigationProp<SearchStackParamList, 'SearchRoot'>>();
   const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
   const { styles: themeStyles, tokens } = useTheme();
   const [query, setQuery] = useState<string>('');
   const [debouncedQuery, setDebouncedQuery] = useState<string>('');
-  const [mediumFilter, setMediumFilter] = useState<SearchFilterMedium>('all');
-  const [sort, setSort] = useState<SearchSort>('relevance');
   const [feeds, setFeeds] = useState<SearchPodcastsFeed[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [resolvingFeedId, setResolvingFeedId] = useState<string | null>(null);
+  const inputRef = useRef<TextInput | null>(null);
+
+  const wantsAutoFocus = route.params?.autoFocus === true;
+
+  // Home's "nothing subscribed yet" button sends the user here to type something, so the field
+  // starts empty and focused. The request is consumed immediately, otherwise coming back from a
+  // result would wipe the query the user just ran.
+  useFocusEffect(
+    useCallback(() => {
+      if (!wantsAutoFocus) {
+        return;
+      }
+
+      navigation.setParams({ autoFocus: undefined });
+      setQuery('');
+      setDebouncedQuery('');
+      inputRef.current?.focus();
+    }, [navigation, wantsAutoFocus])
+  );
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -103,7 +100,6 @@ export function SearchScreen() {
           },
           async (api) =>
             api.reqPodcastIndexSearchPodcasts({
-              medium: mediumFilter,
               q: debouncedQuery,
             })
         );
@@ -112,7 +108,7 @@ export function SearchScreen() {
           return;
         }
 
-        setFeeds(sortFeeds(response.feeds, sort));
+        setFeeds(response.feeds);
       } catch {
         if (!isMounted) {
           return;
@@ -130,35 +126,30 @@ export function SearchScreen() {
     return () => {
       isMounted = false;
     };
-  }, [accessToken, clearSession, debouncedQuery, mediumFilter, refreshToken, setTokens, sort]);
+  }, [accessToken, clearSession, debouncedQuery, refreshToken, setTokens]);
+
+  // A list that silently swaps its contents tells a screen reader user nothing. The first settled
+  // result set is recorded without speaking, so arriving on Search does not talk over the screen
+  // title; every change after that is the user's own typing and worth reporting.
+  const resultSummary = `${t('misc.items')}: ${feeds.length}`;
+  const announcedCountRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (isLoading || errorKey !== null) {
+      return;
+    }
+
+    const previousCount = announcedCountRef.current;
+    announcedCountRef.current = feeds.length;
+    if (previousCount === null || previousCount === feeds.length) {
+      return;
+    }
+
+    AccessibilityInfo.announceForAccessibility(resultSummary);
+  }, [errorKey, feeds.length, isLoading, resultSummary]);
 
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        chip: {
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.round,
-          borderWidth: 1,
-          marginRight: tokens.spacing.sm,
-          paddingHorizontal: tokens.spacing.md,
-          paddingVertical: tokens.spacing.xs,
-        },
-        chipActive: {
-          backgroundColor: themeStyles.buttonPrimary.backgroundColor,
-          borderColor: themeStyles.buttonPrimary.backgroundColor,
-        },
-        chipLabel: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 12,
-          fontWeight: '600',
-        },
-        chipLabelActive: {
-          color: themeStyles.buttonPrimary.color,
-        },
-        chipsRow: {
-          flexDirection: 'row',
-          marginBottom: tokens.spacing.sm,
-        },
         container: {
           backgroundColor: themeStyles.screen.backgroundColor,
           flex: 1,
@@ -266,59 +257,23 @@ export function SearchScreen() {
         testID="search-results"
       >
         <Text style={styles.heading}>{t('features.search.search')}</Text>
-        <Text style={styles.inputLabel}>{t('features.search.search_by_title')}</Text>
+        {/* Visible so the field stays labelled once typing hides the placeholder. Decorative for
+            assistive technology, which reads the same name off the field itself. */}
+        <Text accessibilityElementsHidden importantForAccessibility="no" style={styles.inputLabel}>
+          {t('features.search.search_by_title')}
+        </Text>
         <TextInput
+          accessibilityLabel={t('features.search.search_by_title')}
           autoCapitalize="none"
           autoCorrect={false}
           onChangeText={setQuery}
           placeholder={t('features.search.search_by_title')}
           placeholderTextColor={themeStyles.textSecondary.color}
+          ref={inputRef}
           style={styles.input}
           testID="search-input"
           value={query}
         />
-
-        <Text style={styles.inputLabel}>{t('filters.type.all')}</Text>
-        <View style={styles.chipsRow}>
-          {SEARCH_MEDIUMS.map((nextMedium) => {
-            const isActive = nextMedium === mediumFilter;
-            return (
-              <Pressable
-                key={nextMedium}
-                onPress={() => {
-                  setMediumFilter(nextMedium);
-                }}
-                style={[styles.chip, isActive ? styles.chipActive : null]}
-                testID={`search-medium-${nextMedium}`}
-              >
-                <Text style={[styles.chipLabel, isActive ? styles.chipLabelActive : null]}>
-                  {t(SEARCH_MEDIUM_LABEL_KEYS[nextMedium])}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        <Text style={styles.inputLabel}>{t('filters.sort.recent')}</Text>
-        <View style={styles.chipsRow}>
-          {SEARCH_SORTS.map((nextSort) => {
-            const isActive = nextSort === sort;
-            return (
-              <Pressable
-                key={nextSort}
-                onPress={() => {
-                  setSort(nextSort);
-                }}
-                style={[styles.chip, isActive ? styles.chipActive : null]}
-                testID={`search-sort-${nextSort}`}
-              >
-                <Text style={[styles.chipLabel, isActive ? styles.chipLabelActive : null]}>
-                  {t(SEARCH_SORT_LABEL_KEYS[nextSort])}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
 
         <View style={styles.resultsSpacing}>
           <Card testID="search-results-card">

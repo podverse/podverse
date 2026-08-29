@@ -557,6 +557,11 @@
       "week": "",
       "month": "",
       "all_time": ""
+    },
+    "screen": {
+      "title": "",
+      "filter_heading": "",
+      "sort_heading": ""
     }
   },
   "legal": {
@@ -688,10 +693,26 @@
   "subscriptions": {
     "subscriptions": "",
     "how_to_start_message": "",
+    "empty_message": "",
+    "no_filter_matches": "",
     "filter": {
       "all": "",
-      "add_by_rss": ""
-    }
+      "add_by_rss": "",
+      "label": "",
+      "placeholder": "",
+      "clear": "",
+      "results_count": ""
+    },
+    "row": {
+      "latest_episode": "",
+      "unseen_count": "",
+      "unseen_count_capped": "",
+      "unseen_count_aria": "",
+      "unseen_count_capped_aria": "",
+      "downloaded_count": ""
+    },
+    "mark_all_seen": "",
+    "mark_all_seen_done": ""
   },
   "authentication": {
     "login": "",

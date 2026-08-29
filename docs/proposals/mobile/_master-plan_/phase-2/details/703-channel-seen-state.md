@@ -2,7 +2,7 @@
 
 **Master step:** P2.4.4
 **Model (author + implement):** Opus 5
-**Status:** planned
+**Status:** implemented
 
 ## Scope
 
@@ -44,12 +44,32 @@ locally so anonymous users get working counts. Syncing it is **account** tier.
 
 ### API
 
-New endpoint(s) return per-channel unseen counts for the caller, plus a mark-seen write.
-
 **Both the count and the result set are bounded.** A channel's count stops at **20** and clients
 render `20+`. The endpoint must also cap how many rows it returns, so a user with a very large
 subscription list can never trigger an unbounded database or API result. Pagination or an explicit
 ceiling is required — an uncapped query fails review.
+
+As built, under `/account/channel-seen`:
+
+| Route                            | Method | Purpose                                                        |
+| -------------------------------- | ------ | -------------------------------------------------------------- |
+| `/account/channel-seen`          | GET    | Paged directory-channel state with bounded unseen counts        |
+| `/account/channel-seen/add-by-rss` | GET  | Paged add-by-RSS state — timestamps only                        |
+| `/account/channel-seen/mark`     | POST   | Mark named channels seen                                        |
+| `/account/channel-seen/mark-add-by-rss` | POST | Mark named add-by-RSS feeds seen                          |
+| `/account/channel-seen/mark-all` | POST   | Sweep every follow of both kinds                                |
+
+Add-by-RSS is split out and carries **no count** because the server stores no add-by-RSS items and
+so cannot derive one. The device holding the parsed feed counts its own. Both kinds still sync their
+timestamp, so opening a feed on one device clears its badge on another.
+
+The counted query is a `CROSS JOIN LATERAL` limited to the cap plus one, which is what distinguishes
+exactly-20 from more-than-20 without counting the rest. It reads a composite
+`item (channel_id, pub_date DESC)` index added alongside the columns.
+
+`last_seen_at` lives on the follow rows rather than in a table of its own, because an account and a
+channel it follows is exactly the grain the state has. Unfollowing drops it through the existing
+cascade.
 
 ### Which surfaces read and write
 
@@ -83,6 +103,23 @@ Seen state only moves **forward**. When a device's local timestamp disagrees wit
 - New user-facing strings live in the **`consumer`** i18n catalog so web reuses them.
 - Unit tests cover count derivation, the 20 cap, merge-by-later, and monotonicity; integration tests
   cover the endpoint bound.
+
+## Still to come
+
+The state, the endpoints, and the mobile store are in place, and opening a podcast on mobile marks
+it seen. Three pieces land elsewhere:
+
+- **Badges on the subscribed list.** `channelSeenRepository.listUnseen` returns counts today; nothing
+  renders them yet. Mobile display is part of the subscribed-list work; web display is
+  [712-web-unseen-episode-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/712-web-unseen-episode-indicator.md).
+- **Mark All As Seen.** The `mark-all` endpoint exists; the overflow-menu action and its local sweep
+  arrive with the subscribed-list overflow menu.
+- **Opening an add-by-RSS feed.** There is no per-feed detail screen on mobile yet, so there is no
+  open event to mark against. Those feeds currently clear via the account sweep or another device.
+
+A mobile channel's count is derived from the episodes stored locally, which is a bounded window
+rather than the whole feed, so it can under-report a show that published more than the window holds.
+That is deliberate: the badge describes what the user can actually open offline.
 
 ## Web parity references
 

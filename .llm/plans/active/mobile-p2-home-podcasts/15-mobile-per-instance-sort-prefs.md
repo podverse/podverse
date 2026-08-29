@@ -18,6 +18,12 @@ restores it on the next load.
 Prompt 09 built the shared key builder in `@podverse/helpers` and the AsyncStorage-backed
 `sortPrefs` module in `apps/mobile/src/prefs/`. Reuse both. Do not create a parallel scheme.
 
+It also left three pieces worth reusing rather than rebuilding: `OptionListGroup` (a bordered group
+of checkmarked option rows, with a heading when a screen holds more than one), `HomeSortRow` as the
+entry-point pattern, and `HomeFilterSortScreen` as the sectioned-screen-with-Done pattern. Where a
+detail screen needs the same thing, promote rather than copy — see
+[`mobile-reusable-components`](/.cursor/skills/mobile-reusable-components/SKILL.md).
+
 ## Work
 
 1. **Podcast detail** — `PodcastDetailScreen` currently hardcodes `sort: 'recent'` with no control at

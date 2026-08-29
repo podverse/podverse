@@ -113,6 +113,8 @@ When unset/invalid, each uses its code default listed below.
 - **`ACCOUNT_OPML_IMPORT_ENQUEUE_MAX_PER_HOUR`** (default `10`)
 - **`ACCOUNT_ADD_BY_RSS_PARSE_ENQUEUE_MAX_PER_HOUR`** (default `20`)
 - **`ACCOUNT_ADD_BY_RSS_CHAPTERS_TRANSCRIPT_MAX_PER_MINUTE`** (default `30`)
+- **`ACCOUNT_CHANNEL_SEEN_READ_MAX_PER_MINUTE`** (default `60`) — per account, covers both
+  `/account/channel-seen` reads
 - **`MQ_RSS_ON_DEMAND_MAX_PER_HOUR`** (default `20`)
 
 Related soft cap:

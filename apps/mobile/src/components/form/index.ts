@@ -1,6 +1,12 @@
 export { OptionChipGroup } from './OptionChipGroup';
 export type { OptionChipGroupProps, OptionChipOption } from './OptionChipGroup';
+export { OptionListGroup } from './OptionListGroup';
+export type { OptionListGroupProps } from './OptionListGroup';
 export { OptionListScreen } from './OptionListScreen';
 export type { OptionListItem, OptionListScreenProps } from './OptionListScreen';
+export { SortPill } from './SortPill';
+export type { SortPillProps } from './SortPill';
+export { SortSelectRow } from './SortSelectRow';
+export type { SortSelectRowProps } from './SortSelectRow';
 export { SettingsOptionNavRow } from './SettingsOptionNavRow';
 export type { SettingsOptionNavRowProps } from './SettingsOptionNavRow';

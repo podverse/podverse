@@ -2,7 +2,7 @@
 
 **Master step:** P2.4.8
 **Model (author + implement):** Opus 5
-**Status:** planned
+**Status:** done
 **Runs before:** [702-offline-content-sync](/docs/proposals/mobile/_master-plan_/phase-2/details/702-offline-content-sync.md)
 
 ## Scope
@@ -122,6 +122,42 @@ download queue (already serial — `downloadManager.ts:157-175`).
 **Existing primitives to reuse rather than duplicate:** `refreshAccessTokenSingleFlight`
 (`authRequestWithRefresh.ts:14-64`), `readThrough`/`writeBehind` (`sync/syncScheduler.ts:23-110`),
 `syncMetadata` watermarks (`sync/syncMetadata.ts:9-44`), `downloadManager`'s FIFO.
+
+## As built
+
+`apps/mobile/src/sync/` is the orchestration layer; the data-layer primitives it was expected to
+reuse stay at `apps/mobile/src/data/sync/`, reached through the repositories the jobs call.
+
+| Module                      | Role                                                                                          |
+| --------------------------- | --------------------------------------------------------------------------------------------- |
+| `syncQueue.ts`              | The runner. No React Native or Expo imports, so its semantics are unit-testable in node        |
+| `syncJobKinds.ts`           | The job kinds and their i18n label keys                                                        |
+| `syncJobPlan.ts`            | Trigger + auth status → which root jobs to enqueue. Pure, and tested                          |
+| `syncJobs.ts`               | Job bodies. Orchestration only; every request and write belongs to a repository                |
+| `syncErrorClassification.ts`| Failure → stable error code plus whether it means offline                                     |
+| `SyncProvider.tsx`          | Wires `AppState` and NetInfo to the queue and publishes its state                              |
+
+Root jobs are account refresh, queue hydrate, and push registration. Everything else — the
+subscription pages, the commit, followed playlists, the library projection — is enqueued by the job
+that discovers it, which is what makes the run total grow mid-run.
+
+**Timeouts.** `DEFAULT_SYNC_JOB_TIMEOUT_MS` is 20s per job, with an `AbortController` passed into the
+job so a timeout closes the socket. A serial queue is only as available as its head job, so this
+budget protects everything queued behind a hung request.
+
+**Offline.** A failure classified as offline parks the run in place rather than walking every
+remaining job into the same wall; NetInfo resuming, or any `user`-priority enqueue, restarts it.
+
+**Session death.** A 401 that survives the token-refresh attempt ends the session from inside the
+account-refresh job, which raises the forced-logout notice
+([716](/docs/proposals/mobile/_master-plan_/phase-2/details/716-forced-logout-notice.md)). No other
+failure signs anyone out, so an offline device stays signed in.
+
+**Left outside the queue, deliberately:** the 60s notifications badge poll, listen-stats POSTs, and
+the queue cache's stale background refresh, as scoped above.
+
+**Native dependency:** `@react-native-community/netinfo` supplies the connectivity-restore trigger,
+so this step requires `npm run mobile:prebuild` and a dev client rebuild.
 
 ## Verification
 

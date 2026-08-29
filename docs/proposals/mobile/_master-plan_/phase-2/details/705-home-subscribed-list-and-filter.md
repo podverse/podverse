@@ -2,7 +2,7 @@
 
 **Master step:** P2.1.1
 **Model (author + implement):** Codex 5.3
-**Status:** planned
+**Status:** implemented
 
 ## Scope
 
@@ -10,6 +10,12 @@ Home becomes a **subscribed-only** surface. All discovery moves to the Search ta
 it is. Home no longer falls back to global directory content for signed-out users — after
 [701-anonymous-subscriptions](/docs/proposals/mobile/_master-plan_/phase-2/details/701-anonymous-subscriptions.md)
 a signed-out user has real subscriptions to show.
+
+**Enforced on Podcasts and Episodes.** Podcasts reads local storage only, in every auth state, with
+no network path at all. Episodes reads local storage and, when it is empty on a fresh install, asks
+an **account** for its subscribed items — never the directory, so a signed-out device waits for the
+sync queue instead. The Clips, Artists, Albums, and Tracks chips still read global content; those
+media types are out of scope for this set and carry the contradiction until they are planned.
 
 ### Filter input
 

@@ -21,14 +21,16 @@ import {
 } from './src/push/notificationRouting';
 import { LoginScreen } from './src/screens/auth/LoginScreen';
 import { SignUpScreen } from './src/screens/auth/SignUpScreen';
+import { SyncProvider } from './src/sync';
 import { ThemeProvider } from './src/theme/ThemeProvider';
 import { useTheme } from './src/theme/useTheme';
 
 /** Minimum time splash stays up after JS mounts (UX; boot is often faster than this). */
 const SPLASH_MIN_VISIBLE_MS = 1000;
 
-// Keep the native splash up until i18n + auth bootstrap finish (SplashController), and at least
-// SPLASH_MIN_VISIBLE_MS. Soft-fail so a missing native module never blocks boot.
+// Keep the native splash up until i18n and the auth resolve finish (SplashController), and at least
+// SPLASH_MIN_VISIBLE_MS. Both are local reads, so this waits on no network. Soft-fail so a missing
+// native module never blocks boot.
 void SplashScreen.preventAutoHideAsync().catch((error: unknown) => {
   console.warn('[splash] preventAutoHideAsync failed', error);
 });
@@ -92,23 +94,25 @@ export default function App() {
     };
   }, []);
 
-  // Mount AuthProvider immediately so hydrate runs under the splash; gate product UI on i18n.
-  // SplashController covers both native hide + a JS overlay (needed for Dev Client, which often
-  // dismisses the launch storyboard before the JS bundle runs).
+  // Mount AuthProvider immediately so the local auth resolve runs under the splash; gate product UI
+  // on i18n. SplashController covers both native hide + a JS overlay (needed for Dev Client, which
+  // often dismisses the launch storyboard before the JS bundle runs).
   return (
     <ThemeProvider>
       <AuthProvider>
         {isI18nReady ? (
           <AutoQueueProvider>
             <QueuesProvider>
-              <PlaybackProvider>
-                <AppBody
-                  onConsumePendingDeepLink={() => {
-                    setPendingDeepLinkUrl(null);
-                  }}
-                  pendingDeepLinkUrl={pendingDeepLinkUrl}
-                />
-              </PlaybackProvider>
+              <SyncProvider>
+                <PlaybackProvider>
+                  <AppBody
+                    onConsumePendingDeepLink={() => {
+                      setPendingDeepLinkUrl(null);
+                    }}
+                    pendingDeepLinkUrl={pendingDeepLinkUrl}
+                  />
+                </PlaybackProvider>
+              </SyncProvider>
             </QueuesProvider>
           </AutoQueueProvider>
         ) : null}

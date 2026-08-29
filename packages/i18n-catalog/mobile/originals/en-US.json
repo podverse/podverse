@@ -56,5 +56,32 @@
       "open_system_settings": "Open system settings",
       "permission_required": "Notification permission is required to enable this setting."
     }
+  },
+  "sync": {
+    "job": {
+      "account": "Updating your account",
+      "subscriptions": "Updating your podcasts",
+      "playlists": "Updating your playlists",
+      "queue": "Updating your queue",
+      "library": "Updating your offline library",
+      "notifications": "Setting up notifications",
+      "episodes": "Updating your episodes",
+      "rss_feeds": "Updating your RSS feeds",
+      "seen_state": "Updating what's new",
+      "live_status": "Checking what's live"
+    },
+    "progress": "{completed} of {total}",
+    "log": {
+      "title": "Sync log",
+      "intro": "Background sync problems recorded on this device. Share this with support if your podcasts, playlists, or queue stop updating.",
+      "empty": "No sync problems recorded",
+      "export": "Share",
+      "clear": "Clear",
+      "clear_confirm_title": "Clear sync log?",
+      "clear_confirm_body": "This removes every recorded entry from this device.",
+      "outcome_failure": "Failed",
+      "outcome_skipped": "Skipped — offline",
+      "outcome_success": "Succeeded"
+    }
   }
 }

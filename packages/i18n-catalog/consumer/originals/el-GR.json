@@ -557,6 +557,11 @@
       "week": "Εβδομάδα",
       "month": "Μήνας",
       "all_time": "Όλοι οι Χρόνοι"
+    },
+    "screen": {
+      "title": "Φίλτρο και Ταξινόμηση",
+      "filter_heading": "Φίλτρο",
+      "sort_heading": "Ταξινόμηση"
     }
   },
   "legal": {
@@ -688,10 +693,26 @@
   "subscriptions": {
     "subscriptions": "Συνδρομές",
     "how_to_start_message": "Δοκιμάστε <searchLink>αναζητώντας</searchLink> το αγαπημένο σας περιεχόμενο, ή περιηγηθείτε σε <podcastsLink>podcasts</podcastsLink>, <videosLink>βίντεο</videosLink>, ή <musicLink>μουσική</musicLink>. Οι συνδρομές σας θα εμφανιστούν εδώ.",
+    "empty_message": "Δεν έχετε ακόμη συνδρομές. Αναζητήστε κάτι για να ακούσετε.",
+    "no_filter_matches": "Καμία συνδρομή δεν ταιριάζει με το φίλτρο σας.",
     "filter": {
       "all": "Όλα",
-      "add_by_rss": "Προσθήκη μέσω RSS"
-    }
+      "add_by_rss": "Προσθήκη μέσω RSS",
+      "label": "Φιλτράρισμα",
+      "placeholder": "Φιλτράρισμα...",
+      "clear": "Εκκαθάριση",
+      "results_count": "Εμφάνιση {count}"
+    },
+    "row": {
+      "latest_episode": "Τελευταίο: {date}",
+      "unseen_count": "{count} νέα",
+      "unseen_count_capped": "{count}+ νέα",
+      "unseen_count_aria": "{count} νέα επεισόδια",
+      "unseen_count_capped_aria": "Περισσότερα από {count} νέα επεισόδια",
+      "downloaded_count": "{count} ληφθέντα"
+    },
+    "mark_all_seen": "Σήμανση Όλων Ως Αναγνωσμένων",
+    "mark_all_seen_done": "Όλες οι συνδρομές σημάνθηκαν ως αναγνωσμένες"
   },
   "authentication": {
     "login": "Σύνδεση",

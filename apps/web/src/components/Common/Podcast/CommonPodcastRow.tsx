@@ -9,6 +9,7 @@ import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import { listItemImageCandidates } from '../../../utils/image/listItemImageCandidates';
+import { ChannelUnseenCountBadge } from '../../ChannelSeen/ChannelUnseenCountBadge';
 import type { PodcastListItem } from './types';
 
 import styles from '../../../styles/components/Common/List/Podcasts/ListPodcastRow.module.scss';
@@ -37,6 +38,7 @@ export const CommonPodcastListRow: React.FC<CommonPodcastListRowProps> = ({ item
             <span className={styles.lastPubDate}>{formatDateAbbrev(item.lastPubDate, locale)}</span>
           )}
         </div>
+        <ChannelUnseenCountBadge badge={item.unseenBadge} className={styles.unseenBadge} />
       </div>
     </Link>
   );

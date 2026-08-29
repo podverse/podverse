@@ -20,6 +20,7 @@ import type { PlaybackTarget } from '@podverse/playback-core';
 import { PodverseVideoSurfaceView } from '../../../modules/podverse-media-engine';
 import { nativePlaybackBridge } from '../../bridge/nativePlaybackBridge';
 import { Button } from '../../components/primitives/Button';
+import { ProgressTrack } from '../../components/primitives/ProgressTrack';
 import { getMobileConfig } from '../../config';
 import { buildNowPlayingShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import { usePlayback } from '../../playback/PlaybackProvider';
@@ -179,16 +180,6 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
         scroll: {
           flex: 1,
         },
-        scrubberFill: {
-          backgroundColor: tokens.text.accent,
-        },
-        scrubberTrack: {
-          backgroundColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.round,
-          flexDirection: 'row',
-          height: 6,
-          overflow: 'hidden',
-        },
         subtitle: {
           color: themeStyles.textSecondary.color,
           fontSize: 15,
@@ -328,13 +319,11 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
                   onPress={handleScrubberSeek}
                   testID="full-player-scrubber"
                 >
-                  <View style={styles.scrubberTrack}>
-                    <View
-                      style={[styles.scrubberFill, { flex: progressRatio }]}
-                      testID="full-player-scrubber-fill"
-                    />
-                    <View style={{ flex: 1 - progressRatio }} />
-                  </View>
+                  <ProgressTrack
+                    fillTestID="full-player-scrubber-fill"
+                    height={6}
+                    ratio={progressRatio}
+                  />
                 </Pressable>
                 <View style={styles.timeRow}>
                   <Text style={styles.timeText} testID="full-player-position">

@@ -4,6 +4,11 @@ name: Home Media Types
 # Home media-type selector:
 # - screenshot each Home media-type selector state
 # - verify selector swipe/scroll interaction changes feed content
+# - the always-visible local Filter input, and the no-subscriptions empty state
+#
+# Filtering down to a matching row and the "no matches" state are covered in
+# subscriptions-anonymous.yaml, which is the flow that actually creates a subscription — the seeded
+# account deliberately follows nothing, which is what makes it the right place for the empty state.
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
@@ -19,8 +24,8 @@ name: Home Media Types
 - assertVisible: Podcasts
 - takeScreenshot: home-media-type-podcasts
 
-# Authenticated Podcasts subscribed view mixes directory follows + add-by-RSS,
-# with an All / Add-by-RSS filter that persists.
+# The Podcasts view mixes directory follows + add-by-RSS, scoped by an All / Add-by-RSS chip whose
+# choice persists in device prefs. The chip shows in every auth state, since subscriptions are local.
 - assertVisible:
     id: home-subscription-filter
 - tapOn:
@@ -30,17 +35,149 @@ name: Home Media Types
     id: home-subscription-filter-all
 - takeScreenshot: home-subscription-filter-all
 
+# Sort sits in its own row below the chip, showing the current order on its face rather than the
+# word "Sort", and opens the full Filter/Sort screen. A-Z is the default.
+- assertVisible:
+    id: home-sort-button
+    text: "A-Z"
+- tapOn:
+    id: home-sort-button
+- assertVisible:
+    id: home-filter-sort-screen
+# Both sections, because Podcasts is the media type the scope chip applies to.
+- assertVisible:
+    id: home-filter-sort-filter-group
+- assertVisible:
+    id: home-filter-sort-sort-group
+- takeScreenshot: home-filter-sort-screen
+
+# Selections apply as they are made, so Done only dismisses.
+- tapOn:
+    id: home-filter-sort-sort-recent
+- tapOn:
+    id: home-filter-sort-done
+- assertVisible:
+    id: home-screen
+- assertVisible:
+    id: home-sort-button
+    text: "Recent"
+- takeScreenshot: home-sort-recent
+
+# Reopening shows the choice still selected: the screen reads the stored preference rather than
+# whatever it was last handed.
+- tapOn:
+    id: home-sort-button
+- assertVisible:
+    id: home-filter-sort-screen
+- takeScreenshot: home-filter-sort-recent-selected
+- tapOn:
+    id: home-filter-sort-sort-alphabetical
+- tapOn:
+    id: home-filter-sort-done
+- assertVisible:
+    id: home-sort-button
+    text: "A-Z"
+
+# The header overflow menu holds the view toggle and Mark All As Seen. The view is two checkable
+# rows rather than one label that flips, so the menu states which mode is in effect.
+- assertVisible:
+    id: home-overflow-trigger
+- tapOn:
+    id: home-overflow-trigger
+- assertVisible:
+    id: home-overflow-sheet
+- takeScreenshot: home-overflow-menu
+
+# Nothing is subscribed here, so nothing can be unseen — the action is offered disabled rather than
+# as a no-op. Tapping it must therefore leave the menu open.
+- tapOn:
+    id: home-overflow-mark-all-seen
+- assertVisible:
+    id: home-overflow-sheet
+
+- tapOn:
+    id: home-overflow-view-grid
+- assertVisible:
+    id: home-screen
+- takeScreenshot: home-view-grid
+
+# Reopening shows grid checked: the menu reads the stored preference rather than assuming the tap
+# it last handled is still in effect.
+- tapOn:
+    id: home-overflow-trigger
+- takeScreenshot: home-overflow-menu-grid-selected
+- tapOn:
+    id: home-overflow-view-list
+- assertVisible:
+    id: home-screen
+
+# Home is subscribed-only, so an account following nothing gets guidance and a route to Search
+# rather than directory rows. Row metadata, the grid tile, and Mark All As Seen clearing badges are
+# asserted in subscriptions-anonymous.yaml, which is the flow that actually creates a subscription.
+- assertVisible:
+    id: home-list-empty
+- assertVisible:
+    id: home-list-empty-search
+- takeScreenshot: home-list-empty-no-subscriptions
+
+# The Filter input sits above the list in every state, including this one.
+- assertVisible:
+    id: home-filter-input
+- tapOn:
+    id: home-filter-input
+- inputText: "seed"
+# Nothing was subscribed to begin with, so the term does not turn this into the no-matches state —
+# the two empty states answer different problems and must not be interchangeable.
+- assertVisible:
+    id: home-list-empty
+- assertNotVisible:
+    id: home-list-no-filter-matches
+- tapOn:
+    id: home-filter-clear
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+
 # Episodes
 - tapOn:
     id: home-media-type-episodes
 - assertVisible: Episodes
 - takeScreenshot: home-media-type-episodes
 
+# Both menu entries describe the subscribed channel list — how to draw it, and catching up on it —
+# so the menu is absent here rather than opening onto nothing that applies.
+- assertNotVisible:
+    id: home-overflow-trigger
+
+# Episodes sorts too, and keeps its own choice — ordering podcasts by title says nothing about how
+# episodes should be ordered. The scope chip is a channel-list control, so it is absent here.
+- assertNotVisible:
+    id: home-subscription-filter
+- assertVisible:
+    id: home-sort-button
+    text: "A-Z"
+- tapOn:
+    id: home-sort-button
+- assertVisible:
+    id: home-filter-sort-screen
+- assertNotVisible:
+    id: home-filter-sort-filter-group
+- takeScreenshot: home-filter-sort-episodes
+- tapOn:
+    id: home-filter-sort-done
+
 # Clips
 - tapOn:
     id: home-media-type-clips
 - assertVisible: Clips
 - takeScreenshot: home-media-type-clips
+
+# Clips, artists, albums, and tracks are server-ranked and have no sort control yet, so the row is
+# hidden rather than offering a choice that would change nothing.
+- assertNotVisible:
+    id: home-sort-button
 
 # Swipe selector to verify horizontal interaction before selecting tracks.
 - swipe:

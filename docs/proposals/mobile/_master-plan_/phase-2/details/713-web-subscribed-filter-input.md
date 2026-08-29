@@ -2,7 +2,7 @@
 
 **Master step:** P2.5.2
 **Model (author + implement):** Codex 5.3
-**Status:** planned
+**Status:** implemented
 
 ## Scope
 
@@ -36,6 +36,12 @@ Resolve this explicitly rather than shipping a page-local filter. Preferred orde
 Whichever is chosen, **filtering must apply across the whole subscribed list, never a single page**,
 and pagination must reflect filtered results. State the choice and its reasoning in the
 implementation.
+
+**Chosen: option 1.** The subscribed list is read page by page into the browser the first time a term
+is typed, cached until sort, range, or account changes, and bounded at `PAGINATION.MAX_COUNT`.
+Filtering and pagination then happen over that list, so a match on page 3 is found from page 1 and no
+keystroke costs a request. Reasoning and the ceiling's consequence are recorded in
+`.llm/plans/active/mobile-p2-home-podcasts/00-DIVERGENCES.md`.
 
 ### URL state
 
@@ -90,5 +96,5 @@ The URL round-trip stays so a filtered view remains shareable.
 npm run lint
 npm run test:unit
 npm run test:e2e:api
-make e2e_test_web_report_spec SPEC=e2e/podcasts.spec.ts
+make e2e_test_web_report_spec SPEC=e2e/podcasts-subscribed-filter.spec.ts
 ```

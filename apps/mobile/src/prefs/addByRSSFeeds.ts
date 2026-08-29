@@ -17,4 +17,9 @@ export type MobileAddByRSSFeedRecord = {
   updatedAt: string;
   enclosureUrl: string | null;
   playbackPosition: string | null;
+  /**
+   * When the feed last published, from its newest item. Null until a parse has been stored, or when
+   * the feed carries no usable dates — both of which sort as "unknown" rather than as "ancient".
+   */
+  latestItemPubDateMs: number | null;
 };
