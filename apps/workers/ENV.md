@@ -21,7 +21,7 @@ The workers app validates environment variables **per command**. Each job only v
 | Command group                       | Categories validated                     | Commands (examples)                                                                                         |
 | ----------------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Base only                           | Base                                     | podcastIndexDeadFeedsDeleteCache                                                                            |
-| Base + ORM only                     | Base, ORM                                | archiveAll, statsUpdateAggregated, orm\*                                                                    |
+| Base + ORM only                     | Base, ORM                                | archiveAll, statsUpdateAggregated, scheduledJobsRunDue, notificationsPlatformPurge, orm\*                   |
 | Base + Podcast Index                | Base, PodcastIndex                       | podcastIndexTrendingPodcastsGet, podcastIndexValueUpdateAll                                                 |
 | Base + ORM + Podcast Index          | Base, ORM, PodcastIndex                  | podcastIndexDeadFeedsFlagAndMerge                                                                           |
 | Base + ORM + MQ                     | Base, ORM, MQ                            | mqRSSRunDlqConsumer, mqRSSAddAll                                                                            |
@@ -35,6 +35,12 @@ The workers app validates environment variables **per command**. Each job only v
 | Full stack                          | Base, ORM, MQ, Parser, PodcastIndex, Web | mqRSSRunParser, mqRSSRunLiveItemListener                                                                    |
 
 Within each category, vars are required or optional as listed in the sections below. Only the categories for your command are validated.
+
+### Notifications platform command note
+
+`scheduledJobsRunDue` and `notificationsPlatformPurge` both validate **Base + ORM** only. That means
+contributors can exercise notification scheduling and retention locally after database migration
+without requiring MQ/Parser categories.
 
 ### Adding a new command
 

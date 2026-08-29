@@ -5,6 +5,7 @@ import { AppWrapper } from '@podverse/ui';
 
 import { getConfig } from '../../config';
 import { getManagementSessionUser } from '../../lib/auth/serverManagementSession';
+import { ROUTES } from '../../lib/routes';
 import { ManagementNavBar } from '../ManagementNavBar/ManagementNavBar';
 
 import styles from './managementAppLayout.module.scss';
@@ -16,7 +17,7 @@ type ManagementAppLayoutProps = {
 export async function ManagementAppLayout({ children }: ManagementAppLayoutProps) {
   const user = await getManagementSessionUser();
   if (!user) {
-    redirect('/');
+    redirect(ROUTES.HOME);
   }
 
   const config = getConfig();

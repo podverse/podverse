@@ -3,6 +3,8 @@ kind: Kustomization
 
 resources:
   - worker-billing-renewals.cronjob.yaml
+  - worker-scheduled-jobs.cronjob.yaml
+  - worker-notifications-purge.cronjob.yaml
   - worker-recent-feeds.cronjob.yaml
   - worker-archive-all.cronjob.yaml
   - worker-generate-reports.cronjob.yaml

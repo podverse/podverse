@@ -15,3 +15,49 @@
   color: var(--text-color-primary);
   word-break: break-all;
 }
+
+.preferencesHeading {
+  margin: 0;
+}
+
+.preferencesSubheading {
+  margin: var(--spacing-sm) 0 var(--spacing-lg);
+  color: var(--text-color-secondary);
+}
+
+.preferenceRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-lg);
+  border: var(--border-width) solid var(--border-color-primary);
+  border-radius: var(--border-radius);
+  margin-bottom: var(--spacing-md);
+}
+
+.preferenceRowHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.preferenceTitle {
+  margin: 0;
+}
+
+.preferenceDescription {
+  margin: 0;
+  color: var(--text-color-secondary);
+}
+
+.preferenceHint {
+  margin: 0;
+  color: var(--text-color-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.preferenceControls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}

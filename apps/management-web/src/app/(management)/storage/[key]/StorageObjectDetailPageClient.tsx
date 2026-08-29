@@ -31,6 +31,7 @@ import {
   getStorageObjectDownloadUrl,
   getStorageObjectMetadata,
 } from '../../../../lib/requests/storage';
+import { ROUTES } from '../../../../lib/routes';
 
 export type StorageObjectDetailPageClientProps = {
   objectKey: string;
@@ -70,13 +71,13 @@ export function StorageObjectDetailPageClient({ objectKey }: StorageObjectDetail
           return;
         }
         if (!current) {
-          router.replace('/');
+          router.replace(ROUTES.HOME);
           return;
         }
         setUser(current);
       } catch {
         if (!cancelled) {
-          router.replace('/');
+          router.replace(ROUTES.HOME);
         }
       }
     };
@@ -113,7 +114,7 @@ export function StorageObjectDetailPageClient({ objectKey }: StorageObjectDetail
     try {
       await deleteStorageObject(objectKey);
       setConfirmOpen(false);
-      router.push('/storage');
+      router.push(ROUTES.STORAGE);
     } catch {
       setLoadError(t('deleteError'));
     } finally {
@@ -125,8 +126,8 @@ export function StorageObjectDetailPageClient({ objectKey }: StorageObjectDetail
     <ManagementPageShell subtitle={t('detailSubtitle')} title={t('detailTitle')}>
       <Breadcrumbs
         items={[
-          { href: '/dashboard', label: tNav('dashboard') },
-          { href: '/storage', label: t('title') },
+          { href: ROUTES.DASHBOARD, label: tNav('dashboard') },
+          { href: ROUTES.STORAGE, label: t('title') },
           { label: shortKeyLabel(objectKey) },
         ]}
         LinkComponent={Link}
@@ -177,7 +178,7 @@ export function StorageObjectDetailPageClient({ objectKey }: StorageObjectDetail
               </Button>
             ) : null}
 
-            <ActionLink href="/storage" LinkComponent={Link} variant="subtle">
+            <ActionLink href={ROUTES.STORAGE} LinkComponent={Link} variant="subtle">
               {t('backToList')}
             </ActionLink>
           </PageHeaderActions>

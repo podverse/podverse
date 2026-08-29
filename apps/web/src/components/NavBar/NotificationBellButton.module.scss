@@ -1,0 +1,15 @@
+.bellLinkWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.bellIcon {
+  font-size: var(--font-size-lg);
+}
+
+.badgeWrap {
+  position: absolute;
+  top: calc(var(--spacing-xs) * -1);
+  right: calc(var(--spacing-xs) * -1);
+  pointer-events: none;
+}

@@ -38,6 +38,7 @@ import {
 } from '../../../../lib/createUserFormDefaults';
 import { getResolvedProductMembership } from '../../../../lib/requests/productMembership';
 import { createUser } from '../../../../lib/requests/users';
+import { ROUTES } from '../../../../lib/routes';
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_-]+$/;
 
@@ -296,7 +297,7 @@ export function NewUserPageClient() {
         setEmail('');
         setPassword('');
       } else {
-        router.push('/users');
+        router.push(ROUTES.USERS);
         router.refresh();
       }
     } catch (err) {
@@ -316,8 +317,8 @@ export function NewUserPageClient() {
       LinkComponent={Link}
       navAriaLabel={tc('breadcrumbNav')}
       items={[
-        { href: '/dashboard', label: tNav('dashboard') },
-        { href: '/users', label: t('title') },
+        { href: ROUTES.DASHBOARD, label: tNav('dashboard') },
+        { href: ROUTES.USERS, label: t('title') },
         { label: tc('new') },
       ]}
     />
@@ -361,7 +362,7 @@ export function NewUserPageClient() {
               </div>
             </FormGroup>
             <FormPrimaryActions>
-              <Button type="button" variant="secondary" onClick={() => router.push('/users')}>
+              <Button type="button" variant="secondary" onClick={() => router.push(ROUTES.USERS)}>
                 {t('backToList')}
               </Button>
             </FormPrimaryActions>
@@ -567,7 +568,7 @@ export function NewUserPageClient() {
           </MembershipAdvancedOverridesGroup>
           <Alert>{error}</Alert>
           <FormPrimaryActions>
-            <Button type="button" variant="secondary" onClick={() => router.push('/users')}>
+            <Button type="button" variant="secondary" onClick={() => router.push(ROUTES.USERS)}>
               {tc('cancel')}
             </Button>
             <Button type="submit" disabled={loading}>

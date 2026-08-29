@@ -19,6 +19,7 @@ import {
   listManagementAdminRoles,
   type ManagementAdminRoleItem,
 } from '../../lib/requests/adminRoles';
+import { buildAdminRoleNewPath } from '../../lib/routes';
 import {
   ADMIN_PERMISSION_RESOURCE_KEYS,
   CREATE_ROLE_NAV_ID,
@@ -45,6 +46,7 @@ const RESOURCE_LABEL_KEYS: Record<(typeof ADMIN_PERMISSION_RESOURCE_KEYS)[number
   billing_prices_crud: 'billingPrices',
   bucket_crud: 'bucket',
   embed_demo_crud: 'embedDemo',
+  notifications_crud: 'notifications',
 };
 
 export type AdminPermissionsSectionProps = {
@@ -183,6 +185,7 @@ export function AdminPermissionsSection({
       billing_prices_crud: 15,
       bucket_crud: 15,
       embed_demo_crud: 15,
+      notifications_crud: 15,
     });
   }, [onPermissionsChange, onSelectedRoleIdChange]);
 
@@ -216,7 +219,7 @@ export function AdminPermissionsSection({
   const onRoleDropdownChange = useCallback(
     (value: string) => {
       if (value === CREATE_ROLE_NAV_ID) {
-        router.push(`/admins/roles/new?returnUrl=${encodeURIComponent(createRoleReturnUrl)}`);
+        router.push(buildAdminRoleNewPath(createRoleReturnUrl));
         return;
       }
       if (value === CUSTOM_ROLE_SELECTION_ID) {

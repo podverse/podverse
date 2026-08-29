@@ -155,4 +155,24 @@ describe('NavBar', () => {
     expect(screen.queryByRole('button', { name: 'Account' })).toBeNull();
     expect(screen.queryByRole('link', { name: 'Find' })).toBeNull();
   });
+
+  it('renders trailing actions before account menu', () => {
+    render(
+      <NavBar
+        brand={{ children: 'Only', href: '#' }}
+        trailingActions={<button aria-label="Notifications">Bell</button>}
+        accountMenu={{
+          ariaLabel: 'Account',
+          isLoggedIn: true,
+          items: [{ key: 'meta', label: 'Role: user', type: 'meta' }],
+        }}
+      />
+    );
+
+    const bellButton = screen.getByRole('button', { name: 'Notifications' });
+    const accountButton = screen.getByRole('button', { name: 'Account' });
+    expect(bellButton.compareDocumentPosition(accountButton)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING
+    );
+  });
 });

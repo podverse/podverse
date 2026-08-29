@@ -12,7 +12,6 @@
 | `.llm/history/active/`    | [LLM-HISTORY-ACTIVE.md](history/active/LLM-HISTORY-ACTIVE.md)          |
 | `.llm/history/completed/` | [LLM-HISTORY-COMPLETED.md](history/completed/LLM-HISTORY-COMPLETED.md) |
 | `.llm/plans/active/`      | [LLM-PLANS-ACTIVE.md](plans/active/LLM-PLANS-ACTIVE.md)                |
-| `.llm/plans/completed/`   | [LLM-PLANS-COMPLETED.md](plans/completed/LLM-PLANS-COMPLETED.md)       |
 | `.llm/templates/`         | [LLM-TEMPLATES.md](templates/LLM-TEMPLATES.md)                         |
 
 ## Directory index — abcmemory (`.cursor/`)
@@ -36,8 +35,7 @@ Vocabulary: **abcmemory** / **abcremember** — [abcmemory skill](/.cursor/skill
 │   ├── active/            # Optional per-feature folders if your team records notes here
 │   └── completed/         # Archived by automation or manually (see below)
 ├── plans/
-│   ├── active/
-│   └── completed/
+│   └── active/
 └── templates/             # Human templates for plans/history (not abcmemory)
 ```
 
@@ -56,7 +54,9 @@ Empty layout directories may contain a `.gitkeep` so git tracks the folder after
 
 ## Plans
 
-Active work lives under `.llm/plans/active/`; completed sets move to `.llm/plans/completed/`. See `.cursor/skills/plan-completion/SKILL.md` and repo rules for the 300-line plan limit.
+Active work lives under `.llm/plans/active/`. Completed plan files are removed after the operator
+confirms the work is no longer needed. See `.cursor/skills/plan-completion/SKILL.md` and repo rules
+for the 300-line plan limit.
 
 **Import specifiers (Tier A vs Next `src`):** see [docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md](/docs/development/tooling/DOCS-DEVELOPMENT-TOOLING-IMPORT-SPECIFIERS.md).
 

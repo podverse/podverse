@@ -8,7 +8,7 @@ Foundation:
 [shared-vs-divergent](DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md),
 **mobile-theme-parity** skill (`.cursor/skills/mobile-theme-parity/SKILL.md`),
 master plan **Ship bar** in
-[001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md).
+[001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md).
 
 > **Status:** Process decision. Tokens, primitives, and action-affordance parity are **done**.
 > Remaining feature tracks ship **functional sketches**. **Track 23** is the only place for
@@ -94,6 +94,6 @@ When implementing a screen:
 
 - Master plan **Ship bar**, Track **9d** (playlist authoring sketches), Track **21** deferrals,
   Track **23** operator polish —
-  [001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md)
+  [001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md)
 - [DOCS-MOBILE-PROCESS-MOBILE-ONLY-FEATURES.md](DOCS-MOBILE-PROCESS-MOBILE-ONLY-FEATURES.md)
 - Skills: **mobile-theme-parity**, **mobile-master-plan-phasing**

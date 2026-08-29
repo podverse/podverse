@@ -31,6 +31,7 @@ import { managementSearchParamsObject } from '../../../lib/managementTableUrl';
 import type { CurrentUser } from '../../../lib/requests/auth';
 import { getCurrentUser } from '../../../lib/requests/auth';
 import { listWorkerCommands, type WorkerCommandRow } from '../../../lib/requests/workerCommands';
+import { ROUTES } from '../../../lib/routes';
 
 import dataSurfaceBusyStyles from '../../../styles/managementDataSurfaceBusy.module.scss';
 import styles from './WorkersPageClient.module.scss';
@@ -82,7 +83,7 @@ export function WorkersPageClient({ initialUser }: WorkersPageClientProps) {
   const tNav = useTranslations('nav');
   const chrome = useManagementTableChrome();
 
-  const basePath = pathname !== null && pathname !== '' ? pathname : '/workers';
+  const basePath = pathname !== null && pathname !== '' ? pathname : ROUTES.WORKERS;
   const currentQueryParams = useMemo(
     () => managementSearchParamsObject(searchParams),
     [searchParams]
@@ -141,13 +142,13 @@ export function WorkersPageClient({ initialUser }: WorkersPageClientProps) {
           return;
         }
         if (!current) {
-          router.replace('/');
+          router.replace(ROUTES.HOME);
           return;
         }
         setUser(current);
       } catch {
         if (!cancelled) {
-          router.replace('/');
+          router.replace(ROUTES.HOME);
         }
       }
     };
@@ -269,7 +270,7 @@ export function WorkersPageClient({ initialUser }: WorkersPageClientProps) {
         <Breadcrumbs
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
-          items={[{ href: '/dashboard', label: tNav('dashboard') }, { label: t('title') }]}
+          items={[{ href: ROUTES.DASHBOARD, label: tNav('dashboard') }, { label: t('title') }]}
         />
       }
       title={t('title')}

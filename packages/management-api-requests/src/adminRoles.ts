@@ -12,6 +12,7 @@ export type ManagementAdminRoleItem = {
   billing_prices_crud: number;
   bucket_crud: number;
   embed_demo_crud: number;
+  notifications_crud: number;
   created_at: string | null;
 };
 
@@ -24,6 +25,7 @@ export type CreateManagementAdminRoleParams = {
   billing_prices_crud: number;
   bucket_crud: number;
   embed_demo_crud: number;
+  notifications_crud: number;
 };
 
 export async function listManagementAdminRoles(

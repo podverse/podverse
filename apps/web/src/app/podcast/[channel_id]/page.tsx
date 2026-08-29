@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import type { DTOClip, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
-import { getTotalPages } from '@podverse/helpers';
+import { buildPodcastPath, getTotalPages } from '@podverse/helpers';
 import type { ApiListResponse } from '@podverse/helpers-requests';
 import {
   QUERY_PARAMS_CHANNEL_SORT_VALUES,
@@ -61,7 +61,7 @@ export async function generateMetadata({ params }: PodcastPageProps): Promise<Me
     return buildContentMetadata({
       title: channel.title,
       descriptionPlain,
-      pathname: `/podcast/${channel.id_text}`,
+      pathname: buildPodcastPath(channel.id_text),
       imageUrl: getChannelHeroImageUrl(channel.channel_images),
     });
   } catch {

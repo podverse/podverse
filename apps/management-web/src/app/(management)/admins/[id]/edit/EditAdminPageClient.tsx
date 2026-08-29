@@ -30,6 +30,7 @@ import {
   updateAdmin,
   type UpdateAdminParams,
 } from '../../../../../lib/requests/admins';
+import { buildAdminEditPath, ROUTES } from '../../../../../lib/routes';
 
 const ADMIN_USERNAME_PATTERN = /^[a-zA-Z0-9._-]+$/;
 
@@ -43,6 +44,7 @@ function permissionsFromAdmin(admin: AdminAccount): PermissionState {
     billing_prices_crud: p?.billing_prices_crud ?? 0,
     bucket_crud: p?.bucket_crud ?? 0,
     embed_demo_crud: p?.embed_demo_crud ?? 0,
+    notifications_crud: p?.notifications_crud ?? 0,
   };
 }
 
@@ -122,7 +124,7 @@ export function EditAdminPageClient({ admin }: EditAdminPageClientProps) {
 
       await updateAdmin(admin.id, updateData);
       setSuccess(true);
-      router.push('/admins');
+      router.push(ROUTES.ADMINS);
     } catch (err) {
       const raw =
         err && typeof err === 'object' && 'response' in err
@@ -143,8 +145,8 @@ export function EditAdminPageClient({ admin }: EditAdminPageClientProps) {
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
           items={[
-            { href: '/dashboard', label: tNav('dashboard') },
-            { href: '/admins', label: t('title') },
+            { href: ROUTES.DASHBOARD, label: tNav('dashboard') },
+            { href: ROUTES.ADMINS, label: t('title') },
             {
               label: t('editAdminItem', {
                 identifier: admin.email ?? admin.username ?? admin.id_text,
@@ -183,7 +185,7 @@ export function EditAdminPageClient({ admin }: EditAdminPageClientProps) {
           />
           <AdminPermissionsSection
             bootstrapHighestRole={false}
-            createRoleReturnUrl={`/admins/${admin.id}/edit`}
+            createRoleReturnUrl={buildAdminEditPath(admin.id)}
             matchInitialPermissions={initialPermissionsMatch}
             onPermissionsChange={setPermissions}
             onRolesReadyChange={setPermissionsReady}
@@ -195,7 +197,7 @@ export function EditAdminPageClient({ admin }: EditAdminPageClientProps) {
           <Alert>{error}</Alert>
           {success ? <Alert variant="success">{t('updatedSuccessfully')}</Alert> : null}
           <FormPrimaryActions>
-            <Button type="button" variant="secondary" onClick={() => router.push('/admins')}>
+            <Button type="button" variant="secondary" onClick={() => router.push(ROUTES.ADMINS)}>
               {tc('cancel')}
             </Button>
             <Button type="submit" disabled={loading || !permissionsReady}>

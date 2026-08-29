@@ -11,6 +11,7 @@ export const createManagementAdminRoleSchema = Joi.object({
   billing_prices_crud: crudSchema.required(),
   bucket_crud: crudSchema.required(),
   embed_demo_crud: crudSchema.required(),
+  notifications_crud: crudSchema.required(),
 }).required();
 
 export const updateManagementAdminRoleSchema = Joi.object({
@@ -22,6 +23,7 @@ export const updateManagementAdminRoleSchema = Joi.object({
   billing_prices_crud: crudSchema,
   bucket_crud: crudSchema,
   embed_demo_crud: crudSchema,
+  notifications_crud: crudSchema,
 })
   .min(1)
   .required();

@@ -11,14 +11,17 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { breakpoints } from '@podverse/design-tokens';
 
 import { useAuth } from '../auth/AuthProvider';
 import { MiniPlayer } from '../components/player/MiniPlayer';
+import type { MenuListItem } from '../components/screen/MenuListScreen';
+import { MenuListScreen } from '../components/screen/MenuListScreen';
 import { getMobileConfig } from '../config';
 import { buildMobileLinkPrefixes } from '../config/deepLinkSchemes';
+import { useNotificationsUnseenCount } from '../hooks/useNotificationsUnseenCount';
 import { PlaybackE2eStatus } from '../playback/PlaybackE2eStatus';
 import { AlbumDetailScreen } from '../screens/album/AlbumDetailScreen';
 import { ArtistDetailScreen } from '../screens/artist/ArtistDetailScreen';
@@ -36,7 +39,10 @@ import { PlaylistDetailScreen } from '../screens/library/PlaylistDetailScreen';
 import { PlaylistFormScreen } from '../screens/library/PlaylistFormScreen';
 import { MoreMembershipScreen } from '../screens/more/MoreMembershipScreen';
 import { MoreOpmlScreen } from '../screens/more/MoreOpmlScreen';
+import { MoreSettingsLocaleScreen } from '../screens/more/MoreSettingsLocaleScreen';
 import { MoreSettingsScreen } from '../screens/more/MoreSettingsScreen';
+import { MoreSettingsThemeScreen } from '../screens/more/MoreSettingsThemeScreen';
+import { NotificationsInboxScreen } from '../screens/notifications/NotificationsInboxScreen';
 import { FullPlayerScreen } from '../screens/player/FullPlayerScreen';
 import { PodcastDetailScreen } from '../screens/podcast/PodcastDetailScreen';
 import { MyProfileScreen } from '../screens/profile/MyProfileScreen';
@@ -46,8 +52,11 @@ import { AddByRssRootScreen } from '../screens/rss/AddByRssRootScreen';
 import { PodcastIndexFeedPreviewScreen } from '../screens/search/PodcastIndexFeedPreviewScreen';
 import { SearchScreen } from '../screens/search/SearchScreen';
 import { V4vInfoScreen } from '../screens/v4v/V4vInfoScreen';
+import { useNavigationTheme } from '../theme/useNavigationTheme';
 import { useTheme } from '../theme/useTheme';
+import { useThemedNativeStackScreenOptions } from '../theme/useThemedNativeStackScreenOptions';
 import { mapIncomingPathToScopedPath, mapScopedPathToFlatPath } from './deepLinking';
+import { tabBarIcon } from './tabBarIcon';
 
 type MobileTabNavigatorProps = {
   onConsumePendingDeepLink: () => void;
@@ -60,8 +69,8 @@ type MobileTabNavigatorProps = {
 const Tab = createBottomTabNavigator();
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 const SearchStack = createNativeStackNavigator<SearchStackParamList>();
+const NotificationsStack = createNativeStackNavigator<NotificationsStackParamList>();
 const LibraryStack = createNativeStackNavigator<LibraryStackParamList>();
-const RssStack = createNativeStackNavigator<RssStackParamList>();
 const MoreStack = createNativeStackNavigator<MoreStackParamList>();
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const rootNavigationRef = createNavigationContainerRef<RootStackParamList>();
@@ -95,65 +104,6 @@ function PlaceholderScreen({ testID, title }: PlaceholderScreenProps) {
   );
 }
 
-type PlaceholderMenuItem = {
-  onPress: () => void;
-  testID: string;
-  title: string;
-};
-
-type PlaceholderMenuScreenProps = {
-  items: PlaceholderMenuItem[];
-  testID: string;
-  title: string;
-};
-
-function PlaceholderMenuScreen({ items, testID, title }: PlaceholderMenuScreenProps) {
-  const { styles: themeStyles, tokens } = useTheme();
-  const styles = StyleSheet.create({
-    button: {
-      borderColor: themeStyles.border.borderColor,
-      borderRadius: tokens.radii.sm,
-      borderWidth: 1,
-      marginTop: tokens.spacing.md,
-      paddingHorizontal: tokens.spacing.lg,
-      paddingVertical: tokens.spacing.sm,
-    },
-    buttonText: {
-      color: themeStyles.textPrimary.color,
-      fontWeight: '600',
-    },
-    container: {
-      alignItems: 'center',
-      backgroundColor: themeStyles.screen.backgroundColor,
-      flex: 1,
-      justifyContent: 'center',
-      padding: tokens.spacing.xl,
-    },
-    title: {
-      color: themeStyles.textPrimary.color,
-      fontSize: 20,
-      fontWeight: '600',
-    },
-  });
-
-  return (
-    <View style={styles.container} testID={testID}>
-      <Text style={styles.title}>{title}</Text>
-      {items.map((item) => (
-        <Pressable
-          accessibilityRole="button"
-          key={item.testID}
-          onPress={item.onPress}
-          style={styles.button}
-          testID={item.testID}
-        >
-          <Text style={styles.buttonText}>{item.title}</Text>
-        </Pressable>
-      ))}
-    </View>
-  );
-}
-
 export const HOME_STACK_ROUTES = {
   AlbumDetail: 'AlbumDetail',
   ArtistDetail: 'ArtistDetail',
@@ -181,6 +131,8 @@ export const SEARCH_STACK_ROUTES = {
 } as const;
 
 export const LIBRARY_STACK_ROUTES = {
+  AddByRssFeedList: 'AddByRssFeedList',
+  AddByRssRoot: 'AddByRssRoot',
   LibraryClipDetail: 'LibraryClipDetail',
   LibraryDownloads: 'LibraryDownloads',
   LibraryHistory: 'LibraryHistory',
@@ -195,9 +147,8 @@ export const LIBRARY_STACK_ROUTES = {
   PodcastDetail: 'PodcastDetail',
 } as const;
 
-export const RSS_STACK_ROUTES = {
-  AddByRssFeedList: 'AddByRssFeedList',
-  AddByRssRoot: 'AddByRssRoot',
+export const NOTIFICATIONS_STACK_ROUTES = {
+  NotificationsInbox: 'NotificationsInbox',
 } as const;
 
 export const MORE_STACK_ROUTES = {
@@ -208,6 +159,8 @@ export const MORE_STACK_ROUTES = {
   MoreProfile: 'MoreProfile',
   MoreRoot: 'MoreRoot',
   MoreSettings: 'MoreSettings',
+  MoreSettingsLocale: 'MoreSettingsLocale',
+  MoreSettingsTheme: 'MoreSettingsTheme',
   MoreSmoke: 'MoreSmoke',
 } as const;
 
@@ -249,11 +202,15 @@ const mobileNavigationScreens = {
           MoreProfile: 'more/profile',
           MoreRoot: 'more',
           MoreSettings: 'more/settings',
+          MoreSettingsLocale: 'more/settings/locale',
+          MoreSettingsTheme: 'more/settings/theme',
           MoreSmoke: 'more/smoke',
         },
       },
       'My Library': {
         screens: {
+          AddByRssFeedList: 'my-library/add-by-rss/feeds',
+          AddByRssRoot: 'my-library/add-by-rss',
           LibraryClipDetail: 'my-library/clip/:clipId',
           LibraryDownloads: 'my-library/downloads',
           LibraryHistory: 'my-library/history',
@@ -268,10 +225,9 @@ const mobileNavigationScreens = {
           PodcastDetail: 'my-library/podcast/:podcastId',
         },
       },
-      RSS: {
+      Notifications: {
         screens: {
-          AddByRssFeedList: 'add-by-rss/feeds',
-          AddByRssRoot: 'add-by-rss',
+          NotificationsInbox: 'notifications',
         },
       },
       Search: {
@@ -350,6 +306,8 @@ export type SearchStackParamList = ChannelBrowseStackParamList & {
 };
 
 export type LibraryStackParamList = {
+  AddByRssFeedList: undefined;
+  AddByRssRoot: undefined;
   LibraryClipDetail: { clipId: string };
   LibraryDownloads: undefined;
   LibraryHistory: undefined;
@@ -364,9 +322,8 @@ export type LibraryStackParamList = {
   PodcastDetail: { podcastId: string };
 };
 
-export type RssStackParamList = {
-  AddByRssFeedList: undefined;
-  AddByRssRoot: undefined;
+export type NotificationsStackParamList = {
+  NotificationsInbox: undefined;
 };
 
 export type MoreStackParamList = {
@@ -377,6 +334,8 @@ export type MoreStackParamList = {
   MoreProfile: undefined;
   MoreRoot: undefined;
   MoreSettings: undefined;
+  MoreSettingsLocale: undefined;
+  MoreSettingsTheme: undefined;
   MoreSmoke: undefined;
 };
 
@@ -388,12 +347,12 @@ type RootStackParamList = {
   V4vInfo: undefined;
 };
 
-/** Bottom-tab route names, used for type-safe cross-tab navigation (e.g. Home → RSS). */
+/** Bottom-tab route names, used for type-safe cross-tab navigation (e.g. Home → My Library). */
 export type MobileTabParamList = {
   Home: undefined;
   Search: undefined;
-  'My Library': undefined;
-  RSS: undefined;
+  Notifications: undefined;
+  'My Library': NavigatorScreenParams<LibraryStackParamList> | undefined;
   More: NavigatorScreenParams<MoreStackParamList> | undefined;
 };
 
@@ -414,9 +373,10 @@ export function navigateToMembershipScreen(): void {
 
 function HomeStackNavigator() {
   const { t } = useTranslation();
+  const screenOptions = useThemedNativeStackScreenOptions();
 
   return (
-    <HomeStack.Navigator>
+    <HomeStack.Navigator screenOptions={screenOptions}>
       <HomeStack.Screen
         component={HomeScreen}
         name={HOME_STACK_ROUTES.HomeRoot}
@@ -458,9 +418,10 @@ function HomeStackNavigator() {
 
 function SearchStackNavigator() {
   const { t } = useTranslation();
+  const screenOptions = useThemedNativeStackScreenOptions();
 
   return (
-    <SearchStack.Navigator>
+    <SearchStack.Navigator screenOptions={screenOptions}>
       <SearchStack.Screen
         component={SearchScreen}
         name={SEARCH_STACK_ROUTES.SearchRoot}
@@ -507,13 +468,24 @@ function SearchStackNavigator() {
 
 function LibraryStackNavigator() {
   const { t } = useTranslation();
+  const screenOptions = useThemedNativeStackScreenOptions();
 
   return (
-    <LibraryStack.Navigator>
+    <LibraryStack.Navigator screenOptions={screenOptions}>
       <LibraryStack.Screen
         component={LibraryHubScreen}
         name={LIBRARY_STACK_ROUTES.LibraryHub}
         options={{ title: t('features.my_library') }}
+      />
+      <LibraryStack.Screen
+        component={AddByRssRootScreen}
+        name={LIBRARY_STACK_ROUTES.AddByRssRoot}
+        options={{ title: t('features.add_by_rss.label') }}
+      />
+      <LibraryStack.Screen
+        component={AddByRssFeedListScreen}
+        name={LIBRARY_STACK_ROUTES.AddByRssFeedList}
+        options={{ title: t('nav.stack.rss_feeds') }}
       />
       <LibraryStack.Screen
         component={LibrarySubscriptionsScreen}
@@ -574,22 +546,18 @@ function LibraryStackNavigator() {
   );
 }
 
-function RssStackNavigator() {
+function NotificationsStackNavigator() {
   const { t } = useTranslation();
+  const screenOptions = useThemedNativeStackScreenOptions();
 
   return (
-    <RssStack.Navigator>
-      <RssStack.Screen
-        component={AddByRssRootScreen}
-        name={RSS_STACK_ROUTES.AddByRssRoot}
-        options={{ title: t('features.add_by_rss.label') }}
+    <NotificationsStack.Navigator screenOptions={screenOptions}>
+      <NotificationsStack.Screen
+        component={NotificationsInboxScreen}
+        name={NOTIFICATIONS_STACK_ROUTES.NotificationsInbox}
+        options={{ title: t('nav.tab.notifications') }}
       />
-      <RssStack.Screen
-        component={AddByRssFeedListScreen}
-        name={RSS_STACK_ROUTES.AddByRssFeedList}
-        options={{ title: t('nav.stack.rss_feeds') }}
-      />
-    </RssStack.Navigator>
+    </NotificationsStack.Navigator>
   );
 }
 
@@ -605,9 +573,10 @@ function MoreStackNavigator({
   onRequestSignUp,
 }: MoreStackNavigatorProps) {
   const { t } = useTranslation();
+  const screenOptions = useThemedNativeStackScreenOptions();
 
   return (
-    <MoreStack.Navigator>
+    <MoreStack.Navigator screenOptions={screenOptions}>
       <MoreStack.Screen options={{ title: t('nav.tab.more') }} name={MORE_STACK_ROUTES.MoreRoot}>
         {(props) => (
           <MoreRootScreen
@@ -622,6 +591,16 @@ function MoreStackNavigator({
         component={MoreSettingsScreen}
         name={MORE_STACK_ROUTES.MoreSettings}
         options={{ title: t('settings.settings') }}
+      />
+      <MoreStack.Screen
+        component={MoreSettingsThemeScreen}
+        name={MORE_STACK_ROUTES.MoreSettingsTheme}
+        options={{ title: t('settings.ui_theme.theme') }}
+      />
+      <MoreStack.Screen
+        component={MoreSettingsLocaleScreen}
+        name={MORE_STACK_ROUTES.MoreSettingsLocale}
+        options={{ title: t('language.select_language') }}
       />
       <MoreStack.Screen
         component={MoreAboutScreen}
@@ -671,7 +650,7 @@ function LibraryHubScreen({
   const { t } = useTranslation();
 
   return (
-    <PlaceholderMenuScreen
+    <MenuListScreen
       items={[
         {
           onPress: () => {
@@ -717,6 +696,13 @@ function LibraryHubScreen({
         },
         {
           onPress: () => {
+            navigation.navigate(LIBRARY_STACK_ROUTES.AddByRssRoot);
+          },
+          testID: 'library-nav-add-by-rss',
+          title: t('features.add_by_rss.label'),
+        },
+        {
+          onPress: () => {
             navigation
               .getParent<BottomTabNavigationProp<MobileTabParamList>>()
               ?.navigate('More', { screen: MORE_STACK_ROUTES.MoreOpml });
@@ -726,7 +712,6 @@ function LibraryHubScreen({
         },
       ]}
       testID="library-hub-screen"
-      title={t('features.my_library')}
     />
   );
 }
@@ -747,7 +732,7 @@ function MoreRootScreen({
   const { status } = useAuth();
   const isAuthenticated = status === 'authenticated';
 
-  const authItems: PlaceholderMenuItem[] = isAuthenticated
+  const authItems: MenuListItem[] = isAuthenticated
     ? [
         {
           onPress: () => {
@@ -771,7 +756,7 @@ function MoreRootScreen({
       ];
 
   return (
-    <PlaceholderMenuScreen
+    <MenuListScreen
       items={[
         {
           onPress: () => {
@@ -815,10 +800,9 @@ function MoreRootScreen({
           testID: 'more-nav-smoke',
           title: 'Smoke',
         },
-        ...authItems,
       ]}
+      secondaryItems={authItems}
       testID="more-screen"
-      title={t('nav.tab.more')}
     />
   );
 }
@@ -842,6 +826,7 @@ function TabScaffold({
 }: TabScaffoldProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
+  const notificationsUnseenCount = useNotificationsUnseenCount({ enabled: true });
   const { width } = useWindowDimensions();
   const isTabletLayout = width >= MOBILE_TABLET_NAV_MIN_WIDTH;
 
@@ -849,13 +834,11 @@ function TabScaffold({
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: themeStyles.buttonPrimary.color,
+        tabBarActiveTintColor: tokens.text.accent,
         tabBarInactiveTintColor: themeStyles.textSecondary.color,
-        // `below-icon` is only valid for top/bottom bars under the default `uikit` variant; the
-        // tablet rail uses `tabBarPosition: 'left'`, so it must use `beside-icon` (label beside the
-        // icon, iPad-sidebar style) or `<BottomTabBar>` throws a render error. Phone keeps its
-        // existing `beside-icon` bottom bar, so both layouts share this value.
-        tabBarLabelPosition: 'beside-icon',
+        // Tablet left rail requires `beside-icon`; phone bottom bar uses icon-above-label layout.
+        tabBarLabelPosition: isTabletLayout ? 'beside-icon' : 'below-icon',
+        tabBarLabelStyle: isTabletLayout ? undefined : { marginTop: tokens.spacing.xs },
         tabBarPosition: isTabletLayout ? 'left' : 'bottom',
         tabBarStyle: {
           backgroundColor: tokens.background.secondary,
@@ -880,6 +863,7 @@ function TabScaffold({
       <Tab.Screen
         name="Home"
         options={{
+          tabBarIcon: tabBarIcon('home'),
           tabBarLabel: t('nav.tab.home'),
           tabBarButtonTestID: 'tab-home',
         }}
@@ -889,29 +873,37 @@ function TabScaffold({
         component={SearchStackNavigator}
         name="Search"
         options={{
+          tabBarIcon: tabBarIcon('search'),
           tabBarLabel: t('features.search.search'),
           tabBarButtonTestID: 'tab-search',
+        }}
+      />
+      <Tab.Screen
+        component={NotificationsStackNavigator}
+        name="Notifications"
+        options={{
+          tabBarBadge: notificationsUnseenCount > 0 ? notificationsUnseenCount : undefined,
+          tabBarIcon: tabBarIcon('notifications'),
+          tabBarLabel: t('nav.tab.notifications'),
+          tabBarButtonTestID: 'tab-notifications',
         }}
       />
       <Tab.Screen
         component={LibraryStackNavigator}
         name="My Library"
         options={{
+          tabBarIcon: tabBarIcon('library'),
           tabBarLabel: t('features.my_library'),
           tabBarButtonTestID: 'tab-my-library',
         }}
       />
       <Tab.Screen
-        component={RssStackNavigator}
-        name="RSS"
-        options={{
-          tabBarLabel: t('nav.tab.rss'),
-          tabBarButtonTestID: 'tab-rss',
-        }}
-      />
-      <Tab.Screen
         name="More"
-        options={{ tabBarButtonTestID: 'tab-more', tabBarLabel: t('nav.tab.more') }}
+        options={{
+          tabBarButtonTestID: 'tab-more',
+          tabBarIcon: tabBarIcon('more'),
+          tabBarLabel: t('nav.tab.more'),
+        }}
       >
         {() => (
           <MoreStackNavigator
@@ -932,6 +924,8 @@ export function MobileTabNavigator({
   onRequestLogout,
   onRequestSignUp,
 }: MobileTabNavigatorProps) {
+  const navigationTheme = useNavigationTheme();
+
   useEffect(() => {
     if (pendingDeepLinkUrl === null || !rootNavigationRef.isReady()) {
       return;
@@ -948,7 +942,11 @@ export function MobileTabNavigator({
   }, [onConsumePendingDeepLink, pendingDeepLinkUrl]);
 
   return (
-    <NavigationContainer linking={mobileNavigationLinking} ref={rootNavigationRef}>
+    <NavigationContainer
+      linking={mobileNavigationLinking}
+      ref={rootNavigationRef}
+      theme={navigationTheme}
+    >
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
         <RootStack.Screen name={ROOT_STACK_ROUTES.MainTabs}>
           {(props) => (

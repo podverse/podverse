@@ -1,7 +1,7 @@
 # Android Auto — Play Console declaration (operator)
 
 **Master step:** 12.16 (Android portion). **Audience:** operator / release owner.
-**Detail:** [395-car-entitlements-declarations](/docs/proposals/mobile/_master-plan_/details/395-car-entitlements-declarations.md).
+**Detail:** [395-car-entitlements-declarations](/docs/proposals/mobile/_master-plan_/phase-1/details/395-car-entitlements-declarations.md).
 
 Android Auto has **no Apple-style entitlement gate** — no portal approval is required to build and
 test with the Desktop Head Unit (DHU). What Google requires is a **Play Console declaration** plus

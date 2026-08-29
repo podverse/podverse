@@ -13,6 +13,7 @@ vi.mock('../../../lib/auth/serverManagementSession.js', () => ({
 import { redirect } from 'next/navigation';
 
 import { getManagementSessionUser } from '../../../lib/auth/serverManagementSession.js';
+import { ROUTES } from '../../../lib/routes';
 import ProductsPage from './page.js';
 
 describe('ProductsPage (server)', () => {
@@ -23,7 +24,7 @@ describe('ProductsPage (server)', () => {
       await ProductsPage();
     }).rejects.toThrow('redirect_called');
 
-    expect(vi.mocked(redirect)).toHaveBeenCalledWith('/');
+    expect(vi.mocked(redirect)).toHaveBeenCalledWith(ROUTES.HOME);
   });
 
   it('redirects non-superusers to the dashboard', async () => {
@@ -40,7 +41,7 @@ describe('ProductsPage (server)', () => {
       await ProductsPage();
     }).rejects.toThrow('redirect_called');
 
-    expect(vi.mocked(redirect)).toHaveBeenCalledWith('/dashboard');
+    expect(vi.mocked(redirect)).toHaveBeenCalledWith(ROUTES.DASHBOARD);
   });
 
   it('renders the products client for a superuser', async () => {

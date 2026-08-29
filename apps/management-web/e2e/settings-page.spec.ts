@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 
+import { ROUTES } from './helpers/routes';
 import { capturePageLoad } from './helpers/stepScreenshots';
 
 /**
@@ -8,7 +9,7 @@ import { capturePageLoad } from './helpers/stepScreenshots';
  */
 test.describe('Management-web settings page', () => {
   test('signed-in superuser sees language and theme selectors', async ({ page }, testInfo) => {
-    await page.goto('/');
+    await page.goto(ROUTES.HOME);
 
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');

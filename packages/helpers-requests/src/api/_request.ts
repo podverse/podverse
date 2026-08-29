@@ -66,6 +66,15 @@ import {
   reqAccountNotificationChannelTypeDelete,
 } from './account/notification/channelType.js';
 import {
+  reqNotificationPreferencesGet,
+  reqNotificationPreferencesUpdate,
+  type ReqNotificationPreferenceUpdateInput,
+  reqNotificationsList,
+  type ReqNotificationsListResponse,
+  reqNotificationsMarkSeen,
+  reqNotificationsUnseenCount,
+} from './account/notification/notifications.js';
+import {
   reqAccountUPDeviceCreate,
   reqAccountUPDeviceDelete,
   reqAccountUPDeviceDeleteAll,
@@ -625,6 +634,31 @@ export class ApiRequestService {
 
   reqAccountNotificationChannelTypeDelete(params: { channel_id_text: string; type: string }) {
     return reqAccountNotificationChannelTypeDelete(this, params);
+  }
+
+  reqNotificationsList(params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<ReqNotificationsListResponse> {
+    return reqNotificationsList(this, params);
+  }
+
+  reqNotificationsUnseenCount(): Promise<{ unseen_count: number }> {
+    return reqNotificationsUnseenCount(this);
+  }
+
+  reqNotificationsMarkSeen(): Promise<{ last_seen_at: string }> {
+    return reqNotificationsMarkSeen(this);
+  }
+
+  reqNotificationPreferencesGet() {
+    return reqNotificationPreferencesGet(this);
+  }
+
+  reqNotificationPreferencesUpdate(params: {
+    preferences: ReqNotificationPreferenceUpdateInput[];
+  }) {
+    return reqNotificationPreferencesUpdate(this, params);
   }
 
   /* ACCOUNT > SETTINGS > LOCALE */

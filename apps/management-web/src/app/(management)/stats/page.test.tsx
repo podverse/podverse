@@ -13,6 +13,7 @@ vi.mock('../../../lib/auth/serverManagementSession', () => ({
 import { redirect } from 'next/navigation';
 
 import { getManagementSessionUser } from '../../../lib/auth/serverManagementSession';
+import { ROUTES } from '../../../lib/routes';
 import StatsPage from './page.js';
 
 const mockUser = {
@@ -40,7 +41,7 @@ describe('StatsPage (server)', () => {
       await StatsPage();
     }).rejects.toThrow('redirect_called');
 
-    expect(vi.mocked(redirect)).toHaveBeenCalledWith('/');
+    expect(vi.mocked(redirect)).toHaveBeenCalledWith(ROUTES.HOME);
   });
 
   it('renders the stats client when the session is valid', async () => {

@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
+import { buildClipPath } from '@podverse/helpers';
+
 import { buildContentMetadata } from '../../../lib/seo/buildContentMetadata';
 import {
   getChannelForSeoPage,
@@ -29,7 +31,7 @@ export async function generateMetadata({ params }: ClipPageProps): Promise<Metad
     return buildContentMetadata({
       title: clip.title || item.title,
       descriptionPlain,
-      pathname: `/clip/${clip.id_text}`,
+      pathname: buildClipPath(clip.id_text),
       imageUrl: getItemThenChannelHeroImageUrl(item.item_images, channel.channel_images),
       type: 'article',
     });

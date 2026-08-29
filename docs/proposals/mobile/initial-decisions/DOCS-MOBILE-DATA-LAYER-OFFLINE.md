@@ -10,7 +10,7 @@ Foundation context:
 [DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md).
 
 > **Status:** Decision/recommendation (architecture). Implementation lands in the master-plan data
-> layer steps (see [001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/001-MASTER-PLAN.md)).
+> layer steps (see [001-MASTER-PLAN.md](/docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md)).
 
 ## 1. Why offline-first (not "cache later")
 

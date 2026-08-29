@@ -2,7 +2,7 @@
 
 **Master step:** 12.16 (iOS portion). **Audience:** operator / Apple Developer Program Account
 Holder (Team Agent).
-**Detail:** [395-car-entitlements-declarations](/docs/proposals/mobile/_master-plan_/details/395-car-entitlements-declarations.md).
+**Detail:** [395-car-entitlements-declarations](/docs/proposals/mobile/_master-plan_/phase-1/details/395-car-entitlements-declarations.md).
 
 Unlike Android Auto (DHU works without a Google “entitlement”), **CarPlay audio apps require an
 Apple-managed entitlement** before Simulator or a device will treat the app as a CarPlay audio

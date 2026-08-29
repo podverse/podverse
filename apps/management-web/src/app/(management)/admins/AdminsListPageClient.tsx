@@ -29,6 +29,7 @@ import {
 import { managementSearchParamsObject } from '../../../lib/managementTableUrl';
 import { type AdminAccount, listAdmins } from '../../../lib/requests/admins';
 import type { CurrentUser } from '../../../lib/requests/auth';
+import { buildAdminEditPath, buildAdminPath, ROUTES } from '../../../lib/routes';
 import { resolveManagementTableEmptyState } from '../../../lib/tableEmptyState';
 
 import dataSurfaceBusyStyles from '../../../styles/managementDataSurfaceBusy.module.scss';
@@ -119,7 +120,7 @@ export function AdminsListPageClient({ initialUser }: AdminsListPageClientProps)
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const basePath = pathname !== null && pathname !== '' ? pathname : '/admins';
+  const basePath = pathname !== null && pathname !== '' ? pathname : ROUTES.ADMINS;
   const currentQueryParams = useMemo(
     () => managementSearchParamsObject(searchParams),
     [searchParams]
@@ -260,7 +261,7 @@ export function AdminsListPageClient({ initialUser }: AdminsListPageClientProps)
         <Breadcrumbs
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
-          items={[{ href: '/dashboard', label: tNav('dashboard') }, { label: t('title') }]}
+          items={[{ href: ROUTES.DASHBOARD, label: tNav('dashboard') }, { label: t('title') }]}
         />
       }
       title={t('title')}
@@ -284,8 +285,8 @@ export function AdminsListPageClient({ initialUser }: AdminsListPageClientProps)
           <ResourceTableWithFilter<AdminAccount>
             actions={{
               LinkComponent: ManagementIconButtonLink,
-              editHref: (adminRow) => `/admins/${adminRow.id}/edit`,
-              viewHref: (adminRow) => `/admins/${adminRow.id}`,
+              editHref: (adminRow) => buildAdminEditPath(adminRow.id),
+              viewHref: (adminRow) => buildAdminPath(adminRow.id),
               labels: {
                 delete: tc('delete'),
                 edit: tc('edit'),

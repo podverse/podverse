@@ -33,7 +33,7 @@ JS syncs a small cache whenever queue, downloads, or library index changes:
 | Library browse index            | Podcast/playlist lists for car templates     |
 
 Schema and storage are defined in **Track 12** (master plan step **12.1** —
-[380-native-cache-schema](/docs/proposals/mobile/_master-plan_/details/380-native-cache-schema.md)).
+[380-native-cache-schema](/docs/proposals/mobile/_master-plan_/phase-1/details/380-native-cache-schema.md)).
 JS write-path: steps **10.22**, **12.4**; engine hooks: **2.35**, **114-engine-native-cache-hooks**.
 
 Native car services read the cache **without starting JS**. Spikes **12.5–12.6** prove read-with-app-closed.

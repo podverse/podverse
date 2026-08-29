@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 
+import { ROUTES } from './helpers/routes';
 import { capturePageLoad } from './helpers/stepScreenshots';
 
 /**
@@ -10,7 +11,7 @@ test.describe('Management-web workers page', () => {
   test('signed-in superuser sees worker command catalog', async ({ page }, testInfo) => {
     test.setTimeout(30_000);
 
-    await page.goto('/');
+    await page.goto(ROUTES.HOME);
 
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
@@ -18,7 +19,7 @@ test.describe('Management-web workers page', () => {
 
     await page.waitForURL('**/dashboard');
 
-    await page.goto('/workers');
+    await page.goto(ROUTES.WORKERS);
 
     const title = page.getByRole('heading', { name: 'Workers', level: 1 });
     await expect(title).toBeVisible();
@@ -59,7 +60,7 @@ test.describe('Management-web workers page', () => {
       });
     });
 
-    await page.goto('/');
+    await page.goto(ROUTES.HOME);
 
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
@@ -67,7 +68,7 @@ test.describe('Management-web workers page', () => {
 
     await page.waitForURL('**/dashboard');
 
-    await page.goto('/workers');
+    await page.goto(ROUTES.WORKERS);
 
     await expect(page.getByRole('heading', { name: 'Workers', level: 1 })).toBeVisible();
 

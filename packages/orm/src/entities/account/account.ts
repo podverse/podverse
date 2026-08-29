@@ -23,7 +23,9 @@ import type { AccountFollowingPlaylist } from './accountFollowingPlaylist.js';
 import type { AccountGooglePlayPurchase } from './accountGooglePlayPurchase.js';
 import type { AccountMembershipStatus } from './accountMembershipStatus.js';
 import type { AccountMetaboost } from './accountMetaboost.js';
+import type { AccountNotification } from './accountNotification.js';
 import type { AccountNotificationChannel } from './accountNotificationChannel.js';
+import type { AccountNotificationPreference } from './accountNotificationPreference.js';
 import type { AccountPayPalOrder } from './accountPayPalOrder.js';
 import type { AccountPendingFollowingChannel } from './accountPendingFollowingChannel.js';
 import type { AccountProfile } from './accountProfile.js';
@@ -47,6 +49,9 @@ export class Account {
 
   @CreateDateColumn({ type: 'timestamp' })
   created_at!: Date;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  notifications_last_seen_at?: Date | null;
 
   @ManyToOne('SharableStatus', (sharableStatus: SharableStatus) => sharableStatus.id)
   @JoinColumn({ name: 'sharable_status_id' })
@@ -128,10 +133,23 @@ export class Account {
   account_terms_acceptance?: Relation<AccountTermsAcceptance>;
 
   @OneToMany(
+    'AccountNotification',
+    (accountNotification: AccountNotification) => accountNotification.account
+  )
+  account_notifications!: AccountNotification[];
+
+  @OneToMany(
     'AccountNotificationChannel',
     (accountNotificationChannel: AccountNotificationChannel) => accountNotificationChannel.account
   )
   account_notification_channels!: AccountNotificationChannel[];
+
+  @OneToMany(
+    'AccountNotificationPreference',
+    (accountNotificationPreference: AccountNotificationPreference) =>
+      accountNotificationPreference.account
+  )
+  account_notification_preferences!: AccountNotificationPreference[];
 
   @OneToMany(
     'AccountPayPalOrder',

@@ -31,6 +31,7 @@ import {
   revokeInviteLink,
   type User,
 } from '../../../../lib/requests/users';
+import { buildUserEditPath, ROUTES } from '../../../../lib/routes';
 
 import styles from './UserDetailPageClient.module.scss';
 
@@ -95,7 +96,7 @@ export function UserDetailPageClient({ userId }: Props) {
     setError(null);
     try {
       await deleteUser(userId);
-      window.location.href = '/users';
+      window.location.href = ROUTES.USERS;
     } catch {
       setError(t('failedToDelete'));
       setDeleteConfirmOpen(false);
@@ -136,8 +137,8 @@ export function UserDetailPageClient({ userId }: Props) {
               LinkComponent={Link}
               navAriaLabel={tc('breadcrumbNav')}
               items={[
-                { href: '/dashboard', label: tNav('dashboard') },
-                { href: '/users', label: t('title') },
+                { href: ROUTES.DASHBOARD, label: tNav('dashboard') },
+                { href: ROUTES.USERS, label: t('title') },
                 { label: user.id_text },
               ]}
             />
@@ -163,7 +164,7 @@ export function UserDetailPageClient({ userId }: Props) {
           </DescriptionList>
 
           <PageHeaderActions>
-            <ActionLink href={`/users/${userId}/edit`} variant="primary" LinkComponent={Link}>
+            <ActionLink href={buildUserEditPath(userId)} variant="primary" LinkComponent={Link}>
               {tc('edit')}
             </ActionLink>
             <Button

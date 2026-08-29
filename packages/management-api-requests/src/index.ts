@@ -5,6 +5,7 @@ export * from './auth.js';
 export * from './database.js';
 export * from './embedDemo.js';
 export * from './feeds.js';
+export * from './notificationCampaigns.js';
 export * from './productMembership.js';
 export * from './productPricing.js';
 export * from './stats.js';

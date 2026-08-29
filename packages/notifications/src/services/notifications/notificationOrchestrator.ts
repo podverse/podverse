@@ -2,7 +2,7 @@ import {
   type FirebaseContext,
   firebaseNotificationBatchOrchestrator,
 } from '@podverse/external-services-firebase';
-import { MediumEnum } from '@podverse/helpers';
+import { buildAppRoutePath, getNotificationLinkPathPrefix } from '@podverse/helpers';
 
 import type { NotificationsContext } from '../../factory.js';
 import type { UPSubscription } from '../unifiedpush/index.js';
@@ -14,41 +14,6 @@ import { i18nNotifications } from './i18nNotifications.js';
 
 export type NotificationPlatform = 'web' | 'android' | 'ios';
 export type NotificationService = 'firebase' | 'webpush' | 'unifiedpush';
-
-/**
- * Gets the URL path prefix for a given notification message type
- * @param messageType - The type of notification message
- * @param mediumId - Medium ID for medium-specific paths (e.g., livestreams)
- */
-function getLinkPathFromMessageType(
-  messageType: NotificationMessageType,
-  mediumId: number
-): string {
-  switch (messageType) {
-    case 'new-episode':
-      return '/episode';
-    case 'new-podcast':
-      return '/podcast';
-    case 'new-video':
-      return '/video';
-    case 'new-video-channel':
-      return '/channel';
-    case 'new-track':
-      return '/track';
-    case 'new-album':
-      return '/album';
-    case 'livestream-started':
-    case 'livestream-scheduled':
-      // Music livestreams use /music/livestream, all others use /podcast/livestream
-      if (mediumId === MediumEnum.Music) {
-        return '/music/livestream';
-      }
-      return '/podcast/livestream';
-    case 'new':
-    default:
-      return '';
-  }
-}
 
 // Base params common to all services
 type BaseNotificationOrchestratorParams = {
@@ -111,8 +76,8 @@ export async function notificationOrchestrator(
   // Construct the link from messageType, mediumId, and linkIdText
   let link: string | undefined;
   if (linkIdText) {
-    const pathPrefix = getLinkPathFromMessageType(messageType, mediumId);
-    link = pathPrefix ? `${pathPrefix}/${linkIdText}` : undefined;
+    const pathPrefix = getNotificationLinkPathPrefix(messageType, mediumId);
+    link = pathPrefix !== null ? buildAppRoutePath(pathPrefix, linkIdText) : undefined;
   }
 
   switch (service) {

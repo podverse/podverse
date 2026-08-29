@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 
+import { ROUTES } from './helpers/routes';
 import { capturePageLoad } from './helpers/stepScreenshots';
 
 /**
@@ -12,7 +13,7 @@ test.describe('Management-web object storage for an admin without bucket read', 
   }, testInfo) => {
     test.setTimeout(30_000);
 
-    await page.goto('/');
+    await page.goto(ROUTES.HOME);
 
     await page.locator('#email').fill('e2e-nobucket@example.com');
     await page.locator('#password').fill('Test!1Aa');
@@ -22,7 +23,7 @@ test.describe('Management-web object storage for an admin without bucket read', 
 
     await expect(page.getByRole('link', { name: 'Object storage' })).toHaveCount(0);
 
-    await page.goto('/storage');
+    await page.goto(ROUTES.STORAGE);
 
     await page.waitForURL('**/dashboard');
 

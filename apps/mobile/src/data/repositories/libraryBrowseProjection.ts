@@ -9,7 +9,7 @@ import type { SubscribedChannel } from './subscriptionsMerge';
  * `accountRepository` owns the impure orchestration (reads `subscriptionsRepository.list()`,
  * hydrates followed playlists, then projects). Channel merge/hydration lives in the shared
  * `subscriptionsRepository` (9b.8 / 600) and is deliberately not duplicated here.
- * Detail: docs/proposals/mobile/_master-plan_/details/401-car-library-directory-follows.md
+ * Detail: docs/proposals/mobile/_master-plan_/phase-1/details/401-car-library-directory-follows.md
  */
 
 const trimToNull = (value: string | null | undefined): string | null => {

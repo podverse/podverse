@@ -12,7 +12,7 @@ import { ListLoading } from '../../components/state/ListLoading';
 import { SubscriptionFilterControl } from '../../components/subscriptions/SubscriptionFilterControl';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import type { HomeStackParamList, MobileTabParamList } from '../../navigation';
-import { HOME_STACK_ROUTES } from '../../navigation';
+import { HOME_STACK_ROUTES, LIBRARY_STACK_ROUTES } from '../../navigation';
 import { E2ePlayVideoButton } from '../../playback/E2ePlayVideoButton';
 import {
   DEFAULT_HOME_MEDIA_TYPE,
@@ -175,11 +175,12 @@ export function HomeScreen() {
   const handleRowPress = useCallback(
     (row: HomeFeedRowData) => {
       if (selectedMediaType === 'podcasts') {
-        // Add-by-RSS feeds have no directory channel id; route to the RSS tab (its initial
-        // AddByRssRoot screen) where the feed can be played/managed. Directory follows open
-        // the standard Podcast detail.
+        // Add-by-RSS feeds have no directory channel id; route to My Library > Add by RSS root
+        // where the feed can be played/managed. Directory follows open the standard Podcast detail.
         if (row.source === 'addByRss') {
-          navigation.getParent<BottomTabNavigationProp<MobileTabParamList>>()?.navigate('RSS');
+          navigation
+            .getParent<BottomTabNavigationProp<MobileTabParamList>>()
+            ?.navigate('My Library', { screen: LIBRARY_STACK_ROUTES.AddByRssRoot });
           return;
         }
         navigation.navigate(HOME_STACK_ROUTES.PodcastDetail, {

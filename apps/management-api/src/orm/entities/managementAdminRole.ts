@@ -29,6 +29,9 @@ export class ManagementAdminRole {
   @Column({ name: 'embed_demo_crud', type: 'integer' })
   embedDemoCrud!: number;
 
+  @Column({ name: 'notifications_crud', type: 'integer' })
+  notificationsCrud!: number;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   created_at!: Date;
 }

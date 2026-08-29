@@ -1,4 +1,3 @@
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -12,7 +11,7 @@ import { RetryableError } from '../../components/state/RetryableError';
 import { SubscriptionFilterControl } from '../../components/subscriptions/SubscriptionFilterControl';
 import type { SubscribedChannel } from '../../data/repositories';
 import { subscriptionsRepository } from '../../data/repositories';
-import type { LibraryStackParamList, MobileTabParamList } from '../../navigation';
+import type { LibraryStackParamList } from '../../navigation';
 import { LIBRARY_STACK_ROUTES } from '../../navigation';
 import {
   DEFAULT_SUBSCRIPTION_FILTER,
@@ -119,10 +118,10 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
 
   const handleRowPress = useCallback(
     (channel: SubscribedChannel) => {
-      // Add-by-RSS feeds have no directory channel id; route to the RSS tab (its initial
-      // AddByRssRoot screen). Directory follows open the standard Podcast detail.
+      // Add-by-RSS feeds have no directory channel id; route to the in-library Add-by-RSS root.
+      // Directory follows open the standard Podcast detail.
       if (channel.source === 'addByRss') {
-        navigation.getParent<BottomTabNavigationProp<MobileTabParamList>>()?.navigate('RSS');
+        navigation.navigate(LIBRARY_STACK_ROUTES.AddByRssRoot);
         return;
       }
       navigation.navigate(LIBRARY_STACK_ROUTES.PodcastDetail, {

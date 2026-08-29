@@ -1,0 +1,27 @@
+---
+description: Do not add app-local files that only re-export workspace package symbols; import from the canonical package instead.
+alwaysApply: true
+---
+
+# Avoid re-export wrapper files
+
+Keep the monorepo lean: **do not** add a file whose only job is to re-export something already exported from a workspace package.
+
+## Do not
+
+```typescript
+// apps/api/src/lib/foo.ts — unnecessary
+export { createThing, type CreateThingResult } from '@podverse/orm';
+```
+
+Import at call sites from the canonical package (`@podverse/orm`, `@podverse/helpers`, etc.) instead.
+
+## When a local file is OK
+
+- **Real logic or app-specific adaptation** — serialization, auth context, env wiring, HTTP mapping.
+- **Configured UI wrappers** — same `@podverse/ui` + i18n wiring at 2+ callsites in one app (**`app-local-ui-wrappers`**, **`reusable-components`**). Bare `export { X } from '…'` is not a wrapper.
+- **Framework-required barrels** — e.g. `packages/*/src/index.ts` public API surface.
+
+## Review habit
+
+Before adding `apps/<app>/src/lib/<name>.ts`, ask: does this file add behavior, or only shorten an import path? If only re-export, skip the file and import directly.

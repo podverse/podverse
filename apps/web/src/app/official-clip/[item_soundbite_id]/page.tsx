@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
+import { buildOfficialClipPath } from '@podverse/helpers';
+
 import { buildContentMetadata } from '../../../lib/seo/buildContentMetadata';
 import {
   getChannelForSeoPage,
@@ -34,7 +36,7 @@ export async function generateMetadata({ params }: OfficialClipPageProps): Promi
     return buildContentMetadata({
       title: itemSoundbite.title || item.title,
       descriptionPlain,
-      pathname: `/official-clip/${itemSoundbite.id_text}`,
+      pathname: buildOfficialClipPath(itemSoundbite.id_text),
       imageUrl: getItemThenChannelHeroImageUrl(item.item_images, channel.channel_images),
       type: 'article',
     });

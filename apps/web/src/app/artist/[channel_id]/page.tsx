@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { z } from 'zod';
 
+import { buildArtistPath } from '@podverse/helpers';
 import { QUERY_PARAMS_CHANNEL_MUSIC_ARTIST_TYPE_VALUES } from '@podverse/helpers-requests';
 
 import { buildContentMetadata } from '../../../lib/seo/buildContentMetadata';
@@ -39,7 +40,7 @@ export async function generateMetadata({ params }: ArtistPageProps): Promise<Met
     return buildContentMetadata({
       title: channel.title,
       descriptionPlain,
-      pathname: `/artist/${channel.id_text}`,
+      pathname: buildArtistPath(channel.id_text),
       imageUrl: getChannelHeroImageUrl(channel.channel_images),
     });
   } catch {

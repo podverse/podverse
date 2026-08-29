@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
-import { MediumEnum } from '@podverse/helpers';
+import { buildEpisodePath, MediumEnum } from '@podverse/helpers';
 
 import { getMediaPlayerInfoResolution } from './mediaPlayerInfoResolution';
 
@@ -187,7 +187,7 @@ describe('getMediaPlayerInfoResolution', () => {
     expect(result.itemTitle).toBe('Episode title');
     expect(result.displayItemTitle).toBe('Episode title');
     expect(result.subsectionTitle).toBeNull();
-    expect(result.itemLinkUrl).toBe('/episode/episode-1');
+    expect(result.itemLinkUrl).toBe(buildEpisodePath('episode-1'));
   });
 
   it('keeps itemTitle as base episode title when an active chapter has a subsection title', () => {

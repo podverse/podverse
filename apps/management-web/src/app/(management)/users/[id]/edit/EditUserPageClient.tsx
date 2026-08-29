@@ -33,6 +33,7 @@ import {
 } from '../../../../../lib/createUserFormDefaults';
 import { getResolvedProductMembership } from '../../../../../lib/requests/productMembership';
 import { getUser, setUserPassword, updateUser, type User } from '../../../../../lib/requests/users';
+import { buildUserEditPath, buildUserPath, ROUTES } from '../../../../../lib/routes';
 
 type Props = {
   userId: number;
@@ -100,7 +101,7 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
         label: t('profile'),
         zIndex: 2,
         onClick: () => {
-          router.push(`/users/${userId}/edit?tab=profile`);
+          router.push(buildUserEditPath(userId, 'profile'));
         },
       },
       {
@@ -108,7 +109,7 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
         label: t('changePassword'),
         zIndex: 1,
         onClick: () => {
-          router.push(`/users/${userId}/edit?tab=password`);
+          router.push(buildUserEditPath(userId, 'password'));
         },
       },
     ],
@@ -241,7 +242,7 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
         track_stats: trackStats,
         allow_notifications: allowNotifications,
       });
-      router.push('/users');
+      router.push(ROUTES.USERS);
       router.refresh();
     } catch {
       setError(t('failedToUpdate'));
@@ -290,9 +291,9 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
               LinkComponent={Link}
               navAriaLabel={tc('breadcrumbNav')}
               items={[
-                { href: '/dashboard', label: tNav('dashboard') },
-                { href: '/users', label: t('title') },
-                { href: `/users/${userId}`, label: user.id_text },
+                { href: ROUTES.DASHBOARD, label: tNav('dashboard') },
+                { href: ROUTES.USERS, label: t('title') },
+                { href: buildUserPath(userId), label: user.id_text },
                 { label: tc('edit') },
               ]}
             />
@@ -485,7 +486,7 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
                   <Button
                     type="button"
                     variant="secondary"
-                    onClick={() => router.push(`/users/${userId}`)}
+                    onClick={() => router.push(buildUserPath(userId))}
                   >
                     {tc('cancel')}
                   </Button>
@@ -522,7 +523,7 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
                   <Button
                     type="button"
                     variant="secondary"
-                    onClick={() => router.push(`/users/${userId}`)}
+                    onClick={() => router.push(buildUserPath(userId))}
                   >
                     {tc('cancel')}
                   </Button>

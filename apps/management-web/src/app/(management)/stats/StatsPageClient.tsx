@@ -37,6 +37,7 @@ import {
   type StatsRange,
   type StatsRow,
 } from '../../../lib/requests/stats';
+import { ROUTES } from '../../../lib/routes';
 import { resolveManagementTableEmptyState } from '../../../lib/tableEmptyState';
 
 function entityTypeLabel(t: (key: string) => string, et: EntityType): string {
@@ -144,7 +145,7 @@ export function StatsPageClient({ initialUser }: StatsPageClientProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const basePath = pathname !== null && pathname !== '' ? pathname : '/stats';
+  const basePath = pathname !== null && pathname !== '' ? pathname : ROUTES.STATS;
 
   const entityType = parseEntityParam(searchParams.get('entity'));
   const range = parseRangeParam(searchParams.get('range'));
@@ -484,7 +485,7 @@ export function StatsPageClient({ initialUser }: StatsPageClientProps) {
         <Breadcrumbs
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
-          items={[{ href: '/dashboard', label: tNav('dashboard') }, { label: ts('title') }]}
+          items={[{ href: ROUTES.DASHBOARD, label: tNav('dashboard') }, { label: ts('title') }]}
         />
       }
     >

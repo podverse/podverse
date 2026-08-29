@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 
 import { getManagementSessionUser } from '../../../../../lib/auth/serverManagementSession';
+import { ROUTES } from '../../../../../lib/routes';
 import { EditUserPageClient } from './EditUserPageClient';
 
 export default async function EditUserPage({
@@ -12,17 +13,17 @@ export default async function EditUserPage({
 }) {
   const user = await getManagementSessionUser();
   if (!user) {
-    redirect('/');
+    redirect(ROUTES.HOME);
   }
 
   if (user.role !== 'superuser') {
-    redirect('/dashboard');
+    redirect(ROUTES.DASHBOARD);
   }
 
   const { id } = await params;
   const userId = parseInt(id, 10);
   if (isNaN(userId)) {
-    redirect('/users');
+    redirect(ROUTES.USERS);
   }
 
   const { tab } = await searchParams;

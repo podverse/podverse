@@ -6,7 +6,7 @@ import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
  * Pure merge/map/filter/sort helpers for the unified subscriptions list (directory follows +
  * add-by-RSS). Kept free of `expo-sqlite` / Expo imports so the mobile node-only Vitest suite can
  * cover them (see subscriptionsRepository.ts for the SQLite cache + API hydration that consume
- * these). Detail: docs/proposals/mobile/_master-plan_/details/600-unified-subscriptions-repository.md
+ * these). Detail: docs/proposals/mobile/_master-plan_/phase-1/details/600-unified-subscriptions-repository.md
  */
 
 export type SubscriptionSource = 'directory' | 'addByRss';

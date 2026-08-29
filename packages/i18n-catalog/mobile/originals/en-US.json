@@ -3,6 +3,7 @@
     "tab": {
       "home": "Home",
       "more": "More",
+      "notifications": "Notifications",
       "rss": "RSS",
       "downloads": "Downloads"
     },
@@ -44,8 +45,16 @@
       "add_timed_out": "Still processing after several minutes. Search again shortly to open this podcast — adding does not subscribe you automatically."
     }
   },
+  "notifications": {
+    "section": {
+      "earlier": "Earlier",
+      "new": "New"
+    }
+  },
   "settings": {
     "notifications": {
+      "login_required_title": "Login required",
+      "login_required_message": "Please log in to change notification preferences.",
       "open_system_settings": "Open system settings",
       "permission_required": "Notification permission is required to enable this setting."
     }

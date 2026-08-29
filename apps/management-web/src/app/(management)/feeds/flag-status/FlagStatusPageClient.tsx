@@ -60,6 +60,7 @@ import {
   lookupFeed,
   probeFeedOperationsDirectoryHasFeeds,
 } from '../../../../lib/requests/feeds';
+import { buildFeedDatabaseRowPath, ROUTES } from '../../../../lib/routes';
 import { resolveManagementTableEmptyState } from '../../../../lib/tableEmptyState';
 
 import dataSurfaceBusyStyles from '../../../../styles/managementDataSurfaceBusy.module.scss';
@@ -685,8 +686,8 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
           LinkComponent={Link}
           navAriaLabel={tc('breadcrumbNav')}
           items={[
-            { href: '/dashboard', label: tNav('dashboard') },
-            { href: '/feeds', label: t('breadcrumbFeeds') },
+            { href: ROUTES.DASHBOARD, label: tNav('dashboard') },
+            { href: ROUTES.FEEDS, label: t('breadcrumbFeeds') },
             { label: t('breadcrumbCurrent') },
           ]}
         />
@@ -946,7 +947,7 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
                 </DescriptionList>
                 <p>
                   <ActionLink
-                    href={`/database/feed/${String(feed.id)}`}
+                    href={buildFeedDatabaseRowPath(String(feed.id))}
                     LinkComponent={Link}
                     variant="inline"
                   >

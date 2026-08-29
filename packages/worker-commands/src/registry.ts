@@ -22,6 +22,24 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     example_cli: 'npm run billing_process_due_renewals -w apps/workers',
   },
   {
+    name: 'scheduledJobsRunDue',
+    label: 'Scheduled jobs: run due batch',
+    description:
+      'Claim and execute due scheduled_job rows with stale-lock recovery and retry backoff.',
+    category: 'orm',
+    risk: 'normal',
+    example_cli: 'npm run scheduled_jobs_run_due -w apps/workers -- -limit 100',
+  },
+  {
+    name: 'notificationsPlatformPurge',
+    label: 'Notifications: purge expired and terminal rows',
+    description:
+      'Delete expired account_notification rows and old terminal scheduled_job rows (daily retention cleanup).',
+    category: 'orm',
+    risk: 'normal',
+    example_cli: 'npm run notifications_platform_purge -w apps/workers',
+  },
+  {
     name: 'deleteOutdatedOnDemandParserEvent',
     label: 'Delete outdated on-demand parser events',
     description: 'ORM job: remove outdated on_demand_parser_event rows.',

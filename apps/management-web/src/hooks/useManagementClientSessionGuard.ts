@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import type { CurrentUser } from '../lib/requests/auth';
 import { getCurrentUser } from '../lib/requests/auth';
+import { ROUTES } from '../lib/routes';
 
 export type UseManagementClientSessionGuardOptions = {
   /** When false, skip session verification (user stays `initialUser`). */
@@ -29,7 +30,7 @@ export function useManagementClientSessionGuard(
   const [user, setUser] = useState<CurrentUser>(initialUser);
 
   const enabled = options?.enabled ?? true;
-  const redirectPath = options?.redirectPath ?? '/';
+  const redirectPath = options?.redirectPath ?? ROUTES.HOME;
 
   const onValidRef = useRef(options?.onValid);
   const onInvalidRef = useRef(options?.onInvalid);

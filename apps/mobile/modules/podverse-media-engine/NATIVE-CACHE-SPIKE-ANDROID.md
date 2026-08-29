@@ -1,6 +1,6 @@
 # Native cache read spike — Android (master step 12.6)
 
-**Detail:** [385-spike-cache-read-no-js-android](/docs/proposals/mobile/_master-plan_/details/385-spike-cache-read-no-js-android.md)
+**Detail:** [385-spike-cache-read-no-js-android](/docs/proposals/mobile/_master-plan_/phase-1/details/385-spike-cache-read-no-js-android.md)
 **Goal:** prove Android native code can read the durable native cache (queue / downloads /
 library-browse) with the app **force-stopped** (Activity + JS runtime dead) — the "get in the car,
 browse and play, never open the phone app" contract from
@@ -115,4 +115,4 @@ force-stopped. Full head-unit browse-tree acceptance is deferred to 12.11–12.1
 
 - GO/NO-GO gate: [GO-NO-GO.md](./GO-NO-GO.md) (rows 12.5 / 12.6)
 - iOS counterpart: [NATIVE-CACHE-SPIKE-IOS.md](./NATIVE-CACHE-SPIKE-IOS.md)
-- Storage detail: [382-android-native-cache-storage](/docs/proposals/mobile/_master-plan_/details/382-android-native-cache-storage.md)
+- Storage detail: [382-android-native-cache-storage](/docs/proposals/mobile/_master-plan_/phase-1/details/382-android-native-cache-storage.md)

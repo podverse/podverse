@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 
+import { ROUTES } from './helpers/routes';
 import { capturePageLoad } from './helpers/stepScreenshots';
 
 /**
@@ -10,7 +11,7 @@ test.describe('Management layout navbar chrome', () => {
   test('the dashboard shows the management shell bar with a dashboard brand link and account menu', async ({
     page,
   }, testInfo) => {
-    await page.goto('/');
+    await page.goto(ROUTES.HOME);
 
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');
@@ -39,7 +40,7 @@ test.describe('Management layout navbar chrome', () => {
   test('clicking a dashboard nav card shows a loading overlay until the destination route is ready', async ({
     page,
   }, testInfo) => {
-    await page.goto('/');
+    await page.goto(ROUTES.HOME);
 
     await page.locator('#email').fill('e2e-superadmin@example.com');
     await page.locator('#password').fill('Test!1Aa');

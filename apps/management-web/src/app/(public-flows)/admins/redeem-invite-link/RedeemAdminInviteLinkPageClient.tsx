@@ -18,6 +18,7 @@ import {
 
 import { ManagementLoadingSpinnerOverlay } from '../../../../components/LoadingSpinner/ManagementLoadingSpinnerOverlay';
 import { redeemAdminInviteLink } from '../../../../lib/requests/admins';
+import { ROUTES } from '../../../../lib/routes';
 
 type Props = {
   token: string;
@@ -68,7 +69,7 @@ export function RedeemAdminInviteLinkPageClient({ token }: Props) {
               type="button"
               variant="primary"
               onClick={() => {
-                router.push('/');
+                router.push(ROUTES.HOME);
               }}
             >
               {t('backToSignIn')}
@@ -89,7 +90,7 @@ export function RedeemAdminInviteLinkPageClient({ token }: Props) {
               type="button"
               variant="primary"
               onClick={() => {
-                router.push('/');
+                router.push(ROUTES.HOME);
               }}
             >
               {t('backToSignIn')}
