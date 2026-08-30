@@ -82,7 +82,7 @@
     },
     {
       "name": "Mobile E2E API",
-      "description": "Leave running for API-backed E2E: npm run mobile:e2e:api (:4230). Skip for UI-only. No restart needed when only Metro restarts if :4230 is healthy.",
+      "description": "Leave running for API-backed E2E: npm run mobile:e2e:api:bg (:4230). Skip for UI-only. Runner manages restart around database reseeding; no restart needed when only Metro restarts if :4230 is healthy.",
       "cwd": ".",
       "open": true,
       "command": "clear"

@@ -1210,6 +1210,15 @@
     "category_maintenance": "",
     "category_terms_of_service": "",
     "category_general": "",
+    "relative_time_just_now": "",
+    "relative_time_seconds_ago": "",
+    "relative_time_seconds_from_now": "",
+    "relative_time_minutes_ago": "",
+    "relative_time_minutes_from_now": "",
+    "relative_time_hours_ago": "",
+    "relative_time_hours_from_now": "",
+    "relative_time_days_ago": "",
+    "relative_time_days_from_now": "",
     "no_body": ""
   },
   "seo": {

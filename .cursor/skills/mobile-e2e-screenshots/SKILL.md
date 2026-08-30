@@ -59,6 +59,8 @@ npm run mobile:e2e:test -- --platform android <area>
 
 The default `npm run mobile:e2e:test -- <area>` remains the deliberate two-platform regression
 run. Each platform-scoped run creates only its selected report slot.
+Use `--reset-data` only when the flow requires an empty local SQLite database or prior app state is
+contaminating the result; it is not the default for focused or full-suite verification.
 
 ### When adding a new top-level Maestro flow
 
@@ -69,6 +71,9 @@ run. Each platform-scoped run creates only its selected report slot.
    `flow_needs_test_assets` in the same script.
 4. Keep [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md) § Run all as the operator entry for the
    full process (prep + leave-running + `:all`). Update that section if prep/stack steps change.
+5. Keep [FULL-REPO-VERIFICATION-COMMANDS.md](/docs/testing/FULL-REPO-VERIFICATION-COMMANDS.md)
+   synchronized whenever a top-level mobile flow is added or removed. Update its full-suite option,
+   focused-flow command list, and tablet opt-in section when applicable.
 
 ## Operator verification (mobile UI / feature work)
 

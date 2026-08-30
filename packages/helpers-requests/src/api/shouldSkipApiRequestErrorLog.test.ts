@@ -6,6 +6,7 @@ import { shouldSkipApiRequestErrorLog } from './shouldSkipApiRequestErrorLog.js'
 import { skipApiRequestErrorLogForAccountNotFound } from './skipApiRequestErrorLogForAccountNotFound.js';
 import { skipApiRequestErrorLogForFeedContentNotFound } from './skipApiRequestErrorLogForFeedContentNotFound.js';
 import { skipApiRequestErrorLogForMembershipGate } from './skipApiRequestErrorLogForMembershipGate.js';
+import { skipApiRequestErrorLogForMembershipPricing } from './skipApiRequestErrorLogForMembershipPricing.js';
 
 vi.mock('../_request.js', () => ({
   request: vi.fn(),
@@ -86,8 +87,37 @@ describe('skipApiRequestErrorLogForAccountNotFound', () => {
   });
 });
 
+describe('skipApiRequestErrorLogForMembershipPricing', () => {
+  it('returns true for the expected disabled-pricing response', () => {
+    expect(
+      skipApiRequestErrorLogForMembershipPricing(
+        {
+          status: 400,
+          responseData: { message: 'Paid premium memberships are not enabled for this server' },
+        },
+        '/product/membership/pricing'
+      )
+    ).toBe(true);
+  });
+
+  it('returns false for other pricing responses', () => {
+    expect(
+      skipApiRequestErrorLogForMembershipPricing(
+        { status: 500, responseData: { message: 'Paid premium memberships are not enabled for this server' } },
+        '/product/membership/pricing'
+      )
+    ).toBe(false);
+    expect(
+      skipApiRequestErrorLogForMembershipPricing(
+        { status: 400, responseData: { message: 'Other error' } },
+        '/product/membership/pricing'
+      )
+    ).toBe(false);
+  });
+});
+
 describe('shouldSkipApiRequestErrorLog', () => {
-  it('combines membership gate, feed content, and account not-found skips', () => {
+  it('combines membership gate, feed content, account not-found, and pricing skips', () => {
     expect(
       shouldSkipApiRequestErrorLog(
         {
@@ -102,6 +132,15 @@ describe('shouldSkipApiRequestErrorLog', () => {
       shouldSkipApiRequestErrorLog(
         { status: 404, responseData: { message: 'Account not found' } },
         '/account/missing-profile'
+      )
+    ).toBe(true);
+    expect(
+      shouldSkipApiRequestErrorLog(
+        {
+          status: 400,
+          responseData: { message: 'Paid premium memberships are not enabled for this server' },
+        },
+        '/product/membership/pricing'
       )
     ).toBe(true);
     expect(shouldSkipApiRequestErrorLog({ status: 404 }, '/account/me')).toBe(false);

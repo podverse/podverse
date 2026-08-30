@@ -90,13 +90,15 @@ name: Home Media Types
     timeout: ${TIMEOUT_FAST}
 - takeScreenshot: home-overflow-menu
 
-# Nothing is subscribed here, so nothing can be unseen — the action is offered disabled rather than
-# as a no-op. Tapping it must therefore leave the menu open.
+# The seeded account has one subscription with unseen items, so Mark All As Seen is enabled and
+# closes the sheet after applying the local seen-state update.
 - tapOn:
     id: home-overflow-mark-all-seen
 - assertVisible:
-    id: home-overflow-view-list
+    id: home-screen
 
+- tapOn:
+    id: home-overflow-trigger
 - tapOn:
     id: home-overflow-view-grid
 - assertVisible:
@@ -113,34 +115,24 @@ name: Home Media Types
 - assertVisible:
     id: home-screen
 
-# Home is subscribed-only, so an account following nothing gets guidance and a route to Search
-# rather than directory rows. Row metadata, the grid tile, and Mark All As Seen clearing badges are
-# asserted in subscriptions-anonymous.yaml, which is the flow that actually creates a subscription.
+# Home is subscribed-only, so the seeded account shows its two local subscriptions. Row metadata,
+# the grid tile, and Mark All As Seen clearing badges are asserted in subscriptions-anonymous.yaml,
+# which is the flow that creates a subscription.
 - assertVisible:
-    id: home-list-empty
-- assertVisible:
-    id: home-list-empty-search
-- takeScreenshot: home-list-empty-no-subscriptions
+    id: "home-feed-row-.*"
 
-# The Filter input sits above the list in every state, including this one.
+# The Filter input sits above the list.
 - assertVisible:
     id: home-filter-input
 - tapOn:
     id: home-filter-input
 - inputText: "seed"
-# Nothing was subscribed to begin with, so the term does not turn this into the no-matches state —
-# the two empty states answer different problems and must not be interchangeable.
 - assertVisible:
-    id: home-list-empty
+    id: home-feed-row-e2ePodChnl001
 - assertNotVisible:
     id: home-list-no-filter-matches
 - tapOn:
     id: home-filter-clear
-- runFlow:
-    when:
-      platform: Android
-    commands:
-      - hideKeyboard
 
 # Episodes
 - tapOn:

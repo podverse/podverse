@@ -214,15 +214,35 @@ class AccountAddByRSSParseController {
 
                 const requestId = randomUUID();
                 requestIds.push({ request_id: requestId, feed_url: feedUrl });
+                const feedHash = getRecordValue(feedHashesByUrl, feedUrl);
+                const etag = getRecordValue(etagsByUrl, feedUrl);
+                const lastModified = getRecordValue(lastModifiedByUrl, feedUrl);
+
+                if (config.e2e.fixturesEnabled) {
+                  await setAddByRSSParseCacheEntry({
+                    requestId,
+                    accountId: account.id,
+                    feedUrl,
+                    status: 'parsed',
+                    cache: {
+                      feedHash,
+                      etag,
+                      lastModified,
+                    },
+                    payload: buildE2eParsedFeedPayload(),
+                    updatedAt: new Date().toISOString(),
+                  });
+                  continue;
+                }
 
                 await mqAddByRSSAdd(activeMQArtemisService, {
                   ...mqConstantMessageOptions,
                   accountId: account.id,
                   feedUrl,
                   requestId,
-                  feedHash: getRecordValue(feedHashesByUrl, feedUrl),
-                  etag: getRecordValue(etagsByUrl, feedUrl),
-                  lastModified: getRecordValue(lastModifiedByUrl, feedUrl),
+                  feedHash,
+                  etag,
+                  lastModified,
                   closeAfterSend: false,
                 });
 
@@ -232,9 +252,9 @@ class AccountAddByRSSParseController {
                   feedUrl,
                   status: 'queued',
                   cache: {
-                    feedHash: getRecordValue(feedHashesByUrl, feedUrl),
-                    etag: getRecordValue(etagsByUrl, feedUrl),
-                    lastModified: getRecordValue(lastModifiedByUrl, feedUrl),
+                    feedHash,
+                    etag,
+                    lastModified,
                   },
                   updatedAt: new Date().toISOString(),
                 });

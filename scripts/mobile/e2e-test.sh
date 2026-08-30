@@ -8,6 +8,7 @@
 #   bash scripts/mobile/e2e-test.sh all   # every apps/mobile/e2e/*.yaml (not shared/)
 #   bash scripts/mobile/e2e-test.sh --platform ios home
 #   bash scripts/mobile/e2e-test.sh --platform android home
+#   bash scripts/mobile/e2e-test.sh --reset-data --platform ios subscriptions-anonymous
 
 set -euo pipefail
 
@@ -19,9 +20,11 @@ E2E_IOS_NAME='iPhone 17 Pro E2E'
 E2E_ANDROID_AVD='Pixel_6_Pro_API_33_e2e'
 E2E_IOS_TABLET_NAME='iPad Pro 13-inch (M4) E2E'
 E2E_ANDROID_TABLET_AVD='Pixel_Tablet_API_33_e2e'
+MOBILE_APP_ID='com.podverse.app.next'
 MOBILE_METRO_PORT="${MOBILE_METRO_PORT:-8081}"
 MOBILE_E2E_API_PORT="${MOBILE_E2E_API_PORT:-4230}"
 MOBILE_E2E_TEST_ASSETS_PORT="${MOBILE_E2E_TEST_ASSETS_PORT:-2111}"
+MOBILE_E2E_API_PID_FILE="$REPO_ROOT/.artifacts/mobile-e2e-api/api.pid"
 DEFAULT_SPEC='hello-world'
 E2E_DIR="$REPO_ROOT/apps/mobile/e2e"
 TIMEOUTS_ENV="$E2E_DIR/shared/timeouts.env"
@@ -33,7 +36,8 @@ flow_needs_e2e_api() {
   add-by-rss | api-health | auth-login | auth-logout | auto-queue-advance | deep-link | \
   detail-sort-prefs | engine-audio-spike | home | library-downloads | library-playlists | \
   membership-gate | opml | play-mini-player | podcast-episode | push | queue-add | search | \
-  search-unparsed | tab-switch-playback | tablet | v4v | video-transition)
+  search-unparsed | subscriptions-anonymous | tab-switch-playback | tablet | v4v | \
+  video-transition)
     return 0
     ;;
   *)
@@ -86,8 +90,13 @@ MAESTRO_TIMEOUT_ARGS=(
 
 PLATFORM='both'
 SPEC_RAW=''
+RESET_DATA=0
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
+  --reset-data)
+    RESET_DATA=1
+    shift
+    ;;
   --platform)
     if [[ "$#" -lt 2 ]]; then
       echo "Missing value for --platform. Expected ios, android, or both." >&2
@@ -102,7 +111,7 @@ while [[ "$#" -gt 0 ]]; do
     ;;
   -*)
     echo "Unknown option: $1" >&2
-    echo "Usage: bash scripts/mobile/e2e-test.sh [--platform ios|android|both] [flow|all]" >&2
+    echo "Usage: bash scripts/mobile/e2e-test.sh [--reset-data] [--platform ios|android|both] [flow|all]" >&2
     exit 1
     ;;
   *)
@@ -202,10 +211,60 @@ if [[ "$NEEDS_TABLET" -eq 1 ]]; then
   done
 fi
 
+seed_mobile_e2e_db_safely() {
+  local api_was_managed=0
+  local api_pid=''
+
+  if [[ -f "$MOBILE_E2E_API_PID_FILE" ]]; then
+    api_pid="$(<"$MOBILE_E2E_API_PID_FILE")"
+    if kill -0 "$api_pid" >/dev/null 2>&1; then
+      echo "Stopping managed mobile E2E API before reseeding..."
+      bash "$REPO_ROOT/scripts/mobile/e2e-api.sh" stop
+      api_was_managed=1
+    fi
+  fi
+
+  if lsof -nP -iTCP:"$MOBILE_E2E_API_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
+    echo "Error: cannot reseed while an unmanaged mobile E2E API is listening on :${MOBILE_E2E_API_PORT}." >&2
+    echo "Stop the foreground API, then rerun it with npm run mobile:e2e:api:bg so the runner can manage its lifecycle." >&2
+    exit 1
+  fi
+
+  if ! make mobile_e2e_seed; then
+    if [[ "$api_was_managed" -eq 1 ]]; then
+      echo "Restarting managed mobile E2E API after failed reseed..."
+      bash "$REPO_ROOT/scripts/mobile/e2e-api.sh" start-bg || true
+    fi
+    return 1
+  fi
+
+  if [[ "$api_was_managed" -eq 1 ]]; then
+    echo "Restarting managed mobile E2E API after reseeding..."
+    bash "$REPO_ROOT/scripts/mobile/e2e-api.sh" start-bg
+  fi
+}
+
+wait_for_mobile_e2e_api_health() {
+  local health_url="$1"
+  local health_json=''
+
+  for attempt in {1..30}; do
+    health_json="$(curl -sf "$health_url" 2>/dev/null || true)"
+    if printf '%s' "$health_json" | grep -q '"fixturesEnabled"[[:space:]]*:[[:space:]]*true'; then
+      return 0
+    fi
+    if ((attempt < 30)); then
+      sleep 1
+    fi
+  done
+
+  return 1
+}
+
 if [[ "$NEEDS_E2E_API" -eq 1 ]]; then
   if ! lsof -nP -iTCP:"$MOBILE_E2E_API_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
     echo "Error: API-backed flows need the mobile E2E API on :${MOBILE_E2E_API_PORT}." >&2
-    echo "Start it in tab Mobile E2E API: npm run mobile:e2e:api" >&2
+    echo "Start it in tab Mobile E2E API: npm run mobile:e2e:api:bg" >&2
     echo "(Leave-running; no need to restart when only reloading Metro.)" >&2
     exit 1
   fi
@@ -213,18 +272,24 @@ if [[ "$NEEDS_E2E_API" -eq 1 ]]; then
   # Fail fast when the leave-running API was started before PODVERSE_E2E_FIXTURES
   # (search + add-by-RSS fixtures). Health includes fixturesEnabled after rebuild.
   HEALTH_URL="http://127.0.0.1:${MOBILE_E2E_API_PORT}/api/v2/health"
-  HEALTH_JSON="$(curl -sf "$HEALTH_URL" 2>/dev/null || true)"
-  if ! printf '%s' "$HEALTH_JSON" | grep -q '"fixturesEnabled"[[:space:]]*:[[:space:]]*true'; then
+  if ! wait_for_mobile_e2e_api_health "$HEALTH_URL"; then
     echo "Error: Mobile E2E API on :${MOBILE_E2E_API_PORT} is stale (no fixtures)." >&2
     echo "Restart it in tab Mobile E2E API so dist rebuilds with PODVERSE_E2E_FIXTURES:" >&2
-    echo "  npm run mobile:e2e:api" >&2
+    echo "  npm run mobile:e2e:api:bg" >&2
     echo "Health check: ${HEALTH_URL}" >&2
     exit 1
   fi
 
   # Mirror web Playwright make targets: always seed before API-backed Maestro.
   echo "Seeding mobile E2E DB (make mobile_e2e_seed — reuses web seed)..."
-  make mobile_e2e_seed
+  seed_mobile_e2e_db_safely
+
+  if ! wait_for_mobile_e2e_api_health "$HEALTH_URL"; then
+    echo "Error: Mobile E2E API on :${MOBILE_E2E_API_PORT} is unavailable after reseeding." >&2
+    echo "Restart it in tab Mobile E2E API: npm run mobile:e2e:api:bg" >&2
+    echo "Health check: ${HEALTH_URL}" >&2
+    exit 1
+  fi
 
   # Metro must be E2E-mode (mobile:dev:e2e) for API-backed / full-suite flows.
   # Only fail when we can positively read Metro's env and the E2E flag is absent.
@@ -247,7 +312,7 @@ fi
 if [[ "$NEEDS_TEST_ASSETS" -eq 1 ]]; then
   if ! lsof -nP -iTCP:"$MOBILE_E2E_TEST_ASSETS_PORT" -sTCP:LISTEN >/dev/null 2>&1; then
     echo "Error: playback flows need tools/test-assets on :${MOBILE_E2E_TEST_ASSETS_PORT}." >&2
-    echo "Start it in tab Mobile E2E test-assets: npm run mobile:e2e:test-assets" >&2
+    echo "Start it in tab Mobile E2E test-assets: npm run mobile:e2e:test-assets:bg" >&2
     echo "(Same server as web Playwright; leave-running.)" >&2
     exit 1
   fi
@@ -257,7 +322,7 @@ if [[ "$NEEDS_TEST_ASSETS" -eq 1 ]]; then
   FIXTURE_URL="http://127.0.0.1:${MOBILE_E2E_TEST_ASSETS_PORT}/e2e/audio/e2e-addbyrss-fresh-60s-440hz.mp3"
   if ! curl -sf --output /dev/null --range 0-0 "$FIXTURE_URL" >/dev/null 2>&1; then
     echo "Error: test-assets on :${MOBILE_E2E_TEST_ASSETS_PORT} is not serving E2E fixtures." >&2
-    echo "Restart in tab Mobile E2E test-assets: npm run mobile:e2e:test-assets" >&2
+    echo "Restart in tab Mobile E2E test-assets: npm run mobile:e2e:test-assets:bg" >&2
     echo "Health: npm run mobile:e2e:test-assets:health" >&2
     exit 1
   fi
@@ -344,6 +409,27 @@ trap handle_interrupt INT
 trap handle_termination TERM
 trap handle_exit EXIT
 
+reset_app_data() {
+  local device="$1"
+  local platform="$2"
+
+  if [[ "$platform" == 'ios' ]]; then
+    local app_bundle
+    local reset_dir
+    app_bundle="$(xcrun simctl get_app_container "$device" "$MOBILE_APP_ID" app)"
+    reset_dir="$(mktemp -d "${TMPDIR:-/tmp}/podverse-e2e-reset.XXXXXX")"
+    cp -R "$app_bundle" "$reset_dir/PodverseNext.app"
+    echo "Resetting iOS E2E app data..."
+    xcrun simctl uninstall "$device" "$MOBILE_APP_ID" >/dev/null
+    xcrun simctl install "$device" "$reset_dir/PodverseNext.app" >/dev/null
+    rm -rf "$reset_dir"
+    return
+  fi
+
+  echo "Resetting Android E2E app data..."
+  adb -s "$device" shell pm clear "$MOBILE_APP_ID" >/dev/null
+}
+
 if [[ "$NEEDS_TABLET" -eq 1 ]]; then
   IOS_SLOT_DIR="$IOS_TABLET_DIR"
   ANDROID_SLOT_DIR="$ANDROID_TABLET_DIR"
@@ -415,12 +501,14 @@ fi
 MOBILE_E2E_FLOW_RETRIES="${MOBILE_E2E_FLOW_RETRIES:-0}"
 
 # Run Maestro for a platform slot; on failure, re-run only still-failed flow YAMLs.
-# Usage: run_maestro_slot <device-id> <slot-dir> <label> <flow...>
+# Usage: run_maestro_slot <device-id> <slot-dir> <label> <platform> <flow...>
 run_maestro_slot() {
   local device="$1"
   local slot_dir="$2"
   local label="$3"
+  local platform="$4"
   shift 3
+  shift 1
   local -a suite_flows=("$@")
   local -a current_flows=("${suite_flows[@]}")
   local attempt=0
@@ -434,15 +522,41 @@ run_maestro_slot() {
       echo "Retrying failed ${label} flows (${attempt}/${MOBILE_E2E_FLOW_RETRIES}): ${current_flows[*]}"
     fi
 
-    set +e
-    maestro --device "$device" test \
-      --format=HTML \
-      --output "$slot_dir/maestro.html" \
-      --test-output-dir "$slot_dir" \
-      "${MAESTRO_TIMEOUT_ARGS[@]}" \
-      "${current_flows[@]}"
-    rc=$?
-    set -e
+    if [[ "$RESET_DATA" -eq 1 ]]; then
+      rc=0
+      for flow_path in "${current_flows[@]}"; do
+        local flow_name
+        local run_dir
+        local flow_rc
+        flow_name="$(basename "$flow_path" .yaml)"
+        run_dir="$slot_dir/runs/$flow_name"
+        mkdir -p "$run_dir"
+        echo "Running clean-state ${label} flow: ${flow_name}"
+        reset_app_data "$device" "$platform"
+        set +e
+        maestro --device "$device" test \
+          --format=HTML \
+          --output "$run_dir/maestro.html" \
+          --test-output-dir "$run_dir" \
+          "${MAESTRO_TIMEOUT_ARGS[@]}" \
+          "$flow_path"
+        flow_rc=$?
+        set -e
+        if [[ "$flow_rc" -ne 0 ]]; then
+          rc=1
+        fi
+      done
+    else
+      set +e
+      maestro --device "$device" test \
+        --format=HTML \
+        --output "$slot_dir/maestro.html" \
+        --test-output-dir "$slot_dir" \
+        "${MAESTRO_TIMEOUT_ARGS[@]}" \
+        "${current_flows[@]}"
+      rc=$?
+      set -e
+    fi
 
     if [[ "$rc" -eq 0 ]]; then
       return 0
@@ -475,7 +589,7 @@ RAN_ANY=0
 if [[ -n "$IOS_UDID" ]]; then
   RAN_ANY=1
   echo "--- Maestro ${IOS_SLOT_NAME} (${IOS_DEVICE_LABEL}) → ${IOS_SLOT_NAME}/ ---"
-  if ! run_maestro_slot "$IOS_UDID" "$IOS_SLOT_DIR" "iOS" "${FLOWS[@]}"; then
+  if ! run_maestro_slot "$IOS_UDID" "$IOS_SLOT_DIR" "iOS" 'ios' "${FLOWS[@]}"; then
     EXIT_CODE=1
   fi
 fi
@@ -483,7 +597,7 @@ fi
 if [[ -n "$ANDROID_SERIAL" ]]; then
   RAN_ANY=1
   echo "--- Maestro ${ANDROID_SLOT_NAME} (${ANDROID_DEVICE_LABEL}) → ${ANDROID_SLOT_NAME}/ ---"
-  if ! run_maestro_slot "$ANDROID_SERIAL" "$ANDROID_SLOT_DIR" "Android" "${FLOWS[@]}"; then
+  if ! run_maestro_slot "$ANDROID_SERIAL" "$ANDROID_SLOT_DIR" "Android" 'android' "${FLOWS[@]}"; then
     EXIT_CODE=1
   fi
 fi

@@ -1210,6 +1210,15 @@
     "category_maintenance": "Συντήρηση",
     "category_terms_of_service": "Όροι χρήσης",
     "category_general": "Γενικά",
+    "relative_time_just_now": "Μόλις τώρα",
+    "relative_time_seconds_ago": "Πριν από {count, plural, one {# δευτερόλεπτο} other {# δευτερόλεπτα}}",
+    "relative_time_seconds_from_now": "Σε {count, plural, one {# δευτερόλεπτο} other {# δευτερόλεπτα}}",
+    "relative_time_minutes_ago": "Πριν από {count, plural, one {# λεπτό} other {# λεπτά}}",
+    "relative_time_minutes_from_now": "Σε {count, plural, one {# λεπτό} other {# λεπτά}}",
+    "relative_time_hours_ago": "Πριν από {count, plural, one {# ώρα} other {# ώρες}}",
+    "relative_time_hours_from_now": "Σε {count, plural, one {# ώρα} other {# ώρες}}",
+    "relative_time_days_ago": "Πριν από {count, plural, one {# ημέρα} other {# ημέρες}}",
+    "relative_time_days_from_now": "Σε {count, plural, one {# ημέρα} other {# ημέρες}}",
     "no_body": "Ανοίξτε για να δείτε λεπτομέρειες."
   },
   "seo": {

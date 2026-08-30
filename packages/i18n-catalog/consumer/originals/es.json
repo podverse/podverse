@@ -1210,6 +1210,15 @@
     "category_maintenance": "Mantenimiento",
     "category_terms_of_service": "Términos del servicio",
     "category_general": "General",
+    "relative_time_just_now": "Ahora mismo",
+    "relative_time_seconds_ago": "Hace {count, plural, one {# segundo} other {# segundos}}",
+    "relative_time_seconds_from_now": "En {count, plural, one {# segundo} other {# segundos}}",
+    "relative_time_minutes_ago": "Hace {count, plural, one {# minuto} other {# minutos}}",
+    "relative_time_minutes_from_now": "En {count, plural, one {# minuto} other {# minutos}}",
+    "relative_time_hours_ago": "Hace {count, plural, one {# hora} other {# horas}}",
+    "relative_time_hours_from_now": "En {count, plural, one {# hora} other {# horas}}",
+    "relative_time_days_ago": "Hace {count, plural, one {# día} other {# días}}",
+    "relative_time_days_from_now": "En {count, plural, one {# día} other {# días}}",
     "no_body": "Ábrela para ver los detalles."
   },
   "seo": {

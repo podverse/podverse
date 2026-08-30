@@ -34,7 +34,7 @@ type NotificationsInboxScreenProps = NativeStackScreenProps<
 >;
 
 export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { styles: themeStyles, tokens } = useTheme();
   const [notifications, setNotifications] = useState<DTOAccountNotification[]>([]);
@@ -234,16 +234,21 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
     }
   }, []);
 
-  const relativeTimeFormatter = useMemo(() => {
-    return new Intl.RelativeTimeFormat(i18n.language, { numeric: 'auto' });
-  }, [i18n.language]);
-
   const formatRelativeTime = useCallback(
     (isoDate: string): string => {
       const parts = getRelativeTimeParts(isoDate);
-      return parts === null ? '' : relativeTimeFormatter.format(parts.value, parts.unit);
+      if (parts === null) {
+        return '';
+      }
+      if (parts.value === 0) {
+        return t('notifications_page.relative_time_just_now');
+      }
+
+      const direction = parts.value < 0 ? 'ago' : 'from_now';
+      const count = Math.abs(parts.value);
+      return t(`notifications_page.relative_time_${parts.unit}s_${direction}`, { count });
     },
-    [relativeTimeFormatter]
+    [t]
   );
 
   const canLoadMore = page < totalPages;

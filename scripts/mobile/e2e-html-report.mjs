@@ -87,7 +87,54 @@ function walkFiles(dir, baseRel = '') {
     }
     out.push(rel.split(path.sep).join('/'));
   }
-  return out;
+  return out.sort();
+}
+
+function sequenceNumberForEntry(entry) {
+  const raw = entry?.metadata?.sequenceNumber;
+  if (typeof raw === 'number' && Number.isFinite(raw)) {
+    return raw;
+  }
+  if (typeof raw === 'string' && raw.trim() !== '') {
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function orderCommandEntries(commands) {
+  const indexed = commands.map((entry, index) => ({
+    entry,
+    index,
+    sequenceNumber: sequenceNumberForEntry(entry),
+  }));
+  const hasSequenceNumbers = indexed.some((item) => item.sequenceNumber !== null);
+  const hasCompleteSequenceNumbers = indexed.every((item) => item.sequenceNumber !== null);
+
+  if (!hasSequenceNumbers) {
+    return {
+      entries: indexed,
+      ordering: 'unavailable',
+    };
+  }
+
+  indexed.sort((a, b) => {
+    if (a.sequenceNumber === null && b.sequenceNumber === null) {
+      return a.index - b.index;
+    }
+    if (a.sequenceNumber === null) {
+      return 1;
+    }
+    if (b.sequenceNumber === null) {
+      return -1;
+    }
+    return a.sequenceNumber - b.sequenceNumber || a.index - b.index;
+  });
+
+  return {
+    entries: indexed,
+    ordering: hasCompleteSequenceNumbers ? 'sequence' : 'partial-sequence',
+  };
 }
 
 function commandLabel(command) {
@@ -191,11 +238,11 @@ function sortFlowsFailuresFirst(flows) {
 /**
  * Collect screenshot names from takeScreenshot commands (nested runFlow included).
  */
-function collectTakeScreenshotNames(commands, into = new Set()) {
+function collectTakeScreenshotNames(commands, into = [], seen = new Set()) {
   if (!Array.isArray(commands)) {
     return into;
   }
-  for (const entry of commands) {
+  for (const { entry } of orderCommandEntries(commands).entries) {
     const command = entry?.command;
     if (!command || typeof command !== 'object') {
       continue;
@@ -204,12 +251,16 @@ function collectTakeScreenshotNames(commands, into = new Set()) {
     if (take && typeof take === 'object') {
       const raw = take.path ?? take.fileName;
       if (typeof raw === 'string' && raw.trim() !== '') {
-        into.add(path.basename(raw.trim()));
+        const name = path.basename(raw.trim(), path.extname(raw.trim()));
+        if (!seen.has(name)) {
+          seen.add(name);
+          into.push(name);
+        }
       }
     }
     const runFlow = command.runFlowCommand;
     if (runFlow && typeof runFlow === 'object' && Array.isArray(runFlow.commands)) {
-      collectTakeScreenshotNames(runFlow.commands, into);
+      collectTakeScreenshotNames(runFlow.commands, into, seen);
     }
   }
   return into;
@@ -252,14 +303,25 @@ function collectImagesForFlow(files, runDir, commands, flowTitle) {
 
   for (const rel of files) {
     const inRunDir = runDir === '.' || rel.startsWith(`${runDir}/`);
-    if (inRunDir) {
+    const isFailure = rel.includes('❌') || rel.toLowerCase().includes('fail');
+    if (inRunDir && isFailure) {
       addImage(rel);
     }
   }
 
+  for (const name of namedShots) {
+    for (const rel of files) {
+      const base = path.basename(rel, path.extname(rel));
+      if (base === name) {
+        addImage(rel);
+      }
+    }
+  }
+
   for (const rel of files) {
-    const base = path.basename(rel, path.extname(rel));
-    if (namedShots.has(base)) {
+    const inRunDir = runDir === '.' || rel.startsWith(`${runDir}/`);
+    const isFailure = rel.includes('❌') || rel.toLowerCase().includes('fail');
+    if (inRunDir && !isFailure) {
       addImage(rel);
     }
   }
@@ -272,7 +334,6 @@ function collectImagesForFlow(files, runDir, commands, flowTitle) {
     }
   }
 
-  images.sort((a, b) => a.rel.localeCompare(b.rel));
   return images;
 }
 
@@ -320,18 +381,21 @@ function loadFlowsFromSlot(slotDir) {
 
     const images = collectImagesForFlow(files, runDir === '.' ? '.' : runDir, commands, title);
 
+    const orderedCommands = orderCommandEntries(commands);
     let flowStatus = 'passed';
     let errorMessage = '';
+    let failedStep = null;
     const steps = [];
 
-    for (const entry of commands) {
+    for (const { entry, sequenceNumber } of orderedCommands.entries) {
       const meta = entry?.metadata ?? {};
       const status = statusFromMeta(meta.status);
+      const stepErrorMessage =
+        typeof meta.error?.message === 'string' ? meta.error.message.trim() : '';
       if (status === 'failed' || status === 'timedOut') {
         flowStatus = status;
-        const msg = meta.error?.message;
-        if (typeof msg === 'string' && msg.trim() !== '') {
-          errorMessage = msg.trim();
+        if (stepErrorMessage !== '') {
+          errorMessage = stepErrorMessage;
         }
       }
       const skipKeys = new Set(['defineVariablesCommand', 'applyConfigurationCommand']);
@@ -341,8 +405,18 @@ function loadFlowsFromSlot(slotDir) {
       }
       steps.push({
         label: commandLabel(entry.command),
+        sequenceNumber,
         status,
+        errorMessage: stepErrorMessage,
       });
+      if (status === 'failed' || status === 'timedOut') {
+        failedStep = {
+          errorMessage: stepErrorMessage,
+          label: commandLabel(entry.command),
+          sequenceNumber,
+          status,
+        };
+      }
     }
 
     // Status comes only from Maestro command metadata.status. Do not flip to failed based on
@@ -353,6 +427,8 @@ function loadFlowsFromSlot(slotDir) {
       title,
       status: flowStatus,
       errorMessage,
+      failedStep,
+      commandOrdering: orderedCommands.ordering,
       steps,
       images,
       commandsRel,
@@ -380,6 +456,8 @@ function loadFlowsFromSlot(slotDir) {
       slug,
       status: candidate.status,
       errorMessage: candidate.errorMessage,
+      failedStep: candidate.failedStep ?? null,
+      commandOrdering: candidate.commandOrdering ?? 'unavailable',
       steps: candidate.steps,
       images: candidate.images,
       commandsRel: candidate.commandsRel,
@@ -445,6 +523,7 @@ function reportSharedCss() {
     .step-list { font-size: var(--report-font-xs); margin: 0 0 var(--report-space-lg); padding-left: 1.25rem; color: var(--report-muted); }
     .step-list .step-failed { color: var(--report-fail); }
     .step-block { margin-bottom: var(--report-space-lg); }
+    .step-error { color: var(--report-error-text); }
     .step-block a.step-image-link { display: inline-block; margin-top: var(--report-space-sm); }
     .step-block img { width: 100%; max-width: 420px; height: auto; border: 1px solid var(--report-border); border-radius: var(--report-radius-sm); display: block; cursor: zoom-in; }
     .step-description-hr { margin: var(--report-space-lg) 0; border: 0; border-top: 1px solid var(--report-border); }
@@ -623,7 +702,7 @@ function buildNavChrome() {
 /**
  * Slot index: compact fails-first summary with links to per-flow pages (no embedded screenshots).
  */
-function buildSlotHtml(slot, flows) {
+function buildSlotHtml(slot, flows, hasMaestroRaw) {
   const passed = flows.filter((f) => f.status === 'passed').length;
   const failed = flows.filter((f) => f.status === 'failed').length;
   const timedOut = flows.filter((f) => f.status === 'timedOut').length;
@@ -644,7 +723,7 @@ function buildSlotHtml(slot, flows) {
 </head>
 <body>
   <h1>Mobile E2E – ${escapeHtml(slot.label)}</h1>
-  <p class="meta">Slot <code>${escapeHtml(slot.id)}</code> · hub: <a href="../index.html">../index.html</a> · failures index: <a href="../failures.json">../failures.json</a> · Maestro raw: <a href="./maestro.html">maestro.html</a></p>
+  <p class="meta">Slot <code>${escapeHtml(slot.id)}</code> · hub: <a href="../index.html">../index.html</a> · failures index: <a href="../failures.json">../failures.json</a>${hasMaestroRaw ? ' · Maestro raw: <a href="./maestro.html">maestro.html</a>' : ''}</p>
 `);
 
   if (failing.length > 0) {
@@ -712,8 +791,20 @@ function buildFlowHtml(slot, flow) {
     <h1>${escapeHtml(flow.title)}</h1>
     <div class="status ${escapeHtml(flow.status === 'timedOut' ? 'timedout' : flow.status)}">${escapeHtml(statusDisplayLabel(flow.status))}</div>
 `);
+  parts.push(
+    `    <p class="meta">Command order: <code>${escapeHtml(flow.commandOrdering)}</code></p>\n`
+  );
   if (flow.errorMessage !== '') {
     parts.push(`    <div class="error">${escapeHtml(flow.errorMessage)}</div>\n`);
+  }
+  if (flow.failedStep !== null && flow.failedStep !== undefined) {
+    const sequence =
+      flow.failedStep.sequenceNumber === null || flow.failedStep.sequenceNumber === undefined
+        ? ''
+        : ` (#${flow.failedStep.sequenceNumber})`;
+    parts.push(
+      `    <div class="error">Failed step: ${escapeHtml(flow.failedStep.label)}${escapeHtml(sequence)}</div>\n`
+    );
   }
   if (flow.primaryFailureRel !== null) {
     parts.push(
@@ -726,8 +817,14 @@ function buildFlowHtml(slot, flow) {
 `);
     for (const step of flow.steps) {
       const cls = step.status === 'failed' || step.status === 'timedOut' ? ' step-failed' : '';
+      const sequence =
+        step.sequenceNumber === null ? '' : ` #${step.sequenceNumber}`;
+      const error =
+        step.errorMessage === ''
+          ? ''
+          : ` — <span class="step-error">${escapeHtml(step.errorMessage)}</span>`;
       parts.push(
-        `      <li class="${cls.trim()}">${escapeHtml(step.label)} (${escapeHtml(step.status)})</li>\n`
+        `      <li class="${cls.trim()}">${escapeHtml(step.label)}${escapeHtml(sequence)} (${escapeHtml(step.status)})${error}</li>\n`
       );
     }
     parts.push(`    </ol>
@@ -885,7 +982,7 @@ const slotDirs = resolveSlotDirs(reportRoot);
 const slotStatuses = new Map();
 
 const runId = path.basename(path.resolve(reportRoot));
-/** @type {{ runId: string, partial: boolean, slots: Record<string, { failed: Array<{ flow: string, slug: string, error: string, html: string, screenshot: string | null }> }> }} */
+/** @type {{ runId: string, partial: boolean, slots: Record<string, { failed: Array<{ flow: string, slug: string, error: string, commandOrdering: string, failedStep: object | null, rawCommands: string | null, html: string, screenshot: string | null }> }> }} */
 const failuresDoc = {
   runId,
   partial: isPartialReport,
@@ -908,7 +1005,7 @@ for (const slot of SLOT_META) {
 
   const flows = loadFlowsFromSlot(dir);
   writeFlowPages(dir, slot, flows);
-  const html = buildSlotHtml(slot, flows);
+  const html = buildSlotHtml(slot, flows, fs.existsSync(path.join(dir, 'maestro.html')));
   fs.writeFileSync(path.join(dir, 'index.html'), html, 'utf8');
 
   const failedEntries = flows
@@ -917,6 +1014,9 @@ for (const slot of SLOT_META) {
       flow: f.title,
       slug: f.slug,
       error: f.errorMessage === '' ? statusDisplayLabel(f.status) : f.errorMessage,
+      commandOrdering: f.commandOrdering,
+      failedStep: f.failedStep,
+      rawCommands: f.commandsRel === '' ? null : `${resolved.rel}/${f.commandsRel}`,
       html: `${resolved.rel}/${f.href}`,
       screenshot:
         f.primaryFailureRel !== null ? `${resolved.rel}/flows/${f.slug}/failure.png` : null,

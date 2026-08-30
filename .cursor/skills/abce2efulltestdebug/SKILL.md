@@ -1,42 +1,28 @@
 ---
-name: abce2etestdebug
-description: Debug one specifically named Podverse web, management-web, or mobile E2E test flow/spec at a time. Use when the operator invokes abce2etestdebug with a single target.
+name: abce2efulltestdebug
+description: Debug all supplied Podverse web, management-web, and mobile E2E failures one unit and platform at a time. Use when the operator invokes abce2efulltestdebug with a suite output or multiple targets.
 ---
 
-# `abce2etestdebug`
+# `abce2efulltestdebug`
 
-Use this workflow whenever the operator invokes **`abce2etestdebug`** for one specifically named
-failing E2E flow or spec. The objective is to diagnose and verify that one target without expanding
-the work to unrelated failures. For mobile, isolate the named flow and one device platform so a
-failure on the first platform is fixed before spending time on the second platform.
-
-## Single-target contract
-
-The operator is expected to provide exactly one mobile flow or web/management-web spec. Treat that
-target as the complete scope:
-
-- Do not build a queue from unrelated failures in a suite output.
-- Do not inspect, modify, or run another flow/spec after the named target passes or reaches a
-  blocker.
-- If the supplied evidence contains other failures, mention them as out of scope and ask the
-  operator to invoke **`abce2efulltestdebug`** or name the next target separately.
-- For mobile, verify the named flow on iOS and Android when both platforms are applicable; both
-  platforms remain part of this one target.
+Use this workflow whenever the operator invokes **`abce2efulltestdebug`** for a failing E2E run
+containing multiple failures. The objective is a verified, focused pass for every supplied failing
+spec or mobile flow. For mobile, isolate one flow and one device platform so a failure on the first
+platform is fixed before spending time on the second platform.
 
 ## Full mobile platform handoff
 
-When the operator is sweeping the complete mobile suite, invoke
-**`abce2efulltestdebug`** instead. Do not turn a single-target invocation into a suite sweep.
+When the operator is sweeping the complete mobile suite, use this handoff:
 
 1. Run the full iOS suite alone:
    `npm run mobile:e2e:test:all -- --platform ios`
-2. Invoke **`abce2efulltestdebug`** with the iOS output or report artifacts. Debug every unresolved iOS
-   flow one at a time until the iOS queue is green. Do not start Android debugging during this
+2. Invoke **`abce2efulltestdebug`** with the iOS output or report artifacts. Debug every unresolved
+   iOS flow one at a time until the iOS queue is green. Do not start Android debugging during this
    phase.
 3. After iOS is green, run the full Android suite alone:
    `npm run mobile:e2e:test:all -- --platform android`
-4. Invoke **`abce2efulltestdebug`** with the Android output or report artifacts. Debug every unresolved
-   Android flow one at a time until the Android queue is green.
+4. Invoke **`abce2efulltestdebug`** with the Android output or report artifacts. Debug every
+   unresolved Android flow one at a time until the Android queue is green.
 
 Each platform-scoped full-suite run seeds its own database and creates only its selected report
 slot, preventing the second platform from inheriting feature state written by the first. Running
@@ -47,10 +33,11 @@ separately.
 
 ## Required debugging loop
 
-1. Confirm the single named target from the operator's message and supplied output. Treat one web
-   spec or one mobile YAML flow as the only unit. Do not debug the whole suite as one problem.
-2. Select only the named target. Do not inspect or modify any other failing unit. For a mobile
-   target on a platform that supports both phone slots, select iOS first.
+1. Build an ordered queue of failures from the supplied output or report artifacts. Treat each web
+   spec as one unit and each mobile YAML flow as one unit. Do not debug the whole suite as one
+   problem.
+2. Select only the first unresolved unit. Do not inspect or modify the next failing unit yet. For a
+   mobile queue on a platform that supports both phone slots, select iOS first.
 3. Confirm that the report artifacts for the selected unit are available. If the expected report
    artifacts are missing or incomplete, rerun that unit immediately with the narrowest supported
    command. The default runner configuration must be used unless the operator explicitly requests
@@ -98,17 +85,17 @@ separately.
    intervention only for a missing device, native build, permission, authentication failure, or a
    positively identified operator-owned foreground process that cannot be safely restarted. Do not
    work around a blocker or skip to another test.
-10. After the named target passes, record its root cause, fix, verification command, and result,
-    then stop. If it is blocked, record the evidence and the exact operator action needed, then
-    stop. Do not select another unresolved unit.
+10. After the current unit passes, record its root cause, fix, verification command, and result,
+    then immediately select the next unresolved unit. When multiple failures are supplied, continue
+    through the entire queue; do not stop after resolving only the first failure.
 
 ## Mandatory completion gate
 
 Never describe a run, failure queue, platform, or debugging session as fixed, complete, green, or
 fully resolved unless all applicable conditions below are true:
 
-1. Every failure within the named target is recorded as a separate target issue.
-2. Every issue within the named target has either:
+1. Every failure from the supplied output or report is recorded as a separate queue item.
+2. Every queue item has either:
    - a focused post-fix run that reports `Passed`, or
    - an explicitly documented blocker that requires operator input.
 3. A shared application, fixture, service, runner, or report-generator fix invalidates conclusions
@@ -117,10 +104,9 @@ fully resolved unless all applicable conditions below are true:
    by a later run that writes the expected report artifacts.
 5. For mobile, each affected flow passes on iOS and Android before it is marked resolved.
 
-A shared root cause may explain multiple issues within the named target, but it does not mark the
-target resolved without a focused post-fix result. A suite-level pass does not prove that the named
-target passed. If no post-fix command has actually started, report verification as pending instead
-of reporting a pass. Failures outside the named target are out of scope for this invocation.
+A shared root cause may explain multiple failures, but it does not mark those flows resolved. A
+suite-level pass does not prove that every previously failing flow passed. If no post-fix command
+has actually started, report verification as pending instead of reporting a pass.
 
 ## Run identity and stale-result protection
 
@@ -134,9 +120,9 @@ belongs to the current invocation:
 - Treat a notification for an already-completed command as stale when no new invocation started.
   Never use it as evidence for a newer rerun.
 - After a background command finishes, record its exact pass/fail result and report path before
-  deciding whether the named target needs another focused attempt.
+  selecting the next queue item.
 
-Maintain one status for the named target: `unresolved`, `investigating`,
+Maintain one status for every supplied failure item: `unresolved`, `investigating`,
 `fixed-unverified`, `passed-ios`, `passed-android`, or `blocked`. Do not remove an item because
 another flow with a similar failure passed.
 
@@ -159,9 +145,9 @@ API** for API-backed flows, and **Mobile E2E test-assets** for playback flows be
 Maestro. The service preflight owns this check even when the operator says the services should
 already be running.
 
-Interrupted mobile runs attempt to generate a partial report. Use that report when it contains
-the selected flow's evidence. If the partial report is missing or incomplete, rerun the selected
-flow normally so the default no-retry configuration creates `failures.json` and the focused flow
+Interrupted mobile runs attempt to generate a partial report. Use that report when it contains the
+selected flow's evidence. If the partial report is missing or incomplete, rerun the selected flow
+normally so the default no-retry configuration creates `failures.json` and the focused flow
 report. A missing report after that rerun is a setup blocker to investigate, not a reason to debug
 from incomplete suite output.
 
@@ -193,8 +179,8 @@ whether the request was user-initiated or background sync.
 
 - A suite-level cascade of identical mobile locator failures is one active failure until the first
   focused flow establishes whether the shared launch/connect path or the feature flow is broken.
-- A shared helper or fixture change may affect multiple failures, but verify the named target after
-  the change and leave other affected units for separate invocations.
+- A shared helper or fixture change may affect multiple failures, but verify the first affected
+  flow before investigating the others, then continue through every remaining affected unit.
 - Keep existing report artifacts. The mobile runner opens the report hub automatically; do not add
   manual `open` commands unless the operator specifically asks to open a particular artifact.
 - Do not classify a failure as flaky solely because a retry passes. Identify the transient
@@ -206,7 +192,7 @@ whether the request was user-initiated or background sync.
 
 ## Completion response
 
-For the resolved named target, state:
+For each resolved unit, state:
 
 - the test/spec or mobile flow;
 - the observed failure and root cause;
@@ -214,6 +200,7 @@ For the resolved named target, state:
 - the focused verification command and pass result;
 - any remaining environmental limitation.
 
-For a single-target invocation, summarize only the named target and stop after it passes or needs
-operator input, an unavailable environment capability, or an uncertain product decision. Explicitly
-identify any supplied failures that were left out of scope.
+For a full-target invocation, continue until every supplied unit passes or the next unit needs
+operator input, an unavailable environment capability, or an uncertain product decision. At that
+point, summarize all completed units and the blocker, and stop only for that operator action or
+decision.

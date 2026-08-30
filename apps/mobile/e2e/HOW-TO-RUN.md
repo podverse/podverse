@@ -40,12 +40,14 @@ npm run mobile:e2e:android
 **Mobile E2E API** (leave running):
 
 ```bash
-npm run mobile:e2e:api
+npm run mobile:e2e:api:bg
 ```
 
 Restart this after API fixture code changes (`PODVERSE_E2E_FIXTURES` / search / add-by-RSS
 fixtures) — `e2e-api.sh` rebuilds on start. The Maestro runner fails fast if `/api/v2/health`
-does not report `fixturesEnabled: true`.
+does not report `fixturesEnabled: true`. The runner briefly stops and restarts this managed API
+around its database reseed so Postgres can be recreated without invalidating the API connection
+pool.
 
 **Mobile E2E test-assets** (leave running — required for add-by-RSS play / real media):
 
@@ -137,6 +139,23 @@ npm run mobile:e2e:test -- --platform ios home
 npm run mobile:e2e:test -- --platform android home
 ```
 
+### Clean local state between flows
+
+`launchApp: clearState` resets the session, but signed-out subscriptions are intentionally retained
+by the product. Use `--reset-data` when a flow requires an empty local SQLite database. The runner
+resets app data before each selected flow and retry attempt, while relaunches inside the flow still
+test persistence normally.
+
+**Mobile Maestro**:
+
+```bash
+npm run mobile:e2e:test -- --reset-data --platform ios subscriptions-anonymous
+```
+
+On iOS, the runner copies the installed E2E app, uninstalls it, and reinstalls that copy. Android
+uses `pm clear`. Neither path rebuilds the native app. The app must already be installed in the
+selected E2E slot.
+
 ### UI-only stack
 
 Default smoke (`hello-world`) does **not** need deps, seed, or API.
@@ -213,7 +232,8 @@ Seeded login credential for auth flows: `e2e-user@example.com` / `Test!1Aa`.
 
 **Mobile E2E API** does not need a restart when you only restart Metro / `mobile:dev:e2e`. Keep it
 leave-running; use `npm run mobile:e2e:api:health` in **Mobile** if unsure. Auth/tab/full-suite
-flows fail closed if `:4230` is down (`e2e-test.sh` checks before Maestro).
+flows fail closed if `:4230` is down (`e2e-test.sh` checks before Maestro). Use the managed
+background command above because the runner owns the API lifecycle during its database reseed.
 
 Maestro waits use `apps/mobile/e2e/shared/timeouts.env` (`TIMEOUT_FASTEST` … `TIMEOUT_SLOWEST`).
 Prefer the fastest tier that can work; see **mobile-maestro-timeouts**.
@@ -234,6 +254,11 @@ flows fails-first and link into `flows/<slug>/index.html` (error + screenshots).
 slot summaries in a new tab. Tablet slots (`ios-tablet`, `android-tablet`) appear when you run
 the opt-in tablet flow (see [Tablet screenshots](#tablet-screenshots-opt-in) below).
 
+Flow pages show sequence-aware command order when Maestro provides sequence metadata. Legacy logs
+without that metadata are labeled as having unavailable ordering instead of implying that their raw
+JSON order is execution order. `failures.json` also includes the failed step and raw command-log
+path.
+
 ## Tablet screenshots (opt-in)
 
 Track 18.5 — verifies multi-column Home and podcast split detail on tablet viewports. **Not** part
@@ -253,7 +278,7 @@ npm run mobile:dev:e2e
 **Mobile E2E API** (leave running):
 
 ```bash
-npm run mobile:e2e:api
+npm run mobile:e2e:api:bg
 ```
 
 **Mobile E2E test-assets** (leave running — tablet now opens real playback in full-player):
@@ -292,8 +317,8 @@ open .artifacts/mobile-e2e-reports/latest/android-tablet/index.html
 | App not installed on E2E Android                                                           | **Mobile Android**: `npm run mobile:e2e:android`                                                                                                                                                                                                    |
 | App not installed on E2E iOS / Android tablet                                              | **Mobile iOS** / **Mobile Android**: `npm run mobile:e2e:ios:tablet` / `npm run mobile:e2e:android:tablet`                                                                                                                                          |
 | `podcast-detail-split` missing on tablet flow                                              | Flow sets landscape; ensure tablet device is wide enough (`iPad Pro 13-inch (M4) E2E` / `Pixel_Tablet_API_33_e2e`). Re-run `ensure-devices.sh e2e-tablet`                                                                                           |
-| API-backed flow cannot reach API (`:4230`)                                                 | **Mobile E2E API**: `npm run mobile:e2e:api`; then in **Mobile** `npm run mobile:e2e:api:health`                                                                                                                                                    |
-| Runner exits: “Mobile E2E API … is stale (no fixtures)”                                    | API was started before fixture code. **Mobile E2E API**: stop and `npm run mobile:e2e:api` (rebuilds; health must show `fixturesEnabled: true`)                                                                                                     |
+| API-backed flow cannot reach API (`:4230`)                                                 | **Mobile E2E API**: `npm run mobile:e2e:api:bg`; then in **Mobile** `npm run mobile:e2e:api:health`                                                                                                                                                    |
+| Runner exits: “Mobile E2E API … is stale (no fixtures)”                                    | API was started before fixture code. **Mobile E2E API**: stop and `npm run mobile:e2e:api:bg` (rebuilds; health must show `fixturesEnabled: true`)                                                                                                     |
 | Runner exits: playback flows need tools/test-assets on :2111                               | **Mobile E2E test-assets**: `npm run mobile:e2e:test-assets`; health: `npm run mobile:e2e:test-assets:health`                                                                                                                                       |
 | Empty search / no `search-result-row-0` / no `rss-feed-play-first`                         | Same stale-API issue, or seed missing — runner auto-seeds; restart API if fixtures flag is false                                                                                                                                                    |
 | `rss-playback-active` never appears after Play                                             | Restart **Mobile E2E test-assets** (`npm run mobile:e2e:test-assets` — binds `0.0.0.0` so IPv4/`10.0.2.2` works). Reload app after JS rewrite changes.                                                                                              |
@@ -303,6 +328,7 @@ open .artifacts/mobile-e2e-reports/latest/android-tablet/index.html
 | Stuck on Expo “Development Build” launcher                                                 | Flows should run `shared/launch-and-connect.yaml` (retries Dev Client connect)                                                                                                                                                                      |
 | Assertion fails; screenshot shows “developer menu” / Continue                              | Same shared flow dismisses the one-time Expo dev-client menu (see below)                                                                                                                                                                            |
 | `App crashed or stopped` / fail on “Development servers” mid-suite; SpringBoard screenshot | Dev Client relaunch flake after `clearState` (not a feature bug). `launch-and-connect` retries connect; optionally set `MOBILE_E2E_FLOW_RETRIES` to retry only failed flows after the suite. Focused check: `npm run mobile:e2e:test -- podcast-episode` |
+| Repeated flow starts with prior subscriptions or local rows                                | `clearState` preserves product data by design. Run the affected flow with `--reset-data` from **Mobile Maestro**                                                                                                                                    |
 | Maestro missing                                                                            | Install via repo flake (`maestro`) or [Maestro docs](https://docs.maestro.dev/getting-started/installing-maestro)                                                                                                                                   |
 | `play-mini-player` Android: Maestro `full-player-close` tap does not dismiss               | Expected for now — the flow uses `pressKey: Back` on Android (same `onClose` / `BackHandler` path). **Manually tap Close once** on an Android AVD/device before release to confirm real input dismisses the full player.                            |
 

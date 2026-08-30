@@ -1210,6 +1210,15 @@
     "category_maintenance": "Maintenance",
     "category_terms_of_service": "Conditions d'utilisation",
     "category_general": "Général",
+    "relative_time_just_now": "À l'instant",
+    "relative_time_seconds_ago": "Il y a {count, plural, one {# seconde} other {# secondes}}",
+    "relative_time_seconds_from_now": "Dans {count, plural, one {# seconde} other {# secondes}}",
+    "relative_time_minutes_ago": "Il y a {count, plural, one {# minute} other {# minutes}}",
+    "relative_time_minutes_from_now": "Dans {count, plural, one {# minute} other {# minutes}}",
+    "relative_time_hours_ago": "Il y a {count, plural, one {# heure} other {# heures}}",
+    "relative_time_hours_from_now": "Dans {count, plural, one {# heure} other {# heures}}",
+    "relative_time_days_ago": "Il y a {count, plural, one {# jour} other {# jours}}",
+    "relative_time_days_from_now": "Dans {count, plural, one {# jour} other {# jours}}",
     "no_body": "Ouvrir pour voir les détails."
   },
   "seo": {
