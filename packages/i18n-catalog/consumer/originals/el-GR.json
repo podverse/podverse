@@ -967,7 +967,10 @@
       "category_terms_of_service": "Όροι χρήσης",
       "category_terms_of_service_description": "Υποχρεωτικές νομικές ανακοινώσεις και ανακοινώσεις πολιτικής.",
       "category_general": "Γενικά",
-      "category_general_description": "Σημαντικές ειδοποιήσεις σε επίπεδο λογαριασμού."
+      "category_general_description": "Σημαντικές ειδοποιήσεις σε επίπεδο λογαριασμού.",
+      "new_item": "Νέο στοιχείο",
+      "livestream_scheduled": "Προγραμματισμένη ζωντανή μετάδοση",
+      "livestream_started": "Η ζωντανή μετάδοση ξεκίνησε"
     },
     "opml": {
       "opml": "OPML",

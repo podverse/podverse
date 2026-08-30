@@ -363,6 +363,17 @@ android_serial_for_avd() {
   return 1
 }
 
+# Emulator animations make every UiAutomator action wait for its transition to settle, which is the
+# dominant per-command cost of a Maestro run. Zeroing the scales is idempotent and persists until
+# the AVD's data partition is wiped, so it is re-applied on every boot.
+tune_android_runtime_settings() {
+  local serial="$1"
+  local scale
+  for scale in window_animation_scale transition_animation_scale animator_duration_scale; do
+    "$ADB_BIN" -s "$serial" shell settings put global "$scale" 0 >/dev/null 2>&1 || true
+  done
+}
+
 boot_android_avd() {
   local name="$1"
   ensure_android_avd "$name"
@@ -371,6 +382,7 @@ boot_android_avd() {
   local serial
   if serial="$(android_serial_for_avd "$name")"; then
     echo "Android AVD already running: ${name} (${serial})" >&2
+    tune_android_runtime_settings "$serial"
     printf '%s\n' "$serial"
     return 0
   fi
@@ -385,6 +397,7 @@ boot_android_avd() {
       local boot=''
       boot="$("$ADB_BIN" -s "$serial" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
       if [[ "$boot" == "1" ]]; then
+        tune_android_runtime_settings "$serial"
         printf '%s\n' "$serial"
         return 0
       fi

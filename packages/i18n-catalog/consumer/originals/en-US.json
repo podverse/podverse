@@ -967,7 +967,10 @@
       "category_terms_of_service": "Terms of service",
       "category_terms_of_service_description": "Required legal and policy announcements.",
       "category_general": "General",
-      "category_general_description": "Important account-level notifications."
+      "category_general_description": "Important account-level notifications.",
+      "new_item": "New item",
+      "livestream_scheduled": "Livestream scheduled",
+      "livestream_started": "Livestream started"
     },
     "opml": {
       "opml": "OPML",

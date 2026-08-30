@@ -55,7 +55,7 @@ All automated code-level test tiers pass after the fixes below:
 
 ## E2E tiers NOT run here (operator follow-up)
 
-### Web / management-web Playwright E2E — blocked by a pre-existing seed dependency gap
+### Web / management-web Playwright E2E — previously blocked by a seed dependency gap
 
 `make e2e_test_report_scoped WEB_SPEC=... MGMT_SPEC=...` fails at the seed step:
 
@@ -71,17 +71,14 @@ Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'ioredis' imported from
 - `npm install` reports "up to date" (lockfile keeps `ioredis` nested), so it does not self-heal.
 - This is **independent of the notifications work**: the `ioredis` import was added in an older
   commit (`b780b76b`, OPML work), not on the notifications branch.
-- Recommended fix (operator, dependency change): declare `ioredis` where the seed can resolve it —
-  e.g. add `ioredis` to the **root** `package.json` devDependencies so it hoists to root
-  `node_modules`, then regenerate the Linux-canonical lockfile
-  (`./scripts/development/update-lockfile-linux.sh`) and `npm install` on macOS to restore darwin
-  binaries. Then re-run the scoped E2E below.
+- Resolution: `tools/web/package.json` declares the seeder's direct dependencies (`bcrypt`, `ioredis`,
+  and `pg`), and the Linux-canonical root lockfile records the new workspace. The seeder no longer
+  depends on application dependency hoisting.
 
 After fixing, run (E2E test deps already provided by `make test_deps`):
 
 ```bash
 make e2e_test_report_scoped WEB_SPEC=e2e/notifications-inbox.spec.ts MGMT_SPEC=e2e/admin-notifications.spec.ts
-open .artifacts/e2e-reports/latest/index.html
 ```
 
 Other notification-related web spec: `apps/web/e2e/bucket-notifications-webpush-bucket-owner.spec.ts`.

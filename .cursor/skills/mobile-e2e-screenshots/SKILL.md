@@ -48,6 +48,18 @@ Do **not** collapse platforms into a single screenshot page. Open the slot / flo
   `e2e-test.sh` fail-fasts when it can read Metro’s env and `EXPO_PUBLIC_MOBILE_E2E=1` is absent.
   Fix: restart **Mobile Metro** with `npm run mobile:dev:e2e`, reload/reinstall, then re-run.
 
+For first-failure debugging, isolate the device platform so one failing iOS flow does not trigger
+a wasted Android pass. Run the first flow on iOS, fix it until it passes, then run that same flow
+on Android before selecting the next flow:
+
+```bash
+npm run mobile:e2e:test -- --platform ios <area>
+npm run mobile:e2e:test -- --platform android <area>
+```
+
+The default `npm run mobile:e2e:test -- <area>` remains the deliberate two-platform regression
+run. Each platform-scoped run creates only its selected report slot.
+
 ### When adding a new top-level Maestro flow
 
 1. Add `apps/mobile/e2e/<area>.yaml` — it is **auto-included** in `mobile:e2e:test:all`.
@@ -128,9 +140,9 @@ the sheet), then wait for `hello-world-screen` (or the flow’s root once Home r
 Tapping **Continue** alone is insufficient — it only opens the full dev menu (Reload / Go home / …),
 which still occludes the app. Do not invent a parallel connect path that skips the sheet close.
 
-The runner also re-runs **only failed** flow YAMLs once per platform by default
-(`MOBILE_E2E_FLOW_RETRIES=1`; set `0` to disable). HTML reports prefer the latest pass for a flow
-title when both failed and retry `commands-*.json` exist.
+The runner executes each flow once per platform by default. Set `MOBILE_E2E_FLOW_RETRIES` to a
+positive number to opt into end-of-suite retries of only failed flow YAMLs. HTML reports prefer
+the latest pass for a flow title when both failed and retry `commands-*.json` exist.
 
 ## Maestro flow authoring gotchas (keyboard, secure input, silent failures)
 

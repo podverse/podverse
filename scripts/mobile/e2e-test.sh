@@ -6,6 +6,8 @@
 #   bash scripts/mobile/e2e-test.sh hello-world
 #   bash scripts/mobile/e2e-test.sh hello-world,locale-switch-home-smoke
 #   bash scripts/mobile/e2e-test.sh all   # every apps/mobile/e2e/*.yaml (not shared/)
+#   bash scripts/mobile/e2e-test.sh --platform ios home
+#   bash scripts/mobile/e2e-test.sh --platform android home
 
 set -euo pipefail
 
@@ -82,7 +84,48 @@ MAESTRO_TIMEOUT_ARGS=(
   -e "TIMEOUT_SLOWEST=${TIMEOUT_SLOWEST:-20000}"
 )
 
-SPEC_RAW="${1:-$DEFAULT_SPEC}"
+PLATFORM='both'
+SPEC_RAW=''
+while [[ "$#" -gt 0 ]]; do
+  case "$1" in
+  --platform)
+    if [[ "$#" -lt 2 ]]; then
+      echo "Missing value for --platform. Expected ios, android, or both." >&2
+      exit 1
+    fi
+    PLATFORM="$2"
+    shift 2
+    ;;
+  --platform=*)
+    PLATFORM="${1#*=}"
+    shift
+    ;;
+  -*)
+    echo "Unknown option: $1" >&2
+    echo "Usage: bash scripts/mobile/e2e-test.sh [--platform ios|android|both] [flow|all]" >&2
+    exit 1
+    ;;
+  *)
+    if [[ -n "$SPEC_RAW" ]]; then
+      echo "Only one flow selector may be provided: $SPEC_RAW" >&2
+      exit 1
+    fi
+    SPEC_RAW="$1"
+    shift
+    ;;
+  esac
+done
+
+case "$PLATFORM" in
+ios | android | both)
+  ;;
+*)
+  echo "Invalid platform: $PLATFORM. Expected ios, android, or both." >&2
+  exit 1
+  ;;
+esac
+
+SPEC_RAW="${SPEC_RAW:-$DEFAULT_SPEC}"
 TS="$(date +%Y%m%d-%H%M%S)"
 REPORT_DIR="$REPO_ROOT/.artifacts/mobile-e2e-reports/$TS"
 # One Maestro output dir per OS + form-factor slot.
@@ -236,8 +279,72 @@ ANDROID_DEVICE_LABEL="$E2E_ANDROID_AVD"
 IOS_SLOT_NAME="ios-phone"
 ANDROID_SLOT_NAME="android-phone"
 
+REPORT_FINALIZED=0
+REPORT_INTERRUPTED=0
+
+finalize_report() {
+  if [[ "$REPORT_FINALIZED" -eq 1 || ! -d "$REPORT_DIR" ]]; then
+    return 0
+  fi
+  REPORT_FINALIZED=1
+
+  if [[ "$REPORT_INTERRUPTED" -eq 1 ]]; then
+    echo "Finalizing partial mobile E2E report after interruption..."
+    if ! MOBILE_E2E_REPORT_PARTIAL=1 node "$SCRIPT_DIR/e2e-html-report.mjs" "$REPORT_DIR"; then
+      echo "Warning: unable to finalize the partial mobile E2E report." >&2
+      return 0
+    fi
+  else
+    node "$SCRIPT_DIR/e2e-html-report.mjs" "$REPORT_DIR"
+  fi
+
+  echo "Mobile E2E hub: $REPORT_DIR/index.html"
+  echo "  Failures JSON: $REPORT_DIR/failures.json"
+  if [[ -d "$IOS_SLOT_DIR" ]]; then
+    echo "  ${IOS_SLOT_NAME}: $IOS_SLOT_DIR/index.html"
+  fi
+  if [[ -d "$ANDROID_SLOT_DIR" ]]; then
+    echo "  ${ANDROID_SLOT_NAME}: $ANDROID_SLOT_DIR/index.html"
+  fi
+  echo "Latest symlink: $LATEST_LINK"
+
+  if [[ "$REPORT_INTERRUPTED" -eq 0 ]]; then
+    if command -v open >/dev/null 2>&1; then
+      [[ -f "$REPORT_DIR/index.html" ]] && open "$REPORT_DIR/index.html" 2>/dev/null || true
+    elif command -v xdg-open >/dev/null 2>&1; then
+      [[ -f "$REPORT_DIR/index.html" ]] && xdg-open "$REPORT_DIR/index.html" >/dev/null 2>&1 || true
+    fi
+  fi
+}
+
+handle_interrupt() {
+  REPORT_INTERRUPTED=1
+  echo "Mobile E2E interrupted; preserving available report artifacts." >&2
+  finalize_report
+  trap - EXIT
+  exit 130
+}
+
+handle_termination() {
+  REPORT_INTERRUPTED=1
+  echo "Mobile E2E terminated; preserving available report artifacts." >&2
+  finalize_report
+  trap - EXIT
+  exit 143
+}
+
+handle_exit() {
+  local exit_code="$?"
+  trap - EXIT
+  finalize_report
+  exit "$exit_code"
+}
+
+trap handle_interrupt INT
+trap handle_termination TERM
+trap handle_exit EXIT
+
 if [[ "$NEEDS_TABLET" -eq 1 ]]; then
-  mkdir -p "$IOS_TABLET_DIR" "$ANDROID_TABLET_DIR"
   IOS_SLOT_DIR="$IOS_TABLET_DIR"
   ANDROID_SLOT_DIR="$ANDROID_TABLET_DIR"
   IOS_DEVICE_LABEL="$E2E_IOS_TABLET_NAME"
@@ -245,56 +352,67 @@ if [[ "$NEEDS_TABLET" -eq 1 ]]; then
   IOS_SLOT_NAME="ios-tablet"
   ANDROID_SLOT_NAME="android-tablet"
   echo "Booting E2E tablet devices (no install)..."
-  bash "$SCRIPT_DIR/ensure-devices.sh" e2e-tablet
-  if [[ "$(uname -s)" == "Darwin" ]]; then
-    IOS_UDID="$(bash "$SCRIPT_DIR/ensure-devices.sh" resolve-e2e-ios-tablet-udid)"
-    echo "E2E iOS tablet UDID: $IOS_UDID"
-    if ! bash "$SCRIPT_DIR/ensure-devices.sh" check-e2e-app-ios-tablet >/dev/null 2>&1; then
-      echo "Error: app not installed on E2E iOS tablet (${E2E_IOS_TABLET_NAME})." >&2
-      echo "In another terminal: npm run mobile:e2e:ios:tablet" >&2
-      exit 1
+  if [[ "$PLATFORM" == "ios" || "$PLATFORM" == "both" ]]; then
+    mkdir -p "$IOS_TABLET_DIR"
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+      bash "$SCRIPT_DIR/ensure-devices.sh" e2e-ios-tablet
+      IOS_UDID="$(bash "$SCRIPT_DIR/ensure-devices.sh" resolve-e2e-ios-tablet-udid)"
+      echo "E2E iOS tablet UDID: $IOS_UDID"
+      if ! bash "$SCRIPT_DIR/ensure-devices.sh" check-e2e-app-ios-tablet >/dev/null 2>&1; then
+        echo "Error: app not installed on E2E iOS tablet (${E2E_IOS_TABLET_NAME})." >&2
+        echo "In another terminal: npm run mobile:e2e:ios:tablet" >&2
+        exit 1
+      fi
     fi
   fi
-  if ANDROID_SERIAL="$(bash "$SCRIPT_DIR/ensure-devices.sh" resolve-e2e-android-tablet-serial 2>/dev/null)"; then
-    echo "E2E Android tablet serial: $ANDROID_SERIAL"
-    if ! bash "$SCRIPT_DIR/ensure-devices.sh" check-e2e-app-android-tablet >/dev/null 2>&1; then
-      echo "Error: app not installed on E2E Android tablet (${E2E_ANDROID_TABLET_AVD})." >&2
-      echo "In another terminal: npm run mobile:e2e:android:tablet" >&2
-      exit 1
+  if [[ "$PLATFORM" == "android" || "$PLATFORM" == "both" ]]; then
+    mkdir -p "$ANDROID_TABLET_DIR"
+    if ANDROID_SERIAL="$(bash "$SCRIPT_DIR/ensure-devices.sh" resolve-e2e-android-tablet-serial 2>/dev/null)"; then
+      echo "E2E Android tablet serial: $ANDROID_SERIAL"
+      if ! bash "$SCRIPT_DIR/ensure-devices.sh" check-e2e-app-android-tablet >/dev/null 2>&1; then
+        echo "Error: app not installed on E2E Android tablet (${E2E_ANDROID_TABLET_AVD})." >&2
+        echo "In another terminal: npm run mobile:e2e:android:tablet" >&2
+        exit 1
+      fi
+    else
+      echo "Warning: E2E Android tablet not available; iOS-tablet-only Maestro run this pass."
+      ANDROID_SERIAL=""
     fi
-  else
-    echo "Warning: E2E Android tablet not available; iOS-tablet-only Maestro run this pass."
-    ANDROID_SERIAL=""
   fi
 else
-  mkdir -p "$IOS_PHONE_DIR" "$ANDROID_PHONE_DIR"
   echo "Booting E2E phone devices (no install)..."
-  bash "$SCRIPT_DIR/ensure-devices.sh" e2e
-  if [[ "$(uname -s)" == "Darwin" ]]; then
-    IOS_UDID="$(bash "$SCRIPT_DIR/ensure-devices.sh" resolve-e2e-ios-udid)"
-    echo "E2E iOS UDID: $IOS_UDID"
-    if ! bash "$SCRIPT_DIR/ensure-devices.sh" check-e2e-app-ios >/dev/null 2>&1; then
-      echo "Error: app not installed on E2E iOS (${E2E_IOS_NAME})." >&2
-      echo "In another terminal: npm run mobile:e2e:ios" >&2
-      exit 1
+  if [[ "$PLATFORM" == "ios" || "$PLATFORM" == "both" ]]; then
+    mkdir -p "$IOS_PHONE_DIR"
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+      bash "$SCRIPT_DIR/ensure-devices.sh" e2e-ios
+      IOS_UDID="$(bash "$SCRIPT_DIR/ensure-devices.sh" resolve-e2e-ios-udid)"
+      echo "E2E iOS UDID: $IOS_UDID"
+      if ! bash "$SCRIPT_DIR/ensure-devices.sh" check-e2e-app-ios >/dev/null 2>&1; then
+        echo "Error: app not installed on E2E iOS (${E2E_IOS_NAME})." >&2
+        echo "In another terminal: npm run mobile:e2e:ios" >&2
+        exit 1
+      fi
     fi
   fi
-  if ANDROID_SERIAL="$(bash "$SCRIPT_DIR/ensure-devices.sh" resolve-e2e-android-serial 2>/dev/null)"; then
-    echo "E2E Android serial: $ANDROID_SERIAL"
-    if ! bash "$SCRIPT_DIR/ensure-devices.sh" check-e2e-app-android >/dev/null 2>&1; then
-      echo "Error: app not installed on E2E Android (${E2E_ANDROID_AVD})." >&2
-      echo "In another terminal: npm run mobile:e2e:android" >&2
-      exit 1
+  if [[ "$PLATFORM" == "android" || "$PLATFORM" == "both" ]]; then
+    mkdir -p "$ANDROID_PHONE_DIR"
+    if ANDROID_SERIAL="$(bash "$SCRIPT_DIR/ensure-devices.sh" resolve-e2e-android-serial 2>/dev/null)"; then
+      echo "E2E Android serial: $ANDROID_SERIAL"
+      if ! bash "$SCRIPT_DIR/ensure-devices.sh" check-e2e-app-android >/dev/null 2>&1; then
+        echo "Error: app not installed on E2E Android (${E2E_ANDROID_AVD})." >&2
+        echo "In another terminal: npm run mobile:e2e:android" >&2
+        exit 1
+      fi
+    else
+      echo "Warning: E2E Android not available; iOS-only Maestro run this pass."
+      ANDROID_SERIAL=""
     fi
-  else
-    echo "Warning: E2E Android not available; iOS-only Maestro run this pass."
-    ANDROID_SERIAL=""
   fi
 fi
 
 # Flow-scoped retries after the initial suite pass (not a full-suite re-run).
-# Set MOBILE_E2E_FLOW_RETRIES=0 to disable. Default 1 recovers Dev Client relaunch flakes.
-MOBILE_E2E_FLOW_RETRIES="${MOBILE_E2E_FLOW_RETRIES:-1}"
+# Set MOBILE_E2E_FLOW_RETRIES to a positive number to opt in.
+MOBILE_E2E_FLOW_RETRIES="${MOBILE_E2E_FLOW_RETRIES:-0}"
 
 # Run Maestro for a platform slot; on failure, re-run only still-failed flow YAMLs.
 # Usage: run_maestro_slot <device-id> <slot-dir> <label> <flow...>
@@ -375,23 +493,7 @@ if [[ "$RAN_ANY" -eq 0 ]]; then
   exit 1
 fi
 
-node "$SCRIPT_DIR/e2e-html-report.mjs" "$REPORT_DIR"
-echo "Mobile E2E hub: $REPORT_DIR/index.html"
-echo "  Failures JSON: $REPORT_DIR/failures.json"
-if [[ "$NEEDS_TABLET" -eq 1 ]]; then
-  echo "  iOS tablet:     $REPORT_DIR/ios-tablet/index.html"
-  echo "  Android tablet: $REPORT_DIR/android-tablet/index.html"
-else
-  echo "  iOS phone:     $REPORT_DIR/ios-phone/index.html"
-  echo "  Android phone: $REPORT_DIR/android-phone/index.html"
-fi
-echo "Latest symlink: $LATEST_LINK"
-
-if command -v open >/dev/null 2>&1; then
-  [[ -f "$REPORT_DIR/index.html" ]] && open "$REPORT_DIR/index.html" 2>/dev/null || true
-elif command -v xdg-open >/dev/null 2>&1; then
-  [[ -f "$REPORT_DIR/index.html" ]] && xdg-open "$REPORT_DIR/index.html" >/dev/null 2>&1 || true
-fi
+finalize_report
 
 if [[ "$EXIT_CODE" -ne 0 ]]; then
   echo ""

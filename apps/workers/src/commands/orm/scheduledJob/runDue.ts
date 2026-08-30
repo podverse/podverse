@@ -26,6 +26,16 @@ const DEFAULT_CLAIM_LIMIT = 50;
 const STALE_LOCK_MINUTES = 15;
 const BASE_BACKOFF_MS = FIVE_MINUTES_MS;
 
+/**
+ * Retries are spaced deterministically: a job requeued after the same number of attempts always
+ * lands at the same offset, so an operator reading `next_run_at` can say when it will run.
+ *
+ * Jitter exists to stop simultaneous retries from colliding, which matters for a shared remote
+ * endpoint. These jobs are claimed one at a time out of a table, so the collision it prevents is
+ * not one this loop can have.
+ */
+const BACKOFF_JITTER_MS = 0;
+
 function parseLimit(args: CommandLineArgs): number {
   const rawLimit = args.limit;
   if (typeof rawLimit !== 'string') {
@@ -143,7 +153,11 @@ export const scheduledJobsRunDue = async (args: CommandLineArgs) => {
     } catch (error) {
       const errorMessage = getErrorMessage(error, 'Unknown error');
       if (job.attempts < job.max_attempts) {
-        const backoffMs = computeExponentialBackoffDelayMs(job.attempts, BASE_BACKOFF_MS);
+        const backoffMs = computeExponentialBackoffDelayMs(
+          job.attempts,
+          BASE_BACKOFF_MS,
+          BACKOFF_JITTER_MS
+        );
         await scheduledJobService.requeueWithBackoff(job.id, errorMessage, backoffMs);
         logger.warn(
           `scheduledJobsRunDue requeued id=${job.id} dedupe_key=${job.dedupe_key} attempts=${job.attempts}/${job.max_attempts} backoff_ms=${backoffMs} error="${errorMessage}"`

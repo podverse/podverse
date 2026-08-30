@@ -248,13 +248,29 @@ otherwise-passing test gated by login (`media-player-*`, `set-password-invite-se
 
 ---
 
-## ISSUE 11 (WATCH): embed-routes clip/soundbite title assertion flake
+## ISSUE 11 (FIXED): embed-routes clip/soundbite title assertion
 
-On the same stormy run as ISSUE 10, `e2e/embed-routes.spec.ts` (“Clip and soundbite embeds hide
-chapter info”) failed once asserting clip title `"Through the Telescope"` while the UI briefly
-showed episode title `"The Solar System"` + `embed-title-toggle` (pre-`mpClip` state in
-`EmbedPlayerInfo`). The same clip fixture passed in `embed-clip-soundbite-end.spec.ts` in that
-run, and the test passed in the prior report run — treated as storm-induced / timing flake.
+`e2e/embed-routes.spec.ts` (“Clip and soundbite embeds hide chapter info”) started the clip at
+`t=25`, but the seeded clip runs from 5–10 seconds. At 25 seconds the player correctly clears the
+clip segment and displays the parent episode/chapter title, so the assertion was deterministic rather
+than flaky.
 
-- **Action.** Revisit only if it fails again on a clean `make e2e_test_report` (with
-  `e2e_build_packages` / no login-429 storm). Harden the assertion or wait for clip title then.
+- **Fix.** The test now starts at `EMBED_SAMPLE_CLIP_START_SECONDS`, which keeps the playhead inside
+  the clip while verifying that chapter markers and chapter title controls remain hidden.
+
+---
+
+## ISSUE 12 (FIXED IN GUIDE): stale mobile CocoaPods project after dependency reinstall
+
+The mobile E2E iOS install failed because `apps/mobile/ios/Pods/Pods.xcodeproj/project.pbxproj`
+referenced `React/Fabric/RCTThirdPartyFabricComponentsProvider.mm`, while the freshly installed
+React Native `0.76.9` package did not contain that path. The Pods project timestamp predated the
+React Native install, so the generated native project was stale relative to `apps/mobile/node_modules`.
+
+- **Fix.** The full verification guide now runs `npm run mobile:reset` after dependency/build
+  preparation and before `mobile:e2e:ios` / `mobile:e2e:android`. The reset reinstalls mobile
+  dependencies, regenerates native trees with `expo prebuild --clean`, and runs CocoaPods using the
+  macOS-native toolchain.
+- **Why device scripts do not do this automatically.** `mobile:e2e:*` intentionally skips prebuild so
+  repeated device installs are fast; the full verification workflow now establishes that native
+  prerequisite explicitly.

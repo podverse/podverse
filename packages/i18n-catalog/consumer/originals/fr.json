@@ -967,7 +967,10 @@
       "category_terms_of_service": "Conditions d'utilisation",
       "category_terms_of_service_description": "Annonces juridiques et de politique obligatoires.",
       "category_general": "Général",
-      "category_general_description": "Notifications importantes relatives à votre compte."
+      "category_general_description": "Notifications importantes relatives à votre compte.",
+      "new_item": "Nouvel élément",
+      "livestream_scheduled": "Diffusion en direct programmée",
+      "livestream_started": "Diffusion en direct démarrée"
     },
     "opml": {
       "opml": "OPML",

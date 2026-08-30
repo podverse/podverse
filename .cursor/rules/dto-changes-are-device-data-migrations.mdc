@@ -1,5 +1,5 @@
 ---
-description: A shared DTO change rewrites data already written to phones — mobile persists DTO-shaped JSON in SQLite, so renames and shape changes are data migrations, not just type changes
+description: Treat persisted DTOs and Add-by-RSS parse bundles as device data migrations; trace server, parser, SQLite, and offline playback contracts
 globs:
   - "packages/helpers/src/dtos/**"
   - "packages/orm/src/entities/**"
@@ -41,11 +41,9 @@ Those payloads come back through `safeJsonParse<T>`, which parses and asserts:
     return null;
 ```
 
-The assertion is reasonable — the app serialized the value itself — but it means a row written by
-last month's build satisfies today's type with no complaint. Rename `is_new` to `is_unread` and the
-compiler fixes every read site; it cannot fix the JSON already on disk, where the key is still
-`is_new`. The field reads `undefined` at runtime until that row is re-fetched, and an offline device
-may not re-fetch for days.
+The assertion is reasonable — the app serialized the value itself — but it means a row written by an
+older build satisfies today's type with no complaint. A renamed persisted field can therefore read
+as `undefined` until that row is re-fetched, and an offline device may not re-fetch immediately.
 
 ## What to check when you change a shared DTO
 
@@ -66,10 +64,8 @@ may not re-fetch for days.
 
 Mobile DDL is device-local and forward-only. Append a migration to `apps/mobile/src/data/db/migrations.ts`
 with the next integer version and make the matching edit to `schema.ts` — the two are maintained by
-hand and nothing checks that they agree, which is the gap
-[897-defer-mobile-schema-drift-checks](/docs/proposals/mobile/_master-plan_/phase-2/details/897-defer-mobile-schema-drift-checks.md)
-exists to close. Never edit a migration that has shipped: `PRAGMA user_version` means an installed
-device will never run it again.
+hand, so schema drift requires an explicit review. Never edit a migration that has shipped:
+`PRAGMA user_version` means an installed device will never run it again.
 
 A mobile table change needs nothing from the server. The traffic is one-way.
 
@@ -86,6 +82,8 @@ A mobile table change needs nothing from the server. The traffic is one-way.
 
 ## Related
 
+- [`add-by-rss-data-contracts`](/.cursor/rules/add-by-rss-data-contracts.mdc) — the
+  parser-to-SQLite-to-playback checklist
 - [`cross-surface-change-impact`](/.cursor/rules/cross-surface-change-impact.mdc) — which surfaces a
   change touches at all
 - **mobile-data-layer** — repositories, storage boundaries, background sync

@@ -967,7 +967,10 @@
       "category_terms_of_service": "",
       "category_terms_of_service_description": "",
       "category_general": "",
-      "category_general_description": ""
+      "category_general_description": "",
+      "new_item": "",
+      "livestream_scheduled": "",
+      "livestream_started": ""
     },
     "opml": {
       "opml": "",

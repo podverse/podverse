@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { stopPropagation } from '../../lib/gesture/stopPropagation';
 import { useTheme } from '../../theme/useTheme';
 
 /**
@@ -100,14 +99,18 @@ export function ActionSheet({ onRequestClose, sections, testID, visible }: Actio
 
   return (
     <Modal animationType="slide" onRequestClose={onRequestClose} transparent visible={visible}>
-      {/* The scrim is a sighted-only shortcut for dismissing, so it stays out of the accessibility
-          tree; `accessibilityViewIsModal` keeps VoiceOver inside the sheet rather than letting it
-          wander onto the screen behind. */}
-      <Pressable accessible={false} onPress={onRequestClose} style={styles.backdrop}>
+      <View style={styles.backdrop}>
+        {/* The scrim is a sighted-only shortcut for dismissing, so it stays out of the accessibility
+            tree; the sheet claims touches separately so row presses cannot dismiss it accidentally. */}
         <Pressable
+          accessible={false}
+          onPress={onRequestClose}
+          style={StyleSheet.absoluteFill}
+        />
+        <View
           accessibilityRole="menu"
           accessibilityViewIsModal
-          onPress={stopPropagation}
+          onStartShouldSetResponder={() => true}
           style={styles.sheet}
           testID={testID}
         >
@@ -147,8 +150,8 @@ export function ActionSheet({ onRequestClose, sections, testID, visible }: Actio
               ))}
             </View>
           ))}
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 }

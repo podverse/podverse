@@ -1,5 +1,9 @@
+import { createRequire } from 'node:module';
+
 import createNextIntlPlugin from 'next-intl/plugin';
 import path from 'path';
+
+const resolve = createRequire(import.meta.url).resolve;
 
 const nextConfig = {
   output: 'standalone',
@@ -14,6 +18,7 @@ const nextConfig = {
   ],
   sassOptions: {
     includePaths: [import.meta.dirname + '/src/styles/variables'],
+    implementation: resolve('sass'),
   },
   transpilePackages: ['@podverse/helpers', '@podverse/ui', '@podverse/integrations-web'],
   images: {

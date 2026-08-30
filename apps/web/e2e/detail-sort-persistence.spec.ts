@@ -58,7 +58,9 @@ test.describe('Detail page sort memory', () => {
         'href',
         `/episode/${E2E_PODCAST_ITEM_CHAPTERED_ID_TEXT}`
       );
-      await expect(page).toHaveURL(/sort=oldest/);
+      // The preference lives in the cookie, so choosing a sort must not put one in the URL. A
+      // clean URL is what lets the later steps prove the memory rather than re-reading a param.
+      await expect(page).toHaveURL(SEEDED_PODCAST_URL);
 
       await captureVerifiedElement(
         page,

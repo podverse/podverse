@@ -128,6 +128,15 @@ npm run mobile:e2e:test -- hello-world
 npm run mobile:e2e:test -- home,search
 ```
 
+For first-failure debugging, run one platform at a time. Fix the first flow on iOS before running
+that same flow on Android; this avoids spending a full Android pass on a shared launch or feature
+failure. The default command still runs both phone platforms for deliberate regression runs.
+
+```bash
+npm run mobile:e2e:test -- --platform ios home
+npm run mobile:e2e:test -- --platform android home
+```
+
 ### UI-only stack
 
 Default smoke (`hello-world`) does **not** need deps, seed, or API.
@@ -293,7 +302,7 @@ open .artifacts/mobile-e2e-reports/latest/android-tablet/index.html
 | API start says port 4230 already in use                                                    | Free the port or stop managed process: `npm run mobile:e2e:api:stop`                                                                                                                                                                                |
 | Stuck on Expo “Development Build” launcher                                                 | Flows should run `shared/launch-and-connect.yaml` (retries Dev Client connect)                                                                                                                                                                      |
 | Assertion fails; screenshot shows “developer menu” / Continue                              | Same shared flow dismisses the one-time Expo dev-client menu (see below)                                                                                                                                                                            |
-| `App crashed or stopped` / fail on “Development servers” mid-suite; SpringBoard screenshot | Dev Client relaunch flake after `clearState` (not a feature bug). `launch-and-connect` retries connect; runner re-runs only failed flows once (`MOBILE_E2E_FLOW_RETRIES`, default `1`). Focused check: `npm run mobile:e2e:test -- podcast-episode` |
+| `App crashed or stopped` / fail on “Development servers” mid-suite; SpringBoard screenshot | Dev Client relaunch flake after `clearState` (not a feature bug). `launch-and-connect` retries connect; optionally set `MOBILE_E2E_FLOW_RETRIES` to retry only failed flows after the suite. Focused check: `npm run mobile:e2e:test -- podcast-episode` |
 | Maestro missing                                                                            | Install via repo flake (`maestro`) or [Maestro docs](https://docs.maestro.dev/getting-started/installing-maestro)                                                                                                                                   |
 | `play-mini-player` Android: Maestro `full-player-close` tap does not dismiss               | Expected for now — the flow uses `pressKey: Back` on Android (same `onClose` / `BackHandler` path). **Manually tap Close once** on an Android AVD/device before release to confirm real input dismisses the full player.                            |
 
@@ -312,9 +321,9 @@ before “Development servers”). That shared connect flow: (1) taps the Metro 
 still covers the app. New flows must `runFlow: shared/launch-and-connect.yaml` — do not assert
 app UI before it finishes.
 
-The runner also re-runs **only failed** flow YAMLs once per platform after a suite pass
-(`MOBILE_E2E_FLOW_RETRIES=1` by default; set `0` to disable). Reports prefer the latest pass for
-a flow title when both a failed and a retry `commands-*.json` exist.
+The runner executes each flow once per platform by default. Set `MOBILE_E2E_FLOW_RETRIES` to a
+positive number to opt into end-of-suite retries of only failed flow YAMLs. Reports prefer the
+latest pass for a flow title when both a failed and a retry `commands-*.json` exist.
 
 Read the **failed slot** HTML (error banner + ❌ screenshot) before changing app code.
 

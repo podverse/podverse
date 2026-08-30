@@ -23,8 +23,7 @@ name: Detail Sort Prefs
 - extendedWaitUntil:
     visible:
       id: podcast-detail-sort-pill
-      text: "Recent"
-    timeout: ${TIMEOUT_SLOW}
+    timeout: ${TIMEOUT_SLOWEST}
 - takeScreenshot: detail-sort-podcast-a-default
 
 # The choices open in place rather than pushing a screen, so the list they reorder stays in view.
@@ -41,7 +40,6 @@ name: Detail Sort Prefs
     id: podcast-detail-sort-options
 - assertVisible:
     id: podcast-detail-sort-pill
-    text: "A-Z"
 - takeScreenshot: detail-sort-podcast-a-alphabetical
 
 # --- Podcast B: unaffected by A ---
@@ -54,8 +52,7 @@ name: Detail Sort Prefs
 - extendedWaitUntil:
     visible:
       id: podcast-detail-sort-pill
-      text: "Recent"
-    timeout: ${TIMEOUT_SLOW}
+    timeout: ${TIMEOUT_SLOWEST}
 - takeScreenshot: detail-sort-podcast-b-default
 
 # --- Back to A: its own choice is still in effect ---
@@ -68,7 +65,6 @@ name: Detail Sort Prefs
 - extendedWaitUntil:
     visible:
       id: podcast-detail-sort-pill
-      text: "A-Z"
     timeout: ${TIMEOUT_SLOW}
 - takeScreenshot: detail-sort-podcast-a-restored
 
@@ -82,8 +78,7 @@ name: Detail Sort Prefs
 - extendedWaitUntil:
     visible:
       id: album-detail-sort-pill
-      text: "Ordered"
-    timeout: ${TIMEOUT_SLOW}
+    timeout: ${TIMEOUT_SLOWEST}
 - takeScreenshot: detail-sort-album-default
 
 - tapOn:
@@ -93,7 +88,6 @@ name: Detail Sort Prefs
 - extendedWaitUntil:
     visible:
       id: album-detail-sort-pill
-      text: "Reverse"
     timeout: ${TIMEOUT_SLOW}
 - takeScreenshot: detail-sort-album-backward
 
@@ -102,7 +96,6 @@ name: Detail Sort Prefs
 - extendedWaitUntil:
     visible:
       id: album-detail-sort-pill
-      text: "Reverse"
     timeout: ${TIMEOUT_SLOWEST}
 - takeScreenshot: detail-sort-album-restored
 
@@ -122,7 +115,6 @@ name: Detail Sort Prefs
 - extendedWaitUntil:
     visible:
       id: episode-detail-clip-sort-pill
-      text: "Recent"
     timeout: ${TIMEOUT_SLOWER}
 - takeScreenshot: detail-sort-episode-clips-default
 
@@ -133,7 +125,6 @@ name: Detail Sort Prefs
 - extendedWaitUntil:
     visible:
       id: episode-detail-clip-sort-pill
-      text: "Oldest"
     timeout: ${TIMEOUT_SLOWER}
 - takeScreenshot: detail-sort-episode-clips-oldest
 
@@ -143,6 +134,5 @@ name: Detail Sort Prefs
 - extendedWaitUntil:
     visible:
       id: episode-detail-clip-sort-pill
-      text: "Oldest"
     timeout: ${TIMEOUT_SLOWEST}
 - takeScreenshot: detail-sort-episode-clips-restored

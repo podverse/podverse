@@ -27,6 +27,8 @@ if (!reportRoot) {
   process.exit(1);
 }
 
+const isPartialReport = process.env.MOBILE_E2E_REPORT_PARTIAL === '1';
+
 /** Ordered slots: OS + form factor. Create reports only for dirs that exist. */
 const SLOT_META = [
   { id: 'ios-phone', label: 'iOS phone', os: 'ios', form: 'phone' },
@@ -815,8 +817,8 @@ ${items.join('\n')}
   <style>${reportSharedCss()}</style>
 </head>
 <body>
-  <h1>Mobile E2E report hub</h1>
-  <p class="meta">One report tree per <strong>OS + device form factor</strong>. All report links open in a <strong>new tab</strong>. Each slot fans out to <code>flows/&lt;slug&gt;/index.html</code>. Agents: start at <a href="./failures.json">failures.json</a>.</p>
+  <h1>Mobile E2E report hub${isPartialReport ? ' (partial)' : ''}</h1>
+  <p class="meta">${isPartialReport ? '<strong>Partial report:</strong> the run ended before all selected slots completed. ' : ''}One report tree per <strong>OS + device form factor</strong>. All report links open in a <strong>new tab</strong>. Each slot fans out to <code>flows/&lt;slug&gt;/index.html</code>. Agents: start at <a href="./failures.json">failures.json</a>.</p>
 ${failuresBlock}  <div class="hub-grid">
 ${cards}
   </div>
@@ -883,9 +885,10 @@ const slotDirs = resolveSlotDirs(reportRoot);
 const slotStatuses = new Map();
 
 const runId = path.basename(path.resolve(reportRoot));
-/** @type {{ runId: string, slots: Record<string, { failed: Array<{ flow: string, slug: string, error: string, html: string, screenshot: string | null }> }> }} */
+/** @type {{ runId: string, partial: boolean, slots: Record<string, { failed: Array<{ flow: string, slug: string, error: string, html: string, screenshot: string | null }> }> }} */
 const failuresDoc = {
   runId,
+  partial: isPartialReport,
   slots: {},
 };
 

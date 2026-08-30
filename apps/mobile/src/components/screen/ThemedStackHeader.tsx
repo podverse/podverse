@@ -33,6 +33,16 @@ export function ThemedStackHeader({ back, navigation, options }: NativeStackHead
           backgroundColor: themeStyles.screen.backgroundColor,
           paddingTop: insets.top,
         },
+        rightButton: {
+          alignItems: 'center',
+          height: 44,
+          justifyContent: 'center',
+          paddingHorizontal: tokens.spacing.sm,
+          position: 'absolute',
+          right: tokens.spacing.sm,
+          top: 0,
+          zIndex: 1,
+        },
         row: {
           alignItems: 'center',
           flexDirection: 'row',
@@ -70,6 +80,15 @@ export function ThemedStackHeader({ back, navigation, options }: NativeStackHead
         <Text numberOfLines={1} style={styles.title}>
           {title}
         </Text>
+        {options.headerRight !== undefined ? (
+          <View style={styles.rightButton}>
+            {options.headerRight({
+              pressColor: options.headerPressColor,
+              pressOpacity: options.headerPressOpacity,
+              tintColor: options.headerTintColor,
+            })}
+          </View>
+        ) : null}
       </View>
     </View>
   );

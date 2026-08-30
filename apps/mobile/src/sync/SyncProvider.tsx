@@ -85,7 +85,9 @@ export function SyncProvider({ children }: PropsWithChildren) {
     syncQueue.enqueue(
       buildSyncJobs(planned, {
         getAuthContext: () => depsRef.current,
-        loadActiveQueue: async () => loadActiveQueueRef.current(),
+        loadActiveQueue: async () => {
+          await loadActiveQueueRef.current();
+        },
         setAccount: (account) => {
           setAccountRef.current(account);
         },

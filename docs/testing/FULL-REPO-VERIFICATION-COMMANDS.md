@@ -1,22 +1,49 @@
-# Full Repo Verification Commands
+# Full Local Infrastructure Test
 
-Run all commands from the monorepo root.
+Run these commands from the monorepo root, in order.
 
-## 1) Infrastructure prerequisites
+## 0. Optional cold dependency install
 
-**Docker** (starts Postgres + Valkey test deps)
+Use this before the reset below when validating dependency or lockfile changes, or when diagnosing
+module-resolution problems. It removes and reinstalls root and standalone mobile dependencies using
+their lockfiles, including dependencies for the web E2E seeder workspace. It also builds shared
+packages; the reset below is still required for clean app output and caches.
+
+**Root**
 
 ```bash
-make test_deps
+npm run deps:init:ci
 ```
 
-**Docker** (optional, only for broker-backed MQ integration tests)
+## 1. Reset and prepare generated state
+
+Stop any running dev, build, or E2E processes first. This removes generated build output, TypeScript
+build info, Next.js output, and local build caches without touching `node_modules` or test databases.
+Shared packages are rebuilt afterward because their workspace exports resolve to `dist/`.
+
+**Root**
 
 ```bash
-make test_deps_mq
+npm run clean:all
+npm run clean:cache
+npm run build:packages
 ```
 
-## 2) Static quality gates
+## 2. Unit tests
+
+**Root**
+
+```bash
+npm run test:unit
+```
+
+**Mobile**
+
+```bash
+npm --prefix apps/mobile run test
+```
+
+## 3. Static checks and builds
 
 **Root**
 
@@ -25,40 +52,50 @@ npm run lint
 npm run type-check
 npm run openapi:check
 npm run i18n:validate
-```
-
-## 3) Full build pass
-
-**Root**
-
-```bash
 npm run build
 ```
 
-## 4) Unit + API integration + web/management-web E2E
+## 4. Web, management-web, and API E2E
 
 **Root**
 
 ```bash
-npm run test:unit
-npm run test:e2e:api
+make test_deps
 make e2e_test_report
-open .artifacts/e2e-reports/latest/index.html
 ```
 
-## 5) Optional broker-backed worker integration
+`e2e_test_report` runs API integration tests plus all web and management-web E2E variants, then
+opens the generated report hub automatically on macOS.
 
-Use this when validating Artemis-backed worker flows (for example OPML worker queue integration).
+## 5. Mobile native dependency sync
 
-**Root**
+Regenerate the native trees and CocoaPods after the dependency install and before installing an E2E
+binary. `mobile:e2e:ios` and `mobile:e2e:android` assume the generated native projects already match
+the installed Expo and React Native packages.
+
+**Mobile**
 
 ```bash
-PODVERSE_RUN_MQ_INTEGRATION=1 npm run test -w apps/workers -- runOpmlImport.integration.test.ts
+npm run mobile:reset
 ```
 
-## 6) Mobile full-suite E2E (Maestro)
+## 6. Mobile E2E
 
-Bring up leave-running services first:
+**Mobile**
+
+```bash
+make mobile_e2e_deps
+```
+
+Seed the shared E2E fixtures:
+
+**Mobile**
+
+```bash
+make mobile_e2e_seed
+```
+
+Run each of these in its own leave-running tab:
 
 **Mobile Metro**
 
@@ -78,44 +115,27 @@ npm run mobile:e2e:api
 npm run mobile:e2e:test-assets
 ```
 
-Install app binaries on E2E devices:
-
-**Mobile iOS**
+Install the E2E app binary in **Mobile iOS**:
 
 ```bash
 npm run mobile:e2e:ios
 ```
 
-**Mobile Android**
+Install the E2E app binary in **Mobile Android**:
 
 ```bash
 npm run mobile:e2e:android
 ```
 
-Run full mobile suite:
-
-**Mobile Maestro**
+Run the final suite in **Mobile Maestro**:
 
 ```bash
 npm run mobile:e2e:test:all
+npm run mobile:e2e:test -- tablet
 ```
 
-Open reports:
+Each selected flow runs once per platform by default. To opt into one end-of-suite retry pass for
+only failed flows, run `MOBILE_E2E_FLOW_RETRIES=1 npm run mobile:e2e:test:all`.
 
-**Mobile**
-
-```bash
-open .artifacts/mobile-e2e-reports/latest/failures.json
-open .artifacts/mobile-e2e-reports/latest/ios-phone/index.html
-open .artifacts/mobile-e2e-reports/latest/android-phone/index.html
-```
-
-## 7) One-command core regression (non-mobile)
-
-If you want a single command for core repo verification (unit + API + web/management-web reports):
-
-**Root**
-
-```bash
-npm run test:reports
-```
+Each run opens the generated report hub automatically. The hub links to the failures summary and
+the platform-specific reports.

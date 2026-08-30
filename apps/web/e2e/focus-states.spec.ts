@@ -50,8 +50,10 @@ test.describe('Focus state consistency', () => {
         el.click();
         return getComputedStyle(el).boxShadow;
       });
-      // After a mouse click :focus-visible does not engage, so box-shadow must remain none/empty.
-      expect(shadow).toBe('none');
+      // A mouse click does not engage :focus-visible, so no ring is drawn. Chromium reports that
+      // as `none` or as an empty string depending on whether a style recalc has landed for the
+      // element the click is navigating away from; both mean no box-shadow.
+      expect(['none', '']).toContain(shadow);
 
       await capturePageLoad(
         page,

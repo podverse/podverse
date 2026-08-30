@@ -141,7 +141,7 @@ doc written except where noted.
 | P2.3.8  | new          | [710-defer-filter-pull-down-reveal](/docs/proposals/mobile/_master-plan_/phase-2/details/710-defer-filter-pull-down-reveal.md)                                             | Codex 5.3 |
 | P2.3.9  | new          | [711-defer-auto-renew-aware-reminders](/docs/proposals/mobile/_master-plan_/phase-2/details/711-defer-auto-renew-aware-reminders.md)                                       | Codex 5.3 |
 | P2.3.10 | new          | [899-defer-accessibility-audit](/docs/proposals/mobile/_master-plan_/phase-2/details/899-defer-accessibility-audit.md) — full screen reader audit across all four surfaces | Opus 5    |
-| P2.3.11 | new          | [897-defer-mobile-schema-drift-checks](/docs/proposals/mobile/_master-plan_/phase-2/details/897-defer-mobile-schema-drift-checks.md) — evaluate after Phase 2 closes       | Auto      |
+| P2.3.11 | new          | [897-defer-mobile-schema-and-persistence-contract-checks](/docs/proposals/mobile/_master-plan_/phase-2/details/897-defer-mobile-schema-drift-checks.md) — evaluate after Phase 2 closes | Auto      |
 | P2.3.12 | new          | [896-defer-tablet-layout-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/896-defer-tablet-layout-parity.md) — tablet left rail and missing mini player        | Opus 5    |
 
 **P2.3.10 is a deferral of the _existing_ surface area only.** All **new** screens and components must
@@ -280,7 +280,7 @@ above whenever status changes, per
 | [896-defer-tablet-layout-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/896-defer-tablet-layout-parity.md)                   | P2.3.12 | Opus 5    | deferred      |
 | [898-defer-theme-mode-grouping](/docs/proposals/mobile/_master-plan_/phase-2/details/898-defer-theme-mode-grouping.md)                     | P2.3.7  | Codex 5.3 | deferred      |
 | [899-defer-accessibility-audit](/docs/proposals/mobile/_master-plan_/phase-2/details/899-defer-accessibility-audit.md)                     | P2.3.10 | Opus 5    | deferred      |
-| [897-defer-mobile-schema-drift-checks](/docs/proposals/mobile/_master-plan_/phase-2/details/897-defer-mobile-schema-drift-checks.md)       | P2.3.11 | Auto      | deferred      |
+| [897-defer-mobile-schema-and-persistence-contract-checks](/docs/proposals/mobile/_master-plan_/phase-2/details/897-defer-mobile-schema-drift-checks.md) | P2.3.11 | Auto      | deferred      |
 
 New Phase 2 detail docs use the **700–899** ID band (see
 [PHASES.md](/docs/proposals/mobile/_master-plan_/PHASES.md) § Detail ID bands).

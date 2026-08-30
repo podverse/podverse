@@ -39,7 +39,7 @@ name: Home Media Types
 # word "Sort", and opens the full Filter/Sort screen. A-Z is the default.
 - assertVisible:
     id: home-sort-button
-    text: "A-Z"
+- assertVisible: "Sort: A-Z"
 - tapOn:
     id: home-sort-button
 - assertVisible:
@@ -60,7 +60,7 @@ name: Home Media Types
     id: home-screen
 - assertVisible:
     id: home-sort-button
-    text: "Recent"
+- assertVisible: "Sort: Recent"
 - takeScreenshot: home-sort-recent
 
 # Reopening shows the choice still selected: the screen reads the stored preference rather than
@@ -76,7 +76,7 @@ name: Home Media Types
     id: home-filter-sort-done
 - assertVisible:
     id: home-sort-button
-    text: "A-Z"
+- assertVisible: "Sort: A-Z"
 
 # The header overflow menu holds the view toggle and Mark All As Seen. The view is two checkable
 # rows rather than one label that flips, so the menu states which mode is in effect.
@@ -84,8 +84,10 @@ name: Home Media Types
     id: home-overflow-trigger
 - tapOn:
     id: home-overflow-trigger
-- assertVisible:
-    id: home-overflow-sheet
+- extendedWaitUntil:
+    visible:
+      id: home-overflow-view-list
+    timeout: ${TIMEOUT_FAST}
 - takeScreenshot: home-overflow-menu
 
 # Nothing is subscribed here, so nothing can be unseen — the action is offered disabled rather than
@@ -93,7 +95,7 @@ name: Home Media Types
 - tapOn:
     id: home-overflow-mark-all-seen
 - assertVisible:
-    id: home-overflow-sheet
+    id: home-overflow-view-list
 
 - tapOn:
     id: home-overflow-view-grid
@@ -157,7 +159,7 @@ name: Home Media Types
     id: home-subscription-filter
 - assertVisible:
     id: home-sort-button
-    text: "A-Z"
+- assertVisible: "Sort: A-Z"
 - tapOn:
     id: home-sort-button
 - assertVisible:

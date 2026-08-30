@@ -1,5 +1,4 @@
 import { config } from '@api/config/index.js';
-import { channelSeenReadRateLimit } from '@api/controllers/account/accountChannelSeen.js';
 import type { Server } from 'http';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -154,10 +153,13 @@ const applyMonotonic = (store: Map<string, Date>, key: string, candidate: Date):
 
 let seenBase: string;
 
+type AccountChannelSeenModule = typeof import('@api/controllers/account/accountChannelSeen.js');
+
 describe('account channel seen routes', () => {
   let server: Server | undefined;
   let ormContext: ORMContext | undefined;
   let app: import('express').Express;
+  let channelSeenReadRateLimit: AccountChannelSeenModule['channelSeenReadRateLimit'];
 
   beforeAll(async () => {
     const result = await startTestApp();
@@ -165,6 +167,10 @@ describe('account channel seen routes', () => {
     server = result.server;
     ormContext = result.ormContext;
     seenBase = (await getBaseApiUrl()) + '/account/channel-seen';
+    // `startTestApp` resets the module registry before building the app, so the limiter the routes
+    // use is a different instance from anything imported at the top of this file. Reaching for it
+    // afterwards is what makes the per-test reset below act on the counter the requests increment.
+    ({ channelSeenReadRateLimit } = await import('@api/controllers/account/accountChannelSeen.js'));
   }, 30000);
 
   afterAll(async () => {

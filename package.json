@@ -36,7 +36,7 @@
   ],
   "overrides": {
     "@xmldom/xmldom": "0.9.10",
-    "ip-address": "10.2.0",
+    "ip-address": "10.7.0",
     "postcss": "$postcss",
     "next": {
       "postcss": "$postcss",
@@ -44,7 +44,7 @@
     },
     "sharp": "$sharp",
     "fast-xml-parser": "5.10.1",
-    "brace-expansion": "5.0.8",
+    "brace-expansion": "5.0.9",
     "glob": "^13.0.1",
     "esbuild": "0.28.1",
     "uuid": "$uuid",
@@ -86,8 +86,8 @@
     "build:apps": "node scripts/ci/run-workspaces.mjs --script build --workspaces apps/api apps/web apps/workers apps/management-api apps/management-web apps/web/sidecar apps/management-web/sidecar",
     "build:tools": "node scripts/ci/run-workspaces.mjs --script build --workspaces tools/qa tools/test-assets",
     "clean": "npm run clean --workspaces --if-present",
-    "clean:packages": "find packages -name 'tsconfig.tsbuildinfo' -delete && find packages -type d -name 'dist' -exec rm -rf {} + 2>/dev/null || true",
-    "clean:apps": "find apps -name 'tsconfig.tsbuildinfo' -delete && find apps -type d \\( -name 'dist' -o -name '.next' -o -name '.cache' -o -name 'compiled' \\) -exec rm -rf {} + 2>/dev/null || true",
+    "clean:packages": "find packages -type f -name 'tsconfig.tsbuildinfo' -not -path '*/node_modules/*' -delete && find packages -type d -name 'dist' -not -path '*/node_modules/*' -exec rm -rf {} + 2>/dev/null || true",
+    "clean:apps": "find apps -type f -name 'tsconfig.tsbuildinfo' -not -path '*/node_modules/*' -delete && find apps -type d \\( -name 'dist' -o -name '.next' -o -name '.cache' -o -name 'compiled' \\) -not -path '*/node_modules/*' -exec rm -rf {} + 2>/dev/null || true",
     "clean:all": "npm run clean:packages && npm run clean:apps",
     "clean:cache": "find . -type d \\( -name '.next' -o -name '.cache' -o -name '.turbo' \\) -not -path '*/node_modules/*' -exec rm -rf {} + 2>/dev/null || true",
     "clean:node_modules": "rm -rf node_modules packages/*/node_modules apps/*/node_modules apps/*/*/node_modules tools/*/node_modules tools/*/*/node_modules",

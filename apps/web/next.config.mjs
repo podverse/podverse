@@ -1,9 +1,13 @@
+import { createRequire } from 'node:module';
+
 import withBundleAnalyzerInit from '@next/bundle-analyzer';
 import createNextIntlPlugin from 'next-intl/plugin';
 import path from 'path';
 import webpack from 'webpack';
 
 import { DATE_FNS_LOCALE_IDS } from '@podverse/helpers';
+
+const resolve = createRequire(import.meta.url).resolve;
 
 const withBundleAnalyzer = withBundleAnalyzerInit({
   enabled: process.env.ANALYZE === 'true',
@@ -30,6 +34,9 @@ const nextConfig = {
   },
   output: 'standalone',
   outputFileTracingRoot: path.join(import.meta.dirname, '../../'),
+  sassOptions: {
+    implementation: resolve('sass'),
+  },
   serverExternalPackages: [
     'winston',
     '@podverse/extension-metrics-sdk',

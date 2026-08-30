@@ -967,7 +967,10 @@
       "category_terms_of_service": "Términos del servicio",
       "category_terms_of_service_description": "Anuncios legales y de políticas obligatorios.",
       "category_general": "General",
-      "category_general_description": "Notificaciones importantes relacionadas con tu cuenta."
+      "category_general_description": "Notificaciones importantes relacionadas con tu cuenta.",
+      "new_item": "Nuevo elemento",
+      "livestream_scheduled": "Transmisión en vivo programada",
+      "livestream_started": "Transmisión en vivo iniciada"
     },
     "opml": {
       "opml": "OPML",

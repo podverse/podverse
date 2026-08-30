@@ -53,12 +53,12 @@ const CLIP_SORT_LABEL_KEYS: Record<EpisodeClipSort, string> = {
 
 const toClipRow = (clip: DTOClip): HomeFeedRowData => {
   const imageUrl =
-    clip.item.item_images[0]?.url ?? clip.item.channel?.channel_images?.[0]?.url ?? null;
+    clip.item?.item_images[0]?.url ?? clip.item?.channel?.channel_images?.[0]?.url ?? null;
   return {
     id: clip.id_text,
     imageUrl,
-    subtitle: clip.item.channel?.title ?? null,
-    title: clip.title ?? clip.item.title ?? clip.id_text,
+    subtitle: clip.item?.channel?.title ?? null,
+    title: clip.title ?? clip.item?.title ?? clip.id_text,
   };
 };
 
@@ -243,10 +243,10 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
     if (episode.item_chapters_feed !== null && episode.item_chapters_feed !== undefined) {
       tabs.push('chapters');
     }
-    if (episode.item_soundbites.length > 0) {
+    if ((episode.item_soundbites ?? []).length > 0) {
       tabs.push('soundbites');
     }
-    if (episode.item_transcripts.length > 0) {
+    if ((episode.item_transcripts ?? []).length > 0) {
       tabs.push('transcript');
     }
 

@@ -81,18 +81,6 @@ components:
           - week
           - month
           - all-time
-    StatsRangeQueryOptional:
-      in: query
-      name: range
-      required: false
-      description: Aggregation range used for ranked list ordering.
-      schema:
-        type: string
-        enum:
-          - day
-          - week
-          - month
-          - all-time
   schemas:
     MessageResponse:
       type: object
@@ -644,7 +632,7 @@ components:
                 `membership.feature_not_available_for_account_type`,
                 `membership.add_by_rss_feed_limit_reached`,
                 `membership.manual_refresh_hourly_limit_reached`). Clients localise the user-facing
-                message from this key; see MembershipDeniedErrorResponse.
+                message from this key.
               example: membership.membership_expired
             renewPath:
               type: string
@@ -652,30 +640,6 @@ components:
               description: >-
                 Present on membership denials. Destination path for the renew/extend action (web
                 route; native clients map it to their own membership screen).
-              example: /membership/renew
-    MembershipDeniedErrorResponse:
-      description: >-
-        403 body returned when an authenticated request is blocked by the membership/entitlement gate.
-        `code`/`i18nKey` distinguish the reason: `membership_expired` (membership expired or missing)
-        vs `feature_not_available_for_account_type` (valid membership but the tier lacks the capability)
-        vs the add-by-RSS feed-limit / manual-refresh limit codes. There is intentionally no
-        expired-vs-never discriminator: an unauthenticated request returns 401, and every account
-        receives a free trial at sign-up, so a logged-in denial is always a renew.
-      allOf:
-        - $ref: "#/components/schemas/AuthorizationErrorResponse"
-        - type: object
-          properties:
-            message:
-              type: string
-              example: Your membership has expired. Renew to use this feature.
-            code:
-              type: string
-              example: membership_expired
-            i18nKey:
-              type: string
-              example: membership.membership_expired
-            renewPath:
-              type: string
               example: /membership/renew
     NotFoundErrorResponse:
       allOf:

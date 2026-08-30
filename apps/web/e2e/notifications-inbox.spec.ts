@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { ROUTES } from '../src/constants/routes';
+import { loginE2eUser } from './helpers/customThemes';
 import { capturePageLoad } from './helpers/stepScreenshots';
 
 const mockNotification = {
@@ -22,7 +23,7 @@ test.describe('Notifications inbox', () => {
   }, testInfo) => {
     let unreadCount = 2;
 
-    await page.route('**/api/v1/account/notifications/unread-count', async (route) => {
+    await page.route('**/api/v2/account/notifications/unread-count', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -34,7 +35,7 @@ test.describe('Notifications inbox', () => {
       });
     });
 
-    await page.route('**/api/v1/account/notifications/mark-read', async (route) => {
+    await page.route('**/api/v2/account/notifications/mark-read', async (route) => {
       unreadCount = 0;
       await route.fulfill({
         status: 200,
@@ -47,7 +48,7 @@ test.describe('Notifications inbox', () => {
       });
     });
 
-    await page.route('**/api/v1/account/notifications*', async (route) => {
+    await page.route('**/api/v2/account/notifications*', async (route) => {
       const url = new URL(route.request().url());
       if (url.pathname.endsWith('/unread-count') || url.pathname.endsWith('/mark-read')) {
         await route.fallback();
@@ -73,12 +74,9 @@ test.describe('Notifications inbox', () => {
       });
     });
 
-    await page.goto(ROUTES.HOME);
-    await page.locator('#email').fill('e2e-user@example.com');
-    await page.locator('#password').fill('Test!1Aa');
-    await page.getByRole('button', { name: 'Sign In' }).click();
-    await page.waitForURL(`**${ROUTES.DASHBOARD}`);
+    await loginE2eUser(page);
 
+    await page.goto('/');
     await expect(page.getByRole('status', { name: '2 unread notifications' })).toBeVisible();
 
     await page.goto(ROUTES.NOTIFICATIONS);
