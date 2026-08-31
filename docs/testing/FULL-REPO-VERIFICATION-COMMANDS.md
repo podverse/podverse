@@ -155,6 +155,63 @@ npm run mobile:e2e:test -- --platform ios subscriptions-anonymous
 npm run mobile:e2e:test -- --platform android add-by-rss
 ```
 
+Every flow-specific selector is listed below. These commands run the selected phone flow on both
+phone platforms:
+
+```bash
+npm run mobile:e2e:test -- add-by-rss
+npm run mobile:e2e:test -- api-health
+npm run mobile:e2e:test -- auth-login
+npm run mobile:e2e:test -- auth-logout
+npm run mobile:e2e:test -- auto-queue-advance
+npm run mobile:e2e:test -- deep-link
+npm run mobile:e2e:test -- detail-sort-prefs
+npm run mobile:e2e:test -- engine-audio-spike
+npm run mobile:e2e:test -- hello-world
+npm run mobile:e2e:test -- home
+npm run mobile:e2e:test -- library-downloads
+npm run mobile:e2e:test -- library-playlists
+npm run mobile:e2e:test -- library-subscriptions
+npm run mobile:e2e:test -- locale-switch-home-smoke
+npm run mobile:e2e:test -- membership-gate
+npm run mobile:e2e:test -- notifications-inbox
+npm run mobile:e2e:test -- opml
+npm run mobile:e2e:test -- play-mini-player
+npm run mobile:e2e:test -- podcast-episode
+npm run mobile:e2e:test -- push
+npm run mobile:e2e:test -- queue-add
+npm run mobile:e2e:test -- search-unparsed
+npm run mobile:e2e:test -- search
+npm run mobile:e2e:test -- settings-select
+npm run mobile:e2e:test -- subscriptions-anonymous
+npm run mobile:e2e:test -- sync-log
+npm run mobile:e2e:test -- tab-switch-playback
+npm run mobile:e2e:test -- v4v
+npm run mobile:e2e:test -- video-transition
+```
+
+Run any listed phone flow on only one platform by adding `--platform ios` or `--platform android`
+before the selector:
+
+```bash
+npm run mobile:e2e:test -- --platform ios <flow>
+npm run mobile:e2e:test -- --platform android <flow>
+```
+
+Run multiple listed flows together with a comma-delimited selector:
+
+```bash
+npm run mobile:e2e:test -- home,search
+```
+
+The opt-in tablet flow is separate from `all` and cannot be mixed with phone flows:
+
+```bash
+npm run mobile:e2e:test -- tablet
+npm run mobile:e2e:test -- --platform ios tablet
+npm run mobile:e2e:test -- --platform android tablet
+```
+
 Use `--reset-data` for a flow that requires empty local SQLite state, or `--skip-seed` when
 re-running against already-correct fixtures. Tablet coverage is opt-in with the `tablet` selector.
 See [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md) for flow discovery, retries, reports, and

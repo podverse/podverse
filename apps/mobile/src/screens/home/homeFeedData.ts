@@ -20,16 +20,17 @@ import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindo
 import type { HomeSortOption } from '../../prefs/homeListPrefs';
 import { DEFAULT_HOME_SORT } from '../../prefs/homeListPrefs';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
-import type { SubscriptionListFilter } from '../../prefs/subscriptionFilter';
 import type { HomeRowMetadata } from './homeRowMetadata';
 import { buildHomeRowMetadata } from './homeRowMetadata';
 
 export type HomeFeedRowData = {
   id: string;
   imageUrl: string | null;
+  /** Source-local identity for detail routing; directory rows use their channel id text. */
+  sourceId?: string;
   subtitle: string | null;
   title: string;
-  /** Set only for the authenticated Podcasts subscribed view so taps can route by origin. */
+  /** Set for Podcasts subscription rows so taps can route by origin. */
   source?: SubscriptionSource;
   /**
    * Set only for subscription rows. The other media types list content rather than follows, and
@@ -39,8 +40,6 @@ export type HomeFeedRowData = {
 };
 
 type HomeFeedOptions = {
-  /** Applies only to the Podcasts subscribed view (mixed by default). */
-  subscriptionFilter?: SubscriptionListFilter;
   /**
    * Applies to the two locally-read views, Podcasts and Episodes. The remaining media types are
    * server-ranked and ignore it.
@@ -245,6 +244,7 @@ const mapSubscribedChannelToRow = (
     id: channel.idText,
     imageUrl: channel.imageUrl,
     metadata,
+    sourceId: channel.sourceIdText,
     source: channel.source,
     subtitle: null,
     title: channel.title,
@@ -295,10 +295,7 @@ export const fetchHomeFeedRows = async (
     // Read before the API is even consulted, and with no directory fallback, because Home shows
     // what the user subscribed to and nothing else. An unconfigured API or no connection changes
     // nothing about that list.
-    const subscribed = await subscriptionsRepository.list({
-      filter: options.subscriptionFilter ?? 'all',
-      sort: options.sort ?? DEFAULT_HOME_SORT,
-    });
+    const subscribed = await subscriptionsRepository.list({ sort: options.sort ?? DEFAULT_HOME_SORT });
     return attachSubscriptionMetadata(subscribed);
   }
 

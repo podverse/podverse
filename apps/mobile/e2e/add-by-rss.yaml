@@ -28,6 +28,33 @@ name: Add By RSS Flow
     id: rss-feed-play-first
 - takeScreenshot: add-by-rss-feed-listed
 
+# A followed add-by-RSS feed is part of the unified Podcasts Home list, while the RSS tab remains
+# the place to add and manage feeds.
+- tapOn:
+    id: tab-home
+- assertVisible:
+    id: home-screen
+- assertVisible: E2E Add-by-RSS Channel
+- tapOn:
+    text: E2E Add-by-RSS Channel
+- assertVisible:
+    id: add-by-rss-home-detail-screen
+- assertVisible: E2E Add-by-RSS Channel
+- takeScreenshot: add-by-rss-home-detail
+
+# Return to the management surface for the playback assertion. The Home detail keeps the feed's
+# local bundle when one is available, but this fixture intentionally covers the feed-level fallback.
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-add-by-rss
+- assertVisible:
+    id: rss-root-screen
+- assertVisible:
+    id: rss-feed-play-first
+
 # Real media: enclosure localhost:2111 → 127.0.0.1 (iOS) / 10.0.2.2 (Android) in E2E.
 # Android often leaves the soft keyboard covering Play after URL input.
 - runFlow:
@@ -42,3 +69,12 @@ name: Add By RSS Flow
       id: rss-playback-active
     timeout: ${TIMEOUT_SLOWEST}
 - takeScreenshot: add-by-rss-playback-active
+
+- tapOn:
+    id: tab-home
+- assertVisible:
+    id: add-by-rss-home-detail-screen
+- tapOn:
+    id: add-by-rss-home-remove
+- assertVisible:
+    id: home-screen

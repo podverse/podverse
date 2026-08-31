@@ -85,6 +85,7 @@ describe('mapDirectoryChannelToSubscribed', () => {
 
     expect(result).toEqual({
       idText: 'abc',
+      sourceIdText: 'abc',
       title: 'My Podcast',
       imageUrl: 'https://img/p.jpg',
       source: 'directory',
@@ -104,6 +105,7 @@ describe('mapAddByRssToSubscribed', () => {
     const result = mapAddByRssToSubscribed(rssFeed({ feedUrl: 'https://x/f.xml', title: null }));
     expect(result).toEqual({
       idText: 'https://x/f.xml',
+      sourceIdText: 'rss1',
       title: 'https://x/f.xml',
       imageUrl: null,
       source: 'addByRss',

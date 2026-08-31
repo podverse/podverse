@@ -1,10 +1,7 @@
 import type { SortPrefScope } from '@podverse/helpers';
 
 import type { HomeMediaType } from './preferredMediaType';
-import { getPref } from './prefsStore';
 import { readSortPref, subscribeSortPref, writeSortPref } from './sortPrefs';
-import type { SubscriptionListFilter } from './subscriptionFilter';
-import { DEFAULT_SUBSCRIPTION_FILTER } from './subscriptionFilter';
 
 /**
  * Home's remembered list selections, held under the shared scope-keyed contract.
@@ -44,13 +41,6 @@ export const isHomeSortableMediaType = (mediaType: HomeMediaType): boolean => {
   return HOME_SORTABLE_MEDIA_TYPES.includes(mediaType);
 };
 
-/** The subscription scope chip applies to the channel list only. */
-const SUBSCRIPTION_FILTER_MEDIA_TYPE: HomeMediaType = 'podcasts';
-
-export const isHomeSubscriptionFilterMediaType = (mediaType: HomeMediaType): boolean => {
-  return mediaType === SUBSCRIPTION_FILTER_MEDIA_TYPE;
-};
-
 /**
  * The media types the grid is offered for.
  *
@@ -58,7 +48,7 @@ export const isHomeSubscriptionFilterMediaType = (mediaType: HomeMediaType): boo
  * episodes of the same podcast wear the same cover. So the toggle belongs to the channel list.
  */
 export const isHomeViewModeMediaType = (mediaType: HomeMediaType): boolean => {
-  return mediaType === SUBSCRIPTION_FILTER_MEDIA_TYPE;
+  return mediaType === 'podcasts';
 };
 
 const buildScope = (mediaType: HomeMediaType): SortPrefScope => {
@@ -69,36 +59,13 @@ const isHomeSortOption = (value: string): value is HomeSortOption => {
   return HOME_SORT_OPTIONS.some((option) => option === value);
 };
 
-const isSubscriptionListFilter = (value: string): value is SubscriptionListFilter => {
-  return value === 'all' || value === 'addByRss';
-};
-
 const isHomeViewMode = (value: string): value is HomeViewMode => {
   return HOME_VIEW_MODES.some((mode) => mode === value);
 };
 
 export type HomeListPrefs = {
-  filter: SubscriptionListFilter;
   sort: HomeSortOption;
   viewMode: HomeViewMode;
-};
-
-const readSubscriptionFilter = async (): Promise<SubscriptionListFilter> => {
-  const stored = await readSortPref(buildScope(SUBSCRIPTION_FILTER_MEDIA_TYPE));
-  if (stored?.filter !== undefined && isSubscriptionListFilter(stored.filter)) {
-    return stored.filter;
-  }
-
-  // A device that set the scope chip before Home had a sort keeps that choice: the value is read
-  // from where it used to live and written into the scoped entry the first time this runs, so the
-  // chip does not silently reset to All.
-  const legacyFilter = await getPref('home.subscriptionFilter');
-  if (legacyFilter !== null) {
-    await writeSortPref(buildScope(SUBSCRIPTION_FILTER_MEDIA_TYPE), { filter: legacyFilter });
-    return legacyFilter;
-  }
-
-  return DEFAULT_SUBSCRIPTION_FILTER;
 };
 
 /**
@@ -108,10 +75,7 @@ const readSubscriptionFilter = async (): Promise<SubscriptionListFilter> => {
  * left it in instead of appearing in the default order and rearranging itself a moment later.
  */
 export const readHomeListPrefs = async (mediaType: HomeMediaType): Promise<HomeListPrefs> => {
-  const [stored, filter] = await Promise.all([
-    readSortPref(buildScope(mediaType)),
-    readSubscriptionFilter(),
-  ]);
+  const stored = await readSortPref(buildScope(mediaType));
 
   const sort =
     stored?.sort !== undefined && isHomeSortOption(stored.sort) ? stored.sort : DEFAULT_HOME_SORT;
@@ -120,7 +84,7 @@ export const readHomeListPrefs = async (mediaType: HomeMediaType): Promise<HomeL
       ? stored.viewMode
       : DEFAULT_HOME_VIEW_MODE;
 
-  return { filter, sort, viewMode };
+  return { sort, viewMode };
 };
 
 export const writeHomeSort = async (
@@ -137,30 +101,15 @@ export const writeHomeViewMode = async (
   await writeSortPref(buildScope(mediaType), { viewMode });
 };
 
-export const writeHomeSubscriptionFilter = async (
-  filter: SubscriptionListFilter
-): Promise<void> => {
-  await writeSortPref(buildScope(SUBSCRIPTION_FILTER_MEDIA_TYPE), { filter });
-};
-
 /**
  * Watch this media type's preferences.
  *
- * The filter/sort screen writes the preference and Home reads it back, so neither has to hand the
- * other a value and the two cannot disagree about what is selected.
+ * The sort screen writes the preference and Home reads it back, so neither has to hand the other a
+ * value and the two cannot disagree about what is selected.
  */
 export const subscribeHomeListPrefs = (
   mediaType: HomeMediaType,
   listener: () => void
 ): (() => void) => {
-  const unsubscribeMediaType = subscribeSortPref(buildScope(mediaType), listener);
-  if (mediaType === SUBSCRIPTION_FILTER_MEDIA_TYPE) {
-    return unsubscribeMediaType;
-  }
-
-  const unsubscribeFilter = subscribeSortPref(buildScope(SUBSCRIPTION_FILTER_MEDIA_TYPE), listener);
-  return () => {
-    unsubscribeMediaType();
-    unsubscribeFilter();
-  };
+  return subscribeSortPref(buildScope(mediaType), listener);
 };

@@ -10,12 +10,10 @@ Podverse-rn (legacy) treated a user's **subscriptions** as one merged list: dire
 podcasts + locally added add-by-RSS feeds were combined (`combineWithAddByRSSPodcasts` in
 `src/services/podcast.ts`) and shown together everywhere (Podcasts screen, CarPlay Podcasts tab).
 
-The new app currently **separates** them: Home "subscribed" uses `reqChannelGetMany({ type:
-'subscribed' })` (directory follows only), while add-by-RSS lives in its own SQLite repo
-(`addByRssRepository`) surfaced only in the **RSS** tab. Product decision (master plan Open
-decisions): **merge by default in every subscribed view, with an optional filter to view only
-add-by-RSS** (and optionally directory-only). This detail defines the shared data layer that all
-consumers use so Home, Library, and car stay consistent.
+The new app stores them separately: directory follows are cached in SQLite and add-by-RSS lives in
+its own SQLite repo (`addByRssRepository`). Product decision: subscribed views have a merged result,
+while individual consumers may expose source-specific management or filtering when their UX needs
+it. Home always consumes the merged result; the RSS tab remains the add/manage surface.
 
 ## Scope
 
@@ -56,7 +54,8 @@ export const subscriptionsRepository = {
 
 - **Default filter `all`** → directory + add-by-RSS merged, deduped by `idText`, sorted
   alphabetically (mirror legacy `sortPodcastArrayAlphabetically`); `recent` optional later.
-- `addByRss` / `directory` filters back the "view only add-by-RSS" UX requirement.
+- `addByRss` / `directory` filters remain available to consumers such as Library when a
+  source-specific management view needs them; Home does not expose them.
 
 ### Offline-first + hydration
 
@@ -72,13 +71,14 @@ export const subscriptionsRepository = {
   `type: 'subscribed'` — the subscribed-list endpoint returns exactly the account's directory
   follows with display fields (`id_text`, `title`, images), so numeric `account_following_channels`
   ids are hydrated without a by-ids endpoint. Best-effort/soft-fail — a hydration failure must not
-  block the refresh; fall back to cached rows. (Page 1, `medium: 'podcasts'` for the first slice;
-  pagination + music medium are follow-ons.)
+  block the refresh; fall back to cached rows. The mobile walk covers every reported page for the
+  Podcasts medium; music-medium mixing remains a follow-on.
 - No raw `fetch`; reuse the mobile auth-refresh request path.
 
 ### Consumers (this repo becomes the seam)
 
-- **Home** subscribed podcasts (8.16 / [601](/docs/proposals/mobile/_master-plan_/phase-1/details/601-home-subscribed-mixed-filter.md)).
+- **Home** subscribed podcasts (8.16 / [601](/docs/proposals/mobile/_master-plan_/phase-1/details/601-home-subscribed-mixed-filter.md))
+  consume the unconditional merged result and route add-by-RSS rows into the Home stack.
 - **Library** subscriptions list (9.30 / [602](/docs/proposals/mobile/_master-plan_/phase-1/details/602-library-subscriptions-list.md)).
 - **Car** native-cache library-browse projection (12.22 /
   [401](/docs/proposals/mobile/_master-plan_/phase-1/details/401-car-library-directory-follows.md)) — the

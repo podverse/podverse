@@ -17,6 +17,8 @@ export type SubscriptionMedium = 'podcasts' | 'music';
 export type SubscribedChannel = {
   /** Channel `id_text` (directory) or `feed_url` (add-by-RSS) — stable, dedupe key. */
   idText: string;
+  /** Local identity used to open the source-specific detail screen. */
+  sourceIdText?: string;
   /** Always a non-empty display title (directory entries without one are dropped). */
   title: string;
   imageUrl: string | null;
@@ -71,6 +73,7 @@ export const mapDirectoryChannelToSubscribed = (channel: DTOChannel): Subscribed
 
   return {
     idText,
+    sourceIdText: idText,
     title,
     imageUrl: firstChannelImageUrl(channel),
     source: 'directory',
@@ -95,6 +98,7 @@ export const mapAddByRssToSubscribed = (
 
   return {
     idText,
+    sourceIdText: trimToNull(record.idText) ?? idText,
     title: trimToNull(record.title) ?? idText,
     imageUrl: trimToNull(record.imageUrl),
     source: 'addByRss',

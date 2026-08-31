@@ -11,13 +11,9 @@ import type { HomeSortOption } from '../../prefs/homeListPrefs';
 import {
   DEFAULT_HOME_SORT,
   HOME_SORT_OPTIONS,
-  isHomeSubscriptionFilterMediaType,
   readHomeListPrefs,
   writeHomeSort,
-  writeHomeSubscriptionFilter,
 } from '../../prefs/homeListPrefs';
-import type { SubscriptionListFilter } from '../../prefs/subscriptionFilter';
-import { DEFAULT_SUBSCRIPTION_FILTER } from '../../prefs/subscriptionFilter';
 import { useTheme } from '../../theme/useTheme';
 
 type HomeFilterSortScreenProps = NativeStackScreenProps<HomeStackParamList, 'HomeFilterSort'>;
@@ -27,13 +23,8 @@ const SORT_LABEL_KEYS: Record<HomeSortOption, string> = {
   recent: 'filters.sort.recent',
 };
 
-const FILTER_OPTION_KEYS: { filter: SubscriptionListFilter; labelKey: string }[] = [
-  { filter: 'all', labelKey: 'subscriptions.filter.all' },
-  { filter: 'addByRss', labelKey: 'subscriptions.filter.add_by_rss' },
-];
-
 /**
- * Home's filter and sort choices, as a screen rather than a row of controls.
+ * Home's sort choices, as a screen rather than a row of controls.
  *
  * Selections take effect as they are made — Home reads the same stored preference and re-reads it
  * when it changes, so there is nothing to apply. Done therefore only dismisses, which is why it is
@@ -44,10 +35,7 @@ export function HomeFilterSortScreen({ navigation, route }: HomeFilterSortScreen
   const { styles: themeStyles, tokens } = useTheme();
 
   const { mediaType } = route.params;
-  const showFilterSection = isHomeSubscriptionFilterMediaType(mediaType);
-
   const [sort, setSort] = useState<HomeSortOption>(DEFAULT_HOME_SORT);
-  const [filter, setFilter] = useState<SubscriptionListFilter>(DEFAULT_SUBSCRIPTION_FILTER);
 
   useEffect(() => {
     let isMounted = true;
@@ -58,7 +46,6 @@ export function HomeFilterSortScreen({ navigation, route }: HomeFilterSortScreen
         return;
       }
       setSort(stored.sort);
-      setFilter(stored.filter);
     })();
 
     return () => {
@@ -110,11 +97,6 @@ export function HomeFilterSortScreen({ navigation, route }: HomeFilterSortScreen
     [mediaType]
   );
 
-  const handleFilterSelect = useCallback((nextFilter: SubscriptionListFilter) => {
-    setFilter(nextFilter);
-    void writeHomeSubscriptionFilter(nextFilter);
-  }, []);
-
   const sortOptions = useMemo<OptionListItem<HomeSortOption>[]>(() => {
     return HOME_SORT_OPTIONS.map((option) => ({
       label: t(SORT_LABEL_KEYS[option]),
@@ -123,27 +105,8 @@ export function HomeFilterSortScreen({ navigation, route }: HomeFilterSortScreen
     }));
   }, [t]);
 
-  const filterOptions = useMemo<OptionListItem<SubscriptionListFilter>[]>(() => {
-    return FILTER_OPTION_KEYS.map((option) => ({
-      label: t(option.labelKey),
-      testID: `home-filter-sort-filter-${option.filter}`,
-      value: option.filter,
-    }));
-  }, [t]);
-
   return (
     <MobileScreenContainer testID="home-filter-sort-screen">
-      {showFilterSection ? (
-        <View style={styles.section}>
-          <OptionListGroup
-            heading={t('filters.screen.filter_heading')}
-            onSelect={handleFilterSelect}
-            options={filterOptions}
-            testID="home-filter-sort-filter-group"
-            value={filter}
-          />
-        </View>
-      ) : null}
       <View style={styles.section}>
         <OptionListGroup
           heading={t('filters.screen.sort_heading')}

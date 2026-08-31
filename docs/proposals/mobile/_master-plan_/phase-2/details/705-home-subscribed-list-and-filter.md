@@ -39,10 +39,11 @@ Because it reads local storage, the filter works fully offline.
 The hidden-until-pull-down reveal from the legacy app is **deferred** —
 see [710-defer-filter-pull-down-reveal](/docs/proposals/mobile/_master-plan_/phase-2/details/710-defer-filter-pull-down-reveal.md).
 
-### Existing chip
+### Unified subscription list
 
-The current `all | add-by-RSS` subscription chip **stays**. It scopes the list; the filter narrows
-within that scope.
+Home always shows directory subscriptions and followed add-by-RSS feeds together. The list source
+does not have a Home-level directory/add-by-RSS scope control; the text input narrows the combined
+local result.
 
 ### Empty states
 
@@ -71,27 +72,24 @@ It is mounted app-wide, not per screen, so this rebuild must **not** add a secon
   subscriptions and add-by-RSS feeds together.
 - Filtering works with the network disabled.
 - Filter text survives tab switches within a session and is gone after an app restart.
-- The `all | add-by-RSS` chip still scopes the list, and the filter applies within it.
+- Directory subscriptions and add-by-RSS feeds appear together in the same Home result.
 - Zero subscriptions shows the Search CTA and it navigates to the Search tab; zero matches shows the
   plain message.
 - The list stays virtualized (`FlatList`), and all copy resolves through i18n.
 - E2E covers filtering to a known subscription and both empty states.
 
-- **Screen reader:** the filter input and its clear affordance are labeled, the `all | add-by-RSS`
-  chips expose `accessibilityRole` and selected state, and the result count change is announced
-  rather than silently re-rendering.
+- **Screen reader:** the filter input and its clear affordance are labeled, and the result count
+  change is announced rather than silently re-rendering.
 
 **The session-only filter text is deliberate, not an oversight.**
 [714-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/714-filter-sort-persistence.md)
 makes sort and structured filters persist across restarts, and explicitly **excludes free text**: a
 restored filter term hides most of the list and reads as missing data rather than as a remembered
-preference. The `all | add-by-RSS` chip does persist, through the shared contract. Do not "fix" the
-text input to match the chip.
+preference.
 
 ## Web parity references
 
 - `apps/mobile/src/screens/home/HomeScreen.tsx`, `homeFeedData.ts`, `HomeFeedRow.tsx`
-- `apps/mobile/src/components/subscriptions/SubscriptionFilterControl.tsx`
 - `apps/mobile/src/data/repositories/subscriptionsMerge.ts` — existing article-stripped sort
 - Web's `/podcasts` has no client-side filter; mobile adds one deliberately
 - Rules: **mobile-list-virtualization**, **i18n-user-facing-strings**

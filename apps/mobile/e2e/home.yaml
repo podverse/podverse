@@ -17,6 +17,8 @@ name: Home Media Types
     id: tab-home
 - assertVisible:
     id: home-screen
+- assertNotVisible:
+    id: home-subscription-filter
 
 # Podcasts (default)
 - assertVisible:
@@ -24,19 +26,8 @@ name: Home Media Types
 - assertVisible: Podcasts
 - takeScreenshot: home-media-type-podcasts
 
-# The Podcasts view mixes directory follows + add-by-RSS, scoped by an All / Add-by-RSS chip whose
-# choice persists in device prefs. The chip shows in every auth state, since subscriptions are local.
-- assertVisible:
-    id: home-subscription-filter
-- tapOn:
-    id: home-subscription-filter-addByRss
-- takeScreenshot: home-subscription-filter-add-by-rss
-- tapOn:
-    id: home-subscription-filter-all
-- takeScreenshot: home-subscription-filter-all
-
-# Sort sits in its own row below the chip, showing the current order on its face rather than the
-# word "Sort", and opens the full Filter/Sort screen. A-Z is the default.
+# Sort sits in its own row, showing the current order on its face rather than the word "Sort", and
+# opens the full Filter/Sort screen. A-Z is the default.
 - assertVisible:
     id: home-sort-button
 - assertVisible: "Sort: A-Z"
@@ -44,11 +35,12 @@ name: Home Media Types
     id: home-sort-button
 - assertVisible:
     id: home-filter-sort-screen
-# Both sections, because Podcasts is the media type the scope chip applies to.
-- assertVisible:
-    id: home-filter-sort-filter-group
+# Podcasts exposes its sort choices without a source-filter section because Home always combines
+# directory subscriptions and add-by-RSS feeds.
 - assertVisible:
     id: home-filter-sort-sort-group
+- assertNotVisible:
+    id: home-filter-sort-filter-group
 - takeScreenshot: home-filter-sort-screen
 
 # Selections apply as they are made, so Done only dismisses.
@@ -115,7 +107,7 @@ name: Home Media Types
 - assertVisible:
     id: home-screen
 
-# Home is subscribed-only, so the seeded account shows its two local subscriptions. Row metadata,
+# Home is subscribed-only, so the seeded account shows its local subscriptions. Row metadata,
 # the grid tile, and Mark All As Seen clearing badges are asserted in subscriptions-anonymous.yaml,
 # which is the flow that creates a subscription.
 - assertVisible:

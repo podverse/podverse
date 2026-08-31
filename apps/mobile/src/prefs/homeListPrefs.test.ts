@@ -4,15 +4,12 @@ import {
   DEFAULT_HOME_SORT,
   DEFAULT_HOME_VIEW_MODE,
   isHomeSortableMediaType,
-  isHomeSubscriptionFilterMediaType,
   isHomeViewModeMediaType,
   readHomeListPrefs,
   subscribeHomeListPrefs,
   writeHomeSort,
-  writeHomeSubscriptionFilter,
   writeHomeViewMode,
 } from './homeListPrefs';
-import { DEFAULT_SUBSCRIPTION_FILTER } from './subscriptionFilter';
 
 const inMemoryStore = new Map<string, string>();
 
@@ -39,7 +36,6 @@ describe('homeListPrefs', () => {
 
   it('opens with the documented defaults when nothing has been chosen', async () => {
     await expect(readHomeListPrefs('podcasts')).resolves.toEqual({
-      filter: DEFAULT_SUBSCRIPTION_FILTER,
       sort: DEFAULT_HOME_SORT,
       viewMode: DEFAULT_HOME_VIEW_MODE,
     });
@@ -85,20 +81,13 @@ describe('homeListPrefs', () => {
     });
   });
 
-  it('reports the same scope chip whichever media type asks, because it scopes one list', async () => {
-    await writeHomeSubscriptionFilter('addByRss');
-
-    await expect(readHomeListPrefs('podcasts')).resolves.toMatchObject({ filter: 'addByRss' });
-    await expect(readHomeListPrefs('episodes')).resolves.toMatchObject({ filter: 'addByRss' });
-  });
-
-  it('carries over a chip choice made before Home had a sort', async () => {
+  it('ignores a legacy Home source-filter preference', async () => {
     inMemoryStore.set('home.subscriptionFilter', 'addByRss');
 
-    await expect(readHomeListPrefs('podcasts')).resolves.toMatchObject({ filter: 'addByRss' });
-    // Written into the scoped entry on that first read, so the carry-over happens once rather than
-    // on every launch for the life of the install.
-    expect(inMemoryStore.get('sort.podcasts')).toContain('addByRss');
+    await expect(readHomeListPrefs('podcasts')).resolves.toEqual({
+      sort: DEFAULT_HOME_SORT,
+      viewMode: DEFAULT_HOME_VIEW_MODE,
+    });
   });
 
   it('ignores a stored sort it does not recognise', async () => {
@@ -121,12 +110,12 @@ describe('homeListPrefs', () => {
     expect(listener).toHaveBeenCalledTimes(1);
   });
 
-  it('notifies an episodes watcher about the shared chip, which reorders its list too', async () => {
+  it('does not react to a source-filter preference change', async () => {
     const listener = vi.fn();
     const unsubscribe = subscribeHomeListPrefs('episodes', listener);
 
-    await writeHomeSubscriptionFilter('addByRss');
-    expect(listener).toHaveBeenCalledTimes(1);
+    inMemoryStore.set('home.subscriptionFilter', 'addByRss');
+    expect(listener).not.toHaveBeenCalled();
 
     unsubscribe();
   });
@@ -138,11 +127,6 @@ describe('homeListPrefs', () => {
     expect(isHomeSortableMediaType('artists')).toBe(false);
     expect(isHomeSortableMediaType('albums')).toBe(false);
     expect(isHomeSortableMediaType('tracks')).toBe(false);
-  });
-
-  it('offers the subscription scope chip on the channel list only', () => {
-    expect(isHomeSubscriptionFilterMediaType('podcasts')).toBe(true);
-    expect(isHomeSubscriptionFilterMediaType('episodes')).toBe(false);
   });
 
   it('offers the grid on the channel list only, where artwork identifies the row', () => {

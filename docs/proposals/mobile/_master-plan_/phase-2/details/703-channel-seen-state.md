@@ -114,8 +114,9 @@ it seen. Three pieces land elsewhere:
   [712-web-unseen-episode-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/712-web-unseen-episode-indicator.md).
 - **Mark All As Seen.** The `mark-all` endpoint exists; the overflow-menu action and its local sweep
   arrive with the subscribed-list overflow menu.
-- **Opening an add-by-RSS feed.** There is no per-feed detail screen on mobile yet, so there is no
-  open event to mark against. Those feeds currently clear via the account sweep or another device.
+- **Opening an add-by-RSS feed.** The Home stack provides a local feed detail for followed add-by-RSS
+  feeds. Opening it marks the feed seen locally with the `add-by-rss` kind; server-only directory
+  metadata and live-item features are not part of that detail.
 
 A mobile channel's count is derived from the episodes stored locally, which is a bounded window
 rather than the whole feed, so it can under-report a show that published more than the window holds.

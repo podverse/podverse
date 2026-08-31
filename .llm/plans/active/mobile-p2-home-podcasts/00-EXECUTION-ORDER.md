@@ -30,6 +30,16 @@ of order means building Home twice. Web counterparts follow the foundation they 
 18  Record deferrals                       (P2.3.8/9/11/12) last
 ```
 
+The combined Podcasts Home follow-up runs after the original Home foundation:
+
+```text
+19  Reconcile merged Home proposals          (P2.1.1)   ─┐
+20  Complete subscription hydration           (P2.1.1)    │
+21  Simplify Podcasts Home                    (P2.1.1)    │ sequential
+22  Home-stack add-by-RSS detail              (P2.1.1)    │
+23  Verify the combined Home contract         (P2.1.1)   ─┘
+```
+
 **The sync foundation (03–05) runs before offline content sync (06)** even though its master-step
 numbers are higher. 06 is the largest producer of sync work in the app; building it before the queue
 exists means shipping a large sync with no orchestration and reworking it immediately. Master step

@@ -20,22 +20,19 @@ import { useAuth } from '../../auth/AuthProvider';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
-import { SubscriptionFilterControl } from '../../components/subscriptions/SubscriptionFilterControl';
 import { channelSeenRepository } from '../../data/repositories';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import type { HomeStackParamList, MobileTabParamList } from '../../navigation';
-import { HOME_STACK_ROUTES, LIBRARY_STACK_ROUTES, SEARCH_STACK_ROUTES } from '../../navigation';
+import { HOME_STACK_ROUTES, SEARCH_STACK_ROUTES } from '../../navigation';
 import { E2ePlayVideoButton } from '../../playback/E2ePlayVideoButton';
 import type { HomeSortOption, HomeViewMode } from '../../prefs/homeListPrefs';
 import {
   DEFAULT_HOME_SORT,
   DEFAULT_HOME_VIEW_MODE,
   isHomeSortableMediaType,
-  isHomeSubscriptionFilterMediaType,
   isHomeViewModeMediaType,
   readHomeListPrefs,
   subscribeHomeListPrefs,
-  writeHomeSubscriptionFilter,
   writeHomeViewMode,
 } from '../../prefs/homeListPrefs';
 import {
@@ -44,10 +41,6 @@ import {
   readPreferredMediaType,
   writePreferredMediaType,
 } from '../../prefs/preferredMediaType';
-import {
-  DEFAULT_SUBSCRIPTION_FILTER,
-  type SubscriptionListFilter,
-} from '../../prefs/subscriptionFilter';
 import { useSync } from '../../sync';
 import { resolveGridColumns } from '../../theme/resolveColumns';
 import { useResponsive } from '../../theme/useResponsive';
@@ -71,7 +64,6 @@ import { useHomeRowPlayback } from './useHomeRowPlayback';
  * opinion the user expressed about a different one.
  */
 type HomeListPrefsState = {
-  filter: SubscriptionListFilter;
   mediaType: HomeMediaType;
   sort: HomeSortOption;
   viewMode: HomeViewMode;
@@ -102,12 +94,11 @@ export function HomeScreen() {
   const [isFeedLoading, setIsFeedLoading] = useState<boolean>(true);
   const [isFeedRefreshing, setIsFeedRefreshing] = useState<boolean>(false);
   const [feedErrorKey, setFeedErrorKey] = useState<string | null>(null);
+  const [actionErrorKey, setActionErrorKey] = useState<string | null>(null);
+  const feedRequestIdRef = useRef<number>(0);
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
   const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();
 
-  // The All / Add-by-RSS chip scopes the subscribed Podcasts view in every auth state, because
-  // subscriptions are device-local and a signed-out user has both kinds to scope between.
-  const showSubscriptionFilter = isHomeSubscriptionFilterMediaType(selectedMediaType);
   const showSortRow = isHomeSortableMediaType(selectedMediaType);
 
   // Both menu entries are about the subscribed channel list — how to draw it, and catching up on
@@ -154,9 +145,9 @@ export function HomeScreen() {
     };
   }, []);
 
-  // Owns the choices for whichever list is showing, including changes made on the filter/sort
-  // screen: that screen writes the preference and this reads it back, so neither has to hand the
-  // other a value and the two cannot disagree about what is selected.
+  // Owns the choices for whichever list is showing, including changes made on the sort screen:
+  // that screen writes the preference and this reads it back, so neither has to hand the other a
+  // value and the two cannot disagree about what is selected.
   useEffect(() => {
     if (!isMediaTypeHydrated) {
       return;
@@ -183,15 +174,11 @@ export function HomeScreen() {
   }, [isMediaTypeHydrated, selectedMediaType]);
 
   const handleMediaTypeChange = useCallback((mediaType: HomeMediaType) => {
+    setFeedRows([]);
+    setFeedErrorKey(null);
+    setIsFeedLoading(true);
     setSelectedMediaType(mediaType);
     void writePreferredMediaType(mediaType);
-  }, []);
-
-  const handleSubscriptionFilterChange = useCallback((filter: SubscriptionListFilter) => {
-    // Applied here as well as written, so the chip responds to the tap rather than to the storage
-    // round trip. The write is still what everything else reads.
-    setListPrefs((current) => (current === null ? current : { ...current, filter }));
-    void writeHomeSubscriptionFilter(filter);
   }, []);
 
   const handleSortPress = useCallback(() => {
@@ -228,6 +215,8 @@ export function HomeScreen() {
       if (activePrefs === null) {
         return;
       }
+      const requestId = feedRequestIdRef.current + 1;
+      feedRequestIdRef.current = requestId;
 
       if (source === 'refresh') {
         if (isFeedRefreshing) {
@@ -242,9 +231,12 @@ export function HomeScreen() {
         // said what was happening, and asking again from here would loop.
       } else {
         setIsFeedLoading(true);
+        setIsFeedRefreshing(false);
       }
 
-      setFeedErrorKey(null);
+      if (requestId === feedRequestIdRef.current) {
+        setFeedErrorKey(null);
+      }
       try {
         const rows = await fetchHomeFeedRows(
           selectedMediaType,
@@ -255,10 +247,16 @@ export function HomeScreen() {
             setTokens,
             status,
           },
-          { sort: activePrefs.sort, subscriptionFilter: activePrefs.filter }
+          { sort: activePrefs.sort }
         );
+        if (requestId !== feedRequestIdRef.current) {
+          return;
+        }
         setFeedRows(rows);
       } catch {
+        if (requestId !== feedRequestIdRef.current) {
+          return;
+        }
         // A re-read the user did not ask for keeps quiet: the rows already on screen are still
         // worth reading, and an error over the top of them would say nothing useful.
         if (source === 'synced') {
@@ -269,6 +267,9 @@ export function HomeScreen() {
         }
         setFeedErrorKey('errors.generic');
       } finally {
+        if (requestId !== feedRequestIdRef.current) {
+          return;
+        }
         if (source === 'refresh') {
           setIsFeedRefreshing(false);
         } else if (source !== 'synced') {
@@ -331,21 +332,24 @@ export function HomeScreen() {
    */
   const handleMarkAllSeen = useCallback(() => {
     void (async () => {
-      await channelSeenRepository.markAllSeen();
-      await loadFeed('synced');
-      AccessibilityInfo.announceForAccessibility(t('subscriptions.mark_all_seen_done'));
+      setActionErrorKey(null);
+      try {
+        await channelSeenRepository.markAllSeen();
+        await loadFeed('synced');
+        AccessibilityInfo.announceForAccessibility(t('subscriptions.mark_all_seen_done'));
+      } catch {
+        setActionErrorKey('errors.generic');
+      }
     })();
   }, [loadFeed, t]);
 
   const handleRowPress = useCallback(
     (row: HomeFeedRowData) => {
       if (selectedMediaType === 'podcasts') {
-        // Add-by-RSS feeds have no directory channel id; route to My Library > Add by RSS root
-        // where the feed can be played/managed. Directory follows open the standard Podcast detail.
         if (row.source === 'addByRss') {
-          navigation
-            .getParent<BottomTabNavigationProp<MobileTabParamList>>()
-            ?.navigate('My Library', { screen: LIBRARY_STACK_ROUTES.AddByRssRoot });
+          navigation.navigate(HOME_STACK_ROUTES.AddByRssPodcastDetail, {
+            feedIdText: row.sourceId ?? row.id,
+          });
           return;
         }
         navigation.navigate(HOME_STACK_ROUTES.PodcastDetail, {
@@ -534,13 +538,6 @@ export function HomeScreen() {
             />
           ) : null}
         </View>
-        {showSubscriptionFilter ? (
-          <SubscriptionFilterControl
-            onChange={handleSubscriptionFilterChange}
-            selectedFilter={activePrefs?.filter ?? DEFAULT_SUBSCRIPTION_FILTER}
-            testID="home-subscription-filter"
-          />
-        ) : null}
         {showSortRow ? (
           <HomeSortRow onPress={handleSortPress} sort={activePrefs?.sort ?? DEFAULT_HOME_SORT} />
         ) : null}
@@ -571,6 +568,11 @@ export function HomeScreen() {
           ) : null}
         </View>
         <Text style={styles.feedSummary}>{resultSummary}</Text>
+        {actionErrorKey !== null ? (
+          <Text style={styles.feedNotice} testID="home-action-error">
+            {t(actionErrorKey)}
+          </Text>
+        ) : null}
         {isFeedLoading ? <ListLoading testID="home-list-loading" /> : null}
         {!isFeedLoading && feedErrorKey !== null ? (
           <ListError

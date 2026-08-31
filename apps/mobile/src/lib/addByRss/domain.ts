@@ -217,6 +217,21 @@ export function toAddByRssPlaybackResourceData(
     return toAddByRssResourceData(record);
   }
 
+  return toAddByRssItemPlaybackResourceData(record, mappedFeed, firstItemBundle, 0);
+}
+
+/**
+ * Build playback data for one item in a persisted add-by-RSS bundle.
+ *
+ * The index item shape is shared with the add-by-RSS queue and playlist mapping, so detail screens
+ * and feed-level playback use the same enclosure and metadata conversion.
+ */
+export function toAddByRssItemPlaybackResourceData(
+  record: MobileAddByRSSFeedRecord,
+  mappedFeed: AddByRSSMappedFeed,
+  itemBundle: AddByRSSMappedFeed['items'][number],
+  itemIndex: number
+): AddByRSSResourceData {
   const feedForIndex = {
     id: record.id,
     idText: record.idText,
@@ -226,7 +241,7 @@ export function toAddByRssPlaybackResourceData(
     mappedFeed,
   };
 
-  const indexItem = toIndexItem(feedForIndex, firstItemBundle, 0, record.idText);
+  const indexItem = toIndexItem(feedForIndex, itemBundle, itemIndex, record.idText);
   const mappedResourceData = buildAddByRSSResourceData(indexItem);
 
   return {

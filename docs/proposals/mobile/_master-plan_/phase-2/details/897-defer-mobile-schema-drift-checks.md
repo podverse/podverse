@@ -27,7 +27,7 @@ Drizzle for mobile or attempt to share mobile SQLite entities with the server Ty
 ## Why deferred
 
 The current mobile schema is small, migrations are explicit, and Phase 2 is focused on product
-features and visual resolution. Contract protection becomes more valuable as more mobile domains and
+features. Contract protection becomes more valuable as more mobile domains and
 persisted JSON payloads accumulate. Revisit it after Phase 2 when the schema and offline data surface
 are large enough to judge the maintenance cost and failure modes.
 

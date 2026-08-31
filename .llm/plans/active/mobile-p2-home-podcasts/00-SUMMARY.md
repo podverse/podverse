@@ -3,7 +3,7 @@
 Area: **P2.1.1 Home & browse** (podcasts media type) + **P2.1.3 Search & filter**, plus the new
 **Track P2.4** cross-cutting foundations those screens depend on and **Track P2.5** web counterparts.
 
-Detail docs: `docs/proposals/mobile/_master-plan_/phase-2/details/700`–`713`, plus deferred follow-ups
+Detail docs: `docs/proposals/mobile/_master-plan_/phase-2/details/700`–`721`, plus deferred follow-ups
 `897`–`899`.
 Phase plan: [001-MASTER-PLAN-PHASE-2.md](/docs/proposals/mobile/_master-plan_/phase-2/001-MASTER-PLAN-PHASE-2.md).
 
@@ -37,14 +37,15 @@ Each entry is the question, the decision, and why.
 8. **Placement** — **Always visible** at the top of the list, scrolling with content. The legacy
    hidden-until-pull-down reveal is **deferred** (detail 710).
 9. **Persistence** — Kept for the **session**; cleared on app restart.
-10. **Existing `all | add-by-RSS` chip** — **Kept.** It scopes the list; the filter narrows within it.
+10. **Home source filter** — **Removed.** Home always shows the complete merged directory and
+    add-by-RSS list; the local title filter narrows that combined result.
 
 ### Sort and the filter/sort screen
 
 11. **Sort options** — **A-Z** and **recent** (latest item publish date). The legacy directory sorts
     (top past day/week/month/year/all-time) are not reproduced, because Home is subscribed-only.
-12. **Presentation** — **Full-screen** screen with Filter and Sort sections, checkmarks on the active
-    options, and a **Done** action. Matches the previous-generation layout.
+12. **Presentation** — **Full-screen** screen with the Sort section, checkmarks on the active
+    options, and a **Done** action. Home has no source-filter section.
 
 ### Row content
 
@@ -157,9 +158,8 @@ Each entry is the question, the decision, and why.
 ### Accessibility
 
 44. **Every new control in this set ships screen reader accessible** — accessible name, role, and
-    state on both platforms. A `testID` is not a label. Chips, tabs, option rows, the overflow menu,
-    and the unseen badge all convey state visually today and must convey it to assistive technology
-    too.
+    state on both platforms. A `testID` is not a label. Tabs, option rows, the overflow menu, and
+    the unseen badge all convey state visually today and must convey it to assistive technology too.
 45. **The existing surface area is audited separately** (detail 899, P2.3.10). Measured coverage is
     poor: 27 of 75 mobile files and 56 of 674 web files use any accessibility attribute, with the
     media player the worst area on both. That deferral does **not** excuse new work in this set.
@@ -183,7 +183,8 @@ Each entry is the question, the decision, and why.
 50. **Structured selections only; free text never persists.** Sort, type, range, category, media type,
     tab, and view mode are remembered. The `Filter…` inputs on mobile Home (705) and web `/podcasts`
     (713) keep clearing — a restored text filter hides most of the list and reads as missing data.
-    Page number and scroll position are also excluded. **705 and 713 do not change.**
+    Page number and scroll position are also excluded. The Home source-filter preference is legacy
+    compatibility data and is not restored by Home.
 51. **An explicit URL parameter wins and overwrites the stored value** for that instance, so a shared
     link behaves as written and the next clean-URL visit keeps what the user just saw. Defaults are
     never written into the URL — [`routing-url-params`](/.cursor/rules/routing-url-params.mdc) still
@@ -191,7 +192,7 @@ Each entry is the question, the decision, and why.
 52. **Mobile detail screens gain sort controls they do not have today.** Podcast, episode, and album
     detail currently hardcode their sort with no UI at all.
 53. **Nothing network-bound blocks first paint.** The splash waits for SQLite and i18n only. The auth
-    hydrate chain — `/auth/me`, the up-to-25-page subscription loop, playlist hydration, native
+    hydrate chain — `/auth/me`, complete subscription hydration, playlist hydration, native
     projection — moves off the startup path into queued jobs (detail 717).
 54. **Background sync is serial; interactive work is not.** One background job at a time so sync
     cannot saturate the network or the JS thread. Tapping Subscribe, opening a screen, search, and
@@ -276,5 +277,5 @@ Recorded as they happen, in [00-DIVERGENCES.md](00-DIVERGENCES.md).
 
 ## Out of scope
 
-Episodes, clips, artists, albums, and tracks media types on Home; podcast and episode detail
-screens; category browse; the legacy QR-code scanner.
+Episodes, clips, artists, albums, and tracks media types on Home; directory podcast and episode
+detail enhancements; category browse; the legacy QR-code scanner.

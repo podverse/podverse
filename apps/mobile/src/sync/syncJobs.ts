@@ -53,6 +53,7 @@ export type SyncJobDeps = {
 type SyncRunScratch = {
   directoryEntries: SubscribedChannel[];
   playlistNodes: NativeCacheBrowseNode[];
+  subscriptionPages: Set<number>;
 };
 
 const buildJob = (
@@ -248,6 +249,11 @@ const createSubscriptionsPageJob = (
   page: number
 ): SyncJob => {
   return buildJob('subscriptions-page', priority, `subscriptions-page:${page}`, async (context) => {
+    if (scratch.subscriptionPages.has(page)) {
+      throw new Error(`Directory subscription page repeated: ${page}`);
+    }
+    scratch.subscriptionPages.add(page);
+
     const { entries, nextPage } = await subscriptionsRepository.fetchDirectoryPage(
       deps.getAuthContext(),
       page
@@ -288,7 +294,11 @@ const createAccountRefreshJob = (deps: SyncJobDeps, priority: SyncJobPriority): 
     // so it stays inside this job instead of costing another slot in the queue.
     await reconcileAccountPrefsFromAccount(account);
 
-    const scratch: SyncRunScratch = { directoryEntries: [], playlistNodes: [] };
+    const scratch: SyncRunScratch = {
+      directoryEntries: [],
+      playlistNodes: [],
+      subscriptionPages: new Set<number>(),
+    };
 
     context.enqueue(
       buildJob('followed-playlists', priority, 'followed-playlists', async () => {

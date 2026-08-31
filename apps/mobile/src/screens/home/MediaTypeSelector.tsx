@@ -81,6 +81,7 @@ export function MediaTypeSelector({ onChange, selectedMediaType }: MediaTypeSele
           return (
             <Pressable
               accessibilityRole="button"
+              accessibilityState={{ selected: isSelected }}
               key={mediaType}
               onPress={() => {
                 onChange(mediaType);

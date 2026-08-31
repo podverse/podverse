@@ -11,6 +11,7 @@ import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 import { getDb, initializeDatabase, safeJsonParse, schema } from '../db';
 import type { AddByRssFeedRow } from '../db/schema';
 import { channelLiveStatusRepository } from './channelLiveStatusRepository';
+import { channelSeenRepository } from './channelSeenRepository';
 import type { MobileAuthRequestContext } from './types';
 
 const isResourceType = (value: string): value is MobileAddByRSSFeedRecord['resourceType'] => {
@@ -79,6 +80,18 @@ export const addByRssRepository = {
       .select()
       .from(schema.addByRssFeed)
       .where(eq(schema.addByRssFeed.feedUrl, feedUrl))
+      .limit(1);
+
+    const row = rows[0];
+    return row === undefined ? null : rowToRecord(row);
+  },
+
+  getFeedByIdText: async (idText: string): Promise<MobileAddByRSSFeedRecord | null> => {
+    await initializeDatabase();
+    const rows = await getDb()
+      .select()
+      .from(schema.addByRssFeed)
+      .where(eq(schema.addByRssFeed.idText, idText))
       .limit(1);
 
     const row = rows[0];
@@ -225,6 +238,7 @@ export const addByRssRepository = {
     await initializeDatabase();
     await getDb().delete(schema.addByRssFeed).where(eq(schema.addByRssFeed.feedUrl, feedUrl));
     await channelLiveStatusRepository.remove(feedUrl);
+    await channelSeenRepository.remove(feedUrl);
   },
 
   /** Clear all feeds (session reset / logout). */

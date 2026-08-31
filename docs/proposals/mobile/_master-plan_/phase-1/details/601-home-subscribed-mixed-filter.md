@@ -7,46 +7,39 @@
 
 ## Decision context
 
-Home's **Podcasts** media type currently shows directory follows only
-(`fetchHomeFeedRows` → `reqChannelGetMany({ type: 'subscribed' })` in
-`apps/mobile/src/screens/home/homeFeedData.ts`). Add-by-RSS feeds are invisible here — they live
-only in the RSS tab. Per the master-plan decision, subscribed views must **mix add-by-RSS with
-directory follows by default**, with a filter to view only add-by-RSS.
+Home's **Podcasts** media type shows one merged list of directory follows and followed add-by-RSS
+feeds. Add-by-RSS management remains in the RSS tab, while followed feeds are browsable from Home.
 
 ## Scope
 
-For the authenticated **Podcasts** subscribed view on Home:
+For the **Podcasts** subscribed view on Home:
 
-1. Source rows from **`subscriptionsRepository.list({ filter })`** (600) instead of the
-   directory-only `reqChannelGetMany({ type: 'subscribed' })` call. Map `SubscribedChannel` →
-   existing `HomeFeedRowData` (id = `idText`, title, imageUrl, subtitle = source label or author).
-   - Anonymous/global view (`type: 'global'`) and non-podcasts media types are unchanged.
-2. Add a **subscription filter control** (segmented chip: All / Add-by-RSS) shown only for the
-   authenticated Podcasts view. Default **All** (mixed). Selecting **Add-by-RSS** passes
-   `filter: 'addByRss'`. Persist the choice in device prefs (reuse the prefs pattern from
-   `preferredMediaType`; new key e.g. `home.subscriptionFilter`).
-3. Row tap routing: directory rows → Podcast detail; add-by-RSS rows → the add-by-RSS detail/route
-   already used by the RSS tab. Use `SubscribedChannel.source` to branch.
+1. Source rows from **`subscriptionsRepository.list({ filter: 'all' })`** (600) instead of a
+   directory-only API request. Map `SubscribedChannel` → existing `HomeFeedRowData` (id =
+   `idText`, title, imageUrl, and source metadata).
+2. Do not render a Home-level directory/add-by-RSS filter. Home's text filter applies to the
+   complete merged local result.
+3. Row tap routing: directory rows → Podcast detail; add-by-RSS rows → the typed add-by-RSS detail
+   route on the Home stack. Use `SubscribedChannel.source` to branch.
 
 ## i18n
 
-- New shared/consumer keys for filter labels: `subscriptions.filter.all`,
-  `subscriptions.filter.addByRss` (reuse across Home + Library 602). No hardcoded copy
-  (see `i18n-user-facing-strings`).
+- The existing shared/consumer filter labels `subscriptions.filter.all` and
+  `subscriptions.filter.addByRss` remain for Library's independent source-management view. Home
+  has no source-filter copy. No hardcoded copy (see `i18n-user-facing-strings`).
 
 ## Acceptance criteria
 
-- Authenticated Home Podcasts shows directory + add-by-RSS mixed by default.
-- Filter → Add-by-RSS shows only add-by-RSS feeds; back to All restores the mix.
-- Filter selection persists across app restarts.
-- Add-by-RSS row tap opens the add-by-RSS detail; directory row tap opens Podcast detail.
-- Global (anonymous) and other media types unchanged.
+- Home Podcasts shows the complete directory + add-by-RSS list in every auth state.
+- Home has no directory/add-by-RSS source filter.
+- Add-by-RSS row tap opens the Home-stack local detail; directory row tap opens Podcast detail.
+- Global behavior for other media types is unchanged.
 
 ## Non-goals
 
 - Music mediums (artists/albums) mixing — follow-on with 600's `medium` field.
-- Episodes/clips subscribed feeds (those aggregate server-side; revisit after 600 caches
-  add-by-RSS items).
+- Episodes/clips subscribed feeds (those are separate Home media types and are not part of this
+  Podcasts-only merge).
 
 ## Verification
 

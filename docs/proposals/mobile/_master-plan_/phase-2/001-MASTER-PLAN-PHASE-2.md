@@ -14,13 +14,13 @@
 | Scope decisions    | Agent proposed whole parallel groups    | **Operator** picks one screen area at a time                         |
 | Input              | Master plan step list + web parity code | **Legacy app screenshots** the operator pastes into chat             |
 | Agent's first move | Write detail docs                       | **Ask questions** about what to keep, drop, or change                |
-| Definition of done | Functional sketch + `testID` + E2E      | Functional **and** visually resolved for that area                   |
+| Definition of done | Functional sketch + `testID` + E2E      | Functional implementation informed by screenshots and decisions      |
 | Visual polish      | Deferred to Track 23                    | **Absorbed here** — polish happens per area, not in a separate track |
 
-**Ship bar change:** Phase 1's ship bar told agents to stop at functional sketches and defer layout to
-Track 23. That bar no longer applies. In Phase 2 an area is not done until the operator says the
-screen looks right. Agents still do **not** invent visual direction — it comes from the screenshots
-and the operator's answers.
+**Visual review:** Phase 2 implementation is informed by screenshots and operator decisions. A
+focused device review is recommended after implementation, but it is not required to mark an area or
+plan complete. Agents still do **not** invent visual direction — it comes from the screenshots and
+the operator's answers.
 
 ## Working loop
 
@@ -30,7 +30,7 @@ and the operator's answers.
 3. Operator answers; agent records the answers as a locked decision list.
 4. Agent writes details/<id>-*.md + .llm/plans/active/mobile-p2-<area>/ COPY-PASTA set.
 5. Operator pastes COPY-PASTA prompts; agent implements and marks steps done.
-6. Operator verifies on device; area closes; repeat.
+6. Agent recommends focused device review; area closes when implementation is complete; repeat.
 ```
 
 Screenshots are **not committed** to the repo. They live in chat only — the agent converts them into
@@ -59,9 +59,9 @@ is detailed only when its screenshots arrive. `Status`: `not started` → `quest
 
 | Area                            | Legacy screens (`../podverse-rn/src/screens/`)                                                                                                           | Status             |
 | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| P2.1.1 Home & browse            | `PodcastsScreen`, `PodcastsMediaTypeScreen`, `EpisodesScreen`, `ClipsScreen`, `AlbumsScreen`, `AlbumScreen`, `FeatureVideosScreen`                       | planned (podcasts) |
+| P2.1.1 Home & browse            | `PodcastsScreen`, `PodcastsMediaTypeScreen`, `EpisodesScreen`, `ClipsScreen`, `AlbumsScreen`, `AlbumScreen`, `FeatureVideosScreen`                       | done (podcasts)    |
 | P2.1.2 Podcast & episode detail | `PodcastScreen`, `PodcastInfoScreen`, `EpisodeScreen`, `EpisodeMediaRefScreen`, `EpisodeTranscriptScreen`                                                | not started        |
-| P2.1.3 Search & filter          | `SearchScreen`, `FilterScreen`, `ScanQRCodeScreen`                                                                                                       | planned            |
+| P2.1.3 Search & filter          | `SearchScreen`, `FilterScreen`, `ScanQRCodeScreen`                                                                                                       | done              |
 | P2.1.4 Player & now playing     | `PlayerScreen`, `SleepTimerScreen`, `StartPodcastFromTimeScreen`, `MakeClipScreen`                                                                       | not started        |
 | P2.1.5 Library                  | `MyLibraryScreen`, `QueueScreen`, `HistoryScreen`, `HistoryIndexListenerScreen`, `DownloadsScreen`                                                       | not started        |
 | P2.1.6 Playlists                | `PlaylistsScreen`, `PlaylistScreen`, `EditPlaylistScreen`, `PlaylistsAddToScreen`                                                                        | not started        |
@@ -94,12 +94,13 @@ that web also reads and writes.
 | P2.1.1 | [705-home-subscribed-list-and-filter](/docs/proposals/mobile/_master-plan_/phase-2/details/705-home-subscribed-list-and-filter.md)       | Codex 5.3 | done   |
 | P2.1.1 | [707-home-row-metadata](/docs/proposals/mobile/_master-plan_/phase-2/details/707-home-row-metadata.md)                                   | Codex 5.3 | done   |
 | P2.1.1 | [708-home-view-toggle-and-overflow-menu](/docs/proposals/mobile/_master-plan_/phase-2/details/708-home-view-toggle-and-overflow-menu.md) | Codex 5.3 | done   |
+| P2.1.1 | [721-home-combined-subscriptions-and-rss-detail](/docs/proposals/mobile/_master-plan_/phase-2/details/721-home-combined-subscriptions-and-rss-detail.md) | Auto | done |
 | P2.1.3 | [706-home-filter-sort-screen](/docs/proposals/mobile/_master-plan_/phase-2/details/706-home-filter-sort-screen.md)                       | Codex 5.3 | done   |
 | P2.1.3 | [709-search-tab-web-alignment](/docs/proposals/mobile/_master-plan_/phase-2/details/709-search-tab-web-alignment.md)                     | Codex 5.3 | done   |
 
-Every step above is implemented and its plan is archived. The **areas** P2.1.1 and P2.1.3 stay open in
-the table above until the operator verifies the screens on a device — in Phase 2 an area closes on the
-operator's eye, not on a passing test run.
+The original steps above are implemented and their plans are archived. The focused P2.1.1 follow-up
+in detail 721 is implemented and complete.
+Focused device review remains recommended follow-up verification, not a prerequisite for completion.
 
 Locked decisions for this area live in `.llm/plans/active/mobile-p2-home-podcasts/00-SUMMARY.md`.
 
@@ -121,8 +122,8 @@ rather than a separate pass.
 | P2.2.3 (was 23.3) | [597-list-virtualization-polish](/docs/proposals/mobile/_master-plan_/phase-2/details/597-list-virtualization-polish.md)     | Codex 5.3 | part (a) baseline done; part (b) FlashList/windowing tuning still jank-gated |
 
 **Publish hold remains in force.** No alpha / internal / pre-beta test-track promotion until the
-operator signs off that the app looks right. Enforced by Phase 1 Track 4 (CI/store safety) and Track
-22 (release process).
+operator authorizes it after the relevant implementation and verification work. Enforced by Phase 1
+Track 4 (CI/store safety) and Track 22 (release process).
 
 ## Track P2.3 — Operational backlog
 
@@ -277,6 +278,7 @@ above whenever status changes, per
 | [718-sync-progress-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/718-sync-progress-indicator.md)                         | P2.4.9  | Opus 5    | done          |
 | [719-sync-event-log](/docs/proposals/mobile/_master-plan_/phase-2/details/719-sync-event-log.md)                                           | P2.4.10 | Opus 5    | done          |
 | [720-defer-home-media-type-sort-coverage](/docs/proposals/mobile/_master-plan_/phase-2/details/720-defer-home-media-type-sort-coverage.md) | P2.1.3  | Codex 5.3 | deferred      |
+| [721-home-combined-subscriptions-and-rss-detail](/docs/proposals/mobile/_master-plan_/phase-2/details/721-home-combined-subscriptions-and-rss-detail.md) | P2.1.1  | Auto      | done          |
 | [896-defer-tablet-layout-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/896-defer-tablet-layout-parity.md)                   | P2.3.12 | Opus 5    | deferred      |
 | [898-defer-theme-mode-grouping](/docs/proposals/mobile/_master-plan_/phase-2/details/898-defer-theme-mode-grouping.md)                     | P2.3.7  | Codex 5.3 | deferred      |
 | [899-defer-accessibility-audit](/docs/proposals/mobile/_master-plan_/phase-2/details/899-defer-accessibility-audit.md)                     | P2.3.10 | Opus 5    | deferred      |

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { ReactNode } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { buildMediaRowMoreActions, MediaRowActions } from '../../components/player/MediaRowActions';
@@ -16,6 +17,8 @@ type HomeFeedRowProps = {
   onPress: (row: HomeFeedRowData) => void;
   onQueuePress: (row: HomeFeedRowData, position: QueueActionPosition) => void;
   onPlayPress: (row: HomeFeedRowData) => void;
+  /** Optional action controls for locally-backed resources with a different playback path. */
+  customActions?: ReactNode;
   /** When provided, adds an "Add to playlist" more-action (9d.4). Omit for unsupported kinds. */
   onAddToPlaylistPress?: (row: HomeFeedRowData) => void;
   row: HomeFeedRowData;
@@ -102,6 +105,7 @@ export function HomeFeedRow({
   onPlayPress,
   onQueuePress,
   onAddToPlaylistPress,
+  customActions,
   row,
   testID,
 }: HomeFeedRowProps) {
@@ -239,7 +243,9 @@ export function HomeFeedRow({
             )}
           </View>
         ) : null}
-        {isPlayable ? (
+        {customActions !== undefined ? (
+          <View style={styles.actionRow}>{customActions}</View>
+        ) : isPlayable ? (
           <View style={styles.actionRow}>
             <MediaRowActions
               idSuffix={`-${row.id}`}

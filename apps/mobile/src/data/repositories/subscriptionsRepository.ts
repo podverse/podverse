@@ -1,7 +1,5 @@
 import { eq } from 'drizzle-orm';
 
-import { getTotalPages } from '@podverse/helpers/pagination';
-
 // Import directly from the request module (not the auth barrel) to avoid a cycle, mirroring
 // accountRepository (AuthProvider → accountRepository → auth barrel → AuthProvider).
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
@@ -25,6 +23,7 @@ import {
   mergeSubscriptions,
   sortSubscriptions,
 } from './subscriptionsMerge';
+import { getNextDirectoryPage } from './subscriptionsPagination';
 import { hasPendingSignupMerge } from './subscriptionsSignupMarker';
 import type { MobileAuthRequestContext } from './types';
 
@@ -47,6 +46,7 @@ const isSubscriptionMedium = (value: string): value is SubscriptionMedium => {
 const rowToSubscribed = (row: SubscribedChannelRow): SubscribedChannel => {
   return {
     idText: row.idText,
+    sourceIdText: row.idText,
     title: row.title,
     imageUrl: row.imageUrl,
     source: isSubscriptionSource(row.source) ? row.source : 'directory',
@@ -60,32 +60,28 @@ const readDirectoryCache = async (): Promise<SubscribedChannel[]> => {
   return rows.map(rowToSubscribed);
 };
 
-/** Replace the whole directory cache with the freshly hydrated set (delete-all then insert). */
+/** Replace the whole directory cache with the freshly hydrated set in one transaction. */
 const replaceDirectoryCache = async (entries: SubscribedChannel[]): Promise<void> => {
   const updatedAt = Date.now();
-  await getDb().delete(schema.subscribedChannel);
-  if (entries.length === 0) {
-    return;
-  }
-  await getDb()
-    .insert(schema.subscribedChannel)
-    .values(
-      entries.map((entry) => ({
-        idText: entry.idText,
-        title: entry.title,
-        imageUrl: entry.imageUrl,
-        source: entry.source,
-        medium: entry.medium,
-        updatedAt,
-      }))
-    );
+  await getDb().transaction(async (transaction) => {
+    await transaction.delete(schema.subscribedChannel);
+    if (entries.length === 0) {
+      return;
+    }
+    await transaction
+      .insert(schema.subscribedChannel)
+      .values(
+        entries.map((entry) => ({
+          idText: entry.idText,
+          title: entry.title,
+          imageUrl: entry.imageUrl,
+          source: entry.source,
+          medium: entry.medium,
+          updatedAt,
+        }))
+      );
+  });
 };
-
-/**
- * Ceiling on pages walked during a sync, so a malformed `meta` can never spin forever. At the
- * endpoint's page size this covers far more subscriptions than any real account has.
- */
-const MAX_SYNC_PAGES = 25;
 
 /** Add or refresh entries without removing anything already present. */
 const upsertDirectoryEntries = async (entries: SubscribedChannel[]): Promise<void> => {
@@ -227,8 +223,7 @@ export const subscriptionsRepository = {
    * images) — the numeric ids in `account_following_channels` hydrated.
    *
    * A page at a time rather than a loop: these rows decide whether a channel reads as subscribed,
-   * so the walk must reach the end, and a walk that can run to twenty-five requests has no business
-   * occupying a single slot in a serial queue. The caller drives the pages the result points at.
+ * so the walk must reach the end. The caller drives the pages the result points at.
    */
   fetchDirectoryPage: async (
     context: MobileAuthRequestContext,
@@ -253,17 +248,16 @@ export const subscriptionsRepository = {
       }
     }
 
-    const responsePage = response.meta.page ?? page;
-    const totalPages = getTotalPages(
-      response.meta.count,
-      response.meta.limit,
-      response.data.length,
-      responsePage
-    );
-    const isLastPage =
-      response.meta.limit <= 0 || responsePage >= totalPages || responsePage >= MAX_SYNC_PAGES;
+    const responsePage = response.meta.page === null ? page : response.meta.page;
+    const nextPage = getNextDirectoryPage({
+      itemCount: response.data.length,
+      limit: response.meta.limit,
+      requestedPage: page,
+      responsePage,
+      totalCount: response.meta.count,
+    });
 
-    return { entries, nextPage: isLastPage ? null : responsePage + 1 };
+    return { entries, nextPage };
   },
 
   /**

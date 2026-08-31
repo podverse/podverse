@@ -35,6 +35,7 @@ import { EpisodeDetailScreen } from '../screens/episode/EpisodeDetailScreen';
 import { HelloWorldScreen } from '../screens/HelloWorldScreen';
 import { HomeFilterSortScreen } from '../screens/home/HomeFilterSortScreen';
 import { HomeScreen } from '../screens/home/HomeScreen';
+import { AddByRssHomeDetailScreen } from '../screens/home/AddByRssHomeDetailScreen';
 import { LibraryDownloadsScreen } from '../screens/library/LibraryDownloadsScreen';
 import { LibraryHistoryScreen } from '../screens/library/LibraryHistoryScreen';
 import { LibraryMyClipsScreen } from '../screens/library/LibraryMyClipsScreen';
@@ -112,6 +113,7 @@ function PlaceholderScreen({ testID, title }: PlaceholderScreenProps) {
 }
 
 export const HOME_STACK_ROUTES = {
+  AddByRssPodcastDetail: 'AddByRssPodcastDetail',
   AlbumDetail: 'AlbumDetail',
   ArtistDetail: 'ArtistDetail',
   ClipDetail: 'ClipDetail',
@@ -193,6 +195,7 @@ const mobileNavigationScreens = {
         // it, `getStateFromPath('/home/podcast/:id')` returns undefined and deep links fall back
         // to Home. HomeRoot stays the bare `home` segment.
         screens: {
+          AddByRssPodcastDetail: 'home/add-by-rss/:feedIdText',
           AlbumDetail: 'home/album/:albumId',
           ArtistDetail: 'home/artist/:artistId',
           ClipDetail: 'home/clip/:clipId',
@@ -299,6 +302,7 @@ export type ChannelBrowseStackParamList = {
 };
 
 export type HomeStackParamList = ChannelBrowseStackParamList & {
+  AddByRssPodcastDetail: { feedIdText: string };
   /** Which Home list the choices apply to, so each media type keeps its own. */
   HomeFilterSort: { mediaType: HomeMediaType };
   HomeRoot: undefined;
@@ -399,6 +403,11 @@ function HomeStackNavigator() {
         component={HomeScreen}
         name={HOME_STACK_ROUTES.HomeRoot}
         options={{ title: t('nav.stack.home') }}
+      />
+      <HomeStack.Screen
+        component={AddByRssHomeDetailScreen}
+        name={HOME_STACK_ROUTES.AddByRssPodcastDetail}
+        options={{ title: t('media.podcast.podcast') }}
       />
       <HomeStack.Screen
         component={HomeFilterSortScreen}
@@ -937,6 +946,15 @@ function TabScaffold({
         }}
       />
       <Tab.Screen
+        component={LibraryStackNavigator}
+        name="My Library"
+        options={{
+          tabBarIcon: tabBarIcon('library'),
+          tabBarLabel: t('features.my_library'),
+          tabBarButtonTestID: 'tab-my-library',
+        }}
+      />
+      <Tab.Screen
         component={NotificationsStackNavigator}
         name="Notifications"
         options={{
@@ -944,15 +962,6 @@ function TabScaffold({
           tabBarIcon: tabBarIcon('notifications'),
           tabBarLabel: t('nav.tab.notifications'),
           tabBarButtonTestID: 'tab-notifications',
-        }}
-      />
-      <Tab.Screen
-        component={LibraryStackNavigator}
-        name="My Library"
-        options={{
-          tabBarIcon: tabBarIcon('library'),
-          tabBarLabel: t('features.my_library'),
-          tabBarButtonTestID: 'tab-my-library',
         }}
       />
       <Tab.Screen
