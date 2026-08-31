@@ -21,7 +21,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@paypal/paypal-server-sdk": "^2.2.0"
+    "@paypal/paypal-server-sdk": "^2.5.0"
   },
   "type": "module"
 }
