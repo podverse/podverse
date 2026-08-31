@@ -355,7 +355,7 @@ export class AccountService {
     const playbackRepo = AppDataSourceReadWrite.getRepository(AccountSettingsPlayback);
 
     // If alwaysCreate (used by create), always create new AccountSettings row linked to the account
-    if (params.alwaysCreate || !account.account_settings) {
+    if (params.alwaysCreate) {
       // First, create and save AccountSettings
       const accountSettings = new AccountSettings();
       accountSettings.account_id = account.id;
@@ -397,14 +397,42 @@ export class AccountService {
       return;
     }
 
-    // Otherwise (used by get) ensure sub-rows exist, create only if missing
-    const existingSettings = account.account_settings;
+    let existingSettings = account.account_settings;
+    if (!existingSettings) {
+      // Initialize a missing settings row idempotently; the unique account_id constraint lets
+      // concurrent first reads converge on one row without overwriting existing settings.
+      await accountSettingsRepo
+        .createQueryBuilder()
+        .insert()
+        .into(AccountSettings)
+        .values({
+          account_id: account.id,
+          allow_listen_stats: params.allow_listen_stats ?? true,
+        })
+        .orIgnore()
+        .execute();
 
+      const ensuredSettings = await accountSettingsRepo.findOne({
+        where: { account_id: account.id },
+      });
+      if (!ensuredSettings) {
+        throw new Error('AccountSettings could not be created for account');
+      }
+      existingSettings = ensuredSettings;
+    }
+
+    // Otherwise (used by get) ensure sub-rows exist, create only if missing
     if (!existingSettings.account_settings_locale) {
-      const locale = new AccountSettingsLocale();
-      locale.account_settings_id = existingSettings.id;
-      locale.locale = params.locale;
-      await localeRepo.save(locale);
+      await localeRepo
+        .createQueryBuilder()
+        .insert()
+        .into(AccountSettingsLocale)
+        .values({
+          account_settings_id: existingSettings.id,
+          locale: params.locale,
+        })
+        .orIgnore()
+        .execute();
     }
 
     if (!existingSettings.account_settings_playback) {
@@ -424,27 +452,47 @@ export class AccountService {
     }
 
     if (!existingSettings.account_settings_notification) {
-      const notification = new AccountSettingsNotification();
-      notification.account_settings_id = existingSettings.id;
-      const t1 = new AccountSettingsNotificationType();
-      t1.type = AccountNotificationTypeEnum.NewItem;
-      const t2 = new AccountSettingsNotificationType();
-      t2.type = AccountNotificationTypeEnum.LivestreamStarting;
-      notification.account_settings_notification_types = [t1, t2];
-      await notificationRepo.save(notification);
-    } else if (
-      !existingSettings.account_settings_notification.account_settings_notification_types ||
-      existingSettings.account_settings_notification.account_settings_notification_types.length ===
-        0
+      await notificationRepo
+        .createQueryBuilder()
+        .insert()
+        .into(AccountSettingsNotification)
+        .values({ account_settings_id: existingSettings.id })
+        .orIgnore()
+        .execute();
+    }
+
+    const notification = await notificationRepo.findOne({
+      where: { account_settings_id: existingSettings.id },
+      relations: { account_settings_notification_types: true },
+    });
+    if (!notification) {
+      throw new Error('AccountSettingsNotification could not be created for account');
+    }
+
+    if (
+      !notification.account_settings_notification_types ||
+      notification.account_settings_notification_types.length === 0
     ) {
       // add default types if missing
-      const notification = existingSettings.account_settings_notification;
-      const t1 = new AccountSettingsNotificationType();
-      t1.type = AccountNotificationTypeEnum.NewItem;
-      const t2 = new AccountSettingsNotificationType();
-      t2.type = AccountNotificationTypeEnum.LivestreamStarting;
-      notification.account_settings_notification_types = [t1, t2];
-      await notificationRepo.save(notification);
+      const notificationTypeRepo = AppDataSourceReadWrite.getRepository(
+        AccountSettingsNotificationType
+      );
+      await notificationTypeRepo
+        .createQueryBuilder()
+        .insert()
+        .into(AccountSettingsNotificationType)
+        .values([
+          {
+            account_settings_notification_id: notification.id,
+            type: AccountNotificationTypeEnum.NewItem,
+          },
+          {
+            account_settings_notification_id: notification.id,
+            type: AccountNotificationTypeEnum.LivestreamStarting,
+          },
+        ])
+        .orIgnore()
+        .execute();
     }
 
     await notificationPreferenceService.seedDefaultsForAccount(account.id);

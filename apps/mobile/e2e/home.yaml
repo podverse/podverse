@@ -135,6 +135,10 @@ name: Home Media Types
     id: home-filter-clear
 
 # Episodes
+# iOS can consume the first control tap to dismiss the focused filter keyboard. Selecting the same
+# media type twice is idempotent, so the second tap completes the transition in either state.
+- tapOn:
+    id: home-media-type-episodes
 - tapOn:
     id: home-media-type-episodes
 - assertVisible: Episodes
