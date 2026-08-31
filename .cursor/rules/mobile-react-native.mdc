@@ -16,11 +16,11 @@ alwaysApply: false
   **information hierarchy** / list-row structure / **action affordances** (Play, queue next/last,
   more-menu items, subscribe/unsubscribe — same intents and shared i18n keys) /
   loading-empty-error states, adapted to RN primitives with design tokens (no hardcoded hex).
-  **Phase 2 ship bar:** visual resolution is part of done, driven by the operator's legacy-app
-  screenshots and answers (**mobile-legacy-screenshot-planning**); the Phase 1 "sketch only, polish
-  in Track 23" bar no longer applies. Agents still do not invent visual direction — ask when the
-  screenshots and answers don't settle it. Do not invent player-integrated transcripts, clip
-  authoring UI, or pixel DnD without a master-plan step. See
+  **Phase 2 visual review:** legacy-app screenshots and operator answers drive implementation
+  decisions (**mobile-legacy-screenshot-planning**), and a focused device review is recommended
+  after implementation but is not a completion gate. Agents still do not invent visual direction —
+  ask when the screenshots and answers don't settle it. Do not invent player-integrated transcripts,
+  clip authoring UI, or pixel DnD without a master-plan step. See
   [PHASES.md](/docs/proposals/mobile/_master-plan_/PHASES.md), **mobile-theme-parity** § Screen & visual parity, and
   [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md).
   Diverge only for platform conventions and note why.

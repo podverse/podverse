@@ -56,6 +56,7 @@ const config: ExpoConfig = {
   slug: 'podverse-next',
   version: packageJson.version,
   orientation: 'portrait',
+  icon: './assets/app-icons/podverse-icon.png',
   userInterfaceStyle: 'automatic',
   newArchEnabled: true,
   scheme: deepLinkSchemes,

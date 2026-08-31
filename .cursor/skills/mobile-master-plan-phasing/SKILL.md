@@ -29,7 +29,8 @@ Sections below describing the Phase 1 status lifecycle and ship bar are **Phase 
 screenshot skill for Phase 2 work.
 
 Phase 1 execution plan sets were removed after their outcomes were captured in the phase plans.
-Phase 2 sets go to `.llm/plans/active/mobile-p2-<area>/` and are removed when the area closes.
+Phase 2 sets go to `.llm/plans/active/mobile-p2-<area>/` and are removed when implementation for
+the area is complete.
 
 ## Operator loop (Phase 1 pattern — see the screenshot skill for Phase 2)
 
@@ -40,7 +41,9 @@ Phase 2 sets go to `.llm/plans/active/mobile-p2-<area>/` and are removed when th
 4. Ask: "Create detailed plan files for that phase" (defer only — no implementation).
 5. Agent writes detail docs + `.llm/plans/active/mobile-<phase-slug>/` COPY-PASTA set.
 6. Ask: paste COPY-PASTA prompts to implement.
-7. Agent implements; **marks completed steps `done` as each COPY-PASTA prompt finishes**; archives plan set when phase is finished.
+7. Agent implements; **marks completed steps `done` as each COPY-PASTA prompt finishes**; archives
+the plan set when implementation is finished. Operator verification is recommended separately and
+is not a completion gate.
 ```
 
 Repeat from step 1.
@@ -133,8 +136,9 @@ After **each** COPY-PASTA prompt in `mobile-<phase-slug>/COPY-PASTA.md`:
 5. If that track now has **all** steps `done`, append ` (DONE)` to its `## Track …` heading
    (see § Track section headers).
 
-On the **last** prompt: remove `.llm/plans/active/mobile-<phase-slug>/` after the operator confirms
-the phase is complete. Preserve durable outcomes in the phase plan and detail docs.
+On the **last** prompt: remove `.llm/plans/active/mobile-<phase-slug>/` when implementation is
+complete. Preserve durable outcomes in the phase plan and detail docs. Do not wait for visual
+verification.
 
 ### "What next" response — required progress block
 
@@ -240,14 +244,15 @@ default from master plan **Open decisions**):
 | E2E framework (Maestro vs Detox) | Track 5, all E2E-heavy steps                                       |
 | CI tooling (EAS vs Fastlane)     | Track 4, Track 22                                                  |
 | Offline data (decided)           | Track 9b — offline-first SQLite + repositories                     |
-| Visual polish (decided)          | Track 9b.6–9b.7 primitives now; **Track 23** operator polish later |
+| Visual polish (decided)          | Track 9b.6–9b.7 primitives now; focused review is optional follow-up |
 
 ### Ship bar (always apply)
 
 Before recommending or detailing a phase, re-read master plan **Ship bar**: agents deliver
 **functionality + screens + component sketches**. Do **not** recommend freestyle layout polish,
 player-integrated transcript chrome, clip authoring, or pixel DnD as part of feature PGs — those
-are Track **21** deferrals or Track **23** operator work.
+are Track **21** deferrals or Track **23** operator work. A focused visual review may be
+recommended after implementation, but it does not gate completion.
 
 Record the chosen option in the phase `00-SUMMARY.md` when detailing.
 
@@ -360,8 +365,8 @@ When operator pastes COPY-PASTA from `mobile-<phase-slug>/`:
 
 When the **last** prompt in the set finishes (all steps in phase `done`):
 
-1. Remove `.llm/plans/active/mobile-<phase-slug>/` after operator confirmation; do not retain a
-   completed-plan archive.
+1. Remove `.llm/plans/active/mobile-<phase-slug>/` after implementation completes; do not retain a
+   completed-plan archive. Do not wait for optional visual verification.
 2. If spike gate (2.34) or open decisions changed reality, propose master-plan step edits to
    operator before next phase.
 

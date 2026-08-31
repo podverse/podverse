@@ -54,7 +54,8 @@ A wrong guess here becomes a wrong plan, then wrong code.
 3. Operator answers.
 4. Agent writes a locked decision list, then detail docs + COPY-PASTA set.
 5. Operator pastes COPY-PASTA prompts; agent implements, marks steps done.
-6. Operator verifies on device. Area closes. Repeat.
+6. Agent recommends a focused device visual review. The area closes when its implementation work is
+   complete; visual review remains optional follow-up verification. Repeat.
 ```
 
 ### Step 2 — describe, then ask
@@ -136,16 +137,17 @@ numbered plan files, and `COPY-PASTA.md`. Follow
 [`parallel-plan-execution`](/.cursor/skills/parallel-plan-execution/SKILL.md) — every COPY-PASTA
 prompt needs **Cursor model** and **Reasoning** lines
 ([`copy-pasta-recommend-model`](/.cursor/rules/copy-pasta-recommend-model.mdc)). Keep each plan file
-under 300 lines. Remove the completed Phase 2 plan set after the operator confirms the area is
-closed; do not retain a completed-plan archive
+under 300 lines. Remove the completed Phase 2 plan set after its implementation work is complete;
+do not retain a completed-plan archive
 ([`plan-completion`](/.cursor/skills/plan-completion/SKILL.md)).
 
-## Phase 2 changes the ship bar
+## Phase 2 visual review
 
-Phase 1 told agents to stop at functional sketches and defer layout to Track 23. **That no longer
-applies.** In Phase 2, visual resolution is part of each area's definition of done, driven by the
-screenshots and the operator's answers. Agents still do not invent visual direction on their own — if
-the screenshots and answers do not settle a layout question, ask rather than guess.
+Phase 2 uses legacy screenshots and operator answers to make implementation decisions, but visual
+review is not a completion gate. Agents still do not invent visual direction on their own — if the
+screenshots and answers do not settle a layout question, ask rather than guess. After implementation,
+recommend a focused device run with screenshots so the operator can review the result when useful.
+The area and its plan may be marked complete when the implementation work is complete.
 
 Existing constraints that **do** still apply: shared primitives and theme tokens over hardcoded
 values ([`mobile-theme-parity`](/.cursor/skills/mobile-theme-parity/SKILL.md)), i18n for all
