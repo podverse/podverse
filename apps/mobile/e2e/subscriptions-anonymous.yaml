@@ -17,8 +17,17 @@ name: Anonymous Subscriptions Persist
     id: home-screen
 - assertVisible:
     id: home-list-empty
+- assertVisible: You are not subscribed to anything yet.
 - assertVisible:
     id: home-list-empty-search
+- assertNotVisible:
+    id: home-sort-button
+- assertNotVisible:
+    id: home-overflow-trigger
+- assertNotVisible:
+    id: home-filter-input
+- assertNotVisible:
+    id: home-feed-summary
 - takeScreenshot: home-empty-no-subscriptions
 
 # The empty-state button is the route to Search, so signed out, the subscribe control works

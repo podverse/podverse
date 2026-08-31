@@ -61,11 +61,11 @@ separately.
    running. Then run the flow on only the selected platform:
    - iOS first: `npm run mobile:e2e:test -- --platform ios <area>`
    - Android after iOS passes: `npm run mobile:e2e:test -- --platform android <area>`
-   Do not use `--platform both` while isolating a failure. Do not continue to another failure until
-   the current platform passes. Once a mobile flow passes on iOS, run that same flow on Android
-   before selecting the next flow. The agent runs this focused command and reads the result; do not
-   ask the operator to run it and report back unless the agent has a concrete execution blocker. If
-   it fails again, return to evidence gathering and repeat this loop.
+     Do not use `--platform both` while isolating a failure. Do not continue to another failure until
+     the current platform passes. Once a mobile flow passes on iOS, run that same flow on Android
+     before selecting the next flow. The agent runs this focused command and reads the result; do not
+     ask the operator to run it and report back unless the agent has a concrete execution blocker. If
+     it fails again, return to evidence gathering and repeat this loop.
 9. Reconcile required leave-running services in the service preflight. First inspect the existing
    terminal state, listener ports, PIDs, process commands, and health endpoints so the agent does
    not create duplicate services. Treat service state as unknown until verified:
@@ -81,10 +81,10 @@ separately.
    - Mobile E2E test-assets: when a playback flow needs `:2111`, use the managed lifecycle in
      **Mobile E2E test-assets**: `npm run mobile:e2e:test-assets:stop`, then
      `npm run mobile:e2e:test-assets:bg`, followed by its fixture health check.
-   If a managed service conflicts, stop the managed instance before starting it. Ask for operator
-   intervention only for a missing device, native build, permission, authentication failure, or a
-   positively identified operator-owned foreground process that cannot be safely restarted. Do not
-   work around a blocker or skip to another test.
+     If a managed service conflicts, stop the managed instance before starting it. Ask for operator
+     intervention only for a missing device, native build, permission, authentication failure, or a
+     positively identified operator-owned foreground process that cannot be safely restarted. Do not
+     work around a blocker or skip to another test.
 10. After the current unit passes, record its root cause, fix, verification command, and result,
     then immediately select the next unresolved unit. When multiple failures are supplied, continue
     through the entire queue; do not stop after resolving only the first failure.
@@ -133,8 +133,8 @@ driver processes, terminates the app, and reboots the simulator.
 ("System UI isn't responding", "Podverse Next keeps stopping") swallowing every tap, or an
 unreachable emulator; recovery is
 `bash scripts/mobile/ensure-devices.sh recover-e2e-android`. **Never dismiss the dialog by hand or
-add a flow step that taps it** — *Close app* asks Android to kill System UI and leaves the emulator
-worse than a reboot, and *Wait* can hang indefinitely. On iOS it is an unresponsive CoreSimulator
+add a flow step that taps it** — _Close app_ asks Android to kill System UI and leaves the emulator
+worse than a reboot, and _Wait_ can hang indefinitely. On iOS it is an unresponsive CoreSimulator
 or a driver that died after the flow started.
 
 **`blocked: stalled` — output stopped.** No Maestro log growth and no new slot artifacts for
@@ -151,7 +151,7 @@ rebooting a simulator for the third time, check what the Maestro process is actu
 kill -QUIT <maestro-jvm-pid>   # thread dump lands in the Maestro log
 ```
 
-A stack in `dadb.AdbReader.readMessage` or `dadb.Dadb$Companion.list` is device *discovery*
+A stack in `dadb.AdbReader.readMessage` or `dadb.Dadb$Companion.list` is device _discovery_
 hanging on a host socket, not a device problem.
 
 ## Never wait unbounded on a run
@@ -181,6 +181,7 @@ fully resolved unless all applicable conditions below are true:
    - an explicitly documented blocker that requires operator input.
 
    A run that exited 78 satisfies neither: those items stay `unresolved` or become `blocked`.
+
 3. A shared application, fixture, service, runner, or report-generator fix invalidates conclusions
    from earlier runs until the first affected unit is rerun after that fix.
 4. A report-generator failure is tracked separately from flow failures and is itself verified fixed
@@ -245,20 +246,20 @@ substitute for understanding a failure.
 Defaults are the supported configuration. Change one only with a stated reason, and say so in the
 summary when you do.
 
-| Variable                                   | Default | Meaning                                              |
-| ------------------------------------------ | ------- | ---------------------------------------------------- |
-| `MOBILE_E2E_STALL_TIMEOUT_SECONDS`         | `300`   | No log growth and no new slot artifacts ⇒ exit 78     |
-| `MOBILE_E2E_STARTUP_TIMEOUT_SECONDS`       | `180`   | Maestro never reached the device ⇒ exit 78            |
-| `MOBILE_E2E_RUN_TIMEOUT_SECONDS`           | `0`     | Hard ceiling per invocation; `0` leaves stall only    |
-| `MOBILE_E2E_WATCHDOG_INTERVAL_SECONDS`     | `15`    | Device-health poll interval (both platforms)          |
-| `MOBILE_E2E_IOS_DRIVER_GRACE_SECONDS`      | `90`    | Grace before a missing `maestro-driver-ios` counts    |
-| `MOBILE_E2E_ANDROID_RECOVERIES`            | `1`     | Emulator reboots allowed before stopping              |
-| `MOBILE_E2E_IOS_RECOVERIES`                | `1`     | Simulator reboots allowed before stopping             |
-| `MOBILE_E2E_ANDROID_WATCHDOG`              | `1`     | Set `0` only to reproduce a hang deliberately         |
-| `MOBILE_E2E_IOS_WATCHDOG`                  | `1`     | Set `0` only to reproduce a hang deliberately         |
-| `MOBILE_E2E_DEVICE_CANARY`                 | `1`     | Pre-run `maestro hierarchy` probe per selected device |
-| `MOBILE_E2E_DEVICE_CANARY_TIMEOUT_SECONDS` | `120`   | Canary patience before declaring the device blocked   |
-| `MOBILE_E2E_SKIP_SEED`                     | `0`     | `--skip-seed`; reuse the database from the last run   |
+| Variable                                   | Default | Meaning                                                |
+| ------------------------------------------ | ------- | ------------------------------------------------------ |
+| `MOBILE_E2E_STALL_TIMEOUT_SECONDS`         | `300`   | No log growth and no new slot artifacts ⇒ exit 78      |
+| `MOBILE_E2E_STARTUP_TIMEOUT_SECONDS`       | `180`   | Maestro never reached the device ⇒ exit 78             |
+| `MOBILE_E2E_RUN_TIMEOUT_SECONDS`           | `0`     | Hard ceiling per invocation; `0` leaves stall only     |
+| `MOBILE_E2E_WATCHDOG_INTERVAL_SECONDS`     | `15`    | Device-health poll interval (both platforms)           |
+| `MOBILE_E2E_IOS_DRIVER_GRACE_SECONDS`      | `90`    | Grace before a missing `maestro-driver-ios` counts     |
+| `MOBILE_E2E_ANDROID_RECOVERIES`            | `1`     | Emulator reboots allowed before stopping               |
+| `MOBILE_E2E_IOS_RECOVERIES`                | `1`     | Simulator reboots allowed before stopping              |
+| `MOBILE_E2E_ANDROID_WATCHDOG`              | `1`     | Set `0` only to reproduce a hang deliberately          |
+| `MOBILE_E2E_IOS_WATCHDOG`                  | `1`     | Set `0` only to reproduce a hang deliberately          |
+| `MOBILE_E2E_DEVICE_CANARY`                 | `1`     | Pre-run `maestro hierarchy` probe per selected device  |
+| `MOBILE_E2E_DEVICE_CANARY_TIMEOUT_SECONDS` | `120`   | Canary patience before declaring the device blocked    |
+| `MOBILE_E2E_SKIP_SEED`                     | `0`     | `--skip-seed`; reuse the database from the last run    |
 | `MOBILE_E2E_PARALLEL_SLOTS`                | `0`     | `--parallel` runs both slots at once (more contention) |
 
 Do not pass `--parallel` while isolating a failure. It halves wall clock at the cost of the host

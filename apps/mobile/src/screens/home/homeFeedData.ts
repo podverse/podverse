@@ -295,7 +295,9 @@ export const fetchHomeFeedRows = async (
     // Read before the API is even consulted, and with no directory fallback, because Home shows
     // what the user subscribed to and nothing else. An unconfigured API or no connection changes
     // nothing about that list.
-    const subscribed = await subscriptionsRepository.list({ sort: options.sort ?? DEFAULT_HOME_SORT });
+    const subscribed = await subscriptionsRepository.list({
+      sort: options.sort ?? DEFAULT_HOME_SORT,
+    });
     return attachSubscriptionMetadata(subscribed);
   }
 

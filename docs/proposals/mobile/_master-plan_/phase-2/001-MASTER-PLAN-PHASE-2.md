@@ -57,20 +57,20 @@ Areas are ordered by suggested sequence, but the **operator chooses** what to wo
 is detailed only when its screenshots arrive. `Status`: `not started` → `questions asked` →
 `planned` → `done`.
 
-| Area                            | Legacy screens (`../podverse-rn/src/screens/`)                                                                                                           | Status             |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| P2.1.1 Home & browse            | `PodcastsScreen`, `PodcastsMediaTypeScreen`, `EpisodesScreen`, `ClipsScreen`, `AlbumsScreen`, `AlbumScreen`, `FeatureVideosScreen`                       | done (podcasts)    |
-| P2.1.2 Podcast & episode detail | `PodcastScreen`, `PodcastInfoScreen`, `EpisodeScreen`, `EpisodeMediaRefScreen`, `EpisodeTranscriptScreen`                                                | not started        |
-| P2.1.3 Search & filter          | `SearchScreen`, `FilterScreen`, `ScanQRCodeScreen`                                                                                                       | done              |
-| P2.1.4 Player & now playing     | `PlayerScreen`, `SleepTimerScreen`, `StartPodcastFromTimeScreen`, `MakeClipScreen`                                                                       | not started        |
-| P2.1.5 Library                  | `MyLibraryScreen`, `QueueScreen`, `HistoryScreen`, `HistoryIndexListenerScreen`, `DownloadsScreen`                                                       | not started        |
-| P2.1.6 Playlists                | `PlaylistsScreen`, `PlaylistScreen`, `EditPlaylistScreen`, `PlaylistsAddToScreen`                                                                        | not started        |
-| P2.1.7 Add by RSS               | `AddPodcastByRSSScreen`, `AddPodcastByRSSAuthScreen`                                                                                                     | not started        |
-| P2.1.8 Auth & onboarding        | `AuthScreen`, `OnboardingScreen`, `EmailVerificationScreen`, `ResetPasswordScreen`                                                                       | not started        |
-| P2.1.9 Profiles                 | `ProfileScreen`, `ProfilesScreen`, `EditProfileScreen`                                                                                                   | not started        |
-| P2.1.10 Settings & More         | `MoreScreen`, `SettingsScreen*` (11 sub-screens), `TrackingConsentScreen`                                                                                | not started        |
-| P2.1.11 Membership              | `MembershipScreen`, `PurchasingScreen`                                                                                                                   | not started        |
-| P2.1.12 Static & support        | `AboutScreen`, `ContactScreen`, `ContactXMPPChatScreen`, `FAQScreen`, `PrivacyPolicyScreen`, `TermsOfServiceScreen`, `ContributeScreen`, `WebPageScreen` | not started        |
+| Area                            | Legacy screens (`../podverse-rn/src/screens/`)                                                                                                           | Status          |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| P2.1.1 Home & browse            | `PodcastsScreen`, `PodcastsMediaTypeScreen`, `EpisodesScreen`, `ClipsScreen`, `AlbumsScreen`, `AlbumScreen`, `FeatureVideosScreen`                       | done (podcasts) |
+| P2.1.2 Podcast & episode detail | `PodcastScreen`, `PodcastInfoScreen`, `EpisodeScreen`, `EpisodeMediaRefScreen`, `EpisodeTranscriptScreen`                                                | not started     |
+| P2.1.3 Search & filter          | `SearchScreen`, `FilterScreen`, `ScanQRCodeScreen`                                                                                                       | done            |
+| P2.1.4 Player & now playing     | `PlayerScreen`, `SleepTimerScreen`, `StartPodcastFromTimeScreen`, `MakeClipScreen`                                                                       | not started     |
+| P2.1.5 Library                  | `MyLibraryScreen`, `QueueScreen`, `HistoryScreen`, `HistoryIndexListenerScreen`, `DownloadsScreen`                                                       | not started     |
+| P2.1.6 Playlists                | `PlaylistsScreen`, `PlaylistScreen`, `EditPlaylistScreen`, `PlaylistsAddToScreen`                                                                        | not started     |
+| P2.1.7 Add by RSS               | `AddPodcastByRSSScreen`, `AddPodcastByRSSAuthScreen`                                                                                                     | not started     |
+| P2.1.8 Auth & onboarding        | `AuthScreen`, `OnboardingScreen`, `EmailVerificationScreen`, `ResetPasswordScreen`                                                                       | not started     |
+| P2.1.9 Profiles                 | `ProfileScreen`, `ProfilesScreen`, `EditProfileScreen`                                                                                                   | not started     |
+| P2.1.10 Settings & More         | `MoreScreen`, `SettingsScreen*` (11 sub-screens), `TrackingConsentScreen`                                                                                | not started     |
+| P2.1.11 Membership              | `MembershipScreen`, `PurchasingScreen`                                                                                                                   | not started     |
+| P2.1.12 Static & support        | `AboutScreen`, `ContactScreen`, `ContactXMPPChatScreen`, `FAQScreen`, `PrivacyPolicyScreen`, `TermsOfServiceScreen`, `ContributeScreen`, `WebPageScreen` | not started     |
 
 **Not in Phase 2:** the legacy `V4V*` screens (`V4VBoostagramScreen`, `V4VConsentScreen`,
 `V4VInfoStreamingSatsScreen`, `V4VPreviewScreen`, `V4VProvidersScreen`, `V4VProvidersAlbyScreen`,
@@ -89,14 +89,14 @@ the Home work assumes anonymous subscriptions, local content storage, and per-ch
 exist. **Track P2.5 web counterparts** follow, since some of this work changes account-synced state
 that web also reads and writes.
 
-| Step   | Detail                                                                                                                                   | Model     | Status |
-| ------ | ---------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------ |
-| P2.1.1 | [705-home-subscribed-list-and-filter](/docs/proposals/mobile/_master-plan_/phase-2/details/705-home-subscribed-list-and-filter.md)       | Codex 5.3 | done   |
-| P2.1.1 | [707-home-row-metadata](/docs/proposals/mobile/_master-plan_/phase-2/details/707-home-row-metadata.md)                                   | Codex 5.3 | done   |
-| P2.1.1 | [708-home-view-toggle-and-overflow-menu](/docs/proposals/mobile/_master-plan_/phase-2/details/708-home-view-toggle-and-overflow-menu.md) | Codex 5.3 | done   |
-| P2.1.1 | [721-home-combined-subscriptions-and-rss-detail](/docs/proposals/mobile/_master-plan_/phase-2/details/721-home-combined-subscriptions-and-rss-detail.md) | Auto | done |
-| P2.1.3 | [706-home-filter-sort-screen](/docs/proposals/mobile/_master-plan_/phase-2/details/706-home-filter-sort-screen.md)                       | Codex 5.3 | done   |
-| P2.1.3 | [709-search-tab-web-alignment](/docs/proposals/mobile/_master-plan_/phase-2/details/709-search-tab-web-alignment.md)                     | Codex 5.3 | done   |
+| Step   | Detail                                                                                                                                                   | Model     | Status |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------ |
+| P2.1.1 | [705-home-subscribed-list-and-filter](/docs/proposals/mobile/_master-plan_/phase-2/details/705-home-subscribed-list-and-filter.md)                       | Codex 5.3 | done   |
+| P2.1.1 | [707-home-row-metadata](/docs/proposals/mobile/_master-plan_/phase-2/details/707-home-row-metadata.md)                                                   | Codex 5.3 | done   |
+| P2.1.1 | [708-home-view-toggle-and-overflow-menu](/docs/proposals/mobile/_master-plan_/phase-2/details/708-home-view-toggle-and-overflow-menu.md)                 | Codex 5.3 | done   |
+| P2.1.1 | [721-home-combined-subscriptions-and-rss-detail](/docs/proposals/mobile/_master-plan_/phase-2/details/721-home-combined-subscriptions-and-rss-detail.md) | Auto      | done   |
+| P2.1.3 | [706-home-filter-sort-screen](/docs/proposals/mobile/_master-plan_/phase-2/details/706-home-filter-sort-screen.md)                                       | Codex 5.3 | done   |
+| P2.1.3 | [709-search-tab-web-alignment](/docs/proposals/mobile/_master-plan_/phase-2/details/709-search-tab-web-alignment.md)                                     | Codex 5.3 | done   |
 
 The original steps above are implemented and their plans are archived. The focused P2.1.1 follow-up
 in detail 721 is implemented and complete.
@@ -130,20 +130,20 @@ Track 4 (CI/store safety) and Track 22 (release process).
 Low priority. Pulled in only when the operator asks. These carried over from Phase 1 with no detail
 doc written except where noted.
 
-| Step    | Carried from | What                                                                                                                                                                       | Model     |
-| ------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| P2.3.1  | 22.4         | Minimum-supported-client-version API signal for forced upgrade prompts                                                                                                     | Opus 5    |
-| P2.3.2  | 20.7         | Submit to metaboost-registry or F-Droid request issue (operator step)                                                                                                      | Auto      |
-| P2.3.3  | 18.16        | CI tablet emulator matrix job (optional nightly, not a PR gate)                                                                                                            | Codex 5.3 |
-| P2.3.4  | 18.17        | Store listings: separate screenshots per form factor                                                                                                                       | Auto      |
-| P2.3.5  | 21.11        | [598-defer-player-transcript-chrome](/docs/proposals/mobile/_master-plan_/phase-2/details/598-defer-player-transcript-chrome.md) — record the deferral                     | Auto      |
-| P2.3.6  | 21.12        | [599-defer-pixel-dnd-polish](/docs/proposals/mobile/_master-plan_/phase-2/details/599-defer-pixel-dnd-polish.md) — record the deferral                                     | Auto      |
-| P2.3.7  | new          | [898-defer-theme-mode-grouping](/docs/proposals/mobile/_master-plan_/phase-2/details/898-defer-theme-mode-grouping.md) — group UI themes by mode                           | Codex 5.3 |
-| P2.3.8  | new          | [710-defer-filter-pull-down-reveal](/docs/proposals/mobile/_master-plan_/phase-2/details/710-defer-filter-pull-down-reveal.md)                                             | Codex 5.3 |
-| P2.3.9  | new          | [711-defer-auto-renew-aware-reminders](/docs/proposals/mobile/_master-plan_/phase-2/details/711-defer-auto-renew-aware-reminders.md)                                       | Codex 5.3 |
-| P2.3.10 | new          | [899-defer-accessibility-audit](/docs/proposals/mobile/_master-plan_/phase-2/details/899-defer-accessibility-audit.md) — full screen reader audit across all four surfaces | Opus 5    |
+| Step    | Carried from | What                                                                                                                                                                                    | Model     |
+| ------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| P2.3.1  | 22.4         | Minimum-supported-client-version API signal for forced upgrade prompts                                                                                                                  | Opus 5    |
+| P2.3.2  | 20.7         | Submit to metaboost-registry or F-Droid request issue (operator step)                                                                                                                   | Auto      |
+| P2.3.3  | 18.16        | CI tablet emulator matrix job (optional nightly, not a PR gate)                                                                                                                         | Codex 5.3 |
+| P2.3.4  | 18.17        | Store listings: separate screenshots per form factor                                                                                                                                    | Auto      |
+| P2.3.5  | 21.11        | [598-defer-player-transcript-chrome](/docs/proposals/mobile/_master-plan_/phase-2/details/598-defer-player-transcript-chrome.md) — record the deferral                                  | Auto      |
+| P2.3.6  | 21.12        | [599-defer-pixel-dnd-polish](/docs/proposals/mobile/_master-plan_/phase-2/details/599-defer-pixel-dnd-polish.md) — record the deferral                                                  | Auto      |
+| P2.3.7  | new          | [898-defer-theme-mode-grouping](/docs/proposals/mobile/_master-plan_/phase-2/details/898-defer-theme-mode-grouping.md) — group UI themes by mode                                        | Codex 5.3 |
+| P2.3.8  | new          | [710-defer-filter-pull-down-reveal](/docs/proposals/mobile/_master-plan_/phase-2/details/710-defer-filter-pull-down-reveal.md)                                                          | Codex 5.3 |
+| P2.3.9  | new          | [711-defer-auto-renew-aware-reminders](/docs/proposals/mobile/_master-plan_/phase-2/details/711-defer-auto-renew-aware-reminders.md)                                                    | Codex 5.3 |
+| P2.3.10 | new          | [899-defer-accessibility-audit](/docs/proposals/mobile/_master-plan_/phase-2/details/899-defer-accessibility-audit.md) — full screen reader audit across all four surfaces              | Opus 5    |
 | P2.3.11 | new          | [897-defer-mobile-schema-and-persistence-contract-checks](/docs/proposals/mobile/_master-plan_/phase-2/details/897-defer-mobile-schema-drift-checks.md) — evaluate after Phase 2 closes | Auto      |
-| P2.3.12 | new          | [896-defer-tablet-layout-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/896-defer-tablet-layout-parity.md) — tablet left rail and missing mini player        | Opus 5    |
+| P2.3.12 | new          | [896-defer-tablet-layout-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/896-defer-tablet-layout-parity.md) — tablet left rail and missing mini player                     | Opus 5    |
 
 **P2.3.10 is a deferral of the _existing_ surface area only.** All **new** screens and components must
 be screen reader accessible when they land, per
@@ -250,39 +250,39 @@ sit outside that progression — `deferred` (recorded on purpose, picked up in a
 above whenever status changes, per
 [`mobile-master-plan-phasing`](/.cursor/skills/mobile-master-plan-phasing/SKILL.md).
 
-| Detail                                                                                                                                     | Step    | Model     | Status        |
-| ------------------------------------------------------------------------------------------------------------------------------------------ | ------- | --------- | ------------- |
-| [595-operator-polish-checklist](/docs/proposals/mobile/_master-plan_/phase-2/details/595-operator-polish-checklist.md)                     | P2.2.1  | Auto      | superseded    |
-| [596-operator-polish-apply-briefs](/docs/proposals/mobile/_master-plan_/phase-2/details/596-operator-polish-apply-briefs.md)               | P2.2.2  | Codex 5.3 | superseded    |
-| [597-list-virtualization-polish](/docs/proposals/mobile/_master-plan_/phase-2/details/597-list-virtualization-polish.md)                   | P2.2.3  | Codex 5.3 | part (a) done |
-| [598-defer-player-transcript-chrome](/docs/proposals/mobile/_master-plan_/phase-2/details/598-defer-player-transcript-chrome.md)           | P2.3.5  | Auto      | not started   |
-| [599-defer-pixel-dnd-polish](/docs/proposals/mobile/_master-plan_/phase-2/details/599-defer-pixel-dnd-polish.md)                           | P2.3.6  | Auto      | not started   |
-| [700-access-tiers-and-membership-gating](/docs/proposals/mobile/_master-plan_/phase-2/details/700-access-tiers-and-membership-gating.md)   | P2.4.1  | Opus 5    | done          |
-| [701-anonymous-subscriptions](/docs/proposals/mobile/_master-plan_/phase-2/details/701-anonymous-subscriptions.md)                         | P2.4.2  | Opus 5    | done          |
-| [702-offline-content-sync](/docs/proposals/mobile/_master-plan_/phase-2/details/702-offline-content-sync.md)                               | P2.4.3  | Opus 5    | done          |
-| [703-channel-seen-state](/docs/proposals/mobile/_master-plan_/phase-2/details/703-channel-seen-state.md)                                   | P2.4.4  | Opus 5    | done          |
-| [704-notifications-read-unread-rename](/docs/proposals/mobile/_master-plan_/phase-2/details/704-notifications-read-unread-rename.md)       | P2.4.5  | Opus 5    | done          |
-| [705-home-subscribed-list-and-filter](/docs/proposals/mobile/_master-plan_/phase-2/details/705-home-subscribed-list-and-filter.md)         | P2.1.1  | Codex 5.3 | done          |
-| [706-home-filter-sort-screen](/docs/proposals/mobile/_master-plan_/phase-2/details/706-home-filter-sort-screen.md)                         | P2.1.3  | Codex 5.3 | done          |
-| [707-home-row-metadata](/docs/proposals/mobile/_master-plan_/phase-2/details/707-home-row-metadata.md)                                     | P2.1.1  | Codex 5.3 | done          |
-| [708-home-view-toggle-and-overflow-menu](/docs/proposals/mobile/_master-plan_/phase-2/details/708-home-view-toggle-and-overflow-menu.md)   | P2.1.1  | Codex 5.3 | done          |
-| [709-search-tab-web-alignment](/docs/proposals/mobile/_master-plan_/phase-2/details/709-search-tab-web-alignment.md)                       | P2.1.3  | Codex 5.3 | done          |
-| [710-defer-filter-pull-down-reveal](/docs/proposals/mobile/_master-plan_/phase-2/details/710-defer-filter-pull-down-reveal.md)             | P2.3.8  | Codex 5.3 | deferred      |
-| [711-defer-auto-renew-aware-reminders](/docs/proposals/mobile/_master-plan_/phase-2/details/711-defer-auto-renew-aware-reminders.md)       | P2.3.9  | Codex 5.3 | deferred      |
-| [712-web-unseen-episode-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/712-web-unseen-episode-indicator.md)               | P2.5.1  | Opus 5    | done          |
-| [713-web-subscribed-filter-input](/docs/proposals/mobile/_master-plan_/phase-2/details/713-web-subscribed-filter-input.md)                 | P2.5.2  | Codex 5.3 | done          |
-| [714-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/714-filter-sort-persistence.md)                         | P2.4.6  | Opus 5    | done          |
-| [715-web-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/715-web-filter-sort-persistence.md)                 | P2.5.3  | Opus 5    | done          |
-| [716-forced-logout-notice](/docs/proposals/mobile/_master-plan_/phase-2/details/716-forced-logout-notice.md)                               | P2.4.7  | Opus 5    | done          |
-| [717-fast-startup-and-sync-queue](/docs/proposals/mobile/_master-plan_/phase-2/details/717-fast-startup-and-sync-queue.md)                 | P2.4.8  | Opus 5    | done          |
-| [718-sync-progress-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/718-sync-progress-indicator.md)                         | P2.4.9  | Opus 5    | done          |
-| [719-sync-event-log](/docs/proposals/mobile/_master-plan_/phase-2/details/719-sync-event-log.md)                                           | P2.4.10 | Opus 5    | done          |
-| [720-defer-home-media-type-sort-coverage](/docs/proposals/mobile/_master-plan_/phase-2/details/720-defer-home-media-type-sort-coverage.md) | P2.1.3  | Codex 5.3 | deferred      |
+| Detail                                                                                                                                                   | Step    | Model     | Status        |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | --------- | ------------- |
+| [595-operator-polish-checklist](/docs/proposals/mobile/_master-plan_/phase-2/details/595-operator-polish-checklist.md)                                   | P2.2.1  | Auto      | superseded    |
+| [596-operator-polish-apply-briefs](/docs/proposals/mobile/_master-plan_/phase-2/details/596-operator-polish-apply-briefs.md)                             | P2.2.2  | Codex 5.3 | superseded    |
+| [597-list-virtualization-polish](/docs/proposals/mobile/_master-plan_/phase-2/details/597-list-virtualization-polish.md)                                 | P2.2.3  | Codex 5.3 | part (a) done |
+| [598-defer-player-transcript-chrome](/docs/proposals/mobile/_master-plan_/phase-2/details/598-defer-player-transcript-chrome.md)                         | P2.3.5  | Auto      | not started   |
+| [599-defer-pixel-dnd-polish](/docs/proposals/mobile/_master-plan_/phase-2/details/599-defer-pixel-dnd-polish.md)                                         | P2.3.6  | Auto      | not started   |
+| [700-access-tiers-and-membership-gating](/docs/proposals/mobile/_master-plan_/phase-2/details/700-access-tiers-and-membership-gating.md)                 | P2.4.1  | Opus 5    | done          |
+| [701-anonymous-subscriptions](/docs/proposals/mobile/_master-plan_/phase-2/details/701-anonymous-subscriptions.md)                                       | P2.4.2  | Opus 5    | done          |
+| [702-offline-content-sync](/docs/proposals/mobile/_master-plan_/phase-2/details/702-offline-content-sync.md)                                             | P2.4.3  | Opus 5    | done          |
+| [703-channel-seen-state](/docs/proposals/mobile/_master-plan_/phase-2/details/703-channel-seen-state.md)                                                 | P2.4.4  | Opus 5    | done          |
+| [704-notifications-read-unread-rename](/docs/proposals/mobile/_master-plan_/phase-2/details/704-notifications-read-unread-rename.md)                     | P2.4.5  | Opus 5    | done          |
+| [705-home-subscribed-list-and-filter](/docs/proposals/mobile/_master-plan_/phase-2/details/705-home-subscribed-list-and-filter.md)                       | P2.1.1  | Codex 5.3 | done          |
+| [706-home-filter-sort-screen](/docs/proposals/mobile/_master-plan_/phase-2/details/706-home-filter-sort-screen.md)                                       | P2.1.3  | Codex 5.3 | done          |
+| [707-home-row-metadata](/docs/proposals/mobile/_master-plan_/phase-2/details/707-home-row-metadata.md)                                                   | P2.1.1  | Codex 5.3 | done          |
+| [708-home-view-toggle-and-overflow-menu](/docs/proposals/mobile/_master-plan_/phase-2/details/708-home-view-toggle-and-overflow-menu.md)                 | P2.1.1  | Codex 5.3 | done          |
+| [709-search-tab-web-alignment](/docs/proposals/mobile/_master-plan_/phase-2/details/709-search-tab-web-alignment.md)                                     | P2.1.3  | Codex 5.3 | done          |
+| [710-defer-filter-pull-down-reveal](/docs/proposals/mobile/_master-plan_/phase-2/details/710-defer-filter-pull-down-reveal.md)                           | P2.3.8  | Codex 5.3 | deferred      |
+| [711-defer-auto-renew-aware-reminders](/docs/proposals/mobile/_master-plan_/phase-2/details/711-defer-auto-renew-aware-reminders.md)                     | P2.3.9  | Codex 5.3 | deferred      |
+| [712-web-unseen-episode-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/712-web-unseen-episode-indicator.md)                             | P2.5.1  | Opus 5    | done          |
+| [713-web-subscribed-filter-input](/docs/proposals/mobile/_master-plan_/phase-2/details/713-web-subscribed-filter-input.md)                               | P2.5.2  | Codex 5.3 | done          |
+| [714-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/714-filter-sort-persistence.md)                                       | P2.4.6  | Opus 5    | done          |
+| [715-web-filter-sort-persistence](/docs/proposals/mobile/_master-plan_/phase-2/details/715-web-filter-sort-persistence.md)                               | P2.5.3  | Opus 5    | done          |
+| [716-forced-logout-notice](/docs/proposals/mobile/_master-plan_/phase-2/details/716-forced-logout-notice.md)                                             | P2.4.7  | Opus 5    | done          |
+| [717-fast-startup-and-sync-queue](/docs/proposals/mobile/_master-plan_/phase-2/details/717-fast-startup-and-sync-queue.md)                               | P2.4.8  | Opus 5    | done          |
+| [718-sync-progress-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/718-sync-progress-indicator.md)                                       | P2.4.9  | Opus 5    | done          |
+| [719-sync-event-log](/docs/proposals/mobile/_master-plan_/phase-2/details/719-sync-event-log.md)                                                         | P2.4.10 | Opus 5    | done          |
+| [720-defer-home-media-type-sort-coverage](/docs/proposals/mobile/_master-plan_/phase-2/details/720-defer-home-media-type-sort-coverage.md)               | P2.1.3  | Codex 5.3 | deferred      |
 | [721-home-combined-subscriptions-and-rss-detail](/docs/proposals/mobile/_master-plan_/phase-2/details/721-home-combined-subscriptions-and-rss-detail.md) | P2.1.1  | Auto      | done          |
-| [896-defer-tablet-layout-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/896-defer-tablet-layout-parity.md)                   | P2.3.12 | Opus 5    | deferred      |
-| [898-defer-theme-mode-grouping](/docs/proposals/mobile/_master-plan_/phase-2/details/898-defer-theme-mode-grouping.md)                     | P2.3.7  | Codex 5.3 | deferred      |
-| [899-defer-accessibility-audit](/docs/proposals/mobile/_master-plan_/phase-2/details/899-defer-accessibility-audit.md)                     | P2.3.10 | Opus 5    | deferred      |
-| [897-defer-mobile-schema-and-persistence-contract-checks](/docs/proposals/mobile/_master-plan_/phase-2/details/897-defer-mobile-schema-drift-checks.md) | P2.3.11 | Auto      | deferred      |
+| [896-defer-tablet-layout-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/896-defer-tablet-layout-parity.md)                                 | P2.3.12 | Opus 5    | deferred      |
+| [898-defer-theme-mode-grouping](/docs/proposals/mobile/_master-plan_/phase-2/details/898-defer-theme-mode-grouping.md)                                   | P2.3.7  | Codex 5.3 | deferred      |
+| [899-defer-accessibility-audit](/docs/proposals/mobile/_master-plan_/phase-2/details/899-defer-accessibility-audit.md)                                   | P2.3.10 | Opus 5    | deferred      |
+| [897-defer-mobile-schema-and-persistence-contract-checks](/docs/proposals/mobile/_master-plan_/phase-2/details/897-defer-mobile-schema-drift-checks.md)  | P2.3.11 | Auto      | deferred      |
 
 New Phase 2 detail docs use the **700–899** ID band (see
 [PHASES.md](/docs/proposals/mobile/_master-plan_/PHASES.md) § Detail ID bands).

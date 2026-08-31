@@ -26,8 +26,8 @@ name: Home Media Types
 - assertVisible: Podcasts
 - takeScreenshot: home-media-type-podcasts
 
-# Sort sits in its own row, showing the current order on its face rather than the word "Sort", and
-# opens the full Filter/Sort screen. A-Z is the default.
+# Podcasts place More Options and sort in one row. The sort control shows the current order on its
+# face rather than the word "Sort", and opens the full Filter/Sort screen. A-Z is the default.
 - assertVisible:
     id: home-sort-button
 - assertVisible: "Sort: A-Z"

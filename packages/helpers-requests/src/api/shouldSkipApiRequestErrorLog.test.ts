@@ -103,7 +103,10 @@ describe('skipApiRequestErrorLogForMembershipPricing', () => {
   it('returns false for other pricing responses', () => {
     expect(
       skipApiRequestErrorLogForMembershipPricing(
-        { status: 500, responseData: { message: 'Paid premium memberships are not enabled for this server' } },
+        {
+          status: 500,
+          responseData: { message: 'Paid premium memberships are not enabled for this server' },
+        },
         '/product/membership/pricing'
       )
     ).toBe(false);

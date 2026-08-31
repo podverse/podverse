@@ -24,6 +24,7 @@ export function HomeSortRow({ onPress, sort }: HomeSortRowProps) {
 
   return (
     <SortPill
+      compact
       heading={t('filters.screen.sort_heading')}
       onPress={onPress}
       testID="home-sort-button"

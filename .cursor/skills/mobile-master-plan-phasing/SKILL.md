@@ -239,11 +239,11 @@ instead and explain why.
 Before detailing tracks that depend on unresolved choices, prompt operator to decide (or accept
 default from master plan **Open decisions**):
 
-| Decision                         | Blocks detailing for                                               |
-| -------------------------------- | ------------------------------------------------------------------ |
-| E2E framework (Maestro vs Detox) | Track 5, all E2E-heavy steps                                       |
-| CI tooling (EAS vs Fastlane)     | Track 4, Track 22                                                  |
-| Offline data (decided)           | Track 9b — offline-first SQLite + repositories                     |
+| Decision                         | Blocks detailing for                                                 |
+| -------------------------------- | -------------------------------------------------------------------- |
+| E2E framework (Maestro vs Detox) | Track 5, all E2E-heavy steps                                         |
+| CI tooling (EAS vs Fastlane)     | Track 4, Track 22                                                    |
+| Offline data (decided)           | Track 9b — offline-first SQLite + repositories                       |
 | Visual polish (decided)          | Track 9b.6–9b.7 primitives now; focused review is optional follow-up |
 
 ### Ship bar (always apply)

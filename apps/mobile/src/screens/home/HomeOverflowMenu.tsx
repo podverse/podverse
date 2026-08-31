@@ -1,9 +1,11 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { ActionSheetSection } from '../../components/primitives';
 import { ActionSheet, Button } from '../../components/primitives';
 import type { HomeViewMode } from '../../prefs/homeListPrefs';
+import { useTheme } from '../../theme/useTheme';
 
 type HomeOverflowMenuProps = {
   /** Disabled when no subscription has anything unseen, so the menu never offers a no-op. */
@@ -14,7 +16,7 @@ type HomeOverflowMenuProps = {
 };
 
 /**
- * The Home header menu: which way the subscribed list is drawn, and catching up on all of it.
+ * The Home list menu: which way the subscribed list is drawn, and catching up on all of it.
  *
  * The view is offered as two rows with the active one checked, rather than as a single row whose
  * label flips between "Grid View" and "List View". A flipping label cannot say whether it names the
@@ -28,6 +30,7 @@ export function HomeOverflowMenu({
   viewMode,
 }: HomeOverflowMenuProps) {
   const { t } = useTranslation();
+  const { styles: themeStyles } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
 
   const sections: ActionSheetSection[] = [
@@ -72,6 +75,14 @@ export function HomeOverflowMenu({
   return (
     <>
       <Button
+        icon={
+          <Ionicons
+            color={themeStyles.buttonSecondary.color}
+            name="ellipsis-horizontal"
+            size={20}
+          />
+        }
+        iconOnly
         label={t('media.more_options')}
         onPress={() => {
           setIsOpen(true);

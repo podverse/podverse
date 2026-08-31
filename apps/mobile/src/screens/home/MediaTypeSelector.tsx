@@ -59,7 +59,7 @@ export function MediaTypeSelector({ onChange, selectedMediaType }: MediaTypeSele
         container: {
           borderBottomColor: themeStyles.border.borderColor,
           borderBottomWidth: 1,
-          paddingBottom: tokens.spacing.md,
+          paddingBottom: tokens.spacing.lg,
         },
         scrollContent: {
           paddingHorizontal: tokens.spacing.lg,

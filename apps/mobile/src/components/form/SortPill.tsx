@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 
 export type SortPillProps = {
@@ -12,6 +13,8 @@ export type SortPillProps = {
    */
   isExpanded?: boolean;
   onPress: () => void;
+  /** Removes surrounding row spacing when the pill is aligned with neighboring controls. */
+  compact?: boolean;
   testID: string;
   /** The current selection, already localized — this is what the pill shows. */
   value: string;
@@ -24,7 +27,14 @@ export type SortPillProps = {
  * legible without opening anything. The accessible name pairs the two, because "A-Z" read alone
  * says nothing about which control it belongs to.
  */
-export function SortPill({ heading, isExpanded, onPress, testID, value }: SortPillProps) {
+export function SortPill({
+  compact = false,
+  heading,
+  isExpanded,
+  onPress,
+  testID,
+  value,
+}: SortPillProps) {
   const { styles: themeStyles, tokens } = useTheme();
 
   const styles = useMemo(
@@ -36,19 +46,18 @@ export function SortPill({ heading, isExpanded, onPress, testID, value }: SortPi
           borderRadius: tokens.radii.round,
           borderWidth: 1,
           paddingHorizontal: tokens.spacing.md,
-          paddingVertical: tokens.spacing.xs,
+          paddingVertical: tokens.spacing.sm,
         },
         label: {
+          ...typography.label,
           color: themeStyles.textPrimary.color,
-          fontSize: 13,
-          fontWeight: '600',
         },
         row: {
           flexDirection: 'row',
-          marginBottom: tokens.spacing.sm,
+          marginBottom: compact ? 0 : tokens.spacing.sm,
         },
       }),
-    [themeStyles, tokens]
+    [compact, themeStyles, tokens]
   );
 
   return (

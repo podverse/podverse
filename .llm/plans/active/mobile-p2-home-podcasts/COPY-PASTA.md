@@ -242,25 +242,54 @@ Do not run tests; end with operator verification commands.
 All four deferrals (710, 711, 896, 897) were checked against the code and still describe it. Every
 detail doc for prompts 01–17 now reads `**Status:** done`, and the P2.1, P2.4, P2.5, and appendix
 tables in the Phase 2 master plan agree with them; `implemented` and `complete` were normalized away,
-and the deferral docs moved from `draft` to `deferred`. The **areas** P2.1.1 and P2.1.3 stay open
-because an area closes on the operator's device review, not on implemented steps. Verifying 896 turned
-up that `tablet.yaml` asserts a mini player the tablet branch never mounts, which is recorded there
-rather than fixed.
+and the deferral docs moved from `draft` to `deferred`. The P2.1.1 and P2.1.3 areas are complete
+because their implementation steps are done. Verifying 896 turned up that `tablet.yaml` asserts a
+mini player the tablet branch never mounts, which is recorded there rather than fixed.
 
 ---
 
+## Combined Podcasts Home follow-up
+
+- [x] **19 — Reconcile merged Home proposals** — done
+
+Updated the durable Home and seen-state proposals so directory subscriptions and add-by-RSS feeds
+are one Home collection, with the Home source filter removed and add-by-RSS detail kept in the Home
+stack.
+
+- [x] **20 — Complete subscription hydration** — done
+
+Removed the arbitrary directory page ceiling, validated pagination progress, and made complete
+directory cache replacement transactional.
+
+- [x] **21 — Simplify Podcasts Home** — done
+
+Home now consumes the complete merged list, ignores legacy Home source-filter preferences, protects
+against stale media-switch requests, reports Mark All As Seen failures, and exposes media selector
+selection state.
+
+- [x] **22 — Home-stack add-by-RSS detail** — done
+
+Added typed Home navigation, local feed/episode detail, feed-scoped sorting, local seen state,
+item playback, and removal notification while preserving the RSS management route.
+
+- [x] **23 — Verify the combined Home contract** — done
+
+Added focused pagination and local-detail unit coverage plus Maestro assertions for unified Home
+rows, Home-stack routing, and removal. Device visual review remains recommended and does not gate
+completion.
+
 ## What is left
 
-All eighteen prompts are implemented. Two things remain, and both are the operator's:
+All twenty-three prompts are implemented. The plan set is complete. Two optional follow-up actions
+remain:
 
-1. **Run the verification commands** at the end of the prompt-18 response. Nothing in this set was
-   tested during implementation, by design.
-2. **Review the Home (podcasts) and Search screens on a device.** In Phase 2 an area closes on that
-   review, not on a passing suite — which is why P2.1.1 and P2.1.3 are still open in the master plan
-   while every step under them reads `done`.
+1. **Run the cumulative verification commands** provided in the implementation response. Nothing in
+   this set was tested during implementation, by design.
+2. **Review the Home (podcasts) and Search screens on a device** if visual feedback is useful. This
+   review does not change the implementation or plan completion status.
 
-Once the area is signed off, retire this directory. The durable record is already in the Phase 2
-detail docs and the master plan, so nothing is lost:
+Because implementation is complete, retire this directory. The durable record is already in the
+Phase 2 detail docs and the master plan, so nothing is lost:
 
 ```bash
 git mv .llm/plans/active/mobile-p2-home-podcasts .llm/plans/completed/

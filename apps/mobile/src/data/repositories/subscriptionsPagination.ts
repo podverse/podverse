@@ -13,13 +13,7 @@ export type DirectoryPageProgress = {
  * which avoids imposing a client-side subscription-count ceiling.
  */
 export function getNextDirectoryPage(progress: DirectoryPageProgress): number | null {
-  const {
-    itemCount,
-    limit,
-    requestedPage,
-    responsePage,
-    totalCount,
-  } = progress;
+  const { itemCount, limit, requestedPage, responsePage, totalCount } = progress;
 
   if (
     !Number.isInteger(itemCount) ||

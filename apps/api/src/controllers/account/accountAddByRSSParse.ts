@@ -57,7 +57,7 @@ const buildE2eParsedFeedPayload = (): NonNullable<AddByRSSParseCacheEntry['paylo
   return fixture as unknown as NonNullable<AddByRSSParseCacheEntry['payload']>;
 };
 
-const enqueueRateLimit = rateLimitAuthEndpoint({
+export const addByRssParseEnqueueRateLimit = rateLimitAuthEndpoint({
   windowMs: config.rateLimits.accountAddByRssParseEnqueue.windowMs,
   max: config.rateLimits.accountAddByRssParseEnqueue.max,
 });
@@ -68,7 +68,7 @@ class AccountAddByRSSParseController {
       req,
       res,
       async () => {
-        enqueueRateLimit(req, res, () => {
+        addByRssParseEnqueueRateLimit(req, res, () => {
           const bodySchema = Joi.object({
             feed_url: joiFeedUrl(),
             feed_hash: Joi.string().optional(),
@@ -177,7 +177,7 @@ class AccountAddByRSSParseController {
       req,
       res,
       async () => {
-        enqueueRateLimit(req, res, () => {
+        addByRssParseEnqueueRateLimit(req, res, () => {
           const bodySchema = Joi.object({
             feed_hashes_by_url: Joi.object().pattern(Joi.string(), Joi.string()).optional(),
             etags_by_url: Joi.object().pattern(Joi.string(), Joi.string()).optional(),

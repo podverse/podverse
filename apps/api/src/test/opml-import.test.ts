@@ -46,9 +46,7 @@ const {
   followChannelMock: vi.fn(async () => ({})),
   hasFollowedAddByRSSChannelMock: vi.fn(async () => false),
   addOrUpdateRSSChannelMock: vi.fn(async () => ({})),
-  getFollowedAddByRSSChannelsMock: vi.fn(
-    async (): Promise<Array<{ feed_url: string }>> => []
-  ),
+  getFollowedAddByRSSChannelsMock: vi.fn(async (): Promise<Array<{ feed_url: string }>> => []),
   addPendingFollowMock: vi.fn(async () => ({})),
   getAccountMock: vi.fn(async () => ({
     id: TEST_USER_ID,
@@ -164,6 +162,9 @@ describe('OPML import endpoints', () => {
     const { opmlImportEnqueueRateLimit } =
       await import('@api/controllers/account/accountOpmlImport.js');
     opmlImportEnqueueRateLimit.resetForUser(TEST_USER_ID);
+    const { addByRssParseEnqueueRateLimit } =
+      await import('../controllers/account/accountAddByRSSParse.js');
+    addByRssParseEnqueueRateLimit.resetForUser(TEST_USER_ID);
 
     feedGetByUrlMock.mockReset();
     hasFollowedChannelMock.mockReset();

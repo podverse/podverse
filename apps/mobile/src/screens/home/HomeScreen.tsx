@@ -13,10 +13,12 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { matchesTitleFilter } from '@podverse/helpers';
 
 import { useAuth } from '../../auth/AuthProvider';
+import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
@@ -69,15 +71,6 @@ type HomeListPrefsState = {
   viewMode: HomeViewMode;
 };
 
-const MEDIA_TYPE_TITLE_KEYS: Record<HomeMediaType, string> = {
-  albums: 'media.music.albums',
-  artists: 'media.music.artists',
-  clips: 'features.clip.clips',
-  episodes: 'media.podcast.episodes',
-  podcasts: 'media.podcast.podcasts',
-  tracks: 'media.music.tracks',
-};
-
 export function HomeScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
@@ -85,6 +78,7 @@ export function HomeScreen() {
   const { requestSync, state: syncState } = useSync();
   const { columns: rowColumns, width } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
+  const insets = useSafeAreaInsets();
   const [selectedMediaType, setSelectedMediaType] =
     useState<HomeMediaType>(DEFAULT_HOME_MEDIA_TYPE);
   const [isMediaTypeHydrated, setIsMediaTypeHydrated] = useState<boolean>(false);
@@ -267,13 +261,12 @@ export function HomeScreen() {
         }
         setFeedErrorKey('errors.generic');
       } finally {
-        if (requestId !== feedRequestIdRef.current) {
-          return;
-        }
-        if (source === 'refresh') {
-          setIsFeedRefreshing(false);
-        } else if (source !== 'synced') {
-          setIsFeedLoading(false);
+        if (requestId === feedRequestIdRef.current) {
+          if (source === 'refresh') {
+            setIsFeedRefreshing(false);
+          } else if (source !== 'synced') {
+            setIsFeedLoading(false);
+          }
         }
       }
     },
@@ -434,16 +427,10 @@ export function HomeScreen() {
         container: {
           backgroundColor: themeStyles.screen.backgroundColor,
           flex: 1,
+          paddingTop: insets.top,
         },
         content: {
-          padding: tokens.spacing.lg,
-        },
-        feedCard: {
-          backgroundColor: tokens.background.secondary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
-          marginTop: tokens.spacing.lg,
+          flexGrow: 1,
           padding: tokens.spacing.lg,
         },
         feedNotice: {
@@ -456,16 +443,12 @@ export function HomeScreen() {
           fontSize: 13,
           marginBottom: tokens.spacing.md,
         },
-        feedTitle: {
-          color: themeStyles.textPrimary.color,
-          flex: 1,
-          fontSize: 20,
-          fontWeight: '700',
-        },
-        feedTitleRow: {
+        controlsRow: {
           alignItems: 'center',
           flexDirection: 'row',
-          gap: tokens.spacing.md,
+          gap: tokens.spacing.sm,
+          justifyContent: 'flex-end',
+          marginBottom: tokens.spacing.md,
         },
         filterClear: {
           borderColor: themeStyles.border.borderColor,
@@ -497,17 +480,12 @@ export function HomeScreen() {
           marginBottom: tokens.spacing.md,
           marginTop: tokens.spacing.sm,
         },
-        heading: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 28,
-          fontWeight: '700',
-          marginBottom: tokens.spacing.md,
-        },
       }),
-    [themeStyles, tokens]
+    [insets.top, themeStyles, tokens]
   );
 
   const showFeedRows = !isFeedLoading && feedErrorKey === null;
+  const showSubscriptionControls = showFeedRows && feedRows.length > 0;
 
   // A tile is a square of artwork, a row is artwork plus a title, a metadata line, and buttons, so
   // the two fit a screen at completely different densities and are counted separately.
@@ -522,85 +500,89 @@ export function HomeScreen() {
 
   const listHeader = (
     <>
-      <Text style={styles.heading}>{t('nav.tab.home')}</Text>
       <E2ePlayVideoButton />
-      <View style={styles.feedCard}>
-        <View style={styles.feedTitleRow}>
-          <Text style={styles.feedTitle}>
-            {t(MEDIA_TYPE_TITLE_KEYS[selectedMediaType] ?? MEDIA_TYPE_TITLE_KEYS.podcasts)}
-          </Text>
-          {showOverflowMenu ? (
-            <HomeOverflowMenu
-              canMarkAllSeen={canMarkAllSeen}
-              onMarkAllSeen={handleMarkAllSeen}
-              onViewModeChange={handleViewModeChange}
-              viewMode={activePrefs?.viewMode ?? DEFAULT_HOME_VIEW_MODE}
+      {showSubscriptionControls ? (
+        <>
+          <View style={styles.controlsRow}>
+            {showSortRow ? (
+              <HomeSortRow
+                onPress={handleSortPress}
+                sort={activePrefs?.sort ?? DEFAULT_HOME_SORT}
+              />
+            ) : null}
+            {showOverflowMenu ? (
+              <HomeOverflowMenu
+                canMarkAllSeen={canMarkAllSeen}
+                onMarkAllSeen={handleMarkAllSeen}
+                onViewModeChange={handleViewModeChange}
+                viewMode={activePrefs?.viewMode ?? DEFAULT_HOME_VIEW_MODE}
+              />
+            ) : null}
+          </View>
+          <View style={styles.filterRow}>
+            <TextInput
+              accessibilityLabel={t('subscriptions.filter.placeholder')}
+              autoCapitalize="none"
+              autoCorrect={false}
+              onChangeText={handleFilterTermChange}
+              placeholder={t('subscriptions.filter.placeholder')}
+              placeholderTextColor={themeStyles.textSecondary.color}
+              style={styles.filterInput}
+              testID="home-filter-input"
+              value={filterTerm}
             />
-          ) : null}
-        </View>
-        {showSortRow ? (
-          <HomeSortRow onPress={handleSortPress} sort={activePrefs?.sort ?? DEFAULT_HOME_SORT} />
-        ) : null}
-        <View style={styles.filterRow}>
-          <TextInput
-            accessibilityLabel={t('subscriptions.filter.placeholder')}
-            autoCapitalize="none"
-            autoCorrect={false}
-            onChangeText={handleFilterTermChange}
-            placeholder={t('subscriptions.filter.placeholder')}
-            placeholderTextColor={themeStyles.textSecondary.color}
-            style={styles.filterInput}
-            testID="home-filter-input"
-            value={filterTerm}
-          />
-          {filterTerm.length > 0 ? (
-            <Pressable
-              accessibilityLabel={t('subscriptions.filter.clear')}
-              accessibilityRole="button"
-              onPress={() => {
-                handleFilterTermChange('');
-              }}
-              style={styles.filterClear}
-              testID="home-filter-clear"
-            >
-              <Text style={styles.filterClearLabel}>{t('subscriptions.filter.clear')}</Text>
-            </Pressable>
-          ) : null}
-        </View>
-        <Text style={styles.feedSummary}>{resultSummary}</Text>
-        {actionErrorKey !== null ? (
-          <Text style={styles.feedNotice} testID="home-action-error">
-            {t(actionErrorKey)}
+            {filterTerm.length > 0 ? (
+              <Pressable
+                accessibilityLabel={t('subscriptions.filter.clear')}
+                accessibilityRole="button"
+                onPress={() => {
+                  handleFilterTermChange('');
+                }}
+                style={styles.filterClear}
+                testID="home-filter-clear"
+              >
+                <Text style={styles.filterClearLabel}>{t('subscriptions.filter.clear')}</Text>
+              </Pressable>
+            ) : null}
+          </View>
+          <Text style={styles.feedSummary} testID="home-feed-summary">
+            {resultSummary}
           </Text>
-        ) : null}
-        {isFeedLoading ? <ListLoading testID="home-list-loading" /> : null}
-        {!isFeedLoading && feedErrorKey !== null ? (
-          <ListError
-            messageKey={feedErrorKey}
-            onRetry={() => {
-              void loadFeed('retry');
-            }}
-            testID="home-list-error"
-          />
-        ) : null}
-        {showNoSubscriptions ? (
-          <ListEmpty
-            actionLabelKey="features.search.search"
-            actionTestID="home-list-empty-search"
-            messageKey="subscriptions.empty_message"
-            onAction={handleSearchPress}
-            testID="home-list-empty"
-          />
-        ) : null}
-        {showNoFilterMatches ? (
-          <ListEmpty
-            messageKey="subscriptions.no_filter_matches"
-            testID="home-list-no-filter-matches"
-          />
-        ) : null}
-      </View>
+          {actionErrorKey !== null ? (
+            <Text style={styles.feedNotice} testID="home-action-error">
+              {t(actionErrorKey)}
+            </Text>
+          ) : null}
+        </>
+      ) : null}
+      {isFeedLoading ? <ListLoading testID="home-list-loading" /> : null}
+      {!isFeedLoading && feedErrorKey !== null ? (
+        <ListError
+          messageKey={feedErrorKey}
+          onRetry={() => {
+            void loadFeed('retry');
+          }}
+          testID="home-list-error"
+        />
+      ) : null}
+      {showNoFilterMatches ? (
+        <ListEmpty
+          messageKey="subscriptions.no_filter_matches"
+          testID="home-list-no-filter-matches"
+        />
+      ) : null}
     </>
   );
+
+  const listEmpty = showNoSubscriptions ? (
+    <CallToActionSection
+      actionLabelKey="features.search.search"
+      actionTestID="home-list-empty-search"
+      messageKey="subscriptions.empty_message"
+      onAction={handleSearchPress}
+      testID="home-list-empty"
+    />
+  ) : null;
 
   const listFooter =
     playbackNoticeKey !== null ? (
@@ -610,15 +592,16 @@ export function HomeScreen() {
   return (
     <View style={styles.container} testID="home-screen">
       <MediaTypeSelector onChange={handleMediaTypeChange} selectedMediaType={selectedMediaType} />
-      {/* Intentional: keep header controls/summary inside the card via ListHeaderComponent while rows */}
-      {/* render as FlatList items so tablet grid columns can virtualize with numColumns. */}
+      {/* Keep controls and summary in ListHeaderComponent while rows render as FlatList items, so */}
+      {/* tablet grid columns can virtualize with numColumns. */}
       <FlatList
+        ListEmptyComponent={listEmpty}
         ListFooterComponent={listFooter}
         ListHeaderComponent={listHeader}
         columnWrapperStyle={columns > 1 ? styles.columnWrapper : undefined}
         contentContainerStyle={styles.content}
         data={showFeedRows ? visibleRows : []}
-      keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps="handled"
         key={`cols-${columns}`}
         keyExtractor={(row) => row.id}
         numColumns={columns}

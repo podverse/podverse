@@ -149,8 +149,8 @@ window, `am_anr` events and a logcat tail under `<run>/diagnostics/`, reboots th
 emulator once, re-runs only the flows with no result, and exits **78** if it is blocked again.
 Exit 78 is distinct from exit 1 on purpose: nothing in that run passed or failed on its merits.
 
-Detection is deliberately passive — the watchdog never taps the dialog. *Close app* asks Android to
-kill System UI and leaves the emulator worse off; *Wait* can hang indefinitely. Rebooting a
+Detection is deliberately passive — the watchdog never taps the dialog. _Close app_ asks Android to
+kill System UI and leaves the emulator worse off; _Wait_ can hang indefinitely. Rebooting a
 throwaway emulator is the cheaper and more deterministic move. See
 [HOW-TO-RUN.md § Blocked runs](/apps/mobile/e2e/HOW-TO-RUN.md).
 
@@ -172,7 +172,7 @@ first command and a flow legitimately still setting up looked identical, so the 
 Three changes close it:
 
 - **Liveness is now a signature, not a file count.** Each invocation's stdout is `tee`'d to
-  `<run>/logs/<seq>-<label>.log`, and the watchdog watches log bytes *and* slot artifacts together.
+  `<run>/logs/<seq>-<label>.log`, and the watchdog watches log bytes _and_ slot artifacts together.
   A Maestro that is printing but not progressing is now distinguishable from one that has stopped.
 - **A separate startup timeout.** `MOBILE_E2E_STARTUP_TIMEOUT_SECONDS` (180 s) fires when nothing
   has reached the device yet, which is the case a 300 s output-stall timer handles badly.
@@ -205,7 +205,7 @@ port preserves normal local development without adding test-specific service shu
 
 ### Failing fast is a speed feature
 
-Each selected device now gets a bounded `maestro hierarchy` canary (~20 s healthy) *before* the
+Each selected device now gets a bounded `maestro hierarchy` canary (~20 s healthy) _before_ the
 database reseed and API preflight, so a wedged device or a host port conflict costs seconds instead
 of minutes of setup followed by a stall timeout. `--skip-seed` removes the reseed and its API
 stop/start when re-running a flow against a fix with a database that is already correct.
@@ -218,13 +218,13 @@ debugging session rather than a single green run — is where the time actually 
 Five changes are small, and two of the small ones carry the most value. Do them in this order and
 measure after each: the gains overlap, so the later items are worth less once the earlier ones land.
 
-| Order | Change                                          | Expected gain           | Status                                  |
-| ----- | ----------------------------------------------- | ----------------------- | --------------------------------------- |
-| 1     | Upgrade Maestro 2.5.1 → 2.9.0                   | Unknown, possibly large | Not started (nix flake pin)             |
-| 2     | Run the iOS and Android slots concurrently      | 55 min → ~36 min wall   | Landed, opt-in `--parallel`             |
-| 3     | `adb reverse tcp:8081 tcp:8081` on Android boot | ~5 min/suite            | Landed in `ensure-devices.sh`           |
-| 4     | Emit per-command timing medians in the report   | Makes 1–3 verifiable    | Landed in `e2e-html-report.mjs`         |
-| 5     | Republish local Artemis off the 5555–5683 range | Removes a total blocker | Landed on host `:5684` |
+| Order | Change                                          | Expected gain           | Status                          |
+| ----- | ----------------------------------------------- | ----------------------- | ------------------------------- |
+| 1     | Upgrade Maestro 2.5.1 → 2.9.0                   | Unknown, possibly large | Not started (nix flake pin)     |
+| 2     | Run the iOS and Android slots concurrently      | 55 min → ~36 min wall   | Landed, opt-in `--parallel`     |
+| 3     | `adb reverse tcp:8081 tcp:8081` on Android boot | ~5 min/suite            | Landed in `ensure-devices.sh`   |
+| 4     | Emit per-command timing medians in the report   | Makes 1–3 verifiable    | Landed in `e2e-html-report.mjs` |
+| 5     | Republish local Artemis off the 5555–5683 range | Removes a total blocker | Landed on host `:5684`          |
 
 ### 1. Upgrade Maestro
 

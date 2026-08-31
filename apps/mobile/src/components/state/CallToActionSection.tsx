@@ -2,63 +2,66 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 import { Button } from '../primitives';
 
-type ListEmptyProps = {
-  messageKey?: string;
-  testID?: string;
-  /**
-   * Optional next step, for empty lists the user can act on — "nothing subscribed yet" offering
-   * Search. Both props are needed for the button to render; a list that is simply empty says so and
-   * stops there.
-   */
-  actionLabelKey?: string;
-  onAction?: () => void;
-  /** Defaults to `${testID}-action`. */
+type CallToActionSectionProps = {
+  actionLabelKey: string;
   actionTestID?: string;
+  messageKey: string;
+  onAction: () => void;
+  testID?: string;
 };
 
-export function ListEmpty({
+/**
+ * Fills its parent and centers a localized message with its primary action.
+ *
+ * The parent controls the available section height, so this pattern stays between surrounding
+ * navigation or list controls without needing screen-specific positioning.
+ */
+export function CallToActionSection({
   actionLabelKey,
   actionTestID,
-  messageKey = 'misc.info',
+  messageKey,
   onAction,
-  testID = 'list-empty',
-}: ListEmptyProps) {
+  testID = 'call-to-action-section',
+}: CallToActionSectionProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
 
   const styles = useMemo(
     () =>
       StyleSheet.create({
+        action: {
+          marginTop: tokens.spacing.lg,
+        },
         container: {
           alignItems: 'center',
+          flex: 1,
+          justifyContent: 'center',
           paddingVertical: tokens.spacing.lg,
         },
-        label: {
+        message: {
+          ...typography.subheading,
           color: themeStyles.textSecondary.color,
-          fontSize: 13,
           textAlign: 'center',
         },
       }),
     [themeStyles, tokens]
   );
 
-  const showAction = actionLabelKey !== undefined && onAction !== undefined;
-
   return (
     <View style={styles.container} testID={testID}>
-      <Text style={styles.label}>{t(messageKey)}</Text>
-      {showAction ? (
+      <Text style={styles.message}>{t(messageKey)}</Text>
+      <View style={styles.action}>
         <Button
           label={t(actionLabelKey)}
           onPress={onAction}
-          size={prominent ? 'md' : 'sm'}
+          size="lg"
           testID={actionTestID ?? `${testID}-action`}
-          variant="primary"
         />
-      ) : null}
+      </View>
     </View>
   );
 }

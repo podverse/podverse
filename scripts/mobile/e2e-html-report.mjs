@@ -917,8 +917,7 @@ function buildFlowHtml(slot, flow) {
 `);
     for (const step of flow.steps) {
       const cls = step.status === 'failed' || step.status === 'timedOut' ? ' step-failed' : '';
-      const sequence =
-        step.sequenceNumber === null ? '' : ` #${step.sequenceNumber}`;
+      const sequence = step.sequenceNumber === null ? '' : ` #${step.sequenceNumber}`;
       const error =
         step.errorMessage === ''
           ? ''

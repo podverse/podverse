@@ -1,6 +1,6 @@
+import type { ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ReactNode } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { buildMediaRowMoreActions, MediaRowActions } from '../../components/player/MediaRowActions';

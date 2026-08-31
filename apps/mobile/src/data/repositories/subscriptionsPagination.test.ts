@@ -44,14 +44,14 @@ describe('getNextDirectoryPage', () => {
   });
 
   it('rejects non-advancing or malformed pagination metadata', () => {
-    expect(() =>
-      getNextDirectoryPage(progress({ requestedPage: 2, responsePage: 1 }))
-    ).toThrow('Invalid directory subscription pagination metadata');
-    expect(() =>
-      getNextDirectoryPage(progress({ limit: 0 }))
-    ).toThrow('Invalid directory subscription pagination metadata');
-    expect(() =>
-      getNextDirectoryPage(progress({ totalCount: -1 }))
-    ).toThrow('Invalid directory subscription pagination metadata');
+    expect(() => getNextDirectoryPage(progress({ requestedPage: 2, responsePage: 1 }))).toThrow(
+      'Invalid directory subscription pagination metadata'
+    );
+    expect(() => getNextDirectoryPage(progress({ limit: 0 }))).toThrow(
+      'Invalid directory subscription pagination metadata'
+    );
+    expect(() => getNextDirectoryPage(progress({ totalCount: -1 }))).toThrow(
+      'Invalid directory subscription pagination metadata'
+    );
   });
 });

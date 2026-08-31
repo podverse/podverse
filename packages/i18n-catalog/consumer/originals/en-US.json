@@ -693,7 +693,7 @@
   "subscriptions": {
     "subscriptions": "Subscriptions",
     "how_to_start_message": "Try <searchLink>searching</searchLink> for your favorite content, or browse <podcastsLink>podcasts</podcastsLink>, <videosLink>videos</videosLink>, or <musicLink>music</musicLink>. Your subscriptions will appear here.",
-    "empty_message": "You are not subscribed to anything yet. Search to find something to listen to.",
+    "empty_message": "You are not subscribed to anything yet.",
     "no_filter_matches": "No subscriptions match your filter.",
     "filter": {
       "all": "All",

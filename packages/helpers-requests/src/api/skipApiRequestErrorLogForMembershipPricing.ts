@@ -1,5 +1,6 @@
 const MEMBERSHIP_PRICING_PATH = '/product/membership/pricing';
-const MEMBERSHIP_PRICING_DISABLED_MESSAGE = 'Paid premium memberships are not enabled for this server';
+const MEMBERSHIP_PRICING_DISABLED_MESSAGE =
+  'Paid premium memberships are not enabled for this server';
 
 const getResponseMessage = (responseData: unknown): string | undefined => {
   if (responseData !== null && typeof responseData === 'object') {

@@ -68,18 +68,16 @@ const replaceDirectoryCache = async (entries: SubscribedChannel[]): Promise<void
     if (entries.length === 0) {
       return;
     }
-    await transaction
-      .insert(schema.subscribedChannel)
-      .values(
-        entries.map((entry) => ({
-          idText: entry.idText,
-          title: entry.title,
-          imageUrl: entry.imageUrl,
-          source: entry.source,
-          medium: entry.medium,
-          updatedAt,
-        }))
-      );
+    await transaction.insert(schema.subscribedChannel).values(
+      entries.map((entry) => ({
+        idText: entry.idText,
+        title: entry.title,
+        imageUrl: entry.imageUrl,
+        source: entry.source,
+        medium: entry.medium,
+        updatedAt,
+      }))
+    );
   });
 };
 
@@ -223,7 +221,7 @@ export const subscriptionsRepository = {
    * images) — the numeric ids in `account_following_channels` hydrated.
    *
    * A page at a time rather than a loop: these rows decide whether a channel reads as subscribed,
- * so the walk must reach the end. The caller drives the pages the result points at.
+   * so the walk must reach the end. The caller drives the pages the result points at.
    */
   fetchDirectoryPage: async (
     context: MobileAuthRequestContext,

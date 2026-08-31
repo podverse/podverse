@@ -20,10 +20,7 @@ import {
 } from '../../prefs/detailListPrefs';
 import { useTheme } from '../../theme/useTheme';
 import type { AddByRssHomeDetailData } from './addByRssHomeDetailData';
-import {
-  buildAddByRssHomeDetailData,
-  sortAddByRssHomeEpisodes,
-} from './addByRssHomeDetailData';
+import { buildAddByRssHomeDetailData, sortAddByRssHomeEpisodes } from './addByRssHomeDetailData';
 import type { HomeFeedRowData } from './homeFeedData';
 import { HomeFeedRow } from './HomeFeedRow';
 
@@ -39,10 +36,7 @@ const SORT_OPTIONS: { labelKey: string; value: EpisodeSort }[] = [
   { labelKey: 'filters.sort.recent', value: 'recent' },
 ];
 
-export function AddByRssHomeDetailScreen({
-  navigation,
-  route,
-}: AddByRssHomeDetailScreenProps) {
+export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDetailScreenProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const [detail, setDetail] = useState<AddByRssHomeDetailData | null>(null);
@@ -185,42 +179,43 @@ export function AddByRssHomeDetailScreen({
     [t]
   );
 
-  const listHeader = detail === null ? null : (
-    <View style={styles.header}>
-      {(detail.mappedFeed?.channel.images[0]?.url ?? detail.feed.imageUrl) !== null ? (
-        <Image
-          accessibilityLabel={
-            detail.mappedFeed?.channel.channel.title ??
-            detail.feed.title ??
-            t('features.add_by_rss.label')
-          }
-          source={{
-            uri: detail.mappedFeed?.channel.images[0]?.url ?? detail.feed.imageUrl ?? '',
-          }}
-          style={styles.headerImage}
-        />
-      ) : null}
-      <Text style={styles.headerTitle}>
-        {detail.mappedFeed?.channel.channel.title ?? detail.feed.title ?? detail.feed.feedUrl}
-      </Text>
-      <Text style={styles.headerUrl}>{detail.feed.feedUrl}</Text>
-      <Text style={styles.headerUrl}>
-        {t('misc.items')}: {sortedEpisodes.length}
-      </Text>
-      <View style={styles.removeButton}>
-        <Button
-          disabled={isRemoving}
-          label={t('features.unsubscribe')}
-          loading={isRemoving}
-          onPress={() => {
-            void handleRemove();
-          }}
-          testID="add-by-rss-home-remove"
-          variant="secondary"
-        />
+  const listHeader =
+    detail === null ? null : (
+      <View style={styles.header}>
+        {(detail.mappedFeed?.channel.images[0]?.url ?? detail.feed.imageUrl) !== null ? (
+          <Image
+            accessibilityLabel={
+              detail.mappedFeed?.channel.channel.title ??
+              detail.feed.title ??
+              t('features.add_by_rss.label')
+            }
+            source={{
+              uri: detail.mappedFeed?.channel.images[0]?.url ?? detail.feed.imageUrl ?? '',
+            }}
+            style={styles.headerImage}
+          />
+        ) : null}
+        <Text style={styles.headerTitle}>
+          {detail.mappedFeed?.channel.channel.title ?? detail.feed.title ?? detail.feed.feedUrl}
+        </Text>
+        <Text style={styles.headerUrl}>{detail.feed.feedUrl}</Text>
+        <Text style={styles.headerUrl}>
+          {t('misc.items')}: {sortedEpisodes.length}
+        </Text>
+        <View style={styles.removeButton}>
+          <Button
+            disabled={isRemoving}
+            label={t('features.unsubscribe')}
+            loading={isRemoving}
+            onPress={() => {
+              void handleRemove();
+            }}
+            testID="add-by-rss-home-remove"
+            variant="secondary"
+          />
+        </View>
       </View>
-    </View>
-  );
+    );
 
   return (
     <FlatList

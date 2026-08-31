@@ -3,10 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { convertParsedRSSFeedToCompat } from '@podverse/parser-mapping';
 
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
-import {
-  buildAddByRssHomeDetailData,
-  sortAddByRssHomeEpisodes,
-} from './addByRssHomeDetailData';
+import { buildAddByRssHomeDetailData, sortAddByRssHomeEpisodes } from './addByRssHomeDetailData';
 
 const feed: MobileAddByRSSFeedRecord = {
   enclosureUrl: 'https://example.com/first.mp3',

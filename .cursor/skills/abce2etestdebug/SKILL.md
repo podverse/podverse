@@ -74,11 +74,11 @@ separately.
    running. Then run the flow on only the selected platform:
    - iOS first: `npm run mobile:e2e:test -- --platform ios <area>`
    - Android after iOS passes: `npm run mobile:e2e:test -- --platform android <area>`
-   Do not use `--platform both` while isolating a failure. Do not continue to another failure until
-   the current platform passes. Once a mobile flow passes on iOS, run that same flow on Android
-   before selecting the next flow. The agent runs this focused command and reads the result; do not
-   ask the operator to run it and report back unless the agent has a concrete execution blocker. If
-   it fails again, return to evidence gathering and repeat this loop.
+     Do not use `--platform both` while isolating a failure. Do not continue to another failure until
+     the current platform passes. Once a mobile flow passes on iOS, run that same flow on Android
+     before selecting the next flow. The agent runs this focused command and reads the result; do not
+     ask the operator to run it and report back unless the agent has a concrete execution blocker. If
+     it fails again, return to evidence gathering and repeat this loop.
 9. Reconcile required leave-running services in the service preflight. First inspect the existing
    terminal state, listener ports, PIDs, process commands, and health endpoints so the agent does
    not create duplicate services. Treat service state as unknown until verified:
@@ -94,10 +94,10 @@ separately.
    - Mobile E2E test-assets: when a playback flow needs `:2111`, use the managed lifecycle in
      **Mobile E2E test-assets**: `npm run mobile:e2e:test-assets:stop`, then
      `npm run mobile:e2e:test-assets:bg`, followed by its fixture health check.
-   If a managed service conflicts, stop the managed instance before starting it. Ask for operator
-   intervention only for a missing device, native build, permission, authentication failure, or a
-   positively identified operator-owned foreground process that cannot be safely restarted. Do not
-   work around a blocker or skip to another test.
+     If a managed service conflicts, stop the managed instance before starting it. Ask for operator
+     intervention only for a missing device, native build, permission, authentication failure, or a
+     positively identified operator-owned foreground process that cannot be safely restarted. Do not
+     work around a blocker or skip to another test.
 10. After the named target passes, record its root cause, fix, verification command, and result,
     then stop. If it is blocked, record the evidence and the exact operator action needed, then
     stop. Do not select another unresolved unit.

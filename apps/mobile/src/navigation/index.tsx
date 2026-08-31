@@ -33,9 +33,9 @@ import { ArtistDetailScreen } from '../screens/artist/ArtistDetailScreen';
 import { ClipDetailScreen } from '../screens/clip/ClipDetailScreen';
 import { EpisodeDetailScreen } from '../screens/episode/EpisodeDetailScreen';
 import { HelloWorldScreen } from '../screens/HelloWorldScreen';
+import { AddByRssHomeDetailScreen } from '../screens/home/AddByRssHomeDetailScreen';
 import { HomeFilterSortScreen } from '../screens/home/HomeFilterSortScreen';
 import { HomeScreen } from '../screens/home/HomeScreen';
-import { AddByRssHomeDetailScreen } from '../screens/home/AddByRssHomeDetailScreen';
 import { LibraryDownloadsScreen } from '../screens/library/LibraryDownloadsScreen';
 import { LibraryHistoryScreen } from '../screens/library/LibraryHistoryScreen';
 import { LibraryMyClipsScreen } from '../screens/library/LibraryMyClipsScreen';
@@ -402,7 +402,7 @@ function HomeStackNavigator() {
       <HomeStack.Screen
         component={HomeScreen}
         name={HOME_STACK_ROUTES.HomeRoot}
-        options={{ title: t('nav.stack.home') }}
+        options={{ headerShown: false }}
       />
       <HomeStack.Screen
         component={AddByRssHomeDetailScreen}

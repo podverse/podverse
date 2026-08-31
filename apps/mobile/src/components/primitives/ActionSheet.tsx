@@ -102,11 +102,7 @@ export function ActionSheet({ onRequestClose, sections, testID, visible }: Actio
       <View style={styles.backdrop}>
         {/* The scrim is a sighted-only shortcut for dismissing, so it stays out of the accessibility
             tree; the sheet claims touches separately so row presses cannot dismiss it accidentally. */}
-        <Pressable
-          accessible={false}
-          onPress={onRequestClose}
-          style={StyleSheet.absoluteFill}
-        />
+        <Pressable accessible={false} onPress={onRequestClose} style={StyleSheet.absoluteFill} />
         <View
           accessibilityRole="menu"
           accessibilityViewIsModal
