@@ -146,7 +146,7 @@ For advanced terminal configurations using VS Code Terminals Manager, see [devel
 
 ```bash
 make local_infra_up          # after first-time setup; use make local_setup once
-npm run check:dev-deps       # verify Postgres (5432), Artemis (5672), Valkey (6379)
+npm run check:dev-deps       # verify Postgres (5432), Artemis (5684), Valkey (6379)
 ```
 
 For focused development, use these commands to run packages in watch mode with specific app groups:
@@ -549,7 +549,7 @@ See the ENV.md files in each app directory for detailed variable documentation:
 │                    │        Infrastructure              │
 │  ┌─────────────┐ ┌─┴───────────┐ ┌─────────────────┐   │
 │  │  PostgreSQL │ │   Artemis   │ │     Valkey      │   │
-│  │    :5432    │ │    :5672    │ │     :6379       │   │
+│  │    :5432    │ │    :5684    │ │     :6379       │   │
 │  └─────────────┘ └─────────────┘ └─────────────────┘   │
 └─────────────────────────────────────────────────────────┘
 ```

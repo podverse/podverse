@@ -12,7 +12,7 @@ const DB_PORT = Number(process.env.DB_PORT ?? '5432', 10);
 const VALKEY_HOST = process.env.VALKEY_HOST ?? 'localhost';
 const VALKEY_PORT = Number(process.env.VALKEY_PORT ?? '6379', 10);
 const MQ_HOST = process.env.MESSAGE_QUEUE_HOST ?? 'localhost';
-const MQ_PORT = Number(process.env.MESSAGE_QUEUE_PORT ?? '5672', 10);
+const MQ_PORT = Number(process.env.MESSAGE_QUEUE_PORT ?? '5684', 10);
 
 function checkPort(host, port) {
   return new Promise((resolve) => {

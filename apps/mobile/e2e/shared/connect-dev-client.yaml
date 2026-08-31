@@ -46,8 +46,11 @@ appId: com.podverse.app.next
     commands:
       - tapOn: "http://localhost:8081"
 
-# Android's launcher can show no discovered development server while Metro is healthy. Enter the
-# emulator bridge URL directly when the launcher is visible so Android does not depend on discovery.
+# Fallback for Android when the launcher lists no discovered server. The runner reverse-forwards
+# Metro into the emulator (`adb reverse tcp:8081`), so the launcher normally offers
+# http://localhost:8081 and the single tap above is taken on both platforms. Typing the bridge URL
+# is the most expensive thing Maestro does on Android, so this block should stay unreached; keep it
+# for emulators where the bridge did not come up.
 - runFlow:
     when:
       platform: Android

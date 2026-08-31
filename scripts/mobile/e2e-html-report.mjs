@@ -468,6 +468,101 @@ function loadFlowsFromSlot(slotDir) {
   return sortFlowsFailuresFirst(flows);
 }
 
+/**
+ * Per-command duration rollup for a slot.
+ *
+ * Wall clock alone cannot say whether a change helped: Android's cost concentrates in a couple of
+ * command types, so a median per command key is what separates "the harness got faster" from "that
+ * run happened to be lighter". Maestro already records `metadata.duration` in milliseconds.
+ *
+ * Only leaf commands are counted. `runFlow` and `retry` durations contain their children, so
+ * including them would double-count and bury the commands that actually cost time. Steps inside a
+ * subflow carry no metadata of their own and are therefore invisible here — compare like-for-like
+ * runs rather than reading the total as the run's wall clock.
+ */
+const CONTAINER_COMMAND_KEYS = new Set(['runFlowCommand', 'retryCommand', 'repeatCommand']);
+const UNTIMED_COMMAND_KEYS = new Set(['applyConfigurationCommand', 'defineVariablesCommand']);
+
+function loadCommandTimings(slotDir) {
+  const files = walkFiles(slotDir);
+  /** @type {Map<string, number[]>} */
+  const durationsByCommand = new Map();
+
+  for (const rel of files) {
+    if (!path.basename(rel).startsWith('commands-') || !rel.endsWith('.json')) {
+      continue;
+    }
+    let commands;
+    try {
+      commands = JSON.parse(fs.readFileSync(path.join(slotDir, rel), 'utf8'));
+    } catch {
+      continue;
+    }
+    if (!Array.isArray(commands)) {
+      continue;
+    }
+    for (const entry of commands) {
+      const duration = entry?.metadata?.duration;
+      if (typeof duration !== 'number' || !Number.isFinite(duration)) {
+        continue;
+      }
+      const key = entry?.command ? Object.keys(entry.command)[0] : '';
+      if (key === '' || key === undefined) {
+        continue;
+      }
+      if (CONTAINER_COMMAND_KEYS.has(key) || UNTIMED_COMMAND_KEYS.has(key)) {
+        continue;
+      }
+      const bucket = durationsByCommand.get(key);
+      if (bucket === undefined) {
+        durationsByCommand.set(key, [duration]);
+        continue;
+      }
+      bucket.push(duration);
+    }
+  }
+
+  const rows = [];
+  let totalMs = 0;
+  for (const [command, durations] of durationsByCommand) {
+    durations.sort((a, b) => a - b);
+    const total = durations.reduce((sum, ms) => sum + ms, 0);
+    const median = durations[Math.floor((durations.length - 1) / 2)];
+    totalMs += total;
+    rows.push({ command, count: durations.length, medianMs: median, totalMs: total });
+  }
+  rows.sort((a, b) => b.totalMs - a.totalMs);
+
+  return { rows, totalMs };
+}
+
+function formatSeconds(ms) {
+  return `${(ms / 1000).toFixed(ms < 10000 ? 2 : 1)}s`;
+}
+
+function buildTimingSection(timings) {
+  if (timings.rows.length === 0) {
+    return '';
+  }
+  const top = timings.rows.slice(0, 8);
+  const parts = [];
+  parts.push(`  <h2 class="section-heading">Command timing</h2>
+  <div class="summary">
+    <div class="summary-stats">${formatSeconds(timings.totalMs)} in leaf commands · slowest types first · compare medians across slots and across runs (subflow steps are not timed individually)</div>
+    <table class="timing-table">
+      <tr><th>Command</th><th>Count</th><th>Median</th><th>Total</th></tr>
+`);
+  for (const row of top) {
+    parts.push(
+      `      <tr><td><code>${escapeHtml(row.command)}</code></td><td>${row.count}</td><td>${formatSeconds(row.medianMs)}</td><td>${formatSeconds(row.totalMs)}</td></tr>\n`
+    );
+  }
+  parts.push(`    </table>
+  </div>
+`);
+  return parts.join('');
+}
+
 function reportSharedCss() {
   return `
     :root {
@@ -542,6 +637,9 @@ function reportSharedCss() {
     .hub-card.missing { opacity: 0.55; }
     .meta { color: var(--report-muted); font-size: var(--report-font-sm); margin-bottom: var(--report-space-lg); }
     .failures-callout { margin-bottom: var(--report-space-xl); padding: var(--report-space-lg); border: 1px solid var(--report-fail); border-radius: var(--report-radius-md); background: var(--report-surface); }
+    .timing-table { border-collapse: collapse; font-size: var(--report-font-sm); }
+    .timing-table th, .timing-table td { text-align: left; padding: var(--report-space-xs) var(--report-space-lg) var(--report-space-xs) 0; }
+    .timing-table th { color: var(--report-muted); font-weight: 600; }
   `;
 }
 
@@ -702,7 +800,7 @@ function buildNavChrome() {
 /**
  * Slot index: compact fails-first summary with links to per-flow pages (no embedded screenshots).
  */
-function buildSlotHtml(slot, flows, hasMaestroRaw) {
+function buildSlotHtml(slot, flows, hasMaestroRaw, timings) {
   const passed = flows.filter((f) => f.status === 'passed').length;
   const failed = flows.filter((f) => f.status === 'failed').length;
   const timedOut = flows.filter((f) => f.status === 'timedOut').length;
@@ -756,6 +854,8 @@ function buildSlotHtml(slot, flows, hasMaestroRaw) {
   parts.push(`    </ul>
   </div>
 `);
+
+  parts.push(buildTimingSection(timings));
 
   if (flows.length === 0) {
     parts.push(`  <p class="meta">No Maestro command logs found in this slot yet.</p>\n`);
@@ -1005,8 +1105,15 @@ for (const slot of SLOT_META) {
 
   const flows = loadFlowsFromSlot(dir);
   writeFlowPages(dir, slot, flows);
-  const html = buildSlotHtml(slot, flows, fs.existsSync(path.join(dir, 'maestro.html')));
+  const timings = loadCommandTimings(dir);
+  const html = buildSlotHtml(slot, flows, fs.existsSync(path.join(dir, 'maestro.html')), timings);
   fs.writeFileSync(path.join(dir, 'index.html'), html, 'utf8');
+  // Machine-readable twin of the timing table so A/B runs can be diffed without scraping HTML.
+  fs.writeFileSync(
+    path.join(dir, 'command-timings.json'),
+    `${JSON.stringify(timings, null, 2)}\n`,
+    'utf8'
+  );
 
   const failedEntries = flows
     .filter((f) => f.status === 'failed' || f.status === 'timedOut')

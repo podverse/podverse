@@ -616,6 +616,7 @@ export function HomeScreen() {
         columnWrapperStyle={columns > 1 ? styles.columnWrapper : undefined}
         contentContainerStyle={styles.content}
         data={showFeedRows ? visibleRows : []}
+      keyboardShouldPersistTaps="handled"
         key={`cols-${columns}`}
         keyExtractor={(row) => row.id}
         numColumns={columns}

@@ -89,6 +89,87 @@ separately.
     then immediately select the next unresolved unit. When multiple failures are supplied, continue
     through the entire queue; do not stop after resolving only the first failure.
 
+## Environment blockers are a stop condition, not a slow failure
+
+A wedged device is the one failure mode that can consume an entire session, because waiting looks
+identical to progress. The mobile runner therefore supervises every Maestro invocation and exits
+**78** when the environment — not the flow — is what broke.
+
+Treat exit 78 as its own outcome:
+
+- **It invalidates the run.** No flow in that invocation passed or failed on its merits, so nothing
+  from it may be recorded as `passed-*` or used as evidence for a fix.
+- **The runner already retried what is safe to retry.** It recovers the disposable E2E device once
+  per platform (`MOBILE_E2E_ANDROID_RECOVERIES` / `MOBILE_E2E_IOS_RECOVERIES`, default 1) and
+  re-runs only the flows without a result. A second block means the host needs a human.
+- **Report it immediately and stop.** Name the reason, link the diagnostics directory
+  (`<report>/diagnostics/<timestamp>-<label>/`) and the Maestro log
+  (`<report>/logs/<seq>-<label>.log`), and ask for operator intervention. Do not start the next
+  queue item on a device that just failed to recover.
+- **Do not "fix" it in the flow.** Raising a timeout, adding a retry, or adding an optional tap on
+  a system dialog hides a host-health problem inside a product test.
+
+Repeated blocks on the same platform are themselves the finding: report host contention (both
+devices plus Metro, the API, and the JVM on the same cores) rather than continuing to burn runs.
+
+### The four blocked reasons, and what each means
+
+**`blocked: <adb scan range>` — a host port conflict, before any device work.** Maestro's device
+discovery opens an adb connection to every localhost port in **5555–5683** and waits forever for a
+reply, so any unrelated service listening in that range hangs Maestro during startup with a
+perfectly healthy device. The runner probes for this before the first Maestro invocation and refuses
+to start. It affects iOS and Android identically, so `--platform` is not a workaround, and no device
+recovery will help. Move the unrelated listener outside the range; Podverse's local Artemis uses
+host `:5684` and container `:5672`. This is a host-port reservation, not an MQ prerequisite for
+mobile E2E.
+
+**`blocked: startup` — Maestro never reached the device.** No slot artifacts within
+`MOBILE_E2E_STARTUP_TIMEOUT_SECONDS`. On iOS this is usually driver acquisition: Maestro is up but
+never gets a working `maestro-driver-ios` against the simulator, so its log stops after the system
+banner. Recovery is `bash scripts/mobile/ensure-devices.sh recover-e2e-ios`, which kills stale
+driver processes, terminates the app, and reboots the simulator.
+
+**`blocked: device` — the device stopped answering mid-flow.** On Android that is a system dialog
+("System UI isn't responding", "Podverse Next keeps stopping") swallowing every tap, or an
+unreachable emulator; recovery is
+`bash scripts/mobile/ensure-devices.sh recover-e2e-android`. **Never dismiss the dialog by hand or
+add a flow step that taps it** — *Close app* asks Android to kill System UI and leaves the emulator
+worse than a reboot, and *Wait* can hang indefinitely. On iOS it is an unresponsive CoreSimulator
+or a driver that died after the flow started.
+
+**`blocked: stalled` — output stopped.** No Maestro log growth and no new slot artifacts for
+`MOBILE_E2E_STALL_TIMEOUT_SECONDS` while the device still looks healthy. Read the tail of
+`<report>/logs/<seq>-<label>.log` to see which command it died on before assuming a device fault.
+
+### A healthy device does not mean a healthy run
+
+When every probe reports a booted, responsive device and Maestro still produces nothing, the fault
+is on the **host**, not the device — the adb-scan-range conflict is the worked example. Before
+rebooting a simulator for the third time, check what the Maestro process is actually blocked on:
+
+```bash
+kill -QUIT <maestro-jvm-pid>   # thread dump lands in the Maestro log
+```
+
+A stack in `dadb.AdbReader.readMessage` or `dadb.Dadb$Companion.list` is device *discovery*
+hanging on a host socket, not a device problem.
+
+## Never wait unbounded on a run
+
+Before starting any Maestro invocation, state the flow, platform, and an expected duration. iOS
+phone flows run ~20–90 s; Android runs roughly 2x that (see
+[MOBILE-E2E-ANDROID-VS-IOS-SPEED.md](/docs/testing/MOBILE-E2E-ANDROID-VS-IOS-SPEED.md)). A full
+two-platform suite is ~55 minutes sequential.
+
+- A single focused flow that has not returned within about **5x** its expected duration is a
+  blocker to investigate, not a run to keep waiting on. Read the terminal output file and the
+  device state instead of continuing to block.
+- The runner's watchdog owns the killing. Do not add your own `sleep`-and-poll loops around it, and
+  do not raise `MOBILE_E2E_STALL_TIMEOUT_SECONDS` to make a hang look like patience.
+- If you have been waiting on the same command across multiple turns with no new evidence, stop and
+  report where it is stuck. An hour of silence is a worse outcome for the operator than an early
+  "this is blocked, here is the screenshot".
+
 ## Mandatory completion gate
 
 Never describe a run, failure queue, platform, or debugging session as fixed, complete, green, or
@@ -98,6 +179,8 @@ fully resolved unless all applicable conditions below are true:
 2. Every queue item has either:
    - a focused post-fix run that reports `Passed`, or
    - an explicitly documented blocker that requires operator input.
+
+   A run that exited 78 satisfies neither: those items stay `unresolved` or become `blocked`.
 3. A shared application, fixture, service, runner, or report-generator fix invalidates conclusions
    from earlier runs until the first affected unit is rerun after that fix.
 4. A report-generator failure is tracked separately from flow failures and is itself verified fixed
@@ -123,7 +206,8 @@ belongs to the current invocation:
   selecting the next queue item.
 
 Maintain one status for every supplied failure item: `unresolved`, `investigating`,
-`fixed-unverified`, `passed-ios`, `passed-android`, or `blocked`. Do not remove an item because
+`fixed-unverified`, `passed-ios`, `passed-android`, `blocked`, or `blocked-environment` (runner
+exit 78 — the device wedged, so the item never got a fair run). Do not remove an item because
 another flow with a similar failure passed.
 
 ## Verification commands
@@ -155,6 +239,45 @@ The mobile runner does not perform end-of-suite retries by default. Keep
 `MOBILE_E2E_FLOW_RETRIES` at `0` while isolating a failure. Enable a retry only when the operator
 explicitly requests it, for example `MOBILE_E2E_FLOW_RETRIES=1`, and never treat a retry pass as a
 substitute for understanding a failure.
+
+### Runner knobs
+
+Defaults are the supported configuration. Change one only with a stated reason, and say so in the
+summary when you do.
+
+| Variable                                   | Default | Meaning                                              |
+| ------------------------------------------ | ------- | ---------------------------------------------------- |
+| `MOBILE_E2E_STALL_TIMEOUT_SECONDS`         | `300`   | No log growth and no new slot artifacts ⇒ exit 78     |
+| `MOBILE_E2E_STARTUP_TIMEOUT_SECONDS`       | `180`   | Maestro never reached the device ⇒ exit 78            |
+| `MOBILE_E2E_RUN_TIMEOUT_SECONDS`           | `0`     | Hard ceiling per invocation; `0` leaves stall only    |
+| `MOBILE_E2E_WATCHDOG_INTERVAL_SECONDS`     | `15`    | Device-health poll interval (both platforms)          |
+| `MOBILE_E2E_IOS_DRIVER_GRACE_SECONDS`      | `90`    | Grace before a missing `maestro-driver-ios` counts    |
+| `MOBILE_E2E_ANDROID_RECOVERIES`            | `1`     | Emulator reboots allowed before stopping              |
+| `MOBILE_E2E_IOS_RECOVERIES`                | `1`     | Simulator reboots allowed before stopping             |
+| `MOBILE_E2E_ANDROID_WATCHDOG`              | `1`     | Set `0` only to reproduce a hang deliberately         |
+| `MOBILE_E2E_IOS_WATCHDOG`                  | `1`     | Set `0` only to reproduce a hang deliberately         |
+| `MOBILE_E2E_DEVICE_CANARY`                 | `1`     | Pre-run `maestro hierarchy` probe per selected device |
+| `MOBILE_E2E_DEVICE_CANARY_TIMEOUT_SECONDS` | `120`   | Canary patience before declaring the device blocked   |
+| `MOBILE_E2E_SKIP_SEED`                     | `0`     | `--skip-seed`; reuse the database from the last run   |
+| `MOBILE_E2E_PARALLEL_SLOTS`                | `0`     | `--parallel` runs both slots at once (more contention) |
+
+Do not pass `--parallel` while isolating a failure. It halves wall clock at the cost of the host
+contention that produces device wedges in the first place, so it belongs on a green full-suite
+sweep, not on debugging runs.
+
+### Fast failure and fast iteration
+
+Two runner behaviors keep a blocked host from costing a session:
+
+- **The device canary runs before seeding.** Each selected device gets a bounded
+  `maestro hierarchy` probe (~20 s when healthy) before the runner reseeds the database or waits on
+  the API, so a wedged device or a host port conflict surfaces in seconds instead of after minutes
+  of setup. Leave it on; `MOBILE_E2E_DEVICE_CANARY=0` only makes a blocked run take longer to say
+  so.
+- **`--skip-seed` reuses the previous database.** When re-running the same flow against a fix and
+  the data state is already correct, it removes the reseed and the API stop/start around it. Do not
+  use it for the first run of a flow, after switching platforms, or for any flow whose expectations
+  depend on fresh fixtures — a stale database produces a failure that looks like a product defect.
 
 ## Rate-limit effects
 

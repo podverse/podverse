@@ -329,8 +329,97 @@ open .artifacts/mobile-e2e-reports/latest/android-tablet/index.html
 | Assertion fails; screenshot shows “developer menu” / Continue                              | Same shared flow dismisses the one-time Expo dev-client menu (see below)                                                                                                                                                                            |
 | `App crashed or stopped` / fail on “Development servers” mid-suite; SpringBoard screenshot | Dev Client relaunch flake after `clearState` (not a feature bug). `launch-and-connect` retries connect; optionally set `MOBILE_E2E_FLOW_RETRIES` to retry only failed flows after the suite. Focused check: `npm run mobile:e2e:test -- podcast-episode` |
 | Repeated flow starts with prior subscriptions or local rows                                | `clearState` preserves product data by design. Run the affected flow with `--reset-data` from **Mobile Maestro**                                                                                                                                    |
+| Runner exits **78**: “BLOCKED by the test environment”                                     | The environment, not the flow, broke (see [Blocked runs](#blocked-runs-exit-78) below). Read the printed reason, then `bash scripts/mobile/ensure-devices.sh recover-e2e-android` or `recover-e2e-ios`                                              |
+| Runner exits **78**: “a service in the adb scan range (5555-5683) will hang Maestro”       | A non-ADB listener is using reserved host ports. Move that listener outside the range; local Artemis uses host `:5684` and container `:5672`                                                                                         |
+| Maestro produces no output on iOS; simulator looks fine                                    | Driver acquisition hang — the runner reports `blocked: startup`. `bash scripts/mobile/ensure-devices.sh recover-e2e-ios` kills stale `maestro-driver-ios` processes and reboots the simulator                                                       |
+| Android screenshot shows “System UI isn’t responding” / “Podverse Next keeps stopping”     | System dialog above the app; every tap goes to it. Do **not** tap Close app / Wait — reboot the emulator with `recover-e2e-android` and reduce host load                                                                                            |
+| Android launcher still asks for a URL every flow                                           | `adb reverse tcp:8081 tcp:8081` did not take. Re-run `bash scripts/mobile/ensure-devices.sh e2e-android`; check `adb reverse --list`                                                                                                                |
 | Maestro missing                                                                            | Install via repo flake (`maestro`) or [Maestro docs](https://docs.maestro.dev/getting-started/installing-maestro)                                                                                                                                   |
 | `play-mini-player` Android: Maestro `full-player-close` tap does not dismiss               | Expected for now — the flow uses `pressKey: Back` on Android (same `onClose` / `BackHandler` path). **Manually tap Close once** on an Android AVD/device before release to confirm real input dismisses the full player.                            |
+
+### Blocked runs (exit 78)
+
+A run can fail because the *environment* stopped working rather than because a flow is wrong.
+Waiting on one of these looks exactly like waiting on a slow test, which is what makes them
+expensive. The runner detects them instead of waiting them out, and exits **78** — deliberately
+distinct from exit 1, because no flow in that run passed or failed on its merits.
+
+Evidence lands in `.artifacts/mobile-e2e-reports/<run>/`: per-invocation Maestro output under
+`logs/<seq>-<label>.log`, and device state under `diagnostics/<timestamp>-<label>/` (screenshot,
+focused-window dump, `am_anr` events and logcat tail on Android; device info, driver processes and
+app log on iOS). The runner recovers the disposable E2E device once per platform, re-runs only the
+flows that never got a result, and exits 78 with operator instructions if it is blocked again.
+
+**Before any Maestro run**, two guards fail fast rather than hanging:
+
+- **adb scan range conflict.** Maestro's device discovery opens an adb connection to every
+  localhost port in **5555–5683** and waits forever for a reply, so an unrelated service listening
+  in that range hangs Maestro at startup with a completely healthy device. The runner probes for
+  this and refuses to start. It affects iOS and Android identically — `--platform` is not a
+  workaround. Move the listener outside the range; local Artemis uses host `:5684` and container
+  `:5672`. This is a host-port reservation, not an MQ prerequisite for mobile E2E.
+- **Device canary.** Each selected device gets a bounded `maestro hierarchy` probe (~20 s when
+  healthy) before the database is reseeded, so a wedged device is reported in seconds instead of
+  after minutes of setup.
+
+During a run, the watchdog ends the invocation when:
+
+| Reason    | Meaning                                                                 | Recovery                                                          |
+| --------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `startup` | Maestro never reached the device (no slot artifacts). On iOS, usually a failed `maestro-driver-ios` acquisition — the log stops after the system banner | `bash scripts/mobile/ensure-devices.sh recover-e2e-ios`            |
+| `device`  | ANR/crash dialog focused, emulator not answering `adb`, or an unresponsive simulator | `recover-e2e-android` / `recover-e2e-ios`                          |
+| `stalled` | No log growth and no new slot artifacts while the device looks healthy   | Read the log tail first — this is often a host fault, not a device |
+| `timeout` | `MOBILE_E2E_RUN_TIMEOUT_SECONDS` exceeded (opt-in)                       | —                                                                  |
+
+If every probe says the device is healthy and Maestro still produces nothing, the fault is on the
+host. `kill -QUIT <maestro-jvm-pid>` dumps its threads into the log; a stack in
+`dadb.AdbReader.readMessage` or `dadb.Dadb$Companion.list` is device *discovery* hanging on a host
+socket — the adb-scan-range conflict above.
+
+Knobs (defaults are the supported configuration):
+
+| Variable                                   | Default | Meaning                                              |
+| ------------------------------------------ | ------- | ---------------------------------------------------- |
+| `MOBILE_E2E_STALL_TIMEOUT_SECONDS`         | `300`   | No log growth and no new slot artifacts ⇒ blocked     |
+| `MOBILE_E2E_STARTUP_TIMEOUT_SECONDS`       | `180`   | Maestro never reached the device ⇒ blocked            |
+| `MOBILE_E2E_RUN_TIMEOUT_SECONDS`           | `0`     | Hard per-invocation ceiling; `0` = stall check only   |
+| `MOBILE_E2E_WATCHDOG_INTERVAL_SECONDS`     | `15`    | Device-health poll interval                           |
+| `MOBILE_E2E_IOS_DRIVER_GRACE_SECONDS`      | `90`    | Grace before a missing `maestro-driver-ios` counts     |
+| `MOBILE_E2E_ANDROID_RECOVERIES`            | `1`     | Emulator reboots allowed before giving up             |
+| `MOBILE_E2E_IOS_RECOVERIES`                | `1`     | Simulator reboots allowed before giving up            |
+| `MOBILE_E2E_ANDROID_WATCHDOG`              | `1`     | `0` disables Android health polling                   |
+| `MOBILE_E2E_IOS_WATCHDOG`                  | `1`     | `0` disables iOS health polling                       |
+| `MOBILE_E2E_DEVICE_CANARY`                 | `1`     | `0` skips the pre-run device probe                    |
+| `MOBILE_E2E_DEVICE_CANARY_TIMEOUT_SECONDS` | `120`   | Canary patience before declaring the device blocked   |
+
+### Skipping the reseed
+
+`--skip-seed` reuses the database from the previous run, removing the reseed and the API
+stop/start around it. Use it when re-running the same flow against a code fix and the data state is
+already correct:
+
+```bash
+npm run mobile:e2e:test -- --skip-seed --platform ios subscriptions-anonymous
+```
+
+Do not use it for the first run of a flow, after switching platforms, or for a flow whose
+expectations depend on fresh fixtures — a stale database produces a failure that looks like a
+product defect.
+
+### Running both slots at once
+
+`--parallel` runs the iOS and Android slots simultaneously instead of one after the other, which
+roughly halves the ~55-minute full-suite wall clock. Each slot's output is buffered to
+`<run>/ios-phone.log` / `<run>/android-phone.log` and printed when it finishes, so the two streams
+stay readable.
+
+```bash
+npm run mobile:e2e:test:all:parallel
+```
+
+It is opt-in because both devices then compete with Metro, the API, and the Maestro JVM for the
+same cores, and host contention is what produces the wedged-device blocks above. Use it for a
+green-suite sweep; leave it off while debugging a specific failure.
 
 ### Dev-client developer menu
 

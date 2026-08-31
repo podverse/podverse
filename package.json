@@ -137,6 +137,7 @@
     "mobile:e2e:test-assets:status": "bash scripts/mobile/e2e-test-assets.sh status",
     "mobile:e2e:test": "bash scripts/mobile/e2e-test.sh",
     "mobile:e2e:test:all": "bash scripts/mobile/e2e-test.sh all",
+    "mobile:e2e:test:all:parallel": "bash scripts/mobile/e2e-test.sh --parallel all",
     "mobile:install": "npm install --prefix apps/mobile && bash scripts/mobile/patch-expo-localization-xcode26.sh",
     "mobile:lint": "eslint apps/mobile --max-warnings 0",
     "mobile:lint:fix": "eslint apps/mobile --fix",

@@ -361,6 +361,7 @@ set_if_empty_or_equals "$API_INFRA_ENV" "DB_PORT" "5432" "5432"
 set_if_empty_or_equals "$API_INFRA_ENV" "KEYVALDB_HOST" "podverse_local_keyvaldb" "localhost"
 set_if_empty_or_equals "$API_INFRA_ENV" "KEYVALDB_PORT" "6379" "6379"
 set_if_empty_or_equals "$API_INFRA_ENV" "MESSAGE_QUEUE_HOST" "podverse_local_mq" "localhost"
+set_if_empty_or_equals "$API_APP_ENV" "MESSAGE_QUEUE_PORT" "5684" "5672"
 
 set_if_empty_or_equals "$WORKERS_INFRA_ENV" "DB_HOST" "podverse_local_db" "localhost"
 set_if_empty_or_equals "$WORKERS_INFRA_ENV" "DB_PORT" "5432" "5432"
@@ -368,6 +369,7 @@ set_if_empty_or_equals "$WORKERS_INFRA_ENV" "KEYVALDB_HOST" "podverse_local_keyv
 set_if_empty_or_equals "$WORKERS_INFRA_ENV" "KEYVALDB_PORT" "6379" "6379"
 set_if_empty_or_equals "$WORKERS_INFRA_ENV" "MESSAGE_QUEUE_HOST" "podverse_local_mq" "localhost"
 set_if_empty_or_equals "$WORKERS_INFRA_ENV" "MESSAGE_QUEUE_PORT" "5672" "5672"
+set_if_empty_or_equals "$WORKERS_APP_ENV" "MESSAGE_QUEUE_PORT" "5684" "5672"
 
 # Management API: like api/workers, only the infra .env (Docker) uses the compose DB hostname;
 # apps/management-api/.env is for `npm run dev` on the host and must use localhost.

@@ -117,11 +117,7 @@ name: Anonymous Subscriptions Persist
     id: home-filter-clear
 - assertNotVisible:
     id: home-list-no-filter-matches
-- runFlow:
-    when:
-      platform: Android
-    commands:
-      - hideKeyboard
+- hideKeyboard
 
 # Still signed out, the library lists it instead of showing a login prompt.
 - tapOn:
