@@ -14,10 +14,12 @@ export type PrefBooleanKey = 'aqc.rd' | 'aqc.rp' | 'downloads.auto_delete';
 export type PrefKey =
   | 'aqc.rd'
   | 'aqc.rp'
+  | 'auth.forced_logout_at'
   | 'downloads.auto_delete'
   | 'home.subscriptionFilter'
   | 'library.subscriptionFilter'
   | 'locale'
+  | 'membership.expiry_dismissed_for'
   | 'pmt'
   | 'preferred_media_type'
   | 'uit';
@@ -25,10 +27,21 @@ export type PrefKey =
 export type PrefValueMap = {
   'aqc.rd': boolean;
   'aqc.rp': boolean;
+  /**
+   * When the server last invalidated this device's session, as an ISO timestamp. Set only when the
+   * API rejected the credentials, never when the user signed themselves out and never on a network
+   * failure, so its presence is proof the user needs to be told they are signed out.
+   */
+  'auth.forced_logout_at': string;
   'downloads.auto_delete': boolean;
   'home.subscriptionFilter': SubscriptionListFilter;
   'library.subscriptionFilter': SubscriptionListFilter;
   locale: string;
+  /**
+   * The `membership_expires_at` the expiry banner was last dismissed for. Storing the timestamp
+   * rather than a boolean means a later expiry re-shows the banner instead of silencing it forever.
+   */
+  'membership.expiry_dismissed_for': string;
   pmt: MediaTypePreference;
   preferred_media_type: HomeMediaType;
   uit: UITheme;
@@ -42,10 +55,12 @@ const PREF_KEYS: readonly PrefKey[] = [
   'pmt',
   'aqc.rd',
   'aqc.rp',
+  'auth.forced_logout_at',
   'home.subscriptionFilter',
   'library.subscriptionFilter',
   'locale',
   'downloads.auto_delete',
+  'membership.expiry_dismissed_for',
 ];
 
 export const DEFAULT_PLAYBACK_MEDIA_TYPE: MediaTypePreference = DEFAULT_MEDIA_TYPE_PREFERENCE;
@@ -72,10 +87,12 @@ const isMediaTypePreference = (value: string): value is MediaTypePreference => {
 const createEmptySnapshot = (): PrefSnapshot => ({
   'aqc.rd': null,
   'aqc.rp': null,
+  'auth.forced_logout_at': null,
   'downloads.auto_delete': null,
   'home.subscriptionFilter': null,
   'library.subscriptionFilter': null,
   locale: null,
+  'membership.expiry_dismissed_for': null,
   pmt: null,
   preferred_media_type: null,
   uit: null,
@@ -93,10 +110,12 @@ const parseBoolean = (value: string | null): boolean | null => {
 
 export function getPref(key: 'aqc.rd'): Promise<boolean | null>;
 export function getPref(key: 'aqc.rp'): Promise<boolean | null>;
+export function getPref(key: 'auth.forced_logout_at'): Promise<string | null>;
 export function getPref(key: 'downloads.auto_delete'): Promise<boolean | null>;
 export function getPref(key: 'home.subscriptionFilter'): Promise<SubscriptionListFilter | null>;
 export function getPref(key: 'library.subscriptionFilter'): Promise<SubscriptionListFilter | null>;
 export function getPref(key: 'locale'): Promise<string | null>;
+export function getPref(key: 'membership.expiry_dismissed_for'): Promise<string | null>;
 export function getPref(key: 'pmt'): Promise<MediaTypePreference | null>;
 export function getPref(key: 'preferred_media_type'): Promise<HomeMediaType | null>;
 export function getPref(key: 'uit'): Promise<UITheme | null>;
@@ -112,7 +131,11 @@ export async function getPref(key: PrefKey): Promise<PrefValueMap[PrefKey] | nul
     }
     return isSubscriptionListFilter(stored) ? stored : null;
   }
-  if (key === 'locale') {
+  if (
+    key === 'auth.forced_logout_at' ||
+    key === 'locale' ||
+    key === 'membership.expiry_dismissed_for'
+  ) {
     return stored;
   }
   if (key === 'pmt') {
@@ -135,6 +158,7 @@ export async function getPref(key: PrefKey): Promise<PrefValueMap[PrefKey] | nul
 
 export function setPref(key: 'aqc.rd', value: boolean): Promise<void>;
 export function setPref(key: 'aqc.rp', value: boolean): Promise<void>;
+export function setPref(key: 'auth.forced_logout_at', value: string): Promise<void>;
 export function setPref(key: 'downloads.auto_delete', value: boolean): Promise<void>;
 export function setPref(
   key: 'home.subscriptionFilter',
@@ -145,6 +169,7 @@ export function setPref(
   value: SubscriptionListFilter
 ): Promise<void>;
 export function setPref(key: 'locale', value: string): Promise<void>;
+export function setPref(key: 'membership.expiry_dismissed_for', value: string): Promise<void>;
 export function setPref(key: 'pmt', value: MediaTypePreference): Promise<void>;
 export function setPref(key: 'preferred_media_type', value: HomeMediaType): Promise<void>;
 export function setPref(key: 'uit', value: UITheme): Promise<void>;
@@ -158,6 +183,11 @@ export async function setPref(key: PrefKey, value: PrefValueMap[PrefKey]): Promi
   }
 }
 
+/** Remove a pref entirely, for one-shot markers that must read as absent once consumed. */
+export const clearPref = async (key: PrefKey): Promise<void> => {
+  await AsyncStorage.removeItem(key);
+};
+
 export const hydratePrefs = async (): Promise<PrefSnapshot> => {
   const snapshot = createEmptySnapshot();
 
@@ -169,6 +199,10 @@ export const hydratePrefs = async (): Promise<PrefSnapshot> => {
       }
       if (key === 'aqc.rp') {
         snapshot['aqc.rp'] = await getPref('aqc.rp');
+        return;
+      }
+      if (key === 'auth.forced_logout_at') {
+        snapshot['auth.forced_logout_at'] = await getPref('auth.forced_logout_at');
         return;
       }
       if (key === 'downloads.auto_delete') {
@@ -185,6 +219,12 @@ export const hydratePrefs = async (): Promise<PrefSnapshot> => {
       }
       if (key === 'locale') {
         snapshot.locale = await getPref('locale');
+        return;
+      }
+      if (key === 'membership.expiry_dismissed_for') {
+        snapshot['membership.expiry_dismissed_for'] = await getPref(
+          'membership.expiry_dismissed_for'
+        );
         return;
       }
       if (key === 'pmt') {

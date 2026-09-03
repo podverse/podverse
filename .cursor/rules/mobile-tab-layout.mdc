@@ -1,0 +1,40 @@
+---
+description: Mobile bottom tabs are user-ordered, stored on device, and painted without FOUC
+globs:
+  - apps/mobile/App.tsx
+  - apps/mobile/src/navigation/**
+  - apps/mobile/src/prefs/tabLayout.ts
+  - apps/mobile/src/screens/more/MoreSettingsTabBarScreen.tsx
+alwaysApply: false
+---
+
+# Mobile tab bar layout
+
+The bottom tab bar (and tablet left rail) is a stored, device-local order. **More** is always last.
+Hidden content tabs stay registered in the navigator and appear as rows on More.
+
+Factory visible order is **Home, Browse, Search, My Library** (`DEFAULT_VISIBLE_TABS`).
+Notifications overflows to More until the user adds it.
+
+## Do
+
+- Read `tabs.visible` under the splash (`TabLayoutProvider`) before mounting `TabScaffold`.
+- Keep `Tab.Screen` declaration order stable. Render the stored order through `OrderedTabBar`.
+- Persist with `writeVisibleTabs` / `prefs/tabLayout.ts` (AsyncStorage). Do not sync this to the
+  server.
+- Cap visible content tabs at `MAX_VISIBLE_CONTENT_TABS` (4). Adding a fifth replaces the last slot.
+- Send overflow tabs to More (`more-nav-<slug>`).
+
+## Do not
+
+- Unmount a tab to hide it (breaks `navigate('Notifications')` and deep links).
+- Paint the default bar and then swap after AsyncStorage (FOUC).
+- Reorder by changing `Tab.Screen` children order (remounts stacks).
+- Use the default tab press highlight (ripple / opacity). Visible tabs use `QuietTabBarButton`
+  (`pressOpacity={1}`, transparent ripple). That is an exception to `Button`'s press dim.
+
+## Related
+
+- `apps/mobile/src/prefs/tabLayout.ts`
+- `apps/mobile/src/navigation/TabLayoutProvider.tsx`
+- `apps/mobile/src/navigation/OrderedTabBar.tsx`

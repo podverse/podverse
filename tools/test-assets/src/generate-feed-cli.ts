@@ -58,7 +58,7 @@
  *   id, item_id, server, protocol, account_id, space
  * item_description
  *   id, item_id, value
- * item_enclosure / item_enclosure_source — POPULATED (07b: enclosure + podcast:alternateEnclosure)
+ * item_enclosure / item_enclosure_source — POPULATED (enclosure + podcast:alternateEnclosure)
  * item_image
  *   id, item_id, url, image_width_size, is_resized
  * item_license
@@ -83,18 +83,19 @@
  *   id, status
  *
  * ---
- * Channel and item tables/columns that do NOT have corresponding values in the generated RSS feeds (yet).
- * These exist in the DB schema but are not populated when the above feeds are parsed (e.g. Sub-Plan 4+ tags).
+ * Channel and item tables/columns without corresponding values in the generated RSS feeds.
+ * These exist in the DB schema but are not populated when the above feeds are parsed (e.g. additional
+ * namespace tags).
  *
- * channel_value / channel_value_recipient — POPULATED (07a: podcast:value Lightning keysend)
- * channel_podroll / channel_podroll_remote_item — POPULATED (07d: podcast:podroll)
- * channel_publisher / channel_publisher_remote_item — POPULATED (07d: podcast:publisher)
- * channel_remote_item — POPULATED (07d: channel-level podcast:remoteItem)
+ * channel_value / channel_value_recipient — POPULATED (podcast:value Lightning keysend)
+ * channel_podroll / channel_podroll_remote_item — POPULATED (podcast:podroll)
+ * channel_publisher / channel_publisher_remote_item — POPULATED (podcast:publisher)
+ * channel_remote_item — POPULATED (channel-level podcast:remoteItem)
  * channel_social_interact
  *   id, channel_id, protocol, uri, account_id, account_url, priority
  *   (feed has podcast:chat at channel, not podcast:socialInteract; socialInteract is item-only in feed)
  *
- * item_value / item_value_recipient / item_value_time_split* — POPULATED (07a: podcast:value on items)
+ * item_value / item_value_recipient / item_value_time_split* — POPULATED (podcast:value on items)
  * item_funding
  *   id, item_id, url, title
  * item_content_link — POPULATED (podcast:contentLink on items)
@@ -108,7 +109,7 @@
  *   id, item_chapters_feed_id, last_http_status, last_good_http_status_time, last_finished_parse_time, parse_errors
  * item_enclosure_integrity
  *   id, item_enclosure_id, type, value
- * live_item / live_item_status — POPULATED (07c: podcast:liveItem on channel)
+ * live_item / live_item_status — POPULATED (podcast:liveItem on channel)
  */
 
 import { faker } from '@faker-js/faker';
@@ -195,7 +196,7 @@ function isSeasonFeed(kind: FeedKind): boolean {
   );
 }
 
-/** Enclosure type by feed medium. Plan 03 will wire medium; here we use feed kind. */
+/** Enclosure type by feed kind. */
 function getEnclosureKind(kind: FeedKind): 'audio' | 'video' {
   if (kind === 'video' || kind === 'video-season') return 'video';
   return 'audio';
@@ -283,7 +284,7 @@ function getMediumForKind(kind: FeedKind): string | null {
   }
 }
 
-/** 07b: Build 4 <podcast:alternateEnclosure> per item (audio/mpeg, audio/ogg, video/mp4, video/webm) with <podcast:source>. */
+/** Build 4 <podcast:alternateEnclosure> per item with <podcast:source>. */
 function buildAlternateEnclosureBlocks(baseUrl: string, enclosureIndex: number): string {
   const base = baseUrl.replace(/\/$/, '');
   const pad = pad3(enclosureIndex);
@@ -462,7 +463,7 @@ function buildFeed(
   const chatSpace = faker.lorem.slug();
   const chatEmbedUrl = faker.internet.url();
 
-  // 07d: remoteItem, podroll, publisher (only when we have previously written feeds to point to)
+  // Add remoteItem, podroll, and publisher blocks when written feeds are available as targets.
   const remoteItemPodrollPublisherBlocks = ((): string[] => {
     if (writtenFeedInfo.length === 0) return [];
     const blocks: string[] = [];

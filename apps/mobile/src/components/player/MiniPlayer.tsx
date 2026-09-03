@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { GestureResponderEvent } from 'react-native';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { breakpoints } from '@podverse/design-tokens';
 import { clampRatio } from '@podverse/helpers/math';
@@ -12,22 +12,23 @@ import { usePlayback } from '../../playback/PlaybackProvider';
 import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
 import { Button } from '../primitives/Button';
+import { CoverImage } from '../primitives/CoverImage';
+import { ProgressTrack } from '../primitives/ProgressTrack';
 
 type MiniPlayerProps = {
   onExpand: () => void;
 };
 
 /**
- * Mini player fixed above the tab bar (Track 11.1–11.2). Binds to the Track 10 orchestrator via
+ * Mini player fixed above the tab bar. Binds to the playback orchestrator via
  * `usePlayback()`: shows the current now-playing audio artwork/title, toggles the native bridge
  * (play/pause), reflects position as a thin progress bar, and expands to the full player route.
  * Hidden entirely when nothing is now-playing (no `activeTarget`). It renders inside the phone tab
  * bar column above `BottomTabBar`, so the tab bar below still owns the safe-area bottom inset and
  * tab labels stay uncovered.
  *
- * Anti-pattern (Track 11.18): the mini and full player share one engine and (when video lands) one
- * native `VideoSurfaceHost` — never mount a second `Video`/engine on expand. See media-engine
- * README § "Player UI single-surface ownership".
+ * The mini and full player share one engine and one native `VideoSurfaceHost` — never mount a
+ * second `Video`/engine on expand. See media-engine README § "Player UI single-surface ownership".
  */
 export function MiniPlayer({ onExpand }: MiniPlayerProps) {
   const { t } = useTranslation();
@@ -40,16 +41,6 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
     () =>
       StyleSheet.create({
         artwork: {
-          backgroundColor: tokens.background.secondary,
-          borderRadius: tokens.radii.sm,
-          height: 40,
-          width: 40,
-        },
-        artworkFallback: {
-          backgroundColor: tokens.background.tertiary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.sm,
-          borderWidth: 1,
           height: 40,
           width: 40,
         },
@@ -60,22 +51,14 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
           paddingHorizontal: tokens.spacing.lg,
           paddingVertical: tokens.spacing.sm,
         },
-        // Tablet: cap width at `lg` and center so controls are not edge-stretched (18.4).
+        // Tablet: cap width at `lg` and center so controls are not edge-stretched.
         containerTablet: {
           alignSelf: 'center',
           maxWidth: breakpoints.lg,
           width: '100%',
         },
-        progressFill: {
-          backgroundColor: tokens.text.accent,
-        },
         progressTrack: {
-          backgroundColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.round,
-          flexDirection: 'row',
-          height: 2,
           marginBottom: tokens.spacing.sm,
-          overflow: 'hidden',
         },
         row: {
           alignItems: 'center',
@@ -126,25 +109,19 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
       style={[styles.container, isTablet ? styles.containerTablet : undefined]}
       testID="mini-player"
     >
-      <View style={styles.progressTrack}>
-        <View
-          style={[styles.progressFill, { flex: progressRatio }]}
-          testID="mini-player-progress"
-        />
-        <View style={{ flex: 1 - progressRatio }} />
-      </View>
+      <ProgressTrack
+        fillTestID="mini-player-progress"
+        ratio={progressRatio}
+        style={styles.progressTrack}
+      />
       <View style={styles.row}>
         <View style={styles.videoSurface} testID="mini-player-video-surface">
-          {nowPlaying.imageUrl !== null ? (
-            <Image
-              accessibilityLabel={t('media_player.media_player_image')}
-              source={{ uri: nowPlaying.imageUrl }}
-              style={styles.artwork}
-            />
-          ) : (
-            <View style={styles.artworkFallback} />
-          )}
-          {/* Single shared native surface; hidden for audio-only so the artwork shows (2.23). */}
+          <CoverImage
+            accessibilityLabel={t('media_player.media_player_image')}
+            style={styles.artwork}
+            uri={nowPlaying.imageUrl}
+          />
+          {/* Single shared native surface; hidden for audio-only so the artwork shows. */}
           <PodverseVideoSurfaceView style={StyleSheet.absoluteFill} targetId="mini" />
         </View>
         <View style={styles.textColumn}>

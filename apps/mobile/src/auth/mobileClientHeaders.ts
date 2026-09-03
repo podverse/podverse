@@ -1,7 +1,7 @@
 /**
- * Header sent on every mobile API request so the server can log/slice by client version and platform
- * (master plan Track 22.6). Long-lived shipped clients make this the source of truth for the
- * add-only API discipline (22.5) and post-release monitoring (22.10).
+ * Header sent on every mobile API request so the server can log and segment traffic by client
+ * version and platform. Long-lived clients make this information useful for add-only API changes
+ * and post-release monitoring.
  *
  * Pure module (no expo/react-native imports) so it stays in the node unit-test graph; the RN-coupled
  * version/platform resolution lives at the call site (`mobileApi.ts`).

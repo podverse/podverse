@@ -4,19 +4,27 @@ export * from './lib/auth.js';
 export * from './lib/error/index.js';
 export * from './lib/i18n/index.js';
 export * from './lib/constants/index.js';
+export * from './lib/accessTier.js';
 export {
   AccountMembershipEnum,
   deriveMembershipState,
+  getMembershipExpiryNotice,
   hasValidMembership,
   isMembershipExpiredAt,
+  MEMBERSHIP_EXPIRY_WARNING_DAYS,
 } from './lib/accountMembership.js';
-export type { MembershipState, MembershipTier } from './lib/accountMembership.js';
+export type {
+  MembershipExpiryNotice,
+  MembershipExpiryStatus,
+  MembershipState,
+  MembershipTier,
+} from './lib/accountMembership.js';
+export * from './lib/followChannelsBulk.js';
 export * from './lib/accountTrust.js';
 export * from './lib/accountSignupMode.js';
 export * from './lib/adminAccountCredentialsLimits.js';
 export * from './lib/adminNotificationCampaign.js';
 export * from './lib/appRoutes.js';
-export * from './lib/accountNotification.js';
 export * from './lib/accountNotificationType.js';
 export * from './lib/array.js';
 export * from './lib/channelItunesType.js';
@@ -33,6 +41,7 @@ export * from './lib/billingEvents.js';
 export * from './lib/billingDomain.js';
 export * from './lib/boolean.js';
 export * from './lib/category.js';
+export * from './lib/channelSeen.js';
 export * from './lib/comparison/isEqual.js';
 export * from './lib/computeExponentialBackoffDelayMs.js';
 export * from './lib/date.js';
@@ -84,9 +93,11 @@ export * from './lib/notificationCategory.js';
 export * from './lib/sharableStatus.js';
 export * from './lib/sleep.js';
 export * from './lib/sortableTitle.js';
+export * from './lib/sortPrefs.js';
 export * from './lib/stringify.js';
 export * from './lib/time.js';
 export * from './lib/timeConstants.js';
+export * from './lib/titleFilter.js';
 export * from './lib/throughputLimiter.js';
 export * from './lib/truncateForLog.js';
 export * from './lib/safeLinkHref.js';

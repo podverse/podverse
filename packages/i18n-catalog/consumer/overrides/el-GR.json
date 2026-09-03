@@ -53,7 +53,8 @@
   "features": {
     "search": {
       "search": "",
-      "search_by_title": ""
+      "search_by_title": "",
+      "empty_prompt": ""
     },
     "add_feed": {
       "add_feed": "",
@@ -93,7 +94,8 @@
       "basic_auth_requires": "",
       "basic_auth_username": "",
       "basic_auth_password": "",
-      "basic_auth_required_both": ""
+      "basic_auth_required_both": "",
+      "login_prompt": ""
     },
     "my_library": "",
     "queue": {
@@ -105,14 +107,16 @@
       "add_error": "",
       "remove_error": "",
       "remove_from_queue": "",
-      "removed_from_queue": ""
+      "removed_from_queue": "",
+      "login_prompt": ""
     },
     "history": {
       "history": "",
       "delete_history": "",
       "mark_as_played": "",
       "marked_as_played": "",
-      "mark_as_played_error": ""
+      "mark_as_played_error": "",
+      "login_prompt": ""
     },
     "playlist": {
       "playlist": "",
@@ -132,7 +136,8 @@
       "item_count": "",
       "playlist_type": "",
       "add_to_liked": "",
-      "remove_from_liked": ""
+      "remove_from_liked": "",
+      "login_prompt": ""
     },
     "clip": {
       "clip": "",
@@ -151,10 +156,12 @@
       "end_time": "",
       "end_time_aria": "",
       "end_time_play_aria": "",
-      "clip_time_range": ""
+      "clip_time_range": "",
+      "login_prompt": ""
     },
     "my_clips": "",
     "my_profile": "",
+    "profile_login_prompt": "",
     "profile": "",
     "profiles": "",
     "embed": "",
@@ -349,9 +356,41 @@
   "media_player": {
     "play": "",
     "pause": "",
+    "no_media": "",
+    "livestream_unavailable": "",
     "show_fullscreen_media_player": "",
     "fullscreen_media_player": "",
     "media_player_image": "",
+    "seek": "",
+    "position_of_duration": "",
+    "skip_to_next": "",
+    "skip_to_previous": "",
+    "jump_back": "",
+    "jump_forward": "",
+    "step_back": "",
+    "step_forward": "",
+    "mute": "",
+    "unmute": "",
+    "player_settings": "",
+    "playback_mode": {
+      "toggle_autoplay": "",
+      "autoplay_next_enabled": "",
+      "autoplay_next_disabled": ""
+    },
+    "up_next": "",
+    "up_next_empty": "",
+    "auto_queue": "Αυτόματη Ουρά",
+    "share": "",
+    "value_for_value": "",
+    "coming_soon": "",
+    "value_for_value_body": "",
+    "sleep_timer": {
+      "sleep_timer": "",
+      "off": "",
+      "minutes_15": "",
+      "minutes_30": "",
+      "minutes_60": ""
+    },
     "repeat": {
       "toggle_repeat": "",
       "repeat_enabled": "",
@@ -394,23 +433,6 @@
       "audio_with_bitrate_mbps": "",
       "audio_with_ext_bitrate_kbps": "",
       "audio_with_ext_bitrate_mbps": ""
-    },
-    "no_media": "",
-    "livestream_unavailable": "",
-    "seek": "",
-    "skip_to_next": "",
-    "up_next": "",
-    "up_next_empty": "",
-    "auto_queue": "Αυτόματη Ουρά",
-    "share": "",
-    "value_for_value": "",
-    "coming_soon": "",
-    "sleep_timer": {
-      "sleep_timer": "",
-      "off": "",
-      "minutes_15": "",
-      "minutes_30": "",
-      "minutes_60": ""
     }
   },
   "value": {
@@ -542,6 +564,11 @@
       "week": "",
       "month": "",
       "all_time": ""
+    },
+    "screen": {
+      "title": "",
+      "filter_heading": "",
+      "sort_heading": ""
     }
   },
   "legal": {
@@ -673,13 +700,30 @@
   "subscriptions": {
     "subscriptions": "",
     "how_to_start_message": "",
+    "empty_message": "",
+    "no_filter_matches": "",
     "filter": {
       "all": "",
-      "add_by_rss": ""
-    }
+      "add_by_rss": "",
+      "label": "",
+      "placeholder": "",
+      "clear": "",
+      "results_count": ""
+    },
+    "row": {
+      "latest_episode": "",
+      "unseen_count": "",
+      "unseen_count_capped": "",
+      "unseen_count_aria": "",
+      "unseen_count_capped_aria": "",
+      "downloaded_count": ""
+    },
+    "mark_all_seen": "",
+    "mark_all_seen_done": ""
   },
   "authentication": {
     "login": "",
+    "login_required": "",
     "logout": "",
     "sign_up": "",
     "need_an_account_sign_up": "",
@@ -700,6 +744,9 @@
     "password_mismatch": "",
     "account_created_message": "",
     "session_expired": "",
+    "forced_logout_title": "",
+    "forced_logout_body": "",
+    "forced_logout_dismiss": "",
     "signed_in_account_load_failed": "",
     "could_not_sign_in": "",
     "account_not_verified": "",
@@ -791,7 +838,27 @@
     "trial_limitations_add_by_rss_feed_limit": "",
     "trial_limitations_manual_refresh_limit": "",
     "trial_limitations_stats_tracking": "",
-    "trial_limitations_notifications": ""
+    "trial_limitations_notifications": "",
+    "gate": {
+      "cancel": "",
+      "renew": "",
+      "sign_up": "",
+      "title_expired": "",
+      "title_premium": "",
+      "title_limit": "",
+      "title_needs_account": "",
+      "body_expired": "",
+      "body_premium": "",
+      "body_limit": "",
+      "body_needs_account": "",
+      "banner_message": "",
+      "banner_message_expiring_tomorrow": "",
+      "banner_message_expiring_soon": "",
+      "banner_action": "",
+      "banner_dismiss": "",
+      "settings_row_title": "",
+      "settings_row_subtitle": ""
+    }
   },
   "about": {
     "title": "",
@@ -878,6 +945,7 @@
       "notifications": "",
       "web_push": "",
       "web_push_help": "",
+      "unread_count_aria": "",
       "unified_push": "",
       "unified_push_help": "",
       "up_endpoint_label": "",
@@ -890,28 +958,27 @@
       "up_enable_error": "",
       "cancel": "",
       "enable": "",
-      "default_new_item": "",
-      "default_new-item_help": "",
-      "default_livestream_scheduled": "",
-      "default_livestream-scheduled_help": "",
-      "default_livestream_started": "",
-      "default_livestream-started_help": "",
+      "preference_section": "",
+      "preference_section_help": "",
+      "preference_in_app": "",
+      "preference_push": "",
+      "preference_push_disabled": "",
+      "category_new_content": "",
+      "category_new_content_description": "",
+      "category_livestream": "",
+      "category_livestream_description": "",
+      "category_product_update": "",
+      "category_product_update_description": "",
+      "product_update_disable_hint": "",
+      "category_maintenance": "",
+      "category_maintenance_description": "",
+      "category_terms_of_service": "",
+      "category_terms_of_service_description": "",
+      "category_general": "",
+      "category_general_description": "",
       "new_item": "",
       "livestream_scheduled": "",
       "livestream_started": ""
-    },
-    "keyboard": {
-      "keyboard": "",
-      "intro": "",
-      "keys_space": "",
-      "keys_arrows_seek": "",
-      "keys_arrows_volume": "",
-      "shortcut_play_pause_label": "",
-      "shortcut_play_pause_detail": "",
-      "shortcut_seek_label": "",
-      "shortcut_seek_detail": "",
-      "shortcut_volume_label": "",
-      "shortcut_volume_detail": ""
     },
     "opml": {
       "opml": "",
@@ -928,6 +995,11 @@
       "import_in_progress": "",
       "import_success": "",
       "import_error": "",
+      "import_error_body_required": "",
+      "import_error_no_valid_feeds": "",
+      "import_error_too_large": "",
+      "import_error_too_many_feeds": "",
+      "import_error_request_not_found": "",
       "import_result_summary": "",
       "outcome_subscribed": "",
       "outcome_enqueued": "",
@@ -937,12 +1009,20 @@
       "outcome_failed": "",
       "import_rate_limited_title": "",
       "import_rate_limited": "",
-      "import_rate_limited_time": "",
-      "import_error_body_required": "",
-      "import_error_no_valid_feeds": "",
-      "import_error_too_large": "",
-      "import_error_too_many_feeds": "",
-      "import_error_request_not_found": ""
+      "import_rate_limited_time": ""
+    },
+    "keyboard": {
+      "keyboard": "",
+      "intro": "",
+      "keys_space": "",
+      "keys_arrows_seek": "",
+      "keys_arrows_volume": "",
+      "shortcut_play_pause_label": "",
+      "shortcut_play_pause_detail": "",
+      "shortcut_seek_label": "",
+      "shortcut_seek_detail": "",
+      "shortcut_volume_label": "",
+      "shortcut_volume_detail": ""
     }
   },
   "contact": {
@@ -1124,6 +1204,31 @@
   "pagination": {
     "ariaPreviousPage": "",
     "ariaNextPage": ""
+  },
+  "notifications_page": {
+    "title": "",
+    "recent_activity_note": "",
+    "loading": "",
+    "login_prompt": "",
+    "empty": "",
+    "unread_section": "",
+    "earlier_section": "",
+    "category_new_content": "",
+    "category_livestream": "",
+    "category_product_update": "",
+    "category_maintenance": "",
+    "category_terms_of_service": "",
+    "category_general": "",
+    "relative_time_just_now": "",
+    "relative_time_seconds_ago": "",
+    "relative_time_seconds_from_now": "",
+    "relative_time_minutes_ago": "",
+    "relative_time_minutes_from_now": "",
+    "relative_time_hours_ago": "",
+    "relative_time_hours_from_now": "",
+    "relative_time_days_ago": "",
+    "relative_time_days_from_now": "",
+    "no_body": ""
   },
   "seo": {
     "pages": {

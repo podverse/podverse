@@ -14,7 +14,10 @@ import { getCuratedStaticPageMetadata } from '../../lib/seo/curatedPageMetadata'
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import type { AlbumsFilterDefaults } from '../../utils/localSettings/localSettings';
-import { getParsedLocalSettings } from '../../utils/localSettings/localSettings';
+import {
+  getFilterDefaultsForPage,
+  getParsedLocalSettings,
+} from '../../utils/localSettings/localSettings';
 import { AlbumsPageClient } from './AlbumsPageClient';
 import type { AlbumsPageDropdownConfigCurrentParams } from './AlbumsPageDropdownConfig';
 import { getAlbumsPageFilterParams } from './AlbumsPageDropdownConfig';
@@ -45,7 +48,7 @@ export default async function AlbumsPage({ searchParams }: AlbumsPageProps) {
 
   const cookieStore = await cookies();
   const ssrLocalSettings = getParsedLocalSettings(cookieStore);
-  const ssrFilterDefaults = ssrLocalSettings.fd?.albums;
+  const ssrFilterDefaults = getFilterDefaultsForPage(ssrLocalSettings, 'albums');
 
   const queryParams = await searchParams;
   const { currentType, currentSort, currentRange, currentPage } = await parseSearchParams(

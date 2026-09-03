@@ -46,7 +46,7 @@ export const ListClips: React.FC<Props> = ({
   const clipIdTexts = useMemo(() => clips.map((c) => c.id_text), [clips]);
   const { isLiked, toggle } = useLikesClipBatch(clipIdTexts);
 
-  // Track if we should skip scroll on the first effect run (back navigation case)
+  // Skip scroll on the first effect run when returning via back navigation.
   const skipScrollOnceRef = useRef(checkBackNavFlag());
 
   useSkipInitialEffect(() => {

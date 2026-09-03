@@ -19,12 +19,12 @@ const TEST_EMAIL = 'account-notifications-test@example.com';
 
 const {
   accountGetMock,
-  accountNotificationCountUnseenMock,
+  accountNotificationCountUnreadMock,
   accountNotificationListPaginatedMock,
   accountNotificationPreferenceGetForAccountMock,
   accountNotificationPreferenceSeedDefaultsMock,
   accountNotificationPreferenceUpsertMock,
-  accountUpdateNotificationsLastSeenAtMock,
+  accountUpdateNotificationsLastReadAtMock,
   categorySetCategoryCacheMock,
   notificationTypeCreateMock,
   resolveProductMembershipCapDefaultsMock,
@@ -38,10 +38,10 @@ const {
       account_membership: { id: AccountMembershipEnum.Premium },
       allow_notifications: true,
     },
-    notifications_last_seen_at: null,
+    notifications_last_read_at: null,
   })),
-  accountNotificationCountUnseenMock: vi.fn(async (_accountId: number, lastSeenAt: Date | null) =>
-    lastSeenAt === null ? 25 : 4
+  accountNotificationCountUnreadMock: vi.fn(async (_accountId: number, lastReadAt: Date | null) =>
+    lastReadAt === null ? 25 : 4
   ),
   accountNotificationListPaginatedMock: vi.fn(async () => [
     {
@@ -89,8 +89,8 @@ const {
       push_enabled: boolean;
     }) => ({ id: 999, ...dto })
   ),
-  accountUpdateNotificationsLastSeenAtMock: vi.fn(
-    async (_accountId: number, seenAt: Date) => seenAt
+  accountUpdateNotificationsLastReadAtMock: vi.fn(
+    async (_accountId: number, readAt: Date) => readAt
   ),
   categorySetCategoryCacheMock: vi.fn(async () => {}),
   notificationTypeCreateMock: vi.fn(async () => ({ account_id: TEST_USER_ID, type: 'new-item' })),
@@ -117,7 +117,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
 
   class MockAccountService {
     get = accountGetMock;
-    updateNotificationsLastSeenAt = accountUpdateNotificationsLastSeenAtMock;
+    updateNotificationsLastReadAt = accountUpdateNotificationsLastReadAtMock;
   }
 
   class MockBillingPriceCatalogService {
@@ -125,7 +125,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
   }
 
   class MockAccountNotificationService {
-    countUnseen = accountNotificationCountUnseenMock;
+    countUnread = accountNotificationCountUnreadMock;
     listPaginatedForAccount = accountNotificationListPaginatedMock;
   }
 
@@ -186,8 +186,8 @@ describe('account notifications routes', () => {
       total_count: 25,
       total_pages: 2,
     });
-    expect(response.body.data.sections).toEqual({ new_count: 25 });
-    expect(response.body.data.items[0].is_new).toBe(true);
+    expect(response.body.data.sections.unread_count).toBe(25);
+    expect(response.body.data.items[0].is_unread).toBe(true);
   });
 
   it('GET /account/notifications applies page offset', async () => {
@@ -202,10 +202,12 @@ describe('account notifications routes', () => {
     });
   });
 
-  it('GET /account/notifications/unseen-count returns unseen count', async () => {
-    // ensureAuthenticated fetches the account once, then the controller fetches it again;
-    // queue the same account for both calls so the controller reads notifications_last_seen_at.
-    const seenAccount = {
+  /**
+   * ensureAuthenticated fetches the account once, then the controller fetches it again; queue the
+   * same account for both calls so the controller reads notifications_last_read_at.
+   */
+  const queueAccountWithLastReadAt = (lastReadAt: Date) => {
+    const readAccount = {
       id: TEST_USER_ID,
       id_text: TEST_USER_ACCOUNT_ID_TEXT,
       account_credentials: { email: TEST_EMAIL },
@@ -214,27 +216,31 @@ describe('account notifications routes', () => {
         account_membership: { id: AccountMembershipEnum.Premium },
         allow_notifications: true,
       },
-      notifications_last_seen_at: new Date('2026-08-01T00:00:00.000Z'),
+      notifications_last_read_at: lastReadAt,
     };
-    accountGetMock.mockResolvedValueOnce(seenAccount).mockResolvedValueOnce(seenAccount);
+    accountGetMock.mockResolvedValueOnce(readAccount).mockResolvedValueOnce(readAccount);
+  };
+
+  it('GET /account/notifications/unread-count returns unread count', async () => {
+    queueAccountWithLastReadAt(new Date('2026-08-01T00:00:00.000Z'));
 
     const response = await request(app)
-      .get(`${accountBase}/notifications/unseen-count`)
+      .get(`${accountBase}/notifications/unread-count`)
       .set(authHeaders(TEST_USER_ID));
 
     expect(response.status).toBe(200);
-    expect(response.body.data.unseen_count).toBe(4);
+    expect(response.body.data.unread_count).toBe(4);
   });
 
-  it('POST /account/notifications/mark-seen updates seen timestamp', async () => {
+  it('POST /account/notifications/mark-read updates the read timestamp', async () => {
     const response = await request(app)
-      .post(`${accountBase}/notifications/mark-seen`)
+      .post(`${accountBase}/notifications/mark-read`)
       .set(authHeaders(TEST_USER_ID))
       .send({});
 
     expect(response.status).toBe(200);
-    expect(accountUpdateNotificationsLastSeenAtMock).toHaveBeenCalledTimes(1);
-    expect(typeof response.body.data.last_seen_at).toBe('string');
+    expect(accountUpdateNotificationsLastReadAtMock).toHaveBeenCalledTimes(1);
+    expect(typeof response.body.data.last_read_at).toBe('string');
   });
 
   it('GET /account/notification-preferences returns seeded preference rows', async () => {
@@ -288,7 +294,7 @@ describe('account notifications routes', () => {
         account_membership: { id: AccountMembershipEnum.Premium },
         allow_notifications: false,
       },
-      notifications_last_seen_at: null,
+      notifications_last_read_at: null,
     });
 
     const response = await withMutedExpectedErrorLogs(async () =>

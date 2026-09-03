@@ -57,7 +57,7 @@ const buildE2eParsedFeedPayload = (): NonNullable<AddByRSSParseCacheEntry['paylo
   return fixture as unknown as NonNullable<AddByRSSParseCacheEntry['payload']>;
 };
 
-const enqueueRateLimit = rateLimitAuthEndpoint({
+export const addByRssParseEnqueueRateLimit = rateLimitAuthEndpoint({
   windowMs: config.rateLimits.accountAddByRssParseEnqueue.windowMs,
   max: config.rateLimits.accountAddByRssParseEnqueue.max,
 });
@@ -68,7 +68,7 @@ class AccountAddByRSSParseController {
       req,
       res,
       async () => {
-        enqueueRateLimit(req, res, () => {
+        addByRssParseEnqueueRateLimit(req, res, () => {
           const bodySchema = Joi.object({
             feed_url: joiFeedUrl(),
             feed_hash: Joi.string().optional(),
@@ -177,7 +177,7 @@ class AccountAddByRSSParseController {
       req,
       res,
       async () => {
-        enqueueRateLimit(req, res, () => {
+        addByRssParseEnqueueRateLimit(req, res, () => {
           const bodySchema = Joi.object({
             feed_hashes_by_url: Joi.object().pattern(Joi.string(), Joi.string()).optional(),
             etags_by_url: Joi.object().pattern(Joi.string(), Joi.string()).optional(),
@@ -214,15 +214,35 @@ class AccountAddByRSSParseController {
 
                 const requestId = randomUUID();
                 requestIds.push({ request_id: requestId, feed_url: feedUrl });
+                const feedHash = getRecordValue(feedHashesByUrl, feedUrl);
+                const etag = getRecordValue(etagsByUrl, feedUrl);
+                const lastModified = getRecordValue(lastModifiedByUrl, feedUrl);
+
+                if (config.e2e.fixturesEnabled) {
+                  await setAddByRSSParseCacheEntry({
+                    requestId,
+                    accountId: account.id,
+                    feedUrl,
+                    status: 'parsed',
+                    cache: {
+                      feedHash,
+                      etag,
+                      lastModified,
+                    },
+                    payload: buildE2eParsedFeedPayload(),
+                    updatedAt: new Date().toISOString(),
+                  });
+                  continue;
+                }
 
                 await mqAddByRSSAdd(activeMQArtemisService, {
                   ...mqConstantMessageOptions,
                   accountId: account.id,
                   feedUrl,
                   requestId,
-                  feedHash: getRecordValue(feedHashesByUrl, feedUrl),
-                  etag: getRecordValue(etagsByUrl, feedUrl),
-                  lastModified: getRecordValue(lastModifiedByUrl, feedUrl),
+                  feedHash,
+                  etag,
+                  lastModified,
                   closeAfterSend: false,
                 });
 
@@ -232,9 +252,9 @@ class AccountAddByRSSParseController {
                   feedUrl,
                   status: 'queued',
                   cache: {
-                    feedHash: getRecordValue(feedHashesByUrl, feedUrl),
-                    etag: getRecordValue(etagsByUrl, feedUrl),
-                    lastModified: getRecordValue(lastModifiedByUrl, feedUrl),
+                    feedHash,
+                    etag,
+                    lastModified,
                   },
                   updatedAt: new Date().toISOString(),
                 });

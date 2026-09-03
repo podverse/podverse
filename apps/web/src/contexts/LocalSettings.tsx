@@ -100,6 +100,7 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
       bfd: boostFormDefaults,
       cc: cookieConsent !== undefined ? cookieConsent : existingSettings.cc,
       pmt: preferredMediaType,
+      sp: existingSettings.sp,
     });
   }, [
     uiTheme,

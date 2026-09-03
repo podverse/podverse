@@ -1,9 +1,8 @@
 import ExpoModulesCore
 
-// PG-2b steps 2.4–2.6 (details 083–085). This Expo module is a thin transport surface over the
-// process-wide `PodverseAudioEngine.shared`. It does NOT own the AVPlayer, audio session, or remote
-// command center — the engine singleton does, so a future CarPlay scene (Track 12, 12.9–12.10) can
-// bind now-playing to the same player and command center WITHOUT starting the JS runtime.
+// This Expo module is a thin transport surface over the process-wide `PodverseAudioEngine.shared`.
+// It does NOT own the AVPlayer, audio session, or remote command center; the engine singleton does,
+// so CarPlay binds now-playing to the same player and command center WITHOUT starting the JS runtime.
 //
 // Car foundation (00-CAR-FOUNDATION.md): one player, one command center, no second path for "car
 // later". Do NOT use react-native-track-player.
@@ -12,7 +11,7 @@ public class PodverseMediaEngineModule: Module {
     // Must match requireNativeModule('PodverseMediaEngine') on the JS side.
     Name("PodverseMediaEngine")
 
-    // Native → JS events (contract aligns with step 2.10 / detail 089).
+    // Native → JS events.
     Events("playbackState", "progress", "ended", "error", "stalled")
 
     // Forward engine events to JS while this module (and the JS runtime) is alive. When JS is not
@@ -27,13 +26,13 @@ public class PodverseMediaEngineModule: Module {
       PodverseAudioEngine.shared.eventSink = nil
     }
 
-    // --- Playback transport (contract: detail 082) ---
+    // --- Playback transport ---
 
     AsyncFunction("load") { (url: String, initialSeekSeconds: Double?) in
       try PodverseAudioEngine.shared.load(url: url, initialSeekSeconds: initialSeekSeconds)
     }
 
-    // Atomic load + play (step 2.25 / detail 104). Used by the primary autoplay path.
+    // Atomic load + play. Used by the primary autoplay path.
     AsyncFunction("loadAndStart") { (url: String, initialSeekSeconds: Double?) in
       try PodverseAudioEngine.shared.loadAndStart(url: url, initialSeekSeconds: initialSeekSeconds)
     }
@@ -66,7 +65,7 @@ public class PodverseMediaEngineModule: Module {
       PodverseAudioEngine.shared.destroy()
     }
 
-    // --- Video surface (PG-5 steps 2.18–2.20 / details 097–099 + Plan 01 reparent). The ONE
+    // --- Video surface. The ONE
     // `AVPlayerLayer` is reparented between RN-mounted `PodverseVideoSurfaceView`s (registered via
     // the `View` below); never loads/destroys the player or creates a second surface. ---
 
@@ -77,11 +76,11 @@ public class PodverseMediaEngineModule: Module {
       }
     }
 
-    // Retained for the JS bridge/serialization contract + unit tests. Placement is now driven by the
-    // reparent into `PodverseVideoSurfaceView` (above), so rects no longer position the surface.
+    // Retained for the JS bridge/serialization contract + unit tests. Placement is driven by the
+    // reparent into `PodverseVideoSurfaceView` (above), so rects do not position the surface.
     Function("attachVideoSurface") {
       (_: String, _: Double, _: Double, _: Double, _: Double, _: Double) in
-      // No-op: superseded by native-view reparent (Plan 01). See PodverseVideoSurfaceHost.
+      // No-op: placement is handled by native-view reparent. See PodverseVideoSurfaceHost.
     }
 
     Function("animateVideoSurface") { (toTargetId: String, durationMs: Double) in
@@ -89,15 +88,15 @@ public class PodverseMediaEngineModule: Module {
       PodverseVideoSurfaceHost.shared.setActiveTarget(target, animatedDuration: durationMs / 1000.0)
     }
 
-    // JS-desired visibility (2.23); the host only shows when the item also has video frames.
+    // JS-desired visibility; the host only shows when the item also has video frames.
     Function("setVideoSurfaceVisible") { (visible: Bool) in
       PodverseVideoSurfaceHost.shared.setVisible(visible)
     }
 
-    // --- Native-cache write hooks (step 2.35 / detail 114; durable storage 12.2 / detail 381).
-    // JS mirrors state here; `PodverseNativeCache` persists JSON so a CarPlay scene / spike (12.5)
-    // reads it with the JS runtime not running. Schema owned by Track 12.1 (envelope in
-    // `src/data/nativeCache/projection.ts`). Best-effort: a failed write must not surface as a JS
+    // --- Native-cache write hooks.
+    // JS mirrors state here; `PodverseNativeCache` persists JSON so a CarPlay scene reads it with
+    // the JS runtime not running. The envelope is defined in `src/data/nativeCache/projection.ts`.
+    // Best-effort: a failed write must not surface as a JS
     // error that rolls back the phone-side mutation. ---
 
     AsyncFunction("writeQueueSnapshot") { (payloadJson: String) in

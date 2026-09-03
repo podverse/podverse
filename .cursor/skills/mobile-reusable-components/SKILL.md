@@ -29,18 +29,19 @@ Consistency and DRYness across tabs/screens matter as much as on web. Rebuilding
 
 ## Where things live
 
-| Kind                                        | Path                                                                                                  |
-| ------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Low-level controls                          | `components/primitives/` (`Button`, `Card`, `ListRow`, `ScreenHeader`)                                |
-| Screen scaffold                             | `components/screen/MobileScreenContainer`                                                             |
-| Section / list grouping                     | `components/section/` (`SectionCard`, `ListSection`)                                                  |
-| Loading / empty / error / auth-gated chrome | `components/state/` (`ListLoading`, `ListEmpty`, `ListError`, `AuthAwareLoadState`, `RetryableError`) |
-| Playback row actions / mini player          | `components/player/`                                                                                  |
-| Membership / gate feedback                  | `components/feedback/`                                                                                |
-| Form / settings selects                     | `components/form/` (`OptionChipGroup`, `SettingsOptionNavRow`, `OptionListScreen`)                    |
-| Domain controls (download, filters)         | `components/download/`, `components/subscriptions/`                                                   |
-| Shared stateful logic                       | `hooks/`                                                                                              |
-| Pure helpers                                | `lib/`                                                                                                |
+| Kind                                        | Path                                                                                                                                           |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Low-level controls                          | `components/primitives/` (`Button`, `Card`, `CoverImage`, `FillList`, `ListRow`, `ReorderHandle`, `ScreenHeader`, `VerticalCenter`)            |
+| Reorder / drag                              | `components/reorder/` (`ReorderableSections`, `ReorderableList`)                                                                               |
+| Screen scaffold                             | `components/screen/` (`HeaderBar`, `MobileScreenContainer`, `ThemedStackHeader`)                                                               |
+| Section / list grouping                     | `components/section/` (`SectionCard`, `ListSection`)                                                                                           |
+| Loading / empty / error / auth-gated chrome | `components/state/` (`ListLoading`, `ListEmpty`, `ListError`, `CallToActionSection`, `LoadingSection`, `AuthAwareLoadState`, `RetryableError`) |
+| Playback row actions / mini player          | `components/player/`                                                                                                                           |
+| Membership / gate feedback                  | `components/feedback/`                                                                                                                         |
+| Form / settings selects                     | `components/form/` (`OptionChipGroup`, `SettingsOptionNavRow`, `OptionListScreen`)                                                             |
+| Domain controls (download, filters)         | `components/download/`, `components/subscriptions/`                                                                                            |
+| Shared stateful logic                       | `hooks/`                                                                                                                                       |
+| Pure helpers                                | `lib/`                                                                                                                                         |
 
 Do **not** import `@podverse/ui` (web components / SCSS). Tokens come from `@podverse/design-tokens`
 via **mobile-theme-parity**.
@@ -49,13 +50,26 @@ via **mobile-theme-parity**.
 Root row stacks label / description / current value (not trailing). See
 **mobile-settings-option-density**.
 
+**Screen layout:** tab roots and stack screens share `HeaderBar` (44pt row, no divider under the
+title) and the same page-body gutter — `screenBodyInsets` from `theme/screenLayout.ts`
+(`spacing.lg` below the bar and on both sides). Do not add a second inner `Card` inset on top of
+that gutter. Screen lists that show a `VerticalCenter` fill empty use **`FillList`** (scroll locked
+when `data` is empty and `ListEmptyComponent` is set). See **mobile-screen-layout**.
+
 ## Checklist before finishing a screen
 
 - [ ] Loading / empty / error / auth-empty use `components/state/*` (not ad-hoc `ActivityIndicator` +
-      hardcoded English).
-- [ ] List/media rows use `ListRow` / `MediaRowActions` (or a shared row wrapper) when the layout
-      matches existing screens.
-- [ ] Screen outer chrome uses `MobileScreenContainer` / `ScreenHeader` / `SectionCard` when applicable.
+      hardcoded English). Login-gated fill states use **`CallToActionSection`** (via
+      `AuthAwareLoadState` `showAuthRequired` + `authMessageKey`, or as a `FillList` empty) with
+      feature-specific benefit copy and `authentication.login` — not `ListEmpty` +
+      `authentication.login_required`. See **mobile-screen-layout**.
+- [ ] List/media rows use `ListRow` / `HomeFeedRow` / `MediaRowActions` (or a shared row wrapper)
+      when the layout matches existing screens. Do **not** add a media-type pill on those rows.
+- [ ] Cover / artwork images use `CoverImage` (square corners). Do not round podcast or episode art.
+- [ ] Screen outer chrome uses `HeaderBar` / `MobileScreenContainer` / `SectionCard` when applicable.
+      Body under the bar uses `screenBodyInsets` (**mobile-screen-layout**).
+- [ ] Screen lists with a fill empty (`VerticalCenter` / `LoadingSection` / `CallToActionSection`)
+      use `FillList`, not a raw `FlatList` with hand-toggled `scrollEnabled`.
 - [ ] User-facing strings go through i18n (`t()`), including `accessibilityLabel` (**i18n-user-facing-strings**).
 - [ ] New shared UI gets a stable `testID` where E2E will assert it.
 - [ ] If you duplicated JSX that already exists on another screen, stop and extract.
@@ -69,6 +83,8 @@ Root row stacks label / description / current value (not trailing). See
 
 ## Related
 
+- Rule: **reuse-beyond-components** — the same habit for hooks and pure functions, including logic
+  mobile shares with web through `@podverse/helpers`
 - Rule: **mobile-react-native** (boundaries + DRY bullet)
 - Theme: **mobile-theme-parity**
 - Web counterpart (not for mobile imports): **reusable-components**

@@ -1,8 +1,7 @@
 /**
- * Shared contract for Track 13 offline downloads. Pure types only — no React Native / Expo imports
- * so this module stays unit-testable in the node vitest project (see vitest.config.ts). The
- * download job runner (concurrency, retry loop, byte transfer) is wired to Expo FileSystem in a
- * later step (13.4); these types define the seam the runner, repository, and screens share.
+ * Shared contract for offline downloads. Pure types only — no React Native / Expo imports so this
+ * module stays unit-testable in the node vitest project (see vitest.config.ts). The download job
+ * runner, repository, and screens share these types.
  */
 
 /**
@@ -64,7 +63,7 @@ export interface DownloadRecord {
   updatedAt: number;
 }
 
-/** Progress event emitted by the download runner (13.4) and consumed by screens. */
+/** Progress event emitted by the download runner and consumed by screens. */
 export interface DownloadProgressEvent {
   itemIdText: string;
   status: DownloadStatus;

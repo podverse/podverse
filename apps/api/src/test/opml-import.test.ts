@@ -32,6 +32,7 @@ const {
   followChannelMock,
   hasFollowedAddByRSSChannelMock,
   addOrUpdateRSSChannelMock,
+  getFollowedAddByRSSChannelsMock,
   addPendingFollowMock,
   getAccountMock,
   getAccountByIdTextMock,
@@ -45,6 +46,7 @@ const {
   followChannelMock: vi.fn(async () => ({})),
   hasFollowedAddByRSSChannelMock: vi.fn(async () => false),
   addOrUpdateRSSChannelMock: vi.fn(async () => ({})),
+  getFollowedAddByRSSChannelsMock: vi.fn(async (): Promise<Array<{ feed_url: string }>> => []),
   addPendingFollowMock: vi.fn(async () => ({})),
   getAccountMock: vi.fn(async () => ({
     id: TEST_USER_ID,
@@ -90,7 +92,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     AccountFollowingAddByRSSChannelService: class {
       hasFollowedAddByRSSChannel = hasFollowedAddByRSSChannelMock;
       addOrUpdateRSSChannel = addOrUpdateRSSChannelMock;
-      getFollowedAddByRSSChannels = vi.fn(async () => []);
+      getFollowedAddByRSSChannels = getFollowedAddByRSSChannelsMock;
     },
     AccountPendingFollowingChannelService: class {
       addPendingFollow = addPendingFollowMock;
@@ -160,12 +162,16 @@ describe('OPML import endpoints', () => {
     const { opmlImportEnqueueRateLimit } =
       await import('@api/controllers/account/accountOpmlImport.js');
     opmlImportEnqueueRateLimit.resetForUser(TEST_USER_ID);
+    const { addByRssParseEnqueueRateLimit } =
+      await import('../controllers/account/accountAddByRSSParse.js');
+    addByRssParseEnqueueRateLimit.resetForUser(TEST_USER_ID);
 
     feedGetByUrlMock.mockReset();
     hasFollowedChannelMock.mockReset();
     followChannelMock.mockReset();
     hasFollowedAddByRSSChannelMock.mockReset();
     addOrUpdateRSSChannelMock.mockReset();
+    getFollowedAddByRSSChannelsMock.mockReset();
     addPendingFollowMock.mockReset();
     podcastGetByFeedUrlMock.mockReset();
     mqOpmlImportAddMock.mockReset();
@@ -177,6 +183,7 @@ describe('OPML import endpoints', () => {
     followChannelMock.mockResolvedValue({});
     hasFollowedAddByRSSChannelMock.mockResolvedValue(false);
     addOrUpdateRSSChannelMock.mockResolvedValue({});
+    getFollowedAddByRSSChannelsMock.mockResolvedValue([]);
     addPendingFollowMock.mockResolvedValue({});
     podcastGetByFeedUrlMock.mockResolvedValue(null);
   });
@@ -265,6 +272,31 @@ ${outlines}
       throw new Error('Expected add-by-RSS parse limiter to return 429.');
     }
     expectRateLimitedResponseContract(limitedResponse);
+  });
+
+  it('resolves parse-all synchronously without MQ when fixtures are enabled', async () => {
+    const feedUrl = 'https://example.com/fixture-feed.xml';
+    getFollowedAddByRSSChannelsMock.mockResolvedValue([{ feed_url: feedUrl }]);
+
+    const enqueue = await request(app)
+      .post(`${accountBase}/add-by-rss/parse/all`)
+      .set(authHeaders(TEST_USER_ID))
+      .send({});
+
+    expect(enqueue.status).toBe(201);
+    expect(enqueue.body.request_ids).toHaveLength(1);
+    expect(enqueue.body.request_ids[0].feed_url).toBe(feedUrl);
+    expect(mqAddByRSSAddMock).not.toHaveBeenCalled();
+
+    const status = await request(app)
+      .get(`${accountBase}/add-by-rss/parse/status/${enqueue.body.request_ids[0].request_id}`)
+      .set(authHeaders(TEST_USER_ID));
+
+    expect(status.status).toBe(200);
+    expect(status.body.status).toBe('parsed');
+    expect(status.body.payload.items[0].enclosure.url).toBe(
+      'http://localhost:2111/e2e/audio/e2e-addbyrss-fresh-60s-440hz.mp3'
+    );
   });
 
   it('imports subscribed + PI-indexed + add-by-RSS + failed isolation via fixtures sync path', async () => {

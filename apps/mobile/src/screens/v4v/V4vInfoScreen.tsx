@@ -7,9 +7,9 @@ import { MobileScreenContainer } from '../../components/screen/MobileScreenConta
 import { useTheme } from '../../theme/useTheme';
 
 /**
- * Value-for-value placeholder (Track 19.6 placeholder slice). The full-player V4V button routes here
- * instead of toggling an inline notice. No LNURL / wallet / payment logic — the real boost flow stays
- * Track 19 `_TBD_`. Copy resolves through the mobile catalog.
+ * Value-for-value information screen. The full-player V4V button routes here instead of toggling an
+ * inline notice. No LNURL, wallet, or payment logic is handled here. Copy resolves through the
+ * mobile catalog.
  */
 export function V4vInfoScreen() {
   const { t } = useTranslation();

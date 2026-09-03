@@ -1,5 +1,5 @@
 /**
- * PG-2b media-engine shared types (step 2.2 / detail 081).
+ * Media-engine shared types.
  *
  * Transport-only. Playback/queue policy stays in `@podverse/playback-core`; this module never
  * re-decides queue rules. Units mirror the web bridge: position and duration are seconds (number).
@@ -15,7 +15,7 @@ export type PlaybackStateValue =
  */
 export type MediaEngineSource = {
   /**
-   * Remote enclosure URL, or a local file source for offline playback (2.26): a `file://` URL, an
+   * Remote enclosure URL, or a local file source for offline playback: a `file://` URL, an
    * absolute filesystem path (iOS), or a `content://` URI (Android). Missing local files fail fast
    * with a `file-not-found` error rather than hanging.
    */
@@ -39,7 +39,7 @@ export type EndedEvent = {
 };
 
 /**
- * Stable, cross-platform error taxonomy (step 2.27 / detail 106). Native `code` strings differ per
+ * Stable, cross-platform error taxonomy. Native `code` strings differ per
  * platform (iOS custom codes, Android Media3 `errorCodeName`); `kind` normalizes them so RN can pick
  * an i18n message off a small enum instead of raw native text.
  */
@@ -61,7 +61,7 @@ export type NativePlaybackErrorPayload = {
 
 /**
  * Error delivered to RN consumers via `useNativePlaybackBridge`: the raw native fields plus a
- * normalized cross-platform {@link PlaybackErrorKind}. Produced by `normalizePlaybackError` (2.27).
+ * normalized cross-platform {@link PlaybackErrorKind}. Produced by `normalizePlaybackError`.
  */
 export type PlaybackErrorEvent = NativePlaybackErrorPayload & {
   kind: PlaybackErrorKind;
@@ -72,7 +72,7 @@ export type StalledEvent = {
 };
 
 /**
- * Named layout targets the single video surface can occupy (steps 2.18–2.22 / details 097–099).
+ * Named layout targets the single video surface can occupy.
  * There is only ever one surface; these ids select which registered rect it moves to.
  */
 export type VideoSurfaceTargetId = 'mini' | 'full';
@@ -81,7 +81,7 @@ export type VideoSurfaceTargetId = 'mini' | 'full';
  * Layout rect for a video surface target, in **density-independent window coordinates** (the same
  * units RN `measureInWindow` returns: iOS points, Android dp). The native module converts to device
  * pixels where needed. A zero-size rect is treated as hidden for that target. `cornerRadius` is
- * applied on iOS; Android surface clipping is refined with the RN targets in prompt 03.
+ * applied on iOS; Android surface clipping follows the RN targets.
  */
 export type VideoSurfaceRect = {
   x: number;
@@ -92,8 +92,8 @@ export type VideoSurfaceRect = {
 };
 
 /**
- * Event payloads exactly as the native module emits them (aligns with step 2.10 / detail 089). The
- * `error` payload here is the **raw** native shape (no `kind`); the JS layer normalizes it (2.27).
+ * Event payloads exactly as the native module emits them. The
+ * `error` payload here is the **raw** native shape (no `kind`); the JS layer normalizes it.
  * The native module accessor and the transport adapter are typed with this map.
  */
 export type NativeRawPlaybackEvents = {
@@ -107,7 +107,7 @@ export type NativeRawPlaybackEvents = {
 /**
  * Public event map consumed by RN via `useNativePlaybackBridge`. Identical to
  * {@link NativeRawPlaybackEvents} except `error` carries the normalized {@link PlaybackErrorKind}
- * (the hook runs raw native errors through `normalizePlaybackError`, 2.27).
+ * (the hook runs raw native errors through `normalizePlaybackError`).
  */
 export type NativePlaybackEvents = {
   playbackState: (event: PlaybackStateEvent) => void;

@@ -24,7 +24,7 @@ configMapGenerator:
   - name: podverse-ops-migration-scripts
     literals:
       - MIGRATION_BUNDLE_SHA=linear-migrations-v1
-      - API_EXPECTED_MIGRATION_FILENAME=0004_admin_notification_campaign.sql
+      - API_EXPECTED_MIGRATION_FILENAME=0006_notifications_read_state.sql
       - MANAGEMENT_API_EXPECTED_MIGRATION_FILENAME=0002_notifications_permissions.sql
     files:
       - source/database/runner/run-linear-migrations.sh

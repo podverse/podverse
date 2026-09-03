@@ -249,6 +249,22 @@ export class ChannelService {
     return this.getChannelWithRelations({ id_text }, relations);
   }
 
+  /**
+   * Resolve many channels by `id_text` in one query. Returns only the ones that exist, so callers
+   * can report the missing ones rather than failing the whole batch.
+   */
+  async getManyByIdTexts(id_texts: string[]): Promise<Channel[]> {
+    const usable = id_texts.filter((id_text) => id_text !== '');
+    if (usable.length === 0) {
+      return [];
+    }
+
+    return this.repositoryRead.find({
+      select: { id: true, id_text: true },
+      where: { id_text: In(usable) },
+    });
+  }
+
   async getByIdOrIdText(
     idOrIdText: string,
     relations: FindOptionsRelations<Channel> = {}

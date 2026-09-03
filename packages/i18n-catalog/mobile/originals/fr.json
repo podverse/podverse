@@ -1,23 +1,29 @@
 {
   "nav": {
     "tab": {
+      "browse": "Parcourir",
       "home": "Accueil",
       "more": "Plus",
+      "notifications": "Notifications",
       "rss": "RSS",
       "downloads": "Téléchargements"
     },
     "stack": {
       "home": "Accueil",
+      "opml": "OPML",
       "search_result": "Résultat de recherche",
-      "rss_feeds": "Flux RSS",
-      "opml": "OPML"
+      "rss_feeds": "Flux RSS"
     },
     "menu": {
-      "view_rss_feeds": "Voir les flux RSS",
-      "opml": "OPML"
+      "opml": "OPML",
+      "view_rss_feeds": "Voir les flux RSS"
     }
   },
   "features": {
+    "opml": {
+      "rate_limited_time_one": "1 minute",
+      "rate_limited_time_other": "{minutes} minutes"
+    },
     "download": {
       "queued": "En file d'attente",
       "remove": "Supprimer",
@@ -34,14 +40,60 @@
       "add_podcast": "Ajouter le podcast",
       "adding": "Ajout du podcast…",
       "not_available_yet": "Ce podcast n’est pas encore dans notre annuaire. Ajoutez-le pour le rendre disponible.",
-      "add_needs_login": "Connectez-vous pour ajouter des podcasts depuis la recherche.",
-      "add_needs_membership": "Votre compte n’a pas accès pour ajouter des podcasts depuis la recherche.",
       "add_failed": "Impossible d’ajouter ce podcast. Réessayez plus tard.",
       "add_timed_out": "Traitement toujours en cours après plusieurs minutes. Recherchez à nouveau sous peu pour ouvrir ce podcast — l’ajout ne vous abonne pas automatiquement."
+    }
+  },
+  "notifications": {
+    "section": {
+      "earlier": "Plus anciennes",
+      "unread": "Non lues"
+    }
+  },
+  "settings": {
+    "notifications": {
+      "login_required_title": "Connexion requise",
+      "login_required_message": "Connectez-vous pour modifier les préférences de notification.",
+      "open_system_settings": "Ouvrir les paramètres du système",
+      "permission_required": "L'autorisation de notification est requise pour activer ce paramètre."
     },
-    "opml": {
-      "rate_limited_time_one": "1 minute",
-      "rate_limited_time_other": "{minutes} minutes"
+    "tab_bar": {
+      "title": "Barre d'onglets",
+      "description": "Choisissez les écrans de la barre d'onglets et leur ordre. Ceux que vous masquez restent dans Plus.",
+      "visible_heading": "Dans la barre d'onglets",
+      "more_heading": "Dans Plus",
+      "move_up": "Monter",
+      "move_down": "Descendre",
+      "move_to_more": "Déplacer vers Plus",
+      "add_to_bar": "Ajouter à la barre",
+      "reorder_hint": "Déplace cet écran dans la barre d'onglets ou vers Plus"
+    }
+  },
+  "sync": {
+    "job": {
+      "account": "Mise à jour de votre compte",
+      "subscriptions": "Mise à jour de vos podcasts",
+      "playlists": "Mise à jour de vos playlists",
+      "queue": "Mise à jour de votre file d'attente",
+      "library": "Mise à jour de votre bibliothèque hors ligne",
+      "notifications": "Configuration des notifications",
+      "episodes": "Mise à jour de vos épisodes",
+      "rss_feeds": "Mise à jour de vos flux RSS",
+      "seen_state": "Mise à jour des nouveautés",
+      "live_status": "Vérification des directs"
+    },
+    "progress": "{completed} sur {total}",
+    "log": {
+      "title": "Journal de synchronisation",
+      "intro": "Problèmes de synchronisation en arrière-plan enregistrés sur cet appareil. Partagez-le avec l'assistance si vos podcasts, playlists ou file d'attente cessent de se mettre à jour.",
+      "empty": "Aucun problème de synchronisation enregistré",
+      "export": "Partager",
+      "clear": "Effacer",
+      "clear_confirm_title": "Effacer le journal de synchronisation ?",
+      "clear_confirm_body": "Cela supprime toutes les entrées enregistrées sur cet appareil.",
+      "outcome_failure": "Échec",
+      "outcome_skipped": "Ignoré — hors ligne",
+      "outcome_success": "Réussi"
     }
   }
 }

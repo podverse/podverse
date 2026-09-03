@@ -17,26 +17,23 @@ import android.view.TextureView
 import java.io.File
 import java.util.concurrent.CountDownLatch
 
-// PG-2b steps 2.7-2.9 (details 086-088).
-//
-// Car foundation (00-CAR-FOUNDATION.md): this is the single, process-wide audio engine. It owns the
-// one Media3 ExoPlayer for phone, lock screen, and future Android Auto now-playing. The
-// MediaLibraryService (PodverseMediaLibraryService) wraps THIS player in the one MediaSession so
-// Android Auto (12.11-12.13) binds to the same instance without a second player/session. A future
-// Auto browse tree fills onGetChildren from the native cache (Track 12) - JS never owns the tree.
+// This is the single, process-wide audio engine. It owns the one Media3 ExoPlayer for phone, lock
+// screen, and Android Auto now-playing. The MediaLibraryService (PodverseMediaLibraryService) wraps
+// THIS player in the one MediaSession so Android Auto binds to the same instance without a second
+// player/session. The Auto browse tree reads from the native cache; JS never owns the tree.
 // Do NOT create parallel players and do NOT use react-native-track-player.
 object PodverseAudioEngine {
   /**
-   * Sink used to forward events to JS. Set by the Expo module while it is alive; `null` when the JS
-   * runtime is not running (e.g. future Auto-only launch). The engine still plays and updates the
+   * Sink that forwards events to JS. Set by the Expo module while it is alive; `null` when the JS
+   * runtime is not running (e.g. an Auto-only launch). The engine still plays and updates the
    * media notification without JS.
    */
   var eventSink: ((String, Map<String, Any?>) -> Unit)? = null
 
   /**
    * Notified on the main thread whenever the current item's video capability changes (video frames
-   * available vs audio-only). Set by [PodverseVideoSurfaceHost] (2.17) so it can keep the surface
-   * hidden for audio-only items without the engine depending on the host. Visibility policy: 2.23.
+   * available vs audio-only). Set by [PodverseVideoSurfaceHost] so it can keep the surface hidden for
+   * audio-only items without the engine depending on the host.
    */
   var onVideoCapabilityChanged: ((Boolean) -> Unit)? = null
 
@@ -82,7 +79,7 @@ object PodverseAudioEngine {
     }
   }
 
-  // MARK: - Shared video surface (steps 2.15 + 2.17 / details 094, 096)
+  // MARK: - Shared video surface
 
   /**
    * Bind the ONE video texture view (owned by [PodverseVideoSurfaceHost]) to the single shared
@@ -110,9 +107,9 @@ object PodverseAudioEngine {
 
   /**
    * Prepare [url] on the single shared player. Accepts remote http(s), `file://`, and `content://`
-   * sources (offline playback, 2.26) — Media3 [MediaItem.fromUri] handles all three; there is never
+   * sources (offline playback) — Media3 [MediaItem.fromUri] handles all three; there is never
    * a second player for local files. Missing `file://` targets fail fast with a `file_not_found`
-   * error (2.27) instead of surfacing a late/opaque decode failure.
+   * error instead of surfacing a late/opaque decode failure.
    */
   fun load(context: Context, url: String, initialSeekSeconds: Double?) {
     onMain {
@@ -132,7 +129,7 @@ object PodverseAudioEngine {
   }
 
   /**
-   * Atomic load + play (step 2.25 / detail 104). Both hops run on the main thread in order on the
+   * Atomic load + play. Both hops run on the main thread in order on the
    * single player, so the item is prepared before playback starts. Used by the primary autoplay path.
    */
   fun loadAndStart(context: Context, url: String, initialSeekSeconds: Double?) {
@@ -184,7 +181,7 @@ object PodverseAudioEngine {
 
   /**
    * Tear down the current item and stop the foreground service. The player instance is released here
-   * for the spike; Track 12 will keep the service/session shape for app-closed car binding.
+   * while keeping the service/session available for app-closed car binding.
    */
   fun release() {
     onMain {
@@ -243,7 +240,7 @@ object PodverseAudioEngine {
     }
 
     override fun onVideoSizeChanged(videoSize: VideoSize) {
-      // Report capability so the surface host hides itself for audio-only items (policy: 2.23).
+      // Report capability so the surface host hides itself for audio-only items.
       val hasVideo = videoSize != VideoSize.UNKNOWN && videoSize.width > 0 && videoSize.height > 0
       onMain { onVideoCapabilityChanged?.invoke(hasVideo) }
     }
@@ -300,7 +297,7 @@ object PodverseAudioEngine {
 
   /**
    * True when [url] points to a `file://` target that does not exist. Only `file://` is checked;
-   * `content://` URIs are resolved by the platform and remote URLs are not local files (2.26/2.27).
+   * `content://` URIs are resolved by the platform and remote URLs are not local files.
    */
   private fun isMissingLocalFile(url: String): Boolean {
     if (!url.startsWith("file://")) return false

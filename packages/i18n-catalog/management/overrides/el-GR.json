@@ -100,6 +100,7 @@
     "dashboard": "",
     "users": "",
     "content": "",
+    "notifications": "",
     "settings": "",
     "userMenu": "",
     "userRole": "",
@@ -125,6 +126,10 @@
       "description": ""
     },
     "web": {
+      "title": "",
+      "description": ""
+    },
+    "notifications": {
       "title": "",
       "description": ""
     },
@@ -482,6 +487,7 @@
       "billingPrices": "",
       "bucket": "",
       "embedDemo": "",
+      "notifications": "",
       "roleTemplateLabel": "",
       "roleTemplateHint": "",
       "roleCustom": "",
@@ -512,6 +518,37 @@
       "saveTemplate": "",
       "createFailed": "",
       "nameRequired": ""
+    }
+  },
+  "notifications": {
+    "title": "",
+    "newTitle": "",
+    "detailTitle": "",
+    "create": "",
+    "backToList": "",
+    "cancelCampaign": "",
+    "failedToLoad": "",
+    "failedToCreate": "",
+    "failedToCancel": "",
+    "empty": "",
+    "table": {
+      "id": "",
+      "title": "",
+      "category": "",
+      "status": "",
+      "scheduledAt": "",
+      "sentAt": ""
+    },
+    "fields": {
+      "title": "",
+      "body": "",
+      "linkPath": "",
+      "category": "",
+      "sendPush": "",
+      "sendAt": ""
+    },
+    "validation": {
+      "titleRequired": ""
     }
   },
   "users": {

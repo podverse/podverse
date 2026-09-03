@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 
-import { useAuth } from '../../auth/AuthProvider';
 import { Card, ListRow } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListLoading } from '../../components/state/ListLoading';
@@ -31,11 +30,9 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
   const { t } = useTranslation();
   const { columns } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
-  const { status } = useAuth();
   const [subscriptions, setSubscriptions] = useState<SubscribedChannel[]>([]);
-  const [subscriptionFilter, setSubscriptionFilter] = useState<SubscriptionListFilter>(
-    DEFAULT_SUBSCRIPTION_FILTER
-  );
+  /** `null` until the remembered chip is in hand, which is what the first read waits on. */
+  const [subscriptionFilter, setSubscriptionFilter] = useState<SubscriptionListFilter | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorKey, setErrorKey] = useState<string | null>(null);
 
@@ -75,10 +72,9 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
 
     void (async () => {
       const storedFilter = await readLibrarySubscriptionFilter();
-      if (!isMounted || storedFilter === null) {
-        return;
+      if (isMounted) {
+        setSubscriptionFilter(storedFilter);
       }
-      setSubscriptionFilter(storedFilter);
     })();
 
     return () => {
@@ -86,18 +82,13 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
     };
   }, []);
 
-  const loadSubscriptions = useCallback(async () => {
-    if (status !== 'authenticated') {
-      setSubscriptions([]);
-      setErrorKey(null);
-      setIsLoading(false);
-      return;
-    }
-
+  // No auth check: subscriptions are device-local, so this list is the same read signed in or
+  // out. Gating it on `status` would show "log in" to a signed-out user who has subscriptions.
+  const loadSubscriptions = useCallback(async (filter: SubscriptionListFilter) => {
     setIsLoading(true);
     setErrorKey(null);
     try {
-      const rows = await subscriptionsRepository.list({ filter: subscriptionFilter });
+      const rows = await subscriptionsRepository.list({ filter });
       setSubscriptions(rows);
     } catch {
       setErrorKey('errors.generic');
@@ -105,11 +96,16 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
     } finally {
       setIsLoading(false);
     }
-  }, [status, subscriptionFilter]);
+  }, []);
 
+  // Waits on the remembered chip rather than reading with the default and correcting itself, which
+  // would show the wrong list first and read it twice.
   useEffect(() => {
-    void loadSubscriptions();
-  }, [loadSubscriptions]);
+    if (subscriptionFilter === null) {
+      return;
+    }
+    void loadSubscriptions(subscriptionFilter);
+  }, [loadSubscriptions, subscriptionFilter]);
 
   const handleSubscriptionFilterChange = useCallback((filter: SubscriptionListFilter) => {
     setSubscriptionFilter(filter);
@@ -140,17 +136,9 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
         <RetryableError
           errorKey={errorKey}
           onRetry={() => {
-            void loadSubscriptions();
+            void loadSubscriptions(subscriptionFilter ?? DEFAULT_SUBSCRIPTION_FILTER);
           }}
           testID="library-subscriptions-error"
-        />
-      );
-    }
-    if (status !== 'authenticated') {
-      return (
-        <ListEmpty
-          messageKey="authentication.login_required"
-          testID="library-subscriptions-auth-required"
         />
       );
     }
@@ -158,18 +146,16 @@ export function LibrarySubscriptionsScreen({ navigation }: LibrarySubscriptionsS
       return <ListEmpty messageKey="misc.info" testID="library-subscriptions-empty" />;
     }
     return null;
-  }, [errorKey, isLoading, loadSubscriptions, status, subscriptions.length]);
+  }, [errorKey, isLoading, loadSubscriptions, subscriptionFilter, subscriptions.length]);
 
   const renderHeader = (
     <>
       <Text style={styles.heading}>{t('subscriptions.subscriptions')}</Text>
-      {status === 'authenticated' ? (
-        <SubscriptionFilterControl
-          onChange={handleSubscriptionFilterChange}
-          selectedFilter={subscriptionFilter}
-          testID="library-subscriptions-filter"
-        />
-      ) : null}
+      <SubscriptionFilterControl
+        onChange={handleSubscriptionFilterChange}
+        selectedFilter={subscriptionFilter ?? DEFAULT_SUBSCRIPTION_FILTER}
+        testID="library-subscriptions-filter"
+      />
     </>
   );
 

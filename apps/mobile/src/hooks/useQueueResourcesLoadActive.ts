@@ -25,9 +25,9 @@ const emptyLoadActiveResult: QueueResourcesLoadActiveResult = {
 };
 
 /**
- * RN port of web `useQueueResourcesLoadActive` (audio-first, queue-only for PG-7a). Composes the
- * queue store setters + `queueRepository` — screens must never call `req*` directly. Auto-queue
- * fallback (web's `autoQueue*`) lands with Track 10 auto-queue steps (317–321).
+ * RN queue resource loader (audio-first, queue-only). Composes the queue store setters +
+ * `queueRepository` — screens must never call `req*` directly. Auto-queue fallback uses the same
+ * queue policy as the web implementation.
  *
  * The returned callback is stable (refs hold auth/session inputs) so orchestrator/player consumers
  * can depend on it without re-subscribing. Concurrent calls (e.g. rapid medium switches) only let

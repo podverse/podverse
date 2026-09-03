@@ -2,18 +2,13 @@ import AVFoundation
 import Foundation
 import UIKit
 
-// PG-5 steps 2.14 + 2.16 (details 093, 095) + Plan 01 gap remediation (detail 099 addendum).
-//
 // The ONE native video surface for the process. Mini player and full player are two React views
 // over a single engine and a single `AVPlayerLayer`; expanding **reparents** THIS layer's host view
-// into the active RN target (2.20) instead of creating a second `AVPlayer` or mounting a second RN
-// `<Video>` (Track 11.18 anti-pattern).
+// into the active RN target instead of creating a second `AVPlayer` or mounting a second RN `<Video>`.
 //
-// Gap remediation: the surface is reparented into the RN-mounted `PodverseVideoSurfaceView` for the
-// active target (registered from JS), NOT into a process-global window/content overlay. The overlay
-// approach was drawn *behind* the React Navigation native-stack modal full player, so the full
-// player showed only the artwork fallback. Reparenting into the RN view keeps correct z-order and
-// coordinate space in both the base tab view and the modal.
+// The surface is reparented into the RN-mounted `PodverseVideoSurfaceView` for the active target
+// (registered from JS), NOT into a process-global window/content overlay. This keeps correct z-order
+// and coordinate space in both the base tab view and the modal.
 
 /// Named layout targets the single video surface can occupy. RN mounts a `PodverseVideoSurfaceView`
 /// per target and passes the matching `targetId`.
@@ -47,19 +42,19 @@ public final class PodverseVideoSurfaceHost: NSObject {
   }
 
   /// The transparent overlay view that paints video frames. Reparented into the active target's RN
-  /// view; hidden until a video item is active (2.23).
+  /// view; hidden until a video item is active.
   let containerView = HostContainerView()
 
   /// RN-mounted target views by id. Populated by `PodverseVideoSurfaceView` on attach; the single
   /// surface is reparented into the active target's view.
   private var targetViews: [PodverseVideoTargetId: WeakViewBox] = [:]
 
-  /// The target the surface currently occupies (`nil` when unplaced / hidden).
+  /// The target the surface occupies (`nil` when unplaced / hidden).
   private var activeTarget: PodverseVideoTargetId?
 
   /// Tracks the last capability reported by the engine. The surface is only shown when the current
   /// item actually has video frames — so a video-medium item playing its audio enclosure never
-  /// leaves a black rectangle (2.23).
+  /// leaves a black rectangle.
   private var currentItemHasVideo = false
 
   /// JS-desired visibility for the active target (RN drives this from the playback target kind via
@@ -78,7 +73,7 @@ public final class PodverseVideoSurfaceHost: NSObject {
     // attached to the engine's player.
     containerView.playerLayer.player = PodverseAudioEngine.shared.sharedPlayer
 
-    // Track video capability so audio-only items keep the surface hidden (policy: 2.23).
+    // Record video capability so audio-only items keep the surface hidden.
     PodverseAudioEngine.shared.onVideoCapabilityChanged = { [weak self] hasVideo in
       self?.onMain {
         guard let self = self else { return }
@@ -106,8 +101,8 @@ public final class PodverseVideoSurfaceHost: NSObject {
     }
   }
 
-  /// Unregister an RN view (on RN unmount). Only clears when the going-away view is the currently
-  /// registered one (avoids clobbering a re-registered view during a fast remount). If it was the
+  /// Unregister an RN view (on RN unmount). Only clears when the going-away view is the registered
+  /// one (avoids clobbering a re-registered view during a fast remount). If it was the
   /// active target's view, detach the surface (kept alive; just no host).
   func unregisterTargetView(_ target: PodverseVideoTargetId, view: UIView) {
     onMain { [weak self] in
@@ -121,8 +116,8 @@ public final class PodverseVideoSurfaceHost: NSObject {
     }
   }
 
-  /// Move the single surface to a registered target — bridge `animateVideoSurface` (2.19/2.20). Only
-  /// reparenting/geometry changes; the `AVPlayer` and playhead are untouched.
+  /// Move the single surface to a registered target. Only reparenting/geometry changes; the `AVPlayer`
+  /// and playhead are untouched.
   func setActiveTarget(_ target: PodverseVideoTargetId, animatedDuration: TimeInterval = 0) {
     onMain { [weak self] in
       guard let self = self else { return }
@@ -143,7 +138,7 @@ public final class PodverseVideoSurfaceHost: NSObject {
   }
 
   /// True when the current item has video frames to present. Visibility policy (auto show/hide for
-  /// audio-only) combines this with `desiredVisible` (2.23).
+  /// audio-only) combines this with `desiredVisible`.
   func hasVideo() -> Bool { currentItemHasVideo }
 
   /// Called from the active target view's `layoutSubviews` so the surface tracks size changes

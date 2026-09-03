@@ -1,6 +1,7 @@
 {
   "nav": {
     "tab": {
+      "browse": "Browse",
       "home": "Home",
       "more": "More",
       "notifications": "Notifications",
@@ -39,8 +40,6 @@
       "add_podcast": "Add podcast",
       "adding": "Adding podcast…",
       "not_available_yet": "This podcast is not in our directory yet. Add it to make it available.",
-      "add_needs_login": "Please log in to add podcasts from search.",
-      "add_needs_membership": "Your account does not currently have access to add podcasts from search.",
       "add_failed": "Could not add this podcast. Please try again later.",
       "add_timed_out": "Still processing after several minutes. Search again shortly to open this podcast — adding does not subscribe you automatically."
     }
@@ -48,7 +47,7 @@
   "notifications": {
     "section": {
       "earlier": "Earlier",
-      "new": "New"
+      "unread": "Unread"
     }
   },
   "settings": {
@@ -57,6 +56,44 @@
       "login_required_message": "Please log in to change notification preferences.",
       "open_system_settings": "Open system settings",
       "permission_required": "Notification permission is required to enable this setting."
+    },
+    "tab_bar": {
+      "title": "Tab bar",
+      "description": "Choose which screens appear on the tab bar and in which order. Screens you hide stay in More.",
+      "visible_heading": "On the tab bar",
+      "more_heading": "In More",
+      "move_up": "Up",
+      "move_down": "Down",
+      "move_to_more": "Move to More",
+      "add_to_bar": "Add to tab bar",
+      "reorder_hint": "Moves this screen on the tab bar or into More"
+    }
+  },
+  "sync": {
+    "job": {
+      "account": "Updating your account",
+      "subscriptions": "Updating your podcasts",
+      "playlists": "Updating your playlists",
+      "queue": "Updating your queue",
+      "library": "Updating your offline library",
+      "notifications": "Setting up notifications",
+      "episodes": "Updating your episodes",
+      "rss_feeds": "Updating your RSS feeds",
+      "seen_state": "Updating what's new",
+      "live_status": "Checking what's live"
+    },
+    "progress": "{completed} of {total}",
+    "log": {
+      "title": "Sync log",
+      "intro": "Background sync problems recorded on this device. Share this with support if your podcasts, playlists, or queue stop updating.",
+      "empty": "No sync problems recorded",
+      "export": "Share",
+      "clear": "Clear",
+      "clear_confirm_title": "Clear sync log?",
+      "clear_confirm_body": "This removes every recorded entry from this device.",
+      "outcome_failure": "Failed",
+      "outcome_skipped": "Skipped — offline",
+      "outcome_success": "Succeeded"
     }
   }
 }

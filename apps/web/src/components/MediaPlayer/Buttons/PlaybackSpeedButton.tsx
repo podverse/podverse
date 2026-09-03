@@ -1,3 +1,5 @@
+'use client';
+
 import { useTranslations } from 'next-intl';
 
 import { getNextPlaybackSpeed, getPlaybackTranslationKey } from '@podverse/helpers';
@@ -9,14 +11,22 @@ import styles from '../../../styles/components/MediaPlayer/Buttons/PlaybackSpeed
 export const PlaybackSpeedButton = () => {
   const tMediaPlayer = useTranslations('media_player');
   const { mpPlaybackSpeed, setMPPlaybackSpeed } = useMediaPlayer();
+  const speedLabel = tMediaPlayer(
+    `playback_speed.speeds.${getPlaybackTranslationKey(mpPlaybackSpeed)}`
+  );
 
   const onClick = () => {
     setMPPlaybackSpeed(getNextPlaybackSpeed(mpPlaybackSpeed));
   };
 
   return (
-    <button className={styles.playbackSpeedButton} onClick={onClick} type="button">
-      {tMediaPlayer(`playback_speed.speeds.${getPlaybackTranslationKey(mpPlaybackSpeed)}`)}
+    <button
+      className={styles.playbackSpeedButton}
+      aria-label={tMediaPlayer('playback_speed.playback_speed_with_value', { speed: speedLabel })}
+      onClick={onClick}
+      type="button"
+    >
+      {speedLabel}
     </button>
   );
 };

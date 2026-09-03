@@ -40,12 +40,8 @@ describe('extractNotificationTargetPath', () => {
     ).toBe('/notifications');
   });
 
-  it('maps membership-expiry category to renew path when no explicit path is provided', () => {
-    expect(
-      extractNotificationTargetPath({
-        category: 'membership-expiry',
-      })
-    ).toBe('/membership/renew');
+  it('returns null when a category carries no explicit path', () => {
+    expect(extractNotificationTargetPath({ category: 'general' })).toBeNull();
   });
 
   it('returns null for unknown type', () => {

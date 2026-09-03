@@ -260,6 +260,11 @@ npm run mobile:android -- --device Pixel_6_Pro_API_33
 | `hw.gpu.mode` / launch `-gpu` | `host`                                        |
 | `vm.heapSize`                 | `512` MB                                      |
 | Extra launch flags            | `-no-boot-anim -netdelay none -netspeed full` |
+| Animation scales              | `0` (window, transition, animator)            |
+
+Animation scales are applied over adb on every boot, because Maestro waits for each transition to
+settle before it can read the view hierarchy — animations are a per-command tax on every tap and
+assertion, not just a cosmetic setting.
 
 Pixel 6 Pro LCD size is left unchanged for screenshot parity. After `tune-android`, **quit and
 re-launch** the emulator so RAM/CPU/GPU take effect. iOS Simulator will still feel snappier — that

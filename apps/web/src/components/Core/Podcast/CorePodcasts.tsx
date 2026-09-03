@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import React, { useRef } from 'react';
 
-import type { CategoryMappingKeys, DTOChannel } from '@podverse/helpers';
+import type { CategoryMappingKeys, ChannelUnseenBadge, DTOChannel } from '@podverse/helpers';
 import type { QueryParamsSubscribedType } from '@podverse/helpers-requests';
 import { CallToActionMessage } from '@podverse/ui';
 
@@ -26,6 +26,8 @@ type Props = {
   type: QueryParamsSubscribedType;
   category: CategoryMappingKeys | null;
   viewSelected: ViewSelectedOption;
+  /** Keyed by channel id_text. Empty unless this is the subscribed list for a signed-in account. */
+  unseenBadges?: ReadonlyMap<string, ChannelUnseenBadge>;
 };
 
 export const CorePodcasts: React.FC<Props> = ({
@@ -34,13 +36,14 @@ export const CorePodcasts: React.FC<Props> = ({
   channels,
   totalPages,
   showSubscribeMessage,
+  unseenBadges,
   viewSelected,
 }) => {
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
   const { setModalAuthLogin } = useModals();
 
-  // Track if we should skip scroll on the first effect run (back navigation case)
+  // Skip scroll on the first effect run when returning via back navigation.
   // Check synchronously during render to capture the flag before it's cleared
   const skipScrollOnceRef = useRef(checkBackNavFlag());
 
@@ -56,7 +59,7 @@ export const CorePodcasts: React.FC<Props> = ({
   const showCallToAction = showSubscribeMessage;
   const showPagination = !showSubscribeMessage;
 
-  const listNodes = CorePodcastNodes({ channels, viewSelected });
+  const listNodes = CorePodcastNodes({ channels, unseenBadges, viewSelected });
 
   return (
     <>

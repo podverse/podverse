@@ -84,7 +84,7 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
 
   return (
     <MobileScreenContainer
-      heading={t('features.playlist.playlists')}
+      heading={status === 'authenticated' ? t('features.playlist.playlists') : undefined}
       testID="library-playlists-screen"
     >
       {status === 'authenticated' ? (
@@ -99,6 +99,7 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
         </View>
       ) : null}
       <AuthAwareLoadState
+        authMessageKey="features.playlist.login_prompt"
         emptyTestID={
           status !== 'authenticated' ? 'library-playlists-auth-required' : 'library-playlists-empty'
         }

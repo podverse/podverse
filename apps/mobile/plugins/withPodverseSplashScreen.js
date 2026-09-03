@@ -1,18 +1,21 @@
 /**
- * Repair iOS SplashScreen.storyboard after `expo-splash-screen`.
+ * Native splash assets after `expo-splash-screen`.
  *
- * Expo's `applyImageToSplashScreenXML` calls `ensureUniquePush(mainView.subviews[0].imageView, …)`.
- * When an existing storyboard has empty `<subviews/>` (no `imageView` key), that array is
- * `undefined` and the push no-ops — leaving constraints + assets but no logo ImageView. Cold
- * start then shows a blank black (or white) flash with no wordmark.
+ * iOS: Expo's `applyImageToSplashScreenXML` no-ops when the storyboard has empty `<subviews/>`,
+ * leaving a blank launch screen. This rewrite installs a known-good storyboard that shows the
+ * wordmark (`SplashScreenLogo`) on black.
  *
- * This plugin runs after `expo-splash-screen` and rewrites a known-good storyboard that references
- * `SplashScreenLogo` (written by Expo into Images.xcassets) on a black background.
+ * Android 12+: the system splash is a circular icon, not a full-screen image. Expo `run:android`
+ * does not re-run prebuild, so plugin `android.image` never reaches `splashscreen_logo` until
+ * prebuild. This copies the density-correct icon from `assets/splash/android/` so the launch
+ * icon is the brand mark, not a circular crop of the wordmark.
  */
 const fs = require('fs');
 const path = require('path');
 
 const { createRunOncePlugin, withDangerousMod } = require('expo/config-plugins');
+
+const ANDROID_SPLASH_DENSITIES = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi'];
 
 const STORYBOARD = `<?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="32700.99.1234" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="EXPO-VIEWCONTROLLER-1">
@@ -59,7 +62,7 @@ const STORYBOARD = `<?xml version="1.0" encoding="UTF-8"?>
 </document>
 `;
 
-function withPodverseSplashScreen(config) {
+function withIosSplashStoryboard(config) {
   return withDangerousMod(config, [
     'ios',
     async (modConfig) => {
@@ -78,4 +81,32 @@ function withPodverseSplashScreen(config) {
   ]);
 }
 
-module.exports = createRunOncePlugin(withPodverseSplashScreen, 'withPodverseSplashScreen', '1.0.0');
+function withAndroidSplashIcon(config) {
+  return withDangerousMod(config, [
+    'android',
+    async (modConfig) => {
+      const projectRoot = modConfig.modRequest.projectRoot;
+      const resRoot = path.join(modConfig.modRequest.platformProjectRoot, 'app/src/main/res');
+      const sourceRoot = path.join(projectRoot, 'assets/splash/android');
+
+      for (const density of ANDROID_SPLASH_DENSITIES) {
+        const sourcePath = path.join(sourceRoot, `drawable-${density}`, 'splashscreen_logo.png');
+        const destDir = path.join(resRoot, `drawable-${density}`);
+        const destPath = path.join(destDir, 'splashscreen_logo.png');
+        if (!fs.existsSync(sourcePath)) {
+          throw new Error(`Missing Android splash asset: ${sourcePath}`);
+        }
+        fs.mkdirSync(destDir, { recursive: true });
+        fs.copyFileSync(sourcePath, destPath);
+      }
+
+      return modConfig;
+    },
+  ]);
+}
+
+function withPodverseSplashScreen(config) {
+  return withAndroidSplashIcon(withIosSplashStoryboard(config));
+}
+
+module.exports = createRunOncePlugin(withPodverseSplashScreen, 'withPodverseSplashScreen', '1.1.0');

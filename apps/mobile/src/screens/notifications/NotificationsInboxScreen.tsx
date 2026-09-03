@@ -2,20 +2,25 @@ import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOAccountNotification } from '@podverse/helpers';
-import { NotificationCategoryEnum } from '@podverse/helpers';
+import { getRelativeTimeParts, NotificationCategoryEnum } from '@podverse/helpers';
 
+import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
 import { Card } from '../../components/primitives/Card';
+import { FillList } from '../../components/primitives/FillList';
+import { VerticalCenter } from '../../components/primitives/VerticalCenter';
+import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { ListEmpty } from '../../components/state/ListEmpty';
-import { ListLoading } from '../../components/state/ListLoading';
+import { LoadingSection } from '../../components/state/LoadingSection';
 import { RetryableError } from '../../components/state/RetryableError';
 import { getMobileConfig } from '../../config';
 import { notificationsRepository } from '../../data/repositories';
-import { emitNotificationsSeenEvent } from '../../hooks/useNotificationsUnseenCount';
+import { emitNotificationsReadEvent } from '../../hooks/useNotificationsUnreadCount';
 import type { NotificationsStackParamList } from '../../navigation';
+import { screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 
 const FIRST_PAGE = 1;
@@ -23,7 +28,6 @@ const CATEGORY_LABEL_KEYS: Record<NotificationCategoryEnum, string> = {
   [NotificationCategoryEnum.General]: 'settings.notifications.category_general',
   [NotificationCategoryEnum.Livestream]: 'settings.notifications.category_livestream',
   [NotificationCategoryEnum.Maintenance]: 'settings.notifications.category_maintenance',
-  [NotificationCategoryEnum.MembershipExpiry]: 'settings.notifications.category_membership_expiry',
   [NotificationCategoryEnum.NewContent]: 'settings.notifications.category_new_content',
   [NotificationCategoryEnum.ProductUpdate]: 'settings.notifications.category_product_update',
   [NotificationCategoryEnum.TermsOfService]: 'settings.notifications.category_terms_of_service',
@@ -35,14 +39,15 @@ type NotificationsInboxScreenProps = NativeStackScreenProps<
 >;
 
 export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const { onRequestLogin } = useAuthPrompt();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { styles: themeStyles, tokens } = useTheme();
   const [notifications, setNotifications] = useState<DTOAccountNotification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
-  const [newCount, setNewCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [page, setPage] = useState(FIRST_PAGE);
   const [totalPages, setTotalPages] = useState(FIRST_PAGE);
 
@@ -74,13 +79,8 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
           flex: 1,
         },
         content: {
-          padding: tokens.spacing.lg,
-        },
-        heading: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 28,
-          fontWeight: '700',
-          marginBottom: tokens.spacing.md,
+          ...screenBodyInsets(tokens.spacing),
+          paddingBottom: tokens.spacing.lg,
         },
         listFooter: {
           marginTop: tokens.spacing.lg,
@@ -97,6 +97,11 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
           color: themeStyles.textPrimary.color,
           fontSize: 14,
           fontWeight: '600',
+        },
+        recentActivityNote: {
+          color: themeStyles.textSecondary.color,
+          fontSize: 13,
+          marginBottom: tokens.spacing.md,
         },
         rowCard: {
           marginBottom: tokens.spacing.sm,
@@ -126,7 +131,7 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
     async (nextPage: number, mode: 'replace' | 'append') => {
       if (status !== 'authenticated') {
         setNotifications([]);
-        setNewCount(0);
+        setUnreadCount(0);
         setPage(FIRST_PAGE);
         setTotalPages(FIRST_PAGE);
         setErrorKey(null);
@@ -147,7 +152,7 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
         setNotifications((previous) =>
           mode === 'replace' ? nextData.items : [...previous, ...nextData.items]
         );
-        setNewCount(nextData.newCount);
+        setUnreadCount(nextData.unreadCount);
         setPage(nextData.page);
         setTotalPages(nextData.totalPages);
       } catch (error) {
@@ -167,10 +172,10 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
     [requestContext, status]
   );
 
-  const loadFirstPageAndMarkSeen = useCallback(async () => {
+  const loadFirstPageAndMarkRead = useCallback(async () => {
     if (status !== 'authenticated') {
       setNotifications([]);
-      setNewCount(0);
+      setUnreadCount(0);
       setPage(FIRST_PAGE);
       setTotalPages(FIRST_PAGE);
       setErrorKey(null);
@@ -181,11 +186,11 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
     setIsLoading(true);
     setErrorKey(null);
     try {
-      await notificationsRepository.markSeen(requestContext);
-      emitNotificationsSeenEvent();
+      await notificationsRepository.markRead(requestContext);
+      emitNotificationsReadEvent();
       const nextData = await notificationsRepository.list(requestContext, { page: FIRST_PAGE });
       setNotifications(nextData.items);
-      setNewCount(nextData.newCount);
+      setUnreadCount(nextData.unreadCount);
       setPage(nextData.page);
       setTotalPages(nextData.totalPages);
     } catch (error) {
@@ -199,15 +204,12 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
 
   useFocusEffect(
     useCallback(() => {
-      void loadFirstPageAndMarkSeen();
-    }, [loadFirstPageAndMarkSeen])
+      void loadFirstPageAndMarkRead();
+    }, [loadFirstPageAndMarkRead])
   );
 
   const handleNotificationPress = useCallback(async (notification: DTOAccountNotification) => {
-    const linkPath =
-      notification.category === NotificationCategoryEnum.MembershipExpiry
-        ? '/membership/renew'
-        : notification.link_path;
+    const linkPath = notification.link_path;
 
     if (linkPath === null || linkPath === '') {
       return;
@@ -233,79 +235,70 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
     }
   }, []);
 
-  const relativeTimeFormatter = useMemo(() => {
-    return new Intl.RelativeTimeFormat(i18n.language, { numeric: 'auto' });
-  }, [i18n.language]);
-
   const formatRelativeTime = useCallback(
     (isoDate: string): string => {
-      const createdAtMs = Date.parse(isoDate);
-      if (Number.isNaN(createdAtMs)) {
+      const parts = getRelativeTimeParts(isoDate);
+      if (parts === null) {
         return '';
       }
-
-      const deltaSeconds = Math.round((createdAtMs - Date.now()) / 1000);
-      const absSeconds = Math.abs(deltaSeconds);
-      if (absSeconds < 60) {
-        return relativeTimeFormatter.format(deltaSeconds, 'second');
+      if (parts.value === 0) {
+        return t('notifications_page.relative_time_just_now');
       }
 
-      const deltaMinutes = Math.round(deltaSeconds / 60);
-      if (Math.abs(deltaMinutes) < 60) {
-        return relativeTimeFormatter.format(deltaMinutes, 'minute');
-      }
-
-      const deltaHours = Math.round(deltaMinutes / 60);
-      if (Math.abs(deltaHours) < 24) {
-        return relativeTimeFormatter.format(deltaHours, 'hour');
-      }
-
-      const deltaDays = Math.round(deltaHours / 24);
-      return relativeTimeFormatter.format(deltaDays, 'day');
+      const direction = parts.value < 0 ? 'ago' : 'from_now';
+      const count = Math.abs(parts.value);
+      return t(`notifications_page.relative_time_${parts.unit}s_${direction}`, { count });
     },
-    [relativeTimeFormatter]
+    [t]
   );
 
   const canLoadMore = page < totalPages;
-  const clampedNewCount = Math.min(newCount, notifications.length);
-  const newItems = notifications.slice(0, clampedNewCount);
-  const earlierItems = notifications.slice(clampedNewCount);
+  const clampedUnreadCount = Math.min(unreadCount, notifications.length);
+  const unreadItems = notifications.slice(0, clampedUnreadCount);
+  const earlierItems = notifications.slice(clampedUnreadCount);
 
-  const sectionHeader = (
+  const sectionedRows = [...unreadItems, ...earlierItems];
+  const earlierSectionStartIndex = unreadItems.length;
+  const hasRows = sectionedRows.length > 0;
+
+  const sectionHeader = hasRows ? (
     <>
-      <Text style={styles.heading}>{t('settings.notifications.notifications')}</Text>
-      {newItems.length > 0 ? (
-        <Text style={styles.sectionHeading}>{t('notifications.section.new')}</Text>
+      <Text style={styles.recentActivityNote}>{t('notifications_page.recent_activity_note')}</Text>
+      {unreadItems.length > 0 ? (
+        <Text style={styles.sectionHeading}>{t('notifications.section.unread')}</Text>
       ) : null}
     </>
-  );
+  ) : null;
 
-  const sectionedRows = [...newItems, ...earlierItems];
-  const earlierSectionStartIndex = newItems.length;
+  const listEmpty = isLoading ? (
+    <LoadingSection testID="notifications-inbox-loading" />
+  ) : status !== 'authenticated' ? (
+    <CallToActionSection
+      actionLabelKey="authentication.login"
+      messageKey="notifications_page.login_prompt"
+      onAction={onRequestLogin}
+      testID="notifications-inbox-auth-required"
+    />
+  ) : errorKey !== null ? (
+    <VerticalCenter>
+      <RetryableError
+        errorKey={errorKey}
+        onRetry={() => {
+          void loadFirstPageAndMarkRead();
+        }}
+        testID="notifications-inbox-error"
+      />
+    </VerticalCenter>
+  ) : (
+    <VerticalCenter>
+      <ListEmpty messageKey="notifications_page.empty" testID="notifications-inbox-empty" />
+    </VerticalCenter>
+  );
 
   return (
     <View style={styles.container} testID="notifications-inbox-screen">
-      <FlatList
-        ListEmptyComponent={
-          isLoading ? (
-            <ListLoading testID="notifications-inbox-loading" />
-          ) : status !== 'authenticated' ? (
-            <ListEmpty
-              messageKey="authentication.login_required"
-              testID="notifications-inbox-auth-required"
-            />
-          ) : errorKey !== null ? (
-            <RetryableError
-              errorKey={errorKey}
-              onRetry={() => {
-                void loadFirstPageAndMarkSeen();
-              }}
-              testID="notifications-inbox-error"
-            />
-          ) : (
-            <ListEmpty messageKey="notifications_page.empty" testID="notifications-inbox-empty" />
-          )
-        }
+      <FillList
+        ListEmptyComponent={listEmpty}
         ListFooterComponent={
           canLoadMore && errorKey === null ? (
             <View style={styles.listFooter}>

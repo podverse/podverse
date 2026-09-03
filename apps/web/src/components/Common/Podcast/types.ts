@@ -1,3 +1,5 @@
+import type { ChannelUnseenBadge } from '@podverse/helpers';
+
 export type PodcastListItem = {
   id: string;
   title: string;
@@ -5,4 +7,6 @@ export type PodcastListItem = {
   imageCandidates?: string[];
   href: string;
   lastPubDate?: string | null;
+  /** Unseen episodes since the account last opened this channel. Absent where nothing is unseen. */
+  unseenBadge?: ChannelUnseenBadge | null;
 };

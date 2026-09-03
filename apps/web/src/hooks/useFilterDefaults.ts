@@ -1,50 +1,70 @@
 import { useEffect, useRef } from 'react';
 
-import type {
-  FilterDefaultsForPage,
-  FilterDefaultsPage,
+import type { FilterDefaults, FilterDefaultsPage } from '../utils/localSettings/localSettings';
+import {
+  getFilterDefaultsForPage,
+  getParsedLocalSettings,
+  updateFilterDefaults,
 } from '../utils/localSettings/localSettings';
-import { updateFilterDefaults } from '../utils/localSettings/localSettings';
 
 /**
- * Hook to automatically update filter defaults in cookie when filter params change.
- * Only updates when non-page params change (type, sort, range, category, medium, liveItemType).
+ * The controls a global list remembers. Page number is absent on purpose: where someone had got to
+ * in a list is not a preference, and restoring it would open the list somewhere they did not choose.
  */
-export function useFilterDefaults<P extends FilterDefaultsPage, T extends object>(
+const PERSISTED_PARAMS = ['type', 'sort', 'range', 'category', 'medium', 'liveItemType'] as const;
+
+const toRecord = (value: object): Record<string, unknown> =>
+  Object.fromEntries(Object.entries(value));
+
+const differsFrom = (
+  picked: Record<string, unknown>,
+  other: Record<string, unknown> | undefined
+): boolean => {
+  if (other === undefined) {
+    return true;
+  }
+  return PERSISTED_PARAMS.some((param) => picked[param] !== other[param]);
+};
+
+/**
+ * Mirror a global list's filter and sort selections into the `local-settings` cookie.
+ *
+ * The first run compares against what is stored rather than skipping, which is how an explicit
+ * `?sort=` in the URL wins and is remembered for the next clean-URL visit. When the URL carried
+ * nothing the resolved values came from the cookie to begin with, so the comparison finds no
+ * difference and nothing is written.
+ */
+export function useFilterDefaults<P extends FilterDefaultsPage>(
   page: P,
-  filterParams: T
+  filterParams: FilterDefaults[P] & { page?: number }
 ) {
-  const previousFilterParamsRef = useRef<T | null>(null);
+  const hasComparedStoredRef = useRef(false);
+  const previousPickedRef = useRef<Record<string, unknown> | undefined>(undefined);
 
   useEffect(() => {
-    const current = filterParams as Record<string, unknown>;
-
-    // Skip on first render
-    if (!previousFilterParamsRef.current) {
-      previousFilterParamsRef.current = filterParams;
+    if (filterParams === undefined) {
       return;
     }
 
-    // Only update cookie if non-page params changed
-    // Page changes should not be persisted as default filter preference
-    const paramsToCheck = ['type', 'sort', 'range', 'category', 'medium', 'liveItemType'];
-    const didFiltersChange = paramsToCheck.some(
-      (param) =>
-        (previousFilterParamsRef.current as Record<string, unknown>)[param] !== current[param]
-    );
+    // Copy-then-delete rather than a rest destructure: the compiler will not reduce
+    // `Omit<FilterDefaults[P] & { page?: number }, 'page'>` back to `FilterDefaults[P]` while P is
+    // still a type parameter, while an intersection stays assignable to the shape it extends.
+    const persisted = { ...filterParams };
+    delete persisted.page;
 
-    if (didFiltersChange) {
-      // Extract only the filter params, exclude page number
-      const filterDefaults: Record<string, unknown> = {};
-      paramsToCheck.forEach((param) => {
-        if (current[param] !== undefined) {
-          filterDefaults[param] = current[param];
-        }
-      });
+    const picked = toRecord(persisted);
+    const comparison = hasComparedStoredRef.current
+      ? previousPickedRef.current
+      : (() => {
+          const stored = getFilterDefaultsForPage(getParsedLocalSettings(), page);
+          return stored === undefined ? undefined : toRecord(stored);
+        })();
 
-      updateFilterDefaults(page, filterDefaults as unknown as FilterDefaultsForPage<P>);
+    hasComparedStoredRef.current = true;
+    previousPickedRef.current = picked;
+
+    if (differsFrom(picked, comparison)) {
+      updateFilterDefaults(page, persisted);
     }
-
-    previousFilterParamsRef.current = filterParams;
   }, [page, filterParams]);
 }

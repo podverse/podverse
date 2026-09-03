@@ -10,8 +10,7 @@ import type {
 /**
  * Discriminator for the three distinct music-playback entry contexts.
  *
- * The literal-to-context mapping (see MEDIA-PLAYER-DECISION-MATRIX.md
- * § "Music playback intents (Phase 2 type naming)"):
+ * The literal-to-context mapping is:
  *
  * - `session_restore` — anonymous snapshot restore on first page load.
  * - `explicit_play` — user-triggered play from a list/detail UI, or queue
@@ -28,10 +27,8 @@ export type MusicItemPlaybackIntent = 'session_restore' | 'explicit_play' | 'fre
 
 /**
  * The typed vocabulary describing what the media player is being asked to
- * load. Each variant captures the minimal data the Phase 3 policy needs to
- * resolve the playback start position, side effects, and pause-at logic.
- *
- * No production code consumes this type yet (Phase 3 wires it).
+ * load. Each variant captures the data needed to resolve the playback start
+ * position, side effects, and pause-at logic.
  */
 export type PlaybackTarget =
   | { kind: 'clip'; clip: DTOClip; item: DTOItem; channel: DTOChannel }

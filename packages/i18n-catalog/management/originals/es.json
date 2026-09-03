@@ -100,6 +100,7 @@
     "dashboard": "Tablero",
     "users": "Usuarios",
     "content": "Contenido",
+    "notifications": "Notificaciones",
     "settings": "Configuraciones",
     "userMenu": "Menú de la cuenta",
     "userRole": "Rol: {role}",
@@ -127,6 +128,10 @@
     "web": {
       "title": "Web",
       "description": "Configurar superficies web públicas como la página de demostración integrada"
+    },
+    "notifications": {
+      "title": "Notificaciones",
+      "description": "Redacta y programa campañas de notificaciones para las cuentas"
     },
     "admins": {
       "title": "Administradores",
@@ -482,6 +487,7 @@
       "billingPrices": "Precios de facturación",
       "bucket": "Almacenamiento de objetos",
       "embedDemo": "Demostración integrada",
+      "notifications": "Notificaciones",
       "roleTemplateLabel": "Plantilla de permisos",
       "roleTemplateHint": "Elige una plantilla guardada para llenar la cuadrícula. Aún puedes ajustar las casillas individuales después.",
       "roleCustom": "Personalizado (manual)",
@@ -512,6 +518,37 @@
       "saveTemplate": "Guardar plantilla",
       "createFailed": "No se pudo guardar la plantilla",
       "nameRequired": "Ingresa un nombre para la plantilla"
+    }
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "newTitle": "Nueva campaña de notificaciones",
+    "detailTitle": "Detalles de la campaña de notificaciones",
+    "create": "Crear campaña",
+    "backToList": "Volver a la lista",
+    "cancelCampaign": "Cancelar campaña programada",
+    "failedToLoad": "No se han podido cargar las campañas de notificaciones.",
+    "failedToCreate": "No se ha podido crear la campaña de notificaciones.",
+    "failedToCancel": "No se ha podido cancelar la campaña de notificaciones.",
+    "empty": "No se han encontrado campañas de notificaciones.",
+    "table": {
+      "id": "ID",
+      "title": "Título",
+      "category": "Categoría",
+      "status": "Estado",
+      "scheduledAt": "Programada para",
+      "sentAt": "Enviada el"
+    },
+    "fields": {
+      "title": "Título",
+      "body": "Cuerpo",
+      "linkPath": "Ruta del enlace",
+      "category": "Categoría",
+      "sendPush": "Enviar notificación push",
+      "sendAt": "Enviar el (déjalo en blanco para enviarla ahora)"
+    },
+    "validation": {
+      "titleRequired": "El título es obligatorio."
     }
   },
   "users": {

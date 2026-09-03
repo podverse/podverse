@@ -5,13 +5,14 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 
 import type { DTOAccountNotification, NotificationCategoryValues } from '@podverse/helpers';
+import { getRelativeTimeParts } from '@podverse/helpers';
 import { MainHeader } from '@podverse/ui';
 
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { Pagination } from '../../components/Pagination/Pagination';
 import { ROUTES } from '../../constants/routes';
 import { getApiRequestService } from '../../factories/apiRequestService';
-import { emitNotificationsSeenEvent } from '../../hooks/useNotificationsUnseenCount';
+import { emitNotificationsReadEvent } from '../../hooks/useNotificationsUnreadCount';
 
 import styles from './NotificationsPage.module.scss';
 
@@ -30,7 +31,6 @@ const INITIAL_STATE: NotificationsListState = {
 const CATEGORY_LABEL_KEYS: Record<NotificationCategoryValues, string> = {
   'new-content': 'category_new_content',
   livestream: 'category_livestream',
-  'membership-expiry': 'category_membership_expiry',
   'product-update': 'category_product_update',
   maintenance: 'category_maintenance',
   'terms-of-service': 'category_terms_of_service',
@@ -38,22 +38,13 @@ const CATEGORY_LABEL_KEYS: Record<NotificationCategoryValues, string> = {
 };
 
 function getRelativeTimeLabel(isoDate: string): string {
-  const deltaMs = new Date(isoDate).getTime() - Date.now();
-  const deltaMinutes = Math.round(deltaMs / 60_000);
-  const absMinutes = Math.abs(deltaMinutes);
+  const parts = getRelativeTimeParts(isoDate);
+  if (parts === null) {
+    return '';
+  }
+
   const formatter = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
-
-  if (absMinutes < 60) {
-    return formatter.format(deltaMinutes, 'minute');
-  }
-
-  const deltaHours = Math.round(deltaMinutes / 60);
-  if (Math.abs(deltaHours) < 24) {
-    return formatter.format(deltaHours, 'hour');
-  }
-
-  const deltaDays = Math.round(deltaHours / 24);
-  return formatter.format(deltaDays, 'day');
+  return formatter.format(parts.value, parts.unit);
 }
 
 export function NotificationsPageClient() {
@@ -76,8 +67,8 @@ export function NotificationsPageClient() {
     const load = async () => {
       setIsLoading(true);
       try {
-        await getApiRequestService().reqNotificationsMarkSeen();
-        emitNotificationsSeenEvent();
+        await getApiRequestService().reqNotificationsMarkRead();
+        emitNotificationsReadEvent();
         if (cancelled) {
           return;
         }
@@ -105,16 +96,16 @@ export function NotificationsPageClient() {
   };
 
   const partitionedRows = useMemo(() => {
-    const newRows: DTOAccountNotification[] = [];
+    const unreadRows: DTOAccountNotification[] = [];
     const earlierRows: DTOAccountNotification[] = [];
     for (const item of state.items) {
-      if (item.is_new) {
-        newRows.push(item);
+      if (item.is_unread) {
+        unreadRows.push(item);
       } else {
         earlierRows.push(item);
       }
     }
-    return { newRows, earlierRows };
+    return { unreadRows, earlierRows };
   }, [state.items]);
 
   return (
@@ -122,6 +113,7 @@ export function NotificationsPageClient() {
       <MainHeader title={tNotifications('title')} />
       <MainWrapper>
         <div className={styles.listWrapper}>
+          <p className={styles.recentActivityNote}>{tNotifications('recent_activity_note')}</p>
           {isLoading ? <p className={styles.empty}>{tNotifications('loading')}</p> : null}
           {!isLoading && state.items.length === 0 ? (
             <p className={styles.empty}>{tNotifications('empty')}</p>
@@ -134,10 +126,10 @@ export function NotificationsPageClient() {
               totalPages={state.totalPages}
             >
               <div className={styles.rows}>
-                {partitionedRows.newRows.length > 0 ? (
-                  <h2 className={styles.sectionHeading}>{tNotifications('new_section')}</h2>
+                {partitionedRows.unreadRows.length > 0 ? (
+                  <h2 className={styles.sectionHeading}>{tNotifications('unread_section')}</h2>
                 ) : null}
-                {partitionedRows.newRows.map((row) => (
+                {partitionedRows.unreadRows.map((row) => (
                   <NotificationRow key={row.id} row={row} />
                 ))}
 

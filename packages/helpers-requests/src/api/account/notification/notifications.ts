@@ -5,14 +5,14 @@ import type { ApiRequestService } from '../../_request.js';
 
 export type ReqNotificationsListResponse = {
   items: DTOAccountNotification[];
-  last_seen_at: string | null;
+  last_read_at: string | null;
   pagination: {
     page: number;
     total_count: number;
     total_pages: number;
   };
   sections: {
-    new_count: number;
+    unread_count: number;
   };
 };
 
@@ -46,11 +46,11 @@ export const reqNotificationsList = (
     .then((response) => response.data);
 };
 
-export const reqNotificationsUnseenCount = async (
+export const reqNotificationsUnreadCount = async (
   api: ApiRequestService
-): Promise<{ unseen_count: number }> => {
-  const response = await api.apiRequest<{ data: { unseen_count: number } }>({
-    path: '/account/notifications/unseen-count',
+): Promise<{ unread_count: number }> => {
+  const response = await api.apiRequest<{ data: { unread_count: number } }>({
+    path: '/account/notifications/unread-count',
     method: 'GET',
     config: {
       withCredentials: true,
@@ -59,11 +59,11 @@ export const reqNotificationsUnseenCount = async (
   return response.data;
 };
 
-export const reqNotificationsMarkSeen = async (
+export const reqNotificationsMarkRead = async (
   api: ApiRequestService
-): Promise<{ last_seen_at: string }> => {
-  const response = await api.apiRequest<{ data: { last_seen_at: string } }>({
-    path: '/account/notifications/mark-seen',
+): Promise<{ last_read_at: string }> => {
+  const response = await api.apiRequest<{ data: { last_read_at: string } }>({
+    path: '/account/notifications/mark-read',
     method: 'POST',
     config: {
       withCredentials: true,

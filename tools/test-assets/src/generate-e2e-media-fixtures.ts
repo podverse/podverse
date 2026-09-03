@@ -9,10 +9,7 @@
  * Run from repo root:
  *   npm run generate:e2e-media -w podverse-test-assets
  *
- * Fixtures are consumed by the seed inserts in
- * `.llm/plans/active/media-player-e2e-seed-expansion/` steps 2-4 and by the
- * matching spec lifts. See
- * `.llm/plans/active/media-player-e2e-seed-expansion/01b-test-audio-fixtures-and-asset-server.md`.
+ * Fixtures are consumed by the E2E seed inserts and matching specs.
  *
  * Fixtures are intentionally low-fidelity (24 kbps mono @ 22050 Hz) to keep
  * the committed binaries small. A sine tone has negligible spectral content
@@ -37,8 +34,8 @@ async function main(): Promise<void> {
   await generator.generateMP3('e2e-music-track-two-30s-294hz.mp3', 30, 294, COMMON_OPTIONS);
   await generator.generateMP3('e2e-addbyrss-with-position-60s-440hz.mp3', 60, 440, COMMON_OPTIONS);
   await generator.generateMP3('e2e-addbyrss-fresh-60s-440hz.mp3', 60, 440, COMMON_OPTIONS);
-  // Real video fixture (has an h264 video track) for the mobile video mini->full transition E2E
-  // (master step 2.33 / detail 112). Written to assets/e2e/videos/; served as video/mp4 on :2111.
+  // Real video fixture (has an h264 video track) for the mobile video mini->full transition E2E.
+  // Written to assets/e2e/videos/; served as video/mp4 on :2111.
   // 320x240 @ 1 fps keeps the committed binary tiny while still giving AVPlayer / ExoPlayer a real
   // video track so the native VideoSurfaceHost reports currentItemHasVideo=true (surface visible).
   await generator.generateMP4('e2e-video-short-30s.mp4', 30, 440);

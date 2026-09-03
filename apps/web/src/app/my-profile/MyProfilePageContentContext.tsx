@@ -205,7 +205,7 @@ export const MyProfilePageContentContextProvider = ({
     }
   }, [selectedTab]);
 
-  // Fetch when page changes (only for currently selected tab)
+  // Fetch when the page changes for the selected tab.
   useSkipInitialEffect(() => {
     if (podcastsLoaded && selectedTab === 'podcasts') {
       fetchPodcasts(podcastsPage);

@@ -1,10 +1,9 @@
 appId: com.podverse.app.next
 name: Engine Audio Spike
 ---
-# Master step 2.32 (detail 111): durable Maestro evidence that the first-party media engine
-# (podverse-media-engine, NOT react-native-track-player) plays real audio end-to-end and drives
-# live now-playing state. This is the engine-focused audio spike; the broader Track 11 player-UI
-# transition asserts live in `play-mini-player.yaml`.
+# Durable Maestro evidence that the first-party media engine (podverse-media-engine, NOT
+# react-native-track-player) plays real audio end-to-end and drives live now-playing state. The
+# broader player-UI transition asserts live in `play-mini-player.yaml`.
 #
 # Real media: seeded podcast episode enclosures resolve to the test-assets server on :2111; the
 # orchestrator rewrites localhost -> 127.0.0.1 (iOS) / 10.0.2.2 (Android) via resolveE2eMediaUrl.
@@ -12,8 +11,8 @@ name: Engine Audio Spike
 #
 # Lock-screen / now-playing limits: iOS Simulator and the Android emulator do NOT expose the OS
 # lock screen / Control Center / notification-shade transport to Maestro, so this flow cannot
-# screenshot the lock-screen controls directly. Background-audio + remote-command wiring was proven
-# for the PG-2b GO gate (detail 091). Here we capture in-app now-playing evidence (mini player +
+# screenshot the lock-screen controls directly. Background-audio + remote-command wiring is
+# exercised by the native engine. Here we capture in-app now-playing evidence (mini player +
 # active-playback signal); verify true lock-screen controls manually on a physical device.
 
 - runFlow: shared/launch-and-connect.yaml

@@ -1,0 +1,88 @@
+---
+description: Every screen and component must be usable with a screen reader; improve coverage as you touch code
+globs:
+  - "apps/web/src/**/*.tsx"
+  - "apps/management-web/src/**/*.tsx"
+  - "apps/mobile/src/**/*.tsx"
+  - "packages/ui/src/**/*.tsx"
+alwaysApply: false
+---
+
+# Screen reader support is required
+
+Every screen and component we ship must be usable with **VoiceOver**, **TalkBack**, and desktop
+screen readers. This is a shipping requirement, not a polish pass.
+
+**A screen reader user must never get less information than a sighted user.** If sighted users can
+tell a tab is selected, a button is disabled, or a filter is active, assistive technology must be
+able to tell too.
+
+## Improve as you go
+
+When you touch a component, leave it more accessible than you found it. Adding a missing
+`aria-label` or `accessibilityRole` to code you are already editing is **in scope** and does not need
+to be asked about. Do not rewrite unrelated files to chase coverage — fix what you touch.
+
+## `testID` is not accessibility
+
+`testID` exists for Maestro and Playwright. It is invisible to assistive technology. A control with
+a `testID` and no accessible name is **unlabeled**. This is the single most common mistake in this
+repo — E2E coverage got applied broadly while labels did not.
+
+## Web — `apps/web`, `apps/management-web`, `packages/ui`
+
+| Requirement            | How                                                                       |
+| ---------------------- | ------------------------------------------------------------------------- |
+| Accessible name        | Visible text, or `aria-label` / `aria-labelledby` when there is none      |
+| Icon-only buttons      | **Always** `aria-label`; the icon itself gets `aria-hidden`               |
+| Images                 | Meaningful `alt`, or `alt=""` when purely decorative                      |
+| State                  | `aria-expanded`, `aria-current`, `aria-pressed`, `aria-checked`, `aria-selected` |
+| Async updates          | `aria-live` for toasts, playback changes, and results that appear later   |
+| Forms                  | Associated `<label>`, plus `aria-invalid` and `aria-describedby` on error |
+| Interactive elements   | Real `<button>` / `<a>`; never a `div` with `onClick`                     |
+| Keyboard               | Everything reachable and operable by keyboard, with a visible focus ring  |
+| Dialogs                | `role="dialog"`, `aria-modal`, an accessible name, and focus moved into it |
+
+`@podverse/ui` `IconButton` already throws without a label — follow that contract rather than
+routing around it.
+
+## Mobile — `apps/mobile`
+
+| Requirement       | How                                                                              |
+| ----------------- | -------------------------------------------------------------------------------- |
+| Accessible name   | `accessibilityLabel` on every touchable whose purpose is not clear from its text |
+| Role              | `accessibilityRole` — `button`, `link`, `header`, `tab`, `switch`, `image`       |
+| State             | `accessibilityState` — `selected`, `disabled`, `checked`, `expanded`, `busy`     |
+| Grouping          | `accessible` on a row so it reads as one item rather than several fragments      |
+| Async updates     | `accessibilityLiveRegion` (Android) / announcements for results and errors       |
+| Hints             | `accessibilityHint` only when the action is non-obvious; do not restate the label |
+
+Prefer the shared primitives in `apps/mobile/src/components/primitives/` — `Button` and `ListRow`
+already default the label from visible text and set role and state. A raw `Pressable` in a screen is
+usually a missed opportunity to use one of them.
+
+## i18n
+
+All accessible names are user-facing strings and resolve through i18n — never hardcoded. See
+[`i18n-user-facing-strings`](/.cursor/rules/i18n-user-facing-strings.mdc). Choose the catalog layer
+per the usual rules: shared copy in `consumer`, mobile chrome in `mobile`.
+
+## New work has no excuse
+
+Any **new** screen or component must be accessible when it lands. "Add accessibility later" is not an
+acceptable plan step, and a plan that omits it is incomplete. Include screen reader behavior in
+acceptance criteria the same way you include empty and error states.
+
+## Known gaps
+
+Coverage today is uneven — strongest in `packages/ui` primitives and mobile `Button` / `ListRow`,
+weakest in the media player on both web and mobile. There is no accessibility linting or CI gate.
+A full audit is scheduled separately; see
+[`899-defer-accessibility-audit`](/docs/proposals/mobile/_master-plan_/phase-2/details/899-defer-accessibility-audit.md).
+That deferral does **not** excuse new work from this rule.
+
+## Related
+
+- **i18n-user-facing-strings** — accessible names are localized strings
+- **reusable-components** / **mobile-reusable-components** — centralize labeling in shared primitives
+- **cross-surface-change-impact** — a shared component's a11y fix benefits every consumer

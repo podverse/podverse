@@ -3,6 +3,7 @@ import type {
   AddByRSSResourceData,
   QueueResourcesAbridgedIndex,
 } from '@podverse/helpers';
+import { sleep } from '@podverse/helpers';
 import { createAddByRSSId, createAddByRSSIdText } from '@podverse/helpers/addByRSS/ids';
 import { isObjectLike, toNonEmptyTrimmedString } from '@podverse/helpers/guards';
 import type { AddByRSSMappedFeed } from '@podverse/parser-mapping';
@@ -14,9 +15,11 @@ import {
 
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 
-type AddByRssParsePreview = {
+export type AddByRssParsePreview = {
   enclosureUrl: string | null;
   imageUrl: string | null;
+  /** Newest publish date in the feed, kept as a scalar so recency ordering never re-parses. */
+  latestItemPubDateMs: number | null;
   playbackPosition: string | null;
   title: string | null;
 };
@@ -24,6 +27,7 @@ type AddByRssParsePreview = {
 const EMPTY_PREVIEW: AddByRssParsePreview = {
   enclosureUrl: null,
   imageUrl: null,
+  latestItemPubDateMs: null,
   playbackPosition: null,
   title: null,
 };
@@ -46,39 +50,19 @@ export const EMPTY_ABRIDGED_INDEX: QueueResourcesAbridgedIndex = {
   item_soundbites: {},
 };
 
-export function extractPreviewFromParsePayload(payload: unknown): {
-  enclosureUrl: string | null;
-  imageUrl: string | null;
-  playbackPosition: string | null;
-  title: string | null;
-} {
+export function extractPreviewFromParsePayload(payload: unknown): AddByRssParsePreview {
   if (!isObjectLike(payload)) {
-    return {
-      enclosureUrl: null,
-      imageUrl: null,
-      playbackPosition: null,
-      title: null,
-    };
+    return { ...EMPTY_PREVIEW };
   }
 
   const items = payload.items;
   if (!Array.isArray(items)) {
-    return {
-      enclosureUrl: null,
-      imageUrl: null,
-      playbackPosition: null,
-      title: null,
-    };
+    return { ...EMPTY_PREVIEW };
   }
 
   const firstItem = items[0];
   if (!isObjectLike(firstItem)) {
-    return {
-      enclosureUrl: null,
-      imageUrl: null,
-      playbackPosition: null,
-      title: null,
-    };
+    return { ...EMPTY_PREVIEW };
   }
 
   const title = toNonEmptyTrimmedString(firstItem.title);
@@ -97,16 +81,40 @@ export function extractPreviewFromParsePayload(payload: unknown): {
   return {
     enclosureUrl,
     imageUrl,
+    // The raw parse payload is only reached when compat mapping failed. Leaving the date unknown is
+    // the honest answer there; the next successful parse fills it in.
+    latestItemPubDateMs: null,
     playbackPosition,
     title,
   };
 }
 
-const delay = async (ms: number): Promise<void> => {
-  await new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-};
+/**
+ * The newest publish date in a parsed feed, or null when no item carries a usable one.
+ *
+ * Scans every item rather than trusting `items[0]`: feed order is whatever the publisher wrote, and
+ * a feed listing an old episode first would otherwise report itself as stale.
+ */
+export function getLatestAddByRssItemPubDateMs(mappedFeed: AddByRSSMappedFeed): number | null {
+  let latest: number | null = null;
+
+  for (const bundle of mappedFeed.items) {
+    const pubDate = bundle.item.pub_date;
+    if (pubDate === null || pubDate === undefined) {
+      continue;
+    }
+
+    const parsed = new Date(pubDate).getTime();
+    if (Number.isNaN(parsed)) {
+      continue;
+    }
+    if (latest === null || parsed > latest) {
+      latest = parsed;
+    }
+  }
+
+  return latest;
+}
 
 /**
  * Derive the slim feed preview (enclosure/image/title) from the mapped `parser-mapping` bundle so
@@ -121,6 +129,7 @@ export function mapParsedFeedToPreview(mappedFeed: AddByRSSMappedFeed): AddByRss
   return {
     enclosureUrl,
     imageUrl,
+    latestItemPubDateMs: getLatestAddByRssItemPubDateMs(mappedFeed),
     // The compat bundle carries no per-account playback position; it comes from queue/history sync.
     playbackPosition: null,
     title,
@@ -169,7 +178,7 @@ export async function pollAddByRssParseStatus(
       return resolveParseResult(statusResponse);
     }
 
-    await delay(STATUS_POLL_DELAY_MS);
+    await sleep(STATUS_POLL_DELAY_MS);
   }
 
   return { mappedFeed: null, preview: { ...EMPTY_PREVIEW } };
@@ -208,6 +217,21 @@ export function toAddByRssPlaybackResourceData(
     return toAddByRssResourceData(record);
   }
 
+  return toAddByRssItemPlaybackResourceData(record, mappedFeed, firstItemBundle, 0);
+}
+
+/**
+ * Build playback data for one item in a persisted add-by-RSS bundle.
+ *
+ * The index item shape is shared with the add-by-RSS queue and playlist mapping, so detail screens
+ * and feed-level playback use the same enclosure and metadata conversion.
+ */
+export function toAddByRssItemPlaybackResourceData(
+  record: MobileAddByRSSFeedRecord,
+  mappedFeed: AddByRSSMappedFeed,
+  itemBundle: AddByRSSMappedFeed['items'][number],
+  itemIndex: number
+): AddByRSSResourceData {
   const feedForIndex = {
     id: record.id,
     idText: record.idText,
@@ -217,7 +241,7 @@ export function toAddByRssPlaybackResourceData(
     mappedFeed,
   };
 
-  const indexItem = toIndexItem(feedForIndex, firstItemBundle, 0, record.idText);
+  const indexItem = toIndexItem(feedForIndex, itemBundle, itemIndex, record.idText);
   const mappedResourceData = buildAddByRSSResourceData(indexItem);
 
   return {
@@ -241,6 +265,9 @@ export function mergeLocalAndRemoteAddByRssFeeds(
       id: localFeed?.id ?? createAddByRSSId(localFeed?.idText ?? createAddByRSSIdText()),
       idText: localFeed?.idText ?? createAddByRSSIdText(),
       imageUrl: remoteFeed.image_url ?? localFeed?.imageUrl ?? null,
+      // The followed list carries no items, so the date can only come from a parse this device
+      // already stored. A feed followed on another device keeps an unknown date until it is parsed.
+      latestItemPubDateMs: localFeed?.latestItemPubDateMs ?? null,
       playbackPosition: localFeed?.playbackPosition ?? null,
       resourceType: 'podcasts' as const,
       title: remoteFeed.title ?? localFeed?.title ?? remoteFeed.feed_url,
@@ -248,8 +275,8 @@ export function mergeLocalAndRemoteAddByRssFeeds(
     };
   });
 
-  // Include locally added feeds not yet reflected in the remote followed list so a
-  // just-added feed renders immediately even if the remote list lags.
+  // Include locally added feeds absent from the remote followed list so a just-added feed renders
+  // immediately even if the remote list lags.
   const localOnly = localFeeds.filter((feed) => !remoteUrls.has(feed.feedUrl));
 
   return [...mergedRemote, ...localOnly];
@@ -267,6 +294,7 @@ export function buildAddByRssFeedRecord(
     id: existingFeed?.id ?? createAddByRSSId(idText),
     idText,
     imageUrl: preview.imageUrl ?? existingFeed?.imageUrl ?? null,
+    latestItemPubDateMs: preview.latestItemPubDateMs ?? existingFeed?.latestItemPubDateMs ?? null,
     playbackPosition: preview.playbackPosition ?? existingFeed?.playbackPosition ?? null,
     resourceType: 'podcasts',
     title: preview.title ?? existingFeed?.title ?? feedUrl,

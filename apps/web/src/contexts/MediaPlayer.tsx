@@ -70,10 +70,10 @@ type MediaPlayerContextType = {
   /** One-shot seek time for Add-by-RSS restored position; set by usePlayAddByRSS, consumed and cleared by controller. */
   addByRSSSeekToTime: number | null;
   setAddByRSSSeekToTime: (val: number | null) => void;
-  /** The current typed playback target being applied by the Phase 4 bridge. */
+  /** The typed playback target being applied by the playback bridge. */
   activePlaybackTarget: PlaybackTarget | null;
   setActivePlaybackTarget: (target: PlaybackTarget | null) => void;
-  /** The decision the Phase 4 bridge enacts after loadedmetadata. */
+  /** The decision the playback bridge enacts after loadedmetadata. */
   pendingPlaybackDecision: PlaybackLoadDecision | null;
   setPendingPlaybackDecision: (decision: PlaybackLoadDecision | null) => void;
   /** Resolve and stage a target + decision in a single synchronous call. */

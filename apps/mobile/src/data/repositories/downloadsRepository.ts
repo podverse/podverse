@@ -1,4 +1,4 @@
-import { desc, eq } from 'drizzle-orm';
+import { count, desc, eq } from 'drizzle-orm';
 
 import type {
   DownloadMediaType,
@@ -53,7 +53,7 @@ const recordToRow = (record: DownloadRecord): DownloadRow => ({
 /**
  * Project the current set of completed downloads (files that exist on disk) to the native cache so
  * CarPlay / Android Auto / watch can list offline episodes without SQLite. Called after every
- * mutation — stub until Track 12 (see nativeCache/projection.ts, DOCS-MOBILE-DATA-LAYER-OFFLINE §7.1).
+ * mutation (see nativeCache/projection.ts and the mobile-data-layer skill).
  */
 const refreshNativeCacheProjection = async (): Promise<void> => {
   const rows = await getDb()
@@ -96,7 +96,7 @@ export type DownloadPatch = Partial<
 >;
 
 /**
- * Downloads index repository (Phase F) — the source of truth for the phone Downloads library and
+ * Downloads index repository — the source of truth for the phone Downloads library and
  * local-file playback. Only progressive (non-live, non-HLS) items reach here; eligibility is gated
  * by `isItemDownloadable` at the call site before `upsert`. Every mutation projects the completed
  * set to the native cache (see mobile-data-layer skill).
@@ -121,6 +121,34 @@ export const downloadsRepository = {
       .where(eq(schema.download.status, status))
       .orderBy(desc(schema.download.updatedAt));
     return rows.map(rowToRecord);
+  },
+
+  /**
+   * How many finished downloads each subscribed channel has, keyed by channel `id_text`.
+   *
+   * Only `complete` rows count: a subscription row is saying how much of this channel is playable
+   * with no connection, and a transfer still running is not.
+   *
+   * The channel comes from the item store rather than from a column here, because a download is
+   * enqueued from an episode and the episode is what knows its channel. Add-by-RSS episodes are
+   * therefore absent — they are not stored as channel items and have no download path yet.
+   *
+   * One grouped query rather than a lookup per row, so drawing a long subscription list costs the
+   * same as drawing a short one.
+   */
+  countCompletedByChannel: async (): Promise<Map<string, number>> => {
+    await initializeDatabase();
+    const rows = await getDb()
+      .select({
+        channelIdText: schema.channelItem.channelIdText,
+        downloadedCount: count(schema.download.itemIdText),
+      })
+      .from(schema.download)
+      .innerJoin(schema.channelItem, eq(schema.channelItem.itemIdText, schema.download.itemIdText))
+      .where(eq(schema.download.status, 'complete'))
+      .groupBy(schema.channelItem.channelIdText);
+
+    return new Map(rows.map((row) => [row.channelIdText, row.downloadedCount]));
   },
 
   getByItemIdText: async (itemIdText: string): Promise<DownloadRecord | null> => {
@@ -158,7 +186,7 @@ export const downloadsRepository = {
     await refreshNativeCacheProjection();
   },
 
-  /** Remove a download row (delete-from-library). The file removal is handled by the runner (13.4). */
+  /** Remove a download row (delete-from-library). The file removal is handled by the runner. */
   remove: async (itemIdText: string): Promise<void> => {
     await initializeDatabase();
     await getDb().delete(schema.download).where(eq(schema.download.itemIdText, itemIdText));

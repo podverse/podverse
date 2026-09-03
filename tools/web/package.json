@@ -1,0 +1,12 @@
+{
+  "name": "podverse-web-tools",
+  "version": "5.5.3",
+  "description": "Web E2E seed and fixture utilities for Podverse",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "ioredis": "^6.0.0",
+    "pg": "^8.23.0"
+  }
+}

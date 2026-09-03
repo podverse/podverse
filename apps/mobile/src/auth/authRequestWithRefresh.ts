@@ -1,11 +1,12 @@
 import { getErrorResponseBodyCode, getErrorResponseStatus } from '@podverse/helpers/error';
 import type { ApiRequestService } from '@podverse/helpers-requests';
 
+import type { SessionEndReason } from './forcedLogoutNotice';
 import { createMobileApiRequestService } from './mobileApi';
 
 export type AuthRequestDeps = {
   accessToken: string | null;
-  clearSession: () => Promise<void>;
+  clearSession: (reason: SessionEndReason) => Promise<void>;
   refreshToken: string | null;
   setTokens: (params: { accessToken: string; refreshToken: string }) => Promise<void>;
 };
@@ -28,7 +29,10 @@ export const refreshAccessTokenSingleFlight = async ({
   inFlightRefresh = (async () => {
     const apiRequestService = createMobileApiRequestService();
     if (apiRequestService === null) {
-      await clearSession();
+      // A missing base URL is a build/config fault, not the server rejecting these credentials.
+      // Ending the session here would sign the user out over something they cannot act on, so the
+      // refresh just fails and the caller handles it like any other unavailable-API error.
+      console.warn('[auth] cannot refresh: mobile API base URL is not configured');
       return null;
     }
 
@@ -45,7 +49,9 @@ export const refreshAccessTokenSingleFlight = async ({
     } catch (error) {
       const errorCode = getErrorResponseBodyCode(error);
       if (getErrorResponseStatus(error) === 401 || errorCode === 'refresh_token_reuse_detected') {
-        await clearSession();
+        // The server refused the refresh token itself, so these credentials are definitively dead.
+        // Every other failure rethrows below, which is what keeps an offline device signed in.
+        await clearSession('session_expired');
         return null;
       }
 

@@ -13,6 +13,8 @@ import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import { usePageStateCache } from '../../../hooks/usePageStateCache';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
+import { useSortPref } from '../../../hooks/useSortPref';
+import { buildDetailSortPrefPatch } from '../../../utils/localSettings/detailSortPrefs';
 import { definedProps, getPageState } from '../../../utils/pageStateCache';
 import { getTranscriptRowsFromTranscriptString } from '../../../utils/transcript';
 import { getEpisodePageFilterParams } from './EpisodePageDropdownConfig';
@@ -49,12 +51,16 @@ const EpisodePageContext = createContext<EpisodePageContextType | undefined>(und
 
 interface EpisodePageContextProviderProps {
   children: ReactNode;
+  hasExplicitUrlParams: boolean;
   initialQueryParams: QueryParamsItem;
+  ssrItemIdText: string;
 }
 
 export const EpisodePageContextProvider = ({
   children,
+  hasExplicitUrlParams,
   initialQueryParams,
+  ssrItemIdText,
 }: EpisodePageContextProviderProps) => {
   const params = useParams();
 
@@ -91,6 +97,16 @@ export const EpisodePageContextProvider = ({
   );
   const [autoScrollOn, setAutoScrollOn] = useState<boolean>(true);
   const { loggedInAccount } = useAccount();
+
+  useSortPref({
+    hasExplicitUrlParams,
+    scope: { idText: ssrItemIdText, kind: 'item' },
+    values: buildDetailSortPrefPatch({
+      range: filterParams.range,
+      sort: filterParams.sort,
+      tab: filterParams.type,
+    }),
+  });
 
   // Hook to save/restore page state for back navigation
   usePageStateCache<QueryParamsItem, EpisodePageCachedData>({

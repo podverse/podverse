@@ -12,18 +12,38 @@ nextgen plans. This skill defines that loop.
 Phase index: [PHASES.md](/docs/proposals/mobile/_master-plan_/PHASES.md).
 Active plan: [Phase 2 master plan](/docs/proposals/mobile/_master-plan_/phase-2/001-MASTER-PLAN-PHASE-2.md).
 
+## The premise
+
+Nextgen mobile is built by **aligning nextgen web features with previous-generation mobile
+behavior**. Previous-gen mobile supplies the feature inventory and interaction model; nextgen web
+supplies the current data contracts, i18n keys, and product decisions. Phase 2 work is the
+reconciliation of those two, captured as planned work in the Phase 2 plans.
+
+Because the two sources disagree in places, **incongruency is the normal case, not the exception**.
+Filters, sort options, tab layout, and screen boundaries are the usual offenders. When previous-gen
+and nextgen web differ — or when a previous-gen control has no nextgen equivalent — **stop and ask**.
+A wrong guess here becomes a wrong plan, then wrong code.
+
 ## Non-negotiables
 
 1. **Ask before planning.** Screenshots are a prompt for questions, not a spec. Never jump straight
    to writing plan files. See § Question checklist.
-2. **Never store the images.** Screenshots stay in chat. Do not write image files into `docs/`,
+2. **Ask as many questions as it takes.** The operator has explicitly asked for aggressive
+   clarification over speed. There is no question budget. Asking one more question is always
+   cheaper than reproducing the wrong behavior.
+3. **Never store the images.** Screenshots stay in chat. Do not write image files into `docs/`,
    `.llm/`, or `.artifacts/`, and do not ask the operator to commit them. Convert what you see into
    **written** observations and plan text.
-3. **Legacy is inspiration, not a port target.** Per
+4. **Legacy is inspiration, not a port target.** Per
    [`legacy-app-reference`](/.cursor/rules/legacy-app-reference.mdc), do not assume legacy
    navigation, storage, API shapes, or UX are right for nextgen. Say when nextgen already has a
    better pattern.
-4. **One area at a time.** The operator batches screenshots per screen area (Home & browse, Player,
+5. **Bottom-tab layouts intentionally differ.** A screenshot from the previous-generation app shows
+   the previous-generation bottom tabs; that tab arrangement is not a nextgen navigation
+   specification. Nextgen is expected to use a different bottom-tab layout, so do not classify tab
+   differences as a parity gap or port the previous-generation tabs without an explicit product
+   decision.
+6. **One area at a time.** The operator batches screenshots per screen area (Home & browse, Player,
    Library, …). Do not expand scope into adjacent areas without asking.
 
 ## The loop
@@ -34,7 +54,8 @@ Active plan: [Phase 2 master plan](/docs/proposals/mobile/_master-plan_/phase-2/
 3. Operator answers.
 4. Agent writes a locked decision list, then detail docs + COPY-PASTA set.
 5. Operator pastes COPY-PASTA prompts; agent implements, marks steps done.
-6. Operator verifies on device. Area closes. Repeat.
+6. Agent recommends a focused device visual review. The area closes when its implementation work is
+   complete; visual review remains optional follow-up verification. Repeat.
 ```
 
 ### Step 2 — describe, then ask
@@ -61,6 +82,22 @@ you before any planning happens.
 Then ask. Prefer `AskQuestion` with concrete options over open prose questions, and lead each option
 list with your recommendation. **Ask generously** — the operator has explicitly asked for more
 questions rather than fewer. The cost of a wrong assumption here is a wasted plan set.
+
+**Mandatory question triggers.** Always ask, never assume, when any of these appear:
+
+- A previous-gen **filter or sort control** whose options do not match what nextgen web or nextgen
+  mobile currently offers (option list, defaults, persistence, scope of what is filtered).
+- A previous-gen control with **no nextgen equivalent at all** (view toggles, bulk actions, badges).
+- A control that exists in **both** previous-gen mobile and nextgen web but with **different
+  options or semantics** — say which two versions disagree and ask which one wins.
+- Anything the operator's screenshots show only partially (a sheet, menu, or state you cannot fully
+  read from the image).
+- A mobile change that **may require matching web, API, or ORM work** — especially cross-device
+  state, new endpoints, or renamed fields. See
+  [`cross-surface-change-impact`](/.cursor/rules/cross-surface-change-impact.mdc).
+
+Multiple rounds of questions are expected and welcome. Do not batch a decision into an assumption to
+avoid a follow-up round.
 
 ### Question checklist
 
@@ -100,16 +137,17 @@ numbered plan files, and `COPY-PASTA.md`. Follow
 [`parallel-plan-execution`](/.cursor/skills/parallel-plan-execution/SKILL.md) — every COPY-PASTA
 prompt needs **Cursor model** and **Reasoning** lines
 ([`copy-pasta-recommend-model`](/.cursor/rules/copy-pasta-recommend-model.mdc)). Keep each plan file
-under 300 lines. Remove the completed Phase 2 plan set after the operator confirms the area is
-closed; do not retain a completed-plan archive
+under 300 lines. Remove the completed Phase 2 plan set after its implementation work is complete;
+do not retain a completed-plan archive
 ([`plan-completion`](/.cursor/skills/plan-completion/SKILL.md)).
 
-## Phase 2 changes the ship bar
+## Phase 2 visual review
 
-Phase 1 told agents to stop at functional sketches and defer layout to Track 23. **That no longer
-applies.** In Phase 2, visual resolution is part of each area's definition of done, driven by the
-screenshots and the operator's answers. Agents still do not invent visual direction on their own — if
-the screenshots and answers do not settle a layout question, ask rather than guess.
+Phase 2 uses legacy screenshots and operator answers to make implementation decisions, but visual
+review is not a completion gate. Agents still do not invent visual direction on their own — if the
+screenshots and answers do not settle a layout question, ask rather than guess. After implementation,
+recommend a focused device run with screenshots so the operator can review the result when useful.
+The area and its plan may be marked complete when the implementation work is complete.
 
 Existing constraints that **do** still apply: shared primitives and theme tokens over hardcoded
 values ([`mobile-theme-parity`](/.cursor/skills/mobile-theme-parity/SKILL.md)), i18n for all

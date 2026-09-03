@@ -1,8 +1,8 @@
 /**
- * Dev-only smoke for the shared visual primitives (Track 9b.6 / detail 495). Renders `ScreenHeader`
- * + `Card` + `ListRow` + `Button` so a manual run exercises all four primitives and theme switching
- * in one place. Rendered only in dev (never a release build) and skipped under E2E so the
- * hello-world flow's layout and screenshots stay stable — see HelloWorldScreen.
+ * Dev-only smoke for the shared visual primitives. Renders `ScreenHeader` + `Card` + `ListRow` +
+ * `Button` so a manual run exercises all four primitives and theme switching in one place. Rendered
+ * only in dev (never a release build) and skipped under E2E so the hello-world flow's layout and
+ * screenshots stay stable — see HelloWorldScreen.
  */
 
 import { useMemo, useState } from 'react';

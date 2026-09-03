@@ -79,12 +79,6 @@ export function SettingsNotifications() {
         forceInAppEnabled: false,
       },
       {
-        category: NotificationCategoryEnumValues.MembershipExpiry,
-        titleKey: 'category_membership_expiry',
-        descriptionKey: 'category_membership_expiry_description',
-        forceInAppEnabled: false,
-      },
-      {
         category: NotificationCategoryEnumValues.ProductUpdate,
         titleKey: 'category_product_update',
         descriptionKey: 'category_product_update_description',

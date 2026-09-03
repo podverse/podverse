@@ -3,13 +3,16 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
+import { GatedFeatureNotice } from '../../components/feedback/GatedFeatureNotice';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
 import { isMobileE2eFromEnv } from '../../config/env';
 import { useAddByRssAddFlow } from '../../hooks/useAddByRssAddFlow';
 import { useAddByRssFeeds } from '../../hooks/useAddByRssFeeds';
 import { useAddByRssPlayback } from '../../hooks/useAddByRssPlayback';
+import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import type { LibraryStackParamList } from '../../navigation';
 import { LIBRARY_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
@@ -20,12 +23,14 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const { status } = useAuth();
+  const { onRequestLogin } = useAuthPrompt();
+  const { goToMembership } = useMembershipGate();
   const [inputValue, setInputValue] = useState<string>('');
   const [noticeKey, setNoticeKey] = useState<string | null>(null);
   const { errorKey, feeds, isLoading, reloadFeeds, removeFeed } = useAddByRssFeeds({
     onNotice: setNoticeKey,
   });
-  const { addErrorKey, addFeed, isAdding } = useAddByRssAddFlow({
+  const { addAccess, addErrorKey, addFeed, isAdding } = useAddByRssAddFlow({
     inputValue,
     onAfterAdd: reloadFeeds,
     onNotice: setNoticeKey,
@@ -96,6 +101,9 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
           fontSize: 16,
           fontWeight: '600',
         },
+        gate: {
+          marginTop: tokens.spacing.md,
+        },
         input: {
           backgroundColor: themeStyles.screen.backgroundColor,
           borderColor: themeStyles.border.borderColor,
@@ -142,6 +150,16 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
             {t(addErrorKey)}
           </Text>
         ) : null}
+        {addAccess.allowed ? null : (
+          <View style={styles.gate}>
+            <GatedFeatureNotice
+              access={addAccess}
+              onRequestLogin={onRequestLogin}
+              onRequestMembership={goToMembership}
+              testID="rss-add-gate"
+            />
+          </View>
+        )}
       </View>
 
       <View style={styles.card}>
@@ -156,11 +174,8 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
         </Pressable>
 
         <AuthAwareLoadState
-          emptyMessageKey={
-            status !== 'authenticated'
-              ? 'authentication.login_required'
-              : 'features.add_by_rss.no_feeds_podcast'
-          }
+          authMessageKey="features.add_by_rss.login_prompt"
+          emptyMessageKey="features.add_by_rss.no_feeds_podcast"
           emptyTestID={status !== 'authenticated' ? 'rss-feeds-auth-required' : 'rss-feeds-empty'}
           errorKey={errorKey}
           errorTestID="rss-feeds-error"
@@ -169,7 +184,8 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
           onRetry={() => {
             void reloadFeeds();
           }}
-          showEmpty={status !== 'authenticated' || feeds.length === 0}
+          showAuthRequired={status !== 'authenticated'}
+          showEmpty={status === 'authenticated' && feeds.length === 0}
         >
           {feeds.map((feed, index) => (
             <View key={feed.idText} style={styles.feedRow}>

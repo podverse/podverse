@@ -12,9 +12,9 @@ overrides so nested installs (including `next` optional/`postcss`) resolve to pa
 | ----------------------------- | -------------- | -------------------------------------------- |
 | `postcss` / `next.postcss`    | `8.5.23`       | PostCSS XSS / sourceMappingURL HIGH+moderate |
 | `sharp` / `next.sharp`        | `0.35.3`       | libvips HIGH via nested Next sharp           |
-| `uuid` (+ storage/teeny)      | `14.0.0`       | uuid buffer bounds moderate                  |
+| `uuid` (direct app use)       | `14.0.2`       | Direct UUID use; Firebase chain listed below |
 | `fast-xml-parser`             | `5.10.1`       | DOCTYPE entity-expansion HIGH                |
-| `brace-expansion`             | `5.0.8`        | unbounded expansion DoS HIGH                 |
+| `brace-expansion`             | `5.0.9`        | unbounded expansion DoS HIGH                 |
 
 After changing overrides, regenerate the lockfile cleanly (`rm package-lock.json` then `npm install`,
 or `./scripts/development/update-lockfile-linux.sh`) so nested `next/node_modules/*` entries are not
@@ -34,9 +34,22 @@ those HIGH findings without allowlisting. Mobile pins **`@xmldom/xmldom@0.8.10`*
 `@expo/plist` calls `DOMParser.parseFromString(xml)` without a mimeType, which throws on xmldom
 **0.9.x** (`mimeType "undefined" is not valid`) and breaks `expo run:ios --device` usbmux listing.
 
-The root **`ip-address`** override is kept because **express-rate-limit** still declares a dependency on
-**10.1.x** (moderate GHSA while **<=10.1.0**); npm resolves the hoisted package to **10.2.0** under that
-override.
+Mobile's remaining audit findings are in Expo CLI, Metro, prebuild, and development-client tooling;
+they are not included in the shipped application bundle. The Expo SDK 52 dependency set requires a
+coordinated SDK upgrade to replace those packages. The React Navigation `nanoid` resolution is
+patched independently at `3.3.18`.
+
+The root **`ip-address`** override is kept because **express-rate-limit** declares a dependency on
+`^10.2.0`; the scoped override pins the hoisted package to **10.7.0**, which includes the current
+SSRF classification fixes.
+
+### Remaining root audit finding
+
+`npm audit --omit=dev` still reports six moderate UUID advisories through the optional
+`firebase-admin` → `@google-cloud/storage` → `gaxios` / `teeny-request` chain. The current Firebase
+Admin release does not provide a non-breaking upgrade that removes this chain; npm's proposed fix
+downgrades `firebase-admin` to `10.3.0`. No allowlist entry has been added. Revisit this when Firebase
+Admin or its Google Cloud dependencies provide a compatible patched chain.
 
 ## Active allowlist
 

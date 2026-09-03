@@ -35,7 +35,7 @@ export type EmbedDemoPiSeedFeedDef = {
   chaptersListShowcaseId?: EmbedDemoShowcaseId;
 };
 
-/** Podcast Index feeds used to seed `/embed` showcase rows (parse + upsert). */
+/** Podcast Index feeds that seed `/embed` showcase rows through parse and upsert. */
 export const EMBED_DEMO_PI_SEED_FEEDS: readonly EmbedDemoPiSeedFeedDef[] = [
   {
     podcastIndexId: 920666,

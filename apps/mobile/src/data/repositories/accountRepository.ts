@@ -55,71 +55,6 @@ const fetchAccountFromApi = async (
 };
 
 /**
- * Hydrate the account's followed playlists into browse nodes. Followed playlists are numeric-id-only
- * in `DTOAccount`, so this uses the `private_followed` playlist list endpoint (server-derived from
- * `account_following_playlists`) to get display fields — mirroring the directory-channel hydration in
- * `subscriptionsRepository`. Soft-fail: any hydration error yields an empty node list so the channel
- * projection still lands. No raw `fetch` (reuses the mobile auth-refresh path).
- */
-const fetchFollowedPlaylistNodes = async (
-  account: DTOAccount,
-  context: MobileAuthRequestContext
-): Promise<NativeCacheBrowseNode[]> => {
-  const followedPlaylists = account.account_following_playlists ?? [];
-  if (followedPlaylists.length === 0) {
-    return [];
-  }
-
-  try {
-    const response = await requestWithMobileAuthRefresh(context, async (apiRequestService) =>
-      apiRequestService.reqPlaylistGetMany({
-        medium: 'all',
-        page: 1,
-        range: null,
-        sort: 'a_z',
-        type: 'private_followed',
-      })
-    );
-
-    const nodes: NativeCacheBrowseNode[] = [];
-    for (const playlist of response.data) {
-      const node = mapPlaylistToNode(playlist);
-      if (node !== null) {
-        nodes.push(node);
-      }
-    }
-    return nodes;
-  } catch (error) {
-    console.warn('[library-browse] playlist hydration failed (soft-fail)', error);
-    return [];
-  }
-};
-
-/**
- * Project the library-browse index to the native cache so CarPlay / Android Auto can list a user's
- * subscriptions (directory follows + add-by-RSS, from the shared `subscriptionsRepository`) plus
- * followed playlists with the phone app closed. Repository-owned (never called from screens) and
- * best-effort: channel-list and playlist hydration each soft-fail independently, and the projection
- * helper itself never throws, so this never blocks the account snapshot write.
- */
-const projectLibraryBrowseForAccount = async (
-  account: DTOAccount,
-  context: MobileAuthRequestContext
-): Promise<void> => {
-  let channelNodes: NativeCacheBrowseNode[] = [];
-  try {
-    const subscribed = await subscriptionsRepository.list();
-    channelNodes = subscribed.map(mapSubscribedChannelToNode);
-  } catch (error) {
-    console.warn('[library-browse] subscription list failed (soft-fail)', error);
-  }
-
-  const playlistNodes = await fetchFollowedPlaylistNodes(account, context);
-  const nodes = mergeLibraryBrowseNodes(channelNodes, playlistNodes);
-  await projectLibraryBrowseIndexToNativeCache({ nodes });
-};
-
-/**
  * Account/session snapshot repository. Reads/writes the cached `/auth/me` payload in SQLite for
  * cold-start display; the network fetch (and bearer refresh) lives here, not in screens. Tokens
  * remain in SecureStore only.
@@ -152,39 +87,85 @@ export const accountRepository = {
       });
   },
 
-  /** Clear account rows on logout / session reset (tokens are cleared via SecureStore path). */
+  /**
+   * Forget who is signed in, without forgetting what is on the device. Tokens are cleared through
+   * the SecureStore path.
+   *
+   * Subscriptions, add-by-RSS feeds, and the car/watch browse index survive: they are the device's
+   * own data, not an account cache. Signing out drops the identity and leaves the library
+   * usable offline, which is also what makes signing back in a no-op for local content.
+   */
   clearSnapshot: async (): Promise<void> => {
     await initializeDatabase();
     await getDb().delete(schema.accountSnapshot);
-
-    // Clear the car/watch browse index on logout so no stale subscriptions remain readable.
-    await projectLibraryBrowseIndexToNativeCache({ nodes: [] });
-
-    // Clear the unified subscriptions directory cache (add-by-RSS is cleared via its own repo).
-    await subscriptionsRepository.clearCache();
   },
 
-  /** Fetch `/auth/me`, persist the snapshot, and return the account. */
-  refresh: async (
+  /**
+   * Fetch `/auth/me`, persist the snapshot, and return the account.
+   *
+   * One request and one write. Everything the account implies — hydrating directory follows,
+   * followed playlists, the car browse index — is separately queued work, because folding it in
+   * here is what made signing in wait on up to twenty-five paged requests.
+   */
+  refreshSnapshot: async (
     context: MobileAuthRequestContext,
     options: RefreshOptions = {}
   ): Promise<DTOAccount> => {
     const account = await fetchAccountFromApi(context, options);
     await accountRepository.saveSnapshot(account);
+    return account;
+  },
 
-    // Refresh the unified subscriptions directory cache (hydrates numeric follows for offline +
-    // car/Home/Library). Soft-fail so a hydration error never breaks the authenticated refresh.
-    try {
-      await subscriptionsRepository.syncFromAccount(account, context);
-    } catch (error) {
-      console.warn('[subscriptions] syncFromAccount failed (soft-fail)', error);
+  /**
+   * Hydrate the account's followed playlists into browse nodes.
+   *
+   * Followed playlists are numeric-id-only in `DTOAccount`, so this uses the `private_followed`
+   * playlist list endpoint (server-derived from `account_following_playlists`) to get display
+   * fields — mirroring the directory-channel hydration in `subscriptionsRepository`. No raw `fetch`
+   * (reuses the mobile auth-refresh path).
+   */
+  fetchFollowedPlaylistNodes: async (
+    account: DTOAccount,
+    context: MobileAuthRequestContext
+  ): Promise<NativeCacheBrowseNode[]> => {
+    const followedPlaylists = account.account_following_playlists ?? [];
+    if (followedPlaylists.length === 0) {
+      return [];
     }
 
-    // Mirror subscriptions + followed playlists into the native cache for car/watch browse. Runs
-    // after syncFromAccount so the merged list includes freshly hydrated directory follows; needs
-    // `context` to hydrate playlist display fields. Soft-fail (never blocks the refresh).
-    await projectLibraryBrowseForAccount(account, context);
+    const response = await requestWithMobileAuthRefresh(context, async (apiRequestService) =>
+      apiRequestService.reqPlaylistGetMany({
+        medium: 'all',
+        page: 1,
+        range: null,
+        sort: 'a_z',
+        type: 'private_followed',
+      })
+    );
 
-    return account;
+    const nodes: NativeCacheBrowseNode[] = [];
+    for (const playlist of response.data) {
+      const node = mapPlaylistToNode(playlist);
+      if (node !== null) {
+        nodes.push(node);
+      }
+    }
+    return nodes;
+  },
+
+  /**
+   * Project the library-browse index to the native cache so CarPlay / Android Auto can list a
+   * user's subscriptions (directory follows + add-by-RSS, from the shared
+   * `subscriptionsRepository`) plus followed playlists with the phone app closed.
+   *
+   * Local-only: the caller supplies playlist nodes it already hydrated, so this stays a pure
+   * projection and runs even when the playlist fetch before it failed. An incomplete car index
+   * beats none at all.
+   */
+  projectLibraryBrowse: async (playlistNodes: NativeCacheBrowseNode[]): Promise<void> => {
+    const subscribed = await subscriptionsRepository.list();
+    const channelNodes = subscribed.map(mapSubscribedChannelToNode);
+    const nodes = mergeLibraryBrowseNodes(channelNodes, playlistNodes);
+    await projectLibraryBrowseIndexToNativeCache({ nodes });
   },
 };

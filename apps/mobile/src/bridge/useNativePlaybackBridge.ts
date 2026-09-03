@@ -1,5 +1,5 @@
 /**
- * Hook to obtain the native playback bridge and subscribe to engine events (step 2.11 / detail 090).
+ * Hook to obtain the native playback bridge and subscribe to engine events.
  *
  * Screens use this instead of importing the native module. Pass partial event handlers; they are
  * kept in a ref so the subscription is registered once and always calls the latest handler.
@@ -30,8 +30,8 @@ export function useNativePlaybackBridge(
       nativePlaybackBridge.addListener('ended', (event) => {
         handlersRef.current?.ended?.(event);
       }),
-      // The adapter delivers raw native errors; normalize to a stable `kind` here (2.27) so RN
-      // consumers can pick an i18n message off the enum instead of raw native text.
+      // The adapter delivers raw native errors; normalize to a stable `kind` here so RN
+      // consumers can pick an i18n message from the enum instead of raw native text.
       nativePlaybackBridge.addListener('error', (payload) => {
         handlersRef.current?.error?.(normalizePlaybackError(payload));
       }),

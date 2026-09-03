@@ -9,6 +9,17 @@ Mobile and web share **supported theme IDs and semantic token values**, not the 
 Mobile screens should also **mirror the web app's visual design** where a counterpart exists (see
 § Screen & visual parity below).
 
+## Legacy app: match layout, not color
+
+When Phase 2 work is driven by previous-generation (`../podverse-rn`) screenshots, align the
+**layout and information architecture** — row structure, control placement, screen boundaries,
+what metadata appears where. Do **not** align the **color scheme**. Nextgen has its own themes, and
+legacy's palette is not a target. Sampling colors out of a legacy screenshot is always wrong; use
+`@podverse/design-tokens` through the active theme.
+
+If a legacy screenshot shows a color-carried meaning (a live badge, an unseen count, a disabled
+state), reproduce the **meaning** with nextgen tokens, not the legacy hue.
+
 ## Supported themes
 
 Same as web — from `@podverse/ui` / `@podverse/design-tokens`:
@@ -29,7 +40,8 @@ Default when unset: **`dark`** (matches web `:root` / `[data-ui-theme='dark']`).
 
 - Web: `localSettings` cookie, key **`uit`** (`apps/web/src/utils/localSettings/`).
 - Mobile: MMKV or AsyncStorage with **same key semantics** (`uit`); full store in Track 16.1.
-- Optional v1.1: honor `Appearance.getColorScheme()` when `uit` unset; still default to `dark`.
+- Unset `uit` is always **`dark`**. Do not follow `Appearance.getColorScheme()` or the OS light/dark
+  setting until the user picks a theme in Settings.
 
 ## Implementation pattern
 
@@ -43,6 +55,12 @@ apps/mobile/src/theme/
 - Wrap app root (with nav shell, Track 7.11+).
 - Wire `StatusBar` style from active theme.
 - Settings theme selector (Track 16.3): same ids as web `SettingsThemeSelector.tsx`.
+- **Dark full-bleed chrome:** `createStyles` maps `screen.backgroundColor` to
+  `background.secondary` when `uiTheme === 'dark'`, and to `background.primary` otherwise.
+  Dark primary is the navy web page wash; on a phone it sits next to the black tab bar
+  (`background.secondary`) and reads as a blue wall. Other themes keep primary so cards
+  (`background.secondary`) still sit on a distinct page. Do not map every theme's screen
+  to secondary, and do not change the shared token hexes for a mobile-only look.
 
 ## Token source of truth
 

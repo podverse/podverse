@@ -4,13 +4,12 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
-import { getQueryParamFromQueueMediumId } from '@podverse/helpers';
+import { dedupedTrimmedUrlCandidates, getQueryParamFromQueueMediumId } from '@podverse/helpers';
 import { SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import { getAddByRSSLivestreamPath } from '../../../utils/addByRSS/itemPath';
 import type { AddByRSSLivestreamIndexItem } from '../../../utils/addByRSS/types';
-import { dedupedTrimmedUrlCandidates } from '../../../utils/image/dedupedTrimmedUrlCandidates';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableTime } from '../../Time/ReadableTime';
 

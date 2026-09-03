@@ -51,7 +51,7 @@ export class Account {
   created_at!: Date;
 
   @Column({ type: 'timestamptz', nullable: true })
-  notifications_last_seen_at?: Date | null;
+  notifications_last_read_at?: Date | null;
 
   @ManyToOne('SharableStatus', (sharableStatus: SharableStatus) => sharableStatus.id)
   @JoinColumn({ name: 'sharable_status_id' })

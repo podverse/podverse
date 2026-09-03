@@ -58,15 +58,15 @@ describe('ScheduledJobService', () => {
 
     const service = new ScheduledJobService();
     const result = await service.upsertByDedupeKey({
-      dedupe_key: 'membership-expiry:account:9',
-      job_type: 'membership-expiry-reminder',
+      dedupe_key: 'admin-notification:campaign:abc',
+      job_type: 'admin-notification-send',
       payload: { account_id: 9 },
       run_after: new Date('2026-06-10T00:00:00.000Z'),
     });
 
     expect(result).toMatchObject({
       id: 5,
-      dedupe_key: 'membership-expiry:account:9',
+      dedupe_key: 'admin-notification:campaign:abc',
       status: ScheduledJobStatusEnum.Pending,
       attempts: 0,
       max_attempts: 5,
@@ -76,7 +76,7 @@ describe('ScheduledJobService', () => {
   it('upsertByDedupeKey resets existing row to pending state', async () => {
     findOneMock.mockResolvedValueOnce({
       attempts: 3,
-      dedupe_key: 'membership-expiry:account:9',
+      dedupe_key: 'admin-notification:campaign:abc',
       id: 9,
       last_error: 'timeout',
       locked_at: new Date('2026-01-01T00:00:00.000Z'),
@@ -90,14 +90,14 @@ describe('ScheduledJobService', () => {
 
     const service = new ScheduledJobService();
     const result = await service.upsertByDedupeKey({
-      dedupe_key: 'membership-expiry:account:9',
-      job_type: 'membership-expiry-reminder',
+      dedupe_key: 'admin-notification:campaign:abc',
+      job_type: 'admin-notification-send',
       payload: { account_id: 9 },
       run_after: new Date('2026-06-20T00:00:00.000Z'),
     });
 
     expect(result).toMatchObject({
-      dedupe_key: 'membership-expiry:account:9',
+      dedupe_key: 'admin-notification:campaign:abc',
       last_error: null,
       locked_at: null,
       locked_by: null,

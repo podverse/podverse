@@ -11,7 +11,7 @@ type MembershipPricingData = {
 
 export async function reqMembershipGetPricing(api: ApiRequestService) {
   return api.apiRequest<{ data: MembershipPricingData } | { message: string }>({
-    path: '/membership/pricing',
+    path: '/product/membership/pricing',
     method: 'GET',
   });
 }

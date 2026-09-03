@@ -1,3 +1,5 @@
+import { ONE_DAY_MS } from './timeConstants.js';
+
 export enum AccountMembershipEnum {
   Trial = 1,
   Premium = 2,
@@ -45,6 +47,56 @@ export function isMembershipExpiredAt(membershipExpiresAt: MembershipExpiresAtIn
   }
 
   return !hasValidMembership({ membership_expires_at: membershipExpiresAt });
+}
+
+/**
+ * How long before expiry the user starts being told, in days. Every surface derives this on demand
+ * from the account snapshot it already holds, so warning the user costs a date comparison. See the
+ * rule `no-membership-expiry-notifications`.
+ */
+export const MEMBERSHIP_EXPIRY_WARNING_DAYS = 14;
+
+export type MembershipExpiryStatus = 'none' | 'expiring_soon' | 'expired';
+
+export interface MembershipExpiryNotice {
+  status: MembershipExpiryStatus;
+  /** Whole days until expiry, rounded up. Null when there is no expiry to count down to. */
+  daysRemaining: number | null;
+}
+
+const NO_EXPIRY_NOTICE: MembershipExpiryNotice = { status: 'none', daysRemaining: null };
+
+/**
+ * Classifies a membership as expired, expiring soon, or neither, from the snapshot the caller
+ * already holds. Shared so web and mobile use one window rather than each picking a number.
+ *
+ * Callers layer their own suppression on top (for example auto-renew enrollment, or a dismissal the
+ * user made); this function only answers where the expiry sits relative to now.
+ */
+export function getMembershipExpiryNotice(
+  membership: MembershipState,
+  now: Date = new Date()
+): MembershipExpiryNotice {
+  if (!membership.isLoggedIn || membership.expiresAt === null) {
+    return NO_EXPIRY_NOTICE;
+  }
+
+  const expiresAt = new Date(membership.expiresAt);
+  if (Number.isNaN(expiresAt.getTime())) {
+    return NO_EXPIRY_NOTICE;
+  }
+
+  const remainingMs = expiresAt.getTime() - now.getTime();
+  if (remainingMs <= 0) {
+    return { status: 'expired', daysRemaining: 0 };
+  }
+
+  const daysRemaining = Math.ceil(remainingMs / ONE_DAY_MS);
+  if (daysRemaining > MEMBERSHIP_EXPIRY_WARNING_DAYS) {
+    return { status: 'none', daysRemaining };
+  }
+
+  return { status: 'expiring_soon', daysRemaining };
 }
 
 export type MembershipTier = 'trial' | 'premium';

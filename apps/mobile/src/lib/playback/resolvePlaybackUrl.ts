@@ -7,7 +7,7 @@ import type { DownloadRecord } from '../../downloads';
 import { resolveItemAudioEnclosureUrl } from './resolveEnclosureUrl';
 
 /**
- * Resolve the URL the media engine should load for an item (master step 13.6), preferring a
+ * Resolve the URL the media engine should load for an item, preferring a
  * completed **local download** (`file://`) over the remote enclosure. Passed into the same
  * `podverse-media-engine` load path as remote playback — there is no second player.
  *

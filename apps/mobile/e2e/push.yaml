@@ -1,11 +1,11 @@
 appId: com.podverse.app.next
 name: Push Notification Tap Routing
 ---
-# Track 14.8: validate notification tap routing (443) without a live push server.
+# Validate notification tap routing without a live push server.
 # Maestro cannot deliver a real push, so we drive the notification-open code path via a
 # scheme URL that mimics the notification payload target ({ type: podcast, id_text }).
-# App.tsx feeds notification-open targets and deep links into the SAME pending-URL buffer (453)
-# + getStateFromPath mapping (452), so this exercises the identical routing path a tap uses.
+# App.tsx feeds notification-open targets and deep links into the SAME pending-URL buffer
+# + getStateFromPath mapping, so this exercises the identical routing path a tap uses.
 # E2E-safe id_text seeded by tools/web/seed-e2e.mjs.
 
 - runFlow: shared/launch-and-connect.yaml

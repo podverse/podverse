@@ -1,10 +1,10 @@
 appId: com.podverse.app.next
 name: V4V Placeholder
 ---
-# Track 19.6 (565): the full-player Value-for-Value button opens the V4V placeholder screen
-# (no LNURL/payment — real mobile V4V is operator-TBD). Requires EXPO_PUBLIC_MOBILE_V4V_ENABLED=1
-# (set by scripts/mobile/dev-e2e.sh) so the button renders — it is hidden by default (store policy,
-# detail 359). API-backed + test-assets: playback is needed to reach the full player (mirrors
+# The full-player Value-for-Value button opens the V4V information screen
+# (no LNURL/payment logic). Requires EXPO_PUBLIC_MOBILE_V4V_ENABLED=1 (set by
+# scripts/mobile/dev-e2e.sh) so the button renders — it is hidden by default (store policy).
+# API-backed + test-assets playback is needed to reach the full player (mirrors
 # play-mini-player.yaml's play sequence).
 
 - runFlow: shared/launch-and-connect.yaml

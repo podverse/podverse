@@ -81,18 +81,6 @@ components:
           - week
           - month
           - all-time
-    StatsRangeQueryOptional:
-      in: query
-      name: range
-      required: false
-      description: Aggregation range used for ranked list ordering.
-      schema:
-        type: string
-        enum:
-          - day
-          - week
-          - month
-          - all-time
   schemas:
     MessageResponse:
       type: object
@@ -644,7 +632,7 @@ components:
                 `membership.feature_not_available_for_account_type`,
                 `membership.add_by_rss_feed_limit_reached`,
                 `membership.manual_refresh_hourly_limit_reached`). Clients localise the user-facing
-                message from this key; see MembershipDeniedErrorResponse.
+                message from this key.
               example: membership.membership_expired
             renewPath:
               type: string
@@ -652,30 +640,6 @@ components:
               description: >-
                 Present on membership denials. Destination path for the renew/extend action (web
                 route; native clients map it to their own membership screen).
-              example: /membership/renew
-    MembershipDeniedErrorResponse:
-      description: >-
-        403 body returned when an authenticated request is blocked by the membership/entitlement gate.
-        `code`/`i18nKey` distinguish the reason: `membership_expired` (membership expired or missing)
-        vs `feature_not_available_for_account_type` (valid membership but the tier lacks the capability)
-        vs the add-by-RSS feed-limit / manual-refresh limit codes. There is intentionally no
-        expired-vs-never discriminator: an unauthenticated request returns 401, and every account
-        receives a free trial at sign-up, so a logged-in denial is always a renew.
-      allOf:
-        - $ref: "#/components/schemas/AuthorizationErrorResponse"
-        - type: object
-          properties:
-            message:
-              type: string
-              example: Your membership has expired. Renew to use this feature.
-            code:
-              type: string
-              example: membership_expired
-            i18nKey:
-              type: string
-              example: membership.membership_expired
-            renewPath:
-              type: string
               example: /membership/renew
     NotFoundErrorResponse:
       allOf:
@@ -953,6 +917,72 @@ components:
     ApiPostAccountFollowChannelResponse200:
       allOf:
         - $ref: "#/components/schemas/MessageResponse"
+    ApiPostAccountFollowChannelBulkRequest:
+      type: object
+      required:
+        - channel_id_texts
+      properties:
+        channel_id_texts:
+          type: array
+          minItems: 1
+          maxItems: 1000
+          items:
+            type: string
+      example:
+        channel_id_texts:
+          - "kM7T2xYqLp"
+          - "9fZq4Nb1Rd"
+    BulkFollowChannelResult:
+      type: object
+      required:
+        - channel_id_text
+        - outcome
+      properties:
+        channel_id_text:
+          type: string
+        outcome:
+          type: string
+          enum:
+            - followed
+            - already_following
+            - not_found
+    ApiPostAccountFollowChannelBulkResponse200:
+      type: object
+      required:
+        - totals
+        - results
+      properties:
+        totals:
+          type: object
+          required:
+            - requested
+            - followed
+            - already_following
+            - not_found
+          properties:
+            requested:
+              type: integer
+            followed:
+              type: integer
+            already_following:
+              type: integer
+            not_found:
+              type: integer
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/BulkFollowChannelResult"
+      example:
+        totals:
+          requested: 2
+          followed: 1
+          already_following: 1
+          not_found: 0
+        results:
+          - channel_id_text: "kM7T2xYqLp"
+            outcome: followed
+          - channel_id_text: "9fZq4Nb1Rd"
+            outcome: already_following
     ApiPostAccountFollowPlaylistRequest:
       type: object
       required:
@@ -1012,7 +1042,7 @@ components:
           type: object
           required:
             - items
-            - last_seen_at
+            - last_read_at
             - pagination
             - sections
           properties:
@@ -1020,7 +1050,7 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/AccountNotificationItem"
-            last_seen_at:
+            last_read_at:
               type: string
               format: date-time
               nullable: true
@@ -1040,31 +1070,128 @@ components:
             sections:
               type: object
               required:
-                - new_count
+                - unread_count
               properties:
-                new_count:
+                unread_count:
                   type: integer
-    ApiGetAccountNotificationsUnseenCountResponse200:
+    ApiGetAccountNotificationsUnreadCountResponse200:
       type: object
       properties:
         data:
           type: object
           required:
-            - unseen_count
+            - unread_count
           properties:
-            unseen_count:
+            unread_count:
               type: integer
-    ApiPostAccountNotificationsMarkSeenResponse200:
+    ApiPostAccountNotificationsMarkReadResponse200:
       type: object
+      properties:
+        data:
+          type: object
+          required:
+            - last_read_at
+          properties:
+            last_read_at:
+              type: string
+              format: date-time
+    ChannelSeenState:
+      type: object
+      required:
+        - channel_id_text
+        - has_more_unseen
+        - last_seen_at
+        - unseen_count
+      properties:
+        channel_id_text:
+          type: string
+        last_seen_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Null when the account has never opened this channel on any device.
+        unseen_count:
+          type: integer
+          minimum: 0
+          maximum: 20
+          description: Items published since last_seen_at, capped at 20.
+        has_more_unseen:
+          type: boolean
+          description: True when the real count exceeds the cap, so clients can render "20+".
+    ApiGetAccountChannelSeenResponse200:
+      type: object
+      required:
+        - data
+        - meta
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChannelSeenState"
+        meta:
+          $ref: "#/components/schemas/ListMeta"
+    ApiPostAccountChannelSeenMarkResponse200:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChannelSeenState"
+    ApiPostAccountChannelSeenMarkAllResponse200:
+      type: object
+      required:
+        - data
       properties:
         data:
           type: object
           required:
             - last_seen_at
+            - updated_count
           properties:
             last_seen_at:
               type: string
               format: date-time
+            updated_count:
+              type: integer
+    AddByRssSeenState:
+      type: object
+      required:
+        - feed_url
+        - last_seen_at
+      properties:
+        feed_url:
+          type: string
+        last_seen_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Null when the account has never opened this feed on any device.
+      description: >-
+        Seen state for an add-by-RSS feed. Carries no unseen count because the server stores no
+        add-by-RSS items; the device holding the parsed feed derives that itself.
+    ApiGetAccountChannelSeenAddByRssResponse200:
+      type: object
+      required:
+        - data
+        - meta
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddByRssSeenState"
+        meta:
+          $ref: "#/components/schemas/ListMeta"
+    ApiPostAccountChannelSeenMarkAddByRssResponse200:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddByRssSeenState"
     ApiGetAccountNotificationPreferencesResponse200:
       type: object
       properties:
@@ -1098,7 +1225,7 @@ components:
         - title
         - created_at
         - expires_at
-        - is_new
+        - is_unread
       properties:
         id:
           type: integer
@@ -1109,7 +1236,6 @@ components:
           enum:
             - new-content
             - livestream
-            - membership-expiry
             - product-update
             - maintenance
             - terms-of-service
@@ -1132,8 +1258,11 @@ components:
         expires_at:
           type: string
           format: date-time
-        is_new:
+        is_unread:
           type: boolean
+          description: >-
+            True until the account opens its inbox after this row was created. Derived per response
+            from the account's last_read_at rather than stored per row.
     AccountNotificationPreference:
       type: object
       required:
@@ -1152,7 +1281,6 @@ components:
           enum:
             - new-content
             - livestream
-            - membership-expiry
             - product-update
             - maintenance
             - terms-of-service
@@ -1173,7 +1301,6 @@ components:
           enum:
             - new-content
             - livestream
-            - membership-expiry
             - product-update
             - maintenance
             - terms-of-service
@@ -4159,6 +4286,57 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/follow/channel/bulk:
+    post:
+      operationId: apiPostAccountFollowChannelBulk
+      tags:
+        - account
+      summary: POST /account/follow/channel/bulk
+      description: >-
+        Follow many channels in one request, reporting an outcome per channel. Idempotent —
+        resubmitting the same list reports `already_following` and changes nothing. Requires a valid
+        membership, matching single follow. Used by mobile to push locally-made subscriptions up when
+        a signed-out user creates an account.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiPostAccountFollowChannelBulkRequest"
+      responses:
+        "200":
+          description: Per-channel follow outcomes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPostAccountFollowChannelBulkResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
   /account/follow/playlist:
     post:
       operationId: apiPostAccountFollowPlaylist
@@ -4206,6 +4384,243 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/channel-seen:
+    get:
+      operationId: apiGetAccountChannelSeen
+      tags:
+        - account
+      summary: GET /account/channel-seen
+      description: >-
+        Returns a bounded page of the authenticated account's followed channels with each channel's
+        last_seen_at and unseen item count. Counts cap at 20; has_more_unseen distinguishes exactly
+        20 from more than 20. A page holds 500 channels, so one request normally covers a whole
+        subscription list — there is no per-channel request. Ordered by channel id, which is not the
+        order any client renders, so callers match on channel_id_text rather than by position. Rate
+        limited per account, shared with the add-by-RSS read.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiGetAccountChannelSeenResponse200"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/channel-seen/add-by-rss:
+    get:
+      operationId: apiGetAccountChannelSeenAddByRss
+      tags:
+        - account
+      summary: GET /account/channel-seen/add-by-rss
+      description: >-
+        Returns a bounded page of last_seen_at for the account's followed add-by-RSS feeds. No unseen
+        count: the server stores no add-by-RSS items, so only the device holding the parsed feed can
+        count them. Paginated separately from the channel list because the two lists differ in
+        length. Rate limited per account, shared with the channel read.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiGetAccountChannelSeenAddByRssResponse200"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/channel-seen/mark:
+    post:
+      operationId: apiPostAccountChannelSeenMark
+      tags:
+        - account
+      summary: POST /account/channel-seen/mark
+      description: >-
+        Marks channels seen. Omit last_seen_at to record now, which is the ordinary case of opening a
+        channel; supply it to replay a moment a device already recorded, as the sign-in merge does.
+        Stored timestamps only move forward, so replaying an older value is a no-op.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - entries
+              properties:
+                entries:
+                  type: array
+                  minItems: 1
+                  maxItems: 60
+                  items:
+                    type: object
+                    required:
+                      - channel_id_text
+                    properties:
+                      channel_id_text:
+                        type: string
+                      last_seen_at:
+                        type: string
+                        format: date-time
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPostAccountChannelSeenMarkResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/channel-seen/mark-all:
+    post:
+      operationId: apiPostAccountChannelSeenMarkAll
+      tags:
+        - account
+      summary: POST /account/channel-seen/mark-all
+      description: >-
+        Marks every followed channel and add-by-RSS feed seen. Swept server-side so the cost does not
+        scale with how much the account follows.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPostAccountChannelSeenMarkAllResponse200"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/channel-seen/mark-add-by-rss:
+    post:
+      operationId: apiPostAccountChannelSeenMarkAddByRss
+      tags:
+        - account
+      summary: POST /account/channel-seen/mark-add-by-rss
+      description: >-
+        Marks add-by-RSS feeds seen. The server stores no add-by-RSS items and so returns no unseen
+        count — the device derives that from the feed it holds. This keeps the timestamp in sync
+        across devices.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - entries
+              properties:
+                entries:
+                  type: array
+                  minItems: 1
+                  maxItems: 60
+                  items:
+                    type: object
+                    required:
+                      - feed_url
+                    properties:
+                      feed_url:
+                        type: string
+                      last_seen_at:
+                        type: string
+                        format: date-time
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPostAccountChannelSeenMarkAddByRssResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
         "500":
           description: Internal server error
           content:
@@ -4658,13 +5073,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalServerErrorResponse"
-  /account/notifications/mark-seen:
+  /account/notifications/mark-read:
     post:
-      operationId: apiPostAccountNotificationsMarkSeen
+      operationId: apiPostAccountNotificationsMarkRead
       tags:
         - account
-      summary: POST /account/notifications/mark-seen
-      description: Updates the authenticated account's notifications_last_seen_at timestamp.
+      summary: POST /account/notifications/mark-read
+      description: Updates the authenticated account's notifications_last_read_at timestamp.
       security:
         - bearerAuth: []
         - cookieAuth: []
@@ -4674,7 +5089,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiPostAccountNotificationsMarkSeenResponse200"
+                $ref: "#/components/schemas/ApiPostAccountNotificationsMarkReadResponse200"
         "401":
           description: Unauthorized
           content:
@@ -4687,13 +5102,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalServerErrorResponse"
-  /account/notifications/unseen-count:
+  /account/notifications/unread-count:
     get:
-      operationId: apiGetAccountNotificationsUnseenCount
+      operationId: apiGetAccountNotificationsUnreadCount
       tags:
         - account
-      summary: GET /account/notifications/unseen-count
-      description: Returns the unseen notification count for the authenticated account.
+      summary: GET /account/notifications/unread-count
+      description: Returns the unread notification count for the authenticated account.
       security:
         - bearerAuth: []
         - cookieAuth: []
@@ -4703,7 +5118,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiGetAccountNotificationsUnseenCountResponse200"
+                $ref: "#/components/schemas/ApiGetAccountNotificationsUnreadCountResponse200"
         "401":
           description: Unauthorized
           content:

@@ -2,57 +2,21 @@ appId: com.podverse.app.next
 ---
 # Connect to Metro and get past the Expo Dev Client launcher + developer menu so
 # app testIDs are assertable.
-# iOS launcher lists http://localhost:8081; Android emulator lists http://10.0.2.2:8081.
+# iOS launcher lists http://localhost:8081. Android can omit the discovered URL, so its known
+# emulator bridge URL is entered manually below.
 #
-# clearState re-triggers the first-launch developer-menu onboarding every run, and that
-# onboarding card appears only AFTER the JS bundle finishes loading. `when: visible` is a
-# one-shot snapshot, so guarding the dismissal races the async bundle load: the guard fires
-# before the card exists, the tap is skipped, then the card pops up and blocks the app.
-# Instead, wait for each obstruction before acting. All flows launch with clearState, so the
-# onboarding card + dev-menu sheet always appear.
+# clearState can leave the Dev Client onboarding card over either the launcher or an already
+# connected app. `when: visible` is a one-shot snapshot, so wait for the card before dismissing it.
+# The launcher may also omit Android's discovered server, so its known emulator URL is entered
+# manually when the launcher is present.
 
-# Wait for the Dev Client launcher list to finish rendering before the one-shot URL taps
-# below. The `when: visible` guards are single snapshots; on Android the URL row can render a
-# beat after the screen appears, so without this wait the guard misses, the tap is skipped, and
-# the bundle never loads (then "Continue" never appears and the flow times out on the launcher).
-# "Development servers" is the launcher heading on both iOS and Android.
-# Use the slowest timeout: the FIRST flow of each platform in a full suite run is a cold Dev Client
-# launch where Metro has not yet cached that platform's bundle, so the launcher heading can take
-# well over TIMEOUT_SLOW to render (observed on Android add-by-rss/api-health mid-suite).
+# Dismiss onboarding when it is already present before the launcher wait. The card is part of the
+# Dev Client's own startup, so it is on screen within a tier or two of launchApp returning; a longer
+# probe only adds dead time to the common case where it never appears at all.
 - extendedWaitUntil:
-    visible: "Development servers"
-    timeout: ${TIMEOUT_SLOWEST}
-
-# Dev Client launcher: tap the Metro URL for this platform.
-- runFlow:
-    when:
-      visible: "http://localhost:8081"
-    commands:
-      - tapOn: "http://localhost:8081"
-- runFlow:
-    when:
-      visible: "http://10.0.2.2:8081"
-    commands:
-      - tapOn: "http://10.0.2.2:8081"
-
-# After tapping the Metro URL the JS bundle loads asynchronously and the app either:
-#   (a) lands directly on home-screen (no dev-client onboarding card — observed on the current
-#       Expo dev-client / iOS 26 build, which connects straight through), or
-#   (b) shows the first-launch onboarding card ("This is the developer menu ... Continue") that
-#       overlays the app and must be dismissed.
-# Do NOT hard-wait for "Continue": on path (a) it never appears and the flow fails in this shared
-# step before its own assertions. Instead, try home-screen directly first (optional). If the
-# onboarding card is blocking it, that optional wait times out — by which point the bundle has
-# loaded and the card has rendered — then dismiss the card and require home-screen.
-- extendedWaitUntil:
-    visible:
-      id: home-screen
-    timeout: ${TIMEOUT_SLOW}
+    visible: "Continue"
+    timeout: ${TIMEOUT_FASTER}
     optional: true
-
-# Dismiss the onboarding card only if it actually appeared (path b). Tapping Continue reveals the
-# dev-menu bottom sheet (Reload / Go home / ...), which still occludes the app; close it by tapping
-# the dimmed app scrim above it (locale-independent).
 - runFlow:
     when:
       visible: "Continue"
@@ -63,6 +27,80 @@ appId: com.podverse.app.next
           timeout: ${TIMEOUT_SLOW}
       - tapOn:
           point: "50%,18%"
+
+# Wait for the Dev Client launcher list when this launch still needs a server connection.
+# The optional wait allows an already connected app to continue to its home screen.
+# "Development servers" is the launcher heading on both iOS and Android.
+# Use the slowest timeout: the FIRST flow of each platform in a full suite run is a cold Dev Client
+# launch where Metro has not yet cached that platform's bundle, so the launcher heading can take
+# well over TIMEOUT_SLOW to render (observed on Android add-by-rss/api-health mid-suite).
+- extendedWaitUntil:
+    visible: "Development servers"
+    timeout: ${TIMEOUT_SLOWEST}
+    optional: true
+
+# Dev Client launcher: tap the discovered iOS Metro URL when the launcher is visible.
+- runFlow:
+    when:
+      visible: "http://localhost:8081"
+    commands:
+      - tapOn: "http://localhost:8081"
+
+# Fallback for Android when the launcher lists no discovered server. The runner reverse-forwards
+# Metro into the emulator (`adb reverse tcp:8081`), so the launcher normally offers
+# http://localhost:8081 and the single tap above is taken on both platforms. Typing the bridge URL
+# is the most expensive thing Maestro does on Android, so this block should stay unreached; keep it
+# for emulators where the bridge did not come up.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - runFlow:
+          when:
+            visible: "Development servers"
+          commands:
+            - tapOn: "Enter URL manually"
+            - inputText: "http://10.0.2.2:8081"
+            - hideKeyboard
+            - tapOn: "Connect"
+
+# After connecting to Metro the JS bundle loads asynchronously and the app either:
+#   (a) lands directly on home-screen with no dev-client onboarding card, or
+#   (b) shows the first-launch onboarding card ("This is the developer menu ... Continue") that
+#       overlays the app and must be dismissed.
+# Never hard-wait for "Continue" here: on path (a) it never appears, so this shared step would fail
+# before the calling flow's own assertions. Probe home-screen first, then branch on whether it
+# appeared, so each path waits only for the thing it is actually waiting on and neither pays the
+# other's timeout.
+- extendedWaitUntil:
+    visible:
+      id: home-screen
+    timeout: ${TIMEOUT_FAST}
+    optional: true
+
+# Path (b): home-screen is still hidden, so the onboarding card is what is blocking it. Wait for the
+# card itself rather than for a fixed delay. Tapping Continue reveals the dev-menu bottom sheet
+# (Reload / Go home / ...), which still occludes the app; close it by tapping the dimmed app scrim
+# above it (locale-independent).
+- runFlow:
+    when:
+      notVisible:
+        id: home-screen
+    commands:
+      - extendedWaitUntil:
+          visible: "Continue"
+          timeout: ${TIMEOUT_SLOW}
+          optional: true
+      - runFlow:
+          when:
+            visible: "Continue"
+          commands:
+            - tapOn: "Continue"
+            - extendedWaitUntil:
+                visible: "Reload"
+                timeout: ${TIMEOUT_SLOW}
+            - tapOn:
+                point: "50%,18%"
 
 - extendedWaitUntil:
     visible:

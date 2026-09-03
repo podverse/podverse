@@ -42,6 +42,32 @@ Within each category, vars are required or optional as listed in the sections be
 contributors can exercise notification scheduling and retention locally after database migration
 without requiring MQ/Parser categories.
 
+`NOTIFICATION_RETENTION_DAYS` (Base, optional, default 30) sets how long delivered notification rows
+are kept before `notificationsPlatformPurge` deletes them. The window applies to rows already stored,
+so shortening it takes effect on the next run.
+
+`SCHEDULED_JOB_RETENTION_DAYS` (Base, optional, default 30) sets how long finished `scheduled_job`
+rows survive the same purge. It is deliberately separate from the notification window: those rows are
+an operational record of work the platform did rather than something a user reads, so an operator
+tuning inbox retention should not silently move the debugging trail.
+
+### Retention windows
+
+Every window below is optional, falls back to a shared default in `@podverse/helpers`, and is
+validated at startup as a number of days between 1 and 3650 — a value outside that range is a unit
+mistake (seconds pasted into a field counted in days) rather than a deliberate choice.
+
+| Variable                                | Default | Deletes                                          |
+| --------------------------------------- | ------- | ------------------------------------------------ |
+| `NOTIFICATION_RETENTION_DAYS`           | 30      | Delivered `account_notification` rows            |
+| `SCHEDULED_JOB_RETENTION_DAYS`          | 30      | Finished `scheduled_job` rows                    |
+| `ON_DEMAND_PARSER_EVENT_RETENTION_DAYS` | 30      | On-demand parse request records                  |
+| `STATS_TRACK_EVENT_RETENTION_DAYS`      | 30      | Raw listen track events, before aggregate update |
+
+`deleteOutdatedOnDemandParserEvent` accepts a `-days` argument that overrides its variable for a
+single run, so an operator clearing a specific backlog by hand does not have to change deployment
+config to do it.
+
 ### Adding a new command
 
 When you add a new worker command: (1) add it to `KNOWN_COMMANDS` in

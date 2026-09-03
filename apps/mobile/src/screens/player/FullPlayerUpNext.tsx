@@ -19,10 +19,9 @@ type UpNextRow = {
 };
 
 /**
- * Full player up-next sheet (Track 11.9). Lists manual upcoming rows from the server queue first,
- * then the seeded auto-queue rows (Track 10 stores). Rows carry playable id prefixes so tapping play
- * routes through the shared orchestrator (`useHomeRowPlayback`). Shows an i18n empty state when
- * nothing is upcoming.
+ * Full player up-next sheet. Lists manual upcoming rows from the server queue first, then the
+ * seeded auto-queue rows. Rows carry playable id prefixes so tapping play routes through the shared
+ * orchestrator (`useHomeRowPlayback`). Shows an i18n empty state when nothing is upcoming.
  */
 export function FullPlayerUpNext() {
   const { t } = useTranslation();

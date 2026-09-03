@@ -1,31 +1,57 @@
+import { articleStrippedTitle } from '@podverse/helpers';
+import type { DTOItem } from '@podverse/helpers/dto';
 import { getNonEmptyTrimmedStringProperty, isObjectLike } from '@podverse/helpers/guards';
 
 import { createMobileApiRequestService, requestWithMobileAuthRefresh } from '../../auth';
 import type { AuthStatus } from '../../auth/AuthProvider';
-import type { SubscribedChannel, SubscriptionSource } from '../../data/repositories';
-import { subscriptionsRepository } from '../../data/repositories';
+import type {
+  MobileAuthRequestContext,
+  SubscribedChannel,
+  SubscriptionSource,
+} from '../../data/repositories';
+import {
+  channelItemsRepository,
+  channelLiveStatusRepository,
+  channelSeenRepository,
+  downloadsRepository,
+  subscriptionsRepository,
+} from '../../data/repositories';
+import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
+import type { HomeSortOption } from '../../prefs/homeListPrefs';
+import { DEFAULT_HOME_SORT } from '../../prefs/homeListPrefs';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
-import type { SubscriptionListFilter } from '../../prefs/subscriptionFilter';
+import type { HomeRowMetadata } from './homeRowMetadata';
+import { buildHomeRowMetadata } from './homeRowMetadata';
 
 export type HomeFeedRowData = {
   id: string;
   imageUrl: string | null;
+  /** Source-local identity for detail routing; directory rows use their channel id text. */
+  sourceId?: string;
   subtitle: string | null;
   title: string;
-  /** Set only for the authenticated Podcasts subscribed view so taps can route by origin. */
+  /** Set for Podcasts subscription rows so taps can route by origin. */
   source?: SubscriptionSource;
+  /**
+   * Set only for subscription rows. The other media types list content rather than follows, and
+   * "how many unseen" is a question only a subscription can answer.
+   */
+  metadata?: HomeRowMetadata;
 };
 
 type HomeFeedOptions = {
-  /** Applies only to the authenticated Podcasts subscribed view (mixed by default). */
-  subscriptionFilter?: SubscriptionListFilter;
+  /**
+   * Applies to the two locally-read views, Podcasts and Episodes. The remaining media types are
+   * server-ranked and ignore it.
+   */
+  sort?: HomeSortOption;
 };
 
-type HomeFeedAuthDeps = {
-  accessToken: string | null;
-  clearSession: () => Promise<void>;
-  refreshToken: string | null;
-  setTokens: (params: { accessToken: string; refreshToken: string }) => Promise<void>;
+/**
+ * Composed from the repository context rather than restated, so the shape cannot drift from what
+ * `requestWithMobileAuthRefresh` actually needs.
+ */
+type HomeFeedAuthDeps = MobileAuthRequestContext & {
   status: AuthStatus;
 };
 
@@ -184,14 +210,76 @@ const normalizeClipRows = (items: unknown[]): HomeFeedRowData[] => {
   return rows;
 };
 
-const mapSubscribedChannelToRow = (channel: SubscribedChannel): HomeFeedRowData => {
+/**
+ * Map a full item to a feed row. Used wherever rows come from typed `DTOItem`s rather than a raw
+ * list payload, so a stored episode and a freshly fetched one render identically.
+ */
+export const mapItemToHomeFeedRow = (item: DTOItem): HomeFeedRowData => {
+  return {
+    id: item.id_text,
+    imageUrl: getItemPrimaryImageUrl(item),
+    subtitle: item.channel?.title ?? null,
+    title: item.title ?? item.id_text,
+  };
+};
+
+export const mapItemsToHomeFeedRows = (items: readonly DTOItem[]): HomeFeedRowData[] => {
+  return items.map(mapItemToHomeFeedRow).filter((row) => row.id.length > 0);
+};
+
+const applyHomeSort = (rows: HomeFeedRowData[], sort: HomeSortOption): HomeFeedRowData[] => {
+  if (sort !== 'alphabetical') {
+    return rows;
+  }
+  return [...rows].sort((a, b) =>
+    articleStrippedTitle(a.title).localeCompare(articleStrippedTitle(b.title))
+  );
+};
+
+const mapSubscribedChannelToRow = (
+  channel: SubscribedChannel,
+  metadata: HomeRowMetadata | undefined
+): HomeFeedRowData => {
   return {
     id: channel.idText,
     imageUrl: channel.imageUrl,
+    metadata,
+    sourceId: channel.sourceIdText,
     source: channel.source,
     subtitle: null,
     title: channel.title,
   };
+};
+
+/**
+ * Attach what each subscription row says about itself, from the device.
+ *
+ * The three reads run together and are indexed once rather than queried per row, so a long
+ * subscription list costs the same three queries a short one does.
+ *
+ * Every source is local. A row states its latest episode, unseen count, downloads, and whether it
+ * is on the air with no connection at all — the live status being the one piece that had to be
+ * synced ahead of time, because live items are filtered out of every regular item query and nothing
+ * already stored implies one.
+ */
+const attachSubscriptionMetadata = async (
+  subscribed: readonly SubscribedChannel[]
+): Promise<HomeFeedRowData[]> => {
+  const [broadcastingKeys, downloadedCountByChannel, unseen] = await Promise.all([
+    channelLiveStatusRepository.listBroadcastingKeys(),
+    downloadsRepository.countCompletedByChannel(),
+    channelSeenRepository.listUnseen(),
+  ]);
+
+  const metadata = buildHomeRowMetadata(subscribed, {
+    broadcastingKeys,
+    downloadedCountByChannel,
+    unseen,
+  });
+
+  return subscribed.map((channel) =>
+    mapSubscribedChannelToRow(channel, metadata.get(channel.idText))
+  );
 };
 
 export const fetchHomeFeedRows = async (
@@ -199,6 +287,20 @@ export const fetchHomeFeedRows = async (
   authDeps: HomeFeedAuthDeps,
   options: HomeFeedOptions = {}
 ): Promise<HomeFeedRowData[]> => {
+  if (mediaType === 'podcasts') {
+    // The Podcasts view mixes directory follows + add-by-RSS from the shared offline-first store.
+    // Read regardless of auth state: subscriptions are device-local, so a signed-out user with
+    // subscriptions sees them here exactly as a signed-in one does.
+    //
+    // Read before the API is even consulted, and with no directory fallback, because Home shows
+    // what the user subscribed to and nothing else. An unconfigured API or no connection changes
+    // nothing about that list.
+    const subscribed = await subscriptionsRepository.list({
+      sort: options.sort ?? DEFAULT_HOME_SORT,
+    });
+    return attachSubscriptionMetadata(subscribed);
+  }
+
   const apiRequestService = createMobileApiRequestService(authDeps.accessToken);
   if (apiRequestService === null) {
     return [];
@@ -206,30 +308,25 @@ export const fetchHomeFeedRows = async (
 
   const listType = authDeps.status === 'authenticated' ? 'subscribed' : 'global';
 
-  if (mediaType === 'podcasts') {
-    // Authenticated Podcasts subscribed view mixes directory follows + add-by-RSS from the shared
-    // offline-first cache (9b.8 / 8.16); anonymous still shows the global directory list.
-    if (authDeps.status === 'authenticated') {
-      const subscribed = await subscriptionsRepository.list({
-        filter: options.subscriptionFilter ?? 'all',
-      });
-      return subscribed.map(mapSubscribedChannelToRow);
+  if (mediaType === 'episodes') {
+    // Episodes for subscribed channels come from the device, so this list reads, filters, and
+    // sorts the same with no connection. The ranking is local rather than server-side as a result.
+    const stored = await channelItemsRepository.listSubscribed({
+      sort: options.sort ?? DEFAULT_HOME_SORT,
+    });
+    if (stored.length > 0) {
+      return mapItemsToHomeFeedRows(stored);
     }
 
-    const response = await requestWithMobileAuthRefresh(authDeps, async (api) =>
-      api.reqChannelGetMany({
-        category: null,
-        medium: 'podcasts',
-        page: HOME_FEED_PAGE,
-        range: null,
-        sort: 'recent',
-        type: listType,
-      })
-    );
-    return normalizeChannelRows(response.data);
-  }
+    // Nothing stored yet — a fresh install whose first sync has not reached episodes. Only an
+    // account can be asked to fill that gap: subscriptions are device-local, so the server can
+    // answer "what is this user subscribed to" for a signed-in device and nothing better than the
+    // global directory for a signed-out one. Home does not show the directory, so a signed-out
+    // device waits for the queue instead.
+    if (authDeps.status !== 'authenticated') {
+      return [];
+    }
 
-  if (mediaType === 'episodes') {
     const response = await requestWithMobileAuthRefresh(authDeps, async (api) =>
       api.reqItemGetMany({
         category: null,
@@ -237,10 +334,13 @@ export const fetchHomeFeedRows = async (
         page: HOME_FEED_PAGE,
         range: null,
         sort: 'recent',
-        type: listType,
+        type: 'subscribed',
       })
     );
-    return normalizeItemRows(response.data);
+    // The subscribed-items endpoint ranks by recency only, so a title order is applied here to the
+    // page it returned. Same set either way — this path exists to fill a screen while the item sync
+    // catches up, not to be a second source of episodes.
+    return applyHomeSort(normalizeItemRows(response.data), options.sort ?? DEFAULT_HOME_SORT);
   }
 
   if (mediaType === 'clips') {

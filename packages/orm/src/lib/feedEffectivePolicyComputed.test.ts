@@ -1,6 +1,5 @@
 /**
- * Parity fixture matrix — plan **07b**
- * `.llm/plans/completed/feed-status-table-replacement/07b-parity-fixture-matrix.md`
+ * Parity fixture matrix for computed feed policy.
  */
 
 import { FeedConditionTypeKeyEnum } from '@orm/entities/feed/feedConditionType.js';

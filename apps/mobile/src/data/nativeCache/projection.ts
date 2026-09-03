@@ -7,42 +7,42 @@
  * that own queue / downloads / library-index state MUST call the matching projection helper on
  * every successful local mutation (and after sync reconcile) so the native cache stays coherent.
  *
- * Write path (master step 12.4): each helper stamps the versioned envelope (12.1 / `380`) and
+ * Each helper stamps the versioned envelope and
  * forwards the JSON to the media-engine bridge (`writeQueueSnapshot` / `writeDownloadsIndex` /
- * `writeLibraryBrowseIndex`, step 2.35 / detail 114), which persists durably on device (iOS
- * `PodverseNativeCache` 12.2 / Android `PodverseNativeCache` 12.3). Bridge writes are **best-effort
+ * `writeLibraryBrowseIndex`), which persists durably on device (iOS
+ * `PodverseNativeCache` / Android `PodverseNativeCache`). Bridge writes are **best-effort
  * and soft-fail**: a failure (or a JS-only context where the native module is not linked, e.g.
  * unit tests) must never roll back the SQLite mutation that triggered the projection. In `__DEV__`
  * a failure logs once.
  *
- * Queue projection call-site audit (master step 10.22 / detail 331): every persistent server-queue
+ * Every persistent server-queue
  * mutation projects exactly once per commit via `queueRepository` — add item/clip next & last,
  * move-now-playing-to-history, and the now-playing / upcoming background syncs (see
  * `projectQueueForQueue`). There is no server `update-is-active` write on mobile yet (the active
  * queue is only in-memory store state in `QueuesProvider` / `useQueueResourcesLoadActive`), and the
  * auto-queue store is in-memory/transient (no persistent commit for car/watch to read); an
  * auto-queue advance materializes a manual-queue move-to-history (which projects) plus a transient
- * now-playing that the Track 12 native-cache now-playing hook will own. Do not project from React
+ * now-playing state. Do not project from React
  * providers/screens — projection stays in the data layer.
  *
- * Downloads projection (master step 13.9 / detail 438): `downloadsRepository` rebuilds the full
+ * `downloadsRepository` rebuilds the full
  * completed-downloads set and calls `projectDownloadsIndexToNativeCache` on every mutation
- * (complete / delete / clear) so offline car browse (Track 12.14) reads local `file://` paths
+ * (complete / delete / clear) so offline car browse reads local `file://` paths
  * without SQLite.
  *
- * Library-browse projection (master step 12.4): `accountRepository` projects a browse index derived
+ * `accountRepository` projects a browse index derived
  * from the account's add-by-RSS followed channels on snapshot save/clear. Followed
  * channel/playlist entities (numeric-id-only in `DTOAccount`) need hydration before they can be
- * browse nodes — a fuller library index store is future work (Track 12.12).
+ * browse nodes.
  */
 
 import { nativePlaybackBridge } from '../../bridge/nativePlaybackBridge';
 
 /**
- * Canonical native-cache schema version (master step 12.1 / detail 380). Bump only on a
+ * Canonical native-cache schema version. Bump only on a
  * **breaking** payload change (removing or repurposing a required field). Native readers ignore
- * unknown keys, so additive optional fields do **not** require a bump. Track 12 durable storage
- * (12.2–12.3) and native car readers consume payloads tagged with this version.
+ * unknown keys, so additive optional fields do **not** require a bump. Native readers consume
+ * payloads tagged with this version.
  */
 export const NATIVE_CACHE_SCHEMA_VERSION = 1 as const;
 
@@ -56,7 +56,7 @@ export type NativeCacheQueueEntry = {
   idText: string;
   title: string;
   artworkUrl: string | null;
-  /** Remote enclosure or local `file://` playback URL; `null` until resolved (Track 12.15). */
+  /** Remote enclosure or local `file://` playback URL; `null` when unavailable. */
   mediaUrl: string | null;
   durationMs?: number | null;
   podcastTitle?: string | null;
@@ -70,7 +70,7 @@ export type QueueSnapshotProjection = {
 export type NativeCacheDownloadEntry = {
   idText: string;
   title: string;
-  /** Absolute sandbox path readable by the native car process (see Track 13 / detail 438). */
+  /** Absolute sandbox path readable by the native car process. */
   filePath: string;
   artworkUrl?: string | null;
   mediaUrl?: string | null;

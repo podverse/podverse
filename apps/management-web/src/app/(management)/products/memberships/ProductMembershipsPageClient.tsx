@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FaPenToSquare } from 'react-icons/fa6';
 
 import type { BillingCadence, ResolvedProductMembership } from '@podverse/helpers';
+import { MAX_FREE_TRIAL_EXPIRATION, MIN_FREE_TRIAL_EXPIRATION } from '@podverse/helpers';
 import {
   Alert,
   Breadcrumbs,
@@ -46,9 +47,6 @@ const PRICING_COLUMN_IDS = [
   'effective_from',
   'source',
 ] as const;
-
-const MIN_FREE_TRIAL_EXPIRATION_SECONDS = 60;
-const MAX_FREE_TRIAL_EXPIRATION_SECONDS = 31536000;
 
 const PRICE_USD_MIN_EXCLUSIVE = 0;
 const PRICE_USD_MAX = 999_999.99;
@@ -180,8 +178,8 @@ export function ProductMembershipsPageClient() {
           const parsedSeconds = Number.parseInt(raw, 10);
           if (
             !Number.isInteger(parsedSeconds) ||
-            parsedSeconds < MIN_FREE_TRIAL_EXPIRATION_SECONDS ||
-            parsedSeconds > MAX_FREE_TRIAL_EXPIRATION_SECONDS
+            parsedSeconds < MIN_FREE_TRIAL_EXPIRATION ||
+            parsedSeconds > MAX_FREE_TRIAL_EXPIRATION
           ) {
             setModalError(t('validation.invalidFreeTrialSeconds'));
             return;
@@ -340,7 +338,7 @@ export function ProductMembershipsPageClient() {
 
   const modalMin =
     editingField === 'freeTrialExpirationSeconds'
-      ? MIN_FREE_TRIAL_EXPIRATION_SECONDS
+      ? MIN_FREE_TRIAL_EXPIRATION
       : editingField === 'premiumMembershipCostMonthly' ||
           editingField === 'premiumMembershipCostAnnually'
         ? undefined
@@ -348,7 +346,7 @@ export function ProductMembershipsPageClient() {
 
   const modalMax =
     editingField === 'freeTrialExpirationSeconds'
-      ? MAX_FREE_TRIAL_EXPIRATION_SECONDS
+      ? MAX_FREE_TRIAL_EXPIRATION
       : editingField === 'premiumMembershipCostMonthly' ||
           editingField === 'premiumMembershipCostAnnually'
         ? undefined

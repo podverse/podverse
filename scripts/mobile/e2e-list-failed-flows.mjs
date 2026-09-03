@@ -1,25 +1,45 @@
 #!/usr/bin/env node
 /**
- * List flow YAML paths that still need a retry after a Maestro slot run.
+ * List flow YAML paths that still need a run after a Maestro slot run.
  *
  * Usage:
- *   node scripts/mobile/e2e-list-failed-flows.mjs <slot-dir> <flow.yaml> [flow.yaml...]
+ *   node scripts/mobile/e2e-list-failed-flows.mjs [--mode=failed|unresolved] <slot-dir> <flow.yaml>...
  *
- * Prints one absolute-or-as-passed YAML path per line for flows whose *latest*
- * commands-(Title).json run (by mtime) has status failed/ERROR/timedOut.
- * Only titles that match a `name:` in the given YAML list are considered.
+ * Prints one absolute-or-as-passed YAML path per line. Only titles that match a `name:` in the
+ * given YAML list are considered.
+ *
+ * - `failed` (default): flows whose *latest* commands-(Title).json run (by mtime) has status
+ *   failed/ERROR/timedOut. This is the retry set.
+ * - `unresolved`: the above plus flows with no command log at all. Used after the runner reboots
+ *   a wedged device, where "never got to run" and "ran and failed" both still need a real result.
  */
 
 import fs from 'fs';
 import path from 'path';
 
-const slotDir = process.argv[2];
-const flowPaths = process.argv.slice(3);
+const args = process.argv.slice(2);
+let mode = 'failed';
+const positional = [];
+for (const arg of args) {
+  if (arg.startsWith('--mode=')) {
+    mode = arg.slice('--mode='.length);
+    continue;
+  }
+  positional.push(arg);
+}
+
+const slotDir = positional[0];
+const flowPaths = positional.slice(1);
 
 if (!slotDir || flowPaths.length === 0) {
   console.error(
-    'Usage: node scripts/mobile/e2e-list-failed-flows.mjs <slot-dir> <flow.yaml> [flow.yaml...]'
+    'Usage: node scripts/mobile/e2e-list-failed-flows.mjs [--mode=failed|unresolved] <slot-dir> <flow.yaml> [flow.yaml...]'
   );
+  process.exit(1);
+}
+
+if (mode !== 'failed' && mode !== 'unresolved') {
+  console.error(`Unknown --mode: ${mode}. Expected failed or unresolved.`);
   process.exit(1);
 }
 
@@ -120,17 +140,24 @@ for (const abs of walkCommandFiles(slotDir)) {
   latestByTitle.set(title, { mtimeMs, status: flowStatusFromCommands(commands) });
 }
 
-const failedPaths = [];
+const selected = new Set();
 for (const [title, info] of latestByTitle) {
   if (info.status === 'failed' || info.status === 'timedOut') {
     const yamlPath = nameToYaml.get(title);
     if (yamlPath !== undefined) {
-      failedPaths.push(yamlPath);
+      selected.add(yamlPath);
     }
   }
 }
 
-failedPaths.sort();
-for (const p of failedPaths) {
+if (mode === 'unresolved') {
+  for (const [title, yamlPath] of nameToYaml) {
+    if (!latestByTitle.has(title)) {
+      selected.add(yamlPath);
+    }
+  }
+}
+
+for (const p of [...selected].sort()) {
   console.log(p);
 }

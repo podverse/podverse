@@ -14,7 +14,10 @@ import { getCuratedStaticPageMetadata } from '../../lib/seo/curatedPageMetadata'
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import type { EpisodesFilterDefaults } from '../../utils/localSettings/localSettings';
-import { getParsedLocalSettings } from '../../utils/localSettings/localSettings';
+import {
+  getFilterDefaultsForPage,
+  getParsedLocalSettings,
+} from '../../utils/localSettings/localSettings';
 import { EpisodesPageClient } from './EpisodesPageClient';
 import type { EpisodesPageDropdownConfigCurrentParams } from './EpisodesPageDropdownConfig';
 import { getEpisodesPageFilterParams } from './EpisodesPageDropdownConfig';
@@ -50,7 +53,7 @@ export default async function EpisodesPage({ searchParams }: EpisodesPageProps) 
 
   const cookieStore = await cookies();
   const ssrLocalSettings = getParsedLocalSettings(cookieStore);
-  const ssrFilterDefaults = ssrLocalSettings.fd?.episodes;
+  const ssrFilterDefaults = getFilterDefaultsForPage(ssrLocalSettings, 'episodes');
 
   const queryParams = await searchParams;
   const { currentType, currentSort, currentRange, currentCategory, currentPage } =

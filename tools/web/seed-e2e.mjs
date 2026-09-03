@@ -56,10 +56,9 @@ const E2E_MUSIC_FEED_PI_ID = 876543212;
 const E2E_MUSIC_FEED_URL = 'https://e2e-seed-music.example/album.xml';
 
 // Mirror of apps/web/e2e/helpers/seedConstants.ts. When changing either side,
-// update both in the same commit. These constants are declared ahead of the
-// INSERT blocks added by media-player-e2e-seed-expansion steps 2-5; they sit
-// unused until those steps land, hence the scoped disable.
-/* eslint-disable @typescript-eslint/no-unused-vars -- referenced by seed-expansion steps 2-5 */
+// update both in the same commit. These constants are shared by the seed INSERT blocks and the
+// matching E2E helpers.
+/* eslint-disable @typescript-eslint/no-unused-vars -- referenced by related E2E setup */
 const E2E_PODCAST_CHANNEL_ID_TEXT = 'e2ePodChnl001';
 
 const E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT = 'e2ePodResume01';
@@ -111,7 +110,7 @@ const E2E_MUSIC_TRACK_DURATION_SECONDS = 30;
 const E2E_ADD_BY_RSS_RESOURCE_WITH_POSITION_SECONDS = 25;
 const E2E_ADD_BY_RSS_ITEM_DURATION_SECONDS = 60;
 
-// Asset-server enclosure URLs (mirror of step 1b). Auto-started on port 2111.
+// Asset-server enclosure URLs. Auto-started on port 2111.
 const E2E_ASSET_BASE_URL = 'http://localhost:2111/e2e/audio';
 const E2E_PODCAST_SHORT_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-short-60s-440hz.mp3`;
 const E2E_PODCAST_RESUME_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-podcast-resume-60s-440hz.mp3`;
@@ -120,8 +119,8 @@ const E2E_MUSIC_TRACK_TWO_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-music-track
 const E2E_ADDBYRSS_WITH_POSITION_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-addbyrss-with-position-60s-440hz.mp3`;
 const E2E_ADDBYRSS_FRESH_ENCLOSURE_URL = `${E2E_ASSET_BASE_URL}/e2e-addbyrss-fresh-60s-440hz.mp3`;
 
-// Real video fixture (h264 video track) for the mobile video mini->full transition E2E
-// (master step 2.33 / detail 112). Standalone video-medium channel; not added to any queue, so
+// Real video fixture (h264 video track) for the mobile video mini->full transition E2E.
+// Standalone video-medium channel; not added to any queue, so
 // web media-player queue specs are unaffected. Mirror of apps/web/e2e/helpers/seedConstants.ts.
 // PI id must NOT collide with embed fixtures (`EMBED_FIXTURE_VIDEO_FEED_PI_ID` = 876543213 in
 // embed-fixture-constants.mjs) — those run after this block and DELETE BY podcast_index_id, which
@@ -619,6 +618,19 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
     pubDateOffsetSeconds: 10800,
   });
 
+  // Subscriptions, so the /podcasts subscribed list has rows to render. The podcast channel's items
+  // sit at 0, 1, 2, and 3 hours old and its timestamp lands at ninety minutes, which leaves part of
+  // the channel unseen and part of it caught up; the livestream follow is fully caught up.
+  await client.query(
+    `INSERT INTO account_following_channel (account_id, channel_id, last_seen_at)
+     VALUES
+       ($1, $2, NOW() - INTERVAL '90 minutes'),
+       ($1, $3, NOW())
+     ON CONFLICT (account_id, channel_id)
+     DO UPDATE SET last_seen_at = EXCLUDED.last_seen_at`,
+    [accountId, podcastChannelId, channelId]
+  );
+
   await client.query(
     `INSERT INTO clip (
        id_text,
@@ -804,7 +816,7 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
   // (`/item/queue/season/:idText?direction=forward`) returns sibling items
   // with pub_date < current when neither row has a season number, so the
   // "next" track for auto-queue must have an *earlier* pub_date than the
-  // currently playing track.
+  // playing track.
   async function insertMusicTrack({ idText, guidSlug, title, enclosureUrl, pubDateOffsetSeconds }) {
     const itemResult = await client.query(
       `INSERT INTO item (
@@ -1007,8 +1019,8 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
     `Seeded add-by-RSS media-player E2E resources (${E2E_ADD_BY_RSS_RESOURCE_WITH_POSITION_ID_TEXT} at list_position 3 with playback_position=${E2E_ADD_BY_RSS_RESOURCE_WITH_POSITION_SECONDS}, ${E2E_ADD_BY_RSS_RESOURCE_FRESH_ID_TEXT} at list_position 4 with playback_position=0)`
   );
 
-  // Standalone video-medium channel + item for the mobile video mini->full transition E2E
-  // (master step 2.33 / detail 112). Deliberately NOT added to any queue and NOT reachable from
+  // Standalone video-medium channel + item for the mobile video mini->full transition E2E.
+  // Deliberately NOT added to any queue and NOT reachable from
   // web search/home assertions, so existing web media-player specs are unaffected. The mobile app
   // reaches it via an EXPO_PUBLIC_MOBILE_E2E-gated affordance that calls playItemById on this item.
   await client.query(`DELETE FROM feed WHERE podcast_index_id = $1 OR url = $2`, [

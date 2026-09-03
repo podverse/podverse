@@ -127,6 +127,9 @@ const apiProfileOverrides: Record<PodverseApiTestEnvProfile, Record<string, stri
     // Same reason as apiWebE2e: all Maestro flows log in from one host, so keep the login limiter
     // effectively off (sparse mobile logins only avoided the 5/min default by luck).
     AUTH_LOGIN_MAX_PER_MINUTE: '100000',
+    // Multi-flow E2E repeatedly refreshes the seeded account's feeds; keep the enqueue limiter
+    // effectively off so one flow cannot contaminate another through the long-lived API process.
+    ACCOUNT_ADD_BY_RSS_PARSE_ENQUEUE_MAX_PER_HOUR: '100000',
     // Deterministic Podcast Index search + add-by-RSS parse (no live PI / MQ).
     PODVERSE_E2E_FIXTURES: '1',
     // Keep parity with production/default policy. E2E seed now clears OPML hourly

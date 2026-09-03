@@ -11,7 +11,7 @@ import { useMembership } from '../../membership/useMembership';
 import { useTheme } from '../../theme/useTheme';
 
 /**
- * Membership screen (Track 19 new page) — replaces the placeholder. Mirrors the web membership page's
+ * Membership screen. Mirrors the web membership page's
  * intent (tiers, pricing, expired/trial messaging, single primary CTA) without pixel-copying. The CTA
  * is auth-based binary per plan: logged-out → Sign Up, logged-in → Extend Membership (same logged-in
  * path the gate modal labels "Renew"). Purchase itself is the web hand-off in `checkoutEntry` until

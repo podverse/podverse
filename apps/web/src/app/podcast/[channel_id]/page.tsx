@@ -1,8 +1,15 @@
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-import type { DTOClip, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
+import type {
+  DTOClip,
+  DTOItem,
+  DTOItemSoundbite,
+  SortPrefScope,
+  SortPrefValue,
+} from '@podverse/helpers';
 import { buildPodcastPath, getTotalPages } from '@podverse/helpers';
 import type { ApiListResponse } from '@podverse/helpers-requests';
 import {
@@ -17,20 +24,34 @@ import { getChannelForSeoPage, getChannelHeroImageUrl } from '../../../lib/seo/f
 import { toSeoPlainText } from '../../../lib/seo/toSeoPlainText';
 import { truncateMetaDescription } from '../../../lib/seo/truncateMetaDescription';
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
+import {
+  hasExplicitControlParams,
+  resolveStoredRange,
+  resolveStoredToken,
+} from '../../../utils/localSettings/detailSortPrefs';
+import {
+  getParsedLocalSettings,
+  getStoredSortPref,
+} from '../../../utils/localSettings/localSettings';
 import { enforceCanonicalChannelRoute } from '../../../utils/redirect/enforceCanonicalMediumRoute';
 import { PodcastPageClient } from './PodcastPageClient';
 import type { PodcastPageDropdownConfigCurrentParams } from './PodcastPageDropdownConfig';
 import { getPodcastPageFilterParams } from './PodcastPageDropdownConfig';
 
+/**
+ * The control fields carry no schema default, so an absent parameter stays `undefined` and this
+ * channel's remembered selection is reachable. A default applied here would win before the stored
+ * preference was ever consulted.
+ */
 const searchParamsSchema = z.object({
   page: z
     .string()
     .transform((v) => parseInt(v, 10))
     .optional()
     .default(1),
-  type: z.enum(QUERY_PARAMS_CHANNEL_TYPE_VALUES).optional().default('episodes'),
-  sort: z.enum(QUERY_PARAMS_CHANNEL_SORT_VALUES).optional().default('recent'),
-  range: z.enum(QUERY_PARAMS_STATS_RANGE_VALUES).optional().nullable().default(null),
+  type: z.enum(QUERY_PARAMS_CHANNEL_TYPE_VALUES).optional(),
+  sort: z.enum(QUERY_PARAMS_CHANNEL_SORT_VALUES).optional(),
+  range: z.enum(QUERY_PARAMS_STATS_RANGE_VALUES).optional().nullable(),
 });
 
 type SearchParams = z.infer<typeof searchParamsSchema>;
@@ -75,14 +96,19 @@ export default async function PodcastPage({ params, searchParams }: PodcastPageP
 
   const { ssrApiRequestService } = await getSSRAuthService();
 
-  const { currentPage, currentType, currentSort, currentRange } =
-    await parseSearchParams(queryParams);
-
   const ssrChannel = await getChannelForSeoPage(channel_id);
   if (ssrChannel?.feed?.podcast_index_id && ssrChannel.feed.feed_policy?.public_visible === false) {
     redirect(`/podcast-index/feed/${ssrChannel.feed.podcast_index_id}`);
   }
   enforceCanonicalChannelRoute(ssrChannel, 'podcast');
+
+  // Keyed on the resolved `id_text` rather than the route segment, so a channel reached by numeric
+  // id and one reached by its slug are the same instance to the store.
+  const sortPrefScope: SortPrefScope = { idText: ssrChannel.id_text, kind: 'channel' };
+  const storedSortPref = getStoredSortPref(getParsedLocalSettings(await cookies()), sortPrefScope);
+
+  const { currentPage, currentType, currentSort, currentRange, hasExplicitUrlParams } =
+    parseSearchParams(queryParams, storedSortPref);
 
   let ssrItems: DTOItem[] = [];
   let ssrClips: DTOClip[] = [];
@@ -127,6 +153,7 @@ export default async function PodcastPage({ params, searchParams }: PodcastPageP
 
   return (
     <PodcastPageClient
+      hasExplicitUrlParams={hasExplicitUrlParams}
       initialQueryParams={{
         page: currentPage,
         type: currentType,
@@ -186,19 +213,36 @@ const getCurrentTotalPages = ({
   return 1;
 };
 
-function parseSearchParams(queryParams: SearchParams): PodcastPageDropdownConfigCurrentParams {
+type PodcastPageResolvedParams = PodcastPageDropdownConfigCurrentParams & {
+  hasExplicitUrlParams: boolean;
+};
+
+function parseSearchParams(
+  queryParams: SearchParams,
+  storedSortPref: SortPrefValue | null
+): PodcastPageResolvedParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
+  const data = parsed.success ? parsed.data : null;
 
-  if (!parsed.success) {
-    return {
-      currentType: 'episodes',
-      currentSort: 'recent',
-      currentRange: null,
-      currentPage: 1,
-    };
-  }
+  const filterParams = getPodcastPageFilterParams({
+    page: data?.page ?? 1,
+    range: resolveStoredRange(data?.range, storedSortPref?.range),
+    sort: resolveStoredToken(
+      data?.sort,
+      storedSortPref?.sort,
+      QUERY_PARAMS_CHANNEL_SORT_VALUES,
+      'recent'
+    ),
+    type: resolveStoredToken(
+      data?.type,
+      storedSortPref?.tab,
+      QUERY_PARAMS_CHANNEL_TYPE_VALUES,
+      'episodes'
+    ),
+  });
 
-  const data = parsed.data;
-
-  return getPodcastPageFilterParams(data);
+  return {
+    ...filterParams,
+    hasExplicitUrlParams: hasExplicitControlParams([data?.type, data?.sort, data?.range]),
+  };
 }

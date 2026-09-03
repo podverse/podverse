@@ -53,7 +53,8 @@
   "features": {
     "search": {
       "search": "Search",
-      "search_by_title": "Search by title..."
+      "search_by_title": "Search by title...",
+      "empty_prompt": "Search the Podcast Index by title."
     },
     "add_feed": {
       "add_feed": "Add Feed",
@@ -93,7 +94,8 @@
       "basic_auth_requires": "This feed requires username and password",
       "basic_auth_username": "Username",
       "basic_auth_password": "Password",
-      "basic_auth_required_both": "Basic Auth requires both username and password."
+      "basic_auth_required_both": "Basic Auth requires both username and password.",
+      "login_prompt": "Follow podcasts and music that are not in the directory yet. Log in to save RSS feeds to your library and check them for new episodes."
     },
     "my_library": "My Library",
     "queue": {
@@ -105,14 +107,16 @@
       "add_error": "Error adding to Queue",
       "remove_error": "Error removing from Queue",
       "remove_from_queue": "Remove from Queue",
-      "removed_from_queue": "Removed from Queue"
+      "removed_from_queue": "Removed from Queue",
+      "login_prompt": "Build a listen-next list that stays with you. Log in to save your queue and keep playing across devices."
     },
     "history": {
       "history": "History",
       "delete_history": "Delete History",
       "mark_as_played": "Mark as Played",
       "marked_as_played": "Marked as Played",
-      "mark_as_played_error": "Error marking as played"
+      "mark_as_played_error": "Error marking as played",
+      "login_prompt": "Pick up where you left off. Log in to see your listening history and keep it in sync wherever you use your account."
     },
     "playlist": {
       "playlist": "Playlist",
@@ -132,7 +136,8 @@
       "item_count": "Items: {count}",
       "playlist_type": "Playlist Type",
       "add_to_liked": "Add to Liked",
-      "remove_from_liked": "Remove from Liked"
+      "remove_from_liked": "Remove from Liked",
+      "login_prompt": "Collect episodes, clips, and tracks into playlists you can share or revisit. Log in to create and manage yours."
     },
     "clip": {
       "clip": "Clip",
@@ -151,10 +156,12 @@
       "end_time": "End Time",
       "end_time_aria": "End time in hours, minutes, and seconds (hh:mm:ss)",
       "end_time_play_aria": "Play from clip end time",
-      "clip_time_range": "{hhmmssStart} to {hhmmssEnd}"
+      "clip_time_range": "{hhmmssStart} to {hhmmssEnd}",
+      "login_prompt": "Save your favorite moments and jump back to them later. Log in to create clips and keep them with your account."
     },
     "my_clips": "My Clips",
     "my_profile": "My Profile",
+    "profile_login_prompt": "Your profile is how you share playlists and clips. Log in to set it up and keep it in sync across devices.",
     "profile": "Profile",
     "profiles": "Profiles",
     "embed": "Embed",
@@ -355,7 +362,21 @@
     "fullscreen_media_player": "Fullscreen media player",
     "media_player_image": "Media player image",
     "seek": "Seek",
+    "position_of_duration": "{position} of {duration}",
     "skip_to_next": "Skip to next",
+    "skip_to_previous": "Skip to previous",
+    "jump_back": "Jump back {seconds} seconds",
+    "jump_forward": "Jump forward {seconds} seconds",
+    "step_back": "Step backward",
+    "step_forward": "Step forward",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "player_settings": "Player settings",
+    "playback_mode": {
+      "toggle_autoplay": "Toggle autoplay",
+      "autoplay_next_enabled": "Autoplay next enabled",
+      "autoplay_next_disabled": "Stop at end of episode"
+    },
     "up_next": "Up Next",
     "up_next_empty": "Nothing up next",
     "auto_queue": "Auto Queue",
@@ -543,6 +564,11 @@
       "week": "Week",
       "month": "Month",
       "all_time": "All Time"
+    },
+    "screen": {
+      "title": "Filter & Sort",
+      "filter_heading": "Filter",
+      "sort_heading": "Sort"
     }
   },
   "legal": {
@@ -674,13 +700,30 @@
   "subscriptions": {
     "subscriptions": "Subscriptions",
     "how_to_start_message": "Try <searchLink>searching</searchLink> for your favorite content, or browse <podcastsLink>podcasts</podcastsLink>, <videosLink>videos</videosLink>, or <musicLink>music</musicLink>. Your subscriptions will appear here.",
+    "empty_message": "You are not subscribed to anything yet.",
+    "no_filter_matches": "No subscriptions match your filter.",
     "filter": {
       "all": "All",
-      "add_by_rss": "Add by RSS"
-    }
+      "add_by_rss": "Add by RSS",
+      "label": "Filter",
+      "placeholder": "Filter...",
+      "clear": "Clear",
+      "results_count": "Showing {count}"
+    },
+    "row": {
+      "latest_episode": "Latest: {date}",
+      "unseen_count": "{count} new",
+      "unseen_count_capped": "{count}+ new",
+      "unseen_count_aria": "{count} new episodes",
+      "unseen_count_capped_aria": "More than {count} new episodes",
+      "downloaded_count": "{count} downloaded"
+    },
+    "mark_all_seen": "Mark All As Seen",
+    "mark_all_seen_done": "All subscriptions marked as seen"
   },
   "authentication": {
     "login": "Login",
+    "login_required": "Log in to continue.",
     "logout": "Logout",
     "sign_up": "Sign Up",
     "need_an_account_sign_up": "Need an account? Sign up",
@@ -701,6 +744,9 @@
     "password_mismatch": "Passwords do not match",
     "account_created_message": "Account created successfully. Please check your email for a verification link.",
     "session_expired": "Session expired. Please log in again.",
+    "forced_logout_title": "You've been signed out",
+    "forced_logout_body": "Your session expired, so you're now using Podverse signed out. Anything you subscribe to or change from here stays on this device and won't be saved to your account. Log back in to pick up where you left off.",
+    "forced_logout_dismiss": "Not now",
     "signed_in_account_load_failed": "Signed in, but could not load account details.",
     "could_not_sign_in": "Could not sign in. Please try again.",
     "account_not_verified": "Account not verified. Please check your email for a verification link.",
@@ -800,11 +846,18 @@
       "title_expired": "Membership expired",
       "title_premium": "Premium feature",
       "title_limit": "Limit reached",
+      "title_needs_account": "Account required",
       "body_expired": "Your membership has expired. Renew to use this feature.",
       "body_premium": "This is a Premium feature. Renew your membership to Premium to use it.",
       "body_limit": "You've reached the limit for this feature on your current plan.",
+      "body_needs_account": "Log in or sign up to use this feature.",
       "banner_message": "Your membership has expired.",
-      "banner_action": "Renew"
+      "banner_message_expiring_tomorrow": "Your membership expires tomorrow.",
+      "banner_message_expiring_soon": "Your membership expires in {days} days.",
+      "banner_action": "Renew",
+      "banner_dismiss": "Dismiss",
+      "settings_row_title": "Membership expired",
+      "settings_row_subtitle": "Renew to use Premium features again."
     }
   },
   "about": {
@@ -892,7 +945,7 @@
       "notifications": "Notifications",
       "web_push": "Web Browser Notifications",
       "web_push_help": "Receive browser notifications for new episodes and tracks for creators you subscribe to. Works in supported browsers.",
-      "unseen_count_aria": "{count} unseen notifications",
+      "unread_count_aria": "{count} unread notifications",
       "unified_push": "Unified Push",
       "unified_push_help": "Use Unified Push to receive notifications through a compatible push service (like ntfy). Requires a Unified Push endpoint URL.",
       "up_endpoint_label": "Endpoint URL",
@@ -914,8 +967,6 @@
       "category_new_content_description": "Alerts for new episodes, tracks, albums, and videos from followed creators.",
       "category_livestream": "Livestream",
       "category_livestream_description": "Alerts when livestreams are scheduled or go live.",
-      "category_membership_expiry": "Membership expiry",
-      "category_membership_expiry_description": "Reminders before your premium membership expires.",
       "category_product_update": "Product updates",
       "category_product_update_description": "Announcements about app improvements and releases.",
       "product_update_disable_hint": "Disable this category to opt out of product update notifications.",
@@ -924,7 +975,10 @@
       "category_terms_of_service": "Terms of service",
       "category_terms_of_service_description": "Required legal and policy announcements.",
       "category_general": "General",
-      "category_general_description": "Important account-level notifications."
+      "category_general_description": "Important account-level notifications.",
+      "new_item": "New item",
+      "livestream_scheduled": "Livestream scheduled",
+      "livestream_started": "Livestream started"
     },
     "opml": {
       "opml": "OPML",
@@ -1153,17 +1207,27 @@
   },
   "notifications_page": {
     "title": "Notifications",
+    "recent_activity_note": "Recent activity. Older notifications are cleared automatically.",
     "loading": "Loading notifications…",
-    "empty": "No notifications yet.",
-    "new_section": "New",
+    "login_prompt": "Never miss a new episode, livestream, or product update from shows you follow. Log in to keep your inbox on this device and across your other devices.",
+    "empty": "You're all caught up. Alerts for new episodes, livestreams, and product updates will show up here.",
+    "unread_section": "Unread",
     "earlier_section": "Earlier",
     "category_new_content": "New content",
     "category_livestream": "Livestream",
-    "category_membership_expiry": "Membership expiry",
     "category_product_update": "Product update",
     "category_maintenance": "Maintenance",
     "category_terms_of_service": "Terms of service",
     "category_general": "General",
+    "relative_time_just_now": "Just now",
+    "relative_time_seconds_ago": "{count, plural, one {# second ago} other {# seconds ago}}",
+    "relative_time_seconds_from_now": "in {count, plural, one {# second} other {# seconds}}",
+    "relative_time_minutes_ago": "{count, plural, one {# minute ago} other {# minutes ago}}",
+    "relative_time_minutes_from_now": "in {count, plural, one {# minute} other {# minutes}}",
+    "relative_time_hours_ago": "{count, plural, one {# hour ago} other {# hours ago}}",
+    "relative_time_hours_from_now": "in {count, plural, one {# hour} other {# hours}}",
+    "relative_time_days_ago": "{count, plural, one {# day ago} other {# days ago}}",
+    "relative_time_days_from_now": "in {count, plural, one {# day} other {# days}}",
     "no_body": "Open to view details."
   },
   "seo": {

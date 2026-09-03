@@ -53,7 +53,8 @@
   "features": {
     "search": {
       "search": "Buscar",
-      "search_by_title": "Buscar por título..."
+      "search_by_title": "Buscar por título...",
+      "empty_prompt": "Busca en el Podcast Index por título. Tus resultados aparecerán aquí."
     },
     "add_feed": {
       "add_feed": "Agregar Feed",
@@ -93,7 +94,8 @@
       "basic_auth_requires": "This feed requires username and password",
       "basic_auth_username": "Username",
       "basic_auth_password": "Password",
-      "basic_auth_required_both": "Basic Auth requires both username and password."
+      "basic_auth_required_both": "Basic Auth requires both username and password.",
+      "login_prompt": "Sigue podcasts y música que aún no están en el directorio. Inicia sesión para guardar feeds RSS en tu biblioteca y revisar si hay episodios nuevos."
     },
     "my_library": "Mi Biblioteca",
     "queue": {
@@ -105,14 +107,16 @@
       "add_error": "Error al agregar a la Cola",
       "remove_error": "Error al eliminar de la Cola",
       "remove_from_queue": "Eliminar de la Cola",
-      "removed_from_queue": "Eliminado de la Cola"
+      "removed_from_queue": "Eliminado de la Cola",
+      "login_prompt": "Arma una lista de lo siguiente que quieres oír. Inicia sesión para guardar tu cola y seguir escuchando en otros dispositivos."
     },
     "history": {
       "history": "Historial",
       "delete_history": "Eliminar Historial",
       "mark_as_played": "Marcar como Reproducido",
       "marked_as_played": "Marcado como Reproducido",
-      "mark_as_played_error": "Error al marcar como reproducido"
+      "mark_as_played_error": "Error al marcar como reproducido",
+      "login_prompt": "Retoma donde lo dejaste. Inicia sesión para ver tu historial de reproducción y mantenerlo sincronizado en todos tus dispositivos."
     },
     "playlist": {
       "playlist": "Lista de Reproducción",
@@ -132,7 +136,8 @@
       "item_count": "Elementos: {count}",
       "playlist_type": "Tipo de Lista de Reproducción",
       "add_to_liked": "Añadir a Me gusta",
-      "remove_from_liked": "Quitar de Me gusta"
+      "remove_from_liked": "Quitar de Me gusta",
+      "login_prompt": "Reúne episodios, clips y pistas en listas que puedes compartir o volver a visitar. Inicia sesión para crear y gestionar las tuyas."
     },
     "clip": {
       "clip": "Clip",
@@ -151,10 +156,12 @@
       "end_time": "Hora de Fin",
       "end_time_aria": "Hora de fin en horas, minutos y segundos (hh:mm:ss)",
       "end_time_play_aria": "Reproducir desde la hora de fin del clip",
-      "clip_time_range": "{hhmmssStart} hasta {hhmmssEnd}"
+      "clip_time_range": "{hhmmssStart} hasta {hhmmssEnd}",
+      "login_prompt": "Guarda tus momentos favoritos y vuelve a ellos cuando quieras. Inicia sesión para crear clips y conservarlos en tu cuenta."
     },
     "my_clips": "Mis Clips",
     "my_profile": "Mi Perfil",
+    "profile_login_prompt": "Tu perfil es cómo compartes listas y clips. Inicia sesión para configurarlo y mantenerlo sincronizado en tus dispositivos.",
     "profile": "Perfil",
     "profiles": "Perfiles",
     "embed": "Incrustar",
@@ -349,9 +356,41 @@
   "media_player": {
     "play": "Reproducir",
     "pause": "Pausa",
+    "no_media": "No se encontró media reproducible",
+    "livestream_unavailable": "La reproducción de livestream no está disponible aún",
     "show_fullscreen_media_player": "Mostrar el reproductor multimedia en pantalla completa",
     "fullscreen_media_player": "Reproductor multimedia de pantalla completa",
     "media_player_image": "Imagen del reproductor multimedia",
+    "seek": "Buscar",
+    "position_of_duration": "{position} de {duration}",
+    "skip_to_next": "Saltar al siguiente",
+    "skip_to_previous": "Ir al anterior",
+    "jump_back": "Retroceder {seconds} segundos",
+    "jump_forward": "Avanzar {seconds} segundos",
+    "step_back": "Paso atrás",
+    "step_forward": "Paso adelante",
+    "mute": "Silenciar",
+    "unmute": "Activar sonido",
+    "player_settings": "Ajustes del reproductor",
+    "playback_mode": {
+      "toggle_autoplay": "Alternar reproducción automática",
+      "autoplay_next_enabled": "Reproducción automática activada",
+      "autoplay_next_disabled": "Detener al final del episodio"
+    },
+    "up_next": "Próximo",
+    "up_next_empty": "Nada próximo",
+    "auto_queue": "Cola automática",
+    "share": "Compartir",
+    "value_for_value": "Valor por valor",
+    "coming_soon": "Próximamente",
+    "value_for_value_body": "Los boosts de valor por valor llegarán pronto. Podrás enviar sats a los podcasts que te gustan, directamente desde el reproductor.",
+    "sleep_timer": {
+      "sleep_timer": "Temporizador de sueño",
+      "off": "Apagar",
+      "minutes_15": "15 min",
+      "minutes_30": "30 min",
+      "minutes_60": "60 min"
+    },
     "repeat": {
       "toggle_repeat": "Alternar repetición",
       "repeat_enabled": "Repetición activada",
@@ -394,23 +433,6 @@
       "audio_with_bitrate_mbps": "Audio {bitrate}Mbps",
       "audio_with_ext_bitrate_kbps": "Audio {ext} {bitrate}kbps",
       "audio_with_ext_bitrate_mbps": "Audio {ext} {bitrate}Mbps"
-    },
-    "no_media": "No se encontró media reproducible",
-    "livestream_unavailable": "La reproducción de livestream no está disponible aún",
-    "seek": "Buscar",
-    "skip_to_next": "Saltar al siguiente",
-    "up_next": "Próximo",
-    "up_next_empty": "Nada próximo",
-    "auto_queue": "Cola automática",
-    "share": "Compartir",
-    "value_for_value": "Valor por valor",
-    "coming_soon": "Próximamente",
-    "sleep_timer": {
-      "sleep_timer": "Temporizador de sueño",
-      "off": "Apagar",
-      "minutes_15": "15 min",
-      "minutes_30": "30 min",
-      "minutes_60": "60 min"
     }
   },
   "value": {
@@ -542,6 +564,11 @@
       "week": "Semana",
       "month": "Mes",
       "all_time": "Todo el Tiempo"
+    },
+    "screen": {
+      "title": "Filtrar y Ordenar",
+      "filter_heading": "Filtrar",
+      "sort_heading": "Ordenar"
     }
   },
   "legal": {
@@ -673,13 +700,30 @@
   "subscriptions": {
     "subscriptions": "Suscripciones",
     "how_to_start_message": "Prueba <searchLink>buscar</searchLink> tu contenido favorito, o explora <podcastsLink>podcasts</podcastsLink>, <videosLink>videos</videosLink>, o <musicLink>música</musicLink>. Tus suscripciones aparecerán aquí.",
+    "empty_message": "Aún no tienes suscripciones.",
+    "no_filter_matches": "Ninguna suscripción coincide con tu filtro.",
     "filter": {
       "all": "Todos",
-      "add_by_rss": "Añadir por RSS"
-    }
+      "add_by_rss": "Añadir por RSS",
+      "label": "Filtrar",
+      "placeholder": "Filtrar...",
+      "clear": "Borrar",
+      "results_count": "Mostrando {count}"
+    },
+    "row": {
+      "latest_episode": "Último: {date}",
+      "unseen_count": "{count} nuevos",
+      "unseen_count_capped": "{count}+ nuevos",
+      "unseen_count_aria": "{count} episodios nuevos",
+      "unseen_count_capped_aria": "Más de {count} episodios nuevos",
+      "downloaded_count": "{count} descargados"
+    },
+    "mark_all_seen": "Marcar Todo Como Visto",
+    "mark_all_seen_done": "Todas las suscripciones marcadas como vistas"
   },
   "authentication": {
     "login": "Iniciar Sesión",
+    "login_required": "Inicia sesión para continuar.",
     "logout": "Cerrar Sesión",
     "sign_up": "Registrarse",
     "need_an_account_sign_up": "¿Necesitas una cuenta? Regístrate",
@@ -700,6 +744,9 @@
     "password_mismatch": "Las contraseñas no coinciden",
     "account_created_message": "Cuenta creada con éxito. Por favor, revisa tu correo para un enlace de verificación.",
     "session_expired": "La sesión expiró. Inicia sesión de nuevo.",
+    "forced_logout_title": "Se ha cerrado tu sesión",
+    "forced_logout_body": "Tu sesión ha caducado, así que ahora estás usando Podverse sin haber iniciado sesión. Todo lo que sigas o cambies a partir de aquí se quedará en este dispositivo y no se guardará en tu cuenta. Vuelve a iniciar sesión para continuar donde lo dejaste.",
+    "forced_logout_dismiss": "Ahora no",
     "signed_in_account_load_failed": "Has iniciado sesión, pero no se pudieron cargar los detalles de la cuenta.",
     "could_not_sign_in": "No se pudo iniciar sesión. Inténtalo de nuevo.",
     "account_not_verified": "Cuenta no verificada. Por favor, revisa tu correo para un enlace de verificación.",
@@ -791,7 +838,27 @@
     "trial_limitations_add_by_rss_feed_limit": "El tamaño de la biblioteca de Agregar por RSS utiliza un límite inferior en Prueba que en Premium.",
     "trial_limitations_manual_refresh_limit": "Las acciones de actualización manual utilizan límites horarios más restrictivos mientras estás en Prueba.",
     "trial_limitations_stats_tracking": "El seguimiento de estadísticas se reduce para el estado de Prueba por defecto.",
-    "trial_limitations_notifications": "Las funciones de notificación pueden ser reducidas para el estado de Prueba y expiran con la membresía."
+    "trial_limitations_notifications": "Las funciones de notificación pueden ser reducidas para el estado de Prueba y expiran con la membresía.",
+    "gate": {
+      "cancel": "Cancelar",
+      "renew": "Renovar membresía",
+      "sign_up": "Registrarse",
+      "title_expired": "Membresía caducada",
+      "title_premium": "Función Premium",
+      "title_limit": "Límite alcanzado",
+      "title_needs_account": "Cuenta necesaria",
+      "body_expired": "Tu membresía ha caducado. Renuévala para usar esta función.",
+      "body_premium": "Esta es una función Premium. Renueva tu membresía a Premium para usarla.",
+      "body_limit": "Has alcanzado el límite de esta función en tu plan actual.",
+      "body_needs_account": "Inicia sesión o regístrate para usar esta función.",
+      "banner_message": "Tu membresía ha caducado.",
+      "banner_message_expiring_tomorrow": "Tu membresía caduca mañana.",
+      "banner_message_expiring_soon": "Tu membresía caduca en {days} días.",
+      "banner_action": "Renovar",
+      "banner_dismiss": "Descartar",
+      "settings_row_title": "Membresía caducada",
+      "settings_row_subtitle": "Renuévala para volver a usar las funciones Premium."
+    }
   },
   "about": {
     "title": "Acerca de",
@@ -878,6 +945,7 @@
       "notifications": "Notificaciones",
       "web_push": "Notificaciones del Navegador",
       "web_push_help": "Recibe notificaciones del navegador para nuevos episodios y pistas de los creadores a los que te suscribes. Funciona en navegadores compatibles.",
+      "unread_count_aria": "{count} notificaciones sin leer",
       "unified_push": "Notificación Unificada",
       "unified_push_help": "Usa Notificación Unificada para recibir notificaciones a través de un servicio de notificación compatible (como ntfy). Requiere una URL de endpoint de Notificación Unificada.",
       "up_endpoint_label": "URL del Endpoint",
@@ -890,28 +958,27 @@
       "up_enable_error": "Error al habilitar Notificación Unificada. Por favor, verifica tu URL de endpoint.",
       "cancel": "Cancelar",
       "enable": "Habilitar",
-      "default_new_item": "Elemento nuevo por defecto",
-      "default_new-item_help": "Recibe notificaciones cuando se publiquen nuevos episodios o pistas de los creadores a los que te suscribes. Esta es la configuración de notificación por defecto que se aplica a todas tus suscripciones, pero se puede anular para cada una.",
-      "default_livestream_scheduled": "Transmisión en vivo programada por defecto",
-      "default_livestream-scheduled_help": "Recibe notificaciones cuando se programen transmisiones en vivo de los creadores a los que te suscribes. Esta es la configuración de notificación por defecto que se aplica a todas tus suscripciones, pero se puede anular para cada una.",
-      "default_livestream_started": "Transmisión en vivo iniciada por defecto",
-      "default_livestream-started_help": "Recibe notificaciones cuando inicien transmisiones en vivo de los creadores a los que te suscribes. Esta es la configuración de notificación por defecto que se aplica a todas tus suscripciones, pero se puede anular para cada una.",
+      "preference_section": "Preferencias de notificaciones",
+      "preference_section_help": "Elige qué categorías de notificaciones aparecen en la aplicación y cuáles pueden enviar notificaciones push.",
+      "preference_in_app": "En la aplicación",
+      "preference_push": "Push",
+      "preference_push_disabled": "Push (activa primero Web Push o Unified Push)",
+      "category_new_content": "Contenido nuevo",
+      "category_new_content_description": "Avisos de nuevos episodios, pistas, álbumes y vídeos de los creadores que sigues.",
+      "category_livestream": "Transmisión en vivo",
+      "category_livestream_description": "Avisos cuando se programan transmisiones en vivo o cuando comienzan.",
+      "category_product_update": "Novedades del producto",
+      "category_product_update_description": "Anuncios sobre mejoras y versiones de la aplicación.",
+      "product_update_disable_hint": "Desactiva esta categoría para dejar de recibir notificaciones sobre novedades del producto.",
+      "category_maintenance": "Mantenimiento",
+      "category_maintenance_description": "Avisos importantes sobre el servicio y las interrupciones.",
+      "category_terms_of_service": "Términos del servicio",
+      "category_terms_of_service_description": "Anuncios legales y de políticas obligatorios.",
+      "category_general": "General",
+      "category_general_description": "Notificaciones importantes relacionadas con tu cuenta.",
       "new_item": "Nuevo elemento",
       "livestream_scheduled": "Transmisión en vivo programada",
       "livestream_started": "Transmisión en vivo iniciada"
-    },
-    "keyboard": {
-      "keyboard": "Teclado",
-      "intro": "Estos atajos funcionan en todo el sitio cuando el foco no está dentro de un campo de texto, cuadro de búsqueda u otro control editable.",
-      "keys_space": "Espacio",
-      "keys_arrows_seek": "Flecha izquierda / Flecha derecha",
-      "keys_arrows_volume": "Flecha izquierda / Flecha derecha",
-      "shortcut_play_pause_label": "Reproducir o pausar",
-      "shortcut_play_pause_detail": "Pulsa Espacio para reproducir o pausar el episodio o pista actual cuando el reproductor tiene contenido. Espacio se ignora si el foco está en un input, textarea, select o campo editable, y no alterna la reproducción si el foco está en un botón o enlace (o dentro de un menú).",
-      "shortcut_seek_label": "Retroceder o avanzar 10 segundos",
-      "shortcut_seek_detail": "Pulsa una vez la flecha Izquierda o Derecha para saltar 10 segundos. Mantener pulsada la tecla no repite la acción hasta soltarla.",
-      "shortcut_volume_label": "Volumen (con el control de volumen enfocado)",
-      "shortcut_volume_detail": "Con el foco en el control de volumen del reproductor, las flechas Izquierda y Derecha bajan o suben el volumen un 5% por pulsación."
     },
     "opml": {
       "opml": "OPML",
@@ -928,6 +995,11 @@
       "import_in_progress": "Importing feeds… {processed} of {total} processed.",
       "import_success": "OPML import finished.",
       "import_error": "Failed to import OPML.",
+      "import_error_body_required": "Se requiere contenido OPML.",
+      "import_error_no_valid_feeds": "No se encontraron URLs de feeds válidos en el archivo OPML.",
+      "import_error_too_large": "El contenido OPML es demasiado grande. Número máximo de caracteres permitido: {maxChars}. Utilice un archivo más pequeño o divídalo en varias importaciones.",
+      "import_error_too_many_feeds": "El OPML contiene demasiados feeds. Número máximo de feeds permitido: {maxFeeds}. Divida el archivo en lotes más pequeños e inténtelo de nuevo.",
+      "import_error_request_not_found": "No se encontró la solicitud de importación de OPML.",
       "import_result_summary": "{total} feeds: {subscribed} subscribed, {enqueued} queued from Podcast Index, {addedByRss} added by RSS, {alreadySubscribed} already subscribed, {failed} failed, {rateLimited} rate limited.",
       "outcome_subscribed": "Subscribed",
       "outcome_enqueued": "Queued (Podcast Index)",
@@ -937,12 +1009,20 @@
       "outcome_failed": "Failed",
       "import_rate_limited_title": "OPML import limit reached",
       "import_rate_limited": "You can add up to {limit} feeds per hour. To finish importing the rest, try again after {time}.",
-      "import_rate_limited_time": "{minutes, plural, one {# minute} other {# minutes}}",
-      "import_error_body_required": "Se requiere contenido OPML.",
-      "import_error_no_valid_feeds": "No se encontraron URLs de feeds válidos en el archivo OPML.",
-      "import_error_too_large": "El contenido OPML es demasiado grande. Número máximo de caracteres permitido: {maxChars}. Utilice un archivo más pequeño o divídalo en varias importaciones.",
-      "import_error_too_many_feeds": "El OPML contiene demasiados feeds. Número máximo de feeds permitido: {maxFeeds}. Divida el archivo en lotes más pequeños e inténtelo de nuevo.",
-      "import_error_request_not_found": "No se encontró la solicitud de importación de OPML."
+      "import_rate_limited_time": "{minutes, plural, one {# minute} other {# minutes}}"
+    },
+    "keyboard": {
+      "keyboard": "Teclado",
+      "intro": "Estos atajos funcionan en todo el sitio cuando el foco no está dentro de un campo de texto, cuadro de búsqueda u otro control editable.",
+      "keys_space": "Espacio",
+      "keys_arrows_seek": "Flecha izquierda / Flecha derecha",
+      "keys_arrows_volume": "Flecha izquierda / Flecha derecha",
+      "shortcut_play_pause_label": "Reproducir o pausar",
+      "shortcut_play_pause_detail": "Pulsa Espacio para reproducir o pausar el episodio o pista actual cuando el reproductor tiene contenido. Espacio se ignora si el foco está en un input, textarea, select o campo editable, y no alterna la reproducción si el foco está en un botón o enlace (o dentro de un menú).",
+      "shortcut_seek_label": "Retroceder o avanzar 10 segundos",
+      "shortcut_seek_detail": "Pulsa una vez la flecha Izquierda o Derecha para saltar 10 segundos. Mantener pulsada la tecla no repite la acción hasta soltarla.",
+      "shortcut_volume_label": "Volumen (con el control de volumen enfocado)",
+      "shortcut_volume_detail": "Con el foco en el control de volumen del reproductor, las flechas Izquierda y Derecha bajan o suben el volumen un 5% por pulsación."
     }
   },
   "contact": {
@@ -1124,6 +1204,31 @@
   "pagination": {
     "ariaPreviousPage": "Página anterior",
     "ariaNextPage": "Página siguiente"
+  },
+  "notifications_page": {
+    "title": "Notificaciones",
+    "recent_activity_note": "Actividad reciente. Las notificaciones antiguas se eliminan automáticamente.",
+    "loading": "Cargando notificaciones…",
+    "login_prompt": "No te pierdas un episodio nuevo, un directo o una novedad de los programas que sigues. Inicia sesión para guardar tu bandeja en este dispositivo y en los demás.",
+    "empty": "Estás al día. Aquí aparecerán avisos de episodios nuevos, directos y novedades.",
+    "unread_section": "Sin leer",
+    "earlier_section": "Anteriores",
+    "category_new_content": "Contenido nuevo",
+    "category_livestream": "Transmisión en vivo",
+    "category_product_update": "Novedad del producto",
+    "category_maintenance": "Mantenimiento",
+    "category_terms_of_service": "Términos del servicio",
+    "category_general": "General",
+    "relative_time_just_now": "Ahora mismo",
+    "relative_time_seconds_ago": "Hace {count, plural, one {# segundo} other {# segundos}}",
+    "relative_time_seconds_from_now": "En {count, plural, one {# segundo} other {# segundos}}",
+    "relative_time_minutes_ago": "Hace {count, plural, one {# minuto} other {# minutos}}",
+    "relative_time_minutes_from_now": "En {count, plural, one {# minuto} other {# minutos}}",
+    "relative_time_hours_ago": "Hace {count, plural, one {# hora} other {# horas}}",
+    "relative_time_hours_from_now": "En {count, plural, one {# hora} other {# horas}}",
+    "relative_time_days_ago": "Hace {count, plural, one {# día} other {# días}}",
+    "relative_time_days_from_now": "En {count, plural, one {# día} other {# días}}",
+    "no_body": "Ábrela para ver los detalles."
   },
   "seo": {
     "pages": {

@@ -8,7 +8,7 @@ import {
 import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService.js';
 import { getLoggerService } from '@workers/factories/loggerService.js';
 
-import { isObjectLike, MQ_IMAGE_SHRINK_HINTS_CONFIG, sleep } from '@podverse/helpers';
+import { isObjectLike, MQ_IMAGE_SHRINK_HINTS_CONFIG, ONE_DAY_MS, sleep } from '@podverse/helpers';
 import { createActiveMQShutdown } from '@podverse/mq';
 import { ChannelImageService, ImageShrinkSourceService, ItemImageService } from '@podverse/orm';
 
@@ -18,7 +18,7 @@ type ImageShrinkHintMessage = {
   hintCreatedAt: string;
 };
 
-const HINT_FRESHNESS_MS = 24 * 60 * 60 * 1000;
+const HINT_FRESHNESS_MS = ONE_DAY_MS;
 
 const isImageShrinkHintMessage = (value: unknown): value is ImageShrinkHintMessage => {
   if (!isObjectLike(value)) {

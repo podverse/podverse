@@ -1,3 +1,5 @@
+import { ONE_DAY_MS, ONE_HOUR_MS, ONE_MINUTE_MS } from './timeConstants.js';
+
 export const TIME_CONSTANTS = {
   ONE_DAY_IN_MINUTES: 1440,
   ONE_WEEK_IN_MINUTES: 10080,
@@ -6,6 +8,35 @@ export const TIME_CONSTANTS = {
 
 /** Default retention for raw stats track events before prune (see STATS_TRACK_EVENT_RETENTION_DAYS). */
 export const DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS = 30;
+
+/**
+ * Default retention for delivered notification rows (see NOTIFICATION_RETENTION_DAYS).
+ *
+ * The inbox is a recent activity view, not an archive: a notification is a copy of something that
+ * already exists elsewhere in the app, so keeping it past the point anyone would act on it grows a
+ * table without answering a question. Thirty days matches the `expires_at` default a row is created
+ * with.
+ */
+export const DEFAULT_NOTIFICATION_RETENTION_DAYS = 30;
+
+/**
+ * Default retention for finished `scheduled_job` rows (see SCHEDULED_JOB_RETENTION_DAYS).
+ *
+ * These are an operational record of work the platform did rather than something a user reads, so
+ * the window answers "how far back would someone investigating an incident look?" and not anything
+ * about the inbox those jobs may have written to. Keeping them indefinitely grows a table whose
+ * only remaining readers are a human debugging last week.
+ */
+export const DEFAULT_SCHEDULED_JOB_RETENTION_DAYS = 30;
+
+/**
+ * Default retention for on-demand parser event rows (see ON_DEMAND_PARSER_EVENT_RETENTION_DAYS).
+ *
+ * A row records that someone asked for a feed to be parsed right now. Its usefulness ends once the
+ * parse has happened and any rate limiting derived from it has lapsed, so the window only needs to
+ * be long enough to investigate a recent complaint.
+ */
+export const DEFAULT_ON_DEMAND_PARSER_EVENT_RETENTION_DAYS = 30;
 
 export function formatHHMMSS(sec: number) {
   const hours = Math.floor(sec / 3600);
@@ -167,10 +198,10 @@ export function calculateTimeRemaining(
   const expiration = typeof expirationDate === 'string' ? new Date(expirationDate) : expirationDate;
   const now = new Date();
   const diffTime = Math.max(0, expiration.getTime() - now.getTime());
-  const diffHours = diffTime / (1000 * 60 * 60);
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  const diffMinutes = Math.ceil(diffTime / (1000 * 60));
-  const diffHoursRounded = Math.ceil(diffTime / (1000 * 60 * 60));
+  const diffHours = diffTime / ONE_HOUR_MS;
+  const diffDays = Math.ceil(diffTime / ONE_DAY_MS);
+  const diffMinutes = Math.ceil(diffTime / ONE_MINUTE_MS);
+  const diffHoursRounded = Math.ceil(diffTime / ONE_HOUR_MS);
 
   if (diffHours < 1) {
     // Less than an hour left - show minutes

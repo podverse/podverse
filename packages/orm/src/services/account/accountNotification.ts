@@ -76,8 +76,12 @@ export class AccountNotificationService {
     });
   }
 
-  async countUnseen(account_id: number, last_seen_at: Date | null): Promise<number> {
-    if (last_seen_at === null) {
+  /**
+   * Rows created after the account last opened its inbox. A null timestamp means it has never been
+   * opened, so everything counts.
+   */
+  async countUnread(account_id: number, last_read_at: Date | null): Promise<number> {
+    if (last_read_at === null) {
       return this.repositoryRead.count({
         where: {
           account_id,
@@ -88,14 +92,30 @@ export class AccountNotificationService {
     return this.repositoryRead.count({
       where: {
         account_id,
-        created_at: MoreThan(last_seen_at),
+        created_at: MoreThan(last_read_at),
       },
     });
   }
 
+  /**
+   * Honours a row's own `expires_at`, which lets a notification declare a life shorter than the
+   * retention window — a maintenance notice for a window that has closed, say.
+   */
   async deleteExpiredBefore(cutoff: Date): Promise<number> {
     const result = await this.repositoryReadWrite.delete({
       expires_at: LessThan(cutoff),
+    });
+
+    return result.affected ?? 0;
+  }
+
+  /**
+   * The retention ceiling, applied to rows already in the table rather than only to ones inserted
+   * after the operator changed it. Shortening the window therefore takes effect on the next purge.
+   */
+  async deleteCreatedBefore(cutoff: Date): Promise<number> {
+    const result = await this.repositoryReadWrite.delete({
+      created_at: LessThan(cutoff),
     });
 
     return result.affected ?? 0;

@@ -4,7 +4,7 @@ import { getLoggerService } from '@workers/factories/loggerService.js';
 import { setAddByRSSParseCacheEntry } from '@workers/lib/addByRSSParseCache.js';
 
 import type { MQQueueNameParamKey } from '@podverse/helpers';
-import { MQ_QUEUES } from '@podverse/helpers';
+import { MQ_QUEUES, sleep } from '@podverse/helpers';
 import type { MQAddByRSSMessage } from '@podverse/mq';
 import { createActiveMQShutdown } from '@podverse/mq';
 import { AccountFollowingAddByRSSChannelService } from '@podverse/orm';
@@ -163,7 +163,7 @@ export const mqAddByRSSRunParser = async (args: CommandLineArgs) => {
   });
 
   while (keepRunning) {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await sleep(1000);
   }
 
   unregister();

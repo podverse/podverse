@@ -1,7 +1,7 @@
 appId: com.podverse.app.next
 name: Deep Link Podcast
 ---
-# Track 15.6: prove deep-link routing to a tab-scoped detail screen.
+# Verify deep-link routing to a tab-scoped detail screen.
 # E2E-safe id_text seeded by tools/web/seed-e2e.mjs.
 
 - runFlow: shared/launch-and-connect.yaml

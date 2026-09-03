@@ -1,13 +1,11 @@
 import Foundation
 
-// Durable native-cache storage (master step 12.2 / detail 381).
-//
 // JS mirrors queue / downloads / library-browse snapshots into these files whenever phone-side state
-// changes (write path 12.4). A future CarPlay scene (12.7+) and the read spike (12.5) load them with
-// the JS runtime NOT running, so the car experience works "get in the car, browse and play, phone
-// app never opened" (DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md). Schema is owned by Track 12.1 / detail 380
-// (each payload carries a `schemaVersion` + `updatedAtMs` envelope); this layer stores opaque JSON
-// and never re-decides queue policy (that stays in `@podverse/playback-core`).
+// changes. CarPlay and Android Auto load them with the JS runtime NOT running, so the car experience
+// works "get in the car, browse and play, phone app never opened"
+// (DOCS-MOBILE-CARPLAY-ANDROID-AUTO.md). Each payload carries a `schemaVersion` + `updatedAtMs`
+// envelope; this layer stores opaque JSON and never re-decides queue policy (that stays in
+// `@podverse/playback-core`).
 
 /// One persisted payload kind. `rawValue` is only for logging; on-disk name is `fileName`.
 enum PodverseNativeCacheKind: String, CaseIterable {
@@ -25,8 +23,8 @@ enum PodverseNativeCacheKind: String, CaseIterable {
 }
 
 enum PodverseNativeCache {
-  // App Group container id for sharing the cache with the CarPlay scene (12.7). The App ID
-  // `com.podverse.app.next` has this group provisioned (12.16 iOS portal). JS writes and the
+  // App Group container id for sharing the cache with CarPlay. The App ID
+  // `com.podverse.app.next` has this group provisioned. JS writes and the
   // CarPlay scene read from the same shared container, so browse/play work with the phone app
   // force-quit. Keep this in sync with `com.apple.security.application-groups` in app.config.ts.
   static let appGroupIdentifier: String? = "group.com.podverse.app.next"
@@ -77,7 +75,7 @@ enum PodverseNativeCache {
     }
   }
 
-  /// Read a persisted JSON payload string with the JS runtime not running (spike 12.5, CarPlay 12.8).
+  /// Read a persisted JSON payload string with the JS runtime not running.
   /// Returns `nil` when missing or unreadable; callers render an empty tree and never crash.
   static func read(_ kind: PodverseNativeCacheKind) -> String? {
     guard let url = fileURL(for: kind) else { return nil }
@@ -89,9 +87,8 @@ enum PodverseNativeCache {
     }
   }
 
-  /// Spike helper (step 12.5): read every payload and log a one-line summary (presence, byte size,
-  /// parsed `schemaVersion`). Safe to call from a native entry point (e.g. a future CarPlay scene,
-  /// 12.7) with the JS runtime not started — proves the cache is readable without JS. Never throws.
+  /// Read every payload and log a one-line summary (presence, byte size, parsed `schemaVersion`).
+  /// Safe to call from a native entry point with the JS runtime not started. Never throws.
   @discardableResult
   static func debugDump() -> String {
     let parts = PodverseNativeCacheKind.allCases.map { kind -> String in

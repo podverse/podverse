@@ -35,9 +35,8 @@ const resolvePlaylistRowTarget = (
   return null;
 };
 
-// Reorder kind → the playlist-resource API family used to persist a new position (9d.3). add-by-RSS
-// resources aren't rendered by `playlistResourceToHomeRow`, so they're excluded from reorder here
-// (operator polish / Track 23 if ever needed).
+// Reorder kind → the playlist-resource API family for persisting a new position. Add-by-RSS
+// resources aren't rendered by `playlistResourceToHomeRow`, so they are excluded from reorder here.
 type ReorderKind = 'clip' | 'item' | 'item_soundbite';
 
 const reorderKind = (resource: DTOPlaylistResource): ReorderKind | null => {
@@ -406,6 +405,7 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
   return (
     <View style={styles.container} testID="library-playlist-detail-screen">
       <AuthAwareLoadState
+        authMessageKey="features.playlist.login_prompt"
         emptyTestID="library-playlist-detail-auth-required"
         errorKey={errorKey}
         errorTestID="library-playlist-detail-error"

@@ -17,7 +17,10 @@ import {
   safeSsrListRequest,
 } from '../../../utils/filters/ssrFilterGuards';
 import type { MusicLivestreamsFilterDefaults } from '../../../utils/localSettings/localSettings';
-import { getParsedLocalSettings } from '../../../utils/localSettings/localSettings';
+import {
+  getFilterDefaultsForPage,
+  getParsedLocalSettings,
+} from '../../../utils/localSettings/localSettings';
 import { LivestreamsPageClient } from '../../podcasts/livestreams/LivestreamsPageClient';
 import type { LivestreamsPageDropdownConfigCurrentParams } from '../../podcasts/livestreams/LivestreamsPageDropdownConfig';
 import { getLivestreamsPageFilterParams } from '../../podcasts/livestreams/LivestreamsPageDropdownConfig';
@@ -50,7 +53,7 @@ export default async function MusicLivestreamsPage({ searchParams }: MusicLivest
 
   const cookieStore = await cookies();
   const ssrLocalSettings = getParsedLocalSettings(cookieStore);
-  const ssrFilterDefaults = ssrLocalSettings.fd?.['music-livestreams'];
+  const ssrFilterDefaults = getFilterDefaultsForPage(ssrLocalSettings, 'music-livestreams');
 
   const queryParams = await searchParams;
   const { currentType, currentSort, currentRange, currentPage, currentLiveItemType } =

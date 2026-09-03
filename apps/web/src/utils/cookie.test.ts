@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { clearCookie, readCookie, writeCookie } from './cookie.js';
+import { clearCookie, readCookie, writeCookie } from '@podverse/helpers-browser';
 
 type MockDocument = {
   cookie: string;

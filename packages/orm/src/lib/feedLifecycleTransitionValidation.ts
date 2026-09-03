@@ -1,8 +1,5 @@
 /**
- * Lifecycle transition rules from **01b**:
- * `.llm/plans/completed/feed-status-table-replacement/01b-status-mapping-and-transition-spec.md`
- *
- * Allowed edges (base matrix):
+ * Lifecycle transition rules. Allowed edges (base matrix):
  * - `active` → `pending_archive`
  * - `pending_archive` → `archived`
  * - `active` → `takedown`

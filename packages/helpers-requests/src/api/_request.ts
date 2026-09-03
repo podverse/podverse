@@ -1,5 +1,6 @@
 import type { QueueExtraParams } from '@podverse/helpers';
 import type { BetweenParams } from '@podverse/helpers';
+import type { AddByRssSeenMarkEntry, ChannelSeenMarkEntry } from '@podverse/helpers';
 import type { MediaTypePreference } from '@podverse/helpers';
 import type { QueryParamsPodcastIndexSearchMedium } from '@podverse/helpers';
 import type {
@@ -43,6 +44,13 @@ import {
   type ReqAccountAddByRSSChaptersTranscriptParams,
 } from './account/addByRSSChaptersTranscript.js';
 import {
+  reqAccountChannelSeenList,
+  reqAccountChannelSeenListAddByRss,
+  reqAccountChannelSeenMark,
+  reqAccountChannelSeenMarkAddByRss,
+  reqAccountChannelSeenMarkAll,
+} from './account/channelSeen.js';
+import {
   reqAccountFCMDeviceCreate,
   reqAccountFCMDeviceDelete,
   reqAccountFCMDeviceGetAllForAccount,
@@ -55,7 +63,11 @@ import {
   reqAccountGetFollowedAddByRSSChannels,
   reqAccountUnfollowAddByRSSChannel,
 } from './account/follow/addByRSSChannel.js';
-import { reqAccountFollowChannel, reqAccountUnfollowChannel } from './account/follow/channel.js';
+import {
+  reqAccountFollowChannel,
+  reqAccountFollowChannelsBulk,
+  reqAccountUnfollowChannel,
+} from './account/follow/channel.js';
 import { reqAccountFollowPlaylist, reqAccountUnfollowPlaylist } from './account/follow/playlist.js';
 import {
   reqAccountNotificationChannelCreate,
@@ -71,8 +83,8 @@ import {
   type ReqNotificationPreferenceUpdateInput,
   reqNotificationsList,
   type ReqNotificationsListResponse,
-  reqNotificationsMarkSeen,
-  reqNotificationsUnseenCount,
+  reqNotificationsMarkRead,
+  reqNotificationsUnreadCount,
 } from './account/notification/notifications.js';
 import {
   reqAccountUPDeviceCreate,
@@ -568,8 +580,34 @@ export class ApiRequestService {
     return reqAccountFollowChannel(this, params);
   }
 
+  reqAccountFollowChannelsBulk(params: { channel_id_texts: string[] }) {
+    return reqAccountFollowChannelsBulk(this, params);
+  }
+
   reqAccountUnfollowChannel(params: { channel_id_text: string }) {
     return reqAccountUnfollowChannel(this, params);
+  }
+
+  /* ACCOUNT > CHANNEL SEEN */
+
+  reqAccountChannelSeenList(params?: { page?: number }) {
+    return reqAccountChannelSeenList(this, params);
+  }
+
+  reqAccountChannelSeenListAddByRss(params?: { page?: number }) {
+    return reqAccountChannelSeenListAddByRss(this, params);
+  }
+
+  reqAccountChannelSeenMark(params: { entries: ChannelSeenMarkEntry[] }) {
+    return reqAccountChannelSeenMark(this, params);
+  }
+
+  reqAccountChannelSeenMarkAll() {
+    return reqAccountChannelSeenMarkAll(this);
+  }
+
+  reqAccountChannelSeenMarkAddByRss(params: { entries: AddByRssSeenMarkEntry[] }) {
+    return reqAccountChannelSeenMarkAddByRss(this, params);
   }
 
   /* ACCOUNT > FOLLOW > ADD BY RSS CHANNEL */
@@ -643,12 +681,12 @@ export class ApiRequestService {
     return reqNotificationsList(this, params);
   }
 
-  reqNotificationsUnseenCount(): Promise<{ unseen_count: number }> {
-    return reqNotificationsUnseenCount(this);
+  reqNotificationsUnreadCount(): Promise<{ unread_count: number }> {
+    return reqNotificationsUnreadCount(this);
   }
 
-  reqNotificationsMarkSeen(): Promise<{ last_seen_at: string }> {
-    return reqNotificationsMarkSeen(this);
+  reqNotificationsMarkRead(): Promise<{ last_read_at: string }> {
+    return reqNotificationsMarkRead(this);
   }
 
   reqNotificationPreferencesGet() {

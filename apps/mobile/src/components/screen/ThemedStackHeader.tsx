@@ -2,9 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackHeaderProps } from '@react-navigation/native-stack';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTheme } from '../../theme/useTheme';
+import { HEADER_BAR_HEIGHT, HeaderBar, headerBarTypography } from './HeaderBar';
 
 /**
  * Custom themed native-stack header. Renders a solid, token-colored bar so the header/back button
@@ -13,7 +13,6 @@ import { useTheme } from '../../theme/useTheme';
  */
 export function ThemedStackHeader({ back, navigation, options }: NativeStackHeaderProps) {
   const { styles: themeStyles, tokens } = useTheme();
-  const insets = useSafeAreaInsets();
 
   const styles = useMemo(
     () =>
@@ -21,7 +20,7 @@ export function ThemedStackHeader({ back, navigation, options }: NativeStackHead
         backButton: {
           alignItems: 'center',
           flexDirection: 'row',
-          height: 44,
+          height: HEADER_BAR_HEIGHT,
           justifyContent: 'center',
           left: tokens.spacing.sm,
           paddingHorizontal: tokens.spacing.sm,
@@ -29,30 +28,35 @@ export function ThemedStackHeader({ back, navigation, options }: NativeStackHead
           top: 0,
           zIndex: 1,
         },
-        container: {
-          backgroundColor: themeStyles.screen.backgroundColor,
-          paddingTop: insets.top,
+        rightButton: {
+          alignItems: 'center',
+          height: HEADER_BAR_HEIGHT,
+          justifyContent: 'center',
+          paddingHorizontal: tokens.spacing.sm,
+          position: 'absolute',
+          right: tokens.spacing.sm,
+          top: 0,
+          zIndex: 1,
         },
         row: {
           alignItems: 'center',
           flexDirection: 'row',
-          height: 44,
+          flex: 1,
           justifyContent: 'center',
           paddingHorizontal: tokens.spacing['4xl'],
         },
         title: {
+          ...headerBarTypography,
           color: themeStyles.textPrimary.color,
-          fontSize: 17,
-          fontWeight: '600',
         },
       }),
-    [insets.top, themeStyles, tokens]
+    [themeStyles, tokens]
   );
 
   const title = options.title ?? '';
 
   return (
-    <View style={styles.container}>
+    <HeaderBar>
       <View style={styles.row}>
         {back !== undefined ? (
           <Pressable
@@ -70,7 +74,16 @@ export function ThemedStackHeader({ back, navigation, options }: NativeStackHead
         <Text numberOfLines={1} style={styles.title}>
           {title}
         </Text>
+        {options.headerRight !== undefined ? (
+          <View style={styles.rightButton}>
+            {options.headerRight({
+              pressColor: options.headerPressColor,
+              pressOpacity: options.headerPressOpacity,
+              tintColor: options.headerTintColor,
+            })}
+          </View>
+        ) : null}
       </View>
-    </View>
+    </HeaderBar>
   );
 }

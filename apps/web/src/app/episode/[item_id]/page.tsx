@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import { z } from 'zod';
 
+import type { SortPrefScope, SortPrefValue } from '@podverse/helpers';
 import { buildEpisodePath } from '@podverse/helpers';
 import {
   QUERY_PARAMS_ITEM_SORT_VALUES,
@@ -17,20 +19,34 @@ import {
 } from '../../../lib/seo/fetchers';
 import { toSeoPlainText } from '../../../lib/seo/toSeoPlainText';
 import { truncateMetaDescription } from '../../../lib/seo/truncateMetaDescription';
+import {
+  hasExplicitControlParams,
+  resolveStoredRange,
+  resolveStoredToken,
+} from '../../../utils/localSettings/detailSortPrefs';
+import {
+  getParsedLocalSettings,
+  getStoredSortPref,
+} from '../../../utils/localSettings/localSettings';
 import { enforceCanonicalItemRoute } from '../../../utils/redirect/enforceCanonicalMediumRoute';
 import { EpisodePageClient } from './EpisodePageClient';
 import type { EpisodePageDropdownConfigCurrentParams } from './EpisodePageDropdownConfig';
 import { getEpisodePageFilterParams } from './EpisodePageDropdownConfig';
 
+/**
+ * The control fields carry no schema default, so an absent parameter stays `undefined` and this
+ * episode's remembered selection is reachable. A default applied here would win before the stored
+ * preference was ever consulted.
+ */
 const searchParamsSchema = z.object({
   page: z
     .string()
     .transform((v) => parseInt(v, 10))
     .optional()
     .default(1),
-  type: z.enum(QUERY_PARAMS_ITEM_TYPE_VALUES).optional().default('summary'),
-  sort: z.enum(QUERY_PARAMS_ITEM_SORT_VALUES).optional().default('recent'),
-  range: z.enum(QUERY_PARAMS_STATS_RANGE_VALUES).optional().nullable().default(null),
+  type: z.enum(QUERY_PARAMS_ITEM_TYPE_VALUES).optional(),
+  sort: z.enum(QUERY_PARAMS_ITEM_SORT_VALUES).optional(),
+  range: z.enum(QUERY_PARAMS_STATS_RANGE_VALUES).optional().nullable(),
 });
 
 type SearchParams = z.infer<typeof searchParamsSchema>;
@@ -65,11 +81,17 @@ export default async function EpisodePage({ params, searchParams }: EpisodePageP
   const { item_id } = await params;
   const queryParams = await searchParams;
 
-  const { currentPage, currentType, currentSort, currentRange } = parseSearchParams(queryParams);
-
   const ssrItem = await getItemForSeoPage(item_id);
   const ssrChannel = await getChannelForSeoPage(ssrItem.channel_id);
   enforceCanonicalItemRoute(ssrChannel.medium_id, ssrItem.id_text, 'episode');
+
+  // Keyed on the resolved `id_text` rather than the route segment, so an episode reached by numeric
+  // id and one reached by its slug are the same instance to the store.
+  const sortPrefScope: SortPrefScope = { idText: ssrItem.id_text, kind: 'item' };
+  const storedSortPref = getStoredSortPref(getParsedLocalSettings(await cookies()), sortPrefScope);
+
+  const { currentPage, currentType, currentSort, currentRange, hasExplicitUrlParams } =
+    parseSearchParams(queryParams, storedSortPref);
 
   const ssrHasChapters = !!ssrItem.item_chapters_feed;
   const ssrHasSoundbites = !!ssrItem.item_soundbites && ssrItem.item_soundbites.length > 0;
@@ -77,6 +99,7 @@ export default async function EpisodePage({ params, searchParams }: EpisodePageP
 
   return (
     <EpisodePageClient
+      hasExplicitUrlParams={hasExplicitUrlParams}
       initialQueryParams={{
         page: currentPage,
         type: currentType,
@@ -92,19 +115,36 @@ export default async function EpisodePage({ params, searchParams }: EpisodePageP
   );
 }
 
-function parseSearchParams(searchParams: SearchParams): EpisodePageDropdownConfigCurrentParams {
+type EpisodePageResolvedParams = EpisodePageDropdownConfigCurrentParams & {
+  hasExplicitUrlParams: boolean;
+};
+
+function parseSearchParams(
+  searchParams: SearchParams,
+  storedSortPref: SortPrefValue | null
+): EpisodePageResolvedParams {
   const parsed = searchParamsSchema.safeParse(searchParams);
+  const data = parsed.success ? parsed.data : null;
 
-  if (!parsed.success) {
-    return {
-      currentType: 'summary',
-      currentSort: 'recent',
-      currentRange: null,
-      currentPage: 1,
-    };
-  }
+  const filterParams = getEpisodePageFilterParams({
+    page: data?.page ?? 1,
+    range: resolveStoredRange(data?.range, storedSortPref?.range),
+    sort: resolveStoredToken(
+      data?.sort,
+      storedSortPref?.sort,
+      QUERY_PARAMS_ITEM_SORT_VALUES,
+      'recent'
+    ),
+    type: resolveStoredToken(
+      data?.type,
+      storedSortPref?.tab,
+      QUERY_PARAMS_ITEM_TYPE_VALUES,
+      'summary'
+    ),
+  });
 
-  const data = parsed.data;
-
-  return getEpisodePageFilterParams(data);
+  return {
+    ...filterParams,
+    hasExplicitUrlParams: hasExplicitControlParams([data?.type, data?.sort, data?.range]),
+  };
 }

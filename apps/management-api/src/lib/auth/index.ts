@@ -14,12 +14,14 @@ import passport from 'passport';
 import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
 import { Strategy as LocalStrategy } from 'passport-local';
 
+import {
+  MOBILE_ACCESS_TOKEN_TTL_SECONDS,
+  MOBILE_REFRESH_TOKEN_TTL_SECONDS,
+} from '@podverse/helpers';
 import { isValidNanoIdV2IdText } from '@podverse/orm';
 
 const isProduction = config.nodeEnv === 'production';
 const ADMIN_AUTH_COOKIE_NAME = 'pv_mgmt_auth';
-const MOBILE_ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
-const MOBILE_REFRESH_TOKEN_TTL_SECONDS = 30 * 24 * 60 * 60;
 
 type MobileRefreshRecord = {
   adminId: number;

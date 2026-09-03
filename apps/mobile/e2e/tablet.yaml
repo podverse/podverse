@@ -1,7 +1,7 @@
 appId: com.podverse.app.next
 name: Tablet Home And Podcast Detail
 ---
-# Track 18.5: opt-in tablet viewport screenshots (Home multi-column + podcast split).
+# Opt-in tablet viewport screenshots (Home multi-column + podcast split).
 # Runs only on ios-tablet / android-tablet slots (`npm run mobile:e2e:test -- tablet`).
 # Excluded from `mobile:e2e:test:all` (phone matrix).
 

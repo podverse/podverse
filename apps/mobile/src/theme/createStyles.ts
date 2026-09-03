@@ -39,8 +39,10 @@ export const createStyles = (theme: UITheme): MobileThemeStyles => {
       backgroundColor: tokens.button.secondaryBg,
       color: tokens.button.secondaryColor,
     },
+    // Dark full-bleed chrome matches the tab bar (`background.secondary`). Other themes
+    // keep `background.primary` so cards (`background.secondary`) sit on a distinct page.
     screen: {
-      backgroundColor: tokens.background.primary,
+      backgroundColor: theme === 'dark' ? tokens.background.secondary : tokens.background.primary,
     },
     textPrimary: {
       color: tokens.text.primary,

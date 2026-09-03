@@ -7,6 +7,8 @@
 #   bash scripts/mobile/ensure-devices.sh manual-android
 #   bash scripts/mobile/ensure-devices.sh resolve-e2e-ios-udid
 #   bash scripts/mobile/ensure-devices.sh resolve-e2e-android-serial
+#   bash scripts/mobile/ensure-devices.sh recover-e2e-android
+#   bash scripts/mobile/ensure-devices.sh recover-e2e-ios
 
 set -euo pipefail
 
@@ -14,7 +16,7 @@ MANUAL_IOS_NAME='iPhone 17 Pro'
 MANUAL_ANDROID_AVD='Pixel_6_Pro_API_33'
 E2E_IOS_NAME='iPhone 17 Pro E2E'
 E2E_ANDROID_AVD='Pixel_6_Pro_API_33_e2e'
-# Opt-in Track 18 tablet E2E slots (not used by default phone matrix / mobile:e2e:test:all).
+# Opt-in tablet E2E slots (not used by default phone matrix / mobile:e2e:test:all).
 MANUAL_IOS_TABLET_NAME='iPad Pro 13-inch (M4)'
 E2E_IOS_TABLET_NAME='iPad Pro 13-inch (M4) E2E'
 E2E_ANDROID_TABLET_AVD='Pixel_Tablet_API_33_e2e'
@@ -24,6 +26,12 @@ ANDROID_HOME="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}}"
 EMULATOR_BIN="${ANDROID_HOME}/emulator/emulator"
 ADB_BIN="${ANDROID_HOME}/platform-tools/adb"
 AVD_HOME="${ANDROID_AVD_HOME:-$HOME/.android/avd}"
+
+# Metro is bridged into the emulator so the Expo Dev Client discovers http://localhost:8081 and
+# connects with the single tap iOS already uses. Without the bridge the launcher lists no server
+# and every flow types the 10.0.2.2 URL by hand — inputText is the most expensive command Maestro
+# has on Android, and clearState makes each flow pay it again.
+ANDROID_METRO_PORT="${MOBILE_METRO_PORT:-8081}"
 
 # Podverse Android AVD performance profile (Apple Silicon + HVF). Applied on every ensure/boot
 # so manual + E2E slots stay consistent. Keeps Pixel_6_Pro LCD size for screenshot parity.
@@ -156,23 +164,32 @@ ensure_ios_sim() {
   xcrun simctl create "$name" "$device_type" "$runtime" >/dev/null
 }
 
-boot_ios_sim() {
-  local name="$1"
-  ensure_ios_sim "$name"
-  local udid
-  udid="$(ios_udid_by_name "$name")" || die "Simulator not found after create: ${name}"
-  local state
-  state="$(xcrun simctl list devices -j | python3 -c '
+ios_state_for_udid() {
+  local udid="$1"
+  xcrun simctl list devices -j 2>/dev/null | python3 -c '
 import json, sys
 udid = sys.argv[1]
-data = json.load(sys.stdin)
+try:
+  data = json.load(sys.stdin)
+except Exception:
+  print("")
+  raise SystemExit(0)
 for devices in data.get("devices", {}).values():
   for d in devices:
     if d.get("udid") == udid:
       print(d.get("state", ""))
       raise SystemExit(0)
 print("")
-' "$udid")"
+' "$udid"
+}
+
+boot_ios_sim() {
+  local name="$1"
+  ensure_ios_sim "$name"
+  local udid
+  udid="$(ios_udid_by_name "$name")" || die "Simulator not found after create: ${name}"
+  local state
+  state="$(ios_state_for_udid "$udid")"
   if [[ "$state" != "Booted" ]]; then
     echo "Booting iOS simulator: ${name}" >&2
     xcrun simctl boot "$udid" 2>/dev/null || true
@@ -181,6 +198,55 @@ print("")
   else
     echo "iOS simulator already booted: ${name}" >&2
   fi
+  printf '%s\n' "$udid"
+}
+
+# Hand a wedged E2E simulator back booted and free of the previous run's driver. Only ever used on
+# E2E simulators, whose state is disposable — the app stays installed and the caller re-runs the
+# flows that never got a result.
+#
+# The usual iOS wedge is not the simulator itself but Maestro's XCTest runner: a killed run leaves
+# the runner attached, and the next invocation blocks forever trying to acquire a device something
+# else already owns. So the runner goes first, then the simulator.
+recover_ios_device() {
+  local name="$1"
+  local udid pid waited
+  [[ "$(uname -s)" == "Darwin" ]] || die "iOS recovery requires macOS"
+  udid="$(ios_udid_by_name "$name")" || die "iOS simulator ${name} not found; nothing to recover."
+
+  echo "Recovering iOS E2E simulator ${name} (${udid})..." >&2
+
+  for pid in $(pgrep -f 'maestro-driver-ios' 2>/dev/null || true); do
+    kill -TERM "$pid" 2>/dev/null || true
+  done
+  sleep 2
+  for pid in $(pgrep -f 'maestro-driver-ios' 2>/dev/null || true); do
+    kill -KILL "$pid" 2>/dev/null || true
+  done
+
+  xcrun simctl terminate "$udid" "$APP_ID" >/dev/null 2>&1 || true
+  xcrun simctl shutdown "$udid" >/dev/null 2>&1 || true
+
+  waited=0
+  while ((waited < 60)); do
+    [[ "$(ios_state_for_udid "$udid")" == "Shutdown" ]] && break
+    sleep 2
+    waited=$((waited + 2))
+  done
+
+  xcrun simctl boot "$udid" >/dev/null 2>&1 || true
+  open -a Simulator >/dev/null 2>&1 || true
+  if ! xcrun simctl bootstatus "$udid" -b >/dev/null 2>&1; then
+    echo "Error: ${name} did not finish booting after recovery." >&2
+    echo "CoreSimulator itself may be wedged. Quit Simulator.app, then:" >&2
+    echo "  killall -9 com.apple.CoreSimulator.CoreSimulatorService" >&2
+    echo "That restarts every simulator on the host, including manual ones." >&2
+    exit 1
+  fi
+  # SpringBoard keeps launching services after bootstatus returns. Handing the simulator to Maestro
+  # inside that window is how the next invocation inherits the same acquisition hang.
+  sleep 5
+  echo "iOS E2E simulator ${name} recovered (${udid})." >&2
   printf '%s\n' "$udid"
 }
 
@@ -363,6 +429,59 @@ android_serial_for_avd() {
   return 1
 }
 
+# Emulator animations make every UiAutomator action wait for its transition to settle, which is the
+# dominant per-command cost of a Maestro run. Zeroing the scales is idempotent and persists until
+# the AVD's data partition is wiped, so it is re-applied on every boot.
+tune_android_runtime_settings() {
+  local serial="$1"
+  local scale
+  for scale in window_animation_scale transition_animation_scale animator_duration_scale; do
+    "$ADB_BIN" -s "$serial" shell settings put global "$scale" 0 >/dev/null 2>&1 || true
+  done
+}
+
+# Reverse-forward the host's Metro port into the guest. Reverse mappings live in the adb daemon's
+# per-device connection, so this is re-applied on every boot and after any reboot.
+ensure_android_host_bridges() {
+  local serial="$1"
+  if ! "$ADB_BIN" -s "$serial" reverse "tcp:${ANDROID_METRO_PORT}" "tcp:${ANDROID_METRO_PORT}" >/dev/null 2>&1; then
+    echo "Warning: adb reverse tcp:${ANDROID_METRO_PORT} failed on ${serial}; Dev Client will fall back to manual URL entry." >&2
+  fi
+}
+
+# Reboot a wedged emulator and hand it back ready to drive. Only ever used on E2E AVDs, whose
+# state is disposable — the app stays installed, and the flow that hit the wedge is re-run by the
+# caller.
+recover_android_device() {
+  local avd="$1"
+  local serial waited boot
+  serial="$(android_serial_for_avd "$avd")" || die "Android AVD ${avd} is not running; nothing to recover."
+
+  echo "Rebooting Android E2E emulator ${avd} (${serial})..." >&2
+  "$ADB_BIN" -s "$serial" reboot >/dev/null 2>&1 || true
+  sleep 5
+  "$ADB_BIN" -s "$serial" wait-for-device >/dev/null 2>&1 || true
+
+  waited=0
+  while ((waited < 240)); do
+    boot="$("$ADB_BIN" -s "$serial" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
+    if [[ "$boot" == "1" ]]; then
+      # system_server keeps starting components after boot_completed; handing the device to
+      # Maestro during that window is how the next flow inherits the same unresponsive UI.
+      sleep 10
+      tune_android_runtime_settings "$serial"
+      ensure_android_host_bridges "$serial"
+      echo "Android E2E emulator ${avd} recovered (${serial})." >&2
+      printf '%s\n' "$serial"
+      return 0
+    fi
+    sleep 3
+    waited=$((waited + 3))
+  done
+
+  die "Timed out waiting for ${avd} to finish rebooting."
+}
+
 boot_android_avd() {
   local name="$1"
   ensure_android_avd "$name"
@@ -371,6 +490,8 @@ boot_android_avd() {
   local serial
   if serial="$(android_serial_for_avd "$name")"; then
     echo "Android AVD already running: ${name} (${serial})" >&2
+    tune_android_runtime_settings "$serial"
+    ensure_android_host_bridges "$serial"
     printf '%s\n' "$serial"
     return 0
   fi
@@ -385,6 +506,8 @@ boot_android_avd() {
       local boot=''
       boot="$("$ADB_BIN" -s "$serial" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
       if [[ "$boot" == "1" ]]; then
+        tune_android_runtime_settings "$serial"
+        ensure_android_host_bridges "$serial"
         printf '%s\n' "$serial"
         return 0
       fi
@@ -420,6 +543,18 @@ case "$MODE" in
     fi
     boot_android_avd "$E2E_ANDROID_AVD" >/dev/null
     echo "E2E Android ready: ${E2E_ANDROID_AVD}"
+    ;;
+  recover-e2e-android)
+    recover_android_device "$E2E_ANDROID_AVD"
+    ;;
+  recover-e2e-android-tablet)
+    recover_android_device "$E2E_ANDROID_TABLET_AVD"
+    ;;
+  recover-e2e-ios)
+    recover_ios_device "$E2E_IOS_NAME"
+    ;;
+  recover-e2e-ios-tablet)
+    recover_ios_device "$E2E_IOS_TABLET_NAME"
     ;;
   e2e-ios-tablet)
     boot_ios_sim "$E2E_IOS_TABLET_NAME" >/dev/null
@@ -543,6 +678,7 @@ case "$MODE" in
 Usage: bash scripts/mobile/ensure-devices.sh <command>
   print-matrix | e2e | e2e-ios | e2e-android | e2e-tablet | e2e-ios-tablet | e2e-android-tablet
   manual-ios | manual-android | tune-android
+  recover-e2e-ios | recover-e2e-android | recover-e2e-ios-tablet | recover-e2e-android-tablet
   resolve-e2e-ios-udid | resolve-e2e-android-serial
   resolve-e2e-ios-tablet-udid | resolve-e2e-android-tablet-serial
   check-e2e-app-ios | check-e2e-app-android

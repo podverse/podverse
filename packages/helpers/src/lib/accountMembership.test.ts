@@ -1,11 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import type { DTOAccount, DTOAccountMembershipStatus } from '../dtos/index.js';
+import type { MembershipState } from './accountMembership.js';
 import {
   AccountMembershipEnum,
   deriveMembershipState,
+  getMembershipExpiryNotice,
   hasValidMembership,
   isMembershipExpiredAt,
+  MEMBERSHIP_EXPIRY_WARNING_DAYS,
 } from './accountMembership.js';
 
 describe('isMembershipExpiredAt', () => {
@@ -175,5 +178,73 @@ describe('deriveMembershipState', () => {
     expect(state.tier).toBe('premium');
     expect(state.isMember).toBe(true);
     expect(state.expiresAt).toBe(FUTURE);
+  });
+});
+
+describe('getMembershipExpiryNotice', () => {
+  const NOW = new Date('2026-06-01T12:00:00.000Z');
+
+  const member = (expiresAt: string | null): MembershipState => ({
+    isLoggedIn: true,
+    isMember: true,
+    isExpired: false,
+    tier: 'premium',
+    expiresAt,
+  });
+
+  it('says nothing for a signed-out user', () => {
+    const state: MembershipState = {
+      isLoggedIn: false,
+      isMember: false,
+      isExpired: false,
+      tier: null,
+      expiresAt: null,
+    };
+
+    expect(getMembershipExpiryNotice(state, NOW)).toEqual({ status: 'none', daysRemaining: null });
+  });
+
+  it('says nothing when there is no expiry to count down to', () => {
+    expect(getMembershipExpiryNotice(member(null), NOW)).toEqual({
+      status: 'none',
+      daysRemaining: null,
+    });
+  });
+
+  it('stays quiet outside the warning window but still reports the days', () => {
+    const notice = getMembershipExpiryNotice(member('2026-07-15T12:00:00.000Z'), NOW);
+
+    expect(notice.status).toBe('none');
+    expect(notice.daysRemaining).toBe(44);
+  });
+
+  it('warns inside the window', () => {
+    expect(getMembershipExpiryNotice(member('2026-06-08T12:00:00.000Z'), NOW)).toEqual({
+      status: 'expiring_soon',
+      daysRemaining: 7,
+    });
+  });
+
+  it('warns on the boundary day rather than one day late', () => {
+    const boundary = new Date(NOW.getTime() + MEMBERSHIP_EXPIRY_WARNING_DAYS * 24 * 60 * 60 * 1000);
+
+    expect(getMembershipExpiryNotice(member(boundary.toISOString()), NOW)).toEqual({
+      status: 'expiring_soon',
+      daysRemaining: MEMBERSHIP_EXPIRY_WARNING_DAYS,
+    });
+  });
+
+  it('reports expired once the moment has passed, not expiring_soon', () => {
+    expect(getMembershipExpiryNotice(member('2026-05-31T12:00:00.000Z'), NOW)).toEqual({
+      status: 'expired',
+      daysRemaining: 0,
+    });
+  });
+
+  it('treats an unparseable expiry as no notice rather than throwing', () => {
+    expect(getMembershipExpiryNotice(member('not-a-date'), NOW)).toEqual({
+      status: 'none',
+      daysRemaining: null,
+    });
   });
 });

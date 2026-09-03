@@ -35,6 +35,7 @@ type Config = {
     accountOpmlImportEnqueue: { windowMs: number; max: number };
     accountAddByRssParseEnqueue: { windowMs: number; max: number };
     accountAddByRssChaptersTranscript: { windowMs: number; max: number };
+    accountChannelSeenRead: { windowMs: number; max: number };
     mqRssOnDemand: { windowMs: number; max: number };
   };
   nodeEnv: string;
@@ -222,6 +223,11 @@ export const config: Config = {
       envValue: process.env.ACCOUNT_ADD_BY_RSS_CHAPTERS_TRANSCRIPT_MAX_PER_MINUTE,
       key: 'ACCOUNT_ADD_BY_RSS_CHAPTERS_TRANSCRIPT_MAX_PER_MINUTE',
       defaultMax: 30,
+    }),
+    accountChannelSeenRead: parseCountPerWindowEnvFromKey({
+      envValue: process.env.ACCOUNT_CHANNEL_SEEN_READ_MAX_PER_MINUTE,
+      key: 'ACCOUNT_CHANNEL_SEEN_READ_MAX_PER_MINUTE',
+      defaultMax: 60,
     }),
     mqRssOnDemand: parseCountPerWindowEnvFromKey({
       envValue: process.env.MQ_RSS_ON_DEMAND_MAX_PER_HOUR,

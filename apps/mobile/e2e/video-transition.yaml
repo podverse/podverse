@@ -1,18 +1,18 @@
 appId: com.podverse.app.next
 name: Video Transition
 ---
-# Master step 2.33 (detail 112): play a real video item on the first-party media engine and prove
+# Play a video item on the first-party media engine and prove
 # the seamless mini->full player transition does NOT reload playback (single persistent native
-# VideoSurfaceHost reparented between the mini and full surfaces — anti-pattern 11.18 is a second
-# video mount / reload spinner). Feeds Track 11.15–11.17 once video list/browse UI lands.
+# VideoSurfaceHost reparented between the mini and full surfaces — a second video mount would cause a
+# reload spinner).
 #
 # Real video: the seeded video-medium item (E2E_VIDEO_ITEM_ID_TEXT / e2eVideoChnl01) has an
 # h264 enclosure served as video/mp4 on :2111 (tools/test-assets/assets/e2e/videos/
 # e2e-video-short-30s.mp4 — regenerate via `npm run generate:e2e-media -w podverse-test-assets`).
 # The orchestrator rewrites localhost -> 127.0.0.1 (iOS) / 10.0.2.2 (Android) via resolveE2eMediaUrl
-# (Android media host rewrite, detail 337 / 5.23). Requires flow_needs_test_assets + flow_needs_e2e_api.
+# (Android media host rewrite). Requires flow_needs_test_assets + flow_needs_e2e_api.
 #
-# There is no video browse/search UI yet (mobile search + home use medium 'podcasts' = [Podcast]),
+# Mobile search + home use medium 'podcasts' = [Podcast],
 # so the flow starts playback via the EXPO_PUBLIC_MOBILE_E2E-gated `e2e-play-video-item` affordance
 # on Home, which calls playItemById on the seeded video item. That yields an `item-video` active
 # target, so PlaybackProvider drives setVideoSurfaceVisible(true) and the native surface renders.
@@ -40,7 +40,7 @@ name: Video Transition
 - takeScreenshot: video-transition-mini
 
 # Expand to the full player. The shared engine keeps playing (no reload) — the native video surface
-# reparents from the mini rect to the full rect (Track 11.8 continuity).
+# reparents from the mini rect to the full rect.
 - tapOn:
     id: mini-player
 - assertVisible:
@@ -54,7 +54,7 @@ name: Video Transition
 # Do not assert `playback-active-e2e` here — like play-mini-player, the PlaybackE2eStatus marker sits
 # under the nav tree (tab bar) and is not visible while the full player modal covers the screen. The
 # full-player-video-surface / title / scrubber above prove the session stays live across the expand;
-# the marker is re-asserted after collapse (below) to prove playback never dropped (11.8 continuity).
+# the marker is re-asserted after collapse (below) to prove playback never dropped.
 - takeScreenshot: video-transition-full
 
 # Collapse back to the mini player. Playback stays continuous (surface reparents mini<-full).

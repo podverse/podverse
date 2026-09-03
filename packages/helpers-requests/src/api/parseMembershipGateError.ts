@@ -1,3 +1,5 @@
+import type { AccessDenialReason } from '@podverse/helpers';
+
 /**
  * Membership / entitlement denials return HTTP 403 with a structured JSON body whose `i18nKey` is under
  * the `membership.*` namespace (e.g. `membership.membership_expired`,
@@ -13,7 +15,7 @@
 export interface MembershipGateError {
   /** Machine-readable code (e.g. `membership_expired`, `feature_not_available_for_account_type`). */
   code?: string;
-  /** Namespaced i18n key under `membership.*` used to localise the user-facing message. */
+  /** Namespaced i18n key under `membership.*` for the user-facing localized message. */
   i18nKey: string;
   /** Server message (American English structural text); clients prefer their localised copy. */
   message?: string;
@@ -84,4 +86,35 @@ export function membershipDenialReason(i18nKey: string): MembershipDenialReason 
     return 'insufficient_tier';
   }
   return 'limit';
+}
+
+/**
+ * Bridges a server-side denial onto the shared {@link AccessDenialReason} used by the client-side
+ * tier resolver in `@podverse/helpers`, so a refused request and a pre-flight tier check describe
+ * themselves identically and a surface only has to render one set of reasons.
+ *
+ * `insufficient_tier` maps to `needs_membership` rather than `needs_account`: reaching a 403 means
+ * the request carried credentials, so signing in is not the remedy.
+ */
+export function accessDenialReasonFromGate(reason: MembershipDenialReason): AccessDenialReason {
+  if (reason === 'expired') {
+    return 'membership_expired';
+  }
+  if (reason === 'limit') {
+    return 'limit_reached';
+  }
+  return 'needs_membership';
+}
+
+/**
+ * Parses a thrown error and categorises it in one step, returning `null` when it is not a
+ * membership-gate 403.
+ */
+export function parseAccessDenialReason(error: unknown): AccessDenialReason | null {
+  const parsed = parseMembershipGateError(error);
+  if (parsed === null) {
+    return null;
+  }
+
+  return accessDenialReasonFromGate(membershipDenialReason(parsed.i18nKey));
 }

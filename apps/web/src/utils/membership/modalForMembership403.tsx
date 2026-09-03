@@ -1,6 +1,10 @@
 import type { ReactNode } from 'react';
 
-import { MEMBERSHIP_GATE_I18N_KEYS, parseMembershipGateError } from '@podverse/helpers-requests';
+import {
+  accessDenialReasonFromGate,
+  membershipDenialReason,
+  parseMembershipGateError,
+} from '@podverse/helpers-requests';
 
 import type { ModalMessage } from '../../contexts/Modals';
 
@@ -24,10 +28,15 @@ export function getMembership403ModalProps(params: {
     return null;
   }
 
-  const { i18nKey, message: apiMessage, renewPath } = payload;
+  const { message: apiMessage, renewPath } = payload;
   const { contactEmail, featureContext, tMembership } = params;
 
-  if (i18nKey === MEMBERSHIP_GATE_I18N_KEYS.expired) {
+  // Branch on the shared denial vocabulary so a server 403 and a client-side tier check describe
+  // themselves the same way. `needs_account` cannot arise here: a 403 means the request carried
+  // credentials, and logged-out callers are stopped by their own login guard before the request.
+  const reason = accessDenialReasonFromGate(membershipDenialReason(payload.i18nKey));
+
+  if (reason === 'membership_expired') {
     return {
       title: null,
       message: apiMessage ?? tMembership('membership_expired'),
@@ -38,7 +47,7 @@ export function getMembership403ModalProps(params: {
     };
   }
 
-  if (i18nKey === MEMBERSHIP_GATE_I18N_KEYS.featureNotAvailable) {
+  if (reason === 'needs_membership') {
     const messageNode: ReactNode | null =
       featureContext === 'directory_add_by_rss'
         ? tMembership.rich('directory_add_by_rss_trial_blocked', {
@@ -60,5 +69,6 @@ export function getMembership403ModalProps(params: {
     };
   }
 
+  // `limit_reached` has no modal — quota denials fall through to the caller's own error handling.
   return null;
 }

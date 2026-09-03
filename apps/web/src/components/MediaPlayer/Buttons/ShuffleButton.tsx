@@ -34,13 +34,14 @@ export const ShuffleButton = () => {
       onClick={onClick}
       type="button"
       aria-label={tMediaPlayer('shuffle.toggle_shuffle')}
+      aria-pressed={autoQueueConfig.random}
       title={
         autoQueueConfig.random
           ? tMediaPlayer('shuffle.shuffle_enabled')
           : tMediaPlayer('shuffle.shuffle_disabled')
       }
     >
-      <FaShuffle />
+      <FaShuffle aria-hidden />
     </button>
   );
 };

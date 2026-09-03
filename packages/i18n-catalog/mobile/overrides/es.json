@@ -1,23 +1,29 @@
 {
   "nav": {
     "tab": {
+      "browse": "",
       "home": "",
       "more": "",
+      "notifications": "",
       "rss": "",
       "downloads": ""
     },
     "stack": {
       "home": "",
+      "opml": "",
       "search_result": "",
-      "rss_feeds": "",
-      "opml": ""
+      "rss_feeds": ""
     },
     "menu": {
-      "view_rss_feeds": "",
-      "opml": ""
+      "opml": "",
+      "view_rss_feeds": ""
     }
   },
   "features": {
+    "opml": {
+      "rate_limited_time_one": "",
+      "rate_limited_time_other": ""
+    },
     "download": {
       "queued": "",
       "remove": "",
@@ -34,14 +40,60 @@
       "add_podcast": "",
       "adding": "",
       "not_available_yet": "",
-      "add_needs_login": "",
-      "add_needs_membership": "",
       "add_failed": "",
       "add_timed_out": ""
+    }
+  },
+  "notifications": {
+    "section": {
+      "earlier": "",
+      "unread": ""
+    }
+  },
+  "settings": {
+    "notifications": {
+      "login_required_title": "",
+      "login_required_message": "",
+      "open_system_settings": "",
+      "permission_required": ""
     },
-    "opml": {
-      "rate_limited_time_one": "",
-      "rate_limited_time_other": ""
+    "tab_bar": {
+      "title": "",
+      "description": "",
+      "visible_heading": "",
+      "more_heading": "",
+      "move_up": "",
+      "move_down": "",
+      "move_to_more": "",
+      "add_to_bar": "",
+      "reorder_hint": ""
+    }
+  },
+  "sync": {
+    "job": {
+      "account": "",
+      "subscriptions": "",
+      "playlists": "",
+      "queue": "",
+      "library": "",
+      "notifications": "",
+      "episodes": "",
+      "rss_feeds": "",
+      "seen_state": "",
+      "live_status": ""
+    },
+    "progress": "",
+    "log": {
+      "title": "",
+      "intro": "",
+      "empty": "",
+      "export": "",
+      "clear": "",
+      "clear_confirm_title": "",
+      "clear_confirm_body": "",
+      "outcome_failure": "",
+      "outcome_skipped": "",
+      "outcome_success": ""
     }
   }
 }

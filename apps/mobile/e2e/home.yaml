@@ -1,9 +1,14 @@
 appId: com.podverse.app.next
 name: Home Media Types
 ---
-# Track 8.14 + 8.15:
+# Home media-type selector:
 # - screenshot each Home media-type selector state
 # - verify selector swipe/scroll interaction changes feed content
+# - the always-visible local Filter input, and the no-subscriptions empty state
+#
+# Filtering down to a matching row and the "no matches" state are covered in
+# subscriptions-anonymous.yaml, which is the flow that actually creates a subscription — the seeded
+# account deliberately follows nothing, which is what makes it the right place for the empty state.
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
@@ -12,6 +17,8 @@ name: Home Media Types
     id: tab-home
 - assertVisible:
     id: home-screen
+- assertNotVisible:
+    id: home-subscription-filter
 
 # Podcasts (default)
 - assertVisible:
@@ -19,22 +26,137 @@ name: Home Media Types
 - assertVisible: Podcasts
 - takeScreenshot: home-media-type-podcasts
 
-# Track 8.16: authenticated Podcasts subscribed view mixes directory follows + add-by-RSS,
-# with an All / Add-by-RSS filter that persists.
+# Podcasts place More Options and sort in one row. The sort control shows the current order on its
+# face rather than the word "Sort", and opens the full Filter/Sort screen. A-Z is the default.
 - assertVisible:
-    id: home-subscription-filter
+    id: home-sort-button
+- assertVisible: "Sort: A-Z"
 - tapOn:
-    id: home-subscription-filter-addByRss
-- takeScreenshot: home-subscription-filter-add-by-rss
+    id: home-sort-button
+- assertVisible:
+    id: home-filter-sort-screen
+# Podcasts exposes its sort choices without a source-filter section because Home always combines
+# directory subscriptions and add-by-RSS feeds.
+- assertVisible:
+    id: home-filter-sort-sort-group
+- assertNotVisible:
+    id: home-filter-sort-filter-group
+- takeScreenshot: home-filter-sort-screen
+
+# Selections apply as they are made, so Done only dismisses.
 - tapOn:
-    id: home-subscription-filter-all
-- takeScreenshot: home-subscription-filter-all
+    id: home-filter-sort-sort-recent
+- tapOn:
+    id: home-filter-sort-done
+- assertVisible:
+    id: home-screen
+- assertVisible:
+    id: home-sort-button
+- assertVisible: "Sort: Recent"
+- takeScreenshot: home-sort-recent
+
+# Reopening shows the choice still selected: the screen reads the stored preference rather than
+# whatever it was last handed.
+- tapOn:
+    id: home-sort-button
+- assertVisible:
+    id: home-filter-sort-screen
+- takeScreenshot: home-filter-sort-recent-selected
+- tapOn:
+    id: home-filter-sort-sort-alphabetical
+- tapOn:
+    id: home-filter-sort-done
+- assertVisible:
+    id: home-sort-button
+- assertVisible: "Sort: A-Z"
+
+# The header overflow menu holds the view toggle and Mark All As Seen. The view is two checkable
+# rows rather than one label that flips, so the menu states which mode is in effect.
+- assertVisible:
+    id: home-overflow-trigger
+- tapOn:
+    id: home-overflow-trigger
+- extendedWaitUntil:
+    visible:
+      id: home-overflow-view-list
+    timeout: ${TIMEOUT_FAST}
+- takeScreenshot: home-overflow-menu
+
+# The seeded account has one subscription with unseen items, so Mark All As Seen is enabled and
+# closes the sheet after applying the local seen-state update.
+- tapOn:
+    id: home-overflow-mark-all-seen
+- assertVisible:
+    id: home-screen
+
+- tapOn:
+    id: home-overflow-trigger
+- tapOn:
+    id: home-overflow-view-grid
+- assertVisible:
+    id: home-screen
+- takeScreenshot: home-view-grid
+
+# Reopening shows grid checked: the menu reads the stored preference rather than assuming the tap
+# it last handled is still in effect.
+- tapOn:
+    id: home-overflow-trigger
+- takeScreenshot: home-overflow-menu-grid-selected
+- tapOn:
+    id: home-overflow-view-list
+- assertVisible:
+    id: home-screen
+
+# Home is subscribed-only, so the seeded account shows its local subscriptions. Row metadata,
+# the grid tile, and Mark All As Seen clearing badges are asserted in subscriptions-anonymous.yaml,
+# which is the flow that creates a subscription.
+- assertVisible:
+    id: "home-feed-row-.*"
+
+# The Filter input sits above the list.
+- assertVisible:
+    id: home-filter-input
+- tapOn:
+    id: home-filter-input
+- inputText: "seed"
+- assertVisible:
+    id: home-feed-row-e2ePodChnl001
+- assertNotVisible:
+    id: home-list-no-filter-matches
+- tapOn:
+    id: home-filter-clear
 
 # Episodes
+# iOS can consume the first control tap to dismiss the focused filter keyboard. Selecting the same
+# media type twice is idempotent, so the second tap completes the transition in either state.
+- tapOn:
+    id: home-media-type-episodes
 - tapOn:
     id: home-media-type-episodes
 - assertVisible: Episodes
 - takeScreenshot: home-media-type-episodes
+
+# Both menu entries describe the subscribed channel list — how to draw it, and catching up on it —
+# so the menu is absent here rather than opening onto nothing that applies.
+- assertNotVisible:
+    id: home-overflow-trigger
+
+# Episodes sorts too, and keeps its own choice — ordering podcasts by title says nothing about how
+# episodes should be ordered. The scope chip is a channel-list control, so it is absent here.
+- assertNotVisible:
+    id: home-subscription-filter
+- assertVisible:
+    id: home-sort-button
+- assertVisible: "Sort: A-Z"
+- tapOn:
+    id: home-sort-button
+- assertVisible:
+    id: home-filter-sort-screen
+- assertNotVisible:
+    id: home-filter-sort-filter-group
+- takeScreenshot: home-filter-sort-episodes
+- tapOn:
+    id: home-filter-sort-done
 
 # Clips
 - tapOn:
@@ -42,10 +164,16 @@ name: Home Media Types
 - assertVisible: Clips
 - takeScreenshot: home-media-type-clips
 
-# Swipe selector to verify horizontal interaction before selecting tracks.
+# Clips, artists, albums, and tracks are server-ranked and have no sort control yet, so the row is
+# hidden rather than offering a choice that would change nothing.
+- assertNotVisible:
+    id: home-sort-button
+
+# Swipe the selector row itself — a %-of-screen start Y can miss the pills.
 - swipe:
-    start: 85%, 16%
-    end: 20%, 16%
+    from:
+      id: home-media-type-selector
+    direction: LEFT
 
 # Artists
 - tapOn:

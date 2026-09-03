@@ -51,6 +51,7 @@ import {
   EMBED_FIXTURE_SOUNDBITE_ID_TEXT,
   EMBED_SAMPLE_CHAPTER_TOPIC_A_TITLE,
   EMBED_SAMPLE_CHAPTER_TWO_START_SECONDS,
+  EMBED_SAMPLE_CLIP_START_SECONDS,
   EMBED_SAMPLE_CLIP_TITLE,
   EMBED_SAMPLE_EPISODE_AUDIO_TITLE,
   EMBED_SAMPLE_EPISODE_DURATION_DISPLAY,
@@ -258,7 +259,9 @@ test.describe('Embed routes (anonymous)', () => {
   });
 
   test('Clip and soundbite embeds hide chapter info', async ({ page }) => {
-    await page.goto(`/embed/clip/${EMBED_FIXTURE_CLIP_AUDIO_ID_TEXT}?t=25`);
+    await page.goto(
+      `/embed/clip/${EMBED_FIXTURE_CLIP_AUDIO_ID_TEXT}?t=${EMBED_SAMPLE_CLIP_START_SECONDS}`
+    );
     await expectEmbedSingleShell(page);
     await expectNoEmbedChapterMarkers(page);
     await expect(embedTitleLocator(page)).toContainText(EMBED_SAMPLE_CLIP_TITLE);

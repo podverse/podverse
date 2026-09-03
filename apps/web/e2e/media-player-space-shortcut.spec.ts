@@ -75,8 +75,8 @@ async function clickEmptyMainOuterWrapper(page: Page): Promise<void> {
  *   - § "Cross-cutting" — Space play/pause when media is loaded and focus is not on
  *     an interactive element that intercepts Space.
  *
- * Plan 01 routes keyboard Space through `setMPIsPlaying` (same as PlayButton). Livestream
- * Space E2E awaits playable seeded live feeds (decision matrix § 6c).
+ * Keyboard Space routes through `setMPIsPlaying` (same as PlayButton). Livestream Space E2E awaits
+ * playable seeded live feeds (decision matrix § 6c).
  */
 test.describe('Media player Space shortcut', () => {
   test.beforeEach(() => {

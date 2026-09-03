@@ -1,0 +1,159 @@
+appId: com.podverse.app.next
+name: Anonymous Subscriptions Persist
+---
+# Subscriptions are device-local, so a signed-out user can subscribe and keep it.
+# Deliberately never runs shared/login-seeded-user.yaml — the whole point is the anonymous path.
+# Also covers the Home row metadata a signed-out subscription can produce, and the grid view drawing
+# it as an artwork tile.
+# Needs Mobile E2E API (:4230) for search results.
+
+- runFlow: shared/launch-and-connect.yaml
+
+# Clean device, nothing subscribed: Home says so and offers the one action that fixes it. Home is
+# subscribed-only, so there is no directory content standing in for an empty list.
+- tapOn:
+    id: tab-home
+- assertVisible:
+    id: home-screen
+- assertVisible:
+    id: home-list-empty
+- assertVisible: You are not subscribed to anything yet.
+- assertVisible:
+    id: home-list-empty-search
+- assertNotVisible:
+    id: home-sort-button
+- assertNotVisible:
+    id: home-overflow-trigger
+- assertNotVisible:
+    id: home-filter-input
+- assertNotVisible:
+    id: home-feed-summary
+- takeScreenshot: home-empty-no-subscriptions
+
+# The empty-state button is the route to Search, so signed out, the subscribe control works
+# rather than telling the user to log in.
+- tapOn:
+    id: home-list-empty-search
+- assertVisible:
+    id: search-screen
+- tapOn:
+    id: search-input
+- inputText: podcast
+- assertVisible:
+    id: search-result-row-0
+- tapOn:
+    id: search-result-row-0
+- assertVisible:
+    id: podcast-detail-screen
+- takeScreenshot: subscriptions-anonymous-detail-before
+
+- assertVisible: "Subscribe"
+- tapOn:
+    id: podcast-detail-subscribe-toggle
+# Flipping to "Unsubscribe" is the proof the local write landed; signed out there is no server
+# round trip behind it.
+- assertVisible: "Unsubscribe"
+- takeScreenshot: subscriptions-anonymous-detail-after
+
+# Home now has the subscription, so the empty state is gone and the filter has something to narrow.
+- tapOn:
+    id: tab-home
+- assertVisible:
+    id: home-screen
+- assertNotVisible:
+    id: home-list-empty
+
+# The row states when the channel last published, from the device. It arrives with the episode sync
+# rather than with the subscribe, so this waits rather than asserting immediately.
+#
+# The other three pieces of row metadata are deliberately absent here and that is the correct state,
+# not a gap: nothing is downloaded, the live badge needs an account, and a channel that has never
+# been opened has nothing unseen — following a show must not claim its whole back catalogue is new.
+- extendedWaitUntil:
+    visible:
+      id: "home-feed-row-latest-.*"
+    timeout: ${TIMEOUT_SLOWER}
+- assertNotVisible:
+    id: "home-feed-row-unseen-.*"
+- assertNotVisible:
+    id: "home-feed-row-downloaded-.*"
+- takeScreenshot: home-row-metadata-latest-episode
+
+# The grid draws the same subscription as an artwork tile. Asserted here rather than in home.yaml,
+# whose account follows nothing — an empty grid and an empty list look identical.
+- tapOn:
+    id: home-overflow-trigger
+- tapOn:
+    id: home-overflow-view-grid
+- assertVisible:
+    id: "home-feed-cell-.*"
+# A tile is artwork alone, so the row layout beneath it is gone rather than merely narrower.
+- assertNotVisible:
+    id: "home-feed-row-latest-.*"
+- takeScreenshot: home-view-grid-subscribed
+
+- tapOn:
+    id: home-overflow-trigger
+- tapOn:
+    id: home-overflow-view-list
+- assertVisible:
+    id: "home-feed-row-latest-.*"
+
+# Filter to the subscription just made. The title comes off the row rather than being hardcoded,
+# because the show came from a live search and its name is not fixed by the seed.
+- copyTextFrom:
+    id: "home-feed-row-title-.*"
+- tapOn:
+    id: home-filter-input
+- inputText: ${maestro.copiedText}
+- assertNotVisible:
+    id: home-list-no-filter-matches
+- takeScreenshot: home-filter-matching-subscription
+- tapOn:
+    id: home-filter-clear
+
+# A term nothing answers to is the other empty state: no matches, and no Search button, because the
+# user has subscriptions and only needs to change what they typed.
+- tapOn:
+    id: home-filter-input
+- inputText: "zzzznomatch"
+- assertVisible:
+    id: home-list-no-filter-matches
+- assertNotVisible:
+    id: home-list-empty-search
+- takeScreenshot: home-filter-no-matches
+- tapOn:
+    id: home-filter-clear
+- assertNotVisible:
+    id: home-list-no-filter-matches
+- hideKeyboard
+
+# Still signed out, the library lists it instead of showing a login prompt.
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-subscriptions
+- assertVisible:
+    id: library-subscriptions-screen
+- assertNotVisible:
+    id: library-subscriptions-empty
+- takeScreenshot: subscriptions-anonymous-library
+
+# Relaunch WITHOUT clearState — this is the persistence assertion the flow exists for.
+- launchApp:
+    clearState: false
+- runFlow: shared/connect-dev-client.yaml
+
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-subscriptions
+- assertVisible:
+    id: library-subscriptions-screen
+- assertNotVisible:
+    id: library-subscriptions-empty
+- takeScreenshot: subscriptions-anonymous-after-relaunch

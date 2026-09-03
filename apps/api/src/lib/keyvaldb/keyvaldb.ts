@@ -19,7 +19,7 @@ const keyvaldb = new Redis({
   enableOfflineQueue: false,
 });
 
-// Track if we've already logged the connection error to avoid spam
+// Record whether the connection error has already been logged.
 let connectionErrorLogged = false;
 
 // Handle connection errors to prevent unhandled error events

@@ -5,6 +5,7 @@ import type { Repository } from 'typeorm';
 import { LessThan, MoreThan } from 'typeorm';
 
 import type { OnDemandParserEventType } from '@podverse/helpers';
+import { subtractDays } from '@podverse/helpers';
 
 type CreateOnDemandParserEventDto = {
   account: Account;
@@ -54,11 +55,8 @@ export class OnDemandParserEventService {
   }
 
   async deleteOutdatedEvents(days: number): Promise<void> {
-    const date = new Date();
-    date.setDate(date.getDate() - days);
-
     await this.repositoryReadWrite.delete({
-      createdAt: LessThan(date),
+      createdAt: LessThan(subtractDays(new Date(), days)),
     });
   }
 

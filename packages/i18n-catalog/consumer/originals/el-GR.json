@@ -53,7 +53,8 @@
   "features": {
     "search": {
       "search": "Αναζήτηση",
-      "search_by_title": "Αναζήτηση με τίτλο..."
+      "search_by_title": "Αναζήτηση με τίτλο...",
+      "empty_prompt": "Αναζητήστε στο Podcast Index με τίτλο. Τα αποτελέσματα θα εμφανιστούν εδώ."
     },
     "add_feed": {
       "add_feed": "Προσθήκη Ροής",
@@ -93,7 +94,8 @@
       "basic_auth_requires": "This feed requires username and password",
       "basic_auth_username": "Username",
       "basic_auth_password": "Password",
-      "basic_auth_required_both": "Basic Auth requires both username and password."
+      "basic_auth_required_both": "Basic Auth requires both username and password.",
+      "login_prompt": "Ακολουθήστε podcast και μουσική που δεν είναι ακόμα στον κατάλογο. Συνδεθείτε για να αποθηκεύσετε ροές RSS στη βιβλιοθήκη σας και να ελέγχετε για νέα επεισόδια."
     },
     "my_library": "Η Βιβλιοθήκη Μου",
     "queue": {
@@ -105,14 +107,16 @@
       "add_error": "Σφάλμα κατά την προσθήκη στην Ουρά",
       "remove_error": "Σφάλμα κατά την αφαίρεση από την Ουρά",
       "remove_from_queue": "Αφαίρεση από την Ουρά",
-      "removed_from_queue": "Αφαιρέθηκε από την Ουρά"
+      "removed_from_queue": "Αφαιρέθηκε από την Ουρά",
+      "login_prompt": "Φτιάξτε μια λίστα επόμενης ακρόασης που σας ακολουθεί. Συνδεθείτε για να αποθηκεύσετε την ουρά και να συνεχίσετε σε άλλες συσκευές."
     },
     "history": {
       "history": "Ιστορικό",
       "delete_history": "Διαγραφή Ιστορικού",
       "mark_as_played": "Σημείωση ως Αναπαραγωγή",
       "marked_as_played": "Σημειώθηκε ως Αναπαραγωγή",
-      "mark_as_played_error": "Σφάλμα κατά την επισήμανση ως αναπαραγωγή"
+      "mark_as_played_error": "Σφάλμα κατά την επισήμανση ως αναπαραγωγή",
+      "login_prompt": "Συνεχίστε από εκεί που μείνατε. Συνδεθείτε για να δείτε το ιστορικό ακρόασης και να το συγχρονίζετε όπου χρησιμοποιείτε τον λογαριασμό σας."
     },
     "playlist": {
       "playlist": "Λίστα Αναπαραγωγής",
@@ -132,7 +136,8 @@
       "item_count": "Αντικείμενα: {count}",
       "playlist_type": "Τύπος Λίστας Αναπαραγωγής",
       "add_to_liked": "Προσθήκη στα Αγαπημένα",
-      "remove_from_liked": "Αφαίρεση από Αγαπημένα"
+      "remove_from_liked": "Αφαίρεση από Αγαπημένα",
+      "login_prompt": "Συγκεντρώστε επεισόδια, αποσπάσματα και κομμάτια σε λίστες που μπορείτε να μοιραστείτε ή να ξαναβρείτε. Συνδεθείτε για να δημιουργήσετε και να διαχειριστείτε τις δικές σας."
     },
     "clip": {
       "clip": "Αποσπασμα",
@@ -151,10 +156,12 @@
       "end_time": "Ώρα Λήξης",
       "end_time_aria": "Ώρα λήξης σε ώρες, λεπτά και δευτερόλεπτα (hh:mm:ss)",
       "end_time_play_aria": "Αναπαραγωγή από την ώρα λήξης του αποσπάσματος",
-      "clip_time_range": "{hhmmssStart} έως {hhmmssEnd}"
+      "clip_time_range": "{hhmmssStart} έως {hhmmssEnd}",
+      "login_prompt": "Αποθηκεύστε τις αγαπημένες σας στιγμές και επιστρέψτε αργότερα. Συνδεθείτε για να δημιουργείτε αποσπάσματα και να τα κρατάτε στον λογαριασμό σας."
     },
     "my_clips": "Τα Αποσπάσματά μου",
     "my_profile": "Το Προφίλ μου",
+    "profile_login_prompt": "Το προφίλ σας είναι ο τρόπος να μοιράζεστε λίστες και αποσπάσματα. Συνδεθείτε για να το ρυθμίσετε και να το συγχρονίζετε στις συσκευές σας.",
     "profile": "Προφίλ",
     "profiles": "Προφίλ",
     "embed": "Ενσωμάτωσε",
@@ -349,9 +356,41 @@
   "media_player": {
     "play": "Αναπαραγωγή",
     "pause": "Παύση",
+    "no_media": "Δεν βρέθηκε αναπαίξιμο μέσο",
+    "livestream_unavailable": "Η ζωντανή μετάδοση δεν είναι διαθέσιμη ακόμη",
     "show_fullscreen_media_player": "Εμφάνιση σε πλήρη οθόνη του μέσου αναπαραγωγής",
     "fullscreen_media_player": "Μέσο αναπαραγωγής σε πλήρη οθόνη",
     "media_player_image": "Εικόνα μέσου αναπαραγωγής",
+    "seek": "Αναζήτηση",
+    "position_of_duration": "{position} από {duration}",
+    "skip_to_next": "Παράλειψη στην επόμενη",
+    "skip_to_previous": "Μετάβαση στο προηγούμενο",
+    "jump_back": "Μετάβαση πίσω {seconds} δευτερόλεπτα",
+    "jump_forward": "Μετάβαση εμπρός {seconds} δευτερόλεπτα",
+    "step_back": "Ένα βήμα πίσω",
+    "step_forward": "Ένα βήμα εμπρός",
+    "mute": "Σίγαση",
+    "unmute": "Κατάργηση σίγασης",
+    "player_settings": "Ρυθμίσεις αναπαραγωγής",
+    "playback_mode": {
+      "toggle_autoplay": "Εναλλαγή αυτόματης αναπαραγωγής",
+      "autoplay_next_enabled": "Η αυτόματη αναπαραγωγή είναι ενεργή",
+      "autoplay_next_disabled": "Διακοπή στο τέλος του επεισοδίου"
+    },
+    "up_next": "Επόμενο",
+    "up_next_empty": "Δεν υπάρχει τίποτα επόμενο",
+    "auto_queue": "Αυτόματη Ουσία",
+    "share": "Κοινή χρήση",
+    "value_for_value": "Αξία για Αξία",
+    "coming_soon": "Έρχεται σύντομα",
+    "value_for_value_body": "Τα boosts value-for-value έρχονται σύντομα. Θα μπορείτε να στέλνετε sats στα podcast που αγαπάτε, απευθείας από το πρόγραμμα αναπαραγωγής.",
+    "sleep_timer": {
+      "sleep_timer": "Χρονόμετρο Ύπνου",
+      "off": "Απενεργοποιημένο",
+      "minutes_15": "15 λ.",
+      "minutes_30": "30 λ.",
+      "minutes_60": "60 λ."
+    },
     "repeat": {
       "toggle_repeat": "Εναλλαγή επανάληψης",
       "repeat_enabled": "Η επανάληψη είναι ενεργοποιημένη",
@@ -394,23 +433,6 @@
       "audio_with_bitrate_mbps": "Ήχος {bitrate}Mbps",
       "audio_with_ext_bitrate_kbps": "Ήχος {ext} {bitrate}kbps",
       "audio_with_ext_bitrate_mbps": "Ήχος {ext} {bitrate}Mbps"
-    },
-    "no_media": "Δεν βρέθηκε αναπαίξιμο μέσο",
-    "livestream_unavailable": "Η ζωντανή μετάδοση δεν είναι διαθέσιμη ακόμη",
-    "seek": "Αναζήτηση",
-    "skip_to_next": "Παράλειψη στην επόμενη",
-    "up_next": "Επόμενο",
-    "up_next_empty": "Δεν υπάρχει τίποτα επόμενο",
-    "auto_queue": "Αυτόματη Ουσία",
-    "share": "Κοινή χρήση",
-    "value_for_value": "Αξία για Αξία",
-    "coming_soon": "Έρχεται σύντομα",
-    "sleep_timer": {
-      "sleep_timer": "Χρονόμετρο Ύπνου",
-      "off": "Απενεργοποιημένο",
-      "minutes_15": "15 λ.",
-      "minutes_30": "30 λ.",
-      "minutes_60": "60 λ."
     }
   },
   "value": {
@@ -542,6 +564,11 @@
       "week": "Εβδομάδα",
       "month": "Μήνας",
       "all_time": "Όλοι οι Χρόνοι"
+    },
+    "screen": {
+      "title": "Φίλτρο και Ταξινόμηση",
+      "filter_heading": "Φίλτρο",
+      "sort_heading": "Ταξινόμηση"
     }
   },
   "legal": {
@@ -673,13 +700,30 @@
   "subscriptions": {
     "subscriptions": "Συνδρομές",
     "how_to_start_message": "Δοκιμάστε <searchLink>αναζητώντας</searchLink> το αγαπημένο σας περιεχόμενο, ή περιηγηθείτε σε <podcastsLink>podcasts</podcastsLink>, <videosLink>βίντεο</videosLink>, ή <musicLink>μουσική</musicLink>. Οι συνδρομές σας θα εμφανιστούν εδώ.",
+    "empty_message": "Δεν έχετε ακόμη συνδρομές.",
+    "no_filter_matches": "Καμία συνδρομή δεν ταιριάζει με το φίλτρο σας.",
     "filter": {
       "all": "Όλα",
-      "add_by_rss": "Προσθήκη μέσω RSS"
-    }
+      "add_by_rss": "Προσθήκη μέσω RSS",
+      "label": "Φιλτράρισμα",
+      "placeholder": "Φιλτράρισμα...",
+      "clear": "Εκκαθάριση",
+      "results_count": "Εμφάνιση {count}"
+    },
+    "row": {
+      "latest_episode": "Τελευταίο: {date}",
+      "unseen_count": "{count} νέα",
+      "unseen_count_capped": "{count}+ νέα",
+      "unseen_count_aria": "{count} νέα επεισόδια",
+      "unseen_count_capped_aria": "Περισσότερα από {count} νέα επεισόδια",
+      "downloaded_count": "{count} ληφθέντα"
+    },
+    "mark_all_seen": "Σήμανση Όλων Ως Αναγνωσμένων",
+    "mark_all_seen_done": "Όλες οι συνδρομές σημάνθηκαν ως αναγνωσμένες"
   },
   "authentication": {
     "login": "Σύνδεση",
+    "login_required": "Συνδεθείτε για να συνεχίσετε.",
     "logout": "Αποσύνδεση",
     "sign_up": "Εγγραφή",
     "need_an_account_sign_up": "Χρειάζεστε λογαριασμό; Εγγραφείτε",
@@ -700,6 +744,9 @@
     "password_mismatch": "Οι κωδικοί πρόσβασης δεν ταιριάζουν",
     "account_created_message": "Ο λογαριασμός δημιουργήθηκε με επιτυχία. Παρακαλώ ελέγξτε το email σας για έναν σύνδεσμο επιβεβαίωσης.",
     "session_expired": "Η συνεδρία έληξε. Παρακαλώ συνδεθείτε ξανά.",
+    "forced_logout_title": "Έχετε αποσυνδεθεί",
+    "forced_logout_body": "Η συνεδρία σας έληξε, οπότε τώρα χρησιμοποιείτε το Podverse αποσυνδεδεμένοι. Ό,τι ακολουθήσετε ή αλλάξετε από εδώ και πέρα παραμένει σε αυτή τη συσκευή και δεν θα αποθηκευτεί στον λογαριασμό σας. Συνδεθείτε ξανά για να συνεχίσετε από εκεί που μείνατε.",
+    "forced_logout_dismiss": "Όχι τώρα",
     "signed_in_account_load_failed": "Συνδεθήκατε, αλλά δεν ήταν δυνατή η φόρτωση των στοιχείων λογαριασμού.",
     "could_not_sign_in": "Αδυναμία σύνδεσης. Παρακαλώ δοκιμάστε ξανά.",
     "account_not_verified": "Ο λογαριασμός δεν έχει επιβεβαιωθεί. Παρακαλώ ελέγξτε το email σας για έναν σύνδεσμο επιβεβαίωσης.",
@@ -791,7 +838,27 @@
     "trial_limitations_add_by_rss_feed_limit": "Το μέγεθος της βιβλιοθήκης Προσθήκης μέσω RSS χρησιμοποιεί χαμηλότερο όριο Δοκιμής από το Premium.",
     "trial_limitations_manual_refresh_limit": "Οι χειροκίνητες ανανεώσεις χρησιμοποιούν στενότερα όρια ανά ώρα κατά τη διάρκεια της Δοκιμής.",
     "trial_limitations_stats_tracking": "Η παρακολούθηση στατιστικών είναι μειωμένη για κατάσταση Δοκιμής από προεπιλογή.",
-    "trial_limitations_notifications": "Οι δυνατότητες ειδοποιήσεων μπορεί να είναι μειωμένες για κατάσταση Δοκιμής και να λήξουν με τη συνδρομή."
+    "trial_limitations_notifications": "Οι δυνατότητες ειδοποιήσεων μπορεί να είναι μειωμένες για κατάσταση Δοκιμής και να λήξουν με τη συνδρομή.",
+    "gate": {
+      "cancel": "Άκυρο",
+      "renew": "Ανανέωση συνδρομής",
+      "sign_up": "Εγγραφή",
+      "title_expired": "Η συνδρομή έληξε",
+      "title_premium": "Λειτουργία Premium",
+      "title_limit": "Συμπληρώθηκε το όριο",
+      "title_needs_account": "Απαιτείται λογαριασμός",
+      "body_expired": "Η συνδρομή σας έληξε. Ανανεώστε την για να χρησιμοποιήσετε αυτή τη λειτουργία.",
+      "body_premium": "Αυτή είναι μια λειτουργία Premium. Ανανεώστε τη συνδρομή σας σε Premium για να τη χρησιμοποιήσετε.",
+      "body_limit": "Έχετε φτάσει το όριο αυτής της λειτουργίας για το τρέχον πρόγραμμά σας.",
+      "body_needs_account": "Συνδεθείτε ή εγγραφείτε για να χρησιμοποιήσετε αυτή τη λειτουργία.",
+      "banner_message": "Η συνδρομή σας έληξε.",
+      "banner_message_expiring_tomorrow": "Η συνδρομή σας λήγει αύριο.",
+      "banner_message_expiring_soon": "Η συνδρομή σας λήγει σε {days} ημέρες.",
+      "banner_action": "Ανανέωση",
+      "banner_dismiss": "Απόρριψη",
+      "settings_row_title": "Η συνδρομή έληξε",
+      "settings_row_subtitle": "Ανανεώστε την για να χρησιμοποιήσετε ξανά τις λειτουργίες Premium."
+    }
   },
   "about": {
     "title": "Σχετικά",
@@ -878,6 +945,7 @@
       "notifications": "Ειδοποιήσεις",
       "web_push": "Ειδοποιήσεις Ιστοσελίδας",
       "web_push_help": "Λάβετε ειδοποιήσεις από τον περιηγητή για νέα επεισόδια και κομμάτια από δημιουργούς που έχετε εγγραφεί. Λειτουργεί σε συμβατούς περιηγητές.",
+      "unread_count_aria": "{count} μη αναγνωσμένες ειδοποιήσεις",
       "unified_push": "Ενοποιημένη Ειδοποίηση",
       "unified_push_help": "Χρησιμοποιήστε την Ενοποιημένη Ειδοποίηση για να λαμβάνετε ειδοποιήσεις μέσω μιας συμβατής υπηρεσίας ειδοποιήσεων (όπως το ntfy). Απαιτείται μια διεύθυνση URL του σημείου κατάληξης Ενοποιημένης Ειδοποίησης.",
       "up_endpoint_label": "Διεύθυνση URL Σημείου Κατάληξης",
@@ -890,28 +958,27 @@
       "up_enable_error": "Αποτυχία ενεργοποίησης της Ενοποιημένης Ειδοποίησης. Παρακαλώ ελέγξτε τη διεύθυνση URL του σημείου κατάληξης.",
       "cancel": "Ακύρωση",
       "enable": "Ενεργοποίηση",
-      "default_new_item": "Προεπιλεγμένο νέο είδος",
-      "default_new-item_help": "Λάβετε ειδοποιήσεις όταν δημοσιεύονται νέα επεισόδια ή κομμάτια από δημιουργούς που έχετε εγγραφεί. Αυτή είναι η προεπιλεγμένη ρύθμιση ειδοποιήσεων που ισχύει για όλες τις εγγραφές σας, αλλά μπορεί να παρακαμφθεί για κάθε μία.",
-      "default_livestream_scheduled": "Προγραμματισμένη προεπιλεγμένη ζωντανή μετάδοση",
-      "default_livestream-scheduled_help": "Λάβετε ειδοποιήσεις όταν προγραμματίζονται ζωντανές μεταδόσεις από δημιουργούς που έχετε εγγραφεί. Αυτή είναι η προεπιλεγμένη ρύθμιση ειδοποιήσεων που ισχύει για όλες τις εγγραφές σας, αλλά μπορεί να παρακαμφθεί για κάθε μία.",
-      "default_livestream_started": "Ξεκίνησε προεπιλεγμένη ζωντανή μετάδοση",
-      "default_livestream-started_help": "Λάβετε ειδοποιήσεις όταν ξεκινούν ζωντανές μεταδόσεις από δημιουργούς που έχετε εγγραφεί. Αυτή είναι η προεπιλεγμένη ρύθμιση ειδοποιήσεων που ισχύει για όλες τις εγγραφές σας, αλλά μπορεί να παρακαμφθεί για κάθε μία.",
-      "new_item": "Νέο είδος",
-      "livestream_scheduled": "Ζωντανή μετάδοση προγραμματισμένη",
-      "livestream_started": "Ζωντανή μετάδοση ξεκίνησε"
-    },
-    "keyboard": {
-      "keyboard": "Πληκτρολόγιο",
-      "intro": "Αυτές οι συντομεύσεις λειτουργούν σε όλο τον ιστότοπο όταν η εστίαση δεν βρίσκεται μέσα σε πεδίο κειμένου, πλαίσιο αναζήτησης ή άλλο επεξεργάσιμο στοιχείο.",
-      "keys_space": "Διάστημα",
-      "keys_arrows_seek": "Βέλος αριστερά / Βέλος δεξιά",
-      "keys_arrows_volume": "Βέλος αριστερά / Βέλος δεξιά",
-      "shortcut_play_pause_label": "Αναπαραγωγή ή παύση",
-      "shortcut_play_pause_detail": "Πατήστε Διάστημα για αναπαραγωγή ή παύση του τρέχοντος επεισοδίου ή κομματιού όταν ο player έχει φορτωμένο περιεχόμενο. Το Διάστημα αγνοείται όταν η εστίαση είναι σε input, textarea, select ή επεξεργάσιμο πεδίο και δεν εναλλάσσει αναπαραγωγή όταν η εστίαση είναι σε κουμπί ή σύνδεσμο (ή μέσα σε μενού).",
-      "shortcut_seek_label": "Μετάβαση 10 δευτερόλεπτα πίσω ή μπροστά",
-      "shortcut_seek_detail": "Πατήστε μία φορά το αριστερό ή δεξί βέλος για άλμα 10 δευτερολέπτων. Η διατήρηση του πλήκτρου δεν επαναλαμβάνει την ενέργεια μέχρι να το αφήσετε.",
-      "shortcut_volume_label": "Ένταση (όταν η ράβδος έντασης έχει εστίαση)",
-      "shortcut_volume_detail": "Με εστίαση στη ράβδο έντασης του player, τα βέλη αριστερά και δεξιά μειώνουν ή αυξάνουν την ένταση κατά 5% ανά πάτημα."
+      "preference_section": "Προτιμήσεις ειδοποιήσεων",
+      "preference_section_help": "Επιλέξτε ποιες κατηγορίες ειδοποιήσεων θα εμφανίζονται στην εφαρμογή και ποιες μπορούν να στέλνουν push ειδοποιήσεις.",
+      "preference_in_app": "Στην εφαρμογή",
+      "preference_push": "Push",
+      "preference_push_disabled": "Push (ενεργοποιήστε πρώτα το Web Push ή το Unified Push)",
+      "category_new_content": "Νέο περιεχόμενο",
+      "category_new_content_description": "Ειδοποιήσεις για νέα επεισόδια, κομμάτια, άλμπουμ και βίντεο από δημιουργούς που ακολουθείτε.",
+      "category_livestream": "Ζωντανή μετάδοση",
+      "category_livestream_description": "Ειδοποιήσεις όταν προγραμματίζονται ή ξεκινούν ζωντανές μεταδόσεις.",
+      "category_product_update": "Ενημερώσεις προϊόντος",
+      "category_product_update_description": "Ανακοινώσεις για βελτιώσεις και εκδόσεις της εφαρμογής.",
+      "product_update_disable_hint": "Απενεργοποιήστε αυτή την κατηγορία για να μη λαμβάνετε ειδοποιήσεις ενημερώσεων προϊόντος.",
+      "category_maintenance": "Συντήρηση",
+      "category_maintenance_description": "Σημαντικές ειδοποιήσεις για την υπηρεσία και τις διακοπές λειτουργίας.",
+      "category_terms_of_service": "Όροι χρήσης",
+      "category_terms_of_service_description": "Υποχρεωτικές νομικές ανακοινώσεις και ανακοινώσεις πολιτικής.",
+      "category_general": "Γενικά",
+      "category_general_description": "Σημαντικές ειδοποιήσεις σε επίπεδο λογαριασμού.",
+      "new_item": "Νέο στοιχείο",
+      "livestream_scheduled": "Προγραμματισμένη ζωντανή μετάδοση",
+      "livestream_started": "Η ζωντανή μετάδοση ξεκίνησε"
     },
     "opml": {
       "opml": "OPML",
@@ -928,6 +995,11 @@
       "import_in_progress": "Importing feeds… {processed} of {total} processed.",
       "import_success": "OPML import finished.",
       "import_error": "Failed to import OPML.",
+      "import_error_body_required": "Το περιεχόμενο OPML είναι υποχρεωτικό.",
+      "import_error_no_valid_feeds": "Δεν βρέθηκαν έγκυρες διευθύνσεις URL ροών στο αρχείο OPML.",
+      "import_error_too_large": "Το περιεχόμενο OPML είναι πολύ μεγάλο. Μέγιστος επιτρεπόμενος αριθμός χαρακτήρων: {maxChars}. Χρησιμοποιήστε ένα μικρότερο αρχείο ή χωρίστε το σε πολλαπλές εισαγωγές.",
+      "import_error_too_many_feeds": "Το OPML περιέχει πάρα πολλές ροές. Μέγιστος επιτρεπόμενος αριθμός ροών: {maxFeeds}. Χωρίστε το αρχείο σε μικρότερες παρτίδες και προσπαθήστε ξανά.",
+      "import_error_request_not_found": "Η αίτηση εισαγωγής OPML δεν βρέθηκε.",
       "import_result_summary": "{total} feeds: {subscribed} subscribed, {enqueued} queued from Podcast Index, {addedByRss} added by RSS, {alreadySubscribed} already subscribed, {failed} failed, {rateLimited} rate limited.",
       "outcome_subscribed": "Subscribed",
       "outcome_enqueued": "Queued (Podcast Index)",
@@ -937,12 +1009,20 @@
       "outcome_failed": "Failed",
       "import_rate_limited_title": "OPML import limit reached",
       "import_rate_limited": "You can add up to {limit} feeds per hour. To finish importing the rest, try again after {time}.",
-      "import_rate_limited_time": "{minutes, plural, one {# minute} other {# minutes}}",
-      "import_error_body_required": "Το περιεχόμενο OPML είναι υποχρεωτικό.",
-      "import_error_no_valid_feeds": "Δεν βρέθηκαν έγκυρες διευθύνσεις URL ροών στο αρχείο OPML.",
-      "import_error_too_large": "Το περιεχόμενο OPML είναι πολύ μεγάλο. Μέγιστος επιτρεπόμενος αριθμός χαρακτήρων: {maxChars}. Χρησιμοποιήστε ένα μικρότερο αρχείο ή χωρίστε το σε πολλαπλές εισαγωγές.",
-      "import_error_too_many_feeds": "Το OPML περιέχει πάρα πολλές ροές. Μέγιστος επιτρεπόμενος αριθμός ροών: {maxFeeds}. Χωρίστε το αρχείο σε μικρότερες παρτίδες και προσπαθήστε ξανά.",
-      "import_error_request_not_found": "Η αίτηση εισαγωγής OPML δεν βρέθηκε."
+      "import_rate_limited_time": "{minutes, plural, one {# minute} other {# minutes}}"
+    },
+    "keyboard": {
+      "keyboard": "Πληκτρολόγιο",
+      "intro": "Αυτές οι συντομεύσεις λειτουργούν σε όλο τον ιστότοπο όταν η εστίαση δεν βρίσκεται μέσα σε πεδίο κειμένου, πλαίσιο αναζήτησης ή άλλο επεξεργάσιμο στοιχείο.",
+      "keys_space": "Διάστημα",
+      "keys_arrows_seek": "Βέλος αριστερά / Βέλος δεξιά",
+      "keys_arrows_volume": "Βέλος αριστερά / Βέλος δεξιά",
+      "shortcut_play_pause_label": "Αναπαραγωγή ή παύση",
+      "shortcut_play_pause_detail": "Πατήστε Διάστημα για αναπαραγωγή ή παύση του τρέχοντος επεισοδίου ή κομματιού όταν ο player έχει φορτωμένο περιεχόμενο. Το Διάστημα αγνοείται όταν η εστίαση είναι σε input, textarea, select ή επεξεργάσιμο πεδίο και δεν εναλλάσσει αναπαραγωγή όταν η εστίαση είναι σε κουμπί ή σύνδεσμο (ή μέσα σε μενού).",
+      "shortcut_seek_label": "Μετάβαση 10 δευτερόλεπτα πίσω ή μπροστά",
+      "shortcut_seek_detail": "Πατήστε μία φορά το αριστερό ή δεξί βέλος για άλμα 10 δευτερολέπτων. Η διατήρηση του πλήκτρου δεν επαναλαμβάνει την ενέργεια μέχρι να το αφήσετε.",
+      "shortcut_volume_label": "Ένταση (όταν η ράβδος έντασης έχει εστίαση)",
+      "shortcut_volume_detail": "Με εστίαση στη ράβδο έντασης του player, τα βέλη αριστερά και δεξιά μειώνουν ή αυξάνουν την ένταση κατά 5% ανά πάτημα."
     }
   },
   "contact": {
@@ -1124,6 +1204,31 @@
   "pagination": {
     "ariaPreviousPage": "Προηγούμενη σελίδα",
     "ariaNextPage": "Επόμενη σελίδα"
+  },
+  "notifications_page": {
+    "title": "Ειδοποιήσεις",
+    "recent_activity_note": "Πρόσφατη δραστηριότητα. Οι παλαιότερες ειδοποιήσεις διαγράφονται αυτόματα.",
+    "loading": "Φόρτωση ειδοποιήσεων…",
+    "login_prompt": "Μην χάσετε νέο επεισόδιο, ζωντανή μετάδοση ή ενημέρωση από τις εκπομπές που ακολουθείτε. Συνδεθείτε για να κρατήσετε τα εισερχόμενά σας σε αυτή τη συσκευή και στις άλλες.",
+    "empty": "Είστε ενήμεροι. Ειδοποιήσεις για νέα επεισόδια, ζωντανές μεταδόσεις και ενημερώσεις θα εμφανίζονται εδώ.",
+    "unread_section": "Μη αναγνωσμένες",
+    "earlier_section": "Παλαιότερες",
+    "category_new_content": "Νέο περιεχόμενο",
+    "category_livestream": "Ζωντανή μετάδοση",
+    "category_product_update": "Ενημέρωση προϊόντος",
+    "category_maintenance": "Συντήρηση",
+    "category_terms_of_service": "Όροι χρήσης",
+    "category_general": "Γενικά",
+    "relative_time_just_now": "Μόλις τώρα",
+    "relative_time_seconds_ago": "Πριν από {count, plural, one {# δευτερόλεπτο} other {# δευτερόλεπτα}}",
+    "relative_time_seconds_from_now": "Σε {count, plural, one {# δευτερόλεπτο} other {# δευτερόλεπτα}}",
+    "relative_time_minutes_ago": "Πριν από {count, plural, one {# λεπτό} other {# λεπτά}}",
+    "relative_time_minutes_from_now": "Σε {count, plural, one {# λεπτό} other {# λεπτά}}",
+    "relative_time_hours_ago": "Πριν από {count, plural, one {# ώρα} other {# ώρες}}",
+    "relative_time_hours_from_now": "Σε {count, plural, one {# ώρα} other {# ώρες}}",
+    "relative_time_days_ago": "Πριν από {count, plural, one {# ημέρα} other {# ημέρες}}",
+    "relative_time_days_from_now": "Σε {count, plural, one {# ημέρα} other {# ημέρες}}",
+    "no_body": "Ανοίξτε για να δείτε λεπτομέρειες."
   },
   "seo": {
     "pages": {

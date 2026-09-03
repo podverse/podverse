@@ -1,0 +1,138 @@
+appId: com.podverse.app.next
+name: Detail Sort Prefs
+---
+# Sort on the detail screens is remembered per instance: one podcast ordered A-Z says nothing about
+# the next podcast, and the choice survives leaving the screen.
+#
+# Instances are reached by deep link rather than search, because the two podcasts have to be
+# specific, known channels for "these two hold different sorts" to mean anything. Search results
+# come back in whatever order Podcast Index chose.
+#
+# Anonymous throughout: these preferences are device-local, so an account is not what makes them
+# work, and a flow that logged in would suggest otherwise.
+
+- runFlow: shared/launch-and-connect.yaml
+
+# --- Podcast A: change its order ---
+- openLink: podverse-next://podcast/e2ePodChnl001
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-screen
+    timeout: ${TIMEOUT_SLOWEST}
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-sort-pill
+    timeout: ${TIMEOUT_SLOWEST}
+- takeScreenshot: detail-sort-podcast-a-default
+
+# The choices open in place rather than pushing a screen, so the list they reorder stays in view.
+- tapOn:
+    id: podcast-detail-sort-pill
+- assertVisible:
+    id: podcast-detail-sort-options
+- takeScreenshot: detail-sort-podcast-a-options
+- tapOn:
+    id: podcast-detail-sort-alphabetical
+# Selecting collapses the group: the list underneath has already changed, and an open panel would
+# be covering the result.
+- assertNotVisible:
+    id: podcast-detail-sort-options
+- assertVisible:
+    id: podcast-detail-sort-pill
+- takeScreenshot: detail-sort-podcast-a-alphabetical
+
+# --- Podcast B: unaffected by A ---
+- openLink: podverse-next://podcast/v5fCrIj9Io
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-screen
+    timeout: ${TIMEOUT_SLOWEST}
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-sort-pill
+    timeout: ${TIMEOUT_SLOWEST}
+- takeScreenshot: detail-sort-podcast-b-default
+
+# --- Back to A: its own choice is still in effect ---
+- openLink: podverse-next://podcast/e2ePodChnl001
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-screen
+    timeout: ${TIMEOUT_SLOWEST}
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-sort-pill
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: detail-sort-podcast-a-restored
+
+# --- Album: authored order by default, reversible, remembered ---
+- openLink: podverse-next://album/e2eMusicAlbm01
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: album-detail-screen
+    timeout: ${TIMEOUT_SLOWEST}
+- extendedWaitUntil:
+    visible:
+      id: album-detail-sort-pill
+    timeout: ${TIMEOUT_SLOWEST}
+- takeScreenshot: detail-sort-album-default
+
+- tapOn:
+    id: album-detail-sort-pill
+- tapOn:
+    id: album-detail-sort-backward
+- extendedWaitUntil:
+    visible:
+      id: album-detail-sort-pill
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: detail-sort-album-backward
+
+- openLink: podverse-next://album/e2eMusicAlbm01
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: album-detail-sort-pill
+    timeout: ${TIMEOUT_SLOWEST}
+- takeScreenshot: detail-sort-album-restored
+
+# --- Episode: the tab is remembered too, because it decides which request the screen makes ---
+- openLink: podverse-next://episode/e2ePodChap0001
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: episode-detail-screen
+    timeout: ${TIMEOUT_SLOWEST}
+- extendedWaitUntil:
+    visible:
+      id: episode-detail-tab-clips
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: episode-detail-tab-clips
+- extendedWaitUntil:
+    visible:
+      id: episode-detail-clip-sort-pill
+    timeout: ${TIMEOUT_SLOWER}
+- takeScreenshot: detail-sort-episode-clips-default
+
+- tapOn:
+    id: episode-detail-clip-sort-pill
+- tapOn:
+    id: episode-detail-clip-sort-oldest
+- extendedWaitUntil:
+    visible:
+      id: episode-detail-clip-sort-pill
+    timeout: ${TIMEOUT_SLOWER}
+- takeScreenshot: detail-sort-episode-clips-oldest
+
+# Reopening lands on Clips with the same order, without passing through Summary first.
+- openLink: podverse-next://episode/e2ePodChap0001
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: episode-detail-clip-sort-pill
+    timeout: ${TIMEOUT_SLOWEST}
+- takeScreenshot: detail-sort-episode-clips-restored

@@ -19,6 +19,7 @@ export function useThemedNativeStackScreenOptions(): NativeStackNavigationOption
         backgroundColor: screenBackground,
       },
       header: ThemedStackHeader,
+      headerShadowVisible: false,
     }),
     [screenBackground]
   );

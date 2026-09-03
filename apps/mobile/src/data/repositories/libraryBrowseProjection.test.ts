@@ -18,13 +18,17 @@ const requireNode = (value: NativeCacheBrowseNode | null): NativeCacheBrowseNode
   return value;
 };
 
-const subscribed = (partial: Partial<SubscribedChannel>): SubscribedChannel => ({
+const subscribed = ({
+  latestItemPubDateMs = null,
+  ...partial
+}: Partial<SubscribedChannel>): SubscribedChannel => ({
   idText: 'chan1',
   title: 'Channel One',
   imageUrl: null,
   source: 'directory',
   medium: 'podcasts',
   ...partial,
+  latestItemPubDateMs,
 });
 
 const playlist = (partial: Partial<DTOPlaylist>): DTOPlaylist => ({

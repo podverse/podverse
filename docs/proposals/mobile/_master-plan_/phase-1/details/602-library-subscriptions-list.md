@@ -19,7 +19,8 @@ that surface using the shared repository so it matches Home and car.
 1. Add a **Subscriptions** (a.k.a. "Podcasts") entry to the My Library hub and a screen that lists
    `subscriptionsRepository.list({ filter })` (600) — directory follows + add-by-RSS mixed by
    default, alphabetical.
-2. Reuse the same **filter control** and i18n keys as Home (601): All / Add-by-RSS. Default All.
+2. Keep the Library's independent **filter control** and shared i18n keys: All / Add-by-RSS.
+   Default All.
 3. Row tap routing by `SubscribedChannel.source`: directory → Podcast detail; add-by-RSS →
    add-by-RSS detail. Reuse shared `ListRow` / media-row primitives.
 4. Add the route to the Library stack (`navigation/index.tsx`) with a `testID` for E2E.

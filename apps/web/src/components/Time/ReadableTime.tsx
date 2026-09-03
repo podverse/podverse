@@ -3,6 +3,8 @@
 import { useLocale, useTranslations } from 'next-intl';
 import type React from 'react';
 
+import { toEpochMsOrNull } from '@podverse/helpers';
+
 type ReadableTimeProps = {
   start: string;
   end: string | null;
@@ -14,13 +16,7 @@ export const ReadableTime: React.FC<ReadableTimeProps> = ({ start, end }) => {
   const locale = useLocale();
   const tInfo = useTranslations('info');
 
-  const isValidDate = (value: string): boolean => {
-    if (typeof value !== 'string' || value.trim() === '') return false;
-    const parsed = Date.parse(value);
-    return !Number.isNaN(parsed);
-  };
-
-  if (!isValidDate(start)) {
+  if (toEpochMsOrNull(start) === null) {
     return FALLBACK;
   }
 
@@ -38,7 +34,7 @@ export const ReadableTime: React.FC<ReadableTimeProps> = ({ start, end }) => {
         });
 
   const startTime = formatTime(start);
-  const endTime = end && isValidDate(end) ? formatTime(end) : null;
+  const endTime = end !== null && toEpochMsOrNull(end) !== null ? formatTime(end) : null;
 
   const timeText = endTime
     ? tInfo('time.start_end', { timeStart: startTime, timeEnd: endTime })

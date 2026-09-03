@@ -1,4 +1,4 @@
-import type { DTOAccount } from '@podverse/helpers';
+import type { BulkFollowChannelsResponse, DTOAccount } from '@podverse/helpers';
 
 import type { ApiRequestService } from '../../_request.js';
 import { reqAuthMe } from '../../auth/auth.js';
@@ -21,6 +21,27 @@ export async function reqAccountFollowChannel(
   });
 
   return reqAuthMe(api);
+}
+
+/**
+ * Follow many channels in one request, for mobile's sign-up merge.
+ *
+ * Unlike the single-follow helpers this returns the per-channel outcomes rather than refetching the
+ * account: the caller needs to know which channels were actually followed and which are unavailable,
+ * and a merge of hundreds should not also pay for a full account hydration it may not use.
+ */
+export async function reqAccountFollowChannelsBulk(
+  api: ApiRequestService,
+  params: { channel_id_texts: string[] }
+): Promise<BulkFollowChannelsResponse> {
+  return api.apiRequest<BulkFollowChannelsResponse>({
+    path: '/account/follow/channel/bulk',
+    method: 'POST',
+    data: {
+      channel_id_texts: params.channel_id_texts,
+    },
+    config: { withCredentials: true },
+  });
 }
 
 export async function reqAccountUnfollowChannel(

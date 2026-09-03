@@ -1,13 +1,28 @@
 appId: com.podverse.app.next
 name: Notifications Inbox
 ---
-# Validate the notifications tab shell and inbox screen on an authenticated session.
+# Guest fill is a centered login CTA. After seed login, the inbox shell is reachable from More.
 
 - runFlow: shared/launch-and-connect.yaml
+
+- tapOn:
+    id: tab-more
+- tapOn:
+    id: more-nav-notifications
+- assertVisible:
+    id: notifications-inbox-screen
+- assertVisible:
+    id: notifications-inbox-auth-required
+- assertVisible:
+    id: notifications-inbox-auth-required-action
+- takeScreenshot: notifications-inbox-login-required
+
 - runFlow: shared/login-seeded-user.yaml
 
 - tapOn:
-    id: tab-notifications
+    id: tab-more
+- tapOn:
+    id: more-nav-notifications
 - assertVisible:
     id: notifications-inbox-screen
 - takeScreenshot: notifications-inbox-initial

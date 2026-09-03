@@ -1,3 +1,6 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
 import { FaScissors } from 'react-icons/fa6';
 
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
@@ -8,6 +11,7 @@ import styles from '../../../styles/components/MediaPlayer/Buttons/ClipButton.mo
 export const ClipButton = () => {
   const { mpChannel, mpItem } = useMediaPlayer();
   const { setModalClip } = useModals();
+  const tFeatures = useTranslations('features');
 
   const onClick = () => {
     setModalClip({
@@ -19,11 +23,12 @@ export const ClipButton = () => {
   return (
     <button
       className={styles.clipButton}
+      aria-label={tFeatures('clip.create_clip')}
       data-testid="media-player-clip-button"
       onClick={onClick}
       type="button"
     >
-      <FaScissors />
+      <FaScissors aria-hidden />
     </button>
   );
 };

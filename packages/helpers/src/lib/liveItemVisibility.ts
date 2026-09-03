@@ -1,8 +1,9 @@
 import { LiveItemStatusEnum } from '../dtos/liveItem/liveItem.js';
+import { ONE_DAY_MS } from './timeConstants.js';
 
 // Ended livestreams (live items) older than this are hidden from list endpoints.
 // Hardcoded by product decision (no env); detail endpoints stay unfiltered.
-export const LIVE_ITEM_ENDED_VISIBILITY_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+export const LIVE_ITEM_ENDED_VISIBILITY_MAX_AGE_MS = ONE_DAY_MS;
 
 export function getEndedLiveItemVisibilityCutoff(now: Date = new Date()): Date {
   return new Date(now.getTime() - LIVE_ITEM_ENDED_VISIBILITY_MAX_AGE_MS);

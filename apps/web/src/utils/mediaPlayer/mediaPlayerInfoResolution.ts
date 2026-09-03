@@ -183,8 +183,8 @@ const resolveSubsection = (
 };
 
 /**
- * Shared full/mini resolution entrypoint. VTS currently falls back to base item/channel
- * metadata until DTO/API payloads include remote-target details.
+ * Shared full/mini resolution entrypoint. VTS falls back to base item/channel
+ * metadata when DTO/API payloads do not include remote-target details.
  */
 export const getMediaPlayerInfoResolution = ({
   mpChannel,

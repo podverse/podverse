@@ -1,8 +1,8 @@
 import Foundation
 
-// Native-cache payload parser for the CarPlay browse tree (master step 12.8 / detail 387). Swift
-// mirror of Android's `PodverseNativeCacheModel.kt` (12.12 / 12.14) so both cars decode the SAME
-// JSON envelopes written by `apps/mobile/src/data/nativeCache/projection.ts` (schema 12.1 / 380).
+// Native-cache payload parser for the CarPlay browse tree. Swift
+// mirror of Android's `PodverseNativeCacheModel.kt` so both cars decode the SAME JSON envelopes
+// written by `apps/mobile/src/data/nativeCache/projection.ts`.
 //
 // JS-dead contract: these payloads are the ONLY browse source in the car (SQLite is phone-UI-only
 // and unavailable when the JS runtime is suspended). Parsing is deliberately tolerant — unknown

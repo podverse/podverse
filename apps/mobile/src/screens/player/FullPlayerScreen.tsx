@@ -1,16 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { GestureResponderEvent, LayoutChangeEvent } from 'react-native';
-import {
-  BackHandler,
-  Image,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { BackHandler, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers/dto';
 import { clampRatio } from '@podverse/helpers/math';
@@ -20,6 +11,8 @@ import type { PlaybackTarget } from '@podverse/playback-core';
 import { PodverseVideoSurfaceView } from '../../../modules/podverse-media-engine';
 import { nativePlaybackBridge } from '../../bridge/nativePlaybackBridge';
 import { Button } from '../../components/primitives/Button';
+import { CoverImage } from '../../components/primitives/CoverImage';
+import { ProgressTrack } from '../../components/primitives/ProgressTrack';
 import { getMobileConfig } from '../../config';
 import { buildNowPlayingShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import { usePlayback } from '../../playback/PlaybackProvider';
@@ -32,13 +25,13 @@ import { FullPlayerUpNext } from './FullPlayerUpNext';
 
 type FullPlayerScreenProps = {
   onClose: () => void;
-  /** Navigate to the V4V placeholder screen (Track 19.6). */
+  /** Navigate to the V4V information screen. */
   onOpenV4v: () => void;
 };
 
 type FullPlayerPanel = 'sleep' | 'speed' | 'up-next' | null;
 
-/** Mini↔full surface reparent animation (ms). Geometry only — never reloads the engine (2.19). */
+/** Mini↔full surface reparent animation (ms). Geometry only — never reloads the engine. */
 const VIDEO_SURFACE_ANIMATE_MS = 250;
 
 /** Extract the now-playing item/channel for the segments list (add-by-RSS has none). */
@@ -61,17 +54,16 @@ const segmentContentFromTarget = (
 };
 
 /**
- * Full player screen (audio-first, Track 11.5). Renders the shared now-playing state from
+ * Full player screen (audio-first). Renders the shared now-playing state from
  * `usePlayback()` — the same provider the mini player uses — so expanding never remounts a second
- * engine (Track 11.4 contract). Provides large artwork, a tap-to-seek scrubber that seeks through
- * the native bridge (`seekTo`), play/pause, skip-to-next, toggleable up-next (11.9), playback speed
- * (11.11) and sleep-timer (11.12) panels, an OS share action (11.13), a config-gated V4V entry stub
- * (11.14), and an inline chapters/soundbites segment list (11.10) that self-hides when the item has
- * none. Video surface + collapse animation are deferred to 11.6–11.7.
+ * engine. Provides large artwork, a tap-to-seek scrubber that seeks through the native bridge
+ * (`seekTo`), play/pause, skip-to-next, toggleable up-next, playback speed and sleep-timer panels,
+ * an OS share action, a config-gated V4V entry, and an inline chapters/soundbites segment list that
+ * self-hides when the item has none.
  *
- * Anti-pattern (Track 11.18): never mount a second `Video`/engine when opening the full player. When
- * video lands, the single native `VideoSurfaceHost` is re-parented (bridge attach) from the `mini`
- * to the `full` target — see media-engine README § "Player UI single-surface ownership".
+ * Never mount a second `Video`/engine when opening the full player. The single native
+ * `VideoSurfaceHost` is re-parented (bridge attach) from the `mini` to the `full` target — see
+ * media-engine README § "Player UI single-surface ownership".
  */
 export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) {
   const { t } = useTranslation();
@@ -96,7 +88,7 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
 
   // Expand re-parents the single native surface to the `full` target; collapse (unmount) animates it
   // back to `mini`. Reparenting + geometry only — never `load`/`destroy`, so playback stays
-  // continuous (Track 11.4 / master 2.22). The `full` target view is the `PodverseVideoSurfaceView`
+  // continuous. The `full` target view is the `PodverseVideoSurfaceView`
   // rendered below, which registers itself with the host; this only flips which target is active.
   useEffect(() => {
     nativePlaybackBridge.animateVideoSurface('full', VIDEO_SURFACE_ANIMATE_MS);
@@ -126,19 +118,6 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
         artwork: {
           alignSelf: 'center',
           aspectRatio: 1,
-          backgroundColor: tokens.background.secondary,
-          borderRadius: tokens.radii.md,
-          maxHeight: 320,
-          maxWidth: 320,
-          width: '100%',
-        },
-        artworkFallback: {
-          alignSelf: 'center',
-          aspectRatio: 1,
-          backgroundColor: tokens.background.tertiary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
           maxHeight: 320,
           maxWidth: 320,
           width: '100%',
@@ -179,16 +158,6 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
         },
         scroll: {
           flex: 1,
-        },
-        scrubberFill: {
-          backgroundColor: tokens.text.accent,
-        },
-        scrubberTrack: {
-          backgroundColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.round,
-          flexDirection: 'row',
-          height: 6,
-          overflow: 'hidden',
         },
         subtitle: {
           color: themeStyles.textSecondary.color,
@@ -289,16 +258,12 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
               style={[styles.videoSurface, isTablet ? styles.videoSurfaceTablet : undefined]}
               testID="full-player-video-surface"
             >
-              {nowPlaying.imageUrl !== null ? (
-                <Image
-                  accessibilityLabel={t('media_player.media_player_image')}
-                  source={{ uri: nowPlaying.imageUrl }}
-                  style={styles.artwork}
-                />
-              ) : (
-                <View style={styles.artworkFallback} />
-              )}
-              {/* Single shared native surface; hidden for audio-only so the artwork shows (2.23). */}
+              <CoverImage
+                accessibilityLabel={t('media_player.media_player_image')}
+                style={styles.artwork}
+                uri={nowPlaying.imageUrl}
+              />
+              {/* Single shared native surface; hidden for audio-only so the artwork shows. */}
               <PodverseVideoSurfaceView style={StyleSheet.absoluteFill} targetId="full" />
             </View>
 
@@ -316,17 +281,24 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
                 <Pressable
                   accessibilityLabel={t('media_player.seek')}
                   accessibilityRole="adjustable"
+                  accessibilityValue={{
+                    max: Math.round(durationSeconds),
+                    min: 0,
+                    now: Math.round(positionSeconds),
+                    text: t('media_player.position_of_duration', {
+                      duration: formatClock(durationSeconds),
+                      position: formatClock(positionSeconds),
+                    }),
+                  }}
                   onLayout={handleScrubberLayout}
                   onPress={handleScrubberSeek}
                   testID="full-player-scrubber"
                 >
-                  <View style={styles.scrubberTrack}>
-                    <View
-                      style={[styles.scrubberFill, { flex: progressRatio }]}
-                      testID="full-player-scrubber-fill"
-                    />
-                    <View style={{ flex: 1 - progressRatio }} />
-                  </View>
+                  <ProgressTrack
+                    fillTestID="full-player-scrubber-fill"
+                    height={6}
+                    ratio={progressRatio}
+                  />
                 </Pressable>
                 <View style={styles.timeRow}>
                   <Text style={styles.timeText} testID="full-player-position">

@@ -70,6 +70,10 @@ export function SubscriptionFilterControl({
         return (
           <Pressable
             accessibilityRole="button"
+            // Which chip is active is conveyed by fill colour alone otherwise, which assistive
+            // technology cannot read — leaving a screen reader user unable to tell what the list
+            // beneath is currently scoped to.
+            accessibilityState={{ selected: isSelected }}
             key={option.filter}
             onPress={() => {
               onChange(option.filter);

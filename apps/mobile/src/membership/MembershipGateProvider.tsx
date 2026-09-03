@@ -2,28 +2,35 @@ import type { PropsWithChildren } from 'react';
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { PremiumGateModal } from '../components/feedback/PremiumGateModal';
-import type { MembershipDenialReason } from './membershipDenial';
+import type { AccessDenialReason } from '@podverse/helpers';
+
+import { ConfirmDialog } from '../components/feedback/ConfirmDialog';
 import { mapMembershipDenial } from './membershipDenial';
 import { useMembership } from './useMembership';
 
 /**
- * App-wide premium membership gate (Track 19.4). Member-only actions stay visible; on a
- * `membership.*` 403 the app shows a consistent modal (Cancel + auth-based Renew/Sign Up) instead of
- * a raw error, and Renew/Sign Up routes to the Membership screen (the host provides that navigation
- * so this module never imports the navigator — avoids an import cycle).
+ * App-wide membership gate. Member-only actions stay visible; on a `membership.*` 403 the app shows
+ * a consistent modal (Cancel + auth-based Renew/Sign Up) instead of a raw error, and Renew/Sign Up
+ * routes to the Membership screen (the host provides that navigation so this module never imports
+ * the navigator — avoids an import cycle).
  *
- * - `openGate(reason)` — show the modal directly (e.g. a pre-known gate).
+ * Reasons are the shared `AccessDenialReason` from `@podverse/helpers`, so this modal and the
+ * client-side `useAccessTier` checks describe a denial the same way.
+ *
+ * - `openGate(reason)` — show the modal directly, for a denial the client already resolved.
  * - `handleGateError(error)` — if `error` is a membership 403, open the gate and return `true`;
- *   otherwise return `false` so callers fall through to their normal error handling. Uses the shared
- *   `parseMembershipGateError` detector (via `mapMembershipDenial`) — the same one web uses.
+ *   otherwise return `false` so callers fall through to their normal error handling. A server 403
+ *   never yields `needs_account`.
  * - `runGated(action)` — await an API action; a membership 403 opens the gate (returns `undefined`),
  *   any other error rethrows.
+ * - `goToMembership()` — navigate to the Membership screen, so gated affordances anywhere in the app
+ *   get the renewal route without each screen wiring navigation.
  */
 export type MembershipGateContextValue = {
-  openGate: (reason: MembershipDenialReason) => void;
+  openGate: (reason: AccessDenialReason) => void;
   handleGateError: (error: unknown) => boolean;
   runGated: <T>(action: () => Promise<T>) => Promise<T | undefined>;
+  goToMembership: () => void;
 };
 
 const MembershipGateContext = createContext<MembershipGateContextValue | undefined>(undefined);
@@ -38,9 +45,9 @@ export function MembershipGateProvider({
 }: MembershipGateProviderProps) {
   const { t } = useTranslation();
   const { isLoggedIn } = useMembership();
-  const [reason, setReason] = useState<MembershipDenialReason | null>(null);
+  const [reason, setReason] = useState<AccessDenialReason | null>(null);
 
-  const openGate = useCallback((next: MembershipDenialReason) => {
+  const openGate = useCallback((next: AccessDenialReason) => {
     setReason(next);
   }, []);
 
@@ -77,33 +84,40 @@ export function MembershipGateProvider({
   }, [closeGate, onNavigateToMembership]);
 
   const value = useMemo<MembershipGateContextValue>(
-    () => ({ handleGateError, openGate, runGated }),
-    [handleGateError, openGate, runGated]
+    () => ({ goToMembership: onNavigateToMembership, handleGateError, openGate, runGated }),
+    [handleGateError, onNavigateToMembership, openGate, runGated]
   );
 
   const title =
-    reason === 'insufficient_tier'
+    reason === 'needs_membership'
       ? t('membership.gate.title_premium')
-      : reason === 'limit'
+      : reason === 'limit_reached'
         ? t('membership.gate.title_limit')
-        : t('membership.gate.title_expired');
+        : reason === 'needs_account'
+          ? t('membership.gate.title_needs_account')
+          : t('membership.gate.title_expired');
   const body =
-    reason === 'insufficient_tier'
+    reason === 'needs_membership'
       ? t('membership.gate.body_premium')
-      : reason === 'limit'
+      : reason === 'limit_reached'
         ? t('membership.gate.body_limit')
-        : t('membership.gate.body_expired');
+        : reason === 'needs_account'
+          ? t('membership.gate.body_needs_account')
+          : t('membership.gate.body_expired');
   const confirmLabel = isLoggedIn ? t('membership.gate.renew') : t('membership.gate.sign_up');
 
   return (
     <MembershipGateContext.Provider value={value}>
       {children}
-      <PremiumGateModal
+      <ConfirmDialog
         body={body}
         cancelLabel={t('membership.gate.cancel')}
+        cancelTestID="premium-gate-cancel"
         confirmLabel={confirmLabel}
+        confirmTestID="premium-gate-renew"
         onCancel={closeGate}
         onConfirm={onConfirm}
+        testID="premium-gate-modal"
         title={title}
         visible={reason !== null}
       />

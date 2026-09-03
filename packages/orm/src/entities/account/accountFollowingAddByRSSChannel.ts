@@ -27,4 +27,14 @@ export class AccountFollowingAddByRSSChannel {
 
   @Column({ type: 'varchar', nullable: true, length: DATABASE_CONSTANTS.varchar_normal })
   basic_auth_password!: string | null;
+
+  /**
+   * When this account last opened the feed, on any device.
+   *
+   * The server never stores add-by-RSS items, so it cannot derive an unseen count for one — the
+   * device does that from the feed it holds. This column exists so opening the feed on one device
+   * still clears the badge on another.
+   */
+  @Column({ type: 'timestamptz', nullable: true })
+  last_seen_at!: Date | null;
 }

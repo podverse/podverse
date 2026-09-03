@@ -1,0 +1,19 @@
+appId: com.podverse.app.next
+name: Sync Event Log
+---
+# Diagnostics surface reached from More. A healthy run records nothing, so the empty state is the
+# expected result here — the entry rows are covered by unit tests over the cap and eviction rules.
+# UI-only: the screen reads local SQLite and never calls the API.
+
+- runFlow: shared/launch-and-connect.yaml
+- tapOn:
+    id: tab-more
+- assertVisible:
+    id: more-screen
+- tapOn:
+    id: more-nav-sync-log
+- assertVisible:
+    id: sync-log-screen
+- assertVisible:
+    id: sync-log-empty
+- takeScreenshot: sync-log-empty

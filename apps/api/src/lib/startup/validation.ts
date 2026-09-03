@@ -284,6 +284,9 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
     validateOptional('ACCOUNT_SET_PASSWORD_MAX_PER_10_MINUTES', 'Account', 'Use Default (4)')
   );
   results.push(validateOptional('ACCOUNT_DOWNLOAD_DATA_MAX_PER_DAY', 'Account', 'Use Default (3)'));
+  results.push(
+    validateOptional('ACCOUNT_CHANNEL_SEEN_READ_MAX_PER_MINUTE', 'Account', 'Use Default (60)')
+  );
 
   // MQ rate limits (optional)
   results.push(

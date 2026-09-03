@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-import type { DTOChannel } from '@podverse/helpers';
+import type { ChannelUnseenBadge, DTOChannel } from '@podverse/helpers';
 import { buildDTOChannelImageLoadCandidates } from '@podverse/helpers';
 
 import { IMAGES } from '../../../constants/images';
@@ -14,9 +14,15 @@ import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
 interface Params {
   channels: DTOChannel[];
   viewSelected: ViewSelectedOption;
+  /** Keyed by channel id_text. Omitted by lists where unseen counts do not apply. */
+  unseenBadges?: ReadonlyMap<string, ChannelUnseenBadge>;
 }
 
-export function CorePodcastNodes({ channels, viewSelected }: Params): React.ReactNode {
+export function CorePodcastNodes({
+  channels,
+  unseenBadges,
+  viewSelected,
+}: Params): React.ReactNode {
   const items: PodcastListItem[] = channels.map((channel) => {
     const imageCandidates = buildDTOChannelImageLoadCandidates(
       channel.channel_images,
@@ -30,6 +36,7 @@ export function CorePodcastNodes({ channels, viewSelected }: Params): React.Reac
       imageCandidates,
       href: `${ROUTES.PODCAST}/${channel.id_text}`,
       lastPubDate: channel.channel_about?.last_pub_date ?? null,
+      unseenBadge: unseenBadges?.get(channel.id_text) ?? null,
     };
   });
 

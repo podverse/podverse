@@ -16,11 +16,11 @@ alwaysApply: false
   **information hierarchy** / list-row structure / **action affordances** (Play, queue next/last,
   more-menu items, subscribe/unsubscribe — same intents and shared i18n keys) /
   loading-empty-error states, adapted to RN primitives with design tokens (no hardcoded hex).
-  **Phase 2 ship bar:** visual resolution is part of done, driven by the operator's legacy-app
-  screenshots and answers (**mobile-legacy-screenshot-planning**); the Phase 1 "sketch only, polish
-  in Track 23" bar no longer applies. Agents still do not invent visual direction — ask when the
-  screenshots and answers don't settle it. Do not invent player-integrated transcripts, clip
-  authoring UI, or pixel DnD without a master-plan step. See
+  **Phase 2 visual review:** legacy-app screenshots and operator answers drive implementation
+  decisions (**mobile-legacy-screenshot-planning**), and a focused device review is recommended
+  after implementation but is not a completion gate. Agents still do not invent visual direction —
+  ask when the screenshots and answers don't settle it. Do not invent player-integrated transcripts,
+  clip authoring UI, or pixel DnD without a master-plan step. See
   [PHASES.md](/docs/proposals/mobile/_master-plan_/PHASES.md), **mobile-theme-parity** § Screen & visual parity, and
   [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md).
   Diverge only for platform conventions and note why.
@@ -56,6 +56,9 @@ alwaysApply: false
   **mobile-legacy-screenshot-planning**;
   [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-VISUAL-PARITY.md)
   describes the superseded Phase 1 policy. Full DRY rubric: **mobile-reusable-components** skill.
+  **Cover art is square** — use `CoverImage` (no `borderRadius`) for podcast, episode, album, and
+  player artwork. Do **not** put a media-type pill (`Podcasts` / `Episodes` / …) on list rows; the
+  screen or selector already names the type. Status badges (live, unseen) stay.
 - **ApiRequestService contract:** base URL is composed as `${prefix.replace(/\/$/, '')}${version}`.
   Keep `prefix` with no trailing slash and `version` with a leading slash (`/api` + `/v2`).
   Those fields come from `getMobileConfig().api` (parsed from the base URL env).
@@ -91,8 +94,10 @@ alwaysApply: false
      extract on first write when the pattern is clearly generic (same bar as `src/lib/` helpers).
   3. Keep screen files as orchestration (data hooks + wiring). Put presentation in shared components.
 
-  Inventory (extend here when adding new shared UI): `Button`, `Card`, `ListRow`, `ScreenHeader`,
-  `MobileScreenContainer`, `SectionCard`, `ListSection`, `ListLoading` / `ListEmpty` / `ListError`,
+  Inventory (extend here when adding new shared UI): `Button`, `Card`, `CoverImage`, `FillList`,
+  `ListRow`, `ReorderHandle`, `ScreenHeader`, `VerticalCenter`, `HeaderBar`, `MobileScreenContainer`,
+  `ThemedStackHeader`, `SectionCard`, `ListSection`, `ReorderableSections` / `ReorderableList`,
+  `ListLoading` / `ListEmpty` / `ListError`, `CallToActionSection`, `LoadingSection`,
   `AuthAwareLoadState`, `RetryableError`, `MediaRowActions`, `MiniPlayer`, gate/banner feedback.
   Do **not** use `@podverse/ui` (web/SCSS). Details: **mobile-reusable-components** skill.
 - **Async naming (`fetch` vs `load`/`reload`):** split verbs by responsibility so names never collide

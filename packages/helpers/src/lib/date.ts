@@ -6,6 +6,7 @@ import { es } from 'date-fns/locale/es';
 import { fr } from 'date-fns/locale/fr';
 
 import { SUPPORTED_LOCALES } from './constants/locales.js';
+import { ONE_DAY_MS } from './timeConstants.js';
 
 /** date-fns locale module ids for SUPPORTED_LOCALES (en-US, es, fr, el for el-GR). Use for bundle restriction (e.g. Webpack ContextReplacementPlugin). */
 export const DATE_FNS_LOCALE_IDS: readonly string[] = SUPPORTED_LOCALES.map((loc) =>
@@ -126,6 +127,87 @@ export function addUtcMonthsClamped(baseDate: Date, monthsToAdd: number): Date {
  */
 export function laterOfDates(a: Date, b: Date): Date {
   return b.getTime() > a.getTime() ? b : a;
+}
+
+/**
+ * The instant `days` before `from` — the cutoff a retention or staleness window compares against.
+ *
+ * Subtracts an absolute duration rather than stepping the calendar field, so a day is always 24
+ * hours. Callers are deciding how long something is kept, and a window that quietly becomes 23 or 25
+ * hours long twice a year because the server happens to observe daylight saving is a worse answer
+ * than a fixed one. The stored timestamps this is compared against are UTC, where the distinction
+ * does not exist at all.
+ */
+export function subtractDays(from: Date, days: number): Date {
+  return new Date(from.getTime() - days * ONE_DAY_MS);
+}
+
+/**
+ * Parse a date string to epoch milliseconds, or `null` when there is nothing usable to parse.
+ *
+ * Timestamps arrive as strings from every direction — an API response, a JSON row read back out of
+ * a device database, a cookie — and any of them can be absent, empty, or written by a build that
+ * formatted them differently. Comparing them means turning them into numbers first, and `Date.parse`
+ * answers an unparseable string with `NaN`, which is worse than an absence: `NaN > x` is false and
+ * so is `NaN < x`, so a bad value silently takes whichever branch the comparison happens to fall
+ * into instead of being recognised as missing.
+ *
+ * Collapsing all three cases to `null` is what lets callers write one explicit check for "no
+ * timestamp" and trust that anything else is a real number they can compare.
+ */
+export function toEpochMsOrNull(value: string | null | undefined): number | null {
+  if (value === null || value === undefined || value.trim() === '') {
+    return null;
+  }
+
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+/** The coarsest unit that still describes a gap honestly, with the signed amount to render. */
+export type RelativeTimeParts = {
+  unit: Intl.RelativeTimeFormatUnit;
+  value: number;
+};
+
+/**
+ * Choose the unit and amount for "how long ago", leaving the wording to the caller.
+ *
+ * Only the arithmetic is shared, not the formatting, because the surfaces legitimately differ in
+ * how they get a locale: one holds an `Intl.RelativeTimeFormat` it rebuilds when the user changes
+ * language, another takes the ambient one. Returning parts lets each keep its own formatter while
+ * the bucket boundaries stay one decision — otherwise the same notification reads "1 hour ago" on
+ * one device and "60 minutes ago" on another.
+ *
+ * A negative value is the past, matching what `Intl.RelativeTimeFormat` expects. `null` means the
+ * timestamp was unusable, which callers must render as nothing rather than pass along: that
+ * formatter throws on a non-finite value, so an unparseable date is a crash and not a bad string.
+ */
+export function getRelativeTimeParts(
+  value: string | null | undefined,
+  nowMs: number = Date.now()
+): RelativeTimeParts | null {
+  const thenMs = toEpochMsOrNull(value);
+  if (thenMs === null) {
+    return null;
+  }
+
+  const seconds = Math.round((thenMs - nowMs) / 1000);
+  if (Math.abs(seconds) < 60) {
+    return { unit: 'second', value: seconds };
+  }
+
+  const minutes = Math.round(seconds / 60);
+  if (Math.abs(minutes) < 60) {
+    return { unit: 'minute', value: minutes };
+  }
+
+  const hours = Math.round(minutes / 60);
+  if (Math.abs(hours) < 24) {
+    return { unit: 'hour', value: hours };
+  }
+
+  return { unit: 'day', value: Math.round(hours / 24) };
 }
 
 /**

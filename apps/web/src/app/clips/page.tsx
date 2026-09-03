@@ -14,7 +14,10 @@ import { getCuratedStaticPageMetadata } from '../../lib/seo/curatedPageMetadata'
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import type { ClipsFilterDefaults } from '../../utils/localSettings/localSettings';
-import { getParsedLocalSettings } from '../../utils/localSettings/localSettings';
+import {
+  getFilterDefaultsForPage,
+  getParsedLocalSettings,
+} from '../../utils/localSettings/localSettings';
 import type { EpisodesPageDropdownConfigCurrentParams } from '../episodes/EpisodesPageDropdownConfig';
 import { getEpisodesPageFilterParams } from '../episodes/EpisodesPageDropdownConfig';
 import { ClipsPageClient } from './ClipsPageClient';
@@ -50,7 +53,7 @@ export default async function ClipsPage({ searchParams }: ClipsPageProps) {
 
   const cookieStore = await cookies();
   const ssrLocalSettings = getParsedLocalSettings(cookieStore);
-  const ssrFilterDefaults = ssrLocalSettings.fd?.clips;
+  const ssrFilterDefaults = getFilterDefaultsForPage(ssrLocalSettings, 'clips');
 
   const queryParams = await searchParams;
   const { currentType, currentSort, currentRange, currentCategory, currentPage } =

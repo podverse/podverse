@@ -3,9 +3,10 @@ import type { AccountNotification, AccountNotificationPreference } from '@podver
 
 export const accountNotificationToJson = (
   row: AccountNotification,
-  lastSeenAt: Date | null
+  lastReadAt: Date | null
 ): DTOAccountNotification => {
-  const isNew = lastSeenAt === null ? true : row.created_at.getTime() > lastSeenAt.getTime();
+  // An account that has never opened its inbox has read nothing, so every row is unread.
+  const isUnread = lastReadAt === null ? true : row.created_at.getTime() > lastReadAt.getTime();
   return {
     id: row.id,
     account_id: row.account_id,
@@ -13,7 +14,7 @@ export const accountNotificationToJson = (
     category: row.category,
     created_at: row.created_at.toISOString(),
     expires_at: row.expires_at.toISOString(),
-    is_new: isNew,
+    is_unread: isUnread,
     link_path: row.link_path ?? null,
     payload: row.payload ?? null,
     title: row.title,

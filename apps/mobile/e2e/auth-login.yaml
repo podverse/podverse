@@ -1,7 +1,7 @@
 appId: com.podverse.app.next
 name: Auth Login
 ---
-# Track 6.11: login screenshot flow using seeded account on API 4230.
+# Login screenshot flow using seeded account on API 4230.
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml

@@ -1,0 +1,91 @@
+---
+description: Treat persisted DTOs and Add-by-RSS parse bundles as device data migrations; trace server, parser, SQLite, and offline playback contracts
+globs:
+  - "packages/helpers/src/dtos/**"
+  - "packages/orm/src/entities/**"
+  - "packages/parser-mapping/**"
+  - "apps/mobile/src/data/**"
+  - "infra/k8s/base/ops/source/database/linear-migrations/**"
+alwaysApply: false
+---
+
+# A shared DTO change is a data migration on every installed phone
+
+## The coupling is not where it looks
+
+Mobile SQLite does **not** mirror Postgres. The two schemas are deliberately different shapes: the
+server is ~100 normalized tables, the phone is a dozen tables built for offline reads. Mobile cannot
+even see the server model — it is forbidden from importing `@podverse/orm`. **A Postgres column
+rename, on its own, cannot break the phone.**
+
+What couples them is the **DTOs in `@podverse/helpers`**, and the coupling is durable rather than
+compile-time, because mobile writes those DTOs to disk verbatim:
+
+| Mobile column                     | Holds                              | Written from            |
+| --------------------------------- | ---------------------------------- | ----------------------- |
+| `account_snapshot.payload_json`   | a whole `DTOAccount`               | `GET /auth/me`          |
+| `channel_item.payload_json`       | a whole `DTOItem`, per episode     | channel item list       |
+| `queue_cache.payload_json`        | queue / now-playing / history DTOs | queue endpoints         |
+| `add_by_rss_feed.mapped_feed_json`| a `@podverse/parser-mapping` bundle| server parse            |
+
+So the question to ask when changing a DTO is not "does mobile compile?" It is **"what happens to the
+copies already sitting on people's phones?"**
+
+## Why TypeScript will not catch it
+
+Those payloads come back through `safeJsonParse<T>`, which parses and asserts:
+
+```12:14:apps/mobile/src/data/db/serialization.ts
+    return parsed as T;
+  } catch {
+    return null;
+```
+
+The assertion is reasonable — the app serialized the value itself — but it means a row written by an
+older build satisfies today's type with no complaint. A renamed persisted field can therefore read
+as `undefined` until that row is re-fetched, and an offline device may not re-fetch immediately.
+
+## What to check when you change a shared DTO
+
+1. **Is this DTO persisted?** Check the table above. If it is, the change reaches stored data.
+2. **How does a stale row recover?** Queue cache expires in five minutes and channel items refresh on
+   a 15-minute staleness pass, so those heal themselves once online. `account_snapshot` is replaced
+   only by an account refresh, and `add_by_rss_feed` only by a re-parse.
+3. **What does the UI do in the gap?** A missing field must degrade, not crash or render a wrong
+   value with confidence. Prefer widening before narrowing: add the new field, read both for a
+   release, then drop the old one.
+4. **Does anything need clearing?** For a breaking nested change there is no mechanism today —
+   no payload version, no contract version that wipes the cache. If a row cannot heal, say so
+   explicitly and add the invalidation as part of the change.
+5. **Test the upgrade, not the install.** A fresh install always looks correct. The case that breaks
+   is an existing install with a populated database and no network.
+
+## Changing mobile SQLite
+
+Mobile DDL is device-local and forward-only. Append a migration to `apps/mobile/src/data/db/migrations.ts`
+with the next integer version and make the matching edit to `schema.ts` — the two are maintained by
+hand, so schema drift requires an explicit review. Never edit a migration that has shipped:
+`PRAGMA user_version` means an installed device will never run it again.
+
+A mobile table change needs nothing from the server. The traffic is one-way.
+
+## Don't
+
+- Don't assume "mobile has no code reading this field" ends the analysis — the field is still in
+  stored JSON, and the next feature to read it will read the stale copy.
+- Don't rename a persisted DTO field and a mobile read site in the same breath without saying what
+  happens to devices between the two builds.
+- Don't add a runtime validator to `safeJsonParse` as a reflex. It converts a silently-wrong field
+  into a discarded row, which is worse for an offline user unless the caller can refetch.
+- Don't reach for `@podverse/orm` types in mobile to "keep them in sync." The decoupling is the
+  design; DTOs are the contract.
+
+## Related
+
+- [`add-by-rss-data-contracts`](/.cursor/rules/add-by-rss-data-contracts.mdc) — the
+  parser-to-SQLite-to-playback checklist
+- [`cross-surface-change-impact`](/.cursor/rules/cross-surface-change-impact.mdc) — which surfaces a
+  change touches at all
+- **mobile-data-layer** — repositories, storage boundaries, background sync
+- [`mobile-sync-orchestration`](/.cursor/rules/mobile-sync-orchestration.mdc) — how a stale row gets
+  refreshed

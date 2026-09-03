@@ -16,10 +16,10 @@ type FullPlayerSegmentsProps = {
 };
 
 /**
- * Full player chapter/soundbite segments (Track 11.10). Soundbites come embedded on the item DTO;
- * chapters are fetched once via `segmentsRepository` when the item advertises a chapters feed. Tap
- * a segment to start bounded playback (Track 10.17) through `playChapter` / `playSoundbite`. Renders
- * nothing when the item has neither chapters nor soundbites.
+ * Full player chapter/soundbite segments. Soundbites come embedded on the item DTO; chapters are
+ * fetched once via `segmentsRepository` when the item advertises a chapters feed. Tap a segment to
+ * start bounded playback through `playChapter` / `playSoundbite`. Renders nothing when the item has
+ * neither chapters nor soundbites.
  */
 export function FullPlayerSegments({ channel, item }: FullPlayerSegmentsProps) {
   const { t } = useTranslation();
@@ -98,7 +98,9 @@ export function FullPlayerSegments({ channel, item }: FullPlayerSegmentsProps) {
     <View testID="full-player-segments">
       {chapters.length > 0 ? (
         <View testID="full-player-chapters">
-          <Text style={styles.heading}>{t('info.chapter.chapters')}</Text>
+          <Text accessibilityRole="header" style={styles.heading}>
+            {t('info.chapter.chapters')}
+          </Text>
           {chapters.map((chapter) => (
             <Pressable
               accessibilityRole="button"
@@ -122,7 +124,9 @@ export function FullPlayerSegments({ channel, item }: FullPlayerSegmentsProps) {
 
       {soundbites.length > 0 ? (
         <View testID="full-player-soundbites">
-          <Text style={styles.heading}>{t('info.soundbite.official_clips')}</Text>
+          <Text accessibilityRole="header" style={styles.heading}>
+            {t('info.soundbite.official_clips')}
+          </Text>
           {soundbites.map((soundbite, index) => (
             <Pressable
               accessibilityRole="button"

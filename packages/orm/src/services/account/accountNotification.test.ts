@@ -43,11 +43,11 @@ describe('AccountNotificationService', () => {
     saveMock.mockReset();
   });
 
-  it('countUnseen counts all rows when last_seen_at is null', async () => {
+  it('countUnread counts all rows when last_read_at is null', async () => {
     countMock.mockResolvedValue(12);
 
     const service = new AccountNotificationService();
-    const count = await service.countUnseen(41, null);
+    const count = await service.countUnread(41, null);
 
     expect(count).toBe(12);
     expect(countMock).toHaveBeenCalledWith({
@@ -57,11 +57,11 @@ describe('AccountNotificationService', () => {
     });
   });
 
-  it('countUnseen applies created_at filter when last_seen_at is set', async () => {
+  it('countUnread applies created_at filter when last_read_at is set', async () => {
     countMock.mockResolvedValue(4);
 
     const service = new AccountNotificationService();
-    const count = await service.countUnseen(41, new Date('2026-04-01T00:00:00.000Z'));
+    const count = await service.countUnread(41, new Date('2026-04-01T00:00:00.000Z'));
 
     expect(count).toBe(4);
     expect(countMock).toHaveBeenCalledWith({
@@ -70,5 +70,27 @@ describe('AccountNotificationService', () => {
         created_at: expect.any(Object),
       }),
     });
+  });
+
+  it('deleteCreatedBefore reports how many rows the retention window removed', async () => {
+    deleteMock.mockResolvedValue({ affected: 7 });
+
+    const service = new AccountNotificationService();
+    const deleted = await service.deleteCreatedBefore(new Date('2026-04-01T00:00:00.000Z'));
+
+    expect(deleted).toBe(7);
+    expect(deleteMock).toHaveBeenCalledWith({
+      created_at: expect.any(Object),
+    });
+  });
+
+  it('a second purge over the same window finds nothing left to delete', async () => {
+    deleteMock.mockResolvedValueOnce({ affected: 7 }).mockResolvedValueOnce({ affected: 0 });
+
+    const service = new AccountNotificationService();
+    const cutoff = new Date('2026-04-01T00:00:00.000Z');
+
+    expect(await service.deleteCreatedBefore(cutoff)).toBe(7);
+    expect(await service.deleteCreatedBefore(cutoff)).toBe(0);
   });
 });

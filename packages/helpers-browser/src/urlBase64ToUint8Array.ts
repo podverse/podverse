@@ -1,6 +1,6 @@
 /**
- * Base64url (VAPID-style) to `ArrayBuffer` for Web Push `applicationServerKey` (`BufferSource`).
- * Identifier is historical; return type matches common `applicationServerKey` usage.
+ * Convert a Base64url (VAPID-style) value to an `ArrayBuffer` for Web Push
+ * `applicationServerKey` (`BufferSource`).
  */
 export function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);

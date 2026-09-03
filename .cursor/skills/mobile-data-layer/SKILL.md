@@ -11,6 +11,33 @@ API syncs in the background via existing `@podverse/helpers-requests` / `ApiRequ
 Authoritative decision:
 [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md).
 
+## Offline listening is a headline feature
+
+Offline is not a degraded mode to tolerate; it is a reason people choose a podcast app. Treat it as
+a product requirement when planning any mobile screen.
+
+Concretely, **everything a user is subscribed to must be readable offline** — not just the channel
+row, but the items and related content the UI needs to browse and play:
+
+- Subscribed channels, including add-by-RSS feeds.
+- Items (episodes) for those channels, not only the ones already downloaded.
+- Related content those screens render (artwork references, chapters, transcripts metadata).
+
+Screens that filter, sort, or search **subscribed** content read the local store, so they behave
+identically with no connection. Network search (Podcast Index, directory browse) is a separate,
+online-only surface.
+
+A background sync reconciles local storage with the server and with add-by-RSS feeds whenever the
+network is available, so what is stored converges on what is current. Plan that sync explicitly when
+adding a new locally-backed surface — do not assume a one-time fetch is enough.
+
+That sync runs through the app's serial queue, one job at a time, with a user-facing label — it does
+not schedule itself and it never sits on the startup path. Interactive work stays out of the queue.
+See [`mobile-sync-orchestration`](/.cursor/rules/mobile-sync-orchestration.mdc).
+
+Signed-out users get this too; see
+[`mobile-anonymous-vs-account-features`](/.cursor/rules/mobile-anonymous-vs-account-features.mdc).
+
 ## Do
 
 - Put schema, migrations, and DB client under `apps/mobile/src/data/db/`.
@@ -50,6 +77,8 @@ Authoritative decision:
 
 ## Related
 
+- [`dto-changes-are-device-data-migrations`](/.cursor/rules/dto-changes-are-device-data-migrations.mdc)
+  — `payload_json` columns hold whole DTOs, so changing one rewrites data already on phones
 - **mobile-playback** — playback policy + native bridge
 - **mobile-carplay-android-auto** rule — native cache fed from repository writes
 - [DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md §4.1](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md)

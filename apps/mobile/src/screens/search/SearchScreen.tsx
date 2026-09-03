@@ -1,42 +1,31 @@
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useEffect, useMemo, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { AccessibilityInfo, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import type { SearchPodcastsFeed } from '@podverse/helpers';
 import { toNonEmptyTrimmedString } from '@podverse/helpers/guards';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
-import { Card } from '../../components/primitives';
+import { Card, FillList, VerticalCenter } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
-import { ListLoading } from '../../components/state/ListLoading';
+import { LoadingSection } from '../../components/state/LoadingSection';
 import type { SearchStackParamList } from '../../navigation';
 import { SEARCH_STACK_ROUTES } from '../../navigation';
+import { screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import { getChannelDetailRouteKind } from './podcastIndexFeedPreview';
 
-type SearchFilterMedium = 'all' | 'music';
-type SearchSort = 'a_z' | 'recent' | 'relevance';
+type SearchScreenProps = NativeStackScreenProps<
+  SearchStackParamList,
+  typeof SEARCH_STACK_ROUTES.SearchRoot
+>;
 
 const SEARCH_DEBOUNCE_MS = 450;
-
-const SEARCH_MEDIUMS: SearchFilterMedium[] = ['all', 'music'];
-const SEARCH_SORTS: SearchSort[] = ['relevance', 'recent', 'a_z'];
-
-const SEARCH_MEDIUM_LABEL_KEYS: Record<SearchFilterMedium, string> = {
-  all: 'filters.type.all',
-  music: 'media.music.music',
-};
-
-const SEARCH_SORT_LABEL_KEYS: Record<SearchSort, string> = {
-  a_z: 'filters.sort.a_z',
-  recent: 'filters.sort.recent',
-  relevance: 'features.search.search',
-};
 
 const feedToRow = (feed: SearchPodcastsFeed) => ({
   id: String(feed.id),
@@ -45,31 +34,40 @@ const feedToRow = (feed: SearchPodcastsFeed) => ({
   title: feed.title,
 });
 
-const sortFeeds = (feeds: SearchPodcastsFeed[], sort: SearchSort): SearchPodcastsFeed[] => {
-  if (sort === 'relevance') {
-    return feeds;
-  }
-
-  if (sort === 'recent') {
-    return [...feeds].sort((a, b) => b.newestItemPubdate - a.newestItemPubdate);
-  }
-
-  return [...feeds].sort((a, b) => a.title.localeCompare(b.title));
-};
-
-export function SearchScreen() {
+/**
+ * Discovery, matching web `/search`: one debounced field against Podcast Index, results in the
+ * order that API returns them. Filtering or sorting here could only reflect the fields Podcast
+ * Index happens to send back, so the screen offers neither.
+ */
+export function SearchScreen({ navigation, route }: SearchScreenProps) {
   const { t } = useTranslation();
-  const navigation = useNavigation<NativeStackNavigationProp<SearchStackParamList, 'SearchRoot'>>();
   const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
   const { styles: themeStyles, tokens } = useTheme();
   const [query, setQuery] = useState<string>('');
   const [debouncedQuery, setDebouncedQuery] = useState<string>('');
-  const [mediumFilter, setMediumFilter] = useState<SearchFilterMedium>('all');
-  const [sort, setSort] = useState<SearchSort>('relevance');
   const [feeds, setFeeds] = useState<SearchPodcastsFeed[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [resolvingFeedId, setResolvingFeedId] = useState<string | null>(null);
+  const inputRef = useRef<TextInput | null>(null);
+
+  const wantsAutoFocus = route.params?.autoFocus === true;
+
+  // Home's "nothing subscribed yet" button sends the user here to type something, so the field
+  // starts empty and focused. The request is consumed immediately, otherwise coming back from a
+  // result would wipe the query the user just ran.
+  useFocusEffect(
+    useCallback(() => {
+      if (!wantsAutoFocus) {
+        return;
+      }
+
+      navigation.setParams({ autoFocus: undefined });
+      setQuery('');
+      setDebouncedQuery('');
+      inputRef.current?.focus();
+    }, [navigation, wantsAutoFocus])
+  );
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -103,7 +101,6 @@ export function SearchScreen() {
           },
           async (api) =>
             api.reqPodcastIndexSearchPodcasts({
-              medium: mediumFilter,
               q: debouncedQuery,
             })
         );
@@ -112,7 +109,7 @@ export function SearchScreen() {
           return;
         }
 
-        setFeeds(sortFeeds(response.feeds, sort));
+        setFeeds(response.feeds);
       } catch {
         if (!isMounted) {
           return;
@@ -130,76 +127,70 @@ export function SearchScreen() {
     return () => {
       isMounted = false;
     };
-  }, [accessToken, clearSession, debouncedQuery, mediumFilter, refreshToken, setTokens, sort]);
+  }, [accessToken, clearSession, debouncedQuery, refreshToken, setTokens]);
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        chip: {
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.round,
-          borderWidth: 1,
-          marginRight: tokens.spacing.sm,
-          paddingHorizontal: tokens.spacing.md,
-          paddingVertical: tokens.spacing.xs,
-        },
-        chipActive: {
-          backgroundColor: themeStyles.buttonPrimary.backgroundColor,
-          borderColor: themeStyles.buttonPrimary.backgroundColor,
-        },
-        chipLabel: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 12,
-          fontWeight: '600',
-        },
-        chipLabelActive: {
-          color: themeStyles.buttonPrimary.color,
-        },
-        chipsRow: {
-          flexDirection: 'row',
-          marginBottom: tokens.spacing.sm,
-        },
-        container: {
-          backgroundColor: themeStyles.screen.backgroundColor,
-          flex: 1,
-        },
-        content: {
-          padding: tokens.spacing.lg,
-          paddingBottom: tokens.spacing['2xl'],
-        },
-        heading: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 28,
-          fontWeight: '700',
-          marginBottom: tokens.spacing.md,
-        },
-        input: {
-          backgroundColor: tokens.background.secondary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
-          color: themeStyles.textPrimary.color,
-          fontSize: 16,
-          marginBottom: tokens.spacing.md,
-          paddingHorizontal: tokens.spacing.md,
-          paddingVertical: tokens.spacing.sm,
-        },
-        inputLabel: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          marginBottom: tokens.spacing.xs,
-        },
-        notice: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          marginTop: tokens.spacing.sm,
-        },
-        resultsSpacing: {
-          marginTop: tokens.spacing.md,
-        },
-      }),
-    [themeStyles, tokens]
-  );
+  // A list that silently swaps its contents tells a screen reader user nothing. The first settled
+  // result set is recorded without speaking, so arriving on Search does not talk over the screen
+  // title; every change after that is the user's own typing and worth reporting.
+  const resultSummary = `${t('misc.items')}: ${feeds.length}`;
+  const announcedCountRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (isLoading || errorKey !== null) {
+      return;
+    }
+
+    const previousCount = announcedCountRef.current;
+    announcedCountRef.current = feeds.length;
+    if (previousCount === null || previousCount === feeds.length) {
+      return;
+    }
+
+    AccessibilityInfo.announceForAccessibility(resultSummary);
+  }, [errorKey, feeds.length, isLoading, resultSummary]);
+
+  const styles = useMemo(() => {
+    const bodyInsets = screenBodyInsets(tokens.spacing);
+
+    return StyleSheet.create({
+      container: {
+        backgroundColor: themeStyles.screen.backgroundColor,
+        flex: 1,
+      },
+      input: {
+        backgroundColor: tokens.background.secondary,
+        borderColor: themeStyles.border.borderColor,
+        borderRadius: tokens.radii.md,
+        borderWidth: 1,
+        color: themeStyles.textPrimary.color,
+        fontSize: 16,
+        paddingHorizontal: tokens.spacing.md,
+        paddingVertical: tokens.spacing.sm,
+      },
+      inputSection: {
+        ...bodyInsets,
+        paddingBottom: tokens.spacing.md,
+      },
+      notice: {
+        color: themeStyles.textSecondary.color,
+        fontSize: 13,
+        paddingHorizontal: tokens.spacing.md,
+        paddingVertical: tokens.spacing.sm,
+      },
+      resultsCard: {
+        flex: 1,
+        marginBottom: tokens.spacing.lg,
+        marginHorizontal: bodyInsets.paddingHorizontal,
+      },
+      resultsContent: {
+        flexGrow: 1,
+      },
+      resultsList: {
+        flex: 1,
+      },
+    });
+  }, [themeStyles, tokens]);
+
+  const showResultRows = !isLoading && errorKey === null && feeds.length > 0;
 
   const handleFeedPress = async (feed: SearchPodcastsFeed) => {
     const feedId = String(feed.id);
@@ -258,107 +249,71 @@ export function SearchScreen() {
     }
   };
 
+  const listEmpty = isLoading ? (
+    <LoadingSection testID="search-loading" />
+  ) : errorKey !== null ? (
+    <VerticalCenter>
+      <ListError
+        messageKey={errorKey}
+        onRetry={() => {
+          setDebouncedQuery(query.trim());
+        }}
+        testID="search-error"
+      />
+    </VerticalCenter>
+  ) : debouncedQuery.length === 0 ? (
+    <VerticalCenter>
+      <ListEmpty messageKey="features.search.empty_prompt" testID="search-empty-query" />
+    </VerticalCenter>
+  ) : (
+    <VerticalCenter>
+      <ListEmpty messageKey="misc.info" testID="search-empty-results" />
+    </VerticalCenter>
+  );
+
+  const listFooter =
+    resolvingFeedId !== null ? <Text style={styles.notice}>{t('misc.loading')}</Text> : null;
+
   return (
     <View style={styles.container} testID="search-screen">
-      <ScrollView
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-        testID="search-results"
-      >
-        <Text style={styles.heading}>{t('features.search.search')}</Text>
-        <Text style={styles.inputLabel}>{t('features.search.search_by_title')}</Text>
+      <View style={styles.inputSection}>
         <TextInput
+          accessibilityLabel={t('features.search.search_by_title')}
           autoCapitalize="none"
           autoCorrect={false}
           onChangeText={setQuery}
           placeholder={t('features.search.search_by_title')}
           placeholderTextColor={themeStyles.textSecondary.color}
+          ref={inputRef}
           style={styles.input}
           testID="search-input"
           value={query}
         />
-
-        <Text style={styles.inputLabel}>{t('filters.type.all')}</Text>
-        <View style={styles.chipsRow}>
-          {SEARCH_MEDIUMS.map((nextMedium) => {
-            const isActive = nextMedium === mediumFilter;
-            return (
-              <Pressable
-                key={nextMedium}
-                onPress={() => {
-                  setMediumFilter(nextMedium);
-                }}
-                style={[styles.chip, isActive ? styles.chipActive : null]}
-                testID={`search-medium-${nextMedium}`}
-              >
-                <Text style={[styles.chipLabel, isActive ? styles.chipLabelActive : null]}>
-                  {t(SEARCH_MEDIUM_LABEL_KEYS[nextMedium])}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        <Text style={styles.inputLabel}>{t('filters.sort.recent')}</Text>
-        <View style={styles.chipsRow}>
-          {SEARCH_SORTS.map((nextSort) => {
-            const isActive = nextSort === sort;
-            return (
-              <Pressable
-                key={nextSort}
-                onPress={() => {
-                  setSort(nextSort);
-                }}
-                style={[styles.chip, isActive ? styles.chipActive : null]}
-                testID={`search-sort-${nextSort}`}
-              >
-                <Text style={[styles.chipLabel, isActive ? styles.chipLabelActive : null]}>
-                  {t(SEARCH_SORT_LABEL_KEYS[nextSort])}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        <View style={styles.resultsSpacing}>
-          <Card testID="search-results-card">
-            {isLoading ? <ListLoading testID="search-loading" /> : null}
-            {!isLoading && errorKey !== null ? (
-              <ListError
-                messageKey={errorKey}
-                onRetry={() => {
-                  setDebouncedQuery(query.trim());
-                }}
-                testID="search-error"
-              />
-            ) : null}
-            {!isLoading && errorKey === null && debouncedQuery.length === 0 ? (
-              <ListEmpty messageKey="features.search.search_by_title" testID="search-empty-query" />
-            ) : null}
-            {!isLoading && errorKey === null && debouncedQuery.length > 0 && feeds.length === 0 ? (
-              <ListEmpty messageKey="misc.info" testID="search-empty-results" />
-            ) : null}
-            {!isLoading && errorKey === null
-              ? feeds.map((feed, index) => (
-                  <HomeFeedRow
-                    key={feed.id}
-                    mediaType="podcasts"
-                    onPlayPress={(_row) => {}}
-                    onPress={() => {
-                      void handleFeedPress(feed);
-                    }}
-                    onQueuePress={(_row) => {}}
-                    row={feedToRow(feed)}
-                    testID={`search-result-row-${index}`}
-                  />
-                ))
-              : null}
-            {resolvingFeedId !== null ? (
-              <Text style={styles.notice}>{t('misc.loading')}</Text>
-            ) : null}
-          </Card>
-        </View>
-      </ScrollView>
+      </View>
+      <Card padded={false} style={styles.resultsCard} testID="search-results-card">
+        <FillList
+          ListEmptyComponent={listEmpty}
+          ListFooterComponent={listFooter}
+          contentContainerStyle={styles.resultsContent}
+          data={showResultRows ? feeds : []}
+          keyboardShouldPersistTaps="handled"
+          keyExtractor={(feed) => String(feed.id)}
+          renderItem={({ index, item: feed }) => (
+            <HomeFeedRow
+              mediaType="podcasts"
+              onPlayPress={(_row) => {}}
+              onPress={() => {
+                void handleFeedPress(feed);
+              }}
+              onQueuePress={(_row) => {}}
+              row={feedToRow(feed)}
+              testID={`search-result-row-${index}`}
+            />
+          )}
+          style={styles.resultsList}
+          testID="search-results"
+        />
+      </Card>
     </View>
   );
 }

@@ -8,12 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import java.lang.ref.WeakReference
 
-// PG-5 steps 2.15 + 2.17 (details 094, 096) + Plan 01 gap remediation (detail 099 addendum).
-//
 // The ONE native video surface for the process. Mini player and full player are two React views
 // over a single ExoPlayer and a single TextureView; expanding **reparents** THIS view into the
-// active RN target (2.20) instead of creating a second player or mounting a second RN <Video>
-// (Track 11.18 anti-pattern).
+// active RN target instead of creating a second player or mounting a second RN <Video>.
 //
 // TextureView (not SurfaceView): SurfaceView has a separate compositor window and throws
 // `IllegalStateException: child already has a parent` when reparented during React Navigation
@@ -32,13 +29,13 @@ object PodverseVideoSurfaceHost {
   /** RN-mounted target views by id. The single surface is reparented into the active target's view. */
   private val targetViews = mutableMapOf<String, WeakReference<ViewGroup>>()
 
-  /** The target the surface currently occupies (`null` when unplaced / hidden). */
+  /** The target the surface occupies (`null` when unplaced / hidden). */
   private var activeTarget: String? = null
 
   /**
    * Last capability reported by the engine. The surface only shows when the current item actually
    * has video frames — so a video-medium item playing its audio enclosure never leaves a black
-   * rectangle (2.23).
+   * rectangle.
    */
   private var currentItemHasVideo = false
 
@@ -60,7 +57,7 @@ object PodverseVideoSurfaceHost {
           textureView = view
           // Bind the one texture to the one shared player.
           PodverseAudioEngine.attachVideoTextureView(view)
-          // Track video capability so the host can hide itself for audio-only items (policy 2.23).
+          // Record video capability so the host can hide itself for audio-only items.
           PodverseAudioEngine.onVideoCapabilityChanged = { hasVideo ->
             onMain {
               currentItemHasVideo = hasVideo
@@ -90,8 +87,8 @@ object PodverseVideoSurfaceHost {
   }
 
   /**
-   * Unregister an RN view (on RN unmount). Only clears when the going-away view is the currently
-   * registered one (avoids clobbering a re-registered view during a fast remount). If it was the
+   * Unregister an RN view (on RN unmount). Only clears when the going-away view is the registered
+   * one (avoids clobbering a re-registered view during a fast remount). If it was the
    * active target's view, detach the surface (kept alive; just no host).
    */
   fun unregisterTargetView(target: String, view: ViewGroup) {
@@ -107,8 +104,8 @@ object PodverseVideoSurfaceHost {
   }
 
   /**
-   * Move the single surface to a registered target — bridge `animateVideoSurface` (2.19/2.20). Only
-   * reparenting/geometry changes; the ExoPlayer and playhead are untouched.
+   * Move the single surface to a registered target. Only reparenting/geometry changes; the ExoPlayer
+   * and playhead are untouched.
    */
   fun setActiveTarget(target: String, animatedDurationMs: Long = 0) {
     onMain {
@@ -129,7 +126,7 @@ object PodverseVideoSurfaceHost {
     }
   }
 
-  /** True when the current item has video frames to present (combined with `desiredVisible`, 2.23). */
+  /** True when the current item has video frames to present. */
   fun hasVideo(): Boolean = currentItemHasVideo
 
   /**

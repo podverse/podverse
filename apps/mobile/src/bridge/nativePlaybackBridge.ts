@@ -1,12 +1,12 @@
 /**
- * JS `NativePlaybackBridge` adapter (master step 2.11 / detail 090).
+ * JS `NativePlaybackBridge` adapter.
  *
  * This is the ONLY place RN talks to the native `podverse-media-engine` module. Screens and hooks
  * must go through this adapter (or `useNativePlaybackBridge`) — never import the native module
  * directly. This parallels the ESLint boundary around web's `useMediaElementBridge`.
  *
- * Playback/queue policy stays in `@podverse/playback-core`; this adapter is transport only. Future
- * controls will call playback-core to compute a decision, then call this adapter.
+ * Playback/queue policy stays in `@podverse/playback-core`; this adapter is transport only. Controls
+ * call playback-core to compute a decision, then call this adapter.
  */
 
 import type {
@@ -31,7 +31,7 @@ export type PlaybackEventSubscription = { remove: () => void };
  *
  * `addListener` delivers **raw** native events (the `error` payload has no normalized `kind`); the
  * `useNativePlaybackBridge` hook is the sanctioned consumer path and runs errors through
- * `normalizePlaybackError` (2.27). Direct `addListener('error', …)` callers can normalize themselves.
+ * `normalizePlaybackError`. Direct `addListener('error', …)` callers can normalize themselves.
  */
 export type PodversePlaybackBridge = NativePlaybackBridge &
   NativeCacheWriteBridge & {

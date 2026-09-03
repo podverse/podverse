@@ -34,7 +34,7 @@ export const ListHistoryResources: React.FC<Props> = ({
   const tAuthentication = useTranslations('authentication');
   const { setModalAuthLogin } = useModals();
 
-  // Track if we should skip scroll on the first effect run (back navigation case)
+  // Skip scroll on the first effect run when returning via back navigation.
   const skipScrollOnceRef = useRef(checkBackNavFlag());
 
   useSkipInitialEffect(() => {

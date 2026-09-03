@@ -99,7 +99,7 @@ const toNativeCacheEntry = (resource: DTOQueueResource): NativeCacheQueueEntry |
     idText: item.id_text,
     title: item.title ?? item.id_text,
     artworkUrl: item.item_images[0]?.url ?? item.channel?.channel_images?.[0]?.url ?? null,
-    // Enclosure resolution for car/watch playback lands with the real native cache (Track 12).
+    // Enclosure resolution for car/watch playback is handled by the native playback path.
     mediaUrl: null,
   };
 };
@@ -107,7 +107,7 @@ const toNativeCacheEntry = (resource: DTOQueueResource): NativeCacheQueueEntry |
 /**
  * Project the current now-playing + upcoming snapshot to the native cache. Repositories call this
  * after every successful queue sync/mutation — CarPlay / Android Auto / watch complications read
- * this native cache, never SQLite (see DOCS-MOBILE-DATA-LAYER-OFFLINE.md §7.1). Stub until Track 12.
+ * this native cache, never SQLite (see DOCS-MOBILE-DATA-LAYER-OFFLINE.md §7.1).
  */
 const projectQueueForQueue = async (queueIdText: string): Promise<void> => {
   const nowPlaying =
@@ -368,7 +368,7 @@ export const queueRepository = {
   /**
    * Move the now-playing resource to history (ended / skip), matching the web queue lifecycle.
    * Force-refreshes now-playing + upcoming, invalidates cached history pages, and projects the
-   * native cache. Consumers (orchestrator, Track 10.12) advance via the load-active hook after.
+   * native cache. Consumers advance via the load-active hook after.
    */
   moveNowPlayingToHistory: async (
     context: MobileAuthRequestContext,

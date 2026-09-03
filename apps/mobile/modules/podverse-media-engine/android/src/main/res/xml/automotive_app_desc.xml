@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Android Auto media-app descriptor (Track 12.11). Referenced by the
+  Android Auto media-app descriptor. Referenced by the
   com.google.android.gms.car.application <meta-data> in AndroidManifest.xml. Declares Podverse as a
   media app so Android Auto / the DHU surface PodverseMediaLibraryService in the car media browser.
-  The Play Console "Android Auto" declaration is the operator step (12.16 / ANDROID-AUTO-DECLARATION.md).
+  The Play Console "Android Auto" declaration is managed by the release owner.
 -->
 <automotiveApp>
   <uses name="media"/>

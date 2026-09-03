@@ -11,7 +11,7 @@ interface RateLimitEntry {
 // In-memory rate limit storage
 const rateLimitMap = new Map<string, RateLimitEntry>();
 
-// Track last cleanup time for periodic cleanup
+// Record the last cleanup time for periodic cleanup.
 let lastCleanupTime = Date.now();
 const CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 

@@ -9,13 +9,13 @@ import type { OpmlImportStatusResponse } from '@podverse/helpers-requests';
 import { requestWithMobileAuthRefresh } from '../auth';
 import { useAuth } from '../auth/AuthProvider';
 import { isMobileE2eFromEnv } from '../config/env';
-import { accountRepository } from '../data/repositories';
 import { buildE2eSampleOpml } from '../lib/opml/e2eSampleOpml';
 import { pollOpmlImportStatus } from '../lib/opml/pollOpmlImportStatus';
 import {
   buildOpmlRateLimitMessage,
   handleRateLimitMessage,
 } from '../lib/rateLimit/handleRateLimitMessage';
+import { useSync } from '../sync';
 
 const pickOpmlText = async (): Promise<string | null> => {
   if (isMobileE2eFromEnv()) {
@@ -43,6 +43,7 @@ const pickOpmlText = async (): Promise<string | null> => {
 export function useOpmlImport() {
   const { t } = useTranslation();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
+  const { requestSync } = useSync();
   const [isImporting, setIsImporting] = useState(false);
   const [importReport, setImportReport] = useState<OpmlImportStatusResponse | null>(null);
   const [importErrorKey, setImportErrorKey] = useState<string | null>(null);
@@ -122,16 +123,10 @@ export function useOpmlImport() {
         );
       }
 
-      try {
-        await accountRepository.refresh({
-          accessToken,
-          clearSession,
-          refreshToken,
-          setTokens,
-        });
-      } catch {
-        // Soft-fail: import succeeded even if subscription cache refresh did not.
-      }
+      // The import created follows on the server; pulling them down is reconciliation, so it goes
+      // through the queue and reports to the sync indicator rather than extending this spinner by
+      // however many pages the account now needs.
+      requestSync('pull-to-refresh');
     } catch (error) {
       const rateLimitText = handleRateLimitMessage(error, t);
       if (rateLimitText !== null) {
@@ -153,7 +148,7 @@ export function useOpmlImport() {
     } finally {
       setIsImporting(false);
     }
-  }, [accessToken, clearSession, refreshToken, setTokens, status, t]);
+  }, [accessToken, clearSession, refreshToken, requestSync, setTokens, status, t]);
 
   return {
     closeRateLimitModal,

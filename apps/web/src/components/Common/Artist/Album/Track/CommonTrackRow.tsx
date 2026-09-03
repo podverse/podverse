@@ -10,7 +10,7 @@ import { IMAGES } from '../../../../../constants/images';
 import styles from '../../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 
 type CommonTrackRowProps = {
-  /** When provided, row click triggers play (track behavior). When omitted, href is used to navigate (e.g. feed row). */
+  /** Row click plays the track when provided; otherwise, `href` navigates to the resource. */
   href?: string;
   /** When provided, main area is a button that calls this on click (play track). Use for track rows. */
   onClick?: () => void;

@@ -1,16 +1,18 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { toNonEmptyTrimmedString } from '@podverse/helpers/guards';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
-import { Button } from '../../components/primitives';
+import { GatedFeatureNotice } from '../../components/feedback/GatedFeatureNotice';
+import { Button, CoverImage } from '../../components/primitives';
 import { ListLoading } from '../../components/state/ListLoading';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
+import { useAccessTier } from '../../membership/useAccessTier';
 import type { SearchStackParamList } from '../../navigation';
 import { SEARCH_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
@@ -59,11 +61,16 @@ export function PodcastIndexFeedPreviewScreen({
   route,
 }: PodcastIndexFeedPreviewScreenProps) {
   const { t } = useTranslation();
-  const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
+  const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
   const { onRequestLogin } = useAuthPrompt();
   const { styles: themeStyles, tokens } = useTheme();
-  const { handleGateError } = useMembershipGate();
+  const { goToMembership, handleGateError, openGate } = useMembershipGate();
+  const { evaluateFeature } = useAccessTier();
   const isMountedRef = useRef(true);
+
+  // Membership tier is only the floor: the server also refuses directory adds for Trial accounts,
+  // which no client-side check can predict, so `handleGateError` below still matters.
+  const addAccess = evaluateFeature('directory_add_by_rss');
 
   const [feed, setFeed] = useState<PreviewFeedState | null>(() => {
     const params = route.params;
@@ -171,7 +178,16 @@ export function PodcastIndexFeedPreviewScreen({
       return;
     }
 
-    if (status !== 'authenticated' || accessToken === null) {
+    if (!addAccess.allowed) {
+      if (addAccess.reason === 'needs_account') {
+        onRequestLogin();
+      } else {
+        openGate(addAccess.reason);
+      }
+      return;
+    }
+
+    if (accessToken === null) {
       onRequestLogin();
       return;
     }
@@ -244,15 +260,16 @@ export function PodcastIndexFeedPreviewScreen({
     }
   }, [
     accessToken,
+    addAccess,
     clearSession,
     feed,
     handleGateError,
     isAdding,
     navigateToChannelDetail,
     onRequestLogin,
+    openGate,
     refreshToken,
     setTokens,
-    status,
   ]);
 
   const styles = useMemo(
@@ -282,25 +299,8 @@ export function PodcastIndexFeedPreviewScreen({
           marginBottom: tokens.spacing.sm,
         },
         image: {
-          backgroundColor: tokens.background.secondary,
-          borderRadius: tokens.radii.md,
           height: 160,
           width: 160,
-        },
-        imageFallback: {
-          alignItems: 'center',
-          backgroundColor: tokens.background.secondary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
-          height: 160,
-          justifyContent: 'center',
-          width: 160,
-        },
-        imageFallbackText: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 12,
-          fontWeight: '600',
         },
         message: {
           color: themeStyles.textPrimary.color,
@@ -345,17 +345,11 @@ export function PodcastIndexFeedPreviewScreen({
   return (
     <View style={styles.container} testID="pi-feed-preview-screen">
       <ScrollView contentContainerStyle={styles.content} testID="search-result-detail-screen">
-        {feed.imageUrl !== null ? (
-          <Image
-            accessibilityIgnoresInvertColors
-            source={{ uri: feed.imageUrl }}
-            style={styles.image}
-          />
-        ) : (
-          <View style={styles.imageFallback}>
-            <Text style={styles.imageFallbackText}>{t('media.podcast.podcast')}</Text>
-          </View>
-        )}
+        <CoverImage
+          fallbackLabel={t('media.podcast.podcast')}
+          style={styles.image}
+          uri={feed.imageUrl}
+        />
         <Text style={styles.title}>{feed.title}</Text>
         {feed.author.length > 0 ? <Text style={styles.author}>{feed.author}</Text> : null}
         {feed.description.length > 0 ? (
@@ -364,11 +358,12 @@ export function PodcastIndexFeedPreviewScreen({
 
         <Text style={styles.explanation}>{t('features.search.not_available_yet')}</Text>
 
-        {status !== 'authenticated' ? (
-          <Text style={styles.explanation} testID="pi-feed-add-needs-login">
-            {t('features.search.add_needs_login')}
-          </Text>
-        ) : null}
+        <GatedFeatureNotice
+          access={addAccess}
+          onRequestLogin={onRequestLogin}
+          onRequestMembership={goToMembership}
+          testID="pi-feed-add-gate"
+        />
 
         <Button
           fullWidth

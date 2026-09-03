@@ -1,0 +1,14 @@
+.resultsCount {
+  color: var(--text-color-secondary);
+  font-size: var(--font-size-sm);
+  margin: 0 0 var(--spacing-md);
+}
+
+/**
+ * The count line stays mounted while the subscribed list is shown, so a screen reader is already
+ * watching it when a term is first typed. Left visible but empty rather than hidden: a region
+ * removed from the layout is a region assistive tech stops reporting.
+ */
+.resultsCountIdle {
+  margin: 0;
+}

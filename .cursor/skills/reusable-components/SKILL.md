@@ -52,6 +52,9 @@ When **web** (`apps/web`) and **management-web** both have a similar generic con
 
 For cross-app extraction steps, use **`ui-component-promotion`**.
 
+Components are only half of it. For **hooks** and **plain functions** — where duplication is
+invisible until two copies disagree — follow **`reuse-beyond-components`**.
+
 ## App-local configured wrappers (same app, 2+ callsites)
 
 When the **same** `@podverse/ui` usage appears in **two or more** places **within one app** (same props, same `next-intl` keys for `aria-label` / visible copy), extract a thin **client** component under `apps/<app>/src/components/**` that:

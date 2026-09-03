@@ -1,7 +1,6 @@
 CREATE TYPE public.notification_category_options AS ENUM (
     'new-content',
     'livestream',
-    'membership-expiry',
     'product-update',
     'maintenance',
     'terms-of-service',

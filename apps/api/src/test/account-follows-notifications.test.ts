@@ -1,8 +1,8 @@
 import type { Server } from 'http';
 import request from 'supertest';
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { AccountMembershipEnum } from '@podverse/helpers';
+import { AccountMembershipEnum, MAX_BULK_FOLLOW_CHANNELS } from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
 
 import {
@@ -18,8 +18,15 @@ const TEST_EMAIL = 'follows-test@example.com';
 const TEST_USER_ID = 1;
 const TEST_ACCOUNT_ID_TEXT = 'follows-test-user';
 
+/** A channel id the bulk mock treats as deleted, so `not_found` is reachable in tests. */
+const MISSING_CHANNEL_ID_TEXT = 'channel-that-no-longer-exists';
+
+/** Follow state backing the stateful bulk mock; reset between bulk tests. */
+const bulkFollowedChannelIdTexts = new Set<string>();
+
 const {
   followAccountMock,
+  followChannelsBulkMock,
   unfollowAccountMock,
   followChannelMock,
   unfollowChannelMock,
@@ -47,6 +54,21 @@ const {
   followAccountMock: vi.fn(async () => {}),
   unfollowAccountMock: vi.fn(async () => {}),
   followChannelMock: vi.fn(async () => {}),
+  // Stateful on purpose: idempotency is the point of the bulk endpoint, so the mock has to remember
+  // what it already followed for a repeat submission to be a meaningful assertion.
+  followChannelsBulkMock: vi.fn(async (_accountId: number, channelIdTexts: string[]) => {
+    const followed = bulkFollowedChannelIdTexts;
+    return channelIdTexts.map((channel_id_text) => {
+      if (channel_id_text === MISSING_CHANNEL_ID_TEXT) {
+        return { channel_id_text, outcome: 'not_found' as const };
+      }
+      if (followed.has(channel_id_text)) {
+        return { channel_id_text, outcome: 'already_following' as const };
+      }
+      followed.add(channel_id_text);
+      return { channel_id_text, outcome: 'followed' as const };
+    });
+  }),
   unfollowChannelMock: vi.fn(async () => {}),
   followPlaylistMock: vi.fn(async () => {}),
   unfollowPlaylistMock: vi.fn(async () => {}),
@@ -121,6 +143,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
 
   class MockAccountFollowingChannelService {
     followChannel = followChannelMock;
+    followChannelsBulk = followChannelsBulkMock;
     unfollowChannel = unfollowChannelMock;
     getFollowedChannels = getFollowedChannelsMock;
   }
@@ -258,6 +281,128 @@ describe('account follows and notification routes', () => {
         .send({ channel_id_text: 'some-channel' });
 
       expect(res.status).toBe(401);
+    });
+  });
+
+  describe('POST /follow/channel/bulk', () => {
+    beforeEach(() => {
+      bulkFollowedChannelIdTexts.clear();
+      followChannelsBulkMock.mockClear();
+    });
+
+    it('reports an outcome for every requested channel', async () => {
+      const res = await request(app)
+        .post(`${accountBase}/follow/channel/bulk`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ channel_id_texts: ['channel-a', 'channel-b', MISSING_CHANNEL_ID_TEXT] });
+
+      expect(res.status).toBe(200);
+      expect(res.body.results).toEqual([
+        { channel_id_text: 'channel-a', outcome: 'followed' },
+        { channel_id_text: 'channel-b', outcome: 'followed' },
+        { channel_id_text: MISSING_CHANNEL_ID_TEXT, outcome: 'not_found' },
+      ]);
+      expect(res.body.totals).toEqual({
+        requested: 3,
+        followed: 2,
+        already_following: 0,
+        not_found: 1,
+      });
+    });
+
+    it('is idempotent: resubmitting the same list follows nothing new', async () => {
+      const payload = { channel_id_texts: ['channel-a', 'channel-b'] };
+
+      const first = await request(app)
+        .post(`${accountBase}/follow/channel/bulk`)
+        .set(authHeaders(TEST_USER_ID))
+        .send(payload);
+      expect(first.body.totals.followed).toBe(2);
+
+      const second = await request(app)
+        .post(`${accountBase}/follow/channel/bulk`)
+        .set(authHeaders(TEST_USER_ID))
+        .send(payload);
+
+      expect(second.status).toBe(200);
+      expect(second.body.totals).toEqual({
+        requested: 2,
+        followed: 0,
+        already_following: 2,
+        not_found: 0,
+      });
+    });
+
+    it('follows only the new channels when a resubmission adds one', async () => {
+      await request(app)
+        .post(`${accountBase}/follow/channel/bulk`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ channel_id_texts: ['channel-a'] });
+
+      const res = await request(app)
+        .post(`${accountBase}/follow/channel/bulk`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ channel_id_texts: ['channel-a', 'channel-b'] });
+
+      expect(res.body.totals.followed).toBe(1);
+      expect(res.body.totals.already_following).toBe(1);
+    });
+
+    it('rejects an empty list rather than reporting a successful no-op', async () => {
+      const res = await request(app)
+        .post(`${accountBase}/follow/channel/bulk`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ channel_id_texts: [] });
+
+      expect(res.status).toBe(400);
+      expect(followChannelsBulkMock).not.toHaveBeenCalled();
+    });
+
+    it('rejects a list over the cap', async () => {
+      const res = await request(app)
+        .post(`${accountBase}/follow/channel/bulk`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({
+          channel_id_texts: Array.from(
+            { length: MAX_BULK_FOLLOW_CHANNELS + 1 },
+            (_unused, index) => `channel-${index}`
+          ),
+        });
+
+      expect(res.status).toBe(400);
+      expect(followChannelsBulkMock).not.toHaveBeenCalled();
+    });
+
+    it('returns 401 without auth', async () => {
+      const res = await request(app)
+        .post(`${accountBase}/follow/channel/bulk`)
+        .send({ channel_id_texts: ['channel-a'] });
+
+      expect(res.status).toBe(401);
+    });
+
+    it('returns 403 when the membership has expired, matching single follow', async () => {
+      getAccountMock.mockResolvedValueOnce({
+        id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
+        account_credentials: { email: TEST_EMAIL },
+        account_membership_status: {
+          membership_expires_at: new Date(Date.now() - 86400000),
+          account_membership: { id: AccountMembershipEnum.Premium },
+        },
+        sharable_status: { id: 1 },
+      });
+
+      const res = await withMutedExpectedErrorLogs(async () =>
+        request(app)
+          .post(`${accountBase}/follow/channel/bulk`)
+          .set(authHeaders(TEST_USER_ID))
+          .send({ channel_id_texts: ['channel-a'] })
+      );
+
+      expect(res.status).toBe(403);
+      expect(res.body.code).toBe('membership_expired');
+      expect(followChannelsBulkMock).not.toHaveBeenCalled();
     });
   });
 

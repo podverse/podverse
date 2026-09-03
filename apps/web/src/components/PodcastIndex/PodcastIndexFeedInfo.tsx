@@ -6,7 +6,11 @@ import { useEffect, useRef, useState } from 'react';
 import { FaPlus, FaRss } from 'react-icons/fa6';
 
 import type { PodcastByIdFeed } from '@podverse/helpers';
-import { DIRECTORY_ADD_POLL_TIMEOUT_MS, formatDateAbbrev } from '@podverse/helpers';
+import {
+  dedupedTrimmedUrlCandidates,
+  DIRECTORY_ADD_POLL_TIMEOUT_MS,
+  formatDateAbbrev,
+} from '@podverse/helpers';
 import { Button, ImageLightboxModal, SkeletonFlashImage } from '@podverse/ui';
 
 import { IMAGES } from '../../constants/images';
@@ -15,7 +19,6 @@ import { useConfig } from '../../contexts/Config';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { useMembershipGate } from '../../hooks/useMembershipGate';
-import { dedupedTrimmedUrlCandidates } from '../../utils/image/dedupedTrimmedUrlCandidates';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 import { redirectToChannelPageByMediumClient } from '../../utils/redirect/redirectToChannelPageByMedium';
 

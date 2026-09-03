@@ -1,9 +1,6 @@
 /**
- * HTTP contract for feeds (management-api).
- * Source: `.llm/plans/active/feed-status-table-replacement/05b-management-api-contract-lock.md`
- *
- * Additional operational fields (not listed in 05b prose but required by workflows):
- * - `lifecycle_reason_key` — maps to admin takedown reason catalog when lifecycle is takedown.
+ * HTTP contract for feeds (management-api). `lifecycle_reason_key` maps to the admin takedown reason
+ * catalog when lifecycle is takedown.
  */
 
 import Joi from 'joi';
@@ -52,8 +49,8 @@ export const feedOperationsUpdatePolicyStateBodySchema = Joi.object({
   max_response_body_bytes_override: Joi.number().integer().positive().allow(null).optional(),
   policy_overrides: feedOperationsPolicyOverridesSchema.allow(null),
   /**
-   * When true, takedown lifecycle may omit `takedown_active` (temporary transitional mode).
-   * When omitted/false, takedown requires `takedown_active` after the operation.
+   * When true, the takedown lifecycle may omit `takedown_active`.
+   * When omitted or false, the takedown requires `takedown_active` after the operation.
    */
   takedown_transitional: Joi.boolean().optional(),
 })

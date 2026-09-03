@@ -100,8 +100,12 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
   }, [loadHistory]);
 
   return (
-    <MobileScreenContainer heading={t('features.history.history')} testID="library-history-screen">
+    <MobileScreenContainer
+      heading={status === 'authenticated' ? t('features.history.history') : undefined}
+      testID="library-history-screen"
+    >
       <AuthAwareLoadState
+        authMessageKey="features.history.login_prompt"
         emptyTestID={
           status !== 'authenticated' ? 'library-history-auth-required' : 'library-history-empty'
         }

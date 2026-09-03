@@ -1,7 +1,7 @@
 appId: com.podverse.app.next
 name: Auth Logout
 ---
-# Track 6.12: login then logout (More tab), return to anonymous tab shell.
+# Login then logout (More tab), returning to the anonymous tab shell.
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
@@ -31,3 +31,14 @@ name: Auth Logout
 - assertVisible:
     id: anonymous-login-cta
 - takeScreenshot: auth-logout-anonymous-shell
+
+# Signing yourself out is not a forced logout, so the "you've been signed out" dialog must stay
+# away. A false alarm here would train users to dismiss the one message that matters.
+#
+# Only the no-notice half is checked on device: a real forced logout needs the server to reject the
+# refresh token, which Maestro cannot arrange (and `launchApp: clearState` wipes the persisted
+# marker, so seeding it here would assert nothing). The marker and reason logic are covered in
+# `src/auth/forcedLogoutNotice.test.ts`; the notice itself is verified by hand.
+- assertNotVisible:
+    id: forced-logout-modal
+- takeScreenshot: auth-logout-no-forced-logout-notice
