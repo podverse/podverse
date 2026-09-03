@@ -1,0 +1,76 @@
+---
+description: Mobile screens share HeaderBar chrome and one page-body gutter
+globs:
+  - apps/mobile/src/screens/**/*.tsx
+  - apps/mobile/src/components/screen/**/*
+  - apps/mobile/src/theme/screenLayout.ts
+  - apps/mobile/src/components/primitives/FillList.tsx
+  - apps/mobile/src/components/primitives/VerticalCenter.tsx
+alwaysApply: false
+---
+
+# Mobile screen layout consistency
+
+Tab roots and stack screens share one top chrome and one page-body gutter. Do not invent a
+per-screen inset under the title bar.
+
+## Top chrome
+
+- Use **`HeaderBar`** for the slot under the status bar: safe-area inset and a 44pt row. No
+  divider, hairline, or shadow under the title.
+- Stack titles go through **`ThemedStackHeader`** (already wraps `HeaderBar`).
+- Tab roots use the same title slot (Home, Search, …). Page controls such as Home's media-type
+  pills and Search's field sit in the body under that bar, not inside it.
+
+## Page body under the bar
+
+The first content below `HeaderBar` uses **`screenBodyInsets(tokens.spacing)`** from
+`apps/mobile/src/theme/screenLayout.ts`:
+
+- **Top:** `spacing.lg` between the title row and the first body control
+- **Horizontal:** `spacing.lg` on both sides of that body
+
+`MobileScreenContainer` already applies this. Home's feed list and Search's input / results card
+must use the same helper — not a one-off `padding` / `margin`, and not a second inner `Card`
+padding on top of the page gutter.
+
+Internal gaps (input → results, filter row → row) stay on the screen. Centered empty / loading
+(`VerticalCenter`, `CallToActionSection`, `LoadingSection`) fills leftover height; it does not
+replace the page gutter.
+
+## Fill empty lists do not scroll
+
+When a list's only body is a fill info state (`VerticalCenter` / `LoadingSection` /
+`CallToActionSection` as `ListEmptyComponent`), there is nothing to scroll. Use **`FillList`**
+instead of raw `FlatList` — it locks bounce, over-scroll, pull-to-refresh, and `scrollEnabled`
+whenever `data` is empty and `ListEmptyComponent` is set. Pass `ListEmptyComponent={null}` when
+the empty copy lives in the header and the list should still scroll (filter-no-matches).
+
+## Login-gated fill states
+
+When a screen's body is empty because the feature requires an account, use **`CallToActionSection`**
+(it already wraps `VerticalCenter`) plus a Login action — not a bare `ListEmpty` and not
+`authentication.login_required`. Prefer **`AuthAwareLoadState`** with `showAuthRequired` and a
+feature-specific `authMessageKey` when the screen already uses that wrapper; otherwise wire
+`CallToActionSection` as the `FillList` empty (or the only `MobileScreenContainer` child).
+
+The message must explain **why the feature is worth logging in for** (what they get: synced inbox,
+history across devices, playlists they can share). Generic “Log in to continue.” is for errors and
+inline gates, not a full-screen feature empty. Hide the in-body heading on that fill — the
+`HeaderBar` title is enough.
+
+## Do not
+
+- Use a different page gutter (`md`, `2xl`, raw numbers) for the body under `HeaderBar`.
+- Rebuild the title-bar height or type in a screen-local `StyleSheet`.
+- Add a divider, hairline, or shadow under `HeaderBar`.
+- Put a second in-body display heading on a screen that already has a `HeaderBar` title.
+- Use raw `FlatList` for a screen list that shows a `VerticalCenter` fill empty, then hand-toggle
+  `scrollEnabled` / `bounces` at the screen.
+
+## Related
+
+- Page gutter: `apps/mobile/src/theme/screenLayout.ts`
+- Top chrome: `apps/mobile/src/components/screen/HeaderBar.tsx`
+- Fill lists: `apps/mobile/src/components/primitives/FillList.tsx`
+- Skill: **mobile-reusable-components**

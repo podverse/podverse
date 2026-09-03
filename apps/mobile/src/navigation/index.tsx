@@ -1,5 +1,9 @@
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import { BottomTabBar, createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import type {
+  BottomTabBarButtonProps,
+  BottomTabNavigationProp,
+} from '@react-navigation/bottom-tabs';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { PlatformPressable } from '@react-navigation/elements';
 import type { LinkingOptions, NavigatorScreenParams } from '@react-navigation/native';
 import {
   createNavigationContainerRef,
@@ -9,7 +13,7 @@ import {
 } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -28,8 +32,10 @@ import { useNotificationsUnreadCount } from '../hooks/useNotificationsUnreadCoun
 import { useMembership } from '../membership/useMembership';
 import { PlaybackE2eStatus } from '../playback/PlaybackE2eStatus';
 import type { HomeMediaType } from '../prefs/preferredMediaType';
+import { isContentTabId, TAB_TEST_ID_SLUG, tabLabelKey } from '../prefs/tabLayout';
 import { AlbumDetailScreen } from '../screens/album/AlbumDetailScreen';
 import { ArtistDetailScreen } from '../screens/artist/ArtistDetailScreen';
+import { BrowseScreen } from '../screens/browse/BrowseScreen';
 import { ClipDetailScreen } from '../screens/clip/ClipDetailScreen';
 import { EpisodeDetailScreen } from '../screens/episode/EpisodeDetailScreen';
 import { HelloWorldScreen } from '../screens/HelloWorldScreen';
@@ -48,6 +54,7 @@ import { MoreMembershipScreen } from '../screens/more/MoreMembershipScreen';
 import { MoreOpmlScreen } from '../screens/more/MoreOpmlScreen';
 import { MoreSettingsLocaleScreen } from '../screens/more/MoreSettingsLocaleScreen';
 import { MoreSettingsScreen } from '../screens/more/MoreSettingsScreen';
+import { MoreSettingsTabBarScreen } from '../screens/more/MoreSettingsTabBarScreen';
 import { MoreSettingsThemeScreen } from '../screens/more/MoreSettingsThemeScreen';
 import { MoreSyncLogScreen } from '../screens/more/MoreSyncLogScreen';
 import { NotificationsInboxScreen } from '../screens/notifications/NotificationsInboxScreen';
@@ -64,7 +71,9 @@ import { useNavigationTheme } from '../theme/useNavigationTheme';
 import { useTheme } from '../theme/useTheme';
 import { useThemedNativeStackScreenOptions } from '../theme/useThemedNativeStackScreenOptions';
 import { mapIncomingPathToScopedPath, mapScopedPathToFlatPath } from './deepLinking';
+import { OrderedTabBar } from './OrderedTabBar';
 import { tabBarIcon } from './tabBarIcon';
+import { useTabLayout } from './TabLayoutProvider';
 
 type MobileTabNavigatorProps = {
   onConsumePendingDeepLink: () => void;
@@ -77,6 +86,7 @@ type MobileTabNavigatorProps = {
 const Tab = createBottomTabNavigator();
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 const SearchStack = createNativeStackNavigator<SearchStackParamList>();
+const BrowseStack = createNativeStackNavigator<BrowseStackParamList>();
 const NotificationsStack = createNativeStackNavigator<NotificationsStackParamList>();
 const LibraryStack = createNativeStackNavigator<LibraryStackParamList>();
 const MoreStack = createNativeStackNavigator<MoreStackParamList>();
@@ -157,6 +167,10 @@ export const LIBRARY_STACK_ROUTES = {
   PodcastDetail: 'PodcastDetail',
 } as const;
 
+export const BROWSE_STACK_ROUTES = {
+  BrowseRoot: 'BrowseRoot',
+} as const;
+
 export const NOTIFICATIONS_STACK_ROUTES = {
   NotificationsInbox: 'NotificationsInbox',
 } as const;
@@ -170,6 +184,7 @@ export const MORE_STACK_ROUTES = {
   MoreRoot: 'MoreRoot',
   MoreSettings: 'MoreSettings',
   MoreSettingsLocale: 'MoreSettingsLocale',
+  MoreSettingsTabBar: 'MoreSettingsTabBar',
   MoreSettingsTheme: 'MoreSettingsTheme',
   MoreSmoke: 'MoreSmoke',
   MoreSyncLog: 'MoreSyncLog',
@@ -215,6 +230,7 @@ const mobileNavigationScreens = {
           MoreRoot: 'more',
           MoreSettings: 'more/settings',
           MoreSettingsLocale: 'more/settings/locale',
+          MoreSettingsTabBar: 'more/settings/tab-bar',
           MoreSettingsTheme: 'more/settings/theme',
           MoreSmoke: 'more/smoke',
           MoreSyncLog: 'more/sync-log',
@@ -236,6 +252,11 @@ const mobileNavigationScreens = {
           LibraryPlaylists: 'my-library/playlists',
           LibraryQueue: 'my-library/queue',
           PodcastDetail: 'my-library/podcast/:podcastId',
+        },
+      },
+      Browse: {
+        screens: {
+          BrowseRoot: 'browse',
         },
       },
       Notifications: {
@@ -343,6 +364,10 @@ export type LibraryStackParamList = {
   PodcastDetail: { podcastId: string };
 };
 
+export type BrowseStackParamList = {
+  BrowseRoot: undefined;
+};
+
 export type NotificationsStackParamList = {
   NotificationsInbox: undefined;
 };
@@ -356,6 +381,7 @@ export type MoreStackParamList = {
   MoreRoot: undefined;
   MoreSettings: undefined;
   MoreSettingsLocale: undefined;
+  MoreSettingsTabBar: undefined;
   MoreSettingsTheme: undefined;
   MoreSmoke: undefined;
   MoreSyncLog: undefined;
@@ -373,10 +399,20 @@ type RootStackParamList = {
 export type MobileTabParamList = {
   Home: undefined;
   Search: NavigatorScreenParams<SearchStackParamList> | undefined;
+  Browse: NavigatorScreenParams<BrowseStackParamList> | undefined;
   Notifications: undefined;
   'My Library': NavigatorScreenParams<LibraryStackParamList> | undefined;
   More: NavigatorScreenParams<MoreStackParamList> | undefined;
 };
+
+function HiddenTabBarButton() {
+  return null;
+}
+
+/** Tab items stay visually still on press — no ripple or opacity dim. */
+function QuietTabBarButton(props: BottomTabBarButtonProps) {
+  return <PlatformPressable {...props} pressColor="transparent" pressOpacity={1} />;
+}
 
 /**
  * Navigate to More ▸ Membership from anywhere — used by the app-wide membership gate modal (which
@@ -402,7 +438,7 @@ function HomeStackNavigator() {
       <HomeStack.Screen
         component={HomeScreen}
         name={HOME_STACK_ROUTES.HomeRoot}
-        options={{ headerShown: false }}
+        options={{ title: t('nav.tab.home') }}
       />
       <HomeStack.Screen
         component={AddByRssHomeDetailScreen}
@@ -578,6 +614,21 @@ function LibraryStackNavigator() {
   );
 }
 
+function BrowseStackNavigator() {
+  const { t } = useTranslation();
+  const screenOptions = useThemedNativeStackScreenOptions();
+
+  return (
+    <BrowseStack.Navigator screenOptions={screenOptions}>
+      <BrowseStack.Screen
+        component={BrowseScreen}
+        name={BROWSE_STACK_ROUTES.BrowseRoot}
+        options={{ title: t('nav.tab.browse') }}
+      />
+    </BrowseStack.Navigator>
+  );
+}
+
 function NotificationsStackNavigator() {
   const { t } = useTranslation();
   const screenOptions = useThemedNativeStackScreenOptions();
@@ -633,6 +684,11 @@ function MoreStackNavigator({
         component={MoreSettingsLocaleScreen}
         name={MORE_STACK_ROUTES.MoreSettingsLocale}
         options={{ title: t('language.select_language') }}
+      />
+      <MoreStack.Screen
+        component={MoreSettingsTabBarScreen}
+        name={MORE_STACK_ROUTES.MoreSettingsTabBar}
+        options={{ title: t('settings.tab_bar.title') }}
       />
       <MoreStack.Screen
         component={MoreAboutScreen}
@@ -768,7 +824,17 @@ function MoreRootScreen({
   const { t } = useTranslation();
   const { status } = useAuth();
   const { isExpired } = useMembership();
+  const { overflowTabIds } = useTabLayout();
   const isAuthenticated = status === 'authenticated';
+  const tabNavigation = navigation.getParent<BottomTabNavigationProp<MobileTabParamList>>();
+
+  const overflowItems: MenuListItem[] = overflowTabIds.map((tabId) => ({
+    onPress: () => {
+      tabNavigation?.navigate(tabId);
+    },
+    testID: `more-nav-${TAB_TEST_ID_SLUG[tabId]}`,
+    title: t(tabLabelKey(tabId)),
+  }));
 
   // One of the four renewal reminder surfaces: a persistent row a lapsed member can always find,
   // as opposed to the dismissible banner and the at-the-feature notice.
@@ -812,6 +878,7 @@ function MoreRootScreen({
   return (
     <MenuListScreen
       items={[
+        ...overflowItems,
         ...renewalItems,
         {
           onPress: () => {
@@ -889,10 +956,19 @@ function TabScaffold({
 }: TabScaffoldProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
+  const { visibleTabIds } = useTabLayout();
+  const visibleTabSet = useMemo(() => new Set(visibleTabIds), [visibleTabIds]);
   const notificationsUnreadCount = useNotificationsUnreadCount({ enabled: true });
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isTabletLayout = width >= MOBILE_TABLET_NAV_MIN_WIDTH;
+
+  const tabBarButtonFor = (name: string) => {
+    if (name === 'More' || (isContentTabId(name) && visibleTabSet.has(name))) {
+      return QuietTabBarButton;
+    }
+    return HiddenTabBarButton;
+  };
 
   const navigator = (
     <Tab.Navigator
@@ -914,7 +990,7 @@ function TabScaffold({
       }}
       tabBar={(props) =>
         isTabletLayout ? (
-          <BottomTabBar {...props} />
+          <OrderedTabBar {...props} />
         ) : (
           <View>
             <PlaybackE2eStatus />
@@ -922,7 +998,7 @@ function TabScaffold({
                 bar by itself, with no conditional placement. */}
             <SyncProgressBar />
             <MiniPlayer onExpand={onOpenFullPlayer} />
-            <BottomTabBar {...props} />
+            <OrderedTabBar {...props} />
           </View>
         )
       }
@@ -930,9 +1006,10 @@ function TabScaffold({
       <Tab.Screen
         name="Home"
         options={{
+          tabBarButton: tabBarButtonFor('Home'),
+          tabBarButtonTestID: visibleTabSet.has('Home') ? 'tab-home' : undefined,
           tabBarIcon: tabBarIcon('home'),
           tabBarLabel: t('nav.tab.home'),
-          tabBarButtonTestID: 'tab-home',
         }}
         component={HomeStackNavigator}
       />
@@ -940,18 +1017,30 @@ function TabScaffold({
         component={SearchStackNavigator}
         name="Search"
         options={{
+          tabBarButton: tabBarButtonFor('Search'),
+          tabBarButtonTestID: visibleTabSet.has('Search') ? 'tab-search' : undefined,
           tabBarIcon: tabBarIcon('search'),
           tabBarLabel: t('features.search.search'),
-          tabBarButtonTestID: 'tab-search',
         }}
       />
       <Tab.Screen
         component={LibraryStackNavigator}
         name="My Library"
         options={{
+          tabBarButton: tabBarButtonFor('My Library'),
+          tabBarButtonTestID: visibleTabSet.has('My Library') ? 'tab-my-library' : undefined,
           tabBarIcon: tabBarIcon('library'),
           tabBarLabel: t('features.my_library'),
-          tabBarButtonTestID: 'tab-my-library',
+        }}
+      />
+      <Tab.Screen
+        component={BrowseStackNavigator}
+        name="Browse"
+        options={{
+          tabBarButton: tabBarButtonFor('Browse'),
+          tabBarButtonTestID: visibleTabSet.has('Browse') ? 'tab-browse' : undefined,
+          tabBarIcon: tabBarIcon('browse'),
+          tabBarLabel: t('nav.tab.browse'),
         }}
       />
       <Tab.Screen
@@ -959,14 +1048,16 @@ function TabScaffold({
         name="Notifications"
         options={{
           tabBarBadge: notificationsUnreadCount > 0 ? notificationsUnreadCount : undefined,
+          tabBarButton: tabBarButtonFor('Notifications'),
+          tabBarButtonTestID: visibleTabSet.has('Notifications') ? 'tab-notifications' : undefined,
           tabBarIcon: tabBarIcon('notifications'),
           tabBarLabel: t('nav.tab.notifications'),
-          tabBarButtonTestID: 'tab-notifications',
         }}
       />
       <Tab.Screen
         name="More"
         options={{
+          tabBarButton: tabBarButtonFor('More'),
           tabBarButtonTestID: 'tab-more',
           tabBarIcon: tabBarIcon('more'),
           tabBarLabel: t('nav.tab.more'),

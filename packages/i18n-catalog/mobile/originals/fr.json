@@ -1,6 +1,7 @@
 {
   "nav": {
     "tab": {
+      "browse": "Parcourir",
       "home": "Accueil",
       "more": "Plus",
       "notifications": "Notifications",
@@ -55,6 +56,17 @@
       "login_required_message": "Connectez-vous pour modifier les préférences de notification.",
       "open_system_settings": "Ouvrir les paramètres du système",
       "permission_required": "L'autorisation de notification est requise pour activer ce paramètre."
+    },
+    "tab_bar": {
+      "title": "Barre d'onglets",
+      "description": "Choisissez les écrans de la barre d'onglets et leur ordre. Ceux que vous masquez restent dans Plus.",
+      "visible_heading": "Dans la barre d'onglets",
+      "more_heading": "Dans Plus",
+      "move_up": "Monter",
+      "move_down": "Descendre",
+      "move_to_more": "Déplacer vers Plus",
+      "add_to_bar": "Ajouter à la barre",
+      "reorder_hint": "Déplace cet écran dans la barre d'onglets ou vers Plus"
     }
   },
   "sync": {

@@ -169,10 +169,11 @@ name: Home Media Types
 - assertNotVisible:
     id: home-sort-button
 
-# Swipe selector to verify horizontal interaction before selecting tracks.
+# Swipe the selector row itself — a %-of-screen start Y can miss the pills.
 - swipe:
-    start: 85%, 16%
-    end: 20%, 16%
+    from:
+      id: home-media-type-selector
+    direction: LEFT
 
 # Artists
 - tapOn:

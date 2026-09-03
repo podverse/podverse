@@ -174,11 +174,8 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
         </Pressable>
 
         <AuthAwareLoadState
-          emptyMessageKey={
-            status !== 'authenticated'
-              ? 'authentication.login_required'
-              : 'features.add_by_rss.no_feeds_podcast'
-          }
+          authMessageKey="features.add_by_rss.login_prompt"
+          emptyMessageKey="features.add_by_rss.no_feeds_podcast"
           emptyTestID={status !== 'authenticated' ? 'rss-feeds-auth-required' : 'rss-feeds-empty'}
           errorKey={errorKey}
           errorTestID="rss-feeds-error"
@@ -187,7 +184,8 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
           onRetry={() => {
             void reloadFeeds();
           }}
-          showEmpty={status !== 'authenticated' || feeds.length === 0}
+          showAuthRequired={status !== 'authenticated'}
+          showEmpty={status === 'authenticated' && feeds.length === 0}
         >
           {feeds.map((feed, index) => (
             <View key={feed.idText} style={styles.feedRow}>

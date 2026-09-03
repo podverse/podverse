@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 
-import { Badge } from '../../components/primitives';
+import { Badge, CoverImage } from '../../components/primitives';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from './homeFeedData';
 
@@ -25,7 +25,7 @@ type HomeFeedGridCellProps = {
  */
 export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps) {
   const { t } = useTranslation();
-  const { styles: themeStyles, tokens } = useTheme();
+  const { tokens } = useTheme();
 
   const unseenBadge = row.metadata?.unseenBadge ?? null;
   const unseenLabel =
@@ -44,8 +44,6 @@ export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps
         artwork: {
           // Square so tiles line up on a row whatever each feed's artwork happens to be.
           aspectRatio: 1,
-          backgroundColor: tokens.background.secondary,
-          borderRadius: tokens.radii.sm,
           width: '100%',
         },
         badge: {
@@ -56,21 +54,8 @@ export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps
         cell: {
           marginBottom: tokens.spacing.md,
         },
-        fallback: {
-          alignItems: 'center',
-          borderColor: themeStyles.border.borderColor,
-          borderWidth: 1,
-          justifyContent: 'center',
-          padding: tokens.spacing.sm,
-        },
-        fallbackText: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 11,
-          fontWeight: '600',
-          textAlign: 'center',
-        },
       }),
-    [themeStyles, tokens]
+    [tokens]
   );
 
   return (
@@ -83,17 +68,9 @@ export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps
       style={styles.cell}
       testID={testID ?? `home-feed-cell-${row.id}`}
     >
-      {row.imageUrl !== null ? (
-        <Image source={{ uri: row.imageUrl }} style={styles.artwork} />
-      ) : (
-        <View style={[styles.artwork, styles.fallback]}>
-          {/* The title, not a generic "Image" placeholder: several untitled grey squares would be
-              indistinguishable, and this is the one view with no title beneath the artwork. */}
-          <Text numberOfLines={3} style={styles.fallbackText}>
-            {row.title}
-          </Text>
-        </View>
-      )}
+      {/* The title, not a generic "Image" placeholder: several untitled grey squares would be
+          indistinguishable, and this is the one view with no title beneath the artwork. */}
+      <CoverImage fallbackLabel={row.title} style={styles.artwork} uri={row.imageUrl} />
       {unseenLabel !== null ? (
         <Badge
           label={unseenLabel}

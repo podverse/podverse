@@ -164,6 +164,7 @@ npm run mobile:e2e:test -- api-health
 npm run mobile:e2e:test -- auth-login
 npm run mobile:e2e:test -- auth-logout
 npm run mobile:e2e:test -- auto-queue-advance
+npm run mobile:e2e:test -- browse
 npm run mobile:e2e:test -- deep-link
 npm run mobile:e2e:test -- detail-sort-prefs
 npm run mobile:e2e:test -- engine-audio-spike

@@ -53,7 +53,8 @@
   "features": {
     "search": {
       "search": "Recherche",
-      "search_by_title": "Recherche par titre..."
+      "search_by_title": "Recherche par titre...",
+      "empty_prompt": "Recherchez dans le Podcast Index par titre. Vos résultats apparaîtront ici."
     },
     "add_feed": {
       "add_feed": "Ajouter un flux",
@@ -93,7 +94,8 @@
       "basic_auth_requires": "This feed requires username and password",
       "basic_auth_username": "Username",
       "basic_auth_password": "Password",
-      "basic_auth_required_both": "Basic Auth requires both username and password."
+      "basic_auth_required_both": "Basic Auth requires both username and password.",
+      "login_prompt": "Suivez des podcasts et de la musique absents de l'annuaire. Connectez-vous pour enregistrer des flux RSS dans votre bibliothèque et détecter les nouveaux épisodes."
     },
     "my_library": "Ma Bibliothèque",
     "queue": {
@@ -105,14 +107,16 @@
       "add_error": "Erreur lors de l'ajout à la file d'attente",
       "remove_error": "Erreur lors de la suppression de la file d'attente",
       "remove_from_queue": "Retirer de la file d'attente",
-      "removed_from_queue": "Retiré de la file d'attente"
+      "removed_from_queue": "Retiré de la file d'attente",
+      "login_prompt": "Constituez une liste d'écoute qui vous suit. Connectez-vous pour enregistrer votre file et continuer sur d'autres appareils."
     },
     "history": {
       "history": "Historique",
       "delete_history": "Supprimer l'historique",
       "mark_as_played": "Marquer comme joué",
       "marked_as_played": "Marqué comme joué",
-      "mark_as_played_error": "Erreur lors du marquage comme joué"
+      "mark_as_played_error": "Erreur lors du marquage comme joué",
+      "login_prompt": "Reprenez là où vous vous êtes arrêté. Connectez-vous pour voir votre historique d'écoute et le synchroniser partout où vous utilisez votre compte."
     },
     "playlist": {
       "playlist": "Playlist",
@@ -132,7 +136,8 @@
       "item_count": "Éléments : {count}",
       "playlist_type": "Type de Playlist",
       "add_to_liked": "Ajouter aux j'aime",
-      "remove_from_liked": "Retirer des j'aime"
+      "remove_from_liked": "Retirer des j'aime",
+      "login_prompt": "Rassemblez épisodes, extraits et titres dans des playlists à partager ou à retrouver. Connectez-vous pour créer et gérer les vôtres."
     },
     "clip": {
       "clip": "Clip",
@@ -151,10 +156,12 @@
       "end_time": "Heure de Fin",
       "end_time_aria": "Heure de fin en heures, minutes et secondes (hh:mm:ss)",
       "end_time_play_aria": "Jouer depuis l'heure de fin du clip",
-      "clip_time_range": "{hhmmssStart} à {hhmmssEnd}"
+      "clip_time_range": "{hhmmssStart} à {hhmmssEnd}",
+      "login_prompt": "Enregistrez vos moments préférés pour y revenir plus tard. Connectez-vous pour créer des extraits et les conserver avec votre compte."
     },
     "my_clips": "Mes Clips",
     "my_profile": "Mon Profil",
+    "profile_login_prompt": "Votre profil permet de partager playlists et extraits. Connectez-vous pour le configurer et le synchroniser sur vos appareils.",
     "profile": "Profil",
     "profiles": "Profils",
     "embed": "Intégrer",
@@ -716,6 +723,7 @@
   },
   "authentication": {
     "login": "Connexion",
+    "login_required": "Connectez-vous pour continuer.",
     "logout": "Déconnexion",
     "sign_up": "S'inscrire",
     "need_an_account_sign_up": "Besoin d’un compte ? Inscrivez-vous",
@@ -1201,7 +1209,8 @@
     "title": "Notifications",
     "recent_activity_note": "Activité récente. Les anciennes notifications sont supprimées automatiquement.",
     "loading": "Chargement des notifications…",
-    "empty": "Aucune notification pour le moment.",
+    "login_prompt": "Ne manquez pas un nouvel épisode, un direct ou une actualité des émissions que vous suivez. Connectez-vous pour garder votre boîte de réception sur cet appareil et sur les autres.",
+    "empty": "Vous êtes à jour. Les alertes de nouveaux épisodes, directs et actualités apparaîtront ici.",
     "unread_section": "Non lues",
     "earlier_section": "Plus anciennes",
     "category_new_content": "Nouveau contenu",

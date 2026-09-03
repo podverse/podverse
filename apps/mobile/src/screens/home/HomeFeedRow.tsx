@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { buildMediaRowMoreActions, MediaRowActions } from '../../components/player/MediaRowActions';
-import { Badge } from '../../components/primitives';
+import { Badge, CoverImage } from '../../components/primitives';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from './homeFeedData';
@@ -23,15 +23,6 @@ type HomeFeedRowProps = {
   onAddToPlaylistPress?: (row: HomeFeedRowData) => void;
   row: HomeFeedRowData;
   testID?: string;
-};
-
-const MEDIA_TYPE_LABEL_KEYS: Record<HomeMediaType, string> = {
-  albums: 'media.music.albums',
-  artists: 'media.music.artists',
-  clips: 'features.clip.clips',
-  episodes: 'media.podcast.episodes',
-  podcasts: 'media.podcast.podcasts',
-  tracks: 'media.music.tracks',
 };
 
 /**
@@ -123,29 +114,8 @@ export function HomeFeedRow({
           marginTop: tokens.spacing.sm,
         },
         image: {
-          backgroundColor: tokens.background.secondary,
-          borderRadius: tokens.radii.sm,
           height: 56,
           width: 56,
-        },
-        imageFallback: {
-          alignItems: 'center',
-          backgroundColor: tokens.background.secondary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.sm,
-          borderWidth: 1,
-          height: 56,
-          justifyContent: 'center',
-          width: 56,
-        },
-        imageFallbackText: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 11,
-          fontWeight: '600',
-          textAlign: 'center',
-        },
-        mediaTypeBadge: {
-          marginBottom: tokens.spacing.xs,
         },
         metadataRow: {
           alignItems: 'center',
@@ -199,18 +169,8 @@ export function HomeFeedRow({
       style={styles.row}
       testID={testID ?? `home-feed-row-${row.id}`}
     >
-      {row.imageUrl !== null ? (
-        <Image source={{ uri: row.imageUrl }} style={styles.image} />
-      ) : (
-        <View style={styles.imageFallback}>
-          <Text style={styles.imageFallbackText}>{t('media.image')}</Text>
-        </View>
-      )}
+      <CoverImage fallbackLabel={t('media.image')} style={styles.image} uri={row.imageUrl} />
       <View style={styles.rowContent}>
-        <Badge
-          label={t(MEDIA_TYPE_LABEL_KEYS[mediaType] ?? MEDIA_TYPE_LABEL_KEYS.podcasts)}
-          style={styles.mediaTypeBadge}
-        />
         {/* The title carries its own testID because it is what the Home filter matches on, so a
             test needs to read the text it is about to type. */}
         <Text numberOfLines={2} style={styles.title} testID={`home-feed-row-title-${row.id}`}>

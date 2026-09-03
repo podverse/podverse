@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
+import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 
 type MediaTypeSelectorProps = {
@@ -28,6 +29,10 @@ const MEDIA_TYPE_LABEL_KEYS: Record<HomeMediaType, string> = {
   tracks: 'media.music.tracks',
 };
 
+/**
+ * Horizontal media-type pills. Home renders this in the page body under the stack title, the same
+ * way Search keeps its field under the Search title.
+ */
 export function MediaTypeSelector({ onChange, selectedMediaType }: MediaTypeSelectorProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
@@ -49,53 +54,48 @@ export function MediaTypeSelector({ onChange, selectedMediaType }: MediaTypeSele
           borderColor: themeStyles.buttonPrimary.backgroundColor,
         },
         chipLabel: {
+          ...typography.label,
           color: themeStyles.textPrimary.color,
-          fontSize: 14,
-          fontWeight: '600',
         },
         chipLabelActive: {
           color: themeStyles.buttonPrimary.color,
         },
-        container: {
-          borderBottomColor: themeStyles.border.borderColor,
-          borderBottomWidth: 1,
-          paddingBottom: tokens.spacing.lg,
-        },
         scrollContent: {
-          paddingHorizontal: tokens.spacing.lg,
+          alignItems: 'center',
         },
       }),
     [themeStyles, tokens]
   );
 
   return (
-    <View style={styles.container} testID="home-media-type-selector">
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-      >
-        {MEDIA_TYPE_ORDER.map((mediaType) => {
-          const isSelected = mediaType === selectedMediaType;
+    <ScrollView
+      contentContainerStyle={styles.scrollContent}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      testID="home-media-type-selector"
+    >
+      {MEDIA_TYPE_ORDER.map((mediaType) => {
+        const isSelected = selectedMediaType === mediaType;
+        const label = t(MEDIA_TYPE_LABEL_KEYS[mediaType] ?? MEDIA_TYPE_LABEL_KEYS.podcasts);
 
-          return (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ selected: isSelected }}
-              key={mediaType}
-              onPress={() => {
-                onChange(mediaType);
-              }}
-              style={[styles.chip, isSelected ? styles.chipActive : null]}
-              testID={`home-media-type-${mediaType}`}
-            >
-              <Text style={[styles.chipLabel, isSelected ? styles.chipLabelActive : null]}>
-                {t(MEDIA_TYPE_LABEL_KEYS[mediaType] ?? MEDIA_TYPE_LABEL_KEYS.podcasts)}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
-    </View>
+        return (
+          <Pressable
+            accessibilityLabel={label}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: isSelected }}
+            key={mediaType}
+            onPress={() => {
+              onChange(mediaType);
+            }}
+            style={[styles.chip, isSelected ? styles.chipActive : null]}
+            testID={`home-media-type-${mediaType}`}
+          >
+            <Text style={[styles.chipLabel, isSelected ? styles.chipLabelActive : null]}>
+              {label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </ScrollView>
   );
 }

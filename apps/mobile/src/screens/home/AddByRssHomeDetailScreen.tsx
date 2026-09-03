@@ -1,11 +1,11 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 
 import { SortSelectRow } from '../../components/form/SortSelectRow';
 import { MediaRowActions } from '../../components/player/MediaRowActions';
-import { Button } from '../../components/primitives/Button';
+import { Button, CoverImage } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
@@ -63,7 +63,6 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
           padding: tokens.spacing.lg,
         },
         headerImage: {
-          borderRadius: tokens.radii.sm,
           height: 96,
           marginBottom: tokens.spacing.md,
           width: 96,
@@ -183,16 +182,14 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
     detail === null ? null : (
       <View style={styles.header}>
         {(detail.mappedFeed?.channel.images[0]?.url ?? detail.feed.imageUrl) !== null ? (
-          <Image
+          <CoverImage
             accessibilityLabel={
               detail.mappedFeed?.channel.channel.title ??
               detail.feed.title ??
               t('features.add_by_rss.label')
             }
-            source={{
-              uri: detail.mappedFeed?.channel.images[0]?.url ?? detail.feed.imageUrl ?? '',
-            }}
             style={styles.headerImage}
+            uri={detail.mappedFeed?.channel.images[0]?.url ?? detail.feed.imageUrl}
           />
         ) : null}
         <Text style={styles.headerTitle}>

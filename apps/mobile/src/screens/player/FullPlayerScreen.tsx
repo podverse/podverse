@@ -1,16 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { GestureResponderEvent, LayoutChangeEvent } from 'react-native';
-import {
-  BackHandler,
-  Image,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { BackHandler, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers/dto';
 import { clampRatio } from '@podverse/helpers/math';
@@ -20,6 +11,7 @@ import type { PlaybackTarget } from '@podverse/playback-core';
 import { PodverseVideoSurfaceView } from '../../../modules/podverse-media-engine';
 import { nativePlaybackBridge } from '../../bridge/nativePlaybackBridge';
 import { Button } from '../../components/primitives/Button';
+import { CoverImage } from '../../components/primitives/CoverImage';
 import { ProgressTrack } from '../../components/primitives/ProgressTrack';
 import { getMobileConfig } from '../../config';
 import { buildNowPlayingShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
@@ -126,19 +118,6 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
         artwork: {
           alignSelf: 'center',
           aspectRatio: 1,
-          backgroundColor: tokens.background.secondary,
-          borderRadius: tokens.radii.md,
-          maxHeight: 320,
-          maxWidth: 320,
-          width: '100%',
-        },
-        artworkFallback: {
-          alignSelf: 'center',
-          aspectRatio: 1,
-          backgroundColor: tokens.background.tertiary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
           maxHeight: 320,
           maxWidth: 320,
           width: '100%',
@@ -279,15 +258,11 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
               style={[styles.videoSurface, isTablet ? styles.videoSurfaceTablet : undefined]}
               testID="full-player-video-surface"
             >
-              {nowPlaying.imageUrl !== null ? (
-                <Image
-                  accessibilityLabel={t('media_player.media_player_image')}
-                  source={{ uri: nowPlaying.imageUrl }}
-                  style={styles.artwork}
-                />
-              ) : (
-                <View style={styles.artworkFallback} />
-              )}
+              <CoverImage
+                accessibilityLabel={t('media_player.media_player_image')}
+                style={styles.artwork}
+                uri={nowPlaying.imageUrl}
+              />
               {/* Single shared native surface; hidden for audio-only so the artwork shows. */}
               <PodverseVideoSurfaceView style={StyleSheet.absoluteFill} targetId="full" />
             </View>

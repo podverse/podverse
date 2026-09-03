@@ -1,9 +1,10 @@
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
-import { Image, Linking, StyleSheet, View } from 'react-native';
+import { Image, Linking, Platform, StyleSheet, View } from 'react-native';
 
 import splashBanner from './assets/splash/banner.png';
+import splashIcon from './assets/splash/icon.png';
 import { AuthPromptProvider, AuthProvider, useAuth } from './src/auth';
 import { ForcedLogoutNotice } from './src/components/feedback/ForcedLogoutNotice';
 import { MembershipExpiredBanner } from './src/components/feedback/MembershipExpiredBanner';
@@ -14,6 +15,7 @@ import { initializeI18n } from './src/i18n';
 import { MembershipGateProvider } from './src/membership/MembershipGateProvider';
 import { MobileTabNavigator, navigateToMembershipScreen } from './src/navigation';
 import { isAuthGatedDeepLink } from './src/navigation/deepLinking';
+import { TabLayoutProvider, useTabLayout } from './src/navigation/TabLayoutProvider';
 import { PlaybackProvider } from './src/playback';
 import {
   getInitialNotificationDeepLinkUrl,
@@ -28,9 +30,9 @@ import { useTheme } from './src/theme/useTheme';
 /** Minimum time splash stays up after JS mounts (UX; boot is often faster than this). */
 const SPLASH_MIN_VISIBLE_MS = 1000;
 
-// Keep the native splash up until i18n and the auth resolve finish (SplashController), and at least
-// SPLASH_MIN_VISIBLE_MS. Both are local reads, so this waits on no network. Soft-fail so a missing
-// native module never blocks boot.
+// Keep the native splash up until i18n, the tab-bar layout pref, and the auth resolve finish
+// (SplashController), and at least SPLASH_MIN_VISIBLE_MS. Those are local reads, so this waits on
+// no network. Soft-fail so a missing native module never blocks boot.
 void SplashScreen.preventAutoHideAsync().catch((error: unknown) => {
   console.warn('[splash] preventAutoHideAsync failed', error);
 });
@@ -94,31 +96,54 @@ export default function App() {
     };
   }, []);
 
-  // Mount AuthProvider immediately so the local auth resolve runs under the splash; gate product UI
-  // on i18n. SplashController covers both native hide + a JS overlay (needed for Dev Client, which
-  // often dismisses the launch storyboard before the JS bundle runs).
+  // Mount AuthProvider and TabLayoutProvider immediately so local reads run under the splash; gate
+  // product UI on i18n plus the stored tab order so the first tab bar is never a default flash.
+  // SplashController covers both native hide + a JS overlay (needed for Dev Client, which often
+  // dismisses the launch storyboard before the JS bundle runs).
   return (
     <ThemeProvider>
-      <AuthProvider>
-        {isI18nReady ? (
-          <AutoQueueProvider>
-            <QueuesProvider>
-              <SyncProvider>
-                <PlaybackProvider>
-                  <AppBody
-                    onConsumePendingDeepLink={() => {
-                      setPendingDeepLinkUrl(null);
-                    }}
-                    pendingDeepLinkUrl={pendingDeepLinkUrl}
-                  />
-                </PlaybackProvider>
-              </SyncProvider>
-            </QueuesProvider>
-          </AutoQueueProvider>
-        ) : null}
-        <SplashController isI18nReady={isI18nReady} />
-      </AuthProvider>
+      <TabLayoutProvider>
+        <AuthProvider>
+          {isI18nReady ? (
+            <AppReadyGate
+              onConsumePendingDeepLink={() => {
+                setPendingDeepLinkUrl(null);
+              }}
+              pendingDeepLinkUrl={pendingDeepLinkUrl}
+            />
+          ) : null}
+          <SplashController isI18nReady={isI18nReady} />
+        </AuthProvider>
+      </TabLayoutProvider>
     </ThemeProvider>
+  );
+}
+
+type AppReadyGateProps = {
+  onConsumePendingDeepLink: () => void;
+  pendingDeepLinkUrl: string | null;
+};
+
+function AppReadyGate({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppReadyGateProps) {
+  const { isReady: isTabLayoutReady } = useTabLayout();
+
+  if (!isTabLayoutReady) {
+    return null;
+  }
+
+  return (
+    <AutoQueueProvider>
+      <QueuesProvider>
+        <SyncProvider>
+          <PlaybackProvider>
+            <AppBody
+              onConsumePendingDeepLink={onConsumePendingDeepLink}
+              pendingDeepLinkUrl={pendingDeepLinkUrl}
+            />
+          </PlaybackProvider>
+        </SyncProvider>
+      </QueuesProvider>
+    </AutoQueueProvider>
   );
 }
 
@@ -128,11 +153,12 @@ type SplashControllerProps = {
 
 function SplashController({ isI18nReady }: SplashControllerProps) {
   const { status } = useAuth();
+  const { isReady: isTabLayoutReady } = useTabLayout();
   const mountedAtMsRef = useRef(Date.now());
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    if (!isI18nReady || status === 'unknown') {
+    if (!isI18nReady || !isTabLayoutReady || status === 'unknown') {
       return;
     }
 
@@ -148,15 +174,22 @@ function SplashController({ isI18nReady }: SplashControllerProps) {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [isI18nReady, status]);
+  }, [isI18nReady, isTabLayoutReady, status]);
 
   if (!isVisible) {
     return null;
   }
 
+  // Match the native splash: Android 12+ is a circular icon; iOS is the wordmark.
+  const isAndroidSplash = Platform.OS === 'android';
+
   return (
     <View pointerEvents="none" style={styles.splashOverlay}>
-      <Image resizeMode="contain" source={splashBanner} style={styles.splashBanner} />
+      <Image
+        resizeMode="contain"
+        source={isAndroidSplash ? splashIcon : splashBanner}
+        style={isAndroidSplash ? styles.splashIcon : styles.splashBanner}
+      />
     </View>
   );
 }
@@ -247,6 +280,10 @@ const styles = StyleSheet.create({
   splashBanner: {
     height: 56,
     width: 300,
+  },
+  splashIcon: {
+    height: 200,
+    width: 200,
   },
   splashOverlay: {
     ...StyleSheet.absoluteFillObject,

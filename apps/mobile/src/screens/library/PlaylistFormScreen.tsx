@@ -7,9 +7,12 @@ import type { DTOPlaylist } from '@podverse/helpers';
 import { SharableStatusEnum } from '@podverse/helpers';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
+import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
 import { Button } from '../../components/primitives';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
+import { CallToActionSection } from '../../components/state/CallToActionSection';
+import { LoadingSection } from '../../components/state/LoadingSection';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import type { LibraryStackParamList } from '../../navigation';
 import { LIBRARY_STACK_ROUTES } from '../../navigation';
@@ -45,6 +48,7 @@ const SHARABLE_STATUS_OPTIONS: { id: SharableStatusEnum; labelKey: string; testI
 export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
+  const { onRequestLogin } = useAuthPrompt();
   const { account, accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
 
   const params = route.params;
@@ -230,20 +234,21 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
 
   if (status !== 'authenticated') {
     return (
-      <MobileScreenContainer heading={heading} testID="playlist-form-screen">
-        <Text style={styles.notice} testID="playlist-form-auth-required">
-          {t('authentication.login_required')}
-        </Text>
+      <MobileScreenContainer testID="playlist-form-screen">
+        <CallToActionSection
+          actionLabelKey="authentication.login"
+          messageKey="features.playlist.login_prompt"
+          onAction={onRequestLogin}
+          testID="playlist-form-auth-required"
+        />
       </MobileScreenContainer>
     );
   }
 
   if (isEdit && isLoading) {
     return (
-      <MobileScreenContainer heading={heading} testID="playlist-form-screen">
-        <Text style={styles.notice} testID="playlist-form-loading">
-          {t('misc.loading_your_content')}
-        </Text>
+      <MobileScreenContainer testID="playlist-form-screen">
+        <LoadingSection testID="playlist-form-loading" />
       </MobileScreenContainer>
     );
   }

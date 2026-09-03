@@ -2,20 +2,25 @@ import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOAccountNotification } from '@podverse/helpers';
 import { getRelativeTimeParts, NotificationCategoryEnum } from '@podverse/helpers';
 
+import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
 import { Card } from '../../components/primitives/Card';
+import { FillList } from '../../components/primitives/FillList';
+import { VerticalCenter } from '../../components/primitives/VerticalCenter';
+import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { ListEmpty } from '../../components/state/ListEmpty';
-import { ListLoading } from '../../components/state/ListLoading';
+import { LoadingSection } from '../../components/state/LoadingSection';
 import { RetryableError } from '../../components/state/RetryableError';
 import { getMobileConfig } from '../../config';
 import { notificationsRepository } from '../../data/repositories';
 import { emitNotificationsReadEvent } from '../../hooks/useNotificationsUnreadCount';
 import type { NotificationsStackParamList } from '../../navigation';
+import { screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 
 const FIRST_PAGE = 1;
@@ -35,6 +40,7 @@ type NotificationsInboxScreenProps = NativeStackScreenProps<
 
 export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) {
   const { t } = useTranslation();
+  const { onRequestLogin } = useAuthPrompt();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { styles: themeStyles, tokens } = useTheme();
   const [notifications, setNotifications] = useState<DTOAccountNotification[]>([]);
@@ -73,13 +79,8 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
           flex: 1,
         },
         content: {
-          padding: tokens.spacing.lg,
-        },
-        heading: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 28,
-          fontWeight: '700',
-          marginBottom: tokens.spacing.md,
+          ...screenBodyInsets(tokens.spacing),
+          paddingBottom: tokens.spacing.lg,
         },
         listFooter: {
           marginTop: tokens.spacing.lg,
@@ -256,42 +257,48 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
   const unreadItems = notifications.slice(0, clampedUnreadCount);
   const earlierItems = notifications.slice(clampedUnreadCount);
 
-  const sectionHeader = (
+  const sectionedRows = [...unreadItems, ...earlierItems];
+  const earlierSectionStartIndex = unreadItems.length;
+  const hasRows = sectionedRows.length > 0;
+
+  const sectionHeader = hasRows ? (
     <>
-      <Text style={styles.heading}>{t('settings.notifications.notifications')}</Text>
       <Text style={styles.recentActivityNote}>{t('notifications_page.recent_activity_note')}</Text>
       {unreadItems.length > 0 ? (
         <Text style={styles.sectionHeading}>{t('notifications.section.unread')}</Text>
       ) : null}
     </>
-  );
+  ) : null;
 
-  const sectionedRows = [...unreadItems, ...earlierItems];
-  const earlierSectionStartIndex = unreadItems.length;
+  const listEmpty = isLoading ? (
+    <LoadingSection testID="notifications-inbox-loading" />
+  ) : status !== 'authenticated' ? (
+    <CallToActionSection
+      actionLabelKey="authentication.login"
+      messageKey="notifications_page.login_prompt"
+      onAction={onRequestLogin}
+      testID="notifications-inbox-auth-required"
+    />
+  ) : errorKey !== null ? (
+    <VerticalCenter>
+      <RetryableError
+        errorKey={errorKey}
+        onRetry={() => {
+          void loadFirstPageAndMarkRead();
+        }}
+        testID="notifications-inbox-error"
+      />
+    </VerticalCenter>
+  ) : (
+    <VerticalCenter>
+      <ListEmpty messageKey="notifications_page.empty" testID="notifications-inbox-empty" />
+    </VerticalCenter>
+  );
 
   return (
     <View style={styles.container} testID="notifications-inbox-screen">
-      <FlatList
-        ListEmptyComponent={
-          isLoading ? (
-            <ListLoading testID="notifications-inbox-loading" />
-          ) : status !== 'authenticated' ? (
-            <ListEmpty
-              messageKey="authentication.login_required"
-              testID="notifications-inbox-auth-required"
-            />
-          ) : errorKey !== null ? (
-            <RetryableError
-              errorKey={errorKey}
-              onRetry={() => {
-                void loadFirstPageAndMarkRead();
-              }}
-              testID="notifications-inbox-error"
-            />
-          ) : (
-            <ListEmpty messageKey="notifications_page.empty" testID="notifications-inbox-empty" />
-          )
-        }
+      <FillList
+        ListEmptyComponent={listEmpty}
         ListFooterComponent={
           canLoadMore && errorKey === null ? (
             <View style={styles.listFooter}>

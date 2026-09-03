@@ -405,6 +405,7 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
   return (
     <View style={styles.container} testID="library-playlist-detail-screen">
       <AuthAwareLoadState
+        authMessageKey="features.playlist.login_prompt"
         emptyTestID="library-playlist-detail-auth-required"
         errorKey={errorKey}
         errorTestID="library-playlist-detail-error"

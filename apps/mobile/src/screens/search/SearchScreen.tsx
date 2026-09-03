@@ -2,19 +2,20 @@ import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AccessibilityInfo, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { AccessibilityInfo, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import type { SearchPodcastsFeed } from '@podverse/helpers';
 import { toNonEmptyTrimmedString } from '@podverse/helpers/guards';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
-import { Card } from '../../components/primitives';
+import { Card, FillList, VerticalCenter } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
-import { ListLoading } from '../../components/state/ListLoading';
+import { LoadingSection } from '../../components/state/LoadingSection';
 import type { SearchStackParamList } from '../../navigation';
 import { SEARCH_STACK_ROUTES } from '../../navigation';
+import { screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import { getChannelDetailRouteKind } from './podcastIndexFeedPreview';
@@ -147,50 +148,49 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
     AccessibilityInfo.announceForAccessibility(resultSummary);
   }, [errorKey, feeds.length, isLoading, resultSummary]);
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        container: {
-          backgroundColor: themeStyles.screen.backgroundColor,
-          flex: 1,
-        },
-        content: {
-          padding: tokens.spacing.lg,
-          paddingBottom: tokens.spacing['2xl'],
-        },
-        heading: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 28,
-          fontWeight: '700',
-          marginBottom: tokens.spacing.md,
-        },
-        input: {
-          backgroundColor: tokens.background.secondary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
-          color: themeStyles.textPrimary.color,
-          fontSize: 16,
-          marginBottom: tokens.spacing.md,
-          paddingHorizontal: tokens.spacing.md,
-          paddingVertical: tokens.spacing.sm,
-        },
-        inputLabel: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          marginBottom: tokens.spacing.xs,
-        },
-        notice: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          marginTop: tokens.spacing.sm,
-        },
-        resultsSpacing: {
-          marginTop: tokens.spacing.md,
-        },
-      }),
-    [themeStyles, tokens]
-  );
+  const styles = useMemo(() => {
+    const bodyInsets = screenBodyInsets(tokens.spacing);
+
+    return StyleSheet.create({
+      container: {
+        backgroundColor: themeStyles.screen.backgroundColor,
+        flex: 1,
+      },
+      input: {
+        backgroundColor: tokens.background.secondary,
+        borderColor: themeStyles.border.borderColor,
+        borderRadius: tokens.radii.md,
+        borderWidth: 1,
+        color: themeStyles.textPrimary.color,
+        fontSize: 16,
+        paddingHorizontal: tokens.spacing.md,
+        paddingVertical: tokens.spacing.sm,
+      },
+      inputSection: {
+        ...bodyInsets,
+        paddingBottom: tokens.spacing.md,
+      },
+      notice: {
+        color: themeStyles.textSecondary.color,
+        fontSize: 13,
+        paddingHorizontal: tokens.spacing.md,
+        paddingVertical: tokens.spacing.sm,
+      },
+      resultsCard: {
+        flex: 1,
+        marginBottom: tokens.spacing.lg,
+        marginHorizontal: bodyInsets.paddingHorizontal,
+      },
+      resultsContent: {
+        flexGrow: 1,
+      },
+      resultsList: {
+        flex: 1,
+      },
+    });
+  }, [themeStyles, tokens]);
+
+  const showResultRows = !isLoading && errorKey === null && feeds.length > 0;
 
   const handleFeedPress = async (feed: SearchPodcastsFeed) => {
     const feedId = String(feed.id);
@@ -249,19 +249,34 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
     }
   };
 
+  const listEmpty = isLoading ? (
+    <LoadingSection testID="search-loading" />
+  ) : errorKey !== null ? (
+    <VerticalCenter>
+      <ListError
+        messageKey={errorKey}
+        onRetry={() => {
+          setDebouncedQuery(query.trim());
+        }}
+        testID="search-error"
+      />
+    </VerticalCenter>
+  ) : debouncedQuery.length === 0 ? (
+    <VerticalCenter>
+      <ListEmpty messageKey="features.search.empty_prompt" testID="search-empty-query" />
+    </VerticalCenter>
+  ) : (
+    <VerticalCenter>
+      <ListEmpty messageKey="misc.info" testID="search-empty-results" />
+    </VerticalCenter>
+  );
+
+  const listFooter =
+    resolvingFeedId !== null ? <Text style={styles.notice}>{t('misc.loading')}</Text> : null;
+
   return (
     <View style={styles.container} testID="search-screen">
-      <ScrollView
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-        testID="search-results"
-      >
-        <Text style={styles.heading}>{t('features.search.search')}</Text>
-        {/* Visible so the field stays labelled once typing hides the placeholder. Decorative for
-            assistive technology, which reads the same name off the field itself. */}
-        <Text accessibilityElementsHidden importantForAccessibility="no" style={styles.inputLabel}>
-          {t('features.search.search_by_title')}
-        </Text>
+      <View style={styles.inputSection}>
         <TextInput
           accessibilityLabel={t('features.search.search_by_title')}
           autoCapitalize="none"
@@ -274,46 +289,31 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
           testID="search-input"
           value={query}
         />
-
-        <View style={styles.resultsSpacing}>
-          <Card testID="search-results-card">
-            {isLoading ? <ListLoading testID="search-loading" /> : null}
-            {!isLoading && errorKey !== null ? (
-              <ListError
-                messageKey={errorKey}
-                onRetry={() => {
-                  setDebouncedQuery(query.trim());
-                }}
-                testID="search-error"
-              />
-            ) : null}
-            {!isLoading && errorKey === null && debouncedQuery.length === 0 ? (
-              <ListEmpty messageKey="features.search.search_by_title" testID="search-empty-query" />
-            ) : null}
-            {!isLoading && errorKey === null && debouncedQuery.length > 0 && feeds.length === 0 ? (
-              <ListEmpty messageKey="misc.info" testID="search-empty-results" />
-            ) : null}
-            {!isLoading && errorKey === null
-              ? feeds.map((feed, index) => (
-                  <HomeFeedRow
-                    key={feed.id}
-                    mediaType="podcasts"
-                    onPlayPress={(_row) => {}}
-                    onPress={() => {
-                      void handleFeedPress(feed);
-                    }}
-                    onQueuePress={(_row) => {}}
-                    row={feedToRow(feed)}
-                    testID={`search-result-row-${index}`}
-                  />
-                ))
-              : null}
-            {resolvingFeedId !== null ? (
-              <Text style={styles.notice}>{t('misc.loading')}</Text>
-            ) : null}
-          </Card>
-        </View>
-      </ScrollView>
+      </View>
+      <Card padded={false} style={styles.resultsCard} testID="search-results-card">
+        <FillList
+          ListEmptyComponent={listEmpty}
+          ListFooterComponent={listFooter}
+          contentContainerStyle={styles.resultsContent}
+          data={showResultRows ? feeds : []}
+          keyboardShouldPersistTaps="handled"
+          keyExtractor={(feed) => String(feed.id)}
+          renderItem={({ index, item: feed }) => (
+            <HomeFeedRow
+              mediaType="podcasts"
+              onPlayPress={(_row) => {}}
+              onPress={() => {
+                void handleFeedPress(feed);
+              }}
+              onQueuePress={(_row) => {}}
+              row={feedToRow(feed)}
+              testID={`search-result-row-${index}`}
+            />
+          )}
+          style={styles.resultsList}
+          testID="search-results"
+        />
+      </Card>
     </View>
   );
 }

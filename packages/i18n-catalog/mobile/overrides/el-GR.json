@@ -1,6 +1,7 @@
 {
   "nav": {
     "tab": {
+      "browse": "",
       "home": "",
       "more": "",
       "notifications": "",
@@ -55,6 +56,17 @@
       "login_required_message": "",
       "open_system_settings": "",
       "permission_required": ""
+    },
+    "tab_bar": {
+      "title": "",
+      "description": "",
+      "visible_heading": "",
+      "more_heading": "",
+      "move_up": "",
+      "move_down": "",
+      "move_to_more": "",
+      "add_to_bar": "",
+      "reorder_hint": ""
     }
   },
   "sync": {

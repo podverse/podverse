@@ -1,6 +1,7 @@
 {
   "nav": {
     "tab": {
+      "browse": "Browse",
       "home": "Home",
       "more": "More",
       "notifications": "Notifications",
@@ -55,6 +56,17 @@
       "login_required_message": "Please log in to change notification preferences.",
       "open_system_settings": "Open system settings",
       "permission_required": "Notification permission is required to enable this setting."
+    },
+    "tab_bar": {
+      "title": "Tab bar",
+      "description": "Choose which screens appear on the tab bar and in which order. Screens you hide stay in More.",
+      "visible_heading": "On the tab bar",
+      "more_heading": "In More",
+      "move_up": "Up",
+      "move_down": "Down",
+      "move_to_more": "Move to More",
+      "add_to_bar": "Add to tab bar",
+      "reorder_hint": "Moves this screen on the tab bar or into More"
     }
   },
   "sync": {

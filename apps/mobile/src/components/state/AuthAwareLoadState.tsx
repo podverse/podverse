@@ -1,11 +1,19 @@
 import type { ReactNode } from 'react';
 
+import { useAuthPrompt } from '../../auth/AuthPromptContext';
+import { VerticalCenter } from '../primitives';
+import { CallToActionSection } from './CallToActionSection';
 import { ListEmpty } from './ListEmpty';
-import { ListLoading } from './ListLoading';
+import { LoadingSection } from './LoadingSection';
 import { RetryableError } from './RetryableError';
 
 type AuthAwareLoadStateProps = {
   children?: ReactNode;
+  /**
+   * Feature-specific benefit copy for the login CTA. Required when `showAuthRequired` is true —
+   * do not pass `authentication.login_required`.
+   */
+  authMessageKey?: string;
   emptyMessageKey?: string;
   emptyTestID?: string;
   errorKey: string | null;
@@ -18,6 +26,7 @@ type AuthAwareLoadStateProps = {
 };
 
 export function AuthAwareLoadState({
+  authMessageKey,
   children,
   emptyMessageKey = 'misc.info',
   emptyTestID,
@@ -29,20 +38,41 @@ export function AuthAwareLoadState({
   showAuthRequired = false,
   showEmpty = false,
 }: AuthAwareLoadStateProps) {
+  const { onRequestLogin } = useAuthPrompt();
+
   if (isLoading) {
-    return <ListLoading testID={loadingTestID} />;
+    return <LoadingSection testID={loadingTestID} />;
   }
 
   if (errorKey !== null) {
-    return <RetryableError errorKey={errorKey} onRetry={onRetry} testID={errorTestID} />;
+    return (
+      <VerticalCenter>
+        <RetryableError errorKey={errorKey} onRetry={onRetry} testID={errorTestID} />
+      </VerticalCenter>
+    );
   }
 
   if (showAuthRequired) {
-    return <ListEmpty messageKey="authentication.login_required" testID={emptyTestID} />;
+    if (authMessageKey === undefined) {
+      throw new Error('AuthAwareLoadState requires authMessageKey when showAuthRequired is true');
+    }
+
+    return (
+      <CallToActionSection
+        actionLabelKey="authentication.login"
+        messageKey={authMessageKey}
+        onAction={onRequestLogin}
+        testID={emptyTestID}
+      />
+    );
   }
 
   if (showEmpty) {
-    return <ListEmpty messageKey={emptyMessageKey} testID={emptyTestID} />;
+    return (
+      <VerticalCenter>
+        <ListEmpty messageKey={emptyMessageKey} testID={emptyTestID} />
+      </VerticalCenter>
+    );
   }
 
   return <>{children}</>;

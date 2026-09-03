@@ -53,7 +53,8 @@
   "features": {
     "search": {
       "search": "",
-      "search_by_title": ""
+      "search_by_title": "",
+      "empty_prompt": ""
     },
     "add_feed": {
       "add_feed": "",
@@ -93,7 +94,8 @@
       "basic_auth_requires": "",
       "basic_auth_username": "",
       "basic_auth_password": "",
-      "basic_auth_required_both": ""
+      "basic_auth_required_both": "",
+      "login_prompt": ""
     },
     "my_library": "",
     "queue": {
@@ -105,14 +107,16 @@
       "add_error": "",
       "remove_error": "",
       "remove_from_queue": "",
-      "removed_from_queue": ""
+      "removed_from_queue": "",
+      "login_prompt": ""
     },
     "history": {
       "history": "",
       "delete_history": "",
       "mark_as_played": "",
       "marked_as_played": "",
-      "mark_as_played_error": ""
+      "mark_as_played_error": "",
+      "login_prompt": ""
     },
     "playlist": {
       "playlist": "",
@@ -132,7 +136,8 @@
       "item_count": "",
       "playlist_type": "",
       "add_to_liked": "",
-      "remove_from_liked": ""
+      "remove_from_liked": "",
+      "login_prompt": ""
     },
     "clip": {
       "clip": "",
@@ -151,10 +156,12 @@
       "end_time": "",
       "end_time_aria": "",
       "end_time_play_aria": "",
-      "clip_time_range": ""
+      "clip_time_range": "",
+      "login_prompt": ""
     },
     "my_clips": "",
     "my_profile": "",
+    "profile_login_prompt": "",
     "profile": "",
     "profiles": "",
     "embed": "",
@@ -716,6 +723,7 @@
   },
   "authentication": {
     "login": "",
+    "login_required": "",
     "logout": "",
     "sign_up": "",
     "need_an_account_sign_up": "",
@@ -1201,6 +1209,7 @@
     "title": "",
     "recent_activity_note": "",
     "loading": "",
+    "login_prompt": "",
     "empty": "",
     "unread_section": "",
     "earlier_section": "",

@@ -19,6 +19,7 @@ import { resolveSupportedLocale } from '../../i18n/locale';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import type { MoreStackParamList } from '../../navigation';
 import { MORE_STACK_ROUTES } from '../../navigation';
+import { useTabLayout } from '../../navigation/TabLayoutProvider';
 import {
   readAutoQueuePrefs,
   writeAutoQueueRandomPref,
@@ -30,6 +31,7 @@ import {
   writePlaybackMediaTypePref,
 } from '../../prefs/preferredMediaType';
 import { getPref, setPref } from '../../prefs/prefsStore';
+import { tabLabelKey } from '../../prefs/tabLayout';
 import { registerFcmDeviceForAccount } from '../../push/fcmDeviceSync';
 import {
   openSystemNotificationSettings,
@@ -99,6 +101,7 @@ export function MoreSettingsScreen() {
   const isAuthenticated = status === 'authenticated';
   const { handleGateError } = useMembershipGate();
   const { styles: themeStyles, tokens, uiTheme } = useTheme();
+  const { visibleTabIds } = useTabLayout();
   const [playbackMediaType, setPlaybackMediaType] = useState<MediaTypePreference>(
     DEFAULT_PLAYBACK_MEDIA_TYPE
   );
@@ -403,6 +406,7 @@ export function MoreSettingsScreen() {
 
   const themeValueLabel = t(`settings.ui_theme.${uiTheme}`);
   const localeValueLabel = t(`language.languages.${selectedLocale}`);
+  const tabBarValueLabel = visibleTabIds.map((tabId) => t(tabLabelKey(tabId))).join(', ');
 
   return (
     <MobileScreenContainer testID="more-settings-screen">
@@ -431,6 +435,20 @@ export function MoreSettingsScreen() {
               testID="more-settings-locale-select"
               title={t('language.select_language')}
               valueLabel={localeValueLabel}
+            />
+          </View>
+        </Card>
+
+        <Card padded={false} testID="more-settings-tab-bar-card">
+          <View style={styles.sectionInner}>
+            <SettingsOptionNavRow
+              description={t('settings.tab_bar.description')}
+              onPress={() => {
+                navigation.navigate(MORE_STACK_ROUTES.MoreSettingsTabBar);
+              }}
+              testID="more-settings-tab-bar-select"
+              title={t('settings.tab_bar.title')}
+              valueLabel={tabBarValueLabel}
             />
           </View>
         </Card>

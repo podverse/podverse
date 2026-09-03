@@ -61,8 +61,9 @@ const config: ExpoConfig = {
   newArchEnabled: true,
   scheme: deepLinkSchemes,
   platforms: ['ios', 'android'],
-  // Native cold-start splash (legacy wordmark on black). Kept visible in JS until i18n + auth
-  // bootstrap finish — see App.tsx SplashHideGate. Top-level `splash` + plugin keep prebuild in sync.
+  // Native cold-start splash. Kept visible in JS until i18n + auth bootstrap finish — see
+  // App.tsx SplashController. Top-level `splash` + plugin keep prebuild in sync. iOS can show
+  // the wide wordmark; Android 12+ only allows a circular icon (max ~200 dp).
   splash: {
     backgroundColor: '#000000',
     image: './assets/splash/banner.png',
@@ -98,6 +99,11 @@ const config: ExpoConfig = {
   },
   android: {
     package: 'com.podverse.app.next',
+    splash: {
+      backgroundColor: '#000000',
+      image: './assets/splash/icon.png',
+      resizeMode: 'contain',
+    },
     permissions: [
       'android.permission.FOREGROUND_SERVICE',
       'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
@@ -125,9 +131,12 @@ const config: ExpoConfig = {
       {
         backgroundColor: '#000000',
         image: './assets/splash/banner.png',
-        // Wide wordmark; default 100 is for square icons and looks tiny.
         imageWidth: 300,
         resizeMode: 'contain',
+        android: {
+          image: './assets/splash/icon.png',
+          imageWidth: 200,
+        },
       },
     ],
     // Must run after expo-splash-screen — repairs empty <subviews/> so the logo ImageView exists.

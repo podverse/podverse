@@ -1,0 +1,43 @@
+appId: com.podverse.app.next
+name: Browse Tab And Tab Bar Pref
+---
+# Default bar is Home / Browse / Search / My Library / More. Notifications lives in More.
+# Settings can swap Notifications onto the bar (replaces the last visible content tab).
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- assertVisible:
+    id: tab-browse
+- assertNotVisible:
+    id: tab-notifications
+- tapOn:
+    id: tab-browse
+- assertVisible:
+    id: browse-screen
+- takeScreenshot: browse-screen-initial
+
+- tapOn:
+    id: tab-more
+- assertVisible:
+    id: more-nav-notifications
+- tapOn:
+    id: more-settings
+- tapOn:
+    id: more-settings-tab-bar-select
+- assertVisible:
+    id: more-settings-tab-bar-screen
+- takeScreenshot: browse-tab-bar-settings
+- tapOn:
+    id: more-settings-tab-bar-add-notifications
+- tapOn:
+    id: stack-header-back
+- tapOn:
+    id: stack-header-back
+- assertVisible:
+    id: tab-notifications
+- assertVisible:
+    id: tab-browse
+- assertNotVisible:
+    id: tab-my-library
+- takeScreenshot: browse-tab-bar-notifications-visible

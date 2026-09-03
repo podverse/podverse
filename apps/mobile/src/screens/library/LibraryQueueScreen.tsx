@@ -122,8 +122,12 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
   };
 
   return (
-    <MobileScreenContainer heading={t('features.queue.queue')} testID="library-queue-screen">
+    <MobileScreenContainer
+      heading={status === 'authenticated' ? t('features.queue.queue') : undefined}
+      testID="library-queue-screen"
+    >
       <AuthAwareLoadState
+        authMessageKey="features.queue.login_prompt"
         emptyTestID={
           status !== 'authenticated' ? 'library-queue-auth-required' : 'library-queue-empty'
         }

@@ -1,7 +1,7 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { toNonEmptyTrimmedString } from '@podverse/helpers/guards';
 
@@ -9,7 +9,7 @@ import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
 import { GatedFeatureNotice } from '../../components/feedback/GatedFeatureNotice';
-import { Button } from '../../components/primitives';
+import { Button, CoverImage } from '../../components/primitives';
 import { ListLoading } from '../../components/state/ListLoading';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
@@ -299,25 +299,8 @@ export function PodcastIndexFeedPreviewScreen({
           marginBottom: tokens.spacing.sm,
         },
         image: {
-          backgroundColor: tokens.background.secondary,
-          borderRadius: tokens.radii.md,
           height: 160,
           width: 160,
-        },
-        imageFallback: {
-          alignItems: 'center',
-          backgroundColor: tokens.background.secondary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
-          height: 160,
-          justifyContent: 'center',
-          width: 160,
-        },
-        imageFallbackText: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 12,
-          fontWeight: '600',
         },
         message: {
           color: themeStyles.textPrimary.color,
@@ -362,17 +345,11 @@ export function PodcastIndexFeedPreviewScreen({
   return (
     <View style={styles.container} testID="pi-feed-preview-screen">
       <ScrollView contentContainerStyle={styles.content} testID="search-result-detail-screen">
-        {feed.imageUrl !== null ? (
-          <Image
-            accessibilityIgnoresInvertColors
-            source={{ uri: feed.imageUrl }}
-            style={styles.image}
-          />
-        ) : (
-          <View style={styles.imageFallback}>
-            <Text style={styles.imageFallbackText}>{t('media.podcast.podcast')}</Text>
-          </View>
-        )}
+        <CoverImage
+          fallbackLabel={t('media.podcast.podcast')}
+          style={styles.image}
+          uri={feed.imageUrl}
+        />
         <Text style={styles.title}>{feed.title}</Text>
         {feed.author.length > 0 ? <Text style={styles.author}>{feed.author}</Text> : null}
         {feed.description.length > 0 ? (

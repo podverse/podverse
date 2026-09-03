@@ -34,6 +34,7 @@ export function ListEmpty({
       StyleSheet.create({
         container: {
           alignItems: 'center',
+          alignSelf: 'stretch',
           paddingVertical: tokens.spacing.lg,
         },
         label: {
@@ -54,7 +55,7 @@ export function ListEmpty({
         <Button
           label={t(actionLabelKey)}
           onPress={onAction}
-          size={prominent ? 'md' : 'sm'}
+          size="md"
           testID={actionTestID ?? `${testID}-action`}
           variant="primary"
         />

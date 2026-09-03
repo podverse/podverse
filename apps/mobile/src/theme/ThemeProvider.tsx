@@ -1,6 +1,5 @@
 import type { PropsWithChildren } from 'react';
 import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
-import { Appearance } from 'react-native';
 
 import type { ThemeTokens, UITheme } from '@podverse/design-tokens';
 import { getThemeTokens } from '@podverse/design-tokens';
@@ -42,22 +41,14 @@ export function ThemeProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     let isMounted = true;
 
-    // First launch behavior: use Appearance only when no explicit `uit` pref exists.
+    // Unset `uit` stays on dark. The OS color scheme does not pick a theme.
     void (async () => {
       const storedTheme = await readUIThemePref();
-      if (!isMounted) {
+      if (!isMounted || storedTheme === null) {
         return;
       }
 
-      if (storedTheme !== null) {
-        setUIThemeState(storedTheme);
-        return;
-      }
-
-      const colorScheme = Appearance?.getColorScheme?.();
-      if (colorScheme === 'dark' || colorScheme === 'light') {
-        setUIThemeState(colorScheme);
-      }
+      setUIThemeState(storedTheme);
     })();
 
     return () => {

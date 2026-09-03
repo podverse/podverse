@@ -53,7 +53,8 @@
   "features": {
     "search": {
       "search": "Search",
-      "search_by_title": "Search by title..."
+      "search_by_title": "Search by title...",
+      "empty_prompt": "Search the Podcast Index by title."
     },
     "add_feed": {
       "add_feed": "Add Feed",
@@ -93,7 +94,8 @@
       "basic_auth_requires": "This feed requires username and password",
       "basic_auth_username": "Username",
       "basic_auth_password": "Password",
-      "basic_auth_required_both": "Basic Auth requires both username and password."
+      "basic_auth_required_both": "Basic Auth requires both username and password.",
+      "login_prompt": "Follow podcasts and music that are not in the directory yet. Log in to save RSS feeds to your library and check them for new episodes."
     },
     "my_library": "My Library",
     "queue": {
@@ -105,14 +107,16 @@
       "add_error": "Error adding to Queue",
       "remove_error": "Error removing from Queue",
       "remove_from_queue": "Remove from Queue",
-      "removed_from_queue": "Removed from Queue"
+      "removed_from_queue": "Removed from Queue",
+      "login_prompt": "Build a listen-next list that stays with you. Log in to save your queue and keep playing across devices."
     },
     "history": {
       "history": "History",
       "delete_history": "Delete History",
       "mark_as_played": "Mark as Played",
       "marked_as_played": "Marked as Played",
-      "mark_as_played_error": "Error marking as played"
+      "mark_as_played_error": "Error marking as played",
+      "login_prompt": "Pick up where you left off. Log in to see your listening history and keep it in sync wherever you use your account."
     },
     "playlist": {
       "playlist": "Playlist",
@@ -132,7 +136,8 @@
       "item_count": "Items: {count}",
       "playlist_type": "Playlist Type",
       "add_to_liked": "Add to Liked",
-      "remove_from_liked": "Remove from Liked"
+      "remove_from_liked": "Remove from Liked",
+      "login_prompt": "Collect episodes, clips, and tracks into playlists you can share or revisit. Log in to create and manage yours."
     },
     "clip": {
       "clip": "Clip",
@@ -151,10 +156,12 @@
       "end_time": "End Time",
       "end_time_aria": "End time in hours, minutes, and seconds (hh:mm:ss)",
       "end_time_play_aria": "Play from clip end time",
-      "clip_time_range": "{hhmmssStart} to {hhmmssEnd}"
+      "clip_time_range": "{hhmmssStart} to {hhmmssEnd}",
+      "login_prompt": "Save your favorite moments and jump back to them later. Log in to create clips and keep them with your account."
     },
     "my_clips": "My Clips",
     "my_profile": "My Profile",
+    "profile_login_prompt": "Your profile is how you share playlists and clips. Log in to set it up and keep it in sync across devices.",
     "profile": "Profile",
     "profiles": "Profiles",
     "embed": "Embed",
@@ -716,6 +723,7 @@
   },
   "authentication": {
     "login": "Login",
+    "login_required": "Log in to continue.",
     "logout": "Logout",
     "sign_up": "Sign Up",
     "need_an_account_sign_up": "Need an account? Sign up",
@@ -1201,7 +1209,8 @@
     "title": "Notifications",
     "recent_activity_note": "Recent activity. Older notifications are cleared automatically.",
     "loading": "Loading notifications…",
-    "empty": "No notifications yet.",
+    "login_prompt": "Never miss a new episode, livestream, or product update from shows you follow. Log in to keep your inbox on this device and across your other devices.",
+    "empty": "You're all caught up. Alerts for new episodes, livestreams, and product updates will show up here.",
     "unread_section": "Unread",
     "earlier_section": "Earlier",
     "category_new_content": "New content",

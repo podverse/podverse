@@ -53,7 +53,8 @@
   "features": {
     "search": {
       "search": "Buscar",
-      "search_by_title": "Buscar por título..."
+      "search_by_title": "Buscar por título...",
+      "empty_prompt": "Busca en el Podcast Index por título. Tus resultados aparecerán aquí."
     },
     "add_feed": {
       "add_feed": "Agregar Feed",
@@ -93,7 +94,8 @@
       "basic_auth_requires": "This feed requires username and password",
       "basic_auth_username": "Username",
       "basic_auth_password": "Password",
-      "basic_auth_required_both": "Basic Auth requires both username and password."
+      "basic_auth_required_both": "Basic Auth requires both username and password.",
+      "login_prompt": "Sigue podcasts y música que aún no están en el directorio. Inicia sesión para guardar feeds RSS en tu biblioteca y revisar si hay episodios nuevos."
     },
     "my_library": "Mi Biblioteca",
     "queue": {
@@ -105,14 +107,16 @@
       "add_error": "Error al agregar a la Cola",
       "remove_error": "Error al eliminar de la Cola",
       "remove_from_queue": "Eliminar de la Cola",
-      "removed_from_queue": "Eliminado de la Cola"
+      "removed_from_queue": "Eliminado de la Cola",
+      "login_prompt": "Arma una lista de lo siguiente que quieres oír. Inicia sesión para guardar tu cola y seguir escuchando en otros dispositivos."
     },
     "history": {
       "history": "Historial",
       "delete_history": "Eliminar Historial",
       "mark_as_played": "Marcar como Reproducido",
       "marked_as_played": "Marcado como Reproducido",
-      "mark_as_played_error": "Error al marcar como reproducido"
+      "mark_as_played_error": "Error al marcar como reproducido",
+      "login_prompt": "Retoma donde lo dejaste. Inicia sesión para ver tu historial de reproducción y mantenerlo sincronizado en todos tus dispositivos."
     },
     "playlist": {
       "playlist": "Lista de Reproducción",
@@ -132,7 +136,8 @@
       "item_count": "Elementos: {count}",
       "playlist_type": "Tipo de Lista de Reproducción",
       "add_to_liked": "Añadir a Me gusta",
-      "remove_from_liked": "Quitar de Me gusta"
+      "remove_from_liked": "Quitar de Me gusta",
+      "login_prompt": "Reúne episodios, clips y pistas en listas que puedes compartir o volver a visitar. Inicia sesión para crear y gestionar las tuyas."
     },
     "clip": {
       "clip": "Clip",
@@ -151,10 +156,12 @@
       "end_time": "Hora de Fin",
       "end_time_aria": "Hora de fin en horas, minutos y segundos (hh:mm:ss)",
       "end_time_play_aria": "Reproducir desde la hora de fin del clip",
-      "clip_time_range": "{hhmmssStart} hasta {hhmmssEnd}"
+      "clip_time_range": "{hhmmssStart} hasta {hhmmssEnd}",
+      "login_prompt": "Guarda tus momentos favoritos y vuelve a ellos cuando quieras. Inicia sesión para crear clips y conservarlos en tu cuenta."
     },
     "my_clips": "Mis Clips",
     "my_profile": "Mi Perfil",
+    "profile_login_prompt": "Tu perfil es cómo compartes listas y clips. Inicia sesión para configurarlo y mantenerlo sincronizado en tus dispositivos.",
     "profile": "Perfil",
     "profiles": "Perfiles",
     "embed": "Incrustar",
@@ -716,6 +723,7 @@
   },
   "authentication": {
     "login": "Iniciar Sesión",
+    "login_required": "Inicia sesión para continuar.",
     "logout": "Cerrar Sesión",
     "sign_up": "Registrarse",
     "need_an_account_sign_up": "¿Necesitas una cuenta? Regístrate",
@@ -1201,7 +1209,8 @@
     "title": "Notificaciones",
     "recent_activity_note": "Actividad reciente. Las notificaciones antiguas se eliminan automáticamente.",
     "loading": "Cargando notificaciones…",
-    "empty": "Aún no hay notificaciones.",
+    "login_prompt": "No te pierdas un episodio nuevo, un directo o una novedad de los programas que sigues. Inicia sesión para guardar tu bandeja en este dispositivo y en los demás.",
+    "empty": "Estás al día. Aquí aparecerán avisos de episodios nuevos, directos y novedades.",
     "unread_section": "Sin leer",
     "earlier_section": "Anteriores",
     "category_new_content": "Contenido nuevo",

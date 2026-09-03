@@ -28,7 +28,7 @@ export type ButtonProps = {
 /**
  * Themed pressable button. Copy is passed in (`label`) — never hardcoded here — so the caller owns
  * i18n. Colors come from the active theme's button tokens; the pill radius / spacing come from the
- * token scale (no hardcoded hex).
+ * token scale (no hardcoded hex). Press dims opacity so every variant gives the same tactile cue.
  */
 export function Button({
   icon,
@@ -74,6 +74,9 @@ export function Button({
         disabled: {
           opacity: 0.5,
         },
+        pressed: {
+          opacity: 0.7,
+        },
         label: {
           ...typography.label,
           ...(size === 'sm'
@@ -100,7 +103,11 @@ export function Button({
       accessibilityState={{ disabled: isDisabled }}
       disabled={isDisabled}
       onPress={onPress}
-      style={[styles.container, isDisabled ? styles.disabled : null]}
+      style={({ pressed }) => [
+        styles.container,
+        isDisabled ? styles.disabled : null,
+        !isDisabled && pressed ? styles.pressed : null,
+      ]}
       testID={testID}
     >
       {loading ? (

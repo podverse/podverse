@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
-import { Button } from '../primitives';
+import { Button, VerticalCenter } from '../primitives';
 
 type CallToActionSectionProps = {
   actionLabelKey: string;
@@ -15,10 +15,7 @@ type CallToActionSectionProps = {
 };
 
 /**
- * Fills its parent and centers a localized message with its primary action.
- *
- * The parent controls the available section height, so this pattern stays between surrounding
- * navigation or list controls without needing screen-specific positioning.
+ * Localized message plus its primary action, centered in the parent via VerticalCenter.
  */
 export function CallToActionSection({
   actionLabelKey,
@@ -36,12 +33,6 @@ export function CallToActionSection({
         action: {
           marginTop: tokens.spacing.lg,
         },
-        container: {
-          alignItems: 'center',
-          flex: 1,
-          justifyContent: 'center',
-          paddingVertical: tokens.spacing.lg,
-        },
         message: {
           ...typography.subheading,
           color: themeStyles.textSecondary.color,
@@ -52,7 +43,7 @@ export function CallToActionSection({
   );
 
   return (
-    <View style={styles.container} testID={testID}>
+    <VerticalCenter testID={testID}>
       <Text style={styles.message}>{t(messageKey)}</Text>
       <View style={styles.action}>
         <Button
@@ -62,6 +53,6 @@ export function CallToActionSection({
           testID={actionTestID ?? `${testID}-action`}
         />
       </View>
-    </View>
+    </VerticalCenter>
   );
 }

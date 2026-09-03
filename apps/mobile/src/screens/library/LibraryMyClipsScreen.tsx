@@ -80,8 +80,12 @@ export function LibraryMyClipsScreen({ navigation }: LibraryMyClipsScreenProps) 
   }, [loadClips]);
 
   return (
-    <MobileScreenContainer heading={t('features.clip.clips')} testID="library-my-clips-screen">
+    <MobileScreenContainer
+      heading={status === 'authenticated' ? t('features.clip.clips') : undefined}
+      testID="library-my-clips-screen"
+    >
       <AuthAwareLoadState
+        authMessageKey="features.clip.login_prompt"
         emptyTestID={
           status !== 'authenticated' ? 'library-my-clips-auth-required' : 'library-my-clips-empty'
         }

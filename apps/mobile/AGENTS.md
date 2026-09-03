@@ -105,8 +105,8 @@ they don't settle a question. See
 
 ## Themes
 
-- Same supported theme IDs as web: `dark`, `light`, `dracula`, `violet`, `ember`, `dawn` (default
-  `dark`).
+- Same supported theme IDs as web: `dark`, `light`, `dracula`, `violet`, `ember`, `dawn`. Unset
+  `uit` is always **`dark`** — do not follow the OS color scheme.
 - Import token maps from `@podverse/design-tokens`; wrap app in `ThemeProvider` (`src/theme/`).
 - Persist user choice under pref key **`uit`** (same semantics as web `localSettings`).
 - Theme labels: i18n `settings.ui_theme.*` — not hardcoded English.

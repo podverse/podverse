@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   AccessibilityInfo,
-  FlatList,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -13,15 +12,15 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { matchesTitleFilter } from '@podverse/helpers';
 
 import { useAuth } from '../../auth/AuthProvider';
+import { FillList } from '../../components/primitives';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
-import { ListLoading } from '../../components/state/ListLoading';
+import { LoadingSection } from '../../components/state/LoadingSection';
 import { channelSeenRepository } from '../../data/repositories';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import type { HomeStackParamList, MobileTabParamList } from '../../navigation';
@@ -45,6 +44,7 @@ import {
 } from '../../prefs/preferredMediaType';
 import { useSync } from '../../sync';
 import { resolveGridColumns } from '../../theme/resolveColumns';
+import { screenBodyInsets } from '../../theme/screenLayout';
 import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
 import type { AddToPlaylistTarget } from '../library/useAddToPlaylist';
@@ -78,7 +78,6 @@ export function HomeScreen() {
   const { requestSync, state: syncState } = useSync();
   const { columns: rowColumns, width } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
-  const insets = useSafeAreaInsets();
   const [selectedMediaType, setSelectedMediaType] =
     useState<HomeMediaType>(DEFAULT_HOME_MEDIA_TYPE);
   const [isMediaTypeHydrated, setIsMediaTypeHydrated] = useState<boolean>(false);
@@ -415,74 +414,78 @@ export function HomeScreen() {
     AccessibilityInfo.announceForAccessibility(resultSummary);
   }, [feedErrorKey, isFeedLoading, resultSummary, visibleRows.length]);
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        columnCell: {
-          flex: 1,
-        },
-        columnWrapper: {
-          gap: tokens.spacing.md,
-        },
-        container: {
-          backgroundColor: themeStyles.screen.backgroundColor,
-          flex: 1,
-          paddingTop: insets.top,
-        },
-        content: {
-          flexGrow: 1,
-          padding: tokens.spacing.lg,
-        },
-        feedNotice: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          marginTop: tokens.spacing.sm,
-        },
-        feedSummary: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          marginBottom: tokens.spacing.md,
-        },
-        controlsRow: {
-          alignItems: 'center',
-          flexDirection: 'row',
-          gap: tokens.spacing.sm,
-          justifyContent: 'flex-end',
-          marginBottom: tokens.spacing.md,
-        },
-        filterClear: {
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.round,
-          borderWidth: 1,
-          paddingHorizontal: tokens.spacing.md,
-          paddingVertical: tokens.spacing.sm,
-        },
-        filterClearLabel: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 13,
-          fontWeight: '600',
-        },
-        filterInput: {
-          backgroundColor: tokens.background.secondary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
-          color: themeStyles.textPrimary.color,
-          flex: 1,
-          fontSize: 16,
-          paddingHorizontal: tokens.spacing.md,
-          paddingVertical: tokens.spacing.sm,
-        },
-        filterRow: {
-          alignItems: 'center',
-          flexDirection: 'row',
-          gap: tokens.spacing.sm,
-          marginBottom: tokens.spacing.md,
-          marginTop: tokens.spacing.sm,
-        },
-      }),
-    [insets.top, themeStyles, tokens]
-  );
+  const styles = useMemo(() => {
+    const bodyInsets = screenBodyInsets(tokens.spacing);
+
+    return StyleSheet.create({
+      columnCell: {
+        flex: 1,
+      },
+      columnWrapper: {
+        gap: tokens.spacing.md,
+      },
+      container: {
+        backgroundColor: themeStyles.screen.backgroundColor,
+        flex: 1,
+      },
+      content: {
+        flexGrow: 1,
+        paddingBottom: tokens.spacing.lg,
+        paddingHorizontal: bodyInsets.paddingHorizontal,
+      },
+      selectorSection: {
+        ...bodyInsets,
+        paddingBottom: tokens.spacing.md,
+      },
+      feedNotice: {
+        color: themeStyles.textSecondary.color,
+        fontSize: 13,
+        marginTop: tokens.spacing.sm,
+      },
+      feedSummary: {
+        color: themeStyles.textSecondary.color,
+        fontSize: 13,
+        marginBottom: tokens.spacing.md,
+      },
+      controlsRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        gap: tokens.spacing.sm,
+        justifyContent: 'flex-end',
+        marginBottom: tokens.spacing.md,
+      },
+      filterClear: {
+        borderColor: themeStyles.border.borderColor,
+        borderRadius: tokens.radii.round,
+        borderWidth: 1,
+        paddingHorizontal: tokens.spacing.md,
+        paddingVertical: tokens.spacing.sm,
+      },
+      filterClearLabel: {
+        color: themeStyles.textPrimary.color,
+        fontSize: 13,
+        fontWeight: '600',
+      },
+      filterInput: {
+        backgroundColor: tokens.background.secondary,
+        borderColor: themeStyles.border.borderColor,
+        borderRadius: tokens.radii.md,
+        borderWidth: 1,
+        color: themeStyles.textPrimary.color,
+        flex: 1,
+        fontSize: 16,
+        paddingHorizontal: tokens.spacing.md,
+        paddingVertical: tokens.spacing.sm,
+      },
+      filterRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        gap: tokens.spacing.sm,
+        marginBottom: tokens.spacing.md,
+        marginTop: tokens.spacing.sm,
+      },
+    });
+  }, [themeStyles, tokens]);
 
   const showFeedRows = !isFeedLoading && feedErrorKey === null;
   const showSubscriptionControls = showFeedRows && feedRows.length > 0;
@@ -555,7 +558,6 @@ export function HomeScreen() {
           ) : null}
         </>
       ) : null}
-      {isFeedLoading ? <ListLoading testID="home-list-loading" /> : null}
       {!isFeedLoading && feedErrorKey !== null ? (
         <ListError
           messageKey={feedErrorKey}
@@ -574,7 +576,9 @@ export function HomeScreen() {
     </>
   );
 
-  const listEmpty = showNoSubscriptions ? (
+  const listEmpty = isFeedLoading ? (
+    <LoadingSection testID="home-list-loading" />
+  ) : showNoSubscriptions ? (
     <CallToActionSection
       actionLabelKey="features.search.search"
       actionTestID="home-list-empty-search"
@@ -591,10 +595,12 @@ export function HomeScreen() {
 
   return (
     <View style={styles.container} testID="home-screen">
-      <MediaTypeSelector onChange={handleMediaTypeChange} selectedMediaType={selectedMediaType} />
+      <View style={styles.selectorSection}>
+        <MediaTypeSelector onChange={handleMediaTypeChange} selectedMediaType={selectedMediaType} />
+      </View>
       {/* Keep controls and summary in ListHeaderComponent while rows render as FlatList items, so */}
       {/* tablet grid columns can virtualize with numColumns. */}
-      <FlatList
+      <FillList
         ListEmptyComponent={listEmpty}
         ListFooterComponent={listFooter}
         ListHeaderComponent={listHeader}

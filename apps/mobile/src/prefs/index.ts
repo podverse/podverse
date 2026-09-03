@@ -15,3 +15,5 @@ export type {
   PrefValueMap,
   SubscriptionListFilter,
 } from './prefsStore';
+export { DEFAULT_VISIBLE_TABS, readVisibleTabs, writeVisibleTabs } from './tabLayout';
+export type { ContentTabId } from './tabLayout';

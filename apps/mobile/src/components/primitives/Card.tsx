@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useMemo } from 'react';
+import type { StyleProp, ViewStyle } from 'react-native';
 import { StyleSheet, View } from 'react-native';
 
 import { useTheme } from '../../theme/useTheme';
@@ -7,6 +8,7 @@ import { useTheme } from '../../theme/useTheme';
 export type CardProps = {
   children: ReactNode;
   padded?: boolean;
+  style?: StyleProp<ViewStyle>;
   testID?: string;
 };
 
@@ -14,7 +16,7 @@ export type CardProps = {
  * Themed surface container (background + hairline border + rounded corners) from theme tokens.
  * Generic layout primitive with no copy of its own; compose headings/content via `children`.
  */
-export function Card({ children, padded = true, testID }: CardProps) {
+export function Card({ children, padded = true, style, testID }: CardProps) {
   const { styles: themeStyles, tokens } = useTheme();
 
   const styles = useMemo(
@@ -32,7 +34,7 @@ export function Card({ children, padded = true, testID }: CardProps) {
   );
 
   return (
-    <View style={styles.card} testID={testID}>
+    <View style={[styles.card, style]} testID={testID}>
       {children}
     </View>
   );

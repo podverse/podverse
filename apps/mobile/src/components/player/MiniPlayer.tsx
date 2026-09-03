@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { GestureResponderEvent } from 'react-native';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { breakpoints } from '@podverse/design-tokens';
 import { clampRatio } from '@podverse/helpers/math';
@@ -12,6 +12,7 @@ import { usePlayback } from '../../playback/PlaybackProvider';
 import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
 import { Button } from '../primitives/Button';
+import { CoverImage } from '../primitives/CoverImage';
 import { ProgressTrack } from '../primitives/ProgressTrack';
 
 type MiniPlayerProps = {
@@ -40,16 +41,6 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
     () =>
       StyleSheet.create({
         artwork: {
-          backgroundColor: tokens.background.secondary,
-          borderRadius: tokens.radii.sm,
-          height: 40,
-          width: 40,
-        },
-        artworkFallback: {
-          backgroundColor: tokens.background.tertiary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.sm,
-          borderWidth: 1,
           height: 40,
           width: 40,
         },
@@ -125,15 +116,11 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
       />
       <View style={styles.row}>
         <View style={styles.videoSurface} testID="mini-player-video-surface">
-          {nowPlaying.imageUrl !== null ? (
-            <Image
-              accessibilityLabel={t('media_player.media_player_image')}
-              source={{ uri: nowPlaying.imageUrl }}
-              style={styles.artwork}
-            />
-          ) : (
-            <View style={styles.artworkFallback} />
-          )}
+          <CoverImage
+            accessibilityLabel={t('media_player.media_player_image')}
+            style={styles.artwork}
+            uri={nowPlaying.imageUrl}
+          />
           {/* Single shared native surface; hidden for audio-only so the artwork shows. */}
           <PodverseVideoSurfaceView style={StyleSheet.absoluteFill} targetId="mini" />
         </View>

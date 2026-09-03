@@ -9,4 +9,17 @@ placeholder before committing the feature.
 
 ## Current verification
 
-No active implementation verification commands.
+Default **dark** full-bleed chrome (`createStyles` screen fill) now uses `background.secondary`
+so Home / tab roots match the black tab bar. Shared token hexes are unchanged.
+
+Leave running (if not already up): **Mobile Metro** (`npm run mobile:dev:e2e`), **Mobile E2E API**,
+**Mobile iOS** / **Mobile Android** installs per [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md).
+
+### Mobile Maestro
+
+```bash
+npm run mobile:e2e:test -- home
+open .artifacts/mobile-e2e-reports/latest/failures.json
+open .artifacts/mobile-e2e-reports/latest/ios-phone/index.html
+open .artifacts/mobile-e2e-reports/latest/android-phone/index.html
+```
