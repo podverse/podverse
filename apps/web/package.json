@@ -55,7 +55,7 @@
     "react-icons": "^5.7.0",
     "react-virtuoso": "^4.18.12",
     "sass": "^1.103.1",
-    "sharp": "^0.35.3",
+    "sharp": "^0.35.4",
     "transcriptator": "^1.1.4",
     "uuid": "^14.0.2",
     "video.js": "^8.24.0",
