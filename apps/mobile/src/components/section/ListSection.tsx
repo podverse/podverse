@@ -6,7 +6,7 @@ type ListSectionProps<TItem> = {
   emptyMessageKey?: string;
   emptyTestID: string;
   items: TItem[];
-  renderItem: (item: TItem, index: number) => ReactNode;
+  renderItem: (item: TItem, index: number, isLast: boolean) => ReactNode;
 };
 
 export function ListSection<TItem>({
@@ -19,5 +19,5 @@ export function ListSection<TItem>({
     return <ListEmpty messageKey={emptyMessageKey} testID={emptyTestID} />;
   }
 
-  return <>{items.map((item, index) => renderItem(item, index))}</>;
+  return <>{items.map((item, index) => renderItem(item, index, index === items.length - 1))}</>;
 }

@@ -224,8 +224,9 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
             {trackRows.length === 0 ? (
               <ListEmpty messageKey="misc.info" testID="album-detail-empty" />
             ) : (
-              trackRows.map((row) => (
+              trackRows.map((row, index) => (
                 <HomeFeedRow
+                  isLast={index === trackRows.length - 1}
                   key={row.id}
                   mediaType="tracks"
                   onPlayPress={(nextRow) => {

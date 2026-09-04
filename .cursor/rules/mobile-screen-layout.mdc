@@ -5,7 +5,11 @@ globs:
   - apps/mobile/src/components/screen/**/*
   - apps/mobile/src/theme/screenLayout.ts
   - apps/mobile/src/components/primitives/FillList.tsx
+  - apps/mobile/src/components/primitives/ListRow.tsx
   - apps/mobile/src/components/primitives/VerticalCenter.tsx
+  - apps/mobile/src/components/form/SearchField.tsx
+  - apps/mobile/src/components/section/ListSection.tsx
+  - apps/mobile/src/screens/home/HomeFeedRow.tsx
 alwaysApply: false
 ---
 
@@ -20,7 +24,7 @@ per-screen inset under the title bar.
   divider, hairline, or shadow under the title.
 - Stack titles go through **`ThemedStackHeader`** (already wraps `HeaderBar`).
 - Tab roots use the same title slot (Home, Search, …). Page controls such as Home's media-type
-  pills and Search's field sit in the body under that bar, not inside it.
+  pills and Search's field and chips sit in the body under that bar, not inside it.
 
 ## Page body under the bar
 
@@ -30,13 +34,43 @@ The first content below `HeaderBar` uses **`screenBodyInsets(tokens.spacing)`** 
 - **Top:** `spacing.lg` between the title row and the first body control
 - **Horizontal:** `spacing.lg` on both sides of that body
 
-`MobileScreenContainer` already applies this. Home's feed list and Search's input / results card
+`MobileScreenContainer` already applies this. Home's feed list and Search's field / chips / list
 must use the same helper — not a one-off `padding` / `margin`, and not a second inner `Card`
 padding on top of the page gutter.
 
-Internal gaps (input → results, filter row → row) stay on the screen. Centered empty / loading
-(`VerticalCenter`, `CallToActionSection`, `LoadingSection`) fills leftover height; it does not
-replace the page gutter.
+Screen lists (Home, Search, Library, …) are unboxed: no perimeter `Card` around the rows. `Card`
+is a surface for grouped settings or section chrome, not for a scrolling result list.
+
+Internal gaps stay on the screen. Field → chips (or chips → first control) is `spacing.base`.
+Centered empty / loading (`VerticalCenter`, `CallToActionSection`, `LoadingSection`) fills leftover
+height; it does not replace the page gutter.
+
+## Search field and chips
+
+Search uses **`SearchField`**: tertiary fill, no resting outline, leading magnifying-glass, a 2px
+transparent border that becomes `tokens.border.primary` on focus. Do not restyle a bare
+`TextInput` with a perimeter stroke.
+
+Two or three filters under a field use **`OptionChipGroup`**. Selected chip = `buttonPrimary` fill.
+Settings density (2–3 chips vs option-list screen) is **mobile-settings-option-density**.
+
+## List rows
+
+Media and result rows use **`HomeFeedRow`** (or **`ListRow`** when the layout is title/subtitle
+only). Default vertical padding is **`tokens.spacing.base`**. Row artwork is **60×60**. Space
+between title, subtitle, and other in-row lines with a column **`gap`** (`spacing.sm`) — not
+`marginTop` / `marginBottom` on each line — so a missing subtitle or metadata line adds no leftover
+space. The text stack uses `justifyContent: 'center'` so it stays vertically centered on the
+artwork. The row itself uses `gap` between artwork and text (not a leading `marginLeft`).
+
+Row dividers are `StyleSheet.hairlineWidth` + `themeStyles.border.borderColor`. The **last row
+omits the bottom border** so a hairline does not sit on the list edge. Pass `isLast` on
+`HomeFeedRow`. `ListSection` already supplies it as the third `renderItem` argument
+`(item, index, isLast)`. `ReorderableSections` uses the same last-row rule.
+
+The rule between chips/filters and the first row is one step stronger than a row hairline:
+`height: 1`, the same `themeStyles.border.borderColor`, and horizontal inset from
+`screenBodyInsets().paddingHorizontal` (Search's `listRule`). Do not invent a second color.
 
 ## Fill empty lists do not scroll
 
@@ -67,6 +101,8 @@ inline gates, not a full-screen feature empty. Hide the in-body heading on that 
 - Put a second in-body display heading on a screen that already has a `HeaderBar` title.
 - Use raw `FlatList` for a screen list that shows a `VerticalCenter` fill empty, then hand-toggle
   `scrollEnabled` / `bounces` at the screen.
+- Leave a bottom hairline on the last list row, or drop media-row vertical padding back to
+  `spacing.md`.
 
 ## Related
 

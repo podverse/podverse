@@ -491,6 +491,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
 
       return soundbiteRows.map((soundbite, index) => (
         <HomeFeedRow
+          isLast={index === soundbiteRows.length - 1}
           key={soundbite.id_text}
           mediaType="clips"
           onPlayPress={() => {
@@ -524,8 +525,9 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
           {clipRows.length === 0 ? (
             <ListEmpty messageKey="misc.info" testID="episode-detail-tab-empty-clips" />
           ) : (
-            clipRows.map((clip) => (
+            clipRows.map((clip, index) => (
               <HomeFeedRow
+                isLast={index === clipRows.length - 1}
                 key={clip.id_text}
                 mediaType="clips"
                 onPlayPress={(row) => {
@@ -608,6 +610,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
             {episodeRow !== null ? (
               <>
                 <HomeFeedRow
+                  isLast
                   mediaType="episodes"
                   onPlayPress={() => {
                     if (episode !== null && channel !== null) {

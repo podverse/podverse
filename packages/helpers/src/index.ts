@@ -93,6 +93,7 @@ export * from './lib/notificationCategory.js';
 export * from './lib/sharableStatus.js';
 export * from './lib/sleep.js';
 export * from './lib/sortableTitle.js';
+export * from './lib/searchListPrefs.js';
 export * from './lib/sortPrefs.js';
 export * from './lib/stringify.js';
 export * from './lib/time.js';

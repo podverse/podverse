@@ -214,6 +214,7 @@ export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
 
           <View style={styles.card}>
             <HomeFeedRow
+              isLast
               mediaType="clips"
               onPlayPress={() => {
                 runBoundedClipPlay({

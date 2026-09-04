@@ -12,10 +12,23 @@ export type ContentTabId = (typeof CONTENT_TAB_IDS)[number];
 
 export const DEFAULT_VISIBLE_TABS: readonly ContentTabId[] = [
   'Home',
-  'Browse',
   'Search',
   'My Library',
+  'Browse',
 ];
+
+/** Earlier factory bars. Treated as unset so a later default order reaches existing devices. */
+const PREVIOUS_DEFAULT_VISIBLE_TABS: readonly (readonly ContentTabId[])[] = [
+  ['Home', 'Browse', 'Search', 'My Library'],
+  ['Home', 'Search', 'Browse', 'My Library'],
+];
+
+const isSameTabOrder = (
+  left: readonly ContentTabId[],
+  right: readonly ContentTabId[]
+): boolean => {
+  return left.length === right.length && left.every((tabId, index) => tabId === right[index]);
+};
 
 export const MAX_VISIBLE_CONTENT_TABS = 4;
 
@@ -76,7 +89,14 @@ export const parseVisibleTabs = (raw: string | null): ContentTabId[] => {
       }
     }
 
-    return result.length > 0 ? result : [...DEFAULT_VISIBLE_TABS];
+    if (
+      result.length === 0 ||
+      PREVIOUS_DEFAULT_VISIBLE_TABS.some((previous) => isSameTabOrder(result, previous))
+    ) {
+      return [...DEFAULT_VISIBLE_TABS];
+    }
+
+    return result;
   } catch {
     return [...DEFAULT_VISIBLE_TABS];
   }

@@ -270,7 +270,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
       contentContainerStyle={styles.content}
       data={errorKey === null && !isLoading ? sortedEpisodes : []}
       keyExtractor={(row) => row.id}
-      renderItem={({ item: row }) => (
+      renderItem={({ index, item: row }) => (
         <HomeFeedRow
           customActions={
             <MediaRowActions
@@ -282,6 +282,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
               playTestID={`add-by-rss-home-play-${row.id}`}
             />
           }
+          isLast={index === sortedEpisodes.length - 1}
           mediaType="episodes"
           onPlayPress={() => {
             handlePlay(row);

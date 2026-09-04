@@ -531,7 +531,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
       {liveRows.length > 0 ? (
         <View style={styles.rowSurface}>
           <Text style={styles.feedHeading}>{t('media.livestream.livestreams')}</Text>
-          {liveRows.map((liveRow) => {
+          {liveRows.map((liveRow, index) => {
             const liveStatusLabel =
               liveRow.liveStatusId !== null ? t(LIVE_STATUS_KEYS[liveRow.liveStatusId]) : null;
             const subtitle =
@@ -542,6 +542,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
                   : `${liveStatusLabel} • ${liveRow.subtitle}`;
             return (
               <HomeFeedRow
+                isLast={index === liveRows.length - 1}
                 key={`live-${liveRow.id}`}
                 mediaType="episodes"
                 onPlayPress={(row) => {
@@ -628,6 +629,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
           refreshControl={refreshControl}
           renderItem={({ item: row, index }) => (
             <HomeFeedRow
+              isLast={index === episodeListData.length - 1}
               mediaType="episodes"
               onPlayPress={(episodeRow) => {
                 runPlayAction(episodeRow, 'episodes');
@@ -662,6 +664,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
       refreshControl={refreshControl}
       renderItem={({ item: row, index }) => (
         <HomeFeedRow
+          isLast={index === episodeListData.length - 1}
           mediaType="episodes"
           onPlayPress={(episodeRow) => {
             runPlayAction(episodeRow, 'episodes');

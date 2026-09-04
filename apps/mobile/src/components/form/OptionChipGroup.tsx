@@ -32,6 +32,7 @@ export function OptionChipGroup<T extends string>({
     () =>
       StyleSheet.create({
         optionButton: {
+          backgroundColor: tokens.background.secondary,
           borderColor: themeStyles.border.borderColor,
           borderRadius: tokens.radii.round,
           borderWidth: 1,
@@ -66,6 +67,7 @@ export function OptionChipGroup<T extends string>({
         const isActive = option.value === value;
         return (
           <Pressable
+            accessibilityLabel={option.label}
             accessibilityRole="button"
             accessibilityState={{ selected: isActive }}
             key={option.value}

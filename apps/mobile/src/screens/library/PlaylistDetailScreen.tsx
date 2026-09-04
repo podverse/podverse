@@ -427,8 +427,9 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
           contentContainerStyle={styles.content}
           data={isReordering ? [] : resourceRows}
           keyExtractor={(row) => row.id}
-          renderItem={({ item: row }) => (
+          renderItem={({ index, item: row }) => (
             <HomeFeedRow
+              isLast={index === resourceRows.length - 1}
               mediaType={row.mediaType}
               onPlayPress={(nextRow) => {
                 const playlistTarget = resolvePlaylistRowTarget(nextRow.id);

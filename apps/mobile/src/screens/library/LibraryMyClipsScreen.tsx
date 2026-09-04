@@ -103,8 +103,9 @@ export function LibraryMyClipsScreen({ navigation }: LibraryMyClipsScreenProps) 
           <ListSection
             emptyTestID="library-my-clips-empty"
             items={clips}
-            renderItem={(clip: DTOClip) => (
+            renderItem={(clip: DTOClip, _index, isLast) => (
               <HomeFeedRow
+                isLast={isLast}
                 key={clip.id_text}
                 mediaType="clips"
                 onPlayPress={(nextRow) => {

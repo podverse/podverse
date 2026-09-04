@@ -23,6 +23,7 @@ export function ButtonTabs({ buttonTabs, selectedKey, className = '' }: ButtonTa
           variant={buttonTab.key === selectedKey ? 'miniSelected' : 'mini'}
           onClick={buttonTab.onClick}
           className={styles.tabButton}
+          aria-pressed={buttonTab.key === selectedKey}
         >
           {buttonTab.label}
         </Button>

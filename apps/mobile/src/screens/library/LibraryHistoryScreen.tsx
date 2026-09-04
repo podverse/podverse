@@ -123,7 +123,7 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
           <ListSection
             emptyTestID="library-history-empty"
             items={historyRows}
-            renderItem={(row: HistoryRow) => (
+            renderItem={(row: HistoryRow, _index, isLast) => (
               <View key={row.id}>
                 <Pressable
                   onPress={() => {
@@ -135,6 +135,7 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
                   <Text style={styles.resumeButtonLabel}>{t('media_player.play')}</Text>
                 </Pressable>
                 <HomeFeedRow
+                  isLast={isLast}
                   mediaType={row.mediaType}
                   onPlayPress={(nextRow) => {
                     runPlayAction(nextRow, row.mediaType);
