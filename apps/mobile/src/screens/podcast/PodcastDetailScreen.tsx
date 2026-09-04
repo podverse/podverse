@@ -12,13 +12,11 @@ import {
 } from 'react-native';
 
 import { breakpoints } from '@podverse/design-tokens';
-import type { DTOChannel, DTOItem, FeatureAccess } from '@podverse/helpers';
+import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { LiveItemStatusEnum } from '@podverse/helpers/dto';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
-import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
-import { GatedFeatureNotice } from '../../components/feedback/GatedFeatureNotice';
 import type { OptionListItem } from '../../components/form/OptionListGroup';
 import { SortSelectRow } from '../../components/form/SortSelectRow';
 import { Button } from '../../components/primitives/Button';
@@ -94,8 +92,6 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
   const [isSavingSubscription, setIsSavingSubscription] = useState<boolean>(false);
   const [subscriptionNoticeKey, setSubscriptionNoticeKey] = useState<string | null>(null);
-  /** Set only when a signed-in user's membership blocks the server follow; cleared on each attempt. */
-  const [subscriptionDenial, setSubscriptionDenial] = useState<FeatureAccess | null>(null);
   /**
    * What the pill shows. The list itself does not read this — it re-reads the stored preference —
    * so the two cannot drift into disagreeing about which order is selected.
@@ -355,8 +351,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     [navigation]
   );
 
-  const { goToMembership, handleGateError } = useMembershipGate();
-  const { onRequestLogin } = useAuthPrompt();
+  const { handleGateError, openGate } = useMembershipGate();
   const { evaluateFeature } = useAccessTier();
 
   /**
@@ -380,7 +375,6 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
 
     setIsSavingSubscription(true);
     setSubscriptionNoticeKey(null);
-    setSubscriptionDenial(null);
     try {
       if (isSubscribed) {
         await subscriptionsRepository.unsubscribeLocal(podcastId);
@@ -409,7 +403,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
       if (isSignedIn) {
         const access = evaluateFeature('subscribe_sync');
         if (!access.allowed) {
-          setSubscriptionDenial(access);
+          openGate(access.reason);
           return;
         }
 
@@ -440,6 +434,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     handleGateError,
     isSavingSubscription,
     isSubscribed,
+    openGate,
     podcastId,
     refreshToken,
     setTokens,
@@ -494,14 +489,6 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
         </View>
         {subscriptionNoticeKey !== null ? (
           <Text style={styles.statusNotice}>{t(subscriptionNoticeKey)}</Text>
-        ) : null}
-        {subscriptionDenial !== null ? (
-          <GatedFeatureNotice
-            access={subscriptionDenial}
-            onRequestLogin={onRequestLogin}
-            onRequestMembership={goToMembership}
-            testID="podcast-detail-subscribe-gate"
-          />
         ) : null}
       </View>
     </>

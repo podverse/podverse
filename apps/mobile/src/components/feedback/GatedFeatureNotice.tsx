@@ -8,15 +8,11 @@ import { useTheme } from '../../theme/useTheme';
 import { Button } from '../primitives';
 
 /**
- * The one inline presentation for a capability the user cannot use. A gated control shows
- * this instead of disappearing or failing silently: the user always learns what is missing and gets
- * the action that fixes it.
+ * Inline card for a gate that has no single action to attach to. Prefer
+ * `useMembershipGate().openGate(reason)` when the user taps a gated control — that opens
+ * `ConfirmDialog` (Login for `needs_account`, Membership for the rest).
  *
- * Renders nothing when access is allowed, so a call site can mount it unconditionally next to the
- * control it explains.
- *
- * The reason→copy mapping lives here rather than at call sites, so every gated control across the
- * app explains itself in the same words.
+ * Renders nothing when access is allowed. The reason→copy mapping matches the gate modal.
  */
 export type GatedFeatureNoticeProps = {
   access: FeatureAccess;

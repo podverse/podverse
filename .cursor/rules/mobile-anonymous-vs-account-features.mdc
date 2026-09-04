@@ -103,7 +103,8 @@ reconciles by taking the **later** timestamp per channel, so it only ever moves 
 
 - Build the local-only path first, then layer account sync on top of it.
 - Present gated features as an upgrade affordance, not a broken control (see
-  **entitlement-gating-rollout**).
+  **entitlement-gating-rollout**). On a usable screen, show the gate **when the user taps the
+  action** (`openGate`), not as a persistent inline "Account required" card.
 - When a feature has both a local and a server-backed form, ship the local form signed out and use
   the server form to add cross-device sync (for example, per-channel "seen" state).
 

@@ -37,7 +37,7 @@ Consistency and DRYness across tabs/screens matter as much as on web. Rebuilding
 | Section / list grouping                     | `components/section/` (`SectionCard`, `ListSection`)                                                                                           |
 | Loading / empty / error / auth-gated chrome | `components/state/` (`ListLoading`, `ListEmpty`, `ListError`, `CallToActionSection`, `LoadingSection`, `AuthAwareLoadState`, `RetryableError`) |
 | Playback row actions / mini player          | `components/player/`                                                                                                                           |
-| Membership / gate feedback                  | `components/feedback/`                                                                                                                         |
+| Membership / gate feedback                  | `components/feedback/` (`ConfirmDialog` via `openGate`, `HelperNote`, `GatedFeatureNotice` only when there is no action to attach)              |
 | Form / settings selects                     | `components/form/` (`SearchField`, `OptionChipGroup`, `SettingsOptionNavRow`, `OptionListScreen`)                                               |
 | Domain controls (download, filters)         | `components/download/`, `components/subscriptions/`                                                                                            |
 | Shared stateful logic                       | `hooks/`                                                                                                                                       |
@@ -47,7 +47,9 @@ Do **not** import `@podverse/ui` (web components / SCSS). Tokens come from `@pod
 via **mobile-theme-parity**.
 
 **Search field:** use `SearchField` (tertiary fill, leading glass, focus ring). Do not clone a
-stroked `TextInput`. Field → chip gap is `spacing.base`.
+stroked `TextInput`. Field, chips, and the list rule share one column `gap` (`spacing.base`) so
+the space above and below the chips is equal. Prefer that symmetry whenever two sides of a
+control are the same relationship.
 
 **Settings option density:** 2–3 choices → `OptionChipGroup`; 4+ → push option-list screen (not
 bottom sheet). Selected chip uses `buttonPrimary` fill. Root settings rows stack label /
@@ -58,6 +60,11 @@ padding is `spacing.base`; artwork is 60×60). Title / subtitle / metadata use a
 (`spacing.sm`), not per-line margins, and the text stack is vertically centered. `ListSection`
 passes `(item, index, isLast)`. `ListRow` is the title/subtitle primitive with the same gap and
 padding. See **mobile-screen-layout**.
+
+**Action gates:** keep the gated control; on press `openGate(reason)` (`ConfirmDialog`). Do not
+inline `GatedFeatureNotice` next to an untapped button. Full-screen empties still use
+`CallToActionSection`. In-page explainers that are not the content use **`HelperNote`**. See
+**mobile-screen-layout**.
 
 **Screen layout:** tab roots and stack screens share `HeaderBar` (44pt row, no divider under the
 title) and the same page-body gutter — `screenBodyInsets` from `theme/screenLayout.ts`

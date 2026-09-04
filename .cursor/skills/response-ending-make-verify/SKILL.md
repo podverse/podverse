@@ -36,25 +36,8 @@ Mobile operators also need Metro + E2E installs in other tabs when not already r
 **Mobile Metro** / **Mobile iOS** / **Mobile Android** / **Mobile E2E API** (see
 **vscode-terminals-commands**) and point at [HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md).
 
-## E2E verification scratchpad
-
-When implementation work requires E2E verification, replace the placeholder in
-[E2E-VERIFICATION-SCRATCHPAD.md](/docs/testing/E2E-VERIFICATION-SCRATCHPAD.md) with the complete
-pre-commit checklist for that change. Include:
-
-- the narrowest relevant E2E command for each affected flow or spec;
-- both mobile platform commands when the mobile behavior applies to both platforms;
-- relevant unit or API test commands when the changed code requires them; and
-- required leave-running services and report paths, labeled with their VS Code tabs.
-
 Do not default to an `all` suite. Use a full suite only when the change is structural, cross-cutting,
 changes shared E2E infrastructure or fixtures, or cannot be meaningfully covered by focused flows.
-If several focused commands provide equivalent coverage, list the smallest set and explain the
-coverage boundary in the scratchpad.
-
-The scratchpad is intentionally local working state. Leave the updated checklist for the operator
-to run and review, then restore the committed placeholder before committing the feature. Do not
-include scratchpad contents in the feature commit.
 
 ## API gate
 

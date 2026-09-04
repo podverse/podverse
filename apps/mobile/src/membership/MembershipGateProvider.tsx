@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import type { AccessDenialReason } from '@podverse/helpers';
 
+import { useAuthPrompt } from '../auth/AuthPromptContext';
 import { ConfirmDialog } from '../components/feedback/ConfirmDialog';
 import { mapMembershipDenial } from './membershipDenial';
 import { useMembership } from './useMembership';
@@ -17,7 +18,8 @@ import { useMembership } from './useMembership';
  * Reasons are the shared `AccessDenialReason` from `@podverse/helpers`, so this modal and the
  * client-side `useAccessTier` checks describe a denial the same way.
  *
- * - `openGate(reason)` — show the modal directly, for a denial the client already resolved.
+ * - `openGate(reason)` — show the modal when the user attempts a gated action. `needs_account`
+ *   confirms to Login; membership reasons confirm to the Membership screen.
  * - `handleGateError(error)` — if `error` is a membership 403, open the gate and return `true`;
  *   otherwise return `false` so callers fall through to their normal error handling. A server 403
  *   never yields `needs_account`.
@@ -44,6 +46,7 @@ export function MembershipGateProvider({
   onNavigateToMembership,
 }: MembershipGateProviderProps) {
   const { t } = useTranslation();
+  const { onRequestLogin } = useAuthPrompt();
   const { isLoggedIn } = useMembership();
   const [reason, setReason] = useState<AccessDenialReason | null>(null);
 
@@ -79,9 +82,14 @@ export function MembershipGateProvider({
   );
 
   const onConfirm = useCallback(() => {
+    const next = reason;
     closeGate();
+    if (next === 'needs_account') {
+      onRequestLogin();
+      return;
+    }
     onNavigateToMembership();
-  }, [closeGate, onNavigateToMembership]);
+  }, [closeGate, onNavigateToMembership, onRequestLogin, reason]);
 
   const value = useMemo<MembershipGateContextValue>(
     () => ({ goToMembership: onNavigateToMembership, handleGateError, openGate, runGated }),
@@ -104,7 +112,12 @@ export function MembershipGateProvider({
         : reason === 'needs_account'
           ? t('membership.gate.body_needs_account')
           : t('membership.gate.body_expired');
-  const confirmLabel = isLoggedIn ? t('membership.gate.renew') : t('membership.gate.sign_up');
+  const confirmLabel =
+    reason === 'needs_account'
+      ? t('authentication.login')
+      : isLoggedIn
+        ? t('membership.gate.renew')
+        : t('membership.gate.sign_up');
 
   return (
     <MembershipGateContext.Provider value={value}>
@@ -114,7 +127,7 @@ export function MembershipGateProvider({
         cancelLabel={t('membership.gate.cancel')}
         cancelTestID="premium-gate-cancel"
         confirmLabel={confirmLabel}
-        confirmTestID="premium-gate-renew"
+        confirmTestID={reason === 'needs_account' ? 'premium-gate-login' : 'premium-gate-renew'}
         onCancel={closeGate}
         onConfirm={onConfirm}
         testID="premium-gate-modal"

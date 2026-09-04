@@ -28,18 +28,6 @@ When the user says **abcremember**, **create or update** the best-fit abcmemory 
 
 For placement and workflow details, see `.cursor/skills/abcmemory/SKILL.md`.
 
-## abcchecke2e
-
-When the user says **abcchecke2e**, inspect both staged and unstaged changes, including
-untracked files that are part of the current work. Compare those changes with
-`docs/testing/E2E-VERIFICATION-SCRATCHPAD.md`.
-
-- Update the scratchpad so it lists the focused E2E verification required by the current changes.
-- Remove scratchpad entries that are unrelated to the current staged and unstaged changes.
-- Preserve only commands and report-review paths that are actionable for the current work.
-- Do not treat the scratchpad as permanent feature documentation; it represents the current
-  working-tree verification state.
-
 ## legacy app
 
 **legacy app** (also **podverse-rn**, **v4 mobile**) means the React Native app in the sibling

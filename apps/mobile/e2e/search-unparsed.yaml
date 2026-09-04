@@ -27,6 +27,8 @@ name: Search Unparsed Feed Preview
 - assertVisible:
     id: pi-feed-preview-screen
 - assertVisible:
+    id: pi-feed-preview-helper
+- assertVisible:
     id: pi-feed-add-button
 - assertNotVisible:
     id: search-error

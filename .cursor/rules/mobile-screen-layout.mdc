@@ -41,9 +41,12 @@ padding on top of the page gutter.
 Screen lists (Home, Search, Library, …) are unboxed: no perimeter `Card` around the rows. `Card`
 is a surface for grouped settings or section chrome, not for a scrolling result list.
 
-Internal gaps stay on the screen. Field → chips (or chips → first control) is `spacing.base`.
-Centered empty / loading (`VerticalCenter`, `CallToActionSection`, `LoadingSection`) fills leftover
-height; it does not replace the page gutter.
+Internal gaps stay on the screen. Prefer one column **`gap`** for a stack of related controls so
+spaces stay equal by construction (Search: field → chips → list rule all share `spacing.base`).
+**Spacing symmetry:** when two sides of a control should feel like the same relationship (above
+and below chips, around a divider, between paired labels), use the same token — do not mix
+`base` on one side and `md` on the other. Centered empty / loading (`VerticalCenter`,
+`CallToActionSection`, `LoadingSection`) fills leftover height; it does not replace the page gutter.
 
 ## Search field and chips
 
@@ -79,6 +82,19 @@ When a list's only body is a fill info state (`VerticalCenter` / `LoadingSection
 instead of raw `FlatList` — it locks bounce, over-scroll, pull-to-refresh, and `scrollEnabled`
 whenever `data` is empty and `ListEmptyComponent` is set. Pass `ListEmptyComponent={null}` when
 the empty copy lives in the header and the list should still scroll (filter-no-matches).
+
+## Action-gated account / membership
+
+When the screen is usable and one control is gated, keep the control visible. On press, call
+`useMembershipGate().openGate(reason)` so `ConfirmDialog` explains the denial. `needs_account`
+confirms to Login; membership reasons confirm to the Membership screen. Do not park an inline
+"Account required" card (`GatedFeatureNotice`) above a button the user has not tapped.
+
+The exception is a **fill empty**: the whole body is missing because the feature requires an
+account (Library history, playlists). That still uses **`CallToActionSection`** below.
+
+Helper copy that is not the content itself (directory explainer, why-add notes) uses
+**`HelperNote`** — tertiary fill and a leading info icon — so it does not read as a description.
 
 ## Login-gated fill states
 

@@ -185,12 +185,10 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
       headerSection: {
         ...bodyInsets,
         gap: tokens.spacing.base,
-        paddingBottom: tokens.spacing.md,
       },
       listRule: {
         backgroundColor: themeStyles.border.borderColor,
         height: 1,
-        marginHorizontal: bodyInsets.paddingHorizontal,
       },
       notice: {
         color: themeStyles.textSecondary.color,
@@ -321,8 +319,8 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
           testID="search-medium-chips"
           value={medium}
         />
+        <View style={styles.listRule} />
       </View>
-      <View style={styles.listRule} />
       <FillList
         ListEmptyComponent={listEmpty}
         ListFooterComponent={listFooter}
