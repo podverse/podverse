@@ -1,5 +1,6 @@
 'use client';
 
+import type { QueryParamsPodcastIndexSearchMedium } from '@podverse/helpers';
 import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
 
 import { MainWrapper } from '../../components/Main/MainWrapper';
@@ -8,9 +9,13 @@ import { SearchPageHeader } from './SearchPageHeader';
 import { SearchPageList } from './SearchPageList';
 import { SearchPageListHeader } from './SearchPageListHeader';
 
-export function SearchPageClient() {
+type SearchPageClientProps = {
+  initialMedium: QueryParamsPodcastIndexSearchMedium;
+};
+
+export function SearchPageClient({ initialMedium }: SearchPageClientProps) {
   return (
-    <SearchPageContextProvider>
+    <SearchPageContextProvider initialMedium={initialMedium}>
       <MainWrapper>
         <SearchPageHeader />
         <MainSidebarLayout>

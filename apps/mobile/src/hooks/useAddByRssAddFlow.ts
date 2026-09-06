@@ -38,11 +38,7 @@ export function useAddByRssAddFlow({
 
   const addFeed = useCallback(async () => {
     if (!addAccess.allowed) {
-      if (addAccess.reason === 'needs_account') {
-        setAddErrorKey('authentication.login_required');
-      } else {
-        openGate(addAccess.reason);
-      }
+      openGate(addAccess.reason);
       return;
     }
 

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 import { Card } from '../primitives/Card';
 import { ListRow } from '../primitives/ListRow';
@@ -8,14 +9,20 @@ import { MobileScreenContainer } from './MobileScreenContainer';
 
 export type MenuListItem = {
   onPress: () => void;
+  showsChevron?: boolean;
   subtitle?: string;
   testID: string;
   title: string;
 };
 
-export type MenuListScreenProps = {
+export type MenuListSection = {
   items: readonly MenuListItem[];
-  secondaryItems?: readonly MenuListItem[];
+  key: string;
+  title?: string;
+};
+
+export type MenuListScreenProps = {
+  sections: readonly MenuListSection[];
   testID: string;
 };
 
@@ -50,7 +57,9 @@ function MenuListGroup({ items }: { items: readonly MenuListItem[] }) {
             subtitle={item.subtitle}
             testID={item.testID}
             title={item.title}
-            trailing={<Text style={styles.chevron}>›</Text>}
+            trailing={
+              item.showsChevron === false ? undefined : <Text style={styles.chevron}>›</Text>
+            }
           />
         </View>
       ))}
@@ -59,17 +68,27 @@ function MenuListGroup({ items }: { items: readonly MenuListItem[] }) {
 }
 
 /**
- * Hub menu (More, My Library, etc.): grouped list rows with chevrons — iOS Settings style. Title
- * comes from the native stack header; omit `MobileScreenContainer` heading.
+ * Hub menu (More, My Library, Browse): optional section titles above grouped cards, chevrons on
+ * rows that push a screen. Callers pass already-localized titles. Omit a chevron for in-place
+ * actions (Log out).
  */
-export function MenuListScreen({ items, secondaryItems, testID }: MenuListScreenProps) {
+export function MenuListScreen({ sections, testID }: MenuListScreenProps) {
   const { tokens } = useTheme();
+  const visibleSections = sections.filter((section) => section.items.length > 0);
 
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        sectionSpacing: {
-          marginTop: tokens.spacing.base,
+        section: {
+          gap: tokens.spacing.lg,
+        },
+        sectionSpaced: {
+          marginTop: tokens.spacing.xl,
+        },
+        sectionTitle: {
+          ...typography.heading,
+          color: tokens.text.accent,
+          fontWeight: '700',
         },
       }),
     [tokens]
@@ -77,16 +96,21 @@ export function MenuListScreen({ items, secondaryItems, testID }: MenuListScreen
 
   return (
     <MobileScreenContainer testID={testID}>
-      <Card padded={false}>
-        <MenuListGroup items={items} />
-      </Card>
-      {secondaryItems !== undefined && secondaryItems.length > 0 ? (
-        <View style={styles.sectionSpacing}>
+      {visibleSections.map((section, index) => (
+        <View
+          key={section.key}
+          style={[styles.section, index > 0 ? styles.sectionSpaced : null]}
+        >
+          {section.title !== undefined ? (
+            <Text accessibilityRole="header" style={styles.sectionTitle}>
+              {section.title}
+            </Text>
+          ) : null}
           <Card padded={false}>
-            <MenuListGroup items={secondaryItems} />
+            <MenuListGroup items={section.items} />
           </Card>
         </View>
-      ) : null}
+      ))}
     </MobileScreenContainer>
   );
 }

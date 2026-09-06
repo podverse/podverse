@@ -94,9 +94,11 @@ alwaysApply: false
      extract on first write when the pattern is clearly generic (same bar as `src/lib/` helpers).
   3. Keep screen files as orchestration (data hooks + wiring). Put presentation in shared components.
 
-  Inventory (extend here when adding new shared UI): `Button`, `Card`, `CoverImage`, `FillList`,
-  `ListRow`, `ReorderHandle`, `ScreenHeader`, `VerticalCenter`, `HeaderBar`, `MobileScreenContainer`,
-  `ThemedStackHeader`, `SectionCard`, `ListSection`, `ReorderableSections` / `ReorderableList`,
+  Inventory (extend here when adding new shared UI): `Button`, `Card`, `CoverImage`,
+  `ImageViewerModal`, `MoreMenu`, `FillList`, `ListRow`, `ReorderHandle`, `ScreenHeader`,
+  `VerticalCenter`, `HeaderBar`, `HeaderBarChrome`, `HeaderBarAction`, `MobileScreenContainer`,
+  `ThemedStackHeader`,
+  `SectionCard`, `ListSection`, `ReorderableSections` / `ReorderableList`,
   `ListLoading` / `ListEmpty` / `ListError`, `CallToActionSection`, `LoadingSection`,
   `AuthAwareLoadState`, `RetryableError`, `MediaRowActions`, `MiniPlayer`, gate/banner feedback.
   Do **not** use `@podverse/ui` (web/SCSS). Details: **mobile-reusable-components** skill.

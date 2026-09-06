@@ -4,19 +4,20 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import type { FeatureAccess } from '@podverse/helpers';
 
+import {
+  membershipGateConfirmDestination,
+  membershipGateMessageKeys,
+  membershipGateNoticeActionKey,
+} from '../../membership/membershipGateCopy';
 import { useTheme } from '../../theme/useTheme';
 import { Button } from '../primitives';
 
 /**
- * The one inline presentation for a capability the user cannot use. A gated control shows
- * this instead of disappearing or failing silently: the user always learns what is missing and gets
- * the action that fixes it.
+ * Inline card for a gate that has no single action to attach to. Prefer
+ * `useMembershipGate().openGate(reason)` when the user taps a gated control — that opens
+ * `ConfirmDialog` (Login for `needs_account`, Membership for the rest).
  *
- * Renders nothing when access is allowed, so a call site can mount it unconditionally next to the
- * control it explains.
- *
- * The reason→copy mapping lives here rather than at call sites, so every gated control across the
- * app explains itself in the same words.
+ * Renders nothing when access is allowed. The reason→copy mapping matches the gate modal.
  */
 export type GatedFeatureNoticeProps = {
   access: FeatureAccess;
@@ -66,42 +67,19 @@ export function GatedFeatureNotice({
   }
 
   const { reason } = access;
-
-  const title =
-    reason === 'needs_account'
-      ? t('membership.gate.title_needs_account')
-      : reason === 'limit_reached'
-        ? t('membership.gate.title_limit')
-        : reason === 'membership_expired'
-          ? t('membership.gate.title_expired')
-          : t('membership.gate.title_premium');
-
-  const body =
-    reason === 'needs_account'
-      ? t('membership.gate.body_needs_account')
-      : reason === 'limit_reached'
-        ? t('membership.gate.body_limit')
-        : reason === 'membership_expired'
-          ? t('membership.gate.body_expired')
-          : t('membership.gate.body_premium');
-
-  const actionLabel =
-    reason === 'needs_account'
-      ? t('authentication.login')
-      : reason === 'membership_expired'
-        ? t('membership.gate.renew')
-        : t('membership.get_premium');
-
-  const onPress = reason === 'needs_account' ? onRequestLogin : onRequestMembership;
+  const messageKeys = membershipGateMessageKeys(reason);
+  const actionLabel = t(membershipGateNoticeActionKey(reason));
+  const onPress =
+    membershipGateConfirmDestination(reason) === 'login' ? onRequestLogin : onRequestMembership;
 
   return (
     <View style={styles.container} testID={testID}>
       {/* Not `accessible` as a group: that collapses the button into the block on iOS. */}
       <View accessibilityLiveRegion="polite" style={styles.copy}>
         <Text accessibilityRole="header" style={styles.title}>
-          {title}
+          {t(messageKeys.titleKey)}
         </Text>
-        <Text style={styles.body}>{body}</Text>
+        <Text style={styles.body}>{t(messageKeys.bodyKey)}</Text>
       </View>
       <Button
         label={actionLabel}

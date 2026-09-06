@@ -148,6 +148,7 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
                 <Text style={styles.notice}>{queue.id_text}</Text>
                 {nowPlayingRow !== null ? (
                   <HomeFeedRow
+                    isLast
                     mediaType={nowPlayingRow.mediaType}
                     onPlayPress={(row) => {
                       runPlayAction(row, nowPlayingRow.mediaType);
@@ -167,7 +168,7 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
             <ListSection
               emptyTestID="library-queue-upcoming-empty"
               items={upcomingRows}
-              renderItem={(row: QueueRow) => (
+              renderItem={(row: QueueRow, _index, isLast) => (
                 <View key={row.id}>
                   <View style={styles.actionRow}>
                     <Pressable
@@ -192,6 +193,7 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
                     </Pressable>
                   </View>
                   <HomeFeedRow
+                    isLast={isLast}
                     mediaType={row.mediaType}
                     onPlayPress={(nextRow) => {
                       runPlayAction(nextRow, row.mediaType);

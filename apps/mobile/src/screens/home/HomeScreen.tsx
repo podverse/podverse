@@ -620,12 +620,13 @@ export function HomeScreen() {
             tintColor={themeStyles.buttonPrimary.backgroundColor}
           />
         }
-        renderItem={({ item: row }) => (
+        renderItem={({ index, item: row }) => (
           <View style={columns > 1 ? styles.columnCell : undefined}>
             {isGridView ? (
               <HomeFeedGridCell onPress={handleRowPress} row={row} />
             ) : (
               <HomeFeedRow
+                isLast={index === visibleRows.length - 1}
                 mediaType={selectedMediaType}
                 onAddToPlaylistPress={
                   status === 'authenticated' && addToPlaylistKind !== null

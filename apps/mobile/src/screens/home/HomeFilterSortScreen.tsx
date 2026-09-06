@@ -1,10 +1,11 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import type { OptionListItem } from '../../components/form/OptionListGroup';
 import { OptionListGroup } from '../../components/form/OptionListGroup';
+import { HeaderBarAction } from '../../components/screen/HeaderBarAction';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import type { HomeStackParamList } from '../../navigation';
 import type { HomeSortOption } from '../../prefs/homeListPrefs';
@@ -32,7 +33,7 @@ const SORT_LABEL_KEYS: Record<HomeSortOption, string> = {
  */
 export function HomeFilterSortScreen({ navigation, route }: HomeFilterSortScreenProps) {
   const { t } = useTranslation();
-  const { styles: themeStyles, tokens } = useTheme();
+  const { tokens } = useTheme();
 
   const { mediaType } = route.params;
   const [sort, setSort] = useState<HomeSortOption>(DEFAULT_HOME_SORT);
@@ -56,38 +57,27 @@ export function HomeFilterSortScreen({ navigation, route }: HomeFilterSortScreen
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        done: {
-          paddingHorizontal: tokens.spacing.sm,
-          paddingVertical: tokens.spacing.xs,
-        },
-        doneLabel: {
-          color: themeStyles.buttonPrimary.backgroundColor,
-          fontSize: 16,
-          fontWeight: '700',
-        },
         section: {
           marginBottom: tokens.spacing.lg,
         },
       }),
-    [themeStyles, tokens]
+    [tokens]
   );
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <Pressable
-          accessibilityRole="button"
+        <HeaderBarAction
+          accessibilityLabel={t('misc.done')}
+          label={t('misc.done')}
           onPress={() => {
             navigation.goBack();
           }}
-          style={styles.done}
           testID="home-filter-sort-done"
-        >
-          <Text style={styles.doneLabel}>{t('misc.done')}</Text>
-        </Pressable>
+        />
       ),
     });
-  }, [navigation, styles, t]);
+  }, [navigation, t]);
 
   const handleSortSelect = useCallback(
     (nextSort: HomeSortOption) => {

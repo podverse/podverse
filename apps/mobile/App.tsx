@@ -1,7 +1,8 @@
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
-import { Image, Linking, Platform, StyleSheet, View } from 'react-native';
+import { Image, Linking, Modal, Platform, StyleSheet, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import splashBanner from './assets/splash/banner.png';
 import splashIcon from './assets/splash/icon.png';
@@ -206,6 +207,12 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
   const [authMode, setAuthMode] = useState<'anonymous' | 'login' | 'signup'>('anonymous');
 
   useEffect(() => {
+    if (status === 'authenticated') {
+      setAuthMode('anonymous');
+    }
+  }, [status]);
+
+  useEffect(() => {
     if (pendingDeepLinkUrl === null || status !== 'anonymous') {
       return;
     }
@@ -217,27 +224,14 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
     }
   }, [authMode, pendingDeepLinkUrl, status]);
 
+  const dismissAuthSheet = () => {
+    setAuthMode('anonymous');
+  };
+  const showAuthSheet = status === 'anonymous' && (authMode === 'login' || authMode === 'signup');
+
   return (
     <>
-      {status === 'unknown' ? null : status === 'anonymous' && authMode === 'login' ? (
-        <LoginScreen
-          onDismiss={() => {
-            setAuthMode('anonymous');
-          }}
-          onSwitchToSignUp={() => {
-            setAuthMode('signup');
-          }}
-        />
-      ) : status === 'anonymous' && authMode === 'signup' ? (
-        <SignUpScreen
-          onDismiss={() => {
-            setAuthMode('anonymous');
-          }}
-          onSwitchToLogin={() => {
-            setAuthMode('login');
-          }}
-        />
-      ) : (
+      {status === 'unknown' ? null : (
         <AuthPromptProvider
           onRequestLogin={() => {
             setAuthMode('login');
@@ -268,6 +262,32 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
           </MembershipGateProvider>
         </AuthPromptProvider>
       )}
+      {status === 'anonymous' ? (
+        <Modal
+          animationType="slide"
+          onRequestClose={dismissAuthSheet}
+          presentationStyle="fullScreen"
+          visible={showAuthSheet}
+        >
+          <SafeAreaProvider>
+            {authMode === 'signup' ? (
+              <SignUpScreen
+                onDismiss={dismissAuthSheet}
+                onSwitchToLogin={() => {
+                  setAuthMode('login');
+                }}
+              />
+            ) : (
+              <LoginScreen
+                onDismiss={dismissAuthSheet}
+                onSwitchToSignUp={() => {
+                  setAuthMode('signup');
+                }}
+              />
+            )}
+          </SafeAreaProvider>
+        </Modal>
+      ) : null}
       <StatusBar style={statusBarStyle} />
     </>
   );

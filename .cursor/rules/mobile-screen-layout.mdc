@@ -5,7 +5,13 @@ globs:
   - apps/mobile/src/components/screen/**/*
   - apps/mobile/src/theme/screenLayout.ts
   - apps/mobile/src/components/primitives/FillList.tsx
+  - apps/mobile/src/components/primitives/ListRow.tsx
   - apps/mobile/src/components/primitives/VerticalCenter.tsx
+  - apps/mobile/src/components/form/SearchField.tsx
+  - apps/mobile/src/components/section/ListSection.tsx
+  - apps/mobile/src/screens/home/HomeFeedRow.tsx
+  - apps/mobile/src/components/primitives/MoreMenu.tsx
+  - apps/mobile/App.tsx
 alwaysApply: false
 ---
 
@@ -18,9 +24,15 @@ per-screen inset under the title bar.
 
 - Use **`HeaderBar`** for the slot under the status bar: safe-area inset and a 44pt row. No
   divider, hairline, or shadow under the title.
-- Stack titles go through **`ThemedStackHeader`** (already wraps `HeaderBar`).
+- Stack titles go through **`ThemedStackHeader`** (already wraps `HeaderBar` via
+  **`HeaderBarChrome`**). Trailing header actions use **`HeaderBarAction`** in `headerRight` —
+  do not invent a one-off top-right `Pressable`. A header More opens **`MoreMenu`** — a bottom
+  sheet that appears instantly: tertiary action group with centered bold rows, then a
+  separate opaque quaternary Cancel block (same bold weight). Do not slide or fade, do
+  not use a translucent Cancel fill, do not use a centered card, and do not style Cancel
+  as a pill.
 - Tab roots use the same title slot (Home, Search, …). Page controls such as Home's media-type
-  pills and Search's field sit in the body under that bar, not inside it.
+  pills and Search's field and chips sit in the body under that bar, not inside it.
 
 ## Page body under the bar
 
@@ -30,13 +42,65 @@ The first content below `HeaderBar` uses **`screenBodyInsets(tokens.spacing)`** 
 - **Top:** `spacing.lg` between the title row and the first body control
 - **Horizontal:** `spacing.lg` on both sides of that body
 
-`MobileScreenContainer` already applies this. Home's feed list and Search's input / results card
+`MobileScreenContainer` already applies this. Home's feed list and Search's field / chips / list
 must use the same helper — not a one-off `padding` / `margin`, and not a second inner `Card`
 padding on top of the page gutter.
 
-Internal gaps (input → results, filter row → row) stay on the screen. Centered empty / loading
-(`VerticalCenter`, `CallToActionSection`, `LoadingSection`) fills leftover height; it does not
-replace the page gutter.
+Screen lists (Home, Search, Library, …) are unboxed: no perimeter `Card` around the rows. `Card`
+is a surface for grouped settings or section chrome, not for a scrolling result list.
+
+Internal gaps stay on the screen. Prefer one column **`gap`** for a stack of related controls so
+spaces stay equal by construction (Search: field → chips → list rule all share `spacing.base`).
+**Spacing symmetry:** when two sides of a control should feel like the same relationship (above
+and below chips, around a divider, between paired labels), use the same token — do not mix
+`base` on one side and `md` on the other. Centered empty / loading (`VerticalCenter`,
+`CallToActionSection`, `LoadingSection`) fills leftover height; it does not replace the page gutter.
+
+## Search field and chips
+
+Search uses **`SearchField`** (built on **`TextField`**): tertiary fill, no resting outline,
+leading magnifying-glass, a 2px transparent border that becomes `tokens.border.primary` on
+focus. Do not restyle a bare `TextInput` with a perimeter stroke.
+
+The painted pill is the hit target. A tap anywhere inside it — padding, empty space, or the
+leading glass — focuses the input. `TextField` implements that; do not rebuild it per screen.
+Do not enlarge the area by adding padding on the `TextInput` (that moves the placeholder).
+Submit stays on the keyboard return key. Leaving the screen blurs the field — do not keep a
+caret or focus ring across a tab switch. Focus again only when the user taps or a screen
+explicitly requests it (`autoFocus`). The same contract applies to other painted controls you
+touch: the visible shape is what the finger can press.
+
+Two or three filters under a field use **`OptionChipGroup`**. Selected chip = `buttonPrimary` fill.
+Settings density (2–3 chips vs option-list screen) is **mobile-settings-option-density**.
+
+Standalone cover art uses **`CoverImage`**, which opens **`ImageViewerModal`** on tap. Do not add
+a nested image tap when the parent row, cell, or header is already the pressable control
+(`opensViewer={false}`). The app stays portrait; the viewer does not unlock landscape.
+
+## Hub menus
+
+More, Library, and Browse use **`MenuListScreen`**. A section title sits **above** its `Card`
+(`tokens.text.accent`, heading weight) with `spacing.lg` before the card and `spacing.xl`
+between groups. Rows that push a screen show a `›`. In-place actions (Log out) set
+`showsChevron: false`. Skip empty sections. More Account includes Login / Sign up or Log out.
+
+## List rows
+
+Media and result rows use **`HomeFeedRow`** (or **`ListRow`** when the layout is title/subtitle
+only). Default vertical padding is **`tokens.spacing.base`**. Row artwork is **60×60**. Space
+between title, subtitle, and other in-row lines with a column **`gap`** (`spacing.sm`) — not
+`marginTop` / `marginBottom` on each line — so a missing subtitle or metadata line adds no leftover
+space. The text stack uses `justifyContent: 'center'` so it stays vertically centered on the
+artwork. The row itself uses `gap` between artwork and text (not a leading `marginLeft`).
+
+Row dividers are `StyleSheet.hairlineWidth` + `themeStyles.border.borderColor`. The **last row
+omits the bottom border** so a hairline does not sit on the list edge. Pass `isLast` on
+`HomeFeedRow`. `ListSection` already supplies it as the third `renderItem` argument
+`(item, index, isLast)`. `ReorderableSections` uses the same last-row rule.
+
+The rule between chips/filters and the first row is one step stronger than a row hairline:
+`height: 1`, the same `themeStyles.border.borderColor`, and horizontal inset from
+`screenBodyInsets().paddingHorizontal` (Search's `listRule`). Do not invent a second color.
 
 ## Fill empty lists do not scroll
 
@@ -45,6 +109,20 @@ When a list's only body is a fill info state (`VerticalCenter` / `LoadingSection
 instead of raw `FlatList` — it locks bounce, over-scroll, pull-to-refresh, and `scrollEnabled`
 whenever `data` is empty and `ListEmptyComponent` is set. Pass `ListEmptyComponent={null}` when
 the empty copy lives in the header and the list should still scroll (filter-no-matches).
+
+## Action-gated account / membership
+
+When the screen is usable and one control is gated, keep the control visible. On press, call
+`useMembershipGate().openGate(reason)` so `ConfirmDialog` explains the denial. `needs_account`
+confirms to Login; membership reasons confirm to the Membership screen. Copy comes from
+`membershipGateCopy` (exhaustive on `AccessDenialReason`). Do not park an inline
+"Account required" card (`GatedFeatureNotice`) above a button the user has not tapped.
+
+The exception is a **fill empty**: the whole body is missing because the feature requires an
+account (Library history, playlists). That still uses **`CallToActionSection`** below.
+
+Helper copy that is not the content itself (directory explainer, why-add notes) uses
+**`HelperNote`** — tertiary fill and a leading info icon — so it does not read as a description.
 
 ## Login-gated fill states
 
@@ -59,6 +137,13 @@ history across devices, playlists they can share). Generic “Log in to continue
 inline gates, not a full-screen feature empty. Hide the in-body heading on that fill — the
 `HeaderBar` title is enough.
 
+## Login / Sign up overlay
+
+Login and Sign up slide up as a full-screen `Modal` over the tab shell — they must not replace
+the navigator. Dismiss with a down chevron (`HeaderBarChrome` `backIcon="chevron-down"`,
+`testID="auth-dismiss"`). Do not add a Cancel button. The account switch is body text plus a
+link-style `Pressable` under Submit (`auth-switch-signup` / `auth-switch-login`).
+
 ## Do not
 
 - Use a different page gutter (`md`, `2xl`, raw numbers) for the body under `HeaderBar`.
@@ -67,6 +152,8 @@ inline gates, not a full-screen feature empty. Hide the in-body heading on that 
 - Put a second in-body display heading on a screen that already has a `HeaderBar` title.
 - Use raw `FlatList` for a screen list that shows a `VerticalCenter` fill empty, then hand-toggle
   `scrollEnabled` / `bounces` at the screen.
+- Leave a bottom hairline on the last list row, or drop media-row vertical padding back to
+  `spacing.md`.
 
 ## Related
 

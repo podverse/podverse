@@ -10,13 +10,15 @@ import {
 } from '@podverse/helpers-validation/client';
 
 import { createMobileApiRequestService } from '../../auth';
+import { Button } from '../../components/primitives';
+import { HeaderBarChrome } from '../../components/screen/HeaderBarChrome';
+import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { getMobileConfig } from '../../config';
 import { writeSignupMergeEmail } from '../../data/repositories/subscriptionsSignupMarker';
 import { useTheme } from '../../theme/useTheme';
 
 type SignUpScreenProps = {
-  /** Return to the anonymous tab shell without creating an account (guest skip). */
-  onDismiss?: () => void;
+  onDismiss: () => void;
   onSwitchToLogin: () => void;
 };
 
@@ -44,33 +46,6 @@ export function SignUpScreen({ onDismiss, onSwitchToLogin }: SignUpScreenProps) 
   };
 
   const styles = StyleSheet.create({
-    button: {
-      alignItems: 'center',
-      backgroundColor: themeStyles.buttonPrimary.backgroundColor,
-      borderRadius: tokens.radii.md,
-      paddingHorizontal: tokens.spacing.lg,
-      paddingVertical: tokens.spacing.md,
-    },
-    buttonText: {
-      color: themeStyles.buttonPrimary.color,
-      fontWeight: '600',
-    },
-    card: {
-      backgroundColor: tokens.background.secondary,
-      borderColor: themeStyles.border.borderColor,
-      borderRadius: tokens.radii.md,
-      borderWidth: 1,
-      maxWidth: 440,
-      padding: tokens.spacing['2xl'],
-      width: '100%',
-    },
-    container: {
-      alignItems: 'center',
-      backgroundColor: themeStyles.screen.backgroundColor,
-      flex: 1,
-      justifyContent: 'center',
-      padding: tokens.spacing['2xl'],
-    },
     error: {
       color: themeStyles.textSecondary.color,
       marginTop: tokens.spacing.md,
@@ -88,14 +63,28 @@ export function SignUpScreen({ onDismiss, onSwitchToLogin }: SignUpScreenProps) 
       color: themeStyles.textPrimary.color,
       marginTop: tokens.spacing.md,
     },
+    link: {
+      color: tokens.text.link,
+      fontWeight: '600',
+    },
+    prompt: {
+      color: themeStyles.textPrimary.color,
+    },
+    promptBlock: {
+      alignItems: 'flex-start',
+      gap: tokens.spacing.sm,
+      marginTop: tokens.spacing.lg,
+    },
+    root: {
+      backgroundColor: themeStyles.screen.backgroundColor,
+      flex: 1,
+    },
+    submit: {
+      marginTop: tokens.spacing.xl,
+    },
     success: {
       color: themeStyles.textPrimary.color,
       marginTop: tokens.spacing.md,
-    },
-    title: {
-      color: themeStyles.textPrimary.color,
-      fontSize: 24,
-      fontWeight: '700',
     },
   });
 
@@ -158,9 +147,15 @@ export function SignUpScreen({ onDismiss, onSwitchToLogin }: SignUpScreenProps) 
   };
 
   return (
-    <View style={styles.container} testID="signup-screen">
-      <View style={styles.card}>
-        <Text style={styles.title}>{t('authentication.sign_up')}</Text>
+    <View style={styles.root} testID="signup-screen">
+      <HeaderBarChrome
+        backAccessibilityLabel={t('misc.dismiss')}
+        backIcon="chevron-down"
+        backTestID="auth-dismiss"
+        onBack={onDismiss}
+        title={t('authentication.sign_up')}
+      />
+      <MobileScreenContainer testID="signup-form">
         <Text style={styles.label}>{t('authentication.email')}</Text>
         <TextInput
           autoCapitalize="none"
@@ -191,19 +186,18 @@ export function SignUpScreen({ onDismiss, onSwitchToLogin }: SignUpScreenProps) 
           testID="signup-password-confirm"
           value={passwordConfirm}
         />
-        <Pressable
-          accessibilityRole="button"
-          disabled={isLoading}
-          onPress={() => {
-            void handleSubmit();
-          }}
-          style={styles.button}
-          testID="signup-submit"
-        >
-          <Text style={styles.buttonText}>
-            {isLoading ? t('misc.loading') : t('authentication.create_account')}
-          </Text>
-        </Pressable>
+        <View style={styles.submit}>
+          <Button
+            disabled={isLoading}
+            fullWidth
+            label={t('authentication.create_account')}
+            loading={isLoading}
+            onPress={() => {
+              void handleSubmit();
+            }}
+            testID="signup-submit"
+          />
+        </View>
         {error !== null ? (
           <Text style={styles.error} testID="signup-error">
             {error}
@@ -214,27 +208,17 @@ export function SignUpScreen({ onDismiss, onSwitchToLogin }: SignUpScreenProps) 
             {successMessage}
           </Text>
         ) : null}
-        <Pressable
-          accessibilityRole="button"
-          onPress={onSwitchToLogin}
-          style={styles.button}
-          testID="auth-switch-login"
-        >
-          <Text style={styles.buttonText}>
-            {t('authentication.already_have_an_account_log_in')}
-          </Text>
-        </Pressable>
-        {onDismiss !== undefined ? (
+        <View style={styles.promptBlock}>
+          <Text style={styles.prompt}>{t('authentication.already_have_an_account')}</Text>
           <Pressable
-            accessibilityRole="button"
-            onPress={onDismiss}
-            style={styles.button}
-            testID="auth-dismiss"
+            accessibilityRole="link"
+            onPress={onSwitchToLogin}
+            testID="auth-switch-login"
           >
-            <Text style={styles.buttonText}>{t('misc.cancel')}</Text>
+            <Text style={styles.link}>{t('authentication.login')}</Text>
           </Pressable>
-        ) : null}
-      </View>
+        </View>
+      </MobileScreenContainer>
     </View>
   );
 }

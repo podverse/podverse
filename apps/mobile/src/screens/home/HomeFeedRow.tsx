@@ -22,6 +22,8 @@ type HomeFeedRowProps = {
   /** When provided, adds an "Add to playlist" more-action (9d.4). Omit for unsupported kinds. */
   onAddToPlaylistPress?: (row: HomeFeedRowData) => void;
   row: HomeFeedRowData;
+  /** Last row in a list: no bottom hairline so it does not sit on the list edge. */
+  isLast?: boolean;
   testID?: string;
 };
 
@@ -97,6 +99,7 @@ export function HomeFeedRow({
   onQueuePress,
   onAddToPlaylistPress,
   customActions,
+  isLast = false,
   row,
   testID,
 }: HomeFeedRowProps) {
@@ -111,18 +114,16 @@ export function HomeFeedRow({
         actionRow: {
           flexDirection: 'row',
           gap: tokens.spacing.sm,
-          marginTop: tokens.spacing.sm,
         },
         image: {
-          height: 56,
-          width: 56,
+          height: 60,
+          width: 60,
         },
         metadataRow: {
           alignItems: 'center',
           flexDirection: 'row',
           flexWrap: 'wrap',
           gap: tokens.spacing.sm,
-          marginTop: tokens.spacing.xs,
         },
         metadataText: {
           color: themeStyles.textSecondary.color,
@@ -132,13 +133,15 @@ export function HomeFeedRow({
           alignItems: 'center',
           backgroundColor: themeStyles.screen.backgroundColor,
           borderBottomColor: themeStyles.border.borderColor,
-          borderBottomWidth: 1,
+          borderBottomWidth: isLast ? 0 : StyleSheet.hairlineWidth,
           flexDirection: 'row',
-          paddingVertical: tokens.spacing.md,
+          gap: tokens.spacing.md,
+          paddingVertical: tokens.spacing.base,
         },
         rowContent: {
           flex: 1,
-          marginLeft: tokens.spacing.md,
+          gap: tokens.spacing.sm,
+          justifyContent: 'center',
           minWidth: 0,
         },
         subtitle: {
@@ -149,10 +152,9 @@ export function HomeFeedRow({
           color: themeStyles.textPrimary.color,
           fontSize: 16,
           fontWeight: '600',
-          marginBottom: tokens.spacing.xs,
         },
       }),
-    [themeStyles, tokens]
+    [isLast, themeStyles, tokens]
   );
 
   return (
@@ -169,7 +171,12 @@ export function HomeFeedRow({
       style={styles.row}
       testID={testID ?? `home-feed-row-${row.id}`}
     >
-      <CoverImage fallbackLabel={t('media.image')} style={styles.image} uri={row.imageUrl} />
+      <CoverImage
+        fallbackLabel={t('media.image')}
+        opensViewer={false}
+        style={styles.image}
+        uri={row.imageUrl}
+      />
       <View style={styles.rowContent}>
         {/* The title carries its own testID because it is what the Home filter matches on, so a
             test needs to read the text it is about to type. */}

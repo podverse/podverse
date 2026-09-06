@@ -2,19 +2,23 @@ import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AccessibilityInfo, StyleSheet, Text, TextInput, View } from 'react-native';
+import type { TextInput } from 'react-native';
+import { AccessibilityInfo, StyleSheet, Text, View } from 'react-native';
 
-import type { SearchPodcastsFeed } from '@podverse/helpers';
+import type { QueryParamsPodcastIndexSearchMedium, SearchPodcastsFeed } from '@podverse/helpers';
 import { toNonEmptyTrimmedString } from '@podverse/helpers/guards';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
-import { Card, FillList, VerticalCenter } from '../../components/primitives';
+import { OptionChipGroup } from '../../components/form/OptionChipGroup';
+import { SearchField } from '../../components/form/SearchField';
+import { FillList, VerticalCenter } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { LoadingSection } from '../../components/state/LoadingSection';
 import type { SearchStackParamList } from '../../navigation';
 import { SEARCH_STACK_ROUTES } from '../../navigation';
+import { readSearchListMedium, writeSearchListMedium } from '../../prefs/searchListPrefs';
 import { screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 import { HomeFeedRow } from '../home/HomeFeedRow';
@@ -35,9 +39,8 @@ const feedToRow = (feed: SearchPodcastsFeed) => ({
 });
 
 /**
- * Discovery, matching web `/search`: one debounced field against Podcast Index, results in the
- * order that API returns them. Filtering or sorting here could only reflect the fields Podcast
- * Index happens to send back, so the screen offers neither.
+ * Discovery, matching web `/search`: a filled field, All / Music chips, then an unboxed list of
+ * Podcast Index feeds in the order that API returns them.
  */
 export function SearchScreen({ navigation, route }: SearchScreenProps) {
   const { t } = useTranslation();
@@ -45,6 +48,8 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
   const { styles: themeStyles, tokens } = useTheme();
   const [query, setQuery] = useState<string>('');
   const [debouncedQuery, setDebouncedQuery] = useState<string>('');
+  const [medium, setMedium] = useState<QueryParamsPodcastIndexSearchMedium>('all');
+  const [isMediumReady, setIsMediumReady] = useState<boolean>(false);
   const [feeds, setFeeds] = useState<SearchPodcastsFeed[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
@@ -52,6 +57,23 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
   const inputRef = useRef<TextInput | null>(null);
 
   const wantsAutoFocus = route.params?.autoFocus === true;
+
+  useEffect(() => {
+    let isMounted = true;
+    void (async () => {
+      const stored = await readSearchListMedium();
+      if (!isMounted) {
+        return;
+      }
+
+      setMedium(stored);
+      setIsMediumReady(true);
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Home's "nothing subscribed yet" button sends the user here to type something, so the field
   // starts empty and focused. The request is consumed immediately, otherwise coming back from a
@@ -80,6 +102,10 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
   }, [query]);
 
   useEffect(() => {
+    if (!isMediumReady) {
+      return;
+    }
+
     if (debouncedQuery.length === 0) {
       setFeeds([]);
       setErrorKey(null);
@@ -101,6 +127,7 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
           },
           async (api) =>
             api.reqPodcastIndexSearchPodcasts({
+              medium,
               q: debouncedQuery,
             })
         );
@@ -127,7 +154,7 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
     return () => {
       isMounted = false;
     };
-  }, [accessToken, clearSession, debouncedQuery, refreshToken, setTokens]);
+  }, [accessToken, clearSession, debouncedQuery, isMediumReady, medium, refreshToken, setTokens]);
 
   // A list that silently swaps its contents tells a screen reader user nothing. The first settled
   // result set is recorded without speaking, so arriving on Search does not talk over the screen
@@ -156,19 +183,13 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
         backgroundColor: themeStyles.screen.backgroundColor,
         flex: 1,
       },
-      input: {
-        backgroundColor: tokens.background.secondary,
-        borderColor: themeStyles.border.borderColor,
-        borderRadius: tokens.radii.md,
-        borderWidth: 1,
-        color: themeStyles.textPrimary.color,
-        fontSize: 16,
-        paddingHorizontal: tokens.spacing.md,
-        paddingVertical: tokens.spacing.sm,
-      },
-      inputSection: {
+      headerSection: {
         ...bodyInsets,
-        paddingBottom: tokens.spacing.md,
+        gap: tokens.spacing.base,
+      },
+      listRule: {
+        backgroundColor: themeStyles.border.borderColor,
+        height: 1,
       },
       notice: {
         color: themeStyles.textSecondary.color,
@@ -176,13 +197,9 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
         paddingHorizontal: tokens.spacing.md,
         paddingVertical: tokens.spacing.sm,
       },
-      resultsCard: {
-        flex: 1,
-        marginBottom: tokens.spacing.lg,
-        marginHorizontal: bodyInsets.paddingHorizontal,
-      },
       resultsContent: {
         flexGrow: 1,
+        paddingHorizontal: bodyInsets.paddingHorizontal,
       },
       resultsList: {
         flex: 1,
@@ -191,6 +208,15 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
   }, [themeStyles, tokens]);
 
   const showResultRows = !isLoading && errorKey === null && feeds.length > 0;
+
+  const handleMediumChange = (next: QueryParamsPodcastIndexSearchMedium) => {
+    setMedium(next);
+    void writeSearchListMedium(next);
+  };
+
+  const handleSubmitSearch = () => {
+    setDebouncedQuery(query.trim());
+  };
 
   const handleFeedPress = async (feed: SearchPodcastsFeed) => {
     const feedId = String(feed.id);
@@ -261,11 +287,7 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
         testID="search-error"
       />
     </VerticalCenter>
-  ) : debouncedQuery.length === 0 ? (
-    <VerticalCenter>
-      <ListEmpty messageKey="features.search.empty_prompt" testID="search-empty-query" />
-    </VerticalCenter>
-  ) : (
+  ) : debouncedQuery.length === 0 ? null : (
     <VerticalCenter>
       <ListEmpty messageKey="misc.info" testID="search-empty-results" />
     </VerticalCenter>
@@ -274,46 +296,54 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
   const listFooter =
     resolvingFeedId !== null ? <Text style={styles.notice}>{t('misc.loading')}</Text> : null;
 
+  const mediumOptions = [
+    { label: t('filters.type.all'), testID: 'search-medium-all', value: 'all' },
+    { label: t('media.music.music'), testID: 'search-medium-music', value: 'music' },
+  ] as const;
+
   return (
     <View style={styles.container} testID="search-screen">
-      <View style={styles.inputSection}>
-        <TextInput
+      <View style={styles.headerSection}>
+        <SearchField
           accessibilityLabel={t('features.search.search_by_title')}
-          autoCapitalize="none"
-          autoCorrect={false}
+          inputRef={inputRef}
           onChangeText={setQuery}
+          onSubmit={handleSubmitSearch}
           placeholder={t('features.search.search_by_title')}
-          placeholderTextColor={themeStyles.textSecondary.color}
-          ref={inputRef}
-          style={styles.input}
           testID="search-input"
           value={query}
         />
-      </View>
-      <Card padded={false} style={styles.resultsCard} testID="search-results-card">
-        <FillList
-          ListEmptyComponent={listEmpty}
-          ListFooterComponent={listFooter}
-          contentContainerStyle={styles.resultsContent}
-          data={showResultRows ? feeds : []}
-          keyboardShouldPersistTaps="handled"
-          keyExtractor={(feed) => String(feed.id)}
-          renderItem={({ index, item: feed }) => (
-            <HomeFeedRow
-              mediaType="podcasts"
-              onPlayPress={(_row) => {}}
-              onPress={() => {
-                void handleFeedPress(feed);
-              }}
-              onQueuePress={(_row) => {}}
-              row={feedToRow(feed)}
-              testID={`search-result-row-${index}`}
-            />
-          )}
-          style={styles.resultsList}
-          testID="search-results"
+        <OptionChipGroup
+          onChange={handleMediumChange}
+          options={mediumOptions}
+          testID="search-medium-chips"
+          value={medium}
         />
-      </Card>
+        <View style={styles.listRule} />
+      </View>
+      <FillList
+        ListEmptyComponent={listEmpty}
+        ListFooterComponent={listFooter}
+        contentContainerStyle={styles.resultsContent}
+        data={showResultRows ? feeds : []}
+        keyboardShouldPersistTaps="handled"
+        keyExtractor={(feed) => String(feed.id)}
+        renderItem={({ index, item: feed }) => (
+          <HomeFeedRow
+            isLast={index === feeds.length - 1}
+            mediaType="podcasts"
+            onPlayPress={(_row) => {}}
+            onPress={() => {
+              void handleFeedPress(feed);
+            }}
+            onQueuePress={(_row) => {}}
+            row={feedToRow(feed)}
+            testID={`search-result-row-${index}`}
+          />
+        )}
+        style={styles.resultsList}
+        testID="search-results"
+      />
     </View>
   );
 }
