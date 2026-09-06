@@ -38,6 +38,22 @@ component/source files.
 - When adding keys, follow **`i18n-management`** and **`i18n-catalog-layers`** (layers, compile,
   brand interpolation `{brand_name}` / `{brand_domain}`).
 
+## Reason-mapped copy (no fallbacks)
+
+When a dialog, notice, banner, or similar message component chooses copy from a typed reason or
+status union (`AccessDenialReason`, expiry status, …):
+
+- Map with an **exhaustive `switch`** — one case per union member. TypeScript must fail if a
+  reason is added and the switch is not updated.
+- Do **not** use a nested ternary whose last branch is a default `t(...)`. That last branch is a
+  silent fallback (e.g. `null` after dismiss becoming “Membership Expired”).
+- Do **not** treat “hidden” or `null` as a reason that maps to copy. Hide with `visible`; keep the
+  last explicit reason so a fade-out cannot swap the message.
+- Missing-data placeholders (`title ?? t('media.podcast.podcast')`) and operator/dev errors are
+  not this rule.
+
+Canonical mobile gate map: `apps/mobile/src/membership/membershipGateCopy.ts`.
+
 ## Do not
 
 - Do not ship hardcoded English (or any one locale) for product UI in app screens or shared UI

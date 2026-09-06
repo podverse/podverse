@@ -91,16 +91,27 @@ export function MembershipExpiredBanner({ onRenew }: MembershipExpiredBannerProp
     return null;
   }
 
-  // Explicit singular/plural keys rather than i18next `count` pluralization: the same catalog is
-  // read by next-intl on web, and the two libraries disambiguate plural suffixes differently.
-  // `daysRemaining` is a ceiling of a positive remainder here, so 1 is the smallest case.
-  const daysRemaining = notice.daysRemaining ?? 1;
-  const message =
-    notice.status === 'expired'
-      ? t('membership.gate.banner_message')
-      : daysRemaining === 1
-        ? t('membership.gate.banner_message_expiring_tomorrow')
-        : t('membership.gate.banner_message_expiring_soon', { days: daysRemaining });
+  let message: string;
+  switch (notice.status) {
+    case 'none':
+      return null;
+    case 'expired':
+      message = t('membership.gate.banner_message');
+      break;
+    case 'expiring_soon': {
+      const daysRemaining = notice.daysRemaining;
+      if (daysRemaining === null) {
+        return null;
+      }
+      // Explicit singular/plural keys rather than i18next `count` pluralization: the same catalog
+      // is read by next-intl on web, and the two libraries disambiguate plural suffixes differently.
+      message =
+        daysRemaining === 1
+          ? t('membership.gate.banner_message_expiring_tomorrow')
+          : t('membership.gate.banner_message_expiring_soon', { days: daysRemaining });
+      break;
+    }
+  }
 
   return (
     <View style={styles.container} testID="membership-expired-banner">

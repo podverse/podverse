@@ -10,6 +10,7 @@ globs:
   - apps/mobile/src/components/form/SearchField.tsx
   - apps/mobile/src/components/section/ListSection.tsx
   - apps/mobile/src/screens/home/HomeFeedRow.tsx
+  - apps/mobile/src/components/primitives/MoreMenu.tsx
 alwaysApply: false
 ---
 
@@ -22,7 +23,13 @@ per-screen inset under the title bar.
 
 - Use **`HeaderBar`** for the slot under the status bar: safe-area inset and a 44pt row. No
   divider, hairline, or shadow under the title.
-- Stack titles go through **`ThemedStackHeader`** (already wraps `HeaderBar`).
+- Stack titles go through **`ThemedStackHeader`** (already wraps `HeaderBar` via
+  **`HeaderBarChrome`**). Trailing header actions use **`HeaderBarAction`** in `headerRight` —
+  do not invent a one-off top-right `Pressable`. A header More opens **`MoreMenu`** — a bottom
+  sheet that appears instantly: tertiary action group with centered bold rows, then a
+  separate opaque quaternary Cancel block (same bold weight). Do not slide or fade, do
+  not use a translucent Cancel fill, do not use a centered card, and do not style Cancel
+  as a pill.
 - Tab roots use the same title slot (Home, Search, …). Page controls such as Home's media-type
   pills and Search's field and chips sit in the body under that bar, not inside it.
 
@@ -50,12 +57,24 @@ and below chips, around a divider, between paired labels), use the same token �
 
 ## Search field and chips
 
-Search uses **`SearchField`**: tertiary fill, no resting outline, leading magnifying-glass, a 2px
-transparent border that becomes `tokens.border.primary` on focus. Do not restyle a bare
-`TextInput` with a perimeter stroke.
+Search uses **`SearchField`** (built on **`TextField`**): tertiary fill, no resting outline,
+leading magnifying-glass, a 2px transparent border that becomes `tokens.border.primary` on
+focus. Do not restyle a bare `TextInput` with a perimeter stroke.
+
+The painted pill is the hit target. A tap anywhere inside it — padding, empty space, or the
+leading glass — focuses the input. `TextField` implements that; do not rebuild it per screen.
+Do not enlarge the area by adding padding on the `TextInput` (that moves the placeholder).
+Submit stays on the keyboard return key. Leaving the screen blurs the field — do not keep a
+caret or focus ring across a tab switch. Focus again only when the user taps or a screen
+explicitly requests it (`autoFocus`). The same contract applies to other painted controls you
+touch: the visible shape is what the finger can press.
 
 Two or three filters under a field use **`OptionChipGroup`**. Selected chip = `buttonPrimary` fill.
 Settings density (2–3 chips vs option-list screen) is **mobile-settings-option-density**.
+
+Standalone cover art uses **`CoverImage`**, which opens **`ImageViewerModal`** on tap. Do not add
+a nested image tap when the parent row, cell, or header is already the pressable control
+(`opensViewer={false}`). The app stays portrait; the viewer does not unlock landscape.
 
 ## List rows
 
@@ -87,7 +106,8 @@ the empty copy lives in the header and the list should still scroll (filter-no-m
 
 When the screen is usable and one control is gated, keep the control visible. On press, call
 `useMembershipGate().openGate(reason)` so `ConfirmDialog` explains the denial. `needs_account`
-confirms to Login; membership reasons confirm to the Membership screen. Do not park an inline
+confirms to Login; membership reasons confirm to the Membership screen. Copy comes from
+`membershipGateCopy` (exhaustive on `AccessDenialReason`). Do not park an inline
 "Account required" card (`GatedFeatureNotice`) above a button the user has not tapped.
 
 The exception is a **fill empty**: the whole body is missing because the feature requires an

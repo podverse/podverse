@@ -1,16 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMemo, useState } from 'react';
 import type { Ref } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import type { TextInput } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import { useTheme } from '../../theme/useTheme';
+import { TextField } from './TextField';
 
 export type SearchFieldProps = {
   accessibilityLabel: string;
   onChangeText: (value: string) => void;
   onSubmit?: () => void;
   placeholder: string;
-  searchIconAccessibilityLabel: string;
   testID?: string;
   value: string;
   inputRef?: Ref<TextInput>;
@@ -18,7 +19,7 @@ export type SearchFieldProps = {
 
 /**
  * Filled search field with a leading magnifying-glass, matching web `SearchInput`: tertiary
- * surface, no resting outline, inset focus ring.
+ * surface, no resting outline, inset focus ring. The whole pill focuses, including the glass.
  */
 export function SearchField({
   accessibilityLabel,
@@ -26,7 +27,6 @@ export function SearchField({
   onChangeText,
   onSubmit,
   placeholder,
-  searchIconAccessibilityLabel,
   testID,
   value,
 }: SearchFieldProps) {
@@ -37,65 +37,41 @@ export function SearchField({
     () =>
       StyleSheet.create({
         field: {
-          alignItems: 'center',
           backgroundColor: tokens.background.tertiary,
           borderColor: 'transparent',
           borderRadius: tokens.radii.md,
           borderWidth: 2,
-          flexDirection: 'row',
           paddingHorizontal: tokens.spacing.md,
           paddingVertical: tokens.spacing.sm,
         },
         fieldFocused: {
           borderColor: tokens.border.primary,
         },
-        iconButton: {
-          alignItems: 'center',
-          height: 28,
-          justifyContent: 'center',
-          marginRight: tokens.spacing.md,
-          width: 28,
-        },
-        input: {
-          color: themeStyles.textPrimary.color,
-          flex: 1,
-          fontSize: 16,
-          padding: 0,
-        },
       }),
-    [themeStyles, tokens]
+    [tokens]
   );
 
   return (
-    <View style={[styles.field, isFocused ? styles.fieldFocused : null]}>
-      <Pressable
-        accessibilityLabel={searchIconAccessibilityLabel}
-        accessibilityRole="button"
-        onPress={onSubmit}
-        style={styles.iconButton}
-      >
-        <Ionicons color={themeStyles.textSecondary.color} name="search" size={18} />
-      </Pressable>
-      <TextInput
-        accessibilityLabel={accessibilityLabel}
-        autoCapitalize="none"
-        autoCorrect={false}
-        onBlur={() => {
-          setIsFocused(false);
-        }}
-        onChangeText={onChangeText}
-        onFocus={() => {
-          setIsFocused(true);
-        }}
-        onSubmitEditing={onSubmit}
-        placeholder={placeholder}
-        placeholderTextColor={themeStyles.textSecondary.color}
-        ref={inputRef}
-        returnKeyType="search"
-        style={styles.input}
-        testID={testID}
-        value={value}
-      />
-    </View>
+    <TextField
+      accessibilityLabel={accessibilityLabel}
+      autoCapitalize="none"
+      autoCorrect={false}
+      inputRef={inputRef}
+      leading={<Ionicons color={themeStyles.textSecondary.color} name="search" size={18} />}
+      onBlur={() => {
+        setIsFocused(false);
+      }}
+      onChangeText={onChangeText}
+      onFocus={() => {
+        setIsFocused(true);
+      }}
+      onSubmitEditing={onSubmit}
+      placeholder={placeholder}
+      placeholderTextColor={themeStyles.textSecondary.color}
+      returnKeyType="search"
+      style={[styles.field, isFocused ? styles.fieldFocused : null]}
+      testID={testID}
+      value={value}
+    />
   );
 }

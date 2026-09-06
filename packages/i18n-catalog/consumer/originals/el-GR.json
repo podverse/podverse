@@ -43,6 +43,8 @@
     },
     "updated_with_date": "Ενημερώθηκε: {date}",
     "image": "Εικόνα",
+    "view_full_image": "Προβολή πλήρους εικόνας",
+    "download_image": "Λήψη Εικόνας",
     "more_options": "Περισσότερες επιλογές",
     "enclosure_modality": {
       "video_available": "Διαθέσιμο βίντεο",

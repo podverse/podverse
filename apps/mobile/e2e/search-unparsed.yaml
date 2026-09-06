@@ -33,3 +33,22 @@ name: Search Unparsed Feed Preview
 - assertNotVisible:
     id: search-error
 - takeScreenshot: search-unparsed-preview
+
+- tapOn:
+    id: pi-feed-preview-image
+- assertVisible:
+    id: image-viewer
+- takeScreenshot: search-unparsed-image-viewer
+- tapOn:
+    id: image-viewer-more
+- assertVisible:
+    id: image-viewer-menu-download
+- assertVisible:
+    id: image-viewer-menu-cancel
+- takeScreenshot: search-unparsed-image-viewer-more
+- tapOn:
+    id: image-viewer-menu-cancel
+- tapOn:
+    id: image-viewer-back
+- assertVisible:
+    id: pi-feed-preview-screen

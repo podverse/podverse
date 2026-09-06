@@ -43,6 +43,8 @@
     },
     "updated_with_date": "Updated: {date}",
     "image": "Image",
+    "view_full_image": "View full image",
+    "download_image": "Download Image",
     "more_options": "More options",
     "enclosure_modality": {
       "video_available": "Video available",

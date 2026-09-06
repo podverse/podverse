@@ -336,8 +336,10 @@ export function PodcastIndexFeedPreviewScreen({
       <ScrollView contentContainerStyle={styles.content} testID="search-result-detail-screen">
         <View style={styles.header}>
           <CoverImage
+            accessibilityLabel={feed.title}
             fallbackLabel={t('media.podcast.podcast')}
             style={styles.image}
+            testID="pi-feed-preview-image"
             uri={feed.imageUrl}
           />
           <Text style={styles.title}>{feed.title}</Text>

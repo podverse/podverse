@@ -1,7 +1,6 @@
 'use client';
 
 import type { QueryParamsPodcastIndexSearchMedium } from '@podverse/helpers';
-
 import { MainColumnStack, MainSidebarLayout, SideContent } from '@podverse/ui';
 
 import { MainWrapper } from '../../components/Main/MainWrapper';

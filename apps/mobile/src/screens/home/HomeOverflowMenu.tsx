@@ -2,8 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { ActionSheetSection } from '../../components/primitives';
-import { ActionSheet, Button } from '../../components/primitives';
+import type { MoreMenuSection } from '../../components/primitives';
+import { Button, MoreMenu } from '../../components/primitives';
 import type { HomeViewMode } from '../../prefs/homeListPrefs';
 import { useTheme } from '../../theme/useTheme';
 
@@ -33,7 +33,7 @@ export function HomeOverflowMenu({
   const { styles: themeStyles } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
 
-  const sections: ActionSheetSection[] = [
+  const sections: MoreMenuSection[] = [
     {
       items: [
         {
@@ -91,12 +91,13 @@ export function HomeOverflowMenu({
         testID="home-overflow-trigger"
         variant="secondary"
       />
-      <ActionSheet
-        onRequestClose={() => {
+      <MoreMenu
+        cancelLabel={t('misc.cancel')}
+        onCancel={() => {
           setIsOpen(false);
         }}
         sections={sections}
-        testID="home-overflow-sheet"
+        testID="home-overflow-menu"
         visible={isOpen}
       />
     </>

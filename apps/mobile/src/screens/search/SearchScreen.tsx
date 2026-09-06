@@ -2,7 +2,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AccessibilityInfo, StyleSheet, Text, TextInput, View } from 'react-native';
+import type { TextInput } from 'react-native';
+import { AccessibilityInfo, StyleSheet, Text, View } from 'react-native';
 
 import type { QueryParamsPodcastIndexSearchMedium, SearchPodcastsFeed } from '@podverse/helpers';
 import { toNonEmptyTrimmedString } from '@podverse/helpers/guards';
@@ -309,7 +310,6 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
           onChangeText={setQuery}
           onSubmit={handleSubmitSearch}
           placeholder={t('features.search.search_by_title')}
-          searchIconAccessibilityLabel={t('features.search.search')}
           testID="search-input"
           value={query}
         />

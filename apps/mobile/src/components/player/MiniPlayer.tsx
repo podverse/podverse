@@ -118,6 +118,7 @@ export function MiniPlayer({ onExpand }: MiniPlayerProps) {
         <View style={styles.videoSurface} testID="mini-player-video-surface">
           <CoverImage
             accessibilityLabel={t('media_player.media_player_image')}
+            opensViewer={false}
             style={styles.artwork}
             uri={nowPlaying.imageUrl}
           />

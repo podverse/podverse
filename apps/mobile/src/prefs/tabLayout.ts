@@ -23,10 +23,7 @@ const PREVIOUS_DEFAULT_VISIBLE_TABS: readonly (readonly ContentTabId[])[] = [
   ['Home', 'Search', 'Browse', 'My Library'],
 ];
 
-const isSameTabOrder = (
-  left: readonly ContentTabId[],
-  right: readonly ContentTabId[]
-): boolean => {
+const isSameTabOrder = (left: readonly ContentTabId[], right: readonly ContentTabId[]): boolean => {
   return left.length === right.length && left.every((tabId, index) => tabId === right[index]);
 };
 

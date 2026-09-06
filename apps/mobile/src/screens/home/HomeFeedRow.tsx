@@ -171,7 +171,12 @@ export function HomeFeedRow({
       style={styles.row}
       testID={testID ?? `home-feed-row-${row.id}`}
     >
-      <CoverImage fallbackLabel={t('media.image')} style={styles.image} uri={row.imageUrl} />
+      <CoverImage
+        fallbackLabel={t('media.image')}
+        opensViewer={false}
+        style={styles.image}
+        uri={row.imageUrl}
+      />
       <View style={styles.rowContent}>
         {/* The title carries its own testID because it is what the Home filter matches on, so a
             test needs to read the text it is about to type. */}
