@@ -18,21 +18,26 @@ export function BrowseScreen() {
 
   return (
     <MenuListScreen
-      items={[
+      sections={[
         {
-          onPress: openSearch,
-          testID: 'browse-nav-podcasts',
-          title: t('media.podcast.podcasts'),
-        },
-        {
-          onPress: openSearch,
-          testID: 'browse-nav-videos',
-          title: t('media.video.videos'),
-        },
-        {
-          onPress: openSearch,
-          testID: 'browse-nav-music',
-          title: t('media.music.music'),
+          items: [
+            {
+              onPress: openSearch,
+              testID: 'browse-nav-podcasts',
+              title: t('media.podcast.podcasts'),
+            },
+            {
+              onPress: openSearch,
+              testID: 'browse-nav-videos',
+              title: t('media.video.videos'),
+            },
+            {
+              onPress: openSearch,
+              testID: 'browse-nav-music',
+              title: t('media.music.music'),
+            },
+          ],
+          key: 'browse',
         },
       ]}
       testID="browse-screen"

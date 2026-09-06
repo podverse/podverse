@@ -7,14 +7,16 @@ import { getErrorResponseStatus } from '@podverse/helpers/error';
 import { loginWithMobileToken, useAuth } from '../../auth';
 import { resolveLocalDevLoginPrefill } from '../../auth/localDevLoginPrefill';
 import { reconcileAccountPrefsFromAccount } from '../../auth/syncAccountPrefs';
+import { Button } from '../../components/primitives';
+import { HeaderBarChrome } from '../../components/screen/HeaderBarChrome';
+import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { getMobileConfig } from '../../config';
 import { accountRepository } from '../../data';
 import { runSignupSubscriptionMerge } from '../../data/repositories/subscriptionsSignupMerge';
 import { useTheme } from '../../theme/useTheme';
 
 type LoginScreenProps = {
-  /** Return to the anonymous tab shell without signing in (guest skip). */
-  onDismiss?: () => void;
+  onDismiss: () => void;
   onSwitchToSignUp: () => void;
 };
 
@@ -30,33 +32,6 @@ export function LoginScreen({ onDismiss, onSwitchToSignUp }: LoginScreenProps) {
   const { clearSession, setAccount, setError: setAuthError, setTokens } = useAuth();
 
   const styles = StyleSheet.create({
-    button: {
-      alignItems: 'center',
-      backgroundColor: themeStyles.buttonPrimary.backgroundColor,
-      borderRadius: tokens.radii.md,
-      paddingHorizontal: tokens.spacing.lg,
-      paddingVertical: tokens.spacing.md,
-    },
-    buttonText: {
-      color: themeStyles.buttonPrimary.color,
-      fontWeight: '600',
-    },
-    card: {
-      backgroundColor: tokens.background.secondary,
-      borderColor: themeStyles.border.borderColor,
-      borderRadius: tokens.radii.md,
-      borderWidth: 1,
-      maxWidth: 440,
-      padding: tokens.spacing['2xl'],
-      width: '100%',
-    },
-    container: {
-      alignItems: 'center',
-      backgroundColor: themeStyles.screen.backgroundColor,
-      flex: 1,
-      justifyContent: 'center',
-      padding: tokens.spacing['2xl'],
-    },
     error: {
       color: themeStyles.textSecondary.color,
       marginTop: tokens.spacing.md,
@@ -74,10 +49,24 @@ export function LoginScreen({ onDismiss, onSwitchToSignUp }: LoginScreenProps) {
       color: themeStyles.textPrimary.color,
       marginTop: tokens.spacing.md,
     },
-    title: {
+    link: {
+      color: tokens.text.link,
+      fontWeight: '600',
+    },
+    prompt: {
       color: themeStyles.textPrimary.color,
-      fontSize: 24,
-      fontWeight: '700',
+    },
+    promptBlock: {
+      alignItems: 'flex-start',
+      gap: tokens.spacing.sm,
+      marginTop: tokens.spacing.lg,
+    },
+    root: {
+      backgroundColor: themeStyles.screen.backgroundColor,
+      flex: 1,
+    },
+    submit: {
+      marginTop: tokens.spacing.xl,
     },
   });
 
@@ -141,9 +130,15 @@ export function LoginScreen({ onDismiss, onSwitchToSignUp }: LoginScreenProps) {
   };
 
   return (
-    <View style={styles.container} testID="login-screen">
-      <View style={styles.card}>
-        <Text style={styles.title}>{t('authentication.login')}</Text>
+    <View style={styles.root} testID="login-screen">
+      <HeaderBarChrome
+        backAccessibilityLabel={t('misc.dismiss')}
+        backIcon="chevron-down"
+        backTestID="auth-dismiss"
+        onBack={onDismiss}
+        title={t('authentication.login')}
+      />
+      <MobileScreenContainer testID="login-form">
         <Text style={styles.label}>{t('authentication.email')}</Text>
         <TextInput
           autoCapitalize="none"
@@ -165,41 +160,34 @@ export function LoginScreen({ onDismiss, onSwitchToSignUp }: LoginScreenProps) {
           testID="login-password"
           value={password}
         />
-        <Pressable
-          accessibilityRole="button"
-          disabled={isLoading}
-          onPress={() => {
-            void handleSubmit();
-          }}
-          style={styles.button}
-          testID="login-submit"
-        >
-          <Text style={styles.buttonText}>{isLoading ? t('misc.loading') : t('misc.submit')}</Text>
-        </Pressable>
+        <View style={styles.submit}>
+          <Button
+            disabled={isLoading}
+            fullWidth
+            label={t('misc.submit')}
+            loading={isLoading}
+            onPress={() => {
+              void handleSubmit();
+            }}
+            testID="login-submit"
+          />
+        </View>
         {error !== null ? (
           <Text style={styles.error} testID="login-error">
             {error}
           </Text>
         ) : null}
-        <Pressable
-          accessibilityRole="button"
-          onPress={onSwitchToSignUp}
-          style={styles.button}
-          testID="auth-switch-signup"
-        >
-          <Text style={styles.buttonText}>{t('authentication.need_an_account_sign_up')}</Text>
-        </Pressable>
-        {onDismiss !== undefined ? (
+        <View style={styles.promptBlock}>
+          <Text style={styles.prompt}>{t('authentication.need_an_account')}</Text>
           <Pressable
-            accessibilityRole="button"
-            onPress={onDismiss}
-            style={styles.button}
-            testID="auth-dismiss"
+            accessibilityRole="link"
+            onPress={onSwitchToSignUp}
+            testID="auth-switch-signup"
           >
-            <Text style={styles.buttonText}>{t('misc.cancel')}</Text>
+            <Text style={styles.link}>{t('authentication.sign_up')}</Text>
           </Pressable>
-        ) : null}
-      </View>
+        </View>
+      </MobileScreenContainer>
     </View>
   );
 }

@@ -16,6 +16,9 @@
     },
     "menu": {
       "opml": "OPML",
+      "section_account": "Compte",
+      "section_features": "Fonctionnalités",
+      "section_other": "Autre",
       "view_rss_feeds": "Voir les flux RSS"
     }
   },

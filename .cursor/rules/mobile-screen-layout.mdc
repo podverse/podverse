@@ -11,6 +11,7 @@ globs:
   - apps/mobile/src/components/section/ListSection.tsx
   - apps/mobile/src/screens/home/HomeFeedRow.tsx
   - apps/mobile/src/components/primitives/MoreMenu.tsx
+  - apps/mobile/App.tsx
 alwaysApply: false
 ---
 
@@ -76,6 +77,13 @@ Standalone cover art uses **`CoverImage`**, which opens **`ImageViewerModal`** o
 a nested image tap when the parent row, cell, or header is already the pressable control
 (`opensViewer={false}`). The app stays portrait; the viewer does not unlock landscape.
 
+## Hub menus
+
+More, Library, and Browse use **`MenuListScreen`**. A section title sits **above** its `Card`
+(`tokens.text.accent`, heading weight) with `spacing.lg` before the card and `spacing.xl`
+between groups. Rows that push a screen show a `›`. In-place actions (Log out) set
+`showsChevron: false`. Skip empty sections. More Account includes Login / Sign up or Log out.
+
 ## List rows
 
 Media and result rows use **`HomeFeedRow`** (or **`ListRow`** when the layout is title/subtitle
@@ -128,6 +136,13 @@ The message must explain **why the feature is worth logging in for** (what they 
 history across devices, playlists they can share). Generic “Log in to continue.” is for errors and
 inline gates, not a full-screen feature empty. Hide the in-body heading on that fill — the
 `HeaderBar` title is enough.
+
+## Login / Sign up overlay
+
+Login and Sign up slide up as a full-screen `Modal` over the tab shell — they must not replace
+the navigator. Dismiss with a down chevron (`HeaderBarChrome` `backIcon="chevron-down"`,
+`testID="auth-dismiss"`). Do not add a Cancel button. The account switch is body text plus a
+link-style `Pressable` under Submit (`auth-switch-signup` / `auth-switch-login`).
 
 ## Do not
 

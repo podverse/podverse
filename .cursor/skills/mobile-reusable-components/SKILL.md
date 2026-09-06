@@ -73,6 +73,12 @@ pill `Button`. Do not reuse
 `OptionListGroup` for More — that component is single-choice settings. `ConfirmDialog` stays
 title + body + one confirm.
 
+**Hub menus:** `MenuListScreen` takes `sections` — a title above each `Card` (`text.accent`,
+heading weight), hairlines between rows. Chevron (`›`) only on rows that push a screen. Log out
+is an in-place action: `showsChevron: false`. More groups Account (Profile, Membership, renewal,
+Login / Sign up or Log out), Features (overflow tabs, Settings, OPML), Other (About, Sync log,
+Smoke). Header-to-card gap is `spacing.lg`; space between groups is `spacing.xl`.
+
 **List rows:** `HomeFeedRow` for media/results (`isLast` drops the bottom hairline; vertical
 padding is `spacing.base`; artwork is 60×60). Title / subtitle / metadata use a column `gap`
 (`spacing.sm`), not per-line margins, and the text stack is vertically centered. `ListSection`
@@ -91,7 +97,9 @@ title) and the same page-body gutter — `screenBodyInsets` from `theme/screenLa
 (`spacing.lg` below the bar and on both sides). Do not add a second inner `Card` inset on top of
 that gutter. Do not wrap a scrolling result list in a perimeter `Card`. Screen lists that show a
 `VerticalCenter` fill empty use **`FillList`** (scroll locked when `data` is empty and
-`ListEmptyComponent` is set). See **mobile-screen-layout**.
+`ListEmptyComponent` is set). Login and Sign up overlay the tabs in a full-screen slide `Modal`
+with `HeaderBarChrome` (`chevron-down`, no Cancel) and a text + link switch under Submit. See
+**mobile-screen-layout**.
 
 ## Checklist before finishing a screen
 
@@ -100,6 +108,8 @@ that gutter. Do not wrap a scrolling result list in a perimeter `Card`. Screen l
       `AuthAwareLoadState` `showAuthRequired` + `authMessageKey`, or as a `FillList` empty) with
       feature-specific benefit copy and `authentication.login` — not `ListEmpty` +
       `authentication.login_required`. See **mobile-screen-layout**.
+- [ ] Hub menus (More, Library, Browse) use `MenuListScreen` `sections`. Named headers sit
+      above the card. Chevron only on rows that push a screen — not on Log out.
 - [ ] List/media rows use `ListRow` / `HomeFeedRow` / `MediaRowActions` (or a shared row wrapper)
       when the layout matches existing screens. Do **not** add a media-type pill on those rows.
       Last row: `isLast` (no bottom hairline). Vertical padding: `spacing.base`.

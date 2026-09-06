@@ -16,6 +16,9 @@
     },
     "menu": {
       "opml": "OPML",
+      "section_account": "Account",
+      "section_features": "Features",
+      "section_other": "Other",
       "view_rss_feeds": "View RSS feeds"
     }
   },

@@ -5,9 +5,11 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../theme/useTheme';
 import { HEADER_BAR_HEIGHT, HeaderBar, headerBarTypography } from './HeaderBar';
 import { HeaderBarAction } from './HeaderBarAction';
+import type { HeaderBarActionProps } from './HeaderBarAction';
 
 export type HeaderBarChromeProps = {
   backAccessibilityLabel?: string;
+  backIcon?: HeaderBarActionProps['icon'];
   backTestID?: string;
   onBack?: () => void;
   right?: ReactNode;
@@ -17,10 +19,12 @@ export type HeaderBarChromeProps = {
 
 /**
  * Shared title row: optional back, centered title, optional trailing action. Stack headers and
- * full-screen overlays (image viewer) use this instead of each inventing a right-slot Pressable.
+ * full-screen overlays (image viewer, login/signup) use this instead of each inventing a
+ * right-slot Pressable. Pass `backIcon` when the leading control is not a back chevron.
  */
 export function HeaderBarChrome({
   backAccessibilityLabel,
+  backIcon = 'chevron-back',
   backTestID = 'stack-header-back',
   onBack,
   right,
@@ -67,7 +71,7 @@ export function HeaderBarChrome({
           <View style={styles.left}>
             <HeaderBarAction
               accessibilityLabel={backAccessibilityLabel ?? title}
-              icon="chevron-back"
+              icon={backIcon}
               iconSize={28}
               onPress={onBack}
               testID={backTestID}

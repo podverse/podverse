@@ -24,7 +24,7 @@ import { shouldSuppressExpiryReminder } from '@podverse/helpers';
 import { useAuth } from '../auth/AuthProvider';
 import { SyncProgressBar } from '../components/feedback/SyncProgressBar';
 import { MiniPlayer } from '../components/player/MiniPlayer';
-import type { MenuListItem } from '../components/screen/MenuListScreen';
+import type { MenuListItem, MenuListSection } from '../components/screen/MenuListScreen';
 import { MenuListScreen } from '../components/screen/MenuListScreen';
 import { getMobileConfig } from '../config';
 import { buildMobileLinkPrefixes } from '../config/deepLinkSchemes';
@@ -744,64 +744,69 @@ function LibraryHubScreen({
 
   return (
     <MenuListScreen
-      items={[
+      sections={[
         {
-          onPress: () => {
-            navigation.navigate(LIBRARY_STACK_ROUTES.LibrarySubscriptions);
-          },
-          testID: 'library-nav-subscriptions',
-          title: t('subscriptions.subscriptions'),
-        },
-        {
-          onPress: () => {
-            navigation.navigate(LIBRARY_STACK_ROUTES.LibraryPlaylists);
-          },
-          testID: 'library-nav-playlists',
-          title: t('features.playlist.playlists'),
-        },
-        {
-          onPress: () => {
-            navigation.navigate(LIBRARY_STACK_ROUTES.LibraryHistory);
-          },
-          testID: 'library-nav-history',
-          title: t('features.history.history'),
-        },
-        {
-          onPress: () => {
-            navigation.navigate(LIBRARY_STACK_ROUTES.LibraryQueue);
-          },
-          testID: 'library-nav-queue',
-          title: t('features.queue.queue'),
-        },
-        {
-          onPress: () => {
-            navigation.navigate(LIBRARY_STACK_ROUTES.LibraryDownloads);
-          },
-          testID: 'library-nav-downloads',
-          title: t('nav.tab.downloads'),
-        },
-        {
-          onPress: () => {
-            navigation.navigate(LIBRARY_STACK_ROUTES.LibraryMyClips);
-          },
-          testID: 'library-nav-my-clips',
-          title: t('features.clip.clips'),
-        },
-        {
-          onPress: () => {
-            navigation.navigate(LIBRARY_STACK_ROUTES.AddByRssRoot);
-          },
-          testID: 'library-nav-add-by-rss',
-          title: t('features.add_by_rss.label'),
-        },
-        {
-          onPress: () => {
-            navigation
-              .getParent<BottomTabNavigationProp<MobileTabParamList>>()
-              ?.navigate('More', { screen: MORE_STACK_ROUTES.MoreOpml });
-          },
-          testID: 'library-nav-opml',
-          title: t('nav.menu.opml'),
+          items: [
+            {
+              onPress: () => {
+                navigation.navigate(LIBRARY_STACK_ROUTES.LibrarySubscriptions);
+              },
+              testID: 'library-nav-subscriptions',
+              title: t('subscriptions.subscriptions'),
+            },
+            {
+              onPress: () => {
+                navigation.navigate(LIBRARY_STACK_ROUTES.LibraryPlaylists);
+              },
+              testID: 'library-nav-playlists',
+              title: t('features.playlist.playlists'),
+            },
+            {
+              onPress: () => {
+                navigation.navigate(LIBRARY_STACK_ROUTES.LibraryHistory);
+              },
+              testID: 'library-nav-history',
+              title: t('features.history.history'),
+            },
+            {
+              onPress: () => {
+                navigation.navigate(LIBRARY_STACK_ROUTES.LibraryQueue);
+              },
+              testID: 'library-nav-queue',
+              title: t('features.queue.queue'),
+            },
+            {
+              onPress: () => {
+                navigation.navigate(LIBRARY_STACK_ROUTES.LibraryDownloads);
+              },
+              testID: 'library-nav-downloads',
+              title: t('nav.tab.downloads'),
+            },
+            {
+              onPress: () => {
+                navigation.navigate(LIBRARY_STACK_ROUTES.LibraryMyClips);
+              },
+              testID: 'library-nav-my-clips',
+              title: t('features.clip.clips'),
+            },
+            {
+              onPress: () => {
+                navigation.navigate(LIBRARY_STACK_ROUTES.AddByRssRoot);
+              },
+              testID: 'library-nav-add-by-rss',
+              title: t('features.add_by_rss.label'),
+            },
+            {
+              onPress: () => {
+                navigation
+                  .getParent<BottomTabNavigationProp<MobileTabParamList>>()
+                  ?.navigate('More', { screen: MORE_STACK_ROUTES.MoreOpml });
+              },
+              testID: 'library-nav-opml',
+              title: t('nav.menu.opml'),
+            },
+          ],
+          key: 'library',
         },
       ]}
       testID="library-hub-screen"
@@ -858,6 +863,7 @@ function MoreRootScreen({
           onPress: () => {
             void onRequestLogout();
           },
+          showsChevron: false,
           testID: 'more-nav-logout',
           title: t('authentication.logout'),
         },
@@ -875,25 +881,10 @@ function MoreRootScreen({
         },
       ];
 
-  return (
-    <MenuListScreen
-      items={[
-        ...overflowItems,
+  const sections: MenuListSection[] = [
+    {
+      items: [
         ...renewalItems,
-        {
-          onPress: () => {
-            navigation.navigate(MORE_STACK_ROUTES.MoreSettings);
-          },
-          testID: 'more-settings',
-          title: t('settings.settings'),
-        },
-        {
-          onPress: () => {
-            navigation.navigate(MORE_STACK_ROUTES.MoreAbout);
-          },
-          testID: 'more-nav-about',
-          title: t('info.about'),
-        },
         {
           onPress: () => {
             navigation.navigate(MORE_STACK_ROUTES.MoreProfile);
@@ -908,6 +899,21 @@ function MoreRootScreen({
           testID: 'more-nav-membership',
           title: t('membership.membership'),
         },
+        ...authItems,
+      ],
+      key: 'account',
+      title: t('nav.menu.section_account'),
+    },
+    {
+      items: [
+        ...overflowItems,
+        {
+          onPress: () => {
+            navigation.navigate(MORE_STACK_ROUTES.MoreSettings);
+          },
+          testID: 'more-settings',
+          title: t('settings.settings'),
+        },
         {
           onPress: () => {
             navigation.navigate(MORE_STACK_ROUTES.MoreOpml);
@@ -915,7 +921,19 @@ function MoreRootScreen({
           testID: 'more-nav-opml',
           title: t('nav.menu.opml'),
         },
-        // Low in the list on purpose: nobody goes looking for this until sync is already misbehaving.
+      ],
+      key: 'features',
+      title: t('nav.menu.section_features'),
+    },
+    {
+      items: [
+        {
+          onPress: () => {
+            navigation.navigate(MORE_STACK_ROUTES.MoreAbout);
+          },
+          testID: 'more-nav-about',
+          title: t('info.about'),
+        },
         {
           onPress: () => {
             navigation.navigate(MORE_STACK_ROUTES.MoreSyncLog);
@@ -930,11 +948,13 @@ function MoreRootScreen({
           testID: 'more-nav-smoke',
           title: 'Smoke',
         },
-      ]}
-      secondaryItems={authItems}
-      testID="more-screen"
-    />
-  );
+      ],
+      key: 'other',
+      title: t('nav.menu.section_other'),
+    },
+  ];
+
+  return <MenuListScreen sections={sections} testID="more-screen" />;
 }
 
 function MoreAboutScreen() {
