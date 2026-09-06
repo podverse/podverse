@@ -43,6 +43,8 @@
     },
     "updated_with_date": "Mis à jour : {date}",
     "image": "Image",
+    "view_full_image": "Voir l'image complète",
+    "download_image": "Télécharger l'Image",
     "more_options": "Plus d'options",
     "enclosure_modality": {
       "video_available": "Vidéo disponible",
@@ -727,7 +729,9 @@
     "logout": "Déconnexion",
     "sign_up": "S'inscrire",
     "need_an_account_sign_up": "Besoin d’un compte ? Inscrivez-vous",
+    "need_an_account": "Besoin d’un compte ?",
     "already_have_an_account_log_in": "Vous avez déjà un compte ? Connectez-vous",
+    "already_have_an_account": "Vous avez déjà un compte ?",
     "forgot_password": "Mot de passe oublié ?",
     "forgot_password_email_sent_message": "Si un compte avec cet e-mail existe, un e-mail de réinitialisation du mot de passe a été envoyé. Veuillez vérifier votre e-mail pour des instructions supplémentaires. Si vous ne recevez pas d'e-mail dans quelques minutes, veuillez vérifier votre dossier spam ou contacter le support.",
     "reset_password": "Réinitialiser le mot de passe",

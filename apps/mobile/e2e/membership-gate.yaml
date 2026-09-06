@@ -32,10 +32,9 @@ name: Membership Gate
 - assertVisible:
     id: more-screen
 
-# Anonymous tier, proactive path: the shared tier model resolves `add_by_rss_add` as
-# membership-tier, so a signed-out user sees the gate notice up front instead of tapping Add and
-# waiting for a 401/403. Asserted on Add by RSS rather than the PI preview screen so the Search
-# stack stays at its root for the reactive check below.
+# Anonymous tier: Add by RSS is membership-tier. The add control stays enabled; tapping it opens
+# the shared gate modal (Account required → Login). Search stays at its root for the Trial 403
+# check below.
 - tapOn:
     id: tab-my-library
 - assertVisible:
@@ -44,9 +43,13 @@ name: Membership Gate
     id: library-nav-add-by-rss
 - assertVisible:
     id: rss-root-screen
+- tapOn:
+    id: rss-add-submit
 - assertVisible:
-    id: rss-add-gate
+    id: premium-gate-modal
 - takeScreenshot: membership-gate-anonymous-add-by-rss
+- tapOn:
+    id: premium-gate-cancel
 
 # Log in as the seeded Trial user.
 - runFlow: shared/login-seeded-user.yaml

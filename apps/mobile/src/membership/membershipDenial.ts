@@ -6,12 +6,8 @@ import {
 } from '@podverse/helpers-requests';
 
 /**
- * `reason` selects only the modal/banner **body copy** — the renew/sign-up button label is auth-based
- * (`isLoggedIn`), decided at the call site, not here.
- *
- * The reason is the shared `AccessDenialReason` from `@podverse/helpers`, the same vocabulary
- * `useAccessTier` produces for client-side checks, so a screen renders one set of denial states
- * whether the answer came from the account snapshot or from the server.
+ * Shared `AccessDenialReason` from a membership 403. Modal title, body, and confirm labels live in
+ * `membershipGateCopy`. The same reason vocabulary is what `useAccessTier` produces client-side.
  */
 export interface MembershipDenial {
   reason: AccessDenialReason;

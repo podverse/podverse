@@ -16,6 +16,9 @@
     },
     "menu": {
       "opml": "",
+      "section_account": "",
+      "section_features": "",
+      "section_other": "",
       "view_rss_feeds": ""
     }
   },

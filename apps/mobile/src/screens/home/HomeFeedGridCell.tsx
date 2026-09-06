@@ -70,7 +70,12 @@ export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps
     >
       {/* The title, not a generic "Image" placeholder: several untitled grey squares would be
           indistinguishable, and this is the one view with no title beneath the artwork. */}
-      <CoverImage fallbackLabel={row.title} style={styles.artwork} uri={row.imageUrl} />
+      <CoverImage
+        fallbackLabel={row.title}
+        opensViewer={false}
+        style={styles.artwork}
+        uri={row.imageUrl}
+      />
       {unseenLabel !== null ? (
         <Badge
           label={unseenLabel}

@@ -4,9 +4,22 @@ import { useTranslation } from 'react-i18next';
 
 import type { AccessDenialReason } from '@podverse/helpers';
 
+import { useAuthPrompt } from '../auth/AuthPromptContext';
 import { ConfirmDialog } from '../components/feedback/ConfirmDialog';
 import { mapMembershipDenial } from './membershipDenial';
+import {
+  membershipGateConfirmDestination,
+  membershipGateConfirmLabelKey,
+  membershipGateConfirmTestID,
+  membershipGateMessageKeys,
+} from './membershipGateCopy';
 import { useMembership } from './useMembership';
+
+type GatePresentation = {
+  reason: AccessDenialReason;
+  /** Hide without clearing `reason`, so fade-out cannot pick a different message. */
+  visible: boolean;
+};
 
 /**
  * App-wide membership gate. Member-only actions stay visible; on a `membership.*` 403 the app shows
@@ -17,7 +30,8 @@ import { useMembership } from './useMembership';
  * Reasons are the shared `AccessDenialReason` from `@podverse/helpers`, so this modal and the
  * client-side `useAccessTier` checks describe a denial the same way.
  *
- * - `openGate(reason)` — show the modal directly, for a denial the client already resolved.
+ * - `openGate(reason)` — show the modal when the user attempts a gated action. `needs_account`
+ *   confirms to Login; membership reasons confirm to the Membership screen.
  * - `handleGateError(error)` — if `error` is a membership 403, open the gate and return `true`;
  *   otherwise return `false` so callers fall through to their normal error handling. A server 403
  *   never yields `needs_account`.
@@ -44,15 +58,19 @@ export function MembershipGateProvider({
   onNavigateToMembership,
 }: MembershipGateProviderProps) {
   const { t } = useTranslation();
+  const { onRequestLogin } = useAuthPrompt();
   const { isLoggedIn } = useMembership();
-  const [reason, setReason] = useState<AccessDenialReason | null>(null);
+  const [gate, setGate] = useState<GatePresentation>({
+    reason: 'needs_account',
+    visible: false,
+  });
 
   const openGate = useCallback((next: AccessDenialReason) => {
-    setReason(next);
+    setGate({ reason: next, visible: true });
   }, []);
 
   const closeGate = useCallback(() => {
-    setReason(null);
+    setGate((current) => ({ ...current, visible: false }));
   }, []);
 
   const handleGateError = useCallback((error: unknown): boolean => {
@@ -60,7 +78,7 @@ export function MembershipGateProvider({
     if (denial === null) {
       return false;
     }
-    setReason(denial.reason);
+    setGate({ reason: denial.reason, visible: true });
     return true;
   }, []);
 
@@ -79,47 +97,40 @@ export function MembershipGateProvider({
   );
 
   const onConfirm = useCallback(() => {
+    const destination = membershipGateConfirmDestination(gate.reason);
     closeGate();
-    onNavigateToMembership();
-  }, [closeGate, onNavigateToMembership]);
+    switch (destination) {
+      case 'login':
+        onRequestLogin();
+        return;
+      case 'membership':
+        onNavigateToMembership();
+        return;
+    }
+  }, [closeGate, gate.reason, onNavigateToMembership, onRequestLogin]);
 
   const value = useMemo<MembershipGateContextValue>(
     () => ({ goToMembership: onNavigateToMembership, handleGateError, openGate, runGated }),
     [handleGateError, onNavigateToMembership, openGate, runGated]
   );
 
-  const title =
-    reason === 'needs_membership'
-      ? t('membership.gate.title_premium')
-      : reason === 'limit_reached'
-        ? t('membership.gate.title_limit')
-        : reason === 'needs_account'
-          ? t('membership.gate.title_needs_account')
-          : t('membership.gate.title_expired');
-  const body =
-    reason === 'needs_membership'
-      ? t('membership.gate.body_premium')
-      : reason === 'limit_reached'
-        ? t('membership.gate.body_limit')
-        : reason === 'needs_account'
-          ? t('membership.gate.body_needs_account')
-          : t('membership.gate.body_expired');
-  const confirmLabel = isLoggedIn ? t('membership.gate.renew') : t('membership.gate.sign_up');
+  const messageKeys = membershipGateMessageKeys(gate.reason);
+  const confirmLabel = t(membershipGateConfirmLabelKey(gate.reason, isLoggedIn));
 
   return (
     <MembershipGateContext.Provider value={value}>
       {children}
       <ConfirmDialog
-        body={body}
+        body={t(messageKeys.bodyKey)}
         cancelLabel={t('membership.gate.cancel')}
         cancelTestID="premium-gate-cancel"
         confirmLabel={confirmLabel}
-        confirmTestID="premium-gate-renew"
+        confirmTestID={membershipGateConfirmTestID(gate.reason)}
         onCancel={closeGate}
         onConfirm={onConfirm}
         testID="premium-gate-modal"
-        title={title}
-        visible={reason !== null}
+        title={t(messageKeys.titleKey)}
+        visible={gate.visible}
       />
     </MembershipGateContext.Provider>
   );

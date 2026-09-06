@@ -39,25 +39,21 @@ export function ListRow({
         container: {
           alignItems: 'center',
           flexDirection: 'row',
-          paddingVertical: paddingVertical ?? tokens.spacing.md,
+          gap: tokens.spacing.md,
+          paddingVertical: paddingVertical ?? tokens.spacing.base,
         },
         content: {
           flex: 1,
-        },
-        leading: {
-          marginRight: tokens.spacing.md,
+          gap: tokens.spacing.sm,
+          justifyContent: 'center',
         },
         subtitle: {
           ...typography.caption,
           color: themeStyles.textSecondary.color,
-          marginTop: tokens.spacing.xs,
         },
         title: {
           ...typography.subheading,
           color: themeStyles.textPrimary.color,
-        },
-        trailing: {
-          marginLeft: tokens.spacing.md,
         },
       }),
     [paddingVertical, themeStyles, tokens]
@@ -65,12 +61,12 @@ export function ListRow({
 
   const body = (
     <>
-      {leading !== undefined ? <View style={styles.leading}>{leading}</View> : null}
+      {leading}
       <View style={styles.content}>
         <Text style={styles.title}>{title}</Text>
         {subtitle !== undefined ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
       </View>
-      {trailing !== undefined ? <View style={styles.trailing}>{trailing}</View> : null}
+      {trailing}
     </>
   );
 

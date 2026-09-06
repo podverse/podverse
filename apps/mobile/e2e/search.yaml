@@ -11,15 +11,18 @@ name: Search Flow
 - assertVisible:
     id: search-screen
 - assertVisible:
-    id: search-empty-query
-
-# Matching web /search: one field, no medium or sort chips. Podcast Index decides what comes back
-# and in what order, so a chip could only reorder what that API already chose.
-- assertNotVisible:
+    id: search-input
+- assertVisible:
+    id: search-medium-all
+- assertVisible:
     id: search-medium-music
 - assertNotVisible:
-    id: search-sort-a_z
+    id: search-empty-query
 - takeScreenshot: search-screen-initial
+
+- tapOn:
+    id: search-medium-music
+- takeScreenshot: search-screen-music-chip
 
 - tapOn:
     id: search-input

@@ -28,12 +28,12 @@ name: Queue Add
 - assertVisible:
     id: episode-detail-screen
 
-# Queue actions live in the shared MediaRowActions "More" action sheet. Open the
+# Queue actions live in the shared MediaRowActions More menu. Open the
 # more menu (home-row-more-<id_text>, dynamic) then tap Queue: Last (media-row-action-queue-last-*).
 - tapOn:
     id: "home-row-more-.*"
 - assertVisible:
-    id: "media-row-sheet-.*"
+    id: "media-row-menu-.*"
 - takeScreenshot: queue-add-more-sheet
 - tapOn:
     id: "media-row-action-queue-last-.*"

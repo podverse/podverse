@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
 import { useTheme } from '../../theme/useTheme';
 import type { ButtonSize, ButtonVariant } from '../primitives';
-import { ActionSheet, Button } from '../primitives';
+import { Button, MoreMenu } from '../primitives';
 
 /**
  * One "more" menu entry. `label` is passed **already localized** by the caller (or produced by
@@ -29,7 +29,7 @@ export type MediaRowActionsProps = {
   /** More-menu entries. When empty/undefined the More trigger is not rendered. */
   moreActions?: MediaRowMoreAction[];
   moreTestID?: string;
-  /** Optional heading shown at the top of the action sheet. */
+  /** Optional heading shown at the top of the more menu. */
   sheetTitle?: string;
   size?: ButtonSize;
   /** Suffix appended to default testIDs (e.g. a row id) so sibling rows stay unique. */
@@ -96,9 +96,8 @@ export const buildMediaRowMoreActions = (
 
 /**
  * Shared media-row action affordance mirroring web `PlayButtonRow` + `ItemRowMoreActions` intents:
- * an inline Play/Pause button plus an optional "More options" trigger opening the shared bottom
- * `ActionSheet` — a native menu rather than a port of the web hover menu. Per-action copy is
- * localized by the caller; the generic chrome uses i18n here.
+ * an inline Play/Pause button plus an optional "More options" trigger opening `MoreMenu`.
+ * Per-action copy is localized by the caller; the generic chrome uses i18n here.
  *
  * Presses stop propagation so the control works inside a row `Pressable` without also triggering
  * row navigation.
@@ -163,8 +162,9 @@ export function MediaRowActions({
       ) : null}
 
       {hasMoreActions ? (
-        <ActionSheet
-          onRequestClose={closeSheet}
+        <MoreMenu
+          cancelLabel={t('misc.cancel')}
+          onCancel={closeSheet}
           sections={[
             {
               items: (moreActions ?? []).map((action) => ({
@@ -178,7 +178,7 @@ export function MediaRowActions({
               title: sheetTitle,
             },
           ]}
-          testID={`media-row-sheet${idSuffix}`}
+          testID={`media-row-menu${idSuffix}`}
           visible={isSheetVisible}
         />
       ) : null}

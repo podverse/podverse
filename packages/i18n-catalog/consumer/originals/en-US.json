@@ -43,6 +43,8 @@
     },
     "updated_with_date": "Updated: {date}",
     "image": "Image",
+    "view_full_image": "View full image",
+    "download_image": "Download Image",
     "more_options": "More options",
     "enclosure_modality": {
       "video_available": "Video available",
@@ -727,7 +729,9 @@
     "logout": "Logout",
     "sign_up": "Sign Up",
     "need_an_account_sign_up": "Need an account? Sign up",
+    "need_an_account": "Need an account?",
     "already_have_an_account_log_in": "Already have an account? Log in",
+    "already_have_an_account": "Already have an account?",
     "forgot_password": "Forgot Password?",
     "forgot_password_email_sent_message": "If an account with that email exists, a password reset email has been sent. Please check your email for further instructions. If you do not receive an email within a few minutes, please check your spam folder, or contact support.",
     "reset_password": "Reset Password",

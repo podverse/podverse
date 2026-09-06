@@ -8,7 +8,7 @@ import { toNonEmptyTrimmedString } from '@podverse/helpers/guards';
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
-import { GatedFeatureNotice } from '../../components/feedback/GatedFeatureNotice';
+import { HelperNote } from '../../components/feedback/HelperNote';
 import { Button, CoverImage } from '../../components/primitives';
 import { ListLoading } from '../../components/state/ListLoading';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
@@ -64,7 +64,7 @@ export function PodcastIndexFeedPreviewScreen({
   const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
   const { onRequestLogin } = useAuthPrompt();
   const { styles: themeStyles, tokens } = useTheme();
-  const { goToMembership, handleGateError, openGate } = useMembershipGate();
+  const { handleGateError, openGate } = useMembershipGate();
   const { evaluateFeature } = useAccessTier();
   const isMountedRef = useRef(true);
 
@@ -179,11 +179,7 @@ export function PodcastIndexFeedPreviewScreen({
     }
 
     if (!addAccess.allowed) {
-      if (addAccess.reason === 'needs_account') {
-        onRequestLogin();
-      } else {
-        openGate(addAccess.reason);
-      }
+      openGate(addAccess.reason);
       return;
     }
 
@@ -278,25 +274,21 @@ export function PodcastIndexFeedPreviewScreen({
         author: {
           color: themeStyles.textSecondary.color,
           fontSize: 15,
-          marginTop: tokens.spacing.xs,
         },
         container: {
           backgroundColor: themeStyles.screen.backgroundColor,
           flex: 1,
         },
         content: {
-          gap: tokens.spacing.md,
+          gap: tokens.spacing.lg,
           padding: tokens.spacing.lg,
         },
         description: {
           color: themeStyles.textPrimary.color,
           fontSize: 14,
-          marginTop: tokens.spacing.sm,
         },
-        explanation: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 14,
-          marginBottom: tokens.spacing.sm,
+        header: {
+          gap: tokens.spacing.sm,
         },
         image: {
           height: 160,
@@ -305,18 +297,15 @@ export function PodcastIndexFeedPreviewScreen({
         message: {
           color: themeStyles.textPrimary.color,
           fontSize: 14,
-          marginTop: tokens.spacing.sm,
         },
         messageError: {
           color: themeStyles.textPrimary.color,
           fontSize: 14,
-          marginTop: tokens.spacing.sm,
         },
         title: {
           color: themeStyles.textPrimary.color,
           fontSize: 22,
           fontWeight: '700',
-          marginTop: tokens.spacing.md,
         },
       }),
     [themeStyles, tokens]
@@ -345,24 +334,24 @@ export function PodcastIndexFeedPreviewScreen({
   return (
     <View style={styles.container} testID="pi-feed-preview-screen">
       <ScrollView contentContainerStyle={styles.content} testID="search-result-detail-screen">
-        <CoverImage
-          fallbackLabel={t('media.podcast.podcast')}
-          style={styles.image}
-          uri={feed.imageUrl}
-        />
-        <Text style={styles.title}>{feed.title}</Text>
-        {feed.author.length > 0 ? <Text style={styles.author}>{feed.author}</Text> : null}
-        {feed.description.length > 0 ? (
-          <Text style={styles.description}>{feed.description}</Text>
-        ) : null}
+        <View style={styles.header}>
+          <CoverImage
+            accessibilityLabel={feed.title}
+            fallbackLabel={t('media.podcast.podcast')}
+            style={styles.image}
+            testID="pi-feed-preview-image"
+            uri={feed.imageUrl}
+          />
+          <Text style={styles.title}>{feed.title}</Text>
+          {feed.author.length > 0 ? <Text style={styles.author}>{feed.author}</Text> : null}
+          {feed.description.length > 0 ? (
+            <Text style={styles.description}>{feed.description}</Text>
+          ) : null}
+        </View>
 
-        <Text style={styles.explanation}>{t('features.search.not_available_yet')}</Text>
-
-        <GatedFeatureNotice
-          access={addAccess}
-          onRequestLogin={onRequestLogin}
-          onRequestMembership={goToMembership}
-          testID="pi-feed-add-gate"
+        <HelperNote
+          message={t('features.search.not_available_yet')}
+          testID="pi-feed-preview-helper"
         />
 
         <Button

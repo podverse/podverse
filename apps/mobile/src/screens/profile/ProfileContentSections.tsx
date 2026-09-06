@@ -61,8 +61,9 @@ export function ProfileContentSections({
         <ListSection
           emptyTestID={`${emptyTestIdPrefix}-podcasts-empty`}
           items={podcasts}
-          renderItem={(podcast: DTOChannel) => (
+          renderItem={(podcast: DTOChannel, _index, isLast) => (
             <HomeFeedRow
+              isLast={isLast}
               key={podcast.id_text}
               mediaType="podcasts"
               onPlayPress={() => {}}
@@ -78,8 +79,9 @@ export function ProfileContentSections({
         <ListSection
           emptyTestID={`${emptyTestIdPrefix}-albums-empty`}
           items={albums}
-          renderItem={(album: DTOChannel) => (
+          renderItem={(album: DTOChannel, _index, isLast) => (
             <HomeFeedRow
+              isLast={isLast}
               key={album.id_text}
               mediaType="albums"
               onPlayPress={() => {}}
@@ -117,8 +119,9 @@ export function ProfileContentSections({
         <ListSection
           emptyTestID={`${emptyTestIdPrefix}-clips-empty`}
           items={clips}
-          renderItem={(clip: DTOClip) => (
+          renderItem={(clip: DTOClip, _index, isLast) => (
             <HomeFeedRow
+              isLast={isLast}
               key={clip.id_text}
               mediaType="clips"
               onPlayPress={() => {}}

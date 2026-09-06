@@ -179,8 +179,9 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
             {trackRows.length === 0 ? (
               <ListEmpty messageKey="misc.info" testID="artist-detail-tracks-empty" />
             ) : (
-              trackRows.map((row) => (
+              trackRows.map((row, index) => (
                 <HomeFeedRow
+                  isLast={index === trackRows.length - 1}
                   key={row.id}
                   mediaType="tracks"
                   onPlayPress={(nextRow) => {

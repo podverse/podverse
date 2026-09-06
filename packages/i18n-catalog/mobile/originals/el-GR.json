@@ -16,6 +16,9 @@
     },
     "menu": {
       "opml": "OPML",
+      "section_account": "Λογαριασμός",
+      "section_features": "Λειτουργίες",
+      "section_other": "Άλλα",
       "view_rss_feeds": "Προβολή ροών RSS"
     }
   },

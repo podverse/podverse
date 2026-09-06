@@ -13,7 +13,7 @@ alwaysApply: false
 The bottom tab bar (and tablet left rail) is a stored, device-local order. **More** is always last.
 Hidden content tabs stay registered in the navigator and appear as rows on More.
 
-Factory visible order is **Home, Browse, Search, My Library** (`DEFAULT_VISIBLE_TABS`).
+Factory visible order is **Home, Search, My Library, Browse** (`DEFAULT_VISIBLE_TABS`).
 Notifications overflows to More until the user adds it.
 
 ## Do

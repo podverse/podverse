@@ -121,8 +121,9 @@ export function FullPlayerUpNext() {
     [themeStyles, tokens]
   );
 
-  const renderRow = ({ mediaType, row }: UpNextRow) => (
+  const renderRow = ({ mediaType, row }: UpNextRow, isLast: boolean) => (
     <HomeFeedRow
+      isLast={isLast}
       mediaType={mediaType}
       onPlayPress={(nextRow) => {
         runPlayAction(nextRow, mediaType);
@@ -148,16 +149,16 @@ export function FullPlayerUpNext() {
           {manualRows.length > 0 ? (
             <View testID="full-player-up-next-manual">
               <Text style={styles.heading}>{t('media_player.up_next')}</Text>
-              {manualRows.map((entry) => (
-                <View key={entry.key}>{renderRow(entry)}</View>
+              {manualRows.map((entry, index) => (
+                <View key={entry.key}>{renderRow(entry, index === manualRows.length - 1)}</View>
               ))}
             </View>
           ) : null}
           {autoRows.length > 0 ? (
             <View testID="full-player-up-next-auto">
               <Text style={styles.heading}>{t('media_player.auto_queue')}</Text>
-              {autoRows.map((entry) => (
-                <View key={entry.key}>{renderRow(entry)}</View>
+              {autoRows.map((entry, index) => (
+                <View key={entry.key}>{renderRow(entry, index === autoRows.length - 1)}</View>
               ))}
             </View>
           ) : null}
