@@ -249,6 +249,54 @@ describe('sharedNotificationHelpers recipient gating', () => {
     expect(accountNotificationCreateManyMock).not.toHaveBeenCalled();
   });
 
+  it('includes Trial accounts with a valid membership and no notifications override', async () => {
+    getAllByChannelIdTextMock.mockResolvedValue([
+      {
+        account_id: 11,
+        account_notification_channel_types: [{ type: AccountNotificationTypeEnum.NewItem }],
+        account: {
+          account_membership_status: {
+            membership_expires_at: new Date('2099-01-01T00:00:00.000Z'),
+            allow_notifications: null,
+          },
+          account_settings: { account_settings_locale: { locale: 'en-US' } },
+        },
+      },
+      {
+        account_id: 12,
+        account_notification_channel_types: [{ type: AccountNotificationTypeEnum.NewItem }],
+        account: {
+          account_membership_status: {
+            membership_expires_at: new Date('2000-01-01T00:00:00.000Z'),
+            allow_notifications: null,
+          },
+          account_settings: { account_settings_locale: { locale: 'en-US' } },
+        },
+      },
+    ]);
+    getForAccountPreferenceMock.mockResolvedValue([
+      {
+        category: NotificationCategoryEnum.NewContent,
+        in_app_enabled: true,
+        push_enabled: true,
+      },
+    ]);
+    getAllFcmDevicesMock.mockResolvedValue([
+      { account_id: 11, fcm_token: 'token-11', platform: 'ios', locale: 'en-US' },
+    ]);
+
+    const recipients = await getDevicesForNotificationType(
+      'channel-1',
+      AccountNotificationTypeEnum.NewItem,
+      NotificationCategoryEnum.NewContent
+    );
+
+    expect(recipients).not.toBeNull();
+    expect(recipients?.inAppEnabledAccountIds).toEqual([11]);
+    expect(recipients?.pushEnabledAccountIds).toEqual([11]);
+    expect(getAllFcmDevicesMock).toHaveBeenCalledWith([11]);
+  });
+
   it('excludes accounts with allow_notifications=false from push recipients', async () => {
     getAllByChannelIdTextMock.mockResolvedValue([
       {

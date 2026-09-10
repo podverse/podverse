@@ -2,13 +2,16 @@ import { getTranslations } from 'next-intl/server';
 import React from 'react';
 
 import type { DTOAccount } from '@podverse/helpers';
-import { calculateTimeRemaining, deriveMembershipState } from '@podverse/helpers';
+import {
+  calculateTimeRemaining,
+  deriveMembershipState,
+  MEMBERSHIP_COMPARISON_FEATURES,
+} from '@podverse/helpers';
 import { MainColumnStack, MainHeader, MainSidebarLayout, SideContent } from '@podverse/ui';
 
 import { FeatureComparison } from '../../components/FeatureComparison/FeatureComparison';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { getConfig } from '../../config';
-import { FEATURES } from '../../constants/features';
 import { getSSRApiRequestService } from '../../factories/apiRequestService';
 import { buildNoindexMetadata } from '../../lib/seo/buildNoindexMetadata';
 import { getSSRLoggedInAccount } from '../../utils/auth/ssrAuth';
@@ -157,7 +160,7 @@ export default async function MembershipPage() {
 
             <section>
               <h2 className={styles.comparisonTitle}>{t('features')}</h2>
-              <FeatureComparison features={FEATURES} />
+              <FeatureComparison features={MEMBERSHIP_COMPARISON_FEATURES} />
             </section>
 
             <TrialLimitationsCollapsible />

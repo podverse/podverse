@@ -105,7 +105,6 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
       testID="library-history-screen"
     >
       <AuthAwareLoadState
-        authMessageKey="features.history.login_prompt"
         emptyTestID={
           status !== 'authenticated' ? 'library-history-auth-required' : 'library-history-empty'
         }

@@ -362,11 +362,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
             )}
             {loggedInAccount === null && (
               <Callout>
-                <p>
-                  {tValue('boost_messages.login_required_to_send_boosts', {
-                    brand_name: config.public.brand.name,
-                  })}
-                </p>
+                <p>{tValue('boost_messages.login_required_to_send_boosts')}</p>
               </Callout>
             )}
             <BoostFormFields

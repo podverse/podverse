@@ -65,6 +65,7 @@ export * from './lib/logLevel.js';
 export * from './lib/math.js';
 export * from './lib/medium.js';
 export * from './managementAdminRoles/constants.js';
+export * from './lib/membershipFeatureComparison.js';
 export * from './lib/membershipPeriodPolicy.js';
 export * from './lib/mq/mqConstants.js';
 export * from './lib/mq/dedupeWindows.js';

@@ -10,8 +10,7 @@ import { RetryableError } from './RetryableError';
 type AuthAwareLoadStateProps = {
   children?: ReactNode;
   /**
-   * Feature-specific benefit copy for the login CTA. Required when `showAuthRequired` is true —
-   * do not pass `authentication.login_required`.
+   * Login-required body. Defaults to the generic `authentication.login_required` sentence.
    */
   authMessageKey?: string;
   emptyMessageKey?: string;
@@ -26,7 +25,7 @@ type AuthAwareLoadStateProps = {
 };
 
 export function AuthAwareLoadState({
-  authMessageKey,
+  authMessageKey = 'authentication.login_required',
   children,
   emptyMessageKey = 'misc.info',
   emptyTestID,
@@ -53,10 +52,6 @@ export function AuthAwareLoadState({
   }
 
   if (showAuthRequired) {
-    if (authMessageKey === undefined) {
-      throw new Error('AuthAwareLoadState requires authMessageKey when showAuthRequired is true');
-    }
-
     return (
       <CallToActionSection
         actionLabelKey="authentication.login"

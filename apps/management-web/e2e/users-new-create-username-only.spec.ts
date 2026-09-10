@@ -22,7 +22,7 @@ function productMembershipData(trialSeconds = 86400) {
     trialMaxAddByRSSFeeds: 7,
     trialMaxManualRefreshesPerHour: 4,
     trialTrackStats: false,
-    trialAllowNotifications: false,
+    trialAllowNotifications: true,
     premiumAllowDirectoryAddByRSS: true,
     premiumMaxAddByRSSFeeds: 100,
     premiumMaxManualRefreshesPerHour: 20,

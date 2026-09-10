@@ -275,7 +275,7 @@ export function NotificationsInboxScreen(_props: NotificationsInboxScreenProps) 
   ) : status !== 'authenticated' ? (
     <CallToActionSection
       actionLabelKey="authentication.login"
-      messageKey="notifications_page.login_prompt"
+      messageKey="authentication.login_required"
       onAction={onRequestLogin}
       testID="notifications-inbox-auth-required"
     />

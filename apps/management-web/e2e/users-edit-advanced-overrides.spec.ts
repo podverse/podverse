@@ -33,7 +33,7 @@ const PRODUCT_MEMBERSHIP = {
   trialMaxAddByRSSFeeds: 6,
   trialMaxManualRefreshesPerHour: 3,
   trialTrackStats: false,
-  trialAllowNotifications: false,
+  trialAllowNotifications: true,
   premiumAllowDirectoryAddByRSS: true,
   premiumMaxAddByRSSFeeds: 100,
   premiumMaxManualRefreshesPerHour: 20,
@@ -87,7 +87,7 @@ test.describe('Management-web user edit advanced overrides', () => {
       'Default (Do not track stats)'
     );
     await expect(page.locator('#edit-user-notifications-value')).toHaveText(
-      'Default (Block notifications)'
+      'Default (Allow notifications)'
     );
     await expect(page.locator('#edit-user-rss-limit')).toHaveAttribute('placeholder', 'Default: 6');
     await expect(page.locator('#edit-user-refresh-limit')).toHaveAttribute(

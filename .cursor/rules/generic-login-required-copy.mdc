@@ -1,0 +1,45 @@
+---
+description: Login-required UI uses one generic message on web and mobile — not per-feature benefit copy
+globs:
+  - "apps/web/src/**/*.{ts,tsx}"
+  - "apps/mobile/src/**/*.{ts,tsx}"
+  - "packages/i18n-catalog/consumer/originals/*.json"
+  - "packages/i18n-catalog/mobile/originals/*.json"
+alwaysApply: false
+---
+
+# Generic login-required copy
+
+When a page, empty fill, modal, callout, or alert exists only because the user must log in to use a
+feature, the body is **one generic sentence**. Do not sell the feature or explain what they would
+get after signing in.
+
+Canonical catalog key: **`authentication.login_required`**
+(“Log in to use this feature.” and the same wording in other locales).
+
+## Do
+
+- Use `authentication.login_required` for new login-gated fills, web `ModalLoginRequired` bodies,
+  and similar CTAs. Existing `instructions.login_to_*` / `features.*.login_prompt` keys must carry
+  that same generic sentence — do not write a unique blurb per feature.
+- Keep the **Login** action (`authentication.login`). Hide a duplicate in-body heading; the
+  screen/modal title is enough.
+- Keep titles like “Login Required” (`instructions.login_required`) as titles, not as the body.
+
+## Don't
+
+- Do not write feature-specific “why log in” copy (synced inbox, playlists you can share, never miss
+  an episode, “log in to send boosts”, and the like).
+- Do not use a different login-required sentence on web than on mobile.
+
+## Not this rule
+
+- Session-expired / re-auth errors (`authentication.session_expired`).
+- Membership / Premium gates (`membership.gate.*`, Trial limits). Those are not login-required
+  empties.
+- Helper notes that explain a feature **after** the user is signed in.
+
+## Related
+
+- **mobile-screen-layout** — login-gated fill uses `CallToActionSection` / `AuthAwareLoadState`
+- **i18n-user-facing-strings** — resolve the string through the catalog

@@ -54,9 +54,16 @@
     }
   },
   "settings": {
+    "groups": {
+      "appearance": "Appearance",
+      "appearance_description": "Theme and language",
+      "playback": "Playback",
+      "playback_description": "Default media type and auto queue",
+      "notifications_description": "In-app and push alerts"
+    },
     "notifications": {
       "login_required_title": "Login required",
-      "login_required_message": "Please log in to change notification preferences.",
+      "login_required_message": "Log in to use this feature.",
       "open_system_settings": "Open system settings",
       "permission_required": "Notification permission is required to enable this setting."
     },

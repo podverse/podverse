@@ -210,11 +210,7 @@ export function SignUpScreen({ onDismiss, onSwitchToLogin }: SignUpScreenProps) 
         ) : null}
         <View style={styles.promptBlock}>
           <Text style={styles.prompt}>{t('authentication.already_have_an_account')}</Text>
-          <Pressable
-            accessibilityRole="link"
-            onPress={onSwitchToLogin}
-            testID="auth-switch-login"
-          >
+          <Pressable accessibilityRole="link" onPress={onSwitchToLogin} testID="auth-switch-login">
             <Text style={styles.link}>{t('authentication.login')}</Text>
           </Pressable>
         </View>

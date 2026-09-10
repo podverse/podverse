@@ -54,9 +54,16 @@
     }
   },
   "settings": {
+    "groups": {
+      "appearance": "Εμφάνιση",
+      "appearance_description": "Θέμα και γλώσσα",
+      "playback": "Αναπαραγωγή",
+      "playback_description": "Προεπιλεγμένος τύπος μέσου και αυτόματη ουρά",
+      "notifications_description": "Ειδοποιήσεις στην εφαρμογή και push"
+    },
     "notifications": {
       "login_required_title": "Απαιτείται σύνδεση",
-      "login_required_message": "Συνδεθείτε για να αλλάξετε τις προτιμήσεις ειδοποιήσεων.",
+      "login_required_message": "Συνδεθείτε για να χρησιμοποιήσετε αυτή τη λειτουργία.",
       "open_system_settings": "Άνοιγμα ρυθμίσεων συστήματος",
       "permission_required": "Απαιτείται άδεια ειδοποιήσεων για την ενεργοποίηση αυτής της ρύθμισης."
     },

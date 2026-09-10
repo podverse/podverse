@@ -52,7 +52,10 @@ import { PlaylistDetailScreen } from '../screens/library/PlaylistDetailScreen';
 import { PlaylistFormScreen } from '../screens/library/PlaylistFormScreen';
 import { MoreMembershipScreen } from '../screens/more/MoreMembershipScreen';
 import { MoreOpmlScreen } from '../screens/more/MoreOpmlScreen';
+import { MoreSettingsAppearanceScreen } from '../screens/more/MoreSettingsAppearanceScreen';
 import { MoreSettingsLocaleScreen } from '../screens/more/MoreSettingsLocaleScreen';
+import { MoreSettingsNotificationsScreen } from '../screens/more/MoreSettingsNotificationsScreen';
+import { MoreSettingsPlaybackScreen } from '../screens/more/MoreSettingsPlaybackScreen';
 import { MoreSettingsScreen } from '../screens/more/MoreSettingsScreen';
 import { MoreSettingsTabBarScreen } from '../screens/more/MoreSettingsTabBarScreen';
 import { MoreSettingsThemeScreen } from '../screens/more/MoreSettingsThemeScreen';
@@ -183,7 +186,10 @@ export const MORE_STACK_ROUTES = {
   MoreProfile: 'MoreProfile',
   MoreRoot: 'MoreRoot',
   MoreSettings: 'MoreSettings',
+  MoreSettingsAppearance: 'MoreSettingsAppearance',
   MoreSettingsLocale: 'MoreSettingsLocale',
+  MoreSettingsNotifications: 'MoreSettingsNotifications',
+  MoreSettingsPlayback: 'MoreSettingsPlayback',
   MoreSettingsTabBar: 'MoreSettingsTabBar',
   MoreSettingsTheme: 'MoreSettingsTheme',
   MoreSmoke: 'MoreSmoke',
@@ -229,7 +235,10 @@ const mobileNavigationScreens = {
           MoreProfile: 'more/profile',
           MoreRoot: 'more',
           MoreSettings: 'more/settings',
+          MoreSettingsAppearance: 'more/settings/appearance',
           MoreSettingsLocale: 'more/settings/locale',
+          MoreSettingsNotifications: 'more/settings/notifications',
+          MoreSettingsPlayback: 'more/settings/playback',
           MoreSettingsTabBar: 'more/settings/tab-bar',
           MoreSettingsTheme: 'more/settings/theme',
           MoreSmoke: 'more/smoke',
@@ -380,7 +389,10 @@ export type MoreStackParamList = {
   MoreProfile: undefined;
   MoreRoot: undefined;
   MoreSettings: undefined;
+  MoreSettingsAppearance: undefined;
   MoreSettingsLocale: undefined;
+  MoreSettingsNotifications: undefined;
+  MoreSettingsPlayback: undefined;
   MoreSettingsTabBar: undefined;
   MoreSettingsTheme: undefined;
   MoreSmoke: undefined;
@@ -674,6 +686,21 @@ function MoreStackNavigator({
         component={MoreSettingsScreen}
         name={MORE_STACK_ROUTES.MoreSettings}
         options={{ title: t('settings.settings') }}
+      />
+      <MoreStack.Screen
+        component={MoreSettingsAppearanceScreen}
+        name={MORE_STACK_ROUTES.MoreSettingsAppearance}
+        options={{ title: t('settings.groups.appearance') }}
+      />
+      <MoreStack.Screen
+        component={MoreSettingsPlaybackScreen}
+        name={MORE_STACK_ROUTES.MoreSettingsPlayback}
+        options={{ title: t('settings.groups.playback') }}
+      />
+      <MoreStack.Screen
+        component={MoreSettingsNotificationsScreen}
+        name={MORE_STACK_ROUTES.MoreSettingsNotifications}
+        options={{ title: t('settings.notifications.notifications') }}
       />
       <MoreStack.Screen
         component={MoreSettingsThemeScreen}

@@ -54,6 +54,13 @@
     }
   },
   "settings": {
+    "groups": {
+      "appearance": "",
+      "appearance_description": "",
+      "playback": "",
+      "playback_description": "",
+      "notifications_description": ""
+    },
     "notifications": {
       "login_required_title": "",
       "login_required_message": "",

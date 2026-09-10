@@ -11,6 +11,8 @@ export type FeatureComparisonTier = {
 export type FeatureComparisonRow = {
   name: string;
   available: Record<string, boolean>;
+  comingSoon?: boolean;
+  mobileOnly?: boolean;
 };
 
 export type FeatureComparisonProps = {
@@ -19,11 +21,17 @@ export type FeatureComparisonProps = {
   labels: {
     feature: string;
     available: string;
+    comingSoon: string;
+    mobileOnlyLegend: string;
   };
   className?: string;
 };
 
 export function FeatureComparison({ tiers, features, labels, className }: FeatureComparisonProps) {
+  const showMobileLegend = features.some(
+    (feature) => feature.comingSoon !== true && feature.mobileOnly === true
+  );
+
   return (
     <div className={classNames(styles.comparison, className)}>
       <table className={styles.table}>
@@ -41,17 +49,34 @@ export function FeatureComparison({ tiers, features, labels, className }: Featur
           {features.map((feature, index) => (
             <tr key={index} className={styles.row}>
               <td className={styles.featureCell}>{feature.name}</td>
-              {tiers.map((tier) => (
-                <td key={tier.id} className={styles.tierCell}>
-                  {feature.available[tier.id] === true && (
-                    <FaCircleCheck className={styles.checkmark} aria-label={labels.available} />
-                  )}
+              {feature.comingSoon === true ? (
+                <td
+                  aria-label={`${feature.name}: ${labels.comingSoon}`}
+                  className={styles.comingSoonCell}
+                  colSpan={tiers.length}
+                >
+                  {labels.comingSoon}
                 </td>
-              ))}
+              ) : (
+                tiers.map((tier) => {
+                  const isAvailable = feature.available[tier.id] === true;
+
+                  return (
+                    <td key={tier.id} className={styles.tierCell}>
+                      {isAvailable ? (
+                        <span aria-label={labels.available} className={styles.tierStatus}>
+                          <FaCircleCheck aria-hidden className={styles.checkmark} />
+                        </span>
+                      ) : null}
+                    </td>
+                  );
+                })
+              )}
             </tr>
           ))}
         </tbody>
       </table>
+      {showMobileLegend ? <p className={styles.legend}>* {labels.mobileOnlyLegend}</p> : null}
     </div>
   );
 }

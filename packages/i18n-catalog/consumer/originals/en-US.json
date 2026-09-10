@@ -97,7 +97,7 @@
       "basic_auth_username": "Username",
       "basic_auth_password": "Password",
       "basic_auth_required_both": "Basic Auth requires both username and password.",
-      "login_prompt": "Follow podcasts and music that are not in the directory yet. Log in to save RSS feeds to your library and check them for new episodes."
+      "login_prompt": "Log in to use this feature."
     },
     "my_library": "My Library",
     "queue": {
@@ -110,7 +110,7 @@
       "remove_error": "Error removing from Queue",
       "remove_from_queue": "Remove from Queue",
       "removed_from_queue": "Removed from Queue",
-      "login_prompt": "Build a listen-next list that stays with you. Log in to save your queue and keep playing across devices."
+      "login_prompt": "Log in to use this feature."
     },
     "history": {
       "history": "History",
@@ -118,7 +118,7 @@
       "mark_as_played": "Mark as Played",
       "marked_as_played": "Marked as Played",
       "mark_as_played_error": "Error marking as played",
-      "login_prompt": "Pick up where you left off. Log in to see your listening history and keep it in sync wherever you use your account."
+      "login_prompt": "Log in to use this feature."
     },
     "playlist": {
       "playlist": "Playlist",
@@ -139,7 +139,7 @@
       "playlist_type": "Playlist Type",
       "add_to_liked": "Add to Liked",
       "remove_from_liked": "Remove from Liked",
-      "login_prompt": "Collect episodes, clips, and tracks into playlists you can share or revisit. Log in to create and manage yours."
+      "login_prompt": "Log in to use this feature."
     },
     "clip": {
       "clip": "Clip",
@@ -159,11 +159,11 @@
       "end_time_aria": "End time in hours, minutes, and seconds (hh:mm:ss)",
       "end_time_play_aria": "Play from clip end time",
       "clip_time_range": "{hhmmssStart} to {hhmmssEnd}",
-      "login_prompt": "Save your favorite moments and jump back to them later. Log in to create clips and keep them with your account."
+      "login_prompt": "Log in to use this feature."
     },
     "my_clips": "My Clips",
     "my_profile": "My Profile",
-    "profile_login_prompt": "Your profile is how you share playlists and clips. Log in to set it up and keep it in sync across devices.",
+    "profile_login_prompt": "Log in to use this feature.",
     "profile": "Profile",
     "profiles": "Profiles",
     "embed": "Embed",
@@ -476,7 +476,7 @@
       "retry_attempt": "Retry {number}: ",
       "mbrssV1_capability_loading_status": "Checking boost message availability",
       "mbrssV1_capability_unavailable": "Boost messages are not available for this creator at this time due to a server issue, but you can still use the form to send a donation.",
-      "login_required_to_send_boosts": "Log in to {brand_name} to send boosts.",
+      "login_required_to_send_boosts": "Log in to use this feature.",
       "mbrss_offline_modal_title": "Message collection unavailable",
       "mbrss_offline_modal_body": "The message collection server appears to be offline. If you would like to send your donation without a message, press Continue.",
       "mbrss_offline_continue": "Continue",
@@ -683,21 +683,21 @@
   },
   "instructions": {
     "login_required": "Login Required",
-    "login_for_subscriptions": "Please login to view your subscriptions.",
-    "login_to_create_playlists": "Please login to create playlists.",
+    "login_for_subscriptions": "Log in to use this feature.",
+    "login_to_create_playlists": "Log in to use this feature.",
     "no_playlists_created": "You do not have any playlists yet. Create one to get started.",
-    "login_to_create_clips": "Please login to create clips.",
-    "login_for_queues": "Please login to view your queues.",
-    "login_for_history": "Please login to view your history.",
-    "login_to_add_feeds": "Please login to add feeds to our directory.",
-    "login_to_refresh_feeds": "Please login to refresh feeds.",
-    "login_to_subscribe": "Please login to subscribe.",
-    "login_to_add_to_queue": "Please login to add to your queue.",
-    "login_to_add_to_playlist": "Please login to add to your playlist.",
-    "login_to_like": "Please login to add items to your liked list.",
-    "login_to_mark_as_played": "Please login to mark items as played.",
-    "login_to_enable_notifications": "Please login to enable notifications.",
-    "login_to_disable_notifications": "Please login to disable notifications."
+    "login_to_create_clips": "Log in to use this feature.",
+    "login_for_queues": "Log in to use this feature.",
+    "login_for_history": "Log in to use this feature.",
+    "login_to_add_feeds": "Log in to use this feature.",
+    "login_to_refresh_feeds": "Log in to use this feature.",
+    "login_to_subscribe": "Log in to use this feature.",
+    "login_to_add_to_queue": "Log in to use this feature.",
+    "login_to_add_to_playlist": "Log in to use this feature.",
+    "login_to_like": "Log in to use this feature.",
+    "login_to_mark_as_played": "Log in to use this feature.",
+    "login_to_enable_notifications": "Log in to use this feature.",
+    "login_to_disable_notifications": "Log in to use this feature."
   },
   "subscriptions": {
     "subscriptions": "Subscriptions",
@@ -725,7 +725,7 @@
   },
   "authentication": {
     "login": "Login",
-    "login_required": "Log in to continue.",
+    "login_required": "Log in to use this feature.",
     "logout": "Logout",
     "sign_up": "Sign Up",
     "need_an_account_sign_up": "Need an account? Sign up",
@@ -819,6 +819,35 @@
     "trial_expired_text_line2": "Please extend your membership to continue enjoying Premium features.",
     "feature": "Feature",
     "features": "Features",
+    "premium_includes": "What Premium includes",
+    "premium_includes_intro": "Trial includes listening, downloads, sync, clips, and playlists. Premium adds:",
+    "coming_soon": "Coming soon",
+    "mobile_only": "Mobile only",
+    "mobile_only_legend": "Feature is only available in the mobile app",
+    "comparison_name_mobile_only": "{name}*",
+    "comparison": {
+      "subscribe": "Subscribe to podcasts",
+      "download": "Download episodes",
+      "video": "Video playback",
+      "livestreams": "Livestreams",
+      "carplay": "CarPlay",
+      "android_auto": "Android Auto",
+      "boostagrams": "Boostagrams (Value for Value)",
+      "chapters": "Chapters",
+      "comments": "Cross-app comments",
+      "transcripts": "Transcripts",
+      "add_rss": "Add custom RSS feeds",
+      "opml": "OPML import and export",
+      "sleep_timer": "Sleep timer",
+      "screen_reader": "Screen-reader accessibility",
+      "sync": "Sync across devices",
+      "notifications": "Notifications",
+      "clips": "Create and share clips",
+      "playlists": "Create and share playlists",
+      "mark_played": "Mark episodes as played",
+      "profiles": "Subscribe to listener profiles",
+      "support_foss": "Support open source software"
+    },
     "membership_expiring_warning": "Your {type} expires on {date}. Renew now to continue enjoying Premium features.",
     "membership_expired_danger": "Your {type} has expired. Renew now to continue enjoying Premium features.",
     "membership_link_text": "Go to Membership Page",
@@ -837,12 +866,11 @@
     "trial_limitations_summary": "Some features are unavailable during Trial to help reduce spam and abuse.",
     "trial_limitations_show_less": "Show less",
     "trial_limitations_show_more": "Show more",
-    "trial_limitations_title": "Trial limitations",
+    "trial_limitations_title": "Trial Limitations",
     "trial_limitations_directory_add_by_rss": "Adding feeds to the public directory from search is blocked for Trial status.",
     "trial_limitations_add_by_rss_feed_limit": "Add by RSS library size uses a lower Trial limit than Premium.",
     "trial_limitations_manual_refresh_limit": "Manual refresh actions use tighter hourly limits while on Trial.",
-    "trial_limitations_stats_tracking": "Stats tracking is reduced for Trial status by default.",
-    "trial_limitations_notifications": "Notification features may be reduced for Trial status and expire with membership.",
+    "trial_limitations_stats_tracking": "Listen stats are not available on Trial. Contributing to trending requires Premium.",
     "gate": {
       "cancel": "Cancel",
       "renew": "Renew Membership",
@@ -1213,7 +1241,7 @@
     "title": "Notifications",
     "recent_activity_note": "Recent activity. Older notifications are cleared automatically.",
     "loading": "Loading notifications…",
-    "login_prompt": "Never miss a new episode, livestream, or product update from shows you follow. Log in to keep your inbox on this device and across your other devices.",
+    "login_prompt": "Log in to use this feature.",
     "empty": "You're all caught up. Alerts for new episodes, livestreams, and product updates will show up here.",
     "unread_section": "Unread",
     "earlier_section": "Earlier",

@@ -97,10 +97,7 @@ export function MenuListScreen({ sections, testID }: MenuListScreenProps) {
   return (
     <MobileScreenContainer testID={testID}>
       {visibleSections.map((section, index) => (
-        <View
-          key={section.key}
-          style={[styles.section, index > 0 ? styles.sectionSpaced : null]}
-        >
+        <View key={section.key} style={[styles.section, index > 0 ? styles.sectionSpaced : null]}>
           {section.title !== undefined ? (
             <Text accessibilityRole="header" style={styles.sectionTitle}>
               {section.title}

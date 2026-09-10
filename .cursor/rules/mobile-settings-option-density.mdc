@@ -23,7 +23,9 @@ When a **user-configurable setting** presents a fixed list of choices:
 - Keep binary prefs (on/off) as `Switch`, not chips or list pages.
 - For 4+ options, navigate to a dedicated list screen (checkmark on current, Back returns). Do
   **not** use a bottom-sheet modal with a sliding scrim for primary preference pickers.
-- On the settings root row (`SettingsOptionNavRow`), stack **label → description → current value +
+- The Settings root is a **group list** (`MenuListScreen`): Appearance, Tab bar, Playback,
+  Notifications. Each row pushes a group screen. Do not put every control on the root.
+- On a settings option row (`SettingsOptionNavRow`), stack **label → description → current value +
   chevron** vertically. Do **not** put the current value in a trailing/right column (it squeezes
   the description).
 

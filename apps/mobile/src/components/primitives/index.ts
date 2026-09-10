@@ -1,3 +1,5 @@
+export { Accordion } from './Accordion';
+export type { AccordionProps } from './Accordion';
 export { Badge } from './Badge';
 export type { BadgeProps, BadgeTone } from './Badge';
 export { Button } from './Button';

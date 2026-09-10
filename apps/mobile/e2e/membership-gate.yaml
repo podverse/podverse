@@ -25,6 +25,22 @@ name: Membership Gate
 - assertVisible:
     id: more-membership-cta
     text: "Sign Up"
+- assertVisible:
+    id: more-membership-feature-table
+- assertVisible:
+    text: "Video playback"
+- assertVisible:
+    text: "CarPlay"
+- assertVisible:
+    text: "Android Auto"
+- assertVisible:
+    id: more-membership-trial-limitations
+- tapOn:
+    id: more-membership-trial-limitations-toggle
+- assertVisible:
+    text: "Some features are unavailable during Trial to help reduce spam and abuse."
+- assertVisible:
+    text: "Listen stats are not available on Trial. Contributing to trending requires Premium."
 - takeScreenshot: membership-gate-signup-cta
 
 - tapOn:

@@ -54,9 +54,10 @@ chips, and the list rule share one column `gap` (`spacing.base`) so the space ab
 the chips is equal. Prefer that symmetry whenever two sides of a control are the same
 relationship. See **mobile-screen-layout**.
 
-**Settings option density:** 2–3 choices → `OptionChipGroup`; 4+ → push option-list screen (not
-bottom sheet). Selected chip uses `buttonPrimary` fill. Root settings rows stack label /
-description / current value (not trailing). See **mobile-settings-option-density**.
+**Settings option density:** Settings root is a group list (`MenuListScreen`) that pushes
+Appearance, Tab bar, Playback, and Notifications. 2–3 choices → `OptionChipGroup`; 4+ → push
+option-list screen (not bottom sheet). Selected chip uses `buttonPrimary` fill. Option rows
+stack label / description / current value (not trailing). See **mobile-settings-option-density**.
 
 **Cover images:** `CoverImage` opens **`ImageViewerModal`** on tap (full width, contained, portrait).
 The viewer more control uses **`HeaderBarAction`** + **`MoreMenu`**; Download goes through
@@ -105,9 +106,9 @@ with `HeaderBarChrome` (`chevron-down`, no Cancel) and a text + link switch unde
 
 - [ ] Loading / empty / error / auth-empty use `components/state/*` (not ad-hoc `ActivityIndicator` +
       hardcoded English). Login-gated fill states use **`CallToActionSection`** (via
-      `AuthAwareLoadState` `showAuthRequired` + `authMessageKey`, or as a `FillList` empty) with
-      feature-specific benefit copy and `authentication.login` — not `ListEmpty` +
-      `authentication.login_required`. See **mobile-screen-layout**.
+      `AuthAwareLoadState` `showAuthRequired`, or as a `FillList` empty) with
+      `authentication.login_required` and `authentication.login` — not `ListEmpty`. See
+      **mobile-screen-layout** and **generic-login-required-copy**.
 - [ ] Hub menus (More, Library, Browse) use `MenuListScreen` `sections`. Named headers sit
       above the card. Chevron only on rows that push a screen — not on Log out.
 - [ ] List/media rows use `ListRow` / `HomeFeedRow` / `MediaRowActions` (or a shared row wrapper)

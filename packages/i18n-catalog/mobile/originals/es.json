@@ -54,9 +54,16 @@
     }
   },
   "settings": {
+    "groups": {
+      "appearance": "Apariencia",
+      "appearance_description": "Tema e idioma",
+      "playback": "Reproducción",
+      "playback_description": "Tipo de medio predeterminado y cola automática",
+      "notifications_description": "Alertas en la app y push"
+    },
     "notifications": {
       "login_required_title": "Inicio de sesión necesario",
-      "login_required_message": "Inicia sesión para cambiar las preferencias de notificaciones.",
+      "login_required_message": "Inicia sesión para usar esta función.",
       "open_system_settings": "Abrir los ajustes del sistema",
       "permission_required": "Se necesita permiso de notificaciones para activar este ajuste."
     },

@@ -54,9 +54,16 @@
     }
   },
   "settings": {
+    "groups": {
+      "appearance": "Apparence",
+      "appearance_description": "Thème et langue",
+      "playback": "Lecture",
+      "playback_description": "Type de média par défaut et file automatique",
+      "notifications_description": "Alertes dans l'app et push"
+    },
     "notifications": {
       "login_required_title": "Connexion requise",
-      "login_required_message": "Connectez-vous pour modifier les préférences de notification.",
+      "login_required_message": "Connectez-vous pour utiliser cette fonctionnalité.",
       "open_system_settings": "Ouvrir les paramètres du système",
       "permission_required": "L'autorisation de notification est requise pour activer ce paramètre."
     },

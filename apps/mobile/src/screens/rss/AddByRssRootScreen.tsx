@@ -156,7 +156,6 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
         </Pressable>
 
         <AuthAwareLoadState
-          authMessageKey="features.add_by_rss.login_prompt"
           emptyMessageKey="features.add_by_rss.no_feeds_podcast"
           emptyTestID={status !== 'authenticated' ? 'rss-feeds-auth-required' : 'rss-feeds-empty'}
           errorKey={errorKey}
