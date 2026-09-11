@@ -29,6 +29,8 @@ const BASE_ORM_COMMANDS = [
   'notificationsPlatformPurge',
   'archiveAll',
   'reencryptAddByRSSCredentials',
+  'devSeedLocalUserContent',
+  'devStatsSeedSimulatedAggregated',
   'statsUpdateAggregated',
   'statsUpdateAggregatedRolling',
   'generateOnDemandParserEventReports',

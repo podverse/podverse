@@ -1,6 +1,7 @@
-import type { QueryParamsStatsRange, StatsSortColumn } from '@podverse/helpers-requests';
+import type { StatsAggregatedRangeCountField } from '@podverse/helpers';
+import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
 
-export const getStatsOrder = (range?: QueryParamsStatsRange): StatsSortColumn => {
+export const getStatsOrder = (range?: QueryParamsStatsRange): StatsAggregatedRangeCountField => {
   switch (range) {
     case 'day':
       return 'day_current_count';

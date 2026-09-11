@@ -27,6 +27,18 @@ describe('getCategoriesForCommand', () => {
     );
   });
 
+  it('maps devStatsSeedSimulatedAggregated to Base and ORM', () => {
+    expect(sortCategories(getCategoriesForCommand('devStatsSeedSimulatedAggregated'))).toEqual(
+      sortCategories(new Set([CATEGORY_BASE, CATEGORY_ORM]))
+    );
+  });
+
+  it('maps devSeedLocalUserContent to Base and ORM', () => {
+    expect(sortCategories(getCategoriesForCommand('devSeedLocalUserContent'))).toEqual(
+      sortCategories(new Set([CATEGORY_BASE, CATEGORY_ORM]))
+    );
+  });
+
   it('maps podcastIndexDeadFeedsDeleteCache to Base only', () => {
     expect(sortCategories(getCategoriesForCommand('podcastIndexDeadFeedsDeleteCache'))).toEqual([
       CATEGORY_BASE,

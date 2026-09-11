@@ -291,12 +291,12 @@ export class PlaylistResourceService extends BaseManyService<PlaylistResource, '
     }
 
     const firstItem = await this.repositoryRead.findOne({
-      where: { playlist },
+      where: { playlist: { id: playlist.id } },
       order: { list_position: 'ASC' },
     });
 
     const lastItem = await this.repositoryRead.findOne({
-      where: { playlist },
+      where: { playlist: { id: playlist.id } },
       order: { list_position: 'DESC' },
     });
 

@@ -133,14 +133,20 @@ separately, run `make local_db_init` so the Postgres roles exist
 
 App accounts come from
 [`local-dev-accounts.sql`](/infra/development/seeds/local-dev-accounts.sql).
-Password for both: `Test!1Aa`. Both are verified. Mobile `__DEV__` login
-prefills the premium account (not during E2E).
+Password for operator and dummy accounts: `Test!1Aa`. All are verified and
+public so `/profile/{id_text}` resolves. Mobile `__DEV__` login prefills the
+premium account (not during E2E).
 
 | Surface    | Login                         | Notes                                      |
 | ---------- | ----------------------------- | ------------------------------------------ |
 | App        | `local-trial@example.com`     | Trial membership (1 year from seed)        |
 | App        | `local-premium@example.com`   | Premium membership (1 year from seed)      |
+| App dummy  | `dummy01@podverse.local`–`dummy06@podverse.local` | Public catalog users; username `dummyNN`; id_text `dummyuserNN` |
 | Management | `superuser@example.com`       | Created in the next command; password same |
+
+Dummy emails use `@podverse.local` and the `dummyNN` prefix so they stay off
+E2E (`e2e-*`), API tests (`*-test@example.com`), and the embed `demo`
+account. Re-run `make local_db_init` on an existing local DB to add them.
 
 `local_setup` does **not** create the management admin and does **not** insert
 podcasts. Create the admin next, still in **Docker**:
@@ -260,26 +266,46 @@ Stop those containers with `make local_stop_parsers`.
 ```bash
 npm run workers:parse_podcasting20_feeds
 npm run workers:parse_trending_feeds -- -max 50
+npm run workers:seed_local_user_content
+npm run workers:seed_simulated_stats
 ```
 
 These write straight to Postgres (no running consumer required). Directory
 **search** in the app still needs the PI keys. **Add podcast** / add-by-RSS then
 need the **Workers** consumers from step 6.
 
+`workers:seed_local_user_content` gives the operator login accounts and
+`dummy01`–`dummy06` overlapping follows, public AV clips (15–30s in the first
+90s), and public playlists. It does not write stats. Idempotent. Requires the
+dummy rows from `local-dev-accounts.sql` (re-run `make local_db_init` if those
+emails are missing). Run it after parse so clips and playlists exist before
+stats.
+
+`workers:seed_simulated_stats` writes staggered listen counts onto public
+channels (and a cap of newest episodes per show), plus public clips, playlists,
+and accounts when those rows exist. It does not insert a stats row for the
+whole catalog. Re-run it after another parse or another user-content seed.
+Optional `-itemsPerChannel 30` (max 80).
+
 Generated local RSS (no PI keys):
 [LOCAL-PARSER-WORKER-FEED-TEST-FLOW.md](testing/LOCAL-PARSER-WORKER-FEED-TEST-FLOW.md).
 
 ## 7. Mobile Metro (leave running)
 
-**Mobile Metro:**
+Pick **one** command in **Mobile Metro**. Run only one Metro.
+
+**Simulator or emulator (this walkthrough):**
 
 ```bash
 npm run mobile:dev
 ```
 
-Day-to-day bundler (`:8081`) against local API `:3000`. Run only one Metro.
+Bundler on `:8081`, app talks to local API `:3000`. Use this unless you are
+installing onto a USB Android phone.
 
-USB Android phone (LAN API host; does not rewrite `apps/mobile/.env`):
+**USB Android phone only** (same tab, instead of `mobile:dev` — not in
+addition). Metro advertises your LAN IP so the phone can reach the API; it
+does not rewrite `apps/mobile/.env`:
 
 ```bash
 npm run mobile:dev:device
@@ -293,15 +319,37 @@ npm run mobile:dev:device
 npm run mobile:ios -- --device "iPhone 17 Pro"
 ```
 
-**Mobile Android** (same idea):
+**Mobile Android** (leave Metro up; do not press `a` in Metro):
 
 ```bash
 npm run mobile:android -- --device Pixel_6_Pro_API_33
 ```
 
-On later days, if the dev client is already installed, open it on the
-simulator/emulator and it will attach to Metro. Re-run `mobile:ios` /
-`mobile:android` after native dependency or prebuild changes.
+That installs and launches the named AVD. Android does **not** attach to Metro
+by itself. After the emulator is up, this attach step is required.
+
+**Root** — wait until `adb devices` shows `device` (not `offline`; a fresh adb
+daemon can report offline for a few seconds), then:
+
+```bash
+adb devices
+adb reverse tcp:8081 tcp:8081
+```
+
+`adb reverse` is ready when it prints `8081` or returns to the prompt with no
+error. Then on the emulator Expo **dev launcher**, **Enter URL manually**:
+
+`http://localhost:8081`
+
+That URL is required. Do not use Metro’s QR / LAN IP (`10.0.0.31` and similar)
+and do not use `10.0.2.2` — those hang on the loading dots and Metro never
+prints `Android Bundled`. After `localhost:8081`, Metro should print
+`Android Bundled` and Home should appear.
+
+On later days, iOS usually attaches if you just open the sim. Android: re-run
+`adb reverse` (it does not persist across emulator/adb restarts), then
+`http://localhost:8081` again. Re-run `mobile:ios` / `mobile:android` after
+native dependency or prebuild changes.
 
 USB Android phone: **Mobile Android** `npm run mobile:android:device` (and Metro
 must be `mobile:dev:device`).
@@ -319,6 +367,7 @@ Manual vs E2E device names:
 | **Mobile Metro**   | `npm run mobile:dev`                                         |
 | **Mobile iOS**     | `npm run mobile:ios -- --device "iPhone 17 Pro"` (as needed) |
 | **Mobile Android** | `npm run mobile:android -- --device Pixel_6_Pro_API_33`      |
+| **Root** (Android) | `adb reverse tcp:8081 tcp:8081` then emulator URL `http://localhost:8081` |
 
 ## Verification Checklist
 
@@ -332,8 +381,8 @@ Manual vs E2E device names:
 | pgAdmin       | http://localhost:3050                 | Local Main (`podverse_app`), Local Management (`podverse_management`)  |
 | Message Queue | http://localhost:8161                 | Artemis console                                                        |
 | Cache         | http://localhost:8001                 | RedisInsight GUI                                                       |
-| Metro         | **Mobile Metro** `:8081`              | Bundler banner                                                         |
-| Mobile app    | Dev client on sim/emulator            | Login prefills premium in `__DEV__`                                    |
+| Metro         | **Mobile Metro** `:8081`              | Bundler banner; `iOS Bundled` / `Android Bundled` after each attach    |
+| Mobile app    | Dev client on sim/emulator            | Home (not Expo launcher). Android: `adb reverse` + `http://localhost:8081` |
 | Parsers       | Add a PI feed or add-by-RSS URL       | Channel becomes parsed-ready                                           |
 
 **pgAdmin:** The password is read from a pgpass file, so you can expand Local
