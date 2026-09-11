@@ -3,12 +3,8 @@ import { getNonEmptyTrimmedStringProperty, isObjectLike } from '@podverse/helper
 
 import { createMobileApiRequestService, requestWithMobileAuthRefresh } from '../../auth';
 import type { MobileAuthRequestContext } from '../../data/repositories';
-import {
-  normalizeChannelRows,
-  normalizeClipRows,
-  normalizeItemRows,
-} from '../home/homeFeedData';
 import type { HomeFeedRowData } from '../home/homeFeedData';
+import { normalizeChannelRows, normalizeClipRows, normalizeItemRows } from '../home/homeFeedData';
 import type { BrowseMediaType, BrowseRangeOption } from './browseTypes';
 import { isBrowseCategoryMediaType } from './browseTypes';
 

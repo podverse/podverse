@@ -1,14 +1,9 @@
 import type { FindOperator } from 'typeorm';
 import { In, Not } from 'typeorm';
 
-export type IdListFilter =
-  | { empty: true }
-  | { empty: false; id?: FindOperator<number> };
+export type IdListFilter = { empty: true } | { empty: false; id?: FindOperator<number> };
 
-export function resolveIdListFilter(
-  includeIds?: number[],
-  excludeIds?: number[]
-): IdListFilter {
+export function resolveIdListFilter(includeIds?: number[], excludeIds?: number[]): IdListFilter {
   if (includeIds && includeIds.length === 0) {
     return { empty: true };
   }

@@ -19,12 +19,7 @@ describe('createActiveMQShutdown', () => {
     const onShutdown = vi.fn();
     const close = vi.fn(async () => {});
 
-    const { shutdown, unregister } = createActiveMQShutdown(
-      { close },
-      console,
-      onShutdown,
-      false
-    );
+    const { shutdown, unregister } = createActiveMQShutdown({ close }, console, onShutdown, false);
 
     await shutdown('SIGINT');
 

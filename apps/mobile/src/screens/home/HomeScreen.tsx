@@ -47,10 +47,7 @@ import { resolveGridColumns } from '../../theme/resolveColumns';
 import { screenBodyInsets } from '../../theme/screenLayout';
 import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
-import {
-  HOME_MEDIA_TYPE_ORDER,
-  MEDIA_TYPE_LABEL_KEYS,
-} from '../browse/browseTypes';
+import { HOME_MEDIA_TYPE_ORDER, MEDIA_TYPE_LABEL_KEYS } from '../browse/browseTypes';
 import type { AddToPlaylistTarget } from '../library/useAddToPlaylist';
 import { useAddToPlaylist } from '../library/useAddToPlaylist';
 import { fetchHomeFeedRows, type HomeFeedRowData } from './homeFeedData';

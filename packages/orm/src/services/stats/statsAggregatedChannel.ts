@@ -43,9 +43,7 @@ export class StatsAggregatedChannelService extends BaseStatsAggregatedService<
       mediumType,
       category_id,
     });
-    const countWhere = options?.minCountField
-      ? { [options.minCountField]: MoreThan(0) }
-      : {};
+    const countWhere = options?.minCountField ? { [options.minCountField]: MoreThan(0) } : {};
     return this.mergeWhere(feedWhere, countWhere);
   }
 

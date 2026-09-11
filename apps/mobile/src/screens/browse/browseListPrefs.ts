@@ -1,13 +1,13 @@
 import type { SortPrefScope } from '@podverse/helpers';
 
 import { readSortPref, subscribeSortPref, writeSortPref } from '../../prefs/sortPrefs';
+import type { BrowseMediaType, BrowseRangeOption } from './browseTypes';
 import {
   DEFAULT_BROWSE_MEDIA_TYPE,
   DEFAULT_BROWSE_RANGE,
   isBrowseMediaType,
   isBrowseRangeOption,
 } from './browseTypes';
-import type { BrowseMediaType, BrowseRangeOption } from './browseTypes';
 
 const BROWSE_ROOT_SCOPE: SortPrefScope = { kind: 'list', name: 'browse' };
 

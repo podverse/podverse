@@ -44,10 +44,7 @@ export function dummyClipTitle(itemIdText: string): string {
 }
 
 /** 15–30s window that starts in the first minute and ends by 90s. */
-export function dummyClipWindow(
-  accountId: number,
-  itemId: number
-): { end: number; start: number } {
+export function dummyClipWindow(accountId: number, itemId: number): { end: number; start: number } {
   const mixed = (accountId * 1009 + itemId * 17) >>> 0;
   const duration = 15 + (mixed % 16);
   const start = 5 + (mixed % 56);

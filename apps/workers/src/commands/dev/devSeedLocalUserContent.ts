@@ -116,11 +116,7 @@ export async function devSeedLocalUserContent(_args: CommandLineArgs) {
       followCount += followResults.filter((row) => row.outcome !== 'not_found').length;
     }
 
-    const clipItems = await collectRecentItems(
-      itemService,
-      avFollows,
-      CLIPS_PER_ACCOUNT
-    );
+    const clipItems = await collectRecentItems(itemService, avFollows, CLIPS_PER_ACCOUNT);
     const existingClips = await clipService.getManyByAccount(account.id);
 
     for (const item of clipItems) {
@@ -146,11 +142,7 @@ export async function devSeedLocalUserContent(_args: CommandLineArgs) {
       clipCount += 1;
     }
 
-    const avPlaylistItems = await collectRecentItems(
-      itemService,
-      avFollows,
-      PLAYLIST_ITEM_COUNT
-    );
+    const avPlaylistItems = await collectRecentItems(itemService, avFollows, PLAYLIST_ITEM_COUNT);
     playlistCount += await ensureDummyPlaylist({
       accountId: account.id,
       items: avPlaylistItems,

@@ -1,7 +1,7 @@
 import {
-  ARTWORK_LIST_SIZE_FIND_TARGET,
   addByRSSFeedListArtworkCandidates,
   articleStrippedTitle,
+  ARTWORK_LIST_SIZE_FIND_TARGET,
   primaryListArtworkUrl,
 } from '@podverse/helpers';
 import type { AddByRSSMappedFeed } from '@podverse/parser-mapping';

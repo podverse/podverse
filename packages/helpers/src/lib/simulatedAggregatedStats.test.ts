@@ -32,7 +32,9 @@ describe('simulated aggregated stats', () => {
 
   it('keeps range windows internally consistent', () => {
     for (let rank = 0; rank < 12; rank += 1) {
-      expectInvariants(buildSimulatedChannelAggregatedCounts({ entityId: 7 + rank, rank, total: 12 }));
+      expectInvariants(
+        buildSimulatedChannelAggregatedCounts({ entityId: 7 + rank, rank, total: 12 })
+      );
     }
   });
 

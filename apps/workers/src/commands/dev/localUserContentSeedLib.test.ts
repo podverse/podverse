@@ -9,9 +9,7 @@ import {
 
 describe('localUserContentSeedLib', () => {
   it('keeps dummy catalog emails off example.com and e2e prefixes', () => {
-    const dummyEmails = LOCAL_USER_CONTENT_SEED_EMAILS.filter((email) =>
-      email.startsWith('dummy')
-    );
+    const dummyEmails = LOCAL_USER_CONTENT_SEED_EMAILS.filter((email) => email.startsWith('dummy'));
     expect(dummyEmails).toHaveLength(6);
     for (const email of dummyEmails) {
       expect(email.endsWith('@podverse.local')).toBe(true);

@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 
 import {
-  ARTWORK_LIST_SIZE_FIND_TARGET,
   addByRSSFeedListArtworkCandidates,
+  ARTWORK_LIST_SIZE_FIND_TARGET,
   primaryChannelLightboxArtworkUrl,
 } from '@podverse/helpers';
 

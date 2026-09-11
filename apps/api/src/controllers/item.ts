@@ -156,9 +156,7 @@ export class ItemController {
           order: { [orderField]: 'DESC' },
           skip: offset,
           take: limit,
-          relations: recentByChannel
-            ? subItemGetManyRelations
-            : subItemGetManyRelationsWithChannel,
+          relations: recentByChannel ? subItemGetManyRelations : subItemGetManyRelationsWithChannel,
         };
         const statsResults = await ItemController.statsAggregatedItemService.getMany(
           config,

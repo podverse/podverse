@@ -1,9 +1,7 @@
 export const TOP_STATS_PAD_MAX_RANKED = 500;
 
 export type TopPageFillPlan =
-  | { mode: 'stats' }
-  | { mode: 'recent' }
-  | { mode: 'hybrid'; padTake: number; tailOffset: number };
+  { mode: 'stats' } | { mode: 'recent' } | { mode: 'hybrid'; padTake: number; tailOffset: number };
 
 export function planTopPageFill(input: {
   limit: number;

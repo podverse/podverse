@@ -7,12 +7,12 @@ import type { MoreMenuItem, MoreMenuSection } from '../../components/primitives'
 import { MoreMenu } from '../../components/primitives';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
+import type { BrowseRangeOption } from './browseTypes';
 import {
   BROWSE_RANGE_LABEL_KEYS,
   BROWSE_RANGE_MENU_LABEL_KEYS,
   BROWSE_RANGE_OPTIONS,
 } from './browseTypes';
-import type { BrowseRangeOption } from './browseTypes';
 
 type BrowseSortChipProps = {
   onRangeChange: (range: BrowseRangeOption) => void;

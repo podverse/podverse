@@ -52,9 +52,7 @@ export class StatsAggregatedItemService extends BaseStatsAggregatedService<
       ...(live_item_status_id ? { live_item_status_id: Equal(live_item_status_id) } : {}),
     };
 
-    const countWhere = options?.minCountField
-      ? { [options.minCountField]: MoreThan(0) }
-      : {};
+    const countWhere = options?.minCountField ? { [options.minCountField]: MoreThan(0) } : {};
 
     const buildWhere = (
       live_item: FindOptionsWhere<LiveItem>

@@ -12,16 +12,16 @@ All commands are from the **monorepo root**. Use the named tabs in
 
 ## Terminals
 
-| Tab                | Use in this walkthrough                                           | Leave running?        |
-| ------------------ | ----------------------------------------------------------------- | --------------------- |
-| **Root**           | One-shot env, deps, package/worker builds, optional feed seed     | No                    |
-| **Docker**         | Teardown, `local_setup` / `local_infra_up`                        | No (containers stay)  |
-| **Dev**            | `npm run dev:all:watch` (main + management, packages, compile)    | **Yes**               |
-| **Workers**        | Parser **consumers** (`npm run dev:workers:parsers`)              | **Yes**               |
-| **Mobile**         | One-shot mobile install/prebuild/health                           | No                    |
-| **Mobile Metro**   | `npm run mobile:dev` (local API on `:3000`)                       | **Yes**               |
-| **Mobile iOS**     | `npm run mobile:ios -- --device "iPhone 17 Pro"`                  | No (exits; app stays) |
-| **Mobile Android** | `npm run mobile:android -- --device Pixel_6_Pro_API_33`           | No (exits; app stays) |
+| Tab                | Use in this walkthrough                                        | Leave running?        |
+| ------------------ | -------------------------------------------------------------- | --------------------- |
+| **Root**           | One-shot env, deps, package/worker builds, optional feed seed  | No                    |
+| **Docker**         | Teardown, `local_setup` / `local_infra_up`                     | No (containers stay)  |
+| **Dev**            | `npm run dev:all:watch` (main + management, packages, compile) | **Yes**               |
+| **Workers**        | Parser **consumers** (`npm run dev:workers:parsers`)           | **Yes**               |
+| **Mobile**         | One-shot mobile install/prebuild/health                        | No                    |
+| **Mobile Metro**   | `npm run mobile:dev` (local API on `:3000`)                    | **Yes**               |
+| **Mobile iOS**     | `npm run mobile:ios -- --device "iPhone 17 Pro"`               | No (exits; app stays) |
+| **Mobile Android** | `npm run mobile:android -- --device Pixel_6_Pro_API_33`        | No (exits; app stays) |
 
 Do **not** start **Mobile E2E API** or `mobile:dev:e2e` for this flow. Those point
 the app at the E2E API on `:4230`, not your local Docker Postgres.
@@ -137,12 +137,12 @@ Password for operator and dummy accounts: `Test!1Aa`. All are verified and
 public so `/profile/{id_text}` resolves. Mobile `__DEV__` login prefills the
 premium account (not during E2E).
 
-| Surface    | Login                         | Notes                                      |
-| ---------- | ----------------------------- | ------------------------------------------ |
-| App        | `local-trial@example.com`     | Trial membership (1 year from seed)        |
-| App        | `local-premium@example.com`   | Premium membership (1 year from seed)      |
+| Surface    | Login                                             | Notes                                                           |
+| ---------- | ------------------------------------------------- | --------------------------------------------------------------- |
+| App        | `local-trial@example.com`                         | Trial membership (1 year from seed)                             |
+| App        | `local-premium@example.com`                       | Premium membership (1 year from seed)                           |
 | App dummy  | `dummy01@podverse.local`–`dummy06@podverse.local` | Public catalog users; username `dummyNN`; id_text `dummyuserNN` |
-| Management | `superuser@example.com`       | Created in the next command; password same |
+| Management | `superuser@example.com`                           | Created in the next command; password same                      |
 
 Dummy emails use `@podverse.local` and the `dummyNN` prefix so they stay off
 E2E (`e2e-*`), API tests (`*-test@example.com`), and the embed `demo`
@@ -359,31 +359,31 @@ Manual vs E2E device names:
 
 ## Day-to-day (already set up)
 
-| Tab                | Command                                                      |
-| ------------------ | ------------------------------------------------------------ |
-| **Docker**         | `make local_infra_up` then `npm run check:dev-deps`          |
-| **Dev**            | `npm run dev:all:watch`                                      |
-| **Workers**        | `npm run dev:workers:parsers`                                |
-| **Mobile Metro**   | `npm run mobile:dev`                                         |
-| **Mobile iOS**     | `npm run mobile:ios -- --device "iPhone 17 Pro"` (as needed) |
-| **Mobile Android** | `npm run mobile:android -- --device Pixel_6_Pro_API_33`      |
+| Tab                | Command                                                                   |
+| ------------------ | ------------------------------------------------------------------------- |
+| **Docker**         | `make local_infra_up` then `npm run check:dev-deps`                       |
+| **Dev**            | `npm run dev:all:watch`                                                   |
+| **Workers**        | `npm run dev:workers:parsers`                                             |
+| **Mobile Metro**   | `npm run mobile:dev`                                                      |
+| **Mobile iOS**     | `npm run mobile:ios -- --device "iPhone 17 Pro"` (as needed)              |
+| **Mobile Android** | `npm run mobile:android -- --device Pixel_6_Pro_API_33`                   |
 | **Root** (Android) | `adb reverse tcp:8081 tcp:8081` then emulator URL `http://localhost:8081` |
 
 ## Verification Checklist
 
-| Component     | URL / check                           | Expected                                                               |
-| ------------- | ------------------------------------- | ---------------------------------------------------------------------- |
-| Infra         | `npm run check:dev-deps` in **Root**  | Postgres `:5432`, Artemis `:5684`, Valkey `:6379`                      |
-| API           | http://localhost:3000/api/v2/meta     | JSON with version info                                                 |
-| Web           | http://localhost:3002                 | Homepage loads                                                         |
-| Management    | http://localhost:3102                 | Admin login (`superuser@example.com` / `Test!1Aa`)                     |
-| Database      | `docker ps \| grep podverse_local_db` | Container running                                                      |
-| pgAdmin       | http://localhost:3050                 | Local Main (`podverse_app`), Local Management (`podverse_management`)  |
-| Message Queue | http://localhost:8161                 | Artemis console                                                        |
-| Cache         | http://localhost:8001                 | RedisInsight GUI                                                       |
-| Metro         | **Mobile Metro** `:8081`              | Bundler banner; `iOS Bundled` / `Android Bundled` after each attach    |
+| Component     | URL / check                           | Expected                                                                   |
+| ------------- | ------------------------------------- | -------------------------------------------------------------------------- |
+| Infra         | `npm run check:dev-deps` in **Root**  | Postgres `:5432`, Artemis `:5684`, Valkey `:6379`                          |
+| API           | http://localhost:3000/api/v2/meta     | JSON with version info                                                     |
+| Web           | http://localhost:3002                 | Homepage loads                                                             |
+| Management    | http://localhost:3102                 | Admin login (`superuser@example.com` / `Test!1Aa`)                         |
+| Database      | `docker ps \| grep podverse_local_db` | Container running                                                          |
+| pgAdmin       | http://localhost:3050                 | Local Main (`podverse_app`), Local Management (`podverse_management`)      |
+| Message Queue | http://localhost:8161                 | Artemis console                                                            |
+| Cache         | http://localhost:8001                 | RedisInsight GUI                                                           |
+| Metro         | **Mobile Metro** `:8081`              | Bundler banner; `iOS Bundled` / `Android Bundled` after each attach        |
 | Mobile app    | Dev client on sim/emulator            | Home (not Expo launcher). Android: `adb reverse` + `http://localhost:8081` |
-| Parsers       | Add a PI feed or add-by-RSS URL       | Channel becomes parsed-ready                                           |
+| Parsers       | Add a PI feed or add-by-RSS URL       | Channel becomes parsed-ready                                               |
 
 **pgAdmin:** The password is read from a pgpass file, so you can expand Local
 Main or Local Management without entering a password. For local DBs, set

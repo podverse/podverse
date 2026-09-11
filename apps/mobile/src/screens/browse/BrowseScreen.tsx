@@ -14,15 +14,16 @@ import type { BrowseStackParamList } from '../../navigation';
 import { BROWSE_STACK_ROUTES } from '../../navigation';
 import { screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
-import { HomeFeedRow } from '../home/HomeFeedRow';
 import type { HomeFeedRowData } from '../home/homeFeedData';
+import { HomeFeedRow } from '../home/HomeFeedRow';
 import { MediaTypeChip, MediaTypeSelector } from '../home/MediaTypeSelector';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 import type { AddToPlaylistTarget } from '../library/useAddToPlaylist';
 import { useAddToPlaylist } from '../library/useAddToPlaylist';
-import { ALL_BROWSE_CATEGORIES, fetchBrowseCategories } from './browseCategories';
 import type { BrowseCategoryOption } from './browseCategories';
+import { ALL_BROWSE_CATEGORIES, fetchBrowseCategories } from './browseCategories';
 import { fetchBrowseFeedRows } from './browseFeedData';
+import type { BrowseListPrefs } from './browseListPrefs';
 import {
   readBrowseListPrefs,
   subscribeBrowseListPrefs,
@@ -30,7 +31,6 @@ import {
   writeBrowseMediaType,
   writeBrowseRange,
 } from './browseListPrefs';
-import type { BrowseListPrefs } from './browseListPrefs';
 import { BrowseSortChip } from './BrowseSortChip';
 import type { BrowseMediaType, BrowseRangeOption } from './browseTypes';
 import {
@@ -47,8 +47,7 @@ type CategoryListRow = {
 };
 
 type BrowseListRow =
-  | { kind: 'category'; row: CategoryListRow }
-  | { kind: 'feed'; row: HomeFeedRowData };
+  { kind: 'category'; row: CategoryListRow } | { kind: 'feed'; row: HomeFeedRowData };
 
 export function BrowseScreen() {
   const { t } = useTranslation();
@@ -432,15 +431,7 @@ export function BrowseScreen() {
         ListFooterComponent={listFooter}
         ListHeaderComponent={listHeader}
         contentContainerStyle={styles.content}
-        data={
-          isCategoryView
-            ? showCategoryLoading
-              ? []
-              : listRows
-            : showFeedRows
-              ? listRows
-              : []
-        }
+        data={isCategoryView ? (showCategoryLoading ? [] : listRows) : showFeedRows ? listRows : []}
         extraData={`${isCategoryView}:${selectedCategory ?? ''}`}
         keyboardShouldPersistTaps="handled"
         keyExtractor={(item) => `${item.kind}:${item.row.id}`}

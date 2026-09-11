@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { fillTopPage, inferRankedCount, planTopPageFill, TOP_STATS_PAD_MAX_RANKED } from './topListFill.js';
+import {
+  fillTopPage,
+  inferRankedCount,
+  planTopPageFill,
+  TOP_STATS_PAD_MAX_RANKED,
+} from './topListFill.js';
 
 describe('inferRankedCount', () => {
   it('infers from a first page or a short later page', () => {
@@ -16,30 +21,34 @@ describe('inferRankedCount', () => {
 
 describe('planTopPageFill', () => {
   it('keeps a full stats page on the stats path', () => {
-    expect(
-      planTopPageFill({ limit: 60, offset: 0, rankedCount: 80, statsPageLength: 60 })
-    ).toEqual({ mode: 'stats' });
+    expect(planTopPageFill({ limit: 60, offset: 0, rankedCount: 80, statsPageLength: 60 })).toEqual(
+      { mode: 'stats' }
+    );
   });
 
   it('falls back to recent when nothing is ranked', () => {
-    expect(
-      planTopPageFill({ limit: 60, offset: 0, rankedCount: 0, statsPageLength: 0 })
-    ).toEqual({ mode: 'recent' });
-    expect(
-      planTopPageFill({ limit: 60, offset: 60, rankedCount: 0, statsPageLength: 0 })
-    ).toEqual({ mode: 'recent' });
+    expect(planTopPageFill({ limit: 60, offset: 0, rankedCount: 0, statsPageLength: 0 })).toEqual({
+      mode: 'recent',
+    });
+    expect(planTopPageFill({ limit: 60, offset: 60, rankedCount: 0, statsPageLength: 0 })).toEqual({
+      mode: 'recent',
+    });
   });
 
   it('pads a single ranked row on page 1', () => {
-    expect(
-      planTopPageFill({ limit: 60, offset: 0, rankedCount: 1, statsPageLength: 1 })
-    ).toEqual({ mode: 'hybrid', padTake: 59, tailOffset: 0 });
+    expect(planTopPageFill({ limit: 60, offset: 0, rankedCount: 1, statsPageLength: 1 })).toEqual({
+      mode: 'hybrid',
+      padTake: 59,
+      tailOffset: 0,
+    });
   });
 
   it('continues the recent tail after a single ranked row', () => {
-    expect(
-      planTopPageFill({ limit: 60, offset: 60, rankedCount: 1, statsPageLength: 0 })
-    ).toEqual({ mode: 'hybrid', padTake: 60, tailOffset: 59 });
+    expect(planTopPageFill({ limit: 60, offset: 60, rankedCount: 1, statsPageLength: 0 })).toEqual({
+      mode: 'hybrid',
+      padTake: 60,
+      tailOffset: 59,
+    });
   });
 
   it('pads the remainder after a short last stats page', () => {

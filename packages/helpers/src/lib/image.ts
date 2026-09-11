@@ -383,8 +383,12 @@ export function primaryLightboxArtworkUrl(
   channelImages: ItemImagePartial[] | null | undefined
 ): string | null {
   return (
-    mergeDTOItemThenChannelImageHeroCandidates(itemImages, channelImages, 'largest', 'greater')[0] ??
-    null
+    mergeDTOItemThenChannelImageHeroCandidates(
+      itemImages,
+      channelImages,
+      'largest',
+      'greater'
+    )[0] ?? null
   );
 }
 

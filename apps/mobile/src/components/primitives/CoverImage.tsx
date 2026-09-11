@@ -113,7 +113,9 @@ export function CoverImage({
         onClose={() => {
           setIsViewerOpen(false);
         }}
-        uri={viewerUri !== null && viewerUri !== undefined && viewerUri.length > 0 ? viewerUri : uri}
+        uri={
+          viewerUri !== null && viewerUri !== undefined && viewerUri.length > 0 ? viewerUri : uri
+        }
         visible={isViewerOpen}
       />
     </>

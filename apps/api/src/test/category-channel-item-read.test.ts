@@ -685,7 +685,10 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
     it('GET /item/global/top pads recent rows after a short ranked page', async () => {
       const res = await request(app).get(`${itemBase}/global/top?${listQueryTop}`);
       expect(res.status).toBe(200);
-      expect(res.body.data.map((row: { id_text: string }) => row.id_text)).toEqual(['st-it', 'it-1']);
+      expect(res.body.data.map((row: { id_text: string }) => row.id_text)).toEqual([
+        'st-it',
+        'it-1',
+      ]);
       expect(statsItGetRankedItemIdsMock).toHaveBeenCalled();
       expect(itemGetManyMock).toHaveBeenCalled();
     });

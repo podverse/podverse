@@ -103,7 +103,11 @@ function cohortDayPeakRange(cohort: SimulatedStatsCohort): { max: number; min: n
 
 function daySeries(cohort: SimulatedStatsCohort, peak: number, rng: Rng): number[] {
   const peakDay =
-    cohort === 'rising' ? intIn(rng, 0, 1) : cohort === 'fading' ? intIn(rng, 5, 8) : intIn(rng, 1, 4);
+    cohort === 'rising'
+      ? intIn(rng, 0, 1)
+      : cohort === 'fading'
+        ? intIn(rng, 5, 8)
+        : intIn(rng, 1, 4);
   const weekdayBump = intIn(rng, 1, 3);
 
   return Array.from({ length: 9 }, (_, day) => {
@@ -132,11 +136,7 @@ function enforceInvariants(counts: SimulatedAggregatedCounts): SimulatedAggregat
     counts.month_current_count,
     weekCurrent + counts.week_1_count + counts.week_2_count + counts.week_3_count
   );
-  const allTime = Math.max(
-    counts.all_time_count,
-    monthCurrent + counts.month_1_count,
-    weekCurrent
-  );
+  const allTime = Math.max(counts.all_time_count, monthCurrent + counts.month_1_count, weekCurrent);
 
   return {
     ...counts,
@@ -207,9 +207,10 @@ export function buildSimulatedItemAggregatedCounts(input: {
   const rng = mulberry32(hash32(input.entityId * 41 + input.itemIndex * 19 + 3));
   const newestShare =
     input.itemIndex === 0 ? 0.38 : input.itemIndex === 1 ? 0.22 : input.itemIndex === 2 ? 0.12 : 0;
-  const longTailShare =
-    newestShare === 0 ? 0.28 / Math.max(input.itemCount - 3, 1) : newestShare;
-  const viral = input.itemCount > 4 && hash32(input.entityId) % Math.max(input.itemCount, 1) === input.itemIndex;
+  const longTailShare = newestShare === 0 ? 0.28 / Math.max(input.itemCount - 3, 1) : newestShare;
+  const viral =
+    input.itemCount > 4 &&
+    hash32(input.entityId) % Math.max(input.itemCount, 1) === input.itemIndex;
   const allTimeShare = viral
     ? 0.22
     : newestShare === 0
@@ -266,7 +267,13 @@ export function buildSimulatedItemAggregatedCounts(input: {
   return {
     ...bounded,
     all_time_count: Math.min(bounded.all_time_count, input.channelCounts.all_time_count),
-    month_current_count: Math.min(bounded.month_current_count, input.channelCounts.month_current_count),
-    week_current_count: Math.min(bounded.week_current_count, input.channelCounts.week_current_count),
+    month_current_count: Math.min(
+      bounded.month_current_count,
+      input.channelCounts.month_current_count
+    ),
+    week_current_count: Math.min(
+      bounded.week_current_count,
+      input.channelCounts.week_current_count
+    ),
   };
 }

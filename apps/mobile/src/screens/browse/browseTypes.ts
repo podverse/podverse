@@ -1,5 +1,5 @@
-import { QUERY_PARAMS_STATS_RANGE_VALUES } from '@podverse/helpers-requests';
 import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
+import { QUERY_PARAMS_STATS_RANGE_VALUES } from '@podverse/helpers-requests';
 
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
 
