@@ -118,7 +118,7 @@ const normalizeId = (record: Record<string, unknown>): string | null => {
   return null;
 };
 
-const normalizeChannelRows = (items: unknown[]): HomeFeedRowData[] => {
+export const normalizeChannelRows = (items: unknown[]): HomeFeedRowData[] => {
   const rows: HomeFeedRowData[] = [];
 
   for (const item of items) {
@@ -150,7 +150,7 @@ const normalizeChannelRows = (items: unknown[]): HomeFeedRowData[] => {
   return rows;
 };
 
-const normalizeItemRows = (items: unknown[]): HomeFeedRowData[] => {
+export const normalizeItemRows = (items: unknown[]): HomeFeedRowData[] => {
   const rows: HomeFeedRowData[] = [];
 
   for (const item of items) {
@@ -180,7 +180,7 @@ const normalizeItemRows = (items: unknown[]): HomeFeedRowData[] => {
   return rows;
 };
 
-const normalizeClipRows = (items: unknown[]): HomeFeedRowData[] => {
+export const normalizeClipRows = (items: unknown[]): HomeFeedRowData[] => {
   const rows: HomeFeedRowData[] = [];
 
   for (const item of items) {

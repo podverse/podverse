@@ -27,6 +27,14 @@
       "rate_limited_time_one": "",
       "rate_limited_time_other": ""
     },
+    "browse": {
+      "categories_selected": "",
+      "category_all": "",
+      "empty": "",
+      "range_all_time": "",
+      "sort_popularity": "",
+      "users": ""
+    },
     "download": {
       "queued": "",
       "remove": "",
@@ -37,7 +45,8 @@
       "delete_all_label": "",
       "delete_all": "",
       "auto_removed_notice": "",
-      "dismiss": ""
+      "dismiss": "",
+      "in_progress_count": ""
     },
     "search": {
       "add_podcast": "",

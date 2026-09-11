@@ -2,6 +2,8 @@ export { Accordion } from './Accordion';
 export type { AccordionProps } from './Accordion';
 export { Badge } from './Badge';
 export type { BadgeProps, BadgeTone } from './Badge';
+export { CountBadge } from './CountBadge';
+export type { CountBadgeProps } from './CountBadge';
 export { Button } from './Button';
 export type { ButtonProps, ButtonSize, ButtonVariant } from './Button';
 export { Card } from './Card';

@@ -8,9 +8,12 @@ import { ListRow } from '../primitives/ListRow';
 import { MobileScreenContainer } from './MobileScreenContainer';
 
 export type MenuListItem = {
+  accessibilityLabel?: string;
   onPress: () => void;
   showsChevron?: boolean;
   subtitle?: string;
+  /** Count shown left of the chevron. Hidden at 0. */
+  badgeCount?: number;
   testID: string;
   title: string;
 };
@@ -52,6 +55,8 @@ function MenuListGroup({ items }: { items: readonly MenuListItem[] }) {
       {items.map((item, index) => (
         <View key={item.testID} style={[styles.row, index > 0 ? styles.rowDivider : null]}>
           <ListRow
+            accessibilityLabel={item.accessibilityLabel}
+            badgeCount={item.badgeCount}
             onPress={item.onPress}
             paddingVertical={tokens.spacing.lg}
             subtitle={item.subtitle}

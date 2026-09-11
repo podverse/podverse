@@ -21,6 +21,11 @@ export {
   sumCompletedBytes,
 } from './downloadQuota';
 
+export {
+  countInProgressDownloads,
+  isInProgressDownloadStatus,
+  sumBadgeCounts,
+} from './inProgressDownloadCount';
 export { DOWNLOAD_STATUSES, isDownloadMediaType, isDownloadStatus } from './downloadTypes';
 export type {
   DownloadMediaType,

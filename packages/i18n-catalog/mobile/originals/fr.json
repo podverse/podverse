@@ -27,6 +27,14 @@
       "rate_limited_time_one": "1 minute",
       "rate_limited_time_other": "{minutes} minutes"
     },
+    "browse": {
+      "categories_selected": "Catégories – {name}",
+      "category_all": "Toutes les catégories",
+      "empty": "Rien à afficher pour le moment",
+      "range_all_time": "Tout le temps",
+      "sort_popularity": "Popularité",
+      "users": "Utilisateurs"
+    },
     "download": {
       "queued": "En file d'attente",
       "remove": "Supprimer",
@@ -37,7 +45,8 @@
       "delete_all_label": "Supprimer tous les téléchargements",
       "delete_all": "Tout supprimer",
       "auto_removed_notice": "Les téléchargements les plus anciens ont été supprimés pour libérer de l'espace",
-      "dismiss": "Fermer"
+      "dismiss": "Fermer",
+      "in_progress_count": "{count} en cours"
     },
     "search": {
       "add_podcast": "Ajouter le podcast",

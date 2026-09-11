@@ -47,6 +47,10 @@ import { resolveGridColumns } from '../../theme/resolveColumns';
 import { screenBodyInsets } from '../../theme/screenLayout';
 import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
+import {
+  HOME_MEDIA_TYPE_ORDER,
+  MEDIA_TYPE_LABEL_KEYS,
+} from '../browse/browseTypes';
 import type { AddToPlaylistTarget } from '../library/useAddToPlaylist';
 import { useAddToPlaylist } from '../library/useAddToPlaylist';
 import { fetchHomeFeedRows, type HomeFeedRowData } from './homeFeedData';
@@ -392,28 +396,6 @@ export function HomeScreen() {
     return feedRows.filter((row) => matchesTitleFilter(row.title, filterTerm));
   }, [feedRows, filterTerm]);
 
-  const resultSummary = `${t('misc.items')}: ${visibleRows.length}`;
-
-  // A filter that silently reorders the screen tells a screen reader user nothing. Announcing the
-  // same line the summary shows means both audiences learn the same thing at the same moment.
-  //
-  // The first settled count is recorded without speaking, so arriving on Home does not talk over
-  // the screen title; every change after that is the user's own doing and worth reporting.
-  const announcedCountRef = useRef<number | null>(null);
-  useEffect(() => {
-    if (isFeedLoading || feedErrorKey !== null) {
-      return;
-    }
-
-    const previousCount = announcedCountRef.current;
-    announcedCountRef.current = visibleRows.length;
-    if (previousCount === null || previousCount === visibleRows.length) {
-      return;
-    }
-
-    AccessibilityInfo.announceForAccessibility(resultSummary);
-  }, [feedErrorKey, isFeedLoading, resultSummary, visibleRows.length]);
-
   const styles = useMemo(() => {
     const bodyInsets = screenBodyInsets(tokens.spacing);
 
@@ -441,11 +423,6 @@ export function HomeScreen() {
         color: themeStyles.textSecondary.color,
         fontSize: 13,
         marginTop: tokens.spacing.sm,
-      },
-      feedSummary: {
-        color: themeStyles.textSecondary.color,
-        fontSize: 13,
-        marginBottom: tokens.spacing.md,
       },
       controlsRow: {
         alignItems: 'center',
@@ -548,9 +525,6 @@ export function HomeScreen() {
               </Pressable>
             ) : null}
           </View>
-          <Text style={styles.feedSummary} testID="home-feed-summary">
-            {resultSummary}
-          </Text>
           {actionErrorKey !== null ? (
             <Text style={styles.feedNotice} testID="home-action-error">
               {t(actionErrorKey)}
@@ -596,7 +570,13 @@ export function HomeScreen() {
   return (
     <View style={styles.container} testID="home-screen">
       <View style={styles.selectorSection}>
-        <MediaTypeSelector onChange={handleMediaTypeChange} selectedMediaType={selectedMediaType} />
+        <MediaTypeSelector
+          labelKeys={MEDIA_TYPE_LABEL_KEYS}
+          onChange={handleMediaTypeChange}
+          selectedMediaType={selectedMediaType}
+          testIDPrefix="home"
+          types={HOME_MEDIA_TYPE_ORDER}
+        />
       </View>
       {/* Keep controls and summary in ListHeaderComponent while rows render as FlatList items, so */}
       {/* tablet grid columns can virtualize with numColumns. */}

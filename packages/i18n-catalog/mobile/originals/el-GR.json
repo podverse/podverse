@@ -27,6 +27,14 @@
       "rate_limited_time_one": "1 minute",
       "rate_limited_time_other": "{minutes} minutes"
     },
+    "browse": {
+      "categories_selected": "Κατηγορίες – {name}",
+      "category_all": "Όλες οι κατηγορίες",
+      "empty": "Δεν υπάρχει τίποτα προς εμφάνιση",
+      "range_all_time": "Όλων των εποχών",
+      "sort_popularity": "Δημοτικότητα",
+      "users": "Χρήστες"
+    },
     "download": {
       "queued": "Σε ουρά",
       "remove": "Αφαίρεση",
@@ -37,7 +45,8 @@
       "delete_all_label": "Διαγραφή όλων των λήψεων",
       "delete_all": "Διαγραφή όλων",
       "auto_removed_notice": "Αφαιρέθηκαν οι παλαιότερες λήψεις για να απελευθερωθεί χώρος",
-      "dismiss": "Απόρριψη"
+      "dismiss": "Απόρριψη",
+      "in_progress_count": "{count} σε εξέλιξη"
     },
     "search": {
       "add_podcast": "Προσθήκη podcast",

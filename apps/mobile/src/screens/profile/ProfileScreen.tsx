@@ -1,4 +1,5 @@
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { ParamListBase } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -7,10 +8,12 @@ import { MobileScreenContainer } from '../../components/screen/MobileScreenConta
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
 import { usePublicProfileContentLoad } from '../../hooks/useProfileContentLoad';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
-import type { MoreStackParamList } from '../../navigation';
 import { ProfileContentSections } from './ProfileContentSections';
 
-type ProfileScreenProps = NativeStackScreenProps<MoreStackParamList, 'MorePublicProfile'>;
+type ProfileScreenProps = {
+  navigation: NativeStackNavigationProp<ParamListBase>;
+  route: { params: { accountIdText: string } };
+};
 
 export function ProfileScreen({ navigation, route }: ProfileScreenProps) {
   const { t } = useTranslation();
