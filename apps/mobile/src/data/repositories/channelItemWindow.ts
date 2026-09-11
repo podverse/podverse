@@ -1,4 +1,4 @@
-import { FIFTEEN_MINUTES_MS, toEpochMsOrNull } from '@podverse/helpers';
+import { FIFTEEN_MINUTES_MS, primaryListArtworkUrl, toEpochMsOrNull } from '@podverse/helpers';
 import type { DTOItem } from '@podverse/helpers/dto';
 
 /**
@@ -191,27 +191,37 @@ export const reconcileChannelItems = <T extends StoredChannelItemKey>({
  * The parts of an item artwork resolution actually reads. Narrower than `DTOItem` so the rule can
  * be exercised without building an entire channel graph around it.
  */
+export type ChannelItemArtworkImage = {
+  url: string;
+  image_width_size?: number | null;
+  is_resized?: boolean;
+};
+
 export type ChannelItemArtworkSource = {
-  channel?: { channel_images?: { url: string }[] };
-  item_images: { url: string }[];
+  channel?: { channel_images?: ChannelItemArtworkImage[] };
+  item_images: ChannelItemArtworkImage[];
+};
+
+const firstTrimmedImageUrl = (images: ChannelItemArtworkImage[] | undefined): string | null => {
+  for (const image of images ?? []) {
+    const url = image.url.trim();
+    if (url.length > 0) {
+      return url;
+    }
+  }
+  return null;
 };
 
 /**
- * Artwork for an item, preferring its own over the channel's. Shared with the row mappers so a
- * stored item and a freshly fetched one never render different images.
+ * Artwork for an item, preferring a shrunken item thumb, then a shrunken channel thumb. Shared with
+ * the row mappers so a stored item and a freshly fetched one never render different images.
  */
 export const getItemPrimaryImageUrl = (item: ChannelItemArtworkSource): string | null => {
-  const firstItemImage = item.item_images[0];
-  if (firstItemImage) {
-    return firstItemImage.url;
-  }
-
-  const firstChannelImage = item.channel?.channel_images?.[0];
-  if (firstChannelImage) {
-    return firstChannelImage.url;
-  }
-
-  return null;
+  return (
+    primaryListArtworkUrl(item.item_images, item.channel?.channel_images) ??
+    firstTrimmedImageUrl(item.item_images) ??
+    firstTrimmedImageUrl(item.channel?.channel_images)
+  );
 };
 
 /**

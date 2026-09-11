@@ -10,6 +10,10 @@ import {
   mergeDTOItemThenChannelImageCandidates,
   mergeDTOItemThenChannelImageHeroCandidates,
   prependDistinctImageCandidate,
+  primaryChannelLightboxArtworkUrl,
+  primaryChannelListArtworkUrl,
+  primaryLightboxArtworkUrl,
+  primaryListArtworkUrl,
 } from './image.js';
 
 describe('buildDTOItemImageLoadCandidates', () => {
@@ -226,6 +230,75 @@ describe('appendDistinctImageCandidate', () => {
       url,
       'https://other.jpg',
     ]);
+  });
+});
+
+describe('primaryListArtworkUrl', () => {
+  it('returns the resized list pick when a shrunken row exists', () => {
+    const cdn = 'https://cdn.example.com/images/item/1/a-w300-c1a2b3c4.webp';
+    const original = 'https://example.com/episode-original.jpg';
+    expect(
+      primaryListArtworkUrl(
+        [
+          { url: original, image_width_size: 800, is_resized: false },
+          { url: cdn, image_width_size: 300, is_resized: true },
+        ],
+        [{ url: 'https://example.com/channel.jpg', image_width_size: 800, is_resized: false }]
+      )
+    ).toBe(cdn);
+  });
+
+  it('falls back to channel artwork when the item has none', () => {
+    const channel = 'https://cdn.example.com/images/channel/1/a-w300-c1a2b3c4.webp';
+    expect(
+      primaryListArtworkUrl([], [{ url: channel, image_width_size: 300, is_resized: true }])
+    ).toBe(channel);
+  });
+
+  it('returns null when neither side has artwork', () => {
+    expect(primaryListArtworkUrl([], [])).toBeNull();
+  });
+});
+
+describe('primaryChannelListArtworkUrl', () => {
+  it('prefers the resized channel thumb', () => {
+    const cdn = 'https://cdn.example.com/images/channel/1/a-w300-c1a2b3c4.webp';
+    const original = 'https://example.com/podcast-original.jpg';
+    expect(
+      primaryChannelListArtworkUrl([
+        { url: original, image_width_size: 800, is_resized: false },
+        { url: cdn, image_width_size: 300, is_resized: true },
+      ])
+    ).toBe(cdn);
+  });
+});
+
+describe('primaryLightboxArtworkUrl', () => {
+  it('prefers the largest non-resized original over a shrunken thumb', () => {
+    const cdn = 'https://cdn.example.com/images/item/1/a-w300-c1a2b3c4.webp';
+    const original = 'https://example.com/episode-original.jpg';
+    expect(
+      primaryLightboxArtworkUrl(
+        [
+          { url: cdn, image_width_size: 300, is_resized: true },
+          { url: original, image_width_size: 1200, is_resized: false },
+        ],
+        []
+      )
+    ).toBe(original);
+  });
+});
+
+describe('primaryChannelLightboxArtworkUrl', () => {
+  it('prefers the largest non-resized channel original', () => {
+    const cdn = 'https://cdn.example.com/images/channel/1/a-w300-c1a2b3c4.webp';
+    const original = 'https://example.com/podcast-original.jpg';
+    expect(
+      primaryChannelLightboxArtworkUrl([
+        { url: cdn, image_width_size: 300, is_resized: true },
+        { url: original, image_width_size: 1200, is_resized: false },
+      ])
+    ).toBe(original);
   });
 });
 

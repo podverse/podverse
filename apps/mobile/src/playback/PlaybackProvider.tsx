@@ -9,6 +9,7 @@ import {
   useState,
 } from 'react';
 
+import { primaryLightboxArtworkUrl, primaryListArtworkUrl } from '@podverse/helpers';
 import type {
   DTOChannel,
   DTOClip,
@@ -53,7 +54,10 @@ import { useMediaPlayerResourceUpdate } from './useMediaPlayerResourceUpdate';
 
 export type PlaybackNowPlaying = {
   title: string;
+  /** Compact chrome (mini player): shrunken-first. */
   imageUrl: string | null;
+  /** Full player display and image viewer: largest original. */
+  viewerImageUrl: string | null;
   channelTitle: string | null;
 };
 
@@ -105,8 +109,9 @@ const PlaybackContext = createContext<PlaybackContextValue | undefined>(undefine
 
 const summaryFromItem = (item: DTOItem, channel: DTOChannel): PlaybackNowPlaying => ({
   channelTitle: channel.title ?? null,
-  imageUrl: item.item_images?.[0]?.url ?? channel.channel_images?.[0]?.url ?? null,
+  imageUrl: primaryListArtworkUrl(item.item_images, channel.channel_images),
   title: item.title ?? '',
+  viewerImageUrl: primaryLightboxArtworkUrl(item.item_images, channel.channel_images),
 });
 
 // Module-level guard so the anonymous restore fires at most once per app process (web parity with

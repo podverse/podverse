@@ -314,6 +314,9 @@ watcher (see § Dev client workflow).
 
 ## Dev client workflow
 
+Full local teardown → env → seed → watch stack (including admin) → parser workers →
+mobile: [QUICKSTART.md](/docs/QUICKSTART.md).
+
 This app uses **`expo-dev-client`** (not Expo Go). Metro serves JavaScript; a **native dev-client app**
 (`com.podverse.app.next`) must be built and installed separately.
 

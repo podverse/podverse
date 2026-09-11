@@ -6,7 +6,9 @@ import type {
   DTOPlaylistResource,
   DTOQueueResource,
 } from '@podverse/helpers';
+import { primaryChannelListArtworkUrl } from '@podverse/helpers';
 
+import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
 import type { HomeFeedRowData } from '../../screens/home/homeFeedData';
 
 export type ItemHomeRow = HomeFeedRowData & {
@@ -33,7 +35,7 @@ type ItemHomeRowSource = {
 export function channelToHomeRow(channel: DTOChannel): HomeFeedRowData {
   return {
     id: channel.id_text,
-    imageUrl: channel.channel_images?.[0]?.url ?? null,
+    imageUrl: primaryChannelListArtworkUrl(channel.channel_images),
     subtitle: null,
     title: channel.title ?? channel.id_text,
   };
@@ -42,7 +44,7 @@ export function channelToHomeRow(channel: DTOChannel): HomeFeedRowData {
 export function clipToHomeRow(clip: DTOClip): HomeFeedRowData {
   return {
     id: clip.id_text,
-    imageUrl: clip.item.item_images[0]?.url ?? clip.item.channel?.channel_images?.[0]?.url ?? null,
+    imageUrl: getItemPrimaryImageUrl(clip.item),
     subtitle: clip.item.channel?.title ?? null,
     title: clip.title ?? clip.item.title ?? clip.id_text,
   };
@@ -52,7 +54,7 @@ export function itemToHomeRow(item: ItemHomeRowSource): ItemHomeRow {
   const mediumId = item.channel?.medium_id ?? null;
   return {
     id: item.id_text,
-    imageUrl: item.item_images[0]?.url ?? item.channel?.channel_images?.[0]?.url ?? null,
+    imageUrl: getItemPrimaryImageUrl(item),
     mediaType: mediumId === 4 ? 'tracks' : 'episodes',
     subtitle: item.channel?.title ?? null,
     title: item.title ?? item.id_text,
@@ -67,7 +69,7 @@ function itemSoundbiteToHomeRow(itemSoundbite: DTOItemSoundbite): PlaylistResour
 
   return {
     id: `soundbite-${itemSoundbite.id_text}`,
-    imageUrl: item.item_images[0]?.url ?? item.channel?.channel_images?.[0]?.url ?? null,
+    imageUrl: getItemPrimaryImageUrl(item),
     mediaType: 'clips',
     subtitle: item.channel?.title ?? null,
     title: itemSoundbite.title ?? itemSoundbite.id_text,
@@ -80,10 +82,7 @@ export function playlistResourceToHomeRow(
   if (resource.clip) {
     return {
       id: `clip-${resource.clip.id_text}`,
-      imageUrl:
-        resource.clip.item.item_images[0]?.url ??
-        resource.clip.item.channel?.channel_images?.[0]?.url ??
-        null,
+      imageUrl: getItemPrimaryImageUrl(resource.clip.item),
       mediaType: 'clips',
       subtitle: resource.clip.item.channel?.title ?? null,
       title: resource.clip.title ?? resource.clip.item.title ?? resource.clip.id_text,

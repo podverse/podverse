@@ -3,6 +3,7 @@ import type {
   AddByRSSResourceDataImageEntry,
 } from '../../dtos/addByRSSResourceData.js';
 import {
+  mergeDTOItemThenChannelImageCandidates,
   mergeDTOItemThenChannelImageHeroCandidates,
   prependDistinctImageCandidate,
 } from '../image.js';
@@ -34,6 +35,8 @@ export type BuildMediaPlayerArtworkImageCandidatesParams = {
   includeChapterImage: boolean;
   imageSizeTarget: number | 'largest' | 'smallest';
   imageSizeComparison?: 'greater' | 'lesser' | null;
+  /** Mini / compact chrome uses list (shrunken-first). Fullscreen player art uses hero. */
+  artworkRole?: 'list' | 'hero';
 };
 
 export type GetMediaPlayerArtworkSourcesParams = {
@@ -88,13 +91,22 @@ export const buildMediaPlayerArtworkImageCandidates = ({
   includeChapterImage,
   imageSizeTarget,
   imageSizeComparison = null,
+  artworkRole = 'hero',
 }: BuildMediaPlayerArtworkImageCandidatesParams) => {
-  const mergedItemChannel = mergeDTOItemThenChannelImageHeroCandidates(
-    itemImages,
-    channelImages,
-    imageSizeTarget,
-    imageSizeComparison ?? null
-  );
+  const mergedItemChannel =
+    artworkRole === 'list'
+      ? mergeDTOItemThenChannelImageCandidates(
+          itemImages,
+          channelImages,
+          imageSizeTarget,
+          imageSizeComparison ?? null
+        )
+      : mergeDTOItemThenChannelImageHeroCandidates(
+          itemImages,
+          channelImages,
+          imageSizeTarget,
+          imageSizeComparison ?? null
+        );
 
   if (!includeChapterImage) {
     return mergedItemChannel;

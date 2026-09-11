@@ -10,7 +10,7 @@
     },
     {
       "name": "Dev",
-      "description": "npm run dev:main:all",
+      "description": "Leave running: npm run dev:all:watch (main + management). Focused: npm run dev:main:all (no admin).",
       "cwd": ".",
       "open": true,
       "command": "clear"
@@ -24,7 +24,7 @@
     },
     {
       "name": "Workers",
-      "description": "Workers app development",
+      "description": "Leave-running consumers: npm run dev:workers:parsers (rss-on-demand, rss-normal, rss-live, add-by-rss-on-demand, add-by-rss-background, opml-import, live-item listener). Not npm run dev:workers — that only recompiles. Not crons. Image shrink / DLQ are separate. Optional one-shots: trending/P20 seed, scheduled_jobs_run_due.",
       "cwd": ".",
       "open": true,
       "command": "clear"

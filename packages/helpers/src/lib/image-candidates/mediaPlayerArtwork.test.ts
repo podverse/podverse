@@ -120,4 +120,21 @@ describe('buildMediaPlayerArtworkImageCandidates', () => {
     expect(got.includes(chapter)).toBe(false);
     expect(got[0]).toBe(item);
   });
+
+  it('uses shrunken-first merge when artworkRole is list', () => {
+    const resized = 'https://cdn.example.com/item-w300.webp';
+    const original = 'https://example.com/item-original.jpg';
+    const got = buildMediaPlayerArtworkImageCandidates({
+      itemImages: [
+        { url: original, image_width_size: 1200, is_resized: false },
+        { url: resized, image_width_size: 300, is_resized: true },
+      ],
+      channelImages: [],
+      includeChapterImage: false,
+      imageSizeTarget: 224,
+      imageSizeComparison: 'lesser',
+      artworkRole: 'list',
+    });
+    expect(got[0]).toBe(resized);
+  });
 });

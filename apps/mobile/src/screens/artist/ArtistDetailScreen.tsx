@@ -10,6 +10,7 @@ import { useAuth } from '../../auth/AuthProvider';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
+import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
 import type { ChannelBrowseStackParamList } from '../../navigation';
 import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
@@ -23,7 +24,7 @@ const toTrackRows = (items: DTOItem[]): HomeFeedRowData[] => {
   return items
     .map((item) => ({
       id: item.id_text,
-      imageUrl: item.item_images[0]?.url ?? item.channel?.channel_images?.[0]?.url ?? null,
+      imageUrl: getItemPrimaryImageUrl(item),
       subtitle: item.channel?.title ?? null,
       title: item.title ?? item.id_text,
     }))

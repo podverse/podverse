@@ -186,7 +186,7 @@ Only use eslint-disable when:
 - **[GitHub Workflows](/.cursor/skills/github/SKILL.md)** - PR/issue management and GitHub CLI usage
 - **[Web Patterns](/.cursor/skills/web/SKILL.md)** - Next.js app patterns (`apps/web/`)
 - **[Bundle Optimization](/.cursor/skills/bundle-optimization/SKILL.md)** - Bundle size awareness when adding deps, changing helpers, or heavy UI
-- **[Header / hero image sources](/.cursor/skills/header-hero-image-sources/SKILL.md)** - List vs header artwork: `*LoadCandidates` / `*HeroLoadCandidates` and `greater` + `IMAGES.HEADER.*` for heroes
+- **[Artwork sources](/.cursor/skills/header-hero-image-sources/SKILL.md)** - Prefer shrunken (`is_resized`) thumbs for lists and compact chrome; largest originals for lightbox/full-size viewer; interactive row tap wins over image tap
 - **[API Patterns](/.cursor/skills/api/SKILL.md)** - Express API patterns (`apps/api/`)
 - **[Management API Patterns](/.cursor/skills/management-api/SKILL.md)** - Management API Express patterns
 - **[ORM Patterns](/.cursor/skills/orm/SKILL.md)** - Database patterns (`packages/orm/`)

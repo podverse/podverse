@@ -22,6 +22,7 @@ import { Button } from '../../components/primitives/Button';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
+import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
 import { channelItemsRepository } from '../../data/repositories/channelItemsRepository';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import type { ChannelBrowseStackParamList } from '../../navigation';
@@ -52,11 +53,10 @@ const CLIP_SORT_LABEL_KEYS: Record<EpisodeClipSort, string> = {
 };
 
 const toClipRow = (clip: DTOClip): HomeFeedRowData => {
-  const imageUrl =
-    clip.item?.item_images[0]?.url ?? clip.item?.channel?.channel_images?.[0]?.url ?? null;
   return {
     id: clip.id_text,
-    imageUrl,
+    imageUrl:
+      clip.item !== undefined && clip.item !== null ? getItemPrimaryImageUrl(clip.item) : null,
     subtitle: clip.item?.channel?.title ?? null,
     title: clip.title ?? clip.item?.title ?? clip.id_text,
   };
@@ -67,13 +67,12 @@ const toSoundbiteRow = (
   index: number,
   fallbackTitle: string
 ): HomeFeedRowData => {
-  const imageUrl =
-    soundbite.item?.item_images[0]?.url ??
-    soundbite.item?.channel?.channel_images?.[0]?.url ??
-    null;
   return {
     id: soundbite.id_text,
-    imageUrl,
+    imageUrl:
+      soundbite.item !== undefined && soundbite.item !== null
+        ? getItemPrimaryImageUrl(soundbite.item)
+        : null,
     subtitle: formatPlaybackTime(soundbite.start_time),
     title: soundbite.title ?? `${fallbackTitle} ${index + 1}`,
   };
@@ -438,7 +437,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
 
     return {
       id: episode.id_text,
-      imageUrl: episode.item_images[0]?.url ?? episode.channel?.channel_images?.[0]?.url ?? null,
+      imageUrl: getItemPrimaryImageUrl(episode),
       subtitle: channelTitle,
       title: episode.title ?? episode.id_text,
     };

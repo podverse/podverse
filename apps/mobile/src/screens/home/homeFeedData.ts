@@ -1,4 +1,4 @@
-import { articleStrippedTitle } from '@podverse/helpers';
+import { articleStrippedTitle, primaryListArtworkUrl } from '@podverse/helpers';
 import type { DTOItem } from '@podverse/helpers/dto';
 import { getNonEmptyTrimmedStringProperty, isObjectLike } from '@podverse/helpers/guards';
 
@@ -70,36 +70,47 @@ const readStringFromNestedRecord = (
   return getNonEmptyTrimmedStringProperty(nestedValue, fieldKey);
 };
 
-const readImageUrl = (record: Record<string, unknown>): string | null => {
-  const directImage =
-    getNonEmptyTrimmedStringProperty(record, 'image') ??
-    getNonEmptyTrimmedStringProperty(record, 'artwork') ??
-    getNonEmptyTrimmedStringProperty(record, 'image_url') ??
-    getNonEmptyTrimmedStringProperty(record, 'imageUrl');
-  if (directImage !== null) {
-    return directImage;
+const toArtworkPartials = (value: unknown) => {
+  if (!Array.isArray(value)) {
+    return [];
   }
 
-  const imageCollections = ['channel_images', 'item_images'];
-  for (const imageCollectionKey of imageCollections) {
-    const maybeImages = record[imageCollectionKey];
-    if (!Array.isArray(maybeImages)) {
+  const images: { url: string; image_width_size: number | null; is_resized: boolean }[] = [];
+  for (const maybeImage of value) {
+    if (!isObjectLike(maybeImage)) {
       continue;
     }
 
-    for (const maybeImage of maybeImages) {
-      if (!isObjectLike(maybeImage)) {
-        continue;
-      }
-
-      const url = getNonEmptyTrimmedStringProperty(maybeImage, 'url');
-      if (url !== null) {
-        return url;
-      }
+    const url = getNonEmptyTrimmedStringProperty(maybeImage, 'url');
+    if (url === null) {
+      continue;
     }
+
+    const width = maybeImage.image_width_size;
+    images.push({
+      image_width_size: typeof width === 'number' ? width : null,
+      is_resized: maybeImage.is_resized === true,
+      url,
+    });
+  }
+  return images;
+};
+
+const readImageUrl = (record: Record<string, unknown>): string | null => {
+  const fromHelpers = primaryListArtworkUrl(
+    toArtworkPartials(record.item_images),
+    toArtworkPartials(record.channel_images)
+  );
+  if (fromHelpers !== null) {
+    return fromHelpers;
   }
 
-  return null;
+  return (
+    getNonEmptyTrimmedStringProperty(record, 'image') ??
+    getNonEmptyTrimmedStringProperty(record, 'artwork') ??
+    getNonEmptyTrimmedStringProperty(record, 'image_url') ??
+    getNonEmptyTrimmedStringProperty(record, 'imageUrl')
+  );
 };
 
 const normalizeId = (record: Record<string, unknown>): string | null => {

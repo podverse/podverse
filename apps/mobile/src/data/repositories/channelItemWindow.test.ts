@@ -277,6 +277,25 @@ describe('getItemPrimaryImageUrl', () => {
   it('returns null when neither carries artwork', () => {
     expect(getItemPrimaryImageUrl({ item_images: [] })).toBeNull();
   });
+
+  it('prefers a shrunken item thumb over a larger original', () => {
+    const url = getItemPrimaryImageUrl({
+      channel: {
+        channel_images: [
+          { url: 'https://example.com/chan.jpg', image_width_size: 800, is_resized: false },
+        ],
+      },
+      item_images: [
+        { url: 'https://example.com/ep.jpg', image_width_size: 800, is_resized: false },
+        {
+          url: 'https://cdn.example.com/images/item/1/a-w300-c1a2b3c4.webp',
+          image_width_size: 300,
+          is_resized: true,
+        },
+      ],
+    });
+    expect(url).toBe('https://cdn.example.com/images/item/1/a-w300-c1a2b3c4.webp');
+  });
 });
 
 describe('toChannelItemRecord', () => {

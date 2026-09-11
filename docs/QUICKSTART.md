@@ -1,190 +1,355 @@
 # Quick Start Guide
 
-Get the Podverse monorepo running locally in 6 steps.
+One local process: tear the stack down, regenerate env, recreate infra and the
+dev database, then run the full watch stack (web, API, **admin**, test-assets),
+parser workers, and the mobile app.
+
+This is **not** the Maestro E2E stack (API on `:4230`, `mobile:dev:e2e`). For that,
+see [apps/mobile/e2e/HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md).
+
+All commands are from the **monorepo root**. Use the named tabs in
+[`.vscode/terminals.json`](/.vscode/terminals.json).
+
+## Terminals
+
+| Tab                | Use in this walkthrough                                           | Leave running?        |
+| ------------------ | ----------------------------------------------------------------- | --------------------- |
+| **Root**           | One-shot env, deps, package/worker builds, optional feed seed     | No                    |
+| **Docker**         | Teardown, `local_setup` / `local_infra_up`                        | No (containers stay)  |
+| **Dev**            | `npm run dev:all:watch` (main + management, packages, compile)    | **Yes**               |
+| **Workers**        | Parser **consumers** (`npm run dev:workers:parsers`)              | **Yes**               |
+| **Mobile**         | One-shot mobile install/prebuild/health                           | No                    |
+| **Mobile Metro**   | `npm run mobile:dev` (local API on `:3000`)                       | **Yes**               |
+| **Mobile iOS**     | `npm run mobile:ios -- --device "iPhone 17 Pro"`                  | No (exits; app stays) |
+| **Mobile Android** | `npm run mobile:android -- --device Pixel_6_Pro_API_33`           | No (exits; app stays) |
+
+Do **not** start **Mobile E2E API** or `mobile:dev:e2e` for this flow. Those point
+the app at the E2E API on `:4230`, not your local Docker Postgres.
+
+`npm run dev:workers` and the `workers` lane inside `dev:all:watch` only
+**recompile** `apps/workers`. They do **not** consume message-queue jobs.
+Queue-backed add, import, and live parse stay stuck until **Workers** is
+running `dev:workers:parsers`.
 
 ## Prerequisites
 
-- **Docker Desktop** - [Install Docker](https://docs.docker.com/get-docker/)
-- **Node.js 24 LTS** - Install via [nvm](https://github.com/nvm-sh/nvm) (we use LTS versions only; see root `.nvmrc`)
+- **Docker Desktop** — [Install Docker](https://docs.docker.com/get-docker/).
+  Verify with `docker info`.
+- **Node.js 24 LTS** — repo flake via direnv / `./scripts/nix/with-env`, or
+  [nvm](https://github.com/nvm-sh/nvm) (see root `.nvmrc`).
+  [CURSOR-NIX-WITH-ENV.md](development/tooling/CURSOR-NIX-WITH-ENV.md)
 - **Git**
+- **Xcode** + iOS Simulator (for mobile iOS)
+- **Android Studio** + AVD `Pixel_6_Pro_API_33` (for mobile Android)
+- Podcast Index API keys in home overrides if you want directory search or
+  trending seed (`~/.config/podverse/local-env-overrides/podcast-index.env`)
 
-Verify Docker is running:
+Native toolchain detail: [APPS-MOBILE.md](/apps/mobile/APPS-MOBILE.md).
 
-```bash
-docker info
-```
-
-## Quick Start (6 Steps)
-
-### 1. Clone and Install
+### Fresh clone (first machine only)
 
 ```bash
 git clone https://github.com/podverse/podverse.git
 cd podverse
-nvm use
-npm install
 ```
 
-### 2. Prepare Local Override Files
+Then start at [step 2](#2-env-overrides-and-generation) (nothing to tear down).
+`nvm use` is optional if direnv already loads the flake.
+
+## 1. Teardown
+
+**Docker.** Stop containers and **wipe volumes** (Postgres, Artemis, Valkey).
+Images stay.
+
+```bash
+make local_clean
+```
+
+Then remove generated app/infra env files (home overrides are **not** deleted).
+This refuses to run if any `podverse_local_*` container is still up.
+
+```bash
+make local_env_clean
+```
+
+Use `make local_all_down` instead of `local_clean` when you only want to stop
+infra and **keep** the existing database.
+
+Do not delete `~/.config/podverse/local-env-overrides/`. That directory is the
+durable copy of your keys and auto-generated DB/MQ/JWT secrets.
+
+## 2. Env overrides and generation
+
+**Root.**
 
 ```bash
 make local_env_prepare
+make local_env_link
 ```
 
-This creates `dev/env-overrides/local/*.env` files from committed examples.
-Update those files with any private or external values you use locally, then continue.
+Edit home overrides if this machine does not already have them. The usual
+search/seed file is `podcast-index.env` (`PODCAST_INDEX_AUTH_KEY`,
+`PODCAST_INDEX_SECRET_KEY`).
 
-**Work trees / multiple clones:** To share one set of overrides across all work trees and clones,
-use home-directory overrides: run `make local_env_link` so overrides live in
-`~/.config/podverse/local-env-overrides/` and are symlinked into this repo; then run
-`make local_env_setup`. In each new work tree, run `make local_env_link` then `make local_env_setup`
-and you will not need to re-enter values. To create a new branch in a new work tree with env and
-history ready in one step, use `make start_feature_worktree`. See [Local Env Overrides (home
-directory)](development/LOCAL-ENV-OVERRIDES.md).
+Work trees share those home files: in each new work tree run `make local_env_link`
+then `make local_env_setup`. One-shot new work tree:
+`make start_feature_worktree`. Details:
+[LOCAL-ENV-OVERRIDES.md](development/env/LOCAL-ENV-OVERRIDES.md).
 
-### 3. Generate Local Env Files and Start Infrastructure
+Then generate app `.env` files (including `apps/mobile/.env` and both web
+sidecars) and `infra/config/local/*.env`:
 
 ```bash
 make local_env_setup
+```
+
+`local_env_setup` creates missing runtime env, auto-generates passwords/keys, and
+applies overrides. Docker Compose uses `infra/config/local/*.env` (service
+names). npm apps use `apps/*/.env` / `.env.local` (localhost). Web and
+management-web `.env.local` contain only `RUNTIME_CONFIG_URL`; sidecars use
+`apps/web/sidecar/.env` and `apps/management-web/sidecar/.env`.
+
+Mobile `EXPO_PUBLIC_MOBILE_API_BASE_URL_{IOS,ANDROID}` is derived from the
+shared local API host (iOS `localhost:3000`, Android emulator `10.0.2.2:3000`,
+both with `/api/v2`).
+
+## 3. Recreate infra and seed the database
+
+**Docker.** `local_setup` runs env setup again (safe if you already did step 2),
+starts Postgres / Artemis / Valkey / pgAdmin, applies linear migrations, and
+seeds local app login accounts.
+
+```bash
 make local_setup
 ```
 
-`local_env_setup` creates missing runtime env files, auto-generates passwords/keys,
-and applies override values. When you run the app stack via Docker Compose, it uses
-`infra/config/local/*.env` (with Docker service names for container-to-container calls);
-when you run with npm (e.g. `npm run dev:web`), use the app `.env`/`.env.local` files (localhost). For web and management-web, `.env.local` contains only `RUNTIME_CONFIG_URL`; the runtime-config sidecar uses `apps/web/sidecar/.env` and `apps/management-web/sidecar/.env` (created by `make local_env_setup`).
+Wait until it prints `Local environment ready!`.
 
-`local_setup` then:
+Only run `local_setup` for initial setup or after `local_clean`. Later restarts:
+`make local_infra_up`. If you ran `local_env_setup` and `local_infra_up`
+separately, run `make local_db_init` so the Postgres roles exist
+(`podverse_app_read`, `podverse_app_read_write`,
+`podverse_management_read`, `podverse_management_read_write`).
 
-- Creates the Docker network
-- Starts PostgreSQL databases (main + management)
-- Starts ActiveMQ Artemis message queue
-- Starts Valkey (Redis-compatible) cache
-- Starts pgAdmin (database browser) at `http://localhost:3050`
-- Initializes database schemas and users
+App accounts come from
+[`local-dev-accounts.sql`](/infra/development/seeds/local-dev-accounts.sql).
+Password for both: `Test!1Aa`. Both are verified. Mobile `__DEV__` login
+prefills the premium account (not during E2E).
 
-**Note**: Only run `local_setup` once for initial setup. To restart services later, use `make local_infra_up`. If you ran `local_env_setup` and `local_infra_up` separately (e.g. after the [prepare → link → setup](development/LOCAL-ENV-OVERRIDES.md) flow), run `make local_db_init` before starting apps so the Postgres roles (`podverse_app_read`, `podverse_app_read_write`, `podverse_management_read`, `podverse_management_read_write`) exist.
+| Surface    | Login                         | Notes                                      |
+| ---------- | ----------------------------- | ------------------------------------------ |
+| App        | `local-trial@example.com`     | Trial membership (1 year from seed)        |
+| App        | `local-premium@example.com`   | Premium membership (1 year from seed)      |
+| Management | `superuser@example.com`       | Created in the next command; password same |
 
-### 4. Build Packages
+`local_setup` does **not** create the management admin and does **not** insert
+podcasts. Create the admin next, still in **Docker**:
+
+```bash
+make local_management_superuser_create
+```
+
+Default username `superuser`, stored email `superuser@example.com`, password
+`Test!1Aa`. Management web: http://localhost:3102 after step 5.
+
+Podcasts: see [Optional podcast data](#optional-podcast-data) after the watch
+stack is up.
+
+## 4. Install JS deps and native trees
+
+**Root** (or **Mobile** for the mobile-only lines). First clone / wiped
+`node_modules` / missing `ios/` + `android/`:
+
+```bash
+npm run deps:init:native
+```
+
+That **includes** root `npm install` (do not run `npm install` first). It then
+builds packages, installs standalone `apps/mobile`, and runs Expo prebuild +
+CocoaPods. Root `npm install` alone never installs mobile (outside workspaces).
+
+If root + mobile JS are already installed and you only need packages:
 
 ```bash
 npm run build:packages
 ```
 
-This builds all shared packages in dependency order:
-`helpers` → `external-services-firebase`, `external-services-paypal`, `external-services-podcast-index` → `orm` → `notifications` → `parser` → `mq`
-
-### 5. Start the API
+If native trees already exist and you only need a JS reinstall:
 
 ```bash
-npm run dev:api
+npm run deps:init
 ```
 
-The API starts at **http://localhost:3000**
+Do **not** wrap `mobile:ios` / `mobile:android` / `mobile:prebuild` with
+`./scripts/nix/with-env` — those scripts strip Nix so Xcode/Gradle use the host
+toolchain.
 
-Verify it's running:
+## 5. Full stack with watch (leave running)
+
+**Docker** first if you just rebooted the machine (skip after a fresh
+`local_setup`):
+
+```bash
+make local_infra_up
+npm run check:dev-deps
+```
+
+`dev:all:watch` starts Node apps only. It does not start Postgres, Artemis, or
+Valkey.
+
+**Dev** (leave running):
+
+```bash
+npm run dev:all:watch
+```
+
+This starts package watch, workers **compile** watch, API (`:3000`), web sidecar,
+test-assets (`:2111`), web (`:3002`), management API (`:3100`), management-web
+sidecar, and management-web (`:3102`).
+
+Wait until the API answers. Run the curl in **Root** or **Mobile**, not in
+**Dev**:
 
 ```bash
 curl http://localhost:3000/api/v2/meta
 ```
 
-### 6. Start the Web App
+Focused alternatives (same infra prerequisite): `npm run dev:main:all` (no
+admin), `npm run dev:management:all` (admin only), or individual
+`npm run dev:api` / `dev:web` / `dev:management-api` / `dev:management-web`.
 
-In a new terminal:
+## 6. Parser workers (leave running)
+
+**Workers.** After `apps/workers/dist` exists (`dev:all:watch` builds it, or run
+`npm run build -w apps/workers` in **Root**):
 
 ```bash
-npm run dev:web
+npm run dev:workers:parsers
 ```
 
-The web app starts at **http://localhost:3002**
+That starts the long-running MQ consumers (not crons): `rss-on-demand`
+(Podcast Index **Add**), `rss-normal` (background / batch RSS), `rss-live`,
+`add-by-rss-on-demand`, `add-by-rss-background`, `opml-import`, and the
+live-item listener (enqueues to `rss-live`). Leave it running.
 
-Open http://localhost:3002 in your browser - you should see the Podverse homepage.
+Restart this tab after you change worker source; compile watch updates `dist/`,
+but the already-started Node processes do not reload.
 
-### Local Dev Accounts
+Image shrink and the DLQ consumer are not in this script. Image shrink exits
+immediately unless `BUCKET_PROVIDER` is set:
 
-Two test accounts are automatically created during setup (same password):
+```bash
+npm run image_shrink_run_consumer -w apps/workers
+```
 
-- **Trial:** `local-trial@example.com` — trial membership (expires in 1 year from seed time)
-- **Premium:** `local-premium@example.com` — premium membership (expires in 1 year from seed time)
+Docker alternative (builds a workers image; parser-queue subset only; do
+**not** also run `dev:workers:parsers`):
 
-**Password for both:** `Test!1Aa`
+```bash
+make local_run_parsers_all
+```
 
-Both accounts are pre-verified.
+Stop those containers with `make local_stop_parsers`.
+
+## Optional podcast data
+
+`local_setup` seeds **users only**. To put real channels in the app DB:
+
+**Root**, after packages + workers are built, and with Podcast Index keys set:
+
+```bash
+npm run workers:parse_podcasting20_feeds
+npm run workers:parse_trending_feeds -- -max 50
+```
+
+These write straight to Postgres (no running consumer required). Directory
+**search** in the app still needs the PI keys. **Add podcast** / add-by-RSS then
+need the **Workers** consumers from step 6.
+
+Generated local RSS (no PI keys):
+[LOCAL-PARSER-WORKER-FEED-TEST-FLOW.md](testing/LOCAL-PARSER-WORKER-FEED-TEST-FLOW.md).
+
+## 7. Mobile Metro (leave running)
+
+**Mobile Metro:**
+
+```bash
+npm run mobile:dev
+```
+
+Day-to-day bundler (`:8081`) against local API `:3000`. Run only one Metro.
+
+USB Android phone (LAN API host; does not rewrite `apps/mobile/.env`):
+
+```bash
+npm run mobile:dev:device
+```
+
+## 8. Install and launch the mobile app
+
+**Mobile iOS** (exits when the install/launch finishes; leave Metro up):
+
+```bash
+npm run mobile:ios -- --device "iPhone 17 Pro"
+```
+
+**Mobile Android** (same idea):
+
+```bash
+npm run mobile:android -- --device Pixel_6_Pro_API_33
+```
+
+On later days, if the dev client is already installed, open it on the
+simulator/emulator and it will attach to Metro. Re-run `mobile:ios` /
+`mobile:android` after native dependency or prebuild changes.
+
+USB Android phone: **Mobile Android** `npm run mobile:android:device` (and Metro
+must be `mobile:dev:device`).
+
+Manual vs E2E device names:
+[APPS-MOBILE.md § Dev client workflow](/apps/mobile/APPS-MOBILE.md#dev-client-workflow).
+
+## Day-to-day (already set up)
+
+| Tab                | Command                                                      |
+| ------------------ | ------------------------------------------------------------ |
+| **Docker**         | `make local_infra_up` then `npm run check:dev-deps`          |
+| **Dev**            | `npm run dev:all:watch`                                      |
+| **Workers**        | `npm run dev:workers:parsers`                                |
+| **Mobile Metro**   | `npm run mobile:dev`                                         |
+| **Mobile iOS**     | `npm run mobile:ios -- --device "iPhone 17 Pro"` (as needed) |
+| **Mobile Android** | `npm run mobile:android -- --device Pixel_6_Pro_API_33`      |
 
 ## Verification Checklist
 
-| Component     | URL                                   | Expected                                                                       |
-| ------------- | ------------------------------------- | ------------------------------------------------------------------------------ |
-| API           | http://localhost:3000/api/v2/meta     | JSON response with version info                                                |
-| Web           | http://localhost:3002                 | Podverse homepage loads                                                        |
-| Database      | `docker ps \| grep podverse_local_db` | Container running                                                              |
-| pgAdmin       | http://localhost:3050                 | Two servers: Local Main (podverse_app), Local Management (podverse_management) |
-| Message Queue | http://localhost:8161                 | Artemis console (user/mysecretpw)                                              |
-| Cache         | http://localhost:8001                 | RedisInsight GUI                                                               |
+| Component     | URL / check                           | Expected                                                               |
+| ------------- | ------------------------------------- | ---------------------------------------------------------------------- |
+| Infra         | `npm run check:dev-deps` in **Root**  | Postgres `:5432`, Artemis `:5684`, Valkey `:6379`                      |
+| API           | http://localhost:3000/api/v2/meta     | JSON with version info                                                 |
+| Web           | http://localhost:3002                 | Homepage loads                                                         |
+| Management    | http://localhost:3102                 | Admin login (`superuser@example.com` / `Test!1Aa`)                     |
+| Database      | `docker ps \| grep podverse_local_db` | Container running                                                      |
+| pgAdmin       | http://localhost:3050                 | Local Main (`podverse_app`), Local Management (`podverse_management`)  |
+| Message Queue | http://localhost:8161                 | Artemis console                                                        |
+| Cache         | http://localhost:8001                 | RedisInsight GUI                                                       |
+| Metro         | **Mobile Metro** `:8081`              | Bundler banner                                                         |
+| Mobile app    | Dev client on sim/emulator            | Login prefills premium in `__DEV__`                                    |
+| Parsers       | Add a PI feed or add-by-RSS URL       | Channel becomes parsed-ready                                           |
 
-**pgAdmin:** The password is read from a pgpass file, so you can expand Local Main or Local Management without entering a password. For local DBs, set `POSTGRES_DB=podverse_app` and `POSTGRES_MANAGEMENT_DB=podverse_management` in `infra/config/local/db.env` (e.g. via `make local_env_setup`). If you see missing database errors, either **(A)** set those env values, remove the DB volume(s), and run `make local_db_up` so Postgres creates the DBs on first init, or **(B)** create the databases manually: `docker exec -it podverse_local_db psql -U podverse_app_owner -c 'CREATE DATABASE podverse_app;'` and `docker exec -it podverse_local_db psql -U podverse_app_owner -c 'CREATE DATABASE podverse_management;'`.
-
-## Development Workflow
-
-### Watch Mode
-
-For active development, use watch mode to auto-rebuild on changes:
-
-```bash
-# Terminal 1: API with auto-reload
-npm run dev:watch -w apps/api
-
-# Terminal 2: Web with hot reload (default Next.js behavior)
-npm run dev:web
-```
-
-For advanced terminal configurations using VS Code Terminals Manager, see [development/IDE-SETUP.md](development/IDE-SETUP.md).
-
-### Run Multiple Apps (dev:\*:all)
-
-**Prerequisite:** Docker dev infrastructure must be running before `dev:all`, `dev:all:watch`, or the `dev:*:all` group commands. They start Node apps only; they do not start Postgres, Artemis, or Valkey.
+**pgAdmin:** The password is read from a pgpass file, so you can expand Local
+Main or Local Management without entering a password. For local DBs, set
+`POSTGRES_DB=podverse_app` and `POSTGRES_MANAGEMENT_DB=podverse_management` in
+`infra/config/local/db.env` (via `make local_env_setup`). If you see missing
+database errors, either **(A)** set those env values, remove the DB volume(s),
+and run `make local_db_up` so Postgres creates the DBs on first init, or
+**(B)** create them manually:
 
 ```bash
-make local_infra_up          # after first-time setup; use make local_setup once
-npm run check:dev-deps       # verify Postgres (5432), Artemis (5684), Valkey (6379)
+docker exec -it podverse_local_db psql -U podverse_app_owner -c 'CREATE DATABASE podverse_app;'
+docker exec -it podverse_local_db psql -U podverse_app_owner -c 'CREATE DATABASE podverse_management;'
 ```
 
-For focused development, use these commands to run packages in watch mode with specific app groups:
-
-```bash
-# Main apps only (API + Web) - most common
-npm run dev:main:all
-
-# Management apps only (requires management database)
-npm run dev:management:all
-
-# All apps (requires management database)
-npm run dev:all
-
-# Full stack with package watch (same infra prerequisite)
-npm run dev:all:watch
-```
-
-**Note**: Run `make local_setup` once for initial DB init. After that, use `make local_infra_up` when Docker was stopped and verify with `npm run check:dev-deps`.
-
-These commands start with staggered delays for readable log output:
-
-- Packages build sequentially (helpers → external-services → orm → notifications → parser → mq)
-- Apps start after packages are ready, spaced 6 seconds apart
-
-### Package Development
-
-When modifying packages, rebuild them:
-
-```bash
-# Rebuild a specific package
-npm run build -w packages/helpers
-
-# Rebuild all packages
-npm run build:packages
-```
-
-### Stopping and Restarting Services
+## Stopping and restarting
 
 ```bash
 # Stop all infrastructure (preserves data)
@@ -200,41 +365,20 @@ make local_mq_down
 make local_keyvaldb_down
 ```
 
-**Important**: After `local_all_down`, use `local_infra_up` to restart. Only use `local_setup` for initial setup or after `local_clean`.
+After `local_all_down`, use `local_infra_up`. Only use `local_setup` for initial
+setup or after `local_clean`.
 
-## Management Apps
-
-The management apps provide an admin interface for Podverse operations. The management database is included in `local_setup`.
-
-### Default Superuser Account
-
-- Email: `localadmin@example.com`
-- Password: `Test!1Aa`
-
-### Run Management Apps
+When modifying a single package without `dev:all:watch`:
 
 ```bash
-# Combined with packages in watch mode
-npm run dev:management:all
-
-# Or individually
-npm run dev:management-api # http://localhost:3100
-npm run dev:management-web # http://localhost:3102
+npm run build -w packages/helpers
+npm run build:packages
 ```
-
-## Workers (Optional)
-
-Background workers process feed updates and notifications:
-
-```bash
-npm run dev:workers
-```
-
-Workers require the database, message queue, and cache to be running.
 
 ## Extensions (Prometheus / OTLP)
 
-Optional **extension-prometheus** sidecar for local metrics (OTLP from apps → Prometheus scrape on port **9464**). Not started by `make local_infra_up`.
+Optional **extension-prometheus** sidecar for local metrics (OTLP from apps →
+Prometheus scrape on port **9464**). Not started by `make local_infra_up`.
 
 ```bash
 make local_extensions_prometheus_up
@@ -243,18 +387,23 @@ curl -fsS http://127.0.0.1:9464/extensions/prometheus/health
 
 `make local_env_setup` seeds extension env from three templates:
 
-- `infra/config/env-templates/extensions.env.example` → `infra/config/local/extensions.env`
-- `infra/config/env-templates/extension-sidecar-otel.env.example` → `infra/config/local/extension-sidecar-otel.env`
-- `infra/config/env-templates/extension-prometheus.env.example` → `infra/config/local/extension-prometheus.env`
+- `infra/config/env-templates/extensions.env.example` →
+  `infra/config/local/extensions.env`
+- `infra/config/env-templates/extension-sidecar-otel.env.example` →
+  `infra/config/local/extension-sidecar-otel.env`
+- `infra/config/env-templates/extension-prometheus.env.example` →
+  `infra/config/local/extension-prometheus.env`
 
 To export metrics from an app running on the host (e.g. `npm run dev:api`):
 
 1. Set in `apps/api/.env` (or the app you run): `PROMETHEUS_ENABLED="true"`,
-   `OTEL_EXPORTER_OTLP_ENDPOINT="http://127.0.0.1:4318"`, and `OTEL_SERVICE_NAME="podverse-api"`.
-   For web/management-web, set those keys in `apps/*/sidecar/.env` and re-run `make local_env_setup`
-   (copies them into `.env.local`).
+   `OTEL_EXPORTER_OTLP_ENDPOINT="http://127.0.0.1:4318"`, and
+   `OTEL_SERVICE_NAME="podverse-api"`. For web/management-web, set those keys
+   in `apps/*/sidecar/.env` and re-run `make local_env_setup` (copies them into
+   `.env.local`).
 2. Start the app and hit HTTP routes.
-3. Scrape `http://127.0.0.1:9464/extensions/prometheus/metrics` (not the app port).
+3. Scrape `http://127.0.0.1:9464/extensions/prometheus/metrics` (not the app
+   port).
 
 Stop the sidecar: `make local_extensions_down`. Platform capabilities:
 [operations/platform/DOCS-OPERATIONS-PLATFORM.md](operations/platform/DOCS-OPERATIONS-PLATFORM.md).
@@ -335,7 +484,8 @@ make local_db_init
 
 If you see `relation "xxx" already exists` errors when running `local_setup`:
 
-This happens when you run `local_setup` on a database that already has data. Use the correct command:
+This happens when you run `local_setup` on a database that already has data. Use
+the correct command:
 
 ```bash
 # To restart services (data already exists):
@@ -356,57 +506,54 @@ npm run build:packages
 
 ### Stale Build Cache
 
-If you see "Could not find a declaration file for module '@podverse/...'" errors after switching Node versions or after a failed build:
+If you see "Could not find a declaration file for module '@podverse/...'" errors
+after switching Node versions or after a failed build:
 
 ```bash
 npm run clean:all
 npm run build:packages
 ```
 
-This removes stale `tsconfig.tsbuildinfo` files that can cause TypeScript to skip emitting declaration files.
+This removes stale `tsconfig.tsbuildinfo` files that can cause TypeScript to
+skip emitting declaration files.
 
 ### Fresh Start
 
 To completely reset your local environment (wipes all data):
 
 ```bash
-make local_clean # Stops containers and removes volumes
-make local_setup # Starts fresh and initializes databases
-npm run build:packages
+make local_clean
+make local_env_clean
+make local_env_prepare
+make local_env_link
+make local_setup
+make local_management_superuser_create
+npm run deps:init:native
 ```
 
-Note: `local_clean` removes containers and data volumes but preserves Docker images for faster restarts.
+Then continue from [step 5](#5-full-stack-with-watch-leave-running).
+`local_clean` removes containers and data volumes but preserves Docker images.
 
-### Clean start and correct alignment
+### Clean start and password alignment
 
-Use this sequence when you want a clean slate and to ensure DB passwords stay aligned with env
-files (e.g. after changing overrides or fixing authentication failures for `podverse_app_read` / `podverse_management_read`):
-
-**Minimal (recommended):**
+Use this sequence when you want a clean slate and to ensure DB passwords stay
+aligned with env files (e.g. after changing overrides or fixing authentication
+failures for `podverse_app_read` / `podverse_management_read`):
 
 ```bash
 make local_clean
 make local_setup
-npm run build:packages
 ```
 
-**With override refresh (if you changed `dev/env-overrides/local/*.env`):**
+`local_setup` runs `local_env_setup` (which populates
+`infra/config/local/db.env`), then starts infra and runs DB inits. The init
+scripts sync the app/management read and read_write user passwords from those
+env files every time.
 
-```bash
-make local_env_prepare   # optional: (re)create override files from examples
-make local_clean
-make local_setup
-npm run build:packages
-```
-
-`local_setup` runs `local_env_setup` (which populates `infra/config/local/db.env`), then starts
-infra and runs DB inits. The init scripts
-sync the app/management read and read_write user passwords from those env files every time, so the databases
-stay aligned with `local_env_setup` results.
-
-To remove only the generated local env files (infra + app .env) and keep
-`dev/env-overrides/local/*.env` intact, run `make local_env_clean`. This target will refuse to run
-if any Podverse local containers are running; stop them first with `make local_all_down`.
+To remove only the generated local env files (infra + app `.env`) and keep
+`dev/env-overrides/local/*.env` intact, run `make local_env_clean`. This target
+refuses to run if any Podverse local containers are running; stop them first
+with `make local_all_down`.
 
 ## Docker Images
 
@@ -428,7 +575,9 @@ make local_build_management_web
 make local_build_management_web_runtime_config
 ```
 
-**Web Apps Runtime Config**: The `web` and `management-web` apps build once and read `NEXT_PUBLIC_*` values from a runtime-config sidecar. The Makefile commands handle image builds, but if building manually:
+**Web Apps Runtime Config**: The `web` and `management-web` apps build once and
+read `NEXT_PUBLIC_*` values from a runtime-config sidecar. The Makefile
+commands handle image builds, but if building manually:
 
 ```bash
 # Build web app and sidecar
@@ -440,7 +589,9 @@ docker build -f apps/management-web/Dockerfile -t podverse-management-web:latest
 docker build -f apps/management-web/sidecar/Dockerfile -t podverse-management-web-runtime-config:latest .
 ```
 
-Provide runtime env values to the sidecar at deploy time (see `apps/web/sidecar/.env.example` and `apps/management-web/sidecar/.env.example`).
+Provide runtime env values to the sidecar at deploy time (see
+`apps/web/sidecar/.env.example` and
+`apps/management-web/sidecar/.env.example`).
 
 ### Testing Docker Images
 
@@ -481,7 +632,8 @@ This will:
 The Dockerfiles use multi-stage builds to minimize final image size:
 
 - **Builder stage**: Installs dependencies and compiles TypeScript
-- **Runner stage**: Only includes compiled `dist/` files and production dependencies
+- **Runner stage**: Only includes compiled `dist/` files and production
+  dependencies
 
 Final images are ~300-500MB (vs 800MB+ with single-stage builds).
 
@@ -498,6 +650,7 @@ Local development uses pre-configured environment files:
 | Workers        | `apps/workers/.env`                                                                                           |
 | Management API | `apps/management-api/.env`                                                                                    |
 | Management Web | `apps/management-web/.env.local` (only `RUNTIME_CONFIG_URL`); sidecar uses `apps/management-web/sidecar/.env` |
+| Mobile         | `apps/mobile/.env`                                                                                            |
 
 ### Infrastructure Config
 
@@ -530,7 +683,7 @@ See the ENV.md files in each app directory for detailed variable documentation:
 ├─────────────┬─────────────┬─────────────┬───────────────┤
 │   Web App   │     API     │   Workers   │  Management   │
 │  (Next.js)  │  (Express)  │  (Node.js)  │   Apps        │
-│  :3002      │  :3000      │             │  :3100/:3101  │
+│  :3002      │  :3000      │             │  :3100/:3102  │
 └──────┬──────┴──────┬──────┴──────┬──────┴───────────────┘
        │             │             │
        └─────────────┼─────────────┘
@@ -559,3 +712,5 @@ See the ENV.md files in each app directory for detailed variable documentation:
 - [Architecture Overview](architecture/ARCHITECTURE.md) - System design and data flow
 - [Contributing Guide](development/CONTRIBUTING.md) - Development workflow and PR guidelines
 - [API Documentation](/apps/api/APPS-API.md) - API endpoints and usage
+- [APPS-MOBILE.md](/apps/mobile/APPS-MOBILE.md) - Expo / devices / troubleshooting
+- [IDE-SETUP.md](development/IDE-SETUP.md) - VS Code terminals and debugging

@@ -60,7 +60,8 @@ export const MediaPlayerInfoDesktop: React.FC = () => {
       mpItemSoundbite,
     }),
     imageSizeTarget: IMAGES.MEDIA_PLAYER.DESKTOP.MINI.SIZE_FIND_TARGET,
-    imageSizeComparison: 'greater',
+    imageSizeComparison: 'lesser',
+    artworkRole: 'list',
   });
 
   return (

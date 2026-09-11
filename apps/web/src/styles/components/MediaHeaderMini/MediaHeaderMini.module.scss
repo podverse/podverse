@@ -5,8 +5,24 @@
   flex-direction: row;
 }
 
+.imageButton {
+  align-items: center;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  margin-right: var(--spacing-lg);
+  padding: 0;
+}
+
 .image {
   margin-right: var(--spacing-lg);
+}
+
+.imageButton .image {
+  margin-right: 0;
 }
 
 .textSection {

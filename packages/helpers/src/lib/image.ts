@@ -50,6 +50,9 @@ function pickUnsetWidthNonResizedForHero(
 
 type Comparison = 'greater' | 'lesser' | null;
 
+/** Default list / compact-chrome target (matches web `IMAGES.LIST.EPISODES.*.SIZE_FIND_TARGET`). */
+export const ARTWORK_LIST_SIZE_FIND_TARGET = 224;
+
 export function findDTOChannelImageBySize(
   channelImages: ItemImagePartial[] | null | undefined,
   size: number | 'largest' | 'smallest',
@@ -351,6 +354,45 @@ export function mergeDTOItemThenChannelImageHeroCandidates(
     pushDistinctUrl(out, seen, url);
   }
   return out;
+}
+
+/** First list/shrunken URL for a single-URI consumer (React Native `Image`, SQLite `image_url`). */
+export function primaryListArtworkUrl(
+  itemImages: ItemImagePartial[] | null | undefined,
+  channelImages: ItemImagePartial[] | null | undefined,
+  size: number | 'largest' | 'smallest' = ARTWORK_LIST_SIZE_FIND_TARGET,
+  comparison: Comparison = 'lesser'
+): string | null {
+  return (
+    mergeDTOItemThenChannelImageCandidates(itemImages, channelImages, size, comparison)[0] ?? null
+  );
+}
+
+/** First list/shrunken channel URL for a single-URI consumer. */
+export function primaryChannelListArtworkUrl(
+  channelImages: ItemImagePartial[] | null | undefined,
+  size: number | 'largest' | 'smallest' = ARTWORK_LIST_SIZE_FIND_TARGET,
+  comparison: Comparison = 'lesser'
+): string | null {
+  return buildDTOChannelImageLoadCandidates(channelImages, size, comparison)[0] ?? null;
+}
+
+/** Largest usable original for a full-size image viewer (item, then channel). */
+export function primaryLightboxArtworkUrl(
+  itemImages: ItemImagePartial[] | null | undefined,
+  channelImages: ItemImagePartial[] | null | undefined
+): string | null {
+  return (
+    mergeDTOItemThenChannelImageHeroCandidates(itemImages, channelImages, 'largest', 'greater')[0] ??
+    null
+  );
+}
+
+/** Largest usable channel original for a full-size image viewer. */
+export function primaryChannelLightboxArtworkUrl(
+  channelImages: ItemImagePartial[] | null | undefined
+): string | null {
+  return buildDTOChannelImageHeroLoadCandidates(channelImages, 'largest', 'greater')[0] ?? null;
 }
 
 /** Put `prefixUrl` first when present; omit duplicates already in `candidates`. */

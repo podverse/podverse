@@ -7,15 +7,21 @@ import { FeedService } from '@podverse/orm';
 
 import { mqRSSAdd } from './add.js';
 
-export const mqRSSRunLiveItemListener = (activeMQArtemisService: ActiveMQArtemisService) => {
+export type LiveItemListenerHandle = {
+  stop: () => void;
+};
+
+export const mqRSSRunLiveItemListener = (
+  activeMQArtemisService: ActiveMQArtemisService
+): LiveItemListenerHandle => {
   console.warn('starting runLiveItemListener v2');
 
   const feedService = new FeedService();
 
-  /*
-    Run an interval to keep the node script running forever.
-  */
-  setInterval(() => {
+  let stopped = false;
+  let socket: WebSocket | null = null;
+
+  const keepAliveInterval = setInterval(() => {
     console.warn('runLiveItemListener interval');
   }, 100000000);
 
@@ -28,7 +34,12 @@ export const mqRSSRunLiveItemListener = (activeMQArtemisService: ActiveMQArtemis
   const hiveBlocksHandled: any = {};
 
   function connect() {
+    if (stopped) {
+      return Promise.resolve(false);
+    }
+
     const client = new WebSocket(url);
+    socket = client;
     return new Promise((resolve, reject) => {
       console.warn('client try to connect...');
 
@@ -138,9 +149,16 @@ export const mqRSSRunLiveItemListener = (activeMQArtemisService: ActiveMQArtemis
   }
 
   async function reconnect() {
+    if (stopped) {
+      return;
+    }
+
     try {
       await connect();
     } catch (err) {
+      if (stopped) {
+        return;
+      }
       if (err instanceof Error) {
         console.error(`reconnect error: ${err.message}`);
       } else {
@@ -151,10 +169,26 @@ export const mqRSSRunLiveItemListener = (activeMQArtemisService: ActiveMQArtemis
 
   reconnect();
 
-  // repeat every 5 seconds
-  setInterval(() => {
-    if (!openedSocket) {
-      reconnect();
+  const reconnectInterval = setInterval(() => {
+    if (!stopped && !openedSocket) {
+      void reconnect();
     }
   }, timeInterval);
+
+  return {
+    stop: () => {
+      if (stopped) {
+        return;
+      }
+      stopped = true;
+      clearInterval(keepAliveInterval);
+      clearInterval(reconnectInterval);
+      openedSocket = false;
+      if (socket !== null) {
+        socket.removeAllListeners();
+        socket.close();
+        socket = null;
+      }
+    },
+  };
 };

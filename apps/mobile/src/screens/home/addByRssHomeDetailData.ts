@@ -1,4 +1,9 @@
-import { articleStrippedTitle } from '@podverse/helpers';
+import {
+  ARTWORK_LIST_SIZE_FIND_TARGET,
+  addByRSSFeedListArtworkCandidates,
+  articleStrippedTitle,
+  primaryListArtworkUrl,
+} from '@podverse/helpers';
 import type { AddByRSSMappedFeed } from '@podverse/parser-mapping';
 
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
@@ -20,12 +25,19 @@ export const buildAddByRssHomeDetailData = (
   mappedFeed: AddByRSSMappedFeed
 ): AddByRssHomeDetailData => {
   const channelTitle = mappedFeed.channel.channel.title ?? feed.title ?? feed.feedUrl;
-  const channelImageUrl = mappedFeed.channel.images[0]?.url ?? feed.imageUrl;
+  const channelImageUrl =
+    addByRSSFeedListArtworkCandidates({
+      channelImages: mappedFeed.channel.images,
+      comparison: 'lesser',
+      feedImageUrl: feed.imageUrl,
+      sizeFindTarget: ARTWORK_LIST_SIZE_FIND_TARGET,
+    })[0] ?? null;
 
   const episodeRows = mappedFeed.items.map((itemBundle, itemIndex) => {
     const guid = itemBundle.item.guid ?? String(itemIndex);
     const title = itemBundle.item.title ?? guid;
-    const imageUrl = itemBundle.images[0]?.url ?? channelImageUrl;
+    const imageUrl =
+      primaryListArtworkUrl(itemBundle.images, mappedFeed.channel.images) ?? channelImageUrl;
 
     return {
       id: `${feed.idText}-${guid}`,
