@@ -4,12 +4,15 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
+import { CountBadge } from './CountBadge';
 
 export type ListRowProps = {
   title: string;
   subtitle?: string;
   leading?: ReactNode;
   trailing?: ReactNode;
+  /** Numeric count shown left of `trailing`. Hidden at 0. */
+  badgeCount?: number;
   onPress?: () => void;
   accessibilityLabel?: string;
   paddingVertical?: number;
@@ -26,6 +29,7 @@ export function ListRow({
   subtitle,
   leading,
   trailing,
+  badgeCount,
   onPress,
   accessibilityLabel,
   paddingVertical,
@@ -55,9 +59,29 @@ export function ListRow({
           ...typography.subheading,
           color: themeStyles.textPrimary.color,
         },
+        trailingCluster: {
+          alignItems: 'center',
+          flexDirection: 'row',
+          gap: tokens.spacing.sm,
+        },
       }),
     [paddingVertical, themeStyles, tokens]
   );
+
+  const badge =
+    badgeCount !== undefined && badgeCount > 0 ? (
+      <CountBadge
+        count={badgeCount}
+        testID={testID === undefined ? undefined : `${testID}-badge`}
+      />
+    ) : null;
+  const trailingCluster =
+    badge !== null || trailing !== undefined ? (
+      <View style={styles.trailingCluster}>
+        {badge}
+        {trailing}
+      </View>
+    ) : null;
 
   const body = (
     <>
@@ -66,7 +90,7 @@ export function ListRow({
         <Text style={styles.title}>{title}</Text>
         {subtitle !== undefined ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
       </View>
-      {trailing}
+      {trailingCluster}
     </>
   );
 
@@ -78,12 +102,15 @@ export function ListRow({
     );
   }
 
-  // The explicit label replaces the children, so fold the subtitle in or a screen reader loses it.
+  // The explicit label replaces the children, so fold the subtitle and badge in or a screen reader
+  // loses them.
   const defaultLabel = subtitle === undefined ? title : `${title}. ${subtitle}`;
+  const labelWithBadge =
+    badgeCount !== undefined && badgeCount > 0 ? `${defaultLabel}, ${badgeCount}` : defaultLabel;
 
   return (
     <Pressable
-      accessibilityLabel={accessibilityLabel ?? defaultLabel}
+      accessibilityLabel={accessibilityLabel ?? labelWithBadge}
       accessibilityRole="button"
       onPress={onPress}
       style={styles.container}

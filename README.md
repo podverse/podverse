@@ -124,7 +124,7 @@ See [tools/web-perf/README.md](tools/web-perf/README.md) for detailed instructio
 
 ## Documentation
 
-- [Quick Start](docs/QUICKSTART.md) - Setup and running locally
+- [Quick Start](docs/QUICKSTART.md) - Teardown, env, seed, watch stack, admin, and mobile
 - [Architecture](docs/architecture/ARCHITECTURE.md) - System design and data flow
 - [V4V MetaBoost + LNURL](docs/v4v/V4V-METABOOST-LNURL.md) - Value-for-value boost flow and local setup
 - [Contributing](docs/development/CONTRIBUTING.md) - Development workflow and PR guidelines

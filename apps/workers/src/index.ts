@@ -41,22 +41,8 @@ const run = async () => {
   validateStartupRequirements(commandName);
 
   const { getObservabilityConfig } = await import('./config/index.js');
-  const { initObservability, shutdownObservability, withWorkerSpan } =
-    await import('@podverse/observability');
+  const { initObservability, withWorkerSpan } = await import('@podverse/observability');
   initObservability(getObservabilityConfig());
-
-  const registerObservabilityShutdown = (): void => {
-    const shutdown = async (): Promise<void> => {
-      await shutdownObservability();
-    };
-    process.on('SIGTERM', () => {
-      void shutdown();
-    });
-    process.on('SIGINT', () => {
-      void shutdown();
-    });
-  };
-  registerObservabilityShutdown();
 
   initWorkerExtensions(commandName);
   registerWorkerExtensionsShutdown(commandName);

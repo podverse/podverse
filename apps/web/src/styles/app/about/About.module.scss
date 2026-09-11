@@ -69,6 +69,12 @@
   color: var(--text-color-primary);
 }
 
+.featuresIntro {
+  font-size: var(--font-size-lg);
+  color: var(--text-color-primary);
+  margin: var(--spacing-none) var(--spacing-none) var(--spacing-2xl);
+}
+
 @include mobile('xs-max') {
   .downloadButtons {
     flex-direction: column;

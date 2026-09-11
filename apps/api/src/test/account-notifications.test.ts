@@ -284,6 +284,41 @@ describe('account notifications routes', () => {
     });
   });
 
+  it('PUT /account/notification-preferences allows a Trial member with a valid membership to enable push', async () => {
+    accountGetMock.mockResolvedValueOnce({
+      id: TEST_USER_ID,
+      id_text: TEST_USER_ACCOUNT_ID_TEXT,
+      account_credentials: { email: TEST_EMAIL },
+      account_membership_status: {
+        membership_expires_at: new Date(Date.now() + 86400000 * 365),
+        account_membership: { id: AccountMembershipEnum.Trial },
+        allow_notifications: null,
+      },
+      notifications_last_read_at: null,
+    });
+
+    const response = await request(app)
+      .put(`${accountBase}/notification-preferences`)
+      .set(authHeaders(TEST_USER_ID))
+      .send({
+        preferences: [
+          {
+            category: 'product-update',
+            in_app_enabled: true,
+            push_enabled: true,
+          },
+        ],
+      });
+
+    expect(response.status).toBe(200);
+    expect(accountNotificationPreferenceUpsertMock).toHaveBeenCalledWith({
+      account_id: TEST_USER_ID,
+      category: 'product-update',
+      in_app_enabled: true,
+      push_enabled: true,
+    });
+  });
+
   it('PUT /account/notification-preferences returns 403 when enabling push without entitlement', async () => {
     accountGetMock.mockResolvedValueOnce({
       id: TEST_USER_ID,

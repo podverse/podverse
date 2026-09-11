@@ -3,7 +3,7 @@ import type {
   AddByRSSResourceData,
   QueueResourcesAbridgedIndex,
 } from '@podverse/helpers';
-import { sleep } from '@podverse/helpers';
+import { primaryListArtworkUrl, sleep } from '@podverse/helpers';
 import { createAddByRSSId, createAddByRSSIdText } from '@podverse/helpers/addByRSS/ids';
 import { isObjectLike, toNonEmptyTrimmedString } from '@podverse/helpers/guards';
 import type { AddByRSSMappedFeed } from '@podverse/parser-mapping';
@@ -123,7 +123,7 @@ export function getLatestAddByRssItemPubDateMs(mappedFeed: AddByRSSMappedFeed): 
 export function mapParsedFeedToPreview(mappedFeed: AddByRSSMappedFeed): AddByRssParsePreview {
   const firstItem = mappedFeed.items[0];
   const enclosureUrl = firstItem?.enclosures[0]?.item_enclosure_sources[0]?.uri ?? null;
-  const imageUrl = firstItem?.images[0]?.url ?? mappedFeed.channel.images[0]?.url ?? null;
+  const imageUrl = primaryListArtworkUrl(firstItem?.images, mappedFeed.channel.images);
   const title = firstItem?.item.title ?? mappedFeed.channel.channel.title ?? null;
 
   return {

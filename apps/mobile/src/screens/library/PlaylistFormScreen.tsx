@@ -237,7 +237,7 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
       <MobileScreenContainer testID="playlist-form-screen">
         <CallToActionSection
           actionLabelKey="authentication.login"
-          messageKey="features.playlist.login_prompt"
+          messageKey="authentication.login_required"
           onAction={onRequestLogin}
           testID="playlist-form-auth-required"
         />

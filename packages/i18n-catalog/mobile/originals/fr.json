@@ -27,6 +27,14 @@
       "rate_limited_time_one": "1 minute",
       "rate_limited_time_other": "{minutes} minutes"
     },
+    "browse": {
+      "categories_selected": "Catégories – {name}",
+      "category_all": "Toutes les catégories",
+      "empty": "Rien à afficher pour le moment",
+      "range_all_time": "Tout le temps",
+      "sort_popularity": "Popularité",
+      "users": "Utilisateurs"
+    },
     "download": {
       "queued": "En file d'attente",
       "remove": "Supprimer",
@@ -37,7 +45,8 @@
       "delete_all_label": "Supprimer tous les téléchargements",
       "delete_all": "Tout supprimer",
       "auto_removed_notice": "Les téléchargements les plus anciens ont été supprimés pour libérer de l'espace",
-      "dismiss": "Fermer"
+      "dismiss": "Fermer",
+      "in_progress_count": "{count} en cours"
     },
     "search": {
       "add_podcast": "Ajouter le podcast",
@@ -54,9 +63,16 @@
     }
   },
   "settings": {
+    "groups": {
+      "appearance": "Apparence",
+      "appearance_description": "Thème et langue",
+      "playback": "Lecture",
+      "playback_description": "Type de média par défaut et file automatique",
+      "notifications_description": "Alertes dans l'app et push"
+    },
     "notifications": {
       "login_required_title": "Connexion requise",
-      "login_required_message": "Connectez-vous pour modifier les préférences de notification.",
+      "login_required_message": "Connectez-vous pour utiliser cette fonctionnalité.",
       "open_system_settings": "Ouvrir les paramètres du système",
       "permission_required": "L'autorisation de notification est requise pour activer ce paramètre."
     },

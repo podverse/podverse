@@ -52,7 +52,6 @@ export function MyProfileScreen({ navigation }: MyProfileScreenProps) {
   return (
     <MobileScreenContainer testID="my-profile-screen">
       <AuthAwareLoadState
-        authMessageKey="features.profile_login_prompt"
         emptyTestID="my-profile-auth-required"
         errorKey={errorKey}
         errorTestID="my-profile-error"

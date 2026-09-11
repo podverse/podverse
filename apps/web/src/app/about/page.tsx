@@ -1,13 +1,14 @@
 import { getTranslations } from 'next-intl/server';
 
+import { MEMBERSHIP_COMPARISON_FEATURES } from '@podverse/helpers';
 import { Image, MainColumnStack, MainHeader, MainSidebarLayout, SideContent } from '@podverse/ui';
 
 import { FeatureComparison } from '../../components/FeatureComparison/FeatureComparison';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { getConfig } from '../../config';
-import { FEATURES } from '../../constants/features';
 import { IMAGES } from '../../constants/images';
 import { getCuratedStaticPageMetadata } from '../../lib/seo/curatedPageMetadata';
+import { TrialLimitationsCollapsible } from '../membership/TrialLimitationsCollapsible';
 
 import styles from '../../styles/app/about/About.module.scss';
 
@@ -93,7 +94,8 @@ export default async function AboutPage() {
 
             <section className={styles.featuresSection}>
               <h2 className={styles.comparisonTitle}>{t('features_title')}</h2>
-              <FeatureComparison features={FEATURES} />
+              <FeatureComparison features={MEMBERSHIP_COMPARISON_FEATURES} />
+              <TrialLimitationsCollapsible />
             </section>
           </MainColumnStack>
         </MainSidebarLayout>

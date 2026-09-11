@@ -63,10 +63,13 @@ name: Library Downloads Offline Play
 - takeScreenshot: library-downloads-offline-now-playing
 
 # The completed download appears in My Library -> Downloads with the storage usage summary.
+# Finished jobs are not in-progress, so the Downloads row and My Library tab badges stay hidden.
 - tapOn:
     id: tab-my-library
 - assertVisible:
     id: library-hub-screen
+- assertNotVisible:
+    id: library-nav-downloads-badge
 - tapOn:
     id: library-nav-downloads
 - assertVisible:

@@ -168,7 +168,7 @@ local_setup: local_env_setup local_infra_up local_db_init
 	@echo ""
 	@echo "Next steps:"
 	@echo "  1. npm run build:packages"
-	@echo "  2. npm run dev:main:all (or dev:all for everything)"
+	@echo "  2. npm run dev:all:watch"
 	@echo ""
 	@echo "To restart services later: make local_infra_up"
 	@echo ""

@@ -172,7 +172,6 @@ npm run mobile:e2e:test -- hello-world
 npm run mobile:e2e:test -- home
 npm run mobile:e2e:test -- library-downloads
 npm run mobile:e2e:test -- library-playlists
-npm run mobile:e2e:test -- library-subscriptions
 npm run mobile:e2e:test -- locale-switch-home-smoke
 npm run mobile:e2e:test -- membership-gate
 npm run mobile:e2e:test -- notifications-inbox

@@ -3,11 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { createMobileApiRequestService } from '../../auth/mobileApi';
-import { Button } from '../../components/primitives';
-import { Card } from '../../components/primitives/Card';
+import { MembershipFeatureTable } from '../../components/membership/MembershipFeatureTable';
+import { Accordion, Button, Card } from '../../components/primitives';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { openCheckout } from '../../membership/checkoutEntry';
 import { useMembership } from '../../membership/useMembership';
+import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 
 /**
@@ -25,13 +26,11 @@ type MembershipPricing = {
   annuallySavingsPercent: number;
 };
 
-/** Real Trial-vs-Premium differentiators (web `trial_limitations_*`) — no invented product claims. */
-const PREMIUM_UNLOCK_KEYS = [
+const TRIAL_LIMITATION_KEYS = [
   'membership.trial_limitations_directory_add_by_rss',
   'membership.trial_limitations_add_by_rss_feed_limit',
   'membership.trial_limitations_manual_refresh_limit',
   'membership.trial_limitations_stats_tracking',
-  'membership.trial_limitations_notifications',
 ] as const;
 
 export function MoreMembershipScreen() {
@@ -99,40 +98,48 @@ export function MoreMembershipScreen() {
     () =>
       StyleSheet.create({
         bullet: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 14,
+          ...typography.prose,
+          color: themeStyles.textPrimary.color,
         },
         cardBody: {
-          gap: tokens.spacing.sm,
+          gap: tokens.spacing.base,
           padding: tokens.spacing.lg,
         },
         cardHeading: {
+          ...typography.heading,
           color: themeStyles.textPrimary.color,
-          fontSize: 16,
-          fontWeight: '700',
         },
         cta: {
+          marginBottom: tokens.spacing['4xl'],
           marginTop: tokens.spacing.sm,
         },
-        priceRow: {
+        featureSection: {
+          marginBottom: tokens.spacing['4xl'],
+        },
+        limitationIntro: {
+          ...typography.prose,
           color: themeStyles.textPrimary.color,
-          fontSize: 15,
+        },
+        limitationList: {
+          gap: tokens.spacing.sm,
+        },
+        limitationPanel: {
+          gap: tokens.spacing.base,
+        },
+        priceRow: {
+          ...typography.prose,
+          color: themeStyles.textPrimary.color,
         },
         savings: {
+          ...typography.body,
           color: themeStyles.textSecondary.color,
-          fontSize: 13,
         },
         section: {
           marginBottom: tokens.spacing.lg,
         },
         status: {
+          ...typography.prose,
           color: themeStyles.textPrimary.color,
-          fontSize: 15,
-        },
-        tierLabels: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-          fontWeight: '600',
         },
       }),
     [themeStyles, tokens]
@@ -169,7 +176,7 @@ export function MoreMembershipScreen() {
         </View>
       ) : null}
 
-      <View style={[styles.section, styles.cta]}>
+      <View style={styles.cta}>
         <Button
           fullWidth
           label={ctaLabel}
@@ -181,22 +188,25 @@ export function MoreMembershipScreen() {
         />
       </View>
 
-      <View style={styles.section}>
-        <Card padded={false} testID="more-membership-tiers">
-          <View style={styles.cardBody}>
-            <Text style={styles.cardHeading}>{t('membership.features')}</Text>
-            <Text style={styles.tierLabels}>
-              {`${t('membership.free')} · ${t('membership.premium')}`}
-            </Text>
-            <Text style={styles.bullet}>{t('membership.trial_limitations_summary')}</Text>
-            {PREMIUM_UNLOCK_KEYS.map((key) => (
+      <View style={styles.featureSection}>
+        <MembershipFeatureTable />
+      </View>
+
+      <Accordion
+        testID="more-membership-trial-limitations"
+        title={t('membership.trial_limitations_title')}
+      >
+        <View style={styles.limitationPanel}>
+          <Text style={styles.limitationIntro}>{t('membership.trial_limitations_summary')}</Text>
+          <View style={styles.limitationList}>
+            {TRIAL_LIMITATION_KEYS.map((key) => (
               <Text key={key} style={styles.bullet}>
                 {`• ${t(key)}`}
               </Text>
             ))}
           </View>
-        </Card>
-      </View>
+        </View>
+      </Accordion>
     </MobileScreenContainer>
   );
 }

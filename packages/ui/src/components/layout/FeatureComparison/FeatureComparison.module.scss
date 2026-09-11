@@ -11,14 +11,17 @@
   text-align: left;
   padding: var(--spacing-base) var(--spacing-lg);
   font-weight: var(--font-weight-bold);
-  border-bottom: 1px solid var(--border-color-opaque);
+  border: 1px solid var(--border-color-opaque);
+  vertical-align: middle;
 }
 
 .tierHeader {
   text-align: center;
   padding: var(--spacing-base) var(--spacing-lg);
   font-weight: var(--font-weight-bold);
-  border-bottom: 1px solid var(--border-color-opaque);
+  border: 1px solid var(--border-color-opaque);
+  vertical-align: middle;
+  width: 6.5rem;
 }
 
 .row {
@@ -28,15 +31,43 @@
 .featureCell {
   padding: var(--spacing-base) var(--spacing-lg);
   text-align: left;
+  font-size: var(--font-size-lg);
+  border: 1px solid var(--border-color-opaque);
+  border-top: none;
 }
 
 .tierCell {
   padding: var(--spacing-base) var(--spacing-lg);
   text-align: center;
-  width: 120px;
+  width: 6.5rem;
+  border: 1px solid var(--border-color-opaque);
+  border-top: none;
+}
+
+.tierStatus {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
 }
 
 .checkmark {
   color: var(--button-success-bg-hover);
   font-size: var(--font-size-lg);
+}
+
+.comingSoonCell {
+  background: var(--background-color-tertiary);
+  border: 1px solid var(--border-color-opaque);
+  border-top: none;
+  color: var(--text-color-primary);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  padding: var(--spacing-base) var(--spacing-lg);
+  text-align: center;
+}
+
+.legend {
+  color: var(--text-color-secondary);
+  font-size: var(--font-size-base);
+  margin: var(--spacing-lg) var(--spacing-none) var(--spacing-none);
 }

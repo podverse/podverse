@@ -97,7 +97,7 @@
       "basic_auth_username": "Username",
       "basic_auth_password": "Password",
       "basic_auth_required_both": "Basic Auth requires both username and password.",
-      "login_prompt": "Sigue podcasts y música que aún no están en el directorio. Inicia sesión para guardar feeds RSS en tu biblioteca y revisar si hay episodios nuevos."
+      "login_prompt": "Inicia sesión para usar esta función."
     },
     "my_library": "Mi Biblioteca",
     "queue": {
@@ -110,7 +110,7 @@
       "remove_error": "Error al eliminar de la Cola",
       "remove_from_queue": "Eliminar de la Cola",
       "removed_from_queue": "Eliminado de la Cola",
-      "login_prompt": "Arma una lista de lo siguiente que quieres oír. Inicia sesión para guardar tu cola y seguir escuchando en otros dispositivos."
+      "login_prompt": "Inicia sesión para usar esta función."
     },
     "history": {
       "history": "Historial",
@@ -118,7 +118,7 @@
       "mark_as_played": "Marcar como Reproducido",
       "marked_as_played": "Marcado como Reproducido",
       "mark_as_played_error": "Error al marcar como reproducido",
-      "login_prompt": "Retoma donde lo dejaste. Inicia sesión para ver tu historial de reproducción y mantenerlo sincronizado en todos tus dispositivos."
+      "login_prompt": "Inicia sesión para usar esta función."
     },
     "playlist": {
       "playlist": "Lista de Reproducción",
@@ -139,7 +139,7 @@
       "playlist_type": "Tipo de Lista de Reproducción",
       "add_to_liked": "Añadir a Me gusta",
       "remove_from_liked": "Quitar de Me gusta",
-      "login_prompt": "Reúne episodios, clips y pistas en listas que puedes compartir o volver a visitar. Inicia sesión para crear y gestionar las tuyas."
+      "login_prompt": "Inicia sesión para usar esta función."
     },
     "clip": {
       "clip": "Clip",
@@ -159,11 +159,11 @@
       "end_time_aria": "Hora de fin en horas, minutos y segundos (hh:mm:ss)",
       "end_time_play_aria": "Reproducir desde la hora de fin del clip",
       "clip_time_range": "{hhmmssStart} hasta {hhmmssEnd}",
-      "login_prompt": "Guarda tus momentos favoritos y vuelve a ellos cuando quieras. Inicia sesión para crear clips y conservarlos en tu cuenta."
+      "login_prompt": "Inicia sesión para usar esta función."
     },
     "my_clips": "Mis Clips",
     "my_profile": "Mi Perfil",
-    "profile_login_prompt": "Tu perfil es cómo compartes listas y clips. Inicia sesión para configurarlo y mantenerlo sincronizado en tus dispositivos.",
+    "profile_login_prompt": "Inicia sesión para usar esta función.",
     "profile": "Perfil",
     "profiles": "Perfiles",
     "embed": "Incrustar",
@@ -476,7 +476,7 @@
       "retry_attempt": "Reintento {number}: ",
       "mbrssV1_capability_loading_status": "Comprobando disponibilidad de mensajes de refuerzo",
       "mbrssV1_capability_unavailable": "Los mensajes de refuerzo no están disponibles para este creador en este momento debido a un problema del servidor, pero aún puedes usar el formulario para enviar una donación.",
-      "login_required_to_send_boosts": "Inicia sesión en {brand_name} para enviar boosts.",
+      "login_required_to_send_boosts": "Inicia sesión para usar esta función.",
       "mbrss_offline_modal_title": "Recopilación de mensajes no disponible",
       "mbrss_offline_modal_body": "El servidor de recopilación de mensajes parece estar fuera de línea. Si deseas enviar tu donación sin mensaje, pulsa Continuar.",
       "mbrss_offline_continue": "Continuar",
@@ -683,21 +683,21 @@
   },
   "instructions": {
     "login_required": "Inicio de Sesión Requerido",
-    "login_for_subscriptions": "Por favor, inicia sesión para ver tus suscripciones.",
-    "login_to_create_playlists": "Por favor, inicia sesión para crear listas de reproducción.",
+    "login_for_subscriptions": "Inicia sesión para usar esta función.",
+    "login_to_create_playlists": "Inicia sesión para usar esta función.",
     "no_playlists_created": "No tienes ninguna lista de reproducción todavía. Crea una para empezar.",
-    "login_to_create_clips": "Por favor, inicia sesión para crear clips.",
-    "login_for_queues": "Por favor, inicia sesión para ver tus colas.",
-    "login_for_history": "Por favor, inicia sesión para ver tu historial.",
-    "login_to_add_feeds": "Por favor, inicia sesión para agregar fuentes a nuestro directorio.",
-    "login_to_refresh_feeds": "Por favor, inicia sesión para actualizar fuentes.",
-    "login_to_subscribe": "Por favor, inicia sesión para suscribirte.",
-    "login_to_add_to_queue": "Por favor, inicia sesión para agregar a tu cola.",
-    "login_to_add_to_playlist": "Por favor, inicia sesión para agregar a tu lista de reproducción.",
-    "login_to_like": "Por favor, inicia sesión para añadir elementos a tu lista de Me gusta.",
-    "login_to_mark_as_played": "Por favor, inicia sesión para marcar elementos como reproducidos.",
-    "login_to_enable_notifications": "Por favor, inicia sesión para habilitar notificaciones.",
-    "login_to_disable_notifications": "Por favor, inicia sesión para deshabilitar notificaciones."
+    "login_to_create_clips": "Inicia sesión para usar esta función.",
+    "login_for_queues": "Inicia sesión para usar esta función.",
+    "login_for_history": "Inicia sesión para usar esta función.",
+    "login_to_add_feeds": "Inicia sesión para usar esta función.",
+    "login_to_refresh_feeds": "Inicia sesión para usar esta función.",
+    "login_to_subscribe": "Inicia sesión para usar esta función.",
+    "login_to_add_to_queue": "Inicia sesión para usar esta función.",
+    "login_to_add_to_playlist": "Inicia sesión para usar esta función.",
+    "login_to_like": "Inicia sesión para usar esta función.",
+    "login_to_mark_as_played": "Inicia sesión para usar esta función.",
+    "login_to_enable_notifications": "Inicia sesión para usar esta función.",
+    "login_to_disable_notifications": "Inicia sesión para usar esta función."
   },
   "subscriptions": {
     "subscriptions": "Suscripciones",
@@ -725,7 +725,7 @@
   },
   "authentication": {
     "login": "Iniciar Sesión",
-    "login_required": "Inicia sesión para continuar.",
+    "login_required": "Inicia sesión para usar esta función.",
     "logout": "Cerrar Sesión",
     "sign_up": "Registrarse",
     "need_an_account_sign_up": "¿Necesitas una cuenta? Regístrate",
@@ -819,6 +819,35 @@
     "trial_expired_text_line2": "Por favor, extiende tu membresía para seguir disfrutando de las funciones Premium.",
     "feature": "Función",
     "features": "Funciones",
+    "premium_includes": "Qué incluye Premium",
+    "premium_includes_intro": "La prueba incluye escuchar, descargas, sincronización, clips y listas. Premium añade:",
+    "coming_soon": "Próximamente",
+    "mobile_only": "Solo móvil",
+    "mobile_only_legend": "Función disponible solo en la app móvil",
+    "comparison_name_mobile_only": "{name}*",
+    "comparison": {
+      "subscribe": "Suscribirse a podcasts",
+      "download": "Descargar episodios",
+      "video": "Reproducción de vídeo",
+      "livestreams": "Emisiones en directo",
+      "carplay": "CarPlay",
+      "android_auto": "Android Auto",
+      "boostagrams": "Boostagrams (Value for Value)",
+      "chapters": "Capítulos",
+      "comments": "Comentarios entre apps",
+      "transcripts": "Transcripciones",
+      "add_rss": "Añadir feeds RSS personalizados",
+      "opml": "Importar y exportar OPML",
+      "sleep_timer": "Temporizador de sueño",
+      "screen_reader": "Accesibilidad con lector de pantalla",
+      "sync": "Sincronizar entre dispositivos",
+      "notifications": "Notificaciones",
+      "clips": "Crear y compartir clips",
+      "playlists": "Crear y compartir listas",
+      "mark_played": "Marcar episodios como reproducidos",
+      "profiles": "Suscribirse a perfiles de oyentes",
+      "support_foss": "Apoyar el software de código abierto"
+    },
     "membership_expiring_warning": "Tu {type} expira el {date}. Renueva ahora para seguir disfrutando de las funciones Premium.",
     "membership_expired_danger": "Tu {type} ha expirado. Renueva ahora para seguir disfrutando de las funciones Premium.",
     "membership_link_text": "Ir a la Página de Membresía",
@@ -837,12 +866,11 @@
     "trial_limitations_summary": "Algunas funciones no están disponibles durante el periodo de prueba para ayudar a reducir el spam y el abuso.",
     "trial_limitations_show_less": "Mostrar menos",
     "trial_limitations_show_more": "Mostrar más",
-    "trial_limitations_title": "Limitaciones del periodo de prueba",
+    "trial_limitations_title": "Limitaciones de la prueba",
     "trial_limitations_directory_add_by_rss": "Agregar feeds al directorio público desde la búsqueda está bloqueado para el estado de Prueba.",
     "trial_limitations_add_by_rss_feed_limit": "El tamaño de la biblioteca de Agregar por RSS utiliza un límite inferior en Prueba que en Premium.",
     "trial_limitations_manual_refresh_limit": "Las acciones de actualización manual utilizan límites horarios más restrictivos mientras estás en Prueba.",
-    "trial_limitations_stats_tracking": "El seguimiento de estadísticas se reduce para el estado de Prueba por defecto.",
-    "trial_limitations_notifications": "Las funciones de notificación pueden ser reducidas para el estado de Prueba y expiran con la membresía.",
+    "trial_limitations_stats_tracking": "Las estadísticas de escucha no están disponibles en la prueba. Contribuir a las tendencias requiere Premium.",
     "gate": {
       "cancel": "Cancelar",
       "renew": "Renovar membresía",
@@ -1213,7 +1241,7 @@
     "title": "Notificaciones",
     "recent_activity_note": "Actividad reciente. Las notificaciones antiguas se eliminan automáticamente.",
     "loading": "Cargando notificaciones…",
-    "login_prompt": "No te pierdas un episodio nuevo, un directo o una novedad de los programas que sigues. Inicia sesión para guardar tu bandeja en este dispositivo y en los demás.",
+    "login_prompt": "Inicia sesión para usar esta función.",
     "empty": "Estás al día. Aquí aparecerán avisos de episodios nuevos, directos y novedades.",
     "unread_section": "Sin leer",
     "earlier_section": "Anteriores",

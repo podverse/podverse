@@ -93,7 +93,7 @@ export function resolveProductMembershipDefaultsFromEnv(): ProductMembershipDefa
       5
     ),
     trialTrackStats: parseBooleanEnv('MEMBERSHIP_TRIAL_TRACK_STATS', false),
-    trialAllowNotifications: parseBooleanEnv('MEMBERSHIP_TRIAL_ALLOW_NOTIFICATIONS', false),
+    trialAllowNotifications: parseBooleanEnv('MEMBERSHIP_TRIAL_ALLOW_NOTIFICATIONS', true),
     premiumAllowDirectoryAddByRSS: parseBooleanEnv(
       'MEMBERSHIP_PREMIUM_ALLOW_DIRECTORY_ADD_BY_RSS',
       true

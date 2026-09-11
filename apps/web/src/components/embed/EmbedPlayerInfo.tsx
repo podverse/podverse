@@ -157,7 +157,8 @@ export function EmbedPlayerInfo({
         mpItemSoundbite: itemSoundbite,
       }),
       imageSizeTarget: IMAGES.MEDIA_PLAYER.DESKTOP.MINI.SIZE_FIND_TARGET,
-      imageSizeComparison: 'greater',
+      imageSizeComparison: 'lesser',
+      artworkRole: 'list',
     });
 
     const fallback = IMAGES.SRC.EMBED_PLACEHOLDER;

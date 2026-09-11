@@ -73,9 +73,12 @@ touch: the visible shape is what the finger can press.
 Two or three filters under a field use **`OptionChipGroup`**. Selected chip = `buttonPrimary` fill.
 Settings density (2–3 chips vs option-list screen) is **mobile-settings-option-density**.
 
-Standalone cover art uses **`CoverImage`**, which opens **`ImageViewerModal`** on tap. Do not add
-a nested image tap when the parent row, cell, or header is already the pressable control
-(`opensViewer={false}`). The app stays portrait; the viewer does not unlock landscape.
+Standalone cover art uses **`CoverImage`**, which opens **`ImageViewerModal`** on tap. Pass
+**`viewerUri`** from **`primaryLightboxArtworkUrl`** (or the channel variant) so the modal loads the
+largest original, not the list thumb. Do not add a nested image tap when the parent row, cell, or
+header is already the pressable control (`opensViewer={false}`). Resolve display `uri` with
+**`primaryListArtworkUrl`** — see **header-hero-image-sources**. The app stays portrait; the viewer
+does not unlock landscape.
 
 ## Hub menus
 
@@ -127,15 +130,13 @@ Helper copy that is not the content itself (directory explainer, why-add notes) 
 ## Login-gated fill states
 
 When a screen's body is empty because the feature requires an account, use **`CallToActionSection`**
-(it already wraps `VerticalCenter`) plus a Login action — not a bare `ListEmpty` and not
-`authentication.login_required`. Prefer **`AuthAwareLoadState`** with `showAuthRequired` and a
-feature-specific `authMessageKey` when the screen already uses that wrapper; otherwise wire
-`CallToActionSection` as the `FillList` empty (or the only `MobileScreenContainer` child).
+(it already wraps `VerticalCenter`) plus a Login action — not a bare `ListEmpty`. Prefer
+**`AuthAwareLoadState`** with `showAuthRequired` (it defaults to `authentication.login_required`);
+otherwise wire `CallToActionSection` as the `FillList` empty (or the only `MobileScreenContainer`
+child).
 
-The message must explain **why the feature is worth logging in for** (what they get: synced inbox,
-history across devices, playlists they can share). Generic “Log in to continue.” is for errors and
-inline gates, not a full-screen feature empty. Hide the in-body heading on that fill — the
-`HeaderBar` title is enough.
+The body is the generic login-required sentence — see **generic-login-required-copy**. Hide the
+in-body heading on that fill — the `HeaderBar` title is enough.
 
 ## Login / Sign up overlay
 
@@ -161,3 +162,4 @@ link-style `Pressable` under Submit (`auth-switch-signup` / `auth-switch-login`)
 - Top chrome: `apps/mobile/src/components/screen/HeaderBar.tsx`
 - Fill lists: `apps/mobile/src/components/primitives/FillList.tsx`
 - Skill: **mobile-reusable-components**
+- Login-required body copy: **generic-login-required-copy**

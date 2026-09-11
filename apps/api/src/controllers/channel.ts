@@ -17,8 +17,12 @@ import {
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 
-import type { CategoryMappingKeys, QueryParamsMedium } from '@podverse/helpers';
-import { getCategoryEnumValue } from '@podverse/helpers';
+import type {
+  CategoryMappingKeys,
+  QueryParamsMedium,
+  StatsAggregatedRangeCountField,
+} from '@podverse/helpers';
+import { fillTopPage, getCategoryEnumValue, TOP_STATS_PAD_MAX_RANKED } from '@podverse/helpers';
 import type { ApiListResponse, QueryParamsStatsRange } from '@podverse/helpers-requests';
 import type {
   AccountFollowingChannel,
@@ -41,6 +45,64 @@ export class ChannelController {
 
   private static isParsedReadyChannel(channel: Channel | null): channel is Channel {
     return Boolean(channel?.channel_about);
+  }
+
+  private static async loadFilledTopChannels(args: {
+    category_id: number | null;
+    channelIds?: number[];
+    limit: number;
+    medium: QueryParamsMedium;
+    offset: number;
+    orderField: StatsAggregatedRangeCountField;
+  }): Promise<Channel[]> {
+    const { category_id, channelIds, limit, medium, offset, orderField } = args;
+
+    return fillTopPage({
+      countRanked: () =>
+        ChannelController.statsAggregatedChannelService.countRanked(
+          medium,
+          category_id,
+          orderField,
+          channelIds
+        ),
+      limit,
+      loadRankedIds: () =>
+        ChannelController.statsAggregatedChannelService.getRankedChannelIds(
+          medium,
+          category_id,
+          orderField,
+          TOP_STATS_PAD_MAX_RANKED,
+          channelIds
+        ),
+      loadRecent: (skip, take, excludeIds) => {
+        const recentConfig: FindManyOptions<Channel> = {
+          order: { channel_about: { last_pub_date: 'DESC' } },
+          skip,
+          take,
+          relations: channelGetManyRelations,
+        };
+        return ChannelController.channelService.getMany(recentConfig, medium, category_id, {
+          channelIds,
+          excludeIds,
+        });
+      },
+      loadStatsPage: async () => {
+        const topConfig: FindManyOptions<StatsAggregatedChannel> = {
+          order: { [orderField]: 'DESC' },
+          skip: offset,
+          take: limit,
+          relations: subChannelGetManyRelations,
+        };
+        const statsResults = await ChannelController.statsAggregatedChannelService.getMany(
+          topConfig,
+          medium,
+          category_id,
+          { channelIds, minCountField: orderField }
+        );
+        return statsResults.map((row: { channel: Channel }) => row.channel).filter(Boolean);
+      },
+      offset,
+    });
   }
 
   static async getByIdOrIdText(req: Request, res: Response): Promise<void> {
@@ -127,18 +189,13 @@ export class ChannelController {
         const category_id = null;
 
         const orderField = getStatsOrder(range);
-        const topConfig: FindManyOptions<StatsAggregatedChannel> = {
-          order: { [orderField]: 'DESC' },
-          skip: offset,
-          take: limit,
-          relations: subChannelGetManyRelations,
-        };
-        const statsResults = await ChannelController.statsAggregatedChannelService.getMany(
-          topConfig,
+        const channels = await ChannelController.loadFilledTopChannels({
+          category_id,
+          limit,
           medium,
-          category_id
-        );
-        const channels = statsResults.map((s: { channel: Channel }) => s.channel).filter(Boolean);
+          offset,
+          orderField,
+        });
 
         const response: ApiListResponse<Channel> = {
           data: channels,
@@ -197,18 +254,13 @@ export class ChannelController {
         const category_id = getCategoryEnumValue(category);
 
         const orderField = getStatsOrder(range);
-        const topConfig: FindManyOptions<StatsAggregatedChannel> = {
-          order: { [orderField]: 'DESC' },
-          skip: offset,
-          take: limit,
-          relations: subChannelGetManyRelations,
-        };
-        const statsResults = await ChannelController.statsAggregatedChannelService.getMany(
-          topConfig,
+        const channels = await ChannelController.loadFilledTopChannels({
+          category_id,
+          limit,
           medium,
-          category_id
-        );
-        const channels = statsResults.map((s: { channel: Channel }) => s.channel).filter(Boolean);
+          offset,
+          orderField,
+        });
 
         const response: ApiListResponse<Channel> = {
           data: channels,
@@ -349,26 +401,17 @@ export class ChannelController {
             const account_id = jwtUser.id;
 
             const channelIds = await getFollowedChannelIds(account_id, medium);
-            let channels: Channel[] = [];
-            let count = 0;
-
-            if (channelIds.length) {
-              const orderField = getStatsOrder(range);
-              const config: FindManyOptions<StatsAggregatedChannel> = {
-                order: { [orderField]: 'DESC' },
-                skip: offset,
-                take: limit,
-                relations: subChannelGetManyRelations,
-              };
-              const results =
-                await ChannelController.statsAggregatedChannelService.getManyByChannelsAndCount(
+            const count = channelIds.length;
+            const channels = channelIds.length
+              ? await ChannelController.loadFilledTopChannels({
+                  category_id: null,
                   channelIds,
-                  config
-                );
-              const statsResults = results[0];
-              channels = statsResults.map((s: { channel: Channel }) => s.channel).filter(Boolean);
-              count = results[1];
-            }
+                  limit,
+                  medium,
+                  offset,
+                  orderField: getStatsOrder(range),
+                })
+              : [];
 
             const response: ApiListResponse<Channel> = {
               data: channels,

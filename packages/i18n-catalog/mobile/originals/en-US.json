@@ -27,6 +27,14 @@
       "rate_limited_time_one": "1 minute",
       "rate_limited_time_other": "{minutes} minutes"
     },
+    "browse": {
+      "categories_selected": "Categories – {name}",
+      "category_all": "All categories",
+      "empty": "Nothing to show yet",
+      "range_all_time": "All-time",
+      "sort_popularity": "Popularity",
+      "users": "Users"
+    },
     "download": {
       "queued": "Queued",
       "remove": "Remove",
@@ -37,7 +45,8 @@
       "delete_all_label": "Delete all downloads",
       "delete_all": "Delete all",
       "auto_removed_notice": "Removed the oldest downloads to free up space",
-      "dismiss": "Dismiss"
+      "dismiss": "Dismiss",
+      "in_progress_count": "{count} in progress"
     },
     "search": {
       "add_podcast": "Add podcast",
@@ -54,9 +63,16 @@
     }
   },
   "settings": {
+    "groups": {
+      "appearance": "Appearance",
+      "appearance_description": "Theme and language",
+      "playback": "Playback",
+      "playback_description": "Default media type and auto queue",
+      "notifications_description": "In-app and push alerts"
+    },
     "notifications": {
       "login_required_title": "Login required",
-      "login_required_message": "Please log in to change notification preferences.",
+      "login_required_message": "Log in to use this feature.",
       "open_system_settings": "Open system settings",
       "permission_required": "Notification permission is required to enable this setting."
     },

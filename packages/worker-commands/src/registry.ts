@@ -262,6 +262,24 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     example_cli: 'npm run podcast_index_value_update_all -w apps/workers',
   },
   {
+    name: 'devStatsSeedSimulatedAggregated',
+    label: 'Dev: seed simulated Top / trending stats',
+    description:
+      'Write staggered non-zero stats_aggregated rows for public channels, a capped set of newest items, and public clips, playlists, and accounts when those rows exist.',
+    category: 'dev',
+    risk: 'dev_only',
+    example_cli: 'npm run workers:seed_simulated_stats',
+  },
+  {
+    name: 'devSeedLocalUserContent',
+    label: 'Dev: seed local user follows, clips, and playlists',
+    description:
+      'Idempotent local content for dummyNN@podverse.local plus operator login accounts: follows, public AV clips, and playlists. Run workers:seed_simulated_stats afterward for Top lists.',
+    category: 'dev',
+    risk: 'dev_only',
+    example_cli: 'npm run workers:seed_local_user_content',
+  },
+  {
     name: 'statsUpdateAggregated',
     label: 'Stats: update aggregated',
     description: 'Recompute aggregated application statistics (cron / scheduled).',

@@ -1,5 +1,6 @@
 import { eq, like } from 'drizzle-orm';
 
+import { primaryListArtworkUrl } from '@podverse/helpers';
 import type {
   DTOQueue,
   DTOQueueResource,
@@ -98,7 +99,7 @@ const toNativeCacheEntry = (resource: DTOQueueResource): NativeCacheQueueEntry |
   return {
     idText: item.id_text,
     title: item.title ?? item.id_text,
-    artworkUrl: item.item_images[0]?.url ?? item.channel?.channel_images?.[0]?.url ?? null,
+    artworkUrl: primaryListArtworkUrl(item.item_images, item.channel?.channel_images),
     // Enclosure resolution for car/watch playback is handled by the native playback path.
     mediaUrl: null,
   };

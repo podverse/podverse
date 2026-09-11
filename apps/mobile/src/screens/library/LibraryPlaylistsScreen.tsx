@@ -99,7 +99,6 @@ export function LibraryPlaylistsScreen({ navigation }: LibraryPlaylistsScreenPro
         </View>
       ) : null}
       <AuthAwareLoadState
-        authMessageKey="features.playlist.login_prompt"
         emptyTestID={
           status !== 'authenticated' ? 'library-playlists-auth-required' : 'library-playlists-empty'
         }

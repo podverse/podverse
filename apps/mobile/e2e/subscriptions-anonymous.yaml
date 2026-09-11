@@ -62,6 +62,8 @@ name: Anonymous Subscriptions Persist
     id: home-screen
 - assertNotVisible:
     id: home-list-empty
+- assertNotVisible:
+    id: home-feed-summary
 
 # The row states when the channel last published, from the device. It arrives with the episode sync
 # rather than with the subscribe, so this waits rather than asserting immediately.
@@ -128,18 +130,14 @@ name: Anonymous Subscriptions Persist
     id: home-list-no-filter-matches
 - hideKeyboard
 
-# Still signed out, the library lists it instead of showing a login prompt.
+# Still signed out, Home keeps the subscription instead of showing a login prompt.
 - tapOn:
-    id: tab-my-library
+    id: tab-home
 - assertVisible:
-    id: library-hub-screen
-- tapOn:
-    id: library-nav-subscriptions
-- assertVisible:
-    id: library-subscriptions-screen
+    id: home-screen
 - assertNotVisible:
-    id: library-subscriptions-empty
-- takeScreenshot: subscriptions-anonymous-library
+    id: home-list-empty
+- takeScreenshot: subscriptions-anonymous-home
 
 # Relaunch WITHOUT clearState — this is the persistence assertion the flow exists for.
 - launchApp:
@@ -147,13 +145,9 @@ name: Anonymous Subscriptions Persist
 - runFlow: shared/connect-dev-client.yaml
 
 - tapOn:
-    id: tab-my-library
+    id: tab-home
 - assertVisible:
-    id: library-hub-screen
-- tapOn:
-    id: library-nav-subscriptions
-- assertVisible:
-    id: library-subscriptions-screen
+    id: home-screen
 - assertNotVisible:
-    id: library-subscriptions-empty
+    id: home-list-empty
 - takeScreenshot: subscriptions-anonymous-after-relaunch

@@ -33,6 +33,8 @@ component/source files.
 - Prefer **existing** keys in `packages/i18n-catalog/{shared,consumer}/originals/en-US.json` so
   web and mobile stay consistent. Add **new shared** strings to `shared` or `consumer`; add
   **mobile-only** chrome (tabs, permissions, store copy) to `mobile/originals/en-US.json`.
+- Login-required body copy uses the generic `authentication.login_required` sentence on web and
+  mobile — see **generic-login-required-copy**.
 - Keep `@podverse/ui` string-free: apps pass already-localized strings as props (see
   **`shared-ui-i18n`**).
 - When adding keys, follow **`i18n-management`** and **`i18n-catalog-layers`** (layers, compile,

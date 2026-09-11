@@ -1,6 +1,7 @@
 import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
 import type { EntityTarget, FindOptionsWhere, ObjectLiteral, Repository } from 'typeorm';
 
+import type { SimulatedAggregatedCounts } from '@podverse/helpers';
 import { TIME_CONSTANTS } from '@podverse/helpers';
 
 export type UpdateHistoricalOptions = {
@@ -182,6 +183,37 @@ export abstract class BaseStatsAggregatedService<T extends BaseAggregatedStats, 
           (aggregatedStats.week_2_count ?? 0) +
           (aggregatedStats.week_3_count ?? 0) +
           (aggregatedStats.week_4_count ?? 0);
+
+    await this.repositoryReadWrite.save(aggregatedStats);
+  }
+
+  async upsertCounts(entity_id: ID, counts: SimulatedAggregatedCounts): Promise<void> {
+    const idFieldName = this.getIdFieldName();
+    let aggregatedStats = await this.repositoryRead.findOne({
+      where: { [idFieldName]: entity_id } as FindOptionsWhere<T>,
+    });
+
+    if (!aggregatedStats) {
+      aggregatedStats = this.repositoryReadWrite.create({ [idFieldName]: entity_id } as T);
+    }
+
+    aggregatedStats.day_current_count = counts.day_current_count;
+    aggregatedStats.day_1_count = counts.day_1_count;
+    aggregatedStats.day_2_count = counts.day_2_count;
+    aggregatedStats.day_3_count = counts.day_3_count;
+    aggregatedStats.day_4_count = counts.day_4_count;
+    aggregatedStats.day_5_count = counts.day_5_count;
+    aggregatedStats.day_6_count = counts.day_6_count;
+    aggregatedStats.day_7_count = counts.day_7_count;
+    aggregatedStats.day_8_count = counts.day_8_count;
+    aggregatedStats.week_current_count = counts.week_current_count;
+    aggregatedStats.week_1_count = counts.week_1_count;
+    aggregatedStats.week_2_count = counts.week_2_count;
+    aggregatedStats.week_3_count = counts.week_3_count;
+    aggregatedStats.week_4_count = counts.week_4_count;
+    aggregatedStats.month_current_count = counts.month_current_count;
+    aggregatedStats.month_1_count = counts.month_1_count;
+    aggregatedStats.all_time_count = counts.all_time_count;
 
     await this.repositoryReadWrite.save(aggregatedStats);
   }

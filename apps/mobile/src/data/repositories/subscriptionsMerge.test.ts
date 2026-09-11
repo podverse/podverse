@@ -65,6 +65,35 @@ const rssEntry = (partial: Partial<MobileAddByRSSFeedRecord>): SubscribedChannel
   requireMapped(mapAddByRssToSubscribed(rssFeed(partial)));
 
 describe('mapDirectoryChannelToSubscribed', () => {
+  it('prefers a shrunken channel thumb when one is present', () => {
+    const result = mapDirectoryChannelToSubscribed(
+      channel({
+        channel_images: [
+          {
+            channel_id: 1,
+            id: 1,
+            image_width_size: 800,
+            is_resized: false,
+            url: 'https://img/original.jpg',
+          },
+          {
+            channel_id: 1,
+            id: 2,
+            image_width_size: 300,
+            is_resized: true,
+            url: 'https://cdn.example.com/images/channel/1/a-w300-c1a2b3c4.webp',
+          },
+        ],
+        id_text: 'abc',
+        title: 'My Podcast',
+      })
+    );
+
+    expect(requireMapped(result).imageUrl).toBe(
+      'https://cdn.example.com/images/channel/1/a-w300-c1a2b3c4.webp'
+    );
+  });
+
   it('maps id_text, title, first image, and directory source', () => {
     const result = mapDirectoryChannelToSubscribed(
       channel({

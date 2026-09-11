@@ -9,6 +9,7 @@ export { mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex } from './functions/mq/rss
 export { mqRSSSetupDlqConsumers } from './functions/mq/rss/dlqHandling.js';
 export { mqRSSRunParser } from './functions/mq/rss/runParser.js';
 export { mqRSSRunLiveItemListener } from './functions/mq/rss/runLiveItemListener.js';
+export type { LiveItemListenerHandle } from './functions/mq/rss/runLiveItemListener.js';
 
 export { ActiveMQArtemisService } from './services/activeMQArtemis/index.js';
 export type { ActiveMQArtemisServiceParams } from './services/activeMQArtemis/index.js';

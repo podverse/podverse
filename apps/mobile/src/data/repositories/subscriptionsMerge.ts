@@ -1,5 +1,5 @@
 import type { DTOChannel } from '@podverse/helpers';
-import { articleStrippedTitle } from '@podverse/helpers';
+import { articleStrippedTitle, primaryChannelListArtworkUrl } from '@podverse/helpers';
 
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 
@@ -43,8 +43,12 @@ const trimToNull = (value: string | null | undefined): string | null => {
   return trimmed.length > 0 ? trimmed : null;
 };
 
-/** First usable channel image URL, or null. */
+/** First usable channel image URL for list/compact chrome, or null. */
 export const firstChannelImageUrl = (channel: DTOChannel): string | null => {
+  const fromHelpers = primaryChannelListArtworkUrl(channel.channel_images);
+  if (fromHelpers !== null) {
+    return fromHelpers;
+  }
   for (const image of channel.channel_images ?? []) {
     const url = trimToNull(image.url);
     if (url !== null) {

@@ -8,6 +8,7 @@ import {
 import { downloadManager } from './downloadManager';
 import { DEFAULT_DOWNLOAD_QUOTA_BYTES, sumCompletedBytes } from './downloadQuota';
 import type { DownloadRecord } from './downloadTypes';
+import { countInProgressDownloads } from './inProgressDownloadCount';
 
 /**
  * Subscribe to the full downloads list (source of truth: `downloadsRepository`). Re-reads on every
@@ -50,6 +51,12 @@ export const useDownloadsList = (): {
   }, [load]);
 
   return { downloads, isLoading, errorKey, reload };
+};
+
+/** Live count of queued and downloading jobs. Failed and complete rows are excluded. */
+export const useInProgressDownloadCount = (): number => {
+  const { downloads } = useDownloadsList();
+  return countInProgressDownloads(downloads);
 };
 
 /**

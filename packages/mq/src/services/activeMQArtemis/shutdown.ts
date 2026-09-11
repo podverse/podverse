@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { shutdownObservability } from '@podverse/observability';
+
 type LoggerLike = {
   info?: (...args: any[]) => void;
   error?: (...args: any[]) => void;
@@ -9,17 +11,23 @@ type LoggerLike = {
 export const createActiveMQShutdown = (
   activeMQService: { close: () => Promise<void> },
   logger: LoggerLike = console,
-  onShutdown?: () => void,
+  onShutdown?: () => void | Promise<void>,
   exitOnShutdown = true
 ) => {
   const shutdown = async (signal?: string) => {
     try {
       if (onShutdown) {
-        onShutdown();
+        await onShutdown();
       }
       logger.info?.(`Shutting down${signal ? ` due to ${signal}` : ''}`);
     } catch {
       // ignore errors from onShutdown
+    }
+
+    try {
+      await shutdownObservability();
+    } catch (err) {
+      logger.error?.('Error during observability shutdown', err as Error);
     }
 
     try {

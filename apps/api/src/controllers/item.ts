@@ -21,8 +21,17 @@ import {
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 
-import type { CategoryMappingKeys, QueryParamsMedium } from '@podverse/helpers';
-import { getCategoryEnumValue, LIVE_ITEM_STATUSES } from '@podverse/helpers';
+import type {
+  CategoryMappingKeys,
+  QueryParamsMedium,
+  StatsAggregatedRangeCountField,
+} from '@podverse/helpers';
+import {
+  fillTopPage,
+  getCategoryEnumValue,
+  LIVE_ITEM_STATUSES,
+  TOP_STATS_PAD_MAX_RANKED,
+} from '@podverse/helpers';
 import type {
   ApiListResponse,
   QueryParamsDirection,
@@ -30,6 +39,7 @@ import type {
 } from '@podverse/helpers-requests';
 import { emptyApiListResponse, QUERY_PARAMS_DIRECTION_VALUES } from '@podverse/helpers-requests';
 import type {
+  Channel,
   FindManyOptions,
   FindOptionsOrder,
   Item,
@@ -65,6 +75,101 @@ export class ItemController {
 
   private static isParsedReadyChannel(channel: { channel_about?: unknown } | null): boolean {
     return Boolean(channel?.channel_about);
+  }
+
+  private static async loadFilledTopItems(args: {
+    category_id: number | null;
+    channelIds?: number[];
+    itemType: 'normal' | 'live-item';
+    limit: number;
+    liveItemType: 'pending' | 'live' | 'ended' | null;
+    medium: QueryParamsMedium | null;
+    offset: number;
+    orderField: StatsAggregatedRangeCountField;
+    recentByChannel?: Channel;
+  }): Promise<Item[]> {
+    const {
+      category_id,
+      channelIds,
+      itemType,
+      limit,
+      liveItemType,
+      medium,
+      offset,
+      orderField,
+      recentByChannel,
+    } = args;
+
+    return fillTopPage({
+      countRanked: () =>
+        ItemController.statsAggregatedItemService.countRanked(
+          medium,
+          category_id,
+          itemType,
+          liveItemType,
+          orderField,
+          channelIds
+        ),
+      limit,
+      loadRankedIds: () =>
+        ItemController.statsAggregatedItemService.getRankedItemIds(
+          medium,
+          category_id,
+          itemType,
+          liveItemType,
+          orderField,
+          TOP_STATS_PAD_MAX_RANKED,
+          channelIds
+        ),
+      loadRecent: (skip, take, excludeIds) => {
+        const recentConfig: FindManyOptions<Item> = {
+          order: recentByChannel ? { pub_date: 'DESC' } : getRecentOrder(itemType),
+          skip,
+          take,
+          relations: recentByChannel ? itemGetManyRelations : itemGetManyRelationsWithChannel,
+        };
+        if (recentByChannel) {
+          return ItemController.itemService.getManyByChannel(recentByChannel, recentConfig, {
+            excludeIds,
+          });
+        }
+        if (channelIds?.length) {
+          return ItemController.itemService.getManyByChannels(
+            channelIds,
+            itemType,
+            liveItemType,
+            recentConfig,
+            { excludeIds }
+          );
+        }
+        return ItemController.itemService.getMany(
+          recentConfig,
+          medium,
+          category_id,
+          itemType,
+          liveItemType,
+          { excludeIds }
+        );
+      },
+      loadStatsPage: async () => {
+        const config: FindManyOptions<StatsAggregatedItem> = {
+          order: { [orderField]: 'DESC' },
+          skip: offset,
+          take: limit,
+          relations: recentByChannel ? subItemGetManyRelations : subItemGetManyRelationsWithChannel,
+        };
+        const statsResults = await ItemController.statsAggregatedItemService.getMany(
+          config,
+          medium,
+          category_id,
+          itemType,
+          liveItemType,
+          { channelIds, minCountField: orderField }
+        );
+        return statsResults.map((stat: { item: Item }) => stat.item).filter(Boolean);
+      },
+      offset,
+    });
   }
 
   static async getByIdOrIdText(req: Request, res: Response): Promise<void> {
@@ -152,23 +257,15 @@ export class ItemController {
         const itemType = liveItemTypeParam ? 'live-item' : 'normal';
         const liveItemType = liveItemTypeParam || null;
 
-        const order = getStatsOrder(range);
-        const config: FindManyOptions<StatsAggregatedItem> = {
-          order: { [order]: 'DESC' },
-          skip: offset,
-          take: limit,
-          relations: subItemGetManyRelationsWithChannel,
-        };
-
-        const statsResults = await ItemController.statsAggregatedItemService.getMany(
-          config,
-          medium,
+        const items = await ItemController.loadFilledTopItems({
           category_id,
           itemType,
-          liveItemType
-        );
-
-        const items = statsResults.map((stat: { item: Item }) => stat.item).filter(Boolean);
+          limit,
+          liveItemType,
+          medium,
+          offset,
+          orderField: getStatsOrder(range),
+        });
         const response: ApiListResponse<Item> = {
           data: items,
           meta: { page, count: null, limit },
@@ -257,23 +354,15 @@ export class ItemController {
         const itemType = liveItemTypeParam ? 'live-item' : 'normal';
         const liveItemType = liveItemTypeParam || null;
 
-        const order = getStatsOrder(range);
-        const config: FindManyOptions<StatsAggregatedItem> = {
-          order: { [order]: 'DESC' },
-          skip: offset,
-          take: limit,
-          relations: subItemGetManyRelationsWithChannel,
-        };
-
-        const statsResults = await ItemController.statsAggregatedItemService.getMany(
-          config,
-          medium,
+        const items = await ItemController.loadFilledTopItems({
           category_id,
           itemType,
-          liveItemType
-        );
-
-        const items = statsResults.map((stat: { item: Item }) => stat.item).filter(Boolean);
+          limit,
+          liveItemType,
+          medium,
+          offset,
+          orderField: getStatsOrder(range),
+        });
         const response: ApiListResponse<Item> = {
           data: items,
           meta: { page, count: null, limit },
@@ -380,27 +469,20 @@ export class ItemController {
               return;
             }
 
-            const order = getStatsOrder(range);
-            const config: FindManyOptions<StatsAggregatedItem> = {
-              order: { [order]: 'DESC' },
-              skip: offset,
-              take: limit,
-              relations: subItemGetManyRelationsWithChannel,
-            };
-            const results =
-              await ItemController.statsAggregatedItemService.getManyByChannelsAndCount(
-                config,
-                channel_ids,
-                itemType,
-                liveItemType
-              );
-            const statsResults = results[0];
-            const count = results[1];
-            const items = statsResults.map((stat: { item: Item }) => stat.item).filter(Boolean);
+            const items = await ItemController.loadFilledTopItems({
+              category_id: null,
+              channelIds: channel_ids,
+              itemType,
+              limit,
+              liveItemType,
+              medium,
+              offset,
+              orderField: getStatsOrder(range),
+            });
 
             const response: ApiListResponse<Item> = {
               data: items,
-              meta: { page, count, limit },
+              meta: { page, count: null, limit },
             };
             res.json(response);
           } catch (error) {
@@ -518,22 +600,17 @@ export class ItemController {
             return;
           }
 
-          const order = getStatsOrder(range);
-          const config: FindManyOptions<StatsAggregatedItem> = {
-            order: { [order]: 'DESC' },
-            skip: offset,
-            take: limit,
-            relations: subItemGetManyRelations,
-            where: { item: { channel: { id: channel.id } } },
-          };
-          const statsResults = await ItemController.statsAggregatedItemService.getMany(
-            config,
-            medium,
+          const items = await ItemController.loadFilledTopItems({
             category_id,
+            channelIds: [channel.id],
             itemType,
-            liveItemType
-          );
-          const items = statsResults.map((stat: { item: Item }) => stat.item).filter(Boolean);
+            limit,
+            liveItemType,
+            medium,
+            offset,
+            orderField: getStatsOrder(range),
+            recentByChannel: channel,
+          });
 
           res.json({
             data: items,

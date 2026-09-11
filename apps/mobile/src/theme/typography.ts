@@ -8,7 +8,7 @@ import type { TextStyle } from 'react-native';
  * is not a full visual pass (see DOCS-MOBILE-PROCESS-VISUAL-PARITY.md).
  */
 export type TypographyRole =
-  'display' | 'title' | 'heading' | 'subheading' | 'body' | 'label' | 'caption';
+  'display' | 'title' | 'heading' | 'subheading' | 'prose' | 'body' | 'label' | 'caption';
 
 export type TypographyStyle = Pick<TextStyle, 'fontSize' | 'fontWeight' | 'lineHeight'>;
 
@@ -17,6 +17,7 @@ export const typography: Record<TypographyRole, TypographyStyle> = {
   title: { fontSize: 22, fontWeight: '700', lineHeight: 28 },
   heading: { fontSize: 18, fontWeight: '600', lineHeight: 24 },
   subheading: { fontSize: 16, fontWeight: '600', lineHeight: 22 },
+  prose: { fontSize: 17, fontWeight: '400', lineHeight: 24 },
   body: { fontSize: 15, fontWeight: '400', lineHeight: 21 },
   label: { fontSize: 13, fontWeight: '600', lineHeight: 18 },
   caption: { fontSize: 12, fontWeight: '400', lineHeight: 16 },

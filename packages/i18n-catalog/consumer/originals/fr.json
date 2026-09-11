@@ -97,7 +97,7 @@
       "basic_auth_username": "Username",
       "basic_auth_password": "Password",
       "basic_auth_required_both": "Basic Auth requires both username and password.",
-      "login_prompt": "Suivez des podcasts et de la musique absents de l'annuaire. Connectez-vous pour enregistrer des flux RSS dans votre bibliothèque et détecter les nouveaux épisodes."
+      "login_prompt": "Connectez-vous pour utiliser cette fonctionnalité."
     },
     "my_library": "Ma Bibliothèque",
     "queue": {
@@ -110,7 +110,7 @@
       "remove_error": "Erreur lors de la suppression de la file d'attente",
       "remove_from_queue": "Retirer de la file d'attente",
       "removed_from_queue": "Retiré de la file d'attente",
-      "login_prompt": "Constituez une liste d'écoute qui vous suit. Connectez-vous pour enregistrer votre file et continuer sur d'autres appareils."
+      "login_prompt": "Connectez-vous pour utiliser cette fonctionnalité."
     },
     "history": {
       "history": "Historique",
@@ -118,7 +118,7 @@
       "mark_as_played": "Marquer comme joué",
       "marked_as_played": "Marqué comme joué",
       "mark_as_played_error": "Erreur lors du marquage comme joué",
-      "login_prompt": "Reprenez là où vous vous êtes arrêté. Connectez-vous pour voir votre historique d'écoute et le synchroniser partout où vous utilisez votre compte."
+      "login_prompt": "Connectez-vous pour utiliser cette fonctionnalité."
     },
     "playlist": {
       "playlist": "Playlist",
@@ -139,7 +139,7 @@
       "playlist_type": "Type de Playlist",
       "add_to_liked": "Ajouter aux j'aime",
       "remove_from_liked": "Retirer des j'aime",
-      "login_prompt": "Rassemblez épisodes, extraits et titres dans des playlists à partager ou à retrouver. Connectez-vous pour créer et gérer les vôtres."
+      "login_prompt": "Connectez-vous pour utiliser cette fonctionnalité."
     },
     "clip": {
       "clip": "Clip",
@@ -159,11 +159,11 @@
       "end_time_aria": "Heure de fin en heures, minutes et secondes (hh:mm:ss)",
       "end_time_play_aria": "Jouer depuis l'heure de fin du clip",
       "clip_time_range": "{hhmmssStart} à {hhmmssEnd}",
-      "login_prompt": "Enregistrez vos moments préférés pour y revenir plus tard. Connectez-vous pour créer des extraits et les conserver avec votre compte."
+      "login_prompt": "Connectez-vous pour utiliser cette fonctionnalité."
     },
     "my_clips": "Mes Clips",
     "my_profile": "Mon Profil",
-    "profile_login_prompt": "Votre profil permet de partager playlists et extraits. Connectez-vous pour le configurer et le synchroniser sur vos appareils.",
+    "profile_login_prompt": "Connectez-vous pour utiliser cette fonctionnalité.",
     "profile": "Profil",
     "profiles": "Profils",
     "embed": "Intégrer",
@@ -476,7 +476,7 @@
       "retry_attempt": "Réessai {number} : ",
       "mbrssV1_capability_loading_status": "Vérification de la disponibilité des messages boost",
       "mbrssV1_capability_unavailable": "Les messages boost ne sont pas disponibles pour ce créateur pour le moment en raison d'un problème de serveur, mais vous pouvez toujours utiliser le formulaire pour envoyer un don.",
-      "login_required_to_send_boosts": "Connectez-vous à {brand_name} pour envoyer des boosts.",
+      "login_required_to_send_boosts": "Connectez-vous pour utiliser cette fonctionnalité.",
       "mbrss_offline_modal_title": "Collecte de messages indisponible",
       "mbrss_offline_modal_body": "Le serveur de collecte de messages semble hors ligne. Si vous souhaitez envoyer votre don sans message, appuyez sur Continuer.",
       "mbrss_offline_continue": "Continuer",
@@ -683,21 +683,21 @@
   },
   "instructions": {
     "login_required": "Connexion requise",
-    "login_for_subscriptions": "Veuillez vous connecter pour voir vos abonnements.",
-    "login_to_create_playlists": "Veuillez vous connecter pour créer des playlists.",
+    "login_for_subscriptions": "Connectez-vous pour utiliser cette fonctionnalité.",
+    "login_to_create_playlists": "Connectez-vous pour utiliser cette fonctionnalité.",
     "no_playlists_created": "Vous n'avez pas encore de playlists. Créez-en une pour commencer.",
-    "login_to_create_clips": "Veuillez vous connecter pour créer des extraits.",
-    "login_for_queues": "Veuillez vous connecter pour voir vos files d'attente.",
-    "login_for_history": "Veuillez vous connecter pour voir votre historique.",
-    "login_to_add_feeds": "Veuillez vous connecter pour ajouter des flux à notre annuaire.",
-    "login_to_refresh_feeds": "Veuillez vous connecter pour actualiser les flux.",
-    "login_to_subscribe": "Veuillez vous connecter pour vous abonner.",
-    "login_to_add_to_queue": "Veuillez vous connecter pour ajouter à votre file d'attente.",
-    "login_to_add_to_playlist": "Veuillez vous connecter pour ajouter à votre playlist.",
-    "login_to_like": "Veuillez vous connecter pour ajouter des éléments à votre liste d'aimés.",
-    "login_to_mark_as_played": "Veuillez vous connecter pour marquer les éléments comme lus.",
-    "login_to_enable_notifications": "Veuillez vous connecter pour activer les notifications.",
-    "login_to_disable_notifications": "Veuillez vous connecter pour désactiver les notifications."
+    "login_to_create_clips": "Connectez-vous pour utiliser cette fonctionnalité.",
+    "login_for_queues": "Connectez-vous pour utiliser cette fonctionnalité.",
+    "login_for_history": "Connectez-vous pour utiliser cette fonctionnalité.",
+    "login_to_add_feeds": "Connectez-vous pour utiliser cette fonctionnalité.",
+    "login_to_refresh_feeds": "Connectez-vous pour utiliser cette fonctionnalité.",
+    "login_to_subscribe": "Connectez-vous pour utiliser cette fonctionnalité.",
+    "login_to_add_to_queue": "Connectez-vous pour utiliser cette fonctionnalité.",
+    "login_to_add_to_playlist": "Connectez-vous pour utiliser cette fonctionnalité.",
+    "login_to_like": "Connectez-vous pour utiliser cette fonctionnalité.",
+    "login_to_mark_as_played": "Connectez-vous pour utiliser cette fonctionnalité.",
+    "login_to_enable_notifications": "Connectez-vous pour utiliser cette fonctionnalité.",
+    "login_to_disable_notifications": "Connectez-vous pour utiliser cette fonctionnalité."
   },
   "subscriptions": {
     "subscriptions": "Abonnements",
@@ -725,7 +725,7 @@
   },
   "authentication": {
     "login": "Connexion",
-    "login_required": "Connectez-vous pour continuer.",
+    "login_required": "Connectez-vous pour utiliser cette fonctionnalité.",
     "logout": "Déconnexion",
     "sign_up": "S'inscrire",
     "need_an_account_sign_up": "Besoin d’un compte ? Inscrivez-vous",
@@ -819,6 +819,35 @@
     "trial_expired_text_line2": "Veuillez prolonger votre abonnement pour continuer à profiter des fonctionnalités Premium.",
     "feature": "Fonctionnalité",
     "features": "Fonctionnalités",
+    "premium_includes": "Ce qu'inclut Premium",
+    "premium_includes_intro": "L'essai inclut l'écoute, les téléchargements, la synchro, les extraits et les playlists. Premium ajoute :",
+    "coming_soon": "Bientôt disponible",
+    "mobile_only": "Mobile uniquement",
+    "mobile_only_legend": "Fonctionnalité disponible uniquement dans l'application mobile",
+    "comparison_name_mobile_only": "{name}*",
+    "comparison": {
+      "subscribe": "S'abonner à des podcasts",
+      "download": "Télécharger des épisodes",
+      "video": "Lecture vidéo",
+      "livestreams": "Directs",
+      "carplay": "CarPlay",
+      "android_auto": "Android Auto",
+      "boostagrams": "Boostagrams (Value for Value)",
+      "chapters": "Chapitres",
+      "comments": "Commentaires inter-apps",
+      "transcripts": "Transcriptions",
+      "add_rss": "Ajouter des flux RSS personnalisés",
+      "opml": "Import et export OPML",
+      "sleep_timer": "Minuteur de sommeil",
+      "screen_reader": "Accessibilité lecteur d'écran",
+      "sync": "Synchroniser entre appareils",
+      "notifications": "Notifications",
+      "clips": "Créer et partager des extraits",
+      "playlists": "Créer et partager des playlists",
+      "mark_played": "Marquer les épisodes comme lus",
+      "profiles": "S'abonner aux profils d'auditeurs",
+      "support_foss": "Soutenir le logiciel libre"
+    },
     "membership_expiring_warning": "Votre {type} expire le {date}. Renouvelez maintenant pour continuer à profiter des fonctionnalités Premium.",
     "membership_expired_danger": "Votre {type} a expiré. Renouvelez maintenant pour continuer à profiter des fonctionnalités Premium.",
     "membership_link_text": "Aller à la page d'abonnement",
@@ -841,8 +870,7 @@
     "trial_limitations_directory_add_by_rss": "L'ajout de flux au répertoire public à partir de la recherche est bloqué pour le statut d'essai.",
     "trial_limitations_add_by_rss_feed_limit": "La taille de la bibliothèque d'ajout par RSS utilise une limite d'essai inférieure à celle de Premium.",
     "trial_limitations_manual_refresh_limit": "Les actions de rafraîchissement manuel utilisent des limites horaires plus strictes pendant l'essai.",
-    "trial_limitations_stats_tracking": "Le suivi des statistiques est réduit par défaut pour le statut d'essai.",
-    "trial_limitations_notifications": "Les fonctionnalités de notification peuvent être réduites pour le statut d'essai et expirer avec l'adhésion.",
+    "trial_limitations_stats_tracking": "Les statistiques d'écoute ne sont pas disponibles pendant l'essai. Contribuer aux tendances nécessite Premium.",
     "gate": {
       "cancel": "Annuler",
       "renew": "Renouveler l'abonnement",
@@ -1213,7 +1241,7 @@
     "title": "Notifications",
     "recent_activity_note": "Activité récente. Les anciennes notifications sont supprimées automatiquement.",
     "loading": "Chargement des notifications…",
-    "login_prompt": "Ne manquez pas un nouvel épisode, un direct ou une actualité des émissions que vous suivez. Connectez-vous pour garder votre boîte de réception sur cet appareil et sur les autres.",
+    "login_prompt": "Connectez-vous pour utiliser cette fonctionnalité.",
     "empty": "Vous êtes à jour. Les alertes de nouveaux épisodes, directs et actualités apparaîtront ici.",
     "unread_section": "Non lues",
     "earlier_section": "Plus anciennes",

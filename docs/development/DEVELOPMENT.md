@@ -6,6 +6,7 @@ Use this page as a quick map for development documentation.
 
 - [CONTRIBUTING.md](./CONTRIBUTING.md)
 - [IDE-SETUP.md](./IDE-SETUP.md)
+- [QUICKSTART.md](/docs/QUICKSTART.md) — teardown, env, seed, watch stack, admin, mobile
 - [API-CLIENT-BOUNDARIES.md](./API-CLIENT-BOUNDARIES.md)
 
 ## White-label / rebranding

@@ -4,6 +4,7 @@ import { Channel } from '@orm/entities/channel/channel.js';
 import { Feed } from '@orm/entities/feed/feed.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
 import { findOptionsRelationsFromPaths } from '@orm/lib/findOptionsRelationsFromPaths.js';
+import { resolveIdListFilter } from '@orm/lib/listIdFilter.js';
 import type { FindManyOptions, FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
 import { Equal, In, IsNull, Not } from 'typeorm';
 
@@ -294,12 +295,19 @@ export class ChannelService {
   async getMany(
     config: FindManyOptions<Channel>,
     mediumType: QueryParamsMedium,
-    category_id: number | null
+    category_id: number | null,
+    listOptions?: { channelIds?: number[]; excludeIds?: number[] }
   ): Promise<Channel[]> {
     const medium_ids = mediumType ? getMediumIdArrayFromType(mediumType) : null;
+    const idFilter = resolveIdListFilter(listOptions?.channelIds, listOptions?.excludeIds);
+    if (idFilter.empty) {
+      return [];
+    }
 
     return this.repositoryRead.find({
+      ...config,
       where: {
+        ...(idFilter.id ? { id: idFilter.id } : {}),
         channel_about: {
           id: Not(IsNull()),
         },
@@ -311,7 +319,6 @@ export class ChannelService {
         ...(medium_ids ? { medium_id: In(medium_ids) } : {}),
         ...(category_id ? { channel_categories: { category_id: Equal(category_id) } } : {}),
       },
-      ...config,
     });
   }
 

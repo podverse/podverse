@@ -2,6 +2,7 @@ appId: com.podverse.app.next
 name: Browse Tab And Tab Bar Pref
 ---
 # Default bar is Home / Browse / Search / My Library / More. Notifications lives in More.
+# Browse is one chip row: popularity range, Categories, then directory types.
 # Settings can swap Notifications onto the bar (replaces the last visible content tab).
 
 - runFlow: shared/launch-and-connect.yaml
@@ -15,7 +16,69 @@ name: Browse Tab And Tab Bar Pref
     id: tab-browse
 - assertVisible:
     id: browse-screen
-- takeScreenshot: browse-screen-initial
+- extendedWaitUntil:
+    visible:
+      id: browse-sort-button
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: browse-media-type-selector
+- assertVisible:
+    id: browse-category-button
+- assertVisible:
+    id: browse-media-type-podcasts
+- assertVisible:
+    id: browse-media-type-videos
+- assertVisible:
+    id: browse-media-type-playlists
+- assertVisible:
+    id: browse-media-type-users
+- assertNotVisible:
+    id: browse-filter-input
+- assertNotVisible:
+    id: browse-feed-summary
+- takeScreenshot: browse-screen-podcasts
+
+- tapOn:
+    id: browse-sort-button
+- assertVisible:
+    id: browse-sort-menu
+- assertVisible:
+    id: browse-sort-range-week
+- tapOn:
+    id: browse-sort-menu-cancel
+
+- tapOn:
+    id: browse-category-button
+- extendedWaitUntil:
+    visible:
+      id: browse-category-all
+    timeout: ${TIMEOUT_SLOWER}
+- takeScreenshot: browse-screen-categories
+
+- tapOn:
+    id: browse-category-all
+- extendedWaitUntil:
+    notVisible:
+      id: browse-category-all
+    timeout: ${TIMEOUT_SLOWER}
+
+- tapOn:
+    id: browse-media-type-artists
+- extendedWaitUntil:
+    visible:
+      id: browse-sort-button
+    timeout: ${TIMEOUT_SLOWER}
+- assertNotVisible:
+    id: browse-category-all
+- takeScreenshot: browse-screen-artists
+
+- tapOn:
+    id: browse-media-type-videos
+- extendedWaitUntil:
+    visible:
+      id: browse-category-button
+    timeout: ${TIMEOUT_SLOWER}
+- takeScreenshot: browse-screen-videos
 
 - tapOn:
     id: tab-more

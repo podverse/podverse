@@ -44,6 +44,8 @@ const {
   channelGetManyMock,
   statsChGetManyMock,
   statsChGetManyByChannelsAndCountMock,
+  statsChCountRankedMock,
+  statsChGetRankedChannelIdsMock,
   accountFollowingGetFollowedMock,
   itemGetByIdOrIdTextMock,
   itemGetManyMock,
@@ -56,6 +58,8 @@ const {
   itemGetManyByChannelWithLiveItemMock,
   statsItGetManyMock,
   statsItGetManyByChannelsAndCountMock,
+  statsItCountRankedMock,
+  statsItGetRankedItemIdsMock,
   itemChGetByIdTextMock,
   itemChGetAllWithCountMock,
   itemSoundbiteGetByIdTextMock,
@@ -86,6 +90,8 @@ const {
   const defaultStatsChGetManyByChannelsAndCount = async (): Promise<
     [Record<string, unknown>[], number]
   > => [[{ channel: { id: 1, id_text: 'subch' } }], 1];
+  const defaultStatsChCountRanked = async () => 1;
+  const defaultStatsChGetRankedChannelIds = async () => [1];
   const defaultAccountFollowingGetFollowed = async (
     _a: number,
     _m: string | null,
@@ -146,6 +152,8 @@ const {
   const defaultStatsItGetManyByChannelsAndCount = async (): Promise<
     [Record<string, unknown>[], number]
   > => [[{ item: { id: 20, id_text: 'subtop' } }], 2];
+  const defaultStatsItCountRanked = async () => 1;
+  const defaultStatsItGetRankedItemIds = async () => [10];
   const defaultItemChGetByIdText = async (): Promise<Record<string, unknown> | null> => ({
     id: 1,
     id_text: 'ic-some-id',
@@ -218,6 +226,8 @@ const {
     channelGetManyMock: vi.fn(defaultChannelGetMany),
     statsChGetManyMock: vi.fn(defaultStatsChGetMany),
     statsChGetManyByChannelsAndCountMock: vi.fn(defaultStatsChGetManyByChannelsAndCount),
+    statsChCountRankedMock: vi.fn(defaultStatsChCountRanked),
+    statsChGetRankedChannelIdsMock: vi.fn(defaultStatsChGetRankedChannelIds),
     accountFollowingGetFollowedMock: vi.fn(defaultAccountFollowingGetFollowed),
     itemGetByIdOrIdTextMock: vi.fn(async () => null),
     itemGetManyMock: vi.fn(defaultItemGetMany),
@@ -230,6 +240,8 @@ const {
     itemGetManyByChannelWithLiveItemMock: vi.fn(defaultItemGetManyByChannelWithLiveItem),
     statsItGetManyMock: vi.fn(defaultStatsItGetMany),
     statsItGetManyByChannelsAndCountMock: vi.fn(defaultStatsItGetManyByChannelsAndCount),
+    statsItCountRankedMock: vi.fn(defaultStatsItCountRanked),
+    statsItGetRankedItemIdsMock: vi.fn(defaultStatsItGetRankedItemIds),
     itemChGetByIdTextMock: vi.fn(defaultItemChGetByIdText),
     itemChGetAllWithCountMock: vi.fn(defaultItemChGetAllWithCount),
     itemSoundbiteGetByIdTextMock: vi.fn(defaultItemSoundbiteGetByIdText),
@@ -245,6 +257,8 @@ const {
       channelGetMany: defaultChannelGetMany,
       statsChGetMany: defaultStatsChGetMany,
       statsChGetManyByChannelsAndCount: defaultStatsChGetManyByChannelsAndCount,
+      statsChCountRanked: defaultStatsChCountRanked,
+      statsChGetRankedChannelIds: defaultStatsChGetRankedChannelIds,
       accountFollowingGetFollowed: defaultAccountFollowingGetFollowed,
       itemGetMany: defaultItemGetMany,
       itemGetManyByChannels: defaultItemGetManyByChannels,
@@ -256,6 +270,8 @@ const {
       itemGetManyByChannelWithLiveItem: defaultItemGetManyByChannelWithLiveItem,
       statsItGetMany: defaultStatsItGetMany,
       statsItGetManyByChannelsAndCount: defaultStatsItGetManyByChannelsAndCount,
+      statsItCountRanked: defaultStatsItCountRanked,
+      statsItGetRankedItemIds: defaultStatsItGetRankedItemIds,
       itemChGetByIdText: defaultItemChGetByIdText,
       itemChGetAllWithCount: defaultItemChGetAllWithCount,
       itemSoundbiteGetByIdText: defaultItemSoundbiteGetByIdText,
@@ -295,6 +311,8 @@ vi.mock('@podverse/orm', async (importOriginal) => {
   class MockStatsAggregatedChannelService {
     getMany = statsChGetManyMock;
     getManyByChannelsAndCount = statsChGetManyByChannelsAndCountMock;
+    countRanked = statsChCountRankedMock;
+    getRankedChannelIds = statsChGetRankedChannelIdsMock;
   }
 
   class MockItemService {
@@ -312,6 +330,8 @@ vi.mock('@podverse/orm', async (importOriginal) => {
   class MockStatsAggregatedItemService {
     getMany = statsItGetManyMock;
     getManyByChannelsAndCount = statsItGetManyByChannelsAndCountMock;
+    countRanked = statsItCountRankedMock;
+    getRankedItemIds = statsItGetRankedItemIdsMock;
   }
 
   class MockItemChapterService {
@@ -464,6 +484,10 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
     statsChGetManyByChannelsAndCountMock.mockImplementation(
       defaultImpls.statsChGetManyByChannelsAndCount
     );
+    statsChCountRankedMock.mockReset();
+    statsChCountRankedMock.mockImplementation(defaultImpls.statsChCountRanked);
+    statsChGetRankedChannelIdsMock.mockReset();
+    statsChGetRankedChannelIdsMock.mockImplementation(defaultImpls.statsChGetRankedChannelIds);
     accountFollowingGetFollowedMock.mockReset();
     accountFollowingGetFollowedMock.mockImplementation(defaultImpls.accountFollowingGetFollowed);
 
@@ -509,6 +533,10 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
     statsItGetManyByChannelsAndCountMock.mockImplementation(
       defaultImpls.statsItGetManyByChannelsAndCount
     );
+    statsItCountRankedMock.mockReset();
+    statsItCountRankedMock.mockImplementation(defaultImpls.statsItCountRanked);
+    statsItGetRankedItemIdsMock.mockReset();
+    statsItGetRankedItemIdsMock.mockImplementation(defaultImpls.statsItGetRankedItemIds);
 
     itemChGetByIdTextMock.mockReset();
     itemChGetByIdTextMock.mockImplementation(defaultImpls.itemChGetByIdText);
@@ -559,6 +587,25 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
     it('GET /channel/global/top returns 200', async () => {
       const res = await request(app).get(`${channelBase}/global/top?${listQueryTop}`);
       expect(res.status).toBe(200);
+    });
+
+    it('GET /channel/global/top pads recent rows after a short ranked page', async () => {
+      const res = await request(app).get(`${channelBase}/global/top?${listQueryTop}`);
+      expect(res.status).toBe(200);
+      expect(res.body.data.map((row: { id_text: string }) => row.id_text)).toEqual([
+        'st-ch',
+        'ch-1',
+      ]);
+      expect(statsChGetRankedChannelIdsMock).toHaveBeenCalled();
+      expect(channelGetManyMock).toHaveBeenCalled();
+    });
+
+    it('GET /channel/global/top uses recent when no ranked rows exist', async () => {
+      statsChGetManyMock.mockResolvedValueOnce([]);
+      const res = await request(app).get(`${channelBase}/global/top?${listQueryTop}`);
+      expect(res.status).toBe(200);
+      expect(res.body.data).toEqual([{ id: 1, id_text: 'ch-1' }]);
+      expect(statsChGetRankedChannelIdsMock).not.toHaveBeenCalled();
     });
 
     it('GET /channel/category/recent returns 200 with category + medium + page', async () => {
@@ -633,6 +680,17 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
     it('GET /item/global/top returns 200', async () => {
       const res = await request(app).get(`${itemBase}/global/top?${listQueryTop}`);
       expect(res.status).toBe(200);
+    });
+
+    it('GET /item/global/top pads recent rows after a short ranked page', async () => {
+      const res = await request(app).get(`${itemBase}/global/top?${listQueryTop}`);
+      expect(res.status).toBe(200);
+      expect(res.body.data.map((row: { id_text: string }) => row.id_text)).toEqual([
+        'st-it',
+        'it-1',
+      ]);
+      expect(statsItGetRankedItemIdsMock).toHaveBeenCalled();
+      expect(itemGetManyMock).toHaveBeenCalled();
     });
 
     it('GET /item/category/recent returns 200 with query params', async () => {

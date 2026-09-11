@@ -127,7 +127,6 @@ export function LibraryQueueScreen(_props: LibraryQueueScreenProps) {
       testID="library-queue-screen"
     >
       <AuthAwareLoadState
-        authMessageKey="features.queue.login_prompt"
         emptyTestID={
           status !== 'authenticated' ? 'library-queue-auth-required' : 'library-queue-empty'
         }

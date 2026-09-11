@@ -29,7 +29,7 @@ export function fallbackProductMembershipFromEnv(): ResolvedProductMembership {
     trialMaxAddByRSSFeeds: 10,
     trialMaxManualRefreshesPerHour: 5,
     trialTrackStats: false,
-    trialAllowNotifications: false,
+    trialAllowNotifications: true,
     premiumAllowDirectoryAddByRSS: true,
     premiumMaxAddByRSSFeeds: 100,
     premiumMaxManualRefreshesPerHour: 20,

@@ -13,7 +13,6 @@ import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { playlistResourceToHomeRow } from '../../lib/rows/homeRowMappers';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
-import type { LibraryStackParamList } from '../../navigation';
 import { LIBRARY_STACK_ROUTES } from '../../navigation';
 import { usePlayback } from '../../playback/PlaybackProvider';
 import { useTheme } from '../../theme/useTheme';
@@ -65,7 +64,12 @@ const reorderIdText = (resource: DTOPlaylistResource): string | null => {
   return null;
 };
 
-type PlaylistDetailScreenProps = NativeStackScreenProps<LibraryStackParamList, 'PlaylistDetail'>;
+type PlaylistDetailParams = {
+  PlaylistDetail: { playlistId: string };
+  PlaylistEdit: { playlistId: string };
+};
+
+type PlaylistDetailScreenProps = NativeStackScreenProps<PlaylistDetailParams, 'PlaylistDetail'>;
 
 type PlaylistResourceRow = HomeFeedRowData & {
   mediaType: 'clips' | 'episodes' | 'tracks';
@@ -405,7 +409,6 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
   return (
     <View style={styles.container} testID="library-playlist-detail-screen">
       <AuthAwareLoadState
-        authMessageKey="features.playlist.login_prompt"
         emptyTestID="library-playlist-detail-auth-required"
         errorKey={errorKey}
         errorTestID="library-playlist-detail-error"

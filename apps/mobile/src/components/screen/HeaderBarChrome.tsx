@@ -4,8 +4,8 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { useTheme } from '../../theme/useTheme';
 import { HEADER_BAR_HEIGHT, HeaderBar, headerBarTypography } from './HeaderBar';
-import { HeaderBarAction } from './HeaderBarAction';
 import type { HeaderBarActionProps } from './HeaderBarAction';
+import { HeaderBarAction } from './HeaderBarAction';
 
 export type HeaderBarChromeProps = {
   backAccessibilityLabel?: string;

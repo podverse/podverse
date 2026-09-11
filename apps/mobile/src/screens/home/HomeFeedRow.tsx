@@ -5,15 +5,15 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { buildMediaRowMoreActions, MediaRowActions } from '../../components/player/MediaRowActions';
 import { Badge, CoverImage } from '../../components/primitives';
-import type { HomeMediaType } from '../../prefs/preferredMediaType';
 import { useTheme } from '../../theme/useTheme';
+import type { DirectoryMediaType } from '../browse/browseTypes';
+import { isPlayableDirectoryMediaType } from '../browse/browseTypes';
 import type { HomeFeedRowData } from './homeFeedData';
 import type { HomeRowMetadata } from './homeRowMetadata';
 import type { QueueActionPosition } from './useHomeRowPlayback';
-import { isPlayableHomeMediaType } from './useHomeRowPlayback';
 
 type HomeFeedRowProps = {
-  mediaType: HomeMediaType;
+  mediaType: DirectoryMediaType;
   onPress: (row: HomeFeedRowData) => void;
   onQueuePress: (row: HomeFeedRowData, position: QueueActionPosition) => void;
   onPlayPress: (row: HomeFeedRowData) => void;
@@ -105,7 +105,7 @@ export function HomeFeedRow({
 }: HomeFeedRowProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
-  const isPlayable = isPlayableHomeMediaType(mediaType);
+  const isPlayable = isPlayableDirectoryMediaType(mediaType);
   const metadataSegments = useMetadataSegments(row.metadata);
 
   const styles = useMemo(

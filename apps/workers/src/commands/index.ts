@@ -1,4 +1,5 @@
 import archiveAll from '@workers/commands/archiver/archiveAll.js';
+import { devSeedLocalUserContent } from '@workers/commands/dev/devSeedLocalUserContent.js';
 import { seedEmbedDemoShowcaseFeeds } from '@workers/commands/embedDemo/seedShowcaseFeeds.js';
 import { mqRSSAdd } from '@workers/commands/mq/rss/add.js';
 import { mqRSSAddAll } from '@workers/commands/mq/rss/addAll.js';
@@ -18,6 +19,7 @@ import {
 } from '@workers/commands/podcastIndex/deadFeeds/flagAndMerge.js';
 import podcastIndexTrendingPodcastsGet from '@workers/commands/podcastIndex/trending/podcastsGet.js';
 import { podcastIndexValueUpdateAll } from '@workers/commands/podcastIndex/value/updateAll.js';
+import { devStatsSeedSimulatedAggregated } from '@workers/commands/stats/devStatsSeedSimulatedAggregated.js';
 import { statsUpdateAggregated } from '@workers/commands/stats/statsUpdateAggregated.js';
 import { statsUpdateAggregatedRolling } from '@workers/commands/stats/statsUpdateAggregatedRolling.js';
 
@@ -60,6 +62,8 @@ export default {
   devPiBulkFeedsAddFromFile,
   mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex,
   mqRSSAddTrendingPodcastsFromPodcastIndex,
+  devSeedLocalUserContent,
+  devStatsSeedSimulatedAggregated,
   statsUpdateAggregated,
   statsUpdateAggregatedRolling,
   billingProcessDueRenewals,

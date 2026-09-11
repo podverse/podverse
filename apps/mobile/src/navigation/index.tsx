@@ -28,6 +28,8 @@ import type { MenuListItem, MenuListSection } from '../components/screen/MenuLis
 import { MenuListScreen } from '../components/screen/MenuListScreen';
 import { getMobileConfig } from '../config';
 import { buildMobileLinkPrefixes } from '../config/deepLinkSchemes';
+import { sumBadgeCounts } from '../downloads/inProgressDownloadCount';
+import { useInProgressDownloadCount } from '../downloads/useDownloads';
 import { useNotificationsUnreadCount } from '../hooks/useNotificationsUnreadCount';
 import { useMembership } from '../membership/useMembership';
 import { PlaybackE2eStatus } from '../playback/PlaybackE2eStatus';
@@ -47,12 +49,14 @@ import { LibraryHistoryScreen } from '../screens/library/LibraryHistoryScreen';
 import { LibraryMyClipsScreen } from '../screens/library/LibraryMyClipsScreen';
 import { LibraryPlaylistsScreen } from '../screens/library/LibraryPlaylistsScreen';
 import { LibraryQueueScreen } from '../screens/library/LibraryQueueScreen';
-import { LibrarySubscriptionsScreen } from '../screens/library/LibrarySubscriptionsScreen';
 import { PlaylistDetailScreen } from '../screens/library/PlaylistDetailScreen';
 import { PlaylistFormScreen } from '../screens/library/PlaylistFormScreen';
 import { MoreMembershipScreen } from '../screens/more/MoreMembershipScreen';
 import { MoreOpmlScreen } from '../screens/more/MoreOpmlScreen';
+import { MoreSettingsAppearanceScreen } from '../screens/more/MoreSettingsAppearanceScreen';
 import { MoreSettingsLocaleScreen } from '../screens/more/MoreSettingsLocaleScreen';
+import { MoreSettingsNotificationsScreen } from '../screens/more/MoreSettingsNotificationsScreen';
+import { MoreSettingsPlaybackScreen } from '../screens/more/MoreSettingsPlaybackScreen';
 import { MoreSettingsScreen } from '../screens/more/MoreSettingsScreen';
 import { MoreSettingsTabBarScreen } from '../screens/more/MoreSettingsTabBarScreen';
 import { MoreSettingsThemeScreen } from '../screens/more/MoreSettingsThemeScreen';
@@ -158,7 +162,6 @@ export const LIBRARY_STACK_ROUTES = {
   LibraryHistory: 'LibraryHistory',
   LibraryHub: 'LibraryHub',
   LibraryMyClips: 'LibraryMyClips',
-  LibrarySubscriptions: 'LibrarySubscriptions',
   PlaylistCreate: 'PlaylistCreate',
   PlaylistDetail: 'PlaylistDetail',
   PlaylistEdit: 'PlaylistEdit',
@@ -168,7 +171,10 @@ export const LIBRARY_STACK_ROUTES = {
 } as const;
 
 export const BROWSE_STACK_ROUTES = {
+  ...CHANNEL_BROWSE_STACK_ROUTES,
   BrowseRoot: 'BrowseRoot',
+  PlaylistDetail: 'PlaylistDetail',
+  Profile: 'Profile',
 } as const;
 
 export const NOTIFICATIONS_STACK_ROUTES = {
@@ -183,7 +189,10 @@ export const MORE_STACK_ROUTES = {
   MoreProfile: 'MoreProfile',
   MoreRoot: 'MoreRoot',
   MoreSettings: 'MoreSettings',
+  MoreSettingsAppearance: 'MoreSettingsAppearance',
   MoreSettingsLocale: 'MoreSettingsLocale',
+  MoreSettingsNotifications: 'MoreSettingsNotifications',
+  MoreSettingsPlayback: 'MoreSettingsPlayback',
   MoreSettingsTabBar: 'MoreSettingsTabBar',
   MoreSettingsTheme: 'MoreSettingsTheme',
   MoreSmoke: 'MoreSmoke',
@@ -229,7 +238,10 @@ const mobileNavigationScreens = {
           MoreProfile: 'more/profile',
           MoreRoot: 'more',
           MoreSettings: 'more/settings',
+          MoreSettingsAppearance: 'more/settings/appearance',
           MoreSettingsLocale: 'more/settings/locale',
+          MoreSettingsNotifications: 'more/settings/notifications',
+          MoreSettingsPlayback: 'more/settings/playback',
           MoreSettingsTabBar: 'more/settings/tab-bar',
           MoreSettingsTheme: 'more/settings/theme',
           MoreSmoke: 'more/smoke',
@@ -245,7 +257,6 @@ const mobileNavigationScreens = {
           LibraryHistory: 'my-library/history',
           LibraryHub: 'my-library',
           LibraryMyClips: 'my-library/my-clips',
-          LibrarySubscriptions: 'my-library/subscriptions',
           PlaylistCreate: 'my-library/playlist/create',
           PlaylistDetail: 'my-library/playlist/:playlistId',
           PlaylistEdit: 'my-library/playlist/:playlistId/edit',
@@ -256,7 +267,15 @@ const mobileNavigationScreens = {
       },
       Browse: {
         screens: {
+          AlbumDetail: 'browse/album/:albumId',
+          ArtistDetail: 'browse/artist/:artistId',
           BrowseRoot: 'browse',
+          ClipDetail: 'browse/clip/:clipId',
+          EpisodeDetail: 'browse/episode/:episodeId',
+          PlaylistDetail: 'browse/playlist/:playlistId',
+          PodcastDetail: 'browse/podcast/:podcastId',
+          Profile: 'browse/profile/:accountIdText',
+          TrackDetail: 'browse/track/:trackId',
         },
       },
       Notifications: {
@@ -355,7 +374,6 @@ export type LibraryStackParamList = {
   LibraryHistory: undefined;
   LibraryHub: undefined;
   LibraryMyClips: undefined;
-  LibrarySubscriptions: undefined;
   PlaylistCreate: undefined;
   PlaylistDetail: { playlistId: string };
   PlaylistEdit: { playlistId: string };
@@ -364,8 +382,10 @@ export type LibraryStackParamList = {
   PodcastDetail: { podcastId: string };
 };
 
-export type BrowseStackParamList = {
+export type BrowseStackParamList = ChannelBrowseStackParamList & {
   BrowseRoot: undefined;
+  PlaylistDetail: { playlistId: string };
+  Profile: { accountIdText: string };
 };
 
 export type NotificationsStackParamList = {
@@ -380,7 +400,10 @@ export type MoreStackParamList = {
   MoreProfile: undefined;
   MoreRoot: undefined;
   MoreSettings: undefined;
+  MoreSettingsAppearance: undefined;
   MoreSettingsLocale: undefined;
+  MoreSettingsNotifications: undefined;
+  MoreSettingsPlayback: undefined;
   MoreSettingsTabBar: undefined;
   MoreSettingsTheme: undefined;
   MoreSmoke: undefined;
@@ -556,11 +579,6 @@ function LibraryStackNavigator() {
         options={{ title: t('nav.stack.rss_feeds') }}
       />
       <LibraryStack.Screen
-        component={LibrarySubscriptionsScreen}
-        name={LIBRARY_STACK_ROUTES.LibrarySubscriptions}
-        options={{ title: t('subscriptions.subscriptions') }}
-      />
-      <LibraryStack.Screen
         component={PodcastDetailScreen}
         name={LIBRARY_STACK_ROUTES.PodcastDetail}
         options={{ title: t('media.podcast.podcast') }}
@@ -625,6 +643,46 @@ function BrowseStackNavigator() {
         name={BROWSE_STACK_ROUTES.BrowseRoot}
         options={{ title: t('nav.tab.browse') }}
       />
+      <BrowseStack.Screen
+        component={PodcastDetailScreen}
+        name={BROWSE_STACK_ROUTES.PodcastDetail}
+        options={{ title: t('media.podcast.podcast') }}
+      />
+      <BrowseStack.Screen
+        component={EpisodeDetailScreen}
+        name={BROWSE_STACK_ROUTES.EpisodeDetail}
+        options={{ title: t('media.podcast.episode') }}
+      />
+      <BrowseStack.Screen
+        component={ClipDetailScreen}
+        name={BROWSE_STACK_ROUTES.ClipDetail}
+        options={{ title: t('features.clip.clip') }}
+      />
+      <BrowseStack.Screen
+        component={ArtistDetailScreen}
+        name={BROWSE_STACK_ROUTES.ArtistDetail}
+        options={{ title: t('media.music.artist') }}
+      />
+      <BrowseStack.Screen
+        component={AlbumDetailScreen}
+        name={BROWSE_STACK_ROUTES.AlbumDetail}
+        options={{ title: t('media.music.album') }}
+      />
+      <BrowseStack.Screen
+        component={TrackDetailScreen}
+        name={BROWSE_STACK_ROUTES.TrackDetail}
+        options={{ title: t('media.music.track') }}
+      />
+      <BrowseStack.Screen
+        component={PlaylistDetailScreen}
+        name={BROWSE_STACK_ROUTES.PlaylistDetail}
+        options={{ title: t('features.playlist.playlist') }}
+      />
+      <BrowseStack.Screen
+        component={ProfileScreen}
+        name={BROWSE_STACK_ROUTES.Profile}
+        options={{ title: t('features.profile') }}
+      />
     </BrowseStack.Navigator>
   );
 }
@@ -674,6 +732,21 @@ function MoreStackNavigator({
         component={MoreSettingsScreen}
         name={MORE_STACK_ROUTES.MoreSettings}
         options={{ title: t('settings.settings') }}
+      />
+      <MoreStack.Screen
+        component={MoreSettingsAppearanceScreen}
+        name={MORE_STACK_ROUTES.MoreSettingsAppearance}
+        options={{ title: t('settings.groups.appearance') }}
+      />
+      <MoreStack.Screen
+        component={MoreSettingsPlaybackScreen}
+        name={MORE_STACK_ROUTES.MoreSettingsPlayback}
+        options={{ title: t('settings.groups.playback') }}
+      />
+      <MoreStack.Screen
+        component={MoreSettingsNotificationsScreen}
+        name={MORE_STACK_ROUTES.MoreSettingsNotifications}
+        options={{ title: t('settings.notifications.notifications') }}
       />
       <MoreStack.Screen
         component={MoreSettingsThemeScreen}
@@ -741,33 +814,13 @@ function LibraryHubScreen({
   navigation,
 }: NativeStackScreenProps<LibraryStackParamList, 'LibraryHub'>) {
   const { t } = useTranslation();
+  const inProgressDownloadCount = useInProgressDownloadCount();
 
   return (
     <MenuListScreen
       sections={[
         {
           items: [
-            {
-              onPress: () => {
-                navigation.navigate(LIBRARY_STACK_ROUTES.LibrarySubscriptions);
-              },
-              testID: 'library-nav-subscriptions',
-              title: t('subscriptions.subscriptions'),
-            },
-            {
-              onPress: () => {
-                navigation.navigate(LIBRARY_STACK_ROUTES.LibraryPlaylists);
-              },
-              testID: 'library-nav-playlists',
-              title: t('features.playlist.playlists'),
-            },
-            {
-              onPress: () => {
-                navigation.navigate(LIBRARY_STACK_ROUTES.LibraryHistory);
-              },
-              testID: 'library-nav-history',
-              title: t('features.history.history'),
-            },
             {
               onPress: () => {
                 navigation.navigate(LIBRARY_STACK_ROUTES.LibraryQueue);
@@ -777,10 +830,31 @@ function LibraryHubScreen({
             },
             {
               onPress: () => {
+                navigation.navigate(LIBRARY_STACK_ROUTES.LibraryHistory);
+              },
+              testID: 'library-nav-history',
+              title: t('features.history.history'),
+            },
+            {
+              accessibilityLabel:
+                inProgressDownloadCount > 0
+                  ? `${t('nav.tab.downloads')}, ${t('features.download.in_progress_count', {
+                      count: inProgressDownloadCount,
+                    })}`
+                  : undefined,
+              badgeCount: inProgressDownloadCount,
+              onPress: () => {
                 navigation.navigate(LIBRARY_STACK_ROUTES.LibraryDownloads);
               },
               testID: 'library-nav-downloads',
               title: t('nav.tab.downloads'),
+            },
+            {
+              onPress: () => {
+                navigation.navigate(LIBRARY_STACK_ROUTES.LibraryPlaylists);
+              },
+              testID: 'library-nav-playlists',
+              title: t('features.playlist.playlists'),
             },
             {
               onPress: () => {
@@ -795,15 +869,6 @@ function LibraryHubScreen({
               },
               testID: 'library-nav-add-by-rss',
               title: t('features.add_by_rss.label'),
-            },
-            {
-              onPress: () => {
-                navigation
-                  .getParent<BottomTabNavigationProp<MobileTabParamList>>()
-                  ?.navigate('More', { screen: MORE_STACK_ROUTES.MoreOpml });
-              },
-              testID: 'library-nav-opml',
-              title: t('nav.menu.opml'),
             },
           ],
           key: 'library',
@@ -979,6 +1044,8 @@ function TabScaffold({
   const { visibleTabIds } = useTabLayout();
   const visibleTabSet = useMemo(() => new Set(visibleTabIds), [visibleTabIds]);
   const notificationsUnreadCount = useNotificationsUnreadCount({ enabled: true });
+  const inProgressDownloadCount = useInProgressDownloadCount();
+  const libraryTabBadgeCount = sumBadgeCounts([inProgressDownloadCount]);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isTabletLayout = width >= MOBILE_TABLET_NAV_MIN_WIDTH;
@@ -995,6 +1062,16 @@ function TabScaffold({
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: tokens.text.accent,
+        tabBarBadgeStyle: {
+          backgroundColor: tokens.text.accent,
+          color: tokens.background.primary,
+          fontSize: 11,
+          fontWeight: '700',
+          minWidth: 20,
+          height: 20,
+          lineHeight: 16,
+          borderRadius: 10,
+        },
         tabBarInactiveTintColor: themeStyles.textSecondary.color,
         // Tablet left rail requires `beside-icon`; phone bottom bar uses icon-above-label layout.
         tabBarLabelPosition: isTabletLayout ? 'beside-icon' : 'below-icon',
@@ -1047,6 +1124,7 @@ function TabScaffold({
         component={LibraryStackNavigator}
         name="My Library"
         options={{
+          tabBarBadge: libraryTabBadgeCount > 0 ? libraryTabBadgeCount : undefined,
           tabBarButton: tabBarButtonFor('My Library'),
           tabBarButtonTestID: visibleTabSet.has('My Library') ? 'tab-my-library' : undefined,
           tabBarIcon: tabBarIcon('library'),

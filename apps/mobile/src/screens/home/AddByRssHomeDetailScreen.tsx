@@ -3,6 +3,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 
+import {
+  addByRSSFeedListArtworkCandidates,
+  ARTWORK_LIST_SIZE_FIND_TARGET,
+  primaryChannelLightboxArtworkUrl,
+} from '@podverse/helpers';
+
 import { SortSelectRow } from '../../components/form/SortSelectRow';
 import { MediaRowActions } from '../../components/player/MediaRowActions';
 import { Button, CoverImage } from '../../components/primitives';
@@ -178,10 +184,29 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
     [t]
   );
 
+  const headerArtwork = useMemo(() => {
+    if (detail === null) {
+      return { listUrl: null, viewerUrl: null };
+    }
+
+    const listUrl =
+      addByRSSFeedListArtworkCandidates({
+        channelImages: detail.mappedFeed?.channel.images,
+        comparison: 'lesser',
+        feedImageUrl: detail.feed.imageUrl,
+        sizeFindTarget: ARTWORK_LIST_SIZE_FIND_TARGET,
+      })[0] ?? null;
+
+    return {
+      listUrl,
+      viewerUrl: primaryChannelLightboxArtworkUrl(detail.mappedFeed?.channel.images) ?? listUrl,
+    };
+  }, [detail]);
+
   const listHeader =
     detail === null ? null : (
       <View style={styles.header}>
-        {(detail.mappedFeed?.channel.images[0]?.url ?? detail.feed.imageUrl) !== null ? (
+        {headerArtwork.listUrl !== null ? (
           <CoverImage
             accessibilityLabel={
               detail.mappedFeed?.channel.channel.title ??
@@ -189,7 +214,8 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
               t('features.add_by_rss.label')
             }
             style={styles.headerImage}
-            uri={detail.mappedFeed?.channel.images[0]?.url ?? detail.feed.imageUrl}
+            uri={headerArtwork.listUrl}
+            viewerUri={headerArtwork.viewerUrl}
           />
         ) : null}
         <Text style={styles.headerTitle}>

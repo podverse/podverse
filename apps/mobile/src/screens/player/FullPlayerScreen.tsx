@@ -261,7 +261,8 @@ export function FullPlayerScreen({ onClose, onOpenV4v }: FullPlayerScreenProps) 
               <CoverImage
                 accessibilityLabel={t('media_player.media_player_image')}
                 style={styles.artwork}
-                uri={nowPlaying.imageUrl}
+                uri={nowPlaying.viewerImageUrl ?? nowPlaying.imageUrl}
+                viewerUri={nowPlaying.viewerImageUrl ?? nowPlaying.imageUrl}
               />
               {/* Single shared native surface; hidden for audio-only so the artwork shows. */}
               <PodverseVideoSurfaceView style={StyleSheet.absoluteFill} targetId="full" />

@@ -41,7 +41,7 @@ export const DEFAULT_UNTRUSTED_ACCOUNT_ENTITLEMENTS: AccountTrustEntitlements = 
   maxAddByRSSFeeds: 10,
   maxManualRefreshesPerHour: 5,
   trackStats: false,
-  allowNotifications: false,
+  allowNotifications: true,
 };
 
 export const DEFAULT_TRUSTED_ACCOUNT_ENTITLEMENTS: AccountTrustEntitlements = {

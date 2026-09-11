@@ -142,6 +142,7 @@
     "mobile:lint": "eslint apps/mobile --max-warnings 0",
     "mobile:lint:fix": "eslint apps/mobile --fix",
     "dev:workers": "npm run dev -w apps/workers",
+    "dev:workers:parsers": "concurrently -n rss-od,rss-n,rss-live,abrss-od,abrss-bg,opml,live-lsn -c yellow,green,cyan,magenta,red,blue,white \"npm run mq_rss_run_parser -w apps/workers -- -q rss-on-demand\" \"npm run mq_rss_run_parser -w apps/workers -- -q rss-normal\" \"npm run mq_rss_run_parser -w apps/workers -- -q rss-live\" \"npm run mq_add_by_rss_run_parser -w apps/workers -- -q add-by-rss-on-demand\" \"npm run mq_add_by_rss_run_parser -w apps/workers -- -q add-by-rss-background\" \"npm run mq_opml_import_run -w apps/workers -- -q opml-import\" \"npm run mq_rss_run_live_item_listener -w apps/workers\"",
     "check:dev-deps": "node scripts/check-dev-requirements.mjs",
     "dev:main:all": "node scripts/check-dev-requirements.mjs && concurrently -n pkg,workers,api,web-sc,test-assets,web -c gray,yellow,blue,cyan,magenta,green \"npm run watch:packages\" \"sleep 13.5 && npm run watch:workers\" \"sleep 9.5 && npm run dev:api:watch\" \"sleep 8.5 && npm run dev:web-sidecar\" \"sleep 11.5 && npm run dev:test-assets\" \"sleep 15.5 && npm run dev -w apps/web\"",
     "dev:management:all": "node scripts/check-dev-requirements.mjs && concurrently -n pkg,mgmt-api,mgmt-sc,test-assets,mgmt-web -c gray,magentaBright,cyan,magenta,greenBright \"npm run watch:packages\" \"sleep 9.5 && npm run dev:management-api:watch\" \"sleep 13.5 && npm run dev:management-web-sidecar\" \"sleep 11.5 && npm run dev:test-assets\" \"sleep 17.5 && npm run dev -w apps/management-web\"",
@@ -183,6 +184,8 @@
     "i18n:all": "npm run i18n:translate && npm run i18n:compile",
     "i18n:validate": "npm run i18n:validate -w @podverse/i18n-catalog",
     "workers:parse_podcasting20_feeds": "node apps/workers/dist/index.js devParserRSSParsePodcasting20Feeds",
-    "workers:parse_trending_feeds": "node apps/workers/dist/index.js devParserRSSParseTrendingFeeds"
+    "workers:parse_trending_feeds": "node apps/workers/dist/index.js devParserRSSParseTrendingFeeds",
+    "workers:seed_simulated_stats": "node apps/workers/dist/index.js devStatsSeedSimulatedAggregated",
+    "workers:seed_local_user_content": "node apps/workers/dist/index.js devSeedLocalUserContent"
   }
 }

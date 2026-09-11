@@ -1,5 +1,6 @@
 import * as FileSystem from 'expo-file-system';
 
+import { primaryListArtworkUrl } from '@podverse/helpers';
 import type { DTOItem } from '@podverse/helpers/dto';
 
 import { downloadsRepository } from '../data/repositories';
@@ -44,7 +45,7 @@ const notify = (): void => {
 };
 
 const artworkFromItem = (item: DTOItem): string | null =>
-  item.item_images[0]?.url ?? item.channel?.channel_images?.[0]?.url ?? null;
+  primaryListArtworkUrl(item.item_images, item.channel?.channel_images);
 
 const ensureDownloadsDirectory = async (baseDirectory: string): Promise<void> => {
   const directory = `${baseDirectory}${DOWNLOADS_SUBDIRECTORY}`;

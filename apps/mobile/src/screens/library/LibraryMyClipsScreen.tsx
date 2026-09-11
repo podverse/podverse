@@ -85,7 +85,6 @@ export function LibraryMyClipsScreen({ navigation }: LibraryMyClipsScreenProps) 
       testID="library-my-clips-screen"
     >
       <AuthAwareLoadState
-        authMessageKey="features.clip.login_prompt"
         emptyTestID={
           status !== 'authenticated' ? 'library-my-clips-auth-required' : 'library-my-clips-empty'
         }

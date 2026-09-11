@@ -8,6 +8,10 @@ import { ImageViewerModal } from './ImageViewerModal';
 
 export type CoverImageProps = {
   uri: string | null | undefined;
+  /**
+   * Largest-original URL for the full-screen viewer. When omitted, the viewer uses `uri`.
+   */
+  viewerUri?: string | null;
   /** Shown when `uri` is missing. Caller localizes. */
   fallbackLabel?: string;
   accessibilityLabel?: string;
@@ -32,6 +36,7 @@ export function CoverImage({
   style,
   testID,
   uri,
+  viewerUri,
 }: CoverImageProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
@@ -108,7 +113,9 @@ export function CoverImage({
         onClose={() => {
           setIsViewerOpen(false);
         }}
-        uri={uri}
+        uri={
+          viewerUri !== null && viewerUri !== undefined && viewerUri.length > 0 ? viewerUri : uri
+        }
         visible={isViewerOpen}
       />
     </>

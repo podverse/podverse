@@ -70,6 +70,14 @@ Run commands from the monorepo root with workspace flag:
 npm run mq_rss_run_parser -w apps/workers
 ```
 
+Day-to-day local consumers (leave running in the **Workers** tab):
+`npm run dev:workers:parsers` from the monorepo root. That starts the
+long-running queue consumers (`rss-on-demand`, `rss-normal`, `rss-live`,
+`add-by-rss-on-demand`, `add-by-rss-background`, `opml-import`, and the
+live-item listener). It does not start crons, image shrink, or the DLQ
+consumer. `npm run dev:workers` only recompiles. Full walkthrough:
+[QUICKSTART.md](/docs/QUICKSTART.md).
+
 **Trending → DB (dev seed):** from the monorepo root, after a workers build, you can also use the root script (passes CLI args after `--`):
 
 ```bash

@@ -60,7 +60,8 @@ export const MediaPlayerInfoMobile: React.FC = () => {
       mpItemSoundbite,
     }),
     imageSizeTarget: IMAGES.MEDIA_PLAYER.MOBILE.MINI.SIZE_FIND_TARGET,
-    imageSizeComparison: 'greater',
+    imageSizeComparison: 'lesser',
+    artworkRole: 'list',
   });
 
   return (

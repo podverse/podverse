@@ -3,6 +3,13 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { FeatureComparison } from './FeatureComparison';
 
+const labels = {
+  available: 'Available',
+  comingSoon: 'Coming soon',
+  feature: 'Feature',
+  mobileOnlyLegend: 'Feature is only available in the mobile app',
+};
+
 afterEach(() => {
   cleanup();
 });
@@ -19,7 +26,7 @@ describe('FeatureComparison', () => {
           { name: 'First', available: { a: true, b: false } },
           { name: 'Second', available: { a: false, b: true } },
         ]}
-        labels={{ feature: 'Feature', available: 'Available' }}
+        labels={labels}
       />
     );
 
@@ -35,11 +42,11 @@ describe('FeatureComparison', () => {
       <FeatureComparison
         tiers={[{ id: 'free', name: 'Free' }]}
         features={[{ name: 'One', available: { free: true } }]}
-        labels={{ feature: 'Feature', available: 'Included' }}
+        labels={labels}
       />
     );
 
-    expect(screen.getByLabelText('Included')).toBeTruthy();
+    expect(screen.getByLabelText('Available')).toBeTruthy();
   });
 
   it('does not render checkmarks when available is false', () => {
@@ -47,10 +54,51 @@ describe('FeatureComparison', () => {
       <FeatureComparison
         tiers={[{ id: 'free', name: 'Free' }]}
         features={[{ name: 'One', available: { free: false } }]}
-        labels={{ feature: 'Feature', available: 'Included' }}
+        labels={labels}
       />
     );
 
-    expect(screen.queryByLabelText('Included')).toBeNull();
+    expect(screen.queryByLabelText('Available')).toBeNull();
+  });
+
+  it('joins tier columns into one Coming soon cell', () => {
+    render(
+      <FeatureComparison
+        tiers={[
+          { id: 'free', name: 'Free' },
+          { id: 'premium', name: 'Premium' },
+        ]}
+        features={[
+          { name: 'Comments', available: { free: false, premium: false }, comingSoon: true },
+        ]}
+        labels={labels}
+      />
+    );
+
+    expect(screen.getByRole('cell', { name: 'Comments: Coming soon' })).toBeTruthy();
+    expect(screen.queryByLabelText('Available')).toBeNull();
+  });
+
+  it('keeps mobile-only on the feature name and shows the legend', () => {
+    render(
+      <FeatureComparison
+        tiers={[
+          { id: 'free', name: 'Free' },
+          { id: 'premium', name: 'Premium' },
+        ]}
+        features={[
+          {
+            name: 'Sleep timer*',
+            available: { free: true, premium: true },
+            mobileOnly: true,
+          },
+        ]}
+        labels={labels}
+      />
+    );
+
+    expect(screen.getByRole('cell', { name: 'Sleep timer*' })).toBeTruthy();
+    expect(screen.getAllByLabelText('Available')).toHaveLength(2);
+    expect(screen.getByText('* Feature is only available in the mobile app')).toBeTruthy();
   });
 });

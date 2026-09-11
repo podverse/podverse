@@ -5,9 +5,9 @@
 
 ## Scope
 
-Real value-for-value support on mobile: LNURL boost flow, wallet/provider connection, boostagrams,
-and streaming sats. Phase 1 shipped only a **placeholder** — step 19.12 wired the full-player V4V
-button to a stub screen
+Real value-for-value support on mobile: LNURL boost flow, wallet/provider connection, and
+boostagrams. **Streaming sats is not a nextgen feature** — do not schedule or ship it. Phase 1
+shipped only a **placeholder** — step 19.12 wired the full-player V4V button to a stub screen
 ([565 carried forward](/docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md)).
 
 ## Carried from Phase 1
@@ -23,8 +23,8 @@ phase. Treat it as inspiration, not a port target
 ([`legacy-app-reference`](/.cursor/rules/legacy-app-reference.mdc)):
 
 `V4VProvidersScreen`, `V4VProvidersAlbyScreen`, `V4VProvidersAlbyLoginScreen`, `V4VConsentScreen`,
-`V4VPreviewScreen`, `V4VBoostagramScreen`, `V4VInfoStreamingSatsScreen`,
-`FundingNowPlayingItemScreen`, `FundingPodcastEpisodeScreen`.
+`V4VPreviewScreen`, `V4VBoostagramScreen`, `FundingNowPlayingItemScreen`,
+`FundingPodcastEpisodeScreen`. The legacy `V4VInfoStreamingSatsScreen` is not a nextgen port target.
 
 ## Web parity references
 
@@ -33,7 +33,6 @@ phase. Treat it as inspiration, not a port target
 ## Open questions to resolve before detailing
 
 - Which wallet providers are in scope for v1 (Alby only, or a provider abstraction)?
-- Is streaming sats in scope, or boosts only?
 - Does mobile reuse the web LNURL flow in an in-app browser, or go native?
 - How does this interact with store policy on digital goods (relevant to
   [Phase 5](/docs/proposals/mobile/_master-plan_/phase-5/001-MASTER-PLAN-PHASE-5.md))?

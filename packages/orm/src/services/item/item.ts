@@ -11,6 +11,7 @@ import {
   findOptionsRelationsFromPaths,
   mergeFindOptionsRelations,
 } from '@orm/lib/findOptionsRelationsFromPaths.js';
+import { resolveIdListFilter } from '@orm/lib/listIdFilter.js';
 import { buildEndedLiveItemTimeVariants } from '@orm/lib/liveItemWhere.js';
 import type { FindManyOptions, FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
 import { Brackets, Equal, In, IsNull, LessThan, MoreThan, Not } from 'typeorm';
@@ -305,8 +306,14 @@ export class ItemService {
     mediumType: QueryParamsMedium | null,
     category_id: number | null,
     itemType: 'normal' | 'live-item',
-    liveItemType: 'pending' | 'live' | 'ended' | null
+    liveItemType: 'pending' | 'live' | 'ended' | null,
+    listOptions?: { excludeIds?: number[] }
   ): Promise<Item[]> {
+    const idFilter = resolveIdListFilter(undefined, listOptions?.excludeIds);
+    if (idFilter.empty) {
+      return [];
+    }
+
     const medium_ids = mediumType ? getMediumIdArrayFromType(mediumType) : null;
     const live_item_status_id = getLiveItemStatusEnumValue(liveItemType);
 
@@ -342,6 +349,17 @@ export class ItemService {
             buildWhere({ ...liveItemWhere, ...variant })
           )
         : buildWhere(liveItemWhere);
+
+    if (idFilter.id !== undefined) {
+      const id = idFilter.id;
+      const whereWithIds = Array.isArray(where)
+        ? where.map((entry) => ({ ...entry, id }))
+        : { ...where, id };
+      return this.repositoryRead.find({
+        ...config,
+        where: whereWithIds,
+      });
+    }
 
     return this.repositoryRead.find({
       ...config,
@@ -439,9 +457,20 @@ export class ItemService {
     });
   }
 
-  async getManyByChannel(channel: Channel, options?: FindManyOptions<Item>): Promise<Item[]> {
+  async getManyByChannel(
+    channel: Channel,
+    options?: FindManyOptions<Item>,
+    listOptions?: { excludeIds?: number[] }
+  ): Promise<Item[]> {
+    const idFilter = resolveIdListFilter(undefined, listOptions?.excludeIds);
+    if (idFilter.empty) {
+      return [];
+    }
+
     return this.repositoryRead.find({
+      ...options,
       where: {
+        ...(idFilter.id ? { id: idFilter.id } : {}),
         channel: findWhereChannelId(channel),
         live_item: {
           id: IsNull(),
@@ -450,7 +479,6 @@ export class ItemService {
           id: ItemFlagStatusStatusEnum.Active,
         },
       },
-      ...options,
     });
   }
 
@@ -828,8 +856,13 @@ export class ItemService {
     channel_ids: number[],
     itemType: 'normal' | 'live-item',
     liveItemType: 'pending' | 'live' | 'ended' | null,
-    options?: FindManyOptions<Item>
+    options?: FindManyOptions<Item>,
+    listOptions?: { excludeIds?: number[] }
   ): Promise<Item[]> {
+    const idFilter = resolveIdListFilter(undefined, listOptions?.excludeIds);
+    if (idFilter.empty) {
+      return [];
+    }
     const live_item_status_id = getLiveItemStatusEnumValue(liveItemType);
 
     const channelWhere: FindOptionsWhere<Channel> = {
@@ -859,9 +892,20 @@ export class ItemService {
           )
         : buildWhere(liveItemWhere);
 
+    if (idFilter.id !== undefined) {
+      const id = idFilter.id;
+      const whereWithIds = Array.isArray(where)
+        ? where.map((entry) => ({ ...entry, id }))
+        : { ...where, id };
+      return this.repositoryRead.find({
+        ...options,
+        where: whereWithIds,
+      });
+    }
+
     return this.repositoryRead.find({
-      where,
       ...options,
+      where,
     });
   }
 

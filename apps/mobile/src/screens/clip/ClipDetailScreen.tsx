@@ -11,6 +11,7 @@ import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
+import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
 import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
 import { useTheme } from '../../theme/useTheme';
 import { HomeFeedRow } from '../home/HomeFeedRow';
@@ -234,7 +235,10 @@ export function ClipDetailScreen({ navigation, route }: ClipDetailScreenProps) {
               }}
               row={{
                 id: clip.id_text,
-                imageUrl: item.item_images[0]?.url ?? channel?.channel_images?.[0]?.url ?? null,
+                imageUrl: getItemPrimaryImageUrl({
+                  channel: channel ?? undefined,
+                  item_images: item.item_images,
+                }),
                 subtitle: channel?.title ?? null,
                 title: clip.title ?? item.title ?? clip.id_text,
               }}

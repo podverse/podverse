@@ -102,23 +102,47 @@
   margin-bottom: var(--spacing-2xl);
 }
 
-.trialLimitationsSubtle {
+.comparisonIntro {
+  font-size: var(--font-size-lg);
+  color: var(--text-color-primary);
+  margin: var(--spacing-none) var(--spacing-none) var(--spacing-2xl);
+}
+
+.trialLimitationsAccordion {
   margin-top: var(--spacing-4xl);
-  padding-top: var(--spacing-2xl);
-  border-top: 1px solid var(--border-color-opaque);
 }
 
-.trialLimitationsSummary {
-  font-size: var(--font-size-base);
-  color: var(--text-color-secondary);
-  margin: var(--spacing-none);
+.trialLimitationsShell {
+  background: var(--background-color-secondary);
+  border: 1px solid var(--border-color-opaque);
+  border-radius: var(--border-radius);
 }
 
-.trialLimitationsListExpanded {
+.trialLimitationsHeader {
+  align-items: center;
+  color: var(--text-color-primary);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  list-style: none;
+  padding: var(--spacing-lg);
+  white-space: nowrap;
+}
+
+.trialLimitationsContent {
+  padding: 0 var(--spacing-lg) var(--spacing-lg);
+}
+
+.trialLimitationsIntro {
+  color: var(--text-color-primary);
+  font-size: var(--font-size-lg);
+  margin: var(--spacing-none) var(--spacing-none) var(--spacing-base);
+}
+
+.trialLimitationsList {
   display: grid;
   gap: var(--spacing-base);
-  margin: var(--spacing-lg) var(--spacing-none) var(--spacing-none);
+  margin: var(--spacing-none);
   padding-left: var(--spacing-2xl);
-  font-size: var(--font-size-base);
-  color: var(--text-color-secondary);
+  font-size: var(--font-size-lg);
+  color: var(--text-color-primary);
 }

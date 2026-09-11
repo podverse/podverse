@@ -3,17 +3,13 @@
 import { useTranslations } from 'next-intl';
 import type { FC } from 'react';
 
+import type { MembershipComparisonFeature } from '@podverse/helpers';
+import { membershipComparisonIsMobileOnly } from '@podverse/helpers';
 import type { FeatureComparisonRow } from '@podverse/ui';
 import { FeatureComparison as SharedFeatureComparison } from '@podverse/ui';
 
-type Feature = {
-  name: string;
-  free: boolean;
-  premium: boolean;
-};
-
 type FeatureComparisonProps = {
-  features: Feature[];
+  features: readonly MembershipComparisonFeature[];
 };
 
 export const FeatureComparison: FC<FeatureComparisonProps> = ({ features }) => {
@@ -25,16 +21,28 @@ export const FeatureComparison: FC<FeatureComparisonProps> = ({ features }) => {
     { id: 'premium', name: t('premium') },
   ];
 
-  const rows: FeatureComparisonRow[] = features.map((f) => ({
-    name: f.name,
-    available: { free: f.free, premium: f.premium },
-  }));
+  const rows: FeatureComparisonRow[] = features.map((feature) => {
+    const name = t(`comparison.${feature.nameKey}`);
+    const isMobileOnly = membershipComparisonIsMobileOnly(feature);
+
+    return {
+      name: isMobileOnly ? t('comparison_name_mobile_only', { name }) : name,
+      available: { free: feature.free, premium: feature.premium },
+      comingSoon: feature.comingSoon,
+      mobileOnly: isMobileOnly,
+    };
+  });
 
   return (
     <SharedFeatureComparison
       tiers={tiers}
       features={rows}
-      labels={{ feature: t('feature'), available: tMisc('available') }}
+      labels={{
+        available: tMisc('available'),
+        comingSoon: t('coming_soon'),
+        feature: t('feature'),
+        mobileOnlyLegend: t('mobile_only_legend'),
+      }}
     />
   );
 };
