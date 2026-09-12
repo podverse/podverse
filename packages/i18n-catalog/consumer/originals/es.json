@@ -582,6 +582,16 @@
     "takedown_policy": "Política de Retirada",
     "takedown_policy_explanation": "Este contenido ha sido eliminado en respuesta a una solicitud de retirada por parte del titular de los derechos de autor."
   },
+  "popularity_tracking": {
+    "title": "Seguimiento de popularidad",
+    "yes": "Sí, incluirme",
+    "no": "No, gracias",
+    "learn_more": "Más información",
+    "already_agreed": "Ya aceptaste esta versión.",
+    "agreement_date": "Fecha del acuerdo: {agreement_date}",
+    "error": "No se pudo guardar tu elección de seguimiento de popularidad. Inténtalo de nuevo.",
+    "back_to_choice": "Volver"
+  },
   "misc": {
     "more_info": "Más Información",
     "hide_info": "Ocultar información",

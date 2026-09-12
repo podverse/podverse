@@ -102,6 +102,7 @@ export const startApp = async () => {
     const { feedRouter } = await import('./routes/feed.js');
     const { publisherFeedRouter } = await import('./routes/publisherFeed.js');
     const { accountSettingsRouter } = await import('./routes/accountSettings.js');
+    const { legalRouter } = await import('./routes/legal.js');
     const { profileContentRouter, myProfileContentRouter } =
       await import('./routes/profileContent.js');
 
@@ -129,6 +130,7 @@ export const startApp = async () => {
     app.use(embedDemoRoutesRoot);
     app.use(externalServicesRouter);
     app.use(feedRouter);
+    app.use(legalRouter);
     app.use(itemRouter);
     app.use(itemChapterRouter);
     app.use(itemSoundbiteRouter);

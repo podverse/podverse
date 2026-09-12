@@ -129,7 +129,6 @@ export function SignUpScreen({ onDismiss, onSwitchToLogin }: SignUpScreenProps) 
     setSuccessMessage(null);
     try {
       await apiRequestService.reqAccountCreate({
-        allow_listen_stats: true,
         email,
         locale: DEFAULT_LOCALE,
         password,

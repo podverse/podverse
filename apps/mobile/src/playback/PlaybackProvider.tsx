@@ -50,6 +50,7 @@ import {
   playbackTargetToStatsTargets,
 } from '../lib/playback/buildPlaybackTarget';
 import { resolvePlaybackUrl } from '../lib/playback/resolvePlaybackUrl';
+import { shouldSkipListenStatsForAccount } from '../popularityTracking/popularityTrackingGate';
 import { useMediaPlayerResourceUpdate } from './useMediaPlayerResourceUpdate';
 
 export type PlaybackNowPlaying = {
@@ -223,7 +224,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       if (statusRef.current !== 'authenticated') {
         return;
       }
-      if (accountRef.current?.account_settings?.allow_listen_stats === false) {
+      if (shouldSkipListenStatsForAccount(accountRef.current)) {
         return;
       }
       statsRepository.trackPlaybackStats(buildContext(), playbackTargetToStatsTargets(target));

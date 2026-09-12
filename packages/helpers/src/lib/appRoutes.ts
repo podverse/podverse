@@ -19,6 +19,7 @@ export const APP_ROUTES = {
   PODCAST: '/podcast',
   PODCAST_LIVESTREAM: '/podcast/livestream',
   PROFILE: '/profile',
+  POPULARITY_TRACKING: '/popularity-tracking',
   SETTINGS: '/settings',
   TRACK: '/track',
   VIDEO: '/video',

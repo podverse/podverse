@@ -46,6 +46,14 @@ export function MoreSettingsScreen() {
         testID: 'more-settings-notifications',
         title: t('settings.notifications.notifications'),
       },
+      {
+        onPress: () => {
+          navigation.navigate(MORE_STACK_ROUTES.MoreSettingsPopularityTracking);
+        },
+        subtitle: t('popularity_tracking.learn_more'),
+        testID: 'more-settings-popularity-tracking',
+        title: t('popularity_tracking.title'),
+      },
     ],
     [navigation, t]
   );

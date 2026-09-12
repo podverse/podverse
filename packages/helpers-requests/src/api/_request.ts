@@ -155,6 +155,7 @@ import {
   reqItemSoundbiteGetManyByItemIdText,
 } from './itemSoundbite/itemSoundbite.js';
 import { reqItemTranscriptGet } from './itemTranscript/itemTranscript.js';
+import { reqLegalPopularityTracking } from './legal/popularityTracking.js';
 import { reqLiveItemGetMany, reqLiveItemGetManyByChannel } from './liveItem/liveItem.js';
 import { reqMembershipGetPricing } from './membership/membership.js';
 import {
@@ -446,7 +447,6 @@ export class ApiRequestService {
     password: string;
     locale: string;
     terms_version: string;
-    allow_listen_stats?: boolean;
   }) {
     return reqAccountCreate(this, params);
   }
@@ -705,8 +705,12 @@ export class ApiRequestService {
     return reqAccountSettingsLocaleUpdate(this, params);
   }
 
-  reqAccountSettingsListenStatsUpdate(params: { allow_listen_stats: boolean }) {
+  reqAccountSettingsListenStatsUpdate(params: { accepted: boolean }) {
     return reqAccountSettingsListenStatsUpdate(this, params);
+  }
+
+  reqLegalPopularityTracking() {
+    return reqLegalPopularityTracking(this);
   }
 
   reqAccountSettingsPlaybackUpdate(params: { preferred_media_type: MediaTypePreference }) {

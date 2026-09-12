@@ -21,6 +21,7 @@ const {
   notificationTypeCreateMock,
   notificationTypeDeleteMock,
   playbackUpdateMock,
+  listenStatsUpdateMock,
 } = vi.hoisted(() => ({
   localeUpdateMock: vi.fn(async () => ({ account_id: TEST_USER_ID, locale: 'en-US' })),
   notificationTypeCreateMock: vi.fn(async () => ({ account_id: TEST_USER_ID, type: 'new-item' })),
@@ -29,6 +30,12 @@ const {
     id: 1,
     account_settings_id: 1,
     preferred_media_type: 'video',
+  })),
+  listenStatsUpdateMock: vi.fn(async () => ({
+    allow_listen_stats: true,
+    listen_stats_accepted: true,
+    listen_stats_agreement_version: '2026-09-11',
+    listen_stats_decided_at: new Date('2026-09-11T00:00:00.000Z'),
   })),
 }));
 
@@ -77,6 +84,10 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     update = playbackUpdateMock;
   }
 
+  class MockAccountSettingsListenStatsService {
+    update = listenStatsUpdateMock;
+  }
+
   return {
     ...actual,
     CategoryService: MockCategoryService,
@@ -84,6 +95,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     AccountSettingsLocaleService: MockAccountSettingsLocaleService,
     AccountSettingsNotificationTypeService: MockAccountSettingsNotificationTypeService,
     AccountSettingsPlaybackService: MockAccountSettingsPlaybackService,
+    AccountSettingsListenStatsService: MockAccountSettingsListenStatsService,
   };
 });
 
@@ -255,6 +267,59 @@ describe('account settings routes', () => {
         .send({ type: 'not-a-real-type' });
 
       expect(res.status).toBe(400);
+    });
+  });
+
+  describe('PATCH /account-settings/listen-stats', () => {
+    it('records accept of the current agreement version', async () => {
+      listenStatsUpdateMock.mockResolvedValueOnce({
+        allow_listen_stats: true,
+        listen_stats_accepted: true,
+        listen_stats_agreement_version: '2026-09-11',
+        listen_stats_decided_at: new Date('2026-09-11T00:00:00.000Z'),
+      });
+
+      const res = await request(app)
+        .patch(`${settingsBase}/listen-stats`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ accepted: true });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.listen_stats_accepted).toBe(true);
+      expect(res.body.data.listen_stats_agreement_version).toBe('2026-09-11');
+      expect(listenStatsUpdateMock).toHaveBeenCalledWith({
+        account_id: TEST_USER_ID,
+        accepted: true,
+        agreement_version: '2026-09-11',
+      });
+    });
+
+    it('records a decline', async () => {
+      listenStatsUpdateMock.mockResolvedValueOnce({
+        allow_listen_stats: false,
+        listen_stats_accepted: false,
+        listen_stats_agreement_version: '2026-09-11',
+        listen_stats_decided_at: new Date('2026-09-11T00:00:00.000Z'),
+      });
+
+      const res = await request(app)
+        .patch(`${settingsBase}/listen-stats`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ accepted: false });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.listen_stats_accepted).toBe(false);
+      expect(listenStatsUpdateMock).toHaveBeenCalledWith({
+        account_id: TEST_USER_ID,
+        accepted: false,
+        agreement_version: '2026-09-11',
+      });
+    });
+
+    it('returns 401 without auth', async () => {
+      const res = await request(app).patch(`${settingsBase}/listen-stats`).send({ accepted: true });
+
+      expect(res.status).toBe(401);
     });
   });
 });

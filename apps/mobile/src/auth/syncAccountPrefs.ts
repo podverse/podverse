@@ -130,12 +130,12 @@ export const syncLocaleToAccountSettings = async ({
 };
 
 export const syncAllowListenStatsToAccountSettings = async ({
+  accepted,
   accessToken,
-  allowListenStats,
   setAccount,
 }: {
+  accepted: boolean;
   accessToken: string | null;
-  allowListenStats: boolean;
   setAccount: SetAccount;
 }): Promise<void> => {
   if (accessToken === null) {
@@ -149,7 +149,7 @@ export const syncAllowListenStatsToAccountSettings = async ({
 
   try {
     const account = await api.reqAccountSettingsListenStatsUpdate({
-      allow_listen_stats: allowListenStats,
+      accepted,
     });
     await updateAccountWithServerResponse(account, setAccount);
   } catch (error) {

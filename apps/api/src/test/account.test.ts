@@ -198,7 +198,6 @@ describe('account CRUD and email routes', () => {
       expect(createMock).toHaveBeenCalledWith(
         expect.objectContaining({
           terms_version: VALID_TERMS_VERSION,
-          allow_listen_stats: true,
         })
       );
     });

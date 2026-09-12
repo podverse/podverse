@@ -18,6 +18,7 @@ import { MobileTabNavigator, navigateToMembershipScreen } from './src/navigation
 import { isAuthGatedDeepLink } from './src/navigation/deepLinking';
 import { TabLayoutProvider, useTabLayout } from './src/navigation/TabLayoutProvider';
 import { PlaybackProvider } from './src/playback';
+import { PopularityTrackingProvider } from './src/popularityTracking/PopularityTrackingProvider';
 import {
   getInitialNotificationDeepLinkUrl,
   subscribeToNotificationOpen,
@@ -241,24 +242,26 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
           }}
         >
           <MembershipGateProvider onNavigateToMembership={navigateToMembershipScreen}>
-            <ForcedLogoutNotice />
-            <View style={styles.appRoot}>
-              <MembershipExpiredBanner onRenew={navigateToMembershipScreen} />
-              <MobileTabNavigator
-                onConsumePendingDeepLink={onConsumePendingDeepLink}
-                pendingDeepLinkUrl={pendingDeepLinkUrl}
-                onRequestLogin={() => {
-                  setAuthMode('login');
-                }}
-                onRequestLogout={async () => {
-                  await logout();
-                  setAuthMode('anonymous');
-                }}
-                onRequestSignUp={() => {
-                  setAuthMode('signup');
-                }}
-              />
-            </View>
+            <PopularityTrackingProvider>
+              <ForcedLogoutNotice />
+              <View style={styles.appRoot}>
+                <MembershipExpiredBanner onRenew={navigateToMembershipScreen} />
+                <MobileTabNavigator
+                  onConsumePendingDeepLink={onConsumePendingDeepLink}
+                  pendingDeepLinkUrl={pendingDeepLinkUrl}
+                  onRequestLogin={() => {
+                    setAuthMode('login');
+                  }}
+                  onRequestLogout={async () => {
+                    await logout();
+                    setAuthMode('anonymous');
+                  }}
+                  onRequestSignUp={() => {
+                    setAuthMode('signup');
+                  }}
+                />
+              </View>
+            </PopularityTrackingProvider>
           </MembershipGateProvider>
         </AuthPromptProvider>
       )}

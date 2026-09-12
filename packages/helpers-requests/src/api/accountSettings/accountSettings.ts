@@ -13,13 +13,13 @@ type ReqNotificationTypeParams = {
 
 export async function reqAccountSettingsListenStatsUpdate(
   api: ApiRequestService,
-  params: { allow_listen_stats: boolean }
+  params: { accepted: boolean }
 ): Promise<DTOAccount> {
   await api.apiRequest({
     path: '/account-settings/listen-stats',
     method: 'PATCH',
     data: {
-      allow_listen_stats: params.allow_listen_stats,
+      accepted: params.accepted,
     },
     config: {
       withCredentials: true,

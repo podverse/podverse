@@ -57,20 +57,20 @@ Areas are ordered by suggested sequence, but the **operator chooses** what to wo
 is detailed only when its screenshots arrive. `Status`: `not started` → `questions asked` →
 `planned` → `done`.
 
-| Area                            | Legacy screens (`../podverse-rn/src/screens/`)                                                                                                           | Status          |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
-| P2.1.1 Home & browse            | `PodcastsScreen`, `PodcastsMediaTypeScreen`, `EpisodesScreen`, `ClipsScreen`, `AlbumsScreen`, `AlbumScreen`, `FeatureVideosScreen`                       | done (podcasts) |
-| P2.1.2 Podcast & episode detail | `PodcastScreen`, `PodcastInfoScreen`, `EpisodeScreen`, `EpisodeMediaRefScreen`, `EpisodeTranscriptScreen`                                                | not started     |
-| P2.1.3 Search & filter          | `SearchScreen`, `FilterScreen`, `ScanQRCodeScreen`                                                                                                       | done            |
-| P2.1.4 Player & now playing     | `PlayerScreen`, `SleepTimerScreen`, `StartPodcastFromTimeScreen`, `MakeClipScreen`                                                                       | not started     |
-| P2.1.5 Library                  | `MyLibraryScreen`, `QueueScreen`, `HistoryScreen`, `HistoryIndexListenerScreen`, `DownloadsScreen`                                                       | not started     |
-| P2.1.6 Playlists                | `PlaylistsScreen`, `PlaylistScreen`, `EditPlaylistScreen`, `PlaylistsAddToScreen`                                                                        | not started     |
-| P2.1.7 Add by RSS               | `AddPodcastByRSSScreen`, `AddPodcastByRSSAuthScreen`                                                                                                     | not started     |
-| P2.1.8 Auth & onboarding        | `AuthScreen`, `OnboardingScreen`, `EmailVerificationScreen`, `ResetPasswordScreen`                                                                       | not started     |
-| P2.1.9 Profiles                 | `ProfileScreen`, `ProfilesScreen`, `EditProfileScreen`                                                                                                   | not started     |
-| P2.1.10 Settings & More         | `MoreScreen`, `SettingsScreen*` (11 sub-screens), `TrackingConsentScreen`                                                                                | not started     |
-| P2.1.11 Membership              | `MembershipScreen`, `PurchasingScreen`                                                                                                                   | not started     |
-| P2.1.12 Static & support        | `AboutScreen`, `ContactScreen`, `ContactXMPPChatScreen`, `FAQScreen`, `PrivacyPolicyScreen`, `TermsOfServiceScreen`, `ContributeScreen`, `WebPageScreen` | not started     |
+| Area                            | Legacy screens (`../podverse-rn/src/screens/`)                                                                                                           | Status                                    |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| P2.1.1 Home & browse            | `PodcastsScreen`, `PodcastsMediaTypeScreen`, `EpisodesScreen`, `ClipsScreen`, `AlbumsScreen`, `AlbumScreen`, `FeatureVideosScreen`                       | done (podcasts)                           |
+| P2.1.2 Podcast & episode detail | `PodcastScreen`, `PodcastInfoScreen`, `EpisodeScreen`, `EpisodeMediaRefScreen`, `EpisodeTranscriptScreen`                                                | not started                               |
+| P2.1.3 Search & filter          | `SearchScreen`, `FilterScreen`, `ScanQRCodeScreen`                                                                                                       | done                                      |
+| P2.1.4 Player & now playing     | `PlayerScreen`, `SleepTimerScreen`, `StartPodcastFromTimeScreen`, `MakeClipScreen`                                                                       | not started                               |
+| P2.1.5 Library                  | `MyLibraryScreen`, `QueueScreen`, `HistoryScreen`, `HistoryIndexListenerScreen`, `DownloadsScreen`                                                       | not started                               |
+| P2.1.6 Playlists                | `PlaylistsScreen`, `PlaylistScreen`, `EditPlaylistScreen`, `PlaylistsAddToScreen`                                                                        | not started                               |
+| P2.1.7 Add by RSS               | `AddPodcastByRSSScreen`, `AddPodcastByRSSAuthScreen`                                                                                                     | not started                               |
+| P2.1.8 Auth & onboarding        | `AuthScreen`, `OnboardingScreen`, `EmailVerificationScreen`, `ResetPasswordScreen`                                                                       | in progress (popularity-tracking consent) |
+| P2.1.9 Profiles                 | `ProfileScreen`, `ProfilesScreen`, `EditProfileScreen`                                                                                                   | not started                               |
+| P2.1.10 Settings & More         | `MoreScreen`, `SettingsScreen*` (11 sub-screens), `TrackingConsentScreen`                                                                                | in progress (popularity-tracking consent) |
+| P2.1.11 Membership              | `MembershipScreen`, `PurchasingScreen`                                                                                                                   | not started                               |
+| P2.1.12 Static & support        | `AboutScreen`, `ContactScreen`, `ContactXMPPChatScreen`, `FAQScreen`, `PrivacyPolicyScreen`, `TermsOfServiceScreen`, `ContributeScreen`, `WebPageScreen` | not started                               |
 
 **Not in Phase 2:** the legacy `V4V*` screens (`V4VBoostagramScreen`, `V4VConsentScreen`,
 `V4VInfoStreamingSatsScreen`, `V4VPreviewScreen`, `V4VProvidersScreen`, `V4VProvidersAlbyScreen`,

@@ -16,14 +16,14 @@ const {
   statsTrackClipCreateMock,
   statsTrackItemCreateMock,
   statsTrackPlaylistCreateMock,
-  getAllowListenStatsMock,
+  isListenStatsAllowedMock,
 } = vi.hoisted(() => ({
   statsTrackAccountCreateMock: vi.fn(async () => {}),
   statsTrackChannelCreateMock: vi.fn(async () => {}),
   statsTrackClipCreateMock: vi.fn(async () => {}),
   statsTrackItemCreateMock: vi.fn(async () => {}),
   statsTrackPlaylistCreateMock: vi.fn(async () => {}),
-  getAllowListenStatsMock: vi.fn(async () => true),
+  isListenStatsAllowedMock: vi.fn(async () => true),
 }));
 
 vi.mock('@podverse/orm', async (importOriginal) => {
@@ -50,7 +50,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
   }
 
   class MockAccountSettingsListenStatsService {
-    getAllowListenStats = getAllowListenStatsMock;
+    isListenStatsAllowed = isListenStatsAllowedMock;
   }
 
   class MockStatsTrackEventPlaylistService {
@@ -166,8 +166,8 @@ describe('stats track POST routes', () => {
     expect(statsTrackPlaylistCreateMock).toHaveBeenCalledTimes(1);
   });
 
-  it('returns 403 for stats/item when allow_listen_stats is false', async () => {
-    getAllowListenStatsMock.mockResolvedValueOnce(false);
+  it('returns 403 for stats/item when listen stats are not allowed', async () => {
+    isListenStatsAllowedMock.mockResolvedValueOnce(false);
     statsTrackItemCreateMock.mockClear();
 
     const res = await request(app)

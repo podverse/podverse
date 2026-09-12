@@ -582,6 +582,16 @@
     "takedown_policy": "Takedown Policy",
     "takedown_policy_explanation": "This content has been removed in response to a takedown request by the copyright holder."
   },
+  "popularity_tracking": {
+    "title": "Popularity Tracking",
+    "yes": "Yes, track me",
+    "no": "No thanks",
+    "learn_more": "Learn more",
+    "already_agreed": "You already agreed to this version.",
+    "agreement_date": "Agreement date: {agreement_date}",
+    "error": "Could not save your Popularity Tracking choice. Please try again.",
+    "back_to_choice": "Back"
+  },
   "misc": {
     "more_info": "More info",
     "hide_info": "Hide info",
@@ -955,8 +965,8 @@
       "download_my_data_loading": "Preparing your data...",
       "download_my_data_success": "Data downloaded successfully",
       "download_my_data_error": "Failed to download data",
-      "listen_stats_toggle": "Listen statistics",
-      "listen_stats_toggle_help": "Allow pseudonymous listen events for trending content. Events are kept for {retention_days} days.",
+      "listen_stats_toggle": "Popularity Tracking",
+      "listen_stats_toggle_help": "Allow unique-listener rankings that help people find popular shows. You can change this anytime.",
       "listen_stats_toggle_error": "Could not update listen statistics preference. Please try again.",
       "listen_stats_terms_link": "Learn more in our <termsLink>Terms of Service</termsLink>."
     },

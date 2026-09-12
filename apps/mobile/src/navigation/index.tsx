@@ -57,6 +57,7 @@ import { MoreSettingsAppearanceScreen } from '../screens/more/MoreSettingsAppear
 import { MoreSettingsLocaleScreen } from '../screens/more/MoreSettingsLocaleScreen';
 import { MoreSettingsNotificationsScreen } from '../screens/more/MoreSettingsNotificationsScreen';
 import { MoreSettingsPlaybackScreen } from '../screens/more/MoreSettingsPlaybackScreen';
+import { MoreSettingsPopularityTrackingScreen } from '../screens/more/MoreSettingsPopularityTrackingScreen';
 import { MoreSettingsScreen } from '../screens/more/MoreSettingsScreen';
 import { MoreSettingsTabBarScreen } from '../screens/more/MoreSettingsTabBarScreen';
 import { MoreSettingsThemeScreen } from '../screens/more/MoreSettingsThemeScreen';
@@ -193,6 +194,7 @@ export const MORE_STACK_ROUTES = {
   MoreSettingsLocale: 'MoreSettingsLocale',
   MoreSettingsNotifications: 'MoreSettingsNotifications',
   MoreSettingsPlayback: 'MoreSettingsPlayback',
+  MoreSettingsPopularityTracking: 'MoreSettingsPopularityTracking',
   MoreSettingsTabBar: 'MoreSettingsTabBar',
   MoreSettingsTheme: 'MoreSettingsTheme',
   MoreSmoke: 'MoreSmoke',
@@ -404,6 +406,7 @@ export type MoreStackParamList = {
   MoreSettingsLocale: undefined;
   MoreSettingsNotifications: undefined;
   MoreSettingsPlayback: undefined;
+  MoreSettingsPopularityTracking: undefined;
   MoreSettingsTabBar: undefined;
   MoreSettingsTheme: undefined;
   MoreSmoke: undefined;
@@ -742,6 +745,11 @@ function MoreStackNavigator({
         component={MoreSettingsPlaybackScreen}
         name={MORE_STACK_ROUTES.MoreSettingsPlayback}
         options={{ title: t('settings.groups.playback') }}
+      />
+      <MoreStack.Screen
+        component={MoreSettingsPopularityTrackingScreen}
+        name={MORE_STACK_ROUTES.MoreSettingsPopularityTracking}
+        options={{ title: t('popularity_tracking.title') }}
       />
       <MoreStack.Screen
         component={MoreSettingsNotificationsScreen}

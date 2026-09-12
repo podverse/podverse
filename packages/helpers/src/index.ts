@@ -82,6 +82,8 @@ export * from './lib/parseEnvExpiration.js';
 export * from './lib/parseEnvNonNegative.js';
 export * from './lib/rateLimit/parseCountPerWindowEnv.js';
 export * from './lib/pagination.js';
+export * from './lib/popularityTracking.js';
+export * from './lib/popularityTrackingMarkdown.js';
 export * from './lib/playlist.js';
 export * from './lib/primitives.js';
 export * from './lib/parserMaxFeedBodyBytes.js';

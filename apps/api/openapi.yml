@@ -19,6 +19,7 @@ tags:
   - name: embed-demo
   - name: feed
   - name: item
+  - name: legal
   - name: item-chapter
   - name: item-soundbite
   - name: item-transcript
@@ -265,11 +266,6 @@ components:
           maxLength: 64
           description: Terms of service version accepted at signup
           example: "2026-01-01"
-        allow_listen_stats:
-          type: boolean
-          description: Whether the account opts in to listen-stats tracking (defaults to true)
-          default: true
-          example: true
     AccountCreateResponse:
       type: object
       properties:
@@ -468,8 +464,24 @@ components:
           example: 2222
         allow_listen_stats:
           type: boolean
-          description: Whether listen-stats tracking is enabled for this account
+          description: Derived cache. Tracking is allowed only when listen_stats_accepted is true and listen_stats_agreement_version matches the current server version.
+          example: false
+        listen_stats_accepted:
+          type: boolean
+          nullable: true
+          description: Whether the account accepted popularity tracking. Null means the account has never decided.
           example: true
+        listen_stats_agreement_version:
+          type: string
+          nullable: true
+          maxLength: 64
+          description: Agreement version recorded with the last Yes or No decision.
+          example: "2026-09-11"
+        listen_stats_decided_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the account last accepted or declined popularity tracking.
         account_settings_locale:
           type: object
           properties:
@@ -695,12 +707,12 @@ components:
     ApiPatchAccountSettingsListenStatsRequest:
       type: object
       required:
-        - allow_listen_stats
+        - accepted
       properties:
-        allow_listen_stats:
+        accepted:
           type: boolean
-          description: Whether listen-stats tracking is enabled for this account
-          example: false
+          description: Yes records accept of the current server agreement version. No records a decline.
+          example: true
     ApiPatchAccountSettingsListenStatsResponse200:
       type: object
       properties:
@@ -708,10 +720,40 @@ components:
           type: object
           required:
             - allow_listen_stats
+            - listen_stats_accepted
+            - listen_stats_agreement_version
+            - listen_stats_decided_at
           properties:
             allow_listen_stats:
               type: boolean
-              example: false
+              example: true
+            listen_stats_accepted:
+              type: boolean
+              nullable: true
+              example: true
+            listen_stats_agreement_version:
+              type: string
+              nullable: true
+              example: "2026-09-11"
+            listen_stats_decided_at:
+              type: string
+              format: date-time
+              nullable: true
+    ApiGetLegalPopularityTrackingResponse200:
+      type: object
+      required:
+        - version
+        - agreement_date
+        - markdown
+      properties:
+        version:
+          type: string
+          example: "2026-09-11"
+        agreement_date:
+          type: string
+          example: "2026-09-11"
+        markdown:
+          type: string
     ApiPatchAccountSettingsPlaybackRequest:
       type: object
       required:
@@ -3050,7 +3092,7 @@ paths:
       tags:
         - account-settings
       summary: PATCH /account-settings/listen-stats
-      description: Update whether listen-stats tracking is enabled for the authenticated account.
+      description: Record a Yes or No decision for the current popularity-tracking agreement version.
       security:
         - bearerAuth: []
         - cookieAuth: []
@@ -3091,6 +3133,35 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /legal/popularity-tracking:
+    get:
+      operationId: apiGetLegalPopularityTracking
+      tags:
+        - legal
+      summary: GET /legal/popularity-tracking
+      description: Localized popularity-tracking agreement Markdown for the authenticated account.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiGetLegalPopularityTrackingResponse200"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
         "500":
           description: Internal server error
           content:
