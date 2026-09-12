@@ -102,7 +102,7 @@ The original steps above are implemented and their plans are archived. The focus
 in detail 721 is implemented and complete.
 Focused device review remains recommended follow-up verification, not a prerequisite for completion.
 
-Locked decisions for this area live in `.llm/plans/active/mobile-p2-home-podcasts/00-SUMMARY.md`.
+Locked decisions for this area live in `.llm/plans/completed/mobile-p2-home-podcasts/00-SUMMARY.md`.
 
 **Navigation note.** The nextgen bottom tab layout intentionally differs from the previous
 generation and is **not** a parity gap. Nextgen keeps Home, Search, Notifications, My Library, and
@@ -136,8 +136,8 @@ doc written except where noted.
 | P2.3.2  | 20.7         | Submit to metaboost-registry or F-Droid request issue (operator step)                                                                                                                   | Auto      |
 | P2.3.3  | 18.16        | CI tablet emulator matrix job (optional nightly, not a PR gate)                                                                                                                         | Codex 5.3 |
 | P2.3.4  | 18.17        | Store listings: separate screenshots per form factor                                                                                                                                    | Auto      |
-| P2.3.5  | 21.11        | [598-defer-player-transcript-chrome](/docs/proposals/mobile/_master-plan_/phase-2/details/598-defer-player-transcript-chrome.md) — record the deferral                                  | Auto      |
-| P2.3.6  | 21.12        | [599-defer-pixel-dnd-polish](/docs/proposals/mobile/_master-plan_/phase-2/details/599-defer-pixel-dnd-polish.md) — record the deferral                                                  | Auto      |
+| P2.3.5  | 21.11        | [598-defer-player-transcript-chrome](/docs/proposals/mobile/_master-plan_/phase-2/details/598-defer-player-transcript-chrome.md) — player transcript chrome deferred                    | Auto      |
+| P2.3.6  | 21.12        | [599-defer-pixel-dnd-polish](/docs/proposals/mobile/_master-plan_/phase-2/details/599-defer-pixel-dnd-polish.md) — pixel drag-and-drop polish deferred                                  | Auto      |
 | P2.3.7  | new          | [898-defer-theme-mode-grouping](/docs/proposals/mobile/_master-plan_/phase-2/details/898-defer-theme-mode-grouping.md) — group UI themes by mode                                        | Codex 5.3 |
 | P2.3.8  | new          | [710-defer-filter-pull-down-reveal](/docs/proposals/mobile/_master-plan_/phase-2/details/710-defer-filter-pull-down-reveal.md)                                                          | Codex 5.3 |
 | P2.3.9  | new          | [711-defer-auto-renew-aware-reminders](/docs/proposals/mobile/_master-plan_/phase-2/details/711-defer-auto-renew-aware-reminders.md)                                                    | Codex 5.3 |
@@ -186,7 +186,7 @@ screen work depends on, and they change contracts beyond `apps/mobile` (API, ORM
 | P2.4.10 | [719-sync-event-log](/docs/proposals/mobile/_master-plan_/phase-2/details/719-sync-event-log.md)                                         | Opus 5 | done   |
 
 **Step numbers are identifiers, not the run order.** Within P2.4 the run order is the plan set's —
-see [00-EXECUTION-ORDER.md](/.llm/plans/active/mobile-p2-home-podcasts/00-EXECUTION-ORDER.md).
+see [00-EXECUTION-ORDER.md](/.llm/plans/completed/mobile-p2-home-podcasts/00-EXECUTION-ORDER.md).
 **P2.4.8–P2.4.10 run before P2.4.3**: offline content sync is the largest producer of sync work, so
 the queue and its indicator must exist before it is built, or it ships with no orchestration and is
 reworked immediately after.
@@ -256,8 +256,8 @@ above whenever status changes, per
 | [595-operator-polish-checklist](/docs/proposals/mobile/_master-plan_/phase-2/details/595-operator-polish-checklist.md)                                   | P2.2.1  | Auto      | superseded    |
 | [596-operator-polish-apply-briefs](/docs/proposals/mobile/_master-plan_/phase-2/details/596-operator-polish-apply-briefs.md)                             | P2.2.2  | Codex 5.3 | superseded    |
 | [597-list-virtualization-polish](/docs/proposals/mobile/_master-plan_/phase-2/details/597-list-virtualization-polish.md)                                 | P2.2.3  | Codex 5.3 | part (a) done |
-| [598-defer-player-transcript-chrome](/docs/proposals/mobile/_master-plan_/phase-2/details/598-defer-player-transcript-chrome.md)                         | P2.3.5  | Auto      | not started   |
-| [599-defer-pixel-dnd-polish](/docs/proposals/mobile/_master-plan_/phase-2/details/599-defer-pixel-dnd-polish.md)                                         | P2.3.6  | Auto      | not started   |
+| [598-defer-player-transcript-chrome](/docs/proposals/mobile/_master-plan_/phase-2/details/598-defer-player-transcript-chrome.md)                         | P2.3.5  | Auto      | deferred      |
+| [599-defer-pixel-dnd-polish](/docs/proposals/mobile/_master-plan_/phase-2/details/599-defer-pixel-dnd-polish.md)                                         | P2.3.6  | Auto      | deferred      |
 | [700-access-tiers-and-membership-gating](/docs/proposals/mobile/_master-plan_/phase-2/details/700-access-tiers-and-membership-gating.md)                 | P2.4.1  | Opus 5    | done          |
 | [701-anonymous-subscriptions](/docs/proposals/mobile/_master-plan_/phase-2/details/701-anonymous-subscriptions.md)                                       | P2.4.2  | Opus 5    | done          |
 | [702-offline-content-sync](/docs/proposals/mobile/_master-plan_/phase-2/details/702-offline-content-sync.md)                                             | P2.4.3  | Opus 5    | done          |

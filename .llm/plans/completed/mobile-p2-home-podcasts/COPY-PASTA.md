@@ -97,7 +97,7 @@ More ▸ Sync log lists newest first with share and clear.
 **Cursor model:** Opus 5 · **Reasoning:** high
 
 ```text
-Read and execute .llm/plans/active/mobile-p2-home-podcasts/06-offline-content-sync.md
+Read and execute .llm/plans/completed/mobile-p2-home-podcasts/06-offline-content-sync.md
 Recent window for server feeds, entire feed for add-by-RSS, background sync on foreground/refresh/reconnect.
 This is the largest producer of sync work — enqueue on the serial queue from prompt 03 with labels,
 never run a pass inline.
@@ -109,7 +109,7 @@ Do not run tests; end with operator verification commands.
 **Cursor model:** Opus 5 · **Reasoning:** extra high
 
 ```text
-Read and execute .llm/plans/active/mobile-p2-home-podcasts/07-channel-seen-state.md
+Read and execute .llm/plans/completed/mobile-p2-home-podcasts/07-channel-seen-state.md
 One last_seen_at per channel per user. Cap counts at 20 and bound the endpoint result set.
 Follow the existing Account.notifications_last_seen_at precedent rather than inventing a model.
 Design the endpoints for both mobile and web callers — prompt 13 makes web a client.
@@ -121,7 +121,7 @@ Do not run tests; end with operator verification commands.
 **Cursor model:** Codex 5.3 · **Reasoning:** high
 
 ```text
-Read and execute .llm/plans/active/mobile-p2-home-podcasts/08-home-list-and-filter.md
+Read and execute .llm/plans/completed/mobile-p2-home-podcasts/08-home-list-and-filter.md
 Home is subscribed-only. The "Filter..." input filters local content by title only, raw and
 article-stripped, across directory subscriptions and add-by-RSS. Always visible for now.
 Put new strings in the consumer i18n catalog — web reuses them in prompt 14.
@@ -133,7 +133,7 @@ Do not run tests; end with operator verification commands.
 **Cursor model:** Codex 5.3 · **Reasoning:** medium
 
 ```text
-Read and execute .llm/plans/active/mobile-p2-home-podcasts/09-home-filter-sort-screen.md
+Read and execute .llm/plans/completed/mobile-p2-home-podcasts/09-home-filter-sort-screen.md
 Full-screen Filter/Sort screen with Done. Sorts are A-Z and recent only.
 Match the previous generation's layout, never its colors.
 This screen is the first consumer of the sort-preference contract, so build it here: a shared
@@ -147,7 +147,7 @@ Do not run tests; end with operator verification commands.
 **Cursor model:** Codex 5.3 · **Reasoning:** medium
 
 ```text
-Read and execute .llm/plans/active/mobile-p2-home-podcasts/10-home-row-metadata.md
+Read and execute .llm/plans/completed/mobile-p2-home-podcasts/10-home-row-metadata.md
 Latest episode date, unseen badge with 20+ cap, downloaded count, live badge — all from local storage.
 If live status is unavailable from the API, stop and raise it rather than approximating.
 Do not run tests; end with operator verification commands.
@@ -158,7 +158,7 @@ Do not run tests; end with operator verification commands.
 **Cursor model:** Codex 5.3 · **Reasoning:** medium
 
 ```text
-Read and execute .llm/plans/active/mobile-p2-home-podcasts/11-home-view-toggle-and-overflow.md
+Read and execute .llm/plans/completed/mobile-p2-home-podcasts/11-home-view-toggle-and-overflow.md
 Overflow menu with Grid View / List View (persisted, defaults to list) and Mark All As Seen.
 Do not run tests; end with operator verification commands.
 ```
@@ -168,7 +168,7 @@ Do not run tests; end with operator verification commands.
 **Cursor model:** Codex 5.3 · **Reasoning:** medium
 
 ```text
-Read and execute .llm/plans/active/mobile-p2-home-podcasts/12-search-tab-web-alignment.md
+Read and execute .llm/plans/completed/mobile-p2-home-podcasts/12-search-tab-web-alignment.md
 Remove the medium and sort chip rows so mobile search matches apps/web /search.
 Do not run tests; end with operator verification commands.
 ```
@@ -178,7 +178,7 @@ Do not run tests; end with operator verification commands.
 **Cursor model:** Opus 5 · **Reasoning:** high
 
 ```text
-Read and execute .llm/plans/active/mobile-p2-home-podcasts/13-web-unseen-episode-indicator.md
+Read and execute .llm/plans/completed/mobile-p2-home-podcasts/13-web-unseen-episode-indicator.md
 This is a web prompt. Web both writes the channel last_seen_at on channel view and displays capped
 unseen counts on /podcasts for the subscribed list type. The write half is not optional — without
 it, a user who listens on the website keeps a stale badge on their phone.
@@ -190,7 +190,7 @@ Verify with Playwright, not Maestro. Do not run tests; end with operator verific
 **Cursor model:** Codex 5.3 · **Reasoning:** high
 
 ```text
-Read and execute .llm/plans/active/mobile-p2-home-podcasts/14-web-subscribed-filter-input.md
+Read and execute .llm/plans/completed/mobile-p2-home-podcasts/14-web-subscribed-filter-input.md
 This is a web prompt. Add the same "Filter..." input to /podcasts for the subscribed list type.
 Web paginates server-side, so the filter must apply across the whole subscribed list, never one
 page — resolve that explicitly and say which approach you chose and why.
@@ -202,7 +202,7 @@ Verify with Playwright, not Maestro. Do not run tests; end with operator verific
 **Cursor model:** Opus 5 · **Reasoning:** high
 
 ```text
-Read and execute .llm/plans/active/mobile-p2-home-podcasts/15-mobile-per-instance-sort-prefs.md
+Read and execute .llm/plans/completed/mobile-p2-home-podcasts/15-mobile-per-instance-sort-prefs.md
 Extend the sort-preference contract from prompt 09 to podcast, episode, and album detail screens,
 which hardcode sort today and have no control at all. Scope keys are per instance, so two podcasts
 hold two different sorts. Device-local only — no column, no endpoint. Free text still never persists.
@@ -214,7 +214,7 @@ Do not run tests; end with operator verification commands.
 **Cursor model:** Opus 5 · **Reasoning:** high
 
 ```text
-Read and execute .llm/plans/active/mobile-p2-home-podcasts/16-web-filter-sort-persistence.md
+Read and execute .llm/plans/completed/mobile-p2-home-podcasts/16-web-filter-sort-persistence.md
 This is a web prompt. Per-instance sort memory in the local-settings cookie using the shared key
 builder from prompt 09, bounded to the 30 most recently used entries with LRU eviction. Cookie, not
 localStorage, because web fetches with a sort parameter during SSR. Explicit URL params win and
@@ -228,7 +228,7 @@ Verify with Playwright, not Maestro. Do not run tests; end with operator verific
 **Cursor model:** Opus 5 · **Reasoning:** extra high
 
 ```text
-Read and execute .llm/plans/active/mobile-p2-home-podcasts/17-notifications-read-unread-rename.md
+Read and execute .llm/plans/completed/mobile-p2-home-podcasts/17-notifications-read-unread-rename.md
 This is a breaking cross-surface rename: ORM column, endpoints, DTO field, request helpers, web
 hooks and components, i18n keys, and a browser event. Needs a linear migration and a transition
 that does not break an older mobile build. Retention already exists — verify and make it
@@ -280,19 +280,12 @@ completion.
 
 ## What is left
 
-All twenty-three prompts are implemented. The plan set is complete. Two optional follow-up actions
-remain:
+All twenty-three prompts are implemented. This set is archived at
+`.llm/plans/completed/mobile-p2-home-podcasts/`. Durable status lives in the Phase 2 detail docs
+and master plan.
 
-1. **Run the cumulative verification commands** provided in the implementation response. Nothing in
-   this set was tested during implementation, by design.
-2. **Review the Home (podcasts) and Search screens on a device** if visual feedback is useful. This
-   review does not change the implementation or plan completion status.
+Optional follow-up (does not reopen the set):
 
-Because implementation is complete, retire this directory. The durable record is already in the
-Phase 2 detail docs and the master plan, so nothing is lost:
-
-```bash
-git mv .llm/plans/active/mobile-p2-home-podcasts .llm/plans/completed/
-```
-
-`00-SUMMARY.md` is linked from the Phase 2 master plan, so update that link in the same commit.
+1. Run the cumulative verification commands from the last implementation response if they have
+   not been run yet.
+2. Review the Home (podcasts) and Search screens on a device if visual feedback is useful.
