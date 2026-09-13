@@ -14,6 +14,7 @@ import type { MenuSelectChipOption, SectionChipItem } from '../../components/for
 import { ListFilterField, MenuSelectChip, SectionChipRow } from '../../components/form';
 import { Button } from '../../components/primitives/Button';
 import { HeaderBarAction } from '../../components/screen/HeaderBarAction';
+import { ListEmpty } from '../../components/state/ListEmpty';
 import { LoadingSection } from '../../components/state/LoadingSection';
 import { channelSeenRepository } from '../../data/repositories/channelSeenRepository';
 import { downloadsRepository } from '../../data/repositories/downloadsRepository';
@@ -22,6 +23,11 @@ import { mapDirectoryChannelToSubscribed } from '../../data/repositories/subscri
 import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
 import { useChannelNotifications } from '../../hooks/useChannelNotifications';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
+import {
+  isPodcastSectionUnavailableOffline,
+  OFFLINE_UNAVAILABLE_MESSAGE_KEY,
+  resolvePodcastSectionForOfflineMode,
+} from '../../lib/offlineModeViews';
 import { getCachedChannelSectionFlags } from '../../lib/sectionChromeFlags';
 import { buildPublicShareUrl, shareResolvedUrl } from '../../lib/share/shareNowPlaying';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
@@ -43,11 +49,8 @@ import {
   writePodcastDetailSort,
   writePodcastDetailTab,
 } from '../../prefs/detailListPrefs';
-import {
-  listFilterFieldBottomMargin,
-  listHeaderStackGap,
-  screenBodyInsets,
-} from '../../theme/screenLayout';
+import { isOfflineModeEnabled, useOfflineMode } from '../../prefs/offlineMode';
+import { listHeaderStackGap, screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 import {
   channelHasPodroll,
@@ -114,6 +117,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
+  const { enabled: offlineModeEnabled } = useOfflineMode();
   const { podcastId, previewImageUrl, previewTitle } = route.params;
   const cachedChrome = getCachedChannelSectionFlags(podcastId);
   const [channel, setChannel] = useState<DTOChannel | null>(null);
@@ -179,9 +183,6 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
           backgroundColor: themeStyles.screen.backgroundColor,
           flex: 1,
         },
-        filterRow: {
-          marginBottom: listFilterFieldBottomMargin(tokens.spacing, tokens.spacing.base),
-        },
         headerActions: {
           alignItems: 'center',
           flexDirection: 'row',
@@ -216,6 +217,15 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     setHasSoundbites(soundbites);
     setHasCheckedSoundbites(true);
 
+    if (offlineModeEnabled) {
+      const local = await subscriptionsRepository.getByIdText(podcastId);
+      if (local !== null) {
+        setPreviewHasPodroll(false);
+      }
+      chromeConfirmedRef.current = true;
+      return;
+    }
+
     try {
       const response = await requestWithMobileAuthRefresh(authContext, async (api) =>
         api.reqChannelGetByIdOrIdText(podcastId)
@@ -240,7 +250,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
       });
       chromeConfirmedRef.current = true;
     }
-  }, [authContext, podcastId]);
+  }, [authContext, offlineModeEnabled, podcastId]);
 
   useEffect(() => {
     void loadChannel();
@@ -321,12 +331,23 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
 
     void (async () => {
       const prefs = await readPodcastDetailPrefs(podcastId);
-      if (isMounted) {
-        setSection(prefs.tab);
-        setSort(prefs.sort);
-        setRange(prefs.range);
-        setIsSectionHydrated(true);
+      if (!isMounted) {
+        return;
       }
+      // Offline Mode wins over the remembered tab on arrival; the stored pref is left alone.
+      setSection(
+        isOfflineModeEnabled()
+          ? resolvePodcastSectionForOfflineMode(prefs.tab, [
+              'about',
+              'clips',
+              'downloaded',
+              'episodes',
+            ])
+          : prefs.tab
+      );
+      setSort(prefs.sort);
+      setRange(prefs.range);
+      setIsSectionHydrated(true);
     })();
 
     return () => {
@@ -511,16 +532,35 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
       return;
     }
     if (!availableSections.includes(section)) {
-      setSection(DEFAULT_PODCAST_TAB);
+      setSection(
+        offlineModeEnabled
+          ? resolvePodcastSectionForOfflineMode(section, availableSections)
+          : DEFAULT_PODCAST_TAB
+      );
     }
-  }, [availableSections, channel, hasCheckedSoundbites, section]);
+  }, [availableSections, channel, hasCheckedSoundbites, offlineModeEnabled, section]);
+
+  /**
+   * Turning Offline Mode on while already on this screen (or finishing hydrate after the mode
+   * flag arrives) switches the chip to Downloaded. Display-only — the stored tab pref is not
+   * overwritten. Manual chip taps while Offline Mode is on still update `section` without write.
+   * Keyed on podcast identity so a later chrome update does not yank the chip back after a tap.
+   */
+  useEffect(() => {
+    if (!offlineModeEnabled || !isSectionHydrated) {
+      return;
+    }
+    setSection('downloaded');
+  }, [isSectionHydrated, offlineModeEnabled, podcastId]);
 
   const handleSectionSelect = useCallback(
     (next: PodcastTab) => {
       setSection(next);
-      void writePodcastDetailTab(podcastId, next);
+      if (!offlineModeEnabled) {
+        void writePodcastDetailTab(podcastId, next);
+      }
     },
-    [podcastId]
+    [offlineModeEnabled, podcastId]
   );
 
   const handleSortSelect = useCallback(
@@ -635,13 +675,14 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
       label={t('filters.list.title_label')}
       onChangeTerm={setFilterTerm}
       placeholder={t('filters.list.placeholder')}
-      style={styles.filterRow}
       term={filterTerm}
       testID="podcast-detail-filter"
     />
   ) : null;
 
   const SectionPane = SECTION_COMPONENTS[section];
+  const sectionUnavailableOffline =
+    offlineModeEnabled && isPodcastSectionUnavailableOffline(section);
 
   return (
     <View style={styles.container} testID="podcast-detail-screen">
@@ -649,15 +690,22 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
         <>
           {pinnedChrome}
           <View style={styles.sectionBody}>
-            <SectionPane
-              channel={channel}
-              channelIdText={podcastId}
-              filterTerm={filterTerm}
-              listHeader={listHeader}
-              onRefreshChannel={loadChannel}
-              range={range}
-              sort={sort}
-            />
+            {sectionUnavailableOffline ? (
+              <ListEmpty
+                messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+                testID="podcast-detail-offline-unavailable"
+              />
+            ) : (
+              <SectionPane
+                channel={channel}
+                channelIdText={podcastId}
+                filterTerm={filterTerm}
+                listHeader={listHeader}
+                onRefreshChannel={loadChannel}
+                range={range}
+                sort={sort}
+              />
+            )}
           </View>
         </>
       ) : (

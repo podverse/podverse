@@ -89,6 +89,12 @@
       "downloads_description": "Storage limit, auto-free, and delete all downloads",
       "notifications_description": "In-app and push alerts"
     },
+    "offline_mode": {
+      "title": "Offline mode",
+      "description": "Offline mode uses only downloads and other content already stored on this device. Search, Browse, sync, and anything that needs the internet stay unavailable until you turn it off.",
+      "unavailable": "This screen isn't available in Offline Mode.",
+      "banner": "Offline mode is on"
+    },
     "downloads": {
       "storage_heading": "Storage",
       "device_storage": "Device",

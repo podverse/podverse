@@ -9,7 +9,7 @@ import { matchesTitleFilter } from '@podverse/helpers';
 
 import { useAuth } from '../../auth/AuthProvider';
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
-import { ListFilterField } from '../../components/form';
+import { ListFilterField, ListFilterHeader } from '../../components/form';
 import { FillList } from '../../components/primitives';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { ListEmpty } from '../../components/state/ListEmpty';
@@ -22,6 +22,11 @@ import {
 } from '../../data/repositories';
 import { downloadStore } from '../../downloads/downloadStore';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
+import {
+  isHomeClipsUnavailableOffline,
+  isHomeDownloadedItemsOnly,
+  OFFLINE_UNAVAILABLE_MESSAGE_KEY,
+} from '../../lib/offlineModeViews';
 import type { HomeStackParamList, MobileTabParamList } from '../../navigation';
 import {
   BROWSE_STACK_ROUTES,
@@ -44,6 +49,7 @@ import {
   writeHomeSort,
   writeHomeViewMode,
 } from '../../prefs/homeListPrefs';
+import { useOfflineMode } from '../../prefs/offlineMode';
 import {
   DEFAULT_HOME_MEDIA_TYPE,
   type HomeMediaType,
@@ -61,6 +67,7 @@ import { HOME_MEDIA_TYPE_ORDER, MEDIA_TYPE_LABEL_KEYS } from '../browse/browseTy
 import type { AddToPlaylistTarget } from '../library/useAddToPlaylist';
 import { useAddToPlaylist } from '../library/useAddToPlaylist';
 import {
+  fetchDownloadedHomeFeedRows,
   fetchHomeFeedRows,
   fetchUnsubscribedDownloadHomeRows,
   type HomeFeedRowData,
@@ -93,6 +100,7 @@ export function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { onRequestLogin } = useAuthPrompt();
+  const { enabled: offlineModeEnabled } = useOfflineMode();
   const { requestSync, state: syncState } = useSync();
   const { columns: rowColumns, width } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
@@ -277,40 +285,51 @@ export function HomeScreen() {
         setFeedErrorKey(null);
       }
       try {
-        const rows = await fetchHomeFeedRows(
-          selectedMediaType,
-          {
-            accessToken,
-            clearSession,
-            refreshToken,
-            setTokens,
-            status,
-          },
-          { range: activePrefs.range, sort: activePrefs.sort }
-        );
-        if (requestId !== feedRequestIdRef.current) {
-          return;
-        }
-        setFeedRows(rows);
-        if (selectedMediaType === 'podcasts') {
-          const unsubscribed = await fetchUnsubscribedDownloadHomeRows();
+        if (offlineModeEnabled && isHomeClipsUnavailableOffline(selectedMediaType)) {
           if (requestId !== feedRequestIdRef.current) {
             return;
           }
-          setUnsubscribedDownloadRows(unsubscribed);
-          setHasPodcastSubscriptions(rows.length > 0);
-        } else {
+          setFeedRows([]);
           setUnsubscribedDownloadRows([]);
-          if (selectedMediaType === 'clips') {
-            try {
-              const podcasts = await subscriptionsRepository.list({ kind: 'podcasts' });
-              if (requestId !== feedRequestIdRef.current) {
-                return;
-              }
-              setHasPodcastSubscriptions(podcasts.length > 0);
-            } catch {
-              if (requestId === feedRequestIdRef.current) {
-                setHasPodcastSubscriptions(false);
+        } else {
+          const rows =
+            offlineModeEnabled && isHomeDownloadedItemsOnly(selectedMediaType)
+              ? await fetchDownloadedHomeFeedRows(selectedMediaType)
+              : await fetchHomeFeedRows(
+                  selectedMediaType,
+                  {
+                    accessToken,
+                    clearSession,
+                    refreshToken,
+                    setTokens,
+                    status,
+                  },
+                  { range: activePrefs.range, sort: activePrefs.sort }
+                );
+          if (requestId !== feedRequestIdRef.current) {
+            return;
+          }
+          setFeedRows(rows);
+          if (selectedMediaType === 'podcasts') {
+            const unsubscribed = await fetchUnsubscribedDownloadHomeRows();
+            if (requestId !== feedRequestIdRef.current) {
+              return;
+            }
+            setUnsubscribedDownloadRows(unsubscribed);
+            setHasPodcastSubscriptions(rows.length > 0);
+          } else {
+            setUnsubscribedDownloadRows([]);
+            if (selectedMediaType === 'clips') {
+              try {
+                const podcasts = await subscriptionsRepository.list({ kind: 'podcasts' });
+                if (requestId !== feedRequestIdRef.current) {
+                  return;
+                }
+                setHasPodcastSubscriptions(podcasts.length > 0);
+              } catch {
+                if (requestId === feedRequestIdRef.current) {
+                  setHasPodcastSubscriptions(false);
+                }
               }
             }
           }
@@ -344,6 +363,7 @@ export function HomeScreen() {
       activePrefs,
       clearSession,
       isFeedRefreshing,
+      offlineModeEnabled,
       refreshToken,
       requestSync,
       selectedMediaType,
@@ -621,9 +641,16 @@ export function HomeScreen() {
   // Browse; nothing matching is answered by editing the term. Offline-only download channels still
   // count as content on Podcasts, so they suppress the empty discovery CTA. Clips with local
   // podcast follows while signed out need Login — the subscribed clip list is account-backed.
+  // Offline Mode parks Clips entirely (account-backed network list).
+  const showClipsOfflineUnavailable =
+    offlineModeEnabled && isHomeClipsUnavailableOffline(selectedMediaType);
   const showClipsLogin =
-    selectedMediaType === 'clips' && status !== 'authenticated' && hasPodcastSubscriptions;
+    !showClipsOfflineUnavailable &&
+    selectedMediaType === 'clips' &&
+    status !== 'authenticated' &&
+    hasPodcastSubscriptions;
   const showNoSubscriptions =
+    !showClipsOfflineUnavailable &&
     showFeedRows &&
     feedRows.length === 0 &&
     (selectedMediaType !== 'podcasts' || unsubscribedDownloadRows.length === 0);
@@ -633,14 +660,15 @@ export function HomeScreen() {
     <>
       <E2ePlayVideoButton />
       {showFilterField ? (
-        <ListFilterField
-          clearLabel={t('subscriptions.filter.clear')}
-          label={t('subscriptions.filter.placeholder')}
-          onChangeTerm={handleFilterTermChange}
-          style={styles.filterRow}
-          term={filterTerm}
-          testID="home-filter"
-        />
+        <ListFilterHeader hasItemsBelow={visibleRows.length > 0} style={styles.filterRow}>
+          <ListFilterField
+            clearLabel={t('subscriptions.filter.clear')}
+            label={t('subscriptions.filter.placeholder')}
+            onChangeTerm={handleFilterTermChange}
+            term={filterTerm}
+            testID="home-filter"
+          />
+        </ListFilterHeader>
       ) : null}
       {showActionError && actionErrorKey !== null ? (
         <Text style={styles.feedNotice} testID="home-action-error">
@@ -676,6 +704,11 @@ export function HomeScreen() {
 
   const listEmpty = isFeedLoading ? (
     <LoadingSection testID="home-list-loading" />
+  ) : showClipsOfflineUnavailable ? (
+    <ListEmpty
+      messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+      testID="home-clips-offline-unavailable"
+    />
   ) : showNoSubscriptions && showClipsLogin ? (
     <CallToActionSection
       actionLabelKey="authentication.login"

@@ -12,7 +12,8 @@
       "home": "",
       "opml": "",
       "search_result": "",
-      "rss_feeds": ""
+      "rss_feeds": "",
+      "podcast_settings": ""
     },
     "menu": {
       "opml": "",
@@ -27,6 +28,9 @@
       "rate_limited_time_one": "",
       "rate_limited_time_other": ""
     },
+    "channel": {
+      "section_requires_connection": ""
+    },
     "browse": {
       "category_all": "",
       "collapse_category": "",
@@ -39,6 +43,8 @@
     "download": {
       "queued": "",
       "remove": "",
+      "cancel_download": "",
+      "remove_download": "",
       "empty": "",
       "downloaded": "",
       "not_downloadable": "",
@@ -49,6 +55,8 @@
       "auto_removed_notice": "",
       "dismiss": "",
       "in_progress_count": "",
+      "auto_download": "",
+      "auto_download_unavailable": "",
       "paused": "",
       "pause_all": "",
       "resume_all": "",
@@ -80,6 +88,12 @@
       "playback_description": "",
       "downloads_description": "",
       "notifications_description": ""
+    },
+    "offline_mode": {
+      "title": "",
+      "description": "",
+      "unavailable": "",
+      "banner": ""
     },
     "downloads": {
       "storage_heading": "",

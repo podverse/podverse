@@ -388,6 +388,27 @@ export const fetchUnsubscribedDownloadHomeRows = async (): Promise<HomeFeedRowDa
   }));
 };
 
+/**
+ * Completed downloads as Home Episodes / Tracks rows. Used while Offline Mode is on so those
+ * chips list only playable local files rather than the full stored window.
+ */
+export const fetchDownloadedHomeFeedRows = async (
+  mediaType: 'episodes' | 'tracks'
+): Promise<HomeFeedRowData[]> => {
+  const completed = await downloadsRepository.listByStatus('complete');
+  const wantVideo = mediaType === 'tracks';
+
+  return completed
+    .filter((record) => (wantVideo ? record.mediaType === 'video' : record.mediaType === 'audio'))
+    .map((record) => ({
+      id: record.itemIdText,
+      imageUrl: record.artworkUrl,
+      subtitle: record.channelTitle,
+      title: record.title ?? record.itemIdText,
+      updatedAt: record.updatedAt,
+    }));
+};
+
 export const fetchHomeFeedRows = async (
   mediaType: HomeMediaType,
   authDeps: HomeFeedAuthDeps,

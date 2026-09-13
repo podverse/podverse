@@ -1,6 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
 import type { ReactNode, Ref } from 'react';
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import type { StyleProp, TextInputProps, ViewStyle } from 'react-native';
 import { Keyboard, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
@@ -39,9 +39,10 @@ function bindInputRef(ref: Ref<TextInput> | undefined, node: TextInput | null): 
 }
 
 /**
- * Painted text field whose visible chrome is the hit target. A leading icon is decoration; it
- * does not submit or steal focus. Do not add padding on the `TextInput` — keep inset on `style`.
- * Leaving the host screen blurs the field so a tab switch does not keep a caret or focus ring.
+ * Painted text field whose visible chrome is the hit target: tertiary fill, no resting outline, a
+ * 2px inset focus ring. A leading icon is decoration; it does not submit or steal focus. Do not add
+ * padding on the `TextInput` — keep inset on this chrome. Leaving the host screen blurs the field
+ * so a tab switch does not keep a caret or focus ring.
  */
 export function TextField({
   accessibilityLabel,
@@ -62,19 +63,30 @@ export function TextField({
 }: TextFieldProps) {
   const { styles: themeStyles, tokens } = useTheme();
   const localRef = useRef<TextInput | null>(null);
+  const [isFocused, setIsFocused] = useState(false);
 
   const styles = useMemo(
     () =>
       StyleSheet.create({
         field: {
           alignItems: 'stretch',
+          backgroundColor: tokens.background.tertiary,
+          borderColor: 'transparent',
+          borderRadius: tokens.radii.md,
+          borderWidth: 2,
           flexDirection: 'row',
+          paddingHorizontal: tokens.spacing.md,
+          paddingVertical: tokens.spacing.sm,
+        },
+        fieldFocused: {
+          borderColor: tokens.border.primary,
         },
         input: {
           alignSelf: 'stretch',
           color: themeStyles.textPrimary.color,
           flex: 1,
           fontSize: 16,
+          minHeight: 28,
           padding: 0,
           textAlignVertical: 'center',
         },
@@ -112,7 +124,7 @@ export function TextField({
   );
 
   return (
-    <View style={[styles.field, style]}>
+    <View style={[styles.field, isFocused ? styles.fieldFocused : null, style]}>
       <Pressable
         accessibilityElementsHidden
         accessible={false}
@@ -129,12 +141,18 @@ export function TextField({
         accessibilityLabel={accessibilityLabel}
         autoCapitalize={autoCapitalize}
         autoCorrect={autoCorrect}
-        onBlur={onBlur}
+        onBlur={() => {
+          setIsFocused(false);
+          onBlur?.();
+        }}
         onChangeText={onChangeText}
-        onFocus={onFocus}
+        onFocus={() => {
+          setIsFocused(true);
+          onFocus?.();
+        }}
         onSubmitEditing={onSubmitEditing}
         placeholder={placeholder}
-        placeholderTextColor={placeholderTextColor}
+        placeholderTextColor={placeholderTextColor ?? themeStyles.textSecondary.color}
         ref={setInputRef}
         returnKeyType={returnKeyType}
         style={styles.input}

@@ -1,0 +1,56 @@
+---
+description: Offline Mode is a crucial mobile UX — toggle on More, park all network, default to downloaded views
+globs: apps/mobile/**/*
+alwaysApply: false
+---
+
+# Mobile Offline Mode
+
+Offline Mode is a **crucial mobile UX feature**, not an edge case. It is a user-forced offline
+switch, distinct from the offline-first data layer (SQLite + repositories). The data layer keeps
+subscribed content readable without a connection; Offline Mode **refuses the network** and **steers
+UI** to downloaded / already-stored views.
+
+## Toggle
+
+- Device-local preference (`offline.mode` in AsyncStorage via `prefs/`). Do **not** sync to the
+  account.
+- Control lives on **More**, **first under Features** (above overflow tabs / Settings / OPML).
+- When on, show description text under the switch explaining that only downloads and other content
+  already on the device are available.
+- Activation is **toggle-only**. Do **not** auto-enter or auto-leave from NetInfo / airplane mode.
+
+## While on — park all network
+
+- Background sync parks the same way as a real outage (`setNetworkReachable` is false).
+- API helpers refuse immediately (no token refresh, no silent retry).
+- New downloads are rejected; in-flight transfers pause when the toggle flips on.
+- Playback uses a completed local `file://` only — no remote enclosure fallback.
+
+## Screen behavior
+
+- Screens that can work offline **default** to their offline-compatible view (usually
+  **Downloaded**). Offline Mode overrides the remembered section/tab on navigate; do not overwrite
+  the stored pref. About and other local panes stay selectable after an explicit tap.
+- A slim **Offline mode is on** warning strip sits in persistent bottom chrome above the tab bar,
+  in order: sync progress → Offline Mode → mini player. It does not slide away on stack push.
+- Screens that cannot (Browse global, Search, Home Clips, …) show a dedicated unavailable message —
+  never a spinner, empty list, or silent failure.
+- Do not auto-switch bottom tabs; the user sees the message on the tab they opened.
+
+## Playback is not recorded while parked
+
+Do not assume listening done in Offline Mode reaches the server later. History writes go straight to
+the API and are dropped when they fail, mobile does not post now-playing position during playback,
+and listen stats are fire-and-forget. There is no playback outbox and no replay job, so offline
+listening currently does not appear in history once the device is back online. Treat that as a known
+gap rather than something the sync queue already covers; a change here belongs in a designed
+reconciliation pass (client listen timestamps, idempotent replay, forward-only position merge), not
+a retry bolted onto a single call site.
+
+## Related
+
+- Skill: **mobile-data-layer** — offline-first storage (not this toggle)
+- Rule: **mobile-sync-orchestration** — sync queue parks on unreachability
+- Rule: **mobile-screen-layout** — Downloaded section / fill empties
+- Mobile-only; web has no offline download library (intentional divergence)

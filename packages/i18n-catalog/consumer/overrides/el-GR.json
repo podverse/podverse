@@ -11,7 +11,8 @@
       "podcast_image": "",
       "episode": "",
       "episodes": "",
-      "episode_image": ""
+      "episode_image": "",
+      "no_episodes_found": ""
     },
     "music": {
       "music": "",
@@ -144,6 +145,7 @@
     "clip": {
       "clip": "",
       "clips": "",
+      "no_clips_found": "",
       "create_clip": "",
       "edit_clip": "",
       "delete_clip": "",
@@ -327,6 +329,7 @@
       "no_summary": ""
     },
     "podroll": "",
+    "no_podroll_found": "",
     "show_more": "",
     "transcript": {
       "transcript": "",
@@ -346,7 +349,8 @@
     },
     "soundbite": {
       "official_clip": "",
-      "official_clips": ""
+      "official_clips": "",
+      "no_official_clips_found": ""
     },
     "time": {
       "left": "",
@@ -567,10 +571,17 @@
       "month": "",
       "all_time": ""
     },
+    "list": {
+      "title_label": "",
+      "placeholder": "",
+      "clear": "",
+      "no_matches": ""
+    },
     "screen": {
       "title": "",
       "filter_heading": "",
-      "sort_heading": ""
+      "sort_heading": "",
+      "range_heading": ""
     }
   },
   "legal": {
@@ -1020,7 +1031,11 @@
       "category_general_description": "",
       "new_item": "",
       "livestream_scheduled": "",
-      "livestream_started": ""
+      "livestream_started": "",
+      "auto_enable_on_subscribe": "",
+      "auto_enable_on_subscribe_help": "",
+      "type_defaults_section": "",
+      "type_defaults_section_help": ""
     },
     "opml": {
       "opml": "",

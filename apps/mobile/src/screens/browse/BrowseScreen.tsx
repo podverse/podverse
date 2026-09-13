@@ -10,10 +10,12 @@ import { FillList } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { LoadingSection } from '../../components/state/LoadingSection';
+import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import type { BrowseStackParamList } from '../../navigation';
 import { BROWSE_STACK_ROUTES, buildPodcastDetailParams } from '../../navigation';
 import type { HomeViewMode } from '../../prefs/homeListPrefs';
 import { DEFAULT_HOME_VIEW_MODE } from '../../prefs/homeListPrefs';
+import { useOfflineMode } from '../../prefs/offlineMode';
 import { resolveGridCellWidth, resolveGridColumns } from '../../theme/resolveColumns';
 import { screenBodyInsets } from '../../theme/screenLayout';
 import { useResponsive } from '../../theme/useResponsive';
@@ -73,6 +75,7 @@ export function BrowseScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<BrowseStackParamList>>();
   const route = useRoute<RouteProp<BrowseStackParamList, typeof BROWSE_STACK_ROUTES.BrowseRoot>>();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
+  const { enabled: offlineModeEnabled } = useOfflineMode();
   const { columns: rowColumns, width } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
   const [selectedMediaType, setSelectedMediaType] =
@@ -216,6 +219,9 @@ export function BrowseScreen() {
 
   const loadCategories = useCallback(
     async (source: 'initial' | 'refresh') => {
+      if (offlineModeEnabled) {
+        return;
+      }
       const requestId = categoryRequestIdRef.current + 1;
       categoryRequestIdRef.current = requestId;
 
@@ -261,12 +267,12 @@ export function BrowseScreen() {
         }
       }
     },
-    [accessToken, clearSession, isCategoryRefreshing, refreshToken, setTokens]
+    [accessToken, clearSession, isCategoryRefreshing, offlineModeEnabled, refreshToken, setTokens]
   );
 
   const loadFeed = useCallback(
     async (source: 'initial' | 'refresh' | 'retry') => {
-      if (activePrefs === null) {
+      if (offlineModeEnabled || activePrefs === null) {
         return;
       }
       const requestId = feedRequestIdRef.current + 1;
@@ -323,6 +329,7 @@ export function BrowseScreen() {
       activePrefs,
       clearSession,
       isFeedRefreshing,
+      offlineModeEnabled,
       refreshToken,
       selectedMediaType,
       setTokens,
@@ -482,6 +489,14 @@ export function BrowseScreen() {
     selectedCategory !== null
       ? t(`categories.${selectedCategory}`)
       : t('categories.categories');
+
+  if (offlineModeEnabled) {
+    return (
+      <View style={styles.container} testID="browse-screen">
+        <ListEmpty messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY} testID="browse-offline-unavailable" />
+      </View>
+    );
+  }
 
   const listHeader = (
     <>

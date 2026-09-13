@@ -12,6 +12,9 @@ import { SortSelectRow } from '../../components/form/SortSelectRow';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
+import { channelItemsRepository } from '../../data/repositories/channelItemsRepository';
+import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
+import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import type { ChannelBrowseStackParamList } from '../../navigation';
 import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
 import type { AlbumTrackSort } from '../../prefs/detailListPrefs';
@@ -21,6 +24,7 @@ import {
   readAlbumDetailPrefs,
   writeAlbumDetailSort,
 } from '../../prefs/detailListPrefs';
+import { useOfflineMode } from '../../prefs/offlineMode';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { mapItemToHomeFeedRow } from '../home/homeFeedData';
@@ -49,7 +53,9 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
+  const { enabled: offlineModeEnabled } = useOfflineMode();
   const [album, setAlbum] = useState<DTOChannel | null>(null);
+  const [albumTitle, setAlbumTitle] = useState<string | null>(null);
   const [trackRows, setTrackRows] = useState<HomeFeedRowData[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorKey, setErrorKey] = useState<string | null>(null);
@@ -101,13 +107,26 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
   /**
    * The track order is decided by the endpoint, so the remembered sort has to be in hand before the
    * request goes out. Reading it here rather than taking it as an argument keeps the preference the
-   * single source of the order, with the pill mirroring it for display.
+   * single source of the order, with the pill mirroring it for display. Offline Mode skips the
+   * network and lists stored tracks for this album instead.
    */
   const loadAlbum = useCallback(async () => {
     setIsLoading(true);
     setErrorKey(null);
     try {
       const { sort } = await readAlbumDetailPrefs(albumId);
+
+      if (offlineModeEnabled) {
+        const local = await subscriptionsRepository.getByIdText(albumId);
+        const items = await channelItemsRepository.listByChannel(albumId, {
+          sort: sort === 'forward' ? 'oldest' : 'recent',
+        });
+        const title = local?.title ?? null;
+        setAlbum(null);
+        setAlbumTitle(title);
+        setTrackRows(toTrackRows(items, title));
+        return;
+      }
 
       const channelResponse = await requestWithMobileAuthRefresh(
         {
@@ -136,15 +155,17 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
       );
 
       setAlbum(channelResponse);
+      setAlbumTitle(channelResponse.title);
       setTrackRows(toTrackRows(itemResponse.data, channelResponse.title));
     } catch {
       setErrorKey('errors.generic');
       setAlbum(null);
+      setAlbumTitle(null);
       setTrackRows([]);
     } finally {
       setIsLoading(false);
     }
-  }, [accessToken, albumId, clearSession, refreshToken, setTokens]);
+  }, [accessToken, albumId, clearSession, offlineModeEnabled, refreshToken, setTokens]);
 
   useEffect(() => {
     void loadAlbum();
@@ -185,14 +206,24 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
     }));
   }, [t]);
 
+  const displayTitle = album?.title ?? albumTitle;
+  const showOfflineUnavailable =
+    offlineModeEnabled && !isLoading && displayTitle === null && trackRows.length === 0;
+
   return (
     <ScrollView
       contentContainerStyle={styles.content}
       style={{ backgroundColor: themeStyles.screen.backgroundColor }}
       testID="album-detail-screen"
     >
-      <Text style={styles.heading}>{album?.title ?? t('media.music.album')}</Text>
+      <Text style={styles.heading}>{displayTitle ?? t('media.music.album')}</Text>
       {isLoading ? <ListLoading testID="album-detail-loading" /> : null}
+      {showOfflineUnavailable ? (
+        <ListEmpty
+          messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+          testID="album-detail-offline-unavailable"
+        />
+      ) : null}
       {!isLoading && errorKey !== null ? (
         <ListError
           messageKey={errorKey}
@@ -202,10 +233,10 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
           testID="album-detail-error"
         />
       ) : null}
-      {!isLoading && errorKey === null ? (
+      {!isLoading && errorKey === null && !showOfflineUnavailable ? (
         <>
           <View style={styles.card}>
-            <Text style={styles.cardHeading}>{album?.title ?? t('media.music.album')}</Text>
+            <Text style={styles.cardHeading}>{displayTitle ?? t('media.music.album')}</Text>
             {album?.channel_description?.value ? (
               <Text style={styles.cardDescription}>{album.channel_description.value}</Text>
             ) : null}
@@ -213,13 +244,15 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
 
           <View style={styles.card}>
             <Text style={styles.cardHeading}>{t('media.music.tracks')}</Text>
-            <SortSelectRow
-              heading={t('filters.screen.sort_heading')}
-              onSelect={handleSortSelect}
-              options={trackSortOptions}
-              testID="album-detail-sort"
-              value={trackSort}
-            />
+            {!offlineModeEnabled ? (
+              <SortSelectRow
+                heading={t('filters.screen.sort_heading')}
+                onSelect={handleSortSelect}
+                options={trackSortOptions}
+                testID="album-detail-sort"
+                value={trackSort}
+              />
+            ) : null}
             {trackRows.length === 0 ? (
               <ListEmpty messageKey="misc.info" testID="album-detail-empty" />
             ) : (

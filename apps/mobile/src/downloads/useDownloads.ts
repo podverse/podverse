@@ -171,7 +171,11 @@ export const useDownloadAction = (item: DTOItem, includeProgress = false): Downl
       try {
         const result = await downloadManager.enqueue(item);
         if (!result.ok) {
-          setNoticeKey('features.download.not_downloadable');
+          setNoticeKey(
+            result.reason === 'offline_mode'
+              ? 'settings.offline_mode.unavailable'
+              : 'features.download.not_downloadable'
+          );
         }
       } catch {
         setNoticeKey('errors.generic');

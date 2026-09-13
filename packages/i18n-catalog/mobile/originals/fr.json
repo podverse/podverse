@@ -12,7 +12,8 @@
       "home": "Accueil",
       "opml": "OPML",
       "search_result": "Résultat de recherche",
-      "rss_feeds": "Flux RSS"
+      "rss_feeds": "Flux RSS",
+      "podcast_settings": "Paramètres du podcast"
     },
     "menu": {
       "opml": "OPML",
@@ -27,6 +28,9 @@
       "rate_limited_time_one": "1 minute",
       "rate_limited_time_other": "{minutes} minutes"
     },
+    "channel": {
+      "section_requires_connection": "Cette section nécessite une connexion. Réessayez une fois de retour en ligne."
+    },
     "browse": {
       "category_all": "Toutes les catégories",
       "collapse_category": "Masquer les sous-catégories de {name}",
@@ -39,6 +43,8 @@
     "download": {
       "queued": "En file d'attente",
       "remove": "Supprimer",
+      "cancel_download": "Annuler le téléchargement",
+      "remove_download": "Retirer le téléchargement",
       "empty": "Aucun téléchargement pour le moment",
       "downloaded": "Téléchargés",
       "not_downloadable": "Cet épisode ne peut pas être téléchargé pour une écoute hors ligne",
@@ -49,6 +55,8 @@
       "auto_removed_notice": "Les téléchargements les plus anciens ont été supprimés pour libérer de l'espace",
       "dismiss": "Fermer",
       "in_progress_count": "{count} en cours",
+      "auto_download": "Télécharger automatiquement les nouveaux épisodes",
+      "auto_download_unavailable": "Le téléchargement automatique n'est pas encore disponible.",
       "paused": "En pause",
       "pause_all": "Tout mettre en pause",
       "resume_all": "Tout reprendre",
@@ -80,6 +88,12 @@
       "playback_description": "Type de média par défaut et file automatique",
       "downloads_description": "Limite de stockage, libération automatique et suppression de tous les téléchargements",
       "notifications_description": "Alertes dans l'app et push"
+    },
+    "offline_mode": {
+      "title": "Mode hors ligne",
+      "description": "Le mode hors ligne n'utilise que les téléchargements et le reste du contenu déjà stocké sur cet appareil. Recherche, Parcourir, la synchro et tout ce qui a besoin d'Internet restent indisponibles jusqu'à ce que vous le désactiviez.",
+      "unavailable": "Cet écran n'est pas disponible en mode hors ligne.",
+      "banner": "Le mode hors ligne est activé"
     },
     "downloads": {
       "storage_heading": "Stockage",

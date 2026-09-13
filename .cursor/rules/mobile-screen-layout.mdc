@@ -62,9 +62,10 @@ and below chips, around a divider, between paired labels), use the same token �
 
 ## Search field and chips
 
-Search uses **`SearchField`** (built on **`TextField`**): tertiary fill, no resting outline,
-leading magnifying-glass, a 2px transparent border that becomes `tokens.border.primary` on
-focus. Do not restyle a bare `TextInput` with a perimeter stroke.
+**`TextField`** owns the painted pill: tertiary fill, no resting outline, a 2px transparent
+border that becomes `tokens.border.primary` on focus. **`SearchField`** adds the leading
+magnifying-glass and a search return key. **`ListFilterField`** is the same `TextField` plus a
+clear `Button`. Do not restyle a bare `TextInput` with a perimeter stroke.
 
 The painted pill is the hit target. A tap anywhere inside it — padding, empty space, or the
 leading glass — focuses the input. `TextField` implements that; do not rebuild it per screen.
@@ -131,13 +132,19 @@ gap. Filter fields then use **`listFilterFieldBottomMargin`** for the filter→r
 ## Filter field → content seam
 
 The gap from a **`ListFilterField`** bottom edge to the first list row or grid tile is
-**`listFilterContentGap(tokens.spacing)`** (`spacing.base`). Apply it with
-**`listFilterFieldBottomMargin(tokens.spacing, nextContentTopPadding)`** as the field's
-`marginBottom`:
+**`listFilterContentGap(tokens.spacing)`** (`spacing.base`). Wrap the field in
+**`ListFilterHeader`** and put **`listFilterFieldBottomMargin(tokens.spacing, nextContentTopPadding)`**
+on that wrapper's `style` (`marginBottom`):
 
 - **List** rows that use `listRowVerticalPadding(spacing.base)`: pass `spacing.base` so the field
   does not double the row's top padding.
 - **Grid** tiles with no top padding: pass `0`.
+
+`ListFilterHeader` paints a hairline (`StyleSheet.hairlineWidth` + `themeStyles.border.borderColor`)
+on its bottom edge when **`hasItemsBelow`** is true. Pass that when the list has at least one row or
+tile after the field. Omit it when the list is empty or the term hid every row. The header's
+`paddingBottom` is `listFilterContentGap` so the line sits below the field, not on the field's
+own border. Do not put the margin on the field itself — that gap sits *below* the hairline.
 
 Do not use a raw `marginBottom: spacing.md` on the filter (too tight on grid once list padding is
 added elsewhere, too loose on list when stacked with row padding). Home switches the second
@@ -148,7 +155,7 @@ omits the bottom border** so a hairline does not sit on the list edge. Pass `isL
 `HomeFeedRow`. `ListSection` already supplies it as the third `renderItem` argument
 `(item, index, isLast)`. `ReorderableSections` uses the same last-row rule.
 
-The rule between chips/filters and the first row is one step stronger than a row hairline:
+The rule between **chips** and the first row is one step stronger than a row hairline:
 `height: 1`, the same `themeStyles.border.borderColor`, and horizontal inset from
 `screenBodyInsets().paddingHorizontal` (Search's `listRule`). Do not invent a second color.
 
@@ -182,7 +189,9 @@ podroll is a short publisher list without title filtering. Episodes, official so
 **Downloaded** is always offered (with Episodes, About, and Clips): it lists finished offline
 episodes for this channel from `downloadsRepository.listCompleteByChannel`. An empty list is a
 real answer. Evidence chips (Official Clips, Podroll, …) sit **after** that always-on set so a
-first-visit insert is at the end of the row — **mobile-section-chrome-cache**.
+first-visit insert is at the end of the row — **mobile-section-chrome-cache**. While **Offline
+Mode** is on, podcast detail defaults to Downloaded (override only; do not overwrite the stored
+tab pref) — **mobile-offline-mode**.
 
 Sort and category controls sit in the chip-row **leading** slot and use **filter** chrome (square
 radius, accent outline) so they read as list narrows, not as sibling section pills. Mount them
@@ -243,7 +252,8 @@ link-style `Pressable` under Submit (`auth-switch-signup` / `auth-switch-login`)
 
 - Page gutter: `apps/mobile/src/theme/screenLayout.ts`
 - Chip→next seam: `listChipRowBottomGap` (on `SectionChipRow`)
-- Filter→content seam: `listFilterContentGap` / `listFilterFieldBottomMargin` in the same file
+- Filter→content seam: `ListFilterHeader` (`hasItemsBelow`) + `listFilterContentGap` /
+  `listFilterFieldBottomMargin` in `screenLayout.ts`
 - Top chrome: `apps/mobile/src/components/screen/HeaderBar.tsx`
 - Fill lists: `apps/mobile/src/components/primitives/FillList.tsx`
 - Skill: **mobile-reusable-components**

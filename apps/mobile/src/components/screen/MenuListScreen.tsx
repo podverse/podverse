@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -22,6 +23,11 @@ export type MenuListSection = {
   items: readonly MenuListItem[];
   key: string;
   title?: string;
+  /**
+   * Optional content rendered at the top of the section Card (e.g. Offline Mode switch). When
+   * present with nav rows, a hairline separates the header from the first row.
+   */
+  header?: ReactNode;
 };
 
 export type MenuListScreenProps = {
@@ -78,12 +84,18 @@ function MenuListGroup({ items }: { items: readonly MenuListItem[] }) {
  * actions (Log out).
  */
 export function MenuListScreen({ sections, testID }: MenuListScreenProps) {
-  const { tokens } = useTheme();
-  const visibleSections = sections.filter((section) => section.items.length > 0);
+  const { styles: themeStyles, tokens } = useTheme();
+  const visibleSections = sections.filter(
+    (section) => section.items.length > 0 || section.header !== undefined
+  );
 
   const styles = useMemo(
     () =>
       StyleSheet.create({
+        headerDivider: {
+          borderBottomColor: themeStyles.border.borderColor,
+          borderBottomWidth: StyleSheet.hairlineWidth,
+        },
         section: {
           gap: tokens.spacing.lg,
         },
@@ -96,7 +108,7 @@ export function MenuListScreen({ sections, testID }: MenuListScreenProps) {
           fontWeight: '700',
         },
       }),
-    [tokens]
+    [themeStyles, tokens]
   );
 
   return (
@@ -109,7 +121,12 @@ export function MenuListScreen({ sections, testID }: MenuListScreenProps) {
             </Text>
           ) : null}
           <Card padded={false}>
-            <MenuListGroup items={section.items} />
+            {section.header !== undefined ? (
+              <View style={section.items.length > 0 ? styles.headerDivider : undefined}>
+                {section.header}
+              </View>
+            ) : null}
+            {section.items.length > 0 ? <MenuListGroup items={section.items} /> : null}
           </Card>
         </View>
       ))}

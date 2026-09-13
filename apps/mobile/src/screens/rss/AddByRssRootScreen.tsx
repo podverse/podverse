@@ -6,12 +6,15 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useAuth } from '../../auth/AuthProvider';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { AuthAwareLoadState } from '../../components/state/AuthAwareLoadState';
+import { ListEmpty } from '../../components/state/ListEmpty';
 import { isMobileE2eFromEnv } from '../../config/env';
 import { useAddByRssAddFlow } from '../../hooks/useAddByRssAddFlow';
 import { useAddByRssFeeds } from '../../hooks/useAddByRssFeeds';
 import { useAddByRssPlayback } from '../../hooks/useAddByRssPlayback';
+import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import type { LibraryStackParamList } from '../../navigation';
 import { LIBRARY_STACK_ROUTES } from '../../navigation';
+import { useOfflineMode } from '../../prefs/offlineMode';
 import { useTheme } from '../../theme/useTheme';
 
 type AddByRssRootScreenProps = NativeStackScreenProps<LibraryStackParamList, 'AddByRssRoot'>;
@@ -20,6 +23,7 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const { status } = useAuth();
+  const { enabled: offlineModeEnabled } = useOfflineMode();
   const [inputValue, setInputValue] = useState<string>('');
   const [noticeKey, setNoticeKey] = useState<string | null>(null);
   const { errorKey, feeds, isLoading, reloadFeeds, removeFeed } = useAddByRssFeeds({
@@ -117,32 +121,41 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
 
   return (
     <MobileScreenContainer heading={t('features.add_by_rss.label')} testID="rss-root-screen">
-      <View style={styles.card}>
-        <TextInput
-          autoCapitalize="none"
-          autoCorrect={false}
-          onChangeText={setInputValue}
-          placeholder={t('features.add_by_rss.feed_url')}
-          style={styles.input}
-          testID="rss-url-input"
-          value={inputValue}
-        />
-        <Pressable
-          disabled={isAdding}
-          onPress={() => {
-            void addFeed();
-          }}
-          style={[styles.addButton, isAdding ? styles.addButtonDisabled : null]}
-          testID="rss-add-submit"
-        >
-          <Text style={styles.addButtonLabel}>{t('features.add_by_rss.label')}</Text>
-        </Pressable>
-        {addErrorKey !== null ? (
-          <Text style={styles.notice} testID="rss-add-error">
-            {t(addErrorKey)}
-          </Text>
-        ) : null}
-      </View>
+      {offlineModeEnabled ? (
+        <View style={styles.card} testID="rss-add-offline-unavailable">
+          <ListEmpty
+            messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+            testID="rss-add-offline-unavailable-message"
+          />
+        </View>
+      ) : (
+        <View style={styles.card}>
+          <TextInput
+            autoCapitalize="none"
+            autoCorrect={false}
+            onChangeText={setInputValue}
+            placeholder={t('features.add_by_rss.feed_url')}
+            style={styles.input}
+            testID="rss-url-input"
+            value={inputValue}
+          />
+          <Pressable
+            disabled={isAdding}
+            onPress={() => {
+              void addFeed();
+            }}
+            style={[styles.addButton, isAdding ? styles.addButtonDisabled : null]}
+            testID="rss-add-submit"
+          >
+            <Text style={styles.addButtonLabel}>{t('features.add_by_rss.label')}</Text>
+          </Pressable>
+          {addErrorKey !== null ? (
+            <Text style={styles.notice} testID="rss-add-error">
+              {t(addErrorKey)}
+            </Text>
+          ) : null}
+        </View>
+      )}
 
       <View style={styles.card}>
         <Pressable

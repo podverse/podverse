@@ -33,12 +33,12 @@ Consistency and DRYness across tabs/screens matter as much as on web. Rebuilding
 | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Low-level controls                          | `components/primitives/` (`Button`, `Card`, `CountBadge`, `CoverImage`, `ImageViewerModal`, `MoreMenu`, `FillList`, `ListRow`, `ReorderHandle`, `ScreenHeader`, `VerticalCenter`) |
 | Reorder / drag                              | `components/reorder/` (`ReorderableSections`, `ReorderableList`)                                                                                                                  |
-| Screen scaffold                             | `components/screen/` (`HeaderBar`, `HeaderBarChrome`, `HeaderBarAction`, `MobileScreenContainer`, `ThemedStackHeader`)                                                            |
+| Screen scaffold                             | `components/screen/` (`HeaderBar`, `HeaderBarChrome`, `HeaderBarAction`, `OfflineModeBanner`, `MobileScreenContainer`, `ThemedStackHeader`) |
 | Section / list grouping                     | `components/section/` (`SectionCard`, `ListSection`)                                                                                                                              |
 | Loading / empty / error / auth-gated chrome | `components/state/` (`ListLoading`, `ListEmpty`, `ListError`, `CallToActionSection`, `LoadingSection`, `AuthAwareLoadState`, `RetryableError`)                                    |
 | Playback row actions / mini player          | `components/player/`                                                                                                                                                              |
 | Membership / gate feedback                  | `components/feedback/` (`ConfirmDialog` via `openGate`, `HelperNote`, `GatedFeatureNotice` only when there is no action to attach)                                                |
-| Form / settings selects                     | `components/form/` (`TextField`, `SearchField`, `OptionChipGroup`, `SettingsOptionNavRow`, `OptionListScreen`)                                                                    |
+| Form / settings selects                     | `components/form/` (`TextField`, `SearchField`, `ListFilterField`, `OptionChipGroup`, `SettingsOptionNavRow`, `OptionListScreen`)                                                 |
 | Domain controls (download, filters)         | `components/download/`, `components/subscriptions/`                                                                                                                               |
 | Shared stateful logic                       | `hooks/`                                                                                                                                                                          |
 | Pure helpers                                | `lib/`                                                                                                                                                                            |
@@ -46,7 +46,8 @@ Consistency and DRYness across tabs/screens matter as much as on web. Rebuilding
 Do **not** import `@podverse/ui` (web components / SCSS). Tokens come from `@podverse/design-tokens`
 via **mobile-theme-parity**.
 
-**Search field:** use `SearchField` (tertiary fill, leading glass, focus ring). Do not clone a
+**Search / filter fields:** use `SearchField` or `ListFilterField`. Both are `TextField` (tertiary
+fill, focus ring). Search adds the leading glass; filter adds a clear `Button`. Do not clone a
 stroked `TextInput`. A boxed field that needs chrome or a leading icon uses **`TextField`** —
 it owns the hit-target contract and blurs when the host screen loses focus. Do not wrap a thin
 input in a padded `View`, and do not grow `TextInput` padding to fake a larger target. Field,
@@ -143,9 +144,9 @@ with `HeaderBarChrome` (`chevron-down`, no Cancel) and a text + link switch unde
       use `FillList`, not a raw `FlatList` with hand-toggled `scrollEnabled`.
 - [ ] User-facing strings go through i18n (`t()`), including `accessibilityLabel` (**i18n-user-facing-strings**).
 - [ ] New shared UI gets a stable `testID` where E2E will assert it.
-- [ ] Boxed fields use `TextField` / `SearchField` so the painted chrome is the hit target.
-      Do not wrap a `TextInput` in a padded `View`, and do not grow `TextInput` padding to
-      enlarge the target.
+- [ ] Boxed fields use `TextField` / `SearchField` / `ListFilterField` so the painted chrome
+      is the hit target. Do not wrap a `TextInput` in a padded `View`, and do not grow
+      `TextInput` padding to enlarge the target.
 - [ ] If you duplicated JSX that already exists on another screen, stop and extract.
 
 ## Avoid

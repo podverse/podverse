@@ -1,5 +1,5 @@
-export { ListFilterField } from './ListFilterField';
-export type { ListFilterFieldProps } from './ListFilterField';
+export { ListFilterField, ListFilterHeader } from './ListFilterField';
+export type { ListFilterFieldProps, ListFilterHeaderProps } from './ListFilterField';
 export { MenuSelectChip } from './MenuSelectChip';
 export type { MenuSelectChipOption, MenuSelectChipProps } from './MenuSelectChip';
 export { OptionChipGroup } from './OptionChipGroup';

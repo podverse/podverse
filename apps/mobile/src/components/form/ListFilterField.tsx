@@ -1,8 +1,47 @@
+import type { ReactNode } from 'react';
 import { useMemo } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { listFilterContentGap } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
+import { Button } from '../primitives';
+import { TextField } from './TextField';
+
+export type ListFilterHeaderProps = {
+  children: ReactNode;
+  /** Hairline on the bottom edge only when a row or tile follows this header. */
+  hasItemsBelow: boolean;
+  /**
+   * Put **`listFilterFieldBottomMargin`** here (not on the field) so that gap sits *below* the
+   * hairline. `listFilterContentGap` padding lives *above* the hairline so the line does not fuse
+   * with the field border. Spacing from chips / header above stays the caller's `marginTop`.
+   */
+  style?: StyleProp<ViewStyle>;
+};
+
+/**
+ * Wraps a `ListFilterField` so a hairline sits between the field and the first list row or grid
+ * tile, with `listFilterContentGap` of space under the input. Omit the line when the list is empty
+ * or the term hid every row.
+ */
+export function ListFilterHeader({ children, hasItemsBelow, style }: ListFilterHeaderProps) {
+  const { styles: themeStyles, tokens } = useTheme();
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        divider: {
+          borderBottomColor: themeStyles.border.borderColor,
+          borderBottomWidth: StyleSheet.hairlineWidth,
+          paddingBottom: listFilterContentGap(tokens.spacing),
+        },
+      }),
+    [themeStyles, tokens]
+  );
+
+  return <View style={[hasItemsBelow ? styles.divider : null, style]}>{children}</View>;
+}
 
 export type ListFilterFieldProps = {
   /** Already-localized label for the control that empties the term. */
@@ -14,8 +53,8 @@ export type ListFilterFieldProps = {
   placeholder?: string;
   /**
    * Spacing from chips / header above is the caller's business (`marginTop`). Spacing to the first
-   * list or grid content below must use **`listFilterFieldBottomMargin`** from `screenLayout` so
-   * list (row top padding) and grid (no top padding) land on the same `listFilterContentGap` seam.
+   * list or grid content below belongs on **`ListFilterHeader`** via **`listFilterFieldBottomMargin`**
+   * so the hairline stays attached to the field and the gap sits below it.
    */
   style?: StyleProp<ViewStyle>;
   /** Input is `${testID}-input`, clear control is `${testID}-clear`. */
@@ -24,7 +63,8 @@ export type ListFilterFieldProps = {
 };
 
 /**
- * Free-text filter over a list already on screen.
+ * Free-text filter over a list already on screen. Uses `TextField` so the pill matches
+ * `SearchField`.
  *
  * Narrows what is rendered rather than requesting anything, so it stays responsive with no debounce
  * and belongs above the list it filters. The clear control appears only once there is a term to
@@ -39,33 +79,13 @@ export function ListFilterField({
   term,
   testID,
 }: ListFilterFieldProps) {
-  const { styles: themeStyles, tokens } = useTheme();
+  const { tokens } = useTheme();
 
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        clear: {
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.round,
-          borderWidth: 1,
-          paddingHorizontal: tokens.spacing.md,
-          paddingVertical: tokens.spacing.sm,
-        },
-        clearLabel: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 13,
-          fontWeight: '600',
-        },
-        input: {
-          backgroundColor: tokens.background.secondary,
-          borderColor: themeStyles.border.borderColor,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
-          color: themeStyles.textPrimary.color,
+        field: {
           flex: 1,
-          fontSize: 16,
-          paddingHorizontal: tokens.spacing.md,
-          paddingVertical: tokens.spacing.sm,
         },
         row: {
           alignItems: 'center',
@@ -73,34 +93,32 @@ export function ListFilterField({
           gap: tokens.spacing.sm,
         },
       }),
-    [themeStyles, tokens]
+    [tokens]
   );
 
   return (
     <View style={[styles.row, style]}>
-      <TextInput
+      <TextField
         accessibilityLabel={label}
         autoCapitalize="none"
         autoCorrect={false}
         onChangeText={onChangeTerm}
         placeholder={placeholder ?? label}
-        placeholderTextColor={themeStyles.textSecondary.color}
-        style={styles.input}
+        style={styles.field}
         testID={`${testID}-input`}
         value={term}
       />
       {term.length > 0 ? (
-        <Pressable
+        <Button
           accessibilityLabel={clearLabel}
-          accessibilityRole="button"
+          label={clearLabel}
           onPress={() => {
             onChangeTerm('');
           }}
-          style={styles.clear}
+          size="sm"
           testID={`${testID}-clear`}
-        >
-          <Text style={styles.clearLabel}>{clearLabel}</Text>
-        </Pressable>
+          variant="outline"
+        />
       ) : null}
     </View>
   );

@@ -79,9 +79,17 @@ describe('prefsStore', () => {
       'library.subscriptionFilter': null,
       locale: 'es',
       'membership.expiry_dismissed_for': null,
+      'offline.mode': null,
       pmt: null,
       preferred_media_type: null,
       uit: null,
     });
+  });
+
+  it('parses offline.mode as a boolean pref', async () => {
+    inMemoryStore.set('offline.mode', 'true');
+    await expect(getPref('offline.mode')).resolves.toBe(true);
+    await setPref('offline.mode', false);
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith('offline.mode', 'false');
   });
 });

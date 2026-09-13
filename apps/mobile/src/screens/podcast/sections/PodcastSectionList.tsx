@@ -3,11 +3,12 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, StyleSheet, Text } from 'react-native';
 
+import { ListFilterHeader } from '../../../components/form';
 import { FillList, VerticalCenter } from '../../../components/primitives';
 import { ListEmpty } from '../../../components/state/ListEmpty';
 import { ListError } from '../../../components/state/ListError';
 import { LoadingSection } from '../../../components/state/LoadingSection';
-import { screenBodyInsets } from '../../../theme/screenLayout';
+import { listFilterFieldBottomMargin, screenBodyInsets } from '../../../theme/screenLayout';
 import { useTheme } from '../../../theme/useTheme';
 
 export type PodcastSectionListProps<TRow> = {
@@ -79,6 +80,9 @@ export function PodcastSectionList<TRow>({
         content: {
           paddingBottom: tokens.spacing['2xl'],
           paddingHorizontal: screenBodyInsets(tokens.spacing).paddingHorizontal,
+        },
+        filterHeader: {
+          marginBottom: listFilterFieldBottomMargin(tokens.spacing, tokens.spacing.base),
         },
         list: {
           backgroundColor: themeStyles.screen.backgroundColor,
@@ -164,7 +168,13 @@ export function PodcastSectionList<TRow>({
           ) : null}
         </>
       }
-      ListHeaderComponent={listHeader}
+      ListHeaderComponent={
+        listHeader !== null && listHeader !== undefined ? (
+          <ListFilterHeader hasItemsBelow={listData.length > 0} style={styles.filterHeader}>
+            {listHeader}
+          </ListFilterHeader>
+        ) : null
+      }
       accessibilityLabel={accessibilityLabel}
       contentContainerStyle={styles.content}
       data={listData}

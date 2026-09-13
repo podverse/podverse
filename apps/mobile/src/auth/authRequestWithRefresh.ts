@@ -1,6 +1,8 @@
 import { getErrorResponseBodyCode, getErrorResponseStatus } from '@podverse/helpers/error';
 import type { ApiRequestService } from '@podverse/helpers-requests';
 
+import { isOfflineModeEnabled, OfflineModeEnabledError } from '../prefs/offlineMode';
+
 import type { SessionEndReason } from './forcedLogoutNotice';
 import { createMobileApiRequestService } from './mobileApi';
 
@@ -68,6 +70,10 @@ export const requestWithMobileAuthRefresh = async <T>(
   deps: AuthRequestDeps,
   runRequest: (apiRequestService: ApiRequestService) => Promise<T>
 ): Promise<T> => {
+  if (isOfflineModeEnabled()) {
+    throw new OfflineModeEnabledError();
+  }
+
   const initialApiRequestService = createMobileApiRequestService(deps.accessToken);
   if (initialApiRequestService === null) {
     throw new Error('Mobile API base URL is not configured');
@@ -76,8 +82,15 @@ export const requestWithMobileAuthRefresh = async <T>(
   try {
     return await runRequest(initialApiRequestService);
   } catch (error) {
+    if (error instanceof OfflineModeEnabledError) {
+      throw error;
+    }
     if (getErrorResponseStatus(error) !== 401) {
       throw error;
+    }
+
+    if (isOfflineModeEnabled()) {
+      throw new OfflineModeEnabledError();
     }
 
     const refreshedAccessToken = await refreshAccessTokenSingleFlight({

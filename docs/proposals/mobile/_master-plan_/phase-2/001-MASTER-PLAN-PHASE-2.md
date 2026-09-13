@@ -150,6 +150,7 @@ Nextgen product feedback on the Downloads screen (not a legacy port). Plan set:
 | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | --------- | -------- |
 | P2.1.5  | [731-redundant-screen-titles-sweep](/docs/proposals/mobile/_master-plan_/phase-2/details/731-redundant-screen-titles-sweep.md)                 | Auto      | done     |
 | P2.1.10 | [732-downloads-settings-storage](/docs/proposals/mobile/_master-plan_/phase-2/details/732-downloads-settings-storage.md)                       | Codex 5.3 | done     |
+| P2.1.10 | [742-offline-mode](/docs/proposals/mobile/_master-plan_/phase-2/details/742-offline-mode.md)                                                   | Auto      | done     |
 | P2.1.5  | [733-download-list-sections-and-rows](/docs/proposals/mobile/_master-plan_/phase-2/details/733-download-list-sections-and-rows.md)             | Codex 5.3 | done     |
 | P2.1.5  | [734-download-pause-resume-concurrency](/docs/proposals/mobile/_master-plan_/phase-2/details/734-download-pause-resume-concurrency.md)         | Opus 5    | done     |
 | P2.1.5  | [735-swipe-action-row](/docs/proposals/mobile/_master-plan_/phase-2/details/735-swipe-action-row.md)                                           | Codex 5.3 | done     |
@@ -236,6 +237,18 @@ screen work depends on, and they change contracts beyond `apps/mobile` (API, ORM
 | P2.4.8  | [717-fast-startup-and-sync-queue](/docs/proposals/mobile/_master-plan_/phase-2/details/717-fast-startup-and-sync-queue.md)               | Opus 5 | done   |
 | P2.4.9  | [718-sync-progress-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/718-sync-progress-indicator.md)                       | Opus 5 | done   |
 | P2.4.10 | [719-sync-event-log](/docs/proposals/mobile/_master-plan_/phase-2/details/719-sync-event-log.md)                                         | Opus 5 | done   |
+| P2.4.11 | [743-offline-playback-reconciliation](/docs/proposals/mobile/_master-plan_/phase-2/details/743-offline-playback-reconciliation.md)       | TBD    | planned |
+| P2.4.12 | [744-multi-device-playback-handoff](/docs/proposals/mobile/_master-plan_/phase-2/details/744-multi-device-playback-handoff.md)           | TBD    | planned |
+
+**P2.4.11 and P2.4.12 are the open items in this track, and they are correctness work rather than
+polish.** Playback history and position are server-authoritative with a pull-only mobile cache:
+mobile never posts position during playback, and a history write that fails offline is dropped
+rather than queued. Offline Mode (P2.1.10) makes that state reachable on purpose, so a user can now
+deliberately enter the one mode where listening is not recorded. P2.4.11 gives playback the outbox
+and client listen timestamps that subscriptions and channel seen state already have, so offline
+listening replays into the timeline in the order it happened. P2.4.12 decides what the user sees
+when two signed-in devices are both playing — today the last write silently wins. Sequence P2.4.11
+before P2.4.12; the handoff UX cannot compare positions until they carry a trustworthy time.
 
 **Step numbers are identifiers, not the run order.** Within P2.4 the run order is the plan set's —
 see [00-EXECUTION-ORDER.md](/.llm/plans/completed/mobile-p2-home-podcasts/00-EXECUTION-ORDER.md).
@@ -330,6 +343,8 @@ above whenever status changes, per
 | [717-fast-startup-and-sync-queue](/docs/proposals/mobile/_master-plan_/phase-2/details/717-fast-startup-and-sync-queue.md)                               | P2.4.8  | Opus 5    | done          |
 | [718-sync-progress-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/718-sync-progress-indicator.md)                                       | P2.4.9  | Opus 5    | done          |
 | [719-sync-event-log](/docs/proposals/mobile/_master-plan_/phase-2/details/719-sync-event-log.md)                                                         | P2.4.10 | Opus 5    | done          |
+| [743-offline-playback-reconciliation](/docs/proposals/mobile/_master-plan_/phase-2/details/743-offline-playback-reconciliation.md)                       | P2.4.11 | TBD       | planned       |
+| [744-multi-device-playback-handoff](/docs/proposals/mobile/_master-plan_/phase-2/details/744-multi-device-playback-handoff.md)                           | P2.4.12 | TBD       | planned       |
 | [720-defer-home-media-type-sort-coverage](/docs/proposals/mobile/_master-plan_/phase-2/details/720-defer-home-media-type-sort-coverage.md)               | P2.1.3  | Codex 5.3 | deferred      |
 | [721-home-combined-subscriptions-and-rss-detail](/docs/proposals/mobile/_master-plan_/phase-2/details/721-home-combined-subscriptions-and-rss-detail.md) | P2.1.1  | Auto      | done          |
 | [723-podcast-channel-header-and-section-chips](/docs/proposals/mobile/_master-plan_/phase-2/details/723-podcast-channel-header-and-section-chips.md)     | P2.1.2  | Codex 5.3 | done          |
@@ -340,6 +355,7 @@ above whenever status changes, per
 | [730-podcast-header-and-item-row-density](/docs/proposals/mobile/_master-plan_/phase-2/details/730-podcast-header-and-item-row-density.md)               | P2.1.2  | Codex 5.3 | done          |
 | [731-redundant-screen-titles-sweep](/docs/proposals/mobile/_master-plan_/phase-2/details/731-redundant-screen-titles-sweep.md)                           | P2.1.5  | Auto      | done          |
 | [732-downloads-settings-storage](/docs/proposals/mobile/_master-plan_/phase-2/details/732-downloads-settings-storage.md)                                 | P2.1.10 | Codex 5.3 | done          |
+| [742-offline-mode](/docs/proposals/mobile/_master-plan_/phase-2/details/742-offline-mode.md)                                                             | P2.1.10 | Auto      | done          |
 | [733-download-list-sections-and-rows](/docs/proposals/mobile/_master-plan_/phase-2/details/733-download-list-sections-and-rows.md)                       | P2.1.5  | Codex 5.3 | done          |
 | [734-download-pause-resume-concurrency](/docs/proposals/mobile/_master-plan_/phase-2/details/734-download-pause-resume-concurrency.md)                   | P2.1.5  | Opus 5    | done          |
 | [735-swipe-action-row](/docs/proposals/mobile/_master-plan_/phase-2/details/735-swipe-action-row.md)                                                     | P2.1.5  | Codex 5.3 | done          |

@@ -11,6 +11,8 @@ export type HeaderBarChromeProps = {
   backAccessibilityLabel?: string;
   backIcon?: HeaderBarActionProps['icon'];
   backTestID?: string;
+  /** Forwarded to {@link HeaderBar}. */
+  includeStatusInset?: boolean;
   onBack?: () => void;
   right?: ReactNode;
   testID?: string;
@@ -26,6 +28,7 @@ export function HeaderBarChrome({
   backAccessibilityLabel,
   backIcon = 'chevron-back',
   backTestID = 'stack-header-back',
+  includeStatusInset = true,
   onBack,
   right,
   testID,
@@ -65,7 +68,7 @@ export function HeaderBarChrome({
   );
 
   return (
-    <HeaderBar testID={testID}>
+    <HeaderBar includeStatusInset={includeStatusInset} testID={testID}>
       <View style={styles.row}>
         {onBack !== undefined ? (
           <View style={styles.left}>

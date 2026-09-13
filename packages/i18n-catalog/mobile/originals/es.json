@@ -12,7 +12,8 @@
       "home": "Inicio",
       "opml": "OPML",
       "search_result": "Resultado de búsqueda",
-      "rss_feeds": "Feeds RSS"
+      "rss_feeds": "Feeds RSS",
+      "podcast_settings": "Configuración del podcast"
     },
     "menu": {
       "opml": "OPML",
@@ -27,6 +28,9 @@
       "rate_limited_time_one": "1 minute",
       "rate_limited_time_other": "{minutes} minutes"
     },
+    "channel": {
+      "section_requires_connection": "Esta sección necesita conexión. Inténtalo de nuevo cuando vuelvas a estar en línea."
+    },
     "browse": {
       "category_all": "Todas las categorías",
       "collapse_category": "Ocultar las subcategorías de {name}",
@@ -39,6 +43,8 @@
     "download": {
       "queued": "En cola",
       "remove": "Eliminar",
+      "cancel_download": "Cancelar descarga",
+      "remove_download": "Eliminar descarga",
       "empty": "Aún no hay descargas",
       "downloaded": "Descargados",
       "not_downloadable": "Este episodio no se puede descargar para reproducir sin conexión",
@@ -49,6 +55,8 @@
       "auto_removed_notice": "Se eliminaron las descargas más antiguas para liberar espacio",
       "dismiss": "Descartar",
       "in_progress_count": "{count} en curso",
+      "auto_download": "Descargar automáticamente los episodios nuevos",
+      "auto_download_unavailable": "La descarga automática aún no está disponible.",
       "paused": "En pausa",
       "pause_all": "Pausar todo",
       "resume_all": "Reanudar todo",
@@ -80,6 +88,12 @@
       "playback_description": "Tipo de medio predeterminado y cola automática",
       "downloads_description": "Límite de almacenamiento, liberar espacio y eliminar todas las descargas",
       "notifications_description": "Alertas en la app y push"
+    },
+    "offline_mode": {
+      "title": "Modo sin conexión",
+      "description": "El modo sin conexión usa solo las descargas y el resto del contenido ya guardado en este dispositivo. Buscar, Explorar, la sincronización y todo lo que necesita internet permanecen no disponibles hasta que lo desactives.",
+      "unavailable": "Esta pantalla no está disponible en el modo sin conexión.",
+      "banner": "El modo sin conexión está activado"
     },
     "downloads": {
       "storage_heading": "Almacenamiento",

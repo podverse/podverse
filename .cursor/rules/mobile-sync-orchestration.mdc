@@ -88,3 +88,5 @@ translated sentence and no code is not diagnosable.
 - [718-sync-progress-indicator](/docs/proposals/mobile/_master-plan_/phase-2/details/718-sync-progress-indicator.md)
 - [719-sync-event-log](/docs/proposals/mobile/_master-plan_/phase-2/details/719-sync-event-log.md)
 - Skill: **mobile-data-layer** — offline-first storage and native cache projection
+- Rule: **mobile-offline-mode** — user-forced Offline Mode parks this queue the same way as a real
+  outage; do not auto-toggle from NetInfo

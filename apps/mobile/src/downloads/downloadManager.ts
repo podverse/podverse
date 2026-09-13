@@ -11,6 +11,7 @@ import {
   readDownloadAutoDeleteOnLimitEnabled,
   readDownloadQuotaBytes,
 } from '../prefs/downloadPrefs';
+import { isOfflineModeEnabled, subscribeOfflineMode } from '../prefs/offlineMode';
 import type { DownloadIneligibleReason } from './downloadEligibility';
 import { isItemDownloadable } from './downloadEligibility';
 import {
@@ -362,6 +363,10 @@ export const downloadManager = {
    * paused/complete so duplicate taps do not spawn extra jobs.
    */
   enqueue: async (item: DTOItem): Promise<EnqueueResult> => {
+    if (isOfflineModeEnabled()) {
+      return { ok: false, reason: 'offline_mode' };
+    }
+
     const eligibility = isItemDownloadable(item);
     if (!eligibility.ok) {
       return { ok: false, reason: eligibility.reason };
@@ -609,3 +614,10 @@ export const downloadManager = {
     await downloadsRepository.clear();
   },
 };
+
+// When Offline Mode turns on, pause every in-flight transfer so nothing keeps using the network.
+void subscribeOfflineMode((enabled) => {
+  if (enabled) {
+    void downloadManager.pauseAll();
+  }
+});

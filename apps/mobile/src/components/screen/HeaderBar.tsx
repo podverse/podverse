@@ -16,15 +16,23 @@ export const headerBarTypography: TypographyStyle = {
 
 export type HeaderBarProps = {
   children: ReactNode;
+  /**
+   * When false, skip the status-bar inset (parent chrome already owns it). Default true.
+   */
+  includeStatusInset?: boolean;
   testID?: string;
 };
 
 /**
- * Top chrome shared by tab roots and stack titles: safe-area inset and a fixed-height content row.
- * No divider under the title — `headerShadowVisible: false` on the stack keeps iOS from painting
- * one either.
+ * Top chrome shared by tab roots and stack titles: optional safe-area inset and a fixed-height
+ * title row. No divider under the title — `headerShadowVisible: false` on the stack keeps iOS
+ * from painting one either.
  */
-export function HeaderBar({ children, testID }: HeaderBarProps) {
+export function HeaderBar({
+  children,
+  includeStatusInset = true,
+  testID,
+}: HeaderBarProps) {
   const { styles: themeStyles } = useTheme();
   const insets = useSafeAreaInsets();
 
@@ -33,14 +41,14 @@ export function HeaderBar({ children, testID }: HeaderBarProps) {
       StyleSheet.create({
         container: {
           backgroundColor: themeStyles.screen.backgroundColor,
-          paddingTop: insets.top,
+          paddingTop: includeStatusInset ? insets.top : 0,
         },
         content: {
           height: HEADER_BAR_HEIGHT,
           justifyContent: 'center',
         },
       }),
-    [insets.top, themeStyles]
+    [includeStatusInset, insets.top, themeStyles]
   );
 
   return (

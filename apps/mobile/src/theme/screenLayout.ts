@@ -84,8 +84,10 @@ export function listChipRowBottomGap(spacing: ThemeTokens['spacing']): number {
 }
 
 /**
- * `marginBottom` for a `ListFilterField` so the **visual** gap to the next content equals
- * `listFilterContentGap`, after subtracting top padding the first row/tile already carries.
+ * `marginBottom` for a `ListFilterHeader` so the **visual** gap *below* the hairline equals
+ * `listFilterContentGap`, after subtracting top padding the first row/tile already carries. Put it
+ * on the header wrapper, not the field. The header's own `paddingBottom` keeps the same gap
+ * *above* the hairline so the line does not sit on the field border.
  *
  * List rows that use `listRowVerticalPadding(spacing.base)` pass `spacing.base`; grid tiles with no
  * top padding pass `0`.

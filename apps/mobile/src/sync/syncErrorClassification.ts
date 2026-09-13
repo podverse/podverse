@@ -5,6 +5,8 @@ import {
   getErrorResponseStatus,
 } from '@podverse/helpers/error';
 
+import { OfflineModeEnabledError } from '../prefs/offlineMode';
+
 /**
  * Machine-readable outcome of a failed sync job.
  *
@@ -60,6 +62,10 @@ export const classifySyncError = (error: unknown): SyncErrorClassification => {
     return { code: 'sync_job_timeout', isOffline: false };
   }
 
+  if (error instanceof OfflineModeEnabledError) {
+    return { code: 'offline_mode', isOffline: true };
+  }
+
   const status = getErrorResponseStatus(error);
   if (status !== undefined) {
     // The status says which layer refused and the body code says why it refused, so an API that
@@ -70,6 +76,10 @@ export const classifySyncError = (error: unknown): SyncErrorClassification => {
   }
 
   const errorCode = getErrorCode(error);
+  if (errorCode === 'ERR_OFFLINE_MODE') {
+    return { code: 'offline_mode', isOffline: true };
+  }
+
   if (errorCode !== undefined && OFFLINE_ERROR_CODES.has(errorCode)) {
     return { code: errorCode.toLowerCase(), isOffline: true };
   }

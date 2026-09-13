@@ -10,8 +10,12 @@ import { useAuth } from '../../auth/AuthProvider';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
+import { channelItemsRepository } from '../../data/repositories/channelItemsRepository';
+import { subscriptionsRepository } from '../../data/repositories/subscriptionsRepository';
+import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import type { ChannelBrowseStackParamList } from '../../navigation';
 import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
+import { useOfflineMode } from '../../prefs/offlineMode';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { mapItemToHomeFeedRow } from '../home/homeFeedData';
@@ -28,7 +32,9 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
+  const { enabled: offlineModeEnabled } = useOfflineMode();
   const [artist, setArtist] = useState<DTOChannel | null>(null);
+  const [artistTitle, setArtistTitle] = useState<string | null>(null);
   const [albums, setAlbums] = useState<DTOChannel[]>([]);
   const [trackRows, setTrackRows] = useState<HomeFeedRowData[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -93,6 +99,19 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     setIsLoading(true);
     setErrorKey(null);
     try {
+      if (offlineModeEnabled) {
+        const local = await subscriptionsRepository.getByIdText(artistId);
+        const items = await channelItemsRepository.listByChannel(artistId);
+        setArtist(null);
+        setArtistTitle(local?.title ?? null);
+        setAlbums([]);
+        setTrackRows(toTrackRows(items));
+        if (local === null && items.length === 0) {
+          setErrorKey(null);
+        }
+        return;
+      }
+
       const response = await requestWithMobileAuthRefresh(
         {
           accessToken,
@@ -104,21 +123,27 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
       );
 
       setArtist(response.channel);
+      setArtistTitle(response.channel.title);
       setAlbums(response.channelsAdded);
       setTrackRows(toTrackRows(response.itemsAdded));
     } catch {
       setErrorKey('errors.generic');
       setArtist(null);
+      setArtistTitle(null);
       setAlbums([]);
       setTrackRows([]);
     } finally {
       setIsLoading(false);
     }
-  }, [accessToken, artistId, clearSession, refreshToken, setTokens]);
+  }, [accessToken, artistId, clearSession, offlineModeEnabled, refreshToken, setTokens]);
 
   useEffect(() => {
     void loadArtist();
   }, [loadArtist]);
+
+  const displayTitle = artist?.title ?? artistTitle;
+  const showOfflineUnavailable =
+    offlineModeEnabled && !isLoading && displayTitle === null && trackRows.length === 0;
 
   return (
     <ScrollView
@@ -126,8 +151,14 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
       style={{ backgroundColor: themeStyles.screen.backgroundColor }}
       testID="artist-detail-screen"
     >
-      <Text style={styles.heading}>{artist?.title ?? t('media.music.artist')}</Text>
+      <Text style={styles.heading}>{displayTitle ?? t('media.music.artist')}</Text>
       {isLoading ? <ListLoading testID="artist-detail-loading" /> : null}
+      {showOfflineUnavailable ? (
+        <ListEmpty
+          messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+          testID="artist-detail-offline-unavailable"
+        />
+      ) : null}
       {!isLoading && errorKey !== null ? (
         <ListError
           messageKey={errorKey}
@@ -137,36 +168,38 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
           testID="artist-detail-error"
         />
       ) : null}
-      {!isLoading && errorKey === null ? (
+      {!isLoading && errorKey === null && !showOfflineUnavailable ? (
         <>
           <View style={styles.card}>
-            <Text style={styles.cardHeading}>{artist?.title ?? t('media.music.artist')}</Text>
+            <Text style={styles.cardHeading}>{displayTitle ?? t('media.music.artist')}</Text>
             {artist?.channel_description?.value ? (
               <Text style={styles.cardDescription}>{artist.channel_description.value}</Text>
             ) : null}
           </View>
 
-          <View style={styles.card}>
-            <Text style={styles.cardHeading}>{t('media.music.albums')}</Text>
-            {albums.length === 0 ? (
-              <ListEmpty messageKey="misc.info" testID="artist-detail-albums-empty" />
-            ) : (
-              albums.map((album) => (
-                <Pressable
-                  key={album.id_text}
-                  onPress={() => {
-                    navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.AlbumDetail, {
-                      albumId: album.id_text,
-                    });
-                  }}
-                  style={styles.albumCard}
-                  testID={`artist-album-row-${album.id_text}`}
-                >
-                  <Text style={styles.albumTitle}>{album.title ?? album.id_text}</Text>
-                </Pressable>
-              ))
-            )}
-          </View>
+          {!offlineModeEnabled ? (
+            <View style={styles.card}>
+              <Text style={styles.cardHeading}>{t('media.music.albums')}</Text>
+              {albums.length === 0 ? (
+                <ListEmpty messageKey="misc.info" testID="artist-detail-albums-empty" />
+              ) : (
+                albums.map((album) => (
+                  <Pressable
+                    key={album.id_text}
+                    onPress={() => {
+                      navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.AlbumDetail, {
+                        albumId: album.id_text,
+                      });
+                    }}
+                    style={styles.albumCard}
+                    testID={`artist-album-row-${album.id_text}`}
+                  >
+                    <Text style={styles.albumTitle}>{album.title ?? album.id_text}</Text>
+                  </Pressable>
+                ))
+              )}
+            </View>
+          ) : null}
 
           <View style={styles.card}>
             <Text style={styles.cardHeading}>{t('media.music.tracks')}</Text>

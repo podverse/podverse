@@ -29,6 +29,8 @@ import { GlobalActivityBar } from '../components/feedback/GlobalActivityBar';
 import { MiniPlayer } from '../components/player/MiniPlayer';
 import type { MenuListItem, MenuListSection } from '../components/screen/MenuListScreen';
 import { MenuListScreen } from '../components/screen/MenuListScreen';
+import { OfflineModeBanner } from '../components/screen/OfflineModeBanner';
+import { OfflineModeFeaturesHeader } from '../components/screen/OfflineModeFeaturesHeader';
 import { getMobileConfig } from '../config';
 import { buildMobileLinkPrefixes } from '../config/deepLinkSchemes';
 import { sumBadgeCounts } from '../downloads/inProgressDownloadCount';
@@ -1034,6 +1036,7 @@ function MoreRootScreen({
       title: t('nav.menu.section_account'),
     },
     {
+      header: <OfflineModeFeaturesHeader />,
       items: [
         ...overflowItems,
         {
@@ -1155,9 +1158,9 @@ function TabScaffold({
         ) : (
           <View>
             <PlaybackE2eStatus />
-            {/* Above the mini player, which renders nothing when idle — so the bar lands on the tab
-                bar by itself, with no conditional placement. */}
+            {/* Persistent bottom chrome above tabs: sync → Offline Mode → mini player. */}
             <GlobalActivityBar />
+            <OfflineModeBanner />
             <MiniPlayer onExpand={onOpenFullPlayer} />
             <OrderedTabBar {...props} />
           </View>
@@ -1242,16 +1245,32 @@ function TabScaffold({
 
   // The tablet tab bar is a left rail, so there is no bottom column for the bar to sit above. A
   // full-width strip under the whole navigator is the equivalent position, and it carries the
-  // home-indicator inset itself because nothing sits beneath it here.
+  // home-indicator inset itself because nothing sits beneath it here. Order matches phone:
+  // sync → Offline Mode → mini player.
   return (
     <View style={tabScaffoldStyles.tabletRoot}>
       {navigator}
-      <GlobalActivityBar bottomInset={insets.bottom} />
+      <View
+        style={[
+          tabScaffoldStyles.tabletBottomChrome,
+          {
+            backgroundColor: themeStyles.screen.backgroundColor,
+            paddingBottom: insets.bottom,
+          },
+        ]}
+      >
+        <GlobalActivityBar />
+        <OfflineModeBanner />
+        <MiniPlayer onExpand={onOpenFullPlayer} />
+      </View>
     </View>
   );
 }
 
 const tabScaffoldStyles = StyleSheet.create({
+  tabletBottomChrome: {
+    width: '100%',
+  },
   tabletRoot: {
     flex: 1,
   },

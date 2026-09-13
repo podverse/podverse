@@ -11,7 +11,8 @@
       "podcast_image": "Imagen del Podcast",
       "episode": "Episodio",
       "episodes": "Episodios",
-      "episode_image": "Imagen del Episodio"
+      "episode_image": "Imagen del Episodio",
+      "no_episodes_found": "No se encontraron episodios"
     },
     "music": {
       "music": "Música",
@@ -144,6 +145,7 @@
     "clip": {
       "clip": "Clip",
       "clips": "Clips",
+      "no_clips_found": "No se encontraron clips",
       "create_clip": "Crear Clip",
       "edit_clip": "Editar Clip",
       "delete_clip": "Eliminar Clip",
@@ -327,6 +329,7 @@
       "no_summary": "No hay resumen disponible"
     },
     "podroll": "Podroll",
+    "no_podroll_found": "No se encontraron podcasts recomendados",
     "show_more": "Mostrar más",
     "transcript": {
       "transcript": "Transcripción",
@@ -346,7 +349,8 @@
     },
     "soundbite": {
       "official_clip": "Clip Oficial",
-      "official_clips": "Clips Oficiales"
+      "official_clips": "Clips Oficiales",
+      "no_official_clips_found": "No se encontraron clips oficiales"
     },
     "time": {
       "left": "{timeRemaining} restante",
@@ -567,10 +571,17 @@
       "month": "Mes",
       "all_time": "Todo el Tiempo"
     },
+    "list": {
+      "title_label": "Filtrar por título",
+      "placeholder": "Filtrar...",
+      "clear": "Borrar",
+      "no_matches": "Ningún resultado coincide con tu filtro."
+    },
     "screen": {
       "title": "Filtrar y Ordenar",
       "filter_heading": "Filtrar",
-      "sort_heading": "Ordenar"
+      "sort_heading": "Ordenar",
+      "range_heading": "Rango"
     }
   },
   "legal": {
@@ -1020,7 +1031,11 @@
       "category_general_description": "Notificaciones importantes relacionadas con tu cuenta.",
       "new_item": "Nuevo elemento",
       "livestream_scheduled": "Transmisión en vivo programada",
-      "livestream_started": "Transmisión en vivo iniciada"
+      "livestream_started": "Transmisión en vivo iniciada",
+      "auto_enable_on_subscribe": "Activar notificaciones al suscribirme",
+      "auto_enable_on_subscribe_help": "Si está activado, al suscribirte a un podcast también se activan sus notificaciones, usando los tipos seleccionados abajo.",
+      "type_defaults_section": "Tipos de notificación",
+      "type_defaults_section_help": "Elige qué tipos de notificación se aplican cuando las notificaciones están activadas para un podcast."
     },
     "opml": {
       "opml": "OPML",
