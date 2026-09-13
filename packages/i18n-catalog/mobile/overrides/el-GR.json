@@ -47,7 +47,15 @@
       "delete_all": "",
       "auto_removed_notice": "",
       "dismiss": "",
-      "in_progress_count": ""
+      "in_progress_count": "",
+      "paused": "",
+      "pause_all": "",
+      "resume_all": "",
+      "clear_finished": "",
+      "section_in_progress": "",
+      "section_failed": "",
+      "section_completed": "",
+      "activity_progress": ""
     },
     "search": {
       "add_podcast": "",
@@ -69,7 +77,27 @@
       "appearance_description": "",
       "playback": "",
       "playback_description": "",
+      "downloads_description": "",
       "notifications_description": ""
+    },
+    "downloads": {
+      "storage_heading": "",
+      "device_storage": "",
+      "downloaded_media": "",
+      "app_data": "",
+      "cache": "",
+      "limit_label": "",
+      "unlimited": "",
+      "auto_free_heading": "",
+      "auto_delete_on_limit": "",
+      "auto_delete_on_limit_description": "",
+      "auto_delete_on_device_low": "",
+      "auto_delete_on_device_low_description": "",
+      "delete_all_heading": "",
+      "delete_all_description": "",
+      "delete_all": "",
+      "delete_all_confirm_title": "",
+      "delete_all_confirm_body": ""
     },
     "notifications": {
       "login_required_title": "",
@@ -88,6 +116,9 @@
       "add_to_bar": "",
       "reorder_hint": ""
     }
+  },
+  "subscriptions": {
+    "downloaded_not_subscribed": ""
   },
   "sync": {
     "job": {

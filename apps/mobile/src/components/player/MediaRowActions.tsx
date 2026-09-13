@@ -1,8 +1,11 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
+import { LIST_ROW_ACTION_ICON_SIZE } from '../../theme/screenLayout';
+import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 import type { ButtonSize, ButtonVariant } from '../primitives';
 import { Button, MoreMenu } from '../primitives';
@@ -34,6 +37,14 @@ export type MediaRowActionsProps = {
   size?: ButtonSize;
   /** Suffix appended to default testIDs (e.g. a row id) so sibling rows stay unique. */
   idSuffix?: string;
+  /**
+   * `icons` draws Play and More as icon-only controls with duration beside Play and More pushed to
+   * the trailing edge. `labels` keeps the labeled pills in a tight cluster.
+   */
+  appearance?: 'icons' | 'labels';
+  /** Already-formatted duration shown beside Play when `appearance` is `icons`. */
+  durationLabel?: string | null;
+  durationTestID?: string;
 };
 
 /** Minimal translate signature so the pure builder is unit-testable without i18next. */
@@ -101,7 +112,7 @@ export const buildMediaRowMoreActions = (
 
 /**
  * Shared media-row action affordance mirroring web `PlayButtonRow` + `ItemRowMoreActions` intents:
- * an inline Play/Pause button plus an optional "More options" trigger opening `MoreMenu`.
+ * an inline Play/Pause control plus an optional "More options" trigger opening `MoreMenu`.
  * Per-action copy is localized by the caller; the generic chrome uses i18n here.
  *
  * Presses stop propagation so the control works inside a row `Pressable` without also triggering
@@ -117,10 +128,16 @@ export function MediaRowActions({
   sheetTitle,
   size = 'sm',
   idSuffix = '',
+  appearance = 'labels',
+  durationLabel = null,
+  durationTestID,
 }: MediaRowActionsProps) {
   const { t } = useTranslation();
   const { tokens } = useTheme();
   const [isSheetVisible, setIsSheetVisible] = useState(false);
+  const useIcons = appearance === 'icons';
+  const hasDuration = durationLabel !== null && durationLabel.length > 0;
+  const actionVariant: ButtonVariant = useIcons ? 'outline' : playVariant;
 
   const hasMoreActions = moreActions !== undefined && moreActions.length > 0;
 
@@ -131,40 +148,82 @@ export function MediaRowActions({
           alignItems: 'center',
           flexDirection: 'row',
           gap: tokens.spacing.sm,
+          ...(useIcons ? { flex: 1, justifyContent: 'space-between' } : null),
+        },
+        duration: {
+          ...typography.caption,
+          color: tokens.text.accent,
+        },
+        leading: {
+          alignItems: 'center',
+          flexDirection: 'row',
+          gap: tokens.spacing.sm,
         },
       }),
-    [tokens]
+    [tokens, useIcons]
   );
 
   const closeSheet = () => {
     setIsSheetVisible(false);
   };
 
+  const iconColor = tokens.text.accent;
+
+  const playButton = (
+    <Button
+      accessibilityLabel={playLabel}
+      icon={
+        useIcons ? (
+          <Ionicons color={iconColor} name="play" size={LIST_ROW_ACTION_ICON_SIZE} />
+        ) : undefined
+      }
+      iconOnly={useIcons}
+      label={playLabel}
+      onPress={(event) => {
+        stopPropagation(event);
+        onPlayPress();
+      }}
+      size={size}
+      testID={playTestID ?? `media-row-play${idSuffix}`}
+      variant={actionVariant}
+    />
+  );
+
+  const moreButton = hasMoreActions ? (
+    <Button
+      accessibilityLabel={t('media.more_options')}
+      icon={
+        useIcons ? (
+          <Ionicons color={iconColor} name="ellipsis-horizontal" size={LIST_ROW_ACTION_ICON_SIZE} />
+        ) : undefined
+      }
+      iconOnly={useIcons}
+      label={t('media.more_options')}
+      onPress={(event) => {
+        stopPropagation(event);
+        setIsSheetVisible(true);
+      }}
+      size={size}
+      testID={moreTestID ?? `media-row-more${idSuffix}`}
+      variant={actionVariant}
+    />
+  ) : null;
+
   return (
     <View style={styles.container}>
-      <Button
-        label={playLabel}
-        onPress={(event) => {
-          stopPropagation(event);
-          onPlayPress();
-        }}
-        size={size}
-        testID={playTestID ?? `media-row-play${idSuffix}`}
-        variant={playVariant}
-      />
-      {hasMoreActions ? (
-        <Button
-          accessibilityLabel={t('media.more_options')}
-          label={t('media.more_options')}
-          onPress={(event) => {
-            stopPropagation(event);
-            setIsSheetVisible(true);
-          }}
-          size={size}
-          testID={moreTestID ?? `media-row-more${idSuffix}`}
-          variant="secondary"
-        />
-      ) : null}
+      {useIcons ? (
+        <View style={styles.leading}>
+          {playButton}
+          {hasDuration ? (
+            <Text style={styles.duration} testID={durationTestID}>
+              {durationLabel}
+            </Text>
+          ) : null}
+        </View>
+      ) : (
+        playButton
+      )}
+      {moreButton}
 
       {hasMoreActions ? (
         <MoreMenu

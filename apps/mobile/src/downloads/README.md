@@ -1,11 +1,10 @@
 # Offline downloads (`apps/mobile/src/downloads`)
 
-Track 13 — download episode files for offline playback. Pure logic + shared contract live here; the
-SQLite index and API access live in `src/data/` (`downloadsRepository`). See the master plan
-[Track 13](/docs/proposals/mobile/_master-plan_/phase-1/001-MASTER-PLAN.md) and
-[DOCS-MOBILE-PROCESS-MOBILE-ONLY-FEATURES.md §1–1.2](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-MOBILE-ONLY-FEATURES.md).
+Download episode files for offline playback. Pure logic + shared contract live here; the SQLite
+index and API access live in `src/data/` (`downloadsRepository`). See mobile-only features notes in
+[DOCS-MOBILE-PROCESS-MOBILE-ONLY-FEATURES.md](/docs/proposals/mobile/app-development-process/DOCS-MOBILE-PROCESS-MOBILE-ONLY-FEATURES.md).
 
-## Eligibility gate (13.1)
+## Eligibility gate
 
 `isItemDownloadable(item)` decides whether an item can be downloaded and, if so, which progressive
 source to fetch. It **rejects**:
@@ -25,78 +24,70 @@ matching mobile playback). Selection reuses `@podverse/helpers/item/itemEnclosur
 mkv` (see the helpers extension/MIME maps). Files are stored on disk **with their progressive
 extension** — never a `.m3u8` as the media file.
 
-## Status machine (13.1)
+## Status machine
 
-`DownloadStatus`: `queued → downloading → complete`; `downloading → failed`; `queued|downloading →
-cancelled`; `failed|cancelled → queued` (retry). **Concurrency is 1** — one job downloads at a time,
-the rest wait `queued`. Progress is reported via `DownloadProgressEvent` (`bytesDownloaded`,
-`byteSize`, `fraction`). Cancel/retry mutate the row and re-drive the queue.
+`DownloadStatus`: `queued → downloading → complete`; `downloading → paused` / `paused → downloading`;
+`downloading → failed`; `queued|downloading|paused → cancelled` (via remove); `failed → queued`
+(retry). **Concurrency is 5** (`DOWNLOAD_MAX_CONCURRENCY`) — up to five Expo `DownloadResumable`
+transfers at once. Pause all parks in-flight jobs and marks remaining queued jobs `paused`. Progress
+is reported via `DownloadProgressEvent` (`bytesDownloaded`, `byteSize`, `fraction`).
 
 Screens and hooks talk to `downloadsRepository` (source of truth) and the download manager only —
-never Expo FileSystem directly.
+never Expo FileSystem directly. Downloads do **not** enter the serial sync queue; the global activity
+bar shows a download line separately from sync.
 
-## Storage decision (13.2)
+## Storage
 
-**Expo FileSystem** (`expo-file-system`, ships with Expo SDK 52): resumable background downloads
-(`createDownloadResumable`) with progress callbacks, writing to app-private `documentDirectory`
-(persists across launches). Path layout: `documentDirectory + downloads/<id_text>.<ext>` — see
-`downloadStorage.ts` (`DOWNLOADS_SUBDIRECTORY`, `buildDownloadFileName`, `buildDownloadFilePath`,
-`hashEnclosureUri`). The absolute base directory and the transfer runner are wired in **13.4**; add
-the dependency then with `npm --prefix apps/mobile exec -- expo install expo-file-system`.
+**Expo FileSystem** (`expo-file-system`): resumable background downloads (`createDownloadResumable`)
+with progress callbacks, writing to app-private `documentDirectory`. Path layout:
+`documentDirectory + downloads/<id_text>.<ext>` — see `downloadStorage.ts`.
 
-## Playback from download (13.6)
+## Playback from download
 
-`resolvePlaybackUrl(item)` (in `src/lib/playback/resolvePlaybackUrl.ts`) is the single place the
-`PlaybackProvider` resolves an item's media URL. It prefers a **completed local file** (`file://`
-from `documentDirectory`) and falls back to the remote enclosure otherwise, feeding the exact same
-`podverse-media-engine` load path as remote playback — no second player. Only progressive files ever
-have a download row, so a downloaded item plays offline (airplane mode) while livestreams keep the
-remote path. If a `complete` row's file is missing on disk, the row is flipped to `failed` (so the
-episode screen offers a re-download) and playback falls back to remote for that attempt.
+`resolvePlaybackUrl(item)` (in `src/lib/playback/resolvePlaybackUrl.ts`) prefers a **completed local
+file** (`file://` from `documentDirectory`) and falls back to the remote enclosure. Only progressive
+files ever have a download row. If a `complete` row's file is missing on disk, the row is flipped to
+`failed` and playback falls back to remote for that attempt.
 
-## Storage quota + auto-delete (13.7–13.8)
+## Storage quota + auto-free
 
-`downloadQuota.ts` (pure, unit-tested) holds the policy: a **fixed 3 GiB default cap**
-(`DEFAULT_DOWNLOAD_QUOTA_BYTES`), `sumCompletedBytes` (only `complete` rows count — in-progress files
-are not final on disk), and `selectAutoDeleteVictims`, which picks **oldest completed first** (by
-`updatedAt`) until under cap, never selecting an in-progress row nor the just-finished download.
+`downloadQuota.ts` holds the policy: default **10 GiB** cap (`DEFAULT_DOWNLOAD_QUOTA_BYTES`),
+optional unlimited, `sumCompletedBytes` (only `complete` rows), and oldest-complete-first eviction.
 
-The **Downloads** screen is the manage-storage surface: usage summary
-(`Storage used: <used> / <cap>`), a **delete-all** affordance, per-row remove, and an **auto-delete
-toggle** (default **off**, persisted in `prefs/downloadPrefs.ts`). When auto-delete is on, the
-download runner calls `maybeAutoDelete` after each complete and, if over cap, evicts oldest-first;
-the screen shows a dismissible "removed oldest to free space" banner (`downloadManager`'s
-`getAutoDeleteNotice`). Every eviction deletes the file + SQLite row and re-projects the native cache
-(13.9). Usage/toggle/banner state comes from the `useDownloadStorage` hook.
+**More → Settings → Downloads** is the manage-storage surface: device / downloaded media / app data /
+cache meters, a configurable limit (1–50 GB or Unlimited), two independent auto-free toggles (limit
+reached; device free space under **1 GB**), and danger **Delete all** with confirm (deletes local
+media files and index rows). Prefs live in `prefs/downloadPrefs.ts` (AsyncStorage, mobile-only).
 
-## Native cache projection (13.9)
+**My Library → Downloads** is a monitor: Pause all / Resume all, Clear all finished
+(`dismissedFromList` — files stay playable and still count toward storage), sectioned list, swipe
+Remove. No storage chrome and no Play on that screen.
 
-Every `downloadsRepository` mutation that can change the completed set rebuilds the full
-completed-downloads index and calls `projectDownloadsIndexToNativeCache`
-(`src/data/nativeCache/projection.ts`), which forwards to the media-engine `writeDownloadsIndex`
-bridge (best-effort; never rolls back a successful download). This keeps the native cache coherent so
-CarPlay / Android Auto offline browse (Track 12.1 / 12.4 / 12.14) can list downloads without SQLite.
-Durable native-cache storage lands in Track 12; the bridge logs until then.
+## Native cache projection
 
-## E2E (13.10)
+Every `downloadsRepository` mutation that can change the completed set rebuilds the completed-downloads
+index and calls `projectDownloadsIndexToNativeCache` so CarPlay / Android Auto offline browse can list
+downloads without SQLite.
 
-`apps/mobile/e2e/library-downloads.yaml` (Maestro) downloads a seeded progressive episode, waits for
-complete, plays it (local-file path, 13.6), and confirms it in My Library → Downloads with the usage
-summary. The download runner reuses the playback loopback-host rewrite (`resolveE2eMediaUrl`) so
-transfers work on the iOS simulator / Android emulator. Maestro cannot toggle airplane mode, so true
-offline play is verified manually (airplane mode). Run: `npm run mobile:e2e:test -- library-downloads`
-(needs the E2E API + test-assets stack — see [e2e/HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md)).
+## E2E
+
+- `apps/mobile/e2e/library-downloads.yaml` — download → complete → play → list (Completed /
+  Clear finished). Needs E2E API + test-assets.
+- `apps/mobile/e2e/settings-downloads.yaml` — Settings → Downloads meters, delete-all confirm, limit
+  picker. Needs E2E API.
+
+Run: `npm run mobile:e2e:test -- library-downloads,settings-downloads` (see
+[e2e/HOW-TO-RUN.md](/apps/mobile/e2e/HOW-TO-RUN.md)).
 
 ## Files
 
 - `downloadEligibility.ts` — `isItemDownloadable`, `isHlsSource` (pure, unit-tested).
 - `downloadTypes.ts` — `DownloadStatus`, `DownloadRecord`, `DownloadProgressEvent` + guards.
-- `downloadStorage.ts` — on-disk naming/paths + URI hash (pure, unit-tested); Expo FileSystem
-  decision documented above.
-- `downloadManager.ts` — Expo FileSystem transfer runner (single-concurrency queue, de-dupe,
-  cancel/remove/removeAll + auto-delete); `useDownloads.ts` — `useDownloadsList` / `useItemDownload`
-  / `useDownloadStorage` hooks.
+- `downloadStorage.ts` — on-disk naming/paths + URI hash (pure, unit-tested).
+- `downloadStorageStats.ts` — device / downloads / app data / cache byte breakdown for Settings.
+- `downloadManager.ts` — Expo FileSystem transfer runner (concurrency 5, pause/resume, auto-free);
+  `useDownloads.ts` — list / item / storage hooks.
 - `downloadQuota.ts` — quota cap, usage sum, oldest-first eviction, byte formatting (pure,
-  unit-tested); `src/prefs/downloadPrefs.ts` — auto-delete toggle (AsyncStorage, default off).
-- Playback: `src/lib/playback/resolvePlaybackUrl.ts` (local-file-first URL resolution, 13.6).
+  unit-tested); `src/prefs/downloadPrefs.ts` — limit + auto-free toggles.
+- Playback: `src/lib/playback/resolvePlaybackUrl.ts`.
 - Persistence: `src/data/repositories/downloadsRepository.ts` (SQLite + native-cache projection).

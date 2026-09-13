@@ -90,11 +90,23 @@ between groups. Rows that push a screen show a `›`. In-place actions (Log out)
 ## List rows
 
 Media and result rows use **`HomeFeedRow`** (or **`ListRow`** when the layout is title/subtitle
-only). Default vertical padding is **`tokens.spacing.base`**. Row artwork is **60×60**. Space
-between title, subtitle, and other in-row lines with a column **`gap`** (`spacing.sm`) — not
-`marginTop` / `marginBottom` on each line — so a missing subtitle or metadata line adds no leftover
-space. The text stack uses `justifyContent: 'center'` so it stays vertically centered on the
-artwork. The row itself uses `gap` between artwork and text (not a leading `marginLeft`).
+only). Default vertical padding is **`tokens.spacing.base`**. Row artwork is
+**`LIST_ROW_ARTWORK_SIZE`** (60) from `apps/mobile/src/theme/screenLayout.ts`. Space between title,
+subtitle, and other in-row lines with a column **`gap`** (`spacing.sm`) — not `marginTop` /
+`marginBottom` on each line — so a missing subtitle or metadata line adds no leftover space. The
+text stack uses `justifyContent: 'center'` so it stays vertically centered on the artwork. The gap
+between artwork and text is **`listRowArtworkGap(tokens.spacing)`** (`spacing.base`) — same helper
+for `HomeFeedRow`, `ListRow`, and `MiniPlayer` — not a per-screen `spacing.md` or a leading
+`marginLeft`. Channel headers use a wider art→title gap (`spacing.lg`) because the mark is 78px.
+
+Icon-only controls share **`LIST_ROW_ACTION_SIZE`** (36) and **`LIST_ROW_ACTION_ICON_SIZE`** (18)
+whether the face is outlined (Play, More, Subscribe) or a bare glyph (Download). Prefer Button
+`variant="outline"` for bordered chrome; bare icons still size the pressable to
+`LIST_ROW_ACTION_SIZE` so hit targets stay one family.
+
+Under a channel header, stacked blocks (header → chips → filter) use
+**`listHeaderStackGap(tokens.spacing)`** (`spacing.lg`) on each seam — do not mix `md` on one and
+`lg` on another.
 
 Row dividers are `StyleSheet.hairlineWidth` + `themeStyles.border.borderColor`. The **last row
 omits the bottom border** so a hairline does not sit on the list edge. Pass `isLast` on

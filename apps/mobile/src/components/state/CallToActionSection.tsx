@@ -11,17 +11,25 @@ type CallToActionSectionProps = {
   actionTestID?: string;
   messageKey: string;
   onAction: () => void;
+  /** Optional second button under the primary (e.g. Browse beside Search). */
+  secondaryActionLabelKey?: string;
+  secondaryActionTestID?: string;
+  onSecondaryAction?: () => void;
   testID?: string;
 };
 
 /**
  * Localized message plus its primary action, centered in the parent via VerticalCenter.
+ * An optional secondary action sits under the primary for discovery fills that offer two paths.
  */
 export function CallToActionSection({
   actionLabelKey,
   actionTestID,
   messageKey,
   onAction,
+  secondaryActionLabelKey,
+  secondaryActionTestID,
+  onSecondaryAction,
   testID = 'call-to-action-section',
 }: CallToActionSectionProps) {
   const { t } = useTranslation();
@@ -33,6 +41,11 @@ export function CallToActionSection({
         action: {
           marginTop: tokens.spacing.lg,
         },
+        actions: {
+          alignItems: 'center',
+          gap: tokens.spacing.base,
+          marginTop: tokens.spacing.lg,
+        },
         message: {
           ...typography.subheading,
           color: themeStyles.textSecondary.color,
@@ -42,17 +55,39 @@ export function CallToActionSection({
     [themeStyles, tokens]
   );
 
+  const hasSecondary =
+    secondaryActionLabelKey !== undefined &&
+    onSecondaryAction !== undefined;
+
   return (
     <VerticalCenter testID={testID}>
       <Text style={styles.message}>{t(messageKey)}</Text>
-      <View style={styles.action}>
-        <Button
-          label={t(actionLabelKey)}
-          onPress={onAction}
-          size="lg"
-          testID={actionTestID ?? `${testID}-action`}
-        />
-      </View>
+      {hasSecondary ? (
+        <View style={styles.actions}>
+          <Button
+            label={t(actionLabelKey)}
+            onPress={onAction}
+            size="lg"
+            testID={actionTestID ?? `${testID}-action`}
+          />
+          <Button
+            label={t(secondaryActionLabelKey)}
+            onPress={onSecondaryAction}
+            size="lg"
+            testID={secondaryActionTestID ?? `${testID}-secondary-action`}
+            variant="outline"
+          />
+        </View>
+      ) : (
+        <View style={styles.action}>
+          <Button
+            label={t(actionLabelKey)}
+            onPress={onAction}
+            size="lg"
+            testID={actionTestID ?? `${testID}-action`}
+          />
+        </View>
+      )}
     </VerticalCenter>
   );
 }

@@ -6,20 +6,20 @@ import type { HomeMediaType } from '../../prefs/preferredMediaType';
 export const HOME_MEDIA_TYPE_ORDER: HomeMediaType[] = [
   'podcasts',
   'episodes',
-  'clips',
   'artists',
   'albums',
   'tracks',
+  'clips',
 ];
 
 export const BROWSE_MEDIA_TYPE_ORDER = [
   'podcasts',
   'episodes',
-  'clips',
   'videos',
   'artists',
   'albums',
   'tracks',
+  'clips',
   'playlists',
   'users',
 ] as const;

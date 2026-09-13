@@ -12,6 +12,7 @@ import { CoverImage, ListRow } from '../../../components/primitives';
 import { channelToHomeRow, itemToHomeRow } from '../../../lib/rows/homeRowMappers';
 import type { ChannelBrowseStackParamList } from '../../../navigation';
 import { CHANNEL_BROWSE_STACK_ROUTES } from '../../../navigation';
+import { LIST_ROW_ARTWORK_SIZE } from '../../../theme/screenLayout';
 import { PodcastSectionList } from './PodcastSectionList';
 import type { PodcastSectionPaneProps } from './podcastSectionPane';
 import type { PodcastSectionPage } from './usePodcastSectionRows';
@@ -20,8 +21,8 @@ import { usePodcastSectionRows } from './usePodcastSectionRows';
 /** Artwork sizing only, so it does not depend on the theme. Square, matching every other row. */
 const styles = StyleSheet.create({
   image: {
-    height: 60,
-    width: 60,
+    height: LIST_ROW_ARTWORK_SIZE,
+    width: LIST_ROW_ARTWORK_SIZE,
   },
 });
 

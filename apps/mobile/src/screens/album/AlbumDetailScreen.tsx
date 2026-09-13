@@ -12,7 +12,6 @@ import { SortSelectRow } from '../../components/form/SortSelectRow';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { ListLoading } from '../../components/state/ListLoading';
-import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
 import type { ChannelBrowseStackParamList } from '../../navigation';
 import { CHANNEL_BROWSE_STACK_ROUTES } from '../../navigation';
 import type { AlbumTrackSort } from '../../prefs/detailListPrefs';
@@ -24,6 +23,7 @@ import {
 } from '../../prefs/detailListPrefs';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
+import { mapItemToHomeFeedRow } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 
@@ -39,10 +39,8 @@ const TRACK_SORT_LABEL_KEYS: Record<AlbumTrackSort, string> = {
 const toTrackRows = (items: DTOItem[], albumTitle: string | null): HomeFeedRowData[] => {
   return items
     .map((item) => ({
-      id: item.id_text,
-      imageUrl: getItemPrimaryImageUrl(item),
+      ...mapItemToHomeFeedRow(item),
       subtitle: albumTitle,
-      title: item.title ?? item.id_text,
     }))
     .filter((row) => row.id.length > 0);
 };
@@ -242,6 +240,7 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
                     runQueueAction(nextRow, 'tracks', position);
                   }}
                   row={row}
+                  showChannelContext={false}
                 />
               ))
             )}

@@ -36,6 +36,11 @@ name: Browse Tab And Tab Bar Pref
     id: browse-filter-input
 - assertNotVisible:
     id: browse-feed-summary
+# Wait for the directory list so the Podcasts screenshot includes host → title → date rows.
+- extendedWaitUntil:
+    visible:
+      id: browse-feed-list
+    timeout: ${TIMEOUT_SLOWER}
 - takeScreenshot: browse-screen-podcasts
 
 - tapOn:

@@ -47,7 +47,15 @@
       "delete_all": "Διαγραφή όλων",
       "auto_removed_notice": "Αφαιρέθηκαν οι παλαιότερες λήψεις για να απελευθερωθεί χώρος",
       "dismiss": "Απόρριψη",
-      "in_progress_count": "{count} σε εξέλιξη"
+      "in_progress_count": "{count} σε εξέλιξη",
+      "paused": "Σε παύση",
+      "pause_all": "Παύση όλων",
+      "resume_all": "Συνέχιση όλων",
+      "clear_finished": "Εκκαθάριση όλων των ολοκληρωμένων",
+      "section_in_progress": "Σε εξέλιξη",
+      "section_failed": "Απέτυχαν",
+      "section_completed": "Ολοκληρώθηκαν",
+      "activity_progress": "Λήψη {active} από {total}"
     },
     "search": {
       "add_podcast": "Προσθήκη podcast",
@@ -69,7 +77,27 @@
       "appearance_description": "Θέμα και γλώσσα",
       "playback": "Αναπαραγωγή",
       "playback_description": "Προεπιλεγμένος τύπος μέσου και αυτόματη ουρά",
+      "downloads_description": "Όριο αποθήκευσης, αυτόματη απελευθέρωση χώρου και διαγραφή όλων των λήψεων",
       "notifications_description": "Ειδοποιήσεις στην εφαρμογή και push"
+    },
+    "downloads": {
+      "storage_heading": "Αποθήκευση",
+      "device_storage": "Συσκευή",
+      "downloaded_media": "Ληφθέντα μέσα",
+      "app_data": "Δεδομένα εφαρμογής",
+      "cache": "Cache",
+      "limit_label": "Όριο λήψεων",
+      "unlimited": "Απεριόριστο",
+      "auto_free_heading": "Αυτόματη απελευθέρωση χώρου",
+      "auto_delete_on_limit": "Όταν φτάσει το όριο λήψεων",
+      "auto_delete_on_limit_description": "Διαγράφει πρώτα τις παλαιότερες ολοκληρωμένες λήψεις μέχρι να επανέλθετε κάτω από το όριο.",
+      "auto_delete_on_device_low": "Όταν η συσκευή έχει λίγο ελεύθερο χώρο",
+      "auto_delete_on_device_low_description": "Διαγράφει τις παλαιότερες ολοκληρωμένες λήψεις όταν ο ελεύθερος χώρος πέσει κάτω από 1 GB, ακόμη κι αν είστε κάτω από το όριο λήψεων.",
+      "delete_all_heading": "Διαγραφή όλων των λήψεων",
+      "delete_all_description": "Διαγράφει οριστικά τα τοπικά αρχεία πολυμέσων και τις εγγραφές ευρετηρίου λήψεων σε αυτή τη συσκευή. Δεν μπορεί να αναιρεθεί.",
+      "delete_all": "Διαγραφή όλων",
+      "delete_all_confirm_title": "Διαγραφή όλων των λήψεων;",
+      "delete_all_confirm_body": "Αυτό διαγράφει κάθε τοπικό αρχείο λήψης και τα αφαιρεί από τη λίστα Λήψεις. Τα επεισόδια θα χρειαστεί να ληφθούν ξανά για αναπαραγωγή εκτός σύνδεσης."
     },
     "notifications": {
       "login_required_title": "Απαιτείται σύνδεση",
@@ -88,6 +116,9 @@
       "add_to_bar": "Προσθήκη στη γραμμή",
       "reorder_hint": "Μετακινεί αυτή την οθόνη στη γραμμή καρτελών ή στα Περισσότερα"
     }
+  },
+  "subscriptions": {
+    "downloaded_not_subscribed": "Ληφθέντα, χωρίς συνδρομή"
   },
   "sync": {
     "job": {

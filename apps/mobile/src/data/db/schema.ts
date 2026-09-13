@@ -93,6 +93,10 @@ export const download = sqliteTable('download', {
   status: text('status').notNull(),
   title: text('title'),
   artworkUrl: text('artwork_url'),
+  channelIdText: text('channel_id_text'),
+  channelTitle: text('channel_title'),
+  /** 0/1 — complete rows hidden from the Downloads monitor without deleting the file. */
+  dismissedFromList: integer('dismissed_from_list').notNull().default(0),
   errorReason: text('error_reason'),
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull(),
@@ -120,6 +124,8 @@ export const subscribedChannel = sqliteTable('subscribed_channel', {
   imageUrl: text('image_url'),
   source: text('source').notNull(),
   medium: text('medium').notNull(),
+  /** Home chip bucket: podcasts | artists | albums. */
+  kind: text('kind').notNull().default('podcasts'),
   popularityRank: integer('popularity_rank'),
   updatedAt: integer('updated_at').notNull(),
 });

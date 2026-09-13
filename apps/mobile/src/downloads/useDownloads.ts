@@ -4,12 +4,15 @@ import type { DTOItem } from '@podverse/helpers/dto';
 
 import { downloadsRepository } from '../data/repositories';
 import {
-  readDownloadAutoDeleteEnabled,
-  writeDownloadAutoDeleteEnabled,
+  isDownloadQuotaUnlimited,
+  readDownloadAutoDeleteOnDeviceLowEnabled,
+  readDownloadAutoDeleteOnLimitEnabled,
+  readDownloadQuotaBytes,
+  writeDownloadAutoDeleteOnLimitEnabled,
 } from '../prefs/downloadPrefs';
 import { isItemDownloadable } from './downloadEligibility';
 import { downloadManager } from './downloadManager';
-import { DEFAULT_DOWNLOAD_QUOTA_BYTES, sumCompletedBytes } from './downloadQuota';
+import { sumCompletedBytes } from './downloadQuota';
 import type { DownloadRecord, DownloadStatus } from './downloadTypes';
 import { countInProgressDownloads } from './inProgressDownloadCount';
 
@@ -23,15 +26,18 @@ export const useDownloadsList = (): {
   isLoading: boolean;
   errorKey: string | null;
   reload: () => void;
+  pauseAllActive: boolean;
 } => {
   const [downloads, setDownloads] = useState<DownloadRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorKey, setErrorKey] = useState<string | null>(null);
+  const [pauseAllActive, setPauseAllActive] = useState(downloadManager.isPauseAllActive());
 
   const load = useCallback(async () => {
     try {
       const rows = await downloadsRepository.list();
       setDownloads(rows);
+      setPauseAllActive(downloadManager.isPauseAllActive());
       setErrorKey(null);
     } catch {
       setErrorKey('errors.generic');
@@ -53,10 +59,10 @@ export const useDownloadsList = (): {
     return unsubscribe;
   }, [load]);
 
-  return { downloads, isLoading, errorKey, reload };
+  return { downloads, errorKey, isLoading, pauseAllActive, reload };
 };
 
-/** Live count of queued and downloading jobs. Failed and complete rows are excluded. */
+/** Live count of queued, downloading, and paused jobs. */
 export const useInProgressDownloadCount = (): number => {
   const { downloads } = useDownloadsList();
   return countInProgressDownloads(downloads);
@@ -145,33 +151,42 @@ export const useDownloadAction = (item: DTOItem): DownloadAction => {
 export type DownloadStorage = {
   /** Total on-disk bytes of completed downloads. */
   usedBytes: number;
-  /** Storage cap. */
+  /** Storage cap; `0` means unlimited. */
   quotaBytes: number;
+  autoDeleteOnLimitEnabled: boolean;
+  autoDeleteOnDeviceLowEnabled: boolean;
+  /** @deprecated Prefer autoDeleteOnLimitEnabled. */
   autoDeleteEnabled: boolean;
   setAutoDeleteEnabled: (enabled: boolean) => Promise<void>;
   /** Number of downloads auto-removed in the most recent over-quota cleanup (0 when none pending). */
   autoRemovedCount: number;
   clearAutoRemovedNotice: () => void;
+  reload: () => Promise<void>;
 };
 
 /**
- * Manage-storage state for the Downloads screen: usage total, the fixed quota, the
- * auto-delete toggle, and a one-shot "removed N to free space" notice. Re-reads on every
- * `downloadManager` change so usage and the banner stay live.
+ * Manage-storage state for Settings → Downloads: usage total, the user quota, auto-free toggles,
+ * and a one-shot "removed N to free space" notice.
  */
 export const useDownloadStorage = (): DownloadStorage => {
   const [usedBytes, setUsedBytes] = useState<number>(0);
-  const [autoDeleteEnabled, setAutoDeleteEnabledState] = useState<boolean>(false);
+  const [quotaBytes, setQuotaBytes] = useState<number>(0);
+  const [autoDeleteOnLimitEnabled, setAutoDeleteOnLimitEnabled] = useState(false);
+  const [autoDeleteOnDeviceLowEnabled, setAutoDeleteOnDeviceLowEnabled] = useState(false);
   const [autoRemovedCount, setAutoRemovedCount] = useState<number>(0);
   const lastNoticeAtRef = useRef<number>(0);
 
   const load = useCallback(async () => {
-    const [completed, enabled] = await Promise.all([
+    const [completed, onLimit, onDeviceLow, quota] = await Promise.all([
       downloadsRepository.listByStatus('complete'),
-      readDownloadAutoDeleteEnabled(),
+      readDownloadAutoDeleteOnLimitEnabled(),
+      readDownloadAutoDeleteOnDeviceLowEnabled(),
+      readDownloadQuotaBytes(),
     ]);
     setUsedBytes(sumCompletedBytes(completed));
-    setAutoDeleteEnabledState(enabled);
+    setAutoDeleteOnLimitEnabled(onLimit);
+    setAutoDeleteOnDeviceLowEnabled(onDeviceLow);
+    setQuotaBytes(quota);
     const notice = downloadManager.getAutoDeleteNotice();
     if (notice !== null && notice.at > lastNoticeAtRef.current) {
       lastNoticeAtRef.current = notice.at;
@@ -188,8 +203,8 @@ export const useDownloadStorage = (): DownloadStorage => {
   }, [load]);
 
   const setAutoDeleteEnabled = useCallback(async (enabled: boolean) => {
-    await writeDownloadAutoDeleteEnabled(enabled);
-    setAutoDeleteEnabledState(enabled);
+    await writeDownloadAutoDeleteOnLimitEnabled(enabled);
+    setAutoDeleteOnLimitEnabled(enabled);
   }, []);
 
   const clearAutoRemovedNotice = useCallback(() => {
@@ -197,10 +212,13 @@ export const useDownloadStorage = (): DownloadStorage => {
   }, []);
 
   return {
-    autoDeleteEnabled,
+    autoDeleteEnabled: autoDeleteOnLimitEnabled,
+    autoDeleteOnDeviceLowEnabled,
+    autoDeleteOnLimitEnabled,
     autoRemovedCount,
     clearAutoRemovedNotice,
-    quotaBytes: DEFAULT_DOWNLOAD_QUOTA_BYTES,
+    quotaBytes: isDownloadQuotaUnlimited(quotaBytes) ? 0 : quotaBytes,
+    reload: load,
     setAutoDeleteEnabled,
     usedBytes,
   };

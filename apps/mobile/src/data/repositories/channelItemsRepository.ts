@@ -2,6 +2,7 @@ import { desc, eq, inArray, isNotNull, max, sql } from 'drizzle-orm';
 
 import { articleStrippedTitle } from '@podverse/helpers';
 import type { DTOItem } from '@podverse/helpers/dto';
+import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
 
 // Import directly from the request module (not the auth barrel) to avoid a cycle, mirroring
 // subscriptionsRepository (AuthProvider → accountRepository → auth barrel → AuthProvider).
@@ -45,6 +46,9 @@ const DELETE_CHUNK_SIZE = 200;
 
 /** One screenful of the cross-channel episode list, matching what the API returns per page. */
 const RECENT_ITEM_LIMIT = 60;
+
+/** Window the stored listen-count ranks were stamped for. Null until a walk in this process. */
+let appliedPopularityRange: QueryParamsStatsRange | null = null;
 
 /** How a stored episode list is ordered. Matches the sorts Home and podcast detail offer. */
 export type ChannelItemSort = 'alphabetical' | 'oldest' | 'popularity' | 'recent';
@@ -314,27 +318,52 @@ export const channelItemsRepository = {
    * Which episodes are in the list is always the recency window; `sort` only decides the order they
    * appear in. Ordering the whole stored corpus by title instead would answer "sort this list" by
    * replacing it with episodes from years ago.
+   *
+   * Pass `channelIdTexts` to restrict to a subset of followed channels (Home Tracks uses artist
+   * and album follows only).
    */
   listSubscribed: async (
-    options: { limit?: number; sort?: ChannelItemSort } = {}
+    options: {
+      channelIdTexts?: readonly string[];
+      limit?: number;
+      sort?: ChannelItemSort;
+    } = {}
   ): Promise<DTOItem[]> => {
     await initializeDatabase();
-    const { limit = RECENT_ITEM_LIMIT, sort = 'recent' } = options;
+    const { channelIdTexts, limit = RECENT_ITEM_LIMIT, sort = 'recent' } = options;
 
-    const rows = await getDb()
+    if (channelIdTexts !== undefined && channelIdTexts.length === 0) {
+      return [];
+    }
+
+    const baseQuery = getDb()
       .select({
         payloadJson: schema.channelItem.payloadJson,
         popularityRank: schema.channelItem.popularityRank,
       })
-      .from(schema.channelItem)
-      .orderBy(desc(schema.channelItem.pubDateMs))
-      .limit(limit);
+      .from(schema.channelItem);
+
+    const rows =
+      channelIdTexts === undefined
+        ? await baseQuery.orderBy(desc(schema.channelItem.pubDateMs)).limit(limit)
+        : await baseQuery
+            .where(inArray(schema.channelItem.channelIdText, [...channelIdTexts]))
+            .orderBy(desc(schema.channelItem.pubDateMs))
+            .limit(limit);
 
     return sortItems(rowsToRankedItems(rows), sort);
   },
 
-  /** Whether any stored episode already has a listen-count rank. */
-  hasPopularityRanks: async (): Promise<boolean> => {
+  /**
+   * Whether any stored episode already has a listen-count rank for this window.
+   *
+   * A range that differs from the last walk is treated as missing so Home can stamp the new
+   * window instead of reordering from ranks that belong to another one.
+   */
+  hasPopularityRanks: async (range?: QueryParamsStatsRange): Promise<boolean> => {
+    if (range !== undefined && appliedPopularityRange !== range) {
+      return false;
+    }
     await initializeDatabase();
     const rows = await getDb()
       .select({ itemIdText: schema.channelItem.itemIdText })
@@ -350,13 +379,16 @@ export const channelItemsRepository = {
    * Home's episode list is a recency window reordered by these ranks, so a single popular page is
    * enough: episodes outside that page stay unranked and sort after the ones that have a rank.
    */
-  refreshPopularityRanks: async (context: MobileAuthRequestContext): Promise<void> => {
+  refreshPopularityRanks: async (
+    context: MobileAuthRequestContext,
+    range: QueryParamsStatsRange = 'week'
+  ): Promise<void> => {
     const response = await requestWithMobileAuthRefresh(context, async (apiRequestService) =>
       apiRequestService.reqItemGetMany({
         category: null,
         medium: 'podcasts',
         page: 1,
-        range: 'week',
+        range,
         sort: 'top',
         type: 'subscribed',
       })
@@ -376,6 +408,7 @@ export const channelItemsRepository = {
           .where(eq(schema.channelItem.itemIdText, itemIdText));
       }
     });
+    appliedPopularityRange = range;
   },
 
   /** One stored item, for opening or playing an episode with no connection. */

@@ -14,7 +14,7 @@ export { channelLiveStatusRepository } from './channelLiveStatusRepository';
 export { channelSeenRepository } from './channelSeenRepository';
 export type { ChannelSeenUnseen } from './channelSeenRepository';
 export { downloadsRepository } from './downloadsRepository';
-export type { DownloadPatch } from './downloadsRepository';
+export type { DownloadPatch, UnsubscribedDownloadChannel } from './downloadsRepository';
 export { notificationsRepository } from './notificationsRepository';
 export { playbackContentRepository } from './playbackContentRepository';
 export { exampleRepository } from './exampleRepository';
@@ -27,10 +27,18 @@ export type { PlaybackStatsTargets } from './statsRepository';
 export { subscriptionsRepository } from './subscriptionsRepository';
 export type {
   SubscribedChannel,
+  SubscriptionChannelKind,
   SubscriptionFilter,
   SubscriptionMedium,
   SubscriptionSort,
   SubscriptionSource,
+} from './subscriptionsRepository';
+export {
+  isSubscriptionChannelKind,
+  mediumFromSubscriptionChannelKind,
+  subscriptionChannelKindFromMediumId,
+  subscriptionChannelKindFromResourceType,
+  SUBSCRIPTION_CHANNEL_KINDS,
 } from './subscriptionsRepository';
 export { writeSignupMergeEmail } from './subscriptionsSignupMarker';
 export { runSignupSubscriptionMerge } from './subscriptionsSignupMerge';

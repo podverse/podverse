@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 
@@ -8,6 +9,7 @@ import type { DTOItem } from '@podverse/helpers/dto';
 import type { DownloadStatus } from '../../downloads/downloadTypes';
 import { useDownloadAction } from '../../downloads/useDownloads';
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
+import { LIST_ROW_ACTION_ICON_SIZE, LIST_ROW_ACTION_SIZE } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 
 type DownloadRowControlProps = {
@@ -22,6 +24,7 @@ const actionLabelKey = (status: DownloadStatus | null): string => {
       return 'features.download.remove_download';
     case 'queued':
     case 'downloading':
+    case 'paused':
       return 'features.download.cancel_download';
     case 'failed':
       return 'features.download.episode_download_error';
@@ -34,28 +37,17 @@ const actionLabelKey = (status: DownloadStatus | null): string => {
 const statusIconName = (status: DownloadStatus | null): ComponentProps<typeof Ionicons>['name'] => {
   switch (status) {
     case 'complete':
-      return 'checkmark-circle';
+      return 'trash-outline';
     case 'failed':
       return 'alert-circle-outline';
     case 'cancelled':
     case 'downloading':
     case 'queued':
+    case 'paused':
     case null:
-      return 'arrow-down-circle-outline';
+      return 'download-outline';
   }
 };
-
-const styles = StyleSheet.create({
-  control: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 44,
-    minWidth: 44,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-});
 
 /**
  * The download affordance as a list row carries it: one icon, one tap, no detour through the
@@ -63,19 +55,37 @@ const styles = StyleSheet.create({
  * HLS-only source, or no enclosure — which is the same rule the labeled control on episode detail
  * applies, read from the same eligibility check.
  *
- * The icon states what the item is and the label states what the tap does, because a download
- * already underway is cancelled from here and a finished one is removed.
+ * Hit target matches {@link LIST_ROW_ACTION_SIZE} (same as outline Play / More) so icon controls
+ * share one finger target. The glyph itself is borderless: tray-download when available, trash when
+ * the file is on device and a tap would remove it.
  */
 export function DownloadRowControl({ item, testID }: DownloadRowControlProps) {
   const { t } = useTranslation();
   const { tokens } = useTheme();
   const { isDownloadable, percentComplete, remove, start, status } = useDownloadAction(item);
 
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        control: {
+          alignItems: 'center',
+          height: LIST_ROW_ACTION_SIZE,
+          justifyContent: 'center',
+          width: LIST_ROW_ACTION_SIZE,
+        },
+        pressed: {
+          opacity: 0.7,
+        },
+      }),
+    []
+  );
+
   if (!isDownloadable) {
     return null;
   }
 
-  const isInProgress = status === 'queued' || status === 'downloading';
+  const isInProgress =
+    status === 'queued' || status === 'downloading' || status === 'paused';
   const iconColor = status === 'failed' ? tokens.text.danger : tokens.text.accent;
 
   return (
@@ -88,7 +98,6 @@ export function DownloadRowControl({ item, testID }: DownloadRowControlProps) {
           ? { max: 100, min: 0, now: percentComplete }
           : undefined
       }
-      hitSlop={8}
       onPress={(event) => {
         stopPropagation(event);
         if (status === 'complete' || isInProgress) {
@@ -103,7 +112,7 @@ export function DownloadRowControl({ item, testID }: DownloadRowControlProps) {
       {isInProgress ? (
         <ActivityIndicator color={tokens.text.secondary} size="small" />
       ) : (
-        <Ionicons color={iconColor} name={statusIconName(status)} size={22} />
+        <Ionicons color={iconColor} name={statusIconName(status)} size={LIST_ROW_ACTION_ICON_SIZE} />
       )}
     </Pressable>
   );

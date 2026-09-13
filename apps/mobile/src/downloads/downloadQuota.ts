@@ -1,8 +1,8 @@
 /**
  * Storage quota policy for offline downloads. Pure logic only — no React Native / Expo imports — so
  * it stays unit-testable in the node vitest project (see vitest.config.ts). The manage-storage UI
- * (LibraryDownloadsScreen), the auto-delete toggle pref (`prefs/downloadPrefs`), and the download
- * runner (`downloadManager`) all consume these helpers.
+ * (Settings → Downloads), auto-delete prefs (`prefs/downloadPrefs`), and the download runner
+ * (`downloadManager`) all consume these helpers.
  */
 
 import type { DownloadRecord } from './downloadTypes';
@@ -12,10 +12,13 @@ const BYTES_PER_MIB = 1024 * 1024;
 const BYTES_PER_KIB = 1024;
 
 /**
- * Default on-device cap for completed downloads. A user-adjustable cap can layer on via
- * `prefs/downloadPrefs`. 3 GiB balances a useful offline library against phone storage.
+ * Default on-device cap for completed downloads. A user-adjustable cap layers on via
+ * `prefs/downloadPrefs`. 10 GiB balances a useful offline library against phone storage.
  */
-export const DEFAULT_DOWNLOAD_QUOTA_BYTES = 3 * BYTES_PER_GIB;
+export const DEFAULT_DOWNLOAD_QUOTA_BYTES = 10 * BYTES_PER_GIB;
+
+/** Free-space threshold for the "device is low" auto-delete policy. */
+export const DEVICE_LOW_FREE_BYTES = 1 * BYTES_PER_GIB;
 
 /** Disk bytes a completed row occupies: known total, else best-effort bytes written. */
 export const recordBytes = (record: DownloadRecord): number => {
@@ -34,20 +37,30 @@ export const sumCompletedBytes = (records: DownloadRecord[]): number =>
     return total + recordBytes(record);
   }, 0);
 
-export const isOverQuota = (records: DownloadRecord[], capBytes: number): boolean =>
-  sumCompletedBytes(records) > capBytes;
+export const isOverQuota = (records: DownloadRecord[], capBytes: number): boolean => {
+  if (capBytes <= 0) {
+    return false;
+  }
+  return sumCompletedBytes(records) > capBytes;
+};
 
 /**
  * Choose which completed downloads to delete to get back under `capBytes`, **oldest completed
  * first** (by `updatedAt`). Never selects in-progress rows (only `complete` count toward usage) and
  * never selects `protectedItemIdText` (the just-finished download that triggered the check), so a
  * fresh download is not immediately evicted. Returns the `itemIdText`s to remove, oldest→newest.
+ *
+ * When `capBytes` is `<= 0` (Unlimited), returns nothing.
  */
 export const selectAutoDeleteVictims = (
   records: DownloadRecord[],
   capBytes: number,
   protectedItemIdText: string | null = null
 ): string[] => {
+  if (capBytes <= 0) {
+    return [];
+  }
+
   const completed = records.filter((record) => record.status === 'complete');
   let runningBytes = completed.reduce((total, record) => total + recordBytes(record), 0);
   if (runningBytes <= capBytes) {
@@ -65,6 +78,36 @@ export const selectAutoDeleteVictims = (
     }
     victims.push(record.itemIdText);
     runningBytes -= recordBytes(record);
+  }
+  return victims;
+};
+
+/**
+ * Choose oldest completed downloads to delete until `bytesToFree` are reclaimed (device-low
+ * policy). Never selects in-progress or the protected item.
+ */
+export const selectVictimsToFreeBytes = (
+  records: DownloadRecord[],
+  bytesToFree: number,
+  protectedItemIdText: string | null = null
+): string[] => {
+  if (bytesToFree <= 0) {
+    return [];
+  }
+
+  const completed = records.filter((record) => record.status === 'complete');
+  const oldestFirst = [...completed].sort((a, b) => a.updatedAt - b.updatedAt);
+  const victims: string[] = [];
+  let freed = 0;
+  for (const record of oldestFirst) {
+    if (freed >= bytesToFree) {
+      break;
+    }
+    if (record.itemIdText === protectedItemIdText) {
+      continue;
+    }
+    victims.push(record.itemIdText);
+    freed += recordBytes(record);
   }
   return victims;
 };

@@ -59,16 +59,16 @@ is detailed only when its screenshots arrive. `Status`: `not started` → `quest
 
 | Area                            | Legacy screens (`../podverse-rn/src/screens/`)                                                                                                           | Status                                    |
 | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| P2.1.1 Home & browse            | `PodcastsScreen`, `PodcastsMediaTypeScreen`, `EpisodesScreen`, `ClipsScreen`, `AlbumsScreen`, `AlbumScreen`, `FeatureVideosScreen`                       | done (podcasts)                           |
+| P2.1.1 Home & browse            | `PodcastsScreen`, `PodcastsMediaTypeScreen`, `EpisodesScreen`, `ClipsScreen`, `AlbumsScreen`, `AlbumScreen`, `FeatureVideosScreen`                       | done (subscribed chips)                   |
 | P2.1.2 Podcast & episode detail | `PodcastScreen`, `PodcastInfoScreen`, `EpisodeScreen`, `EpisodeMediaRefScreen`, `EpisodeTranscriptScreen`                                                | done (podcast screen; episode later)      |
 | P2.1.3 Search & filter          | `SearchScreen`, `FilterScreen`, `ScanQRCodeScreen`                                                                                                       | done                                      |
 | P2.1.4 Player & now playing     | `PlayerScreen`, `SleepTimerScreen`, `StartPodcastFromTimeScreen`, `MakeClipScreen`                                                                       | not started                               |
-| P2.1.5 Library                  | `MyLibraryScreen`, `QueueScreen`, `HistoryScreen`, `HistoryIndexListenerScreen`, `DownloadsScreen`                                                       | not started                               |
+| P2.1.5 Library                  | `MyLibraryScreen`, `QueueScreen`, `HistoryScreen`, `HistoryIndexListenerScreen`, `DownloadsScreen`                                                       | done (Downloads)                          |
 | P2.1.6 Playlists                | `PlaylistsScreen`, `PlaylistScreen`, `EditPlaylistScreen`, `PlaylistsAddToScreen`                                                                        | not started                               |
 | P2.1.7 Add by RSS               | `AddPodcastByRSSScreen`, `AddPodcastByRSSAuthScreen`                                                                                                     | not started                               |
 | P2.1.8 Auth & onboarding        | `AuthScreen`, `OnboardingScreen`, `EmailVerificationScreen`, `ResetPasswordScreen`                                                                       | in progress (popularity-tracking consent) |
 | P2.1.9 Profiles                 | `ProfileScreen`, `ProfilesScreen`, `EditProfileScreen`                                                                                                   | not started                               |
-| P2.1.10 Settings & More         | `MoreScreen`, `SettingsScreen*` (11 sub-screens), `TrackingConsentScreen`                                                                                | in progress (popularity-tracking consent) |
+| P2.1.10 Settings & More         | `MoreScreen`, `SettingsScreen*` (11 sub-screens), `TrackingConsentScreen`                                                                                | in progress (consent)                      |
 | P2.1.11 Membership              | `MembershipScreen`, `PurchasingScreen`                                                                                                                   | not started                               |
 | P2.1.12 Static & support        | `AboutScreen`, `ContactScreen`, `ContactXMPPChatScreen`, `FAQScreen`, `PrivacyPolicyScreen`, `TermsOfServiceScreen`, `ContributeScreen`, `WebPageScreen` | not started                               |
 
@@ -94,20 +94,27 @@ that web also reads and writes.
 | P2.1.1 | [705-home-subscribed-list-and-filter](/docs/proposals/mobile/_master-plan_/phase-2/details/705-home-subscribed-list-and-filter.md)                       | Codex 5.3 | done   |
 | P2.1.1 | [707-home-row-metadata](/docs/proposals/mobile/_master-plan_/phase-2/details/707-home-row-metadata.md)                                                   | Codex 5.3 | done   |
 | P2.1.1 | [708-home-view-toggle-and-overflow-menu](/docs/proposals/mobile/_master-plan_/phase-2/details/708-home-view-toggle-and-overflow-menu.md)                 | Codex 5.3 | done   |
-| P2.1.1 | [721-home-combined-subscriptions-and-rss-detail](/docs/proposals/mobile/_master-plan_/phase-2/details/721-home-combined-subscriptions-and-rss-detail.md) | Auto      | done   |
-| P2.1.3 | [706-home-filter-sort-screen](/docs/proposals/mobile/_master-plan_/phase-2/details/706-home-filter-sort-screen.md)                                       | Codex 5.3 | done   |
-| P2.1.3 | [709-search-tab-web-alignment](/docs/proposals/mobile/_master-plan_/phase-2/details/709-search-tab-web-alignment.md)                                     | Codex 5.3 | done   |
+| P2.1.1 | [721-home-combined-subscriptions-and-rss-detail](/docs/proposals/mobile/_master-plan_/phase-2/details/721-home-combined-subscriptions-and-rss-detail.md) | Auto      | done    |
+| P2.1.1 | [738-browse-podcast-host-names](/docs/proposals/mobile/_master-plan_/phase-2/details/738-browse-podcast-host-names.md)                                   | Codex 5.3 | done    |
+| P2.1.1 | [739-home-subscribed-channel-kind-and-loaders](/docs/proposals/mobile/_master-plan_/phase-2/details/739-home-subscribed-channel-kind-and-loaders.md)     | Codex 5.3 | done    |
+| P2.1.1 | [740-home-empty-discovery-ctas](/docs/proposals/mobile/_master-plan_/phase-2/details/740-home-empty-discovery-ctas.md)                                   | Codex 5.3 | done    |
+| P2.1.1 | [741-home-filter-channel-lists-only](/docs/proposals/mobile/_master-plan_/phase-2/details/741-home-filter-channel-lists-only.md)                         | Codex 5.3 | done    |
+| P2.1.3 | [706-home-filter-sort-screen](/docs/proposals/mobile/_master-plan_/phase-2/details/706-home-filter-sort-screen.md)                                       | Codex 5.3 | done    |
+| P2.1.3 | [709-search-tab-web-alignment](/docs/proposals/mobile/_master-plan_/phase-2/details/709-search-tab-web-alignment.md)                                     | Codex 5.3 | done    |
 
-The original steps above are implemented and their plans are archived. The focused P2.1.1 follow-up
-in detail 721 is implemented and complete.
+The original steps above are implemented and their plans are archived. The focused P2.1.1 follow-ups
+in details 721, 738, and 739–741 are implemented and complete.
 Focused device review remains recommended follow-up verification, not a prerequisite for completion.
 
-Locked decisions for this area live in `.llm/plans/completed/mobile-p2-home-podcasts/00-SUMMARY.md`.
+Locked decisions for this area live in `.llm/plans/completed/mobile-p2-home-podcasts/00-SUMMARY.md`,
+`.llm/plans/completed/mobile-p2-browse-podcast-host-names/00-SUMMARY.md`,
+`.llm/plans/completed/mobile-p2-home-subscribed-chips/00-SUMMARY.md`, and details
+[739](/docs/proposals/mobile/_master-plan_/phase-2/details/739-home-subscribed-channel-kind-and-loaders.md)–[741](/docs/proposals/mobile/_master-plan_/phase-2/details/741-home-filter-channel-lists-only.md).
 
 **Navigation note.** The nextgen bottom tab layout intentionally differs from the previous
 generation and is **not** a parity gap. Nextgen keeps Home, Search, Notifications, My Library, and
 More; the previous generation's separate Podcasts / Episodes / Clips tabs are represented by Home's
-media-type chips. Home is subscribed-only and all discovery lives in the Search tab.
+media-type chips. Home is subscribed-only; discovery is Browse (directory) and Search (feeds).
 
 ### Planned steps — P2.1.2 Podcast screen
 
@@ -122,15 +129,34 @@ notification defaults (auto-enable on subscribe + type-default Settings UI) land
 | P2.1.2 | [725-podcast-row-actions-and-download](/docs/proposals/mobile/_master-plan_/phase-2/details/725-podcast-row-actions-and-download.md)                 | Codex 5.3 | done   |
 | P2.1.2 | [726-podcast-settings-and-header-bell](/docs/proposals/mobile/_master-plan_/phase-2/details/726-podcast-settings-and-header-bell.md)                 | Codex 5.3 | done   |
 | P2.1.2 | [727-notification-subscribe-defaults](/docs/proposals/mobile/_master-plan_/phase-2/details/727-notification-subscribe-defaults.md)                   | Opus 5    | done   |
+| P2.1.2 | [730-podcast-header-and-item-row-density](/docs/proposals/mobile/_master-plan_/phase-2/details/730-podcast-header-and-item-row-density.md)           | Codex 5.3 | done   |
 
 Locked decisions live in those detail docs. Subscribe stays notification-off unless the account
 opts into auto-enable; Share and Bell are always on the header; Gear is signed-in and subscribed
 only; auto-download and video/music channel visuals stay deferred
 ([728](/docs/proposals/mobile/_master-plan_/phase-2/details/728-defer-channel-auto-download.md),
 [729](/docs/proposals/mobile/_master-plan_/phase-2/details/729-defer-video-music-channel-visuals.md)).
+Header density and adaptive item rows (channel context vs in-channel) landed in 730.
 
 Detail IDs start at **723** because `722` is already
 [722-popularity-tracking-consent](/docs/proposals/mobile/_master-plan_/phase-2/details/722-popularity-tracking-consent.md).
+
+### Planned steps — P2.1.5 Library (Downloads) + Settings storage
+
+Nextgen product feedback on the Downloads screen (not a legacy port). Plan set:
+`.llm/plans/completed/mobile-p2-library-downloads/`.
+
+| Step    | Detail                                                                                                                                         | Model     | Status   |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | --------- | -------- |
+| P2.1.5  | [731-redundant-screen-titles-sweep](/docs/proposals/mobile/_master-plan_/phase-2/details/731-redundant-screen-titles-sweep.md)                 | Auto      | done     |
+| P2.1.10 | [732-downloads-settings-storage](/docs/proposals/mobile/_master-plan_/phase-2/details/732-downloads-settings-storage.md)                       | Codex 5.3 | done     |
+| P2.1.5  | [733-download-list-sections-and-rows](/docs/proposals/mobile/_master-plan_/phase-2/details/733-download-list-sections-and-rows.md)             | Codex 5.3 | done     |
+| P2.1.5  | [734-download-pause-resume-concurrency](/docs/proposals/mobile/_master-plan_/phase-2/details/734-download-pause-resume-concurrency.md)         | Opus 5    | done     |
+| P2.1.5  | [735-swipe-action-row](/docs/proposals/mobile/_master-plan_/phase-2/details/735-swipe-action-row.md)                                           | Codex 5.3 | done     |
+| P2.1.5  | [736-home-unsubscribed-downloads-section](/docs/proposals/mobile/_master-plan_/phase-2/details/736-home-unsubscribed-downloads-section.md)     | Codex 5.3 | done     |
+| P2.3.16 | [737-defer-storage-cache-precision](/docs/proposals/mobile/_master-plan_/phase-2/details/737-defer-storage-cache-precision.md)                 | Auto      | deferred |
+
+Locked decisions: `.llm/plans/completed/mobile-p2-library-downloads/00-SUMMARY.md`.
 
 ## Track P2.2 — Visual polish (absorbs Phase 1 Track 23)
 
@@ -170,6 +196,7 @@ doc written except where noted.
 | P2.3.13 | new          | [894-schedule-cross-app-comments](/docs/proposals/mobile/_master-plan_/phase-2/details/894-schedule-cross-app-comments.md) — Podcasting 2.0 cross-app comments                           | Opus 5    |
 | P2.3.14 | new          | [728-defer-channel-auto-download](/docs/proposals/mobile/_master-plan_/phase-2/details/728-defer-channel-auto-download.md) — per-channel auto-download (placeholder on podcast settings) | Auto      |
 | P2.3.15 | new          | [729-defer-video-music-channel-visuals](/docs/proposals/mobile/_master-plan_/phase-2/details/729-defer-video-music-channel-visuals.md) — video/music channel visuals from website        | Auto      |
+| P2.3.16 | new          | [737-defer-storage-cache-precision](/docs/proposals/mobile/_master-plan_/phase-2/details/737-defer-storage-cache-precision.md) — Clear cache / expo-image / concurrency pref             | Auto      |
 
 **P2.3.10 is a deferral of the _existing_ surface area only.** All **new** screens and components must
 be screen reader accessible when they land, per
@@ -310,6 +337,18 @@ above whenever status changes, per
 | [725-podcast-row-actions-and-download](/docs/proposals/mobile/_master-plan_/phase-2/details/725-podcast-row-actions-and-download.md)                     | P2.1.2  | Codex 5.3 | done          |
 | [726-podcast-settings-and-header-bell](/docs/proposals/mobile/_master-plan_/phase-2/details/726-podcast-settings-and-header-bell.md)                     | P2.1.2  | Codex 5.3 | done          |
 | [727-notification-subscribe-defaults](/docs/proposals/mobile/_master-plan_/phase-2/details/727-notification-subscribe-defaults.md)                       | P2.1.2  | Opus 5    | done          |
+| [730-podcast-header-and-item-row-density](/docs/proposals/mobile/_master-plan_/phase-2/details/730-podcast-header-and-item-row-density.md)               | P2.1.2  | Codex 5.3 | done          |
+| [731-redundant-screen-titles-sweep](/docs/proposals/mobile/_master-plan_/phase-2/details/731-redundant-screen-titles-sweep.md)                           | P2.1.5  | Auto      | done          |
+| [732-downloads-settings-storage](/docs/proposals/mobile/_master-plan_/phase-2/details/732-downloads-settings-storage.md)                                 | P2.1.10 | Codex 5.3 | done          |
+| [733-download-list-sections-and-rows](/docs/proposals/mobile/_master-plan_/phase-2/details/733-download-list-sections-and-rows.md)                       | P2.1.5  | Codex 5.3 | done          |
+| [734-download-pause-resume-concurrency](/docs/proposals/mobile/_master-plan_/phase-2/details/734-download-pause-resume-concurrency.md)                   | P2.1.5  | Opus 5    | done          |
+| [735-swipe-action-row](/docs/proposals/mobile/_master-plan_/phase-2/details/735-swipe-action-row.md)                                                     | P2.1.5  | Codex 5.3 | done          |
+| [736-home-unsubscribed-downloads-section](/docs/proposals/mobile/_master-plan_/phase-2/details/736-home-unsubscribed-downloads-section.md)               | P2.1.5  | Codex 5.3 | done          |
+| [737-defer-storage-cache-precision](/docs/proposals/mobile/_master-plan_/phase-2/details/737-defer-storage-cache-precision.md)                           | P2.3.16 | Auto      | deferred      |
+| [738-browse-podcast-host-names](/docs/proposals/mobile/_master-plan_/phase-2/details/738-browse-podcast-host-names.md)                                   | P2.1.1  | Codex 5.3 | done          |
+| [739-home-subscribed-channel-kind-and-loaders](/docs/proposals/mobile/_master-plan_/phase-2/details/739-home-subscribed-channel-kind-and-loaders.md)     | P2.1.1  | Codex 5.3 | done          |
+| [740-home-empty-discovery-ctas](/docs/proposals/mobile/_master-plan_/phase-2/details/740-home-empty-discovery-ctas.md)                                   | P2.1.1  | Codex 5.3 | done          |
+| [741-home-filter-channel-lists-only](/docs/proposals/mobile/_master-plan_/phase-2/details/741-home-filter-channel-lists-only.md)                         | P2.1.1  | Codex 5.3 | done          |
 | [728-defer-channel-auto-download](/docs/proposals/mobile/_master-plan_/phase-2/details/728-defer-channel-auto-download.md)                               | P2.3.14 | Auto      | deferred      |
 | [729-defer-video-music-channel-visuals](/docs/proposals/mobile/_master-plan_/phase-2/details/729-defer-video-music-channel-visuals.md)                   | P2.3.15 | Auto      | deferred      |
 | [896-defer-tablet-layout-parity](/docs/proposals/mobile/_master-plan_/phase-2/details/896-defer-tablet-layout-parity.md)                                 | P2.3.12 | Opus 5    | deferred      |

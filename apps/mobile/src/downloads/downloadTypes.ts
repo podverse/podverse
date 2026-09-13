@@ -7,14 +7,18 @@
 /**
  * Download job lifecycle. Forward transitions:
  *   queued → downloading → complete
+ *   downloading ↔ paused
+ *   queued → paused (held by Pause all / per-row pause)
+ *   paused → queued | downloading (resume)
  *   downloading → failed   (transient/error; retryable back to queued)
- *   queued|downloading → cancelled  (user cancel)
+ *   queued|downloading|paused → cancelled  (user cancel / remove)
  *   failed|cancelled → queued        (retry)
- * Only one job is `downloading` at a time (concurrency = 1); the rest wait in `queued`.
+ * Up to DOWNLOAD_MAX_CONCURRENCY jobs may be `downloading` at once; the rest wait `queued`.
  */
 export const DOWNLOAD_STATUSES = [
   'queued',
   'downloading',
+  'paused',
   'complete',
   'failed',
   'cancelled',
@@ -57,6 +61,14 @@ export interface DownloadRecord {
   status: DownloadStatus;
   title: string | null;
   artworkUrl: string | null;
+  /** Channel identity persisted at enqueue so unsubscribed items still name their show. */
+  channelIdText: string | null;
+  channelTitle: string | null;
+  /**
+   * When true, a completed download is hidden from the Downloads monitor list but the file and
+   * index row remain so offline play and storage accounting stay correct.
+   */
+  dismissedFromList: boolean;
   /** Short machine reason for the last failure (surfaced for retry UX). */
   errorReason: string | null;
   createdAt: number;
@@ -72,3 +84,6 @@ export interface DownloadProgressEvent {
   /** 0..1 when `byteSize` is known, else `null` (indeterminate). */
   fraction: number | null;
 }
+
+/** Simultaneous Expo FileSystem transfers the runner will keep in flight. */
+export const DOWNLOAD_MAX_CONCURRENCY = 5;

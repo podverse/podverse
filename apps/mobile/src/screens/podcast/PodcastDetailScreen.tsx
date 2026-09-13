@@ -39,6 +39,7 @@ import {
   writePodcastDetailSort,
   writePodcastDetailTab,
 } from '../../prefs/detailListPrefs';
+import { listHeaderStackGap } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 import {
   isFilterableSection,
@@ -122,14 +123,14 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     () =>
       StyleSheet.create({
         chipRow: {
-          marginTop: tokens.spacing.md,
+          marginTop: listHeaderStackGap(tokens.spacing),
         },
         container: {
           backgroundColor: themeStyles.screen.backgroundColor,
           flex: 1,
         },
         filterRow: {
-          marginTop: tokens.spacing.md,
+          marginTop: listHeaderStackGap(tokens.spacing),
         },
         headerActions: {
           alignItems: 'center',
@@ -456,12 +457,12 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
             onPress={() => {
               void handleSubscriptionToggle();
             }}
+            size="sm"
             testID="podcast-detail-subscribe-toggle"
-            variant="secondary"
+            variant="outline"
           />
         }
         artworkUri={artworkUri}
-        description={channel?.channel_description?.value ?? null}
         notice={subscriptionNoticeKey === null ? null : t(subscriptionNoticeKey)}
         testID="podcast-detail-header"
         title={channel?.title ?? t('media.podcast.podcast')}

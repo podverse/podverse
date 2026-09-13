@@ -58,6 +58,7 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
   const inputRef = useRef<TextInput | null>(null);
 
   const wantsAutoFocus = route.params?.autoFocus === true;
+  const requestedMedium = route.params?.medium;
 
   useEffect(() => {
     let isMounted = true;
@@ -77,10 +78,16 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
   }, []);
 
   // Home's "nothing subscribed yet" button sends the user here to type something, so the field
-  // starts empty and focused. The request is consumed immediately, otherwise coming back from a
-  // result would wipe the query the user just ran.
+  // starts empty and focused. An optional medium selects All / Music first. The request is consumed
+  // immediately, otherwise coming back from a result would wipe the query the user just ran.
   useFocusEffect(
     useCallback(() => {
+      if (requestedMedium === 'all' || requestedMedium === 'music') {
+        setMedium(requestedMedium);
+        void writeSearchListMedium(requestedMedium);
+        navigation.setParams({ medium: undefined });
+      }
+
       if (!wantsAutoFocus) {
         return;
       }
@@ -89,7 +96,7 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
       setQuery('');
       setDebouncedQuery('');
       inputRef.current?.focus();
-    }, [navigation, wantsAutoFocus])
+    }, [navigation, requestedMedium, wantsAutoFocus])
   );
 
   useEffect(() => {

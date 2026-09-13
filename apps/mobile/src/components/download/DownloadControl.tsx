@@ -75,13 +75,15 @@ export function DownloadControl({ item }: DownloadControlProps) {
     return null;
   }
 
-  if (status === 'queued' || status === 'downloading') {
+  if (status === 'queued' || status === 'downloading' || status === 'paused') {
     const statusLabel =
       status === 'queued'
         ? t('features.download.queued')
-        : percentComplete === null
-          ? t('features.download.downloading_episode')
-          : `${t('features.download.downloading_episode')} · ${percentComplete}%`;
+        : status === 'paused'
+          ? t('features.download.paused')
+          : percentComplete === null
+            ? t('features.download.downloading_episode')
+            : `${t('features.download.downloading_episode')} · ${percentComplete}%`;
 
     return (
       <View>

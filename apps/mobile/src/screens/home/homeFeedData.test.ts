@@ -53,4 +53,53 @@ describe('normalizeChannelRows', () => {
       },
     ]);
   });
+
+  it('sets subtitle from channel_about.author when includeAuthor is true', () => {
+    const rows = normalizeChannelRows(
+      [
+        {
+          channel_about: {
+            author: 'Adam Curry & John C. Dvorak',
+            last_pub_date: '2026-03-04T12:00:00.000Z',
+          },
+          id_text: 'show-1',
+          title: 'No Agenda Show',
+        },
+      ],
+      { includeAuthor: true }
+    );
+
+    expect(rows[0]?.subtitle).toBe('Adam Curry & John C. Dvorak');
+  });
+
+  it('ignores channel_about.author when includeAuthor is omitted or false', () => {
+    const payload = [
+      {
+        channel_about: {
+          author: 'Adam Curry & John C. Dvorak',
+          last_pub_date: '2026-03-04T12:00:00.000Z',
+        },
+        id_text: 'show-1',
+        title: 'No Agenda Show',
+      },
+    ];
+
+    expect(normalizeChannelRows(payload)[0]?.subtitle).toBeNull();
+    expect(normalizeChannelRows(payload, { includeAuthor: false })[0]?.subtitle).toBeNull();
+  });
+
+  it('omits the subtitle when includeAuthor is true but author is empty', () => {
+    const rows = normalizeChannelRows(
+      [
+        {
+          channel_about: { author: '  ', last_pub_date: '2026-03-04T12:00:00.000Z' },
+          id_text: 'show-1',
+          title: 'Example Show',
+        },
+      ],
+      { includeAuthor: true }
+    );
+
+    expect(rows[0]?.subtitle).toBeNull();
+  });
 });

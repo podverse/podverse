@@ -2,8 +2,8 @@ appId: com.podverse.app.next
 name: Library Downloads Offline Play
 ---
 # Download a seeded progressive episode, wait for complete, then play it — playback resolves the
-# completed local `file://` via resolvePlaybackUrl — and confirm it appears in the My Library ->
-# Downloads list with the storage usage summary.
+# completed local `file://` via resolvePlaybackUrl — and confirm it appears in My Library ->
+# Downloads under the Completed section. Storage usage lives under More → Settings → Downloads.
 #
 # Fixture: a seeded podcast episode with a progressive mp3 enclosure on the test-assets server
 # (:2111), non-live and non-HLS (livestream / m3u8 items never render the Download control). The
@@ -62,8 +62,8 @@ name: Library Downloads Offline Play
     id: mini-player
 - takeScreenshot: library-downloads-offline-now-playing
 
-# The completed download appears in My Library -> Downloads with the storage usage summary.
-# Finished jobs are not in-progress, so the Downloads row and My Library tab badges stay hidden.
+# The completed download appears in My Library -> Downloads. Finished jobs are not in-progress,
+# so the Downloads row and My Library tab badges stay hidden. Storage chrome is not on this screen.
 - tapOn:
     id: tab-my-library
 - assertVisible:
@@ -75,5 +75,7 @@ name: Library Downloads Offline Play
 - assertVisible:
     id: library-downloads-screen
 - assertVisible:
+    id: library-downloads-clear-finished
+- assertNotVisible:
     id: library-downloads-usage
 - takeScreenshot: library-downloads-list

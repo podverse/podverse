@@ -259,11 +259,9 @@ export function PodcastEpisodesSection({
               : `${statusLabel} • ${liveRow.subtitle}`;
 
         return {
-          id: liveRow.id,
-          imageUrl: liveRow.imageUrl,
+          ...liveRow,
           metadata: isOnAir ? LIVE_ROW_METADATA : undefined,
           subtitle,
-          title: liveRow.title,
         };
       });
   }, [episodeRows, liveRows, t]);
@@ -324,6 +322,7 @@ export function PodcastEpisodesSection({
               }}
               onSharePress={handleShare}
               row={row}
+              showChannelContext={false}
               testID={`podcast-episode-row-${index}`}
             />
           );

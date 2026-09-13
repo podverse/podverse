@@ -9,7 +9,7 @@ name: Anonymous Subscriptions Persist
 
 - runFlow: shared/launch-and-connect.yaml
 
-# Clean device, nothing subscribed: Home says so and offers the one action that fixes it. Home is
+# Clean device, nothing subscribed: Home says so and offers Search plus Browse. Home is
 # subscribed-only, so there is no directory content standing in for an empty list.
 - tapOn:
     id: tab-home
@@ -21,8 +21,10 @@ name: Anonymous Subscriptions Persist
 - assertVisible:
     id: home-list-empty-search
 - assertVisible:
+    id: home-list-empty-browse
+- assertVisible:
     id: home-sort-button
-- assertNotVisible:
+- assertVisible:
     id: home-overflow-trigger
 - assertNotVisible:
     id: home-filter-input
@@ -30,12 +32,14 @@ name: Anonymous Subscriptions Persist
     id: home-feed-summary
 - takeScreenshot: home-empty-no-subscriptions
 
-# The empty-state button is the route to Search, so signed out, the subscribe control works
+# The empty-state Search button is the route to Search, so signed out, the subscribe control works
 # rather than telling the user to log in.
 - tapOn:
     id: home-list-empty-search
 - assertVisible:
     id: search-screen
+- assertVisible:
+    id: search-medium-all
 - tapOn:
     id: search-input
 - inputText: podcast
@@ -179,3 +183,19 @@ name: Anonymous Subscriptions Persist
 - assertNotVisible:
     id: home-list-empty
 - takeScreenshot: subscriptions-anonymous-after-relaunch
+
+# Clips are account-backed for the subscribed list. With a local podcast follow and no account,
+# Home → Clips asks to log in rather than showing the global directory (or Browse alone).
+- tapOn:
+    id: home-media-type-clips
+- assertVisible: Clips
+- assertVisible:
+    id: home-list-empty
+- assertVisible:
+    id: home-list-empty-login
+- assertNotVisible:
+    id: home-list-empty-browse
+- assertNotVisible:
+    id: home-filter-input
+- assertNotVisible: "Dummy clip"
+- takeScreenshot: home-clips-login-required

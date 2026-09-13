@@ -47,7 +47,15 @@
       "delete_all": "Eliminar todo",
       "auto_removed_notice": "Se eliminaron las descargas más antiguas para liberar espacio",
       "dismiss": "Descartar",
-      "in_progress_count": "{count} en curso"
+      "in_progress_count": "{count} en curso",
+      "paused": "En pausa",
+      "pause_all": "Pausar todo",
+      "resume_all": "Reanudar todo",
+      "clear_finished": "Borrar todas las finalizadas",
+      "section_in_progress": "En curso",
+      "section_failed": "Fallidas",
+      "section_completed": "Completadas",
+      "activity_progress": "Descargando {active} de {total}"
     },
     "search": {
       "add_podcast": "Añadir podcast",
@@ -69,7 +77,27 @@
       "appearance_description": "Tema e idioma",
       "playback": "Reproducción",
       "playback_description": "Tipo de medio predeterminado y cola automática",
+      "downloads_description": "Límite de almacenamiento, liberar espacio y eliminar todas las descargas",
       "notifications_description": "Alertas en la app y push"
+    },
+    "downloads": {
+      "storage_heading": "Almacenamiento",
+      "device_storage": "Dispositivo",
+      "downloaded_media": "Medios descargados",
+      "app_data": "Datos de la app",
+      "cache": "Caché",
+      "limit_label": "Límite de descargas",
+      "unlimited": "Ilimitado",
+      "auto_free_heading": "Liberar espacio automáticamente",
+      "auto_delete_on_limit": "Cuando se alcanza mi límite de descargas",
+      "auto_delete_on_limit_description": "Elimina primero las descargas finalizadas más antiguas hasta volver a estar por debajo del límite.",
+      "auto_delete_on_device_low": "Cuando el teléfono tiene poco espacio libre",
+      "auto_delete_on_device_low_description": "Elimina las descargas finalizadas más antiguas cuando el espacio libre baja de 1 GB, aunque aún estés por debajo de tu límite.",
+      "delete_all_heading": "Eliminar todas las descargas",
+      "delete_all_description": "Elimina de forma permanente los archivos multimedia locales y las entradas del índice de descargas en este dispositivo. No se puede deshacer.",
+      "delete_all": "Eliminar todo",
+      "delete_all_confirm_title": "¿Eliminar todas las descargas?",
+      "delete_all_confirm_body": "Esto elimina todos los archivos de descarga locales y los quita de la lista Descargas. Habrá que volver a descargar los episodios para reproducirlos sin conexión."
     },
     "notifications": {
       "login_required_title": "Inicio de sesión necesario",
@@ -88,6 +116,9 @@
       "add_to_bar": "Añadir a la barra",
       "reorder_hint": "Mueve esta pantalla en la barra de pestañas o a Más"
     }
+  },
+  "subscriptions": {
+    "downloaded_not_subscribed": "Descargados, no suscritos"
   },
   "sync": {
     "job": {

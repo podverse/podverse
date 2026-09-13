@@ -1,12 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  DEFAULT_HOME_RANGE,
   DEFAULT_HOME_SORT,
   DEFAULT_HOME_VIEW_MODE,
+  homeSortToApiRange,
+  isHomeFilterMediaType,
   isHomeSortableMediaType,
   isHomeViewModeMediaType,
   readHomeListPrefs,
   subscribeHomeListPrefs,
+  writeHomeRange,
   writeHomeSort,
   writeHomeViewMode,
 } from './homeListPrefs';
@@ -36,6 +40,7 @@ describe('homeListPrefs', () => {
 
   it('opens with the documented defaults when nothing has been chosen', async () => {
     await expect(readHomeListPrefs('podcasts')).resolves.toEqual({
+      range: DEFAULT_HOME_RANGE,
       sort: DEFAULT_HOME_SORT,
       viewMode: DEFAULT_HOME_VIEW_MODE,
     });
@@ -45,18 +50,17 @@ describe('homeListPrefs', () => {
     expect(DEFAULT_HOME_VIEW_MODE).toBe('list');
   });
 
-  it('remembers the grid across a relaunch, and keeps it per media type', async () => {
-    await writeHomeViewMode('podcasts', 'grid');
+  it('remembers the grid across a relaunch for every Home media type', async () => {
+    await writeHomeViewMode('grid');
 
     await expect(readHomeListPrefs('podcasts')).resolves.toMatchObject({ viewMode: 'grid' });
-    await expect(readHomeListPrefs('episodes')).resolves.toMatchObject({
-      viewMode: DEFAULT_HOME_VIEW_MODE,
-    });
+    await expect(readHomeListPrefs('episodes')).resolves.toMatchObject({ viewMode: 'grid' });
+    await expect(readHomeListPrefs('artists')).resolves.toMatchObject({ viewMode: 'grid' });
   });
 
   it('leaves the sort alone when the view changes, and the view alone when the sort does', async () => {
     await writeHomeSort('podcasts', 'recent');
-    await writeHomeViewMode('podcasts', 'grid');
+    await writeHomeViewMode('grid');
 
     await expect(readHomeListPrefs('podcasts')).resolves.toMatchObject({
       sort: 'recent',
@@ -65,11 +69,17 @@ describe('homeListPrefs', () => {
   });
 
   it('ignores a stored view mode it does not recognise', async () => {
-    inMemoryStore.set('sort.podcasts', JSON.stringify({ viewMode: 'carousel' }));
+    inMemoryStore.set('sort.home-layout', JSON.stringify({ viewMode: 'carousel' }));
 
     await expect(readHomeListPrefs('podcasts')).resolves.toMatchObject({
       viewMode: DEFAULT_HOME_VIEW_MODE,
     });
+  });
+
+  it('keeps a legacy podcasts-scoped grid after layout becomes Home-wide', async () => {
+    inMemoryStore.set('sort.podcasts', JSON.stringify({ viewMode: 'grid' }));
+
+    await expect(readHomeListPrefs('albums')).resolves.toMatchObject({ viewMode: 'grid' });
   });
 
   it('keeps a sort per media type, so one list says nothing about another', async () => {
@@ -85,6 +95,7 @@ describe('homeListPrefs', () => {
     inMemoryStore.set('home.subscriptionFilter', 'addByRss');
 
     await expect(readHomeListPrefs('podcasts')).resolves.toEqual({
+      range: DEFAULT_HOME_RANGE,
       sort: DEFAULT_HOME_SORT,
       viewMode: DEFAULT_HOME_VIEW_MODE,
     });
@@ -105,6 +116,34 @@ describe('homeListPrefs', () => {
     await expect(readHomeListPrefs('episodes')).resolves.toMatchObject({
       sort: DEFAULT_HOME_SORT,
     });
+  });
+
+  it('remembers the popularity window per media type and opens on week when none is stored', async () => {
+    await writeHomeRange('podcasts', 'month');
+
+    await expect(readHomeListPrefs('podcasts')).resolves.toMatchObject({
+      range: 'month',
+      sort: 'popularity',
+    });
+    await expect(readHomeListPrefs('episodes')).resolves.toMatchObject({
+      range: DEFAULT_HOME_RANGE,
+    });
+  });
+
+  it('ignores a stored range it does not recognise', async () => {
+    inMemoryStore.set('sort.podcasts', JSON.stringify({ range: 'fortnight', sort: 'popularity' }));
+
+    await expect(readHomeListPrefs('podcasts')).resolves.toMatchObject({
+      range: DEFAULT_HOME_RANGE,
+      sort: 'popularity',
+    });
+  });
+
+  it('sends the chosen window only while the order is popularity', () => {
+    expect(homeSortToApiRange('alphabetical', 'month')).toBeNull();
+    expect(homeSortToApiRange('recent', 'day')).toBeNull();
+    expect(homeSortToApiRange('popularity', 'all-time')).toBe('all-time');
+    expect(homeSortToApiRange('popularity')).toBe(DEFAULT_HOME_RANGE);
   });
 
   it('notifies a watcher when the list it is watching changes', async () => {
@@ -138,9 +177,21 @@ describe('homeListPrefs', () => {
     expect(isHomeSortableMediaType('tracks')).toBe(true);
   });
 
-  it('offers the grid on the channel list only, where artwork identifies the row', () => {
+  it('offers the grid on channel and album lists, where artwork identifies the row', () => {
     expect(isHomeViewModeMediaType('podcasts')).toBe(true);
+    expect(isHomeViewModeMediaType('artists')).toBe(true);
+    expect(isHomeViewModeMediaType('albums')).toBe(true);
     expect(isHomeViewModeMediaType('episodes')).toBe(false);
     expect(isHomeViewModeMediaType('tracks')).toBe(false);
+    expect(isHomeViewModeMediaType('clips')).toBe(false);
+  });
+
+  it('offers Filter only on complete local channel lists', () => {
+    expect(isHomeFilterMediaType('podcasts')).toBe(true);
+    expect(isHomeFilterMediaType('artists')).toBe(true);
+    expect(isHomeFilterMediaType('albums')).toBe(true);
+    expect(isHomeFilterMediaType('episodes')).toBe(false);
+    expect(isHomeFilterMediaType('tracks')).toBe(false);
+    expect(isHomeFilterMediaType('clips')).toBe(false);
   });
 });

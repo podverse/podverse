@@ -18,6 +18,7 @@ import { queueRepository } from '../data/repositories/queueRepository';
 import type { SubscribedChannel } from '../data/repositories/subscriptionsRepository';
 import { subscriptionsRepository } from '../data/repositories/subscriptionsRepository';
 import type { MobileAuthRequestContext } from '../data/repositories/types';
+import { DEFAULT_HOME_RANGE, homeSortToApiRange, readHomeListPrefs } from '../prefs/homeListPrefs';
 import type { SyncJobKind } from './syncJobKinds';
 import { SYNC_JOB_LABEL_KEYS } from './syncJobKinds';
 import type { PlannedSyncJob } from './syncJobPlan';
@@ -227,8 +228,16 @@ const createLibraryBrowseProjectionJob = (
 const createPopularityRanksJob = (deps: SyncJobDeps, priority: SyncJobPriority): SyncJob => {
   return buildJob('popularity-ranks', priority, 'popularity-ranks', async () => {
     const context = deps.getAuthContext();
-    await subscriptionsRepository.refreshPopularityRanks(context);
-    await channelItemsRepository.refreshPopularityRanks(context);
+    const podcastsPrefs = await readHomeListPrefs('podcasts');
+    const episodesPrefs = await readHomeListPrefs('episodes');
+    await subscriptionsRepository.refreshPopularityRanks(
+      context,
+      homeSortToApiRange(podcastsPrefs.sort, podcastsPrefs.range) ?? DEFAULT_HOME_RANGE
+    );
+    await channelItemsRepository.refreshPopularityRanks(
+      context,
+      homeSortToApiRange(episodesPrefs.sort, episodesPrefs.range) ?? DEFAULT_HOME_RANGE
+    );
   });
 };
 

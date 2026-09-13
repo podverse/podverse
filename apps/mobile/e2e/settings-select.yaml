@@ -21,6 +21,8 @@ name: Settings Select Pages
     id: more-settings-playback
 - assertVisible:
     id: more-settings-notifications
+- assertVisible:
+    id: more-settings-downloads
 - takeScreenshot: settings-select-initial
 
 # Appearance: Theme list, pick Light, back on Appearance with Light shown.

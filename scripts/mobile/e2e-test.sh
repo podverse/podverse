@@ -41,7 +41,7 @@ flow_needs_e2e_api() {
   add-by-rss | api-health | auth-login | auth-logout | auto-queue-advance | browse | deep-link | \
   detail-sort-prefs | engine-audio-spike | home | library-downloads | library-playlists | \
   membership-gate | notifications-inbox | opml | play-mini-player | podcast-episode | push | \
-  queue-add | search | \
+  queue-add | search | settings-downloads | \
   search-unparsed | subscriptions-anonymous | tab-switch-playback | tablet | v4v | \
   video-transition)
     return 0

@@ -3,10 +3,11 @@ import { useMemo } from 'react';
 import type { GestureResponderEvent } from 'react-native';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { LIST_ROW_ACTION_SIZE } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 
-export type ButtonVariant = 'primary' | 'secondary';
+export type ButtonVariant = 'outline' | 'primary' | 'secondary' | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export type ButtonProps = {
@@ -27,8 +28,12 @@ export type ButtonProps = {
 
 /**
  * Themed pressable button. Copy is passed in (`label`) — never hardcoded here — so the caller owns
- * i18n. Colors come from the active theme's button tokens; the pill radius / spacing come from the
- * token scale (no hardcoded hex). Press dims opacity so every variant gives the same tactile cue.
+ * i18n. Colors come from the active theme's button / accent tokens; the pill radius / spacing come
+ * from the token scale (no hardcoded hex). Press dims opacity so every variant gives the same
+ * tactile cue.
+ *
+ * `outline` is the quiet bordered control (Subscribe, row Play / More): accent border and label on a
+ * transparent fill, matching the legacy subscribe chrome without inventing a second button family.
  */
 export function Button({
   icon,
@@ -45,8 +50,21 @@ export function Button({
 }: ButtonProps) {
   const { styles: themeStyles, tokens } = useTheme();
 
-  const palette = variant === 'primary' ? themeStyles.buttonPrimary : themeStyles.buttonSecondary;
+  const palette =
+    variant === 'primary'
+      ? themeStyles.buttonPrimary
+      : variant === 'secondary'
+        ? themeStyles.buttonSecondary
+        : variant === 'danger'
+          ? themeStyles.buttonDanger
+          : {
+              backgroundColor: 'transparent',
+              color: tokens.text.accent,
+            };
   const isDisabled = disabled || loading;
+  const isOutline = variant === 'outline';
+  const iconOnlySize =
+    size === 'sm' ? LIST_ROW_ACTION_SIZE : size === 'lg' ? 48 : 40;
 
   const styles = useMemo(
     () =>
@@ -55,17 +73,23 @@ export function Button({
           alignItems: 'center',
           alignSelf: fullWidth ? 'stretch' : 'flex-start',
           backgroundColor: palette.backgroundColor,
+          borderColor: isOutline ? tokens.text.accent : undefined,
           borderRadius: tokens.radii.round,
+          borderWidth: isOutline ? 1 : 0,
           flexDirection: 'row',
           justifyContent: 'center',
-          paddingHorizontal:
-            size === 'sm'
+          minHeight: iconOnly ? iconOnlySize : undefined,
+          minWidth: iconOnly ? iconOnlySize : undefined,
+          paddingHorizontal: iconOnly
+            ? 0
+            : size === 'sm'
               ? tokens.spacing.md
               : size === 'lg'
                 ? tokens.spacing['2xl']
                 : tokens.spacing.xl,
-          paddingVertical:
-            size === 'sm'
+          paddingVertical: iconOnly
+            ? 0
+            : size === 'sm'
               ? tokens.spacing.sm
               : size === 'lg'
                 ? tokens.spacing.base
@@ -93,7 +117,16 @@ export function Button({
           marginRight: tokens.spacing.sm,
         },
       }),
-    [fullWidth, palette.backgroundColor, palette.color, size, tokens]
+    [
+      fullWidth,
+      iconOnly,
+      iconOnlySize,
+      isOutline,
+      palette.backgroundColor,
+      palette.color,
+      size,
+      tokens,
+    ]
   );
 
   return (

@@ -5,10 +5,13 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { formatDateAbbrev } from '@podverse/helpers';
 import type { DTOItem } from '@podverse/helpers/dto';
+import { formatSecondsToReadableDuration } from '@podverse/helpers/timeFormatter';
 
 import { DownloadRowControl } from '../../components/download/DownloadRowControl';
 import { buildMediaRowMoreActions, MediaRowActions } from '../../components/player/MediaRowActions';
 import { Badge, CoverImage } from '../../components/primitives';
+import { LIST_ROW_ARTWORK_SIZE, listRowArtworkGap } from '../../theme/screenLayout';
+import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 import type { DirectoryMediaType } from '../browse/browseTypes';
 import { isPlayableDirectoryMediaType } from '../browse/browseTypes';
@@ -39,6 +42,12 @@ type HomeFeedRowProps = {
   /** Last row in a list: no bottom hairline so it does not sit on the list edge. */
   isLast?: boolean;
   testID?: string;
+  /**
+   * When true (default), show list artwork and the channel/context line above the title — Home
+   * Episodes, Search, Library. When false, omit both so an in-channel screen does not repeat the
+   * header's identity on every row.
+   */
+  showChannelContext?: boolean;
 };
 
 /**
@@ -120,6 +129,30 @@ const useUpdatedLabel = (
   }, [fallbackMs, i18n.language, updatedAt]);
 };
 
+const useDurationLabel = (
+  duration: string | null | undefined,
+  isLive: boolean
+): string | null => {
+  const { i18n } = useTranslation();
+
+  return useMemo(() => {
+    if (isLive) {
+      return null;
+    }
+    if (duration === undefined || duration === null || duration.length === 0) {
+      return null;
+    }
+    return formatSecondsToReadableDuration(duration, i18n.language);
+  }, [duration, i18n.language, isLive]);
+};
+
+/**
+ * Shared list row for channels and playable items.
+ *
+ * Playable item rows use three bands (identity + download, description, play/duration/more) so a
+ * Home Episodes list can show channel context without stacking every control in one column, and an
+ * in-channel list can drop art and channel name without inventing a second row component.
+ */
 export function HomeFeedRow({
   mediaType,
   onPress,
@@ -133,27 +166,52 @@ export function HomeFeedRow({
   isLast = false,
   row,
   testID,
+  showChannelContext = true,
 }: HomeFeedRowProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const isPlayable = isPlayableDirectoryMediaType(mediaType);
   const metadataSegments = useMetadataSegments(row.metadata);
   const updatedLabel = useUpdatedLabel(row.updatedAt, row.metadata?.latestItemPubDateMs);
+  const isLive = row.metadata?.isLive === true;
+  const durationLabel = useDurationLabel(row.duration, isLive);
+  const description =
+    row.description !== undefined && row.description !== null && row.description.length > 0
+      ? row.description
+      : null;
+  const channelLabel =
+    showChannelContext && row.subtitle !== null && row.subtitle.length > 0 ? row.subtitle : null;
+  const showArtwork = showChannelContext;
 
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        actionRow: {
-          alignItems: 'center',
-          flexDirection: 'row',
-          // Wraps because a row can carry Play, More options, and a download control, which is more
-          // than a narrow screen fits on one line.
-          flexWrap: 'wrap',
-          gap: tokens.spacing.sm,
+        channelTitle: {
+          ...typography.caption,
+          color: themeStyles.textPrimary.color,
+        },
+        date: {
+          ...typography.caption,
+          color: tokens.text.accent,
+        },
+        description: {
+          ...typography.caption,
+          color: themeStyles.textSecondary.color,
         },
         image: {
-          height: 60,
-          width: 60,
+          height: LIST_ROW_ARTWORK_SIZE,
+          width: LIST_ROW_ARTWORK_SIZE,
+        },
+        identityRow: {
+          alignItems: 'center',
+          flexDirection: 'row',
+          gap: listRowArtworkGap(tokens.spacing),
+        },
+        identityText: {
+          flex: 1,
+          gap: tokens.spacing.xs,
+          justifyContent: 'center',
+          minWidth: 0,
         },
         metadataRow: {
           alignItems: 'center',
@@ -162,35 +220,57 @@ export function HomeFeedRow({
           gap: tokens.spacing.sm,
         },
         metadataText: {
+          ...typography.caption,
           color: themeStyles.textSecondary.color,
-          fontSize: 12,
         },
         row: {
-          alignItems: 'center',
           backgroundColor: themeStyles.screen.backgroundColor,
           borderBottomColor: themeStyles.border.borderColor,
           borderBottomWidth: isLast ? 0 : StyleSheet.hairlineWidth,
-          flexDirection: 'row',
           gap: tokens.spacing.md,
           paddingVertical: tokens.spacing.base,
         },
-        rowContent: {
-          flex: 1,
-          gap: tokens.spacing.sm,
-          justifyContent: 'center',
-          minWidth: 0,
-        },
-        subtitle: {
-          color: themeStyles.textSecondary.color,
-          fontSize: 13,
-        },
         title: {
+          ...typography.subheading,
           color: themeStyles.textPrimary.color,
-          fontSize: 16,
-          fontWeight: '600',
         },
       }),
     [isLast, themeStyles, tokens]
+  );
+
+  const moreActions = useMemo(
+    () =>
+      buildMediaRowMoreActions(
+        t,
+        {
+          onAddToPlaylist:
+            onAddToPlaylistPress !== undefined
+              ? () => {
+                  onAddToPlaylistPress(row);
+                }
+              : undefined,
+          onMarkAsPlayed:
+            onMarkAsPlayedPress !== undefined
+              ? () => {
+                  onMarkAsPlayedPress(row);
+                }
+              : undefined,
+          onQueueLast: () => {
+            onQueuePress(row, 'last');
+          },
+          onQueueNext: () => {
+            onQueuePress(row, 'next');
+          },
+          onShare:
+            onSharePress !== undefined
+              ? () => {
+                  onSharePress(row);
+                }
+              : undefined,
+        },
+        { idSuffix: `-${row.id}` }
+      ),
+    [onAddToPlaylistPress, onMarkAsPlayedPress, onQueuePress, onSharePress, row, t]
   );
 
   return (
@@ -198,9 +278,11 @@ export function HomeFeedRow({
       // Composed rather than left to the default child walk, so the badges are heard as part of a
       // sentence about this show instead of as loose fragments after its title.
       accessibilityLabel={[
+        channelLabel,
         row.title,
         updatedLabel,
-        row.subtitle,
+        description,
+        durationLabel,
         ...metadataSegments.map((s) => s.text),
       ]
         .filter((part) => part !== null && part.length > 0)
@@ -212,99 +294,84 @@ export function HomeFeedRow({
       style={styles.row}
       testID={testID ?? `home-feed-row-${row.id}`}
     >
-      <CoverImage
-        fallbackLabel={t('media.image')}
-        opensViewer={false}
-        style={styles.image}
-        uri={row.imageUrl}
-      />
-      <View style={styles.rowContent}>
-        {/* The title carries its own testID because it is what the Home filter matches on, so a
-            test needs to read the text it is about to type. */}
-        <Text numberOfLines={2} style={styles.title} testID={`home-feed-row-title-${row.id}`}>
-          {row.title}
-        </Text>
-        {updatedLabel !== null ? (
-          <Text numberOfLines={1} style={styles.subtitle} testID={`home-feed-row-updated-${row.id}`}>
-            {updatedLabel}
+      <View style={styles.identityRow}>
+        {showArtwork ? (
+          <CoverImage
+            fallbackLabel={t('media.image')}
+            opensViewer={false}
+            style={styles.image}
+            uri={row.imageUrl}
+          />
+        ) : null}
+        <View style={styles.identityText}>
+          {channelLabel !== null ? (
+            <Text
+              numberOfLines={1}
+              style={styles.channelTitle}
+              testID={`home-feed-row-subtitle-${row.id}`}
+            >
+              {channelLabel}
+            </Text>
+          ) : null}
+          <Text numberOfLines={2} style={styles.title} testID={`home-feed-row-title-${row.id}`}>
+            {row.title}
           </Text>
-        ) : null}
-        {row.subtitle !== null ? (
-          <Text numberOfLines={1} style={styles.subtitle}>
-            {row.subtitle}
-          </Text>
-        ) : null}
-        {metadataSegments.length > 0 ? (
-          <View style={styles.metadataRow}>
-            {metadataSegments.map((segment) =>
-              segment.emphasis ? (
-                <Badge
-                  key={segment.name}
-                  label={segment.text}
-                  testID={`home-feed-row-${segment.name}-${row.id}`}
-                  tone="accent"
-                />
-              ) : (
-                <Text
-                  key={segment.name}
-                  style={styles.metadataText}
-                  testID={`home-feed-row-${segment.name}-${row.id}`}
-                >
-                  {segment.text}
-                </Text>
-              )
-            )}
-          </View>
-        ) : null}
-        {customActions !== undefined ? (
-          <View style={styles.actionRow}>{customActions}</View>
-        ) : isPlayable ? (
-          <View style={styles.actionRow}>
-            <MediaRowActions
-              idSuffix={`-${row.id}`}
-              moreActions={buildMediaRowMoreActions(
-                t,
-                {
-                  onAddToPlaylist:
-                    onAddToPlaylistPress !== undefined
-                      ? () => {
-                          onAddToPlaylistPress(row);
-                        }
-                      : undefined,
-                  onMarkAsPlayed:
-                    onMarkAsPlayedPress !== undefined
-                      ? () => {
-                          onMarkAsPlayedPress(row);
-                        }
-                      : undefined,
-                  onQueueLast: () => {
-                    onQueuePress(row, 'last');
-                  },
-                  onQueueNext: () => {
-                    onQueuePress(row, 'next');
-                  },
-                  onShare:
-                    onSharePress !== undefined
-                      ? () => {
-                          onSharePress(row);
-                        }
-                      : undefined,
-                },
-                { idSuffix: `-${row.id}` }
+          {updatedLabel !== null ? (
+            <Text numberOfLines={1} style={styles.date} testID={`home-feed-row-updated-${row.id}`}>
+              {updatedLabel}
+            </Text>
+          ) : null}
+          {metadataSegments.length > 0 ? (
+            <View style={styles.metadataRow}>
+              {metadataSegments.map((segment) =>
+                segment.emphasis ? (
+                  <Badge
+                    key={segment.name}
+                    label={segment.text}
+                    testID={`home-feed-row-${segment.name}-${row.id}`}
+                    tone="accent"
+                  />
+                ) : (
+                  <Text
+                    key={segment.name}
+                    style={styles.metadataText}
+                    testID={`home-feed-row-${segment.name}-${row.id}`}
+                  >
+                    {segment.text}
+                  </Text>
+                )
               )}
-              moreTestID={`home-row-more-${row.id}`}
-              onPlayPress={() => {
-                onPlayPress(row);
-              }}
-              playLabel={t('media_player.play')}
-              playTestID={`home-row-play-${row.id}`}
-            />
-            {download !== undefined ? (
-              <DownloadRowControl item={download.item} testID={download.testID} />
-            ) : null}
-          </View>
+            </View>
+          ) : null}
+        </View>
+        {download !== undefined ? (
+          <DownloadRowControl item={download.item} testID={download.testID} />
         ) : null}
       </View>
+
+      {description !== null ? (
+        <Text numberOfLines={2} style={styles.description} testID={`home-feed-row-description-${row.id}`}>
+          {description}
+        </Text>
+      ) : null}
+
+      {customActions !== undefined ? (
+        customActions
+      ) : isPlayable ? (
+        <MediaRowActions
+          appearance="icons"
+          durationLabel={durationLabel}
+          durationTestID={`home-feed-row-duration-${row.id}`}
+          idSuffix={`-${row.id}`}
+          moreActions={moreActions}
+          moreTestID={`home-row-more-${row.id}`}
+          onPlayPress={() => {
+            onPlayPress(row);
+          }}
+          playLabel={t('media_player.play')}
+          playTestID={`home-row-play-${row.id}`}
+        />
+      ) : null}
     </Pressable>
   );
 }

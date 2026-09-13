@@ -107,6 +107,7 @@ export function PodcastClipsSection({
             runQueueAction(clipRow, 'clips', position);
           }}
           row={row}
+          showChannelContext={false}
           testID={`podcast-clip-row-${index}`}
         />
       )}

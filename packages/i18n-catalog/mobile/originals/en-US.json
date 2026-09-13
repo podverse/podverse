@@ -55,7 +55,15 @@
       "dismiss": "Dismiss",
       "in_progress_count": "{count} in progress",
       "auto_download": "Auto-download new episodes",
-      "auto_download_unavailable": "Auto-download is not available yet."
+      "auto_download_unavailable": "Auto-download is not available yet.",
+      "paused": "Paused",
+      "pause_all": "Pause all",
+      "resume_all": "Resume all",
+      "clear_finished": "Clear all finished",
+      "section_in_progress": "In progress",
+      "section_failed": "Failed",
+      "section_completed": "Completed",
+      "activity_progress": "Downloading {active} of {total}"
     },
     "search": {
       "add_podcast": "Add podcast",
@@ -77,7 +85,27 @@
       "appearance_description": "Theme and language",
       "playback": "Playback",
       "playback_description": "Default media type and auto queue",
+      "downloads_description": "Storage limit, auto-free, and delete all downloads",
       "notifications_description": "In-app and push alerts"
+    },
+    "downloads": {
+      "storage_heading": "Storage",
+      "device_storage": "Device",
+      "downloaded_media": "Downloaded media",
+      "app_data": "App data",
+      "cache": "Cache",
+      "limit_label": "Download limit",
+      "unlimited": "Unlimited",
+      "auto_free_heading": "Automatically free space",
+      "auto_delete_on_limit": "When my download limit is reached",
+      "auto_delete_on_limit_description": "Deletes the oldest finished downloads first until you are back under the limit.",
+      "auto_delete_on_device_low": "When the phone is low on free space",
+      "auto_delete_on_device_low_description": "Deletes the oldest finished downloads when free space drops below 1 GB, even if you are still under your download limit.",
+      "delete_all_heading": "Delete all downloads",
+      "delete_all_description": "Permanently deletes the local media files and download index entries on this device. This cannot be undone.",
+      "delete_all": "Delete all",
+      "delete_all_confirm_title": "Delete all downloads?",
+      "delete_all_confirm_body": "This deletes every local download file and removes them from the Downloads list. Episodes will need to be downloaded again for offline play."
     },
     "notifications": {
       "login_required_title": "Login required",
@@ -96,6 +124,9 @@
       "add_to_bar": "Add to tab bar",
       "reorder_hint": "Moves this screen on the tab bar or into More"
     }
+  },
+  "subscriptions": {
+    "downloaded_not_subscribed": "Downloaded, not subscribed"
   },
   "sync": {
     "job": {

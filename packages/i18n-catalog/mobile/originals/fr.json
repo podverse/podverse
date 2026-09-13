@@ -47,7 +47,15 @@
       "delete_all": "Tout supprimer",
       "auto_removed_notice": "Les téléchargements les plus anciens ont été supprimés pour libérer de l'espace",
       "dismiss": "Fermer",
-      "in_progress_count": "{count} en cours"
+      "in_progress_count": "{count} en cours",
+      "paused": "En pause",
+      "pause_all": "Tout mettre en pause",
+      "resume_all": "Tout reprendre",
+      "clear_finished": "Effacer tous les terminés",
+      "section_in_progress": "En cours",
+      "section_failed": "Échoués",
+      "section_completed": "Terminés",
+      "activity_progress": "Téléchargement de {active} sur {total}"
     },
     "search": {
       "add_podcast": "Ajouter le podcast",
@@ -69,7 +77,27 @@
       "appearance_description": "Thème et langue",
       "playback": "Lecture",
       "playback_description": "Type de média par défaut et file automatique",
+      "downloads_description": "Limite de stockage, libération automatique et suppression de tous les téléchargements",
       "notifications_description": "Alertes dans l'app et push"
+    },
+    "downloads": {
+      "storage_heading": "Stockage",
+      "device_storage": "Appareil",
+      "downloaded_media": "Médias téléchargés",
+      "app_data": "Données de l'app",
+      "cache": "Cache",
+      "limit_label": "Limite de téléchargement",
+      "unlimited": "Illimité",
+      "auto_free_heading": "Libérer de l'espace automatiquement",
+      "auto_delete_on_limit": "Lorsque ma limite de téléchargement est atteinte",
+      "auto_delete_on_limit_description": "Supprime d'abord les téléchargements terminés les plus anciens jusqu'à revenir sous la limite.",
+      "auto_delete_on_device_low": "Lorsque le téléphone manque d'espace libre",
+      "auto_delete_on_device_low_description": "Supprime les téléchargements terminés les plus anciens lorsque l'espace libre passe sous 1 Go, même si vous êtes encore sous votre limite.",
+      "delete_all_heading": "Supprimer tous les téléchargements",
+      "delete_all_description": "Supprime définitivement les fichiers multimédias locaux et les entrées d'index de téléchargement sur cet appareil. Cette action est irréversible.",
+      "delete_all": "Tout supprimer",
+      "delete_all_confirm_title": "Supprimer tous les téléchargements ?",
+      "delete_all_confirm_body": "Cela supprime tous les fichiers de téléchargement locaux et les retire de la liste Téléchargements. Les épisodes devront être téléchargés à nouveau pour une écoute hors ligne."
     },
     "notifications": {
       "login_required_title": "Connexion requise",
@@ -88,6 +116,9 @@
       "add_to_bar": "Ajouter à la barre",
       "reorder_hint": "Déplace cet écran dans la barre d'onglets ou vers Plus"
     }
+  },
+  "subscriptions": {
+    "downloaded_not_subscribed": "Téléchargés, non abonnés"
   },
   "sync": {
     "job": {

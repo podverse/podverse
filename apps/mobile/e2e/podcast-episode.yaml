@@ -26,7 +26,13 @@ name: Podcast Episode Flow
 - takeScreenshot: podcast-episode-podcast-detail
 
 - assertVisible:
+    id: podcast-detail-header
+- assertVisible:
+    id: podcast-detail-subscribe-toggle
+- assertVisible:
     id: podcast-episode-row-0
+- takeScreenshot: podcast-episode-header-row-layout
+
 - tapOn:
     id: podcast-episode-row-0
 - assertVisible:

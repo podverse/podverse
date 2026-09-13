@@ -182,6 +182,7 @@ npm run mobile:e2e:test -- push
 npm run mobile:e2e:test -- queue-add
 npm run mobile:e2e:test -- search-unparsed
 npm run mobile:e2e:test -- search
+npm run mobile:e2e:test -- settings-downloads
 npm run mobile:e2e:test -- settings-select
 npm run mobile:e2e:test -- subscriptions-anonymous
 npm run mobile:e2e:test -- sync-log

@@ -24,5 +24,7 @@ export { ReorderHandle } from './ReorderHandle';
 export type { ReorderHandleProps } from './ReorderHandle';
 export { ScreenHeader } from './ScreenHeader';
 export type { ScreenHeaderProps } from './ScreenHeader';
+export { SwipeActionRow } from './SwipeActionRow';
+export type { SwipeActionRowProps } from './SwipeActionRow';
 export { VerticalCenter } from './VerticalCenter';
 export type { VerticalCenterProps } from './VerticalCenter';

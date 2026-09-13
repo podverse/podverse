@@ -1,4 +1,7 @@
 import type { SortPrefScope } from '@podverse/helpers';
+import { pickSortPrefToken } from '@podverse/helpers';
+import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
+import { QUERY_PARAMS_STATS_RANGE_VALUES } from '@podverse/helpers-requests';
 
 import type { HomeMediaType } from './preferredMediaType';
 import { readSortPref, subscribeSortPref, writeSortPref } from './sortPrefs';
@@ -6,8 +9,9 @@ import { readSortPref, subscribeSortPref, writeSortPref } from './sortPrefs';
 /**
  * Home's remembered list selections, held under the shared scope-keyed contract.
  *
- * Each media type is its own scope, because ordering podcasts by title and ordering episodes by
- * title are separate opinions and a user who sets one has said nothing about the other.
+ * Each media type is its own scope for sort and range, because ordering podcasts by title and
+ * ordering episodes by title are separate opinions. Layout (list vs grid) is one Home-wide choice
+ * shared by every media type that can show a grid.
  */
 
 /**
@@ -20,8 +24,15 @@ export type HomeSortOption = (typeof HOME_SORT_OPTIONS)[number];
 
 export const DEFAULT_HOME_SORT: HomeSortOption = 'alphabetical';
 
-/** Listen-count window used when Home asks the directory for a popularity ranking. */
-export const HOME_POPULARITY_RANGE = 'week' as const;
+/**
+ * The listen-count window popularity ranks within. Carried for every Home list, not only while
+ * popularity is selected, so returning to it opens on the window the user last chose.
+ */
+export const HOME_RANGE_OPTIONS = QUERY_PARAMS_STATS_RANGE_VALUES;
+
+export type HomeRangeOption = QueryParamsStatsRange;
+
+export const DEFAULT_HOME_RANGE: HomeRangeOption = 'week';
 
 /** API `sort` for a Home preference. Popularity is the directory's `top` ranking. */
 export const homeSortToApiSort = (sort: HomeSortOption): 'a_z' | 'recent' | 'top' => {
@@ -35,11 +46,14 @@ export const homeSortToApiSort = (sort: HomeSortOption): 'a_z' | 'recent' | 'top
 };
 
 /** Popularity is the only Home order that needs a stats window. */
-export const homeSortToApiRange = (sort: HomeSortOption): typeof HOME_POPULARITY_RANGE | null => {
-  return sort === 'popularity' ? HOME_POPULARITY_RANGE : null;
+export const homeSortToApiRange = (
+  sort: HomeSortOption,
+  range: HomeRangeOption = DEFAULT_HOME_RANGE
+): HomeRangeOption | null => {
+  return sort === 'popularity' ? range : null;
 };
 
-/** How the subscribed list is drawn: full rows, or a grid of artwork tiles. */
+/** How an eligible Home list is drawn: full rows, or a grid of artwork tiles. */
 export const HOME_VIEW_MODES = ['list', 'grid'] as const;
 
 export type HomeViewMode = (typeof HOME_VIEW_MODES)[number];
@@ -52,19 +66,30 @@ export type HomeViewMode = (typeof HOME_VIEW_MODES)[number];
  */
 export const DEFAULT_HOME_VIEW_MODE: HomeViewMode = 'list';
 
+/** Scope for the one Home-wide list/grid preference. */
+const HOME_VIEW_MODE_SCOPE: SortPrefScope = { kind: 'list', name: 'home-layout' };
+
 /** Every Home list offers the same three orders. */
 export const isHomeSortableMediaType = (_mediaType: HomeMediaType): boolean => {
   return true;
 };
 
 /**
- * The media types the grid is offered for.
+ * Media types that can draw as an artwork grid.
  *
- * A tile is artwork with nothing else on it, which identifies a show but not an episode — two
- * episodes of the same podcast wear the same cover. So the toggle belongs to the channel list.
+ * A tile is cover art with nothing else on it, which identifies a channel or album but not an
+ * episode, track, or clip — those share covers across many rows.
  */
 export const isHomeViewModeMediaType = (mediaType: HomeMediaType): boolean => {
-  return mediaType === 'podcasts';
+  return mediaType === 'podcasts' || mediaType === 'artists' || mediaType === 'albums';
+};
+
+/**
+ * Filter is a local title substring over a complete list — honest only for channel chips Home
+ * already holds in full. Item and clip feeds are page windows, so Filter stays off for those.
+ */
+export const isHomeFilterMediaType = (mediaType: HomeMediaType): boolean => {
+  return mediaType === 'podcasts' || mediaType === 'artists' || mediaType === 'albums';
 };
 
 const buildScope = (mediaType: HomeMediaType): SortPrefScope => {
@@ -80,8 +105,29 @@ const isHomeViewMode = (value: string): value is HomeViewMode => {
 };
 
 export type HomeListPrefs = {
+  range: HomeRangeOption;
   sort: HomeSortOption;
   viewMode: HomeViewMode;
+};
+
+/**
+ * The Home-wide list/grid choice.
+ *
+ * Falls back to a previously stored podcasts-scoped `viewMode` so upgrades keep the layout the
+ * user already picked before layout became global.
+ */
+export const readHomeViewMode = async (): Promise<HomeViewMode> => {
+  const stored = await readSortPref(HOME_VIEW_MODE_SCOPE);
+  if (stored?.viewMode !== undefined && isHomeViewMode(stored.viewMode)) {
+    return stored.viewMode;
+  }
+
+  const legacy = await readSortPref(buildScope('podcasts'));
+  if (legacy?.viewMode !== undefined && isHomeViewMode(legacy.viewMode)) {
+    return legacy.viewMode;
+  }
+
+  return DEFAULT_HOME_VIEW_MODE;
 };
 
 /**
@@ -89,18 +135,19 @@ export type HomeListPrefs = {
  *
  * Read before the first data query rather than after it, so the list arrives in the order the user
  * left it in instead of appearing in the default order and rearranging itself a moment later.
+ * `viewMode` is Home-wide; sort and range stay per media type.
  */
 export const readHomeListPrefs = async (mediaType: HomeMediaType): Promise<HomeListPrefs> => {
-  const stored = await readSortPref(buildScope(mediaType));
+  const [stored, viewMode] = await Promise.all([
+    readSortPref(buildScope(mediaType)),
+    readHomeViewMode(),
+  ]);
 
   const sort =
     stored?.sort !== undefined && isHomeSortOption(stored.sort) ? stored.sort : DEFAULT_HOME_SORT;
-  const viewMode =
-    stored?.viewMode !== undefined && isHomeViewMode(stored.viewMode)
-      ? stored.viewMode
-      : DEFAULT_HOME_VIEW_MODE;
+  const range = pickSortPrefToken(stored?.range, HOME_RANGE_OPTIONS, DEFAULT_HOME_RANGE);
 
-  return { sort, viewMode };
+  return { range, sort, viewMode };
 };
 
 export const writeHomeSort = async (
@@ -110,22 +157,32 @@ export const writeHomeSort = async (
   await writeSortPref(buildScope(mediaType), { sort });
 };
 
-export const writeHomeViewMode = async (
+export const writeHomeRange = async (
   mediaType: HomeMediaType,
-  viewMode: HomeViewMode
+  range: HomeRangeOption
 ): Promise<void> => {
-  await writeSortPref(buildScope(mediaType), { viewMode });
+  await writeSortPref(buildScope(mediaType), { range, sort: 'popularity' });
+};
+
+export const writeHomeViewMode = async (viewMode: HomeViewMode): Promise<void> => {
+  await writeSortPref(HOME_VIEW_MODE_SCOPE, { viewMode });
 };
 
 /**
- * Watch this media type's preferences.
+ * Watch this media type's preferences and the Home-wide layout.
  *
  * The sort screen writes the preference and Home reads it back, so neither has to hand the other a
- * value and the two cannot disagree about what is selected.
+ * value and the two cannot disagree about what is selected. Layout changes notify every Home list
+ * watcher because one choice covers all eligible chips.
  */
 export const subscribeHomeListPrefs = (
   mediaType: HomeMediaType,
   listener: () => void
 ): (() => void) => {
-  return subscribeSortPref(buildScope(mediaType), listener);
+  const unsubscribeSort = subscribeSortPref(buildScope(mediaType), listener);
+  const unsubscribeView = subscribeSortPref(HOME_VIEW_MODE_SCOPE, listener);
+  return () => {
+    unsubscribeSort();
+    unsubscribeView();
+  };
 };

@@ -6,16 +6,19 @@
 
 ## Scope
 
-Home becomes a **subscribed-only** surface. All discovery moves to the Search tab, which stays where
-it is. Home no longer falls back to global directory content for signed-out users — after
+Home is a **subscribed-only** surface for every media-type chip. Discovery lives on the **Browse**
+tab (global directory) and the **Search** tab (Podcast Index feeds). Home never falls back to
+global directory rows — after
 [701-anonymous-subscriptions](/docs/proposals/mobile/_master-plan_/phase-2/details/701-anonymous-subscriptions.md)
 a signed-out user has real subscriptions to show.
 
-**Enforced on Podcasts and Episodes.** Podcasts reads local storage only, in every auth state, with
-no network path at all. Episodes reads local storage and, when it is empty on a fresh install, asks
-an **account** for its subscribed items — never the directory, so a signed-out device waits for the
-sync queue instead. The Clips, Artists, Albums, and Tracks chips still read global content; those
-media types are out of scope for this set and carry the contradiction until they are planned.
+**Every chip.** Podcasts / Artists / Albums read local follows filtered by channel **kind**
+([739](/docs/proposals/mobile/_master-plan_/phase-2/details/739-home-subscribed-channel-kind-and-loaders.md)).
+Episodes and Tracks read local items for subscribed parents (account subscribed API fill when the
+local store is empty and signed in — never `type: 'global'`). Clips use the account subscribed clip
+API only when authenticated; otherwise the empty matrix in
+[740](/docs/proposals/mobile/_master-plan_/phase-2/details/740-home-empty-discovery-ctas.md)
+(login or Browse).
 
 ### Filter input
 
@@ -47,12 +50,13 @@ local result.
 
 ### Empty states
 
-Two distinct empty states:
+| Situation               | Presentation                                                                 |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| Chip has no rows        | Generic empty copy plus Browse and/or Search per [740](/docs/proposals/mobile/_master-plan_/phase-2/details/740-home-empty-discovery-ctas.md) |
+| Filter matches nothing  | A plain "no matches" message — **no** discovery button                       |
 
-| Situation               | Presentation                                                     |
-| ----------------------- | ---------------------------------------------------------------- |
-| No subscriptions at all | Guidance copy plus a **Search** button that opens the Search tab |
-| Filter matches nothing  | A plain "no matches" message — **no** Search button              |
+Filter visibility is limited to channel lists (Podcasts / Artists / Albums) when rows exist —
+see [741](/docs/proposals/mobile/_master-plan_/phase-2/details/741-home-filter-channel-lists-only.md).
 
 ### Carried over from detail 700
 
@@ -67,14 +71,15 @@ It is mounted app-wide, not per screen, so this rebuild must **not** add a secon
 - Home lists only subscribed content; no global/directory rows appear for any auth state.
 - The membership expiry banner still renders once above Home for a lapsed member and is still
   dismissible.
-- The filter input is visible at the top of the list and scrolls with content.
+- The filter input is visible on Podcasts / Artists / Albums when the list has rows, and scrolls with
+  content.
 - Filtering matches titles case-insensitively, including article-stripped forms, across directory
   subscriptions and add-by-RSS feeds together.
 - Filtering works with the network disabled.
 - Filter text survives tab switches within a session and is gone after an app restart.
 - Directory subscriptions and add-by-RSS feeds appear together in the same Home result.
-- Zero subscriptions shows the Search CTA and it navigates to the Search tab; zero matches shows the
-  plain message.
+- Empty chips show the discovery CTAs from detail 740; zero filter matches shows the plain message
+  with no discovery button.
 - The list stays virtualized (`FlatList`), and all copy resolves through i18n.
 - E2E covers filtering to a known subscription and both empty states.
 

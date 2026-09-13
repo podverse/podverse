@@ -1,31 +1,36 @@
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AccessibilityInfo, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { matchesTitleFilter } from '@podverse/helpers';
 
 import { useAuth } from '../../auth/AuthProvider';
+import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { ListFilterField } from '../../components/form';
 import { FillList } from '../../components/primitives';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { LoadingSection } from '../../components/state/LoadingSection';
-import { channelSeenRepository } from '../../data/repositories';
+import { channelSeenRepository, subscriptionsRepository } from '../../data/repositories';
+import { downloadManager } from '../../downloads/downloadManager';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import type { HomeStackParamList, MobileTabParamList } from '../../navigation';
-import { HOME_STACK_ROUTES, SEARCH_STACK_ROUTES } from '../../navigation';
+import { BROWSE_STACK_ROUTES, HOME_STACK_ROUTES, SEARCH_STACK_ROUTES } from '../../navigation';
 import { E2ePlayVideoButton } from '../../playback/E2ePlayVideoButton';
-import type { HomeSortOption, HomeViewMode } from '../../prefs/homeListPrefs';
+import type { HomeRangeOption, HomeSortOption, HomeViewMode } from '../../prefs/homeListPrefs';
 import {
+  DEFAULT_HOME_RANGE,
   DEFAULT_HOME_SORT,
   DEFAULT_HOME_VIEW_MODE,
+  isHomeFilterMediaType,
   isHomeViewModeMediaType,
   readHomeListPrefs,
   subscribeHomeListPrefs,
+  writeHomeRange,
   writeHomeSort,
   writeHomeViewMode,
 } from '../../prefs/homeListPrefs';
@@ -38,21 +43,25 @@ import {
 import { useSync } from '../../sync';
 import { resolveGridColumns } from '../../theme/resolveColumns';
 import { screenBodyInsets } from '../../theme/screenLayout';
+import { typography } from '../../theme/typography';
 import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
+import type { BrowseMediaType } from '../browse/browseTypes';
 import { HOME_MEDIA_TYPE_ORDER, MEDIA_TYPE_LABEL_KEYS } from '../browse/browseTypes';
 import type { AddToPlaylistTarget } from '../library/useAddToPlaylist';
 import { useAddToPlaylist } from '../library/useAddToPlaylist';
-import { fetchHomeFeedRows, type HomeFeedRowData } from './homeFeedData';
+import {
+  fetchHomeFeedRows,
+  fetchUnsubscribedDownloadHomeRows,
+  type HomeFeedRowData,
+} from './homeFeedData';
 import { HomeFeedGridCell } from './HomeFeedGridCell';
 import { HomeFeedRow } from './HomeFeedRow';
 import { readHomeFilterTerm, writeHomeFilterTerm } from './homeFilterSession';
 import { HomeOverflowMenu } from './HomeOverflowMenu';
 import { HomeSortChip } from './HomeSortChip';
 import { MediaTypeSelector } from './MediaTypeSelector';
-import { useHomeRowPlayback } from './useHomeRowPlayback';
-
-/**
+import { useHomeRowPlayback } from './useHomeRowPlayback';/**
  * The remembered choices, tagged with the list they were read for.
  *
  * Tagged because each media type keeps its own, and a switch between them leaves the previous
@@ -61,6 +70,7 @@ import { useHomeRowPlayback } from './useHomeRowPlayback';
  */
 type HomeListPrefsState = {
   mediaType: HomeMediaType;
+  range: HomeRangeOption;
   sort: HomeSortOption;
   viewMode: HomeViewMode;
 };
@@ -69,6 +79,7 @@ export function HomeScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
+  const { onRequestLogin } = useAuthPrompt();
   const { requestSync, state: syncState } = useSync();
   const { columns: rowColumns, width } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
@@ -77,6 +88,10 @@ export function HomeScreen() {
   const [isMediaTypeHydrated, setIsMediaTypeHydrated] = useState<boolean>(false);
   const [listPrefs, setListPrefs] = useState<HomeListPrefsState | null>(null);
   const [feedRows, setFeedRows] = useState<HomeFeedRowData[]>([]);
+  const [unsubscribedDownloadRows, setUnsubscribedDownloadRows] = useState<HomeFeedRowData[]>(
+    []
+  );
+  const [hasPodcastSubscriptions, setHasPodcastSubscriptions] = useState<boolean>(false);
   const [filterTerm, setFilterTerm] = useState<string>(readHomeFilterTerm);
   const [isFeedLoading, setIsFeedLoading] = useState<boolean>(true);
   const [isFeedRefreshing, setIsFeedRefreshing] = useState<boolean>(false);
@@ -86,9 +101,9 @@ export function HomeScreen() {
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
   const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();
 
-  // Both menu entries are about the subscribed channel list — how to draw it, and catching up on
-  // it. On the other media types the menu would open onto nothing that applies.
-  const showOverflowMenu = isHomeViewModeMediaType(selectedMediaType);
+  // Layout applies only on eligible chips; the overflow trigger always sits in the title bar.
+  const viewModeEligible = isHomeViewModeMediaType(selectedMediaType);
+  const showMarkAllSeen = selectedMediaType === 'podcasts';
 
   // Null until the choices for the list actually on screen have been read. The feed waits on it, so
   // the list arrives in the remembered order rather than appearing in the default one and
@@ -176,31 +191,51 @@ export function HomeScreen() {
     [selectedMediaType]
   );
 
-  const handleViewModeChange = useCallback(
-    (viewMode: HomeViewMode) => {
-      // Applied here as well as written, so the list redraws on the tap rather than after the
-      // storage round trip. The write is still what a relaunch reads.
-      setListPrefs((current) => (current === null ? current : { ...current, viewMode }));
-      void writeHomeViewMode(selectedMediaType, viewMode);
+  const handleRangeChange = useCallback(
+    (range: HomeRangeOption) => {
+      setListPrefs((current) =>
+        current === null ? current : { ...current, range, sort: 'popularity' }
+      );
+      void writeHomeRange(selectedMediaType, range);
     },
     [selectedMediaType]
   );
+
+  const handleViewModeChange = useCallback((viewMode: HomeViewMode) => {
+    // Applied here as well as written, so the list redraws on the tap rather than after the
+    // storage round trip. The write is still what a relaunch reads. One Home-wide choice covers
+    // every eligible chip.
+    setListPrefs((current) => (current === null ? current : { ...current, viewMode }));
+    void writeHomeViewMode(viewMode);
+  }, []);
 
   const handleFilterTermChange = useCallback((term: string) => {
     setFilterTerm(term);
     writeHomeFilterTerm(term);
   }, []);
 
-  const handleSearchPress = useCallback(() => {
-    // Through the tab navigator rather than resetting a stack, so Home keeps its own history. The
-    // user pressed this because they have nothing subscribed, so Search opens at its root with an
-    // empty, focused field rather than whatever they last looked at there.
-    navigation.getParent<BottomTabNavigationProp<MobileTabParamList>>()?.navigate('Search', {
-      params: { autoFocus: true },
-      screen: SEARCH_STACK_ROUTES.SearchRoot,
-    });
-  }, [navigation]);
+  const handleSearchPress = useCallback(
+    (medium: 'all' | 'music' = 'all') => {
+      // Through the tab navigator rather than resetting a stack, so Home keeps its own history. The
+      // user pressed this because they have nothing subscribed, so Search opens at its root with an
+      // empty, focused field rather than whatever they last looked at there.
+      navigation.getParent<BottomTabNavigationProp<MobileTabParamList>>()?.navigate('Search', {
+        params: { autoFocus: true, medium },
+        screen: SEARCH_STACK_ROUTES.SearchRoot,
+      });
+    },
+    [navigation]
+  );
 
+  const handleBrowsePress = useCallback(
+    (mediaType: BrowseMediaType) => {
+      navigation.getParent<BottomTabNavigationProp<MobileTabParamList>>()?.navigate('Browse', {
+        params: { mediaType },
+        screen: BROWSE_STACK_ROUTES.BrowseRoot,
+      });
+    },
+    [navigation]
+  );
   const loadFeed = useCallback(
     async (source: 'initial' | 'refresh' | 'retry' | 'synced') => {
       if (activePrefs === null) {
@@ -238,12 +273,35 @@ export function HomeScreen() {
             setTokens,
             status,
           },
-          { sort: activePrefs.sort }
+          { range: activePrefs.range, sort: activePrefs.sort }
         );
         if (requestId !== feedRequestIdRef.current) {
           return;
         }
         setFeedRows(rows);
+        if (selectedMediaType === 'podcasts') {
+          const unsubscribed = await fetchUnsubscribedDownloadHomeRows();
+          if (requestId !== feedRequestIdRef.current) {
+            return;
+          }
+          setUnsubscribedDownloadRows(unsubscribed);
+          setHasPodcastSubscriptions(rows.length > 0);
+        } else {
+          setUnsubscribedDownloadRows([]);
+          if (selectedMediaType === 'clips') {
+            try {
+              const podcasts = await subscriptionsRepository.list({ kind: 'podcasts' });
+              if (requestId !== feedRequestIdRef.current) {
+                return;
+              }
+              setHasPodcastSubscriptions(podcasts.length > 0);
+            } catch {
+              if (requestId === feedRequestIdRef.current) {
+                setHasPodcastSubscriptions(false);
+              }
+            }
+          }
+        }
       } catch {
         if (requestId !== feedRequestIdRef.current) {
           return;
@@ -255,6 +313,7 @@ export function HomeScreen() {
         }
         if (source === 'initial' || source === 'retry') {
           setFeedRows([]);
+          setUnsubscribedDownloadRows([]);
         }
         setFeedErrorKey('errors.generic');
       } finally {
@@ -289,6 +348,22 @@ export function HomeScreen() {
       void loadFeed('refresh');
     });
   }, [loadFeed]);
+
+  useEffect(() => {
+    return downloadManager.subscribe(() => {
+      if (selectedMediaType !== 'podcasts') {
+        return;
+      }
+      void (async () => {
+        try {
+          const unsubscribed = await fetchUnsubscribedDownloadHomeRows();
+          setUnsubscribedDownloadRows(unsubscribed);
+        } catch {
+          // Keep the footer already on screen; a failed refresh is quieter than clearing it.
+        }
+      })();
+    });
+  }, [selectedMediaType]);
 
   // Reconciliation lands in local storage, which this list has already read, so re-read once the
   // queue settles. Without it, episodes synced in the background would not appear until the user
@@ -332,6 +407,27 @@ export function HomeScreen() {
       }
     })();
   }, [loadFeed, t]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <HomeOverflowMenu
+          canMarkAllSeen={canMarkAllSeen}
+          onMarkAllSeen={handleMarkAllSeen}
+          onViewModeChange={handleViewModeChange}
+          showMarkAllSeen={showMarkAllSeen}
+          viewMode={activePrefs?.viewMode ?? DEFAULT_HOME_VIEW_MODE}
+        />
+      ),
+    });
+  }, [
+    activePrefs?.viewMode,
+    canMarkAllSeen,
+    handleMarkAllSeen,
+    handleViewModeChange,
+    navigation,
+    showMarkAllSeen,
+  ]);
 
   const handleRowPress = useCallback(
     (row: HomeFeedRowData) => {
@@ -387,8 +483,11 @@ export function HomeScreen() {
   // needs no connection — the Podcasts and Episodes lists it matters most for are read from the
   // device to begin with.
   const visibleRows = useMemo(() => {
+    if (!isHomeFilterMediaType(selectedMediaType) || filterTerm.trim().length === 0) {
+      return feedRows;
+    }
     return feedRows.filter((row) => matchesTitleFilter(row.title, filterTerm));
-  }, [feedRows, filterTerm]);
+  }, [feedRows, filterTerm, selectedMediaType]);
 
   const styles = useMemo(() => {
     const bodyInsets = screenBodyInsets(tokens.spacing);
@@ -418,63 +517,60 @@ export function HomeScreen() {
         fontSize: 13,
         marginTop: tokens.spacing.sm,
       },
-      controlsRow: {
-        alignItems: 'center',
-        flexDirection: 'row',
-        gap: tokens.spacing.sm,
-        justifyContent: 'flex-end',
-        marginBottom: tokens.spacing.md,
-      },
       filterRow: {
         marginBottom: tokens.spacing.md,
         marginTop: tokens.spacing.sm,
+      },
+      unsubscribedSection: {
+        marginTop: tokens.spacing.xl,
+      },
+      unsubscribedSectionTitle: {
+        ...typography.heading,
+        color: themeStyles.textPrimary.color,
+        marginBottom: tokens.spacing.sm,
       },
     });
   }, [themeStyles, tokens]);
 
   const showFeedRows = !isFeedLoading && feedErrorKey === null;
-  const showSubscriptionControls = showFeedRows && feedRows.length > 0;
+  const showFilterField =
+    showFeedRows && feedRows.length > 0 && isHomeFilterMediaType(selectedMediaType);
+  const showActionError = showFeedRows && feedRows.length > 0 && actionErrorKey !== null;
 
   // A tile is a square of artwork, a row is artwork plus a title, a metadata line, and buttons, so
   // the two fit a screen at completely different densities and are counted separately.
-  const isGridView = showOverflowMenu && activePrefs?.viewMode === 'grid';
+  const isGridView = viewModeEligible && activePrefs?.viewMode === 'grid';
   const columns = isGridView ? resolveGridColumns(width) : rowColumns;
 
-  // Two empty lists, two different problems. Nothing subscribed is answered by Search; nothing
-  // matching is answered by editing the term, and offering Search there would send the user away
-  // from the subscriptions they already have.
-  const showNoSubscriptions = showFeedRows && feedRows.length === 0;
+  // Two empty lists, two different problems. Nothing subscribed is answered by Search and/or
+  // Browse; nothing matching is answered by editing the term. Offline-only download channels still
+  // count as content on Podcasts, so they suppress the empty discovery CTA. Clips with local
+  // podcast follows while signed out need Login — the subscribed clip list is account-backed.
+  const showClipsLogin =
+    selectedMediaType === 'clips' && status !== 'authenticated' && hasPodcastSubscriptions;
+  const showNoSubscriptions =
+    showFeedRows &&
+    feedRows.length === 0 &&
+    (selectedMediaType !== 'podcasts' || unsubscribedDownloadRows.length === 0);
   const showNoFilterMatches = showFeedRows && feedRows.length > 0 && visibleRows.length === 0;
 
   const listHeader = (
     <>
       <E2ePlayVideoButton />
-      {showSubscriptionControls ? (
-        <>
-          {showOverflowMenu ? (
-            <View style={styles.controlsRow}>
-              <HomeOverflowMenu
-                canMarkAllSeen={canMarkAllSeen}
-                onMarkAllSeen={handleMarkAllSeen}
-                onViewModeChange={handleViewModeChange}
-                viewMode={activePrefs?.viewMode ?? DEFAULT_HOME_VIEW_MODE}
-              />
-            </View>
-          ) : null}
-          <ListFilterField
-            clearLabel={t('subscriptions.filter.clear')}
-            label={t('subscriptions.filter.placeholder')}
-            onChangeTerm={handleFilterTermChange}
-            style={styles.filterRow}
-            term={filterTerm}
-            testID="home-filter"
-          />
-          {actionErrorKey !== null ? (
-            <Text style={styles.feedNotice} testID="home-action-error">
-              {t(actionErrorKey)}
-            </Text>
-          ) : null}
-        </>
+      {showFilterField ? (
+        <ListFilterField
+          clearLabel={t('subscriptions.filter.clear')}
+          label={t('subscriptions.filter.placeholder')}
+          onChangeTerm={handleFilterTermChange}
+          style={styles.filterRow}
+          term={filterTerm}
+          testID="home-filter"
+        />
+      ) : null}
+      {showActionError && actionErrorKey !== null ? (
+        <Text style={styles.feedNotice} testID="home-action-error">
+          {t(actionErrorKey)}
+        </Text>
       ) : null}
       {!isFeedLoading && feedErrorKey !== null ? (
         <ListError
@@ -494,22 +590,88 @@ export function HomeScreen() {
     </>
   );
 
+  const emptyBrowseMediaType: BrowseMediaType = selectedMediaType;
+  const showSearchOnEmpty =
+    selectedMediaType === 'podcasts' ||
+    selectedMediaType === 'artists' ||
+    selectedMediaType === 'albums' ||
+    selectedMediaType === 'tracks';
+  const searchMediumOnEmpty =
+    selectedMediaType === 'podcasts' ? 'all' : ('music' as const);
+
   const listEmpty = isFeedLoading ? (
     <LoadingSection testID="home-list-loading" />
-  ) : showNoSubscriptions ? (
+  ) : showNoSubscriptions && showClipsLogin ? (
+    <CallToActionSection
+      actionLabelKey="authentication.login"
+      actionTestID="home-list-empty-login"
+      messageKey="authentication.login_required"
+      onAction={onRequestLogin}
+      testID="home-list-empty"
+    />
+  ) : showNoSubscriptions && showSearchOnEmpty ? (
     <CallToActionSection
       actionLabelKey="features.search.search"
       actionTestID="home-list-empty-search"
       messageKey="subscriptions.empty_message"
-      onAction={handleSearchPress}
+      onAction={() => {
+        handleSearchPress(searchMediumOnEmpty);
+      }}
+      onSecondaryAction={() => {
+        handleBrowsePress(emptyBrowseMediaType);
+      }}
+      secondaryActionLabelKey="nav.tab.browse"
+      secondaryActionTestID="home-list-empty-browse"
+      testID="home-list-empty"
+    />
+  ) : showNoSubscriptions ? (
+    <CallToActionSection
+      actionLabelKey="nav.tab.browse"
+      actionTestID="home-list-empty-browse"
+      messageKey="subscriptions.empty_message"
+      onAction={() => {
+        handleBrowsePress(emptyBrowseMediaType);
+      }}
       testID="home-list-empty"
     />
   ) : null;
 
-  const listFooter =
-    playbackNoticeKey !== null ? (
-      <Text style={styles.feedNotice}>{t(playbackNoticeKey)}</Text>
-    ) : null;
+  const listFooter = (
+    <>
+      {showFeedRows &&
+      selectedMediaType === 'podcasts' &&
+      unsubscribedDownloadRows.length > 0 ? (
+        <View style={styles.unsubscribedSection} testID="home-unsubscribed-downloads">
+          <Text
+            accessibilityRole="header"
+            style={styles.unsubscribedSectionTitle}
+            testID="home-unsubscribed-downloads-title"
+          >
+            {t('subscriptions.downloaded_not_subscribed')}
+          </Text>
+          {unsubscribedDownloadRows.map((row, index) => (
+            <HomeFeedRow
+              isLast={index === unsubscribedDownloadRows.length - 1}
+              key={row.id}
+              mediaType="podcasts"
+              onPlayPress={(nextRow) => {
+                runPlayAction(nextRow, 'podcasts');
+              }}
+              onPress={handleRowPress}
+              onQueuePress={(nextRow, position) => {
+                runQueueAction(nextRow, 'podcasts', position);
+              }}
+              row={row}
+              testID={`home-unsubscribed-download-row-${row.id}`}
+            />
+          ))}
+        </View>
+      ) : null}
+      {playbackNoticeKey !== null ? (
+        <Text style={styles.feedNotice}>{t(playbackNoticeKey)}</Text>
+      ) : null}
+    </>
+  );
 
   return (
     <View style={styles.container} testID="home-screen">
@@ -518,7 +680,9 @@ export function HomeScreen() {
           labelKeys={MEDIA_TYPE_LABEL_KEYS}
           leading={
             <HomeSortChip
+              onRangeChange={handleRangeChange}
               onSortChange={handleSortChange}
+              range={activePrefs?.range ?? DEFAULT_HOME_RANGE}
               sort={activePrefs?.sort ?? DEFAULT_HOME_SORT}
             />
           }

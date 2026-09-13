@@ -22,7 +22,7 @@ import { breakpoints } from '@podverse/design-tokens';
 import { shouldSuppressExpiryReminder } from '@podverse/helpers';
 
 import { useAuth } from '../auth/AuthProvider';
-import { SyncProgressBar } from '../components/feedback/SyncProgressBar';
+import { GlobalActivityBar } from '../components/feedback/GlobalActivityBar';
 import { MiniPlayer } from '../components/player/MiniPlayer';
 import type { MenuListItem, MenuListSection } from '../components/screen/MenuListScreen';
 import { MenuListScreen } from '../components/screen/MenuListScreen';
@@ -37,6 +37,7 @@ import { isContentTabId, TAB_TEST_ID_SLUG, tabLabelKey } from '../prefs/tabLayou
 import { AlbumDetailScreen } from '../screens/album/AlbumDetailScreen';
 import { ArtistDetailScreen } from '../screens/artist/ArtistDetailScreen';
 import { BrowseScreen } from '../screens/browse/BrowseScreen';
+import type { BrowseMediaType } from '../screens/browse/browseTypes';
 import { ClipDetailScreen } from '../screens/clip/ClipDetailScreen';
 import { EpisodeDetailScreen } from '../screens/episode/EpisodeDetailScreen';
 import { HelloWorldScreen } from '../screens/HelloWorldScreen';
@@ -52,6 +53,8 @@ import { PlaylistFormScreen } from '../screens/library/PlaylistFormScreen';
 import { MoreMembershipScreen } from '../screens/more/MoreMembershipScreen';
 import { MoreOpmlScreen } from '../screens/more/MoreOpmlScreen';
 import { MoreSettingsAppearanceScreen } from '../screens/more/MoreSettingsAppearanceScreen';
+import { MoreSettingsDownloadLimitScreen } from '../screens/more/MoreSettingsDownloadLimitScreen';
+import { MoreSettingsDownloadsScreen } from '../screens/more/MoreSettingsDownloadsScreen';
 import { MoreSettingsLocaleScreen } from '../screens/more/MoreSettingsLocaleScreen';
 import { MoreSettingsNotificationsScreen } from '../screens/more/MoreSettingsNotificationsScreen';
 import { MoreSettingsPlaybackScreen } from '../screens/more/MoreSettingsPlaybackScreen';
@@ -158,6 +161,7 @@ export const SEARCH_STACK_ROUTES = {
 export const LIBRARY_STACK_ROUTES = {
   AddByRssFeedList: 'AddByRssFeedList',
   AddByRssRoot: 'AddByRssRoot',
+  EpisodeDetail: 'EpisodeDetail',
   LibraryClipDetail: 'LibraryClipDetail',
   LibraryDownloads: 'LibraryDownloads',
   LibraryHistory: 'LibraryHistory',
@@ -192,6 +196,8 @@ export const MORE_STACK_ROUTES = {
   MoreRoot: 'MoreRoot',
   MoreSettings: 'MoreSettings',
   MoreSettingsAppearance: 'MoreSettingsAppearance',
+  MoreSettingsDownloadLimit: 'MoreSettingsDownloadLimit',
+  MoreSettingsDownloads: 'MoreSettingsDownloads',
   MoreSettingsLocale: 'MoreSettingsLocale',
   MoreSettingsNotifications: 'MoreSettingsNotifications',
   MoreSettingsPlayback: 'MoreSettingsPlayback',
@@ -243,6 +249,8 @@ const mobileNavigationScreens = {
           MoreRoot: 'more',
           MoreSettings: 'more/settings',
           MoreSettingsAppearance: 'more/settings/appearance',
+          MoreSettingsDownloadLimit: 'more/settings/downloads/limit',
+          MoreSettingsDownloads: 'more/settings/downloads',
           MoreSettingsLocale: 'more/settings/locale',
           MoreSettingsNotifications: 'more/settings/notifications',
           MoreSettingsPlayback: 'more/settings/playback',
@@ -256,6 +264,7 @@ const mobileNavigationScreens = {
         screens: {
           AddByRssFeedList: 'my-library/add-by-rss/feeds',
           AddByRssRoot: 'my-library/add-by-rss',
+          EpisodeDetail: 'my-library/episode/:episodeId',
           LibraryClipDetail: 'my-library/clip/:clipId',
           LibraryDownloads: 'my-library/downloads',
           LibraryHistory: 'my-library/history',
@@ -368,13 +377,15 @@ export type SearchStackParamList = ChannelBrowseStackParamList & {
    * `autoFocus` is a request from another tab (Home's empty state) to start a fresh search: the
    * field is cleared and focused so the user can type straight away. Tapping the Search tab
    * directly omits it and keeps whatever was already there.
+   * `medium` optionally selects the All / Music chip (and persists it) before the field focuses.
    */
-  SearchRoot: { autoFocus?: boolean } | undefined;
+  SearchRoot: { autoFocus?: boolean; medium?: 'all' | 'music' } | undefined;
 };
 
 export type LibraryStackParamList = {
   AddByRssFeedList: undefined;
   AddByRssRoot: undefined;
+  EpisodeDetail: { episodeId: string };
   LibraryClipDetail: { clipId: string };
   LibraryDownloads: undefined;
   LibraryHistory: undefined;
@@ -390,7 +401,12 @@ export type LibraryStackParamList = {
 };
 
 export type BrowseStackParamList = ChannelBrowseStackParamList & {
-  BrowseRoot: undefined;
+  /**
+   * `mediaType` is a request from another tab (Home's empty state) to open Browse on a specific
+   * chip. Applied once on focus, persisted, then cleared so a later tab return keeps the user's
+   * last Browse choice.
+   */
+  BrowseRoot: { mediaType?: BrowseMediaType } | undefined;
   PlaylistDetail: { playlistId: string };
   Profile: { accountIdText: string };
 };
@@ -408,6 +424,8 @@ export type MoreStackParamList = {
   MoreRoot: undefined;
   MoreSettings: undefined;
   MoreSettingsAppearance: undefined;
+  MoreSettingsDownloadLimit: undefined;
+  MoreSettingsDownloads: undefined;
   MoreSettingsLocale: undefined;
   MoreSettingsNotifications: undefined;
   MoreSettingsPlayback: undefined;
@@ -646,6 +664,11 @@ function LibraryStackNavigator() {
         name={LIBRARY_STACK_ROUTES.LibraryDownloads}
         options={{ title: t('nav.tab.downloads') }}
       />
+      <LibraryStack.Screen
+        component={EpisodeDetailScreen}
+        name={LIBRARY_STACK_ROUTES.EpisodeDetail}
+        options={{ title: t('media.podcast.episode') }}
+      />
     </LibraryStack.Navigator>
   );
 }
@@ -760,6 +783,16 @@ function MoreStackNavigator({
         component={MoreSettingsAppearanceScreen}
         name={MORE_STACK_ROUTES.MoreSettingsAppearance}
         options={{ title: t('settings.groups.appearance') }}
+      />
+      <MoreStack.Screen
+        component={MoreSettingsDownloadsScreen}
+        name={MORE_STACK_ROUTES.MoreSettingsDownloads}
+        options={{ title: t('nav.tab.downloads') }}
+      />
+      <MoreStack.Screen
+        component={MoreSettingsDownloadLimitScreen}
+        name={MORE_STACK_ROUTES.MoreSettingsDownloadLimit}
+        options={{ title: t('settings.downloads.limit_label') }}
       />
       <MoreStack.Screen
         component={MoreSettingsPlaybackScreen}
@@ -1121,7 +1154,7 @@ function TabScaffold({
             <PlaybackE2eStatus />
             {/* Above the mini player, which renders nothing when idle — so the bar lands on the tab
                 bar by itself, with no conditional placement. */}
-            <SyncProgressBar />
+            <GlobalActivityBar />
             <MiniPlayer onExpand={onOpenFullPlayer} />
             <OrderedTabBar {...props} />
           </View>
@@ -1210,7 +1243,7 @@ function TabScaffold({
   return (
     <View style={tabScaffoldStyles.tabletRoot}>
       {navigator}
-      <SyncProgressBar bottomInset={insets.bottom} />
+      <GlobalActivityBar bottomInset={insets.bottom} />
     </View>
   );
 }

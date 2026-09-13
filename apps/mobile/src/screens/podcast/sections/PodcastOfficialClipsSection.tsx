@@ -28,12 +28,15 @@ type SoundbiteEntry = {
 const toSoundbiteRow = (soundbite: DTOItemSoundbite, fallbackTitle: string): HomeFeedRowData => {
   const item = soundbite.item ?? null;
   const title = soundbite.title ?? '';
+  const duration = soundbite.duration.trim();
 
   return {
+    duration: duration.length > 0 ? duration : null,
     id: soundbite.id_text,
     imageUrl: item === null ? null : getItemPrimaryImageUrl(item),
     subtitle: item?.title ?? null,
     title: title.length > 0 ? title : fallbackTitle,
+    updatedAt: item?.pub_date ?? null,
   };
 };
 
@@ -151,6 +154,7 @@ export function PodcastOfficialClipsSection({
             runQueueAction(queueRow, 'clips', position);
           }}
           row={entry.row}
+          showChannelContext={false}
           testID={`podcast-soundbite-row-${index}`}
         />
       )}

@@ -1,5 +1,10 @@
 import type { DTOChannel } from '@podverse/helpers';
-import { articleStrippedTitle, primaryChannelListArtworkUrl } from '@podverse/helpers';
+import {
+  articleStrippedTitle,
+  isAlbumMediumId,
+  isArtistMediumId,
+  primaryChannelListArtworkUrl,
+} from '@podverse/helpers';
 
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 
@@ -14,6 +19,50 @@ export type SubscriptionSource = 'directory' | 'addByRss';
 
 export type SubscriptionMedium = 'podcasts' | 'music';
 
+/**
+ * Which Home chip a follow belongs on. Distinct from `SubscriptionKind` (directory vs add-by-RSS
+ * key space) and from `SubscriptionMedium` (podcasts vs music for API medium params).
+ */
+export type SubscriptionChannelKind = 'podcasts' | 'artists' | 'albums';
+
+export const SUBSCRIPTION_CHANNEL_KINDS = ['podcasts', 'artists', 'albums'] as const;
+
+export const isSubscriptionChannelKind = (value: string): value is SubscriptionChannelKind => {
+  return SUBSCRIPTION_CHANNEL_KINDS.some((kind) => kind === value);
+};
+
+/** Map a directory channel's medium_id to the Home chip kind. */
+export const subscriptionChannelKindFromMediumId = (
+  mediumId: number | null | undefined
+): SubscriptionChannelKind => {
+  if (isArtistMediumId(mediumId)) {
+    return 'artists';
+  }
+  if (isAlbumMediumId(mediumId)) {
+    return 'albums';
+  }
+  return 'podcasts';
+};
+
+/** Map an add-by-RSS resource type to the Home chip kind. */
+export const subscriptionChannelKindFromResourceType = (
+  resourceType: MobileAddByRSSFeedRecord['resourceType']
+): SubscriptionChannelKind => {
+  if (resourceType === 'artists') {
+    return 'artists';
+  }
+  if (resourceType === 'albums' || resourceType === 'tracks') {
+    return 'albums';
+  }
+  return 'podcasts';
+};
+
+export const mediumFromSubscriptionChannelKind = (
+  kind: SubscriptionChannelKind
+): SubscriptionMedium => {
+  return kind === 'podcasts' ? 'podcasts' : 'music';
+};
+
 export type SubscribedChannel = {
   /** Channel `id_text` (directory) or `feed_url` (add-by-RSS) — stable, dedupe key. */
   idText: string;
@@ -24,6 +73,8 @@ export type SubscribedChannel = {
   imageUrl: string | null;
   source: SubscriptionSource;
   medium: SubscriptionMedium;
+  /** Home chip this follow belongs on. */
+  kind: SubscriptionChannelKind;
   /**
    * When this subscription last published, from local storage. Null when nothing is stored for it
    * yet, which orders as unknown rather than as long ago.
@@ -63,12 +114,6 @@ export const firstChannelImageUrl = (channel: DTOChannel): string | null => {
   return null;
 };
 
-const mediumIsMusicResourceType = (
-  resourceType: MobileAddByRSSFeedRecord['resourceType']
-): boolean => {
-  return resourceType === 'artists' || resourceType === 'albums' || resourceType === 'tracks';
-};
-
 /**
  * Map a hydrated directory channel to a subscribed entry. Returns `null` when the channel has no
  * usable title so callers can drop it (a titleless car/list row is not useful).
@@ -80,13 +125,16 @@ export const mapDirectoryChannelToSubscribed = (channel: DTOChannel): Subscribed
     return null;
   }
 
+  const kind = subscriptionChannelKindFromMediumId(channel.medium_id);
+
   return {
     idText,
     sourceIdText: idText,
     title,
     imageUrl: firstChannelImageUrl(channel),
     source: 'directory',
-    medium: 'podcasts',
+    medium: mediumFromSubscriptionChannelKind(kind),
+    kind,
     // A directory channel's recency comes from the items stored for it, which this mapping does not
     // see. The repository fills it in from `channelItemsRepository`.
     latestItemPubDateMs: null,
@@ -106,13 +154,16 @@ export const mapAddByRssToSubscribed = (
     return null;
   }
 
+  const kind = subscriptionChannelKindFromResourceType(record.resourceType);
+
   return {
     idText,
     sourceIdText: trimToNull(record.idText) ?? idText,
     title: trimToNull(record.title) ?? idText,
     imageUrl: trimToNull(record.imageUrl),
     source: 'addByRss',
-    medium: mediumIsMusicResourceType(record.resourceType) ? 'music' : 'podcasts',
+    medium: mediumFromSubscriptionChannelKind(kind),
+    kind,
     latestItemPubDateMs: record.latestItemPubDateMs,
     popularityRank: null,
   };
@@ -143,6 +194,17 @@ export const applySubscriptionFilter = (
     return list.filter((entry) => entry.source === 'directory');
   }
   return list;
+};
+
+/** Keep only follows that belong on a given Home chip. */
+export const applySubscriptionChannelKind = (
+  list: SubscribedChannel[],
+  kind: SubscriptionChannelKind | null
+): SubscribedChannel[] => {
+  if (kind === null) {
+    return list;
+  }
+  return list.filter((entry) => entry.kind === kind);
 };
 
 export const compareSubscribedByTitle = (a: SubscribedChannel, b: SubscribedChannel): number => {

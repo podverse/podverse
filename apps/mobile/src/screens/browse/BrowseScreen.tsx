@@ -1,6 +1,6 @@
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
+import type { NativeStackNavigationProp, RouteProp } from '@react-navigation/native-stack';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
@@ -12,9 +12,14 @@ import { ListError } from '../../components/state/ListError';
 import { LoadingSection } from '../../components/state/LoadingSection';
 import type { BrowseStackParamList } from '../../navigation';
 import { BROWSE_STACK_ROUTES } from '../../navigation';
+import type { HomeViewMode } from '../../prefs/homeListPrefs';
+import { DEFAULT_HOME_VIEW_MODE } from '../../prefs/homeListPrefs';
+import { resolveGridColumns } from '../../theme/resolveColumns';
 import { screenBodyInsets } from '../../theme/screenLayout';
+import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
+import { HomeFeedGridCell } from '../home/HomeFeedGridCell';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import { MediaTypeSelector } from '../home/MediaTypeSelector';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
@@ -30,21 +35,24 @@ import {
 import { fetchBrowseFeedRows } from './browseFeedData';
 import type { BrowseListPrefs } from './browseListPrefs';
 import {
+  isBrowseViewModeMediaType,
   readBrowseListPrefs,
   subscribeBrowseListPrefs,
   writeBrowseCategory,
   writeBrowseMediaType,
   writeBrowseRange,
+  writeBrowseViewMode,
 } from './browseListPrefs';
+import { BrowseOverflowMenu } from './BrowseOverflowMenu';
 import { BrowseSortChip } from './BrowseSortChip';
 import type { BrowseMediaType, BrowseRangeOption } from './browseTypes';
 import {
   BROWSE_MEDIA_TYPE_ORDER,
   DEFAULT_BROWSE_MEDIA_TYPE,
   DEFAULT_BROWSE_RANGE,
+  isBrowseMediaType,
   MEDIA_TYPE_LABEL_KEYS,
 } from './browseTypes';
-
 type CategoryListRow = {
   expanded: boolean;
   hasChildren: boolean;
@@ -60,7 +68,9 @@ type BrowseListRow =
 export function BrowseScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<BrowseStackParamList>>();
+  const route = useRoute<RouteProp<BrowseStackParamList, typeof BROWSE_STACK_ROUTES.BrowseRoot>>();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
+  const { columns: rowColumns, width } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
   const [selectedMediaType, setSelectedMediaType] =
     useState<BrowseMediaType>(DEFAULT_BROWSE_MEDIA_TYPE);
@@ -85,6 +95,10 @@ export function BrowseScreen() {
 
   const activePrefs = isHydrated ? listPrefs : null;
   const selectedCategory = activePrefs?.category ?? null;
+  const viewMode = activePrefs?.viewMode ?? DEFAULT_HOME_VIEW_MODE;
+  const viewModeEligible = !isCategoryView && isBrowseViewModeMediaType(selectedMediaType);
+  const isGridView = viewModeEligible && viewMode === 'grid';
+  const columns = isGridView ? resolveGridColumns(width) : rowColumns;
 
   const addToPlaylistKind = useMemo<AddToPlaylistTarget['kind'] | null>(() => {
     if (selectedMediaType === 'clips') {
@@ -120,6 +134,25 @@ export function BrowseScreen() {
     };
   }, []);
 
+  // Home's empty Browse button can ask for a specific chip. Apply once, persist, then clear the
+  // param so returning to Browse later keeps whatever the user last chose here.
+  const requestedMediaType = route.params?.mediaType;
+  useFocusEffect(
+    useCallback(() => {
+      if (requestedMediaType === undefined || !isBrowseMediaType(requestedMediaType)) {
+        return;
+      }
+
+      navigation.setParams({ mediaType: undefined });
+      setIsCategoryView(false);
+      setFeedRows([]);
+      setFeedErrorKey(null);
+      setIsFeedLoading(true);
+      setSelectedMediaType(requestedMediaType);
+      void writeBrowseMediaType(requestedMediaType);
+    }, [navigation, requestedMediaType])
+  );
+
   const handleMediaTypeChange = useCallback((mediaType: BrowseMediaType) => {
     setIsCategoryView(false);
     setFeedRows([]);
@@ -153,6 +186,21 @@ export function BrowseScreen() {
   const handleRangeChange = useCallback((range: BrowseRangeOption) => {
     void writeBrowseRange(range);
   }, []);
+
+  const handleViewModeChange = useCallback((nextViewMode: HomeViewMode) => {
+    setListPrefs((current) =>
+      current === null ? current : { ...current, viewMode: nextViewMode }
+    );
+    void writeBrowseViewMode(nextViewMode);
+  }, []);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <BrowseOverflowMenu onViewModeChange={handleViewModeChange} viewMode={viewMode} />
+      ),
+    });
+  }, [handleViewModeChange, navigation, viewMode]);
 
   const loadCategories = useCallback(
     async (source: 'initial' | 'refresh') => {
@@ -381,6 +429,12 @@ export function BrowseScreen() {
       categoryRowLast: {
         borderBottomWidth: 0,
       },
+      columnCell: {
+        flex: 1,
+      },
+      columnWrapper: {
+        gap: tokens.spacing.md,
+      },
       container: {
         backgroundColor: themeStyles.screen.backgroundColor,
         flex: 1,
@@ -477,11 +531,14 @@ export function BrowseScreen() {
         ListEmptyComponent={listEmpty}
         ListFooterComponent={listFooter}
         ListHeaderComponent={listHeader}
+        columnWrapperStyle={columns > 1 ? styles.columnWrapper : undefined}
         contentContainerStyle={styles.content}
         data={isCategoryView ? (showCategoryLoading ? [] : listRows) : showFeedRows ? listRows : []}
-        extraData={`${isCategoryView}:${selectedCategory ?? ''}:${[...expandedCategoryRoots].join(',')}`}
+        extraData={`${isCategoryView}:${selectedCategory ?? ''}:${[...expandedCategoryRoots].join(',')}:${isGridView}`}
         keyboardShouldPersistTaps="handled"
+        key={`cols-${columns}-${isCategoryView ? 'cat' : 'feed'}`}
         keyExtractor={(item) => `${item.kind}:${item.row.id}`}
+        numColumns={isCategoryView ? 1 : columns}
         refreshControl={
           <RefreshControl
             onRefresh={() => {
@@ -524,6 +581,14 @@ export function BrowseScreen() {
                   }
                   title={item.row.title}
                 />
+              </View>
+            );
+          }
+
+          if (isGridView) {
+            return (
+              <View style={columns > 1 ? styles.columnCell : undefined}>
+                <HomeFeedGridCell onPress={handleRowPress} row={item.row} />
               </View>
             );
           }

@@ -10,20 +10,22 @@ import {
 const row = (status: DownloadStatus): { status: DownloadStatus } => ({ status });
 
 describe('inProgressDownloadCount', () => {
-  it('counts queued and downloading jobs only', () => {
+  it('counts queued, downloading, and paused jobs', () => {
     expect(
       countInProgressDownloads([
         row('queued'),
         row('downloading'),
+        row('paused'),
         row('complete'),
         row('failed'),
         row('cancelled'),
       ])
-    ).toBe(2);
+    ).toBe(3);
   });
 
   it('treats a failed job as out of the count until it is queued again', () => {
     expect(isInProgressDownloadStatus('failed')).toBe(false);
+    expect(isInProgressDownloadStatus('paused')).toBe(true);
     expect(countInProgressDownloads([row('failed')])).toBe(0);
     expect(countInProgressDownloads([row('queued')])).toBe(1);
   });

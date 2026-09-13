@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { listRowArtworkGap } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 import { CountBadge } from './CountBadge';
@@ -43,7 +44,7 @@ export function ListRow({
         container: {
           alignItems: 'center',
           flexDirection: 'row',
-          gap: tokens.spacing.md,
+          gap: listRowArtworkGap(tokens.spacing),
           paddingVertical: paddingVertical ?? tokens.spacing.base,
         },
         content: {

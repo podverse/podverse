@@ -26,15 +26,14 @@ export type ChannelHeaderProps = {
 };
 
 /**
- * Identity block at the top of a channel: art, title, the subscribe control, and enough of the
- * description to know what the channel is.
+ * Identity block at the top of a channel: art beside the title and subscribe control.
  *
- * The description is deliberately clipped rather than expandable here. A header that can grow to
- * several screens pushes the episode list — the reason the screen was opened — off the bottom,
- * so the full text belongs on its own section instead.
+ * Art stays square and opens the viewer on its own. The title column sits to the right so the
+ * episode list — the reason the screen was opened — stays closer to the top of the page than a
+ * stacked 120px cover would allow.
  *
- * Art stays square and opens the viewer on its own, so the header does not need to be pressable to
- * make the artwork reachable.
+ * Description is optional. Podcast detail leaves it off because About already holds the full text;
+ * other mediums may still pass a short clip when they have no About section yet.
  *
  * Unboxed on purpose: the gutter comes from the list hosting it, so the block reads as the top of
  * the page rather than as a card sitting on it, and the stack title above it is the only chrome.
@@ -56,12 +55,12 @@ export function ChannelHeader({
     () =>
       StyleSheet.create({
         actions: {
+          alignItems: 'flex-start',
           marginTop: tokens.spacing.md,
         },
         artwork: {
-          height: 120,
-          marginBottom: tokens.spacing.md,
-          width: 120,
+          height: 78,
+          width: 78,
         },
         description: {
           ...typography.body,
@@ -73,13 +72,23 @@ export function ChannelHeader({
           color: themeStyles.textSecondary.color,
           marginTop: tokens.spacing.sm,
         },
+        row: {
+          alignItems: 'flex-start',
+          flexDirection: 'row',
+          // Wider than list-row art→text so the 78px header mark breathes beside the title stack.
+          gap: tokens.spacing.lg,
+        },
         subtitle: {
           ...typography.label,
           color: themeStyles.textSecondary.color,
           marginTop: tokens.spacing.xs,
         },
+        textColumn: {
+          flex: 1,
+          minWidth: 0,
+        },
         title: {
-          ...typography.title,
+          ...typography.heading,
           color: themeStyles.textPrimary.color,
         },
       }),
@@ -92,24 +101,28 @@ export function ChannelHeader({
 
   return (
     <View testID={testID}>
-      <CoverImage
-        accessibilityLabel={title}
-        fallbackLabel={title}
-        style={styles.artwork}
-        uri={artworkUri}
-        viewerUri={viewerUri}
-      />
-      <Text accessibilityRole="header" style={styles.title}>
-        {title}
-      </Text>
-      {hasSubtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+      <View style={styles.row}>
+        <CoverImage
+          accessibilityLabel={title}
+          fallbackLabel={title}
+          style={styles.artwork}
+          uri={artworkUri}
+          viewerUri={viewerUri}
+        />
+        <View style={styles.textColumn}>
+          <Text accessibilityRole="header" numberOfLines={2} style={styles.title}>
+            {title}
+          </Text>
+          {hasSubtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+          {actions !== undefined && actions !== null ? (
+            <View style={styles.actions}>{actions}</View>
+          ) : null}
+        </View>
+      </View>
       {hasDescription ? (
         <Text numberOfLines={descriptionLines} style={styles.description}>
           {description}
         </Text>
-      ) : null}
-      {actions !== undefined && actions !== null ? (
-        <View style={styles.actions}>{actions}</View>
       ) : null}
       {hasNotice ? <Text style={styles.notice}>{notice}</Text> : null}
     </View>

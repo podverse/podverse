@@ -1,4 +1,4 @@
-import { count, desc, eq } from 'drizzle-orm';
+import { and, count, desc, eq, isNotNull, ne, sql } from 'drizzle-orm';
 
 import type {
   DownloadMediaType,
@@ -26,6 +26,9 @@ const rowToRecord = (row: DownloadRow): DownloadRecord => {
     status,
     title: row.title,
     artworkUrl: row.artworkUrl,
+    channelIdText: row.channelIdText ?? null,
+    channelTitle: row.channelTitle ?? null,
+    dismissedFromList: row.dismissedFromList === 1,
     errorReason: row.errorReason,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -45,6 +48,9 @@ const recordToRow = (record: DownloadRecord): DownloadRow => ({
   status: record.status,
   title: record.title,
   artworkUrl: record.artworkUrl,
+  channelIdText: record.channelIdText,
+  channelTitle: record.channelTitle,
+  dismissedFromList: record.dismissedFromList ? 1 : 0,
   errorReason: record.errorReason,
   createdAt: record.createdAt,
   updatedAt: record.updatedAt,
@@ -92,8 +98,18 @@ export type DownloadPatch = Partial<
     | 'enclosureUri'
     | 'enclosureMime'
     | 'fileExtension'
+    | 'channelIdText'
+    | 'channelTitle'
+    | 'dismissedFromList'
   >
 >;
+
+export type UnsubscribedDownloadChannel = {
+  channelIdText: string;
+  title: string;
+  imageUrl: string | null;
+  downloadedCount: number;
+};
 
 /**
  * Downloads index repository — the source of truth for the phone Downloads library and
@@ -124,31 +140,105 @@ export const downloadsRepository = {
   },
 
   /**
-   * How many finished downloads each subscribed channel has, keyed by channel `id_text`.
+   * How many finished downloads each channel has, keyed by channel `id_text`.
    *
-   * Only `complete` rows count: a subscription row is saying how much of this channel is playable
-   * with no connection, and a transfer still running is not.
-   *
-   * The channel comes from the item store rather than from a column here, because a download is
-   * enqueued from an episode and the episode is what knows its channel. Add-by-RSS episodes are
-   * therefore absent — they are not stored as channel items and have no download path yet.
-   *
-   * One grouped query rather than a lookup per row, so drawing a long subscription list costs the
-   * same as drawing a short one.
+   * Prefers the persisted `channel_id_text` on the download row (survives unsubscribe). Falls back
+   * to joining `channel_item` for rows that predate that column.
    */
   countCompletedByChannel: async (): Promise<Map<string, number>> => {
     await initializeDatabase();
-    const rows = await getDb()
+    const fromColumn = await getDb()
+      .select({
+        channelIdText: schema.download.channelIdText,
+        downloadedCount: count(schema.download.itemIdText),
+      })
+      .from(schema.download)
+      .where(
+        and(eq(schema.download.status, 'complete'), isNotNull(schema.download.channelIdText))
+      )
+      .groupBy(schema.download.channelIdText);
+
+    const result = new Map<string, number>();
+    for (const row of fromColumn) {
+      if (row.channelIdText !== null) {
+        result.set(row.channelIdText, row.downloadedCount);
+      }
+    }
+
+    const fromJoin = await getDb()
       .select({
         channelIdText: schema.channelItem.channelIdText,
         downloadedCount: count(schema.download.itemIdText),
       })
       .from(schema.download)
       .innerJoin(schema.channelItem, eq(schema.channelItem.itemIdText, schema.download.itemIdText))
-      .where(eq(schema.download.status, 'complete'))
+      .where(
+        and(
+          eq(schema.download.status, 'complete'),
+          sql`${schema.download.channelIdText} IS NULL`
+        )
+      )
       .groupBy(schema.channelItem.channelIdText);
 
-    return new Map(rows.map((row) => [row.channelIdText, row.downloadedCount]));
+    for (const row of fromJoin) {
+      result.set(
+        row.channelIdText,
+        (result.get(row.channelIdText) ?? 0) + row.downloadedCount
+      );
+    }
+
+    return result;
+  },
+
+  /**
+   * Channels that have at least one complete download and are not in the provided subscribed id
+   * set. Used for Home's "Downloaded, not subscribed" footer.
+   */
+  listUnsubscribedDownloadChannels: async (
+    subscribedIdTexts: ReadonlySet<string>
+  ): Promise<UnsubscribedDownloadChannel[]> => {
+    await initializeDatabase();
+    const completed = await getDb()
+      .select()
+      .from(schema.download)
+      .where(eq(schema.download.status, 'complete'));
+
+    const byChannel = new Map<
+      string,
+      { title: string; imageUrl: string | null; count: number }
+    >();
+
+    for (const row of completed) {
+      const channelId = row.channelIdText;
+      if (channelId === null || channelId === '') {
+        continue;
+      }
+      if (subscribedIdTexts.has(channelId)) {
+        continue;
+      }
+      const existing = byChannel.get(channelId);
+      if (existing === undefined) {
+        byChannel.set(channelId, {
+          count: 1,
+          imageUrl: row.artworkUrl,
+          title: row.channelTitle ?? channelId,
+        });
+      } else {
+        existing.count += 1;
+        if (existing.imageUrl === null && row.artworkUrl !== null) {
+          existing.imageUrl = row.artworkUrl;
+        }
+      }
+    }
+
+    return [...byChannel.entries()]
+      .map(([channelIdText, value]) => ({
+        channelIdText,
+        downloadedCount: value.count,
+        imageUrl: value.imageUrl,
+        title: value.title,
+      }))
+      .sort((a, b) => a.title.localeCompare(b.title));
   },
 
   getByItemIdText: async (itemIdText: string): Promise<DownloadRecord | null> => {
@@ -179,11 +269,39 @@ export const downloadsRepository = {
    */
   patch: async (itemIdText: string, patch: DownloadPatch): Promise<void> => {
     await initializeDatabase();
+    const { dismissedFromList, ...rest } = patch;
+    const setValues: Record<string, string | number | null | undefined> = {
+      ...rest,
+      updatedAt: Date.now(),
+    };
+    if (dismissedFromList !== undefined) {
+      setValues.dismissedFromList = dismissedFromList ? 1 : 0;
+    }
     await getDb()
       .update(schema.download)
-      .set({ ...patch, updatedAt: Date.now() })
+      .set(setValues)
       .where(eq(schema.download.itemIdText, itemIdText));
     await refreshNativeCacheProjection();
+  },
+
+  /** Mark every complete row as dismissed from the Downloads monitor list. */
+  dismissAllFinished: async (): Promise<number> => {
+    await initializeDatabase();
+    const completed = await getDb()
+      .select({ itemIdText: schema.download.itemIdText })
+      .from(schema.download)
+      .where(
+        and(eq(schema.download.status, 'complete'), ne(schema.download.dismissedFromList, 1))
+      );
+    if (completed.length === 0) {
+      return 0;
+    }
+    await getDb()
+      .update(schema.download)
+      .set({ dismissedFromList: 1, updatedAt: Date.now() })
+      .where(eq(schema.download.status, 'complete'));
+    await refreshNativeCacheProjection();
+    return completed.length;
   },
 
   /** Remove a download row (delete-from-library). The file removal is handled by the runner. */

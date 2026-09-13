@@ -26,11 +26,6 @@ export function AddByRssFeedListScreen(_props: AddByRssFeedListScreenProps) {
           fontSize: 14,
           marginTop: tokens.spacing.sm,
         },
-        title: {
-          color: themeStyles.textPrimary.color,
-          fontSize: 24,
-          fontWeight: '700',
-        },
       }),
     [themeStyles, tokens]
   );
@@ -41,7 +36,6 @@ export function AddByRssFeedListScreen(_props: AddByRssFeedListScreenProps) {
       style={{ backgroundColor: themeStyles.screen.backgroundColor }}
       testID="rss-feed-list-screen"
     >
-      <Text style={styles.title}>{t('features.add_by_rss.label')}</Text>
       <Text style={styles.message}>{t('features.add_by_rss.no_feeds')}</Text>
     </ScrollView>
   );

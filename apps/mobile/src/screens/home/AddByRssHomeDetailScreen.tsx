@@ -300,6 +300,8 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
         <HomeFeedRow
           customActions={
             <MediaRowActions
+              appearance="icons"
+              durationLabel={null}
               idSuffix={`-${row.id}`}
               onPlayPress={() => {
                 handlePlay(row);
@@ -316,6 +318,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
           onPress={handlePlay}
           onQueuePress={() => undefined}
           row={row}
+          showChannelContext={false}
           testID={`add-by-rss-home-episode-${row.id}`}
         />
       )}

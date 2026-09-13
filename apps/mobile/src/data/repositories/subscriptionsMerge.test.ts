@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { DTOChannel } from '@podverse/helpers';
 import { matchesTitleFilter } from '@podverse/helpers';
+import { MediumEnum } from '@podverse/helpers/medium';
 
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 import type { SubscribedChannel } from './subscriptionsMerge';
@@ -119,9 +120,27 @@ describe('mapDirectoryChannelToSubscribed', () => {
       imageUrl: 'https://img/p.jpg',
       source: 'directory',
       medium: 'podcasts',
+      kind: 'podcasts',
       latestItemPubDateMs: null,
       popularityRank: null,
     });
+  });
+
+  it('maps artist and album medium_ids to the matching Home chip kind', () => {
+    expect(
+      requireMapped(
+        mapDirectoryChannelToSubscribed(
+          channel({ id_text: 'artist1', title: 'Artist', medium_id: MediumEnum.PublisherMusic })
+        )
+      ).kind
+    ).toBe('artists');
+    expect(
+      requireMapped(
+        mapDirectoryChannelToSubscribed(
+          channel({ id_text: 'album1', title: 'Album', medium_id: MediumEnum.Music })
+        )
+      ).kind
+    ).toBe('albums');
   });
 
   it('drops channels without a usable title', () => {
@@ -140,6 +159,7 @@ describe('mapAddByRssToSubscribed', () => {
       imageUrl: null,
       source: 'addByRss',
       medium: 'podcasts',
+      kind: 'podcasts',
       latestItemPubDateMs: null,
       popularityRank: null,
     });
@@ -151,10 +171,14 @@ describe('mapAddByRssToSubscribed', () => {
     );
   });
 
-  it('marks music resource types as music medium', () => {
+  it('marks music resource types as music medium and the matching Home chip kind', () => {
     expect(rssEntry({ resourceType: 'albums' }).medium).toBe('music');
+    expect(rssEntry({ resourceType: 'albums' }).kind).toBe('albums');
     expect(rssEntry({ resourceType: 'artists' }).medium).toBe('music');
+    expect(rssEntry({ resourceType: 'artists' }).kind).toBe('artists');
+    expect(rssEntry({ resourceType: 'tracks' }).kind).toBe('albums');
     expect(rssEntry({ resourceType: 'episodes' }).medium).toBe('podcasts');
+    expect(rssEntry({ resourceType: 'episodes' }).kind).toBe('podcasts');
   });
 });
 
