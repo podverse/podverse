@@ -59,6 +59,8 @@ export function Badge({ label, style, testID, tone = 'neutral' }: BadgeProps) {
 
   return (
     <View
+      accessibilityElementsHidden
+      importantForAccessibility="no"
       style={[styles.badge, tone === 'accent' ? styles.accent : styles.neutral, style]}
       testID={testID}
     >

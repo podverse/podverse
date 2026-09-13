@@ -14,7 +14,7 @@ import type { BrowseStackParamList } from '../../navigation';
 import { BROWSE_STACK_ROUTES } from '../../navigation';
 import type { HomeViewMode } from '../../prefs/homeListPrefs';
 import { DEFAULT_HOME_VIEW_MODE } from '../../prefs/homeListPrefs';
-import { resolveGridColumns } from '../../theme/resolveColumns';
+import { resolveGridCellWidth, resolveGridColumns } from '../../theme/resolveColumns';
 import { screenBodyInsets } from '../../theme/screenLayout';
 import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
@@ -99,6 +99,15 @@ export function BrowseScreen() {
   const viewModeEligible = !isCategoryView && isBrowseViewModeMediaType(selectedMediaType);
   const isGridView = viewModeEligible && viewMode === 'grid';
   const columns = isGridView ? resolveGridColumns(width) : rowColumns;
+  const horizontalInset = tokens.spacing.lg;
+  const gridGap = tokens.spacing.md;
+  const gridCellWidth = isGridView
+    ? resolveGridCellWidth({
+        columns,
+        contentWidth: width - 2 * horizontalInset,
+        gap: gridGap,
+      })
+    : 0;
 
   const addToPlaylistKind = useMemo<AddToPlaylistTarget['kind'] | null>(() => {
     if (selectedMediaType === 'clips') {
@@ -430,7 +439,7 @@ export function BrowseScreen() {
         borderBottomWidth: 0,
       },
       columnCell: {
-        flex: 1,
+        width: gridCellWidth,
       },
       columnWrapper: {
         gap: tokens.spacing.md,
@@ -454,7 +463,7 @@ export function BrowseScreen() {
         paddingBottom: tokens.spacing.md,
       },
     });
-  }, [themeStyles, tokens]);
+  }, [gridCellWidth, themeStyles, tokens]);
 
   const showFeedRows = !isCategoryView && !isFeedLoading && feedErrorKey === null;
   const showEmptyDirectory = showFeedRows && feedRows.length === 0;
@@ -531,6 +540,8 @@ export function BrowseScreen() {
         ListEmptyComponent={listEmpty}
         ListFooterComponent={listFooter}
         ListHeaderComponent={listHeader}
+        accessibilityLabel={isGridView ? t('layouts.grid_view') : undefined}
+        accessibilityRole={isGridView ? 'grid' : 'list'}
         columnWrapperStyle={columns > 1 ? styles.columnWrapper : undefined}
         contentContainerStyle={styles.content}
         data={isCategoryView ? (showCategoryLoading ? [] : listRows) : showFeedRows ? listRows : []}

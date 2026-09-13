@@ -38,6 +38,8 @@ export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps
           { count: unseenBadge.count }
         );
 
+  const accessibilityLabel = [row.title, unseenLabel].filter((part) => part !== null).join(', ');
+
   const styles = useMemo(
     () =>
       StyleSheet.create({
@@ -60,16 +62,16 @@ export function HomeFeedGridCell({ onPress, row, testID }: HomeFeedGridCellProps
 
   return (
     <Pressable
-      accessibilityLabel={[row.title, unseenLabel].filter((part) => part !== null).join(', ')}
-      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="imagebutton"
+      accessible
       onPress={() => {
         onPress(row);
       }}
       style={styles.cell}
       testID={testID ?? `home-feed-cell-${row.id}`}
     >
-      {/* The title, not a generic "Image" placeholder: several untitled grey squares would be
-          indistinguishable, and this is the one view with no title beneath the artwork. */}
+      {/* Artwork is decorative here: the Pressable owns the accessible name (title + badge). */}
       <CoverImage
         fallbackLabel={row.title}
         opensViewer={false}

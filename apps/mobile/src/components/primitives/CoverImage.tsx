@@ -69,7 +69,12 @@ export function CoverImage({
 
   if (uri === null || uri === undefined || uri.length === 0) {
     return (
-      <View style={[styles.fallback, style]} testID={testID}>
+      <View
+        accessibilityElementsHidden={!opensViewer}
+        importantForAccessibility={opensViewer ? 'yes' : 'no'}
+        style={[styles.fallback, style]}
+        testID={testID}
+      >
         {fallbackLabel !== undefined ? (
           <Text numberOfLines={3} style={styles.fallbackText}>
             {fallbackLabel}
@@ -79,12 +84,13 @@ export function CoverImage({
     );
   }
 
+  // Artwork inside a parent Pressable (row / grid cell) is decorative: the parent owns the
+  // accessible name. Standalone covers hide the Image too — the outer Pressable speaks for it.
   const image = (
     <Image
-      accessibilityElementsHidden={opensViewer}
+      accessibilityElementsHidden
       accessibilityIgnoresInvertColors
-      accessibilityLabel={opensViewer ? undefined : accessibilityLabel}
-      importantForAccessibility={opensViewer ? 'no' : undefined}
+      importantForAccessibility="no"
       source={{ uri }}
       style={[styles.image, style]}
       testID={opensViewer ? undefined : testID}

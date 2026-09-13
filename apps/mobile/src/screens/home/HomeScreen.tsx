@@ -41,7 +41,7 @@ import {
   writePreferredMediaType,
 } from '../../prefs/preferredMediaType';
 import { useSync } from '../../sync';
-import { resolveGridColumns } from '../../theme/resolveColumns';
+import { resolveGridCellWidth, resolveGridColumns } from '../../theme/resolveColumns';
 import { screenBodyInsets } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useResponsive } from '../../theme/useResponsive';
@@ -489,12 +489,28 @@ export function HomeScreen() {
     return feedRows.filter((row) => matchesTitleFilter(row.title, filterTerm));
   }, [feedRows, filterTerm, selectedMediaType]);
 
+  // A tile is a square of artwork, a row is artwork plus a title, a metadata line, and buttons, so
+  // the two fit a screen at completely different densities and are counted separately. Cell width is
+  // measured rather than flexed: flex:1 stretches a short last row (or a single subscription) to
+  // full width and the grid looks like one column.
+  const isGridView = viewModeEligible && activePrefs?.viewMode === 'grid';
+  const columns = isGridView ? resolveGridColumns(width) : rowColumns;
+  const horizontalInset = tokens.spacing.lg;
+  const gridGap = tokens.spacing.md;
+  const gridCellWidth = isGridView
+    ? resolveGridCellWidth({
+        columns,
+        contentWidth: width - 2 * horizontalInset,
+        gap: gridGap,
+      })
+    : 0;
+
   const styles = useMemo(() => {
-    const bodyInsets = screenBodyInsets(tokens.spacing);
+    const insets = screenBodyInsets(tokens.spacing);
 
     return StyleSheet.create({
       columnCell: {
-        flex: 1,
+        width: gridCellWidth,
       },
       columnWrapper: {
         gap: tokens.spacing.md,
@@ -506,10 +522,10 @@ export function HomeScreen() {
       content: {
         flexGrow: 1,
         paddingBottom: tokens.spacing.lg,
-        paddingHorizontal: bodyInsets.paddingHorizontal,
+        paddingHorizontal: insets.paddingHorizontal,
       },
       selectorSection: {
-        ...bodyInsets,
+        ...insets,
         paddingBottom: tokens.spacing.md,
       },
       feedNotice: {
@@ -530,17 +546,12 @@ export function HomeScreen() {
         marginBottom: tokens.spacing.sm,
       },
     });
-  }, [themeStyles, tokens]);
+  }, [gridCellWidth, themeStyles, tokens]);
 
   const showFeedRows = !isFeedLoading && feedErrorKey === null;
   const showFilterField =
     showFeedRows && feedRows.length > 0 && isHomeFilterMediaType(selectedMediaType);
   const showActionError = showFeedRows && feedRows.length > 0 && actionErrorKey !== null;
-
-  // A tile is a square of artwork, a row is artwork plus a title, a metadata line, and buttons, so
-  // the two fit a screen at completely different densities and are counted separately.
-  const isGridView = viewModeEligible && activePrefs?.viewMode === 'grid';
-  const columns = isGridView ? resolveGridColumns(width) : rowColumns;
 
   // Two empty lists, two different problems. Nothing subscribed is answered by Search and/or
   // Browse; nothing matching is answered by editing the term. Offline-only download channels still
@@ -698,6 +709,8 @@ export function HomeScreen() {
         ListEmptyComponent={listEmpty}
         ListFooterComponent={listFooter}
         ListHeaderComponent={listHeader}
+        accessibilityLabel={isGridView ? t('layouts.grid_view') : undefined}
+        accessibilityRole={isGridView ? 'grid' : 'list'}
         columnWrapperStyle={columns > 1 ? styles.columnWrapper : undefined}
         contentContainerStyle={styles.content}
         data={showFeedRows ? visibleRows : []}
