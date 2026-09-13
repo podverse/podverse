@@ -236,3 +236,135 @@ export function getCategoryEnumValue(input: string | null): CategoryEnum | null 
 export const CATEGORY_MAPPING_KEYS = Object.keys(mapping);
 
 export type CategoryMappingKeys = (typeof CATEGORY_MAPPING_KEYS)[number];
+
+const CATEGORY_CHILDREN_BY_ID: { readonly [categoryId: number]: readonly number[] } = {
+  [CategoryEnum.Arts]: [
+    CategoryEnum.Books,
+    CategoryEnum.Design,
+    CategoryEnum.FashionAndBeauty,
+    CategoryEnum.Food,
+    CategoryEnum.PerformingArts,
+    CategoryEnum.VisualArts,
+  ],
+  [CategoryEnum.Business]: [
+    CategoryEnum.Careers,
+    CategoryEnum.Entrepreneurship,
+    CategoryEnum.Investing,
+    CategoryEnum.Management,
+    CategoryEnum.Marketing,
+    CategoryEnum.NonProfit,
+  ],
+  [CategoryEnum.Comedy]: [CategoryEnum.ComedyInterviews, CategoryEnum.Improv, CategoryEnum.StandUp],
+  [CategoryEnum.Education]: [
+    CategoryEnum.Courses,
+    CategoryEnum.HowTo,
+    CategoryEnum.LanguageLearning,
+    CategoryEnum.SelfImprovement,
+  ],
+  [CategoryEnum.Fiction]: [
+    CategoryEnum.ComedyFiction,
+    CategoryEnum.Drama,
+    CategoryEnum.ScienceFiction,
+  ],
+  [CategoryEnum.HealthAndFitness]: [
+    CategoryEnum.AlternativeHealth,
+    CategoryEnum.Fitness,
+    CategoryEnum.Medicine,
+    CategoryEnum.MentalHealth,
+    CategoryEnum.Nutrition,
+    CategoryEnum.Sexuality,
+  ],
+  [CategoryEnum.KidsAndFamily]: [
+    CategoryEnum.EducationForKids,
+    CategoryEnum.Parenting,
+    CategoryEnum.PetsAndAnimals,
+    CategoryEnum.StoriesForKids,
+  ],
+  [CategoryEnum.Leisure]: [
+    CategoryEnum.AnimationAndManga,
+    CategoryEnum.Automotive,
+    CategoryEnum.Aviation,
+    CategoryEnum.Crafts,
+    CategoryEnum.Games,
+    CategoryEnum.Hobbies,
+    CategoryEnum.HomeAndGarden,
+    CategoryEnum.VideoGames,
+  ],
+  [CategoryEnum.Music]: [
+    CategoryEnum.MusicCommentary,
+    CategoryEnum.MusicHistory,
+    CategoryEnum.MusicInterviews,
+  ],
+  [CategoryEnum.News]: [
+    CategoryEnum.BusinessNews,
+    CategoryEnum.DailyNews,
+    CategoryEnum.EntertainmentNews,
+    CategoryEnum.NewsCommentary,
+    CategoryEnum.Politics,
+    CategoryEnum.SportsNews,
+    CategoryEnum.TechNews,
+  ],
+  [CategoryEnum.ReligionAndSpirituality]: [
+    CategoryEnum.Buddhism,
+    CategoryEnum.Christianity,
+    CategoryEnum.Hinduism,
+    CategoryEnum.Islam,
+    CategoryEnum.Judaism,
+    CategoryEnum.Religion,
+    CategoryEnum.Spirituality,
+  ],
+  [CategoryEnum.Science]: [
+    CategoryEnum.Astronomy,
+    CategoryEnum.Chemistry,
+    CategoryEnum.EarthSciences,
+    CategoryEnum.LifeSciences,
+    CategoryEnum.Mathematics,
+    CategoryEnum.NaturalSciences,
+    CategoryEnum.Nature,
+    CategoryEnum.Physics,
+    CategoryEnum.SocialSciences,
+  ],
+  [CategoryEnum.SocietyAndCulture]: [
+    CategoryEnum.Documentary,
+    CategoryEnum.PersonalJournals,
+    CategoryEnum.Philosophy,
+    CategoryEnum.PlacesAndTravel,
+    CategoryEnum.Relationships,
+  ],
+  [CategoryEnum.Sports]: [
+    CategoryEnum.Baseball,
+    CategoryEnum.Basketball,
+    CategoryEnum.Cricket,
+    CategoryEnum.FantasySports,
+    CategoryEnum.Football,
+    CategoryEnum.Golf,
+    CategoryEnum.Hockey,
+    CategoryEnum.Rugby,
+    CategoryEnum.Running,
+    CategoryEnum.Soccer,
+    CategoryEnum.Swimming,
+    CategoryEnum.Tennis,
+    CategoryEnum.Volleyball,
+    CategoryEnum.Wilderness,
+    CategoryEnum.Wrestling,
+  ],
+  [CategoryEnum.TVAndFilm]: [
+    CategoryEnum.AfterShows,
+    CategoryEnum.FilmHistory,
+    CategoryEnum.FilmInterviews,
+    CategoryEnum.FilmReviews,
+    CategoryEnum.TVReviews,
+  ],
+};
+
+/**
+ * A parent filter matches the parent and every direct child so browse includes
+ * the whole branch (Arts includes Books, Design, and the rest of Arts).
+ */
+export function expandCategoryFilterIds(categoryId: number): number[] {
+  const children = CATEGORY_CHILDREN_BY_ID[categoryId];
+  if (children === undefined || children.length === 0) {
+    return [categoryId];
+  }
+  return [categoryId, ...children];
+}

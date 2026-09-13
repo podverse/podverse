@@ -1,8 +1,9 @@
 import { Clip } from '@orm/entities/clip.js';
+import { getChannelCategoryWhere } from '@orm/lib/categoryFilterWhere.js';
 import { AccountService } from '@orm/services/account/account.js';
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
 import type { EntityManager, FindManyOptions, FindOneOptions } from 'typeorm';
-import { Equal, In } from 'typeorm';
+import { In } from 'typeorm';
 
 import type { QueryParamsMedium } from '@podverse/helpers';
 import { getMediumIdArrayFromType, SharableStatusEnum } from '@podverse/helpers';
@@ -125,7 +126,7 @@ export class ClipService extends BaseManyService<Clip, 'account'> {
               },
             },
             ...(medium_ids ? { medium_id: In(medium_ids) } : {}),
-            ...(category_id ? { channel_categories: { category_id: Equal(category_id) } } : {}),
+            ...getChannelCategoryWhere(category_id),
           },
         },
       },
