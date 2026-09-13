@@ -53,6 +53,18 @@ name: Browse Tab And Tab Bar Pref
     visible:
       id: browse-category-all
     timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: browse-category-arts
+- assertNotVisible:
+    id: browse-category-books
+- tapOn:
+    id: browse-category-arts-expand
+- assertVisible:
+    id: browse-category-books
+- tapOn:
+    id: browse-category-arts-expand
+- assertNotVisible:
+    id: browse-category-books
 - takeScreenshot: browse-screen-categories
 
 - tapOn:

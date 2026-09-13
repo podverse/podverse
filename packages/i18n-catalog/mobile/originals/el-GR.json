@@ -28,8 +28,9 @@
       "rate_limited_time_other": "{minutes} minutes"
     },
     "browse": {
-      "categories_selected": "Κατηγορίες – {name}",
       "category_all": "Όλες οι κατηγορίες",
+      "collapse_category": "Απόκρυψη υποκατηγοριών {name}",
+      "expand_category": "Εμφάνιση υποκατηγοριών {name}",
       "empty": "Δεν υπάρχει τίποτα προς εμφάνιση",
       "range_all_time": "Όλων των εποχών",
       "sort_popularity": "Δημοτικότητα",

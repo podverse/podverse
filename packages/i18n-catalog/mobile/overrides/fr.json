@@ -28,8 +28,9 @@
       "rate_limited_time_other": ""
     },
     "browse": {
-      "categories_selected": "",
       "category_all": "",
+      "collapse_category": "",
+      "expand_category": "",
       "empty": "",
       "range_all_time": "",
       "sort_popularity": "",

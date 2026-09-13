@@ -36,6 +36,7 @@ const feedToRow = (feed: SearchPodcastsFeed) => ({
   imageUrl: toNonEmptyTrimmedString(feed.image) ?? toNonEmptyTrimmedString(feed.artwork),
   subtitle: toNonEmptyTrimmedString(feed.author),
   title: feed.title,
+  updatedAt: feed.newestItemPubdate > 0 ? feed.newestItemPubdate : null,
 });
 
 /**

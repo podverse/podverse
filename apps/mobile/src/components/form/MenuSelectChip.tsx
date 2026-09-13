@@ -7,6 +7,7 @@ import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 import type { MoreMenuItem, MoreMenuSection } from '../primitives';
 import { MoreMenu } from '../primitives';
+import { filterChipChrome } from './chipChrome';
 
 export type MenuSelectChipOption<T extends string> = {
   /** Already-localized. */
@@ -46,36 +47,38 @@ export function MenuSelectChip<T extends string>({
   value,
 }: MenuSelectChipProps<T>) {
   const { t } = useTranslation();
-  const { tokens } = useTheme();
+  const { styles: themeStyles, tokens } = useTheme();
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const selected = options.find((option) => option.value === value);
   const faceLabel = selected?.shortLabel ?? selected?.label ?? value;
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        caret: {
-          marginLeft: tokens.spacing.xs,
-        },
-        chip: {
-          alignItems: 'center',
-          backgroundColor: tokens.background.tertiary,
-          borderColor: tokens.text.accent,
-          borderRadius: tokens.radii.md,
-          borderWidth: 1,
-          flexDirection: 'row',
-          marginRight: tokens.spacing.sm,
-          paddingHorizontal: tokens.spacing.md,
-          paddingVertical: tokens.spacing.sm,
-        },
-        label: {
-          ...typography.label,
-          color: tokens.text.accent,
-        },
-      }),
-    [tokens]
-  );
+  const styles = useMemo(() => {
+    const chrome = filterChipChrome(
+      tokens,
+      { borderColor: themeStyles.border.borderColor, textColor: themeStyles.textPrimary.color },
+      true
+    );
+
+    return StyleSheet.create({
+      caret: {
+        marginLeft: tokens.spacing.xs,
+      },
+      chip: {
+        alignItems: 'center',
+        borderWidth: 1,
+        flexDirection: 'row',
+        marginRight: tokens.spacing.sm,
+        paddingHorizontal: tokens.spacing.md,
+        paddingVertical: tokens.spacing.sm,
+        ...chrome.chip,
+      },
+      label: {
+        ...typography.label,
+        ...chrome.label,
+      },
+    });
+  }, [themeStyles, tokens]);
 
   const sections = useMemo<MoreMenuSection[]>(() => {
     const items: MoreMenuItem[] = options.map((option) => ({

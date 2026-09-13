@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -7,7 +6,7 @@ import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { useAuth } from '../../auth/AuthProvider';
 import { SectionChip } from '../../components/form';
-import { FillList, ListRow } from '../../components/primitives';
+import { FillList } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { LoadingSection } from '../../components/state/LoadingSection';
@@ -21,8 +20,13 @@ import { MediaTypeSelector } from '../home/MediaTypeSelector';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 import type { AddToPlaylistTarget } from '../library/useAddToPlaylist';
 import { useAddToPlaylist } from '../library/useAddToPlaylist';
+import { BrowseCategoryRow } from './BrowseCategoryRow';
 import type { BrowseCategoryOption } from './browseCategories';
-import { ALL_BROWSE_CATEGORIES, fetchBrowseCategories } from './browseCategories';
+import {
+  ALL_BROWSE_CATEGORIES,
+  fetchBrowseCategories,
+  visibleBrowseCategories,
+} from './browseCategories';
 import { fetchBrowseFeedRows } from './browseFeedData';
 import type { BrowseListPrefs } from './browseListPrefs';
 import {
@@ -42,7 +46,10 @@ import {
 } from './browseTypes';
 
 type CategoryListRow = {
+  expanded: boolean;
+  hasChildren: boolean;
   id: string;
+  indentDepth: number;
   mappingKey: string | null;
   title: string;
 };
@@ -64,6 +71,9 @@ export function BrowseScreen() {
   const [isCategoryLoading, setIsCategoryLoading] = useState<boolean>(false);
   const [isCategoryRefreshing, setIsCategoryRefreshing] = useState<boolean>(false);
   const [categoryErrorKey, setCategoryErrorKey] = useState<string | null>(null);
+  const [expandedCategoryRoots, setExpandedCategoryRoots] = useState<ReadonlySet<string>>(
+    () => new Set()
+  );
   const [feedRows, setFeedRows] = useState<HomeFeedRowData[]>([]);
   const [isFeedLoading, setIsFeedLoading] = useState<boolean>(true);
   const [isFeedRefreshing, setIsFeedRefreshing] = useState<boolean>(false);
@@ -74,6 +84,7 @@ export function BrowseScreen() {
   const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();
 
   const activePrefs = isHydrated ? listPrefs : null;
+  const selectedCategory = activePrefs?.category ?? null;
 
   const addToPlaylistKind = useMemo<AddToPlaylistTarget['kind'] | null>(() => {
     if (selectedMediaType === 'clips') {
@@ -125,6 +136,18 @@ export function BrowseScreen() {
   const handleCategorySelect = useCallback((mappingKey: string | null) => {
     setIsCategoryView(false);
     void writeBrowseCategory(mappingKey);
+  }, []);
+
+  const handleCategoryExpandToggle = useCallback((rootMappingKey: string) => {
+    setExpandedCategoryRoots((current) => {
+      const next = new Set(current);
+      if (next.has(rootMappingKey)) {
+        next.delete(rootMappingKey);
+      } else {
+        next.add(rootMappingKey);
+      }
+      return next;
+    });
   }, []);
 
   const handleRangeChange = useCallback((range: BrowseRangeOption) => {
@@ -259,6 +282,24 @@ export function BrowseScreen() {
   }, [isCategoryView]);
 
   useEffect(() => {
+    if (!isCategoryView || selectedCategory === null) {
+      return;
+    }
+    const selected = categoryOptions.find((option) => option.mappingKey === selectedCategory);
+    if (selected === undefined || selected.depth === 0) {
+      return;
+    }
+    setExpandedCategoryRoots((current) => {
+      if (current.has(selected.rootMappingKey)) {
+        return current;
+      }
+      const next = new Set(current);
+      next.add(selected.rootMappingKey);
+      return next;
+    });
+  }, [categoryOptions, isCategoryView, selectedCategory]);
+
+  useEffect(() => {
     if (isCategoryView) {
       return;
     }
@@ -302,20 +343,25 @@ export function BrowseScreen() {
 
   const categoryRows = useMemo<CategoryListRow[]>(() => {
     const allRow: CategoryListRow = {
+      expanded: false,
+      hasChildren: false,
       id: ALL_BROWSE_CATEGORIES,
+      indentDepth: 0,
       mappingKey: null,
       title: t('features.browse.category_all'),
     };
-    const mapped = categoryOptions.map((option) => {
-      const prefix = option.depth > 0 ? `${'  '.repeat(option.depth)}` : '';
-      return {
+    const mapped = visibleBrowseCategories(categoryOptions, expandedCategoryRoots).map(
+      (option) => ({
+        expanded: expandedCategoryRoots.has(option.rootMappingKey),
+        hasChildren: option.hasChildren,
         id: option.mappingKey,
+        indentDepth: option.depth,
         mappingKey: option.mappingKey,
-        title: `${prefix}${t(`categories.${option.mappingKey}`)}`,
-      };
-    });
+        title: t(`categories.${option.mappingKey}`),
+      })
+    );
     return [allRow, ...mapped];
-  }, [categoryOptions, t]);
+  }, [categoryOptions, expandedCategoryRoots, t]);
 
   const listRows = useMemo<BrowseListRow[]>(() => {
     if (isCategoryView) {
@@ -359,11 +405,10 @@ export function BrowseScreen() {
   const showFeedRows = !isCategoryView && !isFeedLoading && feedErrorKey === null;
   const showEmptyDirectory = showFeedRows && feedRows.length === 0;
   const showCategoryLoading = isCategoryView && isCategoryLoading && categoryOptions.length === 0;
-  const selectedCategory = activePrefs?.category ?? null;
 
   const categoriesChipLabel =
     selectedCategory !== null
-      ? t('features.browse.categories_selected', { name: t(`categories.${selectedCategory}`) })
+      ? t(`categories.${selectedCategory}`)
       : t('categories.categories');
 
   const listHeader = (
@@ -416,8 +461,9 @@ export function BrowseScreen() {
               <SectionChip
                 label={categoriesChipLabel}
                 onPress={handleCategoriesPress}
-                selected={isCategoryView}
+                selected={selectedCategory !== null}
                 testID="browse-category-button"
+                variant="filter"
               />
             </>
           }
@@ -433,7 +479,7 @@ export function BrowseScreen() {
         ListHeaderComponent={listHeader}
         contentContainerStyle={styles.content}
         data={isCategoryView ? (showCategoryLoading ? [] : listRows) : showFeedRows ? listRows : []}
-        extraData={`${isCategoryView}:${selectedCategory ?? ''}`}
+        extraData={`${isCategoryView}:${selectedCategory ?? ''}:${[...expandedCategoryRoots].join(',')}`}
         keyboardShouldPersistTaps="handled"
         keyExtractor={(item) => `${item.kind}:${item.row.id}`}
         refreshControl={
@@ -458,27 +504,25 @@ export function BrowseScreen() {
             const isLast = index === categoryRows.length - 1;
             return (
               <View style={[styles.categoryRow, isLast ? styles.categoryRowLast : null]}>
-                <ListRow
-                  onPress={() => {
+                <BrowseCategoryRow
+                  expanded={item.row.expanded}
+                  hasChildren={item.row.hasChildren}
+                  indentDepth={item.row.indentDepth}
+                  onSelect={() => {
                     handleCategorySelect(item.row.mappingKey);
                   }}
+                  onToggleExpand={() => {
+                    if (item.row.mappingKey !== null) {
+                      handleCategoryExpandToggle(item.row.mappingKey);
+                    }
+                  }}
+                  selected={isSelected}
                   testID={
                     item.row.mappingKey === null
                       ? 'browse-category-all'
                       : `browse-category-${item.row.mappingKey}`
                   }
                   title={item.row.title}
-                  trailing={
-                    isSelected ? (
-                      <Ionicons
-                        accessibilityElementsHidden
-                        color={themeStyles.buttonPrimary.backgroundColor}
-                        importantForAccessibility="no"
-                        name="checkmark"
-                        size={20}
-                      />
-                    ) : undefined
-                  }
                 />
               </View>
             );

@@ -38,6 +38,7 @@ export function channelToHomeRow(channel: DTOChannel): HomeFeedRowData {
     imageUrl: primaryChannelListArtworkUrl(channel.channel_images),
     subtitle: null,
     title: channel.title ?? channel.id_text,
+    updatedAt: channel.channel_about?.last_pub_date ?? null,
   };
 }
 

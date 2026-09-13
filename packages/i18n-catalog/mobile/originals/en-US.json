@@ -32,8 +32,9 @@
       "section_requires_connection": "This section needs a connection. Try again once you are back online."
     },
     "browse": {
-      "categories_selected": "Categories – {name}",
       "category_all": "All categories",
+      "collapse_category": "Hide {name} subcategories",
+      "expand_category": "Show {name} subcategories",
       "empty": "Nothing to show yet",
       "range_all_time": "All-time",
       "sort_popularity": "Popularity",

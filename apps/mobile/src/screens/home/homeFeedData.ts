@@ -30,6 +30,11 @@ export type HomeFeedRowData = {
   sourceId?: string;
   subtitle: string | null;
   title: string;
+  /**
+   * When this show last published. ISO string or epoch (seconds or ms). The row renders the
+   * localized date under the title; omit or null when nothing usable is known.
+   */
+  updatedAt?: string | number | null;
   /** Set for Podcasts subscription rows so taps can route by origin. */
   source?: SubscriptionSource;
   /**
@@ -113,6 +118,31 @@ const readImageUrl = (record: Record<string, unknown>): string | null => {
   );
 };
 
+export const readUpdatedAt = (value: unknown): string | number | null => {
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+    return value;
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (trimmed.length === 0) {
+      return null;
+    }
+    return Number.isNaN(Date.parse(trimmed)) ? null : trimmed;
+  }
+  return null;
+};
+
+export const readChannelUpdatedAt = (record: Record<string, unknown>): string | number | null => {
+  const about = record.channel_about;
+  if (isObjectLike(about)) {
+    const fromAbout = readUpdatedAt(about.last_pub_date);
+    if (fromAbout !== null) {
+      return fromAbout;
+    }
+  }
+  return readUpdatedAt(record.last_pub_date);
+};
+
 const normalizeId = (record: Record<string, unknown>): string | null => {
   const idText =
     getNonEmptyTrimmedStringProperty(record, 'id_text') ??
@@ -155,6 +185,7 @@ export const normalizeChannelRows = (items: unknown[]): HomeFeedRowData[] => {
       imageUrl: readImageUrl(item),
       subtitle,
       title,
+      updatedAt: readChannelUpdatedAt(item),
     });
   }
 
@@ -259,6 +290,7 @@ const mapSubscribedChannelToRow = (
     source: channel.source,
     subtitle: null,
     title: channel.title,
+    updatedAt: channel.latestItemPubDateMs,
   };
 };
 

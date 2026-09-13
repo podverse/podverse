@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { formatDateAbbrev } from '@podverse/helpers';
 import type { DTOItem } from '@podverse/helpers/dto';
 
 import { DownloadRowControl } from '../../components/download/DownloadRowControl';
@@ -60,7 +61,7 @@ type MetadataSegment = {
  * unattached fragments ("Live", "3 new", "2 downloaded") announced with no idea what they belong to.
  */
 const useMetadataSegments = (metadata: HomeRowMetadata | undefined): MetadataSegment[] => {
-  const { i18n, t } = useTranslation();
+  const { t } = useTranslation();
 
   return useMemo(() => {
     if (metadata === undefined) {
@@ -84,15 +85,6 @@ const useMetadataSegments = (metadata: HomeRowMetadata | undefined): MetadataSeg
         ),
       });
     }
-    if (metadata.latestItemPubDateMs !== null) {
-      segments.push({
-        emphasis: false,
-        name: 'latest',
-        text: t('subscriptions.row.latest_episode', {
-          date: new Date(metadata.latestItemPubDateMs).toLocaleDateString(i18n.language),
-        }),
-      });
-    }
     if (metadata.downloadedCount > 0) {
       segments.push({
         emphasis: false,
@@ -102,7 +94,30 @@ const useMetadataSegments = (metadata: HomeRowMetadata | undefined): MetadataSeg
     }
 
     return segments;
-  }, [i18n.language, metadata, t]);
+  }, [metadata, t]);
+};
+
+const useUpdatedLabel = (
+  updatedAt: string | number | null | undefined,
+  fallbackMs: number | null | undefined
+): string | null => {
+  const { i18n } = useTranslation();
+
+  return useMemo(() => {
+    const source =
+      updatedAt !== undefined && updatedAt !== null && updatedAt !== '' ? updatedAt : fallbackMs;
+    if (source === undefined || source === null) {
+      return null;
+    }
+
+    const parsed =
+      typeof source === 'number' && source < 1e12 ? new Date(source * 1000) : new Date(source);
+    if (Number.isNaN(parsed.getTime())) {
+      return null;
+    }
+
+    return formatDateAbbrev(parsed, i18n.language);
+  }, [fallbackMs, i18n.language, updatedAt]);
 };
 
 export function HomeFeedRow({
@@ -123,6 +138,7 @@ export function HomeFeedRow({
   const { styles: themeStyles, tokens } = useTheme();
   const isPlayable = isPlayableDirectoryMediaType(mediaType);
   const metadataSegments = useMetadataSegments(row.metadata);
+  const updatedLabel = useUpdatedLabel(row.updatedAt, row.metadata?.latestItemPubDateMs);
 
   const styles = useMemo(
     () =>
@@ -181,7 +197,12 @@ export function HomeFeedRow({
     <Pressable
       // Composed rather than left to the default child walk, so the badges are heard as part of a
       // sentence about this show instead of as loose fragments after its title.
-      accessibilityLabel={[row.title, row.subtitle, ...metadataSegments.map((s) => s.text)]
+      accessibilityLabel={[
+        row.title,
+        updatedLabel,
+        row.subtitle,
+        ...metadataSegments.map((s) => s.text),
+      ]
         .filter((part) => part !== null && part.length > 0)
         .join(', ')}
       accessibilityRole="button"
@@ -203,6 +224,11 @@ export function HomeFeedRow({
         <Text numberOfLines={2} style={styles.title} testID={`home-feed-row-title-${row.id}`}>
           {row.title}
         </Text>
+        {updatedLabel !== null ? (
+          <Text numberOfLines={1} style={styles.subtitle} testID={`home-feed-row-updated-${row.id}`}>
+            {updatedLabel}
+          </Text>
+        ) : null}
         {row.subtitle !== null ? (
           <Text numberOfLines={1} style={styles.subtitle}>
             {row.subtitle}

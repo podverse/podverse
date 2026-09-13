@@ -4,6 +4,9 @@ import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
+import { filterChipChrome } from './chipChrome';
+
+export type SectionChipVariant = 'filter' | 'pill';
 
 export type SectionChipProps = {
   /** Already-localized. Doubles as the accessible name. */
@@ -11,6 +14,11 @@ export type SectionChipProps = {
   onPress: () => void;
   selected: boolean;
   testID: string;
+  /**
+   * `pill` is a media-type tab (round, primary fill when selected). `filter` is a list
+   * narrow (square radius; accent outline when selected), same family as the sort chip.
+   */
+  variant?: SectionChipVariant;
 };
 
 export type SectionChipItem<T extends string> = {
@@ -34,8 +42,20 @@ export type SectionChipRowProps<T extends string> = {
  * One chip in a horizontal selector row. Reads as a tab to assistive tech, with its selected state,
  * so a screen reader user learns the same thing a sighted user reads from the filled pill.
  */
-export function SectionChip({ label, onPress, selected, testID }: SectionChipProps) {
+export function SectionChip({
+  label,
+  onPress,
+  selected,
+  testID,
+  variant = 'pill',
+}: SectionChipProps) {
   const { styles: themeStyles, tokens } = useTheme();
+  const isFilter = variant === 'filter';
+  const filterChrome = filterChipChrome(
+    tokens,
+    { borderColor: themeStyles.border.borderColor, textColor: themeStyles.textPrimary.color },
+    selected
+  );
 
   const styles = useMemo(
     () =>
@@ -67,13 +87,23 @@ export function SectionChip({ label, onPress, selected, testID }: SectionChipPro
   return (
     <Pressable
       accessibilityLabel={label}
-      accessibilityRole="tab"
+      accessibilityRole={isFilter ? 'button' : 'tab'}
       accessibilityState={{ selected }}
       onPress={onPress}
-      style={[styles.chip, selected ? styles.chipActive : null]}
+      style={[
+        styles.chip,
+        isFilter ? filterChrome.chip : selected ? styles.chipActive : null,
+      ]}
       testID={testID}
     >
-      <Text style={[styles.chipLabel, selected ? styles.chipLabelActive : null]}>{label}</Text>
+      <Text
+        style={[
+          styles.chipLabel,
+          isFilter ? filterChrome.label : selected ? styles.chipLabelActive : null,
+        ]}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -93,14 +123,18 @@ export function SectionChipRow<T extends string>({
   selectedKey,
   testID,
 }: SectionChipRowProps<T>) {
+  const { tokens } = useTheme();
   const styles = useMemo(
     () =>
       StyleSheet.create({
+        scroll: {
+          paddingBottom: tokens.spacing.sm,
+        },
         scrollContent: {
           alignItems: 'center',
         },
       }),
-    []
+    [tokens]
   );
 
   return (
@@ -108,6 +142,7 @@ export function SectionChipRow<T extends string>({
       contentContainerStyle={styles.scrollContent}
       horizontal
       showsHorizontalScrollIndicator={false}
+      style={styles.scroll}
       testID={testID}
     >
       {leading}

@@ -28,8 +28,9 @@
       "rate_limited_time_other": "{minutes} minutes"
     },
     "browse": {
-      "categories_selected": "Categorías – {name}",
       "category_all": "Todas las categorías",
+      "collapse_category": "Ocultar las subcategorías de {name}",
+      "expand_category": "Mostrar las subcategorías de {name}",
       "empty": "Nada que mostrar todavía",
       "range_all_time": "Todo el tiempo",
       "sort_popularity": "Popularidad",

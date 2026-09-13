@@ -11,7 +11,12 @@ export type { OptionListItem, OptionListScreenProps } from './OptionListScreen';
 export { SearchField } from './SearchField';
 export type { SearchFieldProps } from './SearchField';
 export { SectionChip, SectionChipRow } from './SectionChipRow';
-export type { SectionChipItem, SectionChipProps, SectionChipRowProps } from './SectionChipRow';
+export type {
+  SectionChipItem,
+  SectionChipProps,
+  SectionChipRowProps,
+  SectionChipVariant,
+} from './SectionChipRow';
 export { SettingsOptionNavRow } from './SettingsOptionNavRow';
 export type { SettingsOptionNavRowProps } from './SettingsOptionNavRow';
 export { SortPill } from './SortPill';

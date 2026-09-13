@@ -101,13 +101,13 @@ name: Anonymous Subscriptions Persist
 # been opened has nothing unseen — following a show must not claim its whole back catalogue is new.
 - extendedWaitUntil:
     visible:
-      id: "home-feed-row-latest-.*"
+      id: "home-feed-row-updated-.*"
     timeout: ${TIMEOUT_SLOWER}
 - assertNotVisible:
     id: "home-feed-row-unseen-.*"
 - assertNotVisible:
     id: "home-feed-row-downloaded-.*"
-- takeScreenshot: home-row-metadata-latest-episode
+- takeScreenshot: home-row-updated
 
 # The grid draws the same subscription as an artwork tile. Asserted here rather than in home.yaml,
 # whose account follows nothing — an empty grid and an empty list look identical.
@@ -119,7 +119,7 @@ name: Anonymous Subscriptions Persist
     id: "home-feed-cell-.*"
 # A tile is artwork alone, so the row layout beneath it is gone rather than merely narrower.
 - assertNotVisible:
-    id: "home-feed-row-latest-.*"
+    id: "home-feed-row-updated-.*"
 - takeScreenshot: home-view-grid-subscribed
 
 - tapOn:
@@ -127,7 +127,7 @@ name: Anonymous Subscriptions Persist
 - tapOn:
     id: home-overflow-view-list
 - assertVisible:
-    id: "home-feed-row-latest-.*"
+    id: "home-feed-row-updated-.*"
 
 # Filter to the subscription just made. The title comes off the row rather than being hardcoded,
 # because the show came from a live search and its name is not fixed by the seed.
