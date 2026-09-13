@@ -27,6 +27,7 @@ const subscribed = ({
   imageUrl: null,
   source: 'directory',
   medium: 'podcasts',
+  popularityRank: null,
   ...partial,
   latestItemPubDateMs,
 });

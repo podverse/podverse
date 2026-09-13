@@ -120,6 +120,7 @@ describe('mapDirectoryChannelToSubscribed', () => {
       source: 'directory',
       medium: 'podcasts',
       latestItemPubDateMs: null,
+      popularityRank: null,
     });
   });
 
@@ -140,6 +141,7 @@ describe('mapAddByRssToSubscribed', () => {
       source: 'addByRss',
       medium: 'podcasts',
       latestItemPubDateMs: null,
+      popularityRank: null,
     });
   });
 
@@ -254,6 +256,22 @@ describe('sortSubscriptions', () => {
 
     sortSubscriptions(list, 'recent');
     expect(list.map((entry) => entry.title)).toEqual(['Zebra', 'Apple']);
+  });
+
+  it('sorts by stored popularity rank, unknown ranks last, title as the tiebreaker', () => {
+    const list = [
+      { ...directoryEntry({ id_text: '1', title: 'Unranked Zebra' }), popularityRank: null },
+      { ...directoryEntry({ id_text: '2', title: 'Second' }), popularityRank: 1 },
+      { ...directoryEntry({ id_text: '3', title: 'First' }), popularityRank: 0 },
+      { ...directoryEntry({ id_text: '4', title: 'Unranked Apple' }), popularityRank: null },
+    ];
+
+    expect(sortSubscriptions(list, 'popularity').map((entry) => entry.title)).toEqual([
+      'First',
+      'Second',
+      'Unranked Apple',
+      'Unranked Zebra',
+    ]);
   });
 });
 

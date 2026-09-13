@@ -14,11 +14,30 @@ import { readSortPref, subscribeSortPref, writeSortPref } from './sortPrefs';
  * How a Home list is ordered. The tokens are the same ones `subscriptionsRepository` takes, so a
  * stored preference reaches the query without a translation table in between.
  */
-export const HOME_SORT_OPTIONS = ['alphabetical', 'recent'] as const;
+export const HOME_SORT_OPTIONS = ['alphabetical', 'recent', 'popularity'] as const;
 
 export type HomeSortOption = (typeof HOME_SORT_OPTIONS)[number];
 
 export const DEFAULT_HOME_SORT: HomeSortOption = 'alphabetical';
+
+/** Listen-count window used when Home asks the directory for a popularity ranking. */
+export const HOME_POPULARITY_RANGE = 'week' as const;
+
+/** API `sort` for a Home preference. Popularity is the directory's `top` ranking. */
+export const homeSortToApiSort = (sort: HomeSortOption): 'a_z' | 'recent' | 'top' => {
+  if (sort === 'alphabetical') {
+    return 'a_z';
+  }
+  if (sort === 'popularity') {
+    return 'top';
+  }
+  return 'recent';
+};
+
+/** Popularity is the only Home order that needs a stats window. */
+export const homeSortToApiRange = (sort: HomeSortOption): typeof HOME_POPULARITY_RANGE | null => {
+  return sort === 'popularity' ? HOME_POPULARITY_RANGE : null;
+};
 
 /** How the subscribed list is drawn: full rows, or a grid of artwork tiles. */
 export const HOME_VIEW_MODES = ['list', 'grid'] as const;
@@ -33,12 +52,9 @@ export type HomeViewMode = (typeof HOME_VIEW_MODES)[number];
  */
 export const DEFAULT_HOME_VIEW_MODE: HomeViewMode = 'list';
 
-/** The media types with a working sort control. */
-export const HOME_SORTABLE_MEDIA_TYPES: readonly HomeMediaType[] = ['podcasts', 'episodes'];
-
-/** Whether this media type offers sorting, so callers can hide the control rather than lie. */
-export const isHomeSortableMediaType = (mediaType: HomeMediaType): boolean => {
-  return HOME_SORTABLE_MEDIA_TYPES.includes(mediaType);
+/** Every Home list offers the same three orders. */
+export const isHomeSortableMediaType = (_mediaType: HomeMediaType): boolean => {
+  return true;
 };
 
 /**

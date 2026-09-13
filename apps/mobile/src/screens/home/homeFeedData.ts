@@ -18,7 +18,11 @@ import {
 } from '../../data/repositories';
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
 import type { HomeSortOption } from '../../prefs/homeListPrefs';
-import { DEFAULT_HOME_SORT } from '../../prefs/homeListPrefs';
+import {
+  DEFAULT_HOME_SORT,
+  homeSortToApiRange,
+  homeSortToApiSort,
+} from '../../prefs/homeListPrefs';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
 import type { HomeRowMetadata } from './homeRowMetadata';
 import { buildHomeRowMetadata } from './homeRowMetadata';
@@ -45,11 +49,13 @@ export type HomeFeedRowData = {
 };
 
 type HomeFeedOptions = {
-  /**
-   * Applies to the two locally-read views, Podcasts and Episodes. The remaining media types are
-   * server-ranked and ignore it.
-   */
+  /** List order. Podcasts and Episodes apply it locally; the other types pass it to the API. */
   sort?: HomeSortOption;
+};
+
+const toDirectorySort = (sort: HomeSortOption): 'recent' | 'top' => {
+  const apiSort = homeSortToApiSort(sort);
+  return apiSort === 'a_z' ? 'recent' : apiSort;
 };
 
 /**
@@ -338,25 +344,39 @@ export const fetchHomeFeedRows = async (
     // Read before the API is even consulted, and with no directory fallback, because Home shows
     // what the user subscribed to and nothing else. An unconfigured API or no connection changes
     // nothing about that list.
-    const subscribed = await subscriptionsRepository.list({
-      sort: options.sort ?? DEFAULT_HOME_SORT,
-    });
+    const sort = options.sort ?? DEFAULT_HOME_SORT;
+    if (
+      sort === 'popularity' &&
+      authDeps.status === 'authenticated' &&
+      !(await subscriptionsRepository.hasPopularityRanks())
+    ) {
+      try {
+        await subscriptionsRepository.refreshPopularityRanks(authDeps);
+      } catch {
+        // Keep the unranked local list. A missing rank sorts after a known one, which is still a
+        // complete answer for the follows this device already has.
+      }
+    }
+    const subscribed = await subscriptionsRepository.list({ sort });
     return attachSubscriptionMetadata(subscribed);
   }
-
-  const apiRequestService = createMobileApiRequestService(authDeps.accessToken);
-  if (apiRequestService === null) {
-    return [];
-  }
-
-  const listType = authDeps.status === 'authenticated' ? 'subscribed' : 'global';
 
   if (mediaType === 'episodes') {
     // Episodes for subscribed channels come from the device, so this list reads, filters, and
     // sorts the same with no connection. The ranking is local rather than server-side as a result.
-    const stored = await channelItemsRepository.listSubscribed({
-      sort: options.sort ?? DEFAULT_HOME_SORT,
-    });
+    const sort = options.sort ?? DEFAULT_HOME_SORT;
+    if (
+      sort === 'popularity' &&
+      authDeps.status === 'authenticated' &&
+      !(await channelItemsRepository.hasPopularityRanks())
+    ) {
+      try {
+        await channelItemsRepository.refreshPopularityRanks(authDeps);
+      } catch {
+        // Keep the unranked recency window. Same set either way — only the order is missing.
+      }
+    }
+    const stored = await channelItemsRepository.listSubscribed({ sort });
     if (stored.length > 0) {
       return mapItemsToHomeFeedRows(stored);
     }
@@ -375,16 +395,27 @@ export const fetchHomeFeedRows = async (
         category: null,
         medium: 'podcasts',
         page: HOME_FEED_PAGE,
-        range: null,
-        sort: 'recent',
+        range: homeSortToApiRange(sort),
+        sort: toDirectorySort(sort),
         type: 'subscribed',
       })
     );
-    // The subscribed-items endpoint ranks by recency only, so a title order is applied here to the
-    // page it returned. Same set either way — this path exists to fill a screen while the item sync
-    // catches up, not to be a second source of episodes.
-    return applyHomeSort(normalizeItemRows(response.data), options.sort ?? DEFAULT_HOME_SORT);
+    // Subscribed items have recency and popularity endpoints, not a title endpoint, so A-Z is
+    // applied here to the page that came back. Same set either way — this path exists to fill a
+    // screen while the item sync catches up, not to be a second source of episodes.
+    return applyHomeSort(normalizeItemRows(response.data), sort);
   }
+
+  const apiRequestService = createMobileApiRequestService(authDeps.accessToken);
+  if (apiRequestService === null) {
+    return [];
+  }
+
+  const listType = authDeps.status === 'authenticated' ? 'subscribed' : 'global';
+
+  const sort = options.sort ?? DEFAULT_HOME_SORT;
+  const directorySort = toDirectorySort(sort);
+  const directoryRange = homeSortToApiRange(sort);
 
   if (mediaType === 'clips') {
     const response = await requestWithMobileAuthRefresh(authDeps, async (api) =>
@@ -392,12 +423,12 @@ export const fetchHomeFeedRows = async (
         category: null,
         medium: 'podcasts',
         page: HOME_FEED_PAGE,
-        range: null,
-        sort: 'recent',
+        range: directoryRange,
+        sort: directorySort,
         type: listType,
       })
     );
-    return normalizeClipRows(response.data);
+    return applyHomeSort(normalizeClipRows(response.data), sort);
   }
 
   if (mediaType === 'artists' || mediaType === 'albums') {
@@ -406,12 +437,12 @@ export const fetchHomeFeedRows = async (
         category: null,
         medium: 'music',
         page: HOME_FEED_PAGE,
-        range: null,
-        sort: 'recent',
+        range: directoryRange,
+        sort: directorySort,
         type: 'global',
       })
     );
-    return normalizeChannelRows(response.data);
+    return applyHomeSort(normalizeChannelRows(response.data), sort);
   }
 
   const response = await requestWithMobileAuthRefresh(authDeps, async (api) =>
@@ -419,10 +450,10 @@ export const fetchHomeFeedRows = async (
       category: null,
       medium: 'music',
       page: HOME_FEED_PAGE,
-      range: null,
-      sort: 'recent',
+      range: directoryRange,
+      sort: directorySort,
       type: 'global',
     })
   );
-  return normalizeItemRows(response.data);
+  return applyHomeSort(normalizeItemRows(response.data), sort);
 };

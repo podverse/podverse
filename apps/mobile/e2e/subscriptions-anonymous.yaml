@@ -20,7 +20,7 @@ name: Anonymous Subscriptions Persist
 - assertVisible: You are not subscribed to anything yet.
 - assertVisible:
     id: home-list-empty-search
-- assertNotVisible:
+- assertVisible:
     id: home-sort-button
 - assertNotVisible:
     id: home-overflow-trigger

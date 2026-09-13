@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, isNotNull } from 'drizzle-orm';
 
 // Import directly from the request module (not the auth barrel) to avoid a cycle, mirroring
 // accountRepository (AuthProvider → accountRepository → auth barrel → AuthProvider).
@@ -52,6 +52,7 @@ const rowToSubscribed = (row: SubscribedChannelRow): SubscribedChannel => {
     source: isSubscriptionSource(row.source) ? row.source : 'directory',
     medium: isSubscriptionMedium(row.medium) ? row.medium : 'podcasts',
     latestItemPubDateMs: null,
+    popularityRank: row.popularityRank,
   };
 };
 
@@ -75,6 +76,7 @@ const replaceDirectoryCache = async (entries: SubscribedChannel[]): Promise<void
         imageUrl: entry.imageUrl,
         source: entry.source,
         medium: entry.medium,
+        popularityRank: entry.popularityRank,
         updatedAt,
       }))
     );
@@ -140,6 +142,7 @@ export const subscriptionsRepository = {
     const directoryWithRecency = directory.map((entry) => ({
       ...entry,
       latestItemPubDateMs: latestPubDateByChannel.get(entry.idText) ?? null,
+      popularityRank: entry.popularityRank,
     }));
 
     const merged = mergeSubscriptions(directoryWithRecency, addByRss);
@@ -174,6 +177,7 @@ export const subscriptionsRepository = {
         imageUrl: entry.imageUrl,
         source: entry.source,
         medium: entry.medium,
+        popularityRank: entry.popularityRank,
         updatedAt: Date.now(),
       })
       .onConflictDoUpdate({
@@ -278,7 +282,81 @@ export const subscriptionsRepository = {
       return;
     }
 
-    await replaceDirectoryCache(entries);
+    const previousRanks = new Map(
+      (await readDirectoryCache()).map((entry) => [entry.idText, entry.popularityRank])
+    );
+    const entriesWithRanks = entries.map((entry) => ({
+      ...entry,
+      popularityRank: entry.popularityRank ?? previousRanks.get(entry.idText) ?? null,
+    }));
+
+    await replaceDirectoryCache(entriesWithRanks);
+  },
+
+  /** Whether any directory follow already has a listen-count rank stored. */
+  hasPopularityRanks: async (): Promise<boolean> => {
+    await initializeDatabase();
+    const rows = await getDb()
+      .select({ idText: schema.subscribedChannel.idText })
+      .from(schema.subscribedChannel)
+      .where(isNotNull(schema.subscribedChannel.popularityRank))
+      .limit(1);
+    return rows.length > 0;
+  },
+
+  /**
+   * Replace stored listen-count ranks from the account's subscribed popularity list.
+   *
+   * The walk is the rank: position 0 is the most listened follow in the week window. Channels the
+   * endpoint does not return keep a null rank and sort after those that have one.
+   */
+  refreshPopularityRanks: async (context: MobileAuthRequestContext): Promise<void> => {
+    const rankedIdTexts: string[] = [];
+    let page = 1;
+
+    for (;;) {
+      const response = await requestWithMobileAuthRefresh(context, async (apiRequestService) =>
+        apiRequestService.reqChannelGetMany({
+          category: null,
+          medium: 'podcasts',
+          page,
+          range: 'week',
+          sort: 'top',
+          type: 'subscribed',
+        })
+      );
+
+      for (const channel of response.data) {
+        const idText = channel.id_text.trim();
+        if (idText.length > 0) {
+          rankedIdTexts.push(idText);
+        }
+      }
+
+      const responsePage = response.meta.page === null ? page : response.meta.page;
+      const nextPage = getNextDirectoryPage({
+        itemCount: response.data.length,
+        limit: response.meta.limit,
+        requestedPage: page,
+        responsePage,
+        totalCount: response.meta.count,
+      });
+      if (nextPage === null) {
+        break;
+      }
+      page = nextPage;
+    }
+
+    await initializeDatabase();
+    await getDb().transaction(async (transaction) => {
+      await transaction.update(schema.subscribedChannel).set({ popularityRank: null });
+      for (const [index, idText] of rankedIdTexts.entries()) {
+        await transaction
+          .update(schema.subscribedChannel)
+          .set({ popularityRank: index })
+          .where(eq(schema.subscribedChannel.idText, idText));
+      }
+    });
   },
 
   /**

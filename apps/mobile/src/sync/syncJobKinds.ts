@@ -22,6 +22,7 @@ export const SYNC_JOB_KINDS = [
   'add-by-rss-parse',
   'channel-seen',
   'channel-live-status',
+  'popularity-ranks',
 ] as const;
 
 export type SyncJobKind = (typeof SYNC_JOB_KINDS)[number];
@@ -47,4 +48,5 @@ export const SYNC_JOB_LABEL_KEYS: Record<SyncJobKind, string> = {
   'add-by-rss-parse': 'sync.job.rss_feeds',
   'channel-seen': 'sync.job.seen_state',
   'channel-live-status': 'sync.job.live_status',
+  'popularity-ranks': 'sync.job.subscriptions',
 };

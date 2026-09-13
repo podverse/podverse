@@ -33,7 +33,6 @@ import { useInProgressDownloadCount } from '../downloads/useDownloads';
 import { useNotificationsUnreadCount } from '../hooks/useNotificationsUnreadCount';
 import { useMembership } from '../membership/useMembership';
 import { PlaybackE2eStatus } from '../playback/PlaybackE2eStatus';
-import type { HomeMediaType } from '../prefs/preferredMediaType';
 import { isContentTabId, TAB_TEST_ID_SLUG, tabLabelKey } from '../prefs/tabLayout';
 import { AlbumDetailScreen } from '../screens/album/AlbumDetailScreen';
 import { ArtistDetailScreen } from '../screens/artist/ArtistDetailScreen';
@@ -42,7 +41,6 @@ import { ClipDetailScreen } from '../screens/clip/ClipDetailScreen';
 import { EpisodeDetailScreen } from '../screens/episode/EpisodeDetailScreen';
 import { HelloWorldScreen } from '../screens/HelloWorldScreen';
 import { AddByRssHomeDetailScreen } from '../screens/home/AddByRssHomeDetailScreen';
-import { HomeFilterSortScreen } from '../screens/home/HomeFilterSortScreen';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { LibraryDownloadsScreen } from '../screens/library/LibraryDownloadsScreen';
 import { LibraryHistoryScreen } from '../screens/library/LibraryHistoryScreen';
@@ -134,7 +132,6 @@ export const HOME_STACK_ROUTES = {
   ArtistDetail: 'ArtistDetail',
   ClipDetail: 'ClipDetail',
   EpisodeDetail: 'EpisodeDetail',
-  HomeFilterSort: 'HomeFilterSort',
   HomeRoot: 'HomeRoot',
   PodcastDetail: 'PodcastDetail',
   PodcastSettings: 'PodcastSettings',
@@ -354,8 +351,6 @@ export type ChannelBrowseStackParamList = {
 
 export type HomeStackParamList = ChannelBrowseStackParamList & {
   AddByRssPodcastDetail: { feedIdText: string };
-  /** Which Home list the choices apply to, so each media type keeps its own. */
-  HomeFilterSort: { mediaType: HomeMediaType };
   HomeRoot: undefined;
 };
 
@@ -480,11 +475,6 @@ function HomeStackNavigator() {
         component={AddByRssHomeDetailScreen}
         name={HOME_STACK_ROUTES.AddByRssPodcastDetail}
         options={{ title: t('media.podcast.podcast') }}
-      />
-      <HomeStack.Screen
-        component={HomeFilterSortScreen}
-        name={HOME_STACK_ROUTES.HomeFilterSort}
-        options={{ title: t('filters.screen.title') }}
       />
       <HomeStack.Screen
         component={PodcastDetailScreen}

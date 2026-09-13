@@ -91,9 +91,18 @@ describe('homeListPrefs', () => {
   });
 
   it('ignores a stored sort it does not recognise', async () => {
-    inMemoryStore.set('sort.podcasts', JSON.stringify({ sort: 'top' }));
+    inMemoryStore.set('sort.podcasts', JSON.stringify({ sort: 'oldest' }));
 
     await expect(readHomeListPrefs('podcasts')).resolves.toMatchObject({
+      sort: DEFAULT_HOME_SORT,
+    });
+  });
+
+  it('remembers popularity per media type', async () => {
+    await writeHomeSort('podcasts', 'popularity');
+
+    await expect(readHomeListPrefs('podcasts')).resolves.toMatchObject({ sort: 'popularity' });
+    await expect(readHomeListPrefs('episodes')).resolves.toMatchObject({
       sort: DEFAULT_HOME_SORT,
     });
   });
@@ -120,13 +129,13 @@ describe('homeListPrefs', () => {
     unsubscribe();
   });
 
-  it('offers sorting only where a list is read from the device', () => {
+  it('offers the same three orders on every Home list', () => {
     expect(isHomeSortableMediaType('podcasts')).toBe(true);
     expect(isHomeSortableMediaType('episodes')).toBe(true);
-    expect(isHomeSortableMediaType('clips')).toBe(false);
-    expect(isHomeSortableMediaType('artists')).toBe(false);
-    expect(isHomeSortableMediaType('albums')).toBe(false);
-    expect(isHomeSortableMediaType('tracks')).toBe(false);
+    expect(isHomeSortableMediaType('clips')).toBe(true);
+    expect(isHomeSortableMediaType('artists')).toBe(true);
+    expect(isHomeSortableMediaType('albums')).toBe(true);
+    expect(isHomeSortableMediaType('tracks')).toBe(true);
   });
 
   it('offers the grid on the channel list only, where artwork identifies the row', () => {

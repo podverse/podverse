@@ -224,6 +224,14 @@ const createLibraryBrowseProjectionJob = (
   });
 };
 
+const createPopularityRanksJob = (deps: SyncJobDeps, priority: SyncJobPriority): SyncJob => {
+  return buildJob('popularity-ranks', priority, 'popularity-ranks', async () => {
+    const context = deps.getAuthContext();
+    await subscriptionsRepository.refreshPopularityRanks(context);
+    await channelItemsRepository.refreshPopularityRanks(context);
+  });
+};
+
 const createSubscriptionsCommitJob = (
   deps: SyncJobDeps,
   priority: SyncJobPriority,
@@ -238,6 +246,7 @@ const createSubscriptionsCommitJob = (
       createChannelItemsScanJob(deps, priority),
       createChannelSeenJob(deps, priority),
       createChannelLiveStatusJob(deps, priority),
+      createPopularityRanksJob(deps, priority),
     ]);
   });
 };
@@ -317,6 +326,7 @@ const createAccountRefreshJob = (deps: SyncJobDeps, priority: SyncJobPriority): 
         createChannelItemsScanJob(deps, priority),
         createChannelSeenJob(deps, priority),
         createChannelLiveStatusJob(deps, priority),
+        createPopularityRanksJob(deps, priority),
       ]);
       return;
     }

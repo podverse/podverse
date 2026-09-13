@@ -26,49 +26,47 @@ name: Home Media Types
 - assertVisible: Podcasts
 - takeScreenshot: home-media-type-podcasts
 
-# Podcasts place More Options and sort in one row. The sort control shows the current order on its
-# face rather than the word "Sort", and opens the full Filter/Sort screen. A-Z is the default.
+# Home's sort chip leads the media-type row. The face shows the current order; the caret opens
+# A-Z, Recent, and Popularity. A-Z is the default. There is no Categories chip here.
 - assertVisible:
     id: home-sort-button
-- assertVisible: "Sort: A-Z"
-- tapOn:
-    id: home-sort-button
-- assertVisible:
-    id: home-filter-sort-screen
-# Podcasts exposes its sort choices without a source-filter section because Home always combines
-# directory subscriptions and add-by-RSS feeds.
-- assertVisible:
-    id: home-filter-sort-sort-group
+- assertVisible: A-Z
 - assertNotVisible:
-    id: home-filter-sort-filter-group
-- takeScreenshot: home-filter-sort-screen
+    id: home-category-button
+- tapOn:
+    id: home-sort-button
+- assertVisible:
+    id: home-sort-menu
+- assertVisible:
+    id: home-sort-alphabetical
+- assertVisible:
+    id: home-sort-recent
+- assertVisible:
+    id: home-sort-popularity
+- takeScreenshot: home-sort-menu
 
-# Selections apply as they are made, so Done only dismisses.
+# Selections apply as they are made, so the sheet closes onto the same list in the new order.
 - tapOn:
-    id: home-filter-sort-sort-recent
-- tapOn:
-    id: home-filter-sort-done
+    id: home-sort-recent
 - assertVisible:
     id: home-screen
 - assertVisible:
     id: home-sort-button
-- assertVisible: "Sort: Recent"
+- assertVisible: Recent
 - takeScreenshot: home-sort-recent
 
-# Reopening shows the choice still selected: the screen reads the stored preference rather than
+# Reopening shows the choice still selected: the chip reads the stored preference rather than
 # whatever it was last handed.
 - tapOn:
     id: home-sort-button
 - assertVisible:
-    id: home-filter-sort-screen
-- takeScreenshot: home-filter-sort-recent-selected
+    id: home-sort-menu
+- takeScreenshot: home-sort-recent-selected
 - tapOn:
-    id: home-filter-sort-sort-alphabetical
-- tapOn:
-    id: home-filter-sort-done
+    id: home-sort-alphabetical
 - assertVisible:
     id: home-sort-button
-- assertVisible: "Sort: A-Z"
+- assertVisible: A-Z
 
 # The header overflow menu holds the view toggle and Mark All As Seen. The view is two checkable
 # rows rather than one label that flips, so the menu states which mode is in effect.
@@ -142,21 +140,19 @@ name: Home Media Types
     id: home-overflow-trigger
 
 # Episodes sorts too, and keeps its own choice — ordering podcasts by title says nothing about how
-# episodes should be ordered. The scope chip is a channel-list control, so it is absent here.
+# episodes should be ordered.
 - assertNotVisible:
     id: home-subscription-filter
 - assertVisible:
     id: home-sort-button
-- assertVisible: "Sort: A-Z"
+- assertVisible: A-Z
 - tapOn:
     id: home-sort-button
 - assertVisible:
-    id: home-filter-sort-screen
-- assertNotVisible:
-    id: home-filter-sort-filter-group
-- takeScreenshot: home-filter-sort-episodes
+    id: home-sort-menu
+- takeScreenshot: home-sort-episodes
 - tapOn:
-    id: home-filter-sort-done
+    id: home-sort-menu-cancel
 
 # Clips
 - tapOn:
@@ -164,9 +160,8 @@ name: Home Media Types
 - assertVisible: Clips
 - takeScreenshot: home-media-type-clips
 
-# Clips, artists, albums, and tracks are server-ranked and have no sort control yet, so the row is
-# hidden rather than offering a choice that would change nothing.
-- assertNotVisible:
+# Clips, artists, albums, and tracks share the same leading sort chip.
+- assertVisible:
     id: home-sort-button
 
 # Swipe the selector row itself — a %-of-screen start Y can miss the pills.

@@ -29,11 +29,16 @@ export type SubscribedChannel = {
    * yet, which orders as unknown rather than as long ago.
    */
   latestItemPubDateMs: number | null;
+  /**
+   * Directory listen-count rank for this device's follows. Lower is more popular. Null when this
+   * device has not stored a rank yet, which orders as unknown rather than as last.
+   */
+  popularityRank: number | null;
 };
 
 export type SubscriptionFilter = 'all' | 'addByRss' | 'directory';
 
-export type SubscriptionSort = 'alphabetical' | 'recent';
+export type SubscriptionSort = 'alphabetical' | 'popularity' | 'recent';
 
 const trimToNull = (value: string | null | undefined): string | null => {
   if (typeof value !== 'string') {
@@ -85,6 +90,7 @@ export const mapDirectoryChannelToSubscribed = (channel: DTOChannel): Subscribed
     // A directory channel's recency comes from the items stored for it, which this mapping does not
     // see. The repository fills it in from `channelItemsRepository`.
     latestItemPubDateMs: null,
+    popularityRank: null,
   };
 };
 
@@ -108,6 +114,7 @@ export const mapAddByRssToSubscribed = (
     source: 'addByRss',
     medium: mediumIsMusicResourceType(record.resourceType) ? 'music' : 'podcasts',
     latestItemPubDateMs: record.latestItemPubDateMs,
+    popularityRank: null,
   };
 };
 
@@ -169,11 +176,50 @@ export const compareSubscribedByRecency = (a: SubscribedChannel, b: SubscribedCh
   return bMs - aMs;
 };
 
+/**
+ * Most-listened first, with subscriptions whose rank is unknown after those whose rank is known.
+ *
+ * An unknown rank is a follow this device has not ranked yet — usually a signed-out subscription,
+ * or a signed-in one whose popularity walk has not landed. Sorting those to the bottom keeps a
+ * brand new follow from claiming the top of the list on the strength of having no information at
+ * all. Equal ranks fall back to title so the order is total.
+ */
+export const compareSubscribedByPopularity = (
+  a: SubscribedChannel,
+  b: SubscribedChannel
+): number => {
+  const aRank = a.popularityRank;
+  const bRank = b.popularityRank;
+
+  if (aRank === null && bRank === null) {
+    return compareSubscribedByTitle(a, b);
+  }
+  if (aRank === null) {
+    return 1;
+  }
+  if (bRank === null) {
+    return -1;
+  }
+  if (aRank === bRank) {
+    return compareSubscribedByTitle(a, b);
+  }
+  return aRank - bRank;
+};
+
+const comparatorForSort = (sort: SubscriptionSort) => {
+  if (sort === 'recent') {
+    return compareSubscribedByRecency;
+  }
+  if (sort === 'popularity') {
+    return compareSubscribedByPopularity;
+  }
+  return compareSubscribedByTitle;
+};
+
 /** Order the merged list. `alphabetical` is the default. */
 export const sortSubscriptions = (
   list: SubscribedChannel[],
   sort: SubscriptionSort = 'alphabetical'
 ): SubscribedChannel[] => {
-  const comparator = sort === 'recent' ? compareSubscribedByRecency : compareSubscribedByTitle;
-  return [...list].sort(comparator);
+  return [...list].sort(comparatorForSort(sort));
 };

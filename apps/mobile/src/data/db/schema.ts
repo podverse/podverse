@@ -120,6 +120,7 @@ export const subscribedChannel = sqliteTable('subscribed_channel', {
   imageUrl: text('image_url'),
   source: text('source').notNull(),
   medium: text('medium').notNull(),
+  popularityRank: integer('popularity_rank'),
   updatedAt: integer('updated_at').notNull(),
 });
 
@@ -144,6 +145,7 @@ export const channelItem = sqliteTable('channel_item', {
   title: text('title'),
   imageUrl: text('image_url'),
   pubDateMs: integer('pub_date_ms'),
+  popularityRank: integer('popularity_rank'),
   payloadJson: text('payload_json').notNull(),
   updatedAt: integer('updated_at').notNull(),
 });

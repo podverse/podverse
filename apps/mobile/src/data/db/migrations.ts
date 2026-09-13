@@ -166,6 +166,15 @@ export const MIGRATIONS: Migration[] = [
       );`,
     ],
   },
+  {
+    version: 12,
+    statements: [
+      // Directory listen-count ranks for Home's popularity order. Stored beside the follow so the
+      // subscribed list can keep that order with no connection.
+      `ALTER TABLE subscribed_channel ADD COLUMN popularity_rank INTEGER;`,
+      `ALTER TABLE channel_item ADD COLUMN popularity_rank INTEGER;`,
+    ],
+  },
 ];
 
 export const LATEST_MIGRATION_VERSION: number = MIGRATIONS.reduce(

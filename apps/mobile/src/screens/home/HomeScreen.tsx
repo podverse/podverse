@@ -23,10 +23,10 @@ import type { HomeSortOption, HomeViewMode } from '../../prefs/homeListPrefs';
 import {
   DEFAULT_HOME_SORT,
   DEFAULT_HOME_VIEW_MODE,
-  isHomeSortableMediaType,
   isHomeViewModeMediaType,
   readHomeListPrefs,
   subscribeHomeListPrefs,
+  writeHomeSort,
   writeHomeViewMode,
 } from '../../prefs/homeListPrefs';
 import {
@@ -48,7 +48,7 @@ import { HomeFeedGridCell } from './HomeFeedGridCell';
 import { HomeFeedRow } from './HomeFeedRow';
 import { readHomeFilterTerm, writeHomeFilterTerm } from './homeFilterSession';
 import { HomeOverflowMenu } from './HomeOverflowMenu';
-import { HomeSortRow } from './HomeSortRow';
+import { HomeSortChip } from './HomeSortChip';
 import { MediaTypeSelector } from './MediaTypeSelector';
 import { useHomeRowPlayback } from './useHomeRowPlayback';
 
@@ -85,8 +85,6 @@ export function HomeScreen() {
   const feedRequestIdRef = useRef<number>(0);
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
   const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();
-
-  const showSortRow = isHomeSortableMediaType(selectedMediaType);
 
   // Both menu entries are about the subscribed channel list — how to draw it, and catching up on
   // it. On the other media types the menu would open onto nothing that applies.
@@ -168,9 +166,15 @@ export function HomeScreen() {
     void writePreferredMediaType(mediaType);
   }, []);
 
-  const handleSortPress = useCallback(() => {
-    navigation.navigate(HOME_STACK_ROUTES.HomeFilterSort, { mediaType: selectedMediaType });
-  }, [navigation, selectedMediaType]);
+  const handleSortChange = useCallback(
+    (sort: HomeSortOption) => {
+      // Applied here as well as written, so the list redraws on the tap rather than after the
+      // storage round trip. The write is still what a relaunch reads.
+      setListPrefs((current) => (current === null ? current : { ...current, sort }));
+      void writeHomeSort(selectedMediaType, sort);
+    },
+    [selectedMediaType]
+  );
 
   const handleViewModeChange = useCallback(
     (viewMode: HomeViewMode) => {
@@ -447,22 +451,16 @@ export function HomeScreen() {
       <E2ePlayVideoButton />
       {showSubscriptionControls ? (
         <>
-          <View style={styles.controlsRow}>
-            {showSortRow ? (
-              <HomeSortRow
-                onPress={handleSortPress}
-                sort={activePrefs?.sort ?? DEFAULT_HOME_SORT}
-              />
-            ) : null}
-            {showOverflowMenu ? (
+          {showOverflowMenu ? (
+            <View style={styles.controlsRow}>
               <HomeOverflowMenu
                 canMarkAllSeen={canMarkAllSeen}
                 onMarkAllSeen={handleMarkAllSeen}
                 onViewModeChange={handleViewModeChange}
                 viewMode={activePrefs?.viewMode ?? DEFAULT_HOME_VIEW_MODE}
               />
-            ) : null}
-          </View>
+            </View>
+          ) : null}
           <ListFilterField
             clearLabel={t('subscriptions.filter.clear')}
             label={t('subscriptions.filter.placeholder')}
@@ -518,6 +516,12 @@ export function HomeScreen() {
       <View style={styles.selectorSection}>
         <MediaTypeSelector
           labelKeys={MEDIA_TYPE_LABEL_KEYS}
+          leading={
+            <HomeSortChip
+              onSortChange={handleSortChange}
+              sort={activePrefs?.sort ?? DEFAULT_HOME_SORT}
+            />
+          }
           onChange={handleMediaTypeChange}
           selectedMediaType={selectedMediaType}
           testIDPrefix="home"
