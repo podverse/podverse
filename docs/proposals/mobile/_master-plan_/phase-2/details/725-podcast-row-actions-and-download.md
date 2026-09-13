@@ -31,6 +31,9 @@ Reuse [`DownloadControl`](apps/mobile/src/components/download/DownloadControl.ts
 icon variant of it) **on the episode row**, not only on episode detail. Livestream / non-downloadable
 items render nothing, same as today.
 
+Icon row chrome follows legacy: Play is a glowing circle (`Button` `play` — accent border +
+`opaqueBg` fill); More / Download / trash are bare icons at the same hit target and glyph size.
+
 ### Live badge
 
 Live rows at the top of Episodes (from [724](724-podcast-section-lists.md)) show the Live badge;

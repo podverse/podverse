@@ -10,7 +10,7 @@ import { formatSecondsToReadableDuration } from '@podverse/helpers/timeFormatter
 import { DownloadRowControl } from '../../components/download/DownloadRowControl';
 import { buildMediaRowMoreActions, MediaRowActions } from '../../components/player/MediaRowActions';
 import { Badge, CoverImage } from '../../components/primitives';
-import { LIST_ROW_ARTWORK_SIZE, listRowArtworkGap } from '../../theme/screenLayout';
+import { LIST_ROW_ARTWORK_SIZE, listRowArtworkGap, listRowVerticalPadding } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 import type { DirectoryMediaType } from '../browse/browseTypes';
@@ -228,7 +228,10 @@ export function HomeFeedRow({
           borderBottomColor: themeStyles.border.borderColor,
           borderBottomWidth: isLast ? 0 : StyleSheet.hairlineWidth,
           gap: tokens.spacing.md,
-          paddingVertical: tokens.spacing.base,
+          ...listRowVerticalPadding(tokens.spacing.base),
+        },
+        rowActions: {
+          marginTop: tokens.spacing.sm,
         },
         title: {
           ...typography.subheading,
@@ -358,19 +361,22 @@ export function HomeFeedRow({
       {customActions !== undefined ? (
         customActions
       ) : isPlayable ? (
-        <MediaRowActions
-          appearance="icons"
-          durationLabel={durationLabel}
-          durationTestID={`home-feed-row-duration-${row.id}`}
-          idSuffix={`-${row.id}`}
-          moreActions={moreActions}
-          moreTestID={`home-row-more-${row.id}`}
-          onPlayPress={() => {
-            onPlayPress(row);
-          }}
-          playLabel={t('media_player.play')}
-          playTestID={`home-row-play-${row.id}`}
-        />
+        <View style={styles.rowActions}>
+          <MediaRowActions
+            appearance="icons"
+            durationLabel={durationLabel}
+            durationTestID={`home-feed-row-duration-${row.id}`}
+            idSuffix={`-${row.id}`}
+            moreActions={moreActions}
+            moreTestID={`home-row-more-${row.id}`}
+            onPlayPress={() => {
+              onPlayPress(row);
+            }}
+            playbackMediaId={row.id}
+            playLabel={t('media_player.play')}
+            playTestID={`home-row-play-${row.id}`}
+          />
+        </View>
       ) : null}
     </Pressable>
   );

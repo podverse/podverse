@@ -55,9 +55,9 @@ const statusIconName = (status: DownloadStatus | null): ComponentProps<typeof Io
  * HLS-only source, or no enclosure — which is the same rule the labeled control on episode detail
  * applies, read from the same eligibility check.
  *
- * Hit target matches {@link LIST_ROW_ACTION_SIZE} (same as outline Play / More) so icon controls
- * share one finger target. The glyph itself is borderless: tray-download when available, trash when
- * the file is on device and a tap would remove it.
+ * Hit target matches {@link LIST_ROW_ACTION_SIZE} (same as Play / More) so icon controls share one
+ * finger target. The glyph itself is borderless and uses {@link LIST_ROW_ACTION_ICON_SIZE} — the
+ * same optical size as More — so trash and download do not look smaller than the ellipsis.
  */
 export function DownloadRowControl({ item, testID }: DownloadRowControlProps) {
   const { t } = useTranslation();
@@ -86,7 +86,8 @@ export function DownloadRowControl({ item, testID }: DownloadRowControlProps) {
 
   const isInProgress =
     status === 'queued' || status === 'downloading' || status === 'paused';
-  const iconColor = status === 'failed' ? tokens.text.danger : tokens.text.accent;
+  const iconColor =
+    status === 'failed' ? tokens.text.danger : tokens.button.secondaryColor;
 
   return (
     <Pressable

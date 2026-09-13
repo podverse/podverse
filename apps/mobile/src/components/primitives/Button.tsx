@@ -7,7 +7,7 @@ import { LIST_ROW_ACTION_SIZE } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 
-export type ButtonVariant = 'outline' | 'primary' | 'secondary' | 'danger';
+export type ButtonVariant = 'outline' | 'primary' | 'secondary' | 'danger' | 'play' | 'ghost';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export type ButtonProps = {
@@ -32,8 +32,10 @@ export type ButtonProps = {
  * from the token scale (no hardcoded hex). Press dims opacity so every variant gives the same
  * tactile cue.
  *
- * `outline` is the quiet bordered control (Subscribe, row Play / More): accent border and label on a
- * transparent fill, matching the legacy subscribe chrome without inventing a second button family.
+ * - `outline` — quiet bordered control (Subscribe): accent border and label on a transparent fill.
+ * - `play` — media-row Play circle: accent border, semi-transparent accent fill (`opaqueBg`), and a
+ *   light/dark-friendly glyph color. Matches the legacy TimeRemainingWidget play chrome.
+ * - `ghost` — bare icon (More): no border or fill; accent glyph. Matches legacy MoreButton.
  */
 export function Button({
   icon,
@@ -57,12 +59,22 @@ export function Button({
         ? themeStyles.buttonSecondary
         : variant === 'danger'
           ? themeStyles.buttonDanger
-          : {
-              backgroundColor: 'transparent',
-              color: tokens.text.accent,
-            };
+          : variant === 'play'
+            ? {
+                backgroundColor: tokens.button.opaqueBg,
+                color: tokens.button.secondaryColor,
+              }
+            : variant === 'ghost'
+              ? {
+                  backgroundColor: 'transparent',
+                  color: tokens.button.secondaryColor,
+                }
+              : {
+                  backgroundColor: 'transparent',
+                  color: tokens.text.accent,
+                };
   const isDisabled = disabled || loading;
-  const isOutline = variant === 'outline';
+  const isOutline = variant === 'outline' || variant === 'play';
   const iconOnlySize =
     size === 'sm' ? LIST_ROW_ACTION_SIZE : size === 'lg' ? 48 : 40;
 
@@ -73,7 +85,7 @@ export function Button({
           alignItems: 'center',
           alignSelf: fullWidth ? 'stretch' : 'flex-start',
           backgroundColor: palette.backgroundColor,
-          borderColor: isOutline ? tokens.text.accent : undefined,
+          borderColor: isOutline ? tokens.button.outlineColor : undefined,
           borderRadius: tokens.radii.round,
           borderWidth: isOutline ? 1 : 0,
           flexDirection: 'row',

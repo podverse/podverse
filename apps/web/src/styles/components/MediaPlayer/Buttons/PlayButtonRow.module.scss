@@ -1,9 +1,24 @@
 @use '../../../mixins/buttons.scss' as *;
 
+.playButtonRowCluster {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.playButtonRowClusterActive {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: var(--spacing-base);
+  min-width: 0;
+}
+
 .playButtonRow {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   color: var(--button-secondary-color);
   background: var(--button-opaque-bg);
   border: var(--button-border-size) solid var(--border-color-primary);
@@ -12,4 +27,18 @@
   width: var(--list-item-button-size);
   font-size: var(--font-size-xs);
   @include mediaPlayerPlayPauseIconCentering;
+}
+
+.playButtonRowProgress {
+  flex: 1;
+  min-width: 2rem;
+  height: 0.1875rem;
+  border-radius: var(--border-radius-round);
+  background-color: var(--progress-bar-after);
+  overflow: hidden;
+}
+
+.playButtonRowProgressFill {
+  height: 100%;
+  background-color: var(--progress-bar-before);
 }

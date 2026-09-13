@@ -16,7 +16,7 @@ import type { DownloadRecord } from '../../downloads/downloadTypes';
 import { useDownloadsList } from '../../downloads/useDownloads';
 import type { LibraryStackParamList } from '../../navigation';
 import { LIBRARY_STACK_ROUTES } from '../../navigation';
-import { LIST_ROW_ARTWORK_SIZE, listRowArtworkGap, screenBodyInsets } from '../../theme/screenLayout';
+import { LIST_ROW_ARTWORK_SIZE, listRowArtworkGap, listRowVerticalPadding, screenBodyInsets } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 
@@ -100,7 +100,7 @@ export function LibraryDownloadsScreen() {
         row: {
           borderBottomColor: themeStyles.border.borderColor,
           borderBottomWidth: StyleSheet.hairlineWidth,
-          paddingVertical: tokens.spacing.base,
+          ...listRowVerticalPadding(tokens.spacing.base),
         },
         rowStatus: {
           ...typography.caption,

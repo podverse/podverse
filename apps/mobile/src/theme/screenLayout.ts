@@ -9,13 +9,42 @@ import type { ThemeTokens } from '@podverse/design-tokens';
 export const LIST_ROW_ARTWORK_SIZE = 60;
 
 /**
- * Hit target for icon-only controls (outlined Play / More, bare Download, and peers). Matches
- * `Button` `size="sm"` + `iconOnly` so bordered and borderless faces share one finger target.
+ * Hit target for icon-only row controls (Play circle, More, Download / trash). Matches legacy
+ * TimeRemainingWidget / MoreButton (44) so bordered and bare faces share one finger target.
  */
-export const LIST_ROW_ACTION_SIZE = 36;
+export const LIST_ROW_ACTION_SIZE = 44;
 
-/** Glyph size inside {@link LIST_ROW_ACTION_SIZE} controls. */
-export const LIST_ROW_ACTION_ICON_SIZE = 18;
+/**
+ * Glyph size for bare icon controls (More, Download, trash). Slightly under the hit target so the
+ * icon reads clearly without looking cramped — same optical weight for More and trash.
+ */
+export const LIST_ROW_ACTION_ICON_SIZE = 26;
+
+/**
+ * Glyph size for the Play / Pause triangle inside the glowing circle. Smaller than bare-row glyphs
+ * on purpose: legacy keeps the play mark compact inside the ring.
+ */
+export const LIST_ROW_PLAY_ICON_SIZE = 16;
+
+/**
+ * Extra bottom padding on text-bearing list rows (dp). System fonts leave more empty air above ink
+ * inside the line box than below, so equal `paddingVertical` reads top-heavy. Add this to the bottom
+ * only — do not put it on every `Text`, grid tiles, or icon-only rows.
+ */
+export const LIST_ROW_OPTICAL_BOTTOM_EXTRA = 2;
+
+/**
+ * Vertical padding for a text-bearing list row: equal token top, bottom = top + optical extra.
+ */
+export function listRowVerticalPadding(paddingTop: number): Pick<
+  ViewStyle,
+  'paddingTop' | 'paddingBottom'
+> {
+  return {
+    paddingBottom: paddingTop + LIST_ROW_OPTICAL_BOTTOM_EXTRA,
+    paddingTop,
+  };
+}
 
 /**
  * Horizontal gap between leading square artwork and the text/actions column.

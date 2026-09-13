@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { listRowVerticalPadding } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 
@@ -51,7 +52,7 @@ export function BrowseCategoryRow({
           flexDirection: 'row',
           gap: tokens.spacing.md,
           minHeight: 44,
-          paddingVertical: tokens.spacing.base,
+          ...listRowVerticalPadding(tokens.spacing.base),
         },
         title: {
           ...typography.subheading,

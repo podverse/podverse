@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 
 import type { QueueMutationKind, QueueMutationMediaType } from '../../hooks/useQueueMutations';
 import { useQueueMutations } from '../../hooks/useQueueMutations';
+import { playbackTargetRowMediaId } from '../../lib/playback/buildPlaybackTarget';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { usePlayback } from '../../playback/PlaybackProvider';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
@@ -58,7 +59,15 @@ export function useHomeRowPlayback() {
   const [actionNoticeKey, setActionNoticeKey] = useState<RowActionNoticeKey | null>(null);
   const { addToQueueLast, addToQueueNext, markAsPlayed } = useQueueMutations();
   const { handleGateError } = useMembershipGate();
-  const { noticeKey: playbackNoticeKeyFromEngine, playClipById, playItemById } = usePlayback();
+  const {
+    activeTarget,
+    isPlaying,
+    noticeKey: playbackNoticeKeyFromEngine,
+    pause,
+    playClipById,
+    playItemById,
+    resume,
+  } = usePlayback();
 
   const runPlayAction = useCallback(
     (row: HomeFeedRowData, mediaType: HomeMediaType) => {
@@ -75,6 +84,17 @@ export function useHomeRowPlayback() {
       }
 
       void (async () => {
+        const activeMediaId =
+          activeTarget !== null ? playbackTargetRowMediaId(activeTarget) : null;
+        if (activeMediaId !== null && activeMediaId === target.idText) {
+          if (isPlaying) {
+            pause();
+          } else {
+            await resume();
+          }
+          return;
+        }
+
         if (target.kind === 'clip') {
           await playClipById(target.idText);
         } else {
@@ -82,7 +102,7 @@ export function useHomeRowPlayback() {
         }
       })();
     },
-    [playClipById, playItemById]
+    [activeTarget, isPlaying, pause, playClipById, playItemById, resume]
   );
 
   const runQueueAction = useCallback(

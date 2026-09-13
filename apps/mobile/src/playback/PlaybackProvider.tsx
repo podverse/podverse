@@ -106,7 +106,23 @@ export type PlaybackContextValue = {
   skipToNext: () => Promise<void>;
 };
 
-const PlaybackContext = createContext<PlaybackContextValue | undefined>(undefined);
+/**
+ * Session / control surface: changes on load, play/pause, rate, notices — not on every timeupdate.
+ * List rows that only need “is this the active item?” subscribe here.
+ */
+export type PlaybackSessionContextValue = Omit<
+  PlaybackContextValue,
+  'durationSeconds' | 'positionSeconds'
+>;
+
+/** High-frequency playhead. Prefer mounting consumers only for the active now-playing chrome. */
+export type PlaybackProgressContextValue = {
+  durationSeconds: number;
+  positionSeconds: number;
+};
+
+const PlaybackSessionContext = createContext<PlaybackSessionContextValue | undefined>(undefined);
+const PlaybackProgressContext = createContext<PlaybackProgressContextValue | undefined>(undefined);
 
 const summaryFromItem = (item: DTOItem, channel: DTOChannel): PlaybackNowPlaying => ({
   channelTitle: channel.title ?? null,
@@ -809,10 +825,9 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
 
   const skipToNext = useCallback(() => advance(), [advance]);
 
-  const value = useMemo<PlaybackContextValue>(
+  const sessionValue = useMemo<PlaybackSessionContextValue>(
     () => ({
       activeTarget,
-      durationSeconds,
       isPlaying,
       noticeKey,
       nowPlaying,
@@ -825,7 +840,6 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       playPlaylistRowById,
       playSoundbite,
       playbackRate,
-      positionSeconds,
       resume,
       seekTo,
       setRate,
@@ -833,7 +847,6 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     }),
     [
       activeTarget,
-      durationSeconds,
       isPlaying,
       noticeKey,
       nowPlaying,
@@ -846,7 +859,6 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       playPlaylistRowById,
       playSoundbite,
       playbackRate,
-      positionSeconds,
       resume,
       seekTo,
       setRate,
@@ -854,13 +866,42 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     ]
   );
 
-  return <PlaybackContext.Provider value={value}>{children}</PlaybackContext.Provider>;
+  const progressValue = useMemo<PlaybackProgressContextValue>(
+    () => ({
+      durationSeconds,
+      positionSeconds,
+    }),
+    [durationSeconds, positionSeconds]
+  );
+
+  return (
+    <PlaybackSessionContext.Provider value={sessionValue}>
+      <PlaybackProgressContext.Provider value={progressValue}>
+        {children}
+      </PlaybackProgressContext.Provider>
+    </PlaybackSessionContext.Provider>
+  );
 }
 
-export function usePlayback(): PlaybackContextValue {
-  const context = useContext(PlaybackContext);
+export function usePlaybackSession(): PlaybackSessionContextValue {
+  const context = useContext(PlaybackSessionContext);
   if (context === undefined) {
-    throw new Error('usePlayback must be used within a PlaybackProvider');
+    throw new Error('usePlaybackSession must be used within a PlaybackProvider');
   }
   return context;
+}
+
+export function usePlaybackProgress(): PlaybackProgressContextValue {
+  const context = useContext(PlaybackProgressContext);
+  if (context === undefined) {
+    throw new Error('usePlaybackProgress must be used within a PlaybackProvider');
+  }
+  return context;
+}
+
+/** Full playback API (session + playhead). Prefer the split hooks in list rows. */
+export function usePlayback(): PlaybackContextValue {
+  const session = usePlaybackSession();
+  const progress = usePlaybackProgress();
+  return { ...session, ...progress };
 }
