@@ -199,3 +199,28 @@ name: Anonymous Subscriptions Persist
     id: home-filter-input
 - assertNotVisible: "Dummy clip"
 - takeScreenshot: home-clips-login-required
+
+# Swipe left on the subscribed channel to reveal Unsubscribe. The row is gone when it completes,
+# so Home returns to the empty discovery state this flow opened on.
+- tapOn:
+    id: home-media-type-podcasts
+- assertVisible:
+    id: "home-feed-row-.*-swipe"
+- swipe:
+    from:
+      id: "home-feed-row-.*-swipe"
+    direction: LEFT
+- extendedWaitUntil:
+    visible:
+      id: "home-feed-row-.*-unsubscribe"
+    timeout: ${TIMEOUT_FASTEST}
+- takeScreenshot: home-channel-swipe-unsubscribe
+- tapOn:
+    id: "home-feed-row-.*-unsubscribe"
+- extendedWaitUntil:
+    visible:
+      id: home-list-empty
+    timeout: ${TIMEOUT_FASTER}
+- assertVisible:
+    id: home-list-empty-search
+- takeScreenshot: home-channel-unsubscribed

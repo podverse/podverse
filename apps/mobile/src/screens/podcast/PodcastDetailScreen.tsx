@@ -453,19 +453,15 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     setSubscriptionNoticeKey(null);
     try {
       if (isSubscribed) {
-        await subscriptionsRepository.unsubscribeLocal(podcastId);
+        const result = await subscriptionsRepository.unsubscribe({
+          accountSync: isSignedIn ? authContext : undefined,
+          idText: podcastId,
+          source: 'directory',
+        });
         setIsSubscribed(false);
         homeFeedRefresh.notify();
-
-        if (isSignedIn) {
-          try {
-            await requestWithMobileAuthRefresh(authContext, async (api) =>
-              api.reqAccountUnfollowChannel({ channel_id_text: podcastId })
-            );
-          } catch {
-            // The local removal stands; the account catches up on the next successful unsubscribe.
-            setSubscriptionNoticeKey('errors.generic');
-          }
+        if (result.serverError) {
+          setSubscriptionNoticeKey('errors.generic');
         }
         return;
       }

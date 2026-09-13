@@ -613,6 +613,25 @@ export const downloadManager = {
 
     await downloadsRepository.clear();
   },
+
+  /**
+   * Delete every download that belongs to one channel — completed rows and any still in flight.
+   */
+  removeAllForChannel: async (channelIdText: string): Promise<void> => {
+    await ensureHydrated();
+    const itemIdTexts = new Set<string>();
+    for (const record of downloadStore.getAll()) {
+      if (record.channelIdText === channelIdText) {
+        itemIdTexts.add(record.itemIdText);
+      }
+    }
+    for (const record of await downloadsRepository.listCompleteByChannel(channelIdText)) {
+      itemIdTexts.add(record.itemIdText);
+    }
+    for (const itemIdText of itemIdTexts) {
+      await downloadManager.remove(itemIdText);
+    }
+  },
 };
 
 // When Offline Mode turns on, pause every in-flight transfer so nothing keeps using the network.

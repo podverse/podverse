@@ -10,7 +10,7 @@ import { matchesTitleFilter } from '@podverse/helpers';
 import { useAuth } from '../../auth/AuthProvider';
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { ListFilterField, ListFilterHeader } from '../../components/form';
-import { FillList } from '../../components/primitives';
+import { FillList, SwipeActionRow } from '../../components/primitives';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
@@ -20,6 +20,7 @@ import {
   downloadsRepository,
   subscriptionsRepository,
 } from '../../data/repositories';
+import { downloadManager } from '../../downloads/downloadManager';
 import { downloadStore } from '../../downloads/downloadStore';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import {
@@ -445,6 +446,57 @@ export function HomeScreen() {
     return feedRows.some((row) => (row.metadata?.unseenBadge ?? null) !== null);
   }, [feedRows]);
 
+  const handleUnsubscribe = useCallback(
+    async (row: HomeFeedRowData) => {
+      setActionErrorKey(null);
+      try {
+        const result = await subscriptionsRepository.unsubscribe({
+          accountSync:
+            status === 'authenticated'
+              ? { accessToken, clearSession, refreshToken, setTokens }
+              : undefined,
+          idText: row.id,
+          source: row.source ?? 'directory',
+        });
+        setFeedRows((prev) => prev.filter((item) => item.id !== row.id));
+        if (selectedMediaType === 'podcasts') {
+          setHasPodcastSubscriptions(feedRows.length > 1);
+          try {
+            setUnsubscribedDownloadRows(await fetchUnsubscribedDownloadHomeRows());
+          } catch {
+            // The follow is already gone; the downloads footer can catch up on the next refresh.
+          }
+        }
+        if (result.serverError) {
+          setActionErrorKey('errors.generic');
+        }
+      } catch {
+        setActionErrorKey('errors.generic');
+        throw new Error('Unsubscribe failed');
+      }
+    },
+    [
+      accessToken,
+      clearSession,
+      feedRows.length,
+      refreshToken,
+      selectedMediaType,
+      setTokens,
+      status,
+    ]
+  );
+
+  const handleDeleteUnsubscribedDownloads = useCallback(async (row: HomeFeedRowData) => {
+    setActionErrorKey(null);
+    try {
+      await downloadManager.removeAllForChannel(row.id);
+      setUnsubscribedDownloadRows((prev) => prev.filter((item) => item.id !== row.id));
+    } catch {
+      setActionErrorKey('errors.generic');
+      throw new Error('Delete all failed');
+    }
+  }, []);
+
   /**
    * Catch up on every subscription at once.
    *
@@ -783,20 +835,27 @@ export function HomeScreen() {
             </View>
           ) : (
             unsubscribedDownloadRows.map((row, index) => (
-              <HomeFeedRow
-                isLast={index === unsubscribedDownloadRows.length - 1}
+              <SwipeActionRow
+                actionTestID={`home-unsubscribed-download-row-${row.id}-delete-all`}
                 key={row.id}
-                mediaType="podcasts"
-                onPlayPress={(nextRow) => {
-                  runPlayAction(nextRow, 'podcasts');
-                }}
-                onPress={handleRowPress}
-                onQueuePress={(nextRow, position) => {
-                  runQueueAction(nextRow, 'podcasts', position);
-                }}
-                row={row}
-                testID={`home-unsubscribed-download-row-${row.id}`}
-              />
+                onRemove={() => handleDeleteUnsubscribedDownloads(row)}
+                removeLabel={t('features.download.delete_all')}
+                testID={`home-unsubscribed-download-row-${row.id}-swipe`}
+              >
+                <HomeFeedRow
+                  isLast={index === unsubscribedDownloadRows.length - 1}
+                  mediaType="podcasts"
+                  onPlayPress={(nextRow) => {
+                    runPlayAction(nextRow, 'podcasts');
+                  }}
+                  onPress={handleRowPress}
+                  onQueuePress={(nextRow, position) => {
+                    runQueueAction(nextRow, 'podcasts', position);
+                  }}
+                  row={row}
+                  testID={`home-unsubscribed-download-row-${row.id}`}
+                />
+              </SwipeActionRow>
             ))
           )}
         </View>
@@ -854,33 +913,48 @@ export function HomeScreen() {
             tintColor={themeStyles.buttonPrimary.backgroundColor}
           />
         }
-        renderItem={({ index, item: row }) => (
-          <View style={columns > 1 ? styles.columnCell : undefined}>
-            {isGridView ? (
-              <HomeFeedGridCell onPress={handleRowPress} row={row} />
-            ) : (
-              <HomeFeedRow
-                isLast={index === visibleRows.length - 1}
-                mediaType={selectedMediaType}
-                onAddToPlaylistPress={
-                  status === 'authenticated' && addToPlaylistKind !== null
-                    ? (nextRow) => {
-                        requestAddToPlaylist({ idText: nextRow.id, kind: addToPlaylistKind });
-                      }
-                    : undefined
-                }
-                onPlayPress={(nextRow) => {
-                  runPlayAction(nextRow, selectedMediaType);
-                }}
-                onPress={handleRowPress}
-                onQueuePress={(nextRow, position) => {
-                  runQueueAction(nextRow, selectedMediaType, position);
-                }}
-                row={row}
-              />
-            )}
-          </View>
-        )}
+        renderItem={({ index, item: row }) => {
+          const feedRow = isGridView ? (
+            <HomeFeedGridCell onPress={handleRowPress} row={row} />
+          ) : (
+            <HomeFeedRow
+              isLast={index === visibleRows.length - 1}
+              mediaType={selectedMediaType}
+              onAddToPlaylistPress={
+                status === 'authenticated' && addToPlaylistKind !== null
+                  ? (nextRow) => {
+                      requestAddToPlaylist({ idText: nextRow.id, kind: addToPlaylistKind });
+                    }
+                  : undefined
+              }
+              onPlayPress={(nextRow) => {
+                runPlayAction(nextRow, selectedMediaType);
+              }}
+              onPress={handleRowPress}
+              onQueuePress={(nextRow, position) => {
+                runQueueAction(nextRow, selectedMediaType, position);
+              }}
+              row={row}
+            />
+          );
+
+          return (
+            <View style={columns > 1 ? styles.columnCell : undefined}>
+              {!isGridView && isHomeFilterMediaType(selectedMediaType) ? (
+                <SwipeActionRow
+                  actionTestID={`home-feed-row-${row.id}-unsubscribe`}
+                  onRemove={() => handleUnsubscribe(row)}
+                  removeLabel={t('features.unsubscribe')}
+                  testID={`home-feed-row-${row.id}-swipe`}
+                >
+                  {feedRow}
+                </SwipeActionRow>
+              ) : (
+                feedRow
+              )}
+            </View>
+          );
+        }}
         testID="home-feed-list"
       />
       {addToPlaylistSheet}

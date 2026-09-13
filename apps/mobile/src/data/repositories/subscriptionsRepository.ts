@@ -250,6 +250,42 @@ export const subscriptionsRepository = {
   },
 
   /**
+   * End a follow. The local write always happens first and stands even if the account call fails.
+   *
+   * `accountSync` is the signed-in path: directory unfollows `channel_id_text`, add-by-RSS unfollows
+   * the feed URL. Omit it when signed out — local removal is the whole operation.
+   */
+  unsubscribe: async (params: {
+    accountSync?: MobileAuthRequestContext;
+    idText: string;
+    source: SubscriptionSource;
+  }): Promise<{ serverError: boolean }> => {
+    if (params.source === 'addByRss') {
+      await addByRssRepository.removeFeed(params.idText);
+    } else {
+      await subscriptionsRepository.unsubscribeLocal(params.idText);
+    }
+
+    if (params.accountSync === undefined) {
+      return { serverError: false };
+    }
+
+    try {
+      await requestWithMobileAuthRefresh(params.accountSync, async (api) => {
+        if (params.source === 'addByRss') {
+          return api.reqAccountUnfollowAddByRSSChannel({
+            feed_url: params.idText,
+          });
+        }
+        return api.reqAccountUnfollowChannel({ channel_id_text: params.idText });
+      });
+      return { serverError: false };
+    } catch {
+      return { serverError: true };
+    }
+  },
+
+  /**
    * Channel `id_text`s of the local directory follows, for the sign-up merge. Add-by-RSS feeds are
    * excluded — they are followed through their own endpoint, not by channel id.
    */

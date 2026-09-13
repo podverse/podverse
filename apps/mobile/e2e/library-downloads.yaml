@@ -81,3 +81,28 @@ name: Library Downloads Offline Play
 - assertNotVisible:
     id: library-downloads-usage
 - takeScreenshot: library-downloads-list
+
+# The seeded account follows nothing, so a completed download lands on Home under Downloaded only.
+# Swipe-left Delete all removes that show's files and the footer row.
+- tapOn:
+    id: tab-home
+- assertVisible:
+    id: home-screen
+- assertVisible:
+    id: home-unsubscribed-downloads
+- swipe:
+    from:
+      id: "home-unsubscribed-download-row-.*-swipe"
+    direction: LEFT
+- extendedWaitUntil:
+    visible:
+      id: "home-unsubscribed-download-row-.*-delete-all"
+    timeout: ${TIMEOUT_FASTEST}
+- takeScreenshot: home-unsubscribed-swipe-delete-all
+- tapOn:
+    id: "home-unsubscribed-download-row-.*-delete-all"
+- extendedWaitUntil:
+    notVisible:
+      id: home-unsubscribed-downloads
+    timeout: ${TIMEOUT_FAST}
+- takeScreenshot: home-unsubscribed-deleted
