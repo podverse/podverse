@@ -194,6 +194,14 @@ assertion. Check them before blaming locators or timeouts:
    surface — prefer `npm run mobile:e2e:test -- <area>` mapped to the flow you added/updated.
    Use bare `npm run mobile:e2e:test` only when the default `hello-world` smoke is truly the right
    scope.
+
+   **`<area>` is a file basename, not a feature name.** It must match an existing top-level
+   `apps/mobile/e2e/<area>.yaml`. Check the directory before writing the command — the flow covering
+   a screen is often named for more than that screen (podcast detail lives in `podcast-episode`,
+   not `podcast`), so a plausible-sounding area silently matches nothing and the operator's paste
+   verifies nothing. This applies to verification blocks in **plan and detail docs** as much as to
+   chat responses; a wrong area copied into a detail doc gets pasted once per prompt in the set.
+
 2. Include where to open results (failures.json + hub + affected slots):
    - `.artifacts/mobile-e2e-reports/latest/failures.json`
    - `.artifacts/mobile-e2e-reports/latest/index.html`

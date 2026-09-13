@@ -13,6 +13,17 @@ export type FeedParseStatusLines = {
   lines: string[];
 };
 
+/**
+ * Describe a feed's parse history as display lines.
+ *
+ * A failure is only worth reporting when it is more recent than the last success — an old failure
+ * followed by a good parse says nothing about the feed's current state. When neither timestamp is
+ * present the feed has never been read all the way through, which is its own answer rather than an
+ * empty one.
+ *
+ * Date formatting and copy are supplied by the caller, so the same decision serves a locale-aware
+ * web page and a React Native screen without either owning the other's formatter.
+ */
 export function buildFeedParseStatusLines(
   input: FeedParseStatusInput,
   formatDate: (iso: string) => string,

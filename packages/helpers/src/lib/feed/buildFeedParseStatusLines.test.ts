@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildFeedParseStatusLines, type FeedParseStatusLabels } from './buildFeedParseStatusLines';
+import type { FeedParseStatusLabels } from './buildFeedParseStatusLines.js';
+import { buildFeedParseStatusLines } from './buildFeedParseStatusLines.js';
 
 const labels: FeedParseStatusLabels = {
   lastParsed: (date) => `Last Parsed: ${date}`,

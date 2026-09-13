@@ -3,6 +3,9 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import type { DTOItem } from '@podverse/helpers/dto';
+
+import { DownloadRowControl } from '../../components/download/DownloadRowControl';
 import { buildMediaRowMoreActions, MediaRowActions } from '../../components/player/MediaRowActions';
 import { Badge, CoverImage } from '../../components/primitives';
 import { useTheme } from '../../theme/useTheme';
@@ -19,8 +22,18 @@ type HomeFeedRowProps = {
   onPlayPress: (row: HomeFeedRowData) => void;
   /** Optional action controls for locally-backed resources with a different playback path. */
   customActions?: ReactNode;
-  /** When provided, adds an "Add to playlist" more-action (9d.4). Omit for unsupported kinds. */
+  /** When provided, adds an "Add to playlist" more-action. Omit for unsupported kinds. */
   onAddToPlaylistPress?: (row: HomeFeedRowData) => void;
+  /** When provided, adds a "Mark as played" more-action. */
+  onMarkAsPlayedPress?: (row: HomeFeedRowData) => void;
+  /** When provided, adds a "Share" more-action. */
+  onSharePress?: (row: HomeFeedRowData) => void;
+  /**
+   * The item this row stands for, plus the `testID` the control answers to. Supplying it puts a
+   * one-tap download control on the row; the control decides whether there is anything to offer,
+   * so a livestream or HLS-only item renders no affordance.
+   */
+  download?: { item: DTOItem; testID: string };
   row: HomeFeedRowData;
   /** Last row in a list: no bottom hairline so it does not sit on the list edge. */
   isLast?: boolean;
@@ -98,7 +111,10 @@ export function HomeFeedRow({
   onPlayPress,
   onQueuePress,
   onAddToPlaylistPress,
+  onMarkAsPlayedPress,
+  onSharePress,
   customActions,
+  download,
   isLast = false,
   row,
   testID,
@@ -112,7 +128,11 @@ export function HomeFeedRow({
     () =>
       StyleSheet.create({
         actionRow: {
+          alignItems: 'center',
           flexDirection: 'row',
+          // Wraps because a row can carry Play, More options, and a download control, which is more
+          // than a narrow screen fits on one line.
+          flexWrap: 'wrap',
           gap: tokens.spacing.sm,
         },
         image: {
@@ -225,12 +245,24 @@ export function HomeFeedRow({
                           onAddToPlaylistPress(row);
                         }
                       : undefined,
+                  onMarkAsPlayed:
+                    onMarkAsPlayedPress !== undefined
+                      ? () => {
+                          onMarkAsPlayedPress(row);
+                        }
+                      : undefined,
                   onQueueLast: () => {
                     onQueuePress(row, 'last');
                   },
                   onQueueNext: () => {
                     onQueuePress(row, 'next');
                   },
+                  onShare:
+                    onSharePress !== undefined
+                      ? () => {
+                          onSharePress(row);
+                        }
+                      : undefined,
                 },
                 { idSuffix: `-${row.id}` }
               )}
@@ -241,6 +273,9 @@ export function HomeFeedRow({
               playLabel={t('media_player.play')}
               playTestID={`home-row-play-${row.id}`}
             />
+            {download !== undefined ? (
+              <DownloadRowControl item={download.item} testID={download.testID} />
+            ) : null}
           </View>
         ) : null}
       </View>

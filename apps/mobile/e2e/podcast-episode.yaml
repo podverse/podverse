@@ -32,3 +32,157 @@ name: Podcast Episode Flow
 - assertVisible:
     id: episode-detail-screen
 - takeScreenshot: podcast-episode-episode-detail
+
+# --- Sections: a chip swaps what the list holds without leaving the screen ---
+# Reached by deep link because these assertions are about one known channel's sections rather than
+# whatever Podcast Index returned for the search above.
+- openLink: podverse-next://podcast/e2ePodChnl001
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-episode-list
+    timeout: ${TIMEOUT_SLOWEST}
+- takeScreenshot: podcast-episode-section-episodes
+
+# Clips come from listeners rather than the publisher, so the chip is always offered and the list is a
+# true answer whether or not anyone has made one.
+- tapOn:
+    id: podcast-detail-section-clips
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-clip-list
+    timeout: ${TIMEOUT_SLOWER}
+- takeScreenshot: podcast-episode-section-clips
+
+# About makes no request of its own — it reads what came down with the channel.
+- tapOn:
+    id: podcast-detail-section-about
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-about
+    timeout: ${TIMEOUT_FASTER}
+- takeScreenshot: podcast-episode-section-about
+
+- tapOn:
+    id: podcast-detail-section-episodes
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-episode-list
+    timeout: ${TIMEOUT_SLOWER}
+- takeScreenshot: podcast-episode-section-episodes-restored
+
+# --- Row affordances: download and the more-menu, without opening the episode ---
+# The seeded channel's episodes carry a progressive enclosure, so each row offers a download; a
+# livestream row renders no download affordance at all.
+- extendedWaitUntil:
+    visible:
+      id: podcast-episode-download-0
+    timeout: ${TIMEOUT_FAST}
+- takeScreenshot: podcast-episode-row-download-control
+
+# Row actions are the shared MediaRowActions menu, keyed by the item's dynamic id_text; match by
+# regex as the other flows do. Play stays inline and download stays on the row, so neither is here.
+- tapOn:
+    id: "home-row-more-.*"
+- extendedWaitUntil:
+    visible:
+      id: "media-row-menu-.*"
+    timeout: ${TIMEOUT_FASTER}
+- assertVisible:
+    id: "media-row-action-queue-next-.*"
+- assertVisible:
+    id: "media-row-action-queue-last-.*"
+- assertVisible:
+    id: "media-row-action-add-to-playlist-.*"
+- assertVisible:
+    id: "media-row-action-mark-as-played-.*"
+- assertVisible:
+    id: "media-row-action-share-.*"
+- takeScreenshot: podcast-episode-row-more-menu
+
+- tapOn:
+    id: "media-row-menu-.*-cancel"
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-episode-list
+    timeout: ${TIMEOUT_FASTER}
+
+# --- Header actions and podcast settings, signed in ---
+# Share and the bell are unconditional. The gear needs a subscription as well as an account, so the
+# subscribe below is what makes it appear — and skipping it when it is already there keeps the flow
+# correct whether or not the account's follows have reached this device yet.
+- assertVisible:
+    id: podcast-detail-share
+- assertVisible:
+    id: podcast-detail-notifications-toggle
+- runFlow:
+    when:
+      notVisible:
+        id: podcast-detail-settings
+    commands:
+      - tapOn:
+          id: podcast-detail-subscribe-toggle
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-settings
+    timeout: ${TIMEOUT_SLOWER}
+- takeScreenshot: podcast-episode-header-actions
+
+- tapOn:
+    id: podcast-detail-settings
+- extendedWaitUntil:
+    visible:
+      id: podcast-settings-screen
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    id: podcast-settings-feed-card
+- assertVisible:
+    id: podcast-settings-check-feed
+# Auto-download is offered and inert, so the affordance is visible without pretending to work.
+- assertVisible:
+    id: podcast-settings-auto-download
+- assertVisible: "Auto-download is not available yet."
+# Notifications start off for this channel, so there are no types to configure yet.
+- assertNotVisible:
+    id: podcast-settings-notification-types
+- takeScreenshot: podcast-settings-notifications-off
+
+# The master switch is what creates the account's notification row for this channel; the three type
+# switches only exist once it does.
+- tapOn:
+    id: podcast-settings-notifications-toggle
+- extendedWaitUntil:
+    visible:
+      id: podcast-settings-notification-types
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: podcast-settings-notification-type-new-item
+- assertVisible:
+    id: podcast-settings-notification-type-livestream-scheduled
+- assertVisible:
+    id: podcast-settings-notification-type-livestream-started
+- assertNotVisible:
+    id: podcast-settings-notifications-error
+- takeScreenshot: podcast-settings-notifications-on
+
+# The header bell and these switches read the same account row, so turning it off from the header
+# empties the settings screen rather than leaving the two disagreeing.
+- tapOn:
+    id: stack-header-back
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-screen
+    timeout: ${TIMEOUT_FAST}
+- tapOn:
+    id: podcast-detail-notifications-toggle
+- tapOn:
+    id: podcast-detail-settings
+- extendedWaitUntil:
+    visible:
+      id: podcast-settings-screen
+    timeout: ${TIMEOUT_FAST}
+- extendedWaitUntil:
+    notVisible:
+      id: podcast-settings-notification-types
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: podcast-settings-notifications-off-from-header

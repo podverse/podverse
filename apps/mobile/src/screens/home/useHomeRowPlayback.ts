@@ -7,7 +7,11 @@ import { usePlayback } from '../../playback/PlaybackProvider';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
 import type { HomeFeedRowData } from './homeFeedData';
 
-type QueueNoticeKey = 'features.queue.added_to_queue' | 'features.queue.add_error';
+type RowActionNoticeKey =
+  | 'features.queue.added_to_queue'
+  | 'features.queue.add_error'
+  | 'features.history.marked_as_played'
+  | 'features.history.mark_as_played_error';
 
 const PLAYABLE_MEDIA_TYPES: HomeMediaType[] = ['episodes', 'clips', 'tracks'];
 
@@ -44,12 +48,15 @@ export type QueueActionPosition = 'next' | 'last';
  * Home/detail row actions. `runPlayAction` starts real audio playback through the playback
  * orchestrator (episodes/tracks → item, clips → bounded clip); `runQueueAction` performs a real
  * add-to-queue via `useQueueMutations`, honoring the requested `position` (`next` inserts after
- * now-playing, `last` appends) — exposes both as distinct, correctly-keyed actions. Rows whose id is
- * not a direct content target (`queue-` / `history-` / `soundbite-`) are skipped.
+ * now-playing, `last` appends), and `runMarkAsPlayedAction` records the row as played. Rows whose id
+ * is not a direct content target (`queue-` / `history-` / `soundbite-`) are skipped.
+ *
+ * Every action reports through one notice channel, so a row shows the outcome of the last thing
+ * asked of it rather than competing messages.
  */
 export function useHomeRowPlayback() {
-  const [queueNoticeKey, setQueueNoticeKey] = useState<QueueNoticeKey | null>(null);
-  const { addToQueueLast, addToQueueNext } = useQueueMutations();
+  const [actionNoticeKey, setActionNoticeKey] = useState<RowActionNoticeKey | null>(null);
+  const { addToQueueLast, addToQueueNext, markAsPlayed } = useQueueMutations();
   const { handleGateError } = useMembershipGate();
   const { noticeKey: playbackNoticeKeyFromEngine, playClipById, playItemById } = usePlayback();
 
@@ -94,20 +101,49 @@ export function useHomeRowPlayback() {
           const added = await (position === 'next'
             ? addToQueueNext(target.idText, target.kind, mediaType)
             : addToQueueLast(target.idText, target.kind, mediaType));
-          setQueueNoticeKey(added ? 'features.queue.added_to_queue' : 'features.queue.add_error');
+          setActionNoticeKey(added ? 'features.queue.added_to_queue' : 'features.queue.add_error');
         } catch (error) {
           if (handleGateError(error)) {
             return;
           }
-          setQueueNoticeKey('features.queue.add_error');
+          setActionNoticeKey('features.queue.add_error');
         }
       })();
     },
     [addToQueueLast, addToQueueNext, handleGateError]
   );
 
+  const runMarkAsPlayedAction = useCallback(
+    (row: HomeFeedRowData, mediaType: HomeMediaType) => {
+      if (mediaType !== 'episodes' && mediaType !== 'tracks' && mediaType !== 'clips') {
+        return;
+      }
+
+      const target = resolveRowTarget(row, mediaType);
+      if (target === null) {
+        return;
+      }
+
+      void (async () => {
+        try {
+          const marked = await markAsPlayed(target.idText, target.kind, mediaType);
+          setActionNoticeKey(
+            marked ? 'features.history.marked_as_played' : 'features.history.mark_as_played_error'
+          );
+        } catch (error) {
+          if (handleGateError(error)) {
+            return;
+          }
+          setActionNoticeKey('features.history.mark_as_played_error');
+        }
+      })();
+    },
+    [handleGateError, markAsPlayed]
+  );
+
   return {
-    playbackNoticeKey: queueNoticeKey ?? playbackNoticeKeyFromEngine,
+    playbackNoticeKey: actionNoticeKey ?? playbackNoticeKeyFromEngine,
+    runMarkAsPlayedAction,
     runPlayAction,
     runQueueAction,
   };

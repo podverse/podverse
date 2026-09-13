@@ -20,12 +20,18 @@ const {
   localeUpdateMock,
   notificationTypeCreateMock,
   notificationTypeDeleteMock,
+  notificationUpdateMock,
   playbackUpdateMock,
   listenStatsUpdateMock,
 } = vi.hoisted(() => ({
   localeUpdateMock: vi.fn(async () => ({ account_id: TEST_USER_ID, locale: 'en-US' })),
   notificationTypeCreateMock: vi.fn(async () => ({ account_id: TEST_USER_ID, type: 'new-item' })),
   notificationTypeDeleteMock: vi.fn(async () => {}),
+  notificationUpdateMock: vi.fn(async () => ({
+    id: 1,
+    account_settings_id: 1,
+    auto_enable_on_subscribe: true,
+  })),
   playbackUpdateMock: vi.fn(async () => ({
     id: 1,
     account_settings_id: 1,
@@ -75,6 +81,10 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     update = localeUpdateMock;
   }
 
+  class MockAccountSettingsNotificationService {
+    update = notificationUpdateMock;
+  }
+
   class MockAccountSettingsNotificationTypeService {
     create = notificationTypeCreateMock;
     delete = notificationTypeDeleteMock;
@@ -93,6 +103,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     CategoryService: MockCategoryService,
     AccountService: MockAccountService,
     AccountSettingsLocaleService: MockAccountSettingsLocaleService,
+    AccountSettingsNotificationService: MockAccountSettingsNotificationService,
     AccountSettingsNotificationTypeService: MockAccountSettingsNotificationTypeService,
     AccountSettingsPlaybackService: MockAccountSettingsPlaybackService,
     AccountSettingsListenStatsService: MockAccountSettingsListenStatsService,
@@ -192,6 +203,45 @@ describe('account settings routes', () => {
         .patch(`${settingsBase}/playback`)
         .set(authHeaders(TEST_USER_ID))
         .send({ preferred_media_type: 'bogus' });
+
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe('PATCH /account-settings/notification', () => {
+    it('returns 200 and persists the auto-enable-on-subscribe flag when authenticated', async () => {
+      notificationUpdateMock.mockResolvedValueOnce({
+        id: 1,
+        account_settings_id: 1,
+        auto_enable_on_subscribe: true,
+      });
+
+      const res = await request(app)
+        .patch(`${settingsBase}/notification`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ auto_enable_on_subscribe: true });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.auto_enable_on_subscribe).toBe(true);
+      expect(notificationUpdateMock).toHaveBeenCalledWith({
+        account_id: TEST_USER_ID,
+        auto_enable_on_subscribe: true,
+      });
+    });
+
+    it('returns 401 without auth', async () => {
+      const res = await request(app)
+        .patch(`${settingsBase}/notification`)
+        .send({ auto_enable_on_subscribe: true });
+
+      expect(res.status).toBe(401);
+    });
+
+    it('returns 400 with a missing auto_enable_on_subscribe', async () => {
+      const res = await request(app)
+        .patch(`${settingsBase}/notification`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({});
 
       expect(res.status).toBe(400);
     });

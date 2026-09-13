@@ -1,8 +1,8 @@
 appId: com.podverse.app.next
 name: Detail Sort Prefs
 ---
-# Sort on the detail screens is remembered per instance: one podcast ordered A-Z says nothing about
-# the next podcast, and the choice survives leaving the screen.
+# Sort on the detail screens is remembered per instance: one podcast ordered oldest-first says
+# nothing about the next podcast, and the choice survives leaving the screen.
 #
 # Instances are reached by deep link rather than search, because the two podcasts have to be
 # specific, known channels for "these two hold different sorts" to mean anything. Search results
@@ -22,25 +22,59 @@ name: Detail Sort Prefs
     timeout: ${TIMEOUT_SLOWEST}
 - extendedWaitUntil:
     visible:
-      id: podcast-detail-sort-pill
+      id: podcast-detail-sort-button
     timeout: ${TIMEOUT_SLOWEST}
 - takeScreenshot: detail-sort-podcast-a-default
 
-# The choices open in place rather than pushing a screen, so the list they reorder stays in view.
+# The choices open as a sheet over the list, so the rows they reorder stay behind it.
 - tapOn:
-    id: podcast-detail-sort-pill
+    id: podcast-detail-sort-button
 - assertVisible:
-    id: podcast-detail-sort-options
+    id: podcast-detail-sort-menu
 - takeScreenshot: detail-sort-podcast-a-options
 - tapOn:
-    id: podcast-detail-sort-alphabetical
-# Selecting collapses the group: the list underneath has already changed, and an open panel would
+    id: podcast-detail-sort-oldest
+# Selecting dismisses the sheet: the list underneath has already changed, and an open sheet would
 # be covering the result.
 - assertNotVisible:
-    id: podcast-detail-sort-options
+    id: podcast-detail-sort-menu
 - assertVisible:
-    id: podcast-detail-sort-pill
-- takeScreenshot: detail-sort-podcast-a-alphabetical
+    id: podcast-detail-sort-button
+- takeScreenshot: detail-sort-podcast-a-oldest
+
+# The popularity window is a separate control, and it only exists while the order is by top —
+# a range over a list ordered by date would have nothing to narrow.
+- assertNotVisible:
+    id: podcast-detail-range-button
+- tapOn:
+    id: podcast-detail-sort-button
+- tapOn:
+    id: podcast-detail-sort-top
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-range-button
+    timeout: ${TIMEOUT_FASTER}
+- tapOn:
+    id: podcast-detail-range-button
+- tapOn:
+    id: podcast-detail-range-month
+- assertVisible:
+    id: podcast-detail-range-button
+- takeScreenshot: detail-sort-podcast-a-top-month
+
+# --- Podcast A: the section is remembered too, because it decides what the screen loads ---
+- tapOn:
+    id: podcast-detail-section-about
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-about
+    timeout: ${TIMEOUT_FASTER}
+# About is prose, so neither the order nor the title filter applies to it.
+- assertNotVisible:
+    id: podcast-detail-sort-button
+- assertNotVisible:
+    id: podcast-detail-filter-input
+- takeScreenshot: detail-sort-podcast-a-about
 
 # --- Podcast B: unaffected by A ---
 - openLink: podverse-next://podcast/v5fCrIj9Io
@@ -51,11 +85,13 @@ name: Detail Sort Prefs
     timeout: ${TIMEOUT_SLOWEST}
 - extendedWaitUntil:
     visible:
-      id: podcast-detail-sort-pill
+      id: podcast-detail-sort-button
     timeout: ${TIMEOUT_SLOWEST}
+- assertVisible:
+    id: podcast-detail-filter-input
 - takeScreenshot: detail-sort-podcast-b-default
 
-# --- Back to A: its own choice is still in effect ---
+# --- Back to A: its own section, order, and window are all still in effect ---
 - openLink: podverse-next://podcast/e2ePodChnl001
 - runFlow: shared/confirm-ios-open-dialog.yaml
 - extendedWaitUntil:
@@ -64,8 +100,17 @@ name: Detail Sort Prefs
     timeout: ${TIMEOUT_SLOWEST}
 - extendedWaitUntil:
     visible:
-      id: podcast-detail-sort-pill
-    timeout: ${TIMEOUT_SLOW}
+      id: podcast-detail-about
+    timeout: ${TIMEOUT_FAST}
+- takeScreenshot: detail-sort-podcast-a-section-restored
+
+# Back to Episodes brings the remembered order and window with it.
+- tapOn:
+    id: podcast-detail-section-episodes
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-range-button
+    timeout: ${TIMEOUT_FASTER}
 - takeScreenshot: detail-sort-podcast-a-restored
 
 # --- Album: authored order by default, reversible, remembered ---

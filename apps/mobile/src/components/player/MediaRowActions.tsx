@@ -41,14 +41,18 @@ export type MediaRowTranslate = (key: string) => string;
 
 /**
  * Handlers for the standard web-parity intents. Only intents with a handler are emitted, so a call
- * site advertises exactly what mobile supports. Play stays inline (not in this list). Order mirrors
- * the web `ItemRowMoreActions` menu.
+ * site advertises exactly what mobile supports. Order mirrors the web `ItemRowMoreActions` menu,
+ * with Share last.
+ *
+ * Play stays inline, and download is a control on the row rather than a menu entry, so both are one
+ * tap from the list.
  */
 export type MediaRowMoreActionHandlers = {
   onQueueNext?: () => void;
   onQueueLast?: () => void;
   onAddToPlaylist?: () => void;
   onMarkAsPlayed?: () => void;
+  onShare?: () => void;
 };
 
 const MORE_ACTION_SPECS: {
@@ -64,6 +68,7 @@ const MORE_ACTION_SPECS: {
     key: 'add-to-playlist',
   },
   { i18nKey: 'features.history.mark_as_played', intent: 'onMarkAsPlayed', key: 'mark-as-played' },
+  { i18nKey: 'features.share', intent: 'onShare', key: 'share' },
 ];
 
 /**

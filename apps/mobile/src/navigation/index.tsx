@@ -65,6 +65,7 @@ import { MoreSyncLogScreen } from '../screens/more/MoreSyncLogScreen';
 import { NotificationsInboxScreen } from '../screens/notifications/NotificationsInboxScreen';
 import { FullPlayerScreen } from '../screens/player/FullPlayerScreen';
 import { PodcastDetailScreen } from '../screens/podcast/PodcastDetailScreen';
+import { PodcastSettingsScreen } from '../screens/podcast/PodcastSettingsScreen';
 import { MyProfileScreen } from '../screens/profile/MyProfileScreen';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
 import { AddByRssFeedListScreen } from '../screens/rss/AddByRssFeedListScreen';
@@ -136,6 +137,7 @@ export const HOME_STACK_ROUTES = {
   HomeFilterSort: 'HomeFilterSort',
   HomeRoot: 'HomeRoot',
   PodcastDetail: 'PodcastDetail',
+  PodcastSettings: 'PodcastSettings',
   TrackDetail: 'TrackDetail',
 } as const;
 
@@ -146,6 +148,7 @@ export const CHANNEL_BROWSE_STACK_ROUTES = {
   ClipDetail: 'ClipDetail',
   EpisodeDetail: 'EpisodeDetail',
   PodcastDetail: 'PodcastDetail',
+  PodcastSettings: 'PodcastSettings',
   TrackDetail: 'TrackDetail',
 } as const;
 
@@ -169,6 +172,7 @@ export const LIBRARY_STACK_ROUTES = {
   LibraryPlaylists: 'LibraryPlaylists',
   LibraryQueue: 'LibraryQueue',
   PodcastDetail: 'PodcastDetail',
+  PodcastSettings: 'PodcastSettings',
 } as const;
 
 export const BROWSE_STACK_ROUTES = {
@@ -228,6 +232,7 @@ const mobileNavigationScreens = {
           EpisodeDetail: 'home/episode/:episodeId',
           HomeRoot: 'home',
           PodcastDetail: 'home/podcast/:podcastId',
+          PodcastSettings: 'home/podcast/:podcastId/settings',
           TrackDetail: 'home/track/:trackId',
         },
       },
@@ -265,6 +270,7 @@ const mobileNavigationScreens = {
           LibraryPlaylists: 'my-library/playlists',
           LibraryQueue: 'my-library/queue',
           PodcastDetail: 'my-library/podcast/:podcastId',
+          PodcastSettings: 'my-library/podcast/:podcastId/settings',
         },
       },
       Browse: {
@@ -276,6 +282,7 @@ const mobileNavigationScreens = {
           EpisodeDetail: 'browse/episode/:episodeId',
           PlaylistDetail: 'browse/playlist/:playlistId',
           PodcastDetail: 'browse/podcast/:podcastId',
+          PodcastSettings: 'browse/podcast/:podcastId/settings',
           Profile: 'browse/profile/:accountIdText',
           TrackDetail: 'browse/track/:trackId',
         },
@@ -292,6 +299,7 @@ const mobileNavigationScreens = {
           ClipDetail: 'search/clip/:clipId',
           EpisodeDetail: 'search/episode/:episodeId',
           PodcastDetail: 'search/podcast/:podcastId',
+          PodcastSettings: 'search/podcast/:podcastId/settings',
           SearchResultDetail: 'search/result/:resultId',
           SearchRoot: 'search',
           TrackDetail: 'search/track/:trackId',
@@ -340,6 +348,7 @@ export type ChannelBrowseStackParamList = {
   ClipDetail: { clipId: string };
   EpisodeDetail: { episodeId: string };
   PodcastDetail: { podcastId: string };
+  PodcastSettings: { podcastId: string };
   TrackDetail: { trackId: string };
 };
 
@@ -382,6 +391,7 @@ export type LibraryStackParamList = {
   LibraryPlaylists: undefined;
   LibraryQueue: undefined;
   PodcastDetail: { podcastId: string };
+  PodcastSettings: { podcastId: string };
 };
 
 export type BrowseStackParamList = ChannelBrowseStackParamList & {
@@ -482,6 +492,11 @@ function HomeStackNavigator() {
         options={{ title: t('media.podcast.podcast') }}
       />
       <HomeStack.Screen
+        component={PodcastSettingsScreen}
+        name={HOME_STACK_ROUTES.PodcastSettings}
+        options={{ title: t('nav.stack.podcast_settings') }}
+      />
+      <HomeStack.Screen
         component={EpisodeDetailScreen}
         name={HOME_STACK_ROUTES.EpisodeDetail}
         options={{ title: t('media.podcast.episode') }}
@@ -530,6 +545,11 @@ function SearchStackNavigator() {
         component={PodcastDetailScreen}
         name={SEARCH_STACK_ROUTES.PodcastDetail}
         options={{ title: t('media.podcast.podcast') }}
+      />
+      <SearchStack.Screen
+        component={PodcastSettingsScreen}
+        name={SEARCH_STACK_ROUTES.PodcastSettings}
+        options={{ title: t('nav.stack.podcast_settings') }}
       />
       <SearchStack.Screen
         component={EpisodeDetailScreen}
@@ -585,6 +605,11 @@ function LibraryStackNavigator() {
         component={PodcastDetailScreen}
         name={LIBRARY_STACK_ROUTES.PodcastDetail}
         options={{ title: t('media.podcast.podcast') }}
+      />
+      <LibraryStack.Screen
+        component={PodcastSettingsScreen}
+        name={LIBRARY_STACK_ROUTES.PodcastSettings}
+        options={{ title: t('nav.stack.podcast_settings') }}
       />
       <LibraryStack.Screen
         component={LibraryPlaylistsScreen}
@@ -650,6 +675,11 @@ function BrowseStackNavigator() {
         component={PodcastDetailScreen}
         name={BROWSE_STACK_ROUTES.PodcastDetail}
         options={{ title: t('media.podcast.podcast') }}
+      />
+      <BrowseStack.Screen
+        component={PodcastSettingsScreen}
+        name={BROWSE_STACK_ROUTES.PodcastSettings}
+        options={{ title: t('nav.stack.podcast_settings') }}
       />
       <BrowseStack.Screen
         component={EpisodeDetailScreen}

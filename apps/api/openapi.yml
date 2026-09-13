@@ -498,6 +498,10 @@ components:
         id:
           type: integer
           format: int64
+        auto_enable_on_subscribe:
+          type: boolean
+          description: When true, following a channel also creates that channel's notification row using the account's notification type defaults.
+          example: false
         account_settings_notification_types:
           type: array
           items:
@@ -795,6 +799,24 @@ components:
       properties:
         data:
           $ref: "#/components/schemas/AccountTermsAcceptance"
+    ApiPatchAccountSettingsNotificationRequest:
+      type: object
+      required:
+        - auto_enable_on_subscribe
+      properties:
+        auto_enable_on_subscribe:
+          type: boolean
+          description: Whether a successful follow should also create that channel's notification row.
+          example: true
+    ApiPatchAccountSettingsNotificationResponse200:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            auto_enable_on_subscribe:
+              type: boolean
+              example: true
     ApiDeleteAccountSettingsNotificationTypeResponse200:
       type: object
       properties:
@@ -3209,6 +3231,53 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account-settings/notification:
+    patch:
+      operationId: apiPatchAccountSettingsNotification
+      tags:
+        - account-settings
+      summary: PATCH /account-settings/notification
+      description: Update whether following a channel also enables notifications for that channel.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiPatchAccountSettingsNotificationRequest"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPatchAccountSettingsNotificationResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
         "404":
           description: Not found
           content:

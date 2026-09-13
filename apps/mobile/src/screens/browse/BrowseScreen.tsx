@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { useAuth } from '../../auth/AuthProvider';
+import { SectionChip } from '../../components/form';
 import { FillList, ListRow } from '../../components/primitives';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
@@ -16,7 +17,7 @@ import { screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
-import { MediaTypeChip, MediaTypeSelector } from '../home/MediaTypeSelector';
+import { MediaTypeSelector } from '../home/MediaTypeSelector';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 import type { AddToPlaylistTarget } from '../library/useAddToPlaylist';
 import { useAddToPlaylist } from '../library/useAddToPlaylist';
@@ -412,7 +413,7 @@ export function BrowseScreen() {
                 onRangeChange={handleRangeChange}
                 range={activePrefs?.range ?? DEFAULT_BROWSE_RANGE}
               />
-              <MediaTypeChip
+              <SectionChip
                 label={categoriesChipLabel}
                 onPress={handleCategoriesPress}
                 selected={isCategoryView}

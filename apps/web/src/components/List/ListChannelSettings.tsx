@@ -1,7 +1,10 @@
 import { useLocale, useTranslations } from 'use-intl';
 
 import type { DTOAccount, DTOChannel } from '@podverse/helpers';
-import { DEDUPE_WINDOW_RSS_ON_DEMAND_MS } from '@podverse/helpers';
+import {
+  buildLocalizedFeedParseStatusLines,
+  DEDUPE_WINDOW_RSS_ON_DEMAND_MS,
+} from '@podverse/helpers';
 import { getStatusCodeFromError } from '@podverse/helpers-requests';
 import { Divider, SwitchButton } from '@podverse/ui';
 
@@ -10,7 +13,6 @@ import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { useLoadingMap } from '../../hooks/useLoadingMap';
 import { useMembershipGate } from '../../hooks/useMembershipGate';
-import { buildLocalizedFeedParseStatusLines } from '../../lib/feed/buildLocalizedFeedParseStatusLines';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 import { RSSFeedSettingsSection } from '../Settings/RSSFeedSettingsSection';
 import { SettingsSection } from '../Settings/SettingsSection';

@@ -65,6 +65,24 @@ export async function reqAccountSettingsLocaleUpdate(
   return reqAuthMe(api);
 }
 
+export async function reqAccountSettingsNotificationUpdate(
+  api: ApiRequestService,
+  params: { auto_enable_on_subscribe: boolean }
+): Promise<DTOAccount> {
+  await api.apiRequest({
+    path: '/account-settings/notification',
+    method: 'PATCH',
+    data: {
+      auto_enable_on_subscribe: params.auto_enable_on_subscribe,
+    },
+    config: {
+      withCredentials: true,
+    },
+  });
+
+  return reqAuthMe(api);
+}
+
 export async function reqAccountSettingsNotificationTypeCreate(
   api: ApiRequestService,
   params: ReqNotificationTypeParams

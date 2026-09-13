@@ -47,16 +47,20 @@ const DELETE_CHUNK_SIZE = 200;
 const RECENT_ITEM_LIMIT = 60;
 
 /** How a stored episode list is ordered. Matches the sorts Home and podcast detail offer. */
-export type ChannelItemSort = 'alphabetical' | 'recent';
+export type ChannelItemSort = 'alphabetical' | 'oldest' | 'recent';
 
 /**
  * Order a stored page.
  *
- * Alphabetical is applied here rather than in SQL because the comparison ignores a leading article,
- * which SQLite cannot express without storing a second copy of every title.
+ * Rows arrive newest first, so the oldest-first order is the same window read backwards rather than
+ * a second query. Alphabetical is applied here rather than in SQL because the comparison ignores a
+ * leading article, which SQLite cannot express without storing a second copy of every title.
  */
 const sortItems = (items: DTOItem[], sort: ChannelItemSort): DTOItem[] => {
-  return sort === 'alphabetical' ? [...items].sort(compareItemsByTitle) : items;
+  if (sort === 'alphabetical') {
+    return [...items].sort(compareItemsByTitle);
+  }
+  return sort === 'oldest' ? [...items].reverse() : items;
 };
 
 const compareItemsByTitle = (a: DTOItem, b: DTOItem): number => {

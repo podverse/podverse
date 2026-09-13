@@ -11,7 +11,8 @@
       "podcast_image": "Podcast Image",
       "episode": "Episode",
       "episodes": "Episodes",
-      "episode_image": "Episode Image"
+      "episode_image": "Episode Image",
+      "no_episodes_found": "No episodes found"
     },
     "music": {
       "music": "Music",
@@ -144,6 +145,7 @@
     "clip": {
       "clip": "Clip",
       "clips": "Clips",
+      "no_clips_found": "No clips found",
       "create_clip": "Create Clip",
       "edit_clip": "Edit Clip",
       "delete_clip": "Delete Clip",
@@ -327,6 +329,7 @@
       "no_summary": "No summary available"
     },
     "podroll": "Podroll",
+    "no_podroll_found": "No recommended podcasts found",
     "show_more": "Show more",
     "transcript": {
       "transcript": "Transcript",
@@ -346,7 +349,8 @@
     },
     "soundbite": {
       "official_clip": "Official Clip",
-      "official_clips": "Official Clips"
+      "official_clips": "Official Clips",
+      "no_official_clips_found": "No official clips found"
     },
     "time": {
       "left": "{timeRemaining} left",
@@ -567,10 +571,17 @@
       "month": "Month",
       "all_time": "All Time"
     },
+    "list": {
+      "title_label": "Filter by title",
+      "placeholder": "Filter...",
+      "clear": "Clear",
+      "no_matches": "No results match your filter."
+    },
     "screen": {
       "title": "Filter & Sort",
       "filter_heading": "Filter",
-      "sort_heading": "Sort"
+      "sort_heading": "Sort",
+      "range_heading": "Range"
     }
   },
   "legal": {
@@ -1020,7 +1031,11 @@
       "category_general_description": "Important account-level notifications.",
       "new_item": "New item",
       "livestream_scheduled": "Livestream scheduled",
-      "livestream_started": "Livestream started"
+      "livestream_started": "Livestream started",
+      "auto_enable_on_subscribe": "Enable notifications when I subscribe",
+      "auto_enable_on_subscribe_help": "When on, subscribing to a podcast also turns on notifications for it, using the notification types selected below.",
+      "type_defaults_section": "Notification Types",
+      "type_defaults_section_help": "Choose which notification types apply when notifications are turned on for a podcast."
     },
     "opml": {
       "opml": "OPML",

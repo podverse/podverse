@@ -3,19 +3,12 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  AccessibilityInfo,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { AccessibilityInfo, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { matchesTitleFilter } from '@podverse/helpers';
 
 import { useAuth } from '../../auth/AuthProvider';
+import { ListFilterField } from '../../components/form';
 import { FillList } from '../../components/primitives';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { ListEmpty } from '../../components/state/ListEmpty';
@@ -428,33 +421,7 @@ export function HomeScreen() {
         justifyContent: 'flex-end',
         marginBottom: tokens.spacing.md,
       },
-      filterClear: {
-        borderColor: themeStyles.border.borderColor,
-        borderRadius: tokens.radii.round,
-        borderWidth: 1,
-        paddingHorizontal: tokens.spacing.md,
-        paddingVertical: tokens.spacing.sm,
-      },
-      filterClearLabel: {
-        color: themeStyles.textPrimary.color,
-        fontSize: 13,
-        fontWeight: '600',
-      },
-      filterInput: {
-        backgroundColor: tokens.background.secondary,
-        borderColor: themeStyles.border.borderColor,
-        borderRadius: tokens.radii.md,
-        borderWidth: 1,
-        color: themeStyles.textPrimary.color,
-        flex: 1,
-        fontSize: 16,
-        paddingHorizontal: tokens.spacing.md,
-        paddingVertical: tokens.spacing.sm,
-      },
       filterRow: {
-        alignItems: 'center',
-        flexDirection: 'row',
-        gap: tokens.spacing.sm,
         marginBottom: tokens.spacing.md,
         marginTop: tokens.spacing.sm,
       },
@@ -496,32 +463,14 @@ export function HomeScreen() {
               />
             ) : null}
           </View>
-          <View style={styles.filterRow}>
-            <TextInput
-              accessibilityLabel={t('subscriptions.filter.placeholder')}
-              autoCapitalize="none"
-              autoCorrect={false}
-              onChangeText={handleFilterTermChange}
-              placeholder={t('subscriptions.filter.placeholder')}
-              placeholderTextColor={themeStyles.textSecondary.color}
-              style={styles.filterInput}
-              testID="home-filter-input"
-              value={filterTerm}
-            />
-            {filterTerm.length > 0 ? (
-              <Pressable
-                accessibilityLabel={t('subscriptions.filter.clear')}
-                accessibilityRole="button"
-                onPress={() => {
-                  handleFilterTermChange('');
-                }}
-                style={styles.filterClear}
-                testID="home-filter-clear"
-              >
-                <Text style={styles.filterClearLabel}>{t('subscriptions.filter.clear')}</Text>
-              </Pressable>
-            ) : null}
-          </View>
+          <ListFilterField
+            clearLabel={t('subscriptions.filter.clear')}
+            label={t('subscriptions.filter.placeholder')}
+            onChangeTerm={handleFilterTermChange}
+            style={styles.filterRow}
+            term={filterTerm}
+            testID="home-filter"
+          />
           {actionErrorKey !== null ? (
             <Text style={styles.feedNotice} testID="home-action-error">
               {t(actionErrorKey)}

@@ -12,7 +12,8 @@
       "home": "Home",
       "opml": "OPML",
       "search_result": "Search Result",
-      "rss_feeds": "RSS Feeds"
+      "rss_feeds": "RSS Feeds",
+      "podcast_settings": "Podcast Settings"
     },
     "menu": {
       "opml": "OPML",
@@ -27,6 +28,9 @@
       "rate_limited_time_one": "1 minute",
       "rate_limited_time_other": "{minutes} minutes"
     },
+    "channel": {
+      "section_requires_connection": "This section needs a connection. Try again once you are back online."
+    },
     "browse": {
       "categories_selected": "Categories – {name}",
       "category_all": "All categories",
@@ -38,6 +42,8 @@
     "download": {
       "queued": "Queued",
       "remove": "Remove",
+      "cancel_download": "Cancel download",
+      "remove_download": "Remove download",
       "empty": "No downloads yet",
       "not_downloadable": "This episode can't be downloaded for offline play",
       "storage_used": "Storage used",
@@ -46,7 +52,9 @@
       "delete_all": "Delete all",
       "auto_removed_notice": "Removed the oldest downloads to free up space",
       "dismiss": "Dismiss",
-      "in_progress_count": "{count} in progress"
+      "in_progress_count": "{count} in progress",
+      "auto_download": "Auto-download new episodes",
+      "auto_download_unavailable": "Auto-download is not available yet."
     },
     "search": {
       "add_podcast": "Add podcast",

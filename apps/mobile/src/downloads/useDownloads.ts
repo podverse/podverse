@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import type { DTOItem } from '@podverse/helpers/dto';
+
 import { downloadsRepository } from '../data/repositories';
 import {
   readDownloadAutoDeleteEnabled,
   writeDownloadAutoDeleteEnabled,
 } from '../prefs/downloadPrefs';
+import { isItemDownloadable } from './downloadEligibility';
 import { downloadManager } from './downloadManager';
 import { DEFAULT_DOWNLOAD_QUOTA_BYTES, sumCompletedBytes } from './downloadQuota';
-import type { DownloadRecord } from './downloadTypes';
+import type { DownloadRecord, DownloadStatus } from './downloadTypes';
 import { countInProgressDownloads } from './inProgressDownloadCount';
 
 /**
@@ -86,6 +89,57 @@ export const useItemDownload = (itemIdText: string): DownloadRecord | null => {
   }, [itemIdText]);
 
   return record;
+};
+
+export type DownloadAction = {
+  /** False for livestream, HLS-only, and enclosure-less items: nothing to offer. */
+  isDownloadable: boolean;
+  /** `null` before anything has been asked for this item. */
+  status: DownloadStatus | null;
+  /** Whole percent of the transfer, or `null` while the total size is unknown. */
+  percentComplete: number | null;
+  /** Catalog key for a refused enqueue. */
+  noticeKey: string | null;
+  start: () => void;
+  remove: () => void;
+};
+
+/**
+ * One item's download state and the two things a user can do about it, so every download affordance
+ * — the labeled control on episode detail and the icon on a list row — answers to the same state
+ * machine and the same eligibility rule.
+ */
+export const useDownloadAction = (item: DTOItem): DownloadAction => {
+  const record = useItemDownload(item.id_text);
+  const [noticeKey, setNoticeKey] = useState<string | null>(null);
+
+  const start = useCallback(() => {
+    setNoticeKey(null);
+    void (async () => {
+      const result = await downloadManager.enqueue(item);
+      if (!result.ok) {
+        setNoticeKey('features.download.not_downloadable');
+      }
+    })();
+  }, [item]);
+
+  const remove = useCallback(() => {
+    void downloadManager.remove(item.id_text);
+  }, [item.id_text]);
+
+  const percentComplete =
+    record !== null && record.byteSize !== null && record.byteSize > 0
+      ? Math.min(100, Math.round((record.bytesDownloaded / record.byteSize) * 100))
+      : null;
+
+  return {
+    isDownloadable: isItemDownloadable(item).ok,
+    noticeKey,
+    percentComplete,
+    remove,
+    start,
+    status: record?.status ?? null,
+  };
 };
 
 export type DownloadStorage = {

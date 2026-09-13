@@ -105,6 +105,7 @@ import {
   reqAccountSettingsLocaleUpdate,
   reqAccountSettingsNotificationTypeCreate,
   reqAccountSettingsNotificationTypeDelete,
+  reqAccountSettingsNotificationUpdate,
   reqAccountSettingsPlaybackUpdate,
 } from './accountSettings/accountSettings.js';
 import {
@@ -718,6 +719,10 @@ export class ApiRequestService {
   }
 
   /* ACCOUNT > SETTINGS > NOTIFICATIONS */
+
+  reqAccountSettingsNotificationUpdate(params: { auto_enable_on_subscribe: boolean }) {
+    return reqAccountSettingsNotificationUpdate(this, params);
+  }
 
   reqAccountSettingsNotificationTypeCreate(params: { type: string }) {
     return reqAccountSettingsNotificationTypeCreate(this, params);

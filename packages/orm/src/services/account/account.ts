@@ -374,6 +374,7 @@ export class AccountService {
       // Then create and save the notification with the proper foreign key
       const notification = new AccountSettingsNotification();
       notification.account_settings_id = savedAccountSettings.id;
+      notification.auto_enable_on_subscribe = false;
       await notificationRepo.save(notification);
 
       // Then create and save the playback settings with the default preferred media type
@@ -459,7 +460,7 @@ export class AccountService {
         .createQueryBuilder()
         .insert()
         .into(AccountSettingsNotification)
-        .values({ account_settings_id: existingSettings.id })
+        .values({ account_settings_id: existingSettings.id, auto_enable_on_subscribe: false })
         .orIgnore()
         .execute();
     }

@@ -10,15 +10,14 @@ templates are blanks; this directory holds real plan instances.
 
 ## Indexed sets
 
-_Active (mobile):_ none. The mobile master plan is split into **phases** — see
+_Active (mobile):_ none. Phase 2 **P2.1.2 podcast screen** is implemented (details 723–727); episode
+detail waits on its own screenshot batch. The mobile master plan is split into **phases** — see
 [PHASES.md](/docs/proposals/mobile/_master-plan_/PHASES.md). **Phase 1** is **closed**. **Phase 2**
-is **active** as a phase (operator-guided, screenshot loop) but has **no open COPY-PASTA set**.
-Home (podcasts) + Search + foundations are archived at
-`.llm/plans/completed/mobile-p2-home-podcasts/`. New Phase 2 sets still go to
-`.llm/plans/active/mobile-p2-<area>/`. Carried forward: **Phase 3** V4V, **Phase 4** watch + TV,
-**Phase 5** native store IAP. Operational leftovers and three open operator-decision items
-(CarPlay Simulator proof, Android Auto DHU + Play Console declaration, `deep-link`/`push` E2E
-harness) are tracked in
+is **active** (operator-guided, screenshot loop). Home (podcasts) + Search + foundations are
+archived at `.llm/plans/completed/mobile-p2-home-podcasts/`. Carried forward: **Phase 3** V4V,
+**Phase 4** watch + TV, **Phase 5** native store IAP. Operational leftovers and three open
+operator-decision items (CarPlay Simulator proof, Android Auto DHU + Play Console declaration,
+`deep-link`/`push` E2E harness) are tracked in
 [Phase 2 § Track P2.3](/docs/proposals/mobile/_master-plan_/phase-2/001-MASTER-PLAN-PHASE-2.md).
 **Publish hold:** no alpha/internal test-track publish until the operator signs off on visual polish.
 

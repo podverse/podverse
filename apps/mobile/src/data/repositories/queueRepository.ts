@@ -169,6 +169,42 @@ export type MoveNowPlayingToHistoryTarget = {
 };
 
 /**
+ * Write a resource into the queue's history, then bring every cache that describes the queue back
+ * in line: history pages, now-playing, upcoming, and the native-cache projection. Adding to history
+ * also takes the resource out of upcoming, so a partial refresh would leave the list lying.
+ */
+const addResourceToHistory = async (
+  context: MobileAuthRequestContext,
+  queueIdText: string,
+  target: MoveNowPlayingToHistoryTarget
+): Promise<{ nowPlaying: DTOQueueResource | null; upcoming: DTOQueueResource[] }> => {
+  const params: QueueExtraParams = {
+    ...(target.playbackPosition !== undefined
+      ? { playback_position: target.playbackPosition }
+      : {}),
+    ...(target.completed !== undefined ? { completed: target.completed } : {}),
+  };
+
+  await requestWithMobileAuthRefresh(context, async (api) => {
+    if (target.kind === 'clip') {
+      return api.reqQueueResourceClipAddHistory(queueIdText, target.idText, params);
+    }
+    if (target.kind === 'soundbite') {
+      return api.reqQueueResourceItemSoundbiteAddHistory(queueIdText, target.idText, params);
+    }
+    return api.reqQueueResourceItemAddHistory(queueIdText, target.idText, params);
+  });
+
+  await deleteQueueCacheByPrefix(`history:${queueIdText}:`);
+  const [nowPlaying, upcoming] = await Promise.all([
+    forceRefreshNowPlaying(context, queueIdText),
+    forceRefreshUpcoming(context, queueIdText),
+  ]);
+  await projectQueueForQueue(queueIdText);
+  return { nowPlaying, upcoming };
+};
+
+/**
  * Queue / now-playing / upcoming / history repository. Reads SQLite first (offline-first); a
  * missing/stale cache triggers a background sync via the queue `req*` wrappers, which live here —
  * not in screens/hooks. DTO shapes match web (`@podverse/helpers/dto`). Mutations write to the
@@ -375,30 +411,22 @@ export const queueRepository = {
     context: MobileAuthRequestContext,
     queueIdText: string,
     target: MoveNowPlayingToHistoryTarget
-  ): Promise<{ nowPlaying: DTOQueueResource | null; upcoming: DTOQueueResource[] }> => {
-    const params: QueueExtraParams = {
-      ...(target.playbackPosition !== undefined
-        ? { playback_position: target.playbackPosition }
-        : {}),
-      ...(target.completed !== undefined ? { completed: target.completed } : {}),
-    };
+  ): Promise<{ nowPlaying: DTOQueueResource | null; upcoming: DTOQueueResource[] }> =>
+    addResourceToHistory(context, queueIdText, target),
 
-    await requestWithMobileAuthRefresh(context, async (api) => {
-      if (target.kind === 'clip') {
-        return api.reqQueueResourceClipAddHistory(queueIdText, target.idText, params);
-      }
-      if (target.kind === 'soundbite') {
-        return api.reqQueueResourceItemSoundbiteAddHistory(queueIdText, target.idText, params);
-      }
-      return api.reqQueueResourceItemAddHistory(queueIdText, target.idText, params);
+  /**
+   * Mark a resource played from a list, without it ever having been now-playing. Same history write
+   * the queue lifecycle performs on a finished resource, so the two agree about what "played" means.
+   */
+  markAsPlayed: async (
+    context: MobileAuthRequestContext,
+    queueIdText: string,
+    target: { kind: 'item' | 'clip' | 'soundbite'; idText: string }
+  ): Promise<void> => {
+    await addResourceToHistory(context, queueIdText, {
+      completed: true,
+      idText: target.idText,
+      kind: target.kind,
     });
-
-    await deleteQueueCacheByPrefix(`history:${queueIdText}:`);
-    const [nowPlaying, upcoming] = await Promise.all([
-      forceRefreshNowPlaying(context, queueIdText),
-      forceRefreshUpcoming(context, queueIdText),
-    ]);
-    await projectQueueForQueue(queueIdText);
-    return { nowPlaying, upcoming };
   },
 };

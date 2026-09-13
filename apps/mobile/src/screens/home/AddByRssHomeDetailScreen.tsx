@@ -19,10 +19,12 @@ import { addByRssRepository, channelSeenRepository } from '../../data/repositori
 import { useAddByRssPlayback } from '../../hooks/useAddByRssPlayback';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import type { HomeStackParamList } from '../../navigation';
+import type { AddByRssEpisodeSort } from '../../prefs/detailListPrefs';
 import {
-  DEFAULT_PODCAST_EPISODE_SORT,
-  readPodcastDetailPrefs,
-  writePodcastDetailSort,
+  ADD_BY_RSS_EPISODE_SORT_OPTIONS,
+  DEFAULT_ADD_BY_RSS_EPISODE_SORT,
+  readAddByRssDetailPrefs,
+  writeAddByRssDetailSort,
 } from '../../prefs/detailListPrefs';
 import { useTheme } from '../../theme/useTheme';
 import type { AddByRssHomeDetailData } from './addByRssHomeDetailData';
@@ -35,18 +37,16 @@ type AddByRssHomeDetailScreenProps = NativeStackScreenProps<
   'AddByRssPodcastDetail'
 >;
 
-type EpisodeSort = 'alphabetical' | 'recent';
-
-const SORT_OPTIONS: { labelKey: string; value: EpisodeSort }[] = [
-  { labelKey: 'filters.sort.a_z', value: 'alphabetical' },
-  { labelKey: 'filters.sort.recent', value: 'recent' },
-];
+const SORT_LABEL_KEYS: Record<AddByRssEpisodeSort, string> = {
+  alphabetical: 'filters.sort.a_z',
+  recent: 'filters.sort.recent',
+};
 
 export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDetailScreenProps) {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const [detail, setDetail] = useState<AddByRssHomeDetailData | null>(null);
-  const [sort, setSort] = useState<EpisodeSort>(DEFAULT_PODCAST_EPISODE_SORT);
+  const [sort, setSort] = useState<AddByRssEpisodeSort>(DEFAULT_ADD_BY_RSS_EPISODE_SORT);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRemoving, setIsRemoving] = useState<boolean>(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
@@ -112,7 +112,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
       }
 
       const mappedFeed = await addByRssRepository.getMappedFeedByUrl(feed.feedUrl);
-      const { sort: storedSort } = await readPodcastDetailPrefs(feed.idText);
+      const { sort: storedSort } = await readAddByRssDetailPrefs(feed.idText);
       setSort(storedSort);
       setDetail(
         mappedFeed === null
@@ -176,10 +176,10 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
 
   const sortOptions = useMemo(
     () =>
-      SORT_OPTIONS.map((option) => ({
-        label: t(option.labelKey),
-        testID: `add-by-rss-home-sort-${option.value}`,
-        value: option.value,
+      ADD_BY_RSS_EPISODE_SORT_OPTIONS.map((option) => ({
+        label: t(SORT_LABEL_KEYS[option]),
+        testID: `add-by-rss-home-sort-${option}`,
+        value: option,
       })),
     [t]
   );
@@ -282,7 +282,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
                 onSelect={(nextSort) => {
                   setSort(nextSort);
                   if (detail !== null) {
-                    void writePodcastDetailSort(detail.feed.idText, nextSort);
+                    void writeAddByRssDetailSort(detail.feed.idText, nextSort);
                   }
                 }}
                 options={sortOptions}
