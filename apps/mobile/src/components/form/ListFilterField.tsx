@@ -12,7 +12,11 @@ export type ListFilterFieldProps = {
   onChangeTerm: (term: string) => void;
   /** Already-localized. Defaults to `label`. */
   placeholder?: string;
-  /** Spacing from whatever the field sits between, which is the caller's business. */
+  /**
+   * Spacing from chips / header above is the caller's business (`marginTop`). Spacing to the first
+   * list or grid content below must use **`listFilterFieldBottomMargin`** from `screenLayout` so
+   * list (row top padding) and grid (no top padding) land on the same `listFilterContentGap` seam.
+   */
   style?: StyleProp<ViewStyle>;
   /** Input is `${testID}-input`, clear control is `${testID}-clear`. */
   testID: string;

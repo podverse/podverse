@@ -39,7 +39,7 @@ import {
   writePodcastDetailSort,
   writePodcastDetailTab,
 } from '../../prefs/detailListPrefs';
-import { listHeaderStackGap } from '../../theme/screenLayout';
+import { listFilterFieldBottomMargin, listHeaderStackGap } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 import {
   isFilterableSection,
@@ -130,6 +130,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
           flex: 1,
         },
         filterRow: {
+          marginBottom: listFilterFieldBottomMargin(tokens.spacing, tokens.spacing.base),
           marginTop: listHeaderStackGap(tokens.spacing),
         },
         headerActions: {

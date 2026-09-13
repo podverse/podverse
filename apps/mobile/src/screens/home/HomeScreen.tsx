@@ -42,7 +42,7 @@ import {
 } from '../../prefs/preferredMediaType';
 import { useSync } from '../../sync';
 import { resolveGridCellWidth, resolveGridColumns } from '../../theme/resolveColumns';
-import { screenBodyInsets } from '../../theme/screenLayout';
+import { listFilterFieldBottomMargin, screenBodyInsets } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useResponsive } from '../../theme/useResponsive';
 import { useTheme } from '../../theme/useTheme';
@@ -507,6 +507,12 @@ export function HomeScreen() {
 
   const styles = useMemo(() => {
     const insets = screenBodyInsets(tokens.spacing);
+    // List rows already carry `spacing.base` top padding; grid tiles do not — compensate so the
+    // filter→content seam matches `listFilterContentGap` in both view modes.
+    const filterBottomMargin = listFilterFieldBottomMargin(
+      tokens.spacing,
+      isGridView ? 0 : tokens.spacing.base
+    );
 
     return StyleSheet.create({
       columnCell: {
@@ -534,7 +540,7 @@ export function HomeScreen() {
         marginTop: tokens.spacing.sm,
       },
       filterRow: {
-        marginBottom: tokens.spacing.md,
+        marginBottom: filterBottomMargin,
         marginTop: tokens.spacing.sm,
       },
       unsubscribedSection: {
@@ -546,7 +552,7 @@ export function HomeScreen() {
         marginBottom: tokens.spacing.sm,
       },
     });
-  }, [gridCellWidth, themeStyles, tokens]);
+  }, [gridCellWidth, isGridView, themeStyles, tokens]);
 
   const showFeedRows = !isFeedLoading && feedErrorKey === null;
   const showFilterField =

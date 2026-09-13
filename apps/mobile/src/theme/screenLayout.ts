@@ -65,6 +65,29 @@ export function listHeaderStackGap(spacing: ThemeTokens['spacing']): number {
 }
 
 /**
+ * Target distance from a `ListFilterField` bottom edge to the first content below it (list-row
+ * artwork or grid tile). Midway between a bare filter margin (tight grid) and filter margin plus
+ * list-row top padding (loose list). Prefer this over a raw `spacing.md` / `spacing.lg` pick.
+ */
+export function listFilterContentGap(spacing: ThemeTokens['spacing']): number {
+  return spacing.base;
+}
+
+/**
+ * `marginBottom` for a `ListFilterField` so the **visual** gap to the next content equals
+ * `listFilterContentGap`, after subtracting top padding the first row/tile already carries.
+ *
+ * List rows that use `listRowVerticalPadding(spacing.base)` pass `spacing.base`; grid tiles with no
+ * top padding pass `0`.
+ */
+export function listFilterFieldBottomMargin(
+  spacing: ThemeTokens['spacing'],
+  nextContentTopPadding = 0
+): number {
+  return Math.max(0, listFilterContentGap(spacing) - nextContentTopPadding);
+}
+
+/**
  * Page-body gutter under HeaderBar and around screen lists: `spacing.lg` above the first content
  * and on both sides. Internal gaps (input → results, row → row) stay on the screen.
  */

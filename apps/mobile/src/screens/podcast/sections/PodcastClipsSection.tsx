@@ -3,7 +3,6 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useMemo } from 'react';
 
 import type { DTOClip } from '@podverse/helpers';
-import { matchesTitleFilter } from '@podverse/helpers';
 import type { ApiRequestService } from '@podverse/helpers-requests';
 
 import { clipToHomeRow } from '../../../lib/rows/homeRowMappers';
@@ -29,7 +28,6 @@ import { sectionResponseHasMore, usePodcastSectionRows } from './usePodcastSecti
  */
 export function PodcastClipsSection({
   channelIdText,
-  filterTerm,
   listHeader,
   onRefreshChannel,
   range,
@@ -70,16 +68,10 @@ export function PodcastClipsSection({
 
   const clipRows = useMemo<HomeFeedRowData[]>(() => rows.map(clipToHomeRow), [rows]);
 
-  const visibleRows = useMemo(
-    () => clipRows.filter((row) => matchesTitleFilter(row.title, filterTerm)),
-    [clipRows, filterTerm]
-  );
-
   return (
     <PodcastSectionList
       emptyMessageKey="features.clip.no_clips_found"
       errorKey={errorKey}
-      hasFilterHiddenEverything={clipRows.length > 0 && visibleRows.length === 0}
       hasMore={hasMore}
       isInitialLoading={isInitialLoading}
       isLoadingMore={isLoadingMore}
@@ -111,7 +103,7 @@ export function PodcastClipsSection({
           testID={`podcast-clip-row-${index}`}
         />
       )}
-      rows={visibleRows}
+      rows={clipRows}
       testID="podcast-detail-clip-list"
     />
   );

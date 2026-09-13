@@ -9,6 +9,9 @@ globs:
   - apps/mobile/src/components/primitives/VerticalCenter.tsx
   - apps/mobile/src/components/form/SearchField.tsx
   - apps/mobile/src/components/section/ListSection.tsx
+  - apps/mobile/src/components/state/ListEmpty.tsx
+  - apps/mobile/src/screens/podcast/podcastSections.ts
+  - apps/mobile/src/screens/podcast/sections/PodcastSectionList.tsx
   - apps/mobile/src/screens/home/HomeFeedRow.tsx
   - apps/mobile/src/components/primitives/MoreMenu.tsx
   - apps/mobile/App.tsx
@@ -111,6 +114,21 @@ Under a channel header, stacked blocks (header → chips → filter) use
 **`listHeaderStackGap(tokens.spacing)`** (`spacing.lg`) on each seam — do not mix `md` on one and
 `lg` on another.
 
+## Filter field → content seam
+
+The gap from a **`ListFilterField`** bottom edge to the first list row or grid tile is
+**`listFilterContentGap(tokens.spacing)`** (`spacing.base`). Apply it with
+**`listFilterFieldBottomMargin(tokens.spacing, nextContentTopPadding)`** as the field's
+`marginBottom`:
+
+- **List** rows that use `listRowVerticalPadding(spacing.base)`: pass `spacing.base` so the field
+  does not double the row's top padding.
+- **Grid** tiles with no top padding: pass `0`.
+
+Do not use a raw `marginBottom: spacing.md` on the filter (too tight on grid once list padding is
+added elsewhere, too loose on list when stacked with row padding). Home switches the second
+argument with `isGridView` so both view modes share one seam.
+
 Row dividers are `StyleSheet.hairlineWidth` + `themeStyles.border.borderColor`. The **last row
 omits the bottom border** so a hairline does not sit on the list edge. Pass `isLast` on
 `HomeFeedRow`. `ListSection` already supplies it as the third `renderItem` argument
@@ -123,10 +141,21 @@ The rule between chips/filters and the first row is one step stronger than a row
 ## Fill empty lists do not scroll
 
 When a list's only body is a fill info state (`VerticalCenter` / `LoadingSection` /
-`CallToActionSection` as `ListEmptyComponent`), there is nothing to scroll. Use **`FillList`**
-instead of raw `FlatList` — it locks bounce, over-scroll, pull-to-refresh, and `scrollEnabled`
-whenever `data` is empty and `ListEmptyComponent` is set. Pass `ListEmptyComponent={null}` when
-the empty copy lives in the header and the list should still scroll (filter-no-matches).
+`CallToActionSection` / **`ListEmpty`** as `ListEmptyComponent`), there is nothing to scroll. Use
+**`FillList`** instead of raw `FlatList` — it locks bounce, over-scroll, pull-to-refresh, and
+`scrollEnabled` whenever `data` is empty and `ListEmptyComponent` is set.
+
+**`ListEmpty`** wraps **`VerticalCenter`** and uses **`typography.subheading`** (same scale as
+`CallToActionSection` message copy) so "no results" / "nothing here" lines up across screens.
+
+Podcast section lists use **`PodcastSectionList`**, which already composes **`FillList`** +
+**`ListEmpty`**.
+
+## Podcast detail filter visibility
+
+Show **`ListFilterField`** only when **`isFilterableSection(section)`** is true
+(`podcastSections.ts`). Clips are **not** filterable — the server paginates them and the client does
+not title-filter that tab. Episodes, official soundbites, and podroll are filterable.
 
 ## Action-gated account / membership
 
@@ -174,6 +203,7 @@ link-style `Pressable` under Submit (`auth-switch-signup` / `auth-switch-login`)
 ## Related
 
 - Page gutter: `apps/mobile/src/theme/screenLayout.ts`
+- Filter→content seam: `listFilterContentGap` / `listFilterFieldBottomMargin` in the same file
 - Top chrome: `apps/mobile/src/components/screen/HeaderBar.tsx`
 - Fill lists: `apps/mobile/src/components/primitives/FillList.tsx`
 - Skill: **mobile-reusable-components**

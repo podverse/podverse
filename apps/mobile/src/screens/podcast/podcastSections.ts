@@ -16,8 +16,8 @@ export const PODCAST_SECTION_LABEL_KEYS: Record<PodcastTab, string> = {
 /** Sections whose rows are ordered, so a sort control has something to act on. */
 const SORTABLE_SECTIONS: readonly PodcastTab[] = ['episodes', 'clips'];
 
-/** Sections whose rows carry titles, so filtering by title has something to match. */
-const FILTERABLE_SECTIONS: readonly PodcastTab[] = ['episodes', 'soundbites', 'clips', 'podroll'];
+/** Sections whose rows carry titles the client can filter locally by title. */
+const FILTERABLE_SECTIONS: readonly PodcastTab[] = ['episodes', 'soundbites', 'podroll'];
 
 export const isSortableSection = (section: PodcastTab): boolean =>
   SORTABLE_SECTIONS.includes(section);

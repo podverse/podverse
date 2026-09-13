@@ -58,6 +58,8 @@ name: Podcast Episode Flow
     visible:
       id: podcast-detail-clip-list
     timeout: ${TIMEOUT_SLOWER}
+- assertNotVisible:
+    id: podcast-detail-filter-input
 - takeScreenshot: podcast-episode-section-clips
 
 # About makes no request of its own — it reads what came down with the channel.

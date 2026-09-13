@@ -1,10 +1,10 @@
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Linking, StyleSheet, Text, View } from 'react-native';
+import { Linking, StyleSheet, Text, View } from 'react-native';
 
 import type { DTOChannelPerson } from '@podverse/helpers';
 
-import { CoverImage, ListRow } from '../../../components/primitives';
+import { CoverImage, FillList, ListRow } from '../../../components/primitives';
 import { ListEmpty } from '../../../components/state/ListEmpty';
 import { screenBodyInsets } from '../../../theme/screenLayout';
 import { typography } from '../../../theme/typography';
@@ -127,7 +127,7 @@ export function PodcastAboutSection({ channel, listHeader }: PodcastSectionPaneP
   };
 
   return (
-    <FlatList
+    <FillList
       ListEmptyComponent={
         <ListEmpty messageKey="info.summary.no_summary" testID="podcast-detail-about-empty" />
       }

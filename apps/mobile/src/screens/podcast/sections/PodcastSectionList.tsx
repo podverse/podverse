@@ -1,11 +1,12 @@
 import type { ReactElement, ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Pressable, RefreshControl, StyleSheet, Text } from 'react-native';
+import { Pressable, RefreshControl, StyleSheet, Text } from 'react-native';
 
+import { FillList, VerticalCenter } from '../../../components/primitives';
 import { ListEmpty } from '../../../components/state/ListEmpty';
 import { ListError } from '../../../components/state/ListError';
-import { ListLoading } from '../../../components/state/ListLoading';
+import { LoadingSection } from '../../../components/state/LoadingSection';
 import { screenBodyInsets } from '../../../theme/screenLayout';
 import { useTheme } from '../../../theme/useTheme';
 
@@ -118,9 +119,11 @@ export function PodcastSectionList<TRow>({
 
   const listStatus = (
     <>
-      {isInitialLoading ? <ListLoading testID={`${prefix}-loading`} /> : null}
+      {isInitialLoading ? <LoadingSection testID={`${prefix}-loading`} /> : null}
       {showBlockingError && !isInitialLoading ? (
-        <ListError messageKey={errorKey} onRetry={onRetry} testID={`${prefix}-error`} />
+        <VerticalCenter>
+          <ListError messageKey={errorKey} onRetry={onRetry} testID={`${prefix}-error`} />
+        </VerticalCenter>
       ) : null}
       {showNoFilterMatches ? (
         <ListEmpty messageKey="filters.list.no_matches" testID={`${prefix}-no-filter-matches`} />
@@ -130,7 +133,7 @@ export function PodcastSectionList<TRow>({
   );
 
   return (
-    <FlatList
+    <FillList
       ListEmptyComponent={listStatus}
       ListFooterComponent={
         <>
@@ -174,3 +177,4 @@ export function PodcastSectionList<TRow>({
     />
   );
 }
+
